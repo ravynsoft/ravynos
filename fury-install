@@ -1,0 +1,34 @@
+#!/usr/local/bin/bash
+
+LIVEFS="/"
+FSMNT="/mnt"
+
+umount -f ${FSMNT}/dev || true
+zpool export -f zroot || true
+bsdinstall zfsboot
+if [ ! -d "/mnt/usr" ] ; then
+  exit 1
+fi
+echo "Installing... please wait"
+#rsync -aHAXS --info=progress2 --stats --exclude={'/mnt','liveuser','doas.conf','sddm.conf'} ${LIVEFS} ${FSMNT}
+tar -zcf - / | (pv -n > ${FSMNT}/backup.tgz) 2>&1 | dialog --gauge "Compressing image, please wait..." 10 70
+pv -n ${FSMNT}/backup.tar.gz | tar xzf - -C path/to/data ) 2>&1 | dialog --gauge "Extracting image, please wait..." 10 70 0
+mount -t devfs devfs ${FSMNT}
+chroot ${FSMNT} cp /usr/local/etc/sddm.conf.sample /usr/local/etc/sddm.conf
+chroot ${FSMNT} rm /usr/local/etc/doas.conf
+chroot ${FSMNT} sed -i '' '/liveuser/d' /etc/passwd
+chroot ${FSMNT} sed -i '' '/liveuser/d' /etc/group
+chroot ${FSMNT} pwd_mkdb /etc/master.passwd
+chroot ${FSMNT} bsdconfig password
+chroot ${FSMNT} bsdconfig useradd
+chroot ${FSMNT} bsdconfig timezone
+chroot ${FSMNT} bsdconfig hostname
+chroot ${FSMNT} sysrc -f /boot/loader.conf opensolaris_load="YES"
+chroot ${FSMNT} sysrc -f /boot/loader.conf zfs_load="YES"
+chroot ${FSMNT} sysrc -x root_rw_mount="NO"
+chroot ${FSMNT} sysrc zfs_enable="YES"
+echo "Installation finished!"
+read -p "Press any key to reboot... " -n1 -s
+umount -f ${FSMNT}/dev || true
+zpool export -f zroot || true
+shutdown -r now
