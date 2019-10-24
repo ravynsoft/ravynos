@@ -9,11 +9,8 @@ bsdinstall zfsboot
 if [ ! -d "/mnt/usr" ] ; then
   exit 1
 fi
-echo "Installing... please wait"
-#rsync -aHAXS --info=progress2 --stats --exclude={'/mnt','liveuser','doas.conf','sddm.conf'} ${LIVEFS} ${FSMNT}
-tar -zcf - / | (pv -n > ${FSMNT}/backup.tgz) 2>&1 | dialog --gauge "Compressing image, please wait..." 10 70
-pv -n ${FSMNT}/backup.tar.gz | tar xzf - -C path/to/data ) 2>&1 | dialog --gauge "Extracting image, please wait..." 10 70 0
-mount -t devfs devfs ${FSMNT}
+su -m root -c 'cd /mnt && dump -0Laf - /dev/md1.uzip | restore -rf -'
+mount -t devfs devfs ${FSMNT}/dev
 chroot ${FSMNT} cp /usr/local/etc/sddm.conf.sample /usr/local/etc/sddm.conf
 chroot ${FSMNT} rm /usr/local/etc/doas.conf
 chroot ${FSMNT} sed -i '' '/liveuser/d' /etc/passwd
@@ -26,7 +23,9 @@ chroot ${FSMNT} bsdconfig hostname
 chroot ${FSMNT} sysrc -f /boot/loader.conf opensolaris_load="YES"
 chroot ${FSMNT} sysrc -f /boot/loader.conf zfs_load="YES"
 chroot ${FSMNT} sysrc -x root_rw_mount="NO"
+chroot ${FSMNT} sysrc -x slim_enable="YES"
 chroot ${FSMNT} sysrc zfs_enable="YES"
+chroot ${FSMNT} sysrc sddm_enable="YES"
 echo "Installation finished!"
 read -p "Press any key to reboot... " -n1 -s
 umount -f ${FSMNT}/dev || true
