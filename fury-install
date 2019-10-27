@@ -13,9 +13,9 @@ su -m root -c 'cd /mnt && dump -0af - /dev/md1.uzip | restore -rf -'
 mount -t devfs devfs ${FSMNT}/dev
 chroot ${FSMNT} cp /usr/local/etc/sddm.conf.sample /usr/local/etc/sddm.conf
 chroot ${FSMNT} rm /usr/local/etc/doas.conf
-chroot ${FSMNT} sed -i '' '/liveuser/d' /etc/passwd
-chroot ${FSMNT} sed -i '' '/liveuser/d' /etc/group
-chroot ${FSMNT} pwd_mkdb /etc/master.passwd
+chroot ${FSMNT} pw userdel liveuser
+chroot ${FSMNT} pw groupdel liveuser
+chroot ${FSMNT} rm -rf /usr/home/liveuser
 chroot ${FSMNT} bsdconfig password
 chroot ${FSMNT} bsdconfig useradd
 chroot ${FSMNT} bsdconfig timezone
