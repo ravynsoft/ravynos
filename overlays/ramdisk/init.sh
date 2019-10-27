@@ -27,41 +27,50 @@ echo "==> Mount cdrom"
 mount_cd9660 /dev/iso9660/FURYBSD /cdrom
 mdmfs -P -F /cdrom/data/system.uzip -o ro md.uzip /sysroot
 
-echo "--> Extract etc from uzip"
+echo "--> Extract /etc from uzip"
 tar -zcf /tmp/etc.txz -C /sysroot/etc .
 
-echo "--> Extract home from uzip"
+echo "--> Extract /home from uzip"
 tar -zcf /tmp/home.txz -C /sysroot/usr/home .
 
-echo "--> Extract root from uzip"
+echo "--> Extract /root from uzip"
 tar -zcf /tmp/root.txz -C /sysroot/root .
 
-echo "--> Extract var from uzip"
+echo "--> Extract /var from uzip"
 tar -zcf /tmp/var.txz -C /sysroot/var .
 
-echo "--> Remount etc with tmpfs"
+echo "--> Extract /usr/local/etc from uzip"
+tar -zcf /tmp/usr-local-etc.txz -C /sysroot/usr/local/etc .
+
+echo "--> Remount /etc with tmpfs"
 mount -t tmpfs tmpfs /sysroot/etc
 
-echo "--> Remount home with tmpfs"
+echo "--> Remount /home with tmpfs"
 mount -t tmpfs tmpfs /sysroot/usr/home
 
-echo "--> Remount root with tmpfs"
+echo "--> Remount /root with tmpfs"
 mount -t tmpfs tmpfs /sysroot/root
 
-echo "->> Remount var with tmpfs"
+echo "->> Remount /var with tmpfs"
 mount -t tmpfs tmpfs /sysroot/var
 
-echo "--> Restore etc into writable layer"
+echo "->> Remount /usr/local/etc with tmpfs"
+mount -t tmpfs tmpfs /sysroot/usr/local/etc
+
+echo "--> Restore /etc into writable layer"
 tar -xf /tmp/etc.txz -C /sysroot/etc/
 
-echo "--> Restore home into writable layer"
+echo "--> Restore /home into writable layer"
 tar -xf /tmp/home.txz -C /sysroot/usr/home/
 
-echo "--> Restore root into writable layer"
+echo "--> Restore /root into writable layer"
 tar -xf /tmp/root.txz -C /sysroot/root/
 
-echo "->> Restore var into writable layer"
+echo "->> Restore /var into writable layer"
 tar -xf /tmp/var.txz -C /sysroot/var/
+
+echo "->> Restore /usr/local/etc into writable layer"
+tar -xf /tmp/usr-local-etc.txz -C /sysroot/usr/local/etc/
 
 echo "==> Mount devfs"
 mount -t devfs devfs /sysroot/dev
