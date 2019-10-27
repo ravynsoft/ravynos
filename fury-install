@@ -3,8 +3,8 @@
 LIVEFS="/"
 FSMNT="/mnt"
 
-umount -f ${FSMNT}/dev || true
-zpool export -f zroot || true
+umount -f ${FSMNT}/dev >/dev/null 2>/dev/null || true
+zpool export -f zroot >/dev/null 2>/dev/null || true
 bsdinstall zfsboot
 if [ ! -d "/mnt/usr" ] ; then
   exit 1
