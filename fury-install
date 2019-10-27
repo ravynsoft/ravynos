@@ -30,7 +30,8 @@ bsdinstall adduser
 bsdinstall time
 bsdinstall hostname
 
-if [ -f "/mnt/boot/loader.conf" ] ; then
+# Enable additional services needed for ZFS
+if [ ! -f "/mnt/boot/loader.conf" ] ; then
   touch /mnt/boot/loader.conf
 fi
 chroot ${FSMNT} sysrc -f /boot/loader.conf opensolaris_load="YES"
