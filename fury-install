@@ -23,9 +23,7 @@ chroot ${FSMNT} bsdconfig hostname
 chroot ${FSMNT} sysrc -f /boot/loader.conf opensolaris_load="YES"
 chroot ${FSMNT} sysrc -f /boot/loader.conf zfs_load="YES"
 chroot ${FSMNT} sysrc -x root_rw_mount="NO"
-chroot ${FSMNT} sysrc -x slim_enable="YES"
 chroot ${FSMNT} sysrc zfs_enable="YES"
-chroot ${FSMNT} sysrc sddm_enable="YES"
 echo "Installation finished!"
 read -p "Press any key to reboot... " -n1 -s
 umount -f ${FSMNT}/dev || true

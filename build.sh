@@ -75,7 +75,6 @@ user()
   mkdir -p ${uzip}/usr/home/liveuser/Desktop
   cp ${cwd}/fury-install ${uzip}/usr/home/liveuser/
   cp ${cwd}/fury-install.desktop ${uzip}/usr/home/liveuser/Desktop/
-  cp ${cwd}/.xinitrc ${uzip}/usr/home/liveuser/.xinitrc
   chroot ${uzip} echo furybsd | chroot ${uzip} pw mod user root -h 0
   chroot ${uzip} pw useradd liveuser \
   -c "Live User" -d "/home/liveuser" \
@@ -84,7 +83,7 @@ user()
   chroot ${uzip} echo furybsd | chroot ${uzip} pw mod user liveuser -h 0
   chroot ${uzip} chown -R 1001:1001 /usr/home/liveuser
   cp ${cwd}/doas.conf ${uzip}/usr/local/etc/
-  cp ${cwd}/slim.conf ${uzip}/usr/local/etc/
+  cp ${cwd}/sddm.conf ${uzip}/usr/local/etc/
 }
 
 uzip() 
