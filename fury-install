@@ -4,7 +4,7 @@ LIVEFS="/"
 FSMNT="/mnt"
 
 umount -f ${FSMNT}/dev >/dev/null 2>/dev/null || true
-zpool export -f zroot >/dev/null 2>/dev/null || true
+zpool list -H | awk -F '\t' '{print $1;}' | xargs -I % zpool export -f % >/dev/null 2>/dev/null || true
 bsdinstall zfsboot
 if [ ! -d "/mnt/usr" ] ; then
   exit 1
@@ -26,6 +26,6 @@ chroot ${FSMNT} sysrc -x root_rw_mount="NO"
 chroot ${FSMNT} sysrc zfs_enable="YES"
 echo "Installation finished!"
 read -p "Press any key to reboot... " -n1 -s
-umount -f ${FSMNT}/dev || true
-zpool export -f zroot || true
+umount -f ${FSMNT}/dev >/dev/null 2>/dev/null || true
+zpool list -H | awk -F '\t' '{print $1;}' | xargs -I % zpool export -f % >/dev/null 2>/dev/null || true
 shutdown -r now
