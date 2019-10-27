@@ -9,7 +9,7 @@ bsdinstall zfsboot
 if [ ! -d "/mnt/usr" ] ; then
   exit 1
 fi
-su -m root -c 'cd /mnt && dump -0Laf - /dev/md1.uzip | restore -rf -'
+su -m root -c 'cd /mnt && dump -0af - /dev/md1.uzip | restore -rf -'
 mount -t devfs devfs ${FSMNT}/dev
 chroot ${FSMNT} cp /usr/local/etc/sddm.conf.sample /usr/local/etc/sddm.conf
 chroot ${FSMNT} rm /usr/local/etc/doas.conf
