@@ -25,10 +25,11 @@ chroot ${FSMNT} sysrc -x root_rw_mount="NO"
 
 # Configure the new installation
 mount -t devfs devfs ${FSMNT}/dev
-chroot ${FSMNT} bsdconfig password
-chroot ${FSMNT} bsdconfig useradd
-chroot ${FSMNT} bsdconfig timezone
-chroot ${FSMNT} bsdconfig hostname
+bsdinstall rootpass
+bsdinstall adduser
+bsdinstall time
+bsdinstall hostname
+
 if [ -f "/mnt/boot/loader.conf" ] ; then
   touch /mnt/boot/loader.conf
 fi
