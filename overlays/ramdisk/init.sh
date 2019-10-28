@@ -75,6 +75,19 @@ tar -xf /tmp/usr-local-etc.txz -C /sysroot/usr/local/etc/
 echo "==> Mount devfs"
 mount -t devfs devfs /sysroot/dev
 
+BOOTMODE=`sysctl -n machdep.bootmethod`
+export BOOTMODE
+
+if [ "${BOOTMODE}" = "BIOS" ]; then
+  echo "BIOS detected"
+  cp /sysroot/usr/home/liveuser/driver-vesa.conf /sysroot/usr/local/etc/xorg.conf.d/driver-vesa.conf
+fi
+
+if [ "${BOOTMODE}" = "UEFI" ]; then
+  echo "UEFI detected"
+  cp /sysroot/usr/home/liveuser/driver-scfb.conf /sysroot/usr/local/etc/xorg.conf.d/driver-scfb.conf
+fi
+
 if [ "$SINGLE_USER" = "true" ]; then
 	echo "Starting interactive shell in temporary rootfs ..."
 	sh
