@@ -39,6 +39,9 @@ chroot ${FSMNT} sysrc -f /boot/loader.conf opensolaris_load="YES"
 chroot ${FSMNT} sysrc -f /boot/loader.conf zfs_load="YES"
 chroot ${FSMNT} sysrc zfs_enable="YES"
 
+# Commit important config changes from LiveCD to installation
+cp -R /usr/local/etc/xorg.conf.d/ ${FSMNT}/usr/local/etc/xorg.conf.d/
+
 # Cleanup and reboot
 echo "Installation finished!"
 read -p "Press any key to reboot... " -n1 -s
