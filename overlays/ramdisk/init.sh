@@ -80,12 +80,14 @@ export BOOTMODE
 
 if [ "${BOOTMODE}" = "BIOS" ]; then
   echo "BIOS detected"
-  cp /sysroot/usr/home/liveuser/driver-vesa.conf /sysroot/usr/local/etc/xorg.conf.d/driver-vesa.conf
+  mkdir -p /sysroot/usr/local/etc/X11/xorg.conf.d
+  cp /sysroot/usr/home/liveuser/driver-vesa.conf /sysroot/usr/local/etc/X11/xorg.conf.d/driver-vesa.conf
 fi
 
 if [ "${BOOTMODE}" = "UEFI" ]; then
   echo "UEFI detected"
-  cp /sysroot/usr/home/liveuser/driver-scfb.conf /sysroot/usr/local/etc/xorg.conf.d/driver-scfb.conf
+  mkdir -p /sysroot/usr/local/etc/X11/xorg.conf.d
+  cp /sysroot/usr/home/liveuser/driver-scfb.conf /sysroot/usr/local/etc/X11/xorg.conf.d/driver-scfb.conf
 fi
 
 if [ "$SINGLE_USER" = "true" ]; then

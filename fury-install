@@ -40,7 +40,10 @@ chroot ${FSMNT} sysrc -f /boot/loader.conf zfs_load="YES"
 chroot ${FSMNT} sysrc zfs_enable="YES"
 
 # Commit important config changes from LiveCD to installation
-cp -R /usr/local/etc/xorg.conf.d/ ${FSMNT}/usr/local/etc/xorg.conf.d/
+if [ ! -d "/mnt/usr/local/etc/X11/xorg.conf.d" ] ; then
+  mkdir /mnt/usr/local/etc/X11/xorg.conf.d
+fi
+cp -R /usr/local/etc/X11/xorg.conf.d/ ${FSMNT}/usr/local/etc/X11/xorg.conf.d/
 
 # Cleanup and reboot
 echo "Installation finished!"
