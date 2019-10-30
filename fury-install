@@ -14,6 +14,7 @@ if [ ! -d "/mnt/usr" ] ; then
   exit 1
 fi
 su -m root -c 'cd /mnt && dump -0af - /dev/md1.uzip | restore -rf -'
+su -m root -c 'cd /mnt && dump -L -0 -f- /dev/md2 | restore -r -f-'
 
 # Cleanup LiveCD restore specific conents from destination pool
 chroot ${FSMNT} rm restoresymtable
@@ -38,9 +39,6 @@ fi
 chroot ${FSMNT} sysrc -f /boot/loader.conf opensolaris_load="YES"
 chroot ${FSMNT} sysrc -f /boot/loader.conf zfs_load="YES"
 chroot ${FSMNT} sysrc zfs_enable="YES"
-
-# Commit important config changes from LiveCD to installation
-cp -R /usr/local/etc/X11/xorg.conf.d/ ${FSMNT}/usr/local/etc/X11/xorg.conf.d/
 
 # Cleanup and reboot
 echo "Installation finished!"
