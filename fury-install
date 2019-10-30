@@ -9,12 +9,15 @@ umount -f ${FSMNT}/dev >/dev/null 2>/dev/null || true
 zpool list -H | awk -F '\t' '{print $1;}' | xargs -I % zpool export -f % >/dev/null 2>/dev/null || true
 
 # Install contents of read only uzip to destination pool
+bsdinstall hostname
 bsdinstall zfsboot
 if [ ! -d "/mnt/usr" ] ; then
   exit 1
 fi
 su -m root -c 'cd /mnt && dump -0af - /dev/md1.uzip | restore -rf -'
 su -m root -c 'cd /mnt && dump -L -0 -f- /dev/md2 | restore -r -f-'
+bsdinstall config
+bsdinstall entropy
 
 # Cleanup LiveCD restore specific conents from destination pool
 chroot ${FSMNT} rm restoresymtable
@@ -23,22 +26,17 @@ chroot ${FSMNT} rm /usr/local/etc/doas.conf
 chroot ${FSMNT} pw userdel liveuser
 chroot ${FSMNT} pw groupdel liveuser
 chroot ${FSMNT} rm -rf /usr/home/liveuser
-chroot ${FSMNT} sysrc -x root_rw_mount="NO"
 
 # Configure the new installation
 mount -t devfs devfs ${FSMNT}/dev
 bsdinstall rootpass
 bsdinstall adduser
 bsdinstall time
-bsdinstall hostname
 
-# Enable additional services needed for ZFS
-if [ ! -f "/mnt/boot/loader.conf" ] ; then
-  touch /mnt/boot/loader.conf
-fi
-chroot ${FSMNT} sysrc -f /boot/loader.conf opensolaris_load="YES"
-chroot ${FSMNT} sysrc -f /boot/loader.conf zfs_load="YES"
-chroot ${FSMNT} sysrc zfs_enable="YES"
+# Enable additional services needed for desktop
+chroot ${FSMNT} sysrc linux_enable="YES"
+chroot ${FSMNT} sysrc dbus_enable="YES"
+chroot ${FSMNT} sysrc lightdm_enable="YES"
 
 # Cleanup and reboot
 echo "Installation finished!"

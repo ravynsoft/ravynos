@@ -77,6 +77,7 @@ user()
   cp ${cwd}/fury-install ${uzip}/usr/home/liveuser/
   cp -R ${cwd}/xorg.conf.d/ ${uzip}/usr/home/liveuser/xorg.conf.d
   cp ${cwd}/fury-install.desktop ${uzip}/usr/home/liveuser/Desktop/
+  cp ${cwd}/FuryBSD-README.txt ${uzip}/usr/home/liveuser/Desktop/
   chroot ${uzip} echo furybsd | chroot ${uzip} pw mod user root -h 0
   chroot ${uzip} pw useradd liveuser \
   -c "Live User" -d "/home/liveuser" \
