@@ -11,11 +11,7 @@ echo "==> Remount rootfs as read-write"
 mount -u -w /
 
 echo "==> Make mountpoints"
-mkdir -p /cdrom /memdisk /sysroot /tmp
-
-
-echo "==> Remount tmp with tmpfs"
-mount -t tmpfs tmpfs /tmp
+mkdir -p /cdrom /memdisk /mnt /sysroot /tmp
 
 echo "Waiting for FURYBSD media to initialize"
 while : ; do
@@ -27,50 +23,24 @@ echo "==> Mount cdrom"
 mount_cd9660 /dev/iso9660/FURYBSD /cdrom
 mdmfs -P -F /cdrom/data/system.uzip -o ro md.uzip /sysroot
 
-echo "--> Extract /etc from uzip"
-tar -zcf /tmp/etc.txz -C /sysroot/etc .
+if [ "$SINGLE_USER" = "true" ]; then
+	echo -n "Enter memdisk size used for read-write access in the live system: "
+	read MEMDISK_SIZE
+else
+	MEMDISK_SIZE="256"
+fi
 
-echo "--> Extract /home from uzip"
-tar -zcf /tmp/home.txz -C /sysroot/usr/home .
+echo "==> Mount swap-based memdisk"
+mdmfs -s "${MEMDISK_SIZE}m" md /memdisk || exit 1
+mount -t unionfs /memdisk /sysroot
 
-echo "--> Extract /root from uzip"
-tar -zcf /tmp/root.txz -C /sysroot/root .
+mkdir -p /sysroot/media/cdrom
+mount_nullfs -o ro /cdrom /sysroot/media/cdrom
 
-echo "--> Extract /var from uzip"
-tar -zcf /tmp/var.txz -C /sysroot/var .
-
-echo "--> Extract /usr/local/etc from uzip"
-tar -zcf /tmp/usr-local-etc.txz -C /sysroot/usr/local/etc .
-
-echo "--> Remount /etc with tmpfs"
-mount -t tmpfs tmpfs /sysroot/etc
-
-echo "--> Remount /home with tmpfs"
-mount -t tmpfs tmpfs /sysroot/usr/home
-
-echo "--> Remount /root with tmpfs"
-mount -t tmpfs tmpfs /sysroot/root
-
-echo "->> Remount /var with tmpfs"
-mount -t tmpfs tmpfs /sysroot/var
-
-echo "->> Remount /usr/local/etc with tmpfs"
-mount -t tmpfs tmpfs /sysroot/usr/local/etc
-
-echo "--> Restore /etc into writable layer"
-tar -xf /tmp/etc.txz -C /sysroot/etc/
-
-echo "--> Restore /home into writable layer"
-tar -xf /tmp/home.txz -C /sysroot/usr/home/
-
-echo "--> Restore /root into writable layer"
-tar -xf /tmp/root.txz -C /sysroot/root/
-
-echo "->> Restore /var into writable layer"
-tar -xf /tmp/var.txz -C /sysroot/var/
-
-echo "->> Restore /usr/local/etc into writable layer"
-tar -xf /tmp/usr-local-etc.txz -C /sysroot/usr/local/etc/
+mount -t tmpfs tmpfs /sysroot/tmp
+mount -t tmpfs tmpfs /sysroot/mnt
+mount -t nullfs /sysroot/tmp /tmp
+mount -t nullfs /sysroot/mnt /mnt
 
 echo "==> Mount devfs"
 mount -t devfs devfs /sysroot/dev
