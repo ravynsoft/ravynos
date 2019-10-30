@@ -17,7 +17,7 @@ su -m root -c 'cd /mnt && dump -0af - /dev/md1.uzip | restore -rf -'
 
 # Cleanup LiveCD restore specific conents from destination pool
 chroot ${FSMNT} rm restoresymtable
-chroot ${FSMNT} cp /usr/local/etc/sddm.conf.sample /usr/local/etc/sddm.conf
+chroot ${FSMNT} cp /usr/local/etc/lightdm/lightdm.conf.sample /usr/local/etc/lightdm/lightdm.conf
 chroot ${FSMNT} rm /usr/local/etc/doas.conf
 chroot ${FSMNT} pw userdel liveuser
 chroot ${FSMNT} pw groupdel liveuser

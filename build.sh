@@ -4,7 +4,7 @@ cwd="`realpath | sed 's|/scripts||g'`"
 workdir="/usr/local"
 livecd="${workdir}/furybsd"
 cache="${livecd}/cache"
-version=12.0
+version=12.1
 arch=AMD64
 base="${cache}/${version}/base"
 packages="${cache}/packages"
@@ -37,12 +37,12 @@ base()
 {
   if [ ! -f "${base}/base.txz" ] ; then 
     cd ${base}
-    fetch http://ftp.freebsd.org/pub/FreeBSD/releases/amd64/${version}-RELEASE/base.txz
+    fetch http://ftp.freebsd.org/pub/FreeBSD/releases/amd64/${version}-RC2/base.txz
   fi
   
   if [ ! -f "${base}/kernel.txz" ] ; then
     cd ${base}
-    fetch http://ftp.freebsd.org/pub/FreeBSD/releases/amd64/${version}-RELEASE/kernel.txz
+    fetch http://ftp.freebsd.org/pub/FreeBSD/releases/amd64/${version}-RC2/kernel.txz
   fi
   cd ${base}
   tar -zxvf base.txz -C ${uzip}
@@ -84,7 +84,9 @@ user()
   chroot ${uzip} echo furybsd | chroot ${uzip} pw mod user liveuser -h 0
   chroot ${uzip} chown -R 1001:1001 /usr/home/liveuser
   cp ${cwd}/doas.conf ${uzip}/usr/local/etc/
-  cp ${cwd}/sddm.conf ${uzip}/usr/local/etc/
+  cp ${cwd}/lightdm.conf ${uzip}/usr/local/etc/lightdm/
+  chroot ${uzip} sed -i '' -e 's/memorylocked=128M/memorylocked=256M/' /etc/login.conf
+  chroot ${uzip} cap_mkdb /etc/login.conf
 }
 
 uzip() 
@@ -110,7 +112,7 @@ boot()
 {
   cp -R ${cwd}/overlays/boot/ ${cdroot}
   cd "${uzip}" && tar -cf - --exclude boot/kernel boot | tar -xf - -C "${cdroot}"
-  for kfile in kernel geom_uzip.ko nullfs.ko tmpfs.ko unionfs.ko; do
+  for kfile in kernel geom_uzip.ko nullfs.ko tmpfs.ko unionfs.ko xz.ko; do
   tar -cf - boot/kernel/${kfile} | tar -xf - -C "${cdroot}"
   done
 }
