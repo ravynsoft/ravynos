@@ -67,7 +67,7 @@ rc()
   if [ ! -f "${uzip}/etc/rc.conf" ] ; then
     touch ${uzip}/etc/rc.conf
   fi
-  cat ${cwd}/settings/rc | xargs chroot ${uzip} sysrc -f /etc/rc.conf
+  cp ${cwd}/settings/rc ${uzip}/etc/rc.conf.local
 }
 
 user()
