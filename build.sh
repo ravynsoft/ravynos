@@ -95,8 +95,7 @@ user()
 uzip() 
 {
   install -o root -g wheel -m 755 -d "${cdroot}"
-  cd ${uzip} && tar -zcvf ${cdroot}/data/sysroot.txz --exclude='./usr/local' .
-  makefs "${cdroot}/data/system.ufs" "${uzip}/usr/local"
+  makefs "${cdroot}/data/system.ufs" "${uzip}"
   mkuzip -o "${cdroot}/data/system.uzip" "${cdroot}/data/system.ufs"
   rm -f "${cdroot}/data/system.ufs"
 }
