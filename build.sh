@@ -80,12 +80,12 @@ user()
   cp ${cwd}/fury-install.desktop ${uzip}/usr/home/liveuser/Desktop/
   cp ${cwd}/FuryBSD-README.txt ${uzip}/usr/home/liveuser/Desktop/
   chroot ${uzip} echo furybsd | chroot ${uzip} pw mod user root -h 0
-  chroot ${uzip} pw useradd liveuser \
+  chroot ${uzip} pw useradd liveuser -u 1000 \
   -c "Live User" -d "/home/liveuser" \
   -g wheel -G operator -m -s /bin/csh -k /usr/share/skel -w none
-  chroot ${uzip} pw groupadd liveuser
+  chroot ${uzip} pw groupadd liveuser -g 1000
   chroot ${uzip} echo furybsd | chroot ${uzip} pw mod user liveuser -h 0
-  chroot ${uzip} chown -R 1001:1001 /usr/home/liveuser
+  chroot ${uzip} chown -R 1000:1000 /usr/home/liveuser
   cp ${cwd}/doas.conf ${uzip}/usr/local/etc/
   cp ${cwd}/lightdm.conf ${uzip}/usr/local/etc/lightdm/
   chroot ${uzip} sed -i '' -e 's/memorylocked=128M/memorylocked=256M/' /etc/login.conf

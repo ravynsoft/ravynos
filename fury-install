@@ -14,8 +14,10 @@ bsdinstall zfsboot
 if [ ! -d "/mnt/usr" ] ; then
   exit 1
 fi
+chflags -R nodump /usr/home/liveuser
+chflags -R nodump /var/run/user/1000
 su -m root -c 'cd /mnt && dump -0af - /dev/md1.uzip | restore -rf -'
-su -m root -c 'cd /mnt && dump -L -0 -f- /dev/md2 | restore -r -f-'
+su -m root -c 'cd /mnt && dump -L -1 -f- /dev/md2 | restore -r -f-'
 bsdinstall config
 bsdinstall entropy
 
