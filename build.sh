@@ -6,6 +6,7 @@ livecd="${workdir}/furybsd"
 cache="${livecd}/cache"
 version=12.1
 arch=AMD64
+version="12.1-RC2"
 base="${cache}/${version}/base"
 packages="${cache}/packages"
 iso="${livecd}/iso"
@@ -15,12 +16,33 @@ ramdisk_root="${cdroot}/data/ramdisk"
 vol="furybsd"
 label="FURYBSD"
 isopath="${iso}/${vol}.iso"
+desktop=$1
 
 # Only run as superuser
 if [ "$(id -u)" != "0" ]; then
   echo "This script must be run as root" 1>&2
   exit 1
 fi
+
+if [ -z "$1" ] ; then
+  export desktop="xfce"
+fi
+
+case $desktop in
+  'kde')
+    export desktop="KDE"
+    ;;
+  'gnome')
+    export desktop="GNOME"
+    ;;
+  *)
+    export desktop="XFCE"
+    ;;
+esac
+
+vol="FuryBSD-${version}-${desktop}"
+label="FURYBSD"
+isopath="${iso}/${vol}.iso"
 
 workspace()
 {
@@ -37,12 +59,12 @@ base()
 {
   if [ ! -f "${base}/base.txz" ] ; then 
     cd ${base}
-    fetch http://ftp.freebsd.org/pub/FreeBSD/releases/amd64/${version}-RC2/base.txz
+    fetch http://ftp.freebsd.org/pub/FreeBSD/releases/amd64/${version}/base.txz
   fi
   
   if [ ! -f "${base}/kernel.txz" ] ; then
     cd ${base}
-    fetch http://ftp.freebsd.org/pub/FreeBSD/releases/amd64/${version}-RC2/kernel.txz
+    fetch http://ftp.freebsd.org/pub/FreeBSD/releases/amd64/${version}/kernel.txz
   fi
   cd ${base}
   tar -zxvf base.txz -C ${uzip}
@@ -56,7 +78,7 @@ packages()
   mkdir ${uzip}/var/cache/pkg
   mount_nullfs ${packages} ${uzip}/var/cache/pkg
   mount -t devfs devfs ${uzip}/dev
-  cat ${cwd}/settings/packages | xargs pkg-static -c ${uzip} install -y
+  cat ${cwd}/settings/packages.${desktop} | xargs pkg-static -c ${uzip} install -y
   rm ${uzip}/etc/resolv.conf
   umount ${uzip}/var/cache/pkg
   umount ${uzip}/dev || true
@@ -67,7 +89,7 @@ rc()
   if [ ! -f "${uzip}/etc/rc.conf" ] ; then
     touch ${uzip}/etc/rc.conf
   fi
-  cp ${cwd}/settings/rc ${uzip}/etc/rc.conf.local
+  cp ${cwd}/settings/rc.conf.${desktop} ${uzip}/etc/rc.conf.local
 }
 
 user()
@@ -87,9 +109,21 @@ user()
   chroot ${uzip} echo furybsd | chroot ${uzip} pw mod user liveuser -h 0
   chroot ${uzip} chown -R 1000:1000 /usr/home/liveuser
   cp ${cwd}/doas.conf ${uzip}/usr/local/etc/
-  cp ${cwd}/lightdm.conf ${uzip}/usr/local/etc/lightdm/
-  chroot ${uzip} sed -i '' -e 's/memorylocked=128M/memorylocked=256M/' /etc/login.conf
-  chroot ${uzip} cap_mkdb /etc/login.conf
+}
+
+dm()
+{
+  if [[ ${desktop} == "XFCE" ]]; then
+      cp ${cwd}/lightdm.conf ${uzip}/usr/local/etc/lightdm/
+      chroot ${uzip} sed -i '' -e 's/memorylocked=128M/memorylocked=256M/' /etc/login.conf
+      chroot ${uzip} cap_mkdb /etc/login.conf
+  fi
+  if [[ ${desktop} == "KDE" ]]; then
+     cp ${cwd}/sddm.conf ${uzip}/usr/local/etc/
+  fi
+  if [[ ${desktop} == "GNOME" ]]; then
+     cp ${cwd}/custom.conf $[uzip}/usr/local/etc/gdm/
+  fi
 }
 
 uzip() 
@@ -127,7 +161,7 @@ image()
 
 cleanup()
 {
-  if [ -d "${livecd}" ] ;then
+  if [ -d "${livecd}" ] ; then
     chflags -R noschg ${uzip} ${cdroot} >/dev/null 2>/dev/null
     rm -rf ${uzip} ${cdroot} >/dev/null 2>/dev/null
   fi
