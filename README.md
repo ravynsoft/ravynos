@@ -9,7 +9,7 @@ edit settings/packages.XFCE
 
 Enable more services:
 ```
-edit settings/rc.XFCE
+edit settings/rc.conf.XFCE
 ```
 
 ## Build
