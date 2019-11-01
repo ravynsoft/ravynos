@@ -4,12 +4,12 @@ LiveCD builder for FuryBSD
 ## Customize
 Add more packages:
 ```
-edit settings/packages
+edit settings/packages.XFCE
 ```
 
 Enable more services:
 ```
-edit settings/rc
+edit settings/rc.XFCE
 ```
 
 ## Build
