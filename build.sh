@@ -24,23 +24,22 @@ if [ "$(id -u)" != "0" ]; then
   exit 1
 fi
 
-if [ -z "$1" ] ; then
-  export desktop="xfce"
-fi
-
 case $desktop in
   'kde')
-    export desktop="KDE"
+    export desktop="kde"
+    export edition="KDE"
     ;;
   'gnome')
-    export desktop="GNOME"
+    export desktop="gnome"
+    export edition="GNOME"
     ;;
   *)
-    export desktop="XFCE"
+    export desktop="xfce"
+    export edition="XFCE"
     ;;
 esac
 
-vol="FuryBSD-${version}-${desktop}"
+vol="FuryBSD-${version}-${edition}"
 label="FURYBSD"
 isopath="${iso}/${vol}.iso"
 
@@ -95,7 +94,6 @@ rc()
 user()
 {
   mkdir -p ${uzip}/usr/home/liveuser/Desktop
-  cp ${cwd}/.dmrc ${uzip}/usr/home/liveuser/
   cp ${cwd}/fury-install ${uzip}/usr/home/liveuser/
   cp -R ${cwd}/xorg.conf.d/ ${uzip}/usr/home/liveuser/xorg.conf.d
   cp ${cwd}/fury-config.desktop ${uzip}/usr/home/liveuser/Desktop/
@@ -113,17 +111,19 @@ user()
 
 dm()
 {
-  if [[ ${desktop} == "XFCE" ]]; then
+  case $desktop in
+    'kde')
+      cp ${cwd}/sddm.conf ${uzip}/usr/local/etc/
+      ;;
+    'gnome')
+      cp ${cwd}/custom.conf $[uzip}/usr/local/etc/gdm/
+      ;;
+    *)
       cp ${cwd}/lightdm.conf ${uzip}/usr/local/etc/lightdm/
       chroot ${uzip} sed -i '' -e 's/memorylocked=128M/memorylocked=256M/' /etc/login.conf
       chroot ${uzip} cap_mkdb /etc/login.conf
-  fi
-  if [[ ${desktop} == "KDE" ]]; then
-     cp ${cwd}/sddm.conf ${uzip}/usr/local/etc/
-  fi
-  if [[ ${desktop} == "GNOME" ]]; then
-     cp ${cwd}/custom.conf $[uzip}/usr/local/etc/gdm/
-  fi
+      ;;
+  esac
 }
 
 uzip() 
@@ -171,6 +171,7 @@ workspace
 base
 packages
 rc
+dm
 user
 uzip
 ramdisk

@@ -2,14 +2,14 @@
 LiveCD builder for FuryBSD
 
 ## Customize
-Add more packages:
+Add more packages to XFCE edition:
 ```
-edit settings/packages.XFCE
+edit settings/packages.xfce
 ```
 
 Enable more services:
 ```
-edit settings/rc.conf.XFCE
+edit settings/rc.conf.xfce
 ```
 
 ## Build
@@ -23,18 +23,18 @@ Generate an ISO with Gnome3:
 ```
 Generate an ISO with KDE Plasma 5:
 ```
-./build.sh kde5
+./build.sh kde
 ```
 
 ## Burn
 
-Burn the image to cd:
+Burn the XFCE image to cd:
 ```
 pkg install crdtools
 cdrecord /usr/local/furybsd/iso/FuryBSD-12.1-RC2-XFCE.iso
 ```
 
-Write the image to usb stick:
+Write the XFCE image to usb stick:
 ```
 sudo dd if=/dev/usr/local/furybsd/iso/FuryBSD-12.1-RC2-XFCE.iso of=/dev/da0 bs=4m
 ```

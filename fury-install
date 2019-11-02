@@ -46,7 +46,7 @@ if [ -f "/usr/local/sbin/lightdm" ] ; then
   chroot ${FSMNT} sysrc lightdm_enable="YES"
 fi
 if [ -f "/usr/local/sbin/gdm" ] ; then
-  chroot ${FSMNT} sysrc gdm_enable="YES
+  chroot ${FSMNT} sysrc gdm_enable="YES"
 fi
 if [ -f "/usr/local/bin/sddm" ] ; then
   chroot ${FSMNT} sysrc sddm_enable="YES"
