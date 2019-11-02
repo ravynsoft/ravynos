@@ -23,7 +23,7 @@ Generate an ISO with Gnome3:
 ```
 Generate an ISO with KDE Plasma 5:
 ```
-./build.sh kde5
+./build.sh kde
 ```
 
 ## Burn
