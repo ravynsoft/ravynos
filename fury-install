@@ -36,6 +36,7 @@ chroot ${FSMNT} rm -rf /usr/home/liveuser
 # Configure the new installation
 mount -t devfs devfs ${FSMNT}/dev
 bsdinstall rootpass
+dialog --title "Warning" --msgbox 'Please add at least one user to wheel group when making a user.  Enter wheel when prompted for primary or secondary group.  Otherwise you will be unable to su - to root to administer the system!' 8 60
 bsdinstall adduser
 bsdinstall time
 
