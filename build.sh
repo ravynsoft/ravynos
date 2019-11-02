@@ -77,6 +77,7 @@ packages()
   mkdir ${uzip}/var/cache/pkg
   mount_nullfs ${packages} ${uzip}/var/cache/pkg
   mount -t devfs devfs ${uzip}/dev
+  cat ${cwd}/settings/packages.common | xargs pkg-static -c ${uzip} install -y
   cat ${cwd}/settings/packages.${desktop} | xargs pkg-static -c ${uzip} install -y
   rm ${uzip}/etc/resolv.conf
   umount ${uzip}/var/cache/pkg
@@ -88,7 +89,8 @@ rc()
   if [ ! -f "${uzip}/etc/rc.conf" ] ; then
     touch ${uzip}/etc/rc.conf
   fi
-  cp ${cwd}/settings/rc.conf.${desktop} ${uzip}/etc/rc.conf.local
+  cat ${cwd}/settings/rc.conf.common | xargs chroot ${uzip} sysrc -f /etc/rc.conf.local
+  cat ${cwd}/settings/rc.conf.${desktop} | xargs chroot ${uzip} sysrc -f /etc/rc.conf.local
 }
 
 user()
