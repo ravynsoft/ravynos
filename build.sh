@@ -4,7 +4,7 @@ cwd="`realpath | sed 's|/scripts||g'`"
 workdir="/usr/local"
 livecd="${workdir}/furybsd"
 cache="${livecd}/cache"
-version="12.1-RELEASE"
+version="12.1"
 arch=AMD64
 base="${cache}/${version}/base"
 packages="${cache}/packages"
@@ -57,12 +57,12 @@ base()
 {
   if [ ! -f "${base}/base.txz" ] ; then 
     cd ${base}
-    fetch http://ftp.freebsd.org/pub/FreeBSD/releases/amd64/${version}/base.txz
+    fetch http://ftp.freebsd.org/pub/FreeBSD/releases/amd64/${version}-RELEASE/base.txz
   fi
   
   if [ ! -f "${base}/kernel.txz" ] ; then
     cd ${base}
-    fetch http://ftp.freebsd.org/pub/FreeBSD/releases/amd64/${version}/kernel.txz
+    fetch http://ftp.freebsd.org/pub/FreeBSD/releases/amd64/${version}-RELEASE/kernel.txz
   fi
   cd ${base}
   tar -zxvf base.txz -C ${uzip}
