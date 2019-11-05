@@ -4,7 +4,7 @@ cwd="`realpath | sed 's|/scripts||g'`"
 workdir="/usr/local"
 livecd="${workdir}/furybsd"
 cache="${livecd}/cache"
-version="12.1"
+version="12.0"
 arch=AMD64
 base="${cache}/${version}/base"
 packages="${cache}/packages"
@@ -150,7 +150,7 @@ boot()
 {
   cp -R ${cwd}/overlays/boot/ ${cdroot}
   cd "${uzip}" && tar -cf - --exclude boot/kernel boot | tar -xf - -C "${cdroot}"
-  for kfile in kernel geom_uzip.ko nullfs.ko tmpfs.ko unionfs.ko xz.ko; do
+  for kfile in kernel geom_uzip.ko nullfs.ko tmpfs.ko unionfs.ko; do
   tar -cf - boot/kernel/${kfile} | tar -xf - -C "${cdroot}"
   done
 }
