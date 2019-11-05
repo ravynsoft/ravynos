@@ -10,7 +10,7 @@ ifconfig
 sysctl -b net.wlan.devices
 
 # Configure network (Only when ifconfig lists a device)
-bsdconfig netconfig
+bsdconfig netdev
 
 # Configure wifi (Only when sysctl lists a device)
 bsdconfig wifi
