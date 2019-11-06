@@ -8,6 +8,7 @@ version="12.0"
 arch=AMD64
 base="${cache}/${version}/base"
 packages="${cache}/packages"
+ports="${cache}/ports"
 iso="${livecd}/iso"
 uzip="${livecd}/uzip"
 cdroot="${livecd}/cdroot"
@@ -45,12 +46,13 @@ isopath="${iso}/${vol}.iso"
 workspace()
 {
   umount ${uzip}/var/cache/pkg >/dev/null 2>/dev/null
+  umount ${uzip}/usr/ports >/dev/null 2>/dev/null
   umount ${uzip}/dev >/dev/null 2>/dev/null
   if [ -d "${livecd}" ] ;then
     chflags -R noschg ${uzip} ${cdroot} >/dev/null 2>/dev/null
     rm -rf ${uzip} ${cdroot} >/dev/null 2>/dev/null
   fi
-  mkdir -p ${livecd} ${base} ${iso} ${packages} ${uzip} ${ramdisk_root}/dev ${ramdisk_root}/etc >/dev/null 2>/dev/null
+  mkdir -p ${livecd} ${base} ${iso} ${packages} ${ports} ${uzip} ${ramdisk_root}/dev ${ramdisk_root}/etc >/dev/null 2>/dev/null
 }
 
 base()
@@ -80,6 +82,31 @@ packages()
   cat ${cwd}/settings/packages.${desktop} | xargs pkg-static -c ${uzip} install -y
   rm ${uzip}/etc/resolv.conf
   umount ${uzip}/var/cache/pkg
+  umount ${uzip}/dev || true
+}
+
+ports()
+{
+  if [ -d ${ports}/Mk ] ; then
+    portsnap fetch update
+  else
+    portsnap fetch extract
+  fi
+  cp /etc/resolv.conf ${uzip}/etc/resolv.conf
+  mkdir ${uzip}/var/cache/pkg
+  mount_nullfs ${packages} ${uzip}/var/cache/pkg
+  mkdir ${uzip}/usr/ports
+  mount_nullfs ${ports} ${uzip}/usr/ports
+  mount -t devfs devfs ${uzip}/dev
+  cd ${uzip} && fetch https://github.com/furybsd/furybsd-ports/archive/master.zip
+  tar -xf master.txz
+  chroot ${uzip} cd /furybsd-ports-master && sh ./mkports.sh
+  chroot ${uzip} cd /usr/ports/x11-themes/furybsd-artwork && make install clean
+  rm -rf ${uzip}/furybsd-ports-master/
+  rm ${uzip}/master.zip
+  rm ${uzip}/etc/resolv.conf
+  umount ${uzip}/var/cache/pkg
+  umount ${uzip}/usr/ports >/dev/null 2>/dev/null
   umount ${uzip}/dev || true
 }
 
