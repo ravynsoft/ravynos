@@ -201,6 +201,7 @@ cleanup()
 workspace
 base
 packages
+ports
 rc
 dm
 user
