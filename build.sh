@@ -87,7 +87,7 @@ packages()
 
 ports()
 {
-  if [ -d ${ports}/Mk ] ; then
+  if [ ! -d ${ports}/Mk ] ; then
     portsnap fetch update
   else
     portsnap fetch extract
