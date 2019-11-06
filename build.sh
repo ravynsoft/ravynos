@@ -115,6 +115,9 @@ rc()
   if [ ! -f "${uzip}/etc/rc.conf" ] ; then
     touch ${uzip}/etc/rc.conf
   fi
+  if [ ! -f "${uzip}/etc/rc.conf.local" ] ; then
+    touch ${uzip}/etc/rc.conf.local
+  fi
   cat ${cwd}/settings/rc.conf.common | xargs chroot ${uzip} sysrc -f /etc/rc.conf.local
   cat ${cwd}/settings/rc.conf.${desktop} | xargs chroot ${uzip} sysrc -f /etc/rc.conf.local
 }
