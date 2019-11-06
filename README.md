@@ -1,6 +1,12 @@
 # furybsd-livecd
 LiveCD builder for FuryBSD
 
+## Install git required for furybsd-ports
+
+```
+pkg install git
+```
+
 ## Customize
 Add more packages to XFCE edition:
 ```
