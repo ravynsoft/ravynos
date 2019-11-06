@@ -93,13 +93,12 @@ ports()
     portsnap fetch extract
   fi
   cp /etc/resolv.conf ${uzip}/etc/resolv.conf
-  mkdir ${uzip}/var/cache/pkg
   mount_nullfs ${packages} ${uzip}/var/cache/pkg
   mkdir ${uzip}/usr/ports
   mount_nullfs ${ports} ${uzip}/usr/ports
   mount -t devfs devfs ${uzip}/dev
   cd ${uzip} && fetch https://github.com/furybsd/furybsd-ports/archive/master.zip
-  tar -xf master.txz
+  chroot ${uzip} tar -xf master.txz
   chroot ${uzip} cd /furybsd-ports-master && sh ./mkports.sh
   chroot ${uzip} cd /usr/ports/x11-themes/furybsd-artwork && make install clean
   rm -rf ${uzip}/furybsd-ports-master/
