@@ -112,8 +112,8 @@ ports()
       ;;
     *)
       cd ${cache}/furybsd-ports-master && ./mkport.sh x11/furybsd-xfce-settings
-      cd ${ports}/x11-themes/furybsd-xfce-settings && make package
-      cp ${ports}/x11-themes/furybsd-xfce-settings/work/pkg/* ${uzip}
+      cd ${ports}/x11/furybsd-xfce-settings && make package
+      cp ${ports}/x11/furybsd-xfce-settings/work/pkg/* ${uzip}
       ;;
   esac
   chroot ${uzip} /bin/sh -c "ls /furybsd* | xargs pkg add"
