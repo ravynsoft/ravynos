@@ -88,7 +88,7 @@ packages()
   cat ${cwd}/settings/packages.${desktop} | xargs pkg-static -c ${uzip} install -y
   rm ${uzip}/etc/resolv.conf
   umount ${uzip}/var/cache/pkg
-  umount ${uzip}/dev || true
+  umount ${uzip}/dev
 }
 
 ports()
@@ -116,10 +116,12 @@ ports()
       cp ${ports}/x11/furybsd-xfce-settings/work/pkg/* ${uzip}
       ;;
   esac
+  mount -t devfs devfs ${uzip}/dev
   chroot ${uzip} /bin/sh -c "ls /furybsd* | xargs pkg add"
   chroot ${uzip} /bin/sh -c "ls /furybsd* | xargs rm"
   rm -rf ${cache}/furybsd-ports-master/
   rm ${cache}/master.zip
+  umount ${uzip}/dev
 }
 
 rc()
