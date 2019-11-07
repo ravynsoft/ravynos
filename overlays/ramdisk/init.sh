@@ -58,6 +58,14 @@ if [ "${BOOTMODE}" = "UEFI" ]; then
   cp /sysroot/usr/home/liveuser/xorg.conf.d/driver-scfb.conf /sysroot/etc/X11/xorg.conf
 fi
 
+VMGUEST=`sysctl -n kern.vm_guest`
+export VMGUEST
+
+if [ "${VMGUEST}" = "xen" ]; then
+  echo "XEN guest detected"
+  chroot /sysroot sysrc devd_enable="NO"
+fi
+
 if [ "$SINGLE_USER" = "true" ]; then
 	echo "Starting interactive shell in temporary rootfs ..."
 	sh
