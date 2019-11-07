@@ -100,7 +100,7 @@ ports()
   fi
   cd ${cache} && fetch https://github.com/furybsd/furybsd-ports/archive/master.zip
   cd ${cache} && tar -xf master.zip
-  cd ${cache}/furybsd-ports-master && ./mkports.sh
+  cd ${cache}/furybsd-ports-master && ./mkport.sh x11-themes/furybsd-wallpapers
   cd ${ports}/x11-themes/furybsd-wallpapers && make package
   cp ${ports}/x11-themes/furybsd-wallpapers/work/pkg/* ${uzip}
   case $desktop in
@@ -111,6 +111,7 @@ ports()
       echo "no settings port yet"
       ;;
     *)
+      cd ${cache}/furybsd-ports-master && ./mkport.sh x11/furybsd-xfce-settings
       cd ${ports}/x11-themes/furybsd-xfce-settings && make package
       cp ${ports}/x11-themes/furybsd-xfce-settings/work/pkg/* ${uzip}
       ;;
