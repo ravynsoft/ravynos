@@ -8,7 +8,7 @@ version="12.0"
 arch=AMD64
 base="${cache}/${version}/base"
 packages="${cache}/packages"
-ports="${cache}/ports"
+ports="/usr/ports"
 iso="${livecd}/iso"
 uzip="${livecd}/uzip"
 cdroot="${livecd}/cdroot"
@@ -21,6 +21,13 @@ desktop=$1
 # Only run as superuser
 if [ "$(id -u)" != "0" ]; then
   echo "This script must be run as root" 1>&2
+  exit 1
+fi
+
+# Make sure git is installed
+if [ ! -f "/usr/local/bin/git" ] ; then
+  echo "Git is required"
+  echo "Please install it with pkg install git or pkg install git-lite first"
   exit 1
 fi
 
@@ -46,13 +53,12 @@ isopath="${iso}/${vol}.iso"
 workspace()
 {
   umount ${uzip}/var/cache/pkg >/dev/null 2>/dev/null
-  umount ${uzip}/usr/ports >/dev/null 2>/dev/null
   umount ${uzip}/dev >/dev/null 2>/dev/null
   if [ -d "${livecd}" ] ;then
     chflags -R noschg ${uzip} ${cdroot} >/dev/null 2>/dev/null
     rm -rf ${uzip} ${cdroot} >/dev/null 2>/dev/null
   fi
-  mkdir -p ${livecd} ${base} ${iso} ${packages} ${ports} ${uzip} ${ramdisk_root}/dev ${ramdisk_root}/etc >/dev/null 2>/dev/null
+  mkdir -p ${livecd} ${base} ${iso} ${packages} ${uzip} ${ramdisk_root}/dev ${ramdisk_root}/etc >/dev/null 2>/dev/null
 }
 
 base()
@@ -87,26 +93,20 @@ packages()
 
 ports()
 {
-  if [ ! -d ${ports}/Mk ] ; then
+  if [ -d "${ports}/Mk" ] ; then
     portsnap fetch update
   else
     portsnap fetch extract
   fi
-  cp /etc/resolv.conf ${uzip}/etc/resolv.conf
-  mount_nullfs ${packages} ${uzip}/var/cache/pkg
-  mkdir ${uzip}/usr/ports
-  mount_nullfs ${ports} ${uzip}/usr/ports
-  mount -t devfs devfs ${uzip}/dev
-  cd ${uzip} && fetch https://github.com/furybsd/furybsd-ports/archive/master.zip
-  chroot ${uzip} tar -xf master.zip
-  chroot ${uzip} cd /furybsd-ports-master && sh ./mkports.sh
-  chroot ${uzip} cd /usr/ports/x11-themes/furybsd-artwork && make install clean
-  rm -rf ${uzip}/furybsd-ports-master/
-  rm ${uzip}/master.zip
-  rm ${uzip}/etc/resolv.conf
-  umount ${uzip}/var/cache/pkg
-  umount ${uzip}/usr/ports >/dev/null 2>/dev/null
-  umount ${uzip}/dev || true
+  cd ${cache} && fetch https://github.com/furybsd/furybsd-ports/archive/master.zip
+  cd ${cache} && tar -xf master.zip
+  cd ${cache}/furybsd-ports-master && ./mkports.sh
+  cd ${ports}/x11-themes/furybsd-wallpapers && make package
+  cp ${ports}/x11-themes/furybsd-wallpapers/work/pkg/* ${uzip}
+  chroot ${uzip} /bin/sh -c "ls /furybsd* | xargs pkg add"
+  chroot ${uzip} /bin/sh -c "ls /furybsd* | xargs rm"
+  rm -rf ${cache}/furybsd-ports-master/
+  rm ${cache}/master.zip
 }
 
 rc()
@@ -126,6 +126,7 @@ user()
   mkdir -p ${uzip}/usr/home/liveuser/Desktop
   cp ${cwd}/fury-install ${uzip}/usr/home/liveuser/
   cp -R ${cwd}/xorg.conf.d/ ${uzip}/usr/home/liveuser/xorg.conf.d
+  cp -R ${cwd}/dot.config/ ${uzip}/usr/share/skel/dot.config
   cp ${cwd}/fury-config.desktop ${uzip}/usr/home/liveuser/Desktop/
   cp ${cwd}/fury-install.desktop ${uzip}/usr/home/liveuser/Desktop/
   cp ${cwd}/fury-desktop-readme.txt ${uzip}/usr/home/liveuser/Desktop/"Getting Started.txt"
