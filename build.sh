@@ -126,7 +126,6 @@ user()
   mkdir -p ${uzip}/usr/home/liveuser/Desktop
   cp ${cwd}/fury-install ${uzip}/usr/home/liveuser/
   cp -R ${cwd}/xorg.conf.d/ ${uzip}/usr/home/liveuser/xorg.conf.d
-  cp -R ${cwd}/dot.config/ ${uzip}/usr/share/skel/dot.config
   cp ${cwd}/fury-config.desktop ${uzip}/usr/home/liveuser/Desktop/
   cp ${cwd}/fury-install.desktop ${uzip}/usr/home/liveuser/Desktop/
   cp ${cwd}/fury-desktop-readme.txt ${uzip}/usr/home/liveuser/Desktop/"Getting Started.txt"
@@ -137,6 +136,7 @@ user()
   chroot ${uzip} pw groupadd liveuser -g 1000
   chroot ${uzip} echo furybsd | chroot ${uzip} pw mod user liveuser -h 0
   chroot ${uzip} chown -R 1000:1000 /usr/home/liveuser
+  chroot ${uzip} su -m liveuser -c "xfconf-query --channel xfce4-desktop --property /backdrop/screen0/monitor0/image-path --set /usr/share/backgrounds/furybsd/fury_road.png"
   cp ${cwd}/doas.conf ${uzip}/usr/local/etc/
 }
 
