@@ -136,7 +136,6 @@ user()
   chroot ${uzip} pw groupadd liveuser -g 1000
   chroot ${uzip} echo furybsd | chroot ${uzip} pw mod user liveuser -h 0
   chroot ${uzip} chown -R 1000:1000 /usr/home/liveuser
-  chroot ${uzip} su -m liveuser -c "xfconf-query --channel xfce4-desktop --property /backdrop/screen0/monitor0/image-path --set /usr/share/backgrounds/furybsd/fury_road.png"
   cp ${cwd}/doas.conf ${uzip}/usr/local/etc/
 }
 
@@ -153,6 +152,7 @@ dm()
       cp ${cwd}/lightdm.conf ${uzip}/usr/local/etc/lightdm/
       chroot ${uzip} sed -i '' -e 's/memorylocked=128M/memorylocked=256M/' /etc/login.conf
       chroot ${uzip} cap_mkdb /etc/login.conf
+      cp ${cwd}/xfce4-desktop.xml ${uzip}/usr/local/etc/xdg/xfce4/xfconf/xfce-perchannel-xml/
       ;;
   esac
 }
