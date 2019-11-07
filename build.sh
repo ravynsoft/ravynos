@@ -108,7 +108,7 @@ ports()
       echo "no settings port yet"
       ;;
     'gnome')
-      echo "no settings port yet
+      echo "no settings port yet"
       ;;
     *)
       cd ${ports}/x11-themes/furybsd-xfce-settings && make package
