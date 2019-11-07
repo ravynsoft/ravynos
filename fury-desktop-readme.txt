@@ -21,7 +21,7 @@ bsdconfig wifi
 rm /etc/X11/xorg.conf
 pkg install nvidia-driver
 sysrc kld_list+="nvidia-modeset"
-cp /home/liveuser/xorg.conf.d/nvidia-driver.conf /etc/X11/xorg.conf
+cp /home/liveuser/xorg.conf.d/driver-nvidia.conf /etc/X11/xorg.conf
 service kld restart
 killall Xorg
 
