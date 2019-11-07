@@ -103,6 +103,18 @@ ports()
   cd ${cache}/furybsd-ports-master && ./mkports.sh
   cd ${ports}/x11-themes/furybsd-wallpapers && make package
   cp ${ports}/x11-themes/furybsd-wallpapers/work/pkg/* ${uzip}
+  case $desktop in
+    'kde')
+      echo "no settings port yet"
+      ;;
+    'gnome')
+      echo "no settings port yet
+      ;;
+    *)
+      cd ${ports}/x11-themes/furybsd-xfce-settings && make package
+      cp ${ports}/x11-themes/furybsd-xfce-settings/work/pkg/* ${uzip}
+      ;;
+  esac
   chroot ${uzip} /bin/sh -c "ls /furybsd* | xargs pkg add"
   chroot ${uzip} /bin/sh -c "ls /furybsd* | xargs rm"
   rm -rf ${cache}/furybsd-ports-master/
