@@ -35,6 +35,7 @@ chroot ${FSMNT} rm -rf /usr/home/liveuser
 chroot ${FSMNT} sysrc -x nginx_enable="YES"
 chroot ${FSMNT} sysrc -x php_fpm_enable="YES"
 chroot ${FSMNT} pkg delete -fy php72-json phpsysinfo nginx
+chroot ${FSMNT} pkg autoremove -fy
 chroot ${FSMNT} rm /usr/local/etc/php.ini
 chroot ${FSMNT} rm -rf /usr/local/etc/nginx/
 chroot ${FSMNT} rm /usr/local/www/
