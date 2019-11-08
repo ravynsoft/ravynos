@@ -148,7 +148,8 @@ user()
   mkdir -p ${uzip}/usr/home/liveuser/Desktop
   cp ${cwd}/fury-install ${uzip}/usr/home/liveuser/
   cp -R ${cwd}/xorg.conf.d/ ${uzip}/usr/home/liveuser/xorg.conf.d
-  cp ${cwd}/fury-config.desktop ${uzip}/usr/home/liveuser/Desktop/
+  cp ${cwd}/fury-config-netdev.desktop ${uzip}/usr/home/liveuser/Desktop/
+  cp ${cwd}/fury-config-wifi.desktop ${uzip}/usr/home/liveuser/Desktop/
   cp ${cwd}/fury-install.desktop ${uzip}/usr/home/liveuser/Desktop/
   cp ${cwd}/fury-sysinfo.desktop ${uzip}/usr/home/liveuser/Desktop/
   cp ${cwd}/fury-desktop-readme.txt ${uzip}/usr/home/liveuser/Desktop/"Getting Started.txt"
