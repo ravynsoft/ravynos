@@ -136,6 +136,13 @@ rc()
   cat ${cwd}/settings/rc.conf.${desktop} | xargs chroot ${uzip} sysrc -f /etc/rc.conf.local
 }
 
+live-settings()
+{
+  cp ${cwd}/ngninx.conf ${uzip}/usr/local/etc/nginx/nginx.conf
+  cp ${uzip}/usr/local/phpsysinfo/phpsysinfo.ini.new ${uzip}/usr/local/phpsysinfo/phpsysinfo.ini
+  cp ${uzip}/usr/local/etc/php.ini-production ${uzip}/usr/local/etc/php.ini
+}
+
 user()
 {
   mkdir -p ${uzip}/usr/home/liveuser/Desktop

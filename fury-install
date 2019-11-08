@@ -32,6 +32,14 @@ chroot ${FSMNT} rm /etc/rc.conf.local
 chroot ${FSMNT} pw userdel liveuser
 chroot ${FSMNT} pw groupdel liveuser
 chroot ${FSMNT} rm -rf /usr/home/liveuser
+chroot ${FSMNT} sysrc -x nginx_enable="YES"
+chroot ${FSMNT} sysrc -x php_fpm_enable="YES"
+chroot ${FSMNT} pkg delete -fy php72-json phpsysinfo nginx
+chroot ${FSMNT} rm /usr/local/etc/php.ini
+chroot ${FSMNT} rm -rf /usr/local/etc/nginx/
+chroot ${FSMNT} rm /usr/local/www/
+chroot ${FSMNT} rm -rf /var/log/nginx/
+chroot ${FSMNT} rm /var/log/php-fpm.log
 
 # Configure the new installation
 mount -t devfs devfs ${FSMNT}/dev
