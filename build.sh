@@ -72,10 +72,6 @@ base()
     cd ${base}
     fetch http://ftp.freebsd.org/pub/FreeBSD/releases/amd64/${version}-RELEASE/kernel.txz
   fi
-  if [ ! -f "${base}/lib32.txz" ] ; then
-    cd ${base}
-    fetch http://ftp.freebsd.org/pub/FreeBSD/releases/amd64/${version}-RELEASE/lib32.txz
-  fi
   cd ${base}
   tar -zxvf base.txz -C ${uzip}
   tar -zxvf kernel.txz -C ${uzip}
