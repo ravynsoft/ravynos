@@ -38,7 +38,7 @@ chroot ${FSMNT} pkg delete -fy php72-json phpsysinfo nginx
 chroot ${FSMNT} pkg autoremove -fy
 chroot ${FSMNT} rm /usr/local/etc/php.ini
 chroot ${FSMNT} rm -rf /usr/local/etc/nginx/
-chroot ${FSMNT} rm /usr/local/www/
+chroot ${FSMNT} rm -rf /usr/local/www/
 chroot ${FSMNT} rm -rf /var/log/nginx/
 chroot ${FSMNT} rm /var/log/php-fpm.log
 
