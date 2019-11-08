@@ -225,6 +225,7 @@ packages
 ports
 rc
 dm
+live-settings
 user
 uzip
 ramdisk
