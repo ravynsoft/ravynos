@@ -138,8 +138,8 @@ rc()
 
 live-settings()
 {
-  cp ${cwd}/ngninx.conf ${uzip}/usr/local/etc/nginx/nginx.conf
-  cp ${uzip}/usr/local/phpsysinfo/phpsysinfo.ini.new ${uzip}/usr/local/phpsysinfo/phpsysinfo.ini
+  cp ${cwd}/nginx.conf ${uzip}/usr/local/etc/nginx/nginx.conf
+  cp ${uzip}/usr/local/www/phpsysinfo/phpsysinfo.ini.new ${uzip}/usr/local/www/phpsysinfo/phpsysinfo.ini
   cp ${uzip}/usr/local/etc/php.ini-production ${uzip}/usr/local/etc/php.ini
 }
 
