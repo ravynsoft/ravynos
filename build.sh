@@ -79,7 +79,6 @@ base()
   cd ${base}
   tar -zxvf base.txz -C ${uzip}
   tar -zxvf kernel.txz -C ${uzip}
-  tar -zxvf lib32.txz -C ${uzip}
   touch ${uzip}/etc/fstab
 }
 
