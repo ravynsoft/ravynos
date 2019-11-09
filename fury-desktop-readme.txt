@@ -29,6 +29,7 @@ killall Xorg
 rm /etc/X11/xorg.conf
 pkg install drm-fbsd12.0-kmod
 sysrc kld_list+="/boot/modules/i915kms.ko"
+service kld restart
 killall Xorg
 
 # Procedure to install virtualbox drivers
