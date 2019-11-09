@@ -66,6 +66,8 @@ if [ "${VMGUEST}" = "xen" ]; then
   chroot /sysroot sysrc devd_enable="NO"
 fi
 
+chroot sysroot sysrc -f /etc/rc.conf kld_list+="sysctlinfo"
+
 if [ "$SINGLE_USER" = "true" ]; then
 	echo "Starting interactive shell in temporary rootfs ..."
 	sh
