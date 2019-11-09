@@ -53,6 +53,7 @@ bsdinstall time
 chroot ${FSMNT} sysrc linux_enable="YES"
 chroot ${FSMNT} sysrc dbus_enable="YES"
 chroot ${FSMNT} sysrc dsbdriverd_enable="YES"
+chroot ${FSMNT} sysrc kld_list+="sysctlinfo"
 if [ -f "/usr/local/sbin/lightdm" ] ; then
   chroot ${FSMNT} sysrc lightdm_enable="YES"
 fi
