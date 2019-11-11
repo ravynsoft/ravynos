@@ -174,7 +174,7 @@ dm()
       cp ${cwd}/sddm.conf ${uzip}/usr/local/etc/
       ;;
     'gnome')
-      cp ${cwd}/custom.conf $[uzip}/usr/local/etc/gdm/
+      cp ${cwd}/custom.conf ${uzip}/usr/local/etc/gdm/custom.conf
       ;;
     *)
       cp ${cwd}/lightdm.conf ${uzip}/usr/local/etc/lightdm/
