@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=Nemo
+Comment=Start Nemo desktop at log in
+Exec=nemo -n
+AutostartCondition=GSettings org.nemo.desktop show-desktop-icons
+NoDisplay=true

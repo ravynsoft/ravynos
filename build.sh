@@ -175,6 +175,7 @@ dm()
       ;;
     'gnome')
       cp ${cwd}/custom.conf ${uzip}/usr/local/etc/gdm/custom.conf
+      cp ${cwd}/nemo-autostart.desktop ${uzip}/usr/local/etc/xdg/autostart/
       ;;
     *)
       cp ${cwd}/lightdm.conf ${uzip}/usr/local/etc/lightdm/
