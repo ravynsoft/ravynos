@@ -1,0 +1,25 @@
+#!/usr/local/bin/bash
+
+# Check for any new wifi devices to setup
+for wnic in `sysctl -b net.wlan.devices 2>/dev/null`
+do
+  cat /etc/rc.conf 2>/dev/null | grep -q "wlans_${wnic}="
+  if [ $? -ne 0 ] ; then
+    # We have a wifi device, setup a wlan* entry for it
+    grep -q "^wlans_" /etc/rc.conf
+      if [ $? -eq 0 ] ; then
+        WLANCOUNT=`cat /etc/rc.conf | grep "^wlans_" | wc -l | awk '{print $1}'`
+      else
+      WLANCOUNT="0"
+      WLAN="wlan${WLANCOUNT}"
+ 
+      # Save the wlan interface
+      echo "wlans_${wnic}=\"${WLAN}\"" >>/etc/rc.conf
+      echo "ifconfig_${WLAN}=\"WPA DHCP\"" >>/etc/rc.conf
+      echo "ifconfig_${WLAN}_ipv6=\"inet6 accept_rtadv\"" >> /etc/rc.conf
+      service netif restart
+    fi
+  fi
+done
+
+/usr/sbin/bsdconfig wifi
