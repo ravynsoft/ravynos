@@ -1,5 +1,7 @@
 #!/usr/local/bin/bash
 
+cd /boot/kernel && kldload iwn*
+
 # Check for any new wifi devices to setup
 for wnic in `sysctl -b net.wlan.devices 2>/dev/null`
 do

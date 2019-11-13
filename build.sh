@@ -103,6 +103,9 @@ ports()
   cd ${cache}/furybsd-ports-master && ./mkport.sh x11-themes/furybsd-wallpapers
   cd ${ports}/x11-themes/furybsd-wallpapers && make package
   cp ${ports}/x11-themes/furybsd-wallpapers/work/pkg/* ${uzip}
+  cd ${cache}/furybsd-ports-master && ./mkport.sh net-mgmt/furybsd-wifi-tool
+  cd ${ports}/net-mgmt/furybsd-wifi-tool && make package
+  cp ${ports}/net-mgmt/furybsd-wifi-tool/work/pkg/* ${uzip}
   cd ${cache}/furybsd-ports-master && ./mkport.sh x11-drivers/furybsd-xorg-tool
   cd ${ports}/x11-drivers/furybsd-xorg-tool && make package
   cp ${ports}/x11-drivers/furybsd-xorg-tool/work/pkg/* ${uzip}
