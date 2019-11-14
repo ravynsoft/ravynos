@@ -127,8 +127,6 @@ ports()
   mount -t devfs devfs ${uzip}/dev
   chroot ${uzip} /bin/sh -c "ls /furybsd* | xargs pkg add"
   chroot ${uzip} /bin/sh -c "ls /furybsd* | xargs rm"
-  chroot ${uzip} /bin/sh -c "ls /dsbdriverd* | xargs pkg add"
-  chroot ${uzip} /bin/sh -c "ls /dsbdriverd* | xargs rm"
   rm -rf ${cache}/furybsd-ports-master/
   rm ${cache}/master.zip
   umount ${uzip}/dev
