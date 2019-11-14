@@ -103,9 +103,11 @@ ports()
   cd ${cache}/furybsd-ports-master && ./mkport.sh x11-themes/furybsd-wallpapers
   cd ${ports}/x11-themes/furybsd-wallpapers && make package
   cp ${ports}/x11-themes/furybsd-wallpapers/work/pkg/* ${uzip}
-  cd ${cache}/furybsd-ports-master && ./mkport.sh net-mgmt/furybsd-wifi-tool
-  cd ${ports}/net-mgmt/furybsd-wifi-tool && make package
-  cp ${ports}/net-mgmt/furybsd-wifi-tool/work/pkg/* ${uzip}
+  #cd ${cache}/furybsd-ports-master && ./mkport.sh net-mgmt/furybsd-wifi-tool
+  #cd ${ports}/net-mgmt/furybsd-wifi-tool && make package
+  #cp ${ports}/net-mgmt/furybsd-wifi-tool/work/pkg/* ${uzip}
+  cd ${ports}/sysutils/furybsd-dsbdriverd && make package
+  cp ${ports}/sysutils/furybsd-dsbdriverd/work/pkg/* ${uzip}
   cd ${cache}/furybsd-ports-master && ./mkport.sh x11-drivers/furybsd-xorg-tool
   cd ${ports}/x11-drivers/furybsd-xorg-tool && make package
   cp ${ports}/x11-drivers/furybsd-xorg-tool/work/pkg/* ${uzip}
@@ -155,8 +157,8 @@ user()
   cp ${cwd}/fury-config-wifi ${uzip}/usr/home/liveuser/
   cp ${cwd}/fury-install ${uzip}/usr/home/liveuser/
   cp -R ${cwd}/xorg.conf.d/ ${uzip}/usr/home/liveuser/xorg.conf.d
-  cp ${cwd}/fury-config-netdev.desktop ${uzip}/usr/home/liveuser/Desktop/
-  cp ${cwd}/fury-config-wifi.desktop ${uzip}/usr/home/liveuser/Desktop/
+  #cp ${cwd}/fury-config-netdev.desktop ${uzip}/usr/home/liveuser/Desktop/
+  #cp ${cwd}/fury-config-wifi.desktop ${uzip}/usr/home/liveuser/Desktop/
   cp ${cwd}/fury-config-xorg.desktop ${uzip}/usr/home/liveuser/Desktop/
   cp ${cwd}/fury-install.desktop ${uzip}/usr/home/liveuser/Desktop/
   cp ${cwd}/fury-sysinfo.desktop ${uzip}/usr/home/liveuser/Desktop/
