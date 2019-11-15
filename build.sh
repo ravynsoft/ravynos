@@ -106,6 +106,7 @@ ports()
   #cd ${cache}/furybsd-ports-master && ./mkport.sh net-mgmt/furybsd-wifi-tool
   #cd ${ports}/net-mgmt/furybsd-wifi-tool && make package
   #cp ${ports}/net-mgmt/furybsd-wifi-tool/work/pkg/* ${uzip}
+  cd ${cache}/furybsd-ports-master && ./mkport.sh sysutils/furybsd-dsbdriverd
   cd ${ports}/sysutils/furybsd-dsbdriverd && make package
   cp ${ports}/sysutils/furybsd-dsbdriverd/work/pkg/* ${uzip}
   cd ${cache}/furybsd-ports-master && ./mkport.sh x11-drivers/furybsd-xorg-tool
