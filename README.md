@@ -36,7 +36,7 @@ Generate an ISO with KDE Plasma 5:
 
 Burn the XFCE image to cd:
 ```
-pkg install crdtools
+pkg install cdrtools
 cdrecord /usr/local/furybsd/iso/FuryBSD-12.0-XFCE.iso
 ```
 
