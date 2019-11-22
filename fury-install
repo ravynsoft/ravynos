@@ -14,16 +14,27 @@ bsdinstall zfsboot
 if [ ! -d "/mnt/usr" ] ; then
   exit 1
 fi
-chflags -R nodump /usr/home/liveuser
-chflags -R nodump /var/run/user/1000
-su -m root -c 'cd /mnt && dump -0af - /dev/md1.uzip | restore -rf -'
-su -m root -c 'cd /mnt && dump -L0af - /dev/md2 | restore -Dyrf -'
+
+# Clone the file system to disk with cpdup
+cpdup -i0 -s0 -vvv / /mnt
+cpdup -i0 -s0 -vvv /boot/modules /mnt/boot/modules
+cpdup -i0 -s0 -vvv /etc /mnt/etc
+cpdup -i0 -s0 -vvv /usr /mnt/usr
+cpdup -i0 -s0 -vvv /usr/home /mnt/usr/home
+cpdup -i0 -s0 -vvv /var /mnt/var
+cpdup -i0 -s0 -vvv /compat /mnt/compat
+
 bsdinstall config
 cat /etc/rc.conf | xargs sysrc -f /mnt/etc/rc.conf
 bsdinstall entropy
 
 # Cleanup LiveCD restore specific conents from destination pool
-chroot ${FSMNT} rm restoresymtable
+chroot ${FSMNT} rm /etc.txz
+chroot ${FSMNT} rm /init.sh
+chroot ${FSMNT} rm -rf /memdisk
+chroot ${FSMNT} rm /modules.txz
+chroot ${FSMNT} rm /system.uzip
+chroot ${FSMNT} rm /var.txz
 chroot ${FSMNT} cp /usr/local/etc/lightdm/lightdm.conf.sample /usr/local/etc/lightdm/lightdm.conf || true
 chroot ${FSMNT} cp /usr/local/etc/sddm.conf.sample /usr/local/etc/sddm.conf || true
 chroot ${FSMNT} cp /usr/local/etc/gdm/custom.conf.sample /usr/local/etc/gdm/custom.conf || true
