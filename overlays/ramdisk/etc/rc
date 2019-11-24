@@ -1,0 +1,6 @@
+#!/rescue/sh
+
+umount -f /cdrom
+cp /memdisk/init-reroot.sh /
+reboot -r
+

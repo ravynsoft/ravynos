@@ -79,7 +79,6 @@ base()
     bsdinstall distfetch
   fi
   bsdinstall distextract
-  echo "/dev/iso9660/FURYBSD / cd9660 ro 0 0" > ${uzip}/etc/fstab
 }
 
 packages()
@@ -191,45 +190,43 @@ dm()
   esac
 }
 
-loader()
-{
-  cp ${cwd}/overlays/boot/boot/loader.conf ${uzip}/boot/loader.conf
-  cp ${cwd}/overlays/ramdisk/init.sh ${uzip}/init.sh
-}
-
-tar()
-{
-  chroot ${uzip} tar -zcf /etc.txz -C /etc .
-  chroot ${uzip} tar -zcf /var.txz -C /var .
-  chroot ${uzip} tar -zcf /modules.txz -C /boot/modules .
-  chroot ${uzip} mv /etc/login.conf /login.conf.bak
-  chroot ${uzip} rm -rf /etc
-  chroot ${uzip} chflags -R noschg /var
-  chroot ${uzip} rm -rf /var
-  chroot ${uzip} chflags -R noschg /boot/modules
-  chroot ${uzip} rm -rf /boot/modules
-  chroot ${uzip} mkdir /etc
-  chroot ${uzip} mv /login.conf.bak /etc/login.conf
-  chroot ${uzip} mkdir /var
-  chroot ${uzip} mkdir /boot/modules
-  chroot ${uzip} mkdir /compat
-}
-
 uzip() 
 {
+  cp -R ${cwd}/overlays/uzip/ ${uzip}
   install -o root -g wheel -m 755 -d "${cdroot}"
-  makefs "${cdroot}/data/system.ufs" "${uzip}/usr"
-  mkuzip -o "${uzip}/system.uzip" "${cdroot}/data/system.ufs"
-  rm -f "${cdroot}/data/system.ufs"
+  makefs "${cdroot}/data/usr.ufs" "${uzip}/usr"
+  mkuzip -o "${cdroot}/data/usr.uzip" "${cdroot}/data/usr.ufs"
+  rm -f "${cdroot}/data/usr.ufs"
   chflags -R noschg ${uzip}/usr
   rm -rf ${uzip}/usr
-  mkdir ${uzip}/usr
-  mkdir ${uzip}/memdisk
+  makefs "${cdroot}/data/system.ufs" "${uzip}"
+  mkuzip -o "${cdroot}/data/system.uzip" "${cdroot}/data/system.ufs"
+  rm -f "${cdroot}/data/system.ufs"
+}
+
+ramdisk() 
+{
+  cp -R ${cwd}/overlays/ramdisk/ ${ramdisk_root}
+  cd "${uzip}" && tar -cf - rescue | tar -xf - -C "${ramdisk_root}"
+  touch "${ramdisk_root}/etc/fstab"
+  cp ${uzip}/etc/login.conf ${ramdisk_root}/etc/login.conf
+  makefs -b '10%' "${cdroot}/data/ramdisk.ufs" "${ramdisk_root}"
+  gzip "${cdroot}/data/ramdisk.ufs"
+  rm -rf "${ramdisk_root}"
+}
+
+boot() 
+{
+  cp -R ${cwd}/overlays/boot/ ${cdroot}
+  cd "${uzip}" && tar -cf - --exclude boot/kernel boot | tar -xf - -C "${cdroot}"
+  for kfile in kernel geom_uzip.ko nullfs.ko tmpfs.ko unionfs.ko; do
+  tar -cf - boot/kernel/${kfile} | tar -xf - -C "${cdroot}"
+  done
 }
 
 image() 
 {
-  sh ${cwd}/scripts/mkisoimages.sh -b $label $isopath ${uzip}
+  sh ${cwd}/scripts/mkisoimages.sh -b $label $isopath ${cdroot}
 }
 
 cleanup()
@@ -248,8 +245,8 @@ rc
 dm
 live-settings
 user
-loader
-tar
 uzip
+ramdisk
+boot
 image
 cleanup

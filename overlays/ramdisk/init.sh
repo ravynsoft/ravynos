@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/rescue/sh
 
 PATH="/rescue"
 
@@ -7,62 +7,37 @@ if [ "`ps -o command 1 | tail -n 1 | ( read c o; echo ${o} )`" = "-s" ]; then
 	SINGLE_USER="true"
 fi
 
+echo "==> Remount rootfs as read-write"
+mount -u -w /
+
+echo "==> Make mountpoints"
+mkdir -p /cdrom /memdisk /memusr /mnt /sysroot /usr /tmp
+
 echo "Waiting for FURYBSD media to initialize"
 while : ; do
     [ -e "/dev/iso9660/FURYBSD" ] && echo "found /dev/iso9660/FURYBSD" && break
     sleep 1
 done
 
-mount -t tmpfs tmpfs /etc
-mount -t tmpfs tmpfs /tmp
-mount -t tmpfs tmpfs /var
-mount -t tmpfs tmpfs /boot/modules
-mount -t tmpfs tmpfs /compat
-tar -xf /etc.txz -C /etc
-tar -xf /var.txz -C /var
-tar -xf /modules.txz -C /boot/modules
-
 echo "==> Mount cdrom"
-mdmfs -P -F /system.uzip -o ro md.uzip /usr
+mount_cd9660 /dev/iso9660/FURYBSD /cdrom
+mdmfs -P -F /cdrom/data/system.uzip -o ro md.uzip /sysroot
 
-if [ "$SINGLE_USER" = "true" ]; then
-	echo -n "Enter memdisk size used for read-write access in the live system: "
-	read MEMDISK_SIZE
-else
-	MEMDISK_SIZE="1024"
-fi
+# Make room for backup in /tmp
+mount -t tmpfs tmpfs /tmp
 
 echo "==> Mount swap-based memdisk"
-mdmfs -s "${MEMDISK_SIZE}m" md /memdisk || exit 1
-mount -t unionfs /memdisk /usr
+mdmfs -s 1024m md /memdisk || exit 1
+dump -0f - /dev/md1.uzip | (cd /memdisk; restore -rf -)
+rm /memdisk/restoresymtable
 
-BOOTMODE=`sysctl -n machdep.bootmethod`
-export BOOTMODE
-
-if [ "${BOOTMODE}" = "BIOS" ]; then
-  echo "BIOS detected"
-  cp /usr/home/liveuser/xorg.conf.d/driver-vesa.conf /etc/X11/xorg.conf
-fi
-
-if [ "${BOOTMODE}" = "UEFI" ]; then
-  echo "UEFI detected"
-  cp /usr/home/liveuser/xorg.conf.d/driver-scfb.conf /etc/X11/xorg.conf
-fi
-
-VMGUEST=`sysctl -n kern.vm_guest`
-export VMGUEST
-
-if [ "${VMGUEST}" = "xen" ]; then
-  echo "XEN guest detected"
-  /usr/sbin/sysrc devd_enable="NO"
-fi
-
-/usr/sbin/sysrc -f /etc/rc.conf kld_list+="sysctlinfo"
+kenv vfs.root.mountfrom=ufs:/dev/md2
+kenv init_script="/init-reroot.sh"
 
 if [ "$SINGLE_USER" = "true" ]; then
 	echo "Starting interactive shell in temporary rootfs ..."
-	sh
+	exit 0
 fi
 
-kenv init_shell="/bin/sh"
+kenv init_shell="/rescue/sh"
 exit 0
