@@ -8,7 +8,7 @@ version="12.0"
 arch=AMD64
 base="${cache}/${version}/base"
 packages="${cache}/packages"
-ports="/usr/ports"
+ports="${cache}/furybsd-ports-master"
 iso="${livecd}/iso"
 uzip="${livecd}/uzip"
 cdroot="${livecd}/cdroot"
@@ -58,12 +58,14 @@ isopath="${iso}/${vol}.iso"
 workspace()
 {
   umount ${uzip}/var/cache/pkg >/dev/null 2>/dev/null
-  rm -rf ${cache}/furybsd-ports-master/ >/dev/null 2>/dev/null
+  umount ${ports} >/dev/null 2>/dev/null
+  rm -rf ${ports} >/dev/null 2>/dev/null
+  umount ${cache}/furybsd-packages/
   rm ${cache}/master.zip >/dev/null 2>/dev/null
   umount ${uzip}/dev >/dev/null 2>/dev/null
   if [ -d "${livecd}" ] ;then
     chflags -R noschg ${uzip} ${cdroot} >/dev/null 2>/dev/null
-    rm -rf ${uzip} ${cdroot} >/dev/null 2>/dev/null
+    rm -rf ${uzip} ${cdroot} ${ports} >/dev/null 2>/dev/null
   fi
   mkdir -p ${livecd} ${base} ${iso} ${packages} ${uzip} ${ramdisk_root}/dev ${ramdisk_root}/etc >/dev/null 2>/dev/null
 }
@@ -96,43 +98,33 @@ packages()
 
 ports()
 {
-  if [ -d "${ports}/Mk" ] ; then
-    portsnap fetch update
-  else
-    portsnap fetch extract
-  fi
+  cp /etc/resolv.conf ${uzip}/etc/resolv.conf
   cd ${cache} && fetch https://github.com/furybsd/furybsd-ports/archive/master.zip
   cd ${cache} && unzip master.zip
-  cd ${cache}/furybsd-ports-master && ./mkport.sh x11-themes/furybsd-wallpapers
-  cd ${ports}/x11-themes/furybsd-wallpapers && make package
-  cp ${ports}/x11-themes/furybsd-wallpapers/work/pkg/* ${uzip}
-  cd ${cache}/furybsd-ports-master && ./mkport.sh sysutils/furybsd-dsbdriverd
-  cd ${ports}/sysutils/furybsd-dsbdriverd && make package
-  cp ${ports}/sysutils/furybsd-dsbdriverd/work/pkg/* ${uzip}
-  cd ${cache}/furybsd-ports-master && ./mkport.sh x11-drivers/furybsd-xorg-tool
-  cd ${ports}/x11-drivers/furybsd-xorg-tool && make package
-  cp ${ports}/x11-drivers/furybsd-xorg-tool/work/pkg/* ${uzip}
+  cd ${ports} && ./furybsd-make-ports
+  mkdir -p ${uzip}/usr/local/furybsd/cache/furybsd-packages
+  mkdir -p ${uzip}/usr/local/etc/pkg/repos
+  cp ${cwd}/furybsd.conf ${uzip}/usr/local/etc/pkg/repos
+  mount -t nullfs ${cache}/furybsd-packages/ ${uzip}/usr/local/furybsd/cache/furybsd-packages/
+  mount -t devfs devfs ${uzip}/dev
   case $desktop in
     'kde')
-      echo "no settings port yet"
+      chroot ${uzip} pkg install -fy furybsd-kde-desktop
       ;;
     'gnome')
-      echo "no settings port yet"
+      chroot ${uzip} pkg install -fy furybsd-gnome-desktop
       ;;
     *)
-      cd ${cache}/furybsd-ports-master && ./mkport.sh x11/furybsd-xfce-settings
-      cd ${ports}/x11/furybsd-xfce-settings && make package
-      cp ${ports}/x11/furybsd-xfce-settings/work/pkg/* ${uzip}
+      chroot ${uzip} pkg install -fy furybsd-xfce-desktop
       ;;
   esac
-  mount -t devfs devfs ${uzip}/dev
-  chroot ${uzip} /bin/sh -c "ls /furybsd* | xargs pkg add"
-  chroot ${uzip} /bin/sh -c "ls /furybsd* | xargs rm"
-  chroot ${uzip} /bin/sh -c "ls /dsbdriverd* | xargs pkg add"
-  chroot ${uzip} /bin/sh -c "ls /dsbdriverd* | xargs rm"
-  rm -rf ${cache}/furybsd-ports-master/
   rm ${cache}/master.zip
+  rm ${uzip}/etc/resolv.conf
   umount ${uzip}/dev
+  umount ${cache}/furybsd-packages/
+  rm -rf ${ports}
+  rm -rf ${uzip}/usr/local/furybsd/cache/furybsd-packages/
+  rm -rf ${uzip}/usr/local/etc/pkg
 }
 
 rc()
@@ -170,7 +162,6 @@ user()
   chroot ${uzip} pw groupadd liveuser -g 1000
   chroot ${uzip} echo furybsd | chroot ${uzip} pw mod user liveuser -h 0
   chroot ${uzip} chown -R 1000:1000 /usr/home/liveuser
-  cp ${cwd}/doas.conf ${uzip}/usr/local/etc/
 }
 
 dm()
