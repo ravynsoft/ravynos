@@ -54,11 +54,12 @@ esac
 
 # Get the version tag
 if [ ! -z "$2" ] ; then
-  echo "${tag}" > /usr/local/furybsd/version
+  echo "${tag}" > /usr/local/furybsd/tag
   export vol="FuryBSD-${version}-${edition}-${tag}"
 else
+  rm /usr/local/furybsd/tag
+  echo "${tag}" > /usr/local/furybsd/version
   export vol="FuryBSD-${version}-${edition}"
-  rm /usr/local/furybsd/version
 fi
 
 label="FURYBSD"
