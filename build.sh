@@ -58,7 +58,6 @@ if [ ! -z "$2" ] ; then
   export vol="FuryBSD-${version}-${edition}-${tag}"
 else
   rm /usr/local/furybsd/tag
-  echo "${tag}" > /usr/local/furybsd/version
   export vol="FuryBSD-${version}-${edition}"
 fi
 
