@@ -14,4 +14,4 @@ gitcheck=$(git ls-remote --tags https://github.com/furybsd/furybsd-wallpapers | 
 rm /usr/local/furybsd/iso/FuryBSD-12.0-XFCE-${gitcheck}.iso || true
 cd ${cwd} && ./build.sh xfce ${gitcheck}
 md5 /usr/local/furybsd/iso/FuryBSD-12.0-XFCE-${gitcheck}.iso > /usr/local/furybsd/iso/FuryBSD-12.0-XFCE-${gitcheck}.iso.md5
-
+rm /usr/local/furybsd/tag || true
