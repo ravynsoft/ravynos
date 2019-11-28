@@ -17,6 +17,7 @@ vol="furybsd"
 label="FURYBSD"
 isopath="${iso}/${vol}.iso"
 desktop=$1
+tag=$2
 export DISTRIBUTIONS="kernel.txz base.txz"
 export BSDINSTALL_DISTSITE="http://ftp.freebsd.org/pub/FreeBSD/releases/amd64/12.0-RELEASE/"
 export BSDINSTALL_CHROOT="/usr/local/furybsd/uzip"
@@ -51,7 +52,16 @@ case $desktop in
     ;;
 esac
 
-vol="FuryBSD-${version}-${edition}"
+# Get the version
+if [ ! -z "$2" ] ; then
+  echo "${tag}" > /usr/local/furybsd/version
+  export vol="FuryBSD-${version}-${edition}-${tag}"
+else
+  verTag=$(date '+%Y%m%d%H%M')
+  echo "${verTag}" > /usr/local/furybsd/version
+  export vol="FuryBSD-${version}-${edition}"
+fi
+
 label="FURYBSD"
 isopath="${iso}/${vol}.iso"
 
