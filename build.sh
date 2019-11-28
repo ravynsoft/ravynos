@@ -52,14 +52,13 @@ case $desktop in
     ;;
 esac
 
-# Get the version
+# Get the version tag
 if [ ! -z "$2" ] ; then
   echo "${tag}" > /usr/local/furybsd/version
   export vol="FuryBSD-${version}-${edition}-${tag}"
 else
-  verTag=$(date '+%Y%m%d%H%M')
-  echo "${verTag}" > /usr/local/furybsd/version
   export vol="FuryBSD-${version}-${edition}"
+  rm /usr/local/furybsd/version
 fi
 
 label="FURYBSD"
