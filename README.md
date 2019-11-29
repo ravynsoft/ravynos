@@ -18,7 +18,7 @@ Enable more services:
 edit settings/rc.conf.xfce
 ```
 
-## Build
+## Build a new release to generate tag
 Generate an ISO with XFCE:
 ```
 ./build.sh
@@ -30,6 +30,21 @@ Generate an ISO with Gnome3:
 Generate an ISO with KDE Plasma 5:
 ```
 ./build.sh kde
+```
+
+## Release engineering only push tag to github
+```
+git clone git@github.com:furybsd/furybsd-ports.git
+```
+
+```
+cd furybsd-ports && ./tagports.sh
+```
+
+## Build a release from the latest tag
+
+```
+./release.sh
 ```
 
 ## Burn
