@@ -9,7 +9,7 @@ if [ "$(id -u)" != "0" ]; then
 fi
 
 cwd="`realpath | sed 's|/scripts||g'`"
-gitcheck=$(git ls-remote --tags https://github.com/furybsd/furybsd-wallpapers | awk '{ print $2}' | cut -d'/' -f3 | head -n 1)
+gitcheck=$(git ls-remote --tags https://github.com/furybsd/furybsd-wallpapers | awk '{ print $2}' | cut -d'/' -f3 | sed 's/[^a-zA-Z0-9]//g' | tail -n 1)
 
 rm /usr/local/furybsd/iso/FuryBSD-12.0-XFCE-${gitcheck}.iso || true
 cd ${cwd} && ./build.sh xfce ${gitcheck}
