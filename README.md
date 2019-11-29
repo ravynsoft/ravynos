@@ -1,9 +1,10 @@
 # furybsd-livecd
 LiveCD builder for FuryBSD
 
-## Install git required for furybsd-ports
+## Install bash and git required for furybsd-ports
 
 ```
+pkg install bash
 pkg install git
 ```
 

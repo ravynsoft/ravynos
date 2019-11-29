@@ -37,6 +37,13 @@ if [ ! -f "/usr/local/bin/git" ] ; then
   exit 1
 fi
 
+# Make sure bash is installed
+if [ ! -f "/usr/local/bin/bash" ] ; then
+  echo "Bash is required"
+  echo "Please install bash with pkg install bash first"
+  exit 1
+fi
+
 case $desktop in
   'kde')
     export desktop="kde"
