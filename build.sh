@@ -44,6 +44,13 @@ if [ ! -f "/usr/local/bin/bash" ] ; then
   exit 1
 fi
 
+# Make sure poudriere is installed
+if [ ! -f "/usr/local/bin/poudriere" ] ; then
+  echo "Poudriere is required"
+  echo "Please install poudriere with pkg install poudriere or pkg install poudriere-devel first"
+  exit 1
+fi
+
 case $desktop in
   'kde')
     export desktop="kde"
@@ -247,16 +254,16 @@ cleanup()
   fi
 }
 
-workspace
-base
-packages
-ports
-rc
-dm
-live-settings
-user
-uzip
-ramdisk
-boot
-image
-cleanup
+#workspace
+#base
+#packages
+#ports
+#rc
+#dm
+#live-settings
+#user
+#uzip
+#ramdisk
+#boot
+#image
+#cleanup
