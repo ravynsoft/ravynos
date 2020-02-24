@@ -1,22 +1,7 @@
 #!/bin/sh
 
-cwd="`realpath | sed 's|/scripts||g'`"
-workdir="/usr/local"
-livecd="${workdir}/furybsd"
-cache="${livecd}/cache"
 version="12.0"
 pkgset="branches/2020Q1"
-arch=AMD64
-base="${cache}/${version}/base"
-packages="${cache}/packages"
-ports="${cache}/furybsd-ports-master"
-iso="${livecd}/iso"
-uzip="${livecd}/uzip"
-cdroot="${livecd}/cdroot"
-ramdisk_root="${cdroot}/data/ramdisk"
-vol="furybsd"
-label="FURYBSD"
-isopath="${iso}/${vol}.iso"
 desktop=$1
 tag=$2
 
@@ -73,9 +58,6 @@ else
   echo "${2}" > /usr/local/furybsd/tag
   export vol="FuryBSD-${version}-${edition}-${tag}"
 fi
-
-label="FURYBSD"
-isopath="${iso}/${vol}.iso"
 
 jail()
 {
