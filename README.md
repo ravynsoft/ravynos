@@ -25,17 +25,19 @@ pkg install poudriere
 edit /usr/local/etc/poudriere.conf
 ```
 
-Set the following parameters:
+Define to the pool to be used for building packages:
 
 ```
 ZPOOL=zroot
 ```
 
+Define the local path for creating jails, ports trees:
+
 ```
 BASEFS=/zroot/poudriere
 ```
 
-Make distfiles location
+Make distfiles location for building ports:
 
 ```
 zfs create zroot/usr/ports/distfiles
