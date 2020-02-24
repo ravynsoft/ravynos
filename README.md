@@ -35,6 +35,12 @@ ZPOOL=zroot
 BASEFS=/zroot/poudriere
 ```
 
+Make distfiles location
+
+```
+zfs create zroot/usr/ports/distfiles
+```
+
 ## Install nginx to monitor ports build (recommended)
 
 ```
