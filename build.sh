@@ -5,6 +5,7 @@ workdir="/usr/local"
 livecd="${workdir}/furybsd"
 cache="${livecd}/cache"
 version="12.0"
+pkgset="branches/2020Q1"
 arch=AMD64
 base="${cache}/${version}/base"
 packages="${cache}/packages"
@@ -107,10 +108,10 @@ ports()
   poudriere -e ${livecd} ports -l | grep -q furybsd
   if [ $? -eq 1 ] ; then
     # If ports tree does not exist create it
-    poudriere -e ${livecd} ports -c -p furybsd-ports -b branches/2020Q1 -m git
+    poudriere -e ${livecd} ports -c -p furybsd-ports -B ${pkgset} -m git
   else
     # Update ports tree if it exists
-    poudriere -e ${livecd} ports -u -p furybsd-ports -b branches/2020Q1 -m git
+    poudriere -e ${livecd} ports -u -p furybsd-ports -B ${pkgset} -m git
   fi
 }
 
@@ -125,6 +126,6 @@ image()
 
 workspace
 jail
+ports
 #build
-#ports
 #image
