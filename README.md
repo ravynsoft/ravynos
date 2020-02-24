@@ -19,6 +19,50 @@ pkg install git
 pkg install poudriere
 ```
 
+## Configure poudriere
+
+```
+edit /usr/local/etc/poudriere.conf
+```
+
+Set the following parameters:
+
+```
+ZPOOL=zroot
+```
+
+```
+BASEFS=/zroot/poudriere
+```
+
+## Install nginx to monitor ports build (recommended)
+
+```
+pkg install nginx
+```
+
+```
+edit /usr/local/etc/nginx.conf
+```
+
+Set root parameter, add data alias, and enable autoindex:
+
+```
+    server {
+        listen       80;
+        server_name  localhost;
+        root         /usr/local/share/poudriere/html;
+
+        #charset koi8-r;
+
+        #access_log  logs/host.access.log  main;
+
+        location /data {
+            alias /data/logs/bulk;
+            autoindex on;
+        }
+```
+
 ## Customize
 Add more packages to XFCE edition:
 ```
