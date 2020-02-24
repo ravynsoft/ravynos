@@ -11,7 +11,7 @@ LiveCD builder for FuryBSD
 
 Note other configurations may work but have not been qualified
 
-## Install bash and git required for furybsd-ports
+## Install packages required for build system
 
 ```
 pkg install bash
