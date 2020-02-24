@@ -105,11 +105,11 @@ ports()
 
 build()
 {
-  poudriere bulk -j furybsd -p furybsd-ports -f ${cwd}/settings/packages.xfce
+  poudriere bulk -j furybsd -p furybsd-ports -f ${cwd}/settings/packages.${desktop}
 }
 image()
 {
-  poudriere image -t iso -j furybsd -s 4g -p furybsd-ports -h furybsd -n ${vol} -f ${cwd}/settings/packages.xfce
+  poudriere image -t iso -j furybsd -s 4g -p furybsd-ports -h furybsd -n ${vol} -f ${cwd}/settings/packages.${desktop}
 }
 
 jail
