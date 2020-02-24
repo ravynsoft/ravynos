@@ -117,15 +117,15 @@ ports()
 
 build()
 {
-  poudriere -e ${livecd} bulk -j furybsd -p furybsd-ports -f ~/furybsd-pkglist
+  poudriere -e ${livecd} bulk -j furybsd -p furybsd-ports -f ${cwd}/settings/packages.xfce
 }
 image()
 {
-  poudriere -e ${livecd} image -t iso -j furybsd -s 4g -p furybsd-ports -h furybsd -n ${vol} -f ~/furybsd-pkglist
+  poudriere -e ${livecd} image -t iso -j furybsd -s 4g -p furybsd-ports -h furybsd -n ${vol} -f ${cwd}/settings/packages.xfce
 }
 
 workspace
 jail
 ports
-#build
-#image
+build
+image
