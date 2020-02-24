@@ -93,7 +93,7 @@ jail()
 ports()
 {
   # Check if ports tree exists
-  poudriere -e ${livecd} ports -l | grep -q furybsd
+  poudriere ports -l | grep -q furybsd
   if [ $? -eq 1 ] ; then
     # If ports tree does not exist create it
     poudriere ports -c -p furybsd-ports -B ${pkgset} -m git
