@@ -21,6 +21,8 @@ pkg install poudriere
 
 ## Configure poudriere
 
+Edit poudriere default configuration:
+
 ```
 edit /usr/local/etc/poudriere.conf
 ```
@@ -37,13 +39,13 @@ Define the local path for creating jails, ports trees:
 BASEFS=/zroot/poudriere
 ```
 
-Prevent llvm, webkit, rust and others from taking hours:
+Add parameter to prevent llvm, webkit, rust and others from taking hours:
 
 ```
 ALLOW_MAKE_JOBS_PACKAGES="pkg ccache py* llvm* rust* node* firefox* webkit*"
 ```
 
-Make distfiles location for building ports:
+Save configuration then make distfiles location for building ports:
 
 ```
 zfs create zroot/usr/ports/distfiles
@@ -51,9 +53,13 @@ zfs create zroot/usr/ports/distfiles
 
 ## Install nginx to monitor ports build (recommended)
 
+Install the nginx package:
+
 ```
 pkg install nginx
 ```
+
+Edit the default configuration:
 
 ```
 edit /usr/local/etc/nginx.conf
@@ -75,6 +81,18 @@ Set root parameter, add data alias, and enable autoindex:
             alias /data/logs/bulk;
             autoindex on;
         }
+```
+
+Save configuration then enable nginx service:
+
+```
+sysrc nginx_enable="YES"
+```
+
+Start nginx service:
+
+```
+service nginx start
 ```
 
 ## Customize
