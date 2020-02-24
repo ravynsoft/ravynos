@@ -77,28 +77,16 @@ fi
 label="FURYBSD"
 isopath="${iso}/${vol}.iso"
 
-workspace()
-{
-  # Make sure directory exists to install poudriere config
-  if [ ! -d "${livecd}" ] ; then
-    mkdir -p ${livecd}
-  fi
-  # Install poudriere config
-  if [ ! -f "${livecd}/poudriere.conf" ] ; then
-    cp ${cwd}/poudriere.conf ${livecd}/poudriere.conf
-  fi
-}
-
 jail()
 {
   # Check if jail exists
-  poudriere -e ${livecd} jail -l | grep -q furybsd
+  poudriere jail -l | grep -q furybsd
   if [ $? -eq 1 ] ; then
     # If jail does not exist create it
-    poudriere -e ${livecd} jail -c -j furybsd -v ${version}-RELEASE -K GENERIC
+    poudriere jail -c -j furybsd -v ${version}-RELEASE -K GENERIC
   else
     # Update jail if it exists
-    poudriere -e ${livecd} jail -u -j furybsd
+    poudriere jail -u -j furybsd
   fi
 }
 
@@ -108,23 +96,22 @@ ports()
   poudriere -e ${livecd} ports -l | grep -q furybsd
   if [ $? -eq 1 ] ; then
     # If ports tree does not exist create it
-    poudriere -e ${livecd} ports -c -p furybsd-ports -B ${pkgset} -m git
+    poudriere ports -c -p furybsd-ports -B ${pkgset} -m git
   else
     # Update ports tree if it exists
-    poudriere -e ${livecd} ports -u -p furybsd-ports -B ${pkgset} -m git
+    poudriere ports -u -p furybsd-ports -B ${pkgset} -m git
   fi
 }
 
 build()
 {
-  poudriere -e ${livecd} bulk -j furybsd -p furybsd-ports -f ${cwd}/settings/packages.xfce
+  poudriere bulk -j furybsd -p furybsd-ports -f ${cwd}/settings/packages.xfce
 }
 image()
 {
-  poudriere -e ${livecd} image -t iso -j furybsd -s 4g -p furybsd-ports -h furybsd -n ${vol} -f ${cwd}/settings/packages.xfce
+  poudriere image -t iso -j furybsd -s 4g -p furybsd-ports -h furybsd -n ${vol} -f ${cwd}/settings/packages.xfce
 }
 
-workspace
 jail
 ports
 build
