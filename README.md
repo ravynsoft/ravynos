@@ -6,7 +6,7 @@ LiveCD builder for FuryBSD
 * FreeBSD 12.0-RELEASE or later
 * 64 GB memory
 * 32 cores
-* ZFS on root installation configured as zroot with at least 100GB free
+* ZFS on root installation using pool name zroot with at least 100GB free
 * 2 GB swap or greater
 
 Note other configurations may work but have not been qualified
