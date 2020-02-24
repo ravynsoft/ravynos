@@ -116,12 +116,12 @@ cd furybsd-ports && ./tagports.sh
 Burn the XFCE image to cd:
 ```
 pkg install cdrtools
-cdrecord /usr/local/furybsd/iso/FuryBSD-12.0-XFCE.iso
+cdrecord /data/images/FuryBSD-12.0-XFCE.iso
 ```
 
 Write the XFCE image to usb stick:
 ```
-sudo dd if=/dev/usr/local/furybsd/iso/FuryBSD-12.0-XFCE.iso of=/dev/da0 bs=4m
+sudo dd if=/data/images/FuryBSD-12.0-XFCE.iso of=/dev/da0 bs=4m
 ```
 
 ## Credentials for live media
