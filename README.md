@@ -37,6 +37,12 @@ Define the local path for creating jails, ports trees:
 BASEFS=/zroot/poudriere
 ```
 
+Prevent llvm, webkit, rust and others from taking hours:
+
+```
+ALLOW_MAKE_JOBS_PACKAGES="pkg ccache py* llvm* rust* node* firefox* webkit*"
+```
+
 Make distfiles location for building ports:
 
 ```
