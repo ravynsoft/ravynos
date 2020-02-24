@@ -16,6 +16,7 @@ Note other configurations may work but have not been qualified
 ```
 pkg install bash
 pkg install git
+pkg install poudriere
 ```
 
 ## Customize
