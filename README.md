@@ -1,6 +1,16 @@
 # furybsd-livecd
 LiveCD builder for FuryBSD
 
+## Recommend System Requirements
+
+* FreeBSD 12.0-RELEASE or later
+* 64 GB memory
+* 32 cores
+* ZFS on root installation configured as zroot with at least 100GB free
+* 2 GB swap or greater
+
+Note other configurations may work but have not been qualified
+
 ## Install bash and git required for furybsd-ports
 
 ```
