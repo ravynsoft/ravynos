@@ -87,11 +87,11 @@ ports()
 
 build()
 {
-  poudriere bulk -j furybsd -p furybsd-ports -f ${cwd}/settings/packages.${desktop}
+  poudriere bulk -j furybsd -p furybsd-ports -f settings/packages.${desktop}
 }
 image()
 {
-  poudriere image -t iso -j furybsd -s 4g -p furybsd-ports -h furybsd -n ${vol} -f ${cwd}/settings/packages.${desktop}
+  poudriere image -t tar -j furybsd -p furybsd-ports -h furybsd -n furybsd -f settings/packages.${desktop}
 }
 
 jail
