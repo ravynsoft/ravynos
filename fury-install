@@ -41,6 +41,7 @@ chroot ${FSMNT} rm -rf /usr/local/etc/nginx/
 chroot ${FSMNT} rm -rf /usr/local/www/
 chroot ${FSMNT} rm -rf /var/log/nginx/
 chroot ${FSMNT} rm /var/log/php-fpm.log
+chroot ${FSMNT} rm -rf /union
 
 # Configure the new installation
 mount -t devfs devfs ${FSMNT}/dev
