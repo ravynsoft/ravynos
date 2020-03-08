@@ -4,7 +4,7 @@ cwd="`realpath | sed 's|/scripts||g'`"
 workdir="/usr/local"
 livecd="${workdir}/furybsd"
 cache="${livecd}/cache"
-version="12.0"
+version="12.1"
 arch=AMD64
 base="${cache}/${version}/base"
 packages="${cache}/packages"
@@ -19,9 +19,9 @@ isopath="${iso}/${vol}.iso"
 desktop=$1
 tag=$2
 export DISTRIBUTIONS="kernel.txz base.txz"
-export BSDINSTALL_DISTSITE="http://ftp.freebsd.org/pub/FreeBSD/releases/amd64/12.0-RELEASE/"
+export BSDINSTALL_DISTSITE="http://ftp.freebsd.org/pub/FreeBSD/releases/amd64/12.1-RELEASE/"
 export BSDINSTALL_CHROOT="/usr/local/furybsd/uzip"
-export BSDINSTALL_DISTDIR="/usr/local/furybsd/cache/12.0/base"
+export BSDINSTALL_DISTDIR="/usr/local/furybsd/cache/12.1/base"
 
 
 # Only run as superuser
@@ -229,7 +229,7 @@ boot()
 {
   cp -R ${cwd}/overlays/boot/ ${cdroot}
   cd "${uzip}" && tar -cf - --exclude boot/kernel boot | tar -xf - -C "${cdroot}"
-  for kfile in kernel geom_uzip.ko nullfs.ko tmpfs.ko unionfs.ko; do
+  for kfile in kernel geom_uzip.ko nullfs.ko tmpfs.ko unionfs.ko xz.ko; do
   tar -cf - boot/kernel/${kfile} | tar -xf - -C "${cdroot}"
   done
 }
