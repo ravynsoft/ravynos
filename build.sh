@@ -100,11 +100,13 @@ base()
     bsdinstall distfetch
   fi
   bsdinstall distextract
+  cp /etc/resolv.conf ${uzip}/etc/resolv.conf
+  chroot ${uzip} env PAGER=cat freebsd-update fetch --not-running-from-cron
+  chroot ${uzip} freebsd-update install
 }
 
 packages()
 {
-  cp /etc/resolv.conf ${uzip}/etc/resolv.conf
   mkdir ${uzip}/var/cache/pkg
   mount_nullfs ${packages} ${uzip}/var/cache/pkg
   mount -t devfs devfs ${uzip}/dev
