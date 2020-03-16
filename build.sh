@@ -4,9 +4,6 @@ version="12.1"
 pkgset="branches/2020Q1"
 desktop=$1
 tag=$2
-
-#!/bin/sh
-
 cwd="`realpath | sed 's|/scripts||g'`"
 workdir="/usr/local"
 livecd="${workdir}/furybsd"
