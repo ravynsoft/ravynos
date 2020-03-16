@@ -9,7 +9,6 @@ workdir="/usr/local"
 livecd="${workdir}/furybsd"
 cache="${livecd}/cache"
 arch=AMD64
-base="${cache}/${version}/base"
 packages="${cache}/packages"
 ports="${cache}/furybsd-ports-master"
 iso="${livecd}/iso"
@@ -80,7 +79,7 @@ workspace()
     chflags -R noschg ${uzip} ${cdroot} >/dev/null 2>/dev/null
     rm -rf ${uzip} ${cdroot} ${ports} >/dev/null 2>/dev/null
   fi
-  mkdir -p ${livecd} ${base} ${iso} ${packages} ${uzip} ${ramdisk_root}/dev ${ramdisk_root}/etc >/dev/null 2>/dev/null
+  mkdir -p ${livecd} ${iso} ${packages} ${uzip} ${ramdisk_root}/dev ${ramdisk_root}/etc >/dev/null 2>/dev/null
 }
 
 # Only run as superuser
@@ -286,7 +285,7 @@ cleanup()
 }
 
 workspace
-#poudriere_jail
+poudriere_jail
 #poudriere_ports
 #poudriere_bulk
 #poudriere_image
