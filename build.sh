@@ -169,8 +169,8 @@ poudriere_image()
 
 packages()
 {
-  cp /etc/resolv.conf ${uzip}/etc/resolv.conf
   tar -xf /data/images/furybsd.txz -C ${uzip}
+  cp /etc/resolv.conf ${uzip}/etc/resolv.conf
   mkdir ${uzip}/var/cache/pkg
   mount_nullfs ${packages} ${uzip}/var/cache/pkg
   mount -t devfs devfs ${uzip}/dev
