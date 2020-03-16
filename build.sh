@@ -154,10 +154,6 @@ poudriere_ports()
   if [ $? -eq 1 ] ; then
     # If ports tree does not exist create it
     poudriere ports -c -p furybsd-ports -m null -M /usr/ports/
-  else
-    # Clean and re-create ports tree if it exists
-    poudriere ports -d -p furybsd-ports
-    poudriere ports -c -p furybsd-ports -m null -M /usr/ports/
   fi
 }
 
@@ -288,7 +284,7 @@ cleanup()
 workspace
 poudriere_jail
 poudriere_ports
-#poudriere_bulk
+poudriere_bulk
 #poudriere_image
 #packages
 #rc
