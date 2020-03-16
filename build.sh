@@ -169,6 +169,7 @@ poudriere_image()
 
 packages()
 {
+  cp /etc/resolv.conf ${uzip}/etc/resolv.conf
   tar -xf /data/images/furybsd.txz -C ${uzip}
   mkdir ${uzip}/var/cache/pkg
   mount_nullfs ${packages} ${uzip}/var/cache/pkg
@@ -285,14 +286,14 @@ workspace
 poudriere_jail
 poudriere_ports
 poudriere_bulk
-#poudriere_image
-#packages
-#rc
-#live-settings
-#user
-#dm
-#uzip
-#ramdisk
-#boot
-#image
+poudriere_image
+packages
+rc
+live-settings
+user
+dm
+uzip
+ramdisk
+boot
+image
 cleanup
