@@ -286,7 +286,7 @@ cleanup()
 
 workspace
 poudriere_jail
-#poudriere_ports
+poudriere_ports
 #poudriere_bulk
 #poudriere_image
 #packages
