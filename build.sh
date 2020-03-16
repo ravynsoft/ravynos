@@ -57,11 +57,9 @@ esac
 
 # Get the version tag
 if [ -z "$2" ] ; then
-  echo "tag not set"
   rm /usr/local/furybsd/tag >/dev/null 2>/dev/null
   export vol="FuryBSD-${version}-${edition}"
 else
-  echo "tag is set"
   rm /usr/local/furybsd/version >/dev/null 2>/dev/null
   echo "${2}" > /usr/local/furybsd/tag
   export vol="FuryBSD-${version}-${edition}-${tag}"
@@ -129,11 +127,9 @@ esac
 
 # Get the version tag
 if [ -z "$2" ] ; then
-  echo "tag not set"
   rm /usr/local/furybsd/tag >/dev/null 2>/dev/null
   export vol="FuryBSD-${version}-${edition}"
 else
-  echo "tag is set"
   rm /usr/local/furybsd/version >/dev/null 2>/dev/null
   echo "${2}" > /usr/local/furybsd/tag
   export vol="FuryBSD-${version}-${edition}-${tag}"
