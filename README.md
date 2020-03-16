@@ -3,7 +3,7 @@ LiveCD builder for FuryBSD
 
 ## Recommend System Requirements
 
-* FreeBSD 12.0-RELEASE or later
+* FreeBSD 12.1-RELEASE or later
 * 64 GB memory
 * 32 cores
 * ZFS on root installation using pool name zroot with at least 100GB free
@@ -159,12 +159,12 @@ cd furybsd-ports && ./tagports.sh
 Burn the XFCE image to cd:
 ```
 pkg install cdrtools
-cdrecord /data/images/FuryBSD-12.0-XFCE.iso
+cdrecord /dev/usr/local/furybsd/iso/FuryBSD-12.1-XFCE.iso
 ```
 
 Write the XFCE image to usb stick:
 ```
-sudo dd if=/data/images/FuryBSD-12.0-XFCE.iso of=/dev/da0 bs=4m
+sudo dd if=/dev/usr/local/furybsd/iso/FuryBSD-12.1-XFCE.iso of=/dev/da0 bs=4m
 ```
 
 ## Credentials for live media
