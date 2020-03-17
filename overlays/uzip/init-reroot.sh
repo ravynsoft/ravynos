@@ -27,6 +27,13 @@ if [ "${VMGUEST}" = "xen" ]; then
   /usr/sbin/sysrc devd_enable="NO" >/dev/null 2>/dev/null
 fi
 
+if [ "${VMGUEST}" = "vmware" ]; then
+  rm /etc/X11/xorg.conf
+  /usr/sbin/sysrc -f /etc/rc.conf vmware_guest_vmblock_enable="YES" >/dev/null 2>/dev/null
+  /usr/sbin/sysrc -f /etc/rc.conf vmware_guest_vmmemctl_enable="YES" >/dev/null 2>/dev/null
+  /usr/sbin/sysrc -f /etc/rc.conf vmware_guestd_enable="YES" >/dev/null 2>/dev/null
+fi
+
 /usr/sbin/sysrc -f /etc/rc.conf kld_list+="sysctlinfo" >/dev/null 2>/dev/null
 
 kenv init_shell="/bin/sh" >/dev/null 2>/dev/null
