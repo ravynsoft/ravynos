@@ -29,9 +29,9 @@ fi
 
 if [ "${VMGUEST}" = "vmware" ]; then
   rm /etc/X11/xorg.conf
-  sysrc vmware_guest_vmblock_enable="YES"
-  sysrc vmware_guest_vmmemctl_enable="YES"
-  sysrc vmware_guestd_enable="YES"
+  /usr/sbin/sysrc -f /etc/rc.conf vmware_guest_vmblock_enable="YES"
+  /usr/sbin/sysrc -f /etc/rc.conf vmware_guest_vmmemctl_enable="YES"
+  /usr/sbin/sysrc -f /etc/rc.conf vmware_guestd_enable="YES"
 fi
 
 /usr/sbin/sysrc -f /etc/rc.conf kld_list+="sysctlinfo" >/dev/null 2>/dev/null
