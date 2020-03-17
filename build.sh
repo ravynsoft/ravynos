@@ -1,12 +1,14 @@
 #!/bin/sh
 
+version="12.1"
+pkgset="branches/2020Q1"
+desktop=$1
+tag=$2
 cwd="`realpath | sed 's|/scripts||g'`"
 workdir="/usr/local"
 livecd="${workdir}/furybsd"
 cache="${livecd}/cache"
-version="12.1"
 arch=AMD64
-base="${cache}/${version}/base"
 packages="${cache}/packages"
 ports="${cache}/furybsd-ports-master"
 iso="${livecd}/iso"
@@ -16,13 +18,6 @@ ramdisk_root="${cdroot}/data/ramdisk"
 vol="furybsd"
 label="FURYBSD"
 isopath="${iso}/${vol}.iso"
-desktop=$1
-tag=$2
-export DISTRIBUTIONS="kernel.txz base.txz"
-export BSDINSTALL_DISTSITE="http://ftp.freebsd.org/pub/FreeBSD/releases/amd64/12.1-RELEASE/"
-export BSDINSTALL_CHROOT="/usr/local/furybsd/uzip"
-export BSDINSTALL_DISTDIR="/usr/local/furybsd/cache/12.1/base"
-
 
 # Only run as superuser
 if [ "$(id -u)" != "0" ]; then
@@ -61,11 +56,9 @@ esac
 
 # Get the version tag
 if [ -z "$2" ] ; then
-  echo "tag not set"
   rm /usr/local/furybsd/tag >/dev/null 2>/dev/null
   export vol="FuryBSD-${version}-${edition}"
 else
-  echo "tag is set"
   rm /usr/local/furybsd/version >/dev/null 2>/dev/null
   echo "${2}" > /usr/local/furybsd/tag
   export vol="FuryBSD-${version}-${edition}-${tag}"
@@ -79,34 +72,105 @@ workspace()
   umount ${uzip}/var/cache/pkg >/dev/null 2>/dev/null
   umount ${ports} >/dev/null 2>/dev/null
   rm -rf ${ports} >/dev/null 2>/dev/null
-  umount ${cache}/furybsd-packages/
+  umount ${cache}/furybsd-packages/ >/dev/null 2>/dev/null
   rm ${cache}/master.zip >/dev/null 2>/dev/null
   umount ${uzip}/dev >/dev/null 2>/dev/null
   if [ -d "${livecd}" ] ;then
     chflags -R noschg ${uzip} ${cdroot} >/dev/null 2>/dev/null
     rm -rf ${uzip} ${cdroot} ${ports} >/dev/null 2>/dev/null
   fi
-  mkdir -p ${livecd} ${base} ${iso} ${packages} ${uzip} ${ramdisk_root}/dev ${ramdisk_root}/etc >/dev/null 2>/dev/null
+  mkdir -p ${livecd} ${iso} ${packages} ${uzip} ${ramdisk_root}/dev ${ramdisk_root}/etc >/dev/null 2>/dev/null
 }
 
-base()
+# Only run as superuser
+if [ "$(id -u)" != "0" ]; then
+  echo "This script must be run as root" 1>&2
+  exit 1
+fi
+
+# Make sure git is installed
+if [ ! -f "/usr/local/bin/git" ] ; then
+  echo "Git is required"
+  echo "Please install it with pkg install git or pkg install git-lite first"
+  exit 1
+fi
+
+# Make sure bash is installed
+if [ ! -f "/usr/local/bin/bash" ] ; then
+  echo "Bash is required"
+  echo "Please install bash with pkg install bash first"
+  exit 1
+fi
+
+# Make sure poudriere is installed
+if [ ! -f "/usr/local/bin/poudriere" ] ; then
+  echo "Poudriere is required"
+  echo "Please install poudriere with pkg install poudriere or pkg install poudriere-devel first"
+  exit 1
+fi
+
+case $desktop in
+  'kde')
+    export desktop="kde"
+    export edition="KDE"
+    ;;
+  'gnome')
+    export desktop="gnome"
+    export edition="GNOME"
+    ;;
+  *)
+    export desktop="xfce"
+    export edition="XFCE"
+    ;;
+esac
+
+# Get the version tag
+if [ -z "$2" ] ; then
+  rm /usr/local/furybsd/tag >/dev/null 2>/dev/null
+  export vol="FuryBSD-${version}-${edition}"
+else
+  rm /usr/local/furybsd/version >/dev/null 2>/dev/null
+  echo "${2}" > /usr/local/furybsd/tag
+  export vol="FuryBSD-${version}-${edition}-${tag}"
+fi
+
+poudriere_jail()
 {
-  if [ ! -f "${base}/base.txz" ] ; then 
-    bsdinstall distfetch
+  # Check if jail exists
+  poudriere jail -l | grep -q furybsd
+  if [ $? -eq 1 ] ; then
+    # If jail does not exist create it
+    poudriere jail -c -j furybsd -v ${version}-RELEASE -K GENERIC
+  else
+    # Update jail if it exists
+    poudriere jail -u -j furybsd
   fi
-  
-  if [ ! -f "${base}/kernel.txz" ] ; then
-    cd ${base}
-    bsdinstall distfetch
+}
+
+poudriere_ports()
+{
+  # Check if ports tree exists
+  poudriere ports -l | grep -q furybsd
+  if [ $? -eq 1 ] ; then
+    # If ports tree does not exist create it
+    poudriere ports -c -p furybsd-ports -m null -M /usr/ports/
   fi
-  bsdinstall distextract
-  cp /etc/resolv.conf ${uzip}/etc/resolv.conf
-  chroot ${uzip} env PAGER=cat freebsd-update fetch --not-running-from-cron
-  chroot ${uzip} freebsd-update install
+}
+
+poudriere_bulk()
+{
+  poudriere bulk -j furybsd -p furybsd-ports -f settings/ports.${desktop}
+}
+
+poudriere_image()
+{
+  poudriere image -t tar -j furybsd -p furybsd-ports -h furybsd -n furybsd -f settings/ports.${desktop}
 }
 
 packages()
 {
+  tar -xf /data/images/furybsd.txz -C ${uzip}
+  cp /etc/resolv.conf ${uzip}/etc/resolv.conf
   mkdir ${uzip}/var/cache/pkg
   mount_nullfs ${packages} ${uzip}/var/cache/pkg
   mount -t devfs devfs ${uzip}/dev
@@ -115,37 +179,6 @@ packages()
   rm ${uzip}/etc/resolv.conf
   umount ${uzip}/var/cache/pkg
   umount ${uzip}/dev
-}
-
-ports()
-{
-  cp /etc/resolv.conf ${uzip}/etc/resolv.conf
-  cd ${cache} && fetch https://github.com/furybsd/furybsd-ports/archive/master.zip
-  cd ${cache} && unzip master.zip
-  cd ${ports} && ./furybsd-make-ports
-  mkdir -p ${uzip}/usr/local/furybsd/cache/furybsd-packages
-  mkdir -p ${uzip}/usr/local/etc/pkg/repos
-  cp ${cwd}/furybsd.conf ${uzip}/usr/local/etc/pkg/repos
-  mount -t nullfs ${cache}/furybsd-packages/ ${uzip}/usr/local/furybsd/cache/furybsd-packages/
-  mount -t devfs devfs ${uzip}/dev
-  case $desktop in
-    'kde')
-      chroot ${uzip} pkg install -fy furybsd-kde-desktop
-      ;;
-    'gnome')
-      chroot ${uzip} pkg install -fy furybsd-gnome-desktop
-      ;;
-    *)
-      chroot ${uzip} pkg install -fy furybsd-xfce-desktop
-      ;;
-  esac
-  rm ${cache}/master.zip
-  rm ${uzip}/etc/resolv.conf
-  umount ${uzip}/dev
-  umount ${cache}/furybsd-packages/
-  rm -rf ${ports}
-  rm -rf ${uzip}/usr/local/furybsd/cache/furybsd-packages/
-  rm -rf ${uzip}/usr/local/etc/pkg
 }
 
 rc()
@@ -250,13 +283,15 @@ cleanup()
 }
 
 workspace
-base
+poudriere_jail
+poudriere_ports
+poudriere_bulk
+poudriere_image
 packages
-ports
 rc
-dm
 live-settings
 user
+dm
 uzip
 ramdisk
 boot
