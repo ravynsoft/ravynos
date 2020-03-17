@@ -56,6 +56,10 @@ if [ "${VMGUEST}" = "xen" ]; then
   sysrc devd_enable="NO"
 fi
 
+if [ "${VMGUEST}" = "vmware" ]; then
+  rm /etc/X11/xorg.conf
+fi
+
 sysrc -f /etc/rc.conf kld_list+="sysctlinfo"
 
 if [ "$SINGLE_USER" = "true" ]; then
