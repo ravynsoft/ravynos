@@ -203,6 +203,20 @@ live-settings()
   cp ${uzip}/usr/local/etc/php.ini-production ${uzip}/usr/local/etc/php.ini
 }
 
+skel()
+{
+  if [ ! -d "${cache}/furybsd-xfce-settings" ] ; then
+    git clone https://github.com/furybsd/furybsd-xfce-settings.git ${cache}/furybsd-xfce-settings
+  fi
+  if [ ! -d "${cache}/furybsd-wallpapers" ] ; then
+    git clone https://github.com/furybsd/furybsd-wallpapers.git ${cache}/furybsd-wallpapers
+  fi
+  mkdir -p ${uzip}/usr/share/skel/dot.config/xfce4/xfconf/xfce-perchannel-xml
+  mkdir -p ${uzip}/usr/share/skel/dot.local/share/backgrounds/furybsd
+  cp -R ${cache}/furybsd-xfce-settings/etc/xdg/xfce4/xfconf/xfce-perchannel-xml/* ${uzip}/usr/share/skel/dot.config/xfce4/xfconf/xfce-perchannel-xml/
+  cp -R ${cache}/furybsd-wallpapers/*.png ${uzip}/usr/share/skel/dot.local/share/backgrounds/furybsd/
+}
+
 user()
 {
   mkdir -p ${uzip}/usr/home/liveuser/Desktop
@@ -211,7 +225,6 @@ user()
   cp ${cwd}/fury-config-xorg.desktop ${uzip}/usr/home/liveuser/Desktop/
   cp ${cwd}/fury-install.desktop ${uzip}/usr/home/liveuser/Desktop/
   cp ${cwd}/fury-sysinfo.desktop ${uzip}/usr/home/liveuser/Desktop/
-  cp ${cwd}/fury-desktop-readme.txt ${uzip}/usr/home/liveuser/Desktop/"Getting Started.txt"
   chroot ${uzip} echo furybsd | chroot ${uzip} pw mod user root -h 0
   chroot ${uzip} pw useradd liveuser -u 1000 \
   -c "Live User" -d "/home/liveuser" \
@@ -293,6 +306,7 @@ poudriere_image
 packages
 rc
 live-settings
+skel
 user
 dm
 uzip
