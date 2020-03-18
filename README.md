@@ -37,35 +37,10 @@ Define the local path for creating jails, ports trees:
 BASEFS=/zroot/poudriere
 ```
 
-Add parameter to prevent llvm, webkit, rust and others from taking hours:
+Save configuration then make distfiles location for building ports:
 
 ```
-ALLOW_MAKE_JOBS_PACKAGES="pkg ccache py* llvm* rust* node* firefox* webkit*"
-```
-
-Save configuration then fetch FreeBSD ports for building ports:
-
-```
-git clone -b branches/2020Q1 https://github.com/freebsd/freebsd-ports.git --depth=1 /usr/ports
-```
-Note this will go away when production poudriere supports overlay.  For now fetching a ports tree in /usr/ports is required to overlay our custom furybsd-ports.  Poudriere will mount this custom tree with nullfs.
-
-Clone the furybsd-ports overlay
-
-```
-git clone https://github.com/furybsd/furybsd-ports.git
-```
-
-Install the ports overlays for furybsd ports
-
-```
-./mkport.sh x11-drivers/furybsd-xorg-tool
-./mkport.sh x11-themes/furybsd-wallpapers
-./mkport.sh x11/furybsd-common-settings
-./mkport.sh x11/furybsd-gnome-desktop
-./mkport.sh x11/furybsd-kde-desktop
-./mkport.sh x11/furybsd-xfce-desktop
-./mkport.sh x11/furybsd-xfce-settings
+zfs create zroot/usr/ports/distfiles
 ```
 
 ## Install nginx to monitor ports build (recommended)

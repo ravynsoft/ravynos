@@ -153,7 +153,10 @@ poudriere_ports()
   poudriere ports -l | grep -q furybsd
   if [ $? -eq 1 ] ; then
     # If ports tree does not exist create it
-    poudriere ports -c -p furybsd-ports -m null -M /usr/ports/
+    poudriere ports -c -p furybsd-ports -B ${pkgset} -m git
+  else
+    # Update ports tree if it exists
+    poudriere ports -u -p furybsd-ports -B ${pkgset} -m git
   fi
 }
 
@@ -200,15 +203,39 @@ live-settings()
   cp ${uzip}/usr/local/etc/php.ini-production ${uzip}/usr/local/etc/php.ini
 }
 
+skel()
+{
+  if [ ! -d "${cache}/furybsd-xfce-settings" ] ; then
+    git clone https://github.com/furybsd/furybsd-xfce-settings.git ${cache}/furybsd-xfce-settings
+  else
+    cd ${cache}/furybsd-xfce-settings && git pull
+  fi
+  if [ ! -d "${cache}/furybsd-wallpapers" ] ; then
+    git clone https://github.com/furybsd/furybsd-wallpapers.git ${cache}/furybsd-wallpapers
+  else
+    cd ${cache}/furybsd-wallpapers && git pull
+  fi
+  mkdir -p ${uzip}/usr/share/skel/dot.config/xfce4/xfconf/xfce-perchannel-xml
+  mkdir -p ${uzip}/usr/share/skel/dot.local/share/backgrounds/furybsd
+  cp -R ${cache}/furybsd-xfce-settings/etc/xdg/xfce4/xfconf/xfce-perchannel-xml/* ${uzip}/usr/share/skel/dot.config/xfce4/xfconf/xfce-perchannel-xml/
+  cp -R ${cache}/furybsd-wallpapers/*.png ${uzip}/usr/share/skel/dot.local/share/backgrounds/furybsd/
+}
+
 user()
 {
+  if [ ! -d "${cache}/furybsd-xorg-tool" ] ; then
+    git clone https://github.com/furybsd/furybsd-xorg-tool.git ${cache}/furybsd-xorg-tool
+  else
+    cd ${cache}/furybsd-xorg-tool && git pull
+  fi
   mkdir -p ${uzip}/usr/home/liveuser/Desktop
+  mkdir -p ${uzip}/usr/home/liveuser/bin
+  cp ${cache}/furybsd-xorg-tool/bin/* ${uzip}/usr/home/liveuser/bin/
   cp ${cwd}/fury-install ${uzip}/usr/home/liveuser/
   cp -R ${cwd}/xorg.conf.d/ ${uzip}/usr/home/liveuser/xorg.conf.d
   cp ${cwd}/fury-config-xorg.desktop ${uzip}/usr/home/liveuser/Desktop/
   cp ${cwd}/fury-install.desktop ${uzip}/usr/home/liveuser/Desktop/
   cp ${cwd}/fury-sysinfo.desktop ${uzip}/usr/home/liveuser/Desktop/
-  cp ${cwd}/fury-desktop-readme.txt ${uzip}/usr/home/liveuser/Desktop/"Getting Started.txt"
   chroot ${uzip} echo furybsd | chroot ${uzip} pw mod user root -h 0
   chroot ${uzip} pw useradd liveuser -u 1000 \
   -c "Live User" -d "/home/liveuser" \
@@ -233,6 +260,16 @@ dm()
       chroot ${uzip} cap_mkdb /etc/login.conf
       ;;
   esac
+}
+
+installed-settings()
+{
+  if [ ! -d "${cache}/furybsd-common-settings" ] ; then
+    git clone https://github.com/furybsd/furybsd-common-settings.git ${cache}/furybsd-common-settings
+  else
+    cd ${cache}/furybsd-common-settings && git pull
+  fi
+  cp -R ${cache}/furybsd-common-settings/etc/* ${uzip}/usr/local/etc/
 }
 
 uzip() 
@@ -290,7 +327,9 @@ poudriere_image
 packages
 rc
 live-settings
+skel
 user
+installed-settings
 dm
 uzip
 ramdisk
