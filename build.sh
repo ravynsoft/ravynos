@@ -207,9 +207,13 @@ skel()
 {
   if [ ! -d "${cache}/furybsd-xfce-settings" ] ; then
     git clone https://github.com/furybsd/furybsd-xfce-settings.git ${cache}/furybsd-xfce-settings
+  else
+    cd ${cache}/furybsd-xfce-settings && git pull
   fi
   if [ ! -d "${cache}/furybsd-wallpapers" ] ; then
     git clone https://github.com/furybsd/furybsd-wallpapers.git ${cache}/furybsd-wallpapers
+  else
+    cd ${cache}/furybsd-wallpapers && git pull
   fi
   mkdir -p ${uzip}/usr/share/skel/dot.config/xfce4/xfconf/xfce-perchannel-xml
   mkdir -p ${uzip}/usr/share/skel/dot.local/share/backgrounds/furybsd
@@ -219,7 +223,14 @@ skel()
 
 user()
 {
+  if [ ! -d "${cache}/furybsd-xorg-tool" ] ; then
+    git clone https://github.com/furybsd/furybsd-xorg-tool.git ${cache}/furybsd-xorg-tool
+  else
+    cd ${cache}/furybsd-xorg-tool && git pull
+  fi
   mkdir -p ${uzip}/usr/home/liveuser/Desktop
+  mkdir -p ${uzip}/usr/home/liveuser/bin
+  cp ${cache}/furybsd-xorg-tool/bin/* ${uzip}/usr/home/liveuser/bin/
   cp ${cwd}/fury-install ${uzip}/usr/home/liveuser/
   cp -R ${cwd}/xorg.conf.d/ ${uzip}/usr/home/liveuser/xorg.conf.d
   cp ${cwd}/fury-config-xorg.desktop ${uzip}/usr/home/liveuser/Desktop/
@@ -249,6 +260,16 @@ dm()
       chroot ${uzip} cap_mkdb /etc/login.conf
       ;;
   esac
+}
+
+installed-settings()
+{
+  if [ ! -d "${cache}/furybsd-common-settings" ] ; then
+    git clone https://github.com/furybsd/furybsd-common-settings.git ${cache}/furybsd-common-settings
+  else
+    cd ${cache}/furybsd-common-settings && git pull
+  fi
+  cp -R ${cache}/furybsd-common-settings/etc/* ${uzip}/usr/local/etc/
 }
 
 uzip() 
@@ -308,6 +329,7 @@ rc
 live-settings
 skel
 user
+installed-settings
 dm
 uzip
 ramdisk
