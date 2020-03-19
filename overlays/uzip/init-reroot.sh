@@ -28,10 +28,12 @@ if [ "${VMGUEST}" = "xen" ]; then
 fi
 
 if [ "${VMGUEST}" = "vmware" ]; then
-  rm /etc/X11/xorg.conf
+  rm /etc/X11/xorg.conf >/dev/null 2>/dev/null
+  cp /usr/home/liveuser/xorg.conf.d/driver-vmware.conf /etc/X11/xorg.conf >/dev/null 2>/dev/null
   /usr/sbin/sysrc -f /etc/rc.conf vmware_guest_vmblock_enable="YES" >/dev/null 2>/dev/null
   /usr/sbin/sysrc -f /etc/rc.conf vmware_guest_vmmemctl_enable="YES" >/dev/null 2>/dev/null
   /usr/sbin/sysrc -f /etc/rc.conf vmware_guestd_enable="YES" >/dev/null 2>/dev/null
+  /usr/sbin/sysrc -f /etc/rc.conf moused_enable="YES" >/dev/null 2>/dev/null
 fi
 
 /usr/sbin/sysrc -f /etc/rc.conf kld_list+="sysctlinfo" >/dev/null 2>/dev/null
