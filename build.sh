@@ -243,6 +243,7 @@ user()
   chroot ${uzip} pw groupadd liveuser -g 1000
   chroot ${uzip} echo furybsd | chroot ${uzip} pw mod user liveuser -h 0
   chroot ${uzip} chown -R 1000:1000 /usr/home/liveuser
+  chroot ${uzip} pw groupmod wheel -m liveuser
 }
 
 dm()
