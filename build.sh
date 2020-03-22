@@ -240,15 +240,14 @@ opt()
   mkdir -p ${uzip}/opt/local/bin
   mkdir -p ${uzip}/opt/local/share/backgrounds/furybsd
   cp ${cwd}/furybsd-init-helper ${uzip}/opt/local/bin/
+  cp ${cwd}/furybsd-install ${uzip}/opt/local/bin/
+  cp ${cache}/furybsd-xorg-tool/bin/* ${uzip}/opt/local/bin/
+  cp ${cache}/furybsd-wifi-tool/bin/* ${uzip}/opt/local/bin/
 }
 
 user()
 {
   mkdir -p ${uzip}/usr/home/liveuser/Desktop
-  mkdir -p ${uzip}/usr/home/liveuser/bin
-  cp ${cache}/furybsd-xorg-tool/bin/* ${uzip}/usr/home/liveuser/bin/
-  cp ${cache}/furybsd-wifi-tool/bin/* ${uzip}/usr/home/liveuser/bin/
-  cp ${cwd}/fury-install ${uzip}/usr/home/liveuser/
   cp -R ${cwd}/xorg.conf.d/ ${uzip}/usr/home/liveuser/xorg.conf.d
   cp ${cwd}/fury-config-xorg.desktop ${uzip}/usr/home/liveuser/Desktop/
   cp ${cwd}/fury-config-wifi.desktop ${uzip}/usr/home/liveuser/Desktop/
