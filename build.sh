@@ -239,6 +239,7 @@ opt()
 {
   mkdir -p ${uzip}/opt/local/bin
   mkdir -p ${uzip}/opt/local/share/backgrounds
+  cp ${cwd}/furybsd-init-helper /opt/local/bin/
 }
 
 user()
