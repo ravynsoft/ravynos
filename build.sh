@@ -230,9 +230,7 @@ repos()
 skel()
 {
   mkdir -p ${uzip}/usr/share/skel/dot.config/xfce4/xfconf/xfce-perchannel-xml
-  mkdir -p ${uzip}/usr/share/skel/dot.local/share/backgrounds/furybsd
   cp -R ${cache}/furybsd-xfce-settings/etc/xdg/xfce4/xfconf/xfce-perchannel-xml/* ${uzip}/usr/share/skel/dot.config/xfce4/xfconf/xfce-perchannel-xml/
-  cp -R ${cache}/furybsd-wallpapers/*.png ${uzip}/usr/share/skel/dot.local/share/backgrounds/furybsd/
 }
 
 opt()
@@ -242,6 +240,7 @@ opt()
   cp ${cwd}/furybsd-init-helper ${uzip}/opt/local/bin/
   cp ${cwd}/furybsd-install ${uzip}/opt/local/bin/
   cp ${cache}/furybsd-xorg-tool/bin/* ${uzip}/opt/local/bin/
+  cp -R ${cache}/furybsd-wallpapers/*.png ${uzip}/opt/local/share/backgrounds/furybsd/
   cp ${cache}/furybsd-wifi-tool/bin/* ${uzip}/opt/local/bin/
 }
 
