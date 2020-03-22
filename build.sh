@@ -238,7 +238,7 @@ skel()
 opt()
 {
   mkdir -p ${uzip}/opt/local/bin
-  mkdir -p ${uzip}/opt/local/share/backgrounds
+  mkdir -p ${uzip}/opt/local/share/backgrounds/furybsd
   cp ${cwd}/furybsd-init-helper ${uzip}/opt/local/bin/
 }
 
