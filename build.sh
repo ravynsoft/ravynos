@@ -228,6 +228,11 @@ user()
   else
     cd ${cache}/furybsd-xorg-tool && git pull
   fi
+  if [ ! -d "${cache}/furybsd-wifi-tool" ] ; then
+    git clone https://github.com/furybsd/furybsd-wifi-tool.git ${cache}/furybsd-wifi-tool
+  else
+    cd ${cache}/furybsd-wifi-tool && git pull
+  fi
   mkdir -p ${uzip}/usr/home/liveuser/Desktop
   mkdir -p ${uzip}/usr/home/liveuser/bin
   cp ${cache}/furybsd-xorg-tool/bin/* ${uzip}/usr/home/liveuser/bin/
@@ -236,7 +241,7 @@ user()
   cp ${cwd}/fury-config-xorg.desktop ${uzip}/usr/home/liveuser/Desktop/
   cp ${cwd}/fury-install.desktop ${uzip}/usr/home/liveuser/Desktop/
   cp ${cwd}/fury-sysinfo.desktop ${uzip}/usr/home/liveuser/Desktop/
-  cp ${uzip}/usr/local/share/applications/wifimgr.desktop ${uzip}/usr/home/liveuser/Desktop
+#  cp ${uzip}/usr/local/share/applications/wifimgr.desktop ${uzip}/usr/home/liveuser/Desktop
   chmod +x ${uzip}/usr/home/liveuser/Desktop/wifimgr.desktop
   chroot ${uzip} echo furybsd | chroot ${uzip} pw mod user root -h 0
   chroot ${uzip} pw useradd liveuser -u 1000 \
