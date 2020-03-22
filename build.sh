@@ -203,7 +203,7 @@ live-settings()
   cp ${uzip}/usr/local/etc/php.ini-production ${uzip}/usr/local/etc/php.ini
 }
 
-skel()
+repos()
 {
   if [ ! -d "${cache}/furybsd-xfce-settings" ] ; then
     git clone https://github.com/furybsd/furybsd-xfce-settings.git ${cache}/furybsd-xfce-settings
@@ -215,14 +215,6 @@ skel()
   else
     cd ${cache}/furybsd-wallpapers && git pull
   fi
-  mkdir -p ${uzip}/usr/share/skel/dot.config/xfce4/xfconf/xfce-perchannel-xml
-  mkdir -p ${uzip}/usr/share/skel/dot.local/share/backgrounds/furybsd
-  cp -R ${cache}/furybsd-xfce-settings/etc/xdg/xfce4/xfconf/xfce-perchannel-xml/* ${uzip}/usr/share/skel/dot.config/xfce4/xfconf/xfce-perchannel-xml/
-  cp -R ${cache}/furybsd-wallpapers/*.png ${uzip}/usr/share/skel/dot.local/share/backgrounds/furybsd/
-}
-
-user()
-{
   if [ ! -d "${cache}/furybsd-xorg-tool" ] ; then
     git clone https://github.com/furybsd/furybsd-xorg-tool.git ${cache}/furybsd-xorg-tool
   else
@@ -233,6 +225,24 @@ user()
   else
     cd ${cache}/furybsd-wifi-tool && git pull
   fi
+}
+
+skel()
+{
+  mkdir -p ${uzip}/usr/share/skel/dot.config/xfce4/xfconf/xfce-perchannel-xml
+  mkdir -p ${uzip}/usr/share/skel/dot.local/share/backgrounds/furybsd
+  cp -R ${cache}/furybsd-xfce-settings/etc/xdg/xfce4/xfconf/xfce-perchannel-xml/* ${uzip}/usr/share/skel/dot.config/xfce4/xfconf/xfce-perchannel-xml/
+  cp -R ${cache}/furybsd-wallpapers/*.png ${uzip}/usr/share/skel/dot.local/share/backgrounds/furybsd/
+}
+
+opt()
+{
+  mkdir -p ${uzip}/opt/local/bin
+  mkdir -p ${uzip}/opt/local/share/backgrounds
+}
+
+user()
+{
   mkdir -p ${uzip}/usr/home/liveuser/Desktop
   mkdir -p ${uzip}/usr/home/liveuser/bin
   cp ${cache}/furybsd-xorg-tool/bin/* ${uzip}/usr/home/liveuser/bin/
@@ -335,6 +345,8 @@ poudriere_image
 packages
 rc
 live-settings
+repos
+opt
 skel
 user
 installed-settings
