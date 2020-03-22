@@ -236,12 +236,13 @@ user()
   mkdir -p ${uzip}/usr/home/liveuser/Desktop
   mkdir -p ${uzip}/usr/home/liveuser/bin
   cp ${cache}/furybsd-xorg-tool/bin/* ${uzip}/usr/home/liveuser/bin/
+  cp ${cache}/furybsd-wifi-tool/bin/* ${uzip}/usr/home/liveuser/bin/
   cp ${cwd}/fury-install ${uzip}/usr/home/liveuser/
   cp -R ${cwd}/xorg.conf.d/ ${uzip}/usr/home/liveuser/xorg.conf.d
   cp ${cwd}/fury-config-xorg.desktop ${uzip}/usr/home/liveuser/Desktop/
+  cp ${cwd}/fury-config-wifi.desktop ${uzip}/usr/home/liveuser/Desktop/
   cp ${cwd}/fury-install.desktop ${uzip}/usr/home/liveuser/Desktop/
   cp ${cwd}/fury-sysinfo.desktop ${uzip}/usr/home/liveuser/Desktop/
-#  cp ${uzip}/usr/local/share/applications/wifimgr.desktop ${uzip}/usr/home/liveuser/Desktop
   chmod +x ${uzip}/usr/home/liveuser/Desktop/wifimgr.desktop
   chroot ${uzip} echo furybsd | chroot ${uzip} pw mod user root -h 0
   chroot ${uzip} pw useradd liveuser -u 1000 \
