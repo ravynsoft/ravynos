@@ -252,6 +252,7 @@ user()
   cp -R ${cwd}/xorg.conf.d/ ${uzip}/usr/home/liveuser/xorg.conf.d
   cp ${cwd}/fury-config-xorg.desktop ${uzip}/usr/home/liveuser/Desktop/
   cp ${uzip}/usr/local/share/applications/wpa_gui.desktop ${uzip}/usr/home/liveuser/Desktop/
+  chmod +x ${uzip}/usr/home/liveuser/Desktop/wpa_gui.desktop
   cp ${cwd}/fury-config-wifi.desktop ${uzip}/usr/local/etc/xdg/autostart/
   cp ${cwd}/fury-install.desktop ${uzip}/usr/home/liveuser/Desktop/
   cp ${cwd}/fury-sysinfo.desktop ${uzip}/usr/home/liveuser/Desktop/
