@@ -251,7 +251,8 @@ user()
   mkdir -p ${uzip}/usr/home/liveuser/Desktop
   cp -R ${cwd}/xorg.conf.d/ ${uzip}/usr/home/liveuser/xorg.conf.d
   cp ${cwd}/fury-config-xorg.desktop ${uzip}/usr/home/liveuser/Desktop/
-  cp ${cwd}/fury-config-wifi.desktop ${uzip}/usr/home/liveuser/Desktop/
+  cp ${uzip}/usr/local/share/applications/wpa_gui.desktop /usr/home/liveuser/Desktop/
+  cp ${cwd}/fury-config-wifi.desktop ${uzip}/usr/local/etc/xdg/autostart/
   cp ${cwd}/fury-install.desktop ${uzip}/usr/home/liveuser/Desktop/
   cp ${cwd}/fury-sysinfo.desktop ${uzip}/usr/home/liveuser/Desktop/
   chroot ${uzip} echo furybsd | chroot ${uzip} pw mod user root -h 0
