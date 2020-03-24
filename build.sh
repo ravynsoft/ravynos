@@ -260,6 +260,8 @@ user()
   chroot ${uzip} echo furybsd | chroot ${uzip} pw mod user liveuser -h 0
   chroot ${uzip} chown -R 1000:1000 /usr/home/liveuser
   chroot ${uzip} pw groupmod wheel -m liveuser
+  chroot ${uzip} pw groupmod video -m liveuser
+  chroot ${uzip} pw groupmod webcamd -m liveuser
 }
 
 dm()

@@ -39,4 +39,4 @@ if [ -f "/usr/sbin/pciconf" ] ; then
   fi
 fi
 
-/usr/sbin/sysrc -f /etc/rc.conf kld_list+="sysctlinfo" >/dev/null 2>/dev/null
+/usr/sbin/sysrc -f /etc/rc.conf kld_list+="sysctlinfo cuse" >/dev/null 2>/dev/null
