@@ -205,7 +205,7 @@ live-settings()
   chmod 664 ${uzip}/usr/local/etc/dhcpcd.conf
 }
 
-skel()
+repos()
 {
   if [ ! -d "${cache}/furybsd-xfce-settings" ] ; then
     git clone https://github.com/furybsd/furybsd-xfce-settings.git ${cache}/furybsd-xfce-settings
@@ -217,25 +217,41 @@ skel()
   else
     cd ${cache}/furybsd-wallpapers && git pull
   fi
-  mkdir -p ${uzip}/usr/share/skel/dot.config/xfce4/xfconf/xfce-perchannel-xml
-  mkdir -p ${uzip}/usr/share/skel/dot.local/share/backgrounds/furybsd
-  cp -R ${cache}/furybsd-xfce-settings/etc/xdg/xfce4/xfconf/xfce-perchannel-xml/* ${uzip}/usr/share/skel/dot.config/xfce4/xfconf/xfce-perchannel-xml/
-  cp -R ${cache}/furybsd-wallpapers/*.png ${uzip}/usr/share/skel/dot.local/share/backgrounds/furybsd/
-}
-
-user()
-{
   if [ ! -d "${cache}/furybsd-xorg-tool" ] ; then
     git clone https://github.com/furybsd/furybsd-xorg-tool.git ${cache}/furybsd-xorg-tool
   else
     cd ${cache}/furybsd-xorg-tool && git pull
   fi
+  if [ ! -d "${cache}/furybsd-wifi-tool" ] ; then
+    git clone https://github.com/furybsd/furybsd-wifi-tool.git ${cache}/furybsd-wifi-tool
+  else
+    cd ${cache}/furybsd-wifi-tool && git pull
+  fi
+}
+
+skel()
+{
+  mkdir -p ${uzip}/usr/share/skel/dot.config/xfce4/xfconf/xfce-perchannel-xml
+  cp -R ${cache}/furybsd-xfce-settings/etc/xdg/xfce4/xfconf/xfce-perchannel-xml/* ${uzip}/usr/share/skel/dot.config/xfce4/xfconf/xfce-perchannel-xml/
+}
+
+opt()
+{
+  mkdir -p ${uzip}/opt/local/bin
+  mkdir -p ${uzip}/opt/local/share/backgrounds/furybsd
+  cp ${cwd}/furybsd-init-helper ${uzip}/opt/local/bin/
+  cp ${cwd}/furybsd-install ${uzip}/opt/local/bin/
+  cp ${cache}/furybsd-xorg-tool/bin/* ${uzip}/opt/local/bin/
+  cp -R ${cache}/furybsd-wallpapers/*.png ${uzip}/opt/local/share/backgrounds/furybsd/
+  cp ${cache}/furybsd-wifi-tool/bin/* ${uzip}/opt/local/bin/
+}
+
+user()
+{
   mkdir -p ${uzip}/usr/home/liveuser/Desktop
-  mkdir -p ${uzip}/usr/home/liveuser/bin
-  cp ${cache}/furybsd-xorg-tool/bin/* ${uzip}/usr/home/liveuser/bin/
-  cp ${cwd}/fury-install ${uzip}/usr/home/liveuser/
   cp -R ${cwd}/xorg.conf.d/ ${uzip}/usr/home/liveuser/xorg.conf.d
   cp ${cwd}/fury-config-xorg.desktop ${uzip}/usr/home/liveuser/Desktop/
+  cp ${cwd}/fury-config-wifi.desktop ${uzip}/usr/home/liveuser/Desktop/
   cp ${cwd}/fury-install.desktop ${uzip}/usr/home/liveuser/Desktop/
   cp ${cwd}/fury-sysinfo.desktop ${uzip}/usr/home/liveuser/Desktop/
   chroot ${uzip} echo furybsd | chroot ${uzip} pw mod user root -h 0
@@ -246,6 +262,8 @@ user()
   chroot ${uzip} echo furybsd | chroot ${uzip} pw mod user liveuser -h 0
   chroot ${uzip} chown -R 1000:1000 /usr/home/liveuser
   chroot ${uzip} pw groupmod wheel -m liveuser
+  chroot ${uzip} pw groupmod video -m liveuser
+  chroot ${uzip} pw groupmod webcamd -m liveuser
 }
 
 dm()
@@ -330,6 +348,8 @@ poudriere_image
 packages
 rc
 live-settings
+repos
+opt
 skel
 user
 installed-settings
