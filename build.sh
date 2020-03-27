@@ -203,6 +203,7 @@ live-settings()
   cp ${uzip}/usr/local/etc/php.ini-production ${uzip}/usr/local/etc/php.ini
   cp ${cwd}/dhcpcd.conf ${uzip}/usr/local/etc/dhcpcd.conf
   chmod +g+w ${uzip}/usr/local/etc/dhcpcd.conf
+  chmod 644 ${uzip}/usr/local/etc/dhcpcd.conf
 }
 
 repos()
