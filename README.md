@@ -135,7 +135,7 @@ root: furybsd
 ./tagports.sh
 ```
 
-## Build a release from tags (anyone can do but this always uses the newest pushed tags)
+## Build a release from tags (This always uses the newest pushed tags)
 
 ```
 ./release.sh
