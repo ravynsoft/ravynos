@@ -17,7 +17,7 @@ pkg install git
 pkg install poudriere
 ```
 
-## Configure poudriere
+## Configure poudriere (for building any optional ports)
 
 Edit poudriere default configuration:
 
@@ -43,7 +43,7 @@ Save configuration then make distfiles location for building ports:
 zfs create zroot/usr/ports/distfiles
 ```
 
-## Install nginx to monitor ports build (recommended)
+## Install nginx to monitor ports build (optional and not needed for most users)
 
 Install the nginx package:
 
@@ -87,7 +87,7 @@ Start nginx service:
 service nginx start
 ```
 
-## Customize
+## Customize (optional for advanced users)
 Add more packages to XFCE edition:
 ```
 edit settings/packages.xfce
@@ -98,7 +98,7 @@ Enable more services:
 edit settings/rc.conf.xfce
 ```
 
-## Build a new release (required to push tags)
+## Build a new release 
 Generate an ISO with XFCE:
 ```
 ./build.sh
@@ -112,22 +112,7 @@ Generate an ISO with KDE Plasma 5:
 ./build.sh kde
 ```
 
-## Push tags to github (release engineering only)
-```
-git clone git@github.com:furybsd/furybsd-ports.git
-```
-
-```
-cd furybsd-ports && ./tagports.sh
-```
-
-## Build a release from tags (always uses the newest)
-
-```
-./release.sh
-```
-
-## Burn
+## Burn (most users will stop here)
 
 Burn the XFCE image to cd:
 ```
@@ -144,3 +129,14 @@ sudo dd if=/dev/usr/local/furybsd/iso/FuryBSD-12.1-XFCE.iso of=/dev/da0 bs=4m
 liveuser: furybsd
 
 root: furybsd
+
+## Push tags to github (release engineering only)
+```
+./tagports.sh
+```
+
+## Build a release from tags (anyone can do but this always uses the newest pushed tags)
+
+```
+./release.sh
+```
