@@ -347,11 +347,11 @@ poudriere_bulk
 poudriere_image
 packages
 rc
-live-settings
 repos
 opt
 skel
 user
+live-settings
 installed-settings
 dm
 uzip
