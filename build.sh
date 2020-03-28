@@ -201,9 +201,6 @@ live-settings()
   cp ${cwd}/nginx.conf ${uzip}/usr/local/etc/nginx/nginx.conf
   cp ${uzip}/usr/local/www/phpsysinfo/phpsysinfo.ini.new ${uzip}/usr/local/www/phpsysinfo/phpsysinfo.ini
   cp ${uzip}/usr/local/etc/php.ini-production ${uzip}/usr/local/etc/php.ini
-  cp ${cwd}/dhcpcd.conf ${uzip}/usr/local/etc/dhcpcd.conf
-  chmod +g+w ${uzip}/usr/local/etc/dhcpcd.conf
-  chmod 664 ${uzip}/usr/local/etc/dhcpcd.conf
 }
 
 repos()
