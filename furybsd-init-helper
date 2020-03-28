@@ -39,6 +39,10 @@ if [ -f "/usr/sbin/pciconf" ] ; then
   fi
 fi
 
+/usr/sbin/sysrc -f /etc/rc.conf sendmail_enable="NO" >/dev/null 2>/dev/null
+/usr/sbin/sysrc -f /etc/rc.conf sendmail_submit_enable="NO" >/dev/null 2>/dev/null
+/usr/sbin/sysrc -f /etc/rc.conf sendmail_outbound_enable="NO" >/dev/null 2>/dev/null
+/usr/sbin/sysrc -f /etc/rc.conf sendmail_msp_queue_enable="NO" >/dev/null 2>/dev/null
 /usr/sbin/sysrc -f /etc/rc.conf linux_enable="YES" >/dev/null 2>/dev/null
 /usr/sbin/sysrc -f /etc/rc.conf dbus_enable="YES" >/dev/null 2>/dev/null
 /usr/sbin/sysrc -f /etc/rc.conf dsbdriverd_enable="YES" >/dev/null 2>/dev/null
