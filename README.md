@@ -43,7 +43,7 @@ Save configuration then make distfiles location for building ports:
 zfs create zroot/usr/ports/distfiles
 ```
 
-## Install nginx to monitor ports build (optional for advanced users)
+## Install nginx to monitor ports build (optional)
 
 Install the nginx package:
 
@@ -87,7 +87,7 @@ Start nginx service:
 service nginx start
 ```
 
-## Customize (optional for advanced users)
+## Customize (optional)
 Add more packages to XFCE edition:
 ```
 edit settings/packages.xfce
@@ -112,7 +112,7 @@ Generate an ISO with KDE Plasma 5:
 ./build.sh kde
 ```
 
-## Burn (most users will stop here)
+## Burn
 
 Burn the XFCE image to cd:
 ```
@@ -135,7 +135,7 @@ root: furybsd
 ./tagports.sh
 ```
 
-## Build a release from tags (This always uses the newest pushed tags)
+## Build a release from tags (release engineering only)
 
 ```
 ./release.sh
