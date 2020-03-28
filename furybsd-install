@@ -42,6 +42,10 @@ chroot ${FSMNT} rm -rf /usr/local/www/
 chroot ${FSMNT} rm -rf /var/log/nginx/
 chroot ${FSMNT} rm /var/log/php-fpm.log
 chroot ${FSMNT} rm -rf /union
+chroot ${FSMNT} rm /opt/local/bin/furybsd-live-helper
+chroot ${FSMNT} rm /opt/local/bin/furybsd-init-helper
+chroot ${FSMNT} rm /opt/local/bin/furybsd-install
+chroot ${FSMNT} rm /usr/local/etc/xdg/autostart/fury-helper.desktop
 
 # Configure the new installation
 mount -t devfs devfs ${FSMNT}/dev
