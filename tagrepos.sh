@@ -24,7 +24,7 @@ fi
 
 version=`cat /usr/local/furybsd/version`
 
-git clone git@github.com:furybsd/furybsd-wifi-tool.git ${repodir}/furybsd-livecd
+git clone git@github.com:furybsd/furybsd-livecd.git ${repodir}/furybsd-livecd
 git clone git@github.com:furybsd/furybsd-wifi-tool.git ${repodir}/furybsd-wifi-tool
 git clone git@github.com:furybsd/furybsd-xorg-tool.git ${repodir}/furybsd-xorg-tool
 git clone git@github.com:furybsd/furybsd-xfce-settings.git ${repodir}/furybsd-xfce-settings
