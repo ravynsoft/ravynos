@@ -46,7 +46,7 @@ chroot ${FSMNT} rm -rf /union
 # Configure the new installation
 mount -t devfs devfs ${FSMNT}/dev
 bsdinstall rootpass
-dialog --title "Warning" --msgbox 'Please invite your user to video, wheel, and webcamd groups!' 5 51
+dialog --title "Warning" --msgbox 'Please invite your user to video, wheel, and webcamd groups!' 6 65
 bsdinstall adduser
 bsdinstall time
 
