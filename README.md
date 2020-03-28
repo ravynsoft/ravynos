@@ -43,7 +43,7 @@ Save configuration then make distfiles location for building ports:
 zfs create zroot/usr/ports/distfiles
 ```
 
-## Install nginx to monitor ports build (optional and not needed for most users)
+## Install nginx to monitor ports build (optional for advanced users)
 
 Install the nginx package:
 
