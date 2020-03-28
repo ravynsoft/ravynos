@@ -17,7 +17,7 @@ pkg install git
 pkg install poudriere
 ```
 
-## Configure poudriere (for building any optional ports)
+## Configure poudriere
 
 Edit poudriere default configuration:
 
