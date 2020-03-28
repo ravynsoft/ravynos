@@ -51,12 +51,6 @@ bsdinstall adduser
 bsdinstall time
 
 # Enable additional services needed for desktop
-chroot ${FSMNT} sysrc linux_enable="YES"
-chroot ${FSMNT} sysrc dbus_enable="YES"
-chroot ${FSMNT} sysrc dsbdriverd_enable="YES"
-chroot ${FSMNT} sysrc allscreens_kbdflags="-b quiet.off"
-chroot ${FSMNT} sysrc ifconfig_DEFAULT="DHCP"
-chroot ${FSMNT} sysrc webcamd_enable="YES"
 if [ -f "/usr/local/sbin/lightdm" ] ; then
   chroot ${FSMNT} sysrc lightdm_enable="YES"
 fi
