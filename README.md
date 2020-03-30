@@ -12,7 +12,6 @@ Note other configurations may work but have not been qualified
 ## Install packages required for build system
 
 ```
-pkg install bash
 pkg install git
 pkg install poudriere
 ```
