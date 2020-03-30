@@ -32,6 +32,13 @@ if [ ! -f "/usr/local/bin/git" ] ; then
   exit 1
 fi
 
+# Make sure poudriere is installed
+if [ ! -f "/usr/local/bin/poudriere" ] ; then
+  echo "Poudriere is required"
+  echo "Please install poudriere with pkg install poudriere or pkg install poudriere-devel first"
+  exit 1
+fi
+
 case $desktop in
   'kde')
     export desktop="kde"
@@ -74,58 +81,6 @@ workspace()
   fi
   mkdir -p ${livecd} ${iso} ${packages} ${uzip} ${ramdisk_root}/dev ${ramdisk_root}/etc >/dev/null 2>/dev/null
 }
-
-# Only run as superuser
-if [ "$(id -u)" != "0" ]; then
-  echo "This script must be run as root" 1>&2
-  exit 1
-fi
-
-# Make sure git is installed
-if [ ! -f "/usr/local/bin/git" ] ; then
-  echo "Git is required"
-  echo "Please install it with pkg install git or pkg install git-lite first"
-  exit 1
-fi
-
-# Make sure bash is installed
-if [ ! -f "/usr/local/bin/bash" ] ; then
-  echo "Bash is required"
-  echo "Please install bash with pkg install bash first"
-  exit 1
-fi
-
-# Make sure poudriere is installed
-if [ ! -f "/usr/local/bin/poudriere" ] ; then
-  echo "Poudriere is required"
-  echo "Please install poudriere with pkg install poudriere or pkg install poudriere-devel first"
-  exit 1
-fi
-
-case $desktop in
-  'kde')
-    export desktop="kde"
-    export edition="KDE"
-    ;;
-  'gnome')
-    export desktop="gnome"
-    export edition="GNOME"
-    ;;
-  *)
-    export desktop="xfce"
-    export edition="XFCE"
-    ;;
-esac
-
-# Get the version tag
-if [ -z "$2" ] ; then
-  rm /usr/local/furybsd/tag >/dev/null 2>/dev/null
-  export vol="FuryBSD-${version}-${edition}"
-else
-  rm /usr/local/furybsd/version >/dev/null 2>/dev/null
-  echo "${2}" > /usr/local/furybsd/tag
-  export vol="FuryBSD-${version}-${edition}-${tag}"
-fi
 
 poudriere_jail()
 {
