@@ -19,6 +19,7 @@ export HV_VENDOR
 
 if [ "${VM_GUEST}" = "xen" ]; then
   /usr/sbin/sysrc devd_enable="NO" >/dev/null 2>/dev/null
+  rm /etc/X11/xorg.conf >/dev/null 2>/dev/null
 fi
 
 if [ "${VM_GUEST}" = "vmware" ]; then
