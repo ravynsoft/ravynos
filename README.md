@@ -5,7 +5,6 @@ LiveCD builder for FuryBSD
 
 * FreeBSD 12.1-RELEASE or later
 * 4 GB memory
-* ZFS on root installation using pool name zroot with at least 50GB free
 
 Note other configurations may work but have not been qualified
 
@@ -13,77 +12,6 @@ Note other configurations may work but have not been qualified
 
 ```
 pkg install git
-pkg install poudriere
-```
-
-## Configure poudriere
-
-Edit poudriere default configuration:
-
-```
-edit /usr/local/etc/poudriere.conf
-```
-
-Define to the pool to be used for building packages:
-
-```
-ZPOOL=zroot
-```
-
-Define the local path for creating jails, ports trees:
-
-```
-BASEFS=/zroot/poudriere
-```
-
-Save configuration then make distfiles location for building ports:
-
-```
-zfs create zroot/usr/ports/distfiles
-```
-
-## Install nginx to monitor ports build (optional)
-
-Install the nginx package:
-
-```
-pkg install nginx
-```
-
-Edit the default configuration:
-
-```
-edit /usr/local/etc/nginx.conf
-```
-
-Set root parameter, add data alias, and enable autoindex:
-
-```
-    server {
-        listen       80;
-        server_name  localhost;
-        root         /usr/local/share/poudriere/html;
-
-        #charset koi8-r;
-
-        #access_log  logs/host.access.log  main;
-
-        location /data {
-            alias /data/logs/bulk;
-            autoindex on;
-        }
-```
-
-Save configuration then enable nginx service:
-
-```
-sysrc nginx_enable="YES"
-```
-
-Start nginx service:
-
-```
-service nginx start
 ```
 
 ## Customize (optional)

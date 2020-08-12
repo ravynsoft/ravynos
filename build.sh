@@ -9,6 +9,7 @@ workdir="/usr/local"
 livecd="${workdir}/furybsd"
 cache="${livecd}/cache"
 arch=AMD64
+base="${cache}/${version}/base"
 packages="${cache}/packages"
 ports="${cache}/furybsd-ports-master"
 iso="${livecd}/iso"
@@ -18,6 +19,10 @@ ramdisk_root="${cdroot}/data/ramdisk"
 vol="furybsd"
 label="FURYBSD"
 isopath="${iso}/${vol}.iso"
+export DISTRIBUTIONS="kernel.txz base.txz"
+export BSDINSTALL_DISTSITE="http://ftp.freebsd.org/pub/FreeBSD/releases/amd64/12.1-RELEASE/"
+export BSDINSTALL_CHROOT="/usr/local/furybsd/uzip"
+export BSDINSTALL_DISTDIR="/usr/local/furybsd/cache/12.1/base"
 
 # Only run as superuser
 if [ "$(id -u)" != "0" ]; then
@@ -29,13 +34,6 @@ fi
 if [ ! -f "/usr/local/bin/git" ] ; then
   echo "Git is required"
   echo "Please install it with pkg install git or pkg install git-lite first"
-  exit 1
-fi
-
-# Make sure poudriere is installed
-if [ ! -f "/usr/local/bin/poudriere" ] ; then
-  echo "Poudriere is required"
-  echo "Please install poudriere with pkg install poudriere or pkg install poudriere-devel first"
   exit 1
 fi
 
@@ -79,48 +77,28 @@ workspace()
     chflags -R noschg ${uzip} ${cdroot} >/dev/null 2>/dev/null
     rm -rf ${uzip} ${cdroot} ${ports} >/dev/null 2>/dev/null
   fi
-  mkdir -p ${livecd} ${iso} ${packages} ${uzip} ${ramdisk_root}/dev ${ramdisk_root}/etc >/dev/null 2>/dev/null
+  mkdir -p ${livecd} ${base} ${iso} ${packages} ${uzip} ${ramdisk_root}/dev ${ramdisk_root}/etc >/dev/null 2>/dev/null
 }
 
-poudriere_jail()
+base()
 {
-  # Check if jail exists
-  poudriere jail -l | grep -q furybsd
-  if [ $? -eq 1 ] ; then
-    # If jail does not exist create it
-    poudriere jail -c -j furybsd -v ${version}-RELEASE -K GENERIC
-  else
-    # Update jail if it exists
-    poudriere jail -u -j furybsd
+  if [ ! -f "${base}/base.txz" ] ; then 
+    bsdinstall distfetch
   fi
-}
-
-poudriere_ports()
-{
-  # Check if ports tree exists
-  poudriere ports -l | grep -q furybsd
-  if [ $? -eq 1 ] ; then
-    # If ports tree does not exist create it
-    poudriere ports -c -p furybsd-ports -B ${pkgset} -m git
-  else
-    # Update ports tree if it exists
-    poudriere ports -u -p furybsd-ports -B ${pkgset} -m git
+  
+  if [ ! -f "${base}/kernel.txz" ] ; then
+    cd ${base}
+    bsdinstall distfetch
   fi
-}
-
-poudriere_bulk()
-{
-  poudriere bulk -j furybsd -p furybsd-ports -f settings/ports.${desktop}
-}
-
-poudriere_image()
-{
-  poudriere image -t tar -j furybsd -p furybsd-ports -h furybsd -n furybsd -f settings/ports.${desktop}
+  bsdinstall distextract
+  cp /etc/resolv.conf ${uzip}/etc/resolv.conf
+  chroot ${uzip} env PAGER=cat freebsd-update fetch --not-running-from-cron
+  chroot ${uzip} freebsd-update install
+  rm ${uzip}/etc/resolv.conf
 }
 
 packages()
 {
-  tar -xf /data/images/furybsd.txz -C ${uzip}
   cp /etc/resolv.conf ${uzip}/etc/resolv.conf
   mkdir ${uzip}/var/cache/pkg
   mount_nullfs ${packages} ${uzip}/var/cache/pkg
@@ -289,10 +267,7 @@ cleanup()
 }
 
 workspace
-poudriere_jail
-poudriere_ports
-poudriere_bulk
-poudriere_image
+base
 packages
 rc
 repos
