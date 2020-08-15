@@ -124,10 +124,8 @@ rc()
 
 live-settings()
 {
-  cp ${cwd}/furybsd-live-helper ${uzip}/opt/local/bin/
   cp ${cwd}/furybsd-init-helper ${uzip}/opt/local/bin/
   cp ${cwd}/furybsd-install ${uzip}/opt/local/bin/
-  cp ${cwd}/fury-helper.desktop ${uzip}/usr/local/etc/xdg/autostart/
   cp ${cwd}/nginx.conf ${uzip}/usr/local/etc/nginx/nginx.conf
   cp ${uzip}/usr/local/www/phpsysinfo/phpsysinfo.ini.new ${uzip}/usr/local/www/phpsysinfo/phpsysinfo.ini
   cp ${uzip}/usr/local/etc/php.ini-production ${uzip}/usr/local/etc/php.ini
