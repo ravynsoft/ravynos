@@ -26,7 +26,7 @@ bsdinstall entropy
 # Cleanup LiveCD restore specific conents from destination pool
 chroot ${FSMNT} rm /init-reroot.sh
 chroot ${FSMNT} cp /usr/local/etc/lightdm/lightdm.conf.sample /usr/local/etc/lightdm/lightdm.conf || true
-chroot ${FSMNT} cp /usr/local/etc/sddm.conf.sample /usr/local/etc/sddm.conf || true
+chroot ${FSMNT} rm /usr/local/etc/sddm.conf || true
 chroot ${FSMNT} cp /usr/local/etc/gdm/custom.conf.sample /usr/local/etc/gdm/custom.conf || true
 chroot ${FSMNT} rm /etc/rc.conf.local
 chroot ${FSMNT} pw userdel liveuser
