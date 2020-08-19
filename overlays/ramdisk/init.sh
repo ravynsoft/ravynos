@@ -11,7 +11,7 @@ echo "==> Remount rootfs as read-write"
 mount -u -w /
 
 echo "==> Make mountpoints"
-mkdir -p /cdrom /memdisk /memusr /mnt /sysroot /usr /tmp
+mkdir -p /cdrom /memdisk /sysroot /tmp
 
 echo "Waiting for FURYBSD media to initialize"
 while : ; do
@@ -26,18 +26,18 @@ mdmfs -P -F /cdrom/data/system.uzip -o ro md.uzip /sysroot
 # Make room for backup in /tmp
 mount -t tmpfs tmpfs /tmp
 
+if [ "$SINGLE_USER" = "true" ]; then
+        echo "Starting interactive shell in temporary rootfs ..."
+        exit 0
+fi
+
 echo "==> Mount swap-based memdisk"
-mdmfs -s 1024m md /memdisk || exit 1
+mdmfs -s 7168m md /memdisk || exit 1
 dump -0f - /dev/md1.uzip | (cd /memdisk; restore -rf -)
 rm /memdisk/restoresymtable
+mount -t devfs devfs /memdisk/dev
 
-kenv vfs.root.mountfrom=ufs:/dev/md2
-kenv init_script="/init-reroot.sh"
-
-if [ "$SINGLE_USER" = "true" ]; then
-	echo "Starting interactive shell in temporary rootfs ..."
-	exit 0
-fi
+chroot /memdisk /opt/local/bin/furybsd-init-helper
 
 kenv init_shell="/rescue/sh"
 exit 0

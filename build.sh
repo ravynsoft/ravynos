@@ -221,11 +221,6 @@ uzip()
 {
   cp -R ${cwd}/overlays/uzip/ ${uzip}
   install -o root -g wheel -m 755 -d "${cdroot}"
-  makefs "${cdroot}/data/usr.ufs" "${uzip}/usr"
-  mkuzip -o "${cdroot}/data/usr.uzip" "${cdroot}/data/usr.ufs"
-  rm -f "${cdroot}/data/usr.ufs"
-  chflags -R noschg ${uzip}/usr
-  rm -rf ${uzip}/usr
   makefs "${cdroot}/data/system.ufs" "${uzip}"
   mkuzip -o "${cdroot}/data/system.uzip" "${cdroot}/data/system.ufs"
   rm -f "${cdroot}/data/system.ufs"
