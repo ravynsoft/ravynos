@@ -6,7 +6,7 @@ LiveCD builder for FuryBSD
 * 2 GHz dual core processor
 * 8 GiB RAM (system memory)
 * 50 GB of hard-drive space
-* Either a CD-RW/DVD_RW drive or a USB port for writing the installer media
+* Either a CD-RW/DVD-RW drive or a USB port for writing the installer media
 * FreeBSD 12.1-RELEASE or later
 
 ## System Requirements for using LiveCD
