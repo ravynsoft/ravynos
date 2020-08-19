@@ -61,7 +61,7 @@ sudo dd if=/dev/usr/local/furybsd/iso/FuryBSD-12.1-XFCE.iso of=/dev/da0 bs=4m
 ```
 
 ## Credentials for live media
-The username for the livecd is `liveuser`.  The password for `liveuser` is `furybsd`.  This `liveuser` account is removed upon install.  The root user password is also `furybsd` until it is changed in the installer.
+The username for the livecd is `liveuser`.  The password for `liveuser` is `furybsd`.  The `liveuser` account is removed upon install.  The root user password is also `furybsd` until it is changed in the installer.
 
 ## Push tags to github (release engineering only)
 ```
