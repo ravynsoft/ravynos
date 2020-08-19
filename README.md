@@ -1,12 +1,20 @@
 # furybsd-livecd
 LiveCD builder for FuryBSD
 
-## Recommend System Requirements
+## System Requirements for building LiveCD
 
+* 2 GHz dual core processor
+* 8 GiB RAM (system memory)
+* 50 GB of hard-drive space
+* Either a CD-RW/DVD-RW drive or a USB port for writing the installer media
 * FreeBSD 12.1-RELEASE or later
-* 4 GB memory
 
-Note other configurations may work but have not been qualified
+## System Requirements for using LiveCD
+
+* 2 GHz dual core processor
+* 8 GiB RAM (system memory for physical and viritualized installs)
+* VGA capable of 1024x768 screen resolution 
+* Either a CD/DVD drive or a USB port for booting the installer media
 
 ## Install packages required for build system
 
@@ -53,9 +61,7 @@ sudo dd if=/dev/usr/local/furybsd/iso/FuryBSD-12.1-XFCE.iso of=/dev/da0 bs=4m
 ```
 
 ## Credentials for live media
-liveuser: furybsd
-
-root: furybsd
+The username for the livecd is `liveuser`.  The password for `liveuser` is `furybsd`.  The `liveuser` account is removed upon install.  The root user password is also `furybsd` until it is changed in the installer.
 
 ## Push tags to github (release engineering only)
 ```

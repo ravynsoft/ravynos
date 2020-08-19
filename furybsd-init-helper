@@ -1,6 +1,6 @@
 #!/bin/sh
 
-BOOTMODE=$(sysctl -n machdep.bootmethod)
+BOOTMODE=$(/sbin/sysctl -n machdep.bootmethod)
 export BOOTMODE
 
 if [ "${BOOTMODE}" = "BIOS" ]; then
@@ -11,10 +11,10 @@ if [ "${BOOTMODE}" = "UEFI" ]; then
   cp /usr/home/liveuser/xorg.conf.d/driver-scfb.conf /etc/X11/xorg.conf >/dev/null 2>/dev/null
 fi
 
-VM_GUEST=$(sysctl -n kern.vm_guest)
+VM_GUEST=$(/sbin/sysctl -n kern.vm_guest)
 export VM_GUEST
 
-HV_VENDOR=$(sysctl -n hw.hv_vendor | /usr/bin/awk '{print $1}')
+HV_VENDOR=$(/sbin/sysctl -n hw.hv_vendor | /usr/bin/awk '{print $1}')
 export HV_VENDOR
 
 if [ "${VM_GUEST}" = "xen" ]; then

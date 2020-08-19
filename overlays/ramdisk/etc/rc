@@ -1,6 +1,21 @@
 #!/rescue/sh
 
-umount -f /cdrom
-cp /memdisk/init-reroot.sh /
-reboot -r
+if [ ! -e /dev/md2 ] ; then
+  halt -p
+fi
 
+echo "==> Unset rescue init kernel environment variables"
+kenv -u init_chroot
+kenv -u init_path
+kenv -u init_script
+kenv -u init_shell
+echo "==> Unmount filesystems for cloning"
+umount -f /cdrom
+umount -f /memdisk/dev
+umount -f /memdisk
+umount -f /sysroot
+umount -f /tmp
+echo "== Set /dev/md2 device for reroot"
+kenv vfs.root.mountfrom=ufs:/dev/md2
+echo "==> Rerooting into memdisk"
+reboot -r
