@@ -4,6 +4,14 @@
 LIVEFS="/"
 FSMNT="/mnt"
 
+# Cleanup memory devices created before reroot if they exist
+if [ -e "/dev/md0" ] ; then
+  /sbin/mdconfig -du md0
+fi
+if [ -e "/dev/md1" ] ; then
+  /sbin/mdconfig -du md1
+fi
+
 # Clean up any previous runs
 umount -f ${FSMNT}/dev >/dev/null 2>/dev/null || true
 zpool list -H | awk -F '\t' '{print $1;}' | xargs -I % zpool export -f % >/dev/null 2>/dev/null || true
@@ -15,16 +23,15 @@ if [ ! -d "/mnt/usr" ] ; then
   exit 1
 fi
 
-# Clone the file system to disk with cpdup
-cpdup -i0 -s0 -vvv / /mnt
-cpdup -i0 -s0 -vvv /usr /mnt/usr
+# Clone the file system to disk with dump | restore
+su -m root -c 'cd /mnt && dump -L0af - /dev/md2 | dd status=progress | restore -Dyrf -'
 
 bsdinstall config
 cat /etc/rc.conf | xargs sysrc -f /mnt/etc/rc.conf
 bsdinstall entropy
 
 # Cleanup LiveCD restore specific conents from destination pool
-chroot ${FSMNT} rm /init-reroot.sh
+chroot ${FSMNT} rm restoresymtable
 chroot ${FSMNT} cp /usr/local/etc/lightdm/lightdm.conf.sample /usr/local/etc/lightdm/lightdm.conf || true
 chroot ${FSMNT} rm /usr/local/etc/sddm.conf || true
 chroot ${FSMNT} cp /usr/local/etc/gdm/custom.conf.sample /usr/local/etc/gdm/custom.conf || true
@@ -41,7 +48,6 @@ chroot ${FSMNT} rm -rf /usr/local/etc/nginx/
 chroot ${FSMNT} rm -rf /usr/local/www/
 chroot ${FSMNT} rm -rf /var/log/nginx/
 chroot ${FSMNT} rm /var/log/php-fpm.log
-chroot ${FSMNT} rm -rf /union
 chroot ${FSMNT} rm /opt/local/bin/furybsd-live-helper
 chroot ${FSMNT} rm /opt/local/bin/furybsd-init-helper
 chroot ${FSMNT} rm /opt/local/bin/furybsd-install
