@@ -1,5 +1,9 @@
 #!/rescue/sh
 
+if [ ! -e /dev/md2 ] ; then
+  halt -p
+fi
+
 echo "==> Unset rescue init kernel environment variables"
 kenv -u init_chroot
 kenv -u init_path
