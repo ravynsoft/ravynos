@@ -44,7 +44,7 @@ fi
 
 echo "==> Mount swap-based memdisk"
 mdmfs -s 7168m md /memdisk || exit 1
-dump -0f - /dev/md1.uzip | (cd /memdisk; restore -rf -)
+dump -0f - /dev/md1.uzip | dd status=progress | (cd /memdisk; restore -rf -)
 rm /memdisk/restoresymtable
 mount -t devfs devfs /memdisk/dev
 
