@@ -73,11 +73,21 @@ workspace()
   umount ${cache}/furybsd-packages/ >/dev/null 2>/dev/null
   rm ${cache}/master.zip >/dev/null 2>/dev/null
   umount ${uzip}/dev >/dev/null 2>/dev/null
+  zpool destroy furybsd >/dev/null 2>/dev/null || true
+  mdconfig -d -u 0 >/dev/null 2>/dev/null || true
+  if [ -f "${livecd}/pool.img" ] ; then
+    rm ${livecd}/pool.img
+  fi
   if [ -d "${livecd}" ] ;then
     chflags -R noschg ${uzip} ${cdroot} >/dev/null 2>/dev/null
     rm -rf ${uzip} ${cdroot} ${ports} >/dev/null 2>/dev/null
   fi
   mkdir -p ${livecd} ${base} ${iso} ${packages} ${uzip} ${ramdisk_root}/dev ${ramdisk_root}/etc >/dev/null 2>/dev/null
+  truncate -s 6g ${livecd}/pool.img
+  mdconfig -f ${livecd}/pool.img -u 0
+  zpool create furybsd /dev/md0
+  zfs set mountpoint=${uzip} furybsd
+  zfs set compression=gzip furybsd
 }
 
 base()
@@ -221,9 +231,11 @@ uzip()
 {
   cp -R ${cwd}/overlays/uzip/ ${uzip}
   install -o root -g wheel -m 755 -d "${cdroot}"
-  makefs "${cdroot}/data/system.ufs" "${uzip}"
-  mkuzip -o "${cdroot}/data/system.uzip" "${cdroot}/data/system.ufs"
-  rm -f "${cdroot}/data/system.ufs"
+  # makefs "${cdroot}/data/system.ufs" "${uzip}"
+  zpool export furybsd
+  mkuzip -o "${cdroot}/data/system.uzip" "${livecd}/pool.img"
+  zpool import furybsd
+  zfs set mountpoint=/usr/local/furybsd/uzip furybsd
 }
 
 ramdisk() 

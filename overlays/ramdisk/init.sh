@@ -21,7 +21,8 @@ done
 
 echo "==> Mount cdrom"
 mount_cd9660 /dev/iso9660/FURYBSD /cdrom
-mdmfs -P -F /cdrom/data/system.uzip -o ro md.uzip /sysroot
+mdconfig -f /cdrom/data/system.uzip -u 1
+zpool import furybsd -o readonly=on
 
 # Make room for backup in /tmp
 mount -t tmpfs tmpfs /tmp
@@ -33,7 +34,7 @@ fi
 
 # Ensure the system has more than enough memory for memdisk
 x=7461122048
-y=$(chroot /sysroot /sbin/sysctl hw.physmem | chroot /sysroot /usr/bin/awk '{print $2}')
+y=$(chroot /usr/local/furybsd/uzip /sbin/sysctl hw.physmem | chroot /usr/local/furybsd/uzip /usr/bin/awk '{print $2}')
 echo "Required memory ${x} for memdisk"
 echo "Detected memory ${y} for memdisk"
 if [ $x -gt $y ] ; then 
@@ -43,12 +44,13 @@ if [ $x -gt $y ] ; then
 fi
 
 echo "==> Mount swap-based memdisk"
-mdmfs -s 7168m md /memdisk || exit 1
-dump -0f - /dev/md1.uzip | dd status=progress | (cd /memdisk; restore -rf -)
-rm /memdisk/restoresymtable
-mount -t devfs devfs /memdisk/dev
+mdconfig -a -t swap -s 6g
+zpool create livecd /dev/md2
+zfs set compression=gzip livecd
+zfs send furybsd | chroot /usr/local/furybsd/uzip pv | zfs recv -F livecd
 
-chroot /memdisk /opt/local/bin/furybsd-init-helper
+mount -t devfs devfs /livecd/dev
+chroot /livecd /opt/local/bin/furybsd-init-helper
 
 kenv init_shell="/rescue/sh"
 exit 0
