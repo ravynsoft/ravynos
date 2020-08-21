@@ -31,7 +31,6 @@ cat /etc/rc.conf | xargs sysrc -f /mnt/etc/rc.conf
 bsdinstall entropy
 
 # Cleanup LiveCD restore specific conents from destination pool
-chroot ${FSMNT} rm restoresymtable
 chroot ${FSMNT} cp /usr/local/etc/lightdm/lightdm.conf.sample /usr/local/etc/lightdm/lightdm.conf || true
 chroot ${FSMNT} rm /usr/local/etc/sddm.conf || true
 chroot ${FSMNT} cp /usr/local/etc/gdm/custom.conf.sample /usr/local/etc/gdm/custom.conf || true
@@ -39,15 +38,6 @@ chroot ${FSMNT} rm /etc/rc.conf.local
 chroot ${FSMNT} pw userdel liveuser
 chroot ${FSMNT} pw groupdel liveuser
 chroot ${FSMNT} rm -rf /usr/home/liveuser
-chroot ${FSMNT} sysrc -x nginx_enable="YES"
-chroot ${FSMNT} sysrc -x php_fpm_enable="YES"
-chroot ${FSMNT} pkg delete -fy php72-json phpsysinfo nginx
-chroot ${FSMNT} pkg autoremove -fy
-chroot ${FSMNT} rm /usr/local/etc/php.ini
-chroot ${FSMNT} rm -rf /usr/local/etc/nginx/
-chroot ${FSMNT} rm -rf /usr/local/www/
-chroot ${FSMNT} rm -rf /var/log/nginx/
-chroot ${FSMNT} rm /var/log/php-fpm.log
 chroot ${FSMNT} rm /opt/local/bin/furybsd-live-helper
 chroot ${FSMNT} rm /opt/local/bin/furybsd-init-helper
 chroot ${FSMNT} rm /opt/local/bin/furybsd-install

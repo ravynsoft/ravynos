@@ -12,7 +12,7 @@ LiveCD builder for FuryBSD
 ## System Requirements for using LiveCD
 
 * 2 GHz dual core processor
-* 8 GiB RAM (system memory for physical and viritualized installs)
+* 4 GiB RAM (system memory for physical and viritualized installs)
 * VGA capable of 1024x768 screen resolution 
 * Either a CD/DVD drive or a USB port for booting the installer media
 

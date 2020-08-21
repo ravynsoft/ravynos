@@ -46,6 +46,10 @@ case $desktop in
     export desktop="gnome"
     export edition="GNOME"
     ;;
+  'mate')
+    export desktop="mate"
+    export edition="MATE"
+    ;;
   *)
     export desktop="xfce"
     export edition="XFCE"
@@ -83,11 +87,11 @@ workspace()
     rm -rf ${uzip} ${cdroot} ${ports} >/dev/null 2>/dev/null
   fi
   mkdir -p ${livecd} ${base} ${iso} ${packages} ${uzip} ${ramdisk_root}/dev ${ramdisk_root}/etc >/dev/null 2>/dev/null
-  truncate -s 6g ${livecd}/pool.img
+  truncate -s 4g ${livecd}/pool.img
   mdconfig -f ${livecd}/pool.img -u 0
   zpool create furybsd /dev/md0
   zfs set mountpoint=${uzip} furybsd
-  zfs set compression=gzip furybsd
+  zfs set compression=gzip-6 furybsd
 }
 
 base()
@@ -136,9 +140,6 @@ live-settings()
 {
   cp ${cwd}/furybsd-init-helper ${uzip}/opt/local/bin/
   cp ${cwd}/furybsd-install ${uzip}/opt/local/bin/
-  cp ${cwd}/nginx.conf ${uzip}/usr/local/etc/nginx/nginx.conf
-  cp ${uzip}/usr/local/www/phpsysinfo/phpsysinfo.ini.new ${uzip}/usr/local/www/phpsysinfo/phpsysinfo.ini
-  cp ${uzip}/usr/local/etc/php.ini-production ${uzip}/usr/local/etc/php.ini
 }
 
 repos()
@@ -187,7 +188,6 @@ user()
   cp ${cwd}/fury-config-xorg.desktop ${uzip}/usr/home/liveuser/Desktop/
   cp ${cwd}/fury-config-wifi.desktop ${uzip}/usr/home/liveuser/Desktop/
   cp ${cwd}/fury-install.desktop ${uzip}/usr/home/liveuser/Desktop/
-  cp ${cwd}/fury-sysinfo.desktop ${uzip}/usr/home/liveuser/Desktop/
   chroot ${uzip} echo furybsd | chroot ${uzip} pw mod user root -h 0
   chroot ${uzip} pw useradd liveuser -u 1000 \
   -c "Live User" -d "/home/liveuser" \
