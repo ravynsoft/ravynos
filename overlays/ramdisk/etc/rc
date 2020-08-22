@@ -10,12 +10,12 @@ kenv -u init_path
 kenv -u init_script
 kenv -u init_shell
 echo "==> Unmount filesystems for cloning"
+umount -f /livecd/dev
+zpool export livecd
+zpool export furybsd
 umount -f /cdrom
-umount -f /memdisk/dev
-umount -f /memdisk
-umount -f /sysroot
 umount -f /tmp
 echo "== Set /dev/md2 device for reroot"
-kenv vfs.root.mountfrom=ufs:/dev/md2
+kenv vfs.root.mountfrom=zfs:livecd
 echo "==> Rerooting into memdisk"
 reboot -r

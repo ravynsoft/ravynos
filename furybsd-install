@@ -3,6 +3,8 @@
 # Export our variables
 LIVEFS="/"
 FSMNT="/mnt"
+SRCPOOL="livecd"
+DESTPOOL=$(zpool list -H | grep /mnt | awk -F '\t' '{print $1;}')
 
 # Cleanup memory devices created before reroot if they exist
 if [ -e "/dev/md0" ] ; then
@@ -14,7 +16,7 @@ fi
 
 # Clean up any previous runs
 umount -f ${FSMNT}/dev >/dev/null 2>/dev/null || true
-zpool list -H | awk -F '\t' '{print $1;}' | xargs -I % zpool export -f % >/dev/null 2>/dev/null || true
+zpool export -f ${DESTPOOL} >/dev/null 2>/dev/null || true
 
 # Install contents of read only uzip to destination pool
 bsdinstall hostname
@@ -23,15 +25,14 @@ if [ ! -d "/mnt/usr" ] ; then
   exit 1
 fi
 
-# Clone the file system to disk with dump | restore
-su -m root -c 'cd /mnt && dump -L0af - /dev/md2 | dd status=progress | restore -Dyrf -'
+# Clone the file system to disk with cpdup
+cpdup -i0 -s0 -vvv ${LIVEFS} ${FSMNT}
 
 bsdinstall config
-cat /etc/rc.conf | xargs sysrc -f /mnt/etc/rc.conf
+cat /etc/rc.conf | xargs sysrc -f ${FSMNT}/etc/rc.conf
 bsdinstall entropy
 
 # Cleanup LiveCD restore specific conents from destination pool
-chroot ${FSMNT} rm restoresymtable
 chroot ${FSMNT} cp /usr/local/etc/lightdm/lightdm.conf.sample /usr/local/etc/lightdm/lightdm.conf || true
 chroot ${FSMNT} rm /usr/local/etc/sddm.conf || true
 chroot ${FSMNT} cp /usr/local/etc/gdm/custom.conf.sample /usr/local/etc/gdm/custom.conf || true
@@ -39,15 +40,6 @@ chroot ${FSMNT} rm /etc/rc.conf.local
 chroot ${FSMNT} pw userdel liveuser
 chroot ${FSMNT} pw groupdel liveuser
 chroot ${FSMNT} rm -rf /usr/home/liveuser
-chroot ${FSMNT} sysrc -x nginx_enable="YES"
-chroot ${FSMNT} sysrc -x php_fpm_enable="YES"
-chroot ${FSMNT} pkg delete -fy php72-json phpsysinfo nginx
-chroot ${FSMNT} pkg autoremove -fy
-chroot ${FSMNT} rm /usr/local/etc/php.ini
-chroot ${FSMNT} rm -rf /usr/local/etc/nginx/
-chroot ${FSMNT} rm -rf /usr/local/www/
-chroot ${FSMNT} rm -rf /var/log/nginx/
-chroot ${FSMNT} rm /var/log/php-fpm.log
 chroot ${FSMNT} rm /opt/local/bin/furybsd-live-helper
 chroot ${FSMNT} rm /opt/local/bin/furybsd-init-helper
 chroot ${FSMNT} rm /opt/local/bin/furybsd-install
@@ -75,5 +67,5 @@ fi
 echo "Installation finished!"
 read -p "Press any key to reboot... " -n1 -s
 umount -f ${FSMNT}/dev >/dev/null 2>/dev/null || true
-zpool list -H | awk -F '\t' '{print $1;}' | xargs -I % zpool export -f % >/dev/null 2>/dev/null || true
+zpool export -f ${DESTPOOL} >/dev/null 2>/dev/null || true
 shutdown -r now
