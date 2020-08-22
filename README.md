@@ -65,7 +65,7 @@ The username for the livecd is `liveuser`.  The password for `liveuser` is `fury
 
 ## Push tags to github (release engineering only)
 ```
-./tagports.sh
+./tagrepos.sh
 ```
 
 ## Build a release from tags (release engineering only)
