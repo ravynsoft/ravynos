@@ -46,6 +46,10 @@ case $desktop in
     export desktop="gnome"
     export edition="GNOME"
     ;;
+  'lumina')
+    export desktop="lumina"
+    export edition="LUMINA"
+    ;;
   'mate')
     export desktop="mate"
     export edition="MATE"
@@ -208,6 +212,8 @@ dm()
       ;;
     'gnome')
       cp ${cwd}/custom.conf ${uzip}/usr/local/etc/gdm/custom.conf
+      ;;
+    'lumina')
       ;;
     *)
       cp ${cwd}/lightdm.conf ${uzip}/usr/local/etc/lightdm/

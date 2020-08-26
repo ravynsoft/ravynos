@@ -59,6 +59,9 @@ fi
 if [ -f "/usr/local/sbin/gdm" ] ; then
   chroot ${FSMNT} sysrc gdm_enable="YES"
 fi
+if [ -f "/usr/local/etc/rc.d/pcdm" ] ; then
+  chroot ${FSMNT} sysrc pcdm_enable="YES"
+fi
 if [ -f "/usr/local/bin/sddm" ] ; then
   chroot ${FSMNT} sysrc sddm_enable="YES"
 fi
