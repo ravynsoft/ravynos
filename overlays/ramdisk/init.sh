@@ -44,10 +44,11 @@ if [ $x -gt $y ] ; then
 fi
 
 echo "==> Mount swap-based memdisk"
-mdconfig -a -t swap -s 4g
+mdconfig -a -t swap -s 3g
 zpool create livecd /dev/md2
 zfs set compression=gzip livecd
-zfs send furybsd | chroot /usr/local/furybsd/uzip pv | zfs recv -F livecd
+zfs set primarycache=none livecd
+zfs send -c furybsd | chroot /usr/local/furybsd/uzip pv | zfs recv -F livecd
 
 mount -t devfs devfs /livecd/dev
 chroot /livecd /opt/local/bin/furybsd-init-helper
