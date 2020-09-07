@@ -91,7 +91,7 @@ workspace()
     rm -rf ${uzip} ${cdroot} ${ports} >/dev/null 2>/dev/null
   fi
   mkdir -p ${livecd} ${base} ${iso} ${packages} ${uzip} ${ramdisk_root}/dev ${ramdisk_root}/etc >/dev/null 2>/dev/null
-  truncate -s 4g ${livecd}/pool.img
+  truncate -s 3g ${livecd}/pool.img
   mdconfig -f ${livecd}/pool.img -u 0
   zpool create furybsd /dev/md0
   zfs set mountpoint=${uzip} furybsd

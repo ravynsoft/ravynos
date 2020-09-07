@@ -48,6 +48,7 @@ mdconfig -a -t swap -s 3g
 zpool create livecd /dev/md2
 zfs set compression=gzip livecd
 zfs set primarycache=none livecd
+zpool status
 zfs send -c furybsd | chroot /usr/local/furybsd/uzip pv | zfs recv -F livecd
 
 mount -t devfs devfs /livecd/dev
