@@ -91,7 +91,7 @@ workspace()
     rm -rf ${uzip} ${cdroot} ${ports} >/dev/null 2>/dev/null
   fi
   mkdir -p ${livecd} ${base} ${iso} ${packages} ${uzip} ${ramdisk_root}/dev ${ramdisk_root}/etc >/dev/null 2>/dev/null
-  truncate -s 4g ${livecd}/pool.img
+  truncate -s 3g ${livecd}/pool.img
   mdconfig -f ${livecd}/pool.img -u 0
   zpool create furybsd /dev/md0
   zfs set mountpoint=${uzip} furybsd
@@ -215,10 +215,13 @@ dm()
       ;;
     'lumina')
       ;;
-    *)
+    'mate')
       cp ${cwd}/lightdm.conf ${uzip}/usr/local/etc/lightdm/
       chroot ${uzip} sed -i '' -e 's/memorylocked=128M/memorylocked=256M/' /etc/login.conf
       chroot ${uzip} cap_mkdb /etc/login.conf
+      ;;
+    'xfce')
+      cp ${cwd}/sddm.conf-xfce ${uzip}/usr/local/etc/sddm.conf
       ;;
   esac
 }
@@ -258,10 +261,7 @@ ramdisk()
 boot() 
 {
   cp -R ${cwd}/overlays/boot/ ${cdroot}
-  cd "${uzip}" && tar -cf - --exclude boot/kernel boot | tar -xf - -C "${cdroot}"
-  for kfile in kernel geom_uzip.ko nullfs.ko tmpfs.ko opensolaris.ko unionfs.ko xz.ko zfs.ko; do
-  tar -cf - boot/kernel/${kfile} | tar -xf - -C "${cdroot}"
-  done
+  cd "${uzip}" && tar -cf - boot | tar -xf - -C "${cdroot}"
 }
 
 image() 
@@ -271,9 +271,20 @@ image()
 
 cleanup()
 {
-  if [ -d "${livecd}" ] ; then
+  umount ${uzip}/var/cache/pkg >/dev/null 2>/dev/null
+  umount ${ports} >/dev/null 2>/dev/null
+  rm -rf ${ports} >/dev/null 2>/dev/null
+  umount ${cache}/furybsd-packages/ >/dev/null 2>/dev/null
+  rm ${cache}/master.zip >/dev/null 2>/dev/null
+  umount ${uzip}/dev >/dev/null 2>/dev/null
+  zpool destroy furybsd >/dev/null 2>/dev/null || true
+  mdconfig -d -u 0 >/dev/null 2>/dev/null || true
+  if [ -f "${livecd}/pool.img" ] ; then
+    rm ${livecd}/pool.img
+  fi
+  if [ -d "${livecd}" ] ;then
     chflags -R noschg ${uzip} ${cdroot} >/dev/null 2>/dev/null
-    rm -rf ${uzip} ${cdroot} >/dev/null 2>/dev/null
+    rm -rf ${uzip} ${cdroot} ${ports} >/dev/null 2>/dev/null
   fi
 }
 

@@ -32,7 +32,7 @@ bsdinstall config
 cat /etc/rc.conf | xargs sysrc -f ${FSMNT}/etc/rc.conf
 bsdinstall entropy
 
-# Cleanup LiveCD restore specific conents from destination pool
+# Cleanup LiveCD restore specific contents from destination pool
 chroot ${FSMNT} cp /usr/local/etc/lightdm/lightdm.conf.sample /usr/local/etc/lightdm/lightdm.conf || true
 chroot ${FSMNT} rm /usr/local/etc/sddm.conf || true
 chroot ${FSMNT} cp /usr/local/etc/gdm/custom.conf.sample /usr/local/etc/gdm/custom.conf || true
