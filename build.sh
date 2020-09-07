@@ -261,10 +261,7 @@ ramdisk()
 boot() 
 {
   cp -R ${cwd}/overlays/boot/ ${cdroot}
-  cd "${uzip}" && tar -cf - --exclude boot/kernel boot | tar -xf - -C "${cdroot}"
-  for kfile in kernel geom_uzip.ko nullfs.ko tmpfs.ko opensolaris.ko unionfs.ko xz.ko zfs.ko; do
-  tar -cf - boot/kernel/${kfile} | tar -xf - -C "${cdroot}"
-  done
+  cd "${uzip}" && tar -cf - boot | tar -xf - -C "${cdroot}"
 }
 
 image() 
@@ -274,9 +271,20 @@ image()
 
 cleanup()
 {
-  if [ -d "${livecd}" ] ; then
+  umount ${uzip}/var/cache/pkg >/dev/null 2>/dev/null
+  umount ${ports} >/dev/null 2>/dev/null
+  rm -rf ${ports} >/dev/null 2>/dev/null
+  umount ${cache}/furybsd-packages/ >/dev/null 2>/dev/null
+  rm ${cache}/master.zip >/dev/null 2>/dev/null
+  umount ${uzip}/dev >/dev/null 2>/dev/null
+  zpool destroy furybsd >/dev/null 2>/dev/null || true
+  mdconfig -d -u 0 >/dev/null 2>/dev/null || true
+  if [ -f "${livecd}/pool.img" ] ; then
+    rm ${livecd}/pool.img
+  fi
+  if [ -d "${livecd}" ] ;then
     chflags -R noschg ${uzip} ${cdroot} >/dev/null 2>/dev/null
-    rm -rf ${uzip} ${cdroot} >/dev/null 2>/dev/null
+    rm -rf ${uzip} ${cdroot} ${ports} >/dev/null 2>/dev/null
   fi
 }
 
