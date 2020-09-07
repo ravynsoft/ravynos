@@ -57,7 +57,7 @@ cdrecord /dev/usr/local/furybsd/iso/FuryBSD-12.1-XFCE.iso
 
 Write the XFCE image to usb stick:
 ```
-sudo dd if=/dev/usr/local/furybsd/iso/FuryBSD-12.1-XFCE.iso of=/dev/da0 bs=4m
+sudo dd if=/dev/usr/local/furybsd/iso/FuryBSD-12.1-XFCE.iso of=/dev/da0 bs=4m status=progress
 ```
 
 ## Credentials for live media
