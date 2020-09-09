@@ -93,7 +93,9 @@ workspace()
   mkdir -p ${livecd} ${base} ${iso} ${packages} ${uzip} ${ramdisk_root}/dev ${ramdisk_root}/etc >/dev/null 2>/dev/null
   truncate -s 3g ${livecd}/pool.img
   mdconfig -f ${livecd}/pool.img -u 0
-  zpool create furybsd /dev/md0
+  gpart create -s GPT md0
+  gpart add -t freebsd-zfs md0
+  zpool create furybsd /dev/md0p1
   zfs set mountpoint=${uzip} furybsd
   zfs set compression=gzip-6 furybsd
 }

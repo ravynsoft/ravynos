@@ -45,7 +45,9 @@ fi
 
 echo "==> Mount swap-based memdisk"
 mdconfig -a -t swap -s 3g
-zpool create livecd /dev/md2
+gpart create -s GPT md2
+gpart add -t freebsd-zfs md2
+zpool create livecd /dev/md2p1
 zfs set compression=gzip livecd
 zfs set primarycache=none livecd
 zpool status
