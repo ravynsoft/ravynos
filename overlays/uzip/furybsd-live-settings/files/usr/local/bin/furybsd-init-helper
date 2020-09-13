@@ -1,0 +1,85 @@
+#!/bin/sh
+
+BOOTMODE=$(/sbin/sysctl -n machdep.bootmethod)
+export BOOTMODE
+
+if [ "${BOOTMODE}" = "BIOS" ]; then
+  cp /usr/home/liveuser/xorg.conf.d/driver-vesa.conf /etc/X11/xorg.conf >/dev/null 2>/dev/null
+fi
+
+if [ "${BOOTMODE}" = "UEFI" ]; then
+  cp /usr/home/liveuser/xorg.conf.d/driver-scfb.conf /etc/X11/xorg.conf >/dev/null 2>/dev/null
+fi
+
+VM_GUEST=$(/sbin/sysctl -n kern.vm_guest)
+export VM_GUEST
+
+HV_VENDOR=$(/sbin/sysctl -n hw.hv_vendor | /usr/bin/awk '{print $1}')
+export HV_VENDOR
+
+if [ "${VM_GUEST}" = "xen" ]; then
+  /usr/sbin/sysrc devd_enable="NO" >/dev/null 2>/dev/null
+  rm /etc/X11/xorg.conf >/dev/null 2>/dev/null
+fi
+
+if [ "${VM_GUEST}" = "vmware" ]; then
+  /usr/sbin/sysrc -f /etc/rc.conf vmware_guest_vmblock_enable="YES" >/dev/null 2>/dev/null
+  /usr/sbin/sysrc -f /etc/rc.conf vmware_guest_vmmemctl_enable="YES" >/dev/null 2>/dev/null
+  /usr/sbin/sysrc -f /etc/rc.conf vmware_guestd_enable="YES" >/dev/null 2>/dev/null
+else
+  /usr/sbin/pkg delete -fy open-vm-tools >/dev/null 2>/dev/null
+fi
+
+if [ "${VM_GUEST}" = "kvm" ]; then
+  /usr/sbin/pkg delete -fy xf86-input-libinput >/dev/null 2>/dev/null
+fi
+
+if [ "${HV_VENDOR}" = "bhyve" ]; then
+  /usr/sbin/pkg delete -fy xf86-input-libinput >/dev/null 2>/dev/null
+fi
+
+if [ -f "/usr/sbin/pciconf" ] ; then
+  /usr/sbin/pciconf -lv 2>/dev/null | /usr/bin/grep -q VirtualBox 2>/dev/null
+  if [ $? -eq 0 ] ; then
+    rm /etc/X11/xorg.conf >/dev/null 2>/dev/null
+    cp /usr/home/liveuser/xorg.conf.d/driver-virtualbox.conf /etc/X11/xorg.conf >/dev/null 2>/dev/null
+    /usr/sbin/sysrc -f /etc/rc.conf vboxguest_enable="YES" >/dev/null 2>/dev/null
+    /usr/sbin/sysrc -f /etc/rc.conf vboxservice_enable="YES" >/dev/null 2>/dev/null
+  else
+    /usr/sbin/pkg delete -fy virtualbox-ose-additions >/dev/null 2>/dev/null
+  fi
+fi
+
+if [ -f "/usr/sbin/pciconf" ] ; then
+  /usr/sbin/pciconf -lv 2>/dev/null | /usr/bin/grep -q VMware 2>/dev/null
+  if [ $? -eq 0 ] ; then
+    rm /etc/X11/xorg.conf >/dev/null 2>/dev/null
+    cp /usr/home/liveuser/xorg.conf.d/driver-vmware.conf /etc/X11/xorg.conf >/dev/null 2>/dev/null
+    /usr/sbin/sysrc -f /etc/rc.conf moused_enable="YES" >/dev/null 2>/dev/null # Needed for VMware?
+  else
+    /usr/sbin/pkg delete -fy xf86-video-vmware >/dev/null 2>/dev/null
+    /usr/sbin/pkg delete -fy xf86-input-vmmouse >/dev/null 2>/dev/null
+  fi
+fi
+
+if [ -f "/usr/sbin/pciconf" ] ; then
+  /usr/sbin/pciconf -lv 2>/dev/null | /usr/bin/grep -q QXL 2>/dev/null
+  if [ $? -eq 0 ] ; then
+    rm /etc/X11/xorg.conf >/dev/null 2>/dev/null
+    cp /usr/home/liveuser/xorg.conf.d/driver-qxl.conf /usr/local/etc/X11/xorg.conf.d/spiceqxl.xorg.conf >/dev/null 2>/dev/null
+  else
+    /usr/sbin/pkg delete -fy xf86-video-qxl >/dev/null 2>/dev/null
+  fi
+fi
+
+/usr/sbin/sysrc -f /etc/rc.conf sendmail_enable="NO" >/dev/null 2>/dev/null
+/usr/sbin/sysrc -f /etc/rc.conf sendmail_submit_enable="NO" >/dev/null 2>/dev/null
+/usr/sbin/sysrc -f /etc/rc.conf sendmail_outbound_enable="NO" >/dev/null 2>/dev/null
+/usr/sbin/sysrc -f /etc/rc.conf sendmail_msp_queue_enable="NO" >/dev/null 2>/dev/null
+/usr/sbin/sysrc -f /etc/rc.conf linux_enable="YES" >/dev/null 2>/dev/null
+/usr/sbin/sysrc -f /etc/rc.conf dbus_enable="YES" >/dev/null 2>/dev/null
+/usr/sbin/sysrc -f /etc/rc.conf kld_list+="sysctlinfo cuse utouch" >/dev/null 2>/dev/null
+/usr/sbin/sysrc -f /etc/rc.conf allscreens_kbdflags="-b quiet.off"
+/usr/sbin/sysrc -f /etc/rc.conf dhcpcd_enable="YES" >/dev/null 2>/dev/null
+/usr/sbin/sysrc -f /etc/rc.conf webcamd_enable="YES" >/dev/null 2>/dev/null
+/usr/sbin/sysrc -f /etc/rc.conf avahi_enable="YES" >/dev/null 2>/dev/null

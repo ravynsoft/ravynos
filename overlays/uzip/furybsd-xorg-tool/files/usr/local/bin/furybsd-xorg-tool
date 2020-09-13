@@ -1,0 +1,93 @@
+#!/usr/local/bin/bash
+
+# Only run as superuser
+if [ "$(id -u)" != "0" ]; then
+  echo "This script must be run as root" 1>&2
+  exit 1
+fi
+
+# Ensure pkg.freebsd.org is reachable first
+
+if netstat -rn | grep default &> /dev/null
+then
+  echo "pkg.freebsd.org found"
+else
+  zenity --info --title="FuryBSD Xorg Tool" --text="A working internet connection is required first" --width=300 --height=100
+  exit 1
+fi
+
+ask=`zenity --list --title="FuryBSD Xorg Tool" --column="0" "Intel" "nVidia" --width=300 --height=200 --hide-header`
+
+if [ "$ask" == "Intel" ]; then
+  ask=`zenity --list --title="FuryBSD Xorg Tool" --column="0" "drm-kmod" "drm-legacy-kmod" "xf86-video-intel" --width=300 --height=200 --hide-header`
+  if [ "$ask" == "drm-kmod" ]; then
+    rm /etc/X11/xorg.conf
+    xterm -e pkg install -fy drm-kmod && pkg clean -a -y
+    zenity --info --title="FuryBSD Xorg Tool" --text="Xorg will now be restarted" --width=300 --height=100
+    sysrc -f /etc/rc.conf kld_list+="/boot/modules/i915kms.ko"
+    service kld restart
+    killall Xorg
+  fi
+  if [ "$ask" == "drm-legacy-kmod" ]; then
+    rm /etc/X11/xorg.conf
+    xterm -e pkg install -fy drm-legacy-kmod && pkg clean -a -y
+    zenity --info --title="FuryBSD Xorg Tool" --text="Xorg will now be restarted" --width=300 --height=100
+    sysrc -f /etc/rc.conf kld_list+="/boot/modules/i915kms.ko"
+    service kld restart
+    killall Xorg
+  fi
+  if [ "$ask" == "xf86-video-intel" ]; then
+    rm /etc/X11/xorg.conf
+    xterm -e pkg install -fy xf86-video-intel && pkg clean -a -y
+    zenity --info --title="FuryBSD Xorg Tool" --text="Xorg will now be restarted" --width=300 --height=100
+    killall Xorg
+  fi
+fi
+
+if [ "$ask" == "nVidia" ]; then
+  ask=`zenity --list --title="FuryBSD Xorg Tool" --column="0" "nVidia Driver Latest" "nVidia Driver 390" "nVidia Driver 340" --width=300 --height=200 --hide-header`
+  if [ "$ask" == "nVidia Driver Latest" ]; then
+    rm /etc/X11/xorg.conf
+    xterm -e pkg install -fy nvidia-driver && pkg clean -a -y
+    zenity --info --title="FuryBSD Xorg Tool" --text="Xorg will now be restarted" --width=300 --height=100
+    sysrc -f /etc/rc.conf kld_list+="nvidia-modeset"
+    service kld restart
+cat <<EOF | tee /etc/X11/xorg.conf
+Section "Device"
+        Identifier "Card0"
+        Driver     "nvidia"
+EndSection
+EOF
+    killall Xorg
+  fi
+  if [ "$ask" == "nVidia Driver 390" ]; then
+    rm /etc/X11/xorg.conf
+    xterm -e pkg install -fy nvidia-driver-390 && pkg clean -a -y
+    zenity --info --title="FuryBSD Xorg Tool" --text="Xorg will now be restarted" --width=300 --height=100
+    sysrc -f /etc/rc.conf kld_list+="nvidia-modeset"
+    service kld restart
+cat <<EOF | tee /etc/X11/xorg.conf
+Section "Device"
+	Identifier "Card0"
+	Driver     "nvidia"
+EndSection
+EOF
+    killall Xorg
+  fi
+  if [ "$ask" == "nVidia Driver 340" ]; then
+    rm /etc/X11/xorg.conf
+    xterm -e pkg install-fy nvidia-driver-340 && pkg clean -a -y
+    zenity --info --title="FuryBSD Xorg Tool" --text="Xorg will now be restarted" --width=300 --height=100
+    sysrc -f /etc/rc.conf kld_list+="nvidia"
+    service kld restart
+cat <<EOF | tee /etc/X11/xorg.conf
+Section "Device"
+        Identifier "Card0"
+        Driver     "nvidia"
+EndSection
+EOF
+    killall Xorg
+  fi
+fi
+
+exit 0

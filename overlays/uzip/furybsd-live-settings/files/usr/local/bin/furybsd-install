@@ -1,0 +1,107 @@
+#!/bin/sh
+
+# Only run as superuser
+if [ "$(id -u)" != "0" ]; then
+  echo "This script must be run as root" 1>&2
+  exit 1
+fi
+
+# Export our variables
+LIVEFS="/"
+FSMNT="/mnt"
+DESTPOOL=$(zpool list -H | grep /mnt | awk -F '\t' '{print $1;}')
+
+# Hide the complexities of bsdinstall user creation,
+# just ask for username and password
+add_user()
+{
+  while true; do
+    echo ""
+    echo "Add User"
+    echo "This user will be added to the video, wheel, and webcamd groups."
+      while true; do
+      echo "Username: "
+      read -r username
+      if echo "${username}" | grep -q -E "^[a-z][-a-z0-9]*$"; then
+        break;
+      else
+         echo "Username not valid"
+      fi
+    done
+    while true; do
+      echo "New Password: "; stty -echo; read -r password; stty echo; echo ""
+      echo "Retype New Password: "; stty -echo; read -r password2; stty echo; echo ""
+      if [ "${password}" = "${password2}" ]; then
+        break;
+      else
+        echo "Passwords did not match!"
+      fi
+    done
+    echo "${username}:::::::::${password}" | chroot "${FSMNT}" adduser -f - && \
+      chroot "${FSMNT}" pw groupmod wheel -m "${username}" && \
+      chroot "${FSMNT}" pw groupmod video -m "${username}" && \
+      chroot "${FSMNT}" pw groupmod webcamd -m "${username}" && break
+  done
+}
+
+# Cleanup memory devices created before reroot if they exist
+if [ -e "/dev/md0" ] ; then
+  /sbin/mdconfig -du md0
+fi
+if [ -e "/dev/md1" ] ; then
+  /sbin/mdconfig -du md1
+fi
+
+# Clean up any previous runs
+umount -f ${FSMNT}/dev >/dev/null 2>/dev/null || true
+zpool export -f "${DESTPOOL}" >/dev/null 2>/dev/null || true
+
+# Install contents of read only uzip to destination pool
+bsdinstall hostname
+bsdinstall zfsboot
+if [ ! -d "/mnt/usr" ] ; then
+  exit 1
+fi
+
+# Clone the file system to disk with cpdup
+cpdup -i0 -s0 -v "${LIVEFS}" "${FSMNT}"
+
+bsdinstall config
+cat /etc/rc.conf | xargs sysrc -f ${FSMNT}/etc/rc.conf
+bsdinstall entropy
+
+# Cleanup LiveCD restore specific contents from destination pool
+chroot "${FSMNT}" pkg remove -y furybsd-live-settings
+# TODO: Move all of this to the pre-deinstall section of the pkg manifests that have installed these things
+chroot "${FSMNT}" rm /etc/rc.conf.local
+chroot "${FSMNT}" pw userdel liveuser
+chroot "${FSMNT}" pw groupdel liveuser
+chroot "${FSMNT}" rm -rf /usr/home/liveuser
+
+# Configure the new installation
+mount -t devfs devfs ${FSMNT}/dev
+bsdinstall rootpass
+add_user
+bsdinstall time
+
+# Enable additional services needed for desktop
+if [ -f "/usr/local/sbin/lightdm" ] ; then
+  chroot ${FSMNT} sysrc lightdm_enable="YES"
+fi
+if [ -f "/usr/local/sbin/gdm" ] ; then
+  chroot ${FSMNT} sysrc gdm_enable="YES"
+fi
+if [ -f "/usr/local/etc/rc.d/pcdm" ] ; then
+  chroot ${FSMNT} sysrc pcdm_enable="YES"
+fi
+if [ -f "/usr/local/bin/sddm" ] ; then
+  chroot ${FSMNT} sysrc sddm_enable="YES"
+fi
+
+# Cleanup and reboot
+echo "Installation finished!"
+echo "Press any key to reboot..."
+read -r reboot
+umount -f "${FSMNT}/dev" >/dev/null 2>/dev/null || true
+zpool export -f "${DESTPOOL}" >/dev/null 2>/dev/null || true
+shutdown -r now

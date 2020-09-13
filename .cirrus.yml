@@ -1,0 +1,44 @@
+freebsd_instance:
+  image: freebsd-12-1-release-amd64
+  # cpu: 1 gives an error; >2 works
+  cpu: 2
+  memory: 8G
+
+env:
+  CIRRUS_CLONE_DEPTH: 1
+  GITHUB_TOKEN: ENCRYPTED[ed170fdbb21e31f2f09259d8e5ef007450794ee10d9f3a6387661ecd35d1f9b4d1f6a888d01f3d223e19582328bc6f9f]
+
+task:
+  stateful: false
+  timeout_in: 60m
+
+  env:
+    matrix:
+      DESKTOP: 'lumina'
+      DESKTOP: 'xfce'
+      DESKTOP: 'mate'
+
+  env:
+    matrix:
+      arch: 'amd64'
+      arch: 'i386'
+
+  install_script:
+    - env
+    - kldload zfs.ko
+    - kldload tmpfs.ko
+    - kldload nullfs.ko
+    - kldload geom_uzip.ko
+    - pkg install -y pkg git-lite zsync wget sha bash # qemu-devel uefi-edk2-qemu-x86_64
+    - mkdir -p /usr/local/furybsd
+    - mount -t tmpfs tmpfs /usr/local/furybsd
+    
+  test_script:
+    - /bin/sh -x ./build.sh "${DESKTOP}" || true # FIXME: Why does this return an error even though the ISO succeeded?
+    - ls -lh "${CIRRUS_WORKING_DIR}"/*.iso*
+    - df -h
+    - ( cd "${CIRRUS_WORKING_DIR}" ; zsyncmake *.iso )
+    - wget -c "https://raw.githubusercontent.com/probonopd/uploadtool/8142d461aba7b92a058116fe5ee75be438b75fa4/upload.sh"
+    - export TRAVIS_COMMIT="${CIRRUS_CHANGE_IN_REPO}"
+    - export TRAVIS_REPO_SLUG="${CIRRUS_REPO_FULL_NAME}"
+    - bash upload.sh "${CIRRUS_WORKING_DIR}"/*.iso* # This tool needs bash; FIXME
