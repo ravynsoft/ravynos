@@ -1,0 +1,68 @@
+#!/usr/local/bin/bash
+
+# Only run as superuser
+if [ "$(id -u)" != "0" ]; then
+  echo "This script must be run as root" 1>&2
+  exit 1
+fi
+
+rm /tmp/wifi-devices-found.list 2>/dev/null || true
+rm /tmp/wifi-selection 2>/dev/null || true
+rm /tmp/wlan-selection 2>/dev/null || true
+
+# Check for no wifi devices and exit if none found
+
+wnic=$(sysctl -b net.wlan.devices)
+if [ "$?" -eq 0 ] && [ -z "${wnic}" ] ; then
+  zenity --warning --no-wrap --text="No wlan devices found"
+  exit 0
+fi
+
+# Check for existing wifi devices in rc.conf
+grep -q "^wlans" /etc/rc.conf
+if [ $? -eq 0 ] ; then
+  WLANCOUNT=$(cat /etc/rc.conf | grep "^wlans_" | wc -l | awk '{print 1}')
+else
+  WLANCOUNT="0"
+fi
+WLAN="wlan${WLANCOUNT}"
+
+
+# Check for any new wifi devices to setup
+for wnic in `sysctl -b net.wlan.devices 2>/dev/null`
+do
+  echo ${wnic} >> /tmp/wifi-devices-found.list
+done
+
+# Present list of detected wifi devices
+cat /tmp/wifi-devices-found.list | zenity --list --width=640 --height=480 \
+--title="FuryBSD Wifi Tool" \
+--text="Detected wifi devices" \
+--column="Module" | tee /tmp/wifi-selection
+
+# Now configure the wifi device in rc.conf based on user selection
+wnic=$(cat /tmp/wifi-selection)
+if [ "$?" -eq 0 ] && [ -z "${wnic}" ] ; then
+  exit 0
+fi
+cat /etc/rc.conf 2>/dev/null | grep -q "wlans_${wnic}="
+if [ $? -ne 0 ] ; then
+  sysrc wlans_${wnic}="${WLAN}"
+  sysrc ifconfig_${WLAN}="WPA"
+  service netif restart ${WLAN}
+  cat /etc/rc.conf | grep ${wnic} | cut -d'"' -f2 > /tmp/wlan-selection
+  WLAN=$(cat /tmp/wlan-selection)
+  ifconfig ${WLAN} up scan
+  killall wpa_gui 2>/dev/null || true
+  wpa_gui -i ${WLAN}
+else
+  cat /etc/rc.conf | grep ${wnic} | cut -d'"' -f2 > /tmp/wlan-selection
+  WLAN=$(cat /tmp/wlan-selection)
+  ifconfig ${WLAN} up scan
+  killall wpa_gui 2>/dev/null || true
+  wpa_gui -i ${WLAN}
+fi
+
+rm /tmp/wifi-devices-found.list 2>/dev/null || true
+rm /tmp/wifi-selection 2>/dev/null || true
+rm /tmp/wlan-selection 2>/dev/null || true

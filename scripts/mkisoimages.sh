@@ -47,7 +47,11 @@ if [ "$1" = "-b" ]; then
     mkdir efi
     mount -t msdosfs /dev/$device efi
     mkdir -p efi/efi/boot
-    cp -p "$BASEBITSDIR/boot/loader.efi" efi/efi/boot/bootx64.efi
+    if [ "${arch}" = "i386" ] ; then
+      cp -p "$BASEBITSDIR/boot/loader.efi" efi/efi/boot/bootia32.efi
+    else
+      cp -p "$BASEBITSDIR/boot/loader.efi" efi/efi/boot/bootx64.efi
+    fi
     umount efi
     rmdir efi
     mdconfig -d -u $device
@@ -67,7 +71,7 @@ fi
 LABEL=`echo "$1" | tr '[:lower:]' '[:upper:]'`; shift
 NAME="$1"; shift
 
-publisher="TrueOS -  https://www.TrueOS.org/"
+publisher="FuryBSD"
 echo "/dev/iso9660/$LABEL / cd9660 ro 0 0" > "$BASEBITSDIR/etc/fstab"
 $MAKEFS -t cd9660 $bootable -o rockridge -o label="$LABEL" -o publisher="$publisher" "$NAME" "$@" $OVERLAY_DIR
 rm -f "$BASEBITSDIR/etc/fstab"

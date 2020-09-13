@@ -54,7 +54,7 @@ zpool status
 zfs send -c furybsd | chroot /usr/local/furybsd/uzip pv | zfs recv -F livecd
 
 mount -t devfs devfs /livecd/dev
-chroot /livecd /opt/local/bin/furybsd-init-helper
+chroot /livecd /usr/local/bin/furybsd-init-helper
 
 kenv init_shell="/rescue/sh"
 exit 0

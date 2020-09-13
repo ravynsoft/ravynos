@@ -1,28 +1,35 @@
 #!/bin/sh
 
+# Exit on errors
+set -e
+
 version="12.1"
-pkgset="branches/2020Q1"
+pkgset="branches/2020Q1" # TODO: Use it
 desktop=$1
 tag=$2
-cwd="`realpath | sed 's|/scripts||g'`"
+cwd=$(realpath | sed 's|/scripts||g')
 workdir="/usr/local"
 livecd="${workdir}/furybsd"
-cache="${livecd}/cache"
-arch=AMD64
+if [ -z "${arch}" ] ; then
+  arch=amd64
+fi
+cache="${livecd}/${arch}/cache"
 base="${cache}/${version}/base"
 packages="${cache}/packages"
 ports="${cache}/furybsd-ports-master"
 iso="${livecd}/iso"
+  if [ -n "$CIRRUS_CI" ] ; then
+    # On Cirrus CI ${livecd} is in tmpfs for speed reasons
+    # and tends to run out of space. Writing the final ISO
+    # to non-tmpfs should be an acceptable compromise
+    iso="${CIRRUS_WORKING_DIR}"
+  fi
 uzip="${livecd}/uzip"
 cdroot="${livecd}/cdroot"
 ramdisk_root="${cdroot}/data/ramdisk"
 vol="furybsd"
 label="FURYBSD"
-isopath="${iso}/${vol}.iso"
 export DISTRIBUTIONS="kernel.txz base.txz"
-export BSDINSTALL_DISTSITE="http://ftp.freebsd.org/pub/FreeBSD/releases/amd64/12.1-RELEASE/"
-export BSDINSTALL_CHROOT="/usr/local/furybsd/uzip"
-export BSDINSTALL_DISTDIR="/usr/local/furybsd/cache/12.1/base"
 
 # Only run as superuser
 if [ "$(id -u)" != "0" ]; then
@@ -31,90 +38,80 @@ if [ "$(id -u)" != "0" ]; then
 fi
 
 # Make sure git is installed
-if [ ! -f "/usr/local/bin/git" ] ; then
-  echo "Git is required"
-  echo "Please install it with pkg install git or pkg install git-lite first"
+# We only need this in case we decide to pull in ingredients from
+# other git repositories; this is currently not the case
+# if [ ! -f "/usr/local/bin/git" ] ; then
+#   echo "Git is required"
+#   echo "Please install it with pkg install git or pkg install git-lite first"
+#   exit 1
+# fi
+
+if [ -z "${desktop}" ] ; then
+  export desktop=xfce
+fi
+edition=$(echo $desktop | tr '[:lower:]' '[:upper:]')
+export edition
+if [ ! -f "${cwd}/settings/packages.${desktop}" ] ; then
+  echo "${cwd}/settings/packages.${desktop} is missing, exiting"
   exit 1
 fi
 
-case $desktop in
-  'kde')
-    export desktop="kde"
-    export edition="KDE"
-    ;;
-  'gnome')
-    export desktop="gnome"
-    export edition="GNOME"
-    ;;
-  'lumina')
-    export desktop="lumina"
-    export edition="LUMINA"
-    ;;
-  'mate')
-    export desktop="mate"
-    export edition="MATE"
-    ;;
-  *)
-    export desktop="xfce"
-    export edition="XFCE"
-    ;;
-esac
-
 # Get the version tag
 if [ -z "$2" ] ; then
-  rm /usr/local/furybsd/tag >/dev/null 2>/dev/null
+  rm /usr/local/furybsd/tag >/dev/null 2>/dev/null || true
   export vol="FuryBSD-${version}-${edition}"
 else
-  rm /usr/local/furybsd/version >/dev/null 2>/dev/null
+  rm /usr/local/furybsd/version >/dev/null 2>/dev/null || true
   echo "${2}" > /usr/local/furybsd/tag
   export vol="FuryBSD-${version}-${edition}-${tag}"
 fi
 
 label="FURYBSD"
-isopath="${iso}/${vol}.iso"
+isopath="${iso}/${vol}-${arch}.iso"
 
 workspace()
 {
-  umount ${uzip}/var/cache/pkg >/dev/null 2>/dev/null
-  umount ${ports} >/dev/null 2>/dev/null
-  rm -rf ${ports} >/dev/null 2>/dev/null
-  umount ${cache}/furybsd-packages/ >/dev/null 2>/dev/null
-  rm ${cache}/master.zip >/dev/null 2>/dev/null
-  umount ${uzip}/dev >/dev/null 2>/dev/null
+  umount ${uzip}/var/cache/pkg >/dev/null 2>/dev/null || true
+  umount ${ports} >/dev/null 2>/dev/null || true
+  rm -rf ${ports} >/dev/null 2>/dev/null || true
+  umount ${cache}/furybsd-packages/ >/dev/null 2>/dev/null || true
+  rm ${cache}/master.zip >/dev/null 2>/dev/null || true
+  umount ${uzip}/dev >/dev/null 2>/dev/null || true
   zpool destroy furybsd >/dev/null 2>/dev/null || true
   mdconfig -d -u 0 >/dev/null 2>/dev/null || true
   if [ -f "${livecd}/pool.img" ] ; then
     rm ${livecd}/pool.img
   fi
   if [ -d "${livecd}" ] ;then
-    chflags -R noschg ${uzip} ${cdroot} >/dev/null 2>/dev/null
-    rm -rf ${uzip} ${cdroot} ${ports} >/dev/null 2>/dev/null
+    # chflags -R noschg ${uzip} ${cdroot} >/dev/null 2>/dev/null || true
+    rm -rf ${uzip} ${cdroot} ${ports} >/dev/null 2>/dev/null || true
   fi
-  mkdir -p ${livecd} ${base} ${iso} ${packages} ${uzip} ${ramdisk_root}/dev ${ramdisk_root}/etc >/dev/null 2>/dev/null
-  truncate -s 3g ${livecd}/pool.img
-  mdconfig -f ${livecd}/pool.img -u 0
+  mkdir -p "${livecd}" "${base}" "${iso}" "${packages}" "${uzip}" "${ramdisk_root}/dev" "${ramdisk_root}/etc" >/dev/null 2>/dev/null
+  truncate -s 3g "${livecd}/pool.img"
+  mdconfig -f "${livecd}/pool.img" -u 0
   gpart create -s GPT md0
   gpart add -t freebsd-zfs md0
   zpool create furybsd /dev/md0p1
-  zfs set mountpoint=${uzip} furybsd
+  zfs set mountpoint="${uzip}" furybsd
   zfs set compression=gzip-6 furybsd
 }
 
 base()
 {
+  # TODO: Signature checking
   if [ ! -f "${base}/base.txz" ] ; then 
-    bsdinstall distfetch
+    cd ${base}
+    fetch https://download.freebsd.org/ftp/releases/${arch}/${version}-RELEASE/base.txz
   fi
   
   if [ ! -f "${base}/kernel.txz" ] ; then
     cd ${base}
-    bsdinstall distfetch
+    fetch https://download.freebsd.org/ftp/releases/${arch}/${version}-RELEASE/kernel.txz
   fi
-  bsdinstall distextract
-  cp /etc/resolv.conf ${uzip}/etc/resolv.conf
-  chroot ${uzip} env PAGER=cat freebsd-update fetch --not-running-from-cron
-  chroot ${uzip} freebsd-update install
-  rm ${uzip}/etc/resolv.conf
+  cd ${base}
+  tar -zxvf base.txz -C ${uzip}
+  tar -zxvf kernel.txz -C ${uzip}
+  touch ${uzip}/etc/fstab
 }
 
 packages()
@@ -123,8 +120,22 @@ packages()
   mkdir ${uzip}/var/cache/pkg
   mount_nullfs ${packages} ${uzip}/var/cache/pkg
   mount -t devfs devfs ${uzip}/dev
-  cat ${cwd}/settings/packages.common | xargs pkg-static -c ${uzip} install -y
-  cat ${cwd}/settings/packages.${desktop} | xargs pkg-static -c ${uzip} install -y
+  # FIXME: In the following line, the hardcoded "i386" needs to be replaced by "${arch}" - how?
+  cat "${cwd}/settings/packages.common" | sed '/^#/d' | sed '/\!i386/d' | xargs /usr/local/sbin/pkg-static -c "${uzip}" install -y
+  while read -r p; do
+    /usr/local/sbin/pkg-static -c ${uzip} install -y /var/cache/pkg/"${p}"-0.txz
+  done <"${cwd}"/settings/overlays.common
+  # TODO: Show dependency tree so that we know why which pkgs get installed
+  # cat "${cwd}/settings/packages.common" | sed '/^#/d' | sed '/\!'"${arch}"'/d' | xargs /usr/local/sbin/pkg-static -c "${uzip}" info -d
+  # cat "${cwd}/settings/packages.${desktop}" | sed '/^#/d' | sed '/\!'"${arch}"'/d' | xargs /usr/local/sbin/pkg-static -c "${uzip}" info -d
+  cat "${cwd}/settings/packages.${desktop}" | sed '/^#/d' | sed '/\!i386/d' | xargs /usr/local/sbin/pkg-static -c "${uzip}" install -y
+  if [ -f "${cwd}/settings/overlays.${desktop}" ] ; then
+    while read -r p; do
+      /usr/local/sbin/pkg-static -c ${uzip} install -y /var/cache/pkg/"${p}"-0.txz
+    done <"${cwd}/settings/overlays.${desktop}"
+  fi
+  /usr/local/sbin/pkg-static -c ${uzip} info > "${cdroot}/data/system.uzip.manifest"
+  cp "${cdroot}/data/system.uzip.manifest" "${isopath}.manifest"
   rm ${uzip}/etc/resolv.conf
   umount ${uzip}/var/cache/pkg
   umount ${uzip}/dev
@@ -138,68 +149,32 @@ rc()
   if [ ! -f "${uzip}/etc/rc.conf.local" ] ; then
     touch ${uzip}/etc/rc.conf.local
   fi
-  cat ${cwd}/settings/rc.conf.common | xargs chroot ${uzip} sysrc -f /etc/rc.conf.local
-  cat ${cwd}/settings/rc.conf.${desktop} | xargs chroot ${uzip} sysrc -f /etc/rc.conf.local
+  cat "${cwd}/settings/rc.conf.common" | xargs chroot "${uzip}" sysrc -f /etc/rc.conf.local
+  cat "${cwd}/settings/rc.conf.${desktop}" | xargs chroot "${uzip}" sysrc -f /etc/rc.conf.local
 }
 
-live-settings()
-{
-  cp ${cwd}/furybsd-init-helper ${uzip}/opt/local/bin/
-  cp ${cwd}/furybsd-install ${uzip}/opt/local/bin/
-}
 
 repos()
 {
-  if [ ! -d "${cache}/furybsd-xfce-settings" ] ; then
-    git clone https://github.com/furybsd/furybsd-xfce-settings.git ${cache}/furybsd-xfce-settings
-  else
-    cd ${cache}/furybsd-xfce-settings && git pull
-  fi
-  if [ ! -d "${cache}/furybsd-wallpapers" ] ; then
-    git clone https://github.com/furybsd/furybsd-wallpapers.git ${cache}/furybsd-wallpapers
-  else
-    cd ${cache}/furybsd-wallpapers && git pull
-  fi
-  if [ ! -d "${cache}/furybsd-xorg-tool" ] ; then
-    git clone https://github.com/furybsd/furybsd-xorg-tool.git ${cache}/furybsd-xorg-tool
-  else
-    cd ${cache}/furybsd-xorg-tool && git pull
-  fi
-  if [ ! -d "${cache}/furybsd-wifi-tool" ] ; then
-    git clone https://github.com/furybsd/furybsd-wifi-tool.git ${cache}/furybsd-wifi-tool
-  else
-    cd ${cache}/furybsd-wifi-tool && git pull
-  fi
-}
-
-skel()
-{
-  mkdir -p ${uzip}/usr/share/skel/dot.config/xfce4/xfconf/xfce-perchannel-xml
-  cp -R ${cache}/furybsd-xfce-settings/etc/xdg/xfce4/xfconf/xfce-perchannel-xml/* ${uzip}/usr/share/skel/dot.config/xfce4/xfconf/xfce-perchannel-xml/
-}
-
-opt()
-{
-  mkdir -p ${uzip}/opt/local/bin
-  mkdir -p ${uzip}/opt/local/share/backgrounds/furybsd
-  cp ${cache}/furybsd-xorg-tool/bin/* ${uzip}/opt/local/bin/
-  cp -R ${cache}/furybsd-wallpapers/*.png ${uzip}/opt/local/share/backgrounds/furybsd/
-  cp ${cache}/furybsd-wifi-tool/bin/* ${uzip}/opt/local/bin/
+  # This is just an example of how a git repo needs to be structured
+  # so that it can be consumed directly here
+  # if [ ! -d "${cwd}/overlays/uzip/furybsd-common-settings" ] ; then
+  #   git clone https://github.com/probonopd/furybsd-common-settings.git ${cwd}/overlays/uzip/furybsd-common-settings
+  # else
+  #   cd ${cwd}/overlays/uzip/furybsd-common-settings && git pull
+  # fi
+  true
 }
 
 user()
 {
   mkdir -p ${uzip}/usr/home/liveuser/Desktop
-  cp -R ${cwd}/xorg.conf.d/ ${uzip}/usr/home/liveuser/xorg.conf.d
-  cp ${cwd}/fury-config-xorg.desktop ${uzip}/usr/home/liveuser/Desktop/
-  cp ${cwd}/fury-config-wifi.desktop ${uzip}/usr/home/liveuser/Desktop/
-  cp ${cwd}/fury-install.desktop ${uzip}/usr/home/liveuser/Desktop/
-  chroot ${uzip} echo furybsd | chroot ${uzip} pw mod user root -h 0
+  # chroot ${uzip} echo furybsd | chroot ${uzip} pw mod user root -h 0
   chroot ${uzip} pw useradd liveuser -u 1000 \
   -c "Live User" -d "/home/liveuser" \
   -g wheel -G operator -m -s /bin/csh -k /usr/share/skel -w none
   chroot ${uzip} pw groupadd liveuser -g 1000
-  chroot ${uzip} echo furybsd | chroot ${uzip} pw mod user liveuser -h 0
+  # chroot ${uzip} echo furybsd | chroot ${uzip} pw mod user liveuser -h 0
   chroot ${uzip} chown -R 1000:1000 /usr/home/liveuser
   chroot ${uzip} pw groupmod wheel -m liveuser
   chroot ${uzip} pw groupmod video -m liveuser
@@ -210,37 +185,37 @@ dm()
 {
   case $desktop in
     'kde')
-      cp ${cwd}/sddm.conf ${uzip}/usr/local/etc/
       ;;
     'gnome')
-      cp ${cwd}/custom.conf ${uzip}/usr/local/etc/gdm/custom.conf
       ;;
     'lumina')
       ;;
     'mate')
-      cp ${cwd}/lightdm.conf ${uzip}/usr/local/etc/lightdm/
       chroot ${uzip} sed -i '' -e 's/memorylocked=128M/memorylocked=256M/' /etc/login.conf
       chroot ${uzip} cap_mkdb /etc/login.conf
       ;;
     'xfce')
-      cp ${cwd}/sddm.conf-xfce ${uzip}/usr/local/etc/sddm.conf
       ;;
   esac
 }
 
-installed-settings()
+# Generate on-the-fly packages for the selected overlays
+pkg()
 {
-  if [ ! -d "${cache}/furybsd-common-settings" ] ; then
-    git clone https://github.com/furybsd/furybsd-common-settings.git ${cache}/furybsd-common-settings
-  else
-    cd ${cache}/furybsd-common-settings && git pull
+  cd "${packages}"
+  while read -r p; do
+    sh -ex "${cwd}/scripts/build-pkg.sh" -m "${cwd}/overlays/uzip/${p}"/manifest -d "${cwd}/overlays/uzip/${p}/files"
+  done <"${cwd}"/settings/overlays.common
+  if [ -f "${cwd}/settings/overlays.${desktop}" ] ; then
+    while read -r p; do
+      sh -ex "${cwd}/scripts/build-pkg.sh" -m "${cwd}/overlays/uzip/${p}"/manifest -d "${cwd}/overlays/uzip/${p}/files"
+    done <"${cwd}/settings/overlays.${desktop}"
   fi
-  cp -R ${cache}/furybsd-common-settings/etc/* ${uzip}/usr/local/etc/
+  cd -
 }
 
 uzip() 
 {
-  cp -R ${cwd}/overlays/uzip/ ${uzip}
   install -o root -g wheel -m 755 -d "${cdroot}"
   # makefs "${cdroot}/data/system.ufs" "${uzip}"
   zpool export furybsd
@@ -251,7 +226,7 @@ uzip()
 
 ramdisk() 
 {
-  cp -R ${cwd}/overlays/ramdisk/ ${ramdisk_root}
+  cp -R "${cwd}/overlays/ramdisk/" "${ramdisk_root}"
   cd "${uzip}" && tar -cf - rescue | tar -xf - -C "${ramdisk_root}"
   touch "${ramdisk_root}/etc/fstab"
   cp ${uzip}/etc/login.conf ${ramdisk_root}/etc/login.conf
@@ -262,44 +237,36 @@ ramdisk()
 
 boot() 
 {
-  cp -R ${cwd}/overlays/boot/ ${cdroot}
+  cp -R "${cwd}/overlays/boot/" "${cdroot}"
   cd "${uzip}" && tar -cf - boot | tar -xf - -C "${cdroot}"
 }
 
-image() 
+image()
 {
-  sh ${cwd}/scripts/mkisoimages.sh -b $label $isopath ${cdroot}
+  sh "${cwd}/scripts/mkisoimages.sh" -b "${label}" "${isopath}" "${cdroot}"
+  md5 "${isopath}" > "${isopath}.md5"
 }
 
 cleanup()
 {
-  umount ${uzip}/var/cache/pkg >/dev/null 2>/dev/null
-  umount ${ports} >/dev/null 2>/dev/null
-  rm -rf ${ports} >/dev/null 2>/dev/null
-  umount ${cache}/furybsd-packages/ >/dev/null 2>/dev/null
-  rm ${cache}/master.zip >/dev/null 2>/dev/null
-  umount ${uzip}/dev >/dev/null 2>/dev/null
-  zpool destroy furybsd >/dev/null 2>/dev/null || true
-  mdconfig -d -u 0 >/dev/null 2>/dev/null || true
-  if [ -f "${livecd}/pool.img" ] ; then
-    rm ${livecd}/pool.img
-  fi
-  if [ -d "${livecd}" ] ;then
-    chflags -R noschg ${uzip} ${cdroot} >/dev/null 2>/dev/null
+#  if [ ! -z "$CI" ] ; then
+#    # On CI systems there is no reason to clean up which takes time
+#    return
+#  fi
+  if [ -d "${livecd}" ] ; then
+    # chflags -R noschg ${uzip} ${cdroot} >/dev/null 2>/dev/null
     rm -rf ${uzip} ${cdroot} ${ports} >/dev/null 2>/dev/null
   fi
+  echo "$isopath created"
 }
 
 workspace
+repos
+pkg
 base
 packages
 rc
-repos
-opt
-skel
 user
-live-settings
-installed-settings
 dm
 uzip
 ramdisk
