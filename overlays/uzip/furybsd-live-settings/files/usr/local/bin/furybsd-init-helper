@@ -72,6 +72,7 @@ if [ -f "/usr/sbin/pciconf" ] ; then
   fi
 fi
 
+# TODO: Move to post-install and post-deinstall of package; could not figure out the syntax to do this yet (help appreciated)
 /usr/sbin/sysrc -f /etc/rc.conf sendmail_enable="NO" >/dev/null 2>/dev/null
 /usr/sbin/sysrc -f /etc/rc.conf sendmail_submit_enable="NO" >/dev/null 2>/dev/null
 /usr/sbin/sysrc -f /etc/rc.conf sendmail_outbound_enable="NO" >/dev/null 2>/dev/null
@@ -82,4 +83,7 @@ fi
 /usr/sbin/sysrc -f /etc/rc.conf allscreens_kbdflags="-b quiet.off"
 /usr/sbin/sysrc -f /etc/rc.conf dhcpcd_enable="YES" >/dev/null 2>/dev/null
 /usr/sbin/sysrc -f /etc/rc.conf webcamd_enable="YES" >/dev/null 2>/dev/null
-/usr/sbin/sysrc -f /etc/rc.conf avahi_enable="YES" >/dev/null 2>/dev/null
+/usr/sbin/sysrc -f /etc/rc.conf avahi_daemon_enable="YES" >/dev/null 2>/dev/null
+/usr/sbin/sysrc -f /etc/rc.conf ntpd_enable="NO" >/dev/null 2>/dev/null # Seems to conflict with ntpdate
+/usr/sbin/sysrc -f /etc/rc.conf ntpdate_enable="YES" >/dev/null 2>/dev/null
+cp /usr/local/share/examples/dhcpcd/hooks /usr/local/libexec/dhcpcd-run-hooks
