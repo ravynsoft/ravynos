@@ -73,3 +73,9 @@ sudo dd if=/usr/local/furybsd/iso/FuryBSD-12.1-XFCE.iso of=/dev/daX bs=4m status
 ## Credentials for live media
 
 There is no password for `liveuser`. The `liveuser` account is removed upon install.  There is also no root password until it is set in the installer.
+
+## Legacy Repositories
+
+To keep the current furybsd organization well organized, while preserving project history all legacy repositories which are no longer in use have been moved to the furybsd-legacy organization.
+
+https://github.com/furybsd-legacy
