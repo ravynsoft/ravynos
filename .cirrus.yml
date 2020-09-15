@@ -41,4 +41,5 @@ task:
     - wget -c "https://raw.githubusercontent.com/probonopd/uploadtool/8142d461aba7b92a058116fe5ee75be438b75fa4/upload.sh"
     - export TRAVIS_COMMIT="${CIRRUS_CHANGE_IN_REPO}"
     - export TRAVIS_REPO_SLUG="${CIRRUS_REPO_FULL_NAME}"
-    - bash upload.sh "${CIRRUS_WORKING_DIR}"/*.iso* # This tool needs bash; FIXME
+    - case "$CIRRUS_BRANCH" in *pull/*) echo skipping since PR ;; * ) bash upload.sh "${CIRRUS_WORKING_DIR}"/*.iso* ; esac # This tool needs bash; FIXME
+
