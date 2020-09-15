@@ -24,6 +24,7 @@ task:
       arch: 'i386'
 
   install_script:
+    - ls -lh /usr/src || true
     - env
     - kldload zfs.ko
     - kldload tmpfs.ko
