@@ -249,10 +249,10 @@ image()
 
 cleanup()
 {
-#  if [ ! -z "$CI" ] ; then
-#    # On CI systems there is no reason to clean up which takes time
-#    return
-#  fi
+if [ ! -z "${CI}" ] ; then
+  # On CI systems there is no reason to clean up which takes time
+  return
+fi
   if [ -d "${livecd}" ] ; then
     # chflags -R noschg ${uzip} ${cdroot} >/dev/null 2>/dev/null
     rm -rf ${uzip} ${cdroot} ${ports} >/dev/null 2>/dev/null
