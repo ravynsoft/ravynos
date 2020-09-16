@@ -86,4 +86,4 @@ fi
 /usr/sbin/sysrc -f /etc/rc.conf avahi_daemon_enable="YES" >/dev/null 2>/dev/null
 /usr/sbin/sysrc -f /etc/rc.conf ntpd_enable="NO" >/dev/null 2>/dev/null # Seems to conflict with ntpdate
 /usr/sbin/sysrc -f /etc/rc.conf ntpdate_enable="YES" >/dev/null 2>/dev/null
-cp /usr/local/share/examples/dhcpcd/hooks/* /usr/local/libexec/dhcpcd-run-hooks
+cp /usr/local/share/examples/dhcpcd/hooks/15-timezone /usr/local/libexec/dhcpcd-hooks/
