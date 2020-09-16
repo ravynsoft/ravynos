@@ -1,4 +1,4 @@
-# furybsd-livecd [![Build Status](https://api.cirrus-ci.com/github/probonopd/furybsd-livecd.svg)](https://cirrus-ci.com/github/probonopd/furybsd-livecd)
+# furybsd-livecd [![Build Status](https://api.cirrus-ci.com/github/furybsd/furybsd-livecd.svg)](https://cirrus-ci.com/github/furybsd/furybsd-livecd)
 
 LiveCD builder for FuryBSD
 
