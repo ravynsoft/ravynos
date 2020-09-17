@@ -27,14 +27,24 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-import sys, os, stat
-import shutil, locale
+import sys, os, re, socket
+import shutil
 from datetime import datetime
-import multiprocessing as mp
+import urllib.request, json
 from PyQt5 import QtWidgets, QtGui, QtCore # pkg install py37-qt5-widgets
 # PySide2 wants to install 1 GB whereas PyQt5 only needs 40 MB installed on FuryBSD XFCE
+# from PyQt5 import QtMultimedia # pkg install  py37-qt5-multimedia
+# QtMultimedia is used for playing the success sound; using mpg123 for now instead
 
 import disks # Privately bundled file
+
+import ssl
+
+# Since we are running the installer on Live systems which more likely than not may have
+# the clock wrong, we cannot verify SSL certificates. Setting the following allows
+# content to be fetched from https locations even if the SSL certification cannot be verified.
+# This is needed, e.g., for geolocation.
+ssl._create_default_https_context = ssl._create_unverified_context
 
 # Plenty of TODOs and FIXMEs are sprinkled across this code.
 # These are invitations for new contributors to implement or comment on how to best implement.
@@ -48,6 +58,20 @@ import disks # Privately bundled file
 #############################################################################
 # Helper functions
 #############################################################################
+
+def internetCheckConnected(host="8.8.8.8", port=53, timeout=3):
+    """
+    Host: 8.8.8.8 (google-public-dns-a.google.com)
+    OpenPort: 53/tcp
+    Service: domain (DNS/TCP)
+    """
+    try:
+        socket.setdefaulttimeout(timeout)
+        socket.socket(socket.AF_INET, socket.SOCK_STREAM).connect((host, port))
+        return True
+    except socket.error as ex:
+        print(ex)
+        return False
 
 def details():
     print("Details clicked")
@@ -84,6 +108,9 @@ class InstallWizard(QtWidgets.QWizard, object):
         self.selected_country = None
         self.selected_disk_device = None
         self.user_agreed_to_erase = False
+        self.user_agreed_to_geolocate = False
+        self.geolocation = None
+        self.timezone = None
         self.required_mib_on_disk = 0
         self.installer_script = "furybsd-install"
 
@@ -92,17 +119,15 @@ class InstallWizard(QtWidgets.QWizard, object):
         if os.path.exists(os.path.dirname(__file__)  + "/" + self.installer_script):
             self.installer_script = os.path.dirname(__file__)  + "/" + self.installer_script
 
-        # Make sure it is actually executable
-
+        # TODO: Make sure it is actually executable
 
         self.should_show_last_page = False
         self.error_message_nice = "An unknown error occured."
 
         self.setWizardStyle(QtWidgets.QWizard.MacStyle)
 
-        self.setOptions(
-            QtWidgets.QWizard.NoBackButtonOnLastPage | QtWidgets.QWizard.NoBackButtonOnStartPage | QtWidgets.QWizard.NoCancelButtonOnLastPage)
-
+       # self.setButtonLayout(
+       #     [QtWidgets.QWizard.CustomButton1, QtWidgets.QWizard.Stretch, QtWidgets.QWizard.NextButton])
 
         self.setWindowTitle("Install FreeBSD")
         self.setFixedSize(800, 550)
@@ -111,9 +136,9 @@ class InstallWizard(QtWidgets.QWizard, object):
         self.setWindowFlags(QtCore.Qt.CustomizeWindowHint)
         self.setWindowFlags(QtCore.Qt.FramelessWindowHint)
         # self.setPixmap(QtWidgets.QWizard.BackgroundPixmap, os.path.dirname(__file__) + '/Background.png') # This works in PySide2
-        pixmap = QtGui.QPixmap(os.path.dirname(__file__) + '/Background.png')
-        # print(pixmap.height()) # FIXME: This shows that we have the pixmap loaded
-        self.setPixmap(QtWidgets.QWizard.WatermarkPixmap, pixmap) # FIXME: Why is this not working in PyQt5?
+        pxmp = QtGui.QPixmap(os.path.dirname(__file__) + '/Background.png')
+        print("pxmp.height()", pxmp.height()) # FIXME: This shows that we have the pixmap loaded
+        self.setPixmap(QtWidgets.QWizard.WatermarkPixmap, pxmp) # FIXME: Why is this not working in PyQt5?
 
         self.setOption(QtWidgets.QWizard.ExtendedWatermarkPixmap, True)
         # self.setPixmap(QtWidgets.QWizard.LogoPixmap, 'Logo.png')
@@ -136,9 +161,6 @@ class InstallWizard(QtWidgets.QWizard, object):
         self.setOption(QtWidgets.QWizard.HaveCustomButton1)
         self.setButtonText(self.CustomButton1, "Installer Log")
         self.customButtonClicked.connect(self.installerLogButtonClicked)
-
-#        button_layout = QtWidgets.QWizard.button()
-#        wizard.setButtonLayout()
 
     # TODO: Find a way to stream the output of an installer shell script
     # into a log window. Probably need to read the installer output line by line
@@ -170,12 +192,6 @@ class InstallWizard(QtWidgets.QWizard, object):
         # It is not possible jo directly jump to the last page from here, so we need to take a workaround
         self.should_show_last_page = True
         self.error_message_nice = message
-        wizard.button(QtWidgets.QWizard.NextButton).setEnabled(False)
-        wizard.button(QtWidgets.QWizard.NextButton).hide()
-        wizard.button(QtWidgets.QWizard.BackButton).setEnabled(False)
-        wizard.button(QtWidgets.QWizard.NextButton).hide()
-        wizard.button(QtWidgets.QWizard.CancelButton).setEnabled(False)
-        wizard.button(QtWidgets.QWizard.CancelButton).hide()
         self.next()
 
     # When we are about to go to the next page, we need to check whether we have to show the error page instead
@@ -184,6 +200,60 @@ class InstallWizard(QtWidgets.QWizard, object):
             return max(wizard.pageIds())
         else:
             return self.currentId() + 1
+
+    def playSound(self):
+        print("Playing sound")
+        soundfile = os.path.dirname(__file__) + '/success.mp3' # https://freesound.org/people/Leszek_Szary/sounds/171670/, licensed under CC0
+        # content = QtMultimedia.QMediaContent(QtCore.QUrl.fromLocalFile(soundfile))
+        # print(content.canonicalUrl())
+        # player = QtMultimedia.QMediaPlayer()
+        # player.setMedia(content)
+        # player.play() # FIXME: Why don't we hear anything?
+
+        proc = QtCore.QProcess()
+        command = 'mpg123'
+        args = ['-q', soundfile]
+        print(command, args)
+        try:
+            proc.startDetached(command, args)
+        except:
+            pass
+
+    def _geolocate(self):
+        if self.geolocation != None:
+            return # We already have a geolocation, no need to do it again
+
+        geolocate_url = "https://ipapi.co/json/"
+        print("Geolocating using", geolocate_url)
+
+        try:
+            with urllib.request.urlopen(geolocate_url) as url:
+                data = json.loads(url.read().decode())
+                self.geolocation=data
+                if os.path.exists("/usr/share/zoneinfo/" + data["timezone"]):
+                    self.timezone = data["timezone"]
+                print(data)
+        except:
+            pass
+
+        # TODO: Set language, keyboard,, etc. automatically based on geolocation if user allows
+
+    def ask_user_to_geolocate(self):
+        if self.geolocation != None:
+            return # We already have a geolocation, no need to do it again
+        if self.user_agreed_to_geolocate != True:
+            reply = QtWidgets.QMessageBox.question(
+                self,
+                "Question",
+                "This will send a request to ipapi.com one time to locate your computer over the network. Continue?",
+                QtWidgets.QMessageBox.Yes,
+                QtWidgets.QMessageBox.No,
+            )
+            if reply == QtWidgets.QMessageBox.Yes:
+                print("User has agreed to geolocate")
+                self.user_agreed_to_geolocate = True
+        if self.user_agreed_to_geolocate == True:
+            self._geolocate()
 
 wizard = InstallWizard()
 
@@ -216,6 +286,7 @@ supported_layouts = sorted(supported_layouts)
 print("Keyboard layouts supported by the system:")
 print(supported_layouts)
 
+# FIXME: Using json in Python might possibly be easier and leaner than using QtCore.QJsonDocument
 json_file = QtCore.QFile(os.path.dirname(__file__) + '/countries.json')
 if json_file.open(QtCore.QIODevice.ReadOnly):
     document = QtCore.QJsonDocument().fromJson(json_file.readAll())
@@ -260,14 +331,9 @@ class LanguagePage(QtWidgets.QWizardPage, object):
         self.listwidget = QtWidgets.QListWidget()
         self.listwidget2 = QtWidgets.QListWidget()
         return
-        # self.listwidget2.hide() # FIXME: Why is this needed?
-        # self.listwidget.setFont(QtGui.QFont(None, 14, QtGui.QFont.Normal))
 
-        # FIXME: Not only react to clicked, but also to selected
         self.listwidget.itemSelectionChanged.connect(self.clicked1)
         self.listwidget2.itemSelectionChanged.connect(self.clicked2)
-        # QtCore.QObject.connect(self.listwidget, QtCore.SIGNAL("itemClicked(QListWidgetItem *)"), self.clicked1)
-        # QtCore.QObject.connect(self.listwidget2, QtCore.SIGNAL("itemClicked(QListWidgetItem *)"), self.clicked2)
 
         for language in self.languages:
             if language in supported_languages:
@@ -283,14 +349,18 @@ class LanguagePage(QtWidgets.QWizardPage, object):
     def initializePage(self):
         print("Displaying LanguagePage")
 
+        wizard.setButtonLayout(
+            [QtWidgets.QWizard.CustomButton1, QtWidgets.QWizard.Stretch, QtWidgets.QWizard.BackButton,
+             QtWidgets.QWizard.NextButton])
+
         try:
             # If something else than default English is already set in the system for locale or keyboard layout,
             # then the user already has configured the system by other means and we can skip this page altogether
             proc = QtCore.QProcess()
             command = 'setxkbmap'
             args = ['-query']
-            proc.start(command, args);
-            proc.waitForFinished();
+            proc.start(command, args)
+            proc.waitForFinished()
             output_lines = proc.readAllStandardOutput().split("\n")
             system_keyboard_layout = None
             for output_line in output_lines:
@@ -307,23 +377,17 @@ class LanguagePage(QtWidgets.QWizardPage, object):
                         if wizard.selected_language == None:
                             wizard.selected_language = lang_env.split("_")[0] # If we already got one from system_keyboard_layout, use that
                         wizard.selected_country = lang_env.split("_")[1]
-                        # self.listwidget.hide() # FIXME: Why is this needed?
-                        # self.listwidget2.hide() # FIXME: Why is this needed?
                         self.completeChanged.emit()
                         wizard.next()
                         return
             else:
                 # The user has set a keyboard layout but not set $LANG, so use EN for the country
                 wizard.selected_country = "EN"
-                # self.listwidget.hide() # FIXME: Why is this needed?
-                # self.listwidget2.hide() # FIXME: Why is this needed?
                 self.completeChanged.emit()
                 wizard.next()
                 return
 
         except:
-            # self.listwidget.hide() # FIXME: Why is this needed?
-            # self.listwidget2.hide() # FIXME: Why is this needed?
             wizard.showErrorPage(
                 "There was an error while determining whether the language has already been set on this system.")
             return
@@ -454,27 +518,6 @@ class CountryPage(QtWidgets.QWizardPage, object):
 # TODO: If someone feels like it, make it possible to switch to all countries that are supported
 # by the system (Checkbox: "Show all supported countries")
 
-# TODO: Give the user the option to use https://ipgeolocationapi.com/ once
-# which removes the need for selecting anything from that list
-
-# TODO: Set language, keyboard, timezone, etc. automatically based on geolocation if user allows
-# GET https://api.ipgeolocationapi.com/geolocate
-# {
-#     "continent": "Europe",
-#     "alpha2": "DE",
-#     "country_code": "49",
-#     "international_prefix": "00",
-#     "name": "Germany",
-#     "languages_spoken": [
-#         "de"
-#     ],
-#     "geo": {
-#         "latitude": 51.165691,
-#         "longitude": 10.451526,
-#     },
-#     "currency_code": "EUR"
-# }
-
 #############################################################################
 # Keyboard layout
 #############################################################################
@@ -536,11 +579,12 @@ class IntroPage(QtWidgets.QWizardPage, object):
         intro_label.setText("FreeBSD is an operating system for a variety of platforms which focuses on features, speed, and stability. It is derived from BSD, the version of UNIX® developed at the University of California, Berkeley. It is developed and maintained by a large community.")
         intro_vLayout.addWidget(intro_label, True) # True = add stretch vertically
 
-
         tm_label = QtWidgets.QLabel()
         tm_label.setWordWrap(True)
-        tm_label.setFont(QtGui.QFont(None, 9, QtGui.QFont.Normal))
-        tm_label.setText("The FreeBSD Logo and the mark FreeBSD are registered trademarks of The FreeBSD Foundation and are used by Simon Peter with the permission of The FreeBSD Foundation..")
+        font = wizard.font()
+        font.setPointSize(8)
+        tm_label.setFont(font)
+        tm_label.setText("The FreeBSD Logo and the mark FreeBSD are registered trademarks of The FreeBSD Foundation and are used by Simon Peter with the permission of The FreeBSD Foundation.")
         intro_vLayout.addWidget(tm_label)
 
 
@@ -561,7 +605,11 @@ class LicensePage(QtWidgets.QWizardPage, object):
         license_layout = QtWidgets.QVBoxLayout(self)
         license_text = open('/COPYRIGHT', 'r').read()
         license_label.setText("\n".join(license_text.split("\n")[3:])) # Skip the first 3 lines
-        license_label.setFont(QtGui.QFont(None, 9, QtGui.QFont.Normal))
+
+        font = wizard.font()
+        font.setFamily("monospace")
+        font.setPointSize(8)
+        license_label.setFont(font)
         license_area = QtWidgets.QScrollArea();
         license_area.setWidget(license_label)
         license_layout.addWidget(license_area)
@@ -792,69 +840,181 @@ class UserPage(QtWidgets.QWizardPage, object):
 
         print("Preparing UserPage")
         super().__init__()
-        self.setCommitPage(True)  # Disables Back button
         self.no_password_is_ok = False
 
-        self.setTitle('Create User Account')
-        self.setSubTitle('Please enter username and password for the administrative user.')
+        self.setTitle('Create Computer Account')
+        self.setSubTitle('Please enter details to create an account for the main user on this computer.')
+
         user_vlayout = QtWidgets.QVBoxLayout(self)
+
+        # Full Name
+        user_label_fullname = QtWidgets.QLabel()
+        user_label_fullname.setText("Full Name:")
+        user_vlayout.addWidget(user_label_fullname)
+        self.fullname_lineEdit = QtWidgets.QLineEdit()
+        self.fullname_lineEdit.setPlaceholderText("John Doe")
+        user_vlayout.addWidget(self.fullname_lineEdit)
+        user_label1 = QtWidgets.QLabel()
+        self.registerField('fullname*', self.fullname_lineEdit)
+        self.fullname_lineEdit.textChanged.connect(self.populateUsername)
+
+        # Username
         user_label0 = QtWidgets.QLabel()
         user_label0.setText("Username:")
         user_vlayout.addWidget(user_label0)
-        username_lineEdit = QtWidgets.QLineEdit()
-        # username_lineEdit.setInputMask('+99_9999_999999') # FIXME: Limit to allowable characters
-        user_vlayout.addWidget(username_lineEdit)
+        self.username_lineEdit = QtWidgets.QLineEdit()
+        # self.username_lineEdit.setInputMask('+99_9999_999999') # FIXME: Limit to allowable characters
+        user_vlayout.addWidget(self.username_lineEdit)
         user_label1 = QtWidgets.QLabel()
+        self.registerField('username*', self.username_lineEdit)
+
         # User Password
         user_label1 = QtWidgets.QLabel()
         user_label1.setText("Password:")
         user_vlayout.addWidget(user_label1)
+
+        pw_hlayout = QtWidgets.QHBoxLayout(self)
         userpassword_lineedit = QtWidgets.QLineEdit()
         userpassword_lineedit.setEchoMode(QtWidgets.QLineEdit.Password)
-        user_vlayout.addWidget(userpassword_lineedit)
-        user_label2 = QtWidgets.QLabel()
-        user_label2.setText("Retype Password:")
-        user_vlayout.addWidget(user_label2)
+        pw_hlayout.addWidget(userpassword_lineedit)
+
         userpassword2_lineedit = QtWidgets.QLineEdit()
+        userpassword2_lineedit.setPlaceholderText("Retype Password")
         userpassword2_lineedit.setEchoMode(QtWidgets.QLineEdit.Password)
-        user_vlayout.addWidget(userpassword2_lineedit)
-        self.registerField('username*', username_lineEdit)
+        pw_hlayout.addWidget(userpassword2_lineedit)
+
+        passwords_widget = QtWidgets.QWidget()
+        passwords_widget.setLayout(pw_hlayout)
+
+        user_vlayout.addWidget(passwords_widget)
         self.registerField('userpw*', userpassword_lineedit)
         self.registerField('userpw2*', userpassword2_lineedit)
+
+        # Computer Name
+        user_label_computername = QtWidgets.QLabel()
+        user_label_computername.setText("Computer Name:")
+        user_vlayout.addWidget(user_label_computername)
+        self.computername_lineEdit = QtWidgets.QLineEdit()
+        user_vlayout.addWidget(self.computername_lineEdit)
+        user_label1 = QtWidgets.QLabel()
+        self.fullname_lineEdit.textChanged.connect(self.populateComputername)
+        self.registerField('computername*', self.computername_lineEdit)
+
         # Autologin
         self.autologin_checkbox = QtWidgets.QCheckBox()
         self.autologin_checkbox.setText("To be implemented: Log this user automatically into the desktop (autologin)")
+        self.autologin_checkbox.hide()
          # self.autologin_checkbox.setWordWrap(True) # Does not work, https://bugreports.qt.io/browse/QTBUG-5370
         user_vlayout.addWidget(self.autologin_checkbox)
         self.registerField('enable_autologin*', self.autologin_checkbox)
         # sshd
         self.sshd_checkbox = QtWidgets.QCheckBox()
         self.sshd_checkbox.setText("Enable users to log in over the network (ssh)")
-
         # self.sshd_checkbox.setWordWrap(True) # Does not work, https://bugreports.qt.io/browse/QTBUG-5370
         user_vlayout.addWidget(self.sshd_checkbox)
         self.registerField('enable_ssh*', self.sshd_checkbox)
+        self.hostname_label = QtWidgets.QLabel()
+        font = QtGui.QFont()
+        font.setFamily('monospace')
+        font.setFixedPitch(True)
+        self.hostname_label.setFont(font)
+        self.hostname_label.hide()
+        user_vlayout.addWidget(self.hostname_label)
+
+        # Timezone
+        self.timezone_checkbox = QtWidgets.QCheckBox()
+        self.timezone_checkbox.setText("Set time zone based on current location")
+        # self.sshd_checkbox.setWordWrap(True) # Does not work, https://bugreports.qt.io/browse/QTBUG-5370
+        user_vlayout.addWidget(self.timezone_checkbox)
+        self.registerField('set_timezone*', self.timezone_checkbox)
+        self.timezone_checkbox.stateChanged.connect(self.setTimezone)
+        self.tz_label = QtWidgets.QLabel()
+        self.tz_label.setText("UTC offset")
+        self.tz_label.setVisible(False)
+        user_vlayout.addWidget(self.tz_label)
+
         # Warning if passwords don't match
         self.user_label_comment = QtWidgets.QLabel()
         self.user_label_comment.setText("The passwords do not match") # TODO: make red
         self.user_label_comment.setVisible(False)
         user_vlayout.addWidget(self.user_label_comment)
+        self.computer_name = self.computerName()
+
+    def setTimezone(self):
+        self.tz_label.hide()
+        if self.timezone_checkbox.isChecked() == True:
+            result = wizard.ask_user_to_geolocate()
+            if wizard.geolocation == None:
+                self.timezone_checkbox.setChecked(False)
+            else:
+                self.tz_label.setText(wizard.timezone)
+                self.tz_label.show()
+
+    def initializePage(self):
+        print("Displaying UserPage")
+
+        print ("self.computer_name: %s" % self.computer_name)
+        self.computername_lineEdit.setText(self.computer_name)
+        if internetCheckConnected() == False:
+            self.timezone_checkbox.hide()
+            print("Not offering to set time zone based on currrent location because not connected to the internet")
+
+    def populateUsername(self):
+        if " " in self.field('fullname'):
+            generated_username = self.field('fullname').split(" ")[0].lower()[0] + self.field('fullname').split(" ")[len(self.field('fullname').split(" "))-1].lower()
+        else:
+            generated_username = self.field('fullname').lower()
+        # Clean auto-populated username of special characters
+        generated_username = re.sub('\W+', '', generated_username)
+
+        if generated_username != self.field('username'):
+            self.username_lineEdit.setText(generated_username)
+
+    def populateComputername(self):
+        if " " in self.field('fullname'):
+            person_name = self.field('fullname').split(" ")[0]
+        else:
+            person_name = self.field('fullname')
+        generated_username = "%ss-%s" % (person_name, self.computer_name)
+        self.computername_lineEdit.setText(generated_username)
 
     def isComplete(self):
+        # This runs whenever the user types or clicks something in one of the registered fields
         self.no_password_is_ok = False
+
+        if "" == self.field('username'):
+            self.populateUsername()
+
         if (self.field('userpw') == self.field('userpw2')):
             self.user_label_comment.setVisible(False)
             self.sshd_checkbox.setEnabled(True)
         else:
             self.user_label_comment.setVisible(True)
+
+        if self.field('enable_ssh') == True:
+            self.hostname_label.show()
+            self.hostname_label.setText("ssh %s@%s.local." % (self.field('username'), self.field('computername')))
+        else:
+            self.hostname_label.hide()
+
+        if self.field('computername') == "":
+            return False
+
         if (self.field('userpw') == self.field('userpw2')) and self.field('username') != "":
             if self.sshd_checkbox.isChecked() == False:
                 return True
             if self.sshd_checkbox.isChecked() == True and self.field('userpw') != "":
                 return True
+
         return False
 
     def validatePage(self):
+        # This runs whenever the user clicks the Next button
+
+        # The user may not have entered a fullname; in this case populate it with the username
+        if "" == self.field('fullname') and "" != self.field('username'):
+            self.fullname_lineEdit.setText(self.field('username'))
+
         if self.sshd_checkbox.isChecked() == False:
             if self.field('userpw') == "" and self.no_password_is_ok == False:
                 show_the_no_password_warning(self)
@@ -866,6 +1026,62 @@ class UserPage(QtWidgets.QWizardPage, object):
                 return False
             else:
                 return True
+
+
+    def computerName(self):
+
+        # The installer script (running as root) may have placed a file with system information
+        # that we can use to build a nice computer name string
+        # sudo dmidecode --type 0,1,2,3 > /tmp/dmi.txt
+
+        computer_name = "Computer"
+
+        dmidecode_output_file = '/tmp/dmi.txt'
+
+        if not os.path.isfile(dmidecode_output_file):
+            print("%s not found" % dmidecode_output_file)
+            print("The installer script (running as root) should have placed it there")
+            return(computer_name)
+
+        try:
+            from dmidecode import DMIParse
+        except:
+            print("dmidecode not found")
+            return(computer_name)
+
+        with open(dmidecode_output_file, 'r') as f:
+            file_content = f.read()
+        f.close()
+
+        # create parsing instance by passing dmidecode output
+        dmi = DMIParse(file_content)
+
+        undefined = "To be filled by O.E.M." # We never want to use this string for anything
+        # Unfortunately many systems have this set by default
+
+        print('BIOS Vendor:', dmi.get("BIOS")[0].get("Vendor"))
+        print('BIOS Version:', dmi.get("BIOS")[0].get("Version"))
+        print('System Manufacturer:', dmi.get("System")[0].get("Manufacturer"))
+        print('System Product Name:', dmi.get("System")[0].get("Product Name"))
+        print('Baseboard Manufacturer:', dmi.get("Baseboard")[0].get("Manufacturer"))
+        print('Baseboard Product Name:', dmi.get("Baseboard")[0].get("Product Name"))
+        print('Chassis Manufacturer:', dmi.get("Chassis")[0].get("Manufacturer"))
+        print('Chassis Type:', dmi.get("Chassis")[0].get("Type"))
+
+        candidate = dmi.get("System")[0].get("Product Name")
+        if candidate != "" and candidate != undefined:
+            computer_name = candidate
+        else:
+            candidate = dmi.get("Baseboard")[0].get("Manufacturer")
+            if candidate != "" and candidate != undefined:
+                computer_name = candidate
+            else:
+                candidate = dmi.get("Chassis")[0].get("Type")
+                if candidate != "" and candidate != undefined:
+                    computer_name = candidate
+
+        computer_name = computer_name.strip().replace(" ", "-")
+        return computer_name
 
 #############################################################################
 # Installation page
@@ -901,12 +1117,8 @@ class InstallationPage(QtWidgets.QWizardPage, object):
 
     def initializePage(self):
         print("Displaying InstallationPage")
-        wizard.button(QtWidgets.QWizard.NextButton).setEnabled(False)
-        wizard.button(QtWidgets.QWizard.NextButton).hide()
-        wizard.button(QtWidgets.QWizard.BackButton).setEnabled(False)
-        wizard.button(QtWidgets.QWizard.NextButton).hide()
-        wizard.button(QtWidgets.QWizard.CancelButton).setEnabled(False)
-        wizard.button(QtWidgets.QWizard.CancelButton).hide()
+        wizard.setButtonLayout(
+            [QtWidgets.QWizard.CustomButton1, QtWidgets.QWizard.Stretch])
 
         print("wizard.required_mib_on_disk: %i" % wizard.required_mib_on_disk)
         self.progress.setValue(0)  # Prevent random start value; FIXME: Does not seem to work? Shows 75% for a split-second
@@ -926,12 +1138,10 @@ class InstallationPage(QtWidgets.QWizardPage, object):
         # Sanity check that we really have a device and permission to erase it
         dev_file = "/dev/" + wizard.selected_disk_device
         if wizard.selected_disk_device is None or os.path.exists(dev_file) is False:
-            # self.progress.hide() # FIXME: Why is this needed? Spacing is off anyway!
             wizard.showErrorPage("The selected disk device %s is not found." % dev_file)
             return # Stop doing anything here
 
         if wizard.user_agreed_to_erase is False:
-            # self.progress.hide() # FIXME: Why is this needed? Spacing is off anyway!
             wizard.showErrorPage("Did not get permission to erase the target device.")
             return  # Stop doing anything here
 
@@ -952,13 +1162,17 @@ class InstallationPage(QtWidgets.QWizardPage, object):
             computed_locale_utf8 = "en" + "_" + "US" + "-UTF-8"
 
         # env.insert("INSTALLER_ROOT_PASSWORD", self.field('rootpw'))
+        env.insert("INSTALLER_FULLNAME", self.field('fullname'))
         env.insert("INSTALLER_USERNAME", self.field('username'))
-        env.insert("INSTALLER_USER_PASSWORD", self.field('userpw'))
-        env.insert("INSTALLER_HOSTNAME", self.field('username')+"s-computer")
+        if self.field('userpw') != "":
+            env.insert("INSTALLER_USER_PASSWORD", self.field('userpw'))
+        env.insert("INSTALLER_HOSTNAME", self.field('computername'))
         env.insert("INSTALLER_DEVICE", wizard.selected_disk_device)
         env.insert("INSTALLER_LANGUAGE", wizard.selected_language)
         env.insert("INSTALLER_COUNTRY", wizard.selected_country)
         env.insert("INSTALLER_LOCALE_UTF8", computed_locale_utf8)
+        if wizard.timezone != None:
+            env.insert("INSTALLER_ZIMEZONE", wizard.timezone)
 
         if self.field('enable_autologin') == True:
             env.insert("INSTALLER_ENABLE_AUTOLOGIN", "YES")
@@ -983,7 +1197,6 @@ class InstallationPage(QtWidgets.QWizardPage, object):
             # print(pid) # This is None for non-detached processes. If we ran detached, we would get the pid back here
             print("Installer script process %s %s started" % (command, args))
         except:
-            # self.progress.hide() # FIXME: Why is this needed? Spacing is off anyway!
             self.showErrorPage("The installer cannot be launched.")
             return  # Stop doing anything here
 
@@ -999,7 +1212,6 @@ class InstallationPage(QtWidgets.QWizardPage, object):
         self.installer_script_has_exited = True
         self.timer.stop()
         if(exit_code != 0):
-            # self.progress.hide() # FIXME: Why is this needed? Spacing is off anyway!
             wizard.showErrorPage("The installation did not succeed. Please see the Installer Log for more information.")
             return  # Stop doing anything here
         else:
@@ -1039,14 +1251,10 @@ class SuccessPage(QtWidgets.QWizardPage, object):
 
     def initializePage(self):
         print("Displaying SuccessPage")
+        wizard.setButtonLayout(
+            [QtWidgets.QWizard.CustomButton1, QtWidgets.QWizard.Stretch, QtWidgets.QWizard.CancelButton, QtWidgets.QWizard.NextButton])
 
-        self.setFinalPage(True) # FIXME: Why does this not remove the Next button?
-        wizard.button(QtWidgets.QWizard.NextButton).setEnabled(False)
-        wizard.button(QtWidgets.QWizard.NextButton).hide()
-        wizard.button(QtWidgets.QWizard.BackButton).setEnabled(False)
-        wizard.button(QtWidgets.QWizard.BackButton).hide()
-        wizard.button(QtWidgets.QWizard.CancelButton).setEnabled(False)
-        wizard.button(QtWidgets.QWizard.CancelButton).hide()
+        wizard.playSound()
 
         self.setTitle('Installation Complete')
         self.setSubTitle('The installation succeeded.')
@@ -1067,10 +1275,10 @@ class SuccessPage(QtWidgets.QWizardPage, object):
 
         label = QtWidgets.QLabel()
         label.setText("FreeBSD has been installed on your computer, click 'Restart' to begin using it.")
-
         layout.addWidget(label)
-        self.setButtonText(wizard.FinishButton, "Restart")
-        wizard.button(QtWidgets.QWizard.FinishButton).clicked.connect(self.restart_computer)
+
+        self.setButtonText(wizard.NextButton, "Restart")
+        wizard.button(QtWidgets.QWizard.NextButton).clicked.connect(self.restart_computer)
 
     def restart_computer(self):
         proc = QtCore.QProcess()
@@ -1115,18 +1323,12 @@ class ErrorPage(QtWidgets.QWizardPage, object):
 
     def initializePage(self):
         print("Displaying ErrorPage")
+        wizard.playSound()
         self.label.setWordWrap(True)
         self.label.clear()
         self.label.setText(wizard.error_message_nice)
-        self.setButtonText(wizard.FinishButton, "Exit")
-        self.setFinalPage(True)
-        wizard.button(QtWidgets.QWizard.NextButton).setEnabled(False)
-        wizard.button(QtWidgets.QWizard.NextButton).hide()
-        wizard.button(QtWidgets.QWizard.BackButton).setEnabled(False)
-        wizard.button(QtWidgets.QWizard.NextButton).hide()
-        wizard.button(QtWidgets.QWizard.CancelButton).setEnabled(False)
-        wizard.button(QtWidgets.QWizard.CancelButton).hide()
-
+        self.setButtonText(wizard.CancelButton, "Quit")
+        wizard.setButtonLayout([QtWidgets.QWizard.CustomButton1, QtWidgets.QWizard.Stretch, QtWidgets.QWizard.CancelButton])
 
 #############################################################################
 # Pages flow in the wizard
@@ -1146,10 +1348,6 @@ license_page = LicensePage()
 wizard.addPage(license_page)
 disk_page = DiskPage()
 wizard.addPage(disk_page)
-# Do not show the root password page since we disable direct root login;
-# users in the wheel group can use sudo/doas instead
-# rootpw_page=RootPwPage()
-# wizard.addPage(rootpw_page)
 user_page = UserPage()
 wizard.addPage(user_page)
 installation_page = InstallationPage()

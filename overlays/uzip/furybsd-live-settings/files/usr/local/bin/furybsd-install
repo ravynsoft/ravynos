@@ -14,6 +14,7 @@ DESTPOOL=$(zpool list -H | grep /mnt | awk -F '\t' '{print $1;}')
 
 # As the first thing, only answer with
 # INSTALLER_MIB_NEEDED=1234567890
+# print output of dmidecode to /tmp/dmi.txt
 # then immediately exit
 # if INSTALLER_PRINT_MIB_NEEDED is set. This is needed for the graphical installer frontend
 if [ -n "${INSTALLER_PRINT_MIB_NEEDED}" ] ; then
@@ -21,6 +22,7 @@ if [ -n "${INSTALLER_PRINT_MIB_NEEDED}" ] ; then
   bytes=$(zpool get -Hpo value allocated livecd)
   mib=$(echo "${bytes}/1024/1024" | bc) # Convert bytes to MiB
   echo "INSTALLER_MIB_NEEDED=${mib}"
+  sudo dmidecode --type 0,1,2,3 > /tmp/dmi.txt
   exit 0
 fi
 
@@ -47,6 +49,7 @@ zpool export -f "${DESTPOOL}" >/dev/null 2>/dev/null || true
 # Set hostname
 if [ -n "${INSTALLER_HOSTNAME}" ] ; then
   echo "FIXME: Implement setting the hostname without asking questions. How?"
+  chroot "${FSMNT}" /usr/sbin/sysrc hostname="${INSTALLER_HOSTNAME}"
 else
   echo "Environment variable INSTALLER_HOSTNAME not set, running bsdinstall hostname"
   bsdinstall hostname
@@ -143,6 +146,10 @@ echo "${username}:::::::::${password}" | chroot "${FSMNT}" adduser -f - && \
   chroot "${FSMNT}" pw groupmod video -m "${username}" && \
   chroot "${FSMNT}" pw groupmod webcamd -m "${username}" && break
 
+if [ -n "${INSTALLER_FULLNAME}" ] ; then
+  chroot "${FSMNT}" pw usermod "${INSTALLER_USERNAME}" -c "${INSTALLER_FULLNAME}"
+fi
+
 if [ -n "${INSTALLER_DEVICE}" ] ; then
   echo "Not setting time for now; let's handle this by ntpd and dhcp"
 else
@@ -164,6 +171,12 @@ if [ -f "/usr/local/etc/rc.d/pcdm" ] ; then
 fi
 if [ -f "/usr/local/bin/sddm" ] ; then
   chroot "${FSMNT}" sysrc sddm_enable="YES"
+fi
+
+# Set the timezone on the system if it has been provided
+# by the graphical installer frontend
+if [ -n "${INSTALLER_TIMEZONE}" ] ; then
+  cp "${FSMNT}/usr/share/zoneinfo/${INSTALLER_TIMEZONE}" "${FSMNT}/etc/localtime"
 fi
 
 # Enable sshd if the user has requested it
