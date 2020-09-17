@@ -176,7 +176,7 @@ fi
 # Set the timezone on the system if it has been provided
 # by the graphical installer frontend
 if [ -n "${INSTALLER_TIMEZONE}" ] ; then
-  chroot "${FSMNT}" tzsetup "/usr/share/zoneinfo/${INSTALLER_TIMEZONE}"
+  cp "${FSMNT}/usr/share/zoneinfo/${INSTALLER_TIMEZONE}" "${FSMNT}/etc/localtime"
 fi
 
 # Enable sshd if the user has requested it
