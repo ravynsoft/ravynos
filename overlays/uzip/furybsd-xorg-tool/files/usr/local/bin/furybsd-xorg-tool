@@ -1,7 +1,58 @@
-#!/usr/local/bin/bash
+#!/bin/sh
+#
+# Configure XOrg via dialogs
+#
+# For debugging purposes, pass `-d` as parameter to the script,
+# in which case it will behave as if you are root and invent
+# some wifi devices for you.
+#
 
+### COMMAND-LINE ARGUMENTS
+#
+#
+if [ "x$1" = "x-d" ] ; then
+  # In debug-mode, 
+  #   - pretend we're root
+  is_user() { 
+    false
+  }
+else
+  is_user() { 
+    test "$(id -u)" != "0" 
+  }
+fi
+
+### RUN-TIME DEPENDENCIES
+#
+# Based on the available tooling, defines the following functions:
+#   - warning <text>
+#     Displays the <text> as a warning, no output, no return value
+#   - info <text>
+#     Displays the <text> as an informational message, no output, no return
+if test -x /usr/local/bin/zenity ; then
+  warning() {
+    /usr/local/bin/zenity --warning --no-wrap --text="$1"
+  }
+  info() {
+    /usr/local/bin/zenity --info --title="FuryBSD Xorg Tool" --text="$1" --width=300 --height=100
+  }
+elif test -x /usr/local/bin/kdialog ; then
+  warning() {
+    /usr/local/bin/kdialog --title "FuryBSD Xorg Tool" --error "$1"
+  }
+  info() {
+    /usr/local/bin/kdialog --title "FuryBSD Xorg Tool" --msgbox "$1"
+  }
+else
+  echo "No suitable GUI found" 1>&2
+  exit 1
+fi
+
+### SCRIPT PROPER
+#
+#
 # Only run as superuser
-if [ "$(id -u)" != "0" ]; then
+if is_user ; then
   echo "This script must be run as root" 1>&2
   exit 1
 fi
@@ -12,7 +63,7 @@ if netstat -rn | grep default &> /dev/null
 then
   echo "pkg.freebsd.org found"
 else
-  zenity --info --title="FuryBSD Xorg Tool" --text="A working internet connection is required first" --width=300 --height=100
+  info "A working internet connection is required first" 
   exit 1
 fi
 
@@ -23,7 +74,7 @@ if [ "$ask" == "Intel" ]; then
   if [ "$ask" == "drm-kmod" ]; then
     rm /etc/X11/xorg.conf
     xterm -e pkg install -fy drm-kmod && pkg clean -a -y
-    zenity --info --title="FuryBSD Xorg Tool" --text="Xorg will now be restarted" --width=300 --height=100
+    info "Xorg will now be restarted"
     sysrc -f /etc/rc.conf kld_list+="/boot/modules/i915kms.ko"
     service kld restart
     killall Xorg
@@ -31,7 +82,7 @@ if [ "$ask" == "Intel" ]; then
   if [ "$ask" == "drm-legacy-kmod" ]; then
     rm /etc/X11/xorg.conf
     xterm -e pkg install -fy drm-legacy-kmod && pkg clean -a -y
-    zenity --info --title="FuryBSD Xorg Tool" --text="Xorg will now be restarted" --width=300 --height=100
+    info "Xorg will now be restarted"
     sysrc -f /etc/rc.conf kld_list+="/boot/modules/i915kms.ko"
     service kld restart
     killall Xorg
@@ -39,7 +90,7 @@ if [ "$ask" == "Intel" ]; then
   if [ "$ask" == "xf86-video-intel" ]; then
     rm /etc/X11/xorg.conf
     xterm -e pkg install -fy xf86-video-intel && pkg clean -a -y
-    zenity --info --title="FuryBSD Xorg Tool" --text="Xorg will now be restarted" --width=300 --height=100
+    info "Xorg will now be restarted"
     killall Xorg
   fi
 fi
@@ -49,7 +100,7 @@ if [ "$ask" == "nVidia" ]; then
   if [ "$ask" == "nVidia Driver Latest" ]; then
     rm /etc/X11/xorg.conf
     xterm -e pkg install -fy nvidia-driver && pkg clean -a -y
-    zenity --info --title="FuryBSD Xorg Tool" --text="Xorg will now be restarted" --width=300 --height=100
+    info "Xorg will now be restarted"
     sysrc -f /etc/rc.conf kld_list+="nvidia-modeset"
     service kld restart
 cat <<EOF | tee /etc/X11/xorg.conf
@@ -63,7 +114,7 @@ EOF
   if [ "$ask" == "nVidia Driver 390" ]; then
     rm /etc/X11/xorg.conf
     xterm -e pkg install -fy nvidia-driver-390 && pkg clean -a -y
-    zenity --info --title="FuryBSD Xorg Tool" --text="Xorg will now be restarted" --width=300 --height=100
+    info "Xorg will now be restarted"
     sysrc -f /etc/rc.conf kld_list+="nvidia-modeset"
     service kld restart
 cat <<EOF | tee /etc/X11/xorg.conf
@@ -77,7 +128,7 @@ EOF
   if [ "$ask" == "nVidia Driver 340" ]; then
     rm /etc/X11/xorg.conf
     xterm -e pkg install-fy nvidia-driver-340 && pkg clean -a -y
-    zenity --info --title="FuryBSD Xorg Tool" --text="Xorg will now be restarted" --width=300 --height=100
+    info "Xorg will now be restarted"
     sysrc -f /etc/rc.conf kld_list+="nvidia"
     service kld restart
 cat <<EOF | tee /etc/X11/xorg.conf
