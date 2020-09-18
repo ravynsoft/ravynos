@@ -11,6 +11,7 @@ env:
 task:
   stateful: false
   timeout_in: 60m
+  only_if: $CIRRUS_TAG != 'continuous'
 
   env:
     matrix:
@@ -37,11 +38,10 @@ task:
     
   test_script:
     - /bin/sh -x ./build.sh "${DESKTOP}" || true # FIXME: Why does this return an error even though the ISO succeeded?
-    - ls -lh "${CIRRUS_WORKING_DIR}"/*.iso*
     - df -h
-    - ( cd "${CIRRUS_WORKING_DIR}" ; zsyncmake *.iso )
+    - ( cd "${CIRRUS_WORKING_DIR}"/artifacts ; zsyncmake *.iso )
+    - ls -lh "${CIRRUS_WORKING_DIR}"/artifacts/
     - wget -c "https://raw.githubusercontent.com/probonopd/uploadtool/8142d461aba7b92a058116fe5ee75be438b75fa4/upload.sh"
-    - export TRAVIS_COMMIT="${CIRRUS_CHANGE_IN_REPO}"
     - export TRAVIS_REPO_SLUG="${CIRRUS_REPO_FULL_NAME}"
-    - case "$CIRRUS_BRANCH" in *pull/*) echo skipping since PR ;; * ) bash upload.sh "${CIRRUS_WORKING_DIR}"/*.iso* ; esac # This tool needs bash; FIXME
+    - case "$CIRRUS_BRANCH" in *pull/*) echo skipping since PR ;; * ) wget https://github.com/tcnksm/ghr/files/5247714/ghr.zip ; unzip ghr.zip ; ./ghr -replace -t "${GITHUB_TOKEN}" -u "${CIRRUS_REPO_OWNER}" -r "${CIRRUS_REPO_NAME}" -c "${CIRRUS_CHANGE_IN_REPO}" continuous "${CIRRUS_WORKING_DIR}"/artifacts ; esac
 
