@@ -6,6 +6,10 @@
 # in which case it will behave as if you are root and invent
 # some wifi devices for you.
 #
+
+### COMMAND-LINE ARGUMENTS
+#
+#
 if [ "x$1" = "x-d" ] ; then
   # In debug-mode, 
   #   - pretend we're root
@@ -25,6 +29,25 @@ else
   }
 fi
 
+### RUN-TIME DEPENDENCIES
+#
+#
+if test -x /usr/local/bin/zenity ; then
+  warning() {
+    /usr/local/bin/zenity --warning --no-wrap --text="$1"
+  }
+elif test -x /usr/local/bin/kdialog ; then
+  warning() {
+    /usr/local/bin/kdialog --title "Wifi-Tool Error" --error "$1"
+  }
+else
+  echo "No suitable GUI found" 1>&2
+  exit 1
+fi
+
+### SCRIPT PROPER
+#
+#
 # Only run as superuser
 if is_user ; then
   echo "This script must be run as root" 1>&2
@@ -39,7 +62,7 @@ rm /tmp/wlan-selection 2>/dev/null || true
 
 wnic=$(get_wireless)
 if [ "$?" -eq 0 ] && [ -z "${wnic}" ] ; then
-  zenity --warning --no-wrap --text="No wlan devices found"
+  warning "No wlan devices found"
   exit 0
 fi
 
