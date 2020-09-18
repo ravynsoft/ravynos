@@ -29,6 +29,8 @@ fi
 #     Displays the <text> as a warning, no output, no return value
 #   - info <text>
 #     Displays the <text> as an informational message, no output, no return
+#   - pickone <item>..
+#     Displays a picker for the given <item>s, outputs the selected one
 if test -x /usr/local/bin/zenity ; then
   warning() {
     /usr/local/bin/zenity --warning --no-wrap --text="$1"
@@ -36,12 +38,27 @@ if test -x /usr/local/bin/zenity ; then
   info() {
     /usr/local/bin/zenity --info --title="FuryBSD Xorg Tool" --text="$1" --width=300 --height=100
   }
+  pickone() {
+    /usr/local/bin/zenity --list --title="FuryBSD Xorg Tool" --column="0" "$@" --width=300 --height=200 --hide-header
+  }
 elif test -x /usr/local/bin/kdialog ; then
   warning() {
     /usr/local/bin/kdialog --title "FuryBSD Xorg Tool" --error "$1"
   }
   info() {
     /usr/local/bin/kdialog --title "FuryBSD Xorg Tool" --msgbox "$1"
+  }
+  pickone() {
+    # This is kind of convoluted since we need a tag and a label
+    # and 'off' for each of the options, which may contain spaces,
+    # and which are passed as arguments to the function.
+    local command
+    command="/usr/local/bin/kdialog --radiolist 'Pick one'"
+    for x in "$@"
+    do
+      command="$command '$x' '$x' off"
+    done
+    eval $command
   }
 else
   echo "No suitable GUI found" 1>&2
@@ -67,10 +84,10 @@ else
   exit 1
 fi
 
-ask=`zenity --list --title="FuryBSD Xorg Tool" --column="0" "Intel" "nVidia" --width=300 --height=200 --hide-header`
+ask=`pickone "Intel" "nVidia"`
 
 if [ "$ask" == "Intel" ]; then
-  ask=`zenity --list --title="FuryBSD Xorg Tool" --column="0" "drm-kmod" "drm-legacy-kmod" "xf86-video-intel" --width=300 --height=200 --hide-header`
+  ask=`pickone "drm-kmod" "drm-legacy-kmod" "xf86-video-intel"`
   if [ "$ask" == "drm-kmod" ]; then
     rm /etc/X11/xorg.conf
     xterm -e pkg install -fy drm-kmod && pkg clean -a -y
@@ -96,7 +113,7 @@ if [ "$ask" == "Intel" ]; then
 fi
 
 if [ "$ask" == "nVidia" ]; then
-  ask=`zenity --list --title="FuryBSD Xorg Tool" --column="0" "nVidia Driver Latest" "nVidia Driver 390" "nVidia Driver 340" --width=300 --height=200 --hide-header`
+  ask=`pickone "nVidia Driver Latest" "nVidia Driver 390" "nVidia Driver 340"`
   if [ "$ask" == "nVidia Driver Latest" ]; then
     rm /etc/X11/xorg.conf
     xterm -e pkg install -fy nvidia-driver && pkg clean -a -y
