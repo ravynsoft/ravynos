@@ -1,4 +1,7 @@
-#!/usr/local/bin/bash
+#!/bin/sh
+#
+# Configure wifi via dialogs
+#
 
 # Only run as superuser
 if [ "$(id -u)" != "0" ]; then
