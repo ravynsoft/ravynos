@@ -2,9 +2,31 @@
 #
 # Configure wifi via dialogs
 #
+# For debugging purposes, pass `-d` as parameter to the script,
+# in which case it will behave as if you are root and invent
+# some wifi devices for you.
+#
+if [ "x$1" = "x-d" ] ; then
+  # In debug-mode, 
+  #   - pretend we're root
+  #   - bogus wifi devices     
+  is_user() { 
+    false
+  }
+  get_wireless() {
+    echo "em0"
+  }
+else
+  is_user() { 
+    test "$(id -u)" != "0" 
+  }
+  get_wireless() {
+    sysctl -b net.wlan.devices
+  }
+fi
 
 # Only run as superuser
-if [ "$(id -u)" != "0" ]; then
+if is_user ; then
   echo "This script must be run as root" 1>&2
   exit 1
 fi
@@ -15,7 +37,7 @@ rm /tmp/wlan-selection 2>/dev/null || true
 
 # Check for no wifi devices and exit if none found
 
-wnic=$(sysctl -b net.wlan.devices)
+wnic=$(get_wireless)
 if [ "$?" -eq 0 ] && [ -z "${wnic}" ] ; then
   zenity --warning --no-wrap --text="No wlan devices found"
   exit 0
@@ -32,7 +54,7 @@ WLAN="wlan${WLANCOUNT}"
 
 
 # Check for any new wifi devices to setup
-for wnic in `sysctl -b net.wlan.devices 2>/dev/null`
+for wnic in `get_wireless 2>/dev/null`
 do
   echo ${wnic} >> /tmp/wifi-devices-found.list
 done
