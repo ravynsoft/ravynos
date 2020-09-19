@@ -1155,11 +1155,10 @@ class InstallationPage(QtWidgets.QWizardPage, object):
         # NOTE: We need to check whether we have a matching combination since the user may have set the
         # system e.g., to en (language) but DE (country, derived from keyboard layout). In those cases,
         # assume en_US.UTF-8 for the locale but do try to set the correct keyboard layout
-
-        if wizard.selected_language + "_" + wizard.selected_country in supported_locales_utf8:
-            computed_locale_utf8 = wizard.selected_language + "_" + wizard.selected_country + ".UTF-8"
-        else:
-            computed_locale_utf8 = "en" + "_" + "US" + "-UTF-8"
+        computed_locale_utf8 = "en_US.UTF-8"
+        if wizard.selected_language != None and wizard.selected_country != None:
+            if wizard.selected_language + "_" + wizard.selected_country in supported_locales_utf8:
+                computed_locale_utf8 = wizard.selected_language + "_" + wizard.selected_country + ".UTF-8"
 
         # env.insert("INSTALLER_ROOT_PASSWORD", self.field('rootpw'))
         env.insert("INSTALLER_FULLNAME", self.field('fullname'))
@@ -1340,8 +1339,8 @@ class ErrorPage(QtWidgets.QWizardPage, object):
 
 # TODO: Check prerequisites and inspect /mnt, go straight to error page if needed
 
-language_page = LanguagePage()
-wizard.addPage(language_page)
+# language_page = LanguagePage() # Currently broken at least on KDE
+# wizard.addPage(language_page)
 intro_page = IntroPage()
 wizard.addPage(intro_page)
 license_page = LicensePage()
