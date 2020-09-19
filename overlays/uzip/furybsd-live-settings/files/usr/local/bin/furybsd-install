@@ -109,6 +109,11 @@ chroot "${FSMNT}" pw lock root # FIXME: With this, sudo su does not work
 echo "Creating user account"
 if [ -n "${INSTALLER_USERNAME}" ] ; then
   username="${INSTALLER_USERNAME}"
+  password="${INSTALLER_USER_PASSWORD}"
+  echo "${username}:::::::::${password}" | chroot "${FSMNT}" adduser -f - && \
+  chroot "${FSMNT}" pw groupmod wheel -m "${username}" && \
+  chroot "${FSMNT}" pw groupmod video -m "${username}" && \
+  chroot "${FSMNT}" pw groupmod webcamd -m "${username}"
 else
   echo "Environment variable INSTALLER_USERNAME not set, asking the user for input"
   while true; do
@@ -123,28 +128,22 @@ else
       else
         echo "Username not valid"
       fi
-      done
+    done
+    while true; do
+      echo "New Password: "; stty -echo; read -r password; stty echo; echo ""
+      echo "Retype New Password: "; stty -echo; read -r password2; stty echo; echo ""
+      if [ "${password}" = "${password2}" ]; then
+        break;
+      else
+        echo "Passwords did not match!"
+      fi
+    done
+    echo "${username}:::::::::${password}" | chroot "${FSMNT}" adduser -f - && \
+      chroot "${FSMNT}" pw groupmod wheel -m "${username}" && \
+      chroot "${FSMNT}" pw groupmod video -m "${username}" && \
+      chroot "${FSMNT}" pw groupmod webcamd -m "${username}" && break
   done
 fi
-# FIXME: Also handle existing but empty INSTALLER_USER_PASSWORD
-if [ -n "${INSTALLER_USER_PASSWORD}" ] ; then
-  password="${INSTALLER_USER_PASSWORD}"
-else
-  echo "Environment variable INSTALLER_USER_PASSWORD not set, asking the user for input"
-  while true; do
-    echo "New Password: "; stty -echo; read -r password; stty echo; echo ""
-    echo "Retype New Password: "; stty -echo; read -r password2; stty echo; echo ""
-    if [ "${password}" = "${password2}" ]; then
-      break;
-    else
-      echo "Passwords did not match!"
-    fi
-  done
-fi
-echo "${username}:::::::::${password}" | chroot "${FSMNT}" adduser -f - && \
-  chroot "${FSMNT}" pw groupmod wheel -m "${username}" && \
-  chroot "${FSMNT}" pw groupmod video -m "${username}" && \
-  chroot "${FSMNT}" pw groupmod webcamd -m "${username}" && break
 
 if [ -n "${INSTALLER_FULLNAME}" ] ; then
   chroot "${FSMNT}" pw usermod "${INSTALLER_USERNAME}" -c "${INSTALLER_FULLNAME}"
