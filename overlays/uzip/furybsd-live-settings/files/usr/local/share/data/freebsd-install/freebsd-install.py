@@ -201,15 +201,9 @@ class InstallWizard(QtWidgets.QWizard, object):
 
     def playSound(self):
         print("Playing sound")
-        soundfile = os.path.dirname(__file__) + '/success.mp3' # https://freesound.org/people/Leszek_Szary/sounds/171670/, licensed under CC0
-        # content = QtMultimedia.QMediaContent(QtCore.QUrl.fromLocalFile(soundfile))
-        # print(content.canonicalUrl())
-        # player = QtMultimedia.QMediaPlayer()
-        # player.setMedia(content)
-        # player.play() # FIXME: Why don't we hear anything?
-
+        soundfile = os.path.dirname(__file__) + '/success.ogg' # https://freesound.org/people/Leszek_Szary/sounds/171670/, licensed under CC0
         proc = QtCore.QProcess()
-        command = 'mpg123'
+        command = 'ogg123'
         args = ['-q', soundfile]
         print(command, args)
         try:
