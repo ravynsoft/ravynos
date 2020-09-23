@@ -215,7 +215,8 @@ pkg()
 uzip() 
 {
   install -o root -g wheel -m 755 -d "${cdroot}"
-  cd ${cwd} && zpool export furybsd && mkuzip -o "${cdroot}/data/system.uzip" "${livecd}/pool.img"
+  cd ${cwd} && zpool export furybsd && zpool status
+  mkuzip -S -o "${cdroot}/data/system.uzip" "${livecd}/pool.img"
 }
 
 ramdisk() 
