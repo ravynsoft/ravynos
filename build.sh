@@ -68,18 +68,22 @@ fi
 label="FURYBSD"
 isopath="${iso}/${vol}-${arch}.iso"
 
-workspace()
+cleanup()
 {
   if [ -n "$CIRRUS_CI" ] ; then
-  # On CI systems there is no reason to clean up which takes time
+    # On CI systems there is no reason to clean up which takes time
     return 0
   else
     umount ${uzip}/var/cache/pkg >/dev/null 2>/dev/null || true
     umount ${uzip}/dev >/dev/null 2>/dev/null || true
-    zpool destroy furybsd >/dev/null 2>/dev/null || true
+    zpool destroy -f furybsd >/dev/null 2>/dev/null || true
     mdconfig -d -u 0 >/dev/null 2>/dev/null || true
     rm ${livecd}/pool.img >/dev/null 2>/dev/null || true
   fi
+}
+
+workspace()
+{
   mkdir -p "${livecd}" "${base}" "${iso}" "${packages}" "${uzip}" "${ramdisk_root}/dev" "${ramdisk_root}/etc" >/dev/null 2>/dev/null
   truncate -s 3g "${livecd}/pool.img"
   mdconfig -f "${livecd}/pool.img" -u 0
@@ -233,6 +237,7 @@ boot()
 {
   cp -R "${cwd}/overlays/boot/" "${cdroot}"
   cd "${uzip}" && tar -cf - boot | tar -xf - -C "${cdroot}"
+  cd ${cwd} && zpool export furybsd && mdconfig -d -u 0
 }
 
 image()
@@ -242,17 +247,7 @@ image()
   echo "$isopath created"
 }
 
-cleanup()
-{
-  if [ -n "$CIRRUS_CI" ] ; then
-    # On CI systems there is no reason to clean up which takes time
-    return 0
-  else
-    zpool destroy -f furybsd
-    mdconfig -d -u 0
-  fi
-}
-
+cleanup
 workspace
 repos
 pkg
@@ -265,4 +260,3 @@ uzip
 ramdisk
 boot
 image
-cleanup
