@@ -215,7 +215,7 @@ pkg()
 uzip() 
 {
   install -o root -g wheel -m 755 -d "${cdroot}"
-  cd ${cwd} && zpool export furybsd && zpool status
+  cd ${cwd} && zpool export furybsd && while zpool status furybsd >/dev/null; do :; done 2>/dev/null
   mkuzip -S -o "${cdroot}/data/system.uzip" "${livecd}/pool.img"
 }
 
