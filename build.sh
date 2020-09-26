@@ -79,6 +79,7 @@ cleanup()
     zpool destroy -f furybsd >/dev/null 2>/dev/null || true
     mdconfig -d -u 0 >/dev/null 2>/dev/null || true
     rm ${livecd}/pool.img >/dev/null 2>/dev/null || true
+    rm -rf ${cdroot} >/dev/null 2>/dev/null || true
   fi
 }
 
@@ -132,8 +133,8 @@ packages()
       /usr/local/sbin/pkg-static -c ${uzip} install -y /var/cache/pkg/"${p}"-0.txz
     done <"${cwd}/settings/overlays.${desktop}"
   fi
-  /usr/local/sbin/pkg-static -c ${uzip} info > "${cdroot}/data/system.uzip.manifest"
-  cp "${cdroot}/data/system.uzip.manifest" "${isopath}.manifest"
+  /usr/local/sbin/pkg-static -c ${uzip} info > "${cdroot}/data/system.img.manifest"
+  cp "${cdroot}/data/system.img.manifest" "${isopath}.manifest"
   rm ${uzip}/etc/resolv.conf
   umount ${uzip}/var/cache/pkg
   umount ${uzip}/dev
@@ -215,14 +216,16 @@ pkg()
 uzip() 
 {
   install -o root -g wheel -m 755 -d "${cdroot}"
-  cd ${cwd} && zpool export furybsd && while zpool status furybsd >/dev/null; do :; done 2>/dev/null
-  mkuzip -S -o "${cdroot}/data/system.uzip" "${livecd}/pool.img"
+  # cd ${cwd} && zpool export furybsd && while zpool status furybsd >/dev/null; do :; done 2>/dev/null
+  # mkuzip -S -o "${cdroot}/data/system.uzip" "${livecd}/pool.img"
+  zfs snapshot furybsd@clean
+  zfs send -c -e furybsd@clean | dd of=/usr/local/furybsd/cdroot/data/system.img status=progress bs=1M
 }
 
 ramdisk() 
 {
   cp -R "${cwd}/overlays/ramdisk/" "${ramdisk_root}"
-  cd ${cwd} && zpool import furybsd && zfs set mountpoint=/usr/local/furybsd/uzip furybsd 
+  # cd ${cwd} && zpool import furybsd && zfs set mountpoint=/usr/local/furybsd/uzip furybsd 
   cd "${uzip}" && tar -cf - rescue | tar -xf - -C "${ramdisk_root}"
   touch "${ramdisk_root}/etc/fstab"
   cp ${uzip}/etc/login.conf ${ramdisk_root}/etc/login.conf
