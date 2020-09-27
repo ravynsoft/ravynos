@@ -18,7 +18,6 @@ task:
       DESKTOP: 'lumina'
       DESKTOP: 'xfce'
       DESKTOP: 'mate'
-      DESKTOP: 'kde'
 
   env:
     matrix:
@@ -44,4 +43,3 @@ task:
     - wget -c "https://raw.githubusercontent.com/probonopd/uploadtool/8142d461aba7b92a058116fe5ee75be438b75fa4/upload.sh"
     - export TRAVIS_REPO_SLUG="${CIRRUS_REPO_FULL_NAME}"
     - case "$CIRRUS_BRANCH" in *pull/*) echo skipping since PR ;; * ) wget https://github.com/tcnksm/ghr/files/5247714/ghr.zip ; unzip ghr.zip ; ./ghr -replace -t "${GITHUB_TOKEN}" -u "${CIRRUS_REPO_OWNER}" -r "${CIRRUS_REPO_NAME}" -c "${CIRRUS_CHANGE_IN_REPO}" continuous "${CIRRUS_WORKING_DIR}"/artifacts ; esac
-
