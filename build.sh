@@ -133,8 +133,8 @@ packages()
       /usr/local/sbin/pkg-static -c ${uzip} install -y /var/cache/pkg/"${p}"-0.txz
     done <"${cwd}/settings/overlays.${desktop}"
   fi
-  /usr/local/sbin/pkg-static -c ${uzip} info > "${cdroot}/data/system.img.manifest"
-  cp "${cdroot}/data/system.img.manifest" "${isopath}.manifest"
+  /usr/local/sbin/pkg-static -c ${uzip} info > "${cdroot}/data/system.uzip.manifest"
+  cp "${cdroot}/data/system.uzip.manifest" "${isopath}.manifest"
   rm ${uzip}/etc/resolv.conf
   umount ${uzip}/var/cache/pkg
   umount ${uzip}/dev
@@ -216,16 +216,14 @@ pkg()
 uzip() 
 {
   install -o root -g wheel -m 755 -d "${cdroot}"
-  # cd ${cwd} && zpool export furybsd && while zpool status furybsd >/dev/null; do :; done 2>/dev/null
-  # mkuzip -S -o "${cdroot}/data/system.uzip" "${livecd}/pool.img"
-  zfs snapshot furybsd@clean
-  zfs send -c -e furybsd@clean | dd of=/usr/local/furybsd/cdroot/data/system.img status=progress bs=1M
+  cd ${cwd} && zpool export furybsd && while zpool status furybsd >/dev/null; do :; done 2>/dev/null
+  mkuzip -S -d -o "${cdroot}/data/system.uzip" "${livecd}/pool.img"
 }
 
 ramdisk() 
 {
   cp -R "${cwd}/overlays/ramdisk/" "${ramdisk_root}"
-  # cd ${cwd} && zpool import furybsd && zfs set mountpoint=/usr/local/furybsd/uzip furybsd 
+  cd ${cwd} && zpool import furybsd && zfs set mountpoint=/usr/local/furybsd/uzip furybsd 
   cd "${uzip}" && tar -cf - rescue | tar -xf - -C "${ramdisk_root}"
   touch "${ramdisk_root}/etc/fstab"
   cp ${uzip}/etc/login.conf ${ramdisk_root}/etc/login.conf
@@ -238,7 +236,7 @@ boot()
 {
   cp -R "${cwd}/overlays/boot/" "${cdroot}"
   cd "${uzip}" && tar -cf - --exclude boot/kernel boot | tar -xf - -C "${cdroot}"
-  for kfile in kernel opensolaris.ko tmpfs.ko zfs.ko; do
+  for kfile in kernel geom_uzip.ko opensolaris.ko tmpfs.ko xz.ko zfs.ko; do
   tar -cf - boot/kernel/${kfile} | tar -xf - -C "${cdroot}"
   done
   cd ${cwd} && zpool export furybsd && mdconfig -d -u 0

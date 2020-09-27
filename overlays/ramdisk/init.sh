@@ -21,6 +21,8 @@ done
 
 echo "==> Mount cdrom"
 mount_cd9660 /dev/iso9660/FURYBSD /cdrom
+mdconfig -f /cdrom/data/system.uzip -u 1
+zpool import furybsd -o readonly=on
 
 if [ "$SINGLE_USER" = "true" ]; then
         echo "Starting interactive shell in temporary rootfs ..."
@@ -47,7 +49,7 @@ zfs set compression=gzip livecd
 zfs set primarycache=none livecd
 
 echo "==> Replicate system image to swap-based memdisk"
-dd if=/cdrom/data/system.img status=progress bs=1M | zfs recv -F livecd
+zfs send -c -e furybsd | dd status=progress bs=1M | zfs recv -F livecd
 
 mount -t devfs devfs /livecd/dev
 chroot /livecd /usr/local/bin/furybsd-init-helper
