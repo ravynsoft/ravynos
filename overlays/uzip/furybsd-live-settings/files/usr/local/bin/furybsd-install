@@ -1,38 +1,10 @@
-#!/bin/sh
-
-# Authors:
-# 2019-2020, Joe Maloney <jpm820@gmail.com>
-# 2020, Simon Peter <probono@puredarwin.org>
-
-# Exit on errors, this is important for the graphical installer frontend
-set +e
+#!/usr/local/bin/bash
 
 # Export our variables
 LIVEFS="/"
 FSMNT="/mnt"
+SRCPOOL="livecd"
 DESTPOOL=$(zpool list -H | grep /mnt | awk -F '\t' '{print $1;}')
-
-# As the first thing, only answer with
-# INSTALLER_MIB_NEEDED=1234567890
-# print output of dmidecode to /tmp/dmi.txt
-# then immediately exit
-# if INSTALLER_PRINT_MIB_NEEDED is set. This is needed for the graphical installer frontend
-if [ -n "${INSTALLER_PRINT_MIB_NEEDED}" ] ; then
-  # echo INSTALLER_MIB_NEEDED=$(df -m / | awk '{print $2}' | tail -n 1)
-  bytes=$(zpool get -Hpo value allocated livecd)
-  mib=$(echo "${bytes}/1024/1024" | bc) # Convert bytes to MiB
-  echo "INSTALLER_MIB_NEEDED=${mib}"
-  sudo dmidecode --type 0,1,2,3 > /tmp/dmi.txt
-  exit 0
-fi
-
-env | grep "INSTALLER_"
-
-# Only run as superuser
-if [ "$(id -u)" != "0" ]; then
-  echo "This script must be run as root" 1>&2
-  exit 1
-fi
 
 # Cleanup memory devices created before reroot if they exist
 if [ -e "/dev/md0" ] ; then
@@ -44,168 +16,59 @@ fi
 
 # Clean up any previous runs
 umount -f ${FSMNT}/dev >/dev/null 2>/dev/null || true
-zpool export -f "${DESTPOOL}" >/dev/null 2>/dev/null || true
-
-# Set hostname
-if [ -n "${INSTALLER_HOSTNAME}" ] ; then
-  echo "FIXME: Implement setting the hostname without asking questions. How?"
-  chroot "${FSMNT}" /usr/sbin/sysrc hostname="${INSTALLER_HOSTNAME}"
-else
-  echo "Environment variable INSTALLER_HOSTNAME not set, running bsdinstall hostname"
-  bsdinstall hostname
-fi
+zpool export -f ${DESTPOOL} >/dev/null 2>/dev/null || true
 
 # Install contents of read only uzip to destination pool
-
-if [ -n "${INSTALLER_DEVICE}" ] ; then
-  export ZFSBOOT_DISKS="${INSTALLER_DEVICE}"
-  export ZFSBOOT_PARTITION_SCHEME="GPT"
-  export ZFSBOOT_POOL_NAME="zroot"
-  export ZFSBOOT_BEROOT_NAME="ROOT"
-  export ZFSBOOT_BOOTFS_NAME="default"
-  export ZFSBOOT_DATASET_NESTING="1"
-  export BOOT_BLOCKS_FROM_DISTSET="1"
-  export ZFSBOOT_VDEV_TYPE="stripe"
-  export ZFSBOOT_SWAP_SIZE="0"
-  export ZFSBOOT_CONFIRM_LAYOUT="1"
-  export nonInteractive="YES"
-  env
-  bsdinstall zfsboot
-else
-  echo "Environment variable INSTALLER_DEVICE not set, running bsdinstall zfsboot"
-  bsdinstall zfsboot
-fi
-
+bsdinstall hostname
+bsdinstall zfsboot
 if [ ! -d "/mnt/usr" ] ; then
   exit 1
 fi
 
 # Clone the file system to disk with cpdup
-cpdup -i0 -s0 -v "${LIVEFS}" "${FSMNT}"
+cpdup -i0 -s0 -vvv ${LIVEFS} ${FSMNT}
 
 bsdinstall config
-cat /etc/rc.conf | xargs sysrc -f ${FSMNT}/etc/rc.conf # Transfer settings from running /etc/rc.conf to installed one
+cat /etc/rc.conf | xargs sysrc -f ${FSMNT}/etc/rc.conf
 bsdinstall entropy
 
 # Cleanup LiveCD restore specific contents from destination pool
-chroot "${FSMNT}" pkg remove -y furybsd-live-settings
-# TODO: Move all of this to pkg scripts of the pkg manifests that have installed these things
-chroot "${FSMNT}" rm /etc/rc.conf.local
-chroot "${FSMNT}" pw userdel liveuser
-chroot "${FSMNT}" pw groupdel liveuser
-chroot "${FSMNT}" rm -rf /usr/home/liveuser
+chroot ${FSMNT} cp /usr/local/etc/lightdm/lightdm.conf.sample /usr/local/etc/lightdm/lightdm.conf || true
+chroot ${FSMNT} rm /usr/local/etc/sddm.conf || true
+chroot ${FSMNT} cp /usr/local/etc/gdm/custom.conf.sample /usr/local/etc/gdm/custom.conf || true
+chroot ${FSMNT} rm /etc/rc.conf.local
+chroot ${FSMNT} pw userdel liveuser
+chroot ${FSMNT} pw groupdel liveuser
+chroot ${FSMNT} rm -rf /usr/home/liveuser
+chroot ${FSMNT} rm /opt/local/bin/furybsd-live-helper
+chroot ${FSMNT} rm /opt/local/bin/furybsd-init-helper
+chroot ${FSMNT} rm /opt/local/bin/furybsd-install
+chroot ${FSMNT} rm /usr/local/etc/xdg/autostart/fury-helper.desktop
 
 # Configure the new installation
 mount -t devfs devfs ${FSMNT}/dev
-
-# Disable direct root login; users in the wheel group can use sudo instead
-echo "Disabling direct root login; users in the wheel group can use sudo instead"
-# Since /etc/passwd is generated from /etc/master.passwd, do not edit it directly but use pw instead
-# chroot "${FSMNT}" pw usermod root -s /usr/sbin/nologin # FIXME: With this, sudo su does not work
-chroot "${FSMNT}" pw lock root # FIXME: With this, sudo su does not work
-
-# Add regular user
-# Ask for username and/or password in case the graphical installer frontend did not supply them
-echo "Creating user account"
-if [ -n "${INSTALLER_USERNAME}" ] ; then
-  username="${INSTALLER_USERNAME}"
-  password="${INSTALLER_USER_PASSWORD}"
-  echo "${username}:::::::::${password}" | chroot "${FSMNT}" adduser -f - && \
-  chroot "${FSMNT}" pw groupmod wheel -m "${username}" && \
-  chroot "${FSMNT}" pw groupmod video -m "${username}" && \
-  chroot "${FSMNT}" pw groupmod webcamd -m "${username}"
-else
-  echo "Environment variable INSTALLER_USERNAME not set, asking the user for input"
-  while true; do
-    echo ""
-    echo "Add User"
-    echo "This user will be added to the video, wheel, and webcamd groups."
-      while true; do
-      echo "Username: "
-      read -r username
-      if echo "${username}" | grep -q -E "^[a-z][-a-z0-9]*$"; then
-        break;
-      else
-        echo "Username not valid"
-      fi
-    done
-    while true; do
-      echo "New Password: "; stty -echo; read -r password; stty echo; echo ""
-      echo "Retype New Password: "; stty -echo; read -r password2; stty echo; echo ""
-      if [ "${password}" = "${password2}" ]; then
-        break;
-      else
-        echo "Passwords did not match!"
-      fi
-    done
-    echo "${username}:::::::::${password}" | chroot "${FSMNT}" adduser -f - && \
-      chroot "${FSMNT}" pw groupmod wheel -m "${username}" && \
-      chroot "${FSMNT}" pw groupmod video -m "${username}" && \
-      chroot "${FSMNT}" pw groupmod webcamd -m "${username}" && break
-  done
-fi
-
-if [ -n "${INSTALLER_FULLNAME}" ] ; then
-  chroot "${FSMNT}" pw usermod "${INSTALLER_USERNAME}" -c "${INSTALLER_FULLNAME}"
-fi
-
-if [ -n "${INSTALLER_DEVICE}" ] ; then
-  echo "Not setting time for now; let's handle this by ntpd and dhcp"
-else
-  echo "Environment variable INSTALLER_DEVICE not set, running bsdinstall time"
-  # FIXME: Do we still want this given that we will use ntpd and dhcp timzeones?
-  bsdinstall time
-fi
+bsdinstall rootpass
+dialog --title "Warning" --msgbox 'Please invite your user to video, wheel, and webcamd groups!' 6 65
+bsdinstall adduser
+bsdinstall time
 
 # Enable additional services needed for desktop
-echo "Enabling additional services needed for desktop"
 if [ -f "/usr/local/sbin/lightdm" ] ; then
-  chroot "${FSMNT}" sysrc lightdm_enable="YES"
+  chroot ${FSMNT} sysrc lightdm_enable="YES"
 fi
 if [ -f "/usr/local/sbin/gdm" ] ; then
-  chroot "${FSMNT}" sysrc gdm_enable="YES"
+  chroot ${FSMNT} sysrc gdm_enable="YES"
 fi
 if [ -f "/usr/local/etc/rc.d/pcdm" ] ; then
-  chroot "${FSMNT}" sysrc pcdm_enable="YES"
+  chroot ${FSMNT} sysrc pcdm_enable="YES"
 fi
 if [ -f "/usr/local/bin/sddm" ] ; then
-  chroot "${FSMNT}" sysrc sddm_enable="YES"
+  chroot ${FSMNT} sysrc sddm_enable="YES"
 fi
 
-# Set the timezone on the system if it has been provided
-# by the graphical installer frontend
-if [ -n "${INSTALLER_TIMEZONE}" ] ; then
-  cp "${FSMNT}/usr/share/zoneinfo/${INSTALLER_TIMEZONE}" "${FSMNT}/etc/localtime"
-fi
-
-# Enable sshd if the user has requested it
-if [ "${INSTALLER_ENABLE_SSH}" = "YES" ] ; then
-  chroot "${FSMNT}" sysrc sshd_enable="YES"
-fi
-
-# TODO: Transfer settings from running /boot/loader.conf to installed one
-# https://github.com/furybsd/furybsd-livecd/issues/190
-# Until we have a better solution, hardcode it here too...
-cat >> "${FSMNT}/boot/loader.conf" <<\EOF
-# cp /boot/loader.conf ${FSMNT}/boot
-# Decrease boot verbosity, show splash
-# and fix resolution setting for Intel
-boot_mute="YES"
-beastie_disable="YES"
-autoboot_delay=0
-EOF
-
-# Cleanup
-# umount -f "${FSMNT}/dev" >/dev/null 2>/dev/null || true # Is this needed? TODO: Re-enable if yes
-# zpool export -f "${DESTPOOL}" >/dev/null 2>/dev/null || true # Is this needed? TODO: Re-enable if yes
+# Cleanup and reboot
 echo "Installation finished!"
-
-# Reboot
-if [ -n "${INSTALLER_DEVICE}" ] ; then
-  # Let the graphical installer frontend handle the reboot
-  exit 0
-else
-  echo "Press any key to reboot..."
-  read -r reboot
-  shutdown -r now
-fi
+read -p "Press any key to reboot... " -n1 -s
+umount -f ${FSMNT}/dev >/dev/null 2>/dev/null || true
+zpool export -f ${DESTPOOL} >/dev/null 2>/dev/null || true
+shutdown -r now

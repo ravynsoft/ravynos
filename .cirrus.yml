@@ -15,16 +15,13 @@ task:
 
   env:
     matrix:
-      DESKTOP: 'lumina'
       DESKTOP: 'xfce'
-      DESKTOP: 'mate'
       DESKTOP: 'kde'
       DESKTOP: 'gnome'
 
   env:
     matrix:
       arch: 'amd64'
-      arch: 'i386'
 
   install_script:
     - ls -lh /usr/src || true
