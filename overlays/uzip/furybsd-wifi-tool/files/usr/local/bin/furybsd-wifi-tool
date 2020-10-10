@@ -111,7 +111,7 @@ fi
 cat /etc/rc.conf 2>/dev/null | grep -q "wlans_${wnic}="
 if [ $? -ne 0 ] ; then
   sysrc wlans_${wnic}="${WLAN}"
-  sysrc ifconfig_${WLAN}="WPA"
+  sysrc ifconfig_${WLAN}="WPA SYNCDHCP inet6 accept_rtadv"
   service netif restart ${WLAN}
   cat /etc/rc.conf | grep ${wnic} | cut -d'"' -f2 > /tmp/wlan-selection
   WLAN=$(cat /tmp/wlan-selection)
