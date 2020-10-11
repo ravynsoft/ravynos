@@ -4,9 +4,9 @@ freebsd_instance:
   cpu: 2
   memory: 8G
 
-env:
-  CIRRUS_CLONE_DEPTH: 1
-  GITHUB_TOKEN: ENCRYPTED[!6358ad7cf25f119ecab48a7beffc4287775a9c0af95cf1149ae554a39ec9b4156bff82c2f6a2876a198938c6fabfbdd8!]
+#env:
+#  CIRRUS_CLONE_DEPTH: 1
+#  GITHUB_TOKEN: ENCRYPTED[!6358ad7cf25f119ecab48a7beffc4287775a9c0af95cf1149ae554a39ec9b4156bff82c2f6a2876a198938c6fabfbdd8!]
 
 task:
   stateful: false
@@ -15,16 +15,11 @@ task:
 
   env:
     matrix:
-      DESKTOP: 'lumina'
-      DESKTOP: 'xfce'
-      DESKTOP: 'mate'
-      DESKTOP: 'kde'
-      DESKTOP: 'gnome'
+      DESKTOP: 'hello'
 
   env:
     matrix:
       arch: 'amd64'
-      arch: 'i386'
 
   install_script:
     - ls -lh /usr/src || true
@@ -42,6 +37,6 @@ task:
     - df -h
     - ( cd "${CIRRUS_WORKING_DIR}"/artifacts ; zsyncmake *.iso )
     - ls -lh "${CIRRUS_WORKING_DIR}"/artifacts/
-    - wget -c "https://raw.githubusercontent.com/probonopd/uploadtool/8142d461aba7b92a058116fe5ee75be438b75fa4/upload.sh"
-    - export TRAVIS_REPO_SLUG="${CIRRUS_REPO_FULL_NAME}"
+    # wget -c "https://raw.githubusercontent.com/probonopd/uploadtool/8142d461aba7b92a058116fe5ee75be438b75fa4/upload.sh"
+    # export TRAVIS_REPO_SLUG="${CIRRUS_REPO_FULL_NAME}"
     - case "$CIRRUS_BRANCH" in *pull/*) echo skipping since PR ;; * ) wget https://github.com/tcnksm/ghr/files/5247714/ghr.zip ; unzip ghr.zip ; ./ghr -replace -t "${GITHUB_TOKEN}" -u "${CIRRUS_REPO_OWNER}" -r "${CIRRUS_REPO_NAME}" -c "${CIRRUS_CHANGE_IN_REPO}" continuous "${CIRRUS_WORKING_DIR}"/artifacts ; esac
