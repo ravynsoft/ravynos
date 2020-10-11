@@ -22,7 +22,7 @@ rm -f Filer_FreeBSD.zip
 # QtPlugin
 wget https://github.com/helloSystem/QtPlugin/releases/download/continuous/QtPlugin_FreeBSD.zip
 unzip QtPlugin_FreeBSD.zip
-cp -Rf QtPlugin/ "{$uzip}/"
+cp -Rf QtPlugin/ "${uzip}/"
 rm -f QtPlugin_FreeBSD.zip
 rm -rf QtPlugin/
 
@@ -35,6 +35,13 @@ rm -f Menu_FreeBSD.zip
 wget https://github.com/helloSystem/Dock/releases/download/continuous/Dock_FreeBSD.zip
 unzip Dock_FreeBSD.zip
 rm -f Dock_FreeBSD.zip
+
+# Fonts
+wget https://github.com/ArtifexSoftware/urw-base35-fonts/archive/20200910.zip
+unzip 20200910.zip
+mkdir -p "${uzip}/usr/local/share/fonts/TTF/"
+cp -R urw-base35-fonts-20200910/fonts/*.ttf "${uzip}/usr/local/share/fonts/TTF/"
+rm -rf urw-base35-fonts-20200910/
 
 mv * "{$uzip}/System/"
 
