@@ -43,6 +43,6 @@ mkdir -p "${uzip}/usr/local/share/fonts/TTF/"
 cp -R urw-base35-fonts-20200910/fonts/*.ttf "${uzip}/usr/local/share/fonts/TTF/"
 rm -rf urw-base35-fonts-20200910/
 
-mv * "{$uzip}/System/"
+mv * "${uzip}/System/"
 
 cd -
