@@ -61,7 +61,7 @@ export XCURSOR_SIZE=32
 /usr/local/bin/openbox --config-file ~/.openbox &
 
 # Desktop
-/System/Filer.AppDir/AppRun --desktop &
+/System/Filer.AppDir/usr/bin/filer-qt --desktop & # FIXME: Use AppRun
 
 # Desktop notifications
 dunst &
@@ -79,7 +79,7 @@ dunst &
 
 # Menubar
 export GTK_MODULES=appmenu-gtk-module
-/System/Menu.AppDir/AppRun &
+/System/Menu.AppDir/usr/bin/panda-statusbar & # FIXME: Use AppRun
 
 # FIXME: Does the next line have to run AFTER panda-statusbar?
 # Else we see no QMenus at all, as if something was badly crashing?
