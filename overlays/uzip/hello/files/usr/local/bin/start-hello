@@ -1,0 +1,105 @@
+#!/bin/sh
+
+# This script is intended to be invoked by a desktop file
+# from /usr/local/share/xsessions
+# where the display manager (login window) picks it up
+
+# Export XDG environment variables,
+# these may be used by applications that run inside the desktop session
+
+HERE="$(dirname "$(readlink -f "${0}")")"
+
+export XDG_CACHE_HOME=/home/user/.cache
+export XDG_CONFIG_DIRS=/etc:/usr/local/etc/xdg:/usr/share:/usr/local/share
+export XDG_CONFIG_HOME=/home/user/.config
+export XDG_DATA_DIRS=/home/user/.local/share:/usr/local/share:/usr/share
+export XDG_DATA_HOME=/home/user/.local/share
+export XDG_SESSION_CLASS=user
+export XDG_SESSION_TYPE=x11
+
+##################
+# Global menus for Gtk applications
+# 
+# https://github.com/rilian-la-te/vala-panel-appmenu/blob/master/subprojects/appmenu-gtk-module/README.md
+##################
+
+if [ -n "$GTK_MODULES" ]; then
+    GTK_MODULES="${GTK_MODULES}:appmenu-gtk-module"
+else
+    GTK_MODULES="appmenu-gtk-module"
+fi
+
+if [ -z "$UBUNTU_MENUPROXY" ]; then
+    UBUNTU_MENUPROXY=1
+fi
+
+export GTK_MODULES
+export UBUNTU_MENUPROXY
+
+
+
+# Export other environment variables
+export QT_QPA_PLATFORMTHEME=panda
+
+# Export high-DPI settings
+export QT_AUTO_SCREEN_SCALE_FACTOR=2
+export XCURSOR_SIZE=32
+
+# Launch per-user daemons
+
+# Possibly set the clock from the network?
+
+# Global keyboard shortcuts
+# It reads its configuration from
+# ${XDG_CONFIG_HOME}/lxqt/globalkeyshortcuts.conf
+# --config-file=FILENAME can be used several times, the last one is used for saving
+# TODO: Move this functionality into Menu?
+/usr/local/bin/lxqt-globalkeysd &
+
+# Drop shadows
+/usr/local/bin/compton --dbus &
+
+# Window decorations
+/usr/local/bin/openbox --config-file /home/user/.con &
+
+# Desktop
+/System/Filer.AppDir/AppRun --desktop &
+
+# Desktop notifications
+dunst &
+
+# Sound mixer on FreeBSD; would need a space to show tray icons in Menubar;
+# should possibly be launched by it if available?
+# dsbmixer -i
+# Battery monitor, same
+# dsbbatmon
+# Same for
+# dsbmc
+
+# Welcome intro video and music
+# /Applications/Welcome.AppDir/AppRun
+
+# Menubar
+export GTK_MODULES=appmenu-gtk-module
+/System/Menu.AppDir/AppRun &
+
+# FIXME: Does the next line have to run AFTER panda-statusbar?
+# Else we see no QMenus at all, as if something was badly crashing?
+### "${HERE}"/dde-globalmenu-service & # gmenudbusmenuproxy without Plasma deps
+gmenudbusmenuproxy &
+
+# Dock
+/System/Dock.AppDir/AppRun &
+
+# Welcome Wizard
+# /Applications/Welcome.AppDir/trivialwizard
+
+# Variable color temperature
+# without getlalo it would use network locatization from geoclue2,
+# with getlalo it gets the location from /var/db/zoneinfo
+# which we probably should set in the Welcome Wizard
+redshift -l$(getlalo) &
+
+# Here we must start something that never exits;
+# the session ends when that thing exits
+read 1
