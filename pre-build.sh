@@ -7,6 +7,40 @@ set -e
 
 #################
 
+rm -rf overlays/uzip/hello/files/
+mkdir -p overlays/uzip/hello/files/
+
+cat > overlays/uzip/hello/files/.hidden <<\EOF
+bin
+boot
+compat
+COPYRIGHT
+dev
+entropy
+etc
+home
+lib
+libexec
+media
+mnt
+net
+opt
+proc
+rescue
+root
+sbin
+sys
+tmp
+usr
+var
+zroot
+EOF
+
+mkdir -p overlays/uzip/hello/files/System
+mkdir -p overlays/uzip/hello/files/Applications
+
+#################
+
 cd overlays/uzip/hello/files/System
 
 # Filer
