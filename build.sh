@@ -7,7 +7,7 @@ version="12.1"
 pkgset="branches/2020Q1" # TODO: Use it
 desktop=$1
 tag=$2
-cwd=$(realpath | sed 's|/scripts||g')
+export cwd=$(realpath | sed 's|/scripts||g')
 workdir="/usr/local"
 livecd="${workdir}/furybsd"
 if [ -z "${arch}" ] ; then
@@ -23,7 +23,7 @@ iso="${livecd}/iso"
     # to non-tmpfs should be an acceptable compromise
     iso="${CIRRUS_WORKING_DIR}/artifacts"
   fi
-uzip="${livecd}/uzip"
+export uzip="${livecd}/uzip"
 cdroot="${livecd}/cdroot"
 ramdisk_root="${cdroot}/data/ramdisk"
 vol="furybsd"
@@ -213,6 +213,17 @@ pkg()
   cd -
 }
 
+script()
+{
+  if [ -e "${cwd}/settings/script.${desktop}" ] ; then
+    # cp "${cwd}/settings/script.${desktop}" "${uzip}"/tmp/script
+    # chmod +x "${uzip}"/tmp/script
+    # chroot "${uzip}" /tmp/script
+    # rm "${uzip}"/tmp/script
+    "${cwd}/settings/script.${desktop}"
+  fi
+}
+
 uzip() 
 {
   install -o root -g wheel -m 755 -d "${cdroot}"
@@ -258,6 +269,7 @@ packages
 rc
 user
 dm
+script
 uzip
 ramdisk
 boot

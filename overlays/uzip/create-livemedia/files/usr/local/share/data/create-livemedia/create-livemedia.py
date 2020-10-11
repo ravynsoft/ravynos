@@ -158,7 +158,7 @@ class IntroPage(QtWidgets.QWizardPage, object):
         # Repo dropdown
 
         self.repo_menu = QtWidgets.QComboBox()
-        self.available_repos = ["https://api.github.com/repos/furybsd/furybsd-livecd/releases", "https://api.github.com/repos/probonopd/furybsd-livecd/releases"]
+        self.available_repos = ["https://api.github.com/repos/furybsd/furybsd-livecd/releases", "https://api.github.com/repos/probonopd/furybsd-livecd/releases", "https://api.github.com/repos/helloSystem/ISO/releases"]
         for available_repo in self.available_repos:
             self.repo_menu.addItem("/".join(available_repo.split("/")[4:6]))
         self.disk_vlayout.addWidget(self.repo_menu)
