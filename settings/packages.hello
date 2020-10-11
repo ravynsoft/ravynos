@@ -30,3 +30,11 @@ xfce-icons-elementary
 menu-cache
 # Library to read digital camera file meta-data; Filer needs this
 libexif
+# GNOME virtual file system; FIXME: Find something non-GNOME
+# This has some really strange dependencies such as webkit2-gtk3
+# and samba
+gvfs
+# Browser; TODO: Find something more lightweight and privacy respecting
+chromium
+# Message bus system for inter-application communication
+dbus

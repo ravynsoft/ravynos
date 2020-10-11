@@ -9,11 +9,11 @@
 
 HERE="$(dirname "$(readlink -f "${0}")")"
 
-export XDG_CACHE_HOME=/home/user/.cache
+export XDG_CACHE_HOME=~/.cache
 export XDG_CONFIG_DIRS=/etc:/usr/local/etc/xdg:/usr/share:/usr/local/share
-export XDG_CONFIG_HOME=/home/user/.config
-export XDG_DATA_DIRS=/home/user/.local/share:/usr/local/share:/usr/share
-export XDG_DATA_HOME=/home/user/.local/share
+export XDG_CONFIG_HOME=~/.config
+export XDG_DATA_DIRS=~/.local/share:/usr/local/share:/usr/share
+export XDG_DATA_HOME=~/.local/share
 export XDG_SESSION_CLASS=user
 export XDG_SESSION_TYPE=x11
 
@@ -35,8 +35,6 @@ fi
 
 export GTK_MODULES
 export UBUNTU_MENUPROXY
-
-
 
 # Export other environment variables
 export QT_QPA_PLATFORMTHEME=panda
