@@ -57,10 +57,10 @@ export XCURSOR_SIZE=32
 /usr/local/bin/lxqt-globalkeysd &
 
 # Drop shadows
-/usr/local/bin/compton --dbus &
+/usr/local/bin/picom --dbus &
 
 # Window decorations
-/usr/local/bin/openbox --config-file /home/user/.openbox &
+/usr/local/bin/openbox --config-file ~/.openbox &
 
 # Desktop
 /System/Filer.AppDir/AppRun --desktop &
@@ -89,7 +89,8 @@ export GTK_MODULES=appmenu-gtk-module
 gmenudbusmenuproxy &
 
 # Dock
-/System/Dock.AppDir/AppRun &
+# /System/Dock.AppDir/AppRun & # FIXME: Reinstate once it works like this
+/System/Dock.AppDir/usr/bin/cyber-dock
 
 # Welcome Wizard
 # /Applications/Welcome.AppDir/trivialwizard

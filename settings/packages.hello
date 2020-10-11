@@ -10,8 +10,8 @@ plasma5-plasma-workspace
 # appmenu-gtk-module
 # Global keyboard shortcuts registration
 lxqt-globalkeys
-# Drop shadows
-compton
+# Compositor for drop shadows
+picom
 # Lightweight notification daemon
 dunst
 # Qt audio mixer for FreeBSD
@@ -26,3 +26,7 @@ openbox
 # Elementary icons, extended and maintained for Xfce
 # FIXME: Pull in no dependencies just for installing icons
 xfce-icons-elementary
+# Library used to read freedesktop.org menus; Filer needs this
+menu-cache
+# Library to read digital camera file meta-data; Filer needs this
+libexif

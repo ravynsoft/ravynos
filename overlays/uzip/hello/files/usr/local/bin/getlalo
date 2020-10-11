@@ -1,0 +1,14 @@
+#!/bin/sh
+
+export LC_ALL=C
+awk -F" " -v zone=`cat /var/db/zoneinfo` '
+	$3 == zone {
+		split($2, a, /[+-]/);
+		if (length(a[2]) > 4) {
+			printf("%.1f:%.1f", a[2]/10000, a[3]/10000);
+		} else {
+			printf("%.1f:%.1f", a[2]/100, a[3]/100);
+		}
+	}
+' < /usr/share/zoneinfo/zone.tab
+
