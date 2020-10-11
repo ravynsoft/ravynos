@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# TODO: Replace transfer.sh by a better solution
+# TODO: Convert into settings/script.hello
 
 # Exit on errors
 set -e
@@ -38,6 +38,12 @@ EOF
 
 mkdir -p overlays/uzip/hello/files/System
 mkdir -p overlays/uzip/hello/files/Applications
+
+# Get wallpaper
+# TODO: Also check
+# https://papers.co/desktop/vg41-ribbon-abstract-art-blue-pattern/
+# https://papers.co/desktop/vm16-abstract-blue-rhytm-pattern/
+# wget "https://res.allmacwallpaper.com/get/iMac-21-inch-wallpapers/Minimalist-blue-1920x1080/1686-9.jpg" -O "${uzip}"/usr/local/share/slim/themes/default/background.jpg
 
 #################
 
