@@ -1,0 +1,19 @@
+#!/bin/sh
+
+# PROVIDE: localize
+# REQUIRE: DAEMON NETWORKING
+# BEFORE:  LOGIN
+# KEYWORD: nojail shutdown
+
+. /etc/rc.subr
+
+name="localize"
+start_cmd="${name}_start"
+
+localize_start()
+{
+    /usr/sbin/localize
+}
+
+load_rc_config $name
+run_rc_command "$1"
