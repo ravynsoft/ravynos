@@ -41,6 +41,7 @@ if os.geteuid() != 0:
 
 # Raspberry Pi keyboards have a different iProduct string depending on the keyboard layout
 # https://github.com/raspberrypi-ui/piwiz/blob/861eb61156d4fc83c1871ec427cf806132e55ad2/src/piwiz.c#L226-L279
+# https://gist.github.com/probonopd/9646c69f876ff2b4b879aeb1c1cbc532
 countries = ["GB", "GB", "FR", "ES", "US", "DE", "IT", "JP", "PT", "NO", "SE", "DK", "RU", "TR", "IL"]
 languages = ["en", "en", "fr", "es", "en", "de", "it", "jp", "pt", "nn", "se", "fi", "ru", "tr", "he"]
 timezones = ["Europe/London", "Europe/London", "Europe/Paris", "Europe/Madrid", "America/New_York", "Europe/Berlin", "Europe/Rome", "Asia/Tokyo", "Europe/Lisbon", "Europe/Oslo", "Europe/Stockholm", "Europe/Helsinki", "Europe/Moscow", "Europe/Istanbul", "Europe/Jerusalem"]
