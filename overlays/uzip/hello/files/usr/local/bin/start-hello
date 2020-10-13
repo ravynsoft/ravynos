@@ -9,11 +9,11 @@
 # (might have been created by the localize script during boot)
 if [ -z "${LANG}" ] ; then
   if [ -e "/usr/local/var/localize/include" ] ; then
-    source /usr/local/var/localize/include
+    . /usr/local/var/localize/include
     export LANG
     export MM_CHARSET
-    export TZ
-    COUNTRY=$(echo "${LANG}" | cut -d _ -d 2 | cut -d "." -f 1 | tr '[A-Z]' '[a-z])
+    export TZ # This leads to correct time, and to time/date formatting
+    COUNTRY=$(echo "${LANG}" | cut -d _ -f 2 | cut -d "." -f 1 | tr '[A-Z]' '[a-z]')
     setxkbmap -layout "${COUNTRY}"
     setxkbmap -variant nodeadkeys 2>/dev/null
     setxkbmap -query

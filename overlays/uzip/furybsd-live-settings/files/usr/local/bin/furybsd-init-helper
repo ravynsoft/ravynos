@@ -79,7 +79,7 @@ fi
 /usr/sbin/sysrc -f /etc/rc.conf sendmail_msp_queue_enable="NO" >/dev/null 2>/dev/null
 /usr/sbin/sysrc -f /etc/rc.conf linux_enable="YES" >/dev/null 2>/dev/null
 /usr/sbin/sysrc -f /etc/rc.conf dbus_enable="YES" >/dev/null 2>/dev/null
-/usr/sbin/sysrc -f /etc/rc.conf kld_list+="cuse ig4 iicbus iichid utouch i915kms" >/dev/null 2>/dev/null
+/usr/sbin/sysrc -f /etc/rc.conf kld_list+="cuse ig4 iicbus iichid utouch" >/dev/null 2>/dev/null
 /usr/sbin/sysrc -f /etc/rc.conf allscreens_kbdflags="-b quiet.off" >/dev/null 2>/dev/null
 /usr/sbin/sysrc -f /etc/rc.conf ifconfig_DEFAULT="DHCP inet6 accept_rtadv" >/dev/null 2>/dev/null
 /usr/sbin/sysrc -f /etc/rc.conf webcamd_enable="YES" >/dev/null 2>/dev/null
