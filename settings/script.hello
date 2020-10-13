@@ -37,6 +37,8 @@ wget https://github.com/helloSystem/Dock/releases/download/continuous/Dock_FreeB
 unzip Dock_FreeBSD.zip
 rm -f Dock_FreeBSD.zip
 
+mv * "${uzip}/System/"
+
 # Fonts
 wget https://github.com/ArtifexSoftware/urw-base35-fonts/archive/20200910.zip
 unzip 20200910.zip
@@ -44,6 +46,24 @@ mkdir -p "${uzip}/usr/local/share/fonts/TTF/"
 cp -R urw-base35-fonts-20200910/fonts/*.ttf "${uzip}/usr/local/share/fonts/TTF/"
 rm -rf urw-base35-fonts-20200910/ 20200910.zip
 
-mv * "${uzip}/System/"
+# Applications
+mkdir -p "${uzip}/Applications"
+cd "${uzip}/Applications"
+cp "${uzip}"/usr/local/share/applications/chromium-browser.desktop .
+cp "${uzip}"/usr/local/share/applications/featherpad.desktop  .
 
-cd -
+# Preferences
+mkdir -p "${uzip}/Applications/Preferences"
+cd "${uzip}/Applications/Preferences"
+cp "${uzip}"/usr/local/share/applications/dsbmixer.desktop .
+cp "${uzip}"/usr/local/share/applications/lxqt-config-globalkeyshortcuts.desktop .
+cp "${uzip}"/usr/local/share/applications/fury-config-wifi.desktop .
+cp "${uzip}"/usr/local/share/applications/fury-config-xorg.desktop .
+
+# Utilities
+mkdir -p "${uzip}/Applications/Utilities"
+cd "${uzip}/Applications/Utilities"
+cp "${uzip}"/usr/local/share/applications/freebsd-install.desktop .
+cp "${uzip}"/usr/local/share/applications/org.kde.ark.desktop .
+cp "${uzip}"/usr/local/share/applications/org.kde.systemmonitor.desktop .
+cp "${uzip}"/usr/local/share/applications/qterminal.desktop .
