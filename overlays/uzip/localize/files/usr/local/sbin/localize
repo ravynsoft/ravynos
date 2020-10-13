@@ -6,6 +6,14 @@
 # and set up the system accordingly without user intervention.
 # Progress from strong (explicit) to weak (implicit) signals.
 
+# Chapter 22. Localization - i18n/L10n Usage and Setup:
+# https://www.freebsd.org/doc/en_US.ISO8859-1/books/handbook/using-localization.html
+
+# TODO: Ideally we would run this whenever a signal is triggered, e.g.,
+# * A new USB keyboard with a known VID has been attached
+# * The IP address has changed
+# But no way is known to set $LANG in an already-running graphical session
+
 # Copyright (c) 2020, Simon Peter <probono@puredarwin.org>
 # All rights reserved.
 #
@@ -35,21 +43,44 @@ import os, sys, subprocess
 if os.geteuid() != 0:
     exit("You need to have root privileges. Exiting.")
 
+def run(args):
+    "Print, then run a command and print its output"
+    print("--> " + " ".join(args))
+    for line in subprocess.check_output(args).split(b'\n'):
+        if line:
+            print("    " + str(line))
+
+template = """LANG="%locale%"
+MM_CHARSET="%locale%"
+TZ="%timezone%"
+"""
+
+# Define default values
+default_country = "US"
+default_language = "en"
+default_locale = "%s_%s.UTF-8" % (default_language, default_country)
+default_timezone = "America/New_York"
+
+# Set initial values before autodetection begins
+country = default_country
+language = default_language
+locale = default_locale
+timezone = default_timezone
+
+# Exit without action if LANG or LOCALE are already set in env
+# if "LANG" in os.environ.keys() or "LOCALE" in os.environ.keys():
+#     exit(0)
+
 # TODO: Check EFI variables
 
 # Check whether a Raspberry Pi keyboard is attached and if it is, use its keyboard layout
 
 # Raspberry Pi keyboards have a different iProduct string depending on the keyboard layout
 # https://github.com/raspberrypi-ui/piwiz/blob/861eb61156d4fc83c1871ec427cf806132e55ad2/src/piwiz.c#L226-L279
+# https://gist.github.com/probonopd/9646c69f876ff2b4b879aeb1c1cbc532
 countries = ["GB", "GB", "FR", "ES", "US", "DE", "IT", "JP", "PT", "NO", "SE", "DK", "RU", "TR", "IL"]
 languages = ["en", "en", "fr", "es", "en", "de", "it", "jp", "pt", "nn", "se", "fi", "ru", "tr", "he"]
 timezones = ["Europe/London", "Europe/London", "Europe/Paris", "Europe/Madrid", "America/New_York", "Europe/Berlin", "Europe/Rome", "Asia/Tokyo", "Europe/Lisbon", "Europe/Oslo", "Europe/Stockholm", "Europe/Helsinki", "Europe/Moscow", "Europe/Istanbul", "Europe/Jerusalem"]
-
-def run(args):
-    print(" ".join(args))
-    for line in subprocess.check_output(args).split(b'\n'):
-        if line:
-            print(str(line))
 
 for line in subprocess.check_output("usbconfig").split(b'\n'):
     if b"RPI Wired Keyboard" in line:
@@ -59,13 +90,30 @@ for line in subprocess.check_output("usbconfig").split(b'\n'):
         # print(index)
         country = countries[index]
         # print(country)
-        run(["setxkbmap", "-layout", country.lower()])
         language = languages[index]
         # print(language)
-        locale = "%s_%s.UTF-8" % (country, language)
-        print("TODO: Set $LANG to", locale)
+        locale = "%s_%s.UTF-8" % (language, country)
         timezone = timezones[index]
         # print(timezone)
-        run(["tzsetup", timezone])
 
 # TODO: As a last resort, use network localization
+
+# After all methods of localization are exhausted, apply/export our findings
+
+if "DISPLAY" in os.environ.keys():
+    run(["setxkbmap", "-layout", country.lower()]) # Works only if called as the user from within Xorg
+    run(["setxkbmap", "-variant", "nodeadkeys"])
+    run(["setxkbmap", "-query"])
+else:
+    print("setxkbmap needs to be run from within a graphical user session")
+
+run(["tzsetup", timezone])
+
+# Write a shell file that can be sourced at session startup time to export
+# the environment variables
+target_file = "/usr/local/var/localize/include"
+os.makedirs(os.path.dirname(target_file), exist_ok=True)
+f = open(target_file, "w+")
+f.write(template.replace("%locale%", locale).replace("%timezone%", timezone))
+f.close()
+print("--> Wrote", target_file)

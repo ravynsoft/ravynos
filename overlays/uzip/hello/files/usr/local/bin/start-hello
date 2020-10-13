@@ -4,6 +4,22 @@
 # from /usr/local/share/xsessions
 # where the display manager (login window) picks it up
 
+# Set locale if it is not set already
+# and if /usr/local/var/localize/include exists
+# (might have been created by the localize script during boot)
+if [ -z "${LANG}" ] ; then
+  if [ -e "/usr/local/var/localize/include" ] ; then
+    source /usr/local/var/localize/include
+    export LANG
+    export MM_CHARSET
+    export TZ
+    COUNTRY=$(echo "${LANG}" | cut -d _ -d 2 | cut -d "." -f 1 | tr '[A-Z]' '[a-z])
+    setxkbmap -layout "${COUNTRY}"
+    setxkbmap -variant nodeadkeys 2>/dev/null
+    setxkbmap -query
+  fi
+fi
+
 # Export XDG environment variables,
 # these may be used by applications that run inside the desktop session
 
