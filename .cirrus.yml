@@ -9,9 +9,10 @@ env:
   GITHUB_TOKEN: ENCRYPTED[!0f42e3f70fd51cdeddfe7e98160982fc9efe7e8a26869b725fcd5de05d067a7100b994cf52f0f1b470a983148e0b8ec2!]
 
 task:
+  auto_cancellation: false
   stateful: false
   timeout_in: 60m
-  only_if: $CIRRUS_TAG != 'continuous'
+  only_if: $CIRRUS_TAG != 'continuous*'
 
   env:
     matrix:
@@ -39,4 +40,4 @@ task:
     - ls -lh "${CIRRUS_WORKING_DIR}"/artifacts/
     # wget -c "https://raw.githubusercontent.com/probonopd/uploadtool/8142d461aba7b92a058116fe5ee75be438b75fa4/upload.sh"
     # export TRAVIS_REPO_SLUG="${CIRRUS_REPO_FULL_NAME}"
-    - case "$CIRRUS_BRANCH" in *pull/*) echo skipping since PR ;; * ) wget https://github.com/tcnksm/ghr/files/5247714/ghr.zip ; unzip ghr.zip ; ./ghr -replace -t "${GITHUB_TOKEN}" -u "${CIRRUS_REPO_OWNER}" -r "${CIRRUS_REPO_NAME}" -c "${CIRRUS_CHANGE_IN_REPO}" continuous "${CIRRUS_WORKING_DIR}"/artifacts ; esac
+    - case "$CIRRUS_BRANCH" in *pull/*) echo skipping since PR ;; * ) wget https://github.com/tcnksm/ghr/files/5247714/ghr.zip ; unzip ghr.zip ; ./ghr -t "${GITHUB_TOKEN}" -u "${CIRRUS_REPO_OWNER}" -r "${CIRRUS_REPO_NAME}" -c "${CIRRUS_CHANGE_IN_REPO}" continuous-"${DESKTOP}" "${CIRRUS_WORKING_DIR}"/artifacts ; esac
