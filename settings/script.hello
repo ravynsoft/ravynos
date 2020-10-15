@@ -27,6 +27,12 @@ cp -Rf QtPlugin/ "${uzip}/"
 rm -f QtPlugin_FreeBSD.zip
 rm -rf QtPlugin/
 
+# launch
+wget https://github.com/helloSystem/launch/releases/download/continuous/launch_FreeBSD.zip
+unzip launch_FreeBSD.zip
+mv launch "${uzip}/usr/local/bin/"
+rm -f launch_FreeBSD.zip
+
 # Menu
 wget https://github.com/helloSystem/Menu/releases/download/continuous/Menu_FreeBSD.zip
 unzip Menu_FreeBSD.zip
@@ -51,6 +57,9 @@ mkdir -p "${uzip}/Applications"
 cd "${uzip}/Applications"
 cp "${uzip}"/usr/local/share/applications/chromium-browser.desktop .
 cp "${uzip}"/usr/local/share/applications/featherpad.desktop  .
+mkdir -p "${uzip}"/usr/share/skel/Desktop
+cd "${uzip}"/usr/share/skel/Desktop/
+ln -s /Applications .
 
 # Preferences
 mkdir -p "${uzip}/Applications/Preferences"
