@@ -676,7 +676,7 @@ class DiskPage(QtWidgets.QWizardPage, object):
         mib = 0
         for output_line in output_lines:
             print(str(output_line))
-            if "INSTALLER_MIB_NEEDED = " in str(output_line):
+            if "INSTALLER_MIB_NEEDED=" in str(output_line):
                 mib = int(output_line.split("=")[1])
                 print("Response from the installer script: %i" % mib)
                 correction_factor = 1.5  # FIXME: Correction factor due to compression differences
