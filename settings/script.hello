@@ -26,6 +26,9 @@ unzip QtPlugin_FreeBSD.zip
 cp -Rf QtPlugin/ "${uzip}/"
 rm -f QtPlugin_FreeBSD.zip
 rm -rf QtPlugin/
+wget https://raw.githubusercontent.com/helloSystem/QtPlugin/master/stylesheet.qss
+mkdir -p "${uzip}/usr/local/etc/xdg/"
+sudo mv stylesheet.qss "${uzip}/usr/local/etc/xdg/"
 
 # launch
 wget https://github.com/helloSystem/launch/releases/download/continuous/launch_FreeBSD.zip
