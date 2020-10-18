@@ -89,6 +89,7 @@ bsdinstall entropy
 
 # Cleanup LiveCD restore specific contents from destination pool
 chroot "${FSMNT}" pkg remove -y furybsd-live-settings
+chroot "${FSMNT}" pkg remove -y freebsd-installer
 # TODO: Move all of this to pkg scripts of the pkg manifests that have installed these things
 chroot "${FSMNT}" rm /etc/rc.conf.local
 chroot "${FSMNT}" pw userdel liveuser
@@ -180,6 +181,9 @@ if [ -f "/usr/local/etc/rc.d/pcdm" ] ; then
 fi
 if [ -f "/usr/local/bin/sddm" ] ; then
   chroot "${FSMNT}" sysrc sddm_enable="YES"
+fi
+if [ -f "/usr/local/bin/slim" ] ; then
+  chroot "${FSMNT}" sysrc slim_enable="YES"
 fi
 
 # Set the timezone on the system if it has been provided
