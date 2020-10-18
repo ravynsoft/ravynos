@@ -1,5 +1,4 @@
-#!/usr/local/bin/python3.7
-# When started from rc.d, then '#!/usr/bin/env python3.7' does not work
+#!/usr/bin/env python3.7
 # Unfortunately python3 does not seem to work on FreeBSD
 
 # localize
@@ -39,10 +38,11 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import os, sys, subprocess
+import os, subprocess
 
 if os.geteuid() != 0:
     exit("You need to have root privileges. Exiting.")
+
 
 def run(args):
     "Print, then run a command and print its output"
@@ -50,6 +50,7 @@ def run(args):
     for line in subprocess.check_output(args).split(b'\n'):
         if line:
             print("    " + str(line))
+
 
 template = """LANG="%locale%"
 MM_CHARSET="%locale%"
@@ -74,14 +75,20 @@ timezone = default_timezone
 
 # TODO: Check EFI variables
 
-# Check whether a Raspberry Pi keyboard is attached and if it is, use its keyboard layout
+# Check whether a Raspberry Pi keyboard is attached and if it is,
+# use its keyboard layout
 
-# Raspberry Pi keyboards have a different iProduct string depending on the keyboard layout
+# Raspberry Pi keyboards have a different iProduct string
+# depending on the keyboard layout
 # https://github.com/raspberrypi-ui/piwiz/blob/861eb61156d4fc83c1871ec427cf806132e55ad2/src/piwiz.c#L226-L279
 # https://gist.github.com/probonopd/9646c69f876ff2b4b879aeb1c1cbc532
-countries = ["GB", "GB", "FR", "ES", "US", "DE", "IT", "JP", "PT", "NO", "SE", "DK", "RU", "TR", "IL"]
-languages = ["en", "en", "fr", "es", "en", "de", "it", "jp", "pt", "nn", "se", "fi", "ru", "tr", "he"]
-timezones = ["Europe/London", "Europe/London", "Europe/Paris", "Europe/Madrid", "America/New_York", "Europe/Berlin", "Europe/Rome", "Asia/Tokyo", "Europe/Lisbon", "Europe/Oslo", "Europe/Stockholm", "Europe/Helsinki", "Europe/Moscow", "Europe/Istanbul", "Europe/Jerusalem"]
+countries = ["GB", "GB", "FR", "ES", "US", "DE", "IT", "JP", "PT", "NO", "SE",
+             "DK", "RU", "TR", "IL"]
+languages = ["en", "en", "fr", "es", "en", "de", "it", "jp", "pt", "nn", "se",
+             "fi", "ru", "tr", "he"]
+timezones = ["Europe/London", "Europe/London", "Europe/Paris", "Europe/Madrid",
+             "America/New_York", "Europe/Berlin", "Europe/Rome", "Asia/Tokyo", "Europe/Lisbon", "Europe/Oslo",
+             "Europe/Stockholm", "Europe/Helsinki", "Europe/Moscow", "Europe/Istanbul", "Europe/Jerusalem"]
 
 for line in subprocess.check_output("usbconfig").split(b'\n'):
     if b"RPI Wired Keyboard" in line:
@@ -102,7 +109,7 @@ for line in subprocess.check_output("usbconfig").split(b'\n'):
 # After all methods of localization are exhausted, apply/export our findings
 
 if "DISPLAY" in os.environ.keys():
-    run(["setxkbmap", "-layout", country.lower()]) # Works only if called as the user from within Xorg
+    run(["setxkbmap", "-layout", country.lower()])  # Works only if called as the user from within Xorg
     run(["setxkbmap", "-variant", "nodeadkeys"])
     run(["setxkbmap", "-query"])
 else:
