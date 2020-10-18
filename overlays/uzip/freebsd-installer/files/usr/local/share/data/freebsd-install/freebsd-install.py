@@ -27,16 +27,21 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-import sys, os, re, socket
+import sys
+import os
+import re
+import socket
 import shutil
 from datetime import datetime
-import urllib.request, json
-from PyQt5 import QtWidgets, QtGui, QtCore # pkg install py37-qt5-widgets
+import urllib.request
+import urllib.error
+import json
+from PyQt5 import QtWidgets, QtGui, QtCore  # pkg install py37-qt5-widgets
 # PySide2 wants to install 1 GB whereas PyQt5 only needs 40 MB installed on FuryBSD XFCE
 # from PyQt5 import QtMultimedia # pkg install  py37-qt5-multimedia
 # QtMultimedia is used for playing the success sound; using mpg123 for now instead
 
-import disks # Privately bundled file
+import disks  # Privately bundled file
 
 import ssl
 
@@ -54,6 +59,7 @@ ssl._create_default_https_context = ssl._create_unverified_context
 # TODO: Make live system clonable in live mode (just clone the live media as-is)
 # TODO: Make live system writable to DVD
 # TODO: Make installed system behave like live system if the user so desires (skip rootpw, username screens)
+
 
 #############################################################################
 # Helper functions
@@ -73,8 +79,10 @@ def internetCheckConnected(host="8.8.8.8", port=53, timeout=3):
         print(ex)
         return False
 
+
 def details():
     print("Details clicked")
+
 
 def show_the_no_password_warning(sender):
     reply = QtWidgets.QMessageBox.warning(
@@ -98,6 +106,7 @@ print("Install FreeBSD")
 
 app = QtWidgets.QApplication(sys.argv)
 
+
 class InstallWizard(QtWidgets.QWizard, object):
     def __init__(self):
 
@@ -116,8 +125,8 @@ class InstallWizard(QtWidgets.QWizard, object):
 
         # For any external binaries, prefer those that are in the same directory as this file.
         # This can be used to ship a newer installer shell script alongside the installer if needed.
-        if os.path.exists(os.path.dirname(__file__)  + "/" + self.installer_script):
-            self.installer_script = os.path.dirname(__file__)  + "/" + self.installer_script
+        if os.path.exists(os.path.dirname(__file__) + "/" + self.installer_script):
+            self.installer_script = os.path.dirname(__file__) + "/" + self.installer_script
 
         # TODO: Make sure it is actually executable
 
@@ -126,8 +135,8 @@ class InstallWizard(QtWidgets.QWizard, object):
 
         self.setWizardStyle(QtWidgets.QWizard.MacStyle)
 
-       # self.setButtonLayout(
-       #     [QtWidgets.QWizard.CustomButton1, QtWidgets.QWizard.Stretch, QtWidgets.QWizard.NextButton])
+        # self.setButtonLayout(
+        #     [QtWidgets.QWizard.CustomButton1, QtWidgets.QWizard.Stretch, QtWidgets.QWizard.NextButton])
 
         self.setWindowTitle("Install FreeBSD")
         self.setFixedSize(800, 550)
@@ -180,7 +189,7 @@ class InstallWizard(QtWidgets.QWizard, object):
         print(args)
         try:
             proc.startDetached(command, args)
-        except:
+        except:  # FIXME: do not use bare 'except'
             self.showErrorPage("The Installer Log cannot be opened.")
             return
 
@@ -194,7 +203,7 @@ class InstallWizard(QtWidgets.QWizard, object):
 
     # When we are about to go to the next page, we need to check whether we have to show the error page instead
     def nextId(self):
-        if self.should_show_last_page == True:
+        if self.should_show_last_page is True:
             return max(wizard.pageIds())
         else:
             return self.currentId() + 1
@@ -202,19 +211,19 @@ class InstallWizard(QtWidgets.QWizard, object):
     def playSound(self):
         print("Playing sound")
         # soundfile = os.path.dirname(__file__) + '/success.ogg' # https://freesound.org/people/Leszek_Szary/sounds/171670/, licensed under CC0
-        soundfile = "/usr/local/share/sounds/freedesktop/stereo/complete.oga" # pkg install freedesktop-sound-theme
+        soundfile = "/usr/local/share/sounds/freedesktop/stereo/complete.oga"  # pkg install freedesktop-sound-theme
         proc = QtCore.QProcess()
         command = 'ogg123'
         args = ['-q', soundfile]
         print(command, args)
         try:
             proc.startDetached(command, args)
-        except:
+        except:  # FIXME: do not use bare 'except'
             pass
 
     def _geolocate(self):
-        if self.geolocation != None:
-            return # We already have a geolocation, no need to do it again
+        if self.geolocation is not None:
+            return  # We already have a geolocation, no need to do it again
 
         geolocate_url = "https://ipapi.co/json/"
         print("Geolocating using", geolocate_url)
@@ -222,19 +231,20 @@ class InstallWizard(QtWidgets.QWizard, object):
         try:
             with urllib.request.urlopen(geolocate_url) as url:
                 data = json.loads(url.read().decode())
-                self.geolocation=data
+                self.geolocation = data
                 if os.path.exists("/usr/share/zoneinfo/" + data["timezone"]):
                     self.timezone = data["timezone"]
                 print(data)
-        except:
+        except urllib.error as e:
+            print("%s could not be reached due to %s" % (e.url, e.reason))
             pass
 
         # TODO: Set language, keyboard,, etc. automatically based on geolocation if user allows
 
     def ask_user_to_geolocate(self):
-        if self.geolocation != None:
-            return # We already have a geolocation, no need to do it again
-        if self.user_agreed_to_geolocate != True:
+        if self.geolocation is not None:
+            return  # We already have a geolocation, no need to do it again
+        if self.user_agreed_to_geolocate is not True:
             reply = QtWidgets.QMessageBox.question(
                 self,
                 "Question",
@@ -245,10 +255,12 @@ class InstallWizard(QtWidgets.QWizard, object):
             if reply == QtWidgets.QMessageBox.Yes:
                 print("User has agreed to geolocate")
                 self.user_agreed_to_geolocate = True
-        if self.user_agreed_to_geolocate == True:
+        if self.user_agreed_to_geolocate is True:
             self._geolocate()
 
+
 wizard = InstallWizard()
+
 
 #############################################################################
 # Language selection
@@ -295,6 +307,7 @@ if json_file.open(QtCore.QIODevice.ReadOnly):
 # Show each language in its own name.
 # TODO: If connected to the network, pre-select the main language of the country
 
+
 class LanguagePage(QtWidgets.QWizardPage, object):
     def __init__(self):
 
@@ -305,17 +318,18 @@ class LanguagePage(QtWidgets.QWizardPage, object):
 
         # Check prerequisites
         # TODO: Check more
-        if shutil.which(wizard.installer_script) == None:
+        if shutil.which(wizard.installer_script) is None:
             wizard.showErrorPage("The installer script was not found. Please make sure that you are running the installer on a supported system.")
 
-        # TODO: Check if we can run the installer as root; e.g., by running it here to get the required disk space (repeat later)
+        # TODO: Check if we can run the installer as root; e.g., by running it here
+        #  to get the required disk space (repeat later)
 
-        if shutil.which("sudo") == None:
+        if shutil.which("sudo") is None:
             wizard.showErrorPage(
                 "The sudo binary not found. Please make sure that you are running the installer on a supported system.")
             return
 
-        json_file = QtCore.QFile(os.path.dirname(__file__) + '/languages.json') # https://gist.github.com/piraveen/fafd0d984b2236e809d03a0e306c8a4d
+        json_file = QtCore.QFile(os.path.dirname(__file__) + '/languages.json')  # https://gist.github.com/piraveen/fafd0d984b2236e809d03a0e306c8a4d
         if json_file.open(QtCore.QIODevice.ReadOnly):
             document = QtCore.QJsonDocument().fromJson(json_file.readAll())
             self.languages = document.object()
@@ -332,12 +346,11 @@ class LanguagePage(QtWidgets.QWizardPage, object):
             if language in supported_languages:
                 try:
                     self.listwidget.addItem(self.languages[language]["nativeName"].toString())
-                except:
+                except:  # FIXME: do not use bare 'except'
                     print(dir(self.languages[language]["nativeName"]))
         layout = QtWidgets.QHBoxLayout(self)
         layout.addWidget(self.listwidget)
         layout.addWidget(self.listwidget2)
-
 
     def initializePage(self):
         print("Displaying LanguagePage")
@@ -367,8 +380,8 @@ class LanguagePage(QtWidgets.QWizardPage, object):
                 if "_" in lang_env and (lang_env != "en_US" or system_keyboard_layout != "EN"):
                     if lang_env in supported_locales:
                         print("System is already set to LANG=%s which is a supported locale, hence using this without further questions" % (lang_env))
-                        if wizard.selected_language == None:
-                            wizard.selected_language = lang_env.split("_")[0] # If we already got one from system_keyboard_layout, use that
+                        if wizard.selected_language is None:
+                            wizard.selected_language = lang_env.split("_")[0]  # If we already got one from system_keyboard_layout, use that
                         wizard.selected_country = lang_env.split("_")[1]
                         self.completeChanged.emit()
                         wizard.next()
@@ -380,7 +393,7 @@ class LanguagePage(QtWidgets.QWizardPage, object):
                 wizard.next()
                 return
 
-        except:
+        except:  # FIXME: do not use bare 'except'
             wizard.showErrorPage(
                 "There was an error while determining whether the language has already been set on this system.")
             return
@@ -421,12 +434,11 @@ class LanguagePage(QtWidgets.QWizardPage, object):
             print("Country selection is needed since this language is spoken in more than one supported locales")
             self.listwidget2.show()
 
-
         # self.isComplete() # Calling it like this does not make its result get used
-        self.completeChanged.emit() # But like this isComplete() gets called and its result gets used
+        self.completeChanged.emit()  # But like this isComplete() gets called and its result gets used
 
     def clicked2(self):
-        if(len(self.listwidget2.selectedItems())>0):
+        if(len(self.listwidget2.selectedItems()) > 0):
             self.selected_text2 = self.listwidget2.selectedItems()[0].text()
             print("Clicked on country")
             print(self.selected_text2)
@@ -439,8 +451,8 @@ class LanguagePage(QtWidgets.QWizardPage, object):
         self.completeChanged.emit()  # But like this isComplete() gets called and its result gets used
 
     def isComplete(self):
-        if wizard.selected_language != None and wizard.selected_country != None:
-            print("Determined locale to be %s_%s" %(wizard.selected_language, wizard.selected_country))
+        if wizard.selected_language is not None and wizard.selected_country is not None:
+            print("Determined locale to be %s_%s" % (wizard.selected_language, wizard.selected_country))
             return True
         else:
             return False
@@ -476,7 +488,7 @@ class CountryPage(QtWidgets.QWizardPage, object):
 
         # Find out in which countries the selected language is spoken
         candidate_countries = []
-        wizard.selected_country == None
+        wizard.selected_country is None
 
         self.listwidget.clear()
         for country in countries:
@@ -502,7 +514,7 @@ class CountryPage(QtWidgets.QWizardPage, object):
         self.completeChanged.emit()  # But like this isComplete() gets called and its result gets used
 
     def isComplete(self):
-        if wizard.selected_country == None:
+        if wizard.selected_country is None:
             return False
         else:
             print(wizard.selected_country)
@@ -511,6 +523,7 @@ class CountryPage(QtWidgets.QWizardPage, object):
 # TODO: If someone feels like it, make it possible to switch to all countries that are supported
 # by the system (Checkbox: "Show all supported countries")
 
+
 #############################################################################
 # Keyboard layout
 #############################################################################
@@ -518,6 +531,7 @@ class CountryPage(QtWidgets.QWizardPage, object):
 # NOTE: There might be more than one keyboard layout for a language,
 # e.g., with or without dead accute, etc.
 # but that is too esoteric for this wizard
+
 
 #############################################################################
 # Timezone
@@ -539,6 +553,7 @@ class CountryPage(QtWidgets.QWizardPage, object):
 # Assume the hardware clock to be UTC because it is the standard across OSes these nowadays.
 
 # Once we have that working, enable Redshift?
+
 
 #############################################################################
 # Intro page
@@ -562,15 +577,15 @@ class IntroPage(QtWidgets.QWizardPage, object):
         center_layout.addWidget(logo_label)
         center_layout.addStretch()
 
-        center_widget =  QtWidgets.QWidget()
+        center_widget = QtWidgets.QWidget()
         center_widget.setLayout(center_layout)
         intro_vLayout = QtWidgets.QVBoxLayout(self)
-        intro_vLayout.addWidget(center_widget, True) # True = add stretch vertically
+        intro_vLayout.addWidget(center_widget, True)  # True = add stretch vertically
 
         intro_label = QtWidgets.QLabel()
         intro_label.setWordWrap(True)
         intro_label.setText("FreeBSD is an operating system for a variety of platforms which focuses on features, speed, and stability. It is derived from BSD, the version of UNIX® developed at the University of California, Berkeley. It is developed and maintained by a large community.")
-        intro_vLayout.addWidget(intro_label, True) # True = add stretch vertically
+        intro_vLayout.addWidget(intro_label, True)  # True = add stretch vertically
 
         tm_label = QtWidgets.QLabel()
         tm_label.setWordWrap(True)
@@ -597,13 +612,13 @@ class LicensePage(QtWidgets.QWizardPage, object):
         license_label.setWordWrap(True)
         license_layout = QtWidgets.QVBoxLayout(self)
         license_text = open('/COPYRIGHT', 'r').read()
-        license_label.setText("\n".join(license_text.split("\n")[3:])) # Skip the first 3 lines
+        license_label.setText("\n".join(license_text.split("\n")[3:]))  # Skip the first 3 lines
 
         font = wizard.font()
         font.setFamily("monospace")
         font.setPointSize(8)
         license_label.setFont(font)
-        license_area = QtWidgets.QScrollArea();
+        license_area = QtWidgets.QScrollArea()
         license_area.setWidget(license_label)
         license_layout.addWidget(license_area)
 
@@ -627,8 +642,8 @@ class DiskPage(QtWidgets.QWizardPage, object):
         # NOTE: If the installer logic changes and the files are not copied from / but e.g., directly from an image
         # then the following line needs to be changed to reflect the changed logic accordingly
 
-        self.timer = QtCore.QTimer() # Used to periodically check the available disks
-        self.old_ds = None # The disks we have recognized so far
+        self.timer = QtCore.QTimer()  # Used to periodically check the available disks
+        self.old_ds = None  # The disks we have recognized so far
         self.setTitle('Select Destination Disk')
         self.setSubTitle('All data on the selected disk will be erased.')
         self.disk_listwidget = QtWidgets.QListWidget()
@@ -646,7 +661,7 @@ class DiskPage(QtWidgets.QWizardPage, object):
         # return int(float(space_used_on_root_mountpoint * 1.3))
         proc = QtCore.QProcess()
         command = 'sudo'
-        args = ["-n", "-E", wizard.installer_script] # -E to pass environment variables into the command ran with sudo
+        args = ["-n", "-E", wizard.installer_script]  # -E to pass environment variables into the command ran with sudo
         env = QtCore.QProcessEnvironment.systemEnvironment()
         env.insert("INSTALLER_PRINT_MIB_NEEDED", "YES")
         proc.setProcessEnvironment(env)
@@ -655,16 +670,16 @@ class DiskPage(QtWidgets.QWizardPage, object):
             proc.start(command, args)
         except:
             return 0
-        proc.waitForFinished();
+        proc.waitForFinished()
         output_lines = proc.readAllStandardOutput().split("\n")
 
         mib = 0
         for output_line in output_lines:
             print(str(output_line))
-            if "INSTALLER_MIB_NEEDED=" in str(output_line):
-                mib=int(output_line.split("=")[1])
+            if "INSTALLER_MIB_NEEDED = " in str(output_line):
+                mib = int(output_line.split("=")[1])
                 print("Response from the installer script: %i" % mib)
-                correction_factor = 1.5 # FIXME: Correction factor due to compression differences
+                correction_factor = 1.5  # FIXME: Correction factor due to compression differences
                 adjusted_mib = int(mib * correction_factor)
                 print("Adjusted MiB needed: %i" % adjusted_mib)
                 return adjusted_mib
@@ -674,13 +689,13 @@ class DiskPage(QtWidgets.QWizardPage, object):
         print("Displaying DiskPage")
 
         wizard.required_mib_on_disk = self.getMiBRequiredOnDisk()
-        self.disk_listwidget.clearSelection() # If the user clicked back and forth, start with nothing selected
+        self.disk_listwidget.clearSelection()  # If the user clicked back and forth, start with nothing selected
         self.periodically_list_disks()
 
         if wizard.required_mib_on_disk < 5:
             self.timer.stop()
             wizard.showErrorPage("The installer script did not report the required disk space. Are you running the installer on a supported system? Can you run the installer script with sudo without needing a password?")
-            self.disk_listwidget.hide() # FIXME: Why is this needed? Can we do without?
+            self.disk_listwidget.hide()  # FIXME: Why is this needed? Can we do without?
             return
 
         print("Disk space required: %d MiB" % wizard.required_mib_on_disk)
@@ -712,10 +727,10 @@ class DiskPage(QtWidgets.QWizardPage, object):
                 available_bytes = int(di.get("mediasize").split(" ")[0])
                 # For now, we don't show cd* but once we add burning capabilities we may want to un-blacklist them
                 # TODO: Identify the disk the Live system is running from, and don't offer that
-                if (available_bytes >= wizard.required_mib_on_disk) and di.get("geomname").startswith("cd") == False:
+                if (available_bytes >= wizard.required_mib_on_disk) and di.get("geomname").startswith("cd") is False:
                     # item.setTextAlignment()
                     title = "%s on %s (%s GiB)" % (di.get("descr"), di.get("geomname"), f"{(available_bytes // (2 ** 30)):,}")
-                    if di.get("geomname").startswith("cd") == True:
+                    if di.get("geomname").startswith("cd") is True:
                         # TODO: Add burning powers
                         item = QtWidgets.QListWidgetItem(QtGui.QIcon.fromTheme('drive-optical'), title)
                     else:
@@ -746,12 +761,12 @@ class DiskPage(QtWidgets.QWizardPage, object):
         else:
             self.disk_listwidget.clearSelection()
             pass
-        self.isComplete() # Calling it like this does not make its result get used
-        self.completeChanged.emit() # But like this isComplete() gets called and its result gets used
+        self.isComplete()  # Calling it like this does not make its result get used
+        self.completeChanged.emit()  # But like this isComplete() gets called and its result gets used
 
     def isComplete(self):
-        if wizard.user_agreed_to_erase == True:
-            ds = disks.get_disks()
+        if wizard.user_agreed_to_erase is True:
+            disks.get_disks()
             # Given a clear text label, get back the rdX
             for d in self.old_ds:
                 di = disks.get_disk(d)
@@ -761,11 +776,11 @@ class DiskPage(QtWidgets.QWizardPage, object):
                     return False
                 if searchstring in self.disk_listwidget.selectedItems()[0].text():
                     wizard.selected_disk_device = str(di.get("geomname"))
-                    self.timer.stop() # FIXME: This does not belong here, but cleanupPage() gets called only
+                    self.timer.stop()  # FIXME: This does not belong here, but cleanupPage() gets called only
                     # if the user goes back, not when they go forward...
                     return True
 
-        selected_disk_device = None
+        wizard.selected_disk_device = None
         return False
 
 
@@ -802,7 +817,7 @@ class RootPwPage(QtWidgets.QWizardPage, object):
         self.rootpw_label_comment.setStyleSheet("color: red")
         self.rootpw_label_comment.setVisible(False)
         rootpw_vlayout.addWidget(self.rootpw_label_comment)
-        self.registerField('rootpw*', rootpw_lineedit) # * sets the field mandatory
+        self.registerField('rootpw*', rootpw_lineedit)  # * sets the field mandatory
         self.registerField('rootpw2*', rootpw_lineedit2)
 
     def isComplete(self):
@@ -817,7 +832,7 @@ class RootPwPage(QtWidgets.QWizardPage, object):
     def validatePage(self):
         # TODO: Validate whether the username and password
         #  are acceptable, e.g., with QRegularExpressionValidator
-        if self.field('rootpw') == "" and self.no_password_is_ok == False:
+        if self.field('rootpw') == "" and self.no_password_is_ok is False:
             show_the_no_password_warning(self)
             return False
         else:
@@ -897,7 +912,7 @@ class UserPage(QtWidgets.QWizardPage, object):
         self.autologin_checkbox = QtWidgets.QCheckBox()
         self.autologin_checkbox.setText("To be implemented: Log this user automatically into the desktop (autologin)")
         self.autologin_checkbox.hide()
-         # self.autologin_checkbox.setWordWrap(True) # Does not work, https://bugreports.qt.io/browse/QTBUG-5370
+        # self.autologin_checkbox.setWordWrap(True) # Does not work, https://bugreports.qt.io/browse/QTBUG-5370
         user_vlayout.addWidget(self.autologin_checkbox)
         self.registerField('enable_autologin*', self.autologin_checkbox)
         # sshd
@@ -928,16 +943,16 @@ class UserPage(QtWidgets.QWizardPage, object):
 
         # Warning if passwords don't match
         self.user_label_comment = QtWidgets.QLabel()
-        self.user_label_comment.setText("The passwords do not match") # TODO: make red
+        self.user_label_comment.setText("The passwords do not match")  # TODO: make red
         self.user_label_comment.setVisible(False)
         user_vlayout.addWidget(self.user_label_comment)
         self.computer_name = self.computerName()
 
     def setTimezone(self):
         self.tz_label.hide()
-        if self.timezone_checkbox.isChecked() == True:
-            result = wizard.ask_user_to_geolocate()
-            if wizard.geolocation == None:
+        if self.timezone_checkbox.isChecked() is True:
+            wizard.ask_user_to_geolocate()
+            if wizard.geolocation is None:
                 self.timezone_checkbox.setChecked(False)
             else:
                 self.tz_label.setText(wizard.timezone)
@@ -946,15 +961,15 @@ class UserPage(QtWidgets.QWizardPage, object):
     def initializePage(self):
         print("Displaying UserPage")
 
-        print ("self.computer_name: %s" % self.computer_name)
+        print("self.computer_name: %s" % self.computer_name)
         self.computername_lineEdit.setText(self.computer_name)
-        if internetCheckConnected() == False:
+        if internetCheckConnected() is False:
             self.timezone_checkbox.hide()
             print("Not offering to set time zone based on currrent location because not connected to the internet")
 
     def populateUsername(self):
         if " " in self.field('fullname'):
-            generated_username = self.field('fullname').split(" ")[0].lower()[0] + self.field('fullname').split(" ")[len(self.field('fullname').split(" "))-1].lower()
+            generated_username = self.field('fullname').split(" ")[0].lower()[0] + self.field('fullname').split(" ")[len(self.field('fullname').split(" ")) - 1].lower()
         else:
             generated_username = self.field('fullname').lower()
         # Clean auto-populated username of special characters
@@ -984,7 +999,7 @@ class UserPage(QtWidgets.QWizardPage, object):
         else:
             self.user_label_comment.setVisible(True)
 
-        if self.field('enable_ssh') == True:
+        if self.field('enable_ssh') is True:
             self.hostname_label.show()
             self.hostname_label.setText("ssh %s@%s.local." % (self.field('username'), self.field('computername')))
         else:
@@ -994,9 +1009,9 @@ class UserPage(QtWidgets.QWizardPage, object):
             return False
 
         if (self.field('userpw') == self.field('userpw2')) and self.field('username') != "":
-            if self.sshd_checkbox.isChecked() == False:
+            if self.sshd_checkbox.isChecked() is False:
                 return True
-            if self.sshd_checkbox.isChecked() == True and self.field('userpw') != "":
+            if self.sshd_checkbox.isChecked() is True and self.field('userpw') != "":
                 return True
 
         return False
@@ -1008,8 +1023,8 @@ class UserPage(QtWidgets.QWizardPage, object):
         if "" == self.field('fullname') and "" != self.field('username'):
             self.fullname_lineEdit.setText(self.field('username'))
 
-        if self.sshd_checkbox.isChecked() == False:
-            if self.field('userpw') == "" and self.no_password_is_ok == False:
+        if self.sshd_checkbox.isChecked() is False:
+            if self.field('userpw') == "" and self.no_password_is_ok is False:
                 show_the_no_password_warning(self)
                 return False
             else:
@@ -1020,61 +1035,39 @@ class UserPage(QtWidgets.QWizardPage, object):
             else:
                 return True
 
+    def getDmiInfo(self, whichInfo):
+        proc = QtCore.QProcess()
+        command = 'kenv'
+        args = ["-q", whichInfo]
+        try:
+            print("Starting %s %s" % (command, args))
+            proc.start(command, args)
+            proc.waitForFinished()
+            return(str(proc.readAllStandardOutput(), 'utf-8')).strip().replace(" ", "-")
+        except:  # FIXME: do not use bare 'except'
+            return ""
 
     def computerName(self):
 
-        # The installer script (running as root) may have placed a file with system information
-        # that we can use to build a nice computer name string
-        # sudo dmidecode --type 0,1,2,3 > /tmp/dmi.txt
-
         computer_name = "Computer"
 
-        dmidecode_output_file = '/tmp/dmi.txt'
-
-        if not os.path.isfile(dmidecode_output_file):
-            print("%s not found" % dmidecode_output_file)
-            print("The installer script (running as root) should have placed it there")
-            return(computer_name)
-
-        try:
-            from dmidecode import DMIParse
-        except:
-            print("dmidecode not found")
-            return(computer_name)
-
-        with open(dmidecode_output_file, 'r') as f:
-            file_content = f.read()
-        f.close()
-
-        # create parsing instance by passing dmidecode output
-        dmi = DMIParse(file_content)
-
-        undefined = "To be filled by O.E.M." # We never want to use this string for anything
+        undefined = "To be filled by O.E.M."  # We never want to use this string for anything
         # Unfortunately many systems have this set by default
 
-        print('BIOS Vendor:', dmi.get("BIOS")[0].get("Vendor"))
-        print('BIOS Version:', dmi.get("BIOS")[0].get("Version"))
-        print('System Manufacturer:', dmi.get("System")[0].get("Manufacturer"))
-        print('System Product Name:', dmi.get("System")[0].get("Product Name"))
-        print('Baseboard Manufacturer:', dmi.get("Baseboard")[0].get("Manufacturer"))
-        print('Baseboard Product Name:', dmi.get("Baseboard")[0].get("Product Name"))
-        print('Chassis Manufacturer:', dmi.get("Chassis")[0].get("Manufacturer"))
-        print('Chassis Type:', dmi.get("Chassis")[0].get("Type"))
-
-        candidate = dmi.get("System")[0].get("Product Name")
+        candidate = self.getDmiInfo("smbios.system.product")  # OptiPlex 780
         if candidate != "" and candidate != undefined:
             computer_name = candidate
         else:
-            candidate = dmi.get("Baseboard")[0].get("Manufacturer")
+            candidate = self.getDmiInfo("smbios.planar.product")  # 0C27VV
             if candidate != "" and candidate != undefined:
                 computer_name = candidate
             else:
-                candidate = dmi.get("Chassis")[0].get("Type")
+                candidate = self.getDmiInfo("smbios.bios.vendor")  # Dell Inc.
                 if candidate != "" and candidate != undefined:
                     computer_name = candidate
 
-        computer_name = computer_name.strip().replace(" ", "-")
         return computer_name
+
 
 #############################################################################
 # Installation page
@@ -1085,7 +1078,6 @@ class InstallationPage(QtWidgets.QWizardPage, object):
 
         print("Preparing InstallationPage")
         super().__init__()
-
 
         self.setTitle('Installing FreeBSD')
         self.setSubTitle('FreeBSD is being installed to your computer.')
@@ -1125,14 +1117,14 @@ class InstallationPage(QtWidgets.QWizardPage, object):
         # TODO: Pass arguments as configuration file/script, enviroment variables or arguments?
 
         command = "sudo"
-        args = ["-n", "-E", wizard.installer_script] # -E to pass environment variables into the command ran with sudo
+        args = ["-n", "-E", wizard.installer_script]  # -E to pass environment variables into the command ran with sudo
         env = QtCore.QProcessEnvironment.systemEnvironment()
 
         # Sanity check that we really have a device and permission to erase it
         dev_file = "/dev/" + wizard.selected_disk_device
         if wizard.selected_disk_device is None or os.path.exists(dev_file) is False:
             wizard.showErrorPage("The selected disk device %s is not found." % dev_file)
-            return # Stop doing anything here
+            return  # Stop doing anything here
 
         if wizard.user_agreed_to_erase is False:
             wizard.showErrorPage("Did not get permission to erase the target device.")
@@ -1149,7 +1141,7 @@ class InstallationPage(QtWidgets.QWizardPage, object):
         # system e.g., to en (language) but DE (country, derived from keyboard layout). In those cases,
         # assume en_US.UTF-8 for the locale but do try to set the correct keyboard layout
         computed_locale_utf8 = "en_US.UTF-8"
-        if wizard.selected_language != None and wizard.selected_country != None:
+        if wizard.selected_language is not None and wizard.selected_country is not None:
             if wizard.selected_language + "_" + wizard.selected_country in supported_locales_utf8:
                 computed_locale_utf8 = wizard.selected_language + "_" + wizard.selected_country + ".UTF-8"
 
@@ -1163,18 +1155,18 @@ class InstallationPage(QtWidgets.QWizardPage, object):
         env.insert("INSTALLER_LANGUAGE", wizard.selected_language)
         env.insert("INSTALLER_COUNTRY", wizard.selected_country)
         env.insert("INSTALLER_LOCALE_UTF8", computed_locale_utf8)
-        if wizard.timezone != None:
+        if wizard.timezone is not None:
             env.insert("INSTALLER_ZIMEZONE", wizard.timezone)
 
-        if self.field('enable_autologin') == True:
+        if self.field('enable_autologin') is True:
             env.insert("INSTALLER_ENABLE_AUTOLOGIN", "YES")
-        if self.field('enable_ssh') == True:
+        if self.field('enable_ssh') is True:
             env.insert("INSTALLER_ENABLE_SSH", "YES")
 
         # Print the keys to stderr for debugging
         for key in env.keys():
             if str(key).startswith("INSTALLER_"):
-                print("%s=%s" %(key, env.value(key)))
+                print("%s=%s" % (key, env.value(key)))
 
         self.ext_process.setProcessEnvironment(env)
         self.ext_process.setStandardOutputFile(wizard.logfile)
@@ -1185,13 +1177,12 @@ class InstallationPage(QtWidgets.QWizardPage, object):
 
         self.periodicallyCheckProgress()
         try:
-            pid = self.ext_process.start()
+            self.ext_process.start()
             # print(pid) # This is None for non-detached processes. If we ran detached, we would get the pid back here
             print("Installer script process %s %s started" % (command, args))
-        except:
+        except:  # FIXME: do not use bare 'except'
             self.showErrorPage("The installer cannot be launched.")
             return  # Stop doing anything here
-
 
     def onProcessFinished(self):
         print("Installer script process finished")
@@ -1212,7 +1203,7 @@ class InstallationPage(QtWidgets.QWizardPage, object):
     def periodicallyCheckProgress(self):
         # print("periodically_check_progress")
         self.checkProgress()
-        self.timer = QtCore.QTimer() # Used to periodically check the fill level of the target disk
+        self.timer = QtCore.QTimer()  # Used to periodically check the fill level of the target disk
         self.timer.setInterval(1000)
         self.timer.timeout.connect(self.checkProgress)
         self.timer.start()
@@ -1260,10 +1251,10 @@ class SuccessPage(QtWidgets.QWizardPage, object):
         center_layout.addWidget(logo_label)
         center_layout.addStretch()
 
-        center_widget =  QtWidgets.QWidget()
+        center_widget = QtWidgets.QWidget()
         center_widget.setLayout(center_layout)
         layout = QtWidgets.QVBoxLayout(self)
-        layout.addWidget(center_widget, True) # True = add stretch vertically
+        layout.addWidget(center_widget, True)  # True = add stretch vertically
 
         label = QtWidgets.QLabel()
         label.setText("FreeBSD has been installed on your computer, click 'Restart' to begin using it.")
@@ -1279,9 +1270,10 @@ class SuccessPage(QtWidgets.QWizardPage, object):
         print(command, args)
         try:
             proc.startDetached(command, args)
-        except:
+        except:  # FIXME: do not use bare 'except'
             self.showErrorPage("Could not restart the computer.")
             return
+
 
 #############################################################################
 # Error page
@@ -1289,7 +1281,6 @@ class SuccessPage(QtWidgets.QWizardPage, object):
 
 class ErrorPage(QtWidgets.QWizardPage, object):
     def __init__(self):
-
         print("Preparing ErrorPage")
         super().__init__()
 
@@ -1305,10 +1296,10 @@ class ErrorPage(QtWidgets.QWizardPage, object):
         center_layout.addWidget(logo_label)
         center_layout.addStretch()
 
-        center_widget =  QtWidgets.QWidget()
+        center_widget = QtWidgets.QWidget()
         center_widget.setLayout(center_layout)
         self.layout = QtWidgets.QVBoxLayout(self)
-        self.layout.addWidget(center_widget, True) # True = add stretch vertically
+        self.layout.addWidget(center_widget, True)  # True = add stretch vertically
 
         self.label = QtWidgets.QLabel()  # Putting it in initializePage would add another one each time the page is displayed when going back and forth
         self.layout.addWidget(self.label)
@@ -1321,6 +1312,7 @@ class ErrorPage(QtWidgets.QWizardPage, object):
         self.label.setText(wizard.error_message_nice)
         self.setButtonText(wizard.CancelButton, "Quit")
         wizard.setButtonLayout([QtWidgets.QWizard.CustomButton1, QtWidgets.QWizard.Stretch, QtWidgets.QWizard.CancelButton])
+
 
 #############################################################################
 # Pages flow in the wizard
