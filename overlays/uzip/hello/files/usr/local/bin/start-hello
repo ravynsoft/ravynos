@@ -55,9 +55,11 @@ export UBUNTU_MENUPROXY
 # Export other environment variables
 export QT_QPA_PLATFORMTHEME=panda
 
-# Export high-DPI settings
-export QT_AUTO_SCREEN_SCALE_FACTOR=2
-export XCURSOR_SIZE=32
+# Export high-DPI settings:
+# QT_ENABLE_HIGHDPI_SCALING sice Qt 5.14 enables automatic scaling
+# based on the pixel density of the monitor.
+# Replaces QT_AUTO_SCREEN_SCALE_FACTOR.
+export QT_ENABLE_HIGHDPI_SCALING
 
 # Launch per-user daemons
 
@@ -77,7 +79,8 @@ export XCURSOR_SIZE=32
 /usr/local/bin/openbox --config-file ~/.openbox &
 
 # Desktop
-/System/Filer.AppDir/usr/bin/filer-qt --desktop & # FIXME: Use AppRun
+# FIXME: This crashes when we use QT_QPA_PLATFORMTHEME="panda" and use a non-empty stylesheet.qss; reasons unknown!
+QT_QPA_PLATFORMTHEME="" /System/Filer.AppDir/usr/bin/filer-qt --desktop & # FIXME: Use AppRun
 
 # Desktop notifications
 dunst &
