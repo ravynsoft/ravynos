@@ -79,8 +79,7 @@ export QT_ENABLE_HIGHDPI_SCALING
 /usr/local/bin/openbox --config-file ~/.openbox &
 
 # Desktop
-# FIXME: This crashes when we use QT_QPA_PLATFORMTHEME="panda" and use a non-empty stylesheet.qss; reasons unknown!
-QT_QPA_PLATFORMTHEME="" /System/Filer.AppDir/usr/bin/filer-qt --desktop & # FIXME: Use AppRun
+/System/Filer.AppDir/usr/bin/filer-qt --desktop & # FIXME: Use AppRun
 
 # Desktop notifications
 dunst &
