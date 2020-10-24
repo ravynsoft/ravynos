@@ -8,14 +8,14 @@ Continuous builds can be downloaded [here](../../releases/continuous/). __CAUTIO
 
 To minimize the amount of data when going from build to build, `.zsync` files are also provided. [More information](https://askubuntu.com/questions/54241/how-do-i-update-an-iso-with-zsync)
 
-It is also possible to directly download and write straight to a USB stick in one go. __Caution:__ This will OVERWRITE the entire contents of the USB stick.
+It is possible to directly download and write straight to a USB stick in one go. __Caution:__ This will OVERWRITE the entire contents of the USB stick.
 
 ```
 root@FreeBSD:/ # umount /dev/daX*
 root@FreeBSD:/ # curl -L "https://github.com/probonopd/furybsd-livecd/releases/download/continuous/...iso" | dd of=/dev/daX bs=4m
 ```
 
-## System Requirements for using LiveCD
+## System Requirements for live media
 
 * 2 GHz dual core processor
 * 4 GiB RAM (system memory for physical and viritualized installs)
