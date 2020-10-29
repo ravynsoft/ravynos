@@ -3,7 +3,7 @@
 # Exit on errors
 set -e
 
-version="12.1"
+version="12.2-RELEASE"
 pkgset="branches/2020Q1" # TODO: Use it
 desktop=$1
 tag=$2
@@ -100,12 +100,12 @@ base()
   # TODO: Signature checking
   if [ ! -f "${base}/base.txz" ] ; then 
     cd ${base}
-    fetch https://download.freebsd.org/ftp/releases/${arch}/${version}-RELEASE/base.txz
+    fetch https://download.freebsd.org/ftp/releases/${arch}/${version}/base.txz
   fi
   
   if [ ! -f "${base}/kernel.txz" ] ; then
     cd ${base}
-    fetch https://download.freebsd.org/ftp/releases/${arch}/${version}-RELEASE/kernel.txz
+    fetch https://download.freebsd.org/ftp/releases/${arch}/${version}/kernel.txz
   fi
   cd ${base}
   tar -zxvf base.txz -C ${uzip}
