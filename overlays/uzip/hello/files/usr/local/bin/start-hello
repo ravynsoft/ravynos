@@ -12,7 +12,9 @@ sudo kldload fuse.ko || true
 
 # Start D-Bus and export DBUS_SESSION_BUS_ADDRESS;
 # this is needed for D-Bus Activation to work, which gvfs requires to work
-export $(dbus-launch)
+if [ -z $DBUS_SESSION_BUS_ADDRESS ] ; then
+  export $(dbus-launch)
+fi
 
 # Set locale if it is not set already
 # and if /usr/local/var/localize/include exists
