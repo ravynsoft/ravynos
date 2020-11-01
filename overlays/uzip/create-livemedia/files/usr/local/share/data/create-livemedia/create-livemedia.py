@@ -1,7 +1,7 @@
 #!/usr/bin/env python3.7
 # Unfortunately python3 does not seem to work on FreeBSD
 
-# Create FuryBSD Live Media
+# Create Live Media
 # Copyright (c) 2020, Simon Peter <probono@puredarwin.org>
 # All rights reserved.
 #
@@ -102,7 +102,7 @@ class InstallWizard(QtWidgets.QWizard, object):
         self.setWizardStyle(QtWidgets.QWizard.MacStyle)
         self.setPixmap(QtWidgets.QWizard.BackgroundPixmap, QtGui.QPixmap(os.path.dirname(__file__) + '/bgusb.png'))
 
-        self.setWindowTitle("Create FuryBSD Live Media")
+        self.setWindowTitle("Create Live Media")
         self.setFixedSize(600, 400)
 
 
@@ -148,8 +148,8 @@ class IntroPage(QtWidgets.QWizardPage, object):
         print("Preparing IntroPage")
         super().__init__()
 
-        self.setTitle('Create FuryBSD Live Media')
-        self.setSubTitle("This will download a FuryBSD Live image and will write it to an attached storage device.")
+        self.setTitle('Create Live Media')
+        self.setSubTitle("This will download a Live image and will write it to an attached storage device.")
 
         self.releases_url = None
 
@@ -158,9 +158,12 @@ class IntroPage(QtWidgets.QWizardPage, object):
         # Repo dropdown
 
         self.repo_menu = QtWidgets.QComboBox()
-        self.available_repos = ["https://api.github.com/repos/furybsd/furybsd-livecd/releases", "https://api.github.com/repos/probonopd/furybsd-livecd/releases", "https://api.github.com/repos/helloSystem/ISO/releases"]
+        self.available_repos = ["https://api.github.com/repos/helloSystem/ISO/releases", "https://api.github.com/repos/probonopd/furybsd-livecd/releases"]
         for available_repo in self.available_repos:
             self.repo_menu.addItem("/".join(available_repo.split("/")[4:6]))
+        self.other_iso = "Other..."
+        self.repo_menu.addItem(self.other_iso)
+        self.available_repos.append(self.other_iso)
         self.disk_vlayout.addWidget(self.repo_menu)
         self.repo_menu.currentTextChanged.connect(self.populateImageList)
 
@@ -185,6 +188,28 @@ class IntroPage(QtWidgets.QWizardPage, object):
         self.populateImageList()
 
     def populateImageList(self):
+
+        self.available_isos = []
+        self.release_listwidget.clear()
+
+        if self.available_repos[self.repo_menu.currentIndex()] == self.other_iso:
+
+            text, okPressed = QtWidgets.QInputDialog.getText(self, "Other", "URL of the ISO", QtWidgets.QLineEdit.Normal, "https://")
+            if okPressed and text != '':
+                print(text)
+
+            available_iso = {
+                "name": os.path.basename(text),
+                "browser_download_url": text,
+                "updated_at": datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "size": str(2*1000*1000*1000) # FIXME: Can we at least attempt to get the real size from the URL?
+            }
+
+            self.available_isos.append(available_iso)
+            self.release_listwidget.addItem(available_iso["name"])
+
+            return
+
         if internetCheckConnected() == False:
             wizard.showErrorPage("This requires an active internet connection.")
             self.label.hide()  # FIXME: Why is this needed? Can we do without?
@@ -194,9 +219,6 @@ class IntroPage(QtWidgets.QWizardPage, object):
 
         url = self.available_repos[self.repo_menu.currentIndex()]
         print("Getting releases from", url)
-
-        self.available_isos = []
-        self.release_listwidget.clear()
 
         try:
             with urllib.request.urlopen(url) as url:
@@ -210,11 +232,12 @@ class IntroPage(QtWidgets.QWizardPage, object):
                                 self.available_isos.append(asset)
                                 self.release_listwidget.addItem(display_name)
         except:
-            wizard.showErrorPage("The list of available images could not be retrieved. GitHub rate limit exceeded?")
-            self.label.hide()  # FIXME: Why is this needed? Can we do without?
-            self.repo_menu.hide()  # FIXME: Why is this needed? Can we do without?
-            self.release_listwidget.hide()  # FIXME: Why is this needed? Can we do without?
-            return
+            pass
+            # wizard.showErrorPage("The list of available images could not be retrieved. GitHub rate limit exceeded?")
+            # self.label.hide()  # FIXME: Why is this needed? Can we do without?
+            # self.repo_menu.hide()  # FIXME: Why is this needed? Can we do without?
+            # self.release_listwidget.hide()  # FIXME: Why is this needed? Can we do without?
+            # return
 
 
     def onSelectionChanged(self):
@@ -273,7 +296,7 @@ class DiskPage(QtWidgets.QWizardPage, object):
 
         if wizard.required_mib_on_disk < 5:
             self.timer.stop()
-            wizard.showErrorPage("The installer script did not report the required disk space. Are you running the installer on a supported system? Can you run the installer script with sudo without needing a password?")
+            wizard.showErrorPage("The installer could not get the required disk space.")
             self.disk_listwidget.hide() # FIXME: Why is this needed? Can we do without?
             return
 
@@ -330,7 +353,7 @@ class DiskPage(QtWidgets.QWizardPage, object):
         reply = QtWidgets.QMessageBox.warning(
             wizard,
             "Warning",
-            "This will erase all contents of this disk and install the FuryBSD live system on it. Continue?",
+            "This will erase all contents of this disk and install the live system on it. Continue?",
             QtWidgets.QMessageBox.Yes,
             QtWidgets.QMessageBox.No,
         )
