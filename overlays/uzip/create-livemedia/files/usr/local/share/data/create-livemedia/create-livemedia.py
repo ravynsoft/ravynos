@@ -158,7 +158,7 @@ class IntroPage(QtWidgets.QWizardPage, object):
         # Repo dropdown
 
         self.repo_menu = QtWidgets.QComboBox()
-        self.available_repos = ["https://api.github.com/repos/helloSystem/ISO/releases", "https://api.github.com/repos/probonopd/furybsd-livecd/releases"]
+        self.available_repos = ["https://api.github.com/repos/helloSystem/ISO/releases", "https://api.github.com/repos/probonopd/furybsd-livecd/releases", "https://api.github.com/repos/probonopd/ghostbsd-build/releases"]
         for available_repo in self.available_repos:
             self.repo_menu.addItem("/".join(available_repo.split("/")[4:6]))
         self.other_iso = "Other..."
@@ -225,7 +225,7 @@ class IntroPage(QtWidgets.QWizardPage, object):
                 data = json.loads(url.read().decode())
                 # print(data)
                 for release in data:
-                    if len(release["assets"]) > 2:
+                    if len(release["assets"]) > 1:
                         for asset in release["assets"]:
                             if asset["browser_download_url"].endswith(".iso"):
                                 display_name = "%s (%s)" % (asset["name"], release["tag_name"])
