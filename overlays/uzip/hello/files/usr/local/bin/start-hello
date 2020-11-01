@@ -4,6 +4,18 @@
 # from /usr/local/share/xsessions
 # where the display manager (login window) picks it up
 
+# Enable FUSE and allow non-root users to mount, which gvfs requires to work
+# FIXME: Remove the need for those lines in this script; how?
+# FIXME: It will not work in installed mode like this, because the user may not be able to use sudo without entering a password
+sudo sysctl vfs.usermount=1 || true
+sudo kldload fuse.ko || true
+
+# Start D-Bus and export DBUS_SESSION_BUS_ADDRESS;
+# this is needed for D-Bus Activation to work, which gvfs requires to work
+if [ -z $DBUS_SESSION_BUS_ADDRESS ] ; then
+  export $(dbus-launch)
+fi
+
 # Set locale if it is not set already
 # and if /usr/local/var/localize/include exists
 # (might have been created by the localize script during boot)
