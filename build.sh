@@ -136,7 +136,8 @@ packages()
   # Workaround for kernel-related packages being broken in the default package repository
   # as long as the previous dot release is still supported; FIXME
   # https://forums.freebsd.org/threads/i915kms-package-breaks-on-12-2-release-workaround-build-from-ports.77501/
-  IGNORE_OSVERSION=yes /usr/local/sbin/pkg-static -c "${uzip}" add http://pkg.ghostbsd.org/stable/FreeBSD:12:amd64/latest/All/drm-fbsd12.0-kmod-4.16.g20200221.txz
+  # FIXME: Add https://darkness-pi.monwarez.ovh/posts/synth-repository/ properly. How?
+  IGNORE_OSVERSION=yes /usr/local/sbin/pkg-static -c "${uzip}" add https://darkness-pi.monwarez.ovh/amd64/All/drm-fbsd12.0-kmod-4.16.g20200221.txz
   /usr/local/sbin/pkg-static -c ${uzip} info > "${cdroot}/data/system.uzip.manifest"
   cp "${cdroot}/data/system.uzip.manifest" "${isopath}.manifest"
   rm ${uzip}/etc/resolv.conf
