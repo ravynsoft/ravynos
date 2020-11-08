@@ -466,6 +466,7 @@ class SuccessPage(QtWidgets.QWizardPage, object):
 
         print("Preparing SuccessPage")
         super().__init__()
+        self.timer = QtCore.QTimer()  # Used to periodically check the available disks
 
     def initializePage(self):
         print("Displaying SuccessPage")
@@ -498,6 +499,22 @@ class SuccessPage(QtWidgets.QWizardPage, object):
         self.setButtonText(wizard.CancelButton, "Quit")
         wizard.setButtonLayout([QtWidgets.QWizard.Stretch, QtWidgets.QWizard.CancelButton])
 
+        self.periodically_list_disks()
+
+    def periodically_list_disks(self):
+        print("periodically_list_disks")
+        self.list_disks()
+
+        self.timer.setInterval(3000)
+        self.timer.timeout.connect(self.list_disks)
+        self.timer.start()
+
+    def list_disks(self):
+        ds = disks.get_disks()
+        if "/dev/" + wizard.selected_disk_device not in ds:
+            print("Device was unplugged, exiting")
+            self.timer.stop()
+            sys.exit(0)
 
 #############################################################################
 # Error page
@@ -552,8 +569,8 @@ intro_page = IntroPage()
 wizard.addPage(intro_page)
 disk_page = DiskPage()
 wizard.addPage(disk_page)
-installation_page = InstallationPage()
-wizard.addPage(installation_page)
+#installation_page = InstallationPage()
+#wizard.addPage(installation_page)
 success_page = SuccessPage()
 wizard.addPage(success_page)
 
