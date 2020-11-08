@@ -48,9 +48,12 @@ if os.geteuid() != 0:
 def run(args):
     "Print, then run a command and print its output"
     print("--> " + " ".join(args))
-    for line in subprocess.check_output(args).split(b'\n'):
-        if line:
-            print("    " + str(line))
+    try:
+        for line in subprocess.check_output(args).split(b'\n'):
+            if line:
+                print("    " + str(line))
+    except:
+        print("Could not run %s", " ".join(args))
 
 
 template = """LANG="%locale%"
