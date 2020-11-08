@@ -74,10 +74,6 @@ timezone = default_timezone
 # if "LANG" in os.environ.keys() or "LOCALE" in os.environ.keys():
 #     exit(0)
 
-# TODO: Check EFI variables
-
-# Check whether a Raspberry Pi keyboard is attached and if it is,
-# use its keyboard layout
 
 # Raspberry Pi keyboards have a different iProduct string
 # depending on the keyboard layout
@@ -91,11 +87,42 @@ timezones = ["Europe/London", "Europe/London", "Europe/Paris", "Europe/Madrid",
              "America/New_York", "Europe/Berlin", "Europe/Rome", "Asia/Tokyo", "Europe/Lisbon", "Europe/Oslo",
              "Europe/Stockholm", "Europe/Helsinki", "Europe/Moscow", "Europe/Istanbul", "Europe/Jerusalem"]
 
+# Apple prev-lang EFI variable
+# https://github.com/furybsd/furybsd-livecd/issues/182
+apple_langs = ["en_GB", "en_GB", "fr", "es", "en_US", "de", "it", "", "pt_PT", "nb", "se",
+             "fi", "ru", "tr", "he"]
+           
+# Check Apple prev-lang EFI variable
+             
+relevant_line = False
+apple_lang = None
+for line in subprocess.check_output(["efivar", "-Alp"]).split(b'\n'):
+    line = line.decode('utf-8')
+    if relevant_line == True:
+        print("EFI prev-lang: %s" % line)
+        if ":" in line:
+            apple_lang = line.split(":")[0]
+            index = apple_langs.index(apple_lang)
+            # print(index)
+            country = countries[index]
+            # print(country)
+            language = languages[index]
+            # print(language)
+            locale = "%s_%s.UTF-8" % (language, country)
+            timezone = timezones[index]
+            break
+    if "prev-lang" in line:
+        relevant_line = True # The next line after this one is the one we are after
+
+# Check whether a Raspberry Pi keyboard is attached and if it is,
+# use its keyboard layout
+
 for line in subprocess.check_output("usbconfig").split(b'\n'):
-    if b"RPI Wired Keyboard" in line:
-        iProduct = line.split(b"<")[1].split(b">")[0]
+    line = line.decode('utf-8')
+    if "RPI Wired Keyboard" in line:
+        iProduct = line.split("<")[1].split(">")[0]
         print(str(iProduct))
-        index = (int(iProduct.split(b" ")[-1]))
+        index = (int(iProduct.split(" ")[-1]))
         # print(index)
         country = countries[index]
         # print(country)
