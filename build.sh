@@ -58,15 +58,23 @@ fi
 # Get the version tag
 if [ -z "$2" ] ; then
   rm /usr/local/furybsd/tag >/dev/null 2>/dev/null || true
-  export vol="FuryBSD-${version}-${edition}"
+  export vol="${desktop}-${version}"
 else
   rm /usr/local/furybsd/version >/dev/null 2>/dev/null || true
   echo "${2}" > /usr/local/furybsd/tag
-  export vol="FuryBSD-${version}-${edition}-${tag}"
+  export vol="${desktop}-${version}-${tag}"
 fi
 
 label="FURYBSD"
-isopath="${iso}/${vol}-${arch}.iso"
+
+# Get the short git SHA
+SHA=$(echo ${CIRRUS_CHANGE_IN_REPO}| cut -c1-7)
+
+if [ -z "${SHA}" ] ; then
+  isopath="${iso}/${vol}-${arch}.iso"
+else
+  isopath="${iso}/${vol}-${SHA}-${arch}.iso"
+fi
 
 cleanup()
 {
