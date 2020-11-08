@@ -197,6 +197,11 @@ if [ "${INSTALLER_ENABLE_SSH}" = "YES" ] ; then
   chroot "${FSMNT}" sysrc sshd_enable="YES"
 fi
 
+# Disable the automatic login and auto-filled username
+# TODO: Allow optional auto login for INSTALLER_USERNAME
+chroot ${FSMNT} sed -i '' -e 's/^default_user/#default_user/' /usr/local/etc/slim.conf
+chroot ${FSMNT} sed -i '' -e 's/^auto_login/#auto_login/' /usr/local/etc/slim.conf
+
 # TODO: Transfer settings from running /boot/loader.conf to installed one
 # https://github.com/furybsd/furybsd-livecd/issues/190
 # Until we have a better solution, hardcode it here too...
