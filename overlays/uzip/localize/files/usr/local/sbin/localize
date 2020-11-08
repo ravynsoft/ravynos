@@ -51,7 +51,7 @@ def run(args):
     try:
         for line in subprocess.check_output(args).split(b'\n'):
             if line:
-                print("    " + str(line))
+                print("    " + line.decode('utf-8'))
     except:
         print("Could not run %s", " ".join(args))
 
@@ -120,8 +120,13 @@ for line in subprocess.check_output(["efivar", "-Alp"]).split(b'\n'):
 # Check whether a Raspberry Pi keyboard is attached and if it is,
 # use its keyboard layout
 
+is_apple_keyboard = False
+
 for line in subprocess.check_output("usbconfig").split(b'\n'):
+    print(line)
     line = line.decode('utf-8')
+    if ("Apple" in line and "Keyboard" in line):
+        is_apple_keyboard = True
     if "RPI Wired Keyboard" in line:
         iProduct = line.split("<")[1].split(">")[0]
         print(str(iProduct))
@@ -141,7 +146,12 @@ for line in subprocess.check_output("usbconfig").split(b'\n'):
 
 if "DISPLAY" in os.environ.keys():
     run(["setxkbmap", "-layout", country.lower()])  # Works only if called as the user from within Xorg
-    run(["setxkbmap", "-variant", "nodeadkeys"])
+    if is_apple_keyboard == False:
+        run(["setxkbmap", "-variant", "nodeadkeys"])
+    else:
+        run(["setxkbmap", "-variant", "mac"])
+        run(["setxkbmap", "-model", "mac"])
+        # FIXME: Make the left alt key work so that e.g., alt-L produces @ on a German keyboard (it works with the right alt key)
     run(["setxkbmap", "-query"])
 else:
     print("setxkbmap needs to be run from within a graphical user session")
