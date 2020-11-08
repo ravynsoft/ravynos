@@ -4,7 +4,7 @@
 set -e
 
 version="12.2-RELEASE"
-pkgset="branches/2020Q1" # TODO: Use it
+# pkgset="branches/2020Q1" # TODO: Use it
 desktop=$1
 tag=$2
 export cwd=$(realpath | sed 's|/scripts||g')
@@ -137,7 +137,7 @@ packages()
   # as long as the previous dot release is still supported; FIXME
   # https://forums.freebsd.org/threads/i915kms-package-breaks-on-12-2-release-workaround-build-from-ports.77501/
   wget http://pkg.ghostbsd.org/stable/FreeBSD:12:amd64/latest/All/drm-fbsd12.0-kmod-4.16.g20200221.txz
-  /usr/local/sbin/pkg-static -c "${uzip}" install -y drm-fbsd12.0-kmod-4.16.g20200221.txz
+  /usr/local/sbin/pkg-static -c "${uzip}" install -y $(readlink -f ./drm-fbsd12.0-kmod-4.16.g20200221.txz)
   rm drm-fbsd12.0-kmod-4.16.g20200221.txz
   ###
   /usr/local/sbin/pkg-static -c ${uzip} info > "${cdroot}/data/system.uzip.manifest"
