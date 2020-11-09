@@ -99,31 +99,34 @@ apple_langs = ["en_GB", "en_GB", "fr", "es", "en_US", "de", "it", "", "pt_PT", "
              
 relevant_line = False
 apple_lang = None
-for line in subprocess.check_output(["efivar", "-Alp"]).split(b'\n'):
-    line = line.decode('utf-8')
-    if relevant_line == True:
-        print("EFI prev-lang: %s" % line)
-        if ":" in line:
-            apple_lang = line.split(":")[0]
-            index = apple_langs.index(apple_lang)
-            # print(index)
-            country = countries[index]
-            # print(country)
-            language = languages[index]
-            # print(language)
-            locale = "%s_%s.UTF-8" % (language, country)
-            timezone = timezones[index]
-            break
-    if "prev-lang" in line:
-        relevant_line = True # The next line after this one is the one we are after
-
+try:
+    for line in subprocess.check_output(["efivar", "-Alp"]).split(b'\n'):
+        line = line.decode('utf-8')
+        if relevant_line == True:
+            print("EFI prev-lang: %s" % line)
+            if ":" in line:
+                apple_lang = line.split(":")[0]
+                index = apple_langs.index(apple_lang)
+                # print(index)
+                country = countries[index]
+                # print(country)
+                language = languages[index]
+                # print(language)
+                locale = "%s_%s.UTF-8" % (language, country)
+                timezone = timezones[index]
+                break
+        if "prev-lang" in line:
+            relevant_line = True # The next line after this one is the one we are after
+except:
+    print("Could not read EFI variable prev-lang")
+    
 # Check whether a Raspberry Pi keyboard is attached and if it is,
 # use its keyboard layout
 
 is_apple_keyboard = False
 
 for line in subprocess.check_output("usbconfig").split(b'\n'):
-    print(line)
+    # print(line)
     line = line.decode('utf-8')
     if ("Apple" in line and "Keyboard" in line):
         is_apple_keyboard = True
@@ -166,3 +169,11 @@ f = open(target_file, "w+")
 f.write(template.replace("%locale%", locale).replace("%timezone%", timezone))
 f.close()
 print("--> Wrote", target_file)
+
+# It looks like this:
+# LANG="de_DE.UTF-8"
+# MM_CHARSET="de_DE.UTF-8"
+# TZ="Europe/Berlin"
+
+# Better than nothing, which defaults to English all the time.
+# FIXME: However, this is too simplistic. How can we set the keyboard model and layout per keyboard device?
