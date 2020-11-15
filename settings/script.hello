@@ -47,13 +47,6 @@ unzip Dock_FreeBSD.zip
 rm -f Dock_FreeBSD.zip
 mv * "${uzip}/System/"
 
-# Openbox theme
-wget "https://dllb2.pling.com/api/files/download/j/eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6IjE0NzI3MjM2NTAiLCJ1IjpudWxsLCJsdCI6ImRvd25sb2FkIiwicyI6ImEyOTdkYzcwMjY3ZDJmN2I2NjdkODFkZmU2Y2ZiOTBkYjJmNzM4NTQ0MjkwZDQwMmIwY2I4YzU4ZTk4NTViYzc1YmNiMjRhNDViOWYzMWFhOWZiMjgzNTdhNWJlMGQxOTEwNDVlNzFlYjZlN2Q5MDdkZmVkYzY1MWMxNjU1OWQ3IiwidCI6MTYwNTQ0NjQwMywic3RmcCI6IjQ4NWZmOGQ4ZGFmYzc1YmQyMmMwNzZlNzRkOTE2ODY3Iiwic3RpcCI6IjJhMDI6OTA4OjE4NzA6NzY0MTo0YjE5OjU5Y2E6MjIwMDpmZTljIn0.irVF_R5_4zUNgi5FaG1Uejd1rBa9xHgaPARnaAIZjbI/Arc_OSXbuttons.zip"
-unzip Arc_OSXbuttons.zip
-mkdir -p "${uzip}/usr/local/share/themes/"
-mv Arc_OSX/ "${uzip}/usr/local/share/themes/"
-rm Arc_OSXbuttons.zip
-
 # Utilities and Preferences
 mkdir -p "${uzip}/Applications/Utilities"
 mkdir -p "${uzip}/Applications/Preferences"
