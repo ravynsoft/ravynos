@@ -98,7 +98,9 @@ workspace()
   mdconfig -f "${livecd}/pool.img" -u 0
   gpart create -s GPT md0
   gpart add -t freebsd-zfs md0
+  sync ### Needed?
   zpool create furybsd /dev/md0p1
+  sync ### Needed?
   zfs set mountpoint="${uzip}" furybsd
   zfs set compression=gzip-6 furybsd
 }
@@ -240,14 +242,18 @@ script()
 uzip() 
 {
   install -o root -g wheel -m 755 -d "${cdroot}"
+  sync ### Needed?
   cd ${cwd} && zpool export furybsd && while zpool status furybsd >/dev/null; do :; done 2>/dev/null
+  sync ### Needed?
   mkuzip -S -d -o "${cdroot}/data/system.uzip" "${livecd}/pool.img"
 }
 
 ramdisk() 
 {
   cp -R "${cwd}/overlays/ramdisk/" "${ramdisk_root}"
-  cd ${cwd} && zpool import furybsd && zfs set mountpoint=/usr/local/furybsd/uzip furybsd 
+  sync ### Needed?
+  cd ${cwd} && zpool import furybsd && zfs set mountpoint=/usr/local/furybsd/uzip furybsd
+  sync ### Needed?
   cd "${uzip}" && tar -cf - rescue | tar -xf - -C "${ramdisk_root}"
   touch "${ramdisk_root}/etc/fstab"
   cp ${uzip}/etc/login.conf ${ramdisk_root}/etc/login.conf
@@ -263,12 +269,15 @@ boot()
   for kfile in kernel geom_uzip.ko opensolaris.ko tmpfs.ko xz.ko zfs.ko; do
   tar -cf - boot/kernel/${kfile} | tar -xf - -C "${cdroot}"
   done
+  sync ### Needed?
   cd ${cwd} && zpool export furybsd && mdconfig -d -u 0
+  sync ### Needed?
 }
 
 image()
 {
   sh "${cwd}/scripts/mkisoimages-${arch}.sh" -b "${label}" "${isopath}" "${cdroot}"
+  sync ### Needed?
   md5 "${isopath}" > "${isopath}.md5"
   echo "$isopath created"
 }
