@@ -145,7 +145,7 @@ packages()
   # as long as the previous dot release is still supported; FIXME
   # https://forums.freebsd.org/threads/i915kms-package-breaks-on-12-2-release-workaround-build-from-ports.77501/
   # FIXME: Add https://darkness-pi.monwarez.ovh/posts/synth-repository/ properly. How?
-  IGNORE_OSVERSION=yes /usr/local/sbin/pkg-static -c "${uzip}" add https://darkness-pi.monwarez.ovh/amd64/All/drm-fbsd12.0-kmod-4.16.g20200221.txz
+  # IGNORE_OSVERSION=yes /usr/local/sbin/pkg-static -c "${uzip}" add https://darkness-pi.monwarez.ovh/amd64/All/drm-fbsd12.0-kmod-4.16.g20200221.txz
   /usr/local/sbin/pkg-static -c ${uzip} info > "${cdroot}/data/system.uzip.manifest"
   cp "${cdroot}/data/system.uzip.manifest" "${isopath}.manifest"
   rm ${uzip}/etc/resolv.conf
