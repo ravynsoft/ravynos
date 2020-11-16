@@ -48,9 +48,12 @@ if os.geteuid() != 0:
 def run(args):
     "Print, then run a command and print its output"
     print("--> " + " ".join(args))
-    for line in subprocess.check_output(args).split(b'\n'):
-        if line:
-            print("    " + str(line))
+    try:
+        for line in subprocess.check_output(args).split(b'\n'):
+            if line:
+                print("    " + line.decode('utf-8'))
+    except:
+        print("Could not run %s", " ".join(args))
 
 
 template = """LANG="%locale%"
@@ -74,10 +77,6 @@ timezone = default_timezone
 # if "LANG" in os.environ.keys() or "LOCALE" in os.environ.keys():
 #     exit(0)
 
-# TODO: Check EFI variables
-
-# Check whether a Raspberry Pi keyboard is attached and if it is,
-# use its keyboard layout
 
 # Raspberry Pi keyboards have a different iProduct string
 # depending on the keyboard layout
@@ -91,11 +90,50 @@ timezones = ["Europe/London", "Europe/London", "Europe/Paris", "Europe/Madrid",
              "America/New_York", "Europe/Berlin", "Europe/Rome", "Asia/Tokyo", "Europe/Lisbon", "Europe/Oslo",
              "Europe/Stockholm", "Europe/Helsinki", "Europe/Moscow", "Europe/Istanbul", "Europe/Jerusalem"]
 
+# Apple prev-lang EFI variable
+# https://github.com/furybsd/furybsd-livecd/issues/182
+apple_langs = ["en_GB", "en_GB", "fr", "es", "en_US", "de", "it", "", "pt_PT", "nb", "se",
+             "fi", "ru", "tr", "he"]
+           
+# Check Apple prev-lang EFI variable
+             
+relevant_line = False
+apple_lang = None
+try:
+    for line in subprocess.check_output(["efivar", "-Alp"]).split(b'\n'):
+        line = line.decode('utf-8')
+        if relevant_line == True:
+            print("EFI prev-lang: %s" % line)
+            if ":" in line:
+                apple_lang = line.split(":")[0]
+                index = apple_langs.index(apple_lang)
+                # print(index)
+                country = countries[index]
+                # print(country)
+                language = languages[index]
+                # print(language)
+                locale = "%s_%s.UTF-8" % (language, country)
+                timezone = timezones[index]
+                break
+        if "prev-lang" in line:
+            relevant_line = True # The next line after this one is the one we are after
+except:
+    print("Could not read EFI variable prev-lang")
+    
+# Check whether a Raspberry Pi keyboard is attached and if it is,
+# use its keyboard layout
+
+is_apple_keyboard = False
+
 for line in subprocess.check_output("usbconfig").split(b'\n'):
-    if b"RPI Wired Keyboard" in line:
-        iProduct = line.split(b"<")[1].split(b">")[0]
+    # print(line)
+    line = line.decode('utf-8')
+    if ("Apple" in line and "Keyboard" in line):
+        is_apple_keyboard = True
+    if "RPI Wired Keyboard" in line:
+        iProduct = line.split("<")[1].split(">")[0]
         print(str(iProduct))
-        index = (int(iProduct.split(b" ")[-1]))
+        index = (int(iProduct.split(" ")[-1]))
         # print(index)
         country = countries[index]
         # print(country)
@@ -111,7 +149,12 @@ for line in subprocess.check_output("usbconfig").split(b'\n'):
 
 if "DISPLAY" in os.environ.keys():
     run(["setxkbmap", "-layout", country.lower()])  # Works only if called as the user from within Xorg
-    run(["setxkbmap", "-variant", "nodeadkeys"])
+    if is_apple_keyboard == False:
+        run(["setxkbmap", "-variant", "nodeadkeys"])
+    else:
+        run(["setxkbmap", "-variant", "mac"])
+        run(["setxkbmap", "-model", "mac"])
+        # FIXME: Make the left alt key work so that e.g., alt-L produces @ on a German keyboard (it works with the right alt key)
     run(["setxkbmap", "-query"])
 else:
     print("setxkbmap needs to be run from within a graphical user session")
@@ -126,3 +169,11 @@ f = open(target_file, "w+")
 f.write(template.replace("%locale%", locale).replace("%timezone%", timezone))
 f.close()
 print("--> Wrote", target_file)
+
+# It looks like this:
+# LANG="de_DE.UTF-8"
+# MM_CHARSET="de_DE.UTF-8"
+# TZ="Europe/Berlin"
+
+# Better than nothing, which defaults to English all the time.
+# FIXME: However, this is too simplistic. How can we set the keyboard model and layout per keyboard device?

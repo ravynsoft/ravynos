@@ -4,7 +4,7 @@
 set -e
 
 version="12.2-RELEASE"
-pkgset="branches/2020Q1" # TODO: Use it
+# pkgset="branches/2020Q1" # TODO: Use it
 desktop=$1
 tag=$2
 export cwd=$(realpath | sed 's|/scripts||g')
@@ -58,15 +58,23 @@ fi
 # Get the version tag
 if [ -z "$2" ] ; then
   rm /usr/local/furybsd/tag >/dev/null 2>/dev/null || true
-  export vol="FuryBSD-${version}-${edition}"
+  export vol="${desktop}-${version}"
 else
   rm /usr/local/furybsd/version >/dev/null 2>/dev/null || true
   echo "${2}" > /usr/local/furybsd/tag
-  export vol="FuryBSD-${version}-${edition}-${tag}"
+  export vol="${desktop}-${version}-${tag}"
 fi
 
 label="FURYBSD"
-isopath="${iso}/${vol}-${arch}.iso"
+
+# Get the short git SHA
+SHA=$(echo ${CIRRUS_CHANGE_IN_REPO}| cut -c1-7)
+
+if [ -z "${SHA}" ] ; then
+  isopath="${iso}/${vol}-${arch}.iso"
+else
+  isopath="${iso}/${vol}-${SHA}-${arch}.iso"
+fi
 
 cleanup()
 {
@@ -90,7 +98,9 @@ workspace()
   mdconfig -f "${livecd}/pool.img" -u 0
   gpart create -s GPT md0
   gpart add -t freebsd-zfs md0
+  sync ### Needed?
   zpool create furybsd /dev/md0p1
+  sync ### Needed?
   zfs set mountpoint="${uzip}" furybsd
   zfs set compression=gzip-6 furybsd
 }
@@ -133,6 +143,11 @@ packages()
       /usr/local/sbin/pkg-static -c ${uzip} install -y /var/cache/pkg/"${p}"-0.txz
     done <"${cwd}/settings/overlays.${desktop}"
   fi
+  # Workaround for kernel-related packages being broken in the default package repository
+  # as long as the previous dot release is still supported; FIXME
+  # https://forums.freebsd.org/threads/i915kms-package-breaks-on-12-2-release-workaround-build-from-ports.77501/
+  # FIXME: Add https://darkness-pi.monwarez.ovh/posts/synth-repository/ properly. How?
+  # IGNORE_OSVERSION=yes /usr/local/sbin/pkg-static -c "${uzip}" add https://darkness-pi.monwarez.ovh/amd64/All/drm-fbsd12.0-kmod-4.16.g20200221.txz
   /usr/local/sbin/pkg-static -c ${uzip} info > "${cdroot}/data/system.uzip.manifest"
   cp "${cdroot}/data/system.uzip.manifest" "${isopath}.manifest"
   rm ${uzip}/etc/resolv.conf
@@ -227,14 +242,18 @@ script()
 uzip() 
 {
   install -o root -g wheel -m 755 -d "${cdroot}"
+  sync ### Needed?
   cd ${cwd} && zpool export furybsd && while zpool status furybsd >/dev/null; do :; done 2>/dev/null
+  sync ### Needed?
   mkuzip -S -d -o "${cdroot}/data/system.uzip" "${livecd}/pool.img"
 }
 
 ramdisk() 
 {
   cp -R "${cwd}/overlays/ramdisk/" "${ramdisk_root}"
-  cd ${cwd} && zpool import furybsd && zfs set mountpoint=/usr/local/furybsd/uzip furybsd 
+  sync ### Needed?
+  cd ${cwd} && zpool import furybsd && zfs set mountpoint=/usr/local/furybsd/uzip furybsd
+  sync ### Needed?
   cd "${uzip}" && tar -cf - rescue | tar -xf - -C "${ramdisk_root}"
   touch "${ramdisk_root}/etc/fstab"
   cp ${uzip}/etc/login.conf ${ramdisk_root}/etc/login.conf
@@ -250,12 +269,15 @@ boot()
   for kfile in kernel geom_uzip.ko opensolaris.ko tmpfs.ko xz.ko zfs.ko; do
   tar -cf - boot/kernel/${kfile} | tar -xf - -C "${cdroot}"
   done
+  sync ### Needed?
   cd ${cwd} && zpool export furybsd && mdconfig -d -u 0
+  sync ### Needed?
 }
 
 image()
 {
   sh "${cwd}/scripts/mkisoimages-${arch}.sh" -b "${label}" "${isopath}" "${cdroot}"
+  sync ### Needed?
   md5 "${isopath}" > "${isopath}.md5"
   echo "$isopath created"
 }
