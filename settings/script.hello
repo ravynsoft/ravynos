@@ -68,7 +68,8 @@ rm -rf urw-base35-fonts-20200910/ 20200910.zip
 mkdir -p "${uzip}/Applications"
 cd "${uzip}/Applications"
 cp "${uzip}"/usr/local/share/applications/chromium-browser.desktop .
-cp "${uzip}"/usr/local/share/applications/featherpad.desktop  .
+cp "${uzip}"/usr/local/share/applications/featherpad.desktop .
+cp "${uzip}"/usr/local/share/applications/qpdfview.desktop .
 mkdir -p "${uzip}"/usr/share/skel/Desktop
 cd "${uzip}"/usr/share/skel/Desktop/
 ln -s /Applications .
@@ -79,6 +80,7 @@ cp "${uzip}"/usr/local/share/applications/dsbmixer.desktop .
 cp "${uzip}"/usr/local/share/applications/lxqt-config-globalkeyshortcuts.desktop .
 cp "${uzip}"/usr/local/share/applications/fury-config-wifi.desktop .
 cp "${uzip}"/usr/local/share/applications/fury-config-xorg.desktop .
+# cp "${uzip}"/usr/local/share/applications/nvidia-settings.desktop .
 
 # More Utilities
 cd "${uzip}/Applications/Utilities"
