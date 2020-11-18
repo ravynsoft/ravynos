@@ -211,7 +211,8 @@ cat >> "${FSMNT}/boot/loader.conf" <<\EOF
 # and fix resolution setting for Intel
 boot_mute="YES"
 beastie_disable="YES"
-autoboot_delay=0
+autoboot_delay="3"
+console="comconsole"
 EOF
 
 # Cleanup
