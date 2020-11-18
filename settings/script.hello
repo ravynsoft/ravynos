@@ -36,6 +36,13 @@ unzip launch_FreeBSD.zip
 mv launch "${uzip}/usr/local/bin/"
 rm -f launch_FreeBSD.zip
 
+# DSBexec
+# FIXME: Get it into ports, and install it from a package instead
+wget https://github.com/helloSystem/DSBexec/releases/download/continuous/dsbexec_FreeBSD.zip
+unzip dsbexec_FreeBSD.zip
+mv dsbexec "${uzip}/usr/local/bin/"
+rm -f dsbexec_FreeBSD.zip
+
 # Menu
 wget https://github.com/helloSystem/Menu/releases/download/continuous/Menu_FreeBSD.zip
 unzip Menu_FreeBSD.zip
