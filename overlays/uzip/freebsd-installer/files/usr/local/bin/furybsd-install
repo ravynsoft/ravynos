@@ -150,6 +150,7 @@ else
       fi
     done
     echo "${username}:::::::::${password}" | chroot "${FSMNT}" adduser -f - && \
+      chroot "${FSMNT}" pw usermod "${username}" -s /usr/local/bin/zsh
       chroot "${FSMNT}" pw groupmod wheel -m "${username}" && \
       chroot "${FSMNT}" pw groupmod video -m "${username}" && \
       chroot "${FSMNT}" pw groupmod webcamd -m "${username}" && break
