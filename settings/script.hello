@@ -79,7 +79,7 @@ cp "${uzip}"/usr/local/share/applications/featherpad.desktop .
 cp "${uzip}"/usr/local/share/applications/qpdfview.desktop .
 mkdir -p "${uzip}"/usr/share/skel/Desktop
 cd "${uzip}"/usr/share/skel/Desktop/
-ln -s /Applications .
+# ln -s /Applications .
 
 # More Preferences
 cd "${uzip}/Applications/Preferences"
