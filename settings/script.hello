@@ -15,6 +15,9 @@ cd /tmp/system-overlay
 # https://papers.co/desktop/vm16-abstract-blue-rhytm-pattern/
 wget "https://res.allmacwallpaper.com/get/iMac-21-inch-wallpapers/Minimalist-blue-1920x1080/1686-9.jpg" -O "${uzip}"/usr/local/share/slim/themes/default/background.jpg
 
+# Icon
+wget "https://raw.githubusercontent.com/helloSystem/hello/master/branding/computer-hello.png" -O "${uzip}"/usr/local/share/icons/elementary-xfce/devices/128/computer-hello.png
+
 # Filer
 wget https://github.com/helloSystem/Filer/releases/download/continuous/Filer_FreeBSD.zip
 unzip Filer_FreeBSD.zip
