@@ -263,12 +263,6 @@ if __name__ == "__main__":
     # FIXME: Need to restart menu so that it recognizes
     # the newly installed application
 
-    try:
-        subprocess.call(["killall", "panda-statusbar"])
-    except:
-        pass
-
-    try:
+    subprocess.run(["killall", "panda-statusbar"])
+    if result.returncode == 0:
         subprocess.call(["launch", "/System/Menu.AppDir/usr/bin/panda-statusbar"])
-    except:
-        pass
