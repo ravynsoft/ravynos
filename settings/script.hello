@@ -76,15 +76,13 @@ rm -rf urw-base35-fonts-20200910/ 20200910.zip
 
 # Applications
 mkdir -p "${uzip}/Applications"
-cd "${uzip}/Applications"
-cp "${uzip}"/usr/local/share/applications/chromium-browser.desktop .
-cp "${uzip}"/usr/local/share/applications/featherpad.desktop .
-cp "${uzip}"/usr/local/share/applications/qpdfview.desktop .
-chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/chromium-browser.desktop .
-chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/featherpad.desktop .
-chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/qpdfview.desktop .
-mkdir -p "${uzip}"/usr/share/skel/Desktop
-cd "${uzip}"/usr/share/skel/Desktop/
+chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/chromium-browser.desktop /Applications/
+chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/featherpad.desktop /Applications/
+chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/qpdfview.desktop /Applications/
+
+# Links on the Desktop
+# mkdir -p "${uzip}"/usr/share/skel/Desktop
+# cd "${uzip}"/usr/share/skel/Desktop/
 # ln -s /Applications .
 
 # More Preferences
@@ -93,10 +91,13 @@ cp "${uzip}"/usr/local/share/applications/dsbmixer.desktop .
 cp "${uzip}"/usr/local/share/applications/lxqt-config-globalkeyshortcuts.desktop .
 cp "${uzip}"/usr/local/share/applications/fury-config-wifi.desktop .
 cp "${uzip}"/usr/local/share/applications/fury-config-xorg.desktop .
-chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/dsbmixer.desktop .
-chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/lxqt-config-globalkeyshortcuts.desktop .
-chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/fury-config-wifi.desktop .
-chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/fury-config-xorg.desktop .
+chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/dsbmixer.desktop /Applications/Preferences/
+chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/lxqt-config-globalkeyshortcuts.desktop /Applications/Preferences/
+chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/fury-config-wifi.desktop /Applications/Preferences/
+chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/fury-config-xorg.desktop /Applications/Preferences/
+chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/arandr.desktop /Applications/Preferences/
+chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/system-config-printer.desktop /Applications/Preferences/
+chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/dsbmixer.desktop /Applications/Preferences/
 # cp "${uzip}"/usr/local/share/applications/nvidia-settings.desktop .
 
 # More Utilities
@@ -106,8 +107,8 @@ cp "${uzip}"/usr/local/share/applications/create-livemedia.desktop .
 cp "${uzip}"/usr/local/share/applications/org.kde.ark.desktop .
 cp "${uzip}"/usr/local/share/applications/org.kde.systemmonitor.desktop .
 cp "${uzip}"/usr/local/share/applications/qterminal.desktop .
-chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/freebsd-install.desktop .
-chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/create-livemedia.desktop .
-chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/org.kde.ark.desktop .
-chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/org.kde.systemmonitor.desktop .
-chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/qterminal.desktop .
+chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/freebsd-install.desktop /Applications/Utilities/
+chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/create-livemedia.desktop /Applications/Utilities/
+chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/org.kde.ark.desktop /Applications/Utilities/
+chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/org.kde.systemmonitor.desktop /Applications/Utilities/
+chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/qterminal.desktop /Applications/Utilities/
