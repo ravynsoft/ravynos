@@ -265,4 +265,4 @@ if __name__ == "__main__":
 
     result = subprocess.run(["killall", "panda-statusbar"])
     if result.returncode == 0:
-        subprocess.call(["launch", "/System/Menu.AppDir"])
+        subprocess.call(["/System/Menu.AppDir/usr/bin/panda-statusbar"]) # FIXME: Workaround for https://github.com/helloSystem/launch/issues/4
