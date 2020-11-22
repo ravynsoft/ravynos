@@ -80,9 +80,9 @@ cd "${uzip}/Applications"
 cp "${uzip}"/usr/local/share/applications/chromium-browser.desktop .
 cp "${uzip}"/usr/local/share/applications/featherpad.desktop .
 cp "${uzip}"/usr/local/share/applications/qpdfview.desktop .
-"${uzip}"/usr/local/bin/desktop2app "${uzip}"/usr/local/share/applications/chromium-browser.desktop .
-"${uzip}"/usr/local/bin/desktop2app "${uzip}"/usr/local/share/applications/featherpad.desktop .
-"${uzip}"/usr/local/bin/desktop2app "${uzip}"/usr/local/share/applications/qpdfview.desktop .
+chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/chromium-browser.desktop .
+chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/featherpad.desktop .
+chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/qpdfview.desktop .
 mkdir -p "${uzip}"/usr/share/skel/Desktop
 cd "${uzip}"/usr/share/skel/Desktop/
 # ln -s /Applications .
@@ -93,10 +93,10 @@ cp "${uzip}"/usr/local/share/applications/dsbmixer.desktop .
 cp "${uzip}"/usr/local/share/applications/lxqt-config-globalkeyshortcuts.desktop .
 cp "${uzip}"/usr/local/share/applications/fury-config-wifi.desktop .
 cp "${uzip}"/usr/local/share/applications/fury-config-xorg.desktop .
-"${uzip}"/usr/local/bin/desktop2app "${uzip}"/usr/local/share/applications/dsbmixer.desktop .
-"${uzip}"/usr/local/bin/desktop2app "${uzip}"/usr/local/share/applications/lxqt-config-globalkeyshortcuts.desktop .
-"${uzip}"/usr/local/bin/desktop2app "${uzip}"/usr/local/share/applications/fury-config-wifi.desktop .
-"${uzip}"/usr/local/bin/desktop2app "${uzip}"/usr/local/share/applications/fury-config-xorg.desktop .
+chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/dsbmixer.desktop .
+chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/lxqt-config-globalkeyshortcuts.desktop .
+chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/fury-config-wifi.desktop .
+chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/fury-config-xorg.desktop .
 # cp "${uzip}"/usr/local/share/applications/nvidia-settings.desktop .
 
 # More Utilities
@@ -106,8 +106,8 @@ cp "${uzip}"/usr/local/share/applications/create-livemedia.desktop .
 cp "${uzip}"/usr/local/share/applications/org.kde.ark.desktop .
 cp "${uzip}"/usr/local/share/applications/org.kde.systemmonitor.desktop .
 cp "${uzip}"/usr/local/share/applications/qterminal.desktop .
-"${uzip}"/usr/local/bin/desktop2app "${uzip}"/usr/local/share/applications/freebsd-install.desktop .
-"${uzip}"/usr/local/bin/desktop2app "${uzip}"/usr/local/share/applications/create-livemedia.desktop .
-"${uzip}"/usr/local/bin/desktop2app "${uzip}"/usr/local/share/applications/org.kde.ark.desktop .
-"${uzip}"/usr/local/bin/desktop2app "${uzip}"/usr/local/share/applications/org.kde.systemmonitor.desktop .
-"${uzip}"/usr/local/bin/desktop2app "${uzip}"/usr/local/share/applications/qterminal.desktop .
+chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/freebsd-install.desktop .
+chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/create-livemedia.desktop .
+chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/org.kde.ark.desktop .
+chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/org.kde.systemmonitor.desktop .
+chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/qterminal.desktop .
