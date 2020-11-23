@@ -15,7 +15,7 @@ if [ -z "${arch}" ] ; then
 fi
 cache="${livecd}/${arch}/cache"
 base="${cache}/${version}/base"
-packages="${cache}/packages"
+export packages="${cache}/packages"
 iso="${livecd}/iso"
   if [ -n "$CIRRUS_CI" ] ; then
     # On Cirrus CI ${livecd} is in tmpfs for speed reasons
