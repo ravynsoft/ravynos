@@ -1,17 +1,5 @@
 #!/usr/local/bin/python3.7
 
-# Note that the shebang cannot be /usr/bin/env ... if this script is intended to
-# be run by rc.d
-
-# This implements enough of the XDG spec to create .app bundles for desktop files.
-# If someone cares enough about the convoluted XDG spec to implement it more fully,
-# https://github.com/jceb/dex/blob/master/dex might be a good starting point.
-# It is refreshing to see how straightforward things are in GNUstep compared to XDG.
-
-# USAGE: $0 <desktop file or directory containing desktop files> [<destination directory>]
-# or, to watch the system for new desktop files, just call it without arguments
-
-
 # Copyright (c) 2020, Simon Peter <probono@puredarwin.org>
 # All rights reserved.
 #
@@ -37,6 +25,18 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
+# Note that the shebang cannot be /usr/bin/env ... if this script is intended to
+# be run by rc.d
+
+# This implements enough of the XDG spec to create .app bundles for desktop files.
+# If someone cares enough about the convoluted XDG spec to implement it more fully,
+# https://github.com/jceb/dex/blob/master/dex might be a good starting point.
+# It is refreshing to see how straightforward things are in GNUstep compared to XDG.
+
+# USAGE: $0 <desktop file or directory containing desktop files> [<destination directory>]
+# or, to watch the system for new desktop files, just call it without arguments
+
+
 import os, sys, stat, shutil, subprocess, plistlib, signal, time
 from xdg import IniFile, IconTheme  # pkg install py37-xdg
 
@@ -50,19 +50,19 @@ def d2a(desktopfile, destination):
 
     if not "Desktop Entry" in i.content.keys():
         print("No Desktop Entry section, hence skipping '%s'" % desktopfile)
-        return
+        return False
 
     if "Name" in i.content["Desktop Entry"].keys():
         name = i.content["Desktop Entry"]["Name"]
     else:
         print("No Name=..., hence skipping '%s'" % desktopfile)
-        return
+        return False
     if "Exec" in i.content["Desktop Entry"].keys():
         exec = i.content["Desktop Entry"]["Exec"]
         exec = exec.replace(" %f", "").replace(" %F", "").replace(" %u", "").replace(" %U", "")
     else:
         print("No Exec=..., hence skipping '%s'" % desktopfile)
-        return
+        return False
     if "Comment" in i.content["Desktop Entry"].keys():
         description = i.content["Desktop Entry"]["Comment"]
     else:
@@ -71,19 +71,27 @@ def d2a(desktopfile, destination):
         icon = i.content["Desktop Entry"]["Icon"]
     else:
         print("No Icon=..., hence skipping '%s'" % desktopfile)
-        return
-    iconfile = IconTheme.getIconPath(icon, size=48, extensions=['png'])
-    svgiconfile = IconTheme.getIconPath(icon, size=48, extensions=['svg'])
+        return False
+
+    # FIXME: Do not hardcode the name of the theme here;
+    # seemingly PyQt5 can give us icons from the currently selected Qt theme;
+    # hence we need to rewrite the icon retrieval part in PyQt5
+    iconfile = IconTheme.getIconPath(icon, size=128, extensions=['png'], theme='elementary-xfce')
+    svgiconfile = IconTheme.getIconPath(icon, extensions=['svg'], theme='elementary-xfce')
 
     if svgiconfile == None and (iconfile == None or os.path.exists(iconfile) == False):
 
         print("The icon '%s' does not exist" % icon)
-        return
+        print("svgiconfile: '%s'" % svgiconfile)
+        print("iconfile: '%s'" % iconfile)
+        if iconfile != None:
+            print("os.path.exists(iconfile) '%s':" % os.path.exists(iconfile))
+        return False
     else:
         if iconfile == None or os.path.exists(iconfile) == False:
             if os.path.exists(svgiconfile) == False:
                 print("The icon '%s' does not exist" % icon)
-                return
+                return False
 
     if "MimeType" in i.content["Desktop Entry"].keys():
         mime = i.content["Desktop Entry"]["MimeType"]
@@ -91,7 +99,7 @@ def d2a(desktopfile, destination):
         mime = None
     if i.content["Desktop Entry"]["Type"] != "Application":
         print("Not using %s because it is not an application" % desktopfile)
-        return
+        return False
 
     print("Using %s" % desktopfile)
 
@@ -100,28 +108,25 @@ def d2a(desktopfile, destination):
             print("Removing pre-existing .app bundle '%s/%s.app'" % (destination, name))
             shutil.rmtree("%s/%s.app" % (destination, name))
         except:
-            print("Could not remove pre-existing .app bundle, exiting")
-            return
+            print("Could not remove pre-existing .app bundle. Missing permissions? exiting")
+            return False
 
     try:
         os.makedirs("%s/%s.app/Resources" % (destination, name))
     except:
-        print("Could not create .app bundle, exiting")
-        return
+        print("Could not create .app bundle. Missing permissions? Exiting")
+        return False
 
     if iconfile == None and svgiconfile == None:
         print("Could not find a suitable icon for %s', exiting" % icon)
-        return
-    elif iconfile != None:
+        return False
+    if svgiconfile != None:
+        print("Using icon from %s" % iconfile)
+        shutil.copyfile(svgiconfile, ("%s/%s.app/Resources/%s.svg" % (destination, name, name)))
+    if iconfile != None:
         print("Using icon from %s" % iconfile)
         shutil.copyfile(iconfile, ("%s/%s.app/Resources/%s.png" % (destination, name, name)))
-    elif iconfile == None and svgiconfile != None:
-        print("Could not find a png icon for '%s', converting '%s' to png" % (icon, svgiconfile))
-        try:
-            subprocess.call(["rsvg-convert", "-a", "-w", "48", "-h", "48", svgiconfile, "-o", ("%s/%s.app/Resources/%s.png" % (destination, name, name))])
-        except:
-            print("The conversion of '%s' to png failed. Is rsvg-convert installed?")
-            return
+
 
 
     launcher = """#!/bin/sh
@@ -161,6 +166,7 @@ def d2a(desktopfile, destination):
     fileName.close()
 
     print("Wrapper placed in %s/%s.app" % (destination, name))
+    return True
 
 
 well_known_desktop_file_locations = [
@@ -194,6 +200,7 @@ def directory_changed(path):
                 time.sleep(1)
                 print("Creating wrapper for' %s'" % (df))
                 d2a(df, "/Applications/")
+                update_menu()
                 handled_desktop_files_in_system.append(df)
 
 def get_desktop_files_in_system():
@@ -206,6 +213,23 @@ def get_desktop_files_in_system():
     return(all_desktopfiles)
 
 handled_desktop_files_in_system = []
+
+
+def update_menu():
+    # FIXME: Do not hardcode the following; use the 'launch' command instead
+    # Blocked by https://github.com/helloSystem/launch/issues/4
+    # The ideal solution will be to remove the need for restarting the menu
+    # altogether, e.g., by 'pinging' the menu e.g., that there is a new app... e.g., using SIGUSR1
+    try:
+        retcode = subprocess.call(["killall", "panda-statusbar"])  # Not detached for retcode
+    except:
+        pass
+    if retcode == 0:
+        try:
+            subprocess.Popen(["panda-statusbar"], start_new_session=True, stdin=None, stdout=None)  # Detached
+        except:
+            pass
+
 
 if __name__ == "__main__":
 
@@ -258,11 +282,10 @@ if __name__ == "__main__":
         for desktopfile in desktopfiles:
             d2a(desktopfile, destination)
     else:
-        d2a(desktopfile_or_directory, destination)
+        succeeded = d2a(desktopfile_or_directory, destination)
 
-    # FIXME: Need to restart menu so that it recognizes
-    # the newly installed application
+    if succeeded == False:
+        exit(1)
 
-    result = subprocess.run(["killall", "panda-statusbar"])
-    if result.returncode == 0:
-        subprocess.call(["/System/Menu.AppDir/usr/bin/panda-statusbar"]) # FIXME: Workaround for https://github.com/helloSystem/launch/issues/4
+    update_menu()
+

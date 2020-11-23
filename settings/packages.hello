@@ -44,8 +44,6 @@ dbus
 qterminal
 # Lightweight Qt5 plain-text editor
 featherpad
-# Screenshot and annotation tool
-ksnip
 # Archive tool; FIXME: Find something similarly usable with less Kf5 dependencies
 ark
 # GTK module for putting application menubar in a global menubar
@@ -64,3 +62,7 @@ py37-xdg
 py37-psutil
 # The 'app' command needs fusefs-unionfs
 fusefs-unionfs
+# Force-quit applications using Ctrl-Alt-Esc
+xkill
+# Take screenshots; FIXME: Replace by ksnip once it does not segfault anymore
+lximage-qt

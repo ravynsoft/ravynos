@@ -93,7 +93,6 @@ class InstallWizard(QtWidgets.QWizard, object):
         self.timezone = None
         self.required_mib_on_disk = 0
 
-
         # TODO: Make sure it is actually executable
 
         self.should_show_last_page = False

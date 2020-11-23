@@ -55,7 +55,11 @@ rm -f Menu_FreeBSD.zip
 wget https://github.com/helloSystem/Dock/releases/download/continuous/Dock_FreeBSD.zip
 unzip Dock_FreeBSD.zip
 rm -f Dock_FreeBSD.zip
+
 mv * "${uzip}/System/"
+
+# Symlink panda-statusbar in place; FIXME: Remove once desktop2app does not need to restart it from there anymore
+chroot "${uzip}" ln -s /System/Menu.AppDir/usr/bin/panda-statusbar /usr/local/bin
 
 # Utilities and Preferences
 mkdir -p "${uzip}/Applications/Utilities"
@@ -76,6 +80,7 @@ rm -rf urw-base35-fonts-20200910/ 20200910.zip
 
 # Applications
 mkdir -p "${uzip}/Applications"
+chmod g+w "${uzip}/Applications"
 chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/chromium-browser.desktop /Applications/
 chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/featherpad.desktop /Applications/
 chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/qpdfview.desktop /Applications/
@@ -86,11 +91,8 @@ chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/qpdfvi
 # ln -s /Applications .
 
 # More Preferences
-cd "${uzip}/Applications/Preferences"
-cp "${uzip}"/usr/local/share/applications/dsbmixer.desktop .
-cp "${uzip}"/usr/local/share/applications/lxqt-config-globalkeyshortcuts.desktop .
-cp "${uzip}"/usr/local/share/applications/fury-config-wifi.desktop .
-cp "${uzip}"/usr/local/share/applications/fury-config-xorg.desktop .
+mkdir -p "${uzip}/Applications/Preferences"
+chmod g+w "${uzip}/Applications/Preferences"
 chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/dsbmixer.desktop /Applications/Preferences/
 chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/lxqt-config-globalkeyshortcuts.desktop /Applications/Preferences/
 chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/fury-config-wifi.desktop /Applications/Preferences/
@@ -98,17 +100,19 @@ chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/fury-c
 chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/arandr.desktop /Applications/Preferences/
 chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/system-config-printer.desktop /Applications/Preferences/
 chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/dsbmixer.desktop /Applications/Preferences/
-# cp "${uzip}"/usr/local/share/applications/nvidia-settings.desktop .
 
 # More Utilities
-cd "${uzip}/Applications/Utilities"
-cp "${uzip}"/usr/local/share/applications/freebsd-install.desktop .
-cp "${uzip}"/usr/local/share/applications/create-livemedia.desktop .
-cp "${uzip}"/usr/local/share/applications/org.kde.ark.desktop .
-cp "${uzip}"/usr/local/share/applications/org.kde.systemmonitor.desktop .
-cp "${uzip}"/usr/local/share/applications/qterminal.desktop .
-chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/freebsd-install.desktop /Applications/Utilities/
-chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/create-livemedia.desktop /Applications/Utilities/
+mkdir -p "${uzip}/Applications/Utilities"
+chmod g+w "${uzip}/Applications/Utilities"
+cd "${uzip}/Applications/Utilities" # FIXME: Move to .app
+cp "${uzip}"/usr/local/share/applications/freebsd-install.desktop . # FIXME: Move to .app
+cp "${uzip}"/usr/local/share/applications/create-livemedia.desktop . # FIXME: Move to .app
+# chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/freebsd-install.desktop /Applications/Utilities/ # FIXME: Move to .app
+# chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/create-livemedia.desktop /Applications/Utilities/ # FIXME: Move to .app
 chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/org.kde.ark.desktop /Applications/Utilities/
 chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/org.kde.systemmonitor.desktop /Applications/Utilities/
 chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/qterminal.desktop /Applications/Utilities/
+
+# Desktop
+chroot "${uzip}" /usr/local/bin/desktop2app /usr/share/skel/Desktop/computer.desktop /usr/share/skel/Desktop/
+rm -f /usr/share/skel/Desktop/computer.desktop
