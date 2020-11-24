@@ -203,17 +203,16 @@ fi
 chroot ${FSMNT} sed -i '' -e 's/^default_user/#default_user/' /usr/local/etc/slim.conf
 chroot ${FSMNT} sed -i '' -e 's/^auto_login/#auto_login/' /usr/local/etc/slim.conf
 
-# TODO: Transfer settings from running /boot/loader.conf to installed one
-# https://github.com/furybsd/furybsd-livecd/issues/190
 # Until we have a better solution, hardcode it here too...
 cat >> "${FSMNT}/boot/loader.conf" <<\EOF
-# cp /boot/loader.conf ${FSMNT}/boot
-# Decrease boot verbosity, show splash
-# and fix resolution setting for Intel
+# TODO: Transfer settings from Live ISO /boot/loader.conf to installed one
+# https://github.com/furybsd/furybsd-livecd/issues/190
 boot_mute="YES"
 beastie_disable="YES"
 autoboot_delay="3"
 console="comconsole"
+hw.psm.elantech_support="1"
+hw.psm.synaptics_support="1"
 EOF
 
 # Cleanup
