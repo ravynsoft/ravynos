@@ -112,7 +112,7 @@ chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/qtermi
 
 # Desktop
 chroot "${uzip}" /usr/local/bin/desktop2app /usr/share/skel/Desktop/computer.desktop /usr/share/skel/Desktop/
-rm -f /usr/share/skel/Desktop/computer.desktop
+rm -f "${uzip}"/usr/share/skel/Desktop/computer.desktop
 
 # Workaround for: appmenu-gtk-module is not yet in quarterly packages; FIXME: install it from the packages once it is there
 # https://github.com/helloSystem/ISO/issues/20
