@@ -66,9 +66,11 @@ mkdir -p "${uzip}/Applications/Utilities"
 mkdir -p "${uzip}/Applications/Preferences"
 wget https://github.com/helloSystem/Utilities/archive/master.zip
 unzip master.zip
-mv Utilities-master/Zeroconf.app "${uzip}/Applications/Utilities/"
+mv 'Utilities-master/Zeroconf.app' "${uzip}/Applications/Utilities/"
+mv 'Utilities-master/Create Live Media.app' "${uzip}/Applications/Utilities/"
+mv 'Utilities-master/Install FreeBSD.app' "${uzip}/Applications/Utilities/"
 mv 'Utilities-master/Boot Environments.app' "${uzip}/Applications/Preferences/"
-mv Utilities-master/Desktop.app "${uzip}/Applications/Preferences/"
+mv 'Utilities-master/Desktop.app' "${uzip}/Applications/Preferences/"
 rm -rf master.zip Utilities-master/
 
 # Fonts
@@ -104,11 +106,6 @@ chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/dsbmix
 # More Utilities
 mkdir -p "${uzip}/Applications/Utilities"
 chmod g+w "${uzip}/Applications/Utilities"
-cd "${uzip}/Applications/Utilities" # FIXME: Move to .app
-cp "${uzip}"/usr/local/share/applications/freebsd-install.desktop . # FIXME: Move to .app
-cp "${uzip}"/usr/local/share/applications/create-livemedia.desktop . # FIXME: Move to .app
-# chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/freebsd-install.desktop /Applications/Utilities/ # FIXME: Move to .app
-# chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/create-livemedia.desktop /Applications/Utilities/ # FIXME: Move to .app
 chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/org.kde.ark.desktop /Applications/Utilities/
 chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/org.kde.systemmonitor.desktop /Applications/Utilities/
 chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/qterminal.desktop /Applications/Utilities/
