@@ -49,7 +49,7 @@ zpool export -f "${DESTPOOL}" >/dev/null 2>/dev/null || true
 # Set hostname
 if [ -n "${INSTALLER_HOSTNAME}" ] ; then
   echo "FIXME: Implement setting the hostname without asking questions. How?"
-  chroot "${FSMNT}" /usr/sbin/sysrc hostname="${INSTALLER_HOSTNAME}"
+  chroot "${FSMNT}" sysrc hostname="${INSTALLER_HOSTNAME}"
 else
   echo "Environment variable INSTALLER_HOSTNAME not set, running bsdinstall hostname"
   bsdinstall hostname
