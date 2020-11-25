@@ -27,7 +27,7 @@ export uzip="${livecd}/uzip"
 cdroot="${livecd}/cdroot"
 ramdisk_root="${cdroot}/data/ramdisk"
 vol="furybsd"
-label="FURYBSD"
+label="LIVE"
 export DISTRIBUTIONS="kernel.txz base.txz"
 
 # Only run as superuser
@@ -64,8 +64,6 @@ else
   echo "${2}" > /usr/local/furybsd/tag
   export vol="${desktop}-${version}-${tag}"
 fi
-
-label="FURYBSD"
 
 # Get the short git SHA
 SHA=$(echo ${CIRRUS_CHANGE_IN_REPO}| cut -c1-7)

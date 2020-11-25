@@ -46,15 +46,6 @@ fi
 umount -f ${FSMNT}/dev >/dev/null 2>/dev/null || true
 zpool export -f "${DESTPOOL}" >/dev/null 2>/dev/null || true
 
-# Set hostname
-if [ -n "${INSTALLER_HOSTNAME}" ] ; then
-  echo "FIXME: Implement setting the hostname without asking questions. How?"
-  chroot "${FSMNT}" /usr/sbin/sysrc hostname="${INSTALLER_HOSTNAME}"
-else
-  echo "Environment variable INSTALLER_HOSTNAME not set, running bsdinstall hostname"
-  bsdinstall hostname
-fi
-
 # Install contents of read only uzip to destination pool
 
 if [ -n "${INSTALLER_DEVICE}" ] ; then
@@ -84,7 +75,6 @@ fi
 cpdup -i0 -s0 -v "${LIVEFS}" "${FSMNT}"
 
 bsdinstall config
-cat /etc/rc.conf | xargs sysrc -f ${FSMNT}/etc/rc.conf # Transfer settings from running /etc/rc.conf to installed one
 bsdinstall entropy
 
 # Cleanup LiveCD restore specific contents from destination pool
@@ -122,6 +112,7 @@ if [ ! -z ${INSTALLER_USER_PASSWORD+x} ] ; then
   username="${INSTALLER_USERNAME}"
   password="${INSTALLER_USER_PASSWORD}"
   echo "${username}:::::::::${password}" | chroot "${FSMNT}" adduser -f - && \
+  chroot "${FSMNT}" pw usermod "${username}" -s /usr/local/bin/zsh && \
   chroot "${FSMNT}" pw groupmod wheel -m "${username}" && \
   chroot "${FSMNT}" pw groupmod video -m "${username}" && \
   chroot "${FSMNT}" pw groupmod webcamd -m "${username}"
@@ -150,7 +141,7 @@ else
       fi
     done
     echo "${username}:::::::::${password}" | chroot "${FSMNT}" adduser -f - && \
-      chroot "${FSMNT}" pw usermod "${username}" -s /usr/local/bin/zsh
+      chroot "${FSMNT}" pw usermod "${username}" -s /usr/local/bin/zsh && \
       chroot "${FSMNT}" pw groupmod wheel -m "${username}" && \
       chroot "${FSMNT}" pw groupmod video -m "${username}" && \
       chroot "${FSMNT}" pw groupmod webcamd -m "${username}" && break
@@ -187,10 +178,26 @@ if [ -f "/usr/local/bin/slim" ] ; then
   chroot "${FSMNT}" sysrc slim_enable="YES"
 fi
 
+# Transfer settings from running /etc/rc.conf to installed one
+cat /etc/rc.conf | xargs sysrc -f ${FSMNT}/etc/rc.conf
+
+# Enable CUPS printing system; FIXME: Why is this needed here?
+# sysrc should be carried over from the Live system
+chroot "${FSMNT}" sysrc cupsd_enable="YES"
+
 # Set the timezone on the system if it has been provided
 # by the graphical installer frontend
 if [ -n "${INSTALLER_TIMEZONE}" ] ; then
   cp "${FSMNT}/usr/share/zoneinfo/${INSTALLER_TIMEZONE}" "${FSMNT}/etc/localtime"
+fi
+
+# Set hostname
+if [ -n "${INSTALLER_HOSTNAME}" ] ; then
+  echo "FIXME: Implement setting the hostname without asking questions. How?"
+  chroot "${FSMNT}" /usr/sbin/sysrc hostname="${INSTALLER_HOSTNAME}"
+else
+  echo "Environment variable INSTALLER_HOSTNAME not set, running bsdinstall hostname"
+  bsdinstall hostname
 fi
 
 # Enable sshd if the user has requested it

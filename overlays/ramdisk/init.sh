@@ -13,14 +13,14 @@ mount -u -w /
 echo "==> Make mountpoints"
 mkdir -p /cdrom
 
-echo "Waiting for FURYBSD media to initialize"
+echo "Waiting for Live media to initialize"
 while : ; do
-    [ -e "/dev/iso9660/FURYBSD" ] && echo "found /dev/iso9660/FURYBSD" && break
+    [ -e "/dev/iso9660/LIVE" ] && echo "found /dev/iso9660/LIVE" && break
     sleep 1
 done
 
 echo "==> Mount cdrom"
-mount_cd9660 /dev/iso9660/FURYBSD /cdrom
+mount_cd9660 -o ro /dev/iso9660/LIVE /cdrom
 mdconfig -f /cdrom/data/system.uzip -u 1
 zpool import furybsd -o readonly=on
 
@@ -35,7 +35,7 @@ fi
  echo "Required memory ${x} for memdisk"
  echo "Detected memory ${y} for memdisk"
  if [ $x -gt $y ] ; then 
-  echo "FuryBSD requires 4GB of memory for memdisk, and operation!"
+  echo "Live sysetm requires 4GB of memory for memdisk, and operation!"
   echo "Type exit, and press enter after entering the rescue shell to power off."
   exit 1
  fi
@@ -48,7 +48,11 @@ zpool create livecd /dev/md2p1 >/dev/null 2>/dev/null
 zfs set compression=gzip livecd 
 zfs set primarycache=none livecd
 
-echo "==> Replicate system image to swap-based memdisk"
+echo "==> Replicate system image to swap-based memdisk."
+echo "    TODO: Remove the need for this."
+echo "    Can we get unionfs or OpenZFS to make the r/o system image r/w instantly"
+echo "    without the need for this time consuming operation? Please let us know."
+echo "    https://github.com/helloSystem/ISO/issues/4"
 zfs send -c -e furybsd | dd status=progress bs=1M | zfs recv -F livecd
 
 mount -t devfs devfs /livecd/dev
