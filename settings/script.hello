@@ -120,6 +120,8 @@ cp /etc/resolv.conf ${uzip}/etc/resolv.conf
 mount_nullfs ${packages} ${uzip}/var/cache/pkg
 mount -t devfs devfs ${uzip}/dev
 IGNORE_OSVERSION=yes /usr/local/sbin/pkg-static -c "${uzip}" add "https://github.com/helloSystem/Menu/releases/download/helper/appmenu-gtk-module-0.7.3.2.txz"
+# Workaround for disappeared chromium package
+IGNORE_OSVERSION=yes /usr/local/sbin/pkg-static -c "${uzip}" add "https://github.com/helloSystem/ISO/releases/download/fallback/chromium-84.0.4147.135.txz"
 rm ${uzip}/etc/resolv.conf
 umount ${uzip}/var/cache/pkg
 umount ${uzip}/dev
