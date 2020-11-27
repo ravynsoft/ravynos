@@ -43,7 +43,7 @@ from xdg import IniFile, IconTheme  # pkg install py37-xdg
 
 # Create .app bundles for desktop files
 
-def d2a(desktopfile, destination):
+def d2a(desktopfile, destination, use_generic_name=False, name=None):
     i = IniFile.IniFile()
 
     i.parse(desktopfile)
@@ -51,12 +51,24 @@ def d2a(desktopfile, destination):
     if not "Desktop Entry" in i.content.keys():
         print("No Desktop Entry section, hence skipping '%s'" % desktopfile)
         return False
+        
+    if name == None:
+        if use_generic_name == True:
+            print("Using GenericName= if available")
+            if "GenericName" in i.content["Desktop Entry"].keys():
+                print("Using GenericName")
+                name = i.content["Desktop Entry"]["GenericName"]
+            else:
+                print("No GenericName=..., hence using Name=")
+                use_generic_name = False
 
-    if "Name" in i.content["Desktop Entry"].keys():
-        name = i.content["Desktop Entry"]["Name"]
-    else:
-        print("No Name=..., hence skipping '%s'" % desktopfile)
-        return False
+        if use_generic_name == False:
+            if "Name" in i.content["Desktop Entry"].keys():
+                name = i.content["Desktop Entry"]["Name"]
+            else:
+                print("No Name=..., hence skipping '%s'" % desktopfile)
+                return False
+                
     if "Exec" in i.content["Desktop Entry"].keys():
         exec = i.content["Desktop Entry"]["Exec"]
         exec = exec.replace(" %f", "").replace(" %F", "").replace(" %u", "").replace(" %U", "")
@@ -234,6 +246,11 @@ def update_menu():
 if __name__ == "__main__":
 
     destination = "."
+    use_generic_name = False
+    
+    if "-g" in sys.argv:
+        use_generic_name = True
+        sys.argv.remove("-g")
 
     if len(sys.argv) < 2:
         # Using Qt for QFileSystemWatcher as long as
@@ -280,9 +297,9 @@ if __name__ == "__main__":
         print("Not yet implemented")
         desktopfiles = [os.path.join(desktopfile_or_directory, f) for f in os.listdir(desktopfile_or_directory) if os.path.isfile(os.path.join(desktopfile_or_directory, f))]
         for desktopfile in desktopfiles:
-            d2a(desktopfile, destination)
+            d2a(desktopfile, destination, use_generic_name)
     else:
-        succeeded = d2a(desktopfile_or_directory, destination)
+        succeeded = d2a(desktopfile_or_directory, destination, use_generic_name)
 
     if succeeded == False:
         exit(1)
