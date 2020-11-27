@@ -114,7 +114,7 @@ chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/dsbmix
 # More Utilities
 mkdir -p "${uzip}/Applications/Utilities"
 chmod g+w "${uzip}/Applications/Utilities"
-chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/org.kde.ark.desktop /Applications/Utilities/
+chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/lumina-archiver.desktop /Applications/Utilities/
 # chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/org.kde.systemmonitor.desktop /Applications/Utilities/ # TODO: Find lighter replacement
 chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/qterminal.desktop /Applications/Utilities/
 
