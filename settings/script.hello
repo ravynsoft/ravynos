@@ -130,9 +130,9 @@ mount -t devfs devfs ${uzip}/dev
 # https://github.com/helloSystem/ISO/issues/20
 IGNORE_OSVERSION=yes /usr/local/sbin/pkg-static -c "${uzip}" add "https://github.com/helloSystem/Menu/releases/download/helper/appmenu-gtk-module-0.7.3.2.txz"
 # Remove all remnants of KDE Plasma
-chroot "${uzip}"sudo pkg remove -y -f '*plasma*'
+chroot "${uzip}" sudo pkg remove -y -f '*plasma*'
 # Remove pkg (it will be bootstrapped if needed)
-chroot "${uzip}"sudo pkg remove -y -f pkg
+chroot "${uzip}" sudo pkg remove -y -f pkg
 rm ${uzip}/etc/resolv.conf
 umount ${uzip}/var/cache/pkg
 umount ${uzip}/dev
