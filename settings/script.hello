@@ -122,6 +122,10 @@ chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/qtermi
 chroot "${uzip}" /usr/local/bin/desktop2app /usr/share/skel/Desktop/computer.desktop /usr/share/skel/Desktop/
 rm -f "${uzip}"/usr/share/skel/Desktop/computer.desktop
 
+# Remove non-hello xessions desktop files
+# to silence misleading messages from slim on the command line
+rm -rf ${uzip}/usr/local/share/xsessions/*.desktop
+
 # Finishing touches on installed packages
 cp /etc/resolv.conf ${uzip}/etc/resolv.conf
 mount_nullfs ${packages} ${uzip}/var/cache/pkg
