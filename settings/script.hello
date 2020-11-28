@@ -102,7 +102,6 @@ chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/qpdfvi
 # More Preferences
 mkdir -p "${uzip}/Applications/Preferences"
 chmod g+w "${uzip}/Applications/Preferences"
-chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/dsbmixer.desktop /Applications/Preferences/
 chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/lxqt-config-globalkeyshortcuts.desktop /Applications/Preferences/
 chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/fury-config-wifi.desktop /Applications/Preferences/
 chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/fury-config-xorg.desktop /Applications/Preferences/
