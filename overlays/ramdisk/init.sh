@@ -21,7 +21,7 @@ done
 
 echo "==> Mount cdrom"
 mount_cd9660 -o ro /dev/iso9660/LIVE /cdrom
-mdconfig -f /cdrom/data/system.uzip -u 1
+mdconfig -o readonly -f /cdrom/data/system.uzip -u 1
 zpool import furybsd -o readonly=on
 
 if [ "$SINGLE_USER" = "true" ]; then
