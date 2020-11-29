@@ -89,6 +89,7 @@ mv buildnotify-2.0.0 BuildNotify.app/Resources
 rm -f 2.0.0.zip
 sed -i -e 's|/usr/bin/env python|/usr/bin/env python3.7|g' BuildNotify.app/Resources/buildnotifyapplet.py
 rm -f BuildNotify.app/Resources/buildnotifyapplet.py-e
+mv BuildNotify.app "${uzip}/Applications/Utilities/"
 
 # Fonts
 wget https://github.com/ArtifexSoftware/urw-base35-fonts/archive/20200910.zip
@@ -149,3 +150,8 @@ IGNORE_OSVERSION=yes /usr/local/sbin/pkg-static -c "${uzip}" add "https://github
 rm ${uzip}/etc/resolv.conf
 umount ${uzip}/var/cache/pkg
 umount ${uzip}/dev
+
+# Autostart
+mkdir -p "${uzip}/Applications/Autostart/"
+chmod g+w "${uzip}/Applications/Autostart/"
+( cd "${uzip}/Applications/Autostart/" ; ln -s ../Utilities/BuildNotify.app . )
