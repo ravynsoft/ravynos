@@ -88,6 +88,6 @@ fi
 /usr/sbin/sysrc -f /etc/rc.conf ntpdate_enable="YES" >/dev/null 2>/dev/null
 
 # Set hostname other than the default based on SMBIOS information
-if [ $(hostname) == "FreeBSD" ] ; then
+if [ $(hostname) = "FreeBSD" ] ; then
   hostname $(kenv -q "smbios.system.product" | xargs | sed -e 's| |-|g')
 fi
