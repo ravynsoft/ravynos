@@ -130,6 +130,12 @@ gmenudbusmenuproxy &
 # which we probably should set in the Welcome Wizard
 redshift -l$(getlalo) &
 
+# Autostart
+for APP in $(ls /Applications/Autostart) ; do
+  echo "Autostarting $APP"
+  launch "$APP" &
+done
+
 # Here we must start something that never exits;
 # the session ends when that thing exits
 read 1
