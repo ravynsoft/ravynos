@@ -132,8 +132,13 @@ gmenudbusmenuproxy &
 # which we probably should set in the Welcome Wizard
 redshift -l$(getlalo) &
 
-# Autostart
+# System-wide autostart
 for APP in /Applications/Autostart/* ; do
+  echo "Autostarting ${APP}"
+  launch "${APP}" &
+done
+# Per-user autostart
+for APP in ~/Applications/Autostart/* ; do
   echo "Autostarting ${APP}"
   launch "${APP}" &
 done
