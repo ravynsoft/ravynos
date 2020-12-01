@@ -6,7 +6,7 @@ set -e
 # Be verbose
 set -x
 
-mkdir -p /tmp/system-overlay
+mkdir -p /tmp/system-overlay 
 cd /tmp/system-overlay
 
 # Wallpaper
@@ -101,7 +101,7 @@ mkdir -p Lector.app/Resources
 mv Lector.app/* Lector.app/Resources 2>/dev/null || true
 ( cd Lector.app/ ; ln -s Resources/lector/__main__.py Lector )
 cp Lector.app/Resources/lector/resources/raw/Lector.png Lector.app/Resources/
-mv Lector.app "${uzip}/Applications
+mv Lector.app "${uzip}"/Applications
 
 # Fonts
 wget https://github.com/ArtifexSoftware/urw-base35-fonts/archive/20200910.zip
