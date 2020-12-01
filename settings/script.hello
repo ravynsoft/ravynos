@@ -97,6 +97,7 @@ mv BuildNotify.app "${uzip}/Applications/Utilities/"
 git clone https://github.com/BasioMeusPuga/Lector
 rm -rf Lector/.git
 mv Lector Lector.app
+mkdir -p Lector.app/Resources
 mv Lector.app/* Lector.app/Resources 2>/dev/null || true
 ( cd Lector.app/ ; ln -s Resources/lector/__main__.py Lector )
 cp Lector.app/Resources/lector/resources/raw/Lector.png Lector.app/Resources/
