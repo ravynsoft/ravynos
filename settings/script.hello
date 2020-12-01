@@ -81,7 +81,7 @@ mv 'Utilities-master/Desktop.app' "${uzip}/Applications/Preferences/"
 mv 'Utilities-master/Sharing.app' "${uzip}/Applications/Preferences/"
 rm -rf master.zip Utilities-master/
 
-# BuildNotify.app
+# BuildNotify.app: Notifications about continuous build server status
 wget https://github.com/anaynayak/buildnotify/archive/2.0.0.zip
 unzip 2.0.0.zip
 mkdir -p BuildNotify.app
@@ -91,6 +91,16 @@ rm -f 2.0.0.zip
 sed -i -e 's|/usr/bin/env python|/usr/bin/env python3.7|g' BuildNotify.app/Resources/buildnotifyapplet.py
 rm -f BuildNotify.app/Resources/buildnotifyapplet.py-e
 mv BuildNotify.app "${uzip}/Applications/Utilities/"
+
+# Lector.app: E-book reader
+# Requires: py37-xmltodict py37-beautifulsoup
+git clone https://github.com/BasioMeusPuga/Lector
+rm -rf Lector/.git
+mv Lector Lector.app
+mv Lector.app/* Lector.app/Resources 2>/dev/null || true
+( cd Lector.app/ ; ln -s Resources/lector/__main__.py Lector )
+cp Lector.app/Resources/lector/resources/raw/Lector.png Lector.app/Resources/
+mv Lector.app "${uzip}/Applications
 
 # Fonts
 wget https://github.com/ArtifexSoftware/urw-base35-fonts/archive/20200910.zip
