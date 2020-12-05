@@ -282,7 +282,6 @@ boot()
   done
   
   # The name of a dependency for zfs.ko changed, violating POLA
-  # Apparently the bootloader is not smart enough to load dependent kernel modules on its own
   MAJOR=$(uname -r | cut -d "." -f 1)
   if [ $MAJOR -lt 13 ] ; then
     echo "Major version < 13, hence using opensolaris.ko"
