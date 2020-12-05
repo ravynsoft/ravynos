@@ -1,7 +1,10 @@
 freebsd_instance:
-  # image: freebsd-12-2-release-amd64
+  image: freebsd-12-2-release-amd64
+  cpu: 2
+  memory: 8G
+
+freebsd_instance:
   image: freebsd-13-0-current-amd64-v20201112
-  # cpu: 1 gives an error; >2 works
   cpu: 2
   memory: 8G
 
