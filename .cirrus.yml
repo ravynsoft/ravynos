@@ -1,12 +1,9 @@
 freebsd_instance:
-  image: freebsd-12-2-release-amd64
   cpu: 2
   memory: 8G
-
-freebsd_instance:
-  image: freebsd-13-0-current-amd64-v20201112
-  cpu: 2
-  memory: 8G
+  matrix:
+    - image: freebsd-12-2-release-amd64
+    - image: freebsd-13-0-current-amd64-v20201112
 
 env:
   CIRRUS_CLONE_DEPTH: 1
