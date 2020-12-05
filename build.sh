@@ -3,7 +3,20 @@
 # Exit on errors
 set -e
 
-version="12.2-RELEASE"
+# Determine the version of the running host system.
+# Building ISOs for other major versions than the running host system
+# is not supported and results in broken images anyway
+version=$(uname -r | cut -d "-" -f 1-2) # "12.2-RELEASE" or "13.0-CURRENT"
+
+# Dwnload from either https://download.freebsd.org/ftp/releases/
+#                  or https://download.freebsd.org/ftp/snapshots/
+VERSIONSUFFIX=$(uname -r | cut -d "-" -f 2) # "RELEASE" or "CURRENT"
+FTPDIRECTORY="releases" # "releases" or "snapshots"
+if [ "${VERSIONSUFFIX}" = "CURRENT" ] ; then
+  FTPDIRECTORY="snapshots"
+fi
+echo "${FTPDIRECTORY}"
+
 # pkgset="branches/2020Q1" # TODO: Use it
 desktop=$1
 tag=$2
@@ -108,12 +121,12 @@ base()
   # TODO: Signature checking
   if [ ! -f "${base}/base.txz" ] ; then 
     cd ${base}
-    fetch https://download.freebsd.org/ftp/releases/${arch}/${version}/base.txz
+    fetch https://download.freebsd.org/ftp/${FTPDIRECTORY}/${arch}/${version}/base.txz
   fi
   
   if [ ! -f "${base}/kernel.txz" ] ; then
     cd ${base}
-    fetch https://download.freebsd.org/ftp/releases/${arch}/${version}/kernel.txz
+    fetch https://download.freebsd.org/ftp/${FTPDIRECTORY}/${arch}/${version}/kernel.txz
   fi
   cd ${base}
   tar -zxvf base.txz -C ${uzip}
@@ -264,9 +277,21 @@ boot()
 {
   cp -R "${cwd}/overlays/boot/" "${cdroot}"
   cd "${uzip}" && tar -cf - --exclude boot/kernel boot | tar -xf - -C "${cdroot}"
-  for kfile in kernel geom_uzip.ko opensolaris.ko tmpfs.ko xz.ko zfs.ko; do
+  for kfile in kernel geom_uzip.ko tmpfs.ko xz.ko zfs.ko; do
   tar -cf - boot/kernel/${kfile} | tar -xf - -C "${cdroot}"
   done
+  
+  # The name of a dependency for zfs.ko changed, violating POLA
+  # Apparently the bootloader is not smart enough to load dependent kernel modules on its own
+  MAJOR=$(uname -r | cut -d "." -f 1)
+  if [ $MAJOR -lt 13 ] ; then
+    echo "Major version < 13, hence using opensolaris.ko"
+    tar -cf - boot/kernel/opensolaris.ko | tar -xf - -C "${cdroot}"
+  else
+    echo "Major version >= 13, hence using cryptodev.ko"
+    tar -cf - boot/kernel/cryptodev.ko | tar -xf - -C "${cdroot}"
+  fi
+
   sync ### Needed?
   cd ${cwd} && zpool export furybsd && mdconfig -d -u 0
   sync ### Needed?
