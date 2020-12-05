@@ -1,5 +1,6 @@
 freebsd_instance:
-  image: freebsd-12-1-release-amd64
+  # image: freebsd-12-2-release-amd64
+  image: freebsd-13-0-current-amd64-v20201112
   # cpu: 1 gives an error; >2 works
   cpu: 2
   memory: 8G
@@ -23,12 +24,11 @@ task:
       arch: 'amd64'
 
   install_script:
-    - ls -lh /usr/src || true
     - env
     - kldload zfs.ko
-    - kldload tmpfs.ko
-    - kldload nullfs.ko
-    - kldload geom_uzip.ko
+    - kldload tmpfs.ko || true
+    - kldload nullfs.ko || true
+    - kldload geom_uzip.ko || true
     - pkg install -y pkg git-lite zsync wget sha bash py37-xdg # qemu-devel uefi-edk2-qemu-x86_64
     - mkdir -p /usr/local/furybsd
     - mount -t tmpfs tmpfs /usr/local/furybsd
