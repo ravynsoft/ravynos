@@ -276,21 +276,7 @@ ramdisk()
 boot() 
 {
   cp -R "${cwd}/overlays/boot/" "${cdroot}"
-  cd "${uzip}" && tar -cf - --exclude boot/kernel boot | tar -xf - -C "${cdroot}"
-  for kfile in kernel geom_uzip.ko tmpfs.ko xz.ko zfs.ko; do
-  tar -cf - boot/kernel/${kfile} | tar -xf - -C "${cdroot}"
-  done
-  
-  # The name of a dependency for zfs.ko changed, violating POLA
-  MAJOR=$(uname -r | cut -d "." -f 1)
-  if [ $MAJOR -lt 13 ] ; then
-    echo "Major version < 13, hence using opensolaris.ko"
-    tar -cf - boot/kernel/opensolaris.ko | tar -xf - -C "${cdroot}"
-  else
-    echo "Major version >= 13, hence using cryptodev.ko"
-    tar -cf - boot/kernel/cryptodev.ko | tar -xf - -C "${cdroot}"
-  fi
-
+  tar -cf - boot | tar -xf - -C "${cdroot}"
   sync ### Needed?
   cd ${cwd} && zpool export furybsd && mdconfig -d -u 0
   sync ### Needed?
