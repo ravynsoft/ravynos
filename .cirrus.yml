@@ -13,7 +13,9 @@ task:
   auto_cancellation: false
   stateful: false
   timeout_in: 60m
-  only_if: $CIRRUS_TAG !=~ 'continuous.*'
+  # only_if: $CIRRUS_TAG !=~ 'continuous.*'
+  # Do not build tags, only commits
+  only_if: $CIRRUS_TAG !=~ '..*'
 
   env:
     matrix:
