@@ -4,7 +4,7 @@ This Live ISO builder builds Live ISOs from FreeBSD ingredients. It is based on 
 
 ## Continuous builds
 
-Continuous builds can be downloaded [here](../../releases/continuous/). __CAUTION:__ These are meant for development only. Use at your own risk. Do not use in production environments.
+Continuous builds can be downloaded [here](../../releases/). __CAUTION:__ These are meant for development only. Use at your own risk. Do not use in production environments.
 
 To minimize the amount of data when going from build to build, `.zsync` files are also provided. [More information](https://askubuntu.com/questions/54241/how-do-i-update-an-iso-with-zsync)
 
