@@ -12,6 +12,7 @@ kenv -u init_shell
 echo "==> Unmount filesystems for cloning"
 umount -f /livecd/dev
 zpool export livecd
+zpool export furybsd || true
 umount -f /cdrom
 echo "== Set /dev/md2 device for reroot"
 kenv vfs.root.mountfrom=zfs:livecd
