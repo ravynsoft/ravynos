@@ -11,7 +11,7 @@ echo "==> Remount rootfs as read-write"
 mount -u -w /
 
 echo "==> Make mountpoints"
-mkdir -p /cdrom
+mkdir -p /cdrom /memdisk /sysroot
 
 echo "Waiting for Live media to initialize"
 while : ; do
