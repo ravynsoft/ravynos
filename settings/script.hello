@@ -106,6 +106,21 @@ sed -i -e 's|env python3|env python3.7|g' Lector.app/Resources/lector/__main__.p
 rm Lector.app/Resources/lector/__main__.py-e
 mv Lector.app "${uzip}"/Applications
 
+# Sticky Notes.app
+# Requires: py37-qt5-dbus
+git clone https://gitlab.com/william.belanger/qtpad --depth 1
+rm -rf qtpad/screenshots
+mv qtpad/qtpad qtpad/Resources
+mv qtpad/* qtpad/Resources 2>/dev/null || true
+sed -i -e 's|/usr/bin/python3|/usr/bin/env python3.7|g' qtpad/Resources/__init__.py
+rm -f qtpad/Resources/__init__.py-e
+rm -rf qtpad/.git
+( cd qtpad ; ln -s Resources/__init__.py "Sticky Notes" )
+cp qtpad/Resources/icons/qtpad.svg "qtpad/Resources/Sticky Notes.svg"
+convert -resize 256x256 "qtpad/Resources/Sticky Notes.svg" "qtpad/Resources/Sticky Notes.png"
+mv qtpad/ "Sticky Notes.app"
+mv "Sticky Notes.app" "${uzip}"/Applications/Utilities
+
 # Fonts
 wget https://github.com/ArtifexSoftware/urw-base35-fonts/archive/20200910.zip
 unzip 20200910.zip
@@ -176,3 +191,4 @@ umount ${uzip}/dev
 mkdir -p "${uzip}/Applications/Autostart/"
 chmod g+w "${uzip}/Applications/Autostart/"
 ( cd "${uzip}/Applications/Autostart/" ; ln -s ../Utilities/BuildNotify.app . )
+( cd "${uzip}/Applications/Autostart/" ; ln -s ../Utilities/"Sticky Notes.app" . )
