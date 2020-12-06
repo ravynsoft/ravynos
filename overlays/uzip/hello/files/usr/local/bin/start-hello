@@ -20,7 +20,8 @@ fi
 # Set locale if it is not set already
 # and if /usr/local/var/localize/include exists
 # (might have been created by the localize script during boot)
-if [ -z "${LANG}" ] ; then
+# On FreeBSD before 13, $LANG is unset. Starting with 13, it is "C.UTF-8" when it is not specified. This is not POLA
+if [ -z "${LANG}" ] || [ "C.UTF-8" = "${LANG}" ]  ; then
   if [ -e "/usr/local/var/localize/include" ] ; then
     . /usr/local/var/localize/include
     export LANG
@@ -139,10 +140,10 @@ for APP in /Applications/Autostart/* ; do
   launch "${APP}" &
 done
 # Per-user autostart
-for APP in ~/Applications/Autostart/* ; do
-  echo "Autostarting ${APP}"
-  launch "${APP}" &
-done
+# for APP in ~/Applications/Autostart/* ; do
+#   echo "Autostarting ${APP}"
+#   launch "${APP}" &
+# done
 
 # Here we must start something that never exits;
 # the session ends when that thing exits
