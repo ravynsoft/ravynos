@@ -280,6 +280,23 @@ boot()
   sync ### Needed?
   cd ${cwd} && zpool export furybsd && mdconfig -d -u 0
   sync ### Needed?
+  # The name of a dependency for zfs.ko changed, violating POLA
+  # If we are loading both modules, then at least 13 cannot boot, hence only load one based on the FreeBSD major version
+  MAJOR=$(uname -r | cut -d "." -f 1)
+  if [ $MAJOR -lt 13 ] ; then
+    echo "Major version < 13, hence using opensolaris.ko"
+    sed -i -e 's|opensolaris_load=".*"|opensolaris_load="YES"|g' "${cdroot}"/boot/loader.conf
+    rm -f "${cdroot}"/boot/loader.conf-e
+    sed -i -e 's|cryptodev_load=".*"|cryptodev_load="NO"|g' "${cdroot}"/boot/loader.conf
+    rm -f "${cdroot}"/boot/loader.conf-e
+  else
+    echo "Major version >= 13, hence using cryptodev.ko"
+    sed -i -e 's|cryptodev_load=".*"|cryptodev_load="YES"|g' "${cdroot}"/boot/loader.conf
+    rm -f "${cdroot}"/boot/loader.conf-e
+    sed -i -e 's|opensolaris_load=".*"|opensolaris_load="NO"|g' "${cdroot}"/boot/loader.conf
+    rm -f "${cdroot}"/boot/loader.conf-e
+  fi
+  sync ### Needed?
 }
 
 image()
