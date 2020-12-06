@@ -276,7 +276,7 @@ ramdisk()
 boot() 
 {
   cp -R "${cwd}/overlays/boot/" "${cdroot}"
-  tar -cf - boot | tar -xf - -C "${cdroot}"
+  cd "${uzip}" && tar -cf - --exclude boot/kernel boot | tar -xf - -C "${cdroot}"
   sync ### Needed?
   cd ${cwd} && zpool export furybsd && mdconfig -d -u 0
   sync ### Needed?
@@ -289,11 +289,15 @@ boot()
     rm -f "${cdroot}"/boot/loader.conf-e
     sed -i -e 's|cryptodev_load=".*"|cryptodev_load="NO"|g' "${cdroot}"/boot/loader.conf
     rm -f "${cdroot}"/boot/loader.conf-e
+    sed -i -e 's|tmpfs_load=".*"|tmpfs_load="YES"|g' "${cdroot}"/boot/loader.conf
+    rm -f "${cdroot}"/boot/loader.conf-e
   else
     echo "Major version >= 13, hence using cryptodev.ko"
     sed -i -e 's|cryptodev_load=".*"|cryptodev_load="YES"|g' "${cdroot}"/boot/loader.conf
     rm -f "${cdroot}"/boot/loader.conf-e
     sed -i -e 's|opensolaris_load=".*"|opensolaris_load="NO"|g' "${cdroot}"/boot/loader.conf
+    rm -f "${cdroot}"/boot/loader.conf-e
+    sed -i -e 's|tmpfs_load=".*"|tmpfs_load="NO"|g' "${cdroot}"/boot/loader.conf
     rm -f "${cdroot}"/boot/loader.conf-e
   fi
   sync ### Needed?
