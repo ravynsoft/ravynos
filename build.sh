@@ -276,7 +276,7 @@ ramdisk()
 boot() 
 {
   cp -R "${cwd}/overlays/boot/" "${cdroot}"
-  cd "${uzip}" && tar -cf - --exclude boot/kernel boot | tar -xf - -C "${cdroot}"
+  cd "${uzip}" && tar -cf - boot | tar -xf - -C "${cdroot}"
   sync ### Needed?
   cd ${cwd} && zpool export furybsd && mdconfig -d -u 0
   sync ### Needed?
