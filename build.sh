@@ -37,7 +37,7 @@ iso="${livecd}/iso"
     iso="${CIRRUS_WORKING_DIR}/artifacts"
   fi
 export uzip="${livecd}/uzip"
-cdroot="${livecd}/cdroot"
+export cdroot="${livecd}/cdroot"
 ramdisk_root="${cdroot}/data/ramdisk"
 vol="furybsd"
 label="LIVE"
