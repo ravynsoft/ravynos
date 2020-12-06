@@ -117,7 +117,7 @@ rm -f qtpad/Resources/__init__.py-e
 rm -rf qtpad/.git
 ( cd qtpad ; ln -s Resources/__init__.py "Sticky Notes" )
 cp qtpad/Resources/icons/qtpad.svg "qtpad/Resources/Sticky Notes.svg"
-convert -resize 256x256 "qtpad/Resources/Sticky Notes.svg" "qtpad/Resources/Sticky Notes.png"
+rsvg-convert -a -w 256 -h 256 "qtpad/Resources/Sticky Notes.svg" -o "qtpad/Resources/Sticky Notes.png"
 mv qtpad/ "Sticky Notes.app"
 mv "Sticky Notes.app" "${uzip}"/Applications/Utilities
 
