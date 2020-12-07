@@ -1,9 +1,8 @@
 #!/rescue/sh
 
-if [ "`ps -o command 1 | tail -n 1 | ( read c o; echo ${o} )`" = "-s" ]; then
-else
-	if [ "`ps -o command 1 | tail -n 1 | ( read c o; echo ${o} )`" = "-v" ]; then
-	else
+# Be silent if 'kenv cmdline' does not end with '-s' or '-v'
+if [ "`kenv cmdline | tail -n 1 | ( read c o; echo ${o} )`" != "-s" ]; then
+	if [ "`kenv cmdline | tail -n 1 | ( read c o; echo ${o} )`" != "-v" ]; then
 		exec 1>>/dev/null 2>&1
 	fi
 fi
