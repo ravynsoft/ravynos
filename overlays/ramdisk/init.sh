@@ -16,6 +16,8 @@ else
 	fi
 fi
 
+echo "==> Ramdisk /init.sh running"
+
 echo "==> Remount rootfs as read-write"
 mount -u -w /
 
