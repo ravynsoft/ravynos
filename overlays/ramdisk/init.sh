@@ -48,7 +48,7 @@ fi
  echo "Required memory ${x} for memdisk"
  echo "Detected memory ${y} for memdisk"
  if [ $x -gt $y ] ; then 
-  echo "Live sysetm requires 4GB of memory for memdisk, and operation!"
+  echo "Live system requires 4GB of memory for memdisk, and operation!"
   echo "Type exit, and press enter after entering the rescue shell to power off."
   exit 1
  fi
