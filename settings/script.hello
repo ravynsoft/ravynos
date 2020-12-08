@@ -204,7 +204,8 @@ cat > /tmp/rc <<\EOF
 if [ "$(kenv boot_mute)" = "YES" ] ; then
         exec 1>>/dev/null 2>&1
 fi
-
+#
 EOF
 cat "${uzip}/etc/rc" >> /tmp/rc
 mv /tmp/rc "${uzip}/etc/rc"
+chmod +x "${uzip}/etc/rc"
