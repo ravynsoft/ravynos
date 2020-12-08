@@ -60,7 +60,7 @@ gpart add -t freebsd-zfs md2 >/dev/null 2>/dev/null
 zpool create livecd /dev/md2p1 >/dev/null 2>/dev/null
 
 # From FreeBSD 13 on, zstd can be used with zfs in base
-MAJOR=$(LD_LIBRARY_PATH=usr/local/furybsd/uzip/lib/ usr/local/furybsd/uzip/libexec/ld-elf.so.1 usr/local/furybsd/uzip/usr/bin/uname -r | cut -d "." -f 1)
+MAJOR=$(printf '%-.2s' $(sysctl -n kern.osrelease)) # First two characters of kern.osrelease
 if [ $MAJOR -lt 13 ] ; then
   zfs set compression=gzip-6 livecd 
 else
