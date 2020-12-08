@@ -193,3 +193,18 @@ mkdir -p "${uzip}/Applications/Autostart/"
 chmod g+w "${uzip}/Applications/Autostart/"
 ( cd "${uzip}/Applications/Autostart/" ; ln -s ../Utilities/BuildNotify.app . )
 ( cd "${uzip}/Applications/Autostart/" ; ln -s ../Utilities/"Sticky Notes.app" . )
+
+# Silence late boot messages
+cat > /tmp/rc <<\EOF
+#!/bin/sh
+
+# The following block was added by helloSystem
+# FIXME: Let us know how to do this properly
+# Silence messages if boot_mute="YES" is set
+if [ "$(kenv boot_mute)" = "YES" ] ; then
+        exec 1>>/dev/null 2>&1
+fi
+
+EOF
+cat "${uzip}/etc/rc" >> /tmp/rc
+mv /tmp/rc "${uzip}/etc/rc"
