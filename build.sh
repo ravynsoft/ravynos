@@ -113,7 +113,14 @@ workspace()
   zpool create furybsd /dev/md0p1
   sync ### Needed?
   zfs set mountpoint="${uzip}" furybsd
-  zfs set compression=gzip-6 furybsd
+  # From FreeBSD 13 on, zstd can be used with zfs in base
+  MAJOR=$(uname -r | cut -d "." -f 1)
+  if [ $MAJOR -lt 13 ] ; then
+    zfs set compression=gzip-6 furybsd 
+  else
+    zfs set compression=zstd-6 furybsd 
+  fi
+
 }
 
 base()
