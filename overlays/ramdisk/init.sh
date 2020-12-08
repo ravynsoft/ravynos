@@ -58,7 +58,15 @@ mdconfig -a -t swap -s 3g -u 2 >/dev/null 2>/dev/null
 gpart create -s GPT md2 >/dev/null 2>/dev/null
 gpart add -t freebsd-zfs md2 >/dev/null 2>/dev/null
 zpool create livecd /dev/md2p1 >/dev/null 2>/dev/null
-zfs set compression=gzip livecd 
+
+# From FreeBSD 13 on, zstd can be used with zfs in base
+MAJOR=$(uname -r | cut -d "." -f 1)
+if [ $MAJOR -lt 13 ] ; then
+  zfs set compression=gzip-6 livecd 
+else
+  zfs set compression=zstd-6 livecd 
+fi
+
 zfs set primarycache=none livecd
 
 echo "==> Replicate system image to swap-based memdisk."
