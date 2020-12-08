@@ -118,7 +118,7 @@ workspace()
   if [ $MAJOR -lt 13 ] ; then
     zfs set compression=gzip-6 furybsd 
   else
-    zfs set compression=zstd-6 furybsd 
+    zfs set compression=zstd-9 furybsd 
   fi
 
 }
