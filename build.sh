@@ -143,6 +143,16 @@ base()
 
 packages()
 {
+  # We want to try latest rather than quarterly packages for FreeBSD 13
+  # Since it that version is bleeding edge anyway, why not also use bleeding edge packages
+  MAJOR=$(uname -r | cut -d "." -f 1)
+  if [ $MAJOR -lt 13 ] ; then
+    echo "Major version < 13, hence using quarterly packages"
+  else
+    echo "Major version >= 13, hence changing /etc/pkg/FreeBSD.conf to use latest packages"
+    sed -i -e 's|quarterly|latest|g' "${uzip}/etc/pkg/FreeBSD.conf"
+    rm -f "${uzip}/etc/pkg/FreeBSD.conf-e"
+  fi
   cp /etc/resolv.conf ${uzip}/etc/resolv.conf
   mkdir ${uzip}/var/cache/pkg
   mount_nullfs ${packages} ${uzip}/var/cache/pkg
