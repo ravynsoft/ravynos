@@ -236,3 +236,8 @@ chmod +x "${uzip}/usr/sbin/vidcontrol"
 # Disable text-based consoles, prevent boot from being visually interrupted by login prompts
 mv "${uzip}/etc/ttys" "${uzip}/etc/ttys.original"
 touch "${uzip}/etc/ttys"
+
+# Prevent boot from being visually interrupted by syslog messages
+# by commenting out the line that ends in '/dev/console'
+sed -i -e 's|^\(.*/dev/console\)|# \1|g' "${uzip}/etc/syslog.conf"
+rm "${uzip}/etc/syslog.conf-e"
