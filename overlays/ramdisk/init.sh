@@ -5,11 +5,17 @@ PATH="/rescue"
 if [ "`ps -o command 1 | tail -n 1 | ( read c o; echo ${o} )`" = "-s" ]; then
 	echo "==> Running in single-user mode"
 	SINGLE_USER="true"
-else
-	# Silence messages if boot_mute="YES" is set
-	if [ "$(kenv boot_mute)" = "YES" ] ; then
-  	      exec 1>>/dev/null 2>&1
-	fi
+	kenv boot_mute="NO"
+fi
+
+if [ "`ps -o command 1 | tail -n 1 | ( read c o; echo ${o} )`" = "-v" ]; then
+	echo "==> Running in verbose mode"
+	kenv boot_mute="NO"
+fi
+
+# Silence messages if boot_mute="YES" is set
+if [ "$(kenv boot_mute)" = "YES" ] ; then
+      exec 1>>/dev/null 2>&1
 fi
 
 echo "==> Ramdisk /init.sh running"
