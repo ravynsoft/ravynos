@@ -202,6 +202,7 @@ cat > /tmp/rc <<\EOF
 # FIXME: Let us know how to do this properly
 # Silence messages if boot_mute="YES" is set
 if [ "$(kenv boot_mute)" = "YES" ] ; then
+        conscontrol delete ttyv0 >/dev/null 2>&1
         exec 1>>/dev/null 2>&1
 fi
 #
