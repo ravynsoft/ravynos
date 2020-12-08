@@ -208,3 +208,18 @@ fi
 EOF
 cat "${uzip}/etc/rc" >> /tmp/rc
 mv /tmp/rc "${uzip}/etc/rc"
+
+# Silence shutdown messages
+cat > /tmp/rc.shutdown <<\EOF
+#!/bin/sh
+
+# The following block was added by helloSystem
+# FIXME: Let us know how to do this properly
+# Silence messages if boot_mute="YES" is set
+if [ "$(kenv boot_mute)" = "YES" ] ; then
+        exec 1>>/dev/null 2>&1
+fi
+#
+EOF
+cat "${uzip}/etc/rc.shutdown" >> /tmp/rc.shutdown
+mv /tmp/rc.shutdown "${uzip}/etc/rc.shutdown"
