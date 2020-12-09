@@ -233,9 +233,10 @@ exit 0
 EOF
 chmod +x "${uzip}/usr/sbin/vidcontrol"
 
-# Disable text-based consoles, prevent boot from being visually interrupted by login prompts
+# Disable most text-based consoles, especially ttyv0,
+# to prevent boot from being visually interrupted by login prompts
 mv "${uzip}/etc/ttys" "${uzip}/etc/ttys.original"
-touch "${uzip}/etc/ttys"
+echo "ttyv1   "/usr/libexec/getty Pc"         xterm   on  secure" > "${uzip}/etc/ttys"
 
 # Prevent boot from being visually interrupted by syslog messages
 # by commenting out the line that ends in '/dev/console'
