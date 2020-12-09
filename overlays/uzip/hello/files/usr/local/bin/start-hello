@@ -114,9 +114,9 @@ dunst &
 
 # Menubar
 export GTK_MODULES=appmenu-gtk-module
-/System/Menu.AppDir/usr/bin/panda-statusbar & # FIXME: Use AppRun
+/System/Menu.AppDir/usr/bin/menubar & # FIXME: Use AppRun
 
-# FIXME: Does the next line have to run AFTER panda-statusbar?
+# FIXME: Does the next line have to run AFTER menubar?
 # Else we see no QMenus at all, as if something was badly crashing?
 ### "${HERE}"/dde-globalmenu-service & # gmenudbusmenuproxy without Plasma deps
 gmenudbusmenuproxy &

@@ -233,12 +233,12 @@ def update_menu():
     # The ideal solution will be to remove the need for restarting the menu
     # altogether, e.g., by 'pinging' the menu e.g., that there is a new app... e.g., using SIGUSR1
     try:
-        retcode = subprocess.call(["killall", "panda-statusbar"])  # Not detached for retcode
+        retcode = subprocess.call(["killall", "menubar"])  # Not detached for retcode
     except:
         pass
     if retcode == 0:
         try:
-            subprocess.Popen(["panda-statusbar"], start_new_session=True, stdin=None, stdout=None)  # Detached
+            subprocess.Popen(["menubar"], start_new_session=True, stdin=None, stdout=None)  # Detached
         except:
             pass
 

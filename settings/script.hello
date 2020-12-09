@@ -65,8 +65,8 @@ rm -f Dock_FreeBSD.zip
 
 mv * "${uzip}/System/"
 
-# Symlink panda-statusbar in place; FIXME: Remove once desktop2app does not need to restart it from there anymore
-chroot "${uzip}" ln -s /System/Menu.AppDir/usr/bin/panda-statusbar /usr/local/bin
+# Symlink menubar in place; FIXME: Remove once desktop2app does not need to restart it from there anymore
+chroot "${uzip}" ln -s /System/Menu.AppDir/usr/bin/menubar /usr/local/bin
 
 # Utilities and Preferences
 mkdir -p "${uzip}/Applications/Utilities"
