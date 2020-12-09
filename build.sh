@@ -145,6 +145,7 @@ packages()
 {
   # We want to try latest rather than quarterly packages for FreeBSD 13
   # Since it that version is bleeding edge anyway, why not also use bleeding edge packages
+  # NOTE: Also adjust the Nvidia drivers accordingly below. TODO: Use one set of variables
   MAJOR=$(uname -r | cut -d "." -f 1)
   if [ $MAJOR -lt 13 ] ; then
     echo "Major version < 13, hence using quarterly packages"
@@ -176,6 +177,7 @@ packages()
   # https://forums.freebsd.org/threads/i915kms-package-breaks-on-12-2-release-workaround-build-from-ports.77501/
   # FIXME: Add https://darkness-pi.monwarez.ovh/posts/synth-repository/ properly. How?
   # IGNORE_OSVERSION=yes /usr/local/sbin/pkg-static -c "${uzip}" add https://darkness-pi.monwarez.ovh/amd64/All/drm-fbsd12.0-kmod-4.16.g20200221.txz
+  # For now we are just going back to using 12.1 rather than 12.2
   /usr/local/sbin/pkg-static -c ${uzip} info > "${cdroot}/data/system.uzip.manifest"
   cp "${cdroot}/data/system.uzip.manifest" "${isopath}.manifest"
   rm ${uzip}/etc/resolv.conf
@@ -256,6 +258,39 @@ pkg()
   cd -
 }
 
+# Put Nvidia driver at location in which initgfx expects it
+initgfx()
+{
+  if [ "${arch}" != "i386" ] ; then
+    MAJOR=$(uname -r | cut -d "." -f 1)
+    if [ $MAJOR -lt 13 ] ; then
+      PKGS="quarterly"
+    else
+      PKGS="latest"
+    fi
+    wget -c "https://pkg.freebsd.org/FreeBSD:${MAJOR}:amd64/${PKGS}/All/nvidia-driver-440.100_1.txz" -P "${cache}"
+    mkdir -p "${uzip}/usr/local/nvidia/440/"
+    tar xf "${cache}"/nvidia-driver-*.txz -C "${uzip}/usr/local/nvidia/440/"
+    ls "${uzip}/usr/local/nvidia/440/+COMPACT_MANIFEST"
+  fi
+  
+  ls
+  # TODO: initgfx also wants:
+  # /boot/drm_legacy/
+  # drm.ko
+  # drm2.ko
+  # i915kms.ko
+  # linker.hints
+  # mach64.ko
+  # mga.ko
+  # r128.ko
+  # radeonkms.ko
+  # savage.ko
+  # sis.ko
+  # tdfx.ko
+  # via.ko
+}
+
 script()
 {
   if [ -e "${cwd}/settings/script.${desktop}" ] ; then
@@ -334,6 +369,7 @@ repos
 pkg
 base
 packages
+initgfx
 rc
 user
 dm

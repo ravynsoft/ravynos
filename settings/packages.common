@@ -17,7 +17,7 @@ drm-kmod
 drm-legacy-kmod
 libva-intel-driver
 drm-kmod
-nvidia-driver # !i386
+# nvidia-driver # !i386 # Is now handled in build.sh initgfx()
 mesa-libs
 mesa-dri
 open-vm-tools
@@ -28,7 +28,9 @@ setxkbmap
 xdg-user-dirs
 xdg-utils
 doas
-# xterm
+# TODO: xterm is currently still needed by the installer
+# can be removed once the installer has been changed
+xterm
 git-lite
 zsh
 usbids
