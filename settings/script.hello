@@ -146,7 +146,6 @@ mkdir -p "${uzip}/Applications/Preferences"
 chmod g+w "${uzip}/Applications/Preferences"
 chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/lxqt-config-globalkeyshortcuts.desktop /Applications/Preferences/
 chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/fury-config-wifi.desktop /Applications/Preferences/
-chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/fury-config-xorg.desktop /Applications/Preferences/
 chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/arandr.desktop /Applications/Preferences/ -g
 chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/system-config-printer.desktop /Applications/Preferences/
 echo "GenericName=Sound" >> "${uzip}"/usr/local/share/applications/dsbmixer.desktop
@@ -182,6 +181,7 @@ mount -t devfs devfs ${uzip}/dev
 # https://github.com/helloSystem/ISO/issues/20
 # FIXME: This fails on 13-CURRENT https://github.com/helloSystem/ISO/issues/27
 IGNORE_OSVERSION=yes /usr/local/sbin/pkg-static -c "${uzip}" add "https://github.com/helloSystem/Menu/releases/download/helper/appmenu-gtk-module-0.7.3.2.txz" || true
+/usr/local/sbin/pkg-static -c "${uzip}" install appmenu-gtk-module || true
 # Remove pkg (it will be bootstrapped if needed)
 # chroot "${uzip}" sudo pkg remove -y -f pkg # Breaks furybsd-init-helper
 rm ${uzip}/etc/resolv.conf

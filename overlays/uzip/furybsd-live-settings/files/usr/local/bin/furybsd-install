@@ -108,7 +108,7 @@ else
   echo "INSTALLER_USER_PASSWORD environment variable is available and is not blank"
 fi
 
-if [ ! -z ${INSTALLER_USER_PASSWORD+x} ] ; then
+if [ -n "${INSTALLER_DEVICE}" ] ; then
   username="${INSTALLER_USERNAME}"
   password="${INSTALLER_USER_PASSWORD}"
   echo "${username}:::::::::${password}" | chroot "${FSMNT}" adduser -f - && \
@@ -117,7 +117,7 @@ if [ ! -z ${INSTALLER_USER_PASSWORD+x} ] ; then
   chroot "${FSMNT}" pw groupmod video -m "${username}" && \
   chroot "${FSMNT}" pw groupmod webcamd -m "${username}"
 else
-  echo "Environment variable INSTALLER_USERNAME not set, asking the user for input"
+  echo "Environment variable INSTALLER_DEVICE not set, asking the user for input"
   while true; do
     echo ""
     echo "Add User"
@@ -181,9 +181,11 @@ fi
 # Transfer settings from running /etc/rc.conf to installed one
 cat /etc/rc.conf | xargs sysrc -f ${FSMNT}/etc/rc.conf
 
-# Enable CUPS printing system; FIXME: Why is this needed here?
+# Enable CUPS printing system and initgfx; FIXME: Why is this needed here?
 # sysrc should be carried over from the Live system
 chroot "${FSMNT}" sysrc cupsd_enable="YES"
+chroot "${FSMNT}" sysrc initgfx_enable="YES"
+chroot "${FSMNT}" sysrc initgfx_menu="NO"
 
 # Set the timezone on the system if it has been provided
 # by the graphical installer frontend
@@ -208,6 +210,7 @@ fi
 # TODO: Allow optional auto login for INSTALLER_USERNAME
 chroot ${FSMNT} sed -i '' -e 's/^default_user/#default_user/' /usr/local/etc/slim.conf
 chroot ${FSMNT} sed -i '' -e 's/^auto_login/#auto_login/' /usr/local/etc/slim.conf
+chroot ${FSMNT} echo "default_user       ${INSTALLER_USERNAME}" >> /usr/local/etc/slim.conf
 
 # Until we have a better solution, hardcode it here too...
 cat >> "${FSMNT}/boot/loader.conf" <<\EOF
