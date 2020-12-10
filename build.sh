@@ -355,6 +355,15 @@ boot()
   sync ### Needed?
 }
 
+tag()
+{
+  URL=$(git remote -v | grep origin | head -n 1 | xargs | cut -d " " -f 2)
+  SHA=$(git log --abbrev-commit | head -n 1 | cut -d " " -f 2)
+  URL="${URL}commit/${SHA}"
+  echo "${URL}"
+  echo "${URL}" > "${cdroot}"/.url
+}
+
 image()
 {
   sh "${cwd}/scripts/mkisoimages-${arch}.sh" -b "${label}" "${isopath}" "${cdroot}"
@@ -377,4 +386,5 @@ script
 uzip
 ramdisk
 boot
+tag
 image
