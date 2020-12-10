@@ -244,3 +244,10 @@ EOF
 # by commenting out the line that ends in '/dev/console'
 sed -i -e 's|^\(.*/dev/console\)|# \1|g' "${uzip}/etc/syslog.conf"
 rm "${uzip}/etc/syslog.conf-e"
+
+# Workaround to get rounded corners as long as picom in FreeBSD ports
+# does not have this yet; FIXME: Remove once no longer needed
+wget https://github.com/helloSystem/ISO/releases/download/assets/picom.tar.bz2
+tar xf picom.tar.bz2
+mv picom "${uzip}/usr/local/bin/picom"
+rm -f picom.tar.bz2
