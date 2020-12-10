@@ -239,8 +239,6 @@ setup_nvidia()
 	kldload ${kmods}
 	sysrc initgfx_kmods="${kmods}"
 	nvidia_xorg_cfg > "${path_xorg_cfg}"
-	# nvidia-xconfig seems to be needed to get initgfx to work properly, FIXME: NomadBSD seems to be able to do without it
-	nvidia-xconfig
 	sync
 	return 0
 }
