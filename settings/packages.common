@@ -18,8 +18,6 @@ drm-legacy-kmod
 libva-intel-driver
 drm-kmod
 # nvidia-driver # !i386 # Is now handled in build.sh initgfx()
-# nvidia-xconfig seems to be needed to get initgfx to work properly, FIXME: NomadBSD seems to be able to do without it
-nvidia-xconfig
 mesa-libs
 mesa-dri
 open-vm-tools
