@@ -34,22 +34,30 @@ while : ; do
     sleep 1
 done
 
+# Optionally use unionfs if requested. FIXME: This does not boot yet
 if [ "$(kenv use_unionfs)" = "YES" ] ; then
-  echo "==> Mount cdrom for unionfs"
+  echo "==> Mount cdrom"
   mkdir -p /tmp
   mount_cd9660 /dev/iso9660/LIVE /cdrom
+  # Question: Does this create /dev/md0? Or /dev/md1?
   mdmfs -P -F /cdrom/data/system.uzip -o ro md.uzip /sysroot
 
   # Make room for backup in /tmp
   mount -t tmpfs tmpfs /tmp
 
-  echo "==> Mount swap-based memdisk for unionfs"
-  mdmfs -s 1024m md /memdisk || exit 1
-  dump -0f - /dev/md1.uzip | (cd /memdisk; restore -rf -)
-  rm /memdisk/restoresymtable
+  echo "==> Mount swap-based memdisk"
+  # Question: What is this needed for? At this point, we already have mounted the uzip r/o at /sysroot
+  # Question: Does this create /dev/md2?
+  # mdmfs -s 1024m md /memdisk || exit 1
+  #####dump -0f - /dev/md1.uzip | (cd /memdisk; restore -rf -) # FIXME: dump: Unable to read file system superblock: Input/output error
+  #####rm /memdisk/restoresymtable
 
-  kenv vfs.root.mountfrom=ufs:/dev/md2
+  # Question: Where is /dev/md2 coming from and what is it supposed to contain?
+  # kenv vfs.root.mountfrom=ufs:/dev/md2
   # kenv init_script="/init-reroot.sh"
+  
+  # FIXME: Just a wild guess that md1 is where our uzip ended up
+  kenv vfs.root.mountfrom=ufs:/dev/md1
 
   if [ "$SINGLE_USER" = "true" ]; then
 	  echo "Starting interactive shell in temporary rootfs ..."
