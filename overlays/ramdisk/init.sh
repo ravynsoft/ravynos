@@ -28,7 +28,7 @@ mount -u -w /
 echo "==> Make mountpoints"
 mkdir -p /cdrom /memdisk /sysroot
 
-echo "Waiting for Live media to initialize"
+echo "Waiting for Live media to appear"
 while : ; do
     [ -e "/dev/iso9660/LIVE" ] && echo "found /dev/iso9660/LIVE" && break
     sleep 1
@@ -36,7 +36,8 @@ done
 
 if [ "$(kenv use_unionfs)" = "YES" ] ; then
   echo "==> Mount cdrom for unionfs"
-  mount_cd9660 /dev/iso9660/FURYBSD /cdrom
+  mkdir -p /tmp
+  mount_cd9660 /dev/iso9660/LIVE /cdrom
   mdmfs -P -F /cdrom/data/system.uzip -o ro md.uzip /sysroot
 
   # Make room for backup in /tmp
@@ -48,7 +49,7 @@ if [ "$(kenv use_unionfs)" = "YES" ] ; then
   rm /memdisk/restoresymtable
 
   kenv vfs.root.mountfrom=ufs:/dev/md2
-  kenv init_script="/init-reroot.sh"
+  # kenv init_script="/init-reroot.sh"
 
   if [ "$SINGLE_USER" = "true" ]; then
 	  echo "Starting interactive shell in temporary rootfs ..."
