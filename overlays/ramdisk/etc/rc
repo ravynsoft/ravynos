@@ -5,22 +5,41 @@ if [ "$(kenv boot_mute)" = "YES" ] ; then
         exec 1>>/dev/null 2>&1
 fi
 
-if [ ! -e /dev/md2 ] ; then
-  halt -p
-fi
+set -x
 
-echo "==> Ramdisk /etc/rc running"
-echo "==> Unset rescue init kernel environment variables"
-kenv -u init_chroot
-kenv -u init_path
-kenv -u init_script
-kenv -u init_shell
-echo "==> Unmount filesystems for cloning"
-umount -f /livecd/dev
-zpool export livecd
-zpool export furybsd || true
-umount -f /cdrom
-echo "==> Set /dev/md2 device for reroot"
-kenv vfs.root.mountfrom=zfs:livecd
-echo "==> Rerooting into memdisk"
-reboot -r
+if [ "$(kenv skip_memdisk)" = "YES" ] ; then
+  # Skip swap-based memdisk if skip_memdisk="YES" is set,
+  # resulting in a read-only system
+  echo "==> Ramdisk /etc/rc running"
+  echo "==> Unset rescue init kernel environment variables"
+  kenv -u init_chroot
+  kenv -u init_path
+  kenv -u init_script
+  kenv -u init_shell
+  echo "==> Unmount filesystems"
+  zpool export furybsd || true
+  umount -f /cdrom
+  echo "==> Set zfs:furybsd device for reroot"
+  kenv vfs.root.mountfrom=zfs:furybsd
+  echo "==> Rerooting into zfs:furybsd"
+  reboot -r
+else
+  if [ ! -e /dev/md2 ] ; then
+    halt -p
+  fi
+  echo "==> Ramdisk /etc/rc running"
+  echo "==> Unset rescue init kernel environment variables"
+  kenv -u init_chroot
+  kenv -u init_path
+  kenv -u init_script
+  kenv -u init_shell
+  echo "==> Unmount filesystems for cloning"
+  umount -f /livecd/dev
+  zpool export livecd
+  zpool export furybsd || true
+  umount -f /cdrom
+  echo "==> Set /dev/md2 device for reroot"
+  kenv vfs.root.mountfrom=zfs:livecd
+  echo "==> Rerooting into memdisk"
+  reboot -r
+fi

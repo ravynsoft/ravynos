@@ -18,6 +18,8 @@ if [ "$(kenv boot_mute)" = "YES" ] ; then
       exec 1>>/dev/null 2>&1
 fi
 
+set -x
+
 echo "==> Ramdisk /init.sh running"
 
 echo "==> Remount rootfs as read-write"
@@ -40,6 +42,16 @@ zpool import furybsd -o readonly=on
 if [ "$SINGLE_USER" = "true" ]; then
         echo "Starting interactive shell in temporary rootfs ..."
         exit 0
+fi
+
+# Skip swap-based memdisk if skip_memdisk="YES" is set,
+# resulting in a read-only system
+if [ "$(kenv skip_memdisk)" = "YES" ] ; then
+  mount -t devfs devfs /furybsd/dev
+  chroot /furybsd /usr/local/bin/furybsd-init-helper
+  # md2p1 will NOT exist in this case
+  kenv init_shell="/rescue/sh"
+  exit 0
 fi
 
 # Ensure the system has more than enough memory for memdisk

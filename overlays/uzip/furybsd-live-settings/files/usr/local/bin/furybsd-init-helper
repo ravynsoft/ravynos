@@ -1,5 +1,12 @@
 #!/bin/sh
 
+# If the system is r/o, then we cannot do any changes unless
+# we find a way to make it r/w already here
+if [ "$(kenv skip_memdisk)" = "YES" ] ; then
+  exit 0
+fi
+
+
 BOOTMODE=$(/sbin/sysctl -n machdep.bootmethod)
 export BOOTMODE
 

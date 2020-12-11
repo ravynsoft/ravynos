@@ -357,11 +357,17 @@ boot()
 
 tag()
 {
-  URL=$(git remote -v | grep origin | head -n 1 | xargs | cut -d " " -f 2)
-  SHA=$(git log --abbrev-commit | head -n 1 | cut -d " " -f 2)
-  URL="${URL}commit/${SHA}"
-  echo "${URL}"
-  echo "${URL}" > "${cdroot}"/.url
+  if [ -n "$CIRRUS_CI" ] ; then
+    URL=$(git remote -v | grep origin | head -n 1 | xargs | cut -d " " -f 2 | sed -e s'|.git$|/|g')
+    SHA=$(git log --abbrev-commit | head -n 1 | cut -d " " -f 2)
+    URL="${URL}commit/${SHA}"
+    echo "${URL}"
+    echo "${URL}" > "${cdroot}/.url"
+    echo "${URL}" > "${uzip}/.url"
+    echo "Setting extended attributes 'url' and 'sha' on '/.url'"
+    setextattr user sha "${SHA}" "${uzip}/.url"
+    setextattr user url "${URL}" "${uzip}/.url"
+  fi
 }
 
 image()
@@ -383,8 +389,8 @@ rc
 user
 dm
 script
+tag
 uzip
 ramdisk
 boot
-tag
 image
