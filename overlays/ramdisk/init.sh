@@ -34,6 +34,31 @@ while : ; do
     sleep 1
 done
 
+if [ "$(kenv use_unionfs)" = "YES" ] ; then
+  echo "==> Mount cdrom for unionfs"
+  mount_cd9660 /dev/iso9660/FURYBSD /cdrom
+  mdmfs -P -F /cdrom/data/system.uzip -o ro md.uzip /sysroot
+
+  # Make room for backup in /tmp
+  mount -t tmpfs tmpfs /tmp
+
+  echo "==> Mount swap-based memdisk for unionfs"
+  mdmfs -s 1024m md /memdisk || exit 1
+  dump -0f - /dev/md1.uzip | (cd /memdisk; restore -rf -)
+  rm /memdisk/restoresymtable
+
+  kenv vfs.root.mountfrom=ufs:/dev/md2
+  kenv init_script="/init-reroot.sh"
+
+  if [ "$SINGLE_USER" = "true" ]; then
+	  echo "Starting interactive shell in temporary rootfs ..."
+	  exit 0
+  fi
+
+  kenv init_shell="/rescue/sh"
+  exit 0
+fi
+
 echo "==> Mount cdrom"
 mount_cd9660 -o ro /dev/iso9660/LIVE /cdrom
 mdconfig -o readonly -f /cdrom/data/system.uzip -u 1
@@ -42,16 +67,6 @@ zpool import furybsd -o readonly=on
 if [ "$SINGLE_USER" = "true" ]; then
         echo "Starting interactive shell in temporary rootfs ..."
         exit 0
-fi
-
-# Skip swap-based memdisk if skip_memdisk="YES" is set,
-# resulting in a read-only system
-if [ "$(kenv skip_memdisk)" = "YES" ] ; then
-  mount -t devfs devfs /furybsd/dev
-  chroot /furybsd /usr/local/bin/furybsd-init-helper
-  # md2p1 will NOT exist in this case
-  kenv init_shell="/rescue/sh"
-  exit 0
 fi
 
 # Ensure the system has more than enough memory for memdisk
