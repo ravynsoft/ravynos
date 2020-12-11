@@ -358,9 +358,8 @@ boot()
 tag()
 {
   if [ -n "$CIRRUS_CI" ] ; then
-    URL="https://${CIRRUS_REPO_CLONE_HOST}/${CIRRUS_REPO_FULL_NAME}/commit/${CIRRUS_CHANGE_IN_REPO}"
     SHA=$(echo "${CIRRUS_CHANGE_IN_REPO}" | head -c 7)
-    URL="${URL}commit/${SHA}"
+    URL="https://${CIRRUS_REPO_CLONE_HOST}/${CIRRUS_REPO_FULL_NAME}/commit/${SHA}"
     echo "${URL}"
     echo "${URL}" > "${cdroot}/.url"
     echo "${URL}" > "${uzip}/.url"
