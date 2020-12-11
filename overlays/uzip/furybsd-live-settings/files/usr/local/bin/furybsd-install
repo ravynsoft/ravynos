@@ -206,11 +206,10 @@ if [ "${INSTALLER_ENABLE_SSH}" = "YES" ] ; then
   chroot "${FSMNT}" sysrc sshd_enable="YES"
 fi
 
-# Disable the automatic login and auto-filled username
-# TODO: Allow optional auto login for INSTALLER_USERNAME
-chroot ${FSMNT} sed -i '' -e 's/^default_user/#default_user/' /usr/local/etc/slim.conf
-chroot ${FSMNT} sed -i '' -e 's/^auto_login/#auto_login/' /usr/local/etc/slim.conf
-chroot ${FSMNT} echo "default_user       ${INSTALLER_USERNAME}" >> /usr/local/etc/slim.conf
+# Set new default_user the automatic login
+sed -i '' -e 's/^default_user/#default_user/' "${FSMNT}/usr/local/etc/slim.conf"
+echo "default_user       ${INSTALLER_USERNAME}" >> "${FSMNT}/usr/local/etc/slim.conf"
+# chroot ${FSMNT} sed -i '' -e 's/^auto_login/#auto_login/' /usr/local/etc/slim.conf
 
 # Until we have a better solution, hardcode it here too...
 cat >> "${FSMNT}/boot/loader.conf" <<\EOF
