@@ -7,21 +7,10 @@ fi
 
 set -x
 
-if [ "$(kenv skip_memdisk)" = "YES" ] ; then
-  # Skip swap-based memdisk if skip_memdisk="YES" is set,
-  # resulting in a read-only system
+if [ "$(kenv use_unionfs)" = "YES" ] ; then
   echo "==> Ramdisk /etc/rc running"
-  echo "==> Unset rescue init kernel environment variables"
-  kenv -u init_chroot
-  kenv -u init_path
-  kenv -u init_script
-  kenv -u init_shell
-  echo "==> Unmount filesystems"
-  zpool export furybsd || true
+  echo "==> Unmounting /cdrom and rerooting for unionfs"
   umount -f /cdrom
-  echo "==> Set zfs:furybsd device for reroot"
-  kenv vfs.root.mountfrom=zfs:furybsd
-  echo "==> Rerooting into zfs:furybsd"
   reboot -r
 else
   if [ ! -e /dev/md2 ] ; then
