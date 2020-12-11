@@ -2,10 +2,14 @@
 
 # If the system is r/o, then we cannot do any changes unless
 # we find a way to make it r/w already here
-if [ "$(kenv skip_memdisk)" = "YES" ] ; then
-  exit 0
+if [ "$(kenv use_unionfs)" = "YES" ] ; then
+  mount -u -w /
+  mkdir -p /cdrom /union /usr
+  mount_cd9660 /dev/iso9660/FURYBSD /cdrom
+  mdmfs -P -F /cdrom/data/usr.uzip -o ro md.uzip /usr
+  mdmfs -s 512m md /union || exit 1 
+  mount -t unionfs /union /usr
 fi
-
 
 BOOTMODE=$(/sbin/sysctl -n machdep.bootmethod)
 export BOOTMODE
