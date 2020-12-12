@@ -42,21 +42,19 @@ fi
 echo "==> Mount cdrom"
 mount_cd9660 -o ro /dev/iso9660/LIVE /cdrom
 mdconfig -o readonly -f /cdrom/data/system.uzip -u 1
-zpool import furybsd -o readonly=on
+zpool import furybsd -o readonly=on # Without readonly=on zfs refuses to mount this with: "one or more devices is read only"
+zpool list # furybsd
+mount # /usr/local/furybsd/uzip
 
 # Optionally use unionfs if requested. FIXME: This does not boot yet
 if [ "$(kenv use_unionfs)" = "YES" ] ; then
   echo "==> Trying unionfs"
-  mdconfig -o readonly -f /cdrom/data/system.uzip -u 1
-  zpool import furybsd -o readonly=on # Without readonly=on zfs refuses to mount this with: "one or more devices is read only"
-  zpool list # furybsd
   # Could we snapshot it here?
-  mount # /usr/local/furybsd/uzip
   mount -t devfs devfs /usr/local/furybsd/uzip/dev
-  kenv init_shell="/bin/sh"
   # chroot /usr/local/furybsd/uzip /usr/local/bin/furybsd-init-helper # Try to set up unionfs there; TODO: Move those things in here?
   kenv init_chroot=/usr/local/furybsd/uzip
   kenv use_unionfs=YES
+  kenv init_shell="/rescue/sh"
   exit 0 # etc/rc in he ramdisk gets executed next
 fi
 
