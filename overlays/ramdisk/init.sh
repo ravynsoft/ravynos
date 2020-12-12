@@ -34,11 +34,6 @@ while : ; do
     sleep 1
 done
 
-if [ "$SINGLE_USER" = "true" ]; then
-        echo "Starting interactive shell in temporary rootfs ..."
-        exit 0
-fi
-
 echo "==> Mount cdrom"
 mount_cd9660 -o ro /dev/iso9660/LIVE /cdrom
 mdconfig -o readonly -f /cdrom/data/system.uzip -u 1
@@ -46,15 +41,34 @@ zpool import furybsd -o readonly=on # Without readonly=on zfs refuses to mount t
 zpool list # furybsd
 mount # /usr/local/furybsd/uzip
 
+if [ "$SINGLE_USER" = "true" ]; then
+        echo "Starting interactive shell in temporary rootfs ..."
+        exit 0
+fi
+
 # Optionally use unionfs if requested. FIXME: This does not boot yet
 if [ "$(kenv use_unionfs)" = "YES" ] ; then
   echo "==> Trying unionfs"
-  # Could we snapshot it here?
+  
+  # Could we snapshot /usr/local/furybsd/uzip here?
+  # zfs snapshot furybsd@now
+  # results in:
+  # cannot create shapshots : pool is read-only
+  
+  # FIXME: The following does NOT seem to work
+  mkdir /tmp
+  mount -t tmpfs tmpfs /tmp
+  mount -t unionfs /tmp /usr/local/furybsd/uzip # FIXME: mount_unionfs: /usr/local/furybsd/uzip: Operation not supported by device
+  
+  # TODO: https://github.com/lantw44/freebsd-gnome-livecd/blob/master/init.sh.in
+  # shows how to make /cdrom available to the booted system
+  
   mount -t devfs devfs /usr/local/furybsd/uzip/dev
   mount -t tmpfs tmpfs /usr/local/furybsd/uzip/tmp
-  # chroot /usr/local/furybsd/uzip /usr/local/bin/furybsd-init-helper # Try to set up unionfs there; TODO: Move those things in here?
-  kenv init_chroot=/usr/local/furybsd/uzip
-  kenv use_unionfs=YES
+  
+  # chroot /usr/local/furybsd/uzip /usr/local/bin/furybsd-init-helper # Should we run it? Only makes sense if we can become r/w until here
+  
+  kenv init_chroot=/usr/local/furybsd/uzip # TODO: Can we possibly reroot instead of chroot?
   kenv init_shell="/rescue/sh"
   exit 0 # etc/rc in he ramdisk gets executed next
 fi
