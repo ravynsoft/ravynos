@@ -60,7 +60,7 @@ if [ "$(kenv use_unionfs)" = "YES" ] ; then
   # mount -t tmpfs tmpfs /tmp
   # kldload /usr/local/furybsd/uzip/boot/kernel/unionfs.ko # Fixes next line: mount_unionfs: /usr/local/furybsd/uzip: Operation not supported by device
   # mount -t unionfs /tmp /usr/local/furybsd/uzip
-  # Result: Stalls later on? Need to do this more selectively? Need to use mdmfs uses swap based md(4) devices instead of tmpfs?
+  # Result: Stalls later on? Need to do this more selectively? Need to use mdmfs uses swap based md(4) devices instead of tmpfs? As in https://wiki.freebsd.org/AndriyGapon/AvgLiveCD#Further_enhancements
   # TODO: Read and experiment with https://forums.freebsd.org/threads/combining-tmpfs-and-unionfs-on-root-filesystem.16279/
   
   # TODO: https://github.com/lantw44/freebsd-gnome-livecd/blob/master/init.sh.in
