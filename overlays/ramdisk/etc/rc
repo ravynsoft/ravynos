@@ -5,6 +5,11 @@ if [ "$(kenv boot_mute)" = "YES" ] ; then
         exec 1>>/dev/null 2>&1
 fi
 
+if [ "$SINGLE_USER" = "true" ]; then
+        echo "Starting interactive shell in /etc/rc of the ramdisk..."
+        exit 0
+fi
+
 set -x
 
 if [ "$(kenv use_unionfs)" = "YES" ] ; then
