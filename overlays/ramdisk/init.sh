@@ -68,6 +68,7 @@ if [ "$(kenv use_unionfs)" = "YES" ] ; then
   
   # Since unionfs does not work, let's use a workaround
   mkdir /null
+  mount -t tmpfs tmpfs /null
   cp -r /usr/local/furybsd/uzip/etc /null/etc
   cp -r /usr/local/furybsd/uzip/usr/local/etc /null/usr-local-etc
   cp -r /usr/local/furybsd/uzip/root /null/root
