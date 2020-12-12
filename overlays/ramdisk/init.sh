@@ -72,10 +72,14 @@ if [ "$(kenv use_unionfs)" = "YES" ] ; then
   cp -r /usr/local/furybsd/uzip/usr/local/etc /null/usr-local-etc
   cp -r /usr/local/furybsd/uzip/root /null/root
   cp -r /usr/local/furybsd/uzip/usr/local/var /null/usr-local-var
+  cp -r /usr/local/furybsd/uzip/home /null/home
+  cp -r /usr/local/furybsd/uzip/var /null/var
   mount -t nullfs /null/etc /usr/local/furybsd/uzip/etc
   mount -t nullfs /null/usr-local-etc /usr/local/furybsd/uzip/usr/local/etc
   mount -t nullfs /null/root /usr/local/furybsd/uzip/root
   mount -t nullfs /null/usr-local-var /usr/local/furybsd/uzip/usr/local/var
+  mount -t nullfs /null/home /usr/local/furybsd/uzip/home
+  mount -t nullfs /null/var /usr/local/furybsd/uzip/var
   
   # chroot /usr/local/furybsd/uzip /usr/local/bin/furybsd-init-helper # Should we run it? Only makes sense if we can become r/w until here
   
