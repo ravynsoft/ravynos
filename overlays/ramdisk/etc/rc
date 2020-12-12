@@ -9,9 +9,13 @@ set -x
 
 if [ "$(kenv use_unionfs)" = "YES" ] ; then
   echo "==> Ramdisk /etc/rc running"
-  echo "==> Unmounting /cdrom and rerooting for unionfs"
-  umount -f /cdrom
-  reboot -r
+  echo "==> Unmounting /cdrom and exiting rc"
+  # umount -f /cdrom
+  kenv init_chroot # Hopefully the system will continue booting from that location after this script exits with 0
+  kenv -u init_path
+  kenv -u init_script
+  kenv -u init_shell
+  exit 0
 else
   if [ ! -e /dev/md2 ] ; then
     halt -p
