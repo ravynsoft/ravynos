@@ -34,18 +34,23 @@ while : ; do
     sleep 1
 done
 
+if [ "$SINGLE_USER" = "true" ]; then
+        echo "Starting interactive shell in temporary rootfs ..."
+        exit 0
+fi
+
 # Optionally use unionfs if requested. FIXME: This does not boot yet
 if [ "$(kenv use_unionfs)" = "YES" ] ; then
   echo "==> Mount cdrom"
-  mkdir -p /tmp
   mount_cd9660 /dev/iso9660/LIVE /cdrom
-  # Question: Does this create /dev/md0? Or /dev/md1?
+  # Question: Does this create /dev/md1 because /dev/md0 is already holding the ramdisk we are running from?
   mdmfs -P -F /cdrom/data/system.uzip -o ro md.uzip /sysroot
 
-  # Make room for backup in /tmp
+  # Make room for backup in /tmp, what is this needed for?
+  mkdir -p /tmp
   mount -t tmpfs tmpfs /tmp
 
-  echo "==> Mount swap-based memdisk"
+  # echo "==> Mount swap-based memdisk"
   # Question: What is this needed for? At this point, we already have mounted the uzip r/o at /sysroot
   # Question: Does this create /dev/md2?
   # mdmfs -s 1024m md /memdisk || exit 1
@@ -54,17 +59,15 @@ if [ "$(kenv use_unionfs)" = "YES" ] ; then
 
   # Question: Where is /dev/md2 coming from and what is it supposed to contain?
   # kenv vfs.root.mountfrom=ufs:/dev/md2
-  # kenv init_script="/init-reroot.sh"
+  kenv vfs.root.mountfrom=ufs:/dev/md1 # FIXME: Just a wild guess that md1 is where our uzip ended up
   
-  # FIXME: Just a wild guess that md1 is where our uzip ended up
-  kenv vfs.root.mountfrom=ufs:/dev/md1
-
-  if [ "$SINGLE_USER" = "true" ]; then
-	  echo "Starting interactive shell in temporary rootfs ..."
-	  exit 0
-  fi
+  mount -t devfs devfs /sysroot/dev
+  chroot /sysroot /usr/local/bin/furybsd-init-helper
 
   kenv init_shell="/rescue/sh"
+  
+  init_chroot=/sysroot
+  
   exit 0
 fi
 
@@ -72,11 +75,6 @@ echo "==> Mount cdrom"
 mount_cd9660 -o ro /dev/iso9660/LIVE /cdrom
 mdconfig -o readonly -f /cdrom/data/system.uzip -u 1
 zpool import furybsd -o readonly=on
-
-if [ "$SINGLE_USER" = "true" ]; then
-        echo "Starting interactive shell in temporary rootfs ..."
-        exit 0
-fi
 
 # Ensure the system has more than enough memory for memdisk
  x=3163787264
