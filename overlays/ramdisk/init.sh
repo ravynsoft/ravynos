@@ -51,6 +51,7 @@ if [ "$(kenv use_unionfs)" = "YES" ] ; then
   echo "==> Trying unionfs"
   # Could we snapshot it here?
   mount -t devfs devfs /usr/local/furybsd/uzip/dev
+  mount -t tmpfs tmpfs /usr/local/furybsd/uzip/tmp
   # chroot /usr/local/furybsd/uzip /usr/local/bin/furybsd-init-helper # Try to set up unionfs there; TODO: Move those things in here?
   kenv init_chroot=/usr/local/furybsd/uzip
   kenv use_unionfs=YES
