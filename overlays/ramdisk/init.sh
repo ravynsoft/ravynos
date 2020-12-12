@@ -39,42 +39,26 @@ if [ "$SINGLE_USER" = "true" ]; then
         exit 0
 fi
 
-# Optionally use unionfs if requested. FIXME: This does not boot yet
-if [ "$(kenv use_unionfs)" = "YES" ] ; then
-  echo "==> Mount cdrom"
-  mount_cd9660 /dev/iso9660/LIVE /cdrom
-  # Question: Does this create /dev/md1 because /dev/md0 is already holding the ramdisk we are running from?
-  mdmfs -P -F /cdrom/data/system.uzip -o ro md.uzip /sysroot
-
-  # Make room for backup in /tmp, what is this needed for?
-  mkdir -p /tmp
-  mount -t tmpfs tmpfs /tmp
-
-  # echo "==> Mount swap-based memdisk"
-  # Question: What is this needed for? At this point, we already have mounted the uzip r/o at /sysroot
-  # Question: Does this create /dev/md2?
-  # mdmfs -s 1024m md /memdisk || exit 1
-  #####dump -0f - /dev/md1.uzip | (cd /memdisk; restore -rf -) # FIXME: dump: Unable to read file system superblock: Input/output error
-  #####rm /memdisk/restoresymtable
-
-  # Question: Where is /dev/md2 coming from and what is it supposed to contain?
-  # kenv vfs.root.mountfrom=ufs:/dev/md2
-  kenv vfs.root.mountfrom=ufs:/dev/md1 # FIXME: Just a wild guess that md1 is where our uzip ended up
-  
-  mount -t devfs devfs /sysroot/dev
-  chroot /sysroot /usr/local/bin/furybsd-init-helper
-
-  kenv init_shell="/rescue/sh"
-  
-  init_chroot=/sysroot
-  
-  exit 0
-fi
-
 echo "==> Mount cdrom"
 mount_cd9660 -o ro /dev/iso9660/LIVE /cdrom
 mdconfig -o readonly -f /cdrom/data/system.uzip -u 1
 zpool import furybsd -o readonly=on
+
+# Optionally use unionfs if requested. FIXME: This does not boot yet
+if [ "$(kenv use_unionfs)" = "YES" ] ; then
+  echo "==> Trying unionfs"
+  mdconfig -o readonly -f /cdrom/data/system.uzip -u 1
+  zpool import furybsd -o readonly=on # Without readonly=on zfs refuses to mount this with: "one or more devices is read only"
+  zpool list # furybsd
+  # Could we snapshot it here?
+  mount # /usr/local/furybsd/uzip
+  mount -t devfs devfs /usr/local/furybsd/uzip/dev
+  kenv init_shell="/bin/sh"
+  # chroot /usr/local/furybsd/uzip /usr/local/bin/furybsd-init-helper # Try to set up unionfs there; TODO: Move those things in here?
+  kenv init_chroot=/usr/local/furybsd/uzip
+  kenv use_unionfs=YES
+  exit 0 # etc/rc in he ramdisk gets executed next
+fi
 
 # Ensure the system has more than enough memory for memdisk
  x=3163787264
