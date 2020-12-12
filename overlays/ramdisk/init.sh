@@ -66,6 +66,17 @@ if [ "$(kenv use_unionfs)" = "YES" ] ; then
   mount -t devfs devfs /usr/local/furybsd/uzip/dev
   mount -t tmpfs tmpfs /usr/local/furybsd/uzip/tmp
   
+  # Since unionfs does not work, let's use a workaround
+  mkdir /null
+  cp -r /usr/local/furybsd/uzip/etc /null/etc
+  cp -r /usr/local/furybsd/uzip/usr/local/etc /null/usr-local-etc
+  cp -r /usr/local/furybsd/uzip/root /null/root
+  cp -r /usr/local/furybsd/uzip/usr/local/var /null/usr-local-var
+  mount -t nullfs /null/etc /usr/local/furybsd/uzip/etc
+  mount -t nullfs /null/usr-local-etc /usr/local/furybsd/uzip/usr/local/etc
+  mount -t nullfs /null/root /usr/local/furybsd/uzip/root
+  mount -t nullfs /null/usr-local-var /usr/local/furybsd/uzip/usr/local/var
+  
   # chroot /usr/local/furybsd/uzip /usr/local/bin/furybsd-init-helper # Should we run it? Only makes sense if we can become r/w until here
   
   kenv init_chroot=/usr/local/furybsd/uzip # TODO: Can we possibly reroot instead of chroot?
