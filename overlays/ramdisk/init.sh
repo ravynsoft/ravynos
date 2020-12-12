@@ -56,9 +56,12 @@ if [ "$(kenv use_unionfs)" = "YES" ] ; then
   # cannot create shapshots : pool is read-only
   
   # FIXME: The following does NOT seem to work
-  mkdir /tmp
-  mount -t tmpfs tmpfs /tmp
-  mount -t unionfs /tmp /usr/local/furybsd/uzip # FIXME: mount_unionfs: /usr/local/furybsd/uzip: Operation not supported by device
+  # mkdir /tmp
+  # mount -t tmpfs tmpfs /tmp
+  # kldload /usr/local/furybsd/uzip/boot/kernel/unionfs.ko # Fixes next line: mount_unionfs: /usr/local/furybsd/uzip: Operation not supported by device
+  # mount -t unionfs /tmp /usr/local/furybsd/uzip
+  # Result: Stalls later on? Need to do this more selectively? Need to use mdmfs uses swap based md(4) devices instead of tmpfs?
+  # TODO: Read and experiment with https://forums.freebsd.org/threads/combining-tmpfs-and-unionfs-on-root-filesystem.16279/
   
   # TODO: https://github.com/lantw44/freebsd-gnome-livecd/blob/master/init.sh.in
   # shows how to make /cdrom available to the booted system
@@ -75,6 +78,7 @@ if [ "$(kenv use_unionfs)" = "YES" ] ; then
   cp -r /usr/local/furybsd/uzip/usr/local/var /null/usr-local-var
   cp -r /usr/local/furybsd/uzip/home /null/home
   cp -r /usr/local/furybsd/uzip/var /null/var
+  kldload /usr/local/furybsd/uzip/boot/kernel/nullfs.ko # Fixes next line: mount_nullfs: /usr/local/furybsd/uzip: Operation not supported by device
   mount -t nullfs /null/etc /usr/local/furybsd/uzip/etc
   mount -t nullfs /null/usr-local-etc /usr/local/furybsd/uzip/usr/local/etc
   mount -t nullfs /null/root /usr/local/furybsd/uzip/root
