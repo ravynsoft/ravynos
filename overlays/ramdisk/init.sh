@@ -50,21 +50,26 @@ fi
 if [ "$(kenv use_unionfs)" = "YES" ] ; then
   echo "==> Trying unionfs"
   
-  # Could we snapshot /usr/local/furybsd/uzip here?
-  # zfs snapshot furybsd@now
-  # results in:
-  # cannot create shapshots : pool is read-only
+  ## Could we snapshot /usr/local/furybsd/uzip here?
+  ## zfs snapshot furybsd@now
+  ## results in:
+  ## cannot create shapshots : pool is read-only
   
-  # FIXME: The following does NOT seem to work
-  # mkdir /tmp
-  # mount -t tmpfs tmpfs /tmp
-  # kldload /usr/local/furybsd/uzip/boot/kernel/unionfs.ko # Fixes next line: mount_unionfs: /usr/local/furybsd/uzip: Operation not supported by device
-  # mount -t unionfs /tmp /usr/local/furybsd/uzip
-  # Result: Stalls later on? Need to do this more selectively? Need to use mdmfs uses swap based md(4) devices instead of tmpfs? As in https://wiki.freebsd.org/AndriyGapon/AvgLiveCD#Further_enhancements
-  # TODO: Read and experiment with https://forums.freebsd.org/threads/combining-tmpfs-and-unionfs-on-root-filesystem.16279/
+  ## FIXME: The following does NOT seem to work
+  ## mkdir /tmp
+  ## mount -t tmpfs tmpfs /tmp
+  ## It is said that tmpfs and unionfs should be avoided, hence using a swap based md(4) devices; FIXME
+  #mkdir /md
+  #mdmfs -s 64m md /md
+  #kldload /usr/local/furybsd/uzip/boot/kernel/unionfs.ko # Fixes next line: mount_unionfs: /usr/local/furybsd/uzip: Operation not supported by device
+  #mount -t unionfs /md /usr/local/furybsd/uzip
+  ## Result: Stalls later on after /etc/rc in the ramdisk exits. Why? FIXME
+  ## Same result of one applies the unionfs only selectively, e.g., to /usr/local.
+  ## https://wiki.freebsd.org/AndriyGapon/AvgLiveCD#Further_enhancements
+  ## https://forums.freebsd.org/threads/combining-tmpfs-and-unionfs-on-root-filesystem.16279/
   
-  # TODO: https://github.com/lantw44/freebsd-gnome-livecd/blob/master/init.sh.in
-  # shows how to make /cdrom available to the booted system
+  ## TODO: https://github.com/lantw44/freebsd-gnome-livecd/blob/master/init.sh.in
+  ## shows how to make /cdrom available to the booted system
   
   mount -t devfs devfs /usr/local/furybsd/uzip/dev
   mount -t tmpfs tmpfs /usr/local/furybsd/uzip/tmp
@@ -88,6 +93,7 @@ if [ "$(kenv use_unionfs)" = "YES" ] ; then
   
   # chroot /usr/local/furybsd/uzip /usr/local/bin/furybsd-init-helper # Should we run it? Only makes sense if we can become r/w until here
   
+  kenv use_unionfs=YES # So that /etc/rc in the ramdisk knows what to do
   kenv init_chroot=/usr/local/furybsd/uzip # TODO: Can we possibly reroot instead of chroot?
   kenv init_shell="/rescue/sh"
   exit 0 # etc/rc in he ramdisk gets executed next
