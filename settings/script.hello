@@ -77,11 +77,17 @@ mv 'Utilities-master/Zeroconf.app' "${uzip}/Applications/Utilities/"
 mv 'Utilities-master/Create Live Media.app' "${uzip}/Applications/Utilities/"
 mv 'Utilities-master/Install FreeBSD.app' "${uzip}/Applications/Utilities/"
 mv 'Utilities-master/Calculator.app' "${uzip}/Applications/Utilities/"
+mv 'Utilities-master/Remote Assistance.app' "${uzip}/Applications/Utilities/"
 mv 'Utilities-master/Boot Environments.app' "${uzip}/Applications/Preferences/"
 mv 'Utilities-master/Desktop.app' "${uzip}/Applications/Preferences/"
 mv 'Utilities-master/Keyboard.app' "${uzip}/Applications/Preferences/"
 mv 'Utilities-master/Sharing.app' "${uzip}/Applications/Preferences/"
 rm -rf master.zip Utilities-master/
+
+# Required for Remote Assistance.app
+wget -c https://github.com/gjedeer/tuntox/releases/download/0.0.9/tuntox-freebsd-x64 -O tuntox
+chmod +x tuntox
+mv tuntox "${uzip}/usr/local/bin/"
 
 # BuildNotify.app: Notifications about continuous build server status
 wget https://github.com/anaynayak/buildnotify/archive/2.0.0.zip
