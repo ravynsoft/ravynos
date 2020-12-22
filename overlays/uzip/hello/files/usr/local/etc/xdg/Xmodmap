@@ -8,11 +8,11 @@ keycode  64 = Control_L
 keycode  37 = Alt_L Meta_L
 
 ! Menu becomes Alt_R Meta_R (AltGr)
-keycode 135 = Alt_R Meta_R
+!! keycode 135 = Alt_R Meta_R
 
 ! Define Control_R and Alt_R similar to Control_L and Alt_L
-keycode 108 = Control_L
-keycode 105 = Alt_L Meta_L
+!! keycode 108 = Control_L
+!! keycode 105 = Alt_L Meta_L
 
 ! We need to set keycodes first, as some programs (emacs!) read
 ! the key names and seem to ignore what's below.
@@ -25,4 +25,4 @@ add control = Control_L Control_R
 ! Caps_Lock becomes an additional BackSpace
 !------------------------------------------
 remove lock = Caps_Lock
-! keysym Caps_Lock = BackSpace
+!! keysym Caps_Lock = BackSpace
