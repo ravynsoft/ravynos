@@ -4,10 +4,6 @@
 # from /usr/local/share/xsessions
 # where the display manager (login window) picks it up
 
-# Reset keyboard and load our custom keyboard settings
-setxkbmap
-xmodmap /usr/local/etc/xdg/Xmodmap
-
 # Enable FUSE and allow non-root users to mount, which gvfs requires to work
 # FIXME: Remove the need for those lines in this script; how?
 # FIXME: It will not work in installed mode like this, because the user may not be able to use sudo without entering a password
@@ -20,13 +16,6 @@ sudo kldload fusefs.ko || true # FreeBSD 13+, violates POLA
 if [ -z $DBUS_SESSION_BUS_ADDRESS ] ; then
   export $(dbus-launch)
 fi
-
-# Reset keyboard and load our custom keyboard settings:
-# Swap Ctrl and Alt keys
-# TODO: Do something different when an Apple keyboard is attached
-# https://github.com/helloSystem/hello/issues/46
-setxkbmap
-xmodmap /usr/local/etc/xdg/Xmodmap
 
 # Set locale if it is not set already
 # and if /usr/local/var/localize/include exists
@@ -44,6 +33,13 @@ if [ -z "${LANG}" ] || [ "C.UTF-8" = "${LANG}" ]  ; then
     setxkbmap -query
   fi
 fi
+
+# Load our custom keyboard settings:
+# Swap Ctrl and Alt keys
+# TODO: Do something different when an Apple keyboard is attached;
+# can we find this out without sudo? usbconfig seems to need sudo
+# https://github.com/helloSystem/hello/issues/46
+xmodmap /usr/local/etc/xdg/Xmodmap
 
 # Export XDG environment variables,
 # these may be used by applications that run inside the desktop session
