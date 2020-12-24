@@ -1,3 +1,10 @@
 #!/bin/sh
 
-killall ffmpeg || ffmpeg -thread_queue_size 1024 -f oss -i /dev/dsp3 -framerate 30 -video_size 1920x1080 -f x11grab -i :0 -c:v libx264 -b:v 2000k -maxrate 2000k -bufsize 5000k -g 50 -flags +global_header -vf format=yuv420p  -filter:a "volume=7" -c:a aac -b:a 128k /tmp/screencast.mp4
+# TODO: Port to PyQt5, add logic to detect the last plugged in microphone device properly, maybe add a tray manu
+
+if [ -e /tmp/screencast.mp4 ] ; then
+  killall ffmpeg
+  xdg-open /tmp/screencast.mp4
+else
+  ffmpeg -y -thread_queue_size 1024 -f oss -i /dev/dsp3 -framerate 30 -video_size 1920x1080 -f x11grab -i :0 -c:v libx264 -b:v 2000k -maxrate 2000k -bufsize 5000k -g 50 -flags +global_header -vf format=yuv420p  -filter:a "volume=10" -c:a aac -b:a 128k /tmp/screencast.mp4
+fi
