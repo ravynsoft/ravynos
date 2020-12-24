@@ -21,6 +21,13 @@ if [ -z $DBUS_SESSION_BUS_ADDRESS ] ; then
   export $(dbus-launch)
 fi
 
+# Reset keyboard and load our custom keyboard settings:
+# Swap Ctrl and Alt keys
+# TODO: Do something different when an Apple keyboard is attached
+# https://github.com/helloSystem/hello/issues/46
+setxkbmap
+xmodmap /usr/local/etc/xdg/Xmodmap
+
 # Set locale if it is not set already
 # and if /usr/local/var/localize/include exists
 # (might have been created by the localize script during boot)
