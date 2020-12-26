@@ -18,21 +18,14 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ### WINDOW
-border.width: 1
+border.width: 0
 
 window.client.padding.width: 0
 window.client.padding.height: 0
 window.handle.width: 0
 
 padding.width: 4
-padding.height: 1
-
-window.active.border.color: #dbdfe3
-window.inactive.border.color: #dbdfe3
-window.active.title.separator.color: #e7e8eb
-window.inactive.title.separator.color: #e7e8eb
-window.active.client.color: #dbdfe3
-window.inactive.client.color: #dbdfe3
+padding.height: 2
 
 window.active.label.text.color: #5c616c
 window.inactive.label.text.color: #979dac
@@ -56,18 +49,15 @@ window.inactive.button.toggled.unpressed.image.color: #dddee2
 window.inactive.button.toggled.pressed.image.color: #5294E2
 window.inactive.button.toggled.hover.image.color: #70788d
 
-window.active.title.bg: flat solid
-window.active.title.bg.color: #e7e8eb
-window.active.label.bg: flat solid
-window.active.label.bg.color: #e7e8eb
-#window.active.handle.bg: texture
-#window.active.grip.bg: texture
-window.inactive.title.bg: flat solid
-window.inactive.title.bg.color: #e7e8eb
-window.inactive.label.bg: flat solid
-window.inactive.label.bg.color: #e7e8eb
-#window.inactive.handle.bg: texture
-#window.inactive.grip.bg: texture
+window.active.title.bg:         Gradient Vertical
+window.active.title.bg.color:   #eeeeee
+window.active.title.bg.colorTo: #bbbbbb
+window.active.label.bg: Parentrelative
+
+window.inactive.title.bg:         Gradient Vertical
+window.inactive.title.bg.color:   #ffffff
+window.inactive.title.bg.colorTo: #dddddd
+window.inactive.label.bg: Parentrelative 
 
 window.active.button.unpressed.bg: parentrelative
 window.active.button.pressed.bg: parentrelative
