@@ -147,7 +147,7 @@ rm -rf urw-base35-fonts-20200910/ 20200910.zip
 # Applications
 mkdir -p "${uzip}/Applications"
 chmod g+w "${uzip}/Applications"
-chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/chromium-browser.desktop /Applications/
+chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/falkon.desktop /Applications/
 chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/featherpad.desktop /Applications/
 chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/qpdfview.desktop /Applications/
 
