@@ -1,7 +1,7 @@
 cat << EOF
 name:          hello
 version:       0
-origin:        local
+origin:        helloSystem
 comment:       Package that installs hello core components
 arch:          freebsd:12:x86:64
 www:           n/a
@@ -11,6 +11,6 @@ licenselogic:  single
 licenses:      [BSD]
 flatsize:      ${DIR_SIZE}
 desc:          Package that installs hello core components
-categories:    [local]
+categories:    [hello]
 deps:          { py37-qt5-widgets: { origin: "x11-toolkits/py-qt5-widgets", version: "5.9.2_5" } }
 EOF
