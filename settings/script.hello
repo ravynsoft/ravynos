@@ -147,7 +147,7 @@ rm -rf urw-base35-fonts-20200910/ 20200910.zip
 # Applications
 mkdir -p "${uzip}/Applications"
 chmod g+w "${uzip}/Applications"
-# chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/falkon.desktop /Applications/ # See workaround below
+chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/org.kde.falkon.desktop /Applications/ # See workaround below
 chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/featherpad.desktop /Applications/
 chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/qpdfview.desktop /Applications/
 
@@ -199,7 +199,8 @@ IGNORE_OSVERSION=yes /usr/local/sbin/pkg-static -c "${uzip}" add "https://github
 /usr/local/sbin/pkg-static -c "${uzip}" install appmenu-gtk-module || true
 
 # Workaround for disappeared falkon package
-IGNORE_OSVERSION=yes /usr/local/sbin/pkg-static -c "${uzip}" add "https://github.com/helloSystem/ISO/releases/download/fallback/falkon-3.1.0.txz" || true
+# This works only if all dependency pkgs have been added beforehand
+# IGNORE_OSVERSION=yes /usr/local/sbin/pkg-static -c "${uzip}" add "https://github.com/helloSystem/ISO/releases/download/fallback/falkon-3.1.0.txz" || true
 
 # Remove pkg (it will be bootstrapped if needed)
 # chroot "${uzip}" sudo pkg remove -y -f pkg # Breaks furybsd-init-helper
@@ -208,7 +209,7 @@ umount ${uzip}/var/cache/pkg
 umount ${uzip}/dev
 
 # Workaround for disappeared falkon package
-chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/falkon.desktop /Applications/
+# chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/org.kde.falkon.desktop /Applications/
 
 # Autostart
 mkdir -p "${uzip}/Applications/Autostart/"
