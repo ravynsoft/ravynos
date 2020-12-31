@@ -7,6 +7,7 @@ set -e
 # Building ISOs for other major versions than the running host system
 # is not supported and results in broken images anyway
 version=$(uname -r | cut -d "-" -f 1-2) # "12.2-RELEASE" or "13.0-CURRENT"
+VER=$(uname -r | cut -d "-" -f 1) # "12.2" or "13.0"
 
 # Dwnload from either https://download.freebsd.org/ftp/releases/
 #                  or https://download.freebsd.org/ftp/snapshots/
@@ -71,11 +72,11 @@ fi
 # Get the version tag
 if [ -z "$2" ] ; then
   rm /usr/local/furybsd/tag >/dev/null 2>/dev/null || true
-  export vol="${desktop}-${version}"
+  export vol="${VER}"
 else
   rm /usr/local/furybsd/version >/dev/null 2>/dev/null || true
   echo "${2}" > /usr/local/furybsd/tag
-  export vol="${desktop}-${version}-${tag}"
+  export vol="${VER}-${tag}"
 fi
 
 # Get the short git SHA
@@ -83,11 +84,11 @@ SHA=$(echo ${CIRRUS_CHANGE_IN_REPO}| cut -c1-7)
 
 # The environment variable BUILDNUMBER may have been set; if so, use it
 if [ ! -z "${BUILDNUMBER}" ] ; then
-  isopath="${iso}/${vol}-${BUILDNUMBER}-${arch}.iso"
+  isopath="${iso}/${desktop}-${BUILDNUMBER}-${vol}-${arch}.iso"
 elif [ ! -z "${SHA}" ] ; then
-  isopath="${iso}/${vol}-${SHA}-${arch}.iso"
+  isopath="${iso}/${desktop}-${SHA}-${vol}-${arch}.iso"
 else
-  isopath="${iso}/${vol}-${arch}.iso"
+  isopath="${iso}/${desktop}-${vol}-${arch}.iso"
 fi
 
 cleanup()
