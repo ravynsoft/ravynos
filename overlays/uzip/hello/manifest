@@ -2,6 +2,9 @@
 # to determine that a system is running helloSystem
 # https://github.com/helloSystem/hello/issues/67#issuecomment-752962975
 # The version should be dynamically replaced at build time
+# FreeBSD format is: version_revision;epoch
+# e.g. firefox-84.0_2,2  means upstream version of 84.0 which has been rebuilt twice
+# since for ports changes, and the ,2 means the versioning scheme has been changed twice
 cat << EOF
 name:          hello
 version:       0
