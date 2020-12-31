@@ -31,14 +31,14 @@ task:
     - kldload tmpfs.ko || true
     - kldload nullfs.ko || true
     - kldload geom_uzip.ko || true
+    - wget -c https://github.com/helloSystem/buildnumbers/releases/download/initial/buildnumbers
+    - chmod +x ./buildnumbers
+    - export BUILDNUMBER=$(RELEASE_ID_FOR_STORAGE=33980128 ./buildnumbers)
     - pkg install -y pkg git-lite zsync wget sha bash py37-xdg librsvg2 ca_root_nss # qemu-devel uefi-edk2-qemu-x86_64
     - mkdir -p /usr/local/furybsd
     - mount -t tmpfs tmpfs /usr/local/furybsd
     
   Build_script:
-    - wget -c https://github.com/helloSystem/buildnumbers/releases/download/initial/buildnumbers
-    - chmod +x ./buildnumbers
-    - BUILDNUMBER=$(./buildnumbers)
     - /bin/sh -x ./build.sh "${DESKTOP}" || true # FIXME: Why does this return an error even though the ISO succeeded?
     - df -h
     - ( cd "${CIRRUS_WORKING_DIR}"/artifacts ; zsyncmake *.iso )
