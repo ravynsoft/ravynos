@@ -81,10 +81,13 @@ fi
 # Get the short git SHA
 SHA=$(echo ${CIRRUS_CHANGE_IN_REPO}| cut -c1-7)
 
-if [ -z "${SHA}" ] ; then
-  isopath="${iso}/${vol}-${arch}.iso"
-else
+# The environment variable BUILDNUMBER may have been set; if so, use it
+if [ ! -z "${BUILDNUMBER}" ] ; then
+  isopath="${iso}/${vol}-${BUILDNUMBER}-${arch}.iso"
+elif [ ! -z "${SHA}" ] ; then
   isopath="${iso}/${vol}-${SHA}-${arch}.iso"
+else
+  isopath="${iso}/${vol}-${arch}.iso"
 fi
 
 cleanup()
@@ -366,6 +369,7 @@ tag()
     echo "Setting extended attributes 'url' and 'sha' on '/.url'"
     setextattr user sha "${SHA}" "${uzip}/.url"
     setextattr user url "${URL}" "${uzip}/.url"
+    setextattr user build "${BUILDNUMBER}" "${uzip}/.url"
   fi
 }
 
