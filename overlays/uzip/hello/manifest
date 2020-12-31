@@ -1,14 +1,14 @@
 # NOTE: The value at "origin:" is used e.g., by https://bsd-hardware.info/
 # to determine that a system is running helloSystem
 # https://github.com/helloSystem/hello/issues/67#issuecomment-752962975
-# The version should be dynamically replaced at build time
+# 'LOCALBUILD' should be dynamically replaced at build time with BUILDNUMBER
 # FreeBSD format is: version_revision;epoch
 # e.g. firefox-84.0_2,2  means upstream version of 84.0 which has been rebuilt twice
 # since for ports changes, and the ,2 means the versioning scheme has been changed twice
 # https://www.freebsd.org/doc/en_US.ISO8859-1/books/porters-handbook/book.html#makefile-naming-revepoch
 cat << EOF
 name:          hello
-version:       0
+version:       0.3.0_LOCALBUILD
 origin:        helloSystem
 comment:       Package that installs hello core components
 arch:          freebsd:12:x86:64
