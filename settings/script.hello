@@ -9,12 +9,6 @@ set -x
 mkdir -p /tmp/system-overlay 
 cd /tmp/system-overlay
 
-# Set version number of the 'hello' transient package based on environment variable set e.g., by Cirrus CI
-if [ ! -z $BUILDNUMBER ] ; then
-  sed -i -e 's|\(^version:       .*_\).*$|\1'$BUILDNUMBER'|g' overlays/uzip/hello/manifest
-  rm overlays/uzip/hello/manifest-e
-fi
-
 # Wallpaper
 # TODO: Also check
 # https://papers.co/desktop/vg41-ribbon-abstract-art-blue-pattern/
