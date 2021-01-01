@@ -109,7 +109,7 @@ export DIR_SIZE
 
 # Create the package
 pkg create --verbose -r ${STAGEDIR} -m . -o .
-ls -lh . # TODO: Remove this, it was used for debugging
+ls -lh *.txz > transient-packages-list
 
 # clean up our mess
 rm +MANIFEST
