@@ -170,8 +170,8 @@ packages()
   ls -lh "/var/cache/pkg/transient/"
   cat /var/cache/pkg/transient/transient-packages-list
   while read -r p; do
-    /usr/local/sbin/pkg-static -c ${uzip} install -y "/var/cache/pkg/transient/${p}" 
-  done </var/cache/pkg/transient/transient-packages-list
+    /usr/local/sbin/pkg-static -c ${uzip} install -y "${packages}/transient/${p}" 
+  done <"${packages}/transient/transient-packages-list"
   
   # Workaround for kernel-related packages being broken in the default package repository
   # as long as the previous dot release is still supported; FIXME
@@ -269,8 +269,6 @@ pkg()
     done <"${cwd}/settings/overlays.${desktop}"
   fi
   cd -
-  echo "pkg() Complete"
-  ls -lh "${packages}/transient"
 }
 
 # Put Nvidia driver at location in which initgfx expects it
