@@ -168,7 +168,11 @@ packages()
   # Install the packages we have generated in pkg() that are listed in transient-packages-list
   ls -lh "${packages}/transient/"
   while read -r p; do
-    /usr/local/sbin/pkg-static -r ${uzip} add "${packages}/transient/${p}" # pkg-static has no -y
+    # FIXME: Is there something like "/usr/local/sbin/pkg-static add" that can be used
+    # to install local packages (not from a repository) that will
+    # resolve dependencies from the repositories?
+    # The following will just fail in the case of unmet dependencies
+    /usr/local/sbin/pkg-static -r ${uzip} add "${packages}/transient/${p}" # pkg-static add has no -y
   done <"${packages}/transient/transient-packages-list"
   
   # Workaround for kernel-related packages being broken in the default package repository
