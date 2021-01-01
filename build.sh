@@ -247,9 +247,19 @@ dm()
   esac
 }
 
-# Generate on-the-fly packages for the selected overlays
+# Generate transient packages for the selected overlays
 pkg()
 {
+  # If we are building hello, then set version number of the 'hello' transient package
+  # based on environment variable set e.g., by Cirrus CI
+  if [ "$desktop" = "hello" ] ; then
+    if [ ! -z $BUILDNUMBER ] ; then
+      echo "Injecting $BUILDNUMBER" into manifest
+      sed -i -e 's|\(^version:       .*_\).*$|\1'$BUILDNUMBER'|g' "${cwd}/overlays/uzip/hello/manifest"
+      rm "${cwd}/overlays/uzip/hello/manifest-e"
+      cat "${cwd}/overlays/uzip/hello/manifest"
+    fi
+  fi
   cd "${packages}"
   while read -r p; do
     sh -ex "${cwd}/scripts/build-pkg.sh" -m "${cwd}/overlays/uzip/${p}"/manifest -d "${cwd}/overlays/uzip/${p}/files"
