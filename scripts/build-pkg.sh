@@ -109,7 +109,12 @@ export DIR_SIZE
 
 # Create the package
 pkg create --verbose -r ${STAGEDIR} -m . -o .
-ls -lh *.txz > transient-packages-list
+
+# Replace transient-packages-list with a new one reflecting all transient packages;
+# this will be used for installing them later on
+ls *.txz > transient-packages-list
+readlink -f transient-packages-list
+cat transient-packages-list
 
 # clean up our mess
 rm +MANIFEST
