@@ -283,3 +283,8 @@ wget https://github.com/helloSystem/ISO/releases/download/assets/picom.tar.bz2
 tar xf picom.tar.bz2
 mv picom "${uzip}/usr/local/bin/picom"
 rm -f picom.tar.bz2
+
+# https://github.com/helloSystem/hello/issues/50#issuecomment-753237990
+# Workaround to allow unmounting as normal user
+# setuid root
+chmod +s "${uzip}/sbin/umount"
