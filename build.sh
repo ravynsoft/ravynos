@@ -168,7 +168,7 @@ packages()
   # Install the packages we have generated in pkg() that are listed in transient-packages-list
   ls -lh "${packages}/transient/"
   while read -r p; do
-    /usr/local/sbin/pkg-static -c ${uzip} install -y "${packages}/transient/${p}" 
+    /usr/local/sbin/pkg-static -r ${uzip} add -y "${packages}/transient/${p}" 
   done <"${packages}/transient/transient-packages-list"
   
   # Workaround for kernel-related packages being broken in the default package repository
