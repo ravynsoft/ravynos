@@ -165,7 +165,7 @@ packages()
   # FIXME: In the following line, the hardcoded "i386" needs to be replaced by "${arch}" - how?
   cat "${cwd}/settings/packages.common" | sed '/^#/d' | sed '/\!i386/d' | xargs /usr/local/sbin/pkg-static -c "${uzip}" install -y
   while read -r p; do
-    /usr/local/sbin/pkg-static -c ${uzip} install -y /var/cache/pkg/"${p}"-*.txz
+    /usr/local/sbin/pkg-static -c ${uzip} install -y "/var/cache/pkg/${p}-*.txz" # FIXME: '*' may have unintended side effects for non-CI builds
   done <"${cwd}"/settings/overlays.common
   # TODO: Show dependency tree so that we know why which pkgs get installed
   # cat "${cwd}/settings/packages.common" | sed '/^#/d' | sed '/\!'"${arch}"'/d' | xargs /usr/local/sbin/pkg-static -c "${uzip}" info -d
@@ -173,7 +173,7 @@ packages()
   cat "${cwd}/settings/packages.${desktop}" | sed '/^#/d' | sed '/\!i386/d' | xargs /usr/local/sbin/pkg-static -c "${uzip}" install -y
   if [ -f "${cwd}/settings/overlays.${desktop}" ] ; then
     while read -r p; do
-      /usr/local/sbin/pkg-static -c ${uzip} install -y /var/cache/pkg/"${p}"-*.txz
+      /usr/local/sbin/pkg-static -c ${uzip} install -y "/var/cache/pkg/${p}-*.txz" # FIXME: '*' may have unintended side effects for non-CI builds
     done <"${cwd}/settings/overlays.${desktop}"
   fi
   # Workaround for kernel-related packages being broken in the default package repository
