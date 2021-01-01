@@ -166,6 +166,8 @@ packages()
   cat "${cwd}/settings/packages.common" | sed '/^#/d' | sed '/\!i386/d' | xargs /usr/local/sbin/pkg-static -c "${uzip}" install -y
   
   # Install the packages we have generated in pkg() that are listed in transient-packages-list
+  ls -lh "${packages}/transient/"
+  ls -lh "/var/cache/pkg/transient/"
   cat /var/cache/pkg/transient/transient-packages-list
   while read -r p; do
     /usr/local/sbin/pkg-static -c ${uzip} install -y "/var/cache/pkg/transient/${p}" 
@@ -267,6 +269,8 @@ pkg()
     done <"${cwd}/settings/overlays.${desktop}"
   fi
   cd -
+  echo "pkg() Complete"
+  ls -lh "${packages}/transient"
 }
 
 # Put Nvidia driver at location in which initgfx expects it
