@@ -81,14 +81,18 @@ export UBUNTU_MENUPROXY
 # Export other environment variables
 export QT_QPA_PLATFORMTHEME=panda
 
-# Export high-DPI settings:
-# QT_ENABLE_HIGHDPI_SCALING sice Qt 5.14 enables automatic scaling
-# based on the pixel density of the monitor.
-# Replaces QT_AUTO_SCREEN_SCALE_FACTOR.
-# https://lists.qt-project.org/pipermail/development/2019-September/037434.html
-export QT_ENABLE_HIGHDPI_SCALING=1 # Does not really seem to do anything?
-# export GDK_SCALE=2 # Working, but only for ints
-# export GDK_DPI_SCALE=1.5 # Not working
+HIDPI=$(sysctl -a | grep "Apple Internal Keyboard") # FIXME: Find some way to find out whether a screen is High DPI; how?
+if [ "$HIDPI" != "" ] ; then
+  export QT_SCALE_FACTOR=2
+  # Export high-DPI settings:
+  # QT_ENABLE_HIGHDPI_SCALING sice Qt 5.14 enables automatic scaling
+  # based on the pixel density of the monitor.
+  # Replaces QT_AUTO_SCREEN_SCALE_FACTOR.
+  # https://lists.qt-project.org/pipermail/development/2019-September/037434.html
+  # export QT_ENABLE_HIGHDPI_SCALING=1 # Does not really seem to do anything?
+  export GDK_SCALE=2 # Working, but only for ints
+  # export GDK_DPI_SCALE=1.5 # Not working
+fi
 
 # Launch per-user daemons
 
