@@ -164,6 +164,7 @@ packages()
   mount -t devfs devfs ${uzip}/dev
   # FIXME: In the following line, the hardcoded "i386" needs to be replaced by "${arch}" - how?
   cat "${cwd}/settings/packages.common" | sed '/^#/d' | sed '/\!i386/d' | xargs /usr/local/sbin/pkg-static -c "${uzip}" install -y
+  cat "${cwd}/settings/packages.${desktop}" | sed '/^#/d' | sed '/\!i386/d' | xargs /usr/local/sbin/pkg-static -c "${uzip}" install -y
   
   # Install the packages we have generated in pkg() that are listed in transient-packages-list
   ls -lh "${packages}/transient/"
