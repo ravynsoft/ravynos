@@ -39,13 +39,25 @@ if [ -z "${LANG}" ] || [ "C.UTF-8" = "${LANG}" ]  ; then
   fi
 fi
 
-# Load our custom keyboard settings:
-# Swap Ctrl and Alt keys on PC keyboards, swap Ctrl and Cmd=Win keys on Apple keyboards
+# Swap keys:
+# On both PC and Apple keyboards, the key left from the space bar
+# shall be used to invoke menu shortcuts (which applications tend to
+# put on "Ctrl"). Cleaner ways to accomplish this would be welcome.
+# TODO: Make this possible to change in the GUI due to popular request
+# no matter what is printed on it
+# TODO: Make this per-keyboard so that one can have Apple and PC keyboards
+# attached at the same time while each one gets its correct treatment
+# TODO: Make this hot-pluggable so that keyboards can come and go
+# NOTE: In Linux, the driver for Apple keyboards has an option to do this swap
+# directly in the kernel driver
 APPLE_KEYBOARD_DETECTED=$(sysctl kern.evdev.input | grep Apple)
 if [ -z "${APPLE_KEYBOARD_DETECTED}" ] ; then
-  xmodmap /usr/local/etc/xdg/Xmodmap
+  # On PC keyboards, swap Ctrl and Alt
+  # FIXME: How to do this also for the right-hand side?
+  setxkbmap -option ctrl:swap_lalt_lctl
 else
-  xmodmap /usr/local/etc/xdg/Xmodmap.apple
+  # On Apple keyboards, swap Ctrl and Command
+  setxkbmap -option ctrl:swap_lwin_lctl,ctrl:swap_rwin_rctl
 fi
 
 # Export XDG environment variables,
