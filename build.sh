@@ -91,6 +91,24 @@ else
   isopath="${iso}/${desktop}-${vol}-${arch}.iso"
 fi
 
+# For helloSystem, we are using a different naming scheme for the ISOS
+if [ "${desktop}" = "hello" ] ; then
+  if [ -f overlays/uzip/hello/manifest ] ; then
+    HELLO_VERSION=$(grep "^version:" overlays/uzip/hello/manifest | xargs | cut -d " " -f 2 | cut -d "_" -f 1)
+    # If we are building hello, then set version number of the 'hello' transient package
+    # based on environment variable set e.g., by Cirrus CI
+    if [ ! -z $BUILDNUMBER ] ; then
+      echo "Injecting $BUILDNUMBER" into manifest
+      sed -i -e 's|\(^version:       .*_\).*$|\1'$BUILDNUMBER'|g' "${cwd}/overlays/uzip/hello/manifest"
+      rm "${cwd}/overlays/uzip/hello/manifest-e"
+      cat "${cwd}/overlays/uzip/hello/manifest"
+      isopath="${iso}/${desktop}-${HELLO_VERSION}_${BUILDNUMBER}-FreeBSD-${VER}-${arch}.iso"
+    else
+      isopath="${iso}/${desktop}-${HELLO_VERSION}_git${SHA}-FreeBSD-${VER}-${arch}.iso"
+    fi
+  fi
+fi
+
 cleanup()
 {
   if [ -n "$CIRRUS_CI" ] ; then
@@ -250,16 +268,6 @@ dm()
 # Generate transient packages for the selected overlays
 pkg()
 {
-  # If we are building hello, then set version number of the 'hello' transient package
-  # based on environment variable set e.g., by Cirrus CI
-  if [ "$desktop" = "hello" ] ; then
-    if [ ! -z $BUILDNUMBER ] ; then
-      echo "Injecting $BUILDNUMBER" into manifest
-      sed -i -e 's|\(^version:       .*_\).*$|\1'$BUILDNUMBER'|g' "${cwd}/overlays/uzip/hello/manifest"
-      rm "${cwd}/overlays/uzip/hello/manifest-e"
-      cat "${cwd}/overlays/uzip/hello/manifest"
-    fi
-  fi
   mkdir -p "${packages}/transient"
   cd "${packages}/transient"
   rm -f *.txz # Make sure there are no leftover transient packages from earlier runs
