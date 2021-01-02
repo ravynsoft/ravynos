@@ -40,11 +40,13 @@ if [ -z "${LANG}" ] || [ "C.UTF-8" = "${LANG}" ]  ; then
 fi
 
 # Load our custom keyboard settings:
-# Swap Ctrl and Alt keys
-# TODO: Do something different when an Apple keyboard is attached;
-# can we find this out without sudo? usbconfig seems to need sudo
-# https://github.com/helloSystem/hello/issues/46
-xmodmap /usr/local/etc/xdg/Xmodmap
+# Swap Ctrl and Alt keys on PC keyboards, swap Ctrl and Cmd=Win keys on Apple keyboards
+APPLE_KEYBOARD_DETECTED=$(sysctl kern.evdev.input | grep Apple)
+if [ -z "${APPLE_KEYBOARD_DETECTED}" ] ; then
+  xmodmap /usr/local/etc/xdg/Xmodmap
+else
+  xmodmap /usr/local/etc/xdg/Xmodmap.apple
+fi
 
 # Export XDG environment variables,
 # these may be used by applications that run inside the desktop session
