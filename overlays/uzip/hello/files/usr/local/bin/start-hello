@@ -134,8 +134,11 @@ fi
 /usr/local/bin/picom --dbus &
 
 # Window decorations
-/usr/local/bin/openbox --config-file ~/.openbox &
-
+if [ "$HIDPI" = "" ] ; then
+  /usr/local/bin/openbox --config-file ~/.openbox &
+else
+  /usr/local/bin/openbox --config-file ~/.openbox-2x &
+fi
 # Desktop
 /System/Filer.AppDir/usr/bin/filer-qt --desktop & # FIXME: Use AppRun
 
