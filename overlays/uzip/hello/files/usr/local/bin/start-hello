@@ -50,14 +50,23 @@ fi
 # TODO: Make this hot-pluggable so that keyboards can come and go
 # NOTE: In Linux, the driver for Apple keyboards has an option to do this swap
 # directly in the kernel driver
-APPLE_KEYBOARD_DETECTED=$(sysctl kern.evdev.input | grep Apple | grep Keyboard)
-if [ -z "${APPLE_KEYBOARD_DETECTED}" ] ; then
-  # On PC keyboards, swap Ctrl and Alt
-  # FIXME: How to do this also for the right-hand side?
-  setxkbmap -option ctrl:swap_lalt_lctl
-else
-  # On Apple keyboards, swap Ctrl and Command
-  setxkbmap -option ctrl:swap_lwin_lctl,ctrl:swap_rwin_rctl
+DONOTSWAPCOMMANDKEY=$(grep -r "DoNotSwapCommandKey=true" ~/.config/hello/keyboard.conf)
+if [ -z "${DONOTSWAPCOMMANDKEY}" ] ; then
+  APPLE_KEYBOARD_DETECTED=$(sysctl kern.evdev.input | grep Apple | grep Keyboard)
+  if [ -z "${APPLE_KEYBOARD_DETECTED}" ] ; then
+    # On PC keyboards, swap Ctrl and Alt
+    # FIXME: How to do this also for the right-hand side?
+    setxkbmap -option ctrl:swap_lalt_lctl
+  else
+    # On Apple keyboards, swap Ctrl and Command
+    setxkbmap -option ctrl:swap_lwin_lctl,ctrl:swap_rwin_rctl
+  fi
+fi
+
+# Disable Caps Lock key
+DONOTDISABLECAPSLOCK=$(grep -r "DoNotDisableCapslockKey=true" ~/.config/hello/keyboard.conf)
+if [ -z "${DONOTDISABLECAPSLOCK}" ] ; then
+  setxkbmap -option caps:none
 fi
 
 # Export XDG environment variables,
