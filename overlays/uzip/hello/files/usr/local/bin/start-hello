@@ -104,7 +104,13 @@ export UBUNTU_MENUPROXY
 # Export other environment variables
 export QT_QPA_PLATFORMTHEME=panda
 
-HIDPI=$(sysctl -a | grep "Apple Internal Keyboard") # FIXME: Find some way to find out whether a screen is High DPI; how?
+# FIXME: Find some way to find out whether a screen is High DPI; how?
+# For now, just consider everything with 1440 and more vertical resolution "HiDPI"
+VERTICAL_RESOLUTION=$(xrandr | grep '*' | head -n 1 | xargs | cut -d " " -f 1 | cut -d "x" -f 2)
+if [ $VERTICAL_RESOLUTION -gt 1439 ] ; then
+  HIDPI="YES"
+fi
+
 if [ "$HIDPI" != "" ] ; then
   export QT_SCALE_FACTOR=2
   # Export high-DPI settings:
