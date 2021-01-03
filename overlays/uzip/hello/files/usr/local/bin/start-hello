@@ -112,9 +112,11 @@ if [ "$HIDPI" != "" ] ; then
   # based on the pixel density of the monitor.
   # Replaces QT_AUTO_SCREEN_SCALE_FACTOR.
   # https://lists.qt-project.org/pipermail/development/2019-September/037434.html
-  # export QT_ENABLE_HIGHDPI_SCALING=1 # Does not really seem to do anything?
+  # export QT_ENABLE_HIGHDPI_SCALING=1 # Does not really seem to do anything? Because Xorg always sets DPI to 96 regardless of the facts
   export GDK_SCALE=2 # Working, but only for ints
   # export GDK_DPI_SCALE=1.5 # Not working
+  # See https://ricostacruz.com/til/fractional-scaling-on-xorg-linux for a possible solution
+  # for other scaling factors
 fi
 
 # Launch per-user daemons
