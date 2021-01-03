@@ -50,7 +50,7 @@ fi
 # TODO: Make this hot-pluggable so that keyboards can come and go
 # NOTE: In Linux, the driver for Apple keyboards has an option to do this swap
 # directly in the kernel driver
-APPLE_KEYBOARD_DETECTED=$(sysctl kern.evdev.input | grep Apple)
+APPLE_KEYBOARD_DETECTED=$(sysctl kern.evdev.input | grep Apple | grep Keyboard)
 if [ -z "${APPLE_KEYBOARD_DETECTED}" ] ; then
   # On PC keyboards, swap Ctrl and Alt
   # FIXME: How to do this also for the right-hand side?
