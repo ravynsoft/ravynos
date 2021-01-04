@@ -1,6 +1,6 @@
-#!/usr/local/bin/python3.7
-# Unfortunately python3 does not seem to work on FreeBSD
-# and #!/usr/bin/env python3.7 does not seem to work for rc.d
+#!/usr/local/bin/python3
+# Unfortunately #!/usr/bin/env python3.7 does not seem to work for rc.d
+# maybe because /usr/local/bin is not in the $PATH at that point yet?
 
 # localize
 # Use different signals to automatically determine country, language, and timezone

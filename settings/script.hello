@@ -96,6 +96,7 @@ mv 'Utilities-master/Boot Environments.app' "${uzip}/Applications/Preferences/"
 mv 'Utilities-master/Desktop.app' "${uzip}/Applications/Preferences/"
 mv 'Utilities-master/Keyboard.app' "${uzip}/Applications/Preferences/"
 mv 'Utilities-master/Sharing.app' "${uzip}/Applications/Preferences/"
+mv 'Utilities-master/Wireless Networks.app' "${uzip}/Applications/Preferences/"
 rm -rf master.zip Utilities-master/
 
 # Required for Remote Assistance.app
@@ -110,7 +111,7 @@ mkdir -p BuildNotify.app
 mv buildnotify-2.0.0 BuildNotify.app/Resources
 ( cd BuildNotify.app && ln -s Resources/buildnotifyapplet.py BuildNotify )
 rm -f 2.0.0.zip
-sed -i -e 's|/usr/bin/env python|/usr/bin/env python3.7|g' BuildNotify.app/Resources/buildnotifyapplet.py
+sed -i -e 's|/usr/bin/env python|/usr/bin/env python3|g' BuildNotify.app/Resources/buildnotifyapplet.py
 rm -f BuildNotify.app/Resources/buildnotifyapplet.py-e
 mv BuildNotify.app "${uzip}/Applications/Utilities/"
 
@@ -123,8 +124,6 @@ mkdir -p Lector.app/Resources
 mv Lector.app/* Lector.app/Resources 2>/dev/null || true
 ( cd Lector.app/ ; ln -s Resources/lector/__main__.py Lector )
 cp Lector.app/Resources/lector/resources/raw/Lector.png Lector.app/Resources/
-sed -i -e 's|env python3|env python3.7|g' Lector.app/Resources/lector/__main__.py
-rm Lector.app/Resources/lector/__main__.py-e
 mv Lector.app "${uzip}"/Applications
 
 # Sticky Notes.app
@@ -133,8 +132,6 @@ git clone https://gitlab.com/william.belanger/qtpad --depth 1
 rm -rf qtpad/screenshots
 mv qtpad/qtpad qtpad/Resources
 mv qtpad/* qtpad/Resources 2>/dev/null || true
-sed -i -e 's|/usr/bin/python3|/usr/bin/env python3.7|g' qtpad/Resources/__init__.py
-rm -f qtpad/Resources/__init__.py-e
 rm -rf qtpad/.git
 ( cd qtpad ; ln -s Resources/__init__.py "Sticky Notes" )
 cp qtpad/Resources/icons/qtpad.svg "qtpad/Resources/Sticky Notes.svg"
