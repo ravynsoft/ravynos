@@ -77,26 +77,13 @@ mv * "${uzip}/System/"
 # Symlink menubar in place; FIXME: Remove once desktop2app does not need to restart it from there anymore
 chroot "${uzip}" ln -s /System/Menu.AppDir/usr/bin/menubar /usr/local/bin
 
-# Utilities and Preferences
-mkdir -p "${uzip}/Applications/Utilities"
-mkdir -p "${uzip}/Applications/Preferences"
+# Developer, Utilities, Preferences
+mkdir -p "${uzip}/Applications/"
 wget https://github.com/helloSystem/Utilities/archive/master.zip
 unzip master.zip
-# Utilities
-mv 'Utilities-master/Calculator.app' "${uzip}/Applications/Utilities/"
-mv 'Utilities-master/Calendar.app' "${uzip}/Applications/Utilities/"
-mv 'Utilities-master/Create Live Media.app' "${uzip}/Applications/Utilities/"
-mv 'Utilities-master/Hardware Probe.app' "${uzip}/Applications/Utilities/"
-mv 'Utilities-master/Install FreeBSD.app' "${uzip}/Applications/Utilities/"
-mv 'Utilities-master/Logs.app' "${uzip}/Applications/Utilities/"
-mv 'Utilities-master/Remote Assistance.app' "${uzip}/Applications/Utilities/"
-mv 'Utilities-master/Zeroconf.app' "${uzip}/Applications/Utilities/"
-# Preferences
-mv 'Utilities-master/Boot Environments.app' "${uzip}/Applications/Preferences/"
-mv 'Utilities-master/Desktop.app' "${uzip}/Applications/Preferences/"
-mv 'Utilities-master/Keyboard.app' "${uzip}/Applications/Preferences/"
-mv 'Utilities-master/Sharing.app' "${uzip}/Applications/Preferences/"
-mv 'Utilities-master/Wireless Networks.app' "${uzip}/Applications/Preferences/"
+mv 'Utilities-master/Developer' "${uzip}/Applications/"
+mv 'Utilities-master/Utilities' "${uzip}/Applications/"
+mv 'Utilities-master/Preferences' "${uzip}/Applications/"
 rm -rf master.zip Utilities-master/
 
 # Required for Remote Assistance.app
