@@ -162,7 +162,6 @@ chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/qpdfvi
 mkdir -p "${uzip}/Applications/Preferences"
 chmod g+w "${uzip}/Applications/Preferences"
 chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/lxqt-config-globalkeyshortcuts.desktop /Applications/Preferences/
-chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/fury-config-wifi.desktop /Applications/Preferences/
 chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/arandr.desktop /Applications/Preferences/ -g
 chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/system-config-printer.desktop /Applications/Preferences/
 echo "GenericName=Sound" >> "${uzip}"/usr/local/share/applications/dsbmixer.desktop
