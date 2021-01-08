@@ -1,0 +1,41 @@
+#!/bin/sh
+
+# PROVIDE: load_iichid
+# REQUIRE: dsbdriverd kld
+# BEFORE: LOGIN
+
+. /etc/rc.subr
+
+load_iichid_enable=${load_iichid_enable-"NO"}
+
+name="load_iichid"
+rcvar="load_iichid_enable"
+start_cmd="${name}_start"
+
+check_has_i2chid() {
+	devinfo -rv | egrep -q '(PNP0C50|ACPI0C50)'
+}
+
+check_iichid_loaded() {
+	kldstat | grep -q -w 'iichid\.ko'
+}
+
+load_iichid_start() {
+	check_has_i2chid || exit 0
+	check_iichid_loaded && exit 0
+
+	local msg="There is one or more I2C HID devices (e.g. touchpad)"
+	local msg="${msg} installed.\n\nShall I load the experimental iichid"
+	local msg="${msg} driver?\n"
+	TERM=xterm dialog \
+		--title "LOAD I2C HID DRIVER" \
+		--yes-button "Load driver" --no-button "Cancel" \
+		--yesno "${msg}" 8 60
+	[ $? -ne 0 ] && exit 0
+	kldload iicbus
+	kldload iichid
+}
+
+load_rc_config $name
+run_rc_command "$1"
+

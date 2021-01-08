@@ -39,6 +39,12 @@ if [ -z "${LANG}" ] || [ "C.UTF-8" = "${LANG}" ]  ; then
   fi
 fi
 
+# Use sysmouse if there is a problem with the touchpad; Credits: NomadBSD
+tpquirk
+
+# Enable tapping on touchpad; Credits: NomadBSD
+enable_tapping
+
 # Swap keys:
 # On both PC and Apple keyboards, the key left from the space bar
 # shall be used to invoke menu shortcuts (which applications tend to
