@@ -86,11 +86,13 @@ chroot "${uzip}" ln -s /System/Menu.AppDir/usr/bin/menubar /usr/local/bin
 
 # Developer, Utilities, Preferences
 mkdir -p "${uzip}/Applications/"
+mkdir -p "${uzip}/System/"
 wget https://github.com/helloSystem/Utilities/archive/master.zip
 unzip master.zip
 mv 'Utilities-master/Developer' "${uzip}/Applications/"
 mv 'Utilities-master/Utilities' "${uzip}/Applications/"
 mv 'Utilities-master/Preferences' "${uzip}/Applications/"
+mv 'Utilities-master/System'/* "${uzip}/System/"
 rm -rf master.zip Utilities-master/
 
 # Required for Remote Assistance.app
