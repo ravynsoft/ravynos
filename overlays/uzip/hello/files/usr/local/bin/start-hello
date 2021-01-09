@@ -151,8 +151,6 @@ if [ "$HIDPI" = "" ] ; then
 else
   /usr/local/bin/openbox --config-file ~/.openbox-2x &
 fi
-# Desktop
-/System/Filer.AppDir/usr/bin/filer-qt --desktop & # FIXME: Use AppRun
 
 # Desktop notifications
 dunst &
@@ -177,18 +175,27 @@ export GTK_MODULES=appmenu-gtk-module
 ### "${HERE}"/dde-globalmenu-service & # gmenudbusmenuproxy without Plasma deps
 gmenudbusmenuproxy &
 
-# Dock
-# /System/Dock.AppDir/AppRun & # FIXME: Reinstate once it works like this
-/System/Dock.AppDir/usr/bin/cyber-dock
-
-# Welcome Wizard
-# /Applications/Welcome.AppDir/trivialwizard
-
 # Variable color temperature
 # without getlalo it would use network locatization from geoclue2,
 # with getlalo it gets the location from /var/db/zoneinfo
-# which we probably should set in the Welcome Wizard
+# which we posssibly should set in the Welcome Wizard,
+# but then the color would be wrong for the Welcome Wizard
 redshift -l$(getlalo) &
+
+# Welcome Wizard
+uid="$(id -u)"
+if [ -e /System/Welcome.app/Welcome ] ; then
+  if [ ! -e "~/.config/hello/.helloSetupDone" ] ; then
+    /System/Welcome.app/Welcome
+  fi
+fi
+
+# Desktop
+/System/Filer.AppDir/AppRun --desktop &
+
+# Dock
+# /System/Dock.AppDir/AppRun & # FIXME: Reinstate once it works like this
+/System/Dock.AppDir/usr/bin/cyber-dock
 
 # System-wide autostart
 for APP in /Applications/Autostart/* ; do
