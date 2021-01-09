@@ -275,12 +275,16 @@ rm -f picom.tar.bz2
 # setuid root
 chmod +s "${uzip}/sbin/umount"
 
-# Remove unwanted fonts
+# Remove surrogate fonts
 # FIXME: Get this dependency removed from packages upstream
 # sudo pkg remove dejavu
 # would result in the deinstallation of 2GB of the desktop
 # Can we have a stand-in dummy package that would be used instead?
 # https://github.com/helloSystem/ISO/issues/91
-rm -rf "${uzip}/usr/local/share/fonts/Liberation"
 rm -rf "${uzip}/usr/local/share/fonts/dejavu"
 rm -rf "${uzip}/usr/local/share/fonts/TTF"/luxi*
+# Liberation was released in 2007 by Red Hat, who had commissioned the designs from the 
+# commercial foundry Ascender Corporationn Serif, and Liberation Mono. 
+# Designed to have the same metrics as the proprietary Monotype fonts 
+# Arial, Times New Roman, and Courier New. Ever since, every Linux desktops looks ugly
+rm -rf "${uzip}/usr/local/share/fonts/Liberation"
