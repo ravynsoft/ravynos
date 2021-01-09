@@ -281,5 +281,6 @@ chmod +s "${uzip}/sbin/umount"
 # would result in the deinstallation of 2GB of the desktop
 # Can we have a stand-in dummy package that would be used instead?
 # https://github.com/helloSystem/ISO/issues/91
-rm -rf /usr/local/share/fonts/Liberation
-rm -rf /usr/local/share/fonts/dejavu
+rm -rf "${uzip}/usr/local/share/fonts/Liberation"
+rm -rf "${uzip}/usr/local/share/fonts/dejavu"
+rm -rf "${uzip}/usr/local/share/fonts/TTF"/luxi*
