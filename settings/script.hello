@@ -274,3 +274,12 @@ rm -f picom.tar.bz2
 # Workaround to allow unmounting as normal user
 # setuid root
 chmod +s "${uzip}/sbin/umount"
+
+# Remove unwanted fonts
+# FIXME: Get this dependency removed from packages upstream
+# sudo pkg remove dejavu
+# would result in the deinstallation of 2GB of the desktop
+# Can we have a stand-in dummy package that would be used instead?
+# https://github.com/helloSystem/ISO/issues/91
+rm -rf /usr/local/share/fonts/Liberation
+rm -rf /usr/local/share/fonts/dejavu
