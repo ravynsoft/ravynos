@@ -170,7 +170,10 @@ packages()
   # NOTE: Also adjust the Nvidia drivers accordingly below. TODO: Use one set of variables
   MAJOR=$(uname -r | cut -d "." -f 1)
   if [ $MAJOR -lt 13 ] ; then
-    echo "Major version < 13, hence using quarterly packages"
+    # echo "Major version < 13, hence using quarterly packages"
+    echo "Major version < 13, hence using release_2 packages since quarterly can be missing packages from one day to the next"
+    sed -i -e 's|quarterly|release_2|g' "${uzip}/etc/pkg/FreeBSD.conf"
+    rm -f "${uzip}/etc/pkg/FreeBSD.conf-e"
   else
     echo "Major version >= 13, hence changing /etc/pkg/FreeBSD.conf to use latest packages"
     sed -i -e 's|quarterly|latest|g' "${uzip}/etc/pkg/FreeBSD.conf"
