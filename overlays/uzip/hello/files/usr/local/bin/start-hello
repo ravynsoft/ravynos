@@ -163,18 +163,6 @@ dunst &
 # Same for
 # dsbmc
 
-# Welcome intro video and music
-# /Applications/Welcome.AppDir/AppRun
-
-# Menubar
-export GTK_MODULES=appmenu-gtk-module
-/System/Menu.AppDir/usr/bin/menubar & # FIXME: Use AppRun
-
-# FIXME: Does the next line have to run AFTER menubar?
-# Else we see no QMenus at all, as if something was badly crashing?
-### "${HERE}"/dde-globalmenu-service & # gmenudbusmenuproxy without Plasma deps
-gmenudbusmenuproxy &
-
 # Variable color temperature
 # without getlalo it would use network locatization from geoclue2,
 # with getlalo it gets the location from /var/db/zoneinfo
@@ -189,6 +177,15 @@ if [ -e /System/Welcome.app/Welcome ] ; then
     /System/Welcome.app/Welcome
   fi
 fi
+
+# Menubar
+export GTK_MODULES=appmenu-gtk-module
+/System/Menu.AppDir/usr/bin/menubar & # FIXME: Use AppRun
+
+# FIXME: Does the next line have to run AFTER menubar?
+# Else we see no QMenus at all, as if something was badly crashing?
+### "${HERE}"/dde-globalmenu-service & # gmenudbusmenuproxy without Plasma deps
+gmenudbusmenuproxy &
 
 # Desktop
 /System/Filer.AppDir/AppRun --desktop &
