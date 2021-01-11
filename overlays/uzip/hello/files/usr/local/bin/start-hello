@@ -110,11 +110,21 @@ export UBUNTU_MENUPROXY
 # Export other environment variables
 export QT_QPA_PLATFORMTHEME=panda
 
-# FIXME: Find some way to find out whether a screen is High DPI; how?
-# For now, just consider everything with 1440 and more vertical resolution "HiDPI"
-VERTICAL_RESOLUTION=$(xrandr | grep '*' | head -n 1 | xargs | cut -d " " -f 1 | cut -d "x" -f 2)
-if [ $VERTICAL_RESOLUTION -gt 1439 ] ; then
+# Calculate DPI and determine whether we have a HiDPI screen. TODO: Is there a better way?
+# Get vertical size in cm
+vertical_cm=$(cat /var/log/Xorg.0.log | grep "Max Image Size \[cm\]" | rev |  cut -d ":" -f 1 | rev | xargs | tail -n 1)
+# Get vertical size in inches, return int; man units
+vertical_inches=$(units -q -t  ${vertical_cm}" cm" inches | cut -d "." -f 1)
+# echo "${vertical_inches}"
+vertical_pixels=$(cat /var/log/Xorg.0.log | grep "using initial mode" | cut -d x -f 2 | cut -d " " -f 1 | xargs | tail -n 1)
+# echo "${vertical_pixels}"
+dpi=$(expr "${vertical_pixels}" / "${vertical_inches}")
+# echo "${dpi}"
+if [ "${dpi}" -gt 200 ] ; then
+  echo "Assuming HiDPI"
   HIDPI="YES"
+else
+  echo "Not assuming HiDPI"
 fi
 
 if [ "$HIDPI" != "" ] ; then
