@@ -183,7 +183,7 @@ redshift -l$(getlalo) &
 # Welcome Wizard
 uid="$(id -u)"
 if [ -e /System/Welcome.app/Welcome ] ; then
-  if [ ! -e "~/.config/hello/.helloSetupDone" ] ; then
+  if [ ! -e "${HOME}/.config/hello/.helloSetupDone" ] ; then
     /System/Welcome.app/Welcome
   fi
 fi
