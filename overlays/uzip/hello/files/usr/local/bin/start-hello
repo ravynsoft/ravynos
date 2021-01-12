@@ -120,7 +120,8 @@ vertical_pixels=$(cat /var/log/Xorg.0.log | grep "using initial mode" | cut -d x
 # echo "${vertical_pixels}"
 dpi=$(expr "${vertical_pixels}" / "${vertical_inches}")
 # echo "${dpi}"
-if [ "${dpi}" -gt 200 ] ; then
+# On some systems, vertical_pixels may not be there; in this case do not assume HiDPI
+if [ "${dpi}" -gt 200 ] && [ "${vertical_pixels}" -gt 0 ] ; then
   echo "Assuming HiDPI"
   HIDPI="YES"
 else
