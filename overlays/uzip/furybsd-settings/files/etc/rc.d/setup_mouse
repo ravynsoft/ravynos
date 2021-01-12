@@ -1,0 +1,27 @@
+#!/bin/sh
+
+# PROVIDE: setup_mouse
+# REQUIRE: devfs
+
+. /etc/rc.subr
+
+setup_mouse_enable=${setup_mouse_enable-"NO"}
+
+name="setup_mouse"
+rcvar="setup_mouse_enable"
+load_rc_config $name
+start_cmd="${name}_start"
+
+setup_mouse_start() {
+	for i in $(ls /dev/psm[0-9]* 2>/dev/null); do
+		moused_type="auto"
+		/etc/rc.d/moused quietstart $(basename $i)
+	done
+	for i in $(ls /dev/ums[0-9]* 2>/dev/null); do
+		moused_type="auto"
+		/etc/rc.d/moused quietstart $(basename $i)
+	done
+}
+load_rc_config $name
+run_rc_command "$1"
+

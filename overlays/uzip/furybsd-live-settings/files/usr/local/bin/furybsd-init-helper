@@ -86,6 +86,10 @@ fi
 /usr/sbin/sysrc -f /etc/rc.conf avahi_daemon_enable="YES" >/dev/null 2>/dev/null
 /usr/sbin/sysrc -f /etc/rc.conf ntpd_enable="NO" >/dev/null 2>/dev/null # Seems to conflict with ntpdate
 /usr/sbin/sysrc -f /etc/rc.conf ntpdate_enable="YES" >/dev/null 2>/dev/null
+/usr/sbin/sysrc -f /etc/rc.conf autofs_enable="YES" >/dev/null 2>/dev/null
+/usr/sbin/sysrc -f /etc/rc.conf load_iichid_enable="YES" >/dev/null 2>/dev/null
+/usr/sbin/sysrc -f /etc/rc.conf load_acpi_enable="YES" >/dev/null 2>/dev/null
+/usr/sbin/sysrc -f /etc/rc.conf setup_mouse_enable="YES" >/dev/null 2>/dev/null
 
 # Set hostname other than the default based on SMBIOS information
 HOSTNAME=$(hostname)
