@@ -72,7 +72,7 @@ if [ -f "/usr/sbin/pciconf" ] ; then
   fi
 fi
 
-# TODO: Move to post-install and post-deinstall of package; could not figure out the syntax to do this yet (help appreciated)
+# Only list here what shall apply to the live system but not to the installed system
 /usr/sbin/sysrc -f /etc/rc.conf sendmail_enable="NO" >/dev/null 2>/dev/null
 /usr/sbin/sysrc -f /etc/rc.conf sendmail_submit_enable="NO" >/dev/null 2>/dev/null
 /usr/sbin/sysrc -f /etc/rc.conf sendmail_outbound_enable="NO" >/dev/null 2>/dev/null
@@ -81,16 +81,6 @@ fi
 /usr/sbin/sysrc -f /etc/rc.conf dbus_enable="YES" >/dev/null 2>/dev/null
 /usr/sbin/sysrc -f /etc/rc.conf kld_list+="cuse ig4 iicbus iichid utouch asmc" >/dev/null 2>/dev/null
 /usr/sbin/sysrc -f /etc/rc.conf allscreens_kbdflags="-b quiet.off" >/dev/null 2>/dev/null
-/usr/sbin/sysrc -f /etc/rc.conf ifconfig_DEFAULT="DHCP inet6 accept_rtadv" >/dev/null 2>/dev/null
-/usr/sbin/sysrc -f /etc/rc.conf webcamd_enable="YES" >/dev/null 2>/dev/null
-/usr/sbin/sysrc -f /etc/rc.conf avahi_daemon_enable="YES" >/dev/null 2>/dev/null
-/usr/sbin/sysrc -f /etc/rc.conf ntpd_enable="NO" >/dev/null 2>/dev/null # Seems to conflict with ntpdate
-/usr/sbin/sysrc -f /etc/rc.conf ntpdate_enable="YES" >/dev/null 2>/dev/null
-/usr/sbin/sysrc -f /etc/rc.conf autofs_enable="YES" >/dev/null 2>/dev/null
-/usr/sbin/sysrc -f /etc/rc.conf load_iichid_enable="YES" >/dev/null 2>/dev/null
-/usr/sbin/sysrc -f /etc/rc.conf load_acpi_enable="YES" >/dev/null 2>/dev/null
-/usr/sbin/sysrc -f /etc/rc.conf setup_mouse_enable="YES" >/dev/null 2>/dev/null
-/usr/sbin/sysrc -f /etc/rc.conf savecore_enable="NO" >/dev/null 2>/dev/null
 
 # Set hostname other than the default based on SMBIOS information
 HOSTNAME=$(hostname)
