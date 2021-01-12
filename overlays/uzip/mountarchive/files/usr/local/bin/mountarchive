@@ -1,0 +1,102 @@
+#!/usr/bin/env python3
+
+# Mount archives and disk images using archivemount
+# https://www.freebsd.org/cgi/man.cgi?archivemount
+
+
+# BSD 2-Clause License
+#
+# Copyright (c) 2020-2021, Simon Peter <probono@puredarwin.org>
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# 1. Redistributions of source code must retain the above copyright notice, this
+#    list of conditions and the following disclaimer.
+#
+# 2. Redistributions in binary form must reproduce the above copyright notice,
+#    this list of conditions and the following disclaimer in the documentation
+#    and/or other materials provided with the distribution.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+import os, sys
+import distutils.spawn
+
+try:
+    from PyQt5 import QtWidgets, QtGui, QtCore
+except:
+    print("Could not import PyQt5. On FreeBSD, sudo pkg install py37-qt5-widgets")
+
+class ArchiveMounter(object):
+
+    def __init__(self, filename):
+
+        self.mountpoint = "/var/run/user/" + str(os.getuid()) + "/" + os.path.normpath(filename).replace("/", "_")
+        # TODO: Check how gvfs calls its mountpoints
+
+        if os.path.exists(self.mountpoint):
+            print("Directory already exists, trying to re-mount", file=sys.stderr)
+            self.unmount()
+
+        os.makedirs(self.mountpoint)
+
+        self.p = QtCore.QProcess()
+        self.p.setProgram("archivemount")
+        args = ['-f', '-o', 'readonly,nonempty,allow_root', filename, self.mountpoint]
+        print(self.p.program() + " " + " ".join(args))
+        self.p.setArguments(args)
+        self.p.start()
+
+        self.p2 = QtCore.QProcess()
+        self.p2.setProgram("launch")
+        args = ["Filer", self.mountpoint]
+        print(self.p2.program() + " " + " ".join(args))
+        self.p2.setArguments(args)
+        self.p2.start()
+        self.p2.waitForFinished() # Otherwise launch seemingly does nothing; bug?
+
+    def unmount(self):
+        # We can never know when this can be unmounted... so just leave it around for now?
+        self.p3 = QtCore.QProcess()
+        self.p3.setProgram("umount")
+        args = ['-f', self.mountpoint]
+        print(self.p3.program() + " " + " ".join(args))
+        self.p3.setArguments(args)
+        self.p3.start()
+        self.p3.waitForFinished()
+        os.rmdir(self.mountpoint)
+
+
+if __name__ == "__main__":
+    if distutils.spawn.find_executable("archivemount") == False:
+        print("archivemount not found, please install it and try again", file=sys.stderr)
+        # TODO: Call some system service that can install packages
+        sys.exit(1)
+
+    if not os.path.exists("/dev/fuse"):
+        print("/dev/fuse not found. TODO: Run 'sudo kldload fuse'", file=sys.stderr)
+        sys.exit(1)
+
+    if len(sys.argv) < 2:
+        print("Usage: %s <path to archive>" % sys.argv[0], file=sys.stderr)
+        sys.exit(1)
+
+    if not os.path.exists(sys.argv[1]):
+        print("%s does not exist" % sys.argv[1], file=sys.stderr)
+        sys.exit(1)
+
+    filename = sys.argv[1]
+
+    M = ArchiveMounter(filename)
