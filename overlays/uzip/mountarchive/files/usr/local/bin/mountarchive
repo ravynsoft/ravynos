@@ -2,8 +2,6 @@
 
 # Mount archives and disk images using archivemount
 # https://www.freebsd.org/cgi/man.cgi?archivemount
-#
-# TODO: Check https://github.com/ralphje/imagemounter for mounting disk images that may contain multiple partitions
 
 
 # BSD 2-Clause License
@@ -33,6 +31,11 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
+# TODO: GUI for opening/creating r/w archives, similar to https://github.com/ivoronin/ArchiveMounter/
+# TODO: Check https://github.com/ralphje/imagemounter for mounting disk images that may contain multiple partitions,
+# it uses https://packages.debian.org/de/sid/xmount which is not in FreeBSD
+# TODO: Find a way to make the mounts show up under Devices in Filer like disks; how?
+
 # Credits:
 # Thanks @davepl for having done a similar thing 25 years ago for Windows, and for sharing this story:
 # https://www.youtube.com/watch?v=aQUtUQ_L8Yk
@@ -54,23 +57,36 @@ class ArchiveMounter(object):
         # TODO: Check how gvfs calls its mountpoints
 
         if os.path.exists(self.mountpoint):
-            print("Directory already exists, trying to re-mount", file=sys.stderr)
-            self.unmount()
+            print("Directory '%s' already exists, trying to re-mount")
+            try:
+                self.unmount()
+            except:
+                pass
 
         os.makedirs(self.mountpoint)
 
         self.p = QtCore.QProcess()
         self.p.setProgram("archivemount")
+        # TODO: perhaps we need something along the lines of modules=iconv,from_code=ISO-8859-2,to_code=utf-8 for Windows compatiblity?
         args = ['-f', '-o', 'readonly,nonempty,allow_root', filename, self.mountpoint]
         print(self.p.program() + " " + " ".join(args))
         self.p.setArguments(args)
+        self.p.setProcessChannelMode(QtCore.QProcess.ForwardedChannels); # Forward standard output and standard error onto the main process
+        # TODO: Find a way to get both standard output and standard error forwarded to standard error; how?
         self.p.start()
+        
+        self.p.waitForStarted(1500)
+        print(self.p.state())
+        if self.p.state() != QtCore.QProcess.Running:
+            print("Not running anymore, hence exiting")
+            sys.exit(1)     
 
         self.p2 = QtCore.QProcess()
         self.p2.setProgram("launch")
         args = ["Filer", self.mountpoint]
         print(self.p2.program() + " " + " ".join(args))
         self.p2.setArguments(args)
+        self.p2.setProcessChannelMode(QtCore.QProcess.ForwardedChannels); # Forward standard output and standard error onto the main process
         self.p2.start()
         self.p2.waitForFinished() # Otherwise launch seemingly does nothing; bug?
 
@@ -81,10 +97,13 @@ class ArchiveMounter(object):
         args = ['-f', self.mountpoint]
         print(self.p3.program() + " " + " ".join(args))
         self.p3.setArguments(args)
-        self.p3.start()
-        self.p3.waitForFinished()
-        os.rmdir(self.mountpoint)
-
+        # self.p3.setProcessChannelMode(QtCore.QProcess.ForwardedChannels); # Do not do this for p3 because not interesting for user
+        try:
+            self.p3.start()
+            self.p3.waitForFinished()
+            os.rmdir(self.mountpoint)
+        except:
+            pass
 
 if __name__ == "__main__":
     if distutils.spawn.find_executable("archivemount") == False:
