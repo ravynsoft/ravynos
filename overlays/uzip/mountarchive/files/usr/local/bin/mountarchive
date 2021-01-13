@@ -2,6 +2,7 @@
 
 # Mount archives and disk images using archivemount
 # https://www.freebsd.org/cgi/man.cgi?archivemount
+#
 # TODO: Check https://github.com/ralphje/imagemounter for mounting disk images that may contain multiple partitions
 
 
@@ -30,6 +31,11 @@
 # CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+# Credits:
+# Thanks @davepl for having done a similar thing 25 years ago for Windows, and for sharing this story:
+# https://www.youtube.com/watch?v=aQUtUQ_L8Yk
 
 
 import os, sys
