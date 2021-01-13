@@ -294,3 +294,5 @@ rm -rf "${uzip}/usr/local/share/fonts/TTF"/luxi*
 # Designed to have the same metrics as the proprietary Monotype fonts 
 # Arial, Times New Roman, and Courier New. Ever since, every Linux desktops looks ugly
 rm -rf "${uzip}/usr/local/share/fonts/Liberation"
+
+chroot "${uzip}" update-desktop-database # Needed for mountarchive to be associated with the MIME types it can handle; TODO: Get rid of XDG
