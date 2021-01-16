@@ -89,6 +89,7 @@ mkdir -p "${uzip}/Applications/"
 mkdir -p "${uzip}/System/"
 wget https://github.com/helloSystem/Utilities/archive/master.zip
 unzip master.zip
+mv 'Utilities-master/Falkon.app' "${uzip}/Applications/"
 mv 'Utilities-master/3D Printing' "${uzip}/Applications/"
 mv 'Utilities-master/Audio' "${uzip}/Applications/"
 mv 'Utilities-master/Developer' "${uzip}/Applications/"
@@ -151,7 +152,7 @@ rm -rf urw-base35-fonts-20200910/ 20200910.zip
 # Applications
 mkdir -p "${uzip}/Applications"
 chmod g+w "${uzip}/Applications"
-chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/org.kde.falkon.desktop /Applications/ # See workaround below
+# chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/org.kde.falkon.desktop /Applications/ # See workaround below
 chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/featherpad.desktop /Applications/
 chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/qpdfview.desktop /Applications/
 
