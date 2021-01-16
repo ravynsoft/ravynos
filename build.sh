@@ -8,6 +8,7 @@ set -e
 # is not supported and results in broken images anyway
 version=$(uname -r | cut -d "-" -f 1-2) # "12.2-RELEASE" or "13.0-CURRENT"
 VER=$(uname -r | cut -d "-" -f 1) # "12.2" or "13.0"
+MAJOR=$(uname -r | cut -d "." -f 1) # "12" or "13"
 
 # Dwnload from either https://download.freebsd.org/ftp/releases/
 #                  or https://download.freebsd.org/ftp/snapshots/
@@ -168,7 +169,6 @@ packages()
   # We want to try latest rather than quarterly packages for FreeBSD 13
   # Since it that version is bleeding edge anyway, why not also use bleeding edge packages
   # NOTE: Also adjust the Nvidia drivers accordingly below. TODO: Use one set of variables
-  MAJOR=$(uname -r | cut -d "." -f 1)
   if [ $MAJOR -lt 13 ] ; then
     # echo "Major version < 13, hence using quarterly packages"
     echo "Major version < 13, hence using release_2 packages since quarterly can be missing packages from one day to the next"
@@ -184,7 +184,7 @@ packages()
   mount_nullfs ${packages} ${uzip}/var/cache/pkg
   mount -t devfs devfs ${uzip}/dev
   # FIXME: In the following line, the hardcoded "i386" needs to be replaced by "${arch}" - how?
-  cat "${cwd}/settings/packages.common" | sed '/^#/d' | sed '/\!i386/d' | xargs /usr/local/sbin/pkg-static -c "${uzip}" install -y
+  cat "${cwd}/settings/packages.common-${MAJOR}" | sed '/^#/d' | sed '/\!i386/d' | xargs /usr/local/sbin/pkg-static -c "${uzip}" install -y
   cat "${cwd}/settings/packages.${desktop}" | sed '/^#/d' | sed '/\!i386/d' | xargs /usr/local/sbin/pkg-static -c "${uzip}" install -y
   
   # Install the packages we have generated in pkg() that are listed in transient-packages-list
