@@ -4,7 +4,7 @@ task:
     memory: 8G
     matrix:
       - image: freebsd-12-1-release-amd64
-      - image: freebsd-13-0-current-amd64-v20201112 # Disabled, FIXME: https://github.com/wulf7/iichid/issues/50
+      # image: freebsd-13-0-current-amd64-v20201112 # Disabled, HIDPI broken and iichid trackpad broken on Acer
 
   env:
     CIRRUS_CLONE_DEPTH: 1
