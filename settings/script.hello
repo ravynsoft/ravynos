@@ -137,6 +137,8 @@ mv qtpad/qtpad qtpad/Resources
 mv qtpad/* qtpad/Resources 2>/dev/null || true
 rm -rf qtpad/.git
 ( cd qtpad ; ln -s Resources/__init__.py "Sticky Notes" )
+sed -i -e 's|/usr/bin/python3|/usr/bin/env python3|g' qtpad/Resources/__init__.py
+rm qtpad/Resources/__init__.py-e
 cp qtpad/Resources/icons/qtpad.svg "qtpad/Resources/Sticky Notes.svg"
 rsvg-convert -a -w 256 -h 256 "qtpad/Resources/Sticky Notes.svg" -o "qtpad/Resources/Sticky Notes.png"
 mv qtpad/ "Sticky Notes.app"
