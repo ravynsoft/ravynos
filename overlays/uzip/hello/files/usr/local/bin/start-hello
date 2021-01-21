@@ -4,6 +4,9 @@
 # from /usr/local/share/xsessions
 # where the display manager (login window) picks it up
 
+# Disable core dumps for applications
+ulimit -c 0
+
 # Enable FUSE and allow non-root users to mount, which gvfs requires to work
 # FIXME: Remove the need for those lines in this script; how?
 # FIXME: It will not work in installed mode like this, because the user may not be able to use sudo without entering a password
