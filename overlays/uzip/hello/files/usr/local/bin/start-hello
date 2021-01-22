@@ -4,6 +4,47 @@
 # from /usr/local/share/xsessions
 # where the display manager (login window) picks it up
 
+# Find out whether we are running in a virtual machine
+VM_GUEST=$(/sbin/sysctl -n kern.vm_guest)
+HV_VENDOR=$(/sbin/sysctl -n hw.hv_vendor | /usr/bin/awk '{print $1}')
+
+if [ "${VM_GUEST}" = "xen" ]; then
+  VIRTUAL_MACHINE=YES
+fi
+
+if [ "${VM_GUEST}" = "vmware" ]; then
+  VIRTUAL_MACHINE=YES
+fi
+
+if [ "${VM_GUEST}" = "kvm" ]; then
+  VIRTUAL_MACHINE=YES
+fi
+
+if [ "${HV_VENDOR}" = "bhyve" ]; then
+  VIRTUAL_MACHINE=YES
+fi
+
+if [ -f "/usr/sbin/pciconf" ] ; then
+  /usr/sbin/pciconf -lv 2>/dev/null | /usr/bin/grep -q VirtualBox 2>/dev/null
+  if [ $? -eq 0 ] ; then
+      VIRTUAL_MACHINE=YES
+  fi
+fi
+
+if [ -f "/usr/sbin/pciconf" ] ; then
+  /usr/sbin/pciconf -lv 2>/dev/null | /usr/bin/grep -q VMware 2>/dev/null
+  if [ $? -eq 0 ] ; then
+      VIRTUAL_MACHINE=YES
+  fi
+fi
+
+if [ -f "/usr/sbin/pciconf" ] ; then
+  /usr/sbin/pciconf -lv 2>/dev/null | /usr/bin/grep -q QXL 2>/dev/null
+  if [ $? -eq 0 ] ; then
+      VIRTUAL_MACHINE=YES
+  fi
+fi
+
 # Disable core dumps for applications
 ulimit -c 0
 
@@ -180,7 +221,10 @@ dunst &
 # with getlalo it gets the location from /var/db/zoneinfo
 # which we posssibly should set in the Welcome Wizard,
 # but then the color would be wrong for the Welcome Wizard
-redshift -l$(getlalo) &
+# Do not run this if we are running inside a virtual machine
+if [ -z "$VIRTUAL_MACHINE" ] ; then
+  redshift -l$(getlalo) &
+fi
 
 # Welcome Wizard
 uid="$(id -u)"
