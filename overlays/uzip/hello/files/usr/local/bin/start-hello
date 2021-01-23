@@ -202,8 +202,8 @@ fi
 if [ "$HIDPI" = "" ] ; then
   /usr/local/bin/openbox --config-file ~/.openbox &
 else
+  xrdb -load ~/.Xresources-2x # Cursor size
   /usr/local/bin/openbox --config-file ~/.openbox-2x &
-  xrdb -load ~/.Xresources-2x
 fi
 
 # Desktop notifications
