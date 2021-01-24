@@ -179,10 +179,10 @@ chmod g+w "${uzip}/Applications/Utilities"
 # chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/org.kde.systemmonitor.desktop /Applications/Utilities/ # TODO: Find lighter replacement
 chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/qterminal.desktop /Applications/Utilities/
 
-cp "${uzip}"/usr/local/share/applications/usr_local_lib_qt5_bin_assistant.desktop "${uzip}"/tmp/documentation.desktop
-sed -i -e 's|^GenericName=.*|GenericName=Documentation|g' "${uzip}"/tmp/documentation.desktop
-sed -i -e 's|^Icon=.*|Icon=documentation_section|g' "${uzip}"/tmp/documentation.desktop
-chroot "${uzip}" desktop2app /tmp/documentation.desktop /Applications/Utilities -g
+# cp "${uzip}"/usr/local/share/applications/usr_local_lib_qt5_bin_assistant.desktop "${uzip}"/tmp/documentation.desktop
+# sed -i -e 's|^GenericName=.*|GenericName=Documentation|g' "${uzip}"/tmp/documentation.desktop
+# sed -i -e 's|^Icon=.*|Icon=documentation_section|g' "${uzip}"/tmp/documentation.desktop
+# chroot "${uzip}" desktop2app /tmp/documentation.desktop /Applications/Utilities -g
 
 # Desktop
 chroot "${uzip}" /usr/local/bin/desktop2app /usr/share/skel/Desktop/computer.desktop /usr/share/skel/Desktop/
