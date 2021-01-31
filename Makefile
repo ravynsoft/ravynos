@@ -53,20 +53,9 @@ swift: .PHONY
 helium-package:
 	tar cJ -C ${MAKEOBJDIRPREFIX}/buildroot --gid 0 --uid 0 -f ${RLSDIR}/helium.txz .
 
-# Create the standard BSD packages and MANIFEST with the packagesystem target,
-# then add our packages to the MANIFEST. We remove the packagesystem dependency
-# from the BSD release/Makefile so the modified MANIFEST is not overwritten
-# by the image builds
-distname=helium
-dist=${distname}.txz
-desc=Helium system (MANDATORY)
+desc_helium=Helium system
 release: helium-package
-	sed -e 's/: packagesystem$$/:/' ${TOPDIR}/freebsd-src/release/Makefile > ${TOPDIR}/freebsd-src/release/Makefile.helium
-	export MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX}; \
-		sudo -E make -C ${TOPDIR}/freebsd-src/release -f Makefile.helium packagesystem
-	cd ${RLSDIR}; \
-		echo -e "${dist}\t$$(sha256 -q ${dist})\t$$(tar tvf ${dist} | wc -l | tr -d ' ')\t${distname}\t\"${desc}\"\ton" \
-		| sudo tee -a MANIFEST
-	export MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX}; \
-		sudo -E make -C ${TOPDIR}/freebsd-src/release -f Makefile.helium cdrom memstick mini-memstick ftp
-	cp -fvR ${RLSDIR}/ftp ${RLSDIR}/*.img ${RLSDIR}/*.iso ${TOPDIR}/dist/
+	rm -f ${RLSDIR}/disc1.iso
+	export MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX} desc_helium="${desc_helium}"; \
+		sudo -E make -C ${TOPDIR}/freebsd-src/release disc1.iso memstick
+	cp -fv ${RLSDIR}/*.img ${RLSDIR}/*.iso ${TOPDIR}/dist/
