@@ -31,7 +31,7 @@ freebsd: checkout ${TOPDIR}/freebsd-src/sys/${MACHINE}/compile/${BSDCONFIG}
 freebsd-noclean:
 	export MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX}; make -C ${TOPDIR}/freebsd-src -DNO_CLEAN buildkernel buildworld
 
-helium: extradirs swift
+helium: extradirs
 
 # Update the build system with current source
 install: installworld installkernel
@@ -46,9 +46,6 @@ extradirs:
 	for x in System System/Library Library Users Applications Volumes; \
 		do mkdir -p ${MAKEOBJDIRPREFIX}/buildroot/$$x; \
 	done
-
-swift: .PHONY
-	export MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX}; make -C swift BUILDROOT=${BUILDROOT} build install
 
 helium-package:
 	tar cJ -C ${MAKEOBJDIRPREFIX}/buildroot --gid 0 --uid 0 -f ${RLSDIR}/helium.txz .
