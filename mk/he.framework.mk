@@ -1,6 +1,4 @@
 FRAMEWORK_DIR=${FRAMEWORK}.framework
-DATADIR=${FRAMEWORK_DIR}/Versions/A/Resources
-CONFDIR=${FRAMEWORK_DIR}/Versions/A/Resources
 NO_ROOT=yes
 
 UID != id -u
@@ -10,7 +8,6 @@ INSTALLFLAGS=-U
 
 .if defined(SRCS) && !empty(SRCS)
 LIBMODE?=0555
-SHLIB=${FRAMEWORK}
 SHLIB_NAME=lib${FRAMEWORK}.so
 SHLIB_MAJOR=A
 SHLIBDIR=${FRAMEWORK_DIR}/Versions/A
@@ -21,10 +18,15 @@ INSTALL+= ${INSTALLFLAGS}
 INCLUDEDIR=${FRAMEWORK_DIR}/Versions/A/Headers
 .endif
 
-all: ${FRAMEWORK_DIR} ${SHLIB} installincludes
-.if defined(SRCS) && !empty(SRCS)
-	${MAKE} _libinstall
+.if defined(RESOURCES) && !empty(RESOURCES)
+RSCDIR=${FRAMEWORK_DIR}/Versions/A/Resources
+installresources: ${RESOURCES}
+	tar cf - ${RESOURCES} | tar -C ${RSCDIR} -xvf -
+.else
+installresources: .PHONY
 .endif
+
+all: ${FRAMEWORK_DIR} ${SHLIB_NAME} installincludes _libinstall installresources
 
 ${FRAMEWORK_DIR}:
 	@${ECHO} building ${FRAMEWORK_DIR} bundle
