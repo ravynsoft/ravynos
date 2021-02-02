@@ -21,7 +21,7 @@ INCLUDEDIR=${FRAMEWORK_DIR}/Versions/A/Headers
 .if defined(RESOURCES) && !empty(RESOURCES)
 RSCDIR=${FRAMEWORK_DIR}/Versions/A/Resources
 installresources: ${RESOURCES}
-	tar cf - ${RESOURCES} | tar -C ${RSCDIR} -xvf -
+	tar -C ${.CURDIR} -cf - ${RESOURCES} | tar -C ${RSCDIR} -xvf -
 .else
 installresources: .PHONY
 .endif
