@@ -27,7 +27,15 @@ CFLAGS+= ${_INCDIRS}
 LDFLAGS+= ${_LIBDIRS} ${_LIBS}
 .endif
 
-all: ${APP_DIR} ${PROG}
+.if defined(RESOURCES) && !empty(RESOURCES)
+RSCDIR=${APP_DIR}/Contents/Resources
+installresources: ${RESOURCES}
+	tar cf - ${RESOURCES} | tar -C ${RSCDIR} -xvf -
+.else
+installresources: .PHONY
+.endif
+
+all: ${APP_DIR} ${PROG} installresources
 
 ${APP_DIR}:
 	@${ECHO} building ${APP_DIR} bundle
