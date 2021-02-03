@@ -6,6 +6,8 @@ RLSDIR := ${MAKEOBJDIRPREFIX}${TOPDIR}/freebsd-src/${MACHINE}.${MACHINE}/release
 BSDCONFIG := GENERIC
 BUILDROOT := ${MAKEOBJDIRPREFIX}/buildroot
 
+.MAKEFLAGS+= -m/usr/share/mk -m${TOPDIR}/mk
+
 # Incremental build for quick tests or system update
 build: prep freebsd-noclean helium
 
@@ -32,7 +34,8 @@ freebsd: checkout ${TOPDIR}/freebsd-src/sys/${MACHINE}/compile/${BSDCONFIG}
 freebsd-noclean:
 	export MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX}; make -C ${TOPDIR}/freebsd-src -DNO_CLEAN buildkernel buildworld
 
-helium: extradirs mkfiles libobjc2 Foundation.framework CoreFoundation.framework
+helium: extradirs mkfiles libobjc2 Foundation.framework CoreFoundation.framework \
+	CFNetwork.framework CoreServices.framework
 
 # Update the build system with current source
 install: installworld installkernel installhelium
@@ -43,7 +46,7 @@ installworld:
 installkernel:
 	export MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX}; sudo make -C ${TOPDIR}/freebsd-src installkernel
 
-installhelium: helium helium-package
+installhelium: helium-package
 	sudo tar -C / -xvf ${RLSDIR}/helium.txz
 
 extradirs:

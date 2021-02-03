@@ -12,6 +12,6 @@ INCS= \
 	CFSocketStream.h
 
 RESOURCES=Info.plist English.lproj
-CFLAGS+= -I.. -I${BUILDROOT}/System/Library/Frameworks/Foundation.framework/Headers/
+CFLAGS+= -I.. -F${BUILDROOT}/System/Library/Frameworks -framework Foundation
 
 .include <he.framework.mk>

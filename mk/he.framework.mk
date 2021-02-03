@@ -29,7 +29,6 @@ installresources: .PHONY
 .include <he.common.mk>
 
 all: ${FRAMEWORK_DIR} ${SHLIB_NAME} installincludes _libinstall installresources
-
 ${FRAMEWORK_DIR}:
 	@${ECHO} building ${FRAMEWORK_DIR} bundle
 	mkdir -p "${FRAMEWORK_DIR}/Versions/A/Headers" \

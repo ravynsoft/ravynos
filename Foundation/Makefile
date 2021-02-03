@@ -671,7 +671,7 @@ RESOURCES=Info.plist English.lproj
 CFLAGS+= -I${.CURDIR}/Headers -I${.CURDIR}/.. -fblocks -DFREEBSD
 
 build: marshallheaders all
-	cd ${FRAMEWORK}.framework/Versions/A/Headers; ln -sf . Foundation
+#	cd ${FRAMEWORK}.framework/Versions/A/Headers; ln -sf . Foundation
 
 marshallheaders: .PHONY
 	mkdir -p Headers/Foundation
