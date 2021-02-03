@@ -1,5 +1,3 @@
-.SUFFIXES: .m .pico .so
-
 FRAMEWORK=Foundation
 SRCS= \
 ./NSFormatter.m \
@@ -670,18 +668,10 @@ INCS= \
 ./NSCFTypeID.h \
 ./NSSpellServer.h
 
-RESOURCES=
+RESOURCES=Info.plist English.lproj
 CFLAGS+= -I${.CURDIR}/Headers -I${.CURDIR}/.. -fblocks -DFREEBSD
 
-.m.po:
-	${CC} ${PO_FLAG} ${STATIC_CFLAGS} ${PO_CFLAGS} -c ${.IMPSRC} -o ${.TARGET}
-	${CTFCONVERT_CMD}
-
-.m.pico:
-	${CC} ${PICFLAG} -DPIC ${SHARED_CFLAGS} ${CFLAGS} -c ${.IMPSRC} -o ${.TARGET}
-	${CTFCONVERT_CMD}
-
-build: marshallheaders all 
+build: marshallheaders all
 
 marshallheaders: .PHONY
 	mkdir -p Headers/Foundation
