@@ -378,7 +378,6 @@ INCS= \
 ./Foundation.h \
 ./NSGeometry.h \
 ./NSProxy.h \
-./objc_debugHelpers.h \
 ./NSKeyedArchiving/NSKeyedUnarchiver.h \
 ./NSKeyedArchiving/NSKeyedArchiver.h \
 ./NSFileManager.h \
@@ -672,6 +671,7 @@ RESOURCES=Info.plist English.lproj
 CFLAGS+= -I${.CURDIR}/Headers -I${.CURDIR}/.. -fblocks -DFREEBSD
 
 build: marshallheaders all
+	cd ${FRAMEWORK}.framework/Versions/A/Headers; ln -sf . Foundation
 
 marshallheaders: .PHONY
 	mkdir -p Headers/Foundation

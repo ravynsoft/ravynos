@@ -32,16 +32,19 @@ freebsd: checkout ${TOPDIR}/freebsd-src/sys/${MACHINE}/compile/${BSDCONFIG}
 freebsd-noclean:
 	export MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX}; make -C ${TOPDIR}/freebsd-src -DNO_CLEAN buildkernel buildworld
 
-helium: extradirs mkfiles libobjc2 Foundation.framework
+helium: extradirs mkfiles libobjc2 Foundation.framework CoreFoundation.framework
 
 # Update the build system with current source
-install: installworld installkernel
+install: installworld installkernel installhelium
 
 installworld:
 	export MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX}; sudo make -C ${TOPDIR}/freebsd-src installworld
 
 installkernel:
 	export MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX}; sudo make -C ${TOPDIR}/freebsd-src installkernel
+
+installhelium: helium helium-package
+	sudo tar -C / -xvf ${RLSDIR}/helium.txz
 
 extradirs:
 	rm -rf ${BUILDROOT}
@@ -50,8 +53,8 @@ extradirs:
 	done
 
 mkfiles:
-	mkdir -p ${MAKEOBJDIRPREFIX}/buildroot/usr/share/mk
-	cp -fv ${TOPDIR}/mk/*.mk ${MAKEOBJDIRPREFIX}/buildroot/usr/share/mk/
+	mkdir -p ${BUILDROOT}/usr/share/mk
+	cp -fv ${TOPDIR}/mk/*.mk ${BUILDROOT}/usr/share/mk/
 
 libobjc2: .PHONY
 	mkdir -p ${MAKEOBJDIRPREFIX}/libobjc2
@@ -60,11 +63,18 @@ libobjc2: .PHONY
 	rm -f ${BUILDROOT}/usr/include/Block*.h
 
 Foundation.framework:
-	export MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX}; make -C Foundation
-	cp -Rvf ${TOPDIR}/Foundation/Foundation.framework ${BUILDROOT}/System/Library/Frameworks
+	rm -rf Foundation/${.TARGET}
+	make -C Foundation BUILDROOT=${BUILDROOT} build
+	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
+
+CoreFoundation.framework:
+	rm -rf CoreFoundation/${.TARGET}
+	make -C CoreFoundation BUILDROOT=${BUILDROOT}
+	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
+
 
 helium-package:
-	tar cJ -C ${MAKEOBJDIRPREFIX}/buildroot --gid 0 --uid 0 -f ${RLSDIR}/helium.txz .
+	tar cJ -C ${BUILDROOT} --gid 0 --uid 0 -f ${RLSDIR}/helium.txz .
 
 desc_helium=Helium system
 release: helium-package
