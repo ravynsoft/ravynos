@@ -72,6 +72,15 @@ CoreFoundation.framework:
 	make -C CoreFoundation BUILDROOT=${BUILDROOT}
 	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
 
+CoreServices.framework:
+	rm -rf CoreServices/${.TARGET}
+	make -C CoreServices BUILDROOT=${BUILDROOT}
+	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
+
+CFNetwork.framework:
+	rm -rf CFNetwork/${.TARGET}
+	make -C CFNetwork BUILDROOT=${BUILDROOT}
+	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
 
 helium-package:
 	tar cJ -C ${BUILDROOT} --gid 0 --uid 0 -f ${RLSDIR}/helium.txz .
