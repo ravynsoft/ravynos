@@ -1,0 +1,36 @@
+Building on Windows
+===================
+
+The runtime can build on Windows with either Ninja or msbuild.
+Ninja is strongly preferred, but if you wish to debug with Visual Studio then you will need to use msbuild.
+
+To compile with msbuild, you must install the (LLVM toolchain)[https://marketplace.visualstudio.com/items?itemName=LLVMExtensions.llvm-toolchain] and then, from a Visual Studio command prompt:
+
+```
+> mkdir build
+> cd build
+> cmake -G "Visual Studio 15 2017 Win64" -T LLVM -DASSEMBLER=path/to/clang-cl.exe ..
+> set CCC_OVERRIDE_OPTIONS=x-TC x-TP x/TC x/TP
+> cmake --build .
+```
+
+This will give you a solution file that you can open in Visual Studio.
+If you don't wish to use the Visual Studio IDE, then you can compile with Ninja:
+
+```
+> mkdir build
+> cd build
+> cmake -G Ninja -DCMAKE_C_COMPILER=path/to/clang-cl.exe -DCMAKE_CXX_COMPILER=path/to/clang-cl.exe ..
+> set CCC_OVERRIDE_OPTIONS=x-TC x-TP x/TC x/TP
+> ninja
+```
+
+Unfortunately, CMake insists on adding flags so that force cl.exe to treat the input as C or C++.
+The `CCC_OVERRIDE_OPTIONS` environment variable strips these flags off.
+
+Debugging
+---------
+
+The tests will all fail on Windows because they will not find objc.dll.
+To fix this, copy objc.dll into the `Tests` build directory.
+Alternatively, from within Visual Studio, set the working directory for the test to the `Debug` directory.

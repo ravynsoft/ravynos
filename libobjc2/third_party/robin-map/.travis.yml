@@ -1,0 +1,56 @@
+language: cpp
+
+dist: trusty
+
+matrix:
+  include:
+    - os: linux
+      compiler: clang
+      env:
+        - CBUILD_TYPE="Release"
+      
+    - os: linux
+      compiler: gcc
+      env:
+        - CBUILD_TYPE="Release"
+      
+    - os: osx
+      compiler: clang
+      env:
+        - CBUILD_TYPE="Release"
+      
+    - os: osx
+      compiler: gcc
+      env:
+        - CBUILD_TYPE="Release"
+      
+    - os: linux
+      compiler: clang
+      dist: xenial
+      env:
+        - CBUILD_TYPE="Release"
+        - TYPE="sanitize"
+        - CXXFLAGS="-fsanitize=address,undefined"
+      
+    - os: linux
+      compiler: gcc
+      env:
+        - TYPE="coverage"
+        - CXXFLAGS="--coverage"
+
+addons:
+  apt:
+    packages:
+      - libboost-test-dev
+      - lcov
+
+script:
+  - cd tests
+  - mkdir build
+  - cd build
+  - cmake -DCMAKE_BUILD_TYPE="$CBUILD_TYPE" ..
+  - VERBOSE=1 make
+  - ./tsl_robin_map_tests
+
+after_success:
+  - if [[ "$TYPE" == "coverage" ]]; then lcov -c -b ../../include/ -d . -o coverage.info --no-external && bash <(curl -s https://codecov.io/bash) -f coverage.info; fi

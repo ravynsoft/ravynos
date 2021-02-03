@@ -1,0 +1,88 @@
+GNUstep Objective-C Runtime 2.0
+===============================
+
+This the second major release of the GNUstep Objective-C runtime (a.k.a.
+libobjc2).  This runtime was designed to support the features of modern
+dialects of Objective-C for use with GNUstep and other Objective-C programs.
+
+This release introduces a new Objective-C ABI, which is designed to be forward
+compatible with future changes and removes a large number of hacks that were
+required for compatibility with the prior ABI that included features introduced
+in the 1980s.  Highlights include:
+
+- The linker now removes duplicate selectors within a library.
+
+- The linker will remove duplicate protocol definitions within a library.
+
+- Protocols and classes are now always accessed via an indirection layer, so
+  they can be extended by future versions of the ABI without breaking
+  compatibility.
+
+- Categories can include property metadata and both categories.
+
+- Constant strings are now emitted with a richer structure, which provides
+  faster hashing and better unicode support.
+
+- Instance variable metadata includes size and alignment, allowing better object
+  layout and more accurate introspection.  Instance variable metadata now
+  includes more accurate information about ARC ownership semantics.
+
+- Method metadata now includes extended type information, allowing bridged
+  languages to understand the class that methods expect and not just the fact
+  that they take an object.  This was previously an obstacle to supporting
+  JavaScriptCore's Objective-C bridge with GNUstep.
+
+In addition to the new ABI, there are several improvements on Windows:
+
+- The runtime now uses SEH-based exception handling on Windows.  This
+  interoperates with C++ exceptions in libraries compiled with MSVC or
+  MSVC-compatible compilers.
+
+- All of the assembly code paths now fully support i386 and x64 Windows.
+
+- Object allocations on 32-bit Windows now use `_aligned_malloc` to guarantee
+  sufficient alignment for AVX vectors in instance variables.
+
+- The runtime now uses fibre-local storage and critical sections on Windows,
+  improving performance in multithreaded workloads on Windows.
+
+- Public runtime functions are now marked dllexport, so the runtime can be built
+  as objc.dll on Windows.
+
+**WARNING**: The new ABI is currently incompatible with incremental linking on
+Windows, so projects built with Microsoft's linker must disable incremental
+linking.
+
+Note: Microsoft's WinObjC project contains a friendly fork of this library that
+includes a work around for the incremental linking issue.  If you wish to use
+incremental linking on Windows, please use that version.  A subsequent version
+of clang and link.exe should include a fix that will make it possible to use
+this version with incremental linking.
+
+The runtime will now use the new ABI's data structures internally and will
+automatically upgrade on-disk structures from old ABIs when used with the old
+ABI.  As a result, memory usage will be higher when using the old ABI and users
+who are unable to recompile their code may prefer to stick with the 1.9.x
+release series.  Mixing libraries compiled with the old and new ABIs is not
+supported and will abort at run time.
+
+The new ABI provides better run-time introspection metadata and smaller
+binaries.  When used with the new ABI, this version of the runtime will consume
+less memory than the previous release.
+
+You may obtain the code for this release from git and use the 2.0 branch:
+
+https://github.com/gnustep/libobjc2.git
+
+Alternatively, a tarball is available from:
+
+https://github.com/gnustep/libobjc2/archive/v2.0.zip
+https://github.com/gnustep/libobjc2/archive/v2.0.tar.gz
+
+The runtime library is responsible for implementing the core features of the
+object model, as well as exposing introspection features to the user.  The
+GNUstep runtime implements a superset of Apple's Objective-C Runtime APIs.
+
+If you come across any problems, please file them in the issue tracker:
+
+https://github.com/gnustep/libobjc2/issues

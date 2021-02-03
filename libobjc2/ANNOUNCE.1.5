@@ -1,0 +1,55 @@
+GNUstep Objective-C Runtime 1.5
+===============================
+
+This is the sixth official release of the GNUstep Objective-C runtime (a.k.a.
+libobjc2).  This runtime was designed to support the features of Objective-C 2
+for use with GNUstep and other Objective-C programs.  Highlights of this
+release include:
+
+- Support for Apple-compatible garbage collection APIs, along with extensions
+  to support CoreFoundation-style explicit reference counting in a garbage
+  collected environment.  This uses the Boehm garbage collector and is enabled
+  by specifying boehm_gc=yes when building.  This requires version 7.1 or later
+  of libgc.  Code compiled with -fobjc-gc can be mixed with code that
+  implements normal reference counting and with code compiled with
+  -fobjc-gc-only.  The runtime supports both GC and non-GC code when compiled
+  with GC support and will automatically select the correct behavior depending
+  on the loaded code.
+
+- The runtime will now use Boehm GC for several internal data structures, if it
+  is built with GC enabled.  This avoids the need for defensive programming
+  with respect to thread safety in several places.
+
+- This is the first release to provide a superset of the functionality provided
+  by the Mac Objective-C runtime, as shipped with OS X 10.6.
+
+- Full support for Automatic Reference Counting (ARC), compatible with OS X
+  10.7 and iOS 5, including support for __weak references.
+
+- The LLVM optimisation passes have been improved and better tested.  Code
+  compiled with them now passes the EtoileFoundation test suite.
+
+You may obtain the code for this release from subversion at the following
+subversion branch:
+
+svn://svn.gna.org/svn/gnustep/libs/libobjc2/1.5
+
+Alternatively, a tarball is available from:
+
+http://download.gna.org/gnustep/libobjc2-1.5.tar.bz2
+
+The runtime library is responsible for implementing the core features of the
+object model, as well as exposing introspection features to the user.  The
+GNUstep runtime implements Apple's Objective-C Runtime APIs, and a small number
+of GCC APIs for legacy compatibility.
+
+This library is based on the Étoilé Objective-C Runtime, an earlier research
+prototype, and includes support for non-fragile instance variables,
+type-dependent dispatch, and object planes.  It is fully compatible with the
+FSF's GCC Objective-C ABI and also implements a new ABI that is supported by
+Clang and Étoilé's LanguageKit and is required for some of the newer features.
+
+Although the runtime has been tested by several people, and is being used
+extensively by the Étoilé project, it is entirely new (MIT licensed) code and
+may still contain bugs.  If you come across any problems, please report them to
+the GNUstep Developer mailing list <gnustep-dev@gnu.org>.  

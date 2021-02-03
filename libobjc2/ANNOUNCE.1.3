@@ -1,0 +1,41 @@
+GNUstep Objective-C Runtime 1.3
+===============================
+
+This is the fourth official release of the GNUstep Objective-C runtime (a.k.a.
+libobjc2).  This runtime was designed to support the features of Objective-C 2
+for use with GNUstep and other Objective-C programs.
+
+This release contains several bug fixes and includes a unified exception
+model, providing the same features as Apple's Modern runtime for Objective-C++
+code, specifically the ability to throw Objective-C objects with @throw() or
+throw() and catch them with @catch() or catch().  The new unified exception
+model is supported by Clang 2.9 and is compatible with Apple's Objective-C++
+exception behaviour.  Another enhancement in this release is the addition of
+support for class aliases.  This provides a run-time equivalent of
+@compatibility_alias, allowing a class to show up in class lookup searching for
+its alias.
+
+You may obtain the code for this release from subversion at the following
+subversion branch:
+
+svn://svn.gna.org/svn/gnustep/libs/libobjc2/1.3
+
+Alternatively, a tarball is available from:
+
+http://download.gna.org/gnustep/libobjc2-1.3.tar.bz2
+
+The runtime library is responsible for implementing the core features of the
+object model, as well as exposing introspection features to the user.  The
+GNUstep runtime implements Apple's Objective-C Runtime APIs, and a small number
+of GCC APIs for legacy compatibility.
+
+This library is based on the Étoilé Objective-C Runtime, an earlier research
+prototype, and includes support for non-fragile instance variables,
+type-dependent dispatch, and object planes.  It is fully compatible with the
+FSF's GCC Objective-C ABI and also implements a new ABI that is supported by
+Clang and Étoilé's LanguageKit and is required for some of the newer features.
+
+Although the runtime has been tested by several people, and is being used
+extensively by the Étoilé project, it is entirely new (MIT licensed) code and
+may still contain bugs.  If you come across any problems, please report them to
+the GNUstep Developer mailing list <gnustep-dev@gnu.org>.  

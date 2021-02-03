@@ -1,0 +1,573 @@
+\documentclass[a4paper]{report}
+
+\usepackage[utf8x]{inputenc}
+\usepackage{listings}
+\usepackage{fancyref}
+\newcommand*{\fancyreflstlabelprefix}{lst}
+\fancyrefaddcaptions{english}{%
+  \providecommand*{\freflstname}{listing}%
+  \providecommand*{\Freflstname}{Listing}%
+}
+\frefformat{plain}{\fancyreflstlabelprefix}{\freflstname\fancyrefdefaultspacing#1}
+\Frefformat{plain}{\fancyreflstlabelprefix}{\Freflstname\fancyrefdefaultspacing#1}
+
+\frefformat{vario}{\fancyreflstlabelprefix}{%
+  \freflstname\fancyrefdefaultspacing#1#3%
+}
+\Frefformat{vario}{\fancyreflstlabelprefix}{%
+  \Freflstname\fancyrefdefaultspacing#1#3%
+}
+
+
+\usepackage[svgnames]{xcolor}
+\usepackage{hyperref}
+
+\lstset{
+    basicstyle={\footnotesize \ttfamily},
+    breaklines=true,
+    commentstyle={\color{Blue}},
+    extendedchars=true,
+    keywordstyle={[0]\color{Green}},
+    keywordstyle={[1]\color{Brown}},
+    keywordstyle={[2]\color{DarkMagenta}},
+    keywordstyle={[3]\color{Maroon}},
+    keywordstyle={[4]\color{Blue}},
+    showspaces=false,
+    showstringspaces=false,
+    stringstyle={\color{IndianRed}},
+    tabsize=2,
+}
+
+
+\newcommand{\file}[1]{\textsf{#1}}
+\newcommand{\keyword}[1]{\textit{#1}}
+\newcommand{\ccode}[1]{\lstinline[language={C}]{#1}}
+\newcommand{\objc}[1]{\lstinline[language={[Objective]C}]{#1}}
+
+\makeatletter
+\lstdefinestyle{nocomments}%
+{
+  language=[Objective]C,
+  morecomment  = [is]{/**}{*/},
+}
+\makeatother
+
+
+\newcommand{\inccode}[4]{
+{
+	\lstinputlisting[
+	style=nocomments,
+	  rangebeginprefix =//\ begin:\ ,
+	  rangeendprefix   =//\ end:\ ,
+	  includerangemarker=false,
+	  linerange=#3-#3,
+	  float,
+	  label={lst:#2},
+	  caption={#4 {\small [From #1] }}
+	]{../#1}
+}
+}
+
+\lstnewenvironment{codesnippet}[1][]{
+  \lstset{backgroundcolor=\color{white},
+          numbers=none,
+		  language=[Objective]C,
+		  }}{}
+
+\title{GNUstep Objective-C ABI version 10}
+\author{David Chisnall}
+
+\begin{document}
+\maketitle{}
+\tableofcontents
+
+\chapter{Introduction}
+
+The GNUstep Objective-C runtime has a complicated history.
+It began as the Étoilé Objective-C runtime, a research prototype that adopted a lot of ideas from the VPRI Combined Object-Lambda Architecture (COLA) model and was intended to support languages like Self (prototype-based, multiple inheritance) as well as Objective-C.
+This code was repurposed as \file{libobjc2} to provide an Objective-C runtime that clang could use.
+At the time, the GCC Objective-C runtime had a GPLv2 exemption that applied only to code compiled with GCC and so any code compiled with clang and linked against the GCC runtime had to be licensed as GPLv2 or later.
+
+GCC's Objective-C support at this time was lacking a number of features of more modern Objective-C (for example, declared properties) and showed no signs of improving.
+
+Eventually \file{libobjc2} was adopted by the GNUstep project and became the GNUstep Objective-C runtime.
+It was intended as a drop-in replacement for the GCC runtime and so adopted the GCC Objective-C ABI and extended it in a variety of backwards-compatible ways.
+
+The GCC ABI was, itself, inherited from the original NeXT Objective-C runtime.
+The Free Software Foundation used the GPL and the threat of legal action to force NeXT to release their GCC changes to support Objective-C.
+They were left with some shockingly bad code, which was completely useless without an Objective-C runtime.
+The GCC team committed the shockingly bad code and wrote a runtime that was almost, but not quite, compatible with the NeXT one.
+In particular, it did not implement \ccode{objc_msgSend}, which requires hand-written assembly, and instead modified the compiler to call a function to look up the method and then to call the result, giving a portable pure-C design.
+
+As such, the ABI supported by the GNUstep Objective-C runtime dates back to 1988 and is starting to show its age.
+It includes a number of hacks and misfeatures that are in dire need of replacing.
+This document describes the new ABI used by version 2.0 of the runtime.
+
+\section{Mistakes}
+
+Supporting a non-fragile ABI was one of the early design goals of the GNUstep Objective-C runtime.
+When Apple switched to a new runtime, they were able to require that everyone recompiled all of their code to support the non-fragile ABI and, in particular, were able to support only the new ABI on ARM and on 64-bit platforms.
+
+At the time, it was not possible to persuade everyone to recompile all of their code for a new GNUstep runtime, and so I made a number of questionable design decisions to allow classes compiled with the non-fragile ABI to subclass ones compiled with the fragile ABI.
+These decisions have led to some issues where code using the non-fragile ABI ends up being fragile.
+
+The new ABI makes no attempt to support mixing old and new ABI code.
+The runtime will work with either, but not with both at the same time.
+It will upgrade the old structures to the new on load (consuming more memory and providing an incentive to recompile) and will then use only the new structures internally.
+
+The GNUstep runtime incorporates the safe method caching mechanism originally from the Étoilé runtime.
+Unfortunately, this added some significant memory overhead (each selector, class pair needed a separate version).
+In the new design, we move to a single 64-bit version counter (which, if incremented once per cycle on a 2GHz CPU, will still not overflow after a few millennia).
+This saves memory (around 5\% total memory usage in a microbenchmark that simply sends a \objc{+class} message to every class in the Foundation framework) at the cost of increasing the rate of cache invalidations.
+Because method replacement is relatively rare in Objective-C, this extra overhead is relatively rare.
+
+\section{Changed circumstances}
+
+When the original GCC runtime was released, linkers were designed primarily to work with C.
+C guarantees that each symbol is defined in precisely one compilation unit.
+In contrast, C++ (10 years away from standardisation at the time the GCC runtime was released) has a number of language features that rely on symbols appearing in multiple compilation units.
+The original 4Front C++ compiler worked by compiling without emitting any of these, parsing the linker errors, and then recompiling adding missing ones.
+
+More modern implementations of C++ emit these symbols in every compilation unit that references them and rely on the linker to discard duplicates.
+Modern linkers support \keyword{COMDATs} for this purpose.
+
+The NeXT runtime was able to work slightly differently.
+The Mach-O binary format (used by NeXT and Apple) provides a mechanism for registering code that will handle loading for certain sections, thus delegating some linker functionality to the runtime.
+
+In addition to COMDATs, modern linkers support generating symbols that correspond to the start and end of sections.
+This makes it possible for the new ABI to emit all declarations of a particular kind in a section and for the runtime to then receive an array of all of the objects in that section.
+
+\chapter{Entry point}
+
+The legacy GCC ABI provided a \ccode{__objc_exec_class} function that registered all of the Objective-C data for a single compilation unit.
+This has two downsides:
+
+\begin{itemize}
+	\item It means that the \objc{+load} methods will be called one at a time, as classes are loaded, because the runtime has no way of knowing when an entire library has been loaded.
+	\item It prevents any deduplication between compilation units, and so a selector used in 100 \file{.m} files and linked into a single binary will occur 100 times and be passed to the runtime for merging 100 times.
+\end{itemize}
+
+\section{The new entry point}
+
+The new runtime provides an \ccode{__objc_load} function for loading an entire library at a time.
+This function takes a pointer to the structure shown in \Fref{lst:initobjc}.
+
+For the current ABI, the \ccode{version} field must always be zero.
+This field exists to allow future versions of the ABI to add new fields to the end, which can be ignored by older runtime implementations.
+
+The remaining fields all contain pointers to the start and end of a section.
+The sections are listed in \fref{tab:sections}.
+
+\inccode{loader.c}{initobjc}{objc_init}{The Objective-C library description structure.}
+
+The \ccode{__objc_selectors} section contains all of the selectors referenced by this library.
+As described in \fref{chap:selectors}, these are deduplicated by the linker, so each library should contain only one copy of any given selector.
+
+\begin{table}
+	\begin{center}
+		\begin{tabular}{l|l}
+			Prefix & Section \\\hline
+			\ccode{sel_} & \ccode{__objc_selectors}\\
+			\ccode{cls_} & \ccode{__objc_classes}\\
+			\ccode{cls_ref_} & \ccode{__objc_class_refs}\\
+			\ccode{cat_} & \ccode{__objc_cats}\\
+			\ccode{proto_} & \ccode{__objc_protocols}\\
+			\ccode{proto_ref_} & \ccode{__objc_protocol_refs}\\
+			\ccode{alias} & \ccode{__objc_class_aliases}\\
+		\end{tabular}
+		\caption{\label{tab:sections}Section names for Objective-C components.}
+	\end{center}
+\end{table}
+
+Similarly, the \ccode{__objc_classes}, \ccode{__objc_cats}, and \ccode{__objc_protocols} sections contain classes, categories, and protocols: the three top-level structural components in an Objective-C program.
+These are all described in later chapters.
+
+The \ccode{__objc_class_refs} section contains variables that are used for accessing classes.
+These are described in \Fref{sec:classref} and provide loose coupling between the representation of the class and accesses to it.
+
+The \ccode{__objc_protocol_refs} section contains variables that point to protocols in the same way.
+This indirection layer makes it possible for future versions of the ABI to make incompatible changes to the protocol structure and for the runtime to upgrade old libraries on load.
+
+\section{Compiler responsibilities}
+
+For each compilation unit, the compiler must emit a copy of both the \ccode{objc_init} structure and a function that passes it to the runtime, in such a way that the linker will preserve a single copy.
+On ELF platforms, these are hidden weak symbols with a comdat matching their name.
+The load function is called \ccode{.objcv2_load_function} and the initializer structure is called \ccode{.objc_init} (the dot prefix preventing conflicts with any C symbols).
+The compiler also emits a \ccode{.objc_ctor} variable in the \ccode{.ctors} section, with a \ccode{.objc_ctor} comdat.
+
+The end result after linking is a single copy of the \ccode{.objc_ctor} variable in the \ccode{.ctors} section, which causes a single copy of the  \ccode{.objcv2_load_function} to be called, passing a single copy of the \ccode{.objc_init} structure to the runtime on binary load.
+
+The \ccode{.objc_init} structure is initialised by the \ccode{__start_\{section name\}} and \ccode{__stop_\{section name\}} symbols, which the linker will replace with relocations describing the start and end of each section.
+
+The linker does not automatically initialise these variables if the sections do not exist, so compilation units that do not include any entries for one or more of them must emit a zero-filled section.
+The runtime will then ignore the zero entry.
+
+\chapter{Selectors}
+\label{chap:selectors}
+
+Typed selectors are one of the largest differences between the GNU family of runtimes (GCC, GNUstep, ObjFW) and the NeXT (NeXT, macOS, iOS) family.
+In the NeXT design, selectors are just (interned) strings representing the selector name.
+This can cause stack corruption when different leafs in the class hierarchy implement methods with the same name but different types and some code sends a message to one of them using a variable of type \objc{id}.
+In the GNU family, they are a pair of the method name and the type encoding.
+
+The GNUstep ABI represents selectors using the structure described in \Fref{lst:selector}.
+The first field is a union of the value emitted by the compiler and the value used by the runtime.
+The compiler initialises the \ccode{name} field with the string representation of the selector name, but when the runtime registers the selector it will replace this with an integer value that uniquely identifies the selector (it will also store the name in a table at this index so selectors can be mapped back to names easily).
+
+\inccode{selector.h}{selector}{objc_selector}{The selector structure.}
+
+\section{Symbol naming}
+\label{sec:symbolnaming}
+
+In this ABI, unlike the GCC ABI, we try to ensure that the linker removes as much duplicate data as possible.
+As such, each selector, selector name, and selector type encoding is emitted as a weak symbol with a well-known name name, with hidden visibility.
+When linking, the linker will discard all except for one (though different shared libraries will have different copies).
+
+The selector names are emitted as \ccode{.objc_sel_name_\{selector name\}}, the type encodings as \ccode{.objc_sel_name_\{mangled type encoding\}} and the selectors themselves as \ccode{.objc_sel_name_\{selector name\}_\{mangled type encoding\}}.
+The \textit{mangled} type encoding replaces the @ character with a \ccode{'\\1'} byte.
+This mangling prevents conflicts with symbol versioning (which uses the @ character to separate the symbol name from its version).
+
+This deduplication is not required for correctness: the runtime ensures that selectors have unique indexes, but should reduce the binary size.
+
+\chapter{Classes}
+
+The class structure is shown in \Fref{lst:class}.
+Each class is emitted as an instance of this structure as a symbol called \ccode{_OBJC_CLASS_\{class name\}}.
+The \ccode{isa} pointer for the class is initialised to point to another class structure describing the metaclass, in which all class methods and properties are defined.
+
+The \ccode{super_class} field is initialised to the class structure for the superclass.
+If the runtime is upgrading the class structure to a newer version of the ABI then this pointer will be updated to the upgraded version of the class on load.
+
+The \ccode{name} field points to a null-terminated string containing the class name.
+The \ccode{version} field should be initialised to zero.
+
+The \ccode{info} field is used internally as a bitfield.
+The compiler is responsible for setting this to 0 for classes and 1 for metaclasses.
+The remaining low 8 bits are reserved for use by future versions of the ABI.
+All higher bits are reserved for the runtime to use for dynamic properties of classes.
+
+The \ccode{abi_version} field is used to differentiate different versions of the class ABI structure and is currently always zero.
+
+The \ccode{ivars}, \ccode{methods}, \ccode{properties} and \ccode{protocols} fields describe the class and are explained in the next sections.
+
+\inccode{class.h}{class}{objc_class}{The class structure.}
+
+\section{Class metadata}
+\label{sec:metadata}
+
+Most of the class metadata uses the pattern similar to the following:
+
+\begin{codesnippet}
+struct metadata_element;
+
+struct metadata_list
+{
+	int count;
+	int size;
+	struct metadata_element elements[];
+}
+\end{codesnippet}
+
+In this example, \ccode{metadata_list} describes an ordered collection of \ccode{metadata_element} elements.
+The \ccode{count} field indicates how many elements there are in the \ccode{elements} array.
+The array is appended to the structure, but \textit{is not guaranteed to be a C array of the element type}.
+To allow for future expansion, the \ccode{size} field in the list structure defines the size of one element in the array.
+Future versions of the ABI are able to increase the size of \ccode{metadata_element}, without breaking existing versions of the runtime.
+Existing versions of the runtime will simply ignore any missing fields.
+
+This pattern is used for instance variables, methods, and properties.
+
+\subsection{Instance variables}
+
+Instance variables are defined in list shown in \Fref{lst:ivarlist}, which follows the structure outlined in \Fref{sec:metadata}.
+The entries in the list are elements of the \ccode{struct objc_ivar} structure, described in \Fref{lst:ivar}.
+Future versions of the ABI may add additional fields, in which case they should increase the value of \ccode{size} in the list structure.
+
+\inccode{ivar.h}{ivarlist}{objc_ivar_list}{The instance variable list structure.}
+\inccode{ivar.h}{ivar}{objc_ivar}{The instance variable structure.}
+
+The \ccode{name} field points to a null-terminated string containing the name of the instance variable.
+The \ccode{type} field contains the extended type encoding of the instance variable.
+
+The \ccode{offset} field contains a pointer to the instance variable offset variable.
+This is of the form \ccode{__objc_ivar_offset_\{class name\}.\{ivar name\}.\{type encoding\}}.
+This variable is a 32-bit integer, which restricts objects to 4GB plus the size of the last field.
+The type encoding is in the traditional format, with the mangling defined in \Fref{sec:symbolnaming} applied.
+This means that, for example, changing the type of an instance variable from \objc{NSString*} to \objc{NSConstantString*} will not cause a linker failure, but changing its type from \objc{int} to \objc{float} will.
+
+The \ccode{flags} field is a bitmask.
+The first two bits indicate the ownership, as shown in \Fref{lst:ivarown}.
+This is always \ccode{ownership_invalid} (0) for instance variables that are not objects.
+
+\inccode{ivar.h}{ivarown}{objc_ivar_ownership}{Instance variable ownership.}
+
+The next bit (bit 2) indicates that the \ccode{type} field contains an extended type encoding and should always be set in generated code.
+This bit exists so that instance variable structures generated from older ABIs can be automatically upgraded.
+The next six bits (bits 3--8) contain the base-2 logarithm of the alignment.
+This is enough to describe any power of two alignment from 0 to $2^{63}$.
+There is no point supporting $2^{64}$-byte alignment because we currently don't support any platforms with greater than $2^{64}$-byte address spaces\footnote{Most 64-bit platforms currently support only $2^{48}$- or $2^{56}$-byte address spaces.} and on such a platform there can be at most one object requiring $2^{64}$-byte alignment, and it therefore fit inside an object.
+Instance variable offsets must currently be within a 4GB ($2^{32}$-byte) range and so even 6 bits is somewhat excessive.
+
+\subsection{Methods}
+
+
+Methods are defined in list shown in \Fref{lst:methodlist}, which follows the structure outlined in \Fref{sec:metadata}.
+The entries in the list are elements of the \ccode{struct objc_method} structure, described in \Fref{lst:method}.
+Future versions of the ABI may add additional fields, in which case they should increase the value of \ccode{size} in the list structure.
+
+The method list structure contains a \ccode{next} pointer so that method lists in categories and classes can be combined.
+This should always be initialised to null in the compiler.
+
+\inccode{method.h}{methodlist}{objc_method_list}{The method structure.}
+\inccode{method.h}{method}{objc_method}{The method structure.}
+
+The method structure is comparatively simple.
+The first field (\ccode{imp}) is a pointer to the method.
+The second field is a pointer to the selector, which should be generated as described in \Fref{chap:selectors}.
+The final field is the extended type encoding.
+Note that the selector is typed and incorporates the traditional type encoding.
+This allows the runtime to return either the traditional or extended type encoding, as required.
+
+\subsection{Protocols}
+
+Protocols adopted by a class are stored in the \ccode{objc_protocol_list} structure, described in \Fref{lst:protocollist}.
+These do not have a field indicating the size, because protocols are referenced by pointer.
+
+\inccode{protocol.h}{protocollist}{objc_protocol_list}{The protocol structure.}
+
+Protocols are emitted as described in \Fref{chap:protocols} and referenced directly in this structure.
+Explicit \objc{@protocol} references are handled via an indirection layer, but it is safe to reference the global variable describing a protocol directly in this structure.
+If a future version of the runtime wishes to update the protocol structure then it is able to do so and update the pointers in the protocol list to point to the upgraded structures.
+
+\subsection{Declared properties}
+
+
+Declared properties are defined in list shown in \Fref{lst:propertylist}, which follows the structure outlined in \Fref{sec:metadata}.
+The entries in the list are elements of the \ccode{struct objc_property} structure, described in \Fref{lst:property}.
+Future versions of the ABI may add additional fields, in which case they should increase the value of \ccode{size} in the list structure.
+
+
+\inccode{properties.h}{propertylist}{objc_property_list}{The property structure.}
+\inccode{properties.h}{property}{objc_property}{The property structure.}
+
+
+\section{Class references}
+\label{sec:classref}
+
+Each entry in the \ccode{__objc_class_refs} section is a symbol (in a COMDAT of the same name) called \ccode{_OBJC_CLASS_REF_\{class name\}}, which is initialised to point to a variable called \ccode{_OBJC_CLASS_\{class name\}}, which is the symbol for the class.
+This and the class structure are the \textit{only} place where the \ccode{_OBJC_CLASS_\{class name\}} symbols may be referenced.
+
+All other accesses to the class (i.e. from message sends to classes or to \objc{super}) must be via a load of the \ccode {_OBJC_CLASS_REF_\{class name\}} variable.
+
+The current version of the runtime ignores this section, but if a future runtime changes the class structure then it can update these pointers to heap-allocated versions of the new structure.
+
+
+\chapter{Categories}
+
+\chapter{Protocols}
+\label{chap:protocols}
+
+\chapter{Encoding strings}
+
+Objective-C defines three kinds of type encoding string:
+
+\begin{description}
+	\item[Traditional type encodings] come from the NeXT Objective-C implementation\footnote{Or possibly the earlier StepStone version?} and are widely used in reflection.  The \objc{@encode} directive generates a type encoding in this form.
+	\item[Extended type encodings] were introduced by Apple.  They extend the traditional type encodings and provide types for classes and parameter types for blocks.
+	\item[Property attribute encodings] define the properties of an attribute string.
+\end{description}
+
+The type encoding always uses the underlying type, ignoring \ccode{typedef}s.
+This means that type encodings are not stable across platforms.
+For example, \ccode{int64_t} may be treated as \ccode{long} or \ccode{long long}, depending on the target.
+
+\section{Traditional type encodings}
+
+Traditional type encodings are intended to be able to encode any C or Objective-C 1.0 types, providing only information that cannot be obtained via other introspection interfaces.
+
+\subsection{Primitive types}
+
+All primitive C types are represented in traditional type encodings using a single character, listed in \Fref{tab:primencode}.
+For each C type that has \ccode{signed} and \ccode{unsigned} variants, the encoding format uses the same letter with the uppercase letter for the \ccode{unsigned} form and the lowercase letter for the \ccode{signed} form.
+
+\begin{table}
+	\begin{center}
+		\begin{tabular}{c|l}
+			Character & Type\\\hline
+			\texttt{c} & \ccode{signed char} \\
+			\texttt{C} & \ccode{unsigned char} \\
+			\texttt{s} & \ccode{signed short} \\
+			\texttt{S} & \ccode{unsigned short} \\
+			\texttt{i} & \ccode{signed int} \\
+			\texttt{I} & \ccode{unsigned int} \\
+			\texttt{l} & \ccode{signed long} \\
+			\texttt{L} & \ccode{unsigned long} \\
+			\texttt{q} & \ccode{signed long long} \\
+			\texttt{Q} & \ccode{unsigned long long} \\
+			\texttt{f} & \ccode{float} \\
+			\texttt{d} & \ccode{double} \\
+			\texttt{B} & \ccode{_Bool} (\ccode{bool} in C++)\\
+			\texttt{v} & \ccode{void}\\
+			\texttt{?} & Unknown type
+		\end{tabular}
+		\caption{\label{tab:primencode}Type encodings of primitive types.}
+	\end{center}
+\end{table}
+
+Note that, in C, all types except for \ccode{char} are implicitly signed if the \ccode{signed} keyword is omitted.
+In contrast, whether \ccode{char} is equivalent to \ccode{signed char} or \ccode{unsigned char} is implementation dependent.
+The type encoding for \ccode{char} will always match the underlying type.
+
+BOOL
+
+\subsection{Composite types}
+
+C contains two composite types; arrays and structures.
+C also provides pointers, for describing indirection.
+C++ classes are, for the purpose of type encodings, treated as structures.
+
+Array are encoded in square brackets, with the number of elements followed by the element type.
+For example:
+
+\begin{codesnippet}
+int array[42];
+\end{codesnippet}
+
+The type encoding of \ccode{array} will be \texttt{[42i]}.
+
+Structure encodings are in braces, with the name of the structure, followed by an equals sign, followed by the encodings of all elements.
+For example:
+
+\begin{codesnippet}
+struct Z
+{
+	int x;
+	float y;
+};
+\end{codesnippet}
+
+The encoding of \ccode{struct Z} will be \texttt{{Z=if}}.
+These encodings are combined, for example an array of 10 elements of \ccode{struct Z} would be encoded as \texttt{[10{Z=if}]}.
+
+Pointers are described by prefixing the type with a caret (\texttt{\^{}}).
+For example, a pointer to \ccode{struct Z} would be encoded as \texttt{\^{}{Z=if}}.
+Pointers to incomplete structures---either forward definitions or structures currently in the process of being defined---or any pointers to structures from within other structures include the name but not the fields in the structure definition.
+This allows recursive structures to be represented, for example:
+
+\begin{codesnippet}
+struct Recursive
+{
+	int x;
+	struct Recursive *r;
+};
+\end{codesnippet}
+
+This structure will yield a type encoding of \texttt{{Recursive=i\^{}{Recursive}}}.
+The compiler is not required to detect recursion and may simply refer to any structure referenced by pointer omitting its encoding.
+
+C++ references---including r-value references---are encoded as pointers.
+
+\subsection{C strings}
+
+A single asterisk is used as shorthand when encoding \ccode{char*}.
+This was intended to be an encoding for null-terminated C strings, so that the Distributed Objects system was able to copy the string.
+
+Unfortunately, recent versions of clang will generate \texttt{*} as the encoding for both \ccode{signed char*} and even for \objc{BOOL*} (because \objc{BOOL} is a \ccode{typedef} for \ccode{char}.
+As such, an encoding of \texttt{*} gives strictly less information than \texttt{\^{}C} or \texttt{\^{}c} and so its use should be discouraged.
+
+\subsection{Objective-C types}
+
+Objective-C introduces \objc{id}, \objc{Class}, \objc{SEL} and \objc{BOOL} types.
+Of these, \objc{BOOL} is a \ccode{typedef} for an underlying C type (\ccode{signed char} on Apple platforms, \ccode{unsigned char} on most GCC Objective-C platforms, \ccode{int} on VxWorks) and so does not get a new type encoding.
+The other types are encoded as described in \Fref{tab:objcencode}.
+
+\begin{table}
+	\begin{center}
+		\begin{tabular}{c|l}
+			Character   & Type\\\hline
+			\texttt{@}  & \objc{id} \\
+			\texttt{\#} & \objc{Class} \\
+			\texttt{:}  & \objc{SEL}
+		\end{tabular}
+		\caption{\label{tab:objcencode}Type encodings of Objective-C types.}
+	\end{center}
+\end{table}
+
+
+\subsection{Method encodings}
+
+Method type encodings describe the argument frame.
+They include numbers that describe where in a classic all-arguments-on-the-stack calling convention the arguments would reside.
+This is not tremendously useful in most contexts, though the size can be helpful when allocating space to store an invocation.
+
+The format for method encodings begins with the encoding of the return type, followed by the total size of the arguments in bytes.
+Each argument is then listed, followed by its offset in the argument frame (the offset it would be in a \ccode{struct} containing all of the arguments).
+
+For example, the method:
+\begin{codesnippet}
+- (int)foo: (float)a;
+\end{codesnippet}
+
+May encode as \texttt{i20@0:8f16}, assuming that pointers are 8 bytes and \ccode{int} and \ccode{float} are each 4 bytes.
+Note that the \objc{self} and \objc{_cmd} parameters are explicit here, in the \texttt{@0} (object argument at offset 0) and \texttt{:8} (\objc{SEL} argument at offset 8) parts of the encoding.
+
+Methods declared in protocols may include some of the qualifiers described in \Fref{tab:objcqualencode}.
+Each of these precedes the encoding for the type that it is qualifying.
+
+\begin{table}
+	\begin{center}
+		\begin{tabular}{c|l}
+			Character   & Type\\\hline
+			\texttt{n} & \objc{in} \\
+			\texttt{N} & \objc{inout} \\
+			\texttt{O} & \objc{bycopy} \\
+			\texttt{o} & \objc{out} \\
+			\texttt{R} & \objc{byref} \\
+			\texttt{r} & \objc{const} \\
+			\texttt{V} & \objc{oneway}
+		\end{tabular}
+		\caption{\label{tab:objcqualencode}Type encodings of Objective-C method argument qualifier types.}
+	\end{center}
+\end{table}
+
+\subsection{Blocks and function pointers}
+
+In the traditional type encoding format, functions are treated as unknown and so function pointers are encoded as \texttt{\^{}?} (pointer to unknown type).
+Blocks did not exist when the format was defined and so are encoded as \texttt{@?}, signifying an unknown type that is also an object.
+
+\section{Extended type encodings}
+
+The extended type encoding format is a superset of the traditional format, providing extended information about blocks and objects.
+Objective-C object pointer types include the class or protocol types for which they are valid, blocks include their full argument signature in the same format as a method encoding.
+
+The extended type encoding for an object is encoded in double quotes after the \texttt{@} symbol.
+If a class is specified, then this includes the name, followed by any specified protocols in angle brackets.
+For example:
+
+\begin{codesnippet}
+@class NSObject;
+@protocol Proto1;
+@protocol Proto2;
+
+NSObject *obj;
+id<Proto> proto;
+NSObject<Proto1> *qualObj;
+NSObject<Proto1,Proto2> *qualObj2;
+\end{codesnippet}
+
+The extended encoding for \objc{obj} is \texttt{@"NSObject"}.
+There can be at most one class type in an extended encoding, but multiple protocol types.
+The \objc{proto} variable does not include a type, indicating an object that may be of any class but must confirm to the protocol \objc{Proto}.
+This is encoded as \texttt{@"<Proto>"}.
+If more than one protocol is specified, then they are listed in turn.
+The encoding of \objc{qualObj} is therefore \texttt{@"NSObject<Proto1>"} and the encoding of \objc{qualObj2} is \texttt{@"NSObject<Proto1><Proto2>"}.
+Note that, in the encoding of \objc{qualObj2}, each protocol is listed separately in angle brackets, unlike the Objective-C syntax where they are listed as a comma-separated list inside a single pair of angle brackets.
+
+\section{Property attribute encodings}
+
+
+
+\chapter{Message sending}
+
+\end{document}
+

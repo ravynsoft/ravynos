@@ -12,6 +12,7 @@ build: prep freebsd-noclean helium
 # Full release build with installation artifacts
 world: prep freebsd helium release
 
+
 prep:
 	mkdir -p ${MAKEOBJDIRPREFIX} ${RLSDIR} ${TOPDIR}/dist ${BUILDROOT}
 
@@ -31,7 +32,7 @@ freebsd: checkout ${TOPDIR}/freebsd-src/sys/${MACHINE}/compile/${BSDCONFIG}
 freebsd-noclean:
 	export MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX}; make -C ${TOPDIR}/freebsd-src -DNO_CLEAN buildkernel buildworld
 
-helium: extradirs
+helium: extradirs mkfiles libobjc2
 
 # Update the build system with current source
 install: installworld installkernel
@@ -43,9 +44,19 @@ installkernel:
 	export MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX}; sudo make -C ${TOPDIR}/freebsd-src installkernel
 
 extradirs:
+	rm -rf ${BUILDROOT}
 	for x in System System/Library Library Users Applications Volumes; \
-		do mkdir -p ${MAKEOBJDIRPREFIX}/buildroot/$$x; \
+		do mkdir -p ${BUILDROOT}/$$x; \
 	done
+
+mkfiles:
+	mkdir -p ${MAKEOBJDIRPREFIX}/buildroot/usr/share/mk
+	cp -fv ${TOPDIR}/mk/*.mk ${MAKEOBJDIRPREFIX}/buildroot/usr/share/mk/
+
+libobjc2: .PHONY
+	mkdir -p ${MAKEOBJDIRPREFIX}/libobjc2
+	cd ${MAKEOBJDIRPREFIX}/libobjc2; cmake -DCMAKE_INSTALL_PREFIX=/usr ${TOPDIR}/libobjc2
+	make -C ${MAKEOBJDIRPREFIX}/libobjc2 DESTDIR=${BUILDROOT} install
 
 helium-package:
 	tar cJ -C ${MAKEOBJDIRPREFIX}/buildroot --gid 0 --uid 0 -f ${RLSDIR}/helium.txz .

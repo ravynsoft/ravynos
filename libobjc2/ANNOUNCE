@@ -1,0 +1,42 @@
+GNUstep Objective-C Runtime 2.2
+===============================
+
+This is the second update to the second major release of the GNUstep Objective-C
+runtime (a.k.a.  libobjc2).  This runtime was designed to support the features
+of modern dialects of Objective-C for use with GNUstep and other Objective-C
+programs.
+
+Highlights of this release include:
+
+- Numerous improvements to the Objective-C++ exception interoperation code.
+  The runtime now dynamically detects whether the libcxxrt, libsupc++, or
+  libc++abi variant of the Itanium C++ Exception ABI is being used.  This is
+  the first version to support exception interoperability with libc++abi.
+
+
+You may obtain the code for this release from git and use the 2.2 branch:
+
+https://github.com/gnustep/libobjc2.git
+
+Alternatively, a tarball is available from:
+
+https://github.com/gnustep/libobjc2/archive/v2.2.zip
+https://github.com/gnustep/libobjc2/archive/v2.2.tar.gz
+
+The submodule is available from:
+
+https://github.com/Tessil/robin-map/archive/757de82.zip
+https://github.com/Tessil/robin-map/archive/757de82.tar.gz
+
+This will extract as robin-map-757de829927489bee55ab02147484850c687b620.
+You must move the contents of that directory into third_party/robin_map in the
+libobjc2 tree.
+
+
+The runtime library is responsible for implementing the core features of the
+object model, as well as exposing introspection features to the user.  The
+GNUstep runtime implements a superset of Apple's Objective-C Runtime APIs.
+
+If you come across any problems, please file them in the issue tracker:
+
+https://github.com/gnustep/libobjc2/issues

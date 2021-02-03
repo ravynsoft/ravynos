@@ -40,5 +40,6 @@ ${FRAMEWORK_DIR}:
 	(cd "${FRAMEWORK_DIR}/Versions"; ln -sf A Current)
 	touch "${FRAMEWORK_DIR}/Versions/A/Resources/Info.plist"
 
+
 .include <bsd.lib.mk>
 .include <bsd.incs.mk>
