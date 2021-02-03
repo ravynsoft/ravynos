@@ -45,7 +45,7 @@ installkernel:
 
 extradirs:
 	rm -rf ${BUILDROOT}
-	for x in System System/Library Library Users Applications Volumes; \
+	for x in System System/Library/Frameworks Library Users Applications Volumes; \
 		do mkdir -p ${BUILDROOT}/$$x; \
 	done
 
@@ -61,6 +61,7 @@ libobjc2: .PHONY
 
 Foundation.framework:
 	export MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX}; make -C Foundation
+	cp -Rvf ${TOPDIR}/Foundation/Foundation.framework ${BUILDROOT}/System/Library/Frameworks
 
 helium-package:
 	tar cJ -C ${MAKEOBJDIRPREFIX}/buildroot --gid 0 --uid 0 -f ${RLSDIR}/helium.txz .
