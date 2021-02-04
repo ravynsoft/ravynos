@@ -34,8 +34,7 @@ freebsd: checkout ${TOPDIR}/freebsd-src/sys/${MACHINE}/compile/${BSDCONFIG}
 freebsd-noclean:
 	export MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX}; make -C ${TOPDIR}/freebsd-src -DNO_CLEAN buildkernel buildworld
 
-helium: extradirs mkfiles libobjc2 Foundation.framework CoreFoundation.framework \
-	CFNetwork.framework CoreServices.framework
+helium: extradirs mkfiles libobjc2 frameworks
 
 # Update the build system with current source
 install: installworld installkernel installhelium
@@ -65,23 +64,32 @@ libobjc2: .PHONY
 	make -C ${MAKEOBJDIRPREFIX}/libobjc2 DESTDIR=${BUILDROOT} install
 	rm -f ${BUILDROOT}/usr/include/Block*.h
 
+frameworksclean:
+	rm -rf ${BUILDROOT}/System/Library/Frameworks/*.framework
+
+frameworks: frameworksclean Foundation.framework CoreFoundation.framework \
+		CoreServices.framework CFNetwork.framework
+
 Foundation.framework:
 	rm -rf Foundation/${.TARGET}
-	make -C Foundation BUILDROOT=${BUILDROOT} build
+	make -C Foundation BUILDROOT=${BUILDROOT} clean build
 	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
 
 CoreFoundation.framework:
 	rm -rf CoreFoundation/${.TARGET}
+	make -C CoreFoundation BUILDROOT=${BUILDROOT} clean
 	make -C CoreFoundation BUILDROOT=${BUILDROOT}
 	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
 
 CoreServices.framework:
 	rm -rf CoreServices/${.TARGET}
+	make -C CoreServices BUILDROOT=${BUILDROOT} clean
 	make -C CoreServices BUILDROOT=${BUILDROOT}
 	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
 
 CFNetwork.framework:
 	rm -rf CFNetwork/${.TARGET}
+	make -C CFNetwork BUILDROOT=${BUILDROOT} clean
 	make -C CFNetwork BUILDROOT=${BUILDROOT}
 	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
 

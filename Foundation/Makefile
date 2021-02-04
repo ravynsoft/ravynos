@@ -1,6 +1,26 @@
 FRAMEWORK=Foundation
 SRCS= \
+../objc/dyld.c \
+../objc/objc_arc.c \
+../objc/objc_class.c \
+../objc/objc_functions.c \
+../objc/objc_ivar.c \
+../objc/objc_log.c \
+../objc/objc_malloc.c \
+../objc/objc_method.c \
+../objc/objc_msg_lookup.c \
+../objc/objc_object.c \
+../objc/objc_property.c \
+../objc/objc_protocol.c \
+../objc/objc_sel.c \
+../objc/objc_tls.c \
+../objc/ObjCArray.c \
+../objc/ObjCDynamicModule.c \
+../objc/ObjCHashTable.c \
+../objc/ObjCModule.c \
+../objc/platform_linux/objc-msgsend-x86_64.s \
 ./NSFormatter.m \
+./NSBlocks.m \
 ./NSDictionary/NSEnumerator_dictionaryObjects.m \
 ./NSDictionary/NSMutableDictionary.m \
 ./NSDictionary/NSEnumerator_dictionaryKeys.m \
@@ -37,7 +57,6 @@ SRCS= \
 ./NSNotificationCenter/NSObjectToObservers.m \
 ./NSNotificationCenter/NSNotificationObserver.m \
 ./NSInvocation.m \
-./NSBlocks.m \
 ./NSIndexPath.m \
 ./NSScript/NSScriptWhoseTests.m \
 ./NSEnumerator.m \
@@ -103,9 +122,6 @@ SRCS= \
 ./NSKeyValueCoding/NSKeyObserver.m \
 ./NSKeyValueCoding/NSArray+KVC.m \
 ./NSKeyValueCoding/NSKeyPathObserver.m \
-./platform_bsd/NSMemoryFunctions_bsd.m \
-./platform_bsd/NSPlatform_bsd.m \
-./platform_bsd/libmain.m \
 ./NSPointerFunctions.m \
 ./NSOrthography.m \
 ./NSString/NSStringUTF8.m \
@@ -272,11 +288,11 @@ SRCS= \
 ./NSAttributedString/NSMutableString_proxyToMutableAttributedString.m \
 ./NSAttributedString/NSMutableAttributedString.m \
 ./NSObject/NSObject.m \
-./NSObject/objc_msg_sendv-Disabled.m \
 ./NSObject/objc_forward_ffi.m \
 ./NSObject/objc_size_alignment.m \
 ./NSObject/NSZombieObject.m \
 ./NSObject/forwarding.m \
+./NSObject/platform_linux/msgSendv-x64.s \
 ./NSDistributedLock.m \
 ./NSMetadata/NSMetadataQuery.m \
 ./NSMetadata/NSMetadataQueryResultGroup.m \
@@ -314,7 +330,7 @@ SRCS= \
 ./NSDate/NSCalendarDate.m \
 ./NSDate/NSDate.m \
 ./NSDate/NSDateComponents.m \
-./NSDate/NSDateFormatter.m \
+./NSDate/NSDateFormatter.m 
 
 INCS= \
 ./NSLocale.h \
@@ -423,7 +439,6 @@ INCS= \
 ./NSKeyValueCoding/NSKVOInfoPerObject.h \
 ./NSKeyValueCoding/NSKeyValueObserving.h \
 ./NSGarbageCollector.h \
-./platform_bsd/NSPlatform_bsd.h \
 ./NSAssertionHandler.h \
 ./NSString/NSMutableString_unicodePtr.h \
 ./NSString/NSStringHashing.h \
@@ -668,10 +683,10 @@ INCS= \
 ./NSSpellServer.h
 
 RESOURCES=Info.plist English.lproj
-CFLAGS+= -I${.CURDIR}/Headers -I${.CURDIR}/.. -fblocks -DFREEBSD
+CFLAGS+= -I${.CURDIR}/Headers -I${.CURDIR}/.. -fblocks -DFREEBSD -DPLATFORM_IS_POSIX \
+	 -DPLATFORM_USES_BSD_SOCKETS
 
 build: marshallheaders all
-#	cd ${FRAMEWORK}.framework/Versions/A/Headers; ln -sf . Foundation
 
 marshallheaders: .PHONY
 	mkdir -p Headers/Foundation
