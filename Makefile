@@ -32,7 +32,7 @@ freebsd: checkout ${TOPDIR}/freebsd-src/sys/${MACHINE}/compile/${BSDCONFIG}
 freebsd-noclean:
 	export MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX}; make -C ${TOPDIR}/freebsd-src -DNO_CLEAN buildkernel buildworld
 
-helium: extradirs mkfiles libobjc2
+helium: extradirs mkfiles libobjc2 Foundation.framework
 
 # Update the build system with current source
 install: installworld installkernel
@@ -57,6 +57,10 @@ libobjc2: .PHONY
 	mkdir -p ${MAKEOBJDIRPREFIX}/libobjc2
 	cd ${MAKEOBJDIRPREFIX}/libobjc2; cmake -DCMAKE_INSTALL_PREFIX=/usr ${TOPDIR}/libobjc2
 	make -C ${MAKEOBJDIRPREFIX}/libobjc2 DESTDIR=${BUILDROOT} install
+	rm -f ${BUILDROOT}/usr/include/Block*.h
+
+Foundation.framework:
+	export MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX}; make -C Foundation
 
 helium-package:
 	tar cJ -C ${MAKEOBJDIRPREFIX}/buildroot --gid 0 --uid 0 -f ${RLSDIR}/helium.txz .
