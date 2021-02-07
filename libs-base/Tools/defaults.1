@@ -1,0 +1,101 @@
+.\"Copyright (C) 2005 Free Software Foundation, Inc.
+.\"Copying and distribution of this file, with or without modification,
+.\"are permitted in any medium without royalty provided the copyright
+.\"notice and this notice are preserved.
+.TH DEFAULTS "1" "February 2004" "GNUstep" "GNUstep System Manual"
+.SH NAME
+defaults - read or modify GNUstep user defaults
+
+.SH SYNOPSIS
+.B defaults [ action ]
+
+.SH DESCRIPTION
+The 'defaults' command lets you to read and modify a user's defaults.
+.PP
+This program replaces the old NeXTstep style dread, dwrite, and dremove
+programs.
+.PP
+If you have access to another user's defaults database, you may
+include \&'\-u username' before any other options to use that user's
+database rather than your own.
+.PP
+defaults read [ domain [ key] ]
+.IP
+read the named default from the specified domain.
+If no 'key' is given - read all defaults from the domain.
+If no 'domain' is given - read all defaults from all domains.
+A domain is either an application name, or "NSGlobalDomain", for system level
+defauts.  (Running programs can access two other domains,
+"NSArgumentDomain", for command line arguments, "NSRegistrationDomain", a
+second-chance domain in which "defaults for defaults" can be registered, and
+possibly domains for specific locales.)
+.PP
+defaults readkey key
+.IP
+read the named default from all domains.
+.PP
+defaults write domain key value
+.IP
+write 'value' as default 'key' in the specified domain.
+\&'value' must be a property list in single quotes.
+.PP
+defaults write domain dictionary
+.IP
+write 'dictionary' as a replacement for the specified domain.
+\&'dictionary' must be a property list in single quotes.
+.PP
+defaults write
+.IP
+reads standard input for defaults in the format produced by
+\&'defaults read' and writes them to the database.
+.PP
+defaults delete [ domain [ key] ]
+.IP
+remove the specified default(s) from the domain.
+If no 'key' is given - delete the entire domain.
+.PP
+defaults delete
+.IP
+read standard input for a series of lines containing pairs of domains
+and keys for defaults to be deleted.
+.PP
+defaults domains
+.IP
+lists the domains in the database (one per line)
+.PP
+defaults find word
+.IP
+searches domain names, default names, and default value strings for
+those equal to the specified word and lists them on standard output.
+.PP
+defaults plist
+.IP
+output some information about property lists
+.PP
+defaults help
+.IP
+list options for the defaults command.
+
+.SH FILES
+.IP ~/GNUstep/Defaults/.GNUstepDefaults
+holds defaults for a user
+
+.SH BUGS
+None known.
+
+.SH DIAGNOSTICS
+.P
+Hopefully self-explanatory.
+
+.P
+.SH HISTORY
+The 'defaults' command appeared in OpenStep and combined the capabilities of
+the earlier NeXTstep commands 'dread', 'dwrite', and 'dremove'.
+.RS 0
+The GNUstep version was written in 1998.
+.P
+This manual page first appeared in gnustep-base 1.9.2 (March 2004).
+.P
+.SH AUTHORS
+.B defaults
+was written by Richard Frith-Macdonald <rfm@gnu.org>

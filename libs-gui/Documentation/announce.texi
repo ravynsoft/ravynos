@@ -1,0 +1,76 @@
+@c -*- texinfo -*-
+@chapter Announcement
+@ifset TEXT-ONLY
+@include version.texi
+@end ifset
+
+This is version @value{GNUSTEP-GUI-VERSION} of the GNUstep GUI library (@samp{gnustep-gui}).
+
+@section What is the GNUstep GUI Library?
+
+It is a library of graphical user interface classes written completely
+in the Objective-C language; the classes are based upon Apple's Cocoa
+framework.  The library has been enhanced in a number of ways to take
+advantage of the GNU system.  These classes include graphical objects
+such as buttons, text fields, popup lists, browser lists, and windows;
+there are also many associated classes for handling events, colors,
+fonts, pasteboards and images.
+
+   The GNUstep GUI Library is designed in two parts.  The first part is
+the front-end component which is independent of platform and display
+system.  This front-end is combined with a back-end component which
+handles all of the display system dependent such as specific calls to
+X/Windows.  This design allows the GNUstep applications to have the
+"look and feel" of the underlying display system without any changes to
+the application, and the library can be easily ported to other display
+systems.
+
+   The GNUstep GUI Library requires the GNU Objective-C compiler, the
+GNUstep Base Library, the TIFF Graphics library, Independent JPEG
+Group's libjpeg library, and a back-end component from the GNUstep
+'Back' library.
+
+   Additional functionality may be enabled by installing additional
+libraries. For example, to build the Cairo backend in the GNUstep Back
+library, you will need to install Cairo.
+
+@set ANNOUNCE-ONLY
+@include news.texi
+@clear ANNOUNCE-ONLY
+
+@section Where can you get it?  How can you compile it?
+
+@ifset GNUSTEP-GUI-FTP-MACHINE
+The gnustep-gui-@value{GNUSTEP-GUI-VERSION}.tar.gz distribution
+file has been placed at @url{ftp://@value{GNUSTEP-GUI-FTP-MACHINE}/@value{GNUSTEP-GUI-FTP-DIRECTORY}}.
+
+It is accompanied by gnustep-gui-@value{GNUSTEP-GUI-VERSION}.tar.gz.sig, a
+PGP signature which you can validate by putting both files in the same
+directory and using:
+
+@example
+gpg --verify gnustep-gui-@value{GNUSTEP-GUI-VERSION}.tar.gz.sig
+@end example
+
+Signature has been created using the key with the following
+fingerprint:
+
+@example
+83AA E47C E829 A414 6EF8  3420 CA86 8D4C 9914 9679
+@end example
+@end ifset
+
+Read the INSTALL file or the GNUstep-HOWTO for installation instructions.
+
+@section Where do I send bug reports?
+
+Please log bug reports on the GNUstep project page
+@url{http://savannah.gnu.org/bugs/?group=gnustep} or send
+bug reports to @email{bug-gnustep@@gnu.org}.
+
+@section Obtaining GNU Software
+
+Check out the GNUstep web site. (@url{http://www.gnustep.org/}), and
+the GNU web site. (@url{http://www.gnu.org/})
+
+

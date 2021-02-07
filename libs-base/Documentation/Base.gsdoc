@@ -1,0 +1,963 @@
+<?xml version="1.0"?>
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 1.0.3//EN" "http://www.gnustep.org/gsdoc-1_0_3.dtd">
+<!--
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+-->
+<gsdoc base="Base">
+  <head>
+    <title>GNUstep Base</title>
+    <author name="Richard Frith-Macdonald">
+      <email address="rfm@gnu.org"/>
+      <url url="http://www.gnustep.org/developers/whoiswho.html"/>
+    </author>
+    <version>$Revision$</version>
+    <date>$Date$</date>
+    <copy>2005 Free Software Foundation, Inc.</copy>
+  </head>
+  <body>
+    <chapter>
+      <heading>Base</heading>
+      <p>
+	The GNUstep Base library is a free software package implementing
+        the API of the OpenStep Foundation Kit (tm), including later
+	additions.  This documentation package describes the core of the
+	Base library, for documentation on additional classes, see the
+	BaseAdditions documentation package.
+      </p>
+      <p>
+      	Read the
+	<uref url="../ReleaseNotes/ReleaseNotes.html">Release Notes</uref>
+	for the current release.
+      </p>
+      <section>
+	<heading>Compatibility</heading>
+	<p>
+	  GNUstep is generally compatible with the OpenStep specification and
+	  with recent developments of the MacOS (cocoa) API.  Where MacOS
+	  deviates from the OpenStep API, GNUstep generally attempts to
+	  support both versions.  In some cases the newer MacOS APIs are
+	  incompatible with OpenStep, and GNUstep usually supports the richer
+	  version. See the
+	  <uref url="../General/OpenStepCompliance.html">OpenStep Compliance</uref> section
+	  for more information on OpenStep Compliance.
+	</p>
+	<p>
+	  In order to deal with compatibility issues, GNUstep uses two
+	  mechanisms - it provides conditionally compiled sections of
+	  the library header files, so that software can be built that
+	  will conform strictly to a particular API, and it provides
+	  user default settings to control the behavior of the library
+	  at runtime.
+	</p>
+	<subsect>
+	  <heading>Conditional compilation</heading>
+	  <p>
+	    Adding an option to a makefile to define one of the following
+	    preprocessor constants will modify the API visible to software
+	    being compiled -
+	  </p>
+	  <deflist>
+	    <term>GS_GNUSTEP_V</term>
+	    <desc>
+	      Specifies the software version of the header being included.<br />
+	      Features in that header which are declared as having been
+	      introduced at or before the specified version, and not being
+	      removed until or after the specified version are available.<br />
+	      The version consists of five or six digits ...
+	      a major number (0-99) followed by a minor number (00-99) and
+	      a subminor number (00-99).<br />
+	      Features in the header file are marked as belonging to different
+	      version ranges using the
+	      <ref type="macro" id="GS_API_VERSION">GS_API_VERSION</ref>
+	      macro.<br />
+	      NB. This is the <em>native</em> versioning of the library being
+	      used via the header file.  You can use this mechanism in your
+	      own libraries and frameworks.
+	    </desc>
+	    <term>GS_OPENSTEP_V</term>
+	    <desc>
+	      Used only for the software version in sequence of OpenStep
+	      specification and the NeXT/Apple implementation of that
+	      specification and its extensions.<br />
+	      Features in the header being included which are declared
+	      as having been introduced at or before the specified version,
+	      and not being removed until or after the specified version
+	      are available.<br />
+	      The version consists of five or six digits ...
+	      a major number (1-99) followed by a minor number (00-99) and
+	      a subminor number (00-99).<br />
+	      A major number of 1 indicates the OpenStep specification ...
+	      available as the GS_API_OSSPEC preprocessor constant.<br />
+	      A major number of 4 indicates the OPENSTEP implementation ...
+	      available as the GS_API_OPENSTEP preprocessor constant.<br />
+	      A major number of 10 indicates the MacOS-X implementation ...
+	      available as the GS_API_MACOSX preprocessor constant.<br />
+	      Features in the header file are marked as belonging to different
+	      version ranges using the
+	      <ref type="macro" id="GS_API_VERSION">GS_API_VERSION</ref>
+	      macro.<br />
+	      For MacOS-X compatibility, if this constant is not defined
+	      and MAC_OS_X_VERSION_MAX_ALLOWED <em>is</em> defined, then
+	      GS_OPENSTEP_V is defined to be MAC_OS_X_VERSION_MAX_ALLOWED.<br />
+	      Similarly, for MacOS-X we define MAC_OS_X_VERSION_10_2,
+	      MAC_OS_X_VERSION_10_3 etc as the appropriate numeric version
+	      numbers.
+	    </desc>
+	  </deflist>
+	  <p>
+	    <em>NB</em> These preprocessor constants are used in
+	    <em>developer code</em> (ie the code that users of GNUstep write)
+	    rather than by the GNUstep software itself.  They permit a
+	    developer to ensure that he/she does not write code which depends
+	    upon API not present on other implementations (in practice,
+	    MacOS-X or some old OPENSTEP systems).<br />
+	    The actual GNUstep libraries are always built with the full
+	    GNUstep API in place, so that the feature set is as consistent
+	    as possible.
+	  </p>
+	  <p>
+	    The presence of these macros is also used by autogsdoc to generate
+	    information about which version of the API a particular feature
+	    belongs to.
+	  </p>
+	</subsect>
+	<subsect>
+	  <heading>User defaults</heading>
+	  <deflist>
+	    <term>GNU-Debug</term>
+	    <desc>
+              <p>
+              An array of strings that lists debug levels to be used
+	      within the program.  These debug levels are merged with
+	      any which were set on the command line or added programmatically
+	      to the set given by the [NSProcessInfo-debugSet] method.
+              </p>
+	    </desc>
+	    <term>GSExceptionStackTrace</term>
+	    <desc>
+	      <p>
+		Setting the user default <code>GSExceptionStackTrace</code> to
+		<code>YES</code> will cause the stack trace at the point when
+                an exception occurs to be included as part of the text returned
+                by the -description method of the exception.<br />
+                That effect may also be obtained by setting the
+                GNUSTEP_STACK_TRACE environment variable before starting a
+                program.
+              </p>
+            </desc>
+	    <term>GSLogSyslog</term>
+	    <desc>
+	      <p>
+		Setting the user default <code>GSLogSyslog</code> to
+		<code>YES</code> will cause log/debug output to be sent to
+		the syslog facility (on systems which support it), rather
+		than to the standard error stream.  This is useful in
+		environments where stderr has been re-used strangely for
+		some reason.<br />
+		On mswindows, where syslog does not exist, this flag instead
+		controls whether log/debug output is sent to the windows
+		event log.
+	      </p>
+	    </desc>
+	    <term>GSLogOffset</term>
+	    <desc>
+	      <p>
+		Setting the user default <code>GSLogOffset</code> to
+		<code>YES</code> will cause NSLog and debug output to
+		include the current time zone offset in the timestamp
+		of the logged message.<br />
+		This is useful when comparing logs from machines in
+		different countries.
+	      </p>
+	    </desc>
+	    <term>GSLogThread</term>
+	    <desc>
+	      <p>
+		Setting the user default <code>GSLogThread</code> to
+		<code>YES</code> will cause NSLog and debug output to
+		include the current thread name in the logged message.<br />
+		This may be useful for debugging multi-threaded applications.
+	      </p>
+	    </desc>
+	    <term>GSMacOSXCompatible</term>
+	    <desc>
+	      <p>
+		Setting the user default <code>GSMacOSXCompatible</code> to
+		<code>YES</code> will cause MacOS compatible behavior to be
+		the default at runtime.  This default may however be overridden
+		to provide more fine grained control of system behavior.
+	      </p>
+	    </desc>
+	    <term>GSOldStyleGeometry</term>
+	    <desc>
+	      <p>
+		Specifies whether the functions for producing strings
+		describing geometric structures (NSStringFromPoint(),
+		NSStringFromSize(), and NSStringFromRect()) should produce
+		strings conforming to the OpenStep specification or to
+		MacOS-X behavior.  The functions for parsing those strings
+		should cope with both cases anyway.
+	      </p>
+	    </desc>
+	    <term>GSSOCKS</term>
+	    <desc>
+	      <p>
+		May be used to specify a default SOCKS5 server (and optionally
+		a port separated from the server by a colon) to which tcp/ip
+	        connections made using the NSFileHandle extension methods
+		should be directed.<br />
+		This default overrides the SOCKS5_SERVER and SOCKS_SERVER
+		environment variables.
+	      </p>
+	    </desc>
+	    <term>GSSortAlgorithm</term>
+	    <desc>
+	      <p>
+		May be used to specify the sort algorithm used for sorting
+                arrays etc. The current options are QuickSort, ShellSort, and
+                TimSort, with TimSort being the default.<br />
+		NB. The QuickSort and ShellSort are 'unstable' algorithms,
+                which means that the order of equal objects may be changed
+                by a sort.  Selecting these may break code which assumes that
+	        sorting is stable.
+	      </p>
+	    </desc>
+	    <term>Local Time Zone</term>
+	    <desc>
+	      <p>
+		Used to specify the name of the timezone to be used by the
+		<ref type="class" id="NSTimeZone">NSTimeZone</ref> class.
+	      </p>
+	    </desc>
+	    <term>NSWriteOldStylePropertyLists</term>
+	    <desc>
+	      <p>
+		Specifies whether text property-list output should be in
+		the default MacOS-X format (XML), or in the more human
+		readable (but less powerful) original OpenStep format.
+	      </p>
+	      <p>
+		Reading of property lists is supported in either format,
+		but <em>only</em> if GNUstep is built with the libxml
+		library (which is needed to handle XML parsing).
+	      </p>
+	      <p>
+		NB. MacOS-X generates illegal XML for some strings - those
+		which contain characters not legal in XML.  GNUstep always
+		generates legal XML, at the cost of a certain degree of
+		compatibility.  GNUstep XML property lists use a backslash
+		to escape illegal characters, and consequently any string
+		containing either a backslash or an illegal character will
+		be written differently to the same string on MacOS-X.
+	      </p>
+	    </desc>
+	    <term>NSLanguages</term>
+	    <desc>
+              <p>
+              An array of strings that lists the users preferred languages,
+              in order or preference. If not found the default is just 
+              English.
+              </p>
+	    </desc>
+	  </deflist>
+	</subsect>
+	<subsect>
+	  <heading>Environment variables</heading>
+	  <p>
+	    There are some environment variables used by GNUstep base, where
+	    there would be problems obtaining data from the defaults system.
+	  </p>
+	  <deflist>
+	    <term>CRASH_ON_ABORT</term>
+	    <desc>
+	      <p>
+		The default exception handler will either cause the program to
+		simply terminate, or to crash - leaving a core dump.  The
+		standard behavior is to leave a core dump if the library was
+		built for debugging, and to simply exit if it was not.
+	      </p>
+	      <p>
+		The CRASH_ON_ABORT environment variable can be used to
+		override this behavior.  If this is defined to <em>NO</em>,
+		<em>FALSE</em>, or <em>0</em> then the program will simply
+		exit when an exception occurs.  Any other value of the
+		variable will cause the program to generate a core dump.
+	      </p>
+	    </desc>
+	    <term>CRASH_ON_ZOMBIE</term>
+	    <desc>
+	      <p>
+		When the a message is sent to a zombie object (see the
+		<code>NSZombieEnabled</code> environment variable) the
+		base library allows you to specify whether the program
+		should continue after logging the message, or have the
+		program abort.<br />
+		By default, the program will attempt to continue.
+	      </p>
+	      <p>
+		The <code>CRASH_ON_ZOMBIE</code> variable can be used to
+		override this behavior.  If this is defined to <em>YES</em>,
+		<em>TRUE</em>, or <em>1</em> then the program will log the
+		message sent to the zombie and then abort, producing a
+		core dump on systems where that is possible.
+	      </p>
+	    </desc>
+	    <term>GNUSTEP_SHOULD_CLEAN_UP</term>
+	    <desc>
+	      <p>
+		When this is set to YES, the GNUstep extension method
+		+setShouldCleanUp: is called when the NSObject class is
+		initialised, this turns on recording of some intentionally
+		leaked memory (data structures intended to persist for the
+		whole life of the process), and activates cleanup of that
+		memory on process exit so that external tools such as
+		valgrind will not report the memory as possibly lost. 
+	      </p>
+	      <p>
+		Use of this facility is a work in progress ... many classes
+		do not yet clean up after themselves when this is enabled.
+	      </p>
+	    </desc>
+	    <term>GNUSTEP_STACK_TRACE</term>
+	    <desc>
+	      <p>
+	        When this is set to <em>YES</em> a human readable stack trace
+		(with function names and line numbers) is added to the output
+		of the description method of a raised exception object.<br />
+                NB. This behavior may also be enabled by setting the
+                GSExceptionStackTrace user default to YES.<br />
+	        This only works if gnustep was built with support for it
+		using libbfd, so it may not be available on all systems.
+	      </p>
+	      <p>
+	        When this is set to <em>NO</em> the raw stack trace provided
+		by [NSException-callStackReturnAddresses] is disabled.<br />
+		The possible reasons for disabling this are:<br />
+		1. that the feature is implemented using a function of the
+		gcc compiler to provide stack addresses, and the function is
+		buggy on some systems/compiler versions, and will cause a
+		signal to be sent which would crash your program if not caught.
+		The GNUstep code catches the signal and recovers using a signal
+		handler, but there have been two reports of this not working
+		with no known cause.<br />
+		2. that you have code which uses exceptions in a way in which
+		they were not designed to be used ... so that they are
+		routinely and frequently called rather than being called only
+		occasionally when exceptional conditions occur.  In this case
+		you may want to disable the stack frame generation implicit	
+		in each raised exception, in order to improve performance.
+	      </p>
+	      <p>
+		When this is not set, or is set to a non-boolean value, the
+		stack trace handling on exceptions is MacOS-X compatible ...
+		stack return addresses are available but a human readable
+		trace back is not logged.
+	      </p>
+	    </desc>
+	    <term>GNUSTEP_STRING_ENCODING</term>
+	    <desc>
+	      <p>
+		This is used to specify the default encoding for 8-bit
+		strings (those used by 'cstring' methods of NSString).<br />
+		It may be any of the 8-bit encodings supported
+		by your system.
+	      </p>
+	      <p>
+		If this environment variable is not set, GNUstep attempts
+		to use the characterset specified by your operating systems,
+		locale information (using the standard nl_langinfo function)
+		if possible.
+	      </p>
+	      <p>
+		If there is no usable operating system defined characterset,
+		GNUstep defaults to NSISOLatin1StringEncoding.
+	      </p>
+	    </desc>
+	    <term>GNUSTEP_HOST_CPU</term>
+	    <desc>
+	      <p>
+		Used in place of GNUSTEP_TARGET_CPU if the other is missing.
+                Please do not use this to locate resources; for architecture
+                dependent resources use GNUSTEP_TARGET_DIR.
+	      </p>
+	    </desc>
+	    <term>GNUSTEP_HOST_DIR</term>
+	    <desc>
+	      <p>
+		Used in place of GNUSTEP_TARGET_DIR if the other is missing.
+	      </p>
+	    </desc>
+	    <term>GNUSTEP_HOST_OS</term>
+	    <desc>
+	      <p>
+		Used in place of GNUSTEP_TARGET_OS if the other is missing.
+                Please do not use this to locate resources; for architecture
+                dependent resources use GNUSTEP_TARGET_DIR.
+	      </p>
+	    </desc>
+	    <term>GNUSTEP_TARGET_CPU</term>
+	    <desc>
+	      <p>
+		Overrides the default value of the machine (hardware)
+		name used on this system.
+                Please do not use this to locate resources; for architecture
+                dependent resources use GNUSTEP_TARGET_DIR.
+	      </p>
+	    </desc>
+	    <term>GNUSTEP_TARGET_DIR</term>
+	    <desc>
+	      <p>
+		Overrides the default path used to locate subdirectories
+		for GNUstep binaries within bundles and applications.
+		This is normally equivalent to a path made up of the
+		GNUSTEP_TARGET_CPU and GNUSTEP_TARGET_OS
+	      </p>
+	    </desc>
+	    <term>GNUSTEP_TARGET_OS</term>
+	    <desc>
+	      <p>
+		Overrides the default value of the operating system
+		name used on this system.
+                Please do not use this to locate resources; for architecture
+                dependent resources use GNUSTEP_TARGET_DIR.
+	      </p>
+	    </desc>
+	    <term>GNUSTEP_TZ</term>
+	    <desc>
+	      <p>
+		Used to specify the timezone to be used if there is no
+		timezone specified in the user defaults system.
+		The preferred
+		mechanism is to use the 'Local Time Zone' value from the
+		user defaults system.
+	      </p>
+	    </desc>
+	    <term>GNUSTEP_CONFIG_FILE</term>
+	    <desc>
+	      <p>
+		This functionality may have been disabled if the base library
+		was configured/built with the
+		<code>--disable-environment-config-file</code> option.<br />
+		If it is operational (ie unless you've deliberately disabled
+		it), the environment variable overrides the normal path to
+		the gnustep config file used to determine the locations of
+		paths for the gnustep system (see later).<br />
+		This is provided to support situations such as when you
+		install into a sandbox during packaging, or where you may
+		want to simultaneously run applications using different sets
+		of resources but linked to a single copy of the base library,
+		or you want to use an alternative config file for some reason.
+	      </p>
+	    </desc>
+	    <term>GNUSTEP_BEHAVIOR_DEBUG</term>
+	    <desc>
+	      A boolean (YES or NO) which can be used to turn on debug
+	      logging (to stderr) of the GSObjCRuntime functions to
+	      add/override methods in a class using a list of methods
+	      from another class.
+	    </desc>
+	    <term>HOMEDRIVE</term>
+	    <desc>
+	      <p>
+		Used on ms-windows to locate the home directory if the
+		HOMEPATH environment variable is also used.
+	      </p>
+	    </desc>
+	    <term>HOMEPATH</term>
+	    <desc>
+	      <p>
+		Used on ms-windows to locate the home directoryb in
+		conjunction with HOMEDRIVE.  If this is just a backslash
+		then the USERPROFILE variable is used if possible.
+	      </p>
+	    </desc>
+            <term>LANGUAGES</term>
+            <desc>
+              <p>
+                If there is no NSLanguages user default set, and there is
+		no language information available in the native system locale
+		mechanism, then this environment variable is used to provide
+		a list of the languages that the user prefers to use.
+		languages listed in this variable must be separated by
+		semicolons.
+              </p>
+            </desc>
+            <term>LOGNAME</term>
+            <desc>
+              <p>
+                This is used as the default value for the current user
+		(as returned by the NSUserName() functions).  If it is not
+		specified, or contains an illegal value, other methods are
+		used to get the user name.
+              </p>
+            </desc>
+            <term>LIBRARY_COMBO</term>
+            <desc>
+              <p>
+                Used to override the default value of the combination
+		of standard libraries used to build binaries.  This
+		value locates the final subdirectory used to locate binaries.
+              </p>
+            </desc>
+	    <term>NSDeallocateZombies</term>
+	    <desc>
+	      <p>
+		This may be used in conjunction with NSZombieEnabled to specify
+		whether the objects should really be deallocated.  If you set
+		this to YES, the zombie logging will only work until the
+		deallocated memory is re-used.
+	      </p>
+	    </desc>
+	    <term>NSZombieEnabled</term>
+	    <desc>
+	      <p>
+		If this is set to YES, then deallocation of an object causes
+	        the object to be morphed into a Zombie ... a special object
+		which will call the GNUstep specific GSLogZombie() function
+		to log the method call.<br />
+		If GNUstep-base was built for debugging (make debug=yes),
+                you can set a breakpoint in this function and examine the
+		process memory when you are running under a debugger.<br />
+		As this overrides actual object deallocation, all memory
+		allocated for objects will be leaked unless the
+                NSDeallocateZombies environment variable is also set.<br />
+		You can use the <code>CRASH_ON_ZOMBIE</code> environment
+		variable to force an abort after the message is logged.
+	      </p>
+	    </desc>
+	    <term>SOCKS5_SERVER</term>
+	    <desc>
+	      <p>
+		Specifies the default socks server to be used when making
+		outgoing tcp/ip connections using NSFileHandle.  This may
+		also specify a port after the host name (and separated
+		from it by a colon).<br />
+		This environment variable is used only if the GSSOCKS
+		user default is not set.
+	      </p>
+	    </desc>
+	    <term>SOCKS_SERVER</term>
+	    <desc>
+	      <p>
+		Equivalent to SOCKS5_SERVER, but used only if that is not
+		defined.
+	      </p>
+	    </desc>
+
+	    <term>TZ</term>
+	    <desc>
+	      <p>
+		Used to specify the timezone to be used if there is no
+		timezone specified by any other mechanism.  The preferred
+		mechanism is to use the 'Local Time Zone' value from the
+		user defaults system.
+	      </p>
+	    </desc>
+
+	    <term>USERPROFILE</term>
+	    <desc>
+	      <p>
+		Used on windows to identify the home directory of the
+		current used (unless HOMEPATH and HOMEDRIVE are set to
+		point to an individual user's home).
+	      </p>
+	    </desc>
+
+	  </deflist>
+	</subsect>
+
+	<subsect>
+	  <heading>GNUstep Configuration File</heading>
+	  <p>
+	    This file is the master configuration file for GNUstep.
+	    It can be used to set the base location of all the standard
+	    paths that GNUstep programs use or know about.
+	    The location of this file depends on how the Base library was
+	    configured and/or what operating system it was configured on.
+	    On a GNU/Linux system, the default would be
+	    /etc/GNUstep/GNUstep.conf for instance, while on mswindows
+	    it would be ./GNUstep.conf (the leading './' here indicates
+	    that the file is located relative to the base library, on
+	    windows this is the location of the base library DLL, which
+	    is normally the same location as command line tools).
+	  </p>
+          <p>
+            If setting up GNUstep in a sandbox for packaging it as part
+            of an operating system distribution, you may well want a
+            special configuration for use within the sandbox.  The normal
+            way to do that would be to create a GNUstep.conf file in /tmp
+            and set the GNUSTEP_CONFIG_FILE environment variable to point
+            to that while doing the packaging setup.
+	  </p>
+	  <p>
+	    NB. The gnustep-make package sets up a configuration file to
+	    be used when building GNUstep software, and gnustep-base
+	    normally uses that same file, but it is important to be
+	    aware that the two configuration files are not necessarily
+	    the same since one is required to provide environment
+	    variables used while building and installing software, but
+	    the other is used when gnustep tools and applications are run
+	    (ie in a target/deployment environment).<br />
+	    In particular it is normal for the two files to differ on
+	    mswindows (where the build environment is an UNIX-like MSYS
+	    shell, using the its own paths, but the deployment environment
+	    is native-windows using real windows paths).
+	  </p>
+	  <p>
+	    The location of the GNUstep configuration file can be specified
+	    when the base library is configured, using the
+	    <code>--with-config-file=</code>
+	    option of the <code>configure</code> script.<br />
+	    This configuration file is not actually required to exist,
+	    and if it does not exist, then default values will be used
+	    for the standard path locations (these default values may
+	    be specified using the <code>--with-default-config=</code>
+	    option of the <code>configure</code> script.<br />
+	    If you want to <em>force</em> the internal defaults to be used,
+	    you can use <code>--with-config-file=</code> to specify a path
+	    with a trailing '/' (ie with no filename) as the base library
+	    will refrain from trying to load configuration from a file
+	    of no name.<br />
+	    System paths are defined by the following:
+	  </p>
+	  <deflist>
+	    <term>GNUSTEP_SYSTEM_APPS</term>
+	    <desc>This is where System GUI Applications get installed.<br />
+	    Traditionally it is /usr/GNUstep/System/Applications.
+	    </desc>
+	    <term>GNUSTEP_SYSTEM_ADMIN_APPS</term>
+	    <desc>This is where System GUI Applications that only the
+	    Administrator can use get installed.<br />
+	    Traditionally it is /usr/GNUstep/System/Applications/Admin.
+	    </desc>
+	    <term>GNUSTEP_SYSTEM_WEB_APPS</term>
+	    <desc>This is where System Web Applications (GSWeb, SOPE) get
+	    installed.<br />
+	    Traditionally it is /usr/GNUstep/System/Library/WebApplications.
+	    </desc>
+	    <term>GNUSTEP_SYSTEM_TOOLS</term>
+	    <desc>This is where System Command-Line Tools get installed.<br />
+	    Traditionally it is /usr/GNUstep/System/Tools.
+	    </desc>
+	    <term>GNUSTEP_SYSTEM_ADMIN_TOOLS</term>
+	    <desc>This is where System Command-Line Tools that only the
+	    Administrator can use get installed.  Important: this
+	    should not be in the PATH of normal users.<br />
+	    Traditionally it is /usr/GNUstep/System/Tools/Admin.
+	    </desc>
+	    <term>GNUSTEP_SYSTEM_LIBRARY</term>
+	    <desc>This is where System resources get installed.
+	    This directory will contain a lot of executable code
+	    since *step traditionally likes to
+	    bundle executables and resources together.<br />
+	    Traditionally it is /usr/GNUstep/System/Library.
+	    </desc>
+	    <term>GNUSTEP_SYSTEM_HEADERS</term>
+	    <desc>This is where System headers get installed.  They are the
+	    library .h headers.<br />
+	    Traditionally it is /usr/GNUstep/System/Library/Headers.
+	    </desc>
+	    <term>GNUSTEP_SYSTEM_LIBRARIES</term>
+	    <desc>This is where System libraries get installed.
+	    By libraries we mean the shared/static object files that
+	    you can link into programs.<br />
+	    Traditionally it is /usr/GNUstep/System/Library/Libraries.
+	    </desc>
+	    <term>GNUSTEP_SYSTEM_DOC</term>
+	    <desc>This is where System documentation get installed.
+	    This is known not to contain any executable, so we keep
+	    it separate.<br />
+	    Traditionally it is /usr/GNUstep/System/Library/Documentation.
+	    </desc>
+	    <term>GNUSTEP_SYSTEM_DOC_MAN</term>
+	    <desc>This is where System man pages get installed.<br />
+	    Traditionally it is
+	    /usr/GNUstep/System/Library/Documentation/man.
+	    </desc>
+	    <term>GNUSTEP_SYSTEM_DOC_INFO</term>
+	    <desc>This is where System info pages get installed.<br />
+	    Traditionally it is
+	    /usr/GNUstep/System/Library/Documentation/info.
+	    </desc>
+	  </deflist>
+	  <p>
+	    In addition to the above SYSTEM domain paths, there are
+	    corresponding LOCAL, NETWORK, and USER domain paths (with the
+	    same names except for replacing 'SYSTEM' with 'LOCAL', 'NETWORK',
+	    or 'USER'.<br />
+	    All these paths must be absolute, except for the USER domain
+	    paths which, if not absolute, are considered to be with the
+	    user's home directory.<br />
+	    NB. as a special case a path may begin with './' or '../' when
+	    it is to be resolved to an absolute path relative to the
+	    location of the GNUstep configuration file.
+	    So while such paths appear to be relative, they actually produce
+	    absolute locations at runtime since the location of the
+	    configuration file is known.<br />
+	    Finally, for paths in the USER domain only, a limited substitution
+	    into the path is performed at runtime as follows:<br />
+	    '%u' is replaced by the user name<br />
+	    '%i' is replaced by the user ID<br />
+	    '%%' is replaced by a single '%'<br />
+	  </p>
+	  <p>
+	    The GNUSTEP_DEVELOPER_DIR path may be used to specify where
+	    the development system is located.  On most systems this
+	    should be the default value of '/', but on windows it should
+	    be the location of the msys/mingw filesystem (so that msys
+	    development tools can be found).
+	  </p>
+	  <p>
+	    Other paths for each user are defined by the following:
+	  </p>
+	  <deflist>
+	    <term>GNUSTEP_USER_CONFIG_FILE</term>
+	    <desc>Name of user configuration file (eg. '.GNUstep.conf')
+	    relative to the user's home directory.<br />
+	    Can be specified as an empty string to ensure
+	    that no user specific config file is loaded.
+	    </desc>
+	    <term>GNUSTEP_USER_DEFAULTS_DIR</term>
+	    <desc>Name of directory for user defaults files.
+	    Always relative to the user's home directory except:<br />
+	    On mswindows this may be set to be ':REGISTRY:' to have defaults
+	    stored in the windows registry rather than in the standard file
+	    format.<br />
+	    On any system this may be set to ':INTERNAL:' to use only
+	    internal defaults domains (NSArgumentDomain, NSRegistrationDomain,
+	    and GSConfigDomain).
+	    </desc>
+	  </deflist>
+	  <p>
+	    The user's home directory is taken to be the standard
+	    home directory for that user on the system<br />
+	    On unix, that is the user's home directory from the password file,
+	    while on windows  it's the value given by the
+	    HOMEDRIVE and HOMEPATH environment variables (or the USERPROFILE
+	    environment variable if the others can't be used).
+	  </p>
+	  <p>
+	    NB. The presence of a path in the configuration (and therefore
+	    its inclusion in the paths provided by the API at runtime) does
+	    <em>not</em> guarantee that the directory at that path actually
+	    exists in the local filesystem.<br />
+	    However the GNUSTEP_CREATE_LIBRARY_PATH configuration value may
+	    be set to YES to tell the library to create the most commonly
+	    used per-user directory (GNUSTEP_USER_LIBRARY) on startup if it
+	    does not already exist.
+	  </p>
+	  <p>
+	    All the above values from the configuration file are made
+	    available in the NSUserDefaults system at runtime, in the
+	    GSConfigDomain (along with any defaults provided in property
+	    lists in the GlobalDefaults subdirectory or in the
+            GlobalDefaults.plist file in the same directory as the
+            config file).<br />
+ 	    The <code>.plist</code> files in the GlobalDefaults
+	    subdirectory are merged into the defaults system in an
+	    unpredictable order, but the values from the
+	    GlobalDefaults.plist are merged in <em>after</em> the
+	    other values and will take precedence.<br />
+	    The global defaults files allow packagers and system
+	    administrators to provide defaults settings for all
+	    users of a particular GNUstep installation.<br />
+	    It is recommended that each software package provides its
+	    own defaults in the GlobalDefaults subdirectory, while the
+	    GlobalDefaults.plist file should be reserved for other
+	    system-wide settings.
+	  </p>
+	  <p>
+	    The exact format of the configuration file is expected to 
+	    be that of a basic unix "conf" style file, with one
+	    <em>key = value</em> per line (the format a unix shell
+	    can 'source' in order to define shell variables).<br />
+	    This configuration file uses the escape sequence and
+	    quoting conventions of the standard bourne shell.<br />
+	    The only Keys permitted are those listed above,
+	    and all consist of uppercase letters, digits, and underscores,
+	    and must not begin with a digit.<br />
+	    A value may be any quoted string (or an unquoted string
+	    containing no white space).<br />
+	    Lines beginning with a hash '#' are deemed comment lines
+	    and ignored.<br />
+	    The backslash character may be used as an escape character
+	    anywhere in the file  except within a singly quoted string
+	    (where it is taken literally).<br />
+	    A backslash followed immediately by a newline (except in a
+	    singly quoted string) is removed completely along with the
+	    newline ... it thus serves to join lines so that they are
+	    treated as a single line.<br />
+	    NB. Since ms-windows uses backslash characters in paths,
+	    it is a good idea to specify path values in the config file
+	    as singly quoted strings to avoid having to double all
+	    occurrences of the backslash.
+	  </p>
+	</subsect>
+	<subsect>
+	  <heading>Relocatable packages</heading>
+	  <p>
+	    The configuration files system has two features which make
+	    it possible to build standalone packages containing the
+	    entire GNUstep system in a form which can be moved anywhere
+	    and just run.
+	  </p>
+	  <p>
+	    Firstly, variables in the configuration file which define
+	    paths, are expected to by full path specifications, except
+	    for the special case in which they begin with dot-slash (./)
+            or dot-dot-slash (../).<br />
+	    In this case the path from the variable is appended to the
+	    path of the directory containing the configuration file
+	    (or the path specified to contain the configuration file if no
+	    configuration file exists) to form the value used.<br />
+	    So, if you configure other paths relative to the configuration
+	    file, you can relocate everything when you move the
+	    configuration file.
+	  </p>
+	  <p>
+	    Secondly, If the value of the path built in to the base library
+	    as the location of the config file (or specified by
+	    the GNUSTEP_CONFIG_FILE environment variable unless that option
+	    was disabled when the base library was configured)
+	    begins with a dot-slash (./) or dot-dot-slash (../) then the path
+            used for that file is made relative to the base library.<br />
+	    The base library contains code to determine its own location,
+	    so this allows it to locate the configuration file, and by
+	    reading the configuration file it determines where all other
+	    resources are located.
+	  </p>
+	  <p>
+	    So you can bundle the whole lot together in one directory,
+	    and configure various relative paths in that directory, then
+	    move the directory around wherever you like.<br />
+	    However, if your operating system needs to know where to find
+	    the libraries it will load, you will have to tell it where they
+	    are ... typically you do this by setting an environment variable
+	    such as LD_LIBRARY_PATH to contain the full path to the
+	    directory you put the libraries in.
+	  </p>
+	</subsect>
+	<subsect>
+	  <heading>Standalone packages</heading>
+	  <p>
+	    While the recommended setup for GNUstep is to install the
+	    core packages in a standard location on your system, and then
+	    install applications which make use of those core libraries,
+	    it is sometimes desirable to have standalone applications
+	    which don't need the core to be installed.<br />
+	    This is a special case of the relocatable packages described
+	    above, in which all your application's dependencies are built
+	    as relocatable packages using a filesystem layout which lets	
+	    them all be stored within your application directory.
+	  </p>
+	  <p>
+	    As an aide to easy creation of such standalone packages we
+	    provide two template gnustep configuration files for a common
+	    setup where things are stored in a 'standalone' subdirectory
+	    of your application wrapper.<br />
+	    You configure/install gnustep-make with the 'standalone'
+	    filesystem layout, then you configure/build/install gnustep-base
+	    with the 'standalone.conf' default configuration file, and
+	    build/install the other libraries/packages your app depends
+	    upon.<br />
+	    This leaves you with a 'standalone' directory containing all
+	    the relocatable code, which you can then copy into your app
+	    wrapper to provide a complete standalone system.
+	  </p>
+	    To set up the relocatable standalone resources:
+<example>
+cd make
+./configure --with-layout=standalone
+make install
+. ~/standalone/Makefile/GNUstep.sh
+cd ../base
+./configure --with-config-file=./GNUstep.conf --with-default-config=standalone.conf
+make install
+cd ../gui
+make install
+cd ../back
+make install
+</example>
+	    To copy them to your application and run it using them:
+<example>
+(cd ~; tar -cf - standalone) | (cd MyApp.app; tar -xpf -)
+export LD_LIBRARY_PATH=`pwd`/MyApp.app/standalone
+MyApp.app/MyApp
+</example>
+	</subsect>
+	<subsect>
+	  <heading>Lock-Down</heading>
+	  <p>
+	    If you wish to <em>lock down</em> a production system for
+	    distribution so that users can't change the config
+	    file and mess up paths, you can specify the config file name as
+	    a path with a trailing slash so that the base library will
+	    <em>not</em> read it, and will use the built in default values.<br />
+	    To do this, you would configure using options like
+	    <code>--disable-environment-config-file</code> with
+	    <code>--with-config-file=/not-used/</code> and
+	    <code>--with-default-config=myConfig</code> where <em>myConfig</em>
+	    is a file containing the paths you want to use in the locked down
+	    system.<br />
+	    The paths from that file will be built in to the base library
+	    as defaults, and library will use them rather than attempting
+	    to read a config file at runtime.<br />
+	    You can lock down a relocatable system by using this procedure
+	    with './' as the config file path and relative paths in myConfig...
+	    a user could then move the entire package around, but would not
+	    be able to edit a configuration file to alter the paths within
+	    the package.
+	  </p>
+	</subsect>
+	<subsect>
+	  <heading>.GNUstep.conf files</heading>
+	  <p>
+	    The user specific configuration file is read after the system
+	    configuration file and may generally override values from the
+	    main file.  To prevent the use specific file from being read,
+	    the system manager may define GNUSTEP_USER_CONFIG_FILE in the
+	    main file to be an empty string.<br />
+	    In any case, the user specific file is <em>not</em> read if a
+	    program is running setuid.
+	  </p>
+	  <p>
+	    Unless disabled (as specified above) the presence of a
+	    <code>.GNUstep.conf</code> file in a users home
+	    directory permits the user to customize file locations using all
+	    the same commands as the system directory, though any attempt
+	    to redefine GNUSTEP_USER_CONFIG_FILE is of course ignored.<br />
+	    Attempts to redefine the users home directory at this level
+	    are also ignored.
+	  </p>
+	  <p>
+	    The defaults database for a user is stored in the
+            location given by GNUSTEP_USER_DEFAULTS_DIR in the
+            config file.  This is usually a relative path (default, the
+	    <code>GNUstep/Defaults</code> subdirectory) taken to specify
+	    a subdirectory of the user's home directory.<br />
+	    On mswindows this may be set to be ':REGISTRY:' to have defaults
+	    stored in the windows registry rather than in the standard file
+	    format.<br />
+	    On any system this may be set to ':INTERNAL:' to use only
+	    internal defaults domains (NSArgumentDomain, NSRegistrationDomain,
+	    and GSConfigDomain).
+	  </p>
+	</subsect>
+      </section>
+    </chapter>
+    <back>
+      <chapter>
+        <heading>API Documentation</heading>
+        <list>
+          <item><uref url="Functions.html">Functions</uref></item>
+          <item><uref url="TypesAndConstants.html">Types and Constants</uref></item>
+        </list>
+      </chapter>
+      <index scope="project" type="class" />
+      <index scope="project" type="protocol" />
+      <!-- <index scope="project" type="title" /> -->
+    </back>
+  </body>
+</gsdoc>

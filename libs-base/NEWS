@@ -1,0 +1,1279 @@
+1 News
+******
+
+The currently released version of the library is '1.27.0'.
+
+   See the <ReleaseNotes.html> document for more information.
+
+1.1 Noteworthy changes in version '1.27.0'
+==========================================
+
+Aside from an assortment of bugfixes, this release includes a lot of
+improvements for Android support as well as numerous new classes and
+methods.
+
+   * Expose GNU TLS wrappers and add methods to get certificate expiry.
+   * Improve thread safety when using zombies, particularly on
+     statup/shutdown.
+   * Improvements for Ukrainian localization.
+   * Decreased ICU requirements to 49 to support Windows 2000.
+   * Simplifications and fixes in GSPrivateSymbolPath().
+   * GSMime improvements (word encoding specifier, utf-8 improvements
+     encoding quoted words with multibyte characters)
+   * NSJSONSerialization fixes for codepoints over 0x7f.
+   * NSCharacterSet support for URL*AllowedCharacterSet and declarations
+     for new character sets.
+   * NSString implementations for new methods
+     stringByRemovingPercentEncoding/
+     stringByAddingPercentEncodingWithAllowedCharacterSet:.
+   * Fixed a crash in gdomap when an invalid hostname is given for the
+     -M option.
+   * In NSString.m, removed functions urldecode() and ishex() which were
+     mistakenly neither namespaced nor declared static and thus could
+     have conflicted with non-library code.
+   * Fixed libdispatch configuration switch so -enable-libdispatch works
+     correctly; correctly checking for HAVE_LIBDISPATCH_RUNLOOP.
+   * Updated libdispatch runloop integration so it is compatible with
+     Swift's corelibs libdispatch release (from
+     github.com/apple/swift-corelibs-libdispatch).  The libdispatch must
+     be compiled with INSTALL_PRIVATE_HEADERS=YES.
+   * In NSThread, spinlocks implemented using builtins to be able to
+     target platforms without pthread_spin_lock(), such as Android
+     targeting API level < 24.
+   * In NSLog on Android, send logs to syslog.
+   * Implementation of NSOrderedSet.
+   * When ./configuring, link against libandroid on Android.
+   * In NSBundle, allow integrating with Android asset manager using
+     +[NSBundle setJavaAssetManager:withJNIEnv:], enabling use of
+     mainBundle's pathForResource:ofType:, -URLForResource:ofType: and
+     similar; referencing Info.plist if it exists in Android assets; use
+     of NSFileManager's fileExistsAtPath: et al and
+     isReadableFileAtPath:; reading files using NSFileHandle APIs; use
+     of NSDirectoryEnumerator to enumerate Android assets from the main
+     bundle.
+   * In NSBundle, localization support on Android.
+   * In NSProcessInfo, automatic initialization on Android using a fake
+     executable path (/data/data/<app identifier>/Resources).
+   * In NSData, improvements in reading Android assets.
+   * Various improvements in the mechanism to report memory usage of
+     individual objects.
+   * Skeletal implementation of NSUbiquitousKeyValueStore.
+   * Implementation of NSByteCountFormatter.
+   * Fixes to writing large HTTPS requests (GSSocketStream,
+     NSURLProtocol).
+   * In gdomap.c, fix detection of local networks.
+   * In NSArray's -removeObjectsInArray:, prevent some crashes.
+   * In GSTLS, avoid setting session priority twice.
+   * In NSFileHandle, fix so that setting certificate information does
+     not discard any other options already set.
+   * In GSXML's -fatalErrorFunction, use the correct function to get the
+     line number.
+   * In NSOperation's _execute, ensure lock gets released on an error by
+     surrounding with NS_DURING.
+   * Generics support in NSHashTable.
+   * Implementation of NSProgress.
+   * Skeleton implementation of NSURLComponents.
+   * In NSSortDescriptor, added
+     -sortDescriptorWithKey:ascending:descending:.
+   * In NSOperationQueue, added -addOperationWithBlock.
+   * In NSFileManager, added
+     -URLForDirectory:inDomain:appropriateForURL:create:error: and
+     -enumeratorAtURL:includingPropertiesForKeys:options:errorHandler:.
+     Also added NSItemReplacementDirectory constant, and updated stub
+     implementation for -URLForDirectory:shouldCreate:error:.  Added
+     -initWithDirectoryPath:...  with additional parameters skipHidden
+     and errorHandler.
+   * In NSDictionary, fixed keysSortedByValueUsingComparator:.
+   * Moved NSFileWrapper from -gui to -base.
+   * Added NSFilePresenter, NSFileVersion and NSFileCoordinator.
+   * Added NSPersonComponents and NSPersonNameComponentsFormatter.
+   * Added units of measurement classes such as NSUnit, NSMeasurement,
+     NSMeasurementFormatter, NSEnergyFormatter, NSLengthFormatter,
+     NSMassFormatter.
+   * In NSUnit, support for NSUnitArea, NSUnitConcentrationMass,
+     NSUnitDispersion, NSUnitElectricCharge, NSUnitIlluminance,
+     NSUnitElectricCurrent, NSUnitElectricPotentionDifference,
+     NSElectricResistance, NSUnitMass, NSUnitEnergy, NSUnitFrequency,
+     NSUnitPower, NSUnitSpeed, NSUnitFuelEfficiency, NSUnitPressure,
+     NSUnitVolume, NSUnitLength.
+   * Support for data directory on Android introduces
+     GSInitializeProcessAndroid and makes use of the path returned by
+     Context.getFilesDir() as the basis for storing data (e.g.
+     NSUserDefaults) and when querying for directory paths
+     (NSLibraryDirectory, NSApplicationSupportDirectory, etc.).
+   * Placeholder NSScript* classes.  Added NSUserActivity,
+     NSObjectScripting, NSHFSFileTypes, NSAppleEventManager and
+     NSAppleEventDescriptor.
+   * Added NSDateInterval intersectionWithDateInterval:.
+   * Added NSBackgroundActivityScheduler.
+   * Added NSISO8601DateFormatter and NSMetadataAttributes.
+   * Added NSOrtogrpahy and NSLinguisticTagger.
+   * Added NSExtensionItem, NSExtensionContext,
+     NSExtensionRequestHandling, and NSItemProvider and
+     NSItemProviderReadingWriting.
+   * Updated timezone info for NSTimeZones.
+   * On Android, support for NSTemporaryDirectory to use
+     Context.getCacheDir(), and cleaning it up in
+     GSInitializeProcessAndroid() given there is no support for temp
+     directory before Android API 26.  Also used with NSCachesDirectory
+     + NSUserDomainMask.
+   * NSXPCConnection fixes.
+   * NSException symbolication support using libunwind (used when
+     backtrace() is unavailable).
+   * Travis build improvements to use new runloop integration and
+     gnustep-2.0 runtime.
+   * In NSKeyValueObserving, implement two missing methods for NSArray:
+     -addObserver:options:context: and
+     -removeObserver:fromObjectsAtIndexes:forKeyPath:.
+   * Updated NSUUID to use instancetype.
+   * Added support for NSDate constants in NSPredicate.
+   * Fixed a NSTimer bug with blocks.
+   * In GSTLS, do not put password in the hash key of the credentials,
+     and to avoid logging it when debugging is on.
+   * Improvements in NSConcreteHashTable and NSConcreteMapTable.
+   * In various places, switch away from deprecated
+     CREATE_AUTORELEASE_POOL() to use the ARC-compatible ENTER_POOL and
+     LEAVE_POOL macros.
+   * When building the list of hosts to be probed to see if they have
+     gdomap servers, fix code to include those explicitly defined in the
+     config file.  Add -S option to list the addresses of the known
+     gdomap servers.
+   * Backward compatibility fix for ICU 65.
+   * Update GSPrivateSymbolPath() so that, on the path where
+     LINKER_GETSYMBOL is not available, we attempt to lookup classes
+     using the prefix ._OBJC_CLASS_ for the 2.0 ABI (earlier ABIs use a
+     prefix of __objc_class_name_ for the class definition.
+   * Fix parsing of NSURLResponse content type header.
+   * Fix for class lookup when using the 2.0 ABI.
+   * Fixed NSURLComponents setURL: throwing exceptions when URL didn't
+     have all expected parts caused by rangeOfString: throwing for nil
+     values.
+   * Added NSURLQueryItem implementation.
+
+1.2 Noteworthy changes in version '1.26.0'
+==========================================
+
+   * Improve utf8 validity checks.
+   * Make point and size subclasses for NSValue interchangable.
+   * Add support for TLS SNI. Always request certificate from client and
+     update certificates after 5 minutes.
+   * Don't write deprecated fields to desktop link file.
+   * Use NSLock instead of GSLazyLock and other improvements for
+     multithreaded processes.
+   * Clean up of NSString cluster.
+   * Update NSAssert() and NSCAssert() to handle variable arguments (as
+     OSX has done) and mark the numbered macros as obsolete.
+   * Various improvements in tests.
+   * Require ICU >= 50.
+   * ICU is now detected using pkg-config.
+   * Improve XML parsing.
+   * Make NSXMLNode ivar a union representing different types, instead
+     of assuming it will contain different underlying class types in
+     different contexts.  This is important for the new libobjc2 ABI.
+   * OSX compatibility changes to NSURL.
+   * NSFileManager call error handle on missing file.
+   * Dummy spinlock implementation for platforms that don't support it.
+   * Internationalization improvements: Japanese translation, Turkish
+     translation, Polish translation.
+   * Various improvements for new libobjc2 "v2 ABI", including things
+     like a new NSConstantString implementation, making
+     GS_REPLACE_CONSTANT_STRING a noop with the new ABI, etc.
+   * Improvements for stack traces, exception handling and dead lock
+     detection.
+   * Other more minor bugfixes and cleanups.  Many found by Coverity
+     scan results.
+   * As usual, this release also contains an update to include the most
+     recent international timezone data.
+
+1.3 Noteworthy changes in version '1.25.1'
+==========================================
+
+   * Unicode fixes for characters outside the base plane
+   * Stubs for some new OSX methods
+   * Various new OSX compatibility macro and type definitions
+   * NSFileManager fixes and tweaks to match OSX implementation
+   * NSDistributedLock bugfix for pre-existing lock directories
+   * Alternative sort algorithms selectable at runtime
+   * Compatibility-related changes for environments not supporting weak
+     symbols
+   * Other more minor bugfixes and cleanups.
+   * As usual, this release also contains an update to include the most
+     recent international timezone data.
+
+1.4 Noteworthy changes in version '1.25.0'
+==========================================
+
+   * Garbage collection support removed (NSGarbageCollector stub
+     remains)
+   * Support for Debian style multi-architecture installations added
+   * OpenSSL bundle removed since it didn't match GNUTLS support
+   * Ported to Debian/Hurd
+   * ICU string (regexp in particular) fixes
+   * OSX compatibity changes in NSRunLoop and NSTask behavior
+   * Alternative sort algorithms selectable at runtime
+   * Many bugfixes and cleanups.
+   * As usual, this release also contains an update to include the most
+     recent international timezone data.
+
+1.5 Noteworthy changes in version '1.24.9'
+==========================================
+
+   * Niels added support for generics
+   * Support for 'ng' runtime library (latest language features enabled)
+   * Performance optimisations and improved diagnostic messages
+   * Garbage Collection deprecated (support to be removed)
+   * As usual, this release also contains an update to include the most
+     recent international timezone data.
+
+1.6 Noteworthy changes in version '1.24.8'
+==========================================
+
+   * Performance optimisations (particularly in the use of tiny string
+     objects by the new objc runtime on 64bit systems).
+   * Thread naming and logging of threads by NSLog() has been made
+     consistent with the latest OSX releases, making debugging of
+     multithreaded code a little easier.
+   * Sergei Golovin has added NSURLConnection regression tests (while
+     fixing a few bugs there).
+   * As usual, this release also contains an update to include the most
+     recent international timezone data.
+   * Various other bugfixes.
+
+1.7 Noteworthy changes in version '1.24.7'
+==========================================
+
+   * TLS and other security improvements (note, SSLv3.0 is disabled by
+     default in order to prevent the 'POODLE' attack).
+   * Latest timezone data included.
+   * Various other bugfixes.
+
+1.8 Noteworthy changes in version '1.24.6'
+==========================================
+
+   * NSUUID implemented
+   * New OSX version macros
+   * TLS support improvements
+   * Various new methods for OSX compatibility
+   * Various other bugfixes
+
+1.9 Noteworthy changes in version '1.24.5'
+==========================================
+
+   * NSInvocationOperation
+   * OSX version compatibility macro improvements
+   * Static analyzer fixes (mostly printf format string issues)
+   * Various other bugfixes
+
+1.10 Noteworthy changes in version '1.24.4'
+===========================================
+
+   * Updated time zone data
+   * OSX 10.7 NSCalendar methods
+   * Portability improvments and minor bugfixes
+   * More testcases in the testsuite
+
+1.11 Noteworthy changes in version '1.24.3'
+===========================================
+
+   * Implementation of the NSXML DOM classes
+   * Implementation of consistent TLS/SSL support
+   * Implementation of new/selectable sorting algorithms
+   * More explicit dependencies on external libraries.
+
+1.12 Noteworthy changes in version '1.24.0'
+===========================================
+
+   * There is binary incompatibility on 64bit systems in that the value
+     of the NSNotFound constant there is now 64bits rather than 32bits.
+   * gcc-4.0 is the minimum official supported compiler for GNUstep
+   * Support for the GNU LANGUAGES environment variable and other locale
+     improvements
+   * IPV6 support for NSHost and networking operations
+   * Support for UTF-8 string literals in source (compiler permitting)
+
+1.13 Noteworthy changes in version '1.23.0'
+===========================================
+
+   * Support for automatic reference counting (ARC) when using clasng
+     and the GNUstep Objective-C 2.0 runtime 1.5 or later.
+   * Full support for weak references in NSHashTable, NSMapTable and
+     NSPointerArray when using clang and the GNUstep Objective-C 2.0
+     runtime 1.5 or later.
+
+1.14 Noteworthy changes in version '1.22.0'
+===========================================
+
+   * Many updates and new classes
+   * There is now a regression test framework included with the package
+   * New support for Objective-C 2.0
+
+1.15 Noteworthy changes in version '1.21.1'
+===========================================
+
+This is an (unstable) copy of the 1.20.1 release
+
+1.16 Noteworthy changes in version '1.20.1'
+===========================================
+
+This is a stable bugfix release.  There are no major changes or binary
+incompatibilities, but this release does include an update of timezone
+handling to include the latest zone information.
+
+1.17 Noteworthy changes in version '1.21.0'
+===========================================
+
+This is an (unstable) copy of the 1.20.0 release
+
+1.18 Noteworthy changes in version '1.20.0'
+===========================================
+
+This is a stable release.  There have been major changes and
+reorganizations to support, among other things, the new non-fragile ABI
+from clang.  These changes, although they break binary compatibility
+with previous releases, should allow all future releases to maintain
+compatibility.
+
+1.19 Noteworthy changes in version '1.19.3'
+===========================================
+
+   * Bugfix to work around OSX behavior of [NSURL-path]
+
+1.20 Noteworthy changes in version '1.19.2'
+===========================================
+
+   * Various OSX compatibility improvements.
+   * String handling performance improvements.
+   * Several minor bugfixes.
+
+1.21 Noteworthy changes in version '1.19.1'
+===========================================
+
+   * New Mac OS X methods for writing data in NSData
+   * New classes NSHashTable and NSMapTable
+   * Garbage collection now works again and is much improved.
+   * Method return types and arguments have been changed for Mac OS X
+     10.5
+
+1.22 Noteworthy changes in version '1.19.0'
+===========================================
+
+   * Support for native objective-c exceptions
+   * Connection keepalive for ms-windows
+   * Path utitlites fix for ms-windows
+   * Changes to build on 64bit ms-windows
+   * Support for @synchronize
+
+1.23 Noteworthy changes in version '1.15.3'
+===========================================
+
+   * Extended NSUserDefaults so it recognizes ../ as a relative path.
+   * Added TLS/SSL support for NSStream based on GNU TLS
+   * Added support for https to NSURLConnection using new stream code
+     and added basic support for digest authentication.
+   * Fixed various problems with and added new options to KVO.
+
+1.24 Noteworthy changes in version '1.15.2'
+===========================================
+
+Bug fixes include improved thread safety (and a change to the NSThread
+class structure) and Key-Value observing.
+
+1.25 Noteworthy changes in version '1.15.1'
+===========================================
+
+This is an unstable release.  There may be API and ABI changes from
+previous releases.  The licesne hase changed to GPLv3 and LGPLv3.
+Mostly bug fixes, but a few improvements in NSPredicates and Key-Value
+coding have been added.
+
+1.26 Noteworthy changes in version '1.15.0'
+===========================================
+
+This is an unstable release from 1.14.0.  It is otherwise identical to
+the 1.14.0 release.  Releases in the 1.15 series may not be forward
+compatible with previous 1.15 releases.
+
+1.27 Noteworthy changes in version '1.14.0'
+===========================================
+
+Many portability (particularly for ms-windows) and MacOS-X compatibility
+fixes.  New MacOS-X classes and incorporation of NSAffineTransform and
+NSSpellServer which were formerly in the gui library.  Improved
+performance of amssively multithreaded programs.
+
+1.28 Noteworthy changes in version '1.13.1'
+===========================================
+
+Various minor bugs and MacOS-X incompatibilities fixed.  One important
+fix for a possible buffer overrun attack when initialising NSDate
+objects from strings.  One fix for a serious (crash) bug when
+initialising the bundles system in an application which has a lot of
+frameworks linked to it.  See the release notes for more details.
+
+1.29 Noteworthy changes in version '1.13.0'
+===========================================
+
+Several sets of classes have been added for dealing with urls and
+predicates.  A few minor api changes have occured as well.
+
+1.30 Noteworthy changes in version '1.12.0'
+===========================================
+
+There have been a number of API changes and several methods have been
+depreciated in this release.  Although current GNUstep programs that use
+these methods will still work in this version, there are enough changes
+that a new library version was considered useful.  See the release notes
+for more details.
+
+   New NSStream classes where added to the library.
+
+   User defaults were restructured to create the defaults lazily and can
+be set to not write to an external file at all, for developers who wish
+to use the library as a stand-alone library or in other situations where
+using external resources is not desired.
+
+1.31 Noteworthy changes in version '1.11.2'
+===========================================
+
+   * Support for GNUstep.conf and relocation of the filesystem is much
+     improved in this release.
+   * The WM_QUIT message is now intercepted to allow an application to
+     terminate cleanly.
+   * NSMessagePort was implemented on Windows platforms.
+   * Deprecated support for system-wide GNUsteprc files has been
+     removed.
+   * Some support for keeping user defaults in the Windows registry
+     implemented.
+
+1.32 Noteworthy changes in version '1.11.1'
+===========================================
+
+   * New Cocoa class NSSortDescriptor
+   * NSStringFrom...  functions now output strings that can be read by
+     old OpenStep implementations (but can also still be read by GNUstep
+     and MacOSX).
+   * More support for debugging on mingw, including writing logs to
+     debugger and event viewer.
+
+1.33 Noteworthy changes in version '1.11.0'
+===========================================
+
+This release is binary incompatible with previous releases.  The
+interface version of the library has changed so that apps, tools and
+libraries that use the base library need to be recompiled to use this
+new version.
+
+   * Window's path handling has changed to use native paths throughout.
+   * Startup/configuration of the libraries no longer requires
+     environement variables.
+   * Character sets are included in the library rather than being read
+     from data files.
+   * NSRunLoop and related classes use natvie win32 event handling on
+     Windows machines.
+
+1.34 Noteworthy changes in version '1.10.3'
+===========================================
+
+This version includes a few minor bug fixes.
+
+1.35 Noteworthy changes in version '1.10.2'
+===========================================
+
+This version mostly includes minor fixes and updates.
+
+   * The definition of NSContainsRect has changed to correspond with the
+     current Mac OS X/Cocoa def - the sides of the bRect can touch
+     aRect.
+   * Add support for systems that support unichar file paths (e.g.
+     Windows).
+   * Use a proper one-to-one abbreviation dictionary for NSTimeZone.
+
+1.36 Noteworthy changes in version '1.10.1'
+===========================================
+
+This version mostly includes minor fixes and updates.
+
+   * Runtime discovery of the library version is possible.
+   * NSXMLParser class added.  Not completely implemented.
+   * NSArrays makeObjectsPerformSelector iterates in same order as MacOS
+     X.
+   * Designated initializers for NSArray, NSDictionary, NSSet, and
+     NSString have been changed for MacOS X compatibility.
+
+1.37 Noteworthy changes in version '1.10.0'
+===========================================
+
+Note the interface version of the library has changed so that apps,
+tools and libraries the use the base library need to be recompiled to
+use it.
+
+   * A large majority of the library classes have been documented thanks
+     to the efforts of Adrian Robert
+   * URL classes support persistant connections
+   * Mac OSX XML compatibility fixes.
+
+1.38 Noteworthy changes in version '1.9.2'
+==========================================
+
+   * GSMime parsing ignores extraneous data
+   * New log functions GSOnceFlag and GSOnceMLog
+   * New class NSError
+   * Multiple new function in GSObjCRuntime
+   * NSProtocolChecker rewritten
+   * autogsdoc support added for building frames
+   * Binary incompatibility: NSUnarchiver, GSIMapTable have new ivars
+     added
+
+1.39 Noteworthy changes in version '1.9.1'
+==========================================
+
+   * Default string encoding taken from system nl_langinfo if not set
+     with GNUSTEP_STRING_ENCODING.
+   * NSKeyedArchiver/NSKeyedUnarchiver classes added.
+   * NSPropertyLists class added, also decodes Mac OS X binary propery
+     lists.
+
+1.40 Noteworthy changes in version '1.9.0'
+==========================================
+
+   * Lazy locking implemented (see GSLock documentation)
+   * MacOSX PB files updated to 10.3
+   * DO retain/release implementation simplified and also handles some
+     complex DO retain/release problems.
+   * GNUSTEP_STRING_ENCODING now supports any valid iconv name.
+   * gdomap uid/gid fixes
+   * NSString subclass heirarchy reorganized to fix problems with
+     copying and ownership of data.
+
+1.41 Noteworthy changes in version '1.8.0'
+==========================================
+
+Read the NEWS file for a complete list of changes since the last stable
+version.  The major change is that the header files (both in the package
+and when installed) are in different locations.  Also, due to filesystem
+changes in gnustep-make, several components of gnustep-base are located
+in different locations.  Generally this should not affect the
+compilation or running of applications and tools.
+
+1.42 Noteworthy changes in version '1.7.4'
+==========================================
+
+   * Added Korean encoding
+   * Updated use of ObjCRuntime functions.
+
+1.43 Noteworthy changes in version '1.7.3'
+==========================================
+
+Note in this version there have been large changes to the location of
+header files (both in the package and when installed).  It's possible
+(though unlikely) that certain applications that rely on GNUstep
+specific headers may not compile because of this.
+
+   * A number of Protocol and DO fixes.
+   * New TraditionalChinese language.
+
+1.44 Noteworthy changes in version '1.7.2'
+==========================================
+
+   * NSUndoManager improvements
+   * New NSMessagePort implementation.
+   * Private GSTcpPort becomre NSSocketPort.
+   * Improvements to handle selectors better over remote connections.
+
+1.45 Noteworthy changes in version '1.7.1'
+==========================================
+
+Bug fixes.
+
+1.46 Noteworthy changes in version '1.7.0'
+==========================================
+
+See gnustep-make for comments on the filesystem change.  Some components
+of gnustep-base are now stored in different directories and in some
+cases you should use different methods to look for them.  Use
++pathForLibraryResource:ofType:inDirectory: instead of
++pathForGNUstepResource:.  Also try using +bundleForLibrary:.
+
+   gnustep-base is now documentated as OpenStep complient.  Other
+changes:
+
+   * Add GSApplicationSupportDirectory for
+     NSSearchPathForDirectoriesInDomains.
+   * Added man page for gdomap
+
+1.47 Noteworthy changes in version '1.6.0'
+==========================================
+
+   * More MinGW support
+   * New MacOSX compatible methods.
+   * The Base Additions library compiles on native OSX.
+   * autogsdoc produces better, cleaner docs.
+   * Built-in garbage collecting classes.
+   * Any many many bug fixes and minor improvements.
+
+1.48 Noteworthy changes in version '1.5.1'
+==========================================
+
+   * Port NSThread to MingW
+   * Better framework support in NSBundle
+   * Added Thai string encodings.
+   * New makeImmutableCopyOnFail: method.
+   * Lots of autogsdoc improvements, Updated gsdoc DTD to 1.0 version.
+   * Added GSPrintf for logging to stdout.
+   * Warning logs selectable at runtime.
+   * NSTimeZone code rewritten for speed.
+
+1.49 Noteworthy changes in version '1.5.0'
+==========================================
+
+   * New MacOSX methods implemented (NSString, NSArray, NSObject)
+   * Fixed bug that occationally deleted user defaults.
+   * Tcp connections use runloop in NSConnectionReplyMode.
+
+1.50 Noteworthy changes in version '1.4.0'
+==========================================
+
+   * gdomap - security bug fixes.
+
+1.51 Noteworthy changes in version '1.3.4'
+==========================================
+
+This is a first pre-release version for 1.4.
+
+   This version also fixes a potentially destructive bug in gdomap.  All
+users are urged to upgrade to this version as soon as possible.
+
+   * gdomap - don't write pidfile until after setuid away from root
+   * New combined Unix/Windows version of NSFileHandle
+
+1.52 Noteworthy changes in version '1.3.3'
+==========================================
+
+Note there are interface and binary changes in this release that require
+you to recompile all applications and tools that use gnustep-base.
+
+   * Rewrite of NSURL (NOTE: Requires recompilation of all apps!)
+   * NSMapTable fix (also requires recompilation).
+   * Hack to avoid bug in gcc 3.1
+   * MacOSX compatibility changes: -dealloc, NSLog
+   * Add NSZombie class.
+   * GC improvements
+   * Support for system-wide .GNUsteprc
+
+1.53 Noteworthy changes in version '1.3.2'
+==========================================
+
+   * Corrections for handling Windows file paths, etc
+   * Other fixes for Windows - DO now works on Windows
+   * New localization/internationalization tool make_strings
+   * Experimental libffi support.
+   * Handle running tools/apps on other hosts
+   * Updated files and new tool for handling different encodings
+     (cvtenc).
+   * Unicode and UTF8 handling improvements.
+
+1.54 Noteworthy changes in version '1.3.0'
+==========================================
+
+   * Moved additional classes into subprojects and/or bundles to make it
+     easier to port these to other Foundation libraries..
+   * Traditional Chinese extensions added.
+   * Better support for resources (bundles)
+   * Ports and DO work on MingW.
+   * Better KeyValueCoding support (for EOF).
+   * New, partially finished Objective-C/Foundation programming manual.
+
+1.55 Noteworthy changes in version '1.1.0'
+==========================================
+
+   * Removed use of distributed lock to sync defaults file.
+   * Compiles on Darwin (but does not work yet).
+   * New tool autogsdoc for inline Objective-C documentation.
+   * Some NSBundle convienience methods for associating resources with
+     libraries and tools (like a lightweight framework).
+   * URL classes improved and more robust.
+   * SSL classes compiled as a separate bundle due to license problems.
+   * Better operation in MinGW environment.
+   * New localization files.
+   * XML property lists
+
+1.56 Noteworthy changes in version '1.0.2'
+==========================================
+
+Mostly a bug fix release to work with the new gcc 3.0.
+
+   * Added support for special gcc 3.0 options (constant string
+     support).
+
+1.57 Noteworthy changes in version '1.0.1'
+==========================================
+
+   * Many fixes to work better with Darwin (still not there).
+   * Fixes to work with BSD Unix
+   * Added some missing methods, better conformance to MacOSX Docs.
+   * Added support for invoking super implementation (mostly for
+     writting bridges from other languages).
+   * Works better with gcc 3.x, newer kernels.
+   * More memory debugging support.
+
+1.58 Noteworthy changes in version '1.0.0'
+==========================================
+
+   * Fix parsing of arguments for new linux kernels.
+   * File manager and other fixes for mingw
+   * Fix alignment issues on CPUs that require it.
+   * Update unicode support and fixes
+
+1.59 Noteworthy changes in version '0.9.1'
+==========================================
+
+   * New MacOSX compatible files for NSCalendarDate, NSTimeZone
+   * NSUserDefaults now uses NSLanguages not Languages
+   * Various improvements for Windows platforms
+   * NSCharacterSets updated to v3.0.1 of Unicode data.
+   * Added some gettext compatible localization macros.
+
+1.60 Noteworthy changes in version '0.9.1'
+==========================================
+
+   * Fixes for building on FreeBSD
+   * Unicode support for -initWithFormat:
+   * NSDate pass dates over DO bycopy unless explicit byref.
+   * Updated for Makefile package changes.
+
+1.61 Noteworthy changes in version '0.9.0'
+==========================================
+
+   * Workaround when no host IP set.
+   * Standardized non-NS filenames
+   * Lots of code simplifications and standardization.
+   * Added key/value methods to NSObject.
+   * Updated DO and NSInvocation to use ffcall libraries.
+   * New GSHTTPURLHandle class for http and https support.
+   * New GSMime class for MIME parsing
+   * Made DO threadsafe.
+   * Added extension to NSThread to allow JIGS to map java threads to
+     gnustep threads.
+   * Modifications to make it easier to port to Apple runtime.
+   * Added framework support to NSBundle
+   * Added localization support
+   * Better unicode conversion.
+   * New NSNull class.
+   * Major rewrite of NSString
+   * Port to MinGW/Windows
+   * Removed obsolete classes.
+
+1.62 Noteworthy changes in version '0.6.6'
+==========================================
+
+   * Lots of new documentation.
+   * Completely rewritten Distributed Object to be much more compatible
+     with the MacOS-X API (and incidentally, closer to the original
+     OpenStep standard).
+   * Support to compile library as a DLL on Windows (still cygwin only).
+   * Removed lots of obsolete classes.
+   * New tools for handling property lists.
+   * More optimization of classes.
+
+1.63 Noteworthy changes in version '0.6.5'
+==========================================
+
+   * Better debugging information.
+   * Timezone information rewritten to work more like GNUstep wants it
+     rather than strict Posix.
+   * Added support for FreeBSD native POSIX threads
+   * Better garbage collection support.
+   * Lots of optimizations and bug fixes.
+
+1.64 Noteworthy changes in version '0.6.0'
+==========================================
+
+Most of the changes to the Base Library are bug fixes and updates to
+include MacOS-X specifications.  Although the base library hasn't been
+extensively tested, it is currently used in several commercial products
+and installations, and is considered to be fairly stable.
+
+   * Some changes to eventually allow the use of automatic garbage
+     collection.
+
+   * Better localization support in NSBundle.
+
+   * Performance boosts in many classes.
+
+1.65 Noteworthy changes in version '0.5.5'
+==========================================
+
+Too many changes to mention in detail, but here is a list of a few:
+
+   * Many base classes have been rewritten with tonnes of performance
+     improvements that in many cases make it as fast as or faster than
+     the NeXT implementation.
+
+   * DO and archiving has received many improvements that help it work
+     on a variety of different platforms.
+
+   * Configuration and compilation has been greatly improved and fool
+     proofed.
+
+   * There are several new tools for handling services, defaults, and
+     pasteboards.
+
+1.66 Noteworthy changes in version '0.5.1'
+==========================================
+
+   * Additional runtime functions for interaction with Guile and
+     ObjC-Guile library.
+
+1.67 Noteworthy changes in version '0.5.0'
+==========================================
+
+   * Improvements to the NSInvocation class, from Masatake Yamato
+     <masata-y@aist-nara.ac.jp>.
+
+   * Implemented several new OpenStep methods and classes (e.g.  NSTask)
+     and speed improvements for others (NSArray, NSData, NSString), from
+     Richard Frith-Macdonald <richard@brainstorm.co.uk>.
+
+   * gdomap now handles subnet addressing and machines with multiple IP
+     addresses from Richard Frith-Macdonald <richard@brainstorm.co.uk>.
+
+1.68 Noteworthy changes in version '0.4.0'
+==========================================
+
+   * New tools for maintaining the defaults database.
+
+   * Use the new GNUstep Makefile Package to compile the library, tools
+     checks, and everything else.
+
+   * An implementation of NSDistributedLock
+
+   * NSData implemented as a class cluster including a class to allocate
+     shared VM memory.
+
+   * Big NSTimeZone improvements, as well as inclusion of time zone
+     files, from Yoo C. Chung <wacko@laplace.snu.ac.kr>.
+
+   * Major improvements to distributed objects and many related clases
+     from Richard Frith-Macdonald <richard@brainstorm.co.uk>.  Also
+     added a nameserver.
+
+   * Major rewrite of NSString, include Unicode strings from Stevo
+     Crvenkovski <stevo@btinternet.com>
+
+   * A rewrite of the NSBundle class from Adam Fedor <fedor@gnu.org>
+
+   * Addition of a C-language style stream package.
+
+   * Better support for threads and locking.
+
+   * Support for running on Windows from Scott Christley
+     <scottc@net-community.com>
+
+   * Many, many, many, many bug fixes and new classes.
+
+1.69 Noteworthy changes since version '0.1.19'
+==============================================
+
+   * The library has changed its name from 'libobjects' to
+     'libgnustep-base'.  The Apr 17 ChangeLog entry contains a list of
+     the way various other names were changed.
+
+   * The library now requires a patch to gcc-2.7.2.  The patch adds
+     thread-safe features to the GNU Objective C runtime.  Each thread
+     has its own exception handler and assertion handler, thanks to Yoo
+     C. Chung <wacko@power1.snu.ac.kr>.
+
+   * Distributed Objects is much improved.  Exceptions in the server are
+     sent back to the client.  Ungracefully closed connections are
+     gracefully handled.
+
+   * NSUserDefaults has been implemented, thanks to Georg Tuparev
+     <tuparev@NMR.EMBL-Heidelberg.DE>.
+
+   * NSScanner has been implemented, thanks to Eric Norum
+     <Eric.Norum@usask.ca>.
+
+   * NSCharacterSet has a new caching scheme, and is now faster than
+     NeXT's implementation, thanks to Adam Fedor.
+
+   * Preliminary thread-safety work has been done.  NSObject and
+     NSAutoreleasePool should be thread-safe.
+
+   * The "%@" printf directive now works on systems without GNU libc.
+
+   * The NS*Page* functions have been implemented.
+
+   * The mframe and behavior functions have been overhauled and better
+     commented.
+
+   * The NSHashTable and NSMapTable functions have been implemented,
+     thanks to Albin Jones <albin.jones@dartmouth.edu>.  Albin has also
+     implemented underlying GNU functions that provide functions for
+     arrays and linked lists of C-type variables.
+
+   * The NSThread class has been implemented.  Thanks to Scott Christley
+     <scottc@net-community.com>, the NSLock class has been implemented.
+
+   * A RunLoop class has been implemented, and is used for listening to
+     Port objects.  It is used for Distributed Objects.  There is also
+     an NSRunLoop class based on RunLoop.
+
+   * The NSTimer class has been implemented, although its use with
+     RunLoops is currently disabled.
+
+   * The Notification mechanism has been implemented.  It makes good use
+     of hash tables and linked lists in order to be fast.
+
+   * The Invocation class heirarchy has been fleshed out and now works.
+
+   * The collection classes have been overhauled to better handle
+     distributed objects, and for better compatibility with NeXT's
+     method names.
+
+     A new separation has been made in the abstract collection classes:
+     IndexedCollections contain objects accessible by an integer key,
+     but the user cannot insert at an arbitrary key; these are useful
+     for sorted collections, such as SplayTree's.  OrderedCollection can
+     have their order determined by the user; i.e.  users can send
+     '-insertObject:atIndex:', etc.
+
+     There is a new set of rich enumeration methods based on
+     Invocations.
+
+   * Port class heirarchy has been overhauled.  There are now classes
+     for TCP ports, UDP ports, and Mach ports.  Only the TCP ports are
+     currently functional.
+
+   * GNU-style archiving has had an overhaul, and the GNUstep NSArchiver
+     class is functional, but not strongly tested.  It does not yet call
+     -awakeUsingCoder:.
+
+     I have separated the high-level archiving of groups of objects from
+     the low-level format of how C-types are written.  There are several
+     new classes.  CStream is a subclass of Stream that knows how to
+     encode C-type variables in a machine independent way; this class
+     has two concrete subclasses: BinaryCStream, and TextCStream.  Plug
+     these backends into Coder to get different style low-level formats
+     for archiving.
+
+     Floats and doubles are now encoded more efficiently.
+
+     NSArchiver is built on top of Coder.  You can actually send all the
+     Coder methods to NSArchiver and vice-versa.
+
+     GNU classes BinaryCoder and TextCoder are gone.
+
+   * Several new OpenStep functions have been implemented:
+     NSHomeDirectory, NSUserName, NSHomeDirectoryForUser, NSPageSize,
+     NSLogPageSize, NSroundUpToMultipleOfPageSize,
+     NSRoundDownToMultipleOfPageSize, NSRealMemoryAvailable,
+     NSAllocateMemoryPages, NSDeallocateMemoryPages, NSCopyMemoryPages.
+
+   * ...and many bug fixes.
+
+1.70 Noteworthy changes since version '0.1.14'
+==============================================
+
+   * Can be made as a shared library by passing '--enabled-shared' to
+     'configure'.  Thanks to Jan Kybic <kybic@earn.cvut.cz> and Bryan
+     Headley <bwh@mail.lnd.coretech.com> for suggestions.
+
+   * New classes NSSet, NSMutableSet, NSCountedSet.  New concrete
+     classes NSGSet, NSGMutableSet, NSGCountedSet.  New test program
+     nsset.m.  New class NSMethodSignature.
+
+   * Running './configure' and building the library in a different
+     directory than the source works as it should, according to the GNU
+     standards.
+
+   * Dynamic loading fixes for Solaris, thanks to Adam Fedor.
+
+   * Fixes to Coder correct bugs with encoding/decoding wildly
+     interconnected objects.  (My application uses a "Suffix Tree"
+     structure: a Tree, and a LinkedList that winds its way through the
+     leaves of the tree; the LinkedList nodes also have pointers back to
+     the tree nodes.)
+
+   * NSTimeZone implemented, thanks to Peter Burka
+     <peter@bert.psyc.upei.ca>
+
+   * NSData fixes, thanks to Adam Fedor.
+
+   * NSObjCRuntime functions implemented.  NSObject description methods
+     implemented.
+
+   * Bug fixes in NSString, NSDictionary, NSArray, NSGeometry and other
+     places.
+
+1.71 Noteworthy changes since version '0.1.13'
+==============================================
+
+   * NSProcessInfo class, thanks to Georg Tuparev.
+
+   * NSDate now more operational, thanks to Jeremy Bettis.
+
+   * Autorelease checking improved, thanks to Adam Fedor.
+
+   * NSString concrete classes now more configurable.  Several new
+     methods implemented.
+
+   * Many bug fixes.
+
+1.72 Noteworthy changes since version '0.1.12'
+==============================================
+
+   * Bug fixes: installation; NSArray and NSDictionary copying; NSArray,
+     NSDictionary, NSData, NSArchiver, NSUnarchiver concrete class
+     configurability; NSString -getCharacter:range:.  See the ChangeLog
+     for more details.
+
+1.73 Noteworthy changes since version '0.1.10'
+==============================================
+
+   * Now using 'src', 'config' and 'doc' directories to un-clutter the
+     top-level directory.
+
+   * New GNUStep classes implemented: NSDictionary, NSMutableDictionary;
+     concrete classes NSGDictionary, NSGMutableDictionary; enumeration
+     classes NSGDictionaryKeyEnumerator, NSGDictionaryObjectEnumerator.
+
+   * More methods in NSData are implemented, thanks to Albin Jones.
+
+   * More methods in NSString are implemented; we have new classes
+     NSCharacterSet and NSBitmapCharSet; all thanks to Adam Fedor.
+
+   * And several bug fixes.  See the ChangeLog for details.
+
+1.74 Noteworthy changes since version '0.1.9'
+=============================================
+
+   * Renamed "foundation" include file directory to "Foundation", in
+     accordance with OpenStep.
+
+   * Several bug fixes, including a problem with a missing file in
+     0.1.9.
+
+1.75 Noteworthy changes since version '0.1.8'
+=============================================
+
+   * Many new GNUStep classes: NSEnumerator, NSArrayEnumerator, NSCoder,
+     NSArchiver, NSUnarchiver, NSData, NSMutableData, NSGCoder,
+     NSGArchiver, NSGUnarchiver, NSGData, NSGMutableData.  Much coding
+     and prep work has been done to make archiving work (see the
+     ChangeLog), but it's not quite ready for action yet.
+
+   * New GNUStep classes implemented by others: Thanks to Adam Fedor,
+     NSAssertionHandler.  Thanks to Jeremy Bettis, NSDate.
+
+   * Overhauled encoding and decoding.  The Coder now sends
+     -initWithCoder by default, but will still send the more flexible
+     +newWithCoder if the class implements it.  See objects/Coding.h.
+     The Stream class interface has been changed slightly.  There are
+     two new protocols for Streams.
+
+   * Several new debug-aiding methods implemented in NSAutoreleasePool.
+
+   * Separated Constant Collection protocols from changeable ones.
+     Eventually I'll separate the classes too.
+
+   * Included an outline for the GNU Objective C Language Manual.  The
+     GNU project is looking for volunteers to help flesh it out.  Send
+     email to Martin Michlmayr <tbm@ihq.com> or Andrew McCallum
+     <mccallum@gnu.ai.mit.edu>.
+
+   * Include the AUTHORS file, needed for legal reasons.  Include the
+     'GNUStep-volunteers' file.
+
+   * Several bug fixes: Typo in Array.m; Linux header file frobbing in
+     NSZone.h; typo causing crash in checks/nsarray.m; bad deallocation
+     in Collection.m; typo in BinaryTree.m; put -write: and -read:
+     implementations back in Collection.m.
+
+1.76 Noteworthy changes since version '0.1.7'
+=============================================
+
+   * Thanks to Adam Fedor <fedor@boulder.colorado.edu>, classes
+     NSBundle, NSNumber and NSValue are now operational.  He also
+     provided stubs for NSArray, NSCoder and NSDictionary.
+
+   * NSArray has been fleshed out.  There are new classes
+     NSConcreteArray and NSConcreteMutableArray.  Basic operations with
+     the NSArray class cluster now work, and it is set up to coexist
+     nicely with the GNU collection heirarchy.  Next I'll do
+     NSDictionary in a similar style.
+
+   * From Adam Fedor, there is a new patch to the gcc Objective C
+     runtime that aids dynamic linking.  You'll have to apply this patch
+     and reinstall the runtime before you can compile this version of
+     libgnustep-base.
+
+   * Several bug fixes, including two serious ones in Collection
+     deallocation and behavior adding.  See the ChangeLog for details.
+
+1.77 Noteworthy changes since version '0.1.5'
+=============================================
+
+   * Better string handling.  NSString is now fleshed out, and I've
+     implemented a scheme by which the GNU String object and OpenStep's
+     NSString can coexist nicely.  The OpenStep classes declare their
+     string arguments with (NSString*) just like the standard says, but
+     the preferred (more flexible) way to declare string arguments is
+     (id <String>); and these two types are set up so that they coexist.
+     There is still more to be done.  NSString has several unimplemented
+     methods; GNU String needs some more work.
+
+   * Newly implemented classes: MallocAddress, NSString,
+     NSMutableString, NSCString, NSMutableCString.
+
+   * Thanks to Pieter Schoenmakers <tiggr@es.ele.tue.nl> we have a new
+     version of the gcc-string.patch that should apply more smoothly.
+
+   * Thanks to Adam Fedor <fedor@boulder.colorado.edu> for a bug fix to
+     NXStringTable's.
+
+   * Thanks to Mark Lakata <lakata@nsdssp.lbl.gov> for a bug fix to
+     NSZone.c.
+
+   * Several bug fixes.  Thanks to those who reported them.  Credits are
+     in the ChangeLog.
+
+1.78 Noteworthy changes since version '0.1.3'
+=============================================
+
+This release not well tested at all.  We desperately need someone to
+write a test suite using dejagnu.  Any volunteers?
+
+   I made this release now in order to share the progress that is being
+made on GNUSTEP.
+
+   * New GNUSTEP implementations: NSObject, NSAutoreleasePool, NSZone.
+     Thanks to Mark Lakata for NSZone.
+
+   * New GNUSTEP implementations included, but not compiled: NSBundle,
+     NSException, NSGeometry, NSNumber, NSValue.  Many thanks Adam
+     Fedor.
+
+   * Many new GNU classes: String classes!  String, MutableString,
+     ConstantString.  One interesting feature of the GNU string classes
+     is that that, just like in Smalltalk, they are part of the
+     Collection heirarchy--all the methods you are used to using on
+     other collections can be used on these "collections of characters".
+     You can create ConstantStrings using the @"" syntax.
+
+   * Entire library converted to use 'retain', 'release', 'autorelease',
+     'dealloc' instead of 'free'.
+
+1.79 Noteworthy changes since version '0.1.0'
+=============================================
+
+   * New category: ObjectRetaining.  New classes: AutoreleasePool,
+     AutoreleaseStack.
+
+   * Bug fixes: Install next-includes properly.  New instructions in
+     README.ULTRIX. Time.m patched for Solaris 2.4.  test12.m free fix.
+
+1.80 Noteworthy changes in version '0.1.0'
+==========================================
+
+   * Renamed the library from 'libcoll' to 'libgnustep-base'.  (See the
+     end of the file 'DISCUSSION' for the background on this name
+     choice.)  Several file names changed to reflect this.  GNU class
+     interfaces are now included with 'objects' prefix, e.g.  '#include
+     <objects/BinaryTree.h>'.
+
+   * Many new classes.  Pseudo-random number classes Random, RNGBerkeley
+     and RNGAdditiveCongruential.  New stream classes Stream,
+     StdioStream and MemoryStream.  New coder classes Coder, TextCoder
+     and BinaryCoder.  New network packet transmission classes Port and
+     SocketPort.  New remote object messaging classes Connection, Proxy
+     and ConnectedCoder.  New protocols Coding and Retaining.  New, but
+     unimplemented: Lock and Locking.  New but soon-to-disapppear:
+     RetainingNotifier, InvalidationListening.
+
+   * Some bug fixes: Fixed the assert typo in Storage.m.  The Time class
+     now compiles under Solaris.  Fixed insertion bug in CircularArray.
+     NXStringTable_scan.l can now be compiled with lex, not just flex,
+     (thanks to Adam Fedor <adam@bastille.rmnug.org>).  Properly detect
+     the difference between gcc running under NEXTSTEP and NeXT's cc.
+     Using autoconf version 2.0.  Renamed DelegateList to DelegatePool.
+     Renamed some collection hierarchy methods for better consistency.
+
+   * Some directory reorganization so that NeXT-compatible files can be
+     included in the standard way, e.g.  #include <objc/List.h>.  Some
+     other NeXT-compatibility improvements: Changed 'GNU' prefix to 'NX'
+     in List and HashTable.  New files zone.[hc] containing dummy stubs
+     for NeXT-compatible zone functions.
+
+1.81 Noteworthy changes in version '940524'
+===========================================
+
+   * A NeXT-compatible NXStringTable object, thanks to Adam Fedor
+     <adam@bastille.rmnug.org>.
+
+   * SplayTree and RBTree classes now operational.  More methods in Time
+     class implemented.
+
+   * Some API cleanup: -delegateListList changed to
+     -delegateListCollection.  -includesSameContents: changed to
+     -contentsEqual:.  -insertObject:atKey: changed to
+     -putObject:atKey:.  See the ChangeLog for more detail.
+
+   * Configuration by autoconf in the self-tests directory.
+     Configuration script tests GCC nested functions.  Configuration
+     script detects NEXTSTEP and makes the appropriate adjustments,
+     including skipping the NeXT-compatibility classes.
+
+   * Bug fixes: BinaryTree rotate methods fixed.  Fixed the way
+     'ifNone:' and 'ifAbsent:' functions were called.  Fixed the way
+     long elements are printed.  Added methods for preventing memory
+     leaks by unfinished enumerations: '-newEnumState' and
+     '-freeEnumState:'.  Several bug fixes in List and Storage; changes
+     for better NeXT-compability.  And more.
+
+1.82 Noteworthy changes in version '931026'
+===========================================
+
+   * Installation using './configure' and 'autoconf'
+
+   * New BinaryTree and RBTree(unfinished) classes.  Rewritten
+     LinkedList class.
+
+   * A new scheme for holding non-object elements in classes that
+     require object contents; EltNodeCollector class.
+
+   * Archiving with -write: and -read: methods.  This involved removing
+     the ability to set the comparison function independent of content
+     type.
+
+   * Removed COLL_NO_ELEMENT and friends.  Now there are no arbitrary
+     restrictions on which long int's can be stored.  Like in Smalltalk,
+     ...ifAbsentCall: methods have been added to replace this
+     functionalty.
+
+   * Added a LABMDA() macro for defining small functions in the arg
+     position.
+
+   * Removed many ...perform: methods.  Use instead the more flexible
+     ...call: methods with LABMDA().
+
+   * Renamed ...Description: methods to ...Encoding: for better use of
+     already-defined objc keyword: @encode().
+
+   * New in the Collecting protocol: Filtered enumerating instead of
+     filtered shallowCopy'ing.  Enumerations still safe when modifying
+     the contents.
+
+   * The beginnings of documentation in libcoll.texi.
+
+   * Many bug fixes.
+
+   * ...and more.
+
+   Also see the 'ChangeLog' file for more detail.
+
+   Copyright (C) 2005 Free Software Foundation
+
+   Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+

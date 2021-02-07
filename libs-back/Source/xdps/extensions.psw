@@ -1,0 +1,105 @@
+/*
+   general.psw
+
+   Copyright (C) 2000 Free Software Foundation, Inc.
+
+   Author: Adam Fedor <fedor@gnu.org>
+   Date: May 2000
+   
+   This file is part of the GNUstep GUI X/DPS Library.
+
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Lesser General Public
+   License as published by the Free Software Foundation; either
+   version 3 of the License, or (at your option) any later version.
+
+   This library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
+   Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public
+   License along with this library; see the file COPYING.LIB.
+   If not, see <http://www.gnu.org/licenses/> or write to the 
+   Free Software Foundation, 51 Franklin Street, Fifth Floor, 
+   Boston, MA 02110-1301, USA.
+*/
+
+#include <DPS/dpsclient.h>
+
+defineps DPSWKnownExtensions (DPSContext ctxt | int *extflag)
+
+  0
+  systemdict /alphaimage known {1 add} if
+  systemdict /composite known {2 add} if
+  systemdict /compositerect known {4 add} if
+  systemdict /dissolve known {8 add} if
+  systemdict /readimage known {16 add} if
+  systemdict /setalpha known {32 add} if
+  systemdict /flushpage known {64 add} if
+  extflag
+
+endps
+
+defineps DPSWWorkingExtensions(DPSContext ctxt | boolean *supported)
+
+  {
+    0 0 10 10 null 10 10 2 composite
+  } stopped not 
+  supported
+
+endps
+
+/* Define our own versions of NeXT extension wrappers since they 
+   aren't neccesarily in the DPS library 
+*/
+
+defineps PSWalphaimage ()
+  alphaimage
+endps
+
+defineps PSWcomposite (float x, y, w, h; int gstateNum; float dx, dy; int op)
+  x y w h 
+  gstateNum dup 0 eq {null} {execuserobject} ifelse
+  dx dy op composite
+endps
+
+defineps PSWcompositerect (float x, y, w, h; int op)
+  x y w h op compositerect
+endps
+
+defineps PSWdissolve (float x, y, w, h; int gstateNum; float dx, dy, delta)
+  x y w h 
+  gstateNum dup 0 eq {null} {execuserobject} ifelse
+  dx dy delta dissolve
+endps
+
+defineps PSWreadimage ()
+  readimage
+endps
+
+defineps PSWsetalpha (float alpha)
+  alpha setalpha
+endps
+
+defineps PSWcurrentalpha (| float *alpha)
+  currentalpha alpha
+endps
+
+defineps PSWflushpage ()
+  flushpage
+endps
+
+/* Image helper wrappers */
+
+defineps PSWColorImageHeader(int width, height, bps, spp)
+  width height bps
+  [width 0 0 height neg 0 height]
+  currentfile false spp colorimage
+endps
+
+defineps PSWImageHeader(int width, height, bps)
+  width height bps
+  [width 0 0 height neg 0 height]
+  currentfile image
+endps

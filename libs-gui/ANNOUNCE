@@ -1,0 +1,105 @@
+1 Announcement
+**************
+
+This is version 0.28.0 of the GNUstep GUI library ('gnustep-gui').
+
+1.1 What is the GNUstep GUI Library?
+====================================
+
+It is a library of graphical user interface classes written completely
+in the Objective-C language; the classes are based upon Apple's Cocoa
+framework.  The library has been enhanced in a number of ways to take
+advantage of the GNU system.  These classes include graphical objects
+such as buttons, text fields, popup lists, browser lists, and windows;
+there are also many associated classes for handling events, colors,
+fonts, pasteboards and images.
+
+   The GNUstep GUI Library is designed in two parts.  The first part is
+the front-end component which is independent of platform and display
+system.  This front-end is combined with a back-end component which
+handles all of the display system dependent such as specific calls to
+X/Windows.  This design allows the GNUstep applications to have the
+"look and feel" of the underlying display system without any changes to
+the application, and the library can be easily ported to other display
+systems.
+
+   The GNUstep GUI Library requires the GNU Objective-C compiler, the
+GNUstep Base Library, the TIFF Graphics library, Independent JPEG
+Group's libjpeg library, and a back-end component from the GNUstep
+'Back' library.
+
+   Additional functionality may be enabled by installing additional
+libraries.  For example, to build the Cairo backend in the GNUstep Back
+library, you will need to install Cairo.
+
+1.2 Noteworthy changes in version '0.28.0'
+==========================================
+
+This version adds support for modern XIB files and many new classes.
+Plus the usual bunch of bug fixes.
+
+   * Support loading of document XIB files.
+   * Improve Key Value Binding for NSArrayController and add more
+     bindings.
+   * Better support for multi monitor usage and other improvement in the
+     backend integration.
+   * Add classes NSFontCollection, NSColorSampler, NSSpeechRecognizer,
+     NSAppearance, NSPDFInfo, NSPICTImageRep, NSCIImageRep,
+     NSPDFImageRep, NSPDFPanel, NSDataAsset, NSDatePicker,
+     NSDatePickerCell, NSPredicateEditor, NSPredicateEditorRowTemplate,
+     NSRuleEditor, NSGestureRecognizer, NSButtonTouchBarItem,
+     NSCandidateListTouchBarItem, NSClickGestureRecognizer,
+     NSColorPickerTouchBarItem, NSCustomTouchBarItem,
+     NSGroupTouchBarItem, NSMagnificationGestureRecognizer,
+     NSPanGestureRecognizer, NSPickerTouchBarItem,
+     NSPopoverTouchBarItem, NSPressGestureRecognizer,
+     NSRotationGestureRecognizer, NSSharingServicePickerTouchBarItem,
+     NSSliderTouchBarItem, NSStepperTouchBarItem, NSTouchBarItem,
+     NSTouchBar, NSTouch, NSDockTile.
+   * Implement NSEPSImageRep.
+   * Better encoding handling in RTF files.
+   * Theming and drawing improvements.
+   * Increase small font size to 10.
+   * New cursor and stepper images.
+   * Move NSFileWrapper to Foundation.
+   * Fixed build on Debian GNU/kFreeBSD.
+   * With command line argument -autolaunch YES, do not activate the
+     application when -activateIgnoringOtherApps: is invoked.
+   * Improvements to WindowMaker compatibility (e.g.  WMFHideApplication
+     support).
+   * Lowered NSFloatingWindowLevel by one to distinguish floating panels
+     from menus.
+
+1.3 Where can you get it? How can you compile it?
+=================================================
+
+The gnustep-gui-0.28.0.tar.gz distribution file has been placed at
+<ftp://ftp.gnustep.org/pub/gnustep/core>.
+
+   It is accompanied by gnustep-gui-0.28.0.tar.gz.sig, a PGP signature
+which you can validate by putting both files in the same directory and
+using:
+
+     gpg --verify gnustep-gui-0.28.0.tar.gz.sig
+
+   Signature has been created using the key with the following
+fingerprint:
+
+     83AA E47C E829 A414 6EF8  3420 CA86 8D4C 9914 9679
+
+   Read the INSTALL file or the GNUstep-HOWTO for installation
+instructions.
+
+1.4 Where do I send bug reports?
+================================
+
+Please log bug reports on the GNUstep project page
+<http://savannah.gnu.org/bugs/?group=gnustep> or send bug reports to
+<bug-gnustep@gnu.org>.
+
+1.5 Obtaining GNU Software
+==========================
+
+Check out the GNUstep web site.  (<http://www.gnustep.org/>), and the
+GNU web site.  (<http://www.gnu.org/>)
+

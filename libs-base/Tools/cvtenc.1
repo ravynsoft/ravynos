@@ -1,0 +1,55 @@
+.\"Copyright (C) 2005 Free Software Foundation, Inc.
+.\"Copying and distribution of this file, with or without modification,
+.\"are permitted in any medium without royalty provided the copyright
+.\"notice and this notice are preserved.
+.TH CVTENC "1" "February 2004" "GNUstep" "GNUstep System Manual"
+.SH NAME
+cvtenc \- file encoding converter
+
+.SH SYNOPSIS
+.B cvtenc
+[\fB-Encoding\fR \fIencoding\fR]
+[\fB-EscapeIn\fR \fIyes|NO\fR]
+[\fB-EscapeOut\fR \fIyes|NO\fR]
+ \fIfilename\fR
+
+.SH DESCRIPTION
+.P
+Converts a file encoded in a specified or default non-unicode encoding to
+unicode (UTF16), or, if the file is already in unicode, converts it to a
+specified or default non-unicode encoding.
+The converted text is printed to standard out.
+If the filename is a hyphen then this tool reads from standard input.
+
+.SH OPTIONS
+.IP "\fB\-Encoding\fR \fI encoding\fR" 4
+Specify non-unicode encoding to be used.  The direction of conversion depends
+on whether the file given as input is recognized as unicode (from the higher
+order bytes).  To get a list of available encodings, enter "list" for the
+encoding.  If this is not specified, the default encoding for the current
+locale is used.
+.IP "\fB\-EscapeIn\fR \fIYES|NO\fR" 4
+Specify '\-EscapeIn YES' (the default is 'NO') to parse the input for \\u
+escape sequences (as in property lists).
+.IP "\fB\-EscapeOut\fR \fIYES|NO\fR" 4
+Specify '\-EscapeOut YES' (the default is 'NO') to generate \\u escape
+sequences (as in property lists) in the output.  Note, this might produce
+unexpected results for some encodings.
+.IP "\fB\-Unicode\fR \fIIN|OUT\fR" 4
+Specify '\-Unicode IN' (or '\-Unicode OUT') to control the direction of
+conversion rather than having the tool guess it on the basis of the content
+it reads.  Using '\-Unicode IN' means that the tool reads UTF16 data and
+writes C-String data, while using '\-Unicode OUT' merans that the tool reads
+C-String data and writes UTF16 data.
+
+
+.SH HISTORY
+.RS 0
+Written in 2002.
+Minr update in 2010.
+.P
+This manual page first appeared in gnustep-base 1.9.2 (March 2004).
+.P
+.SH AUTHORS
+.B cvtenc
+was written by Richard Frith-Macdonald <rfm@gnu.org>

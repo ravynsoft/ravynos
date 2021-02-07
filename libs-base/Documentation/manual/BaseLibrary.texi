@@ -1,0 +1,983 @@
+@paragraphindent 0
+
+@node Base Library
+@chapter Base Library
+@cindex base library
+
+The GNUstep Base library is an implementation of the OpenStep @i{Foundation},
+a nongraphical API supporting for data management, network and file
+interaction, date and time handling, and more.  Much of the API consists of
+classes with defined methods, but unlike many ``class libraries'' it also
+includes functions and macros when these are more appropriate to the
+functionality.
+
+Note that many other APIs developed subsequently to OpenStep are also called
+``Foundation'' -- the Java standard classes and the Microsoft Windows C++
+class library are two prominent examples.  In OpenStep, however, the term only
+applies to a non-graphical library; the graphical component is referred to as
+the @i{Application Kit}, or ``AppKit'' for short.
+
+Although the OpenStep API underwent several refactorings subsequent to its
+first release as part of NeXTstep, deprecated and superseded classes and
+functions have not been retained.  Therefore the library still boasts a
+minimal footprint for its functionality.
+
+In some cases, GNUstep has supplemented the OpenStep API, not to provide
+alternative means of achieving the same goals, but to add new functionality,
+usually relating to technology that did not exist when the OpenStep
+specification was finalized, but has not, for whatever reason, been added by
+Apple to the Cocoa APIs.  These additions are called, appropriately enough,
+the @i{Base Additions} library, and include classes, functions, and macros.
+XML parsing facilities, for example, are provided as part of this library.
+
+In addition, methods are sometimes added to Foundation classes.  These are
+specially marked in the documentation and can even be excluded at compile time
+(a warning will be generated if you try to use them) if you are writing code
+intended to be ported to OpenStep or Cocoa compliant systems.  In addition,
+Cocoa has made additions to OpenStep and these are marked as ``MacOS-X''.  For
+information on how to set compile flags, see @ref{Compliance to Standards}.
+
+In deciding whether to use a given API, you need to weigh the likelihood you
+will need to port the application to a platform where it will not be
+available, and in that case, how much effort would be required to do without
+the API.  If you are aiming for full portability from the start (only a
+recompile needed), then you should of course avoid APIs that will not be
+available.  However in other cases it can be better to use whichever APIs are
+best suited initially so that early development and debugging will be as
+efficient as possible -- as long as major redesign would not be required to
+later avoid these APIs.
+
+Below, the Base and Base Additions APIs are covered in overview fashion,
+organized according to functionality.  For detailed documentation on
+individual classes and functions, you should consult the GSDoc API references
+for @uref{../Reference/index.html, Base} and
+@uref{../../BaseAdditions/Reference/index.html, Base Additions}.  It may be
+helpful, when reading this chapter, to keep a copy of this open in another
+browser window for reference.
+
+
+@section Copying, Comparing, Hashing Objects
+
+Often in object-oriented code you need to make a duplicate copy of an existing
+object.  The @code{NSObject} method @code{-(id) copy} provides a standard
+means of acquiring a copy of the object.  The @i{depth} of the copy is not
+defined.  That is, if an object has instance variables or other references to
+other objects, they may either themselves be copied or just the references to
+them will be copied.  The root class @code{NSObject} does @i{not} implement
+the copy method directly; instead it calls the @code{-copyWithZone} method,
+which is the sole method defined in the @code{@i{NSCopying}} informal
+protocol.  @code{NSObject} does not implement this protocol.  If you want
+objects of your class to support copying, you must implement this method
+yourself.  If it is not implemented, the @code{-copy} method will raise an
+exception if you call it.
+
+There is a related method @code{-(id) mutableCopy} (and an
+@code{@i{NSMutableCopying}} informal protocol with a
+@code{mutableCopyWithZone} method) which will be explained in the following
+section.
+
+GNUstep, largely via the @code{NSObject} class, provides a basic framework for
+comparing objects for equality and ordering, used for sorting, indexing, and
+other programming tasks.  These operations are also used in several crucial
+places elsewhere within the base library itself.  For example, containers such
+as lists, sets, and hash maps are discussed in the next section utilize these
+methods.
+
+The @code{- (BOOL) isEqual} method in @code{NSObject} is useful when you want to
+compare objects with one another:
+
+@example
+if ([anObject isEqual: anotherObject])
+  @{
+    // do something ...
+  @}
+@end example
+
+The default implementation returns @code{YES} only if the two objects being
+compared are the exact same object (which is the same as the result that would
+be returned using '@code{==}' to perform the comparison).  Sometimes it is
+useful to have two objects to be equal if their internal state is the same, as
+reflected in instance variables, for example.  In this case, you can override
+@code{isEqual} in your class to perform such a comparison.
+
+The @code{-(unsigned int)hash} method is useful for indexing objects, and
+should return the same value for two objects of the same class that
+@code{isEqual} each other.  The same reasoning applies as for the
+@code{isEqual} method -- if you want this to depend on internal state rather
+than the identity of the object itself, override it.  The default @code{hash}
+value is based on the memory address occupied by the object.
+
+The @code{-(NSComparisonResult) compare: (id)object} method is used in Cocoa
+for comparing objects.  It should return @code{NSOrderedAscending} if the
+receiver is less than the argument, @code{NSOrderedDescending} if it is
+greater, otherwise @code{NSOrderedSame}.  Note that this is not meaningful
+for many types of objects, and is actually deprecated in GNUstep for this
+reason.
+
+The @code{-(NSString *) description} method in @code{NSObject} returns a
+short description of the object, often used for debugging.  The default
+implementation lists the object's class and memory location.  If you want
+other information you can override it.
+
+The methods discussed in this section are all very similar to counterparts in
+Java: the @code{equals} and @code{hashCode} methods, and the
+@code{@i{Comparable}} interface.
+
+
+@section Object Containers
+
+GNUstep defines three major utility classes for holding collections of other
+objects.  @code{NSArray} is an ordered collection of objects, each of which
+may occur in the collection multiple times.  @code{NSSet} is an unordered
+collection of unique objects (according to @code{isEqual} and/or @code{hash}).
+@code{NSDictionary} is an unordered collection of key-value pairs.  The keys
+form a set (and must be unique), however there are no restrictions on the
+collection of values.  The @code{-hash} and @code{-isEqual} @code{NSObject}
+methods discussed above are used by collection instances to organize their
+members.  All collections @code{retain} their members (see @ref{Objects}).
+
+Unlike container APIs in some other languages, notably Java, instances of
+these GNUstep classes are all @i{immutable} -- once created, you cannot add or
+remove from them.  If you need the ability to make changes (often the case),
+use the mutable classes @code{NSMutableArray}, @code{NSMutableSet}, and
+@code{NSMutableDictionary}.  The @code{-mutableCopy} method mentioned in the
+previous section will return the mutable version of a container regardless of
+whether the original was mutable or not.  Likewise, the @code{-copy} method
+returns an immutable version.  You should generally use immutable variants of
+objects when you don't need to modify them, because their implementations are
+more efficient.  Often it is worthwhile to convert a mutable object that has
+just been built into an immutable one if it is going to be heavily accessed.
+
+Also unlike container objects in Java, GNUstep containers possess utility
+methods.  For example, Arrays can sort their members, or send a message to
+each member individually (like the @code{map} function in Lisp).  Sets can
+determine whether they are equal to or subsets of other sets.  Dictionaries
+can save to and restore themselves from specially formatted files.
+
+In addition to the three container types already mentioned, there is a
+fourth, @code{NSCountedSet}.  This is an unordered collection whose elements
+need not be unique, however the number of times a given unique element has
+been added is tracked.  This behavior is also known as @i{bag} semantics.
+
+All collection classes support returning an @code{NSEnumerator} object which
+will enumerate over the elements of the collection.  Note that if a mutable
+collection is modified while an enumerator is being used, the results are not
+defined.
+
+Collections do not allow @code{nil} values or keys, but you can explicitly
+represent a nil object using the special @code{NSNull} class.  You simply use
+the singleton returned from @code{[NSNull null]}.
+
+The four container types just described handle objects, but not primitives
+such as @code{float} or @code{int}.  For this, you must use an
+@code{NSHashTable} or @code{NSMapTable}.  Despite their names, these are not
+classes, but data types.  A set of functions is defined for dealing with them.
+Each can store and retrieve arbitrary pointers keyed by other arbitrary
+pointers.  However you are responsible for implementing the hashing yourself.
+To create an @code{NSHashTable}, use the function @code{NSCreateHashtable}.
+@code{NSHashInsert} and @code{NSHashGet} are the major functions, but there
+are many others.  There is a mostly parallel but more sophisticated set of
+functions dealing with @code{NSMapTables}.
+@ignore
+Need to explain why NSHashTable and NSMapTable are not classes, if there is a
+good reason for it, or else make excuses for why it is the (at first glance
+rather crappy) way it is...
+@end ignore
+
+
+@section Data and Number Containers
+
+The data containers discussed in the previous section, with the exception of
+@code{NSHashTable} and @code{NSMapTable}, can store objects, but not primitive
+types such as @code{int}s or @code{float}s.  The @code{NS...Table} structures
+are not always appropriate for a given task.  For this case, GNUstep offers
+two alternatives.
+
+@subsection NSData
+
+The @code{NSData} and @code{NSMutableData} classes manage a buffer of bytes as
+an object.  The contents of the buffer can be anything that can be stored in
+memory, a 4-dimensional array of @code{double} for example (stored as a linear
+sequence).  Optionally, objects of these classes can take care of the memory
+management for the buffer, growing it as needed and freeing it when they are
+released.
+
+@subsection NSValue
+
+The @code{NSValue} class can wrap a single primitive value as an object so it
+can be used in the containers and other places where an object reference is
+needed.  Once initialized, an @code{NSValue} is immutable, and there is no
+@code{NSMutableValue} class.  You initialize it by giving it a pointer to the
+primitive value, and you should be careful this does not get freed until after
+the @code{NSValue} is no longer used.  You can specify to the @code{NSValue}
+what type the primitive is so this information can be accessed later:
+
+@example
+int n = 10;
+NSValue *theValue = [NSValue value: &n withObjCType: @@encode(int)];
+  // ...
+int *m = (int *) [theValue pointerValue];
+@end example
+
+Here, @code{@@encode} is a compile-time operator that converts the data type
+into a string (char *) code used at runtime to refer to the type.  Object ids
+can also be stored within @code{NSValue}s if desired.  Note that in the above
+case, the @code{NSValue} will be pointing to invalid data once the local
+variable @code{@i{n}} goes out of scope.
+
+If you want to wrap @code{int} or other numeric values, you should use
+@code{NSNumber} (a subclass of @code{NSValue}) instead.  This maintains its
+own copy of the data and provides convenience methods for accessing the value
+as a primitive.
+
+@example
+int n = 10;
+NSNumber *theNumber = [NSNumber numberWithInt: n];
+  // ...
+int m = [theNumber intValue];
+float f = [theNumber floatValue];  // this is also valid
+@end example
+
+Notice that @code{@i{n}}'s value is used in the initialization, not a pointer
+to it.
+
+@subsection NSNumber
+
+@code{NSNumber} has a subclass called @code{NSDecimalNumber} that implements
+a number of methods for performing decimal arithmetic to much higher
+precision than supported by ordinary @code{long double}.  The behavior in
+terms of rounding choices and exception handling may be customized using the
+@code{NSDecimalNumberHandler} class.  Equivalent functionality to the
+@code{NSDecimalNumber} class may be accessed through functions, mostly named
+@code{NSDecimalXXX}.  Both the class and the functions use a structure also
+called @code{NSDecimal}:
+
+@example
+typedef struct @{
+  signed char	exponent;   // Signed exponent - -128 to 127
+  BOOL	isNegative;         // Is this negative?
+  BOOL	validNumber;        // Is this a valid number?
+  unsigned char	length;	    // digits in mantissa.
+  unsigned char  cMantissa[2*NSDecimalMaxDigit];
+@}
+@end example
+
+Instances can be initialized using the @code{NSDecimalFromString(NSString *)}
+function.
+
+@subsection NSRange, NSPoint, NSSize, NSRect
+
+There are also a few types (not classes) for representing common composite
+structures.  @code{NSRange} represents an integer interval.  @code{NSPoint}
+represents a floating point 2-d cartesian location.  @code{NSSize} represents
+a 2-d floating point extent (width and height).  @code{NSRect} contains a
+lower-left point and an extent.  A number of utility functions are defined
+for handling rectangles and points.
+@ignore
+Again, why aren't these things objects?  Efficiency?
+@end ignore
+
+
+@section Date/Time Facilities
+
+GNUstep contains the @code{NSDate} class and the @code{NSCalendarDate}
+classes for representing and handling dates and times.  @code{NSDate} has
+methods just relating to times and time differences in the abstract, but not
+calendar dates or time zones.  These features are added in the
+@code{NSCalendarDate} subclass.  The @code{NSTimeZone} class handles time
+zone information.
+
+
+@section String Manipulation and Text Processing
+
+Basic string handling in the GNUstep Base library was covered in
+@ref{Objective-C, ,Strings in GNUstep}.  Here, we introduce a number of
+additional string and text processing facilities provided by GNUstep.
+
+@subsection NSScanner and Character Sets
+
+The @code{NSScanner} class can be thought of as providing a combination of the
+capabilities of the C @code{sscanf()} function and the Java
+@code{StringTokenizer} class.  It supports parsing of NSStrings and extraction
+of numeric values or substrings separated by delimiters.
+
+@code{NSScanner} works with objects of a class @code{NSCharacterSet} and its
+subclasses @code{NSMutableCharacterSet}, @code{NSBitmapCharSet}, and
+@code{NSMutableBitmapCharSet}, which provide various means of representing
+sets of unicode characters.
+
+@subsection Attributed Strings
+
+@i{Attributed strings} are strings that support the association of
+@i{attributes} with ranges of characters within the string.  Attributes are
+name-value pairs represented by an @code{NSDictionary} and may include
+standard attributes (used by GNUstep GUI classes for font and other
+characteristics during rendering) as well as programmer-defined application
+specific attributes.  The classes @code{NSAttributedString} and
+@code{NSMutableAttributedString} represent attributed strings.  They are not
+subclasses of @code{NSString}, though they bundle an instance of one.
+@ignore
+Need a lot more explanation -- where do you look for info on standard
+attributes, what are common usage patterns, etc..
+@end ignore
+
+@subsection Formatters
+
+@i{Formatters} are classes providing support for converting complex values
+into text strings.  They also provide some support for user editing of strings
+to be converted back into object equivalents.  All descend from
+@code{NSFormatter}, which defines basic methods for obtaining either an
+attributed string or a regular string for an object value.  Specific classes
+include @code{NSDateFormatter} for @code{NSDate} objects,
+@code{NSNumberFormatter} for @code{NSNumber} objects.  Instances of these
+classes can be customized for specific display needs.
+
+
+@section File Handling
+
+A number of convenience facilities are provided for platform-independent
+access to the file system.  The most generally useful is the
+@code{NSFileManager} class, which allows you to read and save files,
+create/list directories, and move or delete files and directories.  In
+addition to simply listing directories, you may obtain an
+@code{NSDirectoryEnumerator} instance from it, a subclass of
+@code{NSEnumerator} which provides a full listing of all the files beneath a
+directory and its subdirectories.
+
+If you need to work with path names but don't need the full
+@code{NSFileManager} capabilities, @code{NSString} provides a number of
+path-related methods, such as @code{-stringByAppendingPathComponent:} and
+@code{-lastPathComponent}.  You should use these instead of working directly
+with path strings to support cross-platform portability.
+
+@code{NSFileHandle} is a general purpose I/O class which supports reading and
+writing to both files and network connections, including ordinary and
+encrypted (SSL) socket connections, and the standard in / standard out streams
+familiar from Unix systems.  You can obtain instances through methods
+like @code{+fileHandleForReadingAtPath:(NSString *)path} and
+@code{+fileHandleAsServerAtAddress:(NSString *)address service:(NSString
+*)service protocol:(NSString *)protocol}.  The network-related functions of
+@code{NSFileHandle} (which are a GNUstep extension not included in Cocoa) will
+be covered in a later section.  Note this class also supports gzip
+compression for reading and writing.
+
+Finally, GNUstep also provides some miscellaneous filesystem-related utility
+functions, including @code{NSTemporaryDirectory()} and
+@code{NSHomeDirectoryForUser()}.
+
+
+@section Persistence and Serialization
+
+GNUstep provides robust facilities for persisting objects to disk or sending
+them over a network connection (to implement @ref{Distributed Objects,
+Distributed Objects}).  One class of facilities is referred to as @i{property
+list serialization}, and is only usually used for @code{NSDictionary} and
+@code{NSArray} container objects, and @code{NSNumber}, @code{NSData},
+@code{NSString}, and @code{NSDate} member objects.  It utilizes primarily
+text-based formats.
+
+Saving to and loading back from a serialized property list representation will
+preserve values but not necessarily the classes of the objects.  This makes
+property list representations robust across platforms and library changes, but
+also makes it unsuitable for certain applications.  @i{Archiving}, the second
+class of GNUstep persistence facilities, provides for the persistence of a
+@i{graph} of arbitrary objects, with references to one another, taking care to
+only persist each individual object one time no matter how often it is
+referred to.  Object class identities are preserved, so that the behavior of a
+reloaded object graph is guaranteed to be the same as the saved one.  On the
+other hand, the classes for these objects must be available at load time.
+
+@subsection Property List Serialization
+
+Serialized property list representations (sometimes referred to as
+``@i{plists}'') are typically saved and restored using methods in collection
+classes.  For example the @code{NSDictionary} class has
+@code{-writeToFile:atomically:} to save, @code{+dictionaryWithContentsOfFile}
+to restore, and @code{NSArray} has similar methods.  Alternatively, if you
+wish to save/restore individual @code{NSData} or other objects, you can use
+the @code{NSPropertyListSerialization} class.  (There are also
+@code{NSSerializer} and @code{NSDeserializer} classes, but these are
+deprecated in Mac OS X and are not really needed in GNUstep either, so should
+not be used.)
+
+Serialized property lists can actually be written in one of three different
+formats -- plain text, XML, and binary.  Interconversion amongst these is
+possible using the @code{pldes} and @code{plser} command-line tools (see the
+@uref{../../Tools/Reference/index.html, tools reference}).
+@ignore
+Still need: the XML format; how to specify format in output; discussion of
+compatibility with OS X; using serialization with NSData.
+@end ignore
+
+@subsection Archives
+
+Archiving utilizes a binary format that is cross-platform between GNUstep
+implementations, though not between GNUstep and Mac OS X Cocoa.  Archiving,
+like serialization in Java, is used both for saving/restoring objects on disk
+and for interprocess communications with @ref{Distributed Objects, Distributed
+Objects}.  For an object to be archivable, it must adopt the @code{NSCoding}
+protocol.  The coding process itself is managed by instances of the
+@code{NSCoder} class and its subclasses:
+
+@table @code
+@item NSCoder
+Base class, defines most of the interface used by the others.
+@item NSArchiver, NSUnarchiver
+Sequential archives that can only be saved and  restored en masse.
+@item NSKeyedArchiver, NSKeyedUnarchiver
+Random access archives that can be read from and written to on an
+individual-object basis and provide more robust integrity in the face of
+class changes.
+@item NSPortCoder
+Used for @ref{Distributed Objects, Distributed Objects}.
+@end table
+
+The basic approach to accessing or creating an archive is to use one of the
+convenience methods in an @code{NSCoder} subclass:
+
+@table @code
+@item + (BOOL) archiveRootObject: (id)object toFile: (NSString *)file
+Save object and graph below it to file.  '@code{YES}' returned on success.
+Both @code{NSArchiver} and @code{NSKeyedArchiver} support.
+@item + (NSData *) archivedDataWithRootObject: (id)object
+Save object and graph below it to a byte buffer.  Both @code{NSArchiver} and
+@code{NSKeyedArchiver} suport.
+@item + (id) unarchiveObjectWithFile: (NSString *)file
+Load object graph from file.  Both @code{NSUnarchiver} and
+@code{NSKeyedUnarchiver} support.
+@item + (id) unarchiveObjectWithData: (NSData *)data
+Load object graph from byte buffer.  Both @code{NSUnarchiver} and
+@code{NSKeyedUnarchiver} support.
+@end table
+
+To obtain more specialized behavior, instantiate one of the classes above and
+customize it (through various method calls) before instigating the primary
+archiving or unarchiving operation.
+
+From the perspective of the objects being archived, the @code{NSCoding}
+protocol declares two methods that must be implemented:
+
+@table @code
+@item -(void) encodeWithCoder: (NSCoder *)encoder
+This message is sent by an @code{NSCoder} subclass or instance to request the
+object to archive itself.  The implementation should send messages to
+@code{encoder} to save its essential instance variables.  If this is
+impossible (for whatever reason) an exception should be raised.
+@item -(id) initWithCoder: (NSCoder *)decoder
+This message is sent by an @code{NSCoder} subclass or instance to request the
+object to restore itself from an archive.  The implementation should send
+messages to @code{decoder} to load its essential instance variables.  An
+exception should be raised if there is a problem restoring state.
+@end table
+
+Here is an example @code{NSCoding} implementation:
+
+@example
+@@interface City : PoliticalUnit
+@{
+private
+float      latitude;
+float      longitude;
+CensusData *censusData;
+State      *state;
+@}
+
+  // ...
+@@end
+
+ ...
+
+@@implementation City
+
+- (void) encodeWithCoder: (NSCoder *)coder
+@{
+  [super encodeWithCoder:coder];  // always call super first
+
+  if (![coder allowsKeyedCoding])
+    @{
+      [coder encodeValueOfObjCType: @@encode(float) at: &latitude];
+      [coder encodeValueOfObjCType: @@encode(float) at: &longitude];
+      [coder encodeObject: censusData];
+      [coder encodeConditionalObject: state];
+    @}
+    else
+    @{
+      [coder encodeFloat: latitude forKey: @@"City.latitude"];
+      [coder encodeFloat: longitude forKey: @@"City.longitude"];
+      [coder encodeObject: censusData forKey: @@"City.censusData"];
+      [coder encodeConditionalObject: state forKey: @@"City.state"];
+    @}
+  return;
+@}
+
+- (id) initWithCoder: (NSCoder *)coder
+@{
+  self = [super initWithCoder:coder];  // always assign 'self' to super init..
+
+  if (![coder allowsKeyedCoding])
+    @{
+      // Must decode keys in same order as encodeWithCoder:
+      [coder decodeValueOfObjCType: @@encode(float) at: &latitude];
+      [coder decodeValueOfObjCType: @@encode(float) at: &longitude];
+      censusData = [[coder decodeObject] retain];
+      state = [[coder decodeObject] retain];
+    @}
+    else
+    @{
+      // Can decode keys in any order
+      censusData = [[coder decodeObjectForKey: @@"City.censusData"] retain];
+      state = [[coder decodeObjectForKey: @@"City.state"] retain];
+      latitude = [coder decodeFloatForKey: @@"City.latitude"];
+      longitude = [coder decodeFloatForKey: @@"City.longitude"];
+    @}
+  return self;
+@}
+
+  // ...
+
+@@end
+@end example
+
+The primary wrinkle to notice here is the check to @code{[coder
+allowsKeyedCoding]}.  The object encodes and decodes its instance variables
+using keys if this returns '@code{YES}'.  Keys must be unique within a single
+inheritance hierarchy -- that is, a class may not use keys the same as its
+superclass or any of its ancestors or sibling classes.
+
+Keyed archiving provides robustness against class changes and is therefore to
+be preferred in most cases.  For example, if instance variables are added at
+some point to the @code{City} class above, this will not prevent earlier
+versions of the class from restoring data from a later one (they will just
+ignore the new values), nor does it prevent a later version from initializing
+from an earlier archive (it will not find values for the added instance
+variables, but can set these to defaults).
+
+Finally, notice the use of @code{encodeConditionalObject} above for
+@code{state}, in contrast to @code{encodeObject} for census data.  The reason
+the two different methods are used is that the @code{City} object @i{owns} its
+census data, which is an integral part of its structure, whereas the
+@code{state} is an auxiliary reference neither owned nor retained by
+@code{City}.  It should be possible to store the cities without storing the
+states.  Thus, the @code{encodeConditionalObject} method is called, which
+only stores the @code{State} if it is already being stored unconditionally
+elsewhere during the current encoding operation.
+
+Note that within a given archive, an object will be written only once.
+Subsequent requests to write the same object are detected and a reference is
+written rather than the full object.
+
+@ignore
+Mention awake, substitution on encode, etc..?
+@end ignore
+
+@section Utility
+
+The GNUstep Base library provides a number of utility classes that don't fall
+under any other function category.
+
+The @code{NSUserDefaults} class provides access to a number of system- and
+user-dependent settings that should affect tool and application behavior.  You
+obtain an instance through sending @code{[NSUserDefaults
+standardUserDefaults]}.  The instance provides access to settings indexed by
+string keys.  The standard keys used are documented
+@uref{../../../User/Gui/DefaultsSummary.html, here}.  Users can adjust
+settings for particular keys using the
+@i{@code{@uref{../../Tools/Reference/defaults.html, defaults}}} command.
+
+The @code{NSProcessInfo} class provides access to certain information about
+the system environment such as the operating system and host name.  It also
+provides support for process logging (see @ref{Exception Handling, Logging,
+Logging}).  You obtain an instance through sending @code{[NSProcessInfo
+processInfo]}.
+
+The @code{NSUndoManager} class provides a general mechanism for supporting
+@i{undo} of user operations in applications.  Essentially, it allows you to
+store sequences of messages and receivers that need to be invoked to undo or
+redo an action.  The various methods in this class provide for grouping of
+sets of actions, execution of undo or redo actions, and tuning behavior
+parameters such as the size of the undo stack.  Each application entity with
+its own editing history (e.g., a document) should have its own undo manager
+instance.  Obtain an instance through a simple @code{[[NSUndoManager alloc]
+init]} message.
+
+The @code{NSProtocolChecker} and @code{NSProxy} classes provide message
+filtering and forwarding capabilities.  If you wish to ensure at runtime that
+a given object will only be sent messages in a certain protocol, you create
+an @code{NSProtocolChecker} instance with the protocol and the object as
+arguments:
+
+@example
+id versatileObject = [[ClassWithManyMethods alloc] init];
+id narrowObject = [NSProtocolChecker protocolCheckerWithTarget: versatileObject
+                                     protocol: @@protocol(SomeSpecificProtocol)];
+return narrowObject;
+@end example
+
+This is often used in conjunction with distributed objects to expose only a
+subset of an objects methods to remote processes.  The @code{NSProxy} class
+is another class used in conjunction with distributed objects.  It implements
+no methods other than basic @code{NSObject} protocol methods.  To use it,
+create a subclass overriding @code{-(void) forwardInvocation:} and @code{-
+(NSMethodSignature) methodForSelector:}.  By appropriate implementations
+here, you can make an @code{NSProxy} subclass instance act like an instance
+of any class of your choosing.
+@ignore
+Much more needed about this -- why is a special class needed since all
+objects have a forwardInvocation method, what is -methodForSelector and do all
+classes that want to implement -forwardInvocation need to implement it as
+well (in which case need to add to discussion in Advanced Messaging), ...
+@end ignore
+
+The @code{NSBundle} class provides support for run-time dynamic loading of
+libraries and application resources, usually termed ``Bundles''.  A bundle
+consists of a top-level directory containing subdirectories that may include
+images, text files, and executable binaries or shared libraries.  The ``.app''
+directory holding a NeXTstep/OpenStep/GNUstep/Cocoa application is actually a
+bundle, as are the ``Frameworks'' containing shared libraries together with
+other resources.  Bundles and frameworks are covered in @ref{Bundles and
+Frameworks}.
+
+
+@section Notifications
+
+GNUstep provides a framework for sending messages between objects within a
+process called @i{notifications}.  Objects register with an
+@code{NSNotificationCenter} to be informed whenever other objects post
+@code{NSNotification}s to it matching certain criteria.  The notification
+center processes notifications synchronously -- that is, control is only
+returned to the notification poster once every recipient of the notification
+has received it and processed it.  Asynchronous processing is possible using
+an @code{NSNotificationQueue}.  This returns immediately when a notification
+is added to it, and it will periodically post the oldest notification on its
+list to the notification center.  In a multithreaded process, notifications
+are always sent on the thread that they are posted from.
+
+An @code{NSNotification} consists of a string name, an object, and optionally
+a dictionary which may contain arbitrary associations.  Objects register with
+the notification center to receive notifications matching either a particular
+name, a particular object, or both.  When an object registers, it specifies a
+message selector on itself taking an @code{NSNotification} as its sole
+argument.  A message will be sent using this selector whenever the
+notification center receives a matching notification in a post.
+
+Obtain a notification center instance using @code{NSNotificationCenter
++defaultCenter}.  An @code{NSDistributedNotificationCenter} may be used for
+interprocess communication on the same machine.  Interprocess notification will
+be slower than within-process notification, and makes use of the
+@uref{../../Tools/Reference/gdnc.html, gdnc} command-line tool.
+
+Notifications are similar in some ways to @i{events} in other frameworks,
+although they are not used for user interface component connections as in Java
+(message forwarding and the target-action paradigm are used instead).  In
+addition, the GNUstep GUI (AppKit) library defines an @code{NSEvent} type for
+representing mouse and keyboard actions.
+
+
+@section Networking and RPC
+
+GNUstep provides some general network-related functionality, as well as
+classes supporting @ref{Distributed Objects, distributed objects} and related
+forms of inter-process communication.
+
+@subsection Basic Networking
+
+GNUstep provides the following classes handling basic network communications:
+
+@table @code
+@item NSHost
+Holds and manages information on host names and IP addresses.  Use the
+@code{+currentHost}, @code{+hostWithName:}, or @code{+hostWithAddress:} class
+methods to obtain an instance.
+@item NSFileHandle
+On Unix, network connections are treated analogously to files.  This
+abstraction has proven very useful, so GNUstep supports it in the
+@code{NSFileHandle} class, even on non-Unix platforms.  You may use the class
+methods @code{+fileHandleAsServerAtAddress:(NSString *)address
+service:(NSString *)service protocol:(NSString *)protocol} and corresponding
+client methods to access one side of a connection to a port on a networked
+machine.  (To use pipes, see the next section.)
+@item NSURL
+Provides methods for working with URLs and the data accessible through them.
+Once an @code{NSURL} is constructed, data may be loaded asynchronously through
+@code{NSURL -loadResourceDataNotifyingClient:usingCache:} or synchronously
+through @code{NSURL -resourceDataUsingCache:}.  It can also be obtained
+through @code{NSString +stringWithContentsOfURL:} or @code{NSData
++dataWithContentsOfURL:}.
+@item NSURLHandle
+This class provides additional control over the URL contents loading
+process.  Obtain an instance through @code{NSURL -URLHandleUsingCache:}.
+@end table
+
+@subsection Remote Process Communications
+
+GNUstep provides a number of classes supporting @ref{Distributed Objects,
+distributed objects} and related forms of inter-process communication.  In
+most cases, you only need to know about the @code{NSConnection} class, but if
+you require additional control over distributed objects, or if you wish to
+use alternative forms of communications such as simple messaging, you may use
+the classes listed here.
+
+@table @code
+@item NSConnection
+This is the primary class used for registering and acquiring references to
+distributed objects.
+@item NSDistantObject
+When a client acquires a remote object reference through @code{NSConnection
++rootProxyForConnectionWithRegisteredName:}, the returned object is an
+instance of this class, which is a subclass of @code{NSProxy}.  Since usually
+you will just cast your reference to this to a particular protocol, you do
+not need to refer to the @code{NSDistantObject} class directly.
+@item NSPort, NSPortMessage
+Behind the scenes in distributed objects, @code{NSPort} objects handle both
+network communications and serialization/deserialization for
+sending messages to remote objects and receiving the results.  The actual
+data sent over the network is encapsulated by @code{NSPortMessage} objects,
+which consist of two ports (sender and receiver) and a body consisting of one
+or more @code{NSData} or @code{NSPort} objects.  (Data in the @code{NSData}
+must be in network byte order.)
+@item NSSocketPort, NSMessagePort
+If you want to send custom messages between processes yourself, you can use
+these classes.  @code{NSSocketPort} can communicate to processes on the same
+or remote machines.  @code{NSMessagePort} is optimized for local
+communications only.
+@item NSPortNameServer, NSSocketPortNameServer, NSMessagePortNameServer
+The @code{NSPortNameServer} class and subclasses are used behind the scenes
+by the distributed objects system to register and look up remotely-accessible
+objects.
+@end table
+
+
+@section Threads and Run Control
+
+A GNUstep program may initiate independent processing in two ways -- it can
+start up a separate process, referred to as a @i{task}, much like a @i{fork}
+in Unix, or it may spawn multiple @i{threads} within a single process.
+Threads share data, tasks do not.  Before discussing tasks and threads, we
+first describe the @i{run loop} in GNUstep programs.
+
+@subsection Run Loops and Timers
+
+@code{NSRunLoop} instances handle various utility tasks that must be performed
+repetitively in an application, such as processing input events, listening for
+distributed objects communications, firing @code{NSTimer}s, and sending
+notifications and other messages asynchronously.  In general, there is one run
+loop per thread in an application, which may always be obtained through the
+@code{+currentRunLoop} method, however unless you are using the AppKit and the
+[NSApplication] class, the run loop will not be started unless you explicitly
+send it a @code{-run} message.
+
+At any given point, a run loop operates in a single @i{mode}, usually
+@code{NSDefaultRunLoopMode}.  Other modes are used for special purposes and
+you usually need not worry about them.
+
+An @code{NSTimer} provides a way to send a message at some time in the future,
+possibly repeating every time a fixed interval has passed.  To use a timer,
+you can either create one that will automatically be added to the run loop in
+the current thread (using the @code{-addTimer:forMode:} method), or you can
+create it without adding it then add it to a run loop of your choosing later.
+
+@subsection Tasks and Pipes
+
+You can run another program as a subprocess using an @code{NSTask} instance,
+and communicate with it using @code{NSPipe} instances.  The following code
+illustrates.
+
+@example
+NSTask *task = [[NSTask alloc] init];
+NSPipe *pipe = [NSPipe pipe];
+NSFileHandle *readHandle = [pipe fileHandleForReading];
+NSData *inData = nil;
+
+[task setStandardOutput: pipe]; 
+[task setLaunchPath: [NSHomeDirectory()
+                         stringByAppendingPathComponent:@@"bin/someBinary"]];
+[task launch];
+
+while ((inData = [readHandle availableData]) && [inData length])
+  @{
+    [self processData:inData];
+  @}
+[task release];
+@end example
+
+Here, we just assume the task has exited when it has finished sending output.
+If this might not be the case, you can register an observer for
+@ref{Base Library, notifications, Notifications} named
+@code{NSTaskDidTerminateNotification}.
+
+
+@subsection Threads and Locks
+
+@i{Threads} provide a way for applications to execute multiple tasks in
+parallel.  Unlike separate processes, all threads of a program share the same
+memory space, and therefore may access the same objects and variables.
+
+GNUstep supports multithreaded applications in a convenient manner through the
+@code{NSThread} and @code{NSLock} classes and subclasses.  @code{NSThread
++detachNewThreadSelector:toTarget:withObject:} allows you to initiate a new
+thread and cause a message to be sent to an object on that thread.  The thread
+can either run in a ``one-shot'' manner or it can sit in loop mode (starting
+up its own instance of the @code{NSRunLoop} class) and communicate with other
+threads using part of the @ref{Distributed Objects, distributed objects}
+framework.  Each thread has a dictionary (accessed through
+@code{-threadDictionary} that allows for storage of thread-local variables.
+
+Because threads share data, there is the danger that examinations of and
+modifications to data performed concurrently by more than one thread will
+occur in the wrong order and produce unexpected results.  (Operations with
+immutable objects do not present this problem unless they are actually
+deallocated.)  GNUstep provides the @code{@i{NSLocking}} protocol and the
+@code{NSLock} class and subclasses to deal with this.  @code{@i{NSLocking}}
+provides two methods: @code{-lock} and @code{-unlock}.  When an operation
+needs to be performed without interference, enclose it inside of lock-unlock:
+
+@example
+NSArray *myArray;
+NSLock *myLock = [[NSLock alloc] init];
+  // ...
+[myLock lock];
+if (myArray == nil)
+  @{
+    myAray = [[NSMutableArray alloc] init];
+    [myArray addObject: someObject];
+  @}
+[myLock unlock];
+@end example
+
+This code protects '@code{myArray}' from accidentally being initialized twice
+if two separate threads happen to detect it is @code{nil} around the same
+time.  When the @code{lock} method is called, the thread doing so is said to
+@i{acquire} the lock.  No other thread may subsequently acquire the lock
+until this one has subsequently @i{relinquished} the lock, by calling
+@code{unlock}.
+
+Note that the lock object should be initialized @i{before} any thread might
+possibly need it.  Thus, you should either do it before any additional threads
+are created in the application, or you should enclose the lock creation inside
+of another, existing, lock.
+
+The @code{-lock} method in the @code{@i{NSLocking}} protocol blocks
+indefinitely until the lock is acquired.  If you would prefer to just check
+whether the lock can be acquired without committing to this, you can use
+@code{NSLock -tryLock} or @code{NSLock -lockBeforeDate:}, which return
+@code{YES} if they succeed in acquiring the lock.
+
+@code{NSRecursiveLock} is an @code{NSLock} subclass that may be locked
+multiple times by the same thread.  (The @code{NSLock} implementation will
+not allow this, causing the thread to deadlock (freeze) when it attempts to
+acquire the lock a second time.)  Each @code{lock} message must be balanced
+by a corresponding @code{unlock} before the lock is relinquished.
+
+@code{NSConditionLock} stores an @code{int} together with its lock status.
+The @code{-lockWhenCondition:(int)value} and related methods request the lock
+only if the condition is equal to that passed in.  The condition may be
+changed using the @code{unlockWithCondition:(int)value} method.  This
+mechanism is useful for, e.g., a producer-consumer situation, where the
+producer can ``tell'' the consumer that data is available by setting the
+condition appropriately when it releases the lock it acquired for adding data.
+
+Finally, the @code{NSDistributedLock} class does not adopt the
+@code{@i{NSLocking}} protocol but supports locking across processes, including
+processes on different machines, as long as they can access a common
+filesystem.
+
+If you are writing a class library and do not know whether it will be used in
+a multithreaded environment or not, and would like to avoid locking overhead
+if not, use the @code{NSThread +isMultiThreaded} method.  You can also
+register to receive @code{NSWillBecomeMultiThreadedNotification}s.  You can
+also use the @code{GSLazyLock} and @code{GSLazyRecursiveLock} classes (see
+next section) which handle this automatically.
+
+@subsection Using @code{NSConnection} to Communicate Between Threads
+
+You can use the distributed objects framework to communicate between threads.
+This can help avoid creating threads repeatedly for the same operation, for
+example.  While you can go through the full process of registering a server
+object by name as described in @ref{Distributed Objects, distributed
+objects}, a lighter weight approach is to create @code{NSConnection}s
+manually:
+
+@example
+  // code in Master...
+- startSlave
+@{
+  NSPort *master;
+  NSPort *slave;
+  NSArray *ports;
+  NSConnection *comms;
+
+  master = [NSPort port];
+  slave  = [NSPort port];
+
+  comms = [[NSConnection alloc] initWithReceivePort: master sendPort: slave];
+  [comms setRootObject: self];
+
+  portArray = [NSArray arrayWithObjects: slave, master, nil];
+
+  [NSThread detachNewThreadSelector: @@selector(newWithCommPorts:)
+                           toTarget: [Slave class]
+                         withObject: ports];
+@}
+
+  // code in Slave...
++ newWithCommPorts: (NSArray *)ports
+@{
+  NSConnection *comms;
+
+  NSPort *slave  = [ports objectAtIndex: 0];
+  NSPort *master = [ports objectAtIndex: 1];
+
+  comms = [NSConnection connectionWithReceivePort: slave sendPort: master];
+
+  // create instance and assign to 'self'
+  self = [[self alloc] init];
+
+  [(id)[comms rootProxy] setServer: self];
+  [self release];
+
+  [[NSRunLoop currentRunLoop] run];
+@}
+
+@end example
+
+
+@section GNUstep Additions
+
+The @uref{../../BaseAdditions/Reference/index.html, Base Additions} library
+consists of a number of classes, all beginning with '@code{GC}' or
+'@code{GS}', that are not specified in OpenStep or Cocoa but have been deemed
+to be of general utility by the GNUstep developers.  The library is designed
+so that it can be built and installed on a system, such as OS X, where GNUstep
+is not available but an alternate Foundation implementation is.
+
+It contains the following five categories of classes:
+
+@table @code
+@item GCxxx
+These are classes that are substituted (behind the scenes) for certain
+Foundation classes if the Base library is compiled with garbage collection
+enabled.  (See @ref{Objects, , Memory Management}.)
+
+@item GSXMLxxx
+Classes for parsing XML using DOM- or SAX-like APIs, for processing XPath
+expressions, and for performing XSLT transforms.  These are implemented over
+the @uref{http://xmlsoft.org, libxml2} C library, and using them should for
+the most part protect you from the frequent API changes in that library.
+
+@item GSHtmlXxx
+Classes for parsing HTML documents (not necessarily XHTML).
+
+@item GSMimeXxx
+Classes for handling MIME messages or HTML POST documents.
+
+@item GSLazyXxx
+Classes implementing ``lazy'' locking that do not actually attempt any locking
+unless running in a multithreaded application.  See @ref{Base Library, ,
+Threads and Run Control}.
+@end table
+
+All of these classes have excellent API reference documentation and you
+should look @uref{../../BaseAdditions/Reference/index.html, there} for
+further information.
+
+@page

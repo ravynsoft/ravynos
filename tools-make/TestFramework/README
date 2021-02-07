@@ -1,0 +1,349 @@
+
+TestFramework
+=============
+
+This testsuite is a general framework for testing the core GNUstep
+libraries. Since, in part, we are testing the very basic level of
+an Objective-C runtime, we support testing plain C or C++ as well
+as Objective-C, and aim for better flexibility, ease-of-use, and
+and portability than older frameworks such as as OCUnit.
+
+The aim of this framework is to provide a very simple, yet reasonably
+comprehensive regression test mechanism, primarily for Objective-C
+development.
+
+Please run the GNUstep testsuite (using this framework) often, when
+adding new features, fixing bugs and running on new platforms.
+
+Where working on features common to both Apple's Cocoa/iOS APIs and
+to GNUstep, please try creating and running test cases in the Apple
+environment before implementing/changing GNUstep code, so that you
+are sure the behavior is the same in both cases.
+
+
+License 
+-------
+
+The testing framework and many of the test cases in the testsuite are
+copyright by the FSF and distributed under the GPL.  However, some tests
+may not be copyright by the FSF, but retain the copyright of the original
+owner (e.g tests submitted as bug reports). You should feel free to add tests
+that are not copyright by the FSF. The copyright of these tests should
+be clearly stated, however, and they should still be distributed under the
+GPL version 3 or later.
+
+
+Running Tests
+-------------
+
+To run a testsuite, use the gnustep-tests script along with the name of
+the project testsuite (directory) you wish to test:
+
+gnustep-tests base
+
+or where a group of tests within a project is to be run:
+
+gnustep-tests base/NSArray
+
+You may run an individual test file by using the gnustep-tests script
+with the name of the Objective-C test source file:
+
+gnustep-tests mytest.m
+gnustep-tests base/NSDate/general.m
+
+Alternatively, you may run tests from within a project/directory. eg.
+
+cd base
+gnustep-tests .
+
+If you supply no arguments, the gnustep-test script will examine all the
+subdirectories of the current directory, and attempt to run tests in each.
+
+During testing, temporary files are created and removed for each test,
+but any temporary files from the most recent test in each directory
+are left (to help you debugging), as are the log files.
+The summary log of a test run is left in the tests.sum file.
+The detailed log of a test run is left in the tests.log file.
+The log from any previous run is left in oldtests.sum (and oldtests.log).
+You can run 'gnustep-tests --clean' to remove left-over temporary files
+and all log files.
+
+
+Interpreting the output
+-----------------------
+
+The summary output lists all test failures ... there should not be any.
+If a test fails then either there is a problem in the software being
+tested, or a problem in the test itself. Either way, you should try to
+fix the problem and provide a patch, or at least report it at:
+https://savannah.gnu.org/bugs/?group=gnustep"
+
+After the listing of any failures is a summary of counts of events as follows.
+
+Passed tests:
+  The number of individual tests which passed.
+
+Failed tests:
+  The number of individual tests failed ... this should really not appear.
+
+Failed sets:
+  The number of sets of tests which have been abandoned part way through
+  because of some individual test failure or an exception in support code
+  between tests.
+
+Failed builds:
+  The number of separate test files which did not even build/compile.
+
+Failed files:
+  The number of separate test files which failed while running.
+
+Dashed hopes:
+  The number of hopeful tests which did not pass, but which were not
+  expected to pass (new code being worked on etc).
+
+Skipped sets:
+  The number of sets of tests which were skipped entirely ...
+  eg. those for features which work on some platforms, but not on yours.
+
+The binary executable of the most recently executed test file in each test
+directory is left in the obj subdirectory.  So you can easily debug a failed
+test by:
+1. running gnustep-tests with the single test file as its argument.
+2. running gdb using obj/filename as an argument.
+3. setting a breakpoint at the exact test which failed, running to there,
+4. and then stepping through slowly to see exactly what is going wrong.
+
+You can use the --failfast option with gnustep-tests to tell it to abandon
+testing after the first failure ... in which case you know that the
+executable of the failed test will be available (unless the test file
+failed to even compile of course).  In this case, any core dump file will
+also be left available.
+
+As a convenience for debugging, the tests use a testStart() function in which
+they set the line number of the test, so you can stop in that function and
+upon stepping out of it the debugger will be examining the specified test.
+eg.
+(gdb) break testStart if line == 42
+(gdb) run
+
+If you use the --debug command line option, and any tests fail, then the
+debugger (gdb) will automatically be started for you with breakpoints set
+to the testStart() function of the failed tests.
+
+You can use the --debug command line option in conjunction with the --failfast
+option to have testing stopped at the first failure and the gdb debugger
+automatically launched to debug the failed testcase with a breakpoint set
+in the testStart() function for that testcase.
+
+You can also use the --developer command line option to define the TESTDEV
+pre-processor variable (to turn on developer only test cases, and to have
+all 'hopes' treated as actual 'tests' with pass/fail results).
+
+Writing Tests
+-------------
+
+The test framework may be used for testing Objective-C, ObjectiveC++, C,
+and C++ code.  The test source files must have a .m (for Objective-C and C)
+or a .mm (for Objective-C++ and C++) file extension in order to be recognised.
+
+A minimal test should be a file importing the header "Testing.h"
+(which defines global variables, functions, and standard test macros)
+and containing a main() function implementation which executes the
+actual test code.
+Groups of tests should be placed between calls to the START_SET() and
+END_SET() macros.
+
+You should look at the example test files in the
+$GNUSTEP_MAKEFILES/TestFramework directory
+for how to write test cases, and you should examine Testing.h
+in the same directory to see full documentation of the range
+of macros provided.
+
+The main workhorse of the test framework is the pass() function, which has
+a variable number of arguments ... first an integer expression, and second
+a printf style format string describing what is being tested.
+If you are calling the function directly you should use "%s,%d" at the
+start of the format string and pass __FILE__ and __LINE__ as the next two
+parameters (for consistency with the test macros).
+The function uses the global variable 'testHopeful' to decide whether a
+test which did not pass is a 'FAIL' (when testHopeful==NO) or a 'DASHED'
+hope (when testHopeful==YES).
+The function sets the global variable 'testPassed' to a BOOL reflecting
+the result of the test (YES if the test passed, NO otherwise).
+The only other functions are for occasional use to report sections of
+the testsuite as not having run for some reason.
+
+There are just four basic test macros.
+All have uppercase names beginning with 'PASS'.
+All wrap test code and a call to the pass() function in exception handlers.
+All provide file name and line number information in the description string.
+All are code blocks and do not need a semicolon terminator.
+Code fragments must be enclosed in round brackets if they contain commas.
+
+PASS		passes if an expression resulting in an integer value is
+		non-zero
+PASS_EQUAL	passes if an expression resulting in an object is identical
+		to or -isEqual: to another object (if the expected object
+                implements the -isEqualForTestcase: method, that is used
+                instead of -isEqual:)
+PASS_EXCEPTION	passes if a code fragment raises an exception
+PASS_RUNS	passes if a code fragment runs without raising an exception
+
+There is a boolean variable called 'testHopeful' which, if set to YES,
+means that tests which do not pass are considered to be 'Dashed hopes'
+rather than failed tests.  You should set this for tests of code which
+is under development (or which is testing a feature which may be
+unsupported in the package under test) ... to indicate that the test is
+not to be considered a failure if it doesn't pass.
+
+Tests are grouped together, along with any associated non-test code, between
+paired calls to the START_SET and END_SET macros. Any setting of testHopeful
+within a set is automatically restored at the end of a set, so it makes sense
+to group hopes together in a set.
+
+You can skip an entire set by calling the SKIP() macro just after the start,
+in which case the entire set will be reported as being Skipped.
+It is appropriate to skip sets of tests if you have checked and found that
+some feature you are testing is not available in the version of the package
+under test.
+
+Any uncaught exception (ie one which occurs outside a one of the four test
+macros and is not caught by an exception handler you write yourself) will
+cause the remaining tests in a set to be omitted.  In this case the set
+will be reported as Failed.
+
+You may also arrange to jump to the end of the set if a test fails by wrapping
+the test in a NEED macro.  Doing this also causes the set to be reported as
+Failed if the needed test does not pass.
+
+It's likely that you are writing new tests for a library or framework ...
+and those tests will need to link with that framework.  You should add the
+instructions for that to a GNUmakefile.preamble if the directory containing
+your tests, or a GNUmakefile.super in the directory above in the case where
+you have multiple test directories.
+eg.
+ADDITIONAL_OBJC_LIBS=-lmyLibrary
+
+When contributing to a test suite, please bracket your new test code using
+#if defined(TESTDEV)
+...
+#endif /* TESTDEV */
+so that it is only built when gnustep-tests is invoked with the --developer
+command line argument.
+This ensures that the new code won't break any existing test code when
+people are simply running the testsuite, and once you are sure that the
+new testcases are correct (and portable to all operating systems), the
+check for TESTDEV can be removed.
+
+Ignoring failed test files
+--------------------------
+
+When a test file crashes during running, or terminates with some sort of
+failure status (eg the main() function returns a non-zero value) the framework
+treats the test file as having failed ... it assumes that the program
+crashed during the tests and the tests did not complete.
+
+On rare occasions you might actually want a test program to abort this way
+and have it treated as normal completion.  In order to do this you simply
+create an additional file with the same name as the test program and a
+file extension of '.abort'.
+eg. If myTest.m is expected to crash, you would create myTest.abort to have
+that crash treated as a normal test completion.
+
+
+Advanced building
+-----------------
+
+In most cases, all you need to do is write an objective-c file as described
+above, and the test framework will build it and run it for you automatically,
+but occasionally you may need to use your own build process.
+
+Where tests must make use of external resources or ensure that other tests
+have already been run before they are run, you can make use of the gnustep
+make package facilities to control dependencies etc.
+
+Normally the tests in a directory are built run using a makefile generated in
+the directory.  This makefile uses the standard conventions of including
+GNUmakefile.preamble before test-tool.make and including GNUmakefile.postamble
+after test-tool.make, which gives you a high degree of control over how the
+tests in the directory are built.
+
+In addition to the preamble/postamble mechanism, the file ../GNUmakefile.super
+is included at the start of the generated makefile (if it exists).  This allows
+all the test directories in a suite to use a common makefile fragment to provide
+information for the whole testsuite.
+You can also use the GSTESTROOT environment variable to locate resources common
+to the whole testsuite ... it is set automatically by gnustep-test to be the
+absolute path to the topmost directory in the testsuite.
+
+Your system should not make any assumption about the order in which test
+files are built ... the test framework may build many test files in parallel
+in order to make effective use of multiple processors.  In fact the make
+program will normally build up to four tests at a time, but you can change
+that by setting the MAKEFLAGS environment variable to '-j N' where N is the
+number of simultaneous builds you want to be permitted (or you can simply
+use 'gnustep-tests --sequential' to force building of one test at a time).
+
+For total control, the framework checks to see if a 'GNUmakefile.tests' file
+exists in the directory, and if it does it uses that file as a template to
+create the GNUmakefile rather than using its own make file.
+This template makefile may use @TESTNAMES@ where it wants a list of the
+tests to be run, and @TESTRULES@ where it wants the rules to build the
+tests to be included.
+It should also use @TESTOPTS@ near the start of the file to permit necessary
+makefile control to say where the executables should be stored.
+The GNUmakefile.tests script should build each individual test when it is
+invoked with that test name as a target, and it should also build all tests
+if it is invoked without a target, and have a 'clean' target to clean up
+before and after all tests.
+
+
+Directory layout
+----------------
+
+A test suite is considered to be a collection of individual test files in
+a single directory or a collection of directories in a hierarchy.
+All directories which contain test files must also contain a TestInfo file
+to mark them as containing files used by the framework, and the root of
+the test suite is considered to be the topmost directory in the hierarchy
+which contains a TestInfo file.  The test framework sets the GSTESTROOT
+environment variable to the absolute path of the root of the test suite
+being executed, so scripts and makefiles can use this to locate resources.
+
+The test framework ignores any directory which does not contain a TestInfo
+file.  This feature prevents accidental attempts to treat a project source
+code directory as a testsuite.  This is also useful in conjunction with the
+various makefile options listed above ... the makefiles may be used to
+build resources for tests in subdirectories which are ignored by the
+test framework itself.
+
+In addition to being a marker, the TestInfo file is a shell script which 
+is sourced before execution of each test program in its directory, typically
+it is used to set up environment variables (eg. LD_LIBRARY_PATH to tell the
+program where to find dynamic libraries the tests use).
+
+
+Providing extra control and information
+---------------------------------------
+
+If a Start.sh script is present in a test directory, it will be run
+immediately before tests are performed in that directory.  It is able
+to append information to the log of the test run using the GSTESTLOG
+variable.
+
+If an End.sh file is present in a test directory, it will be run immediately
+after the tests in that directory are performed.  It is able to append
+information to the log of the test run using the GSTESTLOG variable.
+
+In both cases, you must make sure that the file does not do anything
+which would confuse the test framework at the point when it analyses the
+log ... so you need to avoid starting a line in the log with any of the
+special phrases generated to mark a passed test or a particular type of
+failure.
+
+If a Summary.sh file is present in a test directory and gnustep-tests is
+used to run just those tests in that directory, the shell script will be
+executed in order to provide the summary of the test results.  In all other
+cases the summary is done by the Summary.sh script provided in the test
+framework.
+

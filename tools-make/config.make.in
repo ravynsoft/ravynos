@@ -1,0 +1,232 @@
+#
+#   config.make.in
+#
+#   The settings required by the makefile package that are determined
+#   by configure and that depend on the platform.  There might be
+#   multiple of those files installed in different platform-specific
+#   directories.  Global settings that are common to all platforms
+#   should go in config-noarch.make.in instead.
+#
+#   Copyright (C) 1997-2006 Free Software Foundation, Inc.
+#
+#   Author:  Scott Christley <scottc@net-community.com>
+#   Author:  Ovidiu Predescu <ovidiu@net-community.com>
+#   Author:  Nicola Pero <n.pero@mi.flashnet.it>
+#
+#   This file is part of the GNUstep Makefile Package.
+#
+#   This library is free software; you can redistribute it and/or
+#   modify it under the terms of the GNU General Public License
+#   as published by the Free Software Foundation; either version 3
+#   of the License, or (at your option) any later version.
+#   
+#   You should have received a copy of the GNU General Public
+#   License along with this library; see the file COPYING.
+#   If not, write to the Free Software Foundation,
+#   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+
+MAKE_WITH_INFO_FUNCTION = @MAKE_WITH_INFO_FUNCTION@
+
+#
+# Binary and compile tools
+#
+
+# Ignore the default CC=cc used by GNU make when nothing is specified;
+# in that case, we want to use our own default CC.
+ifeq ($(origin CC), default)
+  CC       = @CC@
+endif
+
+# If CC is already set but not from the GNU make default (ie, in the
+# environment), don't override it but use the provided compiler.  This
+# makes it easier to swap C/ObjC compilers on the fly.
+ifeq ($(CC),)
+  CC       = @CC@
+endif
+
+# Ignore the default CXX=g++ used by GNU make when nothing is specified;
+# in that case, we want to use our own default CXX.
+ifeq ($(origin CXX), default)
+  CXX       = @CXX@
+endif
+
+# If CXX is already set but not from the GNU make default (ie, in the
+# environment), don't override it but use the provided compiler.  This
+# makes it easier to swap C++/ObjC++ compilers on the fly.
+ifeq ($(CXX),)
+  CXX       = @CXX@
+endif
+
+CLANG_CC = @CLANG_CC@
+
+# TODO: Because of the following, OPTFLAG usually ends up being '-g
+# -O2'.  The '-g' is fairly harmless as you can always use strip=yes
+# which will strip the object files upon installation; still, it's not
+# very elegant since -g is already added elsewhere for debug=yes, and
+# it ends up appearing twice in the gcc command-line.
+OPTFLAG  = @CFLAGS@
+OBJCFLAGS= @OBJCFLAGS@
+OBJC_LIB_FLAG = @OBJC_LIB_FLAG@
+CPPFLAGS = @CPPFLAGS@
+CPP      = @CPP@
+CCFLAGS  = @CXXFLAGS@
+
+# If the 'debug' variable is not specified on the command-line or in
+# the environment, we set it to the GNUSTEP_DEFAULT_DEBUG value.  This
+# is normally 'no,', but can be changed to 'yes' when gnustep-make is
+# configured.
+GNUSTEP_DEFAULT_DEBUG = @GNUSTEP_DEFAULT_DEBUG@
+
+ifeq ($(OBJC_LIB_FLAG),)
+  OBJC_LIB_FLAG = -lobjc
+endif
+
+EXEEXT = @EXEEXT@
+OEXT   = .@OBJEXT@
+LIBEXT = .a
+
+LN_S = @LN_S@
+
+# This is the best we can do given the current autoconf, which only
+# returns LN_S
+ifeq ($(LN_S), ln -s)
+  HAS_LN_S = yes
+else
+  HAS_LN_S = no
+endif
+
+# Special case - on mingw32, autoconf sets LN_S to 'ln -s', but then
+# that does a recursive copy (ie, cp -r).
+ifeq (@target_os@,mingw32)
+  HAS_LN_S = no
+endif
+
+# This is used to remove an existing symlink before creating a new
+# one.  We don't trust 'ln -s -f' as it's unportable so we remove
+# manually the existing symlink (if any) before creating a new one.
+# If symlinks are supported on the platform, RM_LN_S is just 'rm -f';
+# if they are not, we assume they are copies (like cp -r) and we go
+# heavy-handed with 'rm -Rf'.  Note - this code might need rechecking
+# for the case where LN_S = 'ln', if that ever happens on some
+# platforms (it shouldn't cause any problems, but checking is good).
+ifeq ($(HAS_LN_S), yes)
+  RM_LN_S = rm -f
+  LN_S_RECURSIVE = $(LN_S)
+  FRAMEWORK_VERSION_SUPPORT = yes
+else
+  RM_LN_S = rm -Rf
+  # When symlinks are not available, using LN_S (which is set to 'cp -p')
+  # doesn't work on directories.  So every time you want to do the
+  # equivalent of 'ln -s' on directories, you need to use 
+  # LN_S_RECURSIVE instead of LN_S.  
+  LN_S_RECURSIVE = cp -pR
+  FRAMEWORK_VERSION_SUPPORT = no
+endif
+
+LD = $(CC)
+LDOUT =
+LDFLAGS = @LDFLAGS@ 
+
+AR      = @AR@
+AROUT   =
+ARFLAGS = rc
+RANLIB  = @RANLIB@
+
+DLLTOOL = @DLLTOOL@
+
+# NB: These variables are defined here only so that they can be
+# overridden on the command line (so you can type 'AWK=mawk make' to
+# use a different awk for that particular run of make).  We should
+# *NOT* set them to the full path of these tools at configure time,
+# because otherwise when you change/update the tools you would need to
+# reconfigure and reinstall gnustep-make!  We can normally assume that
+# typing 'awk' and 'sed' on the command line cause the preferred awk
+# and sed programs on the system to be used.  Hardcoding the full path
+# (or the name) of the specific awk or sed program on this sytem here
+# would make it lot more inflexible.  In other words, the following
+# definitions should remain like in 'AWK = awk' on all systems.
+AWK             = awk
+SED             = sed
+YACC            = yacc
+BISON           = bison
+FLEX            = flex
+LEX             = lex
+CHOWN           = chown
+STRIP           = strip
+
+INSTALL		= @HOST_INSTALL@
+INSTALL_PROGRAM	= @INSTALL_PROGRAM@
+INSTALL_DATA	= @INSTALL_DATA@
+TAR		= @TAR@
+MAKE		= @GNUMAKE@
+MKDIRS		= $(GNUSTEP_MAKEFILES)/mkinstalldirs
+NM              = @NM@
+
+LATEX2HTML      = @LATEX2HTML@
+
+# Darwin specific flags
+CC_CPPPRECOMP  = @cc_cppprecomp@
+CC_BUNDLE      = @cc_bundle@
+CC_GNURUNTIME  = @cc_gnuruntime@
+
+# Backend bundle
+BACKEND_BUNDLE=@BACKEND_BUNDLE@
+
+#
+# Do threading stuff.
+#
+# Warning - the base library's configure.in will extract the thread
+# flags from the following line using grep/sed - so if you change the
+# following lines you *need* to update the base library configure.in
+# too.
+#
+ifndef objc_threaded
+  objc_threaded:=@objc_threaded@
+endif
+
+# Any user specified libs
+CONFIG_SYSTEM_INCL=@INCLUDES@
+CONFIG_SYSTEM_LIBS = @LIBS@
+CONFIG_SYSTEM_LIB_DIR = @LIB_DIR@
+
+#
+# Whether the GCC compiler on solaris supports the -shared flag for
+# linking libraries.
+#
+SOLARIS_SHARED = @SOLARIS_SHARED@
+
+#
+# Whether the C/ObjC/C++ compiler supports auto-dependencies
+# (generating dependencies of the object files from the include files
+# used to compile them) via -MMD -MP flags
+#
+AUTO_DEPENDENCIES = @AUTO_DEPENDENCIES@
+
+#
+# Whether the ObjC compiler supports native ObjC exceptions via
+# @try/@catch/@finally/@throw.
+#
+USE_OBJC_EXCEPTIONS = @USE_OBJC_EXCEPTIONS@
+
+#
+# Whether the ObjC compiler supports -fobjc-arc
+#
+USE_ARC = @USE_ARC@
+
+#
+# Whether the compiler is GCC with precompiled header support
+#
+GCC_WITH_PRECOMPILED_HEADERS = @GCC_WITH_PRECOMPILED_HEADERS@
+
+#
+# Whether the install_name for dynamic libraries on darwin should
+# be an absolute path.
+#
+GNUSTEP_ABSOLUTE_INSTALL_PATHS = @GNUSTEP_ABSOLUTE_INSTALL_PATHS@
+
+#
+# Whether to use -r or -Wl,-r when doing partial linking
+#
+OBJ_MERGE_CMD_FLAG = @OBJ_MERGE_CMD_FLAG@
+
+DEFAULT_OBJC_RUNTIME_ABI = @gs_cv_runtime_abi@

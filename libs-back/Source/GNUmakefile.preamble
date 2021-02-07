@@ -1,0 +1,67 @@
+#
+#  GNUmakefile.preamble
+#
+#  Copyright (C) 2002 Free Software Foundation, Inc.
+#
+#  Author: Adam Fedor <fedor@gnu.org>
+#
+#  This file is part of the GNUstep Backend.
+#
+#  This library is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU Lesser General Public
+#  License as published by the Free Software Foundation; either
+#  version 2 of the License, or (at your option) any later version.
+#
+#  This library is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
+#  Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU Lesser General Public
+#  License along with this library; see the file COPYING.LIB.
+#  If not, see <http://www.gnu.org/licenses/> or write to the 
+#  Free Software Foundation, 51 Franklin Street, Fifth Floor, 
+#  Boston, MA 02110-1301, USA.
+
+#
+# Flags dealing with compiling and linking
+#
+
+# Additional flags to pass to the preprocessor
+ADDITIONAL_CPPFLAGS += -Wall
+
+# Additional flags to pass to the Objective-C compiler
+#ADDITIONAL_OBJCFLAGS += 
+
+# Additional flags to pass to the C compiler
+ADDITIONAL_CFLAGS += 
+
+# Additional include directories the compiler should search
+ADDITIONAL_INCLUDE_DIRS += -I../Headers -I$(GNUSTEP_TARGET_DIR)
+CONFIG_SYSTEM_INCL += $(GRAPHIC_CFLAGS)
+
+# Additional LDFLAGS to pass to the linker
+#ADDITIONAL_LDFLAGS +=
+
+# Additional library directories the linker should search
+#ADDITIONAL_LIB_DIRS +=
+CONFIG_SYSTEM_LIB_DIR += $(GRAPHIC_LFLAGS)
+
+#
+# Flags for compiling as a bundle or library (if the system depends
+# on having libraries specified).
+#
+libgnustep-$(BACKEND_FULL)_BUNDLE_LIBS = $(GRAPHIC_LIBS)
+
+ifeq ($(BACKEND_BUNDLE),)
+libgnustep-$(BACKEND_FULL)_LIBRARIES_DEPEND_UPON = \
+	-lgnustep-gui -l$(FOUNDATION_LIBRARY_NAME) $(GRAPHIC_LIBS)
+endif
+
+
+#
+# The */*.m is a hack to get make_strings to pull in all the .m files in all
+# sub-directories. Even if we aren't including a directory in the build, it is
+# important that the strings files contains all strings.
+#
+MAKE_STRINGS_OPTIONS = --aggressive-match --aggressive-remove */*.m

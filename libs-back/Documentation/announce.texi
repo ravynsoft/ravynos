@@ -1,0 +1,65 @@
+@c -*- texinfo -*-
+@chapter Announcement
+@ifset TEXT-ONLY
+@include version.texi
+@end ifset
+
+This is version @value{GNUSTEP-BACK-VERSION} of the GNUstep GUI Backend
+(@samp{gnustep-back}).
+
+@section What is the GNUstep GUI Backend?
+
+It is a back-end component for the GNUstep GUI Library.  The
+implementation of the GNUstep GUI Library is designed in two parts.  The
+first part is the front-end component which is independent of platform
+and display system.  This front-end is combined with a back-end
+component which handles all of the display system dependent such as
+specific calls to the X Window System.  This design allows the GNUstep
+applications to have the "look and feel" of the underlying display
+system without any changes to the application, and the library can be
+easily ported to other display systems.
+
+The GNUstep GUI Backend is for platforms using the X-Window System or
+Window's Systems. It works via a DPS emulation engine to
+emulate the DPS functions required by the front-end system.
+
+@set ANNOUNCE-ONLY
+@include news.texi
+@clear ANNOUNCE-ONLY
+
+@section Where can you get it?  How can you compile it?
+
+@ifset GNUSTEP-BACK-FTP-MACHINE
+The gnustep-back-@value{GNUSTEP-BACK-VERSION}.tar.gz distribution
+file has been placed at @url{ftp://@value{GNUSTEP-BACK-FTP-MACHINE}/@value{GNUSTEP-BACK-FTP-DIRECTORY}}.
+
+It is accompanied by gnustep-back-@value{GNUSTEP-BACK-VERSION}.tar.gz.sig, a
+PGP signature which you can validate by putting both files in the same
+directory and using:
+
+@example
+gpg --verify gnustep-back-@value{GNUSTEP-BACK-VERSION}.tar.gz.sig
+@end example
+
+Signature has been created using the key with the following fingerprint:
+
+@example
+83AA E47C E829 A414 6EF8  3420 CA86 8D4C 9914 9679
+@end example
+@end ifset
+
+Read the INSTALL file or the GNUstep-HOWTO for installation instructions.
+
+@section Where do I send bug reports?
+
+Please log bug reports on the GNUstep project page
+@url{http://savannah.gnu.org/bugs/?group=gnustep} or send
+bug reports to @email{bug-gnustep@@gnu.org}.
+
+
+@section Obtaining GNUstep Software
+
+Check out the GNUstep web site. (@url{http://www.gnustep.org/}) and the
+GNU web site. (@url{http://www.gnu.org/})
+
+

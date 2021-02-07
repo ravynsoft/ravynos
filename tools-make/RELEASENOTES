@@ -1,0 +1,717 @@
+1 GNUstep Make Release Notes
+****************************
+
+The release notes include descriptions of API changes, behavior changes
+and other information that might help developers and users migrate to
+using a newer version of the make system.
+
+1.1 Version 2.8.0
+=================
+
+We now include better library combo and ABI detection: gnustep-make will
+now attempt to detect the optimal library combo and ABI supported by the
+installed compiler and Objective-C runtime library.  Explicit selection
+of the runtime ABI is now possible using the '--with-runtime-abi'
+configure option.
+
+   There's now full support for the gnustep-2.0 Objective-C ABI.
+
+   This release includes support for creating a Git tag and creating a
+tarball from a git tag using the 'git-tag' and 'git-dist' targets.
+
+   This release includes support for creating a Mercurial tag and
+creating a tarball from a hg tag using the 'hg-tag' and 'hg-dist'
+targets.
+
+   We have dropped legacy Rhapsody and FreeBSD-out support.
+
+1.2 Version 2.7.0
+=================
+
+When building non-flattened, the subdirectory name for
+libraries/binaries is changed for Debian compatibility (and simplicity)
+to use a directory whose name is of the form architecture/library-combo
+rather than nested directories of the form cpu/os-abi/library-combo.
+The architecture name format is a sanitised triplet cpu-os-abi (where
+previously we had cpu/os-abi).
+
+   When building non-flattened, header files are now installed in an
+architecture and library-combo dependent subdirectory in the same way
+that binary libraries are installed.  This removes an inconsistency and
+makes sense with Debian multiarch support which puts headers in an
+architecture specific subdirectory.
+
+   The long since deprecated GNUSTEP_INSTALLATION_DIR is removed.
+
+   Various bugfixes and minor improvements.
+
+1.3 Version 2.6.8
+=================
+
+Configure option '-with-library-combo=ng-gnu-gnu' to use the 'Next
+Generation' setup of the latest ObjectiveC-2 runtime and compiler
+features rather than traditional runtime.  Requires the new runtime and
+a recent clang compiler.
+
+   With the 'ng' runtime in use, you can define GS_WITH_ARC=1 at the
+start of a makefile, or in your environment, or in the command line
+arguments to have objC code built using ARC.
+
+   Command line option 'documentation=no' to suppress builds of
+documentation.
+
+   Integration of testsuite for regression/unit testing of libraries
+using the 'check' target.  In your makefile define libraryname_TEST_DIR
+= TestsSubdirectory
+
+   Various minor bugfixes, documentation spelling corrections etc.
+
+   The '-enable-strict-v2-mode' option is now, after eight years, turned
+on by default (in anticipation of finally removing backward
+compatibility with version one).  WARNING; Packagers please ensure that
+you update any old gnustep-make version one makefiles.
+
+   Garbage collection support to be removed at the next release.
+
+1.4 Version 2.6.7
+=================
+
+Improved package building support
+
+   Improved environment variable support
+
+   Improved Java support
+
+   Various minor bugfixes, documentation spelling corrections etc.
+
+1.5 Version 2.6.6
+=================
+
+Debian packagge generation support added.
+
+   Bug fixes
+
+1.6 Version 2.6.5
+=================
+
+Bugfix for non-fragile ABI test
+
+   Bugfix order if include diorectories for system includes
+
+   Bugfix equality test for prorocol testing
+
+   Added minimal test support for .c and .cc files.
+
+1.7 Version 2.6.4
+=================
+
+Test framework enhancement (extended equality tests)
+
+   Android build target
+
+1.8 Version 2.6.3
+=================
+
+Bug fixes
+
+1.9 Version 2.6.2
+=================
+
+'Added standalone filesystem layout for putting everything in'
+     one directory for easy deployment of relocatable
+
+'Other bug fixes'
+
+1.10 Version 2.6.1
+==================
+
+Bug fixes
+
+1.11 Version 2.6.0
+==================
+
+'The default filesystem layout is now the 'fhs' layout'
+     Before version 2.6.0, the default filesystem layout was the
+     'gnustep' layout.  Starting with 2.6.0, the default filesystem
+     layout has changed and is now the 'fhs' layout.  To get the old
+     default layout, configure gnustep-make using ./configure
+     -with-layout=gnustep.  Note that this change does not affect
+     gnustep-make when used with the apple-apple-apple library combo, in
+     which case the default filesystem layout remains the 'apple' one.
+
+     The change in the default filesystem layout means that the location
+     of the GNUstep.sh file in a default installation has changed from
+     /usr/GNUstep/System/Library/Makefiles/GNUstep.sh to
+     /usr/local/share/GNUstep/Makefiles/GNUstep.sh.  If you use the
+     default layout and execute the GNUstep.sh script on startup, you
+     need to change the command from
+
+          . /usr/GNUstep/System/Library/Makefiles/GNUstep.sh
+
+     to
+
+          . /usr/local/share/GNUstep/Makefiles/GNUstep.sh
+
+'The default location of the configuration file changed'
+     Before version 2.6.0, the configuration file was always by default
+     /etc/GNUstep/GNUstep.conf no matter what filesystem layout and
+     prefix were used.  Starting with version 2.6.0, that is the default
+     location of the configuration file only when installing
+     system-wide, that is with a prefix set to /, /usr or /usr/GNUstep.
+     In all other cases, the configuration file is by default located in
+     $prefix/etc/GNUstep/GNUstep.conf.
+
+     In particular, this means that if ./configure is invoked with no
+     options specified, the default location of the configuration file
+     is now /usr/local/etc/GNUstep/GNUstep.conf (and no longer
+     /etc/GNUstep/GNUstep.conf).
+
+     Please note that the -with-config-file=xxx option allow you to
+     specify whatever location for the configuration file that you want;
+     the default is only used if no such option is specified and
+     gnustep-make has to pick a reasonable default location for the
+     configuration file.
+
+     Finally, also note that the default location of the configuration
+     file on Darwin has not changed and is still
+     /Library/GNUstep/GNUstep.conf regardless of the prefix selected.
+
+'Removed the --with-system-root, --with-local-root and --with-network-root options'
+     These configure options were obsolete and are ignored by all
+     releases in the past 4 years and have now finally been removed.
+
+'Removed obsolete variables'
+     Some very old variables that were deprecated 4 years ago have now
+     been removed.  This includes xxx_RESOURCE_FILES_INSTALL_DIR in
+     resource-set.make (you should use xxx_INSTALL_DIR instead) and
+     GNUSTEP_GSWAPPS in gswapp.make (you should use GNUSTEP_WEB_APPS
+     instead).
+
+'New Test Framework'
+     GNUstep-make now includes a test framework that can be used to
+     easily write testcases for Objective-C software.  The new releases
+     of GNUstep-base and GNUstep-gui include regression test suites that
+     use this test framework.  Please check the README in the
+     TestFramework directory for more information on how it works or how
+     to use it.
+
+'objc.make is deprecated'
+     The file objc.make, which is used to compile Objective-C
+     command-line tools without a Foundation library such as GNUstep
+     base, is now deprecated.  Please use tool.make instead.
+
+'--enable-absolute-install-paths is now the default on Darwin'
+     This makes it easier to use GNUstep with the gnu-gnu-gnu library
+     combo on Apple Mac OS X.
+
+1.12 Version 2.4.0
+==================
+
+'You can enable the use of the non-fragile ivar ABI'
+     The -enable-objc-nonfragile-abi flag can be used to enable the
+     non-fragile ivar ABI for compilers (such as clang) that support it.
+
+'-Wall is now used by default unless 'make warn=no' is specified'
+     Before version 2.4.0, 'make debug=yes' would not only build object
+     files particularly suited for debugging, but would also add the
+     -Wall flag on the compiler command line when compiling
+     C/ObjC/C++/ObjC++.  Starting with 2.4.0, the -Wall flag is
+     controlled by a separate warn flag, so you can turn it on and off
+     indipendentely by doing 'make warn=yes' or 'make warn=no'.  Since
+     warn=yes is the default, the default behaviour also changed;
+     starting with 2.4.0, gnustep-make will use -Wall by default.  You
+     can turn it off by using 'make warn=no'.
+
+     A similar change occurred for Java compilations, where the flag
+     -deprecation, which used to be enabled by debug=yes, is now enabled
+     by warn=yes.  As a consequence, Java code is now compiled by
+     default with the -deprecation flag.  You can turn it off by
+     compiling with 'make warn=no'.
+
+'PACKAGE_NEEDS_CONFIGURE and JAVADOC_BUILD_ALWAYS now support 'yes' and 'no''
+     gnustep-make boolean variables traditionally use the values 'yes'
+     and 'no', with the unfortunate exception of PACKAGE_NEEDS_CONFIGURE
+     and JAVADOC_BUILD_ALWAYS which used to only recognize the values
+     'YES' and 'NO'. For consistency with everything else, starting with
+     gnustep-make 2.4.0 these two variables recognize the values 'yes'
+     and 'no' too.
+
+'Versions of GNU make older then 3.79.1 (June 2000) are no longer supported'
+     The .NOTPARALLEL pseudo-target is only available in GNU make 3.79
+     and is essential for parallel builds to work.  Starting with
+     version 2.4.0, gnustep-make recommends using GNU make 3.79.1 or
+     greater; a warning will be issued during configure if an older GNU
+     make is detected.  Older versions of GNU make are likely to work
+     (except for parallel building) but are no longer supported.  As
+     3.79.1 was released about 10 years ago, this should not be a
+     particular problem.
+
+'new internalmessages=yes option'
+     Starting with version 2.4.0, gnustep-make recognized the new
+     internalmessages=yes option (separate from messages=yes) which
+     prints all the recursive make invocations that are used.  This is
+     mostly useful to understand how gnustep-make internally works and
+     is not meant for end-users.
+
+'javadoc is run in quiet mode'
+     Starting with version 2.4.0, javadoc is by default executed with
+     the -quiet option (unless messages=yes is specified), and a
+     "Generating javadoc documentation..."  is printed instead.
+
+'new API to build subdirectories'
+     Before version 2.4.0, aggregate.make was used to step into
+     subdirectories and build them.  It did not support parallel
+     building.  Starting with version 2.4.0, two new makefile fragments
+     have been introduced: serial-subdirectories.make and
+     parallel-subdirectories.make.  These can be used to build
+     subdirectories, and encourage (indeed, force) the developer to
+     explicitly decide if the subdirectories are to be built serially,
+     or in parallel.
+
+     Using parallel-subdirectories.make often produces massively faster
+     builds (or installs or cleans) during a parallel build on a
+     multicore machine.  But if you use parallel-subdirectories.make,
+     you need to make sure the different subdirectories are completely
+     independent of each other.  The operations that are executed in
+     parallel are 'all', 'clean', 'distclean', 'check' and 'strings'.
+     'install' and 'uninstall' are still executed in serial order to
+     prevent any concurrency problems when creating (or removing) common
+     installation directories.
+
+     aggregate.make is still available if you want or need to be
+     backwards-compatible with older versions of gnustep-make.  It is
+     normally a wrapper around serial-subdirectories.make, but if you
+     specify 'GNUSTEP_USE_PARALLEL_AGGREGATE = yes' in your GNUmakefile,
+     it becomes a wrapper around parallel-subdirectories.make.
+     aggregate.make will be deprecated in 2012 and removed in 2015, but
+     for the next couple of years it might be a good solution while you
+     wait for your users to upgrade their gnustep-make installations.
+
+'each instance stores object files in its own subdirectory'
+     Before version 2.4.0, there was a single object directory where all
+     object files where stored.  In the most common case, this directory
+     was simply ./obj, so if you compiled file source.m, you'd end up
+     with ./obj/source.m.o.  Starting with version 2.4.0, different
+     instances store their object files in different subdirectories; for
+     example, if the file was compiled as part of tool ToolA, it would
+     end up in ./obj/ToolA.obj/source.m.o, while if compiled as part of
+     ToolB, it would end up in ./obj/ToolB.obj/source.m.o.  This allows
+     ToolA and ToolB to be built in parallel with no race conditions,
+     even if they share some source files.  There are a number of side
+     effects of this change.  First of all, in the unlikely event that
+     your GNUmakefile depends on the location of the object files (bad
+     idea by the way), you'll have to update it.  Second, if you are
+     reusing a single source file in multiple instances in the same
+     project, this will now be compiled multiple times instead of one
+     (on the plus side, you can fully parallelize the build by just
+     using 'make -j N', without having to change anything in your
+     GNUmakefile.  On a machine with multiple cpus/cores this can
+     massively speed up the build).  Finally, the rules to compile
+     C/ObjC/C++/ObjC++/Windres files are no longer available in the
+     Master invocation - they are only available when compiling a
+     specific instance.  It's hard to imagine a situation where this
+     change of private internals would affect any user; but people with
+     their own private gnustep-make forks or advanced extensions might
+     be affected.
+
+'the order in which instances are built is no longer guaranteed'
+     If you build more than one tool in the same GNUmakefile by listing
+     them all in TOOL_NAME as in "TOOL_NAME = ToolA ToolB', you need to
+     be aware that the way the instances are built changed in version
+     2.4.0.
+
+     This change affects applications, bundles, ctools, clibraries,
+     libraries, services, palettes, test-applications, test-libraries,
+     test-tools, tools.  It does not affect Java, resource sets or
+     documentation.  [FIXME: frameworks ?]
+
+     Before version 2.4.0, instances were always built one after the
+     other one, exactly in the order specified.  So, in the example
+     ToolA would be built before ToolB. Starting with 2.4.0, the
+     instances might be built completely in parallel if parallel
+     building is enabled.  So, the order in which they are built is no
+     longer defined and your GNUmakefile should not depend on the order
+     in which instances are specified in the GNUmakefile.  Most
+     GNUmakefiles should be unaffected because they rarely rely on the
+     order in which instances are built.  If your GNUmakefile does
+     depend on the order, you have a few options.  The preferred option
+     is to identify the code or steps that need to be executed before
+     some of the instances are built and put them into a before-all::
+     rule, which is guaranteed to be executed before anything else.  In
+     this way your serialized code is executed first, and the build can
+     continue in a completely parallel fashion afterwards.
+
+     Another option is to move your instances into separate
+     subdirectories, and use serial-subdirectories.make to build them.
+     serial-subdirectories.make will respect the order and always build
+     them in the order you require.
+
+     If you want to disable parallel building altogether, you can add
+     GNUSTEP_MAKE_PARALLEL_BUILDING=no just after including common.make
+     to prevent a specific GNUmakefile from doing a parallel build.
+
+     Please note that this does not affect the relationship between
+     instances of different types; if you include library.make before
+     tool.make, for example, the library (or libraries) will still be
+     built before the tool (or tools).  It is the order in which the
+     libraries (or tools) are built that is no longer guaranteed.
+
+'support for having source files in subdirectories'
+     Starting with version 2.4.0, it is possible to put source files in
+     subdirectories by specifiying them as in xxx_OBJC_FILES =
+     Source/Beauty.m.  This syntax does not work on versions before
+     2.4.0 so you should not use it if you want to support older
+     versions of gnustep-make; previously you had to create a subproject
+     and add a GNUmakefile in the subdirectory using subproject.make.
+     You can now spread your source files in multiple subdirectories
+     without using subprojects.
+
+'support for having header files in subdirectories'
+     Starting with version 2.4.0, it is possible to put header files in
+     subdirectories by specifiying them as in xxx_HEADER_FILES =
+     Beauty/Beauty.h.  This syntax does not work on versions before
+     2.4.0 so you should not use it if you want to support older
+     versions of gnustep-make.  When headers are put in subdirectories
+     specified in this way, corresponding subdirectories are created
+     when the header files are installed.  For example Beauty/Beauty.h
+     would be automatically installed into
+     GNUSTEP_HEADERS/HEADER_FILES_INSTALL_DIR/Beauty/Beauty.h.  To get
+     the same result in versions before 2.4.0 you would have had to
+     manually create the header installation subdirectories.
+
+'support for HEADER_FILES_DIR in framework subproject'
+     Before version 2.4.0, specifying xxx_HEADER_FILES_DIR in a
+     framework subproject would have no effect.  Starting with version
+     2.4.0, the variable is now recognized and can be used to have the
+     files in a subdirectory.  You should avoid using the variable in
+     framework subprojects if you want to support older versions of
+     gnustep-make.
+
+'info files renamed adding a gnustep- prefix'
+     To prevent conflicts with other documentation, all the gnustep-make
+     info files have been renamed adding a gnustep- prefix.  For
+     example, to access the GNUstep faq using info, you now need to type
+     'info gnustep-faq' instead of 'info faq'.  Please note that this
+     info documentation is in the core/make/Documentation subdirectory
+     and at the moment is not automatically installed unless you
+     explicitly go in that subdirectory and install it.
+
+'better cleaning for texinfo documentation'
+     When you build html documentation from texinfo files, the local
+     directory containing the html files was not being removed when
+     doing a 'make clean'.  Starting with version 2.4.0, 'make clean'
+     removes the directory too.
+
+'debug=no made the default'
+     gnustep-make now builds using debug=no by default.  As a
+     consequence, on most platforms C/Objective-C/C++ code is now built
+     by default using -g -O2 instead of just -g.  If you do not want the
+     -O2 flag, you can simply build using 'make debug=yes'.  You can
+     also use the new ./configure -enable-debug-by-default option to
+     make 'debug=yes' the default flag that is always used when
+     compiling if nothing else is specified.  If you do not want the
+     debugging symbols, remember that you can use the 'make strip=yes'
+     option to have them stripped out from all object files when they
+     are installed.
+
+'batch-compilation of Java files'
+     gnustep-make used to compile Java files one by one.  In most Java
+     compilers this is very suboptimal.  Starting from release 2.4.0,
+     gnustep-make will compile all Java files in a Java project with a
+     single Java compiler invocation.  This can significantly speed up
+     compilation of large projects.  To disable it and get the behaviour
+     of gnustep-make 2.2.0, please set the variable
+     BATCH_COMPILE_JAVA_FILES to 'no' (or the variable
+     xxx_BATCH_COMPILE_JAVA_FILES to 'no' to disable it for a single
+     instance).  Please note that if you are using the xxx_FILE_FLAGS or
+     xxx_FILE_FILTER_OUT_FLAGS functionality for Java files, which
+     allows you to customize the compilation flags for each Java file,
+     then batch compilation is automatically disabled and all files are
+     compiled separately.
+
+'library resources always installed in directory without 'lib''
+     This change only applies to libraries where LIBRARY_NAME starts
+     with 'lib' and that install resources.  Due to a bug, versions of
+     gnustep-make before 2.4.0 would in this case install the resources
+     into the wrong directory, without removing 'lib' from the library
+     name.  For example, if LIBRARY_NAME is libgnustep-base, the
+     resources would have been installed into
+     GNUSTEP_LIBRARY/Libraries/libgnustep-base/Versions/1.14/Resources/
+     instead of the correct
+     GNUSTEP_LIBRARY/Libraries/gnustep-base/Versions/1.14/Resources/.
+     In gnustep-make 2.4.0, this bug has been fixed and the library
+     name, without 'lib', will always be used in the resource
+     installation directory, no matter if LIBRARY_NAME includes 'lib' or
+     not.
+
+     If you have a makefile which is affected and you need to support
+     older versions of gnustep-make, you could remove 'lib' from the
+     LIBRARY_NAME. That should install resources in the same directory
+     on all gnustep-make versions that support library resources (ie,
+     gnustep-make >= 2.0.x).
+
+1.13 Version 2.2.0
+==================
+
+'libobjc library'
+     You can now specify a particular libobjc library to use with the
+     -with-objc-lib-flag in configure.  Make now also automatically uses
+     -lobjc_gc when using garbage collection.
+
+'parallel building'
+     Parallel building is supported now.  You can build using the normal
+     make mechanism, e.g.  'make -j 2'.
+
+'install -p'
+     gnustep-make now uses 'install -p' by default when installing
+     headers and other files.  This preserves the file timestamps and
+     can in some cases reduce spurious rebuilds triggered by
+     reinstalling headers that have not been modified.  You can use the
+     gnustep-make configure option -disable-install-p to disable this
+     behaviour and go back to always using a standard 'install'.
+
+'uninstallation of resources'
+     gnustep-make now is more careful and accurate when uninstalling
+     resources, which means that 'make uninstall' will do a better job
+     at removing directories that were created during by 'make install'.
+
+1.14 Version 2.0.7
+==================
+
+'default installation'
+     New configuration file that allows hardcore developers building
+     everything from source to specify arbitrary default installation
+     domains for the software.  You just need to copy the
+     installation-domains.conf file to the same directory as the
+     GNUstep.conf file, and edit it to customize the default
+     installation domain (Thanks to Richard for the idea).
+
+'--no-print-directory'
+     gnustep-make now uses the -no-print-directory flag when invoking
+     make recursively, so the output has changed - starting from 2.0.7
+     it should be shorter and more readable.
+
+'change to intermediate object file names'
+     gnustep-make now supports having in the same project source files
+     with the same name, but a different extension - for example file.c
+     and file.m.  The names of intermediate object files have been
+     internally changed (for example, from file.o to file.c.o) to
+     support this.
+
+'change in path checking algorithm in GNUstep.sh and GNUstep.csh'
+     GNUstep.sh and GNUstep.csh perform more careful checks for
+     duplicate paths when adding paths to PATH and other path variables.
+     Now they check each path separately before adding it, which in some
+     cases will produce smaller and less intrusive additions to PATH; in
+     particular, on FHS filesystem layout, they will never add /usr/bin
+     or other system paths if they are already there.  If you are in a
+     situation where there is an overlap between GNUstep paths and
+     system paths and you are using GNUstep.sh or GNUstep.csh, you may
+     want to check the new values of PATH, CLASSPATH, GUILE_LOAD_PATH,
+     INFOPATH, LD_LIBRARY_PATH and similar variables since they may be
+     different from the old ones.
+
+'test applications linked against gnustep-gui by default'
+     Test applications (that is, applications created using
+     test-application.make) are now linked against gnustep-gui by
+     default.
+
+1.15 Version 2.0.6
+==================
+
+'GNUSTEP_ABSOLUTE_INSTALL_PATHS'
+     Added the -enable-absolute-install-paths option to configure on
+     Darwin.  Enabling this option modifies the process for building
+     dynamic libraries so the install_name stored within a library is an
+     absolute path.  Dynamic libraries with an absolute install_name can
+     be placed in non-standard locations, but may not be moved from
+     their designated location.
+
+'default location of GNUstep.conf on BSD systems'
+     This has been changed to /etc/GNUstep/GNUstep.conf to be consistent
+     across all Unix systems (except for Apple Mac OS X where it is
+     installed in /Library/GNUstep/GNUstep.conf).  To install in a
+     different location, use the -with-config-file=PATH option, as in
+     -with-config-file=/usr/pkg/etc/GNUstep.conf.
+
+'make.info renamed to gnustep-make.info'
+     To prevent conflicts with the standard GNU 'make' info
+     documentation, the gnustep-make one has been renamed.  Now you can
+     access it as in 'info gnustep-make' instead of 'info make',
+     avoiding any conflicts and confusion.  Please note that this info
+     documentation is in the core/make/Documentation subdirectory and at
+     the moment is not automatically installed unless you explicitly go
+     in that subdirectory and install it.
+
+1.16 Version 2.0.5
+==================
+
+'default filesystem layout on apple-apple-apple'
+     The default filesystem layout when using the apple-apple-apple
+     library-combo has been changed from 'gnustep' to the new 'apple'
+     filesystem layout, and on darwin the configuration file is by
+     default installed in /Library/GNUstep/GNUstep.conf instead of
+     /etc/GNUstep/GNUstep.conf.  Using the 'gnustep' filesystem layout
+     with the apple-apple-apple library-combo did not make much sense;
+     in gnustep-make version 2.0.5 and newer, a ./configure on Apple Mac
+     OS X automatically chooses the right library-combo and filesystem
+     layout to compile and install Apple native frameworks and
+     applications.
+
+'~/GNUstep/GNUstep.sh'
+     This script used to be automatically sourced whenever the main
+     GNUstep.sh file was sourced.  In gnustep-make version 2 (starting
+     with 2.0.5) the file is no longer sourced.  If you are sourcing
+     GNUstep.sh at start-up and have a custom shell script that you'd
+     like to source in addition to GNUstep.sh, please source it in your
+     shell init script before or after sourcing GNUstep.sh.  The same
+     applies to ~/GNUstep/GNUstep.csh.
+
+'xxx_NEEDS_GUI'
+     This new variable can be used to specify that a project needs to be
+     linked against the gui library (or not).  If set to yes, the gui
+     library will be linked; if set to no, the gui library will not be
+     linked.  If unspecified, the generic variable NEEDS_GUI is used; if
+     that is also unspecified, the behaviour depends on the project type
+     (and is backwards-compatible): applications, bundles, frameworks,
+     palettes and libraries link automatically against the gui library;
+     other project types do not.  It is recommended that you set
+     xxx_NEEDS_GUI for all bundles, frameworks and libraries to clarify
+     how the linking should be done.
+
+'NEEDS_GUI'
+     This new variable can be used to specify that all projects built by
+     this GNUmakefile need to be linked against the gui library (or
+     not).  If set to yes, the gui library will be linked; if set to no,
+     the gui library will not be linked.  This behaviour can be
+     overridden for specific project targets by using the xxx_NEEDS_GUI
+     variable (see above).
+
+1.17 Version 2.0.0
+==================
+
+Version 2.0.0 is a new major release of gnustep-make which includes a
+number of major changes compared to previous 1.x releases.  Most of the
+changes are backwards compatible in the sense that old GNUmakefiles will
+work with gnustep-make version 1 or 2 when used in the same conditions
+(traditional GNUstep filesystem layout).  But GNUmakefiles might need
+updating to work with the new filesystem layout configurations that are
+allowed by gnustep-make version 2.
+
+'GNUSTEP_INSTALLATION_DIR'
+     This variable is deprecated in gnustep-make version 2; you should
+     never use it.  gnustep-make version 2 supports installation domains
+     that are mapped to filesystem locations in arbitrary ways; for this
+     reason, specifying a GNUSTEP_INSTALLATION_DIR no longer makes
+     sense.  If you need to relocate the whole installation (for
+     example, installing into /tmp to prepare a binary package) you
+     should use DESTDIR, as in 'make install DESTDIR=/tmp'.  To choose
+     an installation domain, you should use GNUSTEP_INSTALLATION_DOMAIN,
+     as in 'make install GNUSTEP_INSTALLATION_DOMAIN=LOCAL'. It's
+     particularly important that you remove any reference to
+     GNUSTEP_INSTALLATION_DIR inside your own GNUmakefiles.
+
+     If your GNUmakefiles contains references to
+     GNUSTEP_INSTALLATION_DIR (or similar), you should remove them by
+     replacing them with references to the actual logical directory into
+     which you want to install.  For example, if your GNUmakefile is
+     trying to install something into
+     GNUSTEP_INSTALLATION_DIR/Library/Libraries, you need to replace it
+     with GNUSTEP_LIBRARIES. This is important for non-GNUstep
+     filesystem layouts (where, eg, GNUSTEP_LIBRARIES should be set to
+     /usr/lib or /usr/local/lib or
+     /home/nicola/GNUstep/Library/Libraries depending on the
+     installation domain); in that case, gnustep-make will manage
+     GNUSTEP_LIBRARIES for you.  Please check the file 'filesystem' for
+     more information on the available variables.
+
+'GNUSTEP_xxx_ROOT'
+     The variables GNUSTEP_SYSTEM_ROOT, GNUSTEP_LOCAL_ROOT,
+     GNUSTEP_NETWORK_ROOT, GNUSTEP_USER_ROOT and GNUSTEP_ROOT are
+     deprecated in gnustep-make version 2 and you should never use them.
+     gnustep-make version 2 supports installation domains that are
+     mapped to filesystem locations in arbitrary ways; for this reason,
+     a variable like GNUSTEP_SYSTEM_ROOT has no longer any use.
+
+     If your GNUmakefiles contains references to GNUSTEP_SYSTEM_ROOT (or
+     similar), you should remove them by replacing them with references
+     to the actual logical directory into which you want to install.
+     For example, if your GNUmakefile is trying to install something
+     into GNUSTEP_SYSTEM_ROOT/Library/Libraries, you need to replace it
+     with GNUSTEP_SYSTEM_LIBRARIES. Please check the file 'filesystem'
+     for more information on the available variables.
+
+'gnustep-make ./configure and install options'
+     The options to configure (and make install), particularly the ones
+     to determine the filesystem layout, have been radically changed in
+     gnustep-make version 2.  If you have a building or packaging script
+     for gnustep-make, you need to make sure you replace your old
+     ./configure options with the new ones.  In particular, the
+     -with-system-root, -with-local-root and -with-network-root
+     configure options have been replaced by the more powerful
+     -with-layout configure option.  Also, configure no longer imports
+     an existing configuration file so you need to make sure that you
+     pass all the options every time.  'make install special_prefix=xxx'
+     has been replaced by 'make install DESTDIR=xxx'.
+
+'make debug=yes is now the default'
+     The default used to be 'make debug=no'; this has now been changed
+     to be 'make debug=yes'.  To get the traditional behaviour, please
+     use 'make debug=no'.
+
+'RPM support rewritten'
+     The RPM support has been rewritten so if you're using gnustep-make
+     to automatically generate RPM packages for your software, you may
+     want to review the process.  In particular, there is no longer a
+     distinction between debug and non-debug packages.
+
+'xxx_PREPROCESS_INFO_PLIST'
+     This variable is now obsolete and can be removed; gnustep-make
+     version 2 can automatically detect plists that need preprocessing.
+
+'Framework default version'
+     The default framework resource version changed from 'A' to
+     INTERFACE_VERSION (which is set, by default, to '0').
+
+'Microsoft Windows updates'
+     If you are using Microsoft Windows, you probably want to check the
+     new installation instructions and reinstall everything.
+
+'Java tools location changed'
+     Java tools are now installed into GNUSTEP_JAVA rather than in a
+     subdirectory of GNUSTEP_TOOLS.
+
+'resource-set.make install directory'
+     The variable xxx_RESOURCE_FILES_INSTALL_DIR for resource-set.make
+     has been deprecated in favour of xxx_INSTALL_DIR. For backwards
+     compatibility, you may want to set them both:
+
+     xxx_INSTALL_DIR = $(GNUSTEP_LIBRARY)/Libraries/Resources/xxx
+
+     xxx_RESOURCE_FILES_INSTALL_DIR = /Library/Libraries/Resources/xxx
+
+'INSTALL_ROOT_DIR'
+     All instances of INSTALL_ROOT_DIR in user's makefiles should be
+     replaced with DESTDIR.
+
+'GNUSTEP_FLATTENED'
+     All checks for GNUSTEP_FLATTENED should be updated to check the new
+     variable GNUSTEP_IS_FLATTENED instead, and to compare it explicitly
+     to 'yes' and 'no', and assume that " means 'yes'.
+
+'./shared_obj'
+     The ./shared_obj, ./shared_debug_obj directories and similar are no
+     longer created.  You can use ./obj instead.
+
+'library names'
+     All libraries now have the same name.
+
+'application names'
+     All applications now have the same name.
+
+   Copyright (C) 2007 Free Software Foundation
+
+   Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+

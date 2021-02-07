@@ -1,0 +1,66 @@
+@c    GNUstep AppKit Guide
+@c
+@c    Copyright (c)  2005-2006  Christopher Armstrong.
+@c
+@c    Permission is granted to copy, distribute and/or modify this document
+@c    under the terms of the GNU Free Documentation License, Version 1.2
+@c    with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+@c    A copy of the license is included in the section entitled "GNU
+@c    Free Documentation License".
+@c
+@c This documentation is provided on an "AS IS" BASIS, WITHOUT WARRANTY
+@c OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING, BUT NOT LIMITED
+@c TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+@c PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY AND USEFULNESS
+@c OF THE DOCUMENTATION IS WITH YOU (THE LICENSEE). IN NO EVENT WILL THE COPYRIGHT
+@c HOLDERS BE LIABLE FOR DAMAGES, INCLUDING ANY DIRECT, INDIRECT,
+@c SPECIAL, GENERAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF
+@c THE USE OR INABILITY TO USE THIS DOCUMENTATION (INCLUDING BUT NOT
+@c LIMITED TO LOSS OF DATA, USE, OR PROFITS; PROCUREMENT OF SUBSTITUTE
+@c GOODS AND SERVICES; OR BUSINESS INTERUPTION) HOWEVER CAUSED, EVEN
+@c IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+@c
+@c 
+@c Contributions
+@c
+@c * Thanks to Damien Pollet for some minor spelling and grammatical fixups.
+
+@node basicconcepts, gnustepapplications, Introduction, Top
+@chapter Basic Concepts
+
+Throughout this manual, we refer to a number of concepts that you will need to be familiar with. It may be useful to at least glance over this section and make sure you are familiar with the concepts presented.
+
+@table @i
+
+@item application wrapper (or appwrapper)
+GNUstep applications rarely consist of just an executable file. They often contain interface files, property lists and other resources such as images. These are bundled together with the executable into a directory known as an @dfn{application wrapper}. To launch applications, you use the @command{openapp} command.
+
+@item delegate
+
+A @dfn{delegate} usually refers to an object that handles certain events and methods on behalf of another object. The methods a delegate should implement are declared as either a formal or informal protocol. 
+
+Many of the view and control classes within the AppKit allow you to supply delegate objects to help them make decisions about different things such as what data to display, how to handle events, whether to permit the user to select things, handling drag and drop, etc.
+
+@item formal protocol
+
+A @dfn{formal protocol} is a protocol that requires you to implement all the methods that are listed within it. They are used much less often that informal protocols in the AppKit.
+
+Formal protocols are declared using their own statement, the @code{@@protocol} identifier. You implement a formal protocol by placing it's name in arrow brackets ('<' and '>') and listing its methods in your interface declaration.
+@c is it mandatory to list the methods?
+
+@item informal protocol
+Objective-C can have both @dfn{formal} and @dfn{informal} protocols. Informal protocols don't require you to implement all of their methods.
+
+Informal protocols are declared as a category of @code{NSObject}. You implement them in your own class by simply declaring and implementing the methods in the protocol you wish to. Always check the documentation of the classes that use the protocol to see which methods you should implement (usually at least one of them is mandatory).
+
+@item nib file
+@dfn{nib files} are your program's interface files, which contain definitions of all the windows, controls and menus as well as their connections to classes from your application. They have the extension @file{.gorm}.
+
+See @pxref{Interface Files} for more information.
+
+@item notification
+A @dfn{notification} is an indicator of a certain event. Notifications are objects posted to a @dfn{notification center}. Other objects may register with a notification center to receive notifications.
+
+For more information about notifications, refer to the @cite{GNUstep Base Programming Manual}.
+
+@end table

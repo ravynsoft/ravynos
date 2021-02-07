@@ -1,0 +1,46 @@
+# -*-makefile-*-
+#   gui.make
+#
+#   Makefile flags and configs to build with the gui library.
+#
+#   Copyright (C) 2001 Free Software Foundation, Inc.
+#
+#   Author:  Nicola Pero <n.pero@mi.flashnet.it>
+#   Based on code originally in the gnustep make package
+#
+#   This file is part of the GNUstep Gui Library.
+#
+#   This library is free software; you can redistribute it and/or
+#   modify it under the terms of the GNU Lesser General Public
+#   License as published by the Free Software Foundation; either
+#   version 2 of the License, or (at your option) any later version.
+#
+#   This library is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
+#   Lesser General Public License for more details.
+#
+#   You should have received a copy of the GNU Lesser General Public
+#   License along with this library; see the file COPYING.LIB.
+#   If not, see <http://www.gnu.org/licenses/> or write to the 
+#   Free Software Foundation, 51 Franklin Street, Fifth Floor, 
+#   Boston, MA 02110-1301, USA.
+
+ifeq ($(GUI_MAKE_LOADED),)
+GUI_MAKE_LOADED=yes
+
+ifeq ($(GUI_LIB),gnu)
+
+  GNUSTEP_GUI_VERSION = @GNUSTEP_GUI_VERSION@
+  GNUSTEP_GUI_MAJOR_VERSION = @GNUSTEP_GUI_MAJOR_VERSION@
+  GNUSTEP_GUI_MINOR_VERSION = @GNUSTEP_GUI_MINOR_VERSION@
+  GNUSTEP_GUI_SUBMINOR_VERSION = @GNUSTEP_GUI_SUBMINOR_VERSION@
+
+  GUI_LDFLAGS =
+  GUI_LIBS = -lgnustep-gui
+  GUI_DEFINE = -DGNU_GUI_LIBRARY=1
+  GNUSTEP_DEFINE = -DGNUSTEP
+
+endif
+
+endif # GUI_MAKE_LOADED

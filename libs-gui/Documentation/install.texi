@@ -1,0 +1,83 @@
+@c -*- texinfo -*-
+@chapter Installation
+@node Top, Introduction, (dir), (dir)
+@include version.texi
+
+
+@menu
+* Introduction::                
+* Configuration::               
+* Compilation::                 
+* Installing::                  
+* Post-Installation::           
+@end menu
+
+@node Introduction, Configuration, Top, Top
+@section Introduction
+
+This file documents the installation of the GNUstep GUI Library,
+@samp{gnustep-gui}. If you are installing this package as part of the
+GNUstep core package, read the file GNUstep-HOWTO for more complete
+instructions on how to install the entire GNUstep package (including
+this library).  GNUstep-HOWTO is located at @url{http://www.gnustep.org}
+and in the gnustep-make package (which you should install first).
+
+You must have installed gnustep-base and gnustep-make 
+before building this library. GNUstep Make version 2.0.0 or greater is
+required. GNUstep Base version 1.15.0 or greater is required.
+
+Other external libraries that you should have installed include:
+
+@itemize
+@item tiff (REQUIRED)
+@item jpeg (RECOMMENDED)
+@item png (RECOMMENDED)
+@item gif or ungif (OPTIONAL)
+@item aspell (OPTIONAL)
+@item cups (OPTIONAL)
+@item audiofile (OPTIONAL)
+@item portaudio, v19 which has several API changes previous version (OPTIONAL)
+@end itemize
+
+Read the GNUstep-HOWTO for more information.  After installing this
+library, install gnustep-back.
+
+@node Configuration, Compilation, Introduction, Top
+@section Configuration
+
+Configuration is performed by running the @file{configure} program at a
+shell prompt. You may want to use some of the optional arguments to the
+@file{configure} program. Type @code{configure --help} for a list. GNUstep
+specific options are at the end of this list (if any).
+
+@node Compilation, Installing, Configuration, Top
+@section Compilation
+
+To compile this library, type make. After this is complete, type make
+install (make sure you are the root user). Some additional options you
+can use with make are @samp{debug=yes} to make a debugging version of
+the library and @samp{shared=no} to make a static version of the
+library. See the gstep-make package for more information on these options.
+
+@node Installing, Post-Installation, Compilation, Top
+@section Installing
+
+To install, type
+
+@example
+make install
+@end example
+
+@node Post-Installation,  , Installing, Top
+@section Post Installation
+
+GNUstep gui comes with a tool called @samp{make_services} which builds
+a list of installed applications and services. This list is used to find
+services for the services menu, for instance. This tool should be run
+after a new service or application is installed in the system. Theoretically,
+a workspace application, such as GWorkspace, should do this automatically.
+But this is not done at the current time. You might consider running this
+service automatically, perhaps in a login script, to make sure the service
+and application lists are updated regularly.
+
+@bye

@@ -1,0 +1,75 @@
+{ /* -*-c-*- */
+  /* Auto-Completion key */
+  "Escape" = "complete:";
+
+  /* Function keys */
+  "UpArrow" = "moveUp:";
+  "DownArrow" = "moveDown:";
+  "LeftArrow" = "moveLeft:";
+  "RightArrow" = "moveRight:";
+
+  "Control-UpArrow" = "scrollPageUp:";
+  "Control-DownArrow" = "scrollPageDown:";
+  "Control-LeftArrow" = "moveToBeginningOfLine:";
+  "Control-RightArrow" = "moveToEndOfLine:";
+  
+  "Control-Shift-LeftArrow" = "moveToBeginningOfLineAndModifySelection:";
+  "Control-Shift-RightArrow" = "moveToEndOfLineAndModifySelection:";
+  "Control-Shift-UpArrow" = "moveToBeginningOfDocumentAndModifySelection:";
+  "Control-Shift-DownArrow" = "moveToEndOfDocumentAndModifySelection:";
+
+  "Alternate-UpArrow" = ("moveUp:", "moveWordBackward:"); 
+  "Alternate-DownArrow" = ("moveDown:", "moveWordForward:"); 
+  "Alternate-LeftArrow" = "moveWordBackward:";
+  "Alternate-RightArrow" = "moveWordForward:";
+
+  "Shift-UpArrow" = "moveUpAndModifySelection:";
+  "Shift-DownArrow" = "moveDownAndModifySelection:";
+  "Shift-LeftArrow" = "moveBackwardAndModifySelection:";
+  "Shift-RightArrow" = "moveForwardAndModifySelection:";
+
+  "Alternate-Shift-UpArrow" = ("moveUpAndModifySelection:",
+    "moveWordBackwardAndModifySelection:"); 
+  "Alternate-Shift-DownArrow" = ("moveDownAndModifySelection:",
+    "moveWordForwardAndModifySelection:"); 
+  "Alternate-Shift-LeftArrow" = "moveWordBackwardAndModifySelection:";
+  "Alternate-Shift-RightArrow" = "moveWordForwardAndModifySelection:";
+
+  "Control-Alternate-UpArrow" = ("pageUp:", "moveWordBackward:"); 
+  "Control-Alternate-DownArrow" = ("pageDown:", "moveWordForward:"); 
+
+  "Delete" = "deleteForward:";
+  "Home" = "moveToBeginningOfParagraph:"; 
+  "Control-Home" = "moveToBeginningOfDocument:";
+  "Shift-Home" = "moveToBeginningOfParagraphAndModifySelection:";
+  "End" = "moveToEndOfParagraph:"; 
+  "Control-End" = "moveToEndOfDocument:";
+  "Shift-End" = "moveToEndOfParagraphAndModifySelection:";
+  "PageUp" = "scrollPageUp:";
+  "PageDown" = "scrollPageDown:";
+  
+  "Shift-PageDown" = "pageDownAndModifySelection:";
+  "Shift-PageUp" = "pageUpAndModifySelection:";
+
+  "Control-PageDown" = "pageDown:";
+  "Control-PageUp" = "pageUp:";
+
+  "Alternate-PageDown" = "pageDown:";
+  "Alternate-PageUp" = "pageUp:";
+
+  /* Emacs Control keybindings */
+  "Control-a" = "moveToBeginningOfLine:";
+  "Control-b" = "moveBackward:";
+  "Control-d" = "deleteForward:";
+  "Control-e" = "moveToEndOfLine:";
+  "Control-f" = "moveForward:";
+  "Control-h" = "deleteBackward:";
+  "Control-l" = "centerSelectionInVisibleArea:";
+  "Control-k" = "deleteToEndOfLine:";
+  "Control-n" = "moveDown:";
+  "Control-o" = ( "insertNewlineIgnoringFieldEditor:", "moveBackward:" );
+  "Control-p" = "moveUp:";
+  "Control-t" = "transpose:";
+  "Control-v" = "pageDown:";
+  "Control-y" = "yank:";
+}

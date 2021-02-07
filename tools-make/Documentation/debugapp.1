@@ -1,0 +1,44 @@
+.\" Process this file with
+.\" groff -man -Tascii debugapp.1
+.\" 
+.TH debugapp 1 "16/12/2007" GNUstep "GNUstep System Manual"
+.SH NAME
+debugapp \- A wrapper for openapp. 
+.SH SYNOPSIS
+.BR debugapp " [" \-\-find ]
+.RB [ \-\-gdb=... ]
+.IR application " [" arguments... ]
+.P
+.SH DESCRIPTION
+.B debugapp
+is a tool that helps you start or find applications by name in debugging mode. It acts as a wrapper around
+.B openapp
+, and calls openapp with the
+.B \-\-debug
+option; we recommend using openapp directly.
+.P
+By default gdb is used as the debugger, but this can be changed with the
+.B \-\-gdb=
+option or through the
+.B GDB
+environment variable.
+.P
+The
+.I arguments
+are the arguments passed to the application.
+.P
+See the
+.B openapp
+(1) man-page for a complete description.
+.SH SEE ALSO
+openapp(1)
+.P
+.SH HISTORY
+Work on
+.B debugapp
+started in October 1997 by Ovidiu Predescu <ovidiu@net-community.com>.
+In October 2006 Nicola Pero <nicola.pero@meta-innovation.com> merged it
+with openapp.
+
+.SH AUTHORS
+This man page was written by Dennis Leeuw <dleeuw@made-it.com>.

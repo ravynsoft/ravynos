@@ -1,0 +1,62 @@
+@c -*- texinfo -*-
+@chapter Announcement
+
+@c set the vars GNUSTEP-BASE-VERSION and GNUSTEP-BASE-GCC-VERSION
+@ifclear GSTEP-BASE-MAIN
+@include version.texi
+@end ifclear
+
+The GNUstep Base Library, version @value{GNUSTEP-BASE-VERSION}, is now
+available.
+
+@section What is the GNUstep Base Library?
+
+The GNUstep Base Library is a library of general-purpose, non-graphical
+Objective C objects.  For example, it includes classes for strings,
+object collections, byte streams, typed coders, invocations,
+notifications, notification dispatchers, moments in time, network ports,
+remote object messaging support (distributed objects), and event loops.
+
+It provides functionality that aims to implement the non-graphical
+portion of the OpenStep standard (the Foundation library).  
+
+There is more information available at the GNUstep homepage
+at @samp{http://www.gnustep.org}.
+
+@set ANNOUNCE-ONLY
+@include news.texi
+@clear ANNOUNCE-ONLY
+
+@section Where can you get it?  How can you compile it?
+
+@ifset GNUSTEP-BASE-FTP-MACHINE
+The gnustep-base-@value{GNUSTEP-BASE-VERSION}.tar.gz distribution file has 
+been placed at @url{ftp://@value{GNUSTEP-BASE-FTP-MACHINE}/@value{GNUSTEP-BASE-FTP-DIRECTORY}}.
+
+It is accompanied by gnustep-base-@value{GNUSTEP-BASE-VERSION}.tar.gz.sig, a
+PGP signature which you can validate by putting both files in the same
+directory and using:
+
+@example
+gpg --verify gnustep-base-@value{GNUSTEP-BASE-VERSION}.tar.gz.sig
+@end example
+
+Signature has been created using the key with the following fingerprint:
+
+@example
+83AA E47C E829 A414 6EF8  3420 CA86 8D4C 9914 9679
+@end example
+@end ifset
+
+Read the INSTALL file or the GNUstep-HOWTO for installation instructions.
+
+@section Where do I send bug reports?
+
+Please log bug reports on the GNUstep project page
+@url{http://savannah.gnu.org/bugs/?group=gnustep} or send bug
+reports to @email{bug-gnustep@@gnu.org}.
+
+@section Obtaining GNUstep Software
+
+Check out the GNUstep web site. (@url{http://www.gnustep.org/}) and the
+GNU web site. (@url{http://www.gnu.org/})

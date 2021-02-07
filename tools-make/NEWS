@@ -1,0 +1,606 @@
+1 NEWS
+******
+
+The currently released version is '2.8.0'.
+
+1.1 Changes in version '2.8.0'
+==============================
+
+   * Better library combo and ABI detection: gnustep-make will now
+     attempt to detect the optimal library combo and ABI supported by
+     the installed compiler and Objective-C runtime library.  Explicit
+     selection of the runtime ABI is now possible using the
+     '--with-runtime-abi' configure option.
+
+   * Full support for the gnustep-2.0 Objective-C ABI.
+
+   * Support for creating a Git tag and creating a tarball from a git
+     tag using the 'git-tag' and 'git-dist' targets.
+
+   * Support for creating a Mercurial tag and creating a tarball from a
+     hg tag using the 'hg-tag' and 'hg-dist' targets.
+
+   * Dropped legacy Rhapsody and FreeBSD-out support.
+
+1.2 Changes in version '2.7.0'
+==============================
+
+Garbage collection support removed
+
+   ARC enabled by default if the ng runtime is used
+
+   Multi-architecture directory layout adjusted to be more Debian
+compatible
+
+   Framework support fixes
+
+   Various other minor bugfixes
+
+1.3 Changes in version '2.6.8'
+==============================
+
+Configure option '-with-library-combo=ng-gnu-gnu' to use the 'Next
+Generation' setup of the latest ObjectiveC-2 runtime and compiler
+features rather than traditional runtime.  Requires the new runtime and
+a recent clang compiler.
+
+   With the 'ng' runtime in use, you can define GS_WITH_ARC=1 at the
+start of a makefile, or in your environment, or in the command line
+arguments to have objC code built using ARC.
+
+   Command line option 'documentation=no' to suppress builds of
+documentation.
+
+   Integration of testsuite for regression/unit testing of libraries
+using the 'check' target.  In your makefile define libraryname_TEST_DIR
+= TestsSubdirectory
+
+   Various minor bugfixes, documentation spelling corrections etc.
+
+   The '-enable-strict-v2-mode' option is now, after eight years, turned
+on by default (in anticipation of finally removing backward
+compatibility with version one).  WARNING; Packagers please ensure that
+you update any old gnustep-make version one makefiles.
+
+   Garbage collection support to be removed at the next release.
+
+1.4 Changes in version '2.6.7'
+==============================
+
+Improved package building support
+
+   Improved environment variable support
+
+   Improved Java support
+
+   Various minor bugfixes, documentation spelling corrections etc.
+
+1.5 Changes in version '2.6.6'
+==============================
+
+Debian packaging support
+
+   Minor bugfixes.
+
+1.6 Changes in version '2.6.5'
+==============================
+
+Bugfix for non-fragile ABI test
+
+   Bugfix order if include diorectories for system includes
+
+   Bugfix equality test for prorocol testing
+
+   Added minimal test support for .c and .cc files.
+
+1.7 Changes in version '2.6.4'
+==============================
+
+Test framework extended equality tests.
+
+   Android build target
+
+1.8 Changes in version '2.6.3'
+==============================
+
+Minor bugfix release.
+
+1.9 Changes in version '2.6.2'
+==============================
+
+Added standalone filesystem layout for putting everything in one
+directory for easy deployment of relocatable.  Other bug fixes.
+
+1.10 Changes in version '2.6.1'
+===============================
+
+Bug fix release.  Most notably to fix a problem compiling GNUstep with
+clang.
+
+1.11 Changes in version '2.6.0'
+===============================
+
+   * The default filesystem layout is now the 'fhs' layout
+   * The default location of the configuration file changed when not
+     installing system-wide
+   * Removed the -with-system-root, -with-local-root and
+     -with-network-root options
+   * Removed obsolete variables (deprecated 4 years ago).
+   * A new test framework is included in the pacakge
+   * objc.make deprecated.  Use tool.make instead
+   * -enable-absolute-install-paths is now the default on Darwin
+
+1.12 Changes in version '2.4.0'
+===============================
+
+   * Add -enable-objc-nonfragile-abi flag
+   * New serial-subdirectories.make and parallel-subdirectories.make.
+   * Support for parallel building of subdirectories.
+   * Support for parallel building of different instances.
+   * Support source files in subdirectories without using a subproject.
+   * Support header files in sub-subdirectories.
+   * Batch-compile Java files (much faster).
+   * Changed default compilation flags to -O2 -g.
+   * Fixes for building documentation.
+   * Renamed info files to prevent conflicts.
+   * Updated cygwin support.
+
+1.13 Changes in version '2.2.0'
+===============================
+
+   * New -with-objc-lib-flag for specifying libobjc.
+   * Automatically uses -lobjc_gc with configured with garbage
+     collection
+   * Parallel building supported using e.g.  make -j 2
+   * Use install -p if available.
+   * make uninstall works better now.
+
+1.14 Changes in version '2.0.8'
+===============================
+
+Minor bug fix to deal with installing in different domains
+
+1.15 Changes in version '2.0.7'
+===============================
+
+   * New configuration file to set default installation
+   * gnustep-make now uses the -no-print-directory flag when invoking
+     make
+   * Files make have same name but different extensions (.c and .m)
+   * Change in path checking algorithm in GNUstep.sh and GNUstep.csh
+   * Test applications linked against gnustep-gui by default
+
+1.16 Changes in version '2.0.6'
+===============================
+
+   * Fixed some spurious rebuilds of plists, and framework headers.
+   * Added the -enable-absolute-install-paths option for Darwin systems.
+   * Install GNUstep.conf in /etc/GNUstep/GNUstep.conf on all systems.
+
+1.17 Changes in version '2.0.5'
+===============================
+
+   * Update C++ and ObjC++ support so that g++ and proper flags are
+     automatically used.
+   * Added a new filesystem layout for Apple Mac OS X and use this by
+     default on this system.
+   * NEEDS_GUI variable added to determine linking behavior against gui
+     library.
+   * New option -enable-strict-v2-mode to test for obsolete variables.
+   * ~/GNUstep/GNUstep.sh is no longer sourced.
+
+1.18 Changes in version '2.0.4'
+===============================
+
+Fixed a bug finding relative paths on Windows (during configuration).
+
+1.19 Changes in version '2.0.3'
+===============================
+
+New man pages for tools.  Better uninstallation of files Add Windows
+installer makefile for Applications.
+
+1.20 Changes in version '2.0.2'
+===============================
+
+Update license to GPLv3.
+
+1.21 Changes in version '2.0.1'
+===============================
+
+Bug fixes in filesystem layout and framework installation.
+
+1.22 Changes in version '2.0.0'
+===============================
+
+The Makefile package has had a major makover which befits a major
+version update.  The most user-visible change of this is customized
+filesystem support.  GNUstep can now be configured and installed using
+any of many typical filesystem layouts, including FHS, Mac, and the
+traditional GNUstep layout.
+
+   Due to this change a number of variable names have been changed or
+deprecated.  If you are a developer maintaining makefiles, you should
+check your makefiles for these variables.  Most notibly, variables such
+as 'GNUSTEP_SYSTEM_ROOT' no longer make any sense, as various
+directories that were previously in a traditional GNUstep system root
+directory exist accross multiple directories in disparate places in
+other filesystem layouts.
+
+   If you are a user or developer that is just installing GNUstep, read
+the 'GNUstep-HOWTO' and 'INSTALL' documents to find out new information
+about configuring and installing make.
+
+   If you are a developer, read the files 'filesystem' and 'make' for
+information on new and changed variables.  Read the 'RELEASENOTES' file
+for specific changes in this release and updates you will need to make
+with this version of make.
+
+   Various changes include (See 'RELEASENOTES' for more information):
+
+   * New configure option '--with-layout' to choose different filesystem
+     layouts.
+   * All applications use the '.app' extension even when compiled with
+     debugging or profiling.
+   * Precompiled header support added using
+     xxx_OBJC_PRECOMPILED_HEADERS.
+   * gnustep-config is a program which prints out information on the
+     GNUstep filesystem and variables (Similar to programs like
+     pkg-config).
+   * Better inline messages/help, including printing the version of
+     gnustep-make that is being used
+   * Applications can be started now just using their name (by
+     installing a wrapper in the tools directory).
+   * Versioning of Microsoft Windows DLLs implemented.
+   * Use of 'GNUSTEP_SYSTEM_ROOT' and similar variables deprecated.
+   * Implement use of GNU standard 'DESTDIR' variable.
+   * Object files are now placed in the 'obj' directory.
+   * Static and profile libraries have the same name as normal
+     libraries.
+   * Support for Admin Tools and Admin Apps directories
+   * RPM support rewritten
+   * Microsoft Windows support updated and extended
+   * Easy consistent way to link non-installed frameworks by using
+     -Lpath_to_framework/xxx.framework/$GNUSTEP_TARGET_LDIR
+   * Versioning of library resources
+   * Fixed rebuilding .plist and .palette files
+
+1.23 Changes in version '1.13.0'
+================================
+
+Debug libraries now have the same name as normal libraries (i.e.  no
+"_d" suffix).  This reduces the possiblity of multiple libraries being
+loaded into the same executable.
+
+   Added dragonfly OS to make targets.
+
+   Spaces and backslashes are no longer allowed in paths used by the
+make package (e.g.  with Windows OS). The libraries can still use native
+paths.
+
+1.24 Changes in version '1.12.0'
+================================
+
+Minor fixes.
+
+1.25 Changes in version '1.11.2'
+================================
+
+The 'GNUstep.conf' file is now viewed as the essential determination of
+the install location for GNUstep libraries, tools and other files.
+During configuration, this file is read, if it exists, to determine this
+information.  This can still be overriden with environment and command
+line options, however.  See the filesystem documentation in the GNUstep
+Make Documentation directory for more information.
+
+   You no longer need to source GNUstep.sh in order to compile GNUstep
+programs.  All that is needed is the definition of GNUSTEP_MAKEFILES.
+You should also have the GNUstep system tools directory in your path.
+
+   All netbsd systems are assumed to use ELF libraries.  Support for the
+old static libs version of netbsd was removed.
+
+   Serveral new options were added to configure to change the location
+of basic dir locations and basic configuration files.  Also, the help
+was greatly improved.  Note that -prefix=/usr/GNUstep/System no longer
+works.  Please use -prefix=/usr/GNUstep or
+-with-system-root=/usr/GNUstep/System.
+
+   A few more fixes for cygwin are included as well as Windows resource
+rules.
+
+   Support for ObjC++ has been added.  You should list the ObjC++ .mm
+files in the xxx_OBJCC_FILES variable, and put extra ObjC++ flags in
+xxx_OBJCCFLAGS or ADDITIONAL_OBJCCFLAGS.
+
+1.26 Changes in version '1.11.1'
+================================
+
+Part of the previous change was reversed.  Now libobjc is still linked
+with individual applications (as well as the base library), since some
+operating systems require this to resolve external symbols.  However,
+there is no need to recompile all applications again.
+
+   Compilation of GNUstep on cygwin was revampled and fixed due to a lot
+of work by Tom MacSween.
+
+1.27 Changes in version '1.11.0'
+================================
+
+NOTE: The libobjc library is now linked in with the base library and NOT
+with individual applications or tools (except on MingW). This requires
+that you do a complete rebuild of all libraries, tools and apps when
+switching to this new version.
+
+   * New rules for building and using DLLs were implemented.  Now gcc
+     and other tricks are used to properly export symbols, so no .def
+     file should be needed.
+
+   * The GNUsteprc file in $GNUSTEP_SYSTEM_ROOT is deprecated.  See the
+     new GNUstep.conf file (which is not installed by default).
+
+   * Psuedo-framwork support was implemented on MingW. This essentially
+     involves copying the framework to several places so it can be used
+     without links, which Windows does not really support.  There's no
+     other clean way to do it.
+
+   * Support for xxx_WINDRES_FILES on MinGW was implemented.
+
+1.28 Changes in version '1.10.0'
+================================
+
+   * a GNUsteprc file is now automatically created and installed in
+     $GNUSTEP_SYSTEM_ROOT, which sets the system-wide default for the
+     user root directory (default=~/GNUstep, which can be overriden with
+     the '--with-user-root' argument to configure, or by modifying
+     GNUsteprc after configuration.)
+   * make_services is not run by GNUstep.sh anymore.  You must run this
+     manually now (see the gnustep-gui documentation).
+   * Palettes use a plist instead of a strings format file now for the
+     palette.table file.
+   * You can use the '--enable-native-objc-exceptions' argument to
+     configure to enable use of built in objc exceptions with compilers
+     that support it.
+
+1.29 Changes in version '1.9.2'
+===============================
+
+   * Application and Bundles use the latest convention on Apple.
+   * Improve/Simplify dependency checking when making docs
+
+1.30 Changes in version '1.9.1'
+===============================
+
+   * Remove '--disable-import' option
+   * README.Darwin for darwin/MacOSX install
+   * Framework version and naming clarified.
+
+1.31 Changes in version '1.9.0'
+===============================
+
+   * Support for building in a separate build dir.
+   * Add '--enable-strip-makefiles' option to configure
+   * List of classes in a framework gets written to the plist file.
+
+1.32 Changes in version '1.8.0'
+===============================
+
+Read the NEWS file for a complete list of changes since the last stable
+release.  The major difference from 1.6.0 is that the locations of
+certain directories have changed.  Generally this will not cause a
+problem unless your GNUstep directory is shared by multiple machines
+running this and earlier (1.6.x) versions of the software.
+
+1.33 Changes in version '1.7.4'
+===============================
+
+Bug fixes.
+
+1.34 Changes in version '1.7.3'
+===============================
+
+   * Adds library combo to Headers directory if not flattened.
+   * Add Markup file (Renaissance) support.
+
+1.35 Changes in version '1.7.2'
+===============================
+
+-enable-flattened (Flat directory structure) is on by default.
+
+   * On WIN32 use HOMEPATH in preference to USERPROFILE
+   * netbsd and openbsd compile fixes.
+
+1.36 Changes in version '1.7.1'
+===============================
+
+Bug fixes.
+
+1.37 Changes in version '1.7.0'
+===============================
+
+This version contains a major change in the location of certain
+directories and installed files as detailed in the 'filesystem.texi'
+document.  When installing this version for the first time, all old
+directories and files in those directories will be moved to the new
+locations automatically.  However, you should update all GNUstep
+versions on any machine you have them installed on in order to avoid any
+incompatibilities.
+
+   Other changes:
+
+   * Support for preprocessed Info.plists.
+
+1.38 Changes in version '1.6.0'
+===============================
+
+Make now configures by default for only one system.  To compile and run
+GNUstep for multiple platforms from the same directory, use the
+configure argument -enable-multi-platform.
+
+   * Auto-build def file for DLLs
+   * Work natively on MacOSX systems.  Now use apple-apple-apple instead
+     of nx-nx-nx on OSX systems.
+   * More efficient checks for re-making a project.
+
+1.39 Changes in version '1.5.1'
+===============================
+
+   * Framework support rewritten, also supports multiple names.
+   * API change: Replace frameowork's xxx_TOOLS by xxx_COPY_INTO_DIR.
+   * Unified link commands between libraries and frameworks
+     (LIB_LINK_*).
+   * New 'make strings' target for localization support.
+   * Speed improvements.
+   * Doesn't try to build OSX bundle on GNUstep and vice versa.
+   * API change: Tools/Subproj can have resources.
+   * API change: TOOL_INSTALL_DIR.
+
+1.40 Changes in version '1.5.0'
+===============================
+
+   * Add NetBSD Elf support
+
+1.41 Changes in version '1.4.0'
+===============================
+
+   * Update Darwin/GNU gcc and Irix targets
+
+1.42 Changes in version '1.3.4'
+===============================
+
+This is a first prerelease version for 1.4.
+
+   * Use gnugc-gnu-gnu library combo for garbage collecting version.
+   * Add support for -library-combo in opentool
+   * Change GNUSTEP_PATHPREFIX_LIST to	GNUSTEP_PATHLIST
+   * Add verbosity levels.  Use make messages=yes for full messages.
+
+1.43 Changes in version '1.3.3'
+===============================
+
+   * Recognizes XXX_STANDARD_INSTALL=no to not do installation.
+   * Updated instructions for MingW/MSYS installation.
+
+1.44 Changes in version '1.3.2'
+===============================
+
+   * Instructions for building on Windows with MSYS
+   * Resolve library dependencies better on Windows
+   * Fix frameworks in RPMs and DEBs
+   * Continued reorganization.
+
+1.45 Changes in version '1.3.0'
+===============================
+
+The package has gone through an extensive reorganization to break up
+each sub-make into two separate components.  This allows for much
+simplified code and lots of code sharing between components.  As a side
+effect, it also increased the speed of the code by at least a factor of
+2.
+
+   * Force shared=yes for cygwin and mingw
+   * Bundles copy resources from subprojects.
+   * Better resource management.  Resources handled accross all project
+     types.
+   * Simplified and fixed user root location between make and base
+     libraries.
+   * Changed Apps directory to Applications
+   * Fixes for MacOSX, MingW
+
+1.46 Changes in version '1.2.1'
+===============================
+
+   * the source distribution code has been rewritten to be more general
+     and extended.  Packages built using gnustep-make now automatically
+     have handy targets building tarballs from sources or from CVS
+     imports.
+   * implemented support for auto-dependencies, which means that any
+     object file automatically depends on all the header files which
+     were used to build it.  Only works with newer compilers.
+   * implemented INSTALL_AS_USER and INSTALL_AS_GROUP.
+   * implemented a strip=yes option.
+   * various bug fixes and minor improvements.
+
+1.47 Changes in version '1.2.0'
+===============================
+
+   * The core rules and internals of gnustep-make have been
+     fundamentally redesigned and rewritten.  notably, gnustep-make now
+     works using only a single recursive sub-make invocation rather than
+     two, which makes it consistently faster and simpler in all
+     circumstances.
+   * The clean rules have been heavily optimized - they no longer use
+     recursive sub-make invocations at all and so they are really fast.
+   * Many improvements to java support.  Optimized management of nested
+     classes
+   * Better conformance to make conventions.
+   * File specific compilation flags
+   * Fixed darwin support
+   * Support for C++ files.
+   * Made use of library installation dir consistent with other
+     installation.
+   * Much improved Windows path support
+
+1.48 Changes in version '1.0.1'
+===============================
+
+   * Support for Java tools.
+   * Build GUI backend as a bundle (default).
+   * Remove backend part of LIBRARY_COMBO.
+   * Fixes to run on FreeBSD, Solaris.
+
+1.49 Changes in version '1.0.0'
+===============================
+
+   * Optimizations that in many cases more than double the speed.
+   * Added preliminary darwin support.
+   * rpm packeing improvements.
+   * Better checking for mingw and cygwin
+
+1.50 Changes in version '0.9.2'
+===============================
+
+   * HOWTO and faq files moved from core package to here
+   * Configurable GNUSTEP_LOCAL_ROOT and GNUSTEP_NETWORK_ROOT
+
+1.51 Changes in version '0.9.1'
+===============================
+
+Make has been reoganized so that it only relies on libraries and other
+things that are necessary for the Makefile package itself.  Any
+libraries wanting to add extra package information can do so by
+installing a make stub in the 'Additional' directory.  This greatly
+simplifies compilation and packaging.
+
+   * Javadoc support added.
+   * debian directory added for dpkg
+   * RPM support rewritten from scratch.
+
+1.52 Changes in version '0.9.0'
+===============================
+
+ffcall library is highly recommended for use with the GNUstep base
+library.  You need to have installed it prior to configuring the
+Makefile package.  See the INSTALL file.
+
+   * Support for automatically generating RPM spec files.
+   * Build suitable files for MacOS bundles
+   * Add option for flattened directory structure.
+   * LaText documentation support.
+   * Added support for Frameworks
+
+1.53 Noteworthy changes in version '0.6.6'
+==========================================
+
+The GNUstep system libraries are now installed in a separate system root
+directory (default /usr/GNUstep/System) rather than the GNUstep root
+directory (default /usr/GNUstep).  You can revert to the old behavior
+using a configure option '--without-system-root'.  We also recommend
+removing any previous GNUstep versions before installing the new one in
+order to avoid problems with the system finding the correct binary
+and/or library.
+
+   * Support for Windows compilation (cygwin and mingw) and DLL creation
+     and usage.
+   * Java support rewritten and extended.
+

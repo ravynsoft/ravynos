@@ -1,0 +1,10 @@
+parserDidStartDocument:
+parser:didStartMappingPrefix:toURI: gs http://gnustep.org/example#
+parser:didStartElement:namespaceURI:qualifiedName:attributes: node  node {
+    "gs:attr" = foo;
+}
+
+content
+parser:didEndElement:namespaceURI:qualifiedName: node  node
+parser:didEndMappingPrefix: gs
+parserDidEndDocument:

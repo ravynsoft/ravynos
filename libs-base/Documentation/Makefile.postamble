@@ -1,0 +1,128 @@
+#
+#  Makefile.postamble
+#
+#  Copyright (C) 1997 Free Software Foundation, Inc.
+#
+#  Author: Scott Christley <scottc@net-community.com>
+#
+#  This file is part of the GNUstep Base Library.
+#
+#  This library is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public
+#  License as published by the Free Software Foundation; either
+#  version 3 of the License, or (at your option) any later version.
+#
+#  This library is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
+#  General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public
+#  License along with this library; see the file COPYING.LIB.
+#  If not, write to the Free Software Foundation,
+#  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+
+#
+#   Makefile.postamble
+#
+#   Project specific makefile rules
+#
+#   Uncomment the targets you want.
+#   The double colons (::) are important, do not make them single colons
+#   otherwise the normal makefile rules will not be performed.
+#
+
+# Things to do before compiling
+# before-all::
+
+# After building local documentation, we need to run the special makefile
+# in the source directory to generate library reference documentation from
+# the source code.
+after-all::
+ifeq ($(HAVE_LIBXML),1)
+	$(MAKE) -C ../Source -f DocMakefile
+	$(MAKE) -C ../Tools -f DocMakefile
+endif
+
+# Things to do before installing
+# before-install::
+
+# Install the library reference documentation manually
+#
+after-install::
+ifeq ($(HAVE_LIBXML),1)
+	rm -rf $(REF_DOC_INSTALL_DIR)/Base/Reference
+	rm -rf $(REF_DOC_INSTALL_DIR)/BaseAdditions/Reference
+	rm -rf $(REF_DOC_INSTALL_DIR)/Tools/Reference
+	$(MKDIRS) $(REF_DOC_INSTALL_DIR)/Base/Reference
+	$(MKDIRS) $(REF_DOC_INSTALL_DIR)/BaseAdditions/Reference
+	$(MKDIRS) $(REF_DOC_INSTALL_DIR)/Tools/Reference
+	(cd Base; $(TAR) cf - .) | \
+	  (cd $(REF_DOC_INSTALL_DIR)/Base/Reference; $(TAR) xf -)
+	(cd BaseAdditions; $(TAR) cf - .) | \
+	  (cd $(REF_DOC_INSTALL_DIR)/BaseAdditions/Reference; $(TAR) xf -)
+	(cd BaseTools; $(TAR) cf - .) | \
+	  (cd $(REF_DOC_INSTALL_DIR)/Tools/Reference; $(TAR) xf -)
+ifneq ($(CHOWN_TO),)
+	$(CHOWN) -R $(CHOWN_TO) \
+	  $(REF_DOC_INSTALL_DIR/Base)
+	  $(REF_DOC_INSTALL_DIR/BaseAdditions)
+	  $(REF_DOC_INSTALL_DIR/Tools)
+endif
+endif
+	cp -f HtmlNav/index.html $(REF_DOC_INSTALL_DIR)/..
+	cp -f HtmlNav/style.css $(REF_DOC_INSTALL_DIR)/..
+	cp -f HtmlNav/gnustep-header14.jpg $(REF_DOC_INSTALL_DIR)/..
+	cp -f HtmlNav/masthead-bg.jpg $(REF_DOC_INSTALL_DIR)/..
+
+
+# Things to do before uninstalling
+# before-uninstall::
+
+# Things to do after uninstalling
+after-uninstall::
+	rm -rf $(REF_DOC_INSTALL_DIR)/Base/Reference
+	rm -rf $(REF_DOC_INSTALL_DIR)/BaseAdditions/Reference
+	rm -rf $(REF_DOC_INSTALL_DIR)/Tools/Reference
+	-rmdir $(REF_DOC_INSTALL_DIR)
+
+# Things to do before cleaning
+# before-clean::
+
+# Things to do after cleaning
+after-clean::
+ifeq ($(HAVE_LIBXML),1)
+	$(MAKE) -C ../Source -f DocMakefile clean
+	$(MAKE) -C ../Tools -f DocMakefile clean
+endif
+	rm -rf Base
+	rm -rf BaseAdditions
+	rm -rf BaseTools
+
+# Things to do before distcleaning
+# before-distclean::
+
+# Things to do after distcleaning
+# after-distclean::
+
+# Things to do before checking
+# before-check::
+
+# Things to do after checking
+# after-check::
+
+version.texi: ../Version
+	rm -f version.texi
+	echo '@set GNUSTEP-BASE-VERSION' $(GNUSTEP_BASE_VERSION) \
+		> version.texi
+	echo '@set GCC-VERSION $(GCC_VERSION)' \
+		>> version.texi
+	if [ $(GNUSTEP_BASE_FTP_MACHINE) ]; then \
+	  echo '@set GNUSTEP-BASE-FTP-MACHINE $(GNUSTEP_BASE_FTP_MACHINE)' \
+		>> version.texi; fi
+	if [ $(GNUSTEP_BASE_FTP_DIRECTORY) ]; then \
+	  echo '@set GNUSTEP-BASE-FTP-DIRECTORY $(GNUSTEP_BASE_FTP_DIRECTORY)' \
+		>> version.texi; fi
+
+regenerate: $(DOCUMENT_TEXT_NAME)
+	mv $(TOP_DOC_FILES) ..

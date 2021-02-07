@@ -1,0 +1,122 @@
+.\"gopen(1) man page
+.\"put together by Martin Brecher <martin@gnustep.de>
+.\"Copyright (C) 2005 Free Software Foundation, Inc.
+.\"
+.\"Process this file with
+.\"groff -man -Tascii gopen.1
+.\"
+.TH GOPEN 1 "August 2003" GNUstep "GNUstep System Manual"
+.SH NAME
+gopen \- open files
+.SH SYNOPSIS
+.B gopen
+.RB [ -a 
+.IR application ]
+.RB [ -o ]
+.RB [ -p ]
+.RB [ -NXHost 
+.IR hostname ]
+.RI [ filename ]
+.P
+.SH DESCRIPTION
+The 
+.B gopen
+command allows you open a file (or directory) as if you had double clicked
+the object's icon.
+.PP
+It is possible to specify one or more 
+.I filenames
+which are interpreted relative to the current working directory. 
+.PP
+By default, 
+.B gopen
+will open
+.I filename
+with the application currently assigned to the file's extension. But by
+specifying the 
+.B -a
+flag on the command line you can tell
+.B gopen
+to open the file with another application.
+.PP
+You can also directly print a file without (
+.B -p
+) or with (
+.B -p -o 
+) opening it.
+.PP
+As with most other GNUstep software, it is easily possible
+to attach the process to a remote window server using the
+.B -NXHost
+flag.
+.PP
+.SH OPTIONS
+.IP "\fB-a \fIapplication"
+use
+.I application
+to open
+.I filename
+.IP "\fB-o"
+open 
+.I filename
+(may be used in conjunction with
+.B -p
+).
+.IP "\fB-p"
+print
+.I filename
+instead of opening.
+.IP "\fB-NXHost \fIhostname"
+attach to remote window server on
+.I hostname
+.PP
+.SH EXAMPLES
+Open all files with a .txt extension in the current directory:
+.PP
+.I gopen *.txt
+.PP
+To open a source file in CodeEditor (instead of the current default 
+application), type:
+.PP
+.I gopen -a CodeEditor MySourceFile.m
+.PP
+To print the .plan file in your home folder, use the
+.B -p
+flag:
+.PP
+.I gopen -p ~/.plan
+.PP
+.SH BUGS
+Using the
+.B -a
+.I application
+argument,
+.B gopen
+allows you to open any kind of file with any application you want. This does,
+however, not work with applications employing the NSDocument architecture
+as they will only receive filenames whose types the application has registered.
+To circumvent this limitation, applications may advertise their ability to open
+all kinds of files through the "*" filetype.
+When
+.B gopen
+is used with only the 
+.B -a
+.I application 
+argument but no
+.I filename
+ present, the application is simply launched without opening a specific file.
+.P
+.SH SEE ALSO
+GNUstep(7), openapp(1)
+.P
+.SH HISTORY
+.B gopen
+was written November 2001.
+.P
+This manual page was first written July 2003.
+.P
+.SH AUTHORS
+.B gopen 
+was written by Gregory Casamento <greg_casamento@yahoo.com>.
+.P
+This man page was written by Martin Brecher <martin@mb-itconsulting.com>.

@@ -1,0 +1,24 @@
+<?xml version='1.0'?>
+<!DOCTYPE cTree [
+<!ELEMENT cTree (function*)>
+<!ATTLIST cTree version CDATA '1.0'>
+<!ELEMENT function (argument*,result,function*)>
+<!ATTLIST function name CDATA #REQUIRED srcLoc CDATA #IMPLIED>
+<!ELEMENT argument (#PCDATA)>
+<!ELEMENT result (#PCDATA)>
+]>
+<cTree>
+<function name='.main.dbl' srcLoc='line 1.32'>
+<argument>.main.sqr</argument>
+<argument>3</argument>
+<result>12</result>
+<function name='.main.sqr' srcLoc='line 1.17'>
+<argument>3</argument>
+<result>6</result>
+</function>
+<function name='.main.sqr' srcLoc='line 1.17'>
+<argument>6</argument>
+<result>12</result>
+</function>
+</function>
+</cTree>

@@ -1,0 +1,55 @@
+The 'Master' invocation is the first time that 'make' is run on any
+GNUmakefile in your project.
+
+During the 'Master' invocation, gnustep-make determines exactly what
+it needs to build.  For example, in the following GNUmakefile -
+
+include $(GNUSTEP_MAKEFILES)/common.make
+
+LIBRARY_NAME = libquantum
+TOOL_NAME = create destroy
+
+create_OBJC_FILES = create.m
+destroy_OBJC_FILES = destroy.m
+libquantum_OBJC_FILES = quantum.m
+
+include $(GNUSTEP_MAKEFILES)/library.make
+include $(GNUSTEP_MAKEFILES)/tool.make
+
+the 'Master' invocation will determine that we need to perform the
+following logically separated operations - 
+
+type:library name:libquantum operation:all
+type:tool    name:create     operation:all
+type:tool    name:destroy    operation:all
+
+It will then run an 'Instance' invocation for each of these tasks.
+The 'Instance' invocation is a submake invocation, with some special
+variables set telling it exactly what task it needs to perform out of
+all the available ones.  The 'Instance' invocation will read the same
+user GNUmakefile(s) as the 'Master' invocation, but will use different
+system makefiles.  The 'Instance' invocation will actually include and
+use all the code to perform the required tasks.
+
+The role of the 'Master' invocation is very limited.  It needs to
+determine which 'Instance' invocations to run, and then exit.
+
+Please note that we have a 'Master' invocation per each GNUmakefile in
+your project.  We have an 'Instance' invocation per each logically
+separate thing to do in your project.
+
+You might wonder why we use 'Instance' invocations at all, and why we
+don't actually perform each instance task inside the 'Master'
+invocation itself.  The explanation is very technical ... in a few
+words, we can't because of limitations of make.  The problem is that
+if you have multiple instances of the same type, say multiple
+libraries or multiple tools or multiple yyys (or all of them), each
+one might require an arbitrarily complex makefile code to be built,
+which should change according to the value of xxx_ANY_VARIABLE_HERE,
+where xxx is the library/tool/yyy name.  So we have the problem that
+we need to execute the same makefile code with an arbitrary value of
+xxx, for each xxx.  That is difficult to do in the same make
+invocation, because the make grammar doesn't contain any looping
+construct allowing us to include the same makefile multiple times, one
+for each value of xxx.  What we do to work around this problem is, we
+run a separate submake invocation per instance to be built.

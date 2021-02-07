@@ -1,0 +1,132 @@
+<?xml version="1.0"?>
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 1.0.3//EN" "http://www.gnustep.org/gsdoc-1_0_3.xml">
+<gsdoc base="OpenStepCompliance" up="Base">
+  <head>
+    <title>OpenStep Compliance</title>
+    <author name="Adam Fedor"></author>
+    <copy>2005 Free Software Foundation, Inc.</copy>
+  </head>
+  <body>
+    <chapter>
+      <heading>Classes</heading>
+      <p>
+      This file documents the compliance of all the classes in the
+      GNUstep Gui library. Note that the following is just a best guess
+      as to the compliance of the classes. Each class was checked to make
+      sure it implemented all the documented OpenStep methods and functions.
+      In addition, extensive testing has been performed on the GNUstep Gui
+      Library, and it is believed, to the best of our knowledge, that it
+      operates according to the OpenStep specification, with the caveat that
+      there are always bugs in any implementation and there are most likely
+      bugs in the current implementation that we are not aware of.
+      </p>
+      <p>
+      The following classes conform to the OpenStep specification:
+      </p>
+      <list>
+	<item>NSActionCell</item>
+	<item>NSBox</item>
+	<item>NSBrowser</item>
+	<item>NSBrowserCell</item>
+	<item>NSBundleAdditions</item>
+	<item>NSButton</item>
+	<item>NSButtonCell</item>
+	<item>NSCachedImageRep</item>
+	<item>NSClipView</item>
+	<item>NSColor</item>
+	<item>NSColorList</item>
+	<item>NSColorPanel</item>
+	<item>NSColorPicker</item>
+	<item>NSColorWell</item>
+	<item>NSControl</item>
+	<item>NSCursor</item>
+	<item>NSCustomImageRep</item>
+	<item>NSEvent</item>
+	<item>NSFont</item>
+	<item>NSFontManager</item>
+	<item>NSFontPanel</item>
+	<item>NSForm</item>
+	<item>NSFormCell</item>
+	<item>NSImage</item>
+	<item>NSImageRep</item>
+	<item>NSMenu</item>
+	<item>NSOpenPanel</item>
+	<item>NSPanel</item>
+	<item>NSPasteboard</item>
+	<item>NSPopUpButton</item>
+	<item>NSPrintInfo</item>
+	<item>NSPrintOperation</item>
+	<item>NSResponder</item>
+	<item>NSScreen</item>
+	<item>NSScroller</item>
+	<item>NSSelection</item>
+	<item>NSSlider</item>
+	<item>NSSliderCell</item>
+	<item>NSSpellChecker</item>
+	<item>NSSpellServer</item>
+	<item>NSSplitView</item>
+	<item>NSText</item>
+	<item>NSTextField</item>
+	<item>NSTextFieldCell</item>
+	<item>NSView</item>
+	<item>All Protocols</item>
+      </list>
+      <p>
+      The following classes are only partially implemented
+      </p>
+      <deflist>
+	<term>NSApplication</term>
+	<desc>-preventWindowOrdering not implemented.
+	In -activateIgnoringOtherApps:, the flag is ignored.</desc>
+	<term>NSBitmapImageRep</term>
+	<desc>+TIFFRepresentationOfImageRepsInArray:usingCompression:factor:
+	not fully implemented.</desc>
+	<term>NSCell</term>
+	<desc>-setFloatingPointFormat:left:right: not implemented.
+	-setEntryType: not complete.</desc>
+	<term>NSDataLinkManager</term>
+	<desc>Missing noteDocumentSaved... methods.</desc>
+	<term>NSDataLinkPanel</term>
+	<desc>-setAccessoryView: not implemented.</desc>
+	<term>NSEPSImageRep</term>
+	<desc>Cannot interpret/draw EPS images</desc>
+	<term>NSMatrix</term>
+	<desc>-setValidateSize: not implemented</desc>
+	<term>NSPageLayout</term>
+	<desc>-setAccessoryView: not implemented. Several methods have been
+	depreciated because they don't do anything useful.</desc>
+	<term>NSPrintPanel</term>
+	<desc>-setAccessoryView: not implemented. Several methods have been
+	depreciated because they don't do anything useful.</desc>
+	<term>NSPrinter</term>
+	<desc>Doesn't really get all the information it needs correctly.</desc>
+	<term>NSSavePanel</term>
+	<desc>NSCoding protocol not implemented. </desc>
+	<term>NSScrollView</term>
+	<desc>-toggleRuler: and -isRulerVisible: not
+	implemented. (Replaced by similar methods). </desc>
+	<term>NSWindow</term>
+	<desc>-resizeFlags not implemented.</desc>
+	<term>NSWorkspace</term>
+	<desc>Many methods require a proper window and workspace 
+	manager application to be used.</desc>
+	<term>Functions</term>
+	<desc>Following are not implemented: NSReadPixel, all text functions.
+	  </desc>
+      </deflist>
+      <p>
+      The following OpenStep classes are not implemented. These classes
+      are either not very useful or have been replaced by classes with
+      better APIs.
+      </p>
+      <list>
+	<item>NSCStringText (Unecessary NEXTSTEP compatibility)</item>
+	<item>NSCoderAdditions (Unecessary NEXTSTEP compatibility)</item>
+	<item>NSHelpPanel (Replaced by NSHelpManager)</item>
+	<item>NSMenuCell (Replaced by NSMenuItem[Cell])</item>
+      </list>
+
+    </chapter>
+  </body>
+</gsdoc>
+

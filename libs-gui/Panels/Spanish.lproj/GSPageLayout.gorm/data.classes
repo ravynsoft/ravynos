@@ -1,0 +1,84 @@
+{
+    "## Comment" = "Do NOT change this file, Gorm maintains it";
+    FirstResponder = {
+	Actions = (
+	    "orderFrontFontPanel:",
+	    "_pickedButton:",
+	    "pickedOrientation:",
+	    "_pickedPaper:",
+	    "pickedUnits:",
+	    "pickedButton:",
+	    "pickedPaperSize:",
+	    "okButtonClicked:",
+	    "cancelButtonClicked:",
+	    "customPaperButtonsClicked:",
+	    "paperRadioMatrixClicked:",
+	    "printerPopUpClicked:",
+	    "paperPopUpClicked:",
+	    "paperOrientationMatrixClicked:"
+	);
+	Super = NSObject;
+    };
+    GSPageLayoutController = {
+	Actions = (
+	    "okButtonClicked:",
+	    "cancelButtonClicked:",
+	    "customPaperButtonsClicked:",
+	    "paperRadioMatrixClicked:",
+	    "printerPopUpClicked:",
+	    "paperPopUpClicked:",
+	    "paperOrientationMatrixClicked:"
+	);
+	Outlets = (
+	    panel,
+	    paperRadioMatrix,
+	    standardPaperSizePopUp,
+	    customPaperSizePopUp,
+	    dimensionsTextField,
+	    paperOrientationMatrix,
+	    paperAttributesPreview,
+	    scaleTextField,
+	    customPaperTableView,
+	    customPaperWidthTextField,
+	    customPaperHeightTextField,
+	    customPaperMarginTopTextField,
+	    customPaperMarginBottomTextField,
+	    customPaperMarginRightTextField,
+	    customPaperMarginLeftTextField,
+	    customPaperPreview,
+	    summaryTableView,
+	    newCustomPaperButton,
+	    duplicateCustomPaperButton,
+	    deleteCustomPaperButton,
+	    saveCustomPaperButton,
+	    applicationImageButton,
+	    panelTitleField,
+	    customPaperNameColumn,
+	    summarySettingColumn,
+	    summaryValueColumn,
+	    printerPopUp,
+	    tabView
+	);
+	Super = NSObject;
+    };
+    GSPageLayoutMiniPageView = {
+	Actions = (
+	);
+	Outlets = (
+	    "_pageLayoutController"
+	);
+	Super = NSView;
+    };
+    NSPageLayout = {
+	Actions = (
+	    "pickedButton:",
+	    "pickedOrientation:",
+	    "pickedPaperSize:",
+	    "pickedUnits:"
+	);
+	Outlets = (
+	    "_controller"
+	);
+	Super = NSPanel;
+    };
+}

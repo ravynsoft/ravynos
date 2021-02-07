@@ -1,0 +1,118 @@
+
+
+
+
+
+
+EWMH hints
+==================================
+
+[ ] : not implemented
+[*] : partially implemented
+[+] : supported
+[-] : not applicable/ignored
+
+Root Window Properties (and Related Messages)
+[+] _NET_SUPPORTED			// WM property
+[-] _NET_CLIENT_LIST			// WM property
+[+] _NET_CLIENT_LIST_STACKING	// WM property
+[+] _NET_NUMBER_OF_DESKTOPS		// WM property
+[ ] _NET_DESKTOP_GEOMETRY		// use this in preference to X calls?
+[-] _NET_DESKTOP_VIEWPORT		// WM property
+[+] _NET_CURRENT_DESKTOP		// WM property
+[+] _NET_DESKTOP_NAMES			// WM property
+[ ] _NET_ACTIVE_WINDOW			// "main" window?
+[-] _NET_WORKAREA			// WM property
+[+] _NET_SUPPORTING_WM_CHECK		// WM property
+[-] _NET_VIRTUAL_ROOTS			// WM property
+[-] _NET_DESKTOP_LAYOUT			// Pager property
+[-] _NET_SHOWING_DESKTOP		// WM property
+    
+Other Root Window Messages
+[-] _NET_CLOSE_WINDOW			// Pager property
+[-] _NET_MOVERESIZE_WINDOW		// Pager property
+[ ] _NET_WM_MOVERESIZE			// use with in-view mouse control?
+    
+Application Window Properties
+[+] _NET_WM_NAME			// need to implement
+[ ] _NET_WM_VISIBLE_NAME		// WM property
+[+] _NET_WM_ICON_NAME			// need to implement
+[-] _NET_WM_VISIBLE_ICON_NAME		// WM property
+[+] _NET_WM_DESKTOP			// 
+[+] _NET_WM_WINDOW_TYPE			// use with or replace Window Level?
+[*] _NET_WM_STATE			// probably don't need this.
+[-] _NET_WM_ALLOWED_ACTIONS		// WM property
+[-] _NET_WM_STRUT			// GNUstep apps don't need this(?)
+[-] _NET_WM_STRUT_PARTIAL		// GNUstep apps don't need this(?)
+[-] _NET_WM_ICON_GEOMETRY		// GNUstep apps don't need this(?)
+[+] _NET_WM_ICON			// 
+[+] _NET_WM_PID				
+[-] _NET_WM_HANDLED_ICONS		// Pager property
+[ ] _NET_WM_USER_TIME			// need to figure this out...
+[+] _NET_FRAME_EXTENTS             // 
+[+] _NET_REQUEST_FRAME_EXTENTS     //
+[+] _NET_WM_STATE_SKIP_PAGER       //
+[+] _NET_WM__WINDOW_OPACITY        //
+[+] _NET_WM__WINDOW_SHADOW        //
+    
+Window Manager Protocols
+[+] _NET_WM_PING			// need to implement
+
+
+
+WindowMaker Protocols and Client Messages
+=========================================
+
+_GNUSTEP_WM_MINIATURIZE_WINDOW
+The _GNUSTEP_WM_MINIATURIZE_WINDOW protocol tells the WM that the
+application can handle miniaturization of a window. The WM can then
+send a CLientMessage of the WM_PROTOCOLS type telling the app to
+miniaturize the window.
+
+_GNUSTEP_TITLEBAR_STATE
+The app can send a ClientMessage with the _GNUSTEP_TITLEBAR_STATE
+message type, telling the WM which state the window is in, allowing the
+WM to change the appearance of the title bar appropriately. The states are:
+Key Window(0), Normal Window(1), Main Window(2). The main window is the window
+the user is currently working in. The key window is the window that has
+keyboard focus.
+
+_GNUSTEP_WM_ATTR
+Property for setting various attributes about the window. Can also
+be sent as a Client Message for faster handling.  The structure
+passed in the property request is:
+  typedef struct {
+    CARD32 flags;
+    CARD32 window_style;
+    CARD32 window_level;
+    CARD32 reserved;
+    Pixmap miniaturize_pixmap;		// pixmap for miniaturize button
+    Pixmap close_pixmap;		// pixmap for close button
+    Pixmap miniaturize_mask;		// miniaturize pixmap mask
+    Pixmap close_mask;			// close pixmap mask
+    CARD32 extra_flags;
+  } GNUstepWMAttributes;
+
+where flags is a set of ORed values:
+WindowStyle(1<<0), WindowLevel(1<<1), MiniaturizePixmap(1<<3),
+ClosePixmap(1<<4), MiniaturizeMask(1<<5), CloseMask(1<<6),
+ExtraFlags(1<<7). 
+
+If ExtraFlags is set, then extra_flags can be:
+DocumentEditedFlag(1<<0), WindowWillResizeNotificationsFlag(1<<1),
+WindowWillMoveNotificationsFlag(1<<2), NoApplicationIconFlag(1<<5),
+WMFHideOtherApplications(10), WMFHideApplication(12)
+
+Window Style can be an ORed value consiting of any one or more of
+NSBorderlessWindowMask(0), NSTitledWindowMask(1),
+NSClosableWindowMask(2), NSMiniaturizableWindowMask(4),
+NSResizableWindowMask(8), NSIconWindowMask(64) NSMiniWindowMask(128).
+
+Window Level can be one of NSDesktopWindowLevel(-1000),
+NSNormalWindowLevel(0), NSFloatingWindowLevel(3),
+NSSubmenuWindowLevel(3), NSTornOffMenuWindowLevel(3),
+NSMainMenuWindowLevel(20), NSStatusWindowLevel(21),
+NSModalPanelWindowLevel(100), NSPopUpMenuWindowLevel(101),
+NSScreenSaverWindowLevel(1000).
+
+

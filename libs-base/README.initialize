@@ -1,0 +1,18 @@
+The libobjc included with older versions of gcc does not have a thread-safe
+implementation of the initialize method. This means that any classes not
+already used may be incorrectly initialised, potentially causing strange
+behaviors and crashes.
+
+To put this into context, the runtime bug has been known for several years
+and only rarely causes problems ... the easy workaround being to ensure that
+any classes used by a new thread have already been used in the main thread
+before the new thread starts.
+
+If you are worried, please build/run GNUstep with a runtime which supports
+the +initialize method. The GNUstep stable runtime (libobjc) and clang
+runtime (libobjc2), available from the GNUstep website and subversion
+repository, should both work.
+
+To disable this warning (eg. for an application which does not suffer any
+problems caused by this runtime bug), please set the GSSilenceInitializeWarning
+user default to YES.");

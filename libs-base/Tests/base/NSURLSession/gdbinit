@@ -1,0 +1,79 @@
+def print_ivar
+  set $adr = malloc(1000)
+  call strcpy(($adr),($arg1))
+  call GSObjCPrint(($arg0),($adr))
+  call free($adr)
+end
+
+def print_ivars
+  if ((($arg0)->isa->info & 0x01) || (($arg0)->isa->info == 2816))
+    # arg0 is a pointer to an object
+    set $cls = ($arg0)->isa
+  else
+    if (($arg0)->isa->info & 0x02)
+      # arg0 is a pointer to a class
+      set $cls = ($arg0)
+    else
+      # arg0 is something else
+      set $cls = 0
+    end
+  end
+  while (($cls) != 0)
+    set $ivars = ($cls)->ivars
+    if (($ivars) != 0)
+      set $i = 0
+      while ($i < ($ivars)->count)
+        output ($ivars)->ivar_list[$i]
+        echo \n
+        set $i = $i + 1
+      end
+    end
+    set $cls = ($cls)->super_class
+  end
+end
+
+def pivi
+  print *(int *)((char *)($arg0) + ($arg1)))
+end
+
+def pivl
+  print *(long *)((char *)($arg0) + ($arg1)))
+end
+
+def pivp
+  print *(void *)((char *)($arg0) + ($arg1)))
+end
+
+def pivo
+  po *((id *)((char *)($arg0) + ($arg1)))
+end
+
+
+document print_ivars
+Recursively print the instance varibles of the object or a class given
+as first (and only) argument.
+end
+
+document pivi
+Print the value of the an instance variable as an int.
+The first argument is the pointer to the object and the second the
+offset of the instance variable.
+end
+
+document pivl
+Print the value of the an instance variable as a long.
+The first argument is the pointer to the object and the second the
+offset of the instance variable.
+end
+
+document pivp
+Print the value of the an instance variable as a pointer (to void).
+The first argument is the pointer to the object and the second the
+offset of the instance variable.
+end
+
+document pivo
+Ask an instance variable to print itself (using po).
+The first argument is the pointer to the object and the second the
+offset of the instance variable.
+end

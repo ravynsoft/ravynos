@@ -1,0 +1,57 @@
+.TH gnustep-tests 1 "29/06/2014" GNUstep "GNUstep System Manual"
+.SH NAME
+gnustep-tests \- script to run a GNUstep testsuite
+.SH SYNOPSIS
+.BR gnustep-tests " ["
+.I directory
+|
+.I test.m
+]
+.SH DESCRIPTION
+.B gnustep-tests
+runs the specified tests, or any tests found in the directory.  If no
+arguments are given, the current directory and its subdirectories are
+scanned and processed accordingly.
+.SH OPTIONS
+.TP
+.B \-\-documentation
+prints full details about the testing framework
+
+.TP
+.B \-\-clean
+deletes old logs and any leftover files
+
+.TP
+.B \-\-failfast
+stops after the first encountered test failure
+
+.TP
+.B \-\-debug
+runs any failed tests in
+.BR gdb (1)
+
+.TP
+.B \-\-developer
+treats any hopes as real tests
+
+.TP
+.B \-\-verbose
+detailed log output
+
+.TP
+.B \-\-sequential
+disables parallel building
+.SH SEE ALSO
+.BR GNUstep (7)
+.SH AUTHORS
+.B gnustep-tests
+was written by Alexander Malmberg <alexander@malmberg.org> and Richard
+Frith-Macdonald <rfm@gnu.org>.
+.PP
+This man page was written by Yavor Doganov <yavor@gnu.org>.
+.SH COPYRIGHT
+Copyright \(co 2014 Free Software Foundation, Inc.
+.PP
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.

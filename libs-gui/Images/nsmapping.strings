@@ -1,0 +1,57 @@
+/* This file maps the old OPENSTEP and GNUstep names of the images to the 
+   standard theme image names (declared as constants in GSTheme.h) or icon 
+   names (declared as constants in their related header).
+
+   For now, the GNUstep names also represent the actual file names in the 
+   Images directory. As a result, this mapping is also used to access the 
+   image files at loading time. In the long run, the images could just be 
+   renamed to the standard theme image names (without breaking compatibility 
+   with existing applications and themes, since NSImage checks this mapping 
+   in +imageNamed:).
+   
+   The format is the "strings" format and content is trivial. */
+
+/* We do not remap the application icon to GNUstep */
+/* GNUstep = NSApplicationIcon; */
+
+common_SwitchOff = GSSwitch;
+NSSwitch = GSSwitch;
+common_SwitchOn = GSSwitchSelected;
+NSHighlightedSwitch = GSSwitchSelected;
+
+common_RadioOff = GSRadio;
+NSRadioButton = GSRadio;
+common_RadioOn = GSRadioSelected;
+NSHighlightedRadioButton = GSRadioSelected;
+
+GNUstepMenuImage = GSApplicationMenuIcon;
+AppleMenuImage = GSApplicationMenuIcon;
+common_3DArrowRight = GSMenuArrow;
+NSMenuArrow = GSMenuArrow;
+common_2DCheckMark = GSMenuSelected;
+NSMenuCheckmark = GSMenuSelected;
+common_2DDash = GSMenuMixed;
+NSMenuMixedState = GSMenuMixed;
+
+common_ComboBoxEllipsis = GSComboArrow;
+NSComboArrow = GSComboArrow;
+
+/* Toolbar images */
+
+common_ToolbarCustomizeToolbarItem = NSToolbarCustomizeToolbarItemImage;
+common_Printer = NSToolbarPrint;
+common_ToolbarShowColorsItem = NSToolbarShowColors;
+common_ToolbarShowFontsItem = NSToolbarShowFonts;
+common_RecyclerEmpty = NSImageTrashEmpty;
+common_RecyclerFull = NSImageTrashFull;
+ 
+/* Misc. */
+
+common_MultipleSelection = NSImageNameMultipleDocuments;
+common_ToolbarShowColorsItem = NSColorPanel;
+common_Root_PC = NSComputer;
+GSStop = NSStopProgressTemplate;
+common_ToolbarShowFontsItem = NSFontPanel;
+common_Folder = NSFolder;
+common_Info = NSInfo;
+

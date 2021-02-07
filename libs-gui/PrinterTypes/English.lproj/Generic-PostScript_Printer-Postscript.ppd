@@ -1,0 +1,256 @@
+*PPD-Adobe: "4.3"
+*%
+*% For information on using this, and to obtain the required backend
+*% script, consult http://www.linuxprinting.org/
+*%
+*% This file is published under the GNU General Public License
+*%
+*% PPD-O-MATIC (3.0.0 or newer) generated this PPD file. It is for use with 
+*% all programs and environments which use PPD files for dealing with
+*% printer capability information. The printer must be configured with the
+*% "foomatic-rip" backend filter script of Foomatic 3.0.0 or newer. This 
+*% file and "foomatic-rip" work together to support PPD-controlled printer
+*% driver option access with arbitrary free software printer drivers and
+*% printing spoolers.
+*%
+*% To save this file on your disk, wait until the download has completed
+*% (the animation of the browser logo must stop) and then use the
+*% "Save as..." command in the "File" menu of your browser or in the 
+*% pop-up manu when you click on this document with the right mouse button.
+*% DO NOT cut and paste this file into an editor with your mouse. This can
+*% introduce additional line breaks which lead to unexpected results.
+*%
+*% You may save this file as 'Generic-PostScript_Printer-Postscript.ppd'
+*%
+*%
+*FormatVersion:	"4.3"
+*FileVersion:	"1.1"
+*LanguageVersion: English 
+*LanguageEncoding: ISOLatin1
+*PCFileName:	"POSTSCRI.PPD"
+*Manufacturer:	"Generic"
+*Product:	"(PostScript Printer)"
+*cupsVersion:	1.0
+*cupsManualCopies: True
+*cupsModelNumber:  2
+*cupsFilter:	"application/vnd.cups-postscript 0 foomatic-rip"
+*%pprRIP:        foomatic-rip other
+*ModelName:     "Generic PostScript Printer"
+*ShortNickName: "Generic P.S. Printer Postscript"
+*NickName:      "Generic PostScript Printer Foomatic/Postscript (recommended)"
+*PSVersion:	"(3010.000) 550"
+*PSVersion:	"(3010.000) 651"
+*PSVersion:	"(3010.000) 652"
+*PSVersion:	"(3010.000) 653"
+*PSVersion:	"(3010.000) 704"
+*PSVersion:	"(3010.000) 705"
+*PSVersion:	"(3010.000) 800"
+*LanguageLevel:	"3"
+*ColorDevice:	True
+*DefaultColorSpace: RGB
+*FileSystem:	False
+*Throughput:	"1"
+*LandscapeOrientation: Plus90
+*TTRasterizer:	Type42
+
+
+
+
+*VariablePaperSize: False
+
+*FoomaticIDs: Generic-PostScript_Printer Postscript
+*FoomaticRIPCommandLine: "level=%D; printf &quot;%%!\n%%%% %%%%\n%C&qu&&
+ot;; if (( $level &gt; 0 )); then if (( $level &lt; 99 )); then level=&&
+&quot; -dLanguageLevel=$level&quot;; else level=&quot;&quot;; fi; gs -&&
+q -dPARANOIDSAFER -dNOPAUSE -dBATCH -sDEVICE=pswrite$level%A%Z -sOutpu&&
+tFile=- -; else cat; fi"
+*End
+
+*OpenGroup: General/General
+
+*OpenUI *PageSize/Page Size: PickOne
+*OrderDependency: 100 AnySetup *PageSize
+*DefaultPageSize: Letter
+*PageSize Letter/US Letter: "<</PageSize[612 792]/ImagingBBox null>>setpagedevice"
+*PageSize A4/A4: "<</PageSize[595 842]/ImagingBBox null>>setpagedevice"
+*PageSize 11x17/11x17: "<</PageSize[792 1224]/ImagingBBox null>>setpagedevice"
+*PageSize A3/A3: "<</PageSize[842 1191]/ImagingBBox null>>setpagedevice"
+*PageSize A5/A5: "<</PageSize[421 595]/ImagingBBox null>>setpagedevice"
+*PageSize B5/B5 (JIS): "<</PageSize[516 729]/ImagingBBox null>>setpagedevice"
+*PageSize Env10/Envelope #10: "<</PageSize[297 684]/ImagingBBox null>>setpagedevice"
+*PageSize EnvC5/Envelope C5: "<</PageSize[459 649]/ImagingBBox null>>setpagedevice"
+*PageSize EnvDL/Envelope DL: "<</PageSize[312 624]/ImagingBBox null>>setpagedevice"
+*PageSize EnvISOB5/Envelope B5: "<</PageSize[499 709]/ImagingBBox null>>setpagedevice"
+*PageSize EnvMonarch/Envelope Monarch: "<</PageSize[279 540]/ImagingBBox null>>setpagedevice"
+*PageSize Executive/Executive: "<</PageSize[522 756]/ImagingBBox null>>setpagedevice"
+*PageSize Legal/US Legal: "<</PageSize[612 1008]/ImagingBBox null>>setpagedevice"
+*CloseUI: *PageSize
+
+*OpenUI *PageRegion: PickOne
+*OrderDependency: 100 AnySetup *PageRegion
+*DefaultPageRegion: Letter
+*PageRegion Letter/US Letter: "<</PageSize[612 792]/ImagingBBox null>>setpagedevice"
+*PageRegion A4/A4: "<</PageSize[595 842]/ImagingBBox null>>setpagedevice"
+*PageRegion 11x17/11x17: "<</PageSize[792 1224]/ImagingBBox null>>setpagedevice"
+*PageRegion A3/A3: "<</PageSize[842 1191]/ImagingBBox null>>setpagedevice"
+*PageRegion A5/A5: "<</PageSize[421 595]/ImagingBBox null>>setpagedevice"
+*PageRegion B5/B5 (JIS): "<</PageSize[516 729]/ImagingBBox null>>setpagedevice"
+*PageRegion Env10/Envelope #10: "<</PageSize[297 684]/ImagingBBox null>>setpagedevice"
+*PageRegion EnvC5/Envelope C5: "<</PageSize[459 649]/ImagingBBox null>>setpagedevice"
+*PageRegion EnvDL/Envelope DL: "<</PageSize[312 624]/ImagingBBox null>>setpagedevice"
+*PageRegion EnvISOB5/Envelope B5: "<</PageSize[499 709]/ImagingBBox null>>setpagedevice"
+*PageRegion EnvMonarch/Envelope Monarch: "<</PageSize[279 540]/ImagingBBox null>>setpagedevice"
+*PageRegion Executive/Executive: "<</PageSize[522 756]/ImagingBBox null>>setpagedevice"
+*PageRegion Legal/US Legal: "<</PageSize[612 1008]/ImagingBBox null>>setpagedevice"
+*CloseUI: *PageRegion
+
+*DefaultImageableArea: Letter
+*ImageableArea Letter/US Letter: "0 0 612 792"
+*ImageableArea A4/A4: "0 0 595 842"
+*ImageableArea 11x17/11x17: "0 0 792 1224"
+*ImageableArea A3/A3: "0 0 842 1191"
+*ImageableArea A5/A5: "0 0 421 595"
+*ImageableArea B5/B5 (JIS): "0 0 516 729"
+*ImageableArea Env10/Envelope #10: "0 0 297 684"
+*ImageableArea EnvC5/Envelope C5: "0 0 459 649"
+*ImageableArea EnvDL/Envelope DL: "0 0 312 624"
+*ImageableArea EnvISOB5/Envelope B5: "0 0 499 709"
+*ImageableArea EnvMonarch/Envelope Monarch: "0 0 279 540"
+*ImageableArea Executive/Executive: "0 0 522 756"
+*ImageableArea Legal/US Legal: "0 0 612 1008"
+
+*DefaultPaperDimension: Letter
+*PaperDimension Letter/US Letter: "612 792"
+*PaperDimension A4/A4: "595 842"
+*PaperDimension 11x17/11x17: "792 1224"
+*PaperDimension A3/A3: "842 1191"
+*PaperDimension A5/A5: "421 595"
+*PaperDimension B5/B5 (JIS): "516 729"
+*PaperDimension Env10/Envelope #10: "297 684"
+*PaperDimension EnvC5/Envelope C5: "459 649"
+*PaperDimension EnvDL/Envelope DL: "312 624"
+*PaperDimension EnvISOB5/Envelope B5: "499 709"
+*PaperDimension EnvMonarch/Envelope Monarch: "279 540"
+*PaperDimension Executive/Executive: "522 756"
+*PaperDimension Legal/US Legal: "612 1008"
+
+*OpenUI *Duplex/Double-Sided Printing: PickOne
+*FoomaticRIPOption Duplex: enum CmdLine C
+*OrderDependency: 130 AnySetup *Duplex
+*DefaultDuplex: Notcapable
+*Duplex DuplexNoTumble/Long Edge (Standard): "%% FoomaticRIPOptionSetting: Duplex=DuplexNoTumble"
+*FoomaticRIPOptionSetting Duplex=DuplexNoTumble: "&lt;&lt;/Duplex true&&
+ /Tumble false&gt;&gt;setpagedevice\n"
+*End
+*Duplex DuplexTumble/Short Edge (Flip): "%% FoomaticRIPOptionSetting: Duplex=DuplexTumble"
+*FoomaticRIPOptionSetting Duplex=DuplexTumble: "&lt;&lt;/Duplex true /&&
+Tumble true&gt;&gt;setpagedevice\n"
+*End
+*Duplex None/Off: "%% FoomaticRIPOptionSetting: Duplex=None"
+*FoomaticRIPOptionSetting Duplex=None: "&lt;&lt;/Duplex false&gt;&gt;s&&
+etpagedevice\n"
+*End
+*Duplex Notcapable/Not capable: "%% FoomaticRIPOptionSetting: Duplex=Notcapable"
+*FoomaticRIPOptionSetting Duplex=Notcapable: ""
+*CloseUI: *Duplex
+
+*OpenUI *Resolution/Resolution: PickOne
+*FoomaticRIPOption Resolution: enum CmdLine C
+*OrderDependency: 110 AnySetup *Resolution
+*DefaultResolution: default
+*Resolution default/Printer Default: "%% FoomaticRIPOptionSetting: Resolution=default"
+*FoomaticRIPOptionSetting Resolution=default: ""
+*Resolution 150x150dpi/150 DPI: "%% FoomaticRIPOptionSetting: Resolution=150x150dpi"
+*FoomaticRIPOptionSetting Resolution=150x150dpi: "&lt;&lt;/HWResolutio&&
+n[150 150]&gt;&gt;setpagedevice\n"
+*End
+*Resolution 300x300dpi/300 DPI: "%% FoomaticRIPOptionSetting: Resolution=300x300dpi"
+*FoomaticRIPOptionSetting Resolution=300x300dpi: "&lt;&lt;/HWResolutio&&
+n[300 300]&gt;&gt;setpagedevice\n"
+*End
+*Resolution 600x600dpi/600 DPI: "%% FoomaticRIPOptionSetting: Resolution=600x600dpi"
+*FoomaticRIPOptionSetting Resolution=600x600dpi: "&lt;&lt;/HWResolutio&&
+n[600 600]&gt;&gt;setpagedevice\n"
+*End
+*Resolution 1200x600dpi/1200x600 DPI: "%% FoomaticRIPOptionSetting: Resolution=1200x600dpi"
+*FoomaticRIPOptionSetting Resolution=1200x600dpi: "&lt;&lt;/HWResoluti&&
+on[1200 600]&gt;&gt;setpagedevice\n"
+*End
+*Resolution 1200x1200dpi/1200 DPI: "%% FoomaticRIPOptionSetting: Resolution=1200x1200dpi"
+*FoomaticRIPOptionSetting Resolution=1200x1200dpi: "&lt;&lt;/HWResolut&&
+ion[1200 1200]&gt;&gt;setpagedevice\n"
+*End
+*Resolution 2400x600dpi/2400x600 DPI: "%% FoomaticRIPOptionSetting: Resolution=2400x600dpi"
+*FoomaticRIPOptionSetting Resolution=2400x600dpi: "&lt;&lt;/HWResoluti&&
+on[2400 600]&gt;&gt;setpagedevice\n"
+*End
+*Resolution 2400x1200dpi/2400x1200 DPI: "%% FoomaticRIPOptionSetting: Resolution=2400x1200dpi"
+*FoomaticRIPOptionSetting Resolution=2400x1200dpi: "&lt;&lt;/HWResolut&&
+ion[2400 1200]&gt;&gt;setpagedevice\n"
+*End
+*Resolution 2400x2400dpi/2400 DPI: "%% FoomaticRIPOptionSetting: Resolution=2400x2400dpi"
+*FoomaticRIPOptionSetting Resolution=2400x2400dpi: "&lt;&lt;/HWResolut&&
+ion[2400 2400]&gt;&gt;setpagedevice\n"
+*End
+*CloseUI: *Resolution
+
+*CloseGroup: General
+
+*OpenGroup: Miscellaneous/Miscellaneous
+
+*OpenUI *PreFilter/GhostScript pre-filtering: PickOne
+*FoomaticRIPOption PreFilter: enum CmdLine D
+*OrderDependency: 100 AnySetup *PreFilter
+*DefaultPreFilter: No
+*PreFilter EmbedFonts/Embed GhostScript fonts only: "%% FoomaticRIPOptionSetting: PreFilter=EmbedFonts"
+*FoomaticRIPOptionSetting PreFilter=EmbedFonts: "99"
+*PreFilter Level1/Convert to PS level 1: "%% FoomaticRIPOptionSetting: PreFilter=Level1"
+*FoomaticRIPOptionSetting PreFilter=Level1: "1"
+*PreFilter Level2/Convert to PS level 2: "%% FoomaticRIPOptionSetting: PreFilter=Level2"
+*FoomaticRIPOptionSetting PreFilter=Level2: "2"
+*PreFilter No/No pre-filtering: "%% FoomaticRIPOptionSetting: PreFilter=No"
+*FoomaticRIPOptionSetting PreFilter=No: "0"
+*CloseUI: *PreFilter
+
+*CloseGroup: Miscellaneous
+
+
+*% Generic boilerplate PPD stuff as standard PostScript fonts and so on
+
+*DefaultFont: Courier
+*Font AvantGarde-Book: Standard "(001.006S)" Standard ROM
+*Font AvantGarde-BookOblique: Standard "(001.006S)" Standard ROM
+*Font AvantGarde-Demi: Standard "(001.007S)" Standard ROM
+*Font AvantGarde-DemiOblique: Standard "(001.007S)" Standard ROM
+*Font Bookman-Demi: Standard "(001.004S)" Standard ROM
+*Font Bookman-DemiItalic: Standard "(001.004S)" Standard ROM
+*Font Bookman-Light: Standard "(001.004S)" Standard ROM
+*Font Bookman-LightItalic: Standard "(001.004S)" Standard ROM
+*Font Courier: Standard "(002.004S)" Standard ROM
+*Font Courier-Bold: Standard "(002.004S)" Standard ROM
+*Font Courier-BoldOblique: Standard "(002.004S)" Standard ROM
+*Font Courier-Oblique: Standard "(002.004S)" Standard ROM
+*Font Helvetica: Standard "(001.006S)" Standard ROM
+*Font Helvetica-Bold: Standard "(001.007S)" Standard ROM
+*Font Helvetica-BoldOblique: Standard "(001.007S)" Standard ROM
+*Font Helvetica-Narrow: Standard "(001.006S)" Standard ROM
+*Font Helvetica-Narrow-Bold: Standard "(001.007S)" Standard ROM
+*Font Helvetica-Narrow-BoldOblique: Standard "(001.007S)" Standard ROM
+*Font Helvetica-Narrow-Oblique: Standard "(001.006S)" Standard ROM
+*Font Helvetica-Oblique: Standard "(001.006S)" Standard ROM
+*Font NewCenturySchlbk-Bold: Standard "(001.009S)" Standard ROM
+*Font NewCenturySchlbk-BoldItalic: Standard "(001.007S)" Standard ROM
+*Font NewCenturySchlbk-Italic: Standard "(001.006S)" Standard ROM
+*Font NewCenturySchlbk-Roman: Standard "(001.007S)" Standard ROM
+*Font Palatino-Bold: Standard "(001.005S)" Standard ROM
+*Font Palatino-BoldItalic: Standard "(001.005S)" Standard ROM
+*Font Palatino-Italic: Standard "(001.005S)" Standard ROM
+*Font Palatino-Roman: Standard "(001.005S)" Standard ROM
+*Font Symbol: Special "(001.007S)" Special ROM
+*Font Times-Bold: Standard "(001.007S)" Standard ROM
+*Font Times-BoldItalic: Standard "(001.009S)" Standard ROM
+*Font Times-Italic: Standard "(001.007S)" Standard ROM
+*Font Times-Roman: Standard "(001.007S)" Standard ROM
+*Font ZapfChancery-MediumItalic: Standard "(001.007S)" Standard ROM
+*Font ZapfDingbats: Special "(001.004S)" Standard ROM
+

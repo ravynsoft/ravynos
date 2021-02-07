@@ -1,0 +1,1002 @@
+@paragraphindent 0
+
+@node Classes
+@chapter Writing New Classes
+@cindex writing new classes
+
+
+Objective-C class definitions are always divided into two parts: an
+@i{interface} and an @i{implementation}.  This division mirrors the common C
+library division into a header file with function declarations, which is
+distributed to all users of a library, and a source file with the
+implementations, which is only used to compile the library and is generally
+not distributed to users.  A class interface declares instance variables,
+methods and the superclass name, while the implementation file holds the
+operational code that implements those methods.  Typically the interface and
+implementation are held in separate files, using the @code{.h} and @code{.m}
+extensions, respectively. They may, however, be merged into one file, and a
+single file may implement many classes.
+
+
+@section Interface 
+@cindex interface
+
+The interface is included in the source using @code{#include}:
+
+@example
+#include "SomeClass.h"
+@end example
+
+To ensure that a Header file is included only once, it is usual to
+protect it with pre-compiler defines:
+
+@example
+#ifndef _MY_CLASS_H_INCLUDED
+#define _MY_CLASS_H_INCLUDED
+
+/* HEADER FILE */
+#endif
+@end example
+
+This is the standard C technique to protect header files from being included
+more than once.  A cleaner alternative, introduced in Objective-C, is to use
+the @code{#import} directive instead of @code{#include}.  The compiler will
+automatically include @code{#import}ed files no more than once, even if
+multiple @code{import} statements are encountered.  Thus, you can do away
+with the messy preprocessor conditionals in the header file.
+
+You should be careful, however, to only use @code{#import} for Objective-C
+interface headers, and continue using @code{#include} for standard C files.
+It is possible, though not likely, that regular C headers may rely on being
+included multiple times in some cases.  Also, you may need to include the
+compiler directive @code{-Wno-import} to gcc to avoid a didactic warning to
+this effect.
+
+
+@comment The role of the interface
+@subsection Interface Capabilities
+
+The interface file declares new classes that can be used by
+source code, holding all the information necessary to use the
+classes from other Objective-C code. Firstly, the file reveals
+to the programmer the position of the class in the class hierarchy
+by defining exactly which is the superclass. Secondly, it informs
+programmers of what variables are inherited when they create subclasses.
+Finally, the interface file may inform other software entities
+of the messages that can be sent to the class object and to the
+instances of the class. 
+
+Interface files use the @code{.h} extension as for ordinary C header files.
+(If you use emacs, put a line ``@code{// -*-ObjC-*-}'' at the top of your file
+to use the correct mode.)
+
+@comment Writing an interface (syntax)
+Here is an example of a class interface declaration:
+
+@example
+#import <Foundation/NSObject.h>
+
+@@interface Point : NSObject
+@{
+@@private
+    // instance variables only accessible to instances of this class ...
+@@protected
+    // instance variables accessible to instances of this class or subclasses
+  float x;
+  float y;
+@@public
+    // instance variables accessible by all code ...
+@}
+
+// class methods
++ (id) new;
++ (id) newWithX: (float)x0 Y: (float)y0;
++ (Point*) point;
++ (Point*) pointWithX: (float)x0 Y: (float)y0;
+
+// instance methods
+- (id) init;
+- (id) initWithX: (float)x0 Y: (float)y0;
+- (float) x;  // (field accessor)
+- (float) y;
+- (void) setX: (float)newX;
+- (void) setY: (float)newY;
+@@end
+@end example
+
+@itemize @bullet
+@item
+The interface file should import the interface of the superclass of the class
+it is defining.
+
+@item
+The interface is enclosed between the compiler directives
+@code{@@interface} and @code{@@end}.
+
+@item
+@code{@@interface Point : Object} names the class
+and links it to the superclass.  If no superclass is named, and the
+directive is without a colon, the compiler assumes that a root class
+is being created.  You more than likely don't want to do this.
+
+@item
+Braces enclose declared instance variables; each class's instance will
+have all these instance variables including instance variables
+inherited from the superclass, and from the superclass of the
+superclass, extending to the root class.
+
+@item
+Instance variables may be declared as @code{private}, @code{protected}, or
+@code{public}.  An instance's @i{private} variables may only be accessed by
+instances of this class.  An instance's @i{protected} variables may be
+accessed by instances of this class or instances of subclasses of this class.
+@i{Public} variables may be accessed by any code.  This is analogous to the
+usage in C++ and Java.  If you do not mark your instance variable declaration
+explicitly, it is made @code{protected} by default.
+
+@item
+Method declarations that begin with a "+" sign are class methods, and are
+defined for the class object.  Thus, you can call them without creating an
+instance, and their implementations do not have access to any instance
+variables.  A class object inherits class methods from superclasses.
+
+@item
+Method declarations that begin with a "-" sign are instance methods,
+and are defined for class instances.  Class instances inherit instance
+methods from superclasses.
+
+@item
+A method may share the name of an instance variable. 
+
+@item
+A method return type is declared using the C syntax for type casts:
+@example
+- (float) x;
+@end example
+which is a method returning a float.
+
+@item
+Argument types can be declared in the same way as method return types:
+@example
+- (void) setX: (float)newX;
+@end example
+which is a method that returns nothing, and takes a single float as
+its argument.
+
+Note. The default type for methods and messages (@code{id}) is assumed
+when a return or argument type is not explicitly declared.
+For example, '@code{-name}' implicitly means a method returning @code{id}
+(i.e. an object). It is usually better to avoid this and use
+explicit typing as in
+@example
+- (NSString*) name;
+@end example
+
+@end itemize
+
+@subsection Including Interfaces
+Source code (including Objective-C implementation and interface files) may
+integrate interfaces using @code{#import} (or @code{#include}).  Thereafter
+the source module may utilize the classes in those interfaces so as to:
+
+@itemize @bullet
+@item
+Make instances of them.
+
+@item
+Send messages to invoke methods declared for them.
+
+@item
+Refer to instance variables in them.
+
+@end itemize
+
+With the exception of the root class, all working interfaces integrate a
+superclass using either @code{#import} or @code{#include} -- as was seen in
+the previous simplified interface file example.  As a result the vast majority
+of class files begin with a standard form that includes their superclasses,
+and thus places them in the class hierarchy:
+
+@example
+#import "SomeSuperclass.h"
+
+@@interface SomeClass : SomeSuperclass
+@{
+  // instance variables ...
+@}
+  // method declarations ...
+@@end
+@end example
+
+
+@subsection Referring to Classes - @@class
+
+It is possible for a source module to refer to classes without including their
+interface files. This is useful when you just need to tell the compiler that a
+certain word is a class name, but you want to avoid the overhead of including
+the whole interface file for that class.
+
+For example, to inform the compiler that @code{Border} and @code{Square} are
+classes without including their full interface file, the following syntax is
+used:
+
+@code{@@class Border, Square;}
+
+Class names may also appear in interface files at times when
+instance variables, return values and arguments are statically typed:
+
+@example
+#import "Foundation/NSObject.h"
+
+@@class Point
+
+@@interface Square : NSObject
+@{
+@@protected
+  Point *lowerLeft;
+  float sideLength;
+@}
++ (id) newWithLowerLeft: (Point *)lowerLeft sideLength: (float)sideLength;
+
+- (id) initWithLowerLeft: (Point *)lowerLeft sideLength: (float)sideLength;
+
+- (Point *) lowerLeft;
+- (float) sideLength;
+- (void) setLowerLeft: (Point *)newLowerLeft;
+- (void) setSideLength: (float)newSideLength;
+@@end
+@end example
+
+Here, we see the @code{Point} class we declared earlier being used as a
+component in @code{Square}'s definition.  Because this class is only referred
+to here to declare variables and method signatures, it suffices to reference
+it only using the @code{@@class} directive.  On the other hand, the
+implementation file may need to send messages to @code{Point} instances and
+would be better of importing the interface in this case.
+
+The compiler will produce a warning if you don't include it, and no type
+checking can be performed (to see if class instances respond to the messages
+you send to them), but compilation will succeed.  It is best to take advantage
+of type-checking when you can, however, and include interfaces that messages
+are to be sent to.
+
+There is one situation where you @i{must} include the interface however.  If
+you are implementing a new class, you always need to include the interface of
+the superclass; @code{@@class} cannot be used in this case because the
+compiler needs to know the details of the superclass and its instance
+variables etc., so as to create a fully working new class.  If you try using
+@code{@@class} in this situation, compilation will abort.
+
+
+@section Implementation 
+
+An interface file declares a class, while an implementation file
+implements it. The separation between the interface and
+implementation file yields a black box concept where the programmer
+using the class need only be concerned with the interface and its
+declared methods, superclasses, and instance variables.
+The implementation of classes is transparent to the programmer
+who may use them without detailed knowledge of their structures. 
+
+Implementation files use the @code{.m} extension, to distinguish them from
+ordinary C files.
+
+
+@subsection Writing an Implementation
+
+An implementation file contents are encapsulated between
+@code{@@implementation} and @code{@@end} directives:
+
+@example
+#import "Point.h"
+@@implementation Point
+// method implementations
++ (id)new
+@{
+  // statements ...
+@}
+
++ (id)newWithX: (float)x Y: (float)y
+@{
+  // statements ...
+@}
+
+// ...
+
+- (void)setY: (float)newY
+@{
+  // statements ...
+@}
+
+@@end
+@end example
+
+The implementation file uses @code{#import} to include a named interface file
+holding all declarations.  Then it places method implementations for the class
+between @code{@@implementation} and @code{@@end} directives.  Each method
+declared in the interface must be implemented.  Instance variables may be
+referred to in instance methods (the ones with a ``-'' in front of them) but
+not class methods (the ones with a ``+'').
+
+@example
+- (float) x
+@{
+  return x;
+@}
+
+- (void) setX: (float)newX
+@{
+  x = newX;
+@}
+@end example
+
+
+@subsection Super and Self  
+
+To assist in writing instance methods, Objective-C provides the two reserved
+words @b{@code{self}} and @b{@code{super}}.  @code{Self} is used to refer to
+the current instance, and is useful for, among other things, invoking other
+methods on the instance:
+
+@example
+- (Foo *) foo
+@{
+  if (![self fooIsInitialized])
+    [self initializeFoo];
+  return foo;
+@}
+@end example
+
+@code{Super} is used to refer to method implementations in the superclass of
+the instance.  It is useful when overriding methods and when writing
+initializers, as discussed in the next section.
+
+
+@subsection Instance Initialization
+
+Instance initialization is one of the trickier aspects of getting started in
+Objective-C.  Recall that instances of a class are created by use of the class
+@code{alloc} method (inherited from @code{NSObject}) but are initialized by
+instance methods.  This works a little differently than in C++ and Java, where
+constructors are special methods that are neither class nor instance methods.
+In particular, since initializer methods are inherited instance methods, they
+may still be called even if you have not implemented them in your class.  For
+example, it is always valid to invoke
+
+@example
+SomeComplexClass *c = [[SomeComplexClass alloc] init];
+@end example
+
+Even if you have not implemented @code{init} in @code{SomeComplexClass}, the
+superclass's implementation will be invoked, or, ultimately,
+@code{NSObject}'s if no other ancestors implement it.  Obviously, this could
+result in some of @code{SomeComplexClass}'s internal state being left
+uninitialized.  For this reason, you should always either provide an
+@code{init} implementation, or document whether it should be used.  We will
+return to this concern below.
+
+Typically, a class will also provide one or more @code{initWith...} methods
+for initialization with arguments, and it may optionally also provide
+@code{+new} methods and convenience class methods that act like constructors.
+The general approach
+to implementing these is illustrated here for the @code{Point} class.
+
+@example
++ new
+@{
+  Point *point;
+
+  // note "self" refers to the "Point" _class_ object!
+  point = [[self allocWithZone: NSDefaultMallocZone()] init];
+  return point;
+@}
+
++ newWithX: (float)x0 Y: (float)y0
+@{
+  Point *point;
+
+  point = [[self allocWithZone: NSDefaultMallocZone()] initWithX: x Y: y];
+  return point;
+@}
+
++ point
+@{
+  Point *point;
+
+  // note "self" refers to the "Point" _class_ object!
+  point = [self new];
+  return AUTORELEASE(point);
+@}
+
++ pointWithX: (float)x0 Y: (float)y0
+@{
+  Point *point;
+
+  point = [self newWithX: x Y: y];
+  return AUTORELEASE(point);
+@}
+
+- init
+@{
+  return [self initWithX: 0.0 Y: 0.0];
+@}
+
+// this is the "designated" initializer
+- initWithX: (float)x0 Y: (float)y0
+@{
+  self = [super init];
+  if (self != nil)
+    @{
+      x = x0;
+      y = y0;
+    @}
+  return self;
+@}
+@end example
+
+Notice that, first, the convenience constructors (@code{new} and
+@code{newWithX:Y:}) execute @code{[self allocWithZone:]} to begin with.  The
+``@code{self}'' here refers to the @i{class} object, since it is used inside a
+@i{class} method.  Thus the effect is the same as if ``@code{[Point alloc]}''
+had been executed in external code.  Second, notice that the other
+convenience constructors (@code{point} and @code{pointWithX:Y:})
+autorelease the new instance before returning it.
+This is to follow the rules of memory
+management discussed in @ref{Objects, earlier, Memory Management}.  Third,
+note that the @code{new..}  methods each call a corresponding @code{init...}
+method.  It is not necessary to maintain such a one to one correspondence but
+it is a common convention to have the convenience implementations rely on
+instance @code{init} methods as shown.  Fourth, note that the use of
+@code{[self allocWithZone: NSDefaultMallocZone()]} rather than
+@code{[self alloc]} is generally unnecessary, but provides a slight
+efficiency gain since @code{+alloc} is implemented by calling
+@code{+allocWithZone:} on the default zone.
+
+@b{Designated Initializer}
+
+Finally, notice that the @code{initWithX:Y:} method is marked as the
+``designated'' initializer.  This concept is important to ensure proper
+initialization for classes within a hierarchy.  The designated initializer
+should be the one with the most control over the nature of the new instance,
+and should be the one that all other initializers ``ground out'' in.  In
+other words, all other initializers should be chained so that they either
+call the designated initializer, or they call another initializer that
+(eventually) calls it.
+
+The importance of having a designated initializer is this: when a subclass is
+created, it need only override the designated initializer to ensure that all
+of its instances are properly initialized.  If this is not done, external
+code could invoke an initializer that initializes only the superclass's
+instance variables, and not the subclass's.  To avoid this, each class
+designates a ``ground out'' initializer to which other initializers
+ultimately delegate.  Then the subclass overrides this initializer, and in
+its own designated initializer, makes a call to it, to ensure that the
+superclass is initialized properly.  Thus:
+
+@example
+@@implementation SuperClass
+- initWithA: (int)a
+@{
+  return [self initWithA:a B:0];  // 0 is default value
+@}
+
+// designated init for SuperClass
+- initWithA: (int)a B: (int)b
+@{
+  self = [super init];
+  myA = a;
+  myB = b;
+  return self;
+@}
+@@end
+
+@@implementation SubClass
+
+// overrides SuperClass's designated init
+- initWithA: (int)a B: (int)b
+@{
+  return [self initWithA: (int)a B: (int)b C: (int)c];
+@}
+
+// designated init for SubClass
+- initWithA: (int)a B: (int)b C: (int)c
+@{
+  self = [super initWithA: a B: b];
+  myC = c;
+  return self;
+@}
+@@end
+@end example
+@comment{This example is way too abstract to make sense..}
+
+Note, as shown above, unlike in some other object-oriented languages,
+'@code{self}' is a variable that can be redefined.  For example, we could have
+written the @code{new} constructor above like this:
+
+@example
+@{
+  self = [[self alloc] init];
+    // note "self" now refers to the new instance!
+  [self setX: 1.0];
+  return self;
+@}
+@end example
+
+Another point to note is that Objective-C does not enforce calling superclass
+initializers before carrying out subclass initialization.  Although above the
+first call in the designated initializer was always @code{[super ...]}, this
+was not required, and if you need to set something up before @code{super}
+acts, you are free to do so.
+
+
+@subsection Flexible Initialization
+
+As mentioned before, it is possible for an initialization process to, if
+desired, return not a new object but an existing object.  This may be done in
+one of two ways.  If you are doing it from a convenience class method like
+@code{new}, then use something like the following:
+
+@example
++ new
+@{
+  if (singleton == nil)
+    singleton = [[self alloc] init];
+  return singleton;
+@}
+@end example
+
+Note this example presupposes the existence of a class variable,
+'@code{singleton}'.  Class variables as such don't exist in Objective-C but
+can be simulated, as discussed below.
+
+If you want to possibly return an existing instance from an init instance
+method like @code{init}, the procedure is slightly more complicated:
+
+@example
+- init
+@{
+  if (singleton != nil)
+    @{
+      RELEASE(self);
+      self = RETAIN(singleton);
+    @}
+    else
+    @{
+      singleton = self;
+    @}
+  return self;
+@}
+@end example
+
+Here, we explicitly @b{deallocate} the current instance and replace it with
+the desired existing instance.  Because this might happen, you should always
+be careful to use the returned value from an @code{init} method:
+
+@example
+id anObject = [SomeClass alloc];
+  // this is bad:
+[anObject init];
+  // anObject might have been deallocated!
+  // do this instead:
+anObject = [anObject init];
+@end example
+
+One scenario where this actually occurs in the GNUstep libraries is with the
+class @code{NSConnection}.  It only permits one connection to exist
+between any two ports, so if you call @code{initWithReceivePort:sendPort:}
+when a connection for the ports exists, the method will deallocate
+the newly allocated instance, and return the current conflicting object,
+rather than the receiver.
+
+In general, it is better to catch this type of requirement in a ``@code{new}''
+class method rather than an instance ``@code{init}'' method so as to avoid
+the unnecessary allocation of instances that will not be used, however this
+is not always possible given other design constraints.
+
+
+@subsection Instance Deallocation
+
+As described in @ref{Objects, the previous chapter, Memory Management},
+objects should be deallocated when they are no longer needed.  When garbage
+collection is not being used, this is done through explicit calls to the
+@code{dealloc} method.  When GC @i{is} being used, @code{dealloc} is still
+called implicitly, and should be implemented.  However the tasks of the
+@code{dealloc} method are fewer in this case.
+
+When garbage collection is @i{not} active, the @code{dealloc} method must
+release all other objects that this instance has retained.  Usually these are
+those instance variables that are objects rather than primitive types.  In
+certain cases such as container classes, other objects must be released as
+well.  In addition, if the instance has acquired any external resources, such
+as a network connection or open file descriptor, these should be relinquished
+as well.  Likewise, any memory that has been directly allocated through use
+of @code{malloc} or other functions should be released.
+
+When garbage collection @i{is} active, the @code{dealloc} method is still
+responsible to relinquish external resources, but other GNUstep objects need
+not be released, since they will be garbage collected once this instance has
+been.
+
+If you cannot be sure whether your class will be running in a
+garbage-collecting environment, it never hurts to execute all of the releases
+of other objects.  This will not harm the operation of the garbage collector,
+though it will result in pointless calls to the retain/release methods that
+are stubbed out under garbage collection.  If this could cause a performance
+hit in your application, you should use the RETAIN/RELEASE macros instead of
+the function calls.
+
+Here is an example of a @code{dealloc} implementation:
+
+@example
+- dealloc
+@{
+  RELEASE(anInstanceVariableObject);
+  NSZoneFree(NULL, myMemory);
+  [super dealloc];
+@}
+@end example
+
+Here, we use the @code{RELEASE} macro to release an instance variable, and the
+@code{NSZoneFree} function to free memory that was earlier allocated with
+@code{NSZoneMalloc} or a related function.  (See @ref{Base Library} for
+discussion of GNUstep's raw memory allocation functions.)  The @code{NULL}
+used indicates that the memory was from the default zone, and is equivalent
+to saying '@code{NSDefaultMallocZone()}' instead.
+
+Finally, notice we end with a call to @code{[super dealloc]}.  This should
+always be done in @code{dealloc} implementations, and you should never
+concern yourself with deallocating structures that are associated with a
+superclass, since it will take care of this itself.
+
+
+@section Protocols
+@cindex protocols
+@cindex protocols, formal
+
+Protocols in Objective-C provide a level of flexibility beyond class
+structure in determining what messages objects respond to.  They are similar
+to interfaces in Java but more flexible.
+
+There are two types of protocol in Objective-C: @b{informal} protocols, where
+we document methods to which objects will respond, and specify how they should
+behave, and @b{formal} protocols, where we provide a list of methods that an
+object will support in a format where the compiler can check things, and the
+runtime can also check that an object conforms to the protocol.  Informal
+protocols are merely convention, but are useful where we want to say that some
+system will work as long as it (or its delegate) implements some subset of a
+group of methods.  Formal protocols are of more use when we want the compiler
+or runtime to check that an object implements all of a group of methods
+itself.  Formal protocols form an inheritance hierarchy like classes, and a
+given class may conform to more than one protocol.  Thus, formal protocols are
+identical in many respects to Java @i{interfaces}.
+
+As in Java, a particularly important use of protocols is in defining the
+methods that an object in a remote process can respond to @dots{} by setting
+the protocol used by a local proxy object, you can avoid having to send
+messages to the remote process to check what methods are available - you can
+simply check the local protocol object.  This will be covered later in
+@ref{Distributed Objects}.
+
+Informal protocols are closely associated with @i{Categories}, another
+Objective-C language facility, and will be discussed in the next section.
+
+
+@subsection Declaring a Formal Protocol
+
+A formal protocol is declared as a series of method declarations, just like a
+class interface.  The difference is that a protocol declaration begins with
+@code{@@protocol} rather than @code{@@interface}, and has an optional
+@b{super} protocol specified in angle brackets.
+
+@example
+@@protocol List
+- (void) add:        (id) item;
+- (void) remove:     (id) item;
+- getAtIndex:        (int)idx;
+- (void) clear;
+@@end
+
+@@protocol LinkedList <List>
+- (void) addFirst:   (id)item;
+- (void) addLast:    (id)item;
+- getFirst;
+- getLast;
+@@end
+@end example
+
+
+@subsection Implementing a Formal Protocol
+
+If you want your class to conform to a protocol, you declare it in your
+interface, and implement the methods in your declaration:
+
+@example
+@@interface BiQueue <LinkedList>
+@{
+  // instance variables ...
+@}
+  // method declarations ...
+  // [don't need to redeclare those for the LinkedList protocol]
+- takeFirst
+- takeLast
+@@end
+
+...
+
+@@implementation BiQueue
+  // must implement both List's and LinkedList's methods ...
+- add:        (id) item
+@{
+  // ...
+@}
+
+- addFirst:   (id)item
+@{
+  // ...
+@}
+@@end
+@end example
+
+To declare conformance to multiple protocols, do something like this:
+
+@example
+@@interface ContainerWindow < List, Window >
+  ...
+@@end
+@end example
+
+The implementation must include all methods in both protocols.
+
+
+@subsection Using a Formal Protocol
+
+To use a formal protocol, simply send objects the messages in the protocol.
+If you want type-checking, you must either use the type of a class
+implementing the protocol, or use a special syntax:
+
+@example
+...
+BiQueue queue = [[BiQueue alloc] init];
+  // send a LinkedList message
+[queue addFirst: anObject];
+
+  // alternatively, we may stipulate only that an object conforms to the
+  // protocol in the following way:
+id<LinkedList> todoList = [system getTodoList];
+task = [todoList getFirst];
+...
+@end example
+
+In the last part of this example, we declare that @code{todoList} is an
+object that conforms to the @code{LinkedList} protocol, but do not specify
+what class it may be an instance of.
+
+If you are not sure the returned object does indeed conform to the protocol
+you are interested in, you can check it:
+
+@example
+if ([anObject conformsToProtocol: aProtocol] == YES)
+  @{
+    // We can go ahead and use the object.
+  @}
+else
+  @{
+    NSLog(@@"Object of class %@@ ignored ... does not conform to 
+      protocol", NSStringFromClass([anObject class]));
+  @}
+@end example
+
+Finally, you can specify an object conforming to @i{multiple} protocols in
+the same way you declare it in an interface:
+
+@example
+id <LinkedList, Window>   windowContainerOfUnknownClass;
+@end example
+
+
+@section Categories
+@cindex categories
+
+Categories provide a way in Objective-C to add new methods to an existing
+class, without declaring a subclass.  Once the category is declared and
+implemented, all instances of the existing class that are created will include
+the capability to respond to the new methods.  Furthermore, subclasses of the
+class will inherit these methods.  However, it is not possible to add instance
+variables to a class using a category.  Categories do not have an obvious
+parallel in other major object-oriented languages (with the exception of
+Ruby), but it is well worth taking the trouble to understand them and the
+benefits they can provide.
+
+A category is declared in connection with the class it is going to modify.
+(You can think of it as a new ``category'' of instances of this class.)
+
+@example
+#import "Point.h"
+
+@@interface Point (Transformable)
+- translateByX: (float)tx Y: (float)ty;
+- rotateByAngle: (float)radians;
+- scaleByAmountX: (float)xscale Y: (float)yscale;
+@@end
+@end example
+
+You then provide an implementation file more or less analogously to that for
+a class, where you implement just the new methods:
+
+@example
+#import "PointTransformable.h"
+
+@@implementation Point (Transformable)
+- (void) translateByX: (float)tx Y: (float)ty
+@{
+  x += tx;
+  y += ty;
+  return self;
+@}
+
+- (void) rotateByAngle: (float)radians
+@{
+  // ...
+@}
+
+- (void) scaleByAmountX: (float)xscale Y: (float)yscale
+@{
+  // ...
+@}
+@@end
+@end example
+
+Notice that you have access to instance variables of the class you are
+creating a category of; this includes private and protected variables.
+
+One of the primary uses of categories is illustrated by this example.  Suppose
+you are working with a third party drawing package that uses some geometrical
+classes such as @code{Point} and @code{Line}.  You are developing an animation
+program based on the package and need the ability to move things around.
+Rather than employing a complex subclassing or aggregation scheme to add these
+capabilities, you simply define the @code{Transformable} category for each of
+the geometrical entities.  At runtime, all instances of these entities,
+whether created by you or the package itself, have the additional methods.
+The presence of these methods does not affect the existing operation of this
+or any third party package, but allows you to conveniently implement the
+enhanced functionality you need.
+
+
+@subsection Category Overrides
+
+You can also use categories to override methods that a class already has.  If
+you do so, you cannot access an existing implementation in the class itself,
+however you can still call @code{[super someMethod]} to access an
+implementation inherited from a superclass.  You obviously need to be careful
+not to break existing functionality.
+
+You can add multiple categories to a class by declaring them and implementing
+them separately.  Instances of the class will then implement @i{all} of the
+categories declared.  The order in which the category implementations are
+searched for methods is not defined, therefore you cannot override a method
+implemented in one category with an implementation in another.
+
+
+@subsection Categories as an Implementation Tool
+
+Categories are not just useful for extending an existing class.  Another major
+use for categories is to separate the implementation of a @i{new} class into a
+number of source files.  (Each file implements one category of the new class,
+and at runtime instances of the class respond to the methods in all the
+categories.)  The benefits of this program development strategy include:
+grouping subject-oriented methods; incremental compilation for large classes;
+helping to logically divide the class when being created by a number of
+developers; and, permitting configuration-specific classes targeting
+particular applications.
+
+
+@subsection Categories and Protocols
+
+As described in the previous section, in addition to the @i{formal} protocol
+facility described, Objective-C provides for @i{informal} protocols.  An
+informal protocol is essentially a category declaration without an
+implementation.  Usually, the informal protocol is declared as a category for
+a high-level object, such as @code{NSObject}, then each class that actually
+wishes to implement something in the protocol lists the methods it chooses to
+implement in its interface and provides implementations in its
+implementation.
+@comment{Need to add some motivation -- how/why/when is this useful?}
+
+
+@section Simulating Private and Protected Methods
+
+Unlike most object-oriented languages Objective-C does not provide for method
+scoping.  Instead, all methods are effectively public.  Often, however, it is
+useful to have internal ``utility'' methods that help a class do its job but
+are hidden from external use.  Rather than cluttering up the class's API with
+a bunch of methods marked ``do not use'', one wants to make these methods
+visible only to subclasses, or only to the class itself.  Categories can help
+in this regard.
+
+@b{Using Categories}
+
+One common approach is to define a category within a class's
+@i{implementation} file:
+
+@example
+
+#import "Point.h"
+
+@@interface Point (Private)
+-(BOOL) isPositiveQuadrant;
+@@end
+
+@@implementation Point
+  // public method implementations ...
+@@end
+
+@@implementation Point (Private)
+-(BOOL) isPositiveQuadrant
+@{
+  return (x > 0) && (y > 0) ? YES : NO;
+@}
+@@end
+@end example
+
+All of this code would appear in the file @code{Point.m}.  What this does is
+add a category to Point defining the private methods.  Since external code
+only ``knows about'' @code{Point} through its interface file, these additional
+methods are effectively invisible.  However, you should be aware that external
+code is not prevented from actually calling the private methods, if it happens
+to know about them.  However the compiler will produce a warning if you try
+to do this with a typed variable:
+
+@example
+Point *p = [[Point alloc] init];
+  // works, but produces a compile warning
+BOOL b = [p isPositiveQuadrant];
+@end example
+
+The bright side of this is it allows you to simulate @i{protected} methods as
+well.  For this, the writer of a subclass must be informed in some way about
+the protected methods, and they will need to put up with the compiler
+warnings.  Alternatively, you could declare the Protected category in a
+separate interface file (e.g., ``@code{PointProtected.h}''), and provide this
+interface file with the understanding that it should only be imported and used
+by a subclass's interface file.
+
+@b{Using Convention}
+
+Another approach to providing @i{protected} methods that the class or subclass
+can use is to prefix these methods with an underscore ('_').  These methods
+will still be visible publicly, but programmers will know, by convention, not
+to use them externally, and the @ref{GSDoc, GNUstep documentation system} will
+automatically mark these in API documentation as off-limits.
+
+An alternative approach to providing @i{private} methods is to simply declare
+them as functions within the implementation file itself.  The catch to this is
+that these functions will @i{not} have access to the class's instance
+variables.  You will need to pass these in manually whenever you invoke them
+from an ordinary method.
+
+
+@section Simulating Class Variables
+
+While Objective-C does not provide for variables that are associated with the
+class as a whole rather than an instance, these are often useful.  It is
+possible to simulate them to a limited extent by declaring static variables in
+the implementation file for the class (inside the @code{@@implementation}
+block).  The variables will not be available to subclasses, unless they
+explicitly declare them ``@code{extern}'' and are compiled at the same time.
+
+
+@ignore
+@section The +load and +initialize Class Methods
+
+@end ignore
+
+@ignore
+@section Class ``Posing''
+
+@end ignore
+
+
+@page
+
+
+...

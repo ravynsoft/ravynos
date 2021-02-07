@@ -1,0 +1,242 @@
+#
+#  Makefile for GNUstep Base Library documentation.
+#  
+#  Copyright (C) 2002 Free Software Foundation, Inc.
+#
+#  Written by:	Richard Frith-Macdonald <rfm.gnu.org>
+#
+#  This file is part of the GNUstep Base Library.
+#
+#  This library is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU Lesser General Public
+#  License as published by the Free Software Foundation; either
+#  version 2 of the License, or (at your option) any later version.
+#
+#  This library is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
+#  Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU Lesser General Public
+#  License along with this library; see the file COPYING.LIB.
+#  If not, see <http://www.gnu.org/licenses/> or write to the 
+#  Free Software Foundation, 51 Franklin Street, Fifth Floor, 
+#  Boston, MA 02110-1301, USA.
+
+MAKEFILE_NAME = DocMakefile
+
+include $(GNUSTEP_MAKEFILES)/common.make
+
+ADD_THESE_QUESTION_MARK = \
+NSColorPicking.h \
+NSGraphics.h \
+NSNibConnector.h \
+NSNibDeclarations.h \
+NSNibLoading.h \
+NSSpellProtocol.h \
+NSUserInterfaceValidation.h \
+
+# These are gui headers that are also classes documented with autogsdoc
+AUTOGSDOC_HEADERS_GUI = \
+NSActionCell.h \
+NSAffineTransform.h \
+NSApplication.h \
+NSAttributedString.h \
+NSBezierPath.h \
+NSBitmapImageRep.h \
+NSBox.h \
+NSBrowser.h \
+NSBrowserCell.h \
+NSButton.h \
+NSButtonCell.h \
+NSCachedImageRep.h \
+NSCell.h \
+NSClipView.h \
+NSColor.h \
+NSColorList.h \
+NSColorPanel.h \
+NSColorPicker.h \
+NSColorWell.h \
+NSComboBox.h \
+NSComboBoxCell.h \
+NSControl.h \
+NSCursor.h \
+NSCustomImageRep.h \
+NSDataLink.h \
+NSDataLinkManager.h \
+NSDataLinkPanel.h \
+NSDocument.h \
+NSDocumentController.h \
+NSDrawer.h \
+NSEPSImageRep.h \
+NSEvent.h \
+NSFileWrapper.h \
+NSFont.h \
+NSFontManager.h \
+NSFontPanel.h \
+NSForm.h \
+NSFormCell.h \
+NSGraphicsContext.h \
+NSHelpManager.h \
+NSHelpPanel.h \
+NSImage.h \
+NSImageCell.h \
+NSImageRep.h \
+NSImageView.h \
+NSInputManager.h \
+NSInputServer.h \
+NSInterfaceStyle.h \
+NSLayoutManager.h \
+NSMatrix.h \
+NSMenu.h \
+NSMenuItem.h \
+NSMenuItemCell.h \
+NSMenuView.h \
+NSNib.h \
+NSOpenGL.h \
+NSOpenGLView.h \
+NSOpenPanel.h \
+NSOutlineView.h \
+NSPageLayout.h \
+NSPanel.h \
+NSParagraphStyle.h \
+NSPasteboard.h \
+NSPopUpButton.h \
+NSPopUpButtonCell.h \
+NSPrintInfo.h \
+NSPrintOperation.h \
+NSPrintPanel.h \
+NSPrinter.h \
+NSProgressIndicator.h \
+NSResponder.h \
+NSRulerMarker.h \
+NSRulerView.h \
+NSSavePanel.h \
+NSScreen.h \
+NSScrollView.h \
+NSScroller.h \
+NSSecureTextField.h \
+NSSelection.h \
+NSSlider.h \
+NSSliderCell.h \
+NSSound.h  \
+NSSpellChecker.h \
+NSSpellServer.h \
+NSSplitView.h \
+NSStepper.h \
+NSStepperCell.h \
+NSStringDrawing.h \
+NSTabView.h \
+NSTabViewItem.h \
+NSTableColumn.h \
+NSTableHeaderCell.h \
+NSTableHeaderView.h \
+NSTableView.h \
+NSText.h \
+NSTextAttachment.h \
+NSTextContainer.h \
+NSTextField.h \
+NSTextFieldCell.h \
+NSTextStorage.h \
+NSTextView.h \
+NSToolbar.h \
+NSToolbarItem.h \
+NSView.h \
+NSWindow.h \
+NSWindowController.h \
+NSWorkspace.h
+
+AUTOGSDOC_HEADERS_GUIADD = \
+GSDisplayServer.h \
+GSTheme.h \
+GSTable.h \
+GSHbox.h \
+GSVbox.h \
+
+DOCUMENT_NAME = Gui GuiAdditions
+
+Gui_DOC_INSTALL_DIR = Developer/Gui/Reference
+GuiAdditions_DOC_INSTALL_DIR = Developer/Gui/Reference
+
+Gui_AGSDOC_FILES = ../Documentation/Gui.gsdoc \
+	$(AUTOGSDOC_HEADERS_GUI)
+
+GuiAdditions_AGSDOC_FILES = $(AUTOGSDOC_HEADERS_GUIADD) \
+	../Documentation/GuiAdditions.gsdoc
+
+#
+# Hack ... using the -DocumentationDirectory flag overrides the value
+# used by the make package, and puts our output in the documentation
+# directory.
+#
+Gui_AGSDOC_FLAGS = \
+	-MakeFrames YES \
+	-DocumentationDirectory ../Documentation/Gui \
+	-HeaderDirectory ../Headers/AppKit \
+	-Declared AppKit \
+	-Standards YES \
+	-ConstantsTemplate TypesAndConstants \
+	-FunctionsTemplate Functions \
+	-MacrosTemplate Functions \
+	-TypedefsTemplate TypesAndConstants \
+	-VariablesTemplate TypesAndConstants \
+	-WordMap '{\
+	APPKIT_EXPORT=extern;APPKIT_DECLARE="";\
+	DEFINE_RINT_IF_MISSING=""; \
+	}' -Up Gui
+
+GuiAdditions_AGSDOC_FLAGS = \
+	-MakeFrames YES \
+	-DocumentationDirectory ../Documentation/GuiAdditions \
+	-HeaderDirectory ../Headers/Additions/GNUstepGUI \
+	-Declared GNUstepGUI \
+	-Standards YES \
+	-ConstantsTemplate TypesAndConstants \
+	-FunctionsTemplate Functions \
+	-MacrosTemplate Functions \
+	-TypedefsTemplate TypesAndConstants \
+	-VariablesTemplate TypesAndConstants \
+	-WordMap '{\
+	APPKIT_EXPORT=extern;APPKIT_DECLARE="";\
+	DEFINE_RINT_IF_MISSING=""; \
+	}' -Up GuiAdditions
+
+include $(GNUSTEP_MAKEFILES)/documentation.make
+
+before-all::    ../Documentation/Gui \
+	../Documentation/GuiAdditions
+	cp ../Documentation/Gui.gsdoc .
+	cp ../Documentation/GuiAdditions.gsdoc .
+
+../Documentation/Gui:
+	$(MKDIRS) ../Documentation/Gui
+
+../Documentation/GuiAdditions:
+	$(MKDIRS) ../Documentation/GuiAdditions
+
+#
+# Work around our screwy doc generation implementation, sigh...
+#
+before-clean::
+	if [ -e obj ]; then \
+	  mv obj obj-save-link; \
+	fi
+
+#
+# Clean up temporary files used while generating documentation.
+#
+after-clean::
+	$(RM) Gui.gsdoc
+	$(RM) GuiAdditions.gsdoc
+	if [ -d Gui ]; then \
+	  $(RM) Gui/stamp; \
+	  $(RM) Gui/dependencies; \
+	  rmdir Gui; \
+	  $(RM) GuiAdditions/stamp; \
+	  $(RM) GuiAdditions/dependencies; \
+	  rmdir GuiAdditions; \
+	fi
+	if [ -e obj-save-link ]; then \
+	  mv obj-save-link obj; \
+	fi
+

@@ -1,0 +1,102 @@
+@c    GNUstep AppKit Guide
+@c
+@c    Copyright (c)  2005-2006  Christopher Armstrong.
+@c
+@c    Permission is granted to copy, distribute and/or modify this document
+@c    under the terms of the GNU Free Documentation License, Version 1.2
+@c    with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+@c    A copy of the license is included in the section entitled "GNU
+@c    Free Documentation License".
+@c
+@c This documentation is provided on an "AS IS" BASIS, WITHOUT WARRANTY
+@c OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING, BUT NOT LIMITED
+@c TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+@c PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY AND USEFULNESS
+@c OF THE DOCUMENTATION IS WITH YOU (THE LICENSEE). IN NO EVENT WILL THE COPYRIGHT
+@c HOLDERS BE LIABLE FOR DAMAGES, INCLUDING ANY DIRECT, INDIRECT,
+@c SPECIAL, GENERAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF
+@c THE USE OR INABILITY TO USE THIS DOCUMENTATION (INCLUDING BUT NOT
+@c LIMITED TO LOSS OF DATA, USE, OR PROFITS; PROCUREMENT OF SUBSTITUTE
+@c GOODS AND SERVICES; OR BUSINESS INTERUPTION) HOWEVER CAUSED, EVEN
+@c IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+@node drawing
+@chapter Drawing in Views
+@anchor{Drawing in Views}
+
+Although GNUstep readily provides most of the objects you'll need for creating GUI's, you may sometimes want to create your own view's. The first thing you will need to do is subclass NSView. You may wish to consider first whether or not it is necessary to build a NSView subclass. @code{NSControl} may be more useful for your needs, especially if what you need to achieve fits within the Cell/Control concept that is modelled in those classes.
+
+If you decide that you need to subclass @code{NSView}, classes and methods exist to make drawing consistent, especially if you plan to port your code across to Cocoa. GNUstep provides two important classes for drawing: @code{NSAffineTransform} and @code{NSBezierPath}.  There is also methods in @code{NSImage} and the @code{NSFont}* classes to render images and text.
+
+@section Writing drawing code
+
+@cindex drawing
+@cindex views, drawing in views
+All drawing code in GNUstep stems from calls to a @code{NSView} method called @code{-drawRect:}. It's in here that most of the drawing magic happens. GNustep sets everything up for your class to begin drawing within it's bounds before this method is called. When this method is called, it becomes your view's responsibility to redraw itself within the rectangle provided.
+
+Importantly, it sets the origin of your bounds to the bottom left corner of your view and it sets a clipping rectangle around the frame of your view, to ensure that any drawing code you call does not trash your parent view or any subviews of your parent view. @footnote{The origin for your bounds may have been shifted from the bottom-left corner of the frame rectangle by previous calls to NSView methods made by code in your programme. If you haven't done this, then the defaults apply.}
+
+This way, you are not required to calculate your position within the window. Instead, you can assume that your origin is at (0,0) in the bottom-left corner, and one point is approximately 1/72 of an inch, corresponding to a pixel.
+
+@section NSAffineTransform
+@anchor{NSAffineTransform}
+@cindex matrices, affine transform
+@code{NSAffineTransform} is used to perform coordinate transformations so that you can transparently resize and shift the elements in views. It is used quite extensively in the internal implementation of the GUI library and the backends, so it's worth taking advantage of. For more information about affine transformations, @pxref{Affine Transformations}.
+
+To stretch the coordinate system, use @code{-scaleBy:} method with a scaling factor, or @code{scaleXBy:yBy:} to scale each axis differently. The coordinate system can be rotated counter-clockwise by using the @code{rotateByDegrees:} or the @code{rotateByRadians} methods. It can be shifted using the @code{translateXBy:yBy:} method.
+
+A number of methods are provided for transforming rectangles, sizes and points with the affine transform. Take a look at the @code{sizeInMatrixSpace:}, @code{rectInMatrixSpace} and @code{transformPoint} methods. Note that GNUstep provides more convenience methods than Cocoa does.
+
+@cindex affine transform, postscript matrices
+@cindex matrices, postscript matrices
+For those familiar with Postscript matrices, NSAffineTransforms' can be set and instantiated using those. Check out the @code{NSAffineTransformStruct} for transporting the matrix elements, and @code{-setTransformStruct:} in @code{NSAffineTransform}.
+
+@section NSBezierPath
+@cindex bezier paths, definition
+This class is an abstract representation of a @dfn{bezier path}. A bezier path contains a series of straight and curved lines, with information on how the shapes constructed by these lines should be drawn, e.g. whether they should be filled, what kind of pen width to use, pen dash information, the current point, etc.
+
+A bezier path also consists of a number of @dfn{sub-paths}. After a series of move, line and curve operations, a @dfn{close path} operation is inserted to into the bezier path to indicate the end of a sub path. This concept is important with the filling commands. 
+ 
+A number of convenience class methods exist for simple drawing operations, setting defaults and getting information about the current state of the drawing view, aka the @dfn{graphics state}.@footnote{A graphics state is a concept inherited from GNUstep's Display Postscript heritage. In Postscript a graphics state object, or @dfn{gstate}, would contain all the information about the current colours, the current affine transform, the width to draw lines with, any fill patterns, and other such information. They could be saved onto a stack and recalled later by name. GNUstep provides a more cut down and logical implementation of similiar concepts across the NSBezierPath class and others.} We can call @code{+strokeRect:} or @code{+fillRect:} directly to add a new rectangle or filled rectangle to the current drawing view. The @code{-clipRect:} method can be used to set a smaller clipping rectangle, intersecting with the current clipping rectangle (which is set by default to be the frame of your view, just before a call to @code{-drawRect:} is made.
+
+@subsection Graphics Operations and the Current Point
+
+A bezier path represents a series of graphical primitives operations. You call methods corresponding to these operations on the @code{NSBezierPath} object, and when it is drawn, these operations are executed in the order that you call them on the bezier path. 
+@cindex bezier paths, current point
+It also has a concept of a @dfn{current point}. After every graphics operation, a new, internal point is set that will be used as the start point for the next operation. This is usually the destinatio point of the previous operation. For example, if you want a bezier path to move to the point origin, then draw a line from the origin to point (10,20), then a line from (10,20) to (20,20) you only require three operations, i.e. (in psuedocode):
+@smallexample
+move to (0,0)
+draw a line to (10,20)
+draw a line to (20,20)
+@end smallexample
+
+In this case, the bezier path first sets the current point to (0,0). Then, when the line operation is called, you only pass in the destination point, (10,20), which causes it to draw a line from (0,0) to (10,20). After this operation, the current point is set to the destination of the line operation, i.e. (10,20). Then, the next line operation draws a line from (10,20) to (20,20). In this way, we only need specify the destination point for line and move operations, as the start point is determined by the destination point of the previous operation. There is no need to specify the start point for each drawing operation, as this is implied by the destination point of the previous. You can get the current point by calling the @code{currentPoint:} method.
+
+These operations are listed in the table below:
+@cindex bezier paths, operations
+@table @dfn
+
+@item Move Operation
+A move operation lifts the pen up and puts it at a new location, i.e. changes the current coordinates without drawing. It implicitly starts a new internal path. This can be achieved throught the @code{-moveToPoint:} method, which takes a point as it's first parameter.
+
+@item Line Operation
+A line operation draws a line from the current point to a new point. The @dfn{current point} is set either through a move operation, or through the last point in a previous line or curve operation. Once the line operation is complete, the @dfn{current point} is set as the destination point. We can draw a line using the @code{lineToPoint:} method.
+
+@item Curve Operation
+This one is more complex, as it involves the real magic of bezier paths. It consists of four points: the start point, the destination point, and two @dfn{control points}. How this works is beyond the scope of this manual@footnote{@cite{Wikipedia} has good information on the mathematics and theory behind bezier curves/paths} and is not required to draw simple circles, ellipses and arcs. We can draw a circle or an ellipse by calling @code{appendBezierPathWithOvalInRect:}, passing in a rectangle for the shape to be drawn in. A few methods are provided for adding arcs, with @code{appendBezierPathWithArcFromPoint: toPoint: radius:} useful for adding an arc between two points and the @code{appendBezierPathWithArcWithCenter: radius: startAngle: endAngle:} method useful for drawing an arc with a particular centre point. For those familiar with bezier curves or who know their control points, the @code{curveToPoint:controlPoint1:controlPoint2:} method can be used to draw curves that way. All curve operations set the current point to the destination of the curve.
+
+@item Close Path Operation
+As bezier paths actually consist of many sub-paths, one can close the current set of path operations with the @code{closePath} method to avoid creating a new NSBezierPath method.
+@end table
+
+@subsection Stroking, Filling and Clipping
+@cindex bezier paths, rendering operations
+@cindex bezier paths, stroking/filling/clipping
+Once you've assembled a path, you can render it in a number of ways. It can be drawn (stroked), filled, or turned into a clipping region. A simple stroke operation is induced by calling the @code{stroke} operation. 
+
+Filling operations are induced by calling the @code{fill} method. Two winding rules for filling are provided: the @dfn{even-odd} and @dfn{non-zero} winding rules. FIXME: explain the difference between the even-odd and non-zero winding fill rules.
+
+@cindex clipping, bezier paths for clipping
+The clip operation (clipping) is a bit different. It takes the bezier path and uses the outline defined by it to set the current @dfn{clipping region}. The @dfn{clipping region} is an area or areas (or series of "regions") that restrict the output of all drawing operations to the region of the device space defined by it's boundaries. A current clipping region is defined for the period of time that you perform drawing operations in your @code{drawRect:} method. The default clipping region is set to the bounds of your view.  We can intersect the current clipping region with the bounds of the path with the @code{-addClip} method or we can set the current clipping region with the @code{-setClip} method. It is also affected by the winding rule in the same way as fill operations.
+
+

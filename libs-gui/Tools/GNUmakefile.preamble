@@ -1,0 +1,49 @@
+#
+#   Makefile.preamble
+#
+#   Project specific makefile variables, and additional
+#
+#   Copyright (C) 2005 Free Software Foundation, Inc.
+#   Do not put any Makefile rules in this file, instead they should
+#   be put into Makefile.postamble.
+#
+
+#
+# Flags dealing with compiling and linking
+#
+
+# Additional flags to pass to the preprocessor
+# ADDITIONAL_CPPFLAGS += 
+
+# Additional flags to pass to the Objective-C compiler
+# ADDITIONAL_OBJCFLAGS += 
+
+# Additional flags to pass to the C compiler
+# ADDITIONAL_CFLAGS += 
+
+# Additional include directories the compiler should search
+ADDITIONAL_INCLUDE_DIRS += -I../Headers/Additions -I../Headers \
+	-I../Source/$(GNUSTEP_TARGET_DIR)
+
+# Additional LDFLAGS to pass to the linker
+# ADDITIONAL_LDFLAGS += 
+
+# Additional library directories the linker should search
+ADDITIONAL_LIB_DIRS += -L../Source/$(GNUSTEP_OBJ_DIR) -L../Model/$(GNUSTEP_OBJ_DIR)
+
+# Additional libraries when linking tools
+gpbs_TOOL_LIBS += -lgnustep-gui $(SYSTEM_LIBS)
+set_show_service_TOOL_LIBS += -lgnustep-gui $(SYSTEM_LIBS)
+gopen_TOOL_LIBS += -lgnustep-gui $(SYSTEM_LIBS)
+gcloseall_TOOL_LIBS += -lgnustep-gui $(SYSTEM_LIBS)
+GSspell_TOOL_LIBS += $(ADDITIONAL_DEPENDS)
+
+# Additional libraries when linking applications
+# ADDITIONAL_GUI_LIBS +=
+
+#
+# Flags dealing with installing and uninstalling
+#
+
+# Additional directories to be created during installation
+# ADDITIONAL_INSTALL_DIRS +=

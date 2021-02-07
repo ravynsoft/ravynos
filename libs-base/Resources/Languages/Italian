@@ -1,0 +1,38 @@
+/* Italian -*-c-*- */
+{
+  NSLanguageName = "Italian";
+  NSLanguageCode = ITA;
+  NSFormalName = "Italiano";
+  NSParentContext = "Default";
+  
+  NSCurrencySymbol = "EUR";
+  NSPositiveCurrencyFormatString = "EUR9,999.00";
+  NSNegativeCurrencyFormatString = "EUR-9,999.00";
+  NSInternationalCurrencyString = "EUR";
+  
+  NSDecimalDigits = ("0", "1", "2", "3", "4", "5", "6", "7", "8", "9");
+  NSDecimalSeparator = ",";
+  NSThousandsSeparator = "'"; /* not sure but better than `.' */
+  
+  NSAMPMDesignation = (AM, PM);
+  NSDateFormatString = "%A %d %B %Y"; /* Gioved\u00ec 22 Febbraio 2001 */
+  NSDateTimeOrdering = DMYH; 
+  NSEarlierTimeDesignations = (prima, passato, fa);
+  NSHourNameDesignations = ((0, mezzanotte), (12, mezzogiorno), (10, mattina), (14, pomeriggio), (19, sera));
+  NSLaterTimeDesignations = (dopo, prossimo);
+  NSMonthNameArray = (Gennaio, Febbraio, Marzo, Aprile, Maggio, Giugno, Luglio, Agosto, Settembre, Ottobre, Novembre, Dicembre);
+  NSNextDayDesignations = (domani);
+  NSNextNextDayDesignations = ("il giorno seguente");
+  NSPriorDayDesignations = (ieri);
+  NSShortDateFormatString = "%d/%m/%Y"; /* 20/11/1974 */
+  NSShortMonthNameArray = (Gen, Feb, Mar, Apr, Mag, Giu, Lug, Ago, Set, Ott, Nov, Dic);
+  NSShortTimeDateFormatString = "%d %b %Y %H:%M"; /* 20 Nov 1974 17:33 */
+  NSShortWeekDayNameArray = (Dom, Lun, Mar, Mer, Gio, Ven, Sab); 
+  NSThisDayDesignations = (oggi);
+  NSTimeDateFormatString = "%a %d %b %H:%M:%S %z %Y"; /* Gio 22 Feb 15:33:42 +0100 2001 */
+  NSTimeFormatString = "%H:%M:%S"; /* 21:21:08 */
+  NSWeekDayNameArray = (Domenica, "Luned\u00ec", "Marted\u00ec", "Mercoled\u00ec", "Gioved\u00ec", "Venerd\u00ec", Sabato);
+  NSYearMonthWeekDesignations = (anno, mese, settimana);
+}
+
+

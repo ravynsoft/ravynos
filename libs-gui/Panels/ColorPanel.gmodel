@@ -1,0 +1,456 @@
+{
+    "Object    1" = {elements = ("Object    2"); isa = NSMutableArray; };
+    "Object    2" = {
+        className = GSAppKitPanelController;
+        isa = IMCustomObject;
+        realObject = "Object    3";
+    };
+    "Object    3" = {
+        delegate = nil;
+        isa = NSApplication;
+        keyWindow = nil;
+        mainMenu = nil;
+        mainWindow = nil;
+        windows = "Object    4";
+    };
+    "Object    4" = {
+        elements = ("ColorPanel");
+        isa = NSMutableArray;
+    };
+    "BackgroundColor" = {
+        alpha = 1.000000;
+        blue = 0.666667;
+        brightness = 0.666667;
+        colorSpaceName = NSCalibratedRGBColorSpace;
+        green = 0.666667;
+        hue = 0.000000;
+        isa = NSColor;
+        red = 0.666667;
+        saturation = 0.000000;
+    };
+    "BlackColor" = {
+        alpha = 1.000000;
+        blue = 0.000000;
+        brightness = 0.000000;
+        colorSpaceName = NSCalibratedRGBColorSpace;
+        green = 0.000000;
+        hue = 0.000000;
+        isa = NSColor;
+        red = 0.000000;
+        saturation = 0.000000;
+    };
+    "Font" = {isa = NSFont; name = Helvetica; size = 12.000000; };
+    "ColorPanel" = {
+        backgroundColor = "BackgroundColor";
+        backingType = 2;
+        becomesKeyOnlyIfNeeded = YES;
+        contentFrame = "{x = 352; y = 519; width = 200; height = 270}";
+        contentView = "ContentView";
+        frameAutosaveName = nil;
+        hidesOnDeactivate = YES;
+        initialFirstResponder = nil;
+        isAutodisplay = YES;
+        isFloatingPanel = YES;
+        isReleasedWhenClosed = NO;
+        isVisible = NO;
+        isa = NSColorPanel;
+        level = 0;
+        maxSize = "{width = 3.40282e+38; height = 3.40282e+38}";
+        minSize = "{width = 202; height = 302}";
+        representedFilename = "";
+        styleMask = 11;
+        title = Colors;
+    };
+    "ContentView" = {
+        autoresizesSubviews = YES;
+        autoresizingMask = 18;
+        bounds = "{x = 0; y = 0; width = 200; height = 270}";
+        frame = "{x = 0; y = 0; width = 200; height = 270}";
+        interfaceStyle = 0;
+        isa = NSView;
+        nextKeyView = nil;
+        nextResponder = "ColorPanel";
+        postsBoundsChangedNotifications = YES;
+        postsFrameChangedNotifications = YES;
+        previousKeyView = nil;
+        subviews = "Object    5";
+        superview = nil;
+    };
+    "Object    5" = {
+        elements = ("TopView");
+        isa = NSMutableArray;
+    };
+    "TopView" = {
+        autoresizesSubviews = YES;
+        autoresizingMask = 18;
+        bounds = "{x = 0; y = 0; width = 200; height = 270}";
+        frame = "{x = 0; y = 0; width = 200; height = 270}";  
+        interfaceStyle = 0;
+        isa = NSView;
+        nextKeyView = nil;
+        nextResponder = "ContentView";
+        postsBoundsChangedNotifications = YES;
+        postsFrameChangedNotifcations = YES;
+        previousKeyView = nil;
+        subviews = "Object    7";
+        superview = "ContentView";
+    };
+    "Object    7" = {
+        elements = (
+            "MagnifyButton",
+            "ColorWell",
+            "PickerMatrix",
+            "AlphaSlider",
+            "PickerBox"
+        );
+        isa = NSMutableArray;
+    };
+    "MagnifyButton" = {
+        autoresizesSubviews = NO;
+        autoresizingMask = 12;
+        bounds = "{x = 0; y = 0; width = 50; height = 36}";
+        cell = "MagnifyButtonCell";
+        frame = "{x = 4; y = 230; width = 50; height = 36}";
+        ignoresMultiClick = NO;
+        interfaceStyle = 0;
+        isEnabled = NO;
+        isa = NSButton;
+        nextKeyView = nil;
+        nextResponder = "TopView";
+        postsBoundsChangedNotifications = YES;
+        postsFrameChangedNotifications = YES;
+        previousKeyView = nil;
+        subviews = nil;
+        superview = "TopView";
+        tag = 0;
+    };
+    "MagnifyButtonCell" = {
+        action = nil;
+        alignment = 2;
+        alternateImage = nil;
+        alternateTitle = "";
+        delay = 0.200000;
+        entryType = 0;
+        font = "Font";
+        highlightsBy = 14;
+        image = "MagnifyImage";
+        imagePosition = 1;
+        interval = 0.025000;
+        isBezeled = NO;
+        isBordered = YES;
+        isContinuous = NO;
+        isEditable = NO;
+        isEnabled = NO;
+        isScrollable = NO;
+        isSelectable = NO;
+        isTransparent = NO;
+        isa = NSButtonCell;
+        keyEquivalent = "";
+        keyEquivalentFont = nil;
+        keyEquivalentModifierMask = 0;
+        sendActionMask = 0;
+        showsStateBy = 0;
+        state = 0;
+        stringValue = 0;
+        tag = 0;
+        target = nil;
+        title = Set;
+        type = 2;
+        wraps = YES;
+    };
+    "MagnifyImage" = {isa = NSImage; name = GNUstepMenuImage; size = "{width = 14; height = 14}"; };
+    "ColorWell" = {
+        autoresizesSubviews = YES;
+        autoresizingMask = 10;
+        bounds = "{x = 0; y = 0; width = 138; height = 36}";
+        cell = nil;
+        color = "BlackColor";
+        frame = "{x = 58; y = 230; width = 138; height = 36}";
+        ignoresMultiClick = NO;
+        interfaceStyle = 0;
+        isEnabled = YES;
+        isa = NSColorWell;
+        nextKeyView = nil;
+        nextResponder = "TopView";
+        postsBoundsChangedNotifications = YES;
+        postsFrameChangedNotifications = YES;
+        previousKeyView = nil;
+        subviews = nil;
+        superview = "TopView";
+        tag = 0;
+    };
+    "PickerMatrix" = {
+        action = nil;
+        allowsEmptySelection = NO;
+        autoresizesSubviews = NO;
+        autoresizingMask = 10;
+        autosizesCells = YES;
+        backgroundColor = "BackgroundColor";
+        bounds = "{x = 0; y = 0; width = 192; height = 36}";
+        cell = nil;
+        cellBackgroundColor = "BackgroundColor";
+        cellClass = NSButtonCell;
+        cellSize = "{width = 40; height = 36}";
+        cells = nil;
+        delegate = nil;
+        doubleAction = nil;
+        errorAction = nil;
+        frame = "{x = 4; y = 190; width = 192; height = 36}";
+        ignoresMultiClick = NO;
+        intercellSpacing = "{width = 2; height = 0}";
+        interfaceStyle = 0;
+        isAutoscroll = NO;
+        isEnabled = YES;
+        isSelectionByRect = NO;
+        isa = NSMatrix;
+        mode = 0;
+        nextKeyView = nil;
+        nextResponder = "TopView";
+        numberOfColumns = 0;
+        numberOfRows = 0;
+        postsBoundsChangedNotifications = YES;
+        postsFrameChangedNotifications = YES;
+        previousKeyView = nil;
+        prototype = "PickerButtonPrototype";
+        subviews = nil;
+        superview = "TopView";
+        tag = 0;
+        target = nil;
+    };
+    "PickerButtonPrototype" = {
+        action = nil;
+        alignment = 2;
+        alternateImage = nil;
+        alternateTitle = "";
+        delay = 0.200000;
+        entryType = 0;
+        font = "Font";
+        highlightsBy = 14;
+        image = nil;
+        imagePosition = 1;
+        interval = 0.025000;
+        isBezeled = NO;
+        isBordered = YES;
+        isContinuous = NO;
+        isEditable = NO;
+        isEnabled = YES;
+        isScrollable = NO;
+        isSelectable = NO;
+        isTransparent = NO;
+        isa = NSButtonCell;
+        keyEquivalent = "";
+        keyEquivalentFont = nil;
+        keyEquivalentModifierMask = 0;
+        sendActionMask = 0;
+        showsStateBy = 0;
+        state = 0;
+        stringValue = 0;
+        tag = 0;
+        target = nil;
+        title = "";
+        type = 2;
+        wraps = YES;
+    };
+    "PickerBox" = {
+        autoresizesSubviews = YES;
+        autoresizingMask = 18;
+        borderType = 0;
+        bounds = "{x = 0; y = 0; width = 192; height = 162}";
+        contentView = nil;
+        contentViewMargins = "{width = 0; height = 0}";
+        frame = "{x = 4; y = 24; width = 192; height = 162}";
+        interfaceStyle = 0;
+        isa = NSBox;
+        nextKeyView = nil;
+        nextResponder = "TopView";
+        ostsBoundsChangedNotifications = YES;
+        postsFrameChangedNotifications = YES;
+        previousKeyView = nil;
+        subviews = nil;
+        superview = "TopView";
+        title = Box;
+        titleFont = "Font";
+        titlePosition = 0;
+    };
+    "AlphaSlider" = {
+        autoresizesSubviews = NO;
+        autoresizingMask = 34;
+        bounds = "{x = 0; y = 0; width = 192; height = 16}";
+        cell = "AlphaSliderCell";
+        frame = "{x = 4; y = 4; width = 192; height = 16}";
+        ignoresMultiClick = NO;
+        interfaceStyle = 0;
+        isEnabled = YES;
+        isa = NSSlider;
+        nextKeyView = nil;
+        nextResponder = "TopView";
+        postsBoundsChangedNotifications = YES;
+        postsFrameChangedNotifications = YES;
+        previousKeyView = nil;
+        subviews = nil;
+        superview = "TopView";
+        tag = 0;
+    };
+    "AlphaSliderCell" = {
+        action = nil;
+        alignment = 0;
+        entryType = 0;
+        font = "Font";
+        image = nil;
+        isBezeled = YES;
+        isBordered = NO;
+        isContinuous = YES;
+        isEditable = NO;
+        isEnabled = YES;
+        isScrollable = NO;
+        isSelectable = NO;
+        isa = NSSliderCell;
+        knobThickness = 12.000000;
+        maxValue = 100.000000;
+        minValue = 0.000000;
+        sendActionMask = 0;
+        state = 0;
+        stringValue = 50;
+        tag = 0;
+        target = nil;
+        titleCell = "AlphaSliderTitleCell";
+        type = 1;
+        wraps = YES;
+    };
+    "AlphaSliderTitleCell" = {
+        action = nil;
+        alignment = 0;
+        backgroundColor = "BackgroundColor";
+        drawsBackground = NO;
+        entryType = 0;
+        font = "Font";
+        image = nil;
+        isBezeled = NO;
+        isBordered = NO;
+        isContinuous = NO;
+        isEditable = NO;
+        isEnabled = YES;
+        isScrollable = NO;
+        isSelectable = NO;
+        isa = NSTextFieldCell;
+        sendActionMask = 0;
+        state = 0;
+        stringValue = "Alpha Channel";
+        tag = 0;
+        target = nil;
+        textColor = "BlackColor";
+        type = 1;
+        wraps = YES;
+    };
+    "SwatchMatrix" = {
+        action = nil;
+        allowsEmptySelection = YES;
+        autoresizesSubviews = NO;
+        autoresizingMask = 18;
+        autosizesCells = NO;
+        backgroundColor = "BackgroundColor";
+        bounds = "{x = 0; y = 0; width = 200; height = 0}";
+        cell = nil;
+        cellBackgroundColor = "BlackColor";
+        cellClass = NSActionCell;
+        cellSize = "{width = 15; height = 15}";
+        cells = nil;
+        delegate = nil;
+        doubleAction = nil;
+        drawsBackground = NO;                    
+        drawsCellBackground = YES;
+        errorAction = nil;
+        frame = "{x = 4; y = 0; width = 200; height = 0}";                     
+        ignoresMultiClick = NO;
+        intercellSpacing = "{width = 1; height = 1}";
+        interfaceStyle = 0;
+        isAutoscroll = NO;
+        isEnabled = YES;
+        isSelectionByRect = NO;
+        isa = NSMatrix;
+        mode = 0;
+        nextKeyView = nil;
+        nextResponder = "SplitView";
+        numberOfColumns = 10;
+        numberOfRows = 1;
+        postsBoundsChangedNotifications = YES;
+        postsFrameChangedNotifications = YES;
+        previousKeyView = nil;
+        prototype = nil;
+        subviews = nil;
+        superview = "SplitView";
+        tag = 0;
+        target = nil;
+    };
+    "Connections" = {
+        elements = (
+            "Connection    1",
+            "Connection    3",
+            "Connection    4",
+            "Connection    5",
+            "Connection    6",
+            "Connection    7",
+            "Connection    8"
+        );
+        isa = NSMutableArray;
+    };
+    "Connection    1" = {
+        destination = "ColorPanel";
+        isa = IMOutletConnector;
+        label = "Label    1";
+        source = "Object    2";
+    };
+    "Label    1" = {isa = NSString; string = panel; };
+    "Connection    2" = {
+        destination = "SplitView";
+        isa = IMOutletConnector;
+        label = "Label    2";
+        source = "ColorPanel";
+    };
+    "Label    2" = {isa = NSString; string = "_splitView"; };
+    "Connection    3" = {
+        destination = "TopView";
+        isa = IMOutletConnector;
+        label = "Label    3";
+        source = "ColorPanel";
+    };
+    "Label    3" = {isa = NSString; string = "_topView"; };
+    "Connection    4" = {
+        destination = "MagnifyButton";
+        isa = IMOutletConnector;
+        label = "Label    4";
+        source = "ColorPanel";
+    };
+    "Label    4" = {isa = NSString; string = "_magnifyButton"; };
+    "Connection    5" = {
+        destination = "ColorWell";
+        isa = IMOutletConnector;
+        label = "Label    5";
+        source = "ColorPanel";
+    };
+    "Label    5" = {isa = NSString; string = "_colorWell"; };
+    "Connection    6" = {
+        destination = "AlphaSlider";
+        isa = IMOutletConnector;
+        label = "Label    6";
+        source = "ColorPanel";
+    };
+    "Label    6" = {isa = NSString; string = "_alphaSlider"; };
+    "Connection    7" = {
+        destination = "PickerBox";
+        isa = IMOutletConnector;
+        label = "Label    7";
+        source = "ColorPanel";
+    };
+    "Label    7" = {isa = NSString; string = "_pickerBox"; };
+    "Connection    8" = {
+        destination = "PickerMatrix";
+        isa = IMOutletConnector;
+        label = "Label    8";
+        source = "ColorPanel";
+    };
+    "Label    8" = {isa = NSString; string = "_pickerMatrix"; };
+    RootObject = {Connections = "Connections"; Objects = "Object    1"; isa = GMModel; };
+    TopLevelObjects = (RootObject);
+    Version = 1;
+}

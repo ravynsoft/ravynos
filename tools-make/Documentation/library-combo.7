@@ -1,0 +1,223 @@
+.\" Process this file with
+.\" groff -man -Tascii library-combo.7
+.\" 
+.TH library-combo 7 "20/12/2007" gnustep-make "GNUstep System Manual"
+.SH NAME
+library-combo \- GNUstep Make support for cross-compilation.
+.SH DESCRIPTION
+This manual page is about cross-compilation and fat binaries. Fat binaries are packages that you can supply which contain more the one binary of your program (e.g. your application). So you can support multiple platforms with a single package.
+.PP
+To support this your system has to be built in a non-flattened way. Meaning that during the installation of
+.I gnustep-make
+you should have selected
+.B \-\-disable-flattened
+and the types of library combinations you want to support, through the
+.B \-\-with-library-combo
+option. With library combinations we mean the Objective-C runtime, the Foundation library and the Application library. For more details about this see the LIBRARY-COMBO section.
+.PP
+If you installed your
+.B GNUstep
+system in a non-flattened way all system dependend binaries are installed in subdirectories with
+.I cpu/os/library-combo
+information. That means for instance that the
+.I gnustep-base
+library will be installed in
+.I Library/Libraries/ix86/linux/gnu\-gnu\-gnu/
+when you are on an Intel x86 system, running linux with the
+.SM GNU
+runtime for Objective-C and you installed
+.BR GNUstep .
+.PP
+For each and every library-combo that you want to support you should create the environment through
+.IR gnustep-make ,
+because it installs a different
+.I config.make
+to support its own 
+.BR CC ", " OPTFLAGS ,
+etc. flags.
+.SS LIBRARY-COMBO
+An important issue is to let to a package the ability to deal with various libraries and configurations available now:
+.TP
+.B Objective-C runtimes
+In the Objective-C world there are three major runtimes: the GNUstep runtime, the Apple runtime and the
+.SM GNU
+runtime. They are different in several respects and a program or library that works at the runtime level should be aware of them. 
+.TP
+.B Foundation libraries
+There are different Foundation libraries an application or tool can be written on top of: gnustep-base, libFoundation and Apple Cocoa system.
+.TP
+.B Graphical interfaces
+Until now three libraries provide or try to provide OpenStep compliant systems: the AppKit from NeXT, gnustep-gui and Cocoa from Apple.
+.PP
+If a program wants to work with all the possible combinations it will have to provide different binaries for each combination because it's not possible to have a tool compiled for NeXT Foundation that runs with gnustep-base or vice-versa. To summarize, a program can be compiled for these combinations:
+.TP
+.B Objective-C runtime
+ng (for GNUstep Next Generation with nonfragile API and ARC support etc), gnu (for
+.SM GNU
+, or for GNUstep without latest language features), apple (for Apple), nx (for NeXT)
+.TP
+.B Foundation library
+gnu (for gnustep-base), fd (for libFoundation), apple (for Apple Cocoa), nx (for NeXT Foundation)
+.TP
+.B GUI library
+gnu (for gnustep-gui), apple (for Apple Cocoa), nx (for NeXT GUI)
+.PP
+We'll denote the fact that an application was compiled for a certain combination of the above values by using the abbreviations of the different subsystems and placing dashes between them. For example an application compiled for NeXT Foundation using NeXT AppKit will have the compile attribute nx\-nx\-nx. An application compiled for Apple Cocoa with the
+.SM GNU
+compiler for Objective-C gnu\-apple\-apple and another one compiled for
+.I gnustep-base
+using
+.I gnustep-gui
+under Unix will be denoted by gnu\-gnu\-gnu. Here is a list of some of the possible combinations:
+.PP
+.RS 0
+   Runtime	Foundation	GUI
+.RS 0
+     nx		    nx		nx
+.RS 0
+     nx		    fd		gnu
+.RS 0
+     gnu		    gnu		gnu
+.RS 0
+     ng		    gnu		gnu
+.RS 0
+     gnu		    fd		gnu
+.RS 0
+    apple		   apple		apple
+.RS 0
+    apple		    gnu		gnu
+.RE 0
+.PP
+Note that one can choose his/her own packages to build; it is not required to have all the packages installed on the system. Not having all of them installed limits only the ability to build and distribute binaries for those missing combinations.
+
+.SS DIRECTORY STRUCTURE
+For cross-compilation in a non-flattened directory structure is recommended, so that you can store on the same directory structure binaries for different machines.  The standard
+.B GNUstep
+filesystem layout is normally used when a non-flattened directory structure is being used; this is obtained with the
+.BI \-\-with-layout= gnustep
+option when configuring
+.IR gnustep-make .
+The entire
+.B GNUstep
+installation is then created inside
+.I /usr/GNUstep
+(or another directory if you use the
+.B \-\-prefix=...
+option when configuring
+.IR gnustep-make ).
+Directories that contain binaries (such as the
+.I Libraries
+directory) inside
+.I /usr/GNUstep
+are then set up to support fat binaries as follows:
+.PP
+.RS 0
+Libraries/
+.RS 0
+  ix86/
+.RS 0
+    linux\-gnu/
+.RS 0
+      gnu\-gnu\-gnu/
+.RS 0
+		libgnustep\-base.so
+.RS 0
+		libgnustep\-gui.so
+.RS 0
+      gnu\-fd\-gnu/
+.RS 0
+		libFoundation.so
+.RS 0
+		libgnustep\-gui.so
+.PP
+To allow the right libraries to be found, you need to source
+.I GNUstep.sh
+before using
+.BR GNUstep ,
+and you need to start up your application by using
+.BR openapp ,
+which will locate the right binary for your library combo.
+.SS BUILDING FOR A LIBRARY-COMBO
+The makefile package will allow the user to choose between different library combinations. To specify a combination you want to compile for just type:
+.PP
+.RS 0
+  $ make library_combo=library-combo
+.PP
+For instance if you want to choose to compile using the GNUstep's Foundation implementation and use the GNUstep GUI library on a GNU/Linux machine you can do like this:
+.PP
+.RS 0
+  $ make library_combo=gnu\-gnu\-gnu
+.PP
+If your project requires running configure before compiling there are two issues you have to keep in mind. 'configure' is used to determine the existence of particular header files and/or of some specific functionality in the system header files. This thing is usually done by creating a config.h file which contains a couple of defines like HAVE_... which say if the checked functionality is present or not.
+.PP
+Another usage of configure is to determine some specific libraries to link against to and/or some specific tools. A typical
+.B GNUstep
+program is not required to check for additional libraries because this step is done by the time the makefile package is installed. If the project still needs to check for additional libraries and/or tools, the recommended way is to output a 
+.I config.mak
+file which is included by the main
+.IR GNUmakefile ,
+instead of using
+.I Makefile.in
+files which are modified by
+.IR configure .
+The reason for not doing this is to avoid having the makefiles contain target dependencies like above, this way keeping only one makefile instead of several for each target machine.
+.PP
+The makefile package is written for
+.SM GNU
+make because it provides some very powerful features that save time both in writing the package but also at runtime, when you compile a project.
+
+.SS BUILDING FOR AN ARCHITECTURE
+In order to build a project for multiple architectures you'll need the development environment for the target machine installed on your machine. This includes a cross-compiler together with all the additional tools like the assembler and linker, the target header files and all the libraries you need.
+.PP
+The
+.B GNUstep
+makefile package should be able to compile and link an application for another machine just by typing
+.PP
+.RS 0
+  $ make target=target-triplet
+.PP
+where target-triplet is the canonical system name as reported by
+.IR config.guess .
+
+.SS USING A LIBRARY-COMBO
+When you use library-combos, you must always source
+.IR GNUstep.sh .
+That allows you to switch library paths on the fly. If you want to switch to a different library-combo in your shell, and if you are using
+.BR bash ,
+it's common to first source
+.I GNUstep-reset.sh
+to reset all shell variables, then to source
+.B GNUstep.sh
+again. Let's assume we use gnu-gnu-gnu as our current
+.B LIBRARY_COMBO
+and we want to switch to ng\-gnu\-gnu, then we would use:
+.PP
+.RS 0
+  . /usr/GNUstep/System/Library/Makefiles/GNUstep-reset.sh
+.RS 0
+  export LIBRARY_COMBO=ng\-gnu\-gnu
+.RS 0
+  . /usr/GNUstep/System/Library/Makefiles/GNUstep.sh
+
+.SH SEE ALSO
+debugapp(1), GNUstep(7), gnustep-config(1), openapp(1)
+
+.SH HISTORY
+Work on gnustep-make started in 1997 by Scott Christley <scottc@net-community.com>.
+.PP
+Version 2.0.0 of gnustep-make introduced many changes with previous releases, which was mainly the work of Nicola Pero <nicola.pero@meta-innovation.com>
+
+.SH AUTHORS
+This man-page was written by Dennis Leeuw <dleeuw@made-it.com> based on the DESIGN document from the gnustep-make source tree.
+
+.SH CREDITS
+The DESIGN document was written by Ovidiu Predescu.
+.PP
+This work could only be as is due to the notes and corrects from Nicola Pero <nicola.pero@meta-innovation.com>.
+
+.SH COPYRIGHT
+Copyright (C) 2007 Free Software Foundation, Inc.
+.PP
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.

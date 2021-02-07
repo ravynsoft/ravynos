@@ -1,0 +1,86 @@
+@c -*- texinfo -*-
+@chapter Installation
+
+@node Top, Introduction, (dir), (dir)
+@include version.texi
+
+@menu
+* Introduction::                
+* Configuration::               
+* Compilation::                 
+* Installing::                  
+@end menu
+
+
+@node Introduction, Configuration, Top, Top
+@section Introduction
+
+This file documents the installation of the GNUstep Backend Library,
+@samp{gnustep-back}. If you are installing this package as part of the
+GNUstep core package, read the file GNUstep-HOWTO for more complete
+instructions on how to install the entire GNUstep package (including
+this library).  GNUstep-HOWTO is located at @url{http://www.gnustep.org}
+
+You must have installed gnustep-gui before installing this library.
+
+@node Configuration, Compilation, Introduction, Top
+@section Configuration
+
+Configuration is performed by running the @file{configure} program at a
+shell prompt. You may want to use some of the optional arguments to the
+@file{configure} program. Type @code{configure --help} for a list. GNUstep
+specific options are at the end of this list (if any).
+
+The backend comes with several different window server and graphics
+drawing implementations. If you do nothing, the default ones will be
+chosen. You can can change this using configure. For instance,
+to choose the art graphical drawing implementation, run
+
+@example
+configure --enable-graphics=art
+@end example
+
+Type @code{configure --help} for a list of graphical drawing
+implementations.
+
+You can also change the name of the backend when configuring it. This is
+convienient if you want to have a different backend with different
+configurations. For instance, to create an xlib and and art backend,
+you could do this:
+
+@example
+configure --enable-graphics=xlib --with-name=xlib
+make install
+
+make distclean
+configure --enable-graphics=art --with-name=art
+make install
+@end example
+
+Before running an application, choose one backend using the defaults program:
+
+@example
+defaults write NSGlobalDomain GSBackend libgnustep-xlib
+@end example
+
+@node Compilation, Installing, Configuration, Top
+@section Compilation
+
+To compile this library, type make. After this is complete, type make
+install (make sure you are the root user). Some additional options you
+can use with make are @samp{debug=yes} to make a debugging version of
+the library and @samp{shared=no} to make a static version of the
+library. See the gstep-make package for more information on these options.
+
+@node Installing,  , Compilation, Top
+@section Installing
+
+To install, type
+
+@example
+make install
+@end example
+
+@bye
+
+

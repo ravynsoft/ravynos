@@ -1,0 +1,87 @@
+.\"make_services(1) man page
+.\"put together by Martin Brecher <martin@gnustep.de>
+.\"Copyright (C) 2003 Free Software Foundation, Inc.
+.\"
+.\"Process this file with
+.\"groff -man -Tascii make_services.1
+.\"
+.TH MAKE_SERVICES 1 "October 2003" GNUstep "GNUstep System Manual"
+.SH NAME
+make_services \- generate GNUstep services info
+
+.SH SYNOPSIS
+.B make_services
+.RB [ --test  
+.IR filename
+.RB ]
+.RB [ "--verbose\fP" | "--quiet\fP" ]
+.P
+.SH DESCRIPTION
+.B make_services
+builds a validated cache of service information for use by
+programs that want to access the GNUstep services facility.
+Additionally, it builds a list of applications and service bundles found
+in the standard directories. This cache is usually stored in the file named 
+.I .GNUstepServices
+in the user's GNUstep directory.
+.P
+Most commonly,
+.I make_services
+is called from within the GNUstep.sh or GNUstep.csh script to update the
+service information every time the GNUstep environmet is set up, i.e. 
+in a login script. But of course it is possible to run
+.I make_services
+from the command line whenever you wish, for example after having installed
+a new application or service.
+.PP
+The 
+.I Services
+menu in an application's mainmenu is usually updated automatically. However, it
+may be necessary to close an open or torn off menu for the changes to appear.
+Also, the workspace manager may have to be closed and restarted for file 
+association changes to take effect.
+.P
+.SH OPTIONS
+.IP "\fB--test \fIfilename"
+check that property list 
+.I filename
+contains a valid service information.
+.IP "\fB--quiet"
+suppress warnings (not recommended but useful in login scripts).
+.IP "\fB--verbose"
+give verbose output.
+.IP "\fB--help"
+show small help screen.
+.PP
+.SH EXAMPLES
+Simply rebuild the cache of service information:
+.PP
+.I make_services
+.PP
+Check whether the file ServiceInfo.plist contains a valid service description:
+.PP
+.I make_services --test ServiceInfo.plist
+.P
+.SH NOTES
+Giving both
+.I --quiet
+and
+.I --verbose
+on the command line will result in verbose output, ignoring the
+.I --quiet
+argument.
+.P
+.SH SEE ALSO
+GNUstep(7), gopen(1)
+.P
+.SH HISTORY
+Work on
+.B make_services
+started November 1998.
+.P
+This manual page was first written October 2003.
+.P
+.SH AUTHORS
+make_services was written by Richard Frith-Macdonald <richard@brainstorm.co.uk>.
+.P
+This man page was written by Martin Brecher <martin@mb-itconsulting.com>.

@@ -1,0 +1,98 @@
+#   -*-makefile-*-
+#
+#   Makefile.postamble
+#
+# Copyright (C) 2005, Free Software Foundation, Inc.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either
+# version 2 of the License, or (at your option) any later version.
+# This program is distributed in the
+# hope that it will be useful, but WITHOUT ANY WARRANTY; without even
+# the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+# PURPOSE. See the GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
+# 
+#   Project specific makefile rules
+#
+#   Uncomment the targets you want.
+#   The double colons (::) are important, do not make them single colons
+#   otherwise the normal makefile rules will not be performed.
+#
+
+# Things to do before compiling
+# before-all::
+
+# Things to do after compiling
+# after-all::
+
+# Things to do before installing
+before-install::
+
+# Things to do after installing
+after-install::
+	if [ ! -f $(GNUSTEP_DOC_MAN) ]; then \
+	  $(MKDIRS) $(GNUSTEP_DOC_MAN); \
+	fi; \
+	if [ ! -f $(GNUSTEP_DOC_MAN)/man1 ]; then \
+	  $(MKDIRS) $(GNUSTEP_DOC_MAN)/man1; \
+	fi; \
+	for file in $(MAN1_PAGES) __done; do \
+	  if [ $$file != __done ]; then \
+	    $(INSTALL_DATA) $$file $(GNUSTEP_DOC_MAN)/man1/$$file; \
+	    which gzip && rm -f $(GNUSTEP_DOC_MAN)/man1/$$file.gz \
+		&& gzip -9 $(GNUSTEP_DOC_MAN)/man1/$$file; \
+	  fi; \
+	done; \
+
+# Things to do before uninstalling
+before-uninstall::
+	for file in $(MAN1_PAGES); do \
+	  rm -f $(GNUSTEP_DOC_MAN)/man1/$$file.gz; \
+	done;
+	-rmdir $(GNUSTEP_DOC_MAN)/man1;
+	-rmdir $(GNUSTEP_DOC_MAN);
+
+# Things to do after uninstalling
+# after-uninstall::
+
+# Things to do before cleaning
+# before-clean::
+
+# Things to do after cleaning
+# after-clean::
+
+# Things to do before distcleaning
+# before-distclean::
+
+# Things to do after distcleaning
+# after-distclean::
+
+# Things to do before checking
+# before-check::
+
+# Things to do after checking
+# after-check::
+
+
+#
+# If building with the Apple Foundation, we don't include the base 'Headers'
+# directory in the includes path, but we need the additions headers so we
+# link to them from the current directory.
+#
+
+ifeq ($(FOUNDATION_LIB),apple)
+
+before-all::
+	rm -f GNUstepBase
+	ln -s ../Headers/GNUstepBase GNUstepBase
+
+after-clean::
+	rm -f GNUstepBase
+
+endif
+

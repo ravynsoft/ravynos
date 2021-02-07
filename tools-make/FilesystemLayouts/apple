@@ -1,0 +1,79 @@
+#
+# Apple Mac OS X filesystem layout
+#
+
+# This is the layout found on Apple Mac OS X when installing
+# everything into /Library and /usr/local.  Use this on Apple Mac OS X
+# to compile and install software that uses the native Apple
+# frameworks (ie, using the apple-apple-apple library-combo).
+#
+# Basically, it's a the Apple Mac OS X filesystem with all domains
+# mapped into the same /Library and /usr/local directory.
+#
+# To use gnustep-make in this environment, source GNUstep.sh or use
+# 'export GNUSTEP_MAKEFILES=/Library/GNUstep/Makefiles'.
+
+# By default, we install into /, but this can be overridden by using
+# ./configure --prefix=xxx when configuring.
+GNUSTEP_DEFAULT_PREFIX=/
+
+# These are only used by gnustep-base to implement the NSUserDirectory
+# API.  We never install anything in them.  They will be used as they
+# are without $prefix.
+GNUSTEP_SYSTEM_USERS_DIR=/Users
+GNUSTEP_NETWORK_USERS_DIR=/Network/Users
+GNUSTEP_LOCAL_USERS_DIR=/Users
+
+# NB: $prefix will be added to all the MAKEFILES/SYSTEM/NETWORK/LOCAL
+# paths.
+GNUSTEP_MAKEFILES=/Library/GNUstep/Makefiles
+
+GNUSTEP_SYSTEM_APPS=/Applications
+GNUSTEP_SYSTEM_ADMIN_APPS=/Applications/Utilities
+GNUSTEP_SYSTEM_WEB_APPS=/Library/WebApplications
+GNUSTEP_SYSTEM_TOOLS=/usr/local/bin
+GNUSTEP_SYSTEM_ADMIN_TOOLS=/usr/local/sbin
+GNUSTEP_SYSTEM_LIBRARY=/Library
+GNUSTEP_SYSTEM_HEADERS=/usr/local/include
+GNUSTEP_SYSTEM_LIBRARIES=/usr/local/lib
+GNUSTEP_SYSTEM_DOC=/Library/Documentation
+GNUSTEP_SYSTEM_DOC_MAN=/Library/Documentation/man
+GNUSTEP_SYSTEM_DOC_INFO=/Library/Documentation/info
+
+GNUSTEP_NETWORK_APPS=/Applications
+GNUSTEP_NETWORK_ADMIN_APPS=/Applications/Utilities
+GNUSTEP_NETWORK_WEB_APPS=/Library/WebApplications
+GNUSTEP_NETWORK_TOOLS=/usr/local/bin
+GNUSTEP_NETWORK_ADMIN_TOOLS=/usr/local/sbin
+GNUSTEP_NETWORK_LIBRARY=/Library
+GNUSTEP_NETWORK_HEADERS=/usr/local/include
+GNUSTEP_NETWORK_LIBRARIES=/usr/local/lib
+GNUSTEP_NETWORK_DOC=/Library/Documentation
+GNUSTEP_NETWORK_DOC_MAN=/Library/Documentation/man
+GNUSTEP_NETWORK_DOC_INFO=/Library/Documentation/info
+
+GNUSTEP_LOCAL_APPS=/Applications
+GNUSTEP_LOCAL_ADMIN_APPS=/Applications/Utilities
+GNUSTEP_LOCAL_WEB_APPS=/Library/WebApplications
+GNUSTEP_LOCAL_TOOLS=/usr/local/bin
+GNUSTEP_LOCAL_ADMIN_TOOLS=/usr/local/sbin
+GNUSTEP_LOCAL_LIBRARY=/Library
+GNUSTEP_LOCAL_HEADERS=/usr/local/include
+GNUSTEP_LOCAL_LIBRARIES=/usr/local/lib
+GNUSTEP_LOCAL_DOC=/Library/Documentation
+GNUSTEP_LOCAL_DOC_MAN=/Library/Documentation/man
+GNUSTEP_LOCAL_DOC_INFO=/Library/Documentation/info
+
+GNUSTEP_USER_DIR_APPS=Applications
+GNUSTEP_USER_DIR_ADMIN_APPS=Applications/Utilities
+GNUSTEP_USER_DIR_WEB_APPS=Library/WebApplications
+GNUSTEP_USER_DIR_TOOLS=bin
+GNUSTEP_USER_DIR_ADMIN_TOOLS=sbin
+GNUSTEP_USER_DIR_LIBRARY=Library
+GNUSTEP_USER_DIR_HEADERS=Library/Headers
+GNUSTEP_USER_DIR_LIBRARIES=Library/Libraries
+GNUSTEP_USER_DIR_DOC=Library/Documentation
+GNUSTEP_USER_DIR_DOC_MAN=Library/Documentation/man
+GNUSTEP_USER_DIR_DOC_INFO=Library/Documentation/info
+GNUSTEP_USER_CONFIG_FILE=Library/.GNUstep.conf
+GNUSTEP_USER_DEFAULTS_DIR=Library/Defaults

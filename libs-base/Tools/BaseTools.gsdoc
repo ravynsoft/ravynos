@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 1.0.3//EN" "http://www.gnustep.org/gsdoc-1_0_3.xml">
+<!--
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+-->
+<gsdoc base="BaseTools">
+  <head>
+    <title>Base Tools</title>
+    <author name="Richard Frith-MacDonald"/>
+    <author name="and various others..."/>
+    <copy>2005 Free Software Foundation, Inc.</copy>
+  </head>
+  <body>
+    <chapter>
+      <p>
+        The Base Tools are command line utilities that come with the GNUstep
+        base distribution.
+      </p>
+      <deflist>
+        <term><ref type="tool" id="autogsdoc"/></term>
+        <desc>
+          Parses Objective-C source to autogenerate
+          <uref url="gsdoc.html">GSDoc</uref>, and converts GSDoc to HTML.
+        </desc>
+        <term><ref type="tool" id="cvtenc"/></term>
+        <desc>Converts text files between unicode and other encodings.</desc>
+        <term><ref type="tool" id="defaults"/></term>
+        <desc>Supports viewing/modification of GNUstep user defaults database.
+        </desc>
+        <term><ref type="tool" id="gdnc"/></term>
+        <desc>GNUstep distributed notification center.</desc>
+        <term><ref type="tool" id="gdomap"/></term>
+        <desc>GNUstep distributed object mapper.</desc>
+        <term><ref type="tool" id="pldes"/></term>
+        <desc>Converts a binary serialized property list (class instance)
+          to a text representation.</desc>
+        <term><ref type="tool" id="plmerge"/></term>
+        <desc>Merges text property lists into a single property list.</desc>
+        <term><ref type="tool" id="plparse"/></term>
+        <desc>Checks that each file contains a valid text representation
+          of a property list.</desc>
+        <term><ref type="tool" id="plser"/></term>
+        <desc>Converts a text representation of a property list to a binary
+          serialized representation..</desc>
+        <term><ref type="tool" id="sfparse"/></term>
+        <desc>Can verify strings-file format, and convert strings files
+          between different encodings.</desc>
+        <term><ref type="tool" id="xmlparse"/></term>
+        <desc>A simple XML format verifier and DTD validator.</desc>
+      </deflist>
+    </chapter>
+  </body>
+</gsdoc>

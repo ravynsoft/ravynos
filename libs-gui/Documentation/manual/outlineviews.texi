@@ -1,0 +1,57 @@
+@c    GNUstep AppKit Guide
+@c
+@c    Copyright (c)  2005-2006  Christopher Armstrong.
+@c
+@c    Permission is granted to copy, distribute and/or modify this document
+@c    under the terms of the GNU Free Documentation License, Version 1.2
+@c    with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+@c    A copy of the license is included in the section entitled "GNU
+@c    Free Documentation License".
+@c
+@c This documentation is provided on an "AS IS" BASIS, WITHOUT WARRANTY
+@c OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING, BUT NOT LIMITED
+@c TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+@c PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY AND USEFULNESS
+@c OF THE DOCUMENTATION IS WITH YOU (THE LICENSEE). IN NO EVENT WILL THE COPYRIGHT
+@c HOLDERS BE LIABLE FOR DAMAGES, INCLUDING ANY DIRECT, INDIRECT,
+@c SPECIAL, GENERAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF
+@c THE USE OR INABILITY TO USE THIS DOCUMENTATION (INCLUDING BUT NOT
+@c LIMITED TO LOSS OF DATA, USE, OR PROFITS; PROCUREMENT OF SUBSTITUTE
+@c GOODS AND SERVICES; OR BUSINESS INTERUPTION) HOWEVER CAUSED, EVEN
+@c IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+@node outlineviews, matrix, tableview, Top
+@chapter Outline Views
+
+An @dfn{outline view} is a specialised form of table view designed for displaying hierachical data in a tree like format. It looks alot like a Windows' TreeView Control, but operates differently, provides much more powerful functionality and it is less tedious to programme.
+
+The node's in the outline view can be collapsed and expanded and display a list of sub-nodes. This makes the outline view hierachical.
+
+It uses the @code{NSOutlineView} class, which inherits from @code{NSTableView}. This means that most of the behaviour that applies to tableviews also applies to outline views, such as changing columns/rows and their display, etc. It extends the tableview with a hierachial layout for data, in which nodes can be expanded and contracted.
+
+Like the table view, the outline view control uses a data source object to get it's data, as well as a delegate to modify it's behaviour. These are objects implementing the informal protocols @code{NSOutlineViewDataSource} and @code{NSOutlineViewDelegate}. Although a delegate object is optional, outline views require a data source object.
+
+See the @cite{GNUstep GUI Reference} for more information about outline views (including class documentation).
+
+@section Using a Data Source
+
+The data source for an outline view implements the @code{NSOutlineViewDataSource} informal protocol. Some of it's methods are compulsory; some are not.
+
+Note that a parameter in many of the delegate's methods is an untyped object @var{item}. This object is supplied by you, and the outline view passes it back to your delegate as a representation of a node or leaf row.
+
+The outline view requires you implement the following methods:
+@table @code
+@item -(id) outlineView:(NSOutlineView*)outlineView child:(int)index ofItem:(id)item
+Returns the item that is the child of @var{item} at @var{index}. A @code{nil} item means that you should return the children of the root item.
+
+@item -(BOOL) outlineView:(NSOutlineView*)outlineView isItemExpandable:(id)item
+Returns whether @var{item} is expandable.
+
+@item -(int) outlineView:(NSOutlineView*)outlineView numberOfChildrenOfItem:(id)item
+Returns the number of child items of @var{item}.
+
+@item -(id) outlineView:(NSOutlineView*)outlineView objectValueForTableColumn: (NSTableColumn*)tableColumn byItem:(id)item
+Returns the data object for @var{item} in @var{tableColumn} of the table view.
+@end table
+
+Full defintions of these (and optional methods) can be found in the @cite{GNUstep GUI Manual}.

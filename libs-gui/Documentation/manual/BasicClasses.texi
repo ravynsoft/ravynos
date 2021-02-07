@@ -1,0 +1,58 @@
+@paragraphindent 0
+
+@node Basic Classes
+@chapter Basic Classes
+
+This is a simple introduction to the major classes in the GNUstep GUI library
+API.  If you know nothing about the OpenStep AppKit, it could be a good idea
+to read this before you start reading the reference documentation.
+
+I am very interested in comments regarding this text, particularly from people
+who are new to the OPENSTEP AppKit API.  Send comments and/or suggestions to
+Nicola Pero (n.pero@@mi.flashnet.it).
+
+
+@section NSView
+@cindex NSView class
+
+NSView is the class of objects representing a rectangular area (usually in a
+window) with its own coordinate system.  Views have methods to draw inside the
+view, to change the view's coordinate system, and to place the view with
+arbitrary position and size inside another view.  When you place a view inside
+another view, you are technically making the smaller view a <em>subview</em>
+of the bigger view.  The whole drawable area inside the window itself is
+represented by a view, called the <em>content view</em>.  All the visible
+views in a window are then subviews of the content view of that window (or of
+the content view's subviews etc).  This gives rise to what is called the "view
+tree" of the window.
+
+
+@section NSCell
+@cindex NSCell class
+
+NSCell is the class of objects representing a single amount of displayable
+data.  For example, a cell could represent a number, or a string, or an image.
+Cells have methods to draw the data they represent in a view, to change the
+way the data is to be drawn (eg the font for a string or the border for an
+image), and to let the user interact directly (eg editing the data) with the
+data in a view.
+
+
+@section NSControl
+@cindex NSControl class
+
+NSControl is the class of objects representing a view (i.e., a rectangular
+area in a window) used to manage one or more cells (i.e., some displayable
+data).  This class is usually designed to work with a subclass of NSCell,
+called <em>NSActionCell</em>, through a system of target/action.  Each
+actioncell has a <em>target</em> - an object - and an <em>action</em> - a
+selector - both of which can be arbitrarily set.  The control can then ask the
+cell to send its action to its target (ie, to invoke the method of the target
+object identified by the selector) as a consequence of user actions in the
+control.  The typical example is a button: a button is a control with a
+corresponding cell; when the user presses the button, the buttoncell sends its
+action to its target.  Controls are the high-level objects the you usually
+deal with when designing everyday-life user interfaces.  You do not usually
+need to bother about cells, because the controls manage the cells for you.
+
+@page

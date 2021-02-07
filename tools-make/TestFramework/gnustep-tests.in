@@ -1,0 +1,791 @@
+#!@SHELLPROG@
+#
+#  Runs tests for the GNUstep Testsuite
+#
+#  Copyright (C) 2005-2011 Free Software Foundation, Inc.
+#
+#  Written by:  Alexander Malmberg <alexander@malmberg.org>
+#  Updates by:  Richard Frith-Macdonald <rfm@gnu.org>
+#
+#  This package is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public
+#  License as published by the Free Software Foundation; either
+#  version 3 of the License, or (at your option) any later version.
+#
+#  This library is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+#  General Public License for more details.
+#
+#
+# Usage: gnustep-tests [directory | test.m]
+#
+# Runs the tests in the specified directory (or those in the individual file)
+# or all the tests in subdirectories of the current directory if no arguments
+# are given.
+# A summary is written to tests.sum, a log to tests.log, and a brief
+# summary to stdout.
+# The log and summary from the previous testrun are renamed to
+# oldtests.log and oldtests.sum, available for comparison.
+# The exit value of the script is 0 if there are no failures, 1 otherwise.
+
+if test -z "$GNUSTEP_MAKEFILES"; then
+  GNUSTEP_MAKEFILES=`gnustep-config --variable=GNUSTEP_MAKEFILES 2>/dev/null`
+  if test -z "$GNUSTEP_MAKEFILES"; then
+    echo "You need to have GNUstep-make installed and set up."
+    echo "Did you remember to source GNUstep.sh?"
+  else
+    echo "You forgot to set your GNUSTEP_MAKEFILES environment variable."
+    echo "Setting it to $GNUSTEP_MAKEFILES during this test run."
+    export GNUSTEP_MAKEFILES
+    . $GNUSTEP_MAKEFILES/GNUstep.sh
+  fi
+fi
+
+GSTESTTOP="$GNUSTEP_MAKEFILES/TestFramework"
+export GSTESTTOP
+GSTESTDIR=`pwd`
+export GSTESTDIR
+
+GSTESTMODE=normal
+
+# Argument checking
+while test $# != 0
+do
+  gs_option=
+  case $1 in
+    --clean)
+      GSTESTMODE=clean
+      ;;
+    --debug)
+      GSTESTDBG="$GSTESTDIR/gdb.cmds"
+      ;;
+    --developer)
+      GSTESTDEV=yes
+      ;;
+    --documentation)
+      echo
+      echo "$0: Script to run the GNUstep testsuite"
+      echo "Usage: gnustep-tests [directory | test.m]"
+      echo "Runs the specified test, or any in subdirectories of the"
+      echo "current directory if no arguments are given."
+      echo "Use 'gnustep-tests --help' for basic help."
+      echo
+      cat $GSTESTTOP/README
+      exit 0
+      ;;
+    --sequential)
+      GSSEQUENTIAL=yes
+      ;;
+    --verbose)
+      GSVERBOSE=yes
+      ;;
+    --failfast)
+      GSTESTMODE=failfast
+      ;;
+    --help | -h)
+      echo
+      echo "$0: Script to run the GNUstep testsuite"
+      echo "Usage: gnustep-tests [directory | test.m]]"
+      echo "Runs the specified tests, or any in subdirectories of the"
+      echo "current directory if no arguments are given."
+      echo "Use 'gnustep-tests --documentation' for full details."
+      echo "Use 'gnustep-tests --clean' to remove old logs and leftover files."
+      echo "Use 'gnustep-tests --failfast' to stop after the first failure."
+      echo "Use 'gnustep-tests --debug' to run gdb for any failed tests."
+      echo "Use 'gnustep-tests --developer' to treat hopes as real tests."
+      echo "Use 'gnustep-tests --verbose' for full/detailed log output."
+      echo "Use 'gnustep-tests --sequential' to disable parallel building."
+      echo
+      echo "Interpreting the output"
+      echo "-----------------------"
+      echo "The summary output lists all test failures ... there should not"
+      echo "be any.  If a test fails then either there is a problem in the"
+      echo "software being tested, or a problem in the test itself. Either"
+      echo "way, you should try to fix the problem and provide a patch, or"
+      echo "at least report it at: https://savannah.gnu.org/bugs/?group=gnustep"
+      echo
+      exit 0
+      ;;
+    *)
+      break
+      ;;
+  esac
+  shift
+done
+
+export GSTESTMODE
+GSTESTLOG=$GSTESTDIR/tests.log
+export GSTESTLOG
+GSTESTSUM=$GSTESTDIR/tests.sum
+export GSTESTSUM
+
+# We assume that the C compiler supports ObjC
+if test x"$CC" = x
+then
+  CC=`gnustep-config --variable=CC`
+  export CC
+fi
+
+# The C++/ObjC++ tests are currently enabled only if you do 'make
+# check GNUSTEP_TEST_OBJCXX=yes'.
+if test x"$GNUSTEP_TEST_OBJCXX" = x"yes"
+then
+  # Determine the ObjC++ compiler to use.  Either it was supplied
+  # in the environment or command-line by setting the variable
+  # OBJCXX, or we'll use the default configured in gnustep-make.
+  if test x"$OBJCXX" = x
+  then
+    OBJCXX=`gnustep-config --variable=OBJCXX`
+  fi
+
+  if test x"$OBJCXX" = x
+  then
+    echo "Warning: You asked to run the Objective-C++ testcases, but no Objective-C++ compiler was found."
+    echo "         Objective-C++ testcases will not be ignored."
+    echo "         Try setting OBJCXX to your Objective-C++ compiler to fix this."
+  else
+    # Set the CXX variable which is the one actually used by gnustep-make
+    # to compile and link ObjC++.
+    CXX="$OBJCXX"
+    export CXX
+  fi
+else
+  OBJCXX=
+fi
+
+GSTESTFLAGS=
+if test "$GSTESTMODE" = "failfast"
+then
+  if test x"$GSTESTDEV" = x"yes"
+  then
+    GSTESTFLAGS="-DTESTDEV=1 -DFAILFAST=1"
+  else
+    GSTESTFLAGS="-DFAILFAST=1"
+  fi
+elif test x"$GSTESTDEV" = x"yes"
+then
+  GSTESTFLAGS="-DTESTDEV=1"
+fi
+
+if test x"$GSTESTFLAGS" != x
+then
+  #
+  # We need to add flags to all the code we build.
+  # We do this by using the ADDITIONAL_?FLAGS
+  # environment variables supported by gnustep-make.
+  #
+  ADDITIONAL_OBJCFLAGS="$GSTESTFLAGS $ADDITIONAL_OBJCFLAGS"
+  export ADDITIONAL_OBJCFLAGS
+  ADDITIONAL_OBJCCFLAGS="$GSTESTFLAGS $ADDITIONAL_OBJCCFLAGS"
+  export ADDITIONAL_OBJCCFLAGS
+fi
+
+#
+# We insert our header directory as the first additional header directory
+# so that the test header files are found before any others.
+#
+ADDITIONAL_INCLUDE_DIRS="-I$GSTESTTOP $ADDITIONAL_INCLUDE_DIRS"
+export ADDITIONAL_INCLUDE_DIRS
+
+GSTESTFLAGS=`gnustep-config --debug-flags`
+GSTESTLIBS=`gnustep-config --gui-libs`
+GSTESTOPTS="GNUSTEP_OBJ_DIR=./obj"
+
+if test x"$BASH_VERSION" = x
+then
+# In some shells the built in test command actually only implements a subset
+# of the normally expected functionality (or is partially broken), so we
+# define a function to call a real program to do the job.
+test()
+{
+  @TESTPROG@ $@
+}
+fi
+
+if test ! "$MAKE_CMD"
+then
+  MAKE_CMD=`gnustep-config --variable=GNUMAKE`
+  $MAKE_CMD --version > /dev/null 2>&1
+  if test $? != 0
+  then
+    MAKE_CMD=gmake
+    $MAKE_CMD --version > /dev/null 2>&1
+    if test $? != 0
+    then
+      MAKE_CMD=make
+    fi
+  fi
+fi
+
+if test $# = 0
+then
+  echo "Checking for presence of test subdirectories ..."
+  NONAME=yes
+else
+  NONAME=no
+fi
+
+TEMP=`echo *`
+TESTS=
+TESTDIRS=
+for file in $TEMP
+do
+  if test -d $file -a $file != CVS -a $file != obj
+  then
+    TESTDIRS="$TESTDIRS $file"
+  fi
+done
+
+if test x$1 != x
+then
+  if test -d $1
+  then
+    # Only find in the directories specified.
+    TESTDIRS=$*
+  elif test -r $1
+  then
+    TESTDIRS=`dirname $1`
+    TESTS=`basename $1`
+    BARE=`basename $TESTS .m`
+    if test x"$BARE" = x"$TESTS"
+    then
+      BARE=`basename $TESTS .mm`
+      if test x"$BARE" = x"$TESTS"
+      then
+        BARE=`basename $TESTS .c`
+        if test x"$BARE" = x"$TESTS"
+        then
+          BARE=`basename $TESTS .cc`
+          if test x"$BARE" = x"TESTS"
+          then
+            echo "The file '$1' does not end in .m, .mm, .c or .cc ... cannot test."
+            exit 1
+          fi
+        fi
+      fi
+    fi
+  else
+    echo "'$1' is not a directory or a readable source file ... cannot test."
+    exit 1
+  fi
+fi
+
+# Function for platforms where grep can't search for multiple patterns.
+extract()
+{
+  f=$1
+  shift
+  while test $# != 0
+  do
+    grep "$1" "$f"
+    shift
+  done
+}
+
+# Function for platforms where grep can't search for multiple patterns.
+present()
+{
+  f=$1
+  shift
+  while test $# != 0
+  do
+    grep "$1" "$f" >/dev/null
+    if test $? = "0"
+    then
+      return 0
+    fi
+    shift
+  done
+  return 1
+}
+
+# Low level function to build and run the Objective-C program $TESTFILE
+# in the current directory.  The TEMPLATE variable must already be set
+# to the name of the make file template if gnustep-make is to do the
+# building.
+# 
+build_and_run ()
+{
+  # Remove the extension, if there is one. If there is no extension, add
+  # .obj .
+  TESTNAME=`echo $TESTFILE | sed -e"s/^\(test^.]*\)$/\1.obj./;s/\.[^.]*//g"`
+
+  # Run the test.
+
+  RUN_CMD="./obj/$TESTNAME"
+  if test x"$TEMPLATE" = x
+  then
+    # The very simple case, we just need to compile a single file
+    # putting the executable in the obj subdirectory.
+    # We test for a .mm extension to see which compiler to use.
+    rm -rf ./obj
+    mkdir ./obj
+    tmp=`basename $TESTFILE .m`
+    if test x"$tmp" = x"$TESTFILE"
+    then
+      tmp=`basename $TESTFILE .mm`
+      if test x"$tmp" = x"$TESTFILE"
+      then
+        tmp=`basename $TESTFILE .c`
+        if test x"$tmp" = x"$TESTFILE"
+        then
+          BUILD_CMD="$CXX -o ./obj/$TESTNAME $TESTFILE $ADDITIONAL_CXXFLAGS $ADDITIONAL_LDFLAGS"
+        else
+          BUILD_CMD="$CC -o ./obj/$TESTNAME $TESTFILE $ADDITIONAL_CFLAGS $ADDITIONAL_LDFLAGS"
+        fi
+      else
+        BUILD_CMD="$OBJCXX -o ./obj/$TESTNAME $TESTFILE $GSTESTFLAGS $GSTESTLIBS"
+      fi
+    else
+      BUILD_CMD="$CC -o ./obj/$TESTNAME $TESTFILE $GSTESTFLAGS $GSTESTLIBS"
+    fi
+  else
+    if test x"$GSVERBOSE" = xyes
+    then
+      BUILD_CMD="$MAKE_CMD messages=yes debug=yes $TESTNAME"
+    else
+      BUILD_CMD="$MAKE_CMD debug=yes $TESTNAME"
+    fi
+  fi
+
+  # Compile it if necessary.
+  # Redirect errors to stdout so it shows up in the log,
+  # but not in the summary.
+  if test "$NEEDBUILD" = "yes"
+  then
+    echo "Building $dir/$TESTFILE"
+    echo "$BUILD_CMD"
+    if test -r ./make-check.env
+    then
+      ( . ./make-check.env; . ./TestInfo; $BUILD_CMD) 2>&1
+    else
+      ( . ./TestInfo; $BUILD_CMD) 2>&1
+    fi
+    BUILDSTATUS=$?
+  else
+    BUILDSTATUS=0
+  fi
+
+  if test $BUILDSTATUS != 0
+  then
+    echo "Failed build:     $1" >&2
+    if test "$GSTESTMODE" = "failfast"
+    then
+      return 1
+    fi
+  else
+    # We want aggressive memory checking.
+
+    # Tell glibc to check for malloc errors, and to crash if it detects
+    # any.
+    MALLOC_CHECK_=2
+    export MALLOC_CHECK_
+
+    # Tell GNUstep-base to check for messages sent to deallocated objects
+    # and crash if it happens.
+    NSZombieEnabled=YES
+    CRASH_ON_ZOMBIE=YES
+    export NSZombieEnabled CRASH_ON_ZOMBIE
+
+    echo Running $dir/$TESTFILE...
+    # Run it. If it terminates abnormally, mark it as a crash (unless we have
+    # a special file to mark it as being expected to abort).
+
+    # Env.sh is deprecated ... we should only use TestInfo to setup for a test
+    if test -r ./Env.sh
+    then
+      ( . ./Env.sh; $RUN_CMD )
+    else
+      if test -r ./make-check.env
+      then
+        ( . ./make-check.env; . ./TestInfo; $RUN_CMD )
+      else
+        ( . ./TestInfo; $RUN_CMD )
+      fi
+    fi
+
+    if test $? != 0
+    then
+      if test -r $TESTFILE.abort
+      then
+	echo "Completed file:  $TESTFILE" >&2
+      else
+	echo "Failed file:     $TESTFILE aborted without running all tests!" >&2
+	if test "$GSTESTMODE" = "failfast"
+	then
+	  return 1
+	fi
+      fi
+    else
+      echo "Completed file:  $TESTFILE" >&2
+    fi
+  fi
+  return 0
+}
+
+# Function to build and run $TESTFILE in the current directory.
+# This actually manages the logging process and calls build_and_run
+# to perform the work.
+#
+run_test_file ()
+{
+  RUNEXIT=0
+
+  echo >> $GSTESTLOG
+  echo Testing $TESTFILE... >> $GSTESTLOG
+  echo >> $GSTESTSUM
+
+  if test x"$GSVERBOSE" = xyes
+  then
+    build_and_run 2>&1 | tee $GSTESTLOG.tmp
+  else
+    build_and_run > $GSTESTLOG.tmp 2>&1
+  fi
+  RUNEXIT=$?
+
+  # Add the information to the detailed log.
+  cat $GSTESTLOG.tmp >> $GSTESTLOG
+
+  # Extract the summary information and add it to the summary file.
+  extract $GSTESTLOG.tmp "^Passed test:" "^Failed test:" "^Failed build:" "^Completed file:" "^Failed file:" "^Dashed hope:" "^Failed set:" "^Skipped set:" > $GSTESTSUM.tmp
+  cat $GSTESTSUM.tmp >> $GSTESTSUM
+
+  # If there were failures or skipped tests then report them...
+  if present $GSTESTSUM.tmp "^Failed build:" "^Failed file:" "^Failed set:" "^Failed test:" "^Skipped set:"
+  then
+    echo
+    echo $dir/$TESTFILE:
+    extract $GSTESTSUM.tmp "^Failed build:" "^Failed file:" "^Failed set:" "^Failed test:" "^Skipped set:"
+  fi
+
+  if test x"$GSTESTDBG" != x
+  then
+    if present "$GSTESTSUM.tmp" "^Failed test:"
+    then
+      grep '^Failed test:' "$GSTESTLOG.tmp" | sed -e 's/^Failed test:[^:]*:\([0-9][0-9]*\).*/break testStart if testLineNumber==\1/' > "$GSTESTDBG"
+      gdb "./obj/$TESTNAME" -x "$GSTESTDBG"
+      rm -f "$GSTESTDBG"
+    elif present "$GSTESTSUM.tmp" "^Failed file:"
+    then
+      gdb "./obj/$TESTNAME"
+    fi
+  fi
+
+  return $RUNEXIT
+}
+
+
+# Replace the old files.
+if test -f tests.log
+then
+  mv tests.log oldtests.log
+fi
+if test -f tests.sum
+then
+  mv tests.sum oldtests.sum
+fi
+
+SUMD=.
+foundany=no
+for TESTDIR in $TESTDIRS
+do
+  found=no
+  source=no
+  if test x"$TESTS" = x
+  then
+    # Get the names of all subdirectories containing source files.
+    if test x"$OBJCXX" = x
+    then
+      # Only Objective-C (and C)
+      SRCDIRS=`find $TESTDIR -name "*.m" -o -name "*.c" | sed -e 's;/[^/]*$;;' | sort -u | sed -e 's/\(^\| \)X[^ ]*//g'`
+    else
+      # Objective-C and Objective-C++ (implicitly C and C++ too)
+      SRCDIRS=`find $TESTDIR \( -name "*.m" -o -name "*.mm" -o -name "*.c" -o -name "*.cc" \) | sed -e 's;/[^/]*$;;' | sort -u | sed -e 's/\(^\| \)X[^ ]*//g'`
+    fi
+  else
+    SRCDIRS="$TESTDIRS"
+  fi
+  if test x"$SRCDIRS" = x
+  then
+    continue
+  fi
+
+  # found some source code
+  source=yes
+  SUMD=$TESTDIR
+  for dir in $SRCDIRS
+  do
+    if test ! -f $dir/TestInfo
+    then
+      continue
+    fi
+
+    # Step up through parents of the source directory to find the root of the
+    # test suite (the highest level directory containing a TestInfo file.
+    # Provide that in the environment for use within the makefiles/scripts.
+    GSTESTROOT=$dir
+    parentdir=`dirname $GSTESTROOT`
+    while test -f "$parentdir/TestInfo"
+    do
+      GSTESTROOT="$parentdir"
+      parentdir=`dirname $GSTESTROOT`
+      if test $parentdir = $GSTESTROOT
+      then
+	break
+      fi
+    done
+    export GSTESTROOT
+  
+    RUNEXIT=0
+    found=yes
+    foundany=yes
+
+    cd $dir
+
+    if test "$GSTESTMODE" = "clean"
+    then
+      echo "--- Cleaning tests in $dir ---"
+
+      if test -r GNUmakefile
+      then
+        $MAKE_CMD clean >/dev/null 2>&1
+      fi
+      rm -rf core core.* *.core obj GNUmakefile gdb.cmds tests.log tests.sum oldtests.log oldtests.sum tests.tmp tests.sum.tmp tests.log.tmp make-check.mak make-check.env
+
+    else
+      echo "--- Running tests in $dir ---"
+
+      if test -r ./Start.sh -a -x ./Start.sh
+      then
+	./Start.sh
+        STARTSCRIPTSTATUS=$?
+      else
+        STARTSCRIPTSTATUS=0
+      fi
+
+      # Get the names of all the source files in the current directory.
+      if test x"$TESTS" = x
+      then
+        if test x"$OBJCXX" = x
+        then
+          # Only Objective-C (and C)
+          TESTS=`find . \( -name . -o -prune \) \( -name "*.m" -o -name "*.c" \) | sed -e 's;^.*/;;' | sort -u | sed -e 's/\(^\| \)X[^ ]*//g'`
+        else
+          # Objective-C and Objective-C++ (implicitly C and C++ too)
+          TESTS=`find . \( -name . -o -prune \) \( -name "*.m" -o -name "*.mm" -name "*.c" -o -name "*.cc" \) | sed -e 's;^.*/;;' | sort -u | sed -e 's/\(^\| \)X[^ ]*//g'`
+        fi
+      fi
+
+      if test $STARTSCRIPTSTATUS = 0
+      then
+
+        if test -r GNUmakefile.tests 
+        then
+          # There's a custom make template present ... use it.
+          TEMPLATE=GNUmakefile.tests
+        elif test -r make-check.mak 
+        then
+          # There's an autogenerated makefile present ... use default template.
+          TEMPLATE=$GSTESTTOP/GNUmakefile.in
+        elif test -r GNUmakefile.preamble 
+        then
+          # There's a make preamble present ... use default template.
+          TEMPLATE=$GSTESTTOP/GNUmakefile.in
+        elif test -r GNUmakefile.postamble
+        then
+          # There's a make postamble present ... use default template.
+          TEMPLATE=$GSTESTTOP/GNUmakefile.in
+        elif test -r ../GNUmakefile.super
+        then
+          # There's a make superfile present ... use default template.
+          TEMPLATE=$GSTESTTOP/GNUmakefile.in
+        elif test -r "$TESTS"
+        then
+          # Single readable file ... quicker to compile directly.
+          TEMPLATE=
+        elif test x"$GSSEQUENTIAL" = xyes
+        then
+          # We don't want to build in parallel, so a makefile won't speed us up
+          TEMPLATE=
+        else
+          # There are multiple files to build ... use make for parallelisation
+          TEMPLATE=$GSTESTTOP/GNUmakefile.in
+        fi
+
+        NEEDBUILD=yes
+        if test x"$TEMPLATE" = x
+        then
+          rm -rf core core.* *.core obj GNUmakefile gdb.cmds
+        else
+          TESTNAMES=
+          TESTRULES=
+          for TESTFILE in $TESTS
+          do
+            tmp=`basename $TESTFILE .m`
+            if test x"$tmp" = x"$TESTFILE"
+            then
+              tmp=`basename $TESTFILE .mm`
+              if test x"$tmp" = x"$TESTFILE"
+              then
+                tmp=`basename $TESTFILE .c`
+                if test x"$tmp" = x"$TESTFILE"
+                then
+                  TESTRULES="$TESTRULES\\
+${tmp}_CC_FILES=$TESTFILE"
+                else
+                  TESTRULES="$TESTRULES\\
+${tmp}_C_FILES=$TESTFILE"
+                fi
+              else
+                TESTRULES="$TESTRULES\\
+${tmp}_OBJCC_FILES=$TESTFILE"
+              fi
+            else
+              TESTRULES="$TESTRULES\\
+${tmp}_OBJC_FILES=$TESTFILE"
+            fi
+            TESTNAMES="$TESTNAMES $tmp"
+          done
+          sed -e "s/@TESTNAMES@/$TESTNAMES/;s^@TESTOPTS@^$GSTESTOPTS^;s/@TESTRULES@/$TESTRULES/" < "$TEMPLATE" > GNUmakefile
+          $MAKE_CMD clean >/dev/null 2>&1
+
+          # Try building all the test files in the directory in parallel.
+          # If that works, set NEEDBUILD to 'no' so that we do not build
+          # each individual test file later.
+          echo "" >>$GSTESTLOG
+          echo "Building in $dir" >>$GSTESTLOG
+          if test -r ./make-check.env
+          then
+            ( . ./make-check.env; . ./TestInfo; $MAKE_CMD -j 4 debug=yes) >>$GSTESTLOG 2>&1
+          else
+            ( . ./TestInfo; $MAKE_CMD -j 4 debug=yes) >>$GSTESTLOG 2>&1
+          fi
+          if test $? = 0
+          then
+            NEEDBUILD=no
+          fi
+        fi
+
+        # Now we process each test file in turn.
+        # When cleaning, we only need to do one clean per directory.
+        for TESTFILE in $TESTS
+        do
+          run_test_file
+          if test "$RUNEXIT" != "0"
+          then
+            break
+          fi
+        done
+      else
+        echo "Start.sh failed in '$TESTDIR' ... tests abandoned."
+        for TESTFILE in $TESTS
+        do
+          echo "Failed file:     $TESTFILE aborted without running any tests!" | tee -a $GSTESTSUM >> $GSTESTLOG
+        done
+      fi
+      TESTS=
+
+      # And perform the directory end script.
+      if test -r ./End.sh -a -x ./End.sh
+      then
+	./End.sh
+      fi
+    fi
+
+    cd $GSTESTDIR
+    if test "$RUNEXIT" != "0"
+    then
+      break
+    fi
+  done
+
+  # Log a message if there were no tests in this directory,
+  # but only if the directory was specifically named to be tested.
+  if test $found = no
+  then
+    if test "$NONAME" = "no"
+    then
+      if test $source = no
+      then
+        echo "No tests found in '$TESTDIR'."
+      else
+        echo "No directories with 'TestInfo' marker file in '$TESTDIR'."
+      fi
+    fi
+  fi
+
+  if test "$RUNEXIT" != "0"
+  then
+    break
+  fi
+done
+
+# Log a message if there were no tests found at all and we had been
+# looking in the current directory for test subdirectories.
+if test $foundany = no
+then
+  if test "$NONAME" = "yes"
+  then
+    echo "No test subdirectories found."
+  else
+    echo "No tests found in '$TESTDIRS'."
+  fi
+fi
+
+if test "$GSTESTMODE" = "clean"
+then
+  rm -rf core core.* *.core obj GNUmakefile.tmp gdb.cmds tests.tmp tests.sum.tmp tests.log.tmp tests.log tests.sum oldtests.log oldtests.sum
+else
+  # Make some stats.
+  if test -r tests.sum
+  then
+    # Nasty pipeline of commands ...
+    # Look for each type of test result, sort and count the results,
+    # append 's' to each summary, then remove the trailing 's' from
+    # any summary with only a single result so the output is pretty.
+    # Sort the resulting lines by number of each status with the most
+    # common (hopefully passes) output first.
+    # NB. we omit the 'Completed file' tests as uninteresting ... users
+    # generally only want to see the total pass count and any problems.
+    extract tests.sum "^Passed test:" "^Failed test:" "^Failed build:" "^Failed file:" "^Dashed hope:" "^Failed set:" "^Skipped set:" | cut -d: -f1 | sort | uniq -c | sed -e 's/.*/&s/' | sed -e 's/^\([^0-9]*1[^0-9].*\)s$/\1/' | sort -n -b -r > tests.tmp
+  else
+    echo "No tests found." > tests.tmp
+  fi
+
+  echo >> tests.sum
+  cat tests.tmp >> tests.sum
+
+  echo
+  cat tests.tmp
+  echo
+
+fi
+
+# In the case where we ran a single testsuite, we allow the Summary.sh
+# script in that testsuite to generate our summary.
+if test x"$TESTDIRS" = x"$SUMD" -a -r $SUMD/Summary.sh -a -x $SUMD/Summary.sh
+then
+  RUNCMD=$SUMD/Summary.sh
+else
+  RUNCMD=$GSTESTTOP/Summary.sh
+fi
+$RUNCMD
+FAILS=$?
+
+# Delete the temporary file.
+rm -f tests.tmp tests.sum.tmp tests.log.tmp
+
+# Our exit status is 0 unless some test failed.
+if test -r "$GSTESTSUM"
+then
+  present "$GSTESTSUM" "Failed set$" "Failed sets$" "Failed test$" "Failed tests$" "Failed build$" "Failed builds$" "Failed file$" "Failed files$"
+  if [ $? = 1 ]
+  then
+    exit 0
+  else
+    exit 1
+  fi
+else
+  exit 0
+fi

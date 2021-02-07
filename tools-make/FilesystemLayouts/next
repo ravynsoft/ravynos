@@ -1,0 +1,71 @@
+#
+# next filesystem layout
+#
+# Inspired by the filesystem layout on NeXTSTEP 3.x / OPENSTEP 4.x and
+# Rhapsody.  This is mostly a historical layout, but potentially
+# interesting for NeXTSTEP / OPENSTEP fans.
+#
+# override this prefix by using ./configure --prefix=xxx when
+# configuring.
+GNUSTEP_DEFAULT_PREFIX=/
+
+# These are only used by gnustep-base to implement the NSUserDirectory
+# API.  We never install anything in them.  They will be used as they
+# are without $prefix.
+GNUSTEP_SYSTEM_USERS_DIR=/Users
+GNUSTEP_NETWORK_USERS_DIR=/Network/Users
+GNUSTEP_LOCAL_USERS_DIR=/Users
+
+# NB: $prefix will be added to all the MAKEFILES/SYSTEM/NETWORK/LOCAL
+# paths.
+GNUSTEP_MAKEFILES=/GNUDeveloper/Makefiles
+
+GNUSTEP_SYSTEM_APPS=/GNUApps
+GNUSTEP_SYSTEM_ADMIN_APPS=/GNUAdmin
+GNUSTEP_SYSTEM_WEB_APPS=/GNULibrary/WebApps
+GNUSTEP_SYSTEM_TOOLS=/bin
+GNUSTEP_SYSTEM_ADMIN_TOOLS=/sbin
+GNUSTEP_SYSTEM_LIBRARY=/GNULibrary
+GNUSTEP_SYSTEM_HEADERS=/GNUDeveloper/Headers
+GNUSTEP_SYSTEM_LIBRARIES=/GNULibrary/Libraries
+GNUSTEP_SYSTEM_DOC=/GNULibrary/Documentation
+GNUSTEP_SYSTEM_DOC_MAN=/GNULibrary/Documentation/man
+GNUSTEP_SYSTEM_DOC_INFO=/GNULibrary/Documentation/info
+
+GNUSTEP_NETWORK_APPS=/Network/Apps
+GNUSTEP_NETWORK_ADMIN_APPS=/Network/Admin
+GNUSTEP_NETWORK_WEB_APPS=/Network/WebApps
+GNUSTEP_NETWORK_TOOLS=/Network/bin
+GNUSTEP_NETWORK_ADMIN_TOOLS=/Network/sbin
+GNUSTEP_NETWORK_LIBRARY=/Network/Library
+GNUSTEP_NETWORK_HEADERS=/Network/Developer/Headers
+GNUSTEP_NETWORK_LIBRARIES=/Network/Library/Libraries
+GNUSTEP_NETWORK_DOC=/Network/Library/Documentation
+GNUSTEP_NETWORK_DOC_MAN=/Network/Library/Documentation/man
+GNUSTEP_NETWORK_DOC_INFO=/Network/Library/Documentation/info
+
+GNUSTEP_LOCAL_APPS=/LocalApps
+GNUSTEP_LOCAL_ADMIN_APPS=/LocalAdmin
+GNUSTEP_LOCAL_WEB_APPS=/LocalLibrary/WebApps
+GNUSTEP_LOCAL_TOOLS=/bin
+GNUSTEP_LOCAL_ADMIN_TOOLS=/sbin
+GNUSTEP_LOCAL_LIBRARY=/LocalLibrary
+GNUSTEP_LOCAL_HEADERS=/LocalDeveloper/Headers
+GNUSTEP_LOCAL_LIBRARIES=/LocalLibrary/Libraries
+GNUSTEP_LOCAL_DOC=/LocalLibrary/Documentation
+GNUSTEP_LOCAL_DOC_MAN=/LocalLibrary/Documentation/man
+GNUSTEP_LOCAL_DOC_INFO=/LocalLibrary/Documentation/info
+
+GNUSTEP_USER_DIR_APPS=Apps
+GNUSTEP_USER_DIR_ADMIN_APPS=Admin
+GNUSTEP_USER_DIR_WEB_APPS=Library/WebApps
+GNUSTEP_USER_DIR_TOOLS=bin
+GNUSTEP_USER_DIR_ADMIN_TOOLS=sbin
+GNUSTEP_USER_DIR_LIBRARY=Library
+GNUSTEP_USER_DIR_HEADERS=Developer/Headers
+GNUSTEP_USER_DIR_LIBRARIES=Library/Libraries
+GNUSTEP_USER_DIR_DOC=Library/Documentation
+GNUSTEP_USER_DIR_DOC_MAN=Library/Documentation/man
+GNUSTEP_USER_DIR_DOC_INFO=Library/Documentation/info
+GNUSTEP_USER_CONFIG_FILE=Library/Preferences/GNUstep.conf
+GNUSTEP_USER_DEFAULTS_DIR=Library/Preferences

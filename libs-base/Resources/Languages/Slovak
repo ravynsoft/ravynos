@@ -1,0 +1,35 @@
+/* Slovak */
+{
+	NSLanguageName = "Slovak";
+	NSFormalName = "Slovensky";
+	NSLanguageCode = "SK";
+	NSParentContext = "Default";
+
+	NSCurrencySymbol = "Sk";
+	NSInternationalCurrencyString = SKK; 
+	NSPositiveCurrencyFormatString = "9.999,00 $";
+	NSNegativeCurrencyFormatString = "-9.999,00 $";
+
+	NSDecimalDigits = ("0", "1", "2", "3", "4", "5", "6", "7", "8", "9");
+	NSDecimalSeparator = ",";
+
+	NSDateFormatString = "%A, %B %d, %Y";
+	NSDateTimeOrdering = DMYH; /* resolve numbers in Day,Month,Year,Hour order */
+	NSEarlierTimeDesignations = ("predch\u00e1dzaj\u00faci", "posledn\u00fd", "minul\u00fd", "sp\u00e4\u0165");
+	NSHourNameDesignations = ((0, polnoc), (12, poludnie), (10, "r\u00e1no"), (14, poobede), (19, "ve\u010der"));
+	NSLaterTimeDesignations = ("bud\u00faci");
+	NSMonthNameArray = ("Janu\u00e1r", "Febru\u00e1r", Marec, "Apr\u00edl", "M\u00e1j", "J\u00fan", "J\u00fal", August, September, "Okt\u00f3ber", November, December);
+	NSNextDayDesignations = (zajtra);
+	NSNextNextDayDesignations = (pozajtra);
+	NSPriorDayDesignations = ("v\u010dera");
+	NSShortDateFormatString = "%d.%m.%Y"; /* "07.12.95" for example */
+	NSShortMonthNameArray = (Jan, Feb, Mar, Apr, "M\u00e1j", "J\u00fan", "J\u00fal", Aug, Sep, Okt, Nov, Dec);
+	NSShortTimeDateFormatString = "%d.%b.%Y %H:%M"; /* "07. Dec. 95 16:50 " for example */
+	NSShortWeekDayNameArray = (Ne, Po, Ut, St, "\u0160t", Pi, So);
+	NSThisDayDesignations = (dnes);
+	NSThousandsSeparator = ".";
+	NSTimeDateFormatString = "%a %b %d %Y %H:%M:%S %Z";
+	NSTimeFormatString = "%H:%M:%S";
+	NSWeekDayNameArray = ("Nede\u013ea", Pondelok, Utorok, Streda, "\u0160tvrtok", Piatok, Sobota);
+	NSYearMonthWeekDesignations = (rok, mesiac, "t\u00fd\u017ede\u0148");
+}

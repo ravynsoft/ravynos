@@ -1,0 +1,99 @@
+<?xml version="1.0"?>
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 1.0.3//EN" "http://www.gnustep.org/gsdoc-1_0_3.dtd">
+<!--
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+-->
+<gsdoc base="OpenStepCompliance" up="Base">
+  <head>
+    <title>OpenStep Compliance</title>
+    <author name="Adam Fedor"></author>
+    <copy>2005 Free Software Foundation, Inc.</copy>
+  </head>
+  <body>
+    <chapter>
+      <heading>Classes</heading>
+      <p>
+      This file documents the complance of all the classes in the
+      GNUstep Base library. Note that the following is just a best guess
+      as to the compliance of the classes. Each class was checked to make
+      sure it implemented all the documented OpenStep methods and functions.
+      In addition, extensive testing has been performed on the GNUstep Base
+      Library, and it is believed, to the best of our knowledge, that it
+      operates according to the OpenStep specification, with the caveat that
+      there are always bugs in any implementation and there are most likely
+      bugs in the current implementation that we are not aware of.
+      </p>
+      <p>
+      The following classes conform to the OpenStep specification:
+      </p>
+      <list>
+	<item>NSArchiver</item>
+	<item>NSArray</item>
+	<item>NSAssertionHandler</item>
+	<item>NSAutoreleasePool</item>
+	<item>NSBundle</item>
+	<item>NSCalendarDate</item>
+	<item>NSCharacterSet</item>
+	<item>NSCoder</item>
+	<item>NSConditionLock</item>
+	<item>NSConnection</item>
+	<item>NSCountedSet</item>
+	<item>NSData</item>
+	<item>NSDate</item>
+	<item>NSDeserializer</item>
+	<item>NSDictionary</item>
+	<item>NSDistantObject</item>
+	<item>NSEnumerator</item>
+	<item>NSException</item>
+	<item>NSInvocation</item>
+	<item>NSLock</item>
+	<item>NSMethodSignature</item>
+	<item>NSMutableArray</item>
+	<item>NSMutableCharacterSet</item>
+	<item>NSMutableData</item>
+	<item>NSMutableDictionary</item>
+	<item>NSMutableSet</item>
+	<item>NSMutableString</item>
+	<item>NSNotification</item>
+	<item>NSNotificationCenter</item>
+	<item>NSNotificationQueue</item>
+	<item>NSNumber</item>
+	<item>NSObject</item>
+	<item>NSProcessInfo</item>
+	<item>NSProxy</item>
+	<item>NSRecursiveLock</item>
+	<item>NSRunLoop</item>
+	<item>NSScanner</item>
+	<item>NSSerializer</item>
+	<item>NSSet</item>
+	<item>NSString</item>
+	<item>NSThread</item>
+	<item>NSTimer</item>
+	<item>NSTimeZone</item>
+	<item>NSTimeZoneDetail</item>
+	<item>NSUnarchiver</item>
+	<item>NSUserDefaults</item>
+	<item>NSValue</item>
+	<item>All Protocols</item>
+	<item>All Functions</item>
+      </list>
+      <p>
+      The following OpenStep classes are not implemented. The usefulness
+      of these classes it marginal so it is likely that we will never
+      implement these classes.  However, we would be pleased to accept
+      their contribution should anyone care to implement them and assign
+      the copyright to the Free Software Foundation.
+      </p>
+      <list>
+	<item>NSBTreeBlock</item>
+	<item>NSBTreeCursor</item>
+	<item>NSByteStore</item>
+	<item>NSByteStoreFile</item>
+      </list>
+
+    </chapter>
+  </body>
+</gsdoc>
+

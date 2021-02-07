@@ -1,0 +1,76 @@
+@c    GNUstep AppKit Guide
+@c
+@c    Copyright (c)  2005-2006  Christopher Armstrong.
+@c
+@c    Permission is granted to copy, distribute and/or modify this document
+@c    under the terms of the GNU Free Documentation License, Version 1.2
+@c    with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+@c    A copy of the license is included in the section entitled "GNU
+@c    Free Documentation License".
+@c
+@c This documentation is provided on an "AS IS" BASIS, WITHOUT WARRANTY
+@c OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING, BUT NOT LIMITED
+@c TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+@c PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY AND USEFULNESS
+@c OF THE DOCUMENTATION IS WITH YOU (THE LICENSEE). IN NO EVENT WILL THE COPYRIGHT
+@c HOLDERS BE LIABLE FOR DAMAGES, INCLUDING ANY DIRECT, INDIRECT,
+@c SPECIAL, GENERAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF
+@c THE USE OR INABILITY TO USE THIS DOCUMENTATION (INCLUDING BUT NOT
+@c LIMITED TO LOSS OF DATA, USE, OR PROFITS; PROCUREMENT OF SUBSTITUTE
+@c GOODS AND SERVICES; OR BUSINESS INTERUPTION) HOWEVER CAUSED, EVEN
+@c IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+@node browsercontrols, dataexchange, matrix, Top
+@chapter Browsers
+@anchor{Browsers}
+
+@cindex browsers, definition
+@cindex controls, browsers
+A @dfn{browser} is a special type of matrix control, useful for the display of hierachial or tree-like data. They use vertical lists of cells, in which some cells can be selected so that they display the "branches" of a tree in the adjacent pane. In this way, a user can easily navigate a hierachy, such as a filesystem which has many directories and sub-directories.
+
+In fact, the textual data in a browser can be accessed using path like string components, such as @file{/path/to/leaf} or @file{/usr/local/lib}. A good example of it's use in filesystems is GWorkspace, GNUstep's file manager application.@footnote{Note that GWorkspace customises it's browser controls significantly}.
+
+@cindex leaf
+@cindex branch
+@cindex paridgms, leaves and branches
+We introduce the concept of @dfn{leaves} and @dfn{branches}. A @dfn{leaf} is a simple browser cell that only display's text; it does not open a new browser pane with sub-cells when it is selected. A @dfn{branch} both display text, and when selected, it fills the pane to the right with a list of leaves and/or branches that represent a group of cells logically below this one. A branch shows an arrow to indicate that it can be selected to display sub-cells. It is useful when dealing with tree-structures such as that modelled in Computer Sciencei courses.
+
+Each pane in the browser view is actually a one-column matrix (an @code{NSMatrix} object) which can be returned.
+
+Like many other controls, browsers define their own cell class, known as @code{NSBrowserCell}. It provides methods that are used to implement the functionality described above. Browsers use a simple delegate to decide how to display your hierachial data, which can be passive or active (see below).
+
+@section Browser Cells
+
+As mentioned above, @code{NSBrowserCell} is used to implement the cells's placed in a browser. As a class it is quite simple, and warrants little attention. 
+
+It responds to all the methods in @code{NSCell}, such as @code{setText:} and the set value methods. Additionally, we can find out if it is a leaf using the @code{-isLeaf} method, and set whether or not it is a leaf using the @code{-setLeaf:} method.
+
+You can set whether the browser cell is selected using the @code{-set} method, and reset it using the @code{-reset} method. A cell shows that it is selected (or "set") when it is highlighted.
+
+@section Browser Methods
+
+Browsers provide a number of methods used for customising their behaviour, setting their data and getting information about their state.
+
+The path to the currently selected item (as described above) can be found using the @code{-path} method. You can find out the path leading upto a column with the @code{-pathToColumn:} method. An easy way of setting the current path is the @code{-setPath:} operator.
+
+You can customize the appearance of a browser and it's columns in various ways. Use @code{-setSeparatesColumns:} to have each column drawn in a separate pane. @code{-setTakesTitleFromPreviousColumn:} has it take the title displayed in the current column from the cell selected in the previous column, while @code{-setTitle:ofColumn:} allows you to set a column title directly. @code{-setTitled:} changes whether column titles are displayed at all.
+
+The types of operations permitted by the user can be changed as well. @code{-setAllowsMultipleSelection:} can be used to allow multiple selection, while @code{-setAllowsEmptySelection:} can be used to permit nothing to be selected. Use @code{-setAllowsBranchSelection:} to allow multiple branches to be selected when in multiple selection mode.
+
+The first and last column visible in the browser is found via the @code{-firstVisibleColumn} and @code{-lastVisibleColumn} respectively.
+
+@section Browser Delegate
+
+@cindex browsers, delegate
+@cindex protocols, NSBrowserDelegate
+@cindex defintiion, active and passive delegates
+The delegate for a browser is used to gather it's data. It can be optionally @dfn{passive} or @dfn{active}, the difference being that active delegates instantiate the browser cell's themselves, whilst passive delegates leave this to @code{NSBrowser}. As a result, you can only implement one or the other subset of methods in @code{NSBrowserDelegate} informal protocol..
+
+A @dfn{passive} delegate must implement the @code{-browser:numberOfRowsInColumn:}, returning the number of rows to appear in the specified column number. On the other hand, @dfn{active} delegates must implement @code{-browser:createRowsForColumn:inMatrix:} and create the cells for that column proactively. You can only implement one of these methods; not both.
+
+All browser delegates can implement @code{-browser:willDisplayCell:atRow:column:}, a method called by the browser object before a particular cell is displayed so that the delegate can set up its properties. This method is a must for passive delegates. Another method that should be implemented is @code{-browser:selectRow:inColumn:}, as it is the delegate's responsibility to select cells (often by calling @code{-set} on the corresponding @code{NSBrowserCell} object). This method returns whether or not the cell was selected.
+
+You can optionally implement a number of other delegate methods if you wish. @code{-browser:titleOfColumn:} is called to get the title for a certain column, returned as a string, before the column is drawn.
+
+Keeping track of when the browser scrolls can be accomplished by implementing the @code{-browserWillScroll:} and/or the @code{-browserDidScroll:} methods. You can also specify to the browser whether or not columns are "valid" by implementing the @code{-browser:isColumnValid:} method. This is called by the browser in response to its @code{-validateVisibleColumn:} method, which checks whether a column is invalid and needs redrawing.
+

@@ -1,0 +1,31 @@
+The file Locale.aliases is used to map common language specifications to
+old-style long names.
+
+The file Locale.canonical is used to map old style names and three letter
+ISO-639-2 names to the preferred two letter ISO-639-1 names.
+
+Language files which contain non-ascii characters should either be properly
+marked unicode files (UTF-8 with a leading Byte Order Mark or UTF-16 with a
+leading Byte Order Mark) or should encode those characters as \u escape
+sequences so that they are usable on systems where the default C-String
+encoding is not the same as the one on which the language files were created!
+
+Since it is generally not easy to edit unicode directly, or enter the
+correct unicode escape sequences, it is recommended that you use the
+cvtenc tool to perform conversions of the files before and after editing
+in the default encoding used by your system.
+
+For example, to edit the French language file so that it contains an ascii
+propertly list with \u escape sequeneces, you could do -
+
+cvtenc -EscapeIn yes fr > tmpfile
+vi tmpfile
+cvtenc -EscapeOut yes tmpfile > fr
+rm tmpfile
+
+A common case is where you have a file in UTF-8, but the Byte Order Mark is
+missing, so you need to fix it up ...
+
+cvtenc -Encoding 'UNICODE UTF-8' FileWithMissingBOM >tmpFile
+cvtenc -EscapeOut yes tmpFile > fr
+

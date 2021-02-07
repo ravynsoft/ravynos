@@ -1,0 +1,19 @@
+@node Bundles and Frameworks
+@appendix Application Resources: Bundles and Frameworks
+@cindex bundles
+@cindex frameworks
+@cindex resources, application
+
+@i{TBD}
+
+@ignore
+GNUstep does not have frameworks as such but it still has bundles and the
+means of loading them.  IMHO frameworks ought to be reconsidered since they
+are a very useful construct.  Java uses them to great benefit now (resources
+go into jars, which are like frameworks, and there are .war and .ear archive
+types with more specialized roles).  It is true that dylib loading is a
+system-dependent process, however this could be solved by the use of symbolic
+links on unix systems, and post-install copying on Windows systems.
+@end ignore
+
+@page

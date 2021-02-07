@@ -1,0 +1,64 @@
+#
+#  examples makefile for the GNUstep Base Library
+#
+#  Copyright (C) 1997 Free Software Foundation, Inc.
+#
+#  Written by:	Scott Christley <scottc@net-community.com>
+#
+#  This file is part of the GNUstep Base Library.
+#
+#  This library is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public
+#  License as published by the Free Software Foundation; either
+#  version 3 of the License, or (at your option) any later version.
+#
+#  This library is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
+#  General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public
+#  License along with this library; if not, write to the Free
+#  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+#  Boston, MA 02111 USA.
+#
+
+#
+#   Makefile.preamble
+#
+#   Project specific makefile variables, and additional
+#
+#   Do not put any Makefile rules in this file, instead they should
+#   be put into Makefile.postamble.
+#
+
+#
+# Flags dealing with compiling and linking
+#
+
+# Additional flags to pass to the preprocessor
+ADDITIONAL_CPPFLAGS = $(WARN_FLAGS)
+
+# Additional flags to pass to the Objective-C compiler
+ADDITIONAL_OBJCFLAGS =
+
+# Additional flags to pass to the C compiler
+ADDITIONAL_CFLAGS =
+
+# Additional include directories the compiler should search
+ifeq ($(FOUNDATION_LIB),gnu)
+  ADDITIONAL_INCLUDE_DIRS = -I../Headers
+endif
+
+# Additional LDFLAGS to pass to the linker
+ADDITIONAL_LDFLAGS = 
+
+# Additional library directories the linker should search
+ADDITIONAL_LIB_DIRS = -L../Source/$(GNUSTEP_OBJ_DIR)
+
+#
+# Flags dealing with installing and uninstalling
+#
+
+# Additional directories to be created during installation
+ADDITIONAL_INSTALL_DIRS =

@@ -1,0 +1,66 @@
+@chapter GNUstep makefile package
+
+Here is some introductory info to get you started:
+
+@section What is the GNUstep makefile package?
+
+The makefile package is a simple, powerful and extensible way to
+write makefiles for a GNUstep-based project.  It allows the user to
+write a project without having to deal with the complex issues
+associated with configuration, building, installation, and packaging.
+It also allows the user to easily create cross-compiled binaries.
+
+@section Information
+
+The file @samp{NEWS} has this packages feature history.
+
+The files @samp{INSTALL} or @samp{GNUstep-HOWTO} 
+give instructions for installing the packages. Also see the @file{machines}
+documentation and various machine specific READMEs in the Documentation
+directory.
+
+Files in the @samp{Documentation} directory have information on the
+design of the Makefile system and how to write your own makefiles that
+work with it.
+
+@section License
+
+The GNUstep libraries are covered under the GNU Lesser Public License.
+This means you can use these libraries in any program (even non-free
+programs). If you distribute the libraries along with your program, 
+you must make the improvements you have made
+to the libraries freely available. You should read the COPYING.LIB file
+for more information.
+
+GNUstep tools, test programs, and other files are covered under the GNU
+General Public License. The GNU GPL is a free software license, which
+requires that all the released improved versions be free software as
+well.  You should read the COPYING file for more information.
+
+The GNUstep make package is licensed under the GNU GPL.
+
+@section History
+
+The GNUstep makefile package was designed by Scott Christley
+and Ovidiu Predescu.
+
+Flags for building shared libraries and bundles on several systems were
+originally identified by Mircea Oancea @email{mircea@@pathcom.com}.
+
+Richard Frith-Macdonald @email{richard@@brainstorm.co.uk} also
+contributed with ideas.
+
+Nicola Pero @email{nicola@@brainstorm.co.uk} rewrote much of the rule
+procedures to increase the speed of the package by over a factor of 7.
+He also rewrote much of the rest of the system to make it simpler and
+more effective.
+
+@section How can you help?
+
+@itemize @bullet
+
+@item
+Give us feedback!  Tell us what you like; tell us what you think
+could be better.  Send bug reports to @email{bug-gnustep@@gnu.org}.
+
+@end itemize

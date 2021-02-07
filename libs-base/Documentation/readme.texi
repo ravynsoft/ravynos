@@ -1,0 +1,74 @@
+@chapter Readme
+
+@c set the vars GNUSTEP-BASE-VERSION and GCC-VERSION
+@include version.texi
+
+The GNUstep Base Library is a library of general-purpose, non-graphical
+Objective C objects.  For example, it includes classes for strings,
+object collections, byte streams, typed coders, invocations,
+notifications, notification dispatchers, moments in time, network ports,
+remote object messaging support (distributed objects), and event loops.
+
+It provides functionality that aims to implement the non-graphical
+portion of the Apple's Cocoa frameworks (the Foundation library) which
+came from the OpenStep standard.
+
+@section Initial reading
+
+The file @samp{NEWS} has the library's feature history.
+
+The files @samp{INSTALL} or @samp{GNUstep-HOWTO} (from the web site)
+gives instructions for installing the library.
+
+@section License
+
+The GNUstep libraries and library resources are covered under the 
+GNU Lesser Public License.
+This means you can use these libraries in any program (even non-free
+programs). If you distribute the libraries along with your program, 
+you must make the improvements you have made
+to the libraries freely available. You should read the COPYING.LIB file
+for more information. All files in the @file{Source}, @file{Headers}
+@file{NSCharacterSets}, @file{NSTimeZones}, and @file{Resources}
+directories and subdirectories under this are covered under the LGPL.
+
+GNUstep tools, test programs, and other files are covered under the
+GNU Public License. This means if you make changes to these programs,
+you cannot charge a fee, other than distribution fees, for others to
+use the program. You should read the COPYING file for more information.
+All files in the @file{Documentation}, @file{Examples},
+@file{Tools}, @file{config}, and @file{macosx} directories are covered 
+under the GPL.
+
+With GNUstep-Base, we strongly recommend the use of the ffcall
+libraries, which provides stack frame handling for NSInvocation and
+NSConnection.  "Ffcall is under GNU GPL. As a special exception, if used
+in GNUstep or in derivate works of GNUstep, the included parts of ffcall
+are under GNU LGPL" (Text in quotes provided by the author of ffcall).
+
+@section How can you help?
+
+@itemize @bullet
+
+@item
+Give us feedback!  Tell us what you like; tell us what you think
+could be better. 
+
+Please log bug reports on the GNUstep project page
+@url{http://savannah.gnu.org/bugs/?group=gnustep} or send bug
+reports to @email{bug-gnustep@@gnu.org}.
+
+@end itemize
+
+@example
+Happy hacking!
+@end example
+
+@ifinfo
+Copyright @copyright{} 2005 Free Software Foundation
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+@end ifinfo
+

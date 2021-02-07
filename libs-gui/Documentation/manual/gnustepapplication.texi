@@ -1,0 +1,211 @@
+@c    GNUstep AppKit Guide
+@c
+@c    Copyright (c)  2005-2006  Christopher Armstrong.
+@c
+@c    Permission is granted to copy, distribute and/or modify this document
+@c    under the terms of the GNU Free Documentation License, Version 1.2
+@c    with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+@c    A copy of the license is included in the section entitled "GNU
+@c    Free Documentation License".
+@c
+@c This documentation is provided on an "AS IS" BASIS, WITHOUT WARRANTY
+@c OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING, BUT NOT LIMITED
+@c TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+@c PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY AND USEFULNESS
+@c OF THE DOCUMENTATION IS WITH YOU (THE LICENSEE). IN NO EVENT WILL THE COPYRIGHT
+@c HOLDERS BE LIABLE FOR DAMAGES, INCLUDING ANY DIRECT, INDIRECT,
+@c SPECIAL, GENERAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF
+@c THE USE OR INABILITY TO USE THIS DOCUMENTATION (INCLUDING BUT NOT
+@c LIMITED TO LOSS OF DATA, USE, OR PROFITS; PROCUREMENT OF SUBSTITUTE
+@c GOODS AND SERVICES; OR BUSINESS INTERUPTION) HOWEVER CAUSED, EVEN
+@c IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+@c
+@c Contributions
+@c
+@c * Thanks to Damien Pollet for some minor spelling and grammatical fixups.
+
+@node gnustepapplications, applicationmakefiles, basicconcepts, Top
+@chapter GNUstep Applications
+
+@cindex AppKit
+The AppKit provides services to develop complex and modern GUI applications. Some of these services include generic controls and displays, pasteboard and true drag-and-drop, separated interface and code files, etc.
+
+@cindex application-centric programming
+Compared to other platforms and development toolkits, GNUstep takes a slightly different paradigm to development. Operating systems such as Microsoft Windows treat applications in a more window-centric manner, e.g. each document starts a new instance of the application, in a new window with its own menu.
+
+In GNUstep, applications are treated in an application centric manner. This means that there is one menu for the application, and documents and other windows are associated with this menu instance. This probably requires a different attitude to development, but the AppKit is quite well integrated and logical to convey some of the ideas it introduces.
+
+@section Components
+
+@cindex applications, components
+A GNUstep application has various components that are assembled (from a developer's perspective) into an @dfn{app wrapper}. An app (application) wrapper is a directory with the extension @file{.app} that holds the application's @dfn{executable} and @dfn{resource files}, as noted below.
+
+@subsection Interface File(s)
+
+An application has one or more @dfn{interface files}. These are separate file entities that are used to display the graphical interface that your application has. They are comparable to .glade interface files used in GNOME or those used in Qt, however they go a bit further, permitting easy linking against your objects, so that you are freed from writing wrapper code. They are created using Gorm, GNUstep's application modelling programme. It allows real drag and drop GUI assembly and direct control editing.
+
+Most applications take one interface file, which contains their main menu and their main window, presented to the user. They will also take you preferences and other auxilliary windows that you application requires. They take no Objective-C code (being strictly interface only), but generic class templates are able to be generated for outlets and actions that you set Gorm to integrate with.
+
+Interface files are commonly referred to as "nib" files or "gorm" files, taken from the name of programmes used to generate them. They appear as a directory on your filesystem, and often take the name of your application with the extension @file{.gorm}.
+
+@subsection Application property list
+
+This file is a property list, containing the defaults and some information used to load your application, include the main interface file, supported document types and interapplication services. It usually takes the name @file{Info-gnustep.plist}. See the base manual for more details about the syntax and structure of property lists. We will provide the details of application property lists through this manual.
+
+@subsection Makefile
+@cindex makefiles
+
+Like GNUstep tools, applications have a file, @file{GNUmakefile}, for easy application compilation, linking and assembly into an app wrapper. It includes the name and version of your application, source code file, required libraries and frameworks and  your resource files (detailed below). 
+
+@cindex resource files
+@subsection Resource Files
+
+@dfn{Resource Files} are any sorts of resources that your application will need to operate, including interface files and any icons, images, data, etc. that your application uses. They are stored in the @file{Resources} directory in your application's app wrapper.
+
+You will most likely ever need only two resources: your interface file, and your application's property list (Info-gnustep.plist).
+
+@section Constructing an application
+
+@cindex applications, construction
+Below, we have listed the main steps required in the building of an application from scratch. These steps are listed in a general, but you will generally need to come back to them again e.g. if you add new source or interface files to your application, you will need to come back and modify the makefile.  See the chapters on Makefile creation, Interface files and Application property lists for more details on the construction of these various files.
+
+@enumerate
+@item GNUmakefile
+
+You will need to create a GNUmakefile to build your application. A generic template is shown in the chapter entitled @pxref{Application Makefiles}.
+
+@item Interface Files
+
+You will need at least one interface file (@file{.gorm}) for your application, however, you can create your interface programatically if necessary (although this is rarely recommended).
+
+
+@item Application Property List
+
+This is generally necessary, especially if you want to define your main interface file, however it is possible to let the @command{make} application generate it for you.
+
+@item Other Resource Files
+
+These may include icons, images, other property lists, application-specific data files. You can add whatever resource files you like, including directories (which should be added recursively).
+
+@end enumerate
+
+@section Building a First Application
+
+This section attempts to run you through the steps that you would usually go through to assemble an application from scratch. We expect that you have some experience programming with Objective-C, especially with GNUstep, and that you at least have it installed and running with some applications installed.
+
+Apart from helping you setup the infrastructure for a basic application, we've provided instructions for a basic control and event handler as an example. You may wish to ignore these steps, but they're useful reminders if you use these instructions in the future.
+
+A checklist includes:
+@enumerate 
+@item GNUstep
+Make sure that you have gnustep-make, gnustep-base, gnustep-gui and gnustep-back installed and running on your system. There system-specific instructions for installing GNUstep on different systems at the website, @cite{http://www.gnustep.org}. We also expect that you have some experience using it, such as sourcing the GNUstep startup shell file and starting applications. There are various tutorials and instructions available on the internet for getting GNUstep up and running.
+
+@item Gorm.app
+Gorm, as mentioned above, is the GNUstep interface builder. It's available as an application from the GNUstep web site, and is the recommended means to build interfaces for applications. Make sure that it will startup and operate correctly on your system. We will use it to build the interface for our application.
+
+@item A text editor
+Depending on what platform your working on and whether or not you're using a GUI, an editor could be anything simple from @command{vim} to a good quality free editor like @command{gedit} or @command{kate}. You will need it to edit the source code files and makefiles we will use to build the application.
+
+@item A shell
+GNUstep's makefile system depends heavily on the shell environment that @command{make} commands are invoked in. On Unix, this could be @file{sh}, @file{bash}, @file{ksh}, @file{csh} or whatever you prefer to work with. On Windows, you will want to use MSYS which comes with a minimal Unix-like shell (a port of @command{bash}) which is sufficient for use with GNUstep. If you use the installable binary version of GNUstep for Windows, you should have a copy of MSYS installed.
+
+We will assume somewhat that you know your way around your filesystem using it, and that you know most basic commands for creating files, starting programmes, manipulating directory structures, etc.
+
+@end enumerate
+
+@subsection Setup
+
+Startup your shell and source GNUstep.sh from your GNUstep installation (if it's not sourced by default). Create a directory for your application sources to be created in. For example:
+@smallexample
+> cd ~
+> mkdir firstapp
+> cd firstapp
+> . /usr/lib/GNUstep/System/Library/Makefiles/GNUstep.sh
+>
+@end smallexample
+
+In the above, we simply created a new directory under our home directory called @file{firstapp}, changed into it and sourced our GNUstep installation (which in this case is under @file{/usr/lib}@footnote{Replace @file{/usr/lib} with the path to your GNUstep installation}).
+
+Next we will create our makefile. Using your favourite editor, create a file called @file{GNUmakefile} (the case is important). In this case we're using @command{vim}:
+@smallexample
+touch GNUmakefile
+vim GNUmakefile
+@end smallexample
+
+And in the makefile, add the following:
+@smallexample
+include $(GNUSTEP_MAKEFILES)/common.make
+
+APP_NAME = FirstApp
+
+FirstApp_OBJC FILES =  main.m  \
+  MyController.m 
+
+FirstApp_MAIN_MODEL_FILE = FirstApp.gorm
+
+FirstApp_RESOURCE_FILES = FirstApp.gorm
+
+include $(GNUSTEP_MAKEFILES)/application.make
+
+@end smallexample
+
+The first line of the makefile includes some declarations common to all makefiles (tools, bundles, etc).
+
+@var{APP_NAME} contains a space-separated list of the applications to build. In this case we're only building one (FirstApp). The application wrapper that is outputted will be called @file{FirstApp.app}. This name also is used to prefix each of the following variables. If you were to change this value, you would have to change the value of @var{_OBJC_FILES}, @var{_MAIN_MODEL_FILE}, etc. accordingly.
+
+@var{FirstApp_OBJC_FILES} contains a list of each of the Objective-C files that will be compiled into this programme. Note that like normal makefiles, you can split a variable declaration like this over a number of lines by using the "\" delimeter.
+
+@var{FirstApp_MAIN_MODEL_FILE} is the main interface file wrapper. 
+
+@var{FirstApp_RESOURCE_FILES} contains a list of all the resources, including interface files, icons, property lists etc.
+
+The final line lets the makefile system know we want to build an application.
+
+@subsection Interface File
+
+Make sure you are familiar with Gorm before using this. Refer to the @cite{Gorm Manual}, a link to which should be at http://www.gnustep.org/experience/Gorm.html.
+
+Load up @command{Gorm.app} and create a "New Application". A window should appear with the title and a project called "UNTITLED". 
+@smallexample
+openapp Gorm.app
+
+From the menu, select Document->New Application
+@end smallexample
+
+Save your project as "FirstApp.gorm" by going to Document->Save, navigating to the project directory, typing in "FirstApp" as the filename and clicking "OK".
+
+Select your window in the project pane. Switch to the Inspector and give it a new name such as "My First Application".
+
+Switch back to the project pane. Select "Classes" from the toolbar. From the class view, select "NSObject", goto the main menu and select Classes->Create Subclass.
+
+Double-click the new class in the class view, and double-click to rename it to "MyController" (case is important). Click "OK" if prompted. We're going to use this class as our application's main controller, but you can create as many "controller" classes as you like with whatever names you choose. It just so happens that we've decided to create a file with the name "MyController.m" that will contain the implementation of this class. Note that GNUstep doesn't enforce a strict MVC pattern on your classes; it merely separates the view part into it's own classes which you configure in Gorm.app, and lets you handle data and behaviour (Model and Controller) in your code as you like.
+
+Select the button in the "Action" column for "MyController" then goto Classes->Add Outlet/Action. Rename the action to "myAction:". Select the class again, and goto Classes->Instantiate. Again, we could call this action whatever we like, just make sure that it's not something generic like "click:", which are used by the NSResponder class. The name of the button in method name form is often a good choice.
+
+For the MyController class, goto the main menu and select Classes->Create Class Files. Save them as "MyController.h" and "MyController.m". Gorm.app fills out the basic details for this class (including the action). If you modify the actions and/or outlets on the class in Gorm.app in the future, you will want to add them to your class interface and implementation manually. Gorm.app will override your modifications to files if you tell it to create the class files at some time in the future.@footnote{If you really don't want to add the outlets/actions to your class by hand if you modify the interface in the future, you could just save the classes to differently named files and then merge the changes back into the original files.}
+
+Goto the palette, click the third toolbar button and then click and drag a new button object onto the window. Double-click the button to rename it and call it "My Action".
+
+We now want to connect the button to the action on @var{MyController}. First switch to the "Objects" pane in the project view. Note that our @var{MyController} class is listed as an object instance, as we instantiated it before. Select it, switch to the Inspector and then select "Connections" from the drop-down box.
+
+Now, make sure that the application window with the button on it and the project window are both visible at the same time. Hold down your first control key (usually left-Ctrl), click the button on the window, and drag the icon to the @var{MyController} object in the Objects pane and release. While you are dragging the mouse, you will note that the icon looks like a small circle with a "T" in it. The source object (the button) will continue to contain the "S" circle while the target object (the @var{MyController} instance) contains the "T" circle.
+
+Goto File->Save to save your interface file and then quit Gorm.app.
+
+@subsection Code
+
+Although we have got Gorm.app to autogenerate our class files, we will want to modify them so that they do something (marginally) useful. Open "MyController.m". At the moment it should look something like:
+@example
+#import "MyController.h"
+#import <AppKit/AppKit.h>
+
+@@implementation MyController
+
+- (void) myAction:(id) sender
+@{
+@}
+
+@@end
+
+@end example
+

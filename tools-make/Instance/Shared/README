@@ -1,0 +1,51 @@
+Files in this directory are makefile fragments which might be included
+by arbitrary project types during the instance make invocation.  You
+can think of it as a little library of makefile fragments which can be
+used to build project types more easily, and to favour code reuse and
+API consistency between different project types.
+
+Each of the makefile fragments will normally contain 
+
+ * standalone makefile code
+
+ * make targets and rules
+
+The makefile fragment must document (ie list at the very least) very
+clear which variables are used by the makefile fragment.
+
+Normally, the variables are either
+
+ * $($(GNUSTEP_INSTANCE)_XXX) variables, such as
+   $($(GNUSTEP_INSTANCE)_HEADERS) for a makefile fragment installing headers.
+
+   Because GNUSTEP_INSTANCE is guaranteed to be the name of the instance we
+   process during an instance invocation, this will extract xxx_HEADERS 
+   regardless of the type of project.  Most variables should be of this type.
+
+ * GNUSTEP_SHARED_XXX_YYY, where XXX should be the makefile fragment name
+   (such as 'HEADERS', or 'JAVA'), and YYY is the variable specific name.
+   These variables are to be thought as arguments being passed from the 
+   project makefile to the shared makefile fragment.
+
+   For example, GNUSTEP_SHARED_JAVA_INSTALLATION_DIR will be set to
+   JAVA_INSTALLATION_DIR by Instance/java.make and to 
+   JAVA_TOOL_INSTALLATION_DIR/Java by Instance/java-tool.make, before including
+   Shared/java.make.  Shared/java.make will install the java files into
+   GNUSTEP_SHARED_JAVA_INSTALLATION_DIR, which will point to the correct
+   location in both cases.
+
+   Please note that in this case you can't use $($(GNUSTEP_INSTANCE)_XXX)
+   variables because the end-user API explicitly allow them to set a single
+   JAVA_[TOOL_]INSTALLATION_DIR for the whole GNUmakefile.
+
+The make fragments rules should be named as follows - 
+
+ shared-instance-xxx-yyy where xxx is the name of the makefile fragment
+ (such as 'java' or 'headers'), and yyy is the actual target (such as 
+ 'clean', 'install', 'all').  If possible, the standard targets should
+ be provided (all, install, uninstall, clean, distclean).  In certain cases, 
+ additional targets might be provided, or empty standard targets omitted.  
+ It should be clear which ones are 'public' targets, and which ones are 
+ 'private' targets (internal to the implementation of the makefile fragment).
+
+The make fragments do not need to be protected against multiple inclusions.

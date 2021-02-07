@@ -1,0 +1,392 @@
+@paragraphindent 0
+
+@node Advanced Messaging
+@chapter Advanced Messaging
+@cindex advanced messaging
+@cindex messaging, advanced techniques
+
+Objective-C provides some additional possibilities for message routing besides
+the capabilities described so far (inheritance and categories).  One of the
+most important is that it is possible for an object, upon receiving a message
+it has not been set up to respond to, to @i{forward} that message to another
+object.  A second important capability, which forwarding relies on, is the
+ability to represent method implementations directly in code.  This supports
+various reflective operations as well as optimization where messages are sent
+many times.
+
+
+@section How Messaging Works
+Sending an Objective-C message requires three types of information:
+
+@itemize @bullet
+@item
+The message @b{receiver} - the object which is to perform the request.
+
+@item
+The message @b{selector} - this identifies the message, and is used to
+locate the excecutable code of the corresponding @b{method} by searching the
+structure of the class, and if necessary its superclasses, for an
+implementation.
+
+@item
+The message @b{arguments} - once the implementation has been found, these are
+simply passed to the method on the stack as in an ordinary function call.
+@end itemize
+
+In the message '@code{[taskArray insertObject: anObj atIndex: i]}', the
+receiver is ``@code{taskArray}'', the selector is
+``@code{insertObject:atIndex:}'', and the arguments are ``@code{anObj}'' and
+``@code{i}''.  Notice that the selector includes the argument titles and both
+colons, but not the argument names.  In other words, this method might have
+been declared as '@code{- (void) insertObject: (id)anObject atIndex:
+(unsigned)index;}', but the ``@code{anObject}'' and ``@code{index}'' are just
+used for tracking the arguments within the method implementation code and not
+for looking up the method itself.
+
+The following sequence of events would occur on sending this message at
+runtime:
+
+@enumerate
+@item
+The internal @code{isa} pointer of the @b{receiver} (@code{taskArray}) is used
+to look up its class.
+
+@item
+The class representation is searched for a method implementation matching the
+@b{selector} (@code{insertObject:atIndex:}).  If it is not found, the class's
+superclass is searched, and recursively its superclass, until an
+implementation is found.
+
+@item
+The implementation is called, as if it were a C function, using the
+@b{arguments} given (@code{anObj} and @code{i}), and the result is returned to
+the code sending the message.
+@end enumerate
+
+In fact, when the method implementation is actually called, it additionally
+receives two @i{implicit} arguments: the @b{receiver} and the @b{selector}.
+These additional hidden arguments may be referred to in the source code by the
+names @code{self} and @code{_cmd}.
+
+The process of looking up the method implementation in the receiver at runtime
+is known as dynamic binding.  This is part of what makes the language powerful
+and flexible, but it is inevitably (despite clever caching strategies used in
+the runtime library) a little slower than a simple function call in C.  There
+are, however, ways of short-circuiting the process in cases where performance
+is at a premium.  Before discussing this, we must first cover the concepts of
+selectors and implementations in greater detail.
+
+
+@section Selectors
+
+So far we have been using the following syntax to send messages to objects:
+
+@example
+[myArray removeObjectIdenticalTo: anObject];
+@end example
+
+The example sends the message named @code{removeObjectIdenticalTo:} to
+@code{myArray} with the argument @code{anObject}.
+
+An alternative method of writing this is the following:
+
+@example
+SEL removalSelector = @@selector(removeObjectIdenticalTo:);
+[myArray performSelector: removalSelector withObject: anObject];
+@end example
+
+Here, the first line obtains the desired method selector in the form of a
+compiled representation (not the full ASCII name), and the second line sends
+the message as before, but now in an explicit form.  Since the message that is
+sent is now effectively a variable set at runtime, this makes it possible to
+support more flexible runtime functioning.
+
+
+@subsection The Target-Action Paradigm
+
+One conventional way of using selectors is called the @i{target-action}
+paradigm, and provides a means for, among other things, binding elements of a
+graphical user interface together at runtime.
+
+The idea is that a given object may serve as a flexible signal sender if it
+is given a receiver (the @i{target}) and a selector (the @i{action}) at
+runtime.  When the object is told to send the signal, it sends the selector
+to the receiver.  In some variations, the object passes itself as an
+argument.
+
+The code to implement this paradigm is simple -
+@example
+- (id) performAction
+@{
+  if (target == nil || action == 0)
+    @{
+      return nil;	// Target or action not set ... do nothing
+    @}
+  if ([target respondsToSelector: action] == NO)
+    @{
+      return nil;	// Target cannot deal with action ... do nothing
+    @}
+  return [target performSelector: action withObject: self];
+@}
+@end example
+
+As an example, consider a graphical button widget that you wish to execute
+some method in your application when pressed.
+
+@example
+  [button setTarget: bigMachine]
+  [button setAction: @@selector(startUp:)];
+@end example
+
+Here, @code{button} stores the given target and action in instance variables,
+then when it is pressed, it internally calls a method like
+@code{performAction} shown above, and sends the message ``@code{[bigMachine
+startUp: button]}''.
+
+If you are used to programming with events and listeners in Java, the
+target-action paradigm provides a lighter-weight alternative for the most
+common case where only one object needs to be informed when an event occurs.
+Rather than writing or extending a special-purpose adaptor class, you just
+register the method you want called directly with the actuating element.  If
+you need to send the event to multiple objects, however, you would need to
+write a special method to multiplex the event out.  This would be
+approximately comparable effort to what is always required in Java, and is
+only needed in the minority of cases.
+
+
+@subsection Obtaining Selectors
+
+In addition to using the compile-time @code{@@selector} operator, there are a
+couple of other ways of obtaining selectors.
+
+@itemize @bullet
+@item
+In a method implementation, you can always obtain the current selector from
+the variable @code{_cmd}:
+@example
+- (void) removeObjectIdenticalTo: (id)anObject
+@{
+  SEL  mySelector = _cmd;
+    // ...
+@}
+@end example
+
+@item
+At any point, you can use the @code{NSSelectorFromString()} function -
+@example
+  SEL  mySelector = NSSelectorFromString(@@"removeObjectIdenticalTo:");
+@end example
+
+In reality, you would never use @code{NSSelectorFromString} for a constant
+string as shown; @code{@@selector} would do and is more efficient, since is a
+compile-time operator.  Its chief utility lies in the case where the selector
+name is in a variable value (for whatever reason).
+
+@end itemize
+
+If you ever need to test the contents of a @code{SEL} variable for equality
+with another, you should use the function @code{sel_eq()} provided as part of
+the GNU Objective-C runtime library.  This is necessary because, while the
+compiler tries to ensure that compile-time generated references to selectors
+for a particular message point to the same structure, selectors produced at
+runtime, or in different compilation units, will be different and a simple
+pointer equality test will not do.
+
+
+@subsection Avoiding Messaging Errors when an Implementation is Not Found
+
+Using @b{typed} objects as shown below, the compiler would forewarn
+you if the @code{anObject} was unable to respond to the @code{alert:}
+message, as it knows what type of object @code{anObject} is:
+
+@example
+SomeClass	*anObject;		// an instance of the 'SomeClass' class
+
+anObject = [[SomeClass alloc] init];	// build and initialize the object
+[anObject alert: additionalObject];	// compiler warns if 'alert:' not
+                                        // defined in SomeClass or a superclass
+@end example
+
+However at times the compiler will not forewarn you that a message will
+attempt to invoke a method that is not in the @b{receiver's} repertoire. For
+instance, consider the code below where @code{anObject} is not known to
+implement the @code{alert:} message:
+
+@example
+  id		anObject;		// arbitrary object;
+
+  anObject = [[SomeClass alloc] init];	// build and initialize object
+  [anObject alert: additionalObject];	// compiler cannot check whether
+                                        // 'alert' is defined
+@end example
+
+In this case, the compiler will not issue a warning, because it only knows
+that @code{anObject} is of type @code{id} @dots{} so it doesn't know what
+methods the object implements.
+
+At runtime, if the Objective-C runtime library fails to find a @b{method
+implementation} for the @code{alert:} message in the @code{SomeClass} class
+or one of its superclasses, an exception is generated.  This can be avoided
+in one of two ways.
+
+The first way is to check in advance whether the method is implemented:
+
+@example
+if ([anObject respondsToSelector: @@selector(alert:)] == YES)
+  @{
+    [anObject alert: additionalObject];	// send it a message.
+  @}
+else
+  @{
+    // Do something else if the object can't be alerted
+  @}
+@end example
+
+The second way is for the object the message was sent to to @i{forward} it
+somewhere else.
+
+
+@section Forwarding
+@cindex forwarding
+
+What actually happens when the GNU Objective-C runtime is unable to find a
+method implementation associated with an object for a given selector is that
+the runtime instead sends a special @code{forwardInvocation:} message to the
+object.  (Other Objective-C runtimes do the same, but with a slightly
+different message name and structure.)  The object is then able to use the
+information provided to handle the message in some way, a common mechanism
+being to forward the message to another object known as a @b{delegate}, so
+that the other object can deal with it.
+
+@example
+- (void) forwardInvocation: (NSInvocation*)invocation
+@{
+  if ([forwardee respondsToSelector: [invocation selector]])
+    return [invocation invokeWithTarget: forwardee];
+  else
+    return [self doesNotRecognizeSelector: [invocation selector]];
+@}
+@end example
+
+@itemize @bullet
+@item
+@b{@code{invocation}} is an instance of the special @code{NSInvocation} class
+containing all the information about the original message sent, including its
+@b{selector} and its arguments.
+
+@item
+@b{@code{forwardee}} is an instance variable containing the @code{id} of an
+object which has been determined to be likely to implement methods that this
+object does not.
+
+@item
+The @b{@code{NSInvocation}} class has a convenience method that will pass the
+message on to a target object given as argument.
+
+@item
+The @b{@code{doesNotRecognizeSelector}} method is a fallback which is
+implemented in @code{NSObject}.  Unless it has been overidden, its behavior
+is to raise a runtime exception (a @code{NSInvalidArgumentException} to be
+exact), which generates an error message and aborts.
+@end itemize
+
+Forwarding is a powerful method for creating software patterns.  One of these
+is that forwarding can be used to in effect provide a form of multiple
+inheritance.  Note, however that, unlike inheritance, a forwarded method will
+not show up in tests like @code{respondsToSelector} and
+@code{isKindOfClass:}. This is because these methods search the inheritance
+path, but ignore the forwarding path.  (It is possible to override them
+though.)
+
+Another pattern you may come across is @i{surrogate object}: surrogates
+forward messages to other objects that can be assumed to be more complex. The
+@code{forwardInvocation:} method of the surrogate object receives a message
+that is to be forwarded; it determines whether or not the receiver exists, and
+if it does not, then it will attempt to create it. A @b{proxy} object is a
+common example of a surrogate object.  A proxy object is useful in a remote
+invocation context, as well as certain scenarios where you want one object to
+fulfill functions of another.
+
+@ignore
+Need to talk about NSMethodSignature and methodSignatureForSelector?
+@end ignore
+
+@section Implementations
+
+Recall that when a message is sent, the runtime system searches for a method
+implementation associated with the recipient object for the specified
+selector.  (Behind the scenes this is carried out by a function
+``@code{objc_msgSend()}''.)  This may necessitate searches across multiple
+superclass objects traversing upwards in the inheritance hierarchy, and takes
+time.  Once the runtime finds an implementation for a class, it will cache the
+information, saving time on future calls.  However, even just checking and
+accessing the cache has a cost associated with it.  In performance-critical
+situations, you can avoid this by holding on to an implementation yourself.
+In essence, implementations are function pointers, and the compiler provides a
+datatype for storing them when found at runtime:
+
+@example
+SEL  getObjSelector = @@selector(getObjectAtIndex:);
+  // get the 'getObjectAtIndex' implementation for NSArray 'taskArray'
+IMP  getObjImp = [taskArray methodForSelector: getObjSelector];
+  // call the implementation as a function
+id obj = (getObjImp)( taskArray, getObjSelector, i );
+@end example
+
+Here, we ask the runtime system to find the '@code{taskArray}' object's
+implementation of '@code{getObjectAtIndex}'.  The runtime system will use the
+same algorithm as if you were performing a method call to look up this code,
+and then returns a function pointer to it.  In the next line, this pointer is
+used to call the function in the usual C fashion.  Notice that the signature
+includes both the object and the selector -- recall that these are the two
+implicit arguments, @code{self} and @code{_cmd}, that every method
+implementation receives.  The actual type definition for @code{IMP} allows
+for a variable number of additional arguments, which are the explicit
+arguments to the method call:
+
+@example
+typedef id (*IMP)(id, SEL, ...);
+@end example
+
+The return type of @code{IMP} is @code{id}.  However, not all methods return
+@code{id}; for these others you can still get the implementation, but you
+cannot use an @code{IMP} variable and instead must cast it yourself.  For
+example, here is such a cast for a method taking a double and returning
+'@code{double}':
+
+@example
+double (*squareFunc)( id, SEL, double );
+double result;
+
+squareFunc = (double (*)( id, SEL, double ))
+     [mathObj methodForSelector: @@selector(squareOf:)];
+
+result = squareFunc(mathObj, @@selector(squareOf:), 4);
+@end example
+
+You need to declare such a function pointer type for any method that returns
+something besides @code{id} or @code{int}.  It is not necessary to declare the
+argument list (@code{double}) as we did above; the first line could have been
+``@code{double (*squareFunc)( id, SEL, @b{...} )}'' instead.
+
+An excellent exposition of the amount of time saved in using
+@code{methodForSelector} and other details of the innards of Objective-C and
+the Foundation may be found here:
+@url{http://www.mulle-kybernetik.com/artikel/Optimization/opti-3.html}.
+
+You should realize that it is only worth it to acquire the @code{IMP} if you
+are going to call it a large number of times, and if the code in the method
+implementation itself is not large compared with the message send overhead.
+In addition, you need to be careful not to call it when it might be the wrong
+function.  Even when you are sure of the class of the object you are calling
+it on, Objective-C is sufficiently dynamic that the correct function could
+change as a program runs.  For example, a new category for a class could be
+loaded, so that the implementation of a method changes.  Similarly, a class
+could be loaded that poses as another, or one that was posing stops doing so.
+In general, @code{IMPs} should be acquired just before they are to be used,
+then dropped afterwards.
+
+
+@comment Making Forwarding Transparent
+
+@page

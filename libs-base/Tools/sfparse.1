@@ -1,0 +1,37 @@
+.\"Copyright (C) 2005 Free Software Foundation, Inc.
+.\"Copying and distribution of this file, with or without modification,
+.\"are permitted in any medium without royalty provided the copyright
+.\"notice and this notice are preserved.
+.TH SFPARSE "1" "February 2004" "GNUstep" "GNUstep System Manual"
+.SH NAME
+sfparse \- string file parse
+
+.SH SYNOPSIS
+.B sfparse
+[ \fI--utf8\fR | \fI--unicode\fR ] \fIfilename\fR
+
+.SH DESCRIPTION
+.P
+This tool has two different functions.  When invoked with just a filename as
+argument, it checks that a file is a valid strings-file, which basically
+amounts to seeing whether the file is in proper serialized NSDictionary format
+(type "\fIdefaults plist\fR" for info on this).
+.P
+On the other hand, if one of the two options is given, no such checking is
+performed, but the file IS converted into the named encoding.
+
+.SH OPTIONS
+.P
+\fB\-\-unicode\fR    - convert an ASCII or UTF8 file to Unicode
+.P
+\fB\-\-utf8\fR       - convert an ASCII or Unicode to UTF8
+
+.SH HISTORY
+.RS 0
+Written in 1999.
+.P
+This manual page first appeared in gnustep-base 1.9.2 (March 2004).
+.P
+.SH AUTHORS
+.B sfparse
+was written by Richard Frith-Macdonald <rfm@gnu.org>

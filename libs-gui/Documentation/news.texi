@@ -1,0 +1,911 @@
+@c -*-texinfo-*-
+@ifset TEXT-ONLY
+@include version.texi
+@end ifset
+
+@ifclear ANNOUNCE-ONLY
+@chapter NEWS
+
+The currently released version of the library is @samp{@value{GNUSTEP-GUI-VERSION}}.
+@end ifclear
+
+@section Noteworthy changes in version @samp{0.29.0}
+
+This version adds support for storyboard files and many new
+classes. Plus the usual bunch of bug fixes.
+
+@itemize @bullet
+@item Support loading of storyboard files.
+@item Add classes NSSwitch, NSFontAssetRequest,
+NSMediaLibraryBrowserController, NSScrubberItemView, NSScrubberLayout,
+NSScrubber, NSSharingServicePickerToolbarItem, NSPathCell,
+NSPathComponentCell, NSPathControl, NSPathControlItem,
+NSPersistentDocument, NSAccessibilityCustomAction,
+NSAccessibilityCustomRotor, NSAccessibilityElement, NSStoryboard,
+NSStoryboardSegue, NSPageController, NSSplitViewController,
+NSSplitViewItem, NSTabViewController, NSLayoutAnchor,
+NSLayoutConstraint, NSLayoutGuide, NSStatusBarButton,
+NSTextCheckingController, NSTextFinder, NSTextInputContext.
+Some of these classes are still skeletons.
+@item Fix extraline fragment in text layout.
+@item Better encoding handling in RTF files.
+@item Add more italian translations.
+@item Add MacOSX methods to NSNib, NSMenu and NSWindow.
+@item Focus handling fixes for WindowMaker.
+@item Fix missing colours when loading old colour lists.
+@item Support JPEG export as greyscale image.
+@item Fix memory leak in NSPopupButtonCell.
+@item Fix toolbar flickering.
+@item NSSearchFieldCell use code from GSTheme to disolay popup.
+@item Fix int decoding to get it working on 64 bit big endian machines.
+@item Add tab stops after last defined at default intervals.
+@end itemize
+
+@ifclear ANNOUNCE-ONLY
+
+@section Noteworthy changes in version @samp{0.28.0}
+
+This version adds support for modern XIB files and many new
+classes. Plus the usual bunch of bug fixes.
+
+@itemize @bullet
+@item Support loading of document XIB files.
+@item Improve Key Value Binding for NSArrayController and add more bindings.
+@item Better support for multi monitor usage and other improvement in
+the backend integration.
+@item Add classes NSFontCollection, NSColorSampler, NSSpeechRecognizer,
+NSAppearance, NSPDFInfo, NSPICTImageRep, NSCIImageRep, NSPDFImageRep,
+NSPDFPanel, NSDataAsset, 
+NSDatePicker, NSDatePickerCell, NSPredicateEditor, 
+NSPredicateEditorRowTemplate, NSRuleEditor, NSGestureRecognizer,
+NSButtonTouchBarItem, NSCandidateListTouchBarItem,
+NSClickGestureRecognizer, NSColorPickerTouchBarItem,
+NSCustomTouchBarItem, NSGroupTouchBarItem,
+NSMagnificationGestureRecognizer, NSPanGestureRecognizer,
+NSPickerTouchBarItem, NSPopoverTouchBarItem, NSPressGestureRecognizer,
+NSRotationGestureRecognizer, NSSharingServicePickerTouchBarItem,
+NSSliderTouchBarItem, NSStepperTouchBarItem, NSTouchBarItem, NSTouchBar,
+NSTouch, NSDockTile.
+@item Implement NSEPSImageRep.
+@item Better encoding handling in RTF files.
+@item Theming and drawing improvements.
+@item Increase small font size to 10.
+@item New cursor and stepper images.
+@item Move NSFileWrapper to Foundation.
+@item Fixed build on Debian GNU/kFreeBSD.
+@item With command line argument -autolaunch YES, do not activate the
+application when -activateIgnoringOtherApps: is invoked.
+@item Improvements to WindowMaker compatibility (e.g. WMFHideApplication
+support).
+@item Lowered NSFloatingWindowLevel by one to distinguish floating panels from
+menus.
+@end itemize
+
+@section Noteworthy changes in version @samp{0.27.0}
+
+This version includes numerous bugfixes, compatibility
+improvements and other changes accumulated over the last year.
+It also enables work to be done on integrating NSViews with a Core
+Animation renderer.
+
+@itemize @bullet
+@item Make targetForAction safer.
+@item Speed up menu updates.
+@item Clean up speech tool compilation and switch to newer interface.
+@item Fix bug in CUPS subclassing introduced in last release.
+@item Minor improvements to typesetting.
+@item Add NSIsControllerMarker.
+@item Fix tracking on segmented cell.
+@item Bring slider cell closer to Cocoa implementation.
+@item Add ivar for Core Animation in NSView.
+@item Improve border calculation on printing.
+@item Lazy load app icon.
+@item Better detection of removable volumes.
+@item Polish translations.
+@item Japanese translations.
+@item Lots of bug fixes.
+@end itemize
+
+@section Noteworthy changes in version @samp{0.26.2}
+
+This version is a small, but important bugfix release.
+
+@itemize @bullet
+@item printing: Fix allocation of the CUPS printing classes.
+@item installation: Fix the configure script.
+@end itemize
+
+@section Noteworthy changes in version @samp{0.26.1}
+
+This version is released to conincide with version 1.25.1 of
+gnustep-base, which contains changes required for this version of
+gnustep-gui and gnustep-back.
+
+It includes an important workaround for users of GNUstep
+Objective-C Runtime (libobjc2) and non-fragile ABI to avoid a bug
+in interaction between the clang compiler and the runtime
+when non-fragile ABI is in use. Specifically, Clang and the
+runtime may disagree on what is the offset of an ivar
+in a class's RAM. This manifested in a crash at application
+startup due to misalignment of _gcontext inside NSThread. See
+the
+@uref{http://lists.gnu.org/archive/html/discuss-gnustep/2017-12/msg00129.html, mailing list discussion}
+for more information.
+
+It also contains the following changes:
+
+@itemize @bullet
+@item tests: Cleanup of warnings.
+@item tests: Fix text system deallocation test.
+@item printing: Undefine __BLOCKS__ before including cups.h, as some versions of the header expect that libdispatch is present and used if __BLOCKS__ is defined.
+@item graphics context: Workaround for Clang+libobjc2+nonfragile ABI issue.
+@end itemize
+
+@section Noteworthy changes in version @samp{0.26.0}
+
+This version was bumped due to previous binary incompatibilities
+between 0.25.0 and 0.25.1. This version also includes numerous
+compatibility improvements from the Summer of Code
+project, and a wide variety of other fixes. Notably, it fixes the
+use of cupsGetPPD() in the printing system.
+
+@itemize @bullet
+@item printing: Add an include to get deprecated function cupsGetPPD() on newer CUPS systems.
+@item chore: Bump required base version.
+@item tiff: Support for writing resolution.
+@item jpeg: Save resolution information if it is different from 72 dpi.
+@item save panel: Fix return type of sorting function.
+@item events: Add some newer Cocoa enums and one method with dummy implementation.
+@item speech synthesis: NSSpeechSynthesizerDelegate is now a @@protocol on runtimes that support it.
+@item pasteboard: New type identifiers.
+@item translations: Some work on Polish, Russian and German translations
+@item cell: Improvements to mouse tracking logic on NSCell.
+@item image: If an unknown named image is unarchived with a coder or keyed coder, keep the name.
+@item screen: Add -backingScaleFactor and return 1.0.
+@item window: Return 1.0 from -backingScaleFactor.
+
+@item compatibility: Numerous stub implementations of constants, classes and methods to improve source-level compatibility.
+@item other bugfixes
+@end itemize
+
+@section Noteworthy changes in version @samp{0.25.1}
+
+@itemize @bullet
+@item JPEG (saving) alpha channel fixes and size with resolution != 72
+@item JPEG resolution read support
+@item TIFF saving fixes
+@item Improved volumes mounting and support
+@item Portability improvements in volume mounting and support
+@item Corrected layout of empty strings
+@item Only update visible menus
+@end itemize
+
+@section Noteworthy changes in version @samp{0.25.0}
+
+@itemize @bullet
+@item Fixes for new GIF library versions
+@item Theming of named images for specific applications by the use of the CFBundleIdentifier in the theme
+@item New icons and corresponding constants for special folders, recycler and others
+@item Improvements in NSWorkspace icon lookup
+@item Improvements in removable media commands, imported and cleaned from GWorkspace
+@item Numerous bug fixes and improvements in Cocoa compatibility
+@item Numerous theme tweaks
+@item Spanish locale
+@end itemize
+
+@section Noteworthy changes in version @samp{0.24.1}
+
+From a look through ChangeLog, we can see a lot of bugfixes for this release,
+with the main focus on avoiding display glitches and improving OSX
+compatibility.
+
+@section Noteworthy changes in version @samp{0.24.0}
+
+New features include:
+@itemize @bullet
+@item Require newer base release as we moved the
+-replaceObject:withObject: of NSKeyedUnarchiver there.
+@item Support for newer releases of the gif library.
+@item NSTabView is now flipped.
+@item Theme improvements and changes to image mapping.
+@end itemize
+
+Many bugfixes.
+
+@section Noteworthy changes in version @samp{0.23.1}
+
+This is a bugfix release, primarily to deal with coding/archiving issues.
+
+
+@section Noteworthy changes in version @samp{0.22.0}
+
+New features include:
+@itemize @bullet
+@item This version is binary incompatible with previous versions due to the change of NSNotFound in GNUstep base.
+@item Support for drawing the GUI with a scale factor, for high-DPI monitors.
+@item Character panel
+@item Color picker ``Magnifier'' tool, for grabbing the color of arbitrary parts of the screen
+@end itemize
+
+Many NSImage improvements (Mac OS X 10.6 drawing methods, better selection of image reps, better support for icons). Many bugfixes, including in Xib loading, printing, and NSView geometry.
+
+@section Noteworthy changes in version @samp{0.20.0}
+
+A new stable release. Many improvments with Nib loading, documents and
+document controllers. Fixed many drawing issues, particularly
+ones related to flipping. Much improved theming.
+
+@section Noteworthy changes in version @samp{0.19.0}
+
+This is an (unstable) copy of the 0.18.0 release
+
+@section Noteworthy changes in version @samp{0.18.0}
+
+A new stable release that has had many improvements. Many new
+Mac OS X methods (10.5 and newer) were added. Many Windows specific
+improvements were made (particularly with the use of the Windows theme).
+There is also better compatibility with Mac OS X in terms of usage of NSInteger
+and other definitions.
+
+@section Noteworthy changes in version @samp{0.17.1}
+
+@itemize @bullet
+@item New Mac OS X 10.5 methods in NSFont
+@item Add live resize in NSSplitView
+@end itemize
+
+@section Noteworthy changes in version @samp{0.17.0}
+
+@itemize @bullet
+@item New Mac OS X 10.5 methods in many classes
+@item Toolbars have been completely rewritten and improved.
+@item Several improvements for Garbage Collection
+@end itemize
+
+@section Noteworthy changes in version @samp{0.16.0}
+
+@itemize @bullet
+@item Nib loading refractored and improved.
+@item Added support for autosaving in NSDocuments
+@item NSWindowController made a subclass of NSResponder
+@item NSTokenField and netokenFiledCell classes added.
+@end itemize
+
+@section Noteworthy changes in version @samp{0.14.0}
+
+@itemize @bullet
+@item New class NSGlyphGenerator for glyph generation
+@item NSSplitView implemented setAutosaveName:
+@item NSOpenGLView added some Mac OS X 10.3 methods
+@item Manu bug fixes.
+@end itemize
+
+@section Noteworthy changes in version @samp{0.13.2}
+
+@itemize @bullet
+@item Printing works a little better now.
+@item NSPopUpButtonCell - object encoding was changed
+@item NSTextView - several updates and Mac OS X methods added
+@item NSWindow - devince interaction was changed.  You need to use
+gnustep-back 0.13.2 with this version
+@item New class NSSegmentedCell.
+@item NSDrawer was implemented.
+@end itemize
+
+@section Noteworthy changes in version @samp{0.13.1}
+
+@itemize @bullet
+@item NSMenu - Added more MacOS X methods and an ivar.
+@item Added support for hiding views.
+@item Added Key-Value bindings implementation (NSKeyValueBinding)
+with support in several classes (NSControl, NSTextField, NSView, etc).
+@item Added some MacOS X 10.4 methods to NSTableView.
+@item Changed the NSCursor hot point to 0,0 for MacOS X compatibility.
+@end itemize
+
+@section Noteworthy changes in version @samp{0.13.0}
+
+This is an unstable release. There may be backward compatibility issues
+with previous releases of the gui library.
+
+@itemize @bullet
+@item Switched to use LGPL 3 and GPL 3.
+@item Added new methods from Mac OS X 10.4 for NSDragging, NSFontDescriptor,
+NSAttributedString, NSImageView, NSStringDrawing, NSParagraphStyle,
+NSView, NSCell, NSActionCell, NSAlert, NSApplication, NSBitmapImageRep,
+NSBox, NSColor, NSColorSpace, NSComboBox, NSComboBoxCell,
+NSDocumentController, NSEvent, NSScreen, NSFont, NSFontManager,
+NSFormCell, NSForm, NSWindow, NSTextField, NSTextFieldCell. Some ivar
+names were changed also. 
+@item Moved Postscript printing methods from NSView to NSGraphicsContext.
+@item Rewrote the NSView drawing mechanism to always use
+[displayRectIgnoringOpacity:inContext].
+@item Report more controls as being flipped. (NSTextField, NSTableHeaderView,
+NSSlider, NSProgressIndicator, NSButton) NSTabView is still missing.
+@item In NSAffineTransform use optimized primitive methods from base.
+@item Add font attribute fixing to NSAttributedString. To allow for the output
+of glyphs not present in the current font.
+@item Optimized the validation of edited cells.
+@item Implementation of special connectors for Key-Value binding.
+@item Base library version 1.15.1 is required for this release
+@end itemize
+
+@section Noteworthy changes in version @samp{0.12.0}
+
+It has been a long time since the last release and many things have been
+added and changed, including new classes, new ivars, and new methods.
+
+@itemize @bullet
+@item Lots of improvements to the NSBitmapImage subclasses thanks to Mark Tracy
+@item GSTheme and other classes were added to improve support of theming.
+@item Added new methods from Mac OS X 10.4 for NSControl, NSResponder,
+NSDocument, NSPrintOperation, NSWindowController, NSCell,
+NSMenuItem, NSView. Some ivar names were changed also.
+@item Added new ivars for NSMenuItem, NSPrintOperation, NSTableView,
+NSDrawer, NSScrollView.
+@item New classes from Mac OS X 10.4 and earlier were added including
+NSLevelIndicator, NSObjectController, NSUserDefaultsController,
+NSKeyValueBinding, NSArrayController, NSController.
+@item NSSpellServer and NSAffineTransform was moved to GNUstep base 
+for Mac OS X compatibility.
+@end itemize
+
+@section Noteworthy changes in version @samp{0.11.0}
+
+@itemize @bullet
+@item Added support for keyed encoding in all gui classes.
+@item Added mechanism to allow for dynamic extension of 
+model loading mechanism
+@item Implemented glue code in GSNibCompatibility for 
+classes such as NSIBObjectData, NSClassSwapper, etc. to 
+facilitate nib loading.
+@end itemize
+
+@section Noteworthy changes in version @samp{0.10.3}
+
+@itemize @bullet
+@item Horizontal menus now work
+@item Better support for tracking active applications.
+@end itemize
+
+@section Noteworthy changes in version @samp{0.10.2}
+
+Mostly bug fixes.
+
+@section Noteworthy changes in version @samp{0.10.1}
+
+GNUstep now uses v19 of portaudio for the sound daemon. Version v19
+hasn't been officially released, but it is still used in several
+distributions (SuSE, etc) as v18 is very old.
+
+@section Noteworthy changes in version @samp{0.10.0}
+
+This release is binary incompatible with previous releases.
+The interface version of the library has changed so that apps, tools
+and libraries that use the base library need to be recompiled to use
+this new version.
+
+@itemize @bullet
+@item Model loading supports window auto-positioning
+@item Keyed encoding is supported in many classes.
+@end itemize
+
+@section Noteworthy changes in version @samp{0.9.5}
+
+@itemize @bullet
+@item Beginnings of CUPS interface were added.
+@item Added new control colors and methods from 10.3 version of Cocoa.
+@item Added new font methods from 10.3 version of Cocoa.
+@item NSApplication -runModalSession behavior changed.
+@item You can find the GUI library's version using the Info.plist
+@end itemize
+
+@section Noteworthy changes in version @samp{0.9.4}
+
+@itemize @bullet
+@item The printing classes have been completely reorganized to 
+accommodate different native printing systems (Thanks to Chad Hardin).
+@item PPD files have been moved to a separate package.
+@item NSToolbar now allows rearranging items.
+@item NSScroller, NSScrollView has a new ivar.
+@item Some improvement of NSDataLink classes.
+@end itemize
+
+@section Noteworthy changes in version @samp{0.9.3}
+
+@itemize @bullet
+@item Spell checker reimplemented using libaspell
+@item New NSComboBox implementation
+@item NSToolbar much improved
+@item Binary incompatibilites from ivar additions in NSView and subclasses.
+@end itemize
+
+@section Noteworthy changes in version @samp{0.9.2}
+
+@itemize @bullet
+@item Working NSToolbar implementation
+@item New Mac OS X methods in NSView and other classes
+@item Fixed some sheet handling problems.
+@item Integrated gif, jpg, and png handling in front-end.
+@item Added overridable button and frame drawing functions
+@item Add some keyed decode/encoding to some classes
+@item NSStringDrawing redesigned.
+@item Much improved loading of gorm files
+@end itemize
+
+@section Noteworthy changes in version @samp{0.9.1}
+
+@itemize @bullet
+@item NSWindow - DnD works on whole window and events are propogated up to
+first DnD aware view.
+@item Absolute paths and DnD works in OpenPanels.
+@end itemize
+
+@section Noteworthy changes in version @samp{0.9.0}
+
+Improvements in various classes, include NSPopUpButton, NSBitmapImageRep,
+NSMenu, NSToolbar. Added support for thumbnail images in NSWorkspace.
+
+@section Noteworthy changes in version @samp{0.8.9}
+
+Note that many headers have moved to new locations (both in the package and
+when installed), so it is possible, although not likely that some 
+applications may not compile because they cannot find the right header.
+
+@itemize @bullet
+@item New Language Setup documentation.
+@end itemize
+
+@section Noteworthy changes in version @samp{0.8.8}
+
+@itemize @bullet
+@item Updated LanguageSetup documentation
+@item Improved RTF reader (unicode support, etc).
+@end itemize
+
+@section Noteworthy changes in version @samp{0.8.7}
+
+@itemize @bullet
+@item NSBezierPath glyph methods implemented (depends on backend).
+@item NSDataLink[Panel/Manager] - some implementation
+@item Added default to load user-defined bundles (GSAppKitUserBundles default).
+@end itemize
+
+@section Noteworthy changes in version @samp{0.8.6}
+
+Updated to install in new locations based on changes in gnustep-make 1.7.0.
+
+@itemize @bullet
+@item New implementation of RTF producer (from Axel "Mikesch" Katerbau)
+@item Speed improvements, especially in tracking mouses movements.
+@item Lots of menu improvements.
+@end itemize
+
+@section Noteworthy changes in version @samp{0.8.5}
+
+Bug fixes. NSStringDrawing now uses text system implementation.
+
+@section Noteworthy changes in version @samp{0.8.4}
+
+This release features a brand new text and layout system thanks
+to Alexander Malmberg. Other improvements include:
+
+@itemize @bullet
+@item Various display optimizations.
+@item Default border to NSScrollView changed
+@item Printing fixes.
+@item NSToolbar partially implemented.
+@end itemize
+
+@section Noteworthy changes in version @samp{0.8.3}
+
+@itemize @bullet
+@item Additions for Gorm support.
+@item Alpha support for OpenGL
+@item Better ruler support - dragging of tab markers.
+@item Document support, recent files, etc.
+@item Simple printing to printer and print previewing.
+@item Window focus fixes
+@item Key view handling rewritten.
+@end itemize
+
+@section Noteworthy changes in version @samp{0.8.2}
+
+@itemize @bullet
+@item Handle fonts that aren't found better.
+@item Implement pageUp/Down.
+@item Some window focusing problems fixed.
+@item Quartz-like interface partially implemented.
+@item NSSecureTextField partially rewritten. More secure.
+@item NSBrowser: implement non-separate columns
+@item Fix firstResponder status in text fields.
+@end itemize
+
+@section Noteworthy changes in version @samp{0.8.1}
+
+@itemize @bullet
+@item Handle scaled curves correctly.
+@item Handle alpha channel with images correctly
+@item NSWindow frame string save without flipping coordinates.
+@item NSSound implemented. gssnd sound server.
+@item Spell checker starts correctly now.
+@end itemize
+
+@section Noteworthy changes in version @samp{0.8.0}
+
+@section Noteworthy changes in version @samp{0.7.9}
+
+@itemize @bullet
+@item NSTableView, NSOutlineView improvements.
+@item Menus no longer work in modal loop.
+@item Skeleton implementation of NSToolBar
+@end itemize
+
+@section Noteworthy changes in version @samp{0.7.8}
+
+@itemize @bullet
+@item Wheel color picker, standard color picker (bundles) added.
+@item System colors now use named colors. Easier configuration
+@end itemize
+
+@section Noteworthy changes in version @samp{0.7.7}
+
+The graphics/window interface was completely revamped. Window functions
+were split into a separate class, GSDisplayServer, and many PS and DPS
+functions were removed that were never implemented. However, new functionality
+was added to make things faster and eventually implement Quartz compatibility.
+
+In addition, the old backends, xgps and xdps were depreciated in favor of
+a new backend, simply named back, which can be configured for a
+variety of window server and graphics implementations, and also allow
+for improved code sharing.
+
+In addition there is now a window server backend for Windows computers, 
+although it is in a very alpha state.
+
+Other improvements:
+@itemize @bullet
+@item Mutliple screens are now handled properly (untested)
+@item Better autolayout with GSTable and subclasses.
+@item NSOutlineView much improved.
+@end itemize
+
+@section Noteworthy changes in version @samp{0.7.6}
+
+@itemize @bullet
+@item NSOutlineView implemented.
+@item Improvements to NSTableView, NSPopUpButton, NSTextView, NSFontPanel
+@item Scroll wheel support.
+@item Fully-functional keybindings, including multi-stroke keybindings.
+@item Memory panel available from Info Panel.
+@end itemize
+
+@section Noteworthy changes in version @samp{0.7.5}
+
+@itemize @bullet
+@item Drag and drop and image sliding much improved.
+@item Better handling of remote startup/display.
+@item Some localization.
+@item Keybinding support.
+@item Text handling improvements.
+@item New gopen command (like MacOSX open command).
+@item Implemented simple pagination and printing of views.
+@item Support for rulers.
+@item Spell checking support.
+@item Blinking insertion point.
+@item New NSStepper class.
+@item Implemented NSOutlineView, NSSelection, NSInputManager.
+@item Near rewrite of Menu handling code.
+@item Gmodel code compiled as a separate bundle.
+@end itemize
+
+@section Noteworthy changes in version @samp{0.7.0}
+
+@itemize @bullet
+@item Much improvement in NSBrowser, NSMatrix, NSPopUpButton, combo boxes.
+@item NSTextAttachement implemented, many other text improvements.
+@item Fonts cached in the frontend.
+@item Changes so that backend can be loaded as a bundle at runtime.
+@item simpler, faster compilation and installation.
+@item NSColorWell works.
+@end itemize
+
+@section Noteworthy changes in version @samp{0.6.7}
+
+@itemize @bullet
+@item App Icons can support documents dropped using DnD.
+@item Added color conversions, working color picker and panel.
+@item Almost complete rewrite of NSBezierPath
+@item Loads of improvements to Text classes.
+@item NSImage, NSButton, NSCell, etc, implemented many missing methods.
+@item ...and even more changes to the Text classes.
+@item Starting implementation of printing.
+@item Scrollview fixes.
+@item Implemented deferred windows.
+@item NSTableView implemented.
+@item Implemented object value and formatter support in NSCell
+@item Support middle mouse button.
+@end itemize
+
+@section Noteworthy changes in version @samp{0.6.6}
+
+@itemize @bullet
+@item Window hints for motif and generic window managers.
+@item Major improvements to the text handling classes (NSText, NSTextView, etc)
+@item Pasting of fonts and rulers.
+@item Much better RTF handling
+@item DnD for NSColorWell
+@item Much improved NSSplitView
+@item New classes - NSColorPanel, NSTableView
+@item NSScreen rewritten with full support for all methods and functions.
+@item Can use image reading routines from WindowMaker if available to read
+a variety of image formats besides TIFF.
+@item Many fixes to get the AppKit to work better with WindowMaker.
+@item Much better gmodel support (particularly with nibs translated from
+NeXT or OPENSTEP 4.2).
+@item Muh improved font classes and font support.
+@end itemize
+
+In addition both the xgps and xdps backends have seen some large efficiency
+improvements. Much better font support. The xdps backend itself has seen
+speed improvements by at least a factor of 4. Note however, that the xdps
+backend is still considered experimental and you may have to deal with
+many problems in order to get it working. We recommend sticking with the
+xgps backend (the default) for now.
+
+@section Noteworthy changes in version @samp{0.6.5}
+
+Many of the basic GUI classes have been vastly improved or rewritten, thanks
+to Nicola Pero  @email{n.pero@@mi.flashnet.it} and many others.
+
+@itemize @bullet
+@item New Info Panel support
+@item New NSBezierPath
+@item Rewrite of several classes including Cell and Button classes.
+@item Rewrite of NSBrowser, NSSavePanel, menus, text classes, NSTableHeader.
+@item RTF Parser
+@item Implemented image caching.
+@item Implemented editing in Forms, Matricies.
+@item New autolayout classes GSHBox, GSTable, and GSVBox.
+@item Almost all back-end classes have been removed and code incorporated
+in a DPS-like graphics context structure.
+@item Better keyboard handling.
+@item NSHelpManager, NSComboBox, ProgressIndicator written.
+@end itemize
+
+In addition a preliminary version of an Interface Builder (Gorm) has
+been written, thanks to Richard Frith-Macdonald @email{richard@@brainstorm.co.uk}
+
+@section Noteworthy changes in version @samp{0.6.0}
+
+A Huge amount of progress, although a lot still needs to be done. It's
+usable for a large base of moderately simple apps. Several NeXT/OpenStep
+apps and libraries have been ported with little changes.
+
+@itemize @bullet
+@item Drag and Drop support fleshed out but not completed.
+@item NSText and related classes rewritten. Basic functionality but
+much needs to be done to finish them off.
+@item nib2gmodel app works with MacOS-X
+@item Work done in minimizing the backend which allowed a lot
+of functionality to move to the GNU library.
+@item Menu code rewritten.
+@item PopupButtons now work.
+@item Many new images
+@item Basic functionality for NSTabView
+@item Much better lockFocus support in NSView. Flipped views handled.
+@item Rewrite of NSSavePanel and NSOpenPanel
+@item Several fixes that at least double the speed of the gui.
+@end itemize
+
+@section Noteworthy changes in version @samp{0.5.5}
+
+Too extensive to list.
+
+@itemize @bullet
+
+@item A lot of rewritting has been done to the classes, with general 
+cleanup of coordinate conversion code, etc.
+
+@end itemize
+
+@section Noteworthy changes in version @samp{0.5.0}
+
+@itemize @bullet
+
+@item
+NSBrowser and NSBrowserCell have been implemented.  There is one odd
+display artifact; lists which are smaller than the browser column area
+have the list justified to the bottom of the column versus the top of
+the column.  This is actually an issue with NSMatrix and will be
+remedied when flip views are implemented.
+
+@item
+Two important optimizations that speed up the displaying of views and flushing
+of windows have been implemented. Only the views that need display and those
+that produce visible effects on the screen receive the -drawRect: message.
+Flushing of windows occurs only in rectangles that get displayed not in the
+whole window.
+
+@item
+Rotation and scaling of views have been finally implemented. The code
+requires backend support for changing the state of the graphics context
+accordingly.
+
+@item
+NSScrollView and NSClipView have been implemented. The current implemented
+behavior is to call the document view to display the exposed region. Copying on
+scroll will be supported soon, at least on Solaris DPS, where it seems the
+Postscript language has provisions for copying drawn regions of screen.
+Hopefully DGS will also have this facility by the end of the year.
+
+@item
+NSScroller has been completely reworked to gain speed by using timer events.
+
+@item
+NSSlider has been implemented. Thanks to Frank Knobloch for supporting this
+and the NSScrollView implementation.
+
+@item
+NSBox has been implemented.
+
+@item
+The library has been ported to work under Solaris with the native DPS and the
+NeXT/Apple's Portable Distributed Objects (PDO) environment.
+
+@item
+The library has been integrated with the makefile package so we now benefit
+from all of the features the makefile package gives us, especially the
+possibility to build shared libraries on various systems and having different
+types (debug and profile) of the library compiled at the same time.
+
+@item
+NSCell is able to continuosly send the action to the target while the user is
+tracking the mouse.
+
+@item
+Several cleanups and as usual, many bug fixes. 
+
+@end itemize
+
+@section Noteworthy changes in version @samp{0.3.0}
+
+@itemize @bullet
+
+@item
+Completely reworked the menu class. The NSMenu class is now inherited from
+NSObject and using the new implementation menus have been implemented for the
+XDPS backend (they have the look and feel of the NeXTStep menus!).
+
+@item
+NSRunLoop has been integrated with NSApplication. Using this capability time
+events have been implemented to NSEvent class. These events allow several
+improvements in the interaction between user and the graphic interface.
+
+@item
+NSMatrix has been reworked, it is now conforming to the OpenStep specification
+and it knows all the selection modes. It uses time events to enhance the
+drawing speed during mouse drags.
+
+@item
+The initial implementation of NSForm has been made although it has not been
+tested yet.
+
+@item
+NSPrinter has been implemented though it was not throughly tested; thanks to
+Simon Frankau.
+
+@item
+Configure script has been changed to detect the underlaying Foundation library.
+The currently supported libraries are gnustep-base and libFoundation.
+
+@item
+Several cleanups have been made in a lot of classes: the retain/release policy
+has been fixed, the cell classes correctly implement the NSCopying protocol
+and many others.
+
+@end itemize
+
+@section Noteworthy changes in version @samp{0.2.0}
+
+@itemize @bullet
+
+@item
+Additional NSImage and NSImageRep class work.  Incorporated common
+images for use with controls that were designed by Andrew Lindesay.
+
+@item
+Fill out implementation of NSColorWell class.
+
+@item
+Fill out implementation of NSColorList class.
+
+@item
+Cleaned up the header files and added missing headers, methods,
+categories, and protocols; thanks to Simon Frankau for much of this
+work.  Major reorganization of header files.  Types and constants were
+moved in the files they belong.  Each header file includes only the
+headers it really needs.  Use @samp{@@class} to forward class definitions
+instead of including the corresponding class file.
+
+@item
+Completely reworked the NSFont and NSFontManager classes so that
+NSUserDefaults is used for getting defaults and list of known fonts are
+maintained.
+
+@item
+Initial implementation of NSCursor class.
+
+@item
+Almost complete implementation of NSButton and NSButtonCell class.
+Buttons can now display images and/or text, handles all of the OpenStep
+button types and styles.
+
+@item
+Fill out implementation of NSScroller class.
+
+@item
+Put in underlying support for optimizing drawing; flushing of windows,
+backing store, and only display when needed.
+
+@item
+Many bug fixes and minor enhancements.
+
+@end itemize
+
+@section Noteworthy changes in version @samp{0.1.1}
+
+@itemize @bullet
+
+@item
+Almost complete implementation of the PXKMenu and PXKMenuCell classes.
+
+@item
+Fill out implementation of NSFont and NSFontManager.
+
+@item
+Fill out implementation of NSColor including color spaces other than
+RGB.  Now maintains the common colors as global variables.
+
+@item
+Integration with the Display Ghostscript System.  This is mainly related
+to using the header files in the DPSclient library for defining the
+PostScript operator functions.
+
+@item
+Initial documentation set.
+
+@item
+Initial implementation of NSImage, NSImageRep, and NSImageRep subclass
+classes based upon work by Adam Fedor.
+
+@item
+Now requires the TIFF library for reading, writing, and manipulating
+tiff files and images.
+
+@end itemize
+
+@section Noteworthy changes in version @samp{0.1.0}
+
+@itemize @bullet
+
+@item
+Integration of the GNUstep X/DPS GUI Backend.  This has finally
+produced a set of core code with can display on X/Windows.
+Much of the X/Windows code has been written by Pascal Forget 
+@email{pascal@@wsc.com} and integration efforts have been lead by Scott
+Christley @email{scottc@@net-community.com}.
+
+@item
+Some major directory reorganization for the new naming guidelines.
+Headers previously in AppKit and DPSClient directories have been moved
+to gnustep/gui and gnustep/dps directores and symbol links are
+created for the AppKit and DPSClient directories.  This should allow
+both GNUstep and other OpenStep implementations to reside on the
+same machine without conflicts.
+@end itemize
+
+Also see the @samp{ChangeLog} file for more detail.
+
+@end ifclear
+@c end ifclear ANNOUNCE-ONLY

@@ -1,0 +1,108 @@
+; @gs_name@.app installer script
+;
+!define PRODUCT_NAME "@gs_name@"
+!define PRODUCT_VERSION "@gs_version@"
+!define PRODUCT_PUBLISHER "GNUstep"
+!define PRODUCT_WEB_SITE "http://www.gnustep.org"
+!define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\GNUstep"
+!define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
+!define PRODUCT_UNINST_ROOT_KEY "HKLM"
+!define PRODUCT_STARTMENU_REGVAL "NSIS:StartMenuDir"
+
+; MUI 1.67 compatible ------
+!include "MUI.nsh"
+
+; MUI Settings
+!define MUI_ABORTWARNING
+!define MUI_ICON "${NSISDIR}\Contrib\Graphics\Icons\modern-install.ico"
+!define MUI_UNICON "${NSISDIR}\Contrib\Graphics\Icons\modern-uninstall.ico"
+
+; Welcome page
+!insertmacro MUI_PAGE_WELCOME
+; Directory page
+!insertmacro MUI_PAGE_DIRECTORY
+; Start menu page
+var ICONS_GROUP
+!define MUI_STARTMENUPAGE_NODISABLE
+!define MUI_STARTMENUPAGE_DEFAULTFOLDER "GNUstep\Apps"
+!define MUI_STARTMENUPAGE_REGISTRY_ROOT "${PRODUCT_UNINST_ROOT_KEY}"
+!define MUI_STARTMENUPAGE_REGISTRY_KEY "${PRODUCT_UNINST_KEY}"
+!define MUI_STARTMENUPAGE_REGISTRY_VALUENAME "${PRODUCT_STARTMENU_REGVAL}"
+!insertmacro MUI_PAGE_STARTMENU Application $ICONS_GROUP
+; Instfiles page
+!insertmacro MUI_PAGE_INSTFILES
+; Finish page
+!define MUI_FINISHPAGE_RUN_NOTCHECKED
+!define MUI_FINISHPAGE_RUN "$INSTDIR\GNUstep\@gs_domain@\Applications\${PRODUCT_NAME}.app\${PRODUCT_NAME}.exe"
+!insertmacro MUI_PAGE_FINISH
+
+; Uninstaller pages
+!insertmacro MUI_UNPAGE_INSTFILES
+
+; Language files
+!insertmacro MUI_LANGUAGE "English"
+
+; Reserve files
+!insertmacro MUI_RESERVEFILE_INSTALLOPTIONS
+
+; MUI end ------
+
+Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
+OutFile "@gs_name@-${PRODUCT_VERSION}-setup.exe"
+InstallDir "C:\GNUstep"
+InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
+ShowInstDetails show
+ShowUnInstDetails show
+Var DOMDIR
+ 
+Section "Main" SEC01
+  SetOverwrite try
+  StrCpy $DOMDIR "$INSTDIR\GNUstep\@gs_domain@"
+  ;@file_list@
+SectionEnd
+
+Section Uninstall
+  StrCpy $DOMDIR "$INSTDIR\GNUstep\@gs_domain@"
+  ;@delete_list@
+  ;@rmdir_list@
+
+  Delete "$INSTDIR\Uninstall${PRODUCT_NAME}.exe"
+  !insertmacro MUI_STARTMENU_GETFOLDER Application $ICONS_GROUP
+  Delete "$SMPROGRAMS\$ICONS_GROUP\${PRODUCT_NAME}.lnk"
+  Delete "$SMPROGRAMS\$ICONS_GROUP\Uninstall\Uninstall${PRODUCT_NAME}.lnk"
+  RMDir "$SMPROGRAMS\$ICONS_GROUP\Uninstall"
+  RMDir "$SMPROGRAMS\$ICONS_GROUP"
+
+  DeleteRegKey ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}"
+  SetAutoClose true
+SectionEnd
+
+Section -AdditionalIcons
+  !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
+  CreateDirectory "$SMPROGRAMS\$ICONS_GROUP"
+  CreateDirectory "$SMPROGRAMS\$ICONS_GROUP\Uninstall"
+  CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\${PRODUCT_NAME}.lnk" "$DOMDIR\Applications\${PRODUCT_NAME}.app\${PRODUCT_NAME}.exe"
+  CreateShortCut "$SMPROGRAMS\$ICONS_GROUP\Uninstall\Uninstall${PRODUCT_NAME}.lnk" "$INSTDIR\Uninstall${PRODUCT_NAME}.exe"
+  !insertmacro MUI_STARTMENU_WRITE_END
+SectionEnd
+
+Section -Post
+  WriteUninstaller "$INSTDIR\Uninstall${PRODUCT_NAME}.exe"
+  WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayName" "$(^Name)"
+  WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "UninstallString" "$INSTDIR\Uninstall${PRODUCT_NAME}.exe"
+  WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayIcon" "$INSTDIR\m.ico"
+  WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "DisplayVersion" "${PRODUCT_VERSION}"
+  WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "URLInfoAbout" "${PRODUCT_WEB_SITE}"
+  WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "Publisher" "${PRODUCT_PUBLISHER}"
+SectionEnd
+
+Function un.onUninstSuccess
+  HideWindow
+  MessageBox MB_ICONINFORMATION|MB_OK "$(^Name) was successfully removed from your computer."
+FunctionEnd
+
+Function un.onInit
+  MessageBox MB_ICONQUESTION|MB_YESNO|MB_DEFBUTTON2 "Are you sure you want to completely remove $(^Name) and all of its components?" IDYES +2
+  Abort
+FunctionEnd
+

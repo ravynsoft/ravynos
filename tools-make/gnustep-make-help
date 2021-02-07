@@ -1,0 +1,78 @@
+#
+#   gnustep-make-help
+#
+#   GNUstep make help message
+#
+#   Copyright (C) 2007-2008 Free Software Foundation, Inc.
+#
+#   Author:  Nicola Pero <nicola.pero@meta-innovation.com>
+#
+#   This file is part of the GNUstep Makefile Package.
+#
+#   This library is free software; you can redistribute it and/or
+#   modify it under the terms of the GNU General Public License
+#   as published by the Free Software Foundation; either version 2
+#   of the License, or (at your option) any later version.
+#   
+#   You should have received a copy of the GNU General Public
+#   License along with this library; see the file COPYING.
+#   If not, write to the Free Software Foundation,
+#   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+# This file is printed by the print-gnustep-make-help target.
+# All lines beginning with '#' are stripped from the output.
+#
+
+gnustep-make is the GNUstep building system.  It's a makefile library
+that allows you to write powerful, robust and portable makefiles very
+quickly.  Traditionally it is used to build and install GNUstep software.
+
+Most common targets:
+ _MAKE_ all (builds)
+ _MAKE_ install (builds and installs)
+ _MAKE_ uninstall (uninstalls)
+ _MAKE_ clean (deletes built files)
+ _MAKE_ distclean (deletes all built files)
+ _MAKE_ dist (creates a .tar.gz of the software sources)
+
+Most common options that can be used with any of the targets:
+ messages=yes (prints verbosely all commands being executed)
+ debug=no (turns off generation of debug symbols)
+ strip=yes (strips executables and objects before installing)
+ shared=no (builds static executable and objects)
+ GNUSTEP_INSTALLATION_DOMAIN=SYSTEM/LOCAL/NETWORK/USER (installs 
+   in the specified domain; the default is LOCAL)
+ MAKEFILE_NAME=xxx (uses makefiles called 'xxx'; the default is
+   'GNUmakefile'.  Note that usually you'd use this option as in 
+   '_MAKE_ -f xxx MAKEFILE_NAME=xxx'.)
+ internalmessages=yes (prints verbosely all the recursive make
+   invocations.  Useful for debugging gnustep-make itself.)
+You can use multiple of these options at the same time.
+
+Examples:
+
+ _MAKE_ messages=yes
+   Builds the software and prints verbosely the commands that are
+   being used (useful for debugging)
+
+ _MAKE_ install GNUSTEP_INSTALLATION_DOMAIN=USER
+   Builds the software and installs it into your user domain (normally
+   in the GNUstep directory of your home directory).  Note that you 
+   need to source GNUstep.sh to be able to use software installed
+   in your user domain.
+
+ _MAKE_ install strip=yes messages=yes
+   Builds and installs the software and strips executables and object
+   files before installing.  It also prints verbosely the commands
+   being executed.
+
+If you think that this help message is missing something important,
+please report it to http://wiki.gnustep.org/index.php/Report_Bugs.
+
+# TODO:
+# For more information, please check ... ?
+#
+# We really need a proper user-facing manual that explains how
+# to use GNUmakefiles from a user/packager point of view.  Then
+# we could link it from here.
+#

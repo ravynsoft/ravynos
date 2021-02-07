@@ -1,0 +1,82 @@
+*{padding:0;margin:0;border:0;}
+
+body
+{
+	background: #fff;
+	color: #282931;
+	background: #fff;
+	font-family: "Trebuchet MS", Trebuchet, Tahoma, sans-serif;
+	font-size: 10pt;
+	margin: 0px;
+	padding: 0px;
+}
+
+
+a		{ color: #37425f; }
+a:link		{ color: #37425f; }
+a:visited	{ color: #37425f; }
+a:hover		{ color: black; }
+
+h1 { font-size: 20pt; font-weight: 900; }
+h2 { font-size: 16pt; font-weight: bold; }
+h3 { font-size: 16pt; font-weight: normal; }
+h4 { font-size: 12pt; font-weight: bold; }
+
+h1,h2,h3,h4 {
+	margin-top: 0px;
+	margin-bottom: 3pt;		
+	padding-top: 10pt;
+}
+
+
+.floatright
+{
+	float: right;
+}
+
+.floatleft
+{
+	float: left;
+}
+
+/*  #424f6f; */
+.header
+{
+        background-image: url("masthead-bg.jpg");
+        background-repeat: repeat-x;
+        height: 74px;
+	margin: 0px 100px 0px 100px;
+        background-color: #424f6f;
+/*
+        width: 100%;
+	height: 72px;
+	background-color: #3f4c6c;
+	margin: 0px 100px 0px 100px;
+*/
+}
+
+.header img
+{
+	display: block;
+	border: 0px;
+}
+
+.container
+{
+	margin: 0px 100px 0px 100px;
+	border-left: 1px dashed #282931;
+	border-right: 1px dashed #282931;
+}
+
+.content
+{
+	padding: 5pt 5pt;
+	border-bottom: 1pt solid #e8e8e8;
+}
+
+.content * {
+	line-height: 18pt;
+}
+
+ul,ol { margin-left: 14pt; }
+blockquote { margin: 6pt; padding: 0 6pt; border-left: 3px solid #ccc; }

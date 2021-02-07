@@ -1,0 +1,558 @@
+@paragraphindent 0
+
+@node Exception Handling
+@chapter Exception Handling, Logging, and Assertions
+@cindex exception facilities
+@cindex logging facilities
+@cindex assertion facilities
+
+No matter how well a program is designed, if it has to interact with a user or
+other aspect of the outside world in any way, the code is bound to
+occasionally meet with cases that are either invalid or just plain unexpected.
+A very simple example is when a program asks the user to enter a filename, and
+the user enters the name of a file that does not exist, or does not enter a
+name at all.  Perhaps a valid filename @i{is} entered, but, due to a previous
+disk write error the contents are garbled.  Any number of things can go wrong.
+In addition, programmer error inevitably occurs and needs to be taken account
+of.  Internal functions may be called with invalid arguments, either due to
+unexpected paths being taken through the code, or silly things like typos
+using the wrong variable for something.  When these problems happen (and they
+@i{will} happen), it is better to handle them gracefully than for the program
+to crash, or worse, to continue processing but in an erroneous way.
+
+To allow for this, many computer languages provide two types of facilities.
+The first is referred to as @i{exception handling} or sometimes @i{error
+trapping}.  The second is referred to as @i{assertion checking}.  Exceptions
+allow the program to catch errors when they occur and react to them
+explicitly.  Assertions allow a programmer to establish that certain
+conditions hold before attempting to execute a particular operation.  GNUstep
+provides both of these facilities, and we will cover each in turn.  The
+assertion facility is tied in with the GNUstep @i{logging} facilities, so we
+describe those as well.
+
+To use any of the facilities described in this chapter requires that you
+include @code{Foundation/NSException.h}.
+
+
+@section Exceptions
+@cindex exceptions
+@cindex NSException class
+@cindex NS_DURING macro
+@cindex NS_HANDLER macro
+@cindex NS_ENDHANDLER macro
+@cindex NSUncaughtExceptionHandler
+
+GNUstep exception handling provides for two things:
+
+@enumerate
+@item
+When an error condition is detected during execution, control is passed to a
+special error-handling routine, which is given information on the error that
+occurred.
+@item
+This routine may itself, if it chooses, pass this information up the function
+call stack to the next higher level of control.  Often higher level code is
+more aware of the context in which the error is occurring, and can therefore
+make a better decision as to how to react.
+@end enumerate
+
+
+@subsection Catching and Handling Exceptions
+
+GNUstep exception handling is implemented through the macros @code{NS_DURING},
+@code{NS_HANDLER}, and @code{NS_ENDHANDLER} in conjunction with the
+@code{NSException} class.  The following illustrates the pattern:
+
+@example
+NS_DURING
+  @{
+    // do something risky ...
+  @}
+NS_HANDLER
+  @{
+    // a problem occurred; inform user or take another tack ...
+  @}
+NS_ENDHANDLER
+  // back to normal code...
+@end example
+
+For instance:
+
+@example
+- (DataTree *) readDataFile: (String *)filename
+@{
+  ParseTree *parse = nil;
+  NS_DURING
+    @{
+      FileHandle *handle = [self getFileHandle: filename];
+      parse = [parser parseFile: handle];
+      if (parse == nil)
+        @{
+          NS_VALUERETURN(nil);
+        @}
+    @}
+  NS_HANDLER
+    @{
+      if ([[localException name] isEqualToString: MyFileNotFoundException])
+        @{
+          return [self readDataFile: fallbackFilename];
+        @}
+      else if ([[localException name] isEqualToString: NSParseErrorException])
+        @{
+          return [self readDataFileInOldFormat: filename];
+        @}
+      else
+        @{
+          [localException raise];
+        @}
+    @}
+  NS_ENDHANDLER
+  return [[DataTree alloc] initFromParseTree: parse];
+@}
+@end example
+
+Here, a file is parsed, with the possibility of at least two different errors:
+not finding the file and the file being misformatted.  If a problem does
+occur, the code in the @code{NS_HANDLER} block is jumped to.  Information on
+the error is passed to this code in the @code{localException} variable, which
+is an instance of @code{NSException}.  The handler code examines the name of
+the exception to determine if it can implement a work-around.  In the first
+two cases, an alternative approach is available, and so an alternative value 
+is returned.
+
+If the file is found but the parse simply produces a nil parse tree, the
+@code{NS_VALUERETURN} macro is used to return nil to the
+@code{readDataFile:} caller.  Note that it is @i{not} allowed to simply write
+``@code{return nil;}'' inside the NS_DURING block, owing to the nature of the
+behind-the-scenes C constructs implementing the mechanism (the @code{setjmp()}
+and @code{longjmp()} functions).  If you are in a void function not returning
+a value, you may use simply ``@code{NS_VOIDRETURN}'' instead.
+
+Finally, notice
+that in the third case above the handler does not recognize the exception
+type, so it passes it one level up to the caller by calling @code{-raise} on
+the exception object.
+
+
+@subsection Passing Exceptions Up the Call Stack
+
+If the caller of @code{-readDataFile:} has enclosed the call inside its own
+@code{NS_DURING} @dots{} @code{NS_HANDLER} @dots{} @code{NS_ENDHANDLER} block,
+it will be able to catch this exception and react to it in the same way as we
+saw here.  Being at a higher level of execution, it may be able to take
+actions more appropriate than the @code{-readDataFile:} method could have.
+
+If, on the other hand, the caller had @i{not} enclosed the call, it would not
+get a chance to react, but the exception would be passed up to the caller of
+@i{this} code.  This is repeated until the top control level is reached, and
+then as a last resort @code{NSUncaughtExceptionHandler} is called.  This is a
+built-in function that will print an error message to the console and exit
+the program immediately.  If you don't want this to happen it is possible to
+override this function by calling
+@code{NSSetUncaughtExceptionHandler(fn_ptr)}.  Here, @code{fn_ptr} should be
+the name of a function with this signature (defined in @code{NSException.h}):
+
+@example
+void NSUncaughtExceptionHandler(NSException *exception);
+@end example
+
+One possibility would be to use this to save files or any other unsaved state
+before an application exits because of an unexpected error.
+
+
+@subsection Where do Exceptions Originate?
+
+You may be wondering at this point where exceptions come from in the first
+place.  There are two main possibilities.  The first is from the Base library;
+many of its classes raise exceptions when they run into error conditions.  The
+second is that application code itself raises them, as described in the next
+section.  Exceptions do @i{not} arise automatically from C-style error
+conditions generated by C libraries.  Thus, if you for example call the
+@code{strtod()} function to convert a C string to a double value, you still
+need to check @code{errno} yourself in standard C fashion.
+
+Another case that exceptions are @i{not} raised in is in the course of
+messaging.  If a message is sent to @code{nil}, it is silently ignored
+without error.  If a message is sent to an object that does not implement it,
+the @code{forwardInvocation} method is called instead, as discussed in
+@ref{Advanced Messaging}.
+
+
+@subsection Creating Exceptions
+
+If you want to explicitly create an exception for passing a particular error
+condition upwards to calling code, you may simply create an
+@code{NSException} object and @code{raise} it:
+
+@example
+NSException myException = [[NSException alloc]
+                              initWithName: @@"My Exception"
+                                    reason: @@"[Description of the cause...]"
+                                  userInfo: nil];
+[myException raise];
+ // code in block after here is unreachable..
+@end example
+
+The @code{userInfo} argument here is a @code{NSDictionary} of key-value pairs
+containing application-specific additional information about the error.  You
+may use this to pass arbitrary arguments within your application.  (Because
+this is a convenience for developers, it should have been called
+@code{developerInfo}..)
+
+Alternatively, you can create the exception and raise it in one call with
+@code{+raise}:
+
+@example
+[NSException raise: @@"My Exception"
+            format: @@"Parse error occurred at line %d.",lineNumber];
+@end example
+
+Here, the @code{format} argument takes a printf-like format analogous to
+@code{[NSString -stringWithFormat:]} discussed @ref{Objective-C, previously,
+Strings in GNUstep}.  In general, you should not use arbitrary names for
+exceptions as shown here but constants that will be recognized throughout your
+application.  In fact, GNUstep defines some standard constants for this
+purpose in @code{NSException.h}:
+
+@table @code
+@item NSCharacterConversionException
+An exception when character set conversion fails.
+@item NSGenericException
+A generic exception for general purpose usage.
+@item NSInternalInconsistencyException
+An exception for cases where unexpected state is detected within an object.
+@item NSInvalidArgumentException
+An exception used when an invalid argument is passed to a method or function.
+@item NSMallocException
+An exception used when the system fails to allocate required memory.
+@item NSParseErrorException
+An exception used when some form of parsing fails.
+@item NSRangeException
+An exception used when an out-of-range value is encountered.
+@end table
+
+Also, some Foundation classes define their own more specialized exceptions:
+
+@table @code
+@item NSFileHandleOperationException (NSFileHandle.h)
+An exception used when a file error occurs.
+@item NSInvalidArchiveOperationException (NSKeyedArchiver.h)
+An archiving error has occurred.
+@item NSInvalidUnarchiveOperationException (NSKeyedUnarchiver.h)
+An unarchiving error has occurred.
+@item NSPortTimeoutException (NSPort.h)
+Exception raised if a timeout occurs during a port send or receive operation.
+@item NSUnknownKeyException (NSKeyValueCoding.h)
+ An exception for an unknown key.
+@end table
+
+
+@subsection When to Use Exceptions
+
+As might be evident from the @code{-readDataFile:} example above, if a
+certain exception can be anticipated, it can also be checked for, so you
+don't necessarily need the exception mechanism.  You may want to use
+exceptions anyway if it simplifies the code paths.  It is also good practice
+to catch exceptions when it can be seen that an unexpected problem might
+arise, as any time file, network, or database operations are undertaken, for
+instance.
+
+Another important case where exceptions are useful is when you need to pass
+detailed information up to the calling method so that it can react
+appropriately.  Without the ability to raise an exception, you are limited to
+the standard C mechanism of returning a value that will hopefully be
+recognized as invalid, and perhaps using an @code{errno}-like strategy where
+the caller knows to examine the value of a certain global variable.  This is
+inelegant, difficult to enforce, and leads to the need, with void methods, to
+document that ``the caller should check @code{errno} to see if any problems
+arose''.
+
+
+@section Logging
+@cindex logging
+@cindex NSLog function
+@cindex NSDebugLog function
+@cindex NSWarnLog function
+@cindex profiling facilities
+
+GNUstep provides several distinct logging facilities best suited for different
+purposes.
+
+@subsection NSLog
+
+The simplest of these is the @code{NSLog(NSString *format, ...)}  function.
+For example:
+
+@example
+NSLog(@@"Error occurred reading file at line %d.", lineNumber);
+@end example
+
+This would produce, on the console (stderr) of the application calling it,
+something like:
+
+@example
+2004-05-08 22:46:14.294 SomeApp[15495] Error occurred reading file at line 20.
+@end example
+
+The behavior of this function may be controlled in two ways.  First, the user
+default @code{GSLogSyslog} can be set to ``@code{YES}'', which will send
+these messages to the syslog on systems that support that (Unix variants).
+Second, the function GNUstep uses to write the log messages can be
+overridden, or the file descriptor the existing function writes to can be
+overridden:
+@comment{Need ref to where user defaults are explained.}
+
+@example
+  // these changes must be enclosed within a lock for thread safety
+NSLock *logLock = GSLogLock();
+[logLock lock];
+
+  // to change the file descriptor:
+_NSLogDescriptor = <fileDescriptor>;
+  // to change the function itself:
+_NSLog_printf_handler = <functionName>;
+
+[logLock unlock];
+@end example
+
+Due to locking mechanisms used by the logging facility, you should protect
+these changes using the lock provided by @code{GSLogLock()} (see @ref{Base
+Library, , Threads and Run Control} on locking).
+
+The @code{NSLog} function was defined in OpenStep and is also available in Mac
+OS X Cocoa, although the overrides described above may not be.  The next set of
+logging facilities to be described are only available under GNUstep.
+
+
+@subsection NSDebugLog, NSWarnLog
+
+The facilities provided by the @code{NSDebugLog} and @code{NSWarnLog} families
+of functions support source code method name and line-number reporting and
+allow compile- and run-time control over logging level.
+
+The @code{NSDebugLog} functions are enabled at compile time by default.  To
+turn them off, set @code{'diagnose = no'} in your makefile, or undefine
+@code{GSDIAGNOSE} in your code before including @code{NSDebug.h}.  To turn
+them off at runtime, call @code{[[NSProcessInfo processInfo]
+setDebugLoggingEnabled: NO]}.  (An @code{NSProcessInfo} instance is
+automatically instantiated in a running GNUstep application and may be
+obtained by invoking @code{[NSProcessInfo processInfo]}.)
+
+At runtime, whether or not logging is enabled, a debug log method is called
+like this:
+
+@example
+NSDebugLLog(@@"ParseError", @@"Error parsing file at line %d.", lineNumber);
+@end example
+
+Here, the first argument to @code{NSDebugLog}, ``@code{ParseError}'', is a
+string @i{key} that specifies the category of message.  The message will only
+actually be logged (through a call to @code{NSLog()}) if this key is in the
+set of active debug categories maintained by the @code{NSProcessInfo} object
+for the application.  Normally, this list is empty.  There are
+three ways for string keys to make it onto this list:
+
+@itemize
+@item
+Provide one or more startup arguments of the form @code{--GNU-Debug=<key>} to
+the program.  These are processed by GNUstep and removed from the argument
+list before any user code sees them.
+@item
+Call @code{[NSProcessInfo debugSet]} at runtime, which returns an
+@code{NSMutableSet}.  You can add (or remove) strings to this set directly.
+@item
+The @code{GNU-Debug} user default nay contain a comma-separated list of keys.
+However, note that @code{[NSUserDefaults standardUserDefaults]} must first be
+called before this will take effect (to read in the defaults initially).
+@end itemize
+
+While any string can be used as a debug key, conventionally three types of
+keys are commonly used.  The first type expresses a ``level of importance''
+for the message, for example, ``Debug'', ``Info'', ``Warn'', or ``Error''.
+The second type of key that is used is class name.  The GNUstep Base classes
+used this approach.  For example if you want to activate debug messages for
+the @code{NSBundle}'' class, simply add '@code{NSBundle}' to the list of keys.
+The third category of key is the default key, '@code{dflt}'.  This key can be
+used whenever the specificity of the other key types is not required.  Note
+that it still needs to be turned on like any other logging key before
+messasges will actually be logged.
+
+There is a family of @code{NSDebugLog} functions with slightly differing
+behaviors:
+
+@table @code
+@item NSDebugLLog(key, format, args,...)
+Basic debug log function already discussed.
+@item NSDebugLog(format, args,...)
+Equivalent to @code{NSDebugLLog} with key ``dflt'' (for default).
+@item NSDebugMLLog(level, format, args,...)
+Equivalent to @code{NSDebugLLog} but includes information on which method the
+logging call was made from in the message.
+@item NSDebugMLog(format, args,...)
+Same, but use 'dflt' log key.
+@item NSDebugFLLog(level, format, args,...)
+As @code{NSDebugMLLog} but includes information on a function rather than a
+method.
+@item NSDebugFLog(format, args,...)
+As previous but using 'dflt' log key.
+@end table
+
+The implementations of the @code{NSDebugLog} functions are optimized so that
+they consume little time when logging is turned off.  In particular, if debug
+logging is deactivated at compile time, there is NO performance cost, and if
+it is completely deactivated at runtime, each call entails only a boolean
+test.  Thus, they can be left in production code.
+
+There is also a family of @code{NSWarn} functions.  They are similar to the
+@code{NSDebug} functions except that they do not take a key.  Instead, warning
+messages are shown by default unless they are disabled at compile time by
+setting @code{'warn = no'} or undefining @code{GSWARN}, or at runtime by
+@i{adding} ``@code{NoWarn}'' to @code{[NSProcessInfo debugSet]}.
+(Command-line argument @code{--GNU-Debug=NoWarn} and adding ``NoWarn'' to the
+@code{GNU-Debug} user default will also work.)  @code{NSWarnLog()},
+@code{NSWarnLLog()}, @code{NSWarnMLLog}, @code{NSWarnMLog},
+@code{NSWarnFLLog}, and @code{NSWarnFLog} are all similar to their
+@code{NSDebugLog} counterparts.
+
+
+@subsection Last Resorts: GSPrintf and fprintf
+
+Both the @code{NSDebugLog} and the simpler @code{NSLog} facilities utilize a
+fair amount of machinery - they provide locking and timestamping for example.
+Sometimes this is not appropriate, or might be too heavyweight in a case where
+you are logging an error which might involve the application being in some
+semi-undefined state with corrupted memory or worse.  You can use the
+@code{GSPrintf()} function, which simply converts a format string to UTF-8 and
+writes it to a given file:
+
+@example
+GSPrintf(stderr, "Error at line %d.", n);
+@end example
+
+If even this might be too much (it uses the @code{NSString} and @code{NSData}
+classes), you can always use the C function @code{fprintf()}:
+
+@example
+fprintf(stderr, "Error at line %d.", n);
+@end example
+
+Except under extreme circumstances, the preferred logging approach is either
+@code{NSDebugLog}/@code{NSWarnLog}, due the the compile- and run-time
+configurability they offer, or @code{NSLog}.
+
+
+@subsection Profiling Facilities
+
+GNUstep supports optional programmatic access to object allocation
+statistics.  To initiate collection of statistics, call the function
+@code{GSDebugAllocationActive(BOOL active)} with an argument of
+``@code{YES}''.  To turn it off, call it with ``@code{NO}''.  The overhead
+of statistics collection is only incurred when it is active.  To access the
+statistics, use the set of @code{GSDebugAllocation...()} functions defined in
+@code{NSDebug.h}.
+
+
+@section Assertions
+@cindex assertions
+@cindex NSAssert macro
+@cindex NSAssertionHandler class
+
+Assertions provide a way for the developer to state that certain conditions
+must hold at a certain point in source code execution.  If the conditions do
+not hold, an exception is automatically raised (and succeeding code in the
+block is not executed).  This avoids an operation from taking place with
+illegal inputs that may lead to worse problems later.
+
+The use of assertions is generally accepted to be an efficient means of
+improving code quality, for, like unit testing, they can help rapidly uncover
+a developer's implicit or mistaken assumptions about program behavior.
+However this is only true to the extent that you carefully design the nature
+and placement of your assertions.  There is an excellent discussion of this
+issue bundled in the documentation with Sun's Java distribution.
+@comment{Add link to appropriate java.sun.com page.}
+
+@subsection Assertions and their Handling
+
+Assertions allow the developer to establish that certain conditions hold
+before undertaking an operation.  In GNUstep, the standard means to make an
+assertion is to use the @code{NSAssert} or @code{NSCAssert} macros.  The
+general form of these macros is:
+
+@example
+NSAssert(<boolean test>, <formatString>, <argumentsToFormat>);
+@end example
+
+For instance:
+
+@example
+NSAssert(x == 10, "X should have been 10, but it was %d.", x);
+@end example
+
+If the test '@code{x == 10}' evaluates to @code{true}, @code{NSLog()} is
+called with information on the method and line number of the failure, together
+with the format string and argument.  The resulting console message will look
+like this:
+
+@example
+Foo.m:126  Assertion failed in Foo(instance), method Bar.  X should have been
+10, but it was 5.
+@end example
+
+After this is logged, an exception is raised of type
+'@code{NSInternalInconsistencyException}', with this string as its
+description.
+
+If you need to make an assertion inside a regular C function (not an
+Objective-C method), use the equivalent macro @code{NSCAssert()}, etc..
+
+@i{@b{Note}}, you can completely disable assertions (saving the time for the
+boolean test and avoiding the exception if fails) by putting @code{#define
+NS_BLOCK_ASSERTIONS} before you include @code{NSException.h}.
+
+
+@subsection Custom Assertion Handling
+
+The aforementioned behavior of logging an assertion failure and raising an
+exception can be overridden if desired.  You need to create a subclass of
+@code{NSAssertionHandler} and register an instance in each thread in which
+you wish the handler to be used.  This is done by calling:
+
+@example
+[[[NSThread currentThread] threadDictionary]
+    setObject:myAssertionHandlerInstance forKey:@"NSAssertionHandler"];
+@end example
+
+See @ref{Base Library, , Threads and Run Control} for more information on what
+this is doing.
+
+
+@section Comparison with Java
+@cindex exception handling, compared with Java
+@cindex logging, compared with Java
+@cindex assertion handling, compared with Java
+
+GNUstep's exception handling facilities are, modulo syntax, equivalent to
+those in Java in all but three respects:
+
+@itemize
+@item
+There is no provision for a ``finally'' block executed after either the main
+code or the exception handler code.
+@item
+You cannot declare the exception types that could be raised by a method in its
+signature.  In Java this is possible and the compiler uses this to enforce
+that a caller should catch exceptions if they might be generated by a method.
+@item
+Correspondingly, there is no support in the @ref{GSDoc, documentation system}
+for documenting exceptions potentially raised by a method.  (This will
+hopefully be rectified soon.)
+@end itemize
+
+The logging facilities provided by @code{NSDebugLog} and company are similar
+to but a bit more flexible than those provided in the Java/JDK 1.4 logging APIs,
+which were based on the IBM/Apache Log4J project.
+
+The assertion facilities are similar to but a bit more flexible than those in
+Java/JDK 1.4 since you can override the assertion handler.
+
+@page

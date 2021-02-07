@@ -1,0 +1,197 @@
+#! /bin/sh
+#
+# @configure_input@
+#
+# Copyright (C) 1997 - 2007 Free Software Foundation, Inc.
+#
+# Author: Scott Predescu <ovidiu@net-community.com>
+# Author: Ovidiu Predescu <ovidiu@net-community.com>
+# Author: Nicola Pero <nicola.pero@meta-innovation.com>
+# Date: 1997 - 2007
+# 
+# This file is part of the GNUstep Makefile Package.
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 3
+# of the License, or (at your option) any later version.
+# 
+# You should have received a copy of the GNU General Public
+# License along with this library; see the file COPYING.
+# If not, write to the Free Software Foundation,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+
+# 'opentool' is obsolete.  You can invoke your tools directly, just
+# put them in your PATH :-)
+
+# Try to execute the GNUstep tool passed as argument. The tool is
+# searched through the GNUstep directories if a complete or relative path name
+# is not specified. The arguments passed after the tool name are passed
+# unmodified to the tool.
+
+if [ -z "$1" ]; then
+  echo usage: `basename "$0"` [--library-combo=...] tool [arguments...]
+  echo `basename "$0"` --help for help
+  exit 1
+fi
+
+# Try to determine GNUSTEP_MAKEFILES to source GNUstep.sh
+if [ -z "$GNUSTEP_CONFIG_FILE" ]; then
+  GNUSTEP_CONFIG_FILE=@GNUSTEP_CONFIG_FILE@
+fi
+
+if [ -z "$GNUSTEP_USER_CONFIG_FILE" ]; then
+  GNUSTEP_USER_CONFIG_FILE=@GNUSTEP_USER_CONFIG_FILE@
+fi
+
+if [ -f "$GNUSTEP_CONFIG_FILE" ]; then
+  . "$GNUSTEP_CONFIG_FILE"
+fi
+
+GNUSTEP_HOME=~
+
+if [ -n "$GNUSTEP_USER_CONFIG_FILE" ]; then
+  case "$GNUSTEP_USER_CONFIG_FILE" in 
+    /*) # An absolute path
+        if [ -f "$GNUSTEP_USER_CONFIG_FILE" ]; then
+          . "$GNUSTEP_USER_CONFIG_FILE"
+        fi;;
+     *) # Something else
+        if [ -f "$GNUSTEP_HOME/$GNUSTEP_USER_CONFIG_FILE" ]; then
+          . "$GNUSTEP_HOME/$GNUSTEP_USER_CONFIG_FILE"
+        fi;;
+  esac
+fi
+
+if [ -z "$GNUSTEP_MAKEFILES" ]; then
+  GNUSTEP_MAKEFILES=@GNUSTEP_MAKEFILES@
+fi
+# OK, we now have GNUSTEP_MAKEFILES, source GNUstep.sh.
+
+# Also, we'd like to get the GNUSTEP_*_TOOLS directories so we can
+# search them, so tell GNUstep.sh to export all variabes.
+GNUSTEP_SH_EXPORT_ALL_VARIABLES=yes
+. $GNUSTEP_MAKEFILES/GNUstep.sh
+unset GNUSTEP_SH_EXPORT_ALL_VARIABLES
+
+
+if [ -z "$EXEEXT" ]; then
+  EXEEXT=@EXEEXT@
+fi
+
+# traps the parameters
+while true
+do 
+  case "$1" in
+    --library-combo=*)
+        tmp_makefiles="$GNUSTEP_MAKEFILES"
+        . "$tmp_makefiles/GNUstep-reset.sh"
+        LIBRARY_COMBO=`echo "$1" | sed 's/--library-combo=//'`
+        . "$tmp_makefiles/GNUstep.sh"
+        echo "Switched to library combo $LIBRARY_COMBO"
+        shift
+        ;;
+    --help)
+      echo usage: `basename "$0"` [--library-combo=...] tool [arguments...]
+      echo
+      echo tool is the complete or relative name of the tool executable
+      echo without any extension, like defaults
+      echo
+      echo [arguments...] are the arguments to the tool.
+      exit 0
+      ;;
+    *)
+      break;;
+  esac
+done
+
+tool="$1";
+shift;
+
+if [ -n "$EXEEXT" ]; then
+  tool="$tool$EXEEXT"
+fi
+
+case "$tool" in
+  /*)	# An absolute path.
+  	full_toolname="$tool";;
+  */*)	# A relative path
+	tool_dir=`dirname "$tool"`; 
+	tool_dir=`(cd "$tool_dir"; pwd)`; 
+	tool_name=`basename "$tool"`;
+	full_toolname="${tool_dir}/${tool_name}";;
+  *)	# A path that should be searched into GNUstep tool paths
+
+        # Search for a local tool
+
+        # We used to scan all ./*/$(GNUSTEP_HOST_LDIR)/ directories,
+        # but this facility was removed (GNUSTEP_HOST_LDIR is no
+        # longer even defined in this file), now we perform a much
+        # simpler search.
+
+        # The really important one is looking into ./obj, anyway here
+        # is the order in which we search local directories - 
+        # First, we search in ./
+        # Second, we search in ./obj
+        # Third, we search in ./Tools/
+        # Fourth, we search in ./Tools/obj
+        for dir in . obj Tools Tools/obj; do
+          # echo "$dir/$tool";
+          if [ -x "$dir/$tool" ]; then
+            full_toolname="$dir/$tool"
+            # echo "Found: $dir/$tool";
+            break;
+          fi
+        done
+
+	if [ -z "$full_toolname" ]; then 
+          
+          # Local tool not found - Search for an installed one
+          # we search in the order in:
+          # GNUSTEP_USER_TOOLS
+          # GNUSTEP_LOCAL_TOOLS
+          # GNUSTEP_NETWORK_TOOLS
+          # GNUSTEP_SYSTEM_TOOLS
+	  #
+	  # We look in the GNUSTEP_HOST_CPU-GNUSTEP_HOST_OS/LIBRARY_COMBO
+	  # subdirectory first, then the GNUSTEP_HOST_CPU-GNUSTEP_HOST_OS
+	  # subdirectory, then the top-level directory.
+	  # (For flattened systems we skip the first two options.
+	  #
+          # TODO: Also search Admin Tools directories if appropriate
+	  for dir in "$GNUSTEP_USER_TOOLS" "$GNUSTEP_LOCAL_TOOLS" "$GNUSTEP_NETWORK_TOOLS" "$GNUSTEP_SYSTEM_TOOLS" ; do
+	    if [ "$GNUSTEP_IS_FLATTENED" = "no" ]; then
+	      tmpgnudir="$dir/$GNUSTEP_HOST_CPU-$GNUSTEP_HOST_OS"
+	      tmplibdir="$dir/$GNUSTEP_HOST_CPU-$GNUSTEP_HOST_OS/$LIBRARY_COMBO"
+	      # echo "$tmplibdir/$tool";
+	      if [ -x "$tmplibdir/$tool" ]; then
+		# echo "Found: $tmplibdir/$tool";
+		full_toolname="$tmplibdir/$tool"
+		break;
+	      fi
+	      if [ -x "$tmpgnudir/$tool" ]; then
+		# echo "Found: $tmpgnudir/$tool";
+		full_toolname="$tmpgnudir/$tool"
+		break;
+	      fi
+	    fi
+	    # echo "$dir/$tool";
+	    if [ -x "$dir/$tool" ]; then
+	      # echo "Found: $dir/$tool";
+	      full_toolname="$dir/$tool"
+	      break;
+	    fi
+	    done
+	    unset tmpgnudir
+	    unset tmplibdir
+	  fi
+        ;;
+esac
+
+if [ -z "$full_toolname" ]; then
+  echo "Can't find the required tool: $tool!"
+  exit 1
+fi
+
+"$full_toolname" "$@"
+

@@ -1,0 +1,142 @@
+---
+language: cpp
+dist: focal
+jobs:
+    include:
+        - name: "Linux GCC"
+          os: linux
+          compiler: gcc
+          env: LIBRARY_COMBO=gnu-gnu-gnu
+        - name: "Linux Clang gnustep-1.9"
+          os: linux
+          compiler: clang
+          env: LIBRARY_COMBO=ng-gnu-gnu RUNTIME_VERSION=gnustep-1.9
+        - name: "Linux Clang gnustep-1.9 disable-mixedabi"
+          os: linux
+          compiler: clang
+          env: LIBRARY_COMBO=ng-gnu-gnu RUNTIME_VERSION=gnustep-1.9 BASE_ABI=--disable-mixedabi
+        - name: "Linux Clang gnustep-2.0"
+          os: linux
+          compiler: clang
+          env: LIBRARY_COMBO=ng-gnu-gnu RUNTIME_VERSION=gnustep-2.0
+        - name: "Linux Clang gnustep-2.0 disable-mixedabi"
+          os: linux
+          compiler: clang
+          env: LIBRARY_COMBO=ng-gnu-gnu RUNTIME_VERSION=gnustep-2.0 BASE_ABI=--disable-mixedabi
+        - name: "Windows GCC MinGW-w64 i686"
+          os: windows
+          compiler: gcc
+          env: LIBRARY_COMBO=gnu-gnu-gnu MSYSTEM=mingw32 ARCH=i686
+        - name: "Windows GCC MinGW-w64 x86_64"
+          os: windows
+          compiler: gcc
+          env: LIBRARY_COMBO=gnu-gnu-gnu MSYSTEM=mingw64 ARCH=x86_64
+    # allow Windows builds to fail (remove once all tests are passing on Windows)
+    allow_failures:
+        - os: windows
+before_install: |
+    case $TRAVIS_OS_NAME in
+    linux)
+        sudo apt-get -qq update
+        sudo apt-get install -y cmake pkg-config libgnutls28-dev libgmp-dev libffi-dev libicu-dev libxml2-dev libxslt1-dev libssl-dev libavahi-client-dev zlib1g-dev
+        case $LIBRARY_COMBO in
+        gnu-gnu-gnu)
+            if [ $CC = 'gcc' ]; then
+                sudo apt-get install -y gobjc
+            fi
+            sudo apt-get install -y libobjc-9-dev libblocksruntime-dev
+            ;;
+        ng-gnu-gnu)
+            curl -s -o - https://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
+            sudo apt-add-repository "deb http://apt.llvm.org/xenial/ llvm-toolchain-xenial-9 main" && sudo apt-get update -qq
+            sudo apt-get install -y clang-9 libkqueue-dev libpthread-workqueue-dev
+            sudo update-alternatives   --install /usr/bin/clang   clang   /usr/bin/clang-9   10 \
+                                       --slave   /usr/bin/clang++ clang++ /usr/bin/clang++-9
+            export PATH=$(echo "$PATH" | sed -e 's/:\/usr\/local\/clang-7.0.0\/bin//')
+            if [ "$RUNTIME_VERSION" = "gnustep-2.0" ]; then
+               sudo update-alternatives --install "/usr/bin/ld" "ld" "/usr/bin/ld.gold" 10
+            fi;
+            ## libdispatch requires a fairly recent version of cmake
+            curl -LO https://cmake.org/files/v3.15/cmake-3.15.5-Linux-x86_64.tar.gz
+            tar xf cmake-3.15.5-Linux-x86_64.tar.gz
+            mv cmake-3.15.5-Linux-x86_64 $HOME/cmake
+            export PATH=$HOME/cmake/:$HOME/cmake/bin:$PATH
+            ;;
+        esac
+        ;;
+    windows)
+        ## from https://docs.travis-ci.com/user/reference/windows/#how-do-i-use-msys2
+        [[ ! -f C:/tools/msys64/msys2_shell.cmd ]] && rm -rf C:/tools/msys64
+        choco uninstall -y mingw
+        choco upgrade --no-progress -y msys2
+        export msys2='cmd //C RefreshEnv.cmd '
+        export msys2+='& set MSYS=winsymlinks:nativestrict '
+        export msys2+='& C:\\tools\\msys64\\msys2_shell.cmd -defterm -no-start'
+        export mingw="$msys2 -$MSYSTEM -full-path -here -c "\"\$@"\" --"
+        export msys2+=" -msys2 -c "\"\$@"\" --"
+        ## Install MSYS2 packages required by GNUstep
+        $msys2 pacman --sync --noconfirm --needed \
+            mingw-w64-$ARCH-gcc-objc \
+            make \
+            pkg-config \
+            libxml2-devel \
+            libxslt-devel \
+            libffi-devel \
+            libgnutls-devel \
+            icu-devel \
+            mingw-w64-$ARCH-pkg-config \
+            mingw-w64-$ARCH-libxml2 \
+            mingw-w64-$ARCH-libxslt \
+            mingw-w64-$ARCH-libffi \
+            mingw-w64-$ARCH-gnutls \
+            mingw-w64-$ARCH-icu \
+        ##
+        taskkill //IM gpg-agent.exe //F  # https://travis-ci.community/t/4967
+        export PATH=/C/tools/msys64/$MSYSTEM/bin:$PATH
+        ## disable conversion to native-form paths when configuring GNUstep Make in travis-deps.sh
+        ## https://www.msys2.org/wiki/Porting/#filesystem-namespaces
+        export MSYS2_ARG_CONV_EXCL="--prefix="
+        ;;
+    esac
+install: ./travis-deps.sh
+before_script: |
+    case $TRAVIS_OS_NAME in
+    linux)
+        DEP_ROOT=$HOME/staging
+        export PATH=$DEP_ROOT/bin:$PATH
+        ;;
+    windows)
+        DEP_ROOT=/c/staging
+        setx -m PATH "C:\staging;%PATH%"
+        CONFIGURE_OPTS=--without-unwind
+        ;;
+    esac
+    export LIBRARY_PATH=$DEP_ROOT/lib:$DEP_ROOT/lib64:$LIBRARY_PATH
+    export LD_LIBRARY_PATH=$DEP_ROOT/lib:$DEP_ROOT/lib64:$LD_LIBRARY_PATH
+    case $LIBRARY_COMBO in
+    gnu-gnu-gnu)
+        export CPATH=/usr/lib/gcc/x86_64-linux-gnu/9/include
+        ;;
+    ng-gnu-gnu)
+        export CPATH=$DEP_ROOT/include
+        ;;
+    esac
+    export GNUSTEP_MAKEFILES=$DEP_ROOT/share/GNUstep/Makefiles
+    . $GNUSTEP_MAKEFILES/GNUstep.sh
+script:
+    # configure and make need to be executed via MinGW shell on Windows ($mingw is undefined on Linux)
+    - $mingw ./configure $BASE_ABI $CONFIGURE_OPTS || (cat config.log && false)
+    - ($mingw make || (cat config.log && false)) && $mingw make install && $mingw make check || (cat Tests/tests.log && false)
+
+# set up packages cache (currently used on Windows only)
+before_cache: |
+    case $TRAVIS_OS_NAME in
+    windows)
+        # https://unix.stackexchange.com/a/137322/107554
+        $msys2 pacman --sync --clean --noconfirm
+        ;;
+    esac
+cache:
+    directories:
+        - $HOME/AppData/Local/Temp/chocolatey
+        - /C/tools/msys64

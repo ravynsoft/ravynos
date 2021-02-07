@@ -1,0 +1,102 @@
+# -*-makefile-*-
+#  GNUmakefile.postamble
+#
+#  Project specific makefile rules
+#
+#  Copyright (C) 1997 Free Software Foundation, Inc.
+#
+#  Author: Scott Christley <scottc@net-community.com>
+#
+#  This file is part of the GNUstep GUI Library.
+#
+#  This library is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU Lesser General Public
+#  License as published by the Free Software Foundation; either
+#  version 2 of the License, or (at your option) any later version.
+#
+#  This library is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
+#  Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU Lesser General Public
+#  License along with this library; see the file COPYING.LIB.
+#  If not, see <http://www.gnu.org/licenses/> or write to the 
+#  Free Software Foundation, 51 Franklin Street, Fifth Floor, 
+#  Boston, MA 02110-1301, USA.
+
+#   Uncomment the targets you want.
+#   The double colons (::) are important, do not make them single colons
+#   otherwise the normal makefile rules will not be performed.
+#
+
+# Things to do before compiling
+# before-all::
+
+# Things to do after compiling
+# after-all::
+
+#
+# The following rule is important mainly for packaging, because in that case 
+# you install into a fake system tree, and the directory is not there.
+#
+$(DESTDIR)$(GNUSTEP_MAKEFILES)/Additional:
+	$(MKDIRS) $(DESTDIR)$(GNUSTEP_MAKEFILES)/Additional
+
+# Things to do before installing
+before-install:: $(DESTDIR)$(GNUSTEP_MAKEFILES)/Additional
+	$(INSTALL_DATA) gui.make \
+	   $(DESTDIR)$(GNUSTEP_MAKEFILES)/Additional/gui.make
+
+# Things to do after installing
+# after-install::
+
+# Things to do before uninstalling
+ before-uninstall::
+	rm -f $(DESTDIR)$(GNUSTEP_MAKEFILES)/Additional/gui.make
+
+# Things to do after uninstalling
+# after-uninstall::
+
+# Things to do before cleaning
+# before-clean::
+
+# Things to do after cleaning
+#after-clean::
+#	cd Headers ; cd gnustep ; cd gui ; rm -f *~
+#	cd Headers ; cd gnustep ; \
+#	  if [ -d dps ]; then \
+#	    cd dps ; rm -f *~; \
+#	  fi
+# NOTE: the gnustep/gui directories don't exist anymore.
+
+# Things to do before distcleaning
+# before-distclean::
+
+# Things to do after distcleaning
+after-distclean::
+	rm -f config.status config.log config.cache TAGS config.make gui.make
+
+gui.make: gui.make.in Version configure
+	if [ -x config.status ]; then \
+	  ./config.status --recheck && ./config.status; \
+	else \
+	  ./configure; \
+	fi
+
+config.make: config.make.in configure
+	if [ -x config.status ]; then \
+	  ./config.status --recheck && ./config.status; \
+	else \
+	  ./configure; \
+	fi
+
+# Things to do before checking
+# before-check::
+
+# Things to do after checking
+# after-check::
+
+.PHONY:
+
+

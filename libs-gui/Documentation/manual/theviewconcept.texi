@@ -1,0 +1,182 @@
+@c    GNUstep AppKit Guide
+@c
+@c    Copyright (c)  2005-2006  Christopher Armstrong.
+@c
+@c    Permission is granted to copy, distribute and/or modify this document
+@c    under the terms of the GNU Free Documentation License, Version 1.2
+@c    with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+@c    A copy of the license is included in the section entitled "GNU
+@c    Free Documentation License".
+@c
+@c This documentation is provided on an "AS IS" BASIS, WITHOUT WARRANTY
+@c OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING, BUT NOT LIMITED
+@c TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+@c PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY AND USEFULNESS
+@c OF THE DOCUMENTATION IS WITH YOU (THE LICENSEE). IN NO EVENT WILL THE COPYRIGHT
+@c HOLDERS BE LIABLE FOR DAMAGES, INCLUDING ANY DIRECT, INDIRECT,
+@c SPECIAL, GENERAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF
+@c THE USE OR INABILITY TO USE THIS DOCUMENTATION (INCLUDING BUT NOT
+@c LIMITED TO LOSS OF DATA, USE, OR PROFITS; PROCUREMENT OF SUBSTITUTE
+@c GOODS AND SERVICES; OR BUSINESS INTERUPTION) HOWEVER CAUSED, EVEN
+@c IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+@anchor{The view concept}
+@node theviewconcept, eventhandling, controls, Top
+@chapter The view concept
+
+This chapter discusses the concepts surrounding @dfn{views} and goes into some detail what can be done with them. As a result, most of this chapter is concerned with the creation of custom views, which is not necessary for general application development. If you want to create your own view classes or are interested in how GNUstep manages views, then this chapter should be useful.
+
+@section Introduction
+
+In GNUstep applications, we introduce the idea of a @dfn{view}. A view is a graphical element on the window in your interface. It is much like the idea of a window in the Microsoft Windows C API, except more powerful. Note that views are a @dfn{generalisation} of a control, that is, a control is a special type of view.
+
+A view is a subclass of the AppKit @code{NSView} class. You should not instantiate this class directly, but instead use a class that is derived from it. A custom view can be created by inheriting from it.
+
+@section The view hierachy
+
+A view may contain any number of @dfn{subviews}, which are views that are displayed within it. Those views may also have subviews, and as a result, you can setup a hierachy of views. This can be a powerful model for your interface designs (especially where you create your views programatically instead of just in @command{Gorm.app}). 
+
+Each window has a primary view, known as the @dfn{content view}, which acts as a top-level view (or @dfn{superview}) to all the views you place on your window. It sits at the top of the view hierachy. Most applications will only have one level of views below the content view, and for most applications, this is all you need.
+
+@section Frames and Bounds
+
+@cindex views, bounds
+@cindex views, frame
+As views can be placed within other views, GNUstep needs to setup some rules to determine how this will work. Due to this, each view has two important properties defining how it is positioned and displayed on the screen. These are it's @dfn{frame} and its @dfn{bounds}. 
+
+GNUstep uses cartesian coordinate systems for defining positions and sizes. It has the origin of any coordinate system placed at the bottom-left corner and has an x-axis and a y-axis. Like a normal cartesian coordinate system, the x-axis runs from left to right, and the y-axis runs from the bottom to the top. A view is defined within two coordinate systems, not just the coordinate system of the entire screen or window. 
+
+The frame and the bounds describe the view in terms of a rectanglei placed in a coordinate system. The rectangle has an origin (located at the bottom-left corner of the rectangle) and a width and a height. Programmatically, the concept of a rectangle is tied up in an @code{NSRect} structure, which in turn contains an @code{NSPoint} structure (for the origin) and an @code{NSSize} structure. 
+
+The contents of your view is not dissimilar to a canvas. You can draw anywhere on this canvas, but only a certain portion of it is displayed. Where it is displayed and what part of it you choose to display is defined in the frame and the bounds rectangle of the view.
+
+The @dfn{frame} is the location and size of your view, as defined in its superview. The content view has it's frame defined with it's origin at the bottom-left corner of a window, and it's width and height equal to that of the window it is placed in (ignoring the window decoration). If you change the origin of your frame rectangle, you effectively move your view within it's superview. By changing the frame rectangle's width or height, you resize your view with regards to the coordinate system of it's superview. 
+
+@c @image{diagrams/viewwithsubview,465pt,345pt,@-,.svg}
+
+The @dfn{bounds} rectangle defines what part of your view's internal coordinate system will be displayed. It is therefore defined in the coordinate system of your view. By default, it is set to be a rectangle located at the origin of your view's internal coordinate system, with it's size set to be the same size as your frame rectangle. However, it can be programatically streched, rotated, moved and skewed so that various parts of your view's internal coordinate system are displayed in it's frame rectangle.  
+
+In essence, the @dfn{frame} is defined by the coordinate system of your view's superview, and the @dfn{bounds} is defined by the coordinate system of your view. These concepts can be difficult to grasp, so we recommend you read over this bit, as well as play around with the various methods in GNUstep that let you modify the bounds and frame rectangles of a view.
+
+It is the internal coordinate system where your view does it's drawing and which defines the location and size of any subviews. It is the coordinate system of your view's superview that defines where and how big your view is displayed.
+
+@section Manipulating the coordinate system
+
+As mentioned earlier, the bounds and frame of a view can be stretched, shrunken, shifted and even rotated. Firstly we will show you how to manipulate these directly, and then briefly describe the mathematics behind coordinate transformations.
+
+NSView provides some simple methods for manipulating the coordinates and coordinate systems of the frame and bounds rectangles. Note that after calling any of these methods, you need to get the view to redisplay itself manually. You can do this by calling the @code{-setNeedsDisplay:} and @code{-display:} on the view o bject.
+
+We can change where a view is placed within it's superview (most likely the window's content view) by manipulating it's frame origin. This is done using the @code{-setFrameOrigin:} method. For convenience, you can use the @code{NSMakePoint()} function to easily construct a point for the new location.
+
+The size of a view's frame can also be adjusted using the @code{-setFrameSize:} method. Similiarly, the @code{NSMakeSize()} method can be used to construct an @code{NSSize} parameter that is needed. Changing this will cutoff whatever is internal to the view, although some classes behave differently. Check the documentation for the class with regards to it's reaction to a change in it's frame size.
+
+Where necessary, these can be adjusted as a rectangle, making use of the @code{-setFrame:} method and the @code{NSMakeRect()} function.
+
+Methods used for manipulating the bounds have subtly different meanings. Like the frame rectangle, the bounds rectangle can be manipulated as well.
+
+The bounds origin and size can be manipulated using the @code{-setBoundsOrigin:} and @code{-setBoundsSize:} methods respectively. Changing the bounds origin effectively sets the new origin to be displayed at the origin of your frame rectangle. Changing the bounds size can be used to skew the coordinate system of the bounds, as it is displayed within the frame rectangle.
+
+Another method for skewing the internal coordinate system of a view is to use the @code{-scaleUnitSquareToSize:} method. It's useful when you need to express your transformation as a percentage or fraction, where a size of 1.0 is considered to be 100%. Note that this method is cumulative, so that when you set this, it is effectively the first transformation multiplied by the second. For example, setting it to 0.5 and the 0.75 is the same as setting it to 0.5 x 0.75 = 0.375.
+
+To rotate the frame or bounds rectangle counterclockwise, call the @code{-setFrameRotation:} or @code{-setBoundsRotation:} methods respectively. These methods take an angle in degrees. You can specify clockwise rotation with a negetive angle.
+
+Alternatively, you can rotate the bounds rectangle by using the @code{-rotateByAngle:} method. This method rotates the bounds on top of what it has already been rotated. 
+
+@section Subclassing NSView
+
+Sometimes the need arises to create a custom view. This is achieved by subclassing NSView. From here, you can override default event handlers and drawing methods to customise your view's representation.
+
+Note that in some cases, the @code{NSControl} class may prove to be a better model for your custom view, especially if it behaves more like a control instead of an entire document representation. You should read the chapter on controls and weigh up the options for creating a view vs creating a control. This section is still useful though to understand the drawing code aspect, which is relevant to the display of control's as well.
+
+@subsection Drawing code
+
+One of the first things you will do is write your own drawing code. All custom drawing code is placed in the @code{NSView} method @code{drawRect:}. NSView's implementation is blank by default.
+
+In this section, we will describe the various facilities at your disposal for drawing in a view.
+
+@subsection NSBezierPath
+
+This class is an abstract representation of a @dfn{bezier path}. A bezier path contains a series of straight and curved lines representations which come together to form a number of shapes that describe the object you wish to draw. This "path" can then be "filled", "stroked" or used as a clipping path within the view you are working on. It also contains the pen width, pen dash information and the current point.
+
+A bezier path represents a series of graphical primitives operations. You call methods corresponding to these operations on an @code{NSBezierPath} object, and when it is drawn, these operations are executed in the order that you called them on the object.
+
+@cindex bezier paths, current point
+It also has a concept of a @dfn{current point}. After every graphics operation, a new, internal point is set that will be used as the start point for the next operation. It is the destination point of the previous operation. For example, if you want a bezier path to move to the point origin, then draw a line from
+the origin to point (10,20), then a line from (10,20) to (20,20) you only require three operations, i.e. (in psuedocode):
+@smallexample
+move to (0,0)
+draw a line to (10,20)
+draw a line to (20,20)
+@end smallexample
+
+In this case, the bezier path first sets the current point to (0,0). Then, when the line operation is called, you only pass in the destination point, (10,20), which causes it to draw a line from (0,0) to (10,20). After the line operation, the current point is set to the destination of the line operation, i.e. (10,20). Then, the next line operation draws a line from (10,20) to (20,20). In this way, we only need specify the destination point for line and move operations, as the start point is determined by the destination point of the previous operation. There is no need to specify the start point for each drawing operation, as it is implied by the destination point of the previous operation. You can get the current point by calling the @code{currentPoint:} method. 
+
+These operations are listed in the table below:
+@cindex bezier paths, operations
+@table @dfn
+
+@item Move Operation
+A move operation lifts the pen up and puts it at a new location, i.e. changes the current coordinates without drawing. This can be achieved throught the @code{-moveToPoint:} method, which takes a point as it's first parameter. It implicitly begins a new sub-path (see below).
+
+@item Line Operation
+A line operation draws a line from the current point to a new point. The @dfn{current point} is set either through a move operation, or through the last point in
+a previous line or curve operation. Once the line operation is complete, the @dfn{current point} is set as the destination point. We can draw a line using the @code{lineToPoint:} method.
+
+@item Curve Operation
+This one is more complex, as it involves the real magic of bezier paths. It consists of four points: the start point, the destination point, and two @dfn{control
+points}. How this works is beyond the scope of this manual@footnote{@cite{Wikipedia} has good information on the mathematics and theory behind bezier curves/paths} and is not required to draw simple circles, ellipses and arcs. We can draw a circle or an ellipse by calling @code{appendBezierPathWithOvalInRect:}, passing in
+a rectangle for the shape to be drawn in. A few methods are provided for adding arcs, with @code{appendBezierPathWithArcFromPoint: toPoint: radius:} useful for adding an arc between two points and the @code{appendBezierPathWithArcWithCenter: radius: startAngle: endAngle:} method useful for drawing an arc with a particular
+centre point. For those familiar with bezier curves or who know their control points, the @code{curveToPoint:controlPoint1:controlPoint2:} method can be used to draw curves that way. All curve operations set the current point to the destination of the curve.
+
+@item Close Path Operation
+As bezier paths actually consist of many sub-paths, one can close the current set of path operations with the @code{closePath} method to avoid creating a new NSBezierPath method.
+@end table
+
+A bezier path also consists of a number of @dfn{sub-paths}. After a series of move, line and curve operations, a @dfn{close path} operation is inserted to into the bezier path to indicate the end of a sub path. This concept is important with the filling commands.
+
+@subsection Stroking, Filling and Clipping
+
+@cindex bezier paths, rendering operations
+@cindex bezier paths, stroking/filling/clipping
+Once you've assembled a path, you can render it in a number of ways. It can be drawn (stroked), filled, or turned into a clipping region. This is done by calling the relevant methods on the bezier path when it is ready to be used. You can stroke/fill/clip a bezier path more than once (if necessary), making the paths reusable.
+
+A simple stroke operation is induced by calling the @code{stroke} operation. It causes the outline described by the path to be drawn using the current pen (which can be set on the bezier path as well).
+
+Filling operations are induced by calling the @code{fill} method. It fills in, using the current background colour or pattern, the areas described by the outline of the path. Two winding rules for filling are provided: the @dfn{even-odd} and @dfn{non-zero} winding rules. These affect what areas within the path that are filled, and correspond to their PostScript definitions.
+
+A number of convenience class methods exist for simple drawing operations, setting defaults and getting information about the current state of the drawing view, aka the @dfn{graphics state}.@footnote{A graphics state is a concept inherited from GNUstep's Display Postscript heritage. In Postscript a graphics state object, or @dfn{gstate}, would contain all the information about the current colours, the
+current affine transform, the width to draw lines with, any fill patterns, and other such information. They could be saved onto a stack and recalled later by name. GNUstep provides a more cut down and logical implementation of similiar concepts across the NSBezierPath class and others.} We can call @code{+strokeRect:} or @code{+fillRect:} directly to add a new rectangle or filled rectangle to the current drawing view. The @code{-clipRect:} method can be used to set a smaller clipping rectangle, intersecting with the current clipping rectangle (which is set by default to be the frame of your view), just before a call to @code{-drawRect:} is made (see below for information about clipping paths).
+
+@subsection Text 
+
+You can also render text within a view. For this, you use an instance of the @code{NSText} class, which provides advanced text rendering capabilities. It acts as a base for the text view system, which should be used where you require rich text input to your application.
+
+@subsection Images
+
+If you just want to display an image in your application, use the @code{NSImageView} class. If you want to combine it with other elements in a view (e.g. clip an image or draw on top of it), you can make use of the @code{NSImage} class to render an image within your view.
+
+It is described in more detail in @xref{Images and Imageviews}.
+
+@subsection Affine Transformations
+@anchor{Affine Transformations}
+
+The skewing, rotating, translation and scaling of display objects is represented in the form of an @code{affine transformation}. They are encapsulated in an object of @code{NSAffineTransform}.
+
+These objects store a mathematical @dfn{matrix} which describes the translation of points and objects within a coordinate system.@footnote{A mathematical matrix, described here, should not be confused with the @code{NSMatrix} class, which is a type of control that displays cells in grid form.} They are used internally to provide the frame and bounds transformations described earlier, and can be used in your drawing code as well. You can append transformations to the current bounds transformation, to bezier paths and even to text.
+
+@cindex matrices, affine transform
+A @dfn{matrix} is a two-dimensional table of numbers. It may have any number of rows and columns, and like algebraic terms, can be multiplied and added together. We can pretend the numbers in a two by one (2x1) matrix refer to a point in the cartesian coordinate system, and manipulate them like vectors.
+
+@dfn{Vectors} is another mathematical concept that takes numbers in pairs to describe a point in the cartesian plane. For example, the vector @math{(1, 1)} can refer to the same numbered point in the cartesian coordinate system. You can also represent this point as the combination of a length (given a magnitude) and a direction (given as a rotation from the x-axis, anticlockwise). Using this, we can represent @math{(1, 1)} as @math{( \sqrt 2, 45 degrees)}. This representation is useful for transformation in a matrix. @footnote{For those that are interested, the distance is found by applying Pythagoras' theorem to the points in the equation @math{x^2 + y^2 = d^2} (where x and y are the cartesian points, and d is the distance). The angle is then found by @math{tan y / x}, where the angle is less than 360 degrees. The transformations are the same as those used for complex numbers. It's often known as a rectangular to polar transformation, and can be performed on most good quality scientific calculators.}
+
+Matrices can be combined together to produce a new affine transform that will perform the same transformation as if all the original transformations were applied in order. You usually won't need to combine them, unless you have complicated drawing code. 
+
+@section Clipping
+
+One concept that has been mentioned in this chapter is @dfn{clipping}. It is used extensively throughout the AppKit to control the drawing code that renders it's different graphical elements.
+
+When drawing within a view, you often may specify points outside the visible region of your view's bounds, say to blit an image. What prevents that image from obscuring other parts of the window (and indeed the screen) is clipping. A @dfn{clip} defines what region of the screen at any one time may be drawn on.
+
+For example, when the AppKit calls your @code{drawRect:} method to draw onto the screen, it first calls @code{lockFocus}. In this method is sets a @dfn{clipping path} defined to the frame of your view's rectangle by default, so that you do not draw outside the frame of your view by accident.
+
+You can define your own clipping paths that further clip the output of your drawing code within your view. It may be a simple rectangle (as used in the case of frame clipping by the AppKit), or a complex path defined by the outline of a @code{bezier path}. 

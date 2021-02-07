@@ -1,0 +1,29 @@
+The directory contains classes useful in testing of web-clients.
+They are written mainly with the necessity to test the class NSURLConnection
+in mind.
+
+TestCase
+NSURLConnectionTest
+	is a child of TestCase and represents a test of NSURLConnection.
+	It starts a main instance and (if needed) an auxillary instance
+	of TestWebServer (or uses externally supplied ones). Then it makes
+	a custom request to check various functionality of NSURLConnection.
+
+TestWebServer
+	maintains it's own instance of SimpleWebServer and implements
+	SimpleWebServer delegate's protocol to dispatch any request
+	to a corresponding handler. It can call it's delegate during
+	proceeding of requests.
+
+RequestHandler
+TestHandler and it's descendants
+	handle requests (dispatched by TestWebServer) and produces
+	a custom response. It also calls it's delegate (using TestWebServer
+	delegate's protocol) during request handling.
+
+SimpleWebServer
+	The own implementation of a web server.
+
+The key protocols important for understanding are TestProgress (TestCase.h)
+and TestWebServerDelegate (TestWebServer.h). Alternatively the file 
+NSURLConnectionTest.h briefly describes the whole picture.

@@ -1,0 +1,118 @@
+#
+#  Makefile for GNUstep Base Tools documentation.
+#  
+#  Copyright (C) 2004 Free Software Foundation, Inc.
+#
+#  Written by:	Adrian Robert <arobert@cogsci.ucsd.edu>
+#
+#  This file is part of the GNUstep Base Library.
+#
+#  This library is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU General Public
+#  License as published by the Free Software Foundation; either
+#  version 2 of the License, or (at your option) any later version.
+#
+#  This library is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
+#  General Public License for more details.
+#
+#  You should have received a copy of the GNU General Public
+#  License along with this library; if not, write to the Free
+#  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+#  Boston, MA 02111 USA
+#
+
+MAKEFILE_NAME = DocMakefile
+
+include $(GNUSTEP_MAKEFILES)/common.make
+include ../config.mak
+
+DOCUMENT_NAME = BaseTools
+
+BaseTools_DOC_INSTALL_DIR = Developer
+
+BaseTools_AGSDOC_FILES = \
+../Tools/BaseTools.gsdoc \
+../Tools/gsdoc.gsdoc \
+../Tools/gdomap.gsdoc \
+AGSHtml.h \
+AGSIndex.h \
+AGSOutput.h \
+AGSParser.h \
+autogsdoc.m \
+cvtenc.m \
+defaults.m \
+gdnc.m \
+gdomap.c \
+gspath.m \
+pldes.m \
+plser.m \
+plmerge.m \
+plparse.m \
+pl2link.m \
+sfparse.m \
+xmlparse.m
+
+
+#
+# Hack ... using the -DocumentationDirectory flag overrides the value
+# used by the make package, and puts our output in the documentation
+# directory.
+#
+BaseTools_AGSDOC_FLAGS = \
+	-MakeFrames YES \
+	-DocumentationDirectory ../Documentation/BaseTools \
+	-HeaderDirectory ../Tools \
+	-Standards YES \
+	-DTDs ../Tools \
+	-WordMap '{\
+	WINAPI="";\
+	}' -Up BaseTools
+
+# Use local version of autogsdoc in case it is not installed
+AUTOGSDOC=../Tools/$(GNUSTEP_OBJ_DIR_NAME)/autogsdoc
+BASE_MAKE_LOADED=yes
+
+include $(GNUSTEP_MAKEFILES)/documentation.make
+
+#
+# Ensure that our destination subdirectory exists in the Documentation
+# directory, and temporarily copy the base source file here for autogsdoc
+# to use.
+#
+before-all::	../Documentation/BaseTools \
+	../Documentation/BaseTools/gsdoc.gsdoc \
+	../Documentation/BaseTools/gdomap.gsdoc
+	cp -f ../Tools/BaseTools.gsdoc ../Documentation/BaseTools
+
+../Documentation/BaseTools:
+	$(MKDIRS) ../Documentation/BaseTools
+
+../Documentation/BaseTools/gsdoc.gsdoc: ../Tools/gsdoc.gsdoc
+	cp -f ../Tools/gsdoc.gsdoc ../Documentation/BaseTools
+
+../Documentation/BaseTools/gdomap.gsdoc: ../Tools/gdomap.gsdoc
+	cp -f ../Tools/gdomap.gsdoc ../Documentation/BaseTools
+
+#
+# Work around our screwy doc generation implementation, sigh...
+#
+before-clean::
+	if [ -e obj ]; then \
+	  mv obj obj-save-link; \
+	fi
+
+#
+# Clean up temporary files used while generating documentation.
+#
+after-clean::
+	if [ -d BaseTools ]; then \
+	  $(RM) BaseTools/stamp; \
+	  $(RM) BaseTools/dependencies; \
+	  rmdir BaseTools; \
+	fi
+	if [ -e obj-save-link ]; then \
+	  mv obj-save-link obj; \
+	fi
+

@@ -1,0 +1,60 @@
+obj
+*.log
+*.sum
+*.bundle
+*.service
+autom4te.cache
+config.log
+config.status
+config.cache
+config.make
+gnustep-gui.spec
+gnustep-gui-debug.spec
+gui.make
+Headers/Additions/GNUstepGUI/GSVersion.h
+Source/config.h
+Source/Info-gnustep.plist
+Tests/gui/*/GNUmakefile
+Tools/speech/GSSpeechServer.app
+Tools/speech_recognizer/GSSpeechRecognitionServer.app
+*~
+
+# Created by https://www.gitignore.io/api/xcode
+# Edit at https://www.gitignore.io/?templates=xcode
+
+### Xcode ###
+# Xcode
+#
+# gitignore contributors: remember to update Global/Xcode.gitignore, Objective-C.gitignore & Swift.gitignore
+
+## User settings
+xcuserdata/
+
+## compatibility with Xcode 8 and earlier (ignoring not required starting Xcode 9)
+*.xcscmblueprint
+*.xccheckout
+
+## compatibility with Xcode 3 and earlier (ignoring not required starting Xcode 4)
+build/
+DerivedData/
+*.moved-aside
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+
+## Xcode Patch
+*.xcodeproj/*
+!*.xcodeproj/project.pbxproj
+!*.xcodeproj/xcshareddata/
+!*.xcworkspace/contents.xcworkspacedata
+/*.gcno
+
+### Xcode Patch ###
+**/xcshareddata/WorkspaceSettings.xcsettings
+
+# End of https://www.gitignore.io/api/xcode

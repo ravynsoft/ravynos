@@ -1,0 +1,8 @@
+
+SUBPROJECTS = Helpers
+
+include $(GNUSTEP_MAKEFILES)/aggregate.make
+
+after-clean::
+	rm -f SimpleResponse.dat KAResponse.dat
+

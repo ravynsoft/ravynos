@@ -1,0 +1,404 @@
+<?xml version="1.0"?>
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 1.0.3//EN" "/usr/GNUstep/System/Libraries/Resources/DTDs/gsdoc-1_0_3.dtd" >
+<gsdoc base="DefaultsSummary">
+  <head>
+    <title>User Defaults Summary for GNUstep Libraries</title>
+    <author name="Adam Fedor">
+      <email address="fedor@gnu.org"/>
+      <url url="http://www.gnustep.org/developers/whoiswho.html"/>
+    </author>
+    <author name="Nicola Pero">
+      <email address="n.pero@mi.flashnet.it"/>
+      <url url="http://www.gnustep.org/developers/whoiswho.html"/>
+    </author>
+    <version>$Revision$</version>
+    <date>$Date$</date>
+    <copy>2005 Free Software Foundation, Inc.</copy>
+  </head>
+  <body>
+    <chapter>
+      <heading>Defaults Summary</heading>
+      <p>
+        This document contains a summary of available user default values that
+        one can set to control the operation of the GNUstep libraries.  To set
+        a default, use the <code>defaults write (domain) (key) (value)</code>
+        command in a terminal, with the <code>NSGlobalDomain</code> as first
+        argument.  E.g.,
+      </p>
+      <example>
+          defaults write NSGlobalDomain GSBackend libgnustep-art
+      </example>
+      <p>To read out the value set for the default, use <code>defaults read
+         (domain) [(key)]</code>.  If you do not specify the key, every
+         key-value pair in the domain will be printed.
+      </p>
+      <p>
+          Other domains besides the system level domain
+          "<code>NSGlobalDomain</code>" include the application domains, named
+          for each application that has registered defaults, and the temporary
+          runtime "<code>NSArgumentDomain</code>" for command line arguments.
+          At runtime there is also a "<code>NSRegistrationDomain</code>", a
+          second-chance domain in which "defaults for defaults" can be
+          registered, and possibly also domains for specific locales.
+      </p>
+      <section>
+        <heading>GUI Library Defaults</heading>
+      <p>
+        Below is a list of defaults used to control the gnustep-gui library.
+        You can set them either in <code>NSGlobalDomain</code>, to be used
+        everywhere, or in individual application domains, to be used for those
+        apps only.
+      </p>
+      <deflist>
+	  <term>GSBackend</term>
+	  <desc>
+          <p>
+          A string containing the name of the backend bundle to use
+          for display specific GUI handling. The default is
+          "libgnustep-back". Custom backends can be created during compilation
+	  of the libraries. Any other choice for a name is thus system
+	  specific.
+          </p>
+	  </desc>
+	  <term>GSBrowserCellFontify</term>
+	  <desc>
+          <p>
+          A boolean value, <code>NO</code> by default.  When the feature is on,
+          NSBrowserCell draws non-leaf cells in bold system font.
+          For example, when the feature is on, in a SavePanel (or OpenPanel),
+          directory entries are drawn in bold, while simple files are drawn in
+          non bold.
+          </p>
+	  </desc>
+	  <term>GSAbortKey</term>
+	  <desc>
+          <p>
+	  The key used to abort the insertion of multi-stroke keybinding.
+	  Default is <code>Control-g</code>.
+	  </p>
+	  </desc>
+	  <term>GSAppKitUserBundles</term>
+	  <desc>
+          <p>
+	  An array listing the names of bundles that will be automatically
+	  loaded into every application at startup. Typically these will
+	  be 'theme' bundles that control the look of the application.
+	  </p>
+	  </desc>
+	  <term>GSQuoteKey</term>
+	  <desc>
+          <p>
+	  The key used to quote the next keystroke (so that it is not
+	  interpreted as a keybinding, but just inserted into the text as
+	  it is).  Default is <code>Control-q</code>.
+	  </p>
+	  </desc>
+	  <term>GSUseGhostResize</term>
+	  <desc>
+          <p>
+	  A boolean, by default NO.  If you set it to YES, NSSplitView
+	  uses a 'ghost' bar to show resizing instead of doing a live
+	  resizing of the views.
+	  </p>
+	  </desc>
+	  <term>GSHelpViewer</term>
+	  <desc>
+          <p>
+	  A string which can be used to specify the name of the application
+	  to be used to view application help.<br />  If this is not specified
+	  (or is an empty string) the 'best' available viewer is used (an
+	  application whose Info.plist says that it can view files of the
+	  appropriate type ... usually rtp or rtfd files).<br />
+	  If this is set to <code>NSHelpPanel</code> or if no application can
+	  be used to view the help file, the help is displayed by the
+	  shared help panel object built in to the application.
+	  </p>
+	  </desc>
+	  <term>GSInsertControlKeystrokes</term>
+	  <desc>
+          <p>
+	  A boolean, by default NO.  If you set it to YES, keystrokes
+	  containing a Control are inserted into the text when they can't
+	  be interpreted as keybindings.  By default, they are ignored
+	  and cause the computer to beep.
+	  </p>
+	  </desc>
+	  <term>GSKeyBindingsFiles</term>
+	  <desc>
+          <p>
+          An array of strings, <code>(DefaultKeyBindings)</code> by
+          default.  The strings in this array (with <code>.dict</code>
+          appended) are the names of the files the library reads to
+          load the keybindings.  For each of these files (in the order), 
+          the library first tries to read the file with that name from
+          the
+          <code>$GNUSTEP_SYSTEM_ROOT/Libraries/Resources/KeyBindings/</code>
+          directory, loading all the keybindings it finds in the file,
+          then it loads the similar file from
+          <code>$GNUSTEP_LOCAL_ROOT</code> and then the similar one
+          from <code>$GNUSTEP_NETWORK_ROOT</code> and at last the one
+          from <code>$GNUSTEP_USER_ROOT</code>.  If you have a single
+	  set of customized keybindings which you want to be loaded in
+          addition to the default ones (or overriding some of the default
+	  ones), just add a <code>DefaultKeybindings.dict</code> file
+	  in your <code>~/GNUstep/Libraries/Resources/KeyBindings/</code>
+          directory, and keybindings from this file are automatically
+          loaded in addition to the default ones; you do not need to
+          change this user default.  If instead you want more keybinding
+          files to be loaded, or you do not want the system default keybindings
+          file to be loaded, you might well need to change it.
+          </p>
+	  </desc>
+	  <term>GSKeyBindings</term>
+	  <desc>
+          <p>
+	  A dictionary, containing keybindings which are loaded by the
+          library after the ones found in the <code>GSKeyBindingsFiles</code>.
+          Might be useful if you have only a couple of keybindings, and
+          don't want to write a custom keybindings file.  If you have many
+          keybindings, it is recommended that you keep them in a file.
+          The syntax of keybindings entries and files is documented elsewhere.
+          </p>
+	  </desc>
+	  <term>GSLPRPrinters</term>
+	  <desc>
+          <p>
+	  Specifies a dictionary containing printer information for the
+	  GSLPR printer bundle.  See the bundle source for details.
+          </p>
+	  </desc>
+	  <term>GSSavePanelShowProgress</term>
+	  <desc>
+          <p>
+          A boolean value, <code>NO</code> by default.  When the
+          feature is on, the save panel and its subclasses (such as
+          the open panel) displays "Reading Directory ***.."
+          (progressively adding dots) in the window titlebar while
+          reading very big directories (more than 100 entries).  This
+          is meant to make things friendlier for slow computers.
+          </p>
+	  </desc>
+	  <term>GSScaleFactor</term>
+	  <desc>
+          <p>
+          A floating point number, <code>1.0</code> by default. Scales
+          GUI elements by the given factor for high-DPI monitors. DPI
+          auto-detection on some platforms (only Windows, for now) will
+          cause the default to appear to change.
+          </p>
+	  </desc>
+	  <term>GSUnknownFileTool</term>
+	  <desc>
+          <p>
+          A string value that defines a program that should be launched
+          when no GNUstep application has been defined for a specific
+          file extension or if an URL could not be opened by a service.
+          This program gets the file name or URL as parameter.
+          </p>
+	  </desc>
+	  <term>GSUseFreedesktopThumbnails</term>
+	  <desc>
+          <p>
+          A boolean value, <code>NO</code> by default.  When the
+          feature is on, thumbnail files according to the Freedesktop
+	  specification are used in [NSWorkspace iconForFile:] when available.
+          </p>
+	  </desc>
+	  <term>GSLogWorkspaceTimeout</term>
+	  <desc>
+          <p>
+          A boolean value that defaults to <code>NO</code>. This is a
+          obscure and probably not useful default. NSWorkspace tries
+          to receive distributed notifications, but if a distributed
+          objects server cannot be found or some other error occurs,
+          it raises an exception which normally terminates the
+          program. Setting this default causes NSWorkspace to just log
+          the problem without raising an exception.
+          </p>
+	  </desc>
+	  <term>GSWorkspaceApplication</term>
+	  <desc>
+          <p>
+          A string value that defaults to <code>"GWorkspace"</code>.
+          This defines the application NSWorkspace will try to
+          connect to process some operations that require an external
+          application. This is a new feature and has not been tested. 
+          </p>
+	  </desc>
+	  <term>GSSuppressAppIcon</term>
+	  <desc>
+          <p>
+	  A boolean value, <code>NO</code> by default. Specifies wether the
+	  application icon window should not be displayed. Set to <code>YES</code>
+	  for background server applications.
+          </p>
+	  </desc>
+	  <term>GSControlKeyString</term>
+	  <desc>
+          <p>
+	  A string used in the menu to signify that the control key needs to 
+          be pressed together with the key equivalent of the menu item. 
+          Default "^".
+	  </p>
+	  </desc>
+	  <term>GSAlternateKeyString</term>
+	  <desc>
+          <p>
+	  A string used in the menu to signify that the alternate key needs to 
+          be pressed together with the key equivalent of the menu item. 
+          Default "+".
+	  </p>
+	  </desc>
+	  <term>GSScrollerArrowsSameEnd</term>
+	  <desc>
+          <p>
+	  YES if the scroller arrows are at the same end.
+	  NO to get one scroller arrow at each end of the scroller.
+	  
+	  If not set, the behaviour is delegated to NSScrollerInterfaceStyle.
+
+          Default YES.
+	  </p>
+	  </desc>
+	  <term>GSScrollerScrollsByPage</term>
+	  <desc>
+          <p>
+	  YES if clicking in the scroller slot should scroll by one page,
+	  NO if the scroller should jump to the location clicked.
+
+	  If not set, the behaviour is delegated to NSScrollerInterfaceStyle.
+
+          Default NO.
+	  </p>
+	  </desc>
+	  <term>GSShiftKeyString</term>
+	  <desc>
+          <p>
+	  A string used in the menu to signify that the shift key needs to 
+          be pressed together with the key equivalent of the menu item. 
+          Default "/".
+	  </p>
+	  </desc>
+	  <term>GSCommandKeyString</term>
+	  <desc>
+          <p>
+	  A string used in the menu to signify that the command key needs to 
+          be pressed together with the key equivalent of the menu item. 
+          Default "#".
+	  </p>
+	  </desc>
+	  <term>NSInterfaceStyleDefault</term>
+	  <desc>
+          <p>
+          A string describing the interface style. Setting this may
+          change various aspects of how the library draws elements and
+          responds to user interaction. See the NSInterfaceStyle
+          documentation for more information.
+          </p>
+	  </desc>
+	  <term>NSMenuInterfaceStyle</term>
+	  <desc>
+          <p>
+          An interface style specific to menu operation. If not set
+          the NSInterfaceStyleDefault value is used. <br />
+	  Setting this to NSMacintoshInterfaceStyle produces a horizontal
+	  menu at the top of the screen.<br />
+	  Setting it to NSNextStepInterfaceStyle reverts to the defaults
+	  vertical menu layout.
+          </p>
+	  </desc>
+	  <term>NSCommandKeys</term>
+	  <desc>
+          <p>
+          A dictionary of command key equivalents for menu items. The
+          key contains the title of the menu item and the value is the
+          command key equivalent. For instance, one might set the
+          command key for the menu item "Copy" to "C".
+          </p>
+	  </desc>
+	  <term>NSHost</term>
+	  <desc>
+          <p>
+          Used by NSPasteboard to find the host on which the
+          pasteboard server is running.
+          </p>
+	  </desc>
+	  <term>NSMeasurementUnit</term>
+	  <desc>
+          <p>
+          A string describing the measurement unit for rulers (see the
+          NSRulerView class documentation). The default is
+          Centimeters. Other possible values are Inches, Points, and Picas.
+          </p>
+	  </desc>
+	  <term>NSPreviewApp</term>
+	  <desc>
+          <p>
+          A string value that defaults to <code>"gv"</code>.
+          This defines the application NSPrintOperation will try to
+          connect to preview PostScript files, unless there is already
+	  an application registed as a Viewer of ps files.
+          </p>
+	  </desc>
+	  <term>NSShowNonLocalizedStrings</term>
+	  <desc>
+          <p>
+          This is mainly a developer option.  If "YES", the application will
+          display localization keys instead of strings in its UI.  This can be
+          useful during development to see where a given string in the UI is
+          "coming from".  Default is "NO".
+          </p>
+	  </desc>
+	  <term>NSUseRunningCopy</term>
+	  <desc>
+          <p>
+          This determines the behavior of an applicationms when a second copy
+	  is started up.<br />
+	  If set to YES the newly started copy makes the process which is
+	  already running active, then terminates itsself.<br />
+	  If set to NO, the newly started copy runs, but has a different
+	  name (so it cannot be contacted to provide services for other
+	  applications).
+          </p>
+	  </desc>
+	  <term><em>System Colors</em></term>
+	  <desc>
+          <p>
+          System colors are standard colors for drawing various GUI elements,
+          such as buttons, text, scroller, etc. They can be set using
+	  the normal user defaults system. An NSColorList called
+	  "System"  is stored in the users's private color list
+	  directory. This color list can also be manipulated through the
+	  NSColorList class (typically through a preferences module).
+          </p>
+	  <p>
+	  Individual system colors may be set by specifying the name of
+	  the system color and giving it a value consisting of aan RGB
+	  color specification (three floating point numbers in the range
+	  0.0 to 1.0 and separated by spaces).<br />
+	  eg.<br />
+	  'defaults write NSGlobalDomain controlBackgroundColor "1.0 0.0 0.0"'
+          </p>
+
+	  </desc>
+	  <term><em>System Fonts</em></term>
+	  <desc>
+          <p>
+          System Fonts may be set using the defaults system. System
+          fonts are standard fonts for drawing text in GUI
+          elements. They include NSBoldFont, for instance. The value
+          is the name of the font to use. There is also a
+          cooresponding size key (e.g. NSBoldFontSize) for specifying
+          the point size of the font. The keys that can be used for
+          setting the system fonts are described in the documentation
+          for NSFont.
+          </p>
+	  </desc>
+	</deflist>
+
+      </section>
+    </chapter>
+  </body>
+</gsdoc>
+
+

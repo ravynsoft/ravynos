@@ -1,0 +1,23 @@
+Makefiles in this directory are only used during the 'Instance' make
+invocation.  The 'Master' invocation (see explanation in
+Master/README) decides which tasks are to be done; for each of them,
+it calls a recursive make invocation (called an 'Instance' make
+invocation), setting GNUSTEP_INSTANCE to the instance name (for
+example, 'defaults'), and GNUSTEP_TYPE to the type of instance type
+(for example, 'tool').  The make target to build is as in
+internal-tool-all.
+
+This means that all makefiles in this directory are executed with a
+well defined GNUSTEP_INSTANCE, GNUSTEP_TYPE, and target.
+
+It is safe/required in all these makefiles/makefile fragments to
+access the variables needed to build the target for this instance by
+using $($(GNUSTEP_INSTANCE)_VARIABLE).  For example, the list of
+OBJC_FILES needed to compile the `defaults' instance will have been
+defined by the user in the defaults_OBJC_FILES variable.  In this
+directory, we access this list using
+$($(GNUSTEP_INSTANCE)_OBJC_FILES).
+
+Please note that this makefiles/makefile fragments can't be included
+in the Master invocation, they are actually useless in the Master
+invocation, because $(GNUSTEP_INSTANCE) is undefined in that case.

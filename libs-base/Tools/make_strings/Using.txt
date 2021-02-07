@@ -1,0 +1,356 @@
+Translator's guide to make_strings
+==================================
+Copyright (C) 2002 Free Software Foundation, Inc.
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+
+This file is meant to be a fairly complete description of what a
+translator needs to do to work with make_strings. Please send comments,
+suggestions, bug reports etc. to <alexander@malmberg.org>.
+
+
+TODO: application developer's guide
+basically: use some function around all strings, like _() or
+NSLocalizedString() if you want a comment; don't forget to take care of
+static strings with __() or NSLocalizedStaticString().
+
+
+Table of contents
+-----------------
+
+1. Basic stuff
+1.1. Invoking make_strings
+1.2. What make_strings parses
+
+2. The .strings files
+
+3. Normal tasks
+3.1. Creating the initial .strings files
+3.2. Updating the .strings files
+
+4. Special cases
+4.1. Importing an existing .strings files
+
+
+1. Basic stuff
+==============
+
+1.1. Invoking make_strings
+--------------------------
+
+(In the future, running 'make strings' will (hopefully) be enough to do
+all this.)
+
+The syntax for running make_strings is:
+
+	make_strings [--help]
+
+to see some very basic help, or:
+
+	make_strings [--verbose] [--aggressive-import] [--aggressive-match]
+		-L "Languages" file1.m file2.h ...
+
+The --verbose flag makes make_strings print some information while
+running.
+
+The -L flag tells make_strings which languages to process. You can have
+many -L flags, or you can specify many languages in one -L flag. You'll
+need to specify at least one language.
+
+The --aggressive-match flag is described in section 3.2. It causes
+matching to be done on key only.
+
+The --aggressive-import flag is described in section 4.1. It activates
+--aggressive-match and automatically removes dummy entries created
+through importing .strings files not created by make_strings.
+
+All other arguments are considered filenames and are added to the list
+of files to parse for strings.
+
+When make_strings is finished, it will print a message for each .strings
+file that has untranslated or unmatched strings (and thus needs to
+be updated).
+
+Examples:
+
+	make_strings -L English -L "Swedish German" menu.m menu.h whatever.m foo.c
+
+will parse the specified files and update the .strings files in
+English.lproj/, Swedish.lproj/ and German.lproj/.
+
+
+1.2. What make_strings parses
+-----------------------------
+make_strings has a decent parser of c-like languages. It shouldn't have
+any problems grabbing strings for a valid objective-c or c file.
+
+Currently the following functions are handled:
+_(key)
+NSLocalizedString(key,comment)
+NSLocalizedStringFromTable(key,table,comment)
+NSLocalizedStringFromTableInBundle(key,table,bundle,comment)
+__(key)
+NSLocalizedStaticString(key,comment)
+
+
+'Clever' use of cpp can confuse make_strings, so don't do that.
+
+Nested calls to localization functions aren't handled, so don't do that
+either (if you find a case where you really need to do this, explain
+why to me and I might extend it).
+
+The fields make_strings uses must be string constants. Calls to
+localization functions with important parameters that aren't string
+constants will be ignored and a warning will be issued. (So note that eg.
+bundle does not have to be a string constant.)
+
+
+2. The .strings files
+=====================
+Each language directory contains a number of .strings files. The default
+is Localizable.strings (and most programs probably won't have any other).
+
+A .strings file consists of a number of key/value pairs. The syntax is:
+
+"some key" = "some value" ;
+
+The key is used in the source code to lookup the translation. The value
+is the translation.
+
+A .strings file can have c-style comments: /* */ . make_strings
+stores additional information in these to help it handle translations
+intelligently. Thus, you shouldn't touch the comments except as noted
+in this file. You can add a comment (or several) above the first
+make_strings banner and it will be preserved, but anything past the first
+banner will be discarded.
+
+The special comments used are:
+
+	/* File: file.m:123 */
+
+This starts a new entry (for make_strings). It tells you in which file
+and at what line the string was found.
+
+	/* Comment: foo bar zot */
+
+The programmer can associate comments with each localizable string as
+an aid when translating.
+
+	/* Flag: unmatched */
+
+This indicates that the string was found in the .strings file, but not
+in the source code.
+
+	/* Flag: untranslated */
+
+This indicated that the string was found in the source code, and it
+couldn't be matched to an existing entry in the .strings file.
+
+Flags and comments bind to the previous File: comment. There might be
+several File: comments for a single key/value pair. That means that the
+key appears in several places in the source code. The different File:
+comments mark the different places (and any comments or flag associated
+with that specific appearance of the key).
+
+
+
+3.1. Normal tasks
+=================
+
+3.1. Creating the initial .strings files
+----------------------------------------
+
+If you want to localize an application (read application or tool) for
+the first time, or add a new language to an application, you must first
+create the .lproj directory for that language (if it doesn't already
+exist). Just run:
+
+	mkdir Language.lproj
+
+where Language is the name of the language (eg. English). To be able
+to use the translation, you'll also need to add the language to the
+_LANGUAGES listing in GNUmakefile.
+
+Example:
+SomeProgram_LANGUAGES = English Swedish German
+
+You'll also need to make sure all .strings files are in
+the _LOCALIZED_RESOURCE_FILES list. Most programs use only
+Localizable.strings. If you're unsure what files to add, run make_strings
+and check what files it created.
+
+Example:
+SomeProgram_LOCALIZED_RESOURCE_FILES = Localizable.strings
+
+
+To get the initial .strings files, simply run make_strings with the
+language as a parameter, eg.:
+
+	make_strings -L German *.[hm]
+
+This will create any necessary .strings files in German.lproj/. Open
+each file in a text editor an proceed according to section 3.2.
+
+
+3.2. Updating the .strings files
+--------------------------------
+
+Once you have some .strings files, you can update them anytime by running
+make_strings with the languages you want to update as arguments.
+
+Example:
+	make_strings -L English German Swedish *.[hm]
+
+will update the .strings files in English.lproj/, German.lproj/,
+and Swedish.lproj/. If a .strings file has unmatched or untranslated
+strings, make_strings will print a message. If no messages are printed,
+the translations are up-to-date and there's nothing you need to do.
+
+If a file needs to be updated, open it in your favorite text editor and
+search for 'Flag:'. Each flag marks something that needs to be taken care
+of. When you've taken care of all flags, you're done! There are two
+flags:
+
+
+/* Flag: untranslated */
+
+This marks a string that doesn't have a (confirmed) translation yet. Enter
+the translation as the new value for and _remove_the_entire_line_ with
+the flag.
+
+Example: a save menu entry was added
+
+/* File: SomeWindow.m:314 */
+/* Comment: menu entry for saving a message */
+/* Flag: untranslated */
+"Save..." = "Save...";
+
+Translate the string and remove the flag:
+
+/* File: SomeWindow.m:314 */
+/* Comment: menu entry for saving a message */
+"Save..." = "Spara...";
+
+
+A message that is marked as untranslated might appear grouped with
+other strings with the same key. In that case, translating is as easy
+as verifying that the existing translation matches the new case and
+deleting the flag. (If you can't find a translation that matches all
+cases, you'll need to talk to the application's maintainer so that the
+different cases can have different keys.)
+
+Example: another save menu entry was added
+
+/* File: SomeWindow.m:314 */
+/* Comment: menu entry for saving a message */
+/* File: SomeOtherWindow.m:271 */
+/* Flag: untranslated */
+"Save..." = "Spara...";
+
+The translation matches, so just remove the flag:
+
+/* File: SomeWindow.m:314 */
+/* Comment: menu entry for saving a message */
+/* File: SomeOtherWindow.m:271 */
+"Save..." = "Spara...";
+
+
+If you're brave, you can use the '--aggressive-match' option. This
+option will make make_strings assume that matching keys should have
+matching translations, so it would have resolved the above example
+automatically. This can save lots of work, but it increases the risk of
+a mis-translation.
+
+
+/* Flag: unmatched */
+
+This marks a string that existed in the .strings file, but not in the
+source. This might mean that the string has been removed, or that the
+string has changed so the match couldn't be found.
+
+If the string was removed, simply remove the flag, the File: comment,
+the Comment: comment if it exists, and the key/value pair if it is no
+longer used.
+
+Example: there used to be a load menu entry, but it has been removed
+
+/* File: SomeWindow.m:127 */
+/* Flag: unmatched */
+"Open..." = "Öppna...";
+
+The translation isn't used anymore, so remove all three lines.
+
+
+Example: one of the save menu entries was removed
+
+/* File: SomeWindow.m:314 */
+/* Comment: menu entry for saving a message */
+/* Flag: unmatched */
+/* File: SomeOtherWindow.m:271 */
+"Save..." = "Spara...";
+
+Again, remove the File:, Comment: and Flag:. However, the actual key/value
+pair is still used by the other location, so it should _not_ be removed.
+
+/* File: SomeOtherWindow.m:271 */
+"Save..." = "Spara...";
+
+
+If code changes and a string is slightly changed or moved to a different
+file, there will probably be an untranslated string that matches the
+unmatched string (although make_strings hasn't been able to match them).
+
+Example: someone changed the name of the save menu entry
+
+/* File: SomeOtherWindow.m:271 */
+/* Flag: unmatched */
+"Save..." = "Spara...";
+
+...
+
+/* File: SomeOtherWindow.m:279 */
+/* Flag: untranslated */
+"Save data..." = "Save data...";
+
+Update the translation, remove the untranslated flag, and remove the
+unmatched entry.
+
+/* File: SomeOtherWindow.m:279 */
+"Save data..." = "Spara data...";
+
+
+4. Special cases
+================
+
+4.1. Importing an existing .strings files
+-----------------------------------------
+
+If your project already has a Localizable.strings (created by hand or
+something) and you want to use make_strings, you'll just need to run
+make_strings once to convert the files. Each old entry will appear as
+an unmatched entry from the file <dummy>, and each entry in the source
+will appear as an untranslated entry, so things will look like this:
+
+/* File: <dummy>:0 */
+/* Flag: unmatched */
+/* File: Foo.m:183 */
+/* Flag: untranslated */
+"Close" = "Stäng";
+
+It's easy (but boring) to check all the entries and remove the dummies
+and flags. make_strings is by default very careful and won't match things
+very well (after all, it can't be sure).
+
+However, if you're fairly certain that the translation is OK, you can use
+the '--aggressive-import' option the first time you run make_strings. This
+option will make make_strings match much more aggressively, and it
+will greatly reduce the number of untranslated/unmatched strings in the
+resulting .strings file. (Eg. the above entry would appear as a single
+matched and translated entry.)
+
+--aggressive-import works like --aggressive-match, but also removes any
+entries from the file <dummy> that were used to match an existing string.
+
+

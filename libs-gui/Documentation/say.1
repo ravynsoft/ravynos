@@ -1,0 +1,36 @@
+.TH say 1 "June 2010" GNUstep "GNUstep System Manual"
+.SH NAME
+say \- convert text to audible speech using the GNUstep speech engine
+.SH SYNOPSIS
+.B say
+.RB [ -f
+.IR filename ]
+.RI [ some_text ]
+.SH DESCRIPTION
+.B say
+is a simple GNUstep tool which uses the GNUstep Speech Engine to
+convert input text to audible speech and play it through the sound
+device.
+.SH OPTIONS
+.IP "\fB-f \fIfilename"
+Read input text from
+.IR filename
+.IP "\fIsome text"
+Any text passed on the command line
+.SH EXAMPLES
+say \-f foo.txt
+.P
+say Hello, world!
+.SH SEE ALSO
+.BR GSSpeechServer (1),
+.BR GNUstep (7).
+.SH AUTHORS
+.B say
+was written by David Chisnall <theraven@sucs.org>.  This man page was
+written by Yavor Doganov <yavor@gnu.org>.
+.SH COPYRIGHT
+Copyright (C) 2010 Free Software Foundation, Inc.
+.PP
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.

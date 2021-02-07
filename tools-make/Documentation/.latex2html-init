@@ -1,0 +1,47 @@
+
+# Workaround for a bug in latex2html which does not seem to 
+# manage the \tableofcontents command correctly
+&ignore_commands( <<_IGNORED_CMDS_);
+tableofcontents
+_IGNORED_CMDS_
+
+$ASCII_MODE = 1;
+
+$BODYTEXT = "BGCOLOR=\"\#FFFFFF\" text=\"\#000000\" link=\"\#0000FF\" vlink=\"\#4444FF\" alink=\"\#3388FF\""; 
+
+$SHOW_SECTION_NUMBERS = 1;
+
+$MAX_SPLIT_DEPTH = 4;
+
+$INFO = "
+<P>
+Copyright (C) 2000, 2001 Free Software Foundation, Inc.
+<P>
+Permission is granted to make and distribute verbatim copies of this
+manual provided the copyright notice and this permission notice are
+preserved on all copies.
+<P>
+Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided that the
+entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+<P>
+Permission is granted to copy and distribute translations of this
+manual into another language, under the above conditions for modified
+versions.
+"; 
+
+
+sub top_navigation_panel {
+    ($NEXT_TITLE ? "<B> Next: $NEXT_TITLE </B>\n" : undef) . 
+    ($UP_TITLE ? "<B>Up: $UP_TITLE  </B>\n" : undef) . 
+    ($PREVIOUS_TITLE ? "<B> Previous: $PREVIOUS_TITLE </B>\n" : undef) .
+    "<BR> <P>\n"
+}
+
+sub bot_navigation_panel {
+    "<HR>".			
+    ($NEXT_TITLE ? "<B> Next: $NEXT_TITLE </B>\n" : undef) . 
+    ($UP_TITLE ? "<B>Up: $UP_TITLE </B>\n" : undef) . 
+    ($PREVIOUS_TITLE ? "<B> Previous: $PREVIOUS_TITLE </B>\n" : undef) 
+}

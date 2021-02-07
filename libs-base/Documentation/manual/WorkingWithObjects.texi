@@ -1,0 +1,558 @@
+@paragraphindent 0
+
+@node Objects
+@chapter Working with Objects
+@cindex working with objects
+@cindex objects, working with
+
+
+Objective-C and GNUstep provide a rich object allocation and memory management
+framework.  Objective-C affords independent memory allocation and
+initialization steps for objects, and GNUstep supports three alternative
+schemes for memory management.
+
+
+@section Initializing and Allocating Objects
+@cindex objects, initalizing and allocating
+@cindex allocating objects
+
+Unlike most object-oriented languages, Objective-C exposes memory allocation
+for objects and initialization as two separate steps.  In particular, every
+class provides an '@code{+alloc}' method for creating blank new instances.
+However, initialization is carried out by an instance method, not a class
+method.  By convention, the default initialization method is '@code{-init}'.
+The general procedure for obtaining a newly initialized object is thus:
+
+@example
+id newObj = [[SomeClass alloc] init];
+@end example
+
+Here, the call to @code{alloc} returns an uninitialized instance, on which
+@code{init} is then invoked.  (Actually, @code{alloc} @i{does} set all
+instance variable memory to 0, and it initializes the special @code{isa}
+variable mentioned earlier which points to the object's class, allowing it to
+respond to messages.)  The @code{alloc} and @code{init} calls may be collapsed
+for convenience into a single call:
+
+@example
+id newObj = [SomeClass new];
+@end example
+
+The default implementation of @code{new} simply calls @code{alloc} and
+@code{init} as above, however other actions are possible.  For example,
+@code{new} could be overridden to reuse an existing object and just call
+@code{init} on it (skipping the @code{alloc} step).  (Technically this kind of
+instantiation management can be done inside @code{init} as well -- it
+can deallocate the receiving object and return another one in its place.
+However this practice is not recommended; the @code{new} method should be
+used for this instead since it avoids unnecessary memory allocation for
+instances that are not used.)
+
+
+@subsection Initialization with Arguments
+
+In many cases you want to initialize an object with some specific information.
+For example a @code{Point} object might need to be given an @i{x, y} position.
+In this case the class may define additional initializers, such as:
+
+@example
+id pt = [[Point alloc] initWithX: 1.5 Y: 2.0];
+@end example
+
+Again, a @code{new} method may be defined, though sometimes the word ``new''
+is not used in the name:
+
+@example
+id pt = [Point newWithX: 1.5 Y: 2.0];
+  // alternative
+id pt = [Point pointAtX: 1.5 Y: 2.0];
+@end example
+
+In general the convention in Objective-C is to name initializers in a way that
+is intuitive for their classes.  Initialization is covered in more detail in
+@ref{Classes, ,Instance Initialization}.  Finally, it is acceptable for an
+@code{init...} method to return @code{nil} at times when insufficient memory
+is available or it is passed an invalid argument; for example the argument to
+the @code{NSString} method @code{initWithContentsOfFile:} may be an erroneous
+file name.
+
+
+
+@subsection Memory Allocation and Zones
+@cindex Zones
+
+Memory allocation for objects in GNUstep supports the ability to specify that
+memory is to be taken from a particular region of addressable memory.  In the
+days that computer RAM was relatively limited, it was important to be able to
+ensure that parts of a large application that needed to interact with one
+another could be held in working memory at the same time, rather than
+swapping back and forth from disk.  This could be done by specifying that
+particular objects were to be allocated from a particular region of memory,
+rather than scattered across all of memory at the whim of the operating
+system.  The OS would then keep these objects in memory at one time, and swap
+them out at the same time, perhaps to make way for a separate portion of the
+application that operated mostly independently.  (Think of a word processor
+that keeps structures for postscript generation for printing separate from
+those for managing widgets in the onscreen editor.)
+
+With the growth of computer RAM and the increasing sophistication of memory
+management by operating systems, it is not as important these days to control
+the regions where memory is allocated from, however it may be of use in
+certain situations.  For example, you may wish to save time by allocating
+memory in large chunks, then cutting off pieces yourself for object
+allocation.  If you know you are going to be allocating large numbers of
+objects of a certain size, it may pay to create a zone that allocates memory
+in multiples of this size.  The GNUstep/Objective-C mechanisms supporting
+memory allocation are therefore described here.
+
+The fundamental structure describing a region of memory in GNUstep is called a
+@i{Zone}, and it is represented by the @code{NSZone} struct.  All
+@code{NSObject} methods dealing with the allocation of memory optionally take
+an @code{NSZone} argument specifying the Zone to get the memory from.  For
+example, in addition to the fundamental @code{alloc} method described above,
+there is the @code{allocWithZone:} method:
+
+@example
++ (id) alloc;
++ (id) allocWithZone: (NSZone*)zone;
+@end example
+
+Both methods will allocate memory to hold an object, however the first one
+automatically takes the memory from a default Zone (which is returned by the
+@code{NSDefaultMallocZone()} function).  When it is necessary to group objects
+in the same area of memory, or allocate in chunks - perhaps for performance
+reasons, you may create a Zone from where you would allocate those objects by
+using the @code{NSCreateZone} function.  This will minimise the paging
+required by your application when accessing those objects frequently.
+In all normal yuse however, you should confine yourself to the default zone.
+
+Low level memory allocation is performed by the @code{NSAllocateObject()}
+function.  This is rarely used but available when you require more advanced
+control or performance. This function is called by @code{[NSObject
++allocWithZone:]}.  However, if you call @code{NSAllocateObject()} directly to
+create an instance of a class you did not write, you may break some
+functionality of that class, such as caching of frequently used objects.
+
+Other @code{NSObject} methods besides @code{alloc} that may optionally take
+Zones include @code{-copy} and @code{-mutableCopy}.  For 95% of cases you
+will probably not need to worry about Zones at all; unless performance is
+critical, you can just use the methods without zone arguments, that take the
+default zone.
+
+
+@subsection Memory Deallocation
+@cindex memory deallocation
+
+Objects should be deallocated from memory when they are no longer needed.
+While there are several alternative schemes for managing this process (see
+next section), they all eventually resort to calling the @code{NSObject}
+method @code{-dealloc}, which is more or less the opposite of @code{-alloc}.
+It returns the memory occupied by the object to the Zone from which it was
+originally allocated.  The @code{NSObject} implementation of the method
+deallocates only instance variables.  Additional allocated, unshared memory
+used by the object must be deallocated separately.  Other entities that depend
+solely on the deallocated receiver, including complete objects, must also be
+deallocated separately.  Usually this is done by subclasses overriding
+@code{-dealloc} (see @ref{Classes, ,Instance Deallocation}).
+
+As with @code{alloc}, the underlying implementation utilizes a function
+(@code{NSDeallocateObject()}) that can be used by your code if you know what
+you are doing.
+
+
+@section Memory Management
+@cindex memory management
+
+In an object-oriented environment, ensuring that all memory is freed when it
+is no longer needed can be a challenge.  To assist in this regard, there are
+three alternative forms of memory management available in Objective-C:
+
+@itemize @minus
+@item Explicit@*
+You allocate objects using @code{alloc}, @code{copy} etc, and deallocate
+them when you have finished with them (using @code{dealloc}).
+This gives you complete control over memory management, and is highly
+efficient, but error prone.
+
+@item Retain count@*
+You use the OpenStep retain/release mechanism, along with autorelease
+pools which provide a degree of automated memory management.  This gives
+a good degree of control over memory management, but requires some care
+in following simple rules.  It's pretty efficient.
+
+@item Garbage collection@*
+You build the GNUstep base library with garbage collection, and link
+with the Boehm GC library @dots{} then never bother about
+releasing/deallocating memory.  This requires a slightly different
+approach to programming @dots{} you need to take care about what happens
+when objects are deallocated @dots{} but don't need to worry about
+deallocating them.
+@end itemize
+
+The recommended approach is to use some standard macros defined in
+@code{NSObject.h} which encapsulate the retain/release/autorelease mechanism,
+but which permit efficient use of the garbage collection system if you build
+your software with that.  We will justify this recommendation after describing
+the three alternatives in greater detail.
+
+
+@subsection Explicit Memory Management
+@cindex memory management, explicit
+
+This is the standard route to memory management taken in C and C++ programs.
+As in standard C when using @code{malloc}, or in C++ when using @code{new} and
+@code{delete}, you need to keep track of every object created through an
+@code{alloc} call and destroy it by use of @code{dealloc} when it is no longer
+needed.  You must make sure to no longer reference deallocated objects;
+although messaging them will not cause a segmentation fault as in C/C++, it
+will still lead to your program behaving in unintended ways.
+
+This approach is generally @i{not} recommended since the Retain/Release style
+of memory management is significantly less leak-prone while still being quite
+efficient.
+
+
+@subsection OpenStep-Style (Retain/Release) Memory Management
+@cindex memory management, OpenStep-style
+@cindex memory management, retain count
+
+The standard OpenStep system of memory management employs retain counts.
+When an object is created, it has a retain count of 1.  When an object
+is retained, the retain count is incremented.  When it is released the
+retain count is decremented, and when the retain count goes to zero the
+object gets deallocated.
+
+@example
+  Coin	*c = [[Coin alloc] initWithValue: 10];
+
+    // Put coin in pouch,
+  [c retain];	// Calls 'retain' method (retain count now 2)
+    // Remove coin from pouch
+  [c release];	// Calls 'release' method (retain count now 1)
+    // Drop in bottomless well
+  [c release];	// Calls 'release' ... (retain count 0) then 'dealloc'
+@end example
+
+One way of thinking about the initial retain count of 1 on the object is that
+a call to @code{alloc} (or @code{copy}) implicitly calls @code{retain} as
+well.  There are a couple of default conventions about how @code{retain} and
+@code{release} are to be used in practice.
+
+@itemize
+@item
+@i{If a block of code causes an object to be allocated, it ``owns'' this
+object and is responsible for releasing it.  If a block of code merely
+receives a created object from elsewhere, it is @b{not} responsible for
+releasing it.}
+
+@item
+@i{More generally, the total number of @code{retain}s in a block should be
+matched by an equal number of @code{release}s.}
+
+@end itemize
+
+Thus, a typical usage pattern is:
+
+@example
+  NSString *msg = [[NSString alloc] initWithString: @@"Test message."];
+  NSLog(msg);
+    // we created msg with alloc -- release it
+  [msg release];
+@end example
+
+Retain and release must also be used for instance variables that are objects:
+
+@example
+- (void)setFoo:(FooClass *newFoo)
+@{
+    // first, assert reference to newFoo
+  [newFoo retain];
+    // now release reference to foo (do second since maybe newFoo == foo)
+  [foo release];
+    // finally make the new assignment; old foo was released and may
+    // be destroyed if retain count has reached 0
+  foo = newFoo;
+@}
+@end example
+
+Because of this retain/release management, it is safest to use accessor
+methods to set variables even within a class:
+
+@example
+- (void)resetFoo
+@{
+  FooClass *foo = [[FooClass alloc] init];
+  [self setFoo: foo];
+    // since -setFoo just retained, we can and should
+    // undo the retain done by alloc
+  [foo release];
+@}
+@end example
+
+@b{Exceptions}
+
+In practice, the extra method call overhead should be avoided in performance
+critical areas and the instance variable should be set directly.  However in
+all other cases it has proven less error-prone in practice to consistently use
+the accessor.
+
+There are certain situations in which the rule of having retains and releases
+be equal in a block should be violated.  For example, the standard
+implementation of a container class @code{retain}s each object that is added
+to it, and @code{release}s it when it is removed, in a separate method.  In
+general you need to be careful in these cases that retains and releases match.
+
+
+@subsubsection Autorelease Pools
+
+One important case where the retain/release system has difficulties is when
+an object needs to be transferred or handed off to another.  You don't want
+to retain the transferred object in the transferring code, but neither do you
+want the object to be destroyed before the handoff can take place.  The
+OpenStep/GNUstep solution to this is the @i{autorelease pool}.  An
+autorelease pool is a special mechanism that will retain objects it is given
+for a limited time -- always enough for a transfer to take place.  This
+mechanism is accessed by calling @code{autorelease} on an object instead of
+@code{release}.  @code{Autorelease} first adds the object to the active
+autorelease pool, which retains it, then sends a @code{release} to the
+object.  At some point later on, the pool will send the object a second
+@code{release} message, but by this time the object will presumably either
+have been retained by some other code, or is no longer needed and can thus be
+deallocated.  For example:
+
+@example
+- (NSString *) getStatus
+@{
+  NSString *status =
+    [[NSString alloc] initWithFormat: "Count is %d", [self getCount]];
+   // set to be released sometime in the future
+  [status autorelease];
+  return status;
+@}
+@end example
+
+Any block of code that calls @code{-getStatus} can also forego retaining the
+return value if it just needs to use it locally.  If the return value is to be
+stored and used later on however, it should be retained:
+
+@example
+  ...
+  NSString *status = [foo getStatus];
+    // 'status' is still being retained by the autorelease pool
+  NSLog(status);
+  return;
+    // status will be released automatically later
+@end example
+
+@example
+  ...
+  currentStatus = [foo getStatus];
+    // currentStatus is an instance variable; we do not want its value
+    // to be destroyed when the autorelease pool cleans up, so we
+    // retain it ourselves
+  [currentStatus retain];
+@end example
+
+@b{Convenience Constructors}
+
+A special case of object transfer occurs when a @i{convenience} constructor is
+called (instead of @code{alloc} followed by @code{init}) to create an object.
+(Convenience constructors are class methods that create a new instance and do
+not start with ``new''.)  In this case, since the convenience method is the
+one calling @code{alloc}, it is responsible for releasing it, and it does so
+by calling @code{autorelease} before returning.  Thus, if you receive an
+object created by any convenience method, it is autoreleased, so you don't
+need to release it if you are just using it temporarily, and you DO need to
+retain it if you want to hold onto it for a while.
+
+@example
+- (NSString *) getStatus
+@{
+    NSString *status =
+        [NSString stringWithFormat: "Count is %d", [self getCount]];
+    // 'status' has been autoreleased already
+    return status;
+@}
+@end example
+
+@b{Pool Management}
+
+An autorelease pool is created automatically if you are using the GNUstep
+GUI classes, however if you are just using the GNUstep Base classes for a
+nongraphical application, you must create and release autorelease pools
+yourself:
+
+@example
+  NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+@end example
+
+Once a pool has been created, any autorelease calls will automatically find
+it.  To close out a pool, releasing all of its objects, simply release the
+pool itself:
+
+@example
+  [pool release];
+@end example
+
+To achieve finer control over autorelease behavior you may also create
+additional pools and release them in a nested manner.  Calls to
+@code{autorelease} will always use the most recently created pool.
+
+Finally, note that @code{autorelease} calls are significantly slower than
+plain @code{release}.  Therefore you should only use them when they are
+necessary.
+
+
+@subsubsection Avoiding Retain Cycles
+
+One difficulty that sometimes occurs with the retain/release system is that
+cycles can arise in which, essentially, Object A has retained Object B, and
+Object B has also retained Object A.  In this situation, neither A nor B will
+ever be deallocated, even if they become completely disconnected from the rest
+of the program.  In practice this type of situation may involve more than two
+objects and multiple retain links.  The only way to avoid such cycles is to be
+careful with your designs.  If you notice a situation where a retain cycle
+could arise, remove at least one of the links in the chain, but not in such a
+way that references to deallocated objects might be mistakenly used.
+
+
+@subsubsection Summary
+
+The following summarizes the retain/release-related methods:
+
+@multitable @columnfractions 0.25 0.75
+@item Method @tab Description
+@item @code{-retain}
+@tab increases the reference count of an object by 1
+@item @code{-release}
+@tab decreases the reference count of an object by 1
+@item @code{-autorelease}
+@tab decreases the reference count of an object by 1 at some stage in the future
+@item @code{+alloc} and @code{+allocWithZone:}
+@tab allocates memory for an object, and returns it with retain count of 1
+@item @code{-copy}, @code{-mutableCopy}, @code{copyWithZone:} and @code{-mutableCopyWithZone:}
+@tab makes a copy of an object, and returns it with retain count of 1
+@item @code{-init} and any method whose name begins with @code{init}
+@tab initialises the receiver, returning the retain count unchanged.
+@code{-init} has had no effect on the reference count.
+@item @code{-new} and any method whose name begins with @code{new}
+@tab allocates memory for an object, initialises it, and returns the result.
+@item @code{-dealloc}
+@tab deallocates object immediately (regardless of value of retain count)
+@item convenience constructors
+@tab allocate memory for an object, and returns it in an autoreleased state
+(retain=1, but will be released automatically at some stage in the future).
+These constructors are class methods whose name generally begins with the
+name of the class (initial letter converted to lowercase).
+@end multitable
+
+The following are the main conventions you need to remember:
+
+@itemize
+@item
+If a unit of code allocates, retains, or copies an object, the same unit,
+loosely speaking, is responsible for releasing or autoreleasing it at some
+future point.  It is best to balance retains and releases within each
+individual block of code.
+
+@item
+If you receive an object, it should remain valid until the object which
+provided it is sent another message or until the autorelease pool which
+was in use at the point when you received it is emptied.  So you can
+usually expect it to remain valid for the rest of the current method call
+and can even return it as the result of the method.
+If you need to store it away for future use (e.g. as an instance variable,
+or to use after emptying/destroying an autorelease pool, or to be used
+after sending another message to the object's owner), you must retain it.
+
+@item
+The retain counts mentioned are guidelines only ... more sophisticated classes
+often perform caching and other tricks, so that @code{+alloc} methods may
+retain an instance from a cache and return it, and @code{-init} methods
+may release their receiver and return a different object (possibly obtained
+by retaining a cached object).  In these cases, the retain counts of the
+returned objects will obviously differ from the simple examples, but the
+ownership rules (how you should use the returned values) remain the same.
+@end itemize
+
+
+@ignore
+Special examples: delegate, target
+@end ignore
+
+
+@subsection Garbage Collection Based Memory Management
+@cindex memory management, garbage collection based
+@cindex garbage collection
+
+The GNUstep system can be optionally compiled with a memory sweeping
+@b{garbage collection} mechanism using the Boehm conservative garbage
+collection library (@url{http://www.hpl.hp.com/personal/Hans_Boehm/gc}).
+In this case, you need not worry about retaining and releasing objects; the
+garbage collector will automatically track which objects are still referred to
+at any given point within the program, and which are not.  Those that are not
+are automatically deallocated.  The situation is largely similar to
+programming in Java, except that garbage collection will only be triggered
+during memory allocation requests and will be less efficient since pointers
+in C are not always explicitly marked.
+
+Whether in Java or Objective-C, life is still not completely worry-free under
+garbage collection however.  You still must ``help the garbage collector
+along'' by explicitly dropping references to objects when they become
+unneeded.  Failing to do this is easier than you might think, and leads to
+memory leaks.
+
+When GNUstep was compiled with garbage collection, the macro flag
+@code{GS_WITH_GC} will be defined, which you can use in programs to determine
+whether you need to call @code{retain}, @code{release}, etc..  Rather than
+doing this manually, however, you may use special macros in place of the
+@code{retain} and @code{release} method calls.  These macros call the methods
+in question when garbage collection is @i{not} available, but do nothing when
+it is.
+
+@multitable @columnfractions 0.25 0.75
+@item Macro @tab Functionality
+
+@item @code{RETAIN(foo);}
+@tab @code{[foo retain];}
+
+@item @code{RELEASE(foo);}
+@tab @code{[foo release];}
+
+@item @code{AUTORELEASE(foo);}
+@tab @code{[foo autorelease];}
+
+@item @code{ASSIGN(foo, bar);}
+@tab @code{[bar retain]; [foo release]; foo = bar;}
+
+@item @code{ASSIGNCOPY(foo, bar);}
+@tab @code{[foo release]; foo = [bar copy];}
+
+@item @code{DESTROY(foo);}
+@tab @code{[foo release]; foo = nil;}
+@end multitable
+
+In the latter three ``convenience'' macros, appropriate @code{nil} checks are
+made so that no retain/release messages are sent to @code{nil}.
+
+Some authorities recommend that you always use the RETAIN/RELEASE macros in
+place of the actual method calls, in order to allow running in a non-garbage
+collecting GNUstep environment yet also save unneeded method calls in the case
+your code runs in a garbage collecting enviromnent.  On the other hand, if you
+know you are always going to be running in a non-garbage collecting
+environment, there is no harm in using the method calls, and if you know you
+will always have garbage collection available you can save development effort
+by avoiding any use of retain/release or RETAIN/RELEASE.
+
+
+@subsection Current Recommendations
+
+As of May 2004 the garbage collection in GNUstep was still considered beta
+quality (some bugs exist).  In the OS X world, Apple's Cocoa does @i{not}
+employ garbage collection, and it is not clear whether there are plans to
+implement it.  Therefore the majority of GNUstep programmers use the
+RETAIN/RELEASE approach to memory management.
+
+@page
+
+

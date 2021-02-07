@@ -1,0 +1,230 @@
+<?xml version="1.0"?>
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 1.0.3//EN" "/usr/GNUstep/System/Libraries/Resources/DTDs/gsdoc-1_0_3.dtd" >
+<gsdoc base="KeyboardSetup">
+  <head>
+    <title>User Keyboard Setup for GNUstep Libraries</title>
+    <author name="Adam Fedor">
+      <email address="fedor@gnu.org"/>
+      <url url="http://www.gnustep.org/developers/whoiswho.html"/>
+    </author>
+    <author name="Nicola Pero">
+      <email address="n.pero@mi.flashnet.it"/>
+      <url url="http://www.gnustep.org/developers/whoiswho.html"/>
+    </author>
+    <version>$Revision$</version>
+    <date>$Date$</date>
+    <copy>2005 Free Software Foundation, Inc.</copy>
+  </head>
+  <body>
+    <chapter>
+      <heading>Keyboard Setup</heading>
+      <p>
+        This document describes how to change the mouse and keyboard 
+	mappings so that GNUstep can be used properly.
+	This document applies only to the X-Windows based backend. 
+      </p>
+      <section>
+        <heading>Defaults Settings</heading>
+ 	<p>
+ 	  The OpenStep specification requires 3 main different keyboard
+	  modifiers: <var>CONTROL</var>, <var>COMMAND</var> and
+	  <var>ALTERNATE</var>.
+	</p>
+ 	<list>
+	  <item>
+	    <var>COMMAND</var> is used to enter key equivalents (keyboard
+ 	    shortcuts for menus or buttons); for example, usually 'Quit'
+ 	    on the main menu of an application is bound to 'q', so you
+ 	    may usually quit a GNUstep application by
+ 	    pressing <em>Command - q</em>.
+   	  </item>
+	  <item>
+	    <var>CONTROL</var> and <var>ALTERNATE</var> are two
+	    additional modifiers.  A typical use
+	    of <var>ALTERNATE</var> is to scroll by pages rather than
+	    by lines; you have to press <var>ALTERNATE</var> while
+	    acting on a scrollbar with the mouse.
+	  </item>
+	</list>
+	<p>
+	  By default, GNUstep uses <code>Control_L</code> (left Ctrl)
+	  and <code>Control_R</code> (right Ctrl)
+	  as <var>CONTROL</var>, <code>Alt_L</code> (left alt)
+	  as <var>COMMAND</var>, and <code>Alt_R</code> (right alt,
+	  sometimes called AltGr) as <var>ALTERNATE</var>.  As a
+	  special exception, if <code>Alt_R</code> is not bound to any
+	  key on your keyboard, GNUstep will try to use
+	  <code>Mode_switch</code> for <var>ALTERNATE</var> instead. 
+          Some X server map AltGr onto <code>ISO_Level3_Shift</code>. 
+          To allow for this the second code <var>ALTERNATE</var> may be
+          bound to this key.
+	</p>
+	<p>
+	  If this layout does not work for you, because your keyboard
+	  misses some of these keys, or they have different X names or
+	  they conflict heavily with your window manager shortcuts (or
+	  for any other reason), read on.
+	</p>
+      </section>
+
+      <section>
+	<heading>Changing the Default Settings</heading>
+	<p>
+	  Under GNUstep, you may change the default as you wish: 
+	  you may choose which keys of your keyboard you want 
+	  to use for <var>CONTROL</var>, <var>COMMAND</var> and <var>ALTERNATE</var> 
+	  (You may even use different keys for different GNUstep applications, 
+	  without conflict).  These settings are internal to GNUstep, 
+	  and will not influence the behaviour of other X apps.  
+	</p>
+	<p>
+	  You may choose up to 2 keys per modifier.  
+	</p>
+	<p>
+	  Note that, if your keyboard is properly set up for X, 
+	  you should <em>not</em> need to remap your X keyboard 
+	  to use GNUstep.  By changing the defaults, you should be able 
+	  to use GNUstep whatever the X keyboard mapping might be.
+	</p>
+	<p>
+	  What you have to do, is simply to instruct GNUstep to use 
+	  different keys for <var>CONTROL</var>, <var>COMMAND</var> and <var>ALTERNATE</var>. 
+	</p>
+	<p>
+	  The keys to use are determined at the application startup, 
+	  by reading the user defaults database.  
+	</p>
+	<p>
+
+	  To set the keys which will act as <var>CONTROL</var> you have to set 
+	  <code>GSFirstControlKey</code> and <code>GSSecondControlKey</code>; and 
+	  similarly for the other keys: 
+	</p>
+	<list>
+	  <item> CONTROL
+	    <code>GSFirstControlKey</code>
+	    <code>GSSecondControlKey</code>
+	  </item>
+	  <item> COMMAND
+	    <code>GSFirstCommandKey</code>
+	    <code>GSSecondCommandKey</code>
+	  </item>
+	  <item> ALTERNATE
+	    <code>GSFirstAlternateKey</code>
+	    <code>GSSecondAlternateKey</code>
+	  </item>
+	</list>
+	<p>
+	  Valid values are all the standard strings for X keys.  
+	  To disable completely a key, use <code>NoSymbol</code> as preference.
+	</p>
+	<p>
+	  Each value which you do not explicity set is substituted with 
+	  its default value.  The default values are: 
+	</p>
+	<list>
+	  <item> GSFirstControlKey
+	    <code>Control_L</code>
+	  </item>
+	  <item> GSSecondControlKey
+	    <code>Control_R</code>
+	  </item>
+	  <item> GSFirstCommandKey
+	    <code>Alt_L</code> 
+	  </item>
+	  <item> GSSecondCommandKey
+	    <code>NoSymbol</code>
+	  </item>
+	  <item> GSFirstAlternateKey
+	    <code>Alt_R</code> (or <code>Mode_switch</code> if there is no <code>Alt_R</code>)
+	  </item>
+	  <item> GSSecondAlternateKey
+	    <code>NoSymbol</code>
+	  </item>
+	</list>
+
+	<p>
+	  What could go wrong is for example that you don't have an <code>Alt_L</code>
+	  key.  With the default settings, you will not be able to enter the
+	  <var>COMMAND</var> key (which is quite an important key).  What you can do in
+	  this case is to use <code>Control_R</code> as <var>COMMAND</var>, giving the
+	  following commands (from the command line):
+	</p>
+	<example>
+	  defaults write NSGlobalDomain GSFirstCommandKey Control_R
+	  defaults write NSGlobalDomain GSSecondControlKey NoSymbol
+	</example>
+	<p>
+	  These commands write in the GNUstep user database; 
+	  the information will be used every time you start a GNUstep application. 
+	</p>
+	<p>
+	  The first line sets <code>GSFirstCommandKey</code> to <code>Control_R</code>, which
+	  makes <code>Control_R</code> to be read as <var>COMMAND</var>.
+	</p>
+	<p> 
+	  The second line disables the second control key, which would otherwise
+	  be bound to <code>Control_R</code> by default. If you omit it,
+	  <code>Control_R</code> will be used at the same time as <var>COMMAND</var> and as
+	  <var>CONTROL</var>, which is not very useful.
+	</p>
+	<p>
+	  To delete these preferences and restore the defaults, use 
+	</p>
+	<example>
+	  defaults delete NSGlobalDomain GSFirstCommandKey
+	  defaults delete NSGlobalDomain GSSecondControlKey
+	</example>
+
+	<p>
+	  To get a list of currently set defaults, you may use 
+	</p>
+	<example>
+	  defaults read
+	</example>
+	<p>
+	  The list might be very long; you may want to extract only 
+	  setting for the <code>GSFirstCommandKey</code>, for example: 
+	</p>
+	<example>
+	  defaults read | grep GSFirstCommandKey
+	</example>
+
+	<p>
+	  A thing which could go wrong if you are trying to use a
+	  setting different from the default, and you do not know
+	  much about X, is that you can't find out the name of one
+	  of your key.  In this case, you may try having a look at
+	  the output of programs like <code>xmodmap</code> or
+	  <code>xkeycaps</code>; even if you do not understand it
+	  completely, the output can inspire the right guessing.
+	</p>
+	<p>
+	  A problem you are likely to encounter is that of conflicts
+	  with the window manager keyboard shortcuts.  Good window
+	  managers let you change the keyboard shortcuts, so you may
+	  move the wm shortcuts that you do not use to keys which do
+	  not conflict (at least not too much) with GNUstep.
+	</p>
+        <p>
+          A final potential worry on X11 has to do with keyboards where hitting
+          'shift' or another key can affect the interpretation of a modifier
+          key.  For example, on some Apple USB keyboards one key to the left
+          of the space bar maps to "Option" without shift pressed, and "Alt"
+          when it IS pressed.  Such keyboard mappings are often useful in
+          non-English contexts to access accents or non-Roman characters.
+          However if such a key is used as a modifier in GNUstep problems can
+          occur when trying to use the modifier in conjunction with a shifted
+          character.  In particular, you will need to hit and release the
+          modifier and the shift key in a particular order, or else things
+          will not work as expected, and the modifier may become "stuck".  If
+          you experience such a problem, set the GNUstep back default
+          <code>GSModifiersAreKeys</code> to <code>YES</code>.
+        </p>
+
+      </section>
+    </chapter>
+  </body>
+</gsdoc>
+
+

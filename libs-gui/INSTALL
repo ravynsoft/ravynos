@@ -1,0 +1,69 @@
+1 Installation
+**************
+
+1.1 Introduction
+================
+
+This file documents the installation of the GNUstep GUI Library,
+'gnustep-gui'.  If you are installing this package as part of the
+GNUstep core package, read the file GNUstep-HOWTO for more complete
+instructions on how to install the entire GNUstep package (including
+this library).  GNUstep-HOWTO is located at <http://www.gnustep.org> and
+in the gnustep-make package (which you should install first).
+
+   You must have installed gnustep-base and gnustep-make before building
+this library.  GNUstep Make version 2.0.0 or greater is required.
+GNUstep Base version 1.15.0 or greater is required.
+
+   Other external libraries that you should have installed include:
+
+   * tiff (REQUIRED)
+   * jpeg (RECOMMENDED)
+   * png (RECOMMENDED)
+   * gif or ungif (OPTIONAL)
+   * aspell (OPTIONAL)
+   * cups (OPTIONAL)
+   * audiofile (OPTIONAL)
+   * portaudio, v19 which has several API changes previous version
+     (OPTIONAL)
+
+   Read the GNUstep-HOWTO for more information.  After installing this
+library, install gnustep-back.
+
+1.2 Configuration
+=================
+
+Configuration is performed by running the 'configure' program at a shell
+prompt.  You may want to use some of the optional arguments to the
+'configure' program.  Type 'configure --help' for a list.  GNUstep
+specific options are at the end of this list (if any).
+
+1.3 Compilation
+===============
+
+To compile this library, type make.  After this is complete, type make
+install (make sure you are the root user).  Some additional options you
+can use with make are 'debug=yes' to make a debugging version of the
+library and 'shared=no' to make a static version of the library.  See
+the gstep-make package for more information on these options.
+
+1.4 Installing
+==============
+
+To install, type
+
+     make install
+
+1.5 Post Installation
+=====================
+
+GNUstep gui comes with a tool called 'make_services' which builds a list
+of installed applications and services.  This list is used to find
+services for the services menu, for instance.  This tool should be run
+after a new service or application is installed in the system.
+Theoretically, a workspace application, such as GWorkspace, should do
+this automatically.  But this is not done at the current time.  You
+might consider running this service automatically, perhaps in a login
+script, to make sure the service and application lists are updated
+regularly.
+

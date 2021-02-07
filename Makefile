@@ -34,7 +34,7 @@ freebsd: checkout ${TOPDIR}/freebsd-src/sys/${MACHINE}/compile/${BSDCONFIG}
 freebsd-noclean:
 	export MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX}; make -C ${TOPDIR}/freebsd-src -DNO_CLEAN buildkernel buildworld
 
-helium: extradirs mkfiles libobjc2 frameworks
+helium: extradirs mkfiles libobjc2 tools-make 
 
 # Update the build system with current source
 install: installworld installkernel installhelium
@@ -62,13 +62,43 @@ libobjc2: .PHONY
 	mkdir -p ${MAKEOBJDIRPREFIX}/libobjc2
 	cd ${MAKEOBJDIRPREFIX}/libobjc2; cmake -DCMAKE_INSTALL_PREFIX=/usr ${TOPDIR}/libobjc2
 	make -C ${MAKEOBJDIRPREFIX}/libobjc2 DESTDIR=${BUILDROOT} install
-	rm -f ${BUILDROOT}/usr/include/Block*.h
+
+
+# The GNUstep build process sucks because it must be installed on the build
+# system with the same config as the packages being built. There is no way
+# to build against the packages in $BUILDROOT. UGH.
+
+GS_FRAMEWORK:= /System/Library/Frameworks/GNUstep.framework
+GS_CONF:= ${GS_FRAMEWORK}/Resources/GNUstep.conf
+
+tools-make: .PHONY
+	cd ${TOPDIR}/${.TARGET}; \
+		./configure --with-layout=helium \
+		--with-config-file=${GS_CONF}; \
+		gmake; gmake DESTDIR=${BUILDROOT} install; \
+		sudo gmake install
+
+libs-base: .PHONY
+	cd libs-base && \
+	       ICU_CFLAGS="--std-c++=11" ICU_LIBS="-licui18n -licuuc -licudata -licuio" \
+	       CPPFLAGS="-I${BUILDROOT}/usr/include -I/usr/include/c++/v1" \
+	       LDFLAGS="-L${BUILDROOT}/usr/lib" \
+	       LD_LIBRARY_PATH="${BUILDROOT}/usr/lib" \
+	       ./configure --prefix=/ \
+	       --with-default-config=${GS_CONF} \
+	       --with-installation-domain=SYSTEM && gmake && \
+	       gmake DESTDIR=${BUILDROOT} install && \
+	       sudo gmake install
+
 
 frameworksclean:
 	rm -rf ${BUILDROOT}/System/Library/Frameworks/*.framework
+	for fmwk in ${.ALLTARGETS:M*.framework:R}; do \
+		make -C $$fmwk clean; \
+	done
 
-frameworks: frameworksclean Foundation.framework CoreFoundation.framework \
-		CoreServices.framework CFNetwork.framework
+frameworks: 
+	for fmwk in ${.ALLTARGETS:M*.framework}; do make $$fmwk; done
 
 Foundation.framework:
 	rm -rf Foundation/${.TARGET}

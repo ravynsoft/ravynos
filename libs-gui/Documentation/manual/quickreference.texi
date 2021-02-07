@@ -1,0 +1,360 @@
+@c    GNUstep AppKit Guide
+@c
+@c    Copyright (c)  2005-2006  Christopher Armstrong.
+@c
+@c    Permission is granted to copy, distribute and/or modify this document
+@c    under the terms of the GNU Free Documentation License, Version 1.2
+@c    with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+@c    A copy of the license is included in the section entitled "GNU
+@c    Free Documentation License".
+@c
+@c This documentation is provided on an "AS IS" BASIS, WITHOUT WARRANTY
+@c OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING, BUT NOT LIMITED
+@c TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+@c PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY AND USEFULNESS
+@c OF THE DOCUMENTATION IS WITH YOU (THE LICENSEE). IN NO EVENT WILL THE COPYRIGHT
+@c HOLDERS BE LIABLE FOR DAMAGES, INCLUDING ANY DIRECT, INDIRECT,
+@c SPECIAL, GENERAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF
+@c THE USE OR INABILITY TO USE THIS DOCUMENTATION (INCLUDING BUT NOT
+@c LIMITED TO LOSS OF DATA, USE, OR PROFITS; PROCUREMENT OF SUBSTITUTE
+@c GOODS AND SERVICES; OR BUSINESS INTERUPTION) HOWEVER CAUSED, EVEN
+@c IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+@node quickreference
+@appendix Class Quick Reference
+@anchor{Class Quick Reference}
+
+In this section are tables listing the methods in each class described in the manual, along with a brief description of those methods. These are referenced against the information given throughout this manual.
+
+Also listed are some of the functions used in this manual, useful for some purposes.
+
+Class hierarchies are also given, so that you can refer to the methods that appear in a class's superclass (methods are not listed twice, except where their meaning is substantially changed in a subclass).
+
+@section NSBrowser
+
+An NSBrowser is an GUI object useful for representing hierachical data that needs be heavily navigated. It is derived from NSControl, and uses @code{NSBrowserCell} as its cell class
+
+Class Hierarchy: @i{NSBrowser : NSControl : NSView : NSResponder : NSObject}
+
+@subsection NSBrowserDelegate
+
+@code{NSBrowserDelegate} is an informal protocol used to supply data and provide dynamic behaviour in a browser object.
+
+@table @code
+
+@item  -(void) browser:(NSBrowser*)sender createRowsForColumn:(int)column inMatrix:(NSMatrix*)matrix
+This method is implemented by @dfn{active} delegates. It is called by the browser when the user clicks on a branch node and needs to populate the next column. It becomes the delegate's responsibility then to create the browser cells for @var{column} and add them to @var{matrix} in @var{sender}. This method cannot be implemented at the same time as @code{-browser:numberOfRowsInColumn:}.
+
+@item -(BOOL) browser:(NSBrowser*)sender isColumnValid:(int)column
+When the user calls @code{-validateVisibleColumn:} on the browser object, it in turns checks whether a column is "valid" by calling this method on its delegate. A column that is invalid will be marked for redrawing. Use this method when you need to check internal data states or otherwise when a browser's data can become invalid.
+
+@item -(int) browser:(NSBrowser*)sender numberOfRowsInColumn:(int)column
+This method is implemented by @dfn{passive} delegates. It is called by the browser to get the number of rows in a column. The browser object uses this information to create the browser cells for @var{column}. This method cannot be implemented at the same time as @code{-browser:createRowsForColumn:inMatrix:}.
+
+@item -(BOOL) browser:(NSBrowser*)sender selectCellWithString:(NSString*)title inColumn:(int)column
+This method is called by the browser to tell the delegate to select the cell with contents @var{title} in @var{column}. Return @code{YES} to indicate the cell was selected; otherwise, return @code{NO}.
+
+@item -(BOOL) browser:(NSBrowser*)sender selectRow:(int)row inColumn:(int)column
+This method is called by the browser to tell the delegate to select the cell in @var{row} and @var{column}. Return @code{YES} to indicate teh cell was selected; otherwise, return @code{NO}.
+
+@item -(NSString*) browser:(NSBrowser*)sender titleOfColumn:(int)column
+This method is called by the browser object to retrieve the title of @var{column}.
+
+@item -(void) browser:(NSBrowser*)sender willDisplayCell:(id)cell atRow:(int)row column:(int)column
+This method is called just before the browser object is about to display @var{cell}. Use it to do any modifications before the cell is displayed on the screen.
+
+@item -(void) browserDidScroll:(NSBrowser*)sender
+Called by the browser object just after it has updated the screen for a user-initiated scroll operation.
+
+@item -(void) browserWillScroll:(NSBrowser*)sender
+Called just before a browser object will update the screen for a scroll operation.
+
+@end table
+
+@section NSComboBox
+
+Represents a specialised text field that also has a drop-down box displaying a list of possible choices as well as letting the user enter their own. This list can be populated using the methods of @code{NSComboBox} or a data source which implements the @code{NSComboBoxDelegate} informal protocol, described below.
+
+Class Hierarchy: @i{NSComboBox : NSTextField : NSControl : NSView : NSResponder : NSObject}
+
+@subsection NSComboBoxDataSource
+
+@table @code
+@item -(NSString*) comboBox:(NSComboBox*)@var{aComboBox} completedString:(NSString*)@var{aString}
+This method is used to implement a sort of "auto-complete" for combo boxes. @var{aString} is what the user has typed in so far and is what you use to match against the items the in the combo box.
+
+You may optionally implement this method.
+
+@item -(unsigned int) comboBox:(NSComboBox*)@var{aComboBox} indexOfItemWithStringValue:(NSString*)@var{aString}
+This method returns the index of @var{aString} within the combo box. @var{aString} is what the user has typed in (or what has been auto-completed in the previous method).
+
+You may optionally implement this method.
+
+@item -(id) comboBox:(NSComboBox*)@var{aComboBox} objectValueForItemAtIndex:(int)@var{index}
+This method returns the value of the item at @var{index}. 
+
+This method is not optional.
+
+@item -(int) nubmerOfItemsInComboBox:(NSComboBox*)@var{aComboBox}
+This method returns the number of items in @var{aComboBox}.
+
+This method is not optional.
+@end table
+
+@section NSControl
+
+Represents simple graphical elements (such as buttons or text fields) that use a @dfn{cell} to implement their internal behaviour (subclasses of @code{NSCell}).
+
+Class Hierarchy: @i{NSControl : NSView : NSResponder : NSObject}
+
+@table @code
+
+@item -(Class) cellClass
+@itemx -(void) setCellClass:(Class)@var{class}
+Get/Set the default class used for cell(s) in this control.
+
+@item -(id) cell
+@itemx -(void) setCell:(id)@var{cell}
+Get/Set the @var{cell} to be displayed in the receiver.
+
+@item -(id) objectValue
+@itemx -(int) intValue
+@itemx -(float) floatValue
+@itemx -(double) doubleValue
+@itemx -(NSString*) stringValue
+Get the value of the control's cell in the respective form.
+
+@item -(void) setObjectValue:(id)@var{value}
+@itemx -(void) setIntValue:(int)@var{value}
+@itemx -(void) setFloatValue:(float)@var{value}
+@itemx -(void) setDoubleValue:(double)@var{value}
+@itemx -(void) setStringValue:(NSString*)@var{value}
+Set the value of the control's cell in the respective form.
+
+@item  -(void) takeDoubleValueFrom:(id)@var{sender}
+@itemx -(void) takeFloatValueFrom:(id)@var{sender}
+@itemx -(void) takeIntValueFrom:(id)@var{sender}
+@itemx -(void) takeObjectValueFrom:(id)@var{sender}
+@itemx -(void) takeStringValueFrom:(id)@var{sender}
+Changes the value of the receiver to that of the @var{sender} when the @var{sender} object is updated.
+
+@item -(BOOL) enabled
+@itemx -(void) setEnabled:(BOOL)@var{enabled}
+Get/Set whether the user can manipulate the control.
+
+@end table
+
+@section NSMatrix
+
+Class Hierarchy: @i{NSMatrix : NSControl : NSView : NSResponder : NSObject}
+
+@subheading Modifying cell classes
+@table @code
+
+@item +(Class) cellClass
+Return the default cell class used to create new cells for each new NSMatrix instance.
+
+@item +(void) setCellClass:(Class)@var{class}
+Sets the default cell class used to create new cells for each new NSMatrix instance.
+
+@item -(Class) cellClass
+Return the default cell class used to create new cells on this particular NSMatrix instance.
+
+@item -(void) setCellClass:(Class)@var{class}
+Set the cell class used to create new cells on this particular NSMatrix instance.
+
+@end table
+
+@subheading Columns and Rows Manipulation
+@table @code
+
+@item -(void) addColumn
+@itemx -(void) addRow
+Adds a column/row to the end of the matrix.
+
+@item -(void) addColumnWithCells:(NSArray*)@var{cells}
+@itemx -(void) addRowWithCells:(NSArray*)@var{cells}
+Adds a column/row to the end of the matrix, specifying the list of cells to add.
+
+@item -(void) insertColumn:(int)@var{column}
+@item -(void) insertRow:(int)@var{row}
+Inserts a blank column/row at the specified location.
+
+@item -(void) insertColumn:(int)@var{column} withCells:(NSArray*)@var{cells}
+@itemx -(void) insertRow:(int)@var{row} withCells:(NSArray*)@var{cells}
+Inserts a column/row, using the cell objects specifed by @var{cells}.
+ 
+@item -(void) removeColumn:(int)@var{column}
+@itemx -(void) removedRow:(int)@var{row}
+Removes the column/row specified by @var{column}/@var{row}.
+
+@item -(int) numberOfColumns
+@itemx -(int) numberOfRows
+Returns the number of columns/rows.
+
+@end table
+
+@subheading Cell Selection
+Cell selection behaviour depends on what matrix mode is set (see @code{-mode}) and whether or not it permits empty selection.
+
+@table @code
+@item -(id) selectedCell
+Returns the selected cell.
+
+@item -(NSArray*) selectedCells
+Returns the array of selected cells.
+
+@item -(int) selectedColumn
+@itemx -(int) selectedRow
+Returns the column/row the currently selected cell is located in. It returns @code{-1} if no cell is selected.
+
+@item -(void) selectAll:(id)@var{sender}
+Selects all the cells within the matrix.
+
+@item -(void) selectCell:(NSCell*)@var{aCell}
+Selects the cell within the matrix that matches @var{aCell}.
+
+@item -(void) selectCellAtRow:(int)@var{row} column:@var{column}
+Selects the cell at @var{row} and @var{column}. Set either integer to @code{-1} to deselect all the cells.
+
+@item -(void) deselectAllCells
+Deselects all the cells within the matrix (if mode isn't NSRadioModeMatrix and if it permits empty cell selection).
+
+@item -(void) deselectSelectedCell
+Deselects the selected cell, subject to the matrix mode behaviour.
+@end table
+
+@section NSTableView
+
+Class Hierarchy: @i{NSTableView : NSControl : NSView : NSResponder : NSObject}
+
+@subsection NSTableDataSource (informal protocol)
+@cindex protocols, NSTableDataSource
+@table @code
+@item -(int) numberOfRowsInTableView:(NSTableView*)@var{aTableView}
+Returns the number of rows that the table view should display. This method is called frequently and is compulsory.
+
+@item -(id) tableView:(NSTableView*)@var{tableView} objectValueForTableColumn:(NSTableColumn*)@var{aTableColumn} row:(int)@var{row}
+Returns an object that should be displayed in @var{tableView}, in column @var{tableColumn} and row @var{tableRow}. This value is usually a string object, but could be number object or similiar. This method is called frequently and is compulsory.
+
+@item -(void) tableView:(NSTableView*)@var{aTableColumn} setObjectValue:(id)@var{anObject} forTableColumn:(NSTableColumn*)@var{aTableColumn} row:(int)@var{rowIndex}
+This is called to indicate that the value in the respective column and row has changed. The data source should update itself with the new object value. Implementation of this method is necessary for allowing your table to be modified.
+
+@item  -(BOOL) tableView:(NSTableView*)@var{table}View writeRows:(NSArray*)@var{rows} toPasteboard:(NSPasteboard*)@var{pboard}
+This is method is usually the first stage in a drag and drop operation. It asks the data source to write the rows specified by an array of numbers (@var{rows}) to @var{pboard}. Return @code{NO} to reject the drag operation, or @code{YES} if the rows have been written to the pasteboard to begin the drag.
+
+@item -(BOOL) tableView:(NSTableView*)@var{aTableView} acceptDrop:(id)@var{info} row:(int)@var{row} dropOperation:(NSTableViewDropOperation)@var{operation}
+This is called after a mouse "drag and drop" operation has been completed (and formerly authorised) to indicate what kind of drop operation has occurred, what row it has occurred in and the information associated with the drop operation (the @var{info} parameter). This method is optional.
+
+@end table
+
+@subsection NSTableViewDelegate (informal protocol)
+@cindex protocols, NSTableViewDelegate
+@table @code
+
+@item -(BOOL) selectionShouldChangeInTableView: (NSTableView*)aTableView
+Returns @code{YES} if the user should be permitted to change their current selection (often a row) in @var{aTableView}. Use this for the complex validation of user's changing the current selection.
+
+@item -(void) tableView: (NSTableView*)tableView didClickTableColumn: (NSTableColumn*)tableColumn
+Called by @var{tableView} after the user clicked and released anywhere in @var{tableColumn}. Does not include dragging.
+
+@item  -(void) tableView: (NSTableView*)tableView didDragTableColumn: (NSTableColumn*)tableColumn
+Called after the user dragged @var{tableColumn} in @var{tableView}.
+
+@item  -(void) tableView: (NSTableView*)tableView mouseDownInHeaderOfTableColumn: (NSTableColumn*)tableColumn
+Called when the user specifically clicks the mouse button down in the area defined by @var{tableColumn} in @var{tableView}
+
+@item  -(BOOL) tableView: (NSTableView*)aTableView shouldEditTableColumn: (NSTableColumn*)aTableColumn row: (int)rowIndex
+This is called just after the user indicates they wish to edit the cell specified by @var{rowIndex} and @var{tableColumn}. Return @code{YES} to allow the user to edit this cell, or return @code{NO} disallow editing.
+
+@item  -(BOOL) tableView: (NSTableView*)aTableView shouldSelectRow: (int)rowIndex
+This is called when the user tries to select the row indicated by @var{rowIndex} in @var{aTableView}. Return @code{YES} to permit this row to be selected, or @code{NO} otherwise.
+
+@item  -(BOOL) tableView: (NSTableView*)aTableView shouldSelectTableColumn: (NSTableColumn*)aTableColumn
+This is called when the user tries to select the column indicated by @var{aTableColumn}. Return @code{YES} to permit this column to be selected, or @code{NO} otherwise.
+
+@item -(void) tableView: (NSTableView*)aTableView willDisplayCell: (id)aCell forTableColumn: (NSTableColumn*)aTableColumn row: (int)rowIndex
+This is called by the tableview just before @var{aCell} is displayed. Use this method to setup any display attributes about a cell just before @var{aTableView} draws it.
+
+@item -(void) tableViewColumnDidMove: (NSNotification*)aNotification
+This is called after the user moved a column. Refer to @var{aNotification} for the information sent with the @code{NSTableViewColumnDidMoveNotification} notification.
+
+@item -(void) tableViewColumnDidResize: (NSNotification*)aNotification
+This is called after the user resized a column. Refer to @var{aNotification} for the information sent with the @code{NSTableViewColumnDidResizeNotification} notification.
+
+@item -(void) tableViewSelectionDidChange: (NSNotification*)aNotification
+This is called after the user changed their selection. Refer to @var{aNotification} for the information sent with the @code{NSTableViewSelectionDidChangeNotification} notification.
+
+@item -(void) tableViewSelectionIsChanging: (NSNotification*)aNotification
+This is called while the user is in the middle of changing the current selection, often by dragging the mouse around the tableview. Refer to @var{aNotification} for the information sent with the @code{NSTableViewSelectionIsChangingNotification} notification.
+
+@end table
+
+@subsection Notifications
+
+All these notifications have the tableview which posted them as their notification object.
+
+@table @code
+
+@item NSTableViewColumnDidMoveNotification
+This is posted when a column moved within a tableview as a result of a user action. It contains a userinfo dictionary with two keys: @code{@@"NSOldColumn"} and @code{@@"NSNewColumn"} which are @code{NSNumber} objects referring to the previous and new column indices (respectively).
+
+@item NSTableViewColumnDidResizeNotification
+This is posted when a column is resized within a tableview. It's userinfo dictionary contains two keys: @code{@@"NSTableColumn"} which refers to the resized column and @code{@@"NSOldWidth"} which is a @code{NSNumber} object containing the columns' previous width.
+
+@item NSTableViewSelectionDidChangeNotification
+This is posted when the selection within a tableview has changed. Use the tableview to discover the new selection.
+
+@item NSTableViewSelectionIsChangingNotification
+This is posted as the selection in a tableview is changing, such as when the user drags their mouse over it's cells.
+
+@end table
+@section NSView
+
+An abstract representation of a @dfn{view}. Should not be instantiated; instead, subclass and customise it's behaviour.
+
+Class Hierarchy: @i{NSView : NSResponder : NSObject}
+
+@subheading Superviews and Subviews
+@table @code
+
+@item  -(NSView*) superview
+Returns the superview of this view.
+
+@item -(void) addSubview:(NSView*)@var{aview}
+Adds @var{aview} to the receiver.
+@end table
+
+@subheading Frame and Bounds manipulation
+
+@table @code
+@item -(void) setBoundsOrigin:(NSPoint)@var{origin}
+Set's the origin of the bounds rectangle
+
+@item -(void) setBoundsSize:(NSSize)@var{size}
+Set the size of the bounds rectangle
+
+@item -(void) setFrameOrigin:(NSPoint)@var{origin}
+Frame origin
+
+@item -(void) setFrameSize:(NSPoint)@var{size}
+Set the frame's size.
+@end table
+
+@subheading Rotation and Scaling
+
+@table @code
+@item -(void) scaleUnitSquareToSize:(NSSize)@var{size}
+Scales the size of each "pixel" in a view by the fraction given in @var{size}.
+
+@item -(void) rotateByAngle:(float)@var{degrees}
+Rotates the coordinate system counterclockwise in degrees. Negetive values are clockwise.
+@end table
+
+@subheading Drawing
+
+@table @code
+@item -(void) drawRect:(NSRect)@var{rect}
+Override this method with your drawing code. Note that the origin is set at the bottom-left corner of your view when this method is called, and the clipping rectangle is set at the frame/bounds rectangle.
+
+@end table

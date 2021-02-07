@@ -1,0 +1,164 @@
+/* config.h.in.  Generated from configure.ac by autoheader.  */
+
+
+#define SERVER_x11      1
+#define SERVER_win32    2
+#define SERVER_wayland  3
+#define GRAPHICS_xdps   0
+#define GRAPHICS_art    1
+#define GRAPHICS_xlib   2
+#define GRAPHICS_winlib 3
+#define GRAPHICS_cairo  4
+#define GRAPHICS_opal   5
+
+
+/* Define to type of graphics context to build */
+#undef BUILD_GRAPHICS
+
+/* Define to type of window server to build */
+#undef BUILD_SERVER
+
+/* Define if X11 doesn't automatically use prototypes */
+#undef FUNCPROTO
+
+/* Define to 1 if you have the <DPS/dpsclient.h> header file. */
+#undef HAVE_DPS_DPSCLIENT_H
+
+/* Define to 1 if you have the <DPS/dpsNXargs.h> header file. */
+#undef HAVE_DPS_DPSNXARGS_H
+
+/* Define if you have FcPatternCreate */
+#undef HAVE_FC
+
+/* Define if you have glitz-glx */
+#undef HAVE_GLITZ_GLX
+
+/* Define if you have glitz-wgl */
+#undef HAVE_GLITZ_WGL
+
+/* Define if you have the glx library */
+#undef HAVE_GLX
+
+/* Define to 1 if you have the <inttypes.h> header file. */
+#undef HAVE_INTTYPES_H
+
+/* Define to 1 if you have the `Xext' library (-lXext). */
+#undef HAVE_LIBXEXT
+
+/* Define to 1 if you have the `Xft' library (-lXft). */
+#undef HAVE_LIBXFT
+
+/* Define to 1 if you have the `Xmu' library (-lXmu). */
+#undef HAVE_LIBXMU
+
+/* Define to 1 if you have the `Xt' library (-lXt). */
+#undef HAVE_LIBXT
+
+/* Define to 1 if you have the <memory.h> header file. */
+#undef HAVE_MEMORY_H
+
+/* Define to 1 if you have the `shmctl' function. */
+#undef HAVE_SHMCTL
+
+/* Define to 1 if you have the <stdint.h> header file. */
+#undef HAVE_STDINT_H
+
+/* Define to 1 if you have the <stdlib.h> header file. */
+#undef HAVE_STDLIB_H
+
+/* Define to 1 if you have the <strings.h> header file. */
+#undef HAVE_STRINGS_H
+
+/* Define to 1 if you have the <string.h> header file. */
+#undef HAVE_STRING_H
+
+/* Define to 1 if you have the `syslog' function. */
+#undef HAVE_SYSLOG
+
+/* Define to 1 if you have the <syslog.h> header file. */
+#undef HAVE_SYSLOG_H
+
+/* Define to 1 if you have the <sys/stat.h> header file. */
+#undef HAVE_SYS_STAT_H
+
+/* Define to 1 if you have the <sys/types.h> header file. */
+#undef HAVE_SYS_TYPES_H
+
+/* Define to 1 if you have the <unistd.h> header file. */
+#undef HAVE_UNISTD_H
+
+/* Define to 1 if you have the `usleep' function. */
+#undef HAVE_USLEEP
+
+/* Define if you have XftDrawStringUtf8 */
+#undef HAVE_UTF8
+
+/* Define if you have the wgl library */
+#undef HAVE_WGL
+
+/* Define to 1 if you have the <X11/extensions/shape.h> header file. */
+#undef HAVE_X11_EXTENSIONS_SHAPE_H
+
+/* Define to 1 if you have the <X11/extensions/sync.h> header file. */
+#undef HAVE_X11_EXTENSIONS_SYNC_H
+
+/* Define to 1 if you have the <X11/extensions/XShm.h> header file. */
+#undef HAVE_X11_EXTENSIONS_XSHM_H
+
+/* Define to enable Xcursor support */
+#undef HAVE_XCURSOR
+
+/* Define to enable Xfixes support */
+#undef HAVE_XFIXES
+
+/* Define if you have a functional XFreeType installation, including libXft.
+   */
+#undef HAVE_XFT
+
+/* Define to 1 if you have 'XInternAtoms' function. */
+#undef HAVE_XINTERNATOMS
+
+/* Define to enable Xshape support */
+#undef HAVE_XSHAPE
+
+/* Define to 1 if you have the `Xutf8LookupString' function. */
+#undef HAVE_XUTF8LOOKUPSTRING
+
+/* Define to enable Xrandr support */
+#undef HAVE_XRANDR
+
+/* Define to the address where bug reports for this package should be sent. */
+#undef PACKAGE_BUGREPORT
+
+/* Define to the full name of this package. */
+#undef PACKAGE_NAME
+
+/* Define to the full name and version of this package. */
+#undef PACKAGE_STRING
+
+/* Define to the one symbol short name of this package. */
+#undef PACKAGE_TARNAME
+
+/* Define to the home page for this package. */
+#undef PACKAGE_URL
+
+/* Define to the version of this package. */
+#undef PACKAGE_VERSION
+
+/* Define to 1 if you have the ANSI C header files. */
+#undef STDC_HEADERS
+
+/* Define to enable glitz support */
+#undef USE_GLITZ
+
+/* Define to enable XIM support */
+#undef USE_XIM
+
+/* Define if you have X11 XRender extension */
+#undef XRENDER
+
+/* Define if you have X11 XShm extensions */
+#undef XSHM
+
+/* Define to 1 if the X Window System is missing or not being used. */
+#undef X_DISPLAY_MISSING

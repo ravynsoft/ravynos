@@ -1,0 +1,129 @@
+@c    GNUstep AppKit Guide
+@c
+@c    Copyright (c)  2005-2006  Christopher Armstrong.
+@c
+@c    Permission is granted to copy, distribute and/or modify this document
+@c    under the terms of the GNU Free Documentation License, Version 1.2
+@c    with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+@c    A copy of the license is included in the section entitled "GNU
+@c    Free Documentation License".
+@c
+@c This documentation is provided on an "AS IS" BASIS, WITHOUT WARRANTY
+@c OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING, BUT NOT LIMITED
+@c TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+@c PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY AND USEFULNESS
+@c OF THE DOCUMENTATION IS WITH YOU (THE LICENSEE). IN NO EVENT WILL THE COPYRIGHT
+@c HOLDERS BE LIABLE FOR DAMAGES, INCLUDING ANY DIRECT, INDIRECT,
+@c SPECIAL, GENERAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF
+@c THE USE OR INABILITY TO USE THIS DOCUMENTATION (INCLUDING BUT NOT
+@c LIMITED TO LOSS OF DATA, USE, OR PROFITS; PROCUREMENT OF SUBSTITUTE
+@c GOODS AND SERVICES; OR BUSINESS INTERUPTION) HOWEVER CAUSED, EVEN
+@c IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+@node images, fdl, dataexchange, Top
+@chapter Images and Imageviews
+
+@anchor{Images and Imageviews}
+GNUstep provides mechanisms for the retreival and display of images. A number of objects beginning with @code{NSImage}@footnote{Including NSImage} exist, each with slightly different functions.
+
+An @dfn{image} is represented using an instance of the @code{NSImage} class. You can create these using the path or URL of a file, raw image data or a pasteboard.
+
+Images may contain zero or more image representations, or @dfn{imagereps}. For example, a photographic image may contain both black and white and colour representations, or representations at different resolutions. The purpose of this is to allow GNUstep to select the best representation for a particular device. GNUstep may select a lower-resolution representation for a screen, while selecting the highest resolution representation for printed output. If there was also a vector representation, it may choose to use it for printed output. An imagerep is represented by an instance of a @code{NSImageRep} subclass.
+
+An image by itself is not enough for rendering. Images are rendered on a window using an @code{NSImageView} object. These let you set the alignment and scaling for displaying the image. They also let you set a graphical border using the @code{-setFrameStyle:} method. @code{NSImageView} is a control, so the normal control/cell model applies to it.
+
+If you only need to display an image on it's own, use @code{NSImageView}. For more complicated image rendering, e.g. inside of custom views, use @code{NSImage} to draw or composite at a certain point.
+
+@section Using NSImage
+
+Whether using @code{NSImageView} or not, you will have to create an @code{NSImage} object. It provides a number of constructors for loading an image with a path, a URL or a data object (@code{NSData}). Note that for loading from a file or URL, two sets of methods are provided. These have subtly different meanings, as shown below:
+
+@table @code
+
+@item -initWithContentsOfFile:
+@itemx -initWithContentsOfURL:
+These methods load the image from the specified location, and create image representations for rendering later.
+
+@item -initByReferencingFile:
+@itemx -initByReferencingURL:
+These methods don't actually load the image straight away. Instead, when you try to composite or draw the image at a location, it loads the image from disk and generates a representation at that time.
+
+@end table
+
+From here, an image can be drawn within a view using any of the drawing/compositing/dissolving methods. You can also get at the imagereps using the @code{-representations} method (amongst others).
+
+@section Drawing Images
+
+@code{NSImage} provides a number of methods for drawing an image. It also provides quite a number means to control how an image is composited at its destination.@footnote{Note that many of the mechanisms provided for compositing may not be supported in some backends i.e. the Windows backend.} @dfn{Compositing} refers to the way the image is rendered onto the destination surface.
+
+Simply drawing an image into your view may be achieved with the @code{-drawRepresentation:inRect:} method. In other cases, you may wish to draw it onto a destination surface with a compositing operation, in which case you can use the @code{-drawAtPoint:fromRect:operation:fraction:} or @code{-drawInRect:fromRect:operation:fraction:} methods.
+
+These take a rectangle from the source image, and composite it onto a destination surface. The compositing operation specifies how the image is blended with the destination surface, and is a constant in @code{NSCompositingOperation}. These constants define what the destination image looks like after a composite, as a result of combining the source and destination image. @footnote{These compositing operations are the same as those described in the (now well-studied) academic paper, @cite{Compositing Digital Images} by Thomas Porter and Tom Duff in 1984.}
+@table @code
+@item NSCompositeClear
+The destination is left transparent.
+
+@item NSCompositeCopy
+The source image appears at the destination.
+
+@item NSCompositeSourceOver
+The source image appears wherever it is opaque, and the destination image elsewhere.
+
+@item NSCompositeSourceIn
+The source image appears wherever both the source and destination are opaque, and is transparent elsewhere.
+
+@item NSCompositeSourceOut
+The source image appears where the source image is opaque but the destination image is transparent, and is transparent elsewhere.
+
+@item NSCompositeSourceAtop
+The source image appears wherever both images are opaque, the destination appears wherever the destination is opaque but the source image is transparent, and the result is transparent elsewhere.
+
+@item NSCompositeDestinationOver
+The destination image appears wherever it is opaque, and the source image elsewhere.
+
+@item NSCompositeDestinationIn
+The destination image appears where both images are opaque, and the result is transparent elsewhere.
+
+@item NSCompositeDestinationOut
+The destination image appears wherever it is opaque but the source image is transparent, and it is transparent elsewhere.
+
+@item NSCompositeDestinationAtop
+The destination image appears wherever both images are opaque, the source image appears wherever the source image is opaque but the destination is transparent, and the result is transparent elsewhere.
+
+@item NSCompositeXOR
+The result of and exclusive OR operation between the bits defining the pixels in bothe images.
+
+@item NSCompositePlusDarker
+The result of adding the values of the colour components of the pixels in both images, with the result approaching zero as a limit.
+
+@item NSCompositePlusLighter
+The result of adding the values of the colour components of the pixels in both images, with the result approaching one as a limit.
+@end table
+
+The @var{fraction} parameter corresponds to the coverage of the source alpha channel with zero making the source transparent and one making the source fully opaque.
+
+@section Working with image representations
+
+Quite a number of classes inherit from @code{NSImageRep} to provide means to load different types of image formats, such as bitmaps, TIFF images, etc:
+@table @code
+@item NSBitmapImageRep
+For bitmap (raster) images, @code{NSBitmapImageRep} is used. PNG, JPG and TIFF image file formats would be represented with the class. 
+
+You can retreive information about the image with methods such as @code{-bitsPerPixel} or @code{-isPlanar}. For image formats that can store metadata (such as resolution information or camera settings), the @code{-valueForProperty:} and @code{-setProperty:withValue:} methods can be used to manipulate it.
+
+If necessary, it contains initialisers for instantiating it from raw data(@code{-initWithData:}) and from the display (@code{-initWithFocusedViewRect:}.
+
+@item NSCachedImageRep
+This image representation is cached bitmap left over from the result of executing some instructions or data. It lives inside an off-screen window.
+
+@item NSCustomImageRep
+These are representations which can be drawn in a manner that is defined by the application. You initialize these with a selector that is executed against a delegate object when @code{-draw} is called on the representation.
+
+@item NSEPSImageRep
+Unsupported.
+
+@end table
+
+The @code{NSImageRep} class itself also provides a number of methods for gaining information about what kinds of file formats GNUstep supports, and for instantiating images dynamically based on raw image data or the contents of a file or URL.
+
+

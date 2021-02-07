@@ -1,0 +1,138 @@
+\input texinfo
+@c    Using the GNUstep AppKit
+@c
+@c    Copyright (c)  2005-2006  Christopher Armstrong.
+@c
+@c    Permission is granted to copy, distribute and/or modify this document
+@c    under the terms of the GNU Free Documentation License, Version 1.2
+@c    with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+@c    A copy of the license is included in the section entitled "GNU
+@c    Free Documentation License".
+@c
+@c This documentation is provided on an "AS IS" BASIS, WITHOUT WARRANTY
+@c OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING, BUT NOT LIMITED
+@c TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+@c PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY AND USEFULNESS
+@c OF THE DOCUMENTATION IS WITH YOU (THE LICENSEE). IN NO EVENT WILL THE COPYRIGHT
+@c HOLDERS BE LIABLE FOR DAMAGES, INCLUDING ANY DIRECT, INDIRECT,
+@c SPECIAL, GENERAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF
+@c THE USE OR INABILITY TO USE THIS DOCUMENTATION (INCLUDING BUT NOT
+@c LIMITED TO LOSS OF DATA, USE, OR PROFITS; PROCUREMENT OF SUBSTITUTE
+@c GOODS AND SERVICES; OR BUSINESS INTERUPTION) HOWEVER CAUSED, EVEN
+@c IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+@c %**start of header
+@setfilename AppKit.info
+@settitle Using the GNUstep AppKit 0.1
+@afourpaper
+@c %**end of header
+
+@copying
+@copyright{} 2005-2006 Christopher Armstrong.
+
+Permission is granted to copy, distribute and/or modify this document under the terms of the GNU Free Documentation License, Version 1.2, as published by the Free Software Foundation; with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts. A copy of the license is included in the section entitled "GNU Free Documentation License".
+
+This documentation is provided on an "AS IS" BASIS, WITHOUT WARRANTY
+OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING, BUT NOT LIMITED
+TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY AND USEFULNESS
+OF THE DOCUMENTATION IS WITH YOU (THE LICENSEE). IN NO EVENT WILL THE COPYRIGHT
+HOLDERS BE LIABLE FOR DAMAGES, INCLUDING ANY DIRECT, INDIRECT,
+SPECIAL, GENERAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF
+THE USE OR INABILITY TO USE THIS DOCUMENTATION (INCLUDING BUT NOT
+LIMITED TO LOSS OF DATA, USE, OR PROFITS; PROCUREMENT OF SUBSTITUTE
+GOODS AND SERVICES; OR BUSINESS INTERUPTION) HOWEVER CAUSED, EVEN
+IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+@end copying
+
+@ifnottex
+@node Top, Introduction, (dir), (dir)
+@top Using the GNUstep AppKit
+
+@ifnothtml
+@insertcopying
+@end ifnothtml
+
+@ifhtml
+Copyright (C) 2005-2006 Christopher Armstrong.
+
+Permisssion is granted to copy, distribute and/or modify this document under the terms of the GNU Free Documentation License, Version 1.2, as published by the Free Software Foundation; with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts. A copy of the license is included in the section entitled "GNU Free Documentation License".
+
+This documentation is provided on an "AS IS" BASIS, WITHOUT WARRANTY
+OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING, BUT NOT LIMITED
+TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY AND USEFULNESS
+OF THE DOCUMENTATION IS WITH YOU (THE LICENSEE). IN NO EVENT WILL THE COPYRIGHT
+HOLDERS BE LIABLE FOR DAMAGES, INCLUDING ANY DIRECT, INDIRECT,
+SPECIAL, GENERAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF
+THE USE OR INABILITY TO USE THIS DOCUMENTATION (INCLUDING BUT NOT
+LIMITED TO LOSS OF DATA, USE OR PROFITS; PROCUREMENT OF SUBSTITUTE
+GOODS AND SERVICES; OR BUSINESS INTERUPTION) HOWEVER CAUSED, EVEN
+IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+@end ifhtml
+
+@menu
+* Introduction::                
+* basicconcepts::               
+* gnustepapplications::         
+* applicationmakefiles::        
+* interfacefiles::              
+* controls::                    
+* theviewconcept::              
+* eventhandling::               
+* tableview::                   
+* outlineviews::                
+* matrix::                      
+* browsercontrols::             
+* dataexchange::                
+* images::                      
+* fdl::                         
+* conceptindex::
+@end menu
+
+@end ifnottex
+@iftex
+@titlepage
+@title Using the GNUstep AppKit
+@subtitle A guide to using various parts of the GNUstep AppKit for application development
+@author Christopher Armstrong
+@page
+@insertcopying
+@contents
+@end titlepage
+@end iftex
+
+@c %** Contents of file, one file per chapter
+@c %** @include helloworld.texi
+
+@c // Chapters
+@include intro.texi
+@include basicconcepts.texi
+@include gnustepapplication.texi
+@c //@include afirstapplication.texi
+@include applicationmakefiles.texi
+@include interfacefiles.texi
+@c @include applicationpropertylist.texi
+@include controls.texi
+@include theviewconcept.texi
+@include eventhandling.texi
+@c @include drawing.texi
+@include tableviews.texi
+@include outlineviews.texi
+@include matrix.texi
+@include browsers.texi
+@include dataexchange.texi
+@include images.texi
+
+@c // Appendices
+@c @include quickreference.texi
+@include fdl.texi
+
+@c Indexes
+@node conceptindex,  , Top, Top
+@unnumbered Concept Index
+@printindex cp
+
+@c %** End of file contents specification
+@bye
+

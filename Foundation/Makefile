@@ -1,26 +1,6 @@
 FRAMEWORK=Foundation
 SRCS= \
-../objc/dyld.c \
-../objc/objc_arc.c \
-../objc/objc_class.c \
-../objc/objc_functions.c \
-../objc/objc_ivar.c \
-../objc/objc_log.c \
-../objc/objc_malloc.c \
-../objc/objc_method.c \
-../objc/objc_msg_lookup.c \
-../objc/objc_object.c \
-../objc/objc_property.c \
-../objc/objc_protocol.c \
-../objc/objc_sel.c \
-../objc/objc_tls.c \
-../objc/ObjCArray.c \
-../objc/ObjCDynamicModule.c \
-../objc/ObjCHashTable.c \
-../objc/ObjCModule.c \
-../objc/platform_linux/objc-msgsend-x86_64.s \
 ./NSFormatter.m \
-./NSBlocks.m \
 ./NSDictionary/NSEnumerator_dictionaryObjects.m \
 ./NSDictionary/NSMutableDictionary.m \
 ./NSDictionary/NSEnumerator_dictionaryKeys.m \
@@ -209,6 +189,9 @@ SRCS= \
 ./platform_posix/NSCondition_posix.m \
 ./platform_posix/NSFileHandle_posix.m \
 ./platform_posix/NSConstantString.m \
+./platform_bsd/libmain.m \
+./platform_bsd/NSMemoryFunctions_bsd.m \
+./platform_bsd/NSPlatform_bsd.m \
 ./platform_posix/NSPlatform_posix.m \
 ./platform_posix/NSLock_posix.m \
 ./platform_posix/NSCancelInputSource_posix.m \
@@ -544,6 +527,7 @@ INCS= \
 ./NSPredicate/NSExpression_assignment.h \
 ./NSPredicate/NSExpression_keypath.h \
 ./NSInvocation.h \
+./platform_bsd/NSPlatform_bsd.h \
 ./platform_posix/NSPlatform_posix.h \
 ./platform_posix/NSFileHandle_posix.h \
 ./platform_posix/NSCondition_posix.h \
@@ -683,8 +667,14 @@ INCS= \
 ./NSSpellServer.h
 
 RESOURCES=Info.plist English.lproj
-CFLAGS+= -I${.CURDIR}/Headers -I${.CURDIR}/.. -fblocks -DFREEBSD -DPLATFORM_IS_POSIX \
+CFLAGS+= -I${.CURDIR}/Headers \
+	 -I${.CURDIR}/.. -I${BUILDROOT}/usr/include \
+	 -fblocks \
+	 -Wl,--no-as-needed \
+	 -DBSD -DFREEBSD \
+	 -DPLATFORM_IS_POSIX \
 	 -DPLATFORM_USES_BSD_SOCKETS
+LDFLAGS+= -L${BUILDROOT}/usr/lib -L/usr/lib -L/lib -lobjc -lpthread -lm
 
 build: marshallheaders all
 

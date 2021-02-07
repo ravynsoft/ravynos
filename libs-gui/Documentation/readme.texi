@@ -1,0 +1,54 @@
+@c -*-texinfo-*-
+@chapter README
+
+@ifset TEXT-ONLY
+@include version.texi
+@end ifset
+
+The GNUstep gui library is a library of graphical user interface classes
+written completely in the Objective-C language; the classes are based
+upon Apple's Cocoa framwork (which came from the OpenStep specification).  
+These
+classes include graphical objects such as buttons, text fields, popup
+lists, browser lists, and windows; there are also many associated
+classes for handling events, colors, fonts, pasteboards and images.
+
+@section Initial reading
+
+@itemize @bullet
+@item
+The file @file{ANNOUNCE} contains a very brief overview of the library.
+It also tells you where to get the most recent version.
+
+@item
+The file @file{NEWS} has the library's feature history.
+
+@item
+The file @file{INSTALL} gives instructions for installing the library.
+@end itemize
+
+@section License
+
+The GNUstep libraries and library resources are covered under the GNU
+Lesser Public License.  This means you can use these libraries in any
+program (even non-free programs). If you distribute the libraries along
+with your program, you must make the improvements you have made to the
+libraries freely available. You should read the COPYING.LIB file for
+more information. All files in this package EXCEPT files in the
+@file{Tools} directories and subdirectories under this are covered under
+the GLPL.
+
+GNUstep tools, test programs, and other files are covered under the GNU
+General Public License. This means if you make changes to these programs, you
+cannot charge a fee, other than distribution fees, for others to use the
+program. You should read the COPYING file for more information.  All
+files in the @file{Tools} directory are covered under the GPL.
+
+@section How can you help?
+
+@itemize @bullet
+
+@item
+Give us feedback!  Tell us what you like; tell us what you think
+could be better.  Send bug reports to @email{bug-gnustep@@gnu.org}.
+@end itemize

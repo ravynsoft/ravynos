@@ -1,0 +1,88 @@
+#
+# Standalone filesystem layout
+#
+# This is a *build-time* layout for standalone application deployment,
+# with all the libraries and executables stored in one place.
+# If changing this layout, please also update the corresponding file in
+# gnustep-base (standalone.conf).
+# 
+# You can configure gnustep-make using --width-layout=standalone and
+# use that to build and install your code into the 'standlone' directory,
+# then distribute that directory using a single environment variable set
+# to tell the operating system where to find the libraries.
+#
+# NB.  This file gives the layout for *building* a standalone package.
+# It is not the same as the GNUstep.conf file which would be used to
+# *deploy* the package.  Using this layout lets you build/install all
+# your software into a single directory within your home directory,
+# but the deployment layout would provide instructions to locate all
+# the resources within that directory and relative to the gnustep base
+# library. Please see the GNUstep base library documentation for detailed
+# information about deploying relocatable and standalone packages.
+#
+
+# This tells gnustep-make to put the 'standalone' directory in your home
+# directory.
+GNUSTEP_DEFAULT_PREFIX=~
+
+# These are only used by gnustep-base to implement the NSUserDirectory
+# API.  We never install anything in them.  They will be used as they
+# are without $prefix.
+GNUSTEP_SYSTEM_USERS_DIR=/home
+GNUSTEP_NETWORK_USERS_DIR=/home
+GNUSTEP_LOCAL_USERS_DIR=/home
+
+# NB: $prefix will be added to all the MAKEFILES/SYSTEM/NETWORK/LOCAL
+# paths.
+GNUSTEP_MAKEFILES=/standalone/Makefiles
+
+GNUSTEP_SYSTEM_APPS=/standalone
+GNUSTEP_SYSTEM_ADMIN_APPS=/standalone
+GNUSTEP_SYSTEM_WEB_APPS=/standalone
+GNUSTEP_SYSTEM_TOOLS=/standalone
+GNUSTEP_SYSTEM_ADMIN_TOOLS=/standalone
+GNUSTEP_SYSTEM_LIBRARY=/standalone
+GNUSTEP_SYSTEM_HEADERS=/standalone/include
+GNUSTEP_SYSTEM_LIBRARIES=/standalone
+GNUSTEP_SYSTEM_DOC=/standalone/Documentation
+GNUSTEP_SYSTEM_DOC_MAN=/standalone/man
+GNUSTEP_SYSTEM_DOC_INFO=/standalone/info
+
+GNUSTEP_NETWORK_APPS=/standalone
+GNUSTEP_NETWORK_ADMIN_APPS=/standalone
+GNUSTEP_NETWORK_WEB_APPS=/standalone
+GNUSTEP_NETWORK_TOOLS=/standalone
+GNUSTEP_NETWORK_ADMIN_TOOLS=/standalone
+GNUSTEP_NETWORK_LIBRARY=/standalone
+GNUSTEP_NETWORK_HEADERS=/standalone/include
+GNUSTEP_NETWORK_LIBRARIES=/standalone
+GNUSTEP_NETWORK_DOC=/standalone/Documentation
+GNUSTEP_NETWORK_DOC_MAN=/standalone/man
+GNUSTEP_NETWORK_DOC_INFO=/standalone/info
+
+GNUSTEP_LOCAL_APPS=/standalone
+GNUSTEP_LOCAL_ADMIN_APPS=/standalone
+GNUSTEP_LOCAL_WEB_APPS=/standalone
+GNUSTEP_LOCAL_TOOLS=/standalone
+GNUSTEP_LOCAL_ADMIN_TOOLS=/standalone
+GNUSTEP_LOCAL_LIBRARY=/standalone
+GNUSTEP_LOCAL_HEADERS=/standalone/include
+GNUSTEP_LOCAL_LIBRARIES=/standalone
+GNUSTEP_LOCAL_DOC=/standalone/Documentation
+GNUSTEP_LOCAL_DOC_MAN=/standalone/man
+GNUSTEP_LOCAL_DOC_INFO=/standalone/info
+
+GNUSTEP_USER_DIR_APPS=/standalone
+GNUSTEP_USER_DIR_ADMIN_APPS=/standalone
+GNUSTEP_USER_DIR_WEB_APPS=/standalone
+GNUSTEP_USER_DIR_TOOLS=/standalone
+GNUSTEP_USER_DIR_ADMIN_TOOLS=/standalone
+GNUSTEP_USER_DIR_LIBRARY=/standalone
+GNUSTEP_USER_DIR_HEADERS=/standalone/include
+GNUSTEP_USER_DIR_LIBRARIES=/standalone
+GNUSTEP_USER_DIR_DOC=/standalone/Documentation
+GNUSTEP_USER_DIR_DOC_MAN=/standalone/man
+GNUSTEP_USER_DIR_DOC_INFO=/standalone/info
+
+GNUSTEP_USER_CONFIG_FILE=.GNUstep.conf
+GNUSTEP_USER_DEFAULTS_DIR=GNUstep/Defaults

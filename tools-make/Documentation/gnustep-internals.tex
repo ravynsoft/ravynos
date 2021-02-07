@@ -1,0 +1,198 @@
+\documentclass[a4paper]{article}
+%
+% Comment the following line out if you don't have the geometry 
+% package on your system.
+%
+\usepackage[includemp=no]{geometry}
+%
+%
+%
+\begin{document}
+\title{GNUstep Makefile Package Internals}
+\author{Nicola Pero n.pero@mi.flashnet.it}
+\date{last days of June 2001 - revised end of July 2001}
+\maketitle
+\tableofcontents
+
+\section{Introduction}
+This short document attempts to explain simply how the gnustep
+makefile package works internally.  When I first wrote this document,
+the mechanism used to be extremely complex, involving many recursive
+make invocations; I have now simplified it so that it involves only a
+single recursive make invocation per target/type/operation.  As a
+result, I hope that the mechanism is now so simple that you can figure
+out how it works without reading this document, by just reading the
+gnustep-make source code.  Anyway, the thing might still not be still
+totally trivial at a first approach, so this document might help you
+to get familiar with the gnustep-make source code in a shorter time
+and with less pain.
+
+\section{From `make' to the internal-all rule}
+Imagine for example that in your \texttt{ GNUmakefile} you include both
+\texttt{tool.make} and \texttt{library.make}, as in the following example:
+\begin{verbatim}
+include $(GNUSTEP_MAKEFILES)/common.make
+
+TOOL_NAME = decrypt
+decrypt_OBJC_FILES = decrypt.m
+
+LIBRARY_NAME = libDvd
+libDvd_OBJC_FILES = decss.m
+
+include $(GNUSTEP_MAKEFILES)/tool.make
+include $(GNUSTEP_MAKEFILES)/library.make
+\end{verbatim} % $ fool emacs's buggy tex mode
+Then you type `make' on the command line.  We want to understand what
+happens.
+
+Make will process your \texttt{GNUmakefile}, which includes
+\texttt{tool.make}, and that will include \texttt{rules.make}.  In
+\texttt{rules.make} make finds the first rule (the one which is
+executed), which is
+\begin{verbatim}
+all:: before-all internal-all after-all
+\end{verbatim}
+This means that make will build by default that target \texttt{ all},
+and that building that target requires building the
+\texttt{before-all}, \texttt{internal-all} and \texttt{after-all}
+targets.  We ignore the \texttt{before-all} and \texttt{after-all}
+targets for now, and only concentrate on the core target, which is
+\texttt{internal-all}.
+
+\section{From the internal-all rule to the \%.variables rule}
+Make needs to build this target \texttt{internal-all}.  In
+\texttt{rules.make} this target appears as
+\begin{verbatim}
+internal-all::
+\end{verbatim}
+because of the double colons (that is, because it is
+\texttt{internal-all::} rather than \texttt{internal-all:}) this
+target can have multiple totally separated rules.  Each rule must be a
+double colon rule, and is processed separately from the other rules
+(even if they refer to the same target).
+
+The real rules for \texttt{internal-all} are included by the specific 
+makefiles; in our example, \texttt{tool.make} includes
+\begin{verbatim}
+internal-all:: $(TOOL_NAME:=.all.tool.variables)
+\end{verbatim} %$
+now - in our case - because \texttt{TOOL\_NAME} is \texttt{decrypt}, then
+this rule actually means
+\begin{verbatim} 
+internal-all:: decrypt.all.tool.variables
+\end{verbatim}
+This means that to build \texttt{internal-all}, make has to build (at
+least) the \texttt{decrypt.all.tool.variables} target.
+\texttt{library.make} includes the completely analogous rule
+\begin{verbatim}
+internal-all:: $(LIBRARY_NAME:=.all.library.variables) 
+\end{verbatim} %$
+which in our case means 
+\begin{verbatim}
+internal-all:: libDvd.all.library.variables
+\end{verbatim}
+This rule is completely separated from the other one; to build
+\texttt{internal-all}, make has to build the two different targets:
+\begin{verbatim}
+decrypt.all.tool.variables
+libDvd.all.library.variables
+\end{verbatim}
+
+\section{The \%.variables rule - dependencies}
+The rule for building these targets is in the \texttt{rules.make} file, 
+it is the \texttt{\%.variables} rule:
+\begin{verbatim}
+%.variables: %.tools %.subprojects
+@ \
+target=$(basename $(basename $*)); \
+operation=$(subst .,,$(suffix $(basename $*))); \
+type=$(subst -,_,$(subst .,,$(suffix $*))); \
+echo Making $$operation for $$type $$target...; \
+$(MAKE) -f $(MAKEFILE_NAME) --no-print-directory --no-keep-going \
+  internal-$${type}-$$operation \
+  INTERNAL_$${type}_NAME=$$target \
+  TARGET=$$target \
+  _SUBPROJECTS="$($(basename $(basename $*))_SUBPROJECTS)" \
+  ...
+\end{verbatim}%$
+This rule matches all targets ending in \texttt{.variables}.  First of
+all, the rule depends on the corresponding \texttt{\%.tools} and
+\texttt{\%.subprojects} rules.  This is because before processing the
+target itself, gnustep-make needs to process the related subprojects
+and (only for frameworks) the framework tools.  We ignore this
+complication of subprojects and framework tools for now; if you look
+at the \texttt{\%.subprojects} and \texttt{\%.tools} rules you see
+that they do nothing if you are not actually using subprojects or
+framework tools in your makefile.
+
+\section{The \%.variables rule - second make invocation}
+The rule body parses the \texttt{\%.variables} string - for example when
+the rule is applied to
+\begin{verbatim}
+decrypt.all.tool.variables
+\end{verbatim}
+then (remember that \texttt{\$*} is the stem of the rule,
+\texttt{decrypt.all.tool} in this case) it extracts
+\begin{verbatim}
+target=decrypt
+operation=all
+type=tool
+\end{verbatim}
+and then it runs a make subprocess, specific to that target, type and
+operation.  In our case, the \texttt{\%.variables} rules is executed
+twice, once to build 
+\begin{verbatim}
+decrypt.all.tool.variables
+\end{verbatim}
+and once to build
+\begin{verbatim}
+libDvd.all.tool.variables
+\end{verbatim}
+so the result is to run two separate make processes:
+\begin{verbatim}
+make internal-tool-all INTERNAL_tool_NAME=decrypt TARGET=decrypt \
+  _SUBPROJECTS="$(decrypt_SUBPROJECTS)" \
+  OBJC_FILES="$(decrypt_OBJC_FILES)" \
+  ...
+make internal-library-all INTERNAL_library_NAME=libDvd TARGET=libDvd \
+  _SUBPROJECTS="$(libDvd_SUBPROJECTS)" \
+  OBJC_FILES="$(libDvs_OBJC_FILES)" \
+  ...
+\end{verbatim}
+where \texttt{...} stands for a lot of other variables, including all
+variables needed to perform the final stage: \texttt{OBJC\_FILES},
+\texttt{C\_FILES}, \texttt{JAVA\_FILES},
+\texttt{ADDITIONAL\_INCLUDE\_DIRS} etc.  Note that each make
+subprocess will get passed different, specific, variables.  If
+gnustep-make wants to modify these variables in some way, it does it
+at this stage, before passing them to the submake process.  For
+example, some library flags are filtered through the
+\texttt{WHICH\_LIB\_SCRIPT}.
+
+What this means is that for each target/type/operation, a separate
+make process is run.  For example, if you have two tools,
+\texttt{decrypt} and \texttt{crypt}, and you want to both compile and install
+them, it will run four make subprocesses:
+\begin{verbatim}
+make internal-tool-all INTERNAL_tool_NAME=decrypt ...
+make internal-tool-all INTERNAL_tool_NAME=crypt ...
+make internal-tool-install INTERNAL_tool_NAME=decrypt ...
+make internal-tool-install INTERNAL_tool_NAME=crypt ...
+\end{verbatim}
+This is the `second make invocation'.  The make package knows that it
+is being invoked for the second time, because of the
+\texttt{INTERNAL\_tool\_NAME} being non-empty.
+
+\section{Second make invocation}
+Because of the \texttt{INTERNAL\_tool\_NAME} variable being a
+non-empty string (while it was empty in the previous top-level
+invocation), \texttt{tool.make} will include the actual rules to build
+the tool; in particular, the \texttt{internal-tool-all} rule, which is
+then executed and builds the tool.  All variables such as
+\texttt{OBJC\_FILES} or the library flags are now available directly
+in the makefiles, they have already been prepared and preprocessed, so
+that the rules in \texttt{tool.make} can just plainly use these
+variables naively to perform their job (compiling, installing, or
+whatever).
+
+\end{document}

@@ -1,0 +1,83 @@
+.\"gdnc(1) man page
+.\"put together by Martin Brecher <martin@gnustep.de>
+.\"Copyright (C) 2005 Free Software Foundation, Inc.
+.\"Copying and distribution of this file, with or without modification,
+.\"are permitted in any medium without royalty provided the copyright
+.\"notice and this notice are preserved.
+.\"
+.\"Process this file with
+.\"groff -man -Tascii gdnc.1
+.\"
+.TH GDNC 1 "August 2003" GNUstep "GNUstep System Manual"
+.SH NAME
+gdnc \- GNUstep Distributed Notification Center
+.SH SYNOPSIS
+.B gdnc
+.P
+.SH DESCRIPTION
+The gdnc daemon is used by GNUstep programs to send notifications and 
+messages to one another.  By default it uses private inter-process
+communications accessible only to the curtrent user on the machine on
+which it is running (where the operating system supports them).
+.P
+Every user needs to have his own instance of
+.B gdnc
+running. While
+.B gdnc
+will be started automatically as soon as it is needed,
+it is recommended to start
+.B gdnc
+in a personal login script like ~/.bashrc or ~/.cshrc.
+Alternatively (if you have no command-line tools which use distributed
+notifications) you can launch gdnc when your windowing system or the
+window manager is started. For example, on systems with X11 you can launch
+.B gdnc
+from your .xinitrc script or alternatively
+- if you are running Window Maker - put it in Window Maker's autostart script.
+See the
+.I GNUstep Build Guide
+for a sample startup script.
+.P
+.SH OPTIONS
+To attach
+.B gdnc
+to a remote session use the
+.IP "\fB-NSHost \fIhostname" 
+argument.
+.P
+To run a copy of the server to handle public notifications (available to all
+users on the local machine)
+.IP "\fB-GSPublic YES"
+.P
+To run a copy of the server to handle network-public notifications (available
+to all users able to connect to the local machine on the network)
+.IP "\fB-GSNetwork YES"
+.P
+.SH DIAGNOSTICS
+.B gdomap -L GDNCServer
+will lookup instances of gdnc which were launched with the NSHost, GSPublic,
+or GSNetwork command line arguments.
+.P
+Alternatively, 
+.B gdomap -N
+will list all registered names on the local host.
+.P
+.SH SEE ALSO
+gdomap(8), GNUstep(7), gpbs(1)
+.PP
+.I The GNUstep Build Guide
+example startup script: 
+<http://gnustep.made-it.com/BuildGuide/index.html#GNUSTEP.SERVICES>
+.P
+.SH HISTORY
+Work on
+.B gdnc
+started October 1998.
+.PP
+This manual page first appeared in gnustep-base 1.7.2 (July 2003).
+.P
+.SH AUTHORS
+.B gdnc 
+was written by Richard Frith-Macdonald <rfm@gnu.org>.
+.PP
+This man page was written by Martin Brecher <martin@mb-itconsulting.com>.

@@ -1,0 +1,91 @@
+.\" Process this file with
+.\" groff -man -Tascii gnustep-config.1
+.\" 
+.TH gnustep-config 1 "24/12/2007" GNUstep "GNUstep System Manual"
+.SH NAME
+gnustep-config \- prints information about the current gnustep installation. 
+.SH SYNOPSIS
+.BR gnustep-config " ["
+.BI \-\-variable= variable
+.RB | \-\-objc-flags | \-\-objc-libs | \-\-base-libs | \-\-gui-libs " ]"
+.SH DESCRIPTION
+.B gnustep-config
+can print information about the currently installed GNUstep system. Output
+is generated dynamically based on environment variables such as
+GNUSTEP_CONFIG_FILE and GNUSTEP_MAKEFILES,
+though default values for these are generated when the tool is configured/installed.  Output is primarily the locations in which various GNUstep resources are installed, but also provide flags used to build differnt types of GNUstep project.
+.SH OPTIONS
+.TP
+.BI \-\-variable= variable
+prints the value of the specified variable. Possible variables are:
+.RS
+.RS
+.PD 0
+.HP
+GNUSTEP_MAKEFILES
+.HP
+GNUSTEP_USER_DIR
+.HP
+GNUSTEP_USER_DEFAULTS_DIR
+.HP
+GNUSTEP_HOST
+.HP
+GNUSTEP_HOST_CPU
+.HP
+GNUSTEP_HOST_VENDOR
+.HP
+GNUSTEP_HOST_OS
+.HP
+GNUSTEP_IS_FLATTENED
+.HP
+GNUSTEP_xxx_APPS
+.HP
+GNUSTEP_xxx_TOOLS
+.HP
+GNUSTEP_xxx_LIBRARY
+.HP
+GNUSTEP_xxx_HEADERS
+.HP
+GNUSTEP_xxx_LIBRARIES
+.HP
+GNUSTEP_xxx_DOC
+.HP
+GNUSTEP_xxx_DOC_MAN
+.HP
+GNUSTEP_xxx_DOC_INFO
+.RE
+where 'xxx' could be any of 'SYSTEM', 'NETWORK', 'LOCAL' and 'USER'.
+.RE
+.PD 1
+
+.TP
+.B \-\-objc-flags
+prints all the flags required to compile an ObjC file
+
+.TP
+.B \-\-objc-libs
+ prints all the flags required to link a pure ObjC program (no foundation/gui)
+
+.TP
+.B \-\-base-libs
+prints all the flags required to link a command-line ObjC program (no gui)
+
+.TP
+.B \-\-gui-libs
+prints all the flags required to link a GUI ObjC program
+.SH BUGS
+None known
+.SH SEE ALSO
+GNUstep(7)
+.SH HISTORY
+Work on
+.B gnustep-config
+started in 2007 by Nicola Pero <nicola.pero@meta-innovation.com>
+.SH AUTHORS
+This man page was written by Dennis Leeuw <dleeuw@made-it.com>.
+.SH COPYRIGHT
+Copyright (C) 2007 Free Software Foundation, Inc.
+.PP
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.

@@ -1,0 +1,486 @@
+[Important: this is mostly a historical document.]
+
+A makefile package for the GNUstep environment
+==============================================
+
+This document presents a makefile package for the GNUstep
+environment. It describes what are the goals the GNUstep environment
+should achieve and then presents some solutions.
+
+Goals
+=====
+
+There are several issues we tried to solve while designing a directory
+structure and the configuration/make procedures required to build a
+package.
+
+We tried to define a directory structure for keeping all the GNUstep
+related files. This structure makes the things more consistent and the
+configuration and compile process of various GNUstep packages more
+easier.
+
+An important issue is to let to a package the ability to deal with
+various libraries and configurations available now:
+
+* different Objective-C runtimes. In the Objective-C world there are
+currently two major runtimes: the NeXT runtime and the GNU
+runtime. They are different in several respects and a program or
+library that works at the runtime level should be aware of them.
+
+* different Foundation libraries. There are several Foundation libraries
+an OpenStep application can be written on top of: NeXT Foundation
+library which runs on NeXTStep/OPENSTEP systems, PDO (Portable
+Distributed Objects) which runs on a variety of Unix systems,
+gnustep-base and libFoundation.
+
+* different graphical interfaces. Until now two libraries provide or
+try to provide OpenStep compliant systems: the AppKit from NeXT and
+the GNUstep graphical libraries.
+
+The makefile package should be a simplistic, powerful and extensible
+way to write makefiles for a GNUstep project. It should allow the user
+to easily specify a library combination he/she wants to use when
+compiling a project. Also it should allow the user to easily create
+cross-compiled binaries.
+
+Library combinations
+====================
+
+If an application wants to work with all the possible combinations it
+will have to provide different binaries for each combination because
+it's not possible to have an application compiled for NeXT PDO that
+runs with gnustep-base or vice-versa. To summarize, an application can
+be compiled for these combinations:
+
+Objective-C runtime: NeXT, GNU
+Foundation library: NeXT, PDO, gnustep-base, libFoundation
+GUI library: NeXT, gnustep-gui
+
+Objective-C runtime: nx (for NeXT), gnu (for GNU)
+Foundation library: nx (for NeXT), pdo (for PDO), gnu (for gnustep-base),
+		fd (for libFoundation)
+GUI library: nx (for NeXT), gnu (for gnustep-gui)
+
+We'll denote the fact that an application was compiled for a certain
+combination of the above values by using the abbreviations of the
+different subsystems and placing dashes between them. For example
+an application compiled for NeXT Foundation using NeXT AppKit will
+have the compile attribute nx-nx-nx. An application compiled for
+PDO with the gnustep-gui library under Unix will be denoted by
+nx-pdo-gnu and another one compiled for gnustep-base using
+gnustep-gui under Unix will be denoted by gnu-gnu-gnu. Here is a
+list of some of the possible combinations:
+
+ObjC runtime	Foundation	GUI
+------------	----------	---
+    nx		    nx		nx	
+    nx		    pdo		nx
+    nx		    pdo		gnu
+    gnu		    gnu		gnu
+    gnu		    gnu		gnu
+    nx		    fd		gnu
+    gnu		    fd		gnu
+
+Note that one can choose his/her own packages to build; it is not
+required to have all the packages installed on the system. Not having
+all of them installed limits only the ability to build and distribute
+binaries for those missing combinations.
+
+Directory structure
+===================
+
+There are several directories used in a GNUstep environment. The
+directories are relative to a top directory whose name is given by the
+variable GNUSTEP_SYSTEM_ROOT ($GNUSTEP_SYSTEM_ROOT in a shell or
+$(GNUSTEP_SYSTEM_ROOT) in a makefile). Below is the hierarchy of
+GNUstep directories:
+
+$(GNUSTEP_SYSTEM_ROOT)/
+    Headers/
+    Libraries/
+    Applications/
+    Tools/
+
+The Headers/ and Libraries/ directories, as their names suggest, keep
+the header files and the libraries required by a GNUstep project to
+compile and link. The libraries can be both shared or static,
+depending on the target system.
+
+The Applications/ directory is used by GNUstep graphical applications,
+those applications which have a graphical interface with the user. The
+Tools/ directory holds command line tools based on GNUstep libraries.
+
+The header files are grouped like this in the Headers/ directory:
+
+Headers/
+  gnustep/
+    base/
+    Foundation -> base
+    gui/
+    AppKit -> gui
+  libFoundation/
+    Foundation/
+
+The Libraries/ directory can hold libraries for several machines and
+several combinations of packages:
+
+Libraries/
+  i386/
+    linux-gnu/
+      gnu-gnu-gnu/
+	libgnustep-base.so
+	libgnustep-gui.so
+      gnu-fd-gnu/
+	libFoundation.so
+	libgnustep-gui.so
+  sparc/
+    solaris-2.5.1/
+      nx-pdo-gnu/
+	libgnustep-gui.so
+
+Please note that the Libraries/ directory contains only the libraries
+that come with GNUstep, the PDO library for example is not inside
+Libraries/. The compiler has to know where that library can be found,
+although the makefile package is responsible for passing all the
+necessary flags during compiling and linking.
+
+The libraries directory also contains resource files which belong to
+the GNUstep libraries, such as images and printer description
+files. Since the images can look different for different backends,
+each backend has its own images in a different directory based upon
+the interface look and feel:
+
+Libraries/
+  Resources/
+    Images/
+      NeXT/
+      Win32/
+    PrinterTypes/
+    Fonts/
+    gnustep/
+	NSCharacterSets/
+    libFoundation/
+      CharacterSets/
+      Defaults/
+      TimeZoneInfo/
+
+The resources that are specific to each Foundation libraries are kept
+in a subdirectory like above, except for NeXT Foundation and PDO which
+keep their resources in their own places.
+
+The Applications/ directory contains GNUstep graphical
+applications. Each application is kept in an app wrapper which
+contains all the binaries and all the resource files the application
+needs. The binaries organization resembles the one from libraries:
+
+Applications/
+  InterfaceModeller.app/
+    InterfaceModeller (for OPENSTEP systems compatibility)
+    i386/
+      linux-gnu/
+	gnu-gnu-gnu/
+	  InterfaceModeller
+    sparc/
+      solaris-2.5.1/
+	nx-pdo-gnu/
+	  InterfaceModeller
+
+The Tools/ directory contains command line tools.  Each tool
+executable is placed in a subdirectory corresponding to the CPU and
+operating system.
+
+Tools/
+  i386/
+    linux-gnu/
+	autoconf
+	gcc
+	dgs
+  sparc/
+    solaris-2.5.1/
+	autoconf
+	gcc
+
+
+The makefile package
+====================
+
+The GNUstep environment needs a makefile package whose purpose is to
+simplify writing a GNUstep project. This package should help
+developers easily write makefiles for compiling their projects.
+
+Theoretically an OpenStep application should only use OpenStep API, it
+should not rely at all on system specific header files. This is the
+most portable way to write an OpenStep application. For this kind of
+applications configuring is not necessary since no system specific
+header files or libraries need to be checked. The idea is to try
+eliminate the configuring process because of the problems it has in
+the presence of cross-compiling. Not relying on system files in a
+GNUstep project means that you don't need to check for them, so the
+project can simply be compiled by just typing `make'.
+
+This is the best scenario for a GNUstep package. If configuring is
+still needed the makefile package should support it without major
+changes.
+
+We identified until now the following types of projects:
+
+- application: for projects whose result are graphical GNUstep applications
+- tool: for command line programs which use GNUstep libraries
+- library: for creating libraries (both static and shared)
+- bundle: for creating a dynamically loaded bundle
+- aggregate: for projects that contain several other subprojects like
+  libraries, bundles and so on
+
+Another possible type of project could be "pallete", for adding
+functionality to the GNUstep InterfaceModeller application. Other
+project types can be added as well, the makefile package does not
+limit this in any way.
+
+A project consists from a collection of source code files and resource
+files. If a project has several subdirectories, those subdirectories
+are subprojects of the main project. A subproject type is not
+restricted in any way by the type of the project it's contained
+into. The only restriction is that you can not create multiple project
+types from the files in the same directory.
+
+For a project that does not need any additional configuring before
+compiling the only thing required to build the project should be
+typing
+
+  $ make
+
+in the command line :-).
+
+Where the object files go
+=========================
+
+The object files will go in a separate directory identified by the
+name of the target system and of the development environment used
+(ObjC runtime, Foundation library and GUI libraries). This way one can
+use the same source tree for building the project for multiple
+targets.
+
+How to choose the library combination
+=====================================
+
+The makefile package will allow the user to choose between different
+library combinations. To specify a combination you want to compile for
+just type:
+
+  $ make library_combo="library combination"
+
+For instance if you want to choose to compile using the NeXT's PDO
+Foundation and use the GNUstep GUI library on a Unix machine you can
+do like this:
+
+  $ make library_combo=nx-pdo-gnu
+
+
+Projects that require running configure before compiling
+========================================================
+
+There are two issues with this kind of projects. 'configure' is used
+to determine the existence of particular header files and/or of some
+specific functionality in the system header files. This thing is
+usually done by creating a config.h file which contains a couple of
+defines like HAVE_... which say if the checked functionality is
+present or not.
+
+Another usage of configure is to determine some specific libraries to
+link against to and/or some specific tools. A typical GNUstep program
+is not required to check for additional libraries because this step is
+done by the time the makefile package is installed. If the project
+still needs to check for additional libraries and/or tools, the
+recommended way is to output a config.mak file which is included by
+the main makefile, instead of using Makefile.in files which are
+modified by configure. The reason for not doing this is to avoid
+having the Makefiles contain target dependencies like above, this way
+keeping only one makefile instead of several for each target machine.
+
+The makefile package will be written for GNU make because it provides
+some very powerful features that save time both in writing the package
+but also at runtime, when you compile a project.
+
+How to build a package for different architectures
+==================================================
+
+In order to build a project for multiple architectures you'll need the
+development environment for the target machine installed on your
+machine. This includes a cross-compiler together with all the
+additional tools like the assembler and linker, the target header
+files and all the libraries you need.
+
+The GNUstep makefile package should be able to compile and link an
+application for another machine just by typing
+
+  $ make target="target machine"
+
+where "target machine" is the canonical system name as reported by
+config.guess.
+
+Building different types of a project
+=====================================
+
+During development you usually need to switch between a debug version and a
+profile one without having to recompile all of the sources. The makefile
+package allows you to do this by letting you define three boolean make
+variables. The values of these variables can be either "yes" or "no".
+
+* debug
+
+If the value is yes then it is assumed that the target is to be built with
+debugging info. By default the optimization is turned on but you can control
+this behavior via the OPTFLAGS make variable. The default is no.
+
+* shared
+
+It makes sense to specify this only for library targets. This variable says
+if the target needs to be built as a shared library. On systems that support
+shared libraries this is the default; the user has to explicitly specify
+shared=no in the command line.
+
+* profile
+
+When this variable is yes, a profile version of the target is built. The
+default is no.
+
+For example if you want to build a shared library with debug information
+enabled but no profile information, the command line would be:
+
+  $ make shared=yes debug=yes profile=no
+
+The last argument is not necessary because the default is to build a version
+without profile information.
+
+The object files will be output into the shared_debug_obj directory. If the
+profile is turned on the output directory would be shared_profile_debug_obj.
+
+Of course you also have to specify the library combo if it's different than the
+default.
+
+Naming conventions of the libraries
+===================================
+
+Sometimes you need to have different versions of a library compiled with
+different options. Suppose you want to compile a library with profiling
+information enabled so that you can profile your code. But you don't want to
+overwrite your existing installed library so that only some of the applications
+will work with the profile library, the rest will still use the normal library.
+
+The makefile package supports such a schema by having different names for
+different types of the same library. This works by appending an underscore
+after the name of the library followed by a letter which indicates the type of
+the library:
+
+'s' for a static library
+'p' for a profile library
+'d' for a debug library
+
+So for example if you have the library 'example' compiled with debug
+information as a shared library it would be named libexample_d.so. If the same
+library is compiled as a static library its name would be named
+libexample_sd.a. The reason why the 's' letter for the static library appears
+in name of the library is for systems where the extensions of libraries don't
+matter.
+
+It is possible to compile a library with whatever combination of flags you
+want. The letters are appended in the order specified above, so if you compile
+the library as a static library, with profile and debug information enabled,
+the library name will have the _spd suffix appended.
+
+How a library is chosen
+=======================
+
+What happens if you compile an application with profile enabled and you don't
+have a library compiled with profile info into it, but you do have a normal
+library installed? It would be great if the normal library is chosen instead.
+This is a problem because the library that should be chosen has a different
+name than the profile library.
+
+We do support this schema by requiring the libraries to be specified using the
+short name, without any suffix appended to it. The `example' library in our
+case should be passed to the linker using -lexample, and not using -lexample_p.
+Based upon the shared, profile and debug variables, the makefile package will
+identify which are the libraries that exist on the system and it will come with
+the correct names when linking.
+
+The search order of libraries depending on what type of library is required is
+as follows. First of all an exact match is searched; if one is found it is
+returned. If either debug or profile are required, a library that matches at
+least one of these attributes is returned. For example if there is a
+profile+debug version of a library but only debug is required this library will
+match. If a static version is required but no static versions of the library
+exist, then no library is chosen; in this case the system simply prints out the
+name of the library, assuming a static library is somewhere else in the
+libraries search path of the linker.
+
+Building applications
+=====================
+
+In the makefile's package terminology an application is a program linked
+against the GUI libraries.
+
+An application is built as usualy, by compiling all of the sources and then
+linking the object files into the binary. The only difference between
+an application and any other project results is that the first is created into
+its own directory, instead of being a simple file. This directory is called
+the application wrapper and it contains the binaries for various architectures
+and resources needed by the application.
+
+The name of the application wrapper is taken to be the name of the application
+with the following extensions:
+
+.profile - if the application has been built with profile enabled
+.debug - if the application has been built with debug enabled
+.app - if the application has been built without debug or profile enabled
+
+If both debug and profile are enabled, the application extension will simply
+have the .profile extension. This is different from libraries were both options
+are reflected into the library's name. 
+
+The structure of makefiles
+==========================
+
+The makefile package should be built so that a user project will only
+have to define what are the Objective-C files he/she uses, what are
+the C files, the header files and so on. All the rules that know how
+to build a library, an application or whatever type of project are
+defined in the internal files of the makefile package.
+
+This organization has several advantages. The main advantage is that
+we keep the makefiles in a GNUstep project small, only the makefile
+variable definitions. The other advantage is that all the build
+knowledge is centralized in a single place, the makefile
+package. Right now each GNUstep package tries to solve all of the
+issues related to the package building and nothing is reusable.
+
+The way the main makefile of a project should be written requires the
+user to specify the files needed by the make process and what kind of
+project needs to be built. This is defined by including a certain
+makefile package file. For example if the package to be built is an
+application then a possible Makefile can look like this:
+
+APP_NAME = test1 test2
+test1_OBJC_FILES = test1.m
+test2_OBJC_FILES = test2.m test21.m
+
+-include Makefile.preamble
+include application.make
+-include Makefile.postamble
+
+
+The main makefile will be generated automatically in the future by the
+ProjectCenter. This presents problems if the user wants to add his/her
+own makefiles targets or additional rules. Two additional files are
+provided: Makefile.preamble and Makefile.postamble. The first file is
+included before the makefile for the specific project type and is
+intended for redefining the standard variables or for adding to
+them. The second one is intended for adding additional rules or
+targets.
+
+The makefile package is installed under $(GNUSTEP_SYSTEM_ROOT)/Library/Makefiles.
+
+
+Ovidiu Predescu
+
+Last updated: April, 2001

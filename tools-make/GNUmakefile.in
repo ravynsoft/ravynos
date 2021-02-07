@@ -1,0 +1,585 @@
+#   @configure_input@
+#
+#   Main GNUmakefile for the GNUstep GNUmakefile Package.
+#
+#   Copyright (C) 1997-2008 Free Software Foundation, Inc.
+#
+#   Author: Scott Christley <scottc@net-community.com>
+#   Author: Nicola Pero <nicola.pero@meta-innovation.com>
+#
+#   This file is part of the GNUstep Makefile Package.
+#
+#   This library is free software; you can redistribute it and/or
+#   modify it under the terms of the GNU General Public License
+#   as published by the Free Software Foundation; either version 3
+#   of the License, or (at your option) any later version.
+#   
+#   You should have received a copy of the GNU General Public
+#   License along with this library; see the file COPYING.
+#   If not, write to the Free Software Foundation,
+#   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+
+# Disable all built-in suffixes for performance.
+.SUFFIXES:
+
+# Disable all built-in rules with a vague % as target, for performance.
+%: %.c
+
+%: %.cpp
+
+%: %.cc
+
+%: %.C
+
+(%): %
+
+%:: %,v
+
+%:: RCS/%,v
+
+%:: RCS/%
+
+%:: s.%
+
+%:: SCCS/s.%
+
+#
+# I've thought about using the Makefile package files
+# to install the GNUmakefile package, a cool little recursion,
+# but there is nothing to made, and the files get installed
+# in a special directory, so it was simpler this way.
+#
+include config-noarch.make
+include config.make
+
+
+# To install everything inside a temporary directory (say as part of
+# building a binary package - deb or rpm), use something like `make
+# install DESTDIR=/var/tmp/gnustep-make'
+DESTDIR = 
+
+# 'special_prefix' is an old alias for DESTDIR.
+ifneq ($(special_prefix),)
+  ifeq ($(GNUSTEP_MAKE_STRICT_V2_MODE),yes)
+    $(error "ERROR: special_prefix is deprecated.  Please use DESTDIR instead")
+  else
+    $(warning "WARNING: special_prefix is deprecated.  Please use DESTDIR instead")
+  endif
+  DESTDIR = $(special_prefix)
+endif
+
+override GNUSTEP_CONFIG_FILE = $(DESTDIR)@GNUSTEP_CONFIG_FILE@
+override GNUSTEP_CONFIG_FILE_DIR = $(dir $(GNUSTEP_CONFIG_FILE))
+tooldir = $(DESTDIR)@GNUSTEP_SYSTEM_TOOLS@
+makedir = $(DESTDIR)@GNUSTEP_MAKEFILES@
+mandir  = $(DESTDIR)@GNUSTEP_SYSTEM_DOC_MAN@
+srcdir = @srcdir@
+VPATH = @srcdir@
+testdir=$(makedir)/TestFramework
+
+override GNUSTEP_IS_FLATTENED = @GNUSTEP_IS_FLATTENED@
+override GNUSTEP_TARGET_CPU = @clean_target_cpu@
+override GNUSTEP_TARGET_VENDOR = @clean_target_vendor@
+override GNUSTEP_TARGET_OS = @clean_target_os@
+
+override GNUSTEP_LIB_COMBO = @ac_cv_library_combo@
+
+ifeq ($(GNUSTEP_IS_FLATTENED), no)
+  override GNUSTEP_TARGET_DIR = $(GNUSTEP_TARGET_CPU)-$(GNUSTEP_TARGET_OS)
+  override GNUSTEP_TARGET_LDIR = $(GNUSTEP_TARGET_DIR)/$(GNUSTEP_LIB_COMBO)
+  override MAYBE_LIBRARY_COMBO = $(GNUSTEP_LIB_COMBO)
+  override MAKE_CONFIG_DIR = $(GNUSTEP_TARGET_LDIR)
+else
+  override GNUSTEP_TARGET_DIR = .
+  override GNUSTEP_TARGET_LDIR = .
+  override MAYBE_LIBRARY_COMBO = .
+  override MAKE_CONFIG_DIR = .
+endif
+
+export GNUSTEP_TARGET_DIR
+export GNUSTEP_TARGET_LDIR
+export MAYBE_LIBRARY_COMBO
+
+INSTALL		= @INSTALL@
+INSTALL_PROGRAM	= @INSTALL_PROGRAM@
+INSTALL_DATA	= @INSTALL_DATA@
+
+VERTAG = $(subst .,_,$(GNUSTEP_MAKE_VERSION))
+
+SVNPREFIX=svn+ssh://svn.gna.org/svn/gnustep/tools/make
+
+MAKE_FILES = aggregate.make application.make bundle.make service.make \
+	common.make empty.make library-combo.make java.make jni.make library.make \
+	messages.make parallel-subdirectories.make rules.make serial-subdirectories.make \
+	target.make names.make resource-set.make \
+	tool.make ctool.make test-library.make \
+	objc.make test-application.make test-tool.make subproject.make \
+	palette.make gswapp.make gswbundle.make clibrary.make \
+	documentation.make java-tool.make framework.make \
+	native-library.make spec-rules.template \
+        tar-exclude-list gnustep-make-help
+
+MASTER_MAKE_FILES = \
+        source-distribution.make rpm.make rules.make \
+        application.make bundle.make clibrary.make ctool.make \
+        documentation.make framework.make gswapp.make gswbundle.make \
+        library.make nsis.make deb.make objc.make java.make java-tool.make palette.make \
+	parallel-subdirectories.make resource-set.make serial-subdirectories.make \
+	service.make subproject.make test-application.make \
+        test-library.make test-tool.make tool.make
+
+INSTANCE_MAKE_FILES = \
+        rules.make \
+        application.make bundle.make clibrary.make ctool.make \
+        documentation.make framework.make gswapp.make gswbundle.make \
+        library.make objc.make java.make java-tool.make palette.make \
+        resource-set.make service.make subproject.make test-application.make \
+        test-library.make test-tool.make tool.make
+
+INSTANCE_SHARED_MAKE_FILES = bundle.make headers.make java.make \
+                             pkgconfig.make stamp-string.make strings.make
+
+INSTANCE_DOC_MAKE_FILES = autogsdoc.make gsdoc.make install_files.make \
+                          javadoc.make latex.make texi.make
+
+TEST_FRAMEWORK_FILES = \
+	GNUmakefile.in Testing.h ObjectTesting.h README \
+	example1.m example2.m example3.m example4.m example5.m \
+	example6.m example7.m example8.m example9.m
+
+# Decide which version of the GNUstep.conf file we are going to
+# install; the standard one, or the strict gnustep-make v2 one ?
+ifeq ($(GNUSTEP_MAKE_STRICT_V2_MODE),yes)
+  GNUSTEP_DOT_CONF_FILE = GNUstep-strict-v2.conf
+else
+  GNUSTEP_DOT_CONF_FILE = GNUstep.conf
+endif
+
+# You can type 'make messages=yes' to see exactly which commands are
+# being executed.  Else we only print a summary description.
+ifeq ($(messages),yes)
+  EC = 
+else
+  EC = @
+endif
+
+# To produce a signed Debian source and binary package,
+# call 'make debsign=yes'.
+ifeq ($(debsign),yes)
+  DEBUILD_ARGS = -nc
+else
+  DEBUILD_ARGS = -us -uc -nc
+endif
+
+# Version code that will be used in 'svn-export' target. Expand immediately; 
+# it should be constant in the script.
+DATE_TIME_VERSION := $(shell date +%Y%m%d%H%M)
+
+# Revision; potentially expensive so expand when used.
+SVN_REVISION = $(shell svn info . | sed -ne 's/^Revision: //p')
+
+# Used to override version of .tar.gz that will be copied and used as .orig.tar.gz.
+ifeq ($(DEB_TARBALL_VERSION), )
+DEB_TARBALL_VERSION = $(GNUSTEP_MAKE_VERSION)
+endif
+
+all: generated-files
+	$(EC)(echo "Thanks.  All is ready: type '$(MAKE) install' to install gnustep-make.")
+
+install: generated-files
+	$(EC)(echo "Creating system tools directory: $(tooldir)"; \
+	 "$(srcdir)/mkinstalldirs" "$(tooldir)"; \
+	 echo "Creating makefile directories in: $(makedir)"; \
+	 "$(srcdir)/mkinstalldirs" \
+		"$(makedir)" \
+		"$(makedir)/$(GNUSTEP_TARGET_DIR)" \
+		"$(makedir)/$(GNUSTEP_TARGET_LDIR)" \
+		"$(makedir)/Additional" \
+		"$(makedir)/Auxiliary" \
+		"$(makedir)/Master" \
+		"$(makedir)/Instance" \
+		"$(makedir)/Instance/Shared" \
+		"$(makedir)/Instance/Documentation" \
+		"$(testdir)")
+	$(EC)(echo "Installing GNUstep configuration file in $(GNUSTEP_CONFIG_FILE)"; \
+	 "$(srcdir)/mkinstalldirs" "$(GNUSTEP_CONFIG_FILE_DIR)"; \
+	 $(INSTALL_DATA) $(GNUSTEP_DOT_CONF_FILE) "$(GNUSTEP_CONFIG_FILE)")
+	 $(EC)(echo "Installing gnustep-make support software")
+	 $(EC)(for f in config.guess config.sub install-sh mkinstalldirs \
+		clean_cpu.sh clean_os.sh \
+		clean_vendor.sh cpu.sh os.sh vendor.sh \
+		print_unique_pathlist.sh \
+		relative_path.sh strip_makefiles.sh; do \
+	     $(INSTALL_PROGRAM) -m 755 "$(srcdir)/$$f" "$(makedir)"; \
+	   done)
+	 $(EC)($(INSTALL_DATA) GNUstep.sh "$(makedir)"; \
+	  $(INSTALL_DATA) GNUstep.csh "$(makedir)"; \
+	  $(INSTALL_DATA) filesystem.sh "$(makedir)"; \
+	  $(INSTALL_DATA) filesystem.csh "$(makedir)"; \
+	  $(INSTALL_DATA) "$(srcdir)/GNUstep-reset.sh" "$(makedir)"; \
+	  $(INSTALL_PROGRAM) -m 755 fixpath.sh "$(makedir)"; \
+	  $(INSTALL_PROGRAM) -m 755 openapp "$(tooldir)"; \
+	  $(INSTALL_PROGRAM) -m 755 "$(srcdir)/debugapp" "$(tooldir)"; \
+	  $(INSTALL_PROGRAM) -m 755 opentool "$(tooldir)"; \
+	  $(INSTALL_PROGRAM) -m 755 gnustep-config "$(tooldir)")
+	 $(EC)(echo "Installing makefiles"; \
+	   for f in $(MAKE_FILES); do \
+	     $(INSTALL_DATA) "$(srcdir)/$$f" "$(makedir)"; \
+	   done; \
+	   for f in $(MASTER_MAKE_FILES); do \
+	     $(INSTALL_DATA) "$(srcdir)/Master/$$f" "$(makedir)/Master"; \
+	   done; \
+	   for f in $(INSTANCE_MAKE_FILES); do \
+	     $(INSTALL_DATA) "$(srcdir)/Instance/$$f" "$(makedir)/Instance"; \
+	   done; \
+	   for f in $(INSTANCE_SHARED_MAKE_FILES); do \
+	     $(INSTALL_DATA) "$(srcdir)/Instance/Shared/$$f" \
+	                     "$(makedir)/Instance/Shared"; \
+	   done; \
+	   for f in $(INSTANCE_DOC_MAKE_FILES); do \
+	     $(INSTALL_DATA) "$(srcdir)/Instance/Documentation/$$f" \
+	                     "$(makedir)/Instance/Documentation"; \
+	   done; \
+	   $(INSTALL_PROGRAM) -m 755 "$(srcdir)/app-wrapper.template" "$(makedir)"; \
+	   $(INSTALL_PROGRAM) -m 755 "$(srcdir)/java-executable.template" "$(makedir)"; \
+	   $(INSTALL_PROGRAM) -m 755 executable.template "$(makedir)"; \
+	   $(INSTALL_DATA) "$(srcdir)/nsi-app.template" "$(makedir)"; \
+	   $(INSTALL_DATA) -m 755 "$(srcdir)/bake_debian_files.sh" "$(makedir)"; \
+	   $(INSTALL_DATA) config-noarch.make "$(makedir)"; \
+	   $(INSTALL_DATA) filesystem.make "$(makedir)"; \
+	   $(INSTALL_DATA) config.make "$(makedir)/$(MAKE_CONFIG_DIR)")
+	$(EC)(echo "Installing Test Framework scripts"; \
+	  $(INSTALL_PROGRAM) -m 755 TestFramework/gnustep-tests "$(tooldir)"; \
+	  $(INSTALL_PROGRAM) -m 755 $(srcdir)/TestFramework/Summary.sh "$(testdir)")
+	$(EC)(echo "Installing Test Framework support files"; \
+	   for f in $(TEST_FRAMEWORK_FILES); do \
+	     $(INSTALL_DATA) "$(srcdir)/TestFramework/$$f" "$(testdir)"; \
+	   done)
+	$(EC)(echo "Installing (and compressing) manpages"; \
+	  "$(srcdir)/mkinstalldirs" "$(mandir)/man1" \
+	                          "$(mandir)/man7"; \
+	  $(INSTALL_DATA) "$(srcdir)/Documentation/debugapp.1" "$(mandir)/man1"; \
+	  which gzip > /dev/null 2>&1 && rm -f "$(mandir)/man1/debugapp.1.gz" && gzip -9 -n "$(mandir)/man1/debugapp.1"; \
+	  $(INSTALL_DATA) "$(srcdir)/Documentation/gnustep-config.1" "$(mandir)/man1"; \
+	  which gzip > /dev/null 2>&1 && rm -f "$(mandir)/man1/gnustep-config.1.gz" && gzip -9 -n "$(mandir)/man1/gnustep-config.1"; \
+	  $(INSTALL_DATA) "$(srcdir)/Documentation/gnustep-tests.1" "$(mandir)/man1"; \
+	  which gzip > /dev/null 2>&1 && rm -f "$(mandir)/man1/gnustep-tests.1.gz" && gzip -9 -n "$(mandir)/man1/gnustep-tests.1"; \
+	  $(INSTALL_DATA) "$(srcdir)/Documentation/openapp.1" "$(mandir)/man1"; \
+	  which gzip > /dev/null 2>&1 && rm -f "$(mandir)/man1/openapp.1.gz" && gzip -9 -n "$(mandir)/man1/openapp.1"; \
+	  $(INSTALL_DATA) "$(srcdir)/Documentation/opentool.1" "$(mandir)/man1"; \
+	  which gzip > /dev/null 2>&1 && rm -f "$(mandir)/man1/opentool.1.gz" && gzip -9 -n "$(mandir)/man1/opentool.1"; \
+	  $(INSTALL_DATA) "$(srcdir)/Documentation/GNUstep.7" "$(mandir)/man7"; \
+	  which gzip > /dev/null 2>&1 && rm -f "$(mandir)/man7/GNUstep.7.gz" && gzip -9 -n "$(mandir)/man7/GNUstep.7"; \
+	  $(INSTALL_DATA) "$(srcdir)/Documentation/library-combo.7" "$(mandir)/man7"; \
+	  which gzip > /dev/null 2>&1 && rm -f "$(mandir)/man7/library-combo.7.gz" && gzip -9 -n "$(mandir)/man7/library-combo.7")
+	$(EC)(if [ "@GNUSTEP_STRIP_MAKEFILES@" = "strip" ]; then \
+	   echo "Stripping makefiles and shell scripts..."; \
+	   cd "$(makedir)"; ./strip_makefiles.sh; \
+	   fi)
+	$(EC)(if [ "@GNUSTEP_INSTALL_LD_SO_CONF@" = "yes" ] ; then \
+	   echo "Installing ld.so.conf.d/gnustep-make.conf due to custom prefix..."; \
+	   "$(srcdir)/mkinstalldirs" $(DESTDIR)/etc/ld.so.conf.d ; \
+	    $(INSTALL_DATA) gnustep-make-ld.so.conf  "$(DESTDIR)/etc/ld.so.conf.d/gnustep-make.conf"; \
+	    \
+	   fi)
+
+uninstall:
+	rm -f "$(mandir)/man1/debugapp.1" "$(mandir)/man1/debugapp.1.gz"; \
+	rm -f "$(mandir)/man1/gnustep-config.1" "$(mandir)/man1/gnustep-config.1.gz"; \
+	rm -f "$(mandir)/man1/gnustep-tests.1" "$(mandir)/man1/gnustep-tests.1.gz"; \
+	rm -f "$(mandir)/man1/openapp.1" "$(mandir)/man1/openapp.1.gz"; \
+	rm -f "$(mandir)/man1/opentool.1" "$(mandir)/man1/opentool.1.gz"; \
+	rm -f "$(mandir)/man7/GNUstep.7" "$(mandir)/man7/GNUstep.7.gz"; \
+	rm -f "$(mandir)/man7/library-combo.7" "$(mandir)/man7/library-combo.7.gz"
+	-rmdir "$(mandir)/man1"
+	-rmdir "$(mandir)/man7"
+	-rmdir "$(mandir)"
+	for f in config.guess config.sub install-sh mkinstalldirs \
+		clean_cpu.sh clean_os.sh \
+		clean_vendor.sh cpu.sh os.sh vendor.sh \
+		print_unique_pathlist.sh fixpath.sh \
+		filesystem.sh filesystem.csh \
+	        GNUstep.sh GNUstep.csh GNUstep-reset.sh \
+		relative_path.sh strip_makefiles.sh; do \
+	  rm -f "$(makedir)/$$f"; \
+	done
+	rm -f "$(tooldir)/openapp"; \
+	rm -f "$(tooldir)/debugapp"; \
+	rm -f "$(tooldir)/opentool"; \
+	rm -f "$(tooldir)/gnustep-config"; \
+	rm -f "$(tooldir)/gnustep-tests"; \
+	rm -f "$(testdir)/Summary.sh"; \
+	for f in $(MAKE_FILES); do \
+	  rm -f "$(makedir)/$$f"; \
+	done
+	for f in $(MASTER_MAKE_FILES); do \
+	  rm -f "$(makedir)/Master/$$f"; \
+	done
+	for f in $(INSTANCE_MAKE_FILES); do \
+	  rm -f "$(makedir)/Instance/$$f"; \
+	done
+	for f in $(INSTANCE_SHARED_MAKE_FILES); do \
+	  rm -f "$(makedir)/Instance/Shared/$$f"; \
+	done
+	for f in $(INSTANCE_DOC_MAKE_FILES); do \
+	  rm -f "$(makedir)/Instance/Documentation/$$f"; \
+	done
+	for f in $(TEST_FRAMEWORK_FILES); do \
+	  rm -f "$(testdir)/$$f"; \
+	done
+	rm -f "$(makedir)/executable.template"
+	rm -f "$(makedir)/app-wrapper.template"
+	rm -f "$(makedir)/java-executable.template"
+	rm -f "$(makedir)/nsi-app.template"
+	rm -f "$(makedir)/bake_debian_files.sh"
+	rm -f "$(makedir)/config-noarch.make"
+	rm -f "$(makedir)/filesystem.make"
+	rm -f "$(makedir)/$(MAKE_CONFIG_DIR)/config.make"
+	rm -f "$(GNUSTEP_CONFIG_FILE)"
+	-rmdir "$(GNUSTEP_CONFIG_FILE_DIR)"
+	-rmdir "$(testdir)"
+	-rmdir "$(makedir)/Instance/Documentation"
+	-rmdir "$(makedir)/Instance/Shared"
+	-rmdir "$(makedir)/Instance"
+	-rmdir "$(makedir)/Master"
+	-rmdir "$(makedir)/Auxiliary"
+	-rmdir "$(makedir)/Additional"
+	-rmdir "$(makedir)/$(GNUSTEP_TARGET_LDIR)"
+	-rmdir "$(makedir)/$(GNUSTEP_TARGET_DIR)"
+	-rmdir "$(makedir)/$(GNUSTEP_TARGET_CPU)"
+	-rmdir "$(makedir)/$(GNUSTEP_LIB_COMBO)"
+	-rmdir "$(makedir)"
+	-rmdir "$(tooldir)"
+
+clean:
+	(cd Documentation; $(MAKE) distclean)
+	rm -f *~ Master/*~ Instance/*~ Instance/Shared/*~
+
+distclean: clean
+	(cd Documentation; $(MAKE) distclean)
+	rm -f GNUmakefile config-noarch.make config.make config.h
+	rm -f config.cache config.log config.status
+	rm -f openapp opentool executable.template
+	rm -f GNUstep.sh GNUstep.csh fixpath.sh gnustep-config
+	rm -f filesystem.make filesystem.sh filesystem.csh
+	rm -f gnustep-make.spec GNUstep.conf GNUstep-strict-v2.conf
+	rm -f config-precomp-test.out config-precomp-test.h.gch config-precomp-test.log
+	rm -f debian_dist/
+
+docs:
+	(cd Documentation; $(MAKE))
+
+install-docs:
+	(cd Documentation; $(MAKE) install)
+
+install-all:	install install-docs
+
+svn-tag:
+	svn copy $(SVNPREFIX)/trunk $(SVNPREFIX)/tags/make-$(VERTAG) \
+	  -m "Tag version $(VERTAG)"
+
+svn-tag-stable:
+	svn copy $(SVNPREFIX)/branches/stable $(SVNPREFIX)/tags/make-$(VERTAG) \
+	  -m "Tag version $(VERTAG)"
+
+svn-dist:
+	svn export $(SVNPREFIX)/tags/make-$(VERTAG) \
+	  gnustep-make-$(GNUSTEP_MAKE_VERSION)
+	tar --gzip -cf gnustep-make-$(GNUSTEP_MAKE_VERSION).tar.gz gnustep-make-$(GNUSTEP_MAKE_VERSION)
+	rm -rf gnustep-make-$(GNUSTEP_MAKE_VERSION)
+
+svn-snapshot:
+	svn export $(SVNPREFIX)/trunk \
+	  gnustep-make-$(GNUSTEP_MAKE_VERSION)~svn$(SVN_REVISION)
+	tar --gzip -cf gnustep-make-$(GNUSTEP_MAKE_VERSION)~svn$(SVN_REVISION).tar.gz gnustep-make-$(GNUSTEP_MAKE_VERSION)~svn$(SVN_REVISION)
+	echo $(GNUSTEP_MAKE_VERSION)~svn$(SVN_REVISION) > svn-snapshot-tarball-version
+	rm -rf gnustep-make-$(GNUSTEP_MAKE_VERSION)~svn$(SVN_REVISION)
+
+svn-export:
+	@echo Note: any local changes are included.
+	svn export . \
+	  gnustep-make-$(GNUSTEP_MAKE_VERSION)~svn$(SVN_REVISION)~date$(DATE_TIME_VERSION)
+	tar --gzip -cf gnustep-make-$(GNUSTEP_MAKE_VERSION)~svn$(SVN_REVISION)~date$(DATE_TIME_VERSION).tar.gz gnustep-make-$(GNUSTEP_MAKE_VERSION)~svn$(SVN_REVISION)~date$(DATE_TIME_VERSION)
+	echo $(GNUSTEP_MAKE_VERSION)~svn$(SVN_REVISION)~date$(DATE_TIME_VERSION) > svn-export-tarball-version
+	rm -rf gnustep-make-$(GNUSTEP_MAKE_VERSION)~svn$(SVN_REVISION)~date$(DATE_TIME_VERSION)
+
+cvs-tag:
+	cvs -z3 rtag make-$(VERTAG) make
+
+cvs-dist:
+	cvs -z3 export -r make-$(VERTAG) make
+	mv make gnustep-make-$(GNUSTEP_MAKE_VERSION)
+	tar --gzip -cf gnustep-make-$(GNUSTEP_MAKE_VERSION).tar.gz gnustep-make-$(GNUSTEP_MAKE_VERSION)
+	rm -rf gnustep-make-$(GNUSTEP_MAKE_VERSION)
+
+cvs-snapshot:
+	cvs -z3 export -D now make
+	mv make gnustep-make-$(GNUSTEP_MAKE_VERSION)
+	tar --gzip -cf gnustep-make-$(GNUSTEP_MAKE_VERSION).tar.gz gnustep-make-$(GNUSTEP_MAKE_VERSION)
+	rm -rf gnustep-make-$(GNUSTEP_MAKE_VERSION)
+
+ifeq ($(GIT_TAG_SIGN), )
+GIT_TAG_ANNOTATION_FLAGS = -a
+else
+  ifeq ($(GIT_TAG_SIGN), yes)
+  GIT_TAG_ANNOTATION_FLAGS = -s
+  else
+  GIT_TAG_ANNOTATION_FLAGS = -u $(GIT_TAG_SIGN)
+  endif
+endif
+
+git-tag-stable:
+	echo "*Error* tagging stable branch in Git is not supported at this time." && exit 1
+
+ifeq ($(GIT_TAG_ANNOUNCE_FILE),)
+git-tag:
+	git tag \
+	  $(GIT_TAG_ANNOTATION_FLAGS) \
+	  make-$(VERTAG) \
+	  -m "Release $(GNUSTEP_MAKE_VERSION)."
+else
+ifneq ($(GIT_TAG_ANNOUNCE_OMIT_PREFACE),yes)
+.INTERMEDIATE += git-tag-announce-file_$(GNUSTEP_MAKE_VERSION).tmp
+git-tag-announce-file_$(GNUSTEP_MAKE_VERSION).tmp: $(GIT_TAG_ANNOUNCE_FILE)
+	printf "Release $(GNUSTEP_MAKE_VERSION).\n\n" > $@
+	cat $(GIT_TAG_ANNOUNCE_FILE) >> $@
+
+git-tag: git-tag-announce-file_$(GNUSTEP_MAKE_VERSION).tmp
+	git tag \
+	  $(GIT_TAG_ANNOTATION_FLAGS) \
+	  make-$(VERTAG) \
+	  -F $<
+else
+git-tag:
+	git tag \
+	  $(GIT_TAG_ANNOTATION_FLAGS) \
+	  make-$(VERTAG) \
+	  -F $(GIT_TAG_ANNOUNCE_FILE)
+endif
+endif
+
+git-dist:
+	git archive --format=tar.gz make-$(VERTAG) -o gnustep-make-$(GNUSTEP_MAKE_VERSION).tar.gz --prefix=gnustep-make-$(GNUSTEP_MAKE_VERSION)/
+
+hg-tag:
+	hg tag -m "Release $(PACKAGE_VERSION)" make-$(VERTAG)
+
+hg-dist:
+	hg archive -r make-$(VERTAG) -p gnustep-make-$(GNUSTEP_MAKE_VERSION)/ \
+	  gnustep-make-$(GNUSTEP_MAKE_VERSION).tar.gz
+
+test-RPM_TOPDIR:
+	@(if [ -z "$(RPM_TOPDIR)" ]; then                                  \
+	  echo "Error - RPM_TOPDIR variable not set.";                     \
+	  echo "You need to set it to the top of your rpm directory tree"; \
+	  exit 1;                                                          \
+	fi)
+
+# The check for rpmbuild is for old RPM versions which didn't have
+# rpmbuild and used 'rpm -ba' instead.  It can be removed when we are
+# reasonably sure no more old RPM versions (not having rpmbuild), are
+# still around.
+rpm: test-RPM_TOPDIR svn-dist
+	cp gnustep-make-$(GNUSTEP_MAKE_VERSION).tar.gz $(RPM_TOPDIR)/SOURCES/
+	cp gnustep-make.spec $(RPM_TOPDIR)/SPECS/
+	cd $(RPM_TOPDIR)/SPECS/
+	if which rpmbuild > /dev/null 2>/dev/null; then \
+	  rpmbuild="rpmbuild"; \
+	else \
+	  if which rpm > /dev/null 2>/dev/null; then \
+	    rpmbuild="rpm"; \
+	  else \
+	    echo "Error: You don't have rpm installed!"; \
+	    rpmbuild="rpmbuild"; \
+	  fi; \
+	fi; \
+	$${rpmbuild} -ba gnustep-make.spec
+
+debclean: 
+	-rm -rf debian_dist
+
+deb: debian_dist/gnustep-make_$(DEB_TARBALL_VERSION)_any.deb
+
+debian_dist/gnustep-make_$(DEB_TARBALL_VERSION)_any.deb:
+	$(EC)(if [ ! -e "debian_dist/gnustep-make-$(DEB_TARBALL_VERSION)/debian/control" ] ; then \
+	  echo "Please manually run 'make debfiles' first." ; \
+	  echo "Intentionally not automatically depending to ease customization between steps." ; \
+	fi)
+	cd debian_dist/gnustep-make-$(DEB_TARBALL_VERSION)/ && EDITOR=/bin/true dpkg-source --commit -q . gnustep-make-automatic
+	cd debian_dist/gnustep-make-$(DEB_TARBALL_VERSION)/ && debuild $(DEBUILD_ARGS) -S
+	cd debian_dist/gnustep-make-$(DEB_TARBALL_VERSION)/ && debuild $(DEBUILD_ARGS) -b
+
+debfiles: debian_dist/gnustep-make_$(DEB_TARBALL_VERSION).orig.tar.gz
+	cd debian_dist && tar xfz gnustep-make_$(DEB_TARBALL_VERSION).orig.tar.gz
+	PACKAGE_NAME="gnustep-make" VERSION=$(DEB_TARBALL_VERSION) DEB_MAINTAINER="GNUstep Developers <gnustep-dev@gnu.org>" DEB_ARCHITECTURE=any /bin/bash bake_debian_files.sh debian_dist/gnustep-make-$(DEB_TARBALL_VERSION)/
+
+# Manual export is required to permit user to override .orig.tar.gz during the build process.
+# We also allow user to make a choice of where to grab .orig.tar.gz from.
+debian_dist/gnustep-make_$(DEB_TARBALL_VERSION).orig.tar.gz:
+	$(EC)(if [ ! -e gnustep-make-$(DEB_TARBALL_VERSION).tar.gz ] ; then \
+	  echo "Please manually create gnustep-make-$(DEB_TARBALL_VERSION).tar.gz." ; \
+	  echo "Some available make targets:" ; \
+	  echo " * svn-dist" ; \
+	  echo " * svn-snapshot" ; \
+	  echo " * svn-export" ; \
+	fi)
+
+	mkdir -p debian_dist
+	cp gnustep-make-$(DEB_TARBALL_VERSION).tar.gz debian_dist/gnustep-make_$(DEB_TARBALL_VERSION).orig.tar.gz
+
+generated-files: GNUmakefile GNUstep.sh GNUstep.csh fixpath.sh config-noarch.make config.make \
+                 openapp opentool gnustep-make.spec executable.template gnustep-config \
+                 filesystem.make filesystem.sh filesystem.csh GNUstep.conf GNUstep-strict-v2.conf \
+                 gnustep-make-ld.so.conf
+
+GNUmakefile: GNUmakefile.in config.status
+	$(SHELL) config.status
+
+GNUstep.sh: GNUstep.sh.in
+	$(SHELL) config.status
+
+GNUstep.csh: GNUstep.csh.in
+	$(SHELL) config.status
+
+GNUstep.conf: GNUstep.conf.in
+	$(SHELL) config.status
+
+GNUstep-strict-v2.conf: GNUstep-strict-v2.conf.in
+	$(SHELL) config.status
+
+fixpath.sh: fixpath.sh.in
+	$(SHELL) config.status
+
+filesystem.make: filesystem.make.in
+	$(SHELL) config.status
+
+filesystem.sh: filesystem.sh.in
+	$(SHELL) config.status
+
+filesystem.csh: filesystem.csh.in
+	$(SHELL) config.status
+
+config-noarch.make: config-noarch.make.in Version
+	$(SHELL) config.status --recheck
+
+config.make: config.make.in
+	$(SHELL) config.status --recheck
+
+openapp: openapp.in
+	$(SHELL) config.status
+
+opentool: opentool.in
+	$(SHELL) config.status
+
+gnustep-make.spec: gnustep-make.spec.in Version
+	$(SHELL) config.status --recheck
+
+executable.template: executable.template.in
+	$(SHELL) config.status
+
+gnustep-config: gnustep-config.in
+	$(SHELL) config.status
+
+gnustep-make-ld.so.conf: gnustep-make-ld.so.conf.in
+	$(SHELL) config.status
+

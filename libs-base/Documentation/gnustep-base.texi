@@ -1,0 +1,195 @@
+\input texinfo @c -*-texinfo-*-
+
+@c %**start of header
+@settitle User's Guide to the GNUstep Base Library
+@setfilename gstep-base.info
+@c %**end of header
+@defcodeindex cl
+@defcodeindex pr
+@ignore
+I'm using cindex for concepts, findex for methods, functions and macros,
+prindex for protocols, and clindex for classes.
+@end ignore
+
+@ifinfo
+@format
+* gstep-base::                      The GNUstep Base Library
+@end format
+@end ifinfo
+
+@c set the vars GNUSTEP-BASE-VERSION and GCC-VERSION
+@include version.texi
+
+@ifinfo
+This file documents the features and implementation of The GNUstep 
+Base Library.
+
+
+Copyright (C) 1999 Free Software Foundation, Inc.
+
+Permission is granted to make and distribute verbatim copies of
+this manual provided the copyright notice and this permission notice
+are preserved on all copies.
+
+Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided also that the
+section entitled ``GNU General Public License'' is included exactly as
+in the original, and provided that the entire resulting derived work is
+distributed under the terms of a permission notice identical to this one.
+
+Permission is granted to copy and distribute translations of this manual
+into another language, under the above conditions for modified versions,
+except that the section entitled ``GNU General Public License'' and
+this permission notice may be included in translations approved by the
+Free Software Foundation instead of in the original English.
+@end ifinfo
+
+@iftex
+@finalout
+@c @smallbook
+@c @cropmarks
+@end iftex
+
+@setchapternewpage odd
+
+@titlepage
+@title User's Guide to the
+@title GNUstep Base Library
+@sp 3
+@subtitle Version @value{GNUSTEP-BASE-VERSION}
+@author Adam Fedor (fedor@@gnu.org)
+@page
+@vskip 0pt plus 1filll
+Copyright @copyright{} 1999 Free Software Foundation, Inc.
+
+
+Permission is granted to make and distribute verbatim copies of
+this manual provided the copyright notice and this permission notice
+are preserved on all copies.
+
+Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided also that the
+section entitled ``GNU Library General Public License'' is included exactly as
+in the original, and provided that the entire resulting derived work is
+distributed under the terms of a permission notice identical to this one.
+
+Permission is granted to copy and distribute translations of this manual
+into another language, under the above conditions for modified versions,
+except that the section entitled ``GNU Library General Public License'' may be
+included in a translation approved by the author instead of in the original
+English.
+
+@end titlepage
+
+@node Top, Overview, (dir), (dir)
+@top gstep-base
+
+This manual documents some configuration and installation issues
+with the GNUstep Base Library and also differences between the Base
+Library and libraries that implement the OpenStep Foundation specification
+and the MacOS-X Foundation implementation.
+
+@menu
+* Overview::                    
+* Implementation::              
+@end menu
+
+@node Overview, Implementation, Top, Top
+@chapter Overview
+
+*The GNUstep Base Library (gstep-base) requires the GNUstep Makefile
+Package (gstep-make) to compile. A recent GCC compiler may also be
+needed as well as other libraries. You should consult the
+@file{GNUstep-HOWTO} document that comes with the GNUstep Core Libraries
+package (gstep-core) or information on supported machines on the web
+site @url{http://www.gnustep.org/information}.
+
+Documentation for individual classes is included in gsdoc (and html) format
+in the gsdoc directory.
+
+@node Implementation,  , Overview, Top
+@chapter Implementation Details
+
+@menu
+* Memory Management::           
+* Memory Allocation::           
+* Reference Counting::          
+@end menu
+
+@node Memory Management, Memory Allocation, Implementation, Implementation
+@section Memory Management
+
+The OpenStep standard defines an reference-count based memory management scheme which the GNUstep libraries support.  GNUstep also supports garbage collection
+using the Boehm conservative garbage collecting library, though this is
+currently (October 1999) in a pre-alpha state.
+
+@node Memory Allocation, Reference Counting, Memory Management, Implementation
+@section Memory Allocation
+
+Normally, memory is allocated in zones.  Most memory is allocated from a
+default area (returned by the NSDefaultMallocZone()) function.  In  some cases
+where you want to ensure that a group of objects are all located in roughly the
+same area of memory (for performance reasons) you might create a special zone
+large enough to accomodate the objects you wish to create, and allocate the
+objects from that area.  This will minimise the paging that your application
+needs to do in accessing those objects frequently. With the low price of RAM
+in modern systems, paging is likely to be much less of a problem nowadays, and
+the need for zoning memory is much lower than it used to be.
+
+At a low-level, memory allocation is performed by two functions -
+NSAllocateObject() and NSDeallocateObject(), but you need never normally deal
+with these functions - they are there for when you need an unusual degree of
+control or performance.  These are the functions called by
+[NSObject +allocWithZone:] and [NSObject -dealloc].  If you call
+NSAllocateObject() directly to create an instance of a class, you may break
+some functionality of that class (such as caching of frequently used objects).
+
+Generally, objects are created using the methods +alloc, -copy, -mutableCopy
+and are destroyed using -dealloc.  The allocation methods are covers for the
+more versatile +allocWithZone:, -copyWithZone: and -mutableCopyWithZone:
+methods (which specify the zone from which the memory is to be allocated,
+rather than forcing you to use the default zone).
+NSObject also provides +new, which is simply a cover for the
+combination of a +alloc and a -init.
+
+The -dealloc method returns the memory occupied by the object to the zone from
+which it was originally allocated, it can use the -zone method to determine
+which zone this is.
+
+Explicit memory allocation and deallocation is efficient - but when you pass
+objects around inside a program (and especially from/to libraries etc) it
+quickly becomes difficult and/or inefficient to keep track of who owns an
+object and should be responsible for calling it's deallocation method.
+
+To take this problem away, some mechanism is needed.  The OpenStep specification
+provides a reference counting mechanism along with a set of conventions that
+make memory management easy.  In addition to this, the GNU Objective-C compiler
+and the GNUstep system provide a memory sweeping garbage collection mechanism
+(using the Boehm conservative garbage collection library).
+
+@node Reference Counting,  , Memory Allocation, Implementation
+@section Reference Counting
+
+The reference counting scheme for object allocation/deallocation is quite
+simple.  Objects are normally created with a reference count of 1.  An objects
+reference count may be increased by callsing -retain, and decreased by calling
+-release.  If a -release would make the reference count become zero, the
+-dealloc method is automatically called to destroy the object - freeing its
+memory.
+
+This simple scheme then becomes more complicated with the addition of
+the -autorelease method.  When -autorelease is called for an object, the
+object is added to the currently active autorelease pool.  When the autorelease
+pool is later destroyed, every object in the pool will have a -release message
+sent to it for each time it was added to the pool.  Thus, sending an
+-autorelease method to an object is equivalent to sending a -release at some
+future point.
+
+In general, when a method (other than the alloc..., copy..., mutableCopy...
+and new... methods) returns an object, that object will have been autoreleased,
+so you don't need to worry about releasing it yourself.  However, if you wish
+to store the object for any length of time, you will need to send it a retain
+message, and then send it a release when you have finished with it.
+
+
+@bye

@@ -1,0 +1,141 @@
+\input texinfo              @c -*-texinfo-*-
+
+@c %**start of header
+@setfilename gs-base.info
+@settitle Objective-C GNUstep Base Programming Manual
+@c %**end of header
+
+@dircategory Software libraries
+@direntry
+* GNUstepBase: (gs-base).       Objective-C Language and GNUstep Base
+                                  Library Programming Manual.
+@end direntry
+
+
+@ifinfo
+Copyright @copyright{} 2001 Free Software Foundation
+
+Permission is granted to make and distribute verbatim copies of
+this manual provided the copyright notice and this permission notice
+are preserved on all copies.
+
+Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided also that
+the entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+
+Permission is granted to copy and distribute translations of this manual
+into another language, under the above conditions for modified versions.
+@end ifinfo
+
+@setchapternewpage odd
+@titlepage
+
+@title Objective-C Language 
+@title and GNUstep Base Library
+@title Programming Manual
+
+@author Francis Botto (Brainstorm)
+@author Richard Frith-Macdonald (Brainstorm)
+@author Nicola Pero (Brainstorm)
+@author Adrian Robert
+@page
+
+@vskip 0pt plus 1filll
+Copyright @copyright{} 2001-2004 Free Software Foundation
+
+Permission is granted to make and distribute verbatim copies of
+this manual provided the copyright notice and this permission notice
+are preserved on all copies.
+
+Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided also that
+the entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+
+Permission is granted to copy and distribute translations of this manual
+into another language, under the above conditions for modified versions.
+@end titlepage
+
+@contents
+
+@ifnothtml
+@iftex
+@include foreword.texi
+@end iftex
+@end ifnothtml
+
+
+@c **Top node and master menu
+@node Top
+@top Objective-C Programming Manual
+
+@include foreword.texi
+
+@menu
+* Introduction::	 An introduction to object-oriented programming
+* Objective-C::		 An introduction to the Objective-C language
+* Objects::              Working with objects; memory management
+* Classes::              How to create a new class
+* Advanced Messaging::   How messaging works, and advanced techniques
+* Exception Handling::   Exception handling, assertion, and logging facilities
+* Distributed Objects::  Working with distributed objects 
+* Base Library::         Using the classes in the GNUstep Base library
+* GSDoc::                The GNUstep documentation system
+* Bundles and Frameworks::The GNUstep Applicaton Resource Framework
+* Objective-C Java and C++:: Comparison between Objective-C, Java, and C++
+* Java and Guile::       Programming GNUstep in Java and Guile
+* Compliance to Standards:: GNUstep and the OpenStep and Mac OS X APIs
+* Make::                 Using the Package to build GNUstep "Objects"
+@end menu
+@c **end Top node and master menu
+
+@page
+
+@c Chapter 1, Introduction
+@include Introduction.texi
+
+@c Chapter 2, The Objective-C Language
+@include ObjcLanguage.texi
+
+@c Chapter 3, Working with Objects
+@include WorkingWithObjects.texi
+
+@c Chapter 4, Writing New Classes
+@include WritingNewClasses.texi
+
+@c Chapter 5, Advanced Messaging
+@include AdvancedMessaging.texi
+
+@c Chapter 6, Exception Handling, Assertions, and Logging
+@include ExceptionHandling.texi
+
+@c Chapter 7, Distributed Objects
+@include DistributedObjects.texi
+
+@c Chapter 8, Base Library
+@include BaseLibrary.texi
+
+@c Appendix A: GSDoc
+@include GSDoc.texi
+
+@c Appendix B: Bundles and Frameworks
+@include Bundles.texi
+
+@c Appendix C: Comparison between Objective-C, Java, and C++
+@include ObjcAndJavaC++.texi
+
+@c Appendix D: Programming GNUstep in Java and Guile
+@include JavaAndGuile.texi
+
+@c Appendix E: GNUstep Compliance to Standards
+@include Compliance.texi
+
+@c Appendix F: Using the GNUstep Make Package
+@include GNUstepMake.texi
+
+@unnumbered Concept Index
+@printindex cp
+
+@bye
+

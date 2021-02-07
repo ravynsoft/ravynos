@@ -1,0 +1,837 @@
+//
+// Gmodel for NSOpenPanel/NSSavePanel
+//
+{
+    "ObjectArray" = { 
+		elements = ( "Custom_SavePanel" ); 
+		isa = NSMutableArray; 
+	};
+
+    "Custom_SavePanel" = {
+		isa = IMCustomObject;
+		className = NSSavePanel;
+		realObject = "SavePanel";
+    };
+
+    "BackgroundColor" = {
+        alpha = 1.000000; 
+        blue = 0.666667; 
+        brightness = 0.666667; 
+        colorSpaceName = NSCalibratedRGBColorSpace; 
+        green = 0.666667; 
+        hue = 0.000000; 
+        isa = NSColor; 
+        red = 0.666667; 
+        saturation = 0.000000; 
+    }; 
+    "SavePanel" = {
+	backgroundColor = "BackgroundColor"; 
+	backingType = 2;
+	contentView = "SavePanelView";
+	frame = "{x = 100; y = 100; width = 280; height = 350}";
+	isVisible = NO;
+	level = 0;
+	isa = NSSavePanel;
+	isAutodisplay = YES;
+	title = "Save";
+	isDocumentEdited = NO;
+	representedFilename = "";
+	isReleasedWhenClosed = NO;
+	delegate = nil;
+	prompt = "Name:";
+	accessoryView = nil;
+	requiredFileType = "";
+	treatsFilePackagesAsDirectories = YES;
+	directory = ".";
+	minSize = "{width = 280; height = 350}";
+	styleMask = 9; 
+   };
+
+    "SavePanelView" = {
+	autoresizesSubviews = YES;
+	autoresizingMask = 0;
+	bounds = "{x = 0; y = 0; width = 280; height = 350}";
+	frame = "{x = 0; y = 0; width = 280; height = 350}";
+        isAutodisplay = YES;
+	isa = NSView;
+	nextResponder = "SavePanel";
+	postBoundsChangedNotifications = YES;
+	postFrameChangedNotifications = YES;
+	subviews = "SavePanelSubviews";
+	superview = nil;
+	tag = 0;
+    };
+
+    "SavePanelSubviews" = {
+	elements = (
+            "TopView",
+	    "BottomView");
+	isa = NSMutableArray;
+    };
+
+    "TopView" = {
+	autoresizesSubviews = YES;
+	autoresizingMask = 18;
+	bounds = "{x = 0; y = 0; width = 280; height = 290}";
+	frame = "{x = 0; y = 60; width = 280; height = 290}";
+        isAutodisplay = YES;
+	isa = NSView;
+	nextResponder = "SavePanel";
+	postBoundsChangedNotifications = YES;
+	postFrameChangedNotifications = YES;
+	subviews = "TopSubviews";
+	superview = "SavePanelView";
+	tag = 0;
+    };
+    
+    "TopSubviews" = {
+	elements = (
+	    "ImageView",
+	    "SaveLabel",
+	    "Bar",
+	    "Browser");
+	isa = NSMutableArray;
+    };
+
+    "BottomView" = {
+	autoresizesSubviews = YES;
+	autoresizingMask = 2;
+	bounds = "{x = 0; y = 0; width = 280; height = 60}";
+	frame = "{x = 0; y = 0; width = 280; height = 60}";
+        isAutodisplay = YES;
+	isa = NSView;
+	nextResponder = "SavePanel";
+	postBoundsChangedNotifications = YES;
+	postFrameChangedNotifications = YES;
+	subviews = "BottomSubviews";
+	superview = "SavePanelView";
+	tag = 0;
+    };
+
+    "BottomSubviews" = {
+	elements = (
+	    "HomeButton",
+	    "MountButton",
+	    "UnmountButton",
+	    "CancelButton",
+	    "OkButton",
+	    "FileName",
+	    "PromptLabel");
+	isa = NSMutableArray;
+    };
+
+//
+// Browser
+//
+    "Browser" = {
+        autoresizingMask = 18;
+	title = "Column 0";
+	pathSeparator = "/";
+	delegate = "SavePanel";
+	maxVisibleColumns = 2;
+	hasHorizontalScroller = YES;
+	isAutodisplay = YES;
+	allowsMultipleSelection = NO;
+	bounds = "{x = 0; y = 0; width = 260; height = 200}";
+	frame = "{x = 10; y = 10; width = 260; height = 196}";
+	isTitled = YES;
+	isa = NSBrowser;
+	subviews = nil;
+	superview = "SavePanelView";
+	takesTitleFromPreviousColumn = YES;
+    };
+
+    "FileName" = {
+	autoresizesSubviews = NO;
+	autoresizingMask = 2;
+	backgroundColor = "TextBkColor";
+	bounds = "{x = 0; y = 0; width = 226; height = 22}";
+	cell = "FileNameCell";
+	delegate = nil;
+	drawsBackground = YES;
+	errorAction = nil;
+	frame = "{x = 44; y = 40; width = 226; height = 22}";
+	ignoresMultiClick = NO;
+	isBezeled = YES;
+	isBordered = NO;
+	isContinuous = NO;
+	isEditable = YES;
+	isEnabled = YES;
+	isScrollable = YES;
+	isSelectable = YES;
+	isa = NSTextField;
+	nextResponder = "SavePanelView";
+	nextText = "HomeButton";
+	postsBoundsChangedNotifications = YES;
+	postsFrameChangedNotifications = YES;
+	previousText = "OkButton";
+	subviews = nil;
+	superview = "SavePanelView";
+	tag = 666;
+	textColor = "TextColor";
+    };
+
+    "FileNameCell" = {
+	action = nil;
+	alignment = 2;
+	backgroundColor = "TextBkColor";
+	drawsBackground = YES;
+	entryType = 0;
+	font = "TextFont";
+	image = nil;
+	isBezeled = YES;
+	isBordered = NO;
+	isContinuous = NO;
+	isEditable = YES;
+	isEnabled = YES;
+	isScrollable = YES;
+	isSelectable = YES;
+	isa = NSTextFieldCell;
+	sendActionMask =0;
+	state = 0;
+	stringValue = "foobar.txt";
+	tag = 0;
+	target = nil;
+	textColor = "TextColor";
+	type = 1;
+	wraps = YES;
+    };
+
+    "PromptLabel" = {
+	autoresizesSubviews = NO;
+	autoresizingMask = 0;
+	//backgroundColor = "TextBkColor";
+	bounds = "{x = 0; y = 0; width = 38; height = 18}";
+	cell = "PromptLabelCell";
+	delegate = nil;
+	drawsBackground = NO;
+	errorAction = nil;
+	frame = "{x = 5; y = 38; width = 38; height = 18}";
+	ignoresMultiClick = NO;
+	isBezeled = NO;
+	isBordered = NO;
+	isEditable = NO;
+	isEnabled = NO;
+	isScrollable = NO;
+	isSelectable = NO;
+	isa = NSTextField;
+	nextResponder = "SavePanelView";
+	nextText = "HomeButton";
+	postsBoundsChangedNotifications = YES;
+	postsFrameChangedNotifications = YES;
+	previousText = "OkButton";
+	stringValue = "Name:";
+	subviews = nil;
+	superview = "SavePanelView";
+	tag = 0;
+	textColor = "TextColor";
+    };
+
+    "PromptLabelCell" = {
+	action = nil;
+	alignment = 2;
+	backgroundColor = nil;
+	drawsBackground = NO;
+	entryType = 0;
+	font = "TextFont";
+	image = nil;
+	isBezeled = NO;
+	isBordered = NO;
+	isContinuous = NO;
+	isEditable = NO;
+	isEnabled = NO;
+	isScrollable = NO;
+	isSelectable = NO;
+	isa = NSTextFieldCell;
+	sendActionMask = 0;
+	state = 0;
+	stringValue = "Name:";
+	tag = 0;
+	target = nil;
+	textColor = "TextColor";
+	type = 1;
+	wraps = YES;
+    };
+
+    "HomeButton" = {
+	alternateImage = "Object   22";
+	alternateTitle = "";
+	autoresizesSubviews = NO;
+	autoresizingMask = 1;
+	bounds = "{x = 0; y = 0; width = 28; height = 28}";
+	cell = "HomeButtonCell";
+	delay = 0.200000;
+	frame = "{x = 18; y = 5; width = 28; height = 28}";
+	highlightsBy = 14;
+	ignoresMultiClick = NO;
+	image = "Object   22";
+	imagePosition = 1;
+	interval = 0.025;
+	isBordered = YES;
+	isEnabled = YES;
+	isTransparent = NO;
+	isa = NSButton;
+	keyEquivalent = "";
+	nextResponder = "SavePanelView";
+	postsBoundsChangedNotifications = YES;
+	postsFrameChangedNotifications = YES;
+	showsStateBy = 0;
+	state = 0;
+	subviews = nil;
+	superview = "SavePanelView";
+	tag = 0;
+	title = "";
+    };
+    "Object   22" = {isa = NSImage; name = common_Home; size = "{width = 24; height = 24}"; }; 
+    "HomeButtonCell" = {
+	action = nil;
+	alignment = 2;
+	alternateImage = "Object   22";
+	alternateTitle = "";
+	delay = 0.200000;
+	entryType = 0;
+	font = nil;
+	highlightsBy = 14;
+	image = "Object   22";
+	imagePosition = 2;
+	interval = 0.025000;
+	isBezeled = NO;
+	isBordered = YES;
+	isContinuous = NO;
+	isEditable = NO;
+	isEnabled = YES;
+	isScrollable = NO;
+	isSelectable = NO;
+	isTransparent = NO;
+	isa = NSButtonCell;
+	keyEquivalent = "";
+	keyEquivalentFont = nil;
+	keyEquivalentModifierMask = 0;
+	sendActionMask = 0;
+	showsStateBy = 1;
+	state = 0;
+	stringValue = "";
+	tag = 0;
+	target = nil;
+	type = 1;
+	wraps = NO;
+    };
+
+    "MountButton" = {
+	alternateImage = nil;
+	alternateTitle = "";
+	autoresizesSubviews = NO;
+	autoresizingMask = 1;
+	bounds = "{x = 0; y = 0; width = 28; height = 28}";
+	cell = "MountButtonCell";
+	delay = 0.2;
+	frame = "{x = 52; y = 5; width = 28; height = 28}";
+	highlightsBy = 14;
+	ignoresMultiClick = NO;
+	image = "Object   23";
+	imagePosition = 1;
+	interval = 0.025;
+	isBordered = YES;
+	isEnabled = YES;
+	isTransparent = NO;
+	isa = NSButton;
+	keyEquivalent = "";
+	nextResponder = "SavePanelView";
+	postsBoundsChangedNotifications = YES;
+	postsFrameChangedNotifications = YES;
+	showsStateBy = 0;
+	state = 0;
+	subviews = nil;
+	superview = "SavePanelView";
+	tag = 0;
+	title = "";
+    };
+    "Object   23" = {isa = NSImage; name = common_Mount; size = "{width = 24; height = 24}"; }; 
+    "MountButtonCell" = {
+	action = nil;
+	alignment = 2;
+	alternateImage = nil;
+	alternateTitle = "";
+	delay = 0.2;
+	entryType = 0;
+	font = nil;
+	highlightsBy = 14;
+	image = "Object   23";
+	imagePosition = 1;
+	interval = 0.025000;
+	isBezeled = NO;
+	isBordered = YES;
+	isContinuous = NO;
+	isEditable = NO;
+	isEnabled = YES;
+	isScrollable = NO;
+	isSelectable = NO;
+	isTransparent = NO;
+	isa = NSButtonCell;
+	keyEquivalent = "";
+	keyEquivalentFont = nil;
+	keyEquivalentModifierMask = 0;
+	sendActionMask = 0;
+	showsStateBy = 0;
+	state = 0;
+	stringValue = 0;
+	tag = 0;
+	target = nil;
+	type = 1;
+	wraps = YES;
+    };
+
+    "UnmountButton" = {
+	alternateImage = nil;
+	alternateTitle = "";
+	autoresizesSubviews = NO;
+	autoresizingMask = 1;
+	bounds = "{x = 0; y = 0; width = 28; height = 28}";
+	cell = "UnmountButtonCell";
+	delay = 0.2;
+	frame = "{x = 86; y = 5; width = 28; height = 28}";
+	highlightsBy = 14;
+	ignoresMultiClick = NO;
+	image = "Object   24";
+	imagePosition = 1;
+	interval = 0.025;
+	isBordered = YES;
+	isEnabled = YES;
+	isTransparent = NO;
+	isa = NSButton;
+	keyEquivalent = "";
+	nextResponder = "SavePanelView";
+	postsBoundsChangedNotifications = YES;
+	postsFrameChangedNotifications = YES;
+	showsStateBy = 0;
+	state = 0;
+	subviews = nil;
+	superview = "SavePanelView";
+	tag = 0;
+	title = "";
+    };
+    "Object   24" = {isa = NSImage; name = common_Unmount; size = "{width = 24; height = 24}"; }; 
+    "UnmountButtonCell" = {
+	action = nil;
+	alignment = 2;
+	alternateImage = nil;
+	alternateTitle = "";
+	delay = 0.2;
+	entryType = 0;
+	font = nil;
+	highlightsBy = 14;
+	image = "Object   23";
+	imagePosition = 1;
+	interval = 0.025000;
+	isBezeled = NO;
+	isBordered = YES;
+	isContinuous = NO;
+	isEditable = NO;
+	isEnabled = YES;
+	isScrollable = NO;
+	isSelectable = NO;
+	isTransparent = NO;
+	isa = NSButtonCell;
+	keyEquivalent = "";
+	keyEquivalentFont = nil;
+	keyEquivalentModifierMask = 0;
+	sendActionMask = 0;
+	showsStateBy = 0;
+	state = 0;
+	stringValue = 0;
+	tag = 0;
+	target = nil;
+	type = 1;
+	wraps = YES;
+    };
+
+    "CancelButton" = {
+	alignment = 2;
+	alternateImage = nil;
+	alternateTitle = "Cancel";
+	autoresizesSubviews = NO;
+	autoresizingMask = 1;
+	bounds = "{x = 0; y = 0; width = 70; height = 28}";
+	cell = "CancelButtonCell";
+	frame = "{x = 122; y = 5; width = 70; height = 28}";
+	delay = 0.2;
+	highlightsBy = 14;
+	ignoresMultiClick = NO;
+	image = nil;
+	imagePosition = 0;
+	interval = 0.025;
+	isBordered = YES;
+	isContinuous = NO;
+	isEnabled = YES;
+	isTransparent = NO;
+	isa = NSButton;
+	keyEquivalent = "";
+	nextResponder = "SavePanelView";
+	postsBoundsChangedNotifications = YES;
+	postsFrameChangedNotifications = YES;
+	showsStateBy = 0;
+	state = 0;
+	subviews = nil;
+	superview = "SavePanelView";
+	tag = 0;
+	title = "Cancel";
+    };
+
+   "CancelButtonCell" = {
+	action = nil;
+	alignment = 2;
+	alternateImage = nil;
+	alternateTitle = "";
+	delay = 0.200000;
+	entryType = 0;
+	font = "TextFont";
+	highlightsBy = 14;
+	image = nil;
+	imagePosition = 0;
+	interval = 0.02500;
+	isBezeled = NO;
+	isBordered = YES;
+	isContinuous = NO;
+	isEditable = NO;
+	isEnabled = YES;
+	isScrollable = NO;
+	isSelectable = NO;
+	isTransparent = NO;
+	isa = NSButtonCell;
+	keyEquivalent = "";
+	keyEquivalentFont = "TextFont";
+	keyEquivalentModifierMask = 0;
+	sendActionMask = 0;
+	showsStateBy = 0;
+	state = 0;
+	stringValue = 0;
+	tag = 0;
+	target = nil;
+	type = 1;
+	wraps = YES;
+    };
+
+   "OkButton" = {
+	alignment = 2;
+	alternateImage = nil;
+	alternateTitle = "OK";
+	autoresizesSubviews = NO;
+	autoresizingMask = 1;
+	bounds = "{x = 0; y = 0; width = 70; height = 28}";
+	cell = "OkButtonCell";
+	frame = "{x = 200; y = 5; width = 70; height = 28}";
+	delay = 0.2;
+	highlightsBy = 14;
+	ignoresMultiClick = NO;
+	image = nil;
+	imagePosition = 0;
+	interval = 0.025;
+	isBordered = YES;
+	isContinuous = NO;
+	isEnabled = YES;
+	isTransparent = NO;
+	isa = NSButton;
+	keyEquivalent = "";
+	nextResponder = "SavePanelView";
+	postsBoundsChangedNotifications = YES;
+	postsFrameChangedNotifications = YES;
+	showsStateBy = 0;
+	state = 0;
+	subviews = nil;
+	superview = "SavePanelView";
+	tag = 0;
+	title = "OK";
+    };
+
+   "OkButtonCell" = {
+	action = nil;
+	alignment = 2;
+	alternateImage = nil;
+	alternateTitle = "";
+	delay = 0.200000;
+	entryType = 0;
+	font = "TextFont";
+	highlightsBy = 14;
+	image = nil;
+	imagePosition = 0;
+	interval = 0.02500;
+	isBezeled = NO;
+	isBordered = YES;
+	isContinuous = NO;
+	isEditable = NO;
+	isEnabled = YES;
+	isScrollable = NO;
+	isSelectable = NO;
+	isTransparent = NO;
+	isa = NSButtonCell;
+	keyEquivalent = "";
+	keyEquivalentFont = "TextFont";
+	keyEquivalentModifierMask = 0;
+	sendActionMask = 0;
+	showsStateBy = 0;
+	state = 0;
+	stringValue = 0;
+	tag = 0;
+	target = nil;
+	type = 1;
+	wraps = YES;
+    };
+
+    "Bar" = {
+        autoresizesSubviews = NO; 
+        autoresizingMask = 10; 
+        borderType = 3; 
+        bounds = "{x = 0; y = 0; width = 310; height = 2}"; 
+        contentView = "BarView"; 
+        contentViewMargins = "{width = 0; height = 0}"; 
+        frame = "{x = 0; y = 210; width = 310; height = 2}"; 
+        isa = NSBox; 
+        nextResponder = "Browser"; 
+        postsBoundsChangedNotifications = YES; 
+        postsFrameChangedNotifications = YES; 
+        subviews = "BarSubviews"; 
+        superview = "SavePanelView"; 
+        titlePosition = 0; 
+    }; 
+    "BarSubviews" = {elements = ("BarView"); isa = NSMutableArray; }; 
+    "BarView" = {
+        autoresizesSubviews = NO; 
+        autoresizingMask = 0; 
+        bounds = "{x = 0; y = 0; width = 306; height = 0}"; 
+        frame = "{x = 2; y = 2; width = 306; height = 0}"; 
+        isa = NSView; 
+        nextResponder = "Bar"; 
+        postsBoundsChangedNotifications = YES; 
+        postsFrameChangedNotifications = YES; 
+		subviews = nil;
+        superview = "Bar"; 
+    }; 
+    "SaveLabel" = {
+        autoresizesSubviews = NO; 
+        autoresizingMask = 8; 
+        backgroundColor = "TextBkColor"; 
+        bounds = "{x = 0; y = 0; width = 224; height = 21}"; 
+	cell = "SaveLabelCell";
+        delegate = nil; 
+        drawsBackground = NO; 
+        errorAction = nil; 
+        frame = "{x = 80; y = 240; width = 224; height = 21}"; 
+        ignoresMultiClick = NO; 
+        isBezeled = NO; 
+        isBordered = NO; 
+        isEditable = NO; 
+        isEnabled = YES; 
+        isScrollable = NO; 
+        isSelectable = NO; 
+        isa = NSTextField; 
+        nextResponder = nil; 
+        nextText = nil; 
+        postsBoundsChangedNotifications = YES; 
+        postsFrameChangedNotifications = YES; 
+        previousText = nil; 
+        stringValue = Save; 
+	subviews = nil;
+        superview = "SavePanelView"; 
+        tag = 151; 
+        textColor = "TextColor"; 
+    }; 
+
+    "SaveLabelCell" = {
+	action = nil;
+	alignment = 0;
+	backgroundColor = "TextBkColor";
+	drawsBackground = NO;
+	entryType = 0;
+	font = "SaveLabelFont";
+	image = nil;
+	isBezeled = NO;
+	isBordered = NO;
+	isContinuous = NO;
+	isEditable = NO;
+	isEnabled = YES;
+	isScrollable = NO;
+	isSelectable = NO;
+	isa = NSTextFieldCell;
+	sendActionMask = 0;
+	state = 0;
+	stringValue = "Save";
+	tag = 0;
+	target = nil;
+	textColor = "TextColor";
+	type = 1;
+	wraps = NO;
+    };
+    "SaveLabelFont" = {
+	isa = NSFont;
+	name = Helvetica;
+	size = 18.000000;
+    };
+    "TextFont" = {isa = NSFont; name = Helvetica; size = 12.000000; }; 
+
+    "ImageView" = {
+	alignment = 0;
+	autoresizesSubviews = NO;
+	autoresizingMask = 8;
+	bounds = "{x = 0; y = 0; width = 64; height = 64}";
+	cell = "ImageViewCell";
+	frame = "{x = 8; y = 218; width = 64; height = 64}";
+	ignoresMultiClick = NO;
+	image = "AppIcon";
+	imagePosition = 1;
+	isBordered = NO;
+	isa = NSImageView;
+	keyEquivalent = "";
+	nextResponder = "SavePanelView";
+	postsBoundsChangedNotifications = YES;
+	postsFrameChangedNotifications = YES;
+	showsStateBy = 0;
+	state = 0;
+	subviews = nil;
+	superview = "SavePanelView";
+	tag = 0;
+	title = "";
+    };
+    "AppIcon" = {isa = NSImage; name = NSApplicationIcon; size = "{width = 48; height = 48}"; }; 
+    "ImageViewCell" = {
+	image = "AppIcon";
+	isa = NSImageCell;
+    };
+
+//
+// Colors
+//
+    "TextColor" = {
+	alpha = 1.0;
+	blue = 0.0;
+	brightness = 0.0;
+	colorSpaceName = NSCalibratedRGBColorSpace;
+	green = 0.0;
+	hue = 0.0;
+	isa = NSColor;
+	red = 0.0;
+	saturation = 0.0;
+    };
+
+    "TextBkColor" = {
+	alpha = 1.0;
+	blue = 1.0;
+	brightness = 1.0;
+	colorSpaceName = NSCalibratedRGBColorSpace;
+	green = 1.0;
+	hue = 0.0;
+	isa = NSColor;
+	red = 1.0;
+	saturation = 0.0;
+    };
+    "ConnectionArray" = { 
+        elements = (
+	    "TopViewConnect",
+	    "BottomViewConnect",
+            "Object   66", 
+            "Object   68", 
+            "Object   49", 
+            "Object   51", 
+            "Object   53", 
+            "Object   55", 
+	    "HomeConnect",
+            "MountConnect",
+            "UnmountConnect",
+	    "CellSelectionConnect",
+        ); 
+		isa = NSMutableArray;
+    };
+    "Object   65" = {isa = NSString; string = "cancel:"; }; 
+    "Object   66" = {
+        destination = "SavePanel"; 
+        isa = IMControlConnector; 
+        label = "Object   65"; 
+        source = "CancelButton"; 
+    }; 
+    "Object   67" = {isa = NSString; string = "ok:"; }; 
+    "Object   68" = {
+        destination = "SavePanel"; 
+        isa = IMControlConnector; 
+        label = "Object   67"; 
+        source = "OkButton"; 
+    }; 
+    "Object   48" = {isa = NSString; string = delegate; }; 
+    "Object   49" = {
+        destination = "SavePanel"; 
+        isa = IMOutletConnector; 
+        label = "Object   48"; 
+        source = "Browser"; 
+    }; 
+    "TopViewIVar" = {isa = NSString; string = _topView; };
+    "TopViewConnect" = {
+	destination = "TopView";
+	isa = IMOutletConnector;
+	label = "TopViewIVar";
+	source = "SavePanel";
+    };
+    "BottomViewIVar" = {isa = NSString; string = _bottomView; };
+    "BottomViewConnect" = {
+	destination = "BottomView";
+	isa = IMOutletConnector;
+	label = "BottomViewIVar";
+	source = "SavePanel";
+    };
+    "Object   50" = {isa = NSString; string = _browser; }; 
+    "Object   51" = {
+        destination = "Browser"; 
+        isa = IMOutletConnector; 
+        label = "Object   50"; 
+        source = "SavePanel"; 
+    }; 
+    "Object   52" = {isa = NSString; string = _form; }; 
+    "Object   53" = {
+        destination = "FileName"; 
+        isa = IMOutletConnector; 
+        label = "Object   52"; 
+        source = "SavePanel"; 
+    }; 
+    "PromptIVar" = {isa = NSString; string = _prompt; };
+    "PromptConnect" = {
+        destination = "PromptLabel";
+        isa = IMOutletConnector;
+        label = "PromptIVar";
+        source = "SavePanel";
+    };
+    "Object   54" = {isa = NSString; string = _titleField; }; 
+    "Object   55" = {
+        destination = "SaveLabel"; 
+        isa = IMOutletConnector; 
+        label = "Object   54"; 
+        source = "SavePanel"; 
+    }; 
+    "SetHomeDirMethod" = {isa = NSString; string = _setHomeDirectory; };
+    "HomeConnect" = {
+	destination = "SavePanel";
+	isa = IMControlConnector;
+	label = "SetHomeDirMethod";
+	source = "HomeButton";
+    };
+    "MountMethod" = {isa = NSString; string = _mountMedia; };
+    "MountConnect" = {
+        destination = "SavePanel";
+        isa = IMControlConnector;
+        label = "MountMethod";
+        source = "MountButton";
+    };
+    "UnmountMethod" = {isa = NSString; string = _unmountMedia; };
+    "UnmountConnect" = {
+        destination = "SavePanel";
+        isa = IMControlConnector;
+        label = "UnmountMethod";
+        source = "UnmountButton";
+    };
+    "CellSelectionMethod" = {isa = NSString; string = _processCellSelection; };
+    "CellSelectionConnect" = {
+	destination = "SavePanel";
+	isa = IMControlConnector;
+	label = "CellSelectionMethod";
+	source = "Browser";
+    };
+    RootObject = {Connections = "ConnectionArray"; Objects = "ObjectArray"; isa = GMModel; }; 
+    TopLevelObjects = (RootObject);
+    Version = 1;
+}

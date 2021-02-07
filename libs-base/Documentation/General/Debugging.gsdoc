@@ -1,0 +1,190 @@
+<?xml version="1.0"?>
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 1.0.3//EN" "http://www.gnustep.org/gsdoc-1_0_3.dtd">
+<!--
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+-->
+<gsdoc base="Debugging" up="Tools">
+  <head>
+    <title>Debugging with GDB</title>
+    <author name="Adam Fedor"></author>
+    <copy>Copyright (C) 2005 Free Software Foundation, Inc.</copy>
+  </head>
+  <body>
+    <chapter>
+      <heading>Debugging</heading>
+      <p>
+      GDB is the GNU debugger and is the main method used for debugging
+      Objective-C programs. Full support for debugging Objective-C with
+      GDB was added in version 6.0.  This document will describe the
+      various features of GDB that help with debugging Objective-C programs.
+      However, GDB is a very complex program, and not everything that it
+      can do will be described here.
+      </p>
+      <section>
+      <heading>Basic GDB usage</heading>
+      <p>
+      To start the debugger, specify the program you want to debug:
+      </p>
+      <example>
+      gdb myprogram
+      </example>
+      <p>
+      With GNUstep you can also use the debugtool and debugapp scripts
+      to begin a debugging session:
+      </p>
+      <example>	
+      debugapp MyApp.app
+      </example>
+      <p>
+      Following is a short list of important commands that gdb accepts.
+      After this list, a more detailed explaination of each command is
+      given.
+      </p>
+      <list>
+        <item>run <var>args</var> - Run the program</item>
+        <item>break <var>func/method</var> - Stop at a function or method</item>
+        <item>print <var>var/func</var> - Print value of a variable/function</item>
+        <item>backtrace - List the fuction stack</item>
+        <item>frame <var>value</var> - Move up and down the fuction stack</item>
+        <item>help - Get help on gdb commands</item>
+        <item>quit - Quit the program</item>
+      </list>
+      </section>
+
+      <section>
+      <heading>The <em>run</em> command</heading>
+      <p>
+      This command starts the program inside the debugger. You can optionally
+      add arguments to the run command and these arguments will get passed
+      directly to the program as normal command-line arguments. For instance,
+      you might want to start an application and open a file:
+      </p>
+      <example>
+      run -NSOpen=afile.txt
+      </example>
+      </section>
+
+      <section>
+      <heading>The <em>break</em> command</heading>
+      <p>
+      This command instructs the debugger to stop when it reaches a
+      certain location in the program. The syntax for break can be very 
+      complex. However we will only cover some simple examples. One instance
+      is to break on a particular line number.
+      </p>
+      <example>
+      break afile.m:345
+      </example>
+      <p>
+      will stop the debugger at line 345 in the file <file>afile.m</file>.
+      </p>
+      <example>
+      break a_function
+      </example>
+      <p>
+      will tell the debugger to stop at the beggining of the
+      <code>a_function</code> function. Finally, and most importantly
+      for Objective-C programs, you can enter a fully-qualified or
+      partially-qualified method name to stop at.
+      A fully qualified Objective-C method name is specified as
+      </p>
+      <example>
+      -[Class methodName]
+      </example>
+      <p>
+      where the minus sign is used to indicate an instance method and
+      a plus sign (not shown) is used to indicate a class method. The
+      class name <var>Class</var> and method name <var>methodName</var> are
+      enclosed in brackets, similar to the way messages are specified
+      in Objective-C source code. For example, to set a breakpoint at
+      the <code>create</code> instance method of class <code>Fruit</code> 
+      in the program currently being debugged, enter:
+      </p>
+      <example>
+      break -[Fruit create]
+      </example>
+      <p>
+      One can also specify just a method name:
+      </p>
+      <example>
+      break initWithValue:
+      </example>
+      <p>
+      gdb will automatically determine what class this method belongs to. If
+      there is more than one class that implements this method, you will
+      be presented with a list of classes that implement the method from which
+      you must chose one.
+      </p>
+      </section>
+
+      <section>
+      <heading>The <em>print</em> command</heading>
+      <p>
+      The print command can be used to display a wide variety of information
+      that gdb knows about the program. As with the <var>break</var> command,
+      the variety of things you can do is very large, but we will discuss only
+      a few of the things that can be done. Below are several simple examples
+      of printing the value of a variable.
+      </p>
+      <example>
+      print aVariable
+      print anIvar
+      print self->anIvar
+      print anArray[4]
+      print aStruct.subvalue
+      print *(int *)pointerValue
+      </example>
+      <p>
+      Note that you can specify variables in the same way you specify them
+      in source code, using array subscripts, pointer dereferences, etc.
+      You can also set the value of a variable using print:
+      </p>
+      <example>
+      print aVariable = 4
+      </example>
+      <p>
+      One can also print the value of a function. Here gdb will actually
+      call the function you specify and return the output:
+      </p>
+      <example>
+      print my_function(4, "hithere")
+      </example>
+      <p>
+      When debugging Objective-C programs, the same thing can be done
+      with methods.
+      </p>
+      <example>
+      print -[object hash]
+      </example>
+      <p>
+      A special command has been added to gdb to print the 
+      <var>description</var> of an object (based on the method of the
+      same name). This is the <var>print-object</var> (or <var>po</var>)
+      command:
+      </p>
+      <example>
+      po anObject
+      </example>
+      <p>
+      Which is the same as typing
+      </p>
+      <example>
+      print -[myObject desciption]
+      </example>
+      </section>
+
+      <section>
+      <heading>Other command</heading>
+      <p>
+      The <var>clear</var>, <var>info line</var>, <var>jump</var>, 
+      and <var>list</var> commands also accept Objective-C method
+      syntax for specifying locations.
+      </p>
+      </section>
+
+    </chapter>
+  </body>
+</gsdoc>
+

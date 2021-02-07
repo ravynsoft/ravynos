@@ -1,0 +1,113 @@
+.\" Process this file with
+.\" groff -man -Tascii openpp.1
+.\"
+.TH openapp 1 "12/12/2007" gnustep-make "GNUstep System Manual"
+.SH NAME
+openapp \- launch applications from the command line
+
+.SH SYNOPSIS
+.B openapp
+.RB [ \-\-find ] 
+.RB [ \-\-debug " [" \-\-gdb=
+.IR debuger "]] [" 
+.BI \-\-library-combo= library-combo
+] 
+.I application
+.RI [ arguments... ] 
+
+.SH DESCRIPTION
+The 
+.B openapp
+command allows you to launch graphical GNUstep applications from the command line.
+.PP
+.I application
+is the complete or relative name of the application program with or without the .app extension, like
+.B Ink.app. 
+.PP
+.I arguments
+are the arguments passed to the application.
+.PP
+.B openapp
+first checks whether the application is in the current working directory.  If not then searches the GNUstep domains' Applications folders in the following order:
+User
+.RI "(i.e. " ~/GNUstep/Applications ),
+Local, Network, System. First match wins.
+
+.SH OPTIONS
+.TP
+.BI \-\-find " application"
+will print out the full path of the application executable which would be executed, without actually executing it. It will also list all paths that are attempted.
+.TP
+.BI \-\-debug " application"
+starts the application in the debugger. By default
+.BR gdb ,
+but this can be changed with the
+.B \-\-gdb=
+argument or through the 
+.B GDB
+shell variable.
+.TP
+.BI \-\-library-combo= library-combo
+Starts the application with the specified library combo. This is a rarely used option in a non-flattened setup. See the
+.BR library-combo (7)
+man-page for more information about the different library combinations.
+.TP
+.B \-\-help
+print above usage description.
+
+.SH EXAMPLES
+Start
+.B Ink.app
+without additional parameters:
+.PP
+.B openapp Ink.app 
+.PP
+Launch
+.B Ink.app
+and pass it the
+.B \-\-debug
+argument:
+.PP
+.B openapp \-\-debug Ink.app
+.PP
+To determine which executable is launched by openapp, type: 
+.PP
+.B openapp \-\-find Ink.app
+.PP
+The output of the above command might be something like:
+.I /usr/GNUstep/Local/Applications/Ink.app/Ink
+
+.SH ENVIRONMENT
+.TP
+.B GNUSTEP_CONFIG_FILE
+is used to determine where the
+.B GNUstep.sh
+configuration file is located. If the variable is not set
+.B openapp
+tries to locate it in the folder where
+.B openapp
+was started, then in the user domain, and as a last resort in the system domain (or actually the place you configured
+.RI ( \-\-with-config-file= )
+during building).
+.TP
+.B GDB
+Sets the debugger to use when
+.B \-\-debug
+is used.
+
+.SH SEE ALSO
+debugapp(1), GNUstep(7), gopen(1), library-combo(7), opentool(1)
+
+.SH HISTORY
+Work on
+.B openapp
+started October 1997.
+.PP
+.B openapp
+was originally written by Ovidiu Predescu <ovidiu@net-community.com>
+and is now maintained by Nicola Pero <nicola.pero@meta-innovation.com>
+
+.SH AUTHORS
+This manual page was first written July 2003 by Martin Brecher <martin@mb-itconsulting.com>.
+.PP
+Updated with notes from Hubert Chathi <uhoreg@debian.org> and Dennis Leeuw <dleeuw@made-it.com>, December 2007 by Dennis Leeuw.

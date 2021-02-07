@@ -1,0 +1,28 @@
+if (defined($ENV{'GNUSTEP_WEB_ROOT'})) {
+  open(TMPL,"<$ENV{'GNUSTEP_WEB_ROOT'}/secondary.html.template");
+  $tmpl=join("",<TMPL>);
+  close(TMPL);
+  ($T2H_EXTRA_HEAD,$T2H_AFTER_BODY_OPEN,$T2H_PRE_BODY_CLOSE_BAD) =
+    ($tmpl=~/<\/title>(.*)<\/head>.*<body>(.*<div id="main">).*(<\/div><\/div>.*)<\/body>/sm);
+  }
+else {
+  # this is added inside <HEAD></HEAD> after <TITLE> and some META NAME stuff
+  # can be used for <style> <script>, <meta> tags
+  $T2H_EXTRA_HEAD = '<link rel="stylesheet" href="../gnustep-main.css"
+  type="text/css" />';
+  }
+
+######################################################################
+
+sub nothing
+{
+}
+
+$T2H_print_About = \&nothing;
+$T2H_SECTION_NAVIGATION = 0;
+#$T2H_print_navigation = \&nothing;
+
+# Perl initialization file must end with the following instruction
+# that returns true, confirming the initialization completed
+# successfully.
+1;

@@ -1,0 +1,89 @@
+.TH make_strings 1 "August 16, 2009" "GNUstep" "GNUstep System Manual"
+
+.SH NAME
+make_strings \- tool to build lists of localizable strings from Objective-C files
+
+.SH SYNOPSIS
+.B make_strings
+.RB [ --help ]
+.RB [ --verbose ]
+.RB [ --aggresive-import ]
+.RB [ --aggressive-match ]
+.RB [ --aggressive-remove ]
+.RB [ -L
+.IR languages ]
+.I files.[hmc...]
+.br
+
+.SH DESCRIPTION
+.B make_strings
+parses Objective-C files and builds lists of localizable strings.  It
+then creates new
+.I .strings
+files or merges the strings with existing
+.I .strings
+files.  It's fairly intelligent when matching old and new strings, and
+produces
+.I .strings
+files that are (supposed to be) easy for a translator to work with.
+.PP
+.B make_strings
+accepts the following options:
+
+.SH OPTIONS
+.TP
+.B --help
+Prints a short list of available options.
+.TP
+.B --verbose
+Prints additional information while processing.
+.TP
+.BI -L " languages"
+Specify which languages to process.  Multuple
+.B -L
+options are accepted, or multiple
+.I languages
+defined in one
+.B -L
+flag.
+.TP
+.B --aggressive-import
+Activates
+.B --aggresive-match
+and automatically removes "dummy" entries that are added by importing
+.I .strings
+files which were not created by
+.B make_strings
+program.  This option is suitable when
+.B make_strings
+is run for the first time and there is an existing
+.I .strings
+file which contains a fairly accurate translation.
+.TP
+.B --aggressive-match
+This option will make
+.B make_strings
+assume that matching keys should have matching translations.  This can
+save lots of work, but it increases the risk of erroneous translation.
+.TP
+.B --aggressive-remove
+Removes obsolete strings/keys.
+
+.SH EXAMPLES
+make_strings \-L "English Swedish Russian" *.[hm]
+
+.SH SEE ALSO
+.BR GNUstep (7).
+
+.SH AUTHORS
+.B make_strings
+was written Alexander Malmberg <alexander@malmberg.org>.
+.P
+This manual page was added by Yavor Doganov <yavor@gnu.org>.
+
+.SH COPYRIGHT
+Copyright (C) 2009 Free Software Foundation, Inc.
+.P
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.

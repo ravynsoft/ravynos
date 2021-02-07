@@ -1,0 +1,83 @@
+.\"Copyright (C) 2020 Free Software Foundation, Inc.
+.\"Copying and distribution of this file, with or without modification,
+.\"are permitted in any medium without royalty provided the copyright
+.\"notice and this notice are preserved.
+.Dd September 23, 2020
+.Dt plutil 1
+.Os
+.Sh NAME
+.Nm plutil
+.Nd Property list utility
+.Sh SYNOPSIS
+.Nm progname
+.Op Fl command
+.Op Fl options
+.Ar file
+.Sh DESCRIPTION
+The
+.Nm
+utility can be used to edit property lists, to verify the syntax, or
+to convert from one format to another. If
+.Ql -
+is given as the file path, stdin and stdout are used.
+.Pp
+The first part is the action to perform, one of:
+.Bl -tag
+.It -p
+Print the whole plist to stdout, in the human-readable GNUStep format.
+.It -lint
+Verifies the plist can be parsed.
+.It -convert Ar FMT
+Converts the plist to another format.
+.Ql FMT
+can be one of:
+.Bl -tag
+.It xml1
+Apple XML.
+.It binary1
+Apple binary.
+.It openstep
+OpenStep (untyped human-readable).
+.It gnustep
+GNUStep (typed human-readable).
+.It json
+JSON (lossy human-readable).
+.El
+The NSPropertyListFormat names are accepted too.
+.It -insert Ar PATH Ar KEY Ar Value
+.El
+The default action is
+.Ql -lint.
+.Pp
+The general options are:
+.Bl -tag
+.El
+
+.Pp
+The plutil "keypath" is a dot-separated chain of keys for traversing
+a plist object. An empty keypath refers to the object itself. The
+format of keys conform to that of GNUStep plist string literals.
+
+.Sh IMPLEMENTATION NOTES
+.Bl
+.It
+Quoted strings in the keypath is a GNUStep extension.
+.It
+The Objective-C and Swift literal output formats are not yet implemented.
+.El
+.Sh EXIT STATUS
+.Pp 0 on success.
+.Sh EXAMPLES
+.Sh DIAGNOSTICS
+.Sh SEE ALSO
+.Xr pl 1
+.Xr pldes 1
+.Sh AUTHORS
+.An -nosplit
+This version of
+.Nm
+was written by
+.An Mingye Wang Aq Mt arthur2e5@aosc.io .
+.Nm
+first appeared in Mac OS X 10.2. It received path-related capabilities
+around Mac OS X 10.13.

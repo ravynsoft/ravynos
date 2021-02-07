@@ -1,0 +1,151 @@
+# This is the GNUstep configuration file.
+
+# This is the "strict version 2 mode" version of the file, which is
+# identical to the normal one, but all the obsolete v1 variables
+# (GNUSTEP_SYSTEM_ROOT, GNUSTEP_LOCAL_ROOT, GNUSTEP_NETWORK_ROOT,
+# GNUSTEP_USER_DIR) have been removed.
+
+# Any line starting with a '#' is a comment.
+# Empty lines are ignored.
+# Every other line in this file must be of the form
+#   XXX=YYY
+# where there should be no spaces around the '=' (this is because we
+# include this file in shell scripts and makefiles, and sh syntax
+# requires no spaces around the '=').
+#
+# Standard sh quotes can be used in YYY but only at runtime; they can 
+# not be used while building.
+
+# GNUstep can use up to 4 domains at the same time.  They are System,
+# Local, Network and User.  You can install your programs / resources
+# in any of these domains.  This file mostly deals with configuring
+# how the domains map to your filesystem.
+
+# IMPORTANT: Don't delete lines from this file unless you want
+# the values hardcoded in the packages to be used.  If you want
+# to suppress the network domain, set all its paths to be the same
+# as the system domain.  If you want to suppress the local domain,
+# set all its paths to be the same as the network domain.  If you
+# want to suppress the user domain, set its paths to be the same
+# as the local domain.  You can not suppress the system domain.
+
+# The paths should not include a '/' at the end.
+
+# The name of the user config file.  This file can override
+# some settings in this file.  Usually used by users that want
+# to install things into their GNUstep user domain and/or have
+# many such domains.
+GNUSTEP_USER_CONFIG_FILE=@GNUSTEP_USER_CONFIG_FILE@
+
+# The name of the user directory where defaults (eg, preferences) are
+# stored.  If it does not start with a '/', it will be considered
+# relative to the user home directory.
+GNUSTEP_USER_DEFAULTS_DIR=@GNUSTEP_USER_DEFAULTS_DIR@
+
+
+# This is where the gnustep-make Makefiles are installed.
+# Traditionally, this is /usr/GNUstep/System/Library/Makefiles
+GNUSTEP_MAKEFILES=@GNUSTEP_MAKEFILES@
+
+
+# This is where the user home directories are.  Only used to provide
+# NSUserDirectory in gnustep-base.  Never used anywhere else.
+GNUSTEP_SYSTEM_USERS_DIR=@GNUSTEP_SYSTEM_USERS_DIR@
+GNUSTEP_NETWORK_USERS_DIR=@GNUSTEP_NETWORK_USERS_DIR@
+GNUSTEP_LOCAL_USERS_DIR=@GNUSTEP_LOCAL_USERS_DIR@
+
+
+# This is where System GUI Applications get installed.
+# Traditionally it is /usr/GNUstep/System/Applications.
+GNUSTEP_SYSTEM_APPS=@GNUSTEP_SYSTEM_APPS@
+
+# This is where System GUI Applications that only the
+# Administrator can use get installed.
+# Traditionally it is /usr/GNUstep/System/Applications/Admin.
+GNUSTEP_SYSTEM_ADMIN_APPS=@GNUSTEP_SYSTEM_ADMIN_APPS@
+
+# This is where System Web Applications (GSWeb, SOPE) get
+# installed.
+# Traditionally it is /usr/GNUstep/System/Library/WebApplications.
+GNUSTEP_SYSTEM_WEB_APPS=@GNUSTEP_SYSTEM_WEB_APPS@
+
+# This is where System Command-Line Tools get installed.
+# Traditionally it is /usr/GNUstep/System/Tools.
+GNUSTEP_SYSTEM_TOOLS=@GNUSTEP_SYSTEM_TOOLS@
+
+# This is where System Command-Line Tools that only the
+# Administrator can use get installed.  Important: this
+# should not be in the PATH of normal users.
+# Traditionally it is /usr/GNUstep/System/Tools/Admin.
+GNUSTEP_SYSTEM_ADMIN_TOOLS=@GNUSTEP_SYSTEM_ADMIN_TOOLS@
+
+# This is where System resources get installed.  This directory will
+# contain a lot of executable code since *step traditionally likes to
+# bundle executables and resources together.
+# Traditionally it is /usr/GNUstep/System/Library.
+GNUSTEP_SYSTEM_LIBRARY=@GNUSTEP_SYSTEM_LIBRARY@
+
+# This is where System headers get installed.  They are the
+# library .h headers.
+# Traditionally it is /usr/GNUstep/System/Library/Headers.
+GNUSTEP_SYSTEM_HEADERS=@GNUSTEP_SYSTEM_HEADERS@
+
+# This is where System libraries get installed.  By libraries we mean
+# the shared/static object files that you can link into programs.
+# Traditionally it is /usr/GNUstep/System/Library/Libraries.
+GNUSTEP_SYSTEM_LIBRARIES=@GNUSTEP_SYSTEM_LIBRARIES@
+
+# This is where System documentation get installed.  This is known
+# not to contain any executable, so we keep it separate.
+# Traditionally it is /usr/GNUstep/System/Library/Documentation.
+GNUSTEP_SYSTEM_DOC=@GNUSTEP_SYSTEM_DOC@
+
+# This is where System man pages get installed.
+# Traditionally it is /usr/GNUstep/System/Library/Documentation/man.
+GNUSTEP_SYSTEM_DOC_MAN=@GNUSTEP_SYSTEM_DOC_MAN@
+
+# This is where System info pages get installed.
+# Traditionally it is /usr/GNUstep/System/Library/Documentation/info.
+GNUSTEP_SYSTEM_DOC_INFO=@GNUSTEP_SYSTEM_DOC_INFO@
+
+
+GNUSTEP_NETWORK_APPS=@GNUSTEP_NETWORK_APPS@
+GNUSTEP_NETWORK_ADMIN_APPS=@GNUSTEP_NETWORK_ADMIN_APPS@
+GNUSTEP_NETWORK_WEB_APPS=@GNUSTEP_NETWORK_WEB_APPS@
+GNUSTEP_NETWORK_TOOLS=@GNUSTEP_NETWORK_TOOLS@
+GNUSTEP_NETWORK_ADMIN_TOOLS=@GNUSTEP_NETWORK_ADMIN_TOOLS@
+GNUSTEP_NETWORK_LIBRARY=@GNUSTEP_NETWORK_LIBRARY@
+GNUSTEP_NETWORK_HEADERS=@GNUSTEP_NETWORK_HEADERS@
+GNUSTEP_NETWORK_LIBRARIES=@GNUSTEP_NETWORK_LIBRARIES@
+GNUSTEP_NETWORK_DOC=@GNUSTEP_NETWORK_DOC@
+GNUSTEP_NETWORK_DOC_MAN=@GNUSTEP_NETWORK_DOC_MAN@
+GNUSTEP_NETWORK_DOC_INFO=@GNUSTEP_NETWORK_DOC_INFO@
+
+GNUSTEP_LOCAL_APPS=@GNUSTEP_LOCAL_APPS@
+GNUSTEP_LOCAL_ADMIN_APPS=@GNUSTEP_LOCAL_ADMIN_APPS@
+GNUSTEP_LOCAL_WEB_APPS=@GNUSTEP_LOCAL_WEB_APPS@
+GNUSTEP_LOCAL_TOOLS=@GNUSTEP_LOCAL_TOOLS@
+GNUSTEP_LOCAL_ADMIN_TOOLS=@GNUSTEP_LOCAL_ADMIN_TOOLS@
+GNUSTEP_LOCAL_LIBRARY=@GNUSTEP_LOCAL_LIBRARY@
+GNUSTEP_LOCAL_HEADERS=@GNUSTEP_LOCAL_HEADERS@
+GNUSTEP_LOCAL_LIBRARIES=@GNUSTEP_LOCAL_LIBRARIES@
+GNUSTEP_LOCAL_DOC=@GNUSTEP_LOCAL_DOC@
+GNUSTEP_LOCAL_DOC_MAN=@GNUSTEP_LOCAL_DOC_MAN@
+GNUSTEP_LOCAL_DOC_INFO=@GNUSTEP_LOCAL_DOC_INFO@
+
+# Important: settings in the User should normally be relative paths,
+# and will be interpreted as relative to the user's directory.  This
+# allows each user to have their own domain to install things.  You
+# can set them to be absolute, mostly if you want to disable them
+# by setting them equal to the ones in the Network domain.
+GNUSTEP_USER_DIR_APPS=@GNUSTEP_USER_DIR_APPS@
+GNUSTEP_USER_DIR_ADMIN_APPS=@GNUSTEP_USER_DIR_ADMIN_APPS@
+GNUSTEP_USER_DIR_WEB_APPS=@GNUSTEP_USER_DIR_WEB_APPS@
+GNUSTEP_USER_DIR_TOOLS=@GNUSTEP_USER_DIR_TOOLS@
+GNUSTEP_USER_DIR_ADMIN_TOOLS=@GNUSTEP_USER_DIR_ADMIN_TOOLS@
+GNUSTEP_USER_DIR_LIBRARY=@GNUSTEP_USER_DIR_LIBRARY@
+GNUSTEP_USER_DIR_HEADERS=@GNUSTEP_USER_DIR_HEADERS@
+GNUSTEP_USER_DIR_LIBRARIES=@GNUSTEP_USER_DIR_LIBRARIES@
+GNUSTEP_USER_DIR_DOC=@GNUSTEP_USER_DIR_DOC@
+GNUSTEP_USER_DIR_DOC_MAN=@GNUSTEP_USER_DIR_DOC_MAN@
+GNUSTEP_USER_DIR_DOC_INFO=@GNUSTEP_USER_DIR_DOC_INFO@

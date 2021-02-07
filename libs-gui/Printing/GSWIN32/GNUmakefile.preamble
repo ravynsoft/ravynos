@@ -1,0 +1,43 @@
+#
+# GNUmakefile.postamble
+#
+#  Copyright (C) 2004 Free Software Foundation, Inc.
+#
+
+# Additional flags to pass to the preprocessor
+ADDITIONAL_CPPFLAGS += 
+
+# Additional flags to pass to the Objective-C compiler
+ADDITIONAL_OBJCFLAGS += -Wall
+
+# Additional flags to pass to the C compiler
+ADDITIONAL_CFLAGS +=
+
+# Additional include directories the compiler should search
+ADDITIONAL_INCLUDE_DIRS += -I../../Headers/Additions -I../../Headers \
+	-I../../Source -I../../Source/$(GNUSTEP_TARGET_DIR)
+
+# Additional LDFLAGS to pass to the linker
+ADDITIONAL_LDFLAGS += 
+
+# Additional library directories the linker should search
+ADDITIONAL_LIB_DIRS += -L../../Source/$(GNUSTEP_OBJ_DIR)
+
+# Additional libraries
+
+# GNUstepWeb
+ADDITIONAL_GSW_LIBS +=
+# GUI apps
+ADDITIONAL_GUI_LIBS +=
+# Libraries
+ADDITIONAL_LIBRARY_LIBS +=
+# ObjC stuff
+ADDITIONAL_OBJC_LIBS += -lwinspool 
+#-lgnustep-gui $(SYSTEM_LIBS)
+# Tools
+ADDITIONAL_TOOL_LIBS +=
+# WebObjects
+ADDITIONAL_WO_LIBS +=
+
+# Additional directories to be created during installation
+#ADDITIONAL_INSTALL_DIRS +=

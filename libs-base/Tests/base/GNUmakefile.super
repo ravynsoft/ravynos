@@ -1,0 +1,7 @@
+
+# This is here to force the test sourcecode to be treated as UTF-8
+# irrespective of the locale the testsuite is being run in.  That
+# allows any UTF-8 characters in the source to be handled correctly
+# by the compiler.  Of course, all test files need to be written in
+# UTF-8 encoding for this to make sense.
+ADDITIONAL_OBJC_FLAGS+="-finput-charset=UTF-8"

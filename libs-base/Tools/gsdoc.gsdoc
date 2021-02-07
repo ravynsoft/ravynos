@@ -1,0 +1,875 @@
+<?xml version="1.0"?>
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 1.0.3//EN" "http://www.gnustep.org/gsdoc-1_0_3.xml">
+<!--
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+-->
+<gsdoc base="gsdoc">
+  <head>
+    <title>GNUstep Documentation XML markup language (GSDoc)</title>
+    <author name="Richard Frith-Macdonald">
+      <email address="rfm@gnu.org"/>
+      <url url="http://www.gnustep.org/developers/whoiswho.html"/>
+      <desc>
+        A person who devotes far too much time to GNUstep development.
+      </desc>
+    </author>
+    <version>1.0.3</version>
+    <date>6 Nov, 2006</date>
+    <abstract>
+      This documents the GNUstep Documentation markup language.
+    </abstract>
+    <copy>Free Software Foundation, Inc.</copy>
+  </head>
+
+  <body>
+    <front>
+      <contents/>
+
+      <chapter>
+        <heading>Introduction</heading>
+        <p>
+          The GNUstep documentation markup language (GSDoc) is an XML language
+          designed specifically for writing documentation for the
+          <uref url="http://www.gnustep.org">GNUstep project</uref>.
+          In practice, that means that it is designed for writing about
+          software, and in particular, for writing about Objective-C classes.
+        </p>
+        <p>
+          This document itself is an example, as well as a test case, of GSDoc
+          itself.
+        </p>
+        <section>
+          <heading>Why another documentation language?</heading>
+          <p>
+            There are several reasons for producing the new markup
+            language -
+          </p>
+        <list>
+            <item>
+              There were no existing markup languages that dealt well with
+              documenting software written in the Objective-C language,
+              except the GDML language - which has no easy to use support
+              software.
+            </item>
+            <item>
+              While the DocBook system works nicely for general software
+              documentation, it requires a relatively large amount of
+              support software and comes with a lot of baggage that's
+              not directly useful for GNUstep.
+            </item>
+            <item>
+              The GNU info system comes with easy to use, lightweight
+              conversion tools, but is particularly ill suited to
+              Objective-C documentation because the colon character
+              using in Objective-C method names is used in info markup.
+            </item>
+            <item>
+              LinuxDoc, while being a nice basic system, seems to be
+              in the process of being replaced by DocBook.
+            </item>
+          </list>
+          <p>
+            So, with only one markup language available that supported
+            Objective-C, and with XML software becoming available, the
+            decision was to take GDML and update it to be an XML
+            language, in the hope that this would - 
+          </p>
+          <list>
+            <item>
+              Provide optimal support for GNUstep documentation.
+            </item>
+            <item>
+              Minimize the amount of work needed for development of
+              software tools.
+            </item>
+            <item>
+              Provide future-proofing in that documentation written in one
+              XML language should be quite easy to convert to another if
+              necessary.
+            </item>
+          </list>
+        </section>
+      </chapter>
+    </front>
+
+    <chapter>
+      <heading>The gsdoc DTD and what it means</heading>
+      <p>
+        The GSDoc markup language is defined by an SGML DTD, that specifies
+        the tags that may be used in marking up a GSDoc document, and how
+        and where those tags may be placed.  The reader is encouraged to
+        consult the DTD directly on any points that the present document leaves
+        unclear.  The DTD is stored under
+        <code>GNUSTEP_SYSTEM_LIBRARY/DTDs</code> in a standard
+	GNUstep installation. .. where GNUSTEP_SYSTEM_LIBRARY is defined in
+	the GNUstep configuration file (GNUstep.conf).
+      </p>
+      <p>
+        The gsdoc DTD defines an XML language - that is, a markup language
+        that conforms to a specific subset of SGML features defined as XML.
+        The advantage of XML is that it provides most of the useful features
+        of SGML while being much more light-weight (easy to use) because
+        you can forget about the rest of SGML.
+        As XML looks set to become increasingly popular, we can hope that
+        documentation written with an XML language will be easily imported
+        into XML software tools as they become available, so we will not
+        (in the GNUstep project) need to devote a lot of time and effort
+        to maintaining documentation tools.
+      </p>
+      <section id="gsdoc"><label id="gsdoc"/>
+        <heading>Overall document structure</heading>
+        <p>
+          A GSDoc document consists of a <ref id="head">head</ref> and a
+          <ref id="body">body</ref> wrapped inside the overall document
+          framework that looks like this -
+        </p>
+        <example>
+&lt;?xml version="1.0"?&gt;
+&lt;!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 1.0.2//EN" "http://www.gnustep.org/gsdoc-1_0_2.xml"&gt;
+&lt;gsdoc base="MyDoc" prev="First" next="Last" up="Overview"&gt;
+  &lt;head&gt;
+  ... your document head here
+  &lt;/head&gt;
+  &lt;body&gt;
+  ... your document body here
+  &lt;/body&gt;
+&lt;/gsdoc&gt;
+        </example>
+        <p>
+          The above example shows a GSDoc document framework.
+          The first line specifies the XML version that the document
+          conforms to.
+          The second line specifies the version of GSDoc that the
+          document conforms to.
+          The third and final lines frame the main part of the document
+          and supply all the (optional) attributes of the <em>gsdoc</em>
+          element -
+        </p>
+        <deflist>
+          <term><code>base</code></term>
+          <desc>
+            This is optional, but recommended - it specifies the base name
+            for the document.  When the document is translated to another
+            format, the output file name should be based on this - eg.
+            if the base name of a document is <em>foo</em> then an html
+            output for this file would be <em>foo.html</em>.
+          </desc>
+          <term><code>prev</code></term>
+          <desc>
+            This optional attribute may be used as the name of a document
+            that precedes this one in logical reading order.  If the
+            converted output format of the document supports some sort of
+            link between documents, the converter software may insert
+            a link between the two documents.
+          </desc>
+          <term><code>next</code></term>
+          <desc>
+            This optional attribute may be used as the name of a document
+            that follows this one in logical reading order.  If the
+            converted output format of the document supports some sort of
+            link between documents, the converter software may insert
+            a link between the two documents.
+          </desc>
+          <term><code>up</code></term>
+          <desc>
+            This optional attribute may be used as the name of a document
+            that is above this document in some sort of hierarchical
+            structure (a contents list perhaps).
+            If the converted output format of the document supports some sort
+            of link between documents, the converter software may insert
+            a link between the two documents.
+          </desc>
+        </deflist>
+      </section>
+      <section id="head"><label id="head"/>
+        <heading>The document head</heading>
+        <p>
+          The document head contains information about the document as
+          a whole: its title, authors, version, modification date,
+          copyright, and perhaps an abstract of its contents.
+          The title is the only part of the document head that must be present,
+          although at least one author is strongly encouraged.
+        </p>
+        <example>
+&lt;head&gt;
+  &lt;title&gt;GNUstep Documentation XML markup language (GSDoc)&lt;/title&gt;
+  &lt;author name="Richard Frith-Macdonald"&gt;
+    &lt;email address="rfm@gnu.org"/&gt;
+    &lt;url url="http://www.gnustep.org/developers/whoiswho.html"/&gt;
+    &lt;desc&gt;
+      A person who devotes far too much time to GNUstep development.
+    &lt;/desc&gt;
+  &lt;/author&gt;
+  &lt;version&gt;0.1&lt;/version&gt;
+  &lt;date&gt;4 march, 2000&lt;/date&gt;
+  &lt;abstract&gt;
+    This documents the GNUstep Documentation markup language and tools
+  &lt;/abstract&gt;
+  &lt;copy&gt;Free Software Foundation, Inc.&lt;/copy&gt;
+&lt;/head&gt;
+        </example>
+        <p>
+          The above example shows all the elements possible in a document head.  Only title is required (author is strongly encouraged), but if present they must occur in the order shown -
+        </p>
+        <deflist>
+        <term><code><label id="title">&lt;title&gt;</label></code></term>
+        <desc>
+          The title of the document.  Required.
+        </desc>
+        <term><code><label id="author">&lt;author&gt;</label></code></term>
+        <desc>
+            The author of the document, also specifying an email address at
+            which the author may be reached, a URL for a web page giving
+            some information about the author, and an additional description
+            of the author.  (Of course, a document may have more than one
+            author, in which case you simply write multiple author elements.)
+            Not required, but strongly encouraged.
+        </desc>
+        <term><code><label id="version">&lt;version&gt;</label></code></term>
+        <desc>
+          The version number of the document.
+        </desc>
+        <term><code><label id="date">&lt;date&gt;</label></code></term>
+        <desc>
+          The date at which the document was last modified.
+        </desc>
+        <term><code><label id="abstract">&lt;abstract&gt;</label></code></term>
+        <desc>
+          A <em>short</em> description of the document contents.
+        </desc>
+        <term><code><label id="copy">&lt;copy&gt;</label></code></term>
+        <desc>
+          The copyright owner of the document.
+        </desc>
+        </deflist>
+      </section>
+      <section id="body"><label id="body"/>
+        <heading>The document body</heading>
+        <p>
+          The document body contains the main part of the document, it
+          consists of an optional front part (for contents pages, overview
+          etc), a sequence of any number of chapters, and an optional back
+          part (for indexes, appendices etc).  Normally, each of these three
+          parts of the document would be expected to have their own separate
+          page numbering schemes.
+        </p>
+        <example>
+&lt;body&gt;
+  &lt;front&gt;
+    &lt;contents/&gt;
+    &lt;chapter&gt;
+      &lt;heading&gt;Preface&lt;/heading&gt;
+      &lt;p&gt;
+        Here is an introductory chapter for a dummy document.
+      &lt;/p&gt;
+    &lt;/chapter&gt;
+  &lt;/front&gt;
+  &lt;chapter&gt;
+    &lt;heading&gt;Main text&lt;/heading&gt;
+    &lt;p&gt;
+      Here is the main text of a chapter in the document.
+    &lt;/p&gt;
+  &lt;/chapter&gt;
+  &lt;back&gt;
+    &lt;chapter&gt;
+      &lt;heading&gt;Afterword&lt;/heading&gt;
+      &lt;p&gt;
+        And after the main part of the doucment we can have some other stuff.
+      &lt;/p&gt;
+    &lt;/chapter&gt;
+    &lt;index type="class"/&gt;
+  &lt;/back&gt;
+&lt;/body&gt;
+        </example>
+        <p>
+          The above example shows all the elements possible at the top level in a document body -
+        </p>
+        <deflist>
+        <term><code>&lt;front&gt;</code></term>
+        <desc>
+          This is an optional part of the document that can come before the
+          main text.  Typically, this could be used to contain an automatically
+          generated contents page and possibly an introduction.
+          When output is generated in book form, this part of the document
+          would probably have a different page numbering scheme from the
+          main part.
+          <p>
+            The <code>&lt;contents&gt;</code> subelement is used as a marker
+            to specify that an automatically generated contents page (listing
+            the chapters in the document) is to be inserted.
+          </p>
+        </desc>
+        <term><code>&lt;chapter&gt;</code></term>
+        <desc>
+            After the <em>front</em> part of the document body comes a
+            mandatory sequence of one or more chapters.  This is where
+            the main part of the document resides.
+            Each <ref id="chapter">chapter</ref> consists of a
+            <ref id="heading">heading</ref>, any number
+            of blocks of information, and any number of sections.
+        </desc>
+        <term><br/><code>&lt;back&gt;</code></term>
+        <desc>
+          After the chapters making up the main part of the body of the
+          document is an optional <em>back</em> part which may contain
+          chapters (such as appendices) possibly followed by an automatically
+          generated index.
+          <p>
+            The <code>&lt;index&gt;</code> element is used as a marker to
+            specify that an automatically generated index is to be inserted.
+            See <ref id="index">below</ref> for details.
+          </p>
+        </desc>
+        </deflist>
+      </section>
+    </chapter>
+
+    <chapter>
+      <heading>Element reference</heading>
+      <p>
+        The allowable elements in GSDoc documents are described below, broken
+        into sections by usage context.
+      </p>
+
+      <section id="sectioningElements"><label id="sectioningElements"/>
+        <heading>Sectioning Elements</heading>
+        <p>
+          <em>Sectioning elements</em> define hierarchical document structure.
+        </p>
+        <deflist>
+          <term><code><label id="chapter">&lt;chapter&gt;</label></code></term>
+          <desc>This is the basic, top-level element of the document body.
+          Each chapter consists of a <ref id="heading">heading</ref>,
+          zero or more <ref id="blockElements">blocks</ref>, and zero or more
+          <ref id="section">sections</ref>.  Each chapter in the document is
+          automatically listed in the documents contents page (if it has one).
+          </desc>
+          <term><code><label id="section">&lt;section&gt;</label></code></term>
+          <desc>First level below <code>chapter</code>.  It contains
+          <ref id="subsection">sub-sections</ref> where a chapter would
+          contain sections.</desc>
+          <term><code><label id="subsection">&lt;subsection&gt;</label></code>
+          </term>
+          <desc>Level below <code>section</code>.</desc>
+          <term><code><label id="subsubsection">&lt;subsubsection&gt;</label></code></term>
+          <desc>Level below <code>subsection</code>.</desc>
+          <term><code><label id="heading">&lt;heading&gt;</label></code></term>
+          <desc>Each <ref id="chapter">chapter</ref>,
+          <ref id="section">section</ref>
+          <ref id="subsection">sub-section</ref>,
+          or <ref id="subsubsection">sub-sub-section</ref>
+          has a heading as the first thing in it.
+          These headings introduce the sections and are listed in the
+          contents page.</desc>
+        </deflist>
+      </section>
+
+      <section id="blockElements"><label id="blockElements"/>
+        <heading>Block Elements</heading>
+        <p>
+          <em>Block elements</em> can occur at the top level of sections,
+          as well is in certain other contexts.  The block elements are -
+        </p>
+        <deflist>
+          <term><code><label id="embed">&lt;embed&gt;</label></code></term>
+          <desc>marks embedded information from elsewhere</desc>
+          <term><br/><code><label id="example">&lt;example&gt;</label></code></term>
+          <desc>marks an example</desc>
+          <term><br/><code><label id="index">&lt;index&gt;</label></code></term>
+          <desc>
+            The <code>&lt;index&gt;</code> tag is special in that it is
+            dynamically expanded during output based on information that has
+            been collated from reading in various documentation and source
+            files.  The <code>type</code> attribute of the index specifies
+            what sort of item is to be in the index - the default type of
+            <code>label</code> causes an index of all <em>label</em> and
+            <em>entry</em> elements to be generated.  Currently the allowable
+            types are: <code>class</code>, <code>category</code>,
+            <code>protocol</code>, <code>method</code>,
+            <code>ivariable</code>, <code>function</code>, <code>type</code>,
+            <code>macro</code>, <code>variable</code>, <code>constant</code>,
+            <code>label</code>, <code>title</code>, <code>EOModel</code>
+            (associated with the Enterprise Objects Framework, for interacting
+            with databases), <code>EOEntity</code>.  The default is
+            "<code>label</code>".
+            <p>
+              The <code>&lt;index&gt;</code> element also takes three optional
+             attributes -
+            </p>
+            <deflist>
+              <term><code>scope</code></term>
+              <desc>
+                Determines whether the index is generated for the current file
+                ("<code>file</code>" scope), or for the whole of the current
+                project ("<code>project</code>" scope), or for everything the
+                software can find ("<code>global</code>" scope).  In certain
+                contexts the specified scope is automatically overridden ... if
+                the document is processed in a standalone manner, the scope is
+                always "<code>file</code>".  For method or ivariable indexing,
+                if the index is inside a class, protocol, or category, only
+                indexes for that unit are generated.
+              </desc>
+              <term><code>style</code></term>
+              <desc>
+                Determines whether the index is presented with standard
+                embellishments such as bulleted entries and a header
+                ("<code>normal</code>" style) or in a minimalist style suitable
+                for, e.g., a navigation bar ("<code>bare</code>" style).
+              </desc>
+              <term><code>target</code></term>
+              <desc>
+                Provides additional information to accompany links formed from
+                the index.  For HTML output, this is translated into a
+                "<code>target</code>" attribute to the <code>&lt;a&gt;
+                href="..."</code> element generated for a link.  In most cases
+                this can safely be left out.
+              </desc>
+            </deflist>
+          </desc>
+
+          <term><br/><em>text elements</em></term>
+          <desc>
+            A variety of elements for text formatting, many based on HTML tags.
+            See <ref id="textElements">below</ref> for details.
+          </desc>
+
+          <term><br/><em>list elements</em></term>
+          <desc>
+            A variety of lists.  See <ref id="listElements">below</ref> for
+            details.
+          </desc>
+
+          <term><br/><em>cross reference elements</em></term>
+          <desc>
+            A variety of elements for representing external references and
+            internal references to other parts of a document.
+            See <ref id="crossrefElements">below</ref> for details.
+          </desc>
+
+          <term><br/><em>definition elements</em></term>
+          <desc>
+            A variety of specialised elements for software documentation.
+            See <ref id="definitionElements">below</ref> for details.
+          </desc>
+        </deflist>
+      </section>
+
+      <section id="textElements"><label id="textElements"/>
+        <heading>Text Elements</heading>
+        <p>
+          <em>Text elements</em> can occur within blocks and typically within
+          other block elements such as
+          <code><ref id="example">example</ref></code> as well.  They carry
+          out various presentation-related purposed.
+          The text elements are -
+        </p>
+        <deflist>
+          <term><code><label id="p">&lt;p&gt;</label></code></term>
+          <desc>The paragraph, as in HTML.  The paragraph element simply
+          contains <ref id="textElements">text</ref>.  Most descriptive
+          writing is inside paragraphs.</desc>
+          <term><code><label id="br">&lt;br&gt;</label></code></term>
+          <desc>The line-break, as in HTML.</desc>
+          <term><code><label id="example">&lt;example&gt;</label></code>
+          </term>
+          <desc>Marks an example.</desc>
+          <term><code><label id="footnote">&lt;footnote&gt;</label></code>
+          </term>
+          <desc>A reference to a footnote that appears in full elsewhere.
+          </desc>
+          <term><code><label id="code">&lt;code&gt;</label></code></term>
+          <desc>The content is either a name for code (e.g. class names), or a
+                relatively short code fragment.</desc>
+          <term><code><label id="em">&lt;em&gt;</label></code></term>
+          <desc>Emphasized text.</desc>
+          <term><code><label id="strong">&lt;strong&gt;</label></code></term>
+          <desc>More strongly emphasized text.</desc>
+          <term><code><label id="file">&lt;file&gt;</label></code></term>
+          <desc>The content is a filename.</desc>
+          <term><code><label id="ivar">&lt;ivar&gt;</label></code></term>
+          <desc>The content is a metasyntactic ivariable name.</desc>
+          <term><code><label id="var">&lt;var&gt;</label></code></term>
+          <desc>The content is a metasyntactic variable or argument name.</desc>
+          <term><code><label id="site">&lt;site&gt;</label></code></term>
+          <desc>The content is a fully qualified domain name on the Internet.
+          </desc>
+          <term><code><label id="cdata">(text)</label></code></term>
+          <desc>Unstructured text content is also allowed.</desc>
+        </deflist>
+      </section>
+
+      <section id="listElements"><label id="listElements"/>
+        <heading>List Elements</heading>
+        <p>
+          <em>List elements</em> can occur within blocks and typically within
+          other block elements such as
+          <code><ref id="example">example</ref></code> as well.  They support
+          presentation of various types of lists.
+          The list elements are -
+        </p>
+        <deflist>
+          <term><code><label id="list">&lt;list&gt;</label></code></term>
+          <desc>A simple, unnumbered list of items, each contained within an
+          <code>&lt;item&gt;</code> tag.</desc>
+          <term><code><label id="enum">&lt;enum&gt;</label></code></term>
+          <desc>A numbered list (<code>&lt;item&gt;</code> tags).</desc>
+          <term><code><label id="deflist">&lt;deflist&gt;</label></code></term>
+          <desc>A list of terms with definitions, marked as alternating
+          <code>&lt;term&gt;</code> and <code>&lt;desc&gt;</code> tags.</desc>
+          <term><code><label id="dictionary">&lt;dictionary&gt;</label></code>
+          </term>
+          <desc>An attribute-value list similar to an NSDictionary.  Consists
+          of a sequence of <code>&lt;dictionaryItem&gt;</code> tags each with
+          a required <code>key</code> attribute and an optional
+          <code>value</code> attribute.  If this is excluded, the element
+          content, which may be any
+          <ref id="blockElements"><em>block</em> element</ref> (including
+          another <code>&lt;dictionary&gt;</code> tag) is the value.</desc>
+          <term><code><label id="qalist">&lt;qalist&gt;</label></code></term>
+          <desc>A list of <code>&lt;question&gt;</code>s and
+          <code>&lt;answer&gt;</code>s.</desc>
+        </deflist>
+      </section>
+
+      <section id="crossrefElements"><label id="crossrefElements"/>
+        <heading>Cross-Reference Elements</heading>
+        <p>
+          <em>Cross-reference elements</em> can occur within blocks and
+          typically anywhere text elements can occur.  They represent
+          references to other entities inside or outside the project being
+          documented.  In output formats that support it, they are generally
+          transformed into hyperlinks.  The cross-reference elements are -
+        </p>
+        <deflist>
+          <term><code><label id="ref">&lt;ref&gt;</label></code></term>
+          <desc>A reference to another entity within collection of documents
+          describing the current project.  In practice this means a reference
+          to an element in a GSDoc document.  Standard conventions for document
+          naming and structure are used to generate a hyperlink in output.
+          To support this resolution, two attributes must be specified.
+          <deflist>
+            <term><code>type</code></term>
+            <desc>This is the type of entity being referenced.  It may take
+            one of the following values: <code>class</code>,
+            <code>category</code>, <code>protocol</code>, <code>method</code>,
+            <code>ivariable</code>, <code>function</code>, <code>type</code>,
+            <code>macro</code>, <code>variable</code>, <code>constant</code>,
+            <code>label</code>, <code>EOModel</code>, <code>EOEntity</code>.
+            If <code>type</code> is not specified, "<code>label</code>" is
+            assumed.</desc>
+            <term><code>id</code></term>
+            <desc>Specifies the identifier of the reference.  In most cases
+            this will be the name of the class, method, or other specific
+            entity being referenced.  In the case of <code>label</code>
+            references, this is the <code>id</code> attribute of the label
+            being referenced.</desc>
+            <term><code>class</code></term>
+            <desc>In the case where a <code>method</code> is being referenced,
+            the <code>class</code> attribute should be specified as well, and
+            should contain the name of the class the method occurs in, in one
+            of the following formats: "classname", "classname(categoryname)",
+            or "(protocolname)".</desc>
+          </deflist>
+          </desc>
+          <term><code><label id="prjref">&lt;prjref&gt;</label></code></term>
+          <desc>A reference to another project, which assumedly has also had
+          GSDoc generated for it.  A link in the output will be generated to
+          ???.  The <code>&lt;prjref&gt;</code> tag may contain text content,
+          which appears in the output.</desc>
+          <term><code><label id="uref">&lt;uref&gt;</label></code></term>
+          <desc>A reference to a URL.  Usage is similar to the
+          <code>&lt;A&gt;</code> tag in HTML, except that the attribute
+          '<code>url</code>' is used for the URL rather than
+          '<code>href</code>'.  Text contents are shown in the output to label
+          the hyperlink.</desc>
+          <term><code><label id="url">&lt;url&gt;</label></code></term>
+          <desc>Similar to <code>&lt;uref&gt;</code> except the URL itself is
+          automatically used as the hyperlink label (and so the tag itself does
+          not have text content).</desc>
+          <term><code><label id="email">&lt;email&gt;</label></code></term>
+          <desc>An email address.  Translates in HTML output to a
+          <code>mailto:</code> link.</desc>
+          <term><code><label id="entry">&lt;entry&gt;</label></code></term>
+          <desc>An entry for the general index.  Contains text elements but
+          this text appears only in the index, and never in the text itself.
+          It takes a single attribute, <code>id</code>, which may be used to
+          refer to the entry.  (If it is absent any text content is taken to
+          be the id.)</desc>
+          <term><code><label id="label">&lt;label&gt;</label></code></term>
+          <desc>A general purpose marker that can contain text elements,
+          which will appear in the output where the label occurs.
+          It takes a single attribute, <code>id</code>, which may be used to
+          refer to the label.  (If it is absent any text content is taken to
+          be the id.)</desc>
+        </deflist>
+      </section>
+
+      <section id="definitionElements"><label id="definitionElements"/>
+        <heading>Definition Elements</heading>
+        <p>
+          <em>Definition elements</em> are specialized elements for software
+          documentation.  They can occur in most places that block elements
+          can occur.  They represent specific Objective-C elements, and are
+          formatted specially in output.  In the majority of cases, you will
+          not need to write GSDoc using these elements, since they can be
+          autogenerated from Objective-C source files and special comments
+          within them.  Most of the elements representing parts of the API
+	  have optional attributes ovadd, ovdep and ovrem which may be used to
+	  specify the OpenStep/OPENSTEP/MacOS-X versions at which the
+	  documented element was added to, deprecated in, or removed from
+	  the API, Similarly they have gvadd, gvdep and gvrem which may be
+	  used to specify when an elment was added to or removed from
+	  the API of the source code being documented
+	  (eg a gnustep library).<br />
+	  The definition elements are -
+        </p>
+        <deflist>
+
+          <term><code><label id="class">&lt;class&gt;</label></code></term>
+          <desc>
+            An Objective-C <em>class</em> definition.  This is the main element
+            for Objective-C code documentation. The <code>name</code> attribute
+            is required for this element - it is the name of the class.  The
+            <code>super</code> attribute is normally necessary to provide the
+            name of the superclass.
+            <p>
+              The elements in a <code>&lt;class&gt;</code> are - an optional
+              <ref id="declared">declared</ref> element,
+              zero or more <ref id="conform">conform</ref> elements,
+              an optional <ref id="desc">desc</ref>,
+              zero or more <ref id="ivariable">ivariable</ref> elements,
+              zero or more <ref id="method">method</ref> elements.
+            </p>
+          </desc>
+
+          <term><code><label id="category">&lt;category&gt;</label></code>
+          </term>
+          <desc>
+            An Objective-C <em>category</em> definition.  It requires both a
+            <code>name</code> attribute providing the name of the category,
+            and a <code>class</code> attribute naming the class the category
+            is associated with.
+            <p>
+              The elements in a <code>&lt;category&gt;</code> are - an optional
+              <ref id="declared">declared</ref> element,
+              zero or more <ref id="conform">conform</ref> elements,
+              an optional <ref id="desc">desc</ref>,
+              zero or more <ref id="method">method</ref> elements.
+            </p>
+          </desc>
+
+          <term><code><label id="protocol">&lt;protocol&gt;</label></code>
+          </term>
+          <desc>
+            An Objective-C <em>protocol</em> definition.  It requires a
+            <code>name</code> attribute providing the name of the protocol.
+            <p>
+              The elements in a <code>&lt;protocol&gt;</code> are - an optional
+              <ref id="declared">declared</ref> element,
+              zero or more <ref id="conform">conform</ref> elements,
+              an optional <ref id="desc">desc</ref>,
+              zero or more <ref id="method">method</ref> elements.
+            </p>
+          </desc>
+
+          <term><code><label id="function">&lt;function&gt;</label></code>
+          </term>
+          <desc>
+            A C <em>function</em> definition.  It requires a
+            <code>name</code> attribute providing the function's name and a
+            <code>type</code> attribute providing the return type.
+            <p>
+              The elements in a <code>&lt;function&gt;</code> are -
+              a series of zero or more <ref id="arg">arg</ref> elements,
+              followed by an optional <ref id="vararg">arg</ref> element,
+              then an optional <ref id="declared">declared</ref> element,
+              an optional <ref id="desc">desc</ref>.
+            </p>
+          </desc>
+
+          <term><code><label id="macro">&lt;macro&gt;</label></code></term>
+          <desc>
+            A C <em>macro</em> definition.  It requires a
+            <code>name</code> attribute providing the macro's name.
+            <p>
+              The elements in a <code>&lt;macro&gt;</code> are -
+              a series of zero or more <ref id="arg">arg</ref> elements,
+              followed by an optional <ref id="vararg">arg</ref> element,
+              then an optional <ref id="declared">declared</ref> element,
+              an optional <ref id="desc">desc</ref>.
+            </p>
+          </desc>
+
+          <term><code><label id="type">&lt;type&gt;</label></code></term>
+          <desc>
+            A C <em>type</em> definition.  It requires a
+            <code>name</code> attribute providing the macro's name.
+            <p>
+              The elements in a <code>&lt;macro&gt;</code> are -
+              an optional <ref id="declared">declared</ref> element,
+              an optional <ref id="desc">desc</ref>.
+            </p>
+          </desc>
+
+          <term><code><label id="constant">&lt;constant&gt;</label></code>
+          </term>
+          <desc>
+            A C <em>constant</em> definition.  It requires
+            <code>name</code> and <code>type</code> attributes and a
+             <code>value</code> attribute is optional.  In addition, an
+             Objective-C role for the constant may be specified using the
+             <code>role</code> attribute.  Acceptable values for this attribute
+             are: "<code>except</code>", "<code>defaults</code>",
+             "<code>notify</code>", or "<code>key</code>".
+            <p>
+              The elements in a <code>&lt;constant&gt;</code> are -
+              an optional <ref id="declared">declared</ref> element,
+              an optional <ref id="desc">desc</ref>.
+            </p>
+          </desc>
+
+          <term><code><label id="variable">&lt;variable&gt;</label></code>
+          </term>
+          <desc>
+            A C <em>variable</em> definition.  It requires
+            <code>name</code> and <code>type</code> attributes and a
+             <code>value</code> attribute is optional.
+            <p>
+              The elements in a <code>&lt;variable&gt;</code> are -
+              an optional <ref id="declared">declared</ref> element,
+              an optional <ref id="desc">desc</ref>.
+            </p>
+          </desc>
+
+          <term><code><label id="ivariable">&lt;ivariable&gt;</label></code>
+          </term>
+          <desc>
+            An objective C <em>instance variable</em> definition.  It requires
+            <code>name</code> and <code>type</code> attributes and a
+             <code>validity</code> attribute optionally specifies the access
+             level for the variable (may be "<code>public</code>",
+             "<code>protected</code>", or "<code>private</code>", the default
+             is "<code>public</code>").
+            <p>
+              The elements in a <code>&lt;variable&gt;</code> are -
+              an optional <ref id="desc">desc</ref>.
+            </p>
+          </desc>
+
+          <term><code><label id="desc">&lt;desc&gt;</label></code></term>
+          <desc>An element for general descriptive text.  Contains a block and
+          occurs in various contexts including <ref id="deflist">deflists</ref>
+          as well as most
+          <ref id="definitionElements">definition elements</ref>.<br/><br/>
+          </desc>
+
+          <term><code><label id="conform">&lt;conform&gt;</label></code></term>
+          <desc>
+            This element contains simple text giving the name of a protocol
+            or interface to which a class conforms.<br/><br/>
+          </desc>
+
+          <term><code><label id="declared">&lt;declared&gt;</label></code>
+          </term>
+          <desc>
+            This element contains simple text giving the name of the header
+            file in which something is declared.<br/><br/>
+          </desc>
+
+          <term><code><label id="method">&lt;method&gt;</label></code>
+          </term>
+          <desc>
+            Describes an Objective-C method.  Only valid within a
+            <ref id="class">class</ref>, <ref id="protocol">protocol</ref>,
+            or <ref id="category">category</ref>.  An optional
+            <code>type</code> attribute describes the return type; an optional
+            <code>factory</code> attribute ("<code>yes</code>" or
+            "<code>no</code>", defaults to "<code>no</code>") specifies whether
+            this is a class or instance method.  (Class methods are typically
+            only used for construction purposes in Objective-C.)  An optional
+            <code>init</code> attribute (also taking
+            "<code>yes</code>" / "<code>no</code>") specifies whether this is
+            the designated constructor.  An optional <code>override</code>
+            attribute specifies whether this method should be overridden.
+            If it <em>must</em> be overridden enter "<code>subclass</code>",
+	    if it must <em>not</em> be overridden enter <code>never</code>",
+	    if it is an empty/dummy implementation which is intended to be
+	    overridden enter <code>dummy</code>, otherwise (for most methods
+	    which may be but are not particularly designed to be overridden)
+	    leave this attribute unset.
+            <p>
+              The elements in a <code>&lt;method&gt;</code> are -
+              the method's name (in a <ref id="sel">sel</ref> element), the
+              method's arguments (a sequence of <ref id="arg">arg</ref> then
+              <ref id="sel">sel</ref>,<ref id="arg">arg</ref> pairs, then an
+              optional <ref id="vararg">vararg</ref> element),
+              followed by an optional <ref id="desc">desc</ref>,
+              zero or more <ref id="ivariable">ivariable</ref> elements,
+              zero or more <ref id="method">method</ref> elements.
+            </p>
+          </desc>
+
+          <term><code><label id="sel">&lt;sel&gt;</label></code></term>
+          <desc>
+            Content is a method name or argument name (referred to as a
+            "selector" in some cases, but different from an Objective-C
+            method selector (runtime pointer to a method implementation).
+            <br/><br/>
+          </desc>
+
+          <term><code><label id="arg">&lt;arg&gt;</label></code></term>
+          <desc>
+            Content is a an argument name.  Takes a mandatory <code>type</code>
+            attribute giving the argument's type.
+            <br/><br/>
+          </desc>
+
+          <term><code><label id="vararg">&lt;vararg&gt;</label></code></term>
+          <desc>
+            An empty element indicating that a variable argument list may be
+            used (in a <ref id="method">method</ref> or
+            <ref id="function">function</ref> definition).
+            <br/><br/>
+          </desc>
+
+        </deflist>
+      </section>
+
+
+    </chapter>
+
+    <!-- Begin test dictionary. - ->
+    <chapter>
+      <heading>Dictionary Test</heading>
+      <dictionary>
+        <dictionaryItem key="key1" value="value1"/>
+        <dictionaryItem key="key2">value2</dictionaryItem>
+        <dictionaryItem key="key3">
+          <dictionary>
+            <dictionaryItem key="key3a" value="value3a"/>
+            <dictionaryItem key="key3b">value3b</dictionaryItem>
+            <dictionaryItem key="key3c">
+              <dictionary>
+                <dictionaryItem key="key3cI" value="value3cI"/>
+              </dictionary>
+            </dictionaryItem>
+          </dictionary>
+        </dictionaryItem>
+        <dictionaryItem key="key4" value="value4"/>
+      </dictionary>
+    </chapter>
+    < !- - End test dictionary. -->
+
+    <back>
+<!--
+      <chapter>
+        <heading>Afterward</heading>
+      </chapter>
+-->
+    </back>
+
+
+  </body>
+</gsdoc>

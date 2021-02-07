@@ -1,0 +1,459 @@
+@paragraphindent 0
+
+@node Introduction
+@chapter Introduction
+
+The aim of this manual is to introduce you to the Objective-C language and the
+GNUstep development environment, in particular the Base library. The manual is
+organised to give you a tutorial introduction to the language and APIs, by
+using examples whenever possible, rather than providing a lengthy abstract
+description.
+
+While Objective-C is not a difficult language to learn or use, some of the
+terms may be unfamiliar, especially to those that have not programmed using an
+object-oriented programming language before. Whenever possible, concepts will
+be explained in simple terms rather than in more advanced programming terms,
+and comparisons to other languages will be used to aid in illustration.
+
+
+@section What is Object-Oriented Programming?
+@cindex object-oriented programming
+
+There are several object-oriented (OO) programming languages in common use
+today and you have probably heard of some of them: C++ and Java for example,
+and of course Objective-C. OO languages all have one thing in common: they
+allow you to design and write programs in a different way than if you used a
+traditional procedural language like C or Pascal.
+
+Procedural languages provide the programmer with basic building blocks that
+consist of data types, (integers, characters, float etc) and functions that
+act on that data. This forces the program designer to design the program using
+these same building blocks. Quite often this requires quite a leap in
+imagination between what the program must do and how it can be implemented.
+
+Object-oriented languages allow the program designer to think in terms of
+building blocks that are closer to what the program will actually do. Rather
+than think in terms of data and functions that act on that data, OO languages
+provide you with objects and the ability to send messages to those
+objects. Objects are, in a sense, like mini programs that can function on
+their own when requested by the program or even another object.
+
+For example, an object may exist that can draw a rectangle in a window; all
+you need to do as a programmer is send the appropriate messages to that
+object. The messages could tell the object the size of the rectangle and
+position in the window, and of course tell the object to draw itself. Program
+design and implementation is now reduced to sending messages to the
+appropriate objects rather than calling functions to manipulate data.
+
+@subsection Some Basic OO Terminology
+@cindex basic OO terminology
+
+OO languages add to the vocabulary of more traditional programming languages,
+and it may help if you become familiar with some of the basic terms before
+jumping in to the language itself.
+
+@b{Objects}
+
+As stated previously, an object is one of the basic building blocks in OO
+programming. An object can receive messages and then act on these messages to
+alter the state of itself (the size and position of a rectangle object for
+example). In software an object consists of instance variables (data) that
+represent the state of the object, and methods (like C functions) that act on
+these variables in response to messages.
+
+Rather than 'calling' one of its methods, an object is said to 'perform' one
+of its methods in response to a message. (A method is known as a 'member
+function' in C++.)
+
+@b{Classes}
+
+All objects of the same type are said to be members of the same class. To
+continue with the rectangle example, every rectangle could belong to a
+rectangle class, where the class defines the instance variables and the
+methods of all rectangles.
+
+A class definition by itself does not create an object but instead acts like a
+template for each object in that class. When an object is created an
+'instance' of that class is said to exist. An instance of a class (an object)
+has the same data structure (instance variables) and methods as every other
+object in that class.
+
+@b{Inheritance}
+
+When you define a new class you can base it on an existing class. The new
+class would then 'inherit' the data structure and methods of the class that
+you based it on. You are then free to add instance variables and methods, or
+even modify inherited methods, to change the behavior of the new class (how it
+reacts to messages).
+
+The base class is known as the 'superclass' and the new class as the
+'subclass' of this superclass. As an example, there could be a superclass
+called 'shapes' with a data structure and methods to size, position and draw
+itself, on which you could base the rectangle class.
+
+@b{Polymorphism}
+
+Unlike functions in a procedural program such as C, where every function must
+have a unique name, a method (or instance variable) in one class can have the
+same name as that in another class.
+
+This means that two objects could respond to the same message in completely
+different ways, since identically named methods may do completely different
+things. A draw message sent to a rectangle object would not produce the same
+shape as a draw message sent to a circle object.
+
+@b{Encapsulation}
+
+An object hides its instance variables and method implementations from other
+parts of the program. This encapsulation allows the programmer that uses an
+object to concentrate on what the object does rather than how it is
+implemented.
+
+Also, providing the interface to an object does not change (the methods of an
+object and how they respond to received messages) then the implementation of
+an object can be improved without affecting any programs that use it.
+
+@b{Dynamic Typing and Binding}
+
+Due to polymorhism, the method performed in response to a message depends on
+the class (type) of the receiving object. In an OO program the type, or class,
+of an object can be determined at run time (dynamic typing) rather than at
+compile time (static typing).
+
+The method performed (what happens as a result of this message) can then be
+determined during program execution and could, for example, be determined by
+user action or some other external event. Binding a message to a particular
+method at run time is known as dynamic binding.
+
+@section What is Objective-C?
+@cindex what is Objective-C?
+@cindex Objective-C, what is?
+
+Objective-C is a powerful object-oriented (OO) language that extends the
+procedural language ANSI C with the addition of a few keywords and compiler
+directives, plus one syntactical addition (for sending messages to
+objects). This simple extension of ANSI C is made possible by an Objective-C
+runtime library (libobjc) that is generally transparent to the Objective-C
+programmer.
+
+During compilation of Objective-C source code, OO extensions in the language
+compile to C function calls to the runtime library. It is the runtime library
+that makes dynamic typing and binding possible, and that makes Objective-C a
+true object-oriented language.
+
+Since Objective-C extends ANSI C with a few additional language constructs
+(the compiler directives and syntactical addition), you may freely include C
+code in your Objective-C programs. In fact an Objective-C program may look
+familiar to the C programmer since it is constructed using the traditional
+@code{main} function.
+
+@example
+#include <stdio.h>
+#include <objc/objc.h>
+
+int main (void)
+@{
+
+  /* Objective C and C code */
+  
+  return(0);
+@}
+@end example
+
+Objective-C source files are compiled using the standard GNU @b{gcc}
+compiler. The compiler recognises Objective-C source files by the @code{.m}
+file extension, C files by the @code{.c} extension and header files by the
+@code{.h} extension.
+
+As an example, the command @b{$gcc -o testfile testfile.m -lobjc} would
+compile the Objective-C source file @code{testfile.m} to an executable named
+@code{testfile}. The @code{-lobjc} compiler option is required for linking an
+Objective-C program to the runtime library.  (On GNU/Linux systems you may
+also need the @code{-lpthreads} option.)
+
+The GNUstep @b{make} utility provides an alternative (and simple) way to
+compile large projects, and this useful utility is discussed in the next
+section.
+
+Relative to other languages, Objective-C is more dynamic than C++ or Java in
+that it binds all method calls at runtime.  Java gets around some of the
+limitations of static binding with explicit runtime ``reflection'' mechanisms.
+Objective-C has these too, but you do not need them as often as in Java, even
+though Objective-C is compiled while Java is interpreted.  More information
+can be found in Appendix @ref{Objective-C Java and C++}.
+
+@section History
+@cindex history of Objective-C
+@cindex Objective-C, history
+@cindex history of NeXTstep
+@cindex NeXTstep, history
+@cindex history of OpenStep
+@cindex OpenStep, history
+
+Objective-C was specified and first implemented by Brad Cox and his company
+Stepstone Corporation during the early 1980's.  They aimed to minimally
+incorporate the object-oriented features of Smalltalk-80 into C.  Steve Jobs's
+NeXT licensed Objective-C from StepStone in 1988 to serve as the foundation of
+the new NeXTstep development and operating environment.  NeXT implemented its
+own compiler by building on the @i{gcc} compiler, modifications that were
+later contributed back to gcc in 1991.  No less than three runtime libraries
+were subsequently written to serve as the GNU runtime; the one currently in
+use was developed by Danish university student Kresten Krab Thorup.
+
+Smalltalk-80 also included a class library, and Stepstone's Objective-C
+implementation contained its own library based loosely on it.  This in turn
+influenced the design of the NeXTstep class libraries, which are what GNUstep
+itself is ultimately based on.
+
+After NeXT exited the hardware business in the early 1990s, its Objective-C
+class library and development environment, @i{NeXTstep}, was renamed
+@i{OpenStep} and ported to run on several different platforms.  Apple acquired
+NeXT in 1996, and after several years figuring out how to smooth the
+transition from their current OS, they released a modified, enhanced version
+of the NeXTstep operating system as Mac OS X, or ``10'' in 1999.  The class
+libraries in OS X contain additions related to new multimedia capabilities and
+integration with Java, but their core is still essentially the OpenStep API.
+
+This API consists of two parts: the @i{Foundation}, a collection of
+non-graphical classes for data management, network and file interaction, date
+and time handling, and more, and the @i{AppKit}, a collection of user
+interface widgets and windowing machinery for developing full-fledged
+graphical applications.  GNUstep provides implementations of both parts of
+this API, together with a graphical engine for rendering AppKit components on
+various platforms.
+
+
+@section What is GNUstep?
+@cindex what is GNUstep?
+@cindex GNUstep, what is?
+
+GNUstep is an object-oriented development environment that provides the
+Objective-C programmer with a range of utilities and libraries for building
+large, cross-platform, applications and tools.  It is split into three
+components: @b{Base}, non-graphical classes corresponding to the NeXTstep
+@i{Foundation} API, @b{GUI}, consisting of graphical classes corresponding to
+the NeXTstep @i{AppKit} API, and @b{Back}, a modular framework for rendering
+instance of the GUI classes on multiple platforms.
+
+GNUstep is generally compatible with the OpenStep specification and with
+recent developments of the MacOS (Cocoa) API. Where MacOS deviates from the
+OpenStep API, GNUstep generally attempts to support both versions.  See
+Appendix @ref{Compliance to Standards} for more detailed information.
+
+This manual does not discuss the full functionality of GNUstep but
+concentrates on using the GNUstep Base library to create non-graphical
+programs, and the GNUstep @b{make} utility to compile these programs. Further
+information about GNUstep can be found at @url{http://gnustep.org}.
+
+
+@subsection GNUstep Base Library
+@cindex GNUstep base library
+
+The GNUstep base library contains a powerful set of non-graphical Objective-C
+classes that can readily be used in your programs. At present there are
+approximately 70 different classes available, including classes to handle
+strings and arrays, dates and times, distributed objects, URLs and file
+systems (to name but a few).  It is similar to but more stable than the
+non-graphical portion of the Java Development Kit (JDK) API (see Appendix
+@ref{Objective-C Java and C++} for more information).
+
+Classes in the base library are easily identified since they begin with the
+upper case characters 'NS', as in @code{NSString}. Some examples in this
+manual use classes from the base library, but for complete documentation on
+the base library see the @uref{../Reference/index.html, API documentation}.
+
+
+@subsection GNUstep Make Utility
+@cindex GNUstep make utility
+@cindex make utility, GNUstep
+
+The GNUstep @b{make} utility is the GNU version of the UNIX make utility, plus
+a number of predefined rules specialized for building GNUstep projects. So
+what does it do? It simplifies the process of building (compiling and linking)
+a large project. You simply type @b{make} at the command prompt and the make
+utility takes care of file dependencies, only re-compiling source files that
+have changed, or that depend on files that have changed, since the last 'make'
+(a header file for example).  It also takes care of including the proper
+GNUstep header and library references automatically.
+
+Before using @b{make} you must first create a 'makefile' that lists all the
+files and file dependencies in your project. The easiest way to do this is to
+copy an existing makefile and change it to suit your own project.
+
+The make utility will be used to build the Objective-C examples shown in this
+manual, and when an example can be compiled then the makefile will also be
+shown.  For a full description of the make utility see its
+@uref{../../Make/Manual/make_toc.html, documentation}.
+
+@subsection A Word on the Graphical Environment
+@cindex graphical programming
+@cindex AppKit
+@cindex GUI
+
+The GNUstep @b{GUI} component is discussed
+@uref{../../Gui/ProgrammingManual/manual_toc.html, elsewhere}, but a brief
+overview is useful here.  GNUstep GUI provides a collection of classes for
+developing graphical applications, including windows, controls (also known as
+widgets, and back-end components for event handling and other functions. 
+Internally, the implementation is divided into two components, the @i{back end} 
+and the @i{front end}.  The front end provides the API to the developer, and 
+makes display postscript (DPS) calls to the back end to implement it.  The 
+back-end converts the DPS calls into calls to the underlying window system.  If 
+you install GNUstep from source, you must first compile and install the front end,
+then compile and install the back end.
+
+Implementations of the back-end have been produced for both X11 (Linux/UNIX
+systems), and Windows.  There is also a quasi-native display postscript system
+similar to what was available on the NeXT but using Ghostscript to render to
+X11.  This implementation is largely complete, but proved to be inefficient
+and difficult to optimize relative to the current back-end framework (which
+converts the DPS from the front end to window drawing commands immediately
+rather than relying on a postscript stack).
+
+@comment{Add brief blurbs on Gorm and Renaissance.}
+
+
+@subsection The GNUstep Directory Layout
+@cindex directory layout
+@cindex filesystem layout
+@cindex layout, filesystem
+
+The directories of a GNUstep installation are organized in a fashion that
+balances compatibility with NeXTstep/OpenStep/OS X with traditional Unix
+filesystem conventions.  The highest level of organization consists of four
+@i{domains} - the System, Local, Network, and Users.  @i{System} holds the
+main GNUstep installation, including the Base and GUI libraries and
+documentation.  @i{Local} holds third party applications, custom extension
+libraries, etc., analogously to @code{/usr/local} on a Unix system.
+@i{Network} mounts shared files in a networked environment.  @i{Users} usually
+exists as @code{$HOME/GNUstep} and holds preferences files and personal
+application data.  There is further
+@uref{../../../User/GNUstep/filesystem_toc.html, documentation} available on
+the complete directory layout.
+
+Usually, on a Unix-type system, the GNUstep installation will be found under
+@code{/usr/lib/GNUstep}.
+
+
+@section Building Your First Objective-C Program
+@cindex your first Objective-C program
+
+The following example will show you how to create and compile an Objective-C
+program. The example simply displays a text message on the screen, and there
+are easier ways to to do this, but the example does demonstrate a number of
+object-oriented features of Objective-C, and also demonstrates the use of
+@b{make} to compile an Objective-C program.
+
+@enumerate
+
+@item
+Create a new project directory to hold your project.@*@*
+
+@item
+Create the following Objective-C source code using your favourite text
+editor and save it in the project directory with the filename @code{source.m}.
+
+@example
+#include <stdio.h>
+
+/* 
+ * The next #include line is generally present in all Objective-C
+ * source files that use GNUstep.  The Foundation.h header file
+ * includes all the other standard header files you need.
+ */
+#include <Foundation/Foundation.h>  
+
+/*
+ * Declare the Test class that implements the class method (classStringValue).
+ */
+@@interface Test
++ (const char *) classStringValue;
+@@end
+
+/*
+ * Define the Test class and the class method (classStringValue).
+ */
+@@implementation Test
++ (const char *) classStringValue;
+@{
+  return "This is the string value of the Test class";
+@}
+@@end
+
+/*
+ * The main() function: pass a message to the Test class
+ * and print the returned string.
+ */
+int main(void)
+@{
+  printf("%s\n", [Test classStringValue]);
+  return 0;
+@}
+@end example
+
+The text between comment markers (/* */) is ignored by the compiler but
+indicates to someone reading the source file what each part of the program
+does. The program is an example of a (class) method responding to a
+message. Can you see how it works?@*@*
+
+A message is sent to the @code{Test} class as an argument to @code{printf()},
+requesting the string value of that class. The @code{Test} class performs its
+@code{classStringValue} method in response to this message and returns a
+string that is finally printed. No object is created in this program since a
+class method does not require an instance of a class in order to respond to a
+message.@*@*
+
+You will learn more about class methods in the next chapter.@*@*
+
+@item
+Now create the makefile, again using your favourite text editor, and save it
+in the same project directory with the filename @code{GNUmakefile}.
+
+@example
+include $(GNUSTEP_MAKEFILES)/common.make
+
+TOOL_NAME = LogTest
+LogTest_OBJC_FILES = source.m
+
+include $(GNUSTEP_MAKEFILES)/tool.make
+@end example
+
+If you look at the makefile above you will notice the two lines that tell the
+make utility to build a tool with the filename @code{LogTest} from the
+Objective-C source file @code{source.m}. You could copy and modify this
+makefile for later projects you may have: just change the tool name and list
+the new source files.@*@*
+
+The two 'include' lines are just a way of keeping your makefile simple, by
+including two 'ready-made' makefiles that someone else created.@*@*
+
+@item
+Before you can execute this makefile you must first set your GNUstep
+environment variables.  Among other things this defines the
+@code{GNUSTEP_MAKEFILES} variable referenced above.  The simplest way to do
+this is to execute one of the following commands (you must first locate your
+GNUstep installation manually):
+
+C shell:@*
+@code{source <GNUstep root>/System/Library/Makefiles/GNUstep.csh}
+
+Bourne shell:@*
+@code{. <GNUstep root>/System/Library/Makefiles/GNUstep.sh}
+
+On most Unix systems, GNUstep is installed in @code{/usr/lib/GNUstep}.
+(@uref{../../../User/GNUstep/filesystem_toc.html, Directory layout
+documentation}.)
+
+@item
+You can now compile the project using make. At the system command prompt,
+change to the project directory and enter the @b{make} command.@*@*
+
+@item
+Run the program (on Unix enter @b{./obj/LogTest}
+at the command prompt). The message "This is the string value of the Test class" 
+will be displayed (assuming there were no errors).
+
+@end enumerate
+
+You have now compiled and run your first Objective-C program. Hungry for more?
+Then read on.

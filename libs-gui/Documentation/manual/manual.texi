@@ -1,0 +1,105 @@
+\input texinfo              @c -*-texinfo-*-
+
+@c %**start of header
+@setfilename manual.info
+@settitle GNUstep GUI, Programming Manual
+@c %**end of header
+
+@ifinfo
+@format
+START-INFO-DIR-ENTRY
+* GNUstepBase:         GNUstep GUI Library (OpenStep AppKit)
+END-INFO-DIR-ENTRY
+@end format
+@end ifinfo
+
+@ifinfo
+Copyright @copyright{} 2001 Free Software Foundation
+
+Permission is granted to make and distribute verbatim copies of
+this manual provided the copyright notice and this permission notice
+are preserved on all copies.
+
+Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided also that
+the entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+
+Permission is granted to copy and distribute translations of this manual
+into another language, under the above conditions for modified versions.
+@end ifinfo
+
+@setchapternewpage odd
+@titlepage
+
+@title GNUstep GUI Library (OpenStep AppKit)
+@title Programming Manual
+
+@author Adam Fedor (fedor@@gnu.org)
+@author Nicola Pero (n.pero@@mi.flashnet.it)
+@page
+
+@vskip 0pt plus 1filll
+Copyright @copyright{} 2001 Free Software Foundation
+
+Permission is granted to make and distribute verbatim copies of
+this manual provided the copyright notice and this permission notice
+are preserved on all copies.
+
+Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided also that
+the entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+
+Permission is granted to copy and distribute translations of this manual
+into another language, under the above conditions for modified versions.
+@end titlepage
+
+@contents
+
+@ignore : No foreword written yet
+@ifnothtml
+@iftex
+@c Foreword
+@include foreword.texi
+@end iftex
+@end ifnothtml
+@end ignore
+
+@ifinfo
+@c **Top node and master menu
+@node Top
+@top Objective-C Programming Manual
+
+@ignore : No foreword written yet
+@include foreword.texi
+@end ignore
+
+@menu
+* Introduction::	 An introduction to the GNUstep GUI library
+* Basic Classes::	 Basic Classes in the Library
+@end menu
+@c **end Top node and master menu
+@end ifinfo
+
+@page
+
+@c Chapter 1, Introduction
+@include Introduction.texi 
+
+@c Chapter 1, Basic Classes
+@include BasicClasses.texi 
+
+
+@unnumbered Concept Index
+@printindex cp
+
+@bye
+
+
+
+
+
+
+
+

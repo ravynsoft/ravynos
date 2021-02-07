@@ -1,0 +1,163 @@
+@c This is a generic INSTALL file for utilities distributions.
+@c If this package does not come with, e.g., installable documentation or
+@c data files, please ignore the references to them below.
+
+@c set the vars GNUSTEP_BASE_VERSION and GNUSTEP_BASE_GCC_VERSION
+@include version.texi
+
+@node Top, Introduction, (dir), (dir)
+
+@menu
+* Introduction::                
+* Configuration::               
+* Compilation::                 
+@end menu
+
+@node Introduction, Configuration, Top, Top
+@section Introduction
+
+If you are installing this package as part of the GNUstep core packages,
+read the file GNUstep-HOWTO for more complete instructions on how to
+install the entire GNUstep package (including this library).
+GNUstep-HOWTO is located in the gnustep-make package or at
+@url{http://www.gnustep.org}
+
+This version of gnustep-base requires gnustep-make version 2.0.0 or higher.
+
+Other external libraries that you may need to install include:
+
+@itemize
+@item ffi (HIGHLY RECOMMENDED)
+@item icu (HIGHLY RECOMMENDED)
+@item gnutls (HIGHLY RECOMMENDED)
+@item libxml2 (RECOMMENDED)
+@item libxslt (OPTIONAL)
+@item iconv (OPTIONAL, not needed if you have glibc)
+@item openssl (OPTIONAL, not needed if you have gnutls)
+@end itemize
+
+If you are installing the GNUstep libraries individually, make sure you
+have installed the GNUstep Makefile package (gnustep-make) already, and
+you have sourced the makefile script:
+@example
+. $GNUSTEP_SYSTEM_ROOT/Library/Makefiles/GNUstep.sh
+@end example
+See the GNUstep-HOWTO for more information.
+
+After installing this library you should install gnustep-gui if you are
+going to use graphical applications.
+
+When you configure this library, make sure you use the same
+configuration options as with gstep-make. Some additional options to
+configure are described below.
+
+Quick installation instructions:
+
+@example
+./configure
+make
+make install
+@end example
+
+To make and install the documentation:
+
+@example
+cd Documentation
+make
+make install
+@end example
+
+@node Configuration, Compilation, Introduction, Top
+@section Configuration
+
+Configuration is performed by running the @file{configure} program at a
+shell prompt. You may want to use some of the optional arguments to the
+@file{configure} program. Type @code{configure --help}
+for a list of these. It is not likely that you will need to use the
+@code{--prefix} option, since gstep-base will automatically install in
+the directory specified by the @code{GNUSTEP_SYSTEM_ROOT} environment
+variable (specified when you installed gnustep-make).
+
+Some configuration options for the base library need to be specified
+when configuring the gnustep-make package. In most cases, it is a good
+idea to specify the same configuration options when configuring both
+packages, just to make sure.
+
+Also make sure you've read the machine-specific instructions for your
+particular operating system and CPU. These instructions come with the
+GNUstep-HOWTO and are also located at the GNUstep web site at
+@url{http://www.gnustep.org}.
+
+@menu
+* Reading Command-Line Arguments::  
+* FFI Library::                 
+@end menu
+
+@node Reading Command-Line Arguments, FFI Library, Configuration, Configuration
+@subsection Reading Command-Line Arguments
+
+There are two features that change how GNUstep gets access to 
+command-line arguments and environment variables (normally passed to
+the program in the @code{main()} function. These features are
+@code{--enable-pass-arguments} and the @code{--enable-fake-main}
+option(s). 
+
+The fake-main option @emph{secretly} renames the @code{main()} function
+and substitutes it's own function which stores the command line
+arguments before calling the real main.
+
+The pass-arguments option absolves GNUstep of any effort to get the
+command-line arguments and instead forces the developer to insert the
+line
+
+@example
+  [NSProcessInfo initializeWithArguments:argv count:argc environment:env];
+@end example
+
+in the @code{main()} function of their program.
+
+Normally, the configure script will determine if a program
+can read process information directly from the system (for use by the
+class NSProcessInfo) and enable or disable the fake-main hack
+automatically, but if you find that configure is not doing this
+correctly, you can force the fake-main hack to be used, which will
+always work. Note that if the fake-main hack is enabled, you need to
+include the header file GSConfig.h in you main program -- this is done
+by default if you include NSObject.h or Foundation.h. If you want to
+avoid the whole idea of the fake-main hack, you can use the
+pass-arguments option. In this case you will be forced to call the
+NSProcessInfo initializeWithArguments method to pass the program
+arguments to NSProcessInfo (This would be done automatically if you use
+the NSApplicationMain function in a gui application).
+
+@node FFI Library, , Reading Command-Line Arguments, Configuration
+@subsection FFI Library
+
+GNUstep's NSInvocations and Distributed Objects code involves detailed
+manipulation of the stack and function calls using a library that
+implements a Foreign-Function Interface (FFI), such as the 
+libffi library. Use of libffi is automatically enabled if the libffi
+library is found (and the same with ffcall, although libffi takes
+precedence), unless specifically disabled with @code{--disable-do}.
+
+@node Compilation,  , Configuration, Top
+@section Compilation
+
+To compile this library, type make. After this is complete, type make
+install (make sure you are the root user). Some additional options you
+can use with make are @samp{debug=yes} to make a debugging version of
+the library and @samp{shared=no} to make a static version of the
+library. See the gstep-make package for more information on these options.
+
+If you can't install gstep-base as root, be sure to edit the
+@file{Tools/gdomap.h} file and uncomment the last line.
+
+@ifinfo
+Copyright @copyright{} 2005 Free Software Foundation
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+@end ifinfo
+
+@bye

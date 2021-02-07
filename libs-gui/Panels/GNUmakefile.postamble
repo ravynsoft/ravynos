@@ -1,0 +1,74 @@
+#
+#  GNUmakefile.postamble
+#
+#  Copyright (C) 2001 Free Software Foundation, Inc.
+#
+#  Written: Adam Fedor <fedor@gnu.org>
+#  Date: Oct 2001
+#
+#  This file is part of the GNUstep Base Library.
+#
+#  This library is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU Lesser General Public
+#  License as published by the Free Software Foundation; either
+#  version 2 of the License, or (at your option) any later version.
+#
+#  This library is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
+#  Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU Lesser General Public
+#  License along with this library; see the file COPYING.LIB.
+#  If not, see <http://www.gnu.org/licenses/> or write to the 
+#  Free Software Foundation, 51 Franklin Street, Fifth Floor, 
+#  Boston, MA 02110-1301, USA.
+
+# TODO: extend resource-set.make so that this can be done easily with
+# it.
+
+include ../Version
+libgnustep-gui_INTERFACE_VERSION=$(GNUSTEP_GUI_MAJOR_VERSION).$(GNUSTEP_GUI_MINOR_VERSION)
+POSTAMBLE_INSTALL_DIR = $(GNUSTEP_LIBRARY)/Libraries/gnustep-gui/Versions/$(libgnustep-gui_INTERFACE_VERSION)/Resources
+
+# Things to do after installing
+after-install::
+ifneq ($(strip $(LOCALIZED_RESOURCE_FILES)),)
+	$(ECHO_NOTHING)echo "Copying localized resources into system..."; \
+	for l in $(LANGUAGES); do \
+	  if [ ! -d $(POSTAMBLE_INSTALL_DIR)/$$l.lproj ]; then \
+	    $(MKDIRS) $(POSTAMBLE_INSTALL_DIR)/$$l.lproj; \
+	  fi; \
+	  for f in $(LOCALIZED_RESOURCE_FILES); do \
+	    if [ -f $$l.lproj/$$f ]; then \
+	      cp -r $$l.lproj/$$f $(POSTAMBLE_INSTALL_DIR)/$$l.lproj; \
+	    fi; \
+	  done; \
+	done$(END_ECHO)
+endif
+ifneq ($(strip $(LOCALIZED_RESOURCE_COMPONENTS)),)
+	$(ECHO_NOTHING)echo "Copying localized components into system..."; \
+	for l in $(LANGUAGES); do \
+	  if [ ! -d $(POSTAMBLE_INSTALL_DIR)/$$l.lproj ]; then \
+	    $(MKDIRS) $(POSTAMBLE_INSTALL_DIR)/$$l.lproj; \
+	  fi; \
+	  for f in $(LOCALIZED_RESOURCE_COMPONENTS); do \
+	    if [ -d $$l.lproj/$$f ]; then \
+	      cp -r $$l.lproj/$$f $(POSTAMBLE_INSTALL_DIR)/$$l.lproj; \
+	      rm -rf $(POSTAMBLE_INSTALL_DIR)/$$l.lproj/$$f/.svn; \
+	    fi; \
+	  done; \
+	done$(END_ECHO)
+endif
+
+# Things to do after uninstalling
+after-uninstall::
+ifneq ($(strip $(LOCALIZED_RESOURCE_FILES)$(LOCALIZED_RESOURCE_COMPONENTS)),)
+	$(ECHO_NOTHING)for l in $(LANGUAGES); do \
+	  if [ -d $$l.lproj ]; then \
+	    rm -rf $(POSTAMBLE_INSTALL_DIR)/$$l.lproj; \
+	  fi; \
+	done$(END_ECHO)
+endif
+
+

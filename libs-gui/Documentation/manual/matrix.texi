@@ -1,0 +1,73 @@
+@c    GNUstep AppKit Guide
+@c
+@c    Copyright (c)  2005-2006  Christopher Armstrong.
+@c
+@c    Permission is granted to copy, distribute and/or modify this document
+@c    under the terms of the GNU Free Documentation License, Version 1.2
+@c    with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+@c    A copy of the license is included in the section entitled "GNU
+@c    Free Documentation License".
+@c
+@c This documentation is provided on an "AS IS" BASIS, WITHOUT WARRANTY
+@c OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING, BUT NOT LIMITED
+@c TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+@c PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY AND USEFULNESS
+@c OF THE DOCUMENTATION IS WITH YOU (THE LICENSEE). IN NO EVENT WILL THE COPYRIGHT
+@c HOLDERS BE LIABLE FOR DAMAGES, INCLUDING ANY DIRECT, INDIRECT,
+@c SPECIAL, GENERAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF
+@c THE USE OR INABILITY TO USE THIS DOCUMENTATION (INCLUDING BUT NOT
+@c LIMITED TO LOSS OF DATA, USE, OR PROFITS; PROCUREMENT OF SUBSTITUTE
+@c GOODS AND SERVICES; OR BUSINESS INTERUPTION) HOWEVER CAUSED, EVEN
+@c IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+@node matrix, browsercontrols, outlineviews, Top
+@chapter Matrix Controls
+@anchor{Matrix Controls}
+@cindex matrices, matrix control
+@cindex matrix controls, definition
+Matrix controls are groups of cells, arranged in a table like format, 
+with each cell indexed by row and column. It is similar to a table view, but differs in that it doesn't have a predefined cell class. Instead, it uses objects of classes derived from NSCell to be implemented. A matrix is implemented by the NSMatrix class.@footnote{Matrices, as referred to here, are not to be confused with affine transforms, the latter of which is commonly referred to as a matrix, due to it's internal implementation of a mathematical matrix.}
+
+It takes it's implementation from NSControl, and hence what applies to controls also applies to matrixes. This matrix control is used to implement browsers as well. Note that it does not use a delegate or a data source to display or obtain it's data or size. Instead, this is done using accessor methods, making the NSMatrix class more passive in it's representation of data.
+
+@section Creating Matrix Controls
+
+A matrix control can be creating by new @code{NSMatrix} instance and then calling @code{-initWithFrame:mode:prototype:numberOfRows:numberOfColumns:} or @code{-initWithFrame:mode:cellClass:numberOfRows:numberOfColumns:}. The former method uses an instance of a cell to instantiate cells for the rows and columns, while the latter uses a cell class to create the cells.
+
+Both these methods require a matrix mode, those of which are specified in @code{NSMatrixMode} and control how the matrix "tracks" the mouse:
+@table @code
+@item NSRadioModeMatrix
+Only permits one cell in the matrix to be selected at a time.
+
+@item NSHighlightModeMatrix
+Performs trackng (as described below) as well as highlighting the cell before tracking commences.
+
+@item NSListModeMatrix
+Cells objects are highlighted without the opportunity to track the mouse.
+
+@item NSTrackModeMatrix
+The cell is able to track the mouse while the cursor is within it's bounds. 
+
+@end table
+
+For more information about cell tracking, @xref{Basic Controls}.
+
+@section Using Matrix controls
+
+After having placed one on a window using Gorm, we can change what appears in the matrix by using it's methods.
+
+@cindex cell class, matrix controls
+@cindex matrix controls, cell class
+The @dfn{cell class} is what class is to be used (by default) to create cells. We can use instances of many different cells classes, for example, you may choose to populate your matrix with @code{NSTextCell} instances as well as @code{NSButtonCell} instances if you were creating an interactive form. You set the default cell class by calling either @code{+setCellClass:} on the @code{NSMatrix} class to set the cell class over all new @code{NSMatrix} instances, or you can call @code{-setCellClass:} to set the class used to create new cells on a instance-by-instance basis for each of your matrix instances.
+
+We can retrieve information about the cells in a matrix through a variety of methods. To retrieve the cell at a certain location, use the @code{-cellAtRow:column:} method. The size of cells is retrieved using the @code{-cellSize} method. To access specific cells, use @code{-cellAtRow:column:}, or to access all the cells, simple call @code{-cells} to get an array.
+
+We can begin adding rows or columns to the end our matrix using the @code{-addColumn} and @code{-addRow} methods. To specify the specific cells, use the @code{-addColumnWithCells:} and @code{-addRowWithCells:} methods, passing an array of the cells for that column/row. Alternatively, rows and columns can be inserted at arbitrary locations using the @code{-insertRow:} and @code{-insertColumn:} methods, specifying a row or column number. @code{-insertRow:withCells:} and @code{-insertColumn:withCells:} lets you pass in the cells to be inserted.
+
+Rows and columns can also be removed or replaced. You can remove a column or a row by number using the @code{-removeColumn:} or @code{-removeRow:} methods respectively. To replace a particular cell, use the @code{-putCell:atRow:column:} method.
+
+The cell selection and selection behaviour can be modified. A specific cell can be selected with the @code{-selectCellAtRow:column:} by specifying it's location, @code{-selectCellWithTag:} by specifying it's tag, or @code{-selectCell:} with the cell object. You can also select all the cells with the @code{-selectAll:} method.
+
+The selected cell is returned from @code{-selectedCell:}, or @code{-selectedCells} if more than one cell is selected. @code{-selectedRow} and @code{-selectedColumn} can be used if an entire row/column is selected.
+
+

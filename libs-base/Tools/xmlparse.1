@@ -1,0 +1,27 @@
+.\"Copyright (C) 2005 Free Software Foundation, Inc.
+.\"Copying and distribution of this file, with or without modification,
+.\"are permitted in any medium without royalty provided the copyright
+.\"notice and this notice are preserved.
+.TH XMLPARSE "1" "February 2004" "GNUstep" "GNUstep System Manual"
+.SH NAME
+xmlparse \- error-check and validate XML documents
+
+.SH SYNOPSIS
+.B xmlparse
+ \fIfilename\fR
+
+.SH DESCRIPTION
+.P
+Parses the given file, validating it against its DTD if found.  Prints
+messages about any errors, otherwise returns silently.  (Value 0 is always
+returned in any case.)  The parse of the file is discarded.
+
+.SH HISTORY
+.RS 0
+Written in 2003.
+.P
+This manual page first appeared in gnustep-base 1.9.2 (March 2004).
+.P
+.SH AUTHORS
+.B xmlparse
+was written by Richard Frith-Macdonald <rfm@gnu.org>

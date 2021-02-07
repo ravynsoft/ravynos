@@ -1,0 +1,939 @@
+Missing macros:
+	NS_ENUM
+	NS_OPTIONS
+	NS_AVAILABLE
+	NS_RETURNS_INNER_POINTER
+	NS_ENUM_AVAILABLE
+	NS_BLOCKS_AVAILABLE
+	NS_CLASS_AVAILABLE
+	NS_AVAILABLE_MAC
+	NS_ENUM_AVAILABLE_IOS
+	NS_DEPRECATED
+	NS_UNAVAILABLE
+	NS_AUTOMATED_REFCOUNT_WEAK_UNAVAILABLE
+	NS_AVAILABLE_IOS
+
+Missing headers:
+==
+NONE
+
+-------------------------------------------------------------
+FoundationErrors:
+	NSFileWriteFileExistsError
+	NSFileWriteVolumeReadOnlyError
+	NSFeatureUnsupportedError
+	NSPropertyListReadCorruptError
+    NSPropertyListReadUnknownVersionError
+    NSPropertyListReadStreamError
+    NSPropertyListWriteStreamError
+    NSPropertyListErrorMinimum
+    NSPropertyListErrorMaximum
+    NSXPCConnectionInterrupted
+    NSXPCConnectionInvalid
+    NSXPCConnectionReplyInvalid
+    NSXPCConnectionErrorMinimum
+    NSXPCConnectionErrorMaximum
+-------------------------------------------------------------
+NSAttributedString:
+	NSAttributedStringEnumerationReverse
+  	NSAttributedStringEnumerationLongestEffectiveRangeNotRequired
+
+  	- enumerateAttributesInRange:options:usingBlock:
+	- enumerateAttribute:inRange:options:usingBlock:
+-------------------------------------------------------------
+NSBundle:
+	- sharedFrameworksURL
+	- sharedSupportURL
+	- appStoreReceiptURL
+	- sharedFrameworksPath
+	- sharedSupportPath
+	+ URLsForResourcesWithExtension:subdirectory:inBundleWithURL:
+	- URLsForResourcesWithExtension:subdirectory:
+	- URLsForResourcesWithExtension:subdirectory:localization:
+
+	/** Not implemented */ (GNUstep comment)
+	- executableArchitectures;
+-------------------------------------------------------------
+NSByteOrder:
+	NSSwappedFloat — incompatible declaration
+	NSSwappedDouble — incompatible declaration
+-------------------------------------------------------------
+NSCalendar:
+	NSWeekOfMonthCalendarUnit
+	NSWeekOfYearCalendarUnit
+	NSYearForWeekOfYearCalendarUnit
+    NSCalendarCalendarUnit
+    NSTimeZoneCalendarUnit
+
+    - weekOfMonth
+	- weekOfYear
+	- yearForWeekOfYear
+	- isLeapMonth
+	- setWeekOfMonth:
+	- setWeekOfYear:
+	- setYearForWeekOfYear:
+	- setLeapMonth:
+	- date
+-------------------------------------------------------------
+NSCharacterSet:
+	NSOpenStepUnicodeReservedBase
+-------------------------------------------------------------
+NSCoder:
+	- requiresSecureCoding
+	- decodeObjectOfClass:forKey:
+	- decodeObjectOfClasses:forKey:
+	- decodePropertyListForKey:
+	- allowedClasses
+	- encodeNXObject:
+	- decodeNXObject:
+-------------------------------------------------------------
+NSComparisonPredicate:
+	NSNormalizedPredicateOption
+-------------------------------------------------------------
+NSConnection:
+	<NSDate.h>
+
+	- dispatchWithComponents:
+	- connection:shouldMakeNewConnection:
+	- createConversationForConnection:
+	- connection:handleRequest:
+	- invocation
+	- connection
+	- conversation
+	- replyWithException
+-------------------------------------------------------------
+NSData:
+	NSDataReadingMappedIfSafe
+    NSDataReadingUncached
+    NSDataReadingMappedAlways
+    NSDataWritingAtomic
+    NSDataWritingWithoutOverwriting
+    NSDataWritingFileProtectionNone
+    NSDataWritingFileProtectionComplete
+    NSDataWritingFileProtectionCompleteUnlessOpen
+    NSDataWritingFileProtectionCompleteUntilFirstUserAuthentication
+    NSDataWritingFileProtectionMask
+    NSDataSearchBackwards
+    NSDataSearchAnchored
+
+    - rangeOfData:options:range:
+    + dataWithContentsOfFile:options:error:
+	+ dataWithContentsOfURL:options:error:
+	- initWithContentsOfFile:options:error:
+	- initWithContentsOfURL:options:error:
+
+	@inteface NSPurgeableData
+-------------------------------------------------------------
+NSDate:
+	NSSystemClockDidChangeNotification
+-------------------------------------------------------------
+NSDebug:
+	<NSAutoreleasePool.h>
+
+	NSObjectAutoreleasedEvent
+	NSObjectExtraRefIncrementedEvent
+	NSObjectExtraRefDecrementedEvent
+	NSObjectInternalRefIncrementedEvent
+	NSObjectInternalRefDecrementedEvent
+	
+	NSDebugEnabled
+	NSKeepAllocationStatistics
+
+	NSIsFreedObject()
+	NSRecordAllocationEvent()
+
+	@interface NSAutoreleasePool (NSAutoreleasePoolDebugging)
+-------------------------------------------------------------
+NSDecimal:
+	NSDecimal — incompatible declaration
+-------------------------------------------------------------
+NSDecimalNumber:
+	<NSScanner.h>
+
+	NSDecimalNumberExactnessException
+	NSDecimalNumberOverflowException
+	NSDecimalNumberUnderflowException
+	NSDecimalNumberDivideByZeroException
+
+	@interface NSScanner (NSDecimalNumberScanning)
+-------------------------------------------------------------
+NSDictionary:
+	@interface NSDictionary (NSSharedKeySetDictionary)
+	@interface NSMutableDictionary (NSSharedKeySetDictionary)
+-------------------------------------------------------------
+NSDistributedNotificationCenter:
+	NSNotificationDeliverImmediately
+    NSNotificationPostToAllSessions
+
+	- postNotificationName:object:userInfo:options:
+-------------------------------------------------------------
+NSError:
+	NSHelpAnchorErrorKey
+
+	- helpAnchor
+-------------------------------------------------------------
+NSException:
+	@class NSAssertionHandler
+-------------------------------------------------------------
+NSExpression:
+	@class NSPredicate
+
+	NSUnionSetExpressionType
+    NSIntersectSetExpressionType
+    NSMinusSetExpressionType
+    NSSubqueryExpressionType
+    NSAggregateExpressionType
+
+    + expressionWithFormat:argumentArray:
+	+ expressionWithFormat:
+	+ expressionWithFormat:arguments:
+	+ expressionForAggregate:
+	+ expressionForUnionSet:with:
+	+ expressionForIntersectSet:with
+	+ expressionForMinusSet:with:
+	+ expressionForSubquery:usingIteratorVariable:predicate:
+	+ expressionForFunction:selectorName:arguments:
+	+ expressionForBlock:arguments:	
+	- collection
+	- predicate
+	- leftExpression
+	- rightExpression
+	- expressionBlock
+-------------------------------------------------------------
+NSFileHandle:
+	<NSArray.h>
+
+	@property (copy) void (^readabilityHandler)(NSFileHandle *)
+	@property (copy) void (^writeabilityHandler)(NSFileHandle *)
+-------------------------------------------------------------
+NSFileManager:
+	<NSPathUtilities.h>
+
+	NSUbiquityIdentityDidChangeNotification
+
+	@protocol NSFileManagerDelegate
+
+	typedef NSVolumeEnumerationOptions
+	typedef NSDirectoryEnumerationOptions
+	typedef NSFileManagerItemReplacementOptions
+
+	- mountedVolumeURLsIncludingResourceValuesForKeys:options:
+	- contentsOfDirectoryAtURL:includingPropertiesForKeys:options:error:
+	- URLsForDirectory:inDomains:
+	- createDirectoryAtURL:withIntermediateDirectories:attributes:error:
+	- createSymbolicLinkAtURL:withDestinationURL:error:
+	- setDelegate:
+	- delegate
+	- setAttributes:ofItemAtPath:error:
+	- subpathsOfDirectoryAtPath:error:
+	- attributesOfFileSystemForPath:error:
+	- createSymbolicLinkAtPath:withDestinationPath:error:
+	- destinationOfSymbolicLinkAtPath:error:
+	- linkItemAtPath:toPath:error:
+	- copyItemAtURL:toURL:error:
+	- moveItemAtURL:toURL:error:
+	- linkItemAtURL:toURL:error:
+	- removeItemAtURL:error:
+	- trashItemAtURL:resultingItemURL:error:
+	- (__strong const char *)fileSystemRepresentationWithPath:
+	- replaceItemAtURL:withItemAtURL:backupItemName:options:resultingItemURL:error:
+	- setUbiquitous:itemAtURL:destinationURL:error:
+	- isUbiquitousItemAtURL:
+	- startDownloadingUbiquitousItemAtURL:error:
+	- evictUbiquitousItemAtURL:error:
+	- URLForUbiquityContainerIdentifier:
+	- URLForPublishingUbiquitousItemAtURL:expirationDate:error:
+	- ubiquityIdentityToken
+	- level
+	- skipDescendants //not skipDescendents (sic!)
+
+	@protocol NSFileManagerDelegate <NSObject>
+
+	NSFileBusy
+	NSFileProtectionKey
+	NSFileProtectionNone
+	NSFileProtectionComplete
+	NSFileProtectionCompleteUnlessOpen
+	NSFileProtectionCompleteUntilFirstUserAuthentication 
+-------------------------------------------------------------
+NSGeometry:
+	<AvailabilityMacros.h>
+	<Foundation/NSValue.h>
+	<Foundation/NSCoder.h>
+
+	incompatible NSRectEdge
+	NSAlignmentOptions
+
+	@class NSString
+
+	NSRectFromCGRect()
+	NSRectToCGRect()
+	NSPointFromCGPoint()
+	NSPointToCGPoint()
+	NSSizeFromCGSize()
+	NSSizeToCGSize()
+	NSIntegralRectWithOptions()
+
+	@interface NSValue (NSValueGeometryExtensions)
+	@interface NSCoder (NSGeometryCoding)
+	@interface NSCoder (NSGeometryKeyedCoding)
+-------------------------------------------------------------
+NSHashTable:
+	incompatible NSHashEnumerator
+
+	NSOwnedObjectIdentityHashCallBacks
+-------------------------------------------------------------
+NSHost:
+	@class NSMutableArray
+
+	- localizedName
+-------------------------------------------------------------
+NSHTTPCookie:
+	@class NSHTTPCookieInternal;
+
+	- isHTTPOnly
+-------------------------------------------------------------
+NSHTTPCookieStorage:
+	@class NSHTTPCookieStorageInternal
+
+	- sortedCookiesUsingDescriptors:
+-------------------------------------------------------------
+NSIndexSet:
+	- indexPassingTest:
+	- indexWithOptions:passingTest:
+	- indexInRange:options:passingTest
+	- indexesPassingTest:
+	- indexesWithOptions:passingTest:
+	- indexesInRange:options:passingTest:
+	- enumerateRangesUsingBlock:
+	- enumerateRangesWithOptions:usingBlock:
+	- enumerateRangesInRange:options:usingBlock:
+-------------------------------------------------------------
+NSInvocation:
+	<stdbool.h>
+
+	enum _NSObjCValueType
+	typedef struct NSObjCValue
+-------------------------------------------------------------
+NSKeyedArchiver:
+	<NSGeometry.h>
+
+	+ classFallbacksForKeyedArchiver
+-------------------------------------------------------------
+NSKeyValueCoding:
+	<NSArray.h>
+	<NSDictionary.h>
+	<NSOrderedSet.h>
+	<NSSet.h>
+
+	NSAverageKeyValueOperator
+	NSCountKeyValueOperator
+	NSDistinctUnionOfArraysKeyValueOperator
+	NSDistinctUnionOfObjectsKeyValueOperator
+	NSDistinctUnionOfSetsKeyValueOperator
+	NSMaximumKeyValueOperator
+	NSMinimumKeyValueOperator
+	NSSumKeyValueOperator
+	NSUnionOfArraysKeyValueOperator
+	NSUnionOfObjectsKeyValueOperator
+	NSUnionOfSetsKeyValueOperator
+
+	- mutableOrderedSetValueForKey:
+	- mutableOrderedSetValueForKeyPath:
+
+	@interface NSArray(NSKeyValueCoding)
+	@interface NSDictionary(NSKeyValueCoding)
+	@interface NSMutableDictionary(NSKeyValueCoding)
+	@interface NSOrderedSet(NSKeyValueCoding)
+	@interface NSSet(NSKeyValueCoding)
+	@interface NSObject(NSDeprecatedKeyValueCoding)
+-------------------------------------------------------------
+NSKeyValueObserving:
+	<NSSet.h>
+
+	- removeObserver:forKeyPath:context:
+	- removeObserver:fromObjectsAtIndexes:forKeyPath:context:
+	+ keyPathsForValuesAffectingValueForKey:
+-------------------------------------------------------------
+NSLocale:
+	@class NSDictionary
+-------------------------------------------------------------
+NSMapTable:
+	@class NSArray, NSDictionary, NSMapTable
+
+	incompatible NSMapEnumerator
+
+	NSFreeMapTable()
+	NSResetMapTable()
+	NSCompareMapTables()
+	*NSCopyMapTableWithZone()
+	NSMapMember()
+	*NSMapGet()
+	NSMapInsert()
+	NSMapInsertKnownAbsent()
+	*NSMapInsertIfAbsent()
+	NSMapRemove()
+	NSEnumerateMapTable()
+	NSNextMapEnumeratorPair()
+	NSEndMapTableEnumeration()
+	NSCountMapTable()
+	*NSStringFromMapTable()
+	*NSAllMapTableKeys()
+	*NSAllMapTableValues()
+-------------------------------------------------------------
+NSMetadata:
+	@class NSArray, NSMetadataItem, NSMetadataQueryAttributeValueTuple, NSMetadataQueryResultGroup
+
+	NSMetadataQueryResultContentRelevanceAttribute
+	NSMetadataItemIsUbiquitousKey
+	NSMetadataUbiquitousItemHasUnresolvedConflictsKey
+	NSMetadataUbiquitousItemIsDownloadedKey
+	NSMetadataUbiquitousItemIsDownloadingKey
+	NSMetadataUbiquitousItemIsUploadedKey
+	NSMetadataUbiquitousItemIsUploadingKey
+	NSMetadataUbiquitousItemPercentDownloadedKey
+	NSMetadataUbiquitousItemPercentUploadedKey
+-------------------------------------------------------------
+NSNetServices:
+	<NSDate.h>
+
+	@class NSArray, NSData, NSDictionary, NSString
+-------------------------------------------------------------
+NSNotification:
+	@class NSOperationQueue
+
+	- addObserverForName:queue:usingBlock:
+-------------------------------------------------------------
+NSNumberFormatter:
+	@class NSMutableDictionary
+-------------------------------------------------------------
+NSObjCRuntime:
+	#include <TargetConditionals.h>
+	#include <AvailabilityMacros.h>
+	#include <Availability.h>
+-------------------------------------------------------------
+NSObject:
+	@class NSEnumerator
+
+	- debugDescription
+
+	@protocol NSSecureCoding <NSCoding>
+
+	- allowsWeakReference
+	- retainWeakReference
+-------------------------------------------------------------
+NSOperation:
+	@class NSArray, NSSet
+
+	@interface NSBlockOperation : NSOperation
+	@interface NSInvocationOperation : NSOperation
+
+	NSInvocationOperationVoidResultException
+	NSInvocationOperationCancelledException
+
+	- addOperationWithBlock:
+-------------------------------------------------------------
+NSPathUtilities:
+	(interfaces reside in NSString.h and NSArray.h)
+
+	typedef NS_ENUM(NSUInteger, NSSearchPathDirectory)
+-------------------------------------------------------------
+NSPointerFunctions:
+	#include <Foundation/NSPointerFunctionsPriv.h>
+-------------------------------------------------------------
+NSPort:
+	@class NSData
+	@protocol NSPortDelegate, NSMachPortDelegate
+
+	- scheduleInRunLoop:forMode:
+	- removeFromRunLoop:forMode:
+
+	NSMachPortDeallocateNone
+	NSMachPortDeallocateSendRight
+	NSMachPortDeallocateReceiveRight
+
+	+ portWithMachPort:options:
+	- initWithMachPort:options:
+
+	@interface NSSocketPort : NSPort
+-------------------------------------------------------------
+NSPortNameServer:
+	- portForName:host:
+	- registerPort:name:
+	- servicePortWithName:
+
+	- portForName:host:nameServerPortNumber:
+	- registerPort:name:nameServerPortNumber:
+	- setDefaultNameServerPortNumber:
+	- defaultNameServerPortNumber
+-------------------------------------------------------------
+NSPredicate:
+	+ predicateWithBlock:
+	- evaluateWithObject:substitutionVariables:
+-------------------------------------------------------------
+NSProcessInfo:
+	@class NSString
+
+	- disableSuddenTermination
+	- enableSuddenTermination
+	- disableAutomaticTermination:
+	- enableAutomaticTermination:
+	-  setAutomaticTerminationSupportEnabled:
+	-  automaticTerminationSupportEnabled
+-------------------------------------------------------------
+NSPropertyList:
+	@class NSError
+-------------------------------------------------------------
+NSProxy:
+	@class NSMethodSignature, NSInvocation
+
+	- finalize
+	- debugDescription
+	- allowsWeakReference
+	- retainWeakReference
+-------------------------------------------------------------
+NSRange:
+	<Foundation/NSValue.h>
+	<NSObjCRuntime.h>
+
+	@class NSString
+
+	@inteface NSValue (NSValueRangeException)
+-------------------------------------------------------------
+NSRegularExpression:
+	<NSString.h>
+	<NSTextCheckingResult.h>
+
+	@class NSArray
+
+	+ escapedPatternForString:
+	+ escapedTemplateForString:
+
+	@interface NSDataDetector : NSRegularExpression
+-------------------------------------------------------------
+NSRunLoop:
+	<NSDate.h>
+
+	NSRunLoopCommonModes
+
+	+ mainRunLoop
+	- getCFRunLoop
+
+	@interface NSObject (NSDelayedPerforming)
+-------------------------------------------------------------
+NSScanner:
+	@class NSString
+-------------------------------------------------------------
+NSScriptWhoseTests:
+	@class NSArray, NSScriptObjectSpecifier, NSString
+
+	typedef NSTestComparisonOperation
+
+	@interface NSScriptWhoseTest : NSObject
+	@interface NSLogicalTest : NSScriptWhoseTest
+	@interface NSSpecifierTest : NSScriptWhoseTest
+	@interface NSObject (NSScriptingComparisonMethods)
+-------------------------------------------------------------
+NSSortDescriptor:
+	<NSSet.h>
+
+	+ sortDescriptorWithKey:ascending:comparator:
+	- initWithKey:ascending:comparator:
+	- comparator
+-------------------------------------------------------------
+NSSpellServer:
+	<NSTextCheckingResult.h>
+
+	@class NSArray, NSOrthography
+
+	- spellServer:checkString:offset:types:options:orthography:wordCount:
+	- spellServer:recordResponse:toCorrection:forWord:language:
+-------------------------------------------------------------
+NSStream:
+	- initWithURL:
+	+ inputStreamWithURL:
+	- initWithURL:append:
+	+ outputStreamWithURL:append:
+
+	NSStreamNetworkServiceType
+	NSStreamNetworkServiceTypeVoIP
+	NSStreamNetworkServiceTypeVideo
+	NSStreamNetworkServiceTypeBackground
+	NSStreamNetworkServiceTypeVoice
+-------------------------------------------------------------
+NSString:
+	NSParseErrorException
+	NSCharacterConversionException
+	NSStringEnumerationOptions
+
+	- localizedStandardCompare:
+	- uppercaseStringWithLocale:
+	- lowercaseStringWithLocale:
+	- capitalizedStringWithLocale:
+	- enumerateSubstringsInRange:options:usingBlock:
+	- enumerateLinesUsingBlock:
+	- getBytes:maxLength:usedLength:encoding:options:range:remainingRange:
+	- decomposedStringWithCanonicalMapping
+	- precomposedStringWithCanonicalMapping
+	- decomposedStringWithCompatibilityMapping
+	- precomposedStringWithCompatibilityMapping
+	- stringByFoldingWithOptions:locale:
+
+	- (__strong const char *)cStringUsingEncoding:(NSStringEncoding)encoding NS_RETURNS_INNER_POINTER;
+	- (__strong const char *)UTF8String NS_RETURNS_INNER_POINTER;
+-------------------------------------------------------------
+NSTask:
+	- init
+	- terminationReason
+
+	@property (copy) void (^terminationHandler)(NSTask *)
+-------------------------------------------------------------
+NSTextCheckingResult:
+	<NSRange.h>
+	<NSDate.h>
+
+	typedef NSTextCheckingType
+	typedef NSTextCheckingTypes
+
+	NSTextCheckingNameKey
+	NSTextCheckingJobTitleKey
+	NSTextCheckingOrganizationKey
+	NSTextCheckingStreetKey
+	NSTextCheckingCityKey
+	NSTextCheckingStateKey
+	NSTextCheckingZIPKey
+	NSTextCheckingCountryKey
+	NSTextCheckingPhoneKey
+	NSTextCheckingAirlineKey
+	NSTextCheckingFlightKey
+
+	@interface NSTextCheckingResult (NSTextCheckingResultCreation)
+-------------------------------------------------------------
+NSThread:
+	<NSDate.h>
+
+	+ (BOOL)setThreadPriority:
+	- threadPriority NS_AVAILABLE(10_6, 4_0);
+	- setThreadPriority:
+	+ callStackSymbols
+
+	NSDidBecomeSingleThreadedNotification
+-------------------------------------------------------------
+NSTimeZone:
+	<NSDate.h>
+
+	@class NSData
+
+	+ setAbbreviationDictionary:
+	+ timeZoneDataVersion
+	- description
+
+	NSTimeZoneNameStyleGeneric
+	NSTimeZoneNameStyleShortGeneric
+-------------------------------------------------------------
+NSUndoManager:
+	#include <stdint.h>
+
+	@class NSString
+
+	- setActionIsDiscardable:
+
+	NSUndoManagerGroupIsDiscardableKey
+
+	- undoActionIsDiscardable
+	- redoActionIsDiscardable
+
+	NSUndoManagerDidCloseUndoGroupNotification
+-------------------------------------------------------------
+NSURL:
+	<NSString.h>
+
+	@class NSData, NSDictionary
+
+	+ fileURLWithPath:isDirectory:
+	- isFileReferenceURL
+	- fileReferenceURL
+	- filePathURL
+	- getResourceValue:forKey:error:
+	- resourceValuesForKeys:error:
+	- setResourceValue:forKey:error:
+	- setResourceValues:error:
+
+	NSURLKeysOfUnsetValuesKey
+
+	NSURLNameKey
+	NSURLLocalizedNameKey
+	NSURLIsRegularFileKey
+	NSURLIsDirectoryKey
+	NSURLIsSymbolicLinkKey
+	NSURLIsVolumeKey
+	NSURLIsPackageKey
+	NSURLIsSystemImmutableKey
+	NSURLIsUserImmutableKey
+	NSURLIsHiddenKey
+	NSURLHasHiddenExtensionKey
+	NSURLCreationDateKey
+	NSURLContentAccessDateKey
+	NSURLContentModificationDateKey
+	NSURLAttributeModificationDateKey
+	NSURLLinkCountKey
+	NSURLParentDirectoryURLKey
+	NSURLVolumeURLKey
+	NSURLTypeIdentifierKey
+	NSURLLocalizedTypeDescriptionKey
+	NSURLLabelNumberKey
+	NSURLLabelColorKey
+	NSURLLocalizedLabelKey
+	NSURLEffectiveIconKey
+	NSURLCustomIconKey
+	NSURLFileResourceIdentifierKey
+	NSURLVolumeIdentifierKey
+	NSURLPreferredIOBlockSizeKey
+	NSURLIsReadableKey
+	NSURLIsWritableKey
+	NSURLIsExecutableKey
+	NSURLFileSecurityKey
+	NSURLIsExcludedFromBackupKey
+	NSURLPathKey
+	NSURLIsMountTriggerKey
+	NSURLFileResourceTypeKey
+
+	NSURLFileResourceTypeNamedPipe
+	NSURLFileResourceTypeCharacterSpecial
+	NSURLFileResourceTypeDirectory
+	NSURLFileResourceTypeBlockSpecial
+	NSURLFileResourceTypeRegular
+	NSURLFileResourceTypeSymbolicLink
+	NSURLFileResourceTypeSocket
+	NSURLFileResourceTypeUnknown
+
+	NSURLFileSizeKey
+	NSURLFileAllocatedSizeKey
+	NSURLTotalFileSizeKey
+	NSURLTotalFileAllocatedSizeKey
+	NSURLIsAliasFileKey
+
+	NSURLVolumeLocalizedFormatDescriptionKey
+	NSURLVolumeTotalCapacityKey
+	NSURLVolumeAvailableCapacityKey
+	NSURLVolumeResourceCountKey
+	NSURLVolumeSupportsPersistentIDsKey
+	NSURLVolumeSupportsSymbolicLinksKey
+	NSURLVolumeSupportsHardLinksKey
+	NSURLVolumeSupportsJournalingKey
+	NSURLVolumeIsJournalingKey
+	NSURLVolumeSupportsSparseFilesKey
+	NSURLVolumeSupportsZeroRunsKey
+	NSURLVolumeSupportsCaseSensitiveNamesKey
+	NSURLVolumeSupportsCasePreservedNamesKey
+	NSURLVolumeSupportsRootDirectoryDatesKey
+	NSURLVolumeSupportsVolumeSizesKey
+	NSURLVolumeSupportsRenamingKey
+	NSURLVolumeSupportsAdvisoryFileLockingKey
+	NSURLVolumeSupportsExtendedSecurityKey
+	NSURLVolumeIsBrowsableKey
+	NSURLVolumeMaximumFileSizeKey
+	NSURLVolumeIsEjectableKey
+	NSURLVolumeIsRemovableKey
+	NSURLVolumeIsInternalKey
+	NSURLVolumeIsAutomountedKey
+	NSURLVolumeIsLocalKey
+	NSURLVolumeIsReadOnlyKey
+	NSURLVolumeCreationDateKey
+	NSURLVolumeURLForRemountingKey
+	NSURLVolumeUUIDStringKey
+	NSURLVolumeNameKey
+	NSURLVolumeLocalizedNameKey
+
+	NSURLIsUbiquitousItemKey
+	NSURLUbiquitousItemHasUnresolvedConflictsKey
+	NSURLUbiquitousItemIsDownloadedKey
+	NSURLUbiquitousItemIsDownloadingKey
+	NSURLUbiquitousItemIsUploadedKey
+	NSURLUbiquitousItemIsUploadingKey
+	NSURLUbiquitousItemPercentDownloadedKey
+	NSURLUbiquitousItemPercentUploadedKey
+
+	typedef NSURLBookmarkCreationOptions
+	typedef NSURLBookmarkResolutionOptions
+	typedef NSURLBookmarkFileCreationOptions
+
+	- bookmarkDataWithOptions:includingResourceValuesForKeys:relativeToURL:error:
+	- initByResolvingBookmarkData:options:relativeToURL:bookmarkDataIsStale:error:
+	+ URLByResolvingBookmarkData:options:relativeToURL:bookmarkDataIsStale:error:
+	+ resourceValuesForKeys:fromBookmarkData:
+	+ writeBookmarkData:toURL:options:error:
+	+ bookmarkDataWithContentsOfURL:error:
+	- startAccessingSecurityScopedResource
+	- stopAccessingSecurityScopedResource
+	- stringByAddingPercentEscapesUsingEncoding:
+	- stringByReplacingPercentEscapesUsingEncoding:
+-------------------------------------------------------------
+NSURLAuthenticationChallenge:
+	- performDefaultHandlingForAuthenticationChallenge:
+	- rejectProtectionSpaceAndContinueWithChallenge:
+
+	@class NSURLAuthenticationChallengeInternal	
+-------------------------------------------------------------
+NSURLCache:
+	@class NSCachedURLResponseInternal
+	@class NSURLCacheInternal
+-------------------------------------------------------------
+NSURLConnection:
+	@class NSArray, NSURL, NSURLConnectionInternal, NSRunLoop, NSInputStream, NSURLProtectionSpace, NSOperationQueue
+	@protocol NSURLConnectionDelegate
+	@protocol NSURLConnectionDownloadDelegate
+
+	- originalRequest
+	- currentRequest
+	- scheduleInRunLoop:forMode:
+	- unscheduleFromRunLoop:forMode:
+	- setDelegateQueue:
+	+ sendAsynchronousRequest:queue:completionHandler:
+-------------------------------------------------------------
+NSURLCredential:
+	<Security/Security.h>
+
+	@class NSArray, NSURLCredentialInternal
+
+	@interface NSURLCredential(NSClientCertificate)
+	@interface NSURLCredential(NSServerTrust)
+-------------------------------------------------------------
+NSURLCredentialStorage:
+	@class NSURLCredentialStorageInternal
+-------------------------------------------------------------
+NSURLDownload:
+	@class NSURLDownloadInternal, NSURLProtectionSpace
+	@protocol NSURLDownloadDelegate
+
+	@protocol NSURLDownloadDelegate <NSObject> (incomplete)
+-------------------------------------------------------------
+NSURLError:
+	NSURLErrorFailingURLErrorKey 
+	NSURLErrorFailingURLStringErrorKey
+	NSURLErrorFailingURLPeerTrustErrorKey
+	NSURLErrorCannotDecodeRawData
+    NSURLErrorCannotDecodeContentData
+    NSURLErrorCannotParseResponse
+    NSURLErrorDataLengthExceedsMaximum
+	NSURLErrorClientCertificateRequired
+	NSURLErrorDownloadDecodingFailedToComplete
+	NSURLErrorInternationalRoamingOff
+	NSURLErrorCallIsActive
+	NSURLErrorDataNotAllowed
+	NSURLErrorRequestBodyStreamExhausted
+-------------------------------------------------------------
+NSURLHandle:
+	NSHTTPPropertyHTTPProxy
+	NSFTPPropertyUserLoginKey
+	NSFTPPropertyUserPasswordKey
+	NSFTPPropertyActiveTransferModeKey
+	NSFTPPropertyFileOffsetKey
+	NSFTPPropertyFTPProxy
+
+	- expectedResourceDataSize
+-------------------------------------------------------------
+NSURLProtectionSpace:
+	<Security/Security.h>
+
+	@class NSArray, NSURLProtectionSpaceInternal
+
+	NSURLProtectionSpaceHTTP
+	NSURLProtectionSpaceHTTPS
+	NSURLProtectionSpaceFTP
+	NSURLAuthenticationMethodNTLM
+	NSURLAuthenticationMethodNegotiate
+	NSURLAuthenticationMethodClientCertificate
+	NSURLAuthenticationMethodServerTrust
+
+	- distinguishedNames
+	- serverTrust
+-------------------------------------------------------------
+NSURLProtocol:
+	@class NSURLProtocolInternal
+
+	+ removePropertyForKey:inRequest:
+-------------------------------------------------------------
+NSURLRequest:
+	<Foundation/NSDate.h>
+
+	@class NSURLRequestInternal
+
+	typedef NSUInteger NSURLRequestCachePolicy
+	typedef NSUInteger NSURLRequestNetworkServiceType
+
+	- networkServiceType
+	- allowsCellularAccess
+	- setNetworkServiceType:
+	- setAllowsCellularAccess:
+	- HTTPShouldUsePipelining
+	- setHTTPShouldUsePipelining:
+-------------------------------------------------------------
+NSURLResponse:
+	@class NSURLRequest, NSURLResponseInternal, NSHTTPURLResponseInternal
+-------------------------------------------------------------
+NSUserDefaults:
+	@class NSURL
+
+	- URLForKey:
+	- setURL:forKey:
+	- objectIsForcedForKey:
+	- objectIsForcedForKey:inDomain:
+
+	NSPositiveCurrencyFormatString
+	NSNegativeCurrencyFormatString
+-------------------------------------------------------------
+NSValue:
+	@class NSDictionary
+-------------------------------------------------------------
+NSValueTransformer:
+	NSKeyedUnarchiveFromDataTransformerName
+-------------------------------------------------------------
+NSXMLDocument:
+	@class NSXMLDocument, NSDictionary, NSArray
+-------------------------------------------------------------
+NSXMLNode:
+	- description
+-------------------------------------------------------------
+NSXMLNodeOptions:
+	NSXMLNodeLoadExternalEntitiesAlways
+    NSXMLNodeLoadExternalEntitiesSameOriginOnly
+    NSXMLNodeLoadExternalEntitiesNever
+-------------------------------------------------------------
+NSXMLParser:
+	@class NSInputStream
+
+	- parseError
+-------------------------------------------------------------
+NSZone:
+	typedef struct _NSZone NSZone
+-------------------------------------------------------------
+Good headers:
+	<NSAffineTransform.h>
+	<NSArray.h>
+	<NSAutoreleasePool.h>
+	<NSCache.h>
+	<NSCalendarDate.h>
+	<NSClassDescription.h>
+	<NSCompoundPredicate.h>
+	<NSDateFormatter.h>
+	<NSDistantObject.h>
+	<NSDistributedLock.h>
+	<NSEnumerator.h>
+	<NSFormatter.h>
+	<NSGarbageCollector.h>
+	<NSIndexPath.h>
+	<NSJSONSerialization.h>
+	<NSLock.h>
+	<NSMethodSignature.h>
+	<NSNotificationQueue.h>
+	<NSNull.h>
+	<NSPointerArray.h>
+	<NSPortCoder.h>
+	<NSPortMessage>
+	<NSProtocolChecker.h>
+	<NSSet.h>
+	<NSTimer.h>
+	<NSXMLDTD.h>
+	<NSXMLDTDNode.h>
+	<NSXMLElement.h>

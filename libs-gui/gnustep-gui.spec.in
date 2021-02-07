@@ -1,0 +1,20 @@
+Summary: The GNUstep gui library
+Release: 1
+License: LGPL
+Group: Development/Libraries
+Source: ftp://ftp.gnustep.org/pub/gnustep/core/%{gs_name}-%{gs_version}.tar.gz
+Requires: gnustep-base >= 1.15.1
+Packager: GNUstep Development <bug-gnustep@gnu.org>
+Vendor: The GNUstep Project
+URL: http://www.gnustep.org/
+
+%description 
+The GNUstep gui Library is a powerful library of graphical user interface
+classes written completely in the Objective-C language; the classes are
+based upon the OpenStep specification, and provide the user with a
+traditional nextstep-like look and feel.  The classes include graphical
+objects such as windows, menus, buttons, text fields, popup lists, browsers,
+scrollviews, splitviews, fonts, colors, images, events, pasteboards,... This
+package includes development headers too.  You need the corresponding
+backend library package (gnustep-back) to use this package.
+

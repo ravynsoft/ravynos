@@ -1,0 +1,114 @@
+@node Compliance to Standards
+@appendix GNUstep Compliance to Standards
+@cindex standards, GNUstep compliance to
+@cindex standards compliance
+@cindex OpenStep compliance
+@cindex OS X compatibility
+
+GNUstep is generally compatible with the OpenStep specification and with
+recent developments of the MacOS-X (Cocoa) API. Where MacOS deviates from the
+OpenStep API, GNUstep generally attempts to support both versions. In some
+cases the newer MacOS APIs are incompatible with OpenStep, and GNUstep usually
+supports the richer version.
+
+In order to deal with compatiblity issues, GNUstep uses two mechanisms - it
+provides conditionally compiled sections of the library header files, so that
+software can be built that will conform strictly to a particular API, and it
+provides user default settings to control the behavior of the library at
+runtime.
+
+@section Conditional Compilation
+@cindex compilation, conditional
+
+Adding an option to a makefile to define one of the following preprocessor
+constants will modify the API visible to software being compiled -
+
+@deffn preprocessor NO_GNUSTEP
+    GNUstep specific extensions to the OpenStep and MacOS cocoa APIs are
+    excluded from the headers if this is defined to a non-zero value.
+@end deffn
+
+@deffn preprocessor STRICT_MACOS_X
+    Only methods and classes that are part of the MacOS cocoa API are made
+available in the headers if this is defined.
+@end deffn
+
+@deffn preprocessor STRICT_OPENSTEP
+    Only methods and classes that are part of the OpenStep specification are
+made available in the headers if this is defined.
+@end deffn
+
+Note, these preprocessor constants are used in developer code (ie the code
+that users of GNUstep write) rather than by the GNUstep software itself. They
+permit a developer to ensure that he/she does not write code which depends
+upon API not present on other implementations (in practice, MacOS-X or some
+old OPENSTEP systems).  The actual GNUstep libraries are always built with the
+full GNUstep API in place, so that the feature set is as consistent as
+possible.
+
+
+@section User Defaults
+@cindex user defaults, API compliance
+
+User defaults may be specified ...
+
+@deffn defaults GNU-Debug
+An array of strings that lists debug levels to be used within the
+program. These debug levels are merged with any which were set on the command
+line or added programmatically to the set given by the
+[NSProcessInfo-debugSet] method.
+@end deffn
+
+@deffn defaults GSLogSyslog
+Setting the user default GSLogSyslog to YES will cause log/debug output to be
+sent to the syslog facility (on systems which support it), rather than to the
+standard error stream. This is useful in environments where stderr has been
+re-used strangely for some reason.
+@end deffn
+
+@deffn defaults GSMacOSXCompatible
+Setting the user default GSMacOSXCompatible to YES will cause MacOS compatible
+behavior to be the default at runtime. This default may however be overridden
+to provide more fine grained control of system behavior.
+@end deffn
+
+@deffn defaults GSOldStyleGeometry
+Specifies whether the functions for producing strings describing geometric
+structures (NSStringFromPoint(), NSStringFromSize(), and NSStringFromRect())
+should produce strings conforming to the OpenStep specification or to MacOS-X
+behavior. The functions for parsing those strings should cope with both cases
+anyway.
+@end deffn
+
+@deffn defaults GSSOCKS
+May be used to specify a default SOCKS5 server (and optionally a port
+separated from the server by a colon) to which tcp/ip connections made using
+the NSFileHandle extension methods should be directed.
+
+This default overrides the SOCKS5_SERVER and SOCKS_SERVER environment variables.
+@end deffn
+
+@deffn defaults {Local Time Zone}
+Used to specify the name of the timezone to be used by the NSTimeZone class.
+@end deffn
+
+@deffn defaults NSWriteOldStylePropertyLists
+Specifies whether text property-list output should be in the default MacOS-X
+format (XML), or in the more human readable (but less powerful) original
+OpenStep format.
+
+Reading of property lists is supported in either format, but only if GNUstep
+is built with the libxml library (which is needed to handle XML parsing).
+
+NB. MacOS-X generates illegal XML for some strings - those which contain
+characters not legal in XML. GNUstep always generates legal XML, at the cost
+of a certain degree of compatibility. GNUstep XML property lists use a
+backslash to escape illegal chatracters, and consequently any string
+containing either a backslash or an illegal character will be written
+differently to the same string on MacOS-X.
+@end deffn
+
+@deffn defaults NSLanguages
+An array of strings that lists the users prefered languages, in order or
+preference. If not found the default is just English.
+@end deffn

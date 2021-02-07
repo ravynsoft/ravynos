@@ -1,0 +1,210 @@
+<?xml version="1.0"?>
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 0.6.7//EN" "/usr/GNUstep/System/Libraries/Resources/DTDs/gsdoc-0_7_0.dtd" >
+<gsdoc base="WindowFocus">
+  <head>
+    <title>Window Focus Procedures</title>
+    <author name="Adam Fedor">
+      <email address="fedor@gnu.org"/>
+      <url url="http://www.gnustep.org/developers/whoiswho.html"/>
+    </author>
+    <version>$Revision$</version>
+    <date>$Date$</date>
+    <copy>2005 Free Software Foundation, Inc.</copy>
+  </head>
+  <body>
+    <chapter>
+      <heading>Window Focus</heading>
+      <p>
+        This document describes how various events and user actions
+	affect window focus of GNUstep applications. This document for
+	the most part describes focus changes that occur outside of
+	application control, since application window focus changes
+	are well described in the class documentation.
+      </p>
+
+      <section>
+        <heading>Application Focus</heading>
+      <p>
+      The application can get focus in several ways:
+      </p>
+      <list>
+        <item>Launch from the command line or another app</item>
+	<item>Another app looses focus (e.g. by terminating)</item>
+	<item>The user switches screens to the one the app is
+	displayed on</item>
+	<item>Double-click on the application icon</item>
+      </list>
+      <p>
+      The first case does not directly affect window focus (because
+      there are no windows at startup). However, as the application
+      begins to create and order front windows (including the main
+      menu) there will likely be a cascade of focus events generated
+      by the window manager for each window ordered in.
+      </p>
+      <p>
+      In the second and third case, the window manager will likely try
+      to give focus to the window that previously had it or perhaps to
+      some random window based on some internal window manager
+      code. GNUstep may ignore this request and try to give focus to
+      another window, typically the application's idea of the current
+      key window.
+      </p>
+      <p>
+      The last case is handled in the GUI front-end.
+      </p>
+      </section>
+
+      <section>
+        <heading>KeyboardFocus</heading>
+      <p>
+      The Key window is the window that has keyboard focus and has
+      keyboard events sent to it. When an application receives focus,
+      the window manager will typically ask one window to take
+      keyboard focus (see above, Application Focus).
+      </p>
+      <p>
+      When an application is launched, in many cases, only the application
+      icon and main menu may be displayed. In the OpenStep interface,
+      neither of these is really supposed to be a key window, and in
+      fact, many window managers control the application icon so this
+      cannot be made key anyway. In X-Windows, however, there is no
+      other way for an application to receive keyboard events unless a
+      visible window has been made key. This leaves the main menu.
+      </p>
+      <p>
+      When an application receives focus, or if all the windows in an
+      application are closed (see the private method
+      [NSWindow-_lossOfKeyOrMainWindow]), then the main menu will request
+      keyboard focus (see below).
+      </p>
+      <p>
+      The GUI front-end may function differently to accomadate
+      different window manager behavior. Below is a list of the
+      changes the front-end makes for different managers and windowing
+      systems: 
+      </p>
+      <deflist>
+        <term>WindowMaker</term>
+	<desc>
+	<p>
+	WindowMaker controls the application icon so it cannot
+	receive keyboard events. The main menu is made key if there is
+	no other window capable of becoming key.
+	</p>
+	</desc>
+      </deflist>
+      </section>
+
+      <section>
+        <heading>Requesting Keyboard Focus</heading>
+      <p>
+      A window may request to get keyboard focus in serveral
+      instances. The window requests keyboard focus through the server
+      method -setinputfocus::
+      </p>
+      <list>
+        <item>If the window asks or is asked to become
+        key, through the [NSWindow-becomeKeyWindow] method</item>
+        <item>If the window is ordered front and the window is the key
+        window.
+        </item>
+        <item>If during _lossOfKeyOrMainWindow, only the main menu is able to
+        become key (for window systems where this is required).
+        </item>
+      </list>
+      </section>
+
+      <section>
+        <heading>Window Focus In/Out</heading>
+      <p>
+      The GUI front-end receives two types of focus events from the
+      back-end (through an NSEvent object). Both of these are subsets
+      of the NSAppKitDefined event: GSAppKitWindowFocusIn and
+      GSAppKitWindowFocusOut.  A FocusIn event can be received for
+      several reasons:
+      </p>
+      <list>
+        <item>The window manager deminiaturized the window. The WM
+        should really tell the application to do this itself, but many
+        WMs don't. In this case the window just posts a notification
+        that it happened. </item>
+	<item>The application is in the process of hidding. As each
+	window is ordered out, the WM may send a focus message
+	(spuriously) to the next window in line. In this case the
+	message is just ignored. </item>
+	<item>If the previous cases do not apply, the window checks if it
+	can become key or main and activates the application if it is
+	not active. </item>
+	<item>If this window is the main menu, it looks for another
+	window to become the key window, if possible, through the
+	_lossOfKeyOrMainWindow mechanism</item>
+      </list>
+      <p>
+      The back-end should keep track of the last window that requested
+      to become key. This can be important in determining whether the
+      back-end should send a FocusIn event to a window when it
+      receives a signal from the window manager or windowing system.
+      Sending a FocusIn event to a window that already requested it,
+      may cause focus confusion in the GUI.
+      </p>
+      <p>
+      The front-end does nothing for FocusOut messages.
+      </p>
+      </section>
+
+      <section>
+        <heading>X-Windows messages</heading>
+      <p>
+      This section describes messages that X-Windows servers and the WM
+      generally send to the application. Other window servers may send
+      similar messages.
+      </p>
+      <deflist>
+        <term>Take Focus</term>
+	<desc>
+	<p>
+	A message from the WM telling a window it should take keyboard
+	focus. If the app is not active, the back-end should send a
+	FocusIn event. Otherwise, the back-end should only send a
+	FocusIn event to the front end if the message is due to a user
+	action, such as a click on the title bar (i.e. the target
+	window is not the current key window or the last window that
+	requested key status). The back-end may
+	also send an event if the window has just been mapped,
+	although this is not typically necessary, unless it's due to a
+	screen change.
+	</p>
+	<p>
+	In other cases, the back-end should do what is necessary to
+	make sure that the last window to request key status receives
+	it instead of the one the WM thinks should receive it.
+	</p>
+	</desc>
+        <term>Focus In</term>
+	<desc>
+	<p>
+	A message from the server telling the application that
+	keyboard focus has been set for a window. The back-end
+	should not send an event to the front-end in this
+	case. However, the back-end should use this information to
+	determine when to send a message in other cases (e.g. from a
+	Take Focus message).
+	</p>
+	</desc>
+        <term>Focus Out</term>
+	<desc>
+	<p>
+	A message from the server telling the application that focus
+	has left a window. If the focus has gone to a window that is
+	not part of the application, the back-end should tell the
+	NSApp to deactivate. Otherwise it should do nothing.
+	</p>
+	</desc>
+      </deflist>
+      </section>
+
+    </chapter>
+  </body>
+</gsdoc>
+
+

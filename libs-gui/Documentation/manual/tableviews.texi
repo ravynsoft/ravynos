@@ -1,0 +1,78 @@
+@c    GNUstep AppKit Guide
+@c
+@c    Copyright (c)  2005-2006  Christopher Armstrong.
+@c
+@c    Permission is granted to copy, distribute and/or modify this document
+@c    under the terms of the GNU Free Documentation License, Version 1.2
+@c    with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+@c    A copy of the license is included in the section entitled "GNU
+@c    Free Documentation License".
+@c
+@c This documentation is provided on an "AS IS" BASIS, WITHOUT WARRANTY
+@c OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING, BUT NOT LIMITED
+@c TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+@c PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY AND USEFULNESS
+@c OF THE DOCUMENTATION IS WITH YOU (THE LICENSEE). IN NO EVENT WILL THE COPYRIGHT
+@c HOLDERS BE LIABLE FOR DAMAGES, INCLUDING ANY DIRECT, INDIRECT,
+@c SPECIAL, GENERAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF
+@c THE USE OR INABILITY TO USE THIS DOCUMENTATION (INCLUDING BUT NOT
+@c LIMITED TO LOSS OF DATA, USE, OR PROFITS; PROCUREMENT OF SUBSTITUTE
+@c GOODS AND SERVICES; OR BUSINESS INTERUPTION) HOWEVER CAUSED, EVEN
+@c IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+@node tableview, outlineviews, eventhandling, Top
+@chapter Tableviews
+@anchor{Tableviews}
+@cindex tableview, definition
+@cindex controls, tableviews
+A tableview is a grid of rows and columns for the display of data. In the AppKit, you use the @code{NSTableView} class to put a tableview in your application.
+
+Gorm already has a palette set up for a tableview, that you can simply drag and drop onto your application window (refer to the sections on Gorm and the Gorm manual).
+
+More involved, however, is getting data into your tableview and responding to certain tableview specific events. Both of these are implemented using objects that respond to certain protocols, as described below.
+
+@section Columns
+@cindex tableview, columns
+Instead of taking an array oriented model of a table, the @code{NSTableView} class uses a column-oriented model, where columns are used as objects of separate classes, @code{NSTableColumn}. 
+
+These can be instantiated with the @code{-initWithIdentifier:} method, where the identifier is an internal object, not displayed, used by the data source (see below) to identify what column data should be placed in. You can retrieve the table column's identifier from the @code{-identifier} method.
+
+This column-oriented model for displaying data makes tableviews useful for information originating from a database, where columns are akin to fields, and each row represents a record in a table or query.
+
+FIXME: How do you initialize a table's column's and it's identifiers when a nib is loaded. Do you use one of it's delegates methods to set all this stuff up?
+
+@section Supplying Data
+@cindex tableview, data source
+When you first create your tableview, Gorm puts some example data into it for you. However, you will want to put in your own data. GNUstep uses a @dfn{data source} model, which means that you need to supply an object that will provide data for your table view.
+
+Firstly, you will need to connect the @code{dataSource} outlet of a tableview in Gorm to an instantiated object of a class. Create a class that will have it's objects provide data for your tableview(s), and instantiate it so that it appears as a @dfn{top level object} in the Objects pane.
+
+@cindex protocols, NSTableDataSource
+Your object will need to implement an informal protocol to supply data to the tableview, namely the @code{NSTableDataSource} protocol (for more information on informal protocols, see the @cite{GNUstep Base Programming Manual}).
+
+Most of the methods in this protocol are optional. The compulsory methods, however, are called quite often, so you should optimise them so that they run as fast as possible.
+
+The @code{-numberOfRowsInTableView:} method is called to determine how many rows are to be shown in your table view. This could change from time to time, and as the data in your table view changes, you will need to inform the @code{NSTableView} object that data has changed (usually via the @code{-update} method). When it performs it's update, it will use this method to determine how many rows to draw. This method is compulsory to implement, and your will experience errors if you don't implement it.
+
+Another compulsory method is the @code{-tableView:objectValueForTableColumn:row:}. This is used to get the data that the table view will put in it's cells. It will pass you the table column that the cell appears in, the cell's row, and the associated tableview. The method returns an object to be displayed in the relevant cell; this object is usually a string.
+
+Note that if the data to be displayed in a tableview changes, it has no way of knowing if and when it has changed. For this reason, you need to call @code{-update} manually on the tableview to force it to redisplay. Only then will it again invoke the methods above on your data source.
+
+If you want your tableview to be editable, you will need to implement the @code{-tableView:setObjectValue: forTableColumn:row:} method. You use this to update your internal representation of what is displayed in the table view to the user.
+
+Both these methods supply a reference to a tableview as well, so the same object (or objects of the same class) can be used as a data source for more than one tableview (e.g. across many documents, or for many tables in a database).
+
+You can setup your tableview to accept drop operations. It must implement @code{-tableView:writeRows:toPasteboard:}. This method is called first, and is asking you to write the data in the specified rows to the specified pasteboard. This method should return @var{YES} to authorise the drop, or @var{NO} to reject it.
+More methods that can be implemented to provide information to the tableview during a drop operation include @code{-tableView:acceptDrop:row:dropOperation:} and @code{-tableView:validateDrop: proposedRow:proposedDropOperation:} methods. These are used to validate and accept drop operations, where the latter is called to validate a potential drop operation, the former just before a validated drop operation is about to take place. 
+
+If the data in your data source changes for any reason, e.g. the action of a user, you must notify the tableview. You could do this by calling @code{-reloadData} on the tableview object, which you can reference by an outlet on your application's controller class (or otherwise).
+
+@section Delegates
+@cindex tableview, delegates
+@cindex protocols, NSTableViewDelegate
+Tableviews support a delegate for catching certain events in the lifetime of an @code{NSTableView} object. You will need to implement the informal @code{NSTableViewDelegate} protocol. This is different from the data source - you implement a delegate if you wish to catch tableview specific events created by the user.
+
+@section Notifications
+
+A tableview many post notifications to indicate changes to it (that otherwise are not sent to the delegate) such as user selection changes or the reordering of columns or rows.
+

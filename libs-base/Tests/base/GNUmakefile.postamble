@@ -1,0 +1,32 @@
+#
+# GNUmakefile.postamble for base tests
+#
+# Find all all subdirectories and run a clean in them independantly
+#
+
+after-clean::
+	$(ECHO_NOTHING)\
+	RUNDIR=`pwd`; \
+	TESTDIRS=`find . -type d`; \
+	for dir in $$TESTDIRS __done; do \
+	  if [ $$dir != . -a -f $$dir/GNUmakefile ]; then \
+	    echo Cleaning $$dir; cd $$dir; make clean; cd $$RUNDIR; \
+	  fi \
+	done \
+	$(END_ECHO)
+
+after-distclean::
+	$(ECHO_NOTHING)\
+	RUNDIR=`pwd`; \
+	TESTDIRS=`find . -type d`; \
+	for dir in $$TESTDIRS __done; do \
+	  if [ $$dir != . -a -f $$dir/GNUmakefile ]; then \
+	    echo Cleaning $$dir; cd $$dir; make distclean; \
+	    if [ \! -f IGNORE ]; then \
+	      $(RM) GNUmakefile; \
+	    fi; \
+	    cd $$RUNDIR; \
+	  fi \
+	done \
+	$(END_ECHO)
+

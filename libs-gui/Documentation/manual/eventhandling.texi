@@ -1,0 +1,97 @@
+@c    GNUstep AppKit Guide
+@c
+@c    Copyright (c)  2005-2006  Christopher Armstrong.
+@c
+@c    Permission is granted to copy, distribute and/or modify this document
+@c    under the terms of the GNU Free Documentation License, Version 1.2
+@c    with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+@c    A copy of the license is included in the section entitled "GNU
+@c    Free Documentation License".
+@c
+@c This documentation is provided on an "AS IS" BASIS, WITHOUT WARRANTY
+@c OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING, BUT NOT LIMITED
+@c TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+@c PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY AND USEFULNESS
+@c OF THE DOCUMENTATION IS WITH YOU (THE LICENSEE). IN NO EVENT WILL THE COPYRIGHT
+@c HOLDERS BE LIABLE FOR DAMAGES, INCLUDING ANY DIRECT, INDIRECT,
+@c SPECIAL, GENERAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF
+@c THE USE OR INABILITY TO USE THIS DOCUMENTATION (INCLUDING BUT NOT
+@c LIMITED TO LOSS OF DATA, USE, OR PROFITS; PROCUREMENT OF SUBSTITUTE
+@c GOODS AND SERVICES; OR BUSINESS INTERUPTION) HOWEVER CAUSED, EVEN
+@c IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+@node eventhandling, tableview, theviewconcept, Top
+@chapter Event handling
+
+The way events are handled and passed between objects in GNUstep requires special treatment. It is relatively simple, but generally not well documented as to how it works, and how it is used by default in GNUstep. Before reading this chapter, you may wish to reaquaint yourself with views (@pxref{The view concept}).
+
+Event handling can be very complex, or very simple, depending on what your trying to handle and to what extent you're using customised components. We will try to cover some of the basic concepts you may come across in this manual, as well as give a better guide to working with NSResponder and NSEvent.
+
+We start with the target/action paridigm (which is used to implement outlets/actions in interface files), and then explain the AppKit's underlying event handling model, which is far more powerful and of interest if you are implementing your own views. It's also relevant to understanding how events are passed around in GNUstep (and a recommended read).
+
+@section The Responder Chain
+
+@cindex responder
+@cindex responder chain
+A @dfn{responder} is an object inheriting from @code{NSResponder}. It defines methods that are overrided by subclasses for receiving events, from simple things such as mouse clicks and keyboard presses, to more abstract events such as text selection or text modification. @code{NSView} inherits from @code{NSResponder} (and in turn @code{NSControl} inherits from @code{NSView}) so in effect, all views and controls can respond to events.
+
+Responders are linked together in a chain, whereby a top-level graphical element (usually a window) receives an event, and if it doesn't understand it, it passes it on to higher-level graphical elements, namely views. As views can be placed inside each other, a low-level superview may pass on higher-level events to it's more abstract children. The responder chain is the programmatic linkage between different objects. It is usually setup by GNUstep, but can be modified by the programmer. 
+
+The object at the top of the focus stack in a window is usually the @dfn{first responder}, meaning that any events will be forwarded to it first, and then along the chain if necessary. You can retrieve the first responder in a window by calling @code{-firstResponder} against the @code{NSWindow} object.@footnote{NSWindow objects are responders as well}.
+
+More than responder chain may exist, but only one may be active at a time. It is called a chain, due to the way event messages are passed through successive calls to each consecutive object in the chain.
+
+@section Being a responder
+
+A responder inherits the @code{NSResponder} class. As @code{NSView} inherits from this, all high-level graphical elements, including all controls and views are considered to be "responders". This class contains a number of methods for maintaining the the responder chain and default methods for handling certain types of events, such as keyboard, mouse and "text" events (for text-processing classes such as NSText).
+
+The first method to override is @code{-acceptsFirstResponder}, which returns a boolean indicating whether your class will accept first responder status. You can also override @code{-becomeFirstResponder} and @code{-resignFirstResponder} to be notified of when your class gains and loses the first responder status (respectively).
+
+The next thing to do is override the different event messages that are predefined in NSResponder, such as @code{-keyDown:}, @code{-mouseDragged:}, @code{-helpRequested:}, etc. What all these have in common is that they take a single @code{NSEvent} object argument, which contains information about the event.
+
+Action messages are messages that have a predefined syntax i.e. they take one object as a parameter, but the name of the method that implements them defines the message. These are passed along the responder chain until a responder implementing that action message is found. This is aided via the @code{-tryToPerform:with:} method, which is used by GNUstep to traverse the responder chain and find an object that can perform the @var{anAction} selector with @var{anObject} as a parameter.
+
+Some of the common ones include:
+@itemize
+@item -keyDown:
+@item -keyUp:
+@item -mouseDown:
+@item -mouseUp:
+@item -mouseMoved:
+@item -mouseEntered:
+@item -mouseExited:
+@item -rightMouseDown:
+@item -rightMouseUp:
+@end itemize
+
+You can also pass your own custom selectors along responder chains, trying to find the first object that responds to a particular method name. Given an object and a selector, call @code{-tryToPerform:with:} on an object in the responder chain, and this method will be tried on each successive responder until one can be found that responds to the selector. If a method cannot be method, it returns @code{NO}.
+
+@section Target/Action Paridgm
+
+@cindex paridgms, Target/Action
+Controls use the target/action paridgm for simple events, which only have a sender and a target.@footnote{A @dfn{paridgm} is a mode of thinking, often applied to programming. You may have heard of the "object-oriented programming pardigm" or the "functional programming" paridgm.} The @dfn{target} object is the object notified of an event. It is like a @dfn{sink} in OLE/COM programming and is referred to as the @dfn{receiver}. The @dfn{action} is an event being performed, and takes the form of a selector. The @dfn{sender} is the object generating the action. An action is passed along the responder chain until it is processed or until the end of the responder chain is reached, in which case the message is returned to the sender indicating it couldn't be processed. Messages that are passed as such events are known as @dfn{action messages}, and these events are known as @code{action events}.
+
+Let us explain with a simple example. We create a button on a form as an @code{NSButton} that we want to inform our @code{AppController} object instance when it is clicked. The button object is the @dfn{sender} and the @code{AppController} object is the @dfn{target}. We tell the button object to call our target object using the selector @code{-browseForServer:}.@footnote{The name of the selector is purely arbitrary, and can be anything you like. However, it must take one parameter, which is a reference to the sender object.} This selector is the @dfn{action}.
+
+Many of these actions are predefined in the @code{NSResponder} class which is implemented by all views. 
+
+On the other hand, things such as menu items define a number of custom such as @code{-save:} or @code{-print:}, which many, but not all AppKit classes respond to. You can define your own actions for things such as menu buttons.
+
+Using the above example of a target, sender (which we will call @var{myButton}) and action, we could manually setup a link between the objects as follows:
+@example
+
+AppController* appCont;
+NSButton* myButton;
+
+// Initialisation of button and target objects
+
+[myButton setAction:@@selector(browserForServer:)];
+[myButton setTarget:appCont];
+
+@end example
+
+In the above example, whenever @var{myButton} is clicked, it will call the @code{invoke:} method on the @code{MyButtonTarget} instance. What you see above is what Gorm.app does when you connect an action and a target.
+
+This paradigm is used for simple event handling in classes that derive from NSControl. See @pxref{Basic Controls} and @pxref{Interface Files} for more information as to how this fits together.
+
+

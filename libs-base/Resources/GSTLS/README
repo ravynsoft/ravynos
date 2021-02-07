@@ -1,0 +1,35 @@
+
+Files here are the fallbacks for TLS/SSL certificate verification.
+
+To find the certificate authority certificates the system looks in:
+The path specified by GSTLSCAFile (if that user default is defined),
+otherwise the path specified in the GS_TLS_CA_FILE environment variable
+if it is defined, otherwise the file GSTLS/ca-certificates.crt in the
+base library resource bundle.
+
+Similarly to find the revoke file, the order of precedence of configuration
+is GSTLSRevokeFile, GS_TLS_REVOKE_FILE, GSTLS/revoke.crl
+
+ca-certificates.crt
+        a list of PEM encoded certificates of trusted authorities
+
+        NB. This is just the list of trusted authorities from my personal
+        machine, it may not be suitable for you ... please replace/remove
+        to meet your own needs.
+
+revoke.crl
+
+        may be set to a revocation list for certificates which have been
+        revoked by the trusted authorities.
+        At present, no revocation list is provided.
+
+You may want to put keys here too ...if you have an openssl 'traditional' style
+key you may (depending on your version of gnutls: newer versions can read
+openssl specific keys) need to convert it to the standard PKCS8 format.
+You can use openssl to do that as follows:
+
+openssl pkcs8 -topk8 -v2 des3 -in old_key.pem -out new_key.pem
+
+You will be asked (3 times) for the password for the key, as the tool needs to
+decrypt it and encrypt it again in standard format.
+

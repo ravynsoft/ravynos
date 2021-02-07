@@ -1,0 +1,103 @@
+.\"gpbs(1) man page
+.\"put together by Martin Brecher <martin@gnustep.de>
+.\"Copyright (C) 2003 Free Software Foundation, Inc.
+.\"
+.\"Process this file with
+.\"groff -man -Tascii gpbs.1
+.\"
+.TH GPBS 1 "September 2006" GNUstep "GNUstep System Manual"
+.SH NAME
+gpbs \- GNUstep PasteBoard Server
+.SH SYNOPSIS
+.B gpbs
+.P
+.SH DESCRIPTION
+The
+.B gpbs
+daemon serves as a clipboard/pasteboard for GNUstep programs,
+handling the copying, cutting and pasting of objects as well as
+drag and drop operations between applications.
+.P
+Every user needs to have his own instance of
+.B gpbs
+  running. While
+.B gpbs
+will be started automatically as soon as it is needed,
+it is recommend to start
+.B gpbs
+in a personal login script like ~/.bashrc or ~/.cshrc.
+Alternatively you can launch gpbs when your windowing system or the
+window manager is started. For example, on systems with X11 you can 
+launch
+.B gpbs
+from your .xinitrc script or alternatively
+- if you are running Window Maker - put it in Window Maker's autostart 
+script.
+See the
+.I GNUstep Build Guide
+for a sample startup script.
+.P
+.SH OPTIONS
+.TP
+\fB\-NSHost\fR \fB<hostname>\fR
+attaches \fBgpbs\fR to a remote session.
+
+.TP
+\fB\--GSStartupNotification\fR
+sends a notification through the NSDistributedNotificationCenter (i.e. 
+gdnc) so that apps know that it has started up. This is only relevant 
+if the application itself tries to startup \fBgpbs\fR (which means 
+\fBgpbs\fR was not started at session login).
+.TP
+\fB\--daemon\fR
+starts \fBgpbs\fR as a daemon - mostly this means that all output gets 
+sent to syslog rather than the terminal.
+.TP
+\fB\--no-fork\fR
+does not fork a separate process
+.TP
+\fB\--verbose\fR
+makes \fB\gpbs\fR his logging more verbose
+
+.SH DIAGNOSTICS
+.B gdomap -L GNUstepGSPasteboardServer
+will lookup instances of
+.B gpbs.
+.P
+Alternatively,
+.B gdomap -N
+will list all registered names on the local host.
+.P
+.SH BUGS
+Versions of
+.B gpbs
+up to (including) 1.7.2 have problems with copy and paste of
+mulit-lingual text, as it used the atom XA_STRING alone to
+exchange string data between X clients (and thus GNUstep clients).
+This means
+.B  gpbs
+is inherently unable to do cut-and-paste with characters
+other than ISO Latin1 ones, TAB, and NEWLINE.
+.P
+.SH SEE ALSO
+gdnc(1), gdomap(8), GNUstep(7) xinit(1) wmaker(1)
+.P
+.I The GNUstep Build Guide
+example startup script:
+<http://gnustep.made-it.com/BuildGuide/index.html#GNUSTEP.SERVICES>
+.P
+.SH HISTORY
+Work on
+.B gdnc
+started August 1997.
+.PP
+This manual page first appeared in gnustep-back 0.8.8 (July 2003).
+.P
+.SH AUTHORS
+gpbs was written by Richard Frith-McDonald <rfm@gnu.org>
+.P
+This man page was written by Martin Brecher <martin@mb-itconsulting.com>
+with contributions from Kazunobu Kuriyama <kazunobu.kuriyama@nifty.com>.
+.P
+This man page was updated September 2006 by Dennis Leeuw 
+(dleeuw@made-it.com) with notes by Adam Fedor (fedor@doc.com).

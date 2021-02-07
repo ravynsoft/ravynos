@@ -1,0 +1,82 @@
+#
+#  GNUakefile.postamble
+#
+#  Copyright (C) 2002 Free Software Foundation, Inc.
+#
+#  Author: Adam Fedor <fedor@gnu.org>
+#
+#  This file is part of the GNUstep Backend.
+#
+#  This library is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU Lesser General Public
+#  License as published by the Free Software Foundation; either
+#  version 2 of the License, or (at your option) any later version.
+#
+#  This library is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
+#  Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU Lesser General Public
+#  License along with this library; see the file COPYING.LIB.
+#  If not, see <http://www.gnu.org/licenses/> or write to the 
+#  Free Software Foundation, 51 Franklin Street, Fifth Floor, 
+#  Boston, MA 02110-1301, USA.
+
+# Things to do before compiling
+before-all:: $(GNUSTEP_TARGET_DIR)/config.h $(BUNDLE_NAME)Info.plist
+
+# Things to do after compiling
+# after-all::
+
+# Things to do before installing
+# before-install::
+
+# Things to do after installing
+# after-install:: 
+
+# Things to do before uninstalling
+# before-uninstall::
+
+# Things to do after uninstalling
+# after-uninstall::
+
+# Things to do before cleaning
+# before-clean::
+
+# Things to do after cleaning
+after-clean::
+	rm -f $(BUNDLE_NAME)Info.plist:
+
+# Things to do before distcleaning
+# before-distclean::
+
+# Things to do after distcleaning
+after-distclean::
+	rm -rf $(GNUSTEP_TARGET_DIR)/config.h
+	rm -rf $(GNUSTEP_TARGET_CPU)
+
+# Things to do before checking
+# before-check::
+
+# Things to do after checking
+# after-check::
+
+#
+# The config.h file is specific to a target
+#
+$(GNUSTEP_TARGET_DIR)/config.h: ../config.status
+	$(MKDIRS) $(GNUSTEP_TARGET_DIR)
+	-cp ../config.h $(GNUSTEP_TARGET_DIR)
+
+
+#
+# Make an Info.plist for the bundle
+#
+$(BUNDLE_NAME)Info.plist:
+	$(ECHO_CREATING)(echo "{"; \
+	echo "  GSBundleShortVersionString = \"$(VERSION)\";"; \
+	echo "  GSBundleVersion = $(VERSION_NUMBER);"; \
+	echo "  CFBundleShortVersionString = \"$(VERSION)\";"; \
+	echo "  CFBundleVersion = $(VERSION_NUMBER);"; \
+	echo "}") > $@$(END_ECHO)

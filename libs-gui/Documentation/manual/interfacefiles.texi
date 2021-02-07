@@ -1,0 +1,152 @@
+@c    GNUstep AppKit Guide
+@c
+@c    Copyright (c)  2005-2006  Christopher Armstrong.
+@c
+@c    Permission is granted to copy, distribute and/or modify this document
+@c    under the terms of the GNU Free Documentation License, Version 1.2
+@c    with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+@c    A copy of the license is included in the section entitled "GNU
+@c    Free Documentation License".
+@c
+@c This documentation is provided on an "AS IS" BASIS, WITHOUT WARRANTY
+@c OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING, BUT NOT LIMITED
+@c TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+@c PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY AND USEFULNESS
+@c OF THE DOCUMENTATION IS WITH YOU (THE LICENSEE). IN NO EVENT WILL THE COPYRIGHT
+@c HOLDERS BE LIABLE FOR DAMAGES, INCLUDING ANY DIRECT, INDIRECT,
+@c SPECIAL, GENERAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF
+@c THE USE OR INABILITY TO USE THIS DOCUMENTATION (INCLUDING BUT NOT
+@c LIMITED TO LOSS OF DATA, USE, OR PROFITS; PROCUREMENT OF SUBSTITUTE
+@c GOODS AND SERVICES; OR BUSINESS INTERUPTION) HOWEVER CAUSED, EVEN
+@c IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+@anchor{Interface Files}
+@node interfacefiles, controls, applicationmakefiles, Top
+@chapter Interface Files
+
+@cindex interface files, definition
+@dfn{Interface files} are used to store your applications graphical user interface. It's separation means that you can modify it more easily than other interface generation mechanisms, such as code generators, which generate code that makes it hard to modify the interface or requires you to rewrite your own code. The advantage of a separate interface file is that you can change the interface without having to recompile one bit of code (in most instances). 
+
+@cindex nibs
+Interface files are often referred to as "nib" files.@footnote{This is a throwback to the origin's of the GNUstep framework, where it's API specification (OpenStep) was based on NeXTStep, which used "nib" files (NeXT Inteface Builder) to store interfaces.} These are not the same as those appearing on NeXT and MacOS X systems, and are completely incompatible (tagged XML nib's may change this in future). This section is very important to understanding key concepts in the AppKit, especially with regards to manipulation of your user interface. It is strongly recommended you do not skip this section, and refer back to it if you do not understand anything, even if you don't intend to use Gorm (also not recommended).
+
+@section Using Gorm
+@cindex Gorm
+Gorm is the GNUstep application used to create interface files for applications. It uses a drag and drop interface to place the control's on your window form and menu. See the Gorm manual, currently posted on the @cite{GNUstep Wiki} for further information on using Gorm for the creation of interfaces. This section is also relevant to those using Renaissance.
+
+@subsection The Palette
+
+The palette contains pictures of various objects that you can drag and drop onto a window or a menu, including a window itself. These are the graphical objects that you may put onto your interface. They can be resized on the window itself by using the resize handles.
+
+The graphical elements you place on your window(s) using Gorm, including the window itself, come from the palette. When your nib file is loaded, all the graphical elements are instantiated by GNUstep and all connections are made (see outlets and actions below). You don't need to instantiate objects in code, unless you intend to draw them programatically and add them to your interface. This differs from many other toolkits, where you often need to make connections to your interface in code (e.g. Win32 resource files) as well as instantiate custom objects for them, e.g. in Gtk, you need to add object variables that refer to the objects in your interface such as windows and buttons. 
+
+In GNUstep, you need only draw your interface and make connections to objects using Gorm, and then provide reference variables in the classes you specify connections (outlets and actions) for.
+
+@subsection The Inspector
+
+The inspector contains four sections, which let you modify the properties of any object (including those appearing on your window, the windows themselves and objects in the Objects Pane) in four sections:
+
+@table @command
+
+@item Attributes
+This contains the attributes of the object you are modifying e.g. it's title, it's colour, tag items, etc. Note that fonts are modified using the Font Panel, which is opened in the menus, separately.
+
+@item Connections
+Connections has three panes: the outlets, actions and object connections that you have made for this object (see @pxref{Outlets and Actions}).
+
+@item Size
+Lets you modify the size using numbers, and the resizing data for this object (the springs at the bottom). See the Gorm manual for more details on this pane.
+
+@item Help
+Help related to this object type. Still being completed.
+
+@item Custom class
+Let's you set the class for this object manually (NOTE: this only appears for some objects where it is possible to set a custom class).
+
+@end table
+
+@subsection The Objects Pane
+
+This is a graphical display of your application's objects. They appear with a subtitled icon, and can be manipulated like the graphical objects on the window forms, as well as be connected to outlets and actions. 
+
+You can also instantiate subclasses (where necessary) to connect to other objects. The object's here may be representative (for example, NSOwner and NSFirst) or be instances of custom classes you create in your code.
+
+@subsection The Classes Pane
+
+This permits you to subclass and add actions and outlets to classes that you want Gorm to link up at runtime. The GNUstep class hierachy is shown in this pane, allowing you to see the various views and helper classes (e.g. NSDocument/NSDocumentController, used for document based applications).
+
+In here, you can create subclasses of the classes specified, often @code{NSObject} and then add actions (methods) or outlets (instance variables) to them. What you do in here must be reflected in your own code at the time your nib file is loaded. As a result, Gorm can generate the appropriate header and source files for you, or you can create them yourself. However you do this, you must make sure any subclasses you create here can be found at runtime, and that they contain all the instance variables and methods that you specify as outlets and actions at the time that your code loads the nib file (often by calling @code{-loadNibNamed:} on the main bundle).
+
+@anchor{Outlets and Actions}
+@subsection Outlets and Actions: Connecting objects
+
+Gorm permits you to connect your graphical objects together using it's interface, to save you the trouble of connecting them at runtime using extra lines of code (and wondering where you should put them). We introduce two concepts here: @dfn{outlets} and @dfn{actions}. They form the basis of event handling and graphical object linkage when using Interface Files for your programme's interface in GNUstep. This outlet and action paradigm is incredibly important, as you will see, as it eliminates the need for subclassing objects of graphical elements (a.k.a widgets) for all but the most complex GUI applications. You don't even need to subclass NSWindow to create a window; you merely need to instantiate it, and that bit is taken care of by GNUstep anyway (unlike most other GUI toolkits, including the Win32 API, Gtk, Qt/KDE, and many others).
+
+The concept of @dfn{outlets and actions} is presented in many beginner tutorials to GNUstep and Cocoa. It is well recommended you follow one of these to get a better idea of how these things work. With practice, they become second nature in interface design, and are useful for thinking about how your interface will interact with your code, but still keeping a useful abstract distance between the two.
+
+@cindex outlet
+An @dfn{outlet} is a property of an object, that can be used to store a reference to another object, which is usually some sort of graphical element (like a button or text box). You usually add outlets to your custom subclasses and then connect them to graphical elements on your window, so that you can directly manipulate them in your code. If you were to add an outlet to a class, it would appear in code under the data value declarations part of your class as an object reference. It takes the syntax:
+@smallexample
+id myOutlet;
+@end smallexample
+(NOTE: @code{id} may also be @code{IBOutlet}, especially if generated by ProjectCenter. It seems not to matter.)
+
+For example, if you connect a button to the outlet of one of your objects, say and outlet called @code{myButton}, when that nib is instantiated, @code{myButton} will contain a reference to an @code{NSButton} object, namely the button object on your interface that is connected to that outlet.
+
+Another example is creating a main window for your user interface. You may decide later that you wish to customise this window in code, based on user interactions. It would be appropriate to add an outlet to a top level object so that you can access this instance of the window.
+
+You will often create a special subclass of @code{NSObject} named something like @var{AppController} or @code{ApplicationController} and instantiate it. You will then add outlets and actions to this so that you can centralise access to your programme's widgets. The default Application project type in ProjectCenter does this for you, and many tutorials will present outlets and actions to you like this.
+
+@cindex action
+An @dfn{action} is a method or function of behaviour that a class may perform. For example, you can connect a button to an action listed in NSOwner, so that when the button is clicked, it will send a message to the NSOwner object that will perform the action you connected. Actions are listed as methods on objects, but they take the form:
+@smallexample
+- (void) myAction:(id)sender;
+@end smallexample
+
+Hence they are instance methods, taking one parameter, which is a reference to the object that is connected to the action. You could connect any number of objects to action on one object, so that it could distinguish between it's caller's by checking the sender object with GNUstep's introspection/reflection features.
+
+For example, say that you create an action on one of your custom objects called @code{compute:}. If you then connect a button object to your custom object and set @code{compute:} as the action, when the button is clicked, it will call @code{compute:} on your custom object.
+
+In short, objects are connected to outlets or actions, but outlets or actions are not connected to each other. To connect an object to an outlet or an action, you first select the object, then hold down the first control key (usually the left @kbd{@key{Ctrl}} key on your keyboard), and select (using the mouse) the object which contains the outlet or action you wish to connect to. In the Inspector window, you select the target outlet or action, and click @command{Connect}. The action or outlet on the latter object will be connected to the first object.
+
+@cindex NSOwner
+@subsection NSOwner: Who controls your interface?
+
+@dfn{NSOwner} will appear as an object in the Objects Pane. You will notice that the only property you can set is it's class. NSOwner is an object, decided upon at runtime by your code, that will "own" this instance of your interface. You can instantiate interfaces more than once upon runtime, each time associating an instance with a different object.
+
+You can set NSOwner to be a custom class, with your outlets and actions, and then connect NSOwner to other objects or graphical elements or methods in your interface. 
+
+For example, you may create a custom subclass of NSObject called @code{MyController}. You may then give it a number of outlets, including one called @code{window}. You could set NSOwner to be of your subclass type, then connect @code{window} to the NSWindow object in the Object's pane. Upon runtime, whatever @code{MyController} object you set as NSOwner would have the associated NSWindow instance appear in it's @code{window} instance data value.
+
+@cindex NSFirst
+@subsection NSFirst
+
+@cindex first responder
+NSFirst is an abstract object, and may refer to any number of different graphical elements during the lifetime of your programme. It is what's known as the @dfn{first responder}, the object that is connected in such a way to receive event's first. The first responder may change depending on user interaction with a window, e.g. selecting an object in your window may cause it to become the first responder. 
+
+What you can do is connect outlets and actions to the first responder, and depending on whether the object that is set as @code{NSFirst}, the use may be able to perform that action. 
+
+For example, you may connect a menu item to call the @code{print:} action on the NSFirst object. GNUstep will automatically grey out this menu item if the object set as the first responder (decided by the user's currently selected object) is not able to respond to this action. If another object is to be later set as the first responder, and is able to respond to this action, GNUstep will automatically make the menu item available again. This way, you don't have to handle instances where the first responder object cannot respond to your method. GNUstep sets this all up using Objective-C's introspection features, by checking whether your object responds to the method corresponding to the action.
+
+@section Loading and Instantiating Interface Files
+
+@cindex NSNib
+Once you've created your interfaces files, you will want to instantiate them and display them. This is relatively simple in code, and merely requires you deal with the @var{NSNib} class. If your application contains only one interface file, it is possible to avoid this step altogether, and set the main interface nib as a property in your application's property list, as well as including it as a resource in your application's makefile.
+
+Otherwise, if you would like to instantiate it manually, especially if you have multiple interface files, you first create an NSNib object using the name of your interface file, and then instantiate it with a reference to your NSOwner object.
+
+@example
+id myOwner;
+NSNib* myNib;
+NSArray* topLevelObjects;
+
+// Assign myOwner to an object of the class that you set as NSOwner.
+
+myNib = [[NSNib alloc] initWithNibNamed:@@"MyNibFile" bundle:nil];
+[myNib instantiateNibWithOwner:myOwner topLevelObjects:&topLevelObjects];
+@end example
+
+@cindex interface files, top level objects
+In this case, we first create the @code{NSNib} object @code{myNib} with a interface file called @file{MyNibFile}. We pass @code{nil} to the bundle parameter to indicate the main bundle; you can otherwise specify another bundle you may have already loaded into your programme. The @code{topLevelObjects:} parameter refers to the objects that appear in the Objects pane in Gorm. You can use Objective-C's reflection features to identify them.
+
+The nib is then instantiated with myOwner as the NSOwner object (you have to create this beforehand) and is passed a pointer to an @code{NSArray} reference so that you can receive the top level objects in your interface file. See the NSNib documenation in the AppKit reference manual for more details. There is simpler methods calls available for instantiating nib's as well under @code{NSBundle} (see the @cite{GNUstep GUI Reference Manual}.

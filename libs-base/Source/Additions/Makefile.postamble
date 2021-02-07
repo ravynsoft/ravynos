@@ -1,0 +1,17 @@
+#
+# If building with the Apple Foundation, we don't include the base 'Headers'
+# directory in the includes path, but we need the additions headers so we
+# link to them from the current directory.
+#
+
+ifeq ($(FOUNDATION_LIB),apple)
+
+before-all::
+	rm -f GNUstepBase
+	ln -s ../../Headers/GNUstepBase GNUstepBase
+
+after-clean::
+	rm -f GNUstepBase
+
+endif
+

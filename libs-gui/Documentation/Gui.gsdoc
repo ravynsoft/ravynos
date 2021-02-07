@@ -1,0 +1,73 @@
+<?xml version="1.0"?>
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 1.0.3//EN" "http://www.gnustep.org/gsdoc-1_0_3.xml">
+<gsdoc base="Gui">
+  <head>
+    <title>Gui</title>
+    <author name="Richard Frith-Macdonald">
+      <email address="rfm@gnu.org"/>
+      <url url="http://www.gnustep.org/developers/whoiswho.html"/>
+    </author>
+    <version>$Revision$</version>
+    <date>$Date$</date>
+    <copy>2005 Free Software Foundation, Inc.</copy>
+  </head>
+  <body>
+    <chapter>
+      <heading>Gui</heading>
+      <p>
+          The GNUstep GUI library is a free software package implementing the
+          API of the OpenStep Application Kit (tm), or "AppKit", including
+          later additions.  This documentation package describes the core of
+          the Base library; for documentation on additional classes, see the
+          <uref url="../Additions/index.html">GuiAdditions</uref>
+          documentation package.
+      </p>
+      <p>
+        Read the
+        <uref url="../ReleaseNotes/ReleaseNotes.html">Release Notes</uref>
+        for the current release.
+      </p>
+      <section>
+        <heading>Compatibility</heading>
+        <p>
+          GNUstep is generally compatible with the OpenStep specification and
+          with recent developments of the Mac OS X (Cocoa) API.  Where MacOS
+          deviates from the OpenStep API, GNUstep generally attempts to
+          support both versions.  In some cases the newer MacOS APIs are
+          incompatible with OpenStep, and GNUstep usually supports the richer
+          version. See the <uref
+          url="../General/OpenStepCompliance.html">OpenStep Compliance</uref>
+          section for more information on OpenStep Compliance.
+        </p>
+      </section>
+      <section>
+        <heading>Information and Setup</heading>
+      <p>
+	Nicola Pero has begun work on writing an
+	<uref url="../ProgrammingManual/manual_toc.html">introduction</uref>
+	to the basic concepts and use of the GNUstep GUI library.
+     </p>
+      <p>
+        Useful documentation for setting up GNUstep:
+      </p>
+      <list>
+        <item><uref url="../../../User/Gui/DefaultsSummary.html">Available User Defaults</uref></item>
+        <item><uref url="../../../User/Gui/LanguageSetup.html">Language Setup</uref></item>
+      </list>
+      </section>
+
+    </chapter>
+
+    <back>
+      <chapter>
+        <heading>API Documentation</heading>
+        <list>
+          <item><uref url="Functions.html">Functions</uref></item>
+          <item><uref url="TypesAndConstants.html">Types and Constants</uref></item>
+        </list>
+      </chapter>
+      <index scope="project" type="class" />
+      <index scope="project" type="protocol" />
+    </back>
+  </body>
+</gsdoc>

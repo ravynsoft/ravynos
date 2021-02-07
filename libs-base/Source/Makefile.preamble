@@ -1,0 +1,96 @@
+#
+#  Makefile.preamble
+#
+#  Copyright (C) 1997 Free Software Foundation, Inc.
+#
+#  Author: Scott Christley <scottc@net-community.com>
+#
+#  This file is part of the GNUstep Base Library.
+#
+#  This library is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU Lesser General Public
+#  License as published by the Free Software Foundation; either
+#  version 2 of the License, or (at your option) any later version.
+#
+#  This library is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
+#  Library General Public License for more details.
+#
+#  If you are interested in a warranty or support for this source code,
+#  contact Scott Christley at scottc@net-community.com
+#
+#  You should have received a copy of the GNU Lesser General Public
+#  License along with this library; see the file COPYING.LIB.
+#  If not, write to the Free Software Foundation,
+#  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+
+#
+#   Makefile.preamble
+#
+#   Project specific makefile variables
+#
+#   Do not put any Makefile rules in this file, instead they should
+#   be put into Makefile.postamble.
+#
+
+#
+# Flags dealing with compiling and linking
+#
+
+# Additional flags to pass to the preprocessor
+ADDITIONAL_CPPFLAGS = $(DEFS) \
+$(WARN_FLAGS) \
+-Wcast-align \
+#-Wstrict-prototypes \
+#-Wpointer-arith \
+#-Wcast-qual \
+#-Wwrite-strings \
+#-Wmissing-prototypes \
+#-Wmissing-declarations \
+#-Wredundant-decls \
+#-Wnested-externs \
+#-Winline \
+#-Werror \
+#-Wshadow 
+#-Wconversion
+
+
+# Additional flags to pass to the Objective-C compiler
+#ADDITIONAL_OBJCFLAGS+=
+
+# Additional flags to pass to the C compiler
+#ADDITIONAL_CFLAGS+= 
+
+ifneq ($(GNUSTEP_GDOMAP_PORT_OVERRIDE),no)
+ADDITIONAL_CPPFLAGS += -DGDOMAP_PORT_OVERRIDE=$(GNUSTEP_GDOMAP_PORT_OVERRIDE)
+endif
+
+# Additional include directories the compiler should search
+ADDITIONAL_INCLUDE_DIRS = \
+	-I../Headers \
+	-I./$(GNUSTEP_TARGET_DIR)
+
+# Additional LDFLAGS to pass to the linker
+#ADDITIONAL_LDFLAGS+= 
+
+# Additional library directories the linker should search
+ADDITIONAL_LIB_DIRS = -L$(GNUSTEP_OBJ_DIR)
+
+libgnustep-base_LIBRARIES_DEPEND_UPON += $(AUXILIARY_OBJC_LIBS) $(OBJC_LIBS)
+ifeq ($(shared),yes)
+libgnustep-base_LIBRARIES_DEPEND_UPON += $(TARGET_SYSTEM_LIBS)
+libgnustep-baseadd_LIBRARIES_DEPEND_UPON += $(TARGET_SYSTEM_LIBS) 
+endif
+
+#
+# Flags dealing with installing and uninstalling
+#
+
+# Additional directories to be created during installation
+ADDITIONAL_INSTALL_DIRS = $(GNUSTEP_HEADERS)/Foundation \
+   $(GNUSTEP_HEADERS)/GNUstepBase \
+
+HEADER_DIR_BASE = ../Headers/GNUstepBase
+HEADER_DIR_FND = ../Headers/Foundation
+

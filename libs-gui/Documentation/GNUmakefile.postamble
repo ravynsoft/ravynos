@@ -1,0 +1,115 @@
+#
+#  GNUmakefile.postamble
+#
+#  Copyright (C) 2002 Free Software Foundation, Inc.
+#
+#  Author: Adam Fedor <fedor@gnu.org>
+#
+#  This file is part of the GNUstep Gui Library.
+#
+#  This library is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU Lesser General Public
+#  License as published by the Free Software Foundation; either
+#  version 2 of the License, or (at your option) any later version.
+#
+#  This library is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
+#  Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU Lesser General Public
+#  License along with this library; see the file COPYING.LIB.
+#  If not, see <http://www.gnu.org/licenses/> or write to the 
+#  Free Software Foundation, 51 Franklin Street, Fifth Floor, 
+#  Boston, MA 02110-1301, USA.
+
+# Things to do before compiling
+# before-all::
+
+# After building local documentation, we need to run the special makefile
+# in the source directory to generate library reference documentation from
+# the source code.
+after-all::
+	$(MAKE) -C ../Source -f DocMakefile
+
+# Things to do before installing
+# before-install::
+
+# Install the library reference documentation manually
+#
+after-install::
+	rm -rf $(GNUSTEP_DOC)/$(Gui_DOC_INSTALL_DIR)
+	$(MKINSTALLDIRS) $(GNUSTEP_DOC)/$(Gui_DOC_INSTALL_DIR)
+	(cd Gui; $(TAR) cf - .) | \
+	  (cd $(GNUSTEP_DOC)/$(Gui_DOC_INSTALL_DIR); $(TAR) xf -)
+	rm -rf $(GNUSTEP_DOC)/$(Gui_DOC_INSTALL_DIR)/CVS
+	rm -rf $(GNUSTEP_DOC)/$(GuiAdditions_DOC_INSTALL_DIR)
+	$(MKINSTALLDIRS) $(GNUSTEP_DOC)/$(GuiAdditions_DOC_INSTALL_DIR)
+	(cd GuiAdditions; $(TAR) cf - .) | \
+	  (cd $(GNUSTEP_DOC)/$(GuiAdditions_DOC_INSTALL_DIR); $(TAR) xf -)
+	rm -rf $(GNUSTEP_DOC)/$(GuiAdditions_DOC_INSTALL_DIR)/CVS
+	( cd $(GNUSTEP_DOC)/$(GuiUser_DOC_INSTALL_DIR) ; \
+	mv GuiUser/* . ; \
+	rm -rf GuiUser )
+	if [ ! -f $(GNUSTEP_DOC_MAN) ]; then \
+	  $(MKINSTALLDIRS) $(GNUSTEP_DOC_MAN); \
+	fi; \
+	if [ ! -f $(GNUSTEP_DOC_MAN)/man1 ]; then \
+	  $(MKINSTALLDIRS) $(GNUSTEP_DOC_MAN)/man1; \
+	fi; \
+	for file in $(MAN1_PAGES) __done; do \
+	  if [ $$file != __done ]; then \
+	    $(INSTALL_DATA) $$file $(GNUSTEP_DOC_MAN)/man1/$$file; \
+	    which gzip && rm -f $(GNUSTEP_DOC_MAN)/man1/$$file.gz \
+		&& gzip -9 $(GNUSTEP_DOC_MAN)/man1/$$file; \
+	  fi; \
+	done;
+
+# Things to do before uninstalling
+# before-uninstall::
+
+# Things to do after uninstalling
+after-uninstall::
+	rm -rf $(REF_DOC_INSTALL_DIR)
+
+# Things to do before cleaning
+# before-clean::
+
+# Things to do after cleaning
+after-clean::
+	$(MAKE) -C ../Source -f DocMakefile clean
+	rm -rf Gui
+	rm -rf GuiAdditions
+
+# Things to do before distcleaning
+# before-distclean::
+
+# Things to do after distcleaning
+# after-distclean::
+
+# Things to do before checking
+# before-check::
+
+# Things to do after checking
+# after-check::
+
+regenerate: $(DOCUMENT_TEXT_NAME)
+	mv -f $(TOP_DOC_FILES) ..
+
+version.texi: ../Version
+	rm -f version.texi
+	echo '@set GNUSTEP-GUI-VERSION' $(GNUSTEP_GUI_VERSION) \
+		> version.texi
+	echo '@set GNUSTEP-GUI-GCC $(GNUSTEP_GUI_GCC)' \
+		>> version.texi
+	echo '@set GNUSTEP-GUI-BASE $(GNUSTEP_GUI_BASE)' \
+		>> version.texi
+	echo '@set GNUSTEP-GUI-LIBTIFF $(GNUSTEP_GUI_LIBTIFF)' \
+		>> version.texi
+	if [ $(GNUSTEP_GUI_FTP_MACHINE) ]; then \
+	  echo '@set GNUSTEP-GUI-FTP-MACHINE $(GNUSTEP_GUI_FTP_MACHINE)' \
+		>> version.texi; fi
+	if [ $(GNUSTEP_GUI_FTP_DIRECTORY) ]; then \
+	  echo '@set GNUSTEP-GUI-FTP-DIRECTORY $(GNUSTEP_GUI_FTP_DIRECTORY)' \
+		>> version.texi; fi
+

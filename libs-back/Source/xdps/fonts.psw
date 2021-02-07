@@ -1,0 +1,167 @@
+/*
+   fonts.psw
+
+   Support functions to determine the installed fonts.
+
+   Copyright (C) 1996 Free Software Foundation, Inc.
+
+   Author: Ovidiu Predescu <ovidiu@bx.logicnet.ro>
+   Date: February 1997
+   
+   This file is part of the GNUstep GUI X/DPS Library.
+
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Lesser General Public
+   License as published by the Free Software Foundation; either
+   version 3 of the License, or (at your option) any later version.
+
+   This library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
+   Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public
+   License along with this library; see the file COPYING.LIB.
+   If not, see <http://www.gnu.org/licenses/> or write to the 
+   Free Software Foundation, 51 Franklin Street, Fifth Floor, 
+   Boston, MA 02110-1301, USA.
+*/
+
+#include <DPS/dpsclient.h>
+
+/* These next two procedues are meant to be used together. They find all font 
+	names and then fills an array with those names
+*/
+defineps PSWEnumerateFonts(DPSContext ctxt; char *pattern |
+                           int *count; int *total_length)
+    0 0                         % count total_length
+    (pattern) {
+        dup length string cvs   % fonts count total_length newfont
+        3 1 roll                % fonts newfont count total_length
+        exch 1 add exch         % fonts newfont newcount total_length
+        2 index length add      % fonts newfont newcount newtotal_length
+    } 256 string /Font resourceforall
+    total_length dup count
+                                % fonts count
+endps
+
+defineps PSWGetFontList(DPSContext ctxt; int length |
+                        char fontNames[length])
+                                % fonts count
+    {
+        fontNames ( ) fontNames
+    } repeat
+endps
+
+/*  The mapping between font names and file name is DPS dependent. On NeXTSTEP
+    for example (and on systems conforming to red book), you can find out the
+    filename where a font is defined like below:
+
+    /Font /Category findresource
+    begin
+      /Times-Roman 1024 string ResourceFileName
+    end
+
+    This pushes on the stack %font%Times-Roman. The program should search in
+    the standard places a directory called `Times-Roman.font' to determine the
+    definition of the font.
+*/
+defineps PSWGetFontFile(DPSContext ctxt; char *fontn | char *filen)
+    /Font /Category findresource
+    begin
+      /fontn 1024 string ResourceFileName
+    end
+    filen
+endps
+
+/* Procedure for finding font file with GS. */
+defineps PSWGSFontFile(DPSContext ctxt; char *fontn | char *filen)
+
+  userdict /Fontmap get			% Get the Fontmap dictionary
+  /fontn get				% Lookup the desired font
+  aload pop				% Filename is stored in an array
+  dup type (test string) type ne 	% If fontn was just an alias
+  {					% Get the real file name
+    userdict /Fontmap get exch get
+    aload pop
+  } if
+  filen
+
+endps
+
+/* PSWFontNames() puts on the PS stack a sequence of two elements pairs and
+   returns the number of the total elements. Each pair of elements consists
+   from the name of the font and either the filename where the font is defined
+   or the name of the font whose alias is. To get each pair of elements call
+   the PSWGetNextFont() function.
+
+  Note: This procedure depends on DGS. The function to be used on a DPS system
+    conforming to red book should use the following statements to find out the
+    font names:
+
+    /fonts [
+      (%font%*) {100 string copy} 100 string filenameforall
+    ] def
+
+    The mapping between font names and file name is DPS dependent. On NeXTSTEP
+    for example (and on systems conforming to red book), you can find out the
+    filename where a font is defined like below:
+
+    /Font /Category findresource
+    begin
+      /Times-Roman 1024 string ResourceFileName
+    end
+
+    This pushes on the stack %font%Times-Roman. The program should search in
+    the standard places a directory called `Times-Roman.font' to determine the
+    definition of the font.
+
+    Maybe we should place in Postscript all the DPS dependencies and present to
+    the program the same interface.
+*/
+
+defineps PSWFontNames (| int* noOfFonts)
+  mark
+  /temp 1024 string def
+  userdict /Fontmap get {
+    /filename exch
+      % In 3.53 the filename was passed as name; in 4.03 it is passed
+      % as an array that contains the file name
+      dup type /arraytype eq {aload pop} if
+      temp cvs dup length string copy
+    def
+    /fontname exch temp cvs dup length string copy def
+    fontname filename
+  }
+  forall
+  counttomark 2 idiv noOfFonts
+endps
+
+defineps PSWGetFontsArray (| char *fontname, *fileOrFont)
+  fileOrFont fontname
+endps
+
+
+/* PSWCompleteFilename() returns the complete path to the filename passed as
+   argument. The file is searched in the standard DGS places. */
+defineps PSWCompleteFilename (char* filename; | boolean *found; char* completePath)
+  (filename) findlibfile
+  {closefile completePath true found} {false found pop} ifelse
+endps
+
+
+defineps PSWGetFontAndType (| char* fontname; int* fonttype)
+  fontname fonttype
+endps
+
+
+/* Set the current font */
+defineps PSWSetFont (char* font; float fontMatrix[6])
+  (font) findfont fontMatrix makefont setfont
+endps
+
+
+/* Get the font type */
+defineps PSWGetFontType (char* font; | int* fontType)
+  (font) findfont /FontType get fontType
+endps

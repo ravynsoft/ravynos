@@ -1,0 +1,87 @@
+#
+#  GNUmakefile.preamble
+#
+#  Copyright (C) 1997 Free Software Foundation, Inc.
+#
+#  Author: Scott Christley <scottc@net-community.com>
+#
+#  This file is part of the GNUstep GUI Library.
+#
+#  This library is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU Lesser General Public
+#  License as published by the Free Software Foundation; either
+#  version 2 of the License, or (at your option) any later version.
+#
+#  This library is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
+#  Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU Lesser General Public
+#  License along with this library; see the file COPYING.LIB.
+#  If not, see <http://www.gnu.org/licenses/> or write to the 
+#  Free Software Foundation, 51 Franklin Street, Fifth Floor, 
+#  Boston, MA 02110-1301, USA.
+
+#
+#   GNUmakefile.preamble
+#
+#   Project specific makefile variables, and additional
+#
+#   Do not put any GNUmakefile rules in this file, instead they should
+#   be put into GNUmakefile.postamble.
+#
+
+#
+# Flags dealing with compiling and linking
+#
+
+# Additional flags to pass to the preprocessor
+ADDITIONAL_CPPFLAGS =  \
+	-DGNUSTEP_TARGET_DIR=\"$(GNUSTEP_TARGET_DIR)\" \
+	-DGNUSTEP_TARGET_CPU=\"$(GNUSTEP_TARGET_CPU)\" \
+	-DGNUSTEP_TARGET_OS=\"$(GNUSTEP_TARGET_OS)\" \
+	-DLIBRARY_COMBO=\"$(LIBRARY_COMBO)\" \
+	-DGNUSTEP_BASE_HAVE_LIBXML=$(GNUSTEP_BASE_HAVE_LIBXML) \
+
+ifneq ($(BACKEND_BUNDLE),)
+ADDITIONAL_CPPFLAGS += -DBACKEND_BUNDLE=1
+endif
+
+# Additional flags to pass to the Objective-C compiler
+ADDITIONAL_OBJCFLAGS = -Wall
+
+# Additional flags to pass to the C compiler
+# ADDITIONAL_CFLAGS =
+
+# Additional include directories the compiler should search
+ADDITIONAL_INCLUDE_DIRS += -I../Headers/Additions -I../Headers \
+   -I./$(GNUSTEP_TARGET_DIR)
+
+# Additional LDFLAGS to pass to the linker
+# ADDITIONAL_LDFLAGS = 
+
+# Additional library directories the linker should search
+# ADDITIONAL_LIB_DIRS = 
+
+#
+# Sparc systems cannot load tiff files due to some problem compiling
+# this file with optimization. This includes Solaris [78] and sparc-*-linux-gnu
+#
+ifeq ($(findstring sparc, $(GNUSTEP_TARGET_CPU)), sparc)
+NSBitmapImageRep+JPEG.m_FILE_FILTER_OUT_FLAGS = -O%
+endif
+
+#
+# Flags dealing with installing and uninstalling
+#
+
+# Additional directories to be created during installation
+ADDITIONAL_INSTALL_DIRS = $(GNUSTEP_HEADERS)/AppKit $(GNUSTEP_HEADERS)/Cocoa
+
+# What are the libraries this library depends upon. This is needed for some
+# systems where building a shared library requires to pass to the linker
+# all the libraries the target library depends upon.
+
+LIBRARIES_DEPEND_UPON = -l$(FOUNDATION_LIBRARY_NAME) $(ADDITIONAL_DEPENDS) \
+			  $(OBJC_LIBS)

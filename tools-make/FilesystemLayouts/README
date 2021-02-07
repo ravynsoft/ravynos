@@ -1,0 +1,62 @@
+
+ *** What is the FilesystemLayouts directory ***
+
+This directory contains filesystem layouts that you can use when you
+configure your gnustep-make.
+
+A filesystem layout describes how the GNUstep installation domains
+(System, Network, Local, User) map to directories on disk.
+
+Every file in this directory is a filesystem layout that you can use
+in gnustep-make's ./configure (technical note: the files are shell
+files that are directly included by ./configure and that should set the
+specified variables).  For example:
+
+./configure --with-layout=fhs
+
+./configure --with-layout=fhs-system
+
+By default, the 'fhs' layout is used except on Apple when building
+using the apple-apple-apple combo.
+
+If you want to use your own custom layout, just start with one of the
+existing layouts, copy it into a new file, and edit it. :-)
+
+
+
+ *** Popular Fileystem Layouts ***
+
+Here is a list of popular filesystem layout --
+
+ * gnustep: traditional GNUstep filesystem layout; it installs
+everything into /usr/GNUstep/System, /usr/GNUstep/Local.  It's a very
+friendly layout, similar to the ones found on NeXTstep, OpenStep and
+Apple Mac OS X.  It's a layout that can work nicely with fat binaries,
+but may not blend very well with the native environment because
+everything is installed in special, GNUstep-only, directories, so you
+may need to source a special script (GNUstep.sh) before being able to
+use the layout.  Recommended for the advanced GNUstep users and the
+NeXTstep/Apple fans.
+
+ * fhs: standard FHS Unix layout for locally compiled software; it
+installs everything into /usr/local.  This is the default layout.
+Blends very well with native GNU/Linux systems (and other Unix systems
+with similar directory structure).  Recommended if you're compiling
+from sources on Unix and want good integration with your native
+system.
+
+ * fhs-system: standard FHS layout for software to be shipped as part
+of distributions/systems; it installs system stuff into /usr, and is
+ready to support local stuff to be installed into /usr/local.  Blends
+wonderfully with native GNU/Linux systems (and other Unix systems with
+similar directory structure) as you're installing everything straight
+into the standard system locations.  Recommended if you're building
+packages for a Unix system.
+
+ * apple: the Apple Mac OS X layout for software using the
+apple-apple-apple library-combo (ie, the Apple frameworks); it
+installs everything in /Library or /usr/local.  Blends very well with
+native Apple Mac OS X systems.  Recommended if you're compiling your
+own software from sources on Apple Mac OS X using the Apple frameworks
+(*not* gnustep-base and gnustep-gui) and want good integration with
+your native system.

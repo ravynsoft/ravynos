@@ -1,0 +1,1640 @@
+\input texinfo   @c -*-texinfo-*-
+@c %**start of header
+@setfilename gnustep-make.info
+@settitle GNUstep Makefile Package
+@c %**end of header
+
+@smallbook
+@setchapternewpage odd
+
+@dircategory Software development
+@direntry
+* GNUstep Make: (gnustep-make).         The GNUstep build system.
+@end direntry
+
+@ifinfo
+
+Copyright @copyright{}  2000 Free Software Foundation, Inc.
+   
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation.
+
+@end ifinfo
+
+@titlepage
+
+@title GNUstep Makefile Package
+
+@page
+
+@vskip 0pt plus 1filll
+Copyright @copyright{}  2000 Free Software Foundation, Inc.
+
+@sp 1   
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.1 or
+any later version published by the Free Software Foundation.
+
+@end titlepage
+
+@contents 
+
+@page
+
+@c Makefile Package Chapter
+@node Top, Makefile Introduction, (dir), (dir)
+@chapter Makefile Package
+
+@menu
+* Makefile Introduction::       
+* Makefile Structure::          
+* Running Make::                
+* Project Types::               
+* GNUmakefile.preamble::        
+* GNUmakefile.postamble::       
+* Common Variables::            
+* Other Variables::            
+@end menu
+
+@node Makefile Introduction, Makefile Structure, Top, Top
+@section Introduction
+
+The Makefile package is a system of make commands that is designed to
+encapsulate all the complex details of building and installing various types
+of projects from libraries to applications to documentation. This frees the
+developer to focus on the details of their particular project. Only
+a fairly simple main makefile need to be written which specifies the
+type of project and files involved in the project.
+
+@node Makefile Structure, Running Make, Makefile Introduction, Top
+@section Structure of a Makefile
+
+Here is an example makefile (named GNUmakefile to emphasis the fact that it relies on special features of the GNU make program).
+
+@smallexample
+#
+# An example GNUmakefile
+#
+
+# Include the common variables defined by the Makefile Package
+include $(GNUSTEP_MAKEFILES)/common.make
+
+# Build a simple Objective-C program
+TOOL_NAME = simple
+
+# The Objective-C files to compile
+simple_OBJC_FILES = simple.m
+
+-include GNUmakefile.preamble
+
+# Include in the rules for making GNUstep command-line programs
+include $(GNUSTEP_MAKEFILES)/tool.make
+
+-include GNUmakefile.postamble
+@end smallexample
+
+This is all that is necessary to define the project.
+
+
+@node Running Make, Project Types, Makefile Structure, Top
+@section Running Make
+@menu
+* Debug Information::           
+* Profile Information::         
+* Library Types::               
+@end menu
+
+Normally to compile a package which uses the Makefile Package it is
+purely a matter of typing @code{make} from the top-level directory of
+the package, and the package is compiled without any additional
+interaction.  
+
+@node Debug Information, Profile Information, Running Make, Running Make
+@subsection Debug Information
+
+By default the Makefile Package tells the compiler to generate
+debugging information when compiling Objective-C and C files.  The
+following command illustrates how to tell the Makefile Package to pass
+the appropriate flags to the compiler so that debugging information is
+not put into the binary files.
+
+@smallexample
+make debug=no
+@end smallexample
+
+@node Profile Information, Library Types, Debug Information, Running Make
+@subsection Profile Information
+
+By default the Makefile Package does not tell the compiler to generate
+profiling information when compiling Objective-C and C files.  The
+following command illustrates how to tell the Makefile Package to pass
+the appropriate flags to the compiler so that profiling information is
+put into the binary files.
+
+@smallexample
+make profile=yes
+@end smallexample
+
+@node Library Types,  , Profile Information, Running Make
+@subsection Static, Shared, and Dynamic Link Libraries
+
+By default the Makefile Package will generate a shared library if it is
+building a library project type, and it will link with shared libraries
+if it is building an application or command line tool project type.  The
+following command illustrates how to tell the Makefile Package not to
+build using shared libraries but using static libraries instead.
+
+@smallexample
+make shared=no
+@end smallexample
+
+This default is only applicable on systems that support shared
+libraries; systems that do not support shared libraries will always
+build using static libraries.  Some systems support dynamic link
+libraries (DLL) which are a form of shared libraries; on these systems,
+DLLs will be built by default unless the Makefile Package is told to
+build using static libraries instead, as in the above command.
+
+@node Project Types, GNUmakefile.preamble, Running Make, Top
+@section Project Types
+@menu
+* aggregate.make::              
+* application.make::            
+* bundle.make::                 
+* ctool.make::                  
+* documentation.make::          
+* framework.make::              
+* java.make::                   
+* library.make::                
+* native-library.make::         
+* nsis.make::                   
+* objc.make::                   
+* palette.make::                
+* rpm.make::                    
+* service.make::                
+* subproject.make::             
+* tool.make::                   
+@end menu
+
+Projects are divided into different types described below. To create a
+project of a specific type, just include the particular makefile. For
+example, to create an application, include this line in your main make
+file:
+
+@example
+include $(GNUSTEP_MAKEFILES)/application.make
+@end example
+
+Each project type is independent of the others. If you want to create
+two different types of projects within the same directory (e.g. a tool
+and a java program), include both the desired makefiles in your main
+make file.
+
+The documentation for variables used to control each project type is
+provided at the start of each individual makefile (common.make and rules.make
+document more general variables).
+
+The documentation for installing resources (a feature shared by many project
+types) is in resource-set.make.
+
+
+@node aggregate.make, application.make, Project Types, Project Types
+@subsection Aggregate (@file{aggregate.make})
+
+An Aggregate project is a project that consists of several
+subprojects. Each subproject can be of any other valid project type
+(including the Aggregate type). The only project variable is the
+SUBPROJECTS variable
+
+@defvr {Aggregate project} SUBPROJECTS
+@code{SUBPROJECTS} defines the directory names that hold the subprojects
+that the Aggregate project should build.
+@end defvr
+
+@node application.make, bundle.make, aggregate.make, Project Types
+@subsection Graphical Applications (@file{application.make})
+
+An application is an Objective-C program that includes a GUI component,
+and by default links in all the GNUstep libraries required for GUI
+development, such as the Base and Gui libraries.
+
+@node bundle.make, ctool.make, application.make, Project Types
+@subsection Bundles (@file{bundle.make})
+
+A bundle is a collection of resources and code that can be used to
+enhance an existing application or tool dynamically using the NSBundle
+class from the GNUstep base library.
+
+@node ctool.make, documentation.make, bundle.make, Project Types
+@subsection Command Line C Tools (@file{ctool.make})
+
+A ctool is a project that only uses C language files.
+Otherwise it is similar to the ObjC project type.
+
+@node documentation.make, framework.make, ctool.make, Project Types
+@subsection Documentation (@file{documentation.make})
+
+The Documentation project provides rules to use various types of
+documentation such as texi and LaTeX documentation, and convert them
+into finished documentation (info, PostScript, HTML, etc). 
+
+@node framework.make, java.make, documentation.make, Project Types
+@subsection Frameworks (@file{framework.make})
+
+A Framework is a collection of resources and a library that provides
+common code that can be linked into a Tool or Application. In many
+respects it is similar to a Bundle.
+
+@node java.make, library.make, framework.make, Project Types
+@subsection Java (@file{java.make})
+
+This project provides rules for building java programs. It also makes it
+easy to make java projects that interact with the GNUstep libraries.
+
+@subsubsection Project Variables
+
+@defvr {Java project} JAVA_PACKAGE_NAME
+@code{JAVA_PACKAGE_NAME} is the reverse DNS style Java package name that
+resides in this project.
+@end defvr
+
+@defvr {Java project} JAVA_FILES
+@code{xxx_JAVA_FILES} is the list of Java source code files, with a 
+@file{.java} extension, that are compiled for the @strong{xxx} project.
+@strong{xxx} should be replaced with the name of the Java package
+specified in @code{JAVA_PACKAGE_NAME}.
+@end defvr
+
+@defvr {Java project} JAVA_JNI_FILES
+@code{xxx_JAVA_JNI_FILES} is the list of Java source code files for
+which @code{javah} should produce header files for integration with 
+Objective-C code.
+@strong{xxx} should be replaced with the name of the Java package
+specified in @code{JAVA_PACKAGE_NAME}.
+@end defvr
+
+@defvr {Java project} JAVA_PROPERTIES_FILES
+@code{xxx_JAVA_PROPERTIES_FILES} can be used to specify properties files
+to install.
+@strong{xxx} should be replaced with the name of the Java package
+specified in @code{JAVA_PACKAGE_NAME}.
+@end defvr
+
+@defvr {Java project} JAVA_MANIFEST_FILE
+@code{xxx_JAVA_MANIFEST_FILE} can be used to specify a manifest fragment
+that is used when building a jar file for the @strong{xxx} package.
+@strong{xxx} should be replaced with the name of the Java package
+specified in @code{JAVA_PACKAGE_NAME}.
+@end defvr
+
+@defvr {Java project} JAVA_JAR_NAME
+@code{xxx_JAVA_JAR_NAME} can be used to specify a custom name for the jar
+built by @code{make jar}. The default would be the package name (@strong{xxx}) 
+with all dots replaced by hyphens.
+@end defvr
+
+@node library.make, native-library.make, java.make, Project Types
+@subsection Libraries (@file{library.make})
+@menu
+* library.make variables::      
+* Example Library Makefile::    
+@end menu
+
+The Makefile Package provides a project type for building libraries;
+libraries can be built as static libraries, shared libraries, or dynamic
+link libraries (DLL) if the platform supports that type of library.
+Static libraries are supported on all platforms; while, shared libraries
+and DLLs are only supported on some platforms.
+
+@node library.make variables, Example Library Makefile, library.make, library.make
+@subsubsection Project Variables
+
+@defvr {Library project} LIBRARY_NAME
+@code{LIBRARY_NAME} should be assigned the list of name of libraries to
+be generated.  Most UNIX systems expect that the filename for the
+library has the word @file{lib} prefixed to the name; i.e. the @file{c}
+library has filename of @file{libc}.  Prefix the @file{lib} to the
+library name when it is specified in the @code{LIBRARY_NAME} variable
+because the Makefile Package will not automatically prefix it.
+@end defvr
+
+@defvr {Library project} C_FILES
+@code{xxx_C_FILES} is the list of C files, with a @file{.c} extension,
+that are to be compiled to generate the @strong{xxx} library.
+Replace the @strong{xxx} with the name of the library as listed by
+the @code{LIBRARY_NAME} variable.
+@end defvr
+
+@defvr {Library project} OBJC_FILES
+@code{xxx_OBJC_FILES} is the list of Objective-C files, with a @file{.m}
+extension, that are to be compiled to generate the @strong{xxx} library.
+Replace the @strong{xxx} with the name of the library as listed by the
+@code{LIBRARY_NAME} variable.
+@end defvr
+
+@defvr {Library project} PSWRAP_FILES
+@code{xxx_PSWRAP_FILES} is the list of PostScript wrap files, with a
+@file{.psw} extension, that are to be compiled to generate the
+@strong{xxx} library.  PostScript wrap files are processed by the
+@file{pswrap} utility which generates a @file{.c} and a @file{.h} file
+from each @file{.psw} file; the generate @file{.c} file is the file
+actually compiled.  Replace the @strong{xxx} with the name of the
+library as listed by the @code{LIBRARY_NAME} variable.
+@end defvr
+
+@defvr {Library project} HEADER_FILES
+@code{xxx_HEADER_FILES} is the list of header filenames that are to be
+installed with the library.  If a filename has a directory path prefixed
+to it then that prefix will be maintained when the headers are
+installed.  It is up to the user to make sure that the installation
+directory exists; otherwise, an error will occur when the library is
+installed, see @ref{library.make
+variables,,xxx_HEADER_FILES_INSTALL_DIR}.  Replace the @strong{xxx} with
+the name of the library as listed by the @code{LIBRARY_NAME} variable.
+@end defvr
+
+@defvr {Library project} HEADER_FILES_DIR
+@code{xxx_HEADER_FILES_DIR} is the relative path from the current
+directory, where the makefile is located, to where the header files
+specified by @code{xxx_HEADER_FILES} are located.  If a filename
+specified in @code{xxx_HEADER_FILES} has a directory path prefixed to it
+then that path will not be removed when the Makefile Package accesses
+the files, so do not specify a path with @code{xxx_HEADER_FILES_DIR}
+that is already prefixed to the header filenames, see @ref{library.make
+variables,,xxx_HEADER_FILES_INSTALL_DIR}.  @code{xxx_HEADER_FILES_DIR}
+is optional; leaving it blank or undefined, and the Makefile Package
+assumes that the relative path to the header files is the current
+directory where the makefile resides.  Replace the @strong{xxx} with the
+name of the library as listed by the @code{LIBRARY_NAME} variable.
+@end defvr
+
+@defvr {Library project} HEADER_FILES_INSTALL_DIR
+@code{xxx_HEADER_FILES_INSTALL_DIR} specifies the relative subdirectory
+path below @code{GNUSTEP_HEADERS} where the header files are to be
+installed.  If this directory or any of its parent directories do not
+exist, then the Makefile Package will create them.  The Makefile Package
+prefixes @code{xxx_HEADER_FILES_INSTALL_DIR} to each of the filenames in
+@code{xxx_HEADER_FILES} when they are installed, so if the filenames in
+@code{xxx_HEADER_FILES} already have a directory path prefixed then the
+user is responsible for creating that directory, the Makefile Package
+will not create.  @code{xxx_HEADER_FILES_INSTALL_DIR} is optional;
+leaving it blank or undefined, and the Makefile Package assumes that the
+installation directory is just @code{GNUSTEP_HEADERS} with no
+subdirectory.  Replace the @strong{xxx} with the name of the library as
+listed by the @code{LIBRARY_NAME} variable.
+@end defvr
+
+@defvr {Library project} CPPFLAGS
+@code{xxx_CPPFLAGS} are additional flags that will be passed to the
+compiler preprocessor when compiling Objective-C and C files to generate
+the @strong{xxx} library.  Adding flags here does not override the
+default @code{CPPFLAGS}, see @ref{Overridable Flags,,CPPFLAGS}, they are
+in addition to @code{CPPFLAGS}.  These flags are specific to the
+@strong{xxx} library, see @ref{GNUmakefile.preamble,,ADDITIONAL_CPPFLAGS},
+to see how to specify global preprocessor flags.  Replace the
+@strong{xxx} with the name of the listed as listed by the
+@code{LIBRARY_NAME} variable.
+@end defvr
+
+@defvr {Library project} OBJCFLAGS
+@code{xxx_OBJCFLAGS} are additional flags that will be passed to the
+compiler when compiling Objective-C files to generate the @strong{xxx}
+library.  Adding flags here does not override the default
+@code{OBJCFLAGS}, see @ref{Overridable Flags,,OBJCFLAGS}, they are in
+addition to @code{OBJCFLAGS}.  These flags are specific to the
+@strong{xxx} library, see @ref{GNUmakefile.preamble,,ADDITIONAL_OBJCFLAGS},
+to see how to specify global compiler flags.  Replace the @strong{xxx}
+with the name of the library as listed by the @code{LIBRARY_NAME}
+variable.
+@end defvr
+
+@defvr {Library project} CFLAGS
+@code{xxx_CFLAGS} are additional flags that will be passed to the
+compiler when compiling C files to generate the @strong{xxx} library.
+Adding flags here does not override the default @code{CFLAGS}, see
+@ref{Overridable Flags,,CFLAGS}, they are in addition to @code{CFLAGS}.
+These flags are specific to the @strong{xxx} library, see
+@ref{GNUmakefile.preamble,,ADDITIONAL_CFLAGS}, to see how to specify global
+compiler flags.  Replace the @strong{xxx} with the name of the library
+as listed by the @code{LIBRARY_NAME} variable.
+@end defvr
+
+@defvr {Library project} LDFLAGS
+@code{xxx_LDFLAGS} are additional flags that will be passed to the
+linker when it creates the @strong{xxx} library.  Adding flags here does
+not override the default @code{LDFLAGS}, see @ref{Overridable
+Flags,,LDFLAGS}, they are in addition to @code{LDFLAGS}.  These flags
+are specific to the @strong{xxx} library, see
+@ref{GNUmakefile.preamble,,ADDITIONAL_LDFLAGS}, to see how to specify
+global linker flags.  Replace the @strong{xxx} with the name of the
+library as listed by the @code{LIBRARY_NAME} variable.
+@end defvr
+
+@defvr {Library project} INCLUDE_DIRS
+@code{xxx_INCLUDE_DIRS} is the list of additional directories that the
+compiler will search when it is looking for include files; these flags
+are specific to the @strong{xxx} library, see
+@ref{GNUmakefile.preamble,,ADDITIONAL_INCLUDE_DIRS}, to see how to specify
+additional global include directories.  The directories should be
+specified as @samp{-I} flags to the compiler.  The additional include
+directories will be placed before the normal GNUstep and system include
+directories, and before any global include directories specified with
+@code{ADDITIONAL_INCLUDE_DIRS}, so they will always be searched first.
+Replace the @strong{xxx} with the name of the library as listed by the
+@code{LIBRARY_NAME} variable.
+@end defvr
+
+@node Example Library Makefile,  , library.make variables, library.make
+@subsubsection Example Makefile
+
+This example makefile illustrates two libraries, @file{libone} and
+@file{libtwo}, that are to be generated.
+
+@smallexample
+#
+# An example GNUmakefile
+#
+
+# Include the common variables defined by the Makefile Package
+include $(GNUSTEP_MAKEFILES)/common.make
+
+# Two libraries
+LIBRARY_NAME = libone libtwo
+
+#
+# The files for the libone library
+#
+# The Objective-C files to compile
+libone_OBJC_FILES = one.m draw.m
+
+# The C source files to be compiled
+libone_C_FILES = parse.c
+
+# The PostScript wrap source files to be compiled
+libone_PSWRAP_FILES = drawing.psw
+
+# The header files for the library
+libone_HEADER_FILES_DIR = ./one
+libone_HEADER_FILES_INSTALL_DIR = one
+libone_HEADER_FILES = one.h draw.h
+
+#
+# The files for the libtwo library
+#
+# The Objective-C files to compile
+libtwo_OBJC_FILES = two.m another.m test.m
+
+# The header files for the library
+libtwo_HEADER_FILES_DIR = ./two
+libtwo_HEADER_FILES_INSTALL_DIR = two
+libtwo_HEADER_FILES = two.h another.h test.h common.h
+
+# Option include to set any additional variables
+-include GNUmakefile.preamble
+
+# Include in the rules for making libraries
+include $(GNUSTEP_MAKEFILES)/library.make
+
+# Option include to define any additional rules
+-include GNUmakefile.postamble
+
+@end smallexample
+
+Notice that the @file{libone} library has Objective-C, C, and PostScript
+wrap files to be compiled; while, the @file{libtwo} library only has
+some Objective-C files.
+
+The header files for the @file{libone} library reside in the @file{one}
+subdirectory from where the sources are located, and the header files
+will be installed into the @file{one} subdirectory within
+@code{GNUSTEP_HEADERS}.  Likewise the header files for the @file{libtwo}
+library reside in the @file{two} subdirectory from where the sources are
+located, and the header files will be installed into the @file{two}
+subdirectory within @code{GNUSTEP_HEADERS}.
+
+@node native-library.make, nsis.make, library.make, Project Types
+@subsection Native Library (@file{native-library.make})
+
+A "native library" is a project which is to be built as a shared
+library on most targets and as a framework on Darwin.  (Currently
+this is only the case for apple-apple-apple.)  In other
+words, it is to be built as the most appropriate native equivalent
+of a traditional shared library (see @ref{library.make} and
+@ref{framework.make}).
+
+@defvr {Native Library project} NATIVE_LIBRARY_NAME
+@code{NATIVE_LIBRARY_NAME} should be the name of the native library,
+without the 'lib'.  All the other variables are the same as
+the ones used in libraries and frameworks.
+@end defvr
+
+To compile something against a native library, you can use
+@code{ADDITIONAL_NATIVE_LIBS += MyLibrary}
+This will be converted into -lMyLibrary link flag on for most
+targets and into -framework MyLibrary link flag for
+apple-apple-apple.
+
+To add the corresponding flags, you can use
+@code{ADDITIONAL_NATIVE_LIB_DIRS += ../MyPath}
+This will be converted into -L../MyPath/$(GNUSTEP_OBJ_DIR) flag 
+on for most targets and into -F../MyPath flag for apple-apple-apple.
+
+@node nsis.make, objc.make, native-library.make, Project Types
+@subsection NSIS Installer (@file{nsis.make})
+
+The NSIS make project provides rules for automatically generating NSIS
+installers for Windows operating systems. In order to get this functionality,
+include @file{Master/nsis.make} from the Makefiles directory in your
+GNUmakefile.
+
+@example
+include $(GNUSTEP_MAKEFILES)/Master/nsis.make
+@end example
+
+To create an installer file by itself, run @code{make nsifile}. To
+create the full installer executable, run @code{make nsis}. Note that in
+order to do this, you must be either running on a Windows computer with
+a release of the NSIS compiler (from @url{http://nsis.sourceforge.net}) or you
+need to be using a cross-compiler and cross-compiled NSIS script compiler.
+(NOTE: This does not currently work - you need to use the GUI NSIS compiler
+to compile the installer scripts).
+
+Currently the nsis make package only makes installers for
+Applications. It will use the @file{nsi-app.template} file in the
+GNUstep Makefiles directory. If you want, you can provide your own
+template with customized script instructions by creating a file called
+@file{PACKAGE_NAME.nsi.in}, where @code{PACKAGE_NAME} is the same as the
+name of your package (see below).
+
+You also need to define several variables in your main make file.
+Except for @code{PACKAGE_NAME}, which is required, all the following
+variables are optional.
+
+@defvr {NSIS} PACKAGE_NAME
+@code{PACKAGE_NAME} defines the name of the NSIS installer. In most
+cases this will be the same as the name of your project type. For
+instance, if you are creating a application, and have set
+@code{APP_NAME} to @samp{MyApplication}, Then set @code{PACKAGE_NAME} to
+the same thing, or just use @code{PACKAGE_NAME=$(APP_NAME)}.  if 
+@code{PACKAGE_NAME} is not set, it defaults to @code{unnamed-package}
+@end defvr
+
+@defvr {NSIS} PACKAGE_VERSION
+Set @code{PACKAGE_VERSION} to the release version number of your package. If not
+set, it defaults to 0.0.1
+@end defvr
+
+@defvr {NSIS} GNUSTEP_INSTALLATION_DOMAIN
+Set @code{GNUSTEP_INSTALLATION_DOMAIN} to the domain where you want to install
+the software. This should be either @code{SYSTEM}), @code{LOCAL}, or @code{USER}.
+If not set it defaults to @code{LOCAL}.
+@end defvr
+
+@node objc.make, palette.make, nsis.make, Project Types
+@subsection Objective-C Programs (@file{objc.make})
+@menu
+* objc.make variables::         
+* Example ObjC Makefile::       
+@end menu
+
+The Makefile Package provides a project type that is useful for building
+Objective-C programs that do not depend upon the GNUstep libraries.
+Objective-C programs which only use the Objective-C Runtime Library and
+the classes it defines are candidates for this project type.
+
+@node objc.make variables, Example ObjC Makefile, objc.make, objc.make
+@subsubsection Project Variables
+
+Most of the project variables work the same as in Library
+projects (see @ref{library.make}).
+
+@defvr {Objective-C program project} OBJC_PROGRAM_NAME
+@code{OBJC_PROGRAM_NAME} is the list of names of Objective-C programs
+that are to be built; each name should be unique as it is the name of
+the executable file that will be generated.
+@end defvr
+
+@defvr {Objective-C program project} OBJC_LIBS
+@code{xxx_OBJC_LIBS} is the list of additional libraries that the linker
+will use when linking to create the @strong{xxx} Objective-C program
+executable file.  These libraries are specific to the @strong{xxx}
+Objective-C program, see @ref{GNUmakefile.preamble,,ADDITIONAL_OBJC_LIBS},
+to see how to specify additional global libraries.  These libraries are
+placed before all of the Objective-C Runtime and system libraries, and
+before the global libraries specified with @code{ADDITIONAL_OBJC_LIBS},
+so that they will be searched first when linking.  The additional
+libraries should be specified as @samp{-l} flags to the linker as the
+following example illustrates.  Replace the @strong{xxx} with the name
+of the program as listed by the @code{OBJC_PROGRAM_NAME} variable.
+@end defvr
+
+@node Example ObjC Makefile,  , objc.make variables, objc.make
+@subsubsection Example Makefile
+
+This makefile illustrates two Objective-C programs, @file{simple} and
+@file{list} that are to be generated.
+
+@smallexample
+#
+# An example GNUmakefile
+#
+
+# Include the common variables defined by the Makefile Package
+include $(GNUSTEP_MAKEFILES)/common.make
+
+# Build a simple Objective-C program
+OBJC_PROGRAM_NAME = simple list
+
+# Have the Objective-C runtime macro be defined for simple program
+simple_CPPFLAGS = $(RUNTIME_DEFINE)
+
+# The Objective-C files to compile for simple program
+simple_OBJC_FILES = simple.m
+
+# The Objective-C files to compile for list program
+list_OBJC_FILES = list.m linkedlist.m
+
+# The C files to compile for list program
+list_C_FILES = sort.c
+
+# Option include to set any additional variables
+-include GNUmakefile.preamble
+
+# Include in the rules for making Objective-C programs
+include $(GNUSTEP_MAKEFILES)/objc.make
+
+# Option include to define any additional rules
+-include GNUmakefile.postamble
+@end smallexample
+
+The @file{simple} Objective-C program only consists of single
+Objective-C file; while, the @file{list} Objective-C program consists of
+two Objective-C files and one C file.  The @file{simple} Objective-C
+program use the variable defined by the Makefile Package,
+@code{RUNTIME_DEFINE}, to define a macro based upon the Objective-C
+Runtime library; presumably @file{simple.m} has code which is dependent
+upon the Objective-C Runtime.
+
+@node palette.make, rpm.make, objc.make, Project Types
+@subsection Palettes (@file{palette.make})
+
+A palette is a Bundle that provides some kind of GUI functionality.
+Otherwise it is similar to the Bundle project.
+
+@node rpm.make, service.make, palette.make, Project Types
+@subsection RPMs (@file{rpm.make})
+
+The RPM project provides rules for automatically generating RPM spec
+files in order to make RPM distributions. Note that this project
+makefile is included automatically when you include any other project
+type in your GNUmakefile. It is non necessary to include
+@file{rpm.make}.
+
+Except for @code{PACKAGE_NAME}, which is required, all the following
+variables are optional. It is recommended that you set them anyway in
+order to provide the standard information that is present in most RPM
+distributions.
+
+@defvr {RPM} PACKAGE_NAME
+@code{PACKAGE_NAME} defines the name of the RPM distribution. In most
+cases this will be the same as the name of your project type. For
+instance, if you are creating a application, and have set
+@code{APP_NAME} to @samp{MyApplication}, Then set @code{PACKAGE_NAME} to
+the same thing, or just use @code{PACKAGE_NAME=$(APP_NAME)}.  if 
+@code{PACKAGE_NAME} is not set, it defaults to @code{unnamed-package}
+@end defvr
+
+@defvr {RPM} PACKAGE_VERSION
+Set @code{PACKAGE_VERSION} to the release version number of your package. If not
+set, it defaults to 0.0.1
+@end defvr
+
+@defvr {RPM} GNUSTEP_INSTALLATION_DOMAIN
+Set @code{GNUSTEP_INSTALLATION_DOMAIN} to the domain where you want to install
+the software. This should be either @code{SYSTEM}), @code{LOCAL}, or @code{USER}.
+If not set it defaults to @code{LOCAL}.
+@end defvr
+
+@defvr {RPM} PACKAGE_NEEDS_CONFIGURE
+Set this to @code{YES} if a configure script needs to be run before
+compilation
+@end defvr
+
+In addition you need to provide a stub spec file named for the package
+name, such as this example @file{libobjc.spec.in} file:
+
+@example
+Release:        1
+Source:         ftp://ftp.gnustep.org/pub/gnustep/libs/%@{gs_name@}-%@{gs_version@}.
+tar.gz
+Copyright:      GPL
+Group:          Development/Libraries
+Summary:        Objective-C Runtime Library
+Packager:       Adam Fedor <fedor@@gnu.org>
+Vendor:         The GNUstep Project
+URL:            http://www.gnustep.org/
+
+%description
+Library containing the Objective-C runtime.
+@end example
+
+@node service.make, subproject.make, rpm.make, Project Types
+@subsection Services (@file{service.make})
+
+A Service is like a Tool that provides a service to a running GNUstep program.
+
+@node subproject.make, tool.make, service.make, Project Types
+@subsection Subprojects (@file{subproject.make})
+
+A Subproject provides a way to organize code in a large application into
+subunits. The code in the subproject is merged in with the main tool
+or application.
+
+@node tool.make,  , subproject.make, Project Types
+@subsection Command Line Tools (@file{tool.make})
+
+A tool is an ObjC project that by default links in the GNUstep base
+library. Otherwise it is similar to the ObjC project type.
+
+@node GNUmakefile.preamble, GNUmakefile.postamble, Project Types, Top
+@section Global Variables (@file{GNUmakefile.preamble})
+
+@file{GNUmakefile.preamble} is an optional file that may be put within the
+package for declaring global makefile variables for the package.  The
+filename, @file{GNUmakefile.preamble}, is just a convention; likewise, the
+variables defined within it can be put in the normal @file{GNUmakefile}
+versus in this special file.  However, the reason for this convention is
+that the @file{GNUmakefile} may be automatically maintained by a project
+management system, like Project Center, so any changes made to
+@file{GNUmakefile} may be discarded by that project management system.
+
+The file, @file{GNUmakefile.preamble}, in the Makefile Package is a
+template that can be used the project's @file{GNUmakefile.preamble}.  It is
+not necessary to have a @file{GNUmakefile.preamble} with the project unless
+it is actually needed, the Makefile Package will only include it if it
+is available, see @ref{Makefile Structure} for information on how the
+Makefile Package includes a @file{GNUmakefile.preamble}.
+
+The rest of this section describes the individual global variables that
+the Makefile Package uses which are generally placed in the package's
+@file{GNUmakefile.preamble}.
+
+@defvar ADDITIONAL_CPPFLAGS
+@code{ADDITIONAL_CPPFLAGS} are additional flags that will be passed to
+the compiler preprocessor.  Generally any macros to be defined for all
+files are placed here; the are passed for both Objective-C and C files
+that are compiled.  @code{RUNTIME_DEFINE}, @code{FOUNDATION_DEFINE},
+@code{GUI_DEFINE}, and @code{GUI_BACKEND_DEFINE} are some makefile
+variables which define macros that can be assigned to
+@code{ADDITIONAL_CPPFLAGS}.  The following example illustrates the use
+of @code{ADDITIONAL_CPPFLAGS} to define a macro for the Objective-C
+Runtime Library plus an additional macro that is specific to the
+package.
+@end defvar
+
+@smallexample
+ADDITIONAL_CPPFLAGS = $(RUNTIME_DEFINE) -DVERBOSE=1
+@end smallexample
+
+@defvar ADDITIONAL_OBJCFLAGS
+@code{ADDITIONAL_OBJCFLAGS} are additional flags that will be passed to
+the compiler when compiling Objective-C files.  Adding flags here does
+not override the default @code{OBJCFLAGS}, see @ref{Overridable
+Flags,,OBJCFLAGS}, they are in addition to @code{OBJCFLAGS}.  Generally
+@code{ADDITIONAL_OBJCFLAGS} are placed before @code{OBJCFLAGS} when the
+compiler is executed, but one should avoid having any placement
+sensitive flags because the order of the flags is not guaranteed.  The
+following example illustrates how you can pass additional Objective-C
+flags.
+@end defvar
+
+@smallexample
+ADDITIONAL_OBJCFLAGS = -Wno-protocol
+@end smallexample
+
+@defvar ADDITIONAL_CFLAGS
+@code{ADDITIONAL_CFLAGS} are additional flags that will be passed to the
+compiler when compiling C files.  Adding flags here does not override
+the default @code{CFLAGS}, see @ref{Overridable Flags,,CFLAGS}, they are
+in addition to @code{CFLAGS}.  Generally @code{ADDITIONAL_CFLAGS} are
+placed before @code{CFLAGS} when the compiler is executed, but one
+should avoid having any placement sensitive flags because the order of
+the flags is not guaranteed.  The following example illustrates how you
+can pass additional C flags.
+@end defvar
+
+@smallexample
+ADDITIONAL_CFLAGS = -finline-functions
+@end smallexample
+
+@defvar ADDITIONAL_LDFLAGS
+@code{ADDITIONAL_LDFLAGS} are additional flags that will be passed to
+the linker when it creates an executable; these flags are passed when
+linking a command line tool, and application, or an Objective-C program.
+Adding flags here does not override the default @code{LDFLAGS}, see
+@ref{Overridable Flags,,LDFLAGS}, they are in addition to
+@code{LDFLAGS}.  Generally @code{ADDITIONAL_LDFLAGS} are placed before
+@code{LDFLAGS} when the linker is executed, but one should avoid having
+any placement sensitive flags because the order of the flags is not
+guaranteed.  The following example illustrates how you can pass addition
+linker flags.
+@end defvar
+
+@smallexample
+ADDITIONAL_LDFLAGS = -v
+@end smallexample
+
+@defvar ADDITIONAL_INCLUDE_DIRS
+@code{ADDITIONAL_INCLUDE_DIRS} is the list of additional directories that
+the compiler will search when it is looking for include files.  The
+directories should be specified as @samp{-I} flags to the compiler.  The
+additional include directories will be placed before the normal GNUstep
+and system include directories, so they will always be searched first.
+The following example illustrates two additional include directories;
+@code{/usr/local/gnu/include} will be searched first, then
+@code{/usr/gnu/include}, and finally the GNUstep and system directories
+which are automatically defined by the Makefile Package.
+@end defvar
+
+@smallexample
+ADDITIONAL_INCLUDE_DIRS = -I/usr/local/gnu/include -I/usr/gnu/include
+@end smallexample
+
+@defvar ADDITIONAL_LIB_DIRS
+@code{ADDITIONAL_LIB_DIRS} is the list of additional directories that
+the linker will search when it is looking for library files.  The
+directories should be specified as @samp{-L} flags to the linker.  The
+additional library directories will be placed before the GNUstep and
+system library directories so that they will be searched first by the
+linker.  The following example illustrates two additional library
+directories; @code{/usr/local/gnu/lib} will be searched first, then
+@code{/usr/gnu/lib}, and finally the GNUstep and system directories
+which are automatically defined by the Makefile Package.
+@end defvar
+
+@smallexample
+ADDITIONAL_LIB_DIRS = -L/usr/local/gnu/lib -L/usr/gnu/lib
+@end smallexample
+
+@defvar ADDITIONAL_OBJC_LIBS
+@code{ADDITIONAL_OBJC_LIBS} is the list of additional libraries that the
+linker will use when linking command line tools, applications, and
+Objective-C programs, see @ref{tool.make}, @ref{application.make}, and
+@ref{objc.make}.  For Objective-C programs, @code{ADDITIONAL_OBJC_LIBS}
+is placed before all of the Objective-C Runtime and system libraries so
+that they will be searched first when linking.  For command line tools
+and applications, @code{ADDITIONAL_OBJC_LIBS} is placed @emph{before}
+all of the Objective-C Runtime and system libraries but @emph{after} the
+Foundation and GUI libraries.  Libraries specified with
+@code{ADDITIONAL_OBJC_LIBS} should only depend upon the Objective-C
+Runtime and/or system functions, not Foundation or GUI classes;
+Foundation dependent libraries should be specified with
+@code{ADDITIONAL_TOOL_LIBS} and GUI dependent libraries should be
+specified with @code{ADDITONAL_GUI_LIBS}.  The additional libraries
+should be specified as @samp{-l} flags to the linker as the following
+example illustrates.
+@end defvar
+
+@smallexample
+ADDITIONAL_OBJC_LIBS = -lSwarm
+@end smallexample
+
+@defvar ADDITIONAL_TOOL_LIBS
+@code{ADDITIONAL_TOOL_LIBS} is the list of additional libraries that the
+linker will use when linking command line tools and applications, see
+@ref{tool.make} and @ref{application.make}.  For command line tools,
+@code{ADDITIONAL_TOOL_LIBS} is placed before all of the GNUstep and
+system libraries so that they will be searched first when linking.  For
+applications, @code{ADDITIONAL_TOOL_LIBS} is placed before the
+Foundation and system libraries but after the GUI libraries.  Libraries
+specified with @code{ADDITIONAL_TOOL_LIBS} should only depend upon the
+Foundation classes and/or system functions, not GUI classes; GUI
+dependent libraries should be specified with @code{ADDITIONAL_GUI_LIBS}.
+The additional libraries should be specified as @samp{-l} flags to the
+linker as the following example illustrates.
+@end defvar
+
+@smallexample
+ADDITIONAL_TOOL_LIBS = -lone -lsimple
+@end smallexample
+
+@defvar ADDITIONAL_GUI_LIBS
+@code{ADDITIONAL_GUI_LIBS} is the list of additional libraries that the
+linker will use when linking applications, see @ref{application.make}.
+@code{ADDITIONAL_GUI_LIBS} is placed before all of the GUI, Foundation,
+and system libraries so that they will be searched first when linking.
+The additional libraries should be specified as @samp{-l} flags to the
+linker as the following example illustrates.
+@end defvar
+
+@smallexample
+ADDITIONAL_GUI_LIBS = -lMiscGui
+@end smallexample
+
+@defvar ADDITIONAL_INSTALL_DIRS
+@code{ADDITIONAL_INSTALL_DIRS} is the list of additional directories
+that should be created when the Makefile Package installs the file for
+the project.  These directories are only one that the project needs to
+be created but that the Makefile Package does not automatically
+create.  The directories should be absolute paths but use the
+@code{GNUSTEP_LIBRARY} variable and other Makefile Package define
+variables, see @ref{Directory Paths}, so that the directories get
+created in the appropriate place relative to the other file installed
+for the project.  The following example illustrates how two additional
+directories can be created during installation.
+@end defvar
+
+@smallexample
+ADDITIONAL_INSTALL_DIRS = $(GNUSTEP_RESOURCES)/MyProject
+@end smallexample
+
+@defvar LIBRARIES_DEPEND_UPON
+@code{LIBRARIES_DEPEND_UPON} is the set of libraries that the shared
+library depends upon, see @ref{library.make} for more information about
+building shared libraries; this variable is only relevant for library
+project types.  On some platforms when a shared library is built, any
+libraries which the object code in the shared library depends upon must
+be linked in the generation of the shared library.  This is similar to
+the process of linking an executable file like a command line tool or
+Objective-C program except that the result is a shared library.
+Libraries specified with @code{LIBRARIES_DEPEND_UPON} should be listed
+as @samp{-l} flags to the linker; when possible use variables defined by
+the Makefile Package to specify GUI, Foundation, or system libraries;
+like @code{GUI_LIBS}, @code{FND_LIBS}, @code{OBJC_LIBS}, or
+@code{SYSTEM_LIBS}.  @code{LIBRARIES_DEPEND_UPON} is independent of
+@code{ADDITIONAL_OBJC_LIBS}, @code{ADDITIONAL_TOOL_LIBS}, and
+@code{ADDITIONAL_GUI_LIBS}, so any libraries specified there may need to
+be specified with @code{LIBRARIES_DEPEND_UPON}.  The following example
+illustrates the use of @code{LIBRARIES_DEPEND_UPON} for a shared library
+that is depend upon the Foundation, ObjC, system libraries and an
+additional user library.
+@end defvar
+
+@smallexample
+LIBRARIES_DEPEND_UPON = -lsimple $(FND_LIBS) $(OBJC_LIBS) $(SYSTEM_LIBS)
+@end smallexample
+
+
+@node GNUmakefile.postamble, Common Variables, GNUmakefile.preamble, Top
+@section Global Rules (@file{GNUmakefile.postamble})
+
+The @file{GNUmakefile.postamble} file is an optional file you may
+include in your package to define additional rules that should be
+executed when making and/or installing the project. There is a template
+@file{GNUmakefile.postamble} file in the Makefile package that you can
+use as an example. Most of the rules are self explanatory. The
+@samp{before-} rules define things that should happen before a process
+is executed (e.g. @samp{before-all} for before compilation,
+@samp{before-install} for before installation). The @samp{after-} rules
+define things that should happen after a process is complete.
+
+You can even define additional rules such as ones that a particular to
+your specific package or that are to be used by developers only.
+
+@node Common Variables, Other Variables, GNUmakefile.postamble, Top
+@section Common Variables (@file{common.make})
+@menu
+* Directory Paths::             
+* Scripts::                     
+* Platform Information::        
+* Library Combination::         
+* Overridable Flags::           
+@end menu
+
+Any of these variables that are defined by @file{common.make} can and
+should be used by the user's makefile fragments to reference directories
+and/or perform any tasks which are not done automatically by the
+Makefile Package.  Most variables refer to directory paths, both
+absolute and relative, where files will be installed, but other
+variables are defined based upon the target platform that the person is
+compiling for.  Do not change the values of any of these automatically
+defined variables as the resultant behaviour of the Makefile Package is
+undefined.
+
+@node Directory Paths, Scripts, Common Variables, Common Variables
+@subsection Directory Paths
+
+@defvar GNUSTEP_MAKEFILES
+@code{GNUSTEP_MAKEFILES} is the absolute path to the directory where the
+Makefile Package files are located.  Use @code{GNUSTEP_MAKEFILES} to
+refer to a makefile fragment or script file from the Makefile Package
+within a makefile; the @code{GNUSTEP_MAKEFILES} variable should be
+only be used within makefiles and not referenced within C or Objective-C
+programs.
+@end defvar
+
+@defvar GNUSTEP_APPS
+@code{GNUSTEP_APPS} is the absolute path to the directory where GUI
+applications are installed.  This variable is dependent upon the
+@code{GNUSTEP_INSTALLATION_DOMAIN} variable, so the path will change
+accordingly if the user specifies a different installation domain.
+@end defvar
+
+@defvar GNUSTEP_ADMIN_APPS
+@code{GNUSTEP_ADMIN_APPS} is the absolute path to the directory where
+GUI applications for the system Administrator are installed.  This
+variable is dependent upon the @code{GNUSTEP_INSTALLATION_DOMAIN}
+variable, so the path will change accordingly if the user specifies a
+different installation domain.
+@end defvar
+
+@defvar GNUSTEP_WEB_APPS
+@code{GNUSTEP_WEB_APPS} is the absolute path to the directory where
+web applications (for web development frameworks such as GSWeb or
+SOPE) are installed.  This variable is dependent upon the
+@code{GNUSTEP_INSTALLATION_DOMAIN} variable, so the path will change
+accordingly if the user specifies a different installation domain.
+@end defvar
+
+@defvar GNUSTEP_TOOLS
+@code{GNUSTEP_TOOLS} is the absolute path for the root directory where
+command line tools are installed.  Only command line tools which are
+target platform independent should be installed in @code{GNUSTEP_TOOLS};
+target platform dependent command line tools should be placed in the
+appropriate subdirectory of @code{GNUSTEP_TOOLS}, see @ref{Directory
+Paths,,GNUSTEP_TARGET_DIR}, and @ref{Directory
+Paths,,TOOL_INSTALLATION_DIR}.  This variable is dependent upon the
+@code{GNUSTEP_INSTALLATION_DOMAIN} variable, so the path will change
+accordingly if the user specifies a different installation domain.
+@end defvar
+
+@defvar GNUSTEP_ADMIN_TOOLS
+@code{GNUSTEP_ADMIN_TOOLS} is the absolute path for the root directory
+where command line tools for the system administrator are installed.
+Only command line tools which are target platform independent should
+be installed in @code{GNUSTEP_ADMIN_TOOLS}; target platform dependent
+command line tools should be placed in the appropriate subdirectory of
+@code{GNUSTEP_ADMIN)TOOLS}, see @ref{Directory
+Paths,,GNUSTEP_TARGET_DIR}, and @ref{Directory
+Paths,,TOOL_INSTALLATION_DIR}.  This variable is dependent upon the
+@code{GNUSTEP_INSTALLATION_DOMAIN} variable, so the path will change
+accordingly if the user specifies a different installation domain.
+@end defvar
+
+@defvar GNUSTEP_HEADERS
+@code{GNUSTEP_HEADERS} is the absolute path for the root directory where
+header files are installed.  Normally header files are not installed in
+the @code{GNUSTEP_HEADERS} directory, but in a subdirectory as specified
+by the project which owns the files, see @ref{library.make} for more
+information.  @code{GNUSTEP_HEADERS} should contain platform independent
+header files because the files are shared by all platforms.  Any target
+platform dependent header files should be placed in the appropriate
+subdirectory as specified by @code{GNUSTEP_TARGET_DIR}.  This variable
+is dependent upon the @code{GNUSTEP_INSTALLATION_DOMAIN} variable, so the
+path will change accordingly if the user specifies a different
+installation domain.
+@end defvar
+
+@defvar GNUSTEP_LIBRARY
+@code{GNUSTEP_LIBRARY} is the absolute path for the 'Library'
+directory where all sorts of resources are installed.  This directory
+can be expected to have (at least) some standard subdirectories with
+fixed names, which are @code{ApplicationSupport}, @code{Bundles},
+@code{Frameworks}, @code{ApplicationSupport/Palettes},
+@code{Services}, @code{Libraries/Resources} and @code{Libraries/Java}.
+You can access them in your GNUmakefile as
+@code{GNUSTEP_LIBRARY/ApplicationSupport},
+@code{GNUSTEP_LIBRARY/Bundles}, etc.  This variable is dependent upon
+the @code{GNUSTEP_INSTALLATION_DOMAIN} variable, so the path will
+change accordingly if the user specifies a different installation
+domain.
+@end defvar
+
+@defvar GNUSTEP_LIBRARIES
+@code{GNUSTEP_LIBRARIES} is the absolute path for the directory where
+libraries are installed taking the target platform and library
+combination into account.  This directory is generally where library
+project types, see @ref{library.make}, will install the library file.
+This variable is dependent upon the @code{GNUSTEP_INSTALLATION_DOMAIN}
+variable, so the path will change accordingly if the user specifies a
+different installation domain.
+@end defvar
+
+@defvar GNUSTEP_RESOURCES
+@code{GNUSTEP_RESOURCES} is the absolute path for the directory where
+resource files for libraries are installed; example resources are
+fonts, printer type information, model files for system panels, and
+system images.  The resource files are generally associated with
+libraries, because resources for applications or bundles are included
+within the application or bundle directory wrapper.
+@code{GNUSTEP_RESOURCES} is the @code{Libraries/Resources}
+subdirectory of @code{GNUSTEP_LIBRARY}; it is dependent upon the
+@code{GNUSTEP_INSTALLATION_DOMAIN} variable, so the path will change
+accordingly if the user specifies a different installation domain.
+@end defvar
+
+@defvar GNUSTEP_DOC
+@code{GNUSTEP_DOC} is the absolute path for the directory where
+documentation is installed (with the exception of man pages and info
+documentation, which need to be installed into @code{GNUSTEP_DOC_MAN}
+and @code{GNUSTEP_DOC_INFO}).  This variable is dependent upon the
+@code{GNUSTEP_INSTALLATION_DOMAIN} variable, so the path will change
+accordingly if the user specifies a different installation domain.
+@end defvar
+
+@defvar GNUSTEP_DOC_MAN
+@code{GNUSTEP_DOC_MAN} is the absolute path for the directory where
+man pages are to be installed.  This variable is dependent upon the
+@code{GNUSTEP_INSTALLATION_DOMAIN} variable, so the path will change
+accordingly if the user specifies a different installation domain.
+@end defvar
+
+@defvar GNUSTEP_DOC_INFO
+@code{GNUSTEP_DOC_INFO} is the absolute path for the directory where
+info documentation is installed.  This variable is dependent upon the
+@code{GNUSTEP_INSTALLATION_DOMAIN} variable, so the path will change
+accordingly if the user specifies a different installation domain.
+@end defvar
+
+@defvar GNUSTEP_HOST_DIR
+@code{GNUSTEP_HOST_DIR} is the subdirectory path for the host platform
+CPU and operating system.  It is a composed from the
+@code{GNUSTEP_HOST_CPU} and @code{GNUSTEP_HOST_OS} variables.
+@end defvar
+
+@defvar GNUSTEP_TARGET_DIR
+@code{GNUSTEP_TARGET_DIR} is the subdirectory path for the target
+platform CPU and operating system.  It is composed from the
+@code{GNUSTEP_TARGET_CPU} and @code{GNUSTEP_TARGET_OS} variables.
+@code{GNUSTEP_TARGET_DIR} is generally used as part of the
+installation path when platform specific files are installed.
+@end defvar
+
+@defvar GNUSTEP_OBJ_DIR
+@code{GNUSTEP_OBJ_DIR} is the subdirectory path where the Makefile
+Package places binary files: object files, libraries, executables,
+produced by the compiler.  The Makefile Package separates binary files
+for different target platforms, different library combinations, and
+different compile options into different directories; these different
+directories are subdirectories from the current directory where the
+makefile resides.  This structure allows a package to be compiled for
+different target platforms, different library combinations, and
+different compile options @emph{in place}; i.e. the binary files are
+separated from each other so a compile pass from one set of options do
+not overwrite or erase binary files from a previous compile pass with
+different options.  Generally the user does not use this variable;
+however, if the package needs to manually install some binary files
+than the makefile fragment uses this variable to reference the path
+where the binary file is located.
+@end defvar
+
+@node Scripts, Platform Information, Directory Paths, Common Variables
+@subsection Scripts
+
+@defvar CONFIG_GUESS_SCRIPT
+@code{CONFIG_GUESS_SCRIPT} is the absolute path to the
+@file{config.guess} script within the Makefile Package; this script is
+used to determine host and target platform information.  The Makefile
+Package executes this script to determine the values of the host
+platform variables: @code{GNUSTEP_HOST}, @code{GNUSTEP_HOST_CPU},
+@code{GNUSTEP_HOST_VENDOR}, @code{GNUSTEP_HOST_OS}, and the target
+platform variables: @code{GNUSTEP_TARGET}, @code{GNUSTEP_TARGET_CPU},
+@code{GNUSTEP_TARGET_VENDOR}, @code{GNUSTEP_TARGET_OS}; generally the
+user does not need to execute this script because the Makefile Package
+executes it automatically.
+@end defvar
+
+@defvar CONFIG_SUB_SCRIPT
+@code{CONFIG_SUB_SCRIPT} is the absolute path to the @file{config.sub}
+script within the Makefile Package; this script takes a platform name
+and canonicalizes it, i.e. it puts the name in a standard form.  The
+Makefile Package uses this script when the user specifies a target
+platform for compilation; the target platform name is canonicalized so
+that the Makefile Package can properly parse the name into its
+different components.  Generally the user does not execute this
+script.
+@end defvar
+
+@defvar CONFIG_CPU_SCRIPT
+@code{CONFIG_CPU_SCRIPT} is the absolute path to the @file{cpu.sh}
+script within the Makefile Package; this script extracts the CPU name
+from a canonicalized platform name.  Generally the user does not
+execute this script; it is used internally by the Makefile Package.
+@end defvar
+
+@defvar CONFIG_VENDOR_SCRIPT
+@code{CONFIG_VENDOR_SCRIPT} is the absolute path to the
+@file{vendor.sh} script within the Makefile Package; this script
+extracts the vendor name from a canonicalized platform name.
+Generally the user does not execute this script; it is used internally
+by the Makefile Package.
+@end defvar
+
+@defvar CONFIG_OS_SCRIPT
+@code{CONFIG_OS_SCRIPT} is the absolute path to the @file{os.sh}
+script within the Makefile Package; this script extracts the operating
+system name from a canonicalized platform name.  Generally the user
+does not execute this script; it is used internally by the Makefile
+Package.
+@end defvar
+
+@defvar CLEAN_CPU_SCRIPT
+@code{CLEAN_CPU_SCRIPT} is the absolute path to the
+@file{clean_cpu.sh} script within the Makefile Package; this script
+takes a platform CPU name and @emph{cleans} it for use by the Makefile
+Package.  The process of cleaning refers to the situation where
+numerous equivalent processors, which have different names, are mapped
+to a single name.  For example, the Intel line of processors: i386,
+i486, Pentium, all have different CPU names, but the Makefile Package
+considers them equivalent and cleans those names so that the single
+name @file{ix86} is used.  Generally the user does not execute this
+script; it is used internally by the Makefile Package.
+@end defvar
+
+@defvar CLEAN_VENDOR_SCRIPT
+@code{CLEAN_VENDOR_SCRIPT} is the absolute path to the
+@file{clean_vendor.sh} script within the Makefile Package; this script
+takes a platform vendor name and @emph{cleans} it for use by the
+Makefile Package.  The process of cleaning refers to the situation
+where numerous equivalent vendors, which have different names, are
+mapped to a single name.  Generally the user does not execute this
+script; it is used internally by the Makefile Package.
+@end defvar
+
+@defvar CLEAN_OS_SCRIPT
+@code{CLEAN_OS_SCRIPT} is the absolute path to the @file{clean_os.sh}
+script within the Makefile Package; this script takes a platform
+operating system name and @emph{cleans} it for use by the Makefile
+Package.  The process of cleaning refers to the situation where
+numerous equivalent operating systems, which have different names, are
+mapped to a single name.  Generally the user does not execute this
+script; it is used internally by the Makefile Package.
+@end defvar
+
+@node Platform Information, Library Combination, Scripts, Common Variables
+@subsection Host and Target Platform Information
+
+@defvar GNUSTEP_HOST
+@code{GNUSTEP_HOST} is the canonical host platform name; i.e. the name
+of the platform which is performing compilation of programs.  For
+example, a SPARC machine by Sun Microsystems running the Solaris 2.5.1
+operating system has the name @code{sparc-sun-solaris2.5.1}.
+@end defvar
+
+@defvar GNUSTEP_HOST_CPU
+@code{GNUSTEP_HOST_CPU} is the CPU name for the canonical host
+platform name; i.e. the name of the CPU platform which is performing
+compilation of programs.  The Makefile Package cleans this CPU name
+with the @code{CLEAN_CPU_SCRIPT} script before using it internally.
+For example, the canonical host platform name of
+@code{i586-pc-linux-gnu} has a CPU name of @code{ix86}.
+@end defvar
+
+@defvar GNUSTEP_HOST_VENDOR
+@code{GNUSTEP_HOST_VENDOR} is the vendor name for the canonical host
+platform; i.e. the name of the vendor platform which is performing
+compilation of programs.  The Makefile Package cleans this vendor name
+with the @code{CLEAN_VENDOR_SCRIPT} script before using it internally.
+For example, the canonical host platform name of
+@code{sparc-sun-solaris2.5.1} has a vendor name of @code{sun}.
+@end defvar
+
+@defvar GNUSTEP_HOST_OS
+@code{GNUSTEP_HOST_OS} is the operating system name for the canonical
+host platform; i.e. the name of the operating system platform which is
+performing compilation of programs.  The Makefile Package cleans this
+operating system name with the @code{CLEAN_OS_SCRIPT} script before
+using it internally.  For example, the canonical host platform name of
+@code{i586-pc-linux-gnu} has an operating system name of
+@code{linux-gnu}.
+@end defvar
+
+@defvar GNUSTEP_TARGET
+@code{GNUSTEP_TARGET} is the canonical target platform name;
+i.e. compilation of programs generate object code for this platform.
+By default the target platform is the same as the host platform unless
+the user specifies a different target when running make, see Cross
+Compiling.
+@end defvar
+
+@defvar GNUSTEP_TARGET_CPU
+@code{GNUSTEP_TARGET_CPU} is the CPU name for the canonical target
+platform; i.e. compilation of programs generate object code for this
+CPU platform.  The Makefile Package cleans this operating system name
+with the @code{CLEAN_CPU_SCRIPT} script before using it internally.
+By default the target CPU platform is the same as the host CPU
+platform, @code{GNUSTEP_HOST_CPU}, unless the user specifies a
+different target platform when running make, see Cross Compiling.
+@end defvar
+
+@defvar GNUSTEP_TARGET_VENDOR
+@code{GNUSTEP_TARGET_VENDOR} is the vendor name for the canonical
+target platform; i.e. compilation of programs generate object code for
+this vendor platform.  The Makefile Package cleans this vendor name
+with the @code{CLEAN_VENDOR_SCRIPT} script before using it internally.
+By default the target vendor platform is the same as the host vendor
+platform, @code{GNUSTEP_HOST_VENDOR}, unless the user specifies a
+different target platform when running make, see Cross Compiling.
+@end defvar
+
+@defvar GNUSTEP_TARGET_OS
+@code{GNUSTEP_TARGET_OS} is the operating system name for the
+canonical target platform; i.e. compilation of programs generate
+object code for this operating system platform.  The Makefile Package
+cleans this operating system name with the @code{CLEAN_OS_SCRIPT}
+script before using it internally.  By default the target operating
+system platform is the same as the host operating system platform,
+@code{GNUSTEP_HOST_OS}, unless the user specifies a different target
+platform, see Cross Compiling.
+@end defvar
+
+@node Library Combination, Overridable Flags, Platform Information, Common Variables
+@subsection Library Combination
+
+@defvar OBJC_RUNTIME_LIB
+@code{OBJC_RUNTIME_LIB} is assigned the code that indicates the
+Objective-C Runtime library which compiled Objective-C programs will
+use; the four possible values are: @samp{ng} for the GNUstep Runtime
+with latest language features turned on at acompile time, @samp{gnu}
+for the GNU Runtime (or the GNUstep runtime with traditional
+language features compiled), @samp{nx} for the NeXT Runtime,
+and @samp{sun} for the Sun Microsystems Runtime.
+The Objective-C Runtime library can be changed
+to use a library other than the default with the @samp{library_combo}
+make parameter, see @ref{Running Make} for more details.  Read
+@ref{Library Combination} for more information on how the Makefile
+Package handles different library combinations.  If a makefile must
+perform specific operations dependent upon the Objective-C Runtime
+library then this variable is the one to check.
+@end defvar
+
+@defvar RUNTIME_VERSION
+@code{RUNTIME_VERSION} is set to and allows you to override the Objective-C
+runtime ABI in use by the clang compiler. Generally, gnustep-make will provide
+a sane default for you.Please be aware that mixing different ABIs in the same
+binary is not generally supported. Possible values:
+
+@table @samp
+@item gcc
+This is the classic ABI also implemented by GCC which does not support advanced
+features such as ARC or non-fragile instance variables.
+
+@item gnustep-1.8
+This is the first iteration of the GNUstep Objective-C ABI, which supports the
+advanced features while remaining compatible with the GCC ABI. Requires the
+GNUstep Objective-C runtime (libobjc2) 1.8 or later.
+
+@item gnustep-2.0
+This version breaks compatibility with the older runtime ABIs in order to 
+provide better introspection metadata, reduced memory usage and smaller 
+binaries. Requires the GNUstep Objective-C runtime (libobjc2) 2.0 or later.
+@end table
+@end defvar
+
+@defvar RUNTIME_DEFINE
+@code{RUNTIME_DEFINE} is assigned a preprocessor flag that can be
+passed to the compiler which defines a macro based upon the
+Objective-C Runtime library that compiled Objective-C programs will
+use.  This macro is useful if the compiled program must execute
+different code based upon the Objective-C Runtime being used.  See
+@ref{GNUmakefile.preamble} for an example on how to pass this
+preprocessor flag when compiling.  The four possible values are:
+@samp{-DGNUSTEP_RUNTIME=1} for the GNUstep ObjectiveC-2 Runtime,
+@samp{-DGNU_RUNTIME=1} for the GNU Runtime, @samp{-DNeXT_RUNTIME=1}
+for the NeXT Runtime, and @samp{-DSun_RUNTIME=1} for the Sun
+Microsystems Runtime.
+@end defvar
+
+@defvar FOUNDATION_LIB
+@code{FOUNDATION_LIB} is assigned the code that indicates the
+Foundation Kit library, as specified by the OpenStep specification,
+which compiled Objective-C programs will use; the four possible values
+are: @samp{gnu} for the GNUstep Base Library, @samp{nx} for the NeXT
+Foundation Kit Library, @samp{sun} for the Sun Microsystems Foundation
+Kit Library, and @samp{fd} for the libFoundation Library.  The
+Foundation Kit library can be changed to use a library other than the
+default with the @samp{library_combo} make parameter, see @ref{Running
+Make} for more details.  Read @ref{Library Combination} for more
+information on how the Makefile Package handles different library
+combinations.  If a makefile must perform specific operations
+dependent upon the Foundation Kit library then this variable is the
+one to check.
+@end defvar
+
+@defvar FND_DEFINE
+@code{FND_DEFINE} is assigned a preprocessor flag that can be passed
+to the compiler which defines a macro based upon the Foundation Kit
+library, as specified by the OpenStep specification, which compiled
+Objective-C programs will use.  This macro is useful if the compiled
+program must execute different code based upon the Foundation Kit
+library being used.  See @ref{GNUmakefile.preamble} for an example on
+how to pass this preprocessor flag when compiling.  The four possible
+values are: @samp{-DGNUSTEP_BASE_LIBRARY=1} for the GNUstep Base
+Library, @samp{-DNeXT_Foundation_LIBRARY=1} for the NeXT Foundation
+Kit Library, @samp{-DSun_Foundation_LIBRARY=1} for the Sun
+Microsystems Foundation Kit Library, and
+@samp{-DLIB_FOUNDATION_LIBRARY=1} for the libFoundation Library.
+@end defvar
+
+@defvar GUI_LIB
+@code{GUI_LIB} is assigned the code that indicates the Application Kit
+library, as specified by the OpenStep specification, which compiled
+Objective-C programs will use; the two possible values are: @samp{gnu}
+for the GNUstep GUI Library and @samp{nx} for the NeXT Application Kit
+Library.  The Application Kit library can be changed to use a library
+other than the default with the @samp{library_combo} make parameter,
+see @ref{Running Make} for more details.  Read @ref{Library
+Combination} for more information on how the Makefile Package handles
+different library combinations.  If a makefile must perform specific
+operations dependent upon the Application Kit library then this
+variable is the one to check.
+@end defvar
+
+@defvar GUI_DEFINE
+@code{GUI_DEFINE} is assigned a preprocessor flag that can be passed
+to the compiler which defines a macro based upon the Application Kit
+library, as specified by the OpenStep specification, which compiled
+Objective-C programs will use.  This macro is useful if the compiled
+program must execute different code based upon the Application Kit
+library being used.  See @ref{GNUmakefile.preamble} for an example on
+how to pass this preprocessor flag when compiling.  The two possible
+values are: @samp{-DGNUSTEP_GUI_LIBRARY=1} for the GNUstep GUI Library
+and @samp{-DNeXT_Application_LIBRARY=1} for the NeXT Application Kit
+Library.
+@end defvar
+
+@defvar GUI_BACKEND_LIB
+@code{GUI_BACKEND_LIB} is assigned the code that indicates the backend
+library which compiled Objective-C programs will use in conjunction
+with the GNUstep GUI Library.  The three possible values are:
+@samp{xdps} for the GNUstep X/DPS GUI Backend Library, @samp{nsx} for
+the NSKit GUI Backend Library, and @samp{w32} for the MediaBook WIN32
+GUI Backend Library.  @code{GUI_BACKEND_LIB} is only relevant when
+@code{GUI_LIB} is set to @samp{gnu}; otherwise, @code{GUI_BACKEND_LIB}
+will be set to @samp{nil} to indicate that there is no backend
+library.  @code{GUI_BACKEND_LIB} can be changed to use a library other
+than the default with the @samp{library_combo} make parameter, see
+@ref{Running Make} for more details.  Read @ref{Library Combination}
+for more information on how the Makefile Package handles different
+library combinations.  If a makefile must perform specific operations
+dependent upon the backend library then this variable is the one to
+check.
+@end defvar
+
+@defvar GUI_BACKEND_DEFINE
+@code{GUI_BACKEND_DEFINE} is assigned a preprocessor flag that can be
+passed to the compiler which defines a macro based upon the backend
+library which compiled Objective-C programs will use in conjunction
+with the GNUstep GUI Library.  This macro is useful if the compiled
+program must execute different code based upon the backend library
+being used.  See @ref{GNUmakefile.preamble} for an example on how to
+pass this preprocessor flag when compiling.  The three possible values
+are: @samp{-DXDPS_BACKEND_LIBRARY=1} for the GNUstep X/DPS GUI Backend
+Library, @samp{-DNSX_BACKEND_LIBRARY=1} for the NSKit GUI Backend
+Library, and @samp{-DW32_BACKEND_LIBRARY=1} for the MediaBook WIN32
+GUI Backend Library.  @code{GUI_BACKEND_DEFINE} is not defined if
+there is not backend library; i.e. @code{GUI_BACKEND_LIB} is
+@samp{nil}.
+@end defvar
+
+@node Overridable Flags,  , Library Combination, Common Variables
+@subsection Overridable Flags
+
+@defvar OBJCFLAGS
+@code{OBJCFLAGS} are flags that are passed to the compiler when
+compiling Objective-C files.  The user can override this variable when
+running make and specify different flags as the following command
+illustrates:
+@end defvar
+
+@smallexample
+make OBJCFLAGS="-Wno-implicit -Wno-protocol"
+@end smallexample
+
+@defvar CFLAGS
+@code{CFLAGS} are flags that are passed to the compiler when compiling
+C files.  The user can override this variable when running make and
+specify different flags as the following command illustrates:
+@end defvar
+
+@smallexample
+make CFLAGS="-Wall"
+@end smallexample
+
+@defvar OPTFLAG
+@code{OPTFLAG} is the flag used to indicate the optimization level
+that the compiler should perform when compiling Objective-C and C
+files; this flag is set to @samp{-O2} by default, but the user can
+override this setting when running make as the following command
+illustrates:
+@end defvar
+
+@smallexample
+make OPTFLAG=
+@end smallexample
+
+This command sets the optimization flag to be empty so that no
+optimization will be performed by the compiler.
+
+@defvar GNUSTEP_INSTALLATION_DOMAIN
+@code{GNUSTEP_INSTALLATION_DOMAIN} is the domain where the package
+will install its files; overriding this variable when running make
+will change all of the variables within the Makefile Package that
+depend upon it; the following command illustrates the use of this
+variable:
+@end defvar
+
+@smallexample
+make GNUSTEP_INSTALLATION_DOMAIN=SYSTEM
+@end smallexample
+
+This command states that the @code{SYSTEM} domain should be used as
+the installation root directory; in particular applications in the
+package will be installed in the @file{$GNUSTEP_SYSTEM_APPS}
+directory, libraries in the package will be installed under the
+@file{$GNUSTEP_SYSTEM_LIBRARIES} directory, command line tools will be
+installed under the @file{$GNUSTEP_SYSTEM_TOOLS} directory, etc.
+Depending on the filesystem layout, the various directories may be
+located anywhere, which is why it's important to also refer to them by
+using variables such as @code{GNUSTEP_APPS}, @code{GNUSTEP_LIBRARIES}
+and @code{GNUSTEP_TOOLS}, which automatically point to the right
+directory on disk for this filesystem layout and installation domain.
+
+By default the Makefile Package sets
+@code{GNUSTEP_INSTALLATION_DOMAIN} to @code{LOCAL}.
+
+@defvar messages
+@code{messages} can be set to @samp{yes} in order to increase the
+verbosity and see all the commands the make is executing.
+@end defvar
+
+@smallexample
+make messages=yes
+@end smallexample
+
+@defvar documentation
+@code{documentation} controls whether the documentation targets in
+a project will be executed. If you don't desire building the
+documentation (which might require a working LaTeX installation, etc.)
+you can set this to @samp{no}. Otherwise the documentation will
+be built.
+@end defvar
+
+@smallexample
+make documentation=no
+@end smallexample
+
+@node Other Variables,  , Common Variables, Top
+@section Other Variables
+
+Since gnustep-make is a system of scripts rather than compiled code,
+all the source is always present and available to read, so the main
+documentation is intentionally provided as comments within that source.
+
+In particular, gnustep-make variables are documented at the head of the
+project-type files in which they are used.
+eg $GNUSTEP_MAKEFILES/Instance/library.make for the variables
+used to build a library.
+
+However, there are some variables which, while not in provided in
+@file{common.make} are of more general use, and therefore may reasonably
+be documented here:
+
+@defvar GS_WITH_ARC
+@code{GS_WITH_ARC} may be set to 1 to turns on ARC for the current build if using the Next Generation runtime setting.  This variable may be defined as an environment variable, or on the make command line, or (usually) in the GNUmakefile.  The library-combo needs to specify the next generation runtime (eg ng-gnu-gnu) for this variable to take effect.  When the ng runtme is used, setting this variable causes the the flags specified in ARC_OBJCFLAGS to be used when compiling any Objective-C source files).  If no value is defined for @code{ARC_OBJCFLAGS} it is assumed to be '-fobjc-arc -fobjc-arc-exceptions' so that code is built with ARC enabled and with support for exceptions (objects are not leaked when an exception occurs).  Alternatively, to switch on ARC for individual files, you can have a makefile fragment like this:
+@end defvar
+@smallexample
+ifeq ($(OBJC_RUNTIME_LIB), ng)
+file1.m_FILE_FLAGS+="-fobjc-arc -fobjc-arc-exceptions"
+file2.m_FILE_FLAGS+="-fobjc-arc -fobjc-arc-exceptions"
+file9.m_FILE_FLAGS+="-fobjc-arc -fobjc-arc-exceptions"
+endif
+@end smallexample
+
+@defvar ARC_CPPFLAGS
+@code{ARC_CPPFLAGS} sets the flags to defien preprocessor values be used when building code for ARC. This variable is used only if ng runtime is used and the @code{GS_WITH_ARC} variable is set to say that ARC is used.
+@end defvar
+
+@defvar ARC_OBJCFLAGS
+@code{ARC_OBJCFLAGS} sets the compiler/linker flags to be used when building code for ARC. This variable is used only if ng runtime is used and the 'GS_WITH_ARC' variable is set to say that ARC is used.  The -fobjc-arc flag enables ARC, but by default ARC_OBJCFLAGS is assumed to be -fobjc-arc -fobjc-arc-exceptions, which adds support for exceptions (reducing performance, but preventing leaked memory when an exception occurs).
+@end defvar
+
+@defvar xxx_FILE_FILTER_OUT_FLAGS
+@code{xxx_FILE_FILTER_OUT_FLAGS} (where xxx is the file name, such as mframe.m)
+is a filter-out make pattern of flags to be filtered out 
+from the compilation flags when compiling xxx.
+In exceptional conditions, you might need to want to use different compiler
+flags for a file (for example, if a file doesn't compile with optimization
+turned on, you might want to compile that single file with optimizations
+turned off).
+@end defvar
+@smallexample
+file.m_FILE_FILTER_OUT_FLAGS = -O% -fomit-frame-pointer
+@end smallexample
+This says that when compiling file.m we should disable optimization flags,
+and also remove frame pointer information.
+
+@defvar xxx_FILE_FLAGS
+@code{xxx_FILE_FLAGS} (where xxx is the file name, such as main.m) 
+add special compilation flags to be used when compiling xxx.
+In exceptional conditions, you might need to want to use different compiler
+flags for a file (for example, if ou want to turn on automated reference
+counting for that file)
+@end defvar
+@smallexample
+file.m_FILE_FLAGS = -fobjc-arc
+@end smallexample
+This says that when compiling file.m we should turn on ARC.
+
+@bye

@@ -1,0 +1,22 @@
+Release: 	1
+Source: 	ftp://ftp.gnustep.org/pub/gnustep/core/%{gs_name}-%{gs_version}.tar.gz
+License: 	LGPL
+Group: 		Development/Libraries
+Summary: 	GNUstep Base library package
+Packager:       GNUstep Development <bug-gnustep@gnu.org>
+Vendor:		The GNUstep Project
+URL:		http://www.gnustep.org/
+Requires:	gnustep-make >= 2.0.0
+
+%description
+The GNUstep Base Library is a powerful fast library of general-purpose,
+non-graphical Objective C classes, inspired by the superb OpenStep API but
+implementing Apple and GNU additions to the API as well.  It includes for
+example classes for unicode strings, arrays, dictionaries, sets, byte
+streams, typed coders, invocations, notifications, notification dispatchers,
+scanners, tasks, files, networking, threading, remote object messaging
+support (distributed objects), event loops, loadable bundles, attributed
+unicode strings, xml, mime, user defaults. This package includes development
+headers too.
+
+#Library combo is %{libcombo}.

@@ -1,0 +1,91 @@
+#
+# FHS (Filesystem Hierarchy Standard) filesystem layout for system installations
+#
+# This is the standard FHS Unix filesystem layout to use when
+# installing into /usr.  Use this if you want GNUstep to blend into
+# your GNU/Linux filesystem (or any other Unix with a similar
+# filesystem) and you are compiling gnustep-make so that it can be
+# shipped as part of a distribution/basic system installation.
+#
+# We put SYSTEM into /usr, and LOCAL into /usr/local.  This allows you
+# to make a distinction between stuff that you ship as part of your
+# system/distribution, and the local stuff installed by the local
+# sysadmin.  Make sure you compile/install all packages that you want
+# to go into /usr (ie, be part of the system/distribution) using 
+# 'make install GNUSTEP_INSTALLATION_DOMAIN=SYSTEM'
+#
+# To get system packages to work in this layout, you need /usr/bin in
+# your PATH, and /usr/lib in your /etc/ld.so.conf (or equivalent for
+# your Unix).  Don't forget to run ldconfig after installing a
+# library!
+#
+# Your users will need to also add /usr/local/bin to PATH and
+# /usr/local/lib to /etc/ld.so.conf (or equivalent for your Unix) if
+# they want to use the LOCAL domain.  To use gnustep-make in this
+# environment, use 'export
+# GNUSTEP_MAKEFILES=/usr/share/GNUstep/Makefiles'
+
+# By default, we install into /usr, but this can be overridden
+# by using ./configure --prefix=xxx when configuring.
+GNUSTEP_DEFAULT_PREFIX=/usr
+
+# These are only used by gnustep-base to implement the NSUserDirectory
+# API.  We never install anything in them.  They will be used as they
+# are without $prefix.
+GNUSTEP_SYSTEM_USERS_DIR=/home
+GNUSTEP_NETWORK_USERS_DIR=/home
+GNUSTEP_LOCAL_USERS_DIR=/home
+
+# NB: $prefix will be added to all the MAKEFILES/SYSTEM/NETWORK/LOCAL
+# paths.
+GNUSTEP_MAKEFILES=/share/GNUstep/Makefiles
+
+GNUSTEP_SYSTEM_APPS=/lib/GNUstep/Applications
+GNUSTEP_SYSTEM_ADMIN_APPS=/lib/GNUstep/Applications
+GNUSTEP_SYSTEM_WEB_APPS=/lib/GNUstep/WebApplications
+GNUSTEP_SYSTEM_TOOLS=/bin
+GNUSTEP_SYSTEM_ADMIN_TOOLS=/sbin
+GNUSTEP_SYSTEM_LIBRARY=/lib/GNUstep
+GNUSTEP_SYSTEM_HEADERS=/include
+GNUSTEP_SYSTEM_LIBRARIES=/lib
+GNUSTEP_SYSTEM_DOC=/share/GNUstep/Documentation
+GNUSTEP_SYSTEM_DOC_MAN=/share/man
+GNUSTEP_SYSTEM_DOC_INFO=/share/info
+
+GNUSTEP_NETWORK_APPS=/local/lib/GNUstep/Applications
+GNUSTEP_NETWORK_ADMIN_APPS=/local/lib/GNUstep/Applications
+GNUSTEP_NETWORK_WEB_APPS=/lib/GNUstep/WebApplications
+GNUSTEP_NETWORK_TOOLS=/local/bin
+GNUSTEP_NETWORK_ADMIN_TOOLS=/local/sbin
+GNUSTEP_NETWORK_LIBRARY=/local/lib/GNUstep
+GNUSTEP_NETWORK_HEADERS=/local/include
+GNUSTEP_NETWORK_LIBRARIES=/local/lib
+GNUSTEP_NETWORK_DOC=/local/share/GNUstep/Documentation
+GNUSTEP_NETWORK_DOC_MAN=/local/share/man
+GNUSTEP_NETWORK_DOC_INFO=/local/share/info
+
+GNUSTEP_LOCAL_APPS=/local/lib/GNUstep/Applications
+GNUSTEP_LOCAL_ADMIN_APPS=/local/lib/GNUstep/Applications
+GNUSTEP_LOCAL_WEB_APPS=/local/lib/GNUstep/WebApplications
+GNUSTEP_LOCAL_TOOLS=/local/bin
+GNUSTEP_LOCAL_ADMIN_TOOLS=/local/sbin
+GNUSTEP_LOCAL_LIBRARY=/local/lib/GNUstep
+GNUSTEP_LOCAL_HEADERS=/local/include
+GNUSTEP_LOCAL_LIBRARIES=/local/lib
+GNUSTEP_LOCAL_DOC=/local/share/GNUstep/Documentation
+GNUSTEP_LOCAL_DOC_MAN=/local/share/man
+GNUSTEP_LOCAL_DOC_INFO=/local/share/info
+
+GNUSTEP_USER_DIR_APPS=GNUstep/Applications
+GNUSTEP_USER_DIR_ADMIN_APPS=GNUstep/Applications/Admin
+GNUSTEP_USER_DIR_WEB_APPS=GNUstep/WebApplications
+GNUSTEP_USER_DIR_TOOLS=GNUstep/Tools
+GNUSTEP_USER_DIR_ADMIN_TOOLS=GNUstep/Tools/Admin
+GNUSTEP_USER_DIR_LIBRARY=GNUstep/Library
+GNUSTEP_USER_DIR_HEADERS=GNUstep/Library/Headers
+GNUSTEP_USER_DIR_LIBRARIES=GNUstep/Library/Libraries
+GNUSTEP_USER_DIR_DOC=GNUstep/Library/Documentation
+GNUSTEP_USER_DIR_DOC_MAN=GNUstep/Library/Documentation/man
+GNUSTEP_USER_DIR_DOC_INFO=GNUstep/Library/Documentation/info
+GNUSTEP_USER_CONFIG_FILE=.GNUstep.conf
+GNUSTEP_USER_DEFAULTS_DIR=GNUstep/Defaults

@@ -1,0 +1,110 @@
+#
+#   config.site
+#
+#   GNUstep site configuration.  This allows Autoconf packages to
+#   be installed within the GNUstep directory structure.
+#
+#   Copyright (C) 1997 Free Software Foundation, Inc.
+#
+#   Author:  Scott Christley <scottc@net-community.com>
+#
+#   This file is part of the GNUstep Makefile Package.
+#
+#   This library is free software; you can redistribute it and/or
+#   modify it under the terms of the GNU General Public License
+#   as published by the Free Software Foundation; either version 3
+#   of the License, or (at your option) any later version.
+#   
+#   You should have received a copy of the GNU General Public
+#   License along with this library; see the file COPYING.
+#   If not, write to the Free Software Foundation,
+#   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+
+echo Processing GNUstep site configuration
+
+# Determine the target
+if test -z "$target" -o "$target" = NONE; then
+   # The user did not specify one so the target is the host
+   GNUSTEP_TARGET=$GNUSTEP_HOST
+   GNUSTEP_TARGET_CPU=$GNUSTEP_HOST_CPU
+   GNUSTEP_TARGET_VENDOR=$GNUSTEP_HOST_VENDOR
+   GNUSTEP_TARGET_OS=$GNUSTEP_HOST_OS
+else
+   # The user did specify a target, so canonicalize and clean
+   GNUSTEP_TARGET=`$GNUSTEP_MAKEFILES/config.sub $target`
+   GNUSTEP_TARGET_CPU=`$GNUSTEP_MAKEFILES/cpu.sh $GNUSTEP_TARGET`
+   GNUSTEP_TARGET_VENDOR=`$GNUSTEP_MAKEFILES/vendor.sh $GNUSTEP_TARGET`
+   GNUSTEP_TARGET_OS=`$GNUSTEP_MAKEFILES/os.sh $GNUSTEP_TARGET`
+fi
+
+# Clean the target
+GNUSTEP_TARGET_OS=`$GNUSTEP_MAKEFILES/clean_os.sh $GNUSTEP_TARGET_OS`
+GNUSTEP_TARGET_VENDOR=`$GNUSTEP_MAKEFILES/clean_vendor.sh $GNUSTEP_TARGET_VENDOR`
+GNUSTEP_TARGET_CPU=`$GNUSTEP_MAKEFILES/clean_cpu.sh $GNUSTEP_TARGET_CPU`
+
+# Set the installation prefix
+if test "$prefix" = NONE ; then
+   prefix="${GNUSTEP_SYSTEM_ROOT}"
+fi
+
+# Change the binary directory default
+if test "$bindir" = "\${exec_prefix}/bin" ; then
+   if [ "$GNUSTEP_IS_FLATTENED" = "no" ]; then
+     bindir="\${exec_prefix}/Tools/${GNUSTEP_HOST_CPU}/${GNUSTEP_HOST_OS}"
+   else
+     bindir="\${exec_prefix}/Tools"
+   fi
+   bindirtop="\${exec_prefix}/Tools"
+fi
+if test "$DIR_BIN" = "/usr/local/bin" ; then
+   if [ "$GNUSTEP_IS_FLATTENED" = "no" ]; then
+     DIR_BIN="\${prefix}/Tools/${GNUSTEP_HOST_CPU}/${GNUSTEP_HOST_OS}"
+   else
+     DIR_BIN="\${exec_prefix}/Tools"
+   fi
+   bindirtop="\${exec_prefix}/Tools"
+fi
+
+# xxx What about sbin?
+# xxx What about libexec?
+
+# Change the data directory default
+if test "$datadir" = "\${prefix}/share" ; then
+   datadir="\${prefix}/Library/Libraries/share"
+fi
+
+# xxx What about sysconfdir?
+# xxx What about sharedstatedir?
+# xxx What about localstatedir?
+
+# Change the library directory default
+if test "$libdir" = "\${exec_prefix}/lib" ; then
+  if [ "$GNUSTEP_IS_FLATTENED" = "no" ]; then
+     libdir="\${exec_prefix}/Library/Libraries/${GNUSTEP_TARGET_CPU}/${GNUSTEP_TARGET_OS}"
+  else
+     libdir="\${exec_prefix}/Library/Libraries"
+  fi
+fi
+
+# Change the include directory default
+if test "$includedir" = "\${prefix}/include" ; then
+  if [ "$GNUSTEP_IS_FLATTENED" = "no" ]; then
+   includedir="\${prefix}/Library/Headers/${LIBRARY_COMBO}"
+  else
+   includedir="\${prefix}/Library/Headers"
+  fi
+fi
+
+# xxx What about oldincludedir?
+
+# Change the info directory default
+if test "$infodir" = "\${prefix}/info" ; then
+   infodir="\${prefix}/Library/Documentation/info"
+fi
+
+# Change the man directory default
+if test "$mandir" = "\${prefix}/man" ; then
+   mandir="\${prefix}/Library/Documentation/man"
+fi
+

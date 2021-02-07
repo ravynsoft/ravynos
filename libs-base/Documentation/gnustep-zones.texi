@@ -1,0 +1,630 @@
+\input texinfo  @c -*- texinfo -*-
+@c %**start of header
+@setfilename gnustep-zones.info
+@settitle Memory Management in GNUstep
+@c %**end of header
+
+@ifinfo
+@format
+* GNUstep Zones: (gnustep-zones).       Memory management in GNUstep.
+@end format
+@end ifinfo
+
+
+@ifinfo
+This explains how to use dynamic memory allocation with the GNUstep base
+library.
+
+Copyright (C) 1997 Yoo C. Chung and Free Software Foundation, Inc.
+
+Permission is granted to make and distribute verbatim copies of this
+manual provided the copyright notice and this permission notice are
+preserved on all copies.
+
+@ignore
+Permission is granted to process this file through @TeX{} and print the
+results, provided the printed document carries copying permission notice
+identical to this one except for the removal of this paragraph (this
+paragraph not being relevant to the printed manual).
+@end ignore
+
+Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided also that the
+entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+
+Permission is granted to copy and distribute translations of this manual
+into another language, under the above conditions for modified versions.
+@end ifinfo
+
+
+@titlepage
+@title Memory Management in GNUstep
+@author Yoo C. Chung (wacko@@power1.snu.ac.kr)
+@page
+@vskip 0pt plus 1filll
+Copyright @copyright{} 1997 Yoo C. Chung and Free Software Foundation, Inc.
+
+
+Permission is granted to make and distribute verbatim copies of this
+manual provided the copyright notice and this permission notice are
+preserved on all copies.
+
+Permission is granted to copy and distribute modified versions of this
+manual under the conditions for verbatim copying, provided also that the
+entire resulting derived work is distributed under the terms of a
+permission notice identical to this one.
+
+Permission is granted to copy and distribute translations of this manual
+into another language, under the above conditions for modified versions.
+@end titlepage
+
+
+@c important TODO: Need examples!
+
+
+@ifinfo
+@node Top, Memory Management, (dir), (dir)
+@comment  node-name,  next,  previous,  up
+@top Memory Management in GNUstep
+
+This explains how to use dynamic memory allocation when using the
+GNUstep Base Library.
+@end ifinfo
+
+
+@menu
+* Memory Management::           Dynamically allocating memory.
+* Concept Index::               Index of concepts.
+* Function Index::              Index of functions.
+* Data Type Index::             Index of data types.
+@end menu
+
+
+@node Memory Management, Concept Index, Top, Top
+@comment  node-name,  next,  previous,  up
+@chapter Memory Management
+@cindex Memory management
+
+GNUstep uses zones for dynamic memory allocation.
+
+@menu
+* Memory Management Concepts::  An introduction to concepts and terminology.
+* Introduction to Zones::       What are zones?
+* Creating Zones::              How to create zones.
+* Allocating Memory::           How to get memory from zones.
+* Resizing Memory::             How to resize memory within zones.
+* Freeing Memory::              Save memory by freeing unused memory.
+* Finding Zones::               Finding the zone that contains a chunk.
+* Recycling Zones::             When you don't need a zone anymore.
+* Naming Zones::                Zones have names.
+* Zone Customization::          Custom zones are possible.
+* Zone Consistency Checking::   Checking for errors.
+* Zone Statistics::             Obtaining statistics about a zone.
+* Zone Function Summary::       Summary of zone functions and structures.
+@end menu
+
+
+@node Memory Management Concepts, Introduction to Zones, Memory Management, Memory Management
+@comment  node-name,  next,  previous,  up
+@section Memory Management Concepts
+@cindex Memory management concepts
+
+A program does not always know how much memory it needs for its data (in
+fact, this is the case in most programs).  One might statically allocate
+(this means that the amount of memory is determined at compile time)
+memory with some large size, but this can be either a huge waste or
+memory might run out.  So memory must be allocated at runtime in these
+cases.  This is called @dfn{dynamic memory allocation}.
+
+Memory returned by a dynamic memory allocator is usually called a
+@dfn{memory block} or a @dfn{memory chunk}.  Here we call them memory
+chunks.
+
+@ignore
+We might give a better introduction here.  But be careful not to give a
+long and boring one.  Keep it simple!  We might also give references to
+books where one can learn more about memory management.
+@end ignore
+
+
+@node Introduction to Zones, Creating Zones, Memory Management Concepts, Memory Management
+@comment  node-name,  next,  previous,  up
+@section Introduction to Zones
+@cindex Zone introduction
+
+Any reasonably complete C library will contain the functions
+@code{malloc} and @code{free}.  One uses these functions for dynamic
+memory allocation in many C programs.  These functions usually use all
+of the memory for potential allocation.  This could result in two memory
+chunks being allocated far from each other in the virtual memory space,
+which could lead to increased paging.
+
+Zones can be used to allocate many related memory chunks close to each
+other.  A @dfn{zone} is an area (actually a set of areas) in memory
+where related chunks of memory can be allocated from.  This might help
+in reducing paging on virtual memory systems.  Each zone can have
+different behavior (@pxref{Zone Customization}).
+
+The GNUstep Base Library uses zones for dynamic memory allocation.  The
+functions that are used to obtain memory chunks from zones are thread
+safe.
+
+@ignore
+Should give a more detailed and more understandable introduction.  Might
+include a little history as well.
+@end ignore
+
+
+@node Creating Zones, Allocating Memory, Introduction to Zones, Memory Management
+@comment  node-name,  next,  previous,  up
+@section Creating Zones
+@cindex Creating zones
+@cindex Default zone
+
+In order to use a zone, it must first be created.  You create zones with
+@code{NSCreateZone}, which is declared in @file{NSZone.h}.
+
+@deftypefun NSZone* NSCreateZone (size_t @var{start}, size_t @var{gran}, BOOL @var{canFree})
+Creates a memory zone which starts with a size of at least @var{start}
+bytes and grows by at least @var{gran} bytes when needed.  If
+@var{canFree} is @code{YES}, then memory chunks allocated in the zone
+can be freed.  If @var{canFree} is @code{NO}, then memory chunks
+allocated in the zone cannot be freed unless the whole zone is recycled,
+nor can they be resized.  A pointer pointing to the newly created zone
+is returned.
+
+If @var{start} is zero, the zone will start out with some default size.
+If @var{gran} is zero, the zone will grow by some default number of
+bytes when the zone needs more memory.
+
+If there isn't enough memory to create the zone, a
+@code{NSMallocException} is raised.
+@end deftypefun
+
+We might want to use a zone that cannot free memory chunks in a
+situation where we need to allocate many chunks of memory and free them
+all at once after using them by recycling the zone (@pxref{Recycling
+Zones}), since a zone that cannot free memory chunks allocates memory
+faster than one that is able to free memory chunks.  This is because a
+zone that cannot free memory chunks has a lot less bookkeeping to worry
+about.
+
+You do not have to explicitly create a zone to dynamically allocate
+memory, since there already exists a default zone.  A pointer to the
+default zone can be obtained with @code{NSDefaultMallocZone}, which is
+also declared in @file{NSZone.h}.
+
+@deftypefun NSZone* NSDefaultMallocZone (void)
+Returns the default memory allocation zone.  The default default zone
+cannot be recycled.
+@end deftypefun
+
+
+@node Allocating Memory, Resizing Memory, Creating Zones, Memory Management
+@comment  node-name,  next,  previous,  up
+@section Allocating Memory Chunks
+@cindex Allocating memory chunks
+
+In order to allocate a memory chunk from a zone, we need to use
+@code{NSZoneMalloc}, which is declared in @file{NSZone.h}.
+
+@deftypefun {void*} NSZoneMalloc (NSZone *@var{zone}, size_t @var{size})
+Allocate @var{size} bytes from the zone pointed to by @var{zone}.  A
+pointer to the allocated memory chunk is returned.
+
+If @var{size} is zero @code{NULL} is returned.  If there is not enough
+memory to allocate @var{size} bytes, a @code{NSMallocException} is
+raised.
+@end deftypefun
+
+The contents of the allocated memory are uninitialized and
+unpredictable.  We can allocate memory filled with zeroes with
+@code{NSZoneCalloc}, which is also declared in @file{NSZone.h}.
+
+@deftypefun void* NSZoneCalloc (NSZone *@var{zone}, size_t @var{elems}, size_t @var{bytes})
+Allocate memory for @var{elems} elements (each of which are @var{bytes}
+bytes) from the zone pointed to by @var{zone}.  The memory chunk is
+initialized with zeroes.
+
+If either @var{elems} or @var{bytes} is zero, NULL is returned.  If
+there is not enough memory for the request, a @code{NSMallocException}
+is raised.
+@end deftypefun
+
+One should not depend on @code{NSZoneMalloc} and @code{NSZoneCalloc}
+returning @code{NULL} when the request size is zero.  It's bad style,
+not to mention that this might change in the future, or might behave
+differently on custom zones (@pxref{Zone Customization}).
+
+The zone containing a memory chunk allocated by @code{NSZoneMalloc} or
+@code{NSZoneCalloc} can be found with @code{NSZoneFromPointer}
+(@pxref{Finding Zones}).
+
+
+@node Resizing Memory, Freeing Memory, Allocating Memory, Memory Management
+@comment  node-name,  next,  previous,  up
+@section Resizing Memory Chunks
+@cindex Resizing memory chunks
+
+Sometimes one doesn't know how large a memory chunk one might need in
+advance.  For example, if a memory chunk is a buffer for a line from a
+file, then no matter how large the buffer is, there might always be line
+that won't fit into the buffer.
+
+@c The above example was stolen from the libc manual.
+
+One can resize a memory chunk by using @code{NSZoneRealloc}, which is
+declared in @file{NSZone.h}.
+
+@deftypefun void* NSZoneRealloc (NSZone *@var{zone}, void *@var{ptr}, size_t @var{size})
+Resizes the memory chunk pointed to by @var{ptr} to @var{size} bytes.
+If the memory chunk needs to be relocated, then the original contents
+will be copied to the new location.  @var{ptr} may be @code{NULL}, in
+which case a new memory chunk will be allocated from the zone.  The
+pointer to the resized memory chunk is returned.
+
+If @var{size} is zero, the memory chunk pointed to by @var{ptr} is
+freed.  If there is not enough memory to resize the chunk, a
+@code{NSMallocException} is raised.
+@end deftypefun
+
+One shouldn't depend on @code{NSZoneRealloc} freeing the pointer with a
+size argument of zero or allocating a new chunk with a pointer argument
+of @code{NULL}, because it's bad style (in my humble opinion).
+
+
+@node Freeing Memory, Finding Zones, Resizing Memory, Memory Management
+@comment  node-name,  next,  previous,  up
+@section Freeing Memory Chunks
+@cindex Freeing memory chunks
+
+A memory chunk may no longer be needed after it is used.  Then it would
+be better to free the memory chunk so it can be reused for other memory
+allocation requests.  A memory chunk can be freed with
+@code{NSZoneFree}, which is declared in @file{NSZone.h}.
+
+@deftypefun void NSZoneFree (NSZone *@var{zone}, void *@var{ptr})
+This frees the allocated memory chunk that @var{ptr} points at.  The
+memory chunk must have been allocated from the zone pointed to by
+@var{zone}.
+@end deftypefun
+
+Note that unlike the C library function @code{free}, calling
+@code{NSZoneFree} with a pointer argument of @code{NULL} is an error.
+
+
+@node Finding Zones, Recycling Zones, Freeing Memory, Memory Management
+@comment  node-name,  next,  previous,  up
+@section Finding Zones Containing a Memory Chunk
+@cindex Finding zones
+
+Sometimes one might need to find out the zone that contains a memory
+chunk.  For example, objects derived from @code{NSObject} usually need
+to find out the zone it resides in to deallocate itself.  One can find
+the zone with @code{NSZoneFromPointer}, which is declared in
+@file{NSZone.h}.
+
+@deftypefun NSZone* NSZoneFromPointer (void *@var{ptr})
+Finds the zone that contains the memory chunk pointed to by @var{ptr}
+and returns a pointer to it.  @var{ptr} must be a pointer returned by
+@code{NSZoneMalloc} or @code{NSZoneRealloc}.
+@end deftypefun
+
+@code{NSZoneFromPointer} takes a constant amount of time regardless of
+how many zones or memory chunks there are, so it would save space to use
+@code{NSZoneFromPointer} instead of saving the zone separately.
+
+
+@node Recycling Zones, Naming Zones, Finding Zones, Memory Management
+@comment  node-name,  next,  previous,  up
+@section Recycling Zones
+@cindex Recycling zones
+
+A zone can become useless after a while.  Then it would be better to
+recycle the zone to save memory.  This can be done with
+@code{NSRecycleZone}, which is declared in @file{NSZone.h}.
+
+@deftypefun void NSRecycleZone (NSZone *@var{zone})
+This function recycles the zone.  All memory in the zone will be
+reclaimed.
+@end deftypefun
+
+Note that when a zone in GNUstep are recycled, all memory in the zone
+will be recycled, unlike zones in the Foundation Kit of OpenStep, where
+zones that can free memory return live objects to the default zone.
+
+
+@node Naming Zones, Zone Customization, Recycling Zones, Memory Management
+@comment  node-name,  next,  previous,  up
+@section Naming Zones
+@cindex Naming zones
+@cindex Zone names
+
+Memory allocation zones can be named.  You might want to do this as a
+debugging aid.  You can set the name of a zone with @code{NSSetZoneName}
+and obtain the name of a zone with @code{NSZoneName}, which are declared
+in @file{NSZone.h}.
+
+@deftypefun void NSSetZoneName (NSZone *@var{zone}, NSString *@var{name})
+This sets a name for the zone pointed to by @var{zone}.  If @var{name}
+is @code{nil}, the name of the zone will be unset if there was a name
+previously set.  Otherwise a copy will be made of @var{name} in the
+default zone, and the name of the zone will be set to the copy.
+@end deftypefun
+
+@deftypefun NSString* NSZoneName (NSZone *@var{zone})
+Returns the name for the zone pointed to by @var{zone}.  Don't release
+it unless you have retained it.
+@end deftypefun
+
+
+@node Zone Customization, Zone Consistency Checking, Naming Zones, Memory Management
+@comment  node-name,  next,  previous,  up
+@section Customization
+@cindex Customizing zones
+
+The behavior of memory allocation zones can be customized in GNUstep,
+unlike zones with the Foundation Kit of OpenStep, which has a fixed
+default zone and only two kinds of zones possible.
+
+@menu
+* Setting Default Zone::        The default zone can be changed.
+* Creating Custom Zones::       Zones with customized behavior can be created.
+@end menu
+
+
+@node Setting Default Zone, Creating Custom Zones, Zone Customization, Zone Customization
+@comment  node-name,  next,  previous,  up
+@subsection Setting the Default Zone
+@cindex Setting default zone
+
+Initially there is a default default zone.  But the performance of the
+default allocator might not be satisfactory for a program.  In such
+cases, you may want to change the default zone to a zone that has more
+satisfactory performance.  You can do this with
+@code{NSSetDefaultMallocZone}, which is declared in @file{NSZone.h}.
+
+@deftypefun void NSSetDefaultMallocZone (NSZone *@var{zone})
+This sets the default memory allocation zone to the zone pointed to by
+@var{zone}.
+@end deftypefun
+
+You shouldn't change the default zone unless you know what you're doing.
+
+Note that @code{NSSetDefaultMallocZone} is not defined by OpenStep.
+
+
+@node Creating Custom Zones,  , Setting Default Zone, Zone Customization
+@comment  node-name,  next,  previous,  up
+@subsection Creating Custom Zones
+@cindex Creating a custom zone
+@tindex struct _NSZone
+
+A zone with a custom behavior and implementation can be created.  For
+example, all memory chunks allocated within a zone may have the same
+size, in which case a much more simpler allocator than the default one
+can be used.
+
+A custom zone can be created by appropriately setting the members of the
+structure @code{NSZone} (actually this is a typedef to @code{struct
+_NSZone}), which is declared in @file{NSZone.h}.
+
+@deftp {Data Type} NSZone
+This is actually a typedef to @code{struct _NSZone}.  This structure
+contains the following members, all of which must be set to be properly
+used as a zone.
+
+@table @code
+
+@item void *(*malloc)(NSZone *@var{zone}, size_t @var{size})
+This is a pointer to the function that allocates @var{size} bytes from
+the zone pointed to by @var{zone}.  (@pxref{Allocating Memory})
+
+@item void *(*realloc)(NSZone *@var{zone}, void *@var{ptr}, size_t @var{size})
+This is a pointer to the function that resizes the memory chunk pointed
+to by @var{ptr}, which was allocated from the zone pointed to by
+@var{zone}, to @var{size} bytes.  (@pxref{Resizing Memory})
+
+@item void (*free)(NSZone *@var{zone}, void *@var{ptr})
+This is a pointer to the function that returns the memory chunk pointed
+to be @var{ptr} to the zone pointed to by @var{zone}.  (@pxref{Freeing
+Memory})
+
+@item void (*recycle)(NSZone *@var{zone})
+This is a pointer to the function that recycles the zone pointed to by
+@var{zone}.  (@pxref{Recycling Zones})
+
+@item BOOL (*check)(NSZone *@var{zone})
+This is a pointer to the function that checks the integrity of the zone
+that is pointed to by @var{zone}.  (@pxref{Zone Consistency Checking})
+
+@item struct NSZoneStats (*stats)(NSZone *@var{zone})
+This is a pointer to the function that returns statistics about the zone
+pointed to by @var{zone}.  (@pxref{Zone Statistics})
+
+@item size_t gran
+This holds the granularity of the zone.  (@pxref{Creating Zones})
+
+@item NSString *name
+This points to the name of the zone.  (@pxref{Naming Zones})
+
+@end table
+
+@end deftp
+
+To create the functions that a zone uses, you'll probably have to use
+@code{NSZoneRegisterChunk} and @code{NSZoneChunkOverhead}, which are
+also declared in @file{NSZone.h}.
+
+@deftypefun void* NSZoneRegisterChunk (NSZone *@var{zone}, void *@var{chunk})
+This registers the memory chunk pointed to by @var{chunk} so that
+@code{NSZoneFromPointer} will work (@pxref{Finding Zones}).  A pointer
+to the beginning of the memory that should actually be returned to the
+user is returned.
+@end deftypefun
+
+@deftypefun size_t NSZoneChunkOverhead (void)
+This returns the overhead that is needed for @code{NSZoneFromPointer}
+(@pxref{Finding Zones}) to work in bytes.
+@end deftypefun
+
+Creating a custom zone could be an error prone process, so don't use
+them unless you know what you're doing (and willing to go through a
+potentially long debugging process).
+
+Note that @code{NSZoneRegisterChunk} and @code{NSZoneChunkOverhead} are
+not defined in OpenStep.
+
+
+@node Zone Consistency Checking, Zone Statistics, Zone Customization, Memory Management
+@comment  node-name,  next,  previous,  up
+@section Zone Consistency Checking
+@cindex Checking consistency of a zone
+
+You can check the integrity of a zone by using @code{NSZoneCheck}, which
+is declared in @file{NSZone.h}.
+
+@deftypefun BOOL NSZoneCheck (NSZone *@var{zone})
+Checks the integrity of the zone pointed to by @var{zone}.  Returns
+@code{YES} if there are no errors, returns @code{NO} otherwise.
+@end deftypefun
+
+Note that @code{NSZoneCheck} is not defined in OpenStep.
+
+
+@node Zone Statistics, Zone Function Summary, Zone Consistency Checking, Memory Management
+@comment  node-name,  next,  previous,  up
+@section Zone Statistics
+@cindex Zone statistics
+
+You can obtain statistics about a zone with @code{NSZoneStats} which
+returns the statistics in a @code{struct NSZoneStats}.  These are
+declared in @file{NSZone.h}.
+
+@deftp {Data Type} {struct NSZoneStats}
+
+This structure type is used to return statistics about a zone, and has
+the following members:
+
+@table @code
+
+@item size_t bytes_total
+This is the total size of memory managed by the zone, in bytes.
+
+@item size_t chunks_used
+This is the number of memory chunks in use in the zone.
+
+@item size_t bytes_used
+This is the number of bytes in use.
+
+@item size_t chunks_free
+This is the number of memory chunks that are not in use.
+
+@item size_t bytes_free
+This is the number of bytes managed by the zone that are not in use.
+
+@end table
+
+@end deftp
+
+@deftypefun {struct NSZoneStats} NSZoneStats (NSZone *@var{zone})
+This returns statistics about the zone pointed to by @var{zone} in a
+structure of type @code{struct NSZoneStats}.
+@end deftypefun
+
+Note that @code{NSZoneStats} (and obviously @code{struct NSZoneStats})
+is not defined in OpenStep.
+
+
+@node Zone Function Summary,  , Zone Statistics, Memory Management
+@comment  node-name,  next,  previous,  up
+@section Summary
+
+Here is a summary of the functions and data types that work with memory
+allocation zones, which are all declared in @file{NSZone.h}:
+
+@table @code
+
+@item NSZone* NSCreateZone (size_t @var{start}, size_t @var{gran}, BOOL @var{canFree})
+Creates a zone.  (@pxref{Creating Zones})
+
+@item NSZone* NSDefaultMallocZone (void)
+Returns the default zone.  (@pxref{Creating Zones})
+
+@item void* NSZoneMalloc (NSZone *@var{zone}, size_t @var{size})
+Allocates memory from a zone.  (@pxref{Allocating Memory})
+
+@item void* NSZoneCalloc (NSZone *@var{zone}, size_t @var{elems}, size_t @var{bytes})
+Allocates memory initialized with zeroes from a zone.
+(@pxref{Allocating Memory})
+
+@item void* NSZoneRealloc (NSZone *@var{zone}, void *@var{ptr}, size_t @var{size})
+Resizes a memory chunk that had been allocated from a zone.
+(@pxref{Resizing Memory})
+
+@item void NSZoneFree (NSZone *@var{zone}, void *@var{ptr})
+Returns a memory chunk to the zone.  (@pxref{Freeing Memory})
+
+@item NSZone* NSZoneFromPointer (void *@var{ptr})
+Finds the zone that contains a memory chunk.  (@pxref{Finding Zones})
+
+@item void NSRecycleZone (NSZone *@var{zone})
+Recycles a zone.  (@pxref{Recycling Zones})
+
+@item void NSSetZoneName (NSZone *@var{zone}, NSString *@var{name})
+Sets a name for a zone.  (@pxref{Naming Zones})
+
+@item NSString* NSZoneName (NSZone *@var{zone})
+Returns the name for a zone.  (@pxref{Naming Zones})
+
+@item void NSSetDefaultMallocZone (NSZone *@var{zone})
+Set the default zone.  (@pxref{Setting Default Zone})
+
+@item void* NSZoneRegisterChunk (NSZone *@var{zone}, void *@var{chunk})
+Function used in custom zones to register a memory chunk.
+(@pxref{Creating Custom Zones})
+
+@item void* NSZoneChunkOverhead (void)
+Function used in custom zones to find overhead for each memory chunk.
+(@pxref{Creating Custom Zones})
+
+@item BOOL NSZoneCheck (NSZone *@var{zone})
+Checks the integrity of a zone.  (@pxref{Zone Consistency Checking})
+
+@item struct NSZoneStats NSZoneStats (NSZone *@var{zone})
+Returns statistics about a zone.  (@pxref{Zone Statistics})
+
+@item NSZone
+Typedef to @code{struct _NSZone}, which is a structure type that
+actually holds the zone.  (@pxref{Creating Custom Zones})
+
+@item struct NSZoneStats
+Structure type used to return statistics about a zone.  (@pxref{Zone
+Statistics})
+
+@end table
+
+
+@node Concept Index, Function Index, Memory Management, Top
+@comment  node-name,  next,  previous,  up
+@unnumbered Concept Index
+
+@printindex cp
+
+
+@node Function Index, Data Type Index, Concept Index, Top
+@comment  node-name,  next,  previous,  up
+@unnumbered Function Index
+
+@printindex fn
+
+
+@node Data Type Index,  , Function Index, Top
+@comment  node-name,  next,  previous,  up
+@unnumbered Data Type Index
+
+@printindex tp
+
+
+@bye

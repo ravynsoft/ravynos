@@ -1,0 +1,50 @@
+#
+#   GNUmakefile.preamble
+#
+#   Project specific makefile variables, and additional
+#
+#   Do not put any GNUmakefile rules in this file, instead they should
+#   be put into GNUmakefile.postamble.
+#
+
+#
+# Flags dealing with compiling and linking
+#
+
+# Additional flags to pass to the preprocessor
+ADDITIONAL_CPPFLAGS += 
+
+# Additional flags to pass to the Objective-C compiler
+ADDITIONAL_OBJCFLAGS += 
+
+# Additional flags to pass to the C compiler
+ADDITIONAL_CFLAGS += 
+
+# Additional LDFLAGS to pass to the linker
+ADDITIONAL_LDFLAGS += 
+
+# Additional include directories the compiler should search
+ADDITIONAL_INCLUDE_DIRS +=
+
+# Additional library directories the linker should search
+ADDITIONAL_LIB_DIRS += 
+
+# Additional libraries when linking Objective-C programs
+ADDITIONAL_OBJC_LIBS +=
+
+# Additional libraries when linking tools
+ADDITIONAL_TOOL_LIBS +=
+
+# Additional libraries when linking applications
+ADDITIONAL_GUI_LIBS +=
+
+# Libraries that a shared library depends upon
+LIBRARIES_DEPEND_UPON +=
+
+#
+# Flags dealing with installing and uninstalling
+#
+
+# Additional directories to be created during installation
+ADDITIONAL_INSTALL_DIRS +=
+

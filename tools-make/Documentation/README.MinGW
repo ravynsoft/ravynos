@@ -1,0 +1,769 @@
+Date:	28-Feb-2007
+Update: 19-Feb-2015
+Author: Nicola Pero <nicola.pero@meta-innovation.com>
+        after Richard Frith-Macdonald <rfm@gnu.org>,
+	Germán Arias <germanandre@gmx.es> and others.
+
+
+PURPOSE
+-------
+
+This document is intended to provide a step by step instruction on how
+to use GNUstep on recent Windows operating systems.
+
+It will get as far as explaining how to build a GNUstep application
+and create a standalone version that can be shipped standalone to
+Windows end users.
+
+The recommended way to get GNUstep working on Windows is to use MinGW
+and MSYS to get a Unix-like environment where you can easily build
+your GNUstep software (this is what is described in this file).
+
+Software built in the MinGW/MSYS environment is native Windows
+software that you can then run without having to rely on the environment
+you used to build.
+
+So, this document is divided in two parts.
+
+In the first part ("STEP BY STEP INSTALLATION INSTRUCTIONS"), we will
+describe how to get MinGW/MSYS up and running, and how to build
+GNUstep software in this environment.
+
+In the second part ("HOW TO SHIP YOUR GNUSTEP APPLICATION TO WINDOWS
+USERS"), we'll show an example of how to package (and use) the .exes,
+.dlls and resources (that you can build using the environment
+described in the first part) as Windows standalone binaries.
+
+
+INTRODUCTION TO MINGW
+---------------------
+
+MinGW is a collection of header files and import libraries that allow
+one to use GCC and produce native Windows32 programs that do not rely
+on any 3rd-party DLLs.
+
+MSYS is a very much cut down version of the Cygwin environment ...
+providing a minimal set of tools needed to build programs using
+MingGW.  If you wish to build for MinGW by cross-compiling from a
+Cygwin environment, please read README.Cygwin instead.
+
+
+PRELIMINARIES
+-------------
+
+One way to vastly simplify installing GNUstep, is to use the Windows-based
+GNUstep installer. Get it from:
+
+http://www.gnustep.org/windows/installer.html
+
+If you have already installed this, you can skip to the end and just
+start compiling and packaging applications!  Although you may want to
+read the rest of the instructions for other helpful information.
+
+
+
+A. STEP BY STEP INSTALLATION INSTRUCTIONS
+-----------------------------------------
+
+1. Install MinGW
+================
+
+Download MinGW-Get-Setup.exe from 
+
+ http://sourceforge.net/projects/mingw/files/Installer/
+
+Then start it up. Set the installation path to
+
+C:\xxx\
+
+Where \xxx\ is the top-level path you want to use, I use Nicola/GNUstep so
+I install it into C:\Nicola\GNUstep\. We will refer to this path as MINGWPATH.
+
+
+2. Install necessary packages
+=============================
+
+MinGW create an access on the desktop to the "MinGW installer", a package
+manager you can use to install packages available to MinGW. To build GNUstep
+you will need many packages.
+
+At MinGW Installer select "All packages" and then install the following
+packages (bin and dev packages when correspond):
+
+(I'm really not sure if all them are necessary)
+
+mingw32-autoconf
+mingw32-binutils
+mingw32-bzip2
+mingw32-gcc
+mingw32-gcc-g++
+mingw32-gcc-objc
+mingw32-gdb
+mingw32-gmp
+mingw32-libbz2
+mingw32-libgmp
+mingw32-libiconv
+mingw32-libintl
+mingw32-libpthread-old
+mingw32-libpthreadgc
+mingw32-libtool
+mingw32-libunistring
+mingw32-libz
+mingw32-make
+mingw32-pkginfo
+mingw32-pthreads-w32
+mingw32-w32api
+msys-base
+msys-bash
+msys-console
+msys-crypt
+msys-diffutils
+msys-libcrypt
+msys-libgmp
+msys-libiconv
+msys-libminires
+msys-m4
+msys-minires
+msys-zlib
+
+
+3. Additional Useful Tools
+==========================
+
+You will need install GNUstep from Subversion, so you need a Subversion
+client. I used:
+
+http://www.sliksvn.com/pub/Slik-Subversion-1.6.9-win32.msi
+
+and then install subversion in a random directory.
+
+
+You will need and editor, for example Emacs. Get a Windows version for
+MinGW from:
+
+https://www.gnu.org/software/emacs/
+
+To install it, simply unpack it in your MINGWPATH, you can now
+execute the binary in 'MINGWPATH/bin'.
+
+
+3. Additional Windows steps
+===========================
+
+You may need to edit /MINGWPATH/include/winsock2.h to change the size of the
+sa_data field in the sockaddr structure from 14 to 22 ... this is because
+some versions of Windows have changed the layout of this structure.
+This modification may be needed to be able to correctly determine the
+network interface details for your machine.
+
+
+On Windows Vista and later, an additional problem has been reported
+where 'make install' would sometimes fail because of permission
+problems.  The problem is discussed here --
+
+http://lists.gnu.org/archive/html/gnustep-dev/2010-06/msg00055.html
+
+you may have to install the additional MinGW files, as explained
+there.
+
+
+4. Mount your MINGWPATH directory
+=================================
+
+With Emacs create a file called "fstab" in C:\MINGWPATH\msys\x.x\etc and add
+a line like:
+
+  C:\MINGWPATH  /mingw
+
+Remember MINGWPATH is the path where you installed mingw (We assume you
+install it at your C: drive, if not change it). "mingw" is the name to
+refer to your MINGWPATH directory inside MSYS console, you can use any other
+name, but remember it because we will need this later. We will refer to this
+name as MOUNTDIR.
+
+
+5. Launch the MSYS console
+==========================
+
+Launch the console at C:\MINGWPATH\msys\x.x\msys.bat (double click).
+
+
+6. Installing gnustep-make
+==========================
+
+Get gnustep-make:
+
+svn co http://svn.gna.org/svn/gnustep/tools/make/trunk make
+
+Then install it (avoid warning about conftest.exe):
+
+cd make
+./configure
+make
+make install
+
+
+7. Special recommendation
+=========================
+
+In next steps don't use "make -j", because can cause problems.
+
+
+8. Installing libffi
+====================
+
+Download libffi-x.x.x.tar.gz from https://sourceware.org/libffi/.
+Unpack it, compile and install:
+
+cd libffi-x.x.x
+./configure --prefix=/MOUNTDIR
+make
+make install
+mv /MOUNTDIR/lib/libffi-x.x.x/include/* /MOUNTDIR/include/
+
+(if you get a popup about contest.exe failing, just ignore it)
+NB. The headers have to be moved manually because the package won't install
+them in the right place.
+
+
+9. Install ICU
+==============
+
+Download latest ICU from http://site.icu-project.org/ (zip package).
+Unpack it, compile and install as fallow:
+
+cd icu/source
+./runConfigureICU --disable-release MinGW --prefix=/MOUNTDIR
+make
+make install
+
+
+10. Install GNUtls
+==================
+
+Download the latest version from the official page (windows binary). Copy
+this at your MINGWPATH directory and unpack it.
+
+
+11. Install pkg-config
+======================
+
+The best option is install pkg-config lite from:
+
+http://sourceforge.net/projects/pkgconfiglite/files/
+
+Download latest version, unpack it an copy the files at corresponding
+directories in your MINGWPATH directory.
+
+
+12. Install xml2
+================
+
+There are available binary packages of xml, but all these don't provide an
+m4 file to be used with pkg-config. And since gnustep-base use pkg-config to
+detect xml we need install it from source. So download the latest version
+from http://xmlsoft.org/ and install it:
+
+cd libxml2-x.x.x
+./configure --prefix=/MOUNTDIR
+make
+make install
+
+
+13. Fix problem with mingwrt
+============================
+
+(I you are using mingw32-mingwrt-3.21.1 or above skip this step.
+Run MinGW Installer to see what version are you using.)
+
+Launch Emacs and open the file /MINGWPATH/include/unistd.h
+
+And comment the line 95 (#include <parts/time.h>) and all the function
+nanosleep (from line 104 to 117). Save the file. 
+
+
+14. Source GNUstep.sh
+=====================
+
+Probably you will need source the GNUstep script:
+
+. /local/share/GNUstep/Makefiles/GNUstep.sh
+
+
+15. Install gnnustep-base
+=========================
+
+Get gnustep-base:
+
+svn co http://svn.gna.org/svn/gnustep/libs/base/trunk base
+
+Then compile and install it:
+
+cd base
+./configure
+make
+make install
+
+
+16. Install jpeg
+================
+
+Download the latest version from http://ijg.org/. Then compile and install it
+as fallow:
+
+cd jpeg-xx
+autoheader
+./configure --prefix=/MOUNTDIR
+make
+make install
+
+
+17. Install libtiff
+===================
+
+Download latest version from http://www.libtiff.org/. Then compile and
+install it:
+
+cd tiff-x.x.x
+./configure --prefix=/MOUNTDIR
+make
+make install
+
+
+18. Install libpng
+==================
+
+Download latest version from http://libpng.org/pub/png/libpng.html.
+Then compile and install it:
+
+cd lpngXXX
+cp scripts/pnglibconf.h.prebuild pnglibconf.h
+cp scripts/makefile.msys makefile
+
+Launch Emacs and edit the makefile to set prefix as "prefix=/MOUNTDIR", then:
+
+make
+make install
+
+
+19. Install libungif
+====================
+
+From http://gnuwin32.sourceforge.net/ download
+
+  libungif-4.1.4-1.exe
+
+Execute it and install the package into your MINGWPATH directory.
+
+
+20. Install libao
+=================
+
+Download libao from http://xiph.org/ao/. And install it:
+
+cd libao-x.x.x
+./cofigure --prefix=/MOUNTDIR
+make
+make install
+
+
+21. Install Aspell
+==================
+
+Download the windows port http://aspell.net/win32/. And
+install it in your MINGWPATH directory (directly in your MINGWPATH directory,
+not under the Aspell directory).
+
+Download also the dev package, unpack it and copy the libraries and headers
+to the corresponding directories at your MINWGPATH directory.
+
+Download also the installers for the dictionaries you want use, extract and
+install them into your MINGWPATH directory (directly in your MINGWPATH
+directory, not under the Aspell directory).
+
+Now you need change the name of some libraries, go to directory MINGWPATH/lib
+and change the name of these files:
+
+aspell-15.def   ---->  aspell.def
+aspell-15.lib   ---->  aspell.lib
+libaspell-15-dll.lib  ---->  libaspell-dll.lib
+
+
+22. Add path to icu libraries
+=============================
+
+FIXME: Why this is needed?
+
+Edit the file /MINGWPATH/msys/etc/profile and add the path to ICU libs:
+
+export PATH=$PATH:/MOUNTDIR/lib
+
+
+23. Install gnustep-gui
+=======================
+
+Get gnustep-gui:
+
+svn co http://svn.gna.org/svn/gnustep/libs/gui/trunk gui
+
+Then compile and install it:
+
+cd gui
+./configure
+make
+make install
+
+
+24. Install gnustep-back
+========================
+
+Get gnustep-back:
+
+svn co http://svn.gna.org/svn/gnustep/libs/back/trunk back
+
+Then compile and install it:
+
+cd back
+./configure
+make
+make install
+
+
+25. Install gnustep-back with cairo graphics (optional but highly recommended)
+==============================================================================
+
+Download fallowing packages:
+
+http://ftp.gnome.org/pub/gnome/binaries/win32/dependencies/cairo_1.10.2-2_win32.zip
+http://ftp.gnome.org/pub/gnome/binaries/win32/dependencies/cairo-dev_1.10.2-2_win32.zip
+http://ftp.gnome.org/pub/gnome/binaries/win32/dependencies/libpng_1.4.3-1_win32.zip
+http://ftp.gnome.org/pub/gnome/binaries/win32/dependencies/freetype_2.4.2-1_win32.zip
+http://ftp.gnome.org/pub/gnome/binaries/win32/dependencies/freetype-dev_2.4.2-1_win32.zip
+http://ftp.gnome.org/pub/gnome/binaries/win32/dependencies/fontconfig_2.8.0-2_win32.zip
+http://ftp.gnome.org/pub/gnome/binaries/win32/dependencies/fontconfig-dev_2.8.0-2_win32.zip
+
+
+Copy these packages at your MINGWPATH directory and unpack them. Now move some
+headers:
+
+mv /MOUNTDIR/include/cairo/* /MOUNTDIR/include/
+mv /MOUNTDIR/include/freetype2/freetype/ /MOUNTDIR/include/
+
+Now we need recompile gnustep-back to use cairo backend:
+
+cd back
+make distclean
+./configure --enable-graphics=cairo --with-name=cairo LIBS=-lcairo
+make
+make install
+
+Now set defaults to use this backend:
+
+defaults write NSGlobalDomain GSBackend cairo
+
+
+26. Install WinUXTheme (optional)
+=================================
+
+Get WinUXTheme:
+
+svn co http://svn.gna.org/svn/gnustep/plugins/themes/WinUXTheme/ winuxtheme
+
+Then compile and install it:
+
+cd winuxtheme
+make
+make install
+
+Set it:
+
+defaults write NSGlobalDomain GSTheme WinUXTheme
+
+
+27. Source the gnustep script when launch the console
+=====================================================
+
+Edit the file /MINGWPATH/msys/etc/x.x/profile and add this line to source the
+gnustep script:
+
+. /local/share/GNUstep/Makefiles/GNUstep.sh
+
+
+28. Set up the spell chequer service
+====================================
+
+The spell chequer service need be configured. So we need launch it once
+to configure it. Run the command:
+
+/local/lib/GNUstep/Services/GSspell.service/GSspell.exe
+
+
+29. Testing your gui installation
+=================================
+
+Get the examples:
+
+svn co http://svn.gna.org/svn/gnustep/tests/examples/trunk/ examples
+
+Go in a simple gui application (examples/gui a very good starting
+point), compile and run it. :-). Ink and PowerPaint should work fine
+on Windows, test these.
+
+Additionally, you might want to compile and run Gorm or other GNUstep
+applications.  Gorm (and hopefully other GNUstep applications too)
+should compile and run out of the box.
+
+
+Troubleshooting
+---------------
+
+Issues with updating:
+Before attempting to update your GNUstep installation, be sure to stop/kill
+all running GNUstep programs or services (i.e. gdomap, gdnc, gpbs) since
+Windows cannot overwrite files that are currently in use.
+
+Where we specify specific versions of packages to be used, we have
+tested with those versions - later or earlier versions may work, but
+may well not.  Generally earlier versions should be assumed not to
+work.
+
+
+
+B. HOW TO SHIP YOUR GNUSTEP APPLICATION TO WINDOWS USERS
+--------------------------------------------------------
+
+You probably want to ship your Windows application as a standalone
+.zip file that Windows users can easily download and use.
+
+We will explain what to do with an example: that of packaging
+Gomoku.app.  We will first build the application (creating
+Gomoku.app), then we'll add to to it all the GNUstep DLLs and
+resources that are needed to run the application, and we'll end up
+with a single directory, Gomoku.app, that contains a program
+(Gomoku.exe) and a bunch of DLLs and various other resources required
+to run the program.
+
+The end user just needs to get this directory (from a .zip or .tgz
+file, for example) and can double-click on Gomoku.exe to start the
+program (no GNUstep installation required).
+
+
+1. Build the application
+========================
+
+Build your application (Gomoku.app in this example) in your
+MinGW/GNUstep environment.  Generally, this means getting the source
+code and typing 'make' in it.  If you're trying to follow the
+Gomoku.app example, the source code is here:
+
+http://www.gnustep.it/nicola/Applications/Gomoku/index.html
+
+Once you have built it, make sure you can run your application from
+within mingw by using 'openapp', as in 'openapp ./Gomoku.app'.
+
+2. Copy your application somewhere
+==================================
+
+Now take your built application and copy it somewhere -- we'll be
+working on it!  Eg, I just copy it in my home directory.
+
+cp -R /home/Nico/Gomoku-1.2.8/Gomoku.app /home/Nico/
+
+
+3. Copy DLLs into your application
+==================================
+
+Now search for MinGW/GNUstep DLL files in /MOUNTDIR/bin, /MOUNTDIR/lib and
+/local/bin, and copy them all into Gomoku.app:
+
+cp $(find /MOUNTDIR/bin -name *.dll) /home/Nico/Gomoku.app/
+cp $(find /MOUNTDIR/lib -name *.dll) /home/Nico/Gomoku.app/
+cp $(find /local/bin -name *.dll) /home/Nico/Gomoku.app/
+
+
+4. Copy config files into your application
+==========================================
+
+Now copy the "etc" directory in /MOUNTDIR to Gomoku.app:
+
+cp -R /MOUNTDIR/etc /home/Nico/Gomoku.app/
+
+
+5. Copy your GNUstep Library folder
+===================================
+
+Now copy all of the GNUstep resources into the application --
+
+mkdir -p /home/Nicola/Gomoku.app/GNUstep/
+cp -R /local/lib/GNUstep/* /home/Nico/Gomoku.app/GNUstep/
+
+I put them all into Gomoku.app/GNUstep/, which means that later on
+I'll set up the GNUstep.conf file to map GNUSTEP_*_LIBRARY to that
+directory.
+
+
+6. Copy key GNUstep binary programs
+===================================
+
+cp /local/bin/gpbs.exe /home/Nicola/Gomoku.app
+cp /local/bin/gdnc.exe /home/Nicola/Gomoku.app
+cp /local/bin/gdomap.exe /home/Nicola/Gomoku.app
+cp /local/bin/make_services.exe /home/Nicola/Gomoku.app
+cp /local/bin/defaults.exe /home/Nicola/Gomoku.app
+
+I put them all into Gomoku.app, which means that later
+on I'll set up the GNUstep.conf file to map GNUSTEP_*_TOOLS to that
+directory.
+
+
+7. Add a GNUstep.conf
+=====================
+
+You need to add a Gomoku.app/GNUstep.conf file to tell gnustep-base
+where to find things inside Gomoku.app -- here is the one I use (which
+matches the locations where I copied things in the previous steps) --
+
+GNUSTEP_USER_CONFIG_FILE=.GNUstep.conf
+GNUSTEP_USER_DIR=GNUstep
+GNUSTEP_USER_DEFAULTS_DIR=GNUstep/Defaults
+
+GNUSTEP_SYSTEM_APPS=./GNUstep/Apps
+GNUSTEP_SYSTEM_ADMIN_APPS=./GNUstep/Apps
+GNUSTEP_SYSTEM_TOOLS=./
+GNUSTEP_SYSTEM_ADMIN_TOOLS=./
+GNUSTEP_SYSTEM_LIBRARY=./GNUstep
+GNUSTEP_SYSTEM_HEADERS=./GNUstep/Headers
+GNUSTEP_SYSTEM_LIBRARIES=./GNUstep/Libraries
+GNUSTEP_SYSTEM_DOC=./GNUstep/Documentation
+GNUSTEP_SYSTEM_DOC_MAN=./GNUstep/Documentation/man
+GNUSTEP_SYSTEM_DOC_INFO=./GNUstep/Documentation/info
+
+GNUSTEP_NETWORK_APPS=./GNUstep/Apps
+GNUSTEP_NETWORK_ADMIN_APPS=./GNUstep/Apps
+GNUSTEP_NETWORK_TOOLS=./
+GNUSTEP_NETWORK_ADMIN_TOOLS=./
+GNUSTEP_NETWORK_LIBRARY=./GNUstep
+GNUSTEP_NETWORK_HEADERS=./GNUstep/Headers
+GNUSTEP_NETWORK_LIBRARIES=./GNUstep/Libraries
+GNUSTEP_NETWORK_DOC=./GNUstep/Documentation
+GNUSTEP_NETWORK_DOC_MAN=./GNUstep/Documentation/man
+GNUSTEP_NETWORK_DOC_INFO=./GNUstep/Documentation/info
+
+GNUSTEP_LOCAL_APPS=./GNUstep/Apps
+GNUSTEP_LOCAL_ADMIN_APPS=./GNUstep/Apps
+GNUSTEP_LOCAL_TOOLS=./
+GNUSTEP_LOCAL_ADMIN_TOOLS=./
+GNUSTEP_LOCAL_LIBRARY=./GNUstep
+GNUSTEP_LOCAL_HEADERS=./GNUstep/Headers
+GNUSTEP_LOCAL_LIBRARIES=./GNUstep/Libraries
+GNUSTEP_LOCAL_DOC=./GNUstep/Documentation
+GNUSTEP_LOCAL_DOC_MAN=./GNUstep/Documentation/man
+GNUSTEP_LOCAL_DOC_INFO=./GNUstep/Documentation/info
+
+So, just copy and paste this code into a GNUstep.conf file that you
+put into /home/Nico/Gomoku.app/GNUstep.conf.
+
+
+8. Add a GlobalDefaults.plist
+=============================
+
+You need to add a Gomoku.app/GlobalDefaults.plist file to tell GNUstep
+the defaults you want use (the theme, backend, etc.), and save this file
+with write/read permission only for the owner (chmod 600). For example:
+
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//GNUstep//DTD plist 0.9//EN" "http://www.gnustep.org/plist-0_9.xml">
+<plist version="0.9">
+  <dict>
+	<key>GSTheme</key>
+	<string>WinUXTheme</string>
+	<key>GSBackend</key>
+	<string>cairo</string>
+  </dict>
+</plist>
+
+
+8. Now the application should be working
+========================================
+
+At this stage, everything should be working "standalone".
+
+By that we mean that if you give your Gomoku.app/ to a Windows user
+(with no GNUstep installed on their machine), they should be able to
+run it by just double-clicking on the Gomoku executable inside of the
+Gomoku.app/ directory! :-)
+
+Try it out and make sure that it works.
+
+
+9. Cleanup
+==========
+
+If you look at your Gomoku.app/ directory, you will see that it is
+really big.  We mass-copied stuff from the GNUstep/MinGW directories;
+but generally, you want to make sure you remove anything that you
+don't strictly need.  So go in there and remove anything that you
+don't need.
+
+First thing, you should remove the MSYS libraries, which we never use --
+
+rm Gomoku.app/msys-1.0.dll
+rm Gomoku.app/msysltdl-3.dll
+rm Gomoku.app/libW11.dll
+rm Gomoku.app/libperl.dll
+rm Gomoku.app/librle3.dll
+
+Then, remove any additional library that your application doesn't use;
+for example, I removed --
+
+rm Gomoku.app/Renaissance.dll
+rm Gomoku.app/ProjectCenter.dll
+
+Finally, remove Apps and other stuff that you might have copied from
+the general GNUstep installation --
+
+rm -Rf Gomoku.app/GNUstep/Apps
+rm -Rf Gomoku.app/GNUstep/Frameworks/ProjectCenter.framework
+
+Generally, you may want to build the whole stuff making sure you only
+include what you strictly need.
+
+
+10. Stripping
+=============
+
+The resulting directory might still be pretty big.  If you are trying
+to distribute it over the internet, your users will probably
+appreciate if you stripped it, removing symbols.  Just run 'strip'
+on all the .exe and .dll files in your application.
+
+strip $(find /home/Nico/Gomoku.app/ -name '*.exe')
+strip $(find /home/Nico/Gomoku.app/ -name '*.dll')
+
+That will reduce the size a lot.  If you're not distributing it over
+the internet, you might be happy leaving the symbols in though.
+
+
+11. Checking Licenses
+====================
+
+Finally, before deployment, you need to realize that you are shipping
+a lot of GNUstep (and non-GNUstep) software with your application.
+
+This is fine, just make sure you are aware of the licenses, and that
+you comply with them.
+
+
+PACKAGING/WINDOWS TODOS
+-----------------------
+
+The gdnc, gpbs processes are somehow a bit of a pain.  They are
+automatically started when you start your application, but they are
+not automatically stopped when you quit it.  This might have bad
+consequences, eg, if you are using your application from a USB flash
+disk, Windows doesn't let you unplug the USB disk while gdnc/gpbs are
+running, because they are running from the disk!
+
+Also, it's not clear what happens if you have two or three such
+GNUstep apps downloaded from the web and you try to run them at the
+same time.  What about gdomap etc ?

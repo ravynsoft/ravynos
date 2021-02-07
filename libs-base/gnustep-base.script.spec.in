@@ -1,0 +1,44 @@
+%post
+if [ $1 = 1 ]; then
+#  if [ -z "$GNUSTEP_MAKEFILES" ]; then
+#     . %{gs_root}/Library/Makefiles/GNUstep.sh 
+#  fi
+
+#==============================================================
+# Add lines for gdomap into /etc/services, if not already there
+#==============================================================
+  grep -q '^gdomap' /etc/services                                            \
+   || (echo "gdomap 538/tcp # GNUstep distributed objects" >> /etc/services  \
+       && echo "gdomap 538/udp # GNUstep distributed objects" >> /etc/services)
+
+#
+# Need to add paths to ld.so.conf in gnustep-make if we want to do this
+#
+#%ifos Linux
+#/sbin/ldconfig
+#%endif
+
+fi
+
+
+%postun
+if [ $1 = 0 ]; then
+#  if [ -z "$GNUSTEP_SYSTEM_ROOT" ]; then
+#     . %{gs_root}/Library/Makefiles/GNUstep.sh 
+#  fi
+
+#=========================================
+# Remove lines for gdomap in /etc/services
+#=========================================
+  mv -f /etc/services /etc/services.orig
+  grep -v "^gdomap 538" /etc/services.orig > /etc/services
+  rm -f /etc/services.orig
+
+#
+# Need to add paths to ld.so.conf in gnustep-make if we want to do this
+#
+#%ifos Linux
+#/sbin/ldconfig
+#%endif
+
+fi

@@ -1,0 +1,71 @@
+@c    GNUstep AppKit Guide
+@c
+@c    Copyright (c)  2005-2006  Christopher Armstrong.
+@c
+@c    Permission is granted to copy, distribute and/or modify this document
+@c    under the terms of the GNU Free Documentation License, Version 1.2
+@c    with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+@c    A copy of the license is included in the section entitled "GNU
+@c    Free Documentation License".
+@c
+@c This documentation is provided on an "AS IS" BASIS, WITHOUT WARRANTY
+@c OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING, BUT NOT LIMITED
+@c TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+@c PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY AND USEFULNESS
+@c OF THE DOCUMENTATION IS WITH YOU (THE LICENSEE). IN NO EVENT WILL THE COPYRIGHT
+@c HOLDERS BE LIABLE FOR DAMAGES, INCLUDING ANY DIRECT, INDIRECT,
+@c SPECIAL, GENERAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF
+@c THE USE OR INABILITY TO USE THIS DOCUMENTATION (INCLUDING BUT NOT
+@c LIMITED TO LOSS OF DATA, USE, OR PROFITS; PROCUREMENT OF SUBSTITUTE
+@c GOODS AND SERVICES; OR BUSINESS INTERUPTION) HOWEVER CAUSED, EVEN
+@c IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+@node applicationpropertylist
+@chapter Application Property List
+
+@cindex property list, application property list
+The application property list is a special file, searched upon your programme's loading to find out some information about your programme. It is used for the Info panel, to load your main interface file and any document types your application handles.
+
+Below are listed the various dictonary items that can be placed in the main dictionary of your application's property list.
+
+@vtable @code
+
+@item ApplicationName
+The name of the application, as specified in the makefile.
+
+@item Application
+
+@item NSExecutable
+The name of the programme executable file in the app wrapper.
+
+@item NSMainNibFile
+The name of your main interface file, with the .gorm extension.
+
+@item NSPrincipalClass
+Set this to @code{NSApplication}.
+
+@item NSRole
+Set this to @code{Application}
+
+@item NSTypes
+This is an array of dictionaries, with each dictionary corresponding to a file type that can be opened with this application. See FIXME: ref Document Based Applications for more details. Each type dictionary contains the following items:
+@vtable @code
+
+@item NSDocumentClass
+The name of your document class, as specified in it's header file.
+
+@item NSHumanReadableName
+The human readable aka. user name of your document type.
+
+@item NSIcon
+An optional name of an icon that will be associated with your document type, particularly in a workspace application like GWorkspace.
+
+@item NSUnixExtensions
+An array of strings containing the file extensions on Unix systems that are associated with the document type e.g. @code{( "htm", "html")} could be used for HTML documents.
+
+@item NSDOSExtensions
+The file extensions that are associated with this document type on DOS aka Windows based systems, including Windows 2000/XP/2003 Server.
+
+@end vtable
+
+@end vtable

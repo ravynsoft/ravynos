@@ -1,0 +1,233 @@
+#! /bin/sh
+#
+#   @configure_input@
+#
+#   Script that outputs GNUstep filesystem configuration; Primarily to
+#   provide information about the default/current GNUstep installation,
+#   but may be used by non-gnustep-make building/config systems to ask
+#   gnustep-make how GNUstep is configured on this machine
+#
+#   Copyright (C) 2007 Free Software Foundation, Inc.
+#
+#   Author: Nicola Pero <nicola.pero@meta-innovation.com>
+#
+#   This file is part of the GNUstep Makefile Package.
+#
+#   This library is free software; you can redistribute it and/or
+#   modify it under the terms of the GNU General Public License
+#   as published by the Free Software Foundation; either version 3
+#   of the License, or (at your option) any later version.
+#   
+#   You should have received a copy of the GNU General Public
+#   License along with this library; see the file COPYING.
+#   If not, write to the Free Software Foundation,
+#   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+#
+
+# Check that we are given a valid option.
+if [ -z "$1" ]; then
+  echo "usage: gnustep-config argument"
+  echo "gnustep-config --help for more help"
+  exit 1
+fi
+
+case "$1" in
+  --variable=*)  ;;
+  --help)       ;;
+  --debug-flags) ;;
+  --objc-flags) ;;
+  --objc-libs)  ;;
+  --base-libs)  ;;
+  --gui-libs)   ;;
+  --host-dir) ;;
+  --host-ldir) ;;
+  --installation-domain-for=*) ;;
+  --target-dir-for=*) ;;
+  --target-ldir-for=*) ;;
+  *)
+    # An unrecognized option
+    echo "Unrecognized option: $1"
+    echo "usage: gnustep-config argument"
+    echo "gnustep-config --help for more help"
+    exit 1;;
+esac
+
+
+# Process --help
+if [ "$1" = "--help" ]; then
+    echo "usage: gnustep-config [option]"
+    echo
+    echo "This program prints information on the current gnustep"
+    echo "installation.  [option] determines what is printed.  Here"
+    echo "is the list of options:"
+    echo
+    echo "--variable=xxx: prints the value of the specified"
+    echo "                variable.  Here is a list of possible"
+    echo "                variables:"
+    echo
+    echo "    --variable=CC"
+    echo "    --variable=CPP"
+    echo "    --variable=CXX"
+    echo "    --variable=OBJCXX"
+    echo "    --variable=LDFLAGS"
+    echo "    --variable=GNUMAKE"
+    echo "    --variable=GNUSTEP_MAKEFILES"
+    echo "    --variable=GNUSTEP_USER_DEFAULTS_DIR"
+    echo "    --variable=GNUSTEP_HOST"
+    echo "    --variable=GNUSTEP_HOST_CPU"
+    echo "    --variable=GNUSTEP_HOST_VENDOR"
+    echo "    --variable=GNUSTEP_HOST_OS"
+    echo "    --variable=GNUSTEP_IS_FLATTENED"
+    echo "    --variable=GNUSTEP_xxx_APPS"
+    echo "    --variable=GNUSTEP_xxx_TOOLS"
+    echo "    --variable=GNUSTEP_xxx_LIBRARY"
+    echo "    --variable=GNUSTEP_xxx_HEADERS"
+    echo "    --variable=GNUSTEP_xxx_LIBRARIES"
+    echo "    --variable=GNUSTEP_xxx_DOC"
+    echo "    --variable=GNUSTEP_xxx_DOC_MAN"
+    echo "    --variable=GNUSTEP_xxx_DOC_INFO"
+    echo "    where 'xxx' could be any of 'SYSTEM', 'NETWORK', 'LOCAL' and 'USER'."
+    echo
+    echo "    For example, you could get the value of GNUSTEP_SYSTEM_TOOLS to find"
+    echo "    where command-line system programs are located on this system."
+    echo
+    echo "--debug-flags: prints all the flags required to compile an ObjC file for debug"
+    echo
+    echo "--objc-flags: prints all the flags required to compile an ObjC file"
+    echo
+    echo "--objc-libs: prints all the flags required to link a pure ObjC program (no foundation/gui)"
+    echo
+    echo "--base-libs: prints all the flags required to link a command-line ObjC program (no gui)"
+    echo
+    echo "--gui-libs: prints all the flags required to link a GUI ObjC program"
+    echo 
+    echo "--host-dir: prints the host architecture name"
+    echo 
+    echo "--host-ldir: prints the host architecture and library combo name"
+    echo 
+    echo "--installation-domain-for=xxx: prints the value of the default installation domain"
+    echo "                for the package xxx.  The result could be 'SYSTEM', 'NETWORK', 'LOCAL'"
+    echo "                or 'USER'.  This command always returns LOCAL unless the system has been"
+    echo "                personalized using an installation-domains.conf file."
+    echo "--target-dir-for=xxx: prints the standardised target architecture directory"
+    echo 
+    echo "--target-ldir-for=xxx: prints the target architecture and library combo name"
+    echo 
+    exit 0
+fi
+
+# Any other option requires determining the config first.
+
+#
+# Important - keep the following in sync with GNUstep.sh.in
+#
+
+#
+# Read our configuration files.  We only do that to locate
+# GNUSTEP_MAKEFILES, so that we can execute GNUstep.sh and
+# access any variable that we might ever need.
+#
+
+# Determine the location of the system configuration file
+if [ -z "$GNUSTEP_CONFIG_FILE" ]; then
+  GNUSTEP_CONFIG_FILE=@GNUSTEP_CONFIG_FILE@
+fi
+
+# Determine the location of the user configuration file
+if [ -z "$GNUSTEP_USER_CONFIG_FILE" ]; then
+  GNUSTEP_USER_CONFIG_FILE=@GNUSTEP_USER_CONFIG_FILE@
+fi
+
+# Read the system configuration file
+if [ -f "$GNUSTEP_CONFIG_FILE" ]; then
+  . "$GNUSTEP_CONFIG_FILE"
+fi
+
+# FIXME: determining GNUSTEP_HOME
+GNUSTEP_HOME=~
+
+# Read the user configuration file ... unless it is disabled (ie, set
+# to an empty string)
+if [ -n "$GNUSTEP_USER_CONFIG_FILE" ]; then
+  case "$GNUSTEP_USER_CONFIG_FILE" in 
+    /*) # An absolute path
+        if [ -f "$GNUSTEP_USER_CONFIG_FILE" ]; then
+          . "$GNUSTEP_USER_CONFIG_FILE"
+        fi;;
+     *) # Something else
+        if [ -f "$GNUSTEP_HOME/$GNUSTEP_USER_CONFIG_FILE" ]; then
+          . "$GNUSTEP_HOME/$GNUSTEP_USER_CONFIG_FILE"
+        fi;;
+  esac
+fi
+
+if [ -z "$GNUSTEP_MAKEFILES" ]; then
+  GNUSTEP_MAKEFILES=@GNUSTEP_MAKEFILES@
+fi
+
+export GNUSTEP_MAKEFILES
+
+#
+# If all they want to know is GNUSTEP_MAKEFILES or anything that
+# we can compute only using GNUSTEP_MAKEFILES, we can print it out
+#
+case "$1" in
+  --variable=CC) echo "@CC@"
+              exit 0;;
+  --variable=CPP) echo "@CPP@"
+              exit 0;;
+  --variable=CXX) echo "@CXX@"
+              exit 0;;
+  --variable=OBJCXX) echo "@OBJCXX@"
+              exit 0;;
+  --variable=CPPFLAGS) echo "@CPPFLAGS@"
+              exit 0;;
+  --variable=LDFLAGS) echo "@LDFLAGS@"
+              exit 0;;
+  --variable=GNUSTEP_MAKEFILES) echo "$GNUSTEP_MAKEFILES"
+              exit 0;;
+  --variable=GNUMAKE) echo "@GNUMAKE@"
+              exit 0;;
+  --debug-flags) @GNUMAKE@ --no-print-directory -s -f "$GNUSTEP_MAKEFILES/empty.make" print-gnustep-make-objc-flags quiet=yes debug=yes 2>/dev/null
+              exit 0;;
+  --objc-flags) @GNUMAKE@ --no-print-directory -s -f "$GNUSTEP_MAKEFILES/empty.make" print-gnustep-make-objc-flags quiet=yes 2>/dev/null
+              exit 0;;
+  --objc-libs) @GNUMAKE@ --no-print-directory -s -f "$GNUSTEP_MAKEFILES/empty.make" print-gnustep-make-objc-libs quiet=yes 2>/dev/null
+              exit 0;;
+  --base-libs) @GNUMAKE@ --no-print-directory -s -f "$GNUSTEP_MAKEFILES/empty.make" print-gnustep-make-base-libs quiet=yes 2>/dev/null
+              exit 0;;
+  --gui-libs) @GNUMAKE@ --no-print-directory -s -f "$GNUSTEP_MAKEFILES/empty.make" print-gnustep-make-gui-libs quiet=yes 2>/dev/null
+              exit 0;;
+  --host-dir) @GNUMAKE@ --no-print-directory -s -f "$GNUSTEP_MAKEFILES/empty.make" print-gnustep-make-host-dir quiet=yes 2>/dev/null
+              exit 0;;
+  --host-ldir) @GNUMAKE@ --no-print-directory -s -f "$GNUSTEP_MAKEFILES/empty.make" print-gnustep-make-host-ldir quiet=yes 2>/dev/null
+              exit 0;;
+  --installation-domain-for=*) gs_package_name=`echo "$1" | sed -e 's/--installation-domain-for=//'`
+              @GNUMAKE@ --no-print-directory -s -f "$GNUSTEP_MAKEFILES/empty.make" print-gnustep-make-installation-domain PACKAGE_NAME="$gs_package_name" quiet=yes 2>/dev/null
+              exit 0;;
+  --target-dir-for=*)
+                gs_target=`echo "$1" | sed -e 's/--target-dir-for=//'`
+                @GNUMAKE@ --no-print-directory -s -f "$GNUSTEP_MAKEFILES/empty.make" print-gnustep-make-target-dir target="$gs_target" quiet=yes 2>/dev/null
+              exit 0;;
+  --target-ldir-for=*)
+                gs_target=`echo "$1" | sed -e 's/--target-ldir-for=//'`
+                @GNUMAKE@ --no-print-directory -s -f "$GNUSTEP_MAKEFILES/empty.make" print-gnustep-make-target-ldir target="$gs_target" quiet=yes 2>/dev/null
+              exit 0;;
+esac
+
+#
+# Else, now read all the standard GNUstep config
+#
+GNUSTEP_SH_EXPORT_ALL_VARIABLES=yes
+. $GNUSTEP_MAKEFILES/GNUstep.sh
+unset GNUSTEP_SH_EXPORT_ALL_VARIABLES
+
+#
+# Now print whatever variable they asked for
+#
+gs_variable_name=`echo "$1" | sed -e 's/--variable=//'`
+gs_variable_value=`eval echo '$'"$gs_variable_name"`
+
+if [ "$gs_variable_value" != "" ]; then
+  echo "$gs_variable_value"
+fi

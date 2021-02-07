@@ -1,0 +1,350 @@
+<?xml version="1.0"?>
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 1.0.3//EN" "http://www.gnustep.org/gsdoc-1_0_3.xml">
+<!--
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+-->
+<gsdoc base="gdomap" up="BaseTools">
+  <head>
+    <title>gdomap documentation</title>
+    <author name="Richard Frith-Macdonald">
+      <email address="richard@brainstorm.co.uk">
+        richard@brainstorm.co.uk
+      </email>
+    </author>
+    <copy>1998 Free Software Foundation, Inc.</copy>
+  </head>
+  <body>
+    <front><contents /></front>
+    <chapter id="_main">
+      <heading>gdomap</heading>
+      <p>
+	The gdomap daemon is used by GNUstep programs to look up distributed
+	objects of processes running across the network (and between different
+	user accounts on a single machine).  The deamon is <em>NOT</em> used
+	for lookup where two processes belonging to the same user are using a
+	host-local connection.
+      </p>
+      <p>
+	  If you are packaging GNUstep for inclusion in a software distribution
+	  you may want to skip to the final section of this document.
+      </p>
+      <p>
+          Usually the gdomap daemon is started at system boot time and binds
+          itself to port 538.  (See the GNUstep Build Guide for a sample
+          startup script.)  It expects to receive fixed-size request packets
+          for registering, deregistering, and looking up distributed objects
+          servers.  The response packets vary in length depending on the type
+          and content of the information requested.  In addition, limited
+          support for federation is provided by a rudimentary gdomap-gdomap
+          communications protocol.
+      </p>
+      <p>
+          What follows is a description of gdomap from a developer
+          perspective.  For information pertinent for users, such as how to
+          configure and start up gdomap, please see the man page for more
+          information ("man 8 gdomap").
+      </p>
+
+      <p>
+  	  The name server is intended to work with both the UDP and the TCP
+          protocols.  It is intended that the TCP interface be used by
+          GNUstep programs, while the UDP interface is intended primarily
+          for communication between name servers on different machines.
+      </p>
+
+      <section>
+          <heading>Usage Scenario</heading>
+
+          <p>
+              A complete distributed-objects "conversation" between a client
+              and a server looks like the outline below.  The gdomap daemon
+              only plays a role in the "pre-" and "post-" phases.  Everything
+              else is conducted "peer-to-peer" between the two GNUstep
+              processes.
+          </p>
+
+          <deflist>
+              <term>Pre-conversation</term>
+              <desc>
+                  <enum>
+                      <item>
+                          Server registers an object as being available as the
+                          'root object' on a particular port with a specific
+                          name.
+                      </item>
+                      <item>
+                          Client looks up a port by name.
+                      </item>
+                  </enum>
+              </desc>
+              <term>Conversation</term>
+              <desc>
+                  <enum>
+                      <item>
+                          Client connects to the port and asks for the root
+                          object.
+                      </item>
+                      <item>
+                          Server returns proxy to root object.
+                      </item>
+                      <item>
+                          Client then proceeds to send messages to the object.
+                      </item>
+                      <item>
+                          Server sends message responses except where methods
+                          are declared 'oneway'.
+                      </item>
+                      <item>
+                          The server may also send messages to the client and
+                          have the client send responses.
+                      </item>
+                      <item>
+                          Eventually, the client or the server disconnects by
+                          invalidating port or connection or just exiting.
+                      </item>
+                  </enum>
+              </desc>
+              <term>Post-conversation</term>
+              <desc>
+                  On shutdown, the server unregisters the service name and
+                  port it used.
+              </desc>
+          </deflist>
+      </section>
+
+      <section>
+          <heading>How it Works and Why</heading>
+
+          <p>
+              The fixed size of a request packet was chosen for maximum
+              ease and speed of implementation of a non-blocking name server.
+              The server knows how much it needs to read and can therefore
+              usually do a read as a single operation since it doesn't have
+              to read a little, figure out request length, allocate a buffer,
+              and read the rest.
+          </p>
+          <p>
+              The server name length (bytes) is specified - no assumptions
+              should be made about whether the name contains nul characters
+              or indeed about the name at all.  This is future-proofing.
+          </p>
+
+          <p>
+              Why UDP as well as TCP?
+              The OpenStep specification says that a connection may be
+              established to any host on the local network which supplys a
+              named service if the host name is specified as '*'.
+          </p>
+          <p>
+              This means that the application must poll to see if it can
+              find a server with the name it wants.  The polling could take
+              a huge amount of time!
+          </p>
+          <p>
+              To make this all easier - the server is capable of supplying
+              a list of those hosts on the local network which it knows to
+              have (or have had) a name server running on them.
+          </p>
+          <p>
+              The application then need only poll those name servers to find
+              the service it wants.
+          </p>
+          <p>
+              However - to give the application a list of hosts, the name
+              server must have got the information from somewhere.
+              To gather the information the server has to poll the machines
+              on the net which would take ages using TCP since attempts to
+              talk to machines which are down or do not exist will take a
+              while to time out.
+          </p>
+          <p>
+              To make things speedy, the server sends out GDO_PROBE requests
+              on UDP to all the machines on the net when it starts up.
+              Each machine which has a name server notes that the new name
+              server has started up and sends back a GDOPREPLY packet so
+              that the new name server will know about it.
+          </p>
+          <p>
+              Things are never perfect though - if a name server dies, the
+              other name servers won't know, and will continue to tell
+              applications that it is there.
+          </p>
+
+          <p>
+              Port type codes - these are used to say what the port is for so
+              that clients can look up only the names that are relevant to them.
+              This is to permit the name server to be used for multiple
+              communications protocols (at the moment, tcp or udp) and for
+              different systems (distributed objects or others).
+              This guarantees that if one app is using DO over UDP, its services
+              will not be found by an app which is using DO over TCP.
+          </p>
+      </section>
+
+      <section>
+          <heading>Communications Protocol</heading>
+          <p>
+              The communications protocol is identical for both TCP and UDP
+              and consists of a simple request-response sequence.
+          </p>
+
+          <p>
+              Each request is a single message consisting of -
+          </p>
+          <enum>
+              <item>
+                  a single byte request type
+              </item>
+              <item>
+                  a single byte giving name length,
+              </item>
+              <item>
+                  a single byte specifying the type of port being registered
+                  or looked up, or a nul byte for probe operations.
+              </item>
+              <item>
+                  a single nul byte.
+              </item>
+              <item>
+                  a four byte port number in network byte order must be
+                  present for register operations, otherwise this is zero.
+              </item>
+              <item>
+                  a service name of 0 to GDO_NAME_MAX_LEN bytes (or two IP
+                  addresses in network byte order and an optional list of
+                  additional addresses for probe operations)
+              </item>
+              <item>
+                  0 to GDO_NAME_MAX_LEN nul bytes padding the service name to
+                  its full size.
+              </item>
+              <item>
+                  a terminating nul byte.
+              </item>
+          </enum>
+
+          <p>
+              The total is always sent in a packet with everything after the
+              service name (except the final byte) cleared to nul bytes.
+          </p>
+
+          <p>
+              Each response consists of at least 4 bytes and depends on the
+              corresponding Request Type and where it came from as follows -
+          </p>
+      
+          <deflist>
+              <term>GDO_LOOKUP</term>
+              <desc>
+                  Looks up the server name and returns its port number.
+                  Response is the port number in network byte order, or zero
+                  if the named server was not registered.
+              </desc>
+
+              <term>GDO_REGISTER</term>
+              <desc>
+                  Registers the given server name with a port number.  This
+                  service is only available to processes on the same host as
+                  the name server.  Response is the port number in network
+                  byte order, or zero if the named server was already
+                  registered.
+              </desc>
+              <term>GDO_UNREG</term>
+
+              <desc>
+                  Un-register the server name and return old port number.  If
+                  the server name is of length zero, and the port is non-zero
+                  then all names for the port are unregistered.  This service
+                  is only available to a process on the same host as this name
+                  server.  Response is the old port number in network byte
+                  order, or zero if the name could not be un-registered.  If
+                  multiple names were unregistered the response is the port
+                  for those names.
+              </desc>
+
+              <term>GDO_SERVERS</term>
+              <desc>
+                  Return a list of the known servers on the local net.
+                  Response is an unsigned long (in network byte order) saying
+                  how many servers the name server knows about, followed by a
+                  list of their IP addresses in network byte order.  NB. This
+                  response may not be possible over UDP as the response length
+                  may exceed the maximum UDP packet size.
+              </desc>
+
+              <term>GDO_NAMES</term>
+              <desc>
+                  Return a list of registered names known to the server.
+                  Response is an unsigned long (in network byte order) saying
+                  how many bytes of data are to follow, followed by a list of
+                  the names each preceeded by the name length (a single byte)
+                  and port type (a byte).  NB. This response may not be
+                  possible over UDP as the response length may exceed the
+                  maximum UDP packet size.
+              </desc>
+          </deflist>
+
+          <p>
+              The following are used for communications between name servers -
+          </p>
+
+          <deflist>
+
+              <term>GDO_PROBE</term>
+              <desc>
+                  Requests a response Passes two IP addresses in the name
+                  field - first the address of the sender, next that of the
+                  recipient.  The packet may (optionally) include a variable
+                  number of addresses (as specified by the name length minus
+                  the size of the two addresses), each of which is an internet
+                  address on which the sender is also listening.  For a
+                  request from a name server via UDP there is no response, but
+                  a GDO_REPLY request is sent.  For a request from a
+                  non-name-server, or a TCP connect, the response is the port
+                  number of this server in network byte order.
+              </desc>
+
+              <term>GDO_PREPLY</term>
+              <desc>
+                  Replies to a GDO_PROBE via UDP from a name server.  The
+                  format of the message is as for GDO_PROBE.  No response is
+                  sent.
+              </desc>
+          </deflist>
+      </section>
+
+      <section>
+          <heading>Notes for Packagers</heading>
+
+	  <p>
+	    The gdomap process is a system daemon used to coordinate
+	    services between different machines.  As such it should be
+	    started (as root) at system boot time (if inter-host messaging
+	    is desired), and you need to write the appropriate startup
+	    scripts for your system and put them in place when the
+	    package is installed.<br />
+	    Alternatively you may install gdomap setuid to run as root,
+	    and GNUstep programs will launch it on demand ... but this
+	    is not recommended as it provides lass control than when
+	    you write a proper startup script.
+	  </p>
+
+	  <p>
+	    The default operation of gdomap is to probe the hosts on the
+	    local network to find other machines with copies of gdomap
+	    running, so that all the machines on the network can be kept
+	    informed of the seervices provided by GNUstep servers.<br />
+	    This probing may be considered unfriendly by other users of
+	    the LAN, so it is usually better to provide a configuration
+	    file specifying the IP addresses of machines to be probed,
+	    and start up gdomap at boot time with the command line option
+	    to tell it to read the file.
+	  </p>
+
+      </section>
+
+    </chapter>
+  </body>
+</gsdoc>

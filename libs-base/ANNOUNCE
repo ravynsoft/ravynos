@@ -1,0 +1,197 @@
+1 Announcement
+**************
+
+The GNUstep Base Library, version 1.27.0, is now available.
+
+1.1 What is the GNUstep Base Library?
+=====================================
+
+The GNUstep Base Library is a library of general-purpose, non-graphical
+Objective C objects.  For example, it includes classes for strings,
+object collections, byte streams, typed coders, invocations,
+notifications, notification dispatchers, moments in time, network ports,
+remote object messaging support (distributed objects), and event loops.
+
+   It provides functionality that aims to implement the non-graphical
+portion of the OpenStep standard (the Foundation library).
+
+   There is more information available at the GNUstep homepage at
+'http://www.gnustep.org'.
+
+1.2 Noteworthy changes in version '1.27.0'
+==========================================
+
+Aside from an assortment of bugfixes, this release includes a lot of
+improvements for Android support as well as numerous new classes and
+methods.
+
+   * Expose GNU TLS wrappers and add methods to get certificate expiry.
+   * Improve thread safety when using zombies, particularly on
+     statup/shutdown.
+   * Improvements for Ukrainian localization.
+   * Decreased ICU requirements to 49 to support Windows 2000.
+   * Simplifications and fixes in GSPrivateSymbolPath().
+   * GSMime improvements (word encoding specifier, utf-8 improvements
+     encoding quoted words with multibyte characters)
+   * NSJSONSerialization fixes for codepoints over 0x7f.
+   * NSCharacterSet support for URL*AllowedCharacterSet and declarations
+     for new character sets.
+   * NSString implementations for new methods
+     stringByRemovingPercentEncoding/
+     stringByAddingPercentEncodingWithAllowedCharacterSet:.
+   * Fixed a crash in gdomap when an invalid hostname is given for the
+     -M option.
+   * In NSString.m, removed functions urldecode() and ishex() which were
+     mistakenly neither namespaced nor declared static and thus could
+     have conflicted with non-library code.
+   * Fixed libdispatch configuration switch so -enable-libdispatch works
+     correctly; correctly checking for HAVE_LIBDISPATCH_RUNLOOP.
+   * Updated libdispatch runloop integration so it is compatible with
+     Swift's corelibs libdispatch release (from
+     github.com/apple/swift-corelibs-libdispatch).  The libdispatch must
+     be compiled with INSTALL_PRIVATE_HEADERS=YES.
+   * In NSThread, spinlocks implemented using builtins to be able to
+     target platforms without pthread_spin_lock(), such as Android
+     targeting API level < 24.
+   * In NSLog on Android, send logs to syslog.
+   * Implementation of NSOrderedSet.
+   * When ./configuring, link against libandroid on Android.
+   * In NSBundle, allow integrating with Android asset manager using
+     +[NSBundle setJavaAssetManager:withJNIEnv:], enabling use of
+     mainBundle's pathForResource:ofType:, -URLForResource:ofType: and
+     similar; referencing Info.plist if it exists in Android assets; use
+     of NSFileManager's fileExistsAtPath: et al and
+     isReadableFileAtPath:; reading files using NSFileHandle APIs; use
+     of NSDirectoryEnumerator to enumerate Android assets from the main
+     bundle.
+   * In NSBundle, localization support on Android.
+   * In NSProcessInfo, automatic initialization on Android using a fake
+     executable path (/data/data/<app identifier>/Resources).
+   * In NSData, improvements in reading Android assets.
+   * Various improvements in the mechanism to report memory usage of
+     individual objects.
+   * Skeletal implementation of NSUbiquitousKeyValueStore.
+   * Implementation of NSByteCountFormatter.
+   * Fixes to writing large HTTPS requests (GSSocketStream,
+     NSURLProtocol).
+   * In gdomap.c, fix detection of local networks.
+   * In NSArray's -removeObjectsInArray:, prevent some crashes.
+   * In GSTLS, avoid setting session priority twice.
+   * In NSFileHandle, fix so that setting certificate information does
+     not discard any other options already set.
+   * In GSXML's -fatalErrorFunction, use the correct function to get the
+     line number.
+   * In NSOperation's _execute, ensure lock gets released on an error by
+     surrounding with NS_DURING.
+   * Generics support in NSHashTable.
+   * Implementation of NSProgress.
+   * Skeleton implementation of NSURLComponents.
+   * In NSSortDescriptor, added
+     -sortDescriptorWithKey:ascending:descending:.
+   * In NSOperationQueue, added -addOperationWithBlock.
+   * In NSFileManager, added
+     -URLForDirectory:inDomain:appropriateForURL:create:error: and
+     -enumeratorAtURL:includingPropertiesForKeys:options:errorHandler:.
+     Also added NSItemReplacementDirectory constant, and updated stub
+     implementation for -URLForDirectory:shouldCreate:error:.  Added
+     -initWithDirectoryPath:...  with additional parameters skipHidden
+     and errorHandler.
+   * In NSDictionary, fixed keysSortedByValueUsingComparator:.
+   * Moved NSFileWrapper from -gui to -base.
+   * Added NSFilePresenter, NSFileVersion and NSFileCoordinator.
+   * Added NSPersonComponents and NSPersonNameComponentsFormatter.
+   * Added units of measurement classes such as NSUnit, NSMeasurement,
+     NSMeasurementFormatter, NSEnergyFormatter, NSLengthFormatter,
+     NSMassFormatter.
+   * In NSUnit, support for NSUnitArea, NSUnitConcentrationMass,
+     NSUnitDispersion, NSUnitElectricCharge, NSUnitIlluminance,
+     NSUnitElectricCurrent, NSUnitElectricPotentionDifference,
+     NSElectricResistance, NSUnitMass, NSUnitEnergy, NSUnitFrequency,
+     NSUnitPower, NSUnitSpeed, NSUnitFuelEfficiency, NSUnitPressure,
+     NSUnitVolume, NSUnitLength.
+   * Support for data directory on Android introduces
+     GSInitializeProcessAndroid and makes use of the path returned by
+     Context.getFilesDir() as the basis for storing data (e.g.
+     NSUserDefaults) and when querying for directory paths
+     (NSLibraryDirectory, NSApplicationSupportDirectory, etc.).
+   * Placeholder NSScript* classes.  Added NSUserActivity,
+     NSObjectScripting, NSHFSFileTypes, NSAppleEventManager and
+     NSAppleEventDescriptor.
+   * Added NSDateInterval intersectionWithDateInterval:.
+   * Added NSBackgroundActivityScheduler.
+   * Added NSISO8601DateFormatter and NSMetadataAttributes.
+   * Added NSOrtogrpahy and NSLinguisticTagger.
+   * Added NSExtensionItem, NSExtensionContext,
+     NSExtensionRequestHandling, and NSItemProvider and
+     NSItemProviderReadingWriting.
+   * Updated timezone info for NSTimeZones.
+   * On Android, support for NSTemporaryDirectory to use
+     Context.getCacheDir(), and cleaning it up in
+     GSInitializeProcessAndroid() given there is no support for temp
+     directory before Android API 26.  Also used with NSCachesDirectory
+     + NSUserDomainMask.
+   * NSXPCConnection fixes.
+   * NSException symbolication support using libunwind (used when
+     backtrace() is unavailable).
+   * Travis build improvements to use new runloop integration and
+     gnustep-2.0 runtime.
+   * In NSKeyValueObserving, implement two missing methods for NSArray:
+     -addObserver:options:context: and
+     -removeObserver:fromObjectsAtIndexes:forKeyPath:.
+   * Updated NSUUID to use instancetype.
+   * Added support for NSDate constants in NSPredicate.
+   * Fixed a NSTimer bug with blocks.
+   * In GSTLS, do not put password in the hash key of the credentials,
+     and to avoid logging it when debugging is on.
+   * Improvements in NSConcreteHashTable and NSConcreteMapTable.
+   * In various places, switch away from deprecated
+     CREATE_AUTORELEASE_POOL() to use the ARC-compatible ENTER_POOL and
+     LEAVE_POOL macros.
+   * When building the list of hosts to be probed to see if they have
+     gdomap servers, fix code to include those explicitly defined in the
+     config file.  Add -S option to list the addresses of the known
+     gdomap servers.
+   * Backward compatibility fix for ICU 65.
+   * Update GSPrivateSymbolPath() so that, on the path where
+     LINKER_GETSYMBOL is not available, we attempt to lookup classes
+     using the prefix ._OBJC_CLASS_ for the 2.0 ABI (earlier ABIs use a
+     prefix of __objc_class_name_ for the class definition.
+   * Fix parsing of NSURLResponse content type header.
+   * Fix for class lookup when using the 2.0 ABI.
+   * Fixed NSURLComponents setURL: throwing exceptions when URL didn't
+     have all expected parts caused by rangeOfString: throwing for nil
+     values.
+   * Added NSURLQueryItem implementation.
+
+1.3 Where can you get it? How can you compile it?
+=================================================
+
+The gnustep-base-1.27.0.tar.gz distribution file has been placed at
+<ftp://ftp.gnustep.org/pub/gnustep/core>.
+
+   It is accompanied by gnustep-base-1.27.0.tar.gz.sig, a PGP signature
+which you can validate by putting both files in the same directory and
+using:
+
+     gpg --verify gnustep-base-1.27.0.tar.gz.sig
+
+   Signature has been created using the key with the following
+fingerprint:
+
+     83AA E47C E829 A414 6EF8  3420 CA86 8D4C 9914 9679
+
+   Read the INSTALL file or the GNUstep-HOWTO for installation
+instructions.
+
+1.4 Where do I send bug reports?
+================================
+
+Please log bug reports on the GNUstep project page
+<http://savannah.gnu.org/bugs/?group=gnustep> or send bug reports to
+<bug-gnustep@gnu.org>.
+
+1.5 Obtaining GNUstep Software
+==============================
+
+Check out the GNUstep web site.  (<http://www.gnustep.org/>) and the GNU
+web site.  (<http://www.gnu.org/>)

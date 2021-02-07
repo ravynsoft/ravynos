@@ -1,0 +1,334 @@
+#
+#   filesystem.make
+#
+#   Sets up the filesystem paths
+#
+#   Copyright (C) 2007 Free Software Foundation, Inc.
+#
+#   Author:  Nicola Pero <nicola.pero@meta-innovation.com>,
+#            Matt Rice <ratmice@gmail.com>, 
+#            
+#   Date:  February 2007
+#
+#   This file is part of the GNUstep Makefile Package.
+#
+#   This library is free software; you can redistribute it and/or
+#   modify it under the terms of the GNU General Public License
+#   as published by the Free Software Foundation; either version 3
+#   of the License, or (at your option) any later version.
+#   
+#   You should have received a copy of the GNU General Public
+#   License along with this library; see the file COPYING.
+#   If not, write to the Free Software Foundation,
+#   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+
+#
+# We make sure that all the interesting paths in all domains are
+# defined.  Having this is a great help in iterating over header dirs,
+# for example.
+#
+# PS: If you change this list, make sure that top update the list of
+# paths used in common.make when GNUSTEP_INSTALLATION_DIR is set.
+#
+
+#
+# We use '?=' to only set variables that have not already been set by
+# the user in the config files (that should be read before this file).
+# So, this describes the GNUstep filesystem default that is
+# automatically used when the config file is missing some settings.
+#
+# Some directories are fixed to be subdirectories of Library.
+#
+# We keep the list in this simple format (instead of generating it
+# from functions, for example) to make it very easy to read for
+# everyone.
+#
+
+#
+# Location of Users directories ... never used by gnustep-make.
+#
+GNUSTEP_SYSTEM_USERS_DIR  ?= @GNUSTEP_SYSTEM_USERS_DIR@
+GNUSTEP_LOCAL_USERS_DIR   ?= @GNUSTEP_LOCAL_USERS_DIR@
+GNUSTEP_NETWORK_USERS_DIR ?= @GNUSTEP_NETWORK_USERS_DIR@
+
+#
+# SYSTEM domain
+#
+GNUSTEP_SYSTEM_APPS        ?= @GNUSTEP_SYSTEM_APPS@
+GNUSTEP_SYSTEM_ADMIN_APPS  ?= @GNUSTEP_SYSTEM_ADMIN_APPS@
+GNUSTEP_SYSTEM_WEB_APPS    ?= @GNUSTEP_SYSTEM_WEB_APPS@
+GNUSTEP_SYSTEM_TOOLS       ?= @GNUSTEP_SYSTEM_TOOLS@
+GNUSTEP_SYSTEM_ADMIN_TOOLS ?= @GNUSTEP_SYSTEM_ADMIN_TOOLS@
+GNUSTEP_SYSTEM_LIBRARY     ?= @GNUSTEP_SYSTEM_LIBRARY@
+GNUSTEP_SYSTEM_HEADERS     ?= @GNUSTEP_SYSTEM_HEADERS@
+GNUSTEP_SYSTEM_LIBRARIES   ?= @GNUSTEP_SYSTEM_LIBRARIES@
+GNUSTEP_SYSTEM_DOC         ?= @GNUSTEP_SYSTEM_DOC@
+GNUSTEP_SYSTEM_DOC_MAN     ?= @GNUSTEP_SYSTEM_DOC_MAN@
+GNUSTEP_SYSTEM_DOC_INFO    ?= @GNUSTEP_SYSTEM_DOC_INFO@
+
+#
+# SYSTEM domain, variables that are fixed to subdirs of LIBRARY
+#
+GNUSTEP_SYSTEM_APPLICATION_SUPPORT = $(GNUSTEP_SYSTEM_LIBRARY)/ApplicationSupport
+GNUSTEP_SYSTEM_BUNDLES             = $(GNUSTEP_SYSTEM_LIBRARY)/Bundles
+GNUSTEP_SYSTEM_FRAMEWORKS          = $(GNUSTEP_SYSTEM_LIBRARY)/Frameworks
+GNUSTEP_SYSTEM_PALETTES            = $(GNUSTEP_SYSTEM_LIBRARY)/ApplicationSupport/Palettes
+GNUSTEP_SYSTEM_SERVICES            = $(GNUSTEP_SYSTEM_LIBRARY)/Services
+GNUSTEP_SYSTEM_RESOURCES           = $(GNUSTEP_SYSTEM_LIBRARY)/Libraries/Resources
+GNUSTEP_SYSTEM_JAVA                = $(GNUSTEP_SYSTEM_LIBRARY)/Libraries/Java
+
+#
+# NETWORK domain
+#
+GNUSTEP_NETWORK_APPS        ?= @GNUSTEP_NETWORK_APPS@
+GNUSTEP_NETWORK_ADMIN_APPS  ?= @GNUSTEP_NETWORK_ADMIN_APPS@
+GNUSTEP_NETWORK_WEB_APPS    ?= @GNUSTEP_NETWORK_WEB_APPS@
+GNUSTEP_NETWORK_TOOLS       ?= @GNUSTEP_NETWORK_TOOLS@
+GNUSTEP_NETWORK_ADMIN_TOOLS ?= @GNUSTEP_NETWORK_ADMIN_TOOLS@
+GNUSTEP_NETWORK_LIBRARY     ?= @GNUSTEP_NETWORK_LIBRARY@
+GNUSTEP_NETWORK_HEADERS     ?= @GNUSTEP_NETWORK_HEADERS@
+GNUSTEP_NETWORK_LIBRARIES   ?= @GNUSTEP_NETWORK_LIBRARIES@
+GNUSTEP_NETWORK_DOC         ?= @GNUSTEP_NETWORK_DOC@
+GNUSTEP_NETWORK_DOC_MAN     ?= @GNUSTEP_NETWORK_DOC_MAN@
+GNUSTEP_NETWORK_DOC_INFO    ?= @GNUSTEP_NETWORK_DOC_INFO@
+
+#
+# NETWORK domain, variables that are fixed to subdirs of LIBRARY
+#
+GNUSTEP_NETWORK_APPLICATION_SUPPORT = $(GNUSTEP_NETWORK_LIBRARY)/ApplicationSupport
+GNUSTEP_NETWORK_BUNDLES             = $(GNUSTEP_NETWORK_LIBRARY)/Bundles
+GNUSTEP_NETWORK_FRAMEWORKS          = $(GNUSTEP_NETWORK_LIBRARY)/Frameworks
+GNUSTEP_NETWORK_PALETTES            = $(GNUSTEP_NETWORK_LIBRARY)/ApplicationSupport/Palettes
+GNUSTEP_NETWORK_SERVICES            = $(GNUSTEP_NETWORK_LIBRARY)/Services
+GNUSTEP_NETWORK_RESOURCES           = $(GNUSTEP_NETWORK_LIBRARY)/Libraries/Resources
+GNUSTEP_NETWORK_JAVA                = $(GNUSTEP_NETWORK_LIBRARY)/Libraries/Java
+
+
+#
+# LOCAL domain
+#
+GNUSTEP_LOCAL_APPS        ?= @GNUSTEP_LOCAL_APPS@
+GNUSTEP_LOCAL_ADMIN_APPS  ?= @GNUSTEP_LOCAL_ADMIN_APPS@
+GNUSTEP_LOCAL_WEB_APPS    ?= @GNUSTEP_LOCAL_WEB_APPS@
+GNUSTEP_LOCAL_TOOLS       ?= @GNUSTEP_LOCAL_TOOLS@
+GNUSTEP_LOCAL_ADMIN_TOOLS ?= @GNUSTEP_LOCAL_ADMIN_TOOLS@
+GNUSTEP_LOCAL_LIBRARY     ?= @GNUSTEP_LOCAL_LIBRARY@
+GNUSTEP_LOCAL_HEADERS     ?= @GNUSTEP_LOCAL_HEADERS@
+GNUSTEP_LOCAL_LIBRARIES   ?= @GNUSTEP_LOCAL_LIBRARIES@
+GNUSTEP_LOCAL_DOC         ?= @GNUSTEP_LOCAL_DOC@
+GNUSTEP_LOCAL_DOC_MAN     ?= @GNUSTEP_LOCAL_DOC_MAN@
+GNUSTEP_LOCAL_DOC_INFO    ?= @GNUSTEP_LOCAL_DOC_INFO@
+
+#
+# LOCAL domain, variables that are fixed to subdirs of LIBRARY
+#
+GNUSTEP_LOCAL_APPLICATION_SUPPORT = $(GNUSTEP_LOCAL_LIBRARY)/ApplicationSupport
+GNUSTEP_LOCAL_BUNDLES             = $(GNUSTEP_LOCAL_LIBRARY)/Bundles
+GNUSTEP_LOCAL_FRAMEWORKS          = $(GNUSTEP_LOCAL_LIBRARY)/Frameworks
+GNUSTEP_LOCAL_PALETTES            = $(GNUSTEP_LOCAL_LIBRARY)/ApplicationSupport/Palettes
+GNUSTEP_LOCAL_SERVICES            = $(GNUSTEP_LOCAL_LIBRARY)/Services
+GNUSTEP_LOCAL_RESOURCES           = $(GNUSTEP_LOCAL_LIBRARY)/Libraries/Resources
+GNUSTEP_LOCAL_JAVA                = $(GNUSTEP_LOCAL_LIBRARY)/Libraries/Java
+
+
+#
+# USER domain
+# Please note that here the GNUstep.conf values are called
+# GNUSTEP_USER_DIR_* which we convert into the actual GNUSTEP_USER_*
+# after replacing %u, %i and %% and prepending (if needed)
+# GNUSTEP_HOME.
+#
+GNUSTEP_USER_DIR_APPS        ?= @GNUSTEP_USER_DIR_APPS@
+GNUSTEP_USER_DIR_ADMIN_APPS  ?= @GNUSTEP_USER_DIR_ADMIN_APPS@
+GNUSTEP_USER_DIR_WEB_APPS    ?= @GNUSTEP_USER_DIR_WEB_APPS@
+GNUSTEP_USER_DIR_TOOLS       ?= @GNUSTEP_USER_DIR_TOOLS@
+GNUSTEP_USER_DIR_ADMIN_TOOLS ?= @GNUSTEP_USER_DIR_ADMIN_TOOLS@
+GNUSTEP_USER_DIR_LIBRARY     ?= @GNUSTEP_USER_DIR_LIBRARY@
+GNUSTEP_USER_DIR_HEADERS     ?= @GNUSTEP_USER_DIR_HEADERS@
+GNUSTEP_USER_DIR_LIBRARIES   ?= @GNUSTEP_USER_DIR_LIBRARIES@
+GNUSTEP_USER_DIR_DOC         ?= @GNUSTEP_USER_DIR_DOC@
+GNUSTEP_USER_DIR_DOC_MAN     ?= @GNUSTEP_USER_DIR_DOC_MAN@
+GNUSTEP_USER_DIR_DOC_INFO    ?= @GNUSTEP_USER_DIR_DOC_INFO@
+
+#
+# Now, for all the GNUSTEP_USER_DIR_xxx variables above, replace:
+#
+#  %u with the username
+#  %i with the userid
+#  %% with %
+#
+# This allows you to, for example, specify the GNUSTEP_USER_TOOLS
+# should be /GNUstep/Users/%u/bin/, and that would mean
+# /GNUstep/Users/nicola/bin for user 'nicola' and
+# /GNUstep/Users/richard/bin for user 'richard'.
+#
+
+# Avoid attempting the replacement of %u and %i if there are no %u or
+# %i to replace.  Determining the user name and id requires a shell
+# commands, which is slow.  So, before we do that, try to figure out
+# if doing the substitutions is required or not.
+
+# FIXME: Even with this protection, we'd still do the subshell call
+# once per sub-make invocation.
+
+# Check if any of the strings contain %i...
+ifneq ($(findstring %i,\
+ $(GNUSTEP_USER_DIR_APPS)\
+ $(GNUSTEP_USER_DIR_ADMIN_APPS)\
+ $(GNUSTEP_USER_DIR_WEB_APPS)\
+ $(GNUSTEP_USER_DIR_TOOLS)\
+ $(GNUSTEP_USER_DIR_ADMIN_TOOLS)\
+ $(GNUSTEP_USER_DIR_LIBRARY)\
+ $(GNUSTEP_USER_DIR_HEADERS)\
+ $(GNUSTEP_USER_DIR_LIBRARIES)\
+ $(GNUSTEP_USER_DIR_DOC)\
+ $(GNUSTEP_USER_DIR_DOC_MAN)\
+ $(GNUSTEP_USER_DIR_DOC_INFO)),)
+  # ... and if so, do the replacement.
+  GNUSTEP__USERID := $(shell id -u)
+  GNUSTEP_USER_DIR_APPS        := $(subst %i,$(GNUSTEP__USERID),$(GNUSTEP_USER_DIR_APPS))
+  GNUSTEP_USER_DIR_ADMIN_APPS  := $(subst %i,$(GNUSTEP__USERID),$(GNUSTEP_USER_DIR_ADMIN_APPS))
+  GNUSTEP_USER_DIR_WEB_APPS    := $(subst %i,$(GNUSTEP__USERID),$(GNUSTEP_USER_DIR_WEB_APPS))
+  GNUSTEP_USER_DIR_TOOLS       := $(subst %i,$(GNUSTEP__USERID),$(GNUSTEP_USER_DIR_TOOLS))
+  GNUSTEP_USER_DIR_ADMIN_TOOLS := $(subst %i,$(GNUSTEP__USERID),$(GNUSTEP_USER_DIR_ADMIN_TOOLS))
+  GNUSTEP_USER_DIR_LIBRARY     := $(subst %i,$(GNUSTEP__USERID),$(GNUSTEP_USER_DIR_LIBRARY))
+  GNUSTEP_USER_DIR_HEADERS     := $(subst %i,$(GNUSTEP__USERID),$(GNUSTEP_USER_DIR_HEADERS))
+  GNUSTEP_USER_DIR_LIBRARIES   := $(subst %i,$(GNUSTEP__USERID),$(GNUSTEP_USER_DIR_LIBRARIES))
+  GNUSTEP_USER_DIR_DOC         := $(subst %i,$(GNUSTEP__USERID),$(GNUSTEP_USER_DIR_DOC))
+  GNUSTEP_USER_DIR_DOC_MAN     := $(subst %i,$(GNUSTEP__USERID),$(GNUSTEP_USER_DIR_DOC_MAN))
+  GNUSTEP_USER_DIR_DOC_INFO    := $(subst %i,$(GNUSTEP__USERID),$(GNUSTEP_USER_DIR_DOC_INFO))
+endif
+
+# Check if any of the strings contain %u ...
+ifneq ($(findstring %u,\
+ $(GNUSTEP_USER_DIR_APPS)\
+ $(GNUSTEP_USER_DIR_ADMIN_APPS)\
+ $(GNUSTEP_USER_DIR_WEB_APPS)\
+ $(GNUSTEP_USER_DIR_TOOLS)\
+ $(GNUSTEP_USER_DIR_ADMIN_TOOLS)\
+ $(GNUSTEP_USER_DIR_LIBRARY)\
+ $(GNUSTEP_USER_DIR_HEADERS)\
+ $(GNUSTEP_USER_DIR_LIBRARIES)\
+ $(GNUSTEP_USER_DIR_DOC)\
+ $(GNUSTEP_USER_DIR_DOC_MAN)\
+ $(GNUSTEP_USER_DIR_DOC_INFO)),)
+  # ... and if so, do the replacement.
+  GNUSTEP__USERNAME := $(shell id -u -n)
+  GNUSTEP_USER_DIR_APPS        := $(subst %u,$(GNUSTEP__USERNAME),$(GNUSTEP_USER_DIR_APPS))
+  GNUSTEP_USER_DIR_ADMIN_APPS  := $(subst %u,$(GNUSTEP__USERNAME),$(GNUSTEP_USER_DIR_ADMIN_APPS))
+  GNUSTEP_USER_DIR_WEB_APPS    := $(subst %u,$(GNUSTEP__USERNAME),$(GNUSTEP_USER_DIR_WEB_APPS))
+  GNUSTEP_USER_DIR_TOOLS       := $(subst %u,$(GNUSTEP__USERNAME),$(GNUSTEP_USER_DIR_TOOLS))
+  GNUSTEP_USER_DIR_ADMIN_TOOLS := $(subst %u,$(GNUSTEP__USERNAME),$(GNUSTEP_USER_DIR_ADMIN_TOOLS))
+  GNUSTEP_USER_DIR_LIBRARY     := $(subst %u,$(GNUSTEP__USERNAME),$(GNUSTEP_USER_DIR_LIBRARY))
+  GNUSTEP_USER_DIR_HEADERS     := $(subst %u,$(GNUSTEP__USERNAME),$(GNUSTEP_USER_DIR_HEADERS))
+  GNUSTEP_USER_DIR_LIBRARIES   := $(subst %u,$(GNUSTEP__USERNAME),$(GNUSTEP_USER_DIR_LIBRARIES))
+  GNUSTEP_USER_DIR_DOC         := $(subst %u,$(GNUSTEP__USERNAME),$(GNUSTEP_USER_DIR_DOC))
+  GNUSTEP_USER_DIR_DOC_MAN     := $(subst %u,$(GNUSTEP__USERNAME),$(GNUSTEP_USER_DIR_DOC_MAN))
+  GNUSTEP_USER_DIR_DOC_INFO    := $(subst %u,$(GNUSTEP__USERNAME),$(GNUSTEP_USER_DIR_DOC_INFO))
+endif
+
+# Warning (FIXME?): If the username itself contains '%%' (eg, a user
+# with name 'nicola%%'), then such occurrences would get replaced with
+# '%' by the following.
+
+# Always replace '%%' with '%'.
+GNUSTEP_USER_DIR_APPS        := $(subst %%,%,$(GNUSTEP_USER_DIR_APPS))
+GNUSTEP_USER_DIR_ADMIN_APPS  := $(subst %%,%,$(GNUSTEP_USER_DIR_ADMIN_APPS))
+GNUSTEP_USER_DIR_WEB_APPS    := $(subst %%,%,$(GNUSTEP_USER_DIR_WEB_APPS))
+GNUSTEP_USER_DIR_TOOLS       := $(subst %%,%,$(GNUSTEP_USER_DIR_TOOLS))
+GNUSTEP_USER_DIR_ADMIN_TOOLS := $(subst %%,%,$(GNUSTEP_USER_DIR_ADMIN_TOOLS))
+GNUSTEP_USER_DIR_LIBRARY     := $(subst %%,%,$(GNUSTEP_USER_DIR_LIBRARY))
+GNUSTEP_USER_DIR_HEADERS     := $(subst %%,%,$(GNUSTEP_USER_DIR_HEADERS))
+GNUSTEP_USER_DIR_LIBRARIES   := $(subst %%,%,$(GNUSTEP_USER_DIR_LIBRARIES))
+GNUSTEP_USER_DIR_DOC         := $(subst %%,%,$(GNUSTEP_USER_DIR_DOC))
+GNUSTEP_USER_DIR_DOC_MAN     := $(subst %%,%,$(GNUSTEP_USER_DIR_DOC_MAN))
+GNUSTEP_USER_DIR_DOC_INFO    := $(subst %%,%,$(GNUSTEP_USER_DIR_DOC_INFO))
+
+
+# Now, any directories in the user domain that are relative (ie, they
+# don't start with '/') get automatically prefixed with GNUSTEP_HOME.
+
+ifneq ($(filter /%, $(GNUSTEP_USER_DIR_APPS)),)
+ # Path starts with '/', so we can use it as it is
+ GNUSTEP_USER_APPS = $(GNUSTEP_USER_DIR_APPS)
+else
+ # Path does no start with '/', consider it as relative to GNUSTEP_HOME
+ GNUSTEP_USER_APPS = $(GNUSTEP_HOME)/$(GNUSTEP_USER_DIR_APPS)
+endif
+
+ifneq ($(filter /%, $(GNUSTEP_USER_DIR_ADMIN_APPS)),)
+ # Path starts with '/', so we can use it as it is
+ GNUSTEP_USER_ADMIN_APPS = $(GNUSTEP_USER_DIR_ADMIN_APPS)
+else
+ # Path does no start with '/', consider it as relative to GNUSTEP_HOME
+ GNUSTEP_USER_ADMIN_APPS = $(GNUSTEP_HOME)/$(GNUSTEP_USER_DIR_ADMIN_APPS)
+endif 
+
+ifneq ($(filter /%, $(GNUSTEP_USER_DIR_WEB_APPS)),)
+ # Path starts with '/', so we can use it as it is
+ GNUSTEP_USER_WEB_APPS = $(GNUSTEP_USER_DIR_WEB_APPS)
+else
+ # Path does no start with '/', consider it as relative to GNUSTEP_HOME
+ GNUSTEP_USER_WEB_APPS = $(GNUSTEP_HOME)/$(GNUSTEP_USER_DIR_WEB_APPS)
+endif 
+
+ifneq ($(filter /%, $(GNUSTEP_USER_DIR_TOOLS)),)
+ GNUSTEP_USER_TOOLS = $(GNUSTEP_USER_DIR_TOOLS)
+else
+ GNUSTEP_USER_TOOLS = $(GNUSTEP_HOME)/$(GNUSTEP_USER_DIR_TOOLS)
+endif 
+
+ifneq ($(filter /%, $(GNUSTEP_USER_DIR_ADMIN_TOOLS)),)
+ GNUSTEP_USER_ADMIN_TOOLS = $(GNUSTEP_USER_DIR_ADMIN_TOOLS)
+else
+ GNUSTEP_USER_ADMIN_TOOLS = $(GNUSTEP_HOME)/$(GNUSTEP_USER_DIR_ADMIN_TOOLS)
+endif 
+
+ifneq ($(filter /%, $(GNUSTEP_USER_DIR_LIBRARY)),)
+ GNUSTEP_USER_LIBRARY = $(GNUSTEP_USER_DIR_LIBRARY)
+else
+ GNUSTEP_USER_LIBRARY = $(GNUSTEP_HOME)/$(GNUSTEP_USER_DIR_LIBRARY)
+endif 
+
+ifneq ($(filter /%, $(GNUSTEP_USER_DIR_HEADERS)),)
+ GNUSTEP_USER_HEADERS = $(GNUSTEP_USER_DIR_HEADERS)
+else
+ GNUSTEP_USER_HEADERS = $(GNUSTEP_HOME)/$(GNUSTEP_USER_DIR_HEADERS)
+endif 
+
+ifneq ($(filter /%, $(GNUSTEP_USER_DIR_LIBRARIES)),)
+ GNUSTEP_USER_LIBRARIES = $(GNUSTEP_USER_DIR_LIBRARIES)
+else
+ GNUSTEP_USER_LIBRARIES = $(GNUSTEP_HOME)/$(GNUSTEP_USER_DIR_LIBRARIES)
+endif 
+
+ifneq ($(filter /%, $(GNUSTEP_USER_DIR_DOC)),)
+ GNUSTEP_USER_DOC = $(GNUSTEP_USER_DIR_DOC)
+else
+ GNUSTEP_USER_DOC = $(GNUSTEP_HOME)/$(GNUSTEP_USER_DIR_DOC)
+endif 
+
+ifneq ($(filter /%, $(GNUSTEP_USER_DIR_DOC_MAN)),)
+ GNUSTEP_USER_DOC_MAN = $(GNUSTEP_USER_DIR_DOC_MAN)
+else
+ GNUSTEP_USER_DOC_MAN = $(GNUSTEP_HOME)/$(GNUSTEP_USER_DIR_DOC_MAN)
+endif 
+
+ifneq ($(filter /%, $(GNUSTEP_USER_DIR_DOC_INFO)),)
+ GNUSTEP_USER_DOC_INFO = $(GNUSTEP_USER_DIR_DOC_INFO)
+else
+ GNUSTEP_USER_DOC_INFO = $(GNUSTEP_HOME)/$(GNUSTEP_USER_DIR_DOC_INFO)
+endif 
+
+#
+# USER domain, variables that are fixed to subdirs of LIBRARY
+#
+GNUSTEP_USER_APPLICATION_SUPPORT = $(GNUSTEP_USER_LIBRARY)/ApplicationSupport
+GNUSTEP_USER_BUNDLES             = $(GNUSTEP_USER_LIBRARY)/Bundles
+GNUSTEP_USER_FRAMEWORKS          = $(GNUSTEP_USER_LIBRARY)/Frameworks
+GNUSTEP_USER_PALETTES            = $(GNUSTEP_USER_LIBRARY)/ApplicationSupport/Palettes
+GNUSTEP_USER_SERVICES            = $(GNUSTEP_USER_LIBRARY)/Services
+GNUSTEP_USER_RESOURCES           = $(GNUSTEP_USER_LIBRARY)/Libraries/Resources
+GNUSTEP_USER_JAVA                = $(GNUSTEP_USER_LIBRARY)/Libraries/Java
+
+

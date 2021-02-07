@@ -1,0 +1,69 @@
+.\"font_cacher(1) man page
+.\"Written by Yavor Doganov <yavor@gnu.org>
+.\"Copyright (C) 2018 Free Software Foundation, Inc.
+.\"License: GPL-3+
+.TH FONT_CACHER 1 "February 2018" GNUstep "GNUstep System Manual"
+.SH NAME
+font_cacher \- font cacher for the GNUstep xlib Backend
+.SH SYNOPSIS
+\fBfont_cacher\fR [\fIoptions\fR]
+.PP
+.SH DESCRIPTION
+The
+.B font_cacher
+program generates a cache from all available X fonts.  The cache is
+stored in
+.I $HOME/GNUstep/Library/Fonts/Cache
+and is used only by the GNUstep xlib backend.  The xlib backend will
+automatically launch
+.B font_cacher
+if the cache is not available or cannot be accessed.  This can cause
+some slowness when a GNUstep application is started for the first
+time with xlib configured as backend.
+.PP
+Normally, the
+.B font_cacher
+program is used without options.
+.PP
+.SH OPTIONS
+.TP
+\fB\--version\fR
+Displays version information.  (Not implemented.)
+.TP
+\fB\--help\fR
+Prints the exact location of the file where the font cache will be
+written.
+.TP
+\fB\--GNU-Debug=\fR\fIdflt\fR
+Displays progress and other debugging information while generating the
+cache.  (This is a global
+.I GNUstep
+option.)
+.PP
+.SH BUGS AND LIMITATIONS
+If
+.I $HOME/GNUstep/Library
+does not exist,
+.B font_cacher
+will fail and the directory must be created manually.
+.PP
+When fonts are installed or removed, the program must be invoked
+explicitly to update the cache.  There is no way to handle this
+automatically.
+.PP
+.SH SEE ALSO
+Defaults related to the GNUstep Backend:
+.I $GNUSTEP_DOC/Developer/Back/General/DefaultsSummary.html
+.PP
+.SH AUTHORS
+.B font_cacher
+was written by Fred Kiefer <FredKiefer@gmx.de> and Richard
+Frith-Macdonald <rfm@gnu.org>.
+.PP
+This manual page was written by Yavor Doganov <yavor@gnu.org>.
+.SH COPYING
+\(co 2018 Free Software Foundation, Inc.
+.PP
+This manual page is distributed under the same license as the
+.B font_cacher
+program.

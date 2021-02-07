@@ -1,0 +1,395 @@
+@c    GNUstep AppKit Guide
+@c
+@c    Copyright (c)  2005-2006  Christopher Armstrong.
+@c
+@c    Permission is granted to copy, distribute and/or modify this document
+@c    under the terms of the GNU Free Documentation License, Version 1.2
+@c    with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+@c    A copy of the license is included in the section entitled "GNU
+@c    Free Documentation License".
+@c
+@c This documentation is provided on an "AS IS" BASIS, WITHOUT WARRANTY
+@c OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING, BUT NOT LIMITED
+@c TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+@c PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY AND USEFULNESS
+@c OF THE DOCUMENTATION IS WITH YOU (THE LICENSEE). IN NO EVENT WILL THE COPYRIGHT
+@c HOLDERS BE LIABLE FOR DAMAGES, INCLUDING ANY DIRECT, INDIRECT,
+@c SPECIAL, GENERAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF
+@c THE USE OR INABILITY TO USE THIS DOCUMENTATION (INCLUDING BUT NOT
+@c LIMITED TO LOSS OF DATA, USE, OR PROFITS; PROCUREMENT OF SUBSTITUTE
+@c GOODS AND SERVICES; OR BUSINESS INTERUPTION) HOWEVER CAUSED, EVEN
+@c IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+@node dataexchange, images, browsercontrols, Top
+@chapter Data Exchange
+
+@dfn{Data Exchange} refers to the many high-level options GNUstep provides for allowing different applications to exchange common types of data. The sorts of services include "cut and paste", "drag and drop", service applications, filter services and distributed objects.
+
+We begin our discussion with an explanation of pasteboards, which form the basis of data exchange in GNUstep. We will then go on to explain how your application can expose or consume these different sorts of data exchange services. However you receive data, it will most likely involve the use of pasteboards, hence the next section is very important.
+
+@section Pasteboards
+
+A @dfn{pasteboard} is the helper object used to exchange data between applications. It is an instance of the @code{NSPasteboard} class. Data is written to the pasteboard in different forms that it can be represented, so that the application or service receiving the data can use it.
+
+There is a pasteboard server, a service provided with GNUstep which handles pasting between GNUstep applications. You may recognise it as the @command{gpbs} application.
+
+@cindex pasteboards, standard names
+Every pasteboard has a name that can be used to identify it. This is a string, which should be unique, but some standard pasteboard names are defined for certain uses:
+@vtable @code
+@item NSGeneralPboard
+The @dfn{general pasteboard}, often used with copy and paste.
+
+@item NSFontPboard
+Used for the exchange of font data.
+
+@item NSRulerPboard
+Used for the exchange of ruler data.
+
+@item NSFindPboard
+Used for "Find and Replace" editing.
+
+@item NSDragPboard
+Used in the exchange of drag'n'drop data.
+
+@end vtable
+
+You can retreive a pasteboard by name using the @code{+pasteboardWithName:} method, or with a guaranteed unique name with the @code{+pasteboardWithUniqueName} method.
+
+All pasteboards also have any number of @dfn{types}. A @dfn{type} is simply one form of data that the pasteboard will contain, such as HTML data or text data. The supported data types are listed below:
+@cindex pasteboards, standard types 
+@itemize @bullet
+@item NSColorPboardType
+@item NSDataLinkPboardType
+@item NSFileContentsPboardType
+@item NSFilenamesPboardType
+@item NSFontPboardType
+@item NSGeneralPboardType
+@item NSHTMLPboardType
+@item NSPostScriptPboardType
+@item NSPDFPboardType
+@item NSPICTPboardType
+@item NSRTFPboardType
+@item NSRTFDPboardType
+@item NSRulerPboardType
+@item NSStringPboardType
+@item NSTabularTextPboardType
+@item NSTIFFPboardType
+@item NSURLPboardType
+@end itemize
+See the AppKit manual for more information about storing these types of data on a pasteboard.
+
+Finally a pasteboard may or may not have an @dfn{owner}. An @dfn{owner} is an object implmenting the @code{NSPasteboardOwner} informal protocol that can provide the pasteboard with data of a certain type upon request. If you don't supply an owner object, you should store the data onto the pasteboard straight away.
+
+@subsection Constructing a pasteboard
+
+You can get a pasteboard using the @code{+pasteboardWithName:} method with one of the standard names above, or the @code{+pasteboardWithUniqueName:} for a pasteboard with a name that is unique to the pasteboard server. You can also get a pasteboard based on the available filter services by calling @code{+pasteboardByFilteringFile:} for a pasteboard containing file, accessible by all the data types that it can be filtered to. If you know the source data type, you can use @code{+pasteboardByFilterData:ofType:} specifying a data object for a pasteboard that can convert data to different types that can be filtered from your data's type.
+
+If you are constructing a pasteboard, you will want to call @code{-setData:forType:} method to put the associated data in the pasteboard for another object to read it out. Use @code{-declareTypes:owner:} to declare the types that this pasteboard will contain, and an owner object that will supply the data for those types that you don't explicitly write to the pasteboard. 
+
+@subsection Using an Owner
+
+You can provide a pasteboard owner by implementing the @code{NSPasteboardOwner} informal protocol. This is used for the "lazy" provision of data. The pasteboard will call methods on the owner when it can't find the data being requested already stored on it.
+
+The first method to implement is @code{-pasteboard:provideDataForType:}. This is called when the pasteboard doesn't have the data specified by @var{type}. You give it to the pasteboard by calling @code{-setData:forType:} on the pasteboard.
+
+We can also implement @code{-pasteboardChangedOwner:}, which informs us that the owner has been changed and we no longer have to provide data to the pasteboard. GNUstep also has an extension, the @code{-pasteboard:provideDataForType:andVersion:} which should be implemented when data of a certain version as well is required. 
+
+@section Cut and Paste
+
+Cut, copy and paste is the most common service you will want to provide in your application. Thankfully, all standard GNUstep objects handle copying and pasting where commonly appropriate, such as the NSText variety of objects. However, in some cases it may be useful to provide copying and pasting services, especially for your own views or on customised GNUstep views.
+
+The first thing to to is to provide two methods on your object called @code{-cut:}, @code{-copy:}, and/or @code{-paste:} both taking an object (the sender) as their first parameter. This will enable Gorm's standard "Cut", "Copy" and "Paste" menu items if you place them in your interface. 
+
+You will usually use the general pasteboard for cut and paste, which can be retreived by going:
+@smallexample
+NSPasteboard* generalPB = [NSPasteboard pasteboardWithName:NSGeneralPboard];
+@end smallexample
+
+The implementation of these methods should then follow. For cutting and copying:
+@enumerate
+@item Create a pasteboard
+
+Usually we use the general pasteboard, but you can create one with your own name if you like.
+
+@item Register types of data to be provided
+
+The next thing to do is specify which types of data you will provide on the pasteboard. Use the @code{-declareTypes:owner:} method, passing an array of types, and optionally, an owner object. 
+
+@item Provide data for pasting
+
+You supply data to the pasteboard for pasting by using the @code{-setData:forType:} method. If you have used an owner, make sure that it implements the @code{NSPasteboardOwner} protocol and that it can return data in the form(s) specified in the previous step.
+@end enumerate
+
+If you decide to provide data in a number of types, it is often recommended you supply the @i{richest} type directly to the pasteboard, and use an owner to supply more basic data types. Simply use @code{if/else if} statements in the @code{-pasteboard:provideDataForType:} method on your owner.
+
+Pasting data is much simpler. Simply retreive the general pasteboard, and call the @code{-stringForType:} or @code{-propertyListForType:} method, passing in a type.
+
+Make sure that you declare the types your pasteboard supports with the @code{-declareTypes:owner:} method. You can specify nil for the owner if you are not using lazy data provision.
+
+@section Drag and Drop
+
+@dfn{Drag and drop} is often more complex. Many different standard views provide their own delegate protocols for receiving drag and drop events, and you should refer to the documentation for those (especially tableviews and outline views) before following the instructions in this section. However, this is still useful in explaining some important concepts.
+
+Such operations consist of both a @dfn{drag} and a @dfn{drop}@footnote{I know this seems really, really obvious, but just play along; I'm not trying to be patronising.}. The @dfn{drag} occurs when the user clicks their mouse button on a visible GUI element, and begins to mouse the mouse away from it. A @dfn{drop} occurs when the user moves the mouse over another GUI element and releases the mouse button. Obviously, dragging and dropping can only occur on visible elements of the screen that take up some real estate.
+
+Below, we discuss dragging sources and dragging destinations, and what is required to make your views responsive as such.
+
+@subsection Dragging Sources
+
+@cindex dragging, sources 
+When a drag event is initiated, the @code{-dragImage:at:offset: event:pasteboard: source:slideBack:} method is called on your subclass of NSView.  In this method, you need to supply a dragging image, a pasteboard to hold the data, and and a @dfn{dragging source} object (specified by the @code{source:} parameter).
+
+@cindex protocols, NSDraggingSource 
+The @dfn{dragging source} object should implement the @code{NSDraggingSource} protocol. The main method to implement is @code{-draggingSourceOperationMaskForLocal:}, whereas the others are used for dragging session events (and are otherwise optional). In this method, you should return the set of binary or-ed values corresponding to the permitted drag operations on this displayed image representation, listed below:
+@cindex dragging, operations 
+@table @code
+@item NSDragOperationNone
+No drag operations are permitted with this data.
+
+@item NSDragOperationCopy
+This data can be copied.
+
+@item NSDragOperationLink
+This data can be "shared". FIXME: WTF does this mean.
+
+@item NSDragOperationGeneric
+The type of drag operation that this is can be defined by the dragging destination.
+
+@item NSDragOperationPrivate
+This type of drag operation is defined privately by the source and destination objects, and hence negotiated between them.
+
+@item NSDragOperationMove
+The data represented by this drag operation can be moved to the destination.
+
+@item NSDragOperationDelete
+The destination can be responsible for deleting the data.
+
+@item NSDragOperationAll
+@itemx NSDragOperationEvery
+All the above drag operations are acceptable.
+@end table
+
+You can specify more than one of the above by binary or-ing them together (the single pipe operator). Note that if you permit the @code{NSDragOperationMove} or @code{NSDragOperationDelete} methods, you must implement the @code{-draggedImage:endedAt:operation:} method, which is called when a dragging operation is finished so that your source can cleanup any visual or internal data in the source (such as making the source image disappear).
+
+@subsection Dragging Destinations
+
+@cindex dragging, destinations 
+@cindex protocols, NSDraggingDestination 
+A view or window that is to act as a @dfn{dragging destination} should be sent the message @code{-registerForDraggedTypes:} with an array of the accepted dragging types. The view or window should then implement some of the methods in the @code{NSDraggingDestination} informal protocol.
+
+Some of these methods are listed below:
+@table @code
+
+@item - draggingEntered:
+This is method is called when the user drags something into the frame of your window or view. Use it to return what dragging types you will permit for the dragging info passed in @code{sender}. 
+
+@item - prepareForDragOperation:
+This is called just after the user has dropped the dragged object. Use this method to make any preparations for the drop. Return YES to cancel the drop.
+
+@item - performDragOperation:
+This method is called so that you can perform the drop operation. This method is a must to implement. 
+
+@item - concludeDragOperation:
+This is again optional, and can be used to perform any cleanup or post-drop operations.
+
+@item - draggingUpdated:
+This is called periodically as the drag image is moved within your frame. It can be optionally implemented to update the drag operation with different drag types (returned) as the user moves the drag images over various parts of your view. It may be useful if drag operations are context sensitive with respect to the graphical elements that your view displays.
+
+@end table
+
+Hence to act as a dragging destination, you need to at least implement @code{-draggingEntered:} and @code{-performDragOperation}. Make sure that when you actually perform the drag operation, that you retreive the pasteboard being used from the dragging destination (see below), as opposed to just retreiving the @code{NSDragPboard} named pasteboard, as you cannot be certain which pasteboard the dragging source has used for the drag operation.
+
+@subsection Dragging Information
+
+Both @code{NSDraggingSource} and @code{NSDraggingDestination} use objects implementing the @code{NSDraggingInformation} protocol to convey information about the drag'n'drop operation. You can use this to make better decisions in many of the above mentioned methods with relation to permitting/disallowing different drag types and drag operations. You never implement this protocol, however.
+
+The pasteboard being used for the drag operation can be retreived via the @code{-draggingPasteboard} method. The image being used for the drag operation and its location can be retrieved via the @code{-draggingImage} and @code{-draggingImageLocation} methods respectively. If you need to snap the image during the drag operation, use the @code{-slideDraggedImageTo:} method, but only do this during @code{-prepareForDragOperation:} in the destination object.
+
+@section Services and Filter Services
+
+A @dfn{service} is a special type of application or tool that can be used to process data outside of the application. An application can both take advantage of services, or provide them to other applications. Like "cut and paste" and "drag'n'drop", services use pasteboard to receive data and send it back to the calling application.
+
+A user can usually make use of a service by selecting something in your application (such as some text or an object) and selecting a service from the "Services" menu. You can also invoke services programmatically.
+
+One way is to put a @var{Services} sub-menu in your interface file's menu using @command{Gorm} (as mentioned above. The other way is to call the @code{NSPerformService()} function. It takes two parameters, a service name and a pasteboard. If the service invocation is successful, the pasteboard will contain the output data from the service. The latter method is useful for filter services (described below).
+
+A service becomes available to any NSResponder object in your application's interface. Most GNUstep classes are setup to consume services, but if you have your own @code{NSView} or @code{NSWindow} subclasses, you will need to implement extra methods so that it can make use of services. A service that isn't available to an object will not appear available in the Services menu.
+
+Providing services is a little bit different, and requires a bit more work. You can implement a service as a normal GNUstep application, or as a special command-line type using the @code{service.make} template in your GNUmakefile. Either way, you need to also provide extra information in your @file{Info-gnustep.plist} file that describes what services your application provides.
+
+@section Providing Services
+
+There are two types of services you can provide: normal services and filter services. Normal services may either send, receive or both send and receive data. They are often useful for initiating outside processes based on simple string information, such as loading up a "New Message" window in your email client with an email address that the user has highlighted in your application. Such as service wouldn't need to return any data. These services also are registered to appear in the "Services" menu of applications.
+
+For example, the user would highlight an email address in a text box, and then select "Send Email" from the services menu. GNUstep would then locate the associated service and put the email address on a pasteboard. The pasteboard is sent to the service application (and loaded if necessary), which processes it accordingly.
+
+On the other hand, a filter service is much more specific. They are designed to convert data from one type to another, and are only ever invoked programatically i.e. they don't appear in the "Services" menu.
+
+We begin making our application or command-line service ready for acting as a service by calling @code{-setServicesProvider:} on the @code{NSApplication} object, or by calling the @code{NSRegisterServicesProvider()} function. Both take an object, which will provide the service, as a parameter, and the latter also takes a @dfn{port name} as a string, which will be used to contact the application. @code{NSApplication} uses the name of your application as the port name.
+
+Secondly, the object that will provide the service needs to implement a method in the form of: @code{[methodname]:userData:error:}, where @var{methodname} is a custom, arbitrary name of the method. For example if you were to create a service that encrypts data and you want to call it something like @code{-encryptData}, the method would take the form:
+@smallexample
+- (void) encryptData:(NSPasteboard*)pBoard 
+	    userData:(NSString*)userData 
+	       error:(NSString**)error;
+@end smallexample
+
+As you can see, the first part is arbitrary, but the rest must be the same for all services. It is the first part that you will use in the @code{NSMessage} key below.
+
+Lastly, all services need a special addition to their Info-gnustep.plist file, which should be included as a @command{RESOURCE} in your @file{GNUmakefile}. See the @cite{GNUstep Makefile Manual} for more details.
+
+@subsection Normal Services
+
+As mentioned before, normal services may either send data, receive data, or both. Their Info-gnustep.plist file must have a top-level key named @code{NSServices}, which becomes an array of dictionaries. This array has one dictionary per service that is provided. 
+
+Each service dictionary has the following keys:
+@table @var
+
+@item NSMessage
+This is the first part of the method name (as described above). For example, if your services provider object implements a method called @code{-randomData:userData:error:}, this key should take a string value equal to @code{"randomData"}.
+
+@item NSSendTypes
+This key contains an array of the types of data that your service provider can handle (the types of data that may be sent to it). These types are the string values defined earlier for pasteboard types. Simply use the same name as used in the source code, e.g. @code{NSStringPboardType}.
+
+@item NSReturnTypes
+This is an array of string values that contains the types your service provider can return.
+
+@item NSPortName
+A service must be contacted via a distributed objects port, and this string value must contain the name of the port your application will be listening on for message. Unless you are not writing an application, this is usually set to the name of the application.
+
+@item NSMenuItem
+This is a dictionary used to set the menu item name for this service. Each key in the dictionary is the name of a language, with the value set to a string that will be displayed as the menu item for this service in the set language. You can also provide a @var{default} key, which will be displayed if none of the translations you have provided match the user's language settings. You may also place one forward slash character ('/') in the menu item name, which will be used to split the item into a sub-menu of @command{Services} and the menu item. It is useful for grouping related services in a sub-menu.
+
+@item NSUserData
+This key is optional, and is set to a string value which may be whatever you like. It is passed to the method implementing the service. Use this if you want the one method to handle a number of service implementations, which are selected based on this string.
+
+@item NSKeyEquivalent
+This is an optional dictionary which contains the key equivalents to the menu items you have listed in @var{NSMenuItem}. Each dictionary key is the name of a language (or @var{default} as described above) with its value set to a single letter that corresponds to a keyboard key.
+
+@item NSTimeout
+This key is optional, and specifies how long the system should wait for the service provider to complete providing the service. It is a number in milliseconds. By default, the system waits 30 seconds.
+
+@item NSExecutable
+This is an optional string value that contains the path of the executable which should be launched if the service is not already running. You will not usually need this for normal applications.
+@end table
+
+@subsubheading Example
+We want to provide a service that turns ordinary string data into coded HTML text. Our service application is called "WebSiteEditor" and the method that provides the HTML translation is called @code{textToHtml:}. It accepts string data, and publishes the HTML back in string form.
+
+Our example Info-gnustep.plist array could be:
+@example
+@{ 
+  ..
+
+   (application specific keys)
+
+  ..
+
+  NSServices = (
+    @{
+      NSPortName = WebSiteEditor;
+      NSMessage = textToHtml;
+      NSSendTypes = ( NSStringPboardType );
+      NSReturnTypes = ( NSStringPboardType );
+      NSMenuItem = @{ 
+        default = "Convert to HTML";
+      @};
+      NSTimeout = 25000;
+      NSKeyEquivalent = @{
+        default = H;
+      @};
+      NSUserData = "NoBodyTags";
+    @}
+    .. (More service definitions)
+  );
+@}
+@end example
+
+As can be seen above, @var{NSServices} is an array containing one dictionary, which corresponds to one service. The service appears in the menu as "Convert to HTML", which expects string data.
+
+A possible code implementation may be:
+@example
+
+- (void) textToHTML:(NSPasteboard*)pboard
+           userData:(NSString*)userData
+              error:(NString**)error
+@{
+  NSString* data, *convertedData;
+  if ([[pboard types] containsObject:NSStringPboardType])
+  @{
+     // Extract string data from pasteboard
+     data = [pboard stringForType:NSStringPboardType];
+     
+     // Convert to HTML as a string
+     //..
+
+     // Put the result back onto the pasteboard
+     [pboard declareTypes:[NSArrayWithObject:NSStringPboardType]
+                    owner:nil
+     [pboard setString:convertedData forType:NSStringPboardType];
+  @}
+  else
+    *error = @"Incorrect data type provided to textToHTML: service.";
+@}
+
+@end example
+
+@subsection Filter Services
+
+As mentioned before, filter services are not initiated by the user, but are initiated by programme's to convert data from one type to another. They also have entries in an application's @file{Info-gnustep.plist} @var{NSServices} array. These entries are dictionaries as well, but they contain the following keys:
+@table @var
+
+@item NSFilter
+This is the equivalent of the @var{NSMessage} key used for normal services. It is the name of the distributed objects port that the filter service will listen on for messages. It again is usually set to the name of the application, but as filter services are more likely to be standalone tools, this one can differ somewhat.
+
+@item NSInputMechanism
+This is an optional key that specifies a string value corresponding to a different input mechanism than the usual distributed objects message passing.
+These values may be:
+@table @var
+@item NSIdentity
+The data is placed on a pasteboard. It is not changed.
+
+@item NSMapFile
+The data is the name of a file. The contents of this file will be placed on the pasteboard instead.
+
+@item NSUnixStdio
+The data is the name of a file. This file is passed as an argument to a command-line programme, which is executed. The stdout of the programme is placed on the pasteboard instead.
+@end table
+@end table
+
+@subsection Registering Services
+Before a service can be consumed by applications, it must be registered programatically and on the command line.
+
+An application registers the object that will be providing service(s) by calling @code{-setServicesProvider:} on their @code{NSApplication} object. Tool applications must call @code{NSRegisterServicesProvider()}, which is a function that takes the service object and the port name (as specified by @code{NSMessage} or @code{NSFilter} in the @file{Info-gnustep.plist} file).
+
+Once that is in code and your application has been installed, you also need to execute @command{make_services}, which is a script that comes with GNUstep. It locates the Info-gnustep.plist file and builds a list of services. This list of services becomes available to applications started after the script is executed.
+
+@section Using Services
+
+For the most part, AppKit objects are implemented to take advantage of most service types where appropriate, especially in regard to string data. However, there are situations where you will want to register for service consumption yourself, or where you want to allow your custom views to consume services.
+
+An @var{NSResponder} object must first register the pasteboard types it supports. Then, when a user tries to invoke a service, GNUstep first checks the responder chain for an object that can handle the service's input type, and then it queries the object for the data to be processed by the service. If data is returned from the service, GNUstep then gives the pasteboard back to the object for it's own processing.
+
+@enumerate 
+
+@item Registering for service consumption
+
+Your object must at some point register it's ability to consume services of certain pasteboard types. It does this by calling @code{-registerServicesMenuSendTypes: returnTypes:} with an array of send types (the pasteboard types the object can send to a service) and return types (the pasteboard types the object can receive from a service).
+
+This method is to be only called once for your subclass. It is convenient to put it in your class' @code{+initialize} method, which is usually called after your class is loaded into the runtime (and hence only once).
+
+@item Sending data to a Service
+
+When sending data to a service, GNUstep must first check that your object can send those types of data before it requests the pasteboard from your object.
+
+So that GNUstep can check whether your object is able to export the pasteboard types requested by the service, you must implement the @code{-validRequestorForSendType:returnType:} method. It is passed a send pasteboard type and a return pasteboard type. 
+
+Your implementation should return an object if it is capable of handling that combination of send and return type (and is ready to do so), or return nil if it can't. It usually returns @code{self}.
+
+If GNUstep gets a positive answer to this method, it will then call @code{-writeSelectionToPasteboard:types} on your object. You should implement this method to fill the pasteboard with data (or use lazy provision, as discussed earlier in this chapter). It should return @code{YES} if it suceeds, or @code{NO} if it fails.
+
+@item Receiving data from a service
+
+If the service being invoked returns data, GNUstep will call @code{-readSelectionFromPasteboard:} on your object when the service returns. This method should retrieve the service data from the pasteboard and use that data to update it's object's state.
+
+@end enumerate

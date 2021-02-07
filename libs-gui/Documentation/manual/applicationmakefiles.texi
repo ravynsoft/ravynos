@@ -1,0 +1,108 @@
+@c    GNUstep AppKit Guide
+@c
+@c    Copyright (c)  2005-2006  Christopher Armstrong.
+@c
+@c    Permission is granted to copy, distribute and/or modify this document
+@c    under the terms of the GNU Free Documentation License, Version 1.2
+@c    with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+@c    A copy of the license is included in the section entitled "GNU
+@c    Free Documentation License".
+@c
+@c This documentation is provided on an "AS IS" BASIS, WITHOUT WARRANTY
+@c OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING, BUT NOT LIMITED
+@c TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+@c PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY AND USEFULNESS
+@c OF THE DOCUMENTATION IS WITH YOU (THE LICENSEE). IN NO EVENT WILL THE COPYRIGHT
+@c HOLDERS BE LIABLE FOR DAMAGES, INCLUDING ANY DIRECT, INDIRECT,
+@c SPECIAL, GENERAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF
+@c THE USE OR INABILITY TO USE THIS DOCUMENTATION (INCLUDING BUT NOT
+@c LIMITED TO LOSS OF DATA, USE, OR PROFITS; PROCUREMENT OF SUBSTITUTE
+@c GOODS AND SERVICES; OR BUSINESS INTERUPTION) HOWEVER CAUSED, EVEN
+@c IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+@node applicationmakefiles, interfacefiles, gnustepapplications, Top
+@chapter Application Makefiles
+@anchor{Application Makefiles}
+@cindex makefiles
+
+Application makefiles are very similiar to those used to build Tools and Objective-C programmes, but allow extra specifications to build application wrappers and include their resource files. We assume you are already familiar with the GNUstep Makefile system.
+
+Below is a generic, but complete application makefile, followed by an explanation of the various parameters.
+
+@example
+include $(GNUSTEP_MAKEFILES)/common.make
+
+APP_NAME = ExampleApplication
+PACKAGE_NAME = ExampleApplication
+VERSION = 1.0
+
+ExampleApplication_OBJC_FILES = main.m AppController.m \
+  ExampleClass.m
+
+ExampleApplication_C_FILES = regexp.c fun.c
+
+ExampleApplication_OBJC_LIBS = -lLibNumberOne -lPDFKit -lFunKit
+ExampleApplication_RESOURCE_FILES = \
+  ExampleApplication.gorm \
+  Info-gnustep.plist
+
+-include GNUmakefile.preamble
+include $(GNUSTEP_MAKEFILES)/application.make
+-include GNUmakefile.postamble
+
+@end example
+
+@file{common.make} and @file{application.make} are necessary to build an application, and need to be at the beginning and end respectively to the Makefile to operate properly. The @file{GNUmakefile.preamble} and @file{GNUmakefile.postamble} are optional, and permit you to define extra rules for building your application. You can include those lines without those files containing anything. Templates for those files also exist with the source code for gnustep-gui, which can simply be copied into your project and modified accordingly.
+
+The table below describes the makefile variables that you can set to control the output of the make process. Note that @var{appname} refers to the application name that you set with @code{APP_NAME}. It is case sensistive and so are file names. Also, most of the variables listed below are optional if you wish to get a program to compile, but it is recommend you make use of them where appropriate. Where variables ask for flags and compiler options, they should be in the format that @command{gcc} expects, as it is the only compiler currently used with GNUstep. Many variables also take more than one parameter. They are usually separated by a space, and line breaks with a backslash. Please refer to the @cite{GNUstep Makefile Manual} for more details.
+
+@cindex makefiles, components
+@table @code
+
+@item APP_NAME
+[Required] This is the name of your application, and will be used to generate the name of your application wrapper. 
+
+@item PACKAGE_NAME
+This is used to generate a rpm or deb package for distribution of your application. See the @cite{GNUstep Makefile Manual} for more details.
+
+@item VERSION
+A version number for your application.
+
+@item @var{appname}_OBJC_FILES
+[Required] Replacing @var{appname} with the name of your application, you list the Objective-C files (.m), separated by a space. As shown above, you can split it across one or more lines by placing a slash at the end of the line to indicate a split.
+
+@item @var{appname}_APPLICATION_ICON
+[Optional] You can place the name of the image file that will be used as your application icon here. 
+
+@item @var{appname}_MAIN_MODEL_FILE
+[Recommended] Put the name of your interface file (@file{.gorm}) here. It will then be placed in the property list of your application.
+
+@item @var{appname}_PRINCIPAL_CLASS
+[Optional] If you subclass @code{NSApplication} with your own application class, you should place it's name here. By default, GNUstep uses @code{NSApplication} as the application class.
+
+@item @var{appname}_C_FILES
+[Optional] This is where you list the C source code files (.c) to be compiled into your programme. It takes the same form as @code{@var{appname}_OBJC_FILES}.
+
+@item @var{appname}_CC_FILES
+[Optional] This is where you list your C++ files (*.cpp, *.cc) to be compiled into your programme. It takes the same form as @code{@var{appname}_OBJC_FILES}.
+
+@item @var{appname}_OBJCC_FILES
+[Optional] This is where you list your Objective-C++ files (*.mm) to be compiled into your programme. It takes the same form as the @code{@var{appname}_OBJC_FILES}.@footnote{You will need gcc 4.1 or higher to compile Objective-C++ programmes. This feature of the gcc compiler is quite new and has not been well tested.}
+
+@item @var{appname}_RESOURCE_FILES
+[Recommended] Here you list the @dfn{resource files} that are to be included with your application, including your application property list, interface file(s) and other images, data, etc. You can also list directories here, which should be added recursively (e.g. @file{.gorm} files are actually a directory containing three files, used to describe your interface).
+
+@item @var{appname}_RESOURCE_DIRS
+[Optional] Here you can list directories that will be copied into your application wrapper as resources.
+
+@item @var{appname}_OBJC_LIBS
+Here you list the names of the libraries you need your application to link against. Each one is prefixed by '-l' e.g. @code{-lMyLib}, separated by a space. You do not need to list the gnustep-gui, gnustep-base and Objective-C runtime, as these are included for you.
+
+@item @var{appname}_C_FLAGS
+@itemx @var{appname}_CC_FLAGS
+@itemx @var{appname}_OBJC_FLAGS
+@itemx @var{appname}_OBJCC_FLAGS
+Here you specify the flags to be passed to the compiler when processing this file type. These included warning flags and macro overrides.
+
+@end table
+

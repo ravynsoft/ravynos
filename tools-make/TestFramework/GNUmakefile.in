@@ -1,0 +1,28 @@
+# __GENERATED__ makefile marker
+#
+
+include $(GNUSTEP_MAKEFILES)/common.make
+-include ../GNUmakefile.super
+
+@TESTOPTS@
+
+TEST_TOOL_NAME = @TESTNAMES@
+
+ifeq ($(gcov),yes)
+ADDITIONAL_OBJCFLAGS += -ftest-coverage -fprofile-arcs
+ADDITIONAL_OBJCCFLAGS += -ftest-coverage -fprofile-arcs
+ADDITIONAL_LDFLAGS += -ftest-coverage -fprofile-arcs
+ADDITIONAL_TOOL_LIBS+=-lgcov
+endif
+
+@TESTRULES@
+
+-include GNUmakefile.preamble
+-include make-check.mak
+include $(GNUSTEP_MAKEFILES)/test-tool.make
+-include GNUmakefile.postamble
+
+after-clean::
+	rm -f core core.* *.core \
+	tests.log tests.sum oldtests.log oldtests.sum
+

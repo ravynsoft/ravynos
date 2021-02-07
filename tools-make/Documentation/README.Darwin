@@ -1,0 +1,479 @@
+Date : 15-Jan-2004
+Last update: 20071229
+Authors: Adam Fedor <fedor@gnu.org>
+         Quentin Mathé <qmathe@club-internet.fr>
+         Lars S.-Helldorf <lars.sonchocky-helldorf@hamburg.de>
+
+PURPOSE
+-------
+
+This document is intended to provide a step by step instruction on how to get 
+the GNUstep installed on Mac OS X and Darwin.
+
+COMMONLY USED SYMBOLS
+---------------------
+
+<> denotes a variable depending on your preferences. To be replaced with the
+actual values from your system. For instance, if you installed GCC in /opt/local
+   
+     ./configure CC=<gcc install dir>/bin/gcc
+   
+will become:
+   
+     ./configure CC=/opt/local/bin/gcc
+   
+[] denotes an optional parameter. For instance:
+
+     ./configure [--enable-graphics=art]
+  
+can be either:
+  
+     ./configure
+
+or:
+
+     ./configure --enable-graphics=art
+
+PRELIMINAIRES
+-------------
+
+For all targets, get the following software. I'd recommend installing
+Fink (and FinkCommander on Mac OS X) or MacPorts to get all this
+software. Make sure that Fink or MacPorts is in your path; newer
+versions do a good job of doing this for you. It's quite possible for
+libraries installed via Fink/Macports to conflict with Apple
+libraries, which cause strange errors running GNUstep apps (like odd
+crashes and seg faults).  In that cause you might want to hand-compile
+the libraries you need (only the tiff and libffi libraries are REALLY needed,
+everything else is basically optional).
+
+Remember you usually need root access to install software. That means when you 
+see an instruction like 'make install', you usually need to use sudo 
+('sudo make install') or be logged in as root (not recommended).
+
+     libxml2  (Optional, highly recommended, already in 
+               Mac OS X 10.3 / Darwin 7 and later)
+     libxslt  (Optional)
+     libtiff  (Required)
+     libjpeg  (Optional, highly recommended - don't get from fink!)
+     libpng   (Optional, highly recommended)
+     
+     libffi   (Required, from ftp.gnustep.org/pub/gnustep/libs)
+     ffcall   (On Darwin x86 - use instead of libffi)
+
+     Xfree86  (Required, already in Mac OS X 10.3/Darwin 7 and later)
+
+     libart2   (Required for art backend)
+     freetype2 (Required for art backend)
+
+     dlcompat (Required, already in Mac OS X 10.3 or later)
+
+Obtaining GNUstep
+-----------------
+
+The main GNUstep project pages tell you how to get hold of this. You
+can get the latest release of the following libraries.  You need these
+gnustep packages:
+
+     GNUstep-make
+     GNUstep-base
+     GNUstep-gui
+     GNUstep-back
+
+Targets
+-------
+
+For GNUstep, there are several combinations of Objective-C runtime, Foundation
+library and Application Kit library possible, called library combos. The usual
+notation is:
+
+     objcruntime-foundation-applicationkit
+
+Theoretically possible are:
+
+     gnu-gnu-gnu       # gnu-objc runtime with gnustep-base and gnustep-gui.
+                       # Most widely tested.
+     apple-gnu-gnu     # apple-objc runtime with gnustep libraries. Does
+                       # not work.
+     apple-apple-gnu   # Apple Foundation with gnustep-gui on the top. Only of
+                       # academic interest.
+     apple-apple-apple # Cocoa with GNUstep additions. For porting GNUstep apps
+                       # to Cocoa.
+
+All gnu-*-apple library combos are purely theoretical and only available to the 
+folks inside Apple since no mortal person ever saw the Cocoa source code. ;-) 
+You can use either the Apple compiler or compile your own FSF compiler. This 
+potentially gives two different targets:
+
+     Apple GCC, gnu-gnu-gnu
+     FSF   GCC, gnu-gnu-gnu
+
+In addition, if you are on Mac OS X, you can also use the Apple
+Foundation and AppKit frameworks to do GNUstep development with Cocoa,
+but this only works with the Apple compiler:
+
+     Apple GCC, apple-apple-apple
+
+GNUstep on Darwin x86 
+---------------------
+
+For GNUstep on Darwin x86, Apple GCC compiles GNUstep-base, but causes strange 
+problems when running programs (e.g. the program hangs while allocating memory
+or executes methods multiple times). So we have to use FSF GCC.  Additionally,
+libffi has not been ported to Darwin x86, so you will need to install ffcall 
+instead. NOTE: Has not been tested in a long time...
+
+GNUstep on Darwin PowerPC
+-------------------------
+
+You can use either the Apple compiler of the FSF compiler. For the Apple
+compiler, you need at least Mac OS X 10.4 with XCode 2.5 release.
+
+Building FSF-GCC
+----------------
+
+The easiest way to get FSF GCC is through Fink or MacPorts. If you
+would like to compile by hand, follow these directions:
+
+Darwin x86:
+
+FSF GCC is difficult to compile here. The only way I could do it was like this:
+
+     ln -s /usr/bin/c++filt /usr/bin/c++filt3          # Missing on Darwin 7.0.1
+                                                       # x86 but not necessary 
+                                                       # on OpenDarwin 7.2.1
+                                                       
+and then configure GCC with:
+
+     mkdir build                                       # Create a sibling to the
+                                                       # toplevel source dir
+     cd build
+     <dir>/gcc-X.X.X/configure \                       # Don't try to build c++
+      --enable-languages=c,objc
+
+     make bootstrap
+     make install
+     cd /usr/local/lib
+     ln -s libobjc.a libobjc.dylib                     # So the linker sees us
+
+(Replace X.X.X with the actual distribution you have).
+
+GCC on Darwin doesn't appear to support threads.
+
+Darwin PowerPC:
+
+Configure and build as follows (tested using gcc-3.3.2 on Mac OS X 10.2 and 
+10.3):
+
+     mkdir build
+     cd build
+     <dir>/gcc-x.x.x/configure \                       # The first option
+     [--prefix=<gcc install dir>] \                    # permits to change the
+     [--enable-languages=c,objc]                       # fact GCC installs by     
+                                                       # default in /usr/local
+                                                       # The second option 
+                                                       # permits to speed the 
+                                                       # GCC compilation in the
+                                                       # case you will not use 
+                                                       # languages other than c 
+                                                       # and objc
+                                           
+     make bootstrap
+     make install
+     cd <gcc install dir>/lib
+     ln -s libobjc.a libobjc.dylib                     # So the linker sees us
+     # Note when using gcc 4 or greater, make sure this is libobjc-gnu.dylib
+
+Setting up the GNUstep make environment
+---------------------------------------
+
+In the GNUstep-make (core/make) package, do with bourne shell like bash 
+(Mac OS X 10.3):
+
+     echo 'export CC=<gcc install dir>/bin/gcc' >> ~/.profile
+
+with c shell like tcsh (Mac OS X 10.2):
+
+     echo 'setenv CC <gcc install dir>/bin/gcc' >> ~/.tcshrc
+
+else use [CC=<gcc install dir>/bin/gcc] option when running configure.
+
+then:
+
+     ./configure --with-library-combo=gnu-gnu-gnu \
+     [--prefix=<GNUstep install dir>] [CC=<gcc install dir>/bin/gcc]
+
+(apple-apple-apple is the default if you don't specify
+gnu-gnu-gnu). If you want to be able to compile for different
+targets/platforms together. Do this:
+
+     ./configure --with-library-combo=gnu-gnu-gnu --disable-flattened \
+     --enable-multi-platform [--prefix=<GNUstep install dir>] \
+     [CC=<gcc install dir>/bin/gcc]
+
+Now:
+
+     make
+     make install
+
+Source GNUstep.sh
+-----------------
+
+If you are using bourne shell like bash, type:
+
+     . <GNUstep install dir>/System/Library/Makefiles/GNUstep.sh
+
+If you are using c shell like tcsh, type:
+
+     source <GNUstep install dir>/System/Library/Makefiles/GNUstep.csh
+
+Building and installing libobjc (target Apple GCC, gnu-gnu-gnu only !!!)
+-------------------------------
+
+Warning ! Don't compile libobjc if you are using FSF GCC.  Go to gnustep-objc
+(or from CVS, into dev-libs/libobjc), and type:
+
+     make install
+     cd $GNUSTEP_SYSTEM_ROOT/Library/Libraries
+     ln -s libobjc.dylib libobjc-gnu.dylib
+
+This should build and install the GNU Objective-C runtime and headers for you.
+
+Building and installing libffi (on Darwin PowerPC only !!!)
+------------------------------
+
+There's no official libffi release. Get the one from the GNUstep ftp site
+
+     ./configure --prefix=$GNUSTEP_SYSTEM_ROOT \
+     --libdir=$GNUSTEP_SYSTEM_ROOT/Library/Libraries \
+     --includedir=$GNUSTEP_SYSTEM_ROOT/Library/Headers
+     make
+     make install
+
+Building and installing ffcall (on Darwin x86 only (may work on PPC))
+------------------------------
+
+     ./configure --prefix=$GNUSTEP_SYSTEM_ROOT \
+     --libdir=$GNUSTEP_SYSTEM_ROOT/Library/Libraries \
+     --includedir=$GNUSTEP_SYSTEM_ROOT/Library/Headers
+     make
+     make install
+
+Building and installing GNUstep-base
+------------------------------------
+
+     ./configure [--with-xml-prefix=/usr] [--disable-xmltest] [--disable-do] \
+     [LDFLAGS=-L/sw/lib] [CPPFLAGS=-I/sw/include] [CC=<gcc install dir>/bin/gcc] \
+     [CPPFLAGS=-fnested-functions]
+
+To know which options you need to use with your environment:
+     
+     --disable-xmltest is needed with Mac OS X 10.3 / Darwin 7 
+     versions xml2-config tool and libxml2 headers reports differents versions, 
+     because of this versions conflict the GNUstep xmltest fails.
+     
+     --with-xml-prefix=/usr is needed with Mac OS X 10.3 / Darwin 7 when you
+     want to build the base library with xslt support and you have installed
+     libxslt with Fink (because Fink installs lixml2 without the headers when 
+     you install lixslt, and by default the base library tries to link Fink
+     libxml2 first, then the configuration fails because configure looks for 
+     the libxml2 headers).
+     
+     --disable-do is needed when you decide to not build libffi or ffcall. You
+     probably do not want to do this.
+     
+     LDFLAGS=-L/sw/lib is needed when you installed libxslt with Fink and you
+     want to compile the base library with libxslt support.
+     
+     CPPFLAGS=-I/sw/include is needed when you installed libxslt with Fink and 
+     you want to compile the base library with libxslt support.
+
+     CPPFLAGS=-fnested-functions is required when using Apple gcc
+
+followed by:
+
+     make
+     make install
+  
+On the apple-apple-apple target, it will only build the GNUstep additions 
+library that adds extra stuff to Foundation. If you are using the
+apple-apple-apple target, there currently is no reason to go on and compile
+GNUstep-gui.
+
+Building and installing GNUstep-gui
+-----------------------------------
+
+Go to GNUstep-gui (or from CVS into the core/gui directory).
+
+     ./configure --disable-gsnd
+  
+followed by:
+
+     make
+     make install
+
+Note: The gsnd server hasn't been ported to Mac OS X / Darwin yet.
+
+Some other configure options:
+    --with-jpeg-library=<jpeg libdir> 
+    --with-jpeg-include=<jpeg include dir> 
+      to have the libjpeg detected.
+    --disable-jpeg
+
+Building and installing GNUstep-back
+------------------------------------
+
+Warning !  You must have installed X11User.pkg from the Panther
+install disc and also X11SDK.pkg from the xCode Tools install disc to
+be able to compile GNUstep-back under Mac OS X 10.3.
+
+If you aren't installing GNUstep under Mac OS X 10.3 / Darwin 7, you can use
+XDarwin (ftp://ftp.xfree86.org/pub/XFree86/4.3.0/binaries/Darwin-ppc-6.x/) for
+the X server, take a look at http://www.xdarwin.org
+
+In the back directory, type:
+
+     ./configure
+     make
+     make install
+
+In the case, you choose to use the art backend, you will need to have the
+freetype2 and libart2 libraries installed, first be sure to have libart2 in your
+path, for example, with Fink installation type:
+
+     export DYLD_LIBRARY_PATH=/sw/lib:$DYLD_LIBRARY_PATH
+
+NOTE: I found also that even though the X11SDK.pkg package has freetype2,
+it is missing a crucial include file and also has some undefined symbols. I
+had to install the freetype2-dev package from fink and add this to my path
+so that it could be found:
+PATH=/sw/lib/freetype/bin:$PATH
+make sure in config.make that -L/sw/lib/freetype2/lib is included before -L/usr/X11R6/lib (Adam Fedor <fedor@gnu.org>) Mac OS X 10.4 doesn't have this problem.
+
+You also need to have /sw/lib in your library path before running GNUstep apps 
+with the art backend, as it needs to find libart2, so put the above export 
+DYLD_LIBRARY_PATH somewhere in your .profile (or do the export before launching 
+an application). The backend architecture which GNUstep-gui is built upon, has 
+been written to be used within X Windows, then you need to start up an X Server
+(like Apple X11) to run the GNUstep-gui applications.
+
+Warning ! With the art backend, before to launch applications based on 
+GNUstep-gui, in the shell, don't forget to edit the defaults (no need it to redo
+it later):
+
+     defaults write NSGlobalDomain XWindowBufferUseXShm NO
+
+because Apple X11 doesn't support well shared memory for buffering (which 
+libart2 uses by default).
+
+POTENTIAL ERRORS WHEN RUNNING MAKE ESPECIALLY WITH BACK AND GUI
+---------------------------------------------------------------
+
+If you get errors like below, just do:
+
+     make clean
+     make
+
+The second or the third time, the errors should disappear. It's probably due to
+some potential issues between FSF GCC and the libtool/ld Mac OS X / Darwin
+versions.
+
+     Linking subproject x11 ...
+     /usr/bin/ld: shared_obj/xdnd.o bad magic number (not a Mach-O file)
+     collect2: ld returned 1 exit status
+     make[3]: *** [shared_obj/subproject.o] Error 1
+     make[2]: *** [x11.all.subproject.variables] Error 2
+     make[1]: *** [libgnustep-back.all.bundle.variables] Error 2
+     make: *** [internal-all] Error 2
+
+More informations on the art backend
+------------------------------------
+
+To have a working art backend... You will also need to download and install 
+fonts, as it uses a specific font format. Use for example the file
+http://w1.423.telia.com/~u42308495/alex/backart/ArtResources-0.1.2.tar.bz2 and
+put the .nfont directories somewhere in $(GNUSTEP_SYSTEM_ROOT)/Library/Fonts
+
+Other fonts are available on http://www.knuddel.org/Downloads/Fonts/
+
+Window Maker
+------------
+
+Window Maker is the traditional window manager for GNUstep.
+
+In the case you choose to use it, don't forget to execute wmaker.inst else
+Window Maker will crash with signal 10.
+
+Example with Fink, do:
+
+     /sw/bin/wmaker.inst
+
+GNUstep daemons
+---------------
+
+Refer to GNUstep-HOWTO to know how to launch GNUstep daemons.
+
+Note: If you try to start GNUstep daemons by hand with 'sudo opentool dameon',
+it won't work, because when you become root on Mac OS X / Darwin with sudo or
+su, the DYLD_LIBRARY_PATH environment variable of your user isn't used, then to
+start them in the shell, do:
+
+     sudo opentool gdomap                              # gdomap doesn't rely on
+                                                       # the GNUstep libraries 
+                                                       # or other special 
+                                                       # librairies.
+     su root
+
+then with bourne shell like bash (Mac OS X 10.3):
+
+     . $GNUSTEP_SYSTEM_ROOT/Library/Makesfiles/GNUstep.sh
+
+or with c shell like tcsh (Mac OS X 10.2):
+
+     source $GNUSTEP_SYSTEM_ROOT/Library/Makesfiles/GNUstep.csh
+
+and just do:
+
+     opentool gdnc
+     opentool gpbs
+
+GNUstep applications
+--------------------
+
+Now you can install GNUstep applications like Gorm, ProjectCenter etc.
+Remember the fact that when you do 'sudo make install', the $DYLD_LIBRARY_PATH 
+variable of your user is not used by root. In that case, GNUstep-make could 
+complain for the undefined library path, the solution is identical to the one we 
+used to launch the GNUstep daemons above:
+
+     su root
+
+then with bourne shell like bash (Mac OS X 10.3):
+
+     . $GNUSTEP_SYSTEM_ROOT/Library/MakeFiles/GNUstep.sh
+
+or with c shell like tcsh (Mac OS X 10.2):
+
+     . $GNUSTEP_SYSTEM_ROOT/Library/MakeFiles/GNUstep.sh
+
+and just do:
+
+     make install
+
+Note: upon launching applications like Project Center which links a framework, 
+you will probably get an error message about the library 
+<Framework name>.framework/<Framework name> which cannot be found, to fix that, 
+just create a symbolic link to the actual library file, which is installed 
+deeper in the hierarchy:
+
+     cd $GNUSTEP_SYSTEM_ROOT/Library/Frameworks/<Framework name>.framework
+     sudo ln -s Versions/<Current version>/lib<Framework name>.dylib <Framework name>
+
+Example with the ProjectCenter framework (0.4.0 version):
+
+     cd $GNUSTEP_SYSTEM_ROOT/Library/Frameworks/ProjectCenter.framework
+     sudo ln -s Versions/0.4.0/libProjectCenter.dylib.0.4.0 ProjectCenter
+
+---
+
+That's all.

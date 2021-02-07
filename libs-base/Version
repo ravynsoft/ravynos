@@ -1,0 +1,20 @@
+# This file is included in various Makefile's to get version information.
+# Compatible with Bourne shell syntax, so it can included there too.
+
+# The gcc version required to compile the library.
+GCC_VERSION=4.0.0
+
+# The version number of this release.
+MAJOR_VERSION=1
+MINOR_VERSION=27
+SUBMINOR_VERSION=0
+# numeric value should match above
+VERSION_NUMBER=127.0
+GNUSTEP_BASE_VERSION=${MAJOR_VERSION}.${MINOR_VERSION}.${SUBMINOR_VERSION}
+VERSION=${GNUSTEP_BASE_VERSION}
+
+GNUSTEP_BASE_FTP_MACHINE=ftp.gnustep.org
+GNUSTEP_BASE_FTP_DIRECTORY=pub/gnustep/core
+GNUSTEP_BASE_SNAP_FTP_MACHINE=ftp.gnustep.org
+GNUSTEP_BASE_SNAP_FTP_DIRECTORY=pub/daily-snapshots
+

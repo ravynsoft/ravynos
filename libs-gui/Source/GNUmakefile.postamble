@@ -1,0 +1,136 @@
+#
+#  GNUmakefile.postamble
+#
+#  Copyright (C) 1997 Free Software Foundation, Inc.
+#
+#  Author: Scott Christley <scottc@net-community.com>
+#
+#  This file is part of the GNUstep GUI Library.
+#
+#  This library is free software; you can redistribute it and/or
+#  modify it under the terms of the GNU Lesser General Public
+#  License as published by the Free Software Foundation; either
+#  version 2 of the License, or (at your option) any later version.
+#
+#  This library is distributed in the hope that it will be useful,
+#  but WITHOUT ANY WARRANTY; without even the implied warranty of
+#  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
+#  Lesser General Public License for more details.
+#
+#  You should have received a copy of the GNU Lesser General Public
+#  License along with this library; see the file COPYING.LIB.
+#  If not, see <http://www.gnu.org/licenses/> or write to the 
+#  Free Software Foundation, 51 Franklin Street, Fifth Floor, 
+#  Boston, MA 02110-1301, USA.
+
+#
+#   GNUmakefile.postamble
+#
+#   Project specific makefile rules
+#
+#   Uncomment the targets you want.
+#   The double colons (::) are important, do not make them single colons
+#   otherwise the normal makefile rules will not be performed.
+#
+
+# Things to do before compiling
+ifeq ($(doc),yes)
+before-all:: $(GNUSTEP_TARGET_DIR)/config.h
+	cp ../Documentation/Gui.gsdoc .
+
+# Things to do after compiling
+after-all::
+	$(RM) Gui.gsdoc
+	if test -d Gui; then rm -rf Gui; fi;
+else
+before-all:: $(GNUSTEP_TARGET_DIR)/config.h
+endif
+
+after-all:: Info-gnustep.plist 
+
+# Things to do before installing
+# before-install::
+
+# Things to do after installing
+after-install::
+	for file in $(APPKIT_HEADERS); do \
+	  $(INSTALL_DATA) ../Headers/AppKit/$$file \
+	    $(GNUSTEP_HEADERS)/AppKit/$$file ; \
+	done; \
+	for file in $(COCOA_HEADERS); do \
+	  $(INSTALL_DATA) ../Headers/Cocoa/$$file \
+	    $(GNUSTEP_HEADERS)/Cocoa/$$file ; \
+	done
+
+#
+# Things to do before uninstalling
+# before-uninstall::
+
+# Things to do after uninstalling
+after-uninstall::
+	for file in $(APPKIT_HEADERS); do \
+	  rm -f $(GNUSTEP_HEADERS)/AppKit/$$file ; \
+	done; \
+	for file in $(COCOA_HEADERS); do \
+	  rm -f $(GNUSTEP_HEADERS)/Cocoa/$$file ; \
+	done
+
+# Things to do before cleaning
+# before-clean::
+
+# Things to do after cleaning
+# FIXME - this file is in subversion!
+after-clean::
+	rm -f libgnustep-gui.def
+
+# Things to do before distcleaning
+# before-distclean::
+
+# Things to do after distcleaning
+after-distclean::
+	rm -rf $(GNUSTEP_TARGET_DIR)/config.h
+	rm -rf ../Headers/Additions/GNUstepGUI/config.h
+
+# Things to do before checking
+# before-check::
+
+# Things to do after checking
+# after-check::
+
+#
+# GNUstep GUI Library specific targets
+
+#
+# The config.h file is specific to a target
+#
+$(GNUSTEP_TARGET_DIR)/config.h: ../config.status
+	$(MKDIRS) $(GNUSTEP_TARGET_DIR)
+	-mv ../Headers/Additions/GNUstepGUI/config.h $(GNUSTEP_TARGET_DIR)
+	-touch $(GNUSTEP_TARGET_DIR)/config.h
+
+#
+# Make list of class names for DLL exports. Uses the actual classes from
+# the .o files, so it should really have everything needed.
+#
+libgnustep-gui.def: $(OBJ_FILES_TO_LINK)
+	rm -f $@
+	rm -f _tmp.def
+	cat win32-def.top > $@
+	nm $^ | grep '^........ [TR] _' | sed 's/[^_]*_//' > _tmp.def
+	cat _tmp.def | grep "_class_name_" >> $@
+	rm -rf _tmp.def
+
+#
+# Make an Info.plist since libraries don't have these normally
+#
+Info-gnustep.plist: ../Version
+	$(ECHO_CREATING)(echo "{"; \
+	echo "  NSExecutable = \"gnustep-gui\";"; \
+	echo "  NSPrincipalClass = \"NSApplication\";"; \
+	echo "  GSBundleShortVersionString = \"$(VERSION)\";"; \
+	echo "  GSBundleVersion = $(VERSION_NUMBER);"; \
+	echo "  CFBundleShortVersionString = \"$(VERSION)\";"; \
+	echo "  CFBundleVersion = $(VERSION_NUMBER);"; \
+	echo "}") > $@$(END_ECHO)
+
+

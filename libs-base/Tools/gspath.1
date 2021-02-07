@@ -1,0 +1,56 @@
+.\"gspath(1) man page
+.\"put together by Richard Frith-Macdoanld <rfm.gnu.org>
+.\"Copyright (C) 2005 Free Software Foundation, Inc.
+.\"Copying and distribution of this file, with or without modification,
+.\"are permitted in any medium without royalty provided the copyright
+.\"notice and this notice are preserved.
+.\"
+.\"Process this file with
+.\"groff -man -Tascii gspath.1
+.\"
+.TH GSPATH 1 "July 2005" GNUstep "GNUstep System Manual"
+.SH NAME
+gspath \- Utility to display standard directory/path information
+.SH SYNOPSIS
+.B gspath
+.P
+.SH DESCRIPTION
+This utility can be used to print out a single directory or path in order
+for external applications to know what paths the GNUstep system is using.
+It was written to provide information for the GNUstep make package.
+.P
+The
+.B gspath
+usility is called with exactly one argument, which determines what it prints.
+.P
+.SH Arguments
+To display the path to the defaults directory for the current user, use the
+.B defaults
+argument.
+.P
+To display the directory search path needed to locate dynamic libraries,
+use the
+.B libpath
+argument.
+.P
+To display the directory search path needed to locate commmand-line programs,
+use the
+.B path
+argument.
+.P
+To display the GNUstep home directory of the current user, use the
+.B user
+argument.
+.P
+.SH HISTORY
+Work on
+.B gspath
+started July 2005.
+.PP
+This manual page first appeared in gnustep-base 1.11.1 (July 2005).
+.P
+.SH AUTHORS
+.B gspath 
+was written by Richard Frith-Macdonald <rfm@gnu.org>.
+.PP
+This man page was written by Richard Frith-Macdonald <rfm@gnu.org>.

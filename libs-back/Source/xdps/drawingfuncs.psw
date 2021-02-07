@@ -1,0 +1,66 @@
+/*
+   drawingfuncs.psw
+
+   Support functions for the C drawing functions defined in OpenStep.
+
+   Copyright (C) 1996,2001 Free Software Foundation, Inc.
+
+   Author:  Ovidiu Predescu <ovidiu@bx.logicnet.ro>
+   Date: January 1997
+   Rewritten: Adam Fedor <fedor@gnu.org>
+   Date: May 2001
+
+   This file is part of the GNUstep GUI X/DPS Library.
+
+   This library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Lesser General Public
+   License as published by the Free Software Foundation; either
+   version 3 of the License, or (at your option) any later version.
+
+   This library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.	 See the GNU
+   Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public
+   License along with this library; see the file COPYING.LIB.
+   If not, see <http://www.gnu.org/licenses/> or write to the 
+   Free Software Foundation, 51 Franklin Street, Fifth Floor, 
+   Boston, MA 02110-1301, USA.
+*/
+
+#include <DPS/dpsclient.h>
+
+defineps PSWFrameRectWithWidth (float x, y, w, h, linewidth)
+  linewidth setlinewidth
+  0 setgray
+  x y w h rectstroke
+endps
+
+defineps PSWFrameRect (float x, y, w, h)
+  1 setlinewidth
+  0 setgray
+  x y w h rectstroke
+endps
+
+defineps PSWDottedFrameRect (float x, y, w, h)
+  1 setlinewidth
+  [1] 0 setdash
+  0 setgray
+  x y w h rectstroke
+endps
+
+/* Optimized drawing of a list of rectangles. The list consists of
+   sucessive 4-tuples of rectangle values x, y, w, and h.  Note that the
+   number of rectangles cannot exceed 65536/4 = 16384 */
+defineps PSWRectFillList (float numstring rectvals[x]; int x)
+  rectvals rectfill
+endps
+
+/* Optimized drawing of a list of rectangles with different gray
+   values. The list consists of
+   sucessive 5-tuples of rectangle values x, y, w, h, and gray.  Note that the
+   number of rectangles cannot exceed 65536/5 = 13107 */
+defineps PSWRectFillListGray (float rectvals[x]; int x)
+  mark rectvals {counttomark 4 gt {setgray rectfill} if} forall pop
+endps

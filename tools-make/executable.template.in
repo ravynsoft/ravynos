@@ -1,0 +1,234 @@
+#!/bin/sh
+#
+# @configure_input@
+#
+# Copyright (C) 1999-2002 Free Software Foundation, Inc.
+#
+# Author: Adam Fedor <fedor@gnu.org>
+# Date: May 1999
+#
+# Author: Nicola Pero <n.pero@mi.flashnet.it>
+# Date: 2001, 2002,2007
+# 
+# This file is part of the GNUstep Makefile Package.
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 3
+# of the License, or (at your option) any later version.
+# 
+# You should have received a copy of the GNU General Public
+# License along with this library; see the file COPYING.
+# If not, write to the Free Software Foundation,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+
+# This is a shell script which attempts to find the GNUstep executable
+# of the same name based on the current host and library_combo.
+
+# This is installed inside the application directory in the
+# non-flattened case.  In the flattened case, we install the binary
+# directly in the application directory and no wrappers are used.
+
+if [ -z "$EXEEXT" ]; then
+  EXEEXT=@EXEEXT@
+fi
+if [ -z "$LIBRARY_COMBO" ]; then
+  LIBRARY_COMBO=@ac_cv_library_combo@
+fi
+
+
+# Try to determine GNUSTEP_MAKEFILES to source GNUstep.sh
+if [ -z "$GNUSTEP_CONFIG_FILE" ]; then
+  GNUSTEP_CONFIG_FILE=@GNUSTEP_CONFIG_FILE@
+fi
+
+if [ -z "$GNUSTEP_USER_CONFIG_FILE" ]; then
+  GNUSTEP_USER_CONFIG_FILE=@GNUSTEP_USER_CONFIG_FILE@
+fi
+
+if [ -f "$GNUSTEP_CONFIG_FILE" ]; then
+  . "$GNUSTEP_CONFIG_FILE"
+fi
+
+GNUSTEP_HOME=~
+
+if [ -n "$GNUSTEP_USER_CONFIG_FILE" ]; then
+  case "$GNUSTEP_USER_CONFIG_FILE" in 
+    /*) # An absolute path
+        if [ -f "$GNUSTEP_USER_CONFIG_FILE" ]; then
+          . "$GNUSTEP_USER_CONFIG_FILE"
+        fi;;
+     *) # Something else
+        if [ -f "$GNUSTEP_HOME/$GNUSTEP_USER_CONFIG_FILE" ]; then
+          . "$GNUSTEP_HOME/$GNUSTEP_USER_CONFIG_FILE"
+        fi;;
+  esac
+fi
+
+if [ -z "$GNUSTEP_MAKEFILES" ]; then
+  GNUSTEP_MAKEFILES=@GNUSTEP_MAKEFILES@
+fi
+# OK, we now have GNUSTEP_MAKEFILES, we later can source GNUstep.sh.
+
+# Process arguments
+this_script="$0"
+show_available_platforms=0
+show_relative_path=0
+show_full_path=0
+while true
+do 
+  case "$1" in
+
+    --script-help)
+	echo usage: `basename "$0"` [--library-combo=...]
+	echo "       [--available-platforms][--full-executable-path]"
+	echo "       [--relative-executable-path] [arguments...]"
+	echo
+	echo "   --library-combo=... specifies a GNUstep backend to use."
+	echo "   It overrides the default LIBRARY_COMBO environment variable."
+	echo
+	echo "   --available-platforms displays a list of valid exec hosts"
+	echo "   --full-executable-path displays full path to executable"
+	echo "   --relative-executable-path displays subdirectory path"
+	echo "   arguments... are the arguments to the application."
+	exit 0
+	;;
+    --library-combo=*)
+        tmp_makefiles="$GNUSTEP_MAKEFILES"
+        . "$tmp_makefiles/GNUstep-reset.sh"
+        LIBRARY_COMBO=`echo "$1" | sed 's/--library-combo=//'`
+        GNUSTEP_MAKEFILES="$tmp_makefiles"
+	shift
+	;;
+    --available-platforms)
+        show_available_platforms=1
+        exit 0
+	;;
+    --full-executable-path)
+	show_full_path=1
+        break
+	;;
+    --relative-executable-path)
+	show_relative_path=1
+        break
+	;;
+    *)
+        break;;
+    esac
+done
+
+if [ "$LIBRARY_COMBO" = nx ]; then
+  LIBRARY_COMBO=nx-nx-nx
+elif [ "$LIBRARY_COMBO" = gnu ]; then
+  LIBRARY_COMBO=gnu-gnu-gnu
+elif [ "$LIBRARY_COMBO" = fd ]; then
+  LIBRARY_COMBO=gnu-fd-gnu
+elif [ "$LIBRARY_COMBO" = apple ]; then
+  LIBRARY_COMBO=apple-apple-apple
+fi
+export LIBRARY_COMBO
+
+# We now have determined both GNUSTEP_MAKEFILES and LIBRARY_COMBO.
+# Source GNUstep.sh to make sure all the environment is setup
+# to work in this LIBRARY_COMBO.
+. "$GNUSTEP_MAKEFILES/GNUstep.sh"
+
+# Find path to directory containing ourselves.  This directory is
+# the .app directory.
+dir="`dirname \"$this_script\"`"
+
+# Find the absolute path of the directory.  This will be something like
+# /home/nicola/testing/Applications/Gorm.app
+full_appname="`(cd \"$dir\"; pwd)`"
+
+if [ -z "$full_appname" ]; then
+  echo "Can't find absolute path for $this_script! Please specify full path when"
+  echo "invoking executable"
+  exit 1
+fi
+
+#
+# Get base app name (eg, Gorm in the case of Gorm.app, but crazy people might
+# configure it differently by using a different NSExecutable setting in
+# Info-gnustep.plist).
+#
+appname=
+if [ -f "$full_appname/Resources/Info-gnustep.plist" ]; then
+# -n disable auto-print (for portability reasons)
+#   /^ *NSExecutable *=/ matches every line beginning with 
+#        zero or more spaces, followed by 'NSExecutable', followed by zero or
+#        more spaces, followed by '='
+#   to this line we apply the following commands:
+#   s/"//g; which deletes all " in the line.
+#   s/^ *NSExecutable *= *\([^ ;]*\) *;.*/\1/p;
+#     which replaces 'NSExecutable = Gorm; ' with 'Gorm', then, because
+#     of the 'p' at the end, prints out the result 
+#   q; which quits sed since we know there must be only a single line 
+#      to replace.
+  appname=`sed -n -e '/^ *NSExecutable *=/ \
+           {s/"//g; s/^ *NSExecutable *= *\([^ ;]*\) *;.*/\1/p; q;}' \
+                "$full_appname/Resources/Info-gnustep.plist"`
+fi
+if [ -z "$appname" ]; then
+  appname="`basename \"$this_script\"`"
+fi
+
+appname="$appname$EXEEXT"
+
+if [ $show_available_platforms = 1 ]; then
+  cd "$full_appname"
+  #TODO: show available_platforms
+  exit 0
+fi
+
+#
+# Make sure the executable is there
+#
+if [ -x "$full_appname/$GNUSTEP_HOST_CPU/$GNUSTEP_HOST_OS/$LIBRARY_COMBO/$appname" ]; then
+  relative_path="$GNUSTEP_HOST_CPU/$GNUSTEP_HOST_OS/$LIBRARY_COMBO/$appname"
+elif [ -x "$full_appname/$GNUSTEP_HOST_CPU/$GNUSTEP_HOST_OS/$appname" ]; then
+  relative_path="$GNUSTEP_HOST_CPU/$GNUSTEP_HOST_OS/$appname"
+elif [ -x "$full_appname/$GNUSTEP_HOST_CPU/$appname" ]; then
+  relative_path="$GNUSTEP_HOST_CPU/$appname"
+elif [ "$full_appname/$appname" != "$0" -a -x "$full_appname/$appname" ]; then
+  relative_path="$appname"
+else
+  # Search for a binary for this machine but a different library combo
+  if [ -d "$full_appname/$GNUSTEP_HOST_CPU/$GNUSTEP_HOST_OS" ]; then
+    tmp_path="`pwd`"
+    cd "$full_appname/$GNUSTEP_HOST_CPU/$GNUSTEP_HOST_OS";
+    found=no
+    for lib_combo in * ; do
+      if [ "$lib_combo" != '*' ]; then
+        if [ -x "$lib_combo/$appname" ]; then
+          # Switch LIBRARY_COMBO on the fly
+          tmp_makefiles="$GNUSTEP_MAKEFILES"
+          . "$tmp_makefiles/GNUstep-reset.sh"
+          LIBRARY_COMBO="$lib_combo"
+          . "$tmp_makefiles/GNUstep.sh"
+          # Use the found executable
+          relative_path="$GNUSTEP_HOST_CPU/$GNUSTEP_HOST_OS/$LIBRARY_COMBO/$appname"
+          found=yes
+          break
+        fi
+      fi
+    done
+    cd "$tmp_path"
+    if [ "$found" != yes ]; then
+      echo "$full_appname application does not have a binary for this kind of machine/operating system ($GNUSTEP_HOST_CPU/$GNUSTEP_HOST_OS)."
+      exit 1
+    fi
+  fi
+fi
+
+if [ $show_relative_path = 1 ]; then
+  echo "$relative_path"
+  exit 0
+fi
+if [ $show_full_path = 1 ]; then
+  echo "$full_appname/$relative_path"
+  exit 0
+fi
+
+exec "$full_appname/$relative_path" "$@"
+

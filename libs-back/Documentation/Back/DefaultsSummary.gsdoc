@@ -1,0 +1,249 @@
+<?xml version="1.0"?>
+<!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 1.0.3//EN" "/usr/GNUstep/System/Libraries/Resources/DTDs/gsdoc-1_0_3.dtd" >
+<gsdoc base="DefaultsSummary">
+  <head>
+    <title>User Defaults Summary for GNUstep Backend</title>
+    <author name="Adam Fedor">
+      <email address="fedor@gnu.org"/>
+      <url url="http://www.gnustep.org/developers/whoiswho.html"/>
+    </author>
+    <version>$Revision$</version>
+    <date>$Date$</date>
+    <copy>2005 Free Software Foundation, Inc.</copy>
+  </head>
+  <body>
+    <chapter>
+      <heading>Defaults Summary</heading>
+      <p>
+        This document contains a summary of available user default
+        values that one can set to control the operation of the GNUstep
+        backend.
+      </p>
+      <section>
+        <heading>Backend Defaults</heading>
+      <p>
+      Below is a list of defaults used to control the x11-based
+      backend. These defaults generally control system specific
+      display and user interaction options which may not be available
+      on all systems.
+      </p>
+	<deflist>
+	  <term>NSDefaultVisual</term>
+	  <desc>
+          <p>
+          An integer that specifies the X-Windows visual class to use
+          in the application. For instance one could display the
+          application using the PsuedoColor visual class by setting
+          the value to the id of this class. The default is the
+          X-Windows default visual class.
+          </p>
+	  </desc>
+	  <term>NSColorsPerChannel</term>
+	  <desc>
+          <p>
+          An integer which limits the maximum number of colors to
+          display, per channel. For a psuedo-color display, this would
+          limit the total number of colors that the application could
+          use (normally 256). For a true-color display, this would
+          limit the range of red, green, and blue values that could be used.
+          </p>
+	  </desc>
+	  <term>GSAppOwnsMiniwindow</term>
+	  <desc>
+          <p>
+	  GSAppOwnsMiniwindow is for miniwindows (not app icons). If
+	  it's YES or absent, GNUstep handles miniaturization itself
+	  and doesn't let the window manager do it. If it's NO, the
+	  window manager is allowed to do its own iconification. This
+	  does not affect app icons at all.
+          </p>
+	  </desc>
+	  <term>GSFontAntiAlias</term>
+	  <desc>
+          <p>
+          With the xlib backend, this is a boolean value which
+          defaults to <code>YES</code>. If set to
+          <code>YES</code> and X Windows system has the XFT
+          extension, then the application will use anti-aliased fonts
+          as provided by XFT. If set to <code>NO</code> anti-aliased fonts
+	  will not be used even when available.
+          </p>
+	  <p> With the art backend, A boolean value which defaults to
+	  YES. If YES, text is anti-aliased at small sizes (9-16
+	  pixels). The value is advisory (specific fonts can override this
+	  setting).
+          </p>
+	  </desc>
+	  <term>GSFontMask</term>
+	  <desc>
+          <p> [Xlib backend only]
+          A string value which defaults to <code>"*"</code>. It defines
+          the pattern used to get the installed fonts from the
+          X-Server. A value of <code>"*-iso8859-1"</code> would only
+          include fonts available with ISO Western encoding. This
+          feature might be helpfull if the font_cacher program is having
+          problem with the X-Server.
+          </p>
+	  </desc>
+	  <term>GSBackHandlesWindowDecorations</term>
+	  <desc>
+	  <p>
+	  A boolean value, which indicates if the backend should let the
+	  window-manager/native-window-system handle window
+	  decorations. When set to <code>NO</code>, GNUstep-GUI will handle
+	  the window decorations, which is particularly useful if you aren't
+	  running any window manager.
+	  </p>
+	  </desc>
+	  <term>GSUseWMTaskBar</term>
+	  <desc>
+          <p> [W32 backend only]
+          A string value which defaults to <code>YES</code>. If enabled, the
+	  backend assumes that miniwindows are displayed in a task bar. In
+	  this case, the app icon is not shown and the main menu behavior
+	  is changed so it is not ordered out, but minimized, so clicking
+	  on the minimized menu will activate the application.
+          </p>
+	  </desc>
+	  <term>GSXEnableFontSet</term>
+	  <desc>
+          <p> A string value which defaults to <code>NO</code>. If set to
+	  <code>YES</code>, then the backend font classes will support
+	  full multi-byte/unicode characters. This is useful for using
+	  many East Asian languages. However, the respose of the GUI is
+	  somwhat slower when this is enabled.
+          </p>
+	  </desc>
+	  <term>GSXIMInputMethodStyle</term>
+	  <desc>
+          <p> A string value used to specify the XIM input method for
+	  entering characters. Valid values are
+	  <code>RootWindow</code>, <code>OffTheSpot</code>, or
+	  <code>OverTheSpot</code>.
+          </p>
+	  </desc>
+	  <term>GraphicCompositing</term>
+	  <desc>
+          <p> [Xlib backend only]
+          A boolean value which defaults to <code>YES</code>. If set to
+          <code>YES</code>, then the application uses various tricks
+          to get alpha colors to work when compositing images. This
+          may slow down drawing of images, but it is generally
+          recommended anyway, particularly on fast systems.
+          </p>
+	  </desc>
+	  <term>Fast Drawing on 8-bit Displays</term>
+	  <desc>
+          <p> [X11-based backends only]
+	  This is not a user default, but if you are using an 8-bit display
+	  and you define the standard X11 <code>BEST</code> colormap (via
+	  <code>xstdcmap -best</code>), then GNUstep will use this colormap
+	  and enable faster drawing onto 8-bit displays.
+          </p>
+	  </desc>
+	  <term>Keyboard Modifiers</term>
+	  <desc>
+          <p>
+          The OPENstep specification requires three main different
+          keyboard modifiers: <code>CONTROL</code>,
+          <code>COMMAND</code> and <code>ALTERNATE</code> as well as
+	  the <code>HELP</code> modifier for context help. Some systems
+          may not have these set up correctly. You can changed the defaults
+          with the default keys.
+          </p>
+           <list>
+	      <item>GSFirstControlKey</item>
+	      <item>GSSecondControlKey</item>
+	      <item>GSFirstCommandKey</item>
+	      <item>GSSecondCommandKey</item>
+	      <item>GSFirstAlternateKey</item>
+	      <item>GSSecondAlternateKey</item>
+	      <item>GSFirstHelpKey</item>
+	      <item>GSSecondHelpKey</item>
+	    </list>
+          <p>
+          Default values are respectively:
+          </p>
+           <list>
+	      <item>Control_L</item>
+	      <item>Control_R</item>
+	      <item>Alt_L</item>
+	      <item>NoSymbol</item>
+	      <item>Alt_R</item>
+	      <item>NoSymbol</item>
+	      <item>Help</item>
+	      <item>Super_L</item>
+	    </list>
+          <p>
+          These strings correspond to "keysyms" on X11 systems.  On X11,
+          physical keys on the keyboard are equivalent to <em>keycodes</em>.
+          A single keysym may be associated to more than one keycode, and
+          can even be associated to a shifted key.
+          </p>
+          <p>
+          This is described more completely in the <uref
+          url="../../../User/Gui/KeyboardSetup.html">GUI documentation on
+          keyboard setup</uref>.
+          </p>
+	  </desc>
+	  <term>GSModifiersAreNotKeys</term>
+	  <desc>
+          <p>
+          On some keyboards, the default X11 mapping includes keycodes that
+          are mapped to one or another modifier keysym depending on whether
+          'shift' (or in some cases, another key) is pressed.  This is the
+          case on some Apple USB keyboards for example: one key to the left
+          of the spacebar maps to "Option" without shift pressed, and "Alt"
+          with shift pressed.  Such keyboard mappings are often useful in
+          non-English contexts to access accents or non-Roman characters.
+          However if such a key is used as a modifier in GNUstep problems can
+          occur when trying to use the modifier in conjunction with a shifted
+          character.  In particular, you will need to hit and release the
+          modifier and the shift key in a particular order, or else things
+          will not work as expected, and the modifier may become "stuck".
+	  </p>
+	  <p>
+	  Previously this default was called <code>GSModifiersAreKeys</code>,
+	  and Shift+Alt key equivalents only worked if Shift and Alt were
+	  pressed in the right order, unless the default was set to
+	  <code>YES</code>. That is now the default; to get back the 
+	  previous default behaviour, set
+	  <code>GSModifiersAreNotKeys</code> to <code>YES</code>.
+          </p>
+          </desc>
+	  <term>UseWindowMakerIcons</term>
+	  <desc>
+          <p>
+	  UseWindowMakerIcons is for app icons, and has no effect when
+	  the window manager isn't Window Maker. It displays the
+	  application's icon window in the window Window Maker
+	  provides instead of creating one controlled by the app. This
+	  allows the icon to be docked.  It is a boolean value which
+	  defaults to <code>YES</code>.
+          </p>
+	  </desc>
+	  <term>XGPS-Shm</term>
+	  <desc>
+          <p>
+          A boolean value which defaults to <code>YES</code> (as long as shared
+          memory is available). If set to <code>NO</code>, shared memory is not
+          used for various display specific operations.
+          </p>
+	  </desc>
+	  <term>GSOldClipboard</term>
+	  <desc>
+          <p>[X backends only]
+          A boolean value which defaults to <code>NO</code>. If set to YES the
+	  old GNUstep way of X clipboard interaction will be used. That is
+	  PRIMARY as the general pasteboard and CLIPBOARD for the
+	  selection. Whereas the new X standard is the other way around. This
+	  setting may be needed for interaction in an old X enviornment.
+          </p>
+	  </desc>
+	</deflist>
+      </section>
+    </chapter>
+  </body>
+</gsdoc>
+
+

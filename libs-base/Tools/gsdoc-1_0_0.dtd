@@ -1,0 +1,556 @@
+<!--
+
+  XML Document Type Definition for GNUstep Documentation Markup
+  Language (gsdoc).
+
+  Written by Richard Frith-Macdonald
+  Based on GDML by 1997 Yoo C. Chung
+
+  This is free software; you can redistribute it and/or
+  modify it under the terms of the GNU Lesser General Public
+  License as published by the Free Software Foundation; either
+  version 2 of the License, or (at your option) any later version.
+
+  This document is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  Library General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with this library; if not, write to the Free
+  Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+  Boston, MA 02111 USA.
+
+-->
+
+
+<!--
+  gsdoc is an XML language - Typical usage:
+  <?xml version="1.0"?>
+  <!DOCTYPE gsdoc PUBLIC "-//GNUstep//DTD gsdoc 1.0.0//EN"
+	"http://www.gnustep.org/gsdoc.xml">
+  <gsdoc base="myDocName">
+  </gsdoc>
+-->
+
+
+<!--***** Character entities. *****-->
+
+<!-- General purpose characters for gsdoc. -->
+<!ENTITY copy "&#169;">		<!-- copyright symbol -->
+<!ENTITY tm   "&#174;">		<!-- trademark symbol -->
+<!ENTITY reg  "&#174;">
+<!ENTITY dots "&#8230;">	<!-- ellipsis (...) -->
+<!ENTITY nbsp "&#160;">		<!-- non breakable space -->
+<!ENTITY amp  "&#38;#38;">	<!-- ampersand -->
+<!ENTITY apos "&#39;">		<!-- apos -->
+<!ENTITY quot "&#34;">		<!-- quotation mark (") -->
+<!ENTITY lt   "&#38;#60;">	<!-- lesser than symbol -->
+<!ENTITY gt   "&#62;">		<!-- greater than symbol -->
+
+<!--***** Entity declarations. *****-->
+
+<!-- Boolean values for attributes -->
+<!ENTITY % boolean "(yes|no)">
+
+<!-- Entity for phrase elements. -->
+<!ENTITY % phrase "var | ivar | em | code | strong | file | site">
+
+<!-- Entity for cross references. -->
+<!ENTITY % xref "ref | uref | url | email | prjref">
+
+<!-- Entity for anchors. -->
+<!ENTITY % anchor "label | entry">
+
+<!-- Entity for simple text level elements. -->
+<!ENTITY % text "#PCDATA | %xref; | %anchor; | %phrase; | footnote | br">
+
+<!-- Entity for list elements. -->
+<!ENTITY % list "list | enum | deflist | qalist | dictionary">
+
+<!-- Entity for block level elements. -->
+<!ENTITY % block "%text; | %list; | p | example | embed | index">
+
+<!-- Entity for definition elements and blocks. -->
+<!ENTITY % defblock "%text; | %list; | heading | p | example | embed | index | class | category | protocol | function | macro | type | variable | constant | EOModel | EOEntity">
+
+<!--**********-->
+
+
+<!-- Used for describing something. -->
+<!ELEMENT desc (%block;)*>
+
+<!-- A footnote. -->
+<!ELEMENT footnote (%text;)*>
+
+
+<!--***** Phrase elements. *****-->
+
+<!-- The content is a metasyntactic variable or argument name. -->
+<!ELEMENT var (%text;)*>
+
+<!-- The content is a metasyntactic ivariable name. -->
+<!ELEMENT ivar (%text;)*>
+
+<!-- Emphasize the content. -->
+<!ELEMENT em (%text;)*>
+
+<!-- The content is too important that simple emphasizing isn't
+     enough. -->
+<!ELEMENT strong (%text;)*>
+
+<!-- The content is either a name for code (e.g. class names), or a
+     relatively short code fragment. -->
+<!ELEMENT code (%text;)*>
+
+<!-- The content is a file name. -->
+<!ELEMENT file (#PCDATA)*>
+
+<!-- The content is a fully qualified domain name on the Internet. -->
+<!ELEMENT site (#PCDATA)*>
+
+<!--***** List elements. *****-->
+
+<!-- An item in a list. -->
+<!ELEMENT item (%block;)*>
+
+<!-- An enumerated list. -->
+<!ELEMENT enum (item+)>
+
+<!-- A ordinary, unnumbered list. -->
+<!ELEMENT list (item+)>
+
+<!-- A term to defined in a definition list. -->
+<!ELEMENT term (%text;)*>
+
+<!-- A definition list. -->
+<!ELEMENT deflist (term, desc)+>
+
+<!-- A question for a question and answer list. -->
+<!ELEMENT question (%text;)*>
+
+<!-- An answer for a question and answer list. -->
+<!ELEMENT answer (%block;)*>
+
+<!-- A question and answer list. -->
+<!ELEMENT qalist (question, answer)+>
+
+<!--**********-->
+
+
+<!--***** Cross references. *****-->
+
+<!-- A reference.
+ ID of the reference.
+ TYPE of reference, if implied, a reference to a label.
+ CLASS specific class for a method, may be one of the following formats -
+   classname, classname(categoryname), (protocolname)
+-->
+<!ELEMENT ref (%text;)*>
+<!ATTLIST ref
+  id CDATA #REQUIRED
+  type (class|category|protocol|method|ivariable|function|type|macro|variable|constant|label|EOModel|EOEntity) "label"
+  class CDATA #IMPLIED
+>
+
+<!-- An e-mail address. -->
+<!ELEMENT email (%text;)*>
+<!ATTLIST email
+  address CDATA #IMPLIED
+>
+
+<!-- A URL. -->
+<!ELEMENT url EMPTY>
+<!ATTLIST url
+  url CDATA #IMPLIED
+>
+
+<!-- A reference to a URL.
+  The text contained appears in the output.
+-->
+<!ELEMENT uref (%text;)*>
+<!ATTLIST uref
+  url CDATA #REQUIRED
+>
+
+<!-- A reference to a project.
+  The text contained appears in the output.
+-->
+<!ELEMENT prjref (%text;)*>
+<!ATTLIST prjref
+  prjname CDATA #IMPLIED
+  file CDATA #IMPLIED
+>
+
+<!--***** Anchors. *****-->
+
+<!-- An anchor for a general reference.
+ The text contained appears in the output.
+ If the id attribute is omitted, the text is used in its place.
+-->
+<!ELEMENT label (%text;)*>
+<!ATTLIST label
+  id CDATA #IMPLIED
+>
+
+<!-- An entry for the general index. 
+  The text that is contained appears in the index, and never in
+  the text itself.
+ If the id attribute is omitted, the text is used in its place.
+-->
+<!ELEMENT entry (%text;)*>
+<!ATTLIST entry
+  id CDATA #IMPLIED
+>
+
+<!-- Entity for standard elements. -->
+<!ELEMENT GNUstep EMPTY>
+<!ELEMENT OpenStep EMPTY>
+<!ELEMENT NotOpenStep EMPTY>
+<!ELEMENT MacOS-X EMPTY>
+<!ELEMENT NotMacOS-X EMPTY>
+
+<!-- A standard that something is or isn't  compliant with. -->
+<!ENTITY % standard "GNUstep | OpenStep | NotOpenStep | MacOS-X | NotMacOS-X">
+
+<!ELEMENT standards (%standard;)*>
+
+<!--***** Argument elements. *****-->
+
+<!-- An argument. -->
+<!ELEMENT arg (#PCDATA)*>
+<!ATTLIST arg
+  type CDATA #IMPLIED
+>
+
+<!-- Denotes that the rest of the arguments is a variable list,
+  like in printf().
+-->
+<!ELEMENT vararg EMPTY>
+
+
+<!--***** Method elements. *****-->
+
+<!-- A component for a method selector. -->
+<!ELEMENT sel (#PCDATA)*>
+
+<!-- A method.  If there is no DESC, it is understood that the element
+     is used to override some information from the same method in the
+     superclass.
+  If factory not set, instance method
+-->
+<!ELEMENT method (((sel, arg?), (sel, arg)*, vararg?), desc?, standards?)>
+<!ATTLIST method
+  type CDATA #IMPLIED
+  factory %boolean; "no"
+  init %boolean; "no"
+  override (subclass|never) #IMPLIED
+>
+
+<!--***** Elements for definitions of classes, functions, etc. *****-->
+
+<!-- Show what header file something lives in. -->
+<!ELEMENT declared (#PCDATA)*>
+
+<!-- A macro definition. -->
+<!ELEMENT macro ((arg*, vararg?), declared?, desc?, standards?)>
+<!ATTLIST macro
+  name CDATA #REQUIRED
+>
+
+<!-- A type definition. -->
+<!ELEMENT type (declared?, desc?, standards?)>
+<!ATTLIST type
+  name CDATA #REQUIRED
+  type CDATA #REQUIRED
+>
+
+<!-- Variable definition.
+  VALUE may be set for a constant or a default value
+-->
+<!ELEMENT variable (declared?, desc?, standards?)>
+<!ATTLIST variable
+  name CDATA #REQUIRED
+  type CDATA #REQUIRED
+  value CDATA #IMPLIED
+>
+
+<!-- Ivariable definition.
+-->
+<!ELEMENT ivariable (desc?, standards?)>
+<!ATTLIST ivariable
+  name CDATA #REQUIRED
+  type CDATA #REQUIRED
+  validity (public|protected|private) "public"
+>
+
+<!-- Constant definition.
+  VALUE may be set for a constant or a default value
+-->
+<!ELEMENT constant (declared?, desc?, standards?)>
+<!ATTLIST constant
+  name CDATA #REQUIRED
+  type CDATA #REQUIRED
+  value CDATA #IMPLIED
+  role (except|defaults|notify|key) #IMPLIED
+>
+
+<!-- A function definition. -->
+<!ELEMENT function ((arg*, vararg?), declared?, desc?, standards?)>
+<!ATTLIST function
+  name CDATA #REQUIRED
+  type CDATA #REQUIRED
+>
+
+<!-- Protocol definition. -->
+<!ELEMENT protocol (declared?, conform*, desc?, method*, standards?)>
+<!ATTLIST protocol
+  name CDATA #REQUIRED
+>
+
+<!-- Category definition. -->
+<!ELEMENT category (declared?, conform*, desc?, method*, standards?)>
+<!ATTLIST category
+  name CDATA #REQUIRED
+  class CDATA #REQUIRED
+>
+
+<!-- Show a protocol a class conforms to. -->
+<!ELEMENT conform (#PCDATA)*>
+
+<!ELEMENT class (declared?, conform*, desc?, ivariable*, method*, standards?)>
+<!ATTLIST class
+  name CDATA #REQUIRED
+  super CDATA #IMPLIED
+>
+
+<!--***** Elements for definitions of EOModels, etc. *****-->
+
+<!-- a dictionary Item. -->
+<!ELEMENT dictionaryItem (%block;)*>
+<!ATTLIST dictionaryItem
+  key CDATA #REQUIRED
+  value CDATA #IMPLIED
+>
+
+<!-- a dictionary -->
+<!ELEMENT dictionary (dictionaryItem+)>
+
+<!ELEMENT EOConnectionDictionary (dictionaryItem+)>
+
+<!ELEMENT EOUserDictionary (dictionaryItem+)>
+
+<!--***** Elements for definitions of EOModels, etc. *****-->
+
+<!-- EORelationshipComponent -->
+<!ELEMENT EORelationshipComponent (EORelationshipComponent*)>
+<!ATTLIST EORelationshipComponent
+  definition CDATA #REQUIRED
+>
+
+<!-- EOJoin -->
+<!ELEMENT EOJoin (desc?)>
+<!ATTLIST EOJoin
+  relationshipName CDATA #IMPLIED
+  joinOperator CDATA #REQUIRED
+  joinSemantic CDATA #REQUIRED
+  sourceAttribute CDATA #REQUIRED
+  destinationAttribute CDATA #REQUIRED
+>
+
+<!-- EORelationship -->
+<!ELEMENT EORelationship ((EORelationshipComponent | (EOJoin*)), EOUserDictionary?, desc?)>
+<!ATTLIST EORelationship
+  entityName CDATA #REQUIRED
+  destinationEntityName CDATA #REQUIRED
+  name CDATA #REQUIRED
+  isToMany CDATA #IMPLIED
+>
+
+<!-- EOAttributeRef -->
+<!ELEMENT EOAttributeRef EMPTY>
+<!ATTLIST EOAttributeRef
+  name CDATA #REQUIRED
+>
+
+<!-- EOPrimaryKeyAttributes -->
+<!ELEMENT EOPrimaryKeyAttributes (EOAttributeRef+)>
+
+<!-- EOClassProperties -->
+<!ELEMENT EOClassProperties ((EOAttributeRef)+)>
+
+<!-- EOAttributesUsedForLocking -->
+<!ELEMENT EOAttributesUsedForLocking (EOAttributeRef+)>
+
+<!-- EOAttribute -->
+<!ELEMENT EOAttribute (EOUserDictionary?, desc?)>
+<!ATTLIST EOAttribute
+  columnName CDATA #IMPLIED
+  definition CDATA #IMPLIED
+  externalType CDATA #IMPLIED
+  name CDATA #REQUIRED
+  valueClassName CDATA #IMPLIED
+  valueType CDATA #IMPLIED
+  entityName CDATA #IMPLIED
+  isReadOnly CDATA #IMPLIED
+  isDerived CDATA #IMPLIED
+  isFlattened CDATA #IMPLIED
+>
+
+<!-- EOEntity -->
+<!ELEMENT EOEntity (EOAttribute*, EOAttributesUsedForLocking?, EOClassProperties?, EOPrimaryKeyAttributes?, EORelationship*, EOUserDictionary?, desc?)>
+<!ATTLIST EOEntity
+  name CDATA #REQUIRED
+  externalName CDATA #IMPLIED
+  className CDATA #IMPLIED
+  modelName CDATA #IMPLIED
+  isReadOnly CDATA #IMPLIED
+>
+
+<!-- EOModel -->
+<!ELEMENT EOModel (EOConnectionDictionary?, (EOEntity+ | list), EOUserDictionary?, desc?)>
+<!ATTLIST EOModel
+  name CDATA #REQUIRED
+  version CDATA #IMPLIED
+  adaptorName CDATA #REQUIRED
+  adaptorClassName CDATA #REQUIRED
+>
+
+<!--***** Elements for ordinary block level elements. *****-->
+
+<!-- A line break. -->
+<!ELEMENT br EMPTY>
+
+<!-- A paragraph. -->
+<!ELEMENT p (%text;)*>
+
+<!-- An example. -->
+<!ELEMENT example (#PCDATA)*>
+<!ATTLIST example
+  caption CDATA #IMPLIED
+>
+
+<!-- An embedded object.  If it is of a type that the SGML processor
+  cannot handle, then use the content, which is ignored otherwise.
+  refer - method of referring to object (default is file)
+  src - the reference to the object
+  type - Internet media type of the objec
+  title - optional title describing object
+-->
+<!ELEMENT embed (%block;)*>
+<!ATTLIST embed
+  refer (file|url) #IMPLIED
+  src CDATA #REQUIRED
+  type CDATA #IMPLIED
+  title CDATA #IMPLIED
+>
+
+<!--***** Elements for document structure such as chapters. *****-->
+
+<!-- A heading for chapters, sections, ... -->
+<!ELEMENT heading (%text;)*>
+
+<!-- A subsubsection. -->
+<!ELEMENT subsubsect (%defblock;)*>
+<!ATTLIST subsubsect
+  id CDATA #IMPLIED
+>
+
+<!-- A subsection. -->
+<!ELEMENT subsect (%defblock; | subsubsect)*>
+<!ATTLIST subsect
+  id CDATA #IMPLIED
+>
+
+<!-- A section. -->
+<!ELEMENT section (%defblock; | subsect)*>
+<!ATTLIST section
+  id CDATA #IMPLIED
+>
+
+<!-- A chapter. -->
+<!ELEMENT chapter (%defblock; | section)*>
+<!ATTLIST chapter
+  id CDATA #IMPLIED
+>
+
+
+<!--***** Elements that make searching for things easier. *****-->
+
+<!-- Table of contents. -->
+<!ELEMENT contents EMPTY>
+
+<!-- Index  ... generates an index of the specified type of elements.
+  'scope' determines whether the index is generated for the current file
+  or for the whole of the current project, or for everything the software
+  can find (global) ... if the document is processed in a standalone manner,
+  the scope if always file.  For method or ivariable indexing, if the index
+  is inside a class, protocol, or category, only  indexes for that unit
+  should be generated.
+  'type' determines the type of entry listed in the index.  The 'title'
+  type really only makes sense for a project scope index as it produces
+  a list of the files in the project (by title).
+-->
+<!ELEMENT index EMPTY>
+<!ATTLIST index
+  type (class | category | protocol | method | ivariable | function | type | macro | variable | constant | EOModel | EOEntity | label | title) "label"
+  scope (file | project | global) "file"
+>
+
+
+<!--***** Elements that describe the document itself. *****-->
+
+<!-- Copyright of the document. -->
+<!ELEMENT copy (%text;)*>
+
+<!-- An abstract. -->
+<!ELEMENT abstract (%text;)*>
+
+<!-- The version of the document. -->
+<!ELEMENT version (%text;)*>
+
+<!-- The date the document was written. -->
+<!ELEMENT date (%text;)*>
+
+<!-- An author. -->
+<!ELEMENT author (email?, url?, desc?)>
+<!ATTLIST author
+  name CDATA #REQUIRED
+>
+
+<!-- The title of the document. -->
+<!ELEMENT title (%text;)*>
+
+
+<!--***** The topmost structures for the document body. *****-->
+
+<!-- Unnumbered parts appearing in the front, such as a preface. -->
+<!ELEMENT front (contents?, chapter*)>
+
+<!-- Unnumbered parts appearing in the back, such as an afterword and/or
+ indices.
+-->
+<!ELEMENT back (chapter*, index*)>
+
+
+<!--***** The topmost structures for the document. *****-->
+
+<!-- The head containing general information about the document. -->
+<!ELEMENT head (title, author+, version?, date?, abstract?, copy?)>
+
+<!-- The main part of the document. -->
+<!ELEMENT body (front?, chapter+, back?)>
+
+<!--**********-->
+
+
+<!-- The entire document. -->
+<!ELEMENT gsdoc (head, body)>
+<!ATTLIST gsdoc
+  base CDATA #IMPLIED
+  next CDATA #IMPLIED
+  prev CDATA #IMPLIED
+  up CDATA #IMPLIED
+  stylesheeturl CDATA #IMPLIED
+>
+

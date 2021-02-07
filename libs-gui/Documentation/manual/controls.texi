@@ -1,0 +1,216 @@
+@c    GNUstep AppKit Guide
+@c
+@c    Copyright (c)  2005-2006  Christopher Armstrong.
+@c
+@c    Permission is granted to copy, distribute and/or modify this document
+@c    under the terms of the GNU Free Documentation License, Version 1.2
+@c    with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+@c    A copy of the license is included in the section entitled "GNU
+@c    Free Documentation License".
+@c
+@c This documentation is provided on an "AS IS" BASIS, WITHOUT WARRANTY
+@c OF ANY KIND, EITHER EXPRESS OR IMPLIED, INCLUDING, BUT NOT LIMITED
+@c TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+@c PARTICULAR PURPOSE. THE ENTIRE RISK AS TO THE QUALITY AND USEFULNESS
+@c OF THE DOCUMENTATION IS WITH YOU (THE LICENSEE). IN NO EVENT WILL THE COPYRIGHT
+@c HOLDERS BE LIABLE FOR DAMAGES, INCLUDING ANY DIRECT, INDIRECT,
+@c SPECIAL, GENERAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING OUT OF
+@c THE USE OR INABILITY TO USE THIS DOCUMENTATION (INCLUDING BUT NOT
+@c LIMITED TO LOSS OF DATA, USE, OR PROFITS; PROCUREMENT OF SUBSTITUTE
+@c GOODS AND SERVICES; OR BUSINESS INTERUPTION) HOWEVER CAUSED, EVEN
+@c IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+@node controls, theviewconcept, interfacefiles, Top
+@chapter Basic Controls
+@anchor{Basic Controls}
+
+@cindex controls, definition
+@cindex control
+One of the first important concepts you will encounter dealing with the widgets in the AppKit is that of a @dfn{control}. A @dfn{control} is just a simple graphical element that you put onto your window, such as a button, a text field or an image. It is a specialisation of a the concept of a view (which are a bit more abstract), and hence introduces its own terminology.
+
+Controls can easily be spotted in the @cite{GNUstep GUI Reference Manual} as they are derived from the abstract superclass @code{NSControl}. Every control has two classes, one derived from @code{NSControl}, the control, and one derived from @code{NSCell}, the cell. A control is responsible for it's corresponding cell, and usually contains only one cell (although matrices and tables contain groups of cells).
+
+The control hosts an instance of an NSCell subclass. This specific NSCell subclass can be set for a particular type of control by calling it's @code{+setCellClass} method, which will cause that NSControl to use your subclass instead of it's own for creating it's cell.
+
+@cindex controls, control value
+One can set the @dfn{value} of a control either directly or indirectly. You can directly set the value of a control by calling the @code{-setObjectValue:} method, or more specifically, the @code{-setStringValue:}, @code{-setIntValue:}, @code{-setFloatValue:} and @code{-setDoubleValue:} methods. We can also retrieve values using the @code{-objectValue}, @code{-stringValue}, @code{-intValue}, @code{-floatValue} and @code{-doubleValue} methods.
+
+@cindex sender/receiver
+@cindex paradigm, sender/receiver
+More indirectly, the control can be instructed to take it's value from another control when that control changes. We, the @dfn{receiver}, can take our value from another object, the @dfn{sender}, when the sender is updated. You can set what sender the receiver will take it's value from by calling the @code{-take*ValueFrom:} methods on the receiver, passing in a reference to the sender object. This mechanism only permits one-to-one relationships.@footnote{You would model this in UML using a one-to-one association I think.}
+
+The control can be enabled/disabled from receiving mouse events (as well as others) by setting the enabled property (@code{-setEnabled:}). You can tell the control to resize to the minimum needed to comfortably display it's cell by calling the @code{-sizeToFit} method.
+
+With regards to the generation of actions, you can set the selector that the control will call on the first responder with the @code{-setAction:} method. For more information with regards to what an "action" is in the context of event generation, see @pxref{Outlets and Actions}.
+
+@cindex controls, control classes
+@section Basic NSControl Classes
+
+Classes that leverage the paridgm and concepts provided by NSControl are detailed below. Note that some of the more complex subclasses have dedicated chapters, such as NSTableView, NSTextView and NSMatrix.
+
+@cindex controls, buttons
+@cindex button controls
+@cindex NSButton
+@subsection Buttons (NSButton)
+
+A button can be more than a simple "push button". This NSControl is used to implement radio buttons, momentary push buttons, radio style buttons, etc. The way the button reacts is specified by the @code{-setButtonType:} method, which takes a constant value of one of the following:
+
+@table @code
+
+@item NSMomentaryPushInButton
+@item NSMomentaryPushButton
+This is the default button type. It is "pushed in" and lit while the mouse is held down on it, and it is "pushed out" and unlit when the button is released. It is used for triggering actions; it doesn't graphically nor internally store an on/off state. It looks like a simple click button that you would find in Microsoft Windows.
+
+@item NSMomentaryLightButton
+@item NSMomentaryLight
+This type of button simply appears "lit" while the mouse is held down on it. Like the NSMomentaryPushInButton type, it used for simply triggering actions.
+
+@item NSPushOnPushOffButton
+This button is used where you need to show and store an "on/off" state. When the button is first clicked, it is highlight and "pushed in" while the mouse is held down. It maintains this state until it is clicked again, in which it returns to normal.
+
+@item NSOnOffButton
+This is like the NSPushOnPushOffButton, but it only highlights the button's area when clicked on and off.
+
+@item NSToggleButton
+This type is an on/off button like NSPushOnPushOffButton. When it is clicked, it changes it's image to indicate an "on" state. A second click will restore the original button state.
+
+@item NSSwitchButton
+The same as NSToggleButton, but with no border.
+
+@item NSRadioButton
+A variation of NSSwitchButton that is similiar to the radio button control in Microsoft Windows.
+
+@end table
+
+A button has a "title" property, which is the text either displayed on or next to the button (depending on whether it's of the switch or push variety). This is changed with the @code{-setTitle:} method. The button state, as discussed above, can be read or changed with the @code{-state} and @code{-setState:} methods.
+
+You can also set an image to be displayed on the button (@code{-setImage:}) as well as an @dfn{alternate image}, which is displayed when the button changes state (@code{-setAlternateImage:}). Along these lines, the button also has an alternate title which appears when the button changes into it's "on" state (set using the @code{-setAlternateTitle:} method). Both the title and alternate title can be set using attributed strings as well.
+
+Another visual feature that can also be set is whether it is bordered (@code{-setBordered:}) and if so, what type of bezel that border takes (@code{-setBezelStyle:}).
+
+@cindex text fields
+@cindex controls, text fields
+@cindex NSTextField
+@subsection Text Field (NSTextField)
+
+A @dfn{text field} is a simple control that displays and/or allows the editing of text. You can set whether it is editable or not using the @code{-setEditable:} method.
+
+It also can take a delegate implementing the @code{NSControlDelegate} protocol, which is described below.
+
+@cindex combo boxes
+@cindex controls, combo boxes
+@cindex NSComboBox
+@subsection Combo Boxes (NSComboBox)
+
+A @dfn{combo box} is similar to a text box, but it also has a drop-down component that lets the user select from some predefined entries as well as letting them type one it. 
+
+You can provide the data it uses by calling methods on the object or setting a data source. Objects can be added to the list using @code{-addItemWithObjectValue:} or @code{-addItemWithObjectValues:} (for arrays), and then removed with @code{-removeItemWithObjectValue:} or @code{-removeAllItems}. The items listed can be referenced by index if necessary.
+
+If you wish to use a data source, you must first set a data source object that implements the @code{NSComboBoxDataSource} informal protocol, and then call @code{-setUsesDataSource:} with a @code{YES} parameter.
+
+@subsection ImageViews (NSImageView)
+
+An @dfn{image view}, which displays an image, is also a control. You can set the image to be used with the @code{-setImage:} method. It is also possible to set the alignment, frame style and image scaling.
+
+See @pxref{Images and Imageviews} for more information.
+
+@subsection Popup Buttons (NSPopupButton)
+
+A @dfn{popup button} is a special kind of button that displays a menu while the mouse button is clicked and held down on it. The user selects an item from the menu by moving the cursor over the item they want and releasing the mouse button.
+
+It can behave as a pull-down or a pop-up menu. You can change this using the @code{-setPullsDown:} method and providing a boolean. Items can be added and removed using @code{-addItemWithTitle:}/@code{-addItemsWithTitles:}, @code{-insertItemWithTitle:atIndex:} and @code{-removeItemWithTitle:}/@code{-removeAllItems}/@code{-removeItemAtIndex:} methods.
+
+The selected item is retrieved via the @code{-selectedItem} method (and others). It posts one notification: @code{NSPopUpButtonWillPopUpNotification}, which is posted just before the menu is shown.
+
+@subsection Scroller (NSScroller)
+
+@dfn{Scrollers} are scrollbars. You will be unlikely to instantiate these directly, as scrolling functions are handled best by @code{NSScrollView}. Otherwise, their visual appearance and behaviour is very customisable.
+
+You can otherwise get where the scroller is positioned by calling @code{-floatValue} which is a number between 0.0 and 1.0 (0 being at the top/left end and 1 at the bottom/right end). Similarly, the position and proportion of the knob that fills the knob slot can be set using the @code{-setFloatValue:knobProportion:} method (the proportion also being between 0.0 and 1.0).
+
+@subsection Slider (NSSlider)
+
+A @dfn{slider} looks alot like a scroller, but is simply a knob used to allow the user to select a variable value. If you want to allow the user to select a variable value, use this instead of a scroller.
+
+It's value is set and retrieved via the @code{-setFloatValue:} and @code{-floatValue} methods defined in @code{NSControl}. It also permits a minimum and maximum value to be set.
+
+You can set an image to be displayed in the scroll bar part using @code{-setImage:}, and you can set a title (and/or title cell/font/colour) to be shown with the slider.
+
+When the user clicks and drags the slider, it will continually send it's action message as the user drags the slider. This behaviour can be changed using the @code{-setContinuous:} method.
+
+@subsection Steppers (NSStepper)
+
+A @dfn{stepper} is a control that displays it's current value in a box while permitting the user to change it via a pair of up/down arrows.@footnote{It's like the Microsoft Windows Spin control} 
+
+Like the slider, you can set a maximum and minimum value. You can also set whether the value wraps, and by how much it is incremented/decremented on each mouse-click.
+
+@section Advanced control classes
+
+GNUstep also provides more advanced control classes, notable tableviews, matrices and browsers. Many of these are documented in subsequent chapters.
+
+A @dfn{matrix} is a grid containing cells. It does not matter what type of cells are put into it, and they can be of different types, as long as they're all the same size (@pxref{Matrix Controls}). They are referenced by a cell coordinate number, and data is added passively via calling methods on the NSMatrix object.
+
+@dfn{Tableviews} are different from matrices, essentially displaying grid lines and drawing column headers. They are more useful for displaying records of data from database tables and queries, amongst other things. They are organised by column (fields) and rows (records). Unlike matrices, they use a data source delegate to display their data. For more information, @pxref{Tableviews}.
+
+@dfn{Browsers} are a useful control for displaying hierachial information, especially data that is subject to real time change or needs to be navigated in a hierachical fashion. They use a data source that can be either passive or active in the way it gives the browser data, so that you can have hierachies which change as the program runs, e.g. representing a file system (take a look at the GWorkspace program for a example of a browser control in use). For more information, @pxref{Browsers}
+
+@dfn{Outline views} are a specialised form of table view that allows the display of hierachial data via rows that can be expanded and collapsed. They too use a special data source.
+
+@section Control Notifications
+
+Controls provide a few generic notifications, particularly related to text editing. All the following notifications will have the control that posted them as the notification object. The notification has a @code{userInfo} dictionary that has a key @code{@@"NSFieldEditor"}, which is the editing cell's field editor.
+@table @code
+
+@item NSControlTextDidBeginEditingNotification
+This notification is sent when a control has begun editing. This only applies to controls that are editable.
+
+@item NSControlTextDidEndEditingNotification
+The notification is sent when a control has finished editing. This only applies to controls that are editable.
+
+@item NSControlTextDidChangeNotification
+This notification is sent when the text in a control has changed. This only applies to controls that are editable.
+
+@end table
+
+@section Control Delegate
+
+You can also set a control delegate by calling @code{-setDelegate:} on the control subclass with an object that implements the informal protocol @code{NSControlDelegate}.
+
+The delegate receives the notifications defined above. If the control subclass has it's own delegate protocol(s), you may have to use the same object to implement both @code{NSControlDelegate} and the specific control's delegate.
+
+@section Cell Classes
+
+As previously mentioned, a controls' cell class inherits from @code{NSCell}. @code{NSCell} defines alot of basic functionality and features that cells can customise.
+
+@code{NSCell} provides a number of methods for setting/getting the cell value. These correspond to those that are available for their corresponding control.
+
+Like most graphical elements, cells can be enabled and disabled using the @code{-setEnabled:} method. They also have the concept of a "state" so that cells such as check boxes and radio buttons can be defined as being "on" or "off". Cells may also have a "mixed" state, but this can only be enabled using the @code{-setAllowsMixedState:} method. The cell state can be retrieved using the @code{-state} method, which returns one of the foloowing constants:
+@table @code
+@item NSOnState
+The cell is "on".
+
+@item NSOffState
+The cell is "off".
+
+@item NSMixedState
+The cell is in a "mixed" state. This may be, e.g. a checkbox representing a group of elements of which some are on and some are off.
+
+@end table
+
+In line with the target/action paridgm specified in previous chapters, cell's can have an action and a target set on them. The action is a selector, which can be retrieved using the @code{-action} method. The target is an object, which can be retrieved using the @code{-target} method. This stuff is usually setup by Gorm.app when you create your interface. You can set whether an action is continuous via the @code{-setContinuous:} method.
+
+Cell's have a generic type. These can be retreived using the @code{-type} method and set using the @code{-setType:} method with one of the constants specified below:
+@table @code
+@item NSNullCellType
+This cell doesn't display anything.
+
+@item NSTextCellType
+This cell displays text.
+
+@item NSImageCellType
+This cell displays an image.
+
+@end table
+
+The way cells display and format data or text can also be set. A formatter object that changes the way the cell's data is represented after the user has typed iit in is set via the @code{-setFormatter:} method using an object of @code{NSFormatter} derivation. 
+

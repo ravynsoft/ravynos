@@ -1,0 +1,457 @@
+Date:	18-Dec-2008
+Author: Nicola Pero <nicola.pero@meta-innovation.com>
+
+
+PURPOSE
+-------
+
+This document is intended to provide background information useful to
+successfully package GNUstep.  It particularly applies to GNU/Linux
+packages such as RPMs and DEBs, but the general concepts would apply
+to most type of packaging.  If you're packaging for other systems,
+such as Microsoft Windows, you should read carefully the instructions
+for that system as well as there will be significant differences.
+
+
+GETTING HELP
+------------
+
+If you need help with packaging GNUstep or a GNUstep package, please
+contact the help GNUstep mailing lists <help-gnustep@gnu.org>, or the
+more general GNUstep mailing list <discuss-gnustep@gnu.org>.
+
+
+DESTDIR
+-------
+
+gnustep-make and all the GNUstep software supports the standard
+variable DESTDIR to relocate the installation into a packaging
+directory.  You need to pass it when running a 'make install', as in
+
+ make install DESTDIR=/tmp/package/
+
+this example will cause all the software to be installed in
+subdirectories of /tmp/package; for example, a config file that would
+normally be installed into /etc/GNUstep/GNUstep.conf will be installed
+into /tmp/package/etc/GNUstep/GNUstep.conf.
+
+To create a package, you then only need to package all the files
+that were installed into that directory.
+
+
+
+GNUSTEP-MAKE
+------------
+
+When packaging GNUstep, you should start by packaging gnustep-make
+(you should at least have read the INSTALL document to give you an
+overview of how gnustep-make is installed).
+
+GNUstep-make includes both the basic filesystem layout configuration
+files and scripts that are used by all the other GNUstep software, and
+makefiles and scripts that are used to build GNUstep software.  It
+would make sense to have them as separate packages (eg, a
+"gnustep-filesystem" for all users and a "gnustep-make" package for
+developers), but at this stage for simplicity we recommend just having
+a single package that includes both.
+
+All your GNUstep packages should depend on gnustep-make (which
+includes the filesystem layout infrastructure) and gnustep-base (which
+includes the basic Objective-C foundation library that everything else
+uses).
+
+GNUstep-make has a number of configure options.  Most of them affect
+all other GNUstep software.  The defaults should be fine in most
+situations, except for the filesystem layout which you really need to
+review.  If you are confused by an option and it's not mentioned in
+this document, we recommend using whatever default is automatically
+selected by gnustep-make.
+
+The minimal set of configure options that you need is probably just
+
+ ./configure --with-layout={FILE}
+
+Read the section 1. FILESYSTEM LAYOUT for a bit of help on choosing
+your filesystem layout.
+
+If you have a bit more time, it's probably worth checking the other
+available options as well and thinking if you need or want to change
+any of them to better suit your environment.  You probably don't, but
+we document here the major options that you may want to change.
+
+
+1. FILESYSTEM LAYOUT
+====================
+
+The first and most important configuration option is the filesystem
+layout one:
+
+ ./configure --with-layout={FILE}
+
+Where {FILE} is the name of a file from the FilesystemLayouts
+directory (eg, ./configure --with-layout=gnustep).
+
+This option controls where GNUstep applications, tools, libraries, and
+everything else GNUstep is installed.
+
+There are two major options here:
+
+ 1. ./configure --with-layout=gnustep
+
+The "standard" GNUstep layout, where all the GNUstep software is
+installed into a separate directory tree located by default in
+/usr/GNUstep.  You can change the default location by using
+--prefix=xxx, as in
+
+ ./configure --with-layout=gnustep --prefix=/opt/GNUstep
+
+to install everything into /opt/GNUstep instead of /usr/GNUstep.  This
+directory tree is organized with directories such as Applications,
+Library, Tools and it looks very much like a NeXTSTEP or an Apple Mac
+OS X filesystem.  The main disadvantage of this layout is that it
+doesn't blend so well with the native Unix filesystem so it requires
+additional handling of executable and library paths to get the system
+to find the executables and the libraries.
+
+ 2. ./configure --with-layout=fhs-system
+
+The "FHS" layout, where the GNUstep software is installed into the
+standard Unix directories such as /usr/bin and /usr/lib.  This blends
+very well with the native Unix filesystem, but you lose the special
+allure of the GNUstep layout.
+
+We don't have a particular recommendation on what filesystem to use;
+you should pick the one that best suits your system's philosophy.  If
+it's a GNUstep-based system, you are likely to want to use the GNUstep
+layout; if it's a more general Unix system, you may want to use the
+FHS layout and have the GNUstep packages install into the standard
+Unix directories just like every other package, since this might feel
+more natural to your users.
+
+If you're packaging things for Apple, it's also possible to use the
+Apple filesystem layout, but extra care is required in that situation
+to avoid conflicting with the Apple software itself.  This works best
+if packaging a single piece of software (eg, Renaissance).
+
+In some special cases you may be unhappy with the existing filesystem
+layouts and may want to create your own.  This is possible and easy by
+creating a new FilesystemLayouts file; for more information, please
+refer to the gnustep-make documentation.
+
+Once you pick a filesystem layout and configure gnustep-make using it,
+all of the GNUstep software will automatically use it.
+
+
+2. FLATTENED AND MULTI-PLATFORM
+===============================
+
+Here it is very likely that the defaults (flattened layout, and no
+multi-platform support) are exactly what you want, since they remove a
+lot of complication for end-users.
+
+In case you wonder what these options do, here's a quick summary.  If
+you disable the flattened layout GNUstep uses a "fat" directory
+structure that can accomodate binaries for multiple architectures in
+the same filesystem; by turning on the "multi-platform" support you
+can then make it to choose which one to use at runtime, allowing you
+to mount a single fat directory structure from the network on machines
+with different architectures.  This works best with the GNUstep
+filesystem layout.
+
+
+3. LIBRARY-COMBOS
+=================
+
+The library-combo defines the main components of your Objective-C
+environment.
+
+The default is currently "gnu-gnu-gnu", which means that the system
+is using the GNU Objective-C runtime library, the GNU foundation/base
+library, and the GNU app/gui library.
+
+You may well wish to use "ng-gnu-gnu", which means that the runtime
+library is the GNUstep runtime for ObjectiveC-2, and also means that
+the latest language features are expected with the compiler.
+To use this you must ship the GNUstep runtime and clang-3.1 or later.
+
+4. CONFIGURATION FILE
+=====================
+
+GNUstep has a system-wide configuration file that is used by both
+gnustep-make and gnustep-base to learn about the current filesystem
+layout in the system and locate the various resources.  By default,
+this configuration file is installed by gnustep-make into
+
+ /etc/GNUstep/GNUstep.conf
+
+This location can be changed as in
+
+ ./configure --with-config-file=/etc/GNUstep.conf
+
+Please note that this configuration file is generally not meant to be
+edited after it's been installed by gnustep-make.  The configuration
+file merely records the filesystem layout that was chosen at configure
+time and is used by all the software.
+
+Finally, changing the location of the configuration file can introduce
+an additional complication since you later need to make sure the new
+config file is found in its new location.  This should be easy and is
+explained below, but it might depend on your setup.  If you don't have
+a serious reason to change its location, we recommend just leaving the
+configuration file in the default /etc/GNUstep/GNUstep.conf location
+which is guaranteed to work with no additional setup work.
+
+
+5. USER DEFAULTS DIRECTORY
+==========================
+
+User defaults are used by GNUstep applications and tools to store your
+user preferences and other user-specific information.  These user
+defaults are stored in a directory inside the user's home directory,
+which by default is 
+
+ ~/GNUstep/Defaults/
+
+You can change this to something else, for example
+
+ ./configure --with-user-defaults-dir=.GNUstep/Defaults
+
+would store the defaults into the directory ~/.GNUstep/Defaults.
+
+If you change this, it might be worth testing it later; after you install
+GNUstep-base, you can test where the user defaults get written by using
+the command-line tool 'defaults' which allows you to read or write
+user defaults.
+
+
+6. GLOBAL DEFAULTS DATABASE
+===========================
+
+You may define global (ie for all applications and all users) default
+values by placing them in the GlobalDefaults.plist file in the same
+directory as the GNUstep.conf configuration file.
+
+This file should contain data as keys and values in a dictionary using
+the text property list format (the gnustep-base command 'defaults plist'
+will give you a summary of the syntax of a text property list).
+
+It is recommended that, if there are multiple packages wiching to set
+global defaults, the values for each package are stored in a separate
+file and the 'plmerge' command (also available with gnustep-base) is
+used to merge those separate files into Globaldefaults.plist when any
+package is installed or removed.
+ 
+
+7. SUMMARY OF CONFIGURE OPTIONS
+===============================
+
+If you've followed us up to here, probably your gnustep-make's configure
+command now looks something like
+
+ ./configure --with-layout={FILE}
+
+Or, if you really wanted to change a lot of things, it might look like
+
+ ./configure --with-layout={FILE} --with-library-combo=ng-gnu-gnu --with-config-file={LOCATION} --with-user-defaults-dir={DEFAULTS_DIR}
+
+
+8. USER ENVIRONMENT
+===================
+
+GNUstep will install applications, tools and libraries into the
+filesystem of your choice.  If this filesystem is different from the
+native system filesystem, it's likely that:
+
+ * executables won't be found because they are not in the user's PATH
+
+ * libraries won't be found because they are not in the user's LD_LIBRARY_PATH
+(or in /etc/ld.so.conf or similar variables/configuration depending on the 
+type of system)
+
+In that case you need to make sure that when the gnustep-make package
+is installed, these paths will be added as appropriate.
+
+One option is to use the GNUstep.sh script that comes with
+GNUstep-make.  You should execute it every time a user logs in, for
+example by adding
+
+ . /usr/GNUstep/System/Library/Makefiles/GNUstep.sh
+
+to your /etc/profile (or appropriate corresponding setup for your system).
+
+The other option is to add manually the paths; check the documentation
+for your filesystem layout for the paths that you need to add (see
+FilesystemLayouts/ for the documentation of the various layouts).
+
+
+9. DEVELOPER ENVIRONMENT
+========================
+
+To compile software that uses gnustep-make, you also need to set the 
+GNUSTEP_MAKEFILES shell variable: 
+
+ GNUSTEP_MAKEFILES=/usr/GNUstep/System/Library/Makefiles
+ export GNUSTEP_MAKEFILES
+
+(the actual location depends on your filesystem layout; please check
+the output of gnustep-make's ./configure to see the location on your
+chosen layout).  If you're using GNUstep.sh, this variable is
+automatically set by it; otherwise you need to make sure that after
+installing your gnustep-make package, this variable is set in the
+environment whenever a user logs in.
+
+This is important because then users can download any GNUstep software
+and compile it by just typing 'make'.  And, of course, you can compile
+the software yourself and create GNUstep packages. :-)
+
+
+
+GNUSTEP_INSTALLATION_DOMAIN
+---------------------------
+
+Once you have packaged gnustep-make, you are ready to start packaging
+all other GNUstep software, starting with gnustep-base (or perhaps with
+the gnustep-make documentation).
+
+To build/package GNUstep software, you should normally install the
+gnustep-make package you just built, but you may use another gnustep-make
+installation as long as you ensure that the GNUstep.conf file used by
+that installation contains paths matching those in your new
+gnustep-make package.
+
+By default, all GNUstep software will install into the "LOCAL" domain
+if you compile it from source.  Depending on your filesystem layout,
+this is mapped to different directories on disk; with a GNUstep
+filesystem layout it would typically be mapped to /usr/GNUstep/Local
+and subdirectories, and with a FHS (Unix) filesystem layout it would
+typically be mapped to /usr/local and subdirectories.
+
+This is inappropriate for packages though; you want all of your
+packages to install into the "SYSTEM" domain.  Again, depending on
+your filesystem layout, the "SYSTEM" domain is mapped to different
+directories on disk; with a GNUstep filesystem layout it would
+typically be mapped to /usr/GNUstep/System and subdirectories, and
+with a FHS (Unix) filesystem layout it would typically be mapped to
+/usr, /var and subdirectories.
+
+To install software into the SYSTEM domain, you should use the
+variable GNUSTEP_INSTALLATION_DOMAIN, as in
+
+ make install GNUSTEP_INSTALLATION_DOMAIN=SYSTEM
+
+You can also set the variable in the shell (recommended), as in
+
+ GNUSTEP_INSTALLATION_DOMAIN=SYSTEM
+ export GNUSTEP_INSTALLATION_DOMAIN
+
+ make
+ make install
+
+If you're packaging, you're likely to be also using the DESTDIR
+variable, so your package build command sequence would probably look
+like
+
+ DESTDIR=/tmp/my-package
+ export DESTDIR
+
+ GNUSTEP_INSTALLATION_DOMAIN=SYSTEM
+ export GNUSTEP_INSTALLATION_DOMAIN
+
+ make
+ make install
+
+and then you have all the compiled software files inside
+/tmp/my-package ready to be packaged.
+
+Obviously some packages (but not all of them) require an initial
+'configure' before the 'make' step, or require other minor changes
+around this basic set of commands.
+
+
+
+DOCUMENTATION
+-------------
+
+Once you have packaged gnustep-make and installed the package,
+you can package the gnustep-make documentation.
+
+ cd Documentation
+ DESTDIR=/tmp/my-package
+ export DESTDIR
+
+ GNUSTEP_INSTALLATION_DOMAIN=SYSTEM
+ export GNUSTEP_INSTALLATION_DOMAIN
+
+ make
+ make install
+
+A similar process may be used to package documentation for each of the
+gnustep core libraries.
+
+As a special case in gnustepmake, you can use special commands to build
+and install the documentation.
+
+To build and install the gnustep-make documentation from the top level:
+  make install-docs
+
+To build and install the gnustep-make documnentation with gnustep-make:
+  make install-all
+
+
+GNUSTEP-BASE
+------------
+
+Your next step is to package gnustep-base.
+
+gnustep-base has a number of configure options that you may want to
+check; most of them have to do with locating the various libraries on
+your platform.
+
+One special thing about gnustep-base is that in some special cases
+(most notably on MinGW) it needs to know the installation domain at
+configure time.  So make sure to set GNUSTEP_INSTALLATION_DOMAIN in
+the environment *before* running configure.
+
+The package build command sequence is the standard one and so would
+look something like
+
+ DESTDIR=/tmp/my-package
+ export DESTDIR
+
+ GNUSTEP_INSTALLATION_DOMAIN=SYSTEM
+ export GNUSTEP_INSTALLATION_DOMAIN
+
+ ./configure {maybe some options here}
+ make
+ make install
+
+
+The only configure options that are really specific to GNUstep are the
+ones controlling the location of the configuration file.
+
+If you changed the location of the configuration file when you
+configured gnustep-make by using the option --with-config-file as in
+
+ ./configure --with-config-file=/etc/GNUstep.conf
+
+then you need to make sure that gnustep-base's configure has found the
+configuration file in its new location.  Check the output of
+gnustep-base's configure; it should mention your special configuration
+file location.
+
+If it doesn't, you may need to configure gnustep-base using the
+--with-config-file option, as in
+
+ ./configure --with-config-file=/etc/GNUstep.conf
+
+to make sure the correct file is used.
+
+
+
+OTHER GNUSTEP PACKAGES
+----------------------
+
+At this stage, all the GNUstep-specific issues should have been sorted
+out and packaging GNUstep software should be quite easy.  You just
+need to use DESTDIR and GNUSTEP_INSTALLATION_DOMAIN=SYSTEM.
+
