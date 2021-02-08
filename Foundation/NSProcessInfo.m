@@ -201,7 +201,7 @@ FOUNDATION_EXPORT void __NSInitializeProcess(int argc,const char *argv[]) {
    NSProcessInfoArgv=argv;
 #if !defined(GCC_RUNTIME_3)
 #if !defined(APPLE_RUNTIME_4)
-    OBJCInitializeProcess();
+//    OBJCInitializeProcess();
 #endif
 #ifdef __APPLE__
     // init NSConstantString reference-tag (see http://lists.apple.com/archives/objc-language/2006/Jan/msg00013.html)

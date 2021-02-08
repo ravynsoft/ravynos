@@ -32,7 +32,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <stdio.h>
 
 typedef void *NSModuleHandle;
-
+#define OBJC_EXPORT OBJC_PUBLIC
 OBJC_EXPORT NSModuleHandle NSLoadModule(const char *path, NSError **error);
 OBJC_EXPORT BOOL NSUnloadModule(NSModuleHandle handle);
 OBJC_EXPORT const char *NSLastModuleError(void);
@@ -48,7 +48,7 @@ OBJC_EXPORT void *NSSymbolInModule(NSModuleHandle handle, const char *symbol);
 #include <unistd.h>
 #endif
 
-#import <objc/dyld.h>
+//#import <objc/dyld.h>
 
 #if defined(GCC_RUNTIME_3) || defined(APPLE_RUNTIME_4)
 

@@ -668,7 +668,7 @@ INCS= \
 
 RESOURCES=Info.plist English.lproj
 CFLAGS+= -I${.CURDIR}/Headers \
-	 -I${.CURDIR}/.. -I${BUILDROOT}/usr/include \
+	 -I${.CURDIR}/.. -I${.CURDIR}/../libobjc2 \
 	 -fblocks \
 	 -Wl,--no-as-needed \
 	 -DBSD -DFREEBSD \

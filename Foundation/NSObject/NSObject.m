@@ -71,10 +71,12 @@ static IMP objc_msg_forward(id rcv, SEL message) {
 #endif
 
 +(void)initialize {
+#if 0
 #ifdef GCC_RUNTIME_3
     __objc_msg_forward2 = objc_msg_forward;
 #else
     objc_setForwardHandler(objc_msgForward,objc_msgForward_stret);
+#endif
 #endif
 }
 

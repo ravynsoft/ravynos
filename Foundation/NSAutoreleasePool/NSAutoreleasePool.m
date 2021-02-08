@@ -13,7 +13,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <Foundation/NSThread-Private.h>
 #import <Foundation/NSRaiseException.h>
 
-#import <objc/objc_arc.h>
+#import <objc/objc-arc.h>
 
 @implementation NSAutoreleasePool
 

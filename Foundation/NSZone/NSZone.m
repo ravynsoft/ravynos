@@ -12,7 +12,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <Foundation/NSRaise.h>
 #import <Foundation/NSZombieObject.h>
 #import <Foundation/NSDebug.h>
-#import <objc/objc_arc.h>
+#import <objc/objc-arc.h>
 #include <string.h>
 #ifdef WIN32
 #include <windows.h>
@@ -65,10 +65,10 @@ id NSAllocateObject(Class class, NSUInteger extraBytes, NSZone *zone)
 #else
     object_setClass(result, class);
 
-        if (!object_cxxConstruct(result, result->isa)) {
-            NSZoneFree(zone, result);
-            result = nil;
-        }
+//        if (!cxxConstruct(result->isa, result)) {
+//            NSZoneFree(zone, result);
+//            result = nil;
+//        }
 #endif
 
         if (__NSAllocateObjectHook) {
@@ -87,7 +87,8 @@ void NSDeallocateObject(id object)
 #elif defined(APPLE_RUNTIME_4)
     objc_destructInstance(object);
 #else
-    object_cxxDestruct(object, object->isa);
+// object_dispose() calls this for us
+//    object_cxxDestruct(object, object->isa);
 #endif
 
 #if !defined(APPLE_RUNTIME_4)
