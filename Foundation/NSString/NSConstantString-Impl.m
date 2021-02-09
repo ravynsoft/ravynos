@@ -18,6 +18,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #define STORAGE_UTF8  0x80000000
 #define STORAGE_MASK  (~(STORAGE_ASCII|STORAGE_UTF8))
 
+
 @implementation NSConstantString(Impl)
 
 static inline void resolveStorageIfNeeded(NSConstantString *self){
@@ -176,3 +177,5 @@ static inline NSUInteger lengthInUnicode(NSConstantString *self){
 }
 
 @end
+
+

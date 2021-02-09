@@ -60,7 +60,11 @@ mkfiles:
 
 libobjc2: .PHONY
 	mkdir -p ${MAKEOBJDIRPREFIX}/libobjc2
-	cd ${MAKEOBJDIRPREFIX}/libobjc2; cmake -DCMAKE_INSTALL_PREFIX=/usr ${TOPDIR}/libobjc2
+	cd ${MAKEOBJDIRPREFIX}/libobjc2; cmake \
+		-DCMAKE_BUILD_TYPE=Release \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DOLDABI_COMPAT=false -DLEGACY_COMPAT=true \
+		${TOPDIR}/libobjc2
 	make -C ${MAKEOBJDIRPREFIX}/libobjc2 DESTDIR=${BUILDROOT} install
 
 

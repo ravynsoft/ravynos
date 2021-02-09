@@ -673,7 +673,7 @@ CFLAGS+= -I${.CURDIR}/Headers \
 	 -Wl,--no-as-needed \
 	 -DBSD -DFREEBSD \
 	 -DPLATFORM_IS_POSIX \
-	 -DPLATFORM_USES_BSD_SOCKETS
+	 -DPLATFORM_USES_BSD_SOCKETS -fobjc-runtime=gnustep-2.0
 LDFLAGS+= -L${BUILDROOT}/usr/lib -L/usr/lib -L/lib -lobjc -lpthread -lm
 
 build: marshallheaders all
