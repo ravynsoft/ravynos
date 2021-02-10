@@ -87,8 +87,13 @@ static inline unsigned int processMaps(char *maps, const char **soNames)
         } else {
             name = cur;
         }
+#if defined(LINUX)
         int nameLength = eol - name;
         if (name && nameLength > 2 && (strcmp(eol - 3, ".so") == 0 || strstr(name, ".so.")) &&
+#else
+        int nameLength = sp2 - name;
+        if (name && nameLength > 2 && (strcmp(sp2 - 3, ".so") == 0 || strstr(name, ".so.")) &&
+#endif
                 (lastName == NULL || lastNameLength != nameLength ||
                  strncmp(lastName, name, lastNameLength) != 0)) {
             lastName = name;
