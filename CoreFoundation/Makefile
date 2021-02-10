@@ -82,6 +82,8 @@ INCS= \
 	CoreFoundation.h
 
 RESOURCES=Info.plist English.lproj
-CFLAGS+= -fobjc-runtime=gnustep-2.0 -I.. -I../libobjc2 -F${BUILDROOT}/System/Library/Frameworks -framework Foundation
+CFLAGS+= -fobjc-runtime=gcc \
+	 -I.. -I../libobjc2 \
+	 -F${BUILDROOT}/System/Library/Frameworks -framework Foundation
 
 .include <he.framework.mk>

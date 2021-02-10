@@ -12,6 +12,11 @@
 #endif
 #include <stdio.h>
 #include <string.h>
+#if defined(FREEBSD)
+#include <sys/sysctl.h>
+#include <sys/param.h>
+#endif
+
 
 /**
  * Runtime lock.  This is exposed in 
@@ -396,3 +401,43 @@ OBJC_PUBLIC void __objc_exec_class(struct objc_module_abi_8 *module)
 	}
 }
 #endif
+
+#ifdef BSD
+int _NSGetExecutablePath(char *path, uint32_t *capacity) {
+#if defined(FREEBSD)
+    if(*capacity < MAXPATHLEN)
+        return MAXPATHLEN;
+
+    int mib[4];
+
+    mib[0] = CTL_KERN;
+    mib[1] = KERN_PROC;
+    mib[2] = KERN_PROC_PATHNAME;
+    mib[3] = -1;
+
+    size_t cb = *capacity;
+
+    if(sysctl(mib, 4, path, &cb, NULL, 0) < 0) {
+        *capacity = 0;
+        return -1;
+    }
+    *capacity = strlen(path);
+
+    return 0;
+#else
+    if(*capacity < MAXPATHLEN)
+        return MAXPATHLEN;
+
+    int length;
+
+    if((length = readlink("/proc/curproc/file", path, 1024)) < 0) {
+        *capacity = 0;
+        return -1;
+    }
+    *capacity = length;
+
+#endif
+    return 0;
+}
+#endif // BSD
+

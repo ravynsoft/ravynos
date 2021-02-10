@@ -32,7 +32,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #include <stdio.h>
 
 typedef void *NSModuleHandle;
+#if !defined(OBJC_EXPORT) && defined(OBJC_PUBLIC)
 #define OBJC_EXPORT OBJC_PUBLIC
+#endif
 OBJC_EXPORT NSModuleHandle NSLoadModule(const char *path, NSError **error);
 OBJC_EXPORT BOOL NSUnloadModule(NSModuleHandle handle);
 OBJC_EXPORT const char *NSLastModuleError(void);
@@ -48,11 +50,13 @@ OBJC_EXPORT void *NSSymbolInModule(NSModuleHandle handle, const char *symbol);
 #include <unistd.h>
 #endif
 
-//#import <objc/dyld.h>
+#ifndef GCC_RUNTIME_3
+#import <objc/dyld.h>
+#endif
 
 #if defined(GCC_RUNTIME_3) || defined(APPLE_RUNTIME_4)
 
-#if defined(LINUX)
+#if defined(LINUX) || defined(FREEBSD)
 
 #include <sys/stat.h>
 
@@ -69,7 +73,15 @@ static inline unsigned int processMaps(char *maps, const char **soNames)
             eol = eod;
         }
         *eol = 0;
+#if defined(LINUX)
         char *name = strrchr(cur, ' ');
+#else
+	char *sp1 = strrchr(cur, ' ');
+	*sp1 = 0;
+	char *sp2 = strrchr(cur, ' ');
+	*sp2 = 0;
+	char *name = strrchr(cur, ' ');
+#endif
         if (name) {
             name++;
         } else {
@@ -88,6 +100,9 @@ static inline unsigned int processMaps(char *maps, const char **soNames)
         }
         if (!soNames) {
             *eol = '\n';
+#if defined(FREEBSD)
+	    *sp1 = *sp2 = ' ';
+#endif
         }
         cur = eol + 1;
     } while (cur < eod);
@@ -98,7 +113,11 @@ static inline unsigned int processMaps(char *maps, const char **soNames)
 static const char **objc_copyImageNames(unsigned int *count)
 {
     *count = 0;
+#if defined(LINUX)
     FILE *f = fopen("/proc/self/maps", "r");
+#else
+    FILE *f = fopen("/proc/curproc/map", "r");
+#endif
     if (f) {
 #define SLICE_LENGTH 0xFFFE
         long length = 0;
@@ -133,7 +152,7 @@ static const char **objc_copyImageNames(unsigned int *count)
     return NULL;
 }
 
-#endif //LINUX
+#endif //LINUX || FREEBSD
 #endif //GCC_RUNTIME_3 || APPLE_RUNTIME_4
 
 #ifdef WIN32

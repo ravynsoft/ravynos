@@ -23,15 +23,18 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 // NSZone functions implemented in platform subproject
 
 void NSIncrementExtraRefCount(id object) {
-    objc_retain_fast_np(object);
+//    objc_retain_fast_np(object);
+    object_incrementExternalRefCount(object);
 }
 
 BOOL NSDecrementExtraRefCountWasZero(id object) {
-    return objc_release_fast_no_destroy_np(object);
+//    return objc_release_fast_no_destroy_np(object);
+    return object_decrementExternalRefCount(object);
 }
 
 NSUInteger NSExtraRefCount(id object) {
-    return object_getRetainCount(object);
+//    return object_getRetainCount(object);
+    return object_externalRefCount(object);
 }
 
 BOOL NSShouldRetainWithZone(id object,NSZone *zone) {

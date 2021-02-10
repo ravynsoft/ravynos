@@ -63,11 +63,11 @@ SRCS= \
 ./NSHashTable.m \
 ./NSDirectoryEnumerator.m \
 ./NSProcessInfo.m \
-./NSData/NSData_concrete.m \
 ./NSData/NSData.m \
 ./NSData/NSData_mapped.m \
-./NSData/NSMutableData_concrete.m \
+./NSData/NSData_concrete.m \
 ./NSData/NSMutableData.m \
+./NSData/NSMutableData_concrete.m \
 ./NSUnarchiver.m \
 ./NSURL/NSURLCredential.m \
 ./NSURL/NSHTTPURLResponse.m \
@@ -668,12 +668,12 @@ INCS= \
 
 RESOURCES=Info.plist English.lproj
 CFLAGS+= -I${.CURDIR}/Headers \
-	 -I${.CURDIR}/.. -I${.CURDIR}/../libobjc2 \
-	 -fblocks \
+	 -I${.CURDIR}/.. -I${BUILDROOT}/usr/include \
+	 -O0 -g \
 	 -Wl,--no-as-needed \
 	 -DBSD -DFREEBSD \
-	 -DPLATFORM_IS_POSIX \
-	 -DPLATFORM_USES_BSD_SOCKETS -fobjc-runtime=gnustep-2.0
+	 -DPLATFORM_IS_POSIX -DGCC_RUNTIME_3 \
+	 -DPLATFORM_USES_BSD_SOCKETS -fobjc-runtime=gcc
 LDFLAGS+= -L${BUILDROOT}/usr/lib -L/usr/lib -L/lib -lobjc -lpthread -lm
 
 build: marshallheaders all

@@ -239,6 +239,7 @@ static const size_t weak_mask = ((size_t)1)<<((sizeof(size_t)*8)-refcount_shift)
  */
 static const size_t refcount_mask = ~weak_mask;
 
+#define object_externalRefCount(value) object_getRetainCount(value)
 extern "C" OBJC_PUBLIC size_t object_getRetainCount_np(id obj)
 {
 	uintptr_t *refCount = ((uintptr_t*)obj) - 1;
@@ -319,6 +320,18 @@ static inline id retain(id obj)
 	return [obj retain];
 }
 
+extern "C" OBJC_PUBLIC void object_incrementExternalRefCount(id value)
+{
+//	retain(value);
+}
+
+
+extern "C" OBJC_PUBLIC BOOL object_decrementExternalRefCount(id value)
+{
+	return objc_release_fast_no_destroy_np(value);
+}
+
+#define objc_DecrementExtraRefCountWasZero(object) objc_release_fast_no_destroy_np(object)
 extern "C" OBJC_PUBLIC BOOL objc_release_fast_no_destroy_np(id obj)
 {
 	uintptr_t *refCount = ((uintptr_t*)obj) - 1;
@@ -413,6 +426,11 @@ static inline void initAutorelease(void)
 	}
 }
 
+void objc_autoreleasePoolAdd(struct arc_autorelease_pool *pool, id object)
+{
+	fprintf(stderr, "autoreleasePoolAdd %p %d\n", pool, object);
+}
+
 static inline id autorelease(id obj)
 {
 	//fprintf(stderr, "Autoreleasing %p\n", obj);
@@ -443,7 +461,8 @@ static inline id autorelease(id obj)
 		}
 		return obj;
 	}
-	return [obj autorelease];
+	//return [obj autorelease];
+	return obj;
 }
 
 extern "C" OBJC_PUBLIC unsigned long objc_arc_autorelease_count_np(void)
