@@ -23,6 +23,9 @@ tar xfv xubuntu-icon-theme_16.04.2_all.deb
 tar xfv data.tar.xz
 mkdir -p "${uzip}"/usr/local/share/icons/
 mv ./usr/share/icons/elementary-xfce "${uzip}"/usr/local/share/icons/
+mv ./usr/share/doc/xubuntu-icon-theme/copyright "${uzip}"/usr/local/share/icons/elementary-xfce/
+sed -i -e 's|usr/share|usr/local/share|g' "${uzip}"/usr/local/share/icons/elementary-xfce/copyright
+rm "${uzip}"/usr/local/share/icons/elementary-xfce/copyright-e
 cd -
 
 # Cursor theme with HiDPi Support, sizes: 22 24 28 32 40 48 56 64 72 80 88 96
