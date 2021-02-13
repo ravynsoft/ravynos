@@ -58,7 +58,7 @@ load_acpi_start()
 	sysfam=$(kenv smbios.system.family)
 	load_acpi_video=1
 	case ${sysfam} in
-	*ThinkPad*T450*)
+	*ThinkPad*T450*|*ThinkPad*x260*|*ThinkPad*x230*)
 		# The Fn keys of the ThinkPad T450 for controlling the
 		# brightness will not work if the acpi_video(4) module
 		# is loaded.
