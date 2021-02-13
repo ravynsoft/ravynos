@@ -49,4 +49,7 @@ id NSAutorelease(id object){
    return nil;
 }
 
+// indicate this class is ARC compatible
+-(void)_ARCCompatibleAutoreleasePool {}
+
 @end

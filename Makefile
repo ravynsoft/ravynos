@@ -62,7 +62,7 @@ libobjc2: .PHONY
 	mkdir -p ${MAKEOBJDIRPREFIX}/libobjc2
 	cd ${MAKEOBJDIRPREFIX}/libobjc2; cmake \
 		-DCMAKE_C_FLAGS="-DBSD -DFREEBSD" \
-		-DCMAKE_BUILD_TYPE=Release \
+		-DCMAKE_BUILD_TYPE=Debug \
 		-DCMAKE_INSTALL_PREFIX=/usr \
 		-DOLDABI_COMPAT=true -DLEGACY_COMPAT=true \
 		${TOPDIR}/libobjc2

@@ -322,7 +322,7 @@ static inline id retain(id obj)
 
 extern "C" OBJC_PUBLIC void object_incrementExternalRefCount(id value)
 {
-//	retain(value);
+	//fprintf(stderr,"object_incrementExternalRefCount %p\n",value);
 }
 
 
@@ -428,7 +428,7 @@ static inline void initAutorelease(void)
 
 void objc_autoreleasePoolAdd(struct arc_autorelease_pool *pool, id object)
 {
-	fprintf(stderr, "autoreleasePoolAdd %p %d\n", pool, object);
+	//fprintf(stderr, "autoreleasePoolAdd %p %d\n", pool, object);
 }
 
 static inline id autorelease(id obj)

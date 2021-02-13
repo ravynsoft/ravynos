@@ -670,7 +670,6 @@ RESOURCES=Info.plist English.lproj
 CFLAGS+= -I${.CURDIR}/Headers \
 	 -I${.CURDIR}/.. -I${BUILDROOT}/usr/include \
 	 -O0 -g \
-	 -Wl,--no-as-needed \
 	 -DBSD -DFREEBSD \
 	 -DPLATFORM_IS_POSIX -DGCC_RUNTIME_3 \
 	 -DPLATFORM_USES_BSD_SOCKETS -fobjc-runtime=gcc

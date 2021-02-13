@@ -14,6 +14,7 @@ INCS= \
 RESOURCES=Info.plist English.lproj
 CFLAGS+= -fobjc-runtime=gcc \
 	 -I.. -I../libobjc2 \
+	 -O0 -g \
 	 -F${BUILDROOT}/System/Library/Frameworks -framework Foundation
 
 .include <he.framework.mk>

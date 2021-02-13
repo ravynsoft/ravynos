@@ -60,19 +60,13 @@ id NSAllocateObject(Class class, NSUInteger extraBytes, NSZone *zone)
     result = NSZoneCalloc(zone, 1, class_getInstanceSize(class) + extraBytes);
 
     if (result) {
-#if defined(GCC_RUNTIME_3)
-        object_setClass(result, class);
-        // TODO As of gcc 4.6.2 the GCC runtime does not have support for C++ constructor calling.
-#elif defined(APPLE_RUNTIME_4)
-        objc_constructInstance(class, result);
-#else
-    object_setClass(result, class);
+	object_setClass(result, class);
 
-//        if (!cxxConstruct(result->isa, result)) {
+// constructor is called automatically by objc/runtime.c
+//        if (!call_cxx_construct_for_class(result->isa, result)) {
 //            NSZoneFree(zone, result);
 //            result = nil;
 //        }
-#endif
 
         if (__NSAllocateObjectHook) {
             __NSAllocateObjectHook(result);
@@ -85,15 +79,6 @@ id NSAllocateObject(Class class, NSUInteger extraBytes, NSZone *zone)
 
 void NSDeallocateObject(id object)
 {
-#if defined(GCC_RUNTIME_3)
-    // TODO As of gcc 4.6.2 the GCC runtime does not have support for C++ destructor calling.
-#elif defined(APPLE_RUNTIME_4)
-    objc_destructInstance(object);
-#else
-// object_dispose() calls this for us
-//    object_cxxDestruct(object, object->isa);
-#endif
-
 #if !defined(APPLE_RUNTIME_4)
     //delete associations
     objc_removeAssociatedObjects(object);

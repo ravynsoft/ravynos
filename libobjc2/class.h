@@ -425,6 +425,12 @@ static inline Class classForObject(id obj)
 			return SmallObjectClasses[(addr & OBJC_SMALL_OBJECT_MASK)];
 		}
 	}
+	// ugly ugly experimental hack
+	if((unsigned long long)obj->isa % 2 != 0) {
+		unsigned long long isa_addr = (unsigned long long)obj->isa;
+		++isa_addr;
+		obj->isa = (Class)isa_addr;
+	}
 	return obj->isa;
 }
 
