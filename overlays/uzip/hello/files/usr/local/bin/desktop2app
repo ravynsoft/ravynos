@@ -228,20 +228,12 @@ handled_desktop_files_in_system = []
 
 
 def update_menu():
-    # FIXME: Do not hardcode the following; use the 'launch' command instead
-    # Blocked by https://github.com/helloSystem/launch/issues/4
-    # The ideal solution will be to remove the need for restarting the menu
-    # altogether, e.g., by 'pinging' the menu e.g., that there is a new app... e.g., using SIGUSR1
+    # Update the System menu by sending SIGUSR1 to the menu
+    # TODO: Remove the need for this altogether; https://github.com/helloSystem/Menu/issues/15
     try:
-        retcode = subprocess.call(["killall", "menubar"])  # Not detached for retcode
+        retcode = subprocess.call(["killall", "-SIGUSR1", "menubar"])  # Not detached for retcode
     except:
         pass
-    if retcode == 0:
-        try:
-            subprocess.Popen(["menubar"], start_new_session=True, stdin=None, stdout=None)  # Detached
-        except:
-            pass
-
 
 if __name__ == "__main__":
 
