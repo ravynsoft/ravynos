@@ -212,7 +212,6 @@ def directory_changed(path):
                 time.sleep(1)
                 print("Creating wrapper for' %s'" % (df))
                 d2a(df, "/Applications/")
-                update_menu()
                 handled_desktop_files_in_system.append(df)
 
 def get_desktop_files_in_system():
@@ -225,15 +224,6 @@ def get_desktop_files_in_system():
     return(all_desktopfiles)
 
 handled_desktop_files_in_system = []
-
-
-def update_menu():
-    # Update the System menu by sending SIGUSR1 to the menu
-    # TODO: Remove the need for this altogether; https://github.com/helloSystem/Menu/issues/15
-    try:
-        retcode = subprocess.call(["killall", "-SIGUSR1", "menubar"])  # Not detached for retcode
-    except:
-        pass
 
 if __name__ == "__main__":
 
@@ -295,6 +285,3 @@ if __name__ == "__main__":
 
     if succeeded == False:
         exit(1)
-
-    update_menu()
-
