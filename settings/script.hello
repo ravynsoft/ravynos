@@ -148,6 +148,12 @@ rsvg-convert -a -w 256 -h 256 "qtpad/Resources/Sticky Notes.svg" -o "qtpad/Resou
 mv qtpad/ "Sticky Notes.app"
 mv "Sticky Notes.app" "${uzip}"/Applications/Utilities
 
+# QHexEdit
+wget https://github.com/helloSystem/QHexEdit/releases/download/continuous/QHexEdit_FreeBSD.zip
+unzip QHexEdit_FreeBSD.zip
+mv QHexEdit.app "${uzip}/Applications/Developer/"
+rm -f QHexEdit_FreeBSD.zip
+
 # Fonts
 wget https://github.com/ArtifexSoftware/urw-base35-fonts/archive/20200910.zip
 unzip 20200910.zip
