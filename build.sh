@@ -166,16 +166,15 @@ base()
 
 packages()
 {
-  # We want to try latest rather than quarterly packages for FreeBSD 13
-  # Since it that version is bleeding edge anyway, why not also use bleeding edge packages
   # NOTE: Also adjust the Nvidia drivers accordingly below. TODO: Use one set of variables
-  if [ $MAJOR -lt 13 ] ; then
-    # echo "Major version < 13, hence using quarterly packages"
-    echo "Major version < 13, hence using release_2 packages since quarterly can be missing packages from one day to the next"
+  if [ $MAJOR -eq 12 ] ; then
+    echo "Major version 12, hence using release_2 packages since quarterly can be missing packages from one day to the next"
     sed -i -e 's|quarterly|release_2|g' "${uzip}/etc/pkg/FreeBSD.conf"
     rm -f "${uzip}/etc/pkg/FreeBSD.conf-e"
+  elif [ $MAJOR -eq 13 ] ; then
+    echo "Major version 13, hence using quarterly packages since release_2 will probably not have compatible Intel driver"
   else
-    echo "Major version >= 13, hence changing /etc/pkg/FreeBSD.conf to use latest packages"
+    echo "Other major version, hence changing /etc/pkg/FreeBSD.conf to use latest packages"
     sed -i -e 's|quarterly|latest|g' "${uzip}/etc/pkg/FreeBSD.conf"
     rm -f "${uzip}/etc/pkg/FreeBSD.conf-e"
   fi
@@ -290,7 +289,7 @@ initgfx()
 {
   if [ "${arch}" != "i386" ] ; then
     MAJOR=$(uname -r | cut -d "." -f 1)
-    if [ $MAJOR -lt 13 ] ; then
+    if [ $MAJOR -lt 14 ] ; then
       PKGS="quarterly"
     else
       PKGS="latest"
