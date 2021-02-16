@@ -4,6 +4,7 @@ task:
     memory: 8G
     matrix:
       - image: freebsd-12-1-release-amd64
+      - image: freebsd-12-2-release-amd64
       # image: freebsd-13-0-current-amd64-v20201112 # Disabled, HIDPI broken and iichid trackpad broken on Acer
 
   env:
