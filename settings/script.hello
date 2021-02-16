@@ -303,3 +303,17 @@ rm -rf "${uzip}/usr/local/share/fonts/TTF"/luxi*
 rm -rf "${uzip}/usr/local/share/fonts/Liberation"
 
 chroot "${uzip}" update-desktop-database # Needed for mountarchive to be associated with the MIME types it can handle; TODO: Get rid of XDG
+
+# Temporary workaround for https://github.com/helloSystem/ISO/issues/14
+mv "${uzip}/usr/sbin/pkg" "${uzip}/usr/sbin/pkg.real"
+cat > "${uzip}/usr/sbin/pkg" <<\EOF
+#!/bin/sh
+# Temporary workaround for https://github.com/helloSystem/ISO/issues/14
+case "$@" in
+  *freebsd-update*) echo "pkg freebsd-update is not yet supported in helloSystem" ;;
+  *update*) echo "pkg update is not yet supported in helloSystem" ;;
+  *upgrade*) echo "pkg update is not yet supported in helloSystem" ;;
+  *)         pkg.real "$@" ;;
+esac
+EOF
+chmod +x "${uzip}/usr/sbin/pkg"
