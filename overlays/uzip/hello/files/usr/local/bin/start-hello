@@ -247,10 +247,6 @@ gmenudbusmenuproxy &
 # Desktop
 /System/Filer.AppDir/AppRun --desktop &
 
-# Dock
-# /System/Dock.AppDir/AppRun & # FIXME: Reinstate once it works like this
-/System/Dock.AppDir/usr/bin/cyber-dock
-
 # System-wide autostart
 for APP in /Applications/Autostart/* ; do
   echo "Autostarting ${APP}"
@@ -261,6 +257,10 @@ done
 #   echo "Autostarting ${APP}"
 #   launch "${APP}" &
 # done
+
+# Dock
+# /System/Dock.AppDir/AppRun & # FIXME: Reinstate once it works like this
+/System/Dock.AppDir/usr/bin/cyber-dock
 
 # Here we must start something that never exits;
 # the session ends when that thing exits
