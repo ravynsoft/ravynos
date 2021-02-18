@@ -105,9 +105,11 @@ fi
  y=$(sysctl -n hw.physmem)
  echo "Required memory ${x} for memdisk"
  echo "Detected memory ${y} for memdisk"
- if [ $x -gt $y ] ; then 
-  echo "Live system requires 4GB of memory for memdisk, and operation!"
-  echo "Type exit, and press enter after entering the rescue shell to power off."
+ if [ $x -gt $y ] ; then
+  # Will >/dev/tty make the message show even when boot_mute is used?
+  # https://github.com/helloSystem/ISO/issues/130#issuecomment-781486502
+  echo "Live system requires 4GB of memory for memdisk, and operation!" >/dev/tty
+  echo "Type exit, and press enter after entering the rescue shell to power off." >/dev/tty
   exit 1
  fi
 
