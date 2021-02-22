@@ -104,7 +104,8 @@ fusefs-ntfs
 # fusefs-ext4fuse # TODO: Enable once available in quarterly packages
 fusefs-hfsfuse
 fusefs-lkl
-fusefs-simple-mtpfs
+# fusefs-simple-mtpfs # Does not work properly on 12.1 at least, using android-file-transfer-qt5 instead
+android-file-transfer-qt5 # Needed for Android File Transfer (MTP) utility
 # Scanning application
 # skanlite # https://github.com/helloSystem/ISO/issues/65
 # Needed by many helloSystem utilities
