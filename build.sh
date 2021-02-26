@@ -183,9 +183,12 @@ packages()
   mount_nullfs ${packages} ${uzip}/var/cache/pkg
   mount -t devfs devfs ${uzip}/dev
   # FIXME: In the following line, the hardcoded "i386" needs to be replaced by "${arch}" - how?
-  cat "${cwd}/settings/packages.common-${MAJOR}" | sed '/^#/d' | sed '/\!i386/d' | xargs /usr/local/sbin/pkg-static -c "${uzip}" install -y
-  cat "${cwd}/settings/packages.${desktop}" | sed '/^#/d' | sed '/\!i386/d' | xargs /usr/local/sbin/pkg-static -c "${uzip}" install -y
-  
+  for p in common-${MAJOR} ${desktop}; do
+    sed '/^#/d;/\!i386/d;/^https/d' "${cwd}/settings/packages.$p" | \
+      xargs /usr/local/sbin/pkg-static -c "${uzip}" install -y
+    sed -ne "/^https/s/%%ARCH%%/${arch}/p" "${cwd}/settings/packages.$p" | \
+      xargs /usr/local/sbin/pkg-static -c "${uzip}" add
+  done
   # Install the packages we have generated in pkg() that are listed in transient-packages-list
   ls -lh "${packages}/transient/"
   while read -r p; do
@@ -196,12 +199,6 @@ packages()
     /usr/local/sbin/pkg-static -r ${uzip} add "${packages}/transient/${p}" # pkg-static add has no -y
   done <"${packages}/transient/transient-packages-list"
   
-  # Workaround for kernel-related packages being broken in the default package repository
-  # as long as the previous dot release is still supported; FIXME
-  # https://forums.freebsd.org/threads/i915kms-package-breaks-on-12-2-release-workaround-build-from-ports.77501/
-  # FIXME: Add https://darkness-pi.monwarez.ovh/posts/synth-repository/ properly. How?
-  # IGNORE_OSVERSION=yes /usr/local/sbin/pkg-static -c "${uzip}" add https://darkness-pi.monwarez.ovh/amd64/All/drm-fbsd12.0-kmod-4.16.g20200221.txz
-  # For now we are just going back to using 12.1 rather than 12.2
   /usr/local/sbin/pkg-static -c ${uzip} info > "${cdroot}/data/system.uzip.manifest"
   cp "${cdroot}/data/system.uzip.manifest" "${isopath}.manifest"
   rm ${uzip}/etc/resolv.conf
