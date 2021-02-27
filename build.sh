@@ -184,10 +184,17 @@ packages()
   mount -t devfs devfs ${uzip}/dev
   # FIXME: In the following line, the hardcoded "i386" needs to be replaced by "${arch}" - how?
   for p in common-${MAJOR} ${desktop}; do
-    sed '/^#/d;/\!i386/d;/^https/d' "${cwd}/settings/packages.$p" | \
+    sed '/^#/d;/\!i386/d;/^cirrus:/d' "${cwd}/settings/packages.$p" | \
       xargs /usr/local/sbin/pkg-static -c "${uzip}" install -y
-    sed -ne "/^https/s/%%ARCH%%/${arch}/p" "${cwd}/settings/packages.$p" | \
-      xargs /usr/local/sbin/pkg-static -c "${uzip}" add
+    pkg_cachedir=/var/cache/pkg
+    mkdir -p ${uzip}${pkg_cachedir}/furybsd-cirrus
+    for url in $(sed -ne "s,^cirrus:,https://api.cirrus-ci.com/v1/artifact/,;s,%%ARCH%%,$arch,;s,%%VER%%,$VER,p" "${cwd}/settings/packages.$p"); do
+      pkgfile=${url##*/}
+      if [ ! -e ${uzip}${pkg_cachedir}/furybsd-cirrus/${pkgfile} ]; then
+        fetch -o ${uzip}${pkg_cachedir}/furybsd-cirrus/ $url
+      fi
+      /usr/local/sbin/pkg-static -c "${uzip}" add ${pkg_cachedir}/furybsd-cirrus/${pkgfile}
+    done
   done
   # Install the packages we have generated in pkg() that are listed in transient-packages-list
   ls -lh "${packages}/transient/"

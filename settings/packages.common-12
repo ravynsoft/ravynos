@@ -19,6 +19,7 @@ libva-intel-driver
 # nvidia-driver # !i386 # Is now handled in build.sh initgfx()
 mesa-libs
 mesa-dri
+gpu-firmware-kmod
 open-vm-tools
 virtualbox-ose-additions
 xauth
@@ -58,6 +59,4 @@ b43-fwcutter
 dsbdriverd
 # Control screen brightness on some Intel-based machines including MacBook Pro
 intel-backlight
-https://www.bayofrum.net/~crees/pkg/hello-12.2%%ARCH%%-drm/gpu-firmware-kmod-g20201213.txz
-https://www.bayofrum.net/~crees/pkg/hello-12.2%%ARCH%%-drm/drm-fbsd12.0-kmod-4.16.g20201016_1.txz
-https://www.bayofrum.net/~crees/pkg/hello-12.2%%ARCH%%-drm/drm-kmod-g20190710_1.txz
+cirrus:github/crees/drm-kmod-FreeBSD-12/main/binaries/drm-fbsd12.0-kmod-%%VER%%%%ARCH%%.txz
