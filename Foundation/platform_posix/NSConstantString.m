@@ -12,15 +12,17 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 @end
 
 @interface NSConstantString : NSString {
-   char *_bytes;
-   unsigned _length;
+	unsigned flags;
+	unsigned _length;
+	unsigned size;
+	unsigned hash;
+	const char *_bytes;
 }
 @end
 
 @implementation NSConstantString 
 
 @end
-
 #ifdef __clang__
 #ifndef __APPLE__
 @interface NXConstantString : NSConstantString
@@ -32,3 +34,4 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 @end
 #endif
 #endif
+

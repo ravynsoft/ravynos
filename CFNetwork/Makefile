@@ -1,3 +1,5 @@
+.include <internal/framework.common.mk>
+
 FRAMEWORK=CFNetwork
 SRCS= \
 	CFHost.m \
@@ -12,9 +14,7 @@ INCS= \
 	CFSocketStream.h
 
 RESOURCES=Info.plist English.lproj
-CFLAGS+= -fobjc-runtime=gcc \
-	 -I.. -I../libobjc2 \
-	 -O0 -g \
+CFLAGS+= ${FMWK_CFLAGS} -I.. -I../libobjc2 \
 	 -F${BUILDROOT}/System/Library/Frameworks -framework Foundation
 
 .include <he.framework.mk>

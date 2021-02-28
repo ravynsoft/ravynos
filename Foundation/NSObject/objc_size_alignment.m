@@ -198,7 +198,7 @@ PyObjC_EmbeddedAlignOfType (const char*  type)
 
 	size_t align = objc_ext_alignof_type(type);
 
-#if (defined(__i386__) || defined(__x86_64__)) && !defined(LINUX)
+#if (defined(__i386__) || defined(__x86_64__)) && !(defined(LINUX) || defined(FREEBSD))
 	return align;
 
 #else

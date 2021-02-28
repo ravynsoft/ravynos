@@ -71,7 +71,7 @@ static IMP objc_msg_forward(id rcv, SEL message) {
 #endif
 
 +(void)initialize {
-#if 0
+#if 1
 #ifdef GCC_RUNTIME_3
     __objc_msg_forward2 = objc_msg_forward;
 #else
@@ -272,7 +272,7 @@ static IMP objc_msg_forward(id rcv, SEL message) {
     [self forwardInvocation:invocation];
     [invocation getReturnValue:&result];
 
-   // __builtin_return(result); Can we use __builtin_return like this? It still doesn't seem to work on float/doubles ?
+   /* __builtin_return(result); */ //Can we use __builtin_return like this? It still doesn't seem to work on float/doubles ?
     return result;
    }
 }

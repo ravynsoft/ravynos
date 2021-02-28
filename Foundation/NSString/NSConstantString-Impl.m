@@ -177,5 +177,3 @@ static inline NSUInteger lengthInUnicode(NSConstantString *self){
 }
 
 @end
-
-

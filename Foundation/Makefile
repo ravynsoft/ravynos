@@ -1,3 +1,5 @@
+.include <internal/framework.common.mk>
+
 FRAMEWORK=Foundation
 SRCS= \
 ./NSFormatter.m \
@@ -111,7 +113,6 @@ SRCS= \
 ./NSString/NSPathUtilities.m \
 ./NSString/NSString_nextstep.m \
 ./NSString/unibuffer.m \
-./NSString/NSDarwinString.m \
 ./NSString/NSString_win1252.m \
 ./NSString/NSString_nextstepCString.m \
 ./NSString/NSUnicodeCaseMapping.m \
@@ -466,7 +467,6 @@ INCS= \
 ./NSString/NSString_placeholder.h \
 ./NSString/NSStringUTF8.h \
 ./NSString/NSString_win1252.h \
-./NSString/NSDarwinString.h \
 ./NSString/unibuffer.h \
 ./NSString/NSString_nextstep.h \
 ./NSString/NSPathUtilities.h \
@@ -667,13 +667,9 @@ INCS= \
 ./NSSpellServer.h
 
 RESOURCES=Info.plist English.lproj
-CFLAGS+= -I${.CURDIR}/Headers \
-	 -I${.CURDIR}/.. -I${BUILDROOT}/usr/include \
-	 -O0 -g \
-	 -DBSD -DFREEBSD \
-	 -DPLATFORM_IS_POSIX -DGCC_RUNTIME_3 \
-	 -DPLATFORM_USES_BSD_SOCKETS -fobjc-runtime=gcc
-LDFLAGS+= -L${BUILDROOT}/usr/lib -L/usr/lib -L/lib -lobjc -lpthread -lm
+CFLAGS+= ${FMWK_CFLAGS} -I${.CURDIR}/Headers \
+	 -I${.CURDIR}/.. -I${BUILDROOT}/usr/include 
+LDFLAGS+= ${FMWK_LDFLAGS}
 
 build: marshallheaders all
 
