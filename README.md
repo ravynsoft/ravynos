@@ -26,7 +26,7 @@ root@FreeBSD:/ # curl -L "https://github.com/probonopd/furybsd-livecd/releases/d
 
 There is no password for `liveuser`. The `liveuser` account is removed upon install.  There is also no root password until it is set in the installer.
 
-# Acknowledgements
+## Acknowledgements
 
 Please see https://hellosystem.github.io/docs/developer/acknowledgements.
 These builds would not be possible without the infrastructure generously provided by [Cirrus CI](https://cirrus-ci.com/).
