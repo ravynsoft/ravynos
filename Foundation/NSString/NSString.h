@@ -233,6 +233,9 @@ FOUNDATION_EXPORT const NSUInteger NSMaximumStringLength;
 }
 @end
 
+@interface NSConstantString_tiny : NSString
+@end
+
 // only needed for Darwin ppc
 //extern struct objc_class _NSConstantStringClassReference;
 

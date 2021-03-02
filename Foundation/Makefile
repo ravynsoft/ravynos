@@ -120,6 +120,7 @@ SRCS= \
 ./NSString/NSStringSymbol.m \
 ./NSString/NSStringFormatter.m \
 ./NSString/NSConstantString-Impl.m \
+./NSString/NSConstantString_tiny-Impl.m \
 ./NSString/NSMutableString_unicodePtr.m \
 ./NSString/NSString_isoLatin1.m \
 ./NSString/NSString_macOSRoman.m \

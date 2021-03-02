@@ -38,6 +38,12 @@ FOUNDATION_EXPORT void __attribute__ ((constructor)) libmain(void)
         fprintf(stderr, "Error during Cocotron initialization: Unable to read argument list of the process");
         abort();
     }
+
+    if(objc_registerSmallObjectClass_np(objc_getClass("NSConstantString_tiny"),4) == 0) {
+        fprintf(stderr, "Error during initialization: unable to register tiny string class");
+	abort();
+    }
+
     
     int allocated = 5;
     const char **argv = (const char**)calloc(allocated,sizeof(char*));
