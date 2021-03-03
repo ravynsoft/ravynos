@@ -10,17 +10,16 @@ xf86-input-mouse
 xf86-input-vmmouse
 xf86-video-ati
 xf86-video-cirrus
+xf86-video-intel
 xf86-video-scfb
 xf86-video-vesa
 xf86-video-vmware
 xf86-video-qxl # !i386
-drm-kmod
-drm-legacy-kmod
 libva-intel-driver
-drm-kmod
 # nvidia-driver # !i386 # Is now handled in build.sh initgfx()
 mesa-libs
 mesa-dri
+gpu-firmware-kmod
 open-vm-tools
 virtualbox-ose-additions
 xauth
@@ -60,3 +59,4 @@ b43-fwcutter
 dsbdriverd
 # Control screen brightness on some Intel-based machines including MacBook Pro
 intel-backlight
+cirrus:github/crees/drm-kmod-FreeBSD-12/main/binaries/drm-fbsd12.0-kmod-%%VER%%%%ARCH%%.txz
