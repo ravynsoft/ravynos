@@ -61,7 +61,7 @@ mkfiles:
 libobjc2: .PHONY
 	mkdir -p ${MAKEOBJDIRPREFIX}/libobjc2
 	cd ${MAKEOBJDIRPREFIX}/libobjc2; cmake \
-		-DCMAKE_C_FLAGS="-DBSD -DFREEBSD" \
+		-DCMAKE_C_FLAGS="-DBSD -DFREEBSD -D__HELIUM__" \
 		-DCMAKE_BUILD_TYPE=Debug \
 		-DCMAKE_INSTALL_PREFIX=/usr \
 		-DOLDABI_COMPAT=false -DLEGACY_COMPAT=false \

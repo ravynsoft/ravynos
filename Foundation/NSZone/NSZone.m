@@ -23,17 +23,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 // NSZone functions implemented in platform subproject
 
 void NSIncrementExtraRefCount(id object) {
-//    objc_retain_fast_np(object);
     object_incrementExternalRefCount(object);
 }
 
 BOOL NSDecrementExtraRefCountWasZero(id object) {
-//    return objc_release_fast_no_destroy_np(object);
-    return object_decrementExternalRefCount(object);
+    return objc_release_fast_no_destroy_np(object);
 }
 
 NSUInteger NSExtraRefCount(id object) {
-//    return object_getRetainCount(object);
     return object_externalRefCount(object);
 }
 
@@ -57,6 +54,21 @@ id NSAllocateObject(Class class, NSUInteger extraBytes, NSZone *zone)
         zone = NSDefaultMallocZone();
     }
 
+#if defined(__HELIUM__)
+    int size = class_getInstanceSize(class) + extraBytes + sizeof(uintptr_t);
+    result = NSZoneMalloc(zone, size);
+    if(result != nil) {
+	memset(result, 0, size);
+	*(uintptr_t*)result = -1;
+	result = (id)((uintptr_t)result+sizeof(uintptr_t));
+	object_setClass(result, class);
+
+        if (__NSAllocateObjectHook) {
+            __NSAllocateObjectHook(result);
+        }
+    }
+
+#else
     result = NSZoneCalloc(zone, 1, class_getInstanceSize(class) + extraBytes);
 
     if (result) {
@@ -67,11 +79,11 @@ id NSAllocateObject(Class class, NSUInteger extraBytes, NSZone *zone)
 //            NSZoneFree(zone, result);
 //            result = nil;
 //        }
-
         if (__NSAllocateObjectHook) {
             __NSAllocateObjectHook(result);
         }
     }
+#endif
     
     return result;
 }
@@ -97,6 +109,9 @@ void NSDeallocateObject(id object)
         object->isa = 0;
 #endif
 
+#if defined(__HELIUM__)
+	object = (id)((uintptr_t)object-sizeof(uintptr_t));
+#endif
         NSZoneFree(zone, object);
     }
 }

@@ -322,13 +322,15 @@ static inline id retain(id obj)
 
 extern "C" OBJC_PUBLIC void object_incrementExternalRefCount(id value)
 {
-	//fprintf(stderr,"object_incrementExternalRefCount %p\n",value);
+	objc_retain_fast_np(value);
+//	fprintf(stderr,"object_incrementExternalRefCount %p = %d\n",value,object_getRetainCount_np(value));
 }
 
 
-extern "C" OBJC_PUBLIC BOOL object_decrementExternalRefCount(id value)
+extern "C" OBJC_PUBLIC void object_decrementExternalRefCount(id value)
 {
-	return objc_release_fast_no_destroy_np(value);
+	objc_release_fast_np(value);
+//	fprintf(stderr,"object_decrementExternalRefCount %p = %d\n",value,object_getRetainCount_np(value));
 }
 
 #define objc_DecrementExtraRefCountWasZero(object) objc_release_fast_no_destroy_np(object)

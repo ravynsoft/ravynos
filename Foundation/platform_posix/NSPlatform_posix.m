@@ -158,7 +158,7 @@ static struct passwd *pwent = NULL;
 
     objects[count]=[NSString stringWithCString:keyValue+i+1];
     keys[count]=[NSString stringWithCString:keyValue];
-    
+
     [self checkEnvironmentKey:keys[count] value:objects[count]];
    }
 

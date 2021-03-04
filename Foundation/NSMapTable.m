@@ -324,7 +324,6 @@ void NSMapInsert(NSMapTable *table,const void *key,const void *value){
 
      return;
     }
-
    zone=NSZoneFromPointer(table);
 
    if(table->count>=table->nBuckets){
