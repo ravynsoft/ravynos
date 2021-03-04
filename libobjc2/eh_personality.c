@@ -746,3 +746,25 @@ void objc_exception_rethrow(struct _Unwind_Exception *e)
 	_Unwind_Resume_or_Rethrow(e);
 	abort();
 }
+
+#if defined(__HELIUM__)
+// exception handling hooks needed for cocotron foundation
+// FIXME: make these do stuff
+
+typedef struct NSExceptionFrame {
+	/*jmp_buf*/ long state;
+	struct NSExceptionFrame *parent;
+	/*NSException*/ void *exception;
+} NSExceptionFrame;
+
+OBJC_PUBLIC void __NSPushExceptionFrame(NSExceptionFrame *frame) {
+	printf("NSPushExceptionFrame\n");
+}
+
+OBJC_PUBLIC void __NSPopExceptionFrame(NSExceptionFrame *frame) {
+	printf("NSPopExceptionFrame\n");
+}
+
+#endif
+
+
