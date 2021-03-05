@@ -52,5 +52,5 @@ task:
     - case "$CIRRUS_BRANCH" in *pull/*) echo skipping since PR ;; * ) wget https://github.com/tcnksm/ghr/files/5247714/ghr.zip ; unzip ghr.zip ; ./ghr -prerelease -delete -t "${GITHUB_TOKEN}" -u "${CIRRUS_REPO_OWNER}" -r "${CIRRUS_REPO_NAME}" -c "${CIRRUS_CHANGE_IN_REPO}" "${CIRRUS_BRANCH}"-"${VER}" "${CIRRUS_WORKING_DIR}"/artifacts ; esac
 
   FreeNode_script:
-    echo "TODO: Fix IRC bot script"
+    - echo "TODO: Fix IRC bot script"
     # case "$CIRRUS_BRANCH" in *pull/*) echo skipping since PR ;; * ) echo -e 'USER helloSystemBot guest tolmoon tolsun\nNICK helloSystemBot\nJOIN #helloSystem\nPRIVMSG #helloSystem :A new build is now available in the Create Live Media tool, happy testing!\nQUIT\n' | nc irc.freenode.net 6667 >/dev/null ; esac
