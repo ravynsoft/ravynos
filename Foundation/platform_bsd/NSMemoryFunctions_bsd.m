@@ -23,7 +23,7 @@
 #import <Foundation/Foundation.h>
 
 #include <unistd.h>
-#ifdef FREEBSD
+#ifdef __FreeBSD__
 #include <sys/sysctl.h>
 #include <vm/vm_param.h>
 #include <sys/vmmeter.h>
@@ -36,7 +36,7 @@ NSUInteger NSPageSize(void)
 
 NSUInteger NSRealMemoryAvailable(void) 
 {
-#ifdef FREEBSD
+#ifdef __FreeBSD__
    int mib[2];
    struct vmtotal vt;
    int len = sizeof(vt);

@@ -16,6 +16,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 -initWithTimeIntervalSinceReferenceDate:(NSTimeInterval)seconds {
    _timeIntervalSinceReferenceDate=seconds;
+
    return self;
 }
 
