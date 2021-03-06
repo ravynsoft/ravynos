@@ -34,7 +34,7 @@ freebsd: checkout ${TOPDIR}/freebsd-src/sys/${MACHINE}/compile/${BSDCONFIG}
 freebsd-noclean:
 	export MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX}; make -C ${TOPDIR}/freebsd-src -DNO_CLEAN buildkernel buildworld
 
-helium: extradirs mkfiles libobjc2 frameworksclean frameworks
+helium: extradirs mkfiles libobjc2 frameworksclean frameworks copyfiles
 
 # Update the build system with current source
 install: installworld installkernel installhelium
@@ -58,10 +58,13 @@ mkfiles:
 	mkdir -p ${BUILDROOT}/usr/share/mk
 	cp -fv ${TOPDIR}/mk/*.mk ${BUILDROOT}/usr/share/mk/
 
+copyfiles:
+	cp -fvR ${TOPDIR}/etc ${BUILDROOT}
+
 libobjc2: .PHONY
 	mkdir -p ${MAKEOBJDIRPREFIX}/libobjc2
 	cd ${MAKEOBJDIRPREFIX}/libobjc2; cmake \
-		-DCMAKE_C_FLAGS="-DBSD -DFREEBSD -D__HELIUM__" \
+		-DCMAKE_C_FLAGS="-DBSD -D__HELIUM__" \
 		-DCMAKE_BUILD_TYPE=Debug \
 		-DCMAKE_INSTALL_PREFIX=/usr \
 		-DOLDABI_COMPAT=false -DLEGACY_COMPAT=false \

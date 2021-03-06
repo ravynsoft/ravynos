@@ -12,7 +12,7 @@
 #endif
 #include <stdio.h>
 #include <string.h>
-#if defined(FREEBSD)
+#if defined(__FreeBSD__)
 #include <sys/sysctl.h>
 #include <sys/param.h>
 #endif
@@ -404,7 +404,7 @@ OBJC_PUBLIC void __objc_exec_class(struct objc_module_abi_8 *module)
 
 #ifdef BSD
 int _NSGetExecutablePath(char *path, uint32_t *capacity) {
-#if defined(FREEBSD)
+#if defined(__FreeBSD__)
     if(*capacity < MAXPATHLEN)
         return MAXPATHLEN;
 

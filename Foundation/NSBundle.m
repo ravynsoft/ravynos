@@ -56,7 +56,7 @@ OBJC_EXPORT void *NSSymbolInModule(NSModuleHandle handle, const char *symbol);
 
 #if defined(GCC_RUNTIME_3) || defined(APPLE_RUNTIME_4)
 
-#if defined(LINUX) || defined(FREEBSD)
+#if defined(LINUX) || defined(__FreeBSD__)
 
 #include <sys/stat.h>
 
@@ -105,7 +105,7 @@ static inline unsigned int processMaps(char *maps, const char **soNames)
         }
         if (!soNames) {
             *eol = '\n';
-#if defined(FREEBSD)
+#if defined(__FreeBSD__)
 	    *sp1 = *sp2 = ' ';
 #endif
         }
@@ -157,7 +157,7 @@ static const char **objc_copyImageNames(unsigned int *count)
     return NULL;
 }
 
-#endif //LINUX || FREEBSD
+#endif //LINUX || __FreeBSD__
 #endif //GCC_RUNTIME_3 || APPLE_RUNTIME_4
 
 #ifdef WIN32
