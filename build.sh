@@ -194,6 +194,7 @@ packages()
         fetch -o ${uzip}${pkg_cachedir}/furybsd-cirrus/ $url
       fi
       /usr/local/sbin/pkg-static -c "${uzip}" add ${pkg_cachedir}/furybsd-cirrus/${pkgfile}
+      /usr/local/sbin/pkg-static -c "${uzip}" lock -y $(/usr/local/sbin/pkg-static query -F ${uzip}${pkg_cachedir}/furybsd-cirrus/${pkgfile} %o)
     done
   done
   # Install the packages we have generated in pkg() that are listed in transient-packages-list
