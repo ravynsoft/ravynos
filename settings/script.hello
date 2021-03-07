@@ -217,7 +217,7 @@ IGNORE_OSVERSION=yes /usr/local/sbin/pkg-static -c "${uzip}" add "https://github
 
 # Remove pkg (it will be bootstrapped if needed)
 # chroot "${uzip}" sudo pkg remove -y -f pkg # Breaks furybsd-init-helper
-chroot "${uzip}" pkg lock hello # Prevent the hello package from being upgraded with an unrelated package of the same name
+chroot "${uzip}" pkg lock -y hello # Prevent the hello package from being upgraded with an unrelated package of the same name
 rm ${uzip}/etc/resolv.conf
 umount ${uzip}/var/cache/pkg
 umount ${uzip}/dev
