@@ -20,8 +20,8 @@ prep:
 
 ${TOPDIR}/freebsd-src/sys/${MACHINE}/compile/${BSDCONFIG}: ${TOPDIR}/freebsd-src/sys/${MACHINE}/conf/${BSDCONFIG}
 	mkdir -p ${TOPDIR}/freebsd-src/sys/${MACHINE}/compile/${BSDCONFIG}
-	(cd ${TOPDIR}/freebsd-src/sys/${MACHINE}/conf && config ${BSDCONFIG} 
-		\ && cd ../compile/${BSDCONFIG} && make depend)
+	(cd ${TOPDIR}/freebsd-src/sys/${MACHINE}/conf && config ${BSDCONFIG} \ 
+	&& cd ../compile/${BSDCONFIG} && make depend)
 
 checkout:
 	test -d ${TOPDIR}/freebsd-src || \
