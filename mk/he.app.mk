@@ -14,19 +14,22 @@ _INCDIRS=
 _LIBS=
 _VERLIBDIR=
 _LIBPATTERN=echo 
+_FMWKDIRS=
+_FMWKFLAG=
 .for fmwk in ${FRAMEWORKS}
-_INCDIRS+= -I${fmwk:tW:S/^..\//${APP_DIR}\/Contents\/Helium\/..\//1}.framework/Headers
 _LIBDIRS+= -L${fmwk:tW:S/^..\//${APP_DIR}\/Contents\/Helium\/..\//1}.framework/Versions/Current
 _LIBPATTERN+= ${fmwk:tW:S/^..\//${APP_DIR}\/Contents\/Helium\/..\//1}.framework/Versions/Current/*.so  
-_VERLIBDIR+= -Wl,--rpath=${fmwk:tW:S/$/.frameworks\/Versions\/${fmwk:tW:S/$/.framework\/Versions\/Current/:tA:T}/:S/..\//\$ORIGIN\/..\//1:Q}
+_VERLIBDIR+= -Wl,--rpath=${fmwk:tW:S/$/.framework\/Versions\/${fmwk:tW:S/$/.framework\/Versions\/Current/:tA:T}/:S/..\//\$ORIGIN\/..\//1:Q}
+_FMWKDIRS+= -F${fmwk:H:u}
+_FMWKFLAG+= -framework ${fmwk:T:u}
 .endfor
 
 .for lib in ${_LIBPATTERN:sh}
 _LIBS+= -l${lib:C%.*lib%%:C%\.so$%%}
 .endfor
 
-CFLAGS+= ${_INCDIRS}
-LDFLAGS+= ${_LIBDIRS} ${_LIBS}
+LDFLAGS+= ${_LIBDIRS} ${_LIBS} -lobjc -L/usr/local/lib -lunwind ${_VERLIBDIR}
+FMWK_FLAG+= ${_FMWKDIRS} ${_FMWKFLAG}
 .endif
 
 .if defined(RESOURCES) && !empty(RESOURCES)
