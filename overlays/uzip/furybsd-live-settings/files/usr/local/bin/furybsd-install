@@ -91,9 +91,11 @@ mount -t devfs devfs ${FSMNT}/dev
 
 # Disable direct root login; users in the wheel group can use sudo instead
 echo "Disabling direct root login; users in the wheel group can use sudo instead"
-# Since /etc/passwd is generated from /etc/master.passwd, do not edit it directly but use pw instead
-# chroot "${FSMNT}" pw usermod root -s /usr/sbin/nologin # FIXME: With this, sudo su does not work
-chroot "${FSMNT}" pw lock root # FIXME: With this, sudo su does not work
+# "Star out" the root password; unlike locking the password this allows sudo su
+chroot "${FSMNT}" env EDITOR=ed vipw <<EOF
+/^root/s/root:[^:]*:/root:*:/
+wq
+EOF
 
 # Add regular user
 # Ask for username and/or password in case the graphical installer frontend did not supply them
