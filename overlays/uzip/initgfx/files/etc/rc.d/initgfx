@@ -129,10 +129,8 @@ get_device_info() {
 		sed -E 's#.* chip=0x([0-9a-z]{4})([0-9a-z]{4}).*$#\1:\2#')
 	busID=$(pciconf -lv | grep ^vgapci${unit} | head -1 | \
 		sed -E 's/^vgapci[0-9]@pci[0-9]:([0-9:]+):.*$/\1/')
-	#vendor=$(echo "${chip}" | cut -d: -f2)
-	#device=$(echo "${chip}" | cut -d: -f1)
-	vendor=$(pciconf -lv | grep ^vgapci${unit} | head -n 1 | grep -oe ' vendor=0x....' | cut -d x -f 2)
-	device=$(pciconf -lv | grep ^vgapci${unit} | head -n 1 | grep -oe ' device=0x....' | cut -d x -f 2)
+	vendor=$(echo "${chip}" | cut -d: -f2)
+	device=$(echo "${chip}" | cut -d: -f1)
 }
 
 rc_conf_d_ldconfig()
@@ -188,7 +186,7 @@ setup_nvidia()
 
 	[ "${vendor}" != "10de" ] && return 1
 	device=$(pciconf -lv | grep -A3 ^vgapci${unit} | grep device | \
-		cut -d"'" -f 2 | tail -n 1)
+		cut -d"'" -f 2)
 	driver=""
 	for d in 440 390 340 304; do
 		nvidia_${d}_ids | awk -v device="$device" '
