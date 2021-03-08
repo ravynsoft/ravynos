@@ -17,7 +17,9 @@ cd /tmp/system-overlay
 wget "https://github.com/helloSystem/ISO/releases/download/assets/graphite.jpg" -O "${uzip}"/usr/local/share/slim/themes/default/background.jpg
 
 # Use blue folder icons instead of the ones packaged in FreeBSD which have yellow folder icons
-cd /tmp
+# Don't extract directly in /tmp, as tar will modify its permissions
+icons_temp=$(mktemp -d /tmp/icons.XXXXX)
+cd $icons_temp
 wget http://archive.ubuntu.com/ubuntu/pool/universe/x/xubuntu-artwork/xubuntu-icon-theme_16.04.2_all.deb
 tar xfv xubuntu-icon-theme_16.04.2_all.deb
 tar xfv data.tar.xz
@@ -27,6 +29,7 @@ mv ./usr/share/doc/xubuntu-icon-theme/copyright "${uzip}"/usr/local/share/icons/
 sed -i -e 's|usr/share|usr/local/share|g' "${uzip}"/usr/local/share/icons/elementary-xfce/copyright
 rm "${uzip}"/usr/local/share/icons/elementary-xfce/copyright-e
 cd -
+rm -r $icons_temp
 
 # Cursor theme with HiDPi Support, sizes: 22 24 28 32 40 48 56 64 72 80 88 96
 wget -c https://github.com/ful1e5/apple_cursor/releases/download/v1.0.6/macOSBigSur.tar.gz
