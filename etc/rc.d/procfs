@@ -1,0 +1,25 @@
+#!/bin/sh
+#
+# $FreeBSD$
+#
+
+# PROVIDE: procfs
+# REQUIRE: mountcritlocal
+# KEYWORD: nojail shutdown
+
+. /etc/rc.subr
+
+name="procfs"
+desc="Mount procfs filesystem"
+start_cmd="procfs_start"
+stop_cmd=sync
+
+procfs_start()
+{
+	check_startmsgs && echo -n 'Mounting procfs:'
+	mount -t procfs none /proc
+	check_startmsgs && echo '.'
+}
+
+load_rc_config $name
+run_rc_command "$1"

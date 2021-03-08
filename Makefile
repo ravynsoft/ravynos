@@ -20,8 +20,8 @@ prep:
 
 ${TOPDIR}/freebsd-src/sys/${MACHINE}/compile/${BSDCONFIG}: ${TOPDIR}/freebsd-src/sys/${MACHINE}/conf/${BSDCONFIG}
 	mkdir -p ${TOPDIR}/freebsd-src/sys/${MACHINE}/compile/${BSDCONFIG}
-	(cd ${TOPDIR}/freebsd-src/sys/${MACHINE}/conf && config ${BSDCONFIG} 
-		\ && cd ../compile/${BSDCONFIG} && make depend)
+	(cd ${TOPDIR}/freebsd-src/sys/${MACHINE}/conf && config ${BSDCONFIG} \ 
+	&& cd ../compile/${BSDCONFIG} && make depend)
 
 checkout:
 	test -d ${TOPDIR}/freebsd-src || \
@@ -106,10 +106,17 @@ CFNetwork.framework:
 
 helium-package:
 	tar cJ -C ${BUILDROOT} --gid 0 --uid 0 -f ${RLSDIR}/helium.txz .
+	cp -fv ${RLSDIR}/helium.txz ${TOPDIR}/freebsd-src/release
+	if [ -d ${TOPDIR}/freebsd-src/release/disc1/usr/freebsd-dist ]; then \
+		sudo cp -fv ${RLSDIR}/helium.txz \
+		${TOPDIR}/freebsd-src/release/disc1/usr/freebsd-dist; \
+	fi
 
 desc_helium=Helium system
 release: helium-package
-	rm -f ${RLSDIR}/disc1.iso
-	export MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX} desc_helium="${desc_helium}"; \
-		sudo -E make -C ${TOPDIR}/freebsd-src/release disc1.iso memstick
-	cp -fv ${RLSDIR}/*.img ${RLSDIR}/*.iso ${TOPDIR}/dist/
+	rm -f ${RLSDIR}/disc1.iso ${RLSDIR}/memstick.img 
+	sudo MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX} \
+		make -C ${TOPDIR}/freebsd-src/release \
+		desc_helium="${desc_helium}" NOSRC=true NOPORTS=true \
+		disc1.iso memstick
+	cp -fv ${RLSDIR}/disc1.iso ${RLSDIR}/memstick.img ${TOPDIR}/dist/
