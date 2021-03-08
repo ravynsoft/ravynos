@@ -106,17 +106,16 @@ CFNetwork.framework:
 
 helium-package:
 	tar cJ -C ${BUILDROOT} --gid 0 --uid 0 -f ${RLSDIR}/helium.txz .
-	cp -fv ${RLSDIR}/helium.txz ${TOPDIR}/freebsd-src/release
-	if [ -d ${TOPDIR}/freebsd-src/release/disc1/usr/freebsd-dist ]; then \
-		sudo cp -fv ${RLSDIR}/helium.txz \
-		${TOPDIR}/freebsd-src/release/disc1/usr/freebsd-dist; \
+	if [ -d ${RLSDIR}/disc1/usr/freebsd-dist ]; then \
+		sudo cp -fv ${RLSDIR}/helium.txz ${RLSDIR}/disc1/usr/freebsd-dist; \
 	fi
 
 desc_helium=Helium system
 release: helium-package
 	rm -f ${RLSDIR}/disc1.iso ${RLSDIR}/memstick.img 
+	sudo chflags -R noschg,nouchg ${RLSDIR}/disc1 && sudo rm -rf ${RLSDIR}/disc1
 	sudo MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX} \
 		make -C ${TOPDIR}/freebsd-src/release \
 		desc_helium="${desc_helium}" NOSRC=true NOPORTS=true \
-		disc1.iso memstick
+		packagesystem disc1.iso memstick
 	cp -fv ${RLSDIR}/disc1.iso ${RLSDIR}/memstick.img ${TOPDIR}/dist/
