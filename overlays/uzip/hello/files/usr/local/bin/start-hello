@@ -262,6 +262,9 @@ done
 #   launch "${APP}" &
 # done
 
+# Create placeholder .app bundles for applications installed with pkg
+desktop2app &
+
 # Dock
 # /System/Dock.AppDir/AppRun & # FIXME: Reinstate once it works like this
 /System/Dock.AppDir/usr/bin/cyber-dock
