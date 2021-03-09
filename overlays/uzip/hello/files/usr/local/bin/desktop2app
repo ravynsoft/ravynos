@@ -148,7 +148,7 @@ def d2a(desktopfile, destination, use_generic_name=False, name=None):
     result, err = p.communicate()
     full_path_of_executable = result.decode('utf-8').strip()
     if(p.returncode != 0):
-        print("Could not get the path of the executable", file=sys.stderr)
+        print("Could not get the absolute path of the executable", file=sys.stderr)
         exit(1)
     executable_file_path = ("%s/%s.app/Resources/executable" % (destination, name))
     executable_file = open(executable_file_path, "w")
@@ -162,8 +162,9 @@ def d2a(desktopfile, destination, use_generic_name=False, name=None):
     package_name_parts = parts[len(parts)-1].split("-")
     package_name = "-".join(package_name_parts[0:len(package_name_parts)-1]) # FIXME: Is there a better way to emove the version number suffix correctly?
     if(p.returncode != 0):
-        print("Could not get the path of the executable", file=sys.stderr)
-        exit(1)
+        print("Could not determine the package name for the executable", file=sys.stderr)
+        # This happens e.g., when we are converting an application that was not installed via pkg
+        package_name=""
     packages_file_path = ("%s/%s.app/Resources/packages" % (destination, name))
     packages_file = open(packages_file_path, "w")
     packages_file.write(package_name)
