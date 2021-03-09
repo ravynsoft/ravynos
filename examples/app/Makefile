@@ -1,4 +1,4 @@
-# This Makefile will generate a simple App bundle called Bar.app
+# This Makefile will generate a simple Cocoa App bundle called Bar.app
 # in the current directory or in the location specified by MAKEOBJDIR
 #
 # APP is the name of the executable resulting from compiling SRCS
@@ -22,9 +22,11 @@
 #             `-- sample.txt
 
 APP=Bar
-SRCS=bar.c
+SRCS=bar.m
 MK_DEBUG_FILES=no
 RESOURCES=rsc/sample.txt
-# FRAMEWORKS=/System/Frameworks/Demo
+FRAMEWORKS=/System/Library/Frameworks/Foundation \
+	   /System/Library/Frameworks/CoreFoundation \
+	   /System/Library/Frameworks/CFNetwork
 
 .include <he.app.mk>
