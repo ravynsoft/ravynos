@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <setjmp.h>
 #include "dwarf_eh.h"
 #include "objc/runtime.h"
 #include "objc/hooks.h"
@@ -29,6 +30,17 @@ __attribute__((weak)) void *__cxa_begin_catch(void *e);
 __attribute__((weak)) void __cxa_end_catch(void);
 __attribute__((weak)) void __cxa_rethrow(void);
 
+#if defined(__HELIUM__)
+typedef void NSUncaughtExceptionHandler(id exception);
+
+typedef struct NSExceptionFrame {
+	jmp_buf state;
+	struct NSExceptionFrame *parent;
+	id exception;
+} NSExceptionFrame;
+typedef struct NSExceptionFrame objc_exception_frame;
+
+#endif 
 
 /**
  * Class of exceptions to distinguish between this and other exception types.
@@ -96,6 +108,10 @@ struct thread_data
 	id lastThrownObject;
 	BOOL cxxCaughtException;
 	struct objc_exception *caughtExceptions;
+#if defined(__HELIUM__)
+	NSExceptionFrame *exception_frame;
+	NSUncaughtExceptionHandler *uncaught_exception_handler;
+#endif
 };
 
 static __thread struct thread_data thread_data;
@@ -748,21 +764,84 @@ void objc_exception_rethrow(struct _Unwind_Exception *e)
 }
 
 #if defined(__HELIUM__)
-// exception handling hooks needed for cocotron foundation
-// FIXME: make these do stuff
+// Emulate the cocotron runtime's exception handling
 
-typedef struct NSExceptionFrame {
-	/*jmp_buf*/ long state;
-	struct NSExceptionFrame *parent;
-	/*NSException*/ void *exception;
-} NSExceptionFrame;
+static NSUncaughtExceptionHandler *uncaughtExceptionHandler = NULL;
+
+OBJC_PUBLIC NSUncaughtExceptionHandler *NSGetUncaughtExceptionHandler(void) {
+	return uncaughtExceptionHandler;
+}
+
+OBJC_PUBLIC void NSSetUncaughtExceptionHandler(NSUncaughtExceptionHandler *proc) {
+	uncaughtExceptionHandler = proc;
+}
+
+OBJC_PUBLIC NSExceptionFrame *NSThreadCurrentHandler(void) {
+	struct thread_data *td = get_thread_data_fast();
+	return td->exception_frame;
+}
+
+OBJC_PUBLIC void NSThreadSetCurrentHandler(NSExceptionFrame *handler) {
+	struct thread_data *td = get_thread_data_fast();
+	td->exception_frame = handler;
+}
+
+OBJC_PUBLIC NSUncaughtExceptionHandler *NSThreadUncaughtExceptionHandler(void) {
+	struct thread_data *td = get_thread_data_fast();
+	return td->uncaught_exception_handler;
+}
+
+OBJC_PUBLIC void NSThreadSetUncaughtExceptionHandler(NSUncaughtExceptionHandler *function) {
+	struct thread_data *td = get_thread_data_fast();
+	td->uncaught_exception_handler = function;
+}
 
 OBJC_PUBLIC void __NSPushExceptionFrame(NSExceptionFrame *frame) {
-	printf("NSPushExceptionFrame\n");
+	frame->parent = NSThreadCurrentHandler();
+	frame->exception = nil;
+	NSThreadSetCurrentHandler(frame);
 }
 
 OBJC_PUBLIC void __NSPopExceptionFrame(NSExceptionFrame *frame) {
-	printf("NSPopExceptionFrame\n");
+	NSThreadSetCurrentHandler(frame->parent);
+}
+
+static void defaultHandler(id exception) {
+	__builtin_trap();
+	fprintf(stderr, "*** Uncaught exception\n");
+}
+
+OBJC_PUBLIC int objc_exception_match(Class exceptionClass, id exception) {
+	return isKindOfClass(object_getClass(exception), exceptionClass);
+}
+
+OBJC_PUBLIC id _NSRaiseException(id exception) {
+	NSExceptionFrame *top = NSThreadCurrentHandler();
+	if(top == NULL) {
+		NSUncaughtExceptionHandler *proc = NSGetUncaughtExceptionHandler();
+		if(proc == NULL) {
+			defaultHandler(exception);
+		} else {
+			proc(exception);
+		}
+	} else {
+		NSThreadSetCurrentHandler(top->parent);
+		top->exception = exception;
+		longjmp(top->state, 1);
+	}
+}
+
+void objc_exception_try_enter(void *exceptionFrame) {
+	__NSPushExceptionFrame((NSExceptionFrame *)exceptionFrame);
+}
+
+void objc_exception_try_exit(void *exceptionFrame) {
+	__NSPopExceptionFrame((NSExceptionFrame *)exceptionFrame);
+}
+
+id objc_exception_extract(void *exceptionFrame) {
+	NSExceptionFrame *frame = (NSExceptionFrame *)exceptionFrame;
+	return (id)frame->exception;
 }
 
 #endif
