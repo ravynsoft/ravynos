@@ -72,6 +72,7 @@ def d2a(desktopfile, destination, use_generic_name=False, name=None):
     if "Exec" in i.content["Desktop Entry"].keys():
         exec = i.content["Desktop Entry"]["Exec"]
         exec = exec.replace(" %f", "").replace(" %F", "").replace(" %u", "").replace(" %U", "")
+        print("exec: %s" % exec)
     else:
         print("No Exec=..., hence skipping '%s'" % desktopfile)
         return False
@@ -144,7 +145,7 @@ def d2a(desktopfile, destination, use_generic_name=False, name=None):
     os.symlink("/usr/local/libexec/app-placeholder", launcher_path)
 
     # Determine the absolute path to the executable file of the application that is being wrapped
-    p = subprocess.Popen(['which', exec], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE) # FIXME: Is there a better way to get this, e.g., from 'pkg which'?
+    p = subprocess.Popen(['which', exec.split(" ")[0]], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE) # FIXME: Is there a better way to get this, e.g., from 'pkg which'?
     result, err = p.communicate()
     full_path_of_executable = result.decode('utf-8').strip()
     if(p.returncode != 0):
