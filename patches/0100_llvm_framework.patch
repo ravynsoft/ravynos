@@ -1,0 +1,181 @@
+diff --git a/contrib/llvm-project/lld/ELF/Config.h b/contrib/llvm-project/lld/ELF/Config.h
+index ef1edbcd1992..bacdcbc3d741 100644
+--- a/contrib/llvm-project/lld/ELF/Config.h
++++ b/contrib/llvm-project/lld/ELF/Config.h
+@@ -120,6 +120,8 @@ struct Configuration {
+   std::vector<llvm::StringRef> auxiliaryList;
+   std::vector<llvm::StringRef> filterList;
+   std::vector<llvm::StringRef> searchPaths;
++  std::vector<llvm::StringRef> frameworkSearchPaths;
++  std::vector<std::string> frameworkRunPaths;
+   std::vector<llvm::StringRef> symbolOrderingFile;
+   std::vector<llvm::StringRef> undefined;
+   std::vector<SymbolVersion> dynamicList;
+diff --git a/contrib/llvm-project/lld/ELF/Driver.cpp b/contrib/llvm-project/lld/ELF/Driver.cpp
+index 6de9698bb2c8..31a7e4d702e8 100644
+--- a/contrib/llvm-project/lld/ELF/Driver.cpp
++++ b/contrib/llvm-project/lld/ELF/Driver.cpp
+@@ -59,6 +59,7 @@
+ #include "llvm/Support/raw_ostream.h"
+ #include <cstdlib>
+ #include <utility>
++#include <unistd.h> // readlink
+ 
+ using namespace llvm;
+ using namespace llvm::ELF;
+@@ -277,6 +278,49 @@ void LinkerDriver::addLibrary(StringRef name) {
+     error("unable to find library -l" + name);
+ }
+ 
++// Add all libraries within a framework found on the framework search path
++void LinkerDriver::addFramework(StringRef name) {
++  if (Optional<std::string> path = searchFramework(name)) {
++    path->append(llvm::sys::path::get_separator());
++    path->append("Versions");
++    path->append(llvm::sys::path::get_separator());
++
++    std::string rpath(path.getValue());
++
++    path->append("Current");
++    config->searchPaths.push_back(path.getValue());
++
++    char buffer[_POSIX_PATH_MAX];
++    int count = ::readlink(path.getValue().c_str(), buffer, sizeof(buffer));
++    if(count > 0)
++      rpath.append(buffer, buffer + count);
++    else
++      rpath.append("Current");
++
++    // handle frameworks relative to executable (in the app bundle)
++    if(llvm::sys::path::is_relative(Twine(rpath))) {
++      std::string opath("$ORIGIN");
++      opath.append(llvm::sys::path::get_separator());
++      opath.append(rpath);
++      rpath = opath;
++    }
++    config->frameworkRunPaths.push_back(rpath);
++
++    // Now that we've added the current version folder of the framework, find
++    // all the shared libs inside it and add them to the link
++    std::error_code EC;
++    llvm::sys::fs::directory_iterator Dir = llvm::sys::fs::directory_iterator(Twine(path.getValue()), EC, true);
++    llvm::sys::fs::directory_iterator DirEnd;
++    for(Dir; Dir != DirEnd && !EC; Dir.increment(EC)) {
++      if (llvm::sys::path::extension(Dir->path()) != ".so")
++        continue;
++      addFile(Dir->path(), true);
++    }
++  }
++  else
++    error("unable to find framework " + name);
++}
++
+ // This function is called on startup. We need this for LTO since
+ // LTO calls LLVM functions to compile bitcode files to native code.
+ // Technically this can be delayed until we read bitcode files, but
+@@ -882,6 +926,7 @@ static void readConfigs(opt::InputArgList &args) {
+   config->fixCortexA53Errata843419 = args.hasArg(OPT_fix_cortex_a53_843419);
+   config->fixCortexA8 = args.hasArg(OPT_fix_cortex_a8);
+   config->forceBTI = hasZOption(args, "force-bti");
++  config->frameworkSearchPaths = args::getStrings(args, OPT_F);
+   config->gcSections = args.hasFlag(OPT_gc_sections, OPT_no_gc_sections, false);
+   config->gnuUnique = args.hasFlag(OPT_gnu_unique, OPT_no_gnu_unique, true);
+   config->gdbIndex = args.hasFlag(OPT_gdb_index, OPT_no_gdb_index, false);
+@@ -1185,6 +1230,9 @@ void LinkerDriver::createFiles(opt::InputArgList &args) {
+     case OPT_library:
+       addLibrary(arg->getValue());
+       break;
++    case OPT_framework:
++      addFramework(arg->getValue());
++      break;
+     case OPT_INPUT:
+       addFile(arg->getValue(), /*withLOption=*/false);
+       break;
+diff --git a/contrib/llvm-project/lld/ELF/Driver.h b/contrib/llvm-project/lld/ELF/Driver.h
+index 3115e28d1669..78ff8948c9d5 100644
+--- a/contrib/llvm-project/lld/ELF/Driver.h
++++ b/contrib/llvm-project/lld/ELF/Driver.h
+@@ -29,6 +29,7 @@ class LinkerDriver {
+   void main(ArrayRef<const char *> args);
+   void addFile(StringRef path, bool withLOption);
+   void addLibrary(StringRef name);
++  void addFramework(StringRef name);
+ 
+ private:
+   void createFiles(llvm::opt::InputArgList &args);
+@@ -70,6 +71,7 @@ llvm::Optional<std::string> findFromSearchPaths(StringRef path);
+ llvm::Optional<std::string> searchScript(StringRef path);
+ llvm::Optional<std::string> searchLibraryBaseName(StringRef path);
+ llvm::Optional<std::string> searchLibrary(StringRef path);
++llvm::Optional<std::string> searchFramework(StringRef path);
+ 
+ } // namespace elf
+ } // namespace lld
+diff --git a/contrib/llvm-project/lld/ELF/DriverUtils.cpp b/contrib/llvm-project/lld/ELF/DriverUtils.cpp
+index 9fcb36e81676..dc29e74a34a0 100644
+--- a/contrib/llvm-project/lld/ELF/DriverUtils.cpp
++++ b/contrib/llvm-project/lld/ELF/DriverUtils.cpp
+@@ -243,6 +243,14 @@ Optional<std::string> searchLibrary(StringRef name) {
+   return searchLibraryBaseName(name);
+ }
+ 
++Optional<std::string> searchFramework(StringRef name) {
++  for (StringRef dir : config->frameworkSearchPaths) {
++    if (Optional<std::string> s = findFile(dir, name + ".framework"))
++      return s;
++  }
++  return None;
++}
++
+ // If a linker/version script doesn't exist in the current directory, we also
+ // look for the script in the '-L' search paths. This matches the behaviour of
+ // '-T', --version-script=, and linker script INPUT() command in ld.bfd.
+diff --git a/contrib/llvm-project/lld/ELF/Options.td b/contrib/llvm-project/lld/ELF/Options.td
+index ea78a3526211..8db62e4b39cd 100644
+--- a/contrib/llvm-project/lld/ELF/Options.td
++++ b/contrib/llvm-project/lld/ELF/Options.td
+@@ -29,6 +29,14 @@ def Bstatic: F<"Bstatic">, HelpText<"Do not link against shared libraries">;
+ 
+ def build_id: F<"build-id">, HelpText<"Alias for --build-id=fast">;
+ 
++def F : JoinedOrSeparate<["-"], "F">,
++     MetaVarName<"<dir>">,
++     HelpText<"Add directory to framework search path">;
++
++def framework : Separate<["-"], "framework">,
++     MetaVarName<"<name>">,
++     HelpText<"Base name of framework searched for in -F directories">;
++
+ def build_id_eq: J<"build-id=">, HelpText<"Generate build ID note">,
+   MetaVarName<"[fast,md5,sha1,uuid,0x<hexstring>]">;
+ 
+@@ -434,7 +442,7 @@ def: Flag<["-"], "q">, Alias<emit_relocs>, HelpText<"Alias for --emit-relocs">;
+ def: Flag<["-"], ")">, Alias<end_group>, HelpText<"Alias for --end-group">;
+ def: JoinedOrSeparate<["-"], "e">, Alias<entry>, HelpText<"Alias for --entry">;
+ def: Flag<["-"], "E">, Alias<export_dynamic>, HelpText<"Alias for --export-dynamic">;
+-def: Separate<["-"], "F">, Alias<filter>, HelpText<"Alias for --filter">;
++//def: Separate<["-"], "F">, Alias<filter>, HelpText<"Alias for --filter">;
+ def: Separate<["-"], "b">, Alias<format>, HelpText<"Alias for --format">;
+ def: JoinedOrSeparate<["-"], "l">, Alias<library>, HelpText<"Alias for --library">;
+ def: JoinedOrSeparate<["-"], "L">, Alias<library_path>, HelpText<"Alias for --library-path">;
+diff --git a/contrib/llvm-project/lld/ELF/SyntheticSections.cpp b/contrib/llvm-project/lld/ELF/SyntheticSections.cpp
+index 67709916cd32..9ba7c52c0000 100644
+--- a/contrib/llvm-project/lld/ELF/SyntheticSections.cpp
++++ b/contrib/llvm-project/lld/ELF/SyntheticSections.cpp
+@@ -1281,7 +1281,16 @@ template <class ELFT> void DynamicSection<ELFT>::finalizeContents() {
+   for (StringRef s : config->auxiliaryList)
+     addInt(DT_AUXILIARY, part.dynStrTab->addString(s));
+ 
++  if (!config->frameworkRunPaths.empty()) {
++    std::string s(llvm::join(config->frameworkRunPaths.begin(),config->frameworkRunPaths.end(),":"));
++    if(config->rpath.empty())
++      config->rpath = s;
++    else
++      config->rpath.append(":" + s);
++  }
++
+   if (!config->rpath.empty())
++    config->frameworkRunPaths.push_back(config->rpath);
+     addInt(config->enableNewDtags ? DT_RUNPATH : DT_RPATH,
+            part.dynStrTab->addString(config->rpath));
+ 
