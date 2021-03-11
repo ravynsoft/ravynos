@@ -1,12 +1,15 @@
 # Primary makefile for the Helium OS
 
 TOPDIR := ${.CURDIR}
-MAKEOBJDIRPREFIX := ${HOME}/obj.${MACHINE}
-RLSDIR := ${MAKEOBJDIRPREFIX}${TOPDIR}/freebsd-src/${MACHINE}.${MACHINE}/release
+OBJPREFIX := ${HOME}/obj.${MACHINE}
+RLSDIR := ${TOPDIR}/freebsd-src/release
 BSDCONFIG := GENERIC
-BUILDROOT := ${MAKEOBJDIRPREFIX}/buildroot
-
-.MAKEFLAGS+= -m/usr/share/mk -m${TOPDIR}/mk
+BUILDROOT := ${OBJPREFIX}/buildroot
+HELIUM_VERSION != cat ${TOPDIR}/version
+BRANCH_OVERRIDE := HELIUM_${HELIUM_VERSION}
+FREEBSD_BRANCH := releng/12.2
+MKINCDIR := -m/usr/share/mk -m${TOPDIR}/mk
+CORES := 4
 
 # Incremental build for quick tests or system update
 build: prep freebsd-noclean helium
@@ -16,32 +19,45 @@ world: prep freebsd helium release
 
 
 prep:
-	mkdir -p ${MAKEOBJDIRPREFIX} ${RLSDIR} ${TOPDIR}/dist ${BUILDROOT}
+	mkdir -p ${OBJPREFIX} ${RLSDIR} ${TOPDIR}/dist ${BUILDROOT}
 
 ${TOPDIR}/freebsd-src/sys/${MACHINE}/compile/${BSDCONFIG}: ${TOPDIR}/freebsd-src/sys/${MACHINE}/conf/${BSDCONFIG}
 	mkdir -p ${TOPDIR}/freebsd-src/sys/${MACHINE}/compile/${BSDCONFIG}
-	(cd ${TOPDIR}/freebsd-src/sys/${MACHINE}/conf && config ${BSDCONFIG} \ 
-	&& cd ../compile/${BSDCONFIG} && make depend)
+	(cd ${TOPDIR}/freebsd-src/sys/${MACHINE}/conf && config ${BSDCONFIG} \
+	&& cd ../compile/${BSDCONFIG} && export MAKEOBJDIRPREFIX=${OBJPREFIX} \
+	&& make depend)
 
 checkout:
 	test -d ${TOPDIR}/freebsd-src || \
 		(cd ${TOPDIR} && git clone https://github.com/freebsd/freebsd-src.git && \
-		cd freebsd-src && git checkout stable/12)
+		cd freebsd-src && git checkout ${FREEBSD_BRANCH})
 
 patchbsd: patches/*.patch
-	(cd ${TOPDIR}/freebsd-src && git checkout -f stable/12; \
+	(cd ${TOPDIR}/freebsd-src && git checkout -f ${FREEBSD_BRANCH}; \
 	git branch -D helium/12 || true; \
 	git checkout -b helium/12; \
-	for patch in ${TOPDIR}/patches/*.patch; do patch -p1 < $$patch; done)
+	for patch in ${TOPDIR}/patches/*.patch; do patch -p1 < $$patch; done; \
+	git commit -a -m "patched")
 
 freebsd: checkout patchbsd ${TOPDIR}/freebsd-src/sys/${MACHINE}/compile/${BSDCONFIG}
-	export MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX}; make -C ${TOPDIR}/freebsd-src buildkernel buildworld
+	export MAKEOBJDIRPREFIX=${OBJPREFIX}; make BRANCH_OVERRIDE=${BRANCH_OVERRIDE} \
+		-C ${TOPDIR}/freebsd-src buildkernel 
+	export MAKEOBJDIRPREFIX=${OBJPREFIX}; make BRANCH_OVERRIDE=${BRANCH_OVERRIDE} \
+		-j${CORES} -C ${TOPDIR}/freebsd-src buildworld
 
 freebsd-noclean:
-	export MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX}; make -C ${TOPDIR}/freebsd-src -DNO_CLEAN buildkernel buildworld
+	export MAKEOBJDIRPREFIX=${OBJPREFIX}; make BRANCH_OVERRIDE=${BRANCH_OVERRIDE} \
+		-C ${TOPDIR}/freebsd-src -DNO_CLEAN buildkernel
+	export MAKEOBJDIRPREFIX=${OBJPREFIX}; make BRANCH_OVERRIDE=${BRANCH_OVERRIDE} \
+		-j${CORES} -C ${TOPDIR}/freebsd-src -DNO_CLEAN buildworld
 
-freebsd-usr-noclean:
-	export MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX}; make -C ${TOPDIR}/freebsd-src -DNO_CLEAN buildworld
+kernel-noclean:
+	export MAKEOBJDIRPREFIX=${OBJPREFIX}; make BRANCH_OVERRIDE=${BRANCH_OVERRIDE} \
+		-C ${TOPDIR}/freebsd-src -DNO_CLEAN buildkernel
+
+usr-noclean:
+	export MAKEOBJDIRPREFIX=${OBJPREFIX}; make -j${CORES} \
+		-C ${TOPDIR}/freebsd-src -DNO_CLEAN buildworld
 
 helium: extradirs mkfiles libobjc2 frameworksclean frameworks copyfiles
 
@@ -49,10 +65,10 @@ helium: extradirs mkfiles libobjc2 frameworksclean frameworks copyfiles
 install: installworld installkernel installhelium
 
 installworld:
-	export MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX}; sudo make -C ${TOPDIR}/freebsd-src installworld
+	sudo sh -c "MAKEOBJDIRPREFIX=${OBJPREFIX} make -C ${TOPDIR}/freebsd-src installworld"
 
 installkernel:
-	export MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX}; sudo make -C ${TOPDIR}/freebsd-src installkernel
+	sudo sh -c "MAKEOBJDIRPREFIX=${OBJPREFIX} make -C ${TOPDIR}/freebsd-src installkernel"
 
 installhelium: helium-package
 	sudo tar -C / -xvf ${RLSDIR}/helium.txz
@@ -71,24 +87,25 @@ copyfiles:
 	cp -fvR ${TOPDIR}/etc ${BUILDROOT}
 
 libobjc2: .PHONY
-	mkdir -p ${MAKEOBJDIRPREFIX}/libobjc2
-	cd ${MAKEOBJDIRPREFIX}/libobjc2; cmake \
+	mkdir -p ${OBJPREFIX}/libobjc2
+	cd ${OBJPREFIX}/libobjc2; cmake \
 		-DCMAKE_C_FLAGS="-DBSD -D__HELIUM__" \
 		-DCMAKE_BUILD_TYPE=Debug \
 		-DCMAKE_INSTALL_PREFIX=/usr \
 		-DOLDABI_COMPAT=false -DLEGACY_COMPAT=false \
 		${TOPDIR}/libobjc2
-	make -C ${MAKEOBJDIRPREFIX}/libobjc2 DESTDIR=${BUILDROOT} install
+	make -C ${OBJPREFIX}/libobjc2 DESTDIR=${BUILDROOT} install
 
 
 frameworksclean:
 	rm -rf ${BUILDROOT}/System/Library/Frameworks/*.framework
 	for fmwk in ${.ALLTARGETS:M*.framework:R}; do \
-		make -C $$fmwk clean; \
+		make ${MKINCDIR} -C $$fmwk clean; \
 	done
 
 frameworks: 
-	for fmwk in ${.ALLTARGETS:M*.framework}; do make $$fmwk; done
+	for fmwk in ${.ALLTARGETS:M*.framework}; do \
+		make ${MKINCDIR} $$fmwk; done
 
 Foundation.framework:
 	rm -rf Foundation/${.TARGET}
@@ -115,15 +132,15 @@ CFNetwork.framework:
 
 helium-package:
 	tar cJ -C ${BUILDROOT} --gid 0 --uid 0 -f ${RLSDIR}/helium.txz .
-	if [ -d ${RLSDIR}/disc1/usr/freebsd-dist ]; then \
-		sudo cp -fv ${RLSDIR}/helium.txz ${RLSDIR}/disc1/usr/freebsd-dist; \
-	fi
 
 desc_helium=Helium system
 release: helium-package
 	rm -f ${RLSDIR}/disc1.iso ${RLSDIR}/memstick.img 
-	sudo chflags -R noschg,nouchg ${RLSDIR}/disc1 && sudo rm -rf ${RLSDIR}/disc1
-	sudo MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX} \
+	if [ -d ${RLSDIR}/disc1 ]; then \
+		sudo chflags -R noschg,nouchg ${RLSDIR}/disc1 && sudo rm -rf ${RLSDIR}/disc1; \
+	fi
+	rm -f ${RLSDIR}/packagesystem
+	sudo -E MAKEOBJDIRPREFIX=${OBJPREFIX} \
 		make -C ${TOPDIR}/freebsd-src/release \
 		desc_helium="${desc_helium}" NOSRC=true NOPORTS=true \
 		packagesystem disc1.iso memstick

@@ -159,13 +159,13 @@ index ea78a3526211..8db62e4b39cd 100644
  def: JoinedOrSeparate<["-"], "l">, Alias<library>, HelpText<"Alias for --library">;
  def: JoinedOrSeparate<["-"], "L">, Alias<library_path>, HelpText<"Alias for --library-path">;
 diff --git a/contrib/llvm-project/lld/ELF/SyntheticSections.cpp b/contrib/llvm-project/lld/ELF/SyntheticSections.cpp
-index 67709916cd32..9ba7c52c0000 100644
+index 67709916cd32..a1af3d2ab570 100644
 --- a/contrib/llvm-project/lld/ELF/SyntheticSections.cpp
 +++ b/contrib/llvm-project/lld/ELF/SyntheticSections.cpp
-@@ -1281,7 +1281,16 @@ template <class ELFT> void DynamicSection<ELFT>::finalizeContents() {
+@@ -1281,6 +1281,14 @@ template <class ELFT> void DynamicSection<ELFT>::finalizeContents() {
    for (StringRef s : config->auxiliaryList)
      addInt(DT_AUXILIARY, part.dynStrTab->addString(s));
- 
+
 +  if (!config->frameworkRunPaths.empty()) {
 +    std::string s(llvm::join(config->frameworkRunPaths.begin(),config->frameworkRunPaths.end(),":"));
 +    if(config->rpath.empty())
@@ -175,7 +175,5 @@ index 67709916cd32..9ba7c52c0000 100644
 +  }
 +
    if (!config->rpath.empty())
-+    config->frameworkRunPaths.push_back(config->rpath);
      addInt(config->enableNewDtags ? DT_RUNPATH : DT_RPATH,
             part.dynStrTab->addString(config->rpath));
- 
