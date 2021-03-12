@@ -209,9 +209,6 @@ packages()
   
   /usr/local/sbin/pkg-static -c ${uzip} info > "${cdroot}/data/system.uzip.manifest"
   cp "${cdroot}/data/system.uzip.manifest" "${isopath}.manifest"
-  rm ${uzip}/etc/resolv.conf
-  umount ${uzip}/var/cache/pkg
-  umount ${uzip}/dev
 }
 
 rc()
@@ -299,27 +296,20 @@ initgfx()
     else
       PKGS="latest"
     fi
-    wget -c "https://pkg.freebsd.org/FreeBSD:${MAJOR}:amd64/${PKGS}/All/nvidia-driver-440.100_1.txz" -P "${cache}"
-    mkdir -p "${uzip}/usr/local/nvidia/440/"
-    tar xf "${cache}"/nvidia-driver-*.txz -C "${uzip}/usr/local/nvidia/440/"
-    ls "${uzip}/usr/local/nvidia/440/+COMPACT_MANIFEST"
+    for ver in '' 390 340 304; do
+        pkgfile=$(/usr/local/sbin/pkg-static -c ${uzip} rquery %n-%v.txz nvidia-driver${ver:+-$ver})
+        fetch -o "${cache}/" "https://pkg.freebsd.org/FreeBSD:${MAJOR}:amd64/${PKGS}/All/${pkgfile}"
+        mkdir -p "${uzip}/usr/local/nvidia/${ver:-440}/"
+        tar xfC "${cache}"/${pkgfile} "${uzip}/usr/local/nvidia/${ver:-440}/"
+        ls "${uzip}/usr/local/nvidia/${ver:-440}/+COMPACT_MANIFEST"
+    done
   fi
-  
+
   ls
-  # TODO: initgfx also wants:
-  # /boot/drm_legacy/
-  # drm.ko
-  # drm2.ko
-  # i915kms.ko
-  # linker.hints
-  # mach64.ko
-  # mga.ko
-  # r128.ko
-  # radeonkms.ko
-  # savage.ko
-  # sis.ko
-  # tdfx.ko
-  # via.ko
+
+  rm ${uzip}/etc/resolv.conf
+  umount ${uzip}/var/cache/pkg
+  umount ${uzip}/dev
 }
 
 script()
