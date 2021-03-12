@@ -1,3 +1,106 @@
+diff --git a/contrib/llvm-project/clang/include/clang/Driver/Options.td b/contrib/llvm-project/clang/include/clang/Driver/Options.td
+index a30caaa9c50b..b6176253ee6d 100644
+--- a/contrib/llvm-project/clang/include/clang/Driver/Options.td
++++ b/contrib/llvm-project/clang/include/clang/Driver/Options.td
+@@ -350,7 +350,7 @@ def D : JoinedOrSeparate<["-"], "D">, Group<Preprocessor_Group>,
+     HelpText<"Define <macro> to <value> (or 1 if <value> omitted)">;
+ def E : Flag<["-"], "E">, Flags<[DriverOption,CC1Option]>, Group<Action_Group>,
+     HelpText<"Only run the preprocessor">;
+-def F : JoinedOrSeparate<["-"], "F">, Flags<[RenderJoined,CC1Option]>,
++def F : JoinedOrSeparate<["-"], "F">, Flags<[RenderJoined,CC1Option,LinkerInput]>,
+     HelpText<"Add directory to framework include search path">;
+ def G : JoinedOrSeparate<["-"], "G">, Flags<[DriverOption]>, Group<m_Group>,
+     MetaVarName<"<size>">, HelpText<"Put objects of at most <size> bytes "
+diff --git a/contrib/llvm-project/clang/lib/Basic/ObjCRuntime.cpp b/contrib/llvm-project/clang/lib/Basic/ObjCRuntime.cpp
+index cfc437409b5d..1f803e090339 100644
+--- a/contrib/llvm-project/clang/lib/Basic/ObjCRuntime.cpp
++++ b/contrib/llvm-project/clang/lib/Basic/ObjCRuntime.cpp
+@@ -72,7 +72,7 @@ bool ObjCRuntime::tryParse(StringRef input) {
+   } else if (runtimeName == "gnustep") {
+     // If no version is specified then default to the most recent one that we
+     // know about.
+-    Version = VersionTuple(1, 6);
++    Version = VersionTuple(2, 0);
+     kind = ObjCRuntime::GNUstep;
+   } else if (runtimeName == "gcc") {
+     kind = ObjCRuntime::GCC;
+diff --git a/contrib/llvm-project/clang/lib/Basic/Targets/OSTargets.h b/contrib/llvm-project/clang/lib/Basic/Targets/OSTargets.h
+index 70fac030bc5d..9cc331d5757d 100644
+--- a/contrib/llvm-project/clang/lib/Basic/Targets/OSTargets.h
++++ b/contrib/llvm-project/clang/lib/Basic/Targets/OSTargets.h
+@@ -227,6 +227,7 @@ class LLVM_LIBRARY_VISIBILITY FreeBSDTargetInfo : public OSTargetInfo<Target> {
+     Builder.defineMacro("__KPRINTF_ATTRIBUTE__");
+     DefineStd(Builder, "unix", Opts);
+     Builder.defineMacro("__ELF__");
++    Builder.defineMacro("__HELIUM__");
+ 
+     // On FreeBSD, wchar_t contains the number of the code point as
+     // used by the character set of the locale. These character sets are
+diff --git a/contrib/llvm-project/clang/lib/Driver/ToolChains/Clang.cpp b/contrib/llvm-project/clang/lib/Driver/ToolChains/Clang.cpp
+index 8b49b42598a8..dc1f97c91205 100644
+--- a/contrib/llvm-project/clang/lib/Driver/ToolChains/Clang.cpp
++++ b/contrib/llvm-project/clang/lib/Driver/ToolChains/Clang.cpp
+@@ -6186,7 +6186,7 @@ ObjCRuntime Clang::AddObjCRuntimeArgs(const ArgList &args,
+ 
+       objcABIVersion = 1 + nonFragileABIVersion;
+     } else {
+-      objcABIVersion = 1;
++      objcABIVersion = 3;
+     }
+   }
+ 
+diff --git a/contrib/llvm-project/clang/lib/Driver/ToolChains/FreeBSD.cpp b/contrib/llvm-project/clang/lib/Driver/ToolChains/FreeBSD.cpp
+index 6fb4ddd7f501..176d6140ab7c 100644
+--- a/contrib/llvm-project/clang/lib/Driver/ToolChains/FreeBSD.cpp
++++ b/contrib/llvm-project/clang/lib/Driver/ToolChains/FreeBSD.cpp
+@@ -239,6 +239,16 @@ void freebsd::Linker::ConstructJob(Compilation &C, const JobAction &JA,
+     assert(Output.isNothing() && "Invalid output.");
+   }
+ 
++  if (Args.hasArg(options::OPT_framework)) {
++    if(!Args.hasArg(options::OPT_nostdlib)) {
++      CmdArgs.push_back("-F");
++      CmdArgs.push_back("/System/Library/Frameworks");
++      CmdArgs.push_back("-F");
++      CmdArgs.push_back("/Library/Frameworks");
++      CmdArgs.push_back("-lobjc");
++    }
++  }
++
+   if (!Args.hasArg(options::OPT_nostdlib, options::OPT_nostartfiles)) {
+     const char *crt1 = nullptr;
+     if (!Args.hasArg(options::OPT_shared)) {
+@@ -273,7 +283,7 @@ void freebsd::Linker::ConstructJob(Compilation &C, const JobAction &JA,
+   Args.AddAllArgs(CmdArgs, options::OPT_t);
+   Args.AddAllArgs(CmdArgs, options::OPT_Z_Flag);
+   Args.AddAllArgs(CmdArgs, options::OPT_r);
+-
++  
+   if (D.isUsingLTO()) {
+     assert(!Inputs.empty() && "Must have at least one input.");
+     AddGoldPlugin(ToolChain, Args, CmdArgs, Output, Inputs[0],
+diff --git a/contrib/llvm-project/clang/lib/Frontend/InitHeaderSearch.cpp b/contrib/llvm-project/clang/lib/Frontend/InitHeaderSearch.cpp
+index 5d877ee9c0d7..e1854e563f20 100644
+--- a/contrib/llvm-project/clang/lib/Frontend/InitHeaderSearch.cpp
++++ b/contrib/llvm-project/clang/lib/Frontend/InitHeaderSearch.cpp
+@@ -442,14 +442,14 @@ void InitHeaderSearch::AddDefaultIncludePaths(const LangOptions &Lang,
+   }
+ 
+   // All header search logic is handled in the Driver for Darwin.
+-  if (triple.isOSDarwin()) {
++  //if (triple.isOSDarwin()) {
+     if (HSOpts.UseStandardSystemIncludes) {
+       // Add the default framework include paths on Darwin.
+       AddPath("/System/Library/Frameworks", System, true);
+       AddPath("/Library/Frameworks", System, true);
+     }
+-    return;
+-  }
++    //return;
++  //}
+ 
+   if (Lang.CPlusPlus && !Lang.AsmPreprocessor &&
+       HSOpts.UseStandardCXXIncludes && HSOpts.UseStandardSystemIncludes) {
 diff --git a/contrib/llvm-project/lld/ELF/Config.h b/contrib/llvm-project/lld/ELF/Config.h
 index ef1edbcd1992..bacdcbc3d741 100644
 --- a/contrib/llvm-project/lld/ELF/Config.h
@@ -165,7 +268,7 @@ index 67709916cd32..a1af3d2ab570 100644
 @@ -1281,6 +1281,14 @@ template <class ELFT> void DynamicSection<ELFT>::finalizeContents() {
    for (StringRef s : config->auxiliaryList)
      addInt(DT_AUXILIARY, part.dynStrTab->addString(s));
-
+ 
 +  if (!config->frameworkRunPaths.empty()) {
 +    std::string s(llvm::join(config->frameworkRunPaths.begin(),config->frameworkRunPaths.end(),":"));
 +    if(config->rpath.empty())
