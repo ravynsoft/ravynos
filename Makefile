@@ -59,7 +59,7 @@ usr-noclean:
 	export MAKEOBJDIRPREFIX=${OBJPREFIX}; make -j${CORES} \
 		-C ${TOPDIR}/freebsd-src -DNO_CLEAN buildworld
 
-helium: extradirs mkfiles libobjc2 frameworksclean frameworks copyfiles
+helium: extradirs mkfiles libobjc2 libunwind frameworksclean frameworks copyfiles
 
 # Update the build system with current source
 install: installworld installkernel installhelium
@@ -96,6 +96,10 @@ libobjc2: .PHONY
 		${TOPDIR}/libobjc2
 	make -C ${OBJPREFIX}/libobjc2 DESTDIR=${BUILDROOT} install
 
+libunwind: .PHONY
+	cd libunwind-1.5.0 && ./configure --prefix=/usr --enable-coredump --enable-ptrace --enable-cxx-exceptions \
+		--enable-block-signals --enable-debug-frame && make -j${CORES}
+	make -C libunwind-1.5.0 install prefix=${BUILDROOT}/usr
 
 frameworksclean:
 	rm -rf ${BUILDROOT}/System/Library/Frameworks/*.framework

@@ -1,0 +1,11 @@
+prefix=/usr
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: libunwind
+Description: libunwind base library
+Version: 1.5.0
+Libs: -L${libdir} -lunwind
+Libs.private: -llzma -lz
+Cflags: -I${includedir}

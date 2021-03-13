@@ -1,0 +1,11 @@
+prefix=/usr
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: libunwind-ptrace
+Description: libunwind ptrace library
+Version: 1.5.0
+Requires: libunwind-generic libunwind
+Libs: -L${libdir} -lunwind-ptrace
+Cflags: -I${includedir}

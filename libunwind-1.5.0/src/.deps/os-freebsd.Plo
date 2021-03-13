@@ -1,0 +1,339 @@
+os-freebsd.lo: os-freebsd.c /usr/include/sys/param.h \
+  /usr/include/sys/_null.h /usr/include/sys/types.h \
+  /usr/include/sys/cdefs.h /usr/include/machine/endian.h \
+  /usr/include/x86/endian.h /usr/include/sys/_types.h \
+  /usr/include/machine/_types.h /usr/include/x86/_types.h \
+  /usr/include/machine/_limits.h /usr/include/x86/_limits.h \
+  /usr/include/sys/_pthreadtypes.h /usr/include/sys/_stdint.h \
+  /usr/include/sys/select.h /usr/include/sys/_sigset.h \
+  /usr/include/sys/_timeval.h /usr/include/sys/timespec.h \
+  /usr/include/sys/_timespec.h /usr/include/sys/syslimits.h \
+  /usr/include/sys/signal.h /usr/include/machine/signal.h \
+  /usr/include/x86/signal.h /usr/include/machine/param.h \
+  /usr/include/machine/_align.h /usr/include/x86/_align.h \
+  /usr/include/sys/limits.h /usr/include/sys/mman.h \
+  /usr/include/sys/sysctl.h /usr/include/sys/user.h \
+  /usr/include/machine/pcb.h /usr/include/machine/fpu.h \
+  /usr/include/x86/fpu.h /usr/include/machine/segments.h \
+  /usr/include/x86/segments.h /usr/include/sys/errno.h \
+  /usr/include/sys/time.h /usr/include/time.h \
+  /usr/include/xlocale/_time.h /usr/include/sys/resource.h \
+  /usr/include/sys/ucred.h /usr/include/bsm/audit.h \
+  /usr/include/sys/uio.h /usr/include/sys/_iovec.h \
+  /usr/include/sys/_uio.h /usr/include/sys/queue.h \
+  /usr/include/sys/_lock.h /usr/include/sys/_mutex.h \
+  /usr/include/sys/proc.h /usr/include/sys/callout.h \
+  /usr/include/sys/_callout.h /usr/include/sys/event.h \
+  /usr/include/sys/condvar.h /usr/include/sys/filedesc.h \
+  /usr/include/sys/caprights.h /usr/include/sys/lock.h \
+  /usr/include/sys/ktr_class.h /usr/include/sys/priority.h \
+  /usr/include/sys/seq.h /usr/include/sys/sx.h /usr/include/sys/_sx.h \
+  /usr/include/sys/lock_profile.h /usr/include/sys/osd.h \
+  /usr/include/sys/rtprio.h /usr/include/sys/runq.h \
+  /usr/include/machine/runq.h /usr/include/sys/sigio.h \
+  /usr/include/sys/signalvar.h /usr/include/sys/ucontext.h \
+  /usr/include/machine/ucontext.h /usr/include/x86/ucontext.h \
+  /usr/include/sys/_ucontext.h /usr/include/sys/_domainset.h \
+  /usr/include/sys/_bitset.h /usr/include/machine/proc.h \
+  /usr/include/vm/vm.h /usr/include/machine/vm.h \
+  /usr/include/machine/specialreg.h /usr/include/x86/specialreg.h \
+  /usr/include/vm/vm_param.h /usr/include/machine/vmparam.h \
+  /usr/include/vm/pmap.h /usr/include/machine/pmap.h \
+  /usr/include/sys/_cpuset.h /usr/include/sys/_pctrie.h \
+  /usr/include/sys/_rangeset.h /usr/include/vm/_vm_radix.h \
+  /usr/include/vm/vm_map.h /usr/include/sys/resourcevar.h \
+  /usr/include/sys/socket.h /usr/include/sys/_sockaddr_storage.h \
+  /usr/include/stdio.h /usr/include/errno.h ../include/libunwind_i.h \
+  ../include/config.h ../include/compiler.h /usr/include/assert.h \
+  ../include/libunwind.h ../include/libunwind-x86_64.h \
+  /usr/include/inttypes.h /usr/include/machine/_inttypes.h \
+  /usr/include/x86/_inttypes.h /usr/include/sys/stdint.h \
+  /usr/include/machine/_stdint.h /usr/include/x86/_stdint.h \
+  /usr/include/ucontext.h ../include/libunwind-dynamic.h \
+  ../include/libunwind-common.h /usr/include/pthread.h \
+  /usr/include/sched.h /usr/include/signal.h /usr/include/stdlib.h \
+  /usr/include/string.h /usr/include/strings.h \
+  /usr/include/xlocale/_strings.h /usr/include/xlocale/_string.h \
+  /usr/include/unistd.h /usr/include/sys/unistd.h /usr/include/elf.h \
+  /usr/include/machine/elf.h /usr/include/x86/elf.h \
+  /usr/include/sys/elf32.h /usr/include/sys/elf_common.h \
+  /usr/include/sys/elf64.h /usr/include/sys/elf_generic.h \
+  /usr/include/sys/endian.h ../include/tdep/libunwind_i.h \
+  ../include/tdep-x86_64/libunwind_i.h elf64.h elfxx.h \
+  /usr/include/fcntl.h /usr/include/sys/stat.h ../include/mempool.h \
+  ../include/dwarf.h ../include/tdep-x86_64/dwarf-config.h \
+  /usr/include/link.h /usr/include/sys/link_elf.h /usr/include/sys/elf.h
+
+/usr/include/sys/param.h:
+
+/usr/include/sys/_null.h:
+
+/usr/include/sys/types.h:
+
+/usr/include/sys/cdefs.h:
+
+/usr/include/machine/endian.h:
+
+/usr/include/x86/endian.h:
+
+/usr/include/sys/_types.h:
+
+/usr/include/machine/_types.h:
+
+/usr/include/x86/_types.h:
+
+/usr/include/machine/_limits.h:
+
+/usr/include/x86/_limits.h:
+
+/usr/include/sys/_pthreadtypes.h:
+
+/usr/include/sys/_stdint.h:
+
+/usr/include/sys/select.h:
+
+/usr/include/sys/_sigset.h:
+
+/usr/include/sys/_timeval.h:
+
+/usr/include/sys/timespec.h:
+
+/usr/include/sys/_timespec.h:
+
+/usr/include/sys/syslimits.h:
+
+/usr/include/sys/signal.h:
+
+/usr/include/machine/signal.h:
+
+/usr/include/x86/signal.h:
+
+/usr/include/machine/param.h:
+
+/usr/include/machine/_align.h:
+
+/usr/include/x86/_align.h:
+
+/usr/include/sys/limits.h:
+
+/usr/include/sys/mman.h:
+
+/usr/include/sys/sysctl.h:
+
+/usr/include/sys/user.h:
+
+/usr/include/machine/pcb.h:
+
+/usr/include/machine/fpu.h:
+
+/usr/include/x86/fpu.h:
+
+/usr/include/machine/segments.h:
+
+/usr/include/x86/segments.h:
+
+/usr/include/sys/errno.h:
+
+/usr/include/sys/time.h:
+
+/usr/include/time.h:
+
+/usr/include/xlocale/_time.h:
+
+/usr/include/sys/resource.h:
+
+/usr/include/sys/ucred.h:
+
+/usr/include/bsm/audit.h:
+
+/usr/include/sys/uio.h:
+
+/usr/include/sys/_iovec.h:
+
+/usr/include/sys/_uio.h:
+
+/usr/include/sys/queue.h:
+
+/usr/include/sys/_lock.h:
+
+/usr/include/sys/_mutex.h:
+
+/usr/include/sys/proc.h:
+
+/usr/include/sys/callout.h:
+
+/usr/include/sys/_callout.h:
+
+/usr/include/sys/event.h:
+
+/usr/include/sys/condvar.h:
+
+/usr/include/sys/filedesc.h:
+
+/usr/include/sys/caprights.h:
+
+/usr/include/sys/lock.h:
+
+/usr/include/sys/ktr_class.h:
+
+/usr/include/sys/priority.h:
+
+/usr/include/sys/seq.h:
+
+/usr/include/sys/sx.h:
+
+/usr/include/sys/_sx.h:
+
+/usr/include/sys/lock_profile.h:
+
+/usr/include/sys/osd.h:
+
+/usr/include/sys/rtprio.h:
+
+/usr/include/sys/runq.h:
+
+/usr/include/machine/runq.h:
+
+/usr/include/sys/sigio.h:
+
+/usr/include/sys/signalvar.h:
+
+/usr/include/sys/ucontext.h:
+
+/usr/include/machine/ucontext.h:
+
+/usr/include/x86/ucontext.h:
+
+/usr/include/sys/_ucontext.h:
+
+/usr/include/sys/_domainset.h:
+
+/usr/include/sys/_bitset.h:
+
+/usr/include/machine/proc.h:
+
+/usr/include/vm/vm.h:
+
+/usr/include/machine/vm.h:
+
+/usr/include/machine/specialreg.h:
+
+/usr/include/x86/specialreg.h:
+
+/usr/include/vm/vm_param.h:
+
+/usr/include/machine/vmparam.h:
+
+/usr/include/vm/pmap.h:
+
+/usr/include/machine/pmap.h:
+
+/usr/include/sys/_cpuset.h:
+
+/usr/include/sys/_pctrie.h:
+
+/usr/include/sys/_rangeset.h:
+
+/usr/include/vm/_vm_radix.h:
+
+/usr/include/vm/vm_map.h:
+
+/usr/include/sys/resourcevar.h:
+
+/usr/include/sys/socket.h:
+
+/usr/include/sys/_sockaddr_storage.h:
+
+/usr/include/stdio.h:
+
+/usr/include/errno.h:
+
+../include/libunwind_i.h:
+
+../include/config.h:
+
+../include/compiler.h:
+
+/usr/include/assert.h:
+
+../include/libunwind.h:
+
+../include/libunwind-x86_64.h:
+
+/usr/include/inttypes.h:
+
+/usr/include/machine/_inttypes.h:
+
+/usr/include/x86/_inttypes.h:
+
+/usr/include/sys/stdint.h:
+
+/usr/include/machine/_stdint.h:
+
+/usr/include/x86/_stdint.h:
+
+/usr/include/ucontext.h:
+
+../include/libunwind-dynamic.h:
+
+../include/libunwind-common.h:
+
+/usr/include/pthread.h:
+
+/usr/include/sched.h:
+
+/usr/include/signal.h:
+
+/usr/include/stdlib.h:
+
+/usr/include/string.h:
+
+/usr/include/strings.h:
+
+/usr/include/xlocale/_strings.h:
+
+/usr/include/xlocale/_string.h:
+
+/usr/include/unistd.h:
+
+/usr/include/sys/unistd.h:
+
+/usr/include/elf.h:
+
+/usr/include/machine/elf.h:
+
+/usr/include/x86/elf.h:
+
+/usr/include/sys/elf32.h:
+
+/usr/include/sys/elf_common.h:
+
+/usr/include/sys/elf64.h:
+
+/usr/include/sys/elf_generic.h:
+
+/usr/include/sys/endian.h:
+
+../include/tdep/libunwind_i.h:
+
+../include/tdep-x86_64/libunwind_i.h:
+
+elf64.h:
+
+elfxx.h:
+
+/usr/include/fcntl.h:
+
+/usr/include/sys/stat.h:
+
+../include/mempool.h:
+
+../include/dwarf.h:
+
+../include/tdep-x86_64/dwarf-config.h:
+
+/usr/include/link.h:
+
+/usr/include/sys/link_elf.h:
+
+/usr/include/sys/elf.h:
