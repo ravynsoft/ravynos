@@ -4,7 +4,11 @@ sendmail_enable="NONE"
 sendmail_submit_enable="NO"
 sendmail_outbound_enable="NO"
 sendmail_msp_queue_enable="NO"
-kld_list="fuse"
+# kld_list (str) A list of kernel modules to load right after the local
+# disks are mounted. Loading modules at this point in the boot
+# process is much faster than doing it via /boot/loader.conf
+# for those modules not necessary for mounting local disk
+kld_list="fuse cuse ig4 iicbus iichid utouch asmc"
 dsbdriverd_enable="YES"
 cupsd_enable="YES"
 devfs_system_ruleset="system"
@@ -19,7 +23,6 @@ avahi_daemon_enable="YES"
 ntpd_enable="NO"
 ntpdate_enable="YES"
 autofs_enable="YES"
-load_iichid_enable="YES"
 load_acpi_enable="YES"
 setup_mouse_enable="YES"
 background_dhclient="YES"
