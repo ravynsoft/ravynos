@@ -233,7 +233,7 @@ mkdir -p "${uzip}/Applications/Autostart/"
 chmod g+w "${uzip}/Applications/Autostart/"
 ( cd "${uzip}/Applications/Autostart/" ; ln -s ../Utilities/BuildNotify.app . )
 ( cd "${uzip}/Applications/Autostart/" ; ln -s ../Utilities/"Sticky Notes.app" . )
-( cd "${uzip}/Applications/Autostart/" ; ln -s ../System/Volume.app . )
+( cd "${uzip}/Applications/Autostart/" ; ln -s ../../System/Volume.app . )
 
 # Silence late boot messages
 cat > /tmp/rc <<\EOF
