@@ -28,11 +28,20 @@ checkout:
 		(cd ${TOPDIR} && git clone https://github.com/freebsd/freebsd-src.git && \
 		cd freebsd-src && git checkout stable/12)
 
-freebsd: checkout ${TOPDIR}/freebsd-src/sys/${MACHINE}/compile/${BSDCONFIG}
+patchbsd: patches/*.patch
+	(cd ${TOPDIR}/freebsd-src && git checkout -f stable/12; \
+	git branch -D helium/12 || true; \
+	git checkout -b helium/12; \
+	for patch in ${TOPDIR}/patches/*.patch; do patch -p1 < $$patch; done)
+
+freebsd: checkout patchbsd ${TOPDIR}/freebsd-src/sys/${MACHINE}/compile/${BSDCONFIG}
 	export MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX}; make -C ${TOPDIR}/freebsd-src buildkernel buildworld
 
 freebsd-noclean:
 	export MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX}; make -C ${TOPDIR}/freebsd-src -DNO_CLEAN buildkernel buildworld
+
+freebsd-usr-noclean:
+	export MAKEOBJDIRPREFIX=${MAKEOBJDIRPREFIX}; make -C ${TOPDIR}/freebsd-src -DNO_CLEAN buildworld
 
 helium: extradirs mkfiles libobjc2 frameworksclean frameworks copyfiles
 
