@@ -691,7 +691,7 @@ static NSMapTable *pathToObject=NULL;
 
 /*
   Frameworks are organized as:
-    Executables/<shared object, e.g. dll or so>
+    Versions/Current/*.so
 	Frameworks/MyFramework.framework/
   Bundles are organized like OS X with Contents/<operating system>
  */
@@ -707,7 +707,7 @@ static NSMapTable *pathToObject=NULL;
     name=[[_path lastPathComponent] stringByDeletingPathExtension];
 
    if([type isEqualToString:@"framework"])
-    checkDir=[[[_path stringByDeletingLastPathComponent] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"Executables"];
+    checkDir=[[[_path stringByDeletingLastPathComponent] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"Versions"];
    else
     checkDir=[[_path stringByAppendingPathComponent:@"Contents"] stringByAppendingPathComponent:NSPlatformExecutableDirectory];
 

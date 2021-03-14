@@ -48,7 +48,7 @@ ${APP_DIR}:
 	@${ECHO} building ${APP_DIR} bundle
 	mkdir -p "${APP_DIR}/Contents/Helium" \
 		"${APP_DIR}/Contents/Resources"
-	touch "${APP_DIR}/Contents/Info.plist"
+	touch "${APP_DIR}/Contents/Resources/Info.plist"
 	touch "${APP_DIR}/Contents/PkgInfo"
 
 .include <bsd.prog.mk>
