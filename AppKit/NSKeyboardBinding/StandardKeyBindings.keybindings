@@ -1,0 +1,85 @@
+{
+/* The default behavior of modifiers is to map the left control to command.
+   Applications may override this behavior, we still want control-x to behave properly, so we put it in the map here too. */
+	"control,0x0078" = "cut:";				/* command-x */
+	"control,0x0063" = "copy:";				/* command-c */
+	"control,0x0076" = "paste:";				/* command-v */
+	"control,0x0061" = "selectAll:";				/* command-a */
+
+	"command,0x0078" = "cut:";				/* command-x */
+	"command,0x0063" = "copy:";				/* command-c */
+	"command,0x0076" = "paste:";				/* command-v */
+	"command,0x0061" = "selectAll:";				/* command-a */
+
+	"0x0008" = "deleteBackward:";			/* (backspace? heh) */
+	"0x001B" = "cancel:";				/* Escape */
+	"0x0009" = "insertTab:";
+	"shift,0x0009" = "insertBacktab:";
+	"0x000A" = "insertNewline:";
+	"0x000D" = "insertNewline:";
+
+	"keypad,0xF700" = "moveUp:";			/* NSUpArrowFunctionKey */
+	"keypad,0xF701" = "moveDown:";			/* NSDownArrowFunctionKey */
+	"shift,keypad,0xF700" = "moveUpAndModifySelection:";
+	"shift,keypad,0xF701" = "moveDownAndModifySelection:";
+
+	"keypad,0xF702" = "moveLeft:";		/* NSLeftArrowFunctionKey */
+	"keypad,0xF703" = "moveRight:";		/* NSRightArrowFunctionKey */
+	"shift,keypad,0xF702" = "moveBackwardAndModifySelection:";
+	"shift,keypad,0xF703" = "moveForwardAndModifySelection:";
+
+	"command,keypad,0xF702" = "moveWordBackward:";
+	"command,keypad,0xF703" = "moveWordForward:";
+	"command,shift,keypad,0xF702" = "moveWordBackwardAndModifySelection:";
+	"command,shift,keypad,0xF703" = "moveWordForwardAndModifySelection:";
+
+	"alt,keypad,0xF702" = "moveToBeginningOfLine:";
+	"alt,keypad,0xF703" = "moveToEndOfLine:";
+	"shift,alt,keypad,0xF702" = "moveToBeginningOfLineAndModifySelection:";
+	"shift,alt,keypad,0xF703" = "moveToEndOfLineAndModifySelection:";
+
+	/* i'm running out of keys on my keyboard! */
+	"keypad,0xF728" = "deleteForward:";			/* NSDeleteFunctionKey */
+	"command,keypad,0xF728" = "deleteWordForward:";
+	"alt,0x0008" = "deleteWordBackward:";			/* command + 0x0008 produces 0x007F */
+	"alt,shift,0x0008" = "deleteToBeginningOfLine:";
+	"alt,keypad,0xF728" = "deleteToEndOfLine:";
+	"command,0x0004" = "deleteToBeginningOfParagraph:";	/* control-d */
+	"command,shift,keypad,0xF728" = "deleteToEndOfParagraph:";
+
+	"keypad,0xF729" = "moveToBeginningOfParagraph:";	/* NSHomeFunctionKey */
+	"shift,keypad,0xF729" = "moveParagraphBackwardAndModifySelection:";
+	"keypad,0xF72B" = "moveToEndOfParagraph:";			/* NSEndFunctionKey */
+	"shift,keypad,0xF72B" = "moveParagraphForwardAndModifySelection:";
+
+	"keypad,0xF72C" = "pageUp:";			/* NSPageUpFunctionKey */
+	"keypad,0xF72D" = "pageDown:";			/* NSPageDownFunctionKey */
+	"command,keypad,0xF72C" = "scrollPageUp:";
+	"command,keypad,0xF72D" = "scrollPageDown:";
+	"shift,keypad,0xF72C" = "pageUpAndModifySelection:";
+	"shift,keypad,0xF72D" = "pageDownAndModifySelection:";
+
+	"command,keypad,0xF729" = "moveToBeginningOfDocument:";
+	"command,keypad,0xF72B" = "moveToEndOfDocument:";
+	"control,keypad,0xF729" = "scrollToBeginningOfDocument:";
+	"control,keypad,0xF72B" = "scrollToEndOfDocument:";
+	"command,shift,keypad,0xF729" = "moveToBeginningOfDocumentAndModifySelection:";
+	"command,shift,keypad,0xF72B" = "moveToEndOfDocumentAndModifySelection:";
+
+	/* hmm. command + { - } produces no codes? these are menu keyEquivs anyway,just bound for testing */
+	"alt,shift,0x007b" = "alignLeft:";			/* { */
+	"alt,0x002d" = "alignCenter:";				/* - */
+	"alt,shift,0x007d" = "alignRight:";			/* } */
+
+	"alt,0x0075" = "underline:";				/* u */
+
+	/* kill buffer! */
+	"command,0x0019" = "yank:";				/* control-y */
+
+	/* transposition */
+	"alt,0x0071" = "transpose:";				/* q */
+	"alt,0x0077" = "transposeWords:";			/* w */
+
+	/* completion */
+	"0xF704" = "complete:";					/* F1 */
+}
