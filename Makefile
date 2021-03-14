@@ -140,6 +140,18 @@ CoreServices.framework:
 	make -C CoreServices BUILDROOT=${BUILDROOT}
 	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
 
+CoreData.framework:
+	rm -rf CoreData/${.TARGET}
+	make -C CoreData BUILDROOT=${BUILDROOT} clean
+	make -C CoreData BUILDROOT=${BUILDROOT}
+	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
+
+AppKit.framework:
+	rm -rf AppKit/${.TARGET}
+	make -C AppKit BUILDROOT=${BUILDROOT} clean build
+	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
+
+
 helium-package:
 	tar cJ -C ${BUILDROOT} --gid 0 --uid 0 -f ${RLSDIR}/helium.txz .
 
