@@ -42,13 +42,13 @@ patchbsd: patches/*.patch
 freebsd: checkout patchbsd ${TOPDIR}/freebsd-src/sys/${MACHINE}/compile/${BSDCONFIG}
 	export MAKEOBJDIRPREFIX=${OBJPREFIX}; make BRANCH_OVERRIDE=${BRANCH_OVERRIDE} \
 		-C ${TOPDIR}/freebsd-src buildkernel 
-	export MAKEOBJDIRPREFIX=${OBJPREFIX}; make BRANCH_OVERRIDE=${BRANCH_OVERRIDE} \
+	export MAKEOBJDIRPREFIX=${OBJPREFIX}; make \
 		-j${CORES} -C ${TOPDIR}/freebsd-src buildworld
 
 freebsd-noclean:
 	export MAKEOBJDIRPREFIX=${OBJPREFIX}; make BRANCH_OVERRIDE=${BRANCH_OVERRIDE} \
 		-C ${TOPDIR}/freebsd-src -DNO_CLEAN buildkernel
-	export MAKEOBJDIRPREFIX=${OBJPREFIX}; make BRANCH_OVERRIDE=${BRANCH_OVERRIDE} \
+	export MAKEOBJDIRPREFIX=${OBJPREFIX}; make \
 		-j${CORES} -C ${TOPDIR}/freebsd-src -DNO_CLEAN buildworld
 
 kernel-noclean:
