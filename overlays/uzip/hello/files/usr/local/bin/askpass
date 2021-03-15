@@ -18,11 +18,19 @@
 #                  If no askpass program is available, sudo will exit with an
 #                  error.
 
-
+import os
 from PyQt5 import QtWidgets
 
+text = "Password"
+
+# SUDO_ASKPASS_TEXT is a non-standard environment variable.
+# If it is set, we show its value in the dialog as a way for the program
+# requesting root rights to let the user know the reason for doing so.
+if os.environ.get('SUDO_ASKPASS_TEXT') is not None:
+    text = os.environ.get('SUDO_ASKPASS_TEXT') + "\n\n" + text
+
 app = QtWidgets.QApplication([])
-password, ok = QtWidgets.QInputDialog.getText(None, "sudo", "Password", QtWidgets.QLineEdit.Password)
+password, ok = QtWidgets.QInputDialog.getText(None, "sudo", text, QtWidgets.QLineEdit.Password)
 if ok:
     print(password)
 app.exit(0)
