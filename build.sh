@@ -326,24 +326,16 @@ script()
 uzip() 
 {
   install -o root -g wheel -m 755 -d "${cdroot}"
-  sync ### Needed?
-  cd ${cwd} && zpool export furybsd && while zpool status furybsd >/dev/null; do :; done 2>/dev/null
-  sync ### Needed?
-  mkuzip -S -d -o "${cdroot}/data/system.uzip" "${livecd}/pool.img"
+  makefs "${iso}/system.ufs" "${uzip}"
+  mkuzip -o "${cdroot}/data/system.uzip" "${iso}/system.ufs"
+  rm -f "${iso}/system.ufs"  cd ${cwd} && zpool export furybsd && while zpool status furybsd >/dev/null; do :; done 2>/dev/null
 }
 
 ramdisk() 
 {
-  cp -R "${cwd}/overlays/ramdisk/" "${ramdisk_root}"
-  sync ### Needed?
-  cd ${cwd} && zpool import furybsd && zfs set mountpoint=/usr/local/furybsd/uzip furybsd
-  sync ### Needed?
-  cd "${uzip}" && tar -cf - rescue | tar -xf - -C "${ramdisk_root}"
-  touch "${ramdisk_root}/etc/fstab"
-  cp ${uzip}/etc/login.conf ${ramdisk_root}/etc/login.conf
-  makefs -b '10%' "${cdroot}/data/ramdisk.ufs" "${ramdisk_root}"
-  gzip -f "${cdroot}/data/ramdisk.ufs"
-  rm -rf "${ramdisk_root}"
+  cp -R "${cwd}/overlays/boot/" "${cdroot}"
+  cd "${uzip}" && tar -cf - boot | tar -xf - -C "${cdroot}"
+  cd ${cwd} && zpool export furybsd && mdconfig -d -u 0
 }
 
 boot() 
