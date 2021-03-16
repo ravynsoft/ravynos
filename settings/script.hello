@@ -320,7 +320,6 @@ cat > "${uzip}/usr/sbin/pkg" <<\EOF
 #!/bin/sh
 # Temporary workaround for https://github.com/helloSystem/ISO/issues/14
 case "$@" in
-  *freebsd-update*) echo "pkg freebsd-update is not yet supported in helloSystem" ;;
   *update*) echo "pkg update is not yet supported in helloSystem" ;;
   *upgrade*) echo "pkg update is not yet supported in helloSystem" ;;
   *)         pkg.real "$@" ;;
