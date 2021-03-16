@@ -60,7 +60,7 @@ mount -t unionfs /memdisk /sysroot
 
 echo "==> Mount /sysroot/sysroot/boot" # https://github.com/helloSystem/ISO/issues/4#issuecomment-800636914
 mkdir -p /sysroot/sysroot/boot
-mount -t nullfs /boot /sysroot/sysroot/boot
+mount -t nullfs /sysroot/boot /sysroot/sysroot/boot
 
 echo "==> Change into /sysroot"
 mount -t devfs devfs /sysroot/dev
