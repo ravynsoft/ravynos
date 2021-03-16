@@ -12,6 +12,14 @@ The main design goals are:
 - eventual compatibility with x86-64 macOS binaries (Mach-O) and libraries
 - pleasant to use, secure, stable, and performant
 
+# How mature is this?
+
+Not very. I just started on it, but it can do a few neat tricks already. Here's one.
+
+https://user-images.githubusercontent.com/60144291/111368062-c8000800-866b-11eb-912f-25fdba3c5977.mp4
+
+
+
 
 ## Why BSD instead of Linux?
 
