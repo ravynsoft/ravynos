@@ -328,45 +328,31 @@ uzip()
   install -o root -g wheel -m 755 -d "${cdroot}"
   makefs "${iso}/system.ufs" "${uzip}"
   mkuzip -o "${cdroot}/data/system.uzip" "${iso}/system.ufs"
-  rm -f "${iso}/system.ufs"  cd ${cwd} && zpool export furybsd && while zpool status furybsd >/dev/null; do :; done 2>/dev/null
+  rm -f "${iso}/system.ufs"
+  cd ${cwd} && zpool export furybsd && while zpool status furybsd >/dev/null; do :; done 2>/dev/null
 }
 
 ramdisk() 
 {
-  cp -R "${cwd}/overlays/boot/" "${cdroot}"
-  cd "${uzip}" && tar -cf - boot | tar -xf - -C "${cdroot}"
-  cd ${cwd} && zpool export furybsd && mdconfig -d -u 0
+  cp -R "${cwd}/overlays/ramdisk/" "${ramdisk_root}"
+  sync ### Needed?
+  cd ${cwd} && zpool import furybsd && zfs set mountpoint=/usr/local/furybsd/uzip furybsd
+  sync ### Needed?
+  cd "${uzip}" && tar -cf - rescue | tar -xf - -C "${ramdisk_root}"
+  touch "${ramdisk_root}/etc/fstab"
+  cp ${uzip}/etc/login.conf ${ramdisk_root}/etc/login.conf
+  makefs -b '10%' "${cdroot}/data/ramdisk.ufs" "${ramdisk_root}"
+  gzip -f "${cdroot}/data/ramdisk.ufs"
+  rm -rf "${ramdisk_root}"
 }
 
 boot() 
 {
   cp -R "${cwd}/overlays/boot/" "${cdroot}"
   cd "${uzip}" && tar -cf - boot | tar -xf - -C "${cdroot}"
-  sync ### Needed?
   cd ${cwd} && zpool export furybsd && mdconfig -d -u 0
-  sync ### Needed?
-  # The name of a dependency for zfs.ko changed, violating POLA
-  # If we are loading both modules, then at least 13 cannot boot, hence only load one based on the FreeBSD major version
-  MAJOR=$(uname -r | cut -d "." -f 1)
-  if [ $MAJOR -lt 13 ] ; then
-    echo "Major version < 13, hence using opensolaris.ko"
-    sed -i -e 's|opensolaris_load=".*"|opensolaris_load="YES"|g' "${cdroot}"/boot/loader.conf
-    rm -f "${cdroot}"/boot/loader.conf-e
-    sed -i -e 's|cryptodev_load=".*"|cryptodev_load="NO"|g' "${cdroot}"/boot/loader.conf
-    rm -f "${cdroot}"/boot/loader.conf-e
-    sed -i -e 's|tmpfs_load=".*"|tmpfs_load="YES"|g' "${cdroot}"/boot/loader.conf
-    rm -f "${cdroot}"/boot/loader.conf-e
-  else
-    echo "Major version >= 13, hence using cryptodev.ko"
-    sed -i -e 's|cryptodev_load=".*"|cryptodev_load="YES"|g' "${cdroot}"/boot/loader.conf
-    rm -f "${cdroot}"/boot/loader.conf-e
-    sed -i -e 's|opensolaris_load=".*"|opensolaris_load="NO"|g' "${cdroot}"/boot/loader.conf
-    rm -f "${cdroot}"/boot/loader.conf-e
-    sed -i -e 's|tmpfs_load=".*"|tmpfs_load="NO"|g' "${cdroot}"/boot/loader.conf
-    rm -f "${cdroot}"/boot/loader.conf-e
-  fi
-  sync ### Needed?
 }
+
 
 tag()
 {
