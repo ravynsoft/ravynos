@@ -1,7 +1,8 @@
 task:
   freebsd_instance:
     cpu: 2
-    memory: 8G
+    # cpu: 1 gives an error; >= 2 works
+    memory: 13G
     matrix:
       # image: freebsd-12-1-release-amd64 # EOL
       - image: freebsd-12-2-release-amd64
@@ -21,6 +22,7 @@ task:
   env:
     matrix:
       DESKTOP: 'hello'
+      DESKTOP: 'fluxbox'
 
   env:
     matrix:
