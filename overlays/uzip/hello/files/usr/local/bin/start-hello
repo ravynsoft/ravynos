@@ -136,6 +136,9 @@ export XDG_DATA_HOME=~/.local/share
 export XDG_SESSION_CLASS=user
 export XDG_SESSION_TYPE=x11
 
+# When 'sudo -A -E <command>' is executed, use this helper appliction to get the password
+export SUDO_ASKPASS=/usr/local/bin/askpass
+
 ##################
 # Global menus for Gtk applications
 # 
