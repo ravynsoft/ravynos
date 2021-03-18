@@ -189,7 +189,12 @@ chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/dsbmix
 mkdir -p "${uzip}/Applications/Utilities"
 chmod g+w "${uzip}/Applications/Utilities"
 # chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/org.kde.systemmonitor.desktop /Applications/Utilities/ # TODO: Find lighter replacement
-chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/qterminal.desktop /Applications/Utilities/
+# chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/qterminal.desktop /Applications/Utilities/
+# For now, we are using a patched version of QTerminal that includes https://github.com/lxqt/qtermwidget/pull/418
+wget -c "https://github.com/helloSystem/ISO/releases/download/assets/QTerminal_FreeBSD.zip"
+unzip QTerminal_FreeBSD.zip
+mv "QTerminal.app" "${uzip}/Applications/Utilities/"
+rm QTerminal_FreeBSD.zip
 
 # cp "${uzip}"/usr/local/share/applications/usr_local_lib_qt5_bin_assistant.desktop "${uzip}"/tmp/documentation.desktop
 # sed -i -e 's|^GenericName=.*|GenericName=Documentation|g' "${uzip}"/tmp/documentation.desktop
