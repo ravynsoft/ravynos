@@ -105,33 +105,39 @@ frameworksclean:
 	rm -rf ${BUILDROOT}/System/Library/Frameworks/*.framework
 	for fmwk in ${.ALLTARGETS:M*.framework:R}; do \
 		make ${MKINCDIR} -C $$fmwk clean; \
+		rm -rf $$fmwk/$$fmwk.framework; \
 	done
+	rm -rf Foundation/Headers
 
 frameworks: 
 	for fmwk in ${.ALLTARGETS:M*.framework}; do \
 		make ${MKINCDIR} $$fmwk; done
 
-Foundation.framework:
-	rm -rf Foundation/${.TARGET}
-	make -C Foundation BUILDROOT=${BUILDROOT} clean build
-	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
+marshallheaders:
+	make -C Foundation marshallheaders
 
-CoreFoundation.framework:
+# DO NOT change the order of these 4 frameworks!
+CoreFoundation.framework: marshallheaders
 	rm -rf CoreFoundation/${.TARGET}
 	make -C CoreFoundation BUILDROOT=${BUILDROOT} clean
 	make -C CoreFoundation BUILDROOT=${BUILDROOT}
-	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
-
-CoreServices.framework:
-	rm -rf CoreServices/${.TARGET}
-	make -C CoreServices BUILDROOT=${BUILDROOT} clean
-	make -C CoreServices BUILDROOT=${BUILDROOT}
 	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
 
 CFNetwork.framework:
 	rm -rf CFNetwork/${.TARGET}
 	make -C CFNetwork BUILDROOT=${BUILDROOT} clean
 	make -C CFNetwork BUILDROOT=${BUILDROOT}
+	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
+
+Foundation.framework:
+	rm -rf Foundation/${.TARGET}
+	make -C Foundation BUILDROOT=${BUILDROOT} clean build
+	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
+
+CoreServices.framework:
+	rm -rf CoreServices/${.TARGET}
+	make -C CoreServices BUILDROOT=${BUILDROOT} clean
+	make -C CoreServices BUILDROOT=${BUILDROOT}
 	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
 
 helium-package:

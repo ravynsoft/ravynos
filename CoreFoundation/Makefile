@@ -84,7 +84,7 @@ INCS= \
 	CoreFoundation.h
 
 RESOURCES=Info.plist English.lproj
-CFLAGS+= ${FMWK_CFLAGS} -I.. -I../libobjc2 \
+CFLAGS+= ${FMWK_CFLAGS} -I.. -I../libobjc2 -I../Foundation/Headers \
 	 -F${BUILDROOT}/System/Library/Frameworks -framework Foundation
 
 .include <he.framework.mk>

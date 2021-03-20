@@ -25,8 +25,6 @@ APP=Bar
 SRCS=bar.m
 MK_DEBUG_FILES=no
 RESOURCES=rsc/sample.txt
-FRAMEWORKS=/System/Library/Frameworks/Foundation \
-	   /System/Library/Frameworks/CoreFoundation \
-	   /System/Library/Frameworks/CFNetwork
+FRAMEWORKS=/System/Library/Frameworks/Foundation
 
 .include <he.app.mk>

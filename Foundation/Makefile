@@ -670,7 +670,11 @@ INCS= \
 RESOURCES=Info.plist English.lproj
 CFLAGS+= ${FMWK_CFLAGS} -I${.CURDIR}/Headers \
 	 -I${.CURDIR}/.. -I${BUILDROOT}/usr/include 
-LDFLAGS+= ${FMWK_LDFLAGS}
+LDFLAGS+= ${FMWK_LDFLAGS} \
+	  -Wl,-R/System/Library/Frameworks/CFNetwork.framework/Versions/A \
+	  -L${BUILDROOT}/System/Library/Frameworks/CFNetwork.framework/Versions/Current \
+	  -lCFNetwork \
+	  -lobjc -lunwind -lpthread
 
 build: marshallheaders all
 
