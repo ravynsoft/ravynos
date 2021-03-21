@@ -146,6 +146,12 @@ CoreData.framework:
 	make -C CoreData BUILDROOT=${BUILDROOT}
 	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
 
+CoreText.framework:
+	rm -rf CoreText/${.TARGET}
+	make -C CoreText BUILDROOT=${BUILDROOT} clean
+	make -C CoreText BUILDROOT=${BUILDROOT}
+	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
+
 AppKit.framework:
 	rm -rf AppKit/${.TARGET}
 	make -C AppKit BUILDROOT=${BUILDROOT} clean build
