@@ -248,3 +248,61 @@ COREFOUNDATION_EXPORT int bcmp(const void *s1, void *s2, size_t n);
 COREFOUNDATION_EXPORT int mkstemps(char *tmplt, int suffixlen);
 COREFOUNDATION_EXPORT long random(void);
 #endif
+
+// Enums and Options
+#if (__cplusplus && __cplusplus >= 201103L && (__has_extension(cxx_strong_enums) || __has_feature(objc_fixed_enum))) || (!__cplusplus && __has_feature(objc_fixed_enum))
+#define CF_ENUM(_type, _name) enum _name : _type _name; enum _name : _type
+#if (__cplusplus)
+#define CF_OPTIONS(_type, _name) _type _name; enum : _type
+#else
+#define CF_OPTIONS(_type, _name) enum _name : _type _name; enum _name : _type
+#endif
+#else
+#define CF_ENUM(_type, _name) _type _name; enum
+#define CF_OPTIONS(_type, _name) _type _name; enum
+#endif
+
+#ifndef CF_IMPLICIT_BRIDGING_ENABLED
+#if __has_feature(arc_cf_code_audited)
+#define CF_IMPLICIT_BRIDGING_ENABLED _Pragma("clang arc_cf_code_audited begin")
+#else
+#define CF_IMPLICIT_BRIDGING_ENABLED
+#endif
+#endif
+
+#ifndef CF_IMPLICIT_BRIDGING_DISABLED
+#if __has_feature(arc_cf_code_audited)
+#define CF_IMPLICIT_BRIDGING_DISABLED _Pragma("clang arc_cf_code_audited end")
+#else
+#define CF_IMPLICIT_BRIDGING_DISABLED
+#endif
+#endif
+
+#if __has_attribute(objc_bridge)
+
+#ifdef __OBJC__
+@class NSArray;
+@class NSAttributedString;
+@class NSString;
+@class NSNull;
+@class NSCharacterSet;
+@class NSData;
+@class NSDate;
+@class NSTimeZone;
+@class NSDictionary;
+@class NSError;
+@class NSLocale;
+@class NSNumber;
+@class NSNumber;
+@class NSSet;
+@class NSURL;
+#endif
+
+#define CF_BRIDGED_TYPE(T)		__attribute__((objc_bridge(T)))
+#define CF_BRIDGED_MUTABLE_TYPE(T)	__attribute__((objc_bridge_mutable(T)))
+#define CF_RELATED_TYPE(T,C,I)		__attribute__((objc_bridge_related(T,C,I)))
+#else
+#define CF_BRIDGED_TYPE(T)
+#define CF_BRIDGED_MUTABLE_TYPE(T)
+#define CF_RELATED_TYPE(T,C,I)
+#endif

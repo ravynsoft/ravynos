@@ -146,6 +146,18 @@ CoreData.framework:
 	make -C CoreData BUILDROOT=${BUILDROOT}
 	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
 
+Onyx2D.framework:
+	rm -rf Onyx2D/${.TARGET}
+	make -C Onyx2D BUILDROOT=${BUILDROOT} clean
+	make -C Onyx2D BUILDROOT=${BUILDROOT}
+	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
+
+CoreGraphics.framework:
+	rm -rf CoreGraphics/${.TARGET}
+	make -C CoreGraphics BUILDROOT=${BUILDROOT} clean
+	make -C CoreGraphics BUILDROOT=${BUILDROOT}
+	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
+
 CoreText.framework:
 	rm -rf CoreText/${.TARGET}
 	make -C CoreText BUILDROOT=${BUILDROOT} clean
