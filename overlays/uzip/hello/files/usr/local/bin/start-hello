@@ -139,6 +139,10 @@ export XDG_SESSION_TYPE=x11
 # When 'sudo -A -E <command>' is executed, use this helper appliction to get the password
 export SUDO_ASKPASS=/usr/local/bin/askpass
 
+# Ensure users are never dropped into vi
+export VISUAL=/usr/local/bin/nano
+export EDITOR=/usr/local/bin/nano
+
 ##################
 # Global menus for Gtk applications
 # 
