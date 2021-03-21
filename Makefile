@@ -152,6 +152,12 @@ Onyx2D.framework:
 	make -C Onyx2D BUILDROOT=${BUILDROOT}
 	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
 
+OpenGL.framework:
+	rm -rf OpenGL/${.TARGET}
+	make -C OpenGL BUILDROOT=${BUILDROOT} clean
+	make -C OpenGL BUILDROOT=${BUILDROOT}
+	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
+
 CoreGraphics.framework:
 	rm -rf CoreGraphics/${.TARGET}
 	make -C CoreGraphics BUILDROOT=${BUILDROOT} clean
