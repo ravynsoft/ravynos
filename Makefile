@@ -170,12 +170,14 @@ CoreGraphics.framework:
 	make -C CoreGraphics BUILDROOT=${BUILDROOT} clean
 	make -C CoreGraphics BUILDROOT=${BUILDROOT}
 	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
+	cp -vf ${TOPDIR}/${.TARGET:R}/CGEvent.h ${TOPDIR}/AppKit
 
 CoreText.framework:
 	rm -rf CoreText/${.TARGET}
 	make -C CoreText BUILDROOT=${BUILDROOT} clean
 	make -C CoreText BUILDROOT=${BUILDROOT}
 	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
+	cp -vf ${TOPDIR}/${.TARGET:R}/KTFont.h ${TOPDIR}/AppKit
 
 QuartzCore.framework:
 	rm -rf QuartzCore/${.TARGET}

@@ -16,7 +16,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <AppKit/NSPopUpWindow.h>
 #import <AppKit/NSWindow.h>
 #ifdef WIN32
-#import <AppKit/NSStatusBar_(Private).h>
+#import <AppKit/NSStatusBar_Private.h>
 #import <Foundation/NSPlatform_win32.h>
 #import <AppKit/Win32Window.h>
 #endif

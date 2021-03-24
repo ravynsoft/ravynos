@@ -11,7 +11,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 @class NSTextStorage, NSLayoutManager, NSTextContainer;
 
-const float NSStringDrawerLargeDimension;
+extern const float NSStringDrawerLargeDimension;
 
 @interface NSStringDrawer : NSObject {
     NSTextStorage *_textStorage;

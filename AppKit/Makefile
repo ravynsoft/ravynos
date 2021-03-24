@@ -243,17 +243,6 @@ NSWindowAnimationContext.m \
 NSWindowController.m \
 NSWindowScripting.m \
 NSWorkspace.m \
-X11.subproj/CGLContext.m \
-X11.subproj/KTFont_FT.m \
-X11.subproj/NSOpenGLDrawable_X11.m \
-X11.subproj/O2Context_builtin_FT.m \
-X11.subproj/O2Context_cairo.m \
-X11.subproj/O2FontState_cairo.m \
-X11.subproj/O2Font_FT.m \
-X11.subproj/O2Surface_cairo.m \
-X11.subproj/X11Display.m \
-X11.subproj/X11Event.m \
-X11.subproj/X11Window.m \
 _NSRuleEditorViewSliceHolder.m \
 nib.subproj/NSButtonImageSource.m \
 nib.subproj/NSClassSwapper.m \
@@ -269,13 +258,27 @@ nib.subproj/NSNibControlConnector.m \
 nib.subproj/NSNibHelpConnector.m \
 nib.subproj/NSNibLoading.m \
 nib.subproj/NSNibOutletConnector.m \
-nib.subproj/NSWindowTemplate.m
+nib.subproj/NSWindowTemplate.m \
+X11.subproj/CGLContext.m \
+X11.subproj/KTFont_FT.m \
+X11.subproj/NSOpenGLDrawable_X11.m \
+X11.subproj/O2Context_builtin_FT.m \
+X11.subproj/O2Context_cairo.m \
+X11.subproj/O2FontState_cairo.m \
+X11.subproj/O2Font_FT.m \
+X11.subproj/O2Surface_cairo.m \
+X11.subproj/X11Display.m \
+X11.subproj/X11Event.m \
+X11.subproj/X11Window.m 
+
 
 INCS= \
 AppKit.h \
 AppKitExport.h \
 CoreData_/NSPersistentDocument.h \
 CoreData_/_NSManagedProxy.h \
+CGEvent.h \
+KTFont.h \
 NSAccessibility.h \
 NSActionCell.h \
 NSAffineTransform.h \
@@ -462,7 +465,6 @@ NSSpellingViewController.h \
 NSSplitView.h \
 NSStatusBar.h \
 NSStatusItem.h \
-NSStatusBar_(Private).h \
 NSStatusItem+Private.h \
 NSStepper.h \
 NSStepperCell.h \
@@ -528,16 +530,6 @@ RTF.subproj/NSRichTextWriter.h \
 NSWindowController.h \
 NSWindowScripting.h \
 NSWorkspace.h \
-X11.subproj/KTFont_FT.h \
-X11.subproj/NSOpenGLDrawable_X11.h \
-X11.subproj/O2Context_builtin_FT.h \
-X11.subproj/O2Context_cairo.h \
-X11.subproj/O2FontState_cairo.h \
-X11.subproj/O2Font_FT.h \
-X11.subproj/O2Surface_cairo.h \
-X11.subproj/X11Display.h \
-X11.subproj/X11Event.h \
-X11.subproj/X11Window.h \
 _NSRuleEditorViewSliceHolder.h \
 nib.subproj/NSButtonImageSource.h \
 nib.subproj/NSClassSwapper.h \
@@ -553,15 +545,42 @@ nib.subproj/NSNibControlConnector.h \
 nib.subproj/NSNibHelpConnector.h \
 nib.subproj/NSNibLoading.h \
 nib.subproj/NSNibOutletConnector.h \
-nib.subproj/NSWindowTemplate.h
+nib.subproj/NSWindowTemplate.h \
+X11.subproj/KTFont_FT.h \
+X11.subproj/NSOpenGLDrawable_X11.h \
+X11.subproj/O2Context_builtin_FT.h \
+X11.subproj/O2Context_cairo.h \
+X11.subproj/O2FontState_cairo.h \
+X11.subproj/O2Font_FT.h \
+X11.subproj/O2Surface_cairo.h \
+X11.subproj/X11Display.h \
+X11.subproj/X11Event.h \
+X11.subproj/X11Window.h 
 
-RESOURCES=Info.plist English.lproj
-CFLAGS+= ${FMWK_CFLAGS} -I${.CURDIR}/.. -I${BUILDROOT}/usr/include \
-	 -I../OpenGL/include -I${.CURDIR}/Headers -I../Foundation/Headers
-LDFLAGS+= ${FMWK_LDFLAGS} \
+
+RESOURCES=Info.plist en.lproj de.lproj fr.lproj
+CFLAGS+= ${FMWK_CFLAGS} -I${.CURDIR}/.. -I${BUILDROOT}/usr/include -I/usr/local/include \
+	 -I../OpenGL/include -I/usr/local/include/freetype2 -I/usr/local/include/freetype2/freetype \
+	 -I/usr/local/include/fontconfig -I/usr/local/include/cairo -I${.CURDIR}/Headers -I../Foundation/Headers
+LDFLAGS+= ${FMWK_LDFLAGS} -L/usr/local/lib \
 	  -Wl,-R/System/Library/Frameworks/Foundation.framework/Versions/A \
+	  -Wl,-R/System/Library/Frameworks/CoreFoundation.framework/Versions/A \
+	  -Wl,-R/System/Library/Frameworks/CoreGraphics.framework/Versions/A \
+	  -Wl,-R/System/Library/Frameworks/CoreData.framework/Versions/A \
+	  -Wl,-R/System/Library/Frameworks/CoreText.framework/Versions/A \
+	  -Wl,-R/System/Library/Frameworks/QuartzCore.framework/Versions/A \
+	  -Wl,-R/System/Library/Frameworks/OpenGL.framework/Versions/A \
+	  -Wl,-R/System/Library/Frameworks/Onyx2D.framework/Versions/A \
 	  -L${BUILDROOT}/System/Library/Frameworks/Foundation.framework/Versions/Current \
-	  -lFoundation
+	  -L${BUILDROOT}/System/Library/Frameworks/CoreFoundation.framework/Versions/Current \
+	  -L${BUILDROOT}/System/Library/Frameworks/CoreGraphics.framework/Versions/Current \
+	  -L${BUILDROOT}/System/Library/Frameworks/CoreData.framework/Versions/Current \
+	  -L${BUILDROOT}/System/Library/Frameworks/CoreText.framework/Versions/Current \
+	  -L${BUILDROOT}/System/Library/Frameworks/QuartzCore.framework/Versions/Current \
+	  -L${BUILDROOT}/System/Library/Frameworks/OpenGL.framework/Versions/Current \
+	  -L${BUILDROOT}/System/Library/Frameworks/Onyx2D.framework/Versions/Current \
+	  -lFoundation -lCoreFoundation -lCoreGraphics -lCoreText -lCoreData -lQuartzCore -lOpenGL -lOnyx2D \
+	  -lobjc -lcairo -lfreetype -lfontconfig -lGL -lX11 -lXext -lXfixes -lXdamage -lm
 
 build: marshallheaders all
 
@@ -570,4 +589,3 @@ marshallheaders: .PHONY
 	find ${.CURDIR} -name \*.h -exec cp -f {} Headers/AppKit \;
 
 .include <he.framework.mk>
-

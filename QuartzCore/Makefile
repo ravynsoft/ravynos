@@ -1,6 +1,6 @@
 .include <internal/framework.common.mk>
 
-FRAMEWORK=Onyx2D
+FRAMEWORK=QuartzCore
 SRCS= \
 	CAAnimation.m \
 	CAAnimationGroup.m \
