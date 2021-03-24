@@ -133,6 +133,13 @@ Foundation.framework:
 	rm -rf Foundation/${.TARGET}
 	make -C Foundation BUILDROOT=${BUILDROOT} clean build
 	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
+	cp -vf ${TOPDIR}/${.TARGET:R}/NSException/NSRaise.h ${TOPDIR}/AppKit
+
+ApplicationServices.framework:
+	rm -rf ApplicationServices/${.TARGET}
+	make -C ApplicationServices BUILDROOT=${BUILDROOT} clean
+	make -C ApplicationServices BUILDROOT=${BUILDROOT}
+	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
 
 CoreServices.framework:
 	rm -rf CoreServices/${.TARGET}
@@ -168,6 +175,12 @@ CoreText.framework:
 	rm -rf CoreText/${.TARGET}
 	make -C CoreText BUILDROOT=${BUILDROOT} clean
 	make -C CoreText BUILDROOT=${BUILDROOT}
+	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
+
+QuartzCore.framework:
+	rm -rf QuartzCore/${.TARGET}
+	make -C QuartzCore BUILDROOT=${BUILDROOT} clean
+	make -C QuartzCore BUILDROOT=${BUILDROOT}
 	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
 
 AppKit.framework:
