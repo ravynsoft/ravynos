@@ -1,0 +1,513 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		FE01AAE60C5D9BF900AEA51A /* ApplicationServices.h in Headers */ = {isa = PBXBuildFile; fileRef = FE32179C0BB41C65004F000A /* ApplicationServices.h */; settings = {ATTRIBUTES = (Public, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		FE5A886110C6F2A4005E348A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FEC11BB10FD4B86500082282 /* CoreGraphics.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = FE5A884510C6F286005E348A;
+			remoteInfo = "CoreGraphics-FreeBSD-i386";
+		};
+		FE5A889110C6F2F5005E348A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FECF921A0FFB222D007AECF1 /* CoreText.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = FE5A888E10C6F2F5005E348A;
+			remoteInfo = "CoreText-Linux-i386 copy";
+		};
+		FEA316580FD5669200F480D4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FEC11BB10FD4B86500082282 /* CoreGraphics.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = FE6F7BB30FD554A800C3244F;
+			remoteInfo = "CoreGraphics-Linux-i386";
+		};
+		FEA3165A0FD5669200F480D4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FEC11BB10FD4B86500082282 /* CoreGraphics.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = FE6F7C980FD55FA300C3244F;
+			remoteInfo = "CoreGraphics-Darwin-i386";
+		};
+		FEC11BB50FD4B86500082282 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FEC11BB10FD4B86500082282 /* CoreGraphics.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 8DC2EF5B0486A6940098B216;
+			remoteInfo = CoreGraphics;
+		};
+		FEC11BB70FD4B88800082282 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FEC11BB10FD4B86500082282 /* CoreGraphics.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 8DC2EF4F0486A6940098B216;
+			remoteInfo = "CoreGraphics-Windows-i386";
+		};
+		FECAF50A0DB7119B00BA2A8E /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FECAF5010DB7119B00BA2A8E /* Foundation.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = FE01A7EC0C5D9B6900AEA51A;
+			remoteInfo = "Foundation-Windows-i386";
+		};
+		FECF921E0FFB222D007AECF1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FECF921A0FFB222D007AECF1 /* CoreText.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 8DC2EF5B0486A6940098B216;
+			remoteInfo = CoreText;
+		};
+		FECF92530FFB2A2B007AECF1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FECF921A0FFB222D007AECF1 /* CoreText.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = FECF923F0FFB29FF007AECF1;
+			remoteInfo = "CoreText-Linux-i386";
+		};
+		FECF92550FFB2A2B007AECF1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FECF921A0FFB222D007AECF1 /* CoreText.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = FECF924F0FFB2A0D007AECF1;
+			remoteInfo = "CoreText-Darwin-i386";
+		};
+		FECF92930FFB2D44007AECF1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FECF921A0FFB222D007AECF1 /* CoreText.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 8DC2EF4F0486A6940098B216;
+			remoteInfo = "CoreText-Windows-i386";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		0867D69BFE84028FC02AAC07 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
+		0867D6A5FE840307C02AAC07 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
+		8DC2EF5A0486A6940098B216 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		FE01AAED0C5D9BF900AEA51A /* ApplicationServices.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = ApplicationServices.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		FE1E554B1430306F000D60A1 /* darwin-i386.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "darwin-i386.xcconfig"; sourceTree = "<group>"; };
+		FE1E554C1430306F000D60A1 /* darwin-ppc.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "darwin-ppc.xcconfig"; sourceTree = "<group>"; };
+		FE1E554D1430306F000D60A1 /* darwin-x86_64.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "darwin-x86_64.xcconfig"; sourceTree = "<group>"; };
+		FE1E554E1430306F000D60A1 /* darwin.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = darwin.xcconfig; sourceTree = "<group>"; };
+		FE1E554F1430306F000D60A1 /* freebsd-i386.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "freebsd-i386.xcconfig"; sourceTree = "<group>"; };
+		FE1E55501430306F000D60A1 /* freebsd.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = freebsd.xcconfig; sourceTree = "<group>"; };
+		FE1E55511430306F000D60A1 /* linux-arm.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "linux-arm.xcconfig"; sourceTree = "<group>"; };
+		FE1E55521430306F000D60A1 /* linux-i386.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "linux-i386.xcconfig"; sourceTree = "<group>"; };
+		FE1E55531430306F000D60A1 /* linux-ppc.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "linux-ppc.xcconfig"; sourceTree = "<group>"; };
+		FE1E55541430306F000D60A1 /* linux.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = linux.xcconfig; sourceTree = "<group>"; };
+		FE1E55551430306F000D60A1 /* platform.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = platform.xcconfig; sourceTree = "<group>"; };
+		FE1E55561430306F000D60A1 /* solaris-sparc.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "solaris-sparc.xcconfig"; sourceTree = "<group>"; };
+		FE1E55571430306F000D60A1 /* solaris.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = solaris.xcconfig; sourceTree = "<group>"; };
+		FE1E55581430306F000D60A1 /* windows-i386.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "windows-i386.xcconfig"; sourceTree = "<group>"; };
+		FE1E55591430306F000D60A1 /* windows.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = windows.xcconfig; sourceTree = "<group>"; };
+		FE32179C0BB41C65004F000A /* ApplicationServices.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = ApplicationServices.h; sourceTree = "<group>"; };
+		FE642EC6170E5E8200DFF7FF /* platform-framework.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "platform-framework.xcconfig"; sourceTree = "<group>"; };
+		FE7084B8143116E500B99A95 /* windows-i386-framework.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "windows-i386-framework.xcconfig"; sourceTree = "<group>"; };
+		FEC0A3E3170935BF002A60B7 /* darwin-i386-framework.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "darwin-i386-framework.xcconfig"; sourceTree = "<group>"; };
+		FEC0A3E4170935BF002A60B7 /* darwin-ppc-framework.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "darwin-ppc-framework.xcconfig"; sourceTree = "<group>"; };
+		FEC0A3E5170935BF002A60B7 /* darwin-x86_64-framework.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "darwin-x86_64-framework.xcconfig"; sourceTree = "<group>"; };
+		FEC0A3E6170935BF002A60B7 /* freebsd-i386-framework.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "freebsd-i386-framework.xcconfig"; sourceTree = "<group>"; };
+		FEC0A3E7170935BF002A60B7 /* linux-arm-framework.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "linux-arm-framework.xcconfig"; sourceTree = "<group>"; };
+		FEC0A3E8170935BF002A60B7 /* linux-i386-framework.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "linux-i386-framework.xcconfig"; sourceTree = "<group>"; };
+		FEC0A3E9170935BF002A60B7 /* linux-ppc-framework.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "linux-ppc-framework.xcconfig"; sourceTree = "<group>"; };
+		FEC0A3EA170935BF002A60B7 /* solaris-sparc-framework.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "solaris-sparc-framework.xcconfig"; sourceTree = "<group>"; };
+		FEC11BB10FD4B86500082282 /* CoreGraphics.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = CoreGraphics.xcodeproj; path = ../CoreGraphics/CoreGraphics.xcodeproj; sourceTree = SOURCE_ROOT; };
+		FECAF5010DB7119B00BA2A8E /* Foundation.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = Foundation.xcodeproj; path = ../Foundation/Foundation.xcodeproj; sourceTree = SOURCE_ROOT; };
+		FECF921A0FFB222D007AECF1 /* CoreText.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = CoreText.xcodeproj; path = ../CoreText/CoreText.xcodeproj; sourceTree = SOURCE_ROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		034768DFFF38A50411DB9C8B /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				FE01AAED0C5D9BF900AEA51A /* ApplicationServices.framework */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		0867D691FE84028FC02AAC07 /* ApplicationServices */ = {
+			isa = PBXGroup;
+			children = (
+				FE1E554A1430306F000D60A1 /* xcconfig */,
+				FECF921A0FFB222D007AECF1 /* CoreText.xcodeproj */,
+				FEC11BB10FD4B86500082282 /* CoreGraphics.xcodeproj */,
+				FE32179C0BB41C65004F000A /* ApplicationServices.h */,
+				0867D69AFE84028FC02AAC07 /* External Frameworks and Libraries */,
+				FECAF5010DB7119B00BA2A8E /* Foundation.xcodeproj */,
+				32C88DFF0371C24200C91783 /* Other Sources */,
+				034768DFFF38A50411DB9C8B /* Products */,
+				089C1665FE841158C02AAC07 /* Resources */,
+			);
+			indentWidth = 4;
+			name = ApplicationServices;
+			sourceTree = "<group>";
+			tabWidth = 4;
+			usesTabs = 0;
+		};
+		0867D69AFE84028FC02AAC07 /* External Frameworks and Libraries */ = {
+			isa = PBXGroup;
+			children = (
+				1058C7B0FEA5585E11CA2CBB /* Linked Frameworks */,
+				1058C7B2FEA5585E11CA2CBB /* Other Frameworks */,
+			);
+			name = "External Frameworks and Libraries";
+			sourceTree = "<group>";
+		};
+		089C1665FE841158C02AAC07 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				8DC2EF5A0486A6940098B216 /* Info.plist */,
+			);
+			name = Resources;
+			sourceTree = "<group>";
+		};
+		1058C7B0FEA5585E11CA2CBB /* Linked Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = "Linked Frameworks";
+			sourceTree = "<group>";
+		};
+		1058C7B2FEA5585E11CA2CBB /* Other Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				0867D6A5FE840307C02AAC07 /* AppKit.framework */,
+				0867D69BFE84028FC02AAC07 /* Foundation.framework */,
+			);
+			name = "Other Frameworks";
+			sourceTree = "<group>";
+		};
+		32C88DFF0371C24200C91783 /* Other Sources */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = "Other Sources";
+			sourceTree = "<group>";
+		};
+		FE1E554A1430306F000D60A1 /* xcconfig */ = {
+			isa = PBXGroup;
+			children = (
+				FE642EC6170E5E8200DFF7FF /* platform-framework.xcconfig */,
+				FEC0A3E3170935BF002A60B7 /* darwin-i386-framework.xcconfig */,
+				FEC0A3E4170935BF002A60B7 /* darwin-ppc-framework.xcconfig */,
+				FEC0A3E5170935BF002A60B7 /* darwin-x86_64-framework.xcconfig */,
+				FEC0A3E6170935BF002A60B7 /* freebsd-i386-framework.xcconfig */,
+				FEC0A3E7170935BF002A60B7 /* linux-arm-framework.xcconfig */,
+				FEC0A3E8170935BF002A60B7 /* linux-i386-framework.xcconfig */,
+				FEC0A3E9170935BF002A60B7 /* linux-ppc-framework.xcconfig */,
+				FEC0A3EA170935BF002A60B7 /* solaris-sparc-framework.xcconfig */,
+				FE1E554B1430306F000D60A1 /* darwin-i386.xcconfig */,
+				FE1E554C1430306F000D60A1 /* darwin-ppc.xcconfig */,
+				FE1E554D1430306F000D60A1 /* darwin-x86_64.xcconfig */,
+				FE1E554E1430306F000D60A1 /* darwin.xcconfig */,
+				FE1E554F1430306F000D60A1 /* freebsd-i386.xcconfig */,
+				FE1E55501430306F000D60A1 /* freebsd.xcconfig */,
+				FE1E55511430306F000D60A1 /* linux-arm.xcconfig */,
+				FE1E55521430306F000D60A1 /* linux-i386.xcconfig */,
+				FE1E55531430306F000D60A1 /* linux-ppc.xcconfig */,
+				FE1E55541430306F000D60A1 /* linux.xcconfig */,
+				FE1E55551430306F000D60A1 /* platform.xcconfig */,
+				FE1E55561430306F000D60A1 /* solaris-sparc.xcconfig */,
+				FE1E55571430306F000D60A1 /* solaris.xcconfig */,
+				FE1E55581430306F000D60A1 /* windows-i386.xcconfig */,
+				FE1E55591430306F000D60A1 /* windows.xcconfig */,
+				FE7084B8143116E500B99A95 /* windows-i386-framework.xcconfig */,
+			);
+			name = xcconfig;
+			path = ../xcconfig;
+			sourceTree = SOURCE_ROOT;
+		};
+		FEC11BB20FD4B86500082282 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				FEC11BB60FD4B86500082282 /* CoreGraphics.framework */,
+				FEA316590FD5669200F480D4 /* CoreGraphics.framework */,
+				FEA3165B0FD5669200F480D4 /* CoreGraphics.framework */,
+				FE5A886210C6F2A4005E348A /* CoreGraphics.framework */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		FECAF5020DB7119B00BA2A8E /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				FECAF50B0DB7119B00BA2A8E /* Foundation.framework */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		FECF921B0FFB222D007AECF1 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				FECF921F0FFB222D007AECF1 /* CoreText.framework */,
+				FECF92540FFB2A2B007AECF1 /* CoreText.framework */,
+				FECF92560FFB2A2B007AECF1 /* CoreText.framework */,
+				FE5A889210C6F2F5005E348A /* CoreText.framework */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		FE01AAE50C5D9BF900AEA51A /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FE01AAE60C5D9BF900AEA51A /* ApplicationServices.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		FE01AAE20C5D9BF900AEA51A /* ApplicationServices */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FE01AAEB0C5D9BF900AEA51A /* Build configuration list for PBXNativeTarget "ApplicationServices" */;
+			buildPhases = (
+				FE01AAE50C5D9BF900AEA51A /* Headers */,
+				FE01AAE70C5D9BF900AEA51A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				FEC11BB80FD4B88800082282 /* PBXTargetDependency */,
+				FECF92940FFB2D44007AECF1 /* PBXTargetDependency */,
+			);
+			name = ApplicationServices;
+			productInstallPath = "$(HOME)/Library/Frameworks";
+			productName = ApplicationServices;
+			productReference = FE01AAED0C5D9BF900AEA51A /* ApplicationServices.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		0867D690FE84028FC02AAC07 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0460;
+			};
+			buildConfigurationList = 1DEB91B108733DA50010E9CD /* Build configuration list for PBXProject "ApplicationServices" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 1;
+			knownRegions = (
+				English,
+				Japanese,
+				French,
+				German,
+			);
+			mainGroup = 0867D691FE84028FC02AAC07 /* ApplicationServices */;
+			productRefGroup = 034768DFFF38A50411DB9C8B /* Products */;
+			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = FEC11BB20FD4B86500082282 /* Products */;
+					ProjectRef = FEC11BB10FD4B86500082282 /* CoreGraphics.xcodeproj */;
+				},
+				{
+					ProductGroup = FECF921B0FFB222D007AECF1 /* Products */;
+					ProjectRef = FECF921A0FFB222D007AECF1 /* CoreText.xcodeproj */;
+				},
+				{
+					ProductGroup = FECAF5020DB7119B00BA2A8E /* Products */;
+					ProjectRef = FECAF5010DB7119B00BA2A8E /* Foundation.xcodeproj */;
+				},
+			);
+			projectRoot = "";
+			targets = (
+				FE01AAE20C5D9BF900AEA51A /* ApplicationServices */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		FE5A886210C6F2A4005E348A /* CoreGraphics.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = CoreGraphics.framework;
+			remoteRef = FE5A886110C6F2A4005E348A /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		FE5A889210C6F2F5005E348A /* CoreText.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = CoreText.framework;
+			remoteRef = FE5A889110C6F2F5005E348A /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		FEA316590FD5669200F480D4 /* CoreGraphics.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = CoreGraphics.framework;
+			remoteRef = FEA316580FD5669200F480D4 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		FEA3165B0FD5669200F480D4 /* CoreGraphics.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = CoreGraphics.framework;
+			remoteRef = FEA3165A0FD5669200F480D4 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		FEC11BB60FD4B86500082282 /* CoreGraphics.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = CoreGraphics.framework;
+			remoteRef = FEC11BB50FD4B86500082282 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		FECAF50B0DB7119B00BA2A8E /* Foundation.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = Foundation.framework;
+			remoteRef = FECAF50A0DB7119B00BA2A8E /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		FECF921F0FFB222D007AECF1 /* CoreText.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = CoreText.framework;
+			remoteRef = FECF921E0FFB222D007AECF1 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		FECF92540FFB2A2B007AECF1 /* CoreText.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = CoreText.framework;
+			remoteRef = FECF92530FFB2A2B007AECF1 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		FECF92560FFB2A2B007AECF1 /* CoreText.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = CoreText.framework;
+			remoteRef = FECF92550FFB2A2B007AECF1 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
+
+/* Begin PBXResourcesBuildPhase section */
+		FE01AAE70C5D9BF900AEA51A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		FEC11BB80FD4B88800082282 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "CoreGraphics-Windows-i386";
+			targetProxy = FEC11BB70FD4B88800082282 /* PBXContainerItemProxy */;
+		};
+		FECF92940FFB2D44007AECF1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "CoreText-Windows-i386";
+			targetProxy = FECF92930FFB2D44007AECF1 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		1DEB91B308733DA50010E9CD /* Windows-i386 */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+			};
+			name = "Windows-i386";
+		};
+		CFC5B48B1AF46B2D00FBB52A /* Darwin-i386 */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+			};
+			name = "Darwin-i386";
+		};
+		CFC5B48C1AF46B2D00FBB52A /* Darwin-i386 */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = FEC0A3E3170935BF002A60B7 /* darwin-i386-framework.xcconfig */;
+			buildSettings = {
+				INFOPLIST_FILE = Info.plist;
+				PRODUCT_NAME = ApplicationServices;
+			};
+			name = "Darwin-i386";
+		};
+		CFC5B4901AF46B3500FBB52A /* FreeBSD-i386 */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+			};
+			name = "FreeBSD-i386";
+		};
+		CFC5B4911AF46B3500FBB52A /* FreeBSD-i386 */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = FEC0A3E6170935BF002A60B7 /* freebsd-i386-framework.xcconfig */;
+			buildSettings = {
+				INFOPLIST_FILE = Info.plist;
+				PRODUCT_NAME = ApplicationServices;
+			};
+			name = "FreeBSD-i386";
+		};
+		FE01AAEC0C5D9BF900AEA51A /* Windows-i386 */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = FE7084B8143116E500B99A95 /* windows-i386-framework.xcconfig */;
+			buildSettings = {
+				INFOPLIST_FILE = Info.plist;
+				PRODUCT_NAME = ApplicationServices;
+			};
+			name = "Windows-i386";
+		};
+		FEDE64AA118A725B009C3494 /* Linux-i386 */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+			};
+			name = "Linux-i386";
+		};
+		FEDE64AB118A725B009C3494 /* Linux-i386 */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = FEC0A3E8170935BF002A60B7 /* linux-i386-framework.xcconfig */;
+			buildSettings = {
+				INFOPLIST_FILE = Info.plist;
+				PRODUCT_NAME = ApplicationServices;
+			};
+			name = "Linux-i386";
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1DEB91B108733DA50010E9CD /* Build configuration list for PBXProject "ApplicationServices" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1DEB91B308733DA50010E9CD /* Windows-i386 */,
+				CFC5B4901AF46B3500FBB52A /* FreeBSD-i386 */,
+				CFC5B48B1AF46B2D00FBB52A /* Darwin-i386 */,
+				FEDE64AA118A725B009C3494 /* Linux-i386 */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = "Windows-i386";
+		};
+		FE01AAEB0C5D9BF900AEA51A /* Build configuration list for PBXNativeTarget "ApplicationServices" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FE01AAEC0C5D9BF900AEA51A /* Windows-i386 */,
+				CFC5B4911AF46B3500FBB52A /* FreeBSD-i386 */,
+				CFC5B48C1AF46B2D00FBB52A /* Darwin-i386 */,
+				FEDE64AB118A725B009C3494 /* Linux-i386 */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = "Windows-i386";
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 0867D690FE84028FC02AAC07 /* Project object */;
+}

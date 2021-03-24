@@ -1,0 +1,630 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		CFF0A1951AF4771300160EAA /* darwin-i386-framework.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = CFF0A18A1AF4771300160EAA /* darwin-i386-framework.xcconfig */; };
+		CFF0A1961AF4771300160EAA /* darwin-ppc-framework.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = CFF0A18B1AF4771300160EAA /* darwin-ppc-framework.xcconfig */; };
+		CFF0A1971AF4771300160EAA /* darwin-x86_64-framework.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = CFF0A18C1AF4771300160EAA /* darwin-x86_64-framework.xcconfig */; };
+		CFF0A1981AF4771300160EAA /* freebsd-i386-framework.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = CFF0A18D1AF4771300160EAA /* freebsd-i386-framework.xcconfig */; };
+		CFF0A1991AF4771300160EAA /* linux-arm-framework.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = CFF0A18E1AF4771300160EAA /* linux-arm-framework.xcconfig */; };
+		CFF0A19A1AF4771300160EAA /* linux-i386-framework.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = CFF0A18F1AF4771300160EAA /* linux-i386-framework.xcconfig */; };
+		CFF0A19B1AF4771300160EAA /* linux-ppc-framework.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = CFF0A1901AF4771300160EAA /* linux-ppc-framework.xcconfig */; };
+		CFF0A19C1AF4771300160EAA /* platform-framework.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = CFF0A1911AF4771300160EAA /* platform-framework.xcconfig */; };
+		CFF0A19D1AF4771300160EAA /* solaris-sparc-framework.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = CFF0A1921AF4771300160EAA /* solaris-sparc-framework.xcconfig */; };
+		CFF0A19E1AF4771300160EAA /* windows-i386-bundle.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = CFF0A1931AF4771300160EAA /* windows-i386-bundle.xcconfig */; };
+		CFF0A19F1AF4771300160EAA /* windows-i386-clang.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = CFF0A1941AF4771300160EAA /* windows-i386-clang.xcconfig */; };
+		FE0FB9AE10F9814400EBA597 /* CoreImage.h in Headers */ = {isa = PBXBuildFile; fileRef = FE255FEF10F10397005CE23E /* CoreImage.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		FE0FB9C410F9815300EBA597 /* CIColor.h in Headers */ = {isa = PBXBuildFile; fileRef = FE0FB9B010F9815300EBA597 /* CIColor.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		FE0FB9C510F9815300EBA597 /* CIContext.h in Headers */ = {isa = PBXBuildFile; fileRef = FE0FB9B210F9815300EBA597 /* CIContext.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		FE0FB9C610F9815300EBA597 /* CIFilter.h in Headers */ = {isa = PBXBuildFile; fileRef = FE0FB9B410F9815300EBA597 /* CIFilter.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		FE0FB9C710F9815300EBA597 /* CIImage.h in Headers */ = {isa = PBXBuildFile; fileRef = FE0FB9B610F9815300EBA597 /* CIImage.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		FE0FB9C810F9815300EBA597 /* CIVector.h in Headers */ = {isa = PBXBuildFile; fileRef = FE0FB9B810F9815300EBA597 /* CIVector.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		FE41B88B12BEA2EE00ED6C10 /* CATransaction.h in Headers */ = {isa = PBXBuildFile; fileRef = FE41B88812BEA2EE00ED6C10 /* CATransaction.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		FE4301AE11E255A500EBDD56 /* CoreVideo.h in Headers */ = {isa = PBXBuildFile; fileRef = FE4301AB11E255A500EBDD56 /* CoreVideo.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		FE7AA0EF10F97A6700FEDD9C /* CAWindowOpenGLContext.h in Headers */ = {isa = PBXBuildFile; fileRef = FE7AA0EC10F97A6700FEDD9C /* CAWindowOpenGLContext.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		FEA3F2151133089500690AA2 /* CIAffineTransform.h in Headers */ = {isa = PBXBuildFile; fileRef = FEA3F2121133089500690AA2 /* CIAffineTransform.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		FEAEF7FB11E3AAD000CA0912 /* CAAnimationGroup.h in Headers */ = {isa = PBXBuildFile; fileRef = FEAEF7E011E3AAD000CA0912 /* CAAnimationGroup.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		FEAEF7FD11E3AAD000CA0912 /* CABasicAnimation.h in Headers */ = {isa = PBXBuildFile; fileRef = FEAEF7E211E3AAD000CA0912 /* CABasicAnimation.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		FEAEF7FF11E3AAD000CA0912 /* CAPropertyAnimation.h in Headers */ = {isa = PBXBuildFile; fileRef = FEAEF7E411E3AAD000CA0912 /* CAPropertyAnimation.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		FEAEF80111E3AAD000CA0912 /* CATransition.h in Headers */ = {isa = PBXBuildFile; fileRef = FEAEF7E611E3AAD000CA0912 /* CATransition.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		FEAEF82511E3AB6A00CA0912 /* CoreAnimation.h in Headers */ = {isa = PBXBuildFile; fileRef = FEAEF82211E3AB6A00CA0912 /* CoreAnimation.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		FEAEF86011E3AFEF00CA0912 /* CAMediaTiming.h in Headers */ = {isa = PBXBuildFile; fileRef = FEAEF85D11E3AFEF00CA0912 /* CAMediaTiming.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		FEAEF8C711E3B3FF00CA0912 /* CAMediaTimingFunction.h in Headers */ = {isa = PBXBuildFile; fileRef = FEAEF8C111E3B3FF00CA0912 /* CAMediaTimingFunction.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		FECA819810EBB231003472F1 /* CAAnimation.h in Headers */ = {isa = PBXBuildFile; fileRef = FEF88C2B100CC45B00B15FD7 /* CAAnimation.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		FECA819910EBB231003472F1 /* CALayer.h in Headers */ = {isa = PBXBuildFile; fileRef = FEF88C2C100CC45B00B15FD7 /* CALayer.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		FECA819A10EBB231003472F1 /* CATransform3D.h in Headers */ = {isa = PBXBuildFile; fileRef = FEF88C2D100CC45B00B15FD7 /* CATransform3D.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		FECA819B10EBB231003472F1 /* QuartzCore.h in Headers */ = {isa = PBXBuildFile; fileRef = FE4477BF1039EECB00ECD6A6 /* QuartzCore.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		FECA819C10EBB231003472F1 /* CARenderer.h in Headers */ = {isa = PBXBuildFile; fileRef = FED38BEA10E12BAB00A2A651 /* CARenderer.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		FECA819D10EBB231003472F1 /* CABase.h in Headers */ = {isa = PBXBuildFile; fileRef = FED38C8D10E13FCC00A2A651 /* CABase.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		FEDEAA6C12C2608F008E5A59 /* CAValueFunction.h in Headers */ = {isa = PBXBuildFile; fileRef = FEDEAA6612C2608F008E5A59 /* CAValueFunction.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		FEDEABC312C98F59008E5A59 /* CALayerContext.h in Headers */ = {isa = PBXBuildFile; fileRef = FEDEABC012C98F59008E5A59 /* CALayerContext.h */; settings = {ATTRIBUTES = (Private, ); }; };
+		FEDEB74212D2378C008E5A59 /* CAAction.h in Headers */ = {isa = PBXBuildFile; fileRef = FEDEB73F12D2378C008E5A59 /* CAAction.h */; settings = {ATTRIBUTES = (Public, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		0DCD878415B0366D006F9320 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FE43019D11E2556B00EBDD56 /* CoreVideo.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 0DCD877115B03618006F9320;
+			remoteInfo = "CoreVideo-Linux-i386";
+		};
+		FE2A2CE412D2C7410028C06D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FE2A2CDE12D2C7410028C06D /* OpenGL.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 8DC2EF5B0486A6940098B216;
+			remoteInfo = "OpenGL-Windows-i386";
+		};
+		FE2A2CED12D2C74E0028C06D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FE2A2CDE12D2C7410028C06D /* OpenGL.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 8DC2EF4F0486A6940098B216;
+			remoteInfo = "OpenGL-Windows-i386";
+		};
+		FE4301A111E2556B00EBDD56 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FE43019D11E2556B00EBDD56 /* CoreVideo.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 8DC2EF5B0486A6940098B216;
+			remoteInfo = "CoreVideo-Windows-i386";
+		};
+		FE4301A311E2557400EBDD56 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FE43019D11E2556B00EBDD56 /* CoreVideo.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 8DC2EF4F0486A6940098B216;
+			remoteInfo = "CoreVideo-Windows-i386";
+		};
+		FECA81AD10EBB2AC003472F1 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FEF88C1D100CC41C00B15FD7 /* CoreGraphics.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 8DC2EF4F0486A6940098B216;
+			remoteInfo = "CoreGraphics-Windows-i386";
+		};
+		FEF88C23100CC41C00B15FD7 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = FEF88C1D100CC41C00B15FD7 /* CoreGraphics.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 8DC2EF5B0486A6940098B216;
+			remoteInfo = "CoreGraphics-Windows-i386";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		0867D69BFE84028FC02AAC07 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
+		089C1667FE841158C02AAC07 /* English */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		8DC2EF5A0486A6940098B216 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		CFF0A18A1AF4771300160EAA /* darwin-i386-framework.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "darwin-i386-framework.xcconfig"; sourceTree = "<group>"; };
+		CFF0A18B1AF4771300160EAA /* darwin-ppc-framework.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "darwin-ppc-framework.xcconfig"; sourceTree = "<group>"; };
+		CFF0A18C1AF4771300160EAA /* darwin-x86_64-framework.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "darwin-x86_64-framework.xcconfig"; sourceTree = "<group>"; };
+		CFF0A18D1AF4771300160EAA /* freebsd-i386-framework.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "freebsd-i386-framework.xcconfig"; sourceTree = "<group>"; };
+		CFF0A18E1AF4771300160EAA /* linux-arm-framework.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "linux-arm-framework.xcconfig"; sourceTree = "<group>"; };
+		CFF0A18F1AF4771300160EAA /* linux-i386-framework.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "linux-i386-framework.xcconfig"; sourceTree = "<group>"; };
+		CFF0A1901AF4771300160EAA /* linux-ppc-framework.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "linux-ppc-framework.xcconfig"; sourceTree = "<group>"; };
+		CFF0A1911AF4771300160EAA /* platform-framework.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "platform-framework.xcconfig"; sourceTree = "<group>"; };
+		CFF0A1921AF4771300160EAA /* solaris-sparc-framework.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "solaris-sparc-framework.xcconfig"; sourceTree = "<group>"; };
+		CFF0A1931AF4771300160EAA /* windows-i386-bundle.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "windows-i386-bundle.xcconfig"; sourceTree = "<group>"; };
+		CFF0A1941AF4771300160EAA /* windows-i386-clang.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "windows-i386-clang.xcconfig"; sourceTree = "<group>"; };
+		FE06B4F31430E9A30071169B /* darwin-i386.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "darwin-i386.xcconfig"; sourceTree = "<group>"; };
+		FE06B4F41430E9A30071169B /* darwin-ppc.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "darwin-ppc.xcconfig"; sourceTree = "<group>"; };
+		FE06B4F51430E9A30071169B /* darwin-x86_64.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "darwin-x86_64.xcconfig"; sourceTree = "<group>"; };
+		FE06B4F61430E9A30071169B /* darwin.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = darwin.xcconfig; sourceTree = "<group>"; };
+		FE06B4F71430E9A30071169B /* freebsd-i386.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "freebsd-i386.xcconfig"; sourceTree = "<group>"; };
+		FE06B4F81430E9A30071169B /* freebsd.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = freebsd.xcconfig; sourceTree = "<group>"; };
+		FE06B4F91430E9A30071169B /* linux-arm.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "linux-arm.xcconfig"; sourceTree = "<group>"; };
+		FE06B4FA1430E9A30071169B /* linux-i386.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "linux-i386.xcconfig"; sourceTree = "<group>"; };
+		FE06B4FB1430E9A30071169B /* linux-ppc.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "linux-ppc.xcconfig"; sourceTree = "<group>"; };
+		FE06B4FC1430E9A30071169B /* linux.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = linux.xcconfig; sourceTree = "<group>"; };
+		FE06B4FD1430E9A30071169B /* platform.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = platform.xcconfig; sourceTree = "<group>"; };
+		FE06B4FE1430E9A30071169B /* solaris-sparc.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "solaris-sparc.xcconfig"; sourceTree = "<group>"; };
+		FE06B4FF1430E9A30071169B /* solaris.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = solaris.xcconfig; sourceTree = "<group>"; };
+		FE06B5001430E9A30071169B /* windows-i386.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "windows-i386.xcconfig"; sourceTree = "<group>"; };
+		FE06B5011430E9A30071169B /* windows.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = windows.xcconfig; sourceTree = "<group>"; };
+		FE0FB9B010F9815300EBA597 /* CIColor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CIColor.h; sourceTree = "<group>"; };
+		FE0FB9B110F9815300EBA597 /* CIColor.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CIColor.m; sourceTree = "<group>"; };
+		FE0FB9B210F9815300EBA597 /* CIContext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CIContext.h; sourceTree = "<group>"; };
+		FE0FB9B310F9815300EBA597 /* CIContext.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CIContext.m; sourceTree = "<group>"; };
+		FE0FB9B410F9815300EBA597 /* CIFilter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CIFilter.h; sourceTree = "<group>"; };
+		FE0FB9B510F9815300EBA597 /* CIFilter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CIFilter.m; sourceTree = "<group>"; };
+		FE0FB9B610F9815300EBA597 /* CIImage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CIImage.h; sourceTree = "<group>"; };
+		FE0FB9B710F9815300EBA597 /* CIImage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CIImage.m; sourceTree = "<group>"; };
+		FE0FB9B810F9815300EBA597 /* CIVector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CIVector.h; sourceTree = "<group>"; };
+		FE0FB9B910F9815300EBA597 /* CIVector.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CIVector.m; sourceTree = "<group>"; };
+		FE255FEF10F10397005CE23E /* CoreImage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CoreImage.h; sourceTree = "<group>"; };
+		FE2A2CDE12D2C7410028C06D /* OpenGL.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = OpenGL.xcodeproj; path = ../OpenGL/OpenGL.xcodeproj; sourceTree = SOURCE_ROOT; };
+		FE41B88812BEA2EE00ED6C10 /* CATransaction.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CATransaction.h; sourceTree = "<group>"; };
+		FE43019D11E2556B00EBDD56 /* CoreVideo.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = CoreVideo.xcodeproj; path = ../CoreVideo/CoreVideo.xcodeproj; sourceTree = SOURCE_ROOT; };
+		FE4301AB11E255A500EBDD56 /* CoreVideo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CoreVideo.h; sourceTree = "<group>"; };
+		FE4477BF1039EECB00ECD6A6 /* QuartzCore.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = QuartzCore.h; sourceTree = "<group>"; };
+		FE7087621431189F00B99A95 /* windows-i386-framework.xcconfig */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xcconfig; path = "windows-i386-framework.xcconfig"; sourceTree = "<group>"; };
+		FE7AA0EB10F97A2A00FEDD9C /* CAWindowOpenGLContext.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CAWindowOpenGLContext.m; sourceTree = "<group>"; };
+		FE7AA0EC10F97A6700FEDD9C /* CAWindowOpenGLContext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CAWindowOpenGLContext.h; sourceTree = "<group>"; };
+		FEA3F2121133089500690AA2 /* CIAffineTransform.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CIAffineTransform.h; sourceTree = "<group>"; };
+		FEAEF7E011E3AAD000CA0912 /* CAAnimationGroup.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CAAnimationGroup.h; sourceTree = "<group>"; };
+		FEAEF7E111E3AAD000CA0912 /* CAAnimationGroup.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CAAnimationGroup.m; sourceTree = "<group>"; };
+		FEAEF7E211E3AAD000CA0912 /* CABasicAnimation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CABasicAnimation.h; sourceTree = "<group>"; };
+		FEAEF7E311E3AAD000CA0912 /* CABasicAnimation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CABasicAnimation.m; sourceTree = "<group>"; };
+		FEAEF7E411E3AAD000CA0912 /* CAPropertyAnimation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CAPropertyAnimation.h; sourceTree = "<group>"; };
+		FEAEF7E511E3AAD000CA0912 /* CAPropertyAnimation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CAPropertyAnimation.m; sourceTree = "<group>"; };
+		FEAEF7E611E3AAD000CA0912 /* CATransition.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CATransition.h; sourceTree = "<group>"; };
+		FEAEF7E711E3AAD000CA0912 /* CATransition.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CATransition.m; sourceTree = "<group>"; };
+		FEAEF7E811E3AAD000CA0912 /* CIAffineTransform.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CIAffineTransform.m; sourceTree = "<group>"; };
+		FEAEF82211E3AB6A00CA0912 /* CoreAnimation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CoreAnimation.h; sourceTree = "<group>"; };
+		FEAEF85D11E3AFEF00CA0912 /* CAMediaTiming.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CAMediaTiming.h; sourceTree = "<group>"; };
+		FEAEF8C111E3B3FF00CA0912 /* CAMediaTimingFunction.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CAMediaTimingFunction.h; sourceTree = "<group>"; };
+		FEAEF8C211E3B3FF00CA0912 /* CAMediaTimingFunction.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CAMediaTimingFunction.m; sourceTree = "<group>"; };
+		FEC3ED7710E1270C00511C18 /* CARenderer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CARenderer.m; sourceTree = "<group>"; };
+		FECA81A110EBB231003472F1 /* QuartzCore.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = QuartzCore.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		FED38BEA10E12BAB00A2A651 /* CARenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CARenderer.h; sourceTree = "<group>"; };
+		FED38C8D10E13FCC00A2A651 /* CABase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CABase.h; sourceTree = "<group>"; };
+		FEDEAA6612C2608F008E5A59 /* CAValueFunction.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CAValueFunction.h; sourceTree = "<group>"; };
+		FEDEAA6712C2608F008E5A59 /* CAValueFunction.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CAValueFunction.m; sourceTree = "<group>"; };
+		FEDEABC012C98F59008E5A59 /* CALayerContext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CALayerContext.h; sourceTree = "<group>"; };
+		FEDEB73F12D2378C008E5A59 /* CAAction.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CAAction.h; sourceTree = "<group>"; };
+		FEF88C1D100CC41C00B15FD7 /* CoreGraphics.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = CoreGraphics.xcodeproj; path = ../CoreGraphics/CoreGraphics.xcodeproj; sourceTree = SOURCE_ROOT; };
+		FEF88C2B100CC45B00B15FD7 /* CAAnimation.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CAAnimation.h; sourceTree = "<group>"; };
+		FEF88C2C100CC45B00B15FD7 /* CALayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CALayer.h; sourceTree = "<group>"; };
+		FEF88C2D100CC45B00B15FD7 /* CATransform3D.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CATransform3D.h; sourceTree = "<group>"; };
+		FEF88C35100CC62400B15FD7 /* CAAnimation.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CAAnimation.m; sourceTree = "<group>"; };
+		FEF88C36100CC62400B15FD7 /* CALayer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CALayer.m; sourceTree = "<group>"; };
+		FEF88C37100CC62400B15FD7 /* CATransform3D.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CATransform3D.m; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		034768DFFF38A50411DB9C8B /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				FECA81A110EBB231003472F1 /* QuartzCore.framework */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		0867D691FE84028FC02AAC07 /* QuartzCore */ = {
+			isa = PBXGroup;
+			children = (
+				FE06B4F21430E9A30071169B /* xcconfig */,
+				FE2A2CDE12D2C7410028C06D /* OpenGL.xcodeproj */,
+				FEDEB73F12D2378C008E5A59 /* CAAction.h */,
+				FEDEABC012C98F59008E5A59 /* CALayerContext.h */,
+				FEDEAA6612C2608F008E5A59 /* CAValueFunction.h */,
+				FEDEAA6712C2608F008E5A59 /* CAValueFunction.m */,
+				FE41B88812BEA2EE00ED6C10 /* CATransaction.h */,
+				FEAEF8C111E3B3FF00CA0912 /* CAMediaTimingFunction.h */,
+				FEAEF8C211E3B3FF00CA0912 /* CAMediaTimingFunction.m */,
+				FEF88C2B100CC45B00B15FD7 /* CAAnimation.h */,
+				FEF88C35100CC62400B15FD7 /* CAAnimation.m */,
+				FEAEF7E011E3AAD000CA0912 /* CAAnimationGroup.h */,
+				FEAEF7E111E3AAD000CA0912 /* CAAnimationGroup.m */,
+				FED38C8D10E13FCC00A2A651 /* CABase.h */,
+				FEAEF7E211E3AAD000CA0912 /* CABasicAnimation.h */,
+				FEAEF7E311E3AAD000CA0912 /* CABasicAnimation.m */,
+				FEF88C2C100CC45B00B15FD7 /* CALayer.h */,
+				FEF88C36100CC62400B15FD7 /* CALayer.m */,
+				FEAEF85D11E3AFEF00CA0912 /* CAMediaTiming.h */,
+				FEAEF7E411E3AAD000CA0912 /* CAPropertyAnimation.h */,
+				FEAEF7E511E3AAD000CA0912 /* CAPropertyAnimation.m */,
+				FED38BEA10E12BAB00A2A651 /* CARenderer.h */,
+				FEC3ED7710E1270C00511C18 /* CARenderer.m */,
+				FEF88C2D100CC45B00B15FD7 /* CATransform3D.h */,
+				FEF88C37100CC62400B15FD7 /* CATransform3D.m */,
+				FEAEF7E611E3AAD000CA0912 /* CATransition.h */,
+				FEAEF7E711E3AAD000CA0912 /* CATransition.m */,
+				FE7AA0EC10F97A6700FEDD9C /* CAWindowOpenGLContext.h */,
+				FE7AA0EB10F97A2A00FEDD9C /* CAWindowOpenGLContext.m */,
+				FEA3F2121133089500690AA2 /* CIAffineTransform.h */,
+				FEAEF7E811E3AAD000CA0912 /* CIAffineTransform.m */,
+				FE0FB9B010F9815300EBA597 /* CIColor.h */,
+				FE0FB9B110F9815300EBA597 /* CIColor.m */,
+				FE0FB9B210F9815300EBA597 /* CIContext.h */,
+				FE0FB9B310F9815300EBA597 /* CIContext.m */,
+				FE0FB9B410F9815300EBA597 /* CIFilter.h */,
+				FE0FB9B510F9815300EBA597 /* CIFilter.m */,
+				FE0FB9B610F9815300EBA597 /* CIImage.h */,
+				FE0FB9B710F9815300EBA597 /* CIImage.m */,
+				FE0FB9B810F9815300EBA597 /* CIVector.h */,
+				FE0FB9B910F9815300EBA597 /* CIVector.m */,
+				08FB77AEFE84172EC02AAC07 /* Classes */,
+				FEAEF82211E3AB6A00CA0912 /* CoreAnimation.h */,
+				FEF88C1D100CC41C00B15FD7 /* CoreGraphics.xcodeproj */,
+				FE255FEF10F10397005CE23E /* CoreImage.h */,
+				FE4301AB11E255A500EBDD56 /* CoreVideo.h */,
+				FE43019D11E2556B00EBDD56 /* CoreVideo.xcodeproj */,
+				0867D69AFE84028FC02AAC07 /* External Frameworks and Libraries */,
+				32C88DFF0371C24200C91783 /* Other Sources */,
+				034768DFFF38A50411DB9C8B /* Products */,
+				FE4477BF1039EECB00ECD6A6 /* QuartzCore.h */,
+				089C1665FE841158C02AAC07 /* Resources */,
+			);
+			indentWidth = 4;
+			name = QuartzCore;
+			sourceTree = "<group>";
+			tabWidth = 4;
+			usesTabs = 0;
+		};
+		0867D69AFE84028FC02AAC07 /* External Frameworks and Libraries */ = {
+			isa = PBXGroup;
+			children = (
+				1058C7B0FEA5585E11CA2CBB /* Linked Frameworks */,
+				1058C7B2FEA5585E11CA2CBB /* Other Frameworks */,
+			);
+			name = "External Frameworks and Libraries";
+			sourceTree = "<group>";
+		};
+		089C1665FE841158C02AAC07 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				8DC2EF5A0486A6940098B216 /* Info.plist */,
+				089C1666FE841158C02AAC07 /* InfoPlist.strings */,
+			);
+			name = Resources;
+			sourceTree = "<group>";
+		};
+		08FB77AEFE84172EC02AAC07 /* Classes */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Classes;
+			sourceTree = "<group>";
+		};
+		1058C7B0FEA5585E11CA2CBB /* Linked Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = "Linked Frameworks";
+			sourceTree = "<group>";
+		};
+		1058C7B2FEA5585E11CA2CBB /* Other Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				0867D69BFE84028FC02AAC07 /* Foundation.framework */,
+			);
+			name = "Other Frameworks";
+			sourceTree = "<group>";
+		};
+		32C88DFF0371C24200C91783 /* Other Sources */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = "Other Sources";
+			sourceTree = "<group>";
+		};
+		FE06B4F21430E9A30071169B /* xcconfig */ = {
+			isa = PBXGroup;
+			children = (
+				CFF0A18A1AF4771300160EAA /* darwin-i386-framework.xcconfig */,
+				CFF0A18B1AF4771300160EAA /* darwin-ppc-framework.xcconfig */,
+				CFF0A18C1AF4771300160EAA /* darwin-x86_64-framework.xcconfig */,
+				CFF0A18D1AF4771300160EAA /* freebsd-i386-framework.xcconfig */,
+				CFF0A18E1AF4771300160EAA /* linux-arm-framework.xcconfig */,
+				CFF0A18F1AF4771300160EAA /* linux-i386-framework.xcconfig */,
+				CFF0A1901AF4771300160EAA /* linux-ppc-framework.xcconfig */,
+				CFF0A1911AF4771300160EAA /* platform-framework.xcconfig */,
+				CFF0A1921AF4771300160EAA /* solaris-sparc-framework.xcconfig */,
+				CFF0A1931AF4771300160EAA /* windows-i386-bundle.xcconfig */,
+				CFF0A1941AF4771300160EAA /* windows-i386-clang.xcconfig */,
+				FE06B4F31430E9A30071169B /* darwin-i386.xcconfig */,
+				FE06B4F41430E9A30071169B /* darwin-ppc.xcconfig */,
+				FE06B4F51430E9A30071169B /* darwin-x86_64.xcconfig */,
+				FE06B4F61430E9A30071169B /* darwin.xcconfig */,
+				FE06B4F71430E9A30071169B /* freebsd-i386.xcconfig */,
+				FE06B4F81430E9A30071169B /* freebsd.xcconfig */,
+				FE06B4F91430E9A30071169B /* linux-arm.xcconfig */,
+				FE06B4FA1430E9A30071169B /* linux-i386.xcconfig */,
+				FE06B4FB1430E9A30071169B /* linux-ppc.xcconfig */,
+				FE06B4FC1430E9A30071169B /* linux.xcconfig */,
+				FE06B4FD1430E9A30071169B /* platform.xcconfig */,
+				FE06B4FE1430E9A30071169B /* solaris-sparc.xcconfig */,
+				FE06B4FF1430E9A30071169B /* solaris.xcconfig */,
+				FE06B5001430E9A30071169B /* windows-i386.xcconfig */,
+				FE06B5011430E9A30071169B /* windows.xcconfig */,
+				FE7087621431189F00B99A95 /* windows-i386-framework.xcconfig */,
+			);
+			name = xcconfig;
+			path = ../xcconfig;
+			sourceTree = SOURCE_ROOT;
+		};
+		FE2A2CDF12D2C7410028C06D /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				FE2A2CE512D2C7410028C06D /* OpenGL.framework */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		FE43019E11E2556B00EBDD56 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				FE4301A211E2556B00EBDD56 /* CoreVideo.framework */,
+				0DCD878515B0366D006F9320 /* CoreVideo.framework */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		FEF88C1E100CC41C00B15FD7 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				FEF88C24100CC41C00B15FD7 /* CoreGraphics.framework */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		FECA819710EBB231003472F1 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FECA819810EBB231003472F1 /* CAAnimation.h in Headers */,
+				FECA819910EBB231003472F1 /* CALayer.h in Headers */,
+				FECA819A10EBB231003472F1 /* CATransform3D.h in Headers */,
+				FECA819B10EBB231003472F1 /* QuartzCore.h in Headers */,
+				FECA819C10EBB231003472F1 /* CARenderer.h in Headers */,
+				FECA819D10EBB231003472F1 /* CABase.h in Headers */,
+				FE7AA0EF10F97A6700FEDD9C /* CAWindowOpenGLContext.h in Headers */,
+				FE0FB9AE10F9814400EBA597 /* CoreImage.h in Headers */,
+				FE0FB9C410F9815300EBA597 /* CIColor.h in Headers */,
+				FE0FB9C510F9815300EBA597 /* CIContext.h in Headers */,
+				FE0FB9C610F9815300EBA597 /* CIFilter.h in Headers */,
+				FE0FB9C710F9815300EBA597 /* CIImage.h in Headers */,
+				FE0FB9C810F9815300EBA597 /* CIVector.h in Headers */,
+				FEA3F2151133089500690AA2 /* CIAffineTransform.h in Headers */,
+				FE4301AE11E255A500EBDD56 /* CoreVideo.h in Headers */,
+				FEAEF7FB11E3AAD000CA0912 /* CAAnimationGroup.h in Headers */,
+				FEAEF7FD11E3AAD000CA0912 /* CABasicAnimation.h in Headers */,
+				FEAEF7FF11E3AAD000CA0912 /* CAPropertyAnimation.h in Headers */,
+				FEAEF80111E3AAD000CA0912 /* CATransition.h in Headers */,
+				FEAEF82511E3AB6A00CA0912 /* CoreAnimation.h in Headers */,
+				FEAEF86011E3AFEF00CA0912 /* CAMediaTiming.h in Headers */,
+				FEAEF8C711E3B3FF00CA0912 /* CAMediaTimingFunction.h in Headers */,
+				FE41B88B12BEA2EE00ED6C10 /* CATransaction.h in Headers */,
+				FEDEAA6C12C2608F008E5A59 /* CAValueFunction.h in Headers */,
+				FEDEABC312C98F59008E5A59 /* CALayerContext.h in Headers */,
+				FEDEB74212D2378C008E5A59 /* CAAction.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		FECA819410EBB231003472F1 /* QuartzCore */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FECA819F10EBB231003472F1 /* Build configuration list for PBXNativeTarget "QuartzCore" */;
+			buildPhases = (
+				FECA819710EBB231003472F1 /* Headers */,
+				FE2BFB1810FB6DCE00D3E136 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				FECA81AE10EBB2AC003472F1 /* PBXTargetDependency */,
+				FE4301A411E2557400EBDD56 /* PBXTargetDependency */,
+				FE2A2CEE12D2C74E0028C06D /* PBXTargetDependency */,
+			);
+			name = QuartzCore;
+			productInstallPath = "$(HOME)/Library/Frameworks";
+			productName = QuartzCore;
+			productReference = FECA81A110EBB231003472F1 /* QuartzCore.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		0867D690FE84028FC02AAC07 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0460;
+			};
+			buildConfigurationList = 1DEB91B108733DA50010E9CD /* Build configuration list for PBXProject "QuartzCore" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 1;
+			knownRegions = (
+				English,
+				Japanese,
+				French,
+				German,
+			);
+			mainGroup = 0867D691FE84028FC02AAC07 /* QuartzCore */;
+			productRefGroup = 034768DFFF38A50411DB9C8B /* Products */;
+			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = FEF88C1E100CC41C00B15FD7 /* Products */;
+					ProjectRef = FEF88C1D100CC41C00B15FD7 /* CoreGraphics.xcodeproj */;
+				},
+				{
+					ProductGroup = FE43019E11E2556B00EBDD56 /* Products */;
+					ProjectRef = FE43019D11E2556B00EBDD56 /* CoreVideo.xcodeproj */;
+				},
+				{
+					ProductGroup = FE2A2CDF12D2C7410028C06D /* Products */;
+					ProjectRef = FE2A2CDE12D2C7410028C06D /* OpenGL.xcodeproj */;
+				},
+			);
+			projectRoot = "";
+			targets = (
+				FECA819410EBB231003472F1 /* QuartzCore */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		0DCD878515B0366D006F9320 /* CoreVideo.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = CoreVideo.framework;
+			remoteRef = 0DCD878415B0366D006F9320 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		FE2A2CE512D2C7410028C06D /* OpenGL.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = OpenGL.framework;
+			remoteRef = FE2A2CE412D2C7410028C06D /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		FE4301A211E2556B00EBDD56 /* CoreVideo.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = CoreVideo.framework;
+			remoteRef = FE4301A111E2556B00EBDD56 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		FEF88C24100CC41C00B15FD7 /* CoreGraphics.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = CoreGraphics.framework;
+			remoteRef = FEF88C23100CC41C00B15FD7 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
+
+/* Begin PBXResourcesBuildPhase section */
+		FE2BFB1810FB6DCE00D3E136 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CFF0A1961AF4771300160EAA /* darwin-ppc-framework.xcconfig in Resources */,
+				CFF0A1971AF4771300160EAA /* darwin-x86_64-framework.xcconfig in Resources */,
+				CFF0A19C1AF4771300160EAA /* platform-framework.xcconfig in Resources */,
+				CFF0A19A1AF4771300160EAA /* linux-i386-framework.xcconfig in Resources */,
+				CFF0A19B1AF4771300160EAA /* linux-ppc-framework.xcconfig in Resources */,
+				CFF0A19F1AF4771300160EAA /* windows-i386-clang.xcconfig in Resources */,
+				CFF0A1991AF4771300160EAA /* linux-arm-framework.xcconfig in Resources */,
+				CFF0A19E1AF4771300160EAA /* windows-i386-bundle.xcconfig in Resources */,
+				CFF0A19D1AF4771300160EAA /* solaris-sparc-framework.xcconfig in Resources */,
+				CFF0A1951AF4771300160EAA /* darwin-i386-framework.xcconfig in Resources */,
+				CFF0A1981AF4771300160EAA /* freebsd-i386-framework.xcconfig in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		FE2A2CEE12D2C74E0028C06D /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "OpenGL-Windows-i386";
+			targetProxy = FE2A2CED12D2C74E0028C06D /* PBXContainerItemProxy */;
+		};
+		FE4301A411E2557400EBDD56 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "CoreVideo-Windows-i386";
+			targetProxy = FE4301A311E2557400EBDD56 /* PBXContainerItemProxy */;
+		};
+		FECA81AE10EBB2AC003472F1 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "CoreGraphics-Windows-i386";
+			targetProxy = FECA81AD10EBB2AC003472F1 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		089C1666FE841158C02AAC07 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				089C1667FE841158C02AAC07 /* English */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		1DEB91B308733DA50010E9CD /* Windows-i386 */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+			};
+			name = "Windows-i386";
+		};
+		CFF0A17B1AF475FB00160EAA /* FreeBSD-i386 */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+			};
+			name = "FreeBSD-i386";
+		};
+		CFF0A17C1AF475FB00160EAA /* FreeBSD-i386 */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = CFF0A18D1AF4771300160EAA /* freebsd-i386-framework.xcconfig */;
+			buildSettings = {
+				INFOPLIST_FILE = Info.plist;
+				PRODUCT_NAME = QuartzCore;
+			};
+			name = "FreeBSD-i386";
+		};
+		CFF0A1801AF4760400160EAA /* Darwin-i386 */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+			};
+			name = "Darwin-i386";
+		};
+		CFF0A1811AF4760400160EAA /* Darwin-i386 */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = CFF0A18A1AF4771300160EAA /* darwin-i386-framework.xcconfig */;
+			buildSettings = {
+				INFOPLIST_FILE = Info.plist;
+				PRODUCT_NAME = QuartzCore;
+			};
+			name = "Darwin-i386";
+		};
+		CFF0A1851AF4767E00160EAA /* Linux-i386 */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+			};
+			name = "Linux-i386";
+		};
+		CFF0A1861AF4767E00160EAA /* Linux-i386 */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = CFF0A18F1AF4771300160EAA /* linux-i386-framework.xcconfig */;
+			buildSettings = {
+				INFOPLIST_FILE = Info.plist;
+				PRODUCT_NAME = QuartzCore;
+			};
+			name = "Linux-i386";
+		};
+		FECA81A010EBB231003472F1 /* Windows-i386 */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = FE7087621431189F00B99A95 /* windows-i386-framework.xcconfig */;
+			buildSettings = {
+				INFOPLIST_FILE = Info.plist;
+				PRODUCT_NAME = QuartzCore;
+			};
+			name = "Windows-i386";
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1DEB91B108733DA50010E9CD /* Build configuration list for PBXProject "QuartzCore" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1DEB91B308733DA50010E9CD /* Windows-i386 */,
+				CFF0A1851AF4767E00160EAA /* Linux-i386 */,
+				CFF0A1801AF4760400160EAA /* Darwin-i386 */,
+				CFF0A17B1AF475FB00160EAA /* FreeBSD-i386 */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = "Windows-i386";
+		};
+		FECA819F10EBB231003472F1 /* Build configuration list for PBXNativeTarget "QuartzCore" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FECA81A010EBB231003472F1 /* Windows-i386 */,
+				CFF0A1861AF4767E00160EAA /* Linux-i386 */,
+				CFF0A1811AF4760400160EAA /* Darwin-i386 */,
+				CFF0A17C1AF475FB00160EAA /* FreeBSD-i386 */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = "Windows-i386";
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 0867D690FE84028FC02AAC07 /* Project object */;
+}
