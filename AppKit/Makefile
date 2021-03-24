@@ -432,6 +432,7 @@ NSPrintOperation.h \
 NSPrintPanel.h \
 NSPrintProgressPanelController.h \
 NSProgressIndicator.h \
+NSRaise.h \
 NSResponder.h \
 NSRuleEditor.h \
 NSRuleEditorButtonCell.h \
@@ -556,7 +557,7 @@ nib.subproj/NSWindowTemplate.h
 
 RESOURCES=Info.plist English.lproj
 CFLAGS+= ${FMWK_CFLAGS} -I${.CURDIR}/.. -I${BUILDROOT}/usr/include \
-	 -I${.CURDIR}/Headers -I../Foundation/Headers
+	 -I../OpenGL/include -I${.CURDIR}/Headers -I../Foundation/Headers
 LDFLAGS+= ${FMWK_LDFLAGS} \
 	  -Wl,-R/System/Library/Frameworks/Foundation.framework/Versions/A \
 	  -L${BUILDROOT}/System/Library/Frameworks/Foundation.framework/Versions/Current \
