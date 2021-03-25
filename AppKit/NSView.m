@@ -855,7 +855,7 @@ static inline void buildTransformsIfNeeded(NSView *self) {
    [self setNextResponder:superview];
 }
 
--(void)_insertSubview:(NSView *)view atIndex:(unsigned)index {
+-(void)_insertSubview:(NSView *)view atIndex:(NSUInteger)index {
 
    [view retain];
    if([view superview]==self)

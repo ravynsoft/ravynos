@@ -239,7 +239,6 @@ static const size_t weak_mask = ((size_t)1)<<((sizeof(size_t)*8)-refcount_shift)
  */
 static const size_t refcount_mask = ~weak_mask;
 
-#define object_externalRefCount(value) object_getRetainCount(value)
 extern "C" OBJC_PUBLIC size_t object_getRetainCount_np(id obj)
 {
 	uintptr_t *refCount = ((uintptr_t*)obj) - 1;

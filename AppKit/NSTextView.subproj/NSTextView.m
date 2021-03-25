@@ -2202,7 +2202,7 @@ NSString * const NSOldSelectedCharacterRange=@"NSOldSelectedCharacterRange";
 	} else {
         // Even though we're not rich text we have to set the typing attributes if we want the layout
         // manager to honor the font settings of this text view. If the layout manager doesn't find a font in the attributed
-        // string it'll substitute 12 pt Arial causing layout trouble for mini text fields and other woe.
+        // string it'll substitute 12 pt sans causing layout trouble for mini text fields and other woe.
         if ([string isKindOfClass:[NSAttributedString class]]) {
             NSAttributedString *str = (NSAttributedString *)string;
             string = [str string];

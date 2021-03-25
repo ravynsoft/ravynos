@@ -667,7 +667,18 @@ INCS= \
 ./NSCFTypeID.h \
 ./NSSpellServer.h
 
-RESOURCES=Info.plist English.lproj
+RESOURCES=Info.plist English.lproj \
+	NSCharacterSet/alphanumericCharacterSet.bitmap \
+	NSCharacterSet/controlCharacterSet.bitmap \
+	NSCharacterSet/decimalDigitCharacterSet.bitmap \
+	NSCharacterSet/illegalCharacterSet.bitmap \
+	NSCharacterSet/letterCharacterSet.bitmap \
+	NSCharacterSet/lowercaseLetterCharacterSet.bitmap \
+	NSCharacterSet/punctuationCharacterSet.bitmap \
+	NSCharacterSet/uppercaseLetterCharacterSet.bitmap \
+	NSCharacterSet/whitespaceAndNewlineCharacterSet.bitmap \
+	NSCharacterSet/whitespaceCharacterSet.bitmap
+
 CFLAGS+= ${FMWK_CFLAGS} -I${.CURDIR}/Headers \
 	 -I${.CURDIR}/.. -I${BUILDROOT}/usr/include 
 LDFLAGS+= ${FMWK_LDFLAGS} \
@@ -677,6 +688,8 @@ LDFLAGS+= ${FMWK_LDFLAGS} \
 	  -lobjc -lunwind -lpthread
 
 build: marshallheaders all
+	mv Foundation.framework/Resources/NSCharacterSet/*.bitmap Foundation.framework/Resources/
+	rmdir Foundation.framework/Resources/NSCharacterSet
 
 marshallheaders: .PHONY
 	mkdir -p Headers/Foundation

@@ -104,8 +104,8 @@ static NSLock *_cacheLock=nil;
    }
 }
 
-+(unsigned)_cacheIndexOfFontWithName:(NSString *)name size:(float)size {
-   unsigned i;
++(unsigned long)_cacheIndexOfFontWithName:(NSString *)name size:(float)size {
+   unsigned long i;
 
    for(i=0;i<_fontCacheSize;i++){
     NSFont *check=_fontCache[i];
@@ -121,7 +121,7 @@ static NSLock *_cacheLock=nil;
     
     NSFont *font = nil;
     [_cacheLock lock];
-    unsigned i=[self _cacheIndexOfFontWithName:name size:size];
+    unsigned long i=[self _cacheIndexOfFontWithName:name size:size];
         
     font = (i==NSNotFound)?(NSFont *)nil:_fontCache[i];
     [_cacheLock unlock];
@@ -133,7 +133,7 @@ static NSLock *_cacheLock=nil;
 	if (font == nil) {
 		return;
 	}
-   unsigned i;
+   unsigned long i;
 
     [_cacheLock lock];
    for(i=0;i<_fontCacheSize;i++){
@@ -154,7 +154,7 @@ static NSLock *_cacheLock=nil;
 
 +(void)removeFontFromCache:(NSFont *)font {
     [_cacheLock lock];
-   unsigned i=[self _cacheIndexOfFontWithName:[font fontName] size:[font pointSize]];
+   unsigned long i=[self _cacheIndexOfFontWithName:[font fontName] size:[font pointSize]];
 
    if(i!=NSNotFound)
     _fontCache[i]=nil;
@@ -213,27 +213,27 @@ static NSLock *_cacheLock=nil;
 }
 
 +(NSFont *)controlContentFontOfSize:(float)size {
-    return [self _uiFontOfType:kCTFontControlContentFontType size:(size==0)?12.0:size fallbackName:@"Arial"];
+    return [self _uiFontOfType:kCTFontControlContentFontType size:(size==0)?BASEFONT_SIZE:size fallbackName:BASEFONT_NS];
 }
 
 +(NSFont *)labelFontOfSize:(float)size {
-    return [self _uiFontOfType:kCTFontLabelFontType size:(size==0)?12.0:size fallbackName:@"Arial"];
+    return [self _uiFontOfType:kCTFontLabelFontType size:(size==0)?BASEFONT_SIZE:size fallbackName:BASEFONT_NS];
 }
 
 +(NSFont *)menuFontOfSize:(float)size {
-    return [self _uiFontOfType:kCTFontMenuItemFontType size:size fallbackName:@"Arial"];
+    return [self _uiFontOfType:kCTFontMenuItemFontType size:size fallbackName:BASEFONT_NS];
 }
 
 +(NSFont *)menuBarFontOfSize:(float)size {
-    return [self _uiFontOfType:kCTFontMenuTitleFontType size:size fallbackName:@"Arial"];
+    return [self _uiFontOfType:kCTFontMenuTitleFontType size:size fallbackName:BASEFONT_NS];
 }
 
 +(NSFont *)messageFontOfSize:(float)size {
-    return [self _uiFontOfType:kCTFontSystemFontType size:(size==0)?12.0:size fallbackName:@"Arial"];
+    return [self _uiFontOfType:kCTFontSystemFontType size:(size==0)?BASEFONT_SIZE:size fallbackName:BASEFONT_NS];
 }
 
 +(NSFont *)paletteFontOfSize:(float)size {
-    return [self _uiFontOfType:kCTFontPaletteFontType size:(size==0)?12.0:size fallbackName:@"Arial"];
+    return [self _uiFontOfType:kCTFontPaletteFontType size:(size==0)?BASEFONT_SIZE:size fallbackName:BASEFONT_NS];
 }
 
 +(NSFont *)systemFontOfSize:(float)size {
@@ -245,15 +245,15 @@ static NSLock *_cacheLock=nil;
 }
 
 +(NSFont *)toolTipsFontOfSize:(float)size {
-    return [self _uiFontOfType:kCTFontToolTipFontType size:(size==0)?10.:size fallbackName:@"Arial"];
+    return [self _uiFontOfType:kCTFontToolTipFontType size:(size==0)?10.:size fallbackName:BASEFONT_NS];
 }
 
 +(NSFont *)userFontOfSize:(float)size {
-   return [NSFont fontWithName:[O2Font postscriptNameForDisplayName:@"Arial"] size:(size==0)?12.0:size];
+   return [NSFont fontWithName:[O2Font postscriptNameForDisplayName:BASEFONT_NS] size:(size==0)?BASEFONT_SIZE:size];
 }
 
 +(NSFont *)userFixedPitchFontOfSize:(float)size {
-   return [NSFont fontWithName:[O2Font postscriptNameForDisplayName:@"Courier New"] size:(size==0)?12.0:size];
+   return [NSFont fontWithName:[O2Font postscriptNameForDisplayName:MONOFONT_NS] size:(size==0)?MONOFONT_SIZE:size];
 }
 
 +(void)setUserFont:(NSFont *)value {

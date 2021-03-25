@@ -30,8 +30,8 @@
     case kCTFontMenuTitleFontType:
     case kCTFontMenuItemFontType:
      if(size==0)
-      size=12;
-     font=O2FontCreateWithFontName(@"Arial");
+      size=BASEFONT_SIZE;
+     font=O2FontCreateWithFontName(BASEFONT_NS);
      break;
  
     default:
