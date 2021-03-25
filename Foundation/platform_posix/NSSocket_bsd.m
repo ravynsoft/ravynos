@@ -96,7 +96,7 @@ static inline void byteZero(void *vsrc,size_t size){
 - initConnectedToSocket: (NSSocket **)otherX
 {
     int pipes[2];
-    if (pipe(pipes)) {
+    if (pipe(pipes) == 0) {
         *otherX = [[[isa alloc] initWithDescriptor:pipes[0]] autorelease];
         return [self initWithDescriptor:pipes[1]];
     } else {
