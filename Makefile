@@ -65,10 +65,10 @@ helium: extradirs mkfiles libobjc2 libunwind frameworksclean frameworks copyfile
 install: installworld installkernel installhelium
 
 installworld:
-	sudo sh -c "MAKEOBJDIRPREFIX=${OBJPREFIX} make -C ${TOPDIR}/freebsd-src installworld"
+	sudo -E MAKEOBJDIRPREFIX=${OBJPREFIX} make -C ${TOPDIR}/freebsd-src installworld
 
 installkernel:
-	sudo sh -c "MAKEOBJDIRPREFIX=${OBJPREFIX} make -C ${TOPDIR}/freebsd-src installkernel"
+	sudo -E MAKEOBJDIRPREFIX=${OBJPREFIX} make -C ${TOPDIR}/freebsd-src installkernel
 
 installhelium: helium-package
 	sudo tar -C / -xvf ${RLSDIR}/helium.txz
@@ -183,6 +183,12 @@ QuartzCore.framework:
 	rm -rf QuartzCore/${.TARGET}
 	make -C QuartzCore BUILDROOT=${BUILDROOT} clean
 	make -C QuartzCore BUILDROOT=${BUILDROOT}
+	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
+
+Cocoa.framework:
+	rm -rf Cocoa/${.TARGET}
+	make -C Cocoa BUILDROOT=${BUILDROOT} clean
+	make -C Cocoa BUILDROOT=${BUILDROOT}
 	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
 
 AppKit.framework:
