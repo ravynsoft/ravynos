@@ -31,7 +31,7 @@ BOOL NSDecrementExtraRefCountWasZero(id object) {
 }
 
 NSUInteger NSExtraRefCount(id object) {
-    return object_externalRefCount(object);
+    return object_getRetainCount_np(object);
 }
 
 BOOL NSShouldRetainWithZone(id object,NSZone *zone) {

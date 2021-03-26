@@ -29,11 +29,13 @@ The goal is to use a small core set of languages as much as possible: the "C" fa
 
 ## I can code in those! How can I help?
 
-Great! We are just getting organized right now. Follow the project and watch for updates!
+Great! Take a look at the [project board](https://github.com/mszoek/helium/projects/1) or [issues](https://github.com/mszoek/helium/issues) list to find something that interests you, or contact [mszoek](https://github.com/mszoek).
 
 ## I don't code. Can I still help?
 
-Absolutely! There will be art, documentation, testing, UX and UI work, release management, project management, legal advice, and many other ways to contribute. Follow the project and watch for updates!
+Absolutely! There will be art, documentation, testing, UX and UI work, release management, project management, legal advice, and many other ways to contribute. Check out the [project board](https://github.com/mszoek/helium/projects/1) and [issues](https://github.com/mszoek/helium/issues) for ideas on how to contribute, or contact [mszoek](https://github.com/mszoek).
+
+One really big way to help right now would be a project logo! I'm thinking a Helium atom in some form but go nuts.
 
 ## This is a huge effort. Y'all must be crazy!
 

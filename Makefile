@@ -133,12 +133,63 @@ Foundation.framework:
 	rm -rf Foundation/${.TARGET}
 	make -C Foundation BUILDROOT=${BUILDROOT} clean build
 	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
+	cp -vf ${TOPDIR}/${.TARGET:R}/NSException/NSRaise.h ${TOPDIR}/AppKit
+
+ApplicationServices.framework:
+	rm -rf ApplicationServices/${.TARGET}
+	make -C ApplicationServices BUILDROOT=${BUILDROOT} clean
+	make -C ApplicationServices BUILDROOT=${BUILDROOT}
+	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
 
 CoreServices.framework:
 	rm -rf CoreServices/${.TARGET}
 	make -C CoreServices BUILDROOT=${BUILDROOT} clean
 	make -C CoreServices BUILDROOT=${BUILDROOT}
 	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
+
+CoreData.framework:
+	rm -rf CoreData/${.TARGET}
+	make -C CoreData BUILDROOT=${BUILDROOT} clean
+	make -C CoreData BUILDROOT=${BUILDROOT}
+	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
+
+Onyx2D.framework:
+	rm -rf Onyx2D/${.TARGET}
+	make -C Onyx2D BUILDROOT=${BUILDROOT} clean
+	make -C Onyx2D BUILDROOT=${BUILDROOT}
+	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
+
+OpenGL.framework:
+	rm -rf OpenGL/${.TARGET}
+	make -C OpenGL BUILDROOT=${BUILDROOT} clean
+	make -C OpenGL BUILDROOT=${BUILDROOT}
+	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
+
+CoreGraphics.framework:
+	rm -rf CoreGraphics/${.TARGET}
+	make -C CoreGraphics BUILDROOT=${BUILDROOT} clean
+	make -C CoreGraphics BUILDROOT=${BUILDROOT}
+	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
+	cp -vf ${TOPDIR}/${.TARGET:R}/CGEvent.h ${TOPDIR}/AppKit
+
+CoreText.framework:
+	rm -rf CoreText/${.TARGET}
+	make -C CoreText BUILDROOT=${BUILDROOT} clean
+	make -C CoreText BUILDROOT=${BUILDROOT}
+	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
+	cp -vf ${TOPDIR}/${.TARGET:R}/KTFont.h ${TOPDIR}/AppKit
+
+QuartzCore.framework:
+	rm -rf QuartzCore/${.TARGET}
+	make -C QuartzCore BUILDROOT=${BUILDROOT} clean
+	make -C QuartzCore BUILDROOT=${BUILDROOT}
+	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
+
+AppKit.framework:
+	rm -rf AppKit/${.TARGET}
+	make -C AppKit BUILDROOT=${BUILDROOT} clean build
+	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
+
 
 helium-package:
 	tar cJ -C ${BUILDROOT} --gid 0 --uid 0 -f ${RLSDIR}/helium.txz .
