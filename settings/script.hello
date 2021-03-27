@@ -340,3 +340,10 @@ chmod +x "${uzip}/usr/sbin/pkg"
 sed -i -e 's|longnames -m 644|longnames -m 777|g' "${uzip}/usr/local/sbin/automount"
 sed -i -e 's|longnames -m 755|longnames -m 777|g' "${uzip}/usr/local/sbin/automount"
 rm "${uzip}/usr/local/sbin/automount-e"
+
+# Required for runappimage
+# FIXME: Replace by something written in Python that does not need to be compiled
+# and hence is cross-platform
+wget -c "https://github.com/helloSystem/elfsize/releases/download/0/elfsize"
+chmod +x elfsize
+mv elfsize "${uzip}/usr/local/bin/"
