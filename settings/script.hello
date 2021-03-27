@@ -347,3 +347,6 @@ rm "${uzip}/usr/local/sbin/automount-e"
 wget -c "https://github.com/helloSystem/elfsize/releases/download/0/elfsize"
 chmod +x elfsize
 mv elfsize "${uzip}/usr/local/bin/"
+
+# Add /Users symkink
+( cd "${uzip}" ; ln -s usr/home Users )
