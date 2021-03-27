@@ -338,5 +338,5 @@ chmod +x "${uzip}/usr/sbin/pkg"
 # https://github.com/vermaden/automount/commit/f50118920208e49890067d00ecd6bb1a97b47ce3
 # FIXME: Use better solution
 sed -i -e 's|longnames -m 644|longnames -m 777|g' "${uzip}/usr/local/sbin/automount"
-sed -i -e 's|longnames -m 744|longnames -m 777|g' "${uzip}/usr/local/sbin/automount"
+sed -i -e 's|longnames -m 755|longnames -m 777|g' "${uzip}/usr/local/sbin/automount"
 rm "${uzip}/usr/local/sbin/automount-e"
