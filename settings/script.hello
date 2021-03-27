@@ -335,6 +335,8 @@ chmod +x "${uzip}/usr/sbin/pkg"
 # Brute force method to make FAT media fully accessible and executable by everyone
 # https://github.com/vermaden/automount/issues/21#issuecomment-808753031
 # https://github.com/vermaden/automount/issues/27
+# https://github.com/vermaden/automount/commit/f50118920208e49890067d00ecd6bb1a97b47ce3
 # FIXME: Use better solution
-sed -i -e 's|-m 644|-m 777|g' "${uzip}/usr/local/sbin/automount"
+sed -i -e 's|longnames -m 644|longnames -m 777|g' "${uzip}/usr/local/sbin/automount"
+sed -i -e 's|longnames -m 744|longnames -m 777|g' "${uzip}/usr/local/sbin/automount"
 rm "${uzip}/usr/local/sbin/automount-e"
