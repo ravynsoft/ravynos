@@ -331,3 +331,10 @@ case "$@" in
 esac
 EOF
 chmod +x "${uzip}/usr/sbin/pkg"
+
+# Brute force method to make FAT media fully accessible and executable by everyone
+# https://github.com/vermaden/automount/issues/21#issuecomment-808753031
+# https://github.com/vermaden/automount/issues/27
+# FIXME: Use better solution
+sed -i -e 's|-m 644|-m 777|g' "${uzip}/usr/local/sbin/automount"
+rm "${uzip}/usr/local/sbin/automount-e"
