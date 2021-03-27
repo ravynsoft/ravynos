@@ -2,7 +2,7 @@
 
 TOPDIR := ${.CURDIR}
 OBJPREFIX := ${HOME}/obj.${MACHINE}
-RLSDIR := ${TOPDIR}/freebsd-src/release
+RLSDIR := ${OBJPREFIX}${TOPDIR}/freebsd-src/release
 BSDCONFIG := GENERIC
 BUILDROOT := ${OBJPREFIX}/buildroot
 HELIUM_VERSION != cat ${TOPDIR}/version
@@ -58,6 +58,14 @@ kernel-noclean:
 usr-noclean:
 	export MAKEOBJDIRPREFIX=${OBJPREFIX}; make -j${CORES} \
 		-C ${TOPDIR}/freebsd-src -DNO_CLEAN buildworld
+
+XORG=https://www.x.org/releases/individual/xserver/xorg-server-1.20.10.tar.bz2 \
+     https://www.x.org/releases/individual/xcb/libxcb-1.14.tar.gz \
+	 https://www.x.org/releases/individual/xcb/xcb-proto-1.14.tar.gz \
+	 
+packages:
+	mkdir -p ${OBJPREFIX}/pkg
+	pkg fetch -U -o ${OBJPREFIX}/pkg -d -y openjpeg tiff png freetype2 fontconfig cairo xorg
 
 helium: extradirs mkfiles libobjc2 libunwind frameworksclean frameworks copyfiles
 
