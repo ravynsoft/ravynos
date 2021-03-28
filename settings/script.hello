@@ -201,10 +201,6 @@ rm QTerminal_FreeBSD.zip
 # sed -i -e 's|^Icon=.*|Icon=documentation_section|g' "${uzip}"/tmp/documentation.desktop
 # chroot "${uzip}" desktop2app /tmp/documentation.desktop /Applications/Utilities -g
 
-# Desktop
-chroot "${uzip}" /usr/local/bin/desktop2app /usr/share/skel/Desktop/computer.desktop /usr/share/skel/Desktop/
-rm -f "${uzip}"/usr/share/skel/Desktop/computer.desktop
-
 # Remove non-hello xessions desktop files
 # to silence misleading messages from slim on the command line
 rm -rf ${uzip}/usr/local/share/xsessions/*.desktop
