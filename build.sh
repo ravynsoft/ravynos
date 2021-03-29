@@ -23,6 +23,11 @@ FTPDIRECTORY="releases" # "releases" or "snapshots"
 if [ "${VERSIONSUFFIX}" = "CURRENT" ] ; then
   FTPDIRECTORY="snapshots"
 fi
+# RCs are in the 'releases' ftp directory; hence check if $VERSIONSUFFIX begins with 'RC' https://serverfault.com/a/252406
+if [ "${VERSIONSUFFIX#RC}"x = "${VERSIONSUFFIX}x" ]  ; then
+  FTPDIRECTORY="releases"
+fi
+
 echo "${FTPDIRECTORY}"
 
 # pkgset="branches/2020Q1" # TODO: Use it
