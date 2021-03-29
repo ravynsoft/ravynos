@@ -346,3 +346,6 @@ mv elfsize "${uzip}/usr/local/bin/"
 
 # Add /Users symkink
 ( cd "${uzip}" ; ln -s usr/home Users )
+
+# FIXME: Desperate attempt at reducing image size
+rm -rf "${uzip}/usr/local/share/icons/Adwaita"
