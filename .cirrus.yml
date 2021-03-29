@@ -40,7 +40,7 @@ task:
     - export VER=$(uname -r | cut -d "-" -f 1)
     # if [ "$VER" = "12.1" ] ; then export PERSIST_NEW_BUILDNUMBER="YES" ; fi # Only persist incremented build number for one of the builds in the matrix
     - export PERSIST_NEW_BUILDNUMBER="YES"
-    - wget -c https://github.com/helloSystem/buildnumbers/releases/download/initial/buildnumbers
+    - wget -c -q https://github.com/helloSystem/buildnumbers/releases/download/initial/buildnumbers
     - chmod +x ./buildnumbers
     - export BUILDNUMBER=$(RELEASE_ID_FOR_STORAGE=33980128 ./buildnumbers)
     - /bin/sh -x ./build.sh "${DESKTOP}" || true # FIXME: Why does this return an error even though the ISO succeeded?
