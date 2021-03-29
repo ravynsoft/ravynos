@@ -9,7 +9,7 @@ set -e
 version=$(uname -r | cut -d "-" -f 1-2) # "12.2-RELEASE" or "13.0-CURRENT"
 
 # FIXME: Temporary workaround until 13 is released
-[ if "${version}" = "13.0-CURRENT" ] ; then
+if [ "${version}" = "13.0-CURRENT" ] ; then
   version="13.0-RC3"
 fi
 
