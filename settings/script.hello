@@ -348,5 +348,6 @@ mv elfsize "${uzip}/usr/local/bin/"
 ( cd "${uzip}" ; ln -s usr/home Users )
 
 # FIXME: Desperate attempt at reducing image size
-rm -rf "${uzip}/usr/local/share/icons/Adwaita"
-rm -rf /usr/local/*-portbld-*/ # What is it; is it actually needed? https://forums.freebsd.org/threads/what-is-the-portbld-directory.71759/
+rm -rf "${uzip}"/usr/local/share/icons/Adwaita
+rm -rf "${uzip}"/usr/local/share/icons/breeze*
+rm -rf "${uzip}"/usr/local/*-portbld-*/ # What is it; is it actually needed? https://forums.freebsd.org/threads/what-is-the-portbld-directory.71759/
