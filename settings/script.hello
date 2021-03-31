@@ -21,8 +21,8 @@ wget "https://github.com/helloSystem/ISO/releases/download/assets/graphite.jpg" 
 icons_temp=$(mktemp -d /tmp/icons.XXXXX)
 cd $icons_temp
 wget http://archive.ubuntu.com/ubuntu/pool/universe/x/xubuntu-artwork/xubuntu-icon-theme_16.04.2_all.deb
-tar xfv xubuntu-icon-theme_16.04.2_all.deb
-tar xfv data.tar.xz
+tar xf xubuntu-icon-theme_16.04.2_all.deb
+tar xf data.tar.xz
 mkdir -p "${uzip}"/usr/local/share/icons/
 mv ./usr/share/icons/elementary-xfce "${uzip}"/usr/local/share/icons/
 mv ./usr/share/doc/xubuntu-icon-theme/copyright "${uzip}"/usr/local/share/icons/elementary-xfce/
