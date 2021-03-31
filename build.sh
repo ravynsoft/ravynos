@@ -384,7 +384,7 @@ boot()
     -not -name 'firewire.ko' \
     -not -name 'geom_uzip.ko' \
     -not -name 'opensolaris.ko' \
-    -not -name 'tmpfs.ko'
+    -not -name 'tmpfs.ko' \
     -not -name 'zfs.ko' \
     -delete
   # Compress the remaining modules
