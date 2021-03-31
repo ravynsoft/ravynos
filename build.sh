@@ -375,10 +375,20 @@ boot()
 {
   cp -R "${cwd}/overlays/boot/" "${cdroot}"
   cd "${uzip}" && tar -cf - boot | tar -xf - -C "${cdroot}"
-  # Remove from /boot on the cd9660 filesystem every file that is not required before the root filesystem is mounted
+  # Remove all modules from the ISO that is not required before the root filesystem is mounted
   # The whole directory /boot/modules is unnecessary
-  rm -rf "${cdroot}"/boot/modules
-  # TODO: Also remove files in /boot/kernel that are not loaded at boot time
+  rm -rf "${cdroot}"/boot/modules/*
+  # Remove modules in /boot/kernel that are not loaded at boot time
+  find "${cdroot}"/boot/kernel -type f -name '*.ko' \
+    -not -name 'cryptodev.ko' \
+    -not -name 'firewire.ko' \
+    -not -name 'geom_uzip.ko' \
+    -not -name 'opensolaris.ko' \
+    -not -name 'tmpfs.ko'
+    -not -name 'zfs.ko' \
+    -delete
+  # Compress the remaining modules
+  find "${cdroot}"/boot/kernel -type f -name '*.ko' -exec gzip {} \;
   sync ### Needed?
   cd ${cwd} && zpool export furybsd && mdconfig -d -u 0
   sync ### Needed?
