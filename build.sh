@@ -412,14 +412,16 @@ image()
 
 split()
 {
-  THRESHOLD_BYTES=$(units -o "%0.f" -t "1.99 gigabytes" "bytes")
+  # units -o "%0.f" -t "2 gigabytes" "bytes"
+  THRESHOLD_BYTES=2147483647
+  # THRESHOLD_BYTES=1999999999
   ISO_SIZE=$(stat -f%z "${isopath}")
   if [ $ISO_SIZE -gt $THRESHOLD_BYTES ] ; then
     echo "Size exceeds GitHub Releases file size limit; splitting the ISO"
     sudo split -d -b "$THRESHOLD_BYTES" -a 1 "${isopath}" "${isopath}.part"
-    ls -l "${isopath}.part*"
     echo "Split the ISO, deleting the original"
     rm "${isopath}"
+    ls -l "${isopath}"*
   fi
 }
 
