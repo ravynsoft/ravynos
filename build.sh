@@ -210,7 +210,7 @@ packages()
     done
     # Install packages beginning with 'https:'
     mkdir -p ${uzip}${pkg_cachedir}/furybsd-https
-    for url in $(sed -ne "s,^https:,https:,;s,%%ARCH%%,$arch,;s,%%VER%%,$VER,p" "${cwd}/settings/packages.$p"); do
+    for url in $(grep -e '^https' "${cwd}/settings/packages.$p"); do
       pkgfile=${url##*/}
       if [ ! -e ${uzip}${pkg_cachedir}/furybsd-https/${pkgfile} ]; then
         fetch -o ${uzip}${pkg_cachedir}/furybsd-https/ $url
