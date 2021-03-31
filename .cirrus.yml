@@ -45,7 +45,7 @@ task:
     - export BUILDNUMBER=$(RELEASE_ID_FOR_STORAGE=33980128 ./buildnumbers)
     - /bin/sh -x ./build.sh "${DESKTOP}" || true # FIXME: Why does this return an error even though the ISO succeeded?
     - df -h
-    - ( cd "${CIRRUS_WORKING_DIR}"/artifacts ; zsyncmake *.iso )
+    # ( cd "${CIRRUS_WORKING_DIR}"/artifacts ; zsyncmake *.iso )
     
   Upload_script:
     - export VER=$(uname -r | cut -d "-" -f 1) # No way to pass on from Build_script to Upload_script?
