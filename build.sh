@@ -215,7 +215,7 @@ packages()
       if [ ! -e ${uzip}${pkg_cachedir}/furybsd-https/${pkgfile} ]; then
         fetch -o ${uzip}${pkg_cachedir}/furybsd-https/ $url
       fi
-      ABI=freebsd:12:x86:64 /usr/local/sbin/pkg-static -c "${uzip}" add ${pkg_cachedir}/furybsd-https/${pkgfile} # ABI=freebsd:12:x86:64 in an attempt to use package built on 12 for 13 as well
+      ABI=freebsd:12:$arch /usr/local/sbin/pkg-static -c "${uzip}" add ${pkg_cachedir}/furybsd-https/${pkgfile} # ABI=freebsd:12:$arch in an attempt to use package built on 12 for 13 as well
       /usr/local/sbin/pkg-static -c "${uzip}" lock -y $(/usr/local/sbin/pkg-static query -F ${uzip}${pkg_cachedir}/furybsd-https/${pkgfile} %o)
     done
   done
