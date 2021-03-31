@@ -385,6 +385,7 @@ boot()
     -not -name 'geom_uzip.ko' \
     -not -name 'opensolaris.ko' \
     -not -name 'tmpfs.ko' \
+    -not -name 'xz.ko' \
     -not -name 'zfs.ko' \
     -delete
   # Compress the remaining modules
