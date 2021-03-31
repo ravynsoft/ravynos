@@ -375,6 +375,10 @@ boot()
 {
   cp -R "${cwd}/overlays/boot/" "${cdroot}"
   cd "${uzip}" && tar -cf - boot | tar -xf - -C "${cdroot}"
+  # Remove from /boot on the cd9660 filesystem every file that is not required before the root filesystem is mounted
+  # The whole directory /boot/modules is unnecessary
+  rm -rf "${cdroot}"/boot/modules
+  # TODO: Also remove files in /boot/kernel that are not loaded at boot time
   sync ### Needed?
   cd ${cwd} && zpool export furybsd && mdconfig -d -u 0
   sync ### Needed?
