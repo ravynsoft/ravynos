@@ -410,6 +410,19 @@ image()
   echo "$isopath created"
 }
 
+split()
+{
+  THRESHOLD_BYTES=$(units -o "%0.f" -t "1.99 gigabytes" "bytes")
+  ISO_SIZE=$(stat -f%z "${isopath}")
+  if [ $ISO_SIZE -gt $THRESHOLD_BYTES ] ; then
+    echo "Size exceeds GitHub Releases file size limit; splitting the ISO"
+    sudo split -d -b "$THRESHOLD_BYTES" -a 1 "${isopath}" "${isopath}.part"
+    ls -l "${isopath}.part*"
+    echo "Split the ISO, deleting the original"
+    rm "${isopath}"
+  fi
+}
+
 cleanup
 workspace
 repos
@@ -426,3 +439,9 @@ uzip
 ramdisk
 boot
 image
+
+if [ -n "$CIRRUS_CI" ] ; then
+  # On Cirrus CI we want to upload to GitHub Releases which has a 2 GB file size limit,
+  # hence we need to split the ISO there if it is too large
+  split
+fi
