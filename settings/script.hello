@@ -14,13 +14,13 @@ cd /tmp/system-overlay
 # https://papers.co/desktop/vg41-ribbon-abstract-art-blue-pattern/
 # https://papers.co/desktop/vm16-abstract-blue-rhytm-pattern/
 # wget "https://res.allmacwallpaper.com/get/iMac-21-inch-wallpapers/Minimalist-blue-1920x1080/1686-9.jpg" -O "${uzip}"/usr/local/share/slim/themes/default/background.jpg
-wget "https://github.com/helloSystem/ISO/releases/download/assets/graphite.jpg" -O "${uzip}"/usr/local/share/slim/themes/default/background.jpg
+wget -c -q "https://github.com/helloSystem/ISO/releases/download/assets/graphite.jpg" -O "${uzip}"/usr/local/share/slim/themes/default/background.jpg
 
 # Use blue folder icons instead of the ones packaged in FreeBSD which have yellow folder icons
 # Don't extract directly in /tmp, as tar will modify its permissions
 icons_temp=$(mktemp -d /tmp/icons.XXXXX)
 cd $icons_temp
-wget http://archive.ubuntu.com/ubuntu/pool/universe/x/xubuntu-artwork/xubuntu-icon-theme_16.04.2_all.deb
+wget -c -q http://archive.ubuntu.com/ubuntu/pool/universe/x/xubuntu-artwork/xubuntu-icon-theme_16.04.2_all.deb
 tar xf xubuntu-icon-theme_16.04.2_all.deb
 tar xf data.tar.xz
 mkdir -p "${uzip}"/usr/local/share/icons/
@@ -32,7 +32,7 @@ cd -
 rm -r $icons_temp
 
 # Cursor theme with HiDPi Support, sizes: 22 24 28 32 40 48 56 64 72 80 88 96
-wget -c https://github.com/ful1e5/apple_cursor/releases/download/v1.0.6/macOSBigSur.tar.gz
+wget -c -q https://github.com/ful1e5/apple_cursor/releases/download/v1.0.6/macOSBigSur.tar.gz
 tar xfv macOSBigSur.tar.gz
 mv macOSBigSur "${uzip}/usr/local/share/icons/"
 ( cd "${uzip}/usr/local/share/icons/" ; ln -s macOSBigSur default )
@@ -110,7 +110,7 @@ mv 'Utilities-master/Video' "${uzip}/Applications/"
 rm -rf master.zip Utilities-master/
 
 # Required for Remote Assistance.app
-wget -c https://github.com/gjedeer/tuntox/releases/download/0.0.9/tuntox-freebsd-x64 -O tuntox
+wget -c -q https://github.com/gjedeer/tuntox/releases/download/0.0.9/tuntox-freebsd-x64 -O tuntox
 chmod +x tuntox
 mv tuntox "${uzip}/usr/local/bin/"
 
@@ -191,7 +191,7 @@ chmod g+w "${uzip}/Applications/Utilities"
 # chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/org.kde.systemmonitor.desktop /Applications/Utilities/ # TODO: Find lighter replacement
 # chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/qterminal.desktop /Applications/Utilities/
 # For now, we are using a patched version of QTerminal that includes https://github.com/lxqt/qtermwidget/pull/418
-wget -c "https://github.com/helloSystem/ISO/releases/download/assets/QTerminal_FreeBSD.zip"
+wget -c -q "https://github.com/helloSystem/ISO/releases/download/assets/QTerminal_FreeBSD.zip"
 unzip QTerminal_FreeBSD.zip
 mv "QTerminal.app" "${uzip}/Applications/Utilities/"
 rm QTerminal_FreeBSD.zip
@@ -340,7 +340,7 @@ rm "${uzip}/usr/local/sbin/automount-e"
 # Required for runappimage
 # FIXME: Replace by something written in Python that does not need to be compiled
 # and hence is cross-platform
-wget -c "https://github.com/helloSystem/elfsize/releases/download/0/elfsize"
+wget -c -q "https://github.com/helloSystem/elfsize/releases/download/0/elfsize"
 chmod +x elfsize
 mv elfsize "${uzip}/usr/local/bin/"
 
