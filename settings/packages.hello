@@ -110,7 +110,7 @@ fusefs-hfsfuse
 # fusefs-lkl # This is way too large and draws in gcc, and fusefs-ext2 can also do the job
 fusefs-ext2
 # fusefs-simple-mtpfs # Does not work properly on 12.1 at least, using android-file-transfer-qt5 instead
-# Needed for Android File Transfer (MTP) utility
+# Required for Android File Transfer (MTP) utility
 android-file-transfer-qt5
 # Scanning application
 # skanlite # https://github.com/helloSystem/ISO/issues/65
@@ -132,15 +132,15 @@ gstreamer1-plugins-soup
 # Required for screencast tool
 screenkey
 font-awesome
-# Needed for some applications (e.g., screenkey) to show icons in the upper right hand corner of the menu (system tray/notification area)
+# Required for some applications (e.g., screenkey) to show icons in the upper right hand corner of the menu (system tray/notification area)
 libappindicator
-# Needed for mountarchive tool to mount archives and disk images
+# Required for mountarchive tool to mount archives and disk images
 archivemount
 # Needed to load HiDPI cursors [ci skip]
 xrdb
-# Needed for Simple Browser
+# Required for Simple Browser
 py37-qt5-webengine
-# Needed for eject context menu in Filer
+# Required for eject context menu in Filer
 eject
 # Required for running AppImages
 # FIXME: Those cannot be installed if the kernel is not running linux.ko
@@ -152,9 +152,11 @@ eject
 # linux-c7-cups-libs
 # https URL needed as long as falkon-qtonly is not in releaseX packages
 https://github.com/helloSystem/ISO/releases/download/assets/falkon-qtonly-3.1.0.txz
-# Needed by gmenudbusmenuproxy which is needed for the global menu
+# Needed by gmenudbusmenuproxy which is required for the global menu
 kf5-kconfig
 # Needed by Dock
 qt5-quickcontrols2
 # Needed by Welcome.app
 py37-qt5-multimedia
+# Required for runappimage
+fusefs-squashfuse
