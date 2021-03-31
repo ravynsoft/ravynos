@@ -46,6 +46,8 @@ dbus
 # Lightweight Qt-based terminal emulator
 # For now, we are using a patched version of QTerminal that includes https://github.com/lxqt/qtermwidget/pull/418
 # qterminal
+# But we need /usr/local/share/qtermwidget5 until QTerminal.app is made properly; https://github.com/helloSystem/ISO/issues/190
+qtermwidget
 # Lightweight Qt5 plain-text editor
 featherpad
 # GTK module for putting application menubar in a global menubar
