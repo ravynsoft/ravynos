@@ -379,7 +379,7 @@ boot()
   # The whole directory /boot/modules is unnecessary
   rm -rf "${cdroot}"/boot/modules/*
   # Remove modules in /boot/kernel that are not loaded at boot time
-  find "${cdroot}"/boot/kernel -type f -name '*.ko' \
+  find "${cdroot}"/boot/kernel -name '*.ko' \
     -not -name 'cryptodev.ko' \
     -not -name 'firewire.ko' \
     -not -name 'geom_uzip.ko' \
