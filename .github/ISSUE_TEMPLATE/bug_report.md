@@ -24,10 +24,10 @@ A clear and concise description of what you expected to happen.
 If applicable, add screenshots to help explain your problem.
 
 **Version (please complete the following information):**
- - [ ] Live ISO
- - [ ] Installed system to disk
+ - Live ISO or installed system to disk: [e.g., Live]
  - FreeBSD version (System --> About this Computer): [e.g., 12.2]
  - helloSystem build (`cat /.url`): [e.g., https://github.com/helloSystem/ISO/commit/0000000]
+ - Running in a virtual machine: [e.g., no]
 
 **Computer (please complete the following information):**
  - Device: [e.g., Dell Inc. OptiPlex 780]
