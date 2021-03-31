@@ -347,6 +347,10 @@ mv elfsize "${uzip}/usr/local/bin/"
 # Add /Users symkink
 ( cd "${uzip}" ; ln -s usr/home Users )
 
+# Improve compatibility with many scripts from the Linux world,
+# including those in many AppImages
+chroot ${uzip} ln -s /usr/local/bin/bash /bin/bash
+
 # FIXME: Desperate attempt at reducing image size
 rm -rf "${uzip}"/usr/local/share/icons/breeze*
 rm -rf "${uzip}"/usr/local/*-portbld-*/ # What is it; is it actually needed? https://forums.freebsd.org/threads/what-is-the-portbld-directory.71759/
