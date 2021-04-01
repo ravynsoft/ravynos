@@ -305,13 +305,16 @@ chmod +s "${uzip}/sbin/umount"
 # would result in the deinstallation of 2GB of the desktop
 # Can we have a stand-in dummy package that would be used instead?
 # https://github.com/helloSystem/ISO/issues/91
-rm -rf "${uzip}/usr/local/share/fonts/dejavu"
-rm -rf "${uzip}/usr/local/share/fonts/TTF"/luxi*
+chroot ${uzip} sh -c 'for FILE in $(pkg list dejavu) ; do rm $FILE ; done'
+# X.Org miscellaneous fonts
+chroot ${uzip} sh -c 'for FILE in $(pkg list font-bh-ttf) ; do rm $FILE ; done'
+chroot ${uzip} sh -c 'for FILE in $(pkg list font-misc-ethiopic) ; do rm $FILE ; done'
+chroot ${uzip} sh -c 'for FILE in $(pkg list font-misc-meltho) ; do rm $FILE ; done'
 # Liberation was released in 2007 by Red Hat, who had commissioned the designs from the 
 # commercial foundry Ascender Corporationn Serif, and Liberation Mono. 
 # Designed to have the same metrics as the proprietary Monotype fonts 
 # Arial, Times New Roman, and Courier New. Ever since, every Linux desktops looks ugly
-rm -rf "${uzip}/usr/local/share/fonts/Liberation"
+chroot ${uzip} sh -c 'for FILE in $(pkg list liberation-fonts-ttf) ; do rm $FILE ; done'
 
 chroot "${uzip}" update-desktop-database # Needed for mountarchive to be associated with the MIME types it can handle; TODO: Get rid of XDG
 
