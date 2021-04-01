@@ -175,6 +175,21 @@ base()
   touch ${uzip}/etc/fstab
 }
 
+pkg_add_from_url()
+{
+      url=$1
+      pkg_cachesubdir=$2
+      abi=${3+env ABI=$3}
+
+      pkgfile=${url##*/}
+      if [ ! -e ${uzip}${pkg_cachedir}/${pkg_cachesubdir}/${pkgfile} ]; then
+        fetch -o ${uzip}${pkg_cachedir}/${pkg_cachesubdir}/ $url
+      fi
+      /usr/local/sbin/pkg-static -c "${uzip}" install -y $(/usr/local/sbin/pkg-static query -F ${uzip}${pkg_cachedir}/${pkg_cachesubdir}/${pkgfile} %dn)
+      $abi /usr/local/sbin/pkg-static -c "${uzip}" add ${pkg_cachedir}/${pkg_cachesubdir}/${pkgfile}
+      /usr/local/sbin/pkg-static -c "${uzip}" lock -y $(/usr/local/sbin/pkg-static query -F ${uzip}${pkg_cachedir}/${pkg_cachesubdir}/${pkgfile} %o)
+}
+
 packages()
 {
   # NOTE: Also adjust the Nvidia drivers accordingly below. TODO: Use one set of variables
@@ -201,22 +216,13 @@ packages()
     # Install packages beginning with 'cirrus:'
     mkdir -p ${uzip}${pkg_cachedir}/furybsd-cirrus
     for url in $(sed -ne "s,^cirrus:,https://api.cirrus-ci.com/v1/artifact/,;s,%%ARCH%%,$arch,;s,%%VER%%,$VER,p" "${cwd}/settings/packages.$p"); do
-      pkgfile=${url##*/}
-      if [ ! -e ${uzip}${pkg_cachedir}/furybsd-cirrus/${pkgfile} ]; then
-        fetch -o ${uzip}${pkg_cachedir}/furybsd-cirrus/ $url
-      fi
-      /usr/local/sbin/pkg-static -c "${uzip}" add ${pkg_cachedir}/furybsd-cirrus/${pkgfile}
-      /usr/local/sbin/pkg-static -c "${uzip}" lock -y $(/usr/local/sbin/pkg-static query -F ${uzip}${pkg_cachedir}/furybsd-cirrus/${pkgfile} %o)
+        pkg_add_from_url "$url" furybsd-cirrus
     done
     # Install packages beginning with 'https:'
     mkdir -p ${uzip}${pkg_cachedir}/furybsd-https
     for url in $(grep -e '^https' "${cwd}/settings/packages.$p"); do
-      pkgfile=${url##*/}
-      if [ ! -e ${uzip}${pkg_cachedir}/furybsd-https/${pkgfile} ]; then
-        fetch -o ${uzip}${pkg_cachedir}/furybsd-https/ $url
-      fi
-      ABI=freebsd:12:$arch /usr/local/sbin/pkg-static -c "${uzip}" add ${pkg_cachedir}/furybsd-https/${pkgfile} # ABI=freebsd:12:$arch in an attempt to use package built on 12 for 13 as well
-      /usr/local/sbin/pkg-static -c "${uzip}" lock -y $(/usr/local/sbin/pkg-static query -F ${uzip}${pkg_cachedir}/furybsd-https/${pkgfile} %o)
+        # ABI=freebsd:12:$arch in an attempt to use package built on 12 for 13
+        pkg_add_from_url "$url" furybsd-https "freebsd:12:$arch"
     done
   done
   # Install the packages we have generated in pkg() that are listed in transient-packages-list
