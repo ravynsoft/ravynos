@@ -211,9 +211,10 @@ fi
 
 # Window decorations
 if [ "$HIDPI" = "" ] ; then
+  xrdb -load ~/.Xresources # Ensure a constant font DPI setting; https://linuxreviews.org/HOWTO_set_DPI_in_Xorg
   /usr/local/bin/openbox --config-file ~/.openbox &
 else
-  xrdb -load ~/.Xresources-2x # Cursor size
+  xrdb -load ~/.Xresources-2x # Also change cursor size
   /usr/local/bin/openbox --config-file ~/.openbox-2x &
 fi
 
