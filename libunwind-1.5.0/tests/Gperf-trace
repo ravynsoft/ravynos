@@ -37,7 +37,7 @@ relink_command=""
 if test "$libtool_install_magic" = "%%%MAGIC variable%%%"; then
   # install mode needs the following variables:
   generated_by_libtool_version='2.4.6'
-  notinst_deplibs=' ../src/libunwind-x86_64.la /usr/home/zoe/helium/libunwind-1.5.0/src/libunwind.la ../src/libunwind.la'
+  notinst_deplibs=' ../src/libunwind-x86_64.la /Users/zoe/helium/libunwind-1.5.0/src/libunwind.la ../src/libunwind.la'
 else
   # When we are sourced in execute mode, $file and $ECHO are already set.
   if test "$libtool_execute_magic" != "%%%MAGIC variable%%%"; then
@@ -188,7 +188,7 @@ func_exec_program ()
 
   if test -f "$progdir/$program"; then
     # Add our own library path to LD_LIBRARY_PATH
-    LD_LIBRARY_PATH="/usr/home/zoe/helium/libunwind-1.5.0/src/.libs:$LD_LIBRARY_PATH"
+    LD_LIBRARY_PATH="/Users/zoe/helium/libunwind-1.5.0/src/.libs:$LD_LIBRARY_PATH"
 
     # Some systems cannot cope with colon-terminated LD_LIBRARY_PATH
     # The second colon is a workaround for a bug in BeOS R4 sed

@@ -469,7 +469,7 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
    return nil;
 }
 
--(int)level {
+-(NSInteger)level {
    return _level;
 }
 

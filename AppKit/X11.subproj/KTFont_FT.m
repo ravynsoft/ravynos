@@ -6,11 +6,13 @@
  
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
+#import <AppKit/NSFont.h>
 #import "KTFont_FT.h"
 #import <AppKit/KTFont.h>
 #import <AppKit/NSRaise.h>
 #import "O2Font_FT.h"
 #import <AppKit/NSFontTypeface.h>
+#import <AppKit/NSGraphicsContext.h>
 
 @implementation KTFont(KTFont_FT)
 +(id)allocWithZone:(NSZone*)zone
@@ -70,6 +72,12 @@
    }
 }
 
+-(NSSize)advancementForGlyph:(NSGlyph)glyph {
+   CGSize adv[1];
+   [self getAdvancements:&adv forGlyphs:(CGGlyph *)&glyph count:1];
+   return adv[0];
+}
+
 -(CGPoint)positionOfGlyph:(CGGlyph)current precededByGlyph:(CGGlyph)previous isNominal:(BOOL *)isNominalp {
    O2Font_FT *o2Font=(O2Font_FT *)_font;
    FT_Face    face=[o2Font face];
@@ -85,6 +93,38 @@
    return NSMakePoint(face->glyph->advance.x/(float)(2<<5),face->glyph->advance.y/(float)(2<<5));
 }
 
+-(NSString *)description {
+   return [NSString stringWithFormat:@"<%@ %@ %f>",isa,_font,_size];
+}
+
+// FIXME: I feel like all of this below should be inherited from NSFont but these are
+// all unrecognized selectors unless implemented here. WHY?
+
+-(NSCharacterSet *)coveredCharacterSet {
+	return [_font coveredCharacterSet];
+}
+
+-(CGFloat)defaultLineHeightForFont {
+   NSLog(@"%@ defaultLineHeightForFont", self);
+   return round(O2FontGetAscent(_font) + O2FontGetDescent(_font) + O2FontGetLeading(_font));
+}
+
+-(void)setInContext:(NSGraphicsContext *)context {
+   CGContextRef cgContext=[context graphicsPort];
+   
+   CGContextSetFont(cgContext,_font);
+   CGContextSetFontSize(cgContext,_size);
+
+   CGAffineTransform textMatrix;
+   
+// FIX, should check the focusView in the context instead of NSView's
+   if([[NSGraphicsContext currentContext] isFlipped])
+    textMatrix=(CGAffineTransform){1,0,0,-1,0,0};
+   else
+    textMatrix=CGAffineTransformIdentity;
+
+   CGContextSetTextMatrix(cgContext,textMatrix);
+}
 
 @end
 

@@ -91,7 +91,7 @@ typedef struct CGRect {
 } CGRect;
 
 typedef unsigned short UniChar;
-typedef unsigned long UTF32Char;
+typedef unsigned int UTF32Char;
 typedef float Float32;
 typedef double Float64;
 // ---

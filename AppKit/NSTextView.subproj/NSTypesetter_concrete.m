@@ -808,8 +808,8 @@ static void loadGlyphAndCharacterCacheForLocation(NSTypesetter_concrete *self,un
 #endif
     _previousGlyph=NSNullGlyph;
     _font=nextFont;
-    _fontAscender=ceilf([_font ascender]);
-    _fontDefaultLineHeight=ceilf([_font defaultLineHeightForFont]);
+    _fontAscender=ceil([_font ascender]);
+    _fontDefaultLineHeight=ceil([_font defaultLineHeightForFont]);
     _positionOfGlyph=(void *)[_font methodForSelector:@selector(positionOfGlyph:precededByGlyph:isNominal:)];
 
     [_font getGlyphs:&spaceGlyph forCharacters:&space length:1];

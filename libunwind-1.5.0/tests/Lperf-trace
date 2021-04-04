@@ -188,7 +188,7 @@ func_exec_program ()
 
   if test -f "$progdir/$program"; then
     # Add our own library path to LD_LIBRARY_PATH
-    LD_LIBRARY_PATH="/usr/home/zoe/helium/libunwind-1.5.0/src/.libs:$LD_LIBRARY_PATH"
+    LD_LIBRARY_PATH="/Users/zoe/helium/libunwind-1.5.0/src/.libs:$LD_LIBRARY_PATH"
 
     # Some systems cannot cope with colon-terminated LD_LIBRARY_PATH
     # The second colon is a workaround for a bug in BeOS R4 sed

@@ -506,7 +506,7 @@ arrayWithArray:[_name componentsSeparatedByString:blank]];
 								[self familyName],	NSFontFamilyAttribute,
 								[[NSNumber numberWithFloat: [self pointSize]] stringValue], NSFontSizeAttribute,
 //								[self matrix], NSFontMatrixAttribute, // currently returns nil
-//								[self coveredCharacterSet], NSFontCharacterSetAttribute, // currently returns nil
+								[self coveredCharacterSet], NSFontCharacterSetAttribute, 
 								[self _fontTraitsAsDictionary], NSFontTraitsAttribute,
 								[typeface traitName], NSFontFaceAttribute,
 								[NSNumber numberWithFloat: [self maximumAdvancement].width], NSFontFixedAdvanceAttribute,
@@ -585,28 +585,28 @@ arrayWithArray:[_name componentsSeparatedByString:blank]];
    return max;
 }
 
--(float)underlinePosition {
+-(CGFloat)underlinePosition {
    return CTFontGetUnderlinePosition(_ctFont);
 }
 
--(float)underlineThickness {
+-(CGFloat)underlineThickness {
    return CTFontGetUnderlineThickness(_ctFont);
 }
 
--(float)ascender {
+-(CGFloat)ascender {
    return CTFontGetAscent(_ctFont);
 }
 
 // CT & NS descender value have opposite value on Cocoa
--(float)descender {
+-(CGFloat)descender {
    return -CTFontGetDescent(_ctFont);
 }
 
--(float)leading {
+-(CGFloat)leading {
    return CTFontGetLeading(_ctFont);
 }
 
--(float)defaultLineHeightForFont {
+-(CGFloat)defaultLineHeightForFont {
    return roundf(CTFontGetAscent(_ctFont) + CTFontGetDescent(_ctFont) + CTFontGetLeading(_ctFont));
 }
 
