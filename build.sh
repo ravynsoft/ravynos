@@ -394,6 +394,8 @@ boot()
     -not -name 'xz.ko' \
     -not -name 'zfs.ko' \
     -delete
+  # Compress the kernel
+  gzip "${cdroot}"/boot/kernel/kernel
   # Compress the remaining modules
   find "${cdroot}"/boot/kernel -type f -name '*.ko' -exec gzip {} \;
   sync ### Needed?
