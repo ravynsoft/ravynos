@@ -180,6 +180,16 @@ if [ -f "/usr/local/bin/slim" ] ; then
   chroot "${FSMNT}" sysrc slim_enable="YES"
 fi
 
+# Copy kernel from the ISO because it may have been removed
+# from the compressed filesystem to save space
+ISO_MOUNTPOINT=$(mount | grep cd9660 | head -n 1 | cut -d " " -f 3)
+if [ -f "${ISO_MOUNTPOINT}/boot/kernel/kernel.gz" ] ; then
+  cp "${ISO_MOUNTPOINT}/boot/kernel/kernel.gz" "${FSMNT}/boot/kernel/"
+fi
+if [ -f "${ISO_MOUNTPOINT}/boot/kernel/kernel" ] ; then
+  cp "${ISO_MOUNTPOINT}/boot/kernel/kernel" "${FSMNT}/boot/kernel/"
+fi
+
 # Transfer settings from running /etc/rc.conf to installed one
 cat /etc/rc.conf | xargs sysrc -f ${FSMNT}/etc/rc.conf
 
