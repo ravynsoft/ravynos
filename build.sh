@@ -356,6 +356,9 @@ script()
 
 uzip() 
 {
+  # Save space by removing the kernel from the inside of the compressed image
+  # since we need it outside of the compressed image on the ISO anyway for booting
+  rm "${uzip}"/boot/kernel/kernel
   install -o root -g wheel -m 755 -d "${cdroot}"
   sync ### Needed?
   cd ${cwd} && zpool export furybsd && while zpool status furybsd >/dev/null; do :; done 2>/dev/null
@@ -474,9 +477,9 @@ user
 dm
 script
 tag
+boot
 uzip
 ramdisk
-boot
 image
 
 if [ -n "$CIRRUS_CI" ] ; then
