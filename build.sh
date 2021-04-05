@@ -358,7 +358,11 @@ uzip()
 {
   # Save space by removing the kernel from the inside of the compressed image
   # since we need it outside of the compressed image on the ISO anyway for booting
-  rm "${uzip}"/boot/kernel/kernel
+  ls "${uzip}" || true
+  ls "${uzip}"/boot || true
+  ls "${uzip}"/boot/kernel || true
+  rm "${uzip}"/boot/kernel/kernel || true
+  rm "${uzip}"/boot/kernel/kernel.gz || true
   install -o root -g wheel -m 755 -d "${cdroot}"
   sync ### Needed?
   cd ${cwd} && zpool export furybsd && while zpool status furybsd >/dev/null; do :; done 2>/dev/null
