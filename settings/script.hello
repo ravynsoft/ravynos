@@ -158,8 +158,8 @@ mv QHexEdit.app "${uzip}/Applications/Developer/"
 rm -f QHexEdit_FreeBSD.zip
 
 # Fonts
-wget https://github.com/ArtifexSoftware/urw-base35-fonts/archive/20200910.zip
-unzip 20200910.zip
+wget -c -q https://github.com/ArtifexSoftware/urw-base35-fonts/archive/20200910.zip
+unzip -q 20200910.zip
 mkdir -p "${uzip}/usr/local/share/fonts/TTF/"
 cp -R urw-base35-fonts-20200910/fonts/*.ttf "${uzip}/usr/local/share/fonts/TTF/"
 rm -rf urw-base35-fonts-20200910/ 20200910.zip
