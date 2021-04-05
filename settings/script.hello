@@ -357,6 +357,7 @@ chroot ${uzip} ln -s /usr/local/bin/bash /bin/bash
 # FIXME: Desperate attempt at reducing image size
 rm -rf "${uzip}"/usr/local/share/icons/breeze*
 rm -rf "${uzip}"/usr/local/*-portbld-*/ # What is it; is it actually needed? https://forums.freebsd.org/threads/what-is-the-portbld-directory.71759/
+# We might want to use empty dummy packages instead of the below; https://dan.langille.org/2021/02/16/preventing-a-given-package-from-being-installed/
 chroot ${uzip} sh -c 'for FILE in $(pkg list spidermonkey78) ; do rm $FILE ; done' # Delete the contents of the spidermonkey78 package while keeping the package "installed"
 chroot ${uzip} sh -c 'for FILE in $(pkg list adwaita-icon-theme) ; do rm $FILE ; done' # Was: rm -rf "${uzip}"/usr/local/share/icons/Adwaita
 chroot ${uzip} sh -c 'for FILE in $(pkg list perl5) ; do rm $FILE ; done'
