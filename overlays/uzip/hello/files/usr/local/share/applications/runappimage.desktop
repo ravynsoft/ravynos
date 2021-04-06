@@ -2,7 +2,9 @@
 Type=Application
 Name=Run AppImage
 Exec=launch runappimage %F
-Categories=Other;
-Hidden=true
+Categories=System;
 MimeType=application/vnd.appimage
 Terminal=false
+# Filer seems not to use this
+# to open files when Hidden=true is set
+Hidden=false

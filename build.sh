@@ -194,9 +194,10 @@ packages()
 {
   # NOTE: Also adjust the Nvidia drivers accordingly below. TODO: Use one set of variables
   if [ $MAJOR -eq 12 ] ; then
-    echo "Major version 12, hence using release_2 packages since quarterly can be missing packages from one day to the next"
-    sed -i -e 's|quarterly|release_2|g' "${uzip}/etc/pkg/FreeBSD.conf"
-    rm -f "${uzip}/etc/pkg/FreeBSD.conf-e"
+    # echo "Major version 12, hence using release_2 packages since quarterly can be missing packages from one day to the next"
+    # sed -i -e 's|quarterly|release_2|g' "${uzip}/etc/pkg/FreeBSD.conf"
+    # rm -f "${uzip}/etc/pkg/FreeBSD.conf-e"
+    echo "Major version 12, hence using quarterly packages to see whether it performs better than release_2"
   elif [ $MAJOR -eq 13 ] ; then
     echo "Major version 13, hence using quarterly packages since release_2 will probably not have compatible Intel driver"
   else
@@ -394,6 +395,8 @@ boot()
     -not -name 'xz.ko' \
     -not -name 'zfs.ko' \
     -delete
+  # Compress the kernel
+  gzip "${cdroot}"/boot/kernel/kernel
   # Compress the remaining modules
   find "${cdroot}"/boot/kernel -type f -name '*.ko' -exec gzip {} \;
   sync ### Needed?

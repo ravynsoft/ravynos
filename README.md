@@ -24,7 +24,7 @@ root@FreeBSD:/ # curl -L "https://github.com/probonopd/furybsd-livecd/releases/d
 
 ## Credentials for live media
 
-There is no password for `liveuser`. The `liveuser` account is removed upon install.  There is also no root password until it is set in the installer.
+There is no password for `liveuser`. The `liveuser` account is removed upon install.  There is also no root password until it is set in the installer. You can become root using `sudo su`.
 
 ## Acknowledgements
 

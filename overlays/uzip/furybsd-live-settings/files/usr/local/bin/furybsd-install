@@ -85,6 +85,7 @@ chroot "${FSMNT}" rm /etc/rc.conf.local
 chroot "${FSMNT}" pw userdel liveuser
 chroot "${FSMNT}" pw groupdel liveuser
 chroot "${FSMNT}" rm -rf /usr/home/liveuser
+chroot "${FSMNT}" rm -rf "/Applications/Utilities/Install FreeBSD.app" || true
 
 # Configure the new installation
 mount -t devfs devfs ${FSMNT}/dev
@@ -162,6 +163,9 @@ else
   bsdinstall time
 fi
 
+# initgfx does not work from a read-only disk
+chroot "${FSMNT}" sysrc root_rw_mount="YES"
+
 # Enable additional services needed for desktop
 echo "Enabling additional services needed for desktop"
 if [ -f "/usr/local/sbin/lightdm" ] ; then
@@ -180,14 +184,18 @@ if [ -f "/usr/local/bin/slim" ] ; then
   chroot "${FSMNT}" sysrc slim_enable="YES"
 fi
 
-# Transfer settings from running /etc/rc.conf to installed one
-cat /etc/rc.conf | xargs sysrc -f ${FSMNT}/etc/rc.conf
+# Copy kernel from the ISO because it may have been removed
+# from the compressed filesystem to save space
+ISO_MOUNTPOINT=$(mount | grep cd9660 | head -n 1 | cut -d " " -f 3)
+if [ -f "${ISO_MOUNTPOINT}/boot/kernel/kernel.gz" ] ; then
+  cp "${ISO_MOUNTPOINT}/boot/kernel/kernel.gz" "${FSMNT}/boot/kernel/"
+fi
+if [ -f "${ISO_MOUNTPOINT}/boot/kernel/kernel" ] ; then
+  cp "${ISO_MOUNTPOINT}/boot/kernel/kernel" "${FSMNT}/boot/kernel/"
+fi
 
-# Enable CUPS printing system and initgfx; FIXME: Why is this needed here?
-# sysrc should be carried over from the Live system
-chroot "${FSMNT}" sysrc cupsd_enable="YES"
-chroot "${FSMNT}" sysrc initgfx_enable="YES"
-chroot "${FSMNT}" sysrc initgfx_menu="NO"
+# Transfer settings from running /etc/rc.conf.local to installed one
+cat /etc/rc.conf.local | xargs sysrc -f ${FSMNT}/etc/rc.conf
 
 # Set the timezone on the system if it has been provided
 # by the graphical installer frontend
