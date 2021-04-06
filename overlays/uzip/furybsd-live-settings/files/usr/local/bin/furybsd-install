@@ -163,6 +163,9 @@ else
   bsdinstall time
 fi
 
+# initgfx does not work from a read-only disk
+chroot "${FSMNT}" sysrc root_rw_mount="YES"
+
 # Enable additional services needed for desktop
 echo "Enabling additional services needed for desktop"
 if [ -f "/usr/local/sbin/lightdm" ] ; then
