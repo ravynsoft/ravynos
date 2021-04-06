@@ -359,6 +359,9 @@ chroot ${uzip} ln -s /usr/local/bin/bash /bin/bash
 # FIXME: This is guaranteed to break as soon as the user updates/upgrades the package
 if [ -f "${uzip}/usr/local/share/dbus-1/services/org.gtk.vfs.UDisks2VolumeMonitor.service" ] ; then
   rm -rf "${uzip}/usr/local/share/dbus-1/services/org.gtk.vfs.UDisks2VolumeMonitor.service"
+  touch "${uzip}/usr/local/share/dbus-1/services/org.gtk.vfs.UDisks2VolumeMonitor.service"
+  # Make the file immutable so that even root cannot overwrite it
+  chflags schg "${uzip}/usr/local/share/dbus-1/services/org.gtk.vfs.UDisks2VolumeMonitor.service"
 fi
 
 # FIXME: Desperate attempt at reducing image size
