@@ -209,11 +209,13 @@ rm -rf ${uzip}/usr/local/share/xsessions/*.desktop
 cp /etc/resolv.conf ${uzip}/etc/resolv.conf
 mount_nullfs ${packages} ${uzip}/var/cache/pkg
 mount -t devfs devfs ${uzip}/dev
+
 # Workaround for: appmenu-gtk-module is not yet in quarterly packages; FIXME: install it from the packages once it is there
 # https://github.com/helloSystem/ISO/issues/20
 # FIXME: This fails on 13-CURRENT https://github.com/helloSystem/ISO/issues/27
-IGNORE_OSVERSION=yes /usr/local/sbin/pkg-static -c "${uzip}" add "https://github.com/helloSystem/Menu/releases/download/helper/appmenu-gtk-module-0.7.3.2.txz" || true
-/usr/local/sbin/pkg-static -c "${uzip}" install appmenu-gtk-module || true
+# IGNORE_OSVERSION=yes /usr/local/sbin/pkg-static -c "${uzip}" add "https://github.com/helloSystem/Menu/releases/download/helper/appmenu-gtk-module-0.7.3.2.txz" || true
+# /usr/local/sbin/pkg-static -c "${uzip}" install appmenu-gtk-module || true
+# --> We are installing the package from quarterly for now because the above tends to fail with SSH Authentication Error
 
 # Workaround for disappeared falkon package
 # This works only if all dependency pkgs have been added beforehand
