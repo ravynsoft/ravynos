@@ -85,6 +85,7 @@ chroot "${FSMNT}" rm /etc/rc.conf.local
 chroot "${FSMNT}" pw userdel liveuser
 chroot "${FSMNT}" pw groupdel liveuser
 chroot "${FSMNT}" rm -rf /usr/home/liveuser
+chroot "${FSMNT}" rm -rf "/Applications/Utilities/Install FreeBSD.app" || true
 
 # Configure the new installation
 mount -t devfs devfs ${FSMNT}/dev
