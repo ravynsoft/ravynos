@@ -42,46 +42,46 @@ rm macOSBigSur.tar.gz
 wget "https://raw.githubusercontent.com/helloSystem/hello/master/branding/computer-hello.png" -O "${uzip}"/usr/local/share/icons/elementary-xfce/devices/128/computer-hello.png
 
 # Filer
-wget https://github.com/helloSystem/Filer/releases/download/continuous/Filer_FreeBSD.zip
+wget -q https://github.com/helloSystem/Filer/releases/download/continuous/Filer_FreeBSD.zip
 unzip Filer_FreeBSD.zip
 rm -f Filer_FreeBSD.zip
 
 # QtPlugin
-wget https://github.com/helloSystem/QtPlugin/releases/download/continuous/QtPlugin_FreeBSD.zip
+wget -q https://github.com/helloSystem/QtPlugin/releases/download/continuous/QtPlugin_FreeBSD.zip
 unzip QtPlugin_FreeBSD.zip
 cp -Rf QtPlugin/ "${uzip}/"
 rm -f QtPlugin_FreeBSD.zip
 rm -rf QtPlugin/
-wget https://raw.githubusercontent.com/helloSystem/QtPlugin/master/stylesheet.qss
+wget -q https://raw.githubusercontent.com/helloSystem/QtPlugin/master/stylesheet.qss
 mkdir -p "${uzip}/usr/local/etc/xdg/"
 sudo mv stylesheet.qss "${uzip}/usr/local/etc/xdg/"
 
 # launch
-wget https://github.com/helloSystem/launch/releases/download/continuous/launch_FreeBSD.zip
+wget -q https://github.com/helloSystem/launch/releases/download/continuous/launch_FreeBSD.zip
 unzip launch_FreeBSD.zip
 mv launch "${uzip}/usr/local/bin/"
 rm -f launch_FreeBSD.zip
 
 # DSBexec
 # FIXME: Get it into ports, and install it from a package instead
-wget https://github.com/helloSystem/DSBexec/releases/download/continuous/dsbexec_FreeBSD.zip
+wget -q https://github.com/helloSystem/DSBexec/releases/download/continuous/dsbexec_FreeBSD.zip
 unzip dsbexec_FreeBSD.zip
 mv dsbexec "${uzip}/usr/local/bin/"
 rm -f dsbexec_FreeBSD.zip
 
 # Menu
-wget https://github.com/helloSystem/Menu/releases/download/continuous/Menu_FreeBSD.zip
+wget -q https://github.com/helloSystem/Menu/releases/download/continuous/Menu_FreeBSD.zip
 unzip Menu_FreeBSD.zip
 rm -f Menu_FreeBSD.zip
 
 # TODO: Get self-hosted gmenudbusmenuproxy
 # because the one from pkg pulls in a lot of KDE Plasma
-wget https://github.com/helloSystem/ISO/releases/download/assets/gmenudbusmenuproxy
+wget -q https://github.com/helloSystem/ISO/releases/download/assets/gmenudbusmenuproxy
 chmod +x gmenudbusmenuproxy
 mv gmenudbusmenuproxy "${uzip}/usr/local/bin/"
 
 # Dock
-wget https://github.com/helloSystem/Dock/releases/download/continuous/Dock_FreeBSD.zip
+wget -q https://github.com/helloSystem/Dock/releases/download/continuous/Dock_FreeBSD.zip
 unzip Dock_FreeBSD.zip
 rm -f Dock_FreeBSD.zip
 
@@ -93,7 +93,7 @@ chroot "${uzip}" ln -s /System/Menu.AppDir/usr/bin/menubar /usr/local/bin
 # Add applications from the helloSystem/Utilities repository
 mkdir -p "${uzip}/Applications/"
 mkdir -p "${uzip}/System/"
-wget https://github.com/helloSystem/Utilities/archive/master.zip
+wget -q https://github.com/helloSystem/Utilities/archive/master.zip
 unzip master.zip
 mv 'Utilities-master/Falkon.app' "${uzip}/Applications/"
 mv 'Utilities-master/3D Printing' "${uzip}/Applications/"
@@ -115,7 +115,7 @@ chmod +x tuntox
 mv tuntox "${uzip}/usr/local/bin/"
 
 # BuildNotify.app: Notifications about continuous build server status
-wget https://github.com/anaynayak/buildnotify/archive/2.0.0.zip
+wget -q https://github.com/anaynayak/buildnotify/archive/2.0.0.zip
 unzip 2.0.0.zip
 mkdir -p BuildNotify.app
 mv buildnotify-2.0.0 BuildNotify.app/Resources
@@ -152,7 +152,7 @@ mv qtpad/ "Sticky Notes.app"
 mv "Sticky Notes.app" "${uzip}"/Applications/Utilities
 
 # QHexEdit
-wget https://github.com/helloSystem/QHexEdit/releases/download/continuous/QHexEdit_FreeBSD.zip
+wget -q https://github.com/helloSystem/QHexEdit/releases/download/continuous/QHexEdit_FreeBSD.zip
 unzip QHexEdit_FreeBSD.zip
 mv QHexEdit.app "${uzip}/Applications/Developer/"
 rm -f QHexEdit_FreeBSD.zip
@@ -289,7 +289,7 @@ rm "${uzip}/etc/syslog.conf-e"
 
 # Workaround to get rounded corners as long as picom in FreeBSD ports
 # does not have this yet; FIXME: Remove once no longer needed
-wget https://github.com/helloSystem/ISO/releases/download/assets/picom.tar.bz2
+wget -q https://github.com/helloSystem/ISO/releases/download/assets/picom.tar.bz2
 tar xf picom.tar.bz2
 mv picom "${uzip}/usr/local/bin/picom"
 rm -f picom.tar.bz2
