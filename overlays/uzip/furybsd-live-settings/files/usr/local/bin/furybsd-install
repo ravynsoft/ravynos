@@ -190,14 +190,8 @@ if [ -f "${ISO_MOUNTPOINT}/boot/kernel/kernel" ] ; then
   cp "${ISO_MOUNTPOINT}/boot/kernel/kernel" "${FSMNT}/boot/kernel/"
 fi
 
-# Transfer settings from running /etc/rc.conf to installed one
-cat /etc/rc.conf | xargs sysrc -f ${FSMNT}/etc/rc.conf
-
-# Enable CUPS printing system and initgfx; FIXME: Why is this needed here?
-# sysrc should be carried over from the Live system
-chroot "${FSMNT}" sysrc cupsd_enable="YES"
-chroot "${FSMNT}" sysrc initgfx_enable="YES"
-chroot "${FSMNT}" sysrc initgfx_menu="NO"
+# Transfer settings from running /etc/rc.conf.local to installed one
+cat /etc/rc.conf.local | xargs sysrc -f ${FSMNT}/etc/rc.conf
 
 # Set the timezone on the system if it has been provided
 # by the graphical installer frontend
