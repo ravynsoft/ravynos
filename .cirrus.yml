@@ -3,7 +3,7 @@ task:
     cpu: 2
     memory: 8G
     matrix:
-      - image: freebsd-12-1-release-amd64 # EOL
+      # image: freebsd-12-1-release-amd64 # EOL
       - image: freebsd-12-2-release-amd64
       - image: freebsd-13-0-current-amd64-v20201112 # HIDPI broken and iichid trackpad broken on Acer
 
@@ -45,6 +45,7 @@ task:
     - export BUILDNUMBER=$(RELEASE_ID_FOR_STORAGE=33980128 ./buildnumbers)
     - /bin/sh -x ./build.sh "${DESKTOP}" || true # FIXME: Why does this return an error even though the ISO succeeded?
     - df -h
+    - ls -lh "${CIRRUS_WORKING_DIR}"/artifacts/*.iso || false # Error out if ISO was not produced to mitigate the above
     # ( cd "${CIRRUS_WORKING_DIR}"/artifacts ; zsyncmake *.iso )
     
   Upload_script:
