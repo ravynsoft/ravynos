@@ -18,13 +18,20 @@
 #     |-- Info.plist
 #     |-- PkgInfo
 #     `-- Resources
+#         |-- crazyones.jpg
 #         `-- rsc
 #             `-- sample.txt
 
 APP=Bar
-SRCS=bar.m
+SRCS=bar.m MyView.m
 MK_DEBUG_FILES=no
-RESOURCES=rsc/sample.txt
-FRAMEWORKS=/System/Library/Frameworks/Foundation
+RESOURCES=rsc ../../crazyones.jpg
+SLF=/System/Library/Frameworks
+FRAMEWORKS=${SLF}/AppKit ${SLF}/CoreGraphics ${SLF}/Onyx2D ${SLF}/OpenGL \
+	${SLF}/Foundation ${SLF}/CoreFoundation
+LDFLAGS+=-L/usr/local/lib -lGL
+
+build: all
+	cp -f ../../crazyones.jpg ${APP}.app/Contents/Resources/
 
 .include <he.app.mk>
