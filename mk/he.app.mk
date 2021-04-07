@@ -35,7 +35,15 @@ FMWK_FLAG+= ${_FMWKDIRS} ${_FMWKFLAG}
 .if defined(RESOURCES) && !empty(RESOURCES)
 RSCDIR=${APP_DIR}/Contents/Resources
 installresources: ${RESOURCES}
-	tar -C ${.CURDIR} -cf - ${RESOURCES} | tar -C ${RSCDIR} -xvf -
+	for name in ${RESOURCES}; do \
+		if [ -d $$name ]; then \
+			dest=${RSCDIR}/$$(basename $$name); \
+			mkdir -p $$dest; \
+			tar -C $$name -cf - . | tar -C $$dest -xvf -; \
+		else \
+			cp -fv $$name ${RSCDIR}/; \
+		fi; \
+	done
 .else
 installresources: .PHONY
 .endif
@@ -48,7 +56,9 @@ ${APP_DIR}:
 	@${ECHO} building ${APP_DIR} bundle
 	mkdir -p "${APP_DIR}/Contents/Helium" \
 		"${APP_DIR}/Contents/Resources"
-	touch "${APP_DIR}/Contents/Resources/Info.plist"
-	touch "${APP_DIR}/Contents/PkgInfo"
+	if [ -f ${.CURDIR}/Info.plist ]; then \
+		cp -fv ${.CURDIR}/Info.plist ${APP_DIR}/Contents; fi
+	if [ -f ${.CURDIR}/PkgInfo ]; then \
+		cp -fv ${.CURDIR}/PkgInfo ${APP_DIR}/Contents; fi
 
 .include <bsd.prog.mk>
