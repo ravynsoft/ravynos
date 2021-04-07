@@ -7,6 +7,7 @@
  
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 #import "O2Font_FT.h"
+#import <Onyx2D/O2Font_freetype.h>
 
 O2FontRef O2FontCreateWithFontName_platform(NSString *name) {
     return [[O2Font_FT alloc] initWithFontName:name];
@@ -86,7 +87,8 @@ FcConfig *O2FontSharedFontConfig() {
 #ifdef LINUX
       filename=@"/usr/share/fonts/truetype/freefont/FreeSans.ttf";
 #else
-      filename=@"/System/Library/Fonts/HelveticaNeue.ttc";
+      filename=@"/usr/local/share/fonts/freefont-ttf/FreeSans.ttf";
+      //filename=@"/System/Library/Fonts/HelveticaNeue.ttc";
 #endif
     }
    }
@@ -148,5 +150,21 @@ FcConfig *O2FontSharedFontConfig() {
    }
 }
 
+-(NSCharacterSet *)coveredCharacterSet {
+    if(_coveredCharSet == nil) {
+		NSMutableCharacterSet *set = [[NSMutableCharacterSet alloc] init];
+		uint32_t code, first, last, index;
+
+		code = first = FT_Get_First_Char(_face, &index);
+      while(index != 0) {
+         last = code;
+         code = FT_Get_Next_Char(_face, code, &index);
+ 		}
+      // FIXME: This should create a range for each contiguous block of glyphs
+      [set addCharactersInRange: NSMakeRange(first, last - first)];
+		_coveredCharSet = set;
+	}
+	return _coveredCharSet;
+}
 
 @end

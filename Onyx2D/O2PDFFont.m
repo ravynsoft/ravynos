@@ -33,8 +33,8 @@ static inline O2TextEncoding textEncodingWithName(const char *name){
    O2Float          missingWidth=0;
    const char      *fontName=NULL;
    O2PDFArray      *differences=NULL;
-   
-   _baseFont=BASEFONT_SZ;
+
+   _baseFont="FreeSans";
       
    if([dictionary getNameForKey:"Type" value:&name])
     if(strcmp(name,"Font")!=0){

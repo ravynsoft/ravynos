@@ -394,7 +394,7 @@ NSFont *NSFontAttributeInDictionary(NSDictionary *dictionary) {
    NSFont *font=[dictionary objectForKey:NSFontAttributeName];
 
    if(font==nil)
-    font=[NSFont fontWithName:BASEFONT_NS size:BASEFONT_SIZE];
+    font=[NSFont fontWithName:@"FreeSans" size:12.0];
 
    return font;
 }

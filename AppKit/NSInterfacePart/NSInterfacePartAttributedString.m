@@ -31,7 +31,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 }
 
 -initWithMarlettCharacter:(unichar)character {
-   return [self initWithCharacter:character fontName:@"Marlett" pointSize:10 color:[isa textColor]];
+   return [self initWithCharacter:character fontName:@"FreeSans" pointSize:10 color:[isa textColor]];
 }
 
 -(void)dealloc {

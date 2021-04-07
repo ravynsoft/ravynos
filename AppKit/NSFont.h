@@ -107,13 +107,12 @@ typedef enum {
 - (NSSize)maximumAdvancement;
 - (float)underlinePosition;
 - (float)underlineThickness;
-- (float)ascender;
-- (float)descender;
-- (float)leading;
-- (float)defaultLineHeightForFont;
+- (CGFloat)ascender;
+- (CGFloat)descender;
+- (CGFloat)leading;
+- (CGFloat)defaultLineHeightForFont;
 - (BOOL)isFixedPitch;
 - (float)italicAngle;
-- (float)leading;
 - (float)xHeight;
 - (float)capHeight;
 

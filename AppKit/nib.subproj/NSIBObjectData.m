@@ -230,7 +230,7 @@
 - (NSArray *)topLevelObjects
 {
 	NSMutableIndexSet   *indexes = [NSMutableIndexSet indexSet];
-	int                 i;
+	NSInteger           i;
 	NSMutableArray      *topLevelObjects;
 	
 	for(i = [_objectsValues count] - 1; i >= 0; i--){

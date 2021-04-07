@@ -76,6 +76,7 @@ static inline bool attributeHasArgument(CGLPixelFormatAttribute attribute){
    }
 }
 
+#if 0
 static GLint *addAttribute(GLint *attribList,int *capacity,int *count,GLint value){
 
    if(*count>=*capacity){
@@ -92,7 +93,7 @@ static GLint *attributesFromPixelFormat(CGLPixelFormatObj pixelFormat){
    int    resultCapacity=8,resultCount=0;
    GLint *result=malloc(resultCapacity*sizeof(GLint));
    int  i,virtualScreen=0;
-   
+
    result=addAttribute(result,&resultCapacity,&resultCount,GLX_RGBA);
 
    for(i=0;pixelFormat->attributes[i]!=0;i++){
@@ -105,11 +106,11 @@ static GLint *attributesFromPixelFormat(CGLPixelFormatObj pixelFormat){
     
      case kCGLPFAColorSize:
       result=addAttribute(result,&resultCapacity,&resultCount,GLX_RED_SIZE);
-      result=addAttribute(result,&resultCapacity,&resultCount,pixelFormat->attributes[i]/3);
+      result=addAttribute(result,&resultCapacity,&resultCount,pixelFormat->attributes[i]/4);
       result=addAttribute(result,&resultCapacity,&resultCount,GLX_GREEN_SIZE);
-      result=addAttribute(result,&resultCapacity,&resultCount,pixelFormat->attributes[i]/3);
+      result=addAttribute(result,&resultCapacity,&resultCount,pixelFormat->attributes[i]/4);
       result=addAttribute(result,&resultCapacity,&resultCount,GLX_BLUE_SIZE);
-      result=addAttribute(result,&resultCapacity,&resultCount,pixelFormat->attributes[i]/3);
+      result=addAttribute(result,&resultCapacity,&resultCount,pixelFormat->attributes[i]/4);
       break;
       
      case kCGLPFAAlphaSize:
@@ -149,6 +150,7 @@ static GLint *attributesFromPixelFormat(CGLPixelFormatObj pixelFormat){
    
    return result;
 }
+#endif
 
 CGLError CGLCreateContextForWindow(CGLPixelFormatObj pixelFormat,CGLContextObj share,CGLContextObj *resultp,Display *display,XVisualInfo *visualInfo,Window window) {
    CGLContextObj context=malloc(sizeof(struct _CGLContextObj));
@@ -175,7 +177,9 @@ CGLError CGLCreateContext(CGLPixelFormatObj pixelFormat,CGLContextObj share,CGLC
    Display    *display=[(X11Display*)[NSDisplay currentDisplay] display];
    XVisualInfo*visualInfo;
    Window      window;
-   GLint      *attribList=attributesFromPixelFormat(pixelFormat);
+//   GLint      *attribList=attributesFromPixelFormat(pixelFormat);
+   GLint       attribList[] = {GLX_RGBA, GLX_DOUBLEBUFFER, GLX_RED_SIZE, 4, GLX_GREEN_SIZE, 4,
+                               GLX_BLUE_SIZE, 4, GLX_DEPTH_SIZE, 4, None};
    int         screen=DefaultScreen(display);
       
    if((visualInfo=glXChooseVisual(display,screen,attribList))==NULL){

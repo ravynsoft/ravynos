@@ -111,8 +111,9 @@ static void drawFreeTypeBitmap(O2Context_builtin_FT *self,O2Surface *surface,FT_
    O2Paint          *paint=paintFromColor(gState->_fillColor);
    // FIXME: _textTransform no longer exists--is this line still needed?
    //transform = O2AffineTransformConcat(gState->_textTransform, transform);
-   O2Point           point=O2PointApplyAffineTransform(NSMakePoint(0,0),transform);
-   
+   O2Point           point=O2PointApplyAffineTransform(
+   	NSMakePoint(_textMatrix.tx,_textMatrix.ty),transform);
+
    [self establishFontStateInDeviceIfDirty];
 
    O2Font_FT *font=(O2Font_FT *)gState->_font;
@@ -165,6 +166,7 @@ static void drawFreeTypeBitmap(O2Context_builtin_FT *self,O2Surface *surface,FT_
    //FIXME: _textTransform no longer exists--are these lines still needed?
    //O2ContextCurrentGState(self)->_textTransform.tx+=total;
    //O2ContextCurrentGState(self)->_textTransform.ty+=0;
+   _textMatrix.tx += total;
 }
 
 @end

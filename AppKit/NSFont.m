@@ -213,27 +213,27 @@ static NSLock *_cacheLock=nil;
 }
 
 +(NSFont *)controlContentFontOfSize:(float)size {
-    return [self _uiFontOfType:kCTFontControlContentFontType size:(size==0)?BASEFONT_SIZE:size fallbackName:BASEFONT_NS];
+    return [self _uiFontOfType:kCTFontControlContentFontType size:(size==0)?12.0:size fallbackName:@"FreeSans"];
 }
 
 +(NSFont *)labelFontOfSize:(float)size {
-    return [self _uiFontOfType:kCTFontLabelFontType size:(size==0)?BASEFONT_SIZE:size fallbackName:BASEFONT_NS];
+    return [self _uiFontOfType:kCTFontLabelFontType size:(size==0)?12.0:size fallbackName:@"FreeSans"];
 }
 
 +(NSFont *)menuFontOfSize:(float)size {
-    return [self _uiFontOfType:kCTFontMenuItemFontType size:size fallbackName:BASEFONT_NS];
+    return [self _uiFontOfType:kCTFontMenuItemFontType size:size fallbackName:@"FreeSans"];
 }
 
 +(NSFont *)menuBarFontOfSize:(float)size {
-    return [self _uiFontOfType:kCTFontMenuTitleFontType size:size fallbackName:BASEFONT_NS];
+    return [self _uiFontOfType:kCTFontMenuTitleFontType size:size fallbackName:@"FreeSans"];
 }
 
 +(NSFont *)messageFontOfSize:(float)size {
-    return [self _uiFontOfType:kCTFontSystemFontType size:(size==0)?BASEFONT_SIZE:size fallbackName:BASEFONT_NS];
+    return [self _uiFontOfType:kCTFontSystemFontType size:(size==0)?12.0:size fallbackName:@"FreeSans"];
 }
 
 +(NSFont *)paletteFontOfSize:(float)size {
-    return [self _uiFontOfType:kCTFontPaletteFontType size:(size==0)?BASEFONT_SIZE:size fallbackName:BASEFONT_NS];
+    return [self _uiFontOfType:kCTFontPaletteFontType size:(size==0)?12.0:size fallbackName:@"FreeSans"];
 }
 
 +(NSFont *)systemFontOfSize:(float)size {
@@ -245,15 +245,15 @@ static NSLock *_cacheLock=nil;
 }
 
 +(NSFont *)toolTipsFontOfSize:(float)size {
-    return [self _uiFontOfType:kCTFontToolTipFontType size:(size==0)?10.:size fallbackName:BASEFONT_NS];
+    return [self _uiFontOfType:kCTFontToolTipFontType size:(size==0)?10.:size fallbackName:@"FreeSans"];
 }
 
 +(NSFont *)userFontOfSize:(float)size {
-   return [NSFont fontWithName:[O2Font postscriptNameForDisplayName:BASEFONT_NS] size:(size==0)?BASEFONT_SIZE:size];
+   return [NSFont fontWithName:[O2Font postscriptNameForDisplayName:@"FreeSans"] size:(size==0)?12.0:size];
 }
 
 +(NSFont *)userFixedPitchFontOfSize:(float)size {
-   return [NSFont fontWithName:[O2Font postscriptNameForDisplayName:MONOFONT_NS] size:(size==0)?MONOFONT_SIZE:size];
+   return [NSFont fontWithName:[O2Font postscriptNameForDisplayName:@"FreeMono"] size:(size==0)?12.0:size];
 }
 
 +(void)setUserFont:(NSFont *)value {
@@ -506,7 +506,7 @@ arrayWithArray:[_name componentsSeparatedByString:blank]];
 								[self familyName],	NSFontFamilyAttribute,
 								[[NSNumber numberWithFloat: [self pointSize]] stringValue], NSFontSizeAttribute,
 //								[self matrix], NSFontMatrixAttribute, // currently returns nil
-//								[self coveredCharacterSet], NSFontCharacterSetAttribute, // currently returns nil
+								[self coveredCharacterSet], NSFontCharacterSetAttribute, 
 								[self _fontTraitsAsDictionary], NSFontTraitsAttribute,
 								[typeface traitName], NSFontFaceAttribute,
 								[NSNumber numberWithFloat: [self maximumAdvancement].width], NSFontFixedAdvanceAttribute,
@@ -585,28 +585,28 @@ arrayWithArray:[_name componentsSeparatedByString:blank]];
    return max;
 }
 
--(float)underlinePosition {
+-(CGFloat)underlinePosition {
    return CTFontGetUnderlinePosition(_ctFont);
 }
 
--(float)underlineThickness {
+-(CGFloat)underlineThickness {
    return CTFontGetUnderlineThickness(_ctFont);
 }
 
--(float)ascender {
+-(CGFloat)ascender {
    return CTFontGetAscent(_ctFont);
 }
 
 // CT & NS descender value have opposite value on Cocoa
--(float)descender {
+-(CGFloat)descender {
    return -CTFontGetDescent(_ctFont);
 }
 
--(float)leading {
+-(CGFloat)leading {
    return CTFontGetLeading(_ctFont);
 }
 
--(float)defaultLineHeightForFont {
+-(CGFloat)defaultLineHeightForFont {
    return roundf(CTFontGetAscent(_ctFont) + CTFontGetDescent(_ctFont) + CTFontGetLeading(_ctFont));
 }
 

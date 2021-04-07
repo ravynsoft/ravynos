@@ -469,7 +469,7 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
    return nil;
 }
 
--(int)level {
+-(NSInteger)level {
    return _level;
 }
 
@@ -2608,6 +2608,11 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
 -(void)_setVisible:(BOOL)visible;
 {
 	_isVisible = visible;
+   if(visible) {
+      [[self platformWindow] showWindowWithoutActivation];
+   } else {
+      [[self platformWindow] hideWindow];
+   }
 }
 
 // default NSDraggingDestination

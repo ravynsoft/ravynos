@@ -47,5 +47,6 @@ enum {
 - (void)getAdvancements:(CGSize *)advancements forGlyphs:(const CGGlyph *)glyphs count:(unsigned)count;
 
 - (CGPathRef)createPathForGlyph:(CGGlyph)glyph transform:(CGAffineTransform *)xform;
+- (CGFloat)defaultLineHeightForFont; 
 
 @end

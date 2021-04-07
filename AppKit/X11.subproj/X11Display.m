@@ -345,6 +345,8 @@ NSArray *CGSOrderedWindowNumbers() {
    id event=nil;
    NSEventType type;
    id window=[self windowForID:ev->xany.window];
+   if(window == nil) // guard against unknown IDs
+      window = [NSApp keyWindow];
    id delegate=[window delegate];
    
    switch(ev->type) {

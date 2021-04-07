@@ -97,8 +97,8 @@ copyfiles:
 libobjc2: .PHONY
 	mkdir -p ${OBJPREFIX}/libobjc2
 	cd ${OBJPREFIX}/libobjc2; cmake \
-		-DCMAKE_C_FLAGS="-DBSD -D__HELIUM__" \
-		-DCMAKE_BUILD_TYPE=Debug \
+		-DCMAKE_C_FLAGS="-DBSD -D__HELIUM__ -DNO_SELECTOR_MISMATCH_WARNINGS" \
+		-DCMAKE_BUILD_TYPE=Release \
 		-DCMAKE_INSTALL_PREFIX=/usr \
 		-DOLDABI_COMPAT=false -DLEGACY_COMPAT=false \
 		${TOPDIR}/libobjc2
@@ -117,8 +117,16 @@ frameworksclean:
 	done
 	rm -rf Foundation/Headers
 
+_FRAMEWORK_TARGETS=
+.if defined(FRAMEWORKS) && !empty(FRAMEWORKS)
+.for fmwk in ${FRAMEWORKS}
+_FRAMEWORK_TARGETS+=${fmwk}.framework
+.endfor
+.else
+_FRAMEWORK_TARGETS=${.ALLTARGETS:M*.framework}
+.endif
 frameworks: 
-	for fmwk in ${.ALLTARGETS:M*.framework}; do \
+	for fmwk in ${_FRAMEWORK_TARGETS}; do \
 		make ${MKINCDIR} $$fmwk; done
 
 marshallheaders:
