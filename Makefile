@@ -117,8 +117,16 @@ frameworksclean:
 	done
 	rm -rf Foundation/Headers
 
+_FRAMEWORK_TARGETS=
+.if defined(FRAMEWORKS) && !empty(FRAMEWORKS)
+.for fmwk in ${FRAMEWORKS}
+_FRAMEWORK_TARGETS+=${fmwk}.framework
+.endfor
+.else
+_FRAMEWORK_TARGETS=${.ALLTARGETS:M*.framework}
+.endif
 frameworks: 
-	for fmwk in ${.ALLTARGETS:M*.framework}; do \
+	for fmwk in ${_FRAMEWORK_TARGETS}; do \
 		make ${MKINCDIR} $$fmwk; done
 
 marshallheaders:

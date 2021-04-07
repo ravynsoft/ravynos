@@ -13,8 +13,9 @@ int main(int argc, const char *argv[])
 	NSString *path = [[main pathForResource:@"sample" ofType:@"txt" inDirectory:@"rsc"]
 		autorelease];
 	NSFileManager *fm = [[NSFileManager defaultManager] autorelease];
-	NSData *text = [[fm contentsAtPath:path] autorelease];
-	NSLog(@"%s", [[[NSString alloc] initWithData:text encoding:NSASCIIStringEncoding] UTF8String]);
+	NSString *text = [[[NSString alloc] initWithData:[fm contentsAtPath:path]
+		encoding:NSASCIIStringEncoding] autorelease];
+	NSLog(@"%s", [text UTF8String]);
 
     [NSApplication sharedApplication];
 
@@ -44,6 +45,8 @@ int main(int argc, const char *argv[])
 
     MyView *view2 = [[[MyView alloc] initWithFrame:[window2 frame]] autorelease];
     [window2 setContentView:view2];
+	[view2 setFont: [NSFont fontWithName:@"Courier" size:20.0]];
+	[view2 setText:text];
     [view2 setNeedsDisplay:YES];
 	[window2 display];
 
