@@ -318,6 +318,8 @@ CGL_EXPORT CGLError CGLCreateContextForWindow(CGLPixelFormatObj pixelFormat,CGLC
 
 -(void)openGLFlushBuffer {
    CGLError error;
+
+   CGLContextObj prevContext = CGLGetCurrentContext();
    
    [self createCGLContextObjIfNeeded];
    if(_caContext==NULL)
@@ -332,6 +334,8 @@ CGL_EXPORT CGLError CGLCreateContextForWindow(CGLPixelFormatObj pixelFormat,CGLC
    
    glFlush();
    glXSwapBuffers(_display,_window);
+
+   CGLSetCurrentContext(prevContext);
 }
 
 -(void)flushBuffer {

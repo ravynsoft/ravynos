@@ -32,8 +32,8 @@
     case kCTFontMenuTitleFontType:
     case kCTFontMenuItemFontType:
      if(size==0)
-      size=BASEFONT_SIZE;
-     font=O2FontCreateWithFontName(BASEFONT_NS);
+      size=12.0;
+     font=O2FontCreateWithFontName(@"FreeSans");
      break;
  
     default:

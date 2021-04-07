@@ -24,7 +24,6 @@ SRCS= \
 	O2Font+PDF.m \
 	O2Font.m \
 	O2Font_freetype.m \
-	O2Font_ttf.m \
 	O2Function+PDF.m \
 	O2Function.m \
 	O2Geometry.m \
@@ -121,7 +120,6 @@ INCS= \
 	O2Font+PDF.h \
 	O2Font.h \
 	O2Font_freetype.h \
-	O2Font_ttf.h \
 	O2Function+PDF.h \
 	O2Function.h \
 	O2Geometry.h \

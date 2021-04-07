@@ -23,7 +23,7 @@ id objc_msgSendv(id self, SEL selector, unsigned arg_size, void *arg_frame);
    NSUInteger align;
 
    NSGetSizeAndAlignment([_signature methodReturnType],&_returnSize,&align);
-   _returnValue=NSZoneCalloc(NULL,MAX(_returnSize, sizeof(long)),1);
+   _returnValue=NSZoneCalloc(NULL,MAX(_returnSize, sizeof(NSUInteger)),1);
 
    _argumentFrameSize=0;
    _argumentSizes=NSZoneCalloc(NULL,count,sizeof(NSUInteger));
@@ -36,7 +36,7 @@ id objc_msgSendv(id self, SEL selector, unsigned arg_size, void *arg_frame);
     _argumentOffsets[i]=_argumentFrameSize;
 
     NSGetSizeAndAlignment([_signature getArgumentTypeAtIndex:i],&naturalSize,&align);
-    promotedSize=((naturalSize+sizeof(long)-1)/sizeof(long))*sizeof(long);
+    promotedSize=((naturalSize+sizeof(NSUInteger)-1)/sizeof(NSUInteger))*sizeof(NSUInteger);
 
     _argumentSizes[i]=naturalSize;
     _argumentFrameSize+=promotedSize;
@@ -205,7 +205,7 @@ static void byteCopy(void *src,void *dst,NSUInteger length){
 -(void)getArgument:(void *)pointerToValue atIndex:(NSInteger)index
 {
     NSUInteger naturalSize = _argumentSizes[index];
-    NSUInteger promotedSize = ((naturalSize + sizeof(long) - 1) / sizeof(long)) * sizeof(long);
+    NSUInteger promotedSize = ((naturalSize + sizeof(NSUInteger) - 1) / sizeof(NSUInteger)) * sizeof(NSUInteger);
 
     if (naturalSize == promotedSize) {
         byteCopy(_argumentFrame + _argumentOffsets[index], pointerToValue, naturalSize);
@@ -229,7 +229,7 @@ static void byteCopy(void *src,void *dst,NSUInteger length){
 - (void)setArgument:(void *)pointerToValue atIndex:(NSInteger)index
 {
     NSUInteger naturalSize = _argumentSizes[index];
-    NSUInteger promotedSize = ((naturalSize + sizeof(long) - 1) / sizeof(long)) * sizeof(long);
+    NSUInteger promotedSize = ((naturalSize + sizeof(NSUInteger) - 1) / sizeof(NSUInteger)) * sizeof(NSUInteger);
 
     if (naturalSize == promotedSize) {
         byteCopy(pointerToValue, _argumentFrame + _argumentOffsets[index], naturalSize);
