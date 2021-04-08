@@ -137,8 +137,8 @@ export XDG_SESSION_CLASS=user
 export XDG_SESSION_TYPE=x11
 
 # When 'sudo -A -E <command>' is executed, use this helper appliction to get the password
-# export SUDO_ASKPASS=/usr/local/bin/askpass
-# We now set askpass in sudo.conf, hence we do not need this environment variable
+export SUDO_ASKPASS=/usr/local/bin/askpass
+# Using sudo.conf resulted in a password dialog when X starts
 
 # Ensure users are never dropped into vi
 export VISUAL=/usr/local/bin/nano
