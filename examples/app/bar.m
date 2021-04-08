@@ -19,6 +19,19 @@ int main(int argc, const char *argv[])
 
     [NSApplication sharedApplication];
 
+	NSMenu *menubar = [[NSMenu new] autorelease];
+	NSMenuItem *appMenuItem = [[NSMenuItem new] autorelease];
+	[menubar addItem:appMenuItem];
+	[appMenuItem setTitle:@"Bar"];
+
+	NSMenu *appMenu = [[NSMenu new] autorelease];
+	NSMenuItem *quitMenuItem = [[[NSMenuItem alloc] initWithTitle:@"Quit"
+		action:@selector(terminate:) keyEquivalent:@"q"] autorelease];
+	[appMenu addItem:quitMenuItem];
+
+	[appMenuItem setSubmenu:appMenu];
+	[NSApp setMainMenu:menubar];
+
     NSImage *image = [[[NSImage alloc] initWithContentsOfFile:@"/Users/zoe/helium/crazyones.jpg"]
 		autorelease];
     NSSize imageSize = [image size];
