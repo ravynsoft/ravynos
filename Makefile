@@ -7,15 +7,17 @@ BSDCONFIG := GENERIC
 BUILDROOT := ${OBJPREFIX}/buildroot
 HELIUM_VERSION != cat ${TOPDIR}/version
 BRANCH_OVERRIDE := HELIUM_${HELIUM_VERSION}
-FREEBSD_BRANCH := releng/12.2
+OSRELEASE := 12.2
+FREEBSD_BRANCH := releng/${OSRELEASE}
 MKINCDIR := -m/usr/share/mk -m${TOPDIR}/mk
+PORTSDIR := ${TOPDIR}/ports
 CORES := 4
 
 # Incremental build for quick tests or system update
 build: prep freebsd-noclean helium
 
 # Full release build with installation artifacts
-world: prep freebsd helium release
+world: prep freebsd fetchports helium release
 
 
 prep:
@@ -31,6 +33,10 @@ checkout:
 	test -d ${TOPDIR}/freebsd-src || \
 		(cd ${TOPDIR} && git clone https://github.com/freebsd/freebsd-src.git && \
 		cd freebsd-src && git checkout ${FREEBSD_BRANCH})
+
+fetchports:
+	mkdir -p ${TOPDIR}/portsnap
+	portsnap -d ${TOPDIR}/portsnap -p ${TOPDIR}/ports auto
 
 patchbsd: patches/*.patch
 	(cd ${TOPDIR}/freebsd-src && git checkout -f ${FREEBSD_BRANCH}; \
@@ -59,13 +65,59 @@ usr-noclean:
 	export MAKEOBJDIRPREFIX=${OBJPREFIX}; make -j${CORES} \
 		-C ${TOPDIR}/freebsd-src -DNO_CLEAN buildworld
 
-XORG=https://www.x.org/releases/individual/xserver/xorg-server-1.20.10.tar.bz2 \
-     https://www.x.org/releases/individual/xcb/libxcb-1.14.tar.gz \
-	 https://www.x.org/releases/individual/xcb/xcb-proto-1.14.tar.gz \
-	 
-packages:
-	mkdir -p ${OBJPREFIX}/pkg
-	pkg fetch -U -o ${OBJPREFIX}/pkg -d -y openjpeg tiff png freetype2 fontconfig cairo xorg
+# Utility target for port operations with consistent arguments
+_portops: .PHONY
+	make -C ${dir} _OSRELEASE=${OSRELEASE} PORTSDIR=${PORTSDIR} \
+		PREFIX=/usr BATCH=1 ${extra} ${tgt}
+
+openjpeg: lcms2 png tiff
+	make dir=${PORTSDIR}/graphics/${.TARGET} tgt="fetch patch" _portops
+	mkdir -p ${PORTSDIR}/graphics/${.TARGET}/work/build
+	cd ${PORTSDIR}/graphics/${.TARGET}/work/build && cmake \
+		-DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release ../openjpeg-2.4.0
+	make -C ${PORTSDIR}/graphics/${.TARGET}/work/build DESTDIR=${BUILDROOT} install
+
+lcms2:
+	make dir=${PORTSDIR}/graphics/${.TARGET} tgt="fetch patch build" _portops
+	make -C ${PORTSDIR}/graphics/${.TARGET}/work/lcms2-2.12 DESTDIR=${BUILDROOT} install
+
+png:
+	make dir=${PORTSDIR}/graphics/${.TARGET} tgt="fetch patch build" _portops
+	make -C ${PORTSDIR}/graphics/${.TARGET}/work/libpng-1.6.37 DESTDIR=${BUILDROOT} install
+
+tiff: jbigkit
+	make dir=${PORTSDIR}/graphics/${.TARGET} tgt="fetch patch build" _portops
+	make -C ${PORTSDIR}/graphics/${.TARGET}/work/tiff-4.2.0 DESTDIR=${BUILDROOT} install
+
+jbigkit:
+	make dir=${PORTSDIR}/graphics/${.TARGET} tgt="fetch patch build" _portops
+	make dir=${PORTSDIR}/graphics/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
+
+freetype2: brotli
+	make dir=${PORTSDIR}/print/${.TARGET} tgt="fetch patch build" _portops
+	make dir=${PORTSDIR}/print/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
+
+brotli:
+	make dir=${PORTSDIR}/archivers/${.TARGET} tgt="fetch patch build" _portops
+	make dir=${PORTSDIR}/archivers/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
+
+#cairo: freetype2 xcb
+#	make dir=${PORTSDIR}/graphics/${.TARGET} tgt="fetch patch build" _portops
+#	make dir=${PORTSDIR}/graphics/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
+
+fontconfig: expat2
+	make dir=${PORTSDIR}/x11-fonts/${.TARGET} tgt="fetch patch" _portops
+	cd ${PORTSDIR}/x11-fonts/${.TARGET}/work/fontconfig-2.13.93 \
+		&& ./configure --prefix=/usr --disable-docs \
+		--sysconfdir=/etc --localstatedir=/var --disable-rpath --disable-iconv \
+		--with-default-fonts=/usr/share/fonts --with-add-fonts=/usr/share/X11/fonts \
+		&& gmake && gmake DESTDIR=${BUILDROOT} install
+
+expat2:
+	make dir=${PORTSDIR}/textproc/${.TARGET} tgt="fetch patch build" _portops
+	make dir=${PORTSDIR}/textproc/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
+
+packages: openjpeg freetype2 fontconfig #cairo
 
 helium: extradirs mkfiles libobjc2 libunwind frameworksclean frameworks copyfiles
 
