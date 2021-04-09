@@ -119,7 +119,7 @@ expat2:
 
 packages: openjpeg freetype2 fontconfig #cairo
 
-helium: extradirs mkfiles libobjc2 libunwind frameworksclean frameworks copyfiles
+helium: extradirs mkfiles libobjc2 libunwind packages frameworksclean frameworks copyfiles
 
 # Update the build system with current source
 install: installworld installkernel installhelium
