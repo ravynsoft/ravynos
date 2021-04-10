@@ -163,26 +163,29 @@ else
   bsdinstall time
 fi
 
+# Transfer settings from running /etc/rc.conf.local to installed one
+cat /etc/rc.conf.local | xargs sysrc -f ${FSMNT}/etc/rc.conf
+
 # initgfx does not work from a read-only disk
 chroot "${FSMNT}" sysrc root_rw_mount="YES"
 
 # Enable additional services needed for desktop
-echo "Enabling additional services needed for desktop"
-if [ -f "/usr/local/sbin/lightdm" ] ; then
-  chroot "${FSMNT}" sysrc lightdm_enable="YES"
-fi
-if [ -f "/usr/local/sbin/gdm" ] ; then
-  chroot "${FSMNT}" sysrc gdm_enable="YES"
-fi
-if [ -f "/usr/local/etc/rc.d/pcdm" ] ; then
-  chroot "${FSMNT}" sysrc pcdm_enable="YES"
-fi
-if [ -f "/usr/local/bin/sddm" ] ; then
-  chroot "${FSMNT}" sysrc sddm_enable="YES"
-fi
-if [ -f "/usr/local/bin/slim" ] ; then
-  chroot "${FSMNT}" sysrc slim_enable="YES"
-fi
+# echo "Enabling additional services needed for desktop"
+# if [ -f "/usr/local/sbin/lightdm" ] ; then
+#   chroot "${FSMNT}" sysrc lightdm_enable="YES"
+# fi
+# if [ -f "/usr/local/sbin/gdm" ] ; then
+#   chroot "${FSMNT}" sysrc gdm_enable="YES"
+# fi
+# if [ -f "/usr/local/etc/rc.d/pcdm" ] ; then
+#   chroot "${FSMNT}" sysrc pcdm_enable="YES"
+# fi
+# if [ -f "/usr/local/bin/sddm" ] ; then
+#   chroot "${FSMNT}" sysrc sddm_enable="YES"
+# fi
+# if [ -f "/usr/local/bin/slim" ] ; then
+#   chroot "${FSMNT}" sysrc slim_enable="YES"
+# fi
 
 # Copy kernel from the ISO because it may have been removed
 # from the compressed filesystem to save space
@@ -193,9 +196,6 @@ fi
 if [ -f "${ISO_MOUNTPOINT}/boot/kernel/kernel" ] ; then
   cp "${ISO_MOUNTPOINT}/boot/kernel/kernel" "${FSMNT}/boot/kernel/"
 fi
-
-# Transfer settings from running /etc/rc.conf.local to installed one
-cat /etc/rc.conf.local | xargs sysrc -f ${FSMNT}/etc/rc.conf
 
 # Set the timezone on the system if it has been provided
 # by the graphical installer frontend
