@@ -2,7 +2,7 @@
 
 TOPDIR := ${.CURDIR}
 OBJPREFIX := ${HOME}/obj.${MACHINE}
-RLSDIR := ${OBJPREFIX}${TOPDIR}/freebsd-src/release
+RLSDIR := ${TOPDIR}/freebsd-src/release
 BSDCONFIG := GENERIC
 BUILDROOT := ${OBJPREFIX}/buildroot
 HELIUM_VERSION != cat ${TOPDIR}/version
@@ -21,7 +21,7 @@ world: prep freebsd fetchports helium release
 
 
 prep:
-	mkdir -p ${OBJPREFIX} ${RLSDIR} ${TOPDIR}/dist ${BUILDROOT}
+	mkdir -p ${OBJPREFIX} ${TOPDIR}/dist ${BUILDROOT}
 
 ${TOPDIR}/freebsd-src/sys/${MACHINE}/compile/${BSDCONFIG}: ${TOPDIR}/freebsd-src/sys/${MACHINE}/conf/${BSDCONFIG}
 	mkdir -p ${TOPDIR}/freebsd-src/sys/${MACHINE}/compile/${BSDCONFIG}
@@ -275,7 +275,7 @@ release: helium-package
 		sudo chflags -R noschg,nouchg ${RLSDIR}/disc1 && sudo rm -rf ${RLSDIR}/disc1; \
 	fi
 	rm -f ${RLSDIR}/packagesystem
-	sudo -E MAKEOBJDIRPREFIX=${OBJPREFIX} \
+	export MAKEOBJDIRPREFIX=${OBJPREFIX}; sudo -E \
 		make -C ${TOPDIR}/freebsd-src/release \
 		desc_helium="${desc_helium}" NOSRC=true NOPORTS=true \
 		packagesystem disc1.iso memstick
