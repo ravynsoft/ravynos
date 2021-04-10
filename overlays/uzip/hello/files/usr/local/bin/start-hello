@@ -52,8 +52,21 @@ ulimit -c 0
 # FIXME: Remove the need for those lines in this script; how?
 # FIXME: It will not work in installed mode like this, because the user may not be able to use sudo without entering a password
 sudo sysctl vfs.usermount=1 || true
-sudo kldload fuse.ko || true # FreeBSD up to 12.x
-sudo kldload fusefs.ko || true # FreeBSD 13+, violates POLA
+sudo kldload fuse.ko 2>/dev/null || true # FreeBSD up to 12.x
+sudo kldload fusefs.ko 2>/dev/null || true # FreeBSD 13+, violates POLA
+
+# Reload if_iwm.ko and its firmware modules like
+# iwm7265fw.ko and iwm7265Dfw.ko to get Intel WLAN to work
+# when the system is chrooted
+if [ $(kldstat| grep 'if_iwm.ko' | awk '{print $5}' | xargs) = "if_iwm.ko" ] ; then
+  echo "Reloading if_iwm.ko and its firmware modules"
+  sudo kldunload if_iwm.ko
+  FW_MODULES=$(kldstat| grep 'iwm.*fw.ko' | awk '{print $5}' | xargs)
+  kldunload $FW_MODULES
+  sudo kldunload if_iwm.ko 2>/dev/null || true
+  kldload $FW_MODULES
+  sudo kldload if_iwm.ko
+fi
 
 # Prevent Gnome-related processes at-spi-bus-launcher
 # and at-spi2-registryd from bleeding into our system
