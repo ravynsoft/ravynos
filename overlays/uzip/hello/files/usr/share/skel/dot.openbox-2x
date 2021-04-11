@@ -41,7 +41,7 @@
   </placement>
   <theme>
     <name>Arc_OSX</name>
-    <titleLayout>CIML</titleLayout>
+    <titleLayout>CLM</titleLayout>
     <!--
       available characters are NDSLIMC, each can occur at most once.
       N: window icon
@@ -58,9 +58,9 @@
       <name>Nimbus Sans</name>
       <size>22</size>
       <!-- font size in points -->
-      <weight>Normal</weight>
+      <weight>bold</weight>
       <!-- 'bold' or 'normal' -->
-      <slant>Normal</slant>
+      <slant>normal</slant>
       <!-- 'italic' or 'normal' -->
     </font>
     <font place="InactiveWindow">
@@ -249,6 +249,9 @@
       <action name="ToggleShowDesktop"/>
     </keybind>
     <!-- Keybindings for windows -->
+    <keybind key="C-S-H">
+      <action name="Iconify"/>
+    </keybind>
     <keybind key="C-Q">
       <action name="Close"/>
     </keybind>
