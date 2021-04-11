@@ -366,7 +366,6 @@ if [ -f "${uzip}/usr/local/share/dbus-1/services/org.gtk.vfs.UDisks2VolumeMonito
   chflags schg "${uzip}/usr/local/share/dbus-1/services/org.gtk.vfs.UDisks2VolumeMonitor.service"
 fi
 
-exit 0 # Test whether this resolves https://github.com/helloSystem/ISO/issues/200
 # FIXME: Desperate attempt at reducing image size
 rm -rf "${uzip}"/usr/local/share/icons/breeze*
 rm -rf "${uzip}"/usr/local/*-portbld-*/ # What is it; is it actually needed? https://forums.freebsd.org/threads/what-is-the-portbld-directory.71759/
