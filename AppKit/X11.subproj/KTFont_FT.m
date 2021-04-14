@@ -105,7 +105,6 @@
 }
 
 -(CGFloat)defaultLineHeightForFont {
-   NSLog(@"%@ defaultLineHeightForFont", self);
    return round(O2FontGetAscent(_font) + O2FontGetDescent(_font) + O2FontGetLeading(_font));
 }
 
