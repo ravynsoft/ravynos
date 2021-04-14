@@ -4,5 +4,6 @@
 # Helium on Helium image
 #
 
-pkg install gmake autoconf automake libtool cmake gperf meson autopoint intltool \
-	libtalloc libgdbm libmtdev libudev
+pkg install gmake autoconf automake libtool pkgconf nasm \
+	cmake gperf meson intltool libudev-devd \
+	talloc libmtdev gettext-tools py37-mako

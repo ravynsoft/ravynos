@@ -17,7 +17,7 @@ CORES := 4
 build: prep freebsd-noclean helium
 
 # Full release build with installation artifacts
-world: prep freebsd fetchports helium release
+world: prep freebsd fetchports patchports helium release
 
 
 prep:
@@ -38,11 +38,16 @@ fetchports:
 	mkdir -p ${TOPDIR}/portsnap
 	portsnap -d ${TOPDIR}/portsnap -p ${TOPDIR}/ports auto
 
-patchbsd: patches/*.patch
+patchports:
+	cd ${TOPDIR}/ports; \
+		for patch in ${TOPDIR}/patches/ports-*.patch; do patch -p1 < $$patch; done; \
+
+
+patchbsd: patches/[0-9]*.patch
 	(cd ${TOPDIR}/freebsd-src && git checkout -f ${FREEBSD_BRANCH}; \
 	git branch -D helium/12 || true; \
 	git checkout -b helium/12; \
-	for patch in ${TOPDIR}/patches/*.patch; do patch -p1 < $$patch; done; \
+	for patch in ${TOPDIR}/patches/[0-9]*.patch; do patch -p1 < $$patch; done; \
 	git commit -a -m "patched")
 
 freebsd: checkout patchbsd ${TOPDIR}/freebsd-src/sys/${MACHINE}/compile/${BSDCONFIG}
@@ -68,14 +73,22 @@ usr-noclean:
 # Utility target for port operations with consistent arguments
 _portops: .PHONY
 	make -C ${dir} _OSRELEASE=${OSRELEASE} PORTSDIR=${PORTSDIR} \
-		PREFIX=/usr BATCH=1 ${extra} ${tgt}
+		NO_DEPENDS=1 LOCALBASE=/usr PREFIX=/usr BATCH=1 ${extra} ${tgt}
 
-openjpeg: lcms2 png tiff
+openjpeg: lcms2 png jpeg-turbo tiff
 	make dir=${PORTSDIR}/graphics/${.TARGET} tgt="fetch patch" _portops
 	mkdir -p ${PORTSDIR}/graphics/${.TARGET}/work/build
 	cd ${PORTSDIR}/graphics/${.TARGET}/work/build && cmake \
 		-DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release ../openjpeg-2.4.0
 	make -C ${PORTSDIR}/graphics/${.TARGET}/work/build DESTDIR=${BUILDROOT} install
+
+jpeg-turbo:
+	make dir=${PORTSDIR}/graphics/${.TARGET} tgt="fetch patch" _portops
+	mkdir -p ${PORTSDIR}/graphics/${.TARGET}/work/.build 
+	cd ${PORTSDIR}/graphics/${.TARGET}/work/.build \
+	&& cmake -DCMAKE_INSTALL_PREFIX=/usr ../libjpeg-turbo-2.0.6 \
+	&& make
+	make -C ${PORTSDIR}/graphics/${.TARGET}/work/.build DESTDIR=${BUILDROOT} install
 
 lcms2:
 	make dir=${PORTSDIR}/graphics/${.TARGET} tgt="fetch patch build" _portops
@@ -101,25 +114,86 @@ brotli:
 	make dir=${PORTSDIR}/archivers/${.TARGET} tgt="fetch patch build" _portops
 	make dir=${PORTSDIR}/archivers/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
 
-#cairo: freetype2 xcb
-#	make dir=${PORTSDIR}/graphics/${.TARGET} tgt="fetch patch build" _portops
-#	make dir=${PORTSDIR}/graphics/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
+cairo: freetype2
+	make dir=${PORTSDIR}/graphics/${.TARGET} tgt="fetch patch build" _portops
+	make dir=${PORTSDIR}/graphics/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
 
 fontconfig: expat2
-	make dir=${PORTSDIR}/x11-fonts/${.TARGET} tgt="fetch patch" _portops
+	make dir=${PORTSDIR}/x11-fonts/${.TARGET} tgt="patch" _portops
+	find ${PORTSDIR}/x11-fonts/${.TARGET}/work -name \*.py \
+		-exec sed -ibak 's^/usr/bin/python^/usr/local/bin/python^g' \
+		{} \;
 	cd ${PORTSDIR}/x11-fonts/${.TARGET}/work/fontconfig-2.13.93 \
 		&& ./configure --prefix=/usr --disable-docs \
 		--sysconfdir=/etc --localstatedir=/var --disable-rpath --disable-iconv \
 		--with-default-fonts=/usr/share/fonts --with-add-fonts=/usr/share/X11/fonts \
+		&& sed -ibak 's/all-local: check-versions/all-local:/' Makefile \
 		&& gmake && gmake DESTDIR=${BUILDROOT} install
 
 expat2:
 	make dir=${PORTSDIR}/textproc/${.TARGET} tgt="fetch patch build" _portops
 	make dir=${PORTSDIR}/textproc/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
 
-packages: openjpeg freetype2 fontconfig #cairo
+libdrm:
+	make dir=${PORTSDIR}/graphics/${.TARGET} tgt="fetch patch build" _portops
+	make dir=${PORTSDIR}/graphics/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
 
-helium: extradirs mkfiles libobjc2 libunwind packages frameworksclean frameworks copyfiles
+libffi:
+	make dir=${PORTSDIR}/devel/${.TARGET} tgt="fetch patch build" _portops
+	make dir=${PORTSDIR}/devel/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
+
+wayland: libffi
+	make CFLAGS="$$CFLAGS -I/usr/local/include/libepoll-shim" dir=${PORTSDIR}/graphics/${.TARGET} tgt="fetch patch build" _portops
+	make dir=${PORTSDIR}/graphics/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
+
+wayland-protocols:
+	make CFLAGS="$$CFLAGS -I/usr/local/include/libepoll-shim" dir=${PORTSDIR}/graphics/${.TARGET} tgt="fetch patch build" _portops
+	make dir=${PORTSDIR}/graphics/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
+
+mesa-dri: wayland wayland-protocols
+	make dir=${PORTSDIR}/graphics/${.TARGET} tgt="fetch patch build" _portops
+	make dir=${PORTSDIR}/graphics/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
+
+mesa-libs:
+	make dir=${PORTSDIR}/graphics/${.TARGET} tgt="fetch patch build" _portops
+	make dir=${PORTSDIR}/graphics/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
+
+xtrans:
+	make dir=${PORTSDIR}/x11/${.TARGET} tgt="fetch patch build" _portops
+	make dir=${PORTSDIR}/x11/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
+
+xorg-server: xtrans
+	make dir=${PORTSDIR}/x11-servers/${.TARGET} tgt="fetch patch build" \
+		extra="CFLAGS=-UWITH_OPENSSL_BASE" _portops
+	make dir=${PORTSDIR}/x11-servers/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
+
+packagesPreX: openjpeg freetype2 fontconfig libdrm mesa-dri mesa-libs
+packagesPostX: cairo
+
+xorgbuild: xorgmain xorgspecial xorg-server
+xorgmain:
+	mkdir -p xorg
+	if [ ! -d xorg/util/modular ]; then \
+		cd xorg \
+		&& git clone git://anongit.freedesktop.org/git/xorg/util/modular util/modular; \
+	fi
+	mkdir -p xorg/_build
+	cd xorg && export PREFIX=/usr LOCALSTATEDIR=/var MAKE=gmake \
+		CONFFLAGS="--disable-docs --disable-specs --with-sdkdir=${BUILDROOT}/usr/include/xorg --with-xorg-conf-dir=${BUILDROOT}/usr/share/X11/xorg.conf.d --with-sysconfdir=/etc" \
+		&& for mod in $$(cat ${TOPDIR}/xorg-modules.txt); do \
+		./util/modular/build.sh -o $$mod --clone ${TOPDIR}/xorg/_build; done
+
+xorgspecial:
+	cd xorg && export PREFIX=/usr LOCALSTATEDIR=/var MAKE=gmake \
+		CONFFLAGS="--disable-docs --disable-specs --with-sdkdir=${BUILDROOT}/usr/include/xorg --with-xorg-conf-dir=${BUILDROOT}/usr/share/X11/xorg.conf.d --with-sysconfdir=/etc" \
+		PKG_CONFIG_PATH=/usr/libdata/pkgconfig:/usr/local/libdata/pkgconfig \
+		CFLAGS="$$CFLAGS -I/usr/local/include -DERESTART=-1 -DETIME=ETIMEDOUT -DENODATA=ENOATTR" \
+		LDFLAGS="$$LDFLAGS -L/usr/local/lib" \
+		&& for mod in app/rendercheck app/xdriinfo; do \
+		./util/modular/build.sh -o $$mod --clone ${TOPDIR}/xorg/_build; done
+
+helium: extradirs mkfiles libobjc2 libunwind packagesPreX xorgbuild packagesPostX \
+	frameworksclean frameworks copyfiles
 
 # Update the build system with current source
 install: installworld installkernel installhelium
@@ -266,6 +340,9 @@ AppKit.framework:
 
 
 helium-package:
+	mv -f ${BUILDROOT}/usr/lib/pkgconfig/* \
+		${BUILDROOT}/usr/libdata/pkgconfig
+	rmdir ${BUILDROOT}/usr/lib/pkgconfig
 	tar cJ -C ${BUILDROOT} --gid 0 --uid 0 -f ${RLSDIR}/helium.txz .
 
 desc_helium=Helium system
