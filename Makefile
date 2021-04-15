@@ -195,10 +195,15 @@ shells/zsh:
 	make dir=${PORTSDIR}/${.TARGET} tgt="fetch patch build" _portops
 	make dir=${PORTSDIR}/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
 
+security/doas:
+	make dir=${PORTSDIR}/${.TARGET} tgt="fetch patch build" _portops
+	make dir=${PORTSDIR}/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
+	ln -sf doas ${BUILDROOT}/usr/bin/sudo
+
 packagesPreX: graphics/openjpeg print/freetype2 x11-fonts/fontconfig \
 	devel/libudev-devd devel/libpciaccess graphics/libdrm devel/gettext-runtime \
 	print/indexinfo graphics/mesa-dri graphics/mesa-libs x11/libxshmfence
-packagesPostX: graphics/cairo shells/zsh
+packagesPostX: graphics/cairo shells/zsh security/doas
 
 xorgbuild: fetchxorg xorgmain1 xorg-server xorgmain2  xorgspecial xorg-server
 	sudo chmod u+s ${BUILDROOT}/usr/bin/Xorg.wrap
@@ -206,6 +211,10 @@ xorgbuild: fetchxorg xorgmain1 xorg-server xorgmain2  xorgspecial xorg-server
 	tar -C ${BUILDROOT}/${BUILDROOT}/usr -cf - share | tar -C ${BUILDROOT}/usr -xf -
 	tar -C ${BUILDROOT}/${BUILDROOT}/usr -cf - include | tar -C ${BUILDROOT}/usr -xf -
 	_br=${BUILDROOT}; _tail="$${_br#/*/}"; _head="$${_br%/$$_tail}"; rm -rf ${BUILDROOT}$${_head}
+	tar -C ${BUILDROOT}/usr -cf - etc | tar -C ${BUILDROOT} -xf -
+	tar -C ${BUILDROOT}/usr/share -cf - pkgconfig | tar -C ${BUILDROOT}/usr/libdata -xf -
+	rm -rf ${BUILDROOT}/usr/etc ${BUILDROOT}/usr/share/pkgconfig
+	ln -sf ../etc ${BUILDROOT}/usr/etc
 
 fetchxorg:
 	mkdir -p xorg
