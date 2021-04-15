@@ -205,7 +205,7 @@ packagesPreX: graphics/openjpeg print/freetype2 x11-fonts/fontconfig \
 	print/indexinfo graphics/mesa-dri graphics/mesa-libs x11/libxshmfence
 packagesPostX: graphics/cairo shells/zsh security/doas
 
-xorgbuild: fetchxorg xorgmain1 xorg-server xorgmain2  xorgspecial xorg-server
+xorgbuild: fetchxorg xorgmain1 x11-servers/xorg-server xorgmain2 xorgspecial
 	sudo chmod u+s ${BUILDROOT}/usr/bin/Xorg.wrap
 	tar -C ${BUILDROOT}/${BUILDROOT}/usr/local -cf - share | tar -C ${BUILDROOT}/usr -xf -
 	tar -C ${BUILDROOT}/${BUILDROOT}/usr -cf - share | tar -C ${BUILDROOT}/usr -xf -
