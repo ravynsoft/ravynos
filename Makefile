@@ -198,6 +198,10 @@ packagesPostX: cairo
 
 xorgbuild: fetchxorg xorgmain1 xorg-server xorgmain2  xorgspecial xorg-server
 	sudo chmod u+s ${BUILDROOT}/usr/bin/Xorg.wrap
+	tar -C ${BUILDROOT}/${BUILDROOT}/usr/local -cf - share | tar -C ${BUILDROOT}/usr -xf -
+	tar -C ${BUILDROOT}/${BUILDROOT}/usr -cf - share | tar -C ${BUILDROOT}/usr -xf -
+	tar -C ${BUILDROOT}/${BUILDROOT}/usr -cf - include | tar -C ${BUILDROOT}/usr -xf -
+	_br=${BUILDROOT}; _tail="$${_br#/*/}"; _head="$${_br%/$$_tail}"; rm -rf ${BUILDROOT}$${_head}
 
 fetchxorg:
 	mkdir -p xorg
@@ -218,8 +222,9 @@ xorgmain1:
 xorgmain2:
 	cd xorg && export PREFIX=/usr LOCALSTATEDIR=/var MAKE=gmake DESTDIR=${BUILDROOT} \
 		PKG_CONFIG_SYSROOT_DIR=${BUILDROOT} \
+		PKG_CONFIG_PATH=${BUILDROOT}/usr/libdata/pkgconfig:/usr/libdata/pkgconfig:/usr/local/libdata/pkgconfig \
 		CONFFLAGS="--disable-docs --disable-specs --with-sysconfdir=/etc" \
-		CFLAGS="-I/usr/local/include -I${BUILDROOT}/usr/include/xorg -I${BUILDROOT}/usr/include/libdrm" \
+		CFLAGS="-I/usr/local/include -I${BUILDROOT}/usr/include/xorg -I${BUILDROOT}/usr/include/libdrm -I${BUILDROOT}/usr/include/pixman-1" \
 		LDFLAGS="-L/usr/local/lib -L${BUILDROOT}/usr/lib" \
 		&& for mod in $$(cat ${TOPDIR}/xorg-modules2.txt); do \
 		./util/modular/build.sh -o $$mod --clone /usr; done
