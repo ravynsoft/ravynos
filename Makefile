@@ -191,10 +191,14 @@ x11/libxshmfence:
 	make dir=${PORTSDIR}/${.TARGET} tgt="fetch patch build" _portops
 	make dir=${PORTSDIR}/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
 
+shells/zsh:
+	make dir=${PORTSDIR}/${.TARGET} tgt="fetch patch build" _portops
+	make dir=${PORTSDIR}/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
+
 packagesPreX: graphics/openjpeg print/freetype2 x11-fonts/fontconfig \
 	devel/libudev-devd devel/libpciaccess graphics/libdrm devel/gettext-runtime \
 	print/indexinfo graphics/mesa-dri graphics/mesa-libs x11/libxshmfence
-packagesPostX: cairo
+packagesPostX: graphics/cairo shells/zsh
 
 xorgbuild: fetchxorg xorgmain1 xorg-server xorgmain2  xorgspecial xorg-server
 	sudo chmod u+s ${BUILDROOT}/usr/bin/Xorg.wrap
