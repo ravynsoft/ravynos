@@ -6,7 +6,7 @@ RLSDIR := ${TOPDIR}/freebsd-src/release
 BSDCONFIG := GENERIC
 BUILDROOT := ${OBJPREFIX}/buildroot
 HELIUM_VERSION != cat ${TOPDIR}/version
-BRANCH_OVERRIDE := HELIUM_${HELIUM_VERSION}
+BRANCH_OVERRIDE := ${HELIUM_VERSION}
 OSRELEASE := 12.2
 FREEBSD_BRANCH := releng/${OSRELEASE}
 MKINCDIR := -m/usr/share/mk -m${TOPDIR}/mk
@@ -75,122 +75,163 @@ _portops: .PHONY
 	make -C ${dir} _OSRELEASE=${OSRELEASE} PORTSDIR=${PORTSDIR} \
 		NO_DEPENDS=1 LOCALBASE=/usr PREFIX=/usr BATCH=1 ${extra} ${tgt}
 
-openjpeg: lcms2 png jpeg-turbo tiff
-	make dir=${PORTSDIR}/graphics/${.TARGET} tgt="fetch patch" _portops
-	mkdir -p ${PORTSDIR}/graphics/${.TARGET}/work/build
-	cd ${PORTSDIR}/graphics/${.TARGET}/work/build && cmake \
+graphics/openjpeg: graphics/lcms2 graphics/png graphics/jpeg-turbo graphics/tiff
+	make dir=${PORTSDIR}/${.TARGET} tgt="fetch patch" _portops
+	mkdir -p ${PORTSDIR}/${.TARGET}/work/build
+	cd ${PORTSDIR}/${.TARGET}/work/build && cmake \
 		-DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release ../openjpeg-2.4.0
-	make -C ${PORTSDIR}/graphics/${.TARGET}/work/build DESTDIR=${BUILDROOT} install
+	make -C ${PORTSDIR}/${.TARGET}/work/build DESTDIR=${BUILDROOT} install
 
-jpeg-turbo:
-	make dir=${PORTSDIR}/graphics/${.TARGET} tgt="fetch patch" _portops
-	mkdir -p ${PORTSDIR}/graphics/${.TARGET}/work/.build 
-	cd ${PORTSDIR}/graphics/${.TARGET}/work/.build \
+graphics/jpeg-turbo:
+	make dir=${PORTSDIR}/${.TARGET} tgt="fetch patch" _portops
+	mkdir -p ${PORTSDIR}/${.TARGET}/work/.build 
+	cd ${PORTSDIR}/${.TARGET}/work/.build \
 	&& cmake -DCMAKE_INSTALL_PREFIX=/usr ../libjpeg-turbo-2.0.6 \
 	&& make
-	make -C ${PORTSDIR}/graphics/${.TARGET}/work/.build DESTDIR=${BUILDROOT} install
+	make -C ${PORTSDIR}/${.TARGET}/work/.build DESTDIR=${BUILDROOT} install
 
-lcms2:
-	make dir=${PORTSDIR}/graphics/${.TARGET} tgt="fetch patch build" _portops
-	make -C ${PORTSDIR}/graphics/${.TARGET}/work/lcms2-2.12 DESTDIR=${BUILDROOT} install
+graphics/lcms2:
+	make dir=${PORTSDIR}/${.TARGET} tgt="fetch patch build" _portops
+	make -C ${PORTSDIR}/${.TARGET}/work/lcms2-2.12 DESTDIR=${BUILDROOT} install
 
-png:
-	make dir=${PORTSDIR}/graphics/${.TARGET} tgt="fetch patch build" _portops
-	make -C ${PORTSDIR}/graphics/${.TARGET}/work/libpng-1.6.37 DESTDIR=${BUILDROOT} install
+graphics/png:
+	make dir=${PORTSDIR}/${.TARGET} tgt="fetch patch build" _portops
+	make -C ${PORTSDIR}/${.TARGET}/work/libpng-1.6.37 DESTDIR=${BUILDROOT} install
 
-tiff: jbigkit
-	make dir=${PORTSDIR}/graphics/${.TARGET} tgt="fetch patch build" _portops
-	make -C ${PORTSDIR}/graphics/${.TARGET}/work/tiff-4.2.0 DESTDIR=${BUILDROOT} install
+graphics/tiff: graphics/jbigkit
+	make dir=${PORTSDIR}/${.TARGET} tgt="fetch patch build" _portops
+	make -C ${PORTSDIR}/${.TARGET}/work/tiff-4.2.0 DESTDIR=${BUILDROOT} install
 
-jbigkit:
-	make dir=${PORTSDIR}/graphics/${.TARGET} tgt="fetch patch build" _portops
-	make dir=${PORTSDIR}/graphics/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
+graphics/jbigkit:
+	make dir=${PORTSDIR}/${.TARGET} tgt="fetch patch build" _portops
+	make dir=${PORTSDIR}/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
 
-freetype2: brotli
-	make dir=${PORTSDIR}/print/${.TARGET} tgt="fetch patch build" _portops
-	make dir=${PORTSDIR}/print/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
+print/freetype2: archivers/brotli
+	make dir=${PORTSDIR}/${.TARGET} tgt="fetch patch build" _portops
+	make dir=${PORTSDIR}/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
 
-brotli:
-	make dir=${PORTSDIR}/archivers/${.TARGET} tgt="fetch patch build" _portops
-	make dir=${PORTSDIR}/archivers/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
+archivers/brotli:
+	make dir=${PORTSDIR}/${.TARGET} tgt="fetch patch build" _portops
+	make dir=${PORTSDIR}/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
 
-cairo: freetype2
-	make dir=${PORTSDIR}/graphics/${.TARGET} tgt="fetch patch build" _portops
-	make dir=${PORTSDIR}/graphics/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
+graphics/cairo: print/freetype2
+	make dir=${PORTSDIR}/${.TARGET} tgt="fetch patch build" _portops
+	make dir=${PORTSDIR}/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
 
-fontconfig: expat2
-	make dir=${PORTSDIR}/x11-fonts/${.TARGET} tgt="patch" _portops
-	find ${PORTSDIR}/x11-fonts/${.TARGET}/work -name \*.py \
+x11-fonts/fontconfig: textproc/expat2
+	make dir=${PORTSDIR}/${.TARGET} tgt="patch" _portops
+	find ${PORTSDIR}/${.TARGET}/work -name \*.py \
 		-exec sed -ibak 's^/usr/bin/python^/usr/local/bin/python^g' \
 		{} \;
-	cd ${PORTSDIR}/x11-fonts/${.TARGET}/work/fontconfig-2.13.93 \
+	cd ${PORTSDIR}/${.TARGET}/work/fontconfig-2.13.93 \
 		&& ./configure --prefix=/usr --disable-docs \
 		--sysconfdir=/etc --localstatedir=/var --disable-rpath --disable-iconv \
 		--with-default-fonts=/usr/share/fonts --with-add-fonts=/usr/share/X11/fonts \
 		&& sed -ibak 's/all-local: check-versions/all-local:/' Makefile \
 		&& gmake && gmake DESTDIR=${BUILDROOT} install
 
-expat2:
-	make dir=${PORTSDIR}/textproc/${.TARGET} tgt="fetch patch build" _portops
-	make dir=${PORTSDIR}/textproc/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
+textproc/expat2:
+	make dir=${PORTSDIR}/${.TARGET} tgt="fetch patch build" _portops
+	make dir=${PORTSDIR}/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
 
-libdrm:
-	make dir=${PORTSDIR}/graphics/${.TARGET} tgt="fetch patch build" _portops
-	make dir=${PORTSDIR}/graphics/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
+graphics/libdrm:
+	make dir=${PORTSDIR}/${.TARGET} tgt="fetch patch build" _portops
+	make dir=${PORTSDIR}/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
 
-libffi:
-	make dir=${PORTSDIR}/devel/${.TARGET} tgt="fetch patch build" _portops
-	make dir=${PORTSDIR}/devel/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
+devel/libffi:
+	make dir=${PORTSDIR}/${.TARGET} tgt="fetch patch build" _portops
+	make dir=${PORTSDIR}/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
 
-wayland: libffi
-	make CFLAGS="$$CFLAGS -I/usr/local/include/libepoll-shim" dir=${PORTSDIR}/graphics/${.TARGET} tgt="fetch patch build" _portops
-	make dir=${PORTSDIR}/graphics/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
+graphics/wayland: devel/libffi
+	make CFLAGS="$$CFLAGS -I/usr/local/include/libepoll-shim" dir=${PORTSDIR}/${.TARGET} tgt="fetch patch build" _portops
+	make dir=${PORTSDIR}/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
 
-wayland-protocols:
-	make CFLAGS="$$CFLAGS -I/usr/local/include/libepoll-shim" dir=${PORTSDIR}/graphics/${.TARGET} tgt="fetch patch build" _portops
-	make dir=${PORTSDIR}/graphics/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
+graphics/wayland-protocols:
+	make CFLAGS="$$CFLAGS -I/usr/local/include/libepoll-shim" dir=${PORTSDIR}/${.TARGET} tgt="fetch patch build" _portops
+	make dir=${PORTSDIR}/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
 
-mesa-dri: wayland wayland-protocols
-	make dir=${PORTSDIR}/graphics/${.TARGET} tgt="fetch patch build" _portops
-	make dir=${PORTSDIR}/graphics/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
+graphics/mesa-dri: graphics/wayland graphics/wayland-protocols
+	make dir=${PORTSDIR}/${.TARGET} tgt="fetch patch build" _portops
+	make dir=${PORTSDIR}/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
 
-mesa-libs:
-	make dir=${PORTSDIR}/graphics/${.TARGET} tgt="fetch patch build" _portops
-	make dir=${PORTSDIR}/graphics/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
+graphics/mesa-libs:
+	make dir=${PORTSDIR}/${.TARGET} tgt="fetch patch build" _portops
+	make dir=${PORTSDIR}/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
 
-xtrans:
-	make dir=${PORTSDIR}/x11/${.TARGET} tgt="fetch patch build" _portops
-	make dir=${PORTSDIR}/x11/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
+x11/xtrans:
+	make dir=${PORTSDIR}/${.TARGET} tgt="fetch patch build" _portops
+	make dir=${PORTSDIR}/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
 
-xorg-server: xtrans
-	make dir=${PORTSDIR}/x11-servers/${.TARGET} tgt="fetch patch build" \
+x11-servers/xorg-server: x11/xtrans
+	make dir=${PORTSDIR}/${.TARGET} tgt="fetch patch build" \
 		extra="CFLAGS=-UWITH_OPENSSL_BASE" _portops
-	make dir=${PORTSDIR}/x11-servers/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
+	make dir=${PORTSDIR}/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
 
-packagesPreX: openjpeg freetype2 fontconfig libdrm mesa-dri mesa-libs
+devel/libudev-devd:
+	make dir=${PORTSDIR}/${.TARGET} tgt="fetch patch build" _portops
+	make dir=${PORTSDIR}/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
+
+devel/gettext-runtime:
+	make dir=${PORTSDIR}/${.TARGET} tgt="fetch patch build" _portops
+	make dir=${PORTSDIR}/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
+
+devel/libpciaccess: misc/pciids
+	make dir=${PORTSDIR}/${.TARGET} tgt="fetch patch build" _portops
+	make dir=${PORTSDIR}/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
+	
+misc/pciids:
+	make dir=${PORTSDIR}/${.TARGET} tgt="fetch patch build" _portops
+	make dir=${PORTSDIR}/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
+
+print/indexinfo:
+	make dir=${PORTSDIR}/${.TARGET} tgt="fetch patch build" _portops
+	make dir=${PORTSDIR}/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
+
+x11/libxshmfence:
+	make dir=${PORTSDIR}/${.TARGET} tgt="fetch patch build" _portops
+	make dir=${PORTSDIR}/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
+
+packagesPreX: graphics/openjpeg print/freetype2 x11-fonts/fontconfig \
+	devel/libudev-devd devel/libpciaccess graphics/libdrm devel/gettext-runtime \
+	print/indexinfo graphics/mesa-dri graphics/mesa-libs x11/libxshmfence
 packagesPostX: cairo
 
-xorgbuild: xorgmain xorgspecial xorg-server
-xorgmain:
+xorgbuild: fetchxorg xorgmain1 xorg-server xorgmain2  xorgspecial xorg-server
+	sudo chmod u+s ${BUILDROOT}/usr/bin/Xorg.wrap
+
+fetchxorg:
 	mkdir -p xorg
 	if [ ! -d xorg/util/modular ]; then \
 		cd xorg \
 		&& git clone git://anongit.freedesktop.org/git/xorg/util/modular util/modular; \
 	fi
-	mkdir -p xorg/_build
-	cd xorg && export PREFIX=/usr LOCALSTATEDIR=/var MAKE=gmake \
-		CONFFLAGS="--disable-docs --disable-specs --with-sdkdir=${BUILDROOT}/usr/include/xorg --with-xorg-conf-dir=${BUILDROOT}/usr/share/X11/xorg.conf.d --with-sysconfdir=/etc" \
-		&& for mod in $$(cat ${TOPDIR}/xorg-modules.txt); do \
-		./util/modular/build.sh -o $$mod --clone ${TOPDIR}/xorg/_build; done
+
+xorgmain1:
+	cd xorg && export PREFIX=/usr LOCALSTATEDIR=/var MAKE=gmake DESTDIR=${BUILDROOT} \
+		PKG_CONFIG_SYSROOT_DIR=${BUILDROOT} \
+		CONFFLAGS="--disable-docs --disable-specs --with-sysconfdir=/etc --with-appdefaultdir=/usr/share/X11/app-defaults" \
+		CFLAGS="-I/usr/local/include" \
+		LDFLAGS="-L/usr/local/lib" \
+		&& for mod in $$(cat ${TOPDIR}/xorg-modules1.txt); do \
+		./util/modular/build.sh -o $$mod --clone /usr; done
+
+xorgmain2:
+	cd xorg && export PREFIX=/usr LOCALSTATEDIR=/var MAKE=gmake DESTDIR=${BUILDROOT} \
+		PKG_CONFIG_SYSROOT_DIR=${BUILDROOT} \
+		CONFFLAGS="--disable-docs --disable-specs --with-sysconfdir=/etc" \
+		CFLAGS="-I/usr/local/include -I${BUILDROOT}/usr/include/xorg -I${BUILDROOT}/usr/include/libdrm" \
+		LDFLAGS="-L/usr/local/lib -L${BUILDROOT}/usr/lib" \
+		&& for mod in $$(cat ${TOPDIR}/xorg-modules2.txt); do \
+		./util/modular/build.sh -o $$mod --clone /usr; done
+
 
 xorgspecial:
 	cd xorg && export PREFIX=/usr LOCALSTATEDIR=/var MAKE=gmake \
-		CONFFLAGS="--disable-docs --disable-specs --with-sdkdir=${BUILDROOT}/usr/include/xorg --with-xorg-conf-dir=${BUILDROOT}/usr/share/X11/xorg.conf.d --with-sysconfdir=/etc" \
 		PKG_CONFIG_PATH=/usr/libdata/pkgconfig:/usr/local/libdata/pkgconfig \
-		CFLAGS="$$CFLAGS -I/usr/local/include -DERESTART=-1 -DETIME=ETIMEDOUT -DENODATA=ENOATTR" \
-		LDFLAGS="$$LDFLAGS -L/usr/local/lib" \
+		CFLAGS="-I/usr/local/include -DERESTART=-1 -DETIME=ETIMEDOUT -DENODATA=ENOATTR" \
+		LDFLAGS="-L/usr/local/lib" \
 		&& for mod in app/rendercheck app/xdriinfo; do \
-		./util/modular/build.sh -o $$mod --clone ${TOPDIR}/xorg/_build; done
+		./util/modular/build.sh -o $$mod --clone ${BUILDROOT}/usr; done
 
 helium: extradirs mkfiles libobjc2 libunwind packagesPreX xorgbuild packagesPostX \
 	frameworksclean frameworks copyfiles
@@ -341,8 +382,8 @@ AppKit.framework:
 
 helium-package:
 	mv -f ${BUILDROOT}/usr/lib/pkgconfig/* \
-		${BUILDROOT}/usr/libdata/pkgconfig
-	rmdir ${BUILDROOT}/usr/lib/pkgconfig
+		${BUILDROOT}/usr/libdata/pkgconfig || true
+	rmdir ${BUILDROOT}/usr/lib/pkgconfig || true
 	tar cJ -C ${BUILDROOT} --gid 0 --uid 0 -f ${RLSDIR}/helium.txz .
 
 desc_helium=Helium system
