@@ -5,5 +5,5 @@
 #
 
 pkg install gmake autoconf automake libtool pkgconf nasm \
-	cmake gperf meson intltool bison \
-	talloc libmtdev gettext-tools py37-mako
+	cmake gperf meson intltool bison docbook-xml \
+	talloc libmtdev gettext-tools py37-mako docbook-xsl

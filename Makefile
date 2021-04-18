@@ -97,10 +97,10 @@ graphics/wayland-protocols:
 	make CFLAGS="$$CFLAGS -I/usr/local/include/libepoll-shim" dir=${.TARGET} tgt="fetch patch build do-install" _portops
 
 graphics/mesa-dri: archivers/zstd graphics/wayland graphics/wayland-protocols
-graphics/cairo: print/freetype2
+graphics/cairo: converters/libiconv textproc/libxslt devel/glib20 print/freetype2
 graphics/tiff: graphics/jbigkit
 
-graphics/{lcms2,png,jbigkit,tiff,cairo,libdrm,mesa-dri,mesa-libs}:
+graphics/{lcms2,png,jbigkit,tiff,cairo,libdrm,mesa-dri,mesa-libs,libepoxy}:
 	make dir=${.TARGET} tgt="fetch patch build do-install" _portops
 
 
@@ -112,13 +112,21 @@ print/freetype2: archivers/brotli
 archivers/{brotli,zstd}:
 	make dir=${.TARGET} tgt="fetch patch build do-install" _portops
 
-textproc/{expat2,libxml2}:
+textproc/{expat2,libxml2,libxslt}:
 	make dir=${.TARGET} tgt="fetch patch build do-install" _portops
 
 devel/{libffi,libudev-devd,gettext-runtime,libpciaccess}: misc/pciids
 	make dir=${.TARGET} tgt="fetch patch build do-install" _portops
 
+devel/glib20:
+	make dir=${.TARGET} tgt="fetch patch" _portops
+	sed -ibak 's/http:\/\/.*docbook.xsl/\/usr\/local\/share\/xsl\/docbook\/manpages\/docbook.xsl/' ${PORTSDIR}/${.TARGET}/work/glib*/meson.build
+	make dir=${.TARGET} tgt="build do-install" _portops
+
 misc/pciids:
+	make dir=${.TARGET} tgt="fetch patch build do-install" _portops
+
+converters/libiconv:
 	make dir=${.TARGET} tgt="fetch patch build do-install" _portops
 
 x11/{xtrans,libxshmfence}:
@@ -142,6 +150,7 @@ x11-fonts/fontconfig: textproc/expat2
 
 lang/python37:
 	make dir=${.TARGET} tgt="fetch patch build do-install" _portops
+	ln -sf python3.7 ${BUILDROOT}/usr/bin/python3
 
 shells/zsh:
 	make dir=${.TARGET} tgt="fetch patch build do-install" _portops
@@ -153,8 +162,8 @@ security/doas:
 PACKAGES_PRE_X=lang/python37 graphics/openjpeg print/freetype2 x11-fonts/fontconfig \
 	textproc/libxml2 devel/libudev-devd devel/libpciaccess graphics/libdrm \
 	devel/gettext-runtime print/indexinfo graphics/mesa-dri graphics/mesa-libs \
-	x11/libxshmfence
-PACKAGES_POST_X: graphics/cairo shells/zsh security/doas
+	x11/libxshmfence graphics/libepoxy
+PACKAGES_POST_X=graphics/cairo shells/zsh security/doas
 packagesPreX: ${PACKAGES_PRE_X}
 packagesPostX: ${PACKAGES_POST_X} 
 
@@ -165,7 +174,7 @@ packages-clean:
 	done
 
 xorgbuild: fetchxorg xorgmain1 x11-servers/xorg-server xorgmain2 xorgspecial
-	sudo chmod u+s ${BUILDROOT}/usr/bin/Xorg.wrap
+	doas chmod u+s ${BUILDROOT}/usr/bin/Xorg.wrap
 	tar -C ${BUILDROOT}/${BUILDROOT}/usr/local -cf - share | tar -C ${BUILDROOT}/usr -xf -
 	tar -C ${BUILDROOT}/${BUILDROOT}/usr -cf - share | tar -C ${BUILDROOT}/usr -xf -
 	tar -C ${BUILDROOT}/${BUILDROOT}/usr -cf - include | tar -C ${BUILDROOT}/usr -xf -
@@ -217,13 +226,13 @@ helium: extradirs mkfiles libobjc2 libunwind packagesPreX xorgbuild packagesPost
 install: installworld installkernel installhelium
 
 installworld:
-	sudo -E MAKEOBJDIRPREFIX=${OBJPREFIX} make -C ${TOPDIR}/freebsd-src installworld
+	doas MAKEOBJDIRPREFIX=${OBJPREFIX} make -C ${TOPDIR}/freebsd-src installworld
 
 installkernel:
-	sudo -E MAKEOBJDIRPREFIX=${OBJPREFIX} make -C ${TOPDIR}/freebsd-src installkernel
+	doas MAKEOBJDIRPREFIX=${OBJPREFIX} make -C ${TOPDIR}/freebsd-src installkernel
 
 installhelium: helium-package
-	sudo tar -C / -xvf ${RLSDIR}/helium.txz
+	doas tar -C / -xvf ${RLSDIR}/helium.txz
 
 extradirs:
 	rm -rf ${BUILDROOT}
@@ -367,10 +376,10 @@ desc_helium=Helium system
 release: helium-package
 	rm -f ${RLSDIR}/disc1.iso ${RLSDIR}/memstick.img 
 	if [ -d ${RLSDIR}/disc1 ]; then \
-		sudo chflags -R noschg,nouchg ${RLSDIR}/disc1 && sudo rm -rf ${RLSDIR}/disc1; \
+		doas chflags -R noschg,nouchg ${RLSDIR}/disc1 && doas rm -rf ${RLSDIR}/disc1; \
 	fi
 	rm -f ${RLSDIR}/packagesystem
-	export MAKEOBJDIRPREFIX=${OBJPREFIX}; sudo -E \
+	export MAKEOBJDIRPREFIX=${OBJPREFIX}; doas \
 		make -C ${TOPDIR}/freebsd-src/release \
 		desc_helium="${desc_helium}" NOSRC=true NOPORTS=true \
 		packagesystem disc1.iso memstick
