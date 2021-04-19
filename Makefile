@@ -72,54 +72,72 @@ usr-noclean:
 
 # Utility target for port operations with consistent arguments
 _portops: .PHONY
-	make -C ${dir} _OSRELEASE=${OSRELEASE} PORTSDIR=${PORTSDIR} \
-		NO_DEPENDS=1 LOCALBASE=/usr PREFIX=/usr BATCH=1 ${extra} ${tgt}
+	make -C ${PORTSDIR}/${dir} _OSRELEASE=${OSRELEASE} PORTSDIR=${PORTSDIR} \
+	STAGEDIR=${BUILDROOT} NO_DEPENDS=1 LOCALBASE=/usr PREFIX=/usr BATCH=1 ${extra} ${tgt}
 
 graphics/openjpeg: graphics/lcms2 graphics/png graphics/jpeg-turbo graphics/tiff
-	make dir=${PORTSDIR}/${.TARGET} tgt="fetch patch" _portops
+	make dir=${.TARGET} tgt="fetch patch" _portops
 	mkdir -p ${PORTSDIR}/${.TARGET}/work/build
 	cd ${PORTSDIR}/${.TARGET}/work/build && cmake \
 		-DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release ../openjpeg-2.4.0
 	make -C ${PORTSDIR}/${.TARGET}/work/build DESTDIR=${BUILDROOT} install
 
 graphics/jpeg-turbo:
-	make dir=${PORTSDIR}/${.TARGET} tgt="fetch patch" _portops
+	make dir=${.TARGET} tgt="fetch patch" _portops
 	mkdir -p ${PORTSDIR}/${.TARGET}/work/.build 
 	cd ${PORTSDIR}/${.TARGET}/work/.build \
 	&& cmake -DCMAKE_INSTALL_PREFIX=/usr ../libjpeg-turbo-2.0.6 \
 	&& make
 	make -C ${PORTSDIR}/${.TARGET}/work/.build DESTDIR=${BUILDROOT} install
 
-graphics/lcms2:
-	make dir=${PORTSDIR}/${.TARGET} tgt="fetch patch build" _portops
-	make -C ${PORTSDIR}/${.TARGET}/work/lcms2-2.12 DESTDIR=${BUILDROOT} install
+graphics/wayland: devel/libffi
+	make CFLAGS="$$CFLAGS -I/usr/local/include/libepoll-shim" dir=${.TARGET} tgt="fetch patch build do-install" _portops
 
-graphics/png:
-	make dir=${PORTSDIR}/${.TARGET} tgt="fetch patch build" _portops
-	make -C ${PORTSDIR}/${.TARGET}/work/libpng-1.6.37 DESTDIR=${BUILDROOT} install
+graphics/wayland-protocols:
+	make CFLAGS="$$CFLAGS -I/usr/local/include/libepoll-shim" dir=${.TARGET} tgt="fetch patch build do-install" _portops
 
+graphics/mesa-dri: archivers/zstd graphics/wayland graphics/wayland-protocols
+graphics/cairo: converters/libiconv textproc/libxslt devel/glib20 print/freetype2
 graphics/tiff: graphics/jbigkit
-	make dir=${PORTSDIR}/${.TARGET} tgt="fetch patch build" _portops
-	make -C ${PORTSDIR}/${.TARGET}/work/tiff-4.2.0 DESTDIR=${BUILDROOT} install
 
-graphics/jbigkit:
-	make dir=${PORTSDIR}/${.TARGET} tgt="fetch patch build" _portops
-	make dir=${PORTSDIR}/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
+graphics/{lcms2,png,jbigkit,tiff,cairo,libdrm,mesa-dri,mesa-libs,libepoxy}:
+	make dir=${.TARGET} tgt="fetch patch build do-install" _portops
+
+
+print/{freetype2,indexinfo}:
+	make dir=${.TARGET} tgt="fetch patch build do-install" _portops
 
 print/freetype2: archivers/brotli
-	make dir=${PORTSDIR}/${.TARGET} tgt="fetch patch build" _portops
-	make dir=${PORTSDIR}/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
 
-archivers/brotli:
-	make dir=${PORTSDIR}/${.TARGET} tgt="fetch patch build" _portops
-	make dir=${PORTSDIR}/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
+archivers/{brotli,zstd}:
+	make dir=${.TARGET} tgt="fetch patch build do-install" _portops
 
-graphics/cairo: print/freetype2
-	make dir=${PORTSDIR}/${.TARGET} tgt="fetch patch build" _portops
-	make dir=${PORTSDIR}/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
+textproc/{expat2,libxml2,libxslt}:
+	make dir=${.TARGET} tgt="fetch patch build do-install" _portops
+
+devel/{libffi,libudev-devd,gettext-runtime,libpciaccess}: misc/pciids
+	make dir=${.TARGET} tgt="fetch patch build do-install" _portops
+
+devel/glib20:
+	make dir=${.TARGET} tgt="fetch patch" _portops
+	sed -ibak 's/http:\/\/.*docbook.xsl/\/usr\/local\/share\/xsl\/docbook\/manpages\/docbook.xsl/' ${PORTSDIR}/${.TARGET}/work/glib*/meson.build
+	make dir=${.TARGET} tgt="build do-install" _portops
+
+misc/pciids:
+	make dir=${.TARGET} tgt="fetch patch build do-install" _portops
+
+converters/libiconv:
+	make dir=${.TARGET} tgt="fetch patch build do-install" _portops
+
+x11/{xtrans,libxshmfence}:
+	make dir=${.TARGET} tgt="fetch patch build do-install" _portops
+
+x11-servers/xorg-server: x11/xtrans
+	make dir=${.TARGET} tgt="fetch patch build do-install" \
+		extra="CFLAGS=-UWITH_OPENSSL_BASE" _portops
 
 x11-fonts/fontconfig: textproc/expat2
-	make dir=${PORTSDIR}/${.TARGET} tgt="patch" _portops
+	make dir=${.TARGET} tgt="patch" _portops
 	find ${PORTSDIR}/${.TARGET}/work -name \*.py \
 		-exec sed -ibak 's^/usr/bin/python^/usr/local/bin/python^g' \
 		{} \;
@@ -130,83 +148,33 @@ x11-fonts/fontconfig: textproc/expat2
 		&& sed -ibak 's/all-local: check-versions/all-local:/' Makefile \
 		&& gmake && gmake DESTDIR=${BUILDROOT} install
 
-textproc/expat2:
-	make dir=${PORTSDIR}/${.TARGET} tgt="fetch patch build" _portops
-	make dir=${PORTSDIR}/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
-
-graphics/libdrm:
-	make dir=${PORTSDIR}/${.TARGET} tgt="fetch patch build" _portops
-	make dir=${PORTSDIR}/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
-
-devel/libffi:
-	make dir=${PORTSDIR}/${.TARGET} tgt="fetch patch build" _portops
-	make dir=${PORTSDIR}/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
-
-graphics/wayland: devel/libffi
-	make CFLAGS="$$CFLAGS -I/usr/local/include/libepoll-shim" dir=${PORTSDIR}/${.TARGET} tgt="fetch patch build" _portops
-	make dir=${PORTSDIR}/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
-
-graphics/wayland-protocols:
-	make CFLAGS="$$CFLAGS -I/usr/local/include/libepoll-shim" dir=${PORTSDIR}/${.TARGET} tgt="fetch patch build" _portops
-	make dir=${PORTSDIR}/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
-
-graphics/mesa-dri: graphics/wayland graphics/wayland-protocols
-	make dir=${PORTSDIR}/${.TARGET} tgt="fetch patch build" _portops
-	make dir=${PORTSDIR}/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
-
-graphics/mesa-libs:
-	make dir=${PORTSDIR}/${.TARGET} tgt="fetch patch build" _portops
-	make dir=${PORTSDIR}/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
-
-x11/xtrans:
-	make dir=${PORTSDIR}/${.TARGET} tgt="fetch patch build" _portops
-	make dir=${PORTSDIR}/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
-
-x11-servers/xorg-server: x11/xtrans
-	make dir=${PORTSDIR}/${.TARGET} tgt="fetch patch build" \
-		extra="CFLAGS=-UWITH_OPENSSL_BASE" _portops
-	make dir=${PORTSDIR}/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
-
-devel/libudev-devd:
-	make dir=${PORTSDIR}/${.TARGET} tgt="fetch patch build" _portops
-	make dir=${PORTSDIR}/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
-
-devel/gettext-runtime:
-	make dir=${PORTSDIR}/${.TARGET} tgt="fetch patch build" _portops
-	make dir=${PORTSDIR}/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
-
-devel/libpciaccess: misc/pciids
-	make dir=${PORTSDIR}/${.TARGET} tgt="fetch patch build" _portops
-	make dir=${PORTSDIR}/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
-	
-misc/pciids:
-	make dir=${PORTSDIR}/${.TARGET} tgt="fetch patch build" _portops
-	make dir=${PORTSDIR}/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
-
-print/indexinfo:
-	make dir=${PORTSDIR}/${.TARGET} tgt="fetch patch build" _portops
-	make dir=${PORTSDIR}/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
-
-x11/libxshmfence:
-	make dir=${PORTSDIR}/${.TARGET} tgt="fetch patch build" _portops
-	make dir=${PORTSDIR}/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
+lang/python37:
+	make dir=${.TARGET} tgt="fetch patch build do-install" _portops
+	ln -sf python3.7 ${BUILDROOT}/usr/bin/python3
 
 shells/zsh:
-	make dir=${PORTSDIR}/${.TARGET} tgt="fetch patch build" _portops
-	make dir=${PORTSDIR}/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
+	make dir=${.TARGET} tgt="fetch patch build do-install" _portops
 
 security/doas:
-	make dir=${PORTSDIR}/${.TARGET} tgt="fetch patch build" _portops
-	make dir=${PORTSDIR}/${.TARGET} tgt="do-install" extra=STAGEDIR=${BUILDROOT} _portops
+	make dir=${.TARGET} tgt="fetch patch build do-install" _portops
 	ln -sf doas ${BUILDROOT}/usr/bin/sudo
 
-packagesPreX: graphics/openjpeg print/freetype2 x11-fonts/fontconfig \
-	devel/libudev-devd devel/libpciaccess graphics/libdrm devel/gettext-runtime \
-	print/indexinfo graphics/mesa-dri graphics/mesa-libs x11/libxshmfence
-packagesPostX: graphics/cairo shells/zsh security/doas
+PACKAGES_PRE_X=lang/python37 graphics/openjpeg print/freetype2 x11-fonts/fontconfig \
+	textproc/libxml2 devel/libudev-devd devel/libpciaccess graphics/libdrm \
+	devel/gettext-runtime print/indexinfo graphics/mesa-dri graphics/mesa-libs \
+	x11/libxshmfence graphics/libepoxy
+PACKAGES_POST_X=graphics/cairo shells/zsh security/doas
+packagesPreX: ${PACKAGES_PRE_X}
+packagesPostX: ${PACKAGES_POST_X} 
+
+packages-clean:
+	for pkg in ${PACKAGES_PRE_X} ${PACKAGES_POST_X}; do \
+		make dir=$$pkg tgt="clean" _portops; \
+		rm -rf ${PORTSDIR}/$$pkg/work
+	done
 
 xorgbuild: fetchxorg xorgmain1 x11-servers/xorg-server xorgmain2 xorgspecial
-	sudo chmod u+s ${BUILDROOT}/usr/bin/Xorg.wrap
+	doas chmod u+s ${BUILDROOT}/usr/bin/Xorg.wrap
 	tar -C ${BUILDROOT}/${BUILDROOT}/usr/local -cf - share | tar -C ${BUILDROOT}/usr -xf -
 	tar -C ${BUILDROOT}/${BUILDROOT}/usr -cf - share | tar -C ${BUILDROOT}/usr -xf -
 	tar -C ${BUILDROOT}/${BUILDROOT}/usr -cf - include | tar -C ${BUILDROOT}/usr -xf -
@@ -258,13 +226,13 @@ helium: extradirs mkfiles libobjc2 libunwind packagesPreX xorgbuild packagesPost
 install: installworld installkernel installhelium
 
 installworld:
-	sudo -E MAKEOBJDIRPREFIX=${OBJPREFIX} make -C ${TOPDIR}/freebsd-src installworld
+	doas MAKEOBJDIRPREFIX=${OBJPREFIX} make -C ${TOPDIR}/freebsd-src installworld
 
 installkernel:
-	sudo -E MAKEOBJDIRPREFIX=${OBJPREFIX} make -C ${TOPDIR}/freebsd-src installkernel
+	doas MAKEOBJDIRPREFIX=${OBJPREFIX} make -C ${TOPDIR}/freebsd-src installkernel
 
 installhelium: helium-package
-	sudo tar -C / -xvf ${RLSDIR}/helium.txz
+	doas tar -C / -xvf ${RLSDIR}/helium.txz
 
 extradirs:
 	rm -rf ${BUILDROOT}
@@ -408,10 +376,10 @@ desc_helium=Helium system
 release: helium-package
 	rm -f ${RLSDIR}/disc1.iso ${RLSDIR}/memstick.img 
 	if [ -d ${RLSDIR}/disc1 ]; then \
-		sudo chflags -R noschg,nouchg ${RLSDIR}/disc1 && sudo rm -rf ${RLSDIR}/disc1; \
+		doas chflags -R noschg,nouchg ${RLSDIR}/disc1 && doas rm -rf ${RLSDIR}/disc1; \
 	fi
 	rm -f ${RLSDIR}/packagesystem
-	export MAKEOBJDIRPREFIX=${OBJPREFIX}; sudo -E \
+	export MAKEOBJDIRPREFIX=${OBJPREFIX}; doas \
 		make -C ${TOPDIR}/freebsd-src/release \
 		desc_helium="${desc_helium}" NOSRC=true NOPORTS=true \
 		packagesystem disc1.iso memstick

@@ -561,7 +561,7 @@ X11.subproj/X11Window.h
 RESOURCES=Info.plist en.lproj de.lproj fr.lproj
 CFLAGS+= ${FMWK_CFLAGS} -I${.CURDIR}/.. -I${BUILDROOT}/usr/include -I/usr/local/include \
 	 -I../OpenGL/include -I/usr/include/freetype2 -I/usr/include/freetype2/freetype \
-	 -I/usr/include/fontconfig -I/usr/local/include/cairo -I${.CURDIR}/Headers -I../Foundation/Headers \
+	 -I/usr/include/fontconfig -I/usr/include/cairo -I${.CURDIR}/Headers -I../Foundation/Headers \
 	 -DFREETYPE_PRESENT 
 LDFLAGS+= ${FMWK_LDFLAGS} -L/usr/local/lib \
 	  -Wl,-R/System/Library/Frameworks/Foundation.framework/Versions/A \
