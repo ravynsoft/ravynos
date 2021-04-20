@@ -5,7 +5,8 @@ OBJPREFIX := ${HOME}/obj.${MACHINE}
 RLSDIR := ${TOPDIR}/freebsd-src/release
 BSDCONFIG := GENERIC
 BUILDROOT := ${OBJPREFIX}/buildroot
-HELIUM_VERSION != cat ${TOPDIR}/version
+HELIUM_VERSION != head -1 ${TOPDIR}/version
+HELIUM_CODENAME != tail -1 ${TOPDIR}/version
 BRANCH_OVERRIDE := ${HELIUM_VERSION}
 OSRELEASE := 12.2
 FREEBSD_BRANCH := releng/${OSRELEASE}
@@ -115,7 +116,7 @@ archivers/{brotli,zstd}:
 textproc/{expat2,libxml2,libxslt}:
 	make dir=${.TARGET} tgt="fetch patch build do-install" _portops
 
-devel/{libffi,libudev-devd,gettext-runtime,libpciaccess}: misc/pciids
+devel/{libffi,libudev-devd,gettext-runtime,libpciaccess,libepoll-shim}: misc/pciids
 	make dir=${.TARGET} tgt="fetch patch build do-install" _portops
 
 devel/glib20:
@@ -162,7 +163,7 @@ security/doas:
 PACKAGES_PRE_X=lang/python37 graphics/openjpeg print/freetype2 x11-fonts/fontconfig \
 	textproc/libxml2 devel/libudev-devd devel/libpciaccess graphics/libdrm \
 	devel/gettext-runtime print/indexinfo graphics/mesa-dri graphics/mesa-libs \
-	x11/libxshmfence graphics/libepoxy
+	x11/libxshmfence graphics/libepoxy devel/libepoll-shim
 PACKAGES_POST_X=graphics/cairo shells/zsh security/doas
 packagesPreX: ${PACKAGES_PRE_X}
 packagesPostX: ${PACKAGES_POST_X} 
@@ -246,6 +247,8 @@ mkfiles:
 
 copyfiles:
 	cp -fvR ${TOPDIR}/etc ${BUILDROOT}
+	sed -i_ "s/__VERSION__/${HELIUM_VERSION}/,s/__CODENAME__/${HELIUM_CODENAME}/" ${BUILDROOT}/etc/motd
+	rm -f ${BUILDROOT}/etc/motd.bak
 
 libobjc2: .PHONY
 	mkdir -p ${OBJPREFIX}/libobjc2
