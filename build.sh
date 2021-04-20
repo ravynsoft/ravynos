@@ -8,9 +8,9 @@ set -e
 # is not supported and results in broken images anyway
 version=$(uname -r | cut -d "-" -f 1-2) # "12.2-RELEASE" or "13.0-CURRENT"
 
-# FIXME: Temporary workaround until 13 is released
 if [ "${version}" = "13.0-CURRENT" ] ; then
-  version="13.0-RC3"
+  # version="13.0-RC3"
+  version="13.0-RELEASE"
 fi
 
 VER=$(uname -r | cut -d "-" -f 1) # "12.2" or "13.0"
