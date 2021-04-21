@@ -92,10 +92,10 @@ graphics/jpeg-turbo:
 	make -C ${PORTSDIR}/${.TARGET}/work/.build DESTDIR=${BUILDROOT} install
 
 graphics/wayland: devel/libffi
-	make CFLAGS="$$CFLAGS -I/usr/local/include/libepoll-shim" dir=${.TARGET} tgt="fetch patch build do-install" _portops
+	make CFLAGS="$$CFLAGS -I/usr/include/libepoll-shim" dir=${.TARGET} tgt="fetch patch build do-install" _portops
 
 graphics/wayland-protocols:
-	make CFLAGS="$$CFLAGS -I/usr/local/include/libepoll-shim" dir=${.TARGET} tgt="fetch patch build do-install" _portops
+	make CFLAGS="$$CFLAGS -I/usr/include/libepoll-shim" dir=${.TARGET} tgt="fetch patch build do-install" _portops
 
 graphics/mesa-dri: archivers/zstd graphics/wayland graphics/wayland-protocols
 graphics/cairo: converters/libiconv textproc/libxslt devel/glib20 print/freetype2
@@ -130,7 +130,7 @@ misc/pciids:
 converters/libiconv:
 	make dir=${.TARGET} tgt="fetch patch build do-install" _portops
 
-x11/{xtrans,libxshmfence}:
+x11/{xtrans,libxshmfence,xterm}:
 	make dir=${.TARGET} tgt="fetch patch build do-install" _portops
 
 x11-servers/xorg-server: x11/xtrans
@@ -164,7 +164,7 @@ PACKAGES_PRE_X=lang/python37 graphics/openjpeg print/freetype2 x11-fonts/fontcon
 	textproc/libxml2 devel/libudev-devd devel/libpciaccess graphics/libdrm \
 	devel/gettext-runtime print/indexinfo graphics/mesa-dri graphics/mesa-libs \
 	x11/libxshmfence graphics/libepoxy devel/libepoll-shim
-PACKAGES_POST_X=graphics/cairo shells/zsh security/doas
+PACKAGES_POST_X=graphics/cairo shells/zsh security/doas x11/xterm
 packagesPreX: ${PACKAGES_PRE_X}
 packagesPostX: ${PACKAGES_POST_X} 
 
@@ -174,7 +174,7 @@ packages-clean:
 		rm -rf ${PORTSDIR}/$$pkg/work
 	done
 
-xorgbuild: fetchxorg xorgmain1 x11-servers/xorg-server xorgmain2 xorgspecial
+xorgbuild: fetchxorg xorgmain1 x11-servers/xorg-server xorgmain2 xorgspecial 
 	doas chmod u+s ${BUILDROOT}/usr/bin/Xorg.wrap
 	tar -C ${BUILDROOT}/${BUILDROOT}/usr/local -cf - share | tar -C ${BUILDROOT}/usr -xf -
 	tar -C ${BUILDROOT}/${BUILDROOT}/usr -cf - share | tar -C ${BUILDROOT}/usr -xf -
@@ -205,7 +205,7 @@ xorgmain2:
 	cd xorg && export PREFIX=/usr LOCALSTATEDIR=/var MAKE=gmake DESTDIR=${BUILDROOT} \
 		PKG_CONFIG_SYSROOT_DIR=${BUILDROOT} \
 		PKG_CONFIG_PATH=${BUILDROOT}/usr/libdata/pkgconfig:/usr/libdata/pkgconfig:/usr/local/libdata/pkgconfig \
-		CONFFLAGS="--disable-docs --disable-specs --with-sysconfdir=/etc" \
+		CONFFLAGS="--disable-docs --disable-specs --with-sysconfdir=/etc --with-fontrootdir=/usr/share/fonts" \
 		CFLAGS="-I/usr/local/include -I${BUILDROOT}/usr/include/xorg -I${BUILDROOT}/usr/include/libdrm -I${BUILDROOT}/usr/include/pixman-1" \
 		LDFLAGS="-L/usr/local/lib -L${BUILDROOT}/usr/lib" \
 		&& for mod in $$(cat ${TOPDIR}/xorg-modules2.txt); do \
@@ -247,7 +247,7 @@ mkfiles:
 
 copyfiles:
 	cp -fvR ${TOPDIR}/etc ${BUILDROOT}
-	sed -i_ "s/__VERSION__/${HELIUM_VERSION}/,s/__CODENAME__/${HELIUM_CODENAME}/" ${BUILDROOT}/etc/motd
+	sed -i_ -e "s/__VERSION__/${HELIUM_VERSION}/" -e "s/__CODENAME__/${HELIUM_CODENAME}/" ${BUILDROOT}/etc/motd
 	rm -f ${BUILDROOT}/etc/motd.bak
 
 libobjc2: .PHONY
