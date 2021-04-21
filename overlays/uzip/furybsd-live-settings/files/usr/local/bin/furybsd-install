@@ -230,6 +230,8 @@ beastie_disable="YES"
 autoboot_delay="3"
 hw.psm.elantech_support="1"
 hw.psm.synaptics_support="1"
+# Unclear whether the next line is needed, https://github.com/helloSystem/ISO/issues/203
+vfs.root.mountfrom.options="rw"
 EOF
 
 # Cleanup
