@@ -174,7 +174,7 @@ packages-clean:
 		rm -rf ${PORTSDIR}/$$pkg/work
 	done
 
-xorgbuild: fetchxorg xorgmain1 x11-servers/xorg-server xorgmain2 xorgspecial 
+xorgbuild: fetchxorg xorgmain1 x11-servers/xorg-server xorgmain2 xorgspecial xf86-input-libinput
 	doas chmod u+s ${BUILDROOT}/usr/bin/Xorg.wrap
 	tar -C ${BUILDROOT}/${BUILDROOT}/usr/local -cf - share | tar -C ${BUILDROOT}/usr -xf -
 	tar -C ${BUILDROOT}/${BUILDROOT}/usr -cf - share | tar -C ${BUILDROOT}/usr -xf -
@@ -219,6 +219,16 @@ xorgspecial:
 		LDFLAGS="-L/usr/local/lib" \
 		&& for mod in app/rendercheck app/xdriinfo; do \
 		./util/modular/build.sh -o $$mod --clone ${BUILDROOT}/usr; done
+
+xorg/driver/xf86-input-libinput:
+	cd xorg/driver && git clone https://gitlab.freedesktop.org/xorg/driver/xf86-input-libinput
+
+xf86-input-libinput: xorg/driver/xf86-input-libinput
+	cd xorg/driver/xf86-input-libinput \
+	&& autoreconf -vif \
+	&& ./configure --prefix=/usr --disable-docs --with-sysconfdir=/etc \
+	&& make && make DESTDIR=${BUILDROOT} install
+	cp -f xorg/driver/xf86-input-libinput/conf/99-libinput.conf ${BUILDROOT}/usr/share/X11/xorg.conf.d/
 
 helium: extradirs mkfiles libobjc2 libunwind packagesPreX xorgbuild packagesPostX \
 	frameworksclean frameworks copyfiles
