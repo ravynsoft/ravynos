@@ -10,10 +10,13 @@ As of v0.1.1, Helium has a _self-hosted build_ -- i.e. it must be built on a run
 1. Install Helium using the M1 (0.1.1 or later) image
 2. `doas pkg install git`
 3. `git clone https://github.com/mszoek/helium.git`
-4. `cd helium`
-5. `doas sh install-dev-pkgs.sh`
-6. `make world`
-7. Have a drink and relax for a while. An installation CD (disc1.iso) will appear in `helium/dist` when the build finishes. 
+4. Set up your username and email for `git commit`
+ * `git config --global user.email you@your.tld`
+ * `git config --global user.name 'Your Name'`
+5. `cd helium`
+6. `doas sh install-dev-pkgs.sh`
+7. `make world`
+8. Have a drink and relax for a while. An installation CD (disc1.iso) will appear in `helium/dist` when the build finishes. 
 
 ## Incremental/update builds
 If there are no changes to the BSD sources, subsequent builds are a lot faster as they do not build the BSD `world`. After making changes to the Helium components, a new CD image can be produced with just `make helium release`. This will build & package the Helium components, and generate a new install CD re-using the existing FreeBSD build objects. An incremental build of FreeBSD is also available as `make freebsd-noclean`. This can be followed by the previous command to quickly generate an updated install CD.
