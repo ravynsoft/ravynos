@@ -67,9 +67,18 @@ mount -t devfs devfs /sysroot/dev
 chroot /sysroot /usr/local/bin/furybsd-init-helper
 
 if [ "$SINGLE_USER" = "true" ]; then
-	echo "Starting interactive shell after chroot ..."
-	sh
+        echo "Starting interactive shell after chroot ..."
+        sh
 fi
 
+kenv init_path="/rescue/init"
 kenv init_shell="/rescue/sh"
+kenv init_script="/init.sh"
+kenv init_chroot="/sysroot"
+
+echo "==> Set kernel module path for chroot"
+sysctl kern.module_path=/sysroot/boot/kernel
+        
+echo "==> Exit ramdisk init.sh"
 exit 0
+
