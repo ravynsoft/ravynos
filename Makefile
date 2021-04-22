@@ -12,6 +12,7 @@ OSRELEASE := 12.2
 FREEBSD_BRANCH := releng/${OSRELEASE}
 MKINCDIR := -m/usr/share/mk -m${TOPDIR}/mk
 PORTSDIR := ${TOPDIR}/ports
+FONTSDIR := /System/Library/Fonts
 CORES := 4
 
 # Incremental build for quick tests or system update
@@ -74,6 +75,7 @@ usr-noclean:
 # Utility target for port operations with consistent arguments
 _portops: .PHONY
 	make -C ${PORTSDIR}/${dir} _OSRELEASE=${OSRELEASE} PORTSDIR=${PORTSDIR} \
+	FONTSDIR=${FONTSDIR} \
 	STAGEDIR=${BUILDROOT} NO_DEPENDS=1 LOCALBASE=/usr PREFIX=/usr BATCH=1 ${extra} ${tgt}
 
 graphics/openjpeg: graphics/lcms2 graphics/png graphics/jpeg-turbo graphics/tiff
@@ -102,7 +104,8 @@ graphics/cairo: converters/libiconv textproc/libxslt devel/glib20 print/freetype
 graphics/tiff: graphics/jbigkit
 
 graphics/{lcms2,png,jbigkit,tiff,cairo,libdrm,mesa-dri,mesa-libs,libepoxy}:
-	make dir=${.TARGET} tgt="fetch patch build do-install" _portops
+	PYTHONPATH=/usr/local/lib/python3.7/site-packages \
+		make dir=${.TARGET} tgt="fetch patch build do-install" _portops
 
 
 print/{freetype2,indexinfo}:
@@ -116,7 +119,7 @@ archivers/{brotli,zstd}:
 textproc/{expat2,libxml2,libxslt}:
 	make dir=${.TARGET} tgt="fetch patch build do-install" _portops
 
-devel/{libffi,libudev-devd,gettext-runtime,libpciaccess,libepoll-shim}: misc/pciids
+devel/{libffi,libudev-devd,gettext-runtime,libpciaccess,libepoll-shim,libmtdev,libevdev,evdev-proto,py-setuptools,py-pyudev,py-evdev,libgudev}: misc/pciids
 	make dir=${.TARGET} tgt="fetch patch build do-install" _portops
 
 devel/glib20:
@@ -130,11 +133,11 @@ misc/pciids:
 converters/libiconv:
 	make dir=${.TARGET} tgt="fetch patch build do-install" _portops
 
-x11/{xtrans,libxshmfence,xterm}:
+x11/{xtrans,libxshmfence,xterm,libwacom,libinput}:
 	make dir=${.TARGET} tgt="fetch patch build do-install" _portops
 
 x11-servers/xorg-server: x11/xtrans
-	make dir=${.TARGET} tgt="fetch patch build do-install" \
+	make FONTPATH_ROOT=${FONTSDIR} dir=${.TARGET} tgt="clean fetch patch build do-install" \
 		extra="CFLAGS=-UWITH_OPENSSL_BASE" _portops
 
 x11-fonts/fontconfig: textproc/expat2
@@ -145,9 +148,12 @@ x11-fonts/fontconfig: textproc/expat2
 	cd ${PORTSDIR}/${.TARGET}/work/fontconfig-2.13.93 \
 		&& ./configure --prefix=/usr --disable-docs \
 		--sysconfdir=/etc --localstatedir=/var --disable-rpath --disable-iconv \
-		--with-default-fonts=/usr/share/fonts --with-add-fonts=/usr/share/X11/fonts \
+		--with-default-fonts=${FONTSDIR} --with-add-fonts=/usr/share/fonts \
 		&& sed -ibak 's/all-local: check-versions/all-local:/' Makefile \
 		&& gmake && gmake DESTDIR=${BUILDROOT} install
+
+x11-fonts/freefont-ttf:
+	make dir=${.TARGET} tgt="fetch patch build do-install" _portops
 
 lang/python37:
 	make dir=${.TARGET} tgt="fetch patch build do-install" _portops
@@ -161,10 +167,10 @@ security/doas:
 	ln -sf doas ${BUILDROOT}/usr/bin/sudo
 
 PACKAGES_PRE_X=lang/python37 graphics/openjpeg print/freetype2 x11-fonts/fontconfig \
-	textproc/libxml2 devel/libudev-devd devel/libpciaccess graphics/libdrm \
+	textproc/libxml2 devel/evdev-proto devel/libudev-devd devel/libpciaccess graphics/libdrm \
 	devel/gettext-runtime print/indexinfo graphics/mesa-dri graphics/mesa-libs \
 	x11/libxshmfence graphics/libepoxy devel/libepoll-shim
-PACKAGES_POST_X=graphics/cairo shells/zsh security/doas x11/xterm
+PACKAGES_POST_X=graphics/cairo shells/zsh security/doas x11/xterm x11-fonts/freefont-ttf
 packagesPreX: ${PACKAGES_PRE_X}
 packagesPostX: ${PACKAGES_POST_X} 
 
@@ -174,16 +180,22 @@ packages-clean:
 		rm -rf ${PORTSDIR}/$$pkg/work
 	done
 
-xorgbuild: fetchxorg xorgmain1 x11-servers/xorg-server xorgmain2 xorgspecial xf86-input-libinput
+xorgbuild: fetchxorg xorgmain1 x11-servers/xorg-server xorgmain2 xorgspecial xf86-input-libinput xorgpostbuild
+
+xorgpostbuild:
 	doas chmod u+s ${BUILDROOT}/usr/bin/Xorg.wrap
 	tar -C ${BUILDROOT}/${BUILDROOT}/usr/local -cf - share | tar -C ${BUILDROOT}/usr -xf -
 	tar -C ${BUILDROOT}/${BUILDROOT}/usr -cf - share | tar -C ${BUILDROOT}/usr -xf -
 	tar -C ${BUILDROOT}/${BUILDROOT}/usr -cf - include | tar -C ${BUILDROOT}/usr -xf -
 	_br=${BUILDROOT}; _tail="$${_br#/*/}"; _head="$${_br%/$$_tail}"; rm -rf ${BUILDROOT}$${_head}
-	tar -C ${BUILDROOT}/usr -cf - etc | tar -C ${BUILDROOT} -xf -
+	if [ ! -L ${BUILDROOT}/usr/etc ]; then \
+		tar -C ${BUILDROOT}/usr -cf - etc | tar -C ${BUILDROOT} -xf -; \
+		rm -rf ${BUILDROOT}/usr/etc; \
+		ln -sf ../etc ${BUILDROOT}/usr/etc; \
+	fi 
 	tar -C ${BUILDROOT}/usr/share -cf - pkgconfig | tar -C ${BUILDROOT}/usr/libdata -xf -
-	rm -rf ${BUILDROOT}/usr/etc ${BUILDROOT}/usr/share/pkgconfig
-	ln -sf ../etc ${BUILDROOT}/usr/etc
+	rm -rf ${BUILDROOT}/usr/share/pkgconfig
+	mkdir -p ${BUILDROOT}/Users
 
 fetchxorg:
 	mkdir -p xorg
@@ -205,7 +217,7 @@ xorgmain2:
 	cd xorg && export PREFIX=/usr LOCALSTATEDIR=/var MAKE=gmake DESTDIR=${BUILDROOT} \
 		PKG_CONFIG_SYSROOT_DIR=${BUILDROOT} \
 		PKG_CONFIG_PATH=${BUILDROOT}/usr/libdata/pkgconfig:/usr/libdata/pkgconfig:/usr/local/libdata/pkgconfig \
-		CONFFLAGS="--disable-docs --disable-specs --with-sysconfdir=/etc --with-fontrootdir=/usr/share/fonts" \
+		CONFFLAGS="--disable-docs --disable-specs --with-sysconfdir=/etc --with-fontrootdir=${FONTSDIR}" \
 		CFLAGS="-I/usr/local/include -I${BUILDROOT}/usr/include/xorg -I${BUILDROOT}/usr/include/libdrm -I${BUILDROOT}/usr/include/pixman-1" \
 		LDFLAGS="-L/usr/local/lib -L${BUILDROOT}/usr/lib" \
 		&& for mod in $$(cat ${TOPDIR}/xorg-modules2.txt); do \
@@ -223,12 +235,14 @@ xorgspecial:
 xorg/driver/xf86-input-libinput:
 	cd xorg/driver && git clone https://gitlab.freedesktop.org/xorg/driver/xf86-input-libinput
 
-xf86-input-libinput: xorg/driver/xf86-input-libinput
+xf86-input-libinput: xorg/driver/xf86-input-libinput devel/libevdev \
+	devel/libgudev x11/libwacom devel/libmtdev x11/libinput devel/py-setuptools devel/py-pyudev \
+	devel/py-evdev
 	cd xorg/driver/xf86-input-libinput \
-	&& autoreconf -vif \
+	&& ACLOCAL_PATH=/usr/share/aclocal:/usr/local/share/aclocal autoreconf -vif \
 	&& ./configure --prefix=/usr --disable-docs --with-sysconfdir=/etc \
 	&& make && make DESTDIR=${BUILDROOT} install
-	cp -f xorg/driver/xf86-input-libinput/conf/99-libinput.conf ${BUILDROOT}/usr/share/X11/xorg.conf.d/
+	cp -f xorg/driver/xf86-input-libinput/conf/40-libinput.conf ${BUILDROOT}/usr/share/X11/xorg.conf.d/
 
 helium: extradirs mkfiles libobjc2 libunwind packagesPreX xorgbuild packagesPostX \
 	frameworksclean frameworks copyfiles
@@ -258,7 +272,7 @@ mkfiles:
 copyfiles:
 	cp -fvR ${TOPDIR}/etc ${BUILDROOT}
 	sed -i_ -e "s/__VERSION__/${HELIUM_VERSION}/" -e "s/__CODENAME__/${HELIUM_CODENAME}/" ${BUILDROOT}/etc/motd
-	rm -f ${BUILDROOT}/etc/motd.bak
+	rm -f ${BUILDROOT}/etc/motd_
 
 libobjc2: .PHONY
 	mkdir -p ${OBJPREFIX}/libobjc2
