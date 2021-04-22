@@ -376,5 +376,8 @@ rm -rf "${uzip}"/usr/local/*-portbld-*/ # What is it; is it actually needed? htt
 chroot ${uzip} sh -c 'for FILE in $(pkg list spidermonkey78) ; do rm $FILE ; done' # Delete the contents of the spidermonkey78 package while keeping the package "installed"
 chroot ${uzip} sh -c 'for FILE in $(pkg list adwaita-icon-theme) ; do rm $FILE ; done' # Was: rm -rf "${uzip}"/usr/local/share/icons/Adwaita
 chroot ${uzip} sh -c 'for FILE in $(pkg list perl5) ; do rm $FILE ; done'
+# A more proper way to do this would not require us the unwanted packages in the first place. There should really be a global blacklist of unwanted packages!
+# * Debian can do: Install the package with '--ignore-depends', then edit /var/lib/dpkg/status to remove unwanted packages, then run 'apt-get -f install'
+# * Unpack the pkg, remove the dependency, repack the pkg, then install - https://serverfault.com/a/859394
 # Remove all .a files; TODO: Create a separate download for those
 find ${uzip} -name '*.a' -delete
