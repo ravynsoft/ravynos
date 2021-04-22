@@ -294,14 +294,14 @@ initgfx()
     if [ $MAJOR -lt 14 ] ; then
       PKGS="quarterly"
     else
-      PKGS="latest"
+      PKGS="release_2"
     fi
     for ver in '' 390 340 304; do
         pkgfile=$(/usr/local/sbin/pkg-static -c ${uzip} rquery %n-%v.txz nvidia-driver${ver:+-$ver})
         fetch -o "${cache}/" "https://pkg.freebsd.org/FreeBSD:${MAJOR}:amd64/${PKGS}/All/${pkgfile}"
-        mkdir -p "${uzip}/usr/local/nvidia/${ver:-460}/"
-        tar xfC "${cache}"/${pkgfile} "${uzip}/usr/local/nvidia/${ver:-460}/"
-        ls "${uzip}/usr/local/nvidia/${ver:-460}/+COMPACT_MANIFEST"
+        mkdir -p "${uzip}/usr/local/nvidia/${ver:-440}/"
+        tar xfC "${cache}"/${pkgfile} "${uzip}/usr/local/nvidia/${ver:-440}/"
+        ls "${uzip}/usr/local/nvidia/${ver:-440}/+COMPACT_MANIFEST"
     done
   fi
 
