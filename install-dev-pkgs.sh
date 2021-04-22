@@ -6,7 +6,7 @@
 
 pkg install gmake autoconf automake libtool pkgconf nasm \
 	cmake gperf meson intltool bison docbook-xml llvm10 \
-	talloc libmtdev gettext-tools py37-mako docbook-xsl
+	talloc gettext-tools py37-mako docbook-xsl
 
 ln -sf /usr/local/bin/llvm-config10 /usr/bin
 ln -sf /usr/local/bin/cmake /usr/bin
