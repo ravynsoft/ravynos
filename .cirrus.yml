@@ -2,7 +2,7 @@ task:
   freebsd_instance:
     cpu: 2
     # cpu: 1 gives an error; >= 2 works
-    memory: 13G
+    memory: 8G
     matrix:
       # image: freebsd-12-1-release-amd64 # EOL
       - image: freebsd-12-2-release-amd64
