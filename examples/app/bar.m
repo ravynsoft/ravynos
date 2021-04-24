@@ -32,8 +32,8 @@ int main(int argc, const char *argv[])
 	[appMenuItem setSubmenu:appMenu];
 	[NSApp setMainMenu:menubar];
 
-    NSImage *image = [[[NSImage alloc] initWithContentsOfFile:@"/Users/zoe/helium/crazyones.jpg"]
-		autorelease];
+    NSImage *image = [[[NSImage alloc] initWithContentsOfFile:
+    	[main pathForResource:@"crazyones" ofType:@"jpg"]] autorelease];
     NSSize imageSize = [image size];
 
     NSRect rect = NSMakeRect(0,0,imageSize.width, imageSize.height);
