@@ -39,7 +39,7 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import os, subprocess
+import os, sys, subprocess
 
 if os.geteuid() != 0:
     exit("You need to have root privileges. Exiting.")
@@ -125,24 +125,31 @@ except:
 
 is_apple_keyboard = False
 
-for line in subprocess.check_output("usbconfig").split(b'\n'):
-    # print(line)
-    line = line.decode('utf-8')
-    if ("Apple" in line and "Keyboard" in line):
-        is_apple_keyboard = True
-    if "RPI Wired Keyboard" in line:
-        iProduct = line.split("<")[1].split(">")[0]
-        print(str(iProduct))
-        index = (int(iProduct.split(" ")[-1]))
-        # print(index)
-        country = countries[index]
-        # print(country)
-        language = languages[index]
-        # print(language)
-        locale = "%s_%s.UTF-8" % (language, country)
-        timezone = timezones[index]
-        # print(timezone)
-
+if sys.platform == 'freebsd':
+    usbtool = "usbconfig"
+else:
+    usbtool = "lsusb"
+    for line in subprocess.check_output(usbtool).split(b'\n'):
+        # print(line)
+        line = line.decode('utf-8')
+        if ("Apple" in line and "Keyboard" in line):
+            is_apple_keyboard = True
+        if "RPI Wired Keyboard" in line:
+            if sys.platform == 'freebsd':
+                iProduct = line.split("<")[1].split(">")[0]
+            else:
+                iProduct = line.split("[")[1].split("]")[0]
+            print(str(iProduct))
+            index = (int(iProduct.split(" ")[-1]))
+            # print(index)
+            country = countries[index]
+            # print(country)
+            language = languages[index]
+            # print(language)
+            locale = "%s_%s.UTF-8" % (language, country)
+            timezone = timezones[index]
+            # print(timezone)
+    
 # TODO: As a last resort, use network localization
 
 # After all methods of localization are exhausted, apply/export our findings
