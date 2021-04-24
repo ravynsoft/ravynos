@@ -50,7 +50,10 @@ installresources: .PHONY
 
 .include <he.common.mk>
 
-all: ${APP_DIR} ${PROG} installresources
+all: ${APP_DIR} ${PROG} installresources ${APP_DIR}/${APP}
+
+${APP_DIR}/${APP}:
+	ln -s Contents/Helium/${APP} ${APP_DIR}/${APP}
 
 ${APP_DIR}:
 	@${ECHO} building ${APP_DIR} bundle
