@@ -10,6 +10,7 @@ xf86-input-mouse
 xf86-input-vmmouse
 xf86-video-ati
 xf86-video-cirrus
+xf86-video-intel
 xf86-video-scfb
 xf86-video-vesa
 xf86-video-vmware
@@ -21,6 +22,7 @@ drm-kmod
 # nvidia-driver # !i386 # Is now handled in build.sh initgfx()
 mesa-libs
 mesa-dri
+gpu-firmware-kmod
 open-vm-tools
 virtualbox-ose-additions
 xauth
@@ -34,7 +36,7 @@ usbids
 wpa_supplicant_gui
 webcamd
 # webcamoid # Draws in jackit, which draws in db5, which is huge
-# utouch-kmod # Seems to be still missing for 13 as of 31.03.2021
+utouch-kmod
 pv
 cpdup
 # iichid # iichid is not available in 13 because it is in base there; adding it here breaks the 13 build
