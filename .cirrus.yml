@@ -56,3 +56,4 @@ task:
   FreeNode_script:
     - echo "TODO: Fix IRC bot script"
     # case "$CIRRUS_BRANCH" in *pull/*) echo skipping since PR ;; * ) echo -e 'USER helloSystemBot guest tolmoon tolsun\nNICK helloSystemBot\nJOIN #helloSystem\nPRIVMSG #helloSystem :A new build is now available in the Create Live Media tool, happy testing!\nQUIT\n' | nc irc.freenode.net 6667 >/dev/null ; esac
+
