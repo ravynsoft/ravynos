@@ -14,6 +14,30 @@ PORTSDIR := ${TOPDIR}/ports
 FONTSDIR := /System/Library/Fonts
 CORES := 4
 
+# List of packages that build without special handling
+PKG_NORMAL_PRE_X= lang/python37 archivers/brotli archivers/zstd print/indexinfo \
+	print/freetype2 textproc/libxml2 textproc/expat2 textproc/libxslt \
+	devel/libffi devel/libudev-devd devel/gettext-runtime devel/libpciaccess \
+	devel/libepoll-shim devel/libmtdev devel/libevdev devel/evdev-proto \
+	devel/py-setuptools devel/py-pyudev devel/py-evdev devel/libgudev misc/pciids \
+	converters/libiconv x11/xtrans x11/libxshmfence x11/libwacom x11/libinput \
+	graphics/lcms2 graphics/png graphics/tiff graphics/jbigkit graphics/libdrm \
+	graphics/mesa-dri graphics/mesa-libs graphics/libepoxy 
+
+# Packages that need special build targets
+PKG_SPECIAL_PRE_X= graphics/openjpeg graphics/jpeg-turbo graphics/wayland-protocols \
+	graphics/wayland x11-fonts/fontconfig
+
+# Same thing but built after Xorg
+PKG_NORMAL_POST_X= graphics/cairo shells/zsh security/doas x11/xterm x11-fonts/freefont-ttf 
+PKG_SPECIAL_POST_X=
+
+PKG_NORMAL= ${PKG_NORMAL_PRE_X} ${PKG_NORMAL_POST_X}
+PKG_SPECIAL= ${PKG_SPECIAL_PRE_X} ${PKG_SPECIAL_POST_X}
+PKG_PRE_X= ${PKG_NORMAL_PRE_X} ${PKG_SPECIAL_PRE_X}
+PKG_POST_X= ${PKG_NORMAL_POST_X} ${PKG_SPECIAL_POST_X}
+PKG_ALL= ${PKG_NORMAL} ${PKG_SPECIAL} x11-servers/xorg-server
+
 # Full release build with installation artifacts
 world: prep freebsd helium release
 
@@ -45,6 +69,7 @@ ${OBJPREFIX}/.patched_bsd: patches/[0-9]*.patch
 ${OBJPREFIX}/.patched_ports: patches/ports-*.patch ${TOPDIR}/ports
 	cd ${TOPDIR}/ports && for patch in ${TOPDIR}/patches/ports-*.patch; \
 		do patch -p1 < $$patch; done
+	touch ${OBJPREFIX}/.patched_ports
 
 freebsd: kernel base
 
@@ -64,14 +89,18 @@ _portops: .PHONY
 # Utility target to create dummy packages for stuff now in the base OS [#40]
 _makepkg: .PHONY
 	export PORTINFO=$$(PORTSDIR=${PORTSDIR} ${PORTSDIR}/Tools/scripts/portsearch -p ${dir}); \
-	export PORTNAME=$$(grep PORTNAME= ${PORTSDIR}/${dir}/Makefile|cut -f2-); \
+	export PORTNAME=$$(grep -E 'PORTNAME(\?=|=)' ${PORTSDIR}/${dir}/Makefile|cut -f2-); \
 	VERSION=$$(echo $$PORTINFO|cut -f2-|cut -d' ' -f2|sed -e "s/$$PORTNAME-//") \
 	INFO=$$(echo $$PORTINFO|sed -e 's/^.*Info: //'|cut -f2|sed -e 's/ Maint:.*//') \
 	MAINT=$$(echo $$PORTINFO|sed -e 's/^.*Maint: //'|cut -f2|cut -d' ' -f1); \
-	echo PORTINFO=$$PORTINFO; echo PORTNAME=$$PORTNAME; echo VERSION=$$VERSION; echo INFO=$$INFO; echo MAINT=$$MAINT
-
-	#INSTALL_AS_USER=1 PKG_DBDIR=${BUILDROOT}/var/db/pkg \
+	sed -e "s/%%NAME%%/$$PORTNAME/" -e "s/%%VERSION%%/$$VERSION/" -e "s@%%ORIGIN%%@${dir}@" \
+	-e "s/%%COMMENT%%/$$INFO/" -e "s/%%MAINT%%/$$MAINT/" \
+	<+MANIFEST.template >${OBJPREFIX}/+MANIFEST
+	INSTALL_AS_USER=1 PKG_DBDIR=${BUILDROOT}/var/db/pkg \
 		pkg register -M ${OBJPREFIX}/+MANIFEST 
+
+makepkg: packages-db-clean
+	for PKG in ${PKG_ALL}; do make dir=$$PKG _makepkg; done
 
 graphics/openjpeg: graphics/lcms2 graphics/png graphics/jpeg-turbo graphics/tiff
 	make dir=${.TARGET} tgt="fetch patch" _portops
@@ -88,48 +117,17 @@ graphics/jpeg-turbo:
 	&& make
 	make -C ${PORTSDIR}/${.TARGET}/work/.build DESTDIR=${BUILDROOT} install
 
-graphics/wayland: devel/libffi
-	make CFLAGS="$$CFLAGS -I/usr/include/libepoll-shim" dir=${.TARGET} tgt="fetch patch build do-install" _portops
-
-graphics/wayland-protocols:
+graphics/{wayland,wayland-protocols}: devel/libffi
 	make CFLAGS="$$CFLAGS -I/usr/include/libepoll-shim" dir=${.TARGET} tgt="fetch patch build do-install" _portops
 
 graphics/mesa-dri: archivers/zstd graphics/wayland graphics/wayland-protocols
 graphics/cairo: converters/libiconv textproc/libxslt devel/glib20 print/freetype2
 graphics/tiff: graphics/jbigkit
 
-graphics/{lcms2,png,jbigkit,tiff,cairo,libdrm,mesa-dri,mesa-libs,libepoxy}:
-	PYTHONPATH=/usr/local/lib/python3.7/site-packages \
-		make dir=${.TARGET} tgt="fetch patch build do-install" _portops
-
-
-print/{freetype2,indexinfo}:
-	make dir=${.TARGET} tgt="fetch patch build do-install" _portops
-
-print/freetype2: archivers/brotli
-
-archivers/{brotli,zstd}:
-	make dir=${.TARGET} tgt="fetch patch build do-install" _portops
-
-textproc/{expat2,libxml2,libxslt}:
-	make dir=${.TARGET} tgt="fetch patch build do-install" _portops
-
-devel/{libffi,libudev-devd,gettext-runtime,libpciaccess,libepoll-shim,libmtdev,libevdev,evdev-proto,py-setuptools,py-pyudev,py-evdev,libgudev}: misc/pciids
-	make dir=${.TARGET} tgt="fetch patch build do-install" _portops
-
 devel/glib20:
 	make dir=${.TARGET} tgt="fetch patch" _portops
 	sed -ibak 's/http:\/\/.*docbook.xsl/\/usr\/local\/share\/xsl\/docbook\/manpages\/docbook.xsl/' ${PORTSDIR}/${.TARGET}/work/glib*/meson.build
 	make dir=${.TARGET} tgt="build do-install" _portops
-
-misc/pciids:
-	make dir=${.TARGET} tgt="fetch patch build do-install" _portops
-
-converters/libiconv:
-	make dir=${.TARGET} tgt="fetch patch build do-install" _portops
-
-x11/{xtrans,libxshmfence,xterm,libwacom,libinput}:
-	make dir=${.TARGET} tgt="fetch patch build do-install" _portops
 
 x11-servers/xorg-server: x11/xtrans
 	make FONTPATH_ROOT=${FONTSDIR} dir=${.TARGET} tgt="clean fetch patch build do-install" \
@@ -147,30 +145,20 @@ x11-fonts/fontconfig: textproc/expat2
 		&& sed -ibak 's/all-local: check-versions/all-local:/' Makefile \
 		&& gmake && gmake DESTDIR=${BUILDROOT} install
 
-x11-fonts/freefont-ttf:
+packagesPreX: ${OBJPREFIX}/.patched_ports ${PKG_PRE_X}
+packagesPostX: ${PKG_POST_X} packages-postbuild 
+
+${PKG_NORMAL}:
+	PYTHONPATH=/usr/local/lib/python3.7/site-packages \
+	CFLAGS="$$CFLAGS -I/usr/include/libdrm" \
 	make dir=${.TARGET} tgt="fetch patch build do-install" _portops
 
-lang/python37:
-	make dir=${.TARGET} tgt="fetch patch build do-install" _portops
+packages-postbuild:
 	ln -sf python3.7 ${BUILDROOT}/usr/bin/python3
-
-shells/zsh:
-	make dir=${.TARGET} tgt="fetch patch build do-install" _portops
-
-security/doas:
-	make dir=${.TARGET} tgt="fetch patch build do-install" _portops
 	ln -sf doas ${BUILDROOT}/usr/bin/sudo
 
-PACKAGES_PRE_X=lang/python37 graphics/openjpeg print/freetype2 x11-fonts/fontconfig \
-	textproc/libxml2 devel/evdev-proto devel/libudev-devd devel/libpciaccess graphics/libdrm \
-	devel/gettext-runtime print/indexinfo graphics/mesa-dri graphics/mesa-libs \
-	x11/libxshmfence graphics/libepoxy devel/libepoll-shim
-PACKAGES_POST_X=graphics/cairo shells/zsh security/doas x11/xterm x11-fonts/freefont-ttf
-packagesPreX: ${OBJPREFIX}/.patched_ports packages-db-clean ${PACKAGES_PRE_X}
-packagesPostX: ${PACKAGES_POST_X} 
-
 packages-clean:
-	for pkg in ${PACKAGES_PRE_X} ${PACKAGES_POST_X}; do \
+	for pkg in ${PKG_ALL}; do \
 		make dir=$$pkg tgt="clean" _portops; \
 		rm -rf ${PORTSDIR}/$$pkg/work
 	done
@@ -181,7 +169,7 @@ packages-db-clean:
 xorgbuild: fetchxorg xorgmain1 x11-servers/xorg-server xorgmain2 xorgspecial xf86-input-libinput xorgpostbuild
 
 xorgpostbuild:
-	doas chmod u+s ${BUILDROOT}/usr/bin/Xorg.wrap
+	sudo chmod u+s ${BUILDROOT}/usr/bin/Xorg.wrap
 	tar -C ${BUILDROOT}/${BUILDROOT}/usr/local -cf - share | tar -C ${BUILDROOT}/usr -xf -
 	tar -C ${BUILDROOT}/${BUILDROOT}/usr -cf - share | tar -C ${BUILDROOT}/usr -xf -
 	tar -C ${BUILDROOT}/${BUILDROOT}/usr -cf - include | tar -C ${BUILDROOT}/usr -xf -
@@ -243,27 +231,23 @@ xf86-input-libinput: xorg/driver/xf86-input-libinput devel/libevdev \
 	cp -f xorg/driver/xf86-input-libinput/conf/40-libinput.conf ${BUILDROOT}/usr/share/X11/xorg.conf.d/
 
 helium: extradirs mkfiles libobjc2 libunwind packagesPreX xorgbuild packagesPostX \
-	frameworksclean frameworks copyfiles
-
-helium-hello: extradirs mkfiles libobjc2 libunwind graphics/openjpeg print/freetype2 \
-	frameworksclean frameworks \
-	copyfiles x11-fonts/freefont-ttf symlink-fonts
+	frameworksclean frameworks copyfiles symlink-fonts makepkg
 
 symlink-fonts:
-	for FONT in OTF TTF SourceCodePro dejavu font-awesome wqy; do \
+	for FONT in SourceCodePro dejavu font-awesome wqy; do \
 	ln -sf /usr/local/share/fonts/$$FONT ${BUILDROOT}/System/Library/Fonts; done
 
 # Update the build system with current source
 install: installworld installkernel installhelium
 
 installworld:
-	doas MAKEOBJDIRPREFIX=${OBJPREFIX} make -C ${TOPDIR}/freebsd-src installworld
+	sudo MAKEOBJDIRPREFIX=${OBJPREFIX} make -C ${TOPDIR}/freebsd-src installworld
 
 installkernel:
-	doas MAKEOBJDIRPREFIX=${OBJPREFIX} make -C ${TOPDIR}/freebsd-src installkernel
+	sudo MAKEOBJDIRPREFIX=${OBJPREFIX} make -C ${TOPDIR}/freebsd-src installkernel
 
 installhelium: helium-package
-	doas tar -C / -xvf ${RLSDIR}/helium.txz
+	sudo tar -C / -xvf ${RLSDIR}/helium.txz
 
 extradirs:
 	rm -rf ${BUILDROOT}
@@ -405,15 +389,14 @@ helium-package:
 	rmdir ${BUILDROOT}/usr/lib/pkgconfig || true
 	tar cJ -C ${BUILDROOT} --gid 0 --uid 0 -f ${RLSDIR}/helium.txz .
 
+${TOPDIR}/ISO:
+	git clone https://github.com/mszoek/ISO.git
+	cd ISO && git checkout helium
+
 desc_helium=Helium system
-release: helium-package
-	rm -f ${RLSDIR}/disc1.iso ${RLSDIR}/memstick.img 
-	if [ -d ${RLSDIR}/disc1 ]; then \
-		doas chflags -R noschg,nouchg ${RLSDIR}/disc1 && doas rm -rf ${RLSDIR}/disc1; \
-	fi
+release: helium-package ${TOPDIR}/ISO
 	rm -f ${RLSDIR}/packagesystem
-	export MAKEOBJDIRPREFIX=${OBJPREFIX}; doas \
+	export MAKEOBJDIRPREFIX=${OBJPREFIX}; sudo \
 		make -C ${TOPDIR}/freebsd-src/release \
-		desc_helium="${desc_helium}" NOSRC=true NOPORTS=true \
-		packagesystem disc1.iso memstick
-	cp -fv ${RLSDIR}/disc1.iso ${RLSDIR}/memstick.img ${TOPDIR}/dist/
+		desc_helium="${desc_helium}" NOSRC=true NOPORTS=true packagesystem 
+	cd ISO && workdir=${OBJPREFIX} HELIUM=${TOPDIR} sudo ./build.sh hello Helium_${HELIUM_VERSION}
