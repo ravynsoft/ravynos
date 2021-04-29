@@ -7,7 +7,6 @@ BSDCONFIG := GENERIC
 BUILDROOT := ${OBJPREFIX}/buildroot
 HELIUM_VERSION != head -1 ${TOPDIR}/version
 HELIUM_CODENAME != tail -1 ${TOPDIR}/version
-BRANCH_OVERRIDE := ${HELIUM_VERSION}
 OSRELEASE := 12.2
 FREEBSD_BRANCH := releng/${OSRELEASE}
 MKINCDIR := -m/usr/share/mk -m${TOPDIR}/mk
@@ -15,12 +14,8 @@ PORTSDIR := ${TOPDIR}/ports
 FONTSDIR := /System/Library/Fonts
 CORES := 4
 
-# Incremental build for quick tests or system update
-build: prep freebsd-noclean helium
-
 # Full release build with installation artifacts
-world: prep freebsd fetchports patchports helium release
-
+world: prep freebsd helium release
 
 prep:
 	mkdir -p ${OBJPREFIX} ${TOPDIR}/dist ${BUILDROOT}
@@ -31,52 +26,52 @@ ${TOPDIR}/freebsd-src/sys/${MACHINE}/compile/${BSDCONFIG}: ${TOPDIR}/freebsd-src
 	&& cd ../compile/${BSDCONFIG} && export MAKEOBJDIRPREFIX=${OBJPREFIX} \
 	&& make depend)
 
-checkout:
-	test -d ${TOPDIR}/freebsd-src || \
-		(cd ${TOPDIR} && git clone https://github.com/freebsd/freebsd-src.git && \
-		cd freebsd-src && git checkout ${FREEBSD_BRANCH})
+${TOPDIR}/freebsd-src:
+	cd ${TOPDIR} && git clone https://github.com/freebsd/freebsd-src.git && \
+		cd freebsd-src && git checkout ${FREEBSD_BRANCH}
 
-fetchports:
-	mkdir -p ${TOPDIR}/portsnap
-	portsnap -d ${TOPDIR}/portsnap -p ${TOPDIR}/ports auto
+${TOPDIR}/ports:
+	mkdir -p ${TOPDIR}/portsnap && \
+		portsnap -d ${TOPDIR}/portsnap -p ${TOPDIR}/ports auto
 
-patchports:
-	cd ${TOPDIR}/ports; \
-		for patch in ${TOPDIR}/patches/ports-*.patch; do patch -p1 < $$patch; done; \
-
-
-patchbsd: patches/[0-9]*.patch
+${OBJPREFIX}/.patched_bsd: patches/[0-9]*.patch
 	(cd ${TOPDIR}/freebsd-src && git checkout -f ${FREEBSD_BRANCH}; \
 	git branch -D helium/12 || true; \
 	git checkout -b helium/12; \
 	for patch in ${TOPDIR}/patches/[0-9]*.patch; do patch -p1 < $$patch; done; \
 	git commit -a -m "patched")
+	touch ${OBJPREFIX}/.patched_bsd
 
-freebsd: checkout patchbsd ${TOPDIR}/freebsd-src/sys/${MACHINE}/compile/${BSDCONFIG}
-	export MAKEOBJDIRPREFIX=${OBJPREFIX}; make BRANCH_OVERRIDE=${BRANCH_OVERRIDE} \
-		-C ${TOPDIR}/freebsd-src buildkernel 
-	export MAKEOBJDIRPREFIX=${OBJPREFIX}; make \
-		-j${CORES} -C ${TOPDIR}/freebsd-src buildworld
+${OBJPREFIX}/.patched_ports: patches/ports-*.patch ${TOPDIR}/ports
+	cd ${TOPDIR}/ports && for patch in ${TOPDIR}/patches/ports-*.patch; \
+		do patch -p1 < $$patch; done
 
-freebsd-noclean:
-	export MAKEOBJDIRPREFIX=${OBJPREFIX}; make BRANCH_OVERRIDE=${BRANCH_OVERRIDE} \
-		-C ${TOPDIR}/freebsd-src -DNO_CLEAN buildkernel
-	export MAKEOBJDIRPREFIX=${OBJPREFIX}; make \
-		-j${CORES} -C ${TOPDIR}/freebsd-src -DNO_CLEAN buildworld
+freebsd: kernel base
 
-kernel-noclean:
-	export MAKEOBJDIRPREFIX=${OBJPREFIX}; make BRANCH_OVERRIDE=${BRANCH_OVERRIDE} \
-		-C ${TOPDIR}/freebsd-src -DNO_CLEAN buildkernel
+kernel: ${TOPDIR}/freebsd-src ${OBJPREFIX}/.patched_bsd ${TOPDIR}/freebsd-src/sys/${MACHINE}/compile/${BSDCONFIG}
+	export MAKEOBJDIRPREFIX=${OBJPREFIX}; make ${MFLAGS} -C ${TOPDIR}/freebsd-src buildkernel 
 
-usr-noclean:
-	export MAKEOBJDIRPREFIX=${OBJPREFIX}; make -j${CORES} \
-		-C ${TOPDIR}/freebsd-src -DNO_CLEAN buildworld
+base: ${TOPDIR}/freebsd-src ${OBJPREFIX}/.patched_bsd
+	export MAKEOBJDIRPREFIX=${OBJPREFIX}; make ${MFLAGS} -j${CORES} \
+		-C ${TOPDIR}/freebsd-src buildworld
 
 # Utility target for port operations with consistent arguments
 _portops: .PHONY
 	make -C ${PORTSDIR}/${dir} _OSRELEASE=${OSRELEASE} PORTSDIR=${PORTSDIR} \
-	FONTSDIR=${FONTSDIR} \
+	FONTSDIR=${FONTSDIR} DEFAULT_VERSIONS+=python3=3.7 DEFAULT_VERSIONS+=python=3.7 \
 	STAGEDIR=${BUILDROOT} NO_DEPENDS=1 LOCALBASE=/usr PREFIX=/usr BATCH=1 ${extra} ${tgt}
+
+# Utility target to create dummy packages for stuff now in the base OS [#40]
+_makepkg: .PHONY
+	export PORTINFO=$$(PORTSDIR=${PORTSDIR} ${PORTSDIR}/Tools/scripts/portsearch -p ${dir}); \
+	export PORTNAME=$$(grep PORTNAME= ${PORTSDIR}/${dir}/Makefile|cut -f2-); \
+	VERSION=$$(echo $$PORTINFO|cut -f2-|cut -d' ' -f2|sed -e "s/$$PORTNAME-//") \
+	INFO=$$(echo $$PORTINFO|sed -e 's/^.*Info: //'|cut -f2|sed -e 's/ Maint:.*//') \
+	MAINT=$$(echo $$PORTINFO|sed -e 's/^.*Maint: //'|cut -f2|cut -d' ' -f1); \
+	echo PORTINFO=$$PORTINFO; echo PORTNAME=$$PORTNAME; echo VERSION=$$VERSION; echo INFO=$$INFO; echo MAINT=$$MAINT
+
+	#INSTALL_AS_USER=1 PKG_DBDIR=${BUILDROOT}/var/db/pkg \
+		pkg register -M ${OBJPREFIX}/+MANIFEST 
 
 graphics/openjpeg: graphics/lcms2 graphics/png graphics/jpeg-turbo graphics/tiff
 	make dir=${.TARGET} tgt="fetch patch" _portops
@@ -171,7 +166,7 @@ PACKAGES_PRE_X=lang/python37 graphics/openjpeg print/freetype2 x11-fonts/fontcon
 	devel/gettext-runtime print/indexinfo graphics/mesa-dri graphics/mesa-libs \
 	x11/libxshmfence graphics/libepoxy devel/libepoll-shim
 PACKAGES_POST_X=graphics/cairo shells/zsh security/doas x11/xterm x11-fonts/freefont-ttf
-packagesPreX: ${PACKAGES_PRE_X}
+packagesPreX: ${OBJPREFIX}/.patched_ports packages-db-clean ${PACKAGES_PRE_X}
 packagesPostX: ${PACKAGES_POST_X} 
 
 packages-clean:
@@ -179,6 +174,9 @@ packages-clean:
 		make dir=$$pkg tgt="clean" _portops; \
 		rm -rf ${PORTSDIR}/$$pkg/work
 	done
+
+packages-db-clean:
+	rm -f ${BUILDROOT}/var/db/pkg/*
 
 xorgbuild: fetchxorg xorgmain1 x11-servers/xorg-server xorgmain2 xorgspecial xf86-input-libinput xorgpostbuild
 
@@ -246,6 +244,14 @@ xf86-input-libinput: xorg/driver/xf86-input-libinput devel/libevdev \
 
 helium: extradirs mkfiles libobjc2 libunwind packagesPreX xorgbuild packagesPostX \
 	frameworksclean frameworks copyfiles
+
+helium-hello: extradirs mkfiles libobjc2 libunwind graphics/openjpeg print/freetype2 \
+	frameworksclean frameworks \
+	copyfiles x11-fonts/freefont-ttf symlink-fonts
+
+symlink-fonts:
+	for FONT in OTF TTF SourceCodePro dejavu font-awesome wqy; do \
+	ln -sf /usr/local/share/fonts/$$FONT ${BUILDROOT}/System/Library/Fonts; done
 
 # Update the build system with current source
 install: installworld installkernel installhelium
