@@ -6,7 +6,8 @@ set -e
 # Determine the version of the running host system.
 # Building ISOs for other major versions than the running host system
 # is not supported and results in broken images anyway
-version=$(uname -r | cut -d "-" -f 1-2) # "12.2-RELEASE" or "13.0-CURRENT"
+#version=$(uname -r | cut -d "-" -f 1-2) # "12.2-RELEASE" or "13.0-CURRENT"
+version="12.2-RELEASE"
 
 if [ "${version}" = "13.0-CURRENT" ] ; then
   # version="13.0-RC3"
@@ -15,6 +16,12 @@ fi
 
 VER=$(uname -r | cut -d "-" -f 1) # "12.2" or "13.0"
 MAJOR=$(uname -r | cut -d "." -f 1) # "12" or "13"
+
+if [ -z "${HELIUM}" ]; then
+	HELIUM=$(pwd)/../helium
+fi
+HELIUMPKG=${HELIUM}/freebsd-src/release
+HELIUMVER=$(head -1 ${HELIUM}/version)
 
 # Dwnload from either https://download.freebsd.org/ftp/releases/
 #                  or https://download.freebsd.org/ftp/snapshots/
@@ -34,7 +41,9 @@ echo "${FTPDIRECTORY}"
 desktop=$1
 tag=$2
 export cwd=$(realpath | sed 's|/scripts||g')
-workdir="/usr/local"
+if [ -z "${workdir}" ]; then
+	workdir="/usr/local"
+fi
 livecd="${workdir}/furybsd"
 if [ -z "${arch}" ] ; then
   arch=amd64
@@ -54,7 +63,7 @@ export cdroot="${livecd}/cdroot"
 ramdisk_root="${cdroot}/data/ramdisk"
 vol="furybsd"
 label="LIVE"
-export DISTRIBUTIONS="kernel.txz base.txz"
+export DISTRIBUTIONS="kernel.txz base.txz helium.txz"
 
 # Only run as superuser
 if [ "$(id -u)" != "0" ]; then
@@ -82,12 +91,13 @@ if [ ! -f "${cwd}/settings/packages.${desktop}" ] ; then
 fi
 
 # Get the version tag
+mkdir -p ${workdir}/furybsd
 if [ -z "$2" ] ; then
-  rm /usr/local/furybsd/tag >/dev/null 2>/dev/null || true
+  rm ${workdir}/furybsd/tag >/dev/null 2>/dev/null || true
   export vol="${VER}"
 else
-  rm /usr/local/furybsd/version >/dev/null 2>/dev/null || true
-  echo "${2}" > /usr/local/furybsd/tag
+  rm ${workdir}/furybsd/version >/dev/null 2>/dev/null || true
+  echo "${2}" > ${workdir}/furybsd/tag
   export vol="${VER}-${tag}"
 fi
 
@@ -116,7 +126,8 @@ if [ "${desktop}" = "hello" ] ; then
       cat "${cwd}/overlays/uzip/hello/manifest"
       isopath="${iso}/${desktop}-${HELLO_VERSION}_${BUILDNUMBER}-FreeBSD-${VER}-${arch}.iso"
     else
-      isopath="${iso}/${desktop}-${HELLO_VERSION}_git${SHA}-FreeBSD-${VER}-${arch}.iso"
+      #isopath="${iso}/${desktop}-${HELLO_VERSION}_git${SHA}-FreeBSD-${VER}-${arch}.iso"
+      isopath="${HELIUM}/dist/hello-${vol}-${arch}.iso"
     fi
   fi
 fi
@@ -160,18 +171,19 @@ workspace()
 base()
 {
   # TODO: Signature checking
-  if [ ! -f "${base}/base.txz" ] ; then 
-    cd ${base}
-    fetch https://download.freebsd.org/ftp/${FTPDIRECTORY}/${arch}/${version}/base.txz
-  fi
+  #if [ ! -f "${base}/base.txz" ] ; then 
+  #  cd ${base}
+  #  fetch https://download.freebsd.org/ftp/${FTPDIRECTORY}/${arch}/${version}/base.txz
+  #fi
   
-  if [ ! -f "${base}/kernel.txz" ] ; then
-    cd ${base}
-    fetch https://download.freebsd.org/ftp/${FTPDIRECTORY}/${arch}/${version}/kernel.txz
-  fi
+  #if [ ! -f "${base}/kernel.txz" ] ; then
+  #  cd ${base}
+  #  fetch https://download.freebsd.org/ftp/${FTPDIRECTORY}/${arch}/${version}/kernel.txz
+  #fi
   cd ${base}
-  tar -zxvf base.txz -C ${uzip}
-  tar -zxvf kernel.txz -C ${uzip}
+  tar -zxvf ${HELIUMPKG}/base.txz -C ${uzip}
+  tar -zxvf ${HELIUMPKG}/kernel.txz -C ${uzip}
+  tar -zxvf ${HELIUMPKG}/helium.txz -C ${uzip}
   touch ${uzip}/etc/fstab
 }
 
@@ -273,7 +285,7 @@ user()
   # chroot ${uzip} echo furybsd | chroot ${uzip} pw mod user root -h 0
   chroot ${uzip} pw useradd liveuser -u 1000 \
   -c "Live User" -d "/home/liveuser" \
-  -g wheel -G operator -m -s /usr/local/bin/zsh -k /usr/share/skel -w none
+  -g wheel -G operator -m -s /usr/bin/zsh -k /usr/share/skel -w none
   chroot ${uzip} pw groupadd liveuser -g 1000
   # chroot ${uzip} echo furybsd | chroot ${uzip} pw mod user liveuser -h 0
   chroot ${uzip} chown -R 1000:1000 /usr/home/liveuser
