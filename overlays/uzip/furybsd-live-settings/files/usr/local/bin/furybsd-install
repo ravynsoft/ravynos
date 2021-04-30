@@ -234,6 +234,9 @@ hw.psm.synaptics_support="1"
 vfs.root.mountfrom.options="rw"
 EOF
 
+# A leftover initgfx_config.id file can result in the installed system failing to start Xorg
+sudo rm "${FSMNT}/var/initgfx_config.id" || true
+
 # Cleanup
 # umount -f "${FSMNT}/dev" >/dev/null 2>/dev/null || true # Is this needed? TODO: Re-enable if yes
 # zpool export -f "${DESTPOOL}" >/dev/null 2>/dev/null || true # Is this needed? TODO: Re-enable if yes
