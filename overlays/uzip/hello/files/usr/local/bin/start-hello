@@ -270,10 +270,6 @@ export GTK_MODULES=appmenu-gtk-module
 ### "${HERE}"/dde-globalmenu-service & # gmenudbusmenuproxy without Plasma deps
 gmenudbusmenuproxy &
 
-# Prevent Filer from launching before the Menu is ready;
-# https://github.com/helloSystem/Filer/issues/85#issuecomment-827760408
-sleep 2 # FIXME: Remove the need for this
-
 # Desktop
 /System/Filer.AppDir/AppRun --desktop &
 
