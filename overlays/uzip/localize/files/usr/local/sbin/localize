@@ -125,7 +125,7 @@ except:
 
 is_apple_keyboard = False
 
-if sys.platform == 'freebsd':
+if sys.platform.startswith('freebsd'):
     usbtool = "usbconfig"
 else:
     usbtool = "lsusb"
