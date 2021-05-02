@@ -135,7 +135,7 @@ for line in subprocess.check_output(usbtool).split(b'\n'):
     if ("Apple" in line and "Keyboard" in line):
         is_apple_keyboard = True
     if "RPI Wired Keyboard" in line:
-        if sys.platform == 'freebsd':
+        if sys.platform.startswith('freebsd'):
             iProduct = line.split("<")[1].split(">")[0]
         else:
             iProduct = line.split("[")[1].split("]")[0]
