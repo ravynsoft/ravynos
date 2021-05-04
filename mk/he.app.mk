@@ -59,6 +59,7 @@ ${APP_DIR}:
 	@${ECHO} building ${APP_DIR} bundle
 	mkdir -p "${APP_DIR}/Contents/Helium" \
 		"${APP_DIR}/Contents/Resources"
+	ln -s Contents/Resources "${APP_DIR}/Resources"
 	if [ -f ${.CURDIR}/Info.plist ]; then \
 		cp -fv ${.CURDIR}/Info.plist ${APP_DIR}/Contents; fi
 	if [ -f ${.CURDIR}/PkgInfo ]; then \

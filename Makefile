@@ -220,8 +220,13 @@ ${TOPDIR}/ISO:
 	git clone https://github.com/mszoek/ISO.git
 	cd ISO && git checkout helium
 
+${RLSDIR}/CocoaDemo.app.txz:
+	make -C examples/app clean
+	make -C examples/app 
+	tar -C examples/app -cf ${RLSDIR}/${.TARGET} CocoaDemo.app
+
 desc_helium=Helium system
-release: helium-package ${TOPDIR}/ISO
+release: helium-package ${TOPDIR}/ISO ${RLSDIR}/CocoaDemo.app.txz
 	rm -f ${RLSDIR}/packagesystem
 	export MAKEOBJDIRPREFIX=${OBJPREFIX}; sudo \
 		make -C ${TOPDIR}/freebsd-src/release \
