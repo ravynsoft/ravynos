@@ -223,7 +223,7 @@ ${TOPDIR}/ISO:
 ${RLSDIR}/CocoaDemo.app.txz:
 	make -C examples/app clean
 	make -C examples/app 
-	tar -C examples/app -cf ${RLSDIR}/${.TARGET} CocoaDemo.app
+	tar -C examples/app -cf ${.TARGET} CocoaDemo.app
 
 desc_helium=Helium system
 release: helium-package ${TOPDIR}/ISO ${RLSDIR}/CocoaDemo.app.txz
