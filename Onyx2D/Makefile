@@ -192,7 +192,7 @@ INCS= \
 	gif_lib.h
 
 RESOURCES=Info.plist English.lproj
-CFLAGS+= ${FMWK_CFLAGS} -I/usr/include/freetype2 -I.. -I../libobjc2 -I../Foundation/Headers
+CFLAGS+= ${FMWK_CFLAGS} -I.. -I../libobjc2 -I../Foundation/Headers
 LDFLAGS+= ${FMWK_LDFLAGS} -ljpeg -lpng -ltiff
 
 .include <he.framework.mk>

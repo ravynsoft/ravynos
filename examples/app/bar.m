@@ -33,14 +33,14 @@ int main(int argc, const char *argv[])
 	[NSApp setMainMenu:menubar];
 
     NSImage *image = [[[NSImage alloc] initWithContentsOfFile:
-    	[main pathForResource:@"crazyones" ofType:@"jpg"]] autorelease];
+    	[main pathForResource:@"helium" ofType:@"jpg"]] autorelease];
     NSSize imageSize = [image size];
 
     NSRect rect = NSMakeRect(0,0,imageSize.width, imageSize.height);
     NSWindow *window = [[[NSWindow alloc] initWithContentRect:rect 
         styleMask:NSTitledWindowMask backing:NSBackingStoreBuffered defer:NO] autorelease];
     [window cascadeTopLeftFromPoint:NSMakePoint(10,10)];
-    [window setTitle:[appName stringByAppendingString:@" - crazy ones"]];
+    [window setTitle:appName];
     [window makeKeyAndOrderFront:nil];
 
 	NSImageView *view = [[[NSImageView alloc] init] autorelease];
@@ -58,7 +58,7 @@ int main(int argc, const char *argv[])
 
     MyView *view2 = [[[MyView alloc] initWithFrame:[window2 frame]] autorelease];
     [window2 setContentView:view2];
-	[view2 setFont: [NSFont fontWithName:@"Courier" size:20.0]];
+	[view2 setFont: [NSFont fontWithName:@"NimbusSans-Regular" size:16.0]];
 	[view2 setText:text];
     [view2 setNeedsDisplay:YES];
 	[window2 display];

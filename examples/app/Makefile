@@ -25,13 +25,12 @@
 APP=Bar
 SRCS=bar.m MyView.m
 MK_DEBUG_FILES=no
-RESOURCES=rsc ../../crazyones.jpg
+RESOURCES=rsc helium.jpg
 SLF=/System/Library/Frameworks
 FRAMEWORKS=${SLF}/AppKit ${SLF}/CoreGraphics ${SLF}/Onyx2D ${SLF}/OpenGL \
 	${SLF}/Foundation ${SLF}/CoreFoundation
 LDFLAGS+=-L/usr/local/lib -lGL
 
 build: all
-	cp -f ../../crazyones.jpg ${APP}.app/Contents/Resources/
 
 .include <he.app.mk>
