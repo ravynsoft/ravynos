@@ -68,10 +68,10 @@ helium: extradirs mkfiles libobjc2 libunwind frameworksclean frameworks copyfile
 install: installworld installkernel installhelium
 
 installworld:
-	sudo MAKEOBJDIRPREFIX=${OBJPREFIX} make -C ${TOPDIR}/freebsd-src installworld
+	sudo -E MAKEOBJDIRPREFIX=${OBJPREFIX} make -C ${TOPDIR}/freebsd-src installworld
 
 installkernel:
-	sudo MAKEOBJDIRPREFIX=${OBJPREFIX} make -C ${TOPDIR}/freebsd-src installkernel
+	sudo -E MAKEOBJDIRPREFIX=${OBJPREFIX} make -C ${TOPDIR}/freebsd-src installkernel
 
 installhelium: helium-package
 	sudo tar -C / -xvf ${RLSDIR}/helium.txz
@@ -231,4 +231,4 @@ release: helium-package ${TOPDIR}/ISO ${RLSDIR}/CocoaDemo.app.txz
 	export MAKEOBJDIRPREFIX=${OBJPREFIX}; sudo \
 		make -C ${TOPDIR}/freebsd-src/release \
 		desc_helium="${desc_helium}" NOSRC=true NOPORTS=true packagesystem 
-	cd ISO && workdir=${OBJPREFIX} HELIUM=${TOPDIR} sudo ./build.sh hello Helium_${HELIUM_VERSION}
+	cd ISO && workdir=${OBJPREFIX} HELIUM=${TOPDIR} sudo -E ./build.sh hello Helium_${HELIUM_VERSION}
