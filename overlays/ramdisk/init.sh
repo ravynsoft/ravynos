@@ -20,6 +20,10 @@ fi
 
 set -x
 
+HELIUM_VERSION=$(head -1 ${HELIUM}/version)
+HELIUM_CODENAME=$(tail -1 ${HELIUM}/version)
+echo "Hello. ${HELIUM_VERSION} (${HELIUM_CODENAME})" > /dev/tty
+
 echo "==> Ramdisk /init.sh running"
 
 echo "==> Remount rootfs as read-write"
@@ -134,7 +138,9 @@ echo "    TODO: Remove the need for this."
 echo "    Can we get unionfs or OpenZFS to make the r/o system image r/w instantly"
 echo "    without the need for this time consuming operation? Please let us know."
 echo "    https://github.com/helloSystem/ISO/issues/4"
-zfs send -c -e furybsd | dd status=progress bs=1M | zfs recv -F livecd
+echo "Loading runtime image to memory disk. This may take a few minutes." >/dev/tty
+zfs send -c -e furybsd | dd status=progress bs=1M 2>/dev/tty| zfs recv -F livecd
+echo "Starting up" >/dev/tty
 
 mount -t devfs devfs /livecd/dev
 chroot /livecd /usr/local/bin/furybsd-init-helper

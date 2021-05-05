@@ -127,7 +127,7 @@ if [ "${desktop}" = "hello" ] ; then
       isopath="${iso}/${desktop}-${HELLO_VERSION}_${BUILDNUMBER}-FreeBSD-${VER}-${arch}.iso"
     else
       #isopath="${iso}/${desktop}-${HELLO_VERSION}_git${SHA}-FreeBSD-${VER}-${arch}.iso"
-      isopath="${HELIUM}/dist/hello-${vol}-${arch}.iso"
+      isopath="${HELIUM}/dist/${vol}-${arch}-helloSystem.iso"
     fi
   fi
 fi
