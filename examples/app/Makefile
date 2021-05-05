@@ -1,4 +1,4 @@
-# This Makefile will generate a simple Cocoa App bundle called Bar.app
+# This Makefile will generate a simple Cocoa App bundle called CocoaDemo.app
 # in the current directory or in the location specified by MAKEOBJDIR
 #
 # APP is the name of the executable resulting from compiling SRCS
@@ -11,10 +11,10 @@
 # CFLAGS and LDFLAGS can be specified to use additional headers and
 # libraries. 
 #
-# Bar.app
+# CocoaDemo.app
 # `-- Contents
 #     |-- Helium
-#     |   `-- Bar
+#     |   `-- CocoaDemo
 #     |-- Info.plist
 #     |-- PkgInfo
 #     `-- Resources
@@ -22,16 +22,15 @@
 #         `-- rsc
 #             `-- sample.txt
 
-APP=Bar
+APP=CocoaDemo
 SRCS=bar.m MyView.m
 MK_DEBUG_FILES=no
-RESOURCES=rsc ../../crazyones.jpg
+RESOURCES=rsc helium.jpg CocoaDemo.png
 SLF=/System/Library/Frameworks
 FRAMEWORKS=${SLF}/AppKit ${SLF}/CoreGraphics ${SLF}/Onyx2D ${SLF}/OpenGL \
 	${SLF}/Foundation ${SLF}/CoreFoundation
 LDFLAGS+=-L/usr/local/lib -lGL
 
 build: all
-	cp -f ../../crazyones.jpg ${APP}.app/Contents/Resources/
 
 .include <he.app.mk>
