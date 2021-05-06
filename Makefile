@@ -105,15 +105,15 @@ libobjc2: .PHONY
 	make -C ${OBJPREFIX}/libobjc2 DESTDIR=${BUILDROOT} install
 
 libunwind: .PHONY
-	cd libunwind-1.5.0 && ./configure --prefix=/usr --enable-coredump --enable-ptrace --enable-cxx-exceptions \
+	cd ${TOPDIR}/libunwind-1.5.0 && ./configure --prefix=/usr --enable-coredump --enable-ptrace --enable-cxx-exceptions \
 		--enable-block-signals --enable-debug-frame && make -j${CORES}
-	make -C libunwind-1.5.0 install prefix=${BUILDROOT}/usr
+	make -C ${TOPDIR}/libunwind-1.5.0 install prefix=${BUILDROOT}/usr
 
 frameworksclean:
 	rm -rf ${BUILDROOT}/System/Library/Frameworks/*.framework
 	for fmwk in ${.ALLTARGETS:M*.framework:R}; do \
-		make ${MKINCDIR} -C $$fmwk clean; \
-		rm -rf $$fmwk/$$fmwk.framework; \
+		make ${MKINCDIR} -C ${TOPDIR}/$$fmwk clean; \
+		rm -rf ${TOPDIR}/$$fmwk/$$fmwk.framework; \
 	done
 	rm -rf Foundation/Headers
 
@@ -127,89 +127,89 @@ _FRAMEWORK_TARGETS=${.ALLTARGETS:M*.framework}
 .endif
 frameworks: 
 	for fmwk in ${_FRAMEWORK_TARGETS}; do \
-		make ${MKINCDIR} $$fmwk; done
+		make ${MKINCDIR} -C ${TOPDIR} $$fmwk; done
 
 marshallheaders:
-	make -C Foundation marshallheaders
+	make -C ${TOPDIR}/Foundation marshallheaders
 
 # DO NOT change the order of these 4 frameworks!
 CoreFoundation.framework: marshallheaders
-	rm -rf CoreFoundation/${.TARGET}
-	make -C CoreFoundation BUILDROOT=${BUILDROOT} clean
-	make -C CoreFoundation BUILDROOT=${BUILDROOT}
+	rm -rf ${TOPDIR}/CoreFoundation/${.TARGET}
+	make -C ${TOPDIR}/CoreFoundation BUILDROOT=${BUILDROOT} clean
+	make -C ${TOPDIR}/CoreFoundation BUILDROOT=${BUILDROOT}
 	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
 
 CFNetwork.framework:
-	rm -rf CFNetwork/${.TARGET}
-	make -C CFNetwork BUILDROOT=${BUILDROOT} clean
-	make -C CFNetwork BUILDROOT=${BUILDROOT}
+	rm -rf ${TOPDIR}/CFNetwork/${.TARGET}
+	make -C ${TOPDIR}/CFNetwork BUILDROOT=${BUILDROOT} clean
+	make -C ${TOPDIR}/CFNetwork BUILDROOT=${BUILDROOT}
 	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
 
 Foundation.framework:
-	rm -rf Foundation/${.TARGET}
-	make -C Foundation BUILDROOT=${BUILDROOT} clean build
+	rm -rf ${TOPDIR}/Foundation/${.TARGET}
+	make -C ${TOPDIR}/Foundation BUILDROOT=${BUILDROOT} clean build
 	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
 	cp -vf ${TOPDIR}/${.TARGET:R}/NSException/NSRaise.h ${TOPDIR}/AppKit
 
 ApplicationServices.framework:
-	rm -rf ApplicationServices/${.TARGET}
-	make -C ApplicationServices BUILDROOT=${BUILDROOT} clean
-	make -C ApplicationServices BUILDROOT=${BUILDROOT}
+	rm -rf ${TOPDIR}/ApplicationServices/${.TARGET}
+	make -C ${TOPDIR}/ApplicationServices BUILDROOT=${BUILDROOT} clean
+	make -C ${TOPDIR}/ApplicationServices BUILDROOT=${BUILDROOT}
 	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
 
 CoreServices.framework:
-	rm -rf CoreServices/${.TARGET}
-	make -C CoreServices BUILDROOT=${BUILDROOT} clean
-	make -C CoreServices BUILDROOT=${BUILDROOT}
+	rm -rf ${TOPDIR}/CoreServices/${.TARGET}
+	make -C ${TOPDIR}/CoreServices BUILDROOT=${BUILDROOT} clean
+	make -C ${TOPDIR}/CoreServices BUILDROOT=${BUILDROOT}
 	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
 
 CoreData.framework:
-	rm -rf CoreData/${.TARGET}
-	make -C CoreData BUILDROOT=${BUILDROOT} clean
-	make -C CoreData BUILDROOT=${BUILDROOT}
+	rm -rf ${TOPDIR}/CoreData/${.TARGET}
+	make -C ${TOPDIR}/CoreData BUILDROOT=${BUILDROOT} clean
+	make -C ${TOPDIR}/CoreData BUILDROOT=${BUILDROOT}
 	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
 
 Onyx2D.framework:
-	rm -rf Onyx2D/${.TARGET}
-	make -C Onyx2D BUILDROOT=${BUILDROOT} clean
-	make -C Onyx2D BUILDROOT=${BUILDROOT}
+	rm -rf ${TOPDIR}/Onyx2D/${.TARGET}
+	make -C ${TOPDIR}/Onyx2D BUILDROOT=${BUILDROOT} clean
+	make -C ${TOPDIR}/Onyx2D BUILDROOT=${BUILDROOT}
 	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
 
 OpenGL.framework:
-	rm -rf OpenGL/${.TARGET}
-	make -C OpenGL BUILDROOT=${BUILDROOT} clean
-	make -C OpenGL BUILDROOT=${BUILDROOT}
+	rm -rf ${TOPDIR}/OpenGL/${.TARGET}
+	make -C ${TOPDIR}/OpenGL BUILDROOT=${BUILDROOT} clean
+	make -C ${TOPDIR}/OpenGL BUILDROOT=${BUILDROOT}
 	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
 
 CoreGraphics.framework:
-	rm -rf CoreGraphics/${.TARGET}
-	make -C CoreGraphics BUILDROOT=${BUILDROOT} clean
-	make -C CoreGraphics BUILDROOT=${BUILDROOT}
+	rm -rf ${TOPDIR}/CoreGraphics/${.TARGET}
+	make -C ${TOPDIR}/CoreGraphics BUILDROOT=${BUILDROOT} clean
+	make -C ${TOPDIR}/CoreGraphics BUILDROOT=${BUILDROOT}
 	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
 	cp -vf ${TOPDIR}/${.TARGET:R}/CGEvent.h ${TOPDIR}/AppKit
 
 CoreText.framework:
-	rm -rf CoreText/${.TARGET}
-	make -C CoreText BUILDROOT=${BUILDROOT} clean
-	make -C CoreText BUILDROOT=${BUILDROOT}
+	rm -rf ${TOPDIR}/CoreText/${.TARGET}
+	make -C ${TOPDIR}/CoreText BUILDROOT=${BUILDROOT} clean
+	make -C ${TOPDIR}/CoreText BUILDROOT=${BUILDROOT}
 	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
 	cp -vf ${TOPDIR}/${.TARGET:R}/KTFont.h ${TOPDIR}/AppKit
 
 QuartzCore.framework:
-	rm -rf QuartzCore/${.TARGET}
-	make -C QuartzCore BUILDROOT=${BUILDROOT} clean
-	make -C QuartzCore BUILDROOT=${BUILDROOT}
+	rm -rf ${TOPDIR}/QuartzCore/${.TARGET}
+	make -C ${TOPDIR}/QuartzCore BUILDROOT=${BUILDROOT} clean
+	make -C ${TOPDIR}/QuartzCore BUILDROOT=${BUILDROOT}
 	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
 
 Cocoa.framework:
-	rm -rf Cocoa/${.TARGET}
-	make -C Cocoa BUILDROOT=${BUILDROOT} clean
-	make -C Cocoa BUILDROOT=${BUILDROOT}
+	rm -rf ${TOPDIR}/Cocoa/${.TARGET}
+	make -C ${TOPDIR}/Cocoa BUILDROOT=${BUILDROOT} clean
+	make -C ${TOPDIR}/Cocoa BUILDROOT=${BUILDROOT}
 	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
 
 AppKit.framework:
-	rm -rf AppKit/${.TARGET}
-	make -C AppKit BUILDROOT=${BUILDROOT} clean build
+	rm -rf ${TOPDIR}/AppKit/${.TARGET}
+	make -C ${TOPDIR}/AppKit BUILDROOT=${BUILDROOT} clean build
 	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
 
 
@@ -217,18 +217,17 @@ helium-package:
 	tar cJ -C ${BUILDROOT} --gid 0 --uid 0 -f ${RLSDIR}/helium.txz .
 
 ${TOPDIR}/ISO:
-	git clone https://github.com/mszoek/ISO.git
-	cd ISO && git checkout helium
+	cd ${TOPDIR} && git clone https://github.com/mszoek/ISO.git
+	cd ${TOPDIR}/ISO && git checkout helium
 
 ${RLSDIR}/CocoaDemo.app.txz:
-	make -C examples/app clean
-	make -C examples/app 
-	tar -C examples/app -cf ${.TARGET} CocoaDemo.app
+	make -C ${TOPDIR}/examples/app clean
+	make -C ${TOPDIR}/examples/app 
+	tar -C ${TOPDIR}/examples/app -cf ${.TARGET} CocoaDemo.app
 
 desc_helium=Helium system
 release: helium-package ${TOPDIR}/ISO ${RLSDIR}/CocoaDemo.app.txz
 	rm -f ${RLSDIR}/packagesystem
-	export MAKEOBJDIRPREFIX=${OBJPREFIX}; sudo \
-		make -C ${TOPDIR}/freebsd-src/release \
-		desc_helium="${desc_helium}" NOSRC=true NOPORTS=true packagesystem 
-	cd ISO && workdir=${OBJPREFIX} HELIUM=${TOPDIR} sudo -E ./build.sh hello Helium_${HELIUM_VERSION}
+	export MAKEOBJDIRPREFIX=${OBJPREFIX}; sudo -E \
+		make -C ${TOPDIR}/freebsd-src/release NOSRC=true NOPORTS=true packagesystem 
+	cd ${TOPDIR}/ISO && workdir=${OBJPREFIX} HELIUM=${TOPDIR} sudo -E ./build.sh hello ${HELIUM_VERSION}
