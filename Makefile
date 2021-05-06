@@ -230,4 +230,4 @@ release: helium-package ${TOPDIR}/ISO ${RLSDIR}/CocoaDemo.app.txz
 	rm -f ${RLSDIR}/packagesystem
 	export MAKEOBJDIRPREFIX=${OBJPREFIX}; sudo -E \
 		make -C ${TOPDIR}/freebsd-src/release NOSRC=true NOPORTS=true packagesystem 
-	cd ${TOPDIR}/ISO && workdir=${OBJPREFIX} HELIUM=${TOPDIR} sudo -E ./build.sh hello ${HELIUM_VERSION}
+	cd ${TOPDIR}/ISO && workdir=${OBJPREFIX} HELIUM=${TOPDIR} sudo -E ./build.sh hello Helium_${HELIUM_VERSION}
