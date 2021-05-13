@@ -22,6 +22,7 @@
  * THE SOFTWARE.
  */
 
+#define _BuildingFramework
 #import "DKConnection.h"
 #import <Foundation/NSString.h>
 
@@ -48,7 +49,7 @@ static DBusHandlerResult DBusKit_Message_Callback(DBusConnection *connection, DB
         const char *name = dbus_bus_get_unique_name(_DBusConnection);
     }
 
-    return self;
+    return [self autorelease];
 }
 
 - (oneway void) release {
@@ -89,6 +90,8 @@ static DBusHandlerResult DBusKit_Message_Callback(DBusConnection *connection, DB
 
 - (DKMessage *) sendWithReplyAndBlock: (DKMessage *)msg {
     DBusMessage *result = dbus_connection_send_with_reply_and_block(_DBusConnection, [msg _getMessage], DBUS_TIMEOUT_USE_DEFAULT, NULL);
+    if(result == NULL)
+        return nil;
     return [[DKMessage alloc] initWithMessage:result];
 }
 

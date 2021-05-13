@@ -22,7 +22,11 @@
  * THE SOFTWARE.
  */
 
+#ifdef _BuildingFramework
 #include <dbus/dbus.h>
+#else
+#import <DBusKit/dbus.h>
+#endif
 
 #import <Foundation/NSObject.h>
 #import <Foundation/NSString.h>
@@ -48,6 +52,7 @@
 - (NSString *) path;
 - (BOOL) setPath: (const char *)path;
 - (int) type;
+- (BOOL) appendArg:(long long)value type:(int)type;
 
 - (DBusMessage *) _getMessage;
 @end

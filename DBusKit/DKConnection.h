@@ -22,15 +22,19 @@
  * THE SOFTWARE.
  */
 
- #include <dbus/dbus.h>
- 
- #import <Foundation/NSObject.h>
- #import "DKMessage.h"
+#ifdef _BuildingFramework
+#include <dbus/dbus.h>
+#else
+#import <DBusKit/dbus.h>
+#endif
 
- @interface DKConnection: NSObject {
-     DBusConnection *_DBusConnection;
-     DBusObjectPathVTable _vtable;
- }
+#import <Foundation/NSObject.h>
+#import "DKMessage.h"
+
+@interface DKConnection: NSObject {
+    DBusConnection *_DBusConnection;
+    DBusObjectPathVTable _vtable;
+}
 
 - init;
 - (BOOL) registerObjectPath: (NSString *)path;

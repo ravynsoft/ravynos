@@ -22,45 +22,45 @@
  * THE SOFTWARE.
  */
 
+#define _BuildingFramework
 #import "DKMessage.h"
 
 @implementation DKMessage
 
 - initMethodCall: (const char *)method interface:(const char *)iface path:(const char *)path destination:(const char *)dest {
     _message = dbus_message_new_method_call(dest, path, iface, method);
-    return self;
+    return [self autorelease];
 }
 
 - initReply: (DKMessage *)methodCall {
     _message = dbus_message_new_method_return([methodCall _getMessage]);
-    return self;
+    return [self autorelease];
 }
 
 - initSignal: (const char *)name interface:(const char *)iface path:(const char *)path {
     _message = dbus_message_new_signal(path, iface, name);
-    return self;
+    return [self autorelease];
 }
 
 - initWithMessage: (DBusMessage *)msg {
     _message = msg;
-    return self;
+    return [self autorelease];
 }
 
 - (oneway void) release {
     dbus_message_unref(_message);
-    NSLog(@"released message");
 }
 
 - (NSString *) argsAsString {
     const char *result = NULL;
     dbus_message_get_args(_message, NULL, DBUS_TYPE_STRING, &result, DBUS_TYPE_INVALID);
-    return [NSString stringWithCString:result];
+    return [[NSString stringWithCString:result] autorelease];
 }
 
 - (NSString *) destination {
     const char *result = dbus_message_get_destination(_message);
     if(result == NULL) return nil;
-    return [NSString stringWithCString:result];
+    return [[NSString stringWithCString:result] autorelease];
 }
 
 - (BOOL) setDestination: (const char *)dest {
@@ -70,7 +70,7 @@
 - (NSString *) interface {
     const char *result = dbus_message_get_interface(_message);
     if(result == NULL) return nil;
-    return [NSString stringWithCString:result];
+    return [[NSString stringWithCString:result] autorelease];
 }
 
 - (BOOL) setInterface: (const char *)iface {
@@ -80,7 +80,7 @@
 - (NSString *) member {
     const char *result = dbus_message_get_member(_message);
     if(result == NULL) return nil;
-    return [NSString stringWithCString:result];
+    return [[NSString stringWithCString:result] autorelease];
 }
 
 - (BOOL) setMember: (const char *)member {
@@ -94,7 +94,7 @@
 - (NSString *) path {
     const char *result = dbus_message_get_path(_message);
     if(result == NULL) return nil;
-    return [NSString stringWithCString:result];
+    return [[NSString stringWithCString:result] autorelease];
 }
 
 - (BOOL) setPath: (const char *)path {
@@ -104,6 +104,11 @@
 - (int) type {
     return dbus_message_get_type(_message);
 }
+
+- (BOOL) appendArg:(long long)value type:(int)type {
+    return dbus_message_append_args(_message, type, value, DBUS_TYPE_INVALID);
+}
+
 
 - (DBusMessage *) _getMessage {
     return _message;
