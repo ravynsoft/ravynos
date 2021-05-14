@@ -1,6 +1,6 @@
 #include <stdio.h>
 #import <DBusKit/DKConnection.h>
-#import <DBusKit/DKMessage.h>
+#import <DBusKit/DKMenu.h>
 
 int main(int argc, const char *argv[])
 {
@@ -9,15 +9,17 @@ int main(int argc, const char *argv[])
 		DKConnection *conn = [DKConnection new];
 
 		// DKMessage *message = [[DKMessage alloc] initMethodCall:"Introspect" interface:"org.freedesktop.DBus.Introspectable" path:"/com/canonical/AppMenu/Registrar" destination:"com.canonical.AppMenu.Registrar"];
-		DKMessage *message = [[DKMessage alloc] initMethodCall:"RegisterWindow" interface:"com.canonical.AppMenu.Registrar" path:"/com/canonical/AppMenu/Registrar" destination:"com.canonical.AppMenu.Registrar"];
-		uint32_t window = 0x800007;
-		[message appendArg:&window type:DBUS_TYPE_UINT32];
-		const char *path = "/Bar/foo/1";
-		[message appendArg:&path type:DBUS_TYPE_OBJECT_PATH];
-		DKMessage *reply = [conn sendWithReplyAndBlock:message];
-
-		if(reply != nil) {
+		DKMenu *menuHandler = [[[DKMenu alloc] initWithConnection: conn] autorelease];
+		if([menuHandler registerWindow: 12345 objectPath:@"/Menu/Bar/2"] == YES) {
 			printf("registered\n");
+		}
+
+		NSString *foo = [menuHandler getMenuForWindow: 12345];
+		if(foo != nil)
+			printf("%s\n", [foo UTF8String]);
+
+		if([menuHandler unregisterWindow: 12345] == YES) {
+			printf("unregistered\n");
 		}
 	}
 	return 0;
