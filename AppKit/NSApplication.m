@@ -133,6 +133,12 @@ id NSApp=nil;
     
    _lock=NSZoneMalloc(NULL,sizeof(pthread_mutex_t));
 
+   dbusConnection = [DKConnection new];
+   if([dbusConnection isConnected] == NO) {
+      [dbusConnection release];
+      dbusConnection = nil;
+   }
+
    pthread_mutex_init(_lock,NULL);
    
    [self _showSplashImage];
@@ -586,10 +592,17 @@ id NSApp=nil;
        pool = [NSAutoreleasePool new];
        NSEvent           *event;
 
+    if(dbusConnection != nil) {
+       [dbusConnection readWrite: 10]; // wait up to 10ms for any events
+    }
+
     event=[self nextEventMatchingMask:NSAnyEventMask untilDate:[NSDate distantFuture] inMode:NSDefaultRunLoopMode dequeue:YES];
 
     NS_DURING
      [self sendEvent:event];
+     if(dbusConnection != nil) {
+         [dbusConnection dispatch];
+     }
 
     NS_HANDLER
      [self reportException:localException];

@@ -52,7 +52,7 @@
 - (NSString *) path;
 - (BOOL) setPath: (const char *)path;
 - (int) type;
-- (BOOL) appendArg:(long long)value type:(int)type;
+- (BOOL) appendArg:(const void *)value type:(int)type;
 
 - (DBusMessage *) _getMessage;
 @end

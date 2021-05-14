@@ -1,27 +1,36 @@
-#include <stdio.h>
-#import <DBusKit/DKConnection.h>
-#import <DBusKit/DKMenu.h>
+#import <AppKit/AppKit.h>
 
 int main(int argc, const char *argv[])
 {
-	printf("Hello\n");
-	@autoreleasepool {
-		DKConnection *conn = [DKConnection new];
+    __NSInitializeProcess(argc, argv);
 
-		// DKMessage *message = [[DKMessage alloc] initMethodCall:"Introspect" interface:"org.freedesktop.DBus.Introspectable" path:"/com/canonical/AppMenu/Registrar" destination:"com.canonical.AppMenu.Registrar"];
-		DKMenu *menuHandler = [[[DKMenu alloc] initWithConnection: conn] autorelease];
-		if([menuHandler registerWindow: 12345 objectPath:@"/Menu/Bar/2"] == YES) {
-			printf("registered\n");
-		}
+	NSString *appName = [[NSProcessInfo processInfo] processName];
+    NSAutoreleasePool *pool = [NSAutoreleasePool new];
 
-		NSString *foo = [menuHandler getMenuForWindow: 12345];
-		if(foo != nil)
-			printf("%s\n", [foo UTF8String]);
+	NSBundle *main = [[NSBundle mainBundle] autorelease];
+    [NSApplication sharedApplication];
 
-		if([menuHandler unregisterWindow: 12345] == YES) {
-			printf("unregistered\n");
-		}
-	}
-	return 0;
+	NSMenu *menubar = [[NSMenu new] autorelease];
+	NSMenuItem *appMenuItem = [[NSMenuItem new] autorelease];
+	[menubar addItem:appMenuItem];
+	[appMenuItem setTitle:appName];
+
+	NSMenu *appMenu = [[NSMenu new] autorelease];
+	NSMenuItem *quitMenuItem = [[[NSMenuItem alloc] initWithTitle:@"Quit"
+		action:@selector(terminate:) keyEquivalent:@"q"] autorelease];
+	[appMenu addItem:quitMenuItem];
+
+	[appMenuItem setSubmenu:appMenu];
+	[NSApp setMainMenu:menubar];
+
+    NSRect rect = NSMakeRect(0,0,400,240);
+    NSWindow *window = [[[NSWindow alloc] initWithContentRect:rect 
+        styleMask:NSTitledWindowMask backing:NSBackingStoreBuffered defer:NO] autorelease];
+    [window cascadeTopLeftFromPoint:NSMakePoint(10,10)];
+    [window setTitle:appName];
+    [window makeKeyAndOrderFront:nil];
+    [window display];
+
+    [NSApp run];
+    return 0;
 }
-

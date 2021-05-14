@@ -103,6 +103,10 @@ static DBusHandlerResult DBusKit_Message_Callback(DBusConnection *connection, DB
     return dbus_connection_read_write(_DBusConnection, timeout);
 }
  
+- (DBusDispatchStatus) dispatch {
+    return dbus_connection_dispatch(_DBusConnection);
+}
+
 - (void) unregisterFunction {
     NSLog(@"Default unregisterFunction called");
 }

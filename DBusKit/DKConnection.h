@@ -46,6 +46,7 @@
 - (DKMessage *) sendWithReplyAndBlock: (DKMessage *)msg;
 - (void) flush;
 - (BOOL) readWrite: (int32_t)timeout;
+- (DBusDispatchStatus) dispatch;
 
 - (void) unregisterFunction;
 - (DBusHandlerResult) messageFunction: (DKMessage *)msg;

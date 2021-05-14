@@ -105,10 +105,9 @@
     return dbus_message_get_type(_message);
 }
 
-- (BOOL) appendArg:(long long)value type:(int)type {
+- (BOOL) appendArg:(const void *)value type:(int)type {
     return dbus_message_append_args(_message, type, value, DBUS_TYPE_INVALID);
 }
-
 
 - (DBusMessage *) _getMessage {
     return _message;
