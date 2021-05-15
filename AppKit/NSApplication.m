@@ -134,7 +134,9 @@ id NSApp=nil;
    _lock=NSZoneMalloc(NULL,sizeof(pthread_mutex_t));
 
    dbusConnection = [DKConnection new];
-   if([dbusConnection isConnected] == NO) {
+   if([dbusConnection isConnected] == YES) {
+      dbusMenu = [[DKMenu alloc] initWithConnection:dbusConnection];
+   } else {
       [dbusConnection release];
       dbusConnection = nil;
    }
@@ -544,7 +546,8 @@ id NSApp=nil;
         if(check==_mainWindow) {
             [self _setMainWindow:nil];
         }
-      
+
+     [dbusMenu unregisterWindow:[[check platformWindow] windowHandle]]; 
      [_windows removeObjectAtIndex:count];
    }
 }
@@ -592,9 +595,9 @@ id NSApp=nil;
        pool = [NSAutoreleasePool new];
        NSEvent           *event;
 
-    if(dbusConnection != nil) {
-       [dbusConnection readWrite: 10]; // wait up to 10ms for any events
-    }
+      if(dbusConnection != nil) {
+         [dbusConnection readWrite: 10]; // wait up to 10ms for any events
+      }
 
     event=[self nextEventMatchingMask:NSAnyEventMask untilDate:[NSDate distantFuture] inMode:NSDefaultRunLoopMode dequeue:YES];
 
@@ -1286,6 +1289,9 @@ standardAboutPanel] retain];
 
 -(void)_addWindow:(NSWindow *)window {
    [_windows addObject:window];
+
+   // FIXME track if window is registered and do updatelayout 
+   [dbusMenu registerWindow:[[window platformWindow] windowHandle]];
 }
 
 -(void)_windowWillBecomeActive:(NSWindow *)window {

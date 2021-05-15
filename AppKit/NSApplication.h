@@ -10,7 +10,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <AppKit/AppKitExport.h>
 #import <AppKit/NSGraphics.h>
 
-@class NSWindow, NSImage, NSMenu, NSPasteboard, NSDisplay, NSDockTile, DKConnection;
+@class NSWindow, NSImage, NSMenu, NSPasteboard, NSDisplay, NSDockTile, DKConnection, DKMenu;
 
 APPKIT_EXPORT NSString *const NSModalPanelRunLoopMode;
 APPKIT_EXPORT NSString *const NSEventTrackingRunLoopMode;
@@ -92,6 +92,7 @@ typedef enum {
     NSMutableArray *_orderedWindows; // get rid of
     NSTimer *_attentionTimer;
     DKConnection *dbusConnection;
+    DKMenu *dbusMenu;
 }
 
 + (NSApplication *)sharedApplication;

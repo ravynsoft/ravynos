@@ -55,14 +55,9 @@ id NSAllocateObject(Class class, NSUInteger extraBytes, NSZone *zone)
     }
 
 #if defined(__HELIUM__)
-    int size = class_getInstanceSize(class) + extraBytes + sizeof(uintptr_t);
-    result = NSZoneMalloc(zone, size);
+    // FIXME: make this support Zones
+    result = class_createInstance(class, extraBytes);
     if(result != nil) {
-	memset(result, 0, size);
-	*(uintptr_t*)result = -1;
-	result = (id)((uintptr_t)result+sizeof(uintptr_t));
-	object_setClass(result, class);
-
         if (__NSAllocateObjectHook) {
             __NSAllocateObjectHook(result);
         }

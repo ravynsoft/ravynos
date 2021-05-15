@@ -30,7 +30,7 @@
 static const char *REGISTRAR_INTERFACE = "com.canonical.AppMenu.Registrar";
 static const char *REGISTRAR_PATH = "/com/canonical/AppMenu/Registrar";
 static const char *DBUSMENU_INTERFACE = "com.canonical.dbusmenu";
-static const char *DBUSMENU_PATH = "/net/pixin/helium/DKMenu";
+static NSString *DBUSMENU_PATH = @"/net/pixin/helium/MenuBar";
 
 @implementation DKMenu
 - initWithConnection: (DKConnection *)conn {
@@ -49,6 +49,10 @@ static const char *DBUSMENU_PATH = "/net/pixin/helium/DKMenu";
         return NO;
     }
     return YES;
+}
+
+- (BOOL) registerWindow: (uint32_t)windowID {
+    return [self registerWindow:windowID objectPath:DBUSMENU_PATH];
 }
 
 - (BOOL) unregisterWindow: (uint32_t)windowID {
