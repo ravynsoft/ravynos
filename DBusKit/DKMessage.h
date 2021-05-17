@@ -34,12 +34,14 @@
 
 @interface DKMessage: NSObject {
     DBusMessage *_message;
+    BOOL _unrefOnRelease;
 }
 
 - (id)initMethodCall: (const char *)method interface:(const char *)iface path:(const char *)path destination:(const char *)dest;
 - (id)initReply: (DKMessage *)methodCall;
 - (id)initSignal: (const char *)name interface:(const char *)iface path:(const char *)path;
 - (id)initWithMessage: (DBusMessage *)msg;
+- (void)setUnrefOnRelease: (BOOL)value;
 - (oneway void) release;
 - (NSString *) argsAsString;
 - (NSString *) destination;

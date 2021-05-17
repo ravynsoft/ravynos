@@ -139,6 +139,7 @@ id NSApp=nil;
    } else {
       [dbusConnection release];
       dbusConnection = nil;
+      dbusMenu = nil;
    }
 
    pthread_mutex_init(_lock,NULL);
@@ -349,6 +350,9 @@ id NSApp=nil;
     if(![window isKindOfClass:[NSPanel class]])
      [window setMenu:_mainMenu];
    }
+
+   [dbusMenu layoutDidUpdate];
+   [dbusMenu itemPropertiesDidUpdate];
 }
 
 -(void)setMenu:(NSMenu *)menu {
@@ -590,22 +594,18 @@ id NSApp=nil;
     [self finishLaunching];
     [pool release];
   }
+
+  [dbusConnection performSelectorInBackground:@selector(run) withObject:nil];
    
    do {
        pool = [NSAutoreleasePool new];
        NSEvent           *event;
 
-      if(dbusConnection != nil) {
-         [dbusConnection readWrite: 10]; // wait up to 10ms for any events
-      }
 
     event=[self nextEventMatchingMask:NSAnyEventMask untilDate:[NSDate distantFuture] inMode:NSDefaultRunLoopMode dequeue:YES];
 
     NS_DURING
      [self sendEvent:event];
-     if(dbusConnection != nil) {
-         [dbusConnection dispatch];
-     }
 
     NS_HANDLER
      [self reportException:localException];
@@ -616,6 +616,9 @@ id NSApp=nil;
 
     [pool release];
    }while(_isRunning);
+   [dbusConnection stop];
+   [dbusMenu release];
+   [dbusConnection release];
 }
 
 -(BOOL)_performKeyEquivalent:(NSEvent *)event {
@@ -1127,6 +1130,10 @@ id NSApp=nil;
   [[NSDocumentController sharedDocumentController] closeAllDocumentsWithDelegate:self 
                                                              didCloseAllSelector:@selector(_documentController:didCloseAll:contextInfo:)
                                                                      contextInfo:NULL];
+   if(dbusConnection != nil) {
+      [dbusMenu release];
+      [dbusConnection release];
+   }
 }
 
 -(void)_documentController:(NSDocumentController *)docController didCloseAll:(BOOL)didCloseAll contextInfo:(void *)info

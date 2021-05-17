@@ -41,27 +41,48 @@ static DBusHandlerResult DBusKit_Message_Callback(DBusConnection *connection, DB
 @implementation DKConnection
 
 - init {
+    _vtable.unregister_function = DBusKit_Unregister_Callback;
+    _vtable.message_function = DBusKit_Message_Callback;
+    _running = NO;
     _DBusConnection = dbus_bus_get(DBUS_BUS_SESSION, NULL);
     if(_DBusConnection == NULL) {
         NSLog(@"Cannot connect to session bus!");
     } else {
         dbus_connection_set_exit_on_disconnect(_DBusConnection, FALSE);
-        const char *name = dbus_bus_get_unique_name(_DBusConnection);
+        _name = [NSString stringWithCString:dbus_bus_get_unique_name(_DBusConnection)];
+        NSLog(@"%@ is %@ on the bus",self,_name);
     }
 
     return [self autorelease];
 }
 
 - (oneway void) release {
+    [self stop];
+    NSLog(@"%@ releasing refcount=%d\n",self,[self retainCount]);
     int refcount = [self retainCount];
     if((_DBusConnection != NULL) && (refcount <= 0)) {
+        NSLog(@"%@ unref DBUS connection\n",self);
         dbus_connection_unref(_DBusConnection);
     }
 }
 
+- (NSString *)name {
+    return _name;
+}
+
+- (void) run {
+    _running = YES;
+    while(_running) {
+        [self readWrite: 100]; // wait up to 10ms for any events
+        [self dispatch];
+    }
+}
+
+- (void) stop {
+    _running = NO;
+}
+
 - (BOOL) registerObjectPath:(NSString *)path {
-    _vtable.unregister_function = DBusKit_Unregister_Callback;
-    _vtable.message_function = DBusKit_Message_Callback;
     return dbus_connection_register_object_path(_DBusConnection, [path UTF8String], &_vtable, (void *)self);
 }
 
@@ -102,6 +123,10 @@ static DBusHandlerResult DBusKit_Message_Callback(DBusConnection *connection, DB
 - (BOOL) readWrite: (int32_t)timeout {
     return dbus_connection_read_write(_DBusConnection, timeout);
 }
+
+- (BOOL) readWrite {
+    return [self readWrite:10];
+}
  
 - (DBusDispatchStatus) dispatch {
     return dbus_connection_dispatch(_DBusConnection);
@@ -113,6 +138,7 @@ static DBusHandlerResult DBusKit_Message_Callback(DBusConnection *connection, DB
 
 - (DBusHandlerResult) messageFunction:(DKMessage *)msg  {
     NSLog(@"Default messageFunction called");
+    [msg setUnrefOnRelease:NO];
     return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 }
 

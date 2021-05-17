@@ -27,8 +27,15 @@
 
 @implementation DKMessage
 
+- init {
+    [super init];
+    _unrefOnRelease = YES;
+    return self;
+}
+
 - initMethodCall: (const char *)method interface:(const char *)iface path:(const char *)path destination:(const char *)dest {
     _message = dbus_message_new_method_call(dest, path, iface, method);
+    NSLog(@"%@ initMethodCall, refcount=%d",self,[self retainCount]);
     return [self autorelease];
 }
 
@@ -39,6 +46,7 @@
 
 - initSignal: (const char *)name interface:(const char *)iface path:(const char *)path {
     _message = dbus_message_new_signal(path, iface, name);
+    NSLog(@"%@ initSignal, refcount=%d",self,[self retainCount]);
     return [self autorelease];
 }
 
@@ -47,8 +55,14 @@
     return [self autorelease];
 }
 
+- (void)setUnrefOnRelease: (BOOL)value {
+    _unrefOnRelease=value;
+}
+
 - (oneway void) release {
-    dbus_message_unref(_message);
+    NSLog(@"%@ releasing, refcount=%d",self,[self retainCount]);
+    if(_unrefOnRelease)
+        dbus_message_unref(_message);
 }
 
 - (NSString *) argsAsString {

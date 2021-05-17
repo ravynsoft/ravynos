@@ -28,6 +28,9 @@
 
 @interface DKMenu: NSObject {
     DKConnection *connection;
+    uint32_t layoutVersion;
+    BOOL _pathWasRegistered;
+    NSString *objectPath;
 }
 
 - initWithConnection: (DKConnection *)conn;

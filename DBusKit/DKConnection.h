@@ -34,9 +34,12 @@
 @interface DKConnection: NSObject {
     DBusConnection *_DBusConnection;
     DBusObjectPathVTable _vtable;
+    NSString *_name; // our name on the bus
+    BOOL _running; // running in thread?
 }
 
 - init;
+- (NSString *)name;
 - (BOOL) registerObjectPath: (NSString *)path;
 - (BOOL) unregisterObjectPath: (NSString *)path;
 - (BOOL) isConnected;
