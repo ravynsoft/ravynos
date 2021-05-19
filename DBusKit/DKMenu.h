@@ -30,11 +30,17 @@
     DKConnection *connection;
     uint32_t layoutVersion;
     BOOL _pathWasRegistered;
-    NSString *objectPath;
+    NSString *menuObjectPath;
 }
 
 - initWithConnection: (DKConnection *)conn;
+- (NSString *)objectPath;
 - (BOOL) registerWindow: (uint32_t)windowID objectPath: (NSString *)path;
+- (BOOL) registerWindow: (uint32_t)windowID;
 - (BOOL) unregisterWindow: (uint32_t)windowID;
 - (NSString *) getMenuForWindow: (uint32_t)windowID;
+- (void) getLayout: (DKMessage *)message;
+- (void) layoutDidUpdate;
+- (void) itemPropertiesDidUpdate;
 @end
+

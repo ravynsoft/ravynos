@@ -23,12 +23,13 @@
 #             `-- sample.txt
 
 APP=CocoaDemo
-SRCS=bar.m MyView.m
+SRCS=main.m MyView.m
 MK_DEBUG_FILES=no
 RESOURCES=rsc helium.jpg CocoaDemo.png
 SLF=/System/Library/Frameworks
-FRAMEWORKS=${SLF}/AppKit ${SLF}/CoreGraphics ${SLF}/Onyx2D ${SLF}/OpenGL \
-	${SLF}/Foundation ${SLF}/CoreFoundation
+ZF=/Users/zoe/helium
+FRAMEWORKS=${ZF}/AppKit/AppKit ${SLF}/CoreGraphics ${SLF}/Onyx2D ${SLF}/OpenGL \
+	${ZF}/Foundation/Foundation ${SLF}/CoreFoundation ${ZF}/DBusKit/DBusKit
 LDFLAGS+=-L/usr/local/lib -lGL
 
 build: all

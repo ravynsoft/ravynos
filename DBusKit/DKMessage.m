@@ -35,23 +35,25 @@
 
 - initMethodCall: (const char *)method interface:(const char *)iface path:(const char *)path destination:(const char *)dest {
     _message = dbus_message_new_method_call(dest, path, iface, method);
-    NSLog(@"%@ initMethodCall, refcount=%d",self,[self retainCount]);
+    // NSLog(@"%@ initMethodCall, refcount=%d",self,[self retainCount]);
     return [self autorelease];
 }
 
 - initReply: (DKMessage *)methodCall {
     _message = dbus_message_new_method_return([methodCall _getMessage]);
+    // NSLog(@"%@ initReply, refcount=%d",self,[self retainCount]);
     return [self autorelease];
 }
 
 - initSignal: (const char *)name interface:(const char *)iface path:(const char *)path {
     _message = dbus_message_new_signal(path, iface, name);
-    NSLog(@"%@ initSignal, refcount=%d",self,[self retainCount]);
+    // NSLog(@"%@ initSignal, refcount=%d",self,[self retainCount]);
     return [self autorelease];
 }
 
 - initWithMessage: (DBusMessage *)msg {
     _message = msg;
+    // NSLog(@"%@ initWithMessage, refcount=%d",self,[self retainCount]);
     return [self autorelease];
 }
 
@@ -60,7 +62,7 @@
 }
 
 - (oneway void) release {
-    NSLog(@"%@ releasing, refcount=%d",self,[self retainCount]);
+    // NSLog(@"%@ releasing, refcount=%d",self,[self retainCount]);
     if(_unrefOnRelease)
         dbus_message_unref(_message);
 }
@@ -115,6 +117,12 @@
     return dbus_message_set_path(_message, path);
 }
 
+- (NSString *) signature {
+    const char *result = dbus_message_get_signature(_message);
+    if(result == NULL) return nil;
+    return [[NSString stringWithCString:result] autorelease];
+}
+
 - (int) type {
     return dbus_message_get_type(_message);
 }
@@ -125,6 +133,12 @@
 
 - (DBusMessage *) _getMessage {
     return _message;
+}
+
+- (NSString *)description {
+    return [NSString stringWithFormat:@"<%@ 0x%08x> type:%d dest:%@ iface:%@ path:%@ member:%@",
+        [self class], self, [self type], [self destination], [self interface],
+        [self path], [self member]];
 }
 
 @end

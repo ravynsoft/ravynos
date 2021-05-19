@@ -29,6 +29,7 @@
 #endif
 
 #import <Foundation/NSObject.h>
+#import <Foundation/NSMutableDictionary.h>
 #import "DKMessage.h"
 
 @interface DKConnection: NSObject {
@@ -36,6 +37,7 @@
     DBusObjectPathVTable _vtable;
     NSString *_name; // our name on the bus
     BOOL _running; // running in thread?
+    NSMutableDictionary *messageHandlers;
 }
 
 - init;
@@ -50,6 +52,8 @@
 - (void) flush;
 - (BOOL) readWrite: (int32_t)timeout;
 - (DBusDispatchStatus) dispatch;
+- (void) registerHandlerForInterface:(id)handler interface:(NSString *)iface;
+- (void) unregisterHandlerForInterface:(NSString *)iface;
 
 - (void) unregisterFunction;
 - (DBusHandlerResult) messageFunction: (DKMessage *)msg;

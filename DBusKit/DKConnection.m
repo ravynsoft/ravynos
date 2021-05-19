@@ -26,6 +26,8 @@
 #import "DKConnection.h"
 #import <Foundation/NSString.h>
 
+#include <stdio.h>
+
 static void DBusKit_Unregister_Callback(DBusConnection *connection, void *user_data) {
     DKConnection *self = (DKConnection *)user_data;
     [self unregisterFunction];
@@ -44,13 +46,16 @@ static DBusHandlerResult DBusKit_Message_Callback(DBusConnection *connection, DB
     _vtable.unregister_function = DBusKit_Unregister_Callback;
     _vtable.message_function = DBusKit_Message_Callback;
     _running = NO;
+    messageHandlers = [NSMutableDictionary dictionaryWithCapacity: 5];
+
     _DBusConnection = dbus_bus_get(DBUS_BUS_SESSION, NULL);
     if(_DBusConnection == NULL) {
         NSLog(@"Cannot connect to session bus!");
+        // FIXME: should it terminate here?
     } else {
         dbus_connection_set_exit_on_disconnect(_DBusConnection, FALSE);
         _name = [NSString stringWithCString:dbus_bus_get_unique_name(_DBusConnection)];
-        NSLog(@"%@ is %@ on the bus",self,_name);
+        // NSLog(@"%@ is %@ on the bus",self,_name);
     }
 
     return [self autorelease];
@@ -58,12 +63,13 @@ static DBusHandlerResult DBusKit_Message_Callback(DBusConnection *connection, DB
 
 - (oneway void) release {
     [self stop];
-    NSLog(@"%@ releasing refcount=%d\n",self,[self retainCount]);
+    // NSLog(@"%@ releasing refcount=%d\n",self,[self retainCount]);
     int refcount = [self retainCount];
     if((_DBusConnection != NULL) && (refcount <= 0)) {
-        NSLog(@"%@ unref DBUS connection\n",self);
+        // NSLog(@"%@ unref DBUS connection\n",self);
         dbus_connection_unref(_DBusConnection);
     }
+    [messageHandlers release];
 }
 
 - (NSString *)name {
@@ -73,7 +79,7 @@ static DBusHandlerResult DBusKit_Message_Callback(DBusConnection *connection, DB
 - (void) run {
     _running = YES;
     while(_running) {
-        [self readWrite: 100]; // wait up to 10ms for any events
+        [self readWrite: 10]; // wait up to 10ms for any events
         [self dispatch];
     }
 }
@@ -133,12 +139,26 @@ static DBusHandlerResult DBusKit_Message_Callback(DBusConnection *connection, DB
 }
 
 - (void) unregisterFunction {
-    NSLog(@"Default unregisterFunction called");
+}
+
+- (void) registerHandlerForInterface:(id)handler interface:(NSString *)iface {
+    [messageHandlers setObject:handler forKey:iface];
+}
+
+- (void) unregisterHandlerForInterface:(NSString *)iface {
+    [messageHandlers removeObjectForKey:iface];
 }
 
 - (DBusHandlerResult) messageFunction:(DKMessage *)msg  {
-    NSLog(@"Default messageFunction called");
+    fprintf(stderr, "message function called\n");
     [msg setUnrefOnRelease:NO];
+
+    NSString *interface = [msg interface];
+    id handlerForInterface = [messageHandlers objectForKey:interface];
+    if(handlerForInterface) {
+        return [handlerForInterface messageFunction:msg];
+    }
+
     return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 }
 

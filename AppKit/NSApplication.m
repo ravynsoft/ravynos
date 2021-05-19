@@ -551,7 +551,7 @@ id NSApp=nil;
             [self _setMainWindow:nil];
         }
 
-     [dbusMenu unregisterWindow:[[check platformWindow] windowHandle]]; 
+     [dbusMenu unregisterWindow:[check windowNumber]]; 
      [_windows removeObjectAtIndex:count];
    }
 }
@@ -1297,8 +1297,13 @@ standardAboutPanel] retain];
 -(void)_addWindow:(NSWindow *)window {
    [_windows addObject:window];
 
-   // FIXME track if window is registered and do updatelayout 
-   [dbusMenu registerWindow:[[window platformWindow] windowHandle]];
+   // Apply the properties needed by hello menubar & register window. See:
+   // https://github.com/helloSystem/Menu/blob/actionsearch/src/appmenu/appmenumodel.cpp
+   if(dbusConnection != nil) {
+       [[window platformWindow] setProperty:@"_KDE_NET_WM_APPMENU_SERVICE_NAME" toValue:[dbusConnection name]];
+       [[window platformWindow] setProperty:@"_KDE_NET_WM_APPMENU_OBJECT_PATH" toValue:[dbusMenu objectPath]];
+       [dbusMenu registerWindow:[window windowNumber]];
+   }
 }
 
 -(void)_windowWillBecomeActive:(NSWindow *)window {

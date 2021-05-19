@@ -227,6 +227,16 @@ void CGNativeBorderFrameWidthsForStyle(unsigned styleMask,CGFloat *top,CGFloat *
    XSetWMName(_display, _window, &prop);
 }
 
+-(BOOL)setProperty:(NSString *)property toValue:(NSString *)value {
+   if(XChangeProperty(_display, _window, 
+     XInternAtom (_display, [property UTF8String], False),
+     XInternAtom (_display, "STRING", False), 8,
+     PropModeReplace, (const unsigned char *)[value UTF8String],
+     [value length]))
+       return NO;
+   return YES;
+}
+
 -(void)setFrame:(O2Rect)frame {
    frame=[self transformFrame:frame];
    XMoveResizeWindow(_display, _window, frame.origin.x, frame.origin.y, frame.size.width, frame.size.height);

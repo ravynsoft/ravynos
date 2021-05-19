@@ -5,7 +5,6 @@ int main(int argc, const char *argv[])
 {
     __NSInitializeProcess(argc, argv);
 
-	NSLog(@"Hello from Bar.app");
 	NSString *appName = [[NSProcessInfo processInfo] processName];
     NSAutoreleasePool *pool = [NSAutoreleasePool new];
 
@@ -15,7 +14,6 @@ int main(int argc, const char *argv[])
 	NSFileManager *fm = [[NSFileManager defaultManager] autorelease];
 	NSString *text = [[[NSString alloc] initWithData:[fm contentsAtPath:path]
 		encoding:NSASCIIStringEncoding] autorelease];
-	NSLog(@"%s", [text UTF8String]);
 
     [NSApplication sharedApplication];
 

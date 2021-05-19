@@ -53,6 +53,7 @@
 - (void) setReplyExpected: (BOOL)expected;
 - (NSString *) path;
 - (BOOL) setPath: (const char *)path;
+- (NSString *) signature;
 - (int) type;
 - (BOOL) appendArg:(const void *)value type:(int)type;
 

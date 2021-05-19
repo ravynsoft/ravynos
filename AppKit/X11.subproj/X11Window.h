@@ -38,6 +38,7 @@
 - (Drawable)drawable;
 - (NSPoint)transformPoint:(NSPoint)pos;
 - (O2Rect)transformFrame:(O2Rect)frame;
+- (BOOL)setProperty:(NSString *)property toValue:(NSString *)value;
 
 - (Window)windowHandle;
 
