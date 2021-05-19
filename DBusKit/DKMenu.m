@@ -37,15 +37,17 @@ static NSString *DBUSMENU_PATH = @"/net/pixin/Helium/MenuBar";
 - initWithConnection: (DKConnection *)conn {
     connection = conn;
     layoutVersion = 1;
-    menuObjectPath = DBUSMENU_PATH; //[NSString stringWithFormat:@"%@/%08x",DBUSMENU_PATH, NSPlatformThreadID()];
+
+    srandomdev();
+    menuObjectPath = [NSString stringWithFormat:@"%@/%08x",DBUSMENU_PATH, random()];
     fprintf(stderr, "menupath = %s\n",[menuObjectPath UTF8String]);
 
     [connection registerHandlerForInterface:self interface:DBUSMENU_INTERFACE];
-    _pathWasRegistered = [connection registerObjectPath:DBUSMENU_PATH];
+    _pathWasRegistered = [connection registerObjectPath:menuObjectPath];
     if(! _pathWasRegistered) {
-        [connection unregisterObjectPath:DBUSMENU_PATH];
+        [connection unregisterObjectPath:menuObjectPath];
         NSLog(@"%@ Attemping to take over stale registration",self);
-        _pathWasRegistered = [connection registerObjectPath:DBUSMENU_PATH];
+        _pathWasRegistered = [connection registerObjectPath:menuObjectPath];
         if(! _pathWasRegistered) {
             NSLog(@"%@ cannot register object path for menus!",self);
         }
@@ -56,17 +58,17 @@ static NSString *DBUSMENU_PATH = @"/net/pixin/Helium/MenuBar";
 - (oneway void) release {
     [connection unregisterHandlerForInterface:DBUSMENU_INTERFACE];
     if(_pathWasRegistered) {
-        [connection unregisterObjectPath:DBUSMENU_PATH];
+        [connection unregisterObjectPath:menuObjectPath];
         [connection flush];
         _pathWasRegistered = NO;
     }
 }
 
 - (DBusHandlerResult) messageFunction: (DKMessage *)msg {
-    fprintf(stderr, "%08x messageFunction for %s called\n",self,[DBUSMENU_INTERFACE UTF8String]);
     NSString *member = [msg member];
     NSString *signature = [msg signature];
 
+    fprintf(stderr, "%08x messageFunction interface = %s ",self,[DBUSMENU_INTERFACE UTF8String]);
     fprintf(stderr, "member = %s, signature = %s\n",[member UTF8String],[signature UTF8String]);
 
     if([member isEqualToString:@"GetLayout"] && [signature isEqualToString:@"iias"]) {
