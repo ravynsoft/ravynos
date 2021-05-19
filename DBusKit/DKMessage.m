@@ -141,4 +141,41 @@
         [self path], [self member]];
 }
 
+- (DKMessageIterator *)appendIterator {
+    return [[DKMessageIterator alloc] init:self];
+}
+
+@end
+
+@implementation DKMessageIterator
+
+- init:(DKMessage *)message {
+    dbus_message_iter_init_append([message _getMessage], &child);
+    parent = NULL;
+    return self;
+}
+
+- (DKMessageIterator *) openStruct {
+    DKMessageIterator *iter = [DKMessageIterator alloc];
+    iter->parent = &child;
+    dbus_message_iter_open_container(iter->parent, DBUS_TYPE_STRUCT, NULL, &iter->child);
+    return iter;
+}
+
+- (DKMessageIterator *) openArray: (const char *)containedSignature {
+
+}
+- (void) appendDictEntry: (NSString *)key value: (const void *)value {
+
+}
+
+- (void) appendString:(NSString *)string {
+    const char *s = [string UTF8String];
+    dbus_message_iter_append_basic(&child, DBUS_TYPE_STRING, &s);
+}
+
+- (void) close {
+    dbus_message_iter_close_container(parent, &child);
+}
+
 @end

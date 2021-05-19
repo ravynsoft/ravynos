@@ -31,6 +31,17 @@
 #import <Foundation/NSObject.h>
 #import <Foundation/NSString.h>
 
+@class DKMessage;
+@interface DKMessageIterator: NSObject {
+    DBusMessageIter *parent;
+    DBusMessageIter child;
+}
+
+- init:(DKMessage *)message; // get the append iter for `message`
+- (DKMessageIterator *) openStruct;
+- (DKMessageIterator *) openArray: (const char *)containedSignature;
+- (void) appendDictEntry: (NSString *)key value: (const void *)value;
+@end
 
 @interface DKMessage: NSObject {
     DBusMessage *_message;
@@ -56,6 +67,8 @@
 - (NSString *) signature;
 - (int) type;
 - (BOOL) appendArg:(const void *)value type:(int)type;
+- (DKMessageIterator *)appendIterator;
 
 - (DBusMessage *) _getMessage;
 @end
+
