@@ -163,15 +163,55 @@
 }
 
 - (DKMessageIterator *) openArray: (const char *)containedSignature {
-
+    DKMessageIterator *iter = [DKMessageIterator alloc];
+    iter->parent = &child;
+    dbus_message_iter_open_container(iter->parent, DBUS_TYPE_ARRAY, containedSignature, &iter->child);
+    return iter;
 }
-- (void) appendDictEntry: (NSString *)key value: (const void *)value {
 
+- (DKMessageIterator *) openVariant: (const char *)containedSignature {
+    DKMessageIterator *iter = [DKMessageIterator alloc];
+    iter->parent = &child;
+    dbus_message_iter_open_container(iter->parent, DBUS_TYPE_VARIANT, containedSignature, &iter->child);
+    return iter;
+}
+
+- (void) appendDictEntry: (NSString *)key variantType: (int)type value: (const void *)value {
+    DKMessageIterator *iter = [DKMessageIterator alloc];
+    iter->parent = &child;
+    dbus_message_iter_open_container(iter->parent, DBUS_TYPE_DICT_ENTRY, NULL, &iter->child);
+    const char *s = [key UTF8String];
+    dbus_message_iter_append_basic(&iter->child, DBUS_TYPE_STRING, &s);
+    [iter appendVariant:type value:value];
+    dbus_message_iter_close_container(iter->parent, &iter->child);
+    [iter release];
+}
+
+- (void) appendVariant: (int)type value: (const void *)value {
+    const char *typeString = NULL;
+    switch(type) {
+        case DBUS_TYPE_STRING: typeString = DBUS_TYPE_STRING_AS_STRING; break;
+        case DBUS_TYPE_INT32: typeString = DBUS_TYPE_INT32_AS_STRING; break;
+        case DBUS_TYPE_UINT32: typeString = DBUS_TYPE_UINT32_AS_STRING; break;
+        case DBUS_TYPE_BOOLEAN: typeString = DBUS_TYPE_BOOLEAN_AS_STRING; break;
+        case DBUS_TYPE_OBJECT_PATH: typeString = DBUS_TYPE_OBJECT_PATH_AS_STRING; break;
+    }
+
+    DKMessageIterator *iter = [DKMessageIterator alloc];
+    iter->parent = &child;
+    dbus_message_iter_open_container(iter->parent, DBUS_TYPE_VARIANT, typeString, &iter->child);
+    dbus_message_iter_append_basic(&iter->child, type, value);
+    dbus_message_iter_close_container(iter->parent, &iter->child);
+    [iter release];
 }
 
 - (void) appendString:(NSString *)string {
     const char *s = [string UTF8String];
     dbus_message_iter_append_basic(&child, DBUS_TYPE_STRING, &s);
+}
+
+- (void) appendBasic: (int)type value: (const void *)value {
+    dbus_message_iter_append_basic(&child, type, value);
 }
 
 - (void) close {

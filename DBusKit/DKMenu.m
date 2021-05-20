@@ -138,58 +138,43 @@ static NSString *DBUSMENU_PATH = @"/net/pixin/Helium/MenuBar";
 
     [reply appendArg:&layoutVersion type:DBUS_TYPE_UINT32];
 
-    DBusMessageIter iter, subiter;
-    dbus_message_iter_init_append([reply _getMessage], &iter);
-    dbus_message_iter_open_container(&iter, DBUS_TYPE_STRUCT, NULL, &subiter);
-    dbus_message_iter_append_basic(&subiter, DBUS_TYPE_INT32, &rootID);
+    DKMessageIterator *rootIter = [reply appendIterator];
+    DKMessageIterator *outerStruct = [rootIter openStruct];
+    [outerStruct appendBasic:DBUS_TYPE_INT32 value:&rootID];
 
     // properties map for the root node
-    DBusMessageIter dictiter, dictentry, variant;
-    dbus_message_iter_open_container(&subiter, DBUS_TYPE_ARRAY, "{sv}", &dictiter);
-    dbus_message_iter_open_container(&dictiter, DBUS_TYPE_DICT_ENTRY, NULL, &dictentry);
-
-    const char *s = "children-display";
-    dbus_message_iter_append_basic(&dictentry, DBUS_TYPE_STRING, &s);
-    s = "submenu";
-    dbus_message_iter_open_container(&dictentry, DBUS_TYPE_VARIANT, DBUS_TYPE_STRING_AS_STRING, &variant);
-    dbus_message_iter_append_basic(&variant, DBUS_TYPE_STRING, &s);
-    dbus_message_iter_close_container(&dictentry, &variant);
-    dbus_message_iter_close_container(&dictiter, &dictentry);
-    dbus_message_iter_close_container(&subiter, &dictiter);
+    DKMessageIterator *properties = [outerStruct openArray:"{sv}"];
+    const char *s = "submenu";
+    [properties appendDictEntry:@"children-display" variantType:DBUS_TYPE_STRING value:&s];
+    [properties close];
+    [properties release];
 
     // menu entries as variant array
-    DBusMessageIter nested;
-    dbus_message_iter_open_container(&subiter, DBUS_TYPE_ARRAY, "v", &nested);
+    DKMessageIterator *menuItems = [outerStruct openArray:"v"];
+    DKMessageIterator *variant = [menuItems openVariant:"(ia{sv}av)"];
+    DKMessageIterator *innerStruct = [variant openStruct];
 
-    DBusMessageIter innerStruct, variant2;
-    dbus_message_iter_open_container(&nested, DBUS_TYPE_VARIANT, "(ia{sv}av)", &variant);
-    dbus_message_iter_open_container(&variant, DBUS_TYPE_STRUCT, NULL, &innerStruct);
     int32_t val = 20;
-    dbus_message_iter_append_basic(&innerStruct, DBUS_TYPE_INT32, &val);
-    dbus_message_iter_open_container(&innerStruct, DBUS_TYPE_ARRAY, "{sv}", &dictiter);
-    dbus_message_iter_open_container(&dictiter, DBUS_TYPE_DICT_ENTRY, NULL, &dictentry);
-    s = "label";
-    dbus_message_iter_append_basic(&dictentry, DBUS_TYPE_STRING, &s);
-    dbus_message_iter_open_container(&dictentry, DBUS_TYPE_VARIANT, DBUS_TYPE_STRING_AS_STRING, &variant2);
+    [innerStruct appendBasic:DBUS_TYPE_INT32 value:&val];
+    properties = [innerStruct openArray:"{sv}"];
     s = "CocoaDemo";
-    dbus_message_iter_append_basic(&variant2, DBUS_TYPE_STRING, &s);
-    dbus_message_iter_close_container(&dictentry, &variant2);
-    dbus_message_iter_close_container(&dictiter, &dictentry);
-    dbus_message_iter_close_container(&innerStruct, &dictiter);
+    [properties appendDictEntry:@"label" variantType:DBUS_TYPE_STRING value:&s];
+    [properties close];
+    [properties release];
 
-    // empty child node array
-    dbus_message_iter_open_container(&innerStruct, DBUS_TYPE_ARRAY, DBUS_TYPE_VARIANT_AS_STRING, &dictiter);
-    dbus_message_iter_close_container(&innerStruct, &dictiter);
+    // child items as variant array
+    properties = [innerStruct openArray:"v"];
+    [properties close];
+    [properties release];
 
-    // close struct and variant wrapper
-    dbus_message_iter_close_container(&variant, &innerStruct);
-    dbus_message_iter_close_container(&nested, &variant);
-
-    // close variant array
-    dbus_message_iter_close_container(&subiter, &nested);
-
-    // close outer struct
-    dbus_message_iter_close_container(&iter, &subiter);
+    [innerStruct close];
+    [innerStruct release];
+    [variant close];
+    [variant release];
+    [menuItems close];
+    [menuItems release];
+    [outerStruct close];
+    [outerStruct release];
 
     [connection send:reply];
 }

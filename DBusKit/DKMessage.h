@@ -40,7 +40,12 @@
 - init:(DKMessage *)message; // get the append iter for `message`
 - (DKMessageIterator *) openStruct;
 - (DKMessageIterator *) openArray: (const char *)containedSignature;
-- (void) appendDictEntry: (NSString *)key value: (const void *)value;
+- (DKMessageIterator *) openVariant: (const char *)containedSignature;
+- (void) appendDictEntry: (NSString *)key variantType: (int)type value: (const void *)value;
+- (void) appendVariant: (int)type value: (const void *)value;
+- (void) appendString:(NSString *)string;
+- (void) appendBasic: (int)type value: (const void *)value;
+- (void) close;
 @end
 
 @interface DKMessage: NSObject {
@@ -71,4 +76,3 @@
 
 - (DBusMessage *) _getMessage;
 @end
-
