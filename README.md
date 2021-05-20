@@ -1,3 +1,20 @@
+*****
+# IMPORTANT NOTICE!
+May 19 2021
+
+*The name of this project will be changing from Helium to Airyx on May 22.*
+
+I had misgivings about using such a common name but went with it because I couldn't think of a better one at the time (and it fit my theme of projects named after elements) :)
+
+Frankly, there are a lot of "Helium"s out there and the most notable that I found is the crypto blockchain and wireless network by the folks who own helium.com. So to avoid confusion and before we go too far down the Helium road, I am changing the project to its new identity: Airyx. Links to the old name here on GitHub should still work but please update.
+
+Like Helium, a light and stable element, I hope the new name conveys a similar sense of airy stability and lightness. I'll be making all the branding changes over the next few days and getting the new domains/websites set up.
+
+Thanks for your patience!
+
+@mszoek
+*****
+
 # What is Helium?
 
 Helium is a new open source OS project that aims to provide a similar experience and some compatibiilty with macOS on x86-64 sytems. It will build on the solid foundations of FreeBSD, existing open source packages in the same space, and new code to fill the gaps.
