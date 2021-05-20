@@ -17,11 +17,11 @@ fi
 VER=$(uname -r | cut -d "-" -f 1) # "12.2" or "13.0"
 MAJOR=$(uname -r | cut -d "." -f 1) # "12" or "13"
 
-if [ -z "${HELIUM}" ]; then
-	HELIUM=$(pwd)/../helium
+if [ -z "${AIRYX}" ]; then
+	AIRYX=$(pwd)/../airyx
 fi
-HELIUMPKG=${HELIUM}/freebsd-src/release
-HELIUMVER=$(head -1 ${HELIUM}/version)
+AIRYXPKG=${AIRYX}/freebsd-src/release
+AIRYXVER=$(head -1 ${AIRYX}/version)
 
 # Dwnload from either https://download.freebsd.org/ftp/releases/
 #                  or https://download.freebsd.org/ftp/snapshots/
@@ -63,7 +63,7 @@ export cdroot="${livecd}/cdroot"
 ramdisk_root="${cdroot}/data/ramdisk"
 vol="furybsd"
 label="LIVE"
-export DISTRIBUTIONS="kernel.txz base.txz helium.txz"
+export DISTRIBUTIONS="kernel.txz base.txz airyx.txz"
 
 # Only run as superuser
 if [ "$(id -u)" != "0" ]; then
@@ -127,7 +127,7 @@ if [ "${desktop}" = "hello" ] ; then
       isopath="${iso}/${desktop}-${HELLO_VERSION}_${BUILDNUMBER}-FreeBSD-${VER}-${arch}.iso"
     else
       #isopath="${iso}/${desktop}-${HELLO_VERSION}_git${SHA}-FreeBSD-${VER}-${arch}.iso"
-      isopath="${HELIUM}/dist/${tag}-F${VER}_h${HELLO_VERSION}-${arch}.iso"
+      isopath="${AIRYX}/dist/${tag}-F${VER}_h${HELLO_VERSION}-${arch}.iso"
     fi
   fi
 fi
@@ -181,9 +181,9 @@ base()
   #  fetch https://download.freebsd.org/ftp/${FTPDIRECTORY}/${arch}/${version}/kernel.txz
   #fi
   cd ${base}
-  tar -zxvf ${HELIUMPKG}/base.txz -C ${uzip}
-  tar -zxvf ${HELIUMPKG}/kernel.txz -C ${uzip}
-  tar -zxvf ${HELIUMPKG}/helium.txz -C ${uzip}
+  tar -zxvf ${AIRYXPKG}/base.txz -C ${uzip}
+  tar -zxvf ${AIRYXPKG}/kernel.txz -C ${uzip}
+  tar -zxvf ${AIRYXPKG}/airyx.txz -C ${uzip}
   touch ${uzip}/etc/fstab
 }
 

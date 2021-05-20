@@ -20,9 +20,9 @@ fi
 
 set -x
 
-HELIUM_VERSION=$(head -1 /version)
-HELIUM_CODENAME=$(tail -1 /version)
-echo "Hello. This is Helium ${HELIUM_VERSION} (${HELIUM_CODENAME})" > /dev/tty
+AIRYX_VERSION=$(head -1 /version)
+AIRYX_CODENAME=$(tail -1 /version)
+echo "Hello. This is Airyx ${AIRYX_VERSION} (${AIRYX_CODENAME})" > /dev/tty
 
 echo "==> Ramdisk /init.sh running"
 
