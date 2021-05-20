@@ -33,6 +33,14 @@ static const char *REGISTRAR_PATH = "/com/canonical/AppMenu/Registrar";
 static NSString *DBUSMENU_INTERFACE = @"com.canonical.dbusmenu";
 static NSString *DBUSMENU_PATH = @"/net/pixin/Helium/MenuBar";
 
+struct _entry {
+    int32_t item;
+    const char *label;
+} entries[] = {
+    {20, "Menu 1"},
+    {21, "Menu 2"}
+};
+
 @implementation DKMenu
 - initWithConnection: (DKConnection *)conn {
     connection = conn;
@@ -133,7 +141,7 @@ static NSString *DBUSMENU_PATH = @"/net/pixin/Helium/MenuBar";
     int recursionDepth = -1;
 
     dbus_message_get_args([message _getMessage], NULL, DBUS_TYPE_INT32, &rootID, DBUS_TYPE_INT32, &recursionDepth, DBUS_TYPE_INVALID);
-    NSLog(@"getLayout called for %d with depth %d!", rootID, recursionDepth);
+    // NSLog(@"getLayout called for %d with depth %d!", rootID, recursionDepth);
     DKMessage *reply = [[DKMessage alloc] initReply:message];
 
     [reply appendArg:&layoutVersion type:DBUS_TYPE_UINT32];
@@ -151,26 +159,29 @@ static NSString *DBUSMENU_PATH = @"/net/pixin/Helium/MenuBar";
 
     // menu entries as variant array
     DKMessageIterator *menuItems = [outerStruct openArray:"v"];
-    DKMessageIterator *variant = [menuItems openVariant:"(ia{sv}av)"];
-    DKMessageIterator *innerStruct = [variant openStruct];
 
-    int32_t val = 20;
-    [innerStruct appendBasic:DBUS_TYPE_INT32 value:&val];
-    properties = [innerStruct openArray:"{sv}"];
-    s = "CocoaDemo";
-    [properties appendDictEntry:@"label" variantType:DBUS_TYPE_STRING value:&s];
-    [properties close];
-    [properties release];
+    int numItems = (sizeof(entries) / sizeof(struct _entry));
+    for(int i = 0; i < numItems; ++i) {
+        DKMessageIterator *variant = [menuItems openVariant:"(ia{sv}av)"];
+        DKMessageIterator *innerStruct = [variant openStruct];
 
-    // child items as variant array
-    properties = [innerStruct openArray:"v"];
-    [properties close];
-    [properties release];
+        [innerStruct appendBasic:DBUS_TYPE_INT32 value:&(entries[i].item)];
+        properties = [innerStruct openArray:"{sv}"];
+        [properties appendDictEntry:@"label" variantType:DBUS_TYPE_STRING value:&(entries[i].label)];
+        [properties close];
+        [properties release];
 
-    [innerStruct close];
-    [innerStruct release];
-    [variant close];
-    [variant release];
+        // child items as variant array
+        properties = [innerStruct openArray:"v"];
+        [properties close];
+        [properties release];
+
+        [innerStruct close];
+        [innerStruct release];
+        [variant close];
+        [variant release];
+    }
+
     [menuItems close];
     [menuItems release];
     [outerStruct close];
@@ -195,92 +206,29 @@ static NSString *DBUSMENU_PATH = @"/net/pixin/Helium/MenuBar";
 - (void) itemPropertiesDidUpdate {
     DKMessage *update = [[DKMessage alloc] initSignal:"ItemsPropertiesUpdated"
         interface:[DBUSMENU_INTERFACE UTF8String] path:[menuObjectPath UTF8String]];
-    
-    int32_t val = 20;
-    // NSMutableDictionary *properties = [NSMutableDictionary dictionaryWithCapacity:1];
-    // [properties setObject:@"MenuDemo.app" forKey:@"label"];
 
-    DBusMessageIter iter, container, innerStruct, propArray, property, variant, container2;
-    dbus_message_iter_init_append([update _getMessage], &iter);
-    dbus_message_iter_open_container(&iter, DBUS_TYPE_ARRAY, "(ia{sv})", &container);
+    DKMessageIterator *rootIter = [update appendIterator];
+    DKMessageIterator *outerArray = [rootIter openArray:"(ia{sv})"]; 
 
-    // for each menu item, create a struct with its item ID and properties
-    dbus_message_iter_open_container(&container, DBUS_TYPE_STRUCT, NULL, &innerStruct);
-    dbus_message_iter_append_basic(&innerStruct, DBUS_TYPE_INT32, &val); // item these props belong to
+    int numItems = (sizeof(entries) / sizeof(struct _entry));
+    for(int i = 0; i < numItems; ++i) {
+        DKMessageIterator *itemStruct = [outerArray openStruct];
+        [itemStruct appendBasic:DBUS_TYPE_INT32 value:&(entries[i].item)];
+        DKMessageIterator *properties = [itemStruct openArray:"{sv}"];
+        [properties appendDictEntry:@"label" variantType:DBUS_TYPE_STRING value:&(entries[i].label)];
+        int enabled = 1;
+        [properties appendDictEntry:@"enabled" variantType:DBUS_TYPE_BOOLEAN value:&enabled];
+        [properties close];
+        [properties release];
+        [itemStruct close];
+        [itemStruct release];
+    }
+    [outerArray close];
+    [outerArray release];
 
-    // for each property of this item
-    dbus_message_iter_open_container(&innerStruct, DBUS_TYPE_ARRAY, "{sv}", &propArray);
-    dbus_message_iter_open_container(&propArray, DBUS_TYPE_DICT_ENTRY, NULL, &property);
-    const char *s = "label";
-    dbus_message_iter_append_basic(&property, DBUS_TYPE_STRING, &s);
-    s = "Menu 1";
-    dbus_message_iter_open_container(&property, DBUS_TYPE_VARIANT, DBUS_TYPE_STRING_AS_STRING, &variant);
-    dbus_message_iter_append_basic(&variant, DBUS_TYPE_STRING, &s);
-    dbus_message_iter_close_container(&property, &variant);
-    dbus_message_iter_close_container(&propArray, &property);
-
-    dbus_message_iter_open_container(&propArray, DBUS_TYPE_DICT_ENTRY, NULL, &property);
-    s = "enabled";
-    dbus_message_iter_append_basic(&property, DBUS_TYPE_STRING, &s);
-    val = TRUE;
-    dbus_message_iter_open_container(&property, DBUS_TYPE_VARIANT, DBUS_TYPE_BOOLEAN_AS_STRING, &variant);
-    dbus_message_iter_append_basic(&variant, DBUS_TYPE_BOOLEAN, &val);
-    dbus_message_iter_close_container(&property, &variant);    
-    dbus_message_iter_close_container(&propArray, &property);
-
-    dbus_message_iter_close_container(&innerStruct, &propArray);
-    dbus_message_iter_close_container(&container, &innerStruct);
-    dbus_message_iter_close_container(&iter, &container);
-
-    // properties removed (empty)
-    dbus_message_iter_open_container(&iter, DBUS_TYPE_ARRAY, DBUS_TYPE_VARIANT_AS_STRING, &container2);
-    dbus_message_iter_close_container(&iter, &container2);
-
-    [connection send:update];
-
-    update = [[DKMessage alloc] initSignal:"ItemsPropertiesUpdated"
-        interface:[DBUSMENU_INTERFACE UTF8String] path:[menuObjectPath UTF8String]];
-    
-    val = 21; 
-    // NSMutableDictionary *properties = [NSMutableDictionary dictionaryWithCapacity:1];
-    // [properties setObject:@"MenuDemo.app" forKey:@"label"];
-
-    //DBusMessageIter iter, container, innerStruct, propArray, property, variant, container2;
-    dbus_message_iter_init_append([update _getMessage], &iter);
-    dbus_message_iter_open_container(&iter, DBUS_TYPE_ARRAY, "(ia{sv})", &container);
-
-    // for each menu item, create a struct with its item ID and properties
-    dbus_message_iter_open_container(&container, DBUS_TYPE_STRUCT, NULL, &innerStruct);
-    dbus_message_iter_append_basic(&innerStruct, DBUS_TYPE_INT32, &val); // item these props belong to
-
-    // for each property of this item
-    dbus_message_iter_open_container(&innerStruct, DBUS_TYPE_ARRAY, "{sv}", &propArray);
-
-    dbus_message_iter_open_container(&propArray, DBUS_TYPE_DICT_ENTRY, NULL, &property);
-    s = "label";
-    dbus_message_iter_append_basic(&property, DBUS_TYPE_STRING, &s);
-    s = "Menu 2";
-    dbus_message_iter_open_container(&property, DBUS_TYPE_VARIANT, DBUS_TYPE_STRING_AS_STRING, &variant);
-    dbus_message_iter_append_basic(&variant, DBUS_TYPE_STRING, &s);
-    dbus_message_iter_close_container(&property, &variant);
-    dbus_message_iter_close_container(&propArray, &property);
-
-    dbus_message_iter_open_container(&propArray, DBUS_TYPE_DICT_ENTRY, NULL, &property);
-    s = "enabled";
-    dbus_message_iter_append_basic(&property, DBUS_TYPE_STRING, &s);
-    val = TRUE;
-    dbus_message_iter_open_container(&property, DBUS_TYPE_VARIANT, DBUS_TYPE_BOOLEAN_AS_STRING, &variant);
-    dbus_message_iter_append_basic(&variant, DBUS_TYPE_BOOLEAN, &val);
-    dbus_message_iter_close_container(&property, &variant);    
-    dbus_message_iter_close_container(&propArray, &property);
- 
-    dbus_message_iter_close_container(&innerStruct, &propArray);
-    dbus_message_iter_close_container(&container, &innerStruct);
-    dbus_message_iter_close_container(&iter, &container);
-
-    // properties removed (empty)
-    dbus_message_iter_open_container(&iter, DBUS_TYPE_ARRAY, DBUS_TYPE_VARIANT_AS_STRING, &container2);
-    dbus_message_iter_close_container(&iter, &container2);
+    outerArray = [rootIter openArray:"v"];
+    [outerArray close];
+    [outerArray release];
 
     [connection send:update];
 }

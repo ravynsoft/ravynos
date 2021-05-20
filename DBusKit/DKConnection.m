@@ -150,7 +150,6 @@ static DBusHandlerResult DBusKit_Message_Callback(DBusConnection *connection, DB
 }
 
 - (DBusHandlerResult) messageFunction:(DKMessage *)msg  {
-    fprintf(stderr, "message function called\n");
     [msg setUnrefOnRelease:NO];
 
     NSString *interface = [msg interface];
