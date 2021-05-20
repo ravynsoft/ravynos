@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 # Helper script to install additional packages needed to compile
-# Helium on Helium image
+# Airyx on Airyx image
 #
 
 pkg install gmake autoconf automake libtool pkgconf nasm \

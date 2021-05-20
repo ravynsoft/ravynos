@@ -31,7 +31,7 @@
 #     |           |   |   `-- Info.plist
 #     |           |   `-- libFoo.so
 #     |           `-- Current -> A
-#     |-- Helium
+#     |-- Airyx
 #     |   `-- Bar
 #     |-- Info.plist
 #     |-- PkgInfo

@@ -87,7 +87,7 @@ FcConfig *O2FontSharedFontConfig() {
 #ifdef LINUX
       filename=@"/usr/share/fonts/truetype/freefont/FreeSans.ttf";
 #else
-#if defined(__HELIUM__)
+#if defined(__AIRYX__)
       filename=@"/System/Library/Fonts/FreeSans.ttf";
 #else
       filename=@"/System/Library/Fonts/HelveticaNeue.ttc";

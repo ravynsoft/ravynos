@@ -54,7 +54,7 @@ id NSAllocateObject(Class class, NSUInteger extraBytes, NSZone *zone)
         zone = NSDefaultMallocZone();
     }
 
-#if defined(__HELIUM__)
+#if defined(__AIRYX__)
     // FIXME: make this support Zones
     result = class_createInstance(class, extraBytes);
     if(result != nil) {
@@ -104,7 +104,7 @@ void NSDeallocateObject(id object)
         object->isa = 0;
 #endif
 
-#if defined(__HELIUM__)
+#if defined(__AIRYX__)
 	object = (id)((uintptr_t)object-sizeof(uintptr_t));
 #endif
         NSZoneFree(zone, object);

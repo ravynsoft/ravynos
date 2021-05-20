@@ -7,7 +7,7 @@ index 7114bbf5fd6e..13cf7e732276 100644
  #define	CLANG_VERSION_PATCHLEVEL	1
  
 -#define	CLANG_VENDOR			"FreeBSD "
-+#define	CLANG_VENDOR			"Helium "
++#define	CLANG_VENDOR			"Airyx "
 diff --git a/lib/clang/llvm.build.mk b/lib/clang/llvm.build.mk
 index bae84d3a84ff..c9167d7844d2 100644
 --- a/lib/clang/llvm.build.mk
@@ -17,7 +17,7 @@ index bae84d3a84ff..c9167d7844d2 100644
  TARGET_ABI=
  .endif
 -VENDOR=		unknown
-+VENDOR=		helium
++VENDOR=		airyx
  OS_VERSION=	freebsd12.2
  
  LLVM_TARGET_TRIPLE?=	${TARGET_ARCH:C/amd64/x86_64/:C/[hs]f$//:S/mipsn32/mips64/}-${VENDOR}-${OS_VERSION}${TARGET_ABI}

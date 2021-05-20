@@ -23,7 +23,7 @@
 #import <Foundation/NSPlatform.h>
 #import <Foundation/NSPlatform_posix.h>
 
-@interface NSPlatform_helium : NSPlatform_posix {
+@interface NSPlatform_airyx : NSPlatform_posix {
 }
 
 @end

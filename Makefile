@@ -1,19 +1,19 @@
-# Primary makefile for the Helium OS
+# Primary makefile for the Airyx OS
 
 TOPDIR := ${.CURDIR}
 OBJPREFIX := ${HOME}/obj.${MACHINE}
 RLSDIR := ${TOPDIR}/freebsd-src/release
 BSDCONFIG := GENERIC
 BUILDROOT := ${OBJPREFIX}/buildroot
-HELIUM_VERSION != head -1 ${TOPDIR}/version
-HELIUM_CODENAME != tail -1 ${TOPDIR}/version
+AIRYX_VERSION != head -1 ${TOPDIR}/version
+AIRYX_CODENAME != tail -1 ${TOPDIR}/version
 OSRELEASE := 12.2
 FREEBSD_BRANCH := releng/${OSRELEASE}
 MKINCDIR := -m/usr/share/mk -m${TOPDIR}/mk
 CORES := 4
 
 # Full release build with installation artifacts
-world: prep freebsd helium release
+world: prep freebsd airyx release
 
 prep:
 	mkdir -p ${OBJPREFIX} ${TOPDIR}/dist ${BUILDROOT}
@@ -30,8 +30,8 @@ ${TOPDIR}/freebsd-src:
 
 ${OBJPREFIX}/.patched_bsd: patches/[0-9]*.patch
 	(cd ${TOPDIR}/freebsd-src && git checkout -f ${FREEBSD_BRANCH}; \
-	git branch -D helium/12 || true; \
-	git checkout -b helium/12; \
+	git branch -D airyx/12 || true; \
+	git checkout -b airyx/12; \
 	for patch in ${TOPDIR}/patches/[0-9]*.patch; do patch -p1 < $$patch; done; \
 	git commit -a -m "patched")
 	touch ${OBJPREFIX}/.patched_bsd
@@ -47,7 +47,7 @@ base: ${TOPDIR}/freebsd-src ${OBJPREFIX}/.patched_bsd
 
 makepkg: packages-db-clean
 	mkdir -p ${OBJPREFIX}/metadir
-	sed -e 's/%%VERSION%%/${HELIUM_VERSION}/' <${TOPDIR}/+MANIFEST.helium \
+	sed -e 's/%%VERSION%%/${AIRYX_VERSION}/' <${TOPDIR}/+MANIFEST.airyx \
 		>${OBJPREFIX}/metadir/+MANIFEST
 	cd ${BUILDROOT}; find -L . -not -type d |sed -e's/^.\///' >${OBJPREFIX}/pkg-plist
 	INSTALL_AS_USER=1 PKG_DBDIR=${BUILDROOT}/var/db/pkg \
@@ -61,11 +61,11 @@ mv-pkgconfig:
 	tar -C ${BUILDROOT}/usr/lib -cpf pkgconfig | tar -C ${BUILDROOT}/usr/local/share -xpf -
 	rm -rf ${BUILDROOT}/usr/lib/pkgconfig
 
-helium: extradirs mkfiles libobjc2 libunwind frameworksclean frameworks copyfiles \
+airyx: extradirs mkfiles libobjc2 libunwind frameworksclean frameworks copyfiles \
 	mv-pkgconfig makepkg
 
 # Update the build system with current source
-install: installworld installkernel installhelium
+install: installworld installkernel installairyx
 
 installworld:
 	sudo -E MAKEOBJDIRPREFIX=${OBJPREFIX} make -C ${TOPDIR}/freebsd-src installworld
@@ -73,8 +73,8 @@ installworld:
 installkernel:
 	sudo -E MAKEOBJDIRPREFIX=${OBJPREFIX} make -C ${TOPDIR}/freebsd-src installkernel
 
-installhelium: helium-package
-	sudo tar -C / -xvf ${RLSDIR}/helium.txz
+installairyx: airyx-package
+	sudo tar -C / -xvf ${RLSDIR}/airyx.txz
 
 extradirs:
 	rm -rf ${BUILDROOT}
@@ -91,13 +91,13 @@ mkfiles:
 
 copyfiles:
 	cp -fvR ${TOPDIR}/etc ${BUILDROOT}
-	sed -i_ -e "s/__VERSION__/${HELIUM_VERSION}/" -e "s/__CODENAME__/${HELIUM_CODENAME}/" ${BUILDROOT}/etc/motd
+	sed -i_ -e "s/__VERSION__/${AIRYX_VERSION}/" -e "s/__CODENAME__/${AIRYX_CODENAME}/" ${BUILDROOT}/etc/motd
 	rm -f ${BUILDROOT}/etc/motd_
 
 libobjc2: .PHONY
 	mkdir -p ${OBJPREFIX}/libobjc2
 	cd ${OBJPREFIX}/libobjc2; cmake \
-		-DCMAKE_C_FLAGS="-DBSD -D__HELIUM__ -DNO_SELECTOR_MISMATCH_WARNINGS" \
+		-DCMAKE_C_FLAGS="-DBSD -D__AIRYX__ -DNO_SELECTOR_MISMATCH_WARNINGS" \
 		-DCMAKE_BUILD_TYPE=Release \
 		-DCMAKE_INSTALL_PREFIX=/usr \
 		-DOLDABI_COMPAT=false -DLEGACY_COMPAT=false \
@@ -213,22 +213,22 @@ AppKit.framework:
 	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
 
 
-helium-package:
-	tar cJ -C ${BUILDROOT} --gid 0 --uid 0 -f ${RLSDIR}/helium.txz .
+airyx-package:
+	tar cJ -C ${BUILDROOT} --gid 0 --uid 0 -f ${RLSDIR}/airyx.txz .
 
 ${TOPDIR}/ISO:
 	cd ${TOPDIR} && git clone https://github.com/mszoek/ISO.git
-	cd ${TOPDIR}/ISO && git checkout helium
+	cd ${TOPDIR}/ISO && git checkout airyx
 
 ${RLSDIR}/CocoaDemo.app.txz:
 	make -C ${TOPDIR}/examples/app clean
 	make -C ${TOPDIR}/examples/app 
 	tar -C ${TOPDIR}/examples/app -cf ${.TARGET} CocoaDemo.app
 
-desc_helium=Helium system
-release: helium-package ${TOPDIR}/ISO ${RLSDIR}/CocoaDemo.app.txz
+desc_airyx=Airyx system
+release: airyx-package ${TOPDIR}/ISO ${RLSDIR}/CocoaDemo.app.txz
 	rm -f ${RLSDIR}/packagesystem
 	cp -f ${TOPDIR}/version ${TOPDIR}/ISO/overlays/ramdisk
 	export MAKEOBJDIRPREFIX=${OBJPREFIX}; sudo -E \
 		make -C ${TOPDIR}/freebsd-src/release NOSRC=true NOPORTS=true packagesystem 
-	cd ${TOPDIR}/ISO && workdir=${OBJPREFIX} HELIUM=${TOPDIR} sudo -E ./build.sh hello Helium_${HELIUM_VERSION}
+	cd ${TOPDIR}/ISO && workdir=${OBJPREFIX} AIRYX=${TOPDIR} sudo -E ./build.sh hello Airyx_${AIRYX_VERSION}

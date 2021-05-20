@@ -1,7 +1,7 @@
 #import <CoreGraphics/CGLPixelSurface.h>
 #import <CoreGraphics/CGWindow.h>
 #import <Onyx2D/O2Image.h>
-#if defined(__HELIUM__)
+#if defined(__AIRYX__)
 #import <Onyx2D/O2Surface.h>
 #else
 #import <AppKit/O2Surface_DIBSection.h>

@@ -1,6 +1,6 @@
 APP_DIR=${APP}.app
 NO_ROOT=yes
-PROG=${APP_DIR}/Contents/Helium/${APP}
+PROG=${APP_DIR}/Contents/Airyx/${APP}
 MAN=
 
 UID != id -u
@@ -17,8 +17,8 @@ _LIBPATTERN=echo
 _FMWKDIRS=
 _FMWKFLAG=
 .for fmwk in ${FRAMEWORKS}
-_LIBDIRS+= -L${fmwk:tW:S/^..\//${APP_DIR}\/Contents\/Helium\/..\//1}.framework/Versions/Current
-_LIBPATTERN+= ${fmwk:tW:S/^..\//${APP_DIR}\/Contents\/Helium\/..\//1}.framework/Versions/Current/*.so  
+_LIBDIRS+= -L${fmwk:tW:S/^..\//${APP_DIR}\/Contents\/Airyx\/..\//1}.framework/Versions/Current
+_LIBPATTERN+= ${fmwk:tW:S/^..\//${APP_DIR}\/Contents\/Airyx\/..\//1}.framework/Versions/Current/*.so  
 _VERLIBDIR+= -Wl,--rpath=${fmwk:tW:S/$/.framework\/Versions\/${fmwk:tW:S/$/.framework\/Versions\/Current/:tA:T}/:S/..\//\$ORIGIN\/..\//1:Q}
 _FMWKDIRS+= -F${fmwk:H:u}
 _FMWKFLAG+= -framework ${fmwk:T:u}
@@ -53,11 +53,11 @@ installresources: .PHONY
 all: ${APP_DIR} ${PROG} installresources ${APP_DIR}/${APP}
 
 ${APP_DIR}/${APP}:
-	ln -s Contents/Helium/${APP} ${APP_DIR}/${APP}
+	ln -s Contents/Airyx/${APP} ${APP_DIR}/${APP}
 
 ${APP_DIR}:
 	@${ECHO} building ${APP_DIR} bundle
-	mkdir -p "${APP_DIR}/Contents/Helium" \
+	mkdir -p "${APP_DIR}/Contents/Airyx" \
 		"${APP_DIR}/Contents/Resources"
 	ln -s Contents/Resources "${APP_DIR}/Resources"
 	if [ -f ${.CURDIR}/Info.plist ]; then \

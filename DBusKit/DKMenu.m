@@ -1,5 +1,5 @@
 /*
- * Helium DBusKit: a simple Cocoa binding to libdbus
+ * Airyx DBusKit: a simple Cocoa binding to libdbus
  *
  * Copyright (C) 2021 Zoe Knox <zoe@pixin.net>
  * 
@@ -31,7 +31,7 @@
 static const char *REGISTRAR_INTERFACE = "com.canonical.AppMenu.Registrar";
 static const char *REGISTRAR_PATH = "/com/canonical/AppMenu/Registrar";
 static NSString *DBUSMENU_INTERFACE = @"com.canonical.dbusmenu";
-static NSString *DBUSMENU_PATH = @"/net/pixin/Helium/MenuBar";
+static NSString *DBUSMENU_PATH = @"/net/pixin/Airyx/MenuBar";
 
 struct _entry {
     int32_t item;
