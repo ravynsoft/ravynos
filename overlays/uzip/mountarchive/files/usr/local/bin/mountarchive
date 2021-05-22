@@ -43,6 +43,7 @@
 
 import os, sys
 import distutils.spawn
+import getpass
 
 try:
     from PyQt5 import QtWidgets, QtGui, QtCore
@@ -53,7 +54,7 @@ class ArchiveMounter(object):
 
     def __init__(self, filename):
 
-        self.mountpoint = "/var/run/user/" + str(os.getuid()) + "/" + os.path.normpath(filename).replace("/", "_")
+        self.mountpoint = "/tmp/" + str(getpass.getuser()) + "/" + os.path.normpath(filename).replace("/", "_")
         # TODO: Check how gvfs calls its mountpoints
 
         if os.path.exists(self.mountpoint):
@@ -68,7 +69,7 @@ class ArchiveMounter(object):
         self.p = QtCore.QProcess()
         self.p.setProgram("archivemount")
         # TODO: perhaps we need something along the lines of modules=iconv,from_code=ISO-8859-2,to_code=utf-8 for Windows compatiblity?
-        args = ['-f', '-o', 'readonly,nonempty,allow_root', filename, self.mountpoint]
+        args = ['-o', 'readonly,nonempty,allow_root', filename, self.mountpoint]
         print(self.p.program() + " " + " ".join(args))
         self.p.setArguments(args)
         self.p.setProcessChannelMode(QtCore.QProcess.ForwardedChannels); # Forward standard output and standard error onto the main process
