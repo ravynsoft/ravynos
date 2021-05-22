@@ -28,9 +28,8 @@ SRCS=main.m MyView.m
 MK_DEBUG_FILES=no
 RESOURCES=rsc helium.jpg CocoaDemo.png
 SLF=/System/Library/Frameworks
-ZF=/Users/zoe/helium
-FRAMEWORKS=${ZF}/AppKit/AppKit ${SLF}/CoreGraphics ${SLF}/Onyx2D ${SLF}/OpenGL \
-	${ZF}/Foundation/Foundation ${SLF}/CoreFoundation ${ZF}/DBusKit/DBusKit
+FRAMEWORKS=${SLF}/AppKit/AppKit ${SLF}/CoreGraphics ${SLF}/Onyx2D ${SLF}/OpenGL \
+	${SLF}/Foundation/Foundation ${SLF}/CoreFoundation ${SLF}/DBusKit/DBusKit
 LDFLAGS+=-L/usr/local/lib -lGL
 
 build: all

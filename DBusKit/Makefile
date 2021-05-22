@@ -20,7 +20,7 @@ LDFLAGS+= -g ${FMWK_LDFLAGS} -L/usr/local/lib ${DBUS_LDFLAGS} \
 	  -L${BUILDROOT}/System/Library/Frameworks/CoreFoundation.framework/Versions/Current \
 	  -lFoundation -lCoreFoundation -lobjc -lm
 
-build: copydbus all
+build: all copydbus
 
 copydbus:
 	rm -rf ${FRAMEWORK}.framework/Headers/dbus

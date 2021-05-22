@@ -212,6 +212,10 @@ AppKit.framework:
 	make -C ${TOPDIR}/AppKit BUILDROOT=${BUILDROOT} clean build
 	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
 
+DBusKit.framework:
+	rm -rf ${TOPDIR}/DBusKit/${.TARGET}
+	make -C ${TOPDIR}/DBusKit BUILDROOT=${BUILDROOT} clean build
+	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
 
 airyx-package:
 	tar cJ -C ${BUILDROOT} --gid 0 --uid 0 -f ${RLSDIR}/airyx.txz .
