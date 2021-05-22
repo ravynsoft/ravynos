@@ -351,8 +351,7 @@ id NSApp=nil;
      [window setMenu:_mainMenu];
    }
 
-   [dbusMenu layoutDidUpdate];
-   [dbusMenu itemPropertiesDidUpdate];
+   [dbusMenu setMenu:menu];
 }
 
 -(void)setMenu:(NSMenu *)menu {

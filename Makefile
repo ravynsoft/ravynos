@@ -62,7 +62,7 @@ mv-pkgconfig:
 	rm -rf ${BUILDROOT}/usr/lib/pkgconfig
 
 airyx: extradirs mkfiles libobjc2 libunwind frameworksclean frameworks copyfiles \
-	mv-pkgconfig makepkg
+	mv-pkgconfig 
 
 # Update the build system with current source
 install: installworld installkernel installairyx

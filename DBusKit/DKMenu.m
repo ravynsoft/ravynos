@@ -31,7 +31,7 @@
 static const char *REGISTRAR_INTERFACE = "com.canonical.AppMenu.Registrar";
 static const char *REGISTRAR_PATH = "/com/canonical/AppMenu/Registrar";
 static NSString *DBUSMENU_INTERFACE = @"com.canonical.dbusmenu";
-static NSString *DBUSMENU_PATH = @"/net/pixin/Airyx/MenuBar";
+static NSString *DBUSMENU_PATH = @"/org/airyx/Airyx/MenuBar";
 
 struct _entry {
     int32_t item;
@@ -41,14 +41,73 @@ struct _entry {
     {21, "Menu 2"}
 };
 
+// Let's get recursive... let's get recursive in here
+void enumerateMenuLayout(DKMessageIterator *iterator, NSMenu *menu, int32_t itemNumber, int curDepth, int maxDepth) {
+    DKMessageIterator *outerStruct = [iterator openStruct];
+    [outerStruct appendBasic:DBUS_TYPE_INT32 value:&itemNumber];
+
+    // properties map for the root node
+    DKMessageIterator *properties = [outerStruct openArray:"{sv}"];
+    const char *s = "submenu";
+    [properties appendDictEntry:@"children-display" variantType:DBUS_TYPE_STRING value:&s];
+    [properties close];
+    [properties release];
+
+    // menu entries as variant array
+    DKMessageIterator *menuItems = [outerStruct openArray:"v"];
+
+    NSArray *items = [menu itemArray];
+    for(int i = 0; i < [menu numberOfItems]; ++i) {
+        DKMessageIterator *variant = [menuItems openVariant:"(ia{sv}av)"];
+        DKMessageIterator *innerStruct = [variant openStruct];
+
+        NSMenuItem *item = [items objectAtIndex:i];
+        ++itemNumber;
+        [innerStruct appendBasic:DBUS_TYPE_INT32 value:&itemNumber];
+        properties = [innerStruct openArray:"{sv}"];
+        s = [[item title] UTF8String];
+        [properties appendDictEntry:@"label" variantType:DBUS_TYPE_STRING value:&s];
+        if([item hasSubmenu]) {
+            s = "submenu";
+            [properties appendDictEntry:@"children-display" variantType:DBUS_TYPE_STRING value:&s];
+        }
+        s = ([item enabled] ? "true" : "false");
+        [properties appendDictEntry:@"enabled" variantType:DBUS_TYPE_STRING value:&s];
+        s = ([item hidden] ? "false" : "true"); // translate "hidden" to "visible"
+        [properties appendDictEntry:@"visible" variantType:DBUS_TYPE_STRING value:&s];
+        [properties close];
+        [properties release];
+
+        // child items as variant array
+        properties = [innerStruct openArray:"v"];
+        if([item hasSubmenu] && curDepth < maxDepth) {
+            DKMessageIterator *innerVariant = [properties openVariant:"(ia{sv}av)"];
+            enumerateMenuLayout(innerVariant, [item submenu], ++itemNumber, curDepth+1, maxDepth);
+            [innerVariant close];
+        }
+        [properties close];
+        [properties release];
+
+        [innerStruct close];
+        [innerStruct release];
+        [variant close];
+        [variant release];
+    }
+
+    [menuItems close];
+    [menuItems release];
+    [outerStruct close];
+    [outerStruct release];
+}
+
 @implementation DKMenu
 - initWithConnection: (DKConnection *)conn {
     connection = conn;
     layoutVersion = 1;
+    menu = nil;
 
     srandomdev();
     menuObjectPath = [NSString stringWithFormat:@"%@/%08x",DBUSMENU_PATH, random()];
-    fprintf(stderr, "menupath = %s\n",[menuObjectPath UTF8String]);
 
     [connection registerHandlerForInterface:self interface:DBUSMENU_INTERFACE];
     _pathWasRegistered = [connection registerObjectPath:menuObjectPath];
@@ -72,6 +131,11 @@ struct _entry {
     }
 }
 
+- (void) setMenu: (NSMenu *)aMenu {
+    menu = aMenu;
+    [self layoutDidUpdate];
+}
+
 - (DBusHandlerResult) messageFunction: (DKMessage *)msg {
     NSString *member = [msg member];
     NSString *signature = [msg signature];
@@ -80,8 +144,13 @@ struct _entry {
     fprintf(stderr, "member = %s, signature = %s\n",[member UTF8String],[signature UTF8String]);
 
     if([member isEqualToString:@"GetLayout"] && [signature isEqualToString:@"iias"]) {
-        fprintf(stderr, "match!\n");
         [self getLayout:msg];
+        return DBUS_HANDLER_RESULT_HANDLED;
+    } else if([member isEqualToString:@"AboutToShow"] && [signature isEqualToString:@"i"]) {
+        [self aboutToShow:msg];
+        return DBUS_HANDLER_RESULT_HANDLED;
+    } else if([member isEqualToString:@"Event"] && [signature isEqualToString:@"isvu"]) {
+        [self event:msg];
         return DBUS_HANDLER_RESULT_HANDLED;
     }
 
@@ -147,46 +216,7 @@ struct _entry {
     [reply appendArg:&layoutVersion type:DBUS_TYPE_UINT32];
 
     DKMessageIterator *rootIter = [reply appendIterator];
-    DKMessageIterator *outerStruct = [rootIter openStruct];
-    [outerStruct appendBasic:DBUS_TYPE_INT32 value:&rootID];
-
-    // properties map for the root node
-    DKMessageIterator *properties = [outerStruct openArray:"{sv}"];
-    const char *s = "submenu";
-    [properties appendDictEntry:@"children-display" variantType:DBUS_TYPE_STRING value:&s];
-    [properties close];
-    [properties release];
-
-    // menu entries as variant array
-    DKMessageIterator *menuItems = [outerStruct openArray:"v"];
-
-    int numItems = (sizeof(entries) / sizeof(struct _entry));
-    for(int i = 0; i < numItems; ++i) {
-        DKMessageIterator *variant = [menuItems openVariant:"(ia{sv}av)"];
-        DKMessageIterator *innerStruct = [variant openStruct];
-
-        [innerStruct appendBasic:DBUS_TYPE_INT32 value:&(entries[i].item)];
-        properties = [innerStruct openArray:"{sv}"];
-        [properties appendDictEntry:@"label" variantType:DBUS_TYPE_STRING value:&(entries[i].label)];
-        [properties close];
-        [properties release];
-
-        // child items as variant array
-        properties = [innerStruct openArray:"v"];
-        [properties close];
-        [properties release];
-
-        [innerStruct close];
-        [innerStruct release];
-        [variant close];
-        [variant release];
-    }
-
-    [menuItems close];
-    [menuItems release];
-    [outerStruct close];
-    [outerStruct release];
-
+    enumerateMenuLayout(rootIter, menu, rootID, 1, recursionDepth);
     [connection send:reply];
 }
 
@@ -203,6 +233,7 @@ struct _entry {
     ++layoutVersion;
 }
 
+// FIXME: not really implemented or currently used
 - (void) itemPropertiesDidUpdate {
     DKMessage *update = [[DKMessage alloc] initSignal:"ItemsPropertiesUpdated"
         interface:[DBUSMENU_INTERFACE UTF8String] path:[menuObjectPath UTF8String]];
@@ -232,4 +263,26 @@ struct _entry {
 
     [connection send:update];
 }
+
+- (void) aboutToShow: (DKMessage *)message {
+    int32_t item = 0;
+    dbus_message_get_args([message _getMessage], NULL, DBUS_TYPE_INT32, &item, DBUS_TYPE_INVALID);
+    fprintf(stderr, "aboutToShow %d\n",item);
+    DKMessage *reply = [[DKMessage alloc] initReply:message];
+    DKMessageIterator *rootIter = [reply appendIterator];
+    int val = 0;
+    [rootIter appendBasic:DBUS_TYPE_BOOLEAN value:&val];
+    [connection send:reply];
+}
+
+// FIXME: we probably need to do stuff for these events
+- (void) event: (DKMessage *)message {
+    int32_t item = 0;
+    const char *s = NULL;
+    dbus_message_get_args([message _getMessage], NULL, DBUS_TYPE_INT32, &item, DBUS_TYPE_STRING, &s, DBUS_TYPE_INVALID);
+    fprintf(stderr, "event %d %s\n",item,s);
+    DKMessage *reply = [[DKMessage alloc] initReply:message];
+    [connection send:reply];
+}
+
 @end
