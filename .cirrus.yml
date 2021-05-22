@@ -32,7 +32,7 @@ task:
     - kldload tmpfs.ko || true
     - kldload nullfs.ko || true
     - kldload geom_uzip.ko || true
-    - pkg install -y pkg git-lite zsync wget sha bash py37-xdg librsvg2 ca_root_nss # qemu-devel uefi-edk2-qemu-x86_64
+    - pkg install -y pkg git-lite zsync wget sha bash devel/py-xdg librsvg2 ca_root_nss # qemu-devel uefi-edk2-qemu-x86_64
     - mkdir -p /usr/local/furybsd
     # mount -t tmpfs tmpfs /usr/local/furybsd
     
