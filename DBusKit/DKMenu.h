@@ -1,5 +1,5 @@
 /*
- * Helium DBusKit: a simple Cocoa binding to libdbus
+ * Airyx DBusKit: a simple Cocoa binding to libdbus
  *
  * Copyright (C) 2021 Zoe Knox <zoe@pixin.net>
  * 
@@ -23,6 +23,7 @@
  */
 
 #import <Foundation/NSObject.h>
+#import <AppKit/NSMenu.h>
 #import "DKConnection.h"
 #import "DKMessage.h"
 
@@ -31,9 +32,11 @@
     uint32_t layoutVersion;
     BOOL _pathWasRegistered;
     NSString *menuObjectPath;
+    NSMenu *menu;
 }
 
 - initWithConnection: (DKConnection *)conn;
+- (void) setMenu: (NSMenu *)aMenu;
 - (NSString *)objectPath;
 - (BOOL) registerWindow: (uint32_t)windowID objectPath: (NSString *)path;
 - (BOOL) registerWindow: (uint32_t)windowID;

@@ -1,5 +1,5 @@
 /*
- * Helium DBusKit: a simple Cocoa binding to libdbus
+ * Airyx DBusKit: a simple Cocoa binding to libdbus
  *
  * Copyright (C) 2021 Zoe Knox <zoe@pixin.net>
  * 

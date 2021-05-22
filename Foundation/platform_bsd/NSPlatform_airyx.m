@@ -28,15 +28,15 @@
 
 #import <objc/runtime.h>
 #import <Foundation/Foundation.h>
-#import <Foundation/NSPlatform_helium.h>
+#import <Foundation/NSPlatform_airyx.h>
 
 #include <sys/param.h>
 #include <time.h>
 #include <unistd.h>
 
-NSString	*NSPlatformClassName = @"NSPlatform_helium";
+NSString	*NSPlatformClassName = @"NSPlatform_airyx";
 
-@implementation NSPlatform_helium
+@implementation NSPlatform_airyx
 
 void NSPlatformSleepThreadForTimeInterval(NSTimeInterval interval) {
 	 if (interval <= 0.0)
@@ -61,8 +61,8 @@ void NSPlatformSleepThreadForTimeInterval(NSTimeInterval interval) {
 	 return [self hostName];
 }
 
-NSString * const NSPlatformExecutableDirectory=@"Helium";
-NSString * const NSPlatformResourceNameSuffix=@"helium";
+NSString * const NSPlatformExecutableDirectory=@"Airyx";
+NSString * const NSPlatformResourceNameSuffix=@"airyx";
 
 NSString * const NSPlatformExecutableFileExtension=@"";
 NSString * const NSPlatformLoadableObjectFileExtension=@"so";

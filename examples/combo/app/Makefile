@@ -15,7 +15,7 @@
 #
 # Bar.app
 # `-- Contents
-#     |-- Helium
+#     |-- Airyx
 #     |   `-- Bar
 #     |-- Info.plist
 #     |-- PkgInfo

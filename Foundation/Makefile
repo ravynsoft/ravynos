@@ -193,7 +193,7 @@ SRCS= \
 ./platform_posix/NSConstantString.m \
 ./platform_bsd/libmain.m \
 ./platform_bsd/NSMemoryFunctions_bsd.m \
-./platform_bsd/NSPlatform_helium.m \
+./platform_bsd/NSPlatform_airyx.m \
 ./platform_posix/NSPlatform_posix.m \
 ./platform_posix/NSLock_posix.m \
 ./platform_posix/NSCancelInputSource_posix.m \
@@ -528,7 +528,7 @@ INCS= \
 ./NSPredicate/NSExpression_assignment.h \
 ./NSPredicate/NSExpression_keypath.h \
 ./NSInvocation.h \
-./platform_bsd/NSPlatform_helium.h \
+./platform_bsd/NSPlatform_airyx.h \
 ./platform_posix/NSPlatform_posix.h \
 ./platform_posix/NSFileHandle_posix.h \
 ./platform_posix/NSCondition_posix.h \

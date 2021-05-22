@@ -13,12 +13,13 @@
 #
 # CocoaDemo.app
 # `-- Contents
-#     |-- Helium
+#     |-- Airyx
 #     |   `-- CocoaDemo
 #     |-- Info.plist
 #     |-- PkgInfo
 #     `-- Resources
-#         |-- crazyones.jpg
+#         |-- CocoaDemo.png
+#         |-- helium.jpg
 #         `-- rsc
 #             `-- sample.txt
 

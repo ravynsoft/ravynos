@@ -221,7 +221,7 @@
             Then submit the changes to Apple Computer.
         */
 //        #error TargetConditionals.h: unknown compiler (see comment above)
-//        HELIUM PROJECT DEFINES FOLLOW
+//        AIRYX PROJECT DEFINES FOLLOW
         #define TARGET_CPU_PPC    0
         #define TARGET_CPU_68K    0
 	#define TARGET_CPU_X86    1

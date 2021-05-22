@@ -61,7 +61,7 @@ BOOL NSObjectIsKindOfClass(id object,Class kindOf) {
 }
 
 +(void)load {
-#if defined(__HELIUM__)
+#if defined(__AIRYX__)
     objc_create_block_classes_as_subclasses_of(self);
 #endif
 }
