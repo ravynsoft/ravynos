@@ -5,6 +5,9 @@
 # BEFORE:  LOGIN
 # KEYWORD: nojail shutdown
 
+PATH=$PATH:/usr/local/sbin
+export PATH
+
 . /etc/rc.subr
 
 name="localize"
