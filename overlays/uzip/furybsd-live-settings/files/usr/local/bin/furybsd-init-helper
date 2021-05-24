@@ -1,4 +1,6 @@
 #!/bin/sh
+set -x
+exec 1>/dev/tty 2>&1
 
 BOOTMODE=$(/sbin/sysctl -n machdep.bootmethod)
 export BOOTMODE

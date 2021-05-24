@@ -334,7 +334,7 @@ initgfx()
 {
   if [ "${arch}" != "i386" ] ; then
     MAJOR=$(uname -r | cut -d "." -f 1)
-    if [ $MAJOR -lt 14 ] ; then
+    if [ $MAJOR -lt 12 ] ; then
       PKGS="quarterly"
     else
       PKGS="latest"

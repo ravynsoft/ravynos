@@ -64,7 +64,7 @@ cups-pdf
 # The 'desktop2app' command needs py37-xdg
 devel/py-xdg
 # The 'desktop2app' command needs py37-psutil for watching the filesystem
-py37-psutil
+py38-psutil
 # The 'app' command needs fusefs-unionfs
 fusefs-unionfs
 # Force-quit applications using Ctrl-Alt-Esc
@@ -72,19 +72,19 @@ xkill
 # Take screenshots; FIXME: Replace by ksnip once it does not segfault anymore
 lximage-qt
 # Required for BuildNotify.app
-py37-dateutil
-py37-pytz
+py38-dateutil
+py38-pytz
 # Qt 5 documentation browser, used for helloSystem documentation
 # qt5-assistant # We are not using it for now
 # Required for Sharing.app
 x11vnc
-py37-qt5-network
+py38-qt5-network
 # Required for Lector.app
-py37-xmltodict
-py37-beautifulsoup
-py37-sqlite3
+py38-xmltodict
+py38-beautifulsoup
+py38-sqlite3
 # Required for Sticky Notes.app
-py37-qt5-dbus
+py38-qt5-dbus
 # For convenience in addition to the curl that comes with FreeBSD base
 wget
 # We need a video player
@@ -114,7 +114,7 @@ android-file-transfer-qt5
 # Scanning application
 # skanlite # https://github.com/helloSystem/ISO/issues/65
 # Needed by many helloSystem utilities
-py37-qt5-widgets
+py38-qt5-widgets
 # Convenience package to make '#!/usr/bin/env python3' work
 python3
 # Asian fonts
@@ -122,7 +122,7 @@ wqy-fonts
 # Monospaced fonts
 sourcecodepro-ttf
 # Required for Welcome.app
-py37-qt5-qml
+py38-qt5-qml
 gstreamer1-plugins-ogg
 gstreamer1-plugins-vorbis
 gstreamer1-plugins-good
@@ -138,7 +138,7 @@ archivemount
 # Needed to load HiDPI cursors [ci skip]
 xrdb
 # Required for Simple Browser
-py37-qt5-webengine
+py38-qt5-webengine
 # Required for eject context menu in Filer
 eject
 # Required for running AppImages
@@ -156,6 +156,6 @@ kf5-kconfig
 # Needed by Dock
 qt5-quickcontrols2
 # Needed by Welcome.app
-py37-qt5-multimedia
+py38-qt5-multimedia
 # Required for runappimage
 fusefs-squashfuse
