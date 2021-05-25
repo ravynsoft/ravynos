@@ -273,6 +273,14 @@ gmenudbusmenuproxy &
 # Desktop
 /System/Filer.AppDir/AppRun --desktop &
 
+# Wait for Menu to appear on D-Bus; this is needed for autostart to work properly
+while true; do 
+  RESULT=$(dbus-send --print-reply --dest=org.freedesktop.DBus /org/freedesktop/DBus org.freedesktop.DBus.ListNames | grep AppMenu)
+  if [ "${RESULT}" != "" ] ; then
+    break
+  fi
+done
+
 # System-wide autostart
 for APP in /Applications/Autostart/* ; do
   echo "Autostarting ${APP}"
