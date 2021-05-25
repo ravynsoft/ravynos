@@ -38,7 +38,7 @@
 
 
 import os, sys, stat, shutil, subprocess, plistlib, signal, time
-from xdg import IniFile, IconTheme  # pkg install py38-xdg
+from xdg import IniFile, IconTheme  # pkg install py37-xdg
 
 
 # Create .app bundles for desktop files
@@ -271,7 +271,7 @@ if __name__ == "__main__":
         try:
             import psutil
         except:
-            print("Cannot watch the system for newly installed applications since py38-psutil is missing.")
+            print("Cannot watch the system for newly installed applications since py37-psutil is missing.")
             exit(1)
 
         signal.signal(signal.SIGINT, QtCore.QCoreApplication.quit) # FIXME: Make Ctrl-C work; Does not seem to work

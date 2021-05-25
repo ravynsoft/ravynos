@@ -3,29 +3,33 @@
 # Exit on errors
 set -e
 
-# Determine the version of the running host system.
-# Building ISOs for other major versions than the running host system
-# is not supported and results in broken images anyway
-#version=$(uname -r | cut -d "-" -f 1-2) # "12.2-RELEASE" or "13.0-CURRENT"
-version="12.2-RELEASE"
-
-if [ "${version}" = "13.0-CURRENT" ] ; then
-  # version="13.0-RC3"
-  version="13.0-RELEASE"
-fi
-
-VER=$(uname -r | cut -d "-" -f 1) # "12.2" or "13.0"
-MAJOR=$(uname -r | cut -d "." -f 1) # "12" or "13"
-
 if [ -z "${AIRYX}" ]; then
 	AIRYX=$(pwd)/../airyx
 fi
 AIRYXPKG=${AIRYX}/freebsd-src/release
 AIRYXVER=$(head -1 ${AIRYX}/version)
 
+version="12.2-RELEASE"  # branch releng/12.2
+VER="12.2"
+MAJOR="12"
+VERSIONSUFFIX="RELEASE"
+
+# Determine the version of the running host system.
+# Building ISOs for other major versions than the running host system
+# is not supported and results in broken images anyway
+#version=$(uname -r | cut -d "-" -f 1-2) # "12.2-RELEASE" or "13.0-CURRENT"
+
+#if [ "${version}" = "13.0-CURRENT" ] ; then
+  # version="13.0-RC3"
+#  version="13.0-RELEASE"
+#fi
+
+#VER=$(uname -r | cut -d "-" -f 1) # "12.2" or "13.0"
+#MAJOR=$(uname -r | cut -d "." -f 1) # "12" or "13"
+
 # Dwnload from either https://download.freebsd.org/ftp/releases/
 #                  or https://download.freebsd.org/ftp/snapshots/
-VERSIONSUFFIX=$(uname -r | cut -d "-" -f 2) # "RELEASE" or "CURRENT"
+#VERSIONSUFFIX=$(uname -r | cut -d "-" -f 2) # "RELEASE" or "CURRENT"
 FTPDIRECTORY="releases" # "releases" or "snapshots"
 if [ "${VERSIONSUFFIX}" = "CURRENT" ] ; then
   FTPDIRECTORY="snapshots"
@@ -36,6 +40,7 @@ if [ "${VERSIONSUFFIX#RC}"x = "${VERSIONSUFFIX}x" ]  ; then
 fi
 
 echo "${FTPDIRECTORY}"
+echo version=$version VER=$VER MAJOR=$MAJOR suffix=$VERSIONSUFFIX
 
 # pkgset="branches/2020Q1" # TODO: Use it
 desktop=$1
@@ -159,7 +164,7 @@ workspace()
   sync ### Needed?
   zfs set mountpoint="${uzip}" furybsd
   # From FreeBSD 13 on, zstd can be used with zfs in base
-  MAJOR=$(uname -r | cut -d "." -f 1)
+  #MAJOR=$(uname -r | cut -d "." -f 1)
   if [ $MAJOR -lt 13 ] ; then
     zfs set compression=gzip-6 furybsd 
   else
@@ -333,8 +338,8 @@ pkg()
 initgfx()
 {
   if [ "${arch}" != "i386" ] ; then
-    MAJOR=$(uname -r | cut -d "." -f 1)
-    if [ $MAJOR -lt 12 ] ; then
+    #MAJOR=$(uname -r | cut -d "." -f 1)
+    if [ $MAJOR -lt 14 ] ; then
       PKGS="quarterly"
     else
       PKGS="latest"
@@ -416,7 +421,7 @@ boot()
   sync ### Needed?
   # The name of a dependency for zfs.ko changed, violating POLA
   # If we are loading both modules, then at least 13 cannot boot, hence only load one based on the FreeBSD major version
-  MAJOR=$(uname -r | cut -d "." -f 1)
+  #MAJOR=$(uname -r | cut -d "." -f 1)
   if [ $MAJOR -lt 13 ] ; then
     echo "Major version < 13, hence using opensolaris.ko"
     sed -i -e 's|opensolaris_load=".*"|opensolaris_load="YES"|g' "${cdroot}"/boot/loader.conf
