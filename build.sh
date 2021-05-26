@@ -215,6 +215,8 @@ packages()
     # sed -i -e 's|quarterly|release_2|g' "${uzip}/etc/pkg/FreeBSD.conf"
     # rm -f "${uzip}/etc/pkg/FreeBSD.conf-e"
     echo "Major version 12, hence using quarterly packages to see whether it performs better than release_2"
+    sed -i -e 's|latest|quarterly|g' "${uzip}/etc/pkg/FreeBSD.conf"
+    rm -f "${uzip}/etc/pkg/FreeBSD.conf-e"
   elif [ $MAJOR -eq 13 ] ; then
     echo "Major version 13, hence using quarterly packages since release_2 will probably not have compatible Intel driver"
   else
