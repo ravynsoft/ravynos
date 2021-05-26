@@ -28,8 +28,8 @@ SRCS=main.m MyView.m
 MK_DEBUG_FILES=no
 RESOURCES=rsc helium.jpg CocoaDemo.png
 SLF=/System/Library/Frameworks
-FRAMEWORKS=${SLF}/AppKit/AppKit ${SLF}/CoreGraphics ${SLF}/Onyx2D ${SLF}/OpenGL \
-	${SLF}/Foundation/Foundation ${SLF}/CoreFoundation ${SLF}/DBusKit/DBusKit
+FRAMEWORKS=${SLF}/AppKit ${SLF}/CoreGraphics ${SLF}/Onyx2D ${SLF}/OpenGL \
+	${SLF}/Foundation ${SLF}/CoreFoundation ${SLF}/DBusKit
 LDFLAGS+=-L/usr/local/lib -lGL
 
 build: all
