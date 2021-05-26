@@ -125,30 +125,30 @@ except:
 
 is_apple_keyboard = False
 
-if sys.platform == 'freebsd':
+if sys.platform.startswith('freebsd'):
     usbtool = "usbconfig"
 else:
     usbtool = "lsusb"
-    for line in subprocess.check_output(usbtool).split(b'\n'):
-        # print(line)
-        line = line.decode('utf-8')
-        if ("Apple" in line and "Keyboard" in line):
-            is_apple_keyboard = True
-        if "RPI Wired Keyboard" in line:
-            if sys.platform == 'freebsd':
-                iProduct = line.split("<")[1].split(">")[0]
-            else:
-                iProduct = line.split("[")[1].split("]")[0]
-            print(str(iProduct))
-            index = (int(iProduct.split(" ")[-1]))
-            # print(index)
-            country = countries[index]
-            # print(country)
-            language = languages[index]
-            # print(language)
-            locale = "%s_%s.UTF-8" % (language, country)
-            timezone = timezones[index]
-            # print(timezone)
+for line in subprocess.check_output(usbtool).split(b'\n'):
+    # print(line)
+    line = line.decode('utf-8')
+    if ("Apple" in line and "Keyboard" in line):
+        is_apple_keyboard = True
+    if "RPI Wired Keyboard" in line:
+        if sys.platform.startswith('freebsd'):
+            iProduct = line.split("<")[1].split(">")[0]
+        else:
+            iProduct = line.split("[")[1].split("]")[0]
+        print(str(iProduct))
+        index = (int(iProduct.split(" ")[-1]))
+        # print(index)
+        country = countries[index]
+        # print(country)
+        language = languages[index]
+        # print(language)
+        locale = "%s_%s.UTF-8" % (language, country)
+        timezone = timezones[index]
+        # print(timezone)
     
 # TODO: As a last resort, use network localization
 
