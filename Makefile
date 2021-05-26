@@ -8,7 +8,7 @@ BUILDROOT := ${OBJPREFIX}/buildroot
 AIRYX_VERSION != head -1 ${TOPDIR}/version
 AIRYX_CODENAME != tail -1 ${TOPDIR}/version
 OSRELEASE := 12.2
-FREEBSD_BRANCH := releng/${OSRELEASE}
+FREEBSD_BRANCH := stable/${OSRELEASE:R}
 MKINCDIR := -m/usr/share/mk -m${TOPDIR}/mk
 CORES := 4
 
