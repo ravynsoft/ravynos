@@ -26,6 +26,7 @@ if [ "${VM_GUEST}" = "vmware" ]; then
   /usr/sbin/sysrc -f /etc/rc.conf vmware_guest_vmblock_enable="YES" >/dev/null 2>/dev/null
   /usr/sbin/sysrc -f /etc/rc.conf vmware_guest_vmmemctl_enable="YES" >/dev/null 2>/dev/null
   /usr/sbin/sysrc -f /etc/rc.conf vmware_guestd_enable="YES" >/dev/null 2>/dev/null
+  /usr/sbin/sysrc -f /etc/rc.conf dsbdriverd_enable="NO" >/dev/null 2>/dev/null # https://github.com/mszoek/airyx/issues/47
 else
   /usr/sbin/pkg delete -fy open-vm-tools >/dev/null 2>/dev/null
 fi
