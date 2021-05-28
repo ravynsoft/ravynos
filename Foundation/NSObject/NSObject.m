@@ -315,7 +315,7 @@ static IMP objc_msg_forward(id rcv, SEL message) {
 #if defined(GCC_RUNTIME_3) || defined(APPLE_RUNTIME_4)
     IMP imp = class_getMethodImplementation(object_getClass(self), selector);
 #else
-    IMP imp = objc_msg_lookup(self, selector);
+    IMP imp = objc_msg_lookup_sender(self, selector, self);
 #endif
     return imp(self, selector);
 }
@@ -326,7 +326,7 @@ static IMP objc_msg_forward(id rcv, SEL message) {
 #if defined(GCC_RUNTIME_3) || defined(APPLE_RUNTIME_4)
     IMP imp = class_getMethodImplementation(object_getClass(self), selector);
 #else
-    IMP imp = objc_msg_lookup(self, selector);
+    IMP imp = objc_msg_lookup_sender(self, selector, self);
 #endif
     return imp(self, selector, object0);
 }
@@ -336,7 +336,7 @@ static IMP objc_msg_forward(id rcv, SEL message) {
 #if defined(GCC_RUNTIME_3) || defined(APPLE_RUNTIME_4)
     IMP imp = class_getMethodImplementation(object_getClass(self), selector);
 #else
-    IMP imp = objc_msg_lookup(self, selector);
+    IMP imp = objc_msg_lookup_sender(self, selector, self);
 #endif
     return imp(self, selector, object0, object1);
 }

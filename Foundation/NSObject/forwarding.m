@@ -145,11 +145,15 @@ void objc_msgForward_stret(void *result, id object, SEL message, ...)
 id objc_msgForward(id object, SEL message, ...)
 {
     Class class = object_getClass(object);
-    struct objc_method *method;
+    struct objc_slot *slot;
     void *arguments = &object;
 
-    if ((method = class_getInstanceMethod(class, @selector(forwardSelector:arguments:))) != NULL) {
-        IMP imp = method_getImplementation(method);
+    if ((slot = objc_get_slot(class, @selector(forwardSelector:arguments:))) != NULL) {
+        // handle nil receiver when forwarding
+        if(slot->owner == nil)
+            return objc_msg_lookup_sender(object,@selector(forwardSelector:arguments:),object);
+
+        IMP imp = method_getImplementation(slot->method);
 
         return imp(object, @selector(forwardSelector:arguments:), message, arguments);
     } else {
