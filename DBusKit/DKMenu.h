@@ -33,6 +33,7 @@
     BOOL _pathWasRegistered;
     NSString *menuObjectPath;
     NSMenu *menu;
+    NSMutableDictionary *layout; // map of item ID to NSMenuItem objects
 }
 
 - initWithConnection: (DKConnection *)conn;

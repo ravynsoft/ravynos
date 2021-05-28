@@ -369,6 +369,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
    return result;
 }
 
+-(int)DBusItemID {
+    return _DBusItemID;
+}
+
+-(void)setDBusItemID:(int)tag {
+    _DBusItemID = tag;
+}
+
 -(NSString *)description {
     return [NSString stringWithFormat:@"<%@[0x%x]: title: %@ action: %@ hasSubmenu: %@>",
         [self class],self,[self title],NSStringFromSelector(_action),([self hasSubmenu] ? @"YES" : @"NO")];

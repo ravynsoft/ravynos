@@ -32,6 +32,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     NSImage *_onStateImage;
     NSImage *_offStateImage;
     NSImage *_mixedStateImage;
+    int _DBusItemID;
 }
 
 + (NSMenuItem *)separatorItem;
@@ -54,6 +55,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 - (NSImage *)onStateImage;
 - (NSImage *)offStateImage;
 - (NSImage *)mixedStateImage;
+- (int)DBusItemID;
 
 - representedObject;
 
@@ -83,6 +85,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 - (void)setSubmenu:(NSMenu *)submenu;
 - (void)setEnabled:(BOOL)flag;
 - (void)setHidden:(BOOL)flag;
+- (void)setDBusItemID:(int)tag;
 
 - (NSString *)_keyEquivalentDescription;
 

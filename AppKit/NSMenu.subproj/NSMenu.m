@@ -385,4 +385,13 @@ BOOL itemIsEnabled(NSMenuItem *item) {
    return nil;
 }
 
+-(int)DBusItemID {
+    return _DBusItemID;
+}
+
+-(void)setDBusItemID:(int)itemID {
+    _DBusItemID=itemID;
+}
+
+
 @end

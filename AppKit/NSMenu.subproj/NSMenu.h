@@ -19,6 +19,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     NSMutableArray *_itemArray;
     BOOL _autoenablesItems;
     id<NSMenuDelegate> _delegate;
+    int _DBusItemID;
 }
 
 + (void)popUpContextMenu:(NSMenu *)menu withEvent:(NSEvent *)event forView:(NSView *)view;

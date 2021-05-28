@@ -33,18 +33,10 @@ static const char *REGISTRAR_PATH = "/com/canonical/AppMenu/Registrar";
 static NSString *DBUSMENU_INTERFACE = @"com.canonical.dbusmenu";
 static NSString *DBUSMENU_PATH = @"/org/airyx/Airyx/MenuBar";
 
-struct _entry {
-    int32_t item;
-    const char *label;
-} entries[] = {
-    {20, "Menu 1"},
-    {21, "Menu 2"}
-};
-
 // Let's get recursive... let's get recursive in here
-void enumerateMenuLayout(DKMessageIterator *iterator, NSMenu *menu, int32_t itemNumber, int curDepth, int maxDepth) {
+void enumerateMenuLayout(DKMessageIterator *iterator, NSMenu *menu, int rootID, int curDepth, int maxDepth) {
     DKMessageIterator *outerStruct = [iterator openStruct];
-    [outerStruct appendBasic:DBUS_TYPE_INT32 value:&itemNumber];
+    [outerStruct appendBasic:DBUS_TYPE_INT32 value:&rootID];
 
     // properties map for the root node
     DKMessageIterator *properties = [outerStruct openArray:"{sv}"];
@@ -62,18 +54,19 @@ void enumerateMenuLayout(DKMessageIterator *iterator, NSMenu *menu, int32_t item
         DKMessageIterator *innerStruct = [variant openStruct];
 
         NSMenuItem *item = [items objectAtIndex:i];
-        ++itemNumber;
-        [innerStruct appendBasic:DBUS_TYPE_INT32 value:&itemNumber];
+        int itemID = [item DBusItemID];
+        [innerStruct appendBasic:DBUS_TYPE_INT32 value:&itemID];
         properties = [innerStruct openArray:"{sv}"];
         s = [[item title] UTF8String];
         [properties appendDictEntry:@"label" variantType:DBUS_TYPE_STRING value:&s];
+
         if([item hasSubmenu]) {
             s = "submenu";
             [properties appendDictEntry:@"children-display" variantType:DBUS_TYPE_STRING value:&s];
         }
-        s = ([item enabled] ? "true" : "false");
+        s = (([item isEnabled] || [item hasSubmenu]) ? "true" : "false");
         [properties appendDictEntry:@"enabled" variantType:DBUS_TYPE_STRING value:&s];
-        s = ([item hidden] ? "false" : "true"); // translate "hidden" to "visible"
+        s = ([item isHidden] ? "false" : "true"); // translate "hidden" to "visible"
         [properties appendDictEntry:@"visible" variantType:DBUS_TYPE_STRING value:&s];
         [properties close];
         [properties release];
@@ -82,7 +75,7 @@ void enumerateMenuLayout(DKMessageIterator *iterator, NSMenu *menu, int32_t item
         properties = [innerStruct openArray:"v"];
         if([item hasSubmenu] && curDepth < maxDepth) {
             DKMessageIterator *innerVariant = [properties openVariant:"(ia{sv}av)"];
-            enumerateMenuLayout(innerVariant, [item submenu], ++itemNumber, curDepth+1, maxDepth);
+            enumerateMenuLayout(innerVariant, [item submenu], itemID, curDepth+1, maxDepth);
             [innerVariant close];
         }
         [properties close];
@@ -100,10 +93,32 @@ void enumerateMenuLayout(DKMessageIterator *iterator, NSMenu *menu, int32_t item
     [outerStruct release];
 }
 
+/*
+ * Assign an item ID to each NSMenuItem. Store the IDs in the menu objects
+ * and in our layout map. This is used to efficiently respond to GetLayout calls
+ */
+int recursivelyPopulateItemMap(NSMutableDictionary *itemMap, NSMenu *submenu, int32_t curNumber) {
+    NSArray *items = [submenu itemArray];
+    ++curNumber;
+
+    for(int i = 0; i < [submenu numberOfItems]; ++i) {
+        NSMenuItem *item = [items objectAtIndex:i];
+        NSNumber *boxed = [NSNumber numberWithInt:curNumber];
+        [itemMap setObject:item forKey:boxed];
+        [item setDBusItemID:curNumber];
+        ++curNumber;
+        if([item hasSubmenu]) {
+            curNumber = recursivelyPopulateItemMap(itemMap, [item submenu], curNumber);
+        }
+    }
+    return curNumber;
+}
+
 @implementation DKMenu
 - initWithConnection: (DKConnection *)conn {
     connection = conn;
-    layoutVersion = 1;
+    layoutVersion = 0;
+    layout = nil;
     menu = nil;
 
     srandomdev();
@@ -133,15 +148,16 @@ void enumerateMenuLayout(DKMessageIterator *iterator, NSMenu *menu, int32_t item
 
 - (void) setMenu: (NSMenu *)aMenu {
     menu = aMenu;
+    if(layout == nil) {
+        layout = [[NSMutableDictionary dictionaryWithCapacity:20] autorelease];
+    }
+    recursivelyPopulateItemMap(layout, menu, 0);
     [self layoutDidUpdate];
 }
 
 - (DBusHandlerResult) messageFunction: (DKMessage *)msg {
     NSString *member = [msg member];
     NSString *signature = [msg signature];
-
-    fprintf(stderr, "%08x messageFunction interface = %s ",self,[DBUSMENU_INTERFACE UTF8String]);
-    fprintf(stderr, "member = %s, signature = %s\n",[member UTF8String],[signature UTF8String]);
 
     if([member isEqualToString:@"GetLayout"] && [signature isEqualToString:@"iias"]) {
         [self getLayout:msg];
@@ -210,17 +226,27 @@ void enumerateMenuLayout(DKMessageIterator *iterator, NSMenu *menu, int32_t item
     int recursionDepth = -1;
 
     dbus_message_get_args([message _getMessage], NULL, DBUS_TYPE_INT32, &rootID, DBUS_TYPE_INT32, &recursionDepth, DBUS_TYPE_INVALID);
-    // NSLog(@"getLayout called for %d with depth %d!", rootID, recursionDepth);
     DKMessage *reply = [[DKMessage alloc] initReply:message];
 
     [reply appendArg:&layoutVersion type:DBUS_TYPE_UINT32];
 
-    DKMessageIterator *rootIter = [reply appendIterator];
-    enumerateMenuLayout(rootIter, menu, rootID, 1, recursionDepth);
+    NSMenu *theMenu;
+    if(rootID == 0)
+        theMenu = menu;
+    else {
+        NSNumber *boxed = [NSNumber numberWithInt:rootID];
+        theMenu = [[layout objectForKey:boxed] submenu];
+    }
+
+    if(theMenu != nil) {
+        DKMessageIterator *rootIter = [reply appendIterator];
+        enumerateMenuLayout(rootIter, theMenu, rootID, 1, recursionDepth);
+    }
     [connection send:reply];
 }
 
 - (void) layoutDidUpdate {
+    ++layoutVersion;
     DKMessage *update = [[DKMessage alloc] initSignal:"LayoutUpdated"
         interface:[DBUSMENU_INTERFACE UTF8String] path:[menuObjectPath UTF8String]];
 
@@ -230,7 +256,6 @@ void enumerateMenuLayout(DKMessageIterator *iterator, NSMenu *menu, int32_t item
     [update appendArg:&val type:DBUS_TYPE_UINT32];
 
     [connection send:update];
-    ++layoutVersion;
 }
 
 // FIXME: not really implemented or currently used
@@ -240,7 +265,7 @@ void enumerateMenuLayout(DKMessageIterator *iterator, NSMenu *menu, int32_t item
 
     DKMessageIterator *rootIter = [update appendIterator];
     DKMessageIterator *outerArray = [rootIter openArray:"(ia{sv})"]; 
-
+#if 0
     int numItems = (sizeof(entries) / sizeof(struct _entry));
     for(int i = 0; i < numItems; ++i) {
         DKMessageIterator *itemStruct = [outerArray openStruct];
@@ -254,6 +279,7 @@ void enumerateMenuLayout(DKMessageIterator *iterator, NSMenu *menu, int32_t item
         [itemStruct close];
         [itemStruct release];
     }
+#endif
     [outerArray close];
     [outerArray release];
 
@@ -267,7 +293,6 @@ void enumerateMenuLayout(DKMessageIterator *iterator, NSMenu *menu, int32_t item
 - (void) aboutToShow: (DKMessage *)message {
     int32_t item = 0;
     dbus_message_get_args([message _getMessage], NULL, DBUS_TYPE_INT32, &item, DBUS_TYPE_INVALID);
-    fprintf(stderr, "aboutToShow %d\n",item);
     DKMessage *reply = [[DKMessage alloc] initReply:message];
     DKMessageIterator *rootIter = [reply appendIterator];
     int val = 0;

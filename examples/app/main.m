@@ -19,15 +19,24 @@ int main(int argc, const char *argv[])
 
 	NSMenu *menubar = [[NSMenu new] autorelease];
 	NSMenuItem *appMenuItem = [[NSMenuItem new] autorelease];
+	NSMenuItem *fileMenuItem = [[NSMenuItem new] autorelease];
 	[menubar addItem:appMenuItem];
-	[appMenuItem setTitle:@"Bar"];
+	[menubar addItem:fileMenuItem];
+	[appMenuItem setTitle:appName];
+    [fileMenuItem setTitle:@"File"];
 
 	NSMenu *appMenu = [[NSMenu new] autorelease];
 	NSMenuItem *quitMenuItem = [[[NSMenuItem alloc] initWithTitle:@"Quit"
 		action:@selector(terminate:) keyEquivalent:@"q"] autorelease];
 	[appMenu addItem:quitMenuItem];
-
 	[appMenuItem setSubmenu:appMenu];
+
+    NSMenu *fileMenu = [[NSMenu new] autorelease];
+    NSMenuItem *openMenuItem = [[[NSMenuItem alloc] initWithTitle:@"Open"
+        action:@selector(terminate:) keyEquivalent:@"o"] autorelease];
+    [fileMenu addItem:openMenuItem];
+    [fileMenuItem setSubmenu:fileMenu];
+
 	[NSApp setMainMenu:menubar];
 
     NSImage *image = [[[NSImage alloc] initWithContentsOfFile:
