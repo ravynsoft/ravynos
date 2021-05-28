@@ -354,6 +354,17 @@ BOOL itemIsEnabled(NSMenuItem *item) {
     return NO;
 }
 
+-(BOOL)performClickEquivalent:(NSMenuItem *)item {
+    if(_autoenablesItems)
+        [self update];
+
+    if(itemIsEnabled(item))
+        return [NSApp sendAction:[item action] to:[item target] from:item];
+
+    return NO;
+}
+
+
 - (void)setDelegate:(id <NSMenuDelegate>)object
 {
 	_delegate = object;

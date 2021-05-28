@@ -152,6 +152,7 @@ int recursivelyPopulateItemMap(NSMutableDictionary *itemMap, NSMenu *submenu, in
         layout = [[NSMutableDictionary dictionaryWithCapacity:20] autorelease];
     }
     recursivelyPopulateItemMap(layout, menu, 0);
+    NSLog(@"map %@",layout);
     [self layoutDidUpdate];
 }
 
@@ -302,12 +303,24 @@ int recursivelyPopulateItemMap(NSMutableDictionary *itemMap, NSMenu *submenu, in
 
 // FIXME: we probably need to do stuff for these events
 - (void) event: (DKMessage *)message {
-    int32_t item = 0;
+    int32_t itemNumber = 0;
     const char *s = NULL;
-    dbus_message_get_args([message _getMessage], NULL, DBUS_TYPE_INT32, &item, DBUS_TYPE_STRING, &s, DBUS_TYPE_INVALID);
-    fprintf(stderr, "event %d %s\n",item,s);
+    dbus_message_get_args([message _getMessage], NULL, DBUS_TYPE_INT32, &itemNumber, DBUS_TYPE_STRING, &s, DBUS_TYPE_INVALID);
+    fprintf(stderr, "event %d %s\n",itemNumber,s);
+    NSNumber *boxed = [NSNumber numberWithInt:itemNumber];
+
+    if(strncmp("clicked",s,7) == 0) {
+        NSMenuItem *item = [layout objectForKey:boxed];
+        if(item != nil) {
+            [[item menu] performClickEquivalent:item];
+        } else {
+            NSLog(@"%@ Click event for unknown menu item %d!",self,itemNumber);
+        }
+    }
     DKMessage *reply = [[DKMessage alloc] initReply:message];
     [connection send:reply];
+
+
 }
 
 @end

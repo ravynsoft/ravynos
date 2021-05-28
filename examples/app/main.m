@@ -20,10 +20,13 @@ int main(int argc, const char *argv[])
 	NSMenu *menubar = [[NSMenu new] autorelease];
 	NSMenuItem *appMenuItem = [[NSMenuItem new] autorelease];
 	NSMenuItem *fileMenuItem = [[NSMenuItem new] autorelease];
+    NSMenuItem *windowsMenuItem = [[NSMenuItem new] autorelease];
 	[menubar addItem:appMenuItem];
 	[menubar addItem:fileMenuItem];
+    [menubar addItem:windowsMenuItem];
 	[appMenuItem setTitle:appName];
     [fileMenuItem setTitle:@"File"];
+    [windowsMenuItem setTitle:@"Windows"];
 
 	NSMenu *appMenu = [[NSMenu new] autorelease];
 	NSMenuItem *quitMenuItem = [[[NSMenuItem alloc] initWithTitle:@"Quit"
@@ -37,7 +40,10 @@ int main(int argc, const char *argv[])
     [fileMenu addItem:openMenuItem];
     [fileMenuItem setSubmenu:fileMenu];
 
-	[NSApp setMainMenu:menubar];
+    NSMenu *windowsMenu = [[NSMenu new] autorelease];
+    [windowsMenuItem setSubmenu:windowsMenu];
+    [NSApp setWindowsMenu:windowsMenu];
+
 
     NSImage *image = [[[NSImage alloc] initWithContentsOfFile:
     	[main pathForResource:@"helium" ofType:@"jpg"]] autorelease];
@@ -69,6 +75,7 @@ int main(int argc, const char *argv[])
 	[view2 setText:text];
     [view2 setNeedsDisplay:YES];
 	[window2 display];
+	[NSApp setMainMenu:menubar];
 
     [NSApp run];
     return 0;
