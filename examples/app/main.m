@@ -37,7 +37,7 @@ int main(int argc, const char *argv[])
 
     NSMenu *fileMenu = [[NSMenu new] autorelease];
     NSMenuItem *openMenuItem = [[[NSMenuItem alloc] initWithTitle:@"Open"
-        action:@selector(terminate:) keyEquivalent:@"o"] autorelease];
+        action:@selector(openFile:) keyEquivalent:@"o"] autorelease];
     [fileMenu addItem:openMenuItem];
     [fileMenuItem setSubmenu:fileMenu];
 
@@ -80,3 +80,14 @@ int main(int argc, const char *argv[])
     [NSApp run];
     return 0;
 }
+
+@interface NSApplication(CocoaDemo)
+-(void)CD_openFile;
+@end
+
+@implementation NSApplication(CocoaDemo)
+-(void)openFile:sender {
+    NSLog(@"openFile");
+}
+@end
+
