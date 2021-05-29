@@ -19,14 +19,14 @@
 #     |-- PkgInfo
 #     `-- Resources
 #         |-- CocoaDemo.png
-#         |-- helium.jpg
+#         |-- Cloudy_Mountains.jpg
 #         `-- rsc
 #             `-- sample.txt
 
 APP=CocoaDemo
 SRCS=main.m MyView.m
 MK_DEBUG_FILES=no
-RESOURCES=rsc helium.jpg CocoaDemo.png
+RESOURCES=rsc Cloudy_Mountains.jpg CocoaDemo.png
 SLF=/System/Library/Frameworks
 FRAMEWORKS=${SLF}/AppKit ${SLF}/CoreGraphics ${SLF}/Onyx2D ${SLF}/OpenGL \
 	${SLF}/Foundation ${SLF}/CoreFoundation ${SLF}/DBusKit

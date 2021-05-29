@@ -26,10 +26,11 @@ int main(int argc, const char *argv[])
     [menubar addItem:windowsMenuItem];
 	[appMenuItem setTitle:appName];
     [fileMenuItem setTitle:@"File"];
-    [windowsMenuItem setTitle:@"Windows"];
+    [windowsMenuItem setTitle:@"Window"];
 
 	NSMenu *appMenu = [[NSMenu new] autorelease];
-	NSMenuItem *quitMenuItem = [[[NSMenuItem alloc] initWithTitle:@"Quit"
+	NSMenuItem *quitMenuItem = [[[NSMenuItem alloc]
+        initWithTitle:[NSString stringWithFormat:@"Quit %@", appName]
 		action:@selector(terminate:) keyEquivalent:@"q"] autorelease];
 	[appMenu addItem:quitMenuItem];
 	[appMenuItem setSubmenu:appMenu];
@@ -44,9 +45,8 @@ int main(int argc, const char *argv[])
     [windowsMenuItem setSubmenu:windowsMenu];
     [NSApp setWindowsMenu:windowsMenu];
 
-
     NSImage *image = [[[NSImage alloc] initWithContentsOfFile:
-    	[main pathForResource:@"helium" ofType:@"jpg"]] autorelease];
+    	[main pathForResource:@"Cloudy_Mountains" ofType:@"jpg"]] autorelease];
     NSSize imageSize = [image size];
 
     NSRect rect = NSMakeRect(0,0,imageSize.width, imageSize.height);
