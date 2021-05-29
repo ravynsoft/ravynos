@@ -81,13 +81,10 @@ int main(int argc, const char *argv[])
     return 0;
 }
 
-@interface NSApplication(CocoaDemo)
--(void)CD_openFile;
-@end
-
 @implementation NSApplication(CocoaDemo)
 -(void)openFile:sender {
-    NSLog(@"openFile");
+    NSRunAlertPanel(@"Open File", @"File selection panel is not implemented yet",
+        @"OK", nil, nil);
 }
 @end
 

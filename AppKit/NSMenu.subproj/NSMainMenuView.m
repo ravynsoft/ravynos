@@ -25,6 +25,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 }
 
 +(float)menuHeight {
+   // we're using global menus in Airyx so we'll just make this 0 height for now
+   return 0.0;
+#if 0
    NSDictionary *attributes=[NSDictionary dictionaryWithObjectsAndKeys:
      [self menuFont],NSFontAttributeName,nil];
    float         result=[@"Menu" sizeWithAttributes:attributes].height;
@@ -34,6 +37,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
    result+=1; // sunken title baseline
 
 	return result;
+#endif
 }
 
 -initWithFrame:(NSRect)frame menu:(NSMenu *)menu {
