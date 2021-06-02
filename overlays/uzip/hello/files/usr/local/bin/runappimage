@@ -13,7 +13,7 @@
 # linsysfs on /compat/linux/sys (linsysfs, local)
 # /bin/bash symlink to /usr/local/bin/bash
 
-if [ ! -f "/bin/bash" ] ; then
+if [ ! -L "/bin/bash" ] ; then
   echo "bin/bash is missing." >&2
   echo "Please install it using" >&2
   echo "sudo ln -s /usr/local/bin/bash /bin/bash" >&2
