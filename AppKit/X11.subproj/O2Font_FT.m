@@ -84,11 +84,11 @@ FcConfig *O2FontSharedFontConfig() {
     filename=[isa filenameForPattern:@""];
     
     if(filename==nil) {
+#if defined(__AIRYX__)
+      filename=@"/System/Library/Fonts/NimbusSans-Regular.ttf";
+#else
 #ifdef LINUX
       filename=@"/usr/share/fonts/truetype/freefont/FreeSans.ttf";
-#else
-#if defined(__AIRYX__)
-      filename=@"/System/Library/Fonts/FreeSans.ttf";
 #else
       filename=@"/System/Library/Fonts/HelveticaNeue.ttc";
 #endif

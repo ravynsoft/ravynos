@@ -451,7 +451,7 @@ static inline void flushPreviousString(NSRichTextReader *self) {
                     }
                 }
                 if (font == nil) {
-                    font=[NSFont fontWithName:@"FreeSans" size:12.0];
+                    font=[NSFont fontWithName:@"Nimbus Sans" size:12.0];
                 }
                 if (font) {
                     NSFont *currentFont=[_currentAttributes objectForKey:NSFontAttributeName];

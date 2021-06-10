@@ -71,7 +71,7 @@ int main(int argc, const char *argv[])
 
     MyView *view2 = [[[MyView alloc] initWithFrame:[window2 frame]] autorelease];
     [window2 setContentView:view2];
-	[view2 setFont: [NSFont fontWithName:@"NimbusSans-Regular" size:16.0]];
+	[view2 setFont: [NSFont fontWithName:@"URW Gothic" size:20.0]];
 	[view2 setText:text];
     [view2 setNeedsDisplay:YES];
 	[window2 display];
