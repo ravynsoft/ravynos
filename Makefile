@@ -230,9 +230,13 @@ ${RLSDIR}/CocoaDemo.app.txz:
 	tar -C ${TOPDIR}/examples/app -cf ${.TARGET} CocoaDemo.app
 
 desc_airyx=Airyx system
-release: airyx-package ${TOPDIR}/ISO ${RLSDIR}/CocoaDemo.app.txz
+packagesystem:
 	rm -f ${RLSDIR}/packagesystem
 	cp -f ${TOPDIR}/version ${TOPDIR}/ISO/overlays/ramdisk
 	export MAKEOBJDIRPREFIX=${OBJPREFIX}; sudo -E \
 		make -C ${TOPDIR}/freebsd-src/release NOSRC=true NOPORTS=true packagesystem 
+
+iso:
 	cd ${TOPDIR}/ISO && workdir=${OBJPREFIX} AIRYX=${TOPDIR} sudo -E ./build.sh hello Airyx_${AIRYX_VERSION}
+
+release: airyx-package ${TOPDIR}/ISO ${RLSDIR}/CocoaDemo.app.txz packagesystem iso
