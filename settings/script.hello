@@ -385,4 +385,4 @@ chroot ${uzip} sh -c 'for FILE in $(pkg list perl5) ; do rm $FILE ; done'
 # * Debian can do: Install the package with '--ignore-depends', then edit /var/lib/dpkg/status to remove unwanted packages, then run 'apt-get -f install'
 # * Unpack the pkg, remove the dependency, repack the pkg, then install - https://serverfault.com/a/859394
 # Remove all .a files; TODO: Create a separate download for those
-#find ${uzip} -name '*.a' -delete
+# find ${uzip} -name '*.a' -delete # https://github.com/helloSystem/ISO/issues/213
