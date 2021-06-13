@@ -83,8 +83,21 @@ int main(int argc, const char *argv[])
 
 @implementation NSApplication(CocoaDemo)
 -(void)openFile:sender {
-    NSRunAlertPanel(@"Open File", @"File selection panel is not implemented yet",
-        @"OK", nil, nil);
+//    NSRunAlertPanel(@"Open File", @"File selection panel is not implemented yet",
+//        @"OK", nil, nil);
+    [NSApp performSelectorOnMainThread:@selector(openWin3) withObject:nil waitUntilDone:NO modes:[NSArray arrayWithObjects:NSDefaultRunLoopMode,NSModalPanelRunLoopMode,nil]];
 }
+
+-(void)openWin3 {
+    // deliberately leak the object
+    NSWindow *win3 = [[[NSWindow alloc] initWithContentRect:NSMakeRect(0,0,200,200)
+        styleMask:NSTitledWindowMask backing:NSBackingStoreBuffered defer:NO] retain];
+    [win3 setTitle:@"Popup 3"];
+    [win3 cascadeTopLeftFromPoint:NSMakePoint(50,50)];
+    [win3 makeKeyAndOrderFront:nil];
+    [win3 display];
+    [NSApp addWindowsItem:win3 title:@"POPUP" filename:NO];
+}
+
 @end
 

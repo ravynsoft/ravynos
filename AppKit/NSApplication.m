@@ -369,6 +369,7 @@ id NSApp=nil;
 -(void)setWindowsMenu:(NSMenu *)menu {
    [_windowsMenu autorelease];
    _windowsMenu=[menu retain];
+   [dbusMenu setMenu:_mainMenu];
 }
 
 
@@ -385,6 +386,7 @@ id NSApp=nil;
     [item setTarget:window];
 
     [[self windowsMenu] addItem:item];
+    [dbusMenu setMenu:_mainMenu]; // update layout
 }
 
 -(void)changeWindowsItem:(NSWindow *)window title:(NSString *)title filename:(BOOL)isFilename {
@@ -407,6 +409,7 @@ id NSApp=nil;
 		else
 			[self addWindowsItem:window title:title filename:isFilename];
 	}
+    [dbusMenu setMenu:_mainMenu]; // update layout
 }
 
 -(void)removeWindowsItem:(NSWindow *)window {
@@ -419,6 +422,7 @@ id NSApp=nil;
             [[self windowsMenu] removeItem:[[[self windowsMenu] itemArray] lastObject]];
           }
     }
+    [dbusMenu setMenu:_mainMenu]; // update layout
 }
 
 -(void)updateWindowsItem:(NSWindow *)window {
@@ -432,6 +436,7 @@ id NSApp=nil;
     NSMenuItem *item=[menu itemAtIndex:itemIndex];
     
    }
+   [dbusMenu setMenu:_mainMenu]; // update layout
 #endif
 }
 

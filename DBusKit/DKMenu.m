@@ -245,17 +245,27 @@ int recursivelyPopulateItemMap(NSMutableDictionary *itemMap, NSMenu *submenu, in
     [connection send:reply];
 }
 
+// FIXME: this is horribly brute-force ^_^
 - (void) layoutDidUpdate {
     ++layoutVersion;
-    DKMessage *update = [[DKMessage alloc] initSignal:"LayoutUpdated"
-        interface:[DBUSMENU_INTERFACE UTF8String] path:[menuObjectPath UTF8String]];
+    NSEnumerator *objEnum = [layout objectEnumerator];
+    NSMenuItem *item = [objEnum nextObject];
 
-    uint32_t val = layoutVersion;
-    [update appendArg:&val type:DBUS_TYPE_UINT32];
-    val = 0;
-    [update appendArg:&val type:DBUS_TYPE_UINT32];
+    while(item != nil) {
+        NSLog(@"layout %@",item);
+        if([item hasSubmenu]) {
+            DKMessage *update = [[DKMessage alloc] initSignal:"LayoutUpdated"
+                interface:[DBUSMENU_INTERFACE UTF8String] path:[menuObjectPath UTF8String]];
 
-    [connection send:update];
+            uint32_t val = layoutVersion;
+            [update appendArg:&val type:DBUS_TYPE_UINT32];
+            val = [item DBusItemID];
+            [update appendArg:&val type:DBUS_TYPE_UINT32];
+
+            [connection send:update];
+        }
+        item = [objEnum nextObject];
+    }
 }
 
 // FIXME: not really implemented or currently used
