@@ -10,13 +10,27 @@ AIRYX_CODENAME != tail -1 ${TOPDIR}/version
 OSRELEASE := 12.2
 FREEBSD_BRANCH := stable/${OSRELEASE:R}
 MKINCDIR := -m/usr/share/mk -m${TOPDIR}/mk
-CORES := 4
+CORES := 8
 
 # Full release build with installation artifacts
 world: prep freebsd airyx release
 
 prep:
 	mkdir -p ${OBJPREFIX} ${TOPDIR}/dist ${BUILDROOT}
+	mkdir -p ${BUILDROOT}/etc ${BUILDROOT}/var/run ${BUILDROOT}/usr/sbin
+	sudo cp -f ${TOPDIR}/make.conf ${TOPDIR}/resolv.conf ${BUILDROOT}/etc/
+	sudo cp -f /var/run/ld-elf.so.hints ${BUILDROOT}/var/run
+	sudo cp -f /usr/local/sbin/pkg-static ${BUILDROOT}/usr/sbin
+
+copybase:
+	sudo tar xvf ${RLSDIR}/base.txz -C ${BUILDROOT}
+
+zsh:
+	sudo ${MAKE} -C /usr/ports/shells/zsh DESTDIR=${BUILDROOT} clean rmconfig-recursive install
+
+cleanroot:
+	sudo chflags -R noschg,nouchg ${BUILDROOT}
+	sudo rm -rf ${BUILDROOT}
 
 ${TOPDIR}/freebsd-src/sys/${MACHINE}/compile/${BSDCONFIG}: ${TOPDIR}/freebsd-src/sys/${MACHINE}/conf/${BSDCONFIG}
 	mkdir -p ${TOPDIR}/freebsd-src/sys/${MACHINE}/compile/${BSDCONFIG}
