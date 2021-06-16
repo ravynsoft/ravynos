@@ -24,9 +24,19 @@ prep:
 
 copybase:
 	sudo tar xvf ${RLSDIR}/base.txz -C ${BUILDROOT}
+	sudo ln -sf share/man ${BUILDROOT}/usr/man
 
-zsh:
-	sudo ${MAKE} -C /usr/ports/shells/zsh DESTDIR=${BUILDROOT} clean rmconfig-recursive install
+ports:
+	sudo ${TOPDIR}/Tools/fix-man-paths.sh
+
+/usr/ports/{devel,shells,x11}/*: .PHONY
+	sudo ${MAKE} -C ${.TARGET} DESTDIR=${BUILDROOT} install
+
+zsh: /usr/ports/shells/zsh
+	sudo ln -f ${BUILDROOT}/usr/bin/zsh ${BUILDROOT}/bin/zsh
+
+cmake: /usr/ports/devel/cmake
+plasma: /usr/ports/x11/plasma5-plasma
 
 cleanroot:
 	sudo chflags -R noschg,nouchg ${BUILDROOT}
