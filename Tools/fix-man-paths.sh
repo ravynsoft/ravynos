@@ -3,6 +3,9 @@
 
 find /usr/ports -name pkg-plist_ -o -name Makefile_ -exec mv -vf {} $(basename {} _) \;
 
+# Uses/gnome
+sed -i_ -e 's@${LOCALBASE}/etc/gnome.subr@/etc/gnome.subr@' /usr/ports/Mk/Uses/gnome.mk
+
 # Prevent reordering /usr/include to the end of system includes - it breaks C++
 sed -i_ -e 's/^CPPFLAGS/# CPPFLAGS/' -e 's/^CFLAGS/# CFLAGS/' -e 's/^CXXFLAGS/# CXXFLAGS/' /usr/ports/Mk/Uses/localbase.mk
 
@@ -17,28 +20,67 @@ sed -i_ -e 's/^\t${INSTALL_MAN}/\t${MKDIR} ${STAGEDIR}\/usr\/man\/man1\n\tsed -i
 # xmlcatmgr
 sed -i_ -e 's@^\.include <bsd\.port\.mk>@pre-install:\n\t${MKDIR} -p ${STAGEDIR}${PREFIX}/share/xml ${STAGEDIR}${PREFIX}/share/sgml\n&@' /usr/ports/textproc/xmlcatmgr/Makefile
 
-# Qt5 Core
+# qt5-core
 sed -i_ -e 's@^post-install:@pre-install:\n\t${MKDIR} -p ${STAGEDIR}${PREFIX}/libdata/ldconfig\n&@' /usr/ports/devel/qt5-core/Makefile
 
 # Fontconfig
 sed -i_ -e 's@^FCDEFAULTFONTS.*@FCDEFAULTFONTS= /System/Library/Fonts /Library/Fonts@' -e 's@${STAGEDIR}${PREFIX}@${STAGEDIR}@g' /usr/ports/x11-fonts/fontconfig/Makefile
-sed -i -e 's@^post-install:@&\n\tMESON_INSTALL_DESTDIR_PREFIX="" /usr/bin/python3 ${WRKSRC}/conf.d/link_confs.py /etc/fonts/conf.avail ${STAGEDIR}/etc/fonts/conf.d 10-hinting-slight.conf 10-scale-bitmap-fonts.conf 20-unhint-small-vera.conf 30-metric-aliases.conf 40-nonlatin.conf 45-generic.conf 45-latin.conf 49-sansserif.conf 50-user.conf 51-local.conf 60-generic.conf 60-latin.conf 65-fonts-persian.conf 65-nonlatin.conf 69-unifont.conf 80-delicious.conf 90-synthetic.conf@' /usr/ports/x11-fonts/fontconfig/Makefile
 sed -i_ -e 's@^etc/@/etc/@' -e 's@%etc@%/etc@g' -e 's@ etc@ /etc@g' /usr/ports/x11-fonts/fontconfig/pkg-plist
-cat >/usr/ports/x11-fonts/fontconfig/files/patch-conf.d_meson.build_2 <<EOT
---- conf.d/meson.build.orig     2021-06-15 21:56:10.019092000 -0400
-+++ conf.d/meson.build  2021-06-15 22:01:50.208793000 -0400
-@@ -60,12 +60,6 @@
- ]
 
- install_data(conf_files, install_dir: join_paths(get_option('sysconfdir'), 'fonts/conf.avail'))
--
--meson.add_install_script('link_confs.py',
--  join_paths(get_option('prefix'), get_option('sysconfdir'), 'fonts/conf.avail'),
--  join_paths(get_option('sysconfdir'), 'fonts', 'conf.d'),
--  conf_links,
--)
+# LLVM10
+sed -i_ -e 's@^post-install:@pre-install:\n\t${MKDIR} -p ${STAGEDIR}${PREFIX}/libdata/ldconfig\n&@' /usr/ports/devel/llvm10/Makefile
 
- # 35-lang-normalize.conf
- orths = []
-EOT
+# html2text
+sed -i_ -e 's@^do-install:@&\n\t${MKDIR} -p ${STAGEDIR}${MANPREFIX}/man/man1 ${STAGEDIR}${MANPREFIX}/man/man5@' /usr/ports/textproc/html2text/Makefile
 
+# dbus
+sed -i_ -e 's@^post-install:@pre-install:\n\t${MKDIR} -p ${STAGEDIR}/etc/rc.d\n&@' /usr/ports/devel/dbus/Makefile
+
+# at-spi2-core
+sed -i_ -e 's@^etc/@/etc/@' /usr/ports/accessibility/at-spi2-core/pkg-plist
+
+# qt5-widgets
+sed -i_ -e 's@^post-install:@pre-install:\n\t${MKDIR} -p ${STAGEDIR}/usr/share/pixmaps\n&@' /usr/ports/x11-toolkits/qt5-widgets/Makefile
+
+# sqlite3
+sed -i_ -e 's@^post-install:@pre-install:\n\t${MKDIR} -p ${STAGEDIR}/usr/man/man1\n&@' /usr/ports/databases/sqlite3/Makefile
+
+# qt5-linguisttools
+sed -i_ -e 's@^post-install:@pre-install:\n\t${MKDIR} -p ${STAGEDIR}/usr/man/man1\n&@' /usr/ports/devel/qt5-linguisttools/Makefile
+
+# kf5-kservice
+sed -i_ -e 's@^etc/@/etc/@' /usr/ports/devel/kf5-kservice/pkg-plist
+
+# rust
+sed -i_ -e 's@share/man@man@' -e 's@\\1.gz@\\1@' /usr/ports/lang/rust/Makefile
+
+# desktop-file-utils
+sed -i_ -e 's@^post-install:@pre-install:\n\t${MKDIR} -p ${STAGEDIR}${PREFIX}/share/applications\n&@' /usr/ports/devel/desktop-file-utils/Makefile
+
+# aspell
+sed -i_ -e 's@^etc@/etc@' /usr/ports/textproc/aspell/pkg-plist
+sed -i_ -e 's@${PREFIX}/etc@/etc@' -e 's@^post-install:@&\n\t${MKDIR} -p ${STAGEDIR}/etc@' /usr/ports/textproc/aspell/Makefile
+
+# fftw3
+sed -i_ -e 's@^post-install:@&\n\t${MKDIR} -p ${STAGEDIR}${PREFIX}/man/man1@' /usr/ports/math/fftw3/Makefile
+
+# gnome_subr
+sed -i_ -e 's@etc/@/etc/@' -e 's@${PREFIX}/etc@/etc@' -e 's@^do-install:@&\n\t${MKDIR} -p ${STAGEDIR}/etc@' /usr/ports/sysutils/gnome_subr/Makefile
+
+# p11-kit
+sed -i_ -e 's@${PREFIX}/etc@/etc@' /usr/ports/security/p11-kit/Makefile
+
+# tpm-emulator
+sed -i_ -e 's@post-install:@pre-install:\n\t${MKDIR} -p ${STAGEDIR}/etc/rc.d\n&@' /usr/ports/emulators/tpm-emulator/Makefile
+
+# trousers
+sed -i_ -e 's@${PREFIX}/etc@/etc@' -e 's@post-install:@&\n\t${MKDIR} -p ${STAGEDIR}/etc/rc.d@' /usr/ports/security/trousers/Makefile
+sed -i_ -e 's@ etc@ /etc@' -e 's@^man/@share/man/@' -e 's@\.gz$@@' /usr/ports/security/trousers/pkg-plist
+
+# libpaper
+sed -i_ -e 's@^post-install:@&\n\t${MKDIR} -p ${STAGEDIR}/etc@' -e 's@${PREFIX}/etc@/etc@' /usr/ports/print/libpaper/Makefile
+sed -i_ -e 's@^etc@/etc@' /usr/ports/print/libpaper/pkg-plist
+
+# cups
+sed -i_ -e 's@^etc/@/etc/@' -e 's@ etc/@ /etc/@' /usr/ports/print/cups/pkg-plist
+sed -i_ -e 's@${PREFIX}/etc@/etc@g' -e 's@${LOCALBASE}/etc@/etc@g' -e 's@^post-install:@&\n\t${MKDIR} -p ${STAGEDIR}/etc/rc.d ${STAGEDIR}/etc/pam.d ${STAGEDIR}/etc/devd@' /usr/ports/print/cups/Makefile

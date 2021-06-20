@@ -29,7 +29,7 @@ copybase:
 ports:
 	sudo ${TOPDIR}/Tools/fix-man-paths.sh
 
-/usr/ports/{devel,shells,x11}/*: .PHONY
+/usr/ports/{devel,shells,x11,x11-fonts}/*: .PHONY
 	sudo ${MAKE} -C ${.TARGET} DESTDIR=${BUILDROOT} install
 
 zsh: /usr/ports/shells/zsh
