@@ -27,7 +27,7 @@ copybase:
 	sudo ln -sf share/man ${BUILDROOT}/usr/man
 
 ports:
-	sudo ${TOPDIR}/Tools/fix-man-paths.sh
+	sudo ${TOPDIR}/Tools/patch-ports.sh
 
 /usr/ports/{devel,shells,x11,x11-fonts}/*: .PHONY
 	sudo ${MAKE} -C ${.TARGET} DESTDIR=${BUILDROOT} install
@@ -35,7 +35,6 @@ ports:
 zsh: /usr/ports/shells/zsh
 	sudo ln -f ${BUILDROOT}/usr/bin/zsh ${BUILDROOT}/bin/zsh
 
-cmake: /usr/ports/devel/cmake
 plasma: /usr/ports/x11/plasma5-plasma
 
 cleanroot:
