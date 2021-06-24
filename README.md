@@ -1,23 +1,6 @@
-*****
-# IMPORTANT NOTICE!
-May 19 2021
-
-*The name of this project will be changing from Helium to Airyx on May 22.*
-
-I had misgivings about using such a common name but went with it because I couldn't think of a better one at the time (and it fit my theme of projects named after elements) :)
-
-Frankly, there are a lot of "Helium"s out there and the most notable that I found is the crypto blockchain and wireless network by the folks who own helium.com. So to avoid confusion and before we go too far down the Helium road, I am changing the project to its new identity: Airyx. Links to the old name here on GitHub should still work but please update.
-
-Like Helium, a light and stable element, I hope the new name conveys a similar sense of airy stability and lightness. I'll be making all the branding changes over the next few days and getting the new domains/websites set up.
-
-Thanks for your patience!
-
-@mszoek
-*****
-
 # What is Airyx?
 
-Airyx is a new open source OS project that aims to provide a similar experience and some compatibiilty with macOS on x86-64 sytems. It builds on the solid foundations of FreeBSD, existing open source packages in the same space, and new code to fill the gaps.
+Airyx is a new open source OS project that aims to provide a similar experience and some compatibiilty with macOS on x86-64 sytems. It builds on the solid foundations of FreeBSD, existing open source packages in the same space, and new code to fill the gaps. Please visit [airyx.org](https://airyx.org/) or join us on [Libera IRC](https://libera.chat) in `#airyx` for more info!
 
 The main design goals are:
 - source compatibility with macOS applications (i.e. you could compile a Mac application on Airyx and run it)
@@ -59,3 +42,9 @@ One really big way to help right now would be a project logo! Got some art skill
 Probably. But...
 
 !["Here's to the crazy ones. The misfits. The rebels. The troublemakers. The round pegs in the square holes. The ones who see things differently. They're not fond of rules. And they have no respect for the status quo. You can quote them, disagree with them, glorify or vilify them. About the only thing you can't do is ignore them. Because they change things. The push the human race forward. And while some may see them as the crazy ones, we see genius. Because the people who are crazy enough to think they can change the world, are the ones who do."](https://i.etsystatic.com/9865576/r/il/3afeb0/1019438891/il_794xN.1019438891_m9og.jpg)
+
+
+## Acknowledgements
+This project would not be possible without the generous support of [Cirrus CI](https://cirrus-ci.org/) for CI/CD and [Cloudsmith](https://cloudsmith.io/) for package hosting! Thanks to these awesome organizations for supporting open source software!
+
+[![Packages hosted by: Cloudsmith](https://img.shields.io/badge/OSS%20hosting%20by-cloudsmith-blue?logo=cloudsmith&style=flat-square)](https://cloudsmith.com)

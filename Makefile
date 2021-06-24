@@ -80,8 +80,8 @@ packages-db-clean:
 	rm -f ${BUILDROOT}/var/db/pkg/*
 
 mv-pkgconfig:
-	mkdir -p ${BUILDROOT}/usr/local/share
-	tar -C ${BUILDROOT}/usr/lib -cpf pkgconfig | tar -C ${BUILDROOT}/usr/local/share -xpf -
+	mkdir -p ${BUILDROOT}/usr/share
+	tar -C ${BUILDROOT}/usr/lib -cpf pkgconfig | tar -C ${BUILDROOT}/usr/share -xpf -
 	rm -rf ${BUILDROOT}/usr/lib/pkgconfig
 
 airyx: extradirs mkfiles libobjc2 libunwind frameworksclean frameworks copyfiles \
