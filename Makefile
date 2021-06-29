@@ -5,6 +5,7 @@ OBJPREFIX := ${HOME}/obj.${MACHINE}
 RLSDIR := ${TOPDIR}/freebsd-src/release
 BSDCONFIG := GENERIC
 BUILDROOT := ${OBJPREFIX}/buildroot
+PORTSROOT := ${OBJPREFIX}/portsroot
 AIRYX_VERSION != head -1 ${TOPDIR}/version
 AIRYX_CODENAME != tail -1 ${TOPDIR}/version
 OSRELEASE := 12.2
@@ -15,31 +16,58 @@ CORES := 8
 # Full release build with installation artifacts
 world: prep freebsd airyx release
 
-prep:
+prep: cleanroot
 	mkdir -p ${OBJPREFIX} ${TOPDIR}/dist ${BUILDROOT}
 	mkdir -p ${BUILDROOT}/etc ${BUILDROOT}/var/run ${BUILDROOT}/usr/sbin
 	sudo cp -f ${TOPDIR}/make.conf ${TOPDIR}/resolv.conf ${BUILDROOT}/etc/
 	sudo cp -f /var/run/ld-elf.so.hints ${BUILDROOT}/var/run
 	sudo cp -f /usr/local/sbin/pkg-static ${BUILDROOT}/usr/sbin
-
-copybase:
-	sudo tar xvf ${RLSDIR}/base.txz -C ${BUILDROOT}
-	sudo ln -sf share/man ${BUILDROOT}/usr/man
-
-ports:
-	sudo ${TOPDIR}/Tools/patch-ports.sh
-
-/usr/ports/{devel,shells,x11,x11-fonts}/*: .PHONY
-	sudo ${MAKE} -C ${.TARGET} DESTDIR=${BUILDROOT} install
-
-zsh: /usr/ports/shells/zsh
-	sudo ln -f ${BUILDROOT}/usr/bin/zsh ${BUILDROOT}/bin/zsh
-
-plasma: /usr/ports/x11/plasma5-plasma
+	for x in System System/Library/Frameworks Library Users Applications Volumes; \
+		do mkdir -p ${BUILDROOT}/$$x; \
+	done
 
 cleanroot:
-	sudo chflags -R noschg,nouchg ${BUILDROOT}
-	sudo rm -rf ${BUILDROOT}
+	if [ -d ${BUILDROOT} ]; then \
+		sudo chflags -R noschg,nouchg ${BUILDROOT}; \
+		sudo rm -rf ${BUILDROOT}; \
+	fi
+
+getports:
+	sudo portsnap auto
+	sudo ${TOPDIR}/Tools/patch-ports.sh
+	sudo mkdir /usr/ports/distfiles
+
+# Prepare the chroot jail for our ports builds
+prepports:
+	if [ -d ${PORTSROOT} ]; then \
+		sudo chflags -R noschg,nouchg ${PORTSROOT}; \
+		sudo rm -rf ${PORTSROOT}; \
+	fi
+	mkdir -p ${PORTSROOT}/etc ${PORTSROOT}/var/run ${PORTSROOT}/usr/sbin
+	sudo cp -f ${TOPDIR}/make.conf ${TOPDIR}/resolv.conf ${PORTSROOT}/etc/
+	sudo cp -f /var/run/ld-elf.so.hints ${PORTSROOT}/var/run
+	sudo cp -f /usr/local/sbin/pkg-static ${PORTSROOT}/usr/sbin
+	sudo tar xvf ${RLSDIR}/base.txz -C ${PORTSROOT}
+	sudo ln -s libncurses.so ${PORTSROOT}/usr/lib/libncurses.so.6
+
+/usr/ports/{archivers,devel,graphics,multimedia,shells,textproc,x11,x11-fonts,x11-fm,x11-themes}/*: .PHONY
+	sudo ${MAKE} -C ${.TARGET} DESTDIR=${PORTSROOT} install
+
+zsh: /usr/ports/shells/zsh
+	sudo ln -f ${PORTSROOT}/usr/bin/zsh ${PORTSROOT}/bin/zsh
+
+plasma: /usr/ports/x11/plasma5-plasma /usr/ports/x11/konsole /usr/ports/x11/sddm /usr/ports/x11-fm/dolphin
+xorg: /usr/ports/x11/xorg /usr/ports/x11-themes/adwaita-icon-theme /usr/ports/devel/desktop-file-utils
+misc: /usr/ports/archivers/brotli /usr/ports/graphics/argyllcms /usr/ports/multimedia/gstreamer1-plugins-all
+buildports: zsh xorg plasma misc
+
+makepackages:
+	sudo rm -rf /usr/ports/packages
+	sudo mkdir -p /usr/ports/packages
+	sudo mount_nullfs /usr/ports/packages ${PORTSROOT}/mnt
+	sudo chroot ${PORTSROOT} /bin/sh -c '/usr/sbin/pkg-static create -a -o /mnt'
+	sudo umount ${PORTSROOT}/mnt
+	sudo pkg repo -o /usr/ports/packages /usr/ports/packages
 
 ${TOPDIR}/freebsd-src/sys/${MACHINE}/compile/${BSDCONFIG}: ${TOPDIR}/freebsd-src/sys/${MACHINE}/conf/${BSDCONFIG}
 	mkdir -p ${TOPDIR}/freebsd-src/sys/${MACHINE}/compile/${BSDCONFIG}
@@ -68,24 +96,9 @@ base: ${TOPDIR}/freebsd-src ${OBJPREFIX}/.patched_bsd
 	export MAKEOBJDIRPREFIX=${OBJPREFIX}; ${MAKE} ${MFLAGS} -j${CORES} \
 		-C ${TOPDIR}/freebsd-src buildworld
 
-makepkg: packages-db-clean
-	mkdir -p ${OBJPREFIX}/metadir
-	sed -e 's/%%VERSION%%/${AIRYX_VERSION}/' <${TOPDIR}/+MANIFEST.airyx \
-		>${OBJPREFIX}/metadir/+MANIFEST
-	cd ${BUILDROOT}; find -L . -not -type d |sed -e's/^.\///' >${OBJPREFIX}/pkg-plist
-	INSTALL_AS_USER=1 PKG_DBDIR=${BUILDROOT}/var/db/pkg \
-		pkg register -m ${OBJPREFIX}/metadir -f ${OBJPREFIX}/pkg-plist
-
-packages-db-clean:
-	rm -f ${BUILDROOT}/var/db/pkg/*
-
-mv-pkgconfig:
-	mkdir -p ${BUILDROOT}/usr/share
+airyx: mkfiles libobjc2 libunwind frameworksclean frameworks copyfiles
 	tar -C ${BUILDROOT}/usr/lib -cpf pkgconfig | tar -C ${BUILDROOT}/usr/share -xpf -
 	rm -rf ${BUILDROOT}/usr/lib/pkgconfig
-
-airyx: extradirs mkfiles libobjc2 libunwind frameworksclean frameworks copyfiles \
-	mv-pkgconfig 
 
 # Update the build system with current source
 install: installworld installkernel installairyx
@@ -99,23 +112,14 @@ installkernel:
 installairyx: airyx-package
 	sudo tar -C / -xvf ${RLSDIR}/airyx.txz
 
-extradirs:
-	rm -rf ${BUILDROOT}
-	for x in System System/Library/Frameworks Library Users Applications Volumes; \
-		do mkdir -p ${BUILDROOT}/$$x; \
-	done
-	ln -sf /usr/local/share/fonts ${BUILDROOT}/System/Library/Fonts
-	mkdir -p ${BUILDROOT}/usr/bin
-	ln -sf /usr/local/bin/zsh ${BUILDROOT}/usr/bin/zsh
-
-mkfiles:
-	mkdir -p ${BUILDROOT}/usr/share/mk
-	cp -fv ${TOPDIR}/mk/*.mk ${BUILDROOT}/usr/share/mk/
-
 copyfiles:
 	cp -fvR ${TOPDIR}/etc ${BUILDROOT}
 	sed -i_ -e "s/__VERSION__/${AIRYX_VERSION}/" -e "s/__CODENAME__/${AIRYX_CODENAME}/" ${BUILDROOT}/etc/motd
 	rm -f ${BUILDROOT}/etc/motd_
+
+mkfiles:
+	mkdir -p ${BUILDROOT}/usr/share/mk
+	cp -fv ${TOPDIR}/mk/*.mk ${BUILDROOT}/usr/share/mk/
 
 libobjc2: .PHONY
 	mkdir -p ${OBJPREFIX}/libobjc2
@@ -241,7 +245,7 @@ DBusKit.framework:
 	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
 
 airyx-package:
-	tar cJ -C ${BUILDROOT} --gid 0 --uid 0 -f ${RLSDIR}/airyx.txz .
+	sudo tar cvJ -C ${BUILDROOT} --gid 0 --uid 0 -f ${RLSDIR}/airyx.txz .
 
 ${TOPDIR}/ISO:
 	cd ${TOPDIR} && git clone https://github.com/mszoek/ISO.git
@@ -255,11 +259,11 @@ ${RLSDIR}/CocoaDemo.app.txz:
 desc_airyx=Airyx system
 packagesystem:
 	rm -f ${RLSDIR}/packagesystem
-	cp -f ${TOPDIR}/version ${TOPDIR}/ISO/overlays/ramdisk
 	export MAKEOBJDIRPREFIX=${OBJPREFIX}; sudo -E \
 		${MAKE} -C ${TOPDIR}/freebsd-src/release NOSRC=true NOPORTS=true packagesystem 
 
 iso:
-	cd ${TOPDIR}/ISO && workdir=${OBJPREFIX} AIRYX=${TOPDIR} sudo -E ./build.sh hello Airyx_${AIRYX_VERSION}
+	cp -f ${TOPDIR}/version ${TOPDIR}/ISO/overlays/ramdisk
+	cd ${TOPDIR}/ISO && workdir=${OBJPREFIX} AIRYX=${TOPDIR} sudo -E ./build.sh kde Airyx_${AIRYX_VERSION}
 
 release: airyx-package ${TOPDIR}/ISO ${RLSDIR}/CocoaDemo.app.txz packagesystem iso
