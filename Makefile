@@ -35,6 +35,7 @@ cleanroot:
 getports:
 	sudo portsnap auto
 	sudo ${TOPDIR}/Tools/patch-ports.sh
+	sudo cp -f ${TOPDIR}/patches/fontconfig-link_confs.py.patch /usr/ports/x11-fonts/fontconfig/files/patch-conf.d_link_confs.py
 	sudo mkdir /usr/ports/distfiles
 
 # Prepare the chroot jail for our ports builds

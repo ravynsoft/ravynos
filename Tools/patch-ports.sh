@@ -25,7 +25,7 @@ sed -i_ -e 's@${QT_LIBDIR} \\@${QT_LIBDIR}@' -e 's@^.*--with-extra-includes.*$@@
 sed -i_ -e 's@^CONFIGURE_ARGS@# &@' /usr/ports/Mk/Uses/xorg.mk
 
 # Pre-emptively patch all pkg-plists with the right ETCDIR, MANPREFIX and FONTSDIR
-find /usr/ports -name pkg-plist -exec sed -i_ -e 's@etc/@/etc/@' -e 's@//etc@/etc@' -e 's@^man@%%MANPREFIX%%/man@' -e 's@^share/man@%%MANPREFIX%%/man@' -e 's@share/fonts@%%FONTSDIR%%@' -e 's@ share/fonts@ %%FONTSDIR%%@' {} \;
+find /usr/ports -name pkg-plist -exec sed -i_ -e 's@etc/@/etc/@' -e 's@//etc@/etc@' -e 's@^man@%%MANPREFIX%%/man@' -e 's@^share/man@%%MANPREFIX%%/man@' -e 's@share/fonts@/System/Library/Fonts@' -e 's@ share/fonts@ /System/Library/Fonts@' {} \;
 
 #-------------------------------------------------------------------------
 #   INDIVIDUAL PORT CHANGES
@@ -36,23 +36,23 @@ sed -i_ -e 's/${PREFIX}\/etc/\/etc/' /usr/ports/lang/perl5.32/Makefile
 sed -i_ -e 's/^\t*${INSTALL_DATA} ${WRKDIR}.*$/\t${MKDIR} -p ${STAGEDIR}\/etc\/man.d ${STAGEDIR}\/usr\/libdata\/ldconfig\n&/' /usr/ports/lang/perl5.32/Makefile
 
 # help2man
-sed -i_ -e 's@%%MANPREFIX%%/man1@%%MANPREFIX%%/man/man1@' -e 's@man/${lang}@%%MANPREFIX%%/man/${lang}@' /usr/ports/misc/help2man/Makefile
+sed -i_ -e 's@man/man1@%%MANPREFIX%%/man/man1@' -e 's@man/${lang}@%%MANPREFIX%%/man/${lang}@' /usr/ports/misc/help2man/Makefile
 
 # Undo meson patch that breaks mandir
 rm -f /usr/ports/devel/meson/files/patch-setup.py
 
-# ca_root_nss, plasma5-kinfocenter, smartmontools, mesa-libs, p11-kit
-sed -i_ -e 's@${PREFIX}/etc@/etc@g' /usr/ports/security/ca_root_nss/Makefile /usr/ports/sysutils/plasma5-kinfocenter/Makefile /usr/ports/sysutils/smartmontools/Makefile /usr/ports/security/p11-kit/Makefile /usr/ports/graphics/mesa-libs/Makefile
-
+# ca_root_nss, plasma5-kinfocenter, smartmontools, mesa-libs, p11-kit, fontconfig
+sed -i_ -e 's@${PREFIX}/etc@/etc@g' /usr/ports/security/ca_root_nss/Makefile /usr/ports/sysutils/plasma5-kinfocenter/Makefile /usr/ports/sysutils/smartmontools/Makefile /usr/ports/security/p11-kit/Makefile /usr/ports/graphics/mesa-libs/Makefile /usr/ports/x11-fonts/fontconfig/Makefile
+sed -i_ -e 's@# Fallback.*$@&\n\t${MKDIR} -p ${STAGEDIR}/etc/libmap.d@' /usr/ports/graphics/mesa-libs/Makefile
 # rhash
-sed -i_ -e 's@CONFIGURE_ARGS=@& --sysconfdir=/etc @' -e 's@${PREFIX}/man@${MANPREFIX_REL}/man@' /usr/ports/security/rhash/Makefile
+sed -i_ -e 's@CONFIGURE_ARGS=@& --sysconfdir=/etc @' -e 's@${PREFIX}/man@${MANPREFIX}/man@' /usr/ports/security/rhash/Makefile
 
 # libarchive
 sed -i_ -e 's@man/@${MANPREFIX}/man/@' /usr/ports/archivers/libarchive/Makefile
 
 # cmake
 sed -i_ -e 's@MANPAGES%%man@MANPAGES%%%%MANPREFIX%%/man@' /usr/ports/devel/cmake/pkg-plist
-sed -i_ -e 's@--prefix=@--mandir=${MANPREFIX}/man &@' /usr/ports/devel/cmake/Makefile
+sed -i_ -e 's@--prefix=@--mandir=${MANPREFIX_REL}/man &@' /usr/ports/devel/cmake/Makefile
 
 # libedit
 sed -i_ -e 's@${PREFIX}/man@${MANPREFIX}/man@g' /usr/ports/devel/libedit/Makefile
@@ -71,8 +71,8 @@ sed -i_ -e 's@^\.include <bsd\.port\.mk>@pre-install:\n\t${MKDIR} -p ${STAGEDIR}
 sed -i_ -e 's@^post-install:@pre-install:\n\t${MKDIR} -p ${STAGEDIR}${PREFIX}/libdata/ldconfig\n&@' /usr/ports/devel/qt5-core/Makefile
 
 # Fontconfig, font-alias, luit
-sed -i_ -e 's@^FCDEFAULTFONTS.*@FCDEFAULTFONTS= /System/Library/Fonts /Library/Fonts@' -e 's@${STAGEDIR}${PREFIX}@${STAGEDIR}@g' /usr/ports/x11-fonts/fontconfig/Makefile
-sed -i_ -e 's@${LOCALBASE}/share/fonts@/System/Library/Fonts@' /usr/ports/x11/luit/Makefile
+sed -i_ -e 's@^FCDEFAULTFONTS.*@FCDEFAULTFONTS= /System/Library/Fonts /Library/Fonts@' -e 's@post-patch:@&\n\t${REINPLACE_CMD} -e "s,%%STAGEDIR%%,${STAGEDIR},g" ${PATCH_WRKSRC}/conf.d/link_confs.py@' /usr/ports/x11-fonts/fontconfig/Makefile
+sed -i_ -e 's@${LOCALBASE}/share/fonts@/System/Library/Fonts@' -e 's@man/man1@${MANPREFIX}/man/man1@g' /usr/ports/x11/luit/Makefile
 
 # LLVM10
 sed -i_ -e 's@^post-install:@pre-install:\n\t${MKDIR} -p ${STAGEDIR}${PREFIX}/libdata/ldconfig\n&@' /usr/ports/devel/llvm10/Makefile
@@ -149,6 +149,19 @@ sed -i_ -e 's@^post-install:@pre-install:\n\tmkdir -p ${STAGEDIR}/etc/rc.d\n&@' 
 
 # xterm
 sed -i_ -e 's@^post-install:@pre-install:\n\t${MKDIR} -p ${STAGEDIR}/usr/share/applications\n&@' /usr/ports/x11/xterm/Makefile
+
+# Boatloads of x11 stuff
+sed -i_ -e 's@ man/@ ${MANPREFIX}/man/@' /usr/ports/x11/{setxkbmap,smproxy,xcursorgen,appres,xf86dga,iceauth,sessreg,xauth,xbacklight,xcmsdb,xdpyinfo,xdriinfo,xev,xgamma,xhost,xinput,xkbevd,xlsatoms,xlsclients,xmodmap,xprop,xrdb,xrefresh,xset,xsetroot,xvinfo,xwd,xwininfo,xwud}/Makefile
+sed -i_ -e 's@ man/@ ${MANPREFIX}/man/@' /usr/ports/x11-fonts/bdftopcf/Makefile
+sed -i_ -e 's@man/man1@${MANPREFIX}/man/man1@' /usr/ports/x11/{xrandr,xkbcomp}/Makefile
+sed -i_ -e 's@man/man1@${MANPREFIX}/man/man1@g' /usr/ports/x11/xpr/Makefile
+sed -i_ -e 's@^post-patch:@CONFIGURE_ARGS+= --sysconfdir=/etc\n&@' /usr/ports/x11/xinit/Makefile
+# mkfontscale
+sed -i_ -e 's@^\t\tman/@\t\t${MANPREFIX}/man/@' /usr/ports/x11-fonts/mkfontscale/Makefile
+
+# freetype2
+sed -i_ -e 's@%%man/@%%%%MANPREFIX%%/man/@' /usr/ports/print/freetype2/pkg-plist
+
 
 #------------------------
 # DEPRECATED - REMOVE ME
