@@ -9,6 +9,7 @@
 #-------------------------------------------------------------------------
 
 # Make sure everything uses Airyx paths
+sed -i_ -e 's@${KDE_PREFIX}/man@${KDE_PREFIX}/share/man@g' /usr/ports/Mk/Uses/kde.mk
 sed -i_ -e 's@${LOCALBASE}/etc/gnome.subr@/etc/gnome.subr@' /usr/ports/Mk/Uses/gnome.mk
 sed -i_ -e 's@${PREFIX}/share/fonts@/System/Library/Fonts@g' -e 's@${LOCALBASE}/share/fonts@/System/Library/Fonts@' /usr/ports/Mk/Uses/display.mk
 sed -i_ -e 's@${PREFIX}/share/fonts@/System/Library/Fonts@g' -e 's@${LOCALBASE}/share/fonts@/System/Library/Fonts@g' /usr/ports/Mk/Uses/xorg-cat.mk
@@ -31,143 +32,105 @@ find /usr/ports -name pkg-plist -exec sed -i_ -e 's@etc/@/etc/@' -e 's@//etc@/et
 #   INDIVIDUAL PORT CHANGES
 #-------------------------------------------------------------------------
 
-# Perl 5.32
-sed -i_ -e 's/${PREFIX}\/etc/\/etc/' /usr/ports/lang/perl5.32/Makefile
-sed -i_ -e 's/^\t*${INSTALL_DATA} ${WRKDIR}.*$/\t${MKDIR} -p ${STAGEDIR}\/etc\/man.d ${STAGEDIR}\/usr\/libdata\/ldconfig\n&/' /usr/ports/lang/perl5.32/Makefile
-
-# help2man
-sed -i_ -e 's@man/man1@%%MANPREFIX%%/man/man1@' -e 's@man/${lang}@%%MANPREFIX%%/man/${lang}@' /usr/ports/misc/help2man/Makefile
-
 # Undo meson patch that breaks mandir
 rm -f /usr/ports/devel/meson/files/patch-setup.py
 
-# ca_root_nss, plasma5-kinfocenter, smartmontools, mesa-libs, p11-kit, fontconfig
-sed -i_ -e 's@${PREFIX}/etc@/etc@g' /usr/ports/security/ca_root_nss/Makefile /usr/ports/sysutils/plasma5-kinfocenter/Makefile /usr/ports/sysutils/smartmontools/Makefile /usr/ports/security/p11-kit/Makefile /usr/ports/graphics/mesa-libs/Makefile /usr/ports/x11-fonts/fontconfig/Makefile
+sed -i_ -e 's/${PREFIX}\/etc/\/etc/' /usr/ports/lang/perl5.32/Makefile
+sed -i_ -e 's/^\t*${INSTALL_DATA} ${WRKDIR}.*$/\t${MKDIR} -p ${STAGEDIR}\/etc\/man.d ${STAGEDIR}\/usr\/libdata\/ldconfig\n&/' /usr/ports/lang/perl5.32/Makefile
+sed -i_ -e 's@man/man1@%%MANPREFIX%%/man/man1@' -e 's@man/${lang}@%%MANPREFIX%%/man/${lang}@' /usr/ports/misc/help2man/Makefile
+sed -i_ -e 's@${PREFIX}/etc@/etc@g' /usr/ports/security/ca_root_nss/Makefile /usr/ports/sysutils/plasma5-kinfocenter/Makefile /usr/ports/sysutils/smartmontools/Makefile /usr/ports/security/p11-kit/Makefile /usr/ports/graphics/mesa-libs/Makefile /usr/ports/x11-fonts/fontconfig/Makefile 
 sed -i_ -e 's@# Fallback.*$@&\n\t${MKDIR} -p ${STAGEDIR}/etc/libmap.d@' /usr/ports/graphics/mesa-libs/Makefile
-# rhash
-sed -i_ -e 's@CONFIGURE_ARGS=@& --sysconfdir=/etc @' -e 's@${PREFIX}/man@${MANPREFIX}/man@' /usr/ports/security/rhash/Makefile
-
-# libarchive
+sed -i_ -e 's@CONFIGURE_ARGS=@& --sysconfdir=/etc @' -e 's@${PREFIX}/man@${MANPREFIX}/man@' /usr/ports/security/rhash/Makefile /usr/ports/sysutils/consolekit2/Makefile /usr/ports/devel/dbus-glib/Makefile
+sed -i_ -e 's@CONFIGURE_ARGS?=@& --sysconfdir=/etc @' -e 's@${PREFIX}/etc@/etc@g' /usr/ports/net/avahi-app/Makefile
 sed -i_ -e 's@man/@${MANPREFIX}/man/@' /usr/ports/archivers/libarchive/Makefile
-
-# cmake
-sed -i_ -e 's@MANPAGES%%man@MANPAGES%%%%MANPREFIX%%/man@' /usr/ports/devel/cmake/pkg-plist
+sed -i_ -e 's@MANPAGES%%man@MANPAGES%%%%MANPREFIX%%/man@' /usr/ports/devel/{cmake,kf5-extra-cmake-modules}/pkg-plist /usr/ports/graphics/openjpeg15/pkg-plist
+sed -i_ -e 's@ICC%%man@ICC%%%%MANPREFIX%%/man@' /usr/ports/graphics/lcms2/pkg-plist
 sed -i_ -e 's@--prefix=@--mandir=${MANPREFIX_REL}/man &@' /usr/ports/devel/cmake/Makefile
-
-# libedit
-sed -i_ -e 's@${PREFIX}/man@${MANPREFIX}/man@g' /usr/ports/devel/libedit/Makefile
-
-#lua52
+# Undo patch that breaks mandir
+sed -i_ -e 's@^OPTIONS_SUB.*$@&\npost-install:\n\tmv -f ${STAGEDIR}/usr/man/man7/* ${STAGEDIR}/usr/share/man/man7/@' /usr/ports/devel/kf5-extra-cmake-modules/Makefile
+sed -i_ -e 's@${PREFIX}/man@${MANPREFIX}/man@g' /usr/ports/devel/libedit/Makefile /usr/ports/graphics/lcms2/Makefile
 sed -i_ -e 's@${PREFIX}/man@${MANPREFIX}/man@g' -e 's@INSTALL_EXEC=@INSTALL_MAN=${STAGEDIR}${MANPREFIX}/man/man1 &@' /usr/ports/lang/lua52/Makefile
-
-# pcre
 sed -i_ -e 's@CONFIGURE_ARGS=@& --mandir=${MANPREFIX}/man@' /usr/ports/devel/pcre/Makefile
-sed -i_ -e 's@MAN3%%@MANPREFIX%%/@' /usr/ports/devel/pcre/pkg-plist
-
-# xmlcatmgr
-sed -i_ -e 's@^\.include <bsd\.port\.mk>@pre-install:\n\t${MKDIR} -p ${STAGEDIR}${PREFIX}/share/xml ${STAGEDIR}${PREFIX}/share/sgml\n&@' /usr/ports/textproc/xmlcatmgr/Makefile
-
-# qt5-core
+sed -i_ -e 's@MAN3%%@MANPREFIX%%/@' -e 's@%%DANE%%man@%%DANE%%%%MANPREFIX%%/man@' /usr/ports/devel/pcre/pkg-plist /usr/ports/security/gnutls/pkg-plist 
+sed -i_ -e 's@^\.include <bsd\.port\.mk>@pre-install:\n\t${MKDIR} -p ${STAGEDIR}${PREFIX}/share/xml ${STAGEDIR}${PREFIX}/share/sgml\n&@' -e 's@ man/@ ${MANPREFIX}/man/@g' /usr/ports/textproc/xmlcatmgr/Makefile
 sed -i_ -e 's@^post-install:@pre-install:\n\t${MKDIR} -p ${STAGEDIR}${PREFIX}/libdata/ldconfig\n&@' /usr/ports/devel/qt5-core/Makefile
-
-# Fontconfig, font-alias, luit
 sed -i_ -e 's@^FCDEFAULTFONTS.*@FCDEFAULTFONTS= /System/Library/Fonts /Library/Fonts@' -e 's@post-patch:@&\n\t${REINPLACE_CMD} -e "s,%%STAGEDIR%%,${STAGEDIR},g" ${PATCH_WRKSRC}/conf.d/link_confs.py@' /usr/ports/x11-fonts/fontconfig/Makefile
 sed -i_ -e 's@${LOCALBASE}/share/fonts@/System/Library/Fonts@' -e 's@man/man1@${MANPREFIX}/man/man1@g' /usr/ports/x11/luit/Makefile
-
-# LLVM10
 sed -i_ -e 's@^post-install:@pre-install:\n\t${MKDIR} -p ${STAGEDIR}${PREFIX}/libdata/ldconfig\n&@' /usr/ports/devel/llvm10/Makefile
-
-# dbus
-sed -i_ -e 's@^post-install:@pre-install:\n\t${MKDIR} -p ${STAGEDIR}/etc/rc.d\n&@' /usr/ports/devel/dbus/Makefile
-
-# qt5-widgets
+sed -i_ -e 's@^post-install:@pre-install:\n\t${MKDIR} -p ${STAGEDIR}/etc/rc.d\n&@' -e's@CONFIGURE_ARGS=@& --sysconfdir=/etc @' /usr/ports/devel/dbus/Makefile
 sed -i_ -e 's@^post-install:@pre-install:\n\t${MKDIR} -p ${STAGEDIR}/usr/share/pixmaps\n&@' /usr/ports/x11-toolkits/qt5-widgets/Makefile
-
-# desktop-file-utils
 sed -i_ -e 's@^post-install:@pre-install:\n\t${MKDIR} -p ${STAGEDIR}${PREFIX}/share/applications\n&@' /usr/ports/devel/desktop-file-utils/Makefile
-
-# aspell
 sed -i_ -e 's@${PREFIX}/etc@/etc@' -e 's@^post-install:@&\n\t${MKDIR} -p ${STAGEDIR}/etc@' /usr/ports/textproc/aspell/Makefile
-
-# gnome_subr
 sed -i_ -e 's@etc/@/etc/@' -e 's@${PREFIX}/etc@/etc@' -e 's@^do-install:@&\n\t${MKDIR} -p ${STAGEDIR}/etc@' /usr/ports/sysutils/gnome_subr/Makefile
-
-
-# tpm-emulator
 sed -i_ -e 's@post-install:@pre-install:\n\t${MKDIR} -p ${STAGEDIR}/etc/rc.d\n&@' /usr/ports/emulators/tpm-emulator/Makefile
-
-# trousers
 sed -i_ -e 's@${PREFIX}/etc@/etc@' -e 's@post-install:@&\n\t${MKDIR} -p ${STAGEDIR}/etc/rc.d@' /usr/ports/security/trousers/Makefile
-
-# libpaper
 sed -i_ -e 's@^post-install:@&\n\t${MKDIR} -p ${STAGEDIR}/etc@' -e 's@${PREFIX}/etc@/etc@' /usr/ports/print/libpaper/Makefile
-
-# cups
-sed -i_ -e 's@${PREFIX}/etc@/etc@g' -e 's@${LOCALBASE}/etc@/etc@g' -e 's@^post-install:@&\n\t${MKDIR} -p ${STAGEDIR}/etc/rc.d ${STAGEDIR}/etc/pam.d ${STAGEDIR}/etc/devd@' /usr/ports/print/cups/Makefile
-
-# jbigkit
+sed -i_ -e 's@${PREFIX}/etc@/etc@g' -e 's@${LOCALBASE}/etc@/etc@g' -e 's@^post-install:@&\n\t${MKDIR} -p ${STAGEDIR}/etc/rc.d ${STAGEDIR}/etc/pam.d ${STAGEDIR}/etc/devd@' -e 's@CONFIGURE_ARGS=@& --sysconfdir=/etc@' /usr/ports/print/cups/Makefile
+sed -i_ -e 's@%%AVAHI%%man@%%AVAHI%%%%MANPREFIX%%/man@' /usr/ports/print/cups/pkg-plist
 sed -i_ -e 's@^man/@%%MANPREFIX%%/man/@' /usr/ports/graphics/jbigkit/pkg-plist
-
-# encodings
+sed -i_ -e 's@%%JPEG%%man@%%JPEG%%%%MANPREFIX%%/man@' /usr/ports/graphics/jpeg-turbo/pkg-plist
+sed -i_ -e 's@${PREFIX}/man@${MANPREFIX}/man@g' /usr/ports/graphics/tiff/Makefile
 sed -i_ -e 's@${PREFIX}/share/fonts@/System/Library/Fonts@' /usr/ports/x11-fonts/encodings/Makefile
-
-# pango
 sed -i_ -e 's@${LOCALBASE}/share/fonts@/System/Library/Fonts@g' /usr/ports/x11-toolkits/pango/Makefile
-
-# qt5-assistant, qt5-designer
 sed -i_ -e 's@^post-install:@&\n\t${MKDIR} -p ${STAGEDIR}/usr/share/pixmaps/ ${STAGEDIR}/usr/share/applications/@' /usr/ports/devel/qt5-assistant/Makefile /usr/ports/devel/qt5-designer/Makefile
-
-# gstreamer1
 sed -i_ -e 's@usr/local@usr@' /usr/ports/multimedia/gstreamer1/pkg-plist
-
-# libvdpau, alsa-lib
 sed -i_ -e 's@${PREFIX}/etc@/etc@g' -e 's@^post-install:@pre-install:\n\t${MKDIR} -p ${STAGEDIR}/etc\n&@' /usr/ports/audio/alsa-lib/Makefile
-
-# plasma5-plasma-workspace, plasma5-kinfocenter, akonadi, plasma5-ksysguard, plasma5-plasma-desktop, smartmontools
 sed -i_ -e 's@CONFIGURE_ARGS=@& --sysconfdir=/etc @' -e 's@^post-install:@pre-install:\n\t${MKDIR} -p ${STAGEDIR}/etc/rc.d\n&@' /usr/ports/sysutils/smartmontools/Makefile
-
-# signon-plugin-oauth2
 sed -i_ -e 's@^post-patch:@pre-install:\n\t${MKDIR} -p ${STAGEDIR}${PREFIX}/libdata/ldconfig\n&@' /usr/ports/sysutils/signon-plugin-oauth2/Makefile
-
-# signon-kwallet-extension
 sed -i_ -e 's@^\.include@pre-install:\n\t${MKDIR} -p ${STAGEDIR}${PREFIX}/libdata/ldconfig\n&@' /usr/ports/sysutils/signon-kwallet-extension/Makefile
-
-# mysql57-server
-sed -i_ -e 's@DIR="etc@DIR="/etc@' -e 's@^post-install:@&\n\t${MKDIR} -p ${STAGEDIR}/etc/rc.d ${STAGEDIR}${PREFIX}/libdata/ldconfig@' /usr/ports/databases/mysql57-server/Makefile
-
-# graphviz, mysql57-client
+sed -i_ -e 's@DIR="etc@DIR="/etc@' -e 's@^post-install:@&\n\t${MKDIR} -p ${STAGEDIR}/etc/rc.d ${STAGEDIR}${PREFIX}/libdata/ldconfig@' -e 's@MANDIR="man"@MANDIR="${MANPREFIX}/man"@' /usr/ports/databases/mysql57-server/Makefile
 sed -i_ -e 's@^post-install:@pre-install:\n\t${MKDIR} -p ${STAGEDIR}${PREFIX}/libdata/ldconfig/\n&@' /usr/ports/graphics/graphviz/Makefile /usr/ports/databases/mysql57-client/Makefile
-
-# llvm90
 sed -i_ -e 's@post-install:@pre-install:\n\t${MKDIR} -p ${STAGEDIR}${PREFIX}/libdata/ldconfig\n&@' /usr/ports/devel/llvm90/Makefile
-
-# qt5-webengine
 sed -i_ -e 's@^.*C_INCLUDE_PATH=.*$@\\@' -e 's@^.*CPLUS_INCLUDE_PATH=.*$@\\@' /usr/ports/www/qt5-webengine/Makefile
-
-# webcamd
-sed -i_ -e 's@^post-install:@pre-install:\n\tmkdir -p ${STAGEDIR}/etc/rc.d\n&@' /usr/ports/multimedia/webcamd/Makefile
-
-# xterm
+sed -i_ -e 's@${PREFIX}/etc@/etc@' -e 's@^post-install:@pre-install:\n\tmkdir -p ${STAGEDIR}/etc/rc.d\n&@' /usr/ports/multimedia/webcamd/Makefile
+sed -i_ -e 's@%%PREFIX%%@@' /usr/ports/multimedia/webcamd/files/webcamd.conf.in
 sed -i_ -e 's@^post-install:@pre-install:\n\t${MKDIR} -p ${STAGEDIR}/usr/share/applications\n&@' /usr/ports/x11/xterm/Makefile
-
-# Boatloads of x11 stuff
 sed -i_ -e 's@ man/@ ${MANPREFIX}/man/@' /usr/ports/x11/{setxkbmap,smproxy,xcursorgen,appres,xf86dga,iceauth,sessreg,xauth,xbacklight,xcmsdb,xdpyinfo,xdriinfo,xev,xgamma,xhost,xinput,xkbevd,xlsatoms,xlsclients,xmodmap,xprop,xrdb,xrefresh,xset,xsetroot,xvinfo,xwd,xwininfo,xwud}/Makefile
 sed -i_ -e 's@ man/@ ${MANPREFIX}/man/@' /usr/ports/x11-fonts/bdftopcf/Makefile
-sed -i_ -e 's@man/man1@${MANPREFIX}/man/man1@' /usr/ports/x11/{xrandr,xkbcomp}/Makefile
+sed -i_ -e 's@man/man1@${MANPREFIX}/man/man1@' /usr/ports/x11/{xrandr,xkbcomp}/Makefile /usr/ports/print/xpdfopen/Makefile
 sed -i_ -e 's@man/man1@${MANPREFIX}/man/man1@g' /usr/ports/x11/xpr/Makefile
 sed -i_ -e 's@^post-patch:@CONFIGURE_ARGS+= --sysconfdir=/etc\n&@' /usr/ports/x11/xinit/Makefile
-# mkfontscale
+sed -i_ -e 's@${LOCALBASE}/share/fonts@/System/Library/Fonts@' -e 's@${PREFIX}/etc@/etc@g' -e 's@--without-doxygen@--sysconfdir=/etc &@' /usr/ports/x11-servers/xorg-server/Makefile
+sed -i_ -e 's@%%SUID%%man@%%SUID%%%%MANPREFIX%%/man@' /usr/ports/x11-servers/xorg-server/pkg-plist
+sed -i_ -e 's@man/man4@${MANPREFIX}/man/man4@g' /usr/ports/x11-drivers/xf86-video-scfb/Makefile
 sed -i_ -e 's@^\t\tman/@\t\t${MANPREFIX}/man/@' /usr/ports/x11-fonts/mkfontscale/Makefile
-
-# freetype2
 sed -i_ -e 's@%%man/@%%%%MANPREFIX%%/man/@' /usr/ports/print/freetype2/pkg-plist
-
-
-#------------------------
-# DEPRECATED - REMOVE ME
-#-------------------------
-
-# psutils
-#sed -i_ -e 's@MANDIR ?=@MANDIR =@' -e 's@$(MANPREFIX)/man@$(MANPREFIX)/share/man@' /usr/ports/print/psutils/files/patch-Makefile.unix
-#rm -f /usr/ports/print/psutils/files/patch-Makefile.unix_
-#sed -i_ -e 's@^man/@share/man/@' -e 's@\.gz$@@' /usr/ports/print/psutils/pkg-plist
+sed -i_ -e 's@%%MANPAGES%%man@%%MANPAGES%%%%MANPREFIX%%/man@' /usr/ports/devel/glib20/pkg-plist /usr/ports/graphics/gtk-update-icon-cache/pkg-plist /usr/ports/devel/dbus/pkg-plist /usr/ports/sysutils/polkit/pkg-plist /usr/ports/security/p11-kit/pkg-plist
+sed -i_ -e '/PLIST_FILES/s@man/man@${MANPREFIX}/man/man@g' /usr/ports/textproc/html2text/Makefile
+sed -i_ -e 's@${PREFIX}/etc@/etc@g' -e 's@^post-patch:@UNUSED-post-patch:@' -e 's@MAN1PREFIX@MANPREFIX@g' /usr/ports/misc/qtchooser/Makefile
+sed -i_ -e 's@%%EVDEV%%man@%%EVDEV%%%%MANPREFIX%%/man@' -e 's@%%WAYLAND%%man@%%WAYLAND%%%%MANPREFIX%%/man@' -e 's@%%X11%%man@%%X11%%%%MANPREFIX%%/man@' /usr/ports/x11/libxkbcommon/pkg-plist /usr/ports/audio/pulseaudio/pkg-plist
+sed -i_ -e 's@%%TCLMAN%%man@%%TCLMAN%%%%MANPREFIX%%/man@' /usr/ports/lang/tcl86/pkg-plist
+sed -i_ -e 's@%%TCL%%man@%%TCL%%%%MANPREFIX%%/man@' /usr/ports/databases/sqlite3/pkg-plist
+sed -i_ -e 's@${PREFIX}/man@${MANPREFIX}/man@' /usr/ports/databases/sqlite3/Makefile /usr/ports/math/fftw3/Makefile /usr/ports/audio/flac/Makefile
+sed -i_ -e 's@DEF%%man@DEF%%%%MANPREFIX%%/man@' /usr/ports/math/fftw3/pkg-plist
+sed -i_ -e 's@CONFIGURE_ARGS=@& --sysconfdir=/etc@' -e 's@${PREFIX}/etc@/etc@g' /usr/ports/sysutils/polkit/Makefile /usr/ports/audio/pulseaudio/Makefile /usr/ports/accessibility/speech-dispatcher/Makefile /usr/ports/x11-toolkits/gtk20/Makefile /usr/ports/graphics/colord/Makefile
+sed -i_ -e '/openssl.cnf/d' -e '/|\/var/d' -e 's@GNU_CONFIGURE.*$@&\nCONFIGURE_ARGS= --sysconfdir=/etc@' /usr/ports/shells/bash-completion/Makefile
+sed -i_ -e '/${REINPLACE_CMD} -E/,+23d' -e 's@CONFIGURE_ARGS=@& --sysconfdir=/etc --mandir=${MANPREFIX}/man@' /usr/ports/security/gnutls/Makefile
+sed -i_ -e 's@CONFIGURE_ARGS=@& --sysconfdir=/etc --mandir=${MANPREFIX}/man@' -e 's@${PREFIX}/man@${MANPREFIX}/man@' /usr/ports/x11-toolkits/gtk30/Makefile
+sed -i_ -e 's@%%BROADWAY%%man@%%BROADWAY%%%%MANPREFIX%%/man@' /usr/ports/x11-toolkits/gtk30/pkg-plist
+sed -i_ -e 's@%%WKS_SERVER%%man@%%WKS_SERVER%%%%MANPREFIX%%/man@' /usr/ports/security/gnupg/pkg-plist
+sed -i_ -e 's@%%IF_DEFAULT%%man@%%IF_DEFAULT%%%%MANPREFIX%%/man@' /usr/ports/lang/ruby27/pkg-plist
+sed -i_ -e 's@${PREFIX}/man@${MANPREFIX}/man@' /usr/ports/multimedia/ffmpeg/Makefile
+sed -i_ -e 's@man/man@%%MANPREFIX%%/&@' /usr/ports/x11-servers/xwayland-devel/Makefile
+sed -i_ -e 's@${PREFIX}/etc@/etc@' -e '/^post-patch:/,+2d' /usr/ports/audio/openal-soft/Makefile
+sed -i_ -e 's@^post-install:@post-patch:\n\tsed -i_ -e "s,^mandir.*,mandir = ${MANPREFIX}/man," ${WRKSRC}/Makefile\n&@' /usr/ports/databases/lmdb/Makefile
+sed -i_ -e 's@^CMAKE_OFF.*@&\nCMAKE_ARGS+= -DCMAKE_INSTALL_MANDIR=${MANPREFIX}/man@' /usr/ports/archivers/libzip/Makefile /usr/ports/graphics/exiv2/Makefile /usr/ports/devel/zziplib/Makefile
+sed -i_ -e 's@^CMAKE_ARGS=@& -DCMAKE_INSTALL_MANDIR=${MANPREFIX}/man@' -e 's@man/man1@${MANPREFIX}/&@' /usr/ports/graphics/libqrencode/Makefile
+sed -i_ -e 's@USES=.*@&\nCMAKE_ARGS+= -DOPENJPEG_INSTALL_MAN_DIR=${MANPREFIX}/man@' /usr/ports/graphics/openjpeg15/Makefile
+sed -i_ -e 's@^post-patch:@CONFIGURE_ARGS+= --sysconfdir=/etc --mandir=${MANPREFIX}/man\n&@' /usr/ports/graphics/graphviz/Makefile
+sed -i_ -E 's@%%(TCL|GO|GUILE|LUA|SMYRNA|ANN|XPM)%%man@%%\1%%%%MANPREFIX%%/man@' /usr/ports/graphics/graphviz/pkg-plist
+sed -i_ -e 's@USES=.*@&\nCMAKE_ARGS+= -DCMAKE_INSTALL_MANDIR=${MANPREFIX}/man@' /usr/ports/editors/editorconfig-core-c/Makefile /usr/ports/graphics/jasper/Makefile
+sed -i_ -e '/${LOCALBASE}\/etc/,+1d' /usr/ports/sysutils/signon-qt5/Makefile
+sed -i_ -e 's@%%SASLDB%%man@%%SASLDB%%%%MANPREFIX%%/man@' /usr/ports/security/cyrus-sasl2/pkg-plist
+sed -i_ -e 's@CONFIGURE_ARGS=@& --sysconfdir=/etc --mandir=${MANPREFIX}/man @' /usr/ports/net/openldap24-server/Makefile
+sed -i_ -e 's@^man@%%MANPREFIX%%/man@' /usr/ports/net/openldap24-server/pkg-plist.client
+sed -i_ -e 's@%%man@%%%%MANPREFIX%%/man@' /usr/ports/sysutils/upower/pkg-plist /usr/ports/graphics/{jasper,lcms}/pkg-plist /usr/ports/net/samba412/pkg-plist
+sed -i_ -e 's@CONFIGURE_ARGS=@& --sysconfdir=/etc @' /usr/ports/sysutils/upower/Makefile
+sed -i_ -e 's@${LOCALBASE}/etc@/etc@g' -e 's@-DUID_MAX@-DCMAKE_INSTALL_MANDIR=${MANPREFIX}/man &@' -e 's@${MKDIR}@& ${STAGEDIR}/etc/rc.d @' /usr/ports/x11/sddm/Makefile
+sed -i_ -e 's@${PREFIX}/etc@/etc@g' -e 's@^post-install:@pre-install:\n\t${MKDIR} -p ${STAGEDIR}/etc/rc.d\n&@' /usr/ports/net/openslp/Makefile
+sed -i_ -e 's@man/man3@${MANPREFIX}/man/man3@' /usr/ports/devel/talloc/Makefile
+sed -i_ -e 's@man/man8@${MANPREFIX}/man/man8@' /usr/ports/databases/tdb/Makefile
+sed -i_ -e 's@${PREFIX}/etc@/etc@g' -e 's@${PREFIX}/man@${MANPREFIX}/man@g' -e 's@^post-install:@pre-install:\n\t${MKDIR} -p ${STAGEDIR}/etc/rc.d ${STAGEDIR}${PREFIX}/libdata/ldconfig\n&@' -e '/FRUIT_PLIST/s@man@${MANPREFIX}/man@' /usr/ports/net/samba412/Makefile
+sed -i_ -e 's@USE_LDCONFIG.*@&\npost-patch:\n\tsed -i_ -e "s,/man/man,/share/man/man," ${WRKSRC}/Makefile\n@' /usr/ports/audio/gsm/Makefile
+sed -i_ -e 's@CONFIGURE_ARGS=@& --sysconfdir=/etc @' -e 's@^post-build:@pre-install:\n\t${MKDIR} -p ${STAGEDIR}/etc/rc.d\n&@' /usr/ports/audio/jack/Makefile
+sed -i_ -e 's@${PREFIX}/man@${MANPREFIX}/man@' /usr/ports/multimedia/libkate/Makefile

@@ -35,7 +35,17 @@ cleanroot:
 getports:
 	sudo portsnap auto
 	sudo ${TOPDIR}/Tools/patch-ports.sh
-	sudo cp -f ${TOPDIR}/patches/fontconfig-link_confs.py.patch /usr/ports/x11-fonts/fontconfig/files/patch-conf.d_link_confs.py
+	sudo cp -f ${TOPDIR}/patches/patch-conf.d_link__confs.py /usr/ports/x11-fonts/fontconfig/files/
+	sudo mkdir /usr/ports/graphics/jpeg-turbo/files
+	sudo cp -f ${TOPDIR}/patches/patch-cmakescripts_GNUInstallDirs.cmake /usr/ports/graphics/jpeg-turbo/files/
+	sudo cp -f ${TOPDIR}/patches/patch-meson.build /usr/ports/sysutils/polkit/files/
+	sudo cp -f ${TOPDIR}/patches/patch-freebsd_Makefile /usr/ports/shells/bash-completion/files/
+	sudo mkdir -p /usr/ports/sysutils/bsdisks/files
+	sudo cp -f ${TOPDIR}/patches/patch-CMakeLists.txt /usr/ports/sysutils/bsdisks/files/
+	sudo cp -f ${TOPDIR}/patches/patch-mysql57_install__layout.cmake /usr/ports/databases/mysql57-client/files/
+	sudo cp -f ${TOPDIR}/patches/patch-webcamd-Makefile /usr/ports/multimedia/webcamd/files/
+	sudo mkdir -p /usr/ports/audio/lilv/files
+	sudo cp -f ${TOPDIR}/patches/patch-waflib_extras_autowaf.py /usr/ports/audio/lilv/files/
 	sudo mkdir /usr/ports/distfiles
 
 # Prepare the chroot jail for our ports builds
@@ -245,6 +255,7 @@ DBusKit.framework:
 	${MAKE} -C ${TOPDIR}/DBusKit BUILDROOT=${BUILDROOT} clean build
 	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
 
+
 airyx-package:
 	sudo tar cvJ -C ${BUILDROOT} --gid 0 --uid 0 -f ${RLSDIR}/airyx.txz .
 
@@ -264,7 +275,7 @@ packagesystem:
 		${MAKE} -C ${TOPDIR}/freebsd-src/release NOSRC=true NOPORTS=true packagesystem 
 
 iso:
-	cp -f ${TOPDIR}/version ${TOPDIR}/ISO/overlays/ramdisk
+	cp -f ${TOPDIR}/version ${TOPDIR}/ISO/overlays/ramdisk/version
 	cd ${TOPDIR}/ISO && workdir=${OBJPREFIX} AIRYX=${TOPDIR} sudo -E ./build.sh kde Airyx_${AIRYX_VERSION}
 
 release: airyx-package ${TOPDIR}/ISO ${RLSDIR}/CocoaDemo.app.txz packagesystem iso
