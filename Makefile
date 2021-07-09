@@ -6,8 +6,8 @@ RLSDIR := ${TOPDIR}/freebsd-src/release
 BSDCONFIG := GENERIC
 BUILDROOT := ${OBJPREFIX}/buildroot
 PORTSROOT := ${OBJPREFIX}/portsroot
-AIRYX_VERSION != head -1 ${TOPDIR}/version
-AIRYX_CODENAME != tail -1 ${TOPDIR}/version
+AIRYX_VERSION != head -1 ${TOPDIR}/version.txt
+AIRYX_CODENAME != tail -1 ${TOPDIR}/version.txt
 OSRELEASE := 12.2
 FREEBSD_BRANCH := stable/${OSRELEASE:R}
 MKINCDIR := -m/usr/share/mk -m${TOPDIR}/mk
@@ -255,6 +255,10 @@ DBusKit.framework:
 	${MAKE} -C ${TOPDIR}/DBusKit BUILDROOT=${BUILDROOT} clean build
 	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
 
+LaunchServices.framework:
+	rm -rf ${TOPDIR}/LaunchServices/${.TARGET}
+	${MAKE} -C ${TOPDIR}/LaunchServices BUILDROOT=${BUILDROOT} clean build
+	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
 
 airyx-package:
 	sudo tar cvJ -C ${BUILDROOT} --gid 0 --uid 0 -f ${RLSDIR}/airyx.txz .
@@ -275,7 +279,7 @@ packagesystem:
 		${MAKE} -C ${TOPDIR}/freebsd-src/release NOSRC=true NOPORTS=true packagesystem 
 
 iso:
-	cp -f ${TOPDIR}/version ${TOPDIR}/ISO/overlays/ramdisk/version
+	cp -f ${TOPDIR}/version.txt ${TOPDIR}/ISO/overlays/ramdisk/version
 	cd ${TOPDIR}/ISO && workdir=${OBJPREFIX} AIRYX=${TOPDIR} sudo -E ./build.sh kde Airyx_${AIRYX_VERSION}
 
 release: airyx-package ${TOPDIR}/ISO ${RLSDIR}/CocoaDemo.app.txz packagesystem iso
