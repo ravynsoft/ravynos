@@ -11,6 +11,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <Foundation/NSException.h>
 #import <Foundation/NSString.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // DO NOT USE IN NEW CODE AND REPLACE USAGE. Use NSAssert().
 FOUNDATION_EXPORT void NSRaiseException(NSString *name, id self, SEL cmd, NSString *fmt, ...);
 
@@ -21,3 +25,7 @@ FOUNDATION_EXPORT void NSCLog(const char *format, ...);
 FOUNDATION_EXPORT void NSCLogThreadId();
 FOUNDATION_EXPORT void NSCLogNewline();
 FOUNDATION_EXPORT void NSCLogFormat(const char *format, ...);
+
+#ifdef __cplusplus
+}
+#endif
