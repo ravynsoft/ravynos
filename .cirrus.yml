@@ -1,28 +1,18 @@
 freebsd_instance:
   image_family: freebsd-12-2
-  cpu: 4
+  cpu: 8
   memory: 16G
   disk: 100
 
 # Build all the packages, staying within the 2h task limit
-ports_prep_task:
+ports_build_task:
   ports_cache:
     folder: /usr/ports
     reupload_on_changes: false
     fingerprint_script: test -f /usr/ports/INDEX* && sha256 /usr/ports/INDEX* || true
     populate_script: make getports
-
-ports_test_task:
-  depends_on: ports_prep
-  ports_cache:
-    folder: /usr/ports
-    reupload_on_change: false
-  script: ls /usr/ports
-
-# pkg_xorg_task:
-#   only_if: $CIRRUS_BRANCH == 'main' && $CIRRUS_CHANGE_TITLE =~ '.*[pkgs].*'
-#   depends_on: ports_prep
-#   script: make zsh xorg
+  only_if: $CIRRUS_BRANCH == 'main' && $CIRRUS_CHANGE_TITLE =~ '.*[pkgs].*'
+  script: make prepports buildports makepackages
 
 # pkg_plasma_task:
 #   only_if: $CIRRUS_BRANCH == 'main' && $CIRRUS_CHANGE_TITLE =~ '.*[pkgs].*'
