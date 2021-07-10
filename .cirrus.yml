@@ -1,12 +1,14 @@
 freebsd_instance:
   image_family: freebsd-12-2
+  cpu: 8
+  memory: 16G
 
 # Build all the packages, staying within the 2h task limit
 ports_prep_task:
   ports_cache:
     folder: /usr/ports
     reupload_on_changes: false
-    fingerprint_script: test -f /usr/ports/INDEX* && sha256 /usr/ports/INDEX*
+    fingerprint_script: test -f /usr/ports/INDEX* && sha256 /usr/ports/INDEX* || true
     populate_script: make getports prepports
 
 ports_test_task:
