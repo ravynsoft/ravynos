@@ -11,7 +11,7 @@ ports_build_task:
     reupload_on_changes: false
     fingerprint_script: test -f /usr/ports/INDEX* && sha256 /usr/ports/INDEX* || true
     populate_script: make getports
-  only_if: $CIRRUS_BRANCH == 'main' && $CIRRUS_CHANGE_TITLE =~ '.*[pkgs].*'
+  #only_if: $CIRRUS_BRANCH == 'main' && $CIRRUS_CHANGE_TITLE =~ '.*[pkgs].*'
   script: make prepports buildports makepackages
 
 # pkg_plasma_task:
