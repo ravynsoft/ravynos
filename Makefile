@@ -30,8 +30,65 @@ zsh:
 	sudo ${MAKE} -C /usr/ports/shells/zsh DESTDIR=${BUILDROOT} clean rmconfig-recursive install
 
 cleanroot:
-	sudo chflags -R noschg,nouchg ${BUILDROOT}
-	sudo rm -rf ${BUILDROOT}
+	if [ -d ${BUILDROOT} ]; then \
+		sudo chflags -R noschg,nouchg ${BUILDROOT}; \
+		sudo rm -rf ${BUILDROOT}; \
+	fi
+
+getports:
+	sudo portsnap auto
+	sudo ${TOPDIR}/Tools/patch-ports.sh
+	sudo cp -f ${TOPDIR}/patches/patch-conf.d_link__confs.py /usr/ports/x11-fonts/fontconfig/files/
+	sudo mkdir /usr/ports/graphics/jpeg-turbo/files
+	sudo cp -f ${TOPDIR}/patches/patch-cmakescripts_GNUInstallDirs.cmake /usr/ports/graphics/jpeg-turbo/files/
+	sudo cp -f ${TOPDIR}/patches/patch-meson.build /usr/ports/sysutils/polkit/files/
+	sudo cp -f ${TOPDIR}/patches/patch-freebsd_Makefile /usr/ports/shells/bash-completion/files/
+	sudo mkdir -p /usr/ports/sysutils/bsdisks/files
+	sudo cp -f ${TOPDIR}/patches/patch-CMakeLists.txt /usr/ports/sysutils/bsdisks/files/
+	sudo cp -f ${TOPDIR}/patches/patch-mysql57_install__layout.cmake /usr/ports/databases/mysql57-client/files/
+	sudo cp -f ${TOPDIR}/patches/patch-webcamd-Makefile /usr/ports/multimedia/webcamd/files/
+	sudo mkdir -p /usr/ports/audio/lilv/files
+	sudo cp -f ${TOPDIR}/patches/patch-waflib_extras_autowaf.py /usr/ports/audio/lilv/files/
+	sudo mkdir /usr/ports/distfiles
+
+# Prepare the chroot jail for our ports builds
+prepports:
+	if [ -d ${PORTSROOT} ]; then \
+		sudo chflags -R noschg,nouchg ${PORTSROOT}; \
+		sudo rm -rf ${PORTSROOT}; \
+	fi
+	mkdir -p ${PORTSROOT}/etc ${PORTSROOT}/var/run ${PORTSROOT}/usr/sbin
+	sudo cp -f ${TOPDIR}/make.conf ${TOPDIR}/resolv.conf ${PORTSROOT}/etc/
+	sudo cp -f /var/run/ld-elf.so.hints ${PORTSROOT}/var/run
+	sudo cp -f /usr/local/sbin/pkg-static ${PORTSROOT}/usr/sbin
+	sudo tar xvf ${RLSDIR}/base.txz -C ${PORTSROOT}
+	sudo ln -s libncurses.so ${PORTSROOT}/usr/lib/libncurses.so.6
+
+/usr/ports/{archivers,audio,devel,dns,emulators,graphics,misc,multimedia,net,security,shells,sysutils,textproc,x11,x11-fonts,x11-fm,x11-themes}/*: .PHONY
+	sudo ${MAKE} -C ${.TARGET} DESTDIR=${PORTSROOT} install
+
+mountsrc:
+	sudo mount_nullfs ${TOPDIR}/freebsd-src/ ${PORTSROOT}/usr/src
+
+umountsrc:
+	sudo umount ${PORTSROOT}/usr/src
+
+zsh: /usr/ports/shells/zsh
+	sudo ln -f ${PORTSROOT}/usr/bin/zsh ${PORTSROOT}/bin/zsh
+
+plasma: /usr/ports/x11/plasma5-plasma /usr/ports/x11/konsole /usr/ports/x11/sddm /usr/ports/x11-fm/dolphin
+xorg: /usr/ports/x11/xorg /usr/ports/x11-themes/adwaita-icon-theme /usr/ports/devel/desktop-file-utils
+misc: /usr/ports/archivers/brotli /usr/ports/graphics/argyllcms /usr/ports/multimedia/gstreamer1-plugins-all
+misc2: /usr/ports/x11/zenity /usr/ports/sysutils/cpdup /usr/ports/audio/freedesktop-sound-theme /usr/ports/sysutils/fusefs-libs mountsrc /usr/ports/graphics/gpu-firmware-kmod /usr/ports/sysutils/iichid /usr/ports/net/libdnet /usr/ports/archivers/libmspack /usr/ports/security/libretls /usr/ports/devel/libsigc++20 /usr/ports/multimedia/libva-intel-driver /usr/ports/dns/nss_mdns /usr/ports/emulators/open-vm-tools /usr/ports/net/openntpd /usr/ports/sysutils/pv /usr/ports/misc/usbids /usr/ports/misc/utouch-kmod umountsrc /usr/ports/net/wpa_supplicant_gui /usr/ports/devel/xdg-user-dirs
+buildports: zsh xorg plasma misc misc2
+
+makepackages:
+	sudo rm -rf /usr/ports/packages
+	sudo mkdir -p /usr/ports/packages
+	sudo mount_nullfs /usr/ports/packages ${PORTSROOT}/mnt
+	sudo chroot ${PORTSROOT} /bin/sh -c '/usr/sbin/pkg-static create -a -o /mnt'
+	sudo umount ${PORTSROOT}/mnt
+	sudo pkg repo -o /usr/ports/packages /usr/ports/packages
 
 ${TOPDIR}/freebsd-src/sys/${MACHINE}/compile/${BSDCONFIG}: ${TOPDIR}/freebsd-src/sys/${MACHINE}/conf/${BSDCONFIG}
 	mkdir -p ${TOPDIR}/freebsd-src/sys/${MACHINE}/compile/${BSDCONFIG}

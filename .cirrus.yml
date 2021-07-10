@@ -1,0 +1,10 @@
+freebsd_instance:
+  image_family: freebsd-12-2
+
+packages_build_task:
+  only_if: $CIRRUS_BRANCH == 'main' && $CIRRUS_CHANGE_TITLE =~ '.*[pkgs].*'
+  script: make getports prepports zsh
+  script: make xorg
+  script: make plasma
+  script: make misc
+  script: make misc2
