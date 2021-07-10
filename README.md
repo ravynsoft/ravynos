@@ -29,11 +29,11 @@ The goal is to use a small core set of languages as much as possible: the "C" fa
 
 ## I can code in those! How can I help?
 
-Great! Take a look at the [project board](https://github.com/mszoek/airyx/projects/1) or [issues](https://github.com/mszoek/airyx/issues) list to find something that interests you, or contact [mszoek](https://github.com/mszoek).
+Great! Take a look at the [issues](https://github.com/mszoek/airyx/issues) list to find something that interests you, or contact [mszoek](https://github.com/mszoek).
 
 ## I don't code. Can I still help?
 
-Absolutely! There will be art, documentation, testing, UX and UI work, release management, project management, legal advice, and many other ways to contribute. Check out the [project board](https://github.com/mszoek/airyx/projects/1) and [issues](https://github.com/mszoek/airyx/issues) for ideas on how to contribute, or contact [mszoek](https://github.com/mszoek).
+Absolutely! There will be art, documentation, testing, UX and UI work, release management, project management, legal advice, and many other ways to contribute. Check out the [issues](https://github.com/mszoek/airyx/issues) for ideas on how to contribute, or contact [mszoek](https://github.com/mszoek).
 
 One really big way to help right now would be a project logo! Got some art skills? Go nuts!
 
