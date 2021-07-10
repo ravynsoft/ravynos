@@ -1,6 +1,8 @@
 freebsd_instance:
   image_family: freebsd-12-2
-  cpu: 8
+  cpu: 4
+  memory: 16G
+  disk: 100
 
 # Build all the packages, staying within the 2h task limit
 ports_prep_task:
@@ -11,31 +13,28 @@ ports_prep_task:
     populate_script: make getports
 
 ports_test_task:
+  depends_on: ports_prep
   ports_cache:
     folder: /usr/ports
     reupload_on_change: false
   script: ls /usr/ports
 
-pkg_prep_task:
-  only_if: $CIRRUS_BRANCH == 'main' && $CIRRUS_CHANGE_TITLE =~ '.*[pkgs].*'
-  script: make getports prepports zsh
+# pkg_xorg_task:
+#   only_if: $CIRRUS_BRANCH == 'main' && $CIRRUS_CHANGE_TITLE =~ '.*[pkgs].*'
+#   depends_on: ports_prep
+#   script: make zsh xorg
 
-pkg_xorg_task:
-  only_if: $CIRRUS_BRANCH == 'main' && $CIRRUS_CHANGE_TITLE =~ '.*[pkgs].*'
-  depends_on: pkg_prep
-  script: make xorg
+# pkg_plasma_task:
+#   only_if: $CIRRUS_BRANCH == 'main' && $CIRRUS_CHANGE_TITLE =~ '.*[pkgs].*'
+#   depends_on: pkg_xorg
+#   script: make plasma
 
-pkg_plasma_task:
-  only_if: $CIRRUS_BRANCH == 'main' && $CIRRUS_CHANGE_TITLE =~ '.*[pkgs].*'
-  depends_on: pkg_xorg
-  script: make plasma
+# pkg_misc_task:
+#   only_if: $CIRRUS_BRANCH == 'main' && $CIRRUS_CHANGE_TITLE =~ '.*[pkgs].*'
+#   depends_on: pkg_plasma
+#   script: make misc
 
-pkg_misc_task:
-  only_if: $CIRRUS_BRANCH == 'main' && $CIRRUS_CHANGE_TITLE =~ '.*[pkgs].*'
-  depends_on: pkg_plasma
-  script: make misc
-
-pkg_misc2_task:
-  only_if: $CIRRUS_BRANCH == 'main' && $CIRRUS_CHANGE_TITLE =~ '.*[pkgs].*'
-  depends_on: pkg_misc
-  script: make misc2
+# pkg_misc2_task:
+#   only_if: $CIRRUS_BRANCH == 'main' && $CIRRUS_CHANGE_TITLE =~ '.*[pkgs].*'
+#   depends_on: pkg_misc
+#   script: make misc2
