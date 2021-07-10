@@ -139,6 +139,12 @@ sed -i_ -e '/PLIST_FILES/s@man/man3@share/&@' /usr/ports/math/lapack/Makefile
 sed -i_ -e 's@^WRKSRC=.*@&\npost-patch:\n\tsed -i_ -e "/^mandir/s,/man,/share/man," ${WRKSRC}/Makefile\n@' /usr/ports/multimedia/librtmp/Makefile
 sed -i_ -e 's@^post-install:@pre-install:\n\t${MKDIR} -p ${STAGEDIR}/etc/rc.d\n&@' /usr/ports/audio/sndio/Makefile
 sed -i_ -e 's@${PREFIX}/etc@/etc@g' -e 's@CONFIGURE_ARGS=@& --sysconfdir=/etc @' /usr/ports/graphics/ImageMagick7/Makefile
+sed -i_ -e '/PLIST_FILES/s@man/@${MANPREFIX}/man/@' /usr/ports/sysutils/cpdup/Makefile
+sed -i_ -e 's@${PREFIX}/etc@/etc@' -e 's@post-install:@pre-install:\n\t${MKDIR} -p ${STAGEDIR}/etc/rc.d\n&@' /usr/ports/emulators/open-vm-tools/Makefile
+sed -i_ -e 's@${LOCALBASE}/etc@/etc@g' -e 's@${PREFIX}/etc@/etc@g' -e 's@CONFIGURE_ARGS=@& --sysconfdir=/etc @' -e 's@post-install:@pre-install:\n\t${MKDIR} -p ${STAGEDIR}/etc/rc.d\n&@' /usr/ports/net/openntpd/Makefile
+sed -i_ -e 's@man/@${MANPREFIX}/man/@' /usr/ports/sysutils/pv/Makefile
+sed -i_ -e 's@\tman/@\t${MANPREFIX}/man/@' -e 's@${PREFIX}/man@${MANPREFIX}/man@' -e 's@do-install:@&\n\t${MKDIR} -p ${STAGEDIR}/usr/share/applications@' /usr/ports/net/wpa_supplicant_gui/Makefile
+sed -i_ -e 's@GNU_CONFIGURE.*@&\nCONFIGURE_ARGS=--sysconfdir=/etc@' /usr/ports/devel/xdg-user-dirs/Makefile
 
 # Port out of date?
 sed -i_ -e 's@2391904@2446510@' -e 's@a65b84821765cfd4bb8bf8c05e4279a9d81130da4eb8741ef2690064c57610cf@1eaa672dfa1ac921c795117b29b830eb84902a66248ef08d461f093305e2aaf5@' /usr/ports/math/lapack/distinfo

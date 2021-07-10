@@ -61,8 +61,14 @@ prepports:
 	sudo tar xvf ${RLSDIR}/base.txz -C ${PORTSROOT}
 	sudo ln -s libncurses.so ${PORTSROOT}/usr/lib/libncurses.so.6
 
-/usr/ports/{archivers,devel,graphics,multimedia,shells,textproc,x11,x11-fonts,x11-fm,x11-themes}/*: .PHONY
+/usr/ports/{archivers,audio,devel,dns,emulators,graphics,misc,multimedia,net,security,shells,sysutils,textproc,x11,x11-fonts,x11-fm,x11-themes}/*: .PHONY
 	sudo ${MAKE} -C ${.TARGET} DESTDIR=${PORTSROOT} install
+
+mountsrc:
+	sudo mount_nullfs ${TOPDIR}/freebsd-src/ ${PORTSROOT}/usr/src
+
+umountsrc:
+	sudo umount ${PORTSROOT}/usr/src
 
 zsh: /usr/ports/shells/zsh
 	sudo ln -f ${PORTSROOT}/usr/bin/zsh ${PORTSROOT}/bin/zsh
@@ -70,7 +76,9 @@ zsh: /usr/ports/shells/zsh
 plasma: /usr/ports/x11/plasma5-plasma /usr/ports/x11/konsole /usr/ports/x11/sddm /usr/ports/x11-fm/dolphin
 xorg: /usr/ports/x11/xorg /usr/ports/x11-themes/adwaita-icon-theme /usr/ports/devel/desktop-file-utils
 misc: /usr/ports/archivers/brotli /usr/ports/graphics/argyllcms /usr/ports/multimedia/gstreamer1-plugins-all
-buildports: zsh xorg plasma misc
+zenity: /usr/ports/x11/zenity
+misc2: /usr/ports/sysutils/cpdup /usr/ports/audio/freedesktop-sound-theme /usr/ports/sysutils/fusefs-libs mountsrc /usr/ports/graphics/gpu-firmware-kmod /usr/ports/sysutils/iichid /usr/ports/net/libdnet /usr/ports/archivers/libmspack /usr/ports/security/libretls /usr/ports/devel/libsigc++20 /usr/ports/multimedia/libva-intel-driver /usr/ports/dns/nss_mdns /usr/ports/emulators/open-vm-tools /usr/ports/net/openntpd /usr/ports/sysutils/pv /usr/ports/misc/usbids /usr/ports/misc/utouch-kmod umountsrc /usr/ports/net/wpa_supplicant_gui /usr/ports/devel/xdg-user-dirs
+buildports: zsh xorg plasma misc zenity misc2
 
 makepackages:
 	sudo rm -rf /usr/ports/packages
