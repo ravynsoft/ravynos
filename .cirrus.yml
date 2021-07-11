@@ -20,7 +20,7 @@ base_build_task:
   timeout_in: 120m
   script:
     - pkg install -y git
-    - make freebsd packagesystem
+    - make prep freebsd packagesystem
   only_if: $CIRRUS_CHANGE_TITLE =~ '.*\[base\].*'
   base_artifacts:
     path: freebsd-src/release/base.txz
