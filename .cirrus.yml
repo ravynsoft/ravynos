@@ -12,14 +12,15 @@ ports_build_task:
     reupload_on_changes: false
     fingerprint_script: test -f /usr/ports/INDEX* && sha256 /usr/ports/INDEX* || true
     populate_script: make getports
-  only_if: $CIRRUS_CHANGE_TITLE =~ '.*[pkgs].*'
+  only_if: $CIRRUS_CHANGE_TITLE =~ '.*\[pkgs\].*'
   script: make prepports buildports makepackages
 
 # Build the FreeBSD kernel and patched toolchain 
 base_build_task:
   timeout_in: 120m
+  script: pkg install -y git
   script: make freebsd packagesystem
-  only_if: $CIRRUS_CHANGE_TITLE =~ '.*[base].*'
+  only_if: $CIRRUS_CHANGE_TITLE =~ '.*\[base\].*'
   base_artifacts:
     path: freebsd-src/release/base.txz
   kernel_artifacts:
@@ -29,6 +30,8 @@ base_build_task:
 airyx_build_task:
   timeout_in: 120m
   script: fetch -o /tmp/base.txz https://api.cirrus-ci.com/v1/artifact/github/mszoek/airyx/base_build/base/base.txz && tar -C / -xvf /tmp/base.txz
+  script: cp -afv mk/*.mk /usr/share/mk
+  script: pkg install -y cmake
   script: make prep airyx airyx-package
   only_if: $CIRRUS_CHANGE_TITLE =~ 'foobar' && $CIRRUS_BRANCH == 'main'
   airyx_artifacts:
