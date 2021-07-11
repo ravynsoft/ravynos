@@ -62,4 +62,4 @@ INCS= \
 RESOURCES=Info.plist English.lproj
 CFLAGS+= ${FMWK_CFLAGS} -I.. -I../OpenGL/include -I../libobjc2 -I../Foundation/Headers
 
-.include <he.framework.mk>
+.include <airyx.framework.mk>

@@ -25,4 +25,4 @@ SRCS=foo.c
 INCS=foo.h
 RESOURCES=
 
-.include <he.framework.mk>
+.include <airyx.framework.mk>

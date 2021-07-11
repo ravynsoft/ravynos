@@ -34,4 +34,4 @@ LDFLAGS+=-L/usr/local/lib -lGL
 
 build: all
 
-.include <he.app.mk>
+.include <airyx.app.mk>

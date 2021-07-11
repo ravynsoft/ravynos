@@ -31,4 +31,4 @@ copydbus:
 	rm -f ${FRAMEWORK}.framework/Headers/*.bak
 	ln -sf /usr/local/lib/libdbus-1.so* ${FRAMEWORK}.framework/Versions/Current/
 
-.include <he.framework.mk>
+.include <airyx.framework.mk>

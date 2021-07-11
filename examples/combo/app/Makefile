@@ -29,4 +29,4 @@ MK_DEBUG_FILES=no
 RESOURCES=rsc/sample.txt
 FRAMEWORKS=../Frameworks/Foo
 
-.include <he.app.mk>
+.include <airyx.app.mk>

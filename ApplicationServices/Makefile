@@ -4,4 +4,4 @@ INCS=ApplicationServices.h
 
 RESOURCES=Info.plist
 
-.include <he.framework.mk>
+.include <airyx.framework.mk>

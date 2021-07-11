@@ -8,4 +8,4 @@ CFLAGS+= ${FMWK_CFLAGS} -I.. -I../libobjc2 -I../Foundation/Headers
 
 build: all
 
-.include <he.framework.mk>
+.include <airyx.framework.mk>

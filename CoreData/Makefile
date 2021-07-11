@@ -55,4 +55,4 @@ NSXMLPersistentStore.h
 RESOURCES=Info.plist English.lproj
 CFLAGS+= ${FMWK_CFLAGS} -I.. -I../libobjc2 -I../Foundation/Headers
 
-.include <he.framework.mk>
+.include <airyx.framework.mk>

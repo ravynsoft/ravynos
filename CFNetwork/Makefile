@@ -20,4 +20,4 @@ LDFLAGS+=-L${BUILDROOT}/System/Library/Frameworks/CoreFoundation.framework/Versi
 	-lCoreFoundation \
 	-Wl,-R/System/Library/Frameworks/CoreFoundation.framework/Versions/A
 
-.include <he.framework.mk>
+.include <airyx.framework.mk>

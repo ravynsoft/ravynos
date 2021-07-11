@@ -695,4 +695,4 @@ marshallheaders: .PHONY
 	mkdir -p Headers/Foundation
 	find ${.CURDIR} -name \*.h -exec cp -f {} Headers/Foundation \;
 
-.include <he.framework.mk>
+.include <airyx.framework.mk>

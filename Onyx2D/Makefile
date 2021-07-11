@@ -195,4 +195,4 @@ RESOURCES=Info.plist English.lproj
 CFLAGS+= ${FMWK_CFLAGS} -I.. -I../libobjc2 -I../Foundation/Headers
 LDFLAGS+= ${FMWK_LDFLAGS} -ljpeg -lpng -ltiff
 
-.include <he.framework.mk>
+.include <airyx.framework.mk>

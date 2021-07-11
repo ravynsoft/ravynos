@@ -48,7 +48,7 @@ installresources: ${RESOURCES}
 installresources: .PHONY
 .endif
 
-.include <he.common.mk>
+.include <airyx.common.mk>
 
 all: ${APP_DIR} ${PROG} installresources ${APP_DIR}/${APP}
 

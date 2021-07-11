@@ -27,7 +27,7 @@ installresources: ${RESOURCES}
 installresources: .PHONY
 .endif
 
-.include <he.common.mk>
+.include <airyx.common.mk>
 
 all: ${FRAMEWORK_DIR} ${SHLIB_NAME} installincludes _libinstall installresources
 ${FRAMEWORK_DIR}:

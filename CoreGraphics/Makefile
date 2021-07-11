@@ -66,4 +66,4 @@ INCS= \
 RESOURCES=Info.plist 
 CFLAGS+= ${FMWK_CFLAGS} -I../OpenGL/include -I.. -I../libobjc2 -I../Foundation/Headers
 
-.include <he.framework.mk>
+.include <airyx.framework.mk>

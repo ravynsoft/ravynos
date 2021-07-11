@@ -26,4 +26,4 @@ INCS=foo.h
 RESOURCES=
 MK_DEBUG_FILES=no
 
-.include <he.framework.mk>
+.include <airyx.framework.mk>

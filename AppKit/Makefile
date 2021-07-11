@@ -588,4 +588,4 @@ marshallheaders: .PHONY
 	mkdir -p Headers/AppKit
 	find ${.CURDIR} -name \*.h -exec cp -f {} Headers/AppKit \;
 
-.include <he.framework.mk>
+.include <airyx.framework.mk>

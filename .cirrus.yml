@@ -12,7 +12,7 @@ ports_build_task:
     reupload_on_changes: false
     fingerprint_script: test -f /usr/ports/INDEX* && sha256 /usr/ports/INDEX* || true
     populate_script: make getports
-  only_if: $CIRRUS_CHANGE_TITLE =~ '.*\[pkgs\].*'
+  only_if: $CIRRUS_CHANGE_TITLE =~ '.*\[pkgs\].*' && $CIRRUS_BRANCH == 'main'
   script: make prepports buildports makepackages
 
 # Build the FreeBSD kernel and patched toolchain 
@@ -21,7 +21,7 @@ base_build_task:
   script:
     - pkg install -y git
     - make prep freebsd packagesystem
-  only_if: $CIRRUS_CHANGE_TITLE =~ '.*\[base\].*'
+  only_if: $CIRRUS_CHANGE_TITLE =~ '.*\[base\].*' && $CIRRUS_BRANCH == 'main'
   base_artifacts:
     path: freebsd-src/release/base.txz
   kernel_artifacts:
