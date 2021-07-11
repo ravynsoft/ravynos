@@ -1,0 +1,34 @@
+--- CMakeLists.txt.orig	2021-03-28 13:38:05 UTC
++++ CMakeLists.txt
+@@ -45,25 +45,25 @@ install(FILES ${CMAKE_CURRENT_BINARY_DIR}/org.freedesk
+     DESTINATION share/dbus-1/system-services
+ )
+ install(FILES org.freedesktop.UDisks2.conf
+-    DESTINATION etc/dbus-1/system.d
++    DESTINATION /etc/dbus-1/system.d
+ )
+ 
+ install(FILES bsdisks.conf.sample
+-    DESTINATION etc/
++    DESTINATION /etc/
+ )
+ 
+ install(FILES bsdisks-syslog.conf.sample
+-    DESTINATION etc/syslog.d/
++    DESTINATION /etc/syslog.d/
+ )
+ install(FILES bsdisks-newsyslog.conf.sample
+-    DESTINATION etc/newsyslog.conf.d/
++    DESTINATION /etc/newsyslog.conf.d/
+ )
+ 
+ install(FILES bsdisks.8
+-    DESTINATION man/man8/
++    DESTINATION share/man/man8/
+ )
+ install(FILES bsdisks.conf.5
+-    DESTINATION man/man5/
++    DESTINATION share/man/man5/
+ )
+ 
+ if(INSTALL_POLKIT_RULES)

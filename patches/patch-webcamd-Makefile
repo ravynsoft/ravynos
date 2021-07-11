@@ -1,0 +1,11 @@
+--- Makefile.orig	2021-07-07 22:41:01 UTC
++++ Makefile
+@@ -103,7 +103,7 @@ MAN+=	man4/zr364xx.4
+ PREFIX?=	/usr/local
+ LOCALBASE?=	/usr/local
+ BINDIR=		${PREFIX}/sbin
+-MANDIR=		${PREFIX}/man/man
++MANDIR=		${PREFIX}/share/man/man
+ LIBDIR=		${PREFIX}/lib
+ LINUXDIR=	media_tree
+ MKLINT=		no

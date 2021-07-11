@@ -1,0 +1,9 @@
+--- freebsd/Makefile.orig	2021-07-05 18:13:06 UTC
++++ freebsd/Makefile
+@@ -1,5 +1,5 @@
+ PREFIX?=	/usr/local
+-COMPLETIONSDIR=	${DESTDIR}${PREFIX}/etc/bash_completion.d
++COMPLETIONSDIR=	${DESTDIR}/etc/bash_completion.d
+ 
+ install:
+ 	@mkdir -p ${COMPLETIONSDIR}
