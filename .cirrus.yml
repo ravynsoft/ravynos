@@ -4,27 +4,31 @@ freebsd_instance:
   memory: 16G
   disk: 100
 
-# Build all the packages, staying within the 2h task limit
+# Build all the packages, staying within the 2h task limit (hopefully)
 ports_build_task:
+  timeout_in: 120m
   ports_cache:
     folder: /usr/ports
     reupload_on_changes: false
     fingerprint_script: test -f /usr/ports/INDEX* && sha256 /usr/ports/INDEX* || true
     populate_script: make getports
-  #only_if: $CIRRUS_BRANCH == 'main' && $CIRRUS_CHANGE_TITLE =~ '.*[pkgs].*'
+  only_if: $CIRRUS_BRANCH == 'main' && $CIRRUS_CHANGE_TITLE =~ '.*[pkgs].*'
   script: make prepports buildports makepackages
 
-# pkg_plasma_task:
-#   only_if: $CIRRUS_BRANCH == 'main' && $CIRRUS_CHANGE_TITLE =~ '.*[pkgs].*'
-#   depends_on: pkg_xorg
-#   script: make plasma
+# Build the FreeBSD kernel and patched toolchain 
+base_build_task:
+  timeout_in: 120m
+  script: make freebsd packagesystem
+  only_if: $CIRRUS_BRANCH == 'main' && $CIRRUS_CHANGE_TITLE =~ '.*[base].*'
+  base_artifacts:
+    path: freebsd-src/release/base.txz
+  kernel_artifacts:
+    path: freebsd-src/release/kernel.txz
 
-# pkg_misc_task:
-#   only_if: $CIRRUS_BRANCH == 'main' && $CIRRUS_CHANGE_TITLE =~ '.*[pkgs].*'
-#   depends_on: pkg_plasma
-#   script: make misc
-
-# pkg_misc2_task:
-#   only_if: $CIRRUS_BRANCH == 'main' && $CIRRUS_CHANGE_TITLE =~ '.*[pkgs].*'
-#   depends_on: pkg_misc
-#   script: make misc2
+# Build the Airyx system core
+airyx_build_task:
+  timeout_in: 120m
+  script: make prep airyx airyx-package
+  only_if: $CIRRUS_BRANCH == 'main'
+  airyx_artifacts:
+    path: freebsd-src/release/airyx.txz

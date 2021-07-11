@@ -21,8 +21,6 @@ prep: cleanroot
 	mkdir -p ${OBJPREFIX} ${TOPDIR}/dist ${BUILDROOT}
 	mkdir -p ${BUILDROOT}/etc ${BUILDROOT}/var/run ${BUILDROOT}/usr/sbin
 	${SUDO} cp -f ${TOPDIR}/make.conf ${TOPDIR}/resolv.conf ${BUILDROOT}/etc/
-	${SUDO} cp -f /var/run/ld-elf.so.hints ${BUILDROOT}/var/run
-	${SUDO} cp -f /usr/local/sbin/pkg-static ${BUILDROOT}/usr/sbin
 	for x in System System/Library/Frameworks Library Users Applications Volumes; \
 		do mkdir -p ${BUILDROOT}/$$x; \
 	done
@@ -59,6 +57,7 @@ prepports:
 	${SUDO} cp -f ${TOPDIR}/make.conf ${TOPDIR}/resolv.conf ${PORTSROOT}/etc/
 	${SUDO} cp -f /var/run/ld-elf.so.hints ${PORTSROOT}/var/run
 	${SUDO} cp -f /usr/local/sbin/pkg-static ${PORTSROOT}/usr/sbin
+	if [ ! -f ${RLSDIR}/base.txz ]; then fetch https://api.cirrus-ci.com/v1/artifact/github/mszoek/airyx/base_build/base/base.txz; fi
 	${SUDO} tar xvf ${RLSDIR}/base.txz -C ${PORTSROOT}
 	${SUDO} ln -s libncurses.so ${PORTSROOT}/usr/lib/libncurses.so.6
 
@@ -269,6 +268,7 @@ LaunchServices.framework:
 	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
 
 airyx-package:
+	${SUDO} mkdir -p ${RLSDIR}
 	${SUDO} tar cvJ -C ${BUILDROOT} --gid 0 --uid 0 -f ${RLSDIR}/airyx.txz .
 
 ${TOPDIR}/ISO:
