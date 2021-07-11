@@ -18,8 +18,8 @@ ports_build_task:
 # Build the FreeBSD kernel and patched toolchain 
 base_build_task:
   timeout_in: 120m
-  script: pkg install -y git
-  script: make freebsd packagesystem
+  pkg_script: pkg install -y git
+  build_script: make freebsd packagesystem
   only_if: $CIRRUS_CHANGE_TITLE =~ '.*\[base\].*'
   base_artifacts:
     path: freebsd-src/release/base.txz
@@ -30,9 +30,9 @@ base_build_task:
 airyx_build_task:
   timeout_in: 120m
   script: fetch -o /tmp/base.txz https://api.cirrus-ci.com/v1/artifact/github/mszoek/airyx/base_build/base/base.txz && tar -C / -xvf /tmp/base.txz
-  script: cp -afv mk/*.mk /usr/share/mk
-  script: pkg install -y cmake
-  script: make prep airyx airyx-package
+  mk_script: cp -afv mk/*.mk /usr/share/mk
+  pkg_script: pkg install -y cmake
+  build_script: make prep airyx airyx-package
   only_if: $CIRRUS_CHANGE_TITLE =~ 'foobar' && $CIRRUS_BRANCH == 'main'
   airyx_artifacts:
     path: freebsd-src/release/airyx.txz
