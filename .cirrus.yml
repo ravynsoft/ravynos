@@ -1,5 +1,6 @@
-freebsd_instance:
-  image_family: freebsd-12-2
+compute_engine_instance:
+  image: freebsd-12-2
+  platform: freebsd
   cpu: 8
   memory: 16G
   disk: 100
@@ -40,4 +41,4 @@ airyx_build_task:
     path: freebsd-src/release/airyx.txz
 
 wtf_task:
-  script: df -h && mount && zpool list
+  script: df -h && mount && sysctl hw.ncpu && free -h
