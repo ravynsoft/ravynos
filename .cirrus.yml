@@ -40,6 +40,3 @@ airyx_build_task:
   only_if: $CIRRUS_CHANGE_TITLE =~ 'foobar' && $CIRRUS_BRANCH == 'main'
   airyx_artifacts:
     path: freebsd-src/release/airyx.txz
-
-wtf_task:
-  script: df -h && mount && sysctl hw.ncpu && free -h
