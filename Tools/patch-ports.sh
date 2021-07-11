@@ -43,7 +43,7 @@ sed -i_ -e 's@# Fallback.*$@&\n\t${MKDIR} -p ${STAGEDIR}/etc/libmap.d@' /usr/por
 sed -i_ -e 's@CONFIGURE_ARGS=@& --sysconfdir=/etc @' -e 's@${PREFIX}/man@${MANPREFIX}/man@' /usr/ports/security/rhash/Makefile /usr/ports/sysutils/consolekit2/Makefile /usr/ports/devel/dbus-glib/Makefile
 sed -i_ -e 's@CONFIGURE_ARGS?=@& --sysconfdir=/etc @' -e 's@${PREFIX}/etc@/etc@g' /usr/ports/net/avahi-app/Makefile
 sed -i_ -e 's@man/@${MANPREFIX}/man/@' /usr/ports/archivers/libarchive/Makefile
-sed -i_ -e 's@MANPAGES%%man@MANPAGES%%%%MANPREFIX%%/man@' /usr/ports/devel/{cmake,kf5-extra-cmake-modules}/pkg-plist /usr/ports/graphics/openjpeg15/pkg-plist
+sed -i_ -e 's@MANPAGES%%man@MANPAGES%%%%MANPREFIX%%/man@' /usr/ports/devel/cmake/pkg-plist /usr/ports/devel/kf5-extra-cmake-modules/pkg-plist /usr/ports/graphics/openjpeg15/pkg-plist
 sed -i_ -e 's@ICC%%man@ICC%%%%MANPREFIX%%/man@' /usr/ports/graphics/lcms2/pkg-plist
 sed -i_ -e 's@--prefix=@--mandir=${MANPREFIX_REL}/man &@' /usr/ports/devel/cmake/Makefile
 # Undo patch that breaks mandir
@@ -86,9 +86,9 @@ sed -i_ -e 's@^.*C_INCLUDE_PATH=.*$@\\@' -e 's@^.*CPLUS_INCLUDE_PATH=.*$@\\@' /u
 sed -i_ -e 's@${PREFIX}/etc@/etc@' -e 's@^post-install:@pre-install:\n\tmkdir -p ${STAGEDIR}/etc/rc.d\n&@' /usr/ports/multimedia/webcamd/Makefile
 sed -i_ -e 's@%%PREFIX%%@@' /usr/ports/multimedia/webcamd/files/webcamd.conf.in
 sed -i_ -e 's@^post-install:@pre-install:\n\t${MKDIR} -p ${STAGEDIR}/usr/share/applications\n&@' /usr/ports/x11/xterm/Makefile
-sed -i_ -e 's@ man/@ ${MANPREFIX}/man/@' /usr/ports/x11/{setxkbmap,smproxy,xcursorgen,appres,xf86dga,iceauth,sessreg,xauth,xbacklight,xcmsdb,xdpyinfo,xdriinfo,xev,xgamma,xhost,xinput,xkbevd,xlsatoms,xlsclients,xmodmap,xprop,xrdb,xrefresh,xset,xsetroot,xvinfo,xwd,xwininfo,xwud}/Makefile
+for p in setxkbmap smproxy xcursorgen appres xf86dga iceauth sessreg xauth xbacklight xcmsdb xdpyinfo xdriinfo xev xgamma xhost xinput xkbevd xlsatoms xlsclients xmodmap xprop xrdb xrefresh xset xsetroot xvinfo xwd xwininfo xwud; do sed -i_ -e 's@ man/@ ${MANPREFIX}/man/@' /usr/ports/x11/$p/Makefile; done
 sed -i_ -e 's@ man/@ ${MANPREFIX}/man/@' /usr/ports/x11-fonts/bdftopcf/Makefile
-sed -i_ -e 's@man/man1@${MANPREFIX}/man/man1@' /usr/ports/x11/{xrandr,xkbcomp}/Makefile /usr/ports/print/xpdfopen/Makefile
+sed -i_ -e 's@man/man1@${MANPREFIX}/man/man1@' /usr/ports/x11/xrandr/Makefile /usr/ports/x11/xkbcomp/Makefile /usr/ports/print/xpdfopen/Makefile
 sed -i_ -e 's@man/man1@${MANPREFIX}/man/man1@g' /usr/ports/x11/xpr/Makefile
 sed -i_ -e 's@^post-patch:@CONFIGURE_ARGS+= --sysconfdir=/etc\n&@' /usr/ports/x11/xinit/Makefile
 sed -i_ -e 's@${LOCALBASE}/share/fonts@/System/Library/Fonts@' -e 's@${PREFIX}/etc@/etc@g' -e 's@--without-doxygen@--sysconfdir=/etc &@' /usr/ports/x11-servers/xorg-server/Makefile
@@ -125,7 +125,7 @@ sed -i_ -e '/${LOCALBASE}\/etc/,+1d' /usr/ports/sysutils/signon-qt5/Makefile
 sed -i_ -e 's@%%SASLDB%%man@%%SASLDB%%%%MANPREFIX%%/man@' /usr/ports/security/cyrus-sasl2/pkg-plist
 sed -i_ -e 's@CONFIGURE_ARGS=@& --sysconfdir=/etc --mandir=${MANPREFIX}/man @' /usr/ports/net/openldap24-server/Makefile
 sed -i_ -e 's@^man@%%MANPREFIX%%/man@' /usr/ports/net/openldap24-server/pkg-plist.client
-sed -i_ -e 's@%%man@%%%%MANPREFIX%%/man@' /usr/ports/sysutils/upower/pkg-plist /usr/ports/graphics/{jasper,lcms}/pkg-plist /usr/ports/net/samba412/pkg-plist
+sed -i_ -e 's@%%man@%%%%MANPREFIX%%/man@' /usr/ports/sysutils/upower/pkg-plist /usr/ports/graphics/jasper/pkg-plist /usr/ports/graphics/lcms/pkg-plist /usr/ports/net/samba412/pkg-plist
 sed -i_ -e 's@CONFIGURE_ARGS=@& --sysconfdir=/etc @' /usr/ports/sysutils/upower/Makefile
 sed -i_ -e 's@${LOCALBASE}/etc@/etc@g' -e 's@-DUID_MAX@-DCMAKE_INSTALL_MANDIR=${MANPREFIX}/man &@' -e 's@${MKDIR}@& ${STAGEDIR}/etc/rc.d @' /usr/ports/x11/sddm/Makefile
 sed -i_ -e 's@${PREFIX}/etc@/etc@g' -e 's@^post-install:@pre-install:\n\t${MKDIR} -p ${STAGEDIR}/etc/rc.d\n&@' /usr/ports/net/openslp/Makefile
