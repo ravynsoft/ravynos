@@ -33,7 +33,7 @@ base_build_task:
 airyx_build_task:
   timeout_in: 120m
   script:
-    - fetch -o /tmp/base.txz https://api.cirrus-ci.com/v1/artifact/github/mszoek/airyx/base_build/base/base.txz && tar -C / -xvf /tmp/base.txz
+    - fetch -o /tmp/base.txz https://api.cirrus-ci.com/v1/artifact/github/mszoek/airyx/base_build/base/freebsd-src/release/base.txz && tar -C / -xvf /tmp/base.txz
     - cp -afv mk/*.mk /usr/share/mk
     - pkg install -y cmake
     - make prep airyx airyx-package
