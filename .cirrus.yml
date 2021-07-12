@@ -34,7 +34,7 @@ airyx_build_task:
   timeout_in: 120m
   script:
     - fetch -o /tmp/base.txz https://api.cirrus-ci.com/v1/artifact/github/mszoek/airyx/base_build/base/freebsd-src/release/base.txz
-    - tar -C / -xvf /tmp/base.txz --exclude=./var/empty
+    - tar -C / -xvf /tmp/base.txz --exclude=./var/empty --exclude=./usr/lib --exclude=./sbin/init --exclude=./lib/libthr.so.3 --exclude=./libcrypt.so.5 --exclude=./lib/libc.so.7 --exclude=./libexec/ld-elf.so.1 --exclude=./usr/bin/crontab --exclude=./usr/bin/su --exclude=./usr/bin/opiepasswd --exclude=./usr/bin/passwd --exclude=./usr/bin/opieinfo --exclude=./usr/bin/login --exclude=./usr/bin/chpass --exclude=./usr/lib/librt.so.1
     - cp -afv mk/*.mk /usr/share/mk
     - pkg install -y cmake
     - make prep airyx airyx-package
