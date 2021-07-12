@@ -246,15 +246,15 @@ QuartzCore.framework:
 	${MAKE} -C ${TOPDIR}/QuartzCore BUILDROOT=${BUILDROOT}
 	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
 
+AppKit.framework:
+	rm -rf ${TOPDIR}/AppKit/${.TARGET}
+	${MAKE} -C ${TOPDIR}/AppKit BUILDROOT=${BUILDROOT} clean build
+	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
+
 Cocoa.framework:
 	rm -rf ${TOPDIR}/Cocoa/${.TARGET}
 	${MAKE} -C ${TOPDIR}/Cocoa BUILDROOT=${BUILDROOT} clean
 	${MAKE} -C ${TOPDIR}/Cocoa BUILDROOT=${BUILDROOT}
-	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
-
-AppKit.framework:
-	rm -rf ${TOPDIR}/AppKit/${.TARGET}
-	${MAKE} -C ${TOPDIR}/AppKit BUILDROOT=${BUILDROOT} clean build
 	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
 
 DBusKit.framework:
