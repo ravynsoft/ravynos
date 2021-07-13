@@ -14,7 +14,7 @@ ports_build_task:
   ports_cache:
     folder: /usr/ports
     reupload_on_changes: false
-    fingerprint_script: test -f /usr/ports/INDEX* && sha256 /usr/ports/INDEX* || true
+    fingerprint_script: sha256 /usr/ports/INDEX* || true
     populate_script: make getports
   only_if: $CIRRUS_CHANGE_TITLE =~ '.*\[pkgs\].*' && $CIRRUS_BRANCH == 'main'
   script:
