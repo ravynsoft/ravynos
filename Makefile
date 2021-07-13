@@ -35,7 +35,7 @@ getports:
 	${SUDO} portsnap auto
 	${SUDO} ${TOPDIR}/Tools/patch-ports.sh
 	${SUDO} cp -f ${TOPDIR}/patches/patch-conf.d_link__confs.py /usr/ports/x11-fonts/fontconfig/files/
-	${SUDO} mkdir /usr/ports/graphics/jpeg-turbo/files
+	${SUDO} mkdir -p /usr/ports/graphics/jpeg-turbo/files
 	${SUDO} cp -f ${TOPDIR}/patches/patch-cmakescripts_GNUInstallDirs.cmake /usr/ports/graphics/jpeg-turbo/files/
 	${SUDO} cp -f ${TOPDIR}/patches/patch-meson.build /usr/ports/sysutils/polkit/files/
 	${SUDO} cp -f ${TOPDIR}/patches/patch-freebsd_Makefile /usr/ports/shells/bash-completion/files/

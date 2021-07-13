@@ -86,7 +86,7 @@ sed -i_ -e 's@^.*C_INCLUDE_PATH=.*$@\\@' -e 's@^.*CPLUS_INCLUDE_PATH=.*$@\\@' /u
 sed -i_ -e 's@${PREFIX}/etc@/etc@' -e 's@^post-install:@pre-install:\n\tmkdir -p ${STAGEDIR}/etc/rc.d\n&@' /usr/ports/multimedia/webcamd/Makefile
 sed -i_ -e 's@%%PREFIX%%@@' /usr/ports/multimedia/webcamd/files/webcamd.conf.in
 sed -i_ -e 's@^post-install:@pre-install:\n\t${MKDIR} -p ${STAGEDIR}/usr/share/applications\n&@' /usr/ports/x11/xterm/Makefile
-for p in setxkbmap smproxy xcursorgen appres xf86dga iceauth sessreg xauth xbacklight xcmsdb xdpyinfo xdriinfo xev xgamma xhost xinput xkbevd xlsatoms xlsclients xmodmap xprop xrdb xrefresh xset xsetroot xvinfo xwd xwininfo xwud; do sed -i_ -e 's@ man/@ ${MANPREFIX}/man/@' /usr/ports/x11/$p/Makefile; done
+for p in setxkbmap smproxy xcursorgen appres xf86dga iceauth sessreg xauth xbacklight xcmsdb xdpyinfo xdriinfo xev xgamma xhost xinput xkbevd xkill xlsatoms xlsclients xmodmap xprop xrdb xrefresh xset xsetroot xvinfo xwd xwininfo xwud; do sed -i_ -e 's@ man/@ ${MANPREFIX}/man/@' /usr/ports/x11/$p/Makefile; done
 sed -i_ -e 's@ man/@ ${MANPREFIX}/man/@' /usr/ports/x11-fonts/bdftopcf/Makefile
 sed -i_ -e 's@man/man1@${MANPREFIX}/man/man1@' /usr/ports/x11/xrandr/Makefile /usr/ports/x11/xkbcomp/Makefile /usr/ports/print/xpdfopen/Makefile
 sed -i_ -e 's@man/man1@${MANPREFIX}/man/man1@g' /usr/ports/x11/xpr/Makefile
