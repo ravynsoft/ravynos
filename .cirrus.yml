@@ -9,13 +9,17 @@ compute_engine_instance:
 # Build all the packages, staying within the 2h task limit (hopefully)
 ports_build_task:
   timeout_in: 120m
+  environment:
+    KEY: ENCRYPTED[f68765a53df76c1b9cd6d870e0054317f9cc517313bf6c56d0b094a1ad01e968a95e6328b37b53db7840d112ff165c46]
   ports_cache:
     folder: /usr/ports
     reupload_on_changes: false
     fingerprint_script: test -f /usr/ports/INDEX* && sha256 /usr/ports/INDEX* || true
     populate_script: make getports
   only_if: $CIRRUS_CHANGE_TITLE =~ '.*\[pkgs\].*' && $CIRRUS_BRANCH == 'main'
-  script: make prepports buildports makepackages
+  script:
+    - make prepports buildports makepackages
+    - for p in /usr/ports/packages/*; do cloudsmith push raw -k $KEY airyx/core $p; done
 
 # Build the FreeBSD kernel and patched toolchain 
 base_build_task:
