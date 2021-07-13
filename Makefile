@@ -57,7 +57,7 @@ prepports:
 	${SUDO} cp -f ${TOPDIR}/make.conf ${TOPDIR}/resolv.conf ${PORTSROOT}/etc/
 	${SUDO} cp -f /var/run/ld-elf.so.hints ${PORTSROOT}/var/run
 	${SUDO} cp -f /usr/local/sbin/pkg-static ${PORTSROOT}/usr/sbin
-	if [ ! -f ${RLSDIR}/base.txz ]; then fetch https://api.cirrus-ci.com/v1/artifact/github/mszoek/airyx/base_build/base/base.txz; fi
+	if [ ! -f ${RLSDIR}/base.txz ]; then fetch -o ${RLSDIR}/base.txz https://dl.cloudsmith.io/public/airyx/core/raw/files/base.txz; fi
 	${SUDO} tar xvf ${RLSDIR}/base.txz -C ${PORTSROOT}
 	${SUDO} ln -s libncurses.so ${PORTSROOT}/usr/lib/libncurses.so.6
 

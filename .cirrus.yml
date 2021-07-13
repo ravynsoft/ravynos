@@ -19,25 +19,30 @@ ports_build_task:
   only_if: $CIRRUS_CHANGE_TITLE =~ '.*\[pkgs\].*' && $CIRRUS_BRANCH == 'main'
   script:
     - make prepports buildports makepackages
+    - pkg install -y py37-pip
+    - pip install --upgrade cloudsmith-cli
     - for p in /usr/ports/packages/*; do cloudsmith push raw -k $KEY airyx/core $p; done
 
 # Build the FreeBSD kernel and patched toolchain 
 base_build_task:
   timeout_in: 120m
+  environment:
+    KEY: ENCRYPTED[f68765a53df76c1b9cd6d870e0054317f9cc517313bf6c56d0b094a1ad01e968a95e6328b37b53db7840d112ff165c46]
   script:
-    - pkg install -y git
+    - pkg install -y git py37-pip
     - make prep freebsd packagesystem
+    - pip install --upgrade cloudsmith-cli
+    - cloudsmith push raw -k $KEY airyx/core freebsd-src/release/base.txz
+    - cloudsmith push raw -k $KEY airyx/core freebsd-src/release/kernel.txz
   only_if: $CIRRUS_CHANGE_TITLE =~ '.*\[base\].*' && $CIRRUS_BRANCH == 'main'
-  base_artifacts:
-    path: freebsd-src/release/base.txz
-  kernel_artifacts:
-    path: freebsd-src/release/kernel.txz
 
 # Build the Airyx system core
 airyx_build_task:
   timeout_in: 120m
+  environment:
+    KEY: ENCRYPTED[f68765a53df76c1b9cd6d870e0054317f9cc517313bf6c56d0b094a1ad01e968a95e6328b37b53db7840d112ff165c46]
   script:
-    - fetch -o /tmp/base.txz https://api.cirrus-ci.com/v1/artifact/github/mszoek/airyx/base_build/base/freebsd-src/release/base.txz
+    - fetch -o /tmp/base.txz https://dl.cloudsmith.io/public/airyx/core/raw/files/base.txz
     - tar -C / -xvf /tmp/base.txz --exclude=./var/empty --exclude=./usr/lib --exclude=./sbin/init --exclude=./lib/libthr.so.3 --exclude=./libcrypt.so.5 --exclude=./lib/libc.so.7 --exclude=./libexec/ld-elf.so.1 --exclude=./usr/bin/crontab --exclude=./usr/bin/su --exclude=./usr/bin/opiepasswd --exclude=./usr/bin/passwd --exclude=./usr/bin/opieinfo --exclude=./usr/bin/login --exclude=./usr/bin/chpass --exclude=./usr/lib/librt.so.1
     - cp -afv mk/*.mk /usr/share/mk
     - cp -fv etc/pkg/*.conf /etc/pkg/ && rm -fv /etc/pkg/FreeBSD.conf
