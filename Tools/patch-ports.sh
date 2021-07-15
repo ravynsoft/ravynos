@@ -46,8 +46,6 @@ sed -i_ -e 's@man/@${MANPREFIX}/man/@' /usr/ports/archivers/libarchive/Makefile
 sed -i_ -e 's@MANPAGES%%man@MANPAGES%%%%MANPREFIX%%/man@' /usr/ports/devel/cmake/pkg-plist /usr/ports/devel/kf5-extra-cmake-modules/pkg-plist /usr/ports/graphics/openjpeg15/pkg-plist
 sed -i_ -e 's@ICC%%man@ICC%%%%MANPREFIX%%/man@' /usr/ports/graphics/lcms2/pkg-plist
 sed -i_ -e 's@--prefix=@--mandir=${MANPREFIX_REL}/man &@' /usr/ports/devel/cmake/Makefile
-# Undo patch that breaks mandir
-sed -i_ -e 's@^OPTIONS_SUB.*$@&\npost-install:\n\tmv -f ${STAGEDIR}/usr/man/man7/* ${STAGEDIR}/usr/share/man/man7/@' /usr/ports/devel/kf5-extra-cmake-modules/Makefile
 sed -i_ -e 's@${PREFIX}/man@${MANPREFIX}/man@g' /usr/ports/devel/libedit/Makefile /usr/ports/graphics/lcms2/Makefile
 sed -i_ -e 's@${PREFIX}/man@${MANPREFIX}/man@g' -e 's@INSTALL_EXEC=@INSTALL_MAN=${STAGEDIR}${MANPREFIX}/man/man1 &@' /usr/ports/lang/lua52/Makefile
 sed -i_ -e 's@CONFIGURE_ARGS=@& --mandir=${MANPREFIX}/man@' /usr/ports/devel/pcre/Makefile
@@ -116,6 +114,7 @@ sed -i_ -e 's@man/man@%%MANPREFIX%%/&@' /usr/ports/x11-servers/xwayland-devel/Ma
 sed -i_ -e 's@${PREFIX}/etc@/etc@' -e '/^post-patch:/,+2d' /usr/ports/audio/openal-soft/Makefile
 sed -i_ -e 's@^post-install:@post-patch:\n\tsed -i_ -e "s,^mandir.*,mandir = ${MANPREFIX}/man," ${WRKSRC}/Makefile\n&@' /usr/ports/databases/lmdb/Makefile
 sed -i_ -e 's@^CMAKE_OFF.*@&\nCMAKE_ARGS+= -DCMAKE_INSTALL_MANDIR=${MANPREFIX}/man@' /usr/ports/archivers/libzip/Makefile /usr/ports/graphics/exiv2/Makefile /usr/ports/devel/zziplib/Makefile
+sed -i_ -e 's@^%%MANPAGES%%man@%%MANPAGES%%%%MANPREFIX%%/man@' /usr/ports/devel/zziplib/pkg-plist
 sed -i_ -e 's@^CMAKE_ARGS=@& -DCMAKE_INSTALL_MANDIR=${MANPREFIX}/man@' -e 's@man/man1@${MANPREFIX}/&@' /usr/ports/graphics/libqrencode/Makefile
 sed -i_ -e 's@USES=.*@&\nCMAKE_ARGS+= -DOPENJPEG_INSTALL_MAN_DIR=${MANPREFIX}/man@' /usr/ports/graphics/openjpeg15/Makefile
 sed -i_ -e 's@^post-patch:@CONFIGURE_ARGS+= --sysconfdir=/etc --mandir=${MANPREFIX}/man\n&@' /usr/ports/graphics/graphviz/Makefile

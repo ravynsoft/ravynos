@@ -86,8 +86,20 @@ typedef struct LSLaunchURLSpec {
     const void *passThruParams; // ignored - not implemented
 } LSLaunchURLSpec;
 
+// opaque data structure representing an app
+typedef struct _LSAppRecord {
+    int version;
+    NSString *name;
+    NSURL *url;
+    NSArray *urlSchemes;
+    NSArray *mimeTypes;
+    NSArray *arguments;
+    NSDate *lastModified;
+} _LSAppRecord;
+
 typedef struct OpaqueLSSharedFileListRef *LSSharedFileListRef;
 typedef struct OpaqueLSSharedFileListItemRef *LSSharedFileListItemRef;
+extern const char *LS_DATABASE;
 
 #ifdef __cplusplus
 extern "C" {
