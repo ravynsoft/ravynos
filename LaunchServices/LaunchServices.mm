@@ -129,7 +129,7 @@ OSStatus LSOpenFromURLSpec(const LSLaunchURLSpec *inLaunchSpec, CFURLRef _Nullab
     return 0;
 }
 
-static BOOL _LSFindRecordInDatabase(const NSURL *appURL, LSAppRecord *appRecord)
+static BOOL _LSFindRecordInDatabase(const NSURL *appURL, LSAppRecord **appRecord)
 {
     sqlite3 *pDB = 0;
     if(sqlite3_open(LS_DATABASE, &pDB) != SQLITE_OK) {
@@ -160,8 +160,8 @@ static BOOL _LSFindRecordInDatabase(const NSURL *appURL, LSAppRecord *appRecord)
         NSData *blob = [[NSData alloc] 
             initWithBytes:sqlite3_column_blob(stmt, 3)
             length:sqlite3_column_bytes(stmt, 3)];
-        appRecord = [NSKeyedUnarchiver unarchiveObjectWithData:blob];
-        NSLog(@"unarchived %@",appRecord);
+        *appRecord = [NSKeyedUnarchiver unarchiveObjectWithData:blob];
+        NSLog(@"unarchived %@",*appRecord);
     }
 
     sqlite3_finalize(stmt);
@@ -241,7 +241,7 @@ OSStatus LSRegisterURL(CFURLRef inURL, Boolean inUpdate)
 
     // Does this app exist in the database already?
     LSAppRecord *appRecord = [LSAppRecord new];
-    BOOL inDatabase = _LSFindRecordInDatabase(appURL, appRecord);
+    BOOL inDatabase = _LSFindRecordInDatabase(appURL, &appRecord);
 
     NSLog(@"appRecord in DB: %d\n%@", inDatabase, appRecord);
 
