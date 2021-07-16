@@ -86,16 +86,16 @@ typedef struct LSLaunchURLSpec {
     const void *passThruParams; // ignored - not implemented
 } LSLaunchURLSpec;
 
-// opaque data structure representing an app
-typedef struct _LSAppRecord {
-    int version;
-    NSString *name;
-    NSURL *url;
-    NSArray *urlSchemes;
-    NSArray *mimeTypes;
-    NSArray *arguments;
-    NSDate *lastModified;
-} _LSAppRecord;
+const NSString *    kCFBundleTypeExtensionsKey = @"CFBundleTypeExtensions";
+const NSString *    kCFBundleURLSchemesKey = @"CFBundleURLSchemes";
+const NSString *    kCFBundleTypeRoleKey = @"CFBundleTypeRole";
+const NSString *    kLSItemContentTypesKey = @"LSItemContentTypes";
+
+enum {
+    kLSRankOwner = 0,
+    kLSRankDefault = 1,
+    kLSRankAlternate = 2
+};
 
 typedef struct OpaqueLSSharedFileListRef *LSSharedFileListRef;
 typedef struct OpaqueLSSharedFileListItemRef *LSSharedFileListItemRef;
@@ -108,6 +108,7 @@ extern "C" {
 OSStatus LSOpenCFURLRef(CFURLRef inURL, CFURLRef _Nullable *outLaunchedURL);
 OSStatus LSOpenFromURLSpec(const LSLaunchURLSpec *inLaunchSpec, CFURLRef _Nullable *outLaunchedURL);
 OSStatus LSRegisterURL(CFURLRef inURL, Boolean inUpdate);
+OSStatus LSCanURLAcceptURL(CFURLRef inItemURL, CFURLRef inTargetURL, LSRolesMask inRoleMask, LSAcceptanceFlags inFlags, Boolean *outAcceptsItem);
 
 #ifdef __cplusplus
 }
