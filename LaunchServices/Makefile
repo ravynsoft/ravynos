@@ -3,9 +3,11 @@
 FRAMEWORK=LaunchServices
 SRCS= LaunchServices.mm LSAppRecord.mm
 INCS= LaunchServices.h
-RESOURCES=Info.plist 
-CFLAGS+= ${FMWK_CFLAGS} -I.. -I../libobjc2 -I../Foundation/Headers -I/usr/local/include
-LDFLAGS+= -L/usr/local/lib -lsqlite3
+RESOURCES= Info.plist
+QT5CFLAGS!= pkg-config --cflags Qt5Xdg
+QT5LDFLAGS!= pkg-config --libs Qt5Xdg
+CFLAGS+= ${FMWK_CFLAGS} -I.. -I../libobjc2 -I../Foundation/Headers ${QT5CFLAGS}
+LDFLAGS+= -L/usr/local/lib -lsqlite3 ${QT5LDFLAGS}
 
 build: all
 

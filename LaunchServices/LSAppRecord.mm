@@ -23,36 +23,78 @@
  */
 
 #import <LaunchServices/LSAppRecord.h>
+#include <xdgdesktopfile.h>
 
 @implementation LSAppRecord
 
-+appRecordWithURL:(NSURL *)appURL
-{
++appRecordWithURL:(NSURL *)appURL {
     return [[self alloc] initWithURL:appURL];
 }
 
--initWithURL:(NSURL *)appURL
-{
+-initWithURL:(NSURL *)appURL {
     NSFileManager *fm = [NSFileManager defaultManager];
     NSString *appPath = [appURL path];
     NSDictionary *attributes = [fm fileAttributesAtPath:appPath traverseLink:NO];
 
-    NSArray *schemes = @[
-        @{ @"CFBundleTypeRole":@"Editor", @"CFBundleURLSchemes":@[@"https",@"ftp"] }
-    ];
-
-    NSArray *docTypes = @[
-        @{ @"CFBundleTypeRole":@"Viewer", @"CFBundleTypeExtensions":@[@"jpg",@"JPG",@"jpeg"] },
-        @{ @"CFBundleTypeRole":@"Viewer", @"CFBundleTypeExtensions":@[@"html",@"HTML"] }
-    ];
-
     _version = 1;
-    _name = @"App Name";
     _URL = [appURL copy];
-    _URLSchemes = schemes;
-    _documentTypes = docTypes;
+    _URLSchemes = nil;
+    _documentTypes = nil;
     _arguments = nil;
     _lastModified = [[attributes fileModificationDate] timeIntervalSince1970];
+
+    if([attributes fileType] == NSFileTypeDirectory)
+        [self initWithBundle:[NSBundle bundleWithPath:appPath]];
+    
+    if([[appURL pathExtension] isEqualToString:@"desktop"])
+        [self initWithDesktopFile:appPath];
+
+    if(!_name)
+        _name = [appURL lastPathComponent];
+    return self;
+}
+
+-initWithBundle:(NSBundle *)app {
+    NSDictionary *properties = [app localizedInfoDictionary];
+
+    _name = [properties objectForKey:@"CFBundleDisplayName"];
+    if(!_name)
+        [properties objectForKey:@"CFBundleName"];
+
+    _documentTypes = [properties objectForKey:@"CFBundleDocumentTypes"];
+    _URLSchemes = [properties objectForKey:@"CFBundleURLTypes"];
+    return self;
+}
+
+-initWithDesktopFile:(NSString *)path {
+    NSLog(@"initWithDesktopFile %@",path);
+    XdgDesktopFile df;
+    if(!df.load([path UTF8String]) || !df.isValid() || df.type() != XdgDesktopFile::ApplicationType)
+        return self;
+    QString qsname = df.name();
+    _name = [NSString stringWithCString:qsname.toLocal8Bit().constData() length:qsname.length()];
+
+    // Find the actual executable and save it as the appURL.
+    // Save the remaining command line as the arguments list.
+    QString exec = df.value("Exec").toString();
+    NSString *execPath = [NSString stringWithCString:exec.toLocal8Bit().constData() length:exec.length()];
+    NSMutableArray *components = [execPath componentsSeparatedByString:@" "];
+
+    execPath = [components firstObject];
+    [components removeObjectAtIndex:0];
+    _arguments = [components retain];
+
+    NSFileManager *fm = [NSFileManager defaultManager];
+    if([execPath hasPrefix:@"/"] == NO) {
+        NSLog(@"not absolute - searching path");
+        // search the PATH to find absolute path of this file
+    }
+
+    // Now we have the executable and args. Determine what this app can
+    // accept and store them in _documentTypes. We do this by extracting
+    // the MIME types and converting them to UTIs.
+
+    NSLog(@"name=%@ exec=%@ args=%@",_name,execPath,_arguments);
     return self;
 }
 

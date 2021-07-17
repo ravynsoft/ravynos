@@ -259,7 +259,11 @@ static OSStatus _LSOpenAllWithSpecifiedApp(const LSLaunchURLSpec *inLaunchSpec, 
 
         BOOL found = NO;
         for(int i=0; i<[args count]; ++i) {
-            if([[args objectAtIndex:i] isEqualToString:@"%s"]) {
+            if([[args objectAtIndex:i] caseInsensitiveCompare:@"%U"] == NSOrderedSame) {
+                [args replaceObjectAtIndex:i withObject:[[(NSArray *)inLaunchSpec->itemURLs firstObject] absoluteString]];
+                found = YES;
+            }
+            if([[args objectAtIndex:i] caseInsensitiveCompare:@"%F"] == NSOrderedSame) {
                 [args replaceObjectAtIndex:i withObject:[[(NSArray *)inLaunchSpec->itemURLs firstObject] path]];
                 found = YES;
             }
