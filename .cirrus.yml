@@ -6,33 +6,8 @@ compute_engine_instance:
   memory: 16G
   disk: 100
 
-# Build all the packages, staying within the 2h task limit (hopefully)
-ports_build_task:
-  timeout_in: 120m
-  environment:
-    KEY: ENCRYPTED[f68765a53df76c1b9cd6d870e0054317f9cc517313bf6c56d0b094a1ad01e968a95e6328b37b53db7840d112ff165c46]
-  only_if: $CIRRUS_CHANGE_TITLE =~ '.*\[pkgs\].*' && $CIRRUS_BRANCH == 'main'
-  script:
-    - make getports prepports buildports makepackages
-    - pkg install -y py37-pip
-    - pip install --upgrade cloudsmith-cli
-    - for p in /usr/ports/packages/*; do cloudsmith push raw -k $KEY airyx/core $p; done
-
-# Build the FreeBSD kernel and patched toolchain 
-base_build_task:
-  timeout_in: 120m
-  environment:
-    KEY: ENCRYPTED[f68765a53df76c1b9cd6d870e0054317f9cc517313bf6c56d0b094a1ad01e968a95e6328b37b53db7840d112ff165c46]
-  script:
-    - pkg install -y git py37-pip
-    - make prep freebsd packagesystem
-    - pip install --upgrade cloudsmith-cli
-    - cloudsmith push raw -k $KEY airyx/core freebsd-src/release/base.txz
-    - cloudsmith push raw -k $KEY airyx/core freebsd-src/release/kernel.txz
-  only_if: $CIRRUS_CHANGE_TITLE =~ '.*\[base\].*' && $CIRRUS_BRANCH == 'main'
-
 # Build the Airyx system core
-airyx_build_task:
+airyx_task:
   timeout_in: 120m
   environment:
     KEY: ENCRYPTED[f68765a53df76c1b9cd6d870e0054317f9cc517313bf6c56d0b094a1ad01e968a95e6328b37b53db7840d112ff165c46]
@@ -45,4 +20,4 @@ airyx_build_task:
     - make prep airyx airyx-package
   only_if: $CIRRUS_BRANCH == 'main'
   airyx_artifacts:
-    path: freebsd-src/release/airyx.txz
+    path: dist/airyx.txz

@@ -2,7 +2,7 @@
 
 Airyx is a new open source OS project that aims to provide a similar experience and some compatibiilty with macOS on x86-64 sytems. It builds on the solid foundations of FreeBSD, existing open source packages in the same space, and new code to fill the gaps. Please visit [airyx.org](https://airyx.org/) or join us on [Libera IRC](https://libera.chat) in `#airyx` for more info!
 
-![Base](https://api.cirrus-ci.com/github/mszoek/airyx.svg?branch=main&task=base_build) ![Airyx](https://api.cirrus-ci.com/github/mszoek/airyx.svg?branch=main&task=airyx_build)
+![](https://api.cirrus-ci.com/github/mszoek/airyx.svg?branch=main&task=airyx)
 
 The main design goals are:
 - source compatibility with macOS applications (i.e. you could compile a Mac application on Airyx and run it)

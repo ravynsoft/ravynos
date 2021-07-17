@@ -2,20 +2,13 @@
 
 TOPDIR := ${.CURDIR}
 OBJPREFIX := ${HOME}/obj.${MACHINE}
-RLSDIR := ${TOPDIR}/freebsd-src/release
-BSDCONFIG := GENERIC
 BUILDROOT := ${OBJPREFIX}/buildroot
 PORTSROOT := ${OBJPREFIX}/portsroot
 AIRYX_VERSION != head -1 ${TOPDIR}/version.txt
 AIRYX_CODENAME != tail -1 ${TOPDIR}/version.txt
-OSRELEASE := 12.2
-FREEBSD_BRANCH := stable/${OSRELEASE:R}
 MKINCDIR := -m/usr/share/mk -m${TOPDIR}/mk
 CORES != sysctl -n hw.ncpu
 SUDO != test "$$USER" == "root" && echo "" || echo "sudo"
-
-# Full release build with installation artifacts
-world: prep freebsd airyx release
 
 prep: cleanroot
 	mkdir -p ${OBJPREFIX} ${TOPDIR}/dist ${BUILDROOT}
@@ -57,8 +50,8 @@ prepports:
 	${SUDO} cp -f ${TOPDIR}/make.conf ${TOPDIR}/resolv.conf ${PORTSROOT}/etc/
 	${SUDO} cp -f /var/run/ld-elf.so.hints ${PORTSROOT}/var/run
 	${SUDO} cp -f /usr/local/sbin/pkg-static ${PORTSROOT}/usr/sbin
-	if [ ! -f ${RLSDIR}/base.txz ]; then mkdir -p ${RLSDIR}; fetch -o ${RLSDIR}/base.txz https://dl.cloudsmith.io/public/airyx/core/raw/files/base.txz; fi
-	${SUDO} tar xvf ${RLSDIR}/base.txz -C ${PORTSROOT}
+	if [ ! -f ${TOPDIR}/dist/base.txz ]; then fetch -o ${TOPDIR}/dist/base.txz https://dl.cloudsmith.io/public/airyx/core/raw/files/base.txz; fi
+	${SUDO} tar xvf ${TOPDIR}/dist/base.txz -C ${PORTSROOT}
 	${SUDO} ln -s libncurses.so ${PORTSROOT}/usr/lib/libncurses.so.6
 
 /usr/ports/{archivers,audio,devel,dns,emulators,graphics,misc,multimedia,net,security,shells,sysutils,textproc,x11,x11-fonts,x11-fm,x11-themes}/*: .PHONY
@@ -87,48 +80,12 @@ makepackages:
 	${SUDO} umount ${PORTSROOT}/mnt
 	${SUDO} pkg repo -o /usr/ports/packages /usr/ports/packages
 
-${TOPDIR}/freebsd-src/sys/${MACHINE}/compile/${BSDCONFIG}: ${TOPDIR}/freebsd-src/sys/${MACHINE}/conf/${BSDCONFIG}
-	mkdir -p ${TOPDIR}/freebsd-src/sys/${MACHINE}/compile/${BSDCONFIG}
-	(cd ${TOPDIR}/freebsd-src/sys/${MACHINE}/conf && config ${BSDCONFIG} \
-	&& cd ../compile/${BSDCONFIG} && export MAKEOBJDIRPREFIX=${OBJPREFIX} \
-	&& ${MAKE} depend)
-
-${TOPDIR}/freebsd-src:
-	cd ${TOPDIR} && git clone https://github.com/freebsd/freebsd-src.git && \
-		cd freebsd-src && git checkout ${FREEBSD_BRANCH}
-
-${OBJPREFIX}/.patched_bsd: patches/[0-9]*.patch
-	(cd ${TOPDIR}/freebsd-src && git checkout -f ${FREEBSD_BRANCH}; \
-	git branch -D airyx/12 || true; \
-	git checkout -b airyx/12; \
-	for patch in ${TOPDIR}/patches/[0-9]*.patch; do patch -p1 < $$patch; done; \
-	git commit -a -m "patched")
-	touch ${OBJPREFIX}/.patched_bsd
-
-freebsd: kernel base
-
-kernel: ${TOPDIR}/freebsd-src ${OBJPREFIX}/.patched_bsd ${TOPDIR}/freebsd-src/sys/${MACHINE}/compile/${BSDCONFIG}
-	export MAKEOBJDIRPREFIX=${OBJPREFIX}; ${MAKE} ${MFLAGS} -C ${TOPDIR}/freebsd-src buildkernel 
-
-base: ${TOPDIR}/freebsd-src ${OBJPREFIX}/.patched_bsd
-	export MAKEOBJDIRPREFIX=${OBJPREFIX}; ${MAKE} ${MFLAGS} -j${CORES} \
-		-C ${TOPDIR}/freebsd-src buildworld
-
 airyx: mkfiles libobjc2 libunwind frameworksclean frameworks copyfiles
 	tar -C ${BUILDROOT}/usr/lib -cpf pkgconfig | tar -C ${BUILDROOT}/usr/share -xpf -
 	rm -rf ${BUILDROOT}/usr/lib/pkgconfig
 
-# Update the build system with current source
-install: installworld installkernel installairyx
-
-installworld:
-	${SUDO} -E MAKEOBJDIRPREFIX=${OBJPREFIX} ${MAKE} -C ${TOPDIR}/freebsd-src installworld
-
-installkernel:
-	${SUDO} -E MAKEOBJDIRPREFIX=${OBJPREFIX} ${MAKE} -C ${TOPDIR}/freebsd-src installkernel
-
 installairyx: airyx-package
-	${SUDO} tar -C / -xvf ${RLSDIR}/airyx.txz
+	${SUDO} tar -C / -xvf ${TOPDIR}/dist/airyx.txz
 
 copyfiles:
 	cp -fvR ${TOPDIR}/etc ${BUILDROOT}
@@ -268,26 +225,20 @@ LaunchServices.framework:
 	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
 
 airyx-package:
-	${SUDO} mkdir -p ${RLSDIR}
-	${SUDO} tar cvJ -C ${BUILDROOT} --gid 0 --uid 0 -f ${RLSDIR}/airyx.txz .
+	${SUDO} mkdir -p ${TOPDIR}/dist
+	${SUDO} tar cvJ -C ${BUILDROOT} --gid 0 --uid 0 -f ${TOPDIR}/dist/airyx.txz .
 
 ${TOPDIR}/ISO:
 	cd ${TOPDIR} && git clone https://github.com/mszoek/ISO.git
 	cd ${TOPDIR}/ISO && git checkout airyx
 
-${RLSDIR}/CocoaDemo.app.txz:
+${TOPDIR}/dist/CocoaDemo.app.txz:
 	${MAKE} -C ${TOPDIR}/examples/app clean
 	${MAKE} -C ${TOPDIR}/examples/app 
 	tar -C ${TOPDIR}/examples/app -cf ${.TARGET} CocoaDemo.app
-
-desc_airyx=Airyx system
-packagesystem:
-	rm -f ${RLSDIR}/packagesystem
-	export MAKEOBJDIRPREFIX=${OBJPREFIX}; ${SUDO} -E \
-		${MAKE} -C ${TOPDIR}/freebsd-src/release NOSRC=true NOPORTS=true packagesystem 
 
 iso:
 	cp -f ${TOPDIR}/version.txt ${TOPDIR}/ISO/overlays/ramdisk/version
 	cd ${TOPDIR}/ISO && workdir=${OBJPREFIX} AIRYX=${TOPDIR} ${SUDO} -E ./build.sh kde Airyx_${AIRYX_VERSION}
 
-release: airyx-package ${TOPDIR}/ISO ${RLSDIR}/CocoaDemo.app.txz packagesystem iso
+release: airyx-package ${TOPDIR}/ISO ${TOPDIR}/dist/CocoaDemo.app.txz iso
