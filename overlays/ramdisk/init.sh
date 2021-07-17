@@ -20,6 +20,10 @@ fi
 
 set -x
 
+AIRYX_VERSION=$(head -1 /version)
+AIRYX_CODENAME=$(tail -1 /version)
+echo "Hello. This is Airyx ${AIRYX_VERSION} (${AIRYX_CODENAME})" > /dev/tty
+
 echo "==> Ramdisk /init.sh running"
 
 if [ "$SINGLE_USER" = "true" ]; then
@@ -64,7 +68,7 @@ mount -t nullfs /sysroot/boot /sysroot/sysroot/boot
 
 echo "==> Change into /sysroot"
 mount -t devfs devfs /sysroot/dev
-chroot /sysroot /usr/local/bin/furybsd-init-helper
+chroot /sysroot /usr/bin/furybsd-init-helper
 
 if [ "$SINGLE_USER" = "true" ]; then
         echo "Starting interactive shell after chroot ..."

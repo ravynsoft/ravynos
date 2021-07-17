@@ -38,9 +38,9 @@ fi
 #     Displays the interfaces from <filename> (one per line), pick one,
 #     outputs the item that was selected, no return value
 #
-if test -x /usr/local/bin/zenity ; then
+if test -x /usr/bin/zenity ; then
   warning() {
-    /usr/local/bin/zenity --warning --no-wrap --text="$1"
+    /usr/bin/zenity --warning --no-wrap --text="$1"
   }
   ask_wifi_list() {
     cat "$1" | zenity --list --width=640 --height=480 \
@@ -48,9 +48,9 @@ if test -x /usr/local/bin/zenity ; then
       --text="Detected wifi devices" \
       --column="Module" 
   }
-elif test -x /usr/local/bin/kdialog ; then
+elif test -x /usr/bin/kdialog ; then
   warning() {
-    /usr/local/bin/kdialog --title "FuryBSD Wifi Tool" --error "$1"
+    /usr/bin/kdialog --title "FuryBSD Wifi Tool" --error "$1"
   }
   ask_wifi_list() {
     # KDialog uses <tag> <text> <state> triplets, so we need to

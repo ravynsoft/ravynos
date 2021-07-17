@@ -10,20 +10,18 @@ version=$(uname -r | cut -d "-" -f 1-2) # "12.2-RELEASE" or "13.0-CURRENT"
 VER=$(uname -r | cut -d "-" -f 1) # "12.2" or "13.0"
 MAJOR=$(uname -r | cut -d "." -f 1) # "12" or "13"
 
-# Dwnload from either https://download.freebsd.org/ftp/releases/
-#                  or https://download.freebsd.org/ftp/snapshots/
-VERSIONSUFFIX=$(uname -r | cut -d "-" -f 2) # "RELEASE" or "CURRENT"
-FTPDIRECTORY="releases" # "releases" or "snapshots"
-if [ "${VERSIONSUFFIX}" = "CURRENT" ] ; then
-  FTPDIRECTORY="snapshots"
+if [ -z "${AIRYX}" ]; then
+  AIRYX=$(pwd)/..
 fi
-echo "${FTPDIRECTORY}"
+AIRYXPKG=${AIRYX}/freebsd-src/release
+AIRYXVER=$(head -1 ${AIRYX}/version.txt)
 
-# pkgset="branches/2020Q1" # TODO: Use it
 desktop=$1
 tag=$2
 export cwd=$(realpath | sed 's|/scripts||g')
-workdir="/usr/local"
+if [ -z "${workdir}" ]; then
+  workdir="/usr/local"
+fi
 livecd="${workdir}/furybsd"
 if [ -z "${arch}" ] ; then
   arch=amd64
@@ -42,8 +40,8 @@ export uzip="${livecd}/uzip"
 export cdroot="${livecd}/cdroot"
 ramdisk_root="${cdroot}/data/ramdisk"
 vol="furybsd"
-label="LIVE"
-export DISTRIBUTIONS="kernel.txz base.txz"
+label="AIRYX"
+export DISTRIBUTIONS="kernel.txz base.txz airyx.txz"
 
 # Only run as superuser
 if [ "$(id -u)" != "0" ]; then
@@ -72,11 +70,12 @@ fi
 
 # Get the version tag
 if [ -z "$2" ] ; then
-  rm /usr/local/furybsd/tag >/dev/null 2>/dev/null || true
+  rm ${workdir}/furybsd/tag >/dev/null 2>/dev/null || true
   export vol="${VER}"
 else
-  rm /usr/local/furybsd/version >/dev/null 2>/dev/null || true
-  echo "${2}" > /usr/local/furybsd/tag
+  rm ${workdir}/furybsd/version >/dev/null 2>/dev/null || true
+  mkdir -p ${workdir}/furybsd
+  echo "${2}" > ${workdir}/furybsd/tag
   export vol="${VER}-${tag}"
 fi
 
@@ -103,9 +102,9 @@ if [ "${desktop}" = "hello" ] ; then
       sed -i -e 's|\(^version:       .*_\).*$|\1'$BUILDNUMBER'|g' "${cwd}/overlays/uzip/hello/manifest"
       rm "${cwd}/overlays/uzip/hello/manifest-e"
       cat "${cwd}/overlays/uzip/hello/manifest"
-      isopath="${iso}/${desktop}-${HELLO_VERSION}_${BUILDNUMBER}-FreeBSD-${VER}-${arch}.iso"
+      isopath="${iso}/${tag}-F${VER}_h${HELLO_VERSION}_${BUILDNUMBER}-${arch}.iso"
     else
-      isopath="${iso}/${desktop}-${HELLO_VERSION}_git${SHA}-FreeBSD-${VER}-${arch}.iso"
+      isopath="${iso}/${tag}-F${VER}_h${HELLO_VERSION}_git${SHA}-${arch}.iso"
     fi
   fi
 fi
@@ -151,40 +150,35 @@ base()
   # TODO: Signature checking
   if [ ! -f "${base}/base.txz" ] ; then 
     cd ${base}
-    fetch https://download.freebsd.org/ftp/${FTPDIRECTORY}/${arch}/${version}/base.txz
+    fetch https://dl.cloudsmith.io/public/airyx/core/raw/files/base.txz
   fi
   
   if [ ! -f "${base}/kernel.txz" ] ; then
     cd ${base}
-    fetch https://download.freebsd.org/ftp/${FTPDIRECTORY}/${arch}/${version}/kernel.txz
+    fetch https://dl.cloudsmith.io/public/airyx/core/raw/files/kernel.txz
+  fi
+
+  if [ ! -f "${base}/airyx.txz" ] ; then
+    cd ${base}
+    fetch https://api.cirrus-ci.com/v1/artifact/github/mszoek/airyx/airyx_build/airyx/freebsd-src/release/airyx.txz
   fi
   cd ${base}
   tar -zxvf base.txz -C ${uzip}
   tar -zxvf kernel.txz -C ${uzip}
+  tar -zxvf airyx.txz -C ${uzip}
   touch ${uzip}/etc/fstab
 }
 
 packages()
 {
-  # NOTE: Also adjust the Nvidia drivers accordingly below. TODO: Use one set of variables
-  if [ $MAJOR -eq 12 ] ; then
-    echo "Major version 12, hence using release_2 packages since quarterly can be missing packages from one day to the next"
-    sed -i -e 's|quarterly|release_2|g' "${uzip}/etc/pkg/FreeBSD.conf"
-    rm -f "${uzip}/etc/pkg/FreeBSD.conf-e"
-  elif [ $MAJOR -eq 13 ] ; then
-    echo "Major version 13, hence using quarterly packages since release_2 will probably not have compatible Intel driver"
-  else
-    echo "Other major version, hence changing /etc/pkg/FreeBSD.conf to use latest packages"
-    sed -i -e 's|quarterly|latest|g' "${uzip}/etc/pkg/FreeBSD.conf"
-    rm -f "${uzip}/etc/pkg/FreeBSD.conf-e"
-  fi
+  rm -f "${uzip}/etc/pkg/FreeBSD.conf"
   cp /etc/resolv.conf ${uzip}/etc/resolv.conf
   mkdir ${uzip}/var/cache/pkg
   mount_nullfs ${packages} ${uzip}/var/cache/pkg
   mount -t devfs devfs ${uzip}/dev
   # FIXME: In the following line, the hardcoded "i386" needs to be replaced by "${arch}" - how?
   for p in common-${MAJOR} ${desktop}; do
-    sed '/^#/d;/\!i386/d;/^cirrus:/d' "${cwd}/settings/packages.$p" | \
+    sed '/^#/d;/\!i386/d;/^cirrus:/d;/^https:/d' "${cwd}/settings/packages.$p" | \
       xargs /usr/local/sbin/pkg-static -c "${uzip}" install -y
     pkg_cachedir=/var/cache/pkg
     mkdir -p ${uzip}${pkg_cachedir}/furybsd-cirrus
@@ -238,14 +232,14 @@ repos()
 
 user()
 {
-  mkdir -p ${uzip}/usr/home/liveuser/Desktop
+  mkdir -p ${uzip}/Users/liveuser/Desktop
   # chroot ${uzip} echo furybsd | chroot ${uzip} pw mod user root -h 0
   chroot ${uzip} pw useradd liveuser -u 1000 \
-  -c "Live User" -d "/home/liveuser" \
-  -g wheel -G operator -m -s /usr/local/bin/zsh -k /usr/share/skel -w none
+  -c "Live User" -d "/Users/liveuser" \
+  -g wheel -G operator -m -s /usr/bin/zsh -k /usr/share/skel -w none
   chroot ${uzip} pw groupadd liveuser -g 1000
   # chroot ${uzip} echo furybsd | chroot ${uzip} pw mod user liveuser -h 0
-  chroot ${uzip} chown -R 1000:1000 /usr/home/liveuser
+  chroot ${uzip} chown -R 1000:1000 /Users/liveuser
   chroot ${uzip} pw groupmod wheel -m liveuser
   chroot ${uzip} pw groupmod video -m liveuser
   chroot ${uzip} pw groupmod webcamd -m liveuser
@@ -336,7 +330,7 @@ ramdisk()
 {
   cp -R "${cwd}/overlays/ramdisk/" "${ramdisk_root}"
   sync ### Needed?
-  cd ${cwd} && zpool import furybsd && zfs set mountpoint=/usr/local/furybsd/uzip furybsd
+  cd ${cwd} && zpool import furybsd && zfs set mountpoint=${workdir}/furybsd/uzip furybsd
   sync ### Needed?
   cd "${uzip}" && tar -cf - rescue | tar -xf - -C "${ramdisk_root}"
   touch "${ramdisk_root}/etc/fstab"

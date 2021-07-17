@@ -84,7 +84,7 @@ chroot "${FSMNT}" pkg remove -y freebsd-installer
 chroot "${FSMNT}" rm /etc/rc.conf.local
 chroot "${FSMNT}" pw userdel liveuser
 chroot "${FSMNT}" pw groupdel liveuser
-chroot "${FSMNT}" rm -rf /usr/home/liveuser
+chroot "${FSMNT}" rm -rf /Users/liveuser
 
 # Configure the new installation
 mount -t devfs devfs ${FSMNT}/dev
@@ -114,7 +114,7 @@ if [ -n "${INSTALLER_DEVICE}" ] ; then
   username="${INSTALLER_USERNAME}"
   password="${INSTALLER_USER_PASSWORD}"
   echo "${username}:::::::::${password}" | chroot "${FSMNT}" adduser -f - && \
-  chroot "${FSMNT}" pw usermod "${username}" -s /usr/local/bin/zsh && \
+  chroot "${FSMNT}" pw usermod "${username}" -s /usr/bin/zsh && \
   chroot "${FSMNT}" pw groupmod wheel -m "${username}" && \
   chroot "${FSMNT}" pw groupmod video -m "${username}" && \
   chroot "${FSMNT}" pw groupmod webcamd -m "${username}"
@@ -143,7 +143,7 @@ else
       fi
     done
     echo "${username}:::::::::${password}" | chroot "${FSMNT}" adduser -f - && \
-      chroot "${FSMNT}" pw usermod "${username}" -s /usr/local/bin/zsh && \
+      chroot "${FSMNT}" pw usermod "${username}" -s /usr/bin/zsh && \
       chroot "${FSMNT}" pw groupmod wheel -m "${username}" && \
       chroot "${FSMNT}" pw groupmod video -m "${username}" && \
       chroot "${FSMNT}" pw groupmod webcamd -m "${username}" && break
@@ -164,19 +164,19 @@ fi
 
 # Enable additional services needed for desktop
 echo "Enabling additional services needed for desktop"
-if [ -f "/usr/local/sbin/lightdm" ] ; then
+if [ -f "/usr/sbin/lightdm" ] ; then
   chroot "${FSMNT}" sysrc lightdm_enable="YES"
 fi
-if [ -f "/usr/local/sbin/gdm" ] ; then
+if [ -f "/usr/sbin/gdm" ] ; then
   chroot "${FSMNT}" sysrc gdm_enable="YES"
 fi
-if [ -f "/usr/local/etc/rc.d/pcdm" ] ; then
+if [ -f "/usr/etc/rc.d/pcdm" ] ; then
   chroot "${FSMNT}" sysrc pcdm_enable="YES"
 fi
-if [ -f "/usr/local/bin/sddm" ] ; then
+if [ -f "/usr/bin/sddm" ] ; then
   chroot "${FSMNT}" sysrc sddm_enable="YES"
 fi
-if [ -f "/usr/local/bin/slim" ] ; then
+if [ -f "/usr/bin/slim" ] ; then
   chroot "${FSMNT}" sysrc slim_enable="YES"
 fi
 
@@ -209,9 +209,9 @@ if [ "${INSTALLER_ENABLE_SSH}" = "YES" ] ; then
 fi
 
 # Set new default_user the automatic login
-sed -i '' -e 's/^default_user/#default_user/' "${FSMNT}/usr/local/etc/slim.conf"
-echo "default_user       ${INSTALLER_USERNAME}" >> "${FSMNT}/usr/local/etc/slim.conf"
-# chroot ${FSMNT} sed -i '' -e 's/^auto_login/#auto_login/' /usr/local/etc/slim.conf
+sed -i '' -e 's/^default_user/#default_user/' "${FSMNT}/etc/slim.conf"
+echo "default_user       ${INSTALLER_USERNAME}" >> "${FSMNT}/etc/slim.conf"
+# chroot ${FSMNT} sed -i '' -e 's/^auto_login/#auto_login/' /etc/slim.conf
 
 # Until we have a better solution, hardcode it here too...
 cat >> "${FSMNT}/boot/loader.conf" <<\EOF
