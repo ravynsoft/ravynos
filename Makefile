@@ -10,6 +10,17 @@ MKINCDIR := -m/usr/share/mk -m${TOPDIR}/mk
 CORES != sysctl -n hw.ncpu
 SUDO != test "$$USER" == "root" && echo "" || echo "sudo"
 
+airyx: mkfiles libobjc2 libunwind frameworksclean frameworks copyfiles
+	tar -C ${BUILDROOT}/usr/lib -cpf pkgconfig | tar -C ${BUILDROOT}/usr/share -xpf -
+	rm -rf ${BUILDROOT}/usr/lib/pkgconfig
+
+airyx-package:
+	${SUDO} mkdir -p ${TOPDIR}/dist
+	${SUDO} tar cvJ -C ${BUILDROOT} --gid 0 --uid 0 -f ${TOPDIR}/dist/airyx.txz .
+
+installairyx: airyx-package
+	${SUDO} tar -C / -xvf ${TOPDIR}/dist/airyx.txz
+
 prep: cleanroot
 	mkdir -p ${OBJPREFIX} ${TOPDIR}/dist ${BUILDROOT}
 	mkdir -p ${BUILDROOT}/etc ${BUILDROOT}/var/run ${BUILDROOT}/usr/sbin
@@ -70,7 +81,8 @@ plasma: /usr/ports/x11/plasma5-plasma /usr/ports/x11/konsole /usr/ports/x11/sddm
 xorg: /usr/ports/x11/xorg /usr/ports/x11-themes/adwaita-icon-theme /usr/ports/devel/desktop-file-utils
 misc: /usr/ports/archivers/brotli /usr/ports/graphics/argyllcms /usr/ports/multimedia/gstreamer1-plugins-all
 misc2: /usr/ports/x11/zenity /usr/ports/sysutils/cpdup /usr/ports/audio/freedesktop-sound-theme /usr/ports/sysutils/fusefs-libs mountsrc /usr/ports/graphics/gpu-firmware-kmod /usr/ports/sysutils/iichid /usr/ports/net/libdnet /usr/ports/archivers/libmspack /usr/ports/security/libretls /usr/ports/devel/libsigc++20 /usr/ports/multimedia/libva-intel-driver /usr/ports/dns/nss_mdns /usr/ports/emulators/open-vm-tools /usr/ports/net/openntpd /usr/ports/sysutils/pv /usr/ports/misc/usbids /usr/ports/misc/utouch-kmod umountsrc /usr/ports/net/wpa_supplicant_gui /usr/ports/devel/xdg-user-dirs
-buildports: zsh xorg plasma misc misc2
+misc3: /usr/ports/security/sudo /usr/ports/devel/libqtxdg /usr/ports/devel/git
+buildports: zsh xorg plasma misc misc2 misc3
 
 makepackages:
 	${SUDO} rm -rf /usr/ports/packages
@@ -79,13 +91,6 @@ makepackages:
 	${SUDO} chroot ${PORTSROOT} /bin/sh -c '/usr/sbin/pkg-static create -a -o /mnt'
 	${SUDO} umount ${PORTSROOT}/mnt
 	${SUDO} pkg repo -o /usr/ports/packages /usr/ports/packages
-
-airyx: mkfiles libobjc2 libunwind frameworksclean frameworks copyfiles
-	tar -C ${BUILDROOT}/usr/lib -cpf pkgconfig | tar -C ${BUILDROOT}/usr/share -xpf -
-	rm -rf ${BUILDROOT}/usr/lib/pkgconfig
-
-installairyx: airyx-package
-	${SUDO} tar -C / -xvf ${TOPDIR}/dist/airyx.txz
 
 copyfiles:
 	cp -fvR ${TOPDIR}/etc ${BUILDROOT}
@@ -223,10 +228,6 @@ LaunchServices.framework:
 	rm -rf ${TOPDIR}/LaunchServices/${.TARGET}
 	${MAKE} -C ${TOPDIR}/LaunchServices BUILDROOT=${BUILDROOT} clean build
 	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
-
-airyx-package:
-	${SUDO} mkdir -p ${TOPDIR}/dist
-	${SUDO} tar cvJ -C ${BUILDROOT} --gid 0 --uid 0 -f ${TOPDIR}/dist/airyx.txz .
 
 ${TOPDIR}/ISO:
 	cd ${TOPDIR} && git clone https://github.com/mszoek/ISO.git

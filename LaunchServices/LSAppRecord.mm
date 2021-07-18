@@ -23,6 +23,7 @@
  */
 
 #import <LaunchServices/LSAppRecord.h>
+#import <Foundation/NSPlatform.h>
 #include <xdgdesktopfile.h>
 
 @implementation LSAppRecord
@@ -87,6 +88,7 @@
     NSFileManager *fm = [NSFileManager defaultManager];
     if([execPath hasPrefix:@"/"] == NO) {
         NSLog(@"not absolute - searching path");
+        NSDictionary *env = [[NSPlatform currentPlatform] environment];
         // search the PATH to find absolute path of this file
     }
 
