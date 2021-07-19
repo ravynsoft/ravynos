@@ -1,16 +1,19 @@
 [system=10]
-add path 'acd*'         mode 0644 group operator
-add path 'cd*'          mode 0644 group operator
-add path 'da*'          mode 0644 group operator
-add path 'pass*'        mode 0644 group operator
-add path 'xpt*'         mode 0644 group operator
-add path 'fd*'          mode 0644 group operator
-add path 'md*'          mode 0644 group operator
-add path 'uscanner*'    mode 0644 group operator
-add path 'ugen*'        mode 0644 group operator
-add path 'video*'       mode 0644 group operator
-add path 'cuse*'        mode 0644 group operator
-add path 'usb*'        mode 0644 group operator
+add path 'acd*'         mode 0660 group operator
+add path 'cd*'          mode 0660 group operator
+add path 'da*'          mode 0660 group operator
+add path 'pass*'        mode 0660 group operator
+add path 'xpt*'         mode 0660 group operator
+add path 'fd*'          mode 0660 group operator
+add path 'fd/*'         mode 0660 group operator
+add path 'fd'           mode 0770 group operator
+add path 'md*'          mode 0660 group operator
+add path 'uscanner*'    mode 0660 group operator
+add path 'ugen*'        mode 0660 group operator
+add path 'video*'       mode 0660 group operator
+add path 'cuse*'        mode 0660 group operator
+add path 'usb/*'        mode 0660 group operator
+add path 'usb'          mode 0770 group operator
 # https://www.freebsd.org/doc/en_US.ISO8859-1/articles/cups/printing-cups-configuring-server.html
 add path 'lpt*'         mode 0644 group cups
 add path 'ulpt*'        mode 0644 group cups

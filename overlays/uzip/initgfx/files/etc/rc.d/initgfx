@@ -40,7 +40,7 @@ load_rc_config ${name}
 : ${initgfx_enable:="YES"}
 
 path_config_id="/var/initgfx_config.id"
-path_xorg_cfg_dir="/usr/local/etc/X11/xorg.conf.d"
+path_xorg_cfg_dir="/etc/X11/xorg.conf.d"
 path_xorg_cfg="${path_xorg_cfg_dir}/10-video-${name}.conf"
 
 path_drm_legacy="/boot/drm_legacy"
@@ -120,13 +120,13 @@ test_x()
 		mkdir "${path_cfg_test_dir}" 2>/dev/null
 	fi
 	cp "${path_xorg_cfg}" "${path_cfg_test_dir}"
-	if [ -x /usr/local/bin/xmessage ]; then
-		cmd="/usr/local/bin/xmessage -buttons '' -timeout 3"
+	if [ -x /usr/bin/xmessage ]; then
+		cmd="/usr/bin/xmessage -buttons '' -timeout 3"
 		cmd="${cmd} -center 'Please wait ...'"
 	else
 		cmd="sleep 3"
 	fi
-	PATH="${PATH}:/usr/local/bin" /usr/local/bin/xinit \
+	PATH="${PATH}:/usr/local/bin" /usr/bin/xinit \
 		/bin/sh -c "${cmd}; /usr/bin/true" -- -configdir \
 			"${path_cfg_test_dir}"
 }
@@ -252,7 +252,7 @@ setup_nvidia()
 		/etc/rc.conf.d/ldconfig
 	ldconfig -m /usr/local/nvidia/${driver}/usr/local/lib
 
-	dir=/usr/local/lib/xorg/modules/drivers
+	dir=/usr/lib/xorg/modules/drivers
 	# Restore symlink if it was removed or overwritten
 	if [ ! -L "${dir}/nvidia_drv.so" ]; then
 		if [ ! -d "/nvidia/${dir}" ]; then
@@ -262,7 +262,7 @@ setup_nvidia()
 		ln -s "/nvidia/${dir}/nvidia_drv.so" "${dir}/"
 	fi
 	tar -C "${srcdir}${dir}" -cf - . | tar -C "/nvidia/${dir}" -xf -
-	dir=/usr/local/lib/xorg/modules/extensions
+	dir=/usr/lib/xorg/modules/extensions
 
 	# Restore symlink if it was removed or overwritten
 	for l in libglx.so libglx.so.1 libglxserver_nvidia.so \

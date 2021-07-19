@@ -4,11 +4,11 @@ BOOTMODE=$(/sbin/sysctl -n machdep.bootmethod)
 export BOOTMODE
 
 if [ "${BOOTMODE}" = "BIOS" ]; then
-  cp /usr/home/liveuser/xorg.conf.d/driver-vesa.conf /etc/X11/xorg.conf >/dev/null 2>/dev/null
+  cp /Users/liveuser/xorg.conf.d/driver-vesa.conf /etc/X11/xorg.conf >/dev/null 2>/dev/null
 fi
 
 if [ "${BOOTMODE}" = "UEFI" ]; then
-  cp /usr/home/liveuser/xorg.conf.d/driver-scfb.conf /etc/X11/xorg.conf >/dev/null 2>/dev/null
+  cp /Users/liveuser/xorg.conf.d/driver-scfb.conf /etc/X11/xorg.conf >/dev/null 2>/dev/null
 fi
 
 VM_GUEST=$(/sbin/sysctl -n kern.vm_guest)
@@ -43,7 +43,7 @@ if [ -f "/usr/sbin/pciconf" ] ; then
   /usr/sbin/pciconf -lv 2>/dev/null | /usr/bin/grep -q VirtualBox 2>/dev/null
   if [ $? -eq 0 ] ; then
     rm /etc/X11/xorg.conf >/dev/null 2>/dev/null
-    cp /usr/home/liveuser/xorg.conf.d/driver-virtualbox.conf /etc/X11/xorg.conf >/dev/null 2>/dev/null
+    cp /Users/liveuser/xorg.conf.d/driver-virtualbox.conf /etc/X11/xorg.conf >/dev/null 2>/dev/null
     /usr/sbin/sysrc -f /etc/rc.conf vboxguest_enable="YES" >/dev/null 2>/dev/null
     /usr/sbin/sysrc -f /etc/rc.conf vboxservice_enable="YES" >/dev/null 2>/dev/null
   else
@@ -55,7 +55,7 @@ if [ -f "/usr/sbin/pciconf" ] ; then
   /usr/sbin/pciconf -lv 2>/dev/null | /usr/bin/grep -q VMware 2>/dev/null
   if [ $? -eq 0 ] ; then
     rm /etc/X11/xorg.conf >/dev/null 2>/dev/null
-    cp /usr/home/liveuser/xorg.conf.d/driver-vmware.conf /etc/X11/xorg.conf >/dev/null 2>/dev/null
+    cp /Users/liveuser/xorg.conf.d/driver-vmware.conf /etc/X11/xorg.conf >/dev/null 2>/dev/null
     /usr/sbin/sysrc -f /etc/rc.conf moused_enable="YES" >/dev/null 2>/dev/null # Needed for VMware?
   else
     /usr/sbin/pkg delete -fy xf86-video-vmware >/dev/null 2>/dev/null
@@ -67,7 +67,7 @@ if [ -f "/usr/sbin/pciconf" ] ; then
   /usr/sbin/pciconf -lv 2>/dev/null | /usr/bin/grep -q QXL 2>/dev/null
   if [ $? -eq 0 ] ; then
     rm /etc/X11/xorg.conf >/dev/null 2>/dev/null
-    cp /usr/home/liveuser/xorg.conf.d/driver-qxl.conf /usr/local/etc/X11/xorg.conf.d/spiceqxl.xorg.conf >/dev/null 2>/dev/null
+    cp /Users/liveuser/xorg.conf.d/driver-qxl.conf /etc/X11/xorg.conf.d/spiceqxl.xorg.conf >/dev/null 2>/dev/null
   else
     /usr/sbin/pkg delete -fy xf86-video-qxl >/dev/null 2>/dev/null
   fi
@@ -85,6 +85,6 @@ fi
 
 # Set hostname other than the default based on SMBIOS information
 HOSTNAME=$(hostname)
-if [ "${HOSTNAME}" = "FreeBSD" ] ; then
+if [ "${HOSTNAME}" = "Airyx" ] ; then
   hostname $(kenv -q "smbios.system.product" | xargs | sed -e 's| |-|g')
 fi

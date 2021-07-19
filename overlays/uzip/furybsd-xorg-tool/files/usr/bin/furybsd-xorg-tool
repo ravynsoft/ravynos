@@ -31,29 +31,29 @@ fi
 #     Displays the <text> as an informational message, no output, no return
 #   - pickone <item>..
 #     Displays a picker for the given <item>s, outputs the selected one
-if test -x /usr/local/bin/zenity ; then
+if test -x /usr/bin/zenity ; then
   warning() {
-    /usr/local/bin/zenity --warning --no-wrap --text="$1"
+    /usr/bin/zenity --warning --no-wrap --text="$1"
   }
   info() {
-    /usr/local/bin/zenity --info --title="FuryBSD Xorg Tool" --text="$1" --width=300 --height=100
+    /usr/bin/zenity --info --title="FuryBSD Xorg Tool" --text="$1" --width=300 --height=100
   }
   pickone() {
-    /usr/local/bin/zenity --list --title="FuryBSD Xorg Tool" --column="0" "$@" --width=300 --height=200 --hide-header
+    /usr/bin/zenity --list --title="FuryBSD Xorg Tool" --column="0" "$@" --width=300 --height=200 --hide-header
   }
-elif test -x /usr/local/bin/kdialog ; then
+elif test -x /usr/bin/kdialog ; then
   warning() {
-    /usr/local/bin/kdialog --title "FuryBSD Xorg Tool" --error "$1"
+    /usr/bin/kdialog --title "FuryBSD Xorg Tool" --error "$1"
   }
   info() {
-    /usr/local/bin/kdialog --title "FuryBSD Xorg Tool" --msgbox "$1"
+    /usr/bin/kdialog --title "FuryBSD Xorg Tool" --msgbox "$1"
   }
   pickone() {
     # This is kind of convoluted since we need a tag and a label
     # and 'off' for each of the options, which may contain spaces,
     # and which are passed as arguments to the function.
     local command
-    command="/usr/local/bin/kdialog --radiolist 'Pick one'"
+    command="/usr/bin/kdialog --radiolist 'Pick one'"
     for x in "$@"
     do
       command="$command '$x' '$x' off"

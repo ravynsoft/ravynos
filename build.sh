@@ -3,12 +3,6 @@
 # Exit on errors
 set -e
 
-if [ -z "${AIRYX}" ]; then
-	AIRYX=$(pwd)/../airyx
-fi
-AIRYXPKG=${AIRYX}/freebsd-src/release
-AIRYXVER=$(head -1 ${AIRYX}/version)
-
 version="12.2-RELEASE"  # branch releng/12.2
 VER="12.2"
 MAJOR="12"
@@ -27,27 +21,16 @@ VERSIONSUFFIX="RELEASE"
 #VER=$(uname -r | cut -d "-" -f 1) # "12.2" or "13.0"
 #MAJOR=$(uname -r | cut -d "." -f 1) # "12" or "13"
 
-# Dwnload from either https://download.freebsd.org/ftp/releases/
-#                  or https://download.freebsd.org/ftp/snapshots/
-#VERSIONSUFFIX=$(uname -r | cut -d "-" -f 2) # "RELEASE" or "CURRENT"
-FTPDIRECTORY="releases" # "releases" or "snapshots"
-if [ "${VERSIONSUFFIX}" = "CURRENT" ] ; then
-  FTPDIRECTORY="snapshots"
+if [ -z "${AIRYX}" ]; then
+  AIRYX=$(pwd)/..
 fi
-# RCs are in the 'releases' ftp directory; hence check if $VERSIONSUFFIX begins with 'RC' https://serverfault.com/a/252406
-if [ "${VERSIONSUFFIX#RC}"x = "${VERSIONSUFFIX}x" ]  ; then
-  FTPDIRECTORY="releases"
-fi
+AIRYXVER=$(head -1 ${AIRYX}/version.txt)
 
-echo "${FTPDIRECTORY}"
-echo version=$version VER=$VER MAJOR=$MAJOR suffix=$VERSIONSUFFIX
-
-# pkgset="branches/2020Q1" # TODO: Use it
 desktop=$1
 tag=$2
 export cwd=$(realpath | sed 's|/scripts||g')
 if [ -z "${workdir}" ]; then
-	workdir="/usr/local"
+  workdir="/usr/local"
 fi
 livecd="${workdir}/furybsd"
 if [ -z "${arch}" ] ; then
@@ -67,7 +50,7 @@ export uzip="${livecd}/uzip"
 export cdroot="${livecd}/cdroot"
 ramdisk_root="${cdroot}/data/ramdisk"
 vol="furybsd"
-label="LIVE"
+label="AIRYX"
 export DISTRIBUTIONS="kernel.txz base.txz airyx.txz"
 
 # Only run as superuser
@@ -102,6 +85,7 @@ if [ -z "$2" ] ; then
   export vol="${VER}"
 else
   rm ${workdir}/furybsd/version >/dev/null 2>/dev/null || true
+  mkdir -p ${workdir}/furybsd
   echo "${2}" > ${workdir}/furybsd/tag
   export vol="${VER}-${tag}"
 fi
@@ -129,10 +113,9 @@ if [ "${desktop}" = "hello" ] ; then
       sed -i -e 's|\(^version:       .*_\).*$|\1'$BUILDNUMBER'|g' "${cwd}/overlays/uzip/hello/manifest"
       rm "${cwd}/overlays/uzip/hello/manifest-e"
       cat "${cwd}/overlays/uzip/hello/manifest"
-      isopath="${iso}/${desktop}-${HELLO_VERSION}_${BUILDNUMBER}-FreeBSD-${VER}-${arch}.iso"
+      isopath="${iso}/${tag}-F${VER}_h${HELLO_VERSION}_${BUILDNUMBER}-${arch}.iso"
     else
-      #isopath="${iso}/${desktop}-${HELLO_VERSION}_git${SHA}-FreeBSD-${VER}-${arch}.iso"
-      isopath="${AIRYX}/dist/${tag}-F${VER}_h${HELLO_VERSION}-${arch}.iso"
+      isopath="${iso}/${tag}-F${VER}_h${HELLO_VERSION}_git${SHA}-${arch}.iso"
     fi
   fi
 fi
@@ -176,19 +159,24 @@ workspace()
 base()
 {
   # TODO: Signature checking
-  #if [ ! -f "${base}/base.txz" ] ; then 
-  #  cd ${base}
-  #  fetch https://download.freebsd.org/ftp/${FTPDIRECTORY}/${arch}/${version}/base.txz
-  #fi
+  if [ ! -f "${base}/base.txz" ] ; then 
+    cd ${base}
+    fetch https://dl.cloudsmith.io/public/airyx/core/raw/files/base.txz
+  fi
   
-  #if [ ! -f "${base}/kernel.txz" ] ; then
-  #  cd ${base}
-  #  fetch https://download.freebsd.org/ftp/${FTPDIRECTORY}/${arch}/${version}/kernel.txz
-  #fi
+  if [ ! -f "${base}/kernel.txz" ] ; then
+    cd ${base}
+    fetch https://dl.cloudsmith.io/public/airyx/core/raw/files/kernel.txz
+  fi
+
+  if [ ! -f "${base}/airyx.txz" ] ; then
+    cd ${base}
+    fetch https://api.cirrus-ci.com/v1/artifact/github/mszoek/airyx/airyx/airyx/dist/airyx.txz
+  fi
   cd ${base}
-  tar -zxvf ${AIRYXPKG}/base.txz -C ${uzip}
-  tar -zxvf ${AIRYXPKG}/kernel.txz -C ${uzip}
-  tar -zxvf ${AIRYXPKG}/airyx.txz -C ${uzip}
+  tar -zxvf base.txz -C ${uzip}
+  tar -zxvf kernel.txz -C ${uzip}
+  tar -zxvf airyx.txz -C ${uzip}
   touch ${uzip}/etc/fstab
 }
 
@@ -209,21 +197,7 @@ pkg_add_from_url()
 
 packages()
 {
-  # NOTE: Also adjust the Nvidia drivers accordingly below. TODO: Use one set of variables
-  if [ $MAJOR -eq 12 ] ; then
-    # echo "Major version 12, hence using release_2 packages since quarterly can be missing packages from one day to the next"
-    # sed -i -e 's|quarterly|release_2|g' "${uzip}/etc/pkg/FreeBSD.conf"
-    # rm -f "${uzip}/etc/pkg/FreeBSD.conf-e"
-    echo "Major version 12, hence using quarterly packages to see whether it performs better than release_2"
-    sed -i -e 's|latest|quarterly|g' "${uzip}/etc/pkg/FreeBSD.conf"
-    rm -f "${uzip}/etc/pkg/FreeBSD.conf-e"
-  elif [ $MAJOR -eq 13 ] ; then
-    echo "Major version 13, hence using quarterly packages since release_2 will probably not have compatible Intel driver"
-  else
-    echo "Other major version, hence changing /etc/pkg/FreeBSD.conf to use latest packages"
-    sed -i -e 's|quarterly|latest|g' "${uzip}/etc/pkg/FreeBSD.conf"
-    rm -f "${uzip}/etc/pkg/FreeBSD.conf-e"
-  fi
+  rm -f "${uzip}/etc/pkg/FreeBSD.conf"
   cp /etc/resolv.conf ${uzip}/etc/resolv.conf
   mkdir ${uzip}/var/cache/pkg
   mount_nullfs ${packages} ${uzip}/var/cache/pkg
@@ -288,14 +262,14 @@ repos()
 
 user()
 {
-  mkdir -p ${uzip}/usr/home/liveuser/Desktop
+  mkdir -p ${uzip}/Users/liveuser/Desktop
   # chroot ${uzip} echo furybsd | chroot ${uzip} pw mod user root -h 0
   chroot ${uzip} pw useradd liveuser -u 1000 \
-  -c "Live User" -d "/home/liveuser" \
+  -c "Live User" -d "/Users/liveuser" \
   -g wheel -G operator -m -s /usr/bin/zsh -k /usr/share/skel -w none
   chroot ${uzip} pw groupadd liveuser -g 1000
   # chroot ${uzip} echo furybsd | chroot ${uzip} pw mod user liveuser -h 0
-  chroot ${uzip} chown -R 1000:1000 /usr/home/liveuser
+  chroot ${uzip} chown -R 1000:1000 /Users/liveuser
   chroot ${uzip} pw groupmod wheel -m liveuser
   chroot ${uzip} pw groupmod video -m liveuser
   chroot ${uzip} pw groupmod webcamd -m liveuser
@@ -344,16 +318,14 @@ initgfx()
     if [ $MAJOR -lt 14 ] ; then
       PKGS="quarterly"
     else
-      PKGS="latest"
+      PKGS="release_2"
     fi
-    # for ver in '' 390 340 304; do
-    for ver in ''; do # Only use NVIDIA version 440 for now to reduce ISO image size
-        pkgfile=$(/usr/local/sbin/pkg-static -c ${uzip} rquery %n-%v.txz nvidia-driver${ver:+-$ver})
+	ver=460
+        pkgfile='nvidia-driver-460.84.txz' #$(/usr/local/sbin/pkg-static -c ${uzip} rquery %n-%v.txz nvidia-driver${ver:+-$ver})
         fetch -o "${cache}/" "https://pkg.freebsd.org/FreeBSD:${MAJOR}:amd64/${PKGS}/All/${pkgfile}"
         mkdir -p "${uzip}/usr/local/nvidia/${ver:-440}/"
         tar xfC "${cache}"/${pkgfile} "${uzip}/usr/local/nvidia/${ver:-440}/"
-        ls "${uzip}/usr/local/nvidia/${ver:-440}/+COMPACT_MANIFEST"
-    done
+	ls "${uzip}/usr/local/nvidia/${ver:-440}/+COMPACT_MANIFEST"
   fi
 
   ls
@@ -377,10 +349,10 @@ script()
 uzip() 
 {
   install -o root -g wheel -m 755 -d "${cdroot}"
-  sync ### Needed?
+  makefs "${iso}/system.ufs" "${uzip}"
+  mkuzip -o "${cdroot}/data/system.uzip" "${iso}/system.ufs"
+  rm -f "${iso}/system.ufs"
   cd ${cwd} && zpool export furybsd && while zpool status furybsd >/dev/null; do :; done 2>/dev/null
-  sync ### Needed?
-  mkuzip -S -d -o "${cdroot}/data/system.uzip" "${livecd}/pool.img"
 }
 
 ramdisk() 
@@ -401,48 +373,9 @@ boot()
 {
   cp -R "${cwd}/overlays/boot/" "${cdroot}"
   cd "${uzip}" && tar -cf - boot | tar -xf - -C "${cdroot}"
-  # Remove all modules from the ISO that is not required before the root filesystem is mounted
-  # The whole directory /boot/modules is unnecessary
-  rm -rf "${cdroot}"/boot/modules/*
-  # Remove modules in /boot/kernel that are not loaded at boot time
-  find "${cdroot}"/boot/kernel -name '*.ko' \
-    -not -name 'cryptodev.ko' \
-    -not -name 'firewire.ko' \
-    -not -name 'geom_uzip.ko' \
-    -not -name 'opensolaris.ko' \
-    -not -name 'tmpfs.ko' \
-    -not -name 'xz.ko' \
-    -not -name 'zfs.ko' \
-    -delete
-  # Compress the kernel
-  gzip "${cdroot}"/boot/kernel/kernel
-  # Compress the remaining modules
-  find "${cdroot}"/boot/kernel -type f -name '*.ko' -exec gzip {} \;
-  sync ### Needed?
   cd ${cwd} && zpool export furybsd && mdconfig -d -u 0
-  sync ### Needed?
-  # The name of a dependency for zfs.ko changed, violating POLA
-  # If we are loading both modules, then at least 13 cannot boot, hence only load one based on the FreeBSD major version
-  #MAJOR=$(uname -r | cut -d "." -f 1)
-  if [ $MAJOR -lt 13 ] ; then
-    echo "Major version < 13, hence using opensolaris.ko"
-    sed -i -e 's|opensolaris_load=".*"|opensolaris_load="YES"|g' "${cdroot}"/boot/loader.conf
-    rm -f "${cdroot}"/boot/loader.conf-e
-    sed -i -e 's|cryptodev_load=".*"|cryptodev_load="NO"|g' "${cdroot}"/boot/loader.conf
-    rm -f "${cdroot}"/boot/loader.conf-e
-    sed -i -e 's|tmpfs_load=".*"|tmpfs_load="YES"|g' "${cdroot}"/boot/loader.conf
-    rm -f "${cdroot}"/boot/loader.conf-e
-  else
-    echo "Major version >= 13, hence using cryptodev.ko"
-    sed -i -e 's|cryptodev_load=".*"|cryptodev_load="YES"|g' "${cdroot}"/boot/loader.conf
-    rm -f "${cdroot}"/boot/loader.conf-e
-    sed -i -e 's|opensolaris_load=".*"|opensolaris_load="NO"|g' "${cdroot}"/boot/loader.conf
-    rm -f "${cdroot}"/boot/loader.conf-e
-    sed -i -e 's|tmpfs_load=".*"|tmpfs_load="NO"|g' "${cdroot}"/boot/loader.conf
-    rm -f "${cdroot}"/boot/loader.conf-e
-  fi
-  sync ### Needed?
 }
+
 
 tag()
 {
