@@ -13,7 +13,6 @@ MAJOR=$(uname -r | cut -d "." -f 1) # "12" or "13"
 if [ -z "${AIRYX}" ]; then
   AIRYX=$(pwd)/..
 fi
-AIRYXPKG=${AIRYX}/freebsd-src/release
 AIRYXVER=$(head -1 ${AIRYX}/version.txt)
 
 desktop=$1
@@ -160,7 +159,7 @@ base()
 
   if [ ! -f "${base}/airyx.txz" ] ; then
     cd ${base}
-    fetch https://api.cirrus-ci.com/v1/artifact/github/mszoek/airyx/airyx_build/airyx/freebsd-src/release/airyx.txz
+    fetch https://api.cirrus-ci.com/v1/artifact/github/mszoek/airyx/airyx/airyx/dist/airyx.txz
   fi
   cd ${base}
   tar -zxvf base.txz -C ${uzip}
@@ -290,13 +289,12 @@ initgfx()
     else
       PKGS="release_2"
     fi
-    for ver in '' 390 340 304; do
-        pkgfile=$(/usr/local/sbin/pkg-static -c ${uzip} rquery %n-%v.txz nvidia-driver${ver:+-$ver})
+	ver=460
+        pkgfile='nvidia-driver-460.84.txz' #$(/usr/local/sbin/pkg-static -c ${uzip} rquery %n-%v.txz nvidia-driver${ver:+-$ver})
         fetch -o "${cache}/" "https://pkg.freebsd.org/FreeBSD:${MAJOR}:amd64/${PKGS}/All/${pkgfile}"
         mkdir -p "${uzip}/usr/local/nvidia/${ver:-440}/"
         tar xfC "${cache}"/${pkgfile} "${uzip}/usr/local/nvidia/${ver:-440}/"
-        ls "${uzip}/usr/local/nvidia/${ver:-440}/+COMPACT_MANIFEST"
-    done
+	ls "${uzip}/usr/local/nvidia/${ver:-440}/+COMPACT_MANIFEST"
   fi
 
   ls

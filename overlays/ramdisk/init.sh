@@ -41,12 +41,12 @@ mkdir -p /memdisk
 
 echo "Waiting for Live media to appear"
 while : ; do
-    [ -e "/dev/iso9660/LIVE" ] && echo "found /dev/iso9660/LIVE" && break
+    [ -e "/dev/iso9660/AIRYX" ] && echo "found /dev/iso9660/AIRYX" && break
     sleep 1
 done
 
 echo "==> Mount /cdrom"
-mount_cd9660 /dev/iso9660/LIVE /cdrom
+mount_cd9660 /dev/iso9660/AIRYX /cdrom
 
 echo "==> Mount /sysroot"
 mdmfs -P -F /cdrom/data/system.uzip -o ro md.uzip /sysroot # FIXME: This does not seem to work; why?
