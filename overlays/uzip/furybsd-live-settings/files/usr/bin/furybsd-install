@@ -165,23 +165,6 @@ fi
 
 # Transfer settings from running /etc/rc.conf.local to installed one
 cat /etc/rc.conf.local | xargs sysrc -f ${FSMNT}/etc/rc.conf
-# Enable additional services needed for desktop
-echo "Enabling additional services needed for desktop"
-if [ -f "/usr/sbin/lightdm" ] ; then
-  chroot "${FSMNT}" sysrc lightdm_enable="YES"
-fi
-if [ -f "/usr/sbin/gdm" ] ; then
-  chroot "${FSMNT}" sysrc gdm_enable="YES"
-fi
-if [ -f "/usr/etc/rc.d/pcdm" ] ; then
-  chroot "${FSMNT}" sysrc pcdm_enable="YES"
-fi
-if [ -f "/usr/bin/sddm" ] ; then
-  chroot "${FSMNT}" sysrc sddm_enable="YES"
-fi
-if [ -f "/usr/bin/slim" ] ; then
-  chroot "${FSMNT}" sysrc slim_enable="YES"
-fi
 
 # initgfx does not work from a read-only disk
 chroot "${FSMNT}" sysrc root_rw_mount="YES"
