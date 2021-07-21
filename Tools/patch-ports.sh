@@ -62,7 +62,8 @@ sed -i_ -e 's@^post-install:@pre-install:\n\t${MKDIR} -p ${STAGEDIR}${PREFIX}/sh
 sed -i_ -e 's@${PREFIX}/etc@/etc@' -e 's@^post-install:@&\n\t${MKDIR} -p ${STAGEDIR}/etc@' /usr/ports/textproc/aspell/Makefile
 sed -i_ -e 's@etc/@/etc/@' -e 's@${PREFIX}/etc@/etc@' -e 's@^do-install:@&\n\t${MKDIR} -p ${STAGEDIR}/etc@' /usr/ports/sysutils/gnome_subr/Makefile
 sed -i_ -e 's@post-install:@pre-install:\n\t${MKDIR} -p ${STAGEDIR}/etc/rc.d\n&@' /usr/ports/emulators/tpm-emulator/Makefile
-sed -i_ -e 's@${PREFIX}/etc@/etc@' -e 's@post-install:@&\n\t${MKDIR} -p ${STAGEDIR}/etc/rc.d@' /usr/ports/security/trousers/Makefile
+sed -i_ -e 's@${PREFIX}/etc@/etc@' -e 's@${PREFIX}/var@/var@g' -e 's@post-install:@&\n\t${MKDIR} -p ${STAGEDIR}/etc/rc.d@' /usr/ports/security/trousers/Makefile
+sed -i_ -e 's@ var@ /var@' /usr/ports/security/trousers/pkg-plist
 sed -i_ -e 's@^post-install:@&\n\t${MKDIR} -p ${STAGEDIR}/etc@' -e 's@${PREFIX}/etc@/etc@' /usr/ports/print/libpaper/Makefile
 sed -i_ -e 's@${PREFIX}/etc@/etc@g' -e 's@${LOCALBASE}/etc@/etc@g' -e 's@^post-install:@&\n\t${MKDIR} -p ${STAGEDIR}/etc/rc.d ${STAGEDIR}/etc/pam.d ${STAGEDIR}/etc/devd@' -e 's@CONFIGURE_ARGS=@& --sysconfdir=/etc@' /usr/ports/print/cups/Makefile
 sed -i_ -e 's@%%AVAHI%%man@%%AVAHI%%%%MANPREFIX%%/man@' /usr/ports/print/cups/pkg-plist
@@ -122,6 +123,7 @@ sed -i_ -E 's@%%(TCL|GO|GUILE|LUA|SMYRNA|ANN|XPM)%%man@%%\1%%%%MANPREFIX%%/man@'
 sed -i_ -e 's@USES=.*@&\nCMAKE_ARGS+= -DCMAKE_INSTALL_MANDIR=${MANPREFIX}/man@' /usr/ports/editors/editorconfig-core-c/Makefile /usr/ports/graphics/jasper/Makefile
 sed -i_ -e '/${LOCALBASE}\/etc/,+1d' /usr/ports/sysutils/signon-qt5/Makefile
 sed -i_ -e 's@%%SASLDB%%man@%%SASLDB%%%%MANPREFIX%%/man@' /usr/ports/security/cyrus-sasl2/pkg-plist
+sed -i_ -e 's@${PREFIX}/etc@/etc@g' /usr/ports/security/cyrus-sasl2/Makefile.common
 sed -i_ -e 's@CONFIGURE_ARGS=@& --sysconfdir=/etc --mandir=${MANPREFIX}/man @' /usr/ports/net/openldap24-server/Makefile
 sed -i_ -e 's@^man@%%MANPREFIX%%/man@' /usr/ports/net/openldap24-server/pkg-plist.client
 sed -i_ -e 's@%%man@%%%%MANPREFIX%%/man@' /usr/ports/sysutils/upower/pkg-plist /usr/ports/graphics/jasper/pkg-plist /usr/ports/graphics/lcms/pkg-plist /usr/ports/net/samba412/pkg-plist
