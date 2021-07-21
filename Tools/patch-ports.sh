@@ -150,6 +150,8 @@ sed -i_ -e 's@${PREFIX}/etc@/etc@g;s@^post-install-PAM-on:@&\n\tmkdir -p ${STAGE
 sed -i_ -e '/^+/s@PREFIX}/man@PREFIX}/share/man@' /usr/ports/x11/slim/files/patch-CMakeLists.txt
 sed -i_ -e 's@%%PREFIX%%/etc@/etc@g' /usr/ports/x11/slim/files/slim.in
 rm -f /usr/ports/x11/slim/files/patch-CMakeLists.txt_ /usr/ports/x11/slim/files/patch-slim.1 /usr/ports/x11/slim/files/slim.in_
+sed -i_ -e 's@post-install:@&\n\tmkdir -p ${STAGEDIR}/usr/libdata/ldconfig@' /usr/ports/devel/qscintilla2-qt5/Makefile
+sed -i_ -e 's@${PREFIX}/man@${MANPREFIX}/man@' /usr/ports/graphics/libmng/Makefile
 
 # Port out of date?
 sed -i_ -e 's@2391904@2446510@' -e 's@a65b84821765cfd4bb8bf8c05e4279a9d81130da4eb8741ef2690064c57610cf@1eaa672dfa1ac921c795117b29b830eb84902a66248ef08d461f093305e2aaf5@' /usr/ports/math/lapack/distinfo
