@@ -81,7 +81,7 @@ plasma: /usr/ports/x11/plasma5-plasma /usr/ports/x11/konsole /usr/ports/x11/sddm
 xorg: /usr/ports/x11/xorg /usr/ports/x11-themes/adwaita-icon-theme /usr/ports/devel/desktop-file-utils
 misc: /usr/ports/archivers/brotli /usr/ports/graphics/argyllcms /usr/ports/multimedia/gstreamer1-plugins-all
 misc2: /usr/ports/x11/zenity /usr/ports/sysutils/cpdup /usr/ports/audio/freedesktop-sound-theme /usr/ports/sysutils/fusefs-libs mountsrc /usr/ports/graphics/gpu-firmware-kmod /usr/ports/sysutils/iichid /usr/ports/net/libdnet /usr/ports/archivers/libmspack /usr/ports/security/libretls /usr/ports/devel/libsigc++20 /usr/ports/multimedia/libva-intel-driver /usr/ports/dns/nss_mdns /usr/ports/emulators/open-vm-tools /usr/ports/net/openntpd /usr/ports/sysutils/pv /usr/ports/misc/usbids /usr/ports/misc/utouch-kmod umountsrc /usr/ports/net/wpa_supplicant_gui /usr/ports/devel/xdg-user-dirs
-misc3: /usr/ports/security/sudo /usr/ports/devel/libqtxdg /usr/ports/devel/git
+misc3: /usr/ports/security/sudo /usr/ports/devel/libqtxdg /usr/ports/devel/git /usr/ports/x11/slim
 buildports: zsh xorg plasma misc misc2 misc3
 
 makepackages:
@@ -240,6 +240,6 @@ ${TOPDIR}/dist/CocoaDemo.app.txz:
 
 iso:
 	cp -f ${TOPDIR}/version.txt ${TOPDIR}/ISO/overlays/ramdisk/version
-	cd ${TOPDIR}/ISO && workdir=${OBJPREFIX} AIRYX=${TOPDIR} ${SUDO} -E ./build.sh kde Airyx_${AIRYX_VERSION}
+	cd ${TOPDIR}/ISO && workdir=${OBJPREFIX} AIRYX=${TOPDIR} ${SUDO} -E ./build.sh airyx Airyx_${AIRYX_VERSION}
 
 release: airyx-package ${TOPDIR}/ISO ${TOPDIR}/dist/CocoaDemo.app.txz iso

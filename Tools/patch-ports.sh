@@ -52,7 +52,7 @@ sed -i_ -e 's@CONFIGURE_ARGS=@& --mandir=${MANPREFIX}/man@' /usr/ports/devel/pcr
 sed -i_ -e 's@MAN3%%@MANPREFIX%%/@' -e 's@%%DANE%%man@%%DANE%%%%MANPREFIX%%/man@' /usr/ports/devel/pcre/pkg-plist /usr/ports/security/gnutls/pkg-plist 
 sed -i_ -e 's@^\.include <bsd\.port\.mk>@pre-install:\n\t${MKDIR} -p ${STAGEDIR}${PREFIX}/share/xml ${STAGEDIR}${PREFIX}/share/sgml\n&@' -e 's@ man/@ ${MANPREFIX}/man/@g' /usr/ports/textproc/xmlcatmgr/Makefile
 sed -i_ -e 's@^post-install:@pre-install:\n\t${MKDIR} -p ${STAGEDIR}${PREFIX}/libdata/ldconfig\n&@' /usr/ports/devel/qt5-core/Makefile
-sed -i_ -e 's@^FCDEFAULTFONTS.*@FCDEFAULTFONTS= /System/Library/Fonts /Library/Fonts@' -e 's@post-patch:@&\n\t${REINPLACE_CMD} -e "s,%%STAGEDIR%%,${STAGEDIR},g" ${PATCH_WRKSRC}/conf.d/link_confs.py@' /usr/ports/x11-fonts/fontconfig/Makefile
+sed -i_ -e 's@^FCDEFAULTFONTS.*@FCDEFAULTFONTS= /System/Library/Fonts</dir> <dir>/Library/Fonts</dir> <dir>~/Library/Fonts@' -e 's@post-patch:@&\n\t${REINPLACE_CMD} -e "s,%%STAGEDIR%%,${STAGEDIR},g" ${PATCH_WRKSRC}/conf.d/link_confs.py@' /usr/ports/x11-fonts/fontconfig/Makefile
 sed -i_ -e 's@${LOCALBASE}/share/fonts@/System/Library/Fonts@' -e 's@man/man1@${MANPREFIX}/man/man1@g' /usr/ports/x11/luit/Makefile
 sed -i_ -e 's@^post-install:@pre-install:\n\t${MKDIR} -p ${STAGEDIR}${PREFIX}/libdata/ldconfig\n&@' /usr/ports/devel/llvm10/Makefile
 sed -i_ -e 's@^post-stage:@pre-install:\n\t${MKDIR} -p ${STAGEDIR}${PREFIX}/libdata/ldconfig\n&@' /usr/ports/lang/gcc10/Makefile
@@ -146,6 +146,10 @@ sed -i_ -e 's@\tman/@\t${MANPREFIX}/man/@' -e 's@${PREFIX}/man@${MANPREFIX}/man@
 sed -i_ -e 's@GNU_CONFIGURE.*@&\nCONFIGURE_ARGS=--sysconfdir=/etc@' /usr/ports/devel/xdg-user-dirs/Makefile
 sed -i_ -e 's@${PREFIX}/etc@/etc@g' -e 's@post-install:@&\n\tmkdir -p ${STAGEDIR}/etc/pam.d@' /usr/ports/security/sudo/Makefile
 sed -i_ -e '/^CPPFLAGS/d;/^LDFLAGS/d;s@CONFIGURE_ARGS=@& --sysconfdir=/etc @;s@FLAVORS=@FLAVOR=tiny\n&@;s@${PREFIX}/etc@/etc@g;s@^post-install:@&\n\tmkdir -p ${STAGEDIR}/etc/rc.d@' /usr/ports/devel/git/Makefile
+sed -i_ -e 's@${PREFIX}/etc@/etc@g;s@^post-install-PAM-on:@&\n\tmkdir -p ${STAGEDIR}/etc/rc.d ${STAGEDIR}/etc/pam.d@' /usr/ports/x11/slim/Makefile
+sed -i_ -e '/^+/s@PREFIX}/man@PREFIX}/share/man@' /usr/ports/x11/slim/files/patch-CMakeLists.txt
+sed -i_ -e 's@%%PREFIX%%/etc@/etc@g' /usr/ports/x11/slim/files/slim.in
+rm -f /usr/ports/x11/slim/files/patch-CMakeLists.txt_ /usr/ports/x11/slim/files/patch-slim.1 /usr/ports/x11/slim/files/slim.in_
 
 # Port out of date?
 sed -i_ -e 's@2391904@2446510@' -e 's@a65b84821765cfd4bb8bf8c05e4279a9d81130da4eb8741ef2690064c57610cf@1eaa672dfa1ac921c795117b29b830eb84902a66248ef08d461f093305e2aaf5@' /usr/ports/math/lapack/distinfo
