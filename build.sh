@@ -120,6 +120,10 @@ if [ "${desktop}" = "hello" ] ; then
   fi
 fi
 
+if [ "${desktop}" = "airyx" ]; then
+    isopath="${iso}/${tag}_f${MAJOR}_${arch}.iso"
+fi
+
 cleanup()
 {
   if [ -n "$CIRRUS_CI" ] ; then
@@ -349,10 +353,11 @@ script()
 uzip() 
 {
   install -o root -g wheel -m 755 -d "${cdroot}"
-  makefs "${iso}/system.ufs" "${uzip}"
-  mkuzip -o "${cdroot}/data/system.uzip" "${iso}/system.ufs"
-  rm -f "${iso}/system.ufs"
+  zfs set mountpoint=/sysroot furybsd
   cd ${cwd} && zpool export furybsd && while zpool status furybsd >/dev/null; do :; done 2>/dev/null
+  #makefs "${iso}/system.ufs" "${uzip}"
+  mkuzip -S -d -o "${cdroot}/data/system.uzip" "${livecd}/pool.img" #"${iso}/system.ufs"
+  #rm -f "${iso}/system.ufs"
 }
 
 ramdisk() 

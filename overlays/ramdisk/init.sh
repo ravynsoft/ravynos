@@ -48,8 +48,14 @@ done
 echo "==> Mount /cdrom"
 mount_cd9660 /dev/iso9660/AIRYX /cdrom
 
-echo "==> Mount /sysroot"
-mdmfs -P -F /cdrom/data/system.uzip -o ro md.uzip /sysroot # FIXME: This does not seem to work; why?
+echo "==> Configure md from system.uzip"
+mdconfig -u 1 -f /cdrom/data/system.uzip
+
+echo "==> Importing ZFS pool"
+zpool import furybsd -o readonly=on
+
+#echo "==> Mount /sysroot"
+#mdmfs -P -F /cdrom/data/system.uzip -o ro md.uzip /sysroot # FIXME: This does not seem to work; why?
 
 if [ "$SINGLE_USER" = "true" ]; then
 	echo -n "Enter memdisk size used for read-write access in the live system: "
@@ -68,6 +74,7 @@ mount -t nullfs /sysroot/boot /sysroot/sysroot/boot
 
 echo "==> Change into /sysroot"
 mount -t devfs devfs /sysroot/dev
+echo "Setting up the live environment..." > /dev/tty
 chroot /sysroot /usr/bin/furybsd-init-helper
 
 if [ "$SINGLE_USER" = "true" ]; then

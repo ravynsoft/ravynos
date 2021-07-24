@@ -19,7 +19,7 @@ DESTPOOL=$(zpool list -H | grep /mnt | awk -F '\t' '{print $1;}')
 # if INSTALLER_PRINT_MIB_NEEDED is set. This is needed for the graphical installer frontend
 if [ -n "${INSTALLER_PRINT_MIB_NEEDED}" ] ; then
   # echo INSTALLER_MIB_NEEDED=$(df -m / | awk '{print $2}' | tail -n 1)
-  bytes=$(zpool get -Hpo value allocated livecd)
+  bytes=$(zpool get -Hpo value allocated furybsd)
   mib=$(echo "${bytes}/1024/1024" | bc) # Convert bytes to MiB
   echo "INSTALLER_MIB_NEEDED=${mib}"
   sudo dmidecode --type 0,1,2,3 > /tmp/dmi.txt
