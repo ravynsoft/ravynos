@@ -10,9 +10,14 @@ MKINCDIR := -m/usr/share/mk -m${TOPDIR}/mk
 CORES != sysctl -n hw.ncpu
 SUDO != test "$$USER" == "root" && echo "" || echo "sudo"
 
-airyx: mkfiles libobjc2 libunwind frameworksclean frameworks copyfiles
+.export TOPDIR OBJPREFIX BUILDROOT PORTSROOT AIRYX_VERSION AIRYX_CODENAME MKINCDIR CORES SUDO
+
+airyx: mkfiles frameworks copyfiles
 	tar -C ${BUILDROOT}/usr/lib -cpf pkgconfig | tar -C ${BUILDROOT}/usr/share -xpf -
 	rm -rf ${BUILDROOT}/usr/lib/pkgconfig
+
+frameworks:
+	${MAKE} -C Frameworks all
 
 airyx-package:
 	${SUDO} mkdir -p ${TOPDIR}/dist
@@ -101,133 +106,6 @@ mkfiles:
 	mkdir -p ${BUILDROOT}/usr/share/mk
 	cp -fv ${TOPDIR}/mk/*.mk ${BUILDROOT}/usr/share/mk/
 
-libobjc2: .PHONY
-	mkdir -p ${OBJPREFIX}/libobjc2
-	cd ${OBJPREFIX}/libobjc2; cmake \
-		-DCMAKE_C_FLAGS=" -D__AIRYX__ -DNO_SELECTOR_MISMATCH_WARNINGS" \
-		-DCMAKE_BUILD_TYPE=Release \
-		-DCMAKE_INSTALL_PREFIX=/usr \
-		-DOLDABI_COMPAT=false -DLEGACY_COMPAT=false \
-		${TOPDIR}/libobjc2
-	${MAKE} -C ${OBJPREFIX}/libobjc2 DESTDIR=${BUILDROOT} install
-
-libunwind: .PHONY
-	cd ${TOPDIR}/libunwind-1.5.0 && ./configure --prefix=/usr --enable-coredump --enable-ptrace --enable-cxx-exceptions \
-		--enable-block-signals --enable-debug-frame && ${MAKE} -j${CORES}
-	${MAKE} -C ${TOPDIR}/libunwind-1.5.0 install prefix=${BUILDROOT}/usr
-
-frameworksclean:
-	rm -rf ${BUILDROOT}/System/Library/Frameworks/*.framework
-	for fmwk in ${.ALLTARGETS:M*.framework:R}; do \
-		${MAKE} ${MKINCDIR} -C ${TOPDIR}/$$fmwk clean; \
-		rm -rf ${TOPDIR}/$$fmwk/$$fmwk.framework; \
-	done
-	rm -rf Foundation/Headers
-
-_FRAMEWORK_TARGETS=
-.if defined(FRAMEWORKS) && !empty(FRAMEWORKS)
-.for fmwk in ${FRAMEWORKS}
-_FRAMEWORK_TARGETS+=${fmwk}.framework
-.endfor
-.else
-_FRAMEWORK_TARGETS=${.ALLTARGETS:M*.framework}
-.endif
-frameworks: 
-	for fmwk in ${_FRAMEWORK_TARGETS}; do \
-		${MAKE} ${MKINCDIR} -C ${TOPDIR} $$fmwk; done
-
-marshallheaders:
-	${MAKE} -C ${TOPDIR}/Foundation marshallheaders
-
-# DO NOT change the order of these 4 frameworks!
-CoreFoundation.framework: marshallheaders
-	rm -rf ${TOPDIR}/CoreFoundation/${.TARGET}
-	${MAKE} -C ${TOPDIR}/CoreFoundation BUILDROOT=${BUILDROOT} clean
-	${MAKE} -C ${TOPDIR}/CoreFoundation BUILDROOT=${BUILDROOT}
-	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
-
-CFNetwork.framework:
-	rm -rf ${TOPDIR}/CFNetwork/${.TARGET}
-	${MAKE} -C ${TOPDIR}/CFNetwork BUILDROOT=${BUILDROOT} clean
-	${MAKE} -C ${TOPDIR}/CFNetwork BUILDROOT=${BUILDROOT}
-	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
-
-Foundation.framework:
-	rm -rf ${TOPDIR}/Foundation/${.TARGET}
-	${MAKE} -C ${TOPDIR}/Foundation BUILDROOT=${BUILDROOT} clean build
-	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
-	cp -vf ${TOPDIR}/${.TARGET:R}/NSException/NSRaise.h ${TOPDIR}/AppKit
-
-ApplicationServices.framework:
-	rm -rf ${TOPDIR}/ApplicationServices/${.TARGET}
-	${MAKE} -C ${TOPDIR}/ApplicationServices BUILDROOT=${BUILDROOT} clean
-	${MAKE} -C ${TOPDIR}/ApplicationServices BUILDROOT=${BUILDROOT}
-	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
-
-CoreServices.framework:
-	rm -rf ${TOPDIR}/CoreServices/${.TARGET}
-	${MAKE} -C ${TOPDIR}/CoreServices BUILDROOT=${BUILDROOT} clean
-	${MAKE} -C ${TOPDIR}/CoreServices BUILDROOT=${BUILDROOT}
-	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
-
-CoreData.framework:
-	rm -rf ${TOPDIR}/CoreData/${.TARGET}
-	${MAKE} -C ${TOPDIR}/CoreData BUILDROOT=${BUILDROOT} clean
-	${MAKE} -C ${TOPDIR}/CoreData BUILDROOT=${BUILDROOT}
-	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
-
-Onyx2D.framework:
-	rm -rf ${TOPDIR}/Onyx2D/${.TARGET}
-	${MAKE} -C ${TOPDIR}/Onyx2D BUILDROOT=${BUILDROOT} clean
-	${MAKE} -C ${TOPDIR}/Onyx2D BUILDROOT=${BUILDROOT}
-	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
-
-OpenGL.framework:
-	rm -rf ${TOPDIR}/OpenGL/${.TARGET}
-	${MAKE} -C ${TOPDIR}/OpenGL BUILDROOT=${BUILDROOT} clean
-	${MAKE} -C ${TOPDIR}/OpenGL BUILDROOT=${BUILDROOT}
-	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
-
-CoreGraphics.framework:
-	rm -rf ${TOPDIR}/CoreGraphics/${.TARGET}
-	${MAKE} -C ${TOPDIR}/CoreGraphics BUILDROOT=${BUILDROOT} clean
-	${MAKE} -C ${TOPDIR}/CoreGraphics BUILDROOT=${BUILDROOT}
-	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
-	cp -vf ${TOPDIR}/${.TARGET:R}/CGEvent.h ${TOPDIR}/AppKit
-
-CoreText.framework:
-	rm -rf ${TOPDIR}/CoreText/${.TARGET}
-	${MAKE} -C ${TOPDIR}/CoreText BUILDROOT=${BUILDROOT} clean
-	${MAKE} -C ${TOPDIR}/CoreText BUILDROOT=${BUILDROOT}
-	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
-	cp -vf ${TOPDIR}/${.TARGET:R}/KTFont.h ${TOPDIR}/AppKit
-
-QuartzCore.framework:
-	rm -rf ${TOPDIR}/QuartzCore/${.TARGET}
-	${MAKE} -C ${TOPDIR}/QuartzCore BUILDROOT=${BUILDROOT} clean
-	${MAKE} -C ${TOPDIR}/QuartzCore BUILDROOT=${BUILDROOT}
-	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
-
-AppKit.framework:
-	rm -rf ${TOPDIR}/AppKit/${.TARGET}
-	${MAKE} -C ${TOPDIR}/AppKit BUILDROOT=${BUILDROOT} clean build
-	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
-
-Cocoa.framework:
-	rm -rf ${TOPDIR}/Cocoa/${.TARGET}
-	${MAKE} -C ${TOPDIR}/Cocoa BUILDROOT=${BUILDROOT} clean
-	${MAKE} -C ${TOPDIR}/Cocoa BUILDROOT=${BUILDROOT}
-	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
-
-DBusKit.framework:
-	rm -rf ${TOPDIR}/DBusKit/${.TARGET}
-	${MAKE} -C ${TOPDIR}/DBusKit BUILDROOT=${BUILDROOT} clean build
-	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
-
-LaunchServices.framework:
-	rm -rf ${TOPDIR}/LaunchServices/${.TARGET}
-	${MAKE} -C ${TOPDIR}/LaunchServices BUILDROOT=${BUILDROOT} clean build
-	cp -Rvf ${TOPDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
 
 ${TOPDIR}/ISO:
 	cd ${TOPDIR} && git clone https://github.com/mszoek/ISO.git
@@ -243,3 +121,4 @@ iso:
 	cd ${TOPDIR}/ISO && workdir=${OBJPREFIX} AIRYX=${TOPDIR} ${SUDO} -E ./build.sh airyx Airyx_${AIRYX_VERSION}
 
 release: airyx-package ${TOPDIR}/ISO ${TOPDIR}/dist/CocoaDemo.app.txz iso
+
