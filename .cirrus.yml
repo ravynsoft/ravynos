@@ -16,7 +16,7 @@ airyx_task:
     - tar -C / -xvf /tmp/base.txz --exclude=./var/empty --exclude=./usr/lib --exclude=./sbin/init --exclude=./lib/libthr.so.3 --exclude=./libcrypt.so.5 --exclude=./lib/libc.so.7 --exclude=./libexec/ld-elf.so.1 --exclude=./usr/bin/crontab --exclude=./usr/bin/su --exclude=./usr/bin/opiepasswd --exclude=./usr/bin/passwd --exclude=./usr/bin/opieinfo --exclude=./usr/bin/login --exclude=./usr/bin/chpass --exclude=./usr/lib/librt.so.1
     - cp -afv mk/*.mk /usr/share/mk
     - cp -fv etc/pkg/*.conf /etc/pkg/ && rm -fv /etc/pkg/FreeBSD.conf
-    - pkg install -y cmake jpeg-turbo openjpeg tiff png cairo fontconfig freetype2 libX11 libXext libXfixes libXdamage mesa-libs dbus pkgconf libqtxdg sqlite3 git-tiny
+    - pkg install -y cmake jpeg-turbo openjpeg tiff png cairo fontconfig freetype2 libX11 libXext libXfixes libXdamage mesa-libs dbus pkgconf libqtxdg sqlite3 git-tiny qt5-buildtools qt5-qmake qt5-dbus qt5-linguisttools qt5-widgets qt5-x11extras qt5-dbus glib dbus-glib 
     - make prep airyx airyx-package
   only_if: $CIRRUS_BRANCH == 'main'
   airyx_artifacts:
