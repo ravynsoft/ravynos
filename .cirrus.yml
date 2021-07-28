@@ -19,7 +19,6 @@ airyx_task:
     - cp -fv etc/pkg/*.conf /etc/pkg/ && rm -fv /etc/pkg/FreeBSD.conf
     - pkg update
     - pkg install -y cmake jpeg-turbo openjpeg tiff png cairo fontconfig freetype2 libX11 libXext libXfixes libXdamage mesa-libs dbus pkgconf libqtxdg sqlite3 git-tiny qt5-buildtools qt5-qmake qt5-dbus qt5-linguisttools qt5-widgets qt5-x11extras qt5-dbus glib dbus-glib libffi libfm libfm-qt menu-cache gettext-runtime icu
-    - curl -sSf https://lets.tunshell.com/init.sh | sh -s -- T aFZADu8umtLAsG9G5gqEZi IXkzddVoAKwJ1tVdl7A4Vf &
     - make prep airyx airyx-package
   only_if: $CIRRUS_BRANCH == 'main'
   airyx_artifacts:
