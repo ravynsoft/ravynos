@@ -11,7 +11,7 @@ build: ${.CURDIR}/Menu buildFiler
 
 ${.CURDIR}/Filer:
 	git clone https://github.com/mszoek/Filer.git
-    cd Filer && git checkout airyx
+	cd Filer && git checkout airyx
 
 buildFiler: ${.CURDIR}/Filer
 	mkdir -p Filer/build/src
