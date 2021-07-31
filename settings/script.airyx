@@ -28,11 +28,6 @@ mv macOSBigSur "${uzip}/usr/share/icons/"
 ( cd "${uzip}/usr/share/icons/" ; ln -s macOSBigSur default )
 rm -f macOSBigSur.tar.gz
 
-# Filer
-fetch https://github.com/helloSystem/Filer/releases/download/continuous/Filer_FreeBSD.zip
-unzip Filer_FreeBSD.zip
-rm -f Filer_FreeBSD.zip
-
 # Menu
 fetch https://github.com/helloSystem/Menu/releases/download/continuous/Menu_FreeBSD.zip
 unzip Menu_FreeBSD.zip

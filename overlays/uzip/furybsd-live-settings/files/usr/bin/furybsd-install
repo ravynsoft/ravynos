@@ -35,11 +35,11 @@ if [ "$(id -u)" != "0" ]; then
 fi
 
 # Cleanup memory devices created before reroot if they exist
-if [ -e "/dev/md0" ] ; then
-  /sbin/mdconfig -du md0
+if [ -e "/dev/md3" ] ; then
+  /sbin/mdconfig -du md3
 fi
-if [ -e "/dev/md1" ] ; then
-  /sbin/mdconfig -du md1
+if [ -e "/dev/md4" ] ; then
+  /sbin/mdconfig -du md4
 fi
 
 # Clean up any previous runs
@@ -67,7 +67,7 @@ else
   bsdinstall zfsboot
 fi
 
-if [ ! -d "/mnt/usr" ] ; then
+if [ ! -d "/mnt/boot" ] ; then
   exit 1
 fi
 

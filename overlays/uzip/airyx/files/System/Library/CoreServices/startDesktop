@@ -1,7 +1,5 @@
 #!/bin/sh
 
-XSESSION="$1"
-
 # Prevent Gnome-related processes at-spi-bus-launcher
 # and at-spi2-registryd from bleeding into our system
 # https://bbs.archlinux.org/viewtopic.php?pid=1789644#p1789644
@@ -60,7 +58,7 @@ export GTK_MODULES
 export UBUNTU_MENUPROXY
 
 # Export other environment variables
-export QT_QPA_PLATFORMTHEME=panda
+#export QT_QPA_PLATFORMTHEME=kde
 
 # Calculate DPI and determine whether we have a HiDPI screen. TODO: Is there a better way?
 # Get vertical size in cm
@@ -115,8 +113,6 @@ fi
 #  /usr/local/bin/openbox --config-file ~/.openbox-2x &
 #fi
 
-/usr/bin/kwin_x11 &
-
 # Desktop notifications
 #dunst &
 
@@ -156,7 +152,8 @@ export GTK_MODULES=appmenu-gtk-module
 gmenudbusmenuproxy &
 
 # Desktop
-/System/Filer.AppDir/AppRun --desktop &
+/System/Library/CoreServices/Filer.app/Contents/Airyx/Filer --desktop &
+konsole &
 
 # Wait for Menu to appear on D-Bus; this is needed for autostart to work properly
 while true; do 
@@ -183,10 +180,8 @@ done
 
 # Dock
 # /System/Dock.AppDir/AppRun & # FIXME: Reinstate once it works like this
-/System/Dock.AppDir/usr/bin/cyber-dock
+#/System/Dock.AppDir/usr/bin/cyber-dock
 
 # Here we must start something that never exits;
 # the session ends when that thing exits
-if [ "$XSESSION" = "1" ]; then
-    read 1
-fi
+exec /usr/bin/kwin_x11
