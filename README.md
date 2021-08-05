@@ -53,18 +53,3 @@ This project would not be possible without the generous support of [Cirrus CI](h
 
 [![Packages hosted by: Cloudsmith](https://img.shields.io/badge/OSS%20hosting%20by-cloudsmith-blue?logo=cloudsmith&style=flat-square)](https://cloudsmith.com)
 
-## Screenshots
-
-#### Setup wizard
-
-![Hello](screenshots/hello.png | width=300)
-![Setup wizard](screenshots/wizard.png | width=300)
-
-#### Apps
-
-![Falkon](screenshots/falkon.png | width=300)
-![Filer](screenshots/filer.png | width=300)
-![Text editor](screenshots/texteditor.png | width=300)
-![Apps](screenshots/apps.png | width=300)
-![Utilities](screenshots/utilities.png | width=300)
-![About this computer](screenshots/aboutthismac.png | width=300)
