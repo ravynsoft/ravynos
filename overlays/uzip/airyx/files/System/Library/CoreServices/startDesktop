@@ -149,7 +149,6 @@ export GTK_MODULES=appmenu-gtk-module
 # FIXME: Does the next line have to run AFTER menubar?
 # Else we see no QMenus at all, as if something was badly crashing?
 ### "${HERE}"/dde-globalmenu-service & # gmenudbusmenuproxy without Plasma deps
-gmenudbusmenuproxy &
 
 # Desktop
 /System/Library/CoreServices/Filer.app/Contents/Airyx/Filer --desktop &
@@ -162,6 +161,8 @@ while true; do
     break
   fi
 done
+
+/usr/bin/gmenudbusmenuproxy &
 
 # FIXME: replace this with launchd and user preferences
 # System-wide autostart

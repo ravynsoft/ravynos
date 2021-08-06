@@ -16,8 +16,8 @@ fetch http://archive.ubuntu.com/ubuntu/pool/universe/x/xubuntu-artwork/xubuntu-i
 tar xf xubuntu-icon-theme_16.04.2_all.deb
 tar xf data.tar.xz
 mkdir -p "${uzip}"/usr/share/icons/
-mv ./usr/share/icons/elementary-xfce "${uzip}"/usr/share/icons/
-mv ./usr/share/doc/xubuntu-icon-theme/copyright "${uzip}"/usr/share/icons/elementary-xfce/
+mv ./usr/share/icons/elementary-xfce "${uzip}"/usr/share/icons/elementary
+mv ./usr/share/doc/xubuntu-icon-theme/copyright "${uzip}"/usr/share/icons/elementary/
 cd -
 rm -r $icons_temp
 
@@ -25,6 +25,9 @@ rm -r $icons_temp
 fetch https://github.com/ful1e5/apple_cursor/releases/download/v1.0.6/macOSBigSur.tar.gz
 tar xvf macOSBigSur.tar.gz
 mv macOSBigSur "${uzip}/usr/share/icons/"
+chown -R root:wheel "${uzip}/usr/share/icons"
+find "${uzip}/usr/share/icons/macOSBigSur" -type d -exec chmod 755 {} \;
+find "${uzip}/usr/share/icons/macOSBigSur" -type f -exec chmod 644 {} \;
 ( cd "${uzip}/usr/share/icons/" ; ln -s macOSBigSur default )
 rm -f macOSBigSur.tar.gz
 
