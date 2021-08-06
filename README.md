@@ -21,7 +21,7 @@ In theory, it will be easier to build Mac code on FreeBSD because it is closer t
 
 ## Is this... legally sketchy?
 
-No. Consider projects like [ReactOS](https://reactos.org/faq/), a from-scratch effort to create an OS compatible with Microsoft Windows, [GNUstep](http://www,gnustep.org), which provides an open implementation of Cocoa APIs and other things, or [Darling](https://darlinghq.org), a Darwin (macOS) emulation on Linux. Airyx is similar and stands on the shoulders of many such projects.
+No. Consider projects like [ReactOS](https://reactos.org/faq/), a from-scratch effort to create an OS compatible with Microsoft Windows, [GNUstep](http://www.gnustep.org), which provides an open implementation of Cocoa APIs and other things, or [Darling](https://darlinghq.org), a Darwin (macOS) emulation on Linux. Airyx is similar and stands on the shoulders of many such projects.
 
 All code used is freely available under open source licenses. No proprietary elements like fonts, icons, trademarks, etc can be used. Original code must be written using "clean room" techniques - that is, from public documentation like developer guides by people who have never seen the proprietary code - and released under the [FreeBSD license](https://opensource.org/licenses/BSD-2-Clause) or the [MIT license](https://opensource.org/licenses/MIT).
 
