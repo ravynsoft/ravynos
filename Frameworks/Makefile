@@ -8,6 +8,7 @@ clean:
 		rm -rf ${THISDIR}/$$fmwk/$$fmwk.framework; \
 	done
 	rm -rf Foundation/Headers
+	rm -rf ${OBJPREFIX}/libobjc2
 
 _FRAMEWORK_TARGETS=
 .if defined(FRAMEWORKS) && !empty(FRAMEWORKS)

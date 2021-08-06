@@ -22,6 +22,7 @@
  * THE SOFTWARE.
  */
 
+#import <Foundation/Foundation.h>
 #import <CoreFoundation/CFURL.h>
 #import <CoreFoundation/CFArray.h>
 
@@ -99,11 +100,24 @@ enum {
 
 typedef struct OpaqueLSSharedFileListRef *LSSharedFileListRef;
 typedef struct OpaqueLSSharedFileListItemRef *LSSharedFileListItemRef;
-extern const char *LS_DATABASE;
+
+@interface LaunchServices: NSObject
+@end
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+//------------------------------------------------------------------------
+// These two functions are used by Filer but are otherwise internal only
+//------------------------------------------------------------------------
+
+BOOL LSIsNSBundle(NSURL *url);
+BOOL LSIsAppDir(NSURL *url);
+
+//------------------------------------------------------------------------
+//    PUBLIC API
+//------------------------------------------------------------------------
 
 OSStatus LSOpenCFURLRef(CFURLRef inURL, CFURLRef _Nullable *outLaunchedURL);
 OSStatus LSOpenFromURLSpec(const LSLaunchURLSpec *inLaunchSpec, CFURLRef _Nullable *outLaunchedURL);
