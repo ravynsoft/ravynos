@@ -22,16 +22,16 @@
  * THE SOFTWARE.
  */
 
-#import <Foundation/Foundation.h>
 #import <Foundation/NSRaiseException.h>
+#import <Foundation/NSPlatform.h>
 #import <CoreFoundation/CoreFoundation.h>
 #import <LaunchServices/LaunchServices.h>
 #import "LSAppRecord.h"
 
 #include <sqlite3.h>
 
-//const char *LS_DATABASE = "/var/db/launchservices.db";
-const char *LS_DATABASE = "./launchservices.db";
+    
+NSString *LS_DATABASE = [[[NSPlatform currentPlatform] libraryDirectory] stringByAppendingString:@"/db/launchservices.db"];
 
 // #include <KIO/ApplicationLauncherJob>
 // #include <KIO/OpenUrlJob>
@@ -59,7 +59,9 @@ const char *LS_DATABASE = "./launchservices.db";
 static BOOL _LSFindRecordInDatabase(const NSURL *appURL, LSAppRecord **appRecord)
 {
     sqlite3 *pDB = 0;
-    if(sqlite3_open(LS_DATABASE, &pDB) != SQLITE_OK) {
+    NSString *dbPath = [[[NSPlatform currentPlatform] libraryDirectory]
+        stringByAppendingString:LS_DATABASE]; 
+    if(sqlite3_open([dbPath UTF8String], &pDB) != SQLITE_OK) {
         sqlite3_close(pDB);
         return false; // FIXME: log error somewhere
     }
@@ -98,7 +100,9 @@ static BOOL _LSFindRecordInDatabase(const NSURL *appURL, LSAppRecord **appRecord
 static BOOL _LSFileExtensionToUTI(NSString *ext, NSString **outUTI)
 {
     sqlite3 *pDB = 0;
-    if(sqlite3_open(LS_DATABASE, &pDB) != SQLITE_OK) {
+    NSString *dbPath = [[[NSPlatform currentPlatform] libraryDirectory]
+        stringByAppendingString:LS_DATABASE]; 
+    if(sqlite3_open([dbPath UTF8String], &pDB) != SQLITE_OK) {
         sqlite3_close(pDB);
         return false; // FIXME: log error somewhere
     }
@@ -131,7 +135,9 @@ static BOOL _LSFileExtensionToUTI(NSString *ext, NSString **outUTI)
 static OSStatus _LSFindAppsForUTI(NSString *uti, NSMutableArray **outAppURLs)
 {
     sqlite3 *pDB = 0;
-    if(sqlite3_open(LS_DATABASE, &pDB) != SQLITE_OK) {
+    NSString *dbPath = [[[NSPlatform currentPlatform] libraryDirectory]
+        stringByAppendingString:LS_DATABASE]; 
+    if(sqlite3_open([dbPath UTF8String], &pDB) != SQLITE_OK) {
         sqlite3_close(pDB);
         return kLSServerCommunicationErr; // FIXME: log error somewhere
     }
@@ -177,7 +183,9 @@ static OSStatus _LSFindAppsForExtension(NSString *extension, NSMutableArray **ou
 
 static BOOL _LSAddRecordToDatabase(const LSAppRecord *appRecord, BOOL isUpdate) {
     sqlite3 *pDB = 0;
-    if(sqlite3_open(LS_DATABASE, &pDB) != SQLITE_OK) {
+    NSString *dbPath = [[[NSPlatform currentPlatform] libraryDirectory]
+        stringByAppendingString:LS_DATABASE]; 
+    if(sqlite3_open([dbPath UTF8String], &pDB) != SQLITE_OK) {
         sqlite3_close(pDB);
         return false; // FIXME: log error somewhere
     }
@@ -257,22 +265,37 @@ static OSStatus _LSOpenAllWithSpecifiedApp(const LSLaunchURLSpec *inLaunchSpec, 
             [args addObjectsFromArray:[appRecord arguments]];
         }
 
-        BOOL found = NO;
-        for(int i=0; i<[args count]; ++i) {
-            if([[args objectAtIndex:i] caseInsensitiveCompare:@"%U"] == NSOrderedSame) {
-                [args replaceObjectAtIndex:i withObject:[[(NSArray *)inLaunchSpec->itemURLs firstObject] absoluteString]];
-                found = YES;
-            }
-            if([[args objectAtIndex:i] caseInsensitiveCompare:@"%F"] == NSOrderedSame) {
-                [args replaceObjectAtIndex:i withObject:[[(NSArray *)inLaunchSpec->itemURLs firstObject] path]];
-                found = YES;
-            }
+        // Just open the app unless there are itemURLs
+        // Otherwise, launch the app with each one
+        if([(NSArray *)inLaunchSpec->itemURLs count] == 0) {
+            [args retain];
+            [NSTask launchedTaskWithLaunchPath:appPath arguments:args];
+            [args release];
+            return 0;
         }
 
-        if(found == NO)
-            [args addObject:[[(NSArray *)inLaunchSpec->itemURLs firstObject] path]];
-        [args retain];
-        [NSTask launchedTaskWithLaunchPath:appPath arguments:args];
+	NSEnumerator *items = [(NSArray *)inLaunchSpec->itemURLs objectEnumerator];
+        BOOL found = NO;
+
+	while(NSURL *item = [items nextObject]) {
+            NSMutableArray *copyargs = args;
+            for(int i=0; i<[copyargs count]; ++i) {
+                if([[copyargs objectAtIndex:i] caseInsensitiveCompare:@"%U"] == NSOrderedSame) {
+                    [copyargs replaceObjectAtIndex:i withObject:[item absoluteString]];
+                    found = YES;
+                }
+                if([[copyargs objectAtIndex:i] caseInsensitiveCompare:@"%F"] == NSOrderedSame) {
+                    [copyargs replaceObjectAtIndex:i withObject:[item path]];
+                    found = YES;
+                }
+            }
+
+            if(found == NO)
+                [copyargs addObject:[item path]];
+            [copyargs retain];
+            [NSTask launchedTaskWithLaunchPath:appPath arguments:copyargs];
+            [copyargs release];
+        }
         [args release];
     }
     return 0;
@@ -300,6 +323,26 @@ static BOOL _acceptsRole(NSString *role, LSRolesMask rolesMask)
     return NO;
 }
 
+BOOL LSIsNSBundle(NSURL *url)
+{
+    if([[url scheme] isEqualToString:@"file"] &&
+       [[url pathExtension] isEqualToString:@"app"])
+       return YES;
+    return NO;
+}
+
+BOOL LSIsAppDir(NSURL *url)
+{
+    if([[url scheme] isEqualToString:@"file"] &&
+       [[url pathExtension] caseInsensitiveCompare:@"appdir"] == NSOrderedSame) {
+        NSFileManager *fm = [NSFileManager defaultManager];
+        NSString *appRunPath = [[url URLByAppendingPathComponent:@"AppRun"] path];
+	if([fm fileExistsAtPath:appRunPath] && [fm isExecutableFileAtPath:appRunPath])
+	    return YES;
+    }
+    return NO;
+}
+
 //------------------------------------------------------------------------
 //    PUBLIC API
 //------------------------------------------------------------------------
@@ -315,7 +358,6 @@ OSStatus LSOpenCFURLRef(CFURLRef inURL, CFURLRef _Nullable *outLaunchedURL)
     CFRelease(spec.itemURLs);
     return rc;
 }
-
 
 OSStatus LSOpenFromURLSpec(const LSLaunchURLSpec *inLaunchSpec, CFURLRef _Nullable *outLaunchedURL)
 {
@@ -334,10 +376,18 @@ OSStatus LSOpenFromURLSpec(const LSLaunchURLSpec *inLaunchSpec, CFURLRef _Nullab
     NSURL *item;
 
     while(item = [items nextObject]) {
-        NSLog(@"item = %@", item);
-
-        if(/* item is app bundle */ 0) {
-            // launch it
+        if(LSIsNSBundle(item)) {
+            LSLaunchURLSpec spec;
+	    spec.appURL = (CFURLRef)item;
+	    spec.itemURLs = NULL;
+	    spec.launchFlags = kLSLaunchDefaults;
+	    _LSOpenAllWithSpecifiedApp(&spec, NULL);
+        } else if(LSIsAppDir(item)) {
+            LSLaunchURLSpec spec;
+	    spec.appURL = (CFURLRef)([item URLByAppendingPathComponent:@"AppRun"]);
+	    spec.itemURLs = NULL;
+	    spec.launchFlags = kLSLaunchDefaults;
+	    _LSOpenAllWithSpecifiedApp(&spec, NULL);
         } else {
             NSMutableArray *appCandidates;
             if(_LSFindAppsForExtension([item pathExtension], &appCandidates) == 0) {
@@ -446,3 +496,13 @@ OSStatus LSCanURLAcceptURL(CFURLRef inItemURL, CFURLRef inTargetURL, LSRolesMask
 
     return 0;
 }
+
+@implementation LaunchServices
+
+-init {
+    [super init];
+    NSLog(@"initializing LaunchServices");
+    return self;
+}
+
+@end
