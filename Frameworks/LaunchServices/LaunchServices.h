@@ -101,9 +101,6 @@ enum {
 typedef struct OpaqueLSSharedFileListRef *LSSharedFileListRef;
 typedef struct OpaqueLSSharedFileListItemRef *LSSharedFileListItemRef;
 
-@interface LaunchServices: NSObject
-@end
-
 #ifdef __cplusplus
 extern "C" {
 #endif
