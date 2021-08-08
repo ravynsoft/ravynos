@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kcfg xmlns="http://www.kde.org/standards/kcfg/1.0"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.kde.org/standards/kcfg/1.0
+      http://www.kde.org/standards/kcfg/1.0/kcfg.xsd" >
+  <kcfgfile name=""/>
+
+  <group name="Appearance">
+    <entry name="showLocalTimezone" type="Bool">
+      <label>Whether the timezone should be displayed when the clock is showing the local timezone.</label>
+      <default>false</default>
+    </entry>
+    <entry name="showSeconds" type="Bool">
+      <label>Whether seconds should be shown in the clock.</label>
+      <default>false</default>
+    </entry>
+    <entry name="showDate" type="Bool">
+      <label>Whether the date should be shown next to the clock.</label>
+      <default>false</default>
+    </entry>
+    <entry name="dateFormat" type="string">
+      <label>The date format to display. Options are: shortDate, longDate or isoDate.</label>
+      <default>shortDate</default>
+    </entry>
+    <entry name="fontFamily" type="string">
+      <label>Font family. e.g "arial". The system font is used if this is not set.</label>
+      <default></default>
+    </entry>
+    <entry name="boldText" type="Bool">
+      <label>Sets the font to bold.</label>
+      <default>false</default>
+    </entry>
+    <entry name="italicText" type="Bool">
+      <label>Sets the font to italic.</label>
+      <default>false</default>
+    </entry>
+    <entry name="timeFormat" type="string">
+      <default>default</default>
+    </entry>
+    <entry name="selectedTimeZones" type="StringList">
+      <label>A list of the time zones available on mouse wheel. Requires wheelChangesTimezone to be true. Format is "Europe/London". Special entry "Local" indicates system time zone.</label>
+      <default>Local</default>
+    </entry>
+    <entry name="lastSelectedTimezone" type="String">
+      <label>When multiple time zones are configured, this is the one shown on widget restore.</label>
+      <default>Local</default>
+    </entry>
+    <entry name="wheelChangesTimezone" type="Bool">
+      <label>Whether the mouse wheel switches between the timezones configured in selectedTimeZones.</label>
+      <default>false</default>
+    </entry>
+    <entry name="displayTimezoneAsCode" type="Bool">
+      <label>Whether the timezone is displayed as a code i.e. "GMT" or full text i.e. "London".</label>
+      <default>true</default>
+    </entry>
+    <entry name="showWeekNumbers" type="Bool">
+      <label>Whether the calendar should show week numbers.</label>
+      <default>false</default>
+    </entry>
+    <entry name="use24hFormat" type="UInt">
+      <label>Force the clock to use 12/24 hour time, instead of following the user locale.</label>
+      <default>1</default>
+    </entry>
+    <entry name="enabledCalendarPlugins" type="StringList">
+      <label>A list of plugins where additional calendar event data can be sourced.</label>
+      <default></default>
+    </entry>
+    <entry name="pin" type="Bool">
+      <label>Whether the popup should remain open when another window is activated</label>
+      <default>false</default>
+    </entry>
+    <entry name="checkUpdateStartup" type="Bool">
+      <label>Notify for update on startup</label>
+      <default>true</default>
+    </entry>
+  </group>
+</kcfg>

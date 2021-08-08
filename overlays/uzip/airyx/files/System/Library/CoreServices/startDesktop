@@ -151,7 +151,7 @@ export GTK_MODULES=appmenu-gtk-module
 ### "${HERE}"/dde-globalmenu-service & # gmenudbusmenuproxy without Plasma deps
 
 # Desktop
-/System/Library/CoreServices/Filer.app/Contents/Airyx/Filer --desktop &
+/System/Library/CoreServices/Filer.app/Contents/Airyx/Filer &
 konsole &
 
 # Wait for Menu to appear on D-Bus; this is needed for autostart to work properly
