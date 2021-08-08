@@ -44,9 +44,6 @@ NSString *LS_DATABASE = [[[NSPlatform currentPlatform] libraryDirectory] stringB
 // See https://developer.gnome.org/DBusApplicationLaunching/ and 
 // https://techbase.kde.org/Development/Tutorials/D-Bus/Autostart_Services
 
-// FIXME: add search fn and table uti: type, app URL, handler rank
-// FIXME: add search fn and table extension: ext, uti
-
 // FIXME: which error code to return for each case is just a guess
 
 // FIXME: stuff to track per application:

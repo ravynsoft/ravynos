@@ -68,7 +68,6 @@
 }
 
 -initWithDesktopFile:(NSString *)path {
-    NSLog(@"initWithDesktopFile %@",path);
     XdgDesktopFile df;
     if(!df.load([path UTF8String]) || !df.isValid() || df.type() != XdgDesktopFile::ApplicationType)
         return self;
@@ -87,16 +86,22 @@
 
     NSFileManager *fm = [NSFileManager defaultManager];
     if([execPath hasPrefix:@"/"] == NO) {
-        NSLog(@"not absolute - searching path");
-        NSDictionary *env = [[NSPlatform currentPlatform] environment];
         // search the PATH to find absolute path of this file
+        NSDictionary *env = [[NSPlatform currentPlatform] environment];
+	NSArray *paths = [[env objectForKey:@"PATH"] componentsSeparatedByString:@":"];
+	for(int i = 0; i < [paths count]; ++i) {
+	    NSString *entry = [paths objectAtIndex:i];
+	    if([fm fileExistsAtPath:[entry stringByAppendingPathComponent:execPath]]) {
+		execPath = [entry stringByAppendingPathComponent:execPath];
+		break;
+	    }
+	}
     }
 
     // Now we have the executable and args. Determine what this app can
     // accept and store them in _documentTypes. We do this by extracting
     // the MIME types and converting them to UTIs.
 
-    NSLog(@"name=%@ exec=%@ args=%@",_name,execPath,_arguments);
     return self;
 }
 
