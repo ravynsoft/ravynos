@@ -54,6 +54,9 @@ PreloadWeight=55
 immutability=1
 plugin=org.kde.kscreen
 
+[Containments][18][Applets][23][Configuration]
+PreloadWeight=55
+
 [Containments][18][Applets][24]
 immutability=1
 plugin=org.kde.plasma.keyboardlayout
@@ -70,7 +73,7 @@ immutability=1
 plugin=org.kde.plasma.systemtray
 
 [Containments][18][Applets][35][Configuration]
-PreloadWeight=70
+PreloadWeight=75
 SystrayContainmentId=36
 
 [Containments][18][Applets][44]
@@ -104,50 +107,6 @@ DialogWidth=1600
 
 [Containments][18][General]
 AppletOrder=19;20;35;24;23;21;47;44;25
-
-[Containments][2]
-activityId=
-formfactor=2
-immutability=1
-lastScreen=0
-location=4
-plugin=org.kde.panel
-wallpaperplugin=org.kde.image
-
-[Containments][2][Applets][3]
-immutability=1
-plugin=org.kde.plasma.kickoff
-
-[Containments][2][Applets][3][Configuration]
-PreloadWeight=100
-
-[Containments][2][Applets][3][Configuration][General]
-favoritesPortedToKAstats=true
-
-[Containments][2][Applets][3][Configuration][Shortcuts]
-global=Alt+F1
-
-[Containments][2][Applets][3][Shortcuts]
-global=Alt+F1
-
-[Containments][2][Applets][4]
-immutability=1
-plugin=org.kde.plasma.pager
-
-[Containments][2][Applets][5]
-immutability=1
-plugin=org.kde.plasma.icontasks
-
-[Containments][2][Applets][6]
-immutability=1
-plugin=org.kde.plasma.marginsseparator
-
-[Containments][2][ConfigDialog]
-DialogHeight=84
-DialogWidth=1600
-
-[Containments][2][General]
-AppletOrder=3;4;5;6
 
 [Containments][36]
 activityId=
