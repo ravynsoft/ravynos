@@ -303,6 +303,8 @@ pkg()
   mkdir -p "${packages}/transient"
   cd "${packages}/transient"
   rm -f *.txz # Make sure there are no leftover transient packages from earlier runs
+  splashqml="${cwd}/overlays/uzip/airyx/files/usr/share/plasma/look-and-feel/Airyx/contents/splash/Splash.qml" 
+  sed -e "s@__CODENAME__@${AIRYX_CODENAME}@" -e "s@__VERSION__@${AIRYX_VERSION}@" < "${splashqml}.in" > "${splashqml}"
   while read -r p; do
     sh -ex "${cwd}/scripts/build-pkg.sh" -m "${cwd}/overlays/uzip/${p}"/manifest -d "${cwd}/overlays/uzip/${p}/files"
   done <"${cwd}"/settings/overlays.common
