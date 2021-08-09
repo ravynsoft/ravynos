@@ -44,9 +44,6 @@ NSString *LS_DATABASE = [[[NSPlatform currentPlatform] libraryDirectory] stringB
 // See https://developer.gnome.org/DBusApplicationLaunching/ and 
 // https://techbase.kde.org/Development/Tutorials/D-Bus/Autostart_Services
 
-// FIXME: add search fn and table uti: type, app URL, handler rank
-// FIXME: add search fn and table extension: ext, uti
-
 // FIXME: which error code to return for each case is just a guess
 
 // FIXME: stuff to track per application:
@@ -56,12 +53,47 @@ NSString *LS_DATABASE = [[[NSPlatform currentPlatform] libraryDirectory] stringB
 //    INTERNAL FUNCTIONS - DON'T USE. SEE BELOW FOR PUBLIC API
 //------------------------------------------------------------------------
 
+static BOOL _LSInitializeDatabase()
+{
+    NSFileManager *fm = [NSFileManager defaultManager];
+    if([fm fileExistsAtPath:LS_DATABASE])
+        return true;
+
+    [fm createFileAtPath:LS_DATABASE contents:[NSData new] attributes:[NSDictionary new]];
+
+    sqlite3 *pDB = 0;
+    if(sqlite3_open([LS_DATABASE UTF8String], &pDB) != SQLITE_OK) {
+        sqlite3_close(pDB);
+        return false; // FIXME: log error somewhere
+    }
+    const char *query[] = {
+        "CREATE TABLE applications (url text, basename text, version int, apprecord blob);",
+	"CREATE TABLE typemap (uti text, application text, rank int);",
+	"CREATE TABLE extensions (ext text, uti text);",
+	"CREATE TABLE mimetypes (mimetype text, uti text);"
+    };
+
+    for(int i = 0; i < 4; ++i) {
+        const int length = strlen(query[i]);
+        sqlite3_stmt *stmt;
+        const char *tail;
+
+        if(sqlite3_prepare_v2(pDB, query[i], length, &stmt, &tail) != SQLITE_OK) {
+            sqlite3_close(pDB);
+            return false;
+        }
+
+        sqlite3_step(stmt);
+        sqlite3_finalize(stmt);
+    }
+    sqlite3_close(pDB);
+    return true;
+}
+
 static BOOL _LSFindRecordInDatabase(const NSURL *appURL, LSAppRecord **appRecord)
 {
     sqlite3 *pDB = 0;
-    NSString *dbPath = [[[NSPlatform currentPlatform] libraryDirectory]
-        stringByAppendingString:LS_DATABASE]; 
-    if(sqlite3_open([dbPath UTF8String], &pDB) != SQLITE_OK) {
+    if(sqlite3_open([LS_DATABASE UTF8String], &pDB) != SQLITE_OK) {
         sqlite3_close(pDB);
         return false; // FIXME: log error somewhere
     }
@@ -100,9 +132,7 @@ static BOOL _LSFindRecordInDatabase(const NSURL *appURL, LSAppRecord **appRecord
 static BOOL _LSFileExtensionToUTI(NSString *ext, NSString **outUTI)
 {
     sqlite3 *pDB = 0;
-    NSString *dbPath = [[[NSPlatform currentPlatform] libraryDirectory]
-        stringByAppendingString:LS_DATABASE]; 
-    if(sqlite3_open([dbPath UTF8String], &pDB) != SQLITE_OK) {
+    if(sqlite3_open([LS_DATABASE UTF8String], &pDB) != SQLITE_OK) {
         sqlite3_close(pDB);
         return false; // FIXME: log error somewhere
     }
@@ -135,9 +165,7 @@ static BOOL _LSFileExtensionToUTI(NSString *ext, NSString **outUTI)
 static OSStatus _LSFindAppsForUTI(NSString *uti, NSMutableArray **outAppURLs)
 {
     sqlite3 *pDB = 0;
-    NSString *dbPath = [[[NSPlatform currentPlatform] libraryDirectory]
-        stringByAppendingString:LS_DATABASE]; 
-    if(sqlite3_open([dbPath UTF8String], &pDB) != SQLITE_OK) {
+    if(sqlite3_open([LS_DATABASE UTF8String], &pDB) != SQLITE_OK) {
         sqlite3_close(pDB);
         return kLSServerCommunicationErr; // FIXME: log error somewhere
     }
@@ -183,9 +211,7 @@ static OSStatus _LSFindAppsForExtension(NSString *extension, NSMutableArray **ou
 
 static BOOL _LSAddRecordToDatabase(const LSAppRecord *appRecord, BOOL isUpdate) {
     sqlite3 *pDB = 0;
-    NSString *dbPath = [[[NSPlatform currentPlatform] libraryDirectory]
-        stringByAppendingString:LS_DATABASE]; 
-    if(sqlite3_open([dbPath UTF8String], &pDB) != SQLITE_OK) {
+    if(sqlite3_open([LS_DATABASE UTF8String], &pDB) != SQLITE_OK) {
         sqlite3_close(pDB);
         return false; // FIXME: log error somewhere
     }
@@ -361,6 +387,8 @@ OSStatus LSOpenCFURLRef(CFURLRef inURL, CFURLRef _Nullable *outLaunchedURL)
 
 OSStatus LSOpenFromURLSpec(const LSLaunchURLSpec *inLaunchSpec, CFURLRef _Nullable *outLaunchedURL)
 {
+    _LSInitializeDatabase();
+
     if(inLaunchSpec->appURL) {
         // We are launching this specific application which must be a file URL
         return _LSOpenAllWithSpecifiedApp(inLaunchSpec, outLaunchedURL);
@@ -408,6 +436,7 @@ OSStatus LSRegisterURL(CFURLRef inURL, Boolean inUpdate)
     // Per Apple, inURL must be a file URL that refers to an app bundle
     // or executable. This version will also accept a .desktop file as
     // a special case.
+    _LSInitializeDatabase();
 
     NSURL *appURL = (NSURL *)inURL;
     if([appURL isFileURL] == NO)
@@ -449,6 +478,7 @@ OSStatus LSRegisterURL(CFURLRef inURL, Boolean inUpdate)
 OSStatus LSCanURLAcceptURL(CFURLRef inItemURL, CFURLRef inTargetURL, LSRolesMask inRoleMask, LSAcceptanceFlags inFlags, Boolean *outAcceptsItem)
 {
     *outAcceptsItem = NO;
+    _LSInitializeDatabase();
 
     NSURL *appURL = (NSURL *)inTargetURL;
     if([appURL isFileURL] == NO)
@@ -496,13 +526,3 @@ OSStatus LSCanURLAcceptURL(CFURLRef inItemURL, CFURLRef inTargetURL, LSRolesMask
 
     return 0;
 }
-
-@implementation LaunchServices
-
--init {
-    [super init];
-    NSLog(@"initializing LaunchServices");
-    return self;
-}
-
-@end

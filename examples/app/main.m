@@ -6,7 +6,7 @@ int main(int argc, const char *argv[])
     __NSInitializeProcess(argc, argv);
 
 	NSString *appName = [[NSProcessInfo processInfo] processName];
-    NSAutoreleasePool *pool = [NSAutoreleasePool new];
+        NSAutoreleasePool *pool = [NSAutoreleasePool new];
 
 	NSBundle *main = [[NSBundle mainBundle] autorelease];
 	NSString *path = [[main pathForResource:@"sample" ofType:@"txt" inDirectory:@"rsc"]
@@ -15,18 +15,18 @@ int main(int argc, const char *argv[])
 	NSString *text = [[[NSString alloc] initWithData:[fm contentsAtPath:path]
 		encoding:NSASCIIStringEncoding] autorelease];
 
-    [NSApplication sharedApplication];
+        [NSApplication sharedApplication];
 
 	NSMenu *menubar = [[NSMenu new] autorelease];
 	NSMenuItem *appMenuItem = [[NSMenuItem new] autorelease];
 	NSMenuItem *fileMenuItem = [[NSMenuItem new] autorelease];
-    NSMenuItem *windowsMenuItem = [[NSMenuItem new] autorelease];
+        NSMenuItem *windowsMenuItem = [[NSMenuItem new] autorelease];
 	[menubar addItem:appMenuItem];
 	[menubar addItem:fileMenuItem];
-    [menubar addItem:windowsMenuItem];
+        [menubar addItem:windowsMenuItem];
 	[appMenuItem setTitle:appName];
-    [fileMenuItem setTitle:@"File"];
-    [windowsMenuItem setTitle:@"Window"];
+        [fileMenuItem setTitle:@"File"];
+        [windowsMenuItem setTitle:@"Window"];
 
 	NSMenu *appMenu = [[NSMenu new] autorelease];
 	NSMenuItem *quitMenuItem = [[[NSMenuItem alloc]
