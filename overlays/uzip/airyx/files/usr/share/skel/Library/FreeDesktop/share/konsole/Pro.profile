@@ -6,7 +6,7 @@ Font=Source Code Pro,10,-1,5,50,0,0,0,0,0
 DefaultEncoding=UTF-8
 
 [General]
-Name=Profile 1
+Name=Pro
 Parent=FALLBACK/
 StartInCurrentSessionDir=true
 
