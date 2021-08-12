@@ -9,6 +9,7 @@ AIRYX_CODENAME != tail -1 ${TOPDIR}/version.txt
 MKINCDIR := -m/usr/share/mk -m${TOPDIR}/mk
 CORES != sysctl -n hw.ncpu
 SUDO != test "$$USER" == "root" && echo "" || echo "sudo"
+PKGDATE!= date "+%Y%m%d"
 
 .export TOPDIR OBJPREFIX BUILDROOT PORTSROOT AIRYX_VERSION AIRYX_CODENAME MKINCDIR CORES SUDO
 
@@ -71,7 +72,8 @@ prepports:
 	mkdir -p ${PORTSROOT}/etc ${PORTSROOT}/var/run ${PORTSROOT}/usr/sbin
 	${SUDO} cp -f ${TOPDIR}/make.conf ${TOPDIR}/resolv.conf ${PORTSROOT}/etc/
 	${SUDO} cp -f /var/run/ld-elf.so.hints ${PORTSROOT}/var/run
-	${SUDO} cp -f /usr/local/sbin/pkg-static ${PORTSROOT}/usr/sbin
+	${SUDO} cp -f /usr/sbin/pkg-static ${PORTSROOT}/usr/sbin || true
+	if [ ! -f ${PORTSROOT}/usr/sbin/pkg-static ]; then ${SUDO} cp ${PORTSROOT}/usr/sbin/pkg ${PORTSROOT}/usr/sbin/pkg-static; fi
 	if [ ! -f ${TOPDIR}/dist/base.txz ]; then fetch -o ${TOPDIR}/dist/base.txz https://dl.cloudsmith.io/public/airyx/core/raw/files/base.txz; fi
 	${SUDO} tar xvf ${TOPDIR}/dist/base.txz -C ${PORTSROOT}
 	${SUDO} ln -s libncurses.so ${PORTSROOT}/usr/lib/libncurses.so.6
@@ -97,8 +99,8 @@ buildports: zsh xorg plasma misc misc2 misc3
 
 makepackages:
 	${SUDO} rm -rf /usr/ports/packages
-	${SUDO} mkdir -p /usr/ports/packages
-	${SUDO} mount_nullfs /usr/ports/packages ${PORTSROOT}/mnt
+	${SUDO} mkdir -p /usr/ports/packages/${PKGDATE}
+	${SUDO} mount_nullfs /usr/ports/packages/${PKGDATE} ${PORTSROOT}/mnt
 	${SUDO} chroot ${PORTSROOT} /bin/sh -c '/usr/sbin/pkg-static create -a -o /mnt'
 	${SUDO} umount ${PORTSROOT}/mnt
 	${SUDO} pkg repo -o /usr/ports/packages /usr/ports/packages
