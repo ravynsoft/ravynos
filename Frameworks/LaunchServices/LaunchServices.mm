@@ -29,6 +29,7 @@
 #import "LSAppRecord.h"
 
 #include <sqlite3.h>
+#include <stdio.h>
 
     
 NSString *LS_DATABASE = [[[NSPlatform currentPlatform] libraryDirectory] stringByAppendingString:@"/db/launchservices.db"];
@@ -85,6 +86,29 @@ static BOOL _LSInitializeDatabase()
 
         sqlite3_step(stmt);
         sqlite3_finalize(stmt);
+    }
+
+    // Load the extension and mime mappings now that our tables are ready
+    NSString *sqlPath = [[NSBundle bundleForClass:[LaunchServices class]] pathForResource:@"UTTypes" ofType:@"sql"];
+    if(sqlPath == nil) {
+    	NSLog(@"ERROR: cannot find UTTypes.sql to init launchservices.db");
+    } else {
+        sqlite3_stmt *stmt;
+        const char *tail;
+        FILE *sql = fopen([sqlPath UTF8String], "r");
+	size_t length;
+	char *line = fgetln(sql, &length);
+
+	while(length > 0) {
+	    if(sqlite3_prepare_v2(pDB, line, length, &stmt, &tail) != SQLITE_OK) {
+	    	sqlite3_close(pDB);
+		fclose(sql);
+		return false;
+	    }
+	    sqlite3_step(stmt);
+	    sqlite3_finalize(stmt);
+	    line = fgetln(sql, &length);
+	}
     }
     sqlite3_close(pDB);
     return true;
@@ -526,3 +550,7 @@ OSStatus LSCanURLAcceptURL(CFURLRef inItemURL, CFURLRef inTargetURL, LSRolesMask
 
     return 0;
 }
+
+@implementation LaunchServices
+@end
+
