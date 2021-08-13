@@ -261,6 +261,7 @@ INSERT INTO conformance VALUES ('public.disk-image', 'public.archive');
 INSERT INTO conformance VALUES ('public.text', 'public.content,public.data');
 INSERT INTO conformance VALUES ('public.plain-text', 'public.text');
 INSERT INTO conformance VALUES ('public.utf8-plain-text', 'public.plain-text');
+INSERT INTO conformance VALUES ('public.utf16-external-plain-text', 'public.plain-text');
 INSERT INTO conformance VALUES ('public.utf16-plain-text', 'public.plain-text');
 INSERT INTO conformance VALUES ('com.apple.traditional-mac-plain-text', 'public.plain-text');
 INSERT INTO conformance VALUES ('public.rtf', 'public.text');
