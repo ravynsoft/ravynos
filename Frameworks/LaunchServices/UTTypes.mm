@@ -22,7 +22,11 @@
  * THE SOFTWARE.
  */
 
+#import <Foundation/Foundation.h>
 #import "UTTypes.h"
+#include <sqlite3.h>
+
+extern NSString *LS_DATABASE;
 
 Boolean UTTypeEqual(CFStringRef inUTI1, CFStringRef inUTI2)
 {
@@ -32,9 +36,57 @@ Boolean UTTypeConformsTo(CFStringRef inUTI1, CFStringRef inUTI2)
 {
 }
 
-CFStringRef UTTypeCreatePreferredIdentifierForTag(CFStringRef inTagClass,
+// FIXME: `inConformingToUTI` is currently ignored
+COREFOUNDATION_EXPORT CFStringRef UTTypeCreatePreferredIdentifierForTag(CFStringRef inTagClass,
 	CFStringRef inTag, CFStringRef inConformingToUTI)
 {
+    sqlite3 *pDB = 0;
+    if(sqlite3_open([LS_DATABASE UTF8String], &pDB) != SQLITE_OK) {
+        sqlite3_close(pDB);
+        return CFSTR(""); // FIXME: log error somewhere
+    }
+
+    char *column = "pboards";
+    if(CFStringCompare(inTagClass, kUTTagClassFilenameExtension, 0) == NSOrderedSame)
+    	column = "extensions";
+    else if(CFStringCompare(inTagClass, kUTTagClassMIMEType, 0) == NSOrderedSame)
+        column = "mimetypes";
+    else if(CFStringCompare(inTagClass, kUTTagClassOSType, 0) == NSOrderedSame)
+        column = "ostypes";
+    
+    NSMutableString *qtemplate = [NSMutableString stringWithCString:"SELECT * FROM types WHERE _column_ LIKE ? || ',%' OR _column_ LIKE '%,' || ? OR _column_ LIKE '%,' || ? || ',%' OR _column_ = ?"];
+    [qtemplate replaceOccurrencesOfString:@"_column_" withString:[NSString stringWithCString:column] options:NSLiteralSearch range:NSMakeRange(0,[qtemplate length])];
+    const char *query = [qtemplate UTF8String];
+    const int length = [qtemplate length];
+    sqlite3_stmt *stmt;
+    const char *tail;
+
+    if(sqlite3_prepare_v2(pDB, query, length, &stmt, &tail) != SQLITE_OK) {
+        sqlite3_close(pDB);
+        return CFSTR("");
+    }
+
+    const char *tag = CFStringGetCStringPtr(inTag, kCFStringEncodingUTF8);
+    int taglen = CFStringGetLength(inTag);
+
+    if(sqlite3_bind_text(stmt, 1, tag, taglen, SQLITE_STATIC) != SQLITE_OK
+        || sqlite3_bind_text(stmt, 2, tag, taglen, SQLITE_STATIC) != SQLITE_OK
+        || sqlite3_bind_text(stmt, 3, tag, taglen, SQLITE_STATIC) != SQLITE_OK
+        || sqlite3_bind_text(stmt, 4, tag, taglen, SQLITE_STATIC) != SQLITE_OK)
+    {
+        sqlite3_finalize(stmt);
+        sqlite3_close(pDB);
+        return CFSTR("");
+    }
+
+    int rc = sqlite3_step(stmt);
+    NSString *uti = nil;
+    if(rc == SQLITE_ROW)
+    	uti = [NSString stringWithCString:sqlite3_column_text(stmt, 0)];
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(pDB);
+    return (CFStringRef)uti;
 }
 
 CFArrayRef UTTypeCreateAllIdentifiersForTag(CFStringRef inTagClass,

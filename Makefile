@@ -61,6 +61,7 @@ getports:
 	${SUDO} cp -f ${TOPDIR}/patches/patch-webcamd-Makefile /usr/ports/multimedia/webcamd/files/
 	${SUDO} mkdir -p /usr/ports/audio/lilv/files
 	${SUDO} cp -f ${TOPDIR}/patches/patch-waflib_extras_autowaf.py /usr/ports/audio/lilv/files/
+	${SUDO} cp -f ${TOPDIR}/patches/patch-libsysinfo_Makefile /usr/ports/devel/libsysinfo/files/
 	${SUDO} mkdir -p /usr/ports/distfiles
 
 # Prepare the chroot jail for our ports builds
