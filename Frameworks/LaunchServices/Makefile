@@ -3,7 +3,7 @@
 FRAMEWORK=LaunchServices
 SRCS= LaunchServices.mm LSAppRecord.mm
 INCS= LaunchServices.h
-RESOURCES= Info.plist UTTypes.sql
+RESOURCES= Info.plist InitDB.sql
 QT5CFLAGS!= pkg-config --cflags Qt5Xdg
 QT5LDFLAGS!= pkg-config --libs Qt5Xdg
 CFLAGS+= ${FMWK_CFLAGS} -I.. -I../libobjc2 -I../Foundation/Headers ${QT5CFLAGS}

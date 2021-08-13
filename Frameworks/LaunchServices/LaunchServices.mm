@@ -67,31 +67,11 @@ static BOOL _LSInitializeDatabase()
         sqlite3_close(pDB);
         return false; // FIXME: log error somewhere
     }
-    const char *query[] = {
-        "CREATE TABLE applications (url text, basename text, version int, apprecord blob);",
-	"CREATE TABLE typemap (uti text, application text, rank int);",
-	"CREATE TABLE extensions (ext text, uti text);",
-	"CREATE TABLE mimetypes (mimetype text, uti text);"
-    };
 
-    for(int i = 0; i < 4; ++i) {
-        const int length = strlen(query[i]);
-        sqlite3_stmt *stmt;
-        const char *tail;
-
-        if(sqlite3_prepare_v2(pDB, query[i], length, &stmt, &tail) != SQLITE_OK) {
-            sqlite3_close(pDB);
-            return false;
-        }
-
-        sqlite3_step(stmt);
-        sqlite3_finalize(stmt);
-    }
-
-    // Load the extension and mime mappings now that our tables are ready
-    NSString *sqlPath = [[NSBundle bundleForClass:[LaunchServices class]] pathForResource:@"UTTypes" ofType:@"sql"];
+    // Create and populate the DB from our resource file
+    NSString *sqlPath = [[NSBundle bundleForClass:[LaunchServices class]] pathForResource:@"InitDB" ofType:@"sql"];
     if(sqlPath == nil) {
-    	NSLog(@"ERROR: cannot find UTTypes.sql to init launchservices.db");
+    	NSLog(@"ERROR: cannot find InitDB.sql to init launchservices.db");
     } else {
         sqlite3_stmt *stmt;
         const char *tail;

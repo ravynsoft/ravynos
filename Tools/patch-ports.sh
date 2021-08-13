@@ -125,7 +125,7 @@ sed -i_ -e 's@USES=.*@&\nCMAKE_ARGS+= -DCMAKE_INSTALL_MANDIR=${MANPREFIX}/man@' 
 sed -i_ -e '/${LOCALBASE}\/etc/,+1d' /usr/ports/sysutils/signon-qt5/Makefile
 sed -i_ -e 's@%%SASLDB%%man@%%SASLDB%%%%MANPREFIX%%/man@' /usr/ports/security/cyrus-sasl2/pkg-plist
 sed -i_ -e 's@${PREFIX}/etc@/etc@g' /usr/ports/security/cyrus-sasl2/Makefile.common
-sed -i_ -e 's@CONFIGURE_ARGS=@& --sysconfdir=/etc --mandir=${MANPREFIX}/man @' /usr/ports/net/openldap24-server/Makefile
+sed -i_ -e 's@--disable-slapd@& --sysconfdir=/etc --mandir=${MANPREFIX}/man @' /usr/ports/net/openldap24-server/Makefile
 sed -i_ -e 's@^man@%%MANPREFIX%%/man@' /usr/ports/net/openldap24-server/pkg-plist.client
 sed -i_ -e 's@%%man@%%%%MANPREFIX%%/man@' /usr/ports/sysutils/upower/pkg-plist /usr/ports/graphics/jasper/pkg-plist /usr/ports/graphics/lcms/pkg-plist /usr/ports/net/samba412/pkg-plist
 sed -i_ -e 's@CONFIGURE_ARGS=@& --sysconfdir=/etc @' /usr/ports/sysutils/upower/Makefile
