@@ -161,6 +161,10 @@ sed -i_ -e 's@%%FCDIR@/&@' /usr/ports/x11-fonts/dejavu/pkg-plist
 sed -i_ -e 's@etc@/etc@;s@${PREFIX}/${CONF@${CONF@g' /usr/ports/x11-fonts/wqy/Makefile
 sed -i_ -e 's@${PREFIX}/man@${MANPREFIX}/man@;s@^post-patch:@LIBLZMA_LIBS+= -llz4\n&\n\tsed -i_ -e "s,^etcdir.*,etcdir=/etc," ${WRKSRC}/mk/defs.mk.in@;s@--mandir=@--sysconfdir=/etc &@' -e 's@post-install:@pre-install:\n\tmkdir -p ${STAGEDIR}/etc ${STAGEDIR}/usr/libdata/ldconfig\n&@' /usr/ports/ports-mgmt/pkg/Makefile
 sed -i_ -e 's@man/man3@${MANPREFIX}/&@' /usr/ports/devel/libsysinfo/Makefile
+sed -i_ '5,13d' /usr/ports/math/qhull/files/patch-CMakeLists.txt
+rm -f /usr/ports/math/qhull/files/patch-CMakeLists.txt_
+sed -i_ -e '/INSTALL_MAN/s@PREFIX@MANPREFIX@' /usr/ports/archivers/minizip/Makefile
+sed -i_ -e '$s@^.*$@CMAKE_ARGS+=\t-DCMAKE_INSTALL_MANDIR=${MANPREFIX}/man\n&@' /usr/ports/math/cgal/Makefile
 
 # Port out of date?
 sed -i_ -e 's@2391904@2446510@' -e 's@a65b84821765cfd4bb8bf8c05e4279a9d81130da4eb8741ef2690064c57610cf@1eaa672dfa1ac921c795117b29b830eb84902a66248ef08d461f093305e2aaf5@' /usr/ports/math/lapack/distinfo
