@@ -158,17 +158,32 @@ Boolean UTTypeConformsTo(CFStringRef inUTI1, CFStringRef inUTI2)
     return false;
 }
 
-// FIXME: `inConformingToUTI` is currently ignored
-COREFOUNDATION_EXPORT CFStringRef UTTypeCreatePreferredIdentifierForTag(CFStringRef inTagClass,
+CFStringRef UTTypeCreatePreferredIdentifierForTag(CFStringRef inTagClass,
 	CFStringRef inTag, CFStringRef inConformingToUTI)
 {
     CFArrayRef result = UTTypeCreateAllIdentifiersForTag(inTagClass, inTag, inConformingToUTI);
-    if(result != (CFArrayRef)0) {
-        CFStringRef uti = CFStringCreateCopy(NULL, (CFStringRef)CFArrayGetValueAtIndex(result, 0));
+    if(result == (CFArrayRef)0) {
+	// FIXME: create a dynamic type
+	return (CFStringRef)0;
+    }
+
+    if(inConformingToUTI == NULL) {
+	CFStringRef uti = CFStringCreateCopy(NULL, (CFStringRef)CFArrayGetValueAtIndex(result, 0));
 	CFRelease(result);
 	return uti;
     }
-    return (CFStringRef)0;
+
+    for(int x = 0; x < CFArrayGetCount(result); ++x) {
+	CFStringRef uti = CFStringCreateCopy(NULL, (CFStringRef)CFArrayGetValueAtIndex(result, x));
+	if(UTTypeConformsTo(uti, inConformingToUTI)) {
+	    CFRelease(result);
+	    return uti;
+	}
+	CFRelease(uti);
+    }
+
+    CFRelease(result);
+    return (CFStringRef)0; // FIXME: create a dynamic type
 }
 
 CFArrayRef UTTypeCreateAllIdentifiersForTag(CFStringRef inTagClass,
@@ -180,7 +195,7 @@ CFArrayRef UTTypeCreateAllIdentifiersForTag(CFStringRef inTagClass,
         return (CFArrayRef)0; // FIXME: log error somewhere
     }
 
-    char *column = "pboards";
+    const char *column = "pboards";
     if(CFStringCompare(inTagClass, kUTTagClassFilenameExtension, 0) == NSOrderedSame)
     	column = "extensions";
     else if(CFStringCompare(inTagClass, kUTTagClassMIMEType, 0) == NSOrderedSame)
@@ -236,7 +251,7 @@ CFArrayRef UTTypeCopyAllTagsWithClass(CFStringRef inUTI,
         return (CFArrayRef)0; // FIXME: log error somewhere
     }
 
-    char *column = "pboards";
+    const char *column = "pboards";
     if(CFStringCompare(inTagClass, kUTTagClassFilenameExtension, 0) == NSOrderedSame)
     	column = "extensions";
     else if(CFStringCompare(inTagClass, kUTTagClassMIMEType, 0) == NSOrderedSame)

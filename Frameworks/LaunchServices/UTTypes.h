@@ -26,14 +26,14 @@
 #import <CoreFoundation/CFArray.h>
 #import <CoreFoundation/CFURL.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 const CFStringRef kUTTagClassFilenameExtension = CFSTR("kUTTagClassFilenameExtension");
 const CFStringRef kUTTagClassMIMEType = CFSTR("kUTTagClassMIMEType");
 const CFStringRef kUTTagClassNSPboardType = CFSTR("kUTTagClassNSPboardType");
 const CFStringRef kUTTagClassOSType = CFSTR("kUTTagClassOSType");
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 Boolean UTTypeEqual(CFStringRef inUTI1, CFStringRef inUTI2);
 Boolean UTTypeConformsTo(CFStringRef inUTI1, CFStringRef inUTI2);
