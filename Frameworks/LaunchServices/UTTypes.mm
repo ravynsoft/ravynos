@@ -24,16 +24,138 @@
 
 #import <Foundation/Foundation.h>
 #import "UTTypes.h"
+#import "UTTypes-private.h"
 #include <sqlite3.h>
 
 extern NSString *LS_DATABASE;
 
 Boolean UTTypeEqual(CFStringRef inUTI1, CFStringRef inUTI2)
 {
+    // Dynamic Type. Equal if all tags in UTI1 exist in UTI2
+    if(CFStringHasPrefix(inUTI1, CFSTR("dyn."))) {
+	CFArrayRef allTags1 = CFArrayCreateMutable(NULL, 10, NULL);
+	CFArrayRef allTags2 = CFArrayCreateMutable(NULL, 10, NULL);
+
+	CFArrayRef tags = UTTypeCopyAllTagsWithClass(inUTI1, kUTTagClassFilenameExtension);
+	if(tags != (CFArrayRef)0) {
+	    CFArrayAppendArray(allTags1, tags, CFRangeMake(0, CFArrayGetCount(tags)));
+	    CFRelease(tags);
+	}
+	tags = UTTypeCopyAllTagsWithClass(inUTI1, kUTTagClassMIMEType);
+	if(tags != (CFArrayRef)0) {
+	    CFArrayAppendArray(allTags1, tags, CFRangeMake(0, CFArrayGetCount(tags)));
+	    CFRelease(tags);
+	}
+
+	tags = UTTypeCopyAllTagsWithClass(inUTI2, kUTTagClassFilenameExtension);
+	if(tags != (CFArrayRef)0) {
+	    CFArrayAppendArray(allTags2, tags, CFRangeMake(0, CFArrayGetCount(tags)));
+	    CFRelease(tags);
+	}
+	tags = UTTypeCopyAllTagsWithClass(inUTI2, kUTTagClassMIMEType);
+	if(tags != (CFArrayRef)0) {
+	    CFArrayAppendArray(allTags2, tags, CFRangeMake(0, CFArrayGetCount(tags)));
+	    CFRelease(tags);
+	}
+
+	if(CFArrayGetCount(allTags1) > CFArrayGetCount(allTags2)) {
+	    CFRelease(allTags1);
+	    CFRelease(allTags2);
+	    return false; // more types in dynamic UTI means it is not equal!
+	}
+
+	for(int x = 0; x < CFArrayGetCount(allTags1); ++x) {
+	    CFStringRef dyntag = (CFStringRef)CFArrayGetValueAtIndex(allTags1, 0);
+	    if(!CFArrayContainsValue(allTags2, CFRangeMake(0, CFArrayGetCount(allTags2)), dyntag)) {
+		CFRelease(allTags1);
+		CFRelease(allTags2);
+		return false; // dynamic UTI contains tag not in UTI2
+	    }
+	}
+	return true;
+    }
+
+    // Defined Type. Equal if strings are identical.
+    return (CFStringCompare(inUTI1, inUTI2, 0) == NSOrderedSame);
+}
+
+CFArrayRef UTTypeCopyConformsTo(CFStringRef inUTI)
+{
+    sqlite3 *pDB = 0;
+    if(sqlite3_open([LS_DATABASE UTF8String], &pDB) != SQLITE_OK) {
+        sqlite3_close(pDB);
+        return (CFArrayRef)0; // FIXME: log error somewhere
+    }
+
+    const char *query = "SELECT conforms FROM types WHERE uti = ?";
+    sqlite3_stmt *stmt;
+    const char *tail;
+    if(sqlite3_prepare_v2(pDB, query, strlen(query), &stmt, &tail) != SQLITE_OK) {
+        sqlite3_close(pDB);
+        return (CFArrayRef)0;
+    }
+
+    const char *uti = CFStringGetCStringPtr(inUTI, kCFStringEncodingUTF8);
+    int len = CFStringGetLength(inUTI);
+
+    if(sqlite3_bind_text(stmt, 1, uti, len, SQLITE_STATIC) != SQLITE_OK) {
+        sqlite3_finalize(stmt);
+        sqlite3_close(pDB);
+        return (CFArrayRef)0;
+    }
+
+    int rc = sqlite3_step(stmt);
+    CFArrayRef result = CFArrayCreateMutable(NULL, 5, NULL);
+    while(rc == SQLITE_ROW) {
+        CFArrayRef conforms = (CFArrayRef)[[NSString
+	    stringWithCString:(const char *)sqlite3_column_text(stmt, 0)]
+	    componentsSeparatedByString:@","];
+	CFArrayAppendArray(result, conforms, CFRangeMake(0, CFArrayGetCount(conforms)));
+	rc = sqlite3_step(stmt);
+    }
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(pDB);
+    return (CFArrayRef)CFRetain(result);
 }
 
 Boolean UTTypeConformsTo(CFStringRef inUTI1, CFStringRef inUTI2)
 {
+    CFArrayRef conformsUTI1 = UTTypeCopyConformsTo(inUTI1);
+
+    if(conformsUTI1 == (CFArrayRef)0)
+	return false;
+
+    for(int x = 0; x < CFArrayGetCount(conformsUTI1); ++x) {
+	CFStringRef uti = (CFStringRef)CFArrayGetValueAtIndex(conformsUTI1, x);
+	if(CFStringCompare(uti, inUTI2, 0) == NSOrderedSame) {
+	    CFRelease(conformsUTI1);
+	    return true;
+	}
+    }
+
+    // if UTI2 is not a direct ancestor of UTI1, we need to traverse the ancestors
+    // of UTI1 until we either find UTI2 or exhaust the list
+    CFArrayRef transits = CFArrayCreateMutable(NULL, 10, NULL);
+    CFArrayAppendArray(transits, conformsUTI1, CFRangeMake(0, CFArrayGetCount(conformsUTI1)));
+    CFRelease(conformsUTI1);
+
+    int elements = CFArrayGetCount(transits);
+    for(int x = 0; x < elements; ++x) {
+	CFStringRef xtype = (CFStringRef)CFArrayGetValueAtIndex(transits, x);
+	conformsUTI1 = UTTypeCopyConformsTo(xtype);
+	if(conformsUTI1 != (CFArrayRef)0) {
+	    CFArrayAppendArray(transits, conformsUTI1, CFRangeMake(0, CFArrayGetCount(conformsUTI1)));
+	    CFRelease(conformsUTI1);
+	    elements = CFArrayGetCount(transits);
+	}
+	if(UTTypeEqual(xtype, inUTI2)) {
+	    CFRelease(transits);
+	    return true;
+	}
+    }
+
+    return false;
 }
 
 // FIXME: `inConformingToUTI` is currently ignored
@@ -105,13 +227,13 @@ CFArrayRef UTTypeCreateAllIdentifiersForTag(CFStringRef inTagClass,
     return result;
 }
 
-CFStringRef UTTypeCopyPreferredTagWithClass(CFStringRef inUTI,
-	CFStringRef inTagClass)
+CFArrayRef UTTypeCopyAllTagsWithClass(CFStringRef inUTI,
+        CFStringRef inTagClass)
 {
     sqlite3 *pDB = 0;
     if(sqlite3_open([LS_DATABASE UTF8String], &pDB) != SQLITE_OK) {
         sqlite3_close(pDB);
-        return (CFStringRef)0; // FIXME: log error somewhere
+        return (CFArrayRef)0; // FIXME: log error somewhere
     }
 
     char *column = "pboards";
@@ -131,7 +253,7 @@ CFStringRef UTTypeCopyPreferredTagWithClass(CFStringRef inUTI,
 
     if(sqlite3_prepare_v2(pDB, query, length, &stmt, &tail) != SQLITE_OK) {
         sqlite3_close(pDB);
-        return (CFStringRef)0;
+        return (CFArrayRef)0;
     }
 
     const char *uti = CFStringGetCStringPtr(inUTI, kCFStringEncodingUTF8);
@@ -144,21 +266,34 @@ CFStringRef UTTypeCopyPreferredTagWithClass(CFStringRef inUTI,
     {
         sqlite3_finalize(stmt);
         sqlite3_close(pDB);
-        return (CFStringRef)0;
+        return (CFArrayRef)0;
     }
 
     int rc = sqlite3_step(stmt);
-    CFStringRef result = (CFStringRef)0;
+    CFArrayRef result = (CFArrayRef)0;
     if(rc == SQLITE_ROW) {
     	NSString *tagString = [NSString stringWithCString:(const char *)sqlite3_column_text(stmt, 0)];
 	NSArray *tags = [tagString componentsSeparatedByString:@","];
-	result = (CFStringRef)[tags firstObject];
+	result = (CFArrayRef)tags;
     }
 
     sqlite3_finalize(stmt);
     sqlite3_close(pDB);
-    return (CFStringRef)CFRetain(result);
+    return (CFArrayRef)CFRetain(result);
 
+}
+
+CFStringRef UTTypeCopyPreferredTagWithClass(CFStringRef inUTI,
+	CFStringRef inTagClass)
+{
+    CFArrayRef tags = UTTypeCopyAllTagsWithClass(inUTI, inTagClass);
+    CFStringRef result = (CFStringRef)0;
+    if(tags != (CFArrayRef)0) {
+	result = (CFStringRef)CFArrayGetValueAtIndex(tags, 0);
+	CFRetain(result);
+	CFRelease(tags);
+    }
+    return result;
 }
 
 // Not implemented yet

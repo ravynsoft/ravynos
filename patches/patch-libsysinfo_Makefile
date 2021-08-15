@@ -1,0 +1,11 @@
+--- Makefile.orig	2021-08-13 08:44:38.568644000 -0400
++++ Makefile	2021-08-13 08:45:13.016933000 -0400
+@@ -1,7 +1,7 @@
+ LIB		= sysinfo
+ LIBDIR		= ${PREFIX}/lib/
+ INCLUDEDIR 	= ${DESTDIR}/${PREFIX}/include/sys/
+-MANDIR		= ${DESTDIR}/${PREFIX}/man/man3
++MANDIR		= ${DESTDIR}/${PREFIX}/share/man/man3
+ SHLIB_MAJOR	= 0
+ WITHOUT_PROFILE = yes
+ MAKEOBJDIRPREFIX= /

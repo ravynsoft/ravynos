@@ -318,3 +318,13 @@ void CFStringInsert(CFMutableStringRef self, CFIndex idx, CFStringRef insertedSt
 	[(NSMutableString *)self insertString:ToNSString(insertedStr) atIndex:(NSUInteger)idx];
 }
 
+Boolean CFStringHasPrefix(CFStringRef self, CFStringRef prefix)
+{
+    return [ToNSString(self) hasPrefix:ToNSString(prefix)];
+}
+
+Boolean CFStringHasSuffix(CFStringRef self, CFStringRef suffix)
+{
+    return [ToNSString(self) hasSuffix:ToNSString(suffix)];
+}
+
