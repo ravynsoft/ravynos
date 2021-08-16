@@ -163,8 +163,8 @@ static OSStatus _LSFindAppsForUTI(NSString *uti, NSMutableArray **outAppURLs)
         return kLSApplicationNotFoundErr;
 
     for(; rc == SQLITE_ROW; rc = sqlite3_step(stmt)) {
-        NSString *url = [NSString stringWithCString:(const char *)sqlite3_column_text(stmt, 1)];
-        [*outAppURLs addObject:url];
+        NSString *url = [NSString stringWithCString:(const char *)sqlite3_column_text(stmt, 0)];
+        [*outAppURLs addObject:[NSURL URLWithString:url]];
     }
 
     sqlite3_finalize(stmt);
@@ -261,7 +261,7 @@ static BOOL _LSAddRecordToDatabase(const LSAppRecord *appRecord, BOOL isUpdate) 
 	    NSString *uti = [things objectAtIndex:x];	
 	
 	    if(sqlite3_bind_text(stmt, 1, [uti UTF8String], [uti length], SQLITE_STATIC) != SQLITE_OK
-		|| sqlite3_bind_text(stmt, 2, [[[appRecord URL] lastPathComponent] UTF8String], [[[appRecord URL] lastPathComponent] length], SQLITE_STATIC) != SQLITE_OK
+		|| sqlite3_bind_text(stmt, 2, [[[appRecord URL] absoluteString] UTF8String], [[[appRecord URL] absoluteString] length], SQLITE_STATIC) != SQLITE_OK
 		|| sqlite3_bind_int(stmt, 3, rank) != SQLITE_OK)
 	    {
 		sqlite3_finalize(stmt);
@@ -405,7 +405,7 @@ BOOL LSIsAppDir(NSURL *url)
 OSStatus LSOpenCFURLRef(CFURLRef inURL, CFURLRef _Nullable *outLaunchedURL)
 {
     LSLaunchURLSpec spec;
-    spec.appURL = inURL;
+    spec.appURL = 0;
     spec.asyncRefCon = 0;
     spec.itemURLs = CFArrayCreate(NULL, (const void **)&inURL, 1, NULL);
     spec.launchFlags = kLSLaunchDefaults;
@@ -446,12 +446,12 @@ OSStatus LSOpenFromURLSpec(const LSLaunchURLSpec *inLaunchSpec, CFURLRef _Nullab
 	    spec.launchFlags = kLSLaunchDefaults;
 	    _LSOpenAllWithSpecifiedApp(&spec, NULL);
         } else {
-            NSMutableArray *appCandidates;
+            NSMutableArray *appCandidates = [NSMutableArray arrayWithCapacity:6];
 	    NSString *uti = (NSString *)UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension,
 	    	(CFStringRef)[item pathExtension], NULL); 
             if(_LSFindAppsForUTI(uti, &appCandidates) == 0) {
                 LSLaunchURLSpec spec;
-                spec.appURL = (CFURLRef)[appCandidates firstObject];
+                spec.appURL = (CFURLRef)[[appCandidates firstObject] copy];
                 spec.itemURLs = (CFArrayRef)[NSArray arrayWithObject:item];
                 spec.launchFlags = kLSLaunchDefaults;
                 _LSOpenAllWithSpecifiedApp(&spec, NULL);
@@ -494,14 +494,17 @@ OSStatus LSRegisterURL(CFURLRef inURL, Boolean inUpdate)
     NSDictionary *attributes = [fm fileAttributesAtPath:appPath traverseLink:NO];
 
     // Does this app exist in the database already?
-    LSAppRecord *appRecord = [LSAppRecord new];
-    BOOL inDatabase = _LSFindRecordInDatabase(appURL, &appRecord);
+    LSAppRecord *appRecord = [[LSAppRecord alloc] initWithURL:appURL];
+    LSAppRecord *appRecordInDB = [LSAppRecord new];
+
+    // Use the parsed appRecord to handle .desktop files: the Exec=
+    // is not the same as the appURL. Sigh.
+    BOOL inDatabase = _LSFindRecordInDatabase([appRecord URL], &appRecordInDB);
 
     if(inDatabase == YES && inUpdate == NO && [appRecord modificationDate] == [attributes fileModificationDate])
         return 0; // Date hasn't changed and "force update" not specified
 
     // Either record did not exist, file has been modified, or an update is forced
-    [appRecord initWithURL:appURL];
     BOOL rc = _LSAddRecordToDatabase(appRecord, inDatabase);
     return (rc == true) ? 0 : kLSServerCommunicationErr;
 }
