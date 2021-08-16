@@ -24,6 +24,8 @@
 
 #import <LaunchServices/LSAppRecord.h>
 #import <Foundation/NSPlatform.h>
+#import <CoreFoundation/CFString.h>
+#import "UTTypes.h"
 #include <xdgdesktopfile.h>
 
 @implementation LSAppRecord
@@ -68,6 +70,7 @@
 }
 
 -initWithDesktopFile:(NSString *)path {
+    NSLog(@"initWithDesktopFile %@",path);
     XdgDesktopFile df;
     if(!df.load([path UTF8String]) || !df.isValid() || df.type() != XdgDesktopFile::ApplicationType)
         return self;
@@ -97,11 +100,34 @@
 	    }
 	}
     }
+    _URL = [[NSURL fileURLWithPath:execPath] retain];
 
     // Now we have the executable and args. Determine what this app can
     // accept and store them in _documentTypes. We do this by extracting
     // the MIME types and converting them to UTIs.
 
+    QStringList mimetypes = df.mimeTypes();
+    NSMutableArray *documentTypes = [NSMutableArray arrayWithCapacity:5];
+
+    for(QStringList::iterator iter = mimetypes.begin(); iter != mimetypes.end(); iter++) {
+	CFStringRef tag = CFStringCreateWithCString(NULL, iter->toUtf8(), kCFStringEncodingUTF8);
+	CFStringRef uti = UTTypeCreatePreferredIdentifierForTag(kUTTagClassMIMEType, tag, NULL);
+
+	if(uti != NULL) {
+	    NSMutableDictionary *aType = [NSMutableDictionary dictionaryWithCapacity:5];
+	    [aType setObject:(NSString*)tag forKey:@"CFBundleTypeName"];
+	    [aType setObject:@"Editor" forKey:@"CFBundleTypeRole"]; // FIXME: should it be Viewer?
+	    [aType setObject:@"Alternate" forKey:@"LSHandlerRank"];
+	    NSArray *types = [NSArray arrayWithObjects:(NSString*)uti,nil];
+	    [aType setObject:types forKey:@"LSItemContentTypes"];
+	    [documentTypes addObject:aType];
+	}
+
+	CFRelease(tag);
+    }
+
+    if([documentTypes count])
+    	_documentTypes = documentTypes;
     return self;
 }
 

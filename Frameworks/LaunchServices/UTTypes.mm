@@ -162,7 +162,7 @@ CFStringRef UTTypeCreatePreferredIdentifierForTag(CFStringRef inTagClass,
 	CFStringRef inTag, CFStringRef inConformingToUTI)
 {
     CFArrayRef result = UTTypeCreateAllIdentifiersForTag(inTagClass, inTag, inConformingToUTI);
-    if(result == (CFArrayRef)0) {
+    if(result == (CFArrayRef)0 || CFArrayGetCount(result) == 0) {
 	// FIXME: create a dynamic type
 	return (CFStringRef)0;
     }

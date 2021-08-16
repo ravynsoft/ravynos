@@ -83,7 +83,7 @@ prepports:
 	${SUDO} ${MAKE} -C ${.TARGET} DESTDIR=${PORTSROOT} install
 
 mountsrc:
-	${SUDO} mount_nullfs ${TOPDIR}/freebsd-src/ ${PORTSROOT}/usr/src
+	${SUDO} mount_nullfs ${TOPDIR}/../airyx-freebsd/ ${PORTSROOT}/usr/src
 
 umountsrc:
 	${SUDO} umount ${PORTSROOT}/usr/src

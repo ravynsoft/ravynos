@@ -27,6 +27,7 @@
 #import <CoreFoundation/CoreFoundation.h>
 #import <LaunchServices/LaunchServices.h>
 #import "LSAppRecord.h"
+#import "UTTypes.h"
 
 #include <sqlite3.h>
 #include <stdio.h>
@@ -133,39 +134,6 @@ static BOOL _LSFindRecordInDatabase(const NSURL *appURL, LSAppRecord **appRecord
     return (rc == SQLITE_ROW) ? true : false;
 }
 
-static BOOL _LSFileExtensionToUTI(NSString *ext, NSString **outUTI)
-{
-    sqlite3 *pDB = 0;
-    if(sqlite3_open([LS_DATABASE UTF8String], &pDB) != SQLITE_OK) {
-        sqlite3_close(pDB);
-        return false; // FIXME: log error somewhere
-    }
-    
-    const char *query = "SELECT uti FROM extensions WHERE ext=?";
-    const int length = strlen(query);
-    sqlite3_stmt *stmt;
-    const char *tail;
-
-    if(sqlite3_prepare_v2(pDB, query, length, &stmt, &tail) != SQLITE_OK) {
-        sqlite3_close(pDB);
-        return false;
-    }
-
-    if(sqlite3_bind_text(stmt, 1, [ext UTF8String], [ext length], SQLITE_STATIC) != SQLITE_OK) {
-        sqlite3_finalize(stmt);
-        sqlite3_close(pDB);
-        return false;
-    }
-
-    int rc = sqlite3_step(stmt);
-    if(rc == SQLITE_ROW)
-        *outUTI = [NSString stringWithCString:(const char *)sqlite3_column_text(stmt, 1)];
-
-    sqlite3_finalize(stmt);
-    sqlite3_close(pDB);
-    return (rc == SQLITE_ROW) ? true : false;
-}
-
 static OSStatus _LSFindAppsForUTI(NSString *uti, NSMutableArray **outAppURLs)
 {
     sqlite3 *pDB = 0;
@@ -204,15 +172,6 @@ static OSStatus _LSFindAppsForUTI(NSString *uti, NSMutableArray **outAppURLs)
     return 0;
 }
 
-// Returns a sorted list of apps that can accept "extension"
-static OSStatus _LSFindAppsForExtension(NSString *extension, NSMutableArray **outAppURLs)
-{
-    NSString *uti;
-    if(_LSFileExtensionToUTI(extension, &uti) == false)
-        return kLSDataUnavailableErr;
-    return _LSFindAppsForUTI(uti, outAppURLs);
-}
-
 static BOOL _LSAddRecordToDatabase(const LSAppRecord *appRecord, BOOL isUpdate) {
     sqlite3 *pDB = 0;
     if(sqlite3_open([LS_DATABASE UTF8String], &pDB) != SQLITE_OK) {
@@ -225,7 +184,7 @@ static BOOL _LSAddRecordToDatabase(const LSAppRecord *appRecord, BOOL isUpdate) 
         query = "UPDATE applications SET basename=?2, version=?3, apprecord=?4 WHERE url=?1";
     else
         query = "INSERT INTO applications (url,basename,version,apprecord) VALUES (?1,?2,?3,?4)";
-    const int length = strlen(query);
+    int length = strlen(query);
     sqlite3_stmt *stmt;
     const char *tail;
 
@@ -249,6 +208,72 @@ static BOOL _LSAddRecordToDatabase(const LSAppRecord *appRecord, BOOL isUpdate) 
         return false;
 
     sqlite3_finalize(stmt);
+
+    query = "DELETE FROM typemap WHERE application = ?";
+    length = strlen(query);
+
+    if(sqlite3_prepare_v2(pDB, query, length, &stmt, &tail) != SQLITE_OK) {
+        sqlite3_close(pDB);
+        return false;
+    }
+
+    if(sqlite3_bind_text(stmt, 1, [[[appRecord URL] absoluteString] UTF8String], [[[appRecord URL] absoluteString] length], SQLITE_STATIC) != SQLITE_OK) {
+        sqlite3_finalize(stmt);
+        sqlite3_close(pDB);
+        return false;
+    }
+
+    // we don't care if this one fails because there may not be records for this app
+    sqlite3_step(stmt); 
+    sqlite3_finalize(stmt);
+
+    query = "INSERT INTO typemap (uti,application,rank) VALUES (?,?,?)";
+    length = strlen(query);
+
+    NSEnumerator *docTypes = [[appRecord documentTypes] objectEnumerator];
+    while(NSDictionary *docType = [docTypes nextObject]) {
+	int rank = kLSRankAlternate;
+	NSString *nsrank = [docType objectForKey:@"LSHandlerRank"];
+	if([nsrank isEqualToString:@"Default"])
+	    rank = kLSRankDefault;
+	else if([nsrank isEqualToString:@"Owner"])
+	    rank = kLSRankOwner;
+
+	NSMutableArray *things = [docType objectForKey:kLSItemContentTypesKey];
+	if([things count] == 0) {
+	    // do the old keys exist?
+	    NSArray *extensions = [docType objectForKey:kCFBundleTypeExtensionsKey];
+	    for(int x = 0; x < [extensions count]; ++x) {
+		CFStringRef uti = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension,
+		    (CFStringRef)[extensions objectAtIndex:x], NULL);
+		if(uti)
+		    [things addObject:(id)uti];
+	    }
+	    // FIXME: also check for MIME Types key
+	}
+
+	for(int x = 0; x < [things count]; ++x) {
+	    if(sqlite3_prepare_v2(pDB, query, length, &stmt, &tail) != SQLITE_OK) {
+		sqlite3_close(pDB);
+		return false;
+	    }
+
+	    NSString *uti = [things objectAtIndex:x];	
+	
+	    if(sqlite3_bind_text(stmt, 1, [uti UTF8String], [uti length], SQLITE_STATIC) != SQLITE_OK
+		|| sqlite3_bind_text(stmt, 2, [[[appRecord URL] lastPathComponent] UTF8String], [[[appRecord URL] lastPathComponent] length], SQLITE_STATIC) != SQLITE_OK
+		|| sqlite3_bind_int(stmt, 3, rank) != SQLITE_OK)
+	    {
+		sqlite3_finalize(stmt);
+		sqlite3_close(pDB);
+		return false;
+	    }
+
+	    sqlite3_step(stmt);
+	    sqlite3_finalize(stmt);
+	}
+    }
+
     sqlite3_close(pDB);
     return true;
 }
@@ -422,7 +447,9 @@ OSStatus LSOpenFromURLSpec(const LSLaunchURLSpec *inLaunchSpec, CFURLRef _Nullab
 	    _LSOpenAllWithSpecifiedApp(&spec, NULL);
         } else {
             NSMutableArray *appCandidates;
-            if(_LSFindAppsForExtension([item pathExtension], &appCandidates) == 0) {
+	    NSString *uti = (NSString *)UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension,
+	    	(CFStringRef)[item pathExtension], NULL); 
+            if(_LSFindAppsForUTI(uti, &appCandidates) == 0) {
                 LSLaunchURLSpec spec;
                 spec.appURL = (CFURLRef)[appCandidates firstObject];
                 spec.itemURLs = (CFArrayRef)[NSArray arrayWithObject:item];
@@ -494,8 +521,8 @@ OSStatus LSCanURLAcceptURL(CFURLRef inItemURL, CFURLRef inTargetURL, LSRolesMask
 
     if([[(NSURL *)inItemURL scheme] isEqualToString:@"file"]) {
         NSString *ext = [(NSURL *)inItemURL pathExtension];
-        NSString *uti;
-        _LSFileExtensionToUTI(ext, &uti);
+        CFStringRef uti = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension,
+		(CFStringRef)ext, NULL);
 
         NSEnumerator *docTypes = [[appRecord documentTypes] objectEnumerator];
         NSDictionary *docType;
@@ -503,7 +530,7 @@ OSStatus LSCanURLAcceptURL(CFURLRef inItemURL, CFURLRef inTargetURL, LSRolesMask
         while(docType = [docTypes nextObject]) {
             NSArray *things = [docType objectForKey:kLSItemContentTypesKey];
             if([things count]) {
-                if(_acceptsThing(things, uti) && _acceptsRole([docType objectForKey:kCFBundleTypeRoleKey], inRoleMask)) {
+                if(_acceptsThing(things, (NSString*)uti) && _acceptsRole([docType objectForKey:kCFBundleTypeRoleKey], inRoleMask)) {
                     *outAcceptsItem = YES;
                     break;
                 }

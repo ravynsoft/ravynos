@@ -36,6 +36,8 @@
 
 +appRecordWithURL:(NSURL *)appURL;
 -initWithURL:(NSURL *)appURL;
+-initWithBundle:(NSBundle *)app;
+-initWithDesktopFile:(NSString *)path;
 
 -initWithCoder:(NSCoder *)coder;
 -(void)encodeWithCoder:(NSCoder *)coder;
