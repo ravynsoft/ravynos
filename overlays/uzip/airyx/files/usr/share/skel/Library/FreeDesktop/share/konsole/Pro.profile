@@ -6,9 +6,10 @@ Font=Source Code Pro,10,-1,5,50,0,0,0,0,0
 DefaultEncoding=UTF-8
 
 [General]
+Directory=~
 Name=Pro
 Parent=FALLBACK/
-StartInCurrentSessionDir=true
+StartInCurrentSessionDir=false
 
 [Interaction Options]
 MiddleClickPasteMode=1
