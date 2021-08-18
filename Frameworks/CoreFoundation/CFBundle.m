@@ -17,6 +17,17 @@ CFBundleRef CFBundleGetMainBundle(void) {
    return NSBundleToCFBundle([NSBundle mainBundle]);
 }
 
+CFBundleRef CFBundleCreate(CFAllocatorRef allocator, CFURLRef bundleURL) {
+    NSString *path = [((NSURL *)bundleURL) path];
+    NSBundle *bundle = [NSBundle bundleWithPath:path];
+    return NSBundleToCFBundle(bundle); //[NSBundle bundleWithPath:[(NSURL *)bundleURL absoluteString]]);
+}
+
+CFDictionaryRef CFBundleGetInfoDictionary(CFBundleRef self) {
+    NSDictionary *info = [(NSBundle*)self infoDictionary];
+    return (CFDictionaryRef)info;
+}
+
 CFTypeRef CFBundleGetValueForInfoDictionaryKey(CFBundleRef self,CFStringRef key) {
    return [CFBundleToNSBundle(self) objectForInfoDictionaryKey:(NSString *)key];
 }

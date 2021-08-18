@@ -32,12 +32,18 @@
 #include <sqlite3.h>
 #include <stdio.h>
 
-    
-NSString *LS_DATABASE = [[[NSPlatform currentPlatform] libraryDirectory] stringByAppendingString:@"/db/launchservices.db"];
-
 // #include <KIO/ApplicationLauncherJob>
 // #include <KIO/OpenUrlJob>
 // #include <KService>
+
+    
+NSString *LS_DATABASE = [[[NSPlatform currentPlatform] libraryDirectory] stringByAppendingString:@"/db/launchservices.db"];
+
+@interface LaunchServices: NSObject
+@end
+
+@implementation LaunchServices
+@end
 
 
 // FIXME: these should talk to a privileged service (maybe over DBus) but for now we'll
@@ -239,10 +245,10 @@ static BOOL _LSAddRecordToDatabase(const LSAppRecord *appRecord, BOOL isUpdate) 
 	else if([nsrank isEqualToString:@"Owner"])
 	    rank = kLSRankOwner;
 
-	NSMutableArray *things = [docType objectForKey:kLSItemContentTypesKey];
+	NSMutableArray *things = [docType objectForKey:(NSString *)kLSItemContentTypesKey];
 	if([things count] == 0) {
 	    // do the old keys exist?
-	    NSArray *extensions = [docType objectForKey:kCFBundleTypeExtensionsKey];
+	    NSArray *extensions = [docType objectForKey:(NSString *)kCFBundleTypeExtensionsKey];
 	    for(int x = 0; x < [extensions count]; ++x) {
 		CFStringRef uti = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension,
 		    (CFStringRef)[extensions objectAtIndex:x], NULL);
@@ -378,16 +384,19 @@ static BOOL _acceptsRole(NSString *role, LSRolesMask rolesMask)
     return NO;
 }
 
-BOOL LSIsNSBundle(NSURL *url)
+Boolean LSIsNSBundle(CFURLRef cfurl)
 {
+    NSURL *url = (NSURL *)cfurl;
     if([[url scheme] isEqualToString:@"file"] &&
-       [[url pathExtension] isEqualToString:@"app"])
+       [[url pathExtension] isEqualToString:@"app"]) {
        return YES;
+    }
     return NO;
 }
 
-BOOL LSIsAppDir(NSURL *url)
+Boolean LSIsAppDir(CFURLRef cfurl)
 {
+    NSURL *url = (NSURL *)cfurl;
     if([[url scheme] isEqualToString:@"file"] &&
        [[url pathExtension] caseInsensitiveCompare:@"appdir"] == NSOrderedSame) {
         NSFileManager *fm = [NSFileManager defaultManager];
@@ -433,13 +442,13 @@ OSStatus LSOpenFromURLSpec(const LSLaunchURLSpec *inLaunchSpec, CFURLRef _Nullab
     NSURL *item;
 
     while(item = [items nextObject]) {
-        if(LSIsNSBundle(item)) {
+        if(LSIsNSBundle((CFURLRef)item)) {
             LSLaunchURLSpec spec;
 	    spec.appURL = (CFURLRef)item;
 	    spec.itemURLs = NULL;
 	    spec.launchFlags = kLSLaunchDefaults;
 	    _LSOpenAllWithSpecifiedApp(&spec, NULL);
-        } else if(LSIsAppDir(item)) {
+        } else if(LSIsAppDir((CFURLRef)item)) {
             LSLaunchURLSpec spec;
 	    spec.appURL = (CFURLRef)([item URLByAppendingPathComponent:@"AppRun"]);
 	    spec.itemURLs = NULL;
@@ -531,15 +540,15 @@ OSStatus LSCanURLAcceptURL(CFURLRef inItemURL, CFURLRef inTargetURL, LSRolesMask
         NSDictionary *docType;
 
         while(docType = [docTypes nextObject]) {
-            NSArray *things = [docType objectForKey:kLSItemContentTypesKey];
+            NSArray *things = [docType objectForKey:(NSString *)kLSItemContentTypesKey];
             if([things count]) {
-                if(_acceptsThing(things, (NSString*)uti) && _acceptsRole([docType objectForKey:kCFBundleTypeRoleKey], inRoleMask)) {
+                if(_acceptsThing(things, (NSString*)uti) && _acceptsRole([docType objectForKey:(NSString *)kCFBundleTypeRoleKey], inRoleMask)) {
                     *outAcceptsItem = YES;
                     break;
                 }
             } else {
-                things = [docType objectForKey:kCFBundleTypeExtensionsKey];
-                if(_acceptsThing(things, ext) && _acceptsRole([docType objectForKey:kCFBundleTypeRoleKey], inRoleMask)) {
+                things = [docType objectForKey:(NSString *)kCFBundleTypeExtensionsKey];
+                if(_acceptsThing(things, ext) && _acceptsRole([docType objectForKey:(NSString *)kCFBundleTypeRoleKey], inRoleMask)) {
                     *outAcceptsItem = YES;
                     break;
                 }
@@ -551,7 +560,7 @@ OSStatus LSCanURLAcceptURL(CFURLRef inItemURL, CFURLRef inTargetURL, LSRolesMask
         NSDictionary *appScheme;
 
         while(appScheme = [appSchemes nextObject]) {
-            if(_acceptsThing([appScheme objectForKey:kCFBundleURLSchemesKey], itemScheme) && _acceptsRole([appScheme objectForKey:kCFBundleTypeRoleKey], inRoleMask)) {
+            if(_acceptsThing([appScheme objectForKey:(NSString *)kCFBundleURLSchemesKey], itemScheme) && _acceptsRole([appScheme objectForKey:(NSString *)kCFBundleTypeRoleKey], inRoleMask)) {
                 *outAcceptsItem = YES;
                 break;
             }
@@ -560,7 +569,4 @@ OSStatus LSCanURLAcceptURL(CFURLRef inItemURL, CFURLRef inTargetURL, LSRolesMask
 
     return 0;
 }
-
-@implementation LaunchServices
-@end
 

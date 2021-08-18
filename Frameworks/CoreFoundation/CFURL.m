@@ -51,9 +51,19 @@ CFStringRef CFURLCreateStringByAddingPercentEscapes(CFAllocatorRef allocator,CFS
    return ToCFString([[NSString alloc] initWithCharacters:result length:resultLength]);
 }
 
-CFStringRef CFURLCopyFileSystemPath(CFURLRef self, CFURLPathStyle pathStyle) {
-    // FIXME: pathStyle is ignored - always platform default
-    return ToCFString([(NSURL *)self absoluteString]);
+CFURLRef CFURLCreateWithFileSystemPath(CFAllocatorRef allocator, CFStringRef filePath, CFURLPathStyle pathStyle, Boolean isDirectory) {
+    return (CFURLRef)[NSURL fileURLWithPath:(NSString *)filePath];
 }
 
+CFStringRef CFURLCopyFileSystemPath(CFURLRef self, CFURLPathStyle pathStyle) {
+    return ToCFString([(NSURL *)self path]);
+}
+
+CFURLRef CFURLCreateCopyDeletingPathExtension(CFAllocatorRef allocator, CFURLRef self) {
+    return (CFURLRef)[(NSURL *)self URLByDeletingPathExtension];
+}
+
+CFStringRef CFURLCopyLastPathComponent(CFURLRef self) {
+    return ToCFString([(NSURL *)self lastPathComponent]);
+}
 

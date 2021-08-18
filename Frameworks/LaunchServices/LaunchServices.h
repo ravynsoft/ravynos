@@ -22,7 +22,6 @@
  * THE SOFTWARE.
  */
 
-#import <Foundation/Foundation.h>
 #import <CoreFoundation/CFURL.h>
 #import <CoreFoundation/CFArray.h>
 
@@ -87,10 +86,10 @@ typedef struct LSLaunchURLSpec {
     const void *passThruParams; // ignored - not implemented
 } LSLaunchURLSpec;
 
-const NSString *    kCFBundleTypeExtensionsKey = @"CFBundleTypeExtensions";
-const NSString *    kCFBundleURLSchemesKey = @"CFBundleURLSchemes";
-const NSString *    kCFBundleTypeRoleKey = @"CFBundleTypeRole";
-const NSString *    kLSItemContentTypesKey = @"LSItemContentTypes";
+const CFStringRef    kCFBundleTypeExtensionsKey = CFSTR("CFBundleTypeExtensions");
+const CFStringRef    kCFBundleURLSchemesKey = CFSTR("CFBundleURLSchemes");
+const CFStringRef    kCFBundleTypeRoleKey = CFSTR("CFBundleTypeRole");
+const CFStringRef    kLSItemContentTypesKey = CFSTR("LSItemContentTypes");
 
 enum {
     kLSRankOwner = 0,
@@ -101,8 +100,6 @@ enum {
 typedef struct OpaqueLSSharedFileListRef *LSSharedFileListRef;
 typedef struct OpaqueLSSharedFileListItemRef *LSSharedFileListItemRef;
 
-@interface LaunchServices: NSObject
-@end
 
 #ifdef __cplusplus
 extern "C" {
@@ -112,8 +109,8 @@ extern "C" {
 // These two functions are used by Filer but are otherwise internal only
 //------------------------------------------------------------------------
 
-BOOL LSIsNSBundle(NSURL *url);
-BOOL LSIsAppDir(NSURL *url);
+Boolean LSIsNSBundle(CFURLRef url);
+Boolean LSIsAppDir(CFURLRef url);
 
 //------------------------------------------------------------------------
 //    PUBLIC API
