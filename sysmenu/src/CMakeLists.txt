@@ -1,8 +1,7 @@
 add_definitions(-DTRANSLATION_DOMAIN=\"plasma_applet_org.airyx.plasma.AiryxMenu\")
 
 set(sysmenu_SRCS
-    sysmenu.cpp
-    test.m
+    sysmenu.mm
 )
 add_library(plasma_applet_AiryxMenu MODULE ${sysmenu_SRCS})
 
