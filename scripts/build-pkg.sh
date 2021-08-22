@@ -89,8 +89,8 @@ export DIR_SIZE
 {
 	# Add files in
 	echo "files {"
-	find ${STAGEDIR} -type f -exec sha256 -r {} + |
-       	   awk '{print "    " $2 " = \{sum: \"" $1 "\", uname: root, gname: wheel\} ;" }'
+	find ${STAGEDIR} -type f -exec sha256 -r {} + | sed 's: :\t:' |
+       	   awk -Ft '{print "    \"" $2 "\" = \{sum: \"" $1 "\", uname: root, gname: wheel\} ;" }'
 
 	# Add symlinks in
 	find ${STAGEDIR} -type l |
@@ -105,6 +105,7 @@ export DIR_SIZE
 	#	awk '{print "    /" $1 ": y"}'
 
 } | sed -e "s:${STAGEDIR}::" >> +MANIFEST
+cat +MANIFEST
 
 
 # Create the package
@@ -113,7 +114,7 @@ pkg create --verbose -r ${STAGEDIR} -m . -o .
 # Replace transient-packages-list with a new one reflecting all transient packages;
 # this will be used for installing them later on
 ls -lh
-ls *.txz > transient-packages-list
+ls *.pkg > transient-packages-list
 readlink -f transient-packages-list
 cat transient-packages-list
 
