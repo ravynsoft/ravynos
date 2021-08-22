@@ -16,9 +16,16 @@ PKGDATE!= date "+%Y%m%d"
 # We need the installed frameworks to correctly link CoreServices and applications
 airyx: airyxbase installairyx coreservices
 
-airyxbase: mkfiles frameworks copyfiles
+airyxbase: mkfiles frameworks sysmenu copyfiles
 	tar -C ${BUILDROOT}/usr/lib -cpf pkgconfig | tar -C ${BUILDROOT}/usr/share -xpf -
 	rm -rf ${BUILDROOT}/usr/lib/pkgconfig
+
+sysmenu: .PHONY
+	mkdir -p ${OBJPREFIX}/sysmenu
+	echo '#define AIRYX_VERSION "${AIRYX_VERSION}"' > ${TOPDIR}/sysmenu/src/version.h
+	echo '#define AIRYX_CODENAME "${AIRYX_CODENAME}"' >> ${TOPDIR}/sysmenu/src/version.h
+	cmake -S ${TOPDIR}/sysmenu -B ${OBJPREFIX}/sysmenu
+	make -C ${OBJPREFIX}/sysmenu DESTDIR=${BUILDROOT} install
 
 frameworks:
 	${MAKE} -C Frameworks all

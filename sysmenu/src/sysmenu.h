@@ -2,24 +2,33 @@
 */
 
 #include <Plasma/Applet>
-#include <QMenu>
+#include <QMessageBox>
+
+/* A simple wrapper around QMessageBox that allows closing it
+ * with the titlebar button */
+class AXMessageBox: public QMessageBox
+{
+public:
+    explicit AXMessageBox();
+protected:
+    void closeEvent(QCloseEvent *event) override;
+};
 
 class AiryxMenu: public Plasma::Applet
 {
     Q_OBJECT
-    Q_PROPERTY(QMenu *menu READ menu WRITE setMenu NOTIFY menuChanged)
 
 public:
     AiryxMenu(QObject *parent, const QVariantList &args);
     ~AiryxMenu();
-    QMenu *menu() const;
-    void setMenu(QMenu *menu);
+
+    Q_INVOKABLE void aboutThisComputer();
 
 signals:
-    void menuChanged();
 
 private slots:
+    void aboutFinished();
 
 private:
-    QMenu *m_menu;
+    AXMessageBox *m_about;
 };

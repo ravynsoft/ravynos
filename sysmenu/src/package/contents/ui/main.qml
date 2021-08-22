@@ -10,7 +10,7 @@ Item {
 
     Plasmoid.preferredRepresentation: Plasmoid.fullRepresentation
     Plasmoid.fullRepresentation: Item {
-        Layout.minimumWidth: 20 * devicePixelRatio
+        Layout.minimumWidth: 20 * units.devicePixelRatio
 
         PlasmaCore.IconItem {
             id: menuIcon
@@ -30,6 +30,9 @@ Item {
                 id: aboutItem
                 text: "About this computer"
                 enabled: true
+                onClicked: {
+                    plasmoid.nativeInterface.aboutThisComputer()
+                }
             }
 
             PlasmaComponents.MenuItem {
@@ -58,7 +61,7 @@ Item {
 
             PlasmaComponents.MenuItem {
                 id: recentItem
-                text: "Recent Items       >"
+                text: "Recent Items         >"
                 enabled: true
             }
 
