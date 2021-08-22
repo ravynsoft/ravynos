@@ -16,13 +16,7 @@ if [ -n "$GTK_MODULES" ]; then
 else
     GTK_MODULES="appmenu-gtk-module"
 fi
-
-if [ -z "$UBUNTU_MENUPROXY" ]; then
-    UBUNTU_MENUPROXY=1
-fi
-
 export GTK_MODULES
-export UBUNTU_MENUPROXY
 
 # Export other environment variables
 export QT_QPA_PLATFORMTHEME=kde
@@ -35,6 +29,7 @@ export XDG_DATA_DIRS=~/Library/FreeDesktop/share:~/.local/share:/usr/local/share
 export XDG_DATA_HOME=~/Library/FreeDesktop/share
 export XDG_SESSION_CLASS=user
 export XDG_SESSION_TYPE=kde
+export XDG_RUNTIME_DIR="/tmp/runtime-${USER}"
 
 /System/Library/CoreServices/Filer.app/Contents/Airyx/Filer --desktop &
 /usr/bin/startplasma-x11
