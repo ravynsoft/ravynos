@@ -105,7 +105,6 @@ export DIR_SIZE
 	#	awk '{print "    /" $1 ": y"}'
 
 } | sed -e "s:${STAGEDIR}::" >> +MANIFEST
-cat +MANIFEST
 
 
 # Create the package
