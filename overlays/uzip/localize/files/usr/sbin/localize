@@ -1,4 +1,4 @@
-#!/usr/local/bin/python3
+#!/usr/bin/python3
 # Unfortunately #!/usr/bin/env python3.7 does not seem to work for rc.d
 # maybe because /usr/local/bin is not in the $PATH at that point yet?
 
@@ -100,16 +100,17 @@ apple_langs = ["en_GB", "en_GB", "fr", "es", "en_US", "de", "it", "", "pt_PT", "
 
 efi_lang = str()
 try:
-    for line in subprocess.check_output(["efivar", "-lv", "8be4df61-93ca-11d2-aa0d-00e098032b8c-PlatformLang"]).split(b'\n'):
+    for line in subprocess.check_output(["efivar", "-l", "8be4df61-93ca-11d2-aa0d-00e098032b8c-PlatformLang"]).split(b'\n'):
+        line = line.decode('utf-8')
         if ":" in line:
             bytes = line.split(":")[1]
             for byte in bytes.split(" "):
                 bstr = str(byte)
-                if bstr == "":
+                if bstr == "" or bstr == "00":
                     continue
                 efi_lang = efi_lang + chr(int(bstr, 16))
     print("PlatformLang is %s" % efi_lang)
-    (language, country) = efi_lang.split("_")
+    (language, country) = efi_lang.split("-")
     locale = "%s.UTF-8" % efi_lang
     try:
         idx = countries.index(country)
