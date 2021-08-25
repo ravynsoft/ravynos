@@ -95,6 +95,31 @@ timezones = ["Europe/London", "Europe/London", "Europe/Paris", "Europe/Madrid",
 apple_langs = ["en_GB", "en_GB", "fr", "es", "en_US", "de", "it", "", "pt_PT", "nb", "se",
              "fi", "ru", "tr", "he"]
            
+# Check for UEFI PlatformLang variable as documented in
+# https://uefi.org/sites/default/files/resources/UEFI%20Spec%202_6.pdf p.84
+
+efi_lang = str()
+try:
+    for line in subprocess.check_output(["efivar", "-lv", "8be4df61-93ca-11d2-aa0d-00e098032b8c-PlatformLang"]).split(b'\n'):
+        if ":" in line:
+            bytes = line.split(":")[1]
+            for byte in bytes.split(" "):
+                bstr = str(byte)
+                if bstr == "":
+                    continue
+                efi_lang = efi_lang + chr(int(bstr, 16))
+    print("PlatformLang is %s" % efi_lang)
+    (language, country) = efi_lang.split("_")
+    locale = "%s.UTF-8" % efi_lang
+    try:
+        idx = countries.index(country)
+    except ValueError:
+        print("Unknown country code %s - using default time zone" % country)
+    else:
+        timezone = timezones[idx]
+except:
+    print("Could not read EFI variable PlatformLang")
+
 # Check Apple prev-lang EFI variable
              
 relevant_line = False
@@ -170,7 +195,7 @@ run(["tzsetup", timezone])
 
 # Write a shell file that can be sourced at session startup time to export
 # the environment variables
-target_file = "/usr/local/var/localize/include"
+target_file = "/var/localize/include"
 os.makedirs(os.path.dirname(target_file), exist_ok=True)
 f = open(target_file, "w+")
 f.write(template.replace("%locale%", locale).replace("%timezone%", timezone))

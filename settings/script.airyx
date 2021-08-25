@@ -17,6 +17,7 @@ tar xf xubuntu-icon-theme_16.04.2_all.deb
 tar xf data.tar.xz
 mkdir -p "${uzip}"/usr/share/icons/
 mv ./usr/share/icons/elementary-xfce "${uzip}"/usr/share/icons/elementary
+ln -sf "elementary" "${uzip}/usr/share/icons/elementary-xfce"
 mv ./usr/share/doc/xubuntu-icon-theme/copyright "${uzip}"/usr/share/icons/elementary/
 cd -
 rm -r $icons_temp
