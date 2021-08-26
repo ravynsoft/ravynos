@@ -19,6 +19,7 @@ find_package(Qt5 CONFIG REQUIRED COMPONENTS
     Quick
     Core
     Widgets
+    DBus
 )
 
 add_subdirectory(src)

@@ -34,6 +34,26 @@ Item {
     Plasmoid.fullRepresentation: Item {
         Layout.minimumWidth: 20 * units.devicePixelRatio
 
+	PlasmaCore.DataSource {
+            id: pmEngine
+            engine: "powermanagement"
+            connectedSources: ["PowerDevil", "Sleep States"]
+
+            onSourceAdded: {
+                disconnectSource(source);
+                connectSource(source);
+            }
+            onSourceRemoved: {
+                disconnectSource(source);
+            }
+
+            function performOperation(what) {
+                var service = serviceForSource("PowerDevil")
+                var operation = service.operationDescription(what)
+                service.startOperationCall(operation)
+            }
+        }
+
         PlasmaCore.IconItem {
             id: menuIcon
             source: plasmoid.file('','icons/tree.svg')
@@ -67,12 +87,15 @@ Item {
                 id: prefItem
                 text: "System Preferences"
                 enabled: true
+                onClicked: {
+                    plasmoid.nativeInterface.systemPreferences()
+                }
             }
 
             PlasmaComponents.MenuItem {
                 id: storeItem
                 text: "App Store"
-                enabled: true
+                enabled: false
             }
 
             PlasmaComponents.MenuItem {
@@ -84,7 +107,7 @@ Item {
             PlasmaComponents.MenuItem {
                 id: recentItem
                 text: "Recent Items         >"
-                enabled: true
+                enabled: false
             }
 
             PlasmaComponents.MenuItem {
@@ -96,7 +119,7 @@ Item {
             PlasmaComponents.MenuItem {
                 id: forceQuitItem
                 text: "Force Quit"
-                enabled: true
+                enabled: false
             }
 
             PlasmaComponents.MenuItem {
@@ -109,18 +132,22 @@ Item {
                 id: sleepItem
                 text: "Sleep"
                 enabled: true
+                onClicked: plasmoid.nativeInterface.suspend()
             }
 
             PlasmaComponents.MenuItem {
                 id: restartItem
                 text: "Restart..."
                 enabled: true
+                onClicked: plasmoid.nativeInterface.requestLogout(1,1,3)
+                // 1 1 3 = reboot with confirmation
             }
 
             PlasmaComponents.MenuItem {
                 id: shutDownItem
                 text: "Shut Down..."
                 enabled: true
+                onClicked: pmEngine.performOperation("requestShutDown")
             }
 
             PlasmaComponents.MenuItem {
@@ -133,12 +160,15 @@ Item {
                 id: lockItem
                 text: "Lock Screen"
                 enabled: true
+                onClicked: pmEngine.performOperation("lockScreen")
             }
 
             PlasmaComponents.MenuItem {
                 id: logoutItem
                 text: "Log out"
                 enabled: true
+                onClicked: plasmoid.nativeInterface.requestLogout(1,3,3)
+                // 1,3,3 = logout with confirmation. 0,3,3 = logout now
             }
         }
 

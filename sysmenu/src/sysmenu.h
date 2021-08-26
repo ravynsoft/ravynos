@@ -23,7 +23,7 @@
 
 #include <Plasma/Applet>
 #include <QMessageBox>
-
+#include <QDBusConnection>
 /* A simple wrapper around QMessageBox that allows closing it
  * with the titlebar button */
 class AXMessageBox: public QMessageBox
@@ -43,6 +43,9 @@ public:
     ~AiryxMenu();
 
     Q_INVOKABLE void aboutThisComputer();
+    Q_INVOKABLE void requestLogout(int a, int b, int c);
+    Q_INVOKABLE void systemPreferences();
+    Q_INVOKABLE void suspend();
 
 signals:
 
@@ -51,4 +54,5 @@ private slots:
 
 private:
     AXMessageBox *m_about;
+    QDBusConnection m_dbus;
 };

@@ -24,8 +24,11 @@
 #include "sysmenu.h"
 #include "version.h"
 #include <QDebug>
+#include <QDBusMessage>
+#include <QDBusPendingCall>
 #import <Foundation/Foundation.h>
-#import <Foundation/NSPlatform.h>
+#import <CoreFoundation/CoreFoundation.h>
+#import <LaunchServices/LaunchServices.h>
 
 const char *getCpuInfo()
 {
@@ -45,6 +48,7 @@ void AXMessageBox::closeEvent(QCloseEvent *event)
 
 AiryxMenu::AiryxMenu(QObject *parent, const QVariantList &args)
     : Plasma::Applet(parent, args)
+    , m_dbus(QDBusConnection::sessionBus())
 {
     m_about = NULL;
 }
@@ -84,6 +88,35 @@ void AiryxMenu::aboutFinished()
 {
     delete m_about;
     m_about = NULL;
+}
+
+void AiryxMenu::requestLogout(int a, int b, int c)
+{
+    QDBusMessage msgLogout = QDBusMessage::createMethodCall("org.kde.ksmserver", "/KSMServer", "", "logout");
+    QVariantList args;
+    args.append(a);
+    args.append(b);
+    args.append(c);
+    msgLogout.setArguments(args);
+    m_dbus.asyncCall(msgLogout);
+}
+
+void AiryxMenu::systemPreferences()
+{
+    LSLaunchURLSpec spec;
+    spec.appURL = CFURLCreateWithFileSystemPath(NULL, CFSTR("/usr/bin/systemsettings5"), kCFURLPOSIXPathStyle, false);
+    spec.asyncRefCon = 0;
+    spec.itemURLs = NULL;
+    spec.launchFlags = kLSLaunchDefaults;
+    LSOpenFromURLSpec(&spec, NULL);
+    CFRelease(spec.appURL);
+}
+
+void AiryxMenu::suspend()
+{
+    QDBusMessage msgSuspend = QDBusMessage::createMethodCall("org.kde.Solid.PowerManagement", "/org/kde/Solid/PowerManagement/Actions/SuspendSession",
+        "org.kde.Solid.PowerManagement.Actions.SuspendSession", "suspendHybrid");
+    m_dbus.asyncCall(msgSuspend);
 }
 
 K_PLUGIN_CLASS_WITH_JSON(AiryxMenu, "metadata.json")
