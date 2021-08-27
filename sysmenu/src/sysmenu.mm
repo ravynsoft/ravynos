@@ -23,18 +23,13 @@
 
 #include "sysmenu.h"
 #include "version.h"
+#include <sys/types.h>
+#include <sys/sysctl.h>
 #include <QDebug>
 #include <QDBusMessage>
 #include <QDBusPendingCall>
-#import <Foundation/Foundation.h>
 #import <CoreFoundation/CoreFoundation.h>
 #import <LaunchServices/LaunchServices.h>
-
-const char *getCpuInfo()
-{
-    NSString *result = [NSString stringWithFormat:@"%d cores (NOT IMPLEMENTED)", 0];
-    return [[result retain] UTF8String];
-}
 
 AXMessageBox::AXMessageBox()
     : QMessageBox()
@@ -51,10 +46,130 @@ AiryxMenu::AiryxMenu(QObject *parent, const QVariantList &args)
     , m_dbus(QDBusConnection::sessionBus())
 {
     m_about = NULL;
+    graphicsAdaptors();
+    productName();
 }
 
 AiryxMenu::~AiryxMenu()
 {
+}
+
+unsigned int AiryxMenu::numCPUs()
+{
+    int mib[2];
+    unsigned int cpus;
+    size_t len;
+
+    mib[0] = CTL_HW;
+    mib[1] = HW_NCPU;
+    len = sizeof(cpus);
+    sysctl((const int *)mib, 2, &cpus, &len, NULL,	0);
+    return cpus;
+}
+
+unsigned long AiryxMenu::realMemory()
+{
+    int mib[2];
+    unsigned long mem;
+    size_t len;
+
+    mib[0] = CTL_HW;
+    mib[1] = HW_REALMEM;
+    len = sizeof(mem);
+    sysctl((const int *)mib, 2, &mem, &len, NULL,	0);
+    return mem;
+}
+
+QString AiryxMenu::formatAsGB(unsigned long bytes)
+{
+    double gb = (double)bytes;
+    gb /=  (1024.0 * 1024.0 * 1024.0);
+    return QString::asprintf("%.0f GB", gb);
+}
+
+QString AiryxMenu::CPUModel()
+{
+    int mib[2];
+    char model[128];
+    size_t len;
+
+    mib[0] = CTL_HW;
+    mib[1] = HW_MODEL;
+    len = sizeof(model)*sizeof(char);
+    sysctl((const int *)mib, 2, model, &len, NULL,	0);
+    return QString(model);
+}
+
+QStringList AiryxMenu::graphicsAdaptors()
+{
+    if(!m_adaptorsFound.isEmpty())
+        return m_adaptorsFound;
+
+    QStringList cards;
+    for(int x = 0; x < 2; ++x)
+        cards << QString::asprintf("vgapci%d", x);
+    
+    for(QStringList::iterator iter = cards.begin(); iter != cards.end(); iter++) {
+        QProcess *pciconf = new QProcess(this);
+        connect(pciconf, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(processFinished(int, QProcess::ExitStatus)));
+        connect(pciconf, SIGNAL(readyReadStandardOutput()), this, SLOT(pciconfOutputReady()));
+
+        pciconf->start("/usr/sbin/pciconf", QStringList() << "-lv" << *iter);
+    }
+
+    return m_adaptorsFound;
+}
+
+void AiryxMenu::pciconfOutputReady()
+{
+    QProcess *p = (QProcess *)sender();
+    QByteArray output = p->readAllStandardOutput();
+
+    if(output.contains("vendor")) {
+        QList<QByteArray> lines = output.split('\n');
+        QByteArray vendor = lines[1].mid(lines[1].indexOf('\'')+1, -1);
+        vendor.chop(1);
+        QByteArray device = lines[2].mid(lines[2].indexOf('\'')+1, -1);
+        device.chop(1);
+        m_adaptorsFound << QString::asprintf("%s %s", vendor.constData(), device.constData());
+    }
+}
+
+void AiryxMenu::processFinished(int exitCode, QProcess::ExitStatus exitStatus)
+{
+    QProcess *p = (QProcess *)sender();
+    delete p;
+}
+
+QString AiryxMenu::hostUUID()
+{
+    int mib[2];
+    char uuid[64];
+    size_t len;
+
+    mib[0] = CTL_KERN;
+    mib[1] = KERN_HOSTUUID;
+    len = sizeof(uuid)*sizeof(char);
+    sysctl((const int *)mib, 2, uuid, &len, NULL,	0);
+    return QString(uuid);
+}
+
+void AiryxMenu::productName()
+{
+    QProcess *dmihelper = new QProcess(this);
+    connect(dmihelper, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(processFinished(int, QProcess::ExitStatus)));
+    connect(dmihelper, SIGNAL(readyReadStandardOutput()), this, SLOT(dmiOutputReady()));
+
+    dmihelper->start("/System/Library/CoreServices/DMIHelper", QStringList());
+}
+
+void AiryxMenu::dmiOutputReady()
+{
+    QProcess *p = (QProcess *)sender();
+    QByteArray output = p->readAllStandardOutput();
+
+    QList<QByteArray> lines = output.split('\n');
+    m_productName = QString::asprintf("%s %s", lines[0].constData(), lines[1].constData());
 }
 
 void AiryxMenu::aboutThisComputer()
@@ -69,17 +184,16 @@ void AiryxMenu::aboutThisComputer()
     m_about = new AXMessageBox();
     m_about->setWindowTitle("About this Computer");
     m_about->setStandardButtons(0);
-    m_about->setText("<table borders=\"0\"><tr><td align=\"center\" valign=\"middle\">"
-                   "<img width=\"128\" height=\"128\" src=\"/usr/share/plasma/plasmoids/org.airyx.plasma.AiryxMenu/contents/images/tanuki_logo.png\">"
-                   "</td><td>&nbsp;&nbsp;</td><td width=\"100%\">"
-                   "<font face=\"Nimbus Sans\"><font size=\"+8\"><b>airyxOS</b> " AIRYX_CODENAME "</font><br>"
-                   "Version " AIRYX_VERSION "<br>&nbsp;<br>&nbsp;<br>"
-                   "<b>Model from BIOS</b><br><br>"
-                   "<b>Processor</b> "+ QString(getCpuInfo()) +"<br><br>"
-                   "<b>Memory</b> xxxx xxxx xx<br><br>"
-                   "<b>Graphics</b> xxxxx xxxx xxx<br><br>"
-                   "<br>"
-                   "</font></td></tr></table>");
+    m_about->setText("<table style=\"table-layout: fixed; borders: 0;\"><tr><td width=\"100%\" align=\"center\" valign=\"middle\">"
+                   "<img width=\"140\" height=\"140\" src=\"/usr/share/plasma/plasmoids/org.airyx.plasma.AiryxMenu/contents/images/tanuki_logo.png\">"
+                   "</td><td>&nbsp;&nbsp;</td><td style=\"word-wrap: break-word; width: 100%;\">"
+                   "<font face=\"Nimbus Sans\"><font size=\"+7\"><b>airyxOS</b> " AIRYX_CODENAME "</font><br>"
+                   "Version " AIRYX_VERSION "<br>"
+                   "</font size=\"-2\"><p><b>" + m_productName + "</b></p>"
+                   "<p><b>Processor</b>&nbsp;&nbsp; "+ QString::asprintf("%d-core ", numCPUs()) + CPUModel() +"</p>"
+                   "<p><b>Memory</b>&nbsp;&nbsp; "+ formatAsGB(realMemory()) +"</p>"
+                   "<p><b>Graphics</b>&nbsp;&nbsp; "+ m_adaptorsFound.join("<br/>") +"</p>"
+                   "</font></font></td></tr></table>");
     m_about->setWindowModality(Qt::NonModal);
     m_about->open(this, SLOT(aboutFinished()));
 }

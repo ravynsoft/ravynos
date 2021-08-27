@@ -5,8 +5,13 @@ clean:
 	rm -rf ${BUILDROOT}/System/Library/CoreServices
 	rm -rf Filer/build Filer/Filer.app
 
-build: ${.CURDIR}/Menu buildFiler
+DMIHelper: DMIHelper.c
 	mkdir -p ${BUILDROOT}/System/Library/CoreServices
+	$(CC) -o ${BUILDROOT}/System/Library/CoreServices/DMIHelper DMIHelper.c
+	${SUDO} chown 0:0 ${BUILDROOT}/System/Library/CoreServices/DMIHelper
+	${SUDO} chmod 4755 ${BUILDROOT}/System/Library/CoreServices/DMIHelper
+
+build: ${.CURDIR}/Menu buildFiler DMIHelper
 	cp -av Filer/Filer.app ${BUILDROOT}/System/Library/CoreServices
 
 ${.CURDIR}/Filer:

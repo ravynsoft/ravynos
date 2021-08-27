@@ -24,6 +24,8 @@
 #include <Plasma/Applet>
 #include <QMessageBox>
 #include <QDBusConnection>
+#include <QProcess>
+
 /* A simple wrapper around QMessageBox that allows closing it
  * with the titlebar button */
 class AXMessageBox: public QMessageBox
@@ -51,8 +53,21 @@ signals:
 
 private slots:
     void aboutFinished();
+    void pciconfOutputReady();
+    void dmiOutputReady();
+    void processFinished(int exitCode, QProcess::ExitStatus exitStatus);
 
 private:
+    unsigned int numCPUs();
+    QString CPUModel();
+    unsigned long realMemory();
+    QString formatAsGB(unsigned long bytes);
+    QStringList graphicsAdaptors();
+    QString hostUUID();
+    void productName();
+
     AXMessageBox *m_about;
     QDBusConnection m_dbus;
+    QStringList m_adaptorsFound;
+    QString m_productName;
 };
