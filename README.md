@@ -1,10 +1,6 @@
-# What is Airyx?
+# What is Airyx? ![](https://api.cirrus-ci.com/github/mszoek/airyx.svg?branch=main&task=airyx)
 
 Airyx is a new open source OS project that aims to provide a similar experience and some compatibility with macOS on x86-64 sytems. It builds on the solid foundations of FreeBSD, existing open source packages in the same space, and new code to fill the gaps.
-
-Please visit [airyx.org](https://airyx.org/) or join us on [Libera IRC](https://libera.chat) in `#airyx` for more info!
-
-![](https://api.cirrus-ci.com/github/mszoek/airyx.svg?branch=main&task=airyx)
 
 The main design goals are:
 - source compatibility with macOS applications (i.e. you could compile a Mac application on Airyx and run it)
@@ -15,6 +11,16 @@ The main design goals are:
 - compatible with Linux binaries via FreeBSD's Linux support
 - eventual compatibility with x86-64 macOS binaries (Mach-O) and libraries
 - pleasant to use, secure, stable, and performant
+
+Please visit [airyx.org](https://airyx.org/) for more info: [Release Notes](https://airyx.org/releases.html) | [Screenshots](https://airyx.org/screenshots.html) | [FAQ](https://airyx.org/faq.html)
+
+### Join us!
+
+* Our [Discord](https://discord.com/invite/8caJbAGNwY) server.
+* `#airyx:matrix.org` - join via [Element.io](https://app.element.io/#/room/#airyx:matrix.org)
+* `#airyx` on [Libera IRC](https://web.libera.chat/?channel=#airyx)
+
+_(note: `#airyx` on matrix.org and IRC are bridged with `#general` on Discord)_
 
 ## Acknowledgements
 This project would not be possible without the generous support of [Cirrus CI](https://cirrus-ci.org/) for CI/CD and [Cloudsmith](https://cloudsmith.io/) for package hosting! Thanks to these awesome organizations for supporting open source software!
