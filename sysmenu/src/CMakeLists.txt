@@ -12,6 +12,7 @@ target_link_libraries(plasma_applet_AiryxMenu
     Qt5::Widgets
     KF5::Plasma
     KF5::I18n
+    KF5::KIOCore KF5::KIOFileWidgets KF5::KIOWidgets KF5::KIONTLM
     "-framework LaunchServices"
     "-framework Foundation"
     "-framework CoreFoundation"

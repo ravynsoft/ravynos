@@ -48,6 +48,7 @@ public:
     Q_INVOKABLE void requestLogout(int a, int b, int c);
     Q_INVOKABLE void systemPreferences();
     Q_INVOKABLE void suspend();
+    Q_INVOKABLE QStringList recentDocuments();
 
 signals:
 

@@ -13,6 +13,7 @@ include(FeatureSummary)
 find_package(KF5 REQUIRED COMPONENTS
     Plasma
     I18n
+    KIO
 )
 
 find_package(Qt5 CONFIG REQUIRED COMPONENTS

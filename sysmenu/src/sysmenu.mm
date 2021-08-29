@@ -28,6 +28,7 @@
 #include <QDebug>
 #include <QDBusMessage>
 #include <QDBusPendingCall>
+#include <KRecentDocument>
 #import <CoreFoundation/CoreFoundation.h>
 #import <LaunchServices/LaunchServices.h>
 
@@ -231,6 +232,11 @@ void AiryxMenu::suspend()
     QDBusMessage msgSuspend = QDBusMessage::createMethodCall("org.kde.Solid.PowerManagement", "/org/kde/Solid/PowerManagement/Actions/SuspendSession",
         "org.kde.Solid.PowerManagement.Actions.SuspendSession", "suspendHybrid");
     m_dbus.asyncCall(msgSuspend);
+}
+
+QStringList AiryxMenu::recentDocuments()
+{
+    return KRecentDocument::recentDocuments();
 }
 
 K_PLUGIN_CLASS_WITH_JSON(AiryxMenu, "metadata.json")
