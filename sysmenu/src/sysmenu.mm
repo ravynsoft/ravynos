@@ -61,7 +61,7 @@ AiryxMenu::AiryxMenu(QObject *parent, const QVariantList &args)
     m_menu.addSeparator();
     a = m_menu.addAction("Recent Items");
     a->setMenu(&m_recentItems);
-    connect(a, &QAction::hovered, this, &AiryxMenu::refreshRecentItems);
+    connect(a, &QEvent::HoverEnter, this, &AiryxMenu::refreshRecentItems);
     m_menu.addSeparator();
     a = m_menu.addAction("Force Quit...");
     a->setEnabled(false);
@@ -79,23 +79,13 @@ AiryxMenu::AiryxMenu(QObject *parent, const QVariantList &args)
     connect(a, &QAction::triggered, this, &AiryxMenu::requestLogout);
 }
 
-void AiryxMenu::menuTriggered(QAction *action)
+AiryxMenu::~AiryxMenu()
 {
-    qDebug() << " triggered " << action;
-}
-
-void AiryxMenu::menuHovered(QAction *action)
-{
-    qDebug() << " hovering on " << action;
 }
 
 void AiryxMenu::openMenu(int x, int y)
 {
     m_menu.popup(QPoint(x,y));
-}
-
-AiryxMenu::~AiryxMenu()
-{
 }
 
 unsigned int AiryxMenu::numCPUs()
