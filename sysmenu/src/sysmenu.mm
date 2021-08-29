@@ -45,6 +45,7 @@ void AXMessageBox::closeEvent(QCloseEvent *event)
 AiryxMenu::AiryxMenu(QObject *parent, const QVariantList &args)
     : Plasma::Applet(parent, args)
     , m_dbus(QDBusConnection::sessionBus())
+    , m_refreshedRecent(false)
 {
     m_about = NULL;
     graphicsAdaptors();
@@ -59,9 +60,9 @@ AiryxMenu::AiryxMenu(QObject *parent, const QVariantList &args)
     a = m_menu.addAction("Software Store...");
     a->setEnabled(false);
     m_menu.addSeparator();
-    a = m_menu.addAction("Recent Items");
-    a->setMenu(&m_recentItems);
-    connect(a, &QEvent::HoverEnter, this, &AiryxMenu::refreshRecentItems);
+    m_recentItemsAction = m_menu.addAction("Recent Items");
+    m_recentItemsAction->setMenu(&m_recentItems);
+    connect(m_recentItemsAction, &QAction::hovered, this, &AiryxMenu::refreshRecentItems);
     m_menu.addSeparator();
     a = m_menu.addAction("Force Quit...");
     a->setEnabled(false);
@@ -77,6 +78,9 @@ AiryxMenu::AiryxMenu(QObject *parent, const QVariantList &args)
     connect(a, &QAction::triggered, this, &AiryxMenu::requestLockScreen);
     a = m_menu.addAction("Log Out"); // FIXME: add full name here
     connect(a, &QAction::triggered, this, &AiryxMenu::requestLogout);
+
+    connect(&m_menu, &QMenu::hovered, this, &AiryxMenu::menuHovered);
+    connect(&m_menu, &QMenu::triggered, this, &AiryxMenu::menuTriggered);
 }
 
 AiryxMenu::~AiryxMenu()
@@ -86,6 +90,18 @@ AiryxMenu::~AiryxMenu()
 void AiryxMenu::openMenu(int x, int y)
 {
     m_menu.popup(QPoint(x,y));
+}
+
+void AiryxMenu::menuHovered(QAction *action)
+{
+    if(action != m_recentItemsAction)
+        m_refreshedRecent = false;
+}
+
+void AiryxMenu::menuTriggered(QAction *action)
+{
+    if(action != m_recentItemsAction)
+        m_refreshedRecent = false;
 }
 
 unsigned int AiryxMenu::numCPUs()
@@ -290,10 +306,14 @@ void AiryxMenu::suspend()
 
 void AiryxMenu::refreshRecentItems()
 {
+    if(m_refreshedRecent)
+        return; // I told em we already got one!
+
     m_recentItems.clear();
     for(QString item : KRecentDocument::recentDocuments()) {
         m_recentItems.addAction(item);
     }
+    m_refreshedRecent = true;
 }
 
 K_PLUGIN_CLASS_WITH_JSON(AiryxMenu, "metadata.json")

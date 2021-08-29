@@ -82,4 +82,6 @@ private:
     QString m_productName;
     QMenu m_menu;
     QMenu m_recentItems;
+    QAction *m_recentItemsAction;
+    bool m_refreshedRecent;
 };
