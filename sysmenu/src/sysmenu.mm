@@ -49,6 +49,49 @@ AiryxMenu::AiryxMenu(QObject *parent, const QVariantList &args)
     m_about = NULL;
     graphicsAdaptors();
     productName();
+
+    QAction *a;
+    a = m_menu.addAction("About This Computer");
+    connect(a, &QAction::triggered, this, &AiryxMenu::aboutThisComputer);
+    m_menu.addSeparator();
+    a = m_menu.addAction("System Preferences...");
+    connect(a, &QAction::triggered, this, &AiryxMenu::systemPreferences);
+    a = m_menu.addAction("Software Store...");
+    a->setEnabled(false);
+    m_menu.addSeparator();
+    a = m_menu.addAction("Recent Items");
+    a->setMenu(&m_recentItems);
+    connect(a, &QAction::hovered, this, &AiryxMenu::refreshRecentItems);
+    m_menu.addSeparator();
+    a = m_menu.addAction("Force Quit...");
+    a->setEnabled(false);
+    m_menu.addSeparator();
+    a = m_menu.addAction("Sleep");
+    connect(a, &QAction::triggered, this, &AiryxMenu::suspend);
+    a = m_menu.addAction("Restart...");
+    connect(a, &QAction::triggered, this, &AiryxMenu::requestRestart);
+    a = m_menu.addAction("Shut Down...");
+    connect(a, &QAction::triggered, this, &AiryxMenu::requestShutDown);
+    m_menu.addSeparator();
+    a = m_menu.addAction("Lock Screen");
+    connect(a, &QAction::triggered, this, &AiryxMenu::requestLockScreen);
+    a = m_menu.addAction("Log Out"); // FIXME: add full name here
+    connect(a, &QAction::triggered, this, &AiryxMenu::requestLogout);
+}
+
+void AiryxMenu::menuTriggered(QAction *action)
+{
+    qDebug() << " triggered " << action;
+}
+
+void AiryxMenu::menuHovered(QAction *action)
+{
+    qDebug() << " hovering on " << action;
+}
+
+void AiryxMenu::openMenu(int x, int y)
+{
+    m_menu.popup(QPoint(x,y));
 }
 
 AiryxMenu::~AiryxMenu()
@@ -205,7 +248,28 @@ void AiryxMenu::aboutFinished()
     m_about = NULL;
 }
 
-void AiryxMenu::requestLogout(int a, int b, int c)
+void AiryxMenu::requestRestart()
+{
+    requestKSMLogout(1,1,3); // KSMServer restart with confirmation
+}
+
+void AiryxMenu::requestShutDown()
+{
+    requestKSMLogout(1,2,3); // KSMServer shut down with confirmation
+}
+
+void AiryxMenu::requestLockScreen()
+{
+    QDBusMessage msgLock = QDBusMessage::createMethodCall("org.kde.ksmserver", "/ScreenSaver", "", "Lock");
+    m_dbus.asyncCall(msgLock);
+}
+
+void AiryxMenu::requestLogout()
+{
+    requestKSMLogout(1,0,3); // KSMServer logout with confirmation
+}
+
+void AiryxMenu::requestKSMLogout(int a, int b, int c)
 {
     QDBusMessage msgLogout = QDBusMessage::createMethodCall("org.kde.ksmserver", "/KSMServer", "", "logout");
     QVariantList args;
@@ -234,9 +298,12 @@ void AiryxMenu::suspend()
     m_dbus.asyncCall(msgSuspend);
 }
 
-QStringList AiryxMenu::recentDocuments()
+void AiryxMenu::refreshRecentItems()
 {
-    return KRecentDocument::recentDocuments();
+    m_recentItems.clear();
+    for(QString item : KRecentDocument::recentDocuments()) {
+        m_recentItems.addAction(item);
+    }
 }
 
 K_PLUGIN_CLASS_WITH_JSON(AiryxMenu, "metadata.json")

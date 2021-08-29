@@ -32,152 +32,27 @@ Item {
 
     Plasmoid.preferredRepresentation: Plasmoid.fullRepresentation
     Plasmoid.fullRepresentation: Item {
-        Layout.minimumWidth: 20 * units.devicePixelRatio
-
-	PlasmaCore.DataSource {
-            id: pmEngine
-            engine: "powermanagement"
-            connectedSources: ["PowerDevil", "Sleep States"]
-
-            onSourceAdded: {
-                disconnectSource(source);
-                connectSource(source);
-            }
-            onSourceRemoved: {
-                disconnectSource(source);
-            }
-
-            function performOperation(what) {
-                var service = serviceForSource("PowerDevil")
-                var operation = service.operationDescription(what)
-                service.startOperationCall(operation)
-            }
-        }
+        Layout.minimumWidth: 32 * units.devicePixelRatio
+        Layout.minimumHeight: 20 * units.devicePixelRatio
+        anchors.fill: parent
 
         PlasmaCore.IconItem {
             id: menuIcon
             source: plasmoid.file('','icons/tree.svg')
-            width: 16 * units.devicePixelRatio
-            height: 16 * units.devicePixelRatio
-            anchors.right: parent.right
+            width: 18 * units.devicePixelRatio
+            height: 18 * units.devicePixelRatio
+            anchors.centerIn: parent
             smooth: true
         }
 
-        PlasmaComponents.Menu {
-            id: menu
-            visualParent: root.parent
-            placement: PlasmaCore.Types.BottomPosedLeftAlignedPopup
-
-            PlasmaComponents.MenuItem {
-                id: aboutItem
-                text: "About this computer"
-                enabled: true
-                onClicked: {
-                    plasmoid.nativeInterface.aboutThisComputer()
-                }
-            }
-
-            PlasmaComponents.MenuItem {
-                id: spacerItem1
-                separator: true
-                enabled: true
-            }
-
-            PlasmaComponents.MenuItem {
-                id: prefItem
-                text: "System Preferences"
-                enabled: true
-                onClicked: {
-                    plasmoid.nativeInterface.systemPreferences()
-                }
-            }
-
-            PlasmaComponents.MenuItem {
-                id: storeItem
-                text: "App Store"
-                enabled: false
-            }
-
-            PlasmaComponents.MenuItem {
-                id: spacerItem2
-                separator: true
-                enabled: true
-            }
-
-            PlasmaComponents.MenuItem {
-                id: recentItem
-                text: "Recent Items         >"
-                enabled: false
-            }
-
-            PlasmaComponents.MenuItem {
-                id: spacerItem3
-                separator: true
-                enabled: true
-            }
-
-            PlasmaComponents.MenuItem {
-                id: forceQuitItem
-                text: "Force Quit"
-                enabled: false
-            }
-
-            PlasmaComponents.MenuItem {
-                id: spacerItem4
-                separator: true
-                enabled: true
-            }
-
-            PlasmaComponents.MenuItem {
-                id: sleepItem
-                text: "Sleep"
-                enabled: true
-                onClicked: plasmoid.nativeInterface.suspend()
-            }
-
-            PlasmaComponents.MenuItem {
-                id: restartItem
-                text: "Restart..."
-                enabled: true
-                onClicked: plasmoid.nativeInterface.requestLogout(1,1,3)
-                // 1 1 3 = reboot with confirmation
-            }
-
-            PlasmaComponents.MenuItem {
-                id: shutDownItem
-                text: "Shut Down..."
-                enabled: true
-                onClicked: pmEngine.performOperation("requestShutDown")
-            }
-
-            PlasmaComponents.MenuItem {
-                id: spacerItem5
-                separator: true
-                enabled: true
-            }
-
-            PlasmaComponents.MenuItem {
-                id: lockItem
-                text: "Lock Screen"
-                enabled: true
-                onClicked: pmEngine.performOperation("lockScreen")
-            }
-
-            PlasmaComponents.MenuItem {
-                id: logoutItem
-                text: "Log out"
-                enabled: true
-                onClicked: plasmoid.nativeInterface.requestLogout(1,3,3)
-                // 1,3,3 = logout with confirmation. 0,3,3 = logout now
-            }
-        }
+        property PlasmaComponents.Menu menu: PlasmaComponents.Menu
 
         MouseArea {
             id: mouseArea
             anchors.fill: parent
     
             onClicked: {
-                menu.open(0,20)
+                plasmoid.nativeInterface.openMenu(0,20 * units.devicePixelRatio)
             }
         }
     }

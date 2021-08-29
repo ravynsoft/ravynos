@@ -25,6 +25,8 @@
 #include <QMessageBox>
 #include <QDBusConnection>
 #include <QProcess>
+#include <QMenu>
+#include <QAction>
 
 /* A simple wrapper around QMessageBox that allows closing it
  * with the titlebar button */
@@ -44,11 +46,7 @@ public:
     AiryxMenu(QObject *parent, const QVariantList &args);
     ~AiryxMenu();
 
-    Q_INVOKABLE void aboutThisComputer();
-    Q_INVOKABLE void requestLogout(int a, int b, int c);
-    Q_INVOKABLE void systemPreferences();
-    Q_INVOKABLE void suspend();
-    Q_INVOKABLE QStringList recentDocuments();
+    Q_INVOKABLE void openMenu(int x, int y);
 
 signals:
 
@@ -57,8 +55,19 @@ private slots:
     void pciconfOutputReady();
     void dmiOutputReady();
     void processFinished(int exitCode, QProcess::ExitStatus exitStatus);
+    void menuHovered(QAction *action);
+    void menuTriggered(QAction *action);
+    void suspend();
+    void requestRestart();
+    void requestShutDown();
+    void requestLockScreen();
+    void requestLogout();
 
 private:
+    void requestKSMLogout(int a, int b, int c);
+    void aboutThisComputer();
+    void systemPreferences();
+    void refreshRecentItems();
     unsigned int numCPUs();
     QString CPUModel();
     unsigned long realMemory();
@@ -71,4 +80,6 @@ private:
     QDBusConnection m_dbus;
     QStringList m_adaptorsFound;
     QString m_productName;
+    QMenu m_menu;
+    QMenu m_recentItems;
 };
