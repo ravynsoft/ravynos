@@ -28,7 +28,9 @@
 #include <QDebug>
 #include <QDBusMessage>
 #include <QDBusPendingCall>
+#include <QUrl>
 #include <KRecentDocument>
+#include <KDesktopFile>
 #import <CoreFoundation/CoreFoundation.h>
 #import <LaunchServices/LaunchServices.h>
 
@@ -232,7 +234,7 @@ void AiryxMenu::aboutThisComputer()
     }
 
     m_about = new AXMessageBox();
-    m_about->setWindowTitle("About this Computer");
+    m_about->setWindowTitle("About This Computer");
     m_about->setStandardButtons(0);
     m_about->setText("<table style=\"table-layout: fixed; borders: 0;\"><tr><td width=\"100%\" align=\"center\" valign=\"middle\">"
                    "<img width=\"140\" height=\"140\" src=\"/usr/share/plasma/plasmoids/org.airyx.plasma.AiryxMenu/contents/images/tanuki_logo.png\">"
@@ -245,6 +247,7 @@ void AiryxMenu::aboutThisComputer()
                    "<p><b>Graphics</b>&nbsp;&nbsp; "+ m_adaptorsFound.join("<br/>") +"</p>"
                    "</font></font></td></tr></table>");
     m_about->setWindowModality(Qt::NonModal);
+    m_about->setWindowFlags(Qt::Tool); // disable minimize button
     m_about->open(this, SLOT(aboutFinished()));
 }
 
@@ -309,11 +312,40 @@ void AiryxMenu::refreshRecentItems()
     if(m_refreshedRecent)
         return; // I told em we already got one!
 
+    QList<QAction *> actionList = m_recentItems.actions();
     m_recentItems.clear();
+
     for(QString item : KRecentDocument::recentDocuments()) {
-        m_recentItems.addAction(item);
+        KDesktopFile df(item);
+        QAction *a = new QAction(df.readName());
+        a->setData(df.readUrl());
+        connect(a, &QAction::triggered, this, &AiryxMenu::openRecentItemsEntry);
+        m_recentItems.addAction(a);
     }
     m_refreshedRecent = true;
+
+    // delete the old action pointers
+    for(QAction *a : actionList) {
+        delete a;
+    }
+}
+
+void AiryxMenu::openRecentItemsEntry()
+{
+    QString path(((QAction *)QObject::sender())->data().toString());
+    QUrl url(path);
+
+    CFMutableArrayRef CFLSFiles = CFArrayCreateMutable(NULL, 2, NULL);
+	CFStringRef item = CFStringCreateWithCString(NULL, url.path().toUtf8(), kCFStringEncodingUTF8);
+	CFURLRef itemURL = CFURLCreateWithFileSystemPath(NULL, item, kCFURLPOSIXPathStyle, false);
+	CFArrayAppendValue(CFLSFiles, itemURL);
+	CFRelease(item);
+
+    LSLaunchURLSpec spec;
+    spec.appURL = NULL;
+    spec.itemURLs = (CFArrayRef)CFLSFiles;
+    LSOpenFromURLSpec(&spec, NULL);
+    CFRelease(CFLSFiles);
 }
 
 K_PLUGIN_CLASS_WITH_JSON(AiryxMenu, "metadata.json")

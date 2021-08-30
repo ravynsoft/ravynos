@@ -75,6 +75,7 @@ private:
     QStringList graphicsAdaptors();
     QString hostUUID();
     void productName();
+    void openRecentItemsEntry();
 
     AXMessageBox *m_about;
     QDBusConnection m_dbus;
