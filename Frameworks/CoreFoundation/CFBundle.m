@@ -19,7 +19,7 @@ CFBundleRef CFBundleGetMainBundle(void) {
 
 CFBundleRef CFBundleCreate(CFAllocatorRef allocator, CFURLRef bundleURL) {
     NSString *path = [((NSURL *)bundleURL) path];
-    NSBundle *bundle = [NSBundle bundleWithPath:path];
+    NSBundle *bundle = [[NSBundle bundleWithPath:path] retain];
     return NSBundleToCFBundle(bundle); //[NSBundle bundleWithPath:[(NSURL *)bundleURL absoluteString]]);
 }
 
@@ -33,6 +33,6 @@ CFTypeRef CFBundleGetValueForInfoDictionaryKey(CFBundleRef self,CFStringRef key)
 }
 
 CFURLRef CFBundleCopyResourcesDirectoryURL(CFBundleRef self) {
-    return [NSURL fileURLWithPath:[CFBundleToNSBundle(self) resourcePath]];
+    return [[NSURL fileURLWithPath:[CFBundleToNSBundle(self) resourcePath]] retain];
 }
 
