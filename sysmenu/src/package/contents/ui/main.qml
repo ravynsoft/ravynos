@@ -45,8 +45,6 @@ Item {
             smooth: true
         }
 
-        property PlasmaComponents.Menu menu: PlasmaComponents.Menu
-
         MouseArea {
             id: mouseArea
             anchors.fill: parent

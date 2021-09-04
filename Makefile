@@ -69,6 +69,7 @@ getports:
 	${SUDO} mkdir -p /usr/ports/audio/lilv/files
 	${SUDO} cp -f ${TOPDIR}/patches/patch-waflib_extras_autowaf.py /usr/ports/audio/lilv/files/
 	${SUDO} cp -f ${TOPDIR}/patches/patch-libsysinfo_Makefile /usr/ports/devel/libsysinfo/files/
+	${SUDO} cp -f ${TOPDIR}/patches/patch-libtaskmanager_xwindowtasksmodel.cpp /usr/ports/x11/plasma5-plasma-workspace/files/
 	${SUDO} mkdir -p /usr/ports/distfiles
 
 # Prepare the chroot jail for our ports builds
