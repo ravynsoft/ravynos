@@ -11,4 +11,9 @@ LDFLAGS+= -L/usr/local/lib -lsqlite3 ${QT5LDFLAGS}
 
 build: all
 
+open: open.m
+	clang ${CFLAGS} -g -o ${.TARGET} ${.ALLSRC} \
+		-F${BUILDROOT}/System/Library/Frameworks \
+		-framework LaunchServices -framework Foundation
+
 .include <airyx.framework.mk>
