@@ -61,11 +61,71 @@ NSString *LS_DATABASE = [[[NSPlatform currentPlatform] libraryDirectory] stringB
 //    INTERNAL FUNCTIONS - DON'T USE. SEE BELOW FOR PUBLIC API
 //------------------------------------------------------------------------
 
+static BOOL _LSCheckAndUpdateSchema()
+{
+    const int desiredSchema = 4;
+
+    sqlite3 *pDB = 0;
+    if(sqlite3_open([LS_DATABASE UTF8String], &pDB) != SQLITE_OK) {
+        sqlite3_close(pDB);
+        return false; // FIXME: log error somewhere
+    }
+
+    int currentSchema = 0;
+    const char *query = "SELECT version FROM schema";
+    const int length = strlen(query);
+    sqlite3_stmt *stmt;
+    const char *tail;
+
+    if(sqlite3_prepare_v2(pDB, query, length, &stmt, &tail) != SQLITE_OK) {
+        sqlite3_close(pDB);
+        return false;
+    }
+
+    if(sqlite3_step(stmt) != SQLITE_ROW) {
+        sqlite3_finalize(stmt);
+        sqlite3_close(pDB);
+        return false;
+    }
+
+    currentSchema = sqlite3_column_int(stmt, 0);
+
+    // Iterate the schema updates until we are at the latest
+    while(currentSchema < desiredSchema) {
+        NSString *schemaFile = [NSString stringWithFormat:@"DBSchema_%d_%d", currentSchema, currentSchema+1];
+        NSString *sqlPath = [[NSBundle bundleForClass:[LaunchServices class]] pathForResource:schemaFile ofType:@"sql"];
+        if(sqlPath == nil) {
+    	    NSLog(@"ERROR: cannot find %@.sql to update launchservices.db schema", schemaFile);
+        } else {
+            sqlite3_stmt *stmt;
+            const char *tail;
+            FILE *sql = fopen([sqlPath UTF8String], "r");
+	        size_t length;
+	        char *line = fgetln(sql, &length);
+
+        	while(length > 0) {
+	            if(sqlite3_prepare_v2(pDB, line, length, &stmt, &tail) != SQLITE_OK) {
+	    	        sqlite3_close(pDB);
+		            fclose(sql);
+		            return false;
+	            }
+	            sqlite3_step(stmt);
+	            sqlite3_finalize(stmt);
+	            line = fgetln(sql, &length);
+	        }
+        }
+        ++currentSchema;
+    }
+
+    sqlite3_close(pDB);
+    return true;
+}
+
 static BOOL _LSInitializeDatabase()
 {
     NSFileManager *fm = [NSFileManager defaultManager];
     if([fm fileExistsAtPath:LS_DATABASE])
-        return true;
+        return _LSCheckAndUpdateSchema();
 
     [fm createFileAtPath:LS_DATABASE contents:[NSData new] attributes:[NSDictionary new]];
 
