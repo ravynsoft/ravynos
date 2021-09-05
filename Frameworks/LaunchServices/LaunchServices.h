@@ -100,11 +100,9 @@ enum {
 typedef struct OpaqueLSSharedFileListRef *LSSharedFileListRef;
 typedef struct OpaqueLSSharedFileListItemRef *LSSharedFileListItemRef;
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 //------------------------------------------------------------------------
 // These two functions are used by Filer but are otherwise internal only
 //------------------------------------------------------------------------

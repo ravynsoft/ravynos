@@ -25,8 +25,8 @@
 #import <Foundation/NSRaiseException.h>
 #import <Foundation/NSPlatform.h>
 #import <CoreFoundation/CoreFoundation.h>
-#import <LaunchServices/LaunchServices.h>
-#import "LSAppRecord.h"
+#import "LaunchServices.h"
+#import "LaunchServices_private.h"
 #import "UTTypes.h"
 
 #include <sqlite3.h>
@@ -161,7 +161,7 @@ static BOOL _LSInitializeDatabase()
     return true;
 }
 
-static BOOL _LSFindRecordInDatabase(const NSURL *appURL, LSAppRecord **appRecord)
+BOOL LSFindRecordInDatabase(const NSURL *appURL, LSAppRecord **appRecord)
 {
     sqlite3 *pDB = 0;
     if(sqlite3_open([LS_DATABASE UTF8String], &pDB) != SQLITE_OK) {
@@ -200,7 +200,45 @@ static BOOL _LSFindRecordInDatabase(const NSURL *appURL, LSAppRecord **appRecord
     return (rc == SQLITE_ROW) ? true : false;
 }
 
-static OSStatus _LSFindAppsForUTI(NSString *uti, NSMutableArray **outAppURLs)
+BOOL LSFindRecordInDatabaseByBundleID(const NSString *bundleID, LSAppRecord **appRecord)
+{
+    sqlite3 *pDB = 0;
+    if(sqlite3_open([LS_DATABASE UTF8String], &pDB) != SQLITE_OK) {
+        sqlite3_close(pDB);
+        return false; // FIXME: log error somewhere
+    }
+    
+    const char *query = "SELECT * FROM applications WHERE bundleid=?";
+    const int length = strlen(query);
+    sqlite3_stmt *stmt;
+    const char *tail;
+
+    if(sqlite3_prepare_v2(pDB, query, length, &stmt, &tail) != SQLITE_OK) {
+        sqlite3_close(pDB);
+        return false;
+    }
+
+    if(sqlite3_bind_text(stmt, 1, [bundleID UTF8String], [bundleID length], SQLITE_STATIC) != SQLITE_OK)
+    {
+        sqlite3_finalize(stmt);
+        sqlite3_close(pDB);
+        return false;
+    }
+
+    int rc = sqlite3_step(stmt);
+    if(rc == SQLITE_ROW) {
+        NSData *blob = [[NSData alloc] 
+            initWithBytes:sqlite3_column_blob(stmt, 3)
+            length:sqlite3_column_bytes(stmt, 3)];
+        *appRecord = [NSKeyedUnarchiver unarchiveObjectWithData:blob];
+    }
+
+    sqlite3_finalize(stmt);
+    sqlite3_close(pDB);
+    return (rc == SQLITE_ROW) ? true : false;
+}
+
+OSStatus LSFindAppsForUTI(NSString *uti, NSMutableArray **outAppURLs)
 {
     sqlite3 *pDB = 0;
     if(sqlite3_open([LS_DATABASE UTF8String], &pDB) != SQLITE_OK) {
@@ -247,9 +285,9 @@ static BOOL _LSAddRecordToDatabase(const LSAppRecord *appRecord, BOOL isUpdate) 
     
     const char *query;
     if(isUpdate)
-        query = "UPDATE applications SET basename=?2, version=?3, apprecord=?4 WHERE url=?1";
+        query = "UPDATE applications SET basename=?2, version=?3, apprecord=?4, bundleid=?5 WHERE url=?1";
     else
-        query = "INSERT INTO applications (url,basename,version,apprecord) VALUES (?1,?2,?3,?4)";
+        query = "INSERT INTO applications (url,basename,version,apprecord,bundleid) VALUES (?1,?2,?3,?4,?5)";
     int length = strlen(query);
     sqlite3_stmt *stmt;
     const char *tail;
@@ -259,11 +297,17 @@ static BOOL _LSAddRecordToDatabase(const LSAppRecord *appRecord, BOOL isUpdate) 
         return false;
     }
 
+    NSString *bundleID = [NSString new];
+    NSBundle *b = [NSBundle bundleWithPath:[[appRecord URL] absoluteString]];
+    if(b)
+        bundleID = [b bundleIdentifier];
+
     NSData *blob = [NSKeyedArchiver archivedDataWithRootObject:appRecord];
     if(sqlite3_bind_text(stmt, 1, [[[appRecord URL] absoluteString] UTF8String], [[[appRecord URL] absoluteString] length], SQLITE_STATIC) != SQLITE_OK
         || sqlite3_bind_text(stmt, 2, [[[appRecord URL] lastPathComponent] UTF8String], [[[appRecord URL] lastPathComponent] length], SQLITE_STATIC) != SQLITE_OK
         || sqlite3_bind_int(stmt, 3, [appRecord version]) != SQLITE_OK
-        || sqlite3_bind_blob(stmt, 4, [blob bytes], [blob length], SQLITE_STATIC) != SQLITE_OK)
+        || sqlite3_bind_blob(stmt, 4, [blob bytes], [blob length], SQLITE_STATIC) != SQLITE_OK
+        || sqlite3_bind_text(stmt, 5, [bundleID UTF8String], [bundleID length], SQLITE_STATIC) != SQLITE_OK)
     {
         sqlite3_finalize(stmt);
         sqlite3_close(pDB);
@@ -382,7 +426,7 @@ static OSStatus _LSOpenAllWithSpecifiedApp(const LSLaunchURLSpec *inLaunchSpec, 
         // Check if we have any stored arguments in the database
         LSAppRecord *appRecord;
         NSMutableArray *args = [NSMutableArray alloc];
-        if(_LSFindRecordInDatabase(appURL, &appRecord) == YES) {
+        if(LSFindRecordInDatabase(appURL, &appRecord) == YES) {
             [args addObjectsFromArray:[appRecord arguments]];
         }
 
@@ -518,7 +562,7 @@ OSStatus LSOpenFromURLSpec(const LSLaunchURLSpec *inLaunchSpec, CFURLRef _Nullab
             NSMutableArray *appCandidates = [NSMutableArray arrayWithCapacity:6];
 	    NSString *uti = (NSString *)UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension,
 	    	(CFStringRef)[item pathExtension], NULL); 
-            if(_LSFindAppsForUTI(uti, &appCandidates) == 0) {
+            if(LSFindAppsForUTI(uti, &appCandidates) == 0) {
                 LSLaunchURLSpec spec;
                 spec.appURL = (CFURLRef)[[appCandidates firstObject] copy];
                 spec.itemURLs = (CFArrayRef)[NSArray arrayWithObject:item];
@@ -568,7 +612,7 @@ OSStatus LSRegisterURL(CFURLRef inURL, Boolean inUpdate)
 
     // Use the parsed appRecord to handle .desktop files: the Exec=
     // is not the same as the appURL. Sigh.
-    BOOL inDatabase = _LSFindRecordInDatabase([appRecord URL], &appRecordInDB);
+    BOOL inDatabase = LSFindRecordInDatabase([appRecord URL], &appRecordInDB);
 
     if(inDatabase == YES && inUpdate == NO && [appRecord modificationDate] == [attributes fileModificationDate])
         return 0; // Date hasn't changed and "force update" not specified
@@ -588,7 +632,7 @@ OSStatus LSCanURLAcceptURL(CFURLRef inItemURL, CFURLRef inTargetURL, LSRolesMask
         return kLSDataErr;
 
     LSAppRecord *appRecord = [LSAppRecord new];
-    if(_LSFindRecordInDatabase(appURL, &appRecord) == NO)
+    if(LSFindRecordInDatabase(appURL, &appRecord) == NO)
         return kLSApplicationNotFoundErr;
 
     if([[(NSURL *)inItemURL scheme] isEqualToString:@"file"]) {
