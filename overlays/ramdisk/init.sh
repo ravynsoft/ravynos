@@ -66,7 +66,7 @@ fi
 
 echo "==> Mount unionfs"
 mdmfs -s "${MEMDISK_SIZE}m" md /memdisk || exit 1
-mount -t unionfs /memdisk /sysroot
+mount -t unionfs -o noatime -o copymode=transparent /memdisk /sysroot
 
 echo "==> Mount /sysroot/sysroot/boot" # https://github.com/helloSystem/ISO/issues/4#issuecomment-800636914
 mkdir -p /sysroot/sysroot/boot
