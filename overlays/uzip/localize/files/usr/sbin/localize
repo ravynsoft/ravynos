@@ -110,7 +110,8 @@ try:
                     continue
                 efi_lang = efi_lang + chr(int(bstr, 16))
     print("PlatformLang is %s" % efi_lang)
-    (language, country) = efi_lang.split("-")
+    efi_lang = efi_lang.replace("-", "_")
+    (language, country) = efi_lang.split("_")
     locale = "%s.UTF-8" % efi_lang
     try:
         idx = countries.index(country)
