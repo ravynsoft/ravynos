@@ -32,7 +32,7 @@
 #import "LaunchServices.h"
 #import "LaunchServices_private.h"
 
-void unimplemented(const char *msg);
+void unimplemented(NSString *msg);
 void showHelpAndExit(void);
 void findApplicationByName(NSString *name, LSLaunchURLSpec *spec);
 void findApplicationByBundleID(NSString *bid, LSLaunchURLSpec *spec);
@@ -46,12 +46,14 @@ static NSString *textedit = @"/Applications/TextEdit.app";
 
 int main(int argc, const char **argv)
 {
-    LSLaunchURLSpec spec;
-    BOOL openFresh = NO, waitForExit = NO, openNew = NO, findingHeaders = NO;
-    BOOL revealInFiler = NO, launchHidden = NO, doNotRaiseWindow = NO;
+    BOOL waitForExit = NO, findingHeaders = NO, revealInFiler = NO;
     NSArray *taskArgs = nil;
-    NSMutableDictionary *taskEnv = [NSMutableDictionary new];
-    NSMutableArray *files = [NSMutableArray new];
+    NSString *stdinPipe = nil, *stdoutPipe = nil, *stderrPipe = nil;
+
+    NSMutableDictionary *taskEnv = [NSMutableDictionary dictionaryWithCapacity:20];
+    [taskEnv addEntriesFromDictionary:[[NSPlatform currentPlatform] environment]];
+
+    NSMutableArray *itemURLs = [NSMutableArray new];
 
     if(argc == 1)
         showHelpAndExit();
@@ -59,6 +61,13 @@ int main(int argc, const char **argv)
     NSArray *argv_ = [[NSPlatform currentPlatform] arguments];
     NSEnumerator *args = [argv_ objectEnumerator];
     NSString *arg = [args nextObject]; // eat argv[0]
+
+    LSLaunchURLSpec spec;
+    spec.appURL = NULL;
+    spec.itemURLs = NULL;
+    spec.asyncRefCon = 0;
+    spec.passThruParams = 0;
+    spec.launchFlags = kLSLaunchDefaults;
 
     while(arg = [args nextObject]) {
         // -a, -b, -e, -t, -f and -R are mutually exclusive
@@ -73,6 +82,11 @@ int main(int argc, const char **argv)
                 showHelpAndExit();
             findApplicationByBundleID(bid, &spec);
         } else if([arg isEqualToString:@"-e"]) {
+            NSFileManager *fm = [NSFileManager defaultManager];
+            if([fm fileExistsAtPath:textedit] == NO) {
+                fprintf(stderr,"Unable to find application %s\n", [textedit UTF8String]);
+                exit(1);
+            }
             spec.appURL = (CFURLRef)[NSURL fileURLWithPath:textedit];
         } else if([arg isEqualToString:@"-t"]) {
             findDefaultTextEditor(&spec);
@@ -80,22 +94,22 @@ int main(int argc, const char **argv)
             findDefaultTextEditor(&spec);
             pipeInputToTempAndOpen(&spec);
         } else if([arg isEqualToString:@"-F"] || [arg isEqualToString:@"--fresh"]) {
-            openFresh = YES;
+            unimplemented(arg);
         } else if([arg isEqualToString:@"-W"] || [arg isEqualToString:@"--wait-apps"]) {
             waitForExit = YES;
         } else if([arg isEqualToString:@"-R"] || [arg isEqualToString:@"--reveal"]) {
             revealInFiler = YES;
         } else if([arg isEqualToString:@"-n"] || [arg isEqualToString:@"--new"]) {
-            openNew = YES;
+            spec.launchFlags = kLSLaunchNewInstance;
         } else if([arg isEqualToString:@"-g"] || [arg isEqualToString:@"--background"]) {
-            doNotRaiseWindow = YES;
+            spec.launchFlags = kLSLaunchDontSwitch;
         } else if([arg isEqualToString:@"-j"] || [arg isEqualToString:@"--hide"]) {
-            launchHidden = YES;
+            spec.launchFlags = kLSLaunchAndHide;
         } else if([arg isEqualToString:@"-h"] || [arg isEqualToString:@"--header"]) {
             findingHeaders = YES;
         } else if([arg isEqualToString:@"-s"]) {
             NSString *sdk = [args nextObject];
-            unimplemented("-s");
+            unimplemented(arg);
         } else if([arg isEqualToString:@"--args"]) {
             NSInteger here = [argv_ indexOfObject:arg];
             NSRange r = NSMakeRange(here, (argc - here));
@@ -108,32 +122,43 @@ int main(int argc, const char **argv)
             NSArray *pair = [var componentsSeparatedByString:@"="];
             [taskEnv setObject:[pair objectAtIndex:1] forKey:[pair objectAtIndex:0]];
         } else if([arg isEqualToString:@"-i"] || [arg isEqualToString:@"--stdin"]) {
-            NSString *path = [args nextObject];
-            if(path == nil)
+            stdinPipe = [args nextObject];
+            if(stdinPipe == nil)
                 showHelpAndExit();
-            openInputPipe(path);
         } else if([arg isEqualToString:@"-o"] || [arg isEqualToString:@"--stdout"]) {
-            NSString *path = [args nextObject];
-            if(path == nil)
+            stdoutPipe = [args nextObject];
+            if(stdoutPipe == nil)
                 showHelpAndExit();
-            openOutputPipe(path, 1);
         } else if([arg isEqualToString:@"--stderr"]) {
-            NSString *path = [args nextObject];
-            if(path == nil)
+            stderrPipe = [args nextObject];
+            if(stderrPipe == nil)
                 showHelpAndExit();
-            openOutputPipe(path, 2);
-        } else
-            [files addObject:arg];
+        } else {
+            NSURL *url = [NSURL URLWithString:arg];
+            if(url)
+                [itemURLs addObject:url];
+            else
+                [itemURLs addObject:[NSURL fileURLWithPath:arg]];
+        }
     }
 
-    NSLog(@"files=%@\nargs=%@\nenv=%@",files,taskArgs,taskEnv);
+    // now we are ready to launch!
 
-    return 0;
+    if(stdinPipe)
+        openInputPipe(stdinPipe);
+    if(stdoutPipe)
+        openOutputPipe(stdoutPipe, 1);
+    if(stderrPipe)
+        openOutputPipe(stderrPipe, 2);
+
+    spec.itemURLs = (CFArrayRef)itemURLs;
+
+    return LSOpenFromURLSpecExtended(&spec, NULL, (CFArrayRef)taskArgs, (CFDictionaryRef)taskEnv);
 }
 
-void unimplemented(const char *msg)
+void unimplemented(NSString *msg)
 {
-    fprintf(stderr, "Warning: option %s is not implemented", msg);
+    fprintf(stderr, "Warning: option %s is not implemented\n", [msg UTF8String]);
 }
 
 void showHelpAndExit(void)
@@ -166,7 +191,7 @@ void showHelpAndExit(void)
 
 void findApplicationByName(NSString *name, LSLaunchURLSpec *spec)
 {
-    LSAppRecord *appRecord = [LSAppRecord new];
+    LSAppRecord *appRecord;
     NSURL *appURL = [NSURL fileURLWithPath:name];
     if(LSFindRecordInDatabase(appURL, &appRecord) == YES) {
         spec->appURL = (CFURLRef)[appRecord URL];
@@ -187,7 +212,7 @@ void findApplicationByName(NSString *name, LSLaunchURLSpec *spec)
 
 void findApplicationByBundleID(NSString *bid, LSLaunchURLSpec *spec)
 {
-    LSAppRecord *appRecord = [LSAppRecord new];
+    LSAppRecord *appRecord;
     if(LSFindRecordInDatabaseByBundleID(bid, &appRecord) == YES) {
         spec->appURL = (CFURLRef)[appRecord URL];
         return;
@@ -241,12 +266,22 @@ void findHeaderNamed(NSString *header, LSLaunchURLSpec *spec)
 
 void openInputPipe(NSString *path)
 {
-    NSLog(@"open input pipe %@",path);
+    int source = open([path UTF8String], O_RDONLY);
+    if(source < 0) {
+        fprintf(stderr, "Unable to open %s for input\n", [path UTF8String]);
+        exit(1);
+    }
+    dup2(source,0);
 }
 
 void openOutputPipe(NSString *path, int fd)
 {
-    NSLog(@"open output pipe %@ %d",path,fd);
+    int sink = open([path UTF8String], O_WRONLY);
+    if(sink< 0) {
+        fprintf(stderr, "Unable to open %s for output\n", [path UTF8String]);
+        exit(1);
+    }
+    dup2(sink,fd);
 }
 
 

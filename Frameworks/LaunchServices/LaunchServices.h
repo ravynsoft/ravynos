@@ -116,6 +116,7 @@ Boolean LSIsAppDir(CFURLRef url);
 
 OSStatus LSOpenCFURLRef(CFURLRef inURL, CFURLRef _Nullable *outLaunchedURL);
 OSStatus LSOpenFromURLSpec(const LSLaunchURLSpec *inLaunchSpec, CFURLRef _Nullable *outLaunchedURL);
+OSStatus LSOpenFromURLSpecExtended(const LSLaunchURLSpec *inLaunchSpec, CFURLRef _Nullable *outLaunchedURL, CFArrayRef _Nullable taskArgs, CFDictionaryRef _Nullable taskEnv);
 OSStatus LSRegisterURL(CFURLRef inURL, Boolean inUpdate);
 OSStatus LSCanURLAcceptURL(CFURLRef inItemURL, CFURLRef inTargetURL, LSRolesMask inRoleMask, LSAcceptanceFlags inFlags, Boolean *outAcceptsItem);
 

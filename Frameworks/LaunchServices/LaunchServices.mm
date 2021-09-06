@@ -529,6 +529,11 @@ OSStatus LSOpenCFURLRef(CFURLRef inURL, CFURLRef _Nullable *outLaunchedURL)
 
 OSStatus LSOpenFromURLSpec(const LSLaunchURLSpec *inLaunchSpec, CFURLRef _Nullable *outLaunchedURL)
 {
+    return LSOpenFromURLSpecExtended(inLaunchSpec,outLaunchedURL,NULL,NULL);
+}
+
+OSStatus LSOpenFromURLSpecExtended(const LSLaunchURLSpec *inLaunchSpec, CFURLRef _Nullable *outLaunchedURL, CFArrayRef _Nullable taskArgs, CFDictionaryRef _Nullable taskEnv)
+{
     _LSInitializeDatabase();
 
     if(inLaunchSpec->appURL) {
