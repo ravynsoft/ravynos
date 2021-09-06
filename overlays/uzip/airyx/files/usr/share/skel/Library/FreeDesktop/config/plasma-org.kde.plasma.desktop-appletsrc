@@ -1,11 +1,3 @@
-[ActionPlugins][0]
-MiddleButton;NoModifier=org.kde.paste
-RightButton;NoModifier=org.kde.contextmenu
-wheel:Vertical;NoModifier=org.kde.switchdesktop
-
-[ActionPlugins][1]
-RightButton;NoModifier=org.kde.contextmenu
-
 [Containments][18]
 activityId=
 formfactor=2
@@ -69,17 +61,6 @@ plugin=org.kde.plasma.systemtray
 PreloadWeight=0
 SystrayContainmentId=36
 
-[Containments][18][Applets][44]
-immutability=1
-plugin=org.kde.plasma.userswitcher
-
-[Containments][18][Applets][44][Configuration]
-PreloadWeight=0
-
-[Containments][18][Applets][44][Configuration][ConfigDialog]
-DialogHeight=558
-DialogWidth=720
-
 [Containments][18][Applets][47]
 immutability=1
 plugin=org.kde.plasma.digitalclocklite
@@ -109,7 +90,7 @@ immutability=1
 plugin=org.airyx.plasma.AiryxMenu
 
 [Containments][18][Applets][52][Configuration]
-PreloadWeight=92
+PreloadWeight=66
 
 [Containments][18][Applets][52][Configuration][ConfigDialog]
 DialogHeight=434
@@ -123,7 +104,7 @@ DialogWidth=1600
 PreloadWeight=0
 
 [Containments][18][General]
-AppletOrder=52;19;20;35;24;23;21;47;44;25
+AppletOrder=52;19;20;35;24;23;21;47;25
 
 [Containments][36]
 activityId=
@@ -191,7 +172,7 @@ hiddenItems=Discover Notifier_org.kde.DiscoverNotifier
 knownItems=org.kde.plasma.nightcolorcontrol,org.kde.plasma.mediacontroller,org.kde.plasma.battery,org.kde.plasma.clipboard,org.kde.plasma.keyboardindicator,org.kde.plasma.notifications,org.kde.plasma.devicenotifier,org.kde.plasma.keyboardlayout
 shownItems=org.kde.plasma.keyboardlayout
 
-[Containments][49]
+[Containments][55]
 ItemGeometries-1600x900=
 ItemGeometriesHorizontal=
 activityId=2650f40d-21ba-4f90-9917-d17666d81240
@@ -202,25 +183,26 @@ location=0
 plugin=org.kde.desktopcontainment
 wallpaperplugin=org.kde.color
 
-[Containments][49][ConfigDialog]
+[Containments][55][ConfigDialog]
 DialogHeight=434
 DialogWidth=560
 
-[Containments][49][Configuration]
+[Containments][55][Configuration]
 PreloadWeight=0
 
-[Containments][49][General]
+[Containments][55][General]
 ToolBoxButtonState=top
 ToolBoxButtonX=558
 ToolBoxButtonY=20
+alignment=1
+arrangement=1
 
-[Containments][49][Wallpaper][org.kde.color][General]
+[Containments][55][Wallpaper][org.kde.color][General]
 Color=0,0,0
 
-[Containments][49][Wallpaper][org.kde.image][General]
-Image=file:///usr/share/wallpapers/Next/contents/images/1920x1080.png
-SlidePaths=/usr/share/wallpapers
+[Containments][55][Wallpaper][org.kde.image][General]
+Color=invalid
+Image=file:///usr/share/wallpapers/Path/contents/images/2560x1600.jpg
+SlideInterval=0
+SlidePaths=
 
-[ScreenMapping]
-itemsOnDisabledScreens=0,1,desktop:/nvim-qt.desktop
-screenMapping=
