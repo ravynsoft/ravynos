@@ -46,7 +46,7 @@ static NSString *textedit = @"/Applications/TextEdit.app";
 
 int main(int argc, const char **argv)
 {
-    BOOL waitForExit = NO, findingHeaders = NO, revealInFiler = NO;
+    BOOL findingHeaders = NO, revealInFiler = NO;
     NSArray *taskArgs = nil;
     NSString *stdinPipe = nil, *stdoutPipe = nil, *stderrPipe = nil;
 
@@ -96,15 +96,15 @@ int main(int argc, const char **argv)
         } else if([arg isEqualToString:@"-F"] || [arg isEqualToString:@"--fresh"]) {
             unimplemented(arg);
         } else if([arg isEqualToString:@"-W"] || [arg isEqualToString:@"--wait-apps"]) {
-            waitForExit = YES;
+            spec.launchFlags |= kLSLaunchAndWaitForExit;
         } else if([arg isEqualToString:@"-R"] || [arg isEqualToString:@"--reveal"]) {
             revealInFiler = YES;
         } else if([arg isEqualToString:@"-n"] || [arg isEqualToString:@"--new"]) {
-            spec.launchFlags = kLSLaunchNewInstance;
+            spec.launchFlags |= kLSLaunchNewInstance;
         } else if([arg isEqualToString:@"-g"] || [arg isEqualToString:@"--background"]) {
-            spec.launchFlags = kLSLaunchDontSwitch;
+            spec.launchFlags |= kLSLaunchDontSwitch;
         } else if([arg isEqualToString:@"-j"] || [arg isEqualToString:@"--hide"]) {
-            spec.launchFlags = kLSLaunchAndHide;
+            spec.launchFlags |= kLSLaunchAndHide;
         } else if([arg isEqualToString:@"-h"] || [arg isEqualToString:@"--header"]) {
             findingHeaders = YES;
         } else if([arg isEqualToString:@"-s"]) {
@@ -144,6 +144,11 @@ int main(int argc, const char **argv)
 
     // now we are ready to launch!
 
+    if(revealInFiler) {
+        // send request to dbus to show files
+        return 0;
+    }
+
     if(stdinPipe)
         openInputPipe(stdinPipe);
     if(stdoutPipe)
@@ -152,8 +157,10 @@ int main(int argc, const char **argv)
         openOutputPipe(stderrPipe, 2);
 
     spec.itemURLs = (CFArrayRef)itemURLs;
+    spec.taskArgs = (CFArrayRef)taskArgs;
+    spec.taskEnv = (CFDictionaryRef)taskEnv;
 
-    return LSOpenFromURLSpecExtended(&spec, NULL, (CFArrayRef)taskArgs, (CFDictionaryRef)taskEnv);
+    return LSOpenFromURLSpec(&spec, NULL);
 }
 
 void unimplemented(NSString *msg)

@@ -31,12 +31,12 @@
 
 #include <sqlite3.h>
 #include <stdio.h>
+#include <X11/Xlib.h>
 
-// #include <KIO/ApplicationLauncherJob>
-// #include <KIO/OpenUrlJob>
-// #include <KService>
+#define _NET_WM_STATE_REMOVE 0
+#define _NET_WM_STATE_ADD 1
+#define _NET_WM_STATE_TOGGLE 2
 
-    
 NSString *LS_DATABASE = [[[NSPlatform currentPlatform] libraryDirectory] stringByAppendingString:@"/db/launchservices.db"];
 
 @interface LaunchServices: NSObject
@@ -388,6 +388,69 @@ static BOOL _LSAddRecordToDatabase(const LSAppRecord *appRecord, BOOL isUpdate) 
     return true;
 }
 
+static void _LSCheckAndHandleLaunchFlags(NSTask *task, LSLaunchFlags launchFlags)
+{
+    if(launchFlags & kLSLaunchNewInstance) {
+        // FIXME: launch new instance of app
+    }
+
+    Display *display = XOpenDisplay(":0");
+    int revert;
+    Window oldWindow = None, newWindow = None;
+
+    if(display) {
+        XGetInputFocus(display, &oldWindow, &revert);
+    }
+
+    [task launch];
+
+    int times = 100000;
+    if(display) {
+        newWindow = oldWindow;
+        while(newWindow == oldWindow && times-- > 0)
+            XGetInputFocus(display, &newWindow, &revert);
+    }
+
+    long pid = 0;
+    if(newWindow != None && newWindow != PointerRoot) {
+        Atom actualType;
+        int actualFormat;
+        unsigned long numItems, bytesAfter;
+        unsigned char *property;
+
+        if(XGetWindowProperty(display, newWindow,
+            // This way sucks because the app sets the property, but using
+            // XRes and XCB Res APIs did not return any PIDs -_-
+            XInternAtom(display, "_NET_WM_PID", True), 0, 1024, False,
+            AnyPropertyType, &actualType, &actualFormat, &numItems,
+            &bytesAfter, &property) == 0)
+        {
+            pid = property[1] * 256;
+            pid = pid + property[0];
+        }
+
+        if(pid > 0) {
+            if((launchFlags & kLSLaunchDontSwitch) &&
+                (pid == [task processIdentifier]))
+            {
+                // KWin activated it. Need to switch away!
+                XLowerWindow(display, newWindow);
+            }
+            if(launchFlags & kLSLaunchAndHide) {
+                Window root, parent, *children = 0;
+                unsigned int numChildren;
+                XQueryTree(display,newWindow,&root,&parent,&children,&numChildren);
+                int rc = XUnmapWindow(display, parent);
+                XFlush(display);
+                printf("rc=%d",rc);
+            }
+        }
+    }
+
+    if(launchFlags & kLSLaunchAndWaitForExit)
+        [task waitUntilExit];
+}
+
 static OSStatus _LSOpenAllWithSpecifiedApp(const LSLaunchURLSpec *inLaunchSpec, CFURLRef _Nullable *outLaunchedURL)
 {
     const NSURL *appURL = (NSURL *)inLaunchSpec->appURL;
@@ -412,9 +475,17 @@ static OSStatus _LSOpenAllWithSpecifiedApp(const LSLaunchURLSpec *inLaunchSpec, 
         if(outLaunchedURL != NULL)
             *outLaunchedURL = (CFURLRef)[NSURL fileURLWithPath:[app executablePath]];
         
-        NSMutableArray *args = [[app infoDictionary] objectForKey:@"ProgramArguments"];
+        NSMutableArray *args = [NSMutableArray new];
+        if(inLaunchSpec->taskArgs)
+            [args addObjectsFromArray:(NSArray *)inLaunchSpec->taskArgs];
+        else
+            args = [[app infoDictionary] objectForKey:@"ProgramArguments"];
         [args addObjectsFromArray:(NSArray *)inLaunchSpec->itemURLs];
-        [NSTask launchedTaskWithLaunchPath:[app executablePath] arguments:args];
+        NSTask *task = [[NSTask new] autorelease];
+        [task setEnvironment:(NSDictionary *)inLaunchSpec->taskEnv];
+        [task setArguments:args];
+        [task setLaunchPath:[app executablePath]];
+        _LSCheckAndHandleLaunchFlags(task, inLaunchSpec->launchFlags);
     } else {
         // it's not a bundle so just try to exec the file
         if([fm isExecutableFileAtPath:appPath] == NO)
@@ -424,8 +495,11 @@ static OSStatus _LSOpenAllWithSpecifiedApp(const LSLaunchURLSpec *inLaunchSpec, 
             *outLaunchedURL = (CFURLRef)[NSURL fileURLWithPath:appPath];
 
         // Check if we have any stored arguments in the database
+        NSMutableArray *args = [NSMutableArray new];
+        if(inLaunchSpec->taskArgs)
+            [args addObjectsFromArray:(NSArray *)inLaunchSpec->taskArgs];
+
         LSAppRecord *appRecord;
-        NSMutableArray *args = [NSMutableArray alloc];
         if(LSFindRecordInDatabase(appURL, &appRecord) == YES) {
             [args addObjectsFromArray:[appRecord arguments]];
         }
@@ -434,7 +508,14 @@ static OSStatus _LSOpenAllWithSpecifiedApp(const LSLaunchURLSpec *inLaunchSpec, 
         // Otherwise, launch the app with each one
         if([(NSArray *)inLaunchSpec->itemURLs count] == 0) {
             [args retain];
-            [NSTask launchedTaskWithLaunchPath:appPath arguments:args];
+//        [args addObjectsFromArray:(NSArray *)inLaunchSpec->itemURLs];
+            NSTask *task = [[NSTask new] autorelease];
+            [task setEnvironment:(NSDictionary*)inLaunchSpec->taskEnv];
+            [task setArguments:args];
+            [task setLaunchPath:appPath];
+
+            _LSCheckAndHandleLaunchFlags(task, inLaunchSpec->launchFlags);
+
             [args release];
             return 0;
         }
@@ -458,7 +539,15 @@ static OSStatus _LSOpenAllWithSpecifiedApp(const LSLaunchURLSpec *inLaunchSpec, 
             if(found == NO)
                 [copyargs addObject:[item path]];
             [copyargs retain];
-            [NSTask launchedTaskWithLaunchPath:appPath arguments:copyargs];
+
+            NSTask *task = [[NSTask new] autorelease];
+            [task setEnvironment:(NSDictionary *)inLaunchSpec->taskEnv];
+            [task setArguments:copyargs];
+            [task setLaunchPath:appPath];
+
+            _LSCheckAndHandleLaunchFlags(task, inLaunchSpec->launchFlags);
+
+            [args release];
             [copyargs release];
         }
         [args release];
@@ -529,11 +618,6 @@ OSStatus LSOpenCFURLRef(CFURLRef inURL, CFURLRef _Nullable *outLaunchedURL)
 
 OSStatus LSOpenFromURLSpec(const LSLaunchURLSpec *inLaunchSpec, CFURLRef _Nullable *outLaunchedURL)
 {
-    return LSOpenFromURLSpecExtended(inLaunchSpec,outLaunchedURL,NULL,NULL);
-}
-
-OSStatus LSOpenFromURLSpecExtended(const LSLaunchURLSpec *inLaunchSpec, CFURLRef _Nullable *outLaunchedURL, CFArrayRef _Nullable taskArgs, CFDictionaryRef _Nullable taskEnv)
-{
     _LSInitializeDatabase();
 
     if(inLaunchSpec->appURL) {
@@ -555,13 +639,17 @@ OSStatus LSOpenFromURLSpecExtended(const LSLaunchURLSpec *inLaunchSpec, CFURLRef
             LSLaunchURLSpec spec;
 	    spec.appURL = (CFURLRef)item;
 	    spec.itemURLs = NULL;
-	    spec.launchFlags = kLSLaunchDefaults;
+	    spec.launchFlags = inLaunchSpec->launchFlags;
+            spec.taskArgs = inLaunchSpec->taskArgs;
+            spec.taskEnv = inLaunchSpec->taskEnv;
 	    _LSOpenAllWithSpecifiedApp(&spec, NULL);
         } else if(LSIsAppDir((CFURLRef)item)) {
             LSLaunchURLSpec spec;
 	    spec.appURL = (CFURLRef)([item URLByAppendingPathComponent:@"AppRun"]);
 	    spec.itemURLs = NULL;
-	    spec.launchFlags = kLSLaunchDefaults;
+	    spec.launchFlags = inLaunchSpec->launchFlags;
+            spec.taskArgs = inLaunchSpec->taskArgs;
+            spec.taskEnv = inLaunchSpec->taskEnv;
 	    _LSOpenAllWithSpecifiedApp(&spec, NULL);
         } else {
             NSMutableArray *appCandidates = [NSMutableArray arrayWithCapacity:6];
@@ -571,7 +659,9 @@ OSStatus LSOpenFromURLSpecExtended(const LSLaunchURLSpec *inLaunchSpec, CFURLRef
                 LSLaunchURLSpec spec;
                 spec.appURL = (CFURLRef)[[appCandidates firstObject] copy];
                 spec.itemURLs = (CFArrayRef)[NSArray arrayWithObject:item];
-                spec.launchFlags = kLSLaunchDefaults;
+                spec.launchFlags = inLaunchSpec->launchFlags;
+                spec.taskArgs = inLaunchSpec->taskArgs;
+                spec.taskEnv = inLaunchSpec->taskEnv;
                 _LSOpenAllWithSpecifiedApp(&spec, NULL);
             }
         }    

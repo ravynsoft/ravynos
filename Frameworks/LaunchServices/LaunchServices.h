@@ -52,6 +52,7 @@ enum {
 typedef enum LSLaunchFlags : OptionBits {
     kLSLaunchDefaults = 0x00000001,
     kLSLaunchAndPrint = 0x00000002,
+    kLSLaunchAndWaitForExit = 0x00000004, // specific to Airyx
     kLSLaunchAndDisplayErrors = 0x00000040,
     kLSLaunchDontAddToRecents = 0x00000100,
     kLSLaunchDontSwitch = 0x00000200,
@@ -84,6 +85,8 @@ typedef struct LSLaunchURLSpec {
     CFArrayRef itemURLs;
     LSLaunchFlags launchFlags;
     const void *passThruParams; // ignored - not implemented
+    CFArrayRef taskArgs;        // specific to Airyx
+    CFDictionaryRef taskEnv;    // specific to Airyx
 } LSLaunchURLSpec;
 
 const CFStringRef    kCFBundleTypeExtensionsKey = CFSTR("CFBundleTypeExtensions");
@@ -116,7 +119,6 @@ Boolean LSIsAppDir(CFURLRef url);
 
 OSStatus LSOpenCFURLRef(CFURLRef inURL, CFURLRef _Nullable *outLaunchedURL);
 OSStatus LSOpenFromURLSpec(const LSLaunchURLSpec *inLaunchSpec, CFURLRef _Nullable *outLaunchedURL);
-OSStatus LSOpenFromURLSpecExtended(const LSLaunchURLSpec *inLaunchSpec, CFURLRef _Nullable *outLaunchedURL, CFArrayRef _Nullable taskArgs, CFDictionaryRef _Nullable taskEnv);
 OSStatus LSRegisterURL(CFURLRef inURL, Boolean inUpdate);
 OSStatus LSCanURLAcceptURL(CFURLRef inItemURL, CFURLRef inTargetURL, LSRolesMask inRoleMask, LSAcceptanceFlags inFlags, Boolean *outAcceptsItem);
 
