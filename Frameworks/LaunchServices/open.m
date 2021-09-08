@@ -37,7 +37,7 @@ void showHelpAndExit(void);
 void findApplicationByName(NSString *name, LSLaunchURLSpec *spec);
 void findApplicationByBundleID(NSString *bid, LSLaunchURLSpec *spec);
 void findDefaultTextEditor(LSLaunchURLSpec *spec);
-void pipeInputToTempAndOpen(LSLaunchURLSpec *spec);
+NSURL *pipeInputToTempAndOpen(LSLaunchURLSpec *spec);
 void findHeaderNamed(NSString *header, LSLaunchURLSpec *spec);
 void openInputPipe(NSString *path);
 void openOutputPipe(NSString *path, int fd);
@@ -92,7 +92,7 @@ int main(int argc, const char **argv)
             findDefaultTextEditor(&spec);
         } else if([arg isEqualToString:@"-f"]) {
             findDefaultTextEditor(&spec);
-            pipeInputToTempAndOpen(&spec);
+            [itemURLs addObject:pipeInputToTempAndOpen(&spec)];
         } else if([arg isEqualToString:@"-F"] || [arg isEqualToString:@"--fresh"]) {
             unimplemented(arg);
         } else if([arg isEqualToString:@"-W"] || [arg isEqualToString:@"--wait-apps"]) {
@@ -112,6 +112,7 @@ int main(int argc, const char **argv)
             unimplemented(arg);
         } else if([arg isEqualToString:@"--args"]) {
             NSInteger here = [argv_ indexOfObject:arg];
+            ++here;
             NSRange r = NSMakeRange(here, (argc - here));
             taskArgs = [argv_ subarrayWithRange:r];
             break;
@@ -241,7 +242,7 @@ void findDefaultTextEditor(LSLaunchURLSpec *spec)
     spec->appURL = (CFURLRef)[appCandidates firstObject];
 }
 
-void pipeInputToTempAndOpen(LSLaunchURLSpec *spec)
+NSURL * pipeInputToTempAndOpen(LSLaunchURLSpec *spec)
 {
     char buf[1024], tempfile[25];
     int len = 0;
@@ -259,11 +260,7 @@ void pipeInputToTempAndOpen(LSLaunchURLSpec *spec)
     while((len = read(0, buf, sizeof(buf))) > 0)
         write(out, buf, len);
     close(out);
-
-    spec->itemURLs = (CFArrayRef)[NSArray arrayWithObject:[NSURL fileURLWithPath:
-                               [NSString stringWithCString:tempfile]]];
-    LSOpenFromURLSpec(spec, NULL);
-    exit(0);
+    return [NSURL fileURLWithPath:[[NSString stringWithCString:tempfile] autorelease]]; 
 }
 
 void findHeaderNamed(NSString *header, LSLaunchURLSpec *spec)

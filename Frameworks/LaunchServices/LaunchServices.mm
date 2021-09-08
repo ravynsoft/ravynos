@@ -31,6 +31,11 @@
 
 #include <sqlite3.h>
 #include <stdio.h>
+
+#ifndef _XOPEN_SOURCE
+#define _XOPEN_SOURCE 500
+#endif
+
 #include <X11/Xlib.h>
 
 #define _NET_WM_STATE_REMOVE 0
@@ -388,6 +393,27 @@ static BOOL _LSAddRecordToDatabase(const LSAppRecord *appRecord, BOOL isUpdate) 
     return true;
 }
 
+static void PostXEvent(Display *display, Window window, Atom messageType, long d0, long d1,
+    long d2, long d3, long d4)
+{
+    XEvent e;
+    memset(&e, 0, sizeof(e));
+    e.type = ClientMessage;
+    e.xclient.display = display;
+    e.xclient.window = window;
+    e.xclient.message_type = messageType;
+    e.xclient.format = 32;
+    e.xclient.data.l[0] = d0;
+    e.xclient.data.l[1] = d1;
+    e.xclient.data.l[2] = d2;
+    e.xclient.data.l[3] = d3;
+    e.xclient.data.l[4] = d4;
+
+    XWindowAttributes attr;
+    XGetWindowAttributes(display, window, &attr);
+    XSendEvent(display, attr.screen->root, False, SubstructureNotifyMask | SubstructureRedirectMask, &e);
+}
+
 static void _LSCheckAndHandleLaunchFlags(NSTask *task, LSLaunchFlags launchFlags)
 {
     if(launchFlags & kLSLaunchNewInstance) {
@@ -395,11 +421,11 @@ static void _LSCheckAndHandleLaunchFlags(NSTask *task, LSLaunchFlags launchFlags
     }
 
     Display *display = XOpenDisplay(":0");
-    int revert;
+    int oldRevert, newRevert;
     Window oldWindow = None, newWindow = None;
 
     if(display) {
-        XGetInputFocus(display, &oldWindow, &revert);
+        XGetInputFocus(display, &oldWindow, &oldRevert);
     }
 
     [task launch];
@@ -408,7 +434,7 @@ static void _LSCheckAndHandleLaunchFlags(NSTask *task, LSLaunchFlags launchFlags
     if(display) {
         newWindow = oldWindow;
         while(newWindow == oldWindow && times-- > 0)
-            XGetInputFocus(display, &newWindow, &revert);
+            XGetInputFocus(display, &newWindow, &newRevert);
     }
 
     long pid = 0;
@@ -429,23 +455,27 @@ static void _LSCheckAndHandleLaunchFlags(NSTask *task, LSLaunchFlags launchFlags
             pid = pid + property[0];
         }
 
-        if(pid > 0) {
-            if((launchFlags & kLSLaunchDontSwitch) &&
-                (pid == [task processIdentifier]))
-            {
+        if(pid == [task processIdentifier]) {
+            if(launchFlags & kLSLaunchDontSwitch) {
                 // KWin activated it. Need to switch away!
                 XLowerWindow(display, newWindow);
+                XSetInputFocus(display, oldWindow, oldRevert, CurrentTime);
+                PostXEvent(display, oldWindow, XInternAtom(display, "_NET_ACTIVE_WINDOW", False), 2L, CurrentTime, 0, 0, 0);
+                XFlush(display);
             }
             if(launchFlags & kLSLaunchAndHide) {
-                Window root, parent, *children = 0;
-                unsigned int numChildren;
-                XQueryTree(display,newWindow,&root,&parent,&children,&numChildren);
-                int rc = XUnmapWindow(display, parent);
+                XWindowAttributes attr;
+                int screen = 0;
+                if(XGetWindowAttributes(display, newWindow, &attr))
+                    screen = XScreenNumberOfScreen(attr.screen);
+                XIconifyWindow(display, newWindow, screen);
                 XFlush(display);
-                printf("rc=%d",rc);
             }
         }
     }
+
+    if(display)
+        XCloseDisplay(display);
 
     if(launchFlags & kLSLaunchAndWaitForExit)
         [task waitUntilExit];
@@ -508,7 +538,12 @@ static OSStatus _LSOpenAllWithSpecifiedApp(const LSLaunchURLSpec *inLaunchSpec, 
         // Otherwise, launch the app with each one
         if([(NSArray *)inLaunchSpec->itemURLs count] == 0) {
             [args retain];
-//        [args addObjectsFromArray:(NSArray *)inLaunchSpec->itemURLs];
+            for(int i=0; i<[args count]; ++i) {
+                if([[args objectAtIndex:i] caseInsensitiveCompare:@"%U"] == NSOrderedSame ||
+                    [[args objectAtIndex:i] caseInsensitiveCompare:@"%F"] == NSOrderedSame) {
+                    [args removeObjectAtIndex:i];
+                }
+            }
             NSTask *task = [[NSTask new] autorelease];
             [task setEnvironment:(NSDictionary*)inLaunchSpec->taskEnv];
             [task setArguments:args];
