@@ -38,7 +38,6 @@ void findApplicationByName(NSString *name, LSLaunchURLSpec *spec);
 void findApplicationByBundleID(NSString *bid, LSLaunchURLSpec *spec);
 void findDefaultTextEditor(LSLaunchURLSpec *spec);
 NSURL *pipeInputToTempAndOpen(LSLaunchURLSpec *spec);
-void findHeaderNamed(NSString *header, LSLaunchURLSpec *spec);
 void openInputPipe(NSString *path);
 void openOutputPipe(NSString *path, int fd);
 
@@ -107,6 +106,7 @@ int main(int argc, const char **argv)
             spec.launchFlags |= kLSLaunchAndHide;
         } else if([arg isEqualToString:@"-h"] || [arg isEqualToString:@"--header"]) {
             findingHeaders = YES;
+            unimplemented(arg);
         } else if([arg isEqualToString:@"-s"]) {
             NSString *sdk = [args nextObject];
             unimplemented(arg);
@@ -261,11 +261,6 @@ NSURL * pipeInputToTempAndOpen(LSLaunchURLSpec *spec)
         write(out, buf, len);
     close(out);
     return [NSURL fileURLWithPath:[[NSString stringWithCString:tempfile] autorelease]]; 
-}
-
-void findHeaderNamed(NSString *header, LSLaunchURLSpec *spec)
-{
-    NSLog(@"find header %@",header);
 }
 
 void openInputPipe(NSString *path)
