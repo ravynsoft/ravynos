@@ -52,6 +52,7 @@ enum {
 typedef enum LSLaunchFlags : OptionBits {
     kLSLaunchDefaults = 0x00000001,
     kLSLaunchAndPrint = 0x00000002,
+    kLSLaunchAndWaitForExit = 0x00000004, // specific to Airyx
     kLSLaunchAndDisplayErrors = 0x00000040,
     kLSLaunchDontAddToRecents = 0x00000100,
     kLSLaunchDontSwitch = 0x00000200,
@@ -84,6 +85,8 @@ typedef struct LSLaunchURLSpec {
     CFArrayRef itemURLs;
     LSLaunchFlags launchFlags;
     const void *passThruParams; // ignored - not implemented
+    CFArrayRef taskArgs;        // specific to Airyx
+    CFDictionaryRef taskEnv;    // specific to Airyx
 } LSLaunchURLSpec;
 
 const CFStringRef    kCFBundleTypeExtensionsKey = CFSTR("CFBundleTypeExtensions");
@@ -100,11 +103,9 @@ enum {
 typedef struct OpaqueLSSharedFileListRef *LSSharedFileListRef;
 typedef struct OpaqueLSSharedFileListItemRef *LSSharedFileListItemRef;
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 //------------------------------------------------------------------------
 // These two functions are used by Filer but are otherwise internal only
 //------------------------------------------------------------------------

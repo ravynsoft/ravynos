@@ -1,6 +1,6 @@
 CREATE TABLE schema (version int);
-INSERT INTO schema VALUES (3);
-CREATE TABLE applications (url text, basename text, version int, apprecord blob);
+INSERT INTO schema VALUES (4);
+CREATE TABLE applications (url text, basename text, version int, apprecord blob, bundleid text);
 CREATE TABLE typemap (uti text, application text, rank int);
 CREATE TABLE types (uti text, extensions text, mimetypes text, ostypes text, pboards text, conforms text);
 INSERT INTO types VALUES ('com.apple.alias-record','','','','','public.item,com.apple.resolvable');
