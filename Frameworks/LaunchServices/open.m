@@ -26,6 +26,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/stat.h>
+#include <sys/param.h>
 
 #import <Foundation/Foundation.h>
 #import <Foundation/NSPlatform.h>
@@ -60,6 +61,11 @@ int main(int argc, const char **argv)
     NSArray *argv_ = [[NSPlatform currentPlatform] arguments];
     NSEnumerator *args = [argv_ objectEnumerator];
     NSString *arg = [args nextObject]; // eat argv[0]
+
+    char buf[MAXPATHLEN+1];
+    memset(buf,0,sizeof(buf));
+    getcwd(buf,MAXPATHLEN);
+    NSString *cwd = [NSString stringWithCString:buf];
 
     LSLaunchURLSpec spec;
     spec.appURL = NULL;
@@ -135,18 +141,22 @@ int main(int argc, const char **argv)
             if(stderrPipe == nil)
                 showHelpAndExit();
         } else {
-            NSURL *url = [NSURL URLWithString:arg];
-            if(url)
-                [itemURLs addObject:url];
-            else
-                [itemURLs addObject:[NSURL fileURLWithPath:arg]];
+            NSURL *url;
+            if(strstr([arg cString], "://") != NULL) 
+                url = [NSURL URLWithString:arg];
+            else {
+                if(![arg isAbsolutePath])
+                    arg = [cwd stringByAppendingPathComponent:arg];
+                url = [NSURL fileURLWithPath:arg];
+            }
+            [itemURLs addObject:url];
         }
     }
 
     // now we are ready to launch!
 
     if(revealInFiler) {
-        // send request to dbus to show files
+        LSRevealInFiler((CFArrayRef)itemURLs);
         return 0;
     }
 

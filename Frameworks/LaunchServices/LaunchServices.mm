@@ -31,6 +31,8 @@
 
 #include <sqlite3.h>
 #include <stdio.h>
+#include <QDBusConnection>
+#include <QDBusInterface>
 
 #ifndef _XOPEN_SOURCE
 #define _XOPEN_SOURCE 500
@@ -412,6 +414,29 @@ static void PostXEvent(Display *display, Window window, Atom messageType, long d
     XWindowAttributes attr;
     XGetWindowAttributes(display, window, &attr);
     XSendEvent(display, attr.screen->root, False, SubstructureNotifyMask | SubstructureRedirectMask, &e);
+}
+
+void LSRevealInFiler(CFArrayRef inItemURLs)
+{
+    QDBusConnection dbus = QDBusConnection::sessionBus();
+    QDBusInterface filerIface(QStringLiteral("org.filer.Filer"),
+        QStringLiteral("/Application"), "", dbus);
+    if(filerIface.isValid()) {
+        // we need to convert the CFArray into a QList in order to call DBus
+        // this sucks. FIXME: maybe use DBusKit instead?
+        QStringList uriList;
+        NSArray *urls = (NSArray *)inItemURLs;
+        for(int x=0; x<[urls count]; ++x) {
+            NSURL *u = [urls objectAtIndex:x];
+            if(![u isFileURL])
+                continue;
+            NSString *value = [u absoluteString];
+            uriList.append(QString::fromUtf8([value UTF8String]));
+        }
+        filerIface.call("ShowItems", uriList, "0");
+    } else {
+        fprintf(stderr, "Unable to connect to Filer!\n");
+    }
 }
 
 static void _LSCheckAndHandleLaunchFlags(NSTask *task, LSLaunchFlags launchFlags)

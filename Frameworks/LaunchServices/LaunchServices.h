@@ -106,6 +106,8 @@ typedef struct OpaqueLSSharedFileListItemRef *LSSharedFileListItemRef;
 #ifdef __cplusplus
 extern "C" {
 #endif
+void LSRevealInFiler(CFArrayRef inItemURLs);
+
 //------------------------------------------------------------------------
 // These two functions are used by Filer but are otherwise internal only
 //------------------------------------------------------------------------
