@@ -534,7 +534,7 @@ static OSStatus _LSOpenAllWithSpecifiedApp(const LSLaunchURLSpec *inLaunchSpec, 
         if(inLaunchSpec->taskArgs)
             [args addObjectsFromArray:(NSArray *)inLaunchSpec->taskArgs];
         else
-            args = [[app infoDictionary] objectForKey:@"ProgramArguments"];
+            [args addObjectsFromArray:[[app infoDictionary] objectForKey:@"ProgramArguments"]];
         [args addObjectsFromArray:(NSArray *)inLaunchSpec->itemURLs];
         NSTask *task = [[NSTask new] autorelease];
         [task setEnvironment:(NSDictionary *)inLaunchSpec->taskEnv];
