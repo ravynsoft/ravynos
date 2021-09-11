@@ -20,4 +20,9 @@ installopen: open
 	mkdir -p ${BUILDROOT}/usr/bin
 	${SUDO} install -m755 -o root -g wheel open ${BUILDROOT}/usr/bin
 
+open: open.m
+	clang ${CFLAGS} -g -o ${.TARGET} ${.ALLSRC} \
+		-F${BUILDROOT}/System/Library/Frameworks \
+		-framework LaunchServices -framework Foundation
+
 .include <airyx.framework.mk>
