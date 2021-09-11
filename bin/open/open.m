@@ -30,7 +30,7 @@
 
 #import <Foundation/Foundation.h>
 #import <Foundation/NSPlatform.h>
-#import "LaunchServices.h"
+#import <LaunchServices/LaunchServices.h>
 #import "LaunchServices_private.h"
 
 void unimplemented(NSString *msg);

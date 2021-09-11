@@ -11,11 +11,6 @@ LDFLAGS+= -L/usr/local/lib -lsqlite3 ${QT5LDFLAGS}
 
 build: all open installopen
 
-open: open.m
-	clang ${CFLAGS} -g -o ${.TARGET} ${.ALLSRC} \
-		-F${BUILDROOT}/System/Library/Frameworks \
-		-framework LaunchServices -framework Foundation
-
 installopen: open
 	mkdir -p ${BUILDROOT}/usr/bin
 	${SUDO} install -m755 -o root -g wheel open ${BUILDROOT}/usr/bin

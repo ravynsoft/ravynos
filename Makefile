@@ -14,11 +14,14 @@ PKGDATE!= date "+%Y%m%d"
 .export TOPDIR OBJPREFIX BUILDROOT PORTSROOT AIRYX_VERSION AIRYX_CODENAME MKINCDIR CORES SUDO
 
 # We need the installed frameworks to correctly link CoreServices and applications
-airyx: airyxbase installairyx sysmenu coreservices
+airyx: airyxbase installairyx sysmenu coreservices bin
 
 airyxbase: mkfiles frameworks copyfiles
 	tar -C ${BUILDROOT}/usr/lib -cpf pkgconfig | tar -C ${BUILDROOT}/usr/share -xpf -
 	rm -rf ${BUILDROOT}/usr/lib/pkgconfig
+
+bin: .PHONY
+	${MAKE} -C bin all install
 
 sysmenu: .PHONY
 	mkdir -p ${OBJPREFIX}/sysmenu
