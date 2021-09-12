@@ -1,0 +1,17 @@
+<!DOCTYPE node PUBLIC "-//freedesktop//DTD D-BUS Object Introspection 1.0//EN"
+"http://www.freedesktop.org/standards/dbus/1.0/introspect.dtd">
+<node>
+  <interface name="org.lxqt.QTerminal.Tab">
+    <method name="getActiveTerminal">
+      <arg name="terminal" type="o" direction="out"/>
+    </method>
+    <method name="getTerminals">
+      <arg name="terminals" type="ao" direction="out"/>
+    </method>
+    <method name="getWindow">
+      <arg name="window" type="o" direction="out"/>
+    </method>
+    <method name="closeTab"/>
+  </interface>
+</node>
+

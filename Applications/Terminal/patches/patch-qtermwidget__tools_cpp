@@ -1,0 +1,11 @@
+--- qtermwidget-0.17.0/lib/tools.cpp.orig	2021-09-11 18:17:24.102626000 -0400
++++ qtermwidget-0.17.0/lib/tools.cpp	2021-09-11 17:28:31.857977000 -0400
+@@ -4,6 +4,8 @@
+ #include <QDir>
+ #include <QtDebug>
+ 
++#define Q_OS_MAC
++
+ Q_LOGGING_CATEGORY(qtermwidgetLogger, "qtermwidget", QtWarningMsg)
+ 
+ /*! Helper function to get possible location of layout files.

@@ -1,0 +1,390 @@
+qtermwidget-0.17.0 / 2021-04-15
+===============================
+  * Drop support for KDE3 color scheme formats.
+  * Some code cleanup and modernization.
+  * Added a method to disable bracketed paste mode.
+  * Added an example for PyQt5.
+  * Improve "Undecodable sequence" warnings.
+  * Properly implement the "Action after paste" feature.
+  * Fix execution after paste when Ctrl is hold.
+  * Workaround an issue with glibc 2.33 on old Docker engines.
+  * Added modes for background image. How background images are drawn is changed and manual reconfiguration is needed. See docs/configuration.md for more details.
+
+qtermwidget-0.16.1 / 2020-11-14
+===============================
+  * Bumped version to 0.16.1, for a point release of qterminal.
+
+qtermwidget-0.16.0 / 2020-11-01
+===============================
+
+  * Use qAsConst.
+  * Don't search application dir for keyboard and scheme data.
+  * Use Q_EMIT to call signals, instead of the emit keyword.
+  * Dropped the deprecated class QLinkedList.
+  * Don't use 0/nullptr to initialize QFlags.
+  * Fixed ColorEntry copy operator.
+  * Disabled the use of copy constructors and assignment operators.
+  * Check for successful ioctl() calls by testing that the call did not return -1.
+  * Fix find_package() developer warning in cmake.
+  * Use const references wherever possible.
+  * Handle keyboard commands properly.
+
+qtermwidget-0.15.0 / 2020-04-24
+===============================
+
+  * Bumped version to 0.15.0.
+  * Replaced Q_WS_MAC with Q_OS_MACOS for Qt5 compatibility.
+  * KPty: Don't conditionalize chownpty existence on HAVE_OPENPTY.
+  * cmake: set CMAKE_BUILD_WITH_INSTALL_NAME_DIR ON for macOS.
+  * Fixed the default font on macOS.
+  * pyqt: Fixes deprecation warning (CMP0002).
+  * Fixed the PyQt5 binding with Qt ≥ 5.11.
+  * Swap Qt's ControlModifier and MetaModifier on macOS.
+  * C++11 code updates.
+  * Use braced initializer list in returns.
+  * Fixed the memory access violation in TerminalDisplay's method `getCharacterPosition`.
+  * Completed the support for transient scrollbars.
+  * Added `saveHistory` to QTermWidget.
+  * Use vanilla Qt instead of patched one.
+  * Don't set the selection clipboard if it's unsupported.
+  * Announce truecolor support via COLORTERM.
+  * Fixed numpad handling and added entries for numpad 5.
+  * Allow to disable drawing line chars.
+  * Use QRectF for cursor drawing and fix artifacts in hidpi.
+  * Fixed compilation on NetBSD.
+  * Added sendKeyEvent() API.
+  * Fixed flickering on font change.
+  * Select all text when opening search bar.
+  * Removed some debug outputs.
+  * Removed (duplicated) string casts definitions.
+  * Removed obsolete qCopy.
+  * Fix SearchBar light text over white background with dark themes.
+  * pyqt: also check for sip 5.x path.
+  * Prevented a c++11 range-loop might detach Qt container.
+  * Dropped the deprecated QString method `sprintf()`.
+  * Avoid buffer overflows exploits.
+  * Fixed build with LLVM/clang.
+  * Explicitly mark exported classes.
+  * Fixed QCharRef's deprecated behavior.
+  * Correctly initialize sigsets.
+
+qtermwidget-0.14.1 / 2019-02-25
+===============================
+
+  * Bumped version to 0.14.1
+  * Only translations was changed.
+
+qtermwidget-0.14.0 / 2019-01-25
+===============================
+
+  * Bumped version to 0.14.0
+    The big bump was needed to prevent conflicts with translations
+    that were former built out of lxqt-l10n and have version 0.13.0
+  * Clarify the licenses used in qtermwidget and added the missed root licenses
+  * Implementation fixes:
+    - kpty: use openpty() on mac
+    - kpty: make it work on OpenBSD
+    - kptyprocess: ensure .bash_history is correctly written out
+    - kb-layouts: Make Backspace behaves the same as xterm
+    - tools: Drop the ability to bundle kb-layouts and colorschemes
+    - SearchBar: Fix visual glitches in search-bar
+    - TerminalDisplay: Fixed link mouseover after recent changes
+    - TerminalDisplay: Redraw cursor after cursor type changed
+    - Vt102Emulation: Fix handling of ST (String Terminator) for OSC (Operating System Commands)
+    - qterminal: Correct deleting of HotSpot list items
+    - qterminal: Removed unnecessary checks
+    - ColorScheme: Fixed local variable will be copied despite being returned by name
+    - ColorScheme: Fixed error return-std-move
+    - Removed unnecessary checks
+    - Suppressed compilation warnings
+    - Don't use automatic string conversions
+    - Marked some functions const
+    - Implemented terminal margins
+  * Improved cmake scripting
+    - Set cmake_minimum_required to 3.1.0
+    - Removed locale compile definitons
+    - Removed QUIET from find_package
+  * Moved translations from lxqt-l10n back to qtermwidget
+    - Removed obsolete translation fuctionality
+    - Added translation promo in README.md
+  * Translation updates
+
+qtermwidget-0.9.0 / 2018-05-21
+==============================
+
+  * Bumped minor version to 9
+  * Take transient scrollbars into account
+  * CMake: Prevent in-source builds
+  * Refactor and fixes Python binding
+  * kptyprocess: Try to terminate the shell process
+  * New color scheme: Ubuntu inspired
+  * Fixed some github pathes in uris
+  * Add a comment for potential future breakage
+  * Use wstring in TerminalCharacterDecoder for UCS-4 compatibility
+  * Support UTF-32 characters correctly
+  * Fix "bold and intensive" colors
+  * New color scheme: Tango (#167)
+  * Finish SGR mouse protocol (1006)
+  * Fix build of example with latest lxqt-build-tools
+  * Expose bracket text function
+  * Drop Qt foreach.
+  * Revert deletions in .sip file
+  * fix python bindings
+  * Expose terminal size hint API
+  * Remove class name
+  * Return something
+  * Expose bidi option
+  * Add an example for remote terminal
+  * Makes the use of libutempter optional
+  * Fix behavior of scroll up (SU)
+  * Install cmake files in LIBDIR as they are architecture dependend
+  * Check if utempter.h header exists (mainly for FreeBSD)
+  * Need lxqt-build-tools 0.4.0
+
+qtermwidget-0.8.0 / 2017-10-21
+==================
+
+  * Release 0.8.0: Update changelog
+  * FIX: #46 fix vertical font truncation
+  * bump versions
+  * Really fallback to /bin/sh when $SHELL is missing or invalid
+  * README: don't recommend building from source
+  * Improve README
+  * Don't export github templates
+  * Support REP escape sequence defined in ECMA-48, section 8.3.103
+  * Fix build issue related to utmpx in Mac OSX Sierra
+  * Remove the deprecation notice
+  * Handle DECSCUSR signals
+  * Copied issue template
+  * Update building instructions
+  * Require Qt 5.6+
+  * This commit allows the consumer of qtermwidget to capture the (#111)
+  * Allow the terminal display to be smaller than the size hint (#123)
+  * Backport Vt102 emulation fixes (#113)
+  * Backport the default.keytab from Konsole
+  * Fixes (#122)
+  * Updated README, Added support for PyQT 5.7
+  * Fix memory leak in hotspot (URLs & emails) detection
+  * Adds superbuild support
+  * Use target_compile_definitions() instead of add_definitions()
+  * Update find_package() documentation
+  * Use the lxqt_create_pkgconfig_file
+  * Improve lxqt_translate_ts() use
+  * Adds COMPONENT to the install files
+  * Renames test app to example. Make it work
+  * Drop include_directories() for in tree dirs
+  * Use the CMake Targets way
+  * Pack Utf8Proc stuff
+  * Adds export header
+  * Use LXQtCompilerSettings
+  * Packs compile definitions
+  * Adds package version file
+  * Removes Qt4 stuff
+  * Add translation mechanism
+  * Use const iterators when possible.
+  * Enable strict iterators for debug builds
+  * TerminalDisplay: Make resizing "Size" translatable
+  * Exposes receivedData signal to users of QTermWidget
+  * Exposes sessions autoClose property to QTermWidget
+
+qtermwidget-0.7.1 / 2016-12-21
+==================
+
+  * Release 0.7.1: Update changelog
+  * Bump patch version (#105)
+  * Added a modified Breeze color scheme (#104)
+  * Accept hex color strings as well (#101)
+  * Remove the stale lib/README (#102)
+  * Implement background images (#95)
+  * Implement other BOX DRAWING characters (#98)
+  * Preparations for context menu actions on URLs (#97)
+  * Drop the ancient wcwidth impl. and use utf8proc if possible (#99)
+  * Remove widget size checks in setVTFont() (#86)
+  * Delete unused tooltip code (#81)
+  * Fix size of the array passed to memset() (#79)
+  * Remove cpack (#93)
+
+qtermwidget-0.7.0 / 2016-09-24
+==================
+
+  * Release 0.7.0: Add changelog
+  * Bump version to 0.7.0 (#92)
+  * Add Solarized Color Schemes
+  * Update README.md
+  * qtermwidget: Unify title & icon propagation
+  * lib: Fix FTBFS (struct vs. class mismatch)
+  * Add 'const' decorators
+  * Expose titleChanged() signal
+  * Fix building instructions
+  * cmake support changes
+  * Make addCustomColorSchemeDir() static and check for duplicates
+  * Address review comments
+  * Allow app to add custom color sheme locations
+  * Avoid enums duplication
+  * Add support for setting keyboard cursor shape
+  * Remove assignment to self
+  * Backport konsole changes to fix memory leaks
+  * Remove __FILE__ macros
+  * Replace assert() with Q_ASSERT()
+  * Fix ASan error about delete size mismatch
+  * Add support for GNU/Hurd to kpty.cpp.
+  * fixes kfreebsd builds on debian and derivatives
+  * Fix indenations (misleading-indentation warning)
+  * Remove Q_DECL_OVERRIDE macros
+  * typo Higlight
+  * Remove noisy qDebugs
+  * Bracketed paste mode implementation
+  * Use function setWorldTranfer for Qpainter instead of setWorldMatrix
+  * Modify treatment drawing double width character
+  * pyqt5 bindings
+  * pyqt5 bindings
+  * Avoid checking uninitialized member + simplify condition
+  * Use markdown for README and improve it a bit
+  * Remove support for Qt <= 5.4
+  * Remove Designer plugin
+  * Fix LICENSE text and name
+  * Remove Changelog
+  * Remove empty TODO file
+  * Remove PyQt4 bindings
+  * Sort out terminal resizing
+  * Rebase Vt102Emulation to Konsole
+  * Enable terminal resizing from the emulator
+  * Clean up trailing whitespaces
+  * implemented start TTY for external recipient;
+  * Fix: typo in TerminalDisplay
+  * add method for get pty slave fd;
+  * add method for get pty slave fd;
+  * Use GNUInstallDirs in CMakeLists.txt to stop hardcoding paths
+  * Set the '_notifiedActivity' flag early
+  * Also expose signals and slots to pyqt
+  * Get/set selection end in python bindings
+  * Avoid calling winId() on Qt5.
+  * Fix TerminalDisplay::getCharacterPosition for proportional fonts
+  * Handle proportional fonts a bit better
+  * Expose more functionality through the python bindings (#23)
+  * Allow stopping test.py with ctrl-C
+  * Fix 'getSelectionEnd'
+  * Make whitespace consistent (tabs->spaces)
+  * Fix python binding compile errors #23
+  * Add event to notify the application that the shell application uses mouse.
+  * Change mouseMarks only when needed. This might be useful if an application wants to be notified of the event.
+  * Prevents deleting the last line when resizing.
+
+qtermwidget-0.6.0 / 2014-10-21
+==================
+
+  * Release 0.6.0
+  * Update AUTHORS
+  * Update INSTALL instructions
+  * CMakeLists.txt cleanup
+  * osx: link fixes
+  * fixed #57 Linux emulation does not seem to support Ctrl+Arrows (warning: I have no clue what I did...)
+  * Fix Qt4 compilation
+  * qterminal #64 No drag & drop support
+  * fixed qterminal #71 qt5 version ignoring page up / down
+  * Fixed a typo in CMakeLists.txt.
+
+qtermwidget-0.5.1 / 2014-07-14
+==================
+
+  * fixed 'make dist'; version bump
+  *  Url activation & filters #21
+  * Proxy activity/silence methods to Session in QTermWidget.
+  * Emit activity() and silence() signals instead of KNotification.
+  * Support bells.
+  * Support bells.
+  * Added QTermWidget::urlActivated(QUrl) signal.
+  * Emit UrlFilter::activated() instead of QDesktopServices::openUrl().
+  * Derive Filter from QObject.
+  * Add UrlFilter.
+  * Activate link filters on ctrl+click.
+  * Update filters on resize and screen events.
+  * Const-correctness for QTermWidget API.
+  * Load arbitrary schemes by path via setColorScheme().
+  * ColorSchemeManager::loadCustomColorScheme(const QString& path).
+  * Unified schemeName() usage.
+  * fixed #17 lib/ShellCommand.cpp:66: possible =/== mixup
+  * Delete CMakeLists.txt.user
+  * new API selectedText()
+  * new API methods (thanks to William Brumley)
+  * fixed #11 compile against Qt 5 (Qt4 and Qt5 supported and waguely tested)
+  * build simplified: qtermwidget is versioned (libqtermwidget4 for Qt4, 5 for Qt5...). Better cmake support.
+  * fixed broken API for sendText() - const missing
+  * mail address change
+  * Current Working Directory for linux. Part of #8. More implementations welcomed...
+  * Add a method for get working directory in class QTermWidget
+  * Fix missing cleanup for temporary history files
+  * a potential improvement for #9 font fractional pixels causes spacing errors
+  * fix #2 update various documentations for debian packaging
+  * fix #10 Update FSF address
+
+qtermwidget-0.4.0 / 2013-04-16
+==================
+
+  * readme updated
+  * Added pasteSelection-slot and corrected two nonsense comments
+  * qt/embedded doesn't ship with a Monospace font (and it won't use system fonts even if they exist). Using 'fixed' instead works fine
+  * Without this, the terminal display area will permanently lose focus when consoleq's Find dialog is called up.
+  * This is only needed when using Qt/E built for DirectFB display. DirectFB blocks SIGINT and some other signals, so any terminal app (be it Qt or otherwise) must call sigprocmask() to unblock them. Without this, ^C doesn't work.
+  * The control and tab keys don't work in Qt/E. This fixes it, but maybe not in the most elegant way. The trouble seems to be that _codec->fromUnicode(event->text()) doesn't handle control characters in qt-embedded.
+  * Fix resize label
+  * Search code cleanup
+  * Change searchbar background color to red(ish) when no match found
+  * Fix search, find-next when selection is one character long
+  * Hotkeys for search: Return->find-next, Shift-Return->find-previous, Escape->hide searchbar
+  * Added search functionality
+  * Add zoom. Add choice action after paste clipboard
+  * Add zoom. Add choice action after paste clipboard
+  * Add zoom. Add choice action after paste clipboard
+  * Add zoom. Add choice action after paste clipboard
+  * Add zoom. Add choice action after paste clipboard
+  * Add zoom. Add choice action after paste clipboard
+  * Add zoom. Add choice action after paste clipboard
+  * Add zoom. Add choice action after paste clipboard
+  * Add zoom. Add choice action after paste clipboard
+  * Fix logical error
+  * Add zoom. Add choice action after paste clipboard
+  * Add zoom. Add choice action after paste clipboard
+  * Add Shift+KeyEnd and Shift+KeyHome to go line 0 and line end. No move screenwindow when copy and paste with keyboard
+  * fix for text drawing in qt>=4.8,x
+  * constructor for Qt Designer
+  * test commit
+  * clear() slot implemented
+  * fix the scroll at the end again
+  * The escape key is always needed for terminal programs like vim.
+  * Add resource files and the appropriate paths to enable bundling of color schemes and keyboard layouts into the actual executable.
+  * Add a define which will be used to bundle the color schemes and keyboard layouts as resource files with the executable itself instead of putting them on disk.
+  * scrollToEnd() method provided to trigger 'snapping' the terminal to cursor tracked position (typically the extreme value of the scrollbar, or the 'end') Some signal-fu particular to keyPressEvent(QKeyEvent *) done to make the above usable, no existing dependent implementations should be disturbed by this.
+  * revert workaround for key on end
+  * scroll to bottom on input
+  * scrollToEnd() method provided to trigger 'snapping' the terminal to cursor tracked position (typically the extreme value of the scrollbar, or the 'end') Some signal-fu particular to keyPressEvent(QKeyEvent *) done to make the above usable, no existing dependent implementations should be disturbed by this.
+  * improved sample app for testing
+  * macosx compile fix
+  * arguments work correctly for custom shells too
+  * lib has to be built first in any case
+  * merge changes from the experimental "bundle" repository
+  * fix for kb-layout location on mac (mainly)
+  * rpm builds
+  * mac universal build helper
+  * build cleanup; make dist; various readmes updated
+  * make availableKeyBindings static
+  * transparency support
+  * font display fix on mac (widths in int)
+  * qt designer plugin
+  * correct lib ID for mac
+  * remove the KDE legacy code
+  * code reformatted after resync
+  * display stuff synced from konsole again to improve color scheme handling
+  * focus in/out signals
+  * correct shell detection (BSD, Christopher VdoP)
+  * library location on BSD
+  * patches to build on BSD by Christopher VdoP
+  * K&R formatting
+  * K&R formatting
+  * merge with qscite
+  * fixed KB finding + sort
+  * key layouts can be read and provided to widget
+  * install keyboard bindings; handle KB in src code; allow to get and set KB
+  * fix for includes and 64bit builds
+  * port to macosx
+  * initial import

@@ -1,0 +1,60 @@
+#
+# This is evil! I don't know why it works this way.
+# But it works.
+#
+# First - collect all Qt and App plugins. Then call that bloody
+# cmake FIXUP_BUNDLE macro which copis all files into MacOS directory.
+# So it's moved back to plugins tree where its expected by a) Qt b) application
+#
+# I hate it.
+#
+
+# Dunno what id this var for...
+SET(DIRS @QT_LIBRARY_DIRS@;@QT_PLUGINS_DIR@;@CMAKE_INSTALL_PREFIX@/Contents/plugins/)
+
+# qt_menu.nib is mandatory for mac
+if (@QT_USE_FRAMEWORKS@)
+    file(COPY @QT_LIBRARY_DIR@/QtGui.framework/Resources/qt_menu.nib
+         DESTINATION @CMAKE_INSTALL_PREFIX@/@EXE_NAME@.app/Contents/Resources)
+else ()
+    file(COPY @QT_LIBRARY_DIR@/Resources/qt_menu.nib
+         DESTINATION @CMAKE_INSTALL_PREFIX@/@EXE_NAME@.app/Contents/Resources)
+endif ()
+
+# the qt.conf is mandatory too
+file(WRITE @CMAKE_INSTALL_PREFIX@/@EXE_NAME@.app/Contents/Resources/qt.conf "[Paths]
+Plugins = plugins")
+
+# copy all (required) Qt plugs into bundle
+message(STATUS "Searching for Qt plugs in: @QT_PLUGINS_DIR@/*@CMAKE_SHARED_LIBRARY_SUFFIX@")
+file(COPY @QT_PLUGINS_DIR@/
+        DESTINATION @CMAKE_INSTALL_PREFIX@/@EXE_NAME@.app/Contents/plugins/
+        REGEX "(designer|script|debug|sql|odbc|phonon|svg|mng|tiff|gif|bearer|accessible|)" EXCLUDE)
+        #REGEX "(.*)" EXCLUDE)
+
+# try to FIXUP_BUNDLE - to change otool -L paths
+# currently it creates lots of false warnings when plugins are compiled as dylibs
+# warning: cannot resolve item 'libfoobar.dylib'
+# etc. Ignore it.
+message(STATUS "Searching for plugs in bundle: @CMAKE_INSTALL_PREFIX@/@EXE_NAME@.app/Contents/plugins/*@CMAKE_SHARED_LIBRARY_SUFFIX@")
+file(GLOB_RECURSE inplugs
+        @CMAKE_INSTALL_PREFIX@/@EXE_NAME@.app/Contents/plugins/*@CMAKE_SHARED_LIBRARY_SUFFIX@)
+
+#message(STATUS "Dylibs: ${inplugs}")
+#message(STATUS "DIR: ${DIRS}")
+
+include(BundleUtilities)
+fixup_bundle(@CMAKE_INSTALL_PREFIX@/@EXE_NAME@.app "${inplugs}" @CMAKE_INSTALL_PREFIX@/Contents/plugins/)#${DIRS} )
+
+# FIXUP_BUNDLE copies it into MacOS dir. But we need it in plugins *tree*,
+# not a flat dir.
+foreach (item IN LISTS inplugs)
+    #message(STATUS "IN: ${item}")
+    get_filename_component(fname ${item} NAME)
+    message(STATUS "Moving ${fname} back to plugins tree: ${item}")
+    #message(STATUS "    ${fname}")
+    #message(STATUS " src: @CMAKE_INSTALL_PREFIX@/@EXE_NAME@.app/Contents/MacOS/${fname}")
+    #message(STATUS " tgt: ${item}")
+    execute_process(COMMAND mv @CMAKE_INSTALL_PREFIX@/@EXE_NAME@.app/Contents/MacOS/${fname} ${item})
+endforeach()
+    
