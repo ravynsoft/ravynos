@@ -13,7 +13,7 @@ QTERMINAL_DIR= qterminal-0.17.0
 
 RESOURCES_DIR= ${.CURDIR}/${APP_DIR}/Contents/Resources
 
-build: all widget terminal install
+build: clean all widget terminal install
 widget:
 	mkdir -p ${QTERMWIDGET_DIR}/_build
 	cmake -B ${QTERMWIDGET_DIR}/_build -S ${QTERMWIDGET_DIR} \
@@ -47,6 +47,9 @@ install:
 	mv -f ${RESOURCES_DIR}/icons/hicolor/64x64/apps/qterminal.png \
 		${RESOURCES_DIR}/Terminal.png
 	rm -rf ${RESOURCES_DIR}/icons
+	mkdir -p ${BUILDROOT}/Applications/Utilities/
+	rm -rf ${BUILDROOT}/Applications/Utilities/${APP_DIR}
+	cp -a ${.CURDIR}/${APP_DIR} ${BUILDROOT}/Applications/Utilities/
 
 clean:
 	rm -rf ${QTERMINAL_DIR}/_build ${QTERMWIDGET_DIR}/_build
