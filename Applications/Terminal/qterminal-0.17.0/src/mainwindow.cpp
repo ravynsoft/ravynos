@@ -140,7 +140,7 @@ MainWindow::MainWindow(TerminalConfig &cfg,
     setupCustomDirs();
 
     connect(consoleTabulator, &TabWidget::currentTitleChanged, this, &MainWindow::onCurrentTitleChanged);
-    connect(menu_Actions, &QMenu::aboutToShow, this, &MainWindow::updateDisabledActions);
+    connect(menu_Shell, &QMenu::aboutToShow, this, &MainWindow::updateDisabledActions);
 
     /* The tab should be added after all changes are made to
        the main window; otherwise, the initial prompt might
@@ -156,9 +156,11 @@ void MainWindow::rebuildActions()
     settingOwner->setGeometry(0,0,0,0);
 
     // Then create them again
-    setup_FileMenu_Actions();
-    setup_ActionsMenu_Actions();
+    setup_AppMenu_Actions();
+    setup_ShellMenu_Actions();
+    setup_EditMenu_Actions();
     setup_ViewMenu_Actions();
+    setup_WindowMenu_Actions();
 }
 
 MainWindow::~MainWindow()
@@ -221,109 +223,63 @@ void MainWindow::setup_Action(const char *name, QAction *action, const char *def
         actions[QLatin1String(name)]->setData(data);
 }
 
-void MainWindow::setup_ActionsMenu_Actions()
+void MainWindow::setup_EditMenu_Actions()
 {
-    QVariant data;
+    menu_Edit->clear();
 
-    const checkfn checkTabs = &MainWindow::hasMultipleTabs;
-    const checkfn checkSubterminals = &MainWindow::hasMultipleSubterminals;
-    const checkfn checkHasIndexedTab = &MainWindow::hasIndexedTab;
-
-    menu_Actions->clear();
-
-    setup_Action(CLEAR_TERMINAL, new QAction(QIcon::fromTheme(QStringLiteral("edit-clear")), tr("&Clear Active Terminal"), settingOwner),
-                 CLEAR_TERMINAL_SHORTCUT, consoleTabulator, SLOT(clearActiveTerminal()), menu_Actions);
-
-    menu_Actions->addSeparator();
-
-    data.setValue(checkTabs);
-
-    setup_Action(TAB_NEXT, new QAction(QIcon::fromTheme(QStringLiteral("go-next")), tr("&Next Tab"), settingOwner),
-                 TAB_NEXT_SHORTCUT, consoleTabulator, SLOT(switchToRight()), menu_Actions, data);
-
-    setup_Action(TAB_PREV, new QAction(QIcon::fromTheme(QStringLiteral("go-previous")), tr("&Previous Tab"), settingOwner),
-                 TAB_PREV_SHORTCUT, consoleTabulator, SLOT(switchToLeft()), menu_Actions, data);
-
-    setup_Action(TAB_PREV_HISTORY, new QAction(tr("&Previous Tab in History"), settingOwner),
-                 TAB_PREV_HISTORY_SHORTCUT, consoleTabulator, SLOT(switchToPrev()), menu_Actions, data);
-
-    setup_Action(TAB_NEXT_HISTORY, new QAction(tr("&Next Tab in History"), settingOwner),
-                 TAB_NEXT_HISTORY_SHORTCUT, consoleTabulator, SLOT(switchToNext()), menu_Actions, data);
-
-    setup_Action(MOVE_LEFT, new QAction(tr("Move Tab &Left"), settingOwner),
-                 MOVE_LEFT_SHORTCUT, consoleTabulator, SLOT(moveLeft()), menu_Actions, data);
-
-    setup_Action(MOVE_RIGHT, new QAction(tr("Move Tab &Right"), settingOwner),
-                 MOVE_RIGHT_SHORTCUT, consoleTabulator, SLOT(moveRight()), menu_Actions, data);
-
-    data.setValue(checkHasIndexedTab);
-
-    const QString textBase = tr("Tab");
-    QMenu *menu_GoTo = new QMenu(tr("Go to"), menu_Actions);
-    for (int i=1; i<=10; ++i) {
-        QString num = QString::number(i);
-        QAction *action = new QAction(textBase + QLatin1Char(' ') + num, settingOwner);
-        action->setProperty("tab", i);
-        char name[16];
-        snprintf(name, sizeof(name), "Tab %d", i);
-        setup_Action(name, action, NULL, consoleTabulator, SLOT(onAction()), menu_GoTo, data);
-    }
-    menu_Actions->addMenu(menu_GoTo);
-
-    menu_Actions->addSeparator();
-
-    setup_Action(SPLIT_HORIZONTAL, new QAction(tr("Split Terminal &Horizontally"), settingOwner),
-                 nullptr, consoleTabulator, SLOT(splitHorizontally()), menu_Actions);
-
-    setup_Action(SPLIT_VERTICAL, new QAction(tr("Split Terminal &Vertically"), settingOwner),
-                 nullptr, consoleTabulator, SLOT(splitVertically()), menu_Actions);
-
-    data.setValue(checkSubterminals);
-
-    setup_Action(SUB_COLLAPSE, new QAction(tr("&Collapse Subterminal"), settingOwner),
-                 nullptr, consoleTabulator, SLOT(splitCollapse()), menu_Actions, data);
-
-    setup_Action(SUB_TOP, new QAction(QIcon::fromTheme(QStringLiteral("go-up")), tr("&Top Subterminal"), settingOwner),
-                 SUB_TOP_SHORTCUT, consoleTabulator, SLOT(switchTopSubterminal()), menu_Actions, data);
-
-    setup_Action(SUB_BOTTOM, new QAction(QIcon::fromTheme(QStringLiteral("go-down")), tr("&Bottom Subterminal"), settingOwner),
-                 SUB_BOTTOM_SHORTCUT, consoleTabulator, SLOT(switchBottomSubterminal()), menu_Actions, data);
-
-    setup_Action(SUB_LEFT, new QAction(QIcon::fromTheme(QStringLiteral("go-previous")), tr("L&eft Subterminal"), settingOwner),
-                 SUB_LEFT_SHORTCUT, consoleTabulator, SLOT(switchLeftSubterminal()), menu_Actions, data);
-
-    setup_Action(SUB_RIGHT, new QAction(QIcon::fromTheme(QStringLiteral("go-next")), tr("R&ight Subterminal"), settingOwner),
-                 SUB_RIGHT_SHORTCUT, consoleTabulator, SLOT(switchRightSubterminal()), menu_Actions, data);
-
-
-    menu_Actions->addSeparator();
-
-    // Copy and Paste are only added to the table for the sake of bindings at the moment; there is no Edit menu, only a context menu.
-    setup_Action(COPY_SELECTION, new QAction(QIcon::fromTheme(QStringLiteral("edit-copy")), tr("Copy &Selection"), settingOwner),
+    setup_Action(COPY_SELECTION, new QAction(QIcon(), tr("Copy &Selection"), settingOwner),
                  COPY_SELECTION_SHORTCUT, consoleTabulator, SLOT(copySelection()), menu_Edit);
 
-    setup_Action(PASTE_CLIPBOARD, new QAction(QIcon::fromTheme(QStringLiteral("edit-paste")), tr("Paste Clip&board"), settingOwner),
+    setup_Action(PASTE_CLIPBOARD, new QAction(QIcon(), tr("Paste Clip&board"), settingOwner),
                  PASTE_CLIPBOARD_SHORTCUT, consoleTabulator, SLOT(pasteClipboard()), menu_Edit);
 
-    setup_Action(PASTE_SELECTION, new QAction(QIcon::fromTheme(QStringLiteral("edit-paste")), tr("Paste S&election"), settingOwner),
+    setup_Action(PASTE_SELECTION, new QAction(QIcon(), tr("Paste S&election"), settingOwner),
                  PASTE_SELECTION_SHORTCUT, consoleTabulator, SLOT(pasteSelection()), menu_Edit);
 
-    setup_Action(ZOOM_IN, new QAction(QIcon::fromTheme(QStringLiteral("zoom-in")), tr("Zoom &in"), settingOwner),
-                 ZOOM_IN_SHORTCUT, consoleTabulator, SLOT(zoomIn()), menu_Edit);
 
-    setup_Action(ZOOM_OUT, new QAction(QIcon::fromTheme(QStringLiteral("zoom-out")), tr("Zoom &out"), settingOwner),
-                 ZOOM_OUT_SHORTCUT, consoleTabulator, SLOT(zoomOut()), menu_Edit);
+    menu_Shell->addSeparator();
 
-    setup_Action(ZOOM_RESET, new QAction(QIcon::fromTheme(QStringLiteral("zoom-original")), tr("Zoom rese&t"), settingOwner),
-                 ZOOM_RESET_SHORTCUT, consoleTabulator, SLOT(zoomReset()), menu_Edit);
+    setup_Action(CLEAR_TERMINAL, new QAction(QIcon(), tr("&Clear Active Terminal"), settingOwner),
+                 CLEAR_TERMINAL_SHORTCUT, consoleTabulator, SLOT(clearActiveTerminal()), menu_Edit);
 
-    menu_Actions->addSeparator();
+    menu_Edit->addSeparator();
 
-    setup_Action(FIND, new QAction(QIcon::fromTheme(QStringLiteral("edit-find")), tr("&Find..."), settingOwner),
-                 FIND_SHORTCUT, this, SLOT(find()), menu_Actions);
+    setup_Action(FIND, new QAction(QIcon(), tr("&Find..."), settingOwner),
+                 FIND_SHORTCUT, this, SLOT(find()), menu_Edit);
 
-    setup_Action(HANDLE_HISTORY, new QAction(QIcon::fromTheme(QStringLiteral("handle-history")), tr("Handle history..."), settingOwner),
-                 NULL, this, SLOT(handleHistory()), menu_Actions);
+    setup_Action(HANDLE_HISTORY, new QAction(QIcon(), tr("Handle history..."), settingOwner),
+                 NULL, this, SLOT(handleHistory()), menu_Edit);
+
+}
+
+void MainWindow::setup_ShellMenu_Actions()
+{
+    menu_Shell->clear();
+    setup_Action(NEW_WINDOW, new QAction(QIcon(), tr("&New Window"), settingOwner),
+                 NEW_WINDOW_SHORTCUT, this, SLOT(newTerminalWindow()), menu_Shell);
+
+    setup_Action(ADD_TAB, new QAction(QIcon(), tr("&New Tab"), settingOwner),
+                 ADD_TAB_SHORTCUT, this, SLOT(addNewTab()), menu_Shell);
+
+    if (presetsMenu == nullptr) {
+        presetsMenu = new QMenu(tr("New Tab From &Preset"), this);
+        presetsMenu->addAction(QIcon(), tr("1 &Terminal"),
+                               this, SLOT(addNewTab()));
+        presetsMenu->addAction(QIcon(), tr("2 &Horizontal Terminals"),
+                               consoleTabulator, SLOT(preset2Horizontal()));
+        presetsMenu->addAction(QIcon(), tr("2 &Vertical Terminals"),
+                               consoleTabulator, SLOT(preset2Vertical()));
+        presetsMenu->addAction(QIcon(), tr("4 Terminal&s"),
+                               consoleTabulator, SLOT(preset4Terminals()));
+    }
+
+    menu_Shell->addMenu(presetsMenu);
+
+    menu_Shell->addSeparator();
+
+    setup_Action(CLOSE_TAB, new QAction(QIcon(), tr("&Close Tab"), settingOwner),
+                 CLOSE_TAB_SHORTCUT, consoleTabulator, SLOT(removeCurrentTab()), menu_Shell);
+
 
 #if 0
     act = new QAction(this);
@@ -354,80 +310,34 @@ void MainWindow::setup_ActionsMenu_Actions()
 
 }
 
-void MainWindow::setup_FileMenu_Actions()
+void MainWindow::setup_AppMenu_Actions()
 {
-    menu_File->clear();
-    setup_Action(ADD_TAB, new QAction(QIcon::fromTheme(QStringLiteral("list-add")), tr("&New Tab"), settingOwner),
-                 ADD_TAB_SHORTCUT, this, SLOT(addNewTab()), menu_File);
+    menu_App->clear();
+    setup_Action("About Terminal", actAbout, "", this, SLOT(actAbout_triggered()), menu_App);
+    // FIXME: add "About Qt"
 
-    if (presetsMenu == nullptr) {
-        presetsMenu = new QMenu(tr("New Tab From &Preset"), this);
-        presetsMenu->addAction(QIcon(), tr("1 &Terminal"),
-                               this, SLOT(addNewTab()));
-        presetsMenu->addAction(QIcon(), tr("2 &Horizontal Terminals"),
-                               consoleTabulator, SLOT(preset2Horizontal()));
-        presetsMenu->addAction(QIcon(), tr("2 &Vertical Terminals"),
-                               consoleTabulator, SLOT(preset2Vertical()));
-        presetsMenu->addAction(QIcon(), tr("4 Terminal&s"),
-                               consoleTabulator, SLOT(preset4Terminals()));
-    }
+    menu_App->addSeparator();
 
-    menu_File->addMenu(presetsMenu);
+    setup_Action(PREFERENCES, new QAction(tr("&Preferences"), settingOwner), "", this, SLOT(actProperties_triggered()), menu_App);
 
-    setup_Action(CLOSE_TAB, new QAction(QIcon::fromTheme(QStringLiteral("list-remove")), tr("&Close Tab"), settingOwner),
-                 CLOSE_TAB_SHORTCUT, consoleTabulator, SLOT(removeCurrentTab()), menu_File);
+    menu_App->addSeparator();
 
-    setup_Action(NEW_WINDOW, new QAction(QIcon::fromTheme(QStringLiteral("window-new")), tr("&New Window"), settingOwner),
-                 NEW_WINDOW_SHORTCUT, this, SLOT(newTerminalWindow()), menu_File);
+    // FIXME: add "Hide Terminal" and "Hide Others"
 
-    menu_File->addSeparator();
-
-    setup_Action(PREFERENCES, new QAction(tr("&Preferences..."), settingOwner), "", this, SLOT(actProperties_triggered()), menu_File);
-
-    menu_File->addSeparator();
-
-    setup_Action(QUIT, new QAction(QIcon::fromTheme(QStringLiteral("application-exit")), tr("&Quit"), settingOwner), "", this, SLOT(close()), menu_File);
+    setup_Action(QUIT, new QAction(QIcon(), tr("&Quit"), settingOwner), "", this, SLOT(close()), menu_App);
 }
 
 void MainWindow::setup_ViewMenu_Actions()
 {
-    menu_Window->clear();
-    QAction *hideBordersAction = new QAction(tr("&Hide Window Borders"), settingOwner);
-    hideBordersAction->setCheckable(true);
-    hideBordersAction->setVisible(!m_dropMode);
-
-    hideBordersAction->setChecked(Properties::Instance()->borderless);
-    if (!m_dropMode) // dropdown mode doesn't need any change
-    {
-        if (!testAttribute(Qt::WA_WState_Created)) // called by c-tor
-        {
-            if (Properties::Instance()->borderless)
-                setWindowFlags(windowFlags() ^ Qt::FramelessWindowHint);
-        }
-        else if (Properties::Instance()->borderless != windowFlags().testFlag(Qt::FramelessWindowHint))
-            QTimer::singleShot(0, this, &MainWindow::toggleBorderless); // called by PropertiesDialog
-    }
-    setup_Action(HIDE_WINDOW_BORDERS, hideBordersAction,
-                 nullptr, this, SLOT(toggleBorderless()), menu_Window);
+    menu_View->clear();
 
     QAction *showTabBarAction = new QAction(tr("&Show Tab Bar"), settingOwner);
     //toggleTabbar->setObjectName("toggle_TabBar");
     showTabBarAction->setCheckable(true);
     showTabBarAction->setChecked(!Properties::Instance()->tabBarless);
     setup_Action(SHOW_TAB_BAR, showTabBarAction,
-                 nullptr, this, SLOT(toggleTabBar()), menu_Window);
+                 nullptr, this, SLOT(toggleTabBar()), menu_View);
     toggleTabBar();
-
-    QAction *toggleFullscreen = new QAction(tr("Fullscreen"), settingOwner);
-    toggleFullscreen->setCheckable(true);
-    toggleFullscreen->setChecked(false);
-    setup_Action(FULLSCREEN, toggleFullscreen,
-                 FULLSCREEN_SHORTCUT, this, SLOT(showFullscreen(bool)), menu_Window);
-
-    setup_Action(TOGGLE_BOOKMARKS, new QAction(tr("Toggle Bookmarks"), settingOwner),
-                 TOGGLE_BOOKMARKS_SHORTCUT, this, SLOT(toggleBookmarks()), menu_Window);
-
-    menu_Window->addSeparator();
 
     /* tabs position */
     if (tabPosition == nullptr) {
@@ -453,18 +363,25 @@ void MainWindow::setup_ViewMenu_Actions()
             consoleTabulator, &TabWidget::changeTabPosition);
 
     if (tabPosMenu == nullptr) {
-        tabPosMenu = new QMenu(tr("&Tabs Layout"), menu_Window);
+        tabPosMenu = new QMenu(tr("&Tabs Layout"), menu_View);
         tabPosMenu->setObjectName(QStringLiteral("tabPosMenu"));
 
         for(int i=0; i < tabPosition->actions().size(); ++i) {
             tabPosMenu->addAction(tabPosition->actions().at(i));
         }
 
-        connect(menu_Window, &QMenu::hovered,
+        connect(menu_View, &QMenu::hovered,
                 this, &MainWindow::updateActionGroup);
     }
-    menu_Window->addMenu(tabPosMenu);
+    menu_View->addMenu(tabPosMenu);
     /* */
+
+    menu_View->addSeparator();
+
+    setup_Action(TOGGLE_BOOKMARKS, new QAction(tr("Toggle Bookmarks"), settingOwner),
+                 TOGGLE_BOOKMARKS_SHORTCUT, this, SLOT(toggleBookmarks()), menu_View);
+
+    menu_View->addSeparator();
 
     /* Scrollbar */
     if (scrollBarPosition == nullptr) {
@@ -487,7 +404,7 @@ void MainWindow::setup_ViewMenu_Actions()
 
     }
     if (scrollPosMenu == nullptr) {
-        scrollPosMenu = new QMenu(tr("S&crollbar Layout"), menu_Window);
+        scrollPosMenu = new QMenu(tr("S&crollbar Layout"), menu_View);
         scrollPosMenu->setObjectName(QStringLiteral("scrollPosMenu"));
 
         for(int i=0; i < scrollBarPosition->actions().size(); ++i) {
@@ -495,7 +412,9 @@ void MainWindow::setup_ViewMenu_Actions()
         }
     }
 
-    menu_Window->addMenu(scrollPosMenu);
+    menu_View->addMenu(scrollPosMenu);
+
+    menu_View->addSeparator();
 
     /* Keyboard cursor shape */
     if (keyboardCursorShape == nullptr) {
@@ -519,7 +438,7 @@ void MainWindow::setup_ViewMenu_Actions()
     }
 
     if (keyboardCursorShapeMenu == nullptr) {
-        keyboardCursorShapeMenu = new QMenu(tr("&Keyboard Cursor Shape"), menu_Window);
+        keyboardCursorShapeMenu = new QMenu(tr("&Keyboard Cursor Shape"), menu_View);
         keyboardCursorShapeMenu->setObjectName(QStringLiteral("keyboardCursorShapeMenu"));
 
         for(int i=0; i < keyboardCursorShape->actions().size(); ++i) {
@@ -527,8 +446,124 @@ void MainWindow::setup_ViewMenu_Actions()
         }
     }
 
-    menu_Window->addMenu(keyboardCursorShapeMenu);
+    menu_View->addMenu(keyboardCursorShapeMenu);
+
+    menu_View->addSeparator();
+
+    QAction *hideBordersAction = new QAction(tr("&Hide Window Borders"), settingOwner);
+    hideBordersAction->setCheckable(true);
+    hideBordersAction->setVisible(!m_dropMode);
+
+    hideBordersAction->setChecked(Properties::Instance()->borderless);
+    if (!m_dropMode) // dropdown mode doesn't need any change
+    {
+        if (!testAttribute(Qt::WA_WState_Created)) // called by c-tor
+        {
+            if (Properties::Instance()->borderless)
+                setWindowFlags(windowFlags() ^ Qt::FramelessWindowHint);
+        }
+        else if (Properties::Instance()->borderless != windowFlags().testFlag(Qt::FramelessWindowHint))
+            QTimer::singleShot(0, this, &MainWindow::toggleBorderless); // called by PropertiesDialog
+    }
+    setup_Action(HIDE_WINDOW_BORDERS, hideBordersAction,
+                 nullptr, this, SLOT(toggleBorderless()), menu_View);
+
+    menu_View->addSeparator();
+
+    setup_Action(ZOOM_IN, new QAction(QIcon(), tr("Zoom &in"), settingOwner),
+                 ZOOM_IN_SHORTCUT, consoleTabulator, SLOT(zoomIn()), menu_View);
+
+    setup_Action(ZOOM_OUT, new QAction(QIcon(), tr("Zoom &out"), settingOwner),
+                 ZOOM_OUT_SHORTCUT, consoleTabulator, SLOT(zoomOut()), menu_View);
+
+    setup_Action(ZOOM_RESET, new QAction(QIcon(), tr("Zoom rese&t"), settingOwner),
+                 ZOOM_RESET_SHORTCUT, consoleTabulator, SLOT(zoomReset()), menu_View);
 }
+
+void MainWindow::setup_WindowMenu_Actions()
+{
+    QAction *toggleFullscreen = new QAction(tr("Fullscreen"), settingOwner);
+    toggleFullscreen->setCheckable(true);
+    toggleFullscreen->setChecked(false);
+    setup_Action(FULLSCREEN, toggleFullscreen,
+                 FULLSCREEN_SHORTCUT, this, SLOT(showFullscreen(bool)), menu_Window);
+
+    menu_Window->addSeparator();
+
+    QVariant data;
+
+    const checkfn checkTabs = &MainWindow::hasMultipleTabs;
+    const checkfn checkSubterminals = &MainWindow::hasMultipleSubterminals;
+    const checkfn checkHasIndexedTab = &MainWindow::hasIndexedTab;
+
+    data.setValue(checkTabs);
+
+    setup_Action(TAB_PREV, new QAction(QIcon(), tr("&Previous Tab"), settingOwner),
+                 TAB_PREV_SHORTCUT, consoleTabulator, SLOT(switchToLeft()), menu_Window, data);
+
+    setup_Action(TAB_PREV_HISTORY, new QAction(tr("&Previous Tab in History"), settingOwner),
+                 TAB_PREV_HISTORY_SHORTCUT, consoleTabulator, SLOT(switchToPrev()), menu_Window, data);
+
+    setup_Action(TAB_NEXT, new QAction(QIcon(), tr("&Next Tab"), settingOwner),
+                 TAB_NEXT_SHORTCUT, consoleTabulator, SLOT(switchToRight()), menu_Window, data);
+
+    setup_Action(TAB_NEXT_HISTORY, new QAction(tr("&Next Tab in History"), settingOwner),
+                 TAB_NEXT_HISTORY_SHORTCUT, consoleTabulator, SLOT(switchToNext()), menu_Window, data);
+
+    data.setValue(checkHasIndexedTab);
+
+    const QString textBase = tr("Tab");
+    QMenu *menu_GoTo = new QMenu(tr("Go to"), menu_Window);
+    for (int i=1; i<=10; ++i) {
+        QString num = QString::number(i);
+        QAction *action = new QAction(textBase + QLatin1Char(' ') + num, settingOwner);
+        action->setProperty("tab", i);
+        char name[16];
+        snprintf(name, sizeof(name), "Tab %d", i);
+        setup_Action(name, action, NULL, consoleTabulator, SLOT(onAction()), menu_GoTo, data);
+    }
+    menu_Window->addMenu(menu_GoTo);
+
+    menu_Window->addSeparator();
+
+    data.setValue(checkTabs);
+
+    setup_Action(MOVE_LEFT, new QAction(tr("Move Tab &Left"), settingOwner),
+                 MOVE_LEFT_SHORTCUT, consoleTabulator, SLOT(moveLeft()), menu_Window, data);
+
+    setup_Action(MOVE_RIGHT, new QAction(tr("Move Tab &Right"), settingOwner),
+                 MOVE_RIGHT_SHORTCUT, consoleTabulator, SLOT(moveRight()), menu_Window, data);
+
+    data.setValue(checkHasIndexedTab);
+
+    menu_Window->addSeparator();
+
+    setup_Action(SPLIT_HORIZONTAL, new QAction(tr("Split Terminal &Horizontally"), settingOwner),
+                 nullptr, consoleTabulator, SLOT(splitHorizontally()), menu_Window);
+
+    setup_Action(SPLIT_VERTICAL, new QAction(tr("Split Terminal &Vertically"), settingOwner),
+                 nullptr, consoleTabulator, SLOT(splitVertically()), menu_Window);
+
+    menu_Window->addSeparator();
+
+    data.setValue(checkSubterminals);
+
+    setup_Action(SUB_TOP, new QAction(QIcon(), tr("&Top Subterminal"), settingOwner),
+                 SUB_TOP_SHORTCUT, consoleTabulator, SLOT(switchTopSubterminal()), menu_Window, data);
+
+    setup_Action(SUB_BOTTOM, new QAction(QIcon(), tr("&Bottom Subterminal"), settingOwner),
+                 SUB_BOTTOM_SHORTCUT, consoleTabulator, SLOT(switchBottomSubterminal()), menu_Window, data);
+
+    setup_Action(SUB_LEFT, new QAction(QIcon(), tr("L&eft Subterminal"), settingOwner),
+                 SUB_LEFT_SHORTCUT, consoleTabulator, SLOT(switchLeftSubterminal()), menu_Window, data);
+
+    setup_Action(SUB_RIGHT, new QAction(QIcon(), tr("R&ight Subterminal"), settingOwner),
+                 SUB_RIGHT_SHORTCUT, consoleTabulator, SLOT(switchRightSubterminal()), menu_Window, data);
+
+    setup_Action(SUB_COLLAPSE, new QAction(tr("&Collapse Subterminal"), settingOwner),
+                 nullptr, consoleTabulator, SLOT(splitCollapse()), menu_Window, data);
+}
+
 
 void MainWindow::setupCustomDirs()
 {
@@ -901,7 +936,7 @@ void MainWindow::updateDisabledActions()
         }
     };
 
-    enableActions(menu_Actions->actions());
+    enableActions(menu_Shell->actions());
 }
 
 QMap< QString, QAction * >& MainWindow::leaseActions() {

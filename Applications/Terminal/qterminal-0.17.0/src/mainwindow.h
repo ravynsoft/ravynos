@@ -76,9 +76,11 @@ private:
 
     void rebuildActions();
 
-    void setup_FileMenu_Actions();
-    void setup_ActionsMenu_Actions();
+    void setup_AppMenu_Actions();
+    void setup_ShellMenu_Actions();
+    void setup_EditMenu_Actions();
     void setup_ViewMenu_Actions();
+    void setup_WindowMenu_Actions();
     void setup_ContextMenu_Actions();
     void setupCustomDirs();
 
