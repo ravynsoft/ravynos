@@ -667,8 +667,7 @@ Boolean LSIsAppDir(CFURLRef cfurl)
 OSStatus LSOpenCFURLRef(CFURLRef inURL, CFURLRef _Nullable *outLaunchedURL)
 {
     LSLaunchURLSpec spec;
-    spec.appURL = 0;
-    spec.asyncRefCon = 0;
+    memset(&spec, 0, sizeof(spec));
     spec.itemURLs = CFArrayCreate(NULL, (const void **)&inURL, 1, NULL);
     spec.launchFlags = kLSLaunchDefaults;
     OSStatus rc = LSOpenFromURLSpec(&spec, outLaunchedURL);
@@ -697,6 +696,7 @@ OSStatus LSOpenFromURLSpec(const LSLaunchURLSpec *inLaunchSpec, CFURLRef _Nullab
     while(item = [items nextObject]) {
         if(LSIsNSBundle((CFURLRef)item)) {
             LSLaunchURLSpec spec;
+	    memset(&spec, 0, sizeof(spec));
 	    spec.appURL = (CFURLRef)item;
 	    spec.itemURLs = NULL;
 	    spec.launchFlags = inLaunchSpec->launchFlags;
@@ -705,6 +705,7 @@ OSStatus LSOpenFromURLSpec(const LSLaunchURLSpec *inLaunchSpec, CFURLRef _Nullab
 	    _LSOpenAllWithSpecifiedApp(&spec, NULL);
         } else if(LSIsAppDir((CFURLRef)item)) {
             LSLaunchURLSpec spec;
+	    memset(&spec, 0, sizeof(spec));
 	    spec.appURL = (CFURLRef)([item URLByAppendingPathComponent:@"AppRun"]);
 	    spec.itemURLs = NULL;
 	    spec.launchFlags = inLaunchSpec->launchFlags;
@@ -717,6 +718,7 @@ OSStatus LSOpenFromURLSpec(const LSLaunchURLSpec *inLaunchSpec, CFURLRef _Nullab
 	    	(CFStringRef)[item pathExtension], NULL); 
             if(LSFindAppsForUTI(uti, &appCandidates) == 0) {
                 LSLaunchURLSpec spec;
+	        memset(&spec, 0, sizeof(spec));
                 spec.appURL = (CFURLRef)[[appCandidates firstObject] copy];
                 spec.itemURLs = (CFArrayRef)[NSArray arrayWithObject:item];
                 spec.launchFlags = inLaunchSpec->launchFlags;
