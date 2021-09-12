@@ -1,12 +1,9 @@
 APP=Terminal
 SRCS=Terminal.mm
 MK_DEBUG_FILES=no
-RESOURCES=
+RESOURCES=qterminal.ini
 SLF=/System/Library/Frameworks
 FRAMEWORKS=${SLF}/Foundation
-CFLAGS+=
-CXXFLAGS+=
-LDFLAGS+=
 
 # Source: https://github.com/lxqt/qtermwidget
 QTERMWIDGET_DIR= qtermwidget-0.17.0
