@@ -89,6 +89,7 @@ defaultEncoding = NSISOLatin1StringEncoding;
                     //TODO: add more encodings
 				}
 			}
+			free(lang);
 		}
 
 		if(defaultEncoding == -1)
