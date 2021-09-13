@@ -30,7 +30,7 @@ int main(int argc, const char **argv)
             @"qterminal.ini"];
         if([fm fileExistsAtPath:userConfigPath] == NO)
             [fm copyPath:defConfigPath toPath:userConfigPath handler:nil];
-        
+
         execv([execPath UTF8String], (char * const *)argv);
     }
     return 1;

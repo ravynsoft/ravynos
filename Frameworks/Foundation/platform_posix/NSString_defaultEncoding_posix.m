@@ -23,6 +23,7 @@ NSStringEncoding defaultEncoding()
 
         char *lang = getenv("LANG");
 		if (lang && *lang) {
+			lang = strdup(lang); // don't F up the environment!
 			const char* firstpart = strtok (lang, ".");
 			if (firstpart != NULL) {
 				char* secondpart = strtok (NULL, "\0");
