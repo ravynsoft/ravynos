@@ -70,7 +70,6 @@
 }
 
 -initWithDesktopFile:(NSString *)path {
-    NSLog(@"initWithDesktopFile %@",path);
     XdgDesktopFile df;
     if(!df.load([path UTF8String]) || !df.isValid() || df.type() != XdgDesktopFile::ApplicationType)
         return self;

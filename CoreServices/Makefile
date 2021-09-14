@@ -24,7 +24,7 @@ buildFiler: ${.CURDIR}/Filer
 	cmake -S ${.CURDIR}/Filer -B ${.CURDIR}/Filer/build \
 		-DCMAKE_BUILD_TYPE="Debug" \
 		-DAIRYX=1 \
-		-DSYSTEM_FRAMEWORKS="-framework LaunchServices -framework Foundation -framework CoreFoundation -framework CFNetwork"
+		-DSYSTEM_FRAMEWORKS="-framework LaunchServices -framework Foundation -framework CoreFoundation -framework CFNetwork -lthr"
 	${MAKE} -C Filer/build -j${CORES}
 	${MAKE} -C Filer/build DESTDIR=${.CURDIR}/Filer/Filer.app install
 	cd ${.CURDIR}/Filer/Filer.app/Contents/Resources && mv -fv filer-qt.1 Filer.1

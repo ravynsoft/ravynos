@@ -32,6 +32,11 @@ CFTypeRef CFBundleGetValueForInfoDictionaryKey(CFBundleRef self,CFStringRef key)
    return [CFBundleToNSBundle(self) objectForInfoDictionaryKey:(NSString *)key];
 }
 
+CFURLRef CFBundleCopyBundleURL(CFBundleRef self) {
+    return [[NSURL fileURLWithPath:[CFBundleToNSBundle(self) bundlePath]] retain];
+}
+
+
 CFURLRef CFBundleCopyResourcesDirectoryURL(CFBundleRef self) {
     return [[NSURL fileURLWithPath:[CFBundleToNSBundle(self) resourcePath]] retain];
 }

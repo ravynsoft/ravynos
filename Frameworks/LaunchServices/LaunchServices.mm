@@ -79,8 +79,8 @@ static BOOL _LSCheckAndUpdateSchema()
     }
 
     int currentSchema = 0;
-    const char *query = "SELECT version FROM schema";
-    const int length = strlen(query);
+    char *query = "SELECT version FROM schema";
+    size_t length = strlen(query);
     sqlite3_stmt *stmt;
     const char *tail;
 
@@ -96,6 +96,7 @@ static BOOL _LSCheckAndUpdateSchema()
     }
 
     currentSchema = sqlite3_column_int(stmt, 0);
+    sqlite3_finalize(stmt);
 
     // Iterate the schema updates until we are at the latest
     while(currentSchema < desiredSchema) {
@@ -104,10 +105,7 @@ static BOOL _LSCheckAndUpdateSchema()
         if(sqlPath == nil) {
     	    NSLog(@"ERROR: cannot find %@.sql to update launchservices.db schema", schemaFile);
         } else {
-            sqlite3_stmt *stmt;
-            const char *tail;
             FILE *sql = fopen([sqlPath UTF8String], "r");
-	        size_t length;
 	        char *line = fgetln(sql, &length);
 
         	while(length > 0) {
@@ -270,8 +268,10 @@ OSStatus LSFindAppsForUTI(NSString *uti, NSMutableArray **outAppURLs)
     }
 
     int rc = sqlite3_step(stmt);
-    if(rc != SQLITE_ROW)
+    if(rc != SQLITE_ROW) {
+        sqlite3_finalize(stmt);
         return kLSApplicationNotFoundErr;
+    }
 
     for(; rc == SQLITE_ROW; rc = sqlite3_step(stmt)) {
         NSString *url = [NSString stringWithCString:(const char *)sqlite3_column_text(stmt, 0)];
@@ -290,6 +290,8 @@ static BOOL _LSAddRecordToDatabase(const LSAppRecord *appRecord, BOOL isUpdate) 
         return false; // FIXME: log error somewhere
     }
     
+    sqlite3_busy_timeout(pDB, 1000);
+
     const char *query;
     if(isUpdate)
         query = "UPDATE applications SET basename=?2, version=?3, apprecord=?4, bundleid=?5 WHERE url=?1";
@@ -305,7 +307,7 @@ static BOOL _LSAddRecordToDatabase(const LSAppRecord *appRecord, BOOL isUpdate) 
     }
 
     NSString *bundleID = [NSString new];
-    NSBundle *b = [NSBundle bundleWithPath:[[appRecord URL] absoluteString]];
+    NSBundle *b = [NSBundle bundleWithPath:[[appRecord URL] path]];
     if(b)
         bundleID = [b bundleIdentifier];
 
@@ -321,10 +323,13 @@ static BOOL _LSAddRecordToDatabase(const LSAppRecord *appRecord, BOOL isUpdate) 
         return false;
     }
 
-    if(sqlite3_step(stmt) != SQLITE_DONE)
-        return false;
-
+    int rc = sqlite3_step(stmt);
     sqlite3_finalize(stmt);
+
+    if(rc != SQLITE_DONE) {
+        sqlite3_close(pDB);
+        return false;
+    }
 
     query = "DELETE FROM typemap WHERE application = ?";
     length = strlen(query);
