@@ -59,7 +59,9 @@ typedef enum LSLaunchFlags : OptionBits {
     kLSLaunchAsync = 0x00010000,
     kLSLaunchNewInstance = 0x00080000,
     kLSLaunchAndHide = 0x00100000,
-    kLSLaunchAndHideOthers = 0x00200000
+    kLSLaunchAndHideOthers = 0x00200000,
+    kLSALaunchTaskEnvIsValid = 0x10000000,
+    kLSALaunchTaskArgsIsValid = 0x20000000
 } LSLaunchFlags;
 
 typedef enum LSAcceptanceFlags : OptionBits {

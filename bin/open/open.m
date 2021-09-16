@@ -72,7 +72,7 @@ int main(int argc, const char **argv)
     spec.itemURLs = NULL;
     spec.asyncRefCon = 0;
     spec.passThruParams = 0;
-    spec.launchFlags = kLSLaunchDefaults;
+    spec.launchFlags = kLSLaunchDefaults|kLSALaunchTaskEnvIsValid;
 
     while(arg = [args nextObject]) {
         // -a, -b, -e, -t, -f and -R are mutually exclusive
@@ -121,6 +121,7 @@ int main(int argc, const char **argv)
             ++here;
             NSRange r = NSMakeRange(here, (argc - here));
             taskArgs = [argv_ subarrayWithRange:r];
+            spec.launchFlags |= kLSALaunchTaskArgsIsValid;
             break;
         } else if([arg isEqualToString:@"--env"]) {
             NSString *var = [args nextObject];

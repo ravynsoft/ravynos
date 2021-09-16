@@ -79,7 +79,7 @@ static BOOL _LSCheckAndUpdateSchema()
     }
 
     int currentSchema = 0;
-    char *query = "SELECT version FROM schema";
+    const char *query = "SELECT version FROM schema";
     size_t length = strlen(query);
     sqlite3_stmt *stmt;
     const char *tail;
@@ -684,9 +684,26 @@ OSStatus LSOpenFromURLSpec(const LSLaunchURLSpec *inLaunchSpec, CFURLRef _Nullab
 {
     _LSInitializeDatabase();
 
+    CFArrayRef taskArgs = NULL;
+    CFDictionaryRef taskEnv = NULL;
+
+    if(inLaunchSpec->launchFlags & kLSALaunchTaskEnvIsValid)
+        taskEnv = inLaunchSpec->taskEnv;
+
+    if(inLaunchSpec->launchFlags & kLSALaunchTaskArgsIsValid)
+        taskArgs = inLaunchSpec->taskArgs;
+
     if(inLaunchSpec->appURL) {
         // We are launching this specific application which must be a file URL
-        return _LSOpenAllWithSpecifiedApp(inLaunchSpec, outLaunchedURL);
+        // Guard against bad data in inLaunchSpec :)
+        LSLaunchURLSpec spec;
+        memset(&spec, 0, sizeof(spec));
+        spec.appURL = inLaunchSpec->appURL;
+        spec.itemURLs = inLaunchSpec->itemURLs;
+        spec.launchFlags = inLaunchSpec->launchFlags;
+        spec.taskArgs = taskArgs;
+        spec.taskEnv = taskEnv;
+        return _LSOpenAllWithSpecifiedApp(&spec, outLaunchedURL);
     }
 
     // We are opening one or more files or URLs with their preferred apps
@@ -705,8 +722,8 @@ OSStatus LSOpenFromURLSpec(const LSLaunchURLSpec *inLaunchSpec, CFURLRef _Nullab
 	    spec.appURL = (CFURLRef)item;
 	    spec.itemURLs = NULL;
 	    spec.launchFlags = inLaunchSpec->launchFlags;
-            spec.taskArgs = inLaunchSpec->taskArgs;
-            spec.taskEnv = inLaunchSpec->taskEnv;
+            spec.taskArgs = taskArgs;
+            spec.taskEnv = taskEnv;
 	    _LSOpenAllWithSpecifiedApp(&spec, NULL);
         } else if(LSIsAppDir((CFURLRef)item)) {
             LSLaunchURLSpec spec;
@@ -714,8 +731,8 @@ OSStatus LSOpenFromURLSpec(const LSLaunchURLSpec *inLaunchSpec, CFURLRef _Nullab
 	    spec.appURL = (CFURLRef)([item URLByAppendingPathComponent:@"AppRun"]);
 	    spec.itemURLs = NULL;
 	    spec.launchFlags = inLaunchSpec->launchFlags;
-            spec.taskArgs = inLaunchSpec->taskArgs;
-            spec.taskEnv = inLaunchSpec->taskEnv;
+            spec.taskArgs = taskArgs;
+            spec.taskEnv = taskEnv;
 	    _LSOpenAllWithSpecifiedApp(&spec, NULL);
         } else {
             NSMutableArray *appCandidates = [NSMutableArray arrayWithCapacity:6];
@@ -727,8 +744,8 @@ OSStatus LSOpenFromURLSpec(const LSLaunchURLSpec *inLaunchSpec, CFURLRef _Nullab
                 spec.appURL = (CFURLRef)[[appCandidates firstObject] copy];
                 spec.itemURLs = (CFArrayRef)[NSArray arrayWithObject:item];
                 spec.launchFlags = inLaunchSpec->launchFlags;
-                spec.taskArgs = inLaunchSpec->taskArgs;
-                spec.taskEnv = inLaunchSpec->taskEnv;
+                spec.taskArgs = taskArgs;
+                spec.taskEnv = taskEnv;
                 _LSOpenAllWithSpecifiedApp(&spec, NULL);
             }
         }    
