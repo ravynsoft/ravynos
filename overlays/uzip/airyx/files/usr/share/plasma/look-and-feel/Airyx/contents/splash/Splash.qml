@@ -54,7 +54,7 @@ Image {
 	Text {
 	    id: osname
 	    color: "#eff0f1"
-	    text: "airyx"
+	    text: "airyxOS"
 	    font.pointSize: 72 
 	    font { family: "Nimbus Sans"; weight: Font.Regular }
 	    anchors.verticalCenter: parent.verticalCenter
@@ -64,7 +64,7 @@ Image {
 	Text {
 	    id: verstext
 	    color: "#eff0f1"
-	    text: "Tanuki v0.3.0pre2"
+	    text: "Tanuki v0.3.0pre3"
 	    font.pointSize: 20
 	    font { family: "Nimbus Sans"; weight: Font.Regular }
 	    x: (PlasmaCore.Units.gridUnit * 2)

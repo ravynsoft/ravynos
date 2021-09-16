@@ -32,24 +32,14 @@ find "${uzip}/usr/share/icons/macOSBigSur" -type f -exec chmod 644 {} \;
 ( cd "${uzip}/usr/share/icons/" ; ln -s macOSBigSur default )
 rm -f macOSBigSur.tar.gz
 
-# Menu
-fetch https://github.com/helloSystem/Menu/releases/download/continuous/Menu_FreeBSD.zip
-unzip Menu_FreeBSD.zip
-rm -f Menu_FreeBSD.zip
-
-# Dock
-fetch https://github.com/helloSystem/Dock/releases/download/continuous/Dock_FreeBSD.zip
-unzip Dock_FreeBSD.zip
-rm -f Dock_FreeBSD.zip
-
-mv * "${uzip}/System/"
-
 # Add applications from the helloSystem/Utilities repository
 mkdir -p "${uzip}/Applications/"
 fetch https://github.com/helloSystem/Utilities/archive/master.zip
-unzip master.zip
-mv 'Utilities-master/Utilities' "${uzip}/Applications/"
+unzip -o master.zip
+mv 'Utilities-master/Utilities/Install FreeBSD.app' "${uzip}/Applications/Utilities/"
 rm -rf master.zip Utilities-master/
+sed -i_ -e 's@/usr/local@/usr@g' "${uzip}/Applications/Utilities/Install FreeBSD.app/Resources/freebsd-install.py"
+rm "${uzip}/Applications/Utilities/Install FreeBSD.app/Resources/freebsd-install.py_"
 
 # Fonts
 fetch https://github.com/ArtifexSoftware/urw-base35-fonts/archive/20200910.zip
