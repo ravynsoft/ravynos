@@ -9,7 +9,7 @@ KATE_DIR= kate-21.08.1
 
 RESOURCES_DIR= ${.CURDIR}/${APP_DIR}/Contents/Resources
 
-build: clean all kate
+build: clean all kate install
 kate:
 	mkdir -p ${KATE_DIR}/_build
 	cmake -B ${KATE_DIR}/_build -S ${KATE_DIR} \
