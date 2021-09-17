@@ -28,6 +28,7 @@
 #import "LaunchServices.h"
 #import "LaunchServices_private.h"
 #import "UTTypes.h"
+#import "UTTypes-private.h"
 
 #include <sqlite3.h>
 #include <stdio.h>
@@ -585,10 +586,10 @@ static OSStatus _LSOpenAllWithSpecifiedApp(const LSLaunchURLSpec *inLaunchSpec, 
             return 0;
         }
 
-	NSEnumerator *items = [(NSArray *)inLaunchSpec->itemURLs objectEnumerator];
+    NSEnumerator *items = [(NSArray *)inLaunchSpec->itemURLs objectEnumerator];
         BOOL found = NO;
 
-	while(NSURL *item = [items nextObject]) {
+    while(NSURL *item = [items nextObject]) {
             NSMutableArray *copyargs = args;
             for(int i=0; i<[copyargs count]; ++i) {
                 if([[copyargs objectAtIndex:i] caseInsensitiveCompare:@"%U"] == NSOrderedSame) {
@@ -659,8 +660,8 @@ Boolean LSIsAppDir(CFURLRef cfurl)
        [[url pathExtension] caseInsensitiveCompare:@"appdir"] == NSOrderedSame) {
         NSFileManager *fm = [NSFileManager defaultManager];
         NSString *appRunPath = [[url URLByAppendingPathComponent:@"AppRun"] path];
-	if([fm fileExistsAtPath:appRunPath] && [fm isExecutableFileAtPath:appRunPath])
-	    return YES;
+    if([fm fileExistsAtPath:appRunPath] && [fm isExecutableFileAtPath:appRunPath])
+        return YES;
     }
     return NO;
 }
@@ -718,29 +719,43 @@ OSStatus LSOpenFromURLSpec(const LSLaunchURLSpec *inLaunchSpec, CFURLRef _Nullab
     while(item = [items nextObject]) {
         if(LSIsNSBundle((CFURLRef)item)) {
             LSLaunchURLSpec spec;
-	    memset(&spec, 0, sizeof(spec));
-	    spec.appURL = (CFURLRef)item;
-	    spec.itemURLs = NULL;
-	    spec.launchFlags = inLaunchSpec->launchFlags;
-            spec.taskArgs = taskArgs;
-            spec.taskEnv = taskEnv;
-	    _LSOpenAllWithSpecifiedApp(&spec, NULL);
+        memset(&spec, 0, sizeof(spec));
+        spec.appURL = (CFURLRef)item;
+        spec.itemURLs = NULL;
+        spec.launchFlags = inLaunchSpec->launchFlags;
+        spec.taskArgs = taskArgs;
+        spec.taskEnv = taskEnv;
+        _LSOpenAllWithSpecifiedApp(&spec, NULL);
         } else if(LSIsAppDir((CFURLRef)item)) {
             LSLaunchURLSpec spec;
-	    memset(&spec, 0, sizeof(spec));
-	    spec.appURL = (CFURLRef)([item URLByAppendingPathComponent:@"AppRun"]);
-	    spec.itemURLs = NULL;
-	    spec.launchFlags = inLaunchSpec->launchFlags;
-            spec.taskArgs = taskArgs;
-            spec.taskEnv = taskEnv;
-	    _LSOpenAllWithSpecifiedApp(&spec, NULL);
+        memset(&spec, 0, sizeof(spec));
+        spec.appURL = (CFURLRef)([item URLByAppendingPathComponent:@"AppRun"]);
+        spec.itemURLs = NULL;
+        spec.launchFlags = inLaunchSpec->launchFlags;
+        spec.taskArgs = taskArgs;
+        spec.taskEnv = taskEnv;
+        _LSOpenAllWithSpecifiedApp(&spec, NULL);
         } else {
             NSMutableArray *appCandidates = [NSMutableArray arrayWithCapacity:6];
-	    NSString *uti = (NSString *)UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension,
-	    	(CFStringRef)[item pathExtension], NULL); 
-            if(LSFindAppsForUTI(uti, &appCandidates) == 0) {
+            NSMutableArray *conforms = [NSMutableArray arrayWithCapacity:20];
+
+            NSString *uti = (NSString *)UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension,
+                (CFStringRef)[item pathExtension], NULL);
+            if(uti == nil)
+                return kLSApplicationNotFoundErr;
+
+            [conforms addObject:uti];
+            for(int x=0; x<[conforms count]; ++x) {
+                NSString *uti = [conforms objectAtIndex:x];
+                [conforms addObjectsFromArray:(NSArray*)UTTypeCopyConformsTo((CFStringRef)uti)];
+            }
+
+            int rc = -1;
+            for(int x=0; x<[conforms count] && (rc = LSFindAppsForUTI([conforms objectAtIndex:x], &appCandidates)) != 0; )
+                ++x;
+            if(rc == 0) {
                 LSLaunchURLSpec spec;
-	        memset(&spec, 0, sizeof(spec));
+                memset(&spec, 0, sizeof(spec));
                 spec.appURL = (CFURLRef)[[appCandidates firstObject] copy];
                 spec.itemURLs = (CFArrayRef)[NSArray arrayWithObject:item];
                 spec.launchFlags = inLaunchSpec->launchFlags;
