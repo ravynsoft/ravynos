@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE gui SYSTEM "kpartgui.dtd">
+<gui name="katesearch" library="libkatesearchplugin" version="4" translationDomain="katesearch">
+    <MenuBar>
+        <Menu name="edit">
+            <text>&amp;Edit</text>
+            <Action name="search_in_files"/>
+             <Menu name="search_more">
+                <text>Search More</text>
+                <Action name="go_to_next_match"/>
+                <Action name="go_to_prev_match"/>
+                <Action name="search_in_files_new_tab"/>
+            </Menu>
+        </Menu>
+    </MenuBar>
+</gui>
+<!-- kate: space-indent on; indent-width 4; replace-tabs on; -->

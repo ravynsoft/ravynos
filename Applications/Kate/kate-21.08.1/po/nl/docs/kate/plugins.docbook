@@ -1,0 +1,6173 @@
+<chapter id="plugins">
+
+<chapterinfo>
+<authorgroup>
+<author
+>&Anders.Lund; &Anders.Lund.mail;</author>
+&Otto.Bruggeman;&Freek.de.Kruijf; 
+</authorgroup>
+</chapterinfo>
+
+<title
+>Werken met plug-ins</title>
+
+<para
+>U kunt de individuele plug-ins inschakelen in de <link linkend="configuring-kate-configdialog"
+>instellingendialoog</link
+>, die ook toegang biedt tot extra instellingenopties voor plug-ins die dat vereisen.</para>
+
+<sect1 id="kate-application-plugins">
+<title
+>&kate;-programma-plugins</title>
+
+<!-- from doc/kate-addons/index.docbook -->
+<para
+>&kate;-plugins zijn additionele functies voor &kate; Ze kunnen extra menu's en sneltoetsen toevoegen en de mogelijkheden van &kate; uitbreiden. U kunt er vanuit &kate; net zo veel installeren als u wilt. Open het configuratiedialoogvenster van &kate; door het menu <menuchoice
+><guimenu
+>Instellingen</guimenu
+> <guimenuitem
+>&kate; instellen...</guimenuitem
+></menuchoice
+> te kiezen. Kies dan <menuchoice
+><guimenu
+>Toepassing</guimenu
+> <guimenuitem
+>Plugins</guimenuitem
+></menuchoice
+> om de gewenste plugins te vinden. </para>
+
+<para
+>De beschikbare plugins voor de toepassing zijn: </para>
+<itemizedlist>
+<listitem>
+<para
+><link linkend="kate-application-plugin-external-tools"
+>Externe hulpmiddelen</link
+> - externe hulpmiddelen en toepassingen uitvoeren</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-backtracebrowser"
+>Backtrace browser</link
+> - Hulpmiddelweergave voor C/C++ backtrace navigatie</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-build"
+>Bouwplug-in</link
+> - Compileren of Make uitvoeren en foutboodschappen ontleden</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-closeexceptlike"
+>Behalve/zoals sluiten</link
+> - sluit een groep documenten gebaseerd op een gemeenschappelijk pad of een extensie van een bestand</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-colorpicker"
+>Kleurenkiezer</link
+> - Voorbeeld voor bekende kleurennamen tonen</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-ctags"
+>CTags</link
+> - Definities/declaraties opzoeken met CTags</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-documents"
+>Documentvoorbeeld</link
+> - toont het document in het doelformaat.</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-documentswitcher"
+>Documentomschakelaar</link
+> - snel document omschakelen met <keycombo action="simul"
+>&Alt;&Tab;</keycombo
+> gedrag</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-fsbrowser"
+>Bestandssysteembrowser</link
+> - Hulpmiddelenweergave voor bladeren door het bestandssysteem</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-documents"
+>Boomstructuurweergave van documenten</link
+> - Toont de open bestanden in een boomstructuur</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-gdb"
+>&gdb;</link
+> - levert een eenvoudige &gdb;-frontend</para>
+</listitem>
+<!--from workspace/plasma-sdk, why picked up here?
+<listitem>
+<para
+>Icon picker - Invokes Cuttlefish icon picker</para>
+</listitem>
+-->
+<listitem>
+<para
+><link linkend="kate-application-plugin-projects"
+>Plug-in voor project</link
+> - Integratie met &git; en andere beheersystemen voor broncode</para>
+</listitem>
+<listitem>
+<para
+>Replicode - Constructivist AI taal en runtime</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-lspclient"
+>LSP-client</link
+> - LSP-client biedt codenavigatie en codeaanvulling voor vele talen</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-searchinfiles"
+>Zoeken &amp; vervangen</link
+> - Zoeken en vervangen in documenten, mappen of projecten</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-snippets"
+>Hulpmiddelweergave van tekstfragmenten</link
+> - Hulpmiddelenweergave ingebed in het beheer van tekstfragmenten</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-sql"
+>SQL-plugin</link
+> - Voer zoekopdracht op SQL-database uit</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-symbolviewer"
+>Symboolviewer</link
+> - Referentiesymbolen uit de broncode halen en tonen</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-konsole"
+>Terminalhulpmiddelweergave</link
+> - Een terminal gereed hebben, met &konsole;-widget van &kde;</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-textfilter"
+>Tekstfilter</link
+> - Tekst bewerken met terminalopdrachten</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-xmltools"
+>&XML;-aanvulling</link
+> - Somt -elementen, -attributen, -attribuutwaarden en -entiteiten op die door de DTD zijn toegestaan</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-xmlcheck"
+>Validatie van &XML;</link
+>- Valideert -bestanden met behulp van xmllint</para>
+</listitem>
+</itemizedlist>
+</sect1>
+
+<sect1 id="kate-application-plugin-external-tools">
+<title
+>Externe hulpmiddelen</title>
+
+<para
+>De plug-in <guilabel
+>Externe hulpmiddelen</guilabel
+> biedt het aanroepen van externe toepassingen met gegevens gerelateerd met het huidige document, bijvoorbeeld zijn URL, map, tekst of selectie. Na te zijn ingeschakeld, verschijnt er een configuratiepagina zoals onderstaand aangegeven die in staat stelt om bestaande hulpmiddelen te wijzigen of te verwijderen. Evenzo kunnen nieuwe hulpmiddelen naar uw wensen worden toegevoegd. De hulpmiddelen zullen daarna verschijnen in het submenu <guisubmenu
+>Externe hulpmiddelen</guisubmenu
+> van het menu <guimenu
+>Hulpmiddelen</guimenu
+> van de toepassing. </para>
+
+<mediaobject>
+<imageobject>
+<imagedata format="PNG" fileref="kateexternaltools.png"/>
+</imageobject>
+</mediaobject>
+
+<para
+>De configuratiepagina biedt het toevoegen van nieuwe externe hulpmiddelen door te klikken op de knop <guilabel
+>Toevoegen</guilabel
+>. In dat geval verschijnt er een pop-up-menu waar u ofwel een nieuw extern hulpmiddel kan toevoegen of een bestaand hulpmiddel uit een voorgedefinieerde lijst of een nieuwe categorie om de externe hulpmiddelen in categorieën te organiseren. Evenzo kunnen bestaande hulpmiddelen gewijzigd worden door ofwel dubbelklikken of door <guilabel
+>Bewerken...</guilabel
+> te gebruiken en <guilabel
+>Verwijderen</guilabel
+> verwijdert de geselecteerde hulpmiddelen. </para>
+
+<sect2 id="kate-application-plugin-external-tools-edit">
+<title
+>Externe hulpmiddelen configureren</title>
+
+<para
+>Een hulpmiddel bewerken opent een configuratiedialoogvenster die verfijnde configuratie van het hulpmiddel biedt:</para>
+
+<mediaobject>
+<imageobject>
+<imagedata format="PNG" fileref="kateeditexternaltool.png"/>
+</imageobject>
+</mediaobject>
+
+<variablelist>
+<varlistentry>
+<term
+>Zoals is te zien kunnen veel details gedefinieerd worden, namelijk:</term>
+<listitem>
+<para
+><userinput
+>Naam</userinput
+>, de naam van het hulpmiddel, die later in het menu zal verschijnen.</para>
+<para
+><userinput
+>Pictogram</userinput
+>, optioneel pictogram dat zichtbaar is in het menu.</para>
+<para
+><userinput
+>Uitvoerbaar programma</userinput
+>, uitvoerbaar programma inclusief ofwel een volledig pad of uw uitvouwbare programma moet in de omgevingsvariabele <envar
+>PATH</envar
+> aanwezig zijn.</para>
+<para
+><userinput
+>Argumenten</userinput
+>, optionele argumenten die aan het uitvoerbare programma worden meegegeven.</para>
+<para
+><userinput
+>Invoer</userinput
+>, optionele invoer die aan het proces wordt doorgegeven via stdin.</para>
+<para
+><userinput
+>Werkmap</userinput
+>, de werkmap waarin het hulpmiddel zal worden gestart. Indien leeg zal de werkmap ingesteld worden op het huidige pad van het document.</para>
+<para
+><userinput
+>Mime-types</userinput
+>, indien ingesteld is het hulpmiddel alleen actief als het mime-type van het huidige document overeenkomt.</para>
+<para
+><userinput
+>Opslaan</userinput
+>, bij aanroepen, slaat geen, het huidige document of alle documenten op.</para>
+<para
+><userinput
+>Huidig document opnieuw laden na uitvoeren</userinput
+>, nuttig wanneer het huidige bestand op schijf is gewijzigd.</para>
+<para
+><userinput
+>Uitvoer</userinput
+>, de uitvoer definieert het doel van stdout. Het is ofwel ingesteld op <userinput
+>Negeren</userinput
+>, <userinput
+>Invoegen op de cursorpositie</userinput
+>, <userinput
+>Geselecteerde tekst vervangen</userinput
+>, <userinput
+>Huidig document vervangen</userinput
+>, <userinput
+>Achtervoegen aan huidig document</userinput
+>, <userinput
+>Invoegen in nieuw document</userinput
+>, <userinput
+>Naar klembord kopiëren</userinput
+> of <userinput
+>In paneel tonen</userinput
+>.</para>
+<para
+><userinput
+>Berwerkingsopdracht</userinput
+>, optionele opdracht die gebruikt kan worden om het externe hulpmiddel via de ingebouwde <ulink url="help:/katepart/advanced.html#advanced-editing-tools-commandline"
+>opdrachtregel</ulink
+> aan te roepen.</para>
+</listitem>
+</varlistentry>
+</variablelist>
+
+<para
+>De knop <guilabel
+>Standaarden</guilabel
+> is alleen zichtbaar voor hulpmiddelen die geleverd zijn met Kate. Bij erop klikken worden alle instellingen van de hulpmiddelen teruggedraaid naar de standaard (aka factory) waarden. </para>
+
+</sect2>
+
+<sect2 id="kate-application-plugin-external-tools-variables">
+<title
+>Expansie van variabelen</title>
+
+<para
+>Sommige velden voor bewerking zoals <guilabel
+>Uitvoerbaar programma</guilabel
+>, <guilabel
+>Argumenten</guilabel
+>, <guilabel
+>Invoer</guilabel
+> en <guilabel
+>Werkmap</guilabel
+> ondersteunen variabelen die geëxpandeerd worden bij aanroepen van het hulpmiddel. Dit wordt aangegeven met het pictogram <guilabel
+>{}</guilabel
+> dat verschijnt op het moment dat een van deze tekstinvoervelden focus heeft (zie rode cirkel): </para>
+
+<mediaobject>
+<imageobject>
+<imagedata format="PNG" fileref="katevariableexpansion.png"/>
+</imageobject>
+</mediaobject>
+
+<para
+>Zweven boven een van deze tekstinvoervelden toont ook een tekstballon met de nu geëxpandeerde tekst. Voorts, klikken op de actie <guilabel
+>{}</guilabel
+> zal een dialoog openen die alle beschikbare variabelen zal tonen: </para>
+
+<mediaobject>
+<imageobject>
+<imagedata format="PNG" fileref="kateexternaltoolvariablechooser.png"/>
+</imageobject>
+</mediaobject>
+
+<para
+>Deze functie biedt heel wat flexibiliteit bij het definiëren van een extern hulpmiddel omdat alle variabelen van de vorm <userinput
+>%{...}</userinput
+> geëxpandeerd zijn wanneer het hulpmiddel wordt aangeroepen. Er worden twee soorten variabelen ondersteund: <itemizedlist
+> <listitem
+><para
+><userinput
+>%{variable-name}</userinput
+></para
+></listitem
+> <listitem
+><para
+><userinput
+>%{variable-name:&lt;value&gt;}</userinput
+></para
+></listitem
+> </itemizedlist
+> De eerste vorm <userinput
+>%{variable-name}</userinput
+> vervangt eenvoudig de variabele met zijn inhoud. Bijvoorbeeld, de variabele <userinput
+>%{Document:FileName}</userinput
+> wordt vervangen door de bestandsnaam van het huidige document zonder zijn pad. De tweede vorm <userinput
+>%{variable-name:&lg;value&gt;}</userinput
+> krijgt <userinput
+>&lt;value&gt;</userinput
+> als inhoud. Bijvoorbeeld, dit kan gebruikt worden om een omgevingsvariabele in te voegen met <userinput
+>%{ENV:HOME}</userinput
+> of men kan de huidige datum in het formaat met voorkeur verkrijgen zoals <userinput
+>%{Date:yyyy-MM-dd}</userinput
+>. </para>
+
+<variablelist>
+<varlistentry>
+<term
+>Ondersteunde variabelen omvatten:</term>
+<listitem>
+<para
+><userinput
+>Document:FileBaseName</userinput
+>: basisnaam van bestand zonder pad en achtervoegsel van het huidige document.</para>
+<para
+><userinput
+>Document:FileExtension</userinput
+>: bestandsextensie van het huidige document.</para>
+<para
+><userinput
+>Document:FileName</userinput
+>: bestandsnaam zonder pad van het huidige document.</para>
+<para
+><userinput
+>Document:FilePath</userinput
+>: volledige pad van het huidige document inclusief de bestandsnaam</para>
+<para
+><userinput
+>Document:Text</userinput
+>: inhoud van het huidige document.</para>
+<para
+><userinput
+>Document:Path</userinput
+>: volledige pad van het huidige document exclusief de bestandsnaam.</para>
+<para
+><userinput
+>Document:NativeFilePath</userinput
+>: volledige pad van document inclusief bestandsnaam, met inheems scheidingsteken van pad (backslash op Windows).</para>
+<para
+><userinput
+>Document:NativePath</userinput
+>: volledige pad van document exclusief bestandsnaam, met inheems scheidingsteken van pad (backslash op Windows).</para>
+<para
+><userinput
+>Document:Cursor:Line</userinput
+>: regelnummer van de positie van de tekstcursor in het huidige document (begint met 0).</para>
+<para
+><userinput
+>Document:Cursor:Column</userinput
+>: kolomnummer van de positie van de tekstcursor in het huidige document (begint met 0).</para>
+<para
+><userinput
+>Document:Cursor:XPos</userinput
+>: x-component in globale schermcoördinaten van de cursorpositie.</para>
+<para
+><userinput
+>Document:Cursor:YPos</userinput
+>: y-component in globale schermcoördinaten van de cursorpositie.</para>
+<para
+><userinput
+>Document:Selection:Text</userinput
+>: tekstselectie van het huidige document.</para>
+<para
+><userinput
+>Document:Selection:StartLine</userinput
+>: beginregel van geselecteerde tekst van het huidige document.</para>
+<para
+><userinput
+>Document:Selection:StartColomn</userinput
+>: beginkolom van geselecteerde tekst van het huidige document.</para>
+<para
+><userinput
+>Document:Selection:EndLine</userinput
+>: eindregel van geselecteerde tekst van het huidige document.</para>
+<para
+><userinput
+>Document:Selection:EndColomn</userinput
+>: eindkolom van geselecteerde tekst van het huidige document.</para>
+<para
+><userinput
+>Document:RowCount</userinput
+>: aantal rijen van het huidige document.</para>
+<para
+><userinput
+>Document:Variable:&lt;variable&gt;</userinput
+>: expandeer willekeurige <ulink url="help:/katepart/config-variables.html"
+>documentvariabelen</ulink
+>.</para>
+<para
+><userinput
+>Date:Locale</userinput
+>: de huidige datum volgens uw lokale opmaak.</para>
+<para
+><userinput
+>Date:ISO</userinput
+>: de huidige datum (ISO).</para>
+<para
+><userinput
+>Date:&lt;value&gt;</userinput
+>: de huidige datum (<ulink url="https://doc.qt.io/qt-5/qdate.html#toString"
+>QDate formaattekenreeks</ulink
+>).</para>
+<para
+><userinput
+>Time:Locale</userinput
+>: De huidige tijd volgens uw lokale opmaak.</para>
+<para
+><userinput
+>Time:ISO</userinput
+>: de huidige tijd (ISO).</para>
+<para
+><userinput
+>Time:&lt;value&gt;</userinput
+>: de huidige tijd (<ulink url="https://doc.qt.io/qt-5/qtime.html#toString"
+>QTime formaattekenreeks</ulink
+>).</para>
+<para
+><userinput
+>ENV:&lt;value&gt;</userinput
+>: toegang tot omgevingsvariabelen.</para>
+<para
+><userinput
+>JS:&lt;expressie&gt;</userinput
+>: eenvoudige JavaScript statements uitvoeren.</para>
+<para
+><userinput
+>PercentEncoded:&lt;text&gt;</userinput
+>: procent gecodeerde tekst.</para>
+<para
+><userinput
+>UUID</userinput
+>: een nieuwe UUID genereren.</para>
+</listitem>
+</varlistentry>
+</variablelist>
+
+ 
+
+</sect2>
+
+<sect2 id="kate-application-plugin-external-tools-defaults">
+<title
+>Lijst met standaard hulpmiddelen</title>
+
+<para
+>Verschillende hulpmiddelen worden standaard geleverd. Als u echter meer nuttige hulpmiddelen hebt draag ze dan bij op <email
+>kwrite-devel@kde.org</email
+> zodat we ze aan deze lijst kunnen toevoegen. Alle standaard hulpmiddelen zijn standaard zichtbaar in de lijstweergave. Alle hulpmiddelen kunnen naar uw wensen gewijzigd worden, inclusief de categorie of zelfs hulpmiddelen verwijderen. Verwijderde hulpmiddelen kunnen opnieuw terug toegevoegd worden door te klikken op de knop <guibutton
+>Toevoegen</guibutton
+> in de configureren zoals boven beschreven. </para>
+
+<variablelist>
+<title
+>git-cola</title>
+
+<varlistentry>
+<term
+>git-cola is een grafische git-client die u in staat stelt om gemakkelijk wijzigingen te "stagen" en te "committen". Als het is geïnstalleerd is het ook beschikbaar via de opdrachtregel door <userinput
+>git-cola</userinput
+> te typen</term>
+<listitem>
+<para
+><userinput
+>Naam</userinput
+>: git-cola</para>
+<para
+><userinput
+>Pictogram</userinput
+>: git-cola</para>
+<para
+><userinput
+>Uitvoerbaar programma</userinput
+>: git-cola</para>
+<para
+><userinput
+>Argumenten</userinput
+>: -r %{Document:Path}</para>
+<para
+><userinput
+>Opdracht in editor</userinput
+>: git-cola</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+
+<variablelist>
+<title
+>gitk</title>
+
+<varlistentry>
+<term
+>gitk is ook een git-client die biedt om mooi de git-geschiedenis te visualiseren.</term>
+<listitem>
+<para
+><userinput
+>Naam</userinput
+>: gitk</para>
+<para
+><userinput
+>Pictogram</userinput
+>: git-gui</para>
+<para
+><userinput
+>Uitvoerbaar programma</userinput
+>: gitk</para>
+<para
+><userinput
+>Werkmap</userinput
+>: %{Document:Path}</para>
+<para
+><userinput
+>Opdracht in editor</userinput
+>: gitk</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+
+<variablelist>
+<title
+>git-blame</title>
+
+<varlistentry>
+<term
+>Start git-blame om gemakkelijk de git-wijzigingen in het huidige bestand te volgen.</term>
+<listitem>
+<para
+><userinput
+>Naam</userinput
+>: git blame</para>
+<para
+><userinput
+>Uitvoerbaar programma</userinput
+>: git</para>
+<para
+><userinput
+>Argumenten</userinput
+>: gui blame %{Document:FileName}</para>
+<para
+><userinput
+>Save</userinput
+>: Huidig document</para>
+<para
+><userinput
+>Werkmap</userinput
+>: %{Document:Path}</para>
+<para
+><userinput
+>Opdracht in editor</userinput
+>: git-blame</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+
+<variablelist>
+<title
+>Shell-script uitvoeren</title>
+
+<varlistentry>
+<term
+>Start een extern konsole waarin het huidige document wordt uitgevoerd. Het script moet de interpretator aangeven in de eerste regel via een shebang <userinput
+>#!/pad/interpretator</userinput
+>.</term>
+<listitem>
+<para
+><userinput
+>Naam</userinput
+>: Shell-script uitvoeren</para>
+<para
+><userinput
+>Pictogram</userinput
+>: system-run</para>
+<para
+><userinput
+>Uitvoerbaar programma</userinput
+>: konsole</para>
+<para
+><userinput
+>Argumenten</userinput
+>: -e sh -c &quot;cd %{Document:Path} &amp;&amp; pwd &amp;&amp; chmod -vc a+x %{Document:FileName} &amp;&amp; ./%{Document:FileName} ; echo Press any key to continue. &amp;&amp; read -n 1&quot;</para>
+<para
+><userinput
+>Save</userinput
+>: Huidig document</para>
+<para
+><userinput
+>Werkmap</userinput
+>: %{Document:Path}</para>
+<para
+><userinput
+>Opdracht in editor</userinput
+>: run-script</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+
+<variablelist>
+<title
+>Google geselecteerde tekst</title>
+
+<varlistentry>
+<term
+>In Google naar geselecteerde tekst zoeken.</term>
+<listitem>
+<para
+><userinput
+>Naam</userinput
+>: Google geselecteerde tekst</para>
+<para
+><userinput
+>Pictogram</userinput
+>: globe</para>
+<para
+><userinput
+>Uitvoerbaar bestand</userinput
+>: xdg-open</para>
+<para
+><userinput
+>Argumenten</userinput
+>: &quot;https://www.google.com/search?q=%{Document:Selection:Text}&quot;</para>
+<para
+><userinput
+>Opdracht in editor</userinput
+>: google</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+
+<variablelist>
+<title
+>UUID invoegen</title>
+
+<varlistentry>
+<term
+>Een nieuwe UUID invoegen elke keer wanneer deze actie wordt aangeroepen.</term>
+<listitem>
+<para
+><userinput
+>Naam</userinput
+>: UUID invoegen</para>
+<para
+><userinput
+>Uitvoerbaar programma</userinput
+>: echo</para>
+<para
+><userinput
+>Argumenten</userinput
+>: %{UUID}</para>
+<para
+><userinput
+>Uitvoer</userinput
+>: op cursorpositie invoegen</para>
+<para
+><userinput
+>Opdracht in editor</userinput
+>: uuid</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+
+<variablelist>
+<title
+>Clang-formaat volledig bestand</title>
+
+<varlistentry>
+<term
+>Voert clang-format uit op het huidige bestand op schijf. Het document wordt daarna opnieuw geladen.</term>
+<listitem>
+<para
+><userinput
+>Naam</userinput
+>: Clang Format volledig bestand</para>
+<para
+><userinput
+>Uitvoerbaar programma</userinput
+>: clang-format</para>
+<para
+><userinput
+>Argumenten</userinput
+>: -i %{Document:FileName}</para>
+<para
+><userinput
+>Werkmap</userinput
+>: %{Document:Path}</para>
+<para
+><userinput
+>Save</userinput
+>: Huidig document</para>
+<para
+><userinput
+>Herladen</userinput
+>: ja</para>
+<para
+><userinput
+>Opdracht in editor</userinput
+>: clang-format-file</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+
+<variablelist>
+<title
+>Clang-formaat geselecteerde tekst</title>
+
+<varlistentry>
+<term
+>clang-format wordt uitgevoerd alleen op de geselecteerde tekst in het huidige document.</term>
+<listitem>
+<para
+><userinput
+>Naam</userinput
+>: Clang Format geselecteerde tekst</para>
+<para
+><userinput
+>Uitvoerbaar programma</userinput
+>: clang-format</para>
+<para
+><userinput
+>Argumenten</userinput
+>: -assume-fileName: %{Document:FileName}</para>
+<para
+><userinput
+>Werkmap</userinput
+>: %{Document:Path}</para>
+<para
+><userinput
+>Invoer</userinput
+>: %{Document:Selection:Text}</para>
+<para
+><userinput
+>Uitvoer</userinput
+>: geselecteerde tekst vervangen</para>
+<para
+><userinput
+>Opdracht in editor</userinput
+>: clang-format-selection</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+
+<variablelist>
+<title
+>Qt Quick 2 voorbeeld (qmlscene)</title>
+
+<varlistentry>
+<term
+>Bekijkt het huidige qml-bestand in qmlscene.</term>
+<listitem>
+<para
+><userinput
+>Naam</userinput
+>: Qt Quick 2 voorbeeld (qmlscene)</para>
+<para
+><userinput
+>Uitvoerbaar programma</userinput
+>: qmlscene</para>
+<para
+><userinput
+>Argumenten</userinput
+>: %{Document:FileName}</para>
+<para
+><userinput
+>Save</userinput
+>: Huidig document</para>
+<para
+><userinput
+>Werkmap</userinput
+>: %{Document:Path}</para>
+<para
+><userinput
+>Opdracht in editor</userinput
+>: qml-preview</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+
+<variablelist>
+<title
+>JSON-formaat volledig bestand</title>
+
+<varlistentry>
+<term
+>Het gehele JSON-bestand formatteren.</term>
+<listitem>
+<para
+><userinput
+>Naam</userinput
+>: JSON-formatteren volledig bestand</para>
+<para
+><userinput
+>Pictogram</userinput
+>: application-json</para>
+<para
+><userinput
+>Uitvoerbaar programma</userinput
+>: jq</para>
+<para
+><userinput
+>Argumenten</userinput
+>: %{Document:FileName}</para>
+<para
+><userinput
+>Save</userinput
+>: Huidig document</para>
+<para
+><userinput
+>Werkmap</userinput
+>: %{Document:Path}</para>
+<para
+><userinput
+>Uitvoer</userinput
+>: huidig document vervangen</para>
+<para
+><userinput
+>Opdracht in editor</userinput
+>: json-format-file</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+
+<variablelist>
+<title
+>XML-formaat volledig bestand</title>
+
+<varlistentry>
+<term
+>Het gehele XML-bestand formatteren.</term>
+<listitem>
+<para
+><userinput
+>Naam</userinput
+>: JSON-formatteren volledig bestand</para>
+<para
+><userinput
+>Pictogram</userinput
+>: application-xml</para>
+<para
+><userinput
+>Uitvoerbaar programma</userinput
+>: xmllint</para>
+<para
+><userinput
+>Argumenten</userinput
+>: --format %{Document:FileName}</para>
+<para
+><userinput
+>Save</userinput
+>: Huidig document</para>
+<para
+><userinput
+>Werkmap</userinput
+>: %{Document:Path}</para>
+<para
+><userinput
+>Uitvoer</userinput
+>: huidig document vervangen</para>
+<para
+><userinput
+>Opdracht in editor</userinput
+>: xml-format-file</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+</sect1>
+
+<sect1 id="kate-application-plugin-backtracebrowser">
+<!--https://kate-editor.org/2008/08/12/kate-fast-backtrace-navigation/-->
+<title
+>Plug-in Backtrace Browser</title>
+
+<sect2 id="backtracebrowser-using">
+<title
+>De Plug-in Backtrace browser gebruiken</title>
+
+<para
+>Deze plug-in is bedoeld voor ontwikkelaars en waarschijnlijk van weinig nut voor gebruikers. Het toont een backtrace geleverd door gdb in een lijstweergave in hulpmiddelenweergave van &kate;. Klikken op een item opent het geselecteerde bestand en springt naar het juiste regelnummer. Het werkt voor backtraces gegenereerd op uw eigen machine, maar het zal ook werken voor backtraces van andere mensen, &ie; met <filename
+>/home/dummy/qt-copy/…/qwidget.cpp</filename
+> zal het nog steeds gevonden worden op andere machines. Om dat te laten werken moet u de mappen waar de broncode zich bevindt indexeren. </para>
+
+<para
+>Soms zijn er een aantal bestanden met dezelfde naam, &eg;</para>
+
+<simplelist>
+<member
+><filename
+>kdegraphics/okular/generators/dvi/config.h</filename
+></member>
+<member
+><filename
+>kdepim-runtime/resources/gmail/saslplugin/config.h</filename
+></member>
+</simplelist>
+
+<para
+>Om de juiste keuze te maken pakt de plug-in de laatste twee delen van de &URL;, in dit geval zou dat zijn</para>
+
+<simplelist>
+<member
+><filename
+>dvi/config.h</filename
+></member>
+<member
+><filename
+>saslplugin/config.h</filename
+></member>
+</simplelist>
+
+<para
+>En dan vindt de plug-in zoals gebruikelijk de juiste.</para>
+
+<para
+>Indexeren van de master en een branch zal natuurlijk tot een botsing leiden.</para>
+
+</sect2>
+
+<sect2 id="backtracebrowser-config">
+<title
+>Configuratie</title>
+
+<para
+>Op de instellingenpagina voegt u de mappen toe die de broncode bevatten.</para>
+
+<screenshot id="screenshot-backtrace-settings">
+<screeninfo
+>Backtrace browser</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="backtrace-settings.png" format="PNG"/></imageobject>
+<caption
+>Paden in hulpmiddelenweergave van Backtrace browser configureren</caption>
+</mediaobject>
+</screenshot>
+
+<para
+>Op <guibutton
+>OK</guibutton
+> klikken zal indexering starten. Wanneer indexering gereed is, open dan het weergavehulpmiddel <guilabel
+>Backtrace browser</guilabel
+>.</para>
+<para
+>Nu kunt u een backtrace uit het klembord laden (&eg;. wanneer u op <guibutton
+>Naar klembord kopiëren</guibutton
+> klikt in &drkonqi;) of uit een bestand.</para>
+
+</sect2>
+
+</sect1>
+
+<sect1 id="kate-application-plugin-build">
+<!--https://kate-editor.org/2011/06/21/kate-plugin-updates-part-1/ -->
+<sect1info>
+<authorgroup>
+<author
+><firstname
+>Salma</firstname
+> <surname
+>Sultana</surname
+></author>
+<author
+>&TC.Hollingsworth; &TC.Hollingsworth.mail;</author>
+</authorgroup>
+</sect1info>
+<title
+>Bouwplug-in</title>
+
+<sect2 id="build-intro">
+<title
+>Inleiding</title>
+
+<para
+>De Bouwplug-in stelt u in staat om acties op een project uit te voeren, zoals bouwen, opschonen en compileren.</para>
+
+</sect2>
+
+<sect2 id="build-using">
+<title
+>De Bouwplug-in gebruiken</title>
+
+<para
+>De Bouwplug-in voegt een weergavehulpmiddel <guilabel
+>Bouwuitvoer</guilabel
+> onderaan toe en een menu <guimenu
+>Bouw</guimenu
+> op de menubalk. Het weergavehulpmiddel kan worden gebruikt om de instellingen van het bouwdoel in te stellen, terwijl het menu kan worden gebruikt om de acties bouwen, opschonen en compileren te doen.</para>
+
+<screenshot id="screenshot-build-output">
+<screeninfo
+>Bouwuitvoer</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="build-output.png" format="PNG"/></imageobject>
+</mediaobject>
+</screenshot>
+
+<para
+>Het weergavehulpmiddel <guilabel
+>Bouwuitvoer</guilabel
+> heeft twee tabbladen:</para>
+
+<itemizedlist>
+<listitem
+><para
+><guilabel
+>Instellingen van doel</guilabel
+></para
+></listitem>
+<listitem
+><para
+><guilabel
+>Uitvoer</guilabel
+></para
+></listitem>
+</itemizedlist>
+
+<sect3 id="build-using-target-settings">
+<title
+>Tabblad Instellingen van doel</title>
+
+<para
+>Het tabbald Instellingen van doel kan gebruikt worden om verschillende bouwdoelen in te stellen en sets doelen te definiëren.</para>
+
+<para
+>Om de namen van commando's te wijzigen dubbelklikt u op de items in de tabel en gebruikt u het afrolvak om de actieve set doelen te selecteren. Gebruik het keuzevakje voor elk doel om een standaard te definiëren.</para>
+
+<para
+>Een nieuwe set doelen bevat verschillende instellingenopties:</para>
+
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Werkmap</guilabel
+></term>
+<listitem
+><para
+>U kunt het pad naar het project hier instellen. Leeg laten om de map van het huidige document te gebruiken .</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Bouwen</guilabel
+></term>
+<listitem
+><para
+>Deze optie laat u het bouwcommando instellen. Het is standaard ingesteld op <command
+>make</command
+>.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Opschonen</guilabel
+></term>
+<listitem
+><para
+>Deze optie laat u het opschooncommando instellen. Het is standaard ingesteld op <command
+>make clean</command
+>.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Config</guilabel
+></term>
+<listitem
+><para
+>Deze optie laat u het commando config definiëren. Het is standaard ingesteld op <command
+>cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=/usr/local ../</command
+>.</para
+></listitem>
+</varlistentry>
+</variablelist>
+
+<para
+>Bovenaan deze plug-in is een werkbalk met de volgende knoppen:</para>
+
+<simplelist>
+<member
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="dialog-ok-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+></guiicon
+> Bouw het geselecteerde doel</member>
+<member
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="list-add-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+></guiicon
+> Een nieuw bouwdoel toevoegen</member>
+<member
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="document-new-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+></guiicon
+> Een nieuwe set bouwdoelen maken</member>
+<member
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="edit-copy-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+></guiicon
+> Kopieer een set commando's of doelen</member>
+<member
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="edit-delete-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+></guiicon
+> De huidige set commando's of doelen verwijderen</member>
+</simplelist>
+
+</sect3>
+
+<sect3 id="build-using-output">
+<title
+>Tabblad Uitvoer</title>
+
+<para
+>Het tabblad <guilabel
+>Uitvoer</guilabel
+> toont de console-uitvoer die is gegenereerd door het laatste commando.</para>
+
+<para
+>De schuifregelaar bovenaan gebruiken om categorieën uitvoer te tonen of te verbergen:</para>
+
+<para
+><guilabel
+>Volledige uitvoer</guilabel
+>, <guilabel
+>Ontlede uitvoer</guilabel
+>, <guilabel
+>Fouten en waarschuwingen</guilabel
+> of <guilabel
+>Alleen fouten</guilabel
+> </para>
+
+<para
+>Elke regel bevat een bericht, de bestandsnaam en het regelnummer indien beschikbaar. Op de fout of waarschuwing klikken brengt u naar het bijbehorende bestand en zet de cursor op het bijbehorende regelnummer.</para>
+
+<para
+>Om naar de vorige fout te gaan drukt u op <keycombo action="simul"
+>&Alt;&Shift;&Left;</keycombo
+>. Om naar de volgende fout te gaan drukt u op <keycombo action="simul"
+>&Alt;&Shift;&Right;</keycombo
+>.</para>
+
+</sect3>
+</sect2>
+
+<sect2 id="build-menu">
+<title
+>Menustructuur</title>
+
+<variablelist id="build-build">
+<varlistentry>
+<term
+><menuchoice id="build-targets"
+><guimenu
+>Bouwen</guimenu
+><guisubmenu
+>Doel selecteren</guisubmenu
+> </menuchoice
+></term>
+<listitem
+><para
+>Uit een lijst met door de gebruiker ingestelde doelen kiezen.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="build-default">
+<term
+><menuchoice
+><guimenu
+>Bouwen</guimenu
+><guimenuitem
+>Standaard doel bouwen</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Bouwt het doel gedefinieerd als standaard in de actieve doelset.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="build-previous">
+<term
+><menuchoice
+><guimenu
+>Bouwen</guimenu
+><guimenuitem
+>Vorige doel bouwen</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Schakel om naar het vorige door de gebruiker ingestelde doel.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="build-stop">
+<term
+><menuchoice
+><guimenu
+>Bouwen</guimenu
+><guimenuitem
+>Stoppen</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Stop met bouwen van een doel.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="build-previous-error">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+>&Ctrl;&Alt;&Left;</keycombo
+></shortcut
+> <guimenu
+>Bouwen</guimenu
+><guimenuitem
+>Vorige fout</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Verplaatst de cursor naar de locatie van de vorige fout in het document.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="build-next-error">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+>&Ctrl;&Alt;&Right;</keycombo
+></shortcut
+> <guimenu
+>Bouwen</guimenu
+><guimenuitem
+>Volgende fout</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Verplaatst de cursor naar de locatie van de volgende fout in het document.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+</sect2>
+
+<sect2 id="build-ack">
+<title
+>Dankbetuigingen en licentie</title>
+<para
+>De plug-in Build (Bouwen) van &kate; is geschreven door Kåre Särs.</para>
+<para
+>Speciale dank gaat naar de deelnemer van Google Code-In 2011 Salma Sultana voor het schrijven van veel van deze sectie.</para>
+</sect2>
+</sect1>
+
+<sect1 id="kate-application-plugin-closeexceptlike">
+
+<title
+>Plug-in voor sluiten Behalve/Like</title>
+
+<sect2 id="closeexceptlike-intro">
+<title
+>Inleiding</title>
+
+<para
+>De plugin biedt u de mogelijkheid om een groep van documenten gebaseerd op hun extensie en pad te sluiten </para>
+
+</sect2>
+
+<sect2 id="closeexceptlike-using">
+<title
+>De plug-in Behalve/zoals sluiten gebruiken</title>
+
+<para
+>Aangenomen dat u deze documenten hebt geopend in &kate;:</para>
+
+<simplelist>
+<member
+>/tmp/subfolder/test.h</member>
+<member
+>/tmp/test.cpp</member>
+<member
+>/tmp/test.txt</member>
+</simplelist>
+
+<para
+>U hebt dan de volgende opties om documenten te sluiten zoals getoond in de schermafdruk:</para>
+
+<screenshot id="screenshot-closeexceptlike">
+<screeninfo
+>Sluiten behalve</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="close-except-like.png" format="PNG"/></imageobject>
+</mediaobject>
+</screenshot>
+
+<para
+>Gebruik het keuzevakje in het laatste item van de lijst om een bevestigingsdialoog in of uit te schakelen. De geselecteerde optie zal toegepast worden op beide afsluitacties. </para>
+
+</sect2>
+
+<sect2 id="closeexceptlike-menu">
+<title
+>Menustructuur</title>
+
+<variablelist>
+<varlistentry id="file-close-except">
+<term
+><menuchoice
+><guimenu
+>Bestand</guimenu
+> <guisubmenu
+>Uitzonderingen sluiten</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+><action
+>Sluiten</action
+> alle open documenten, <emphasis
+>behalve</emphasis
+> diegenen die overeenkomen met het pad of de bestandsextensie geselecteerd uit het submenu.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="file-close-like">
+<term
+><menuchoice
+><guimenu
+>Bestand</guimenu
+> <guisubmenu
+>Sluiten zoals</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+><action
+>Sluiten</action
+> alle open documenten die overeenkomen met het pad of de bestandsextensie geselecteerd uit het submenu.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+
+</sect1>
+
+<sect1 id="kate-application-plugin-colorpicker">
+
+<title
+>Plug-in voor kleurenkiezer</title>
+
+<sect2 id="colorpicker-intro">
+<title
+>Inleiding</title>
+
+<para
+>Deze plug-in voegt een inline kleurenvoorbeeld/kiezer toe aan kleuren in de tekst (&eg;, <literal
+>#FFFFFF</literal
+>, <literal
+>wit</literal
+>).</para>
+
+<para
+>Om deze plugin te laden opent u de instellingendialoog van &kate; onder <menuchoice
+><guimenu
+>Instellingen</guimenu
+> <guimenuitem
+>&kate; instellen...</guimenuitem
+></menuchoice
+>. Selecteer daarna <guilabel
+>Kleurenkiezer</guilabel
+> en sluit de dialoog. </para>
+</sect2>
+
+<sect2 id="colorpicker-config">
+<title
+>Configuratie</title>
+
+<para
+>Op de instellingenpagina van de kleurenkiezer in de configuratie van &kate; kunt u de volgende opties selecteren voor het gedrag van de plug-in.</para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><guilabel
+>Voorbeeld voor bekende kleurennamen tonen</guilabel
+></term>
+<listitem>
+<para
+>Ofwel de kleurenkiezer tonen voor bekende kleurnamen (&eg;, <literal
+>hemelsblauw</literal
+>). Zie <ulink url="https://www.w3.org/TR/SVG11/types.html#ColorKeywords"
+>deze pagina</ulink
+> voor de lijst met kleuren.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Voorbeeld na tekstkleur plaatsen</guilabel
+></term>
+<listitem>
+<para
+>Ofwel het inline voorbeeld plaatsen na tekstkleur in de tekst.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Overeenkomst maken met hex-kleur</guilabel
+></term>
+<listitem>
+<para
+>Hier kunt u de best overeenkomende optie kiezen voor de kleuren die in uw code worden gebruikt.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+
+</sect1>
+
+<sect1 id="kate-application-plugin-ctags">
+<!--https://kate-editor.org/2012/11/02/using-the-projects-plugin-in-kate/-->
+<title
+>CTags plug-in</title>
+
+<sect2 id="ctags-intro">
+<title
+>Inleiding</title>
+
+<para
+><ulink url="https://en.wikipedia.org/wiki/Ctags"
+>CTags</ulink
+> genereert een index- (of tag-)bestand van taalobjecten gevonden in broncodebestanden die het mogelijk maken deze items snel en gemakkelijk te lokaliseren met deze plug-in in &kate;. </para>
+<para
+>Een tag geeft een taalobject aan waarvoor een index-item beschikbaar is (of, anders, het index-item gemaakt voor dat object).</para>
+
+<para
+>Tag-generatie wordt ondersteund voor deze <ulink url="http://ctags.sourceforge.net/languages.html"
+>programmeertalen</ulink
+>. </para>
+</sect2>
+
+<sect2 id="ctags-config">
+<title
+>Configuratie</title>
+
+<para
+>De CTags-plug-in gebruikt twee verschillende databasebestanden voor de index.</para>
+
+<para
+>Op de instellingenpagina van CTags in de configuratie van &kate; kunt u mappen met de broncode toevoegen of verwijderen en de gezamenlijke CTags-database genereren.</para>
+
+<sect3 id="ctags-config-common">
+<title
+>Gemeenschappelijke index</title>
+
+<screenshot id="screenshot-ctags-global-settings">
+<screeninfo
+>CTags-instellingen</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="ctags-global-setting.png" format="PNG"/></imageobject>
+<caption
+>Globale database voor CTags instellen</caption>
+</mediaobject>
+</screenshot>
+
+<para
+>Onderaan de instellingenpagina kunt u het <guilabel
+>CTags-commando</guilabel
+> aanpassen. </para>
+
+<para
+>Voor meer informatie over alle beschikbare opties kunt u de manpagina van CTags raadplegen. Deze manpagina is beschikbaar in &khelpcenter; en u kunt ook de &URL; <emphasis
+>man:/ctags</emphasis
+> direct in &konqueror; invoeren. </para>
+
+<para
+>Klikken op <guibutton
+>Bijwerken</guibutton
+> zal indexering starten. Wanneer indexering gereed is, sluit dan de dialoog.</para>
+</sect3>
+
+<sect3 id="ctags-config-session">
+<title
+>Sessie-index</title>
+
+<para
+>Om de sessie-index in te stellen opent u de weergave <guilabel
+>CTags</guilabel
+>.</para>
+
+<variablelist>
+<varlistentry>
+<term
+><menuchoice>
+<guimenu
+>Doelen van index</guimenu>
+</menuchoice
+></term>
+<listitem>
+<para
+>Op dit tabblad kunt u mappen met broncode toevoegen of verwijderen en handmatig de sessie-specifieke CTags database opnieuw genereren.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><menuchoice>
+<guimenu
+>Database</guimenu>
+</menuchoice
+></term>
+<listitem>
+<screenshot id="screenshot-ctags-session-settings">
+<screeninfo
+>Instellingen van database</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="ctags-session-setting.png" format="PNG"/></imageobject>
+<caption
+>Sessie-database voor CTags instellen</caption>
+</mediaobject>
+</screenshot>
+<para
+>Selecteer een ander CTags-databasebestand, stel het CTags-commando in of keer terug naar het standaard commando.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect3>
+
+</sect2>
+
+<sect2 id="ctags-using">
+<title
+>De CTags plug-in gebruiken</title>
+
+<para
+>U plaatst de muiscursor op het programmeertaalobject zoals functie, symbool &etc; waarin u bent geïnteresseerd en selecteer daarna een van de acties in het menu <guimenu
+>CTags</guimenu
+> om te springen naar de regel en het bestand waar het object is gedefinieerd of gedeclareerd.</para>
+<para
+>Standaard zijn er aan de acties in het menu <guimenu
+>CTags</guimenu
+> geen sneltoetsen toegekend. Gebruik de <ulink url="help:/fundamentals/shortcuts.html"
+>sneltoetsbewerker</ulink
+> om uw eigen sneltoetsen in te stellen.</para>
+
+<para
+>Als alternatief kunt u het zoekveld in het tabblad <guilabel
+>Opzoeken</guilabel
+> van de CTags weergave.</para>
+<para
+>Tekens invoeren in het zoekveld zal het zoeken starten en overeenkomende namen van programmeertaalobjecten zoals functies, klassen, symbolen &etc; tonen samen met het type en de bestandsnaam.</para>
+<para
+>Selecteer een item in de lijst om naar de bijbehorende regel in het broncodebestand te springen.</para>
+<!--FIXME why Tag Type here but Name Kind in Project plugin, is there really any difference?-->
+
+<!--FIXME completion as in Project plugin? -->
+
+</sect2>
+
+<sect2 id="ctags-menu">
+<title
+>Menustructuur</title>
+
+<variablelist>
+
+<varlistentry id="ctags-jumpback">
+<term
+><menuchoice
+><guimenu
+>CTags</guimenu
+> <guisubmenu
+>Een stap teruggaan</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Navigeer terug in de geschiedenis naar de laatst bezochte tag.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="ctags-lookup">
+<term
+><menuchoice
+><guimenu
+>CTags</guimenu
+> <guisubmenu
+>Huidige tekst opzoeken</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Opent het tabblad <guilabel
+>Opzoeken</guilabel
+> van de CTags weergave en toont alle programmeertaalobjecten die overeenkomen met de huidige tekstselectie in de lijst.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="ctags-gotodeclaration">
+<term
+><menuchoice
+><guimenu
+>CTags</guimenu
+> <guisubmenu
+>Ga naar declaratie</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Als de cursor zich in een definitieobject bevindt dan opent dat het document met de bijbehorende declaratie, indien nodig wordt zijn weergave geactiveerd en wordt de cursor aan het begin van de declaratie geplaatst.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="ctags-gotodefinition">
+<term
+><menuchoice
+><guimenu
+>CTags</guimenu
+> <guisubmenu
+>Ga naar definitie</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Als de cursor zich in een declaratieobject bevindt dan opent dat het document met de bijbehorende definitie, indien nodig wordt zijn weergave geactiveerd en wordt de cursor aan het begin van de definitie geplaatst.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+<!--context menu with Lookup Current Text, Goto Declaration, Goto Definition -->
+
+</sect2>
+
+</sect1>
+<!--https://frinring.wordpress.com/2017/11/07/ktexteditorpreviewplugin-0-2-1-last-stand-alone/-->
+<!-- https://frinring.wordpress.com/2017/08/21/look-what-you-have-donewwdo/-->
+<sect1 id="kate-application-plugin-preview">
+<title
+>Plug-in voor documentvoorbeeld</title>
+
+<sect2 id="preview-introduction">
+<title
+>Inleiding</title>
+<para
+>De plug-in schakelt een live voorbeeld in van het nu bewerkte tekstdocument in het uiteindelijke formaat in de zijbalk. Dus bij bewerken van &eg; een &Markdown;-tekst of een &SVG;-afbeelding, is het resultaat onmiddellijk zichtbaar naast de brontekst. </para>
+
+<para
+>Voor het tonen gebruikt de plug-in die &kparts;-plug-in die nu is geselecteerd als die met voorkeur voor het &MIME;-type van het document. Als er geen &kparts;-plug-in is voor dat type, dan is geen voorbeeld mogelijk. </para>
+
+<para
+>Om de plug-in met voorkeur voor openen te wijzigen is de module <guilabel
+>Bestandsassociaties</guilabel
+> in de &systemsettings; beschikbaar en bewerking van de volgorde op <guilabel
+>Diensten voor dit bestandstype</guilabel
+> op het tabblad <guilabel
+>Inbedding</guilabel
+>. </para>
+
+<table>
+<title
+>Enkele beschikbare &kparts;-plug-ins</title>
+<tgroup cols="2">
+<tbody>
+<row>
+<entry
+>&MIME;-type</entry
+><entry
+>&kparts;-plug-in</entry>
+</row>
+<row>
+<entry
+>&Markdown;-tekst</entry
+><entry
+>KMarkdownWebViewPart of OkularPart</entry>
+</row>
+<row>
+<entry
+>&SVG;-afbeelding</entry
+><entry
+>SVGPart</entry>
+</row>
+<row>
+<entry
+>&Qt; UI bestanden</entry
+><entry
+>KUIViewerPart</entry>
+</row>
+<row>
+<entry
+>&DOT;-graph bestanden</entry
+><entry
+>KGraphviewerPart</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</sect2>
+
+<sect2 id="preview-menu">
+<title
+>Menustructuur</title>
+<variablelist>
+
+<varlistentry id="view-toolviews-show-preview">
+<term
+><menuchoice
+><guimenu
+>Beeld</guimenu
+> <guisubmenu
+>Hulpmiddelenweergaven</guisubmenu
+> <guimenuitem
+>Voorbeeld tonen</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Toont of verbergt het Documentvoorbeeld van &kate; in een zijbalk</para>
+</listitem>
+</varlistentry>
+</variablelist>
+</sect2>
+
+<sect2 id="preview-interface">
+<title
+>Interface</title>
+<para
+>De knoppen bovenaan het voorbeeldvenster biedt deze acties: </para>
+<itemizedlist>
+<listitem>
+<para
+>Het voorbeeld vergrendelen van een gegeven document. Deze optie selecteren verzekert dat als de focus wordt omgeschakeld naar het beeld van een ander document in hetzelfde &kate; venster, dat het voorbeeld niet volgt naar dat document, maar het voorbeeld van dit document blijft tonen.</para>
+</listitem>
+<listitem>
+<para
+>Schakelt in of uit het bijwerken van het voorbeeld van de huidige inhoud van het document</para>
+</listitem>
+<listitem>
+<para
+>Werk handmatig het voorbeeld van de huidige inhoud van het document bij</para>
+</listitem>
+<listitem>
+<para
+>Een afrolmenu met acties uit de &kparts;-plug-in</para>
+</listitem>
+</itemizedlist>
+</sect2>
+
+</sect1>
+
+<sect1 id="kate-application-plugin-documentswitcher">
+
+<title
+>Plug-in voor document wisselen</title>
+
+<sect2 id="documentswitcher-menu">
+<title
+>Menustructuur</title>
+
+<variablelist>
+
+<varlistentry id="view-documentswitcher">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;&Tab;</keycombo
+> </shortcut
+> <guimenu
+>Beeld</guimenu
+> <guisubmenu
+>Laatst gebruikte weergaven</guisubmenu
+> </menuchoice
+></term>
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;&Shift;&Tab;</keycombo
+> </shortcut
+> <guimenu
+>Beeld</guimenu
+> <guisubmenu
+>Laatst gebruikte weergaven (omgekeerd)</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+
+<para
+><action
+>Opent</action
+> een lijst met de laatst bekeken documenten:</para>
+
+<screenshot id="screenshot-documentswitcher">
+<screeninfo
+>Laatst bekeken documenten</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="documentswitcher.png" format="PNG"/></imageobject>
+</mediaobject>
+</screenshot>
+
+<para
+>Houd de toets &Ctrl; ingedrukt en gebruik de toets &Tab; om voorwaarts door de lijst te gaan. Druk ook de toets &Shift; in om de richting om te keren. </para>
+
+<para
+>Houd de sneltoets <keycombo action="simul"
+>&Ctrl;&Tab;</keycombo
+> ingedrukt en u kunt de toetsen &Up;, &Down;, &Home; of &End; gebruiken om in de lijst te navigeren. Vervolgens drukken op een tekentoets zal u door alle items laten lopen waarvan het eerste teken in the lijst overeenkomt. Als u de sneltoetsen loslaat zal de weergave springen naar het geselecteerde document in de lijst. </para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+
+</sect1>
+
+
+<sect1 id="kate-application-plugin-fsbrowser">
+
+<title
+>Bestandssysteembrowser</title>
+
+<para
+>In de bestandssysteembrowser kunt u de inhoud van mappen bekijken en bestanden uit een geopende map in het huidige frame openen.</para>
+
+<sect2 id="fsbrowser-menu">
+<title
+>Menustructuur</title>
+<variablelist>
+
+<varlistentry id="view-toolviews-show-filebrowser">
+<term
+><menuchoice
+><guimenu
+>Beeld</guimenu
+><guisubmenu
+>Hulpmiddelenweergaven</guisubmenu
+> <guimenuitem
+>Bestandssysteembrowser tonen</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Toont of verbergt de Bestandssysteembrowser van &kate;</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+</sect2>
+
+<sect2 id="fsbrowser-interface">
+<title
+>Interface</title>
+
+<para
+>De Bestandssysteembrowser heeft, van boven naar beneden, de volgende elementen:</para>
+
+<variablelist>
+<varlistentry>
+<term
+>Een werkbalk</term>
+<listitem>
+<para
+>Deze bevat de standaard navigatieknoppen:</para>
+<variablelist>
+<varlistentry>
+<term
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="go-previous-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> Terug</guiicon
+></term>
+<listitem
+><para
+>Wanneer u op deze knop klikt, wordt het commando <command
+>cd</command
+> naar de vorige map in de geschiedenis uitgevoerd. Deze knop is niet beschikbaar als er geen vorig item is.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="go-next-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> Vooruit</guiicon
+></term>
+<listitem
+><para
+>Wanneer u op deze knop klikt, wordt het commando <command
+>cd</command
+> naar de volgende map in de geschiedenis uitgevoerd. Deze knop is niet beschikbaar als er geen volgend item is.</para
+></listitem>
+</varlistentry>
+<!--varlistentry>
+<term
+><guibutton
+>Parent Folder</guibutton
+></term>
+<listitem
+><para
+>This will cause the folder view to <command
+>cd</command
+> to the immediate parent of the currently displayed
+folder if possible.</para
+></listitem>
+</varlistentry-->
+<varlistentry>
+<term
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="bookmarks-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> Bladwijzers</guiicon
+></term>
+<listitem
+><para
+>Opent een submenu om bladwijzers te bewerken en toe te voegen en een nieuwe map voor bladwijzers.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="system-switch-user-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> Map van huidig document</guiicon
+></term>
+<listitem
+><para
+>Wanneer u op deze knop klikt, wordt het commando <command
+>cd</command
+> naar de map waarin het huidige document zich bevindt (indien mogelijk) uitgevoerd. Deze knop is niet beschikbaar als het document een nieuw, onopgeslagen bestand is of als de map waarin het bestand zich bevindt niet bepaald kan worden.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="games-config-options-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> Opties</guiicon
+></term>
+<listitem>
+<variablelist>
+<varlistentry>
+<term
+><guimenuitem
+>Beknopte weergave</guimenuitem
+></term>
+<listitem
+><para
+>Alleen bestandsnamen tonen</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guimenuitem
+>Gedetailleerde weergave</guimenuitem
+></term>
+<listitem
+><para
+><guilabel
+>Naam</guilabel
+>, <guilabel
+>Datum</guilabel
+> en <guilabel
+>Grootte</guilabel
+> van de bestanden tonen.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guimenuitem
+>Boomstructuurweergave</guimenuitem
+></term>
+<listitem
+><para
+>Zoals Beknopte weergave, maar mappen kunnen worden uitgevouwen om hun inhoud te bekijken.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guimenuitem
+>Gedetailleerde boomweergave</guimenuitem
+></term>
+<listitem
+><para
+>Dit stelt u ook in staat om mappen uit te vouwen, maar toont extra kolommen beschikbaar in Gedetailleerde weergave.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guimenuitem
+>Verborgen bestanden tonen</guimenuitem
+></term>
+<listitem
+><para
+>Toont bestanden die normaal verborgen zijn door uw &OS;.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guimenuitem
+>Automatisch synchroniseren met huidig document</guimenuitem
+></term>
+<listitem
+><para
+>Wanneer deze optie is ingeschakeld zal de bestandssysteembrowser automatisch een <command
+>cd</command
+> uitvoeren naar de map van het document dat nu geopend is in het bewerkingsgebied elke keer als het wijzigt.</para
+></listitem>
+</varlistentry>
+</variablelist>
+</listitem>
+</varlistentry>
+</variablelist>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Een locatie-item</term>
+<listitem>
+<para
+>Dit toont een broodkruimelnavigatie naar de huidige geopende map, zoals in &dolphin;. U kunt op elke map klikken om het door te bladeren of klik op een van de pijlen, links van de map, om een onderliggende map te selecteren. U kunt ook uit Plaatsen kiezen door op het meest linkse pictogram in de broodkruimelnavigatie te klikken, die een pictogram toont die uw huidige Plaats toont.</para>
+
+<para
+>U kunt ook rechts van de broodkruimels klikken on ze te wijzigen waar u het pad naar een map, die u wilt zien, kunt intypen. Het &URL;-invoerveld houdt een lijst bij van eerder ingetypte paden. Klik op de pijlknop rechts van het invoerveld om een pad te kiezen.</para>
+<tip
+><para
+>Het &URL;-invoerveld maakt gebruik van automatische aanvulling. De methode kan ingesteld worden in het contextmenu dat verschijnt wanneer u met de &RMB; op de tekst klikt.</para
+></tip>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Een mapweergave</term>
+<listitem
+><para
+>Dit is een standaard mapweergave van &kde;.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Een filterinvoerveld</term>
+<listitem>
+<para
+>In het filterinvoerveld kunt u het filter voor de bestanden die u wilt zien intypen. Het filter gebruikt de standaard jokertekens; items moeten worden gescheiden door een spatie. Voorbeeld: <userinput
+>*.cpp *.h *.moc</userinput
+></para>
+<para
+>Om alle bestanden te kunnen zien, typt u een enkele asterisk <userinput
+>*</userinput
+> in.</para>
+<para
+>Het filterinvoerveld houdt een lijst bij van de laatste tien filters. Klik op de pijlknop rechts van het invoerveld om het gewenste filter te kiezen. U kunt het filter uitschakelen door op de knop <guibutton
+>Tekst wissen</guibutton
+> te klikken links van de pijlknop voor automatisch aanvullen.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+</sect2>
+
+
+<sect2 id="fsbrowser-config">
+<title
+>Configuratie</title>
+
+<para
+>Deze plugin kan worden geconfigureerd op de pagina <guilabel
+>Bestandssysteembrowser</guilabel
+> van <link linkend="configuring-kate-configdialog"
+>instellingen van &kate;</link
+>.</para>
+
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Werkbalk</guilabel
+></term>
+<listitem
+><para
+>Stel deze knoppen in op de werkbalk van de Bestandssysteembrowser door diegene, die u wil inschakelen, te verplaatsen naar de lijst <guilabel
+>Geselecteerde acties</guilabel
+> en sorteer ze met de pijlknoppen naast de lijst.</para>
+ </listitem>
+</varlistentry>
+
+</variablelist>
+</sect2>
+</sect1>
+
+<sect1 id="kate-application-plugin-documents">
+<title
+>De documentenlijst</title>
+<!-- https://kate-editor.org/2010/09/12/kate-tree-view-plugin-update/-->
+<sect2 id="documents-intro">
+<title
+>Inleiding</title>
+
+<para
+><indexterm
+><primary
+>Documentenlijst</primary
+></indexterm
+> De documentenlijst toont een lijst met alle bestanden die momenteel in &kate; geopend zijn. Gewijzigde bestanden worden gemarkeerd met een <guiicon
+>diskette</guiicon
+>-pictogram links van de naam om de status aan te geven.</para>
+
+<para
+>Bovenaan deze lijst met documenten is een werkbalk met de volgende knoppen:</para>
+
+<simplelist>
+<member
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="document-new-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+></guiicon
+> Nieuw document aanmaken</member>
+<member
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="document-open-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+></guiicon
+> Open een bestaand document</member>
+<member
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="go-up-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+></guiicon
+> Vorig document</member>
+<member
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="go-down-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+></guiicon
+> Volgend document</member>
+<member
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="document-save-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+></guiicon
+> Het huidige document opslaan</member>
+<member
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="document-save-as-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+></guiicon
+> Sla het huidige document op onder een nieuwe naam</member>
+</simplelist>
+
+<para
+>Standaard wordt de documentenlijst in <guimenuitem
+>Boomstructuurmodus</guimenuitem
+> getoond, die de mappenstructuur rond alle nu geopende documenten toont. Ook is de <guimenuitem
+>Lijstmodus</guimenuitem
+> beschikbaar, die een eenvoudige lijst met alle open documenten toont. U kunt van modus wisselen door rechts te klikken op de lijst en een keuze te maken uit het menu <guisubmenu
+>Weergavemodus</guisubmenu
+> menu.</para>
+
+<para
+>Als er twee of meer bestanden met dezelfde naam (in verschillende mappen) geopend zijn in <guimenuitem
+>Modus Lijst</guimenuitem
+>, wordt de naam van het tweede bestand aangeduid met <quote
+>(2)</quote
+>, enzovoort. In de tekstballon wordt de volledige naam met het pad vermeld, zodat u het gewenste bestand kunt vinden.</para
+> <para
+>Om een document in het momenteel actieve frame weer te geven, klikt u op de naam in de bestandenlijst.</para>
+
+<para
+>Het contextmenu heeft enige gemeenschappelijke acties uit het menu <guimenu
+>Bestand</guimenu
+>.</para>
+
+<para
+>Daarnaast zijn er bestandsbeheerderacties om het bestand te hernoemen of te verwijderen. Met <guimenuitem
+>Bestandspad kopiëren</guimenuitem
+> kunt u het volledige pad van het document naar het klembord kopiëren.</para>
+
+<para
+>U kunt de lijst op verschillende manieren sorteren door in de lijst rechts te klikken en <guisubmenu
+>Sorteren op</guisubmenu
+> in het contextmenu te kiezen. U kunt kiezen uit de volgende opties: <variablelist>
+
+<varlistentry>
+<term
+><guimenuitem
+>Documentnaam</guimenuitem
+></term>
+<listitem
+><para
+>Sorteert de documenten alfabetisch op naam</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guimenuitem
+>Documentenpad</guimenuitem
+></term>
+<listitem
+><para
+>Sorteert de documenten alfabetisch op het pad ernaar.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guimenuitem
+>Volgorde van openen</guimenuitem
+></term>
+<listitem
+><para
+>Sorteert de documenten in de volgorde waarin ze geopend zijn.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</para>
+
+<para
+>De documentenlijst zal standaard de geschiedenis bijhouden door de bestanden die het laatst geopend zijn een achtergrondkleur te geven. Als het document bewerkt is, wordt er een extra kleur aan toegevoegd. Het document dat het laatst geopend is heeft de sterkste achtergrondkleur, zodat u gemakkelijk de documenten waar u aan werkt kun vinden. Deze functie kan uitgeschakeld worden door<link linkend="config-dialog-documents"
+>Documenten</link
+> in het dialoogvenster "Instellingen".</para>
+<para
+>De standaardlocatie van de documentenlijst in het venster van &kate; is links van het bewerker-gedeelte.</para>
+
+</sect2>
+
+<sect2 id="documents-menus">
+<title
+>Menustructuur</title>
+
+<variablelist>
+
+<varlistentry id="view-document-previous">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+>&Alt;&Up;</keycombo
+> </shortcut
+> <guimenu
+>Beeld</guimenu
+> <guimenuitem
+>Vorig document</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Opent het document getoond boven het huidige geopende document in de Documentenlijst.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-document-next">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+>&Alt;&Up;</keycombo
+> </shortcut
+> <guimenu
+>Beeld</guimenu
+> <guimenuitem
+>Volgend document</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Opent het document getoond onder het huidige geopende document in de Documentenlijst.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-active">
+<term
+><menuchoice
+><guimenu
+>Beeld</guimenu
+> <guimenuitem
+>Actieve tonen</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Toont het huidige geopende document in de Documentenlijst.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+
+<sect2 id="config-dialog-documents">
+<title
+>Configuratie</title>
+
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Achtergrondschaduw</guilabel
+></term>
+<listitem
+><para
+>Deze sectie stelt u in staat om de visualisatie van de achtergrondschaduwvan uw recente activiteit in of uit te schakelen en te kiezen welke kleuren te gebruiken indien ingeschakeld.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Sorteren op</guilabel
+></term>
+<listitem
+><para
+>Stelt in hoe u de lijst met documenten wilt hebben gesorteerd. Dit kan ook gezet worden met het &RMB; menu in de lijst met documenten.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Weergavemodus</guilabel
+></term>
+<listitem
+><para
+>Dit biedt twee opties die invloed hebben op de weergave van het hulpmiddel voor documenten. De optie <guilabel
+>Boomstructuurweergave</guilabel
+> zal de documenten tonen in een boomstructuur onder de mappen waarin ze zich bevinden, terwijl de optie <guilabel
+>Lijstweergave</guilabel
+> een vlakke lijst met documenten laat zien. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Volledig pad tonen</guilabel
+></term>
+<listitem
+><para
+>Wanneer Boomstructuurweergave en deze optie zijn ingeschakeld, zullen de mappen in het hulpmiddel voor documentweergave getoond worden met het volledige pad in het bestandssysteem naar de map naast de naam van de map. Het heeft geen effect in de Lijstweergave.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Werkbalk tonen</guilabel
+></term>
+<listitem
+><para
+>Wanneer broomstructuurweergave en deze optie zijn ingeschakeld zal een werkbalk getoond worden met acties zoals <guibutton
+>Opslaan</guibutton
+> boven de lijst met documenten. Deze optie deactiveren, als de werkbalk verborgen moet zijn.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Sluitknop tonen</guilabel
+></term>
+<listitem
+><para
+>Wanneer deze optie ingeschakeld is, zal &kate; een sluitknop voor geopende documenten bij erboven zweven tonen.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+
+</sect1>
+
+<sect1 id="kate-application-plugin-gdb">
+<!--https://kate-editor.org/2011/06/23/kate-plugin-updates-part-2/-->
+<sect1info>
+<authorgroup>
+<author
+><firstname
+>Martin</firstname
+> <surname
+>Gergov</surname
+></author>
+<author
+>&TC.Hollingsworth; &TC.Hollingsworth.mail;</author>
+</authorgroup>
+</sect1info>
+<title
+>&gdb;-plug-in</title>
+
+<sect2 id="gdb-intro">
+<title
+>Inleiding</title>
+
+<para
+>De &gdb;-plug-in van &kate; levert een eenvoudige frontend naar het populaire &GNU; Project Debugger.</para>
+
+<important>
+<para
+>Eerdere ervaring met &gdb; is zeer aanbevolen. Voor meer informatie over het gebruik van &gdb; bezoekt u <ulink url="https://www.gnu.org/software/gdb/"
+>de website van &gdb;</ulink
+>.</para>
+</important>
+
+<para
+>U kunt de &gdb;-plug-in inschakelen in <link linkend="config-dialog-plugins"
+>de sectie met plug-ins in de instellingen van &kate;</link
+>.</para>
+
+<para
+>Om de plug-in juist te laten werken, moet u een bestand met de broncode hebben (van een door &gdb; ondersteunde soort) en een uitvoerbaar programma.</para>
+
+<tip>
+<para
+>Als u compileert met &gcc;/<command
+>g++</command
+> dan zou u het argument op de opdrachtregel <command
+><parameter
+>-ggdb</parameter
+></command
+> willen gebruiken. </para>
+</tip>
+
+<para
+>Nadat deze voorbereidingen zijn gedaan, opent u het bestand met de broncode in &kate;, voer het pad naar het uitvoerbare programma in in het tabblad <guilabel
+>Instellingen</guilabel
+> van de hulpmiddelenweergave <guilabel
+>Debugweergave</guilabel
+> en selecteert u <menuchoice
+><guimenu
+>Debug</guimenu
+><guimenuitem
+>Debugging starten</guimenuitem
+></menuchoice
+> uit het menu om te beginnen.</para>
+
+</sect2>
+
+<sect2 id="gdb-menus">
+<title
+>Structuur van menu en werkbalk</title>
+
+<para
+>Al deze opties zijn beschikbaar in de menu's van &kate; en er zijn er ook veel beschikbaar op de werkbalk Debug.</para>
+
+<variablelist>
+
+<varlistentry id="gdb-menus-show-debug-view">
+<term
+><menuchoice
+><guimenu
+>Beeld</guimenu
+><guisubmenu
+>Hulpmiddelenweergaven</guisubmenu
+><guimenuitem
+>Debugweergave tonen</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Toont een hulpmiddelenweergave met &gdb;-uitvoer, de gebruikte opdrachtregel van &gdb; en andere instellingen.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="gdb-menus-show-locals-and-stack">
+<term
+><menuchoice
+><guimenu
+>Beeld</guimenu
+> <guisubmenu
+>Hulpmiddelenweergave</guisubmenu
+> <guimenuitem
+>Localen en stack tonen</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Toont een lijst met alle nu geladen variabelen en hun waarden en een &gdb; backtrace. </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="gdb-menus-targets">
+<term
+><menuchoice
+><guimenu
+>Debug</guimenu
+><guisubmenu
+>Doelen</guisubmenu
+> </menuchoice
+></term>
+<listitem
+><para
+>Een submenu die een lijst met doelen bevat (uitvoerbare programma's). </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="gdb-menus-start">
+<term
+><menuchoice
+><guimenu
+>Debug</guimenu
+><guimenuitem
+>Met debuggen beginnen</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Start &gdb; met een doel.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="gdb-menus-kill">
+<term
+><menuchoice
+><guimenu
+>Debug</guimenu
+><guimenuitem
+>Afbreken / Stoppen van debugging</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Stopt &gdb;.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="gdb-menus-restart">
+<term
+><menuchoice
+><guimenu
+>Debug</guimenu
+><guimenuitem
+>Debugging opnieuw starten</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Start &gdb; opnieuw.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="gdb-menus-break">
+<term
+><menuchoice
+><guimenu
+>Debug</guimenu
+><guimenuitem
+>Breekpunt omschakelen</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Een breekpunt op de huidige cursorpositie instellen. </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="gdb-menus-step-in">
+<term
+><menuchoice
+><guimenu
+>Debug</guimenu
+><guimenuitem
+>Instappen</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Het huidige statement uitvoeren (functie-aanroep zal worden gedebugd). </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="gdb-menus-step-over">
+<term
+><menuchoice
+><guimenu
+>Debug</guimenu
+><guimenuitem
+>Overslaan</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Het huidige statement uitvoeren (functie-aanroep zal niet worden gedebugd).</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="gdb-menus-step-out">
+<term
+><menuchoice
+><guimenu
+>Debug</guimenu
+><guimenuitem
+>Uitstappen</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Uitvoering hernemen totdat het programma in uitvoering zich beëindigd.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="gdb-menus-move-pc">
+<term
+><menuchoice
+><guimenu
+>Debug</guimenu
+><guimenuitem
+>PC verplaatsen</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Programcounter (PC) verplaatsen (volgende uitvoeren).</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="gdb-menus-run-to-cursor">
+<term
+><menuchoice
+><guimenu
+>Debug</guimenu
+><guimenuitem
+>Uitvoeren tot de cursor</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Voert het programma uit totdat het de huidige cursorpositie bereikt. </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="gdb-menus-continue">
+<term
+><menuchoice
+><guimenu
+>Debug</guimenu
+><guimenuitem
+>Doorgaan</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Negeert elk breekpunt en voert het programma uit totdat het zich beëindigd (al of niet met succes).</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="gdb-menus-print-value">
+<term
+><menuchoice
+><guimenu
+>Debug</guimenu
+><guimenuitem
+>Waarde afdrukken</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Drukt de waarde van de variabele af waar de cursor nu naar wijst.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="gdb-menus-toolbar">
+<term
+><menuchoice
+><guimenu
+>Instellingen</guimenu
+><guisubmenu
+>Getoonde werkbalken</guisubmenu
+><guimenuitem
+>&gdb;-plug-in</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>De debug-werkbalk tonen.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+
+<sect2 id="gdb-debug-view">
+<title
+>Debugweergave</title>
+
+<para
+>Het hulpmiddel <guilabel
+>Debugweergave</guilabel
+> heeft een aantal tabbladen: </para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><guilabel
+>&gdb;-uitvoer</guilabel
+></term>
+<listitem>
+<para
+>Bevat uitvoer van &gdb; en een &gdb;-commandoregel.</para>
+
+<screenshot id="screenshot-gdb-output">
+<screeninfo
+>Het tabblad Uitvoer</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="gdb-output.png" format="PNG"/></imageobject>
+<textobject
+><phrase
+>Het tabblad Uitvoer.</phrase
+></textobject>
+<caption
+><para
+>Het tabblad <guilabel
+>Uitvoer</guilabel
+> toont de uitvoer van een debug-sessie.</para
+></caption>
+</mediaobject>
+</screenshot>
+
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Instellingen</guilabel
+></term>
+<listitem>
+<variablelist>
+
+<varlistentry>
+<term
+><guilabel
+>Uitvoerbaar programma</guilabel
+></term>
+<listitem
+><para
+>Pad naar het doel (uitvoerbaar programma) voor debugging.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Werkmap</guilabel
+></term>
+<listitem
+><para
+>De huidige werkmap geleverd aan het doel. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Argumenten</guilabel
+></term>
+<listitem
+><para
+>Argumenten aan het programma gegeven.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Focus behouden</guilabel
+></term>
+<listitem
+><para
+>De focus op de &gdb;-commandoregel houden.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>IO omleiden</guilabel
+></term>
+<listitem
+><para
+>Opent een nieuw tabblad <guilabel
+>IO</guilabel
+> in de <guilabel
+>Debugweergave</guilabel
+> waar u uitvoer kunt zien en invoer kunt leveren aan het programma in uitvoering.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+<screenshot id="screenshot-gdb-settings">
+<screeninfo
+>De instellingendialoog</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="gdb-settings.png" format="PNG"/></imageobject>
+<textobject
+><phrase
+>De instellingendialoog</phrase
+></textobject>
+<caption
+><para
+>De dialoog <guilabel
+>Instellingen</guilabel
+> toont de configuratie van een debug-sessie.</para
+></caption>
+</mediaobject>
+</screenshot>
+
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>IO</guilabel
+></term>
+<listitem>
+<para
+>Bevat een gebied die uitvoer weergeeft van het in uitvoering zijnde programma en een commandoregel waar u invoer aan het programma kunt leveren.</para>
+
+<screenshot id="screenshot-gdb-io">
+<screeninfo
+>Het tabblad IO</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="gdb-io.png" format="PNG"/></imageobject>
+<textobject
+><phrase
+>Het tabblad IO.</phrase
+></textobject>
+<caption
+><para
+>Het tabblad <guilabel
+>IO</guilabel
+> met uitvoer van een eenvoudig testprogramma.</para
+></caption>
+</mediaobject>
+</screenshot>
+
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+
+<sect2 id="gdb-other">
+<title
+>Aanroepstapel en lokale waarden</title>
+
+<para
+>Het hulpmiddel <guilabel
+>Aanroepstapel</guilabel
+> bevat een lijst van de geformatteerde backtrace komende uit &gdb;.</para>
+
+<screenshot id="screenshot-gdb-call-stack">
+<screeninfo
+>Het hulpmiddel voor het weergeven van de aanroepstapel van &gdb;</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="gdb-call-stack.png" format="PNG"/></imageobject>
+<textobject
+><phrase
+>Het hulpmiddel voor het weergeven van de aanroepstapel.</phrase
+></textobject>
+<caption
+><para
+>Het hulpmiddel voor het weergeven van de <guilabel
+>Aanroepstapel</guilabel
+> met de &gdb;-plug-in. </para
+></caption>
+</mediaobject>
+</screenshot>
+
+<para
+>Het hulpmiddel voor de weergave van <guilabel
+>Lokale variabelen</guilabel
+> bevat een lijst met alle nu geladen variabelen uit het programma en de bijbehorende waarden.</para>
+
+<screenshot id="screenshot-gdb-locals">
+<screeninfo
+>Het hulpmiddel voor weergave van lokale variabelen van &gdb;</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="gdb-locals.png" format="PNG"/></imageobject>
+<textobject
+><phrase
+>Het hulpmiddel voor weergave van lokale variabelen.</phrase
+></textobject>
+<caption
+><para
+>Het hulpmiddel voor het weergeven van <guilabel
+>Lokale variabelen</guilabel
+> met de &gdb;-plug-in. </para
+></caption>
+</mediaobject>
+</screenshot>
+
+</sect2>
+
+<sect2 id="gdb-ack">
+<title
+>Dankbetuigingen en licentie</title>
+
+<para
+>Speciale dank gaat naar de deelnemer van Google Code-In 2011 Martin Gergov voor het schrijven van veel van deze sectie.</para>
+
+</sect2>
+
+</sect1>
+
+<sect1 id="kate-application-plugin-projects">
+<!--https://kate-editor.org/2012/11/02/using-the-projects-plugin-in-kate -->
+
+<title
+>Projectplug-in</title>
+
+<sect2 id="project-intro">
+<title
+>Inleiding</title>
+
+<para
+>Her basis idee van de projectplug-in is om een gestructureerde lijst met bestanden te hebben die bij het project behoren met de volgende eigenschappen:</para>
+
+<orderedlist>
+<listitem
+><para
+>Bied een gestructureerde weergave van de bestanden</para
+></listitem>
+<listitem
+><para
+>Maak het gemakkelijk en zeer snel om projecten te openen en naar om te schakelen </para
+></listitem>
+<listitem
+><para
+>Zoeken en vervangen voor een project ondersteunen</para
+></listitem>
+<listitem
+><para
+>Eenvoudige automatische aanvulling bieden</para
+></listitem>
+<listitem
+><para
+>Het eenvoudig maken om snel bestanden te openen in het project</para
+></listitem>
+<listitem
+><para
+>Ondersteuning voor het bouwen van het project</para
+></listitem>
+</orderedlist>
+</sect2>
+
+<sect2 id="project-view">
+<title
+>Gestructureerde weergave van de bestanden</title>
+
+<para
+>Nadat de project-plug-in is geladen in de instellingenpagina van &kate;, open dan een bestand in een project en er verschijnt een zijbalk met een lijst van alle projecten evenals de projectbestanden als volgt:</para>
+
+<screenshot id="screenshot-project-view">
+<screeninfo
+>Projectweergave</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="project-view.png" format="PNG"/></imageobject>
+</mediaobject>
+</screenshot>
+
+<para
+>Zoals u kunt zien is het nu actieve project <quote
+>Kate</quote
+> en zijn inhoud wordt getoond in de boomstructuur. Klikken op bestanden in de boomstructuur opent het bestand in de bewerker. Verder wordt er een contextmenu getoond waarmee u bestanden kunt openen met andere toepassingen, zoals een <filename class="extension"
+>.ui</filename
+> bestand met Qt Designer.</para>
+<para
+>U kunt de items filteren door delen van de bestandsnaam waarnaar u zoekt in de zoekbalk aan de onderkant van de lijst in te typen.</para>
+</sect2>
+
+<sect2 id="project-switch">
+<title
+>Omschakelen van projecten</title>
+
+<para
+>Het idee is dat u nooit een project handmatig hoeft te openen, dit wordt zelfs helemaal niet ondersteund. Dus, wat gebeurt er als u een bestand opent, dan scant de project-plug-in snel de map en zijn bovenliggende mappen naar een <filename
+>.kateproject</filename
+> bestand. Indien gevonden, zal het project automatisch worden geladen.</para>
+
+<para
+>Verder zal, als u een ander document in &kate; opent, dat behoort bij een ander project, de project-plug-in automatisch het huidige project omschakelen. Dus is intuïtief altijd het juiste project actief. Natuurlijk kunt u ook het nu actieve project omschakelen met de keuzelijst.</para>
+
+</sect2>
+
+<sect2 id="project-search-replace">
+<title
+>Zoeken en vervangen in projecten</title>
+
+<para
+>&kate; heeft een plug-in voor zoeken vervangen die verschijnt in de onderste zijbalk. Als een project is geladen, open dan de zijbalk zoeken en vervangen en schakel om naar de modus om te zoeken en te vervangen in het huidige project:</para>
+
+<screenshot id="screenshot-projects-search">
+<screeninfo
+>Zoeken in projecten</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="project-search.png" format="PNG"/></imageobject>
+</mediaobject>
+</screenshot>
+
+</sect2>
+
+<sect2 id="project-autocompletition">
+<title
+>Eenvoudige automatische aanvulling</title>
+
+<para
+>Met de kennis van alle bestanden behorende tot een project, biedt de project-plug-in eenvoudige mogelijkheden voor automatisch aanvullen gebaseerd op CTags. Als een project initieel is geopend, ontleed CTags alle projectbestanden in een achtergrond thread en slaat de CTags-informatie op in <filename class="directory"
+>/tmp</filename
+>. Dit bestand wordt daarna gebruikt om de pop-up voor automatische aanvulling popup in &kate; te bevolken.</para>
+
+<para
+>In tegenstelling hiermee, zonder deze automatische aanvulling, is &kate; alleen in staat om items voor automatische aanvulling gebaseerd op de woorden in het huidige bestand. De automatische aanvulling geleverd door de project-plug-in is veel krachtiger.</para>
+
+<screenshot id="screenshot-completion-search">
+<screeninfo
+>Aanvullen in projecten</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="project-completition.png" format="PNG"/></imageobject>
+</mediaobject>
+</screenshot>
+
+<para
+>Als CTags ontbreken zal een passieve pop-up u hierover waarschuwen. Het is ook goed op te merken dat het CTags bestand in <filename class="directory"
+>/tmp</filename
+> gewist wordt wanneer &kate; eindigt, de plug-in vervuilt dus geen enkele map met ongewenste bestanden.</para>
+
+</sect2>
+
+<sect2 id="project-quickopen">
+<title
+>Snelle opening van bestanden</title>
+
+<para
+>Omdat klikken op bestanden in de boomstructuurweergave niet de snelste manier is om een bestand te openen, biedt &kate; een ingebouwd snel mechanisme voor openen dat u kunt activeren met <keycombo  action="simul"
+>&Ctrl;&Alt;<keycap
+>O</keycap
+></keycombo
+>. Wat u krijgt is een lijst zoals deze:</para>
+
+<screenshot id="screenshot-project-quickopen">
+<screeninfo
+>Snel openen</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="project-quickopen.png" format="PNG"/></imageobject>
+</mediaobject>
+</screenshot>
+
+<para
+>U kunt filteren door delen van de bestandsnaam waarnaar u zoekt in te typen en u kunt ook navigeren met de pijltjestoetsen en page up/down in de lijst. Indrukken van &Enter; activeert het geselecteerde bestand, terwijl &Esc; het snel openen van de weergave weer doet verdwijnen.</para>
+
+<para
+>Voorts herinnert het snel openen het vorige bestand. Dus wanneer u omschakelt naar het snelle openen van de weergave dan is het eerder geactiveerde bestand automatisch geselecteerd en hoeft u alleen maar &Enter; in te drukken wat soms zeer handig is.</para>
+
+</sect2>
+
+<sect2 id="project-build">
+<title
+>Ondersteuning voor het bouwen van het project</title>
+
+<para
+>Een andere functie is het hebben van ondersteuning voor de <link linkend="projects-build-support"
+>Bouw-plug-in</link
+>, zodat het automatisch juist is geconfigureerd.</para>
+
+</sect2>
+
+<sect2 id="project-create">
+<title
+>Projecten aanmaken</title>
+
+<sect3 id="project-autoload">
+<!--https://kate-editor.org/2014/10/12/autoloading-projects-plugin-kate-5/-->
+<title
+>Projecten automatisch laden</title>
+
+<para
+>De project-plug-in heeft een functie automatisch laden. U kunt de lijst met bestanden in uit het versiecontrolesysteem. Op dit moment moet automatisch laden voor de respectievelijke versiecontrolesysteem worden ingeschakeld in de instellingen (standaard ingeschakeld): </para>
+
+<screenshot id="screenshot-project-configure">
+<screeninfo
+>Instellingen van project-plug-in</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="project-configure.png" format="PNG"/></imageobject>
+</mediaobject>
+</screenshot>
+
+</sect3>
+
+<sect3 id="project-manual">
+<title
+>Projecten handmatig aanmaken</title>
+<para
+>U hoeft alleen maar een bestand <filename
+>.kateproject</filename
+> in de hoofdmap van het project aan te maken. Bijvoorbeeld het <filename
+>.kateproject</filename
+> bestand van <quote
+>Kate</quote
+> ziet er uit zoals dit: </para>
+
+<screen
+>{
+  "name": "Kate"
+, "files": [ { "git": 1 } ]
+}
+</screen>
+
+<para
+>De inhoud van het bestand is in de &JSON;-syntaxis geschreven. De projectnaam is <quote
+>Kate</quote
+> en de bestanden erin zouden uit &git; gelezen moeten worden. </para>
+
+<para
+>Ook wordt in plaats van <literal
+>git</literal
+> subversion ondersteund via <literal
+>svn</literal
+> en mercurial via <literal
+>hg</literal
+>. Als u niet wilt lezen uit een versiecontrolesysteem, dan kunt u het vertellen om bestanden recursief te laden uit mappen als volgt: </para>
+
+<screen
+>{
+  "name": "Kate"
+, "files": [ { "directory": "kate", "filters": ["*.cpp", "*.h", "*.ui", "CMakeLists.txt", "Find*.cmake"], "recursive": 1 } ]
+}
+</screen>
+
+<para
+>Hier definiëren submappen en filters wat onderdeel is van het project. U kunt ook versiecontrole en bestanden gebaseerd op filters mengen. </para>
+
+<para id="projects-build-support"
+>Als u ondersteuning voor de bouw-plug-in wilt toevoegen, dan kunt u een <filename
+>.kateproject</filename
+> schrijven zoals dit:</para>
+
+<screen
+>{
+  "name": "Kate"
+, "files": [ { "git": 1 } ]
+, "build": {
+    "directory": "build"
+  , "build": "make all"
+  , "clean": "make clean"
+  , "install": "make install"
+  }
+}
+</screen>
+
+<para
+>In het geval dat u een bestand <filename
+>.kateproject</filename
+> hebt gevolgd door een versiecontrolesysteem, maar u wilt de configuratie voor een specifieke werkruimte aanpassen, dan kunt u die wijzigingen opslaan in een apart bestand genaamd <filename
+>.kateproject.local</filename
+>. De inhoud van dit bestand gaat boven die in <filename
+>.kateproject</filename
+>. </para>
+
+</sect3>
+
+</sect2>
+
+<sect2 id="project-current">
+<title
+>Huidige project</title>
+
+<para
+>Met <menuchoice
+><shortcut
+><keycombo action="simul"
+>&Alt;<keycap
+>1</keycap
+></keycombo
+></shortcut
+> <guimenu
+>Projecten</guimenu
+><guimenuitem
+>Ga naar</guimenuitem
+></menuchoice
+> kunt u de weergave van het <guilabel
+>Huidige Project</guilabel
+> onderaan het bewerkingsvenster openen met vier tabbladen:</para>
+
+<screenshot id="screenshot-project-current">
+<screeninfo
+>Huidige project</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="project-current-analysis.png" format="PNG"/></imageobject>
+</mediaobject>
+</screenshot>
+
+<variablelist>
+
+<varlistentry>
+<term>
+<guimenu
+>Terminalpaneel</guimenu>
+</term>
+<listitem>
+<para
+>Een <link linkend="kate-application-plugin-konsole"
+>Terminalemulator</link
+> starten in de hoofdmap van het project.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term>
+<guimenu
+>Code-index</guimenu>
+</term>
+<listitem>
+<para
+>Tekens invoeren in de zoekbalk zal het zoeken starten en overeenkomende namen van van functies, klassen, symbolen &etc; tonen samen met soort, bestandsnaam en regelnummer.</para>
+<para
+>Selecteer een item in de lijst om naar de bijbehorende regel in het broncodebestand te springen.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term>
+<guimenu
+>Code analyse</guimenu>
+</term>
+<listitem>
+<para
+>Klik op <guilabel
+>Analyse starten</guilabel
+> om een statische analyse van broncode voor C en C++ met <command
+>cppcheck</command
+> uit te voeren en om een rapport te maken met bestandsnaam, regelnummer, ernst (stijl, waarschuwing &etc;) en de gevonden problemen.</para>
+<para
+>Selecteer een item in de lijst om naar de bijbehorende regel in het broncodebestand te springen.</para>
+</listitem>
+</varlistentry>
+<!--FIXME options for cppcheck? configurable?-->
+<varlistentry>
+<term>
+<guimenu
+>Notities</guimenu>
+</term>
+<listitem>
+<para
+>Ingevoerde tekst in dit tabblad zal opgeslagen worden in het bestand <filename
+>.kateproject.notes</filename
+>.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+
+<sect2 id="projects-menu">
+<title
+>Het menu Projecten</title>
+
+<para
+>Het menu <guimenu
+>Projecten</guimenu
+> stelt u in staat om te schakelen tussen nu open projecten. Het wordt getoond door de plug-in Project.</para>
+
+<variablelist>
+
+<varlistentry id="projects-back">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;&Alt;&Left;</keycombo
+> </shortcut
+> <guimenu
+>Projecten</guimenu
+> <guimenuitem
+>Terug</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Schakel naar het vorige project.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="projects-forward">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;&Alt;&Right;</keycombo
+> </shortcut
+> <guimenu
+>Projecten</guimenu
+> <guimenuitem
+>Verder</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Schakel naar het volgende project.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="projects-goto">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Alt;<keycap
+>1</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Projecten</guimenu
+><guimenuitem
+>Ga naar</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Open de weergave <guilabel
+>Huidig project</guilabel
+> onderaan het bewerkingsvenster.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+<!--
+context menu Project->Lookup:xxx
+-->
+
+</sect1>
+
+<!--FIXME Replicode
+Projects Replicode run / stop-->
+
+<sect1 id="kate-application-plugin-lspclient">
+<title
+>LSP-clientplug-in</title>
+
+<para
+>De LSP-clientplug-in biedt vele talenfuncties zoals codeaanvulling, codenavigatie of het zoeken naar verwijzingen gebaseerd op het <ulink url="https://microsoft.github.io/language-server-protocol/"
+>Talenserverprotocol</ulink
+>.</para>
+
+<para
+>Als u eenmaal de LSP-client in de plug-inpagina hebt ingeschakeld, zal een nieuwe pagina, genaamd LSP-client, verschijnen in de instellingendialoog van &kate;. </para>
+
+<sect2 id="lspclient-menu">
+<title
+>Menustructuur</title>
+
+<para
+>Indien van toepassing, een overeenkomstig LSP-commando wordt ook genoemd in de onderstaande uitleg, waarvan de documentatie dan misschien extra achtergrond en interpretatie biedt, hoewel het kan variëren afhankelijk van de actuele taal. De uitdrukking 'huidig symbool' verwijst naar het symbool overeenkomend met de huidige cursorpositie, zoals bepaalt door de implementatie van taal en server. </para>
+
+<variablelist>
+
+<varlistentry id="lspclient-definition">
+<term
+><menuchoice
+><guimenu
+>LSP-client</guimenu
+> <guisubmenu
+>Ga naar definitie</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>[textDocument/definition] Ga naar huidige symbooldefinitie.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-declaration">
+<term
+><menuchoice
+><guimenu
+>LSP-client</guimenu
+> <guisubmenu
+>Ga naar declaratie</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>[textDocument/declaration] Ga naar huidige symbooldefinitie.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-typedefinition">
+<term
+><menuchoice
+><guimenu
+>LSP-client</guimenu
+> <guisubmenu
+>Ga naar type-definitie</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>[textDocument/typeDefinition] Ga naar huidige symbooltypedefinitie.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-references">
+<term
+><menuchoice
+><guimenu
+>LSP-client</guimenu
+> <guisubmenu
+>Referenties zoeken</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>[textDocument/references] Zoek naar referenties naar huidige symbool.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-implementation">
+<term
+><menuchoice
+><guimenu
+>LSP-client</guimenu
+> <guisubmenu
+>Implementaties zoeken</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>[textDocument/implementation] implementaties van huidige symbool zoeken.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-highlight">
+<term
+><menuchoice
+><guimenu
+>LSP-client</guimenu
+> <guisubmenu
+>Accentueren</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>[textDocument/documentHighlight] Huidige symboolreferenties accentueren in huidige document.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-hover">
+<term
+><menuchoice
+><guimenu
+>LSP-client</guimenu
+> <guisubmenu
+>Er boven zweven</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>[textDocument/hover] Boven informatie zweven voor huidige symbool.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-format">
+<term
+><menuchoice
+><guimenu
+>LSP-client</guimenu
+> <guisubmenu
+>Formatteren</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>[textDocument/formatting] [textDocument/rangeFormatting] Formatteer het huidige document of huidige selectie.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-rename">
+<term
+><menuchoice
+><guimenu
+>LSP-client</guimenu
+> <guisubmenu
+>Hernoemen</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>[textDocument/rename] Huidige symbool hernoemen.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-quick-fix">
+<term
+><menuchoice
+><guimenu
+>LSP-client</guimenu
+> <guisubmenu
+>Snelle reparatie</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>[textDocument/codeAction, workspace/executeCommand] Berekent en past een snelle reparatie toe voor een diagnose op de huidige positie (of regel).</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-completion-documentation">
+<term
+><menuchoice
+><guimenu
+>LSP-client</guimenu
+> <guisubmenu
+>Geselecteerde voltooide documentatie tonen</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Documentatie voor een geselecteerd item tonen in de lijst met voltooingen.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-signature-help">
+<term
+><menuchoice
+><guimenu
+>LSP-client</guimenu
+> <guisubmenu
+>hulp bij handtekening met automatische aanvulling inschakelen</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Ook hulp bij handtekening in de lijst voor aanvullen tonen.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-declaration-references">
+<term
+><menuchoice
+><guimenu
+>LSP-client</guimenu
+> <guisubmenu
+>Declaratie in referentiees invoegen</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Verzoek om een declaratie van een symbool in te voegen bij aanvragen van een referentie.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-completion-parens">
+<term
+><menuchoice
+><guimenu
+>LSP-client</guimenu
+> <guisubmenu
+>Haakjes toevoegen bij aanvullen van functie</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Automatisch een paar haakjes toevoegen na aanvullen van een functie.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-show-hover">
+<term
+><menuchoice
+><guimenu
+>LSP-client</guimenu
+> <guisubmenu
+>Informatie voor er boven zweven tonen</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Informatie tonen bij er boven zweven wanneer (muiscursor) er boven wordt gezweefd. Onafhankelijk van deze instelling kan het verzoek altijd handmatig geïnitieerd worden. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-format-typing">
+<term
+><menuchoice
+><guimenu
+>LSP-client</guimenu
+> <guisubmenu
+>Formatteren tijdens typen</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>[document/onTypeFormatting] Formatteert delen van het document tijdens typen van bepaalde actietekens. Dit kan van toepassing zijn bij inspringen bij een nieuwe regel of zoals anders bepaald door de LSP-server. Merk op dat inspringscripts van bewerkers hetzelfde proberen te doen (afhankelijk van de modus) en dus kan het niet aan te raden zijn om beiden tegelijk ingeschakeld te hebben. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-incremental-sync">
+<term
+><menuchoice
+><guimenu
+>LSP-client</guimenu
+> <guisubmenu
+>Incrementele documentsynchronisatie</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Gedeelten van bewerking van document verzenden om de server bij te werken in plaats van de gehele documenttekst (indien ondersteund).</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-highlight-goto">
+<term
+><menuchoice
+><guimenu
+>LSP-client</guimenu
+> <guisubmenu
+>Ga-naar-locatie accentueren</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Een voorbijgaande visuele pijl leveren na uitvoeren van een ga-naar naar een locatie (van definitie, declaratie, etc.).</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-diagnostics">
+<term
+><menuchoice
+><guimenu
+>LSP-client</guimenu
+> <guisubmenu
+>Diagnostische meldingen tonen</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>[textDocument/publishDiagnostics] Diagnostische meldingen verwerken en tonen verzonden door de server.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-diagnostics-highlight">
+<term
+><menuchoice
+><guimenu
+>LSP-client</guimenu
+> <guisubmenu
+>Diagnostische accentueringen tonen</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Accentueringen van tekst toevoegen voor reeksen aangegeven in diagnostiek.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-diagnostics-marks">
+<term
+><menuchoice
+><guimenu
+>LSP-client</guimenu
+> <guisubmenu
+>Diagnostische markeringen tonen</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Documentmarkeringen toevoegen voor regels aangegeven in diagnostiek.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-diagnostics-tab">
+<term
+><menuchoice
+><guimenu
+>LSP-client</guimenu
+> <guisubmenu
+>Naar tabblad diagnostiek omschakelen</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Naar het tabblad diagnostiek omschakelen in de plug-in hulpmiddelenweergave.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-close-non-diagnostics">
+<term
+><menuchoice
+><guimenu
+>LSP-client</guimenu
+> <guisubmenu
+>Alle niet-diagnostische tabbladen sluiten</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Alle niet-diagnostische tabbladen (&eg; referenties) in plug-in weergavehulpmiddel.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-restart">
+<term
+><menuchoice
+><guimenu
+>LSP-client</guimenu
+> <guisubmenu
+>LSP-server opnieuw starten</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>LSP-server van huidige document herstarten.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-restart-all">
+<term
+><menuchoice
+><guimenu
+>LSP-client</guimenu
+> <guisubmenu
+>Alle LSP-servers opnieuw starten</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Alle LSP-servers stoppen die daarna, indien nodig, (opnieuw) zullen worden gestart.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+
+
+<sect2 id="lspclient-configuration">
+<title
+>Configuratie</title>
+
+<para
+>De configuratiepagina van de plug-in biedt meestal blijvende configuratie van sommige van de bovenstaande menu-items. Er is echter één extra item om het serverconfiguratiebestand te specificeren. Dit is een &JSON;-bestand dat gebruikt kan worden om de LSP-server te specificeren om te starten (en dan ermee te communiceren over stdin/stdout). Voor het gemak is er enige standaard configuratie meegenomen, die geïnspecteerd kan worden in de configuratiepagina van de plugin. Om te helpen in de onderstaande uitleg wordt een voorbeeld van die configuratie hier gegeven: </para>
+
+<screen
+>{
+    "servers": {
+        "bibtex": {
+            "use": "latex",
+            "highlightingModeRegex": "^BibTeX$"
+        },
+        "c": {
+            "command": ["clangd", "-log=error", "--background-index"],
+            "commandDebug": ["clangd", "-log=verbose", "--background-index"],
+            "url": "https://clang.llvm.org/extra/clangd/",
+            "highlightingModeRegex": "^(C|ANSI C89|Objective-C)$"
+        },
+        "cpp": {
+            "use": "c",
+            "highlightingModeRegex": "^(C\\+\\+|ISO C\\+\\+|Objective-C\\+\\+)$"
+        },
+        "d": {
+            "command": ["dls", "--stdio"],
+            "url": "https://github.com/d-language-server/dls",
+            "highlightingModeRegex": "^D$"
+        },
+        "fortran": {
+            "command": ["fortls"],
+            "rootIndicationFileNames": [".fortls"],
+            "url": "https://github.com/hansec/fortran-language-server",
+            "highlightingModeRegex": "^Fortran.*$"
+        },
+        "javascript": {
+            "command": ["typescript-language-server", "--stdio"],
+            "rootIndicationFileNames": ["package.json", "package-lock.json"],
+            "url": "https://github.com/theia-ide/typescript-language-server",
+            "highlightingModeRegex": "^JavaScript.*$",
+            "documentLanguageId": false
+        },
+        "latex": {
+            "command": ["texlab"],
+            "url": "https://texlab.netlify.com/",
+            "highlightingModeRegex": "^LaTeX$"
+        },
+        "go": {
+            "command": ["go-langserver"],
+            "commandDebug": ["go-langserver", "-trace"],
+            "url": "https://github.com/sourcegraph/go-langserver",
+            "highlightingModeRegex": "^Go$"
+        },
+        "python": {
+            "command": ["python3", "-m", "pyls", "--check-parent-process"],
+            "url": "https://github.com/palantir/python-language-server",
+            "highlightingModeRegex": "^Python$"
+        },
+        "rust": {
+            "command": ["rls"],
+            "path": ["%{ENV:HOME}/.cargo/bin", "%{ENV:USERPROFILE}/.cargo/bin"],
+            "rootIndicationFileNames": ["Cargo.lock", "Cargo.toml"],
+            "url": "https://github.com/rust-lang/rls",
+            "highlightingModeRegex": "^Rust$"
+        },
+        "ocaml": {
+            "command": ["ocamlmerlin-lsp"],
+            "url": "https://github.com/ocaml/merlin",
+            "highlightingModeRegex": "^Objective Caml.*$"
+        }
+    }
+}
+</screen>
+
+<para
+>Merk op dat elk "commando" een array of een tekenreeks kan zijn (in welk geval het gesplitst wordt in een array). Ook een item op het hoogste niveau "global" (volgens op "server") wordt ook meegenomen (zie verder onderstaand). Het gespecificeerde binaire bestand wordt gezocht op de gebruikelijke manier, bijv. met <literal
+>PATH</literal
+>. Als het geïnstalleerd is in een aangepaste locatie, zal de laatste mogelijk uitgebreid moeten worden. Of anders, een (symbolische) koppeling of omslagscript kan gebruikt worden in een locatie die binnen het gebruikelijke <literal
+>PATH</literal
+> valt. Zoals bovenstaand geïllustreerd, kan ook een "pad" gespecificeerd worden waarin gezocht zal worden na de standaard locaties. </para>
+
+<para
+>Alle items in "commando", "root" en "pad" zijn onderworpen aan expansie van variabelen. </para>
+
+<para
+>De "highlightingModeRegex" wordt gebruikt om de modus accentuering overeen te laten komen zoals gebruikt door &kate; naar de taal-id van de server. Als geen reguliere expressie is gegeven, wordt de taal-id zelf gebruikt. Als een "documentLanguageId" item is gezet op false, dan wordt geen taal-id aan de server geleverd bij openen van het document. Dit kan betere resultaten geven voor sommige servers die meer precies zijn in bepalen van het type document dan dat te doen op basis van een kate-modus. </para>
+
+<para
+>Uit het bovenstaande is de boodschap waarschijnlijk helder. Bovendien kan elk item-object van de server ook een "initializationOptions" item hebben, die gezamenlijk wordt doorgegeven aan de server als onderdeel van de 'initialisatie' methode. Indien aanwezig wordt een item "instellingen" doorgegeven aan de server doormiddel van de melding 'workspace/didChangeConfiguration'. </para>
+
+<para
+>Verschillende stadia van overschrijven/mengen worden toegepast; <itemizedlist>
+<listitem>
+<para
+>gebruikersconfiguratie (geladen uit bestand) overschrijft de (interne) standaard configuratie</para>
+</listitem>
+<listitem>
+<para
+>"lspclient" item in <filename
+>.kateproject</filename
+> projectconfiguratie overschrijft het bovenstaande</para>
+</listitem>
+<listitem>
+<para
+>het resulterende "globale" item wordt gebruikt om aan te vullen (niet overschrijven) elk server-item</para>
+</listitem>
+</itemizedlist>
+</para>
+
+<para
+>Eén exemplaar van de server wordt gebruikt per combinatie (root, servertype). Als "root" is gespecificeerd als een absoluut pad, dan wordt het gebruikt zoals-het-is, anders is het relatief tot de <quote
+>projectBase</quote
+> (zoals bepaald door de <link linkend="kate-application-plugin-projects"
+>Projectplug-in</link
+>), indien van toepassing of anders relatief tot de map van de documentatie. Indien niet gespecificeerd en "rootIndicationFileNames" is een array als bestandsnamen, dan wordt een oudermap van het huidige document die zo'n bestand bevat geselecteerd. Als een laatste terugval, wordt de thuismap geselecteerd als "root". Voor elk document bepaalt dan de resulterende "root" wel of niet een apart exemplaar nodig heeft. Zo ja, de "root" wordt doorgegeven als rootUri/rootPath. </para>
+
+<para
+>In het algemeen wordt aanbevolen om de root niet te specificeren, omdat het niet zo belangrijk is voor een server (kan voor u anders zijn). Minder exemplaren van de server zijn natuurlijk efficiënter en ze hebben ook een 'bredere' blik dan de blik van vele gescheiden exemplaren. </para>
+
+<sect3 id="lspclient-customization">
+<title
+>LSP-serverconfiguratie</title>
+
+<para
+>Elke specifieke LSP-server heeft zijn eigen manier van aanpassen en kan taal/hulpmiddel specifieke manieren voor configuratie gebruiken, &eg; <filename
+>tox.ini</filename
+> (o.a. voor python), <filename
+>.clang-format</filename
+> voor C++ stijl formaat. Zo'n configuratie kan dan ook gebruikt worden door andere (niet-LSP) hulpmiddelen (zoals dan <application
+>tox</application
+> of <application
+>clang-format</application
+>). Sommige LSP-servers laden bovendien ook configuratie uit eigen bestanden (&eg; <filename
+>.ccls</filename
+>). Eigen server-configuratie kan verder ook doorgegeven worden via LSP (protocol), zie de eerder genoemde "initializationOptions" en "instellingen" items in de serverconfiguratie. </para>
+
+<para
+>Omdat er verschillende niveaus van overschrijven/samenvoegen worden toegepast, past het volgende voorbeeld van gebruiker gespecificeerde client-configuratie een configuratie van een python-language-server. </para>
+
+<screen
+>{
+    "servers": {
+        "python": {
+            "settings": {
+                "pyls": {
+                    "plugins": {
+                        "pylint": {
+                            "enable": true
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+</screen>
+
+<para
+>Helaas is de LSP-serverconfiguratie/aanpassing vaak niet zo goed gedocumenteerd, op manieren die alleen bekijken van de broncode de benaderingen toont en de beschikbare set van configuratieopties. Het bovenstaande voorbeeld van een server ondersteunt zeer veel meer opties in "instellingen". Zie <ulink url="https://github.com/neoclide/coc.nvim/wiki/Language-servers"
+> documentation van een andere LSP-client</ulink
+> voor verschillende andere voorbeelden van een taalserver and overeenkomende instellingen, die gemakkelijk en eenvoudig getransformeerd kunnen worden naar de &JSON;-configuratie die hier is gebruikt en bovenstaand besproken. </para>
+
+</sect3>
+
+<sect3 id="lspclient-troubleshooting">
+<title
+>Probleemoplossing in LSP-server</title>
+
+<para
+>Het is een ding om te beschrijven hoe een (aangepaste) LSP-server voor een specifieke taal te configureren, het is iets anders om te eindigen met het gladjes draaien van de server. Gelukkig is dat laatste meestal het geval. Soms zijn er echter problemen vanwege ofwel een "malle" misconfiguratie of een meer fundamenteel probleem met de server zelf. Dat laatste kan zich typisch voordoen als een paar pogingen met het starten van de server, zoals gerapporteerd in tabblad &kate; uitvoer. Dat laatste is echter slechts bedoeld om berichten van een hoger niveau of voortgang te rapporteren in plaats van gedetailleerde diagnostiek door te geven en nog minder over wat in feite een ander proces is (de LSP-server). </para>
+
+<para
+>De gebruikelijke manier om dit te diagnosticeren is om (een) vlag(gen) aan het opstartcommando (van de taalserver) teo te voegen die (extra) logging inschakelt (naar een bestand of standaardfoutuitvoer), als het dat al niet standaard doet. Als &kate; dan wordt gestart op de opdrachtregel, dan zou men in staat kunnen zijn om meer (in)zicht te krijgen in wat er fout gaat. </para>
+
+<para
+>Het kan ook informatief zijn om de protocoluitwisseling tussen de LSP-client van &kate; en de LSP-server. Nog eens, de laatste heeft daar gewoonlijk manieren voor. De LSP-client biedt ook extra debuguitvoer (naar stderr) wanneer &kate; is aangeroepen met het volgende <literal
+>QT_LOGGING_RULES=katelspclientplugin=true</literal
+>, met commando <literal
+>export</literal
+> gedefinieerd. </para>
+
+</sect3>
+
+</sect2>
+
+<!--TODO: Supported languages, describe features and actions a bit -->
+
+<!--<screenshot id="screenshot-rust-configuration">
+<screeninfo
+>Rust Configuration</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="rust-configuration.png" format="PNG"/></imageobject>
+</mediaobject>
+</screenshot>
+
+<para
+>Edit the command to run <ulink url="https://github.com/phildawes/racer"
+>Racer</ulink
+>,
+an utility intended to provide Rust code completion for editors.</para>
+
+<para
+>You also need the Rust source code and have to provide the path to the source tree.
+</para>
+
+<para
+>While typing code a popup list appears with items for completion:
+</para>
+
+<screenshot id="screenshot-rust-completion">
+<screeninfo
+>Rust Completion</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="rust-completion.png" format="PNG"/></imageobject>
+</mediaobject>
+</screenshot>
+
+<para
+>In addition to code completion popups, the plugin also installs
+a <guimenuitem
+>Go to Definition</guimenuitem
+> action in the <guimenu
+>Edit</guimenu
+> menu and
+in the context menu. You can configure a keyboard shortcut for it as well.
+</para>
+
+<para
+>This action will open the document containing the definition if needed, activate
+its view and place the cursor at the start of the definition.
+</para
+>-->
+
+</sect1>
+
+<sect1 id="kate-application-plugin-searchinfiles">
+<sect1info>
+<authorgroup
+><author
+>&TC.Hollingsworth; &TC.Hollingsworth.mail; </author
+></authorgroup>
+</sect1info>
+<title
+>Zoeken &amp; vervangen</title>
+
+<sect2 id="searchinfiles-intro">
+<title
+>Inleiding</title>
+<para
+>De plug-in Zoeken &amp; vervangen van &kate; stelt u in staat naar tekst of <ulink url="help:/katepart/regular-expressions.html"
+>reguliere expressies</ulink
+> te zoeken in veel verschillende bestanden tegelijk. U kunt in alle open bestanden zoeken, alle bestanden in één map met als optie zijn submappen of in het actieve bestand. U kunt zelfs filteren op bestandsnaam, bijvoorbeeld alleen in bestanden zoeken die eindigen op een specifieke bestandsextensie.</para>
+
+</sect2>
+
+<sect2 id="searchinfiles-ui">
+<title
+>Interface</title>
+
+<sect3 id="searchinfiles-ui-query">
+<title
+>Zoekopdracht</title>
+
+<para
+>De volgende opties worden altijd getoond bovenaan de hulpmiddelenweergave Zoeken in bestanden:</para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="tab-new-22.png" format="PNG"/>
+</imageobject
+></inlinemediaobject
+></guiicon
+></term>
+<listitem
+><para
+>U kunt zoveel zoekopdrachten tegelijk open hebben als u wilt. Klik gewoon op de knop Nieuw tabblad in de linkerbovenhoek van de hulpmiddelweergave Zoeken en een nieuw tabblad voor resultaten zal worden geopend waarmee u een andere zoekopdracht kunt geven. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="games-config-options-22.png" format="PNG"/>
+</imageobject
+></inlinemediaobject
+></guiicon
+></term>
+<listitem
+><para
+>De knop in de rechterbovenhoek van het venster van hulpmiddel Zoeken in bestanden zal de onderste helft van dat venster omschakelen tussen het weergeven van extra opties voor de modus Zoeken in map en de resultaten van uw zoekopdracht. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Zoeken</guilabel
+></term>
+<listitem
+><para
+>Dit is waar u intypt wat u wilt vinden. U kunt standaard tekst invoeren of een reguliere expressie, indien ingeschakeld. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Vervangen</guilabel
+> (tekstvak)</term>
+<listitem
+><para
+>Vervangende tekst die zal worden toegevoegd aan bestanden in plaats van de tekst in het tekstvak <guilabel
+>Zoeken</guilabel
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guibutton
+>Zoeken</guibutton
+></term>
+<listitem
+><para
+>Wanneer u klaar bent met alles in te stellen drukt u gewoon op de knop <guibutton
+>Zoeken</guibutton
+> om uw zoekopdracht uit te voeren. U kunt ook op &Enter; drukken in de tekstvak voor <guilabel
+>Zoeken</guilabel
+> om hetzelfde te doen. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guibutton
+>Vervangen</guibutton
+></term>
+<listitem
+><para
+>Wanneer u klaar bent met alles in te stellen drukt u gewoon op de knop <guibutton
+>Vervangen</guibutton
+> om de tekst ingevoerd in het tekstvak <guilabel
+>Zoeken</guilabel
+> te vervangen door dat wat in het tekstvak <guilabel
+>Vervangen</guilabel
+> staat. U kunt ook op &Enter; drukken in het tekstvak <guilabel
+></guilabel
+> om hetzelfde te doen. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guibutton
+>Volgende</guibutton
+></term>
+<listitem
+><para
+>Ga naar volgende overeenkomst met uw zoekopdracht, indien nodig met omschakelen naar andere bestanden. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guibutton
+>Aangevinkt vervangen</guibutton
+></term>
+<listitem
+><para
+>Hetzelfde als <guibutton
+>Vervangen</guibutton
+>, zal echter alleen vervanging uitvoeren in bestanden die in het onderstaande paneel zijn geactiveerd. </para
+></listitem>
+</varlistentry>
+
+</variablelist>
+</sect3>
+
+<sect3 id="searchinfiles-ui-folder">
+<title
+>Opties van Zoeken in map</title>
+
+<para
+>Deze opties worden getoond onder de hier voor genoemde zoekopties. Als in plaats hiervan zoekresultaten worden getoond, druk dan op de knop <guiicon
+><inlinemediaobject
+><imageobject
+> <imagedata fileref="games-config-options-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+></guiicon
+> om ze weer te geven. </para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><guilabel
+>Zoeken in</guilabel
+></term>
+<listitem
+><para
+>Deze heeft drie opties. Selecteer <guilabel
+>Open bestanden</guilabel
+> om in alle nu in &kate; geopende bestanden te zoeken. Selecteer <guilabel
+>Map</guilabel
+> om in een map en optioneel zijn submappen te zoeken. Selecteer <guilabel
+>Huidig bestand</guilabel
+> om in alleen in het actieve bestand te zoeken. </para>
+<para
+>Als de plug-in <guilabel
+>Projecten</guilabel
+> is geladen kunt u ook in het <guilabel
+>Huidige project</guilabel
+> zoeken of in <guilabel
+>Alle open projecten</guilabel
+>. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Hoofdlettergevoelig</guilabel
+></term>
+<listitem
+><para
+>Beperkt zoekresultaten tot alleen die exact dezelfde combinatie van hoofd- en kleine letters hebben als in uw zoekopdracht. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Reguliere expressies</guilabel
+></term>
+<listitem
+><para
+>Staat u toe om <ulink url="help:/katepart/regular-expressions.html"
+>reguliere expressies</ulink
+> te gebruiken in plaats van eenvoudige tekst als uw zoekopdracht. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Resultaten uitvouwen</guilabel
+></term>
+<listitem
+><para
+>Toont alle gevonden resultaten in elk bestand, in plaats van alleen een lijst van bestanden die voldoen aan de zoekopdracht. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Map</guilabel
+></term>
+<listitem
+><para
+>U kunt het pad van de map waarin u wilt zoeken invoeren. U wilt bijvoorbeeld <userinput
+>~/development/kde/kate/</userinput
+> invoeren als u in de broncode van &kate; wilt zoeken. Deze optie is alleen beschikbaar wanneer u de modus <guilabel
+>In map</guilabel
+> gebruikt. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guiicon
+>Bestandsdialoog openen</guiicon
+></term>
+<listitem
+><para
+>Gebruik deze knop om de map op te zoeken met de browser van uw bureaubladmap. Deze knop werkt alleen in de modus <guilabel
+>Map</guilabel
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="go-up-22.png" format="PNG"/>
+</imageobject
+></inlinemediaobject
+></guiicon
+></term>
+<listitem
+><para
+>Gebruik deze knop om de <guilabel
+>Map</guilabel
+> naar de naast hogere van de geselecteerde map te wijzigen.Deze knop werkt alleen in de modus <guilabel
+>Map</guilabel
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="view-refresh-22.png" format="PNG"/>
+</imageobject
+></inlinemediaobject
+></guiicon
+></term>
+<listitem
+><para
+>Gebruik deze knop om het <guilabel
+>Map</guilabel
+>-item op de map in te stellen waarin het nu geopende document zich bevindt. Deze knop werkt alleen in de modus <guilabel
+>Map</guilabel
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Filter</guilabel
+></term>
+<listitem
+><para
+>Dit stelt u in staat om alleen bestandsnamen te zoeken die aan een bepaald patroon voldoen. Om bijvoorbeeld alleen bestanden geschreven in C++ te zoeken, wijzigt u het in <userinput
+>*.cpp</userinput
+>. Om naar bestanden te zoeken die met <literal
+>kate</literal
+> beginnen, wijzigt u het naar <userinput
+>kate*</userinput
+>. U kunt meerdere filters invoeren gescheiden door een komma (<userinput
+>,</userinput
+>). Deze optie is niet beschikbaar in de modus <guilabel
+>Open bestanden</guilabel
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Uitsluiten</guilabel
+></term>
+<listitem
+><para
+>Het omgekeerde van <guilabel
+>Filter</guilabel
+>, dit voorkomt dat &kate; zoekt in bestanden die overeenkomen met de gespecificeerde patronen. Zoals met <guilabel
+>Filter</guilabel
+> kunt u meerdere patronen, gescheiden met een komma (<userinput
+>,</userinput
+>) invoeren. Deze optie is niet beschikbaar bij gebruikt van de modus <guilabel
+>Open bestanden</guilabel
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Recursief</guilabel
+></term>
+<listitem
+><para
+>Bij activering van deze optie zal &kate; ook in alle submappen van de geselecteerde map zoeken. Deze optie is alleen beschikbaar bij gebruik van de modus <guilabel
+>Map</guilabel
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Verborgen bestanden meenemen</guilabel
+></term>
+<listitem
+><para
+>Bij activering van deze optie zal &kate; ook in bestanden of mappen zoeken die typisch verborgen zijn door uw &OS;. Deze optie is alleen beschikbaar bij gebruik van de modus <guilabel
+>Map</guilabel
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Symbolische koppelingen volgen</guilabel
+></term>
+<listitem
+><para
+>De plug-in Zoeken in bestanden volgt typisch geen <ulink url="https://en.wikipedia.org/wiki/Symbolic_link"
+>symbolische koppelingen</ulink
+>. Wanneer deze optie is ingeschakeld zal de plug-in deze volgen en zoeken in de bestanden of mappen waarnaar ze verwijzen. Deze optie is alleen beschikbaar bij gebruik van de modus <guilabel
+>Map</guilabel
+>. </para>
+<warning
+><para
+>Het is mogelijk bij symbolische koppelingen om naar een map te verwijzen die hoger in hiërarchie van de mappen ligt dan de map waarin nu wordt gezocht of andere mappen die symbolische koppelingen bevatten naar een map hoger in de hiërarchie. Als zich zo'n koppeling in de map waarin gezocht bevindt en deze optie is inschakeld, dan zal &kate; bij herhaling de koppeling volgen en in de map zoeken waarna de zoekopdracht nooit zal eindigen.</para
+></warning>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Inclusief binaire bestanden</guilabel
+></term>
+<listitem
+><para
+>Bij activering van deze optie zal &kate; ook in alle bestanden zoeken die er niet uitzien als tekstbestanden. </para
+></listitem>
+</varlistentry>
+
+</variablelist>
+</sect3>
+
+<sect3 id="searchinfiles-ui-results">
+<title
+>Zoekresultaten</title>
+
+<para
+>De resultaten van uw zoekopdracht worden hieronder getoond in de zoekopties. Als opties voor de modus Zoeken in map getoond worden, druk dan gewoon op de knop <guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="games-config-options-22.png" format="PNG"/> </imageobject
+></inlinemediaobject
+></guiicon
+> om ze te tonen. Ze zullen ook automatisch worden getoond zodra een zoekopdracht wordt uitgevoerd.</para>
+
+<para
+>Het zoekresultaat toont een lijst met bestanden die de tekst bevat in uw zoekopdracht, gevolgd door het aantal gevonden overeenkomsten in dat bestand.</para>
+
+<para
+>Om een lijst met overeenkomsten in dat bestand te zien, klik gewoon op de expansiepijl links van de bestandsnaam. (Als u de optie <guilabel
+>Resultaten expanderen</guilabel
+> hebt geselecteerd, dan zal dit al voor u zijn gedaan). Het regelnummer van elke gevonden overeenkomst zal worden getoond, gevolgd door de inhoud van die regel, met gezochte tekst aangegeven in vette tekst.</para>
+
+<para
+>Om het bestand te openen waarin het gezochte is gevonden, is dubbelklikken voldoende. &kate; zal het bestand zo nodig openen. U kunt de cursor ook verplaatsen naar een specifieke overeenkomst door dubbel te klikken op zijn inhoud in plaats van de bestandsnaam. </para>
+
+</sect3>
+</sect2>
+
+<sect2 id="searchinfiles-menu">
+<title
+>Menustructuur</title>
+
+<variablelist>
+
+<varlistentry id="edit-searchinfiles">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+>&Ctrl;&Alt;<keycap
+>F</keycap
+></keycombo
+></shortcut
+> <guimenu
+>Bewerken</guimenu
+> <guimenuitem
+>In bestanden zoeken</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Start de weergave van het hulpmiddel Zoeken en vervangen</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-next-match">
+<term
+><menuchoice
+><guimenu
+>Bewerken</guimenu
+><guimenuitem
+>Ga naar de volgende overeenkomst</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Ga naar de volgende overeenkomst met uw zoekopdracht uitgevoerd door de plug-in Zoeken en vervangen.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-previous-match">
+<term
+><menuchoice
+><guimenu
+>Bewerken</guimenu
+><guimenuitem
+>Ga naar vorige overeenkomst</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Ga naar de vorige overeenkomst met uw zoekopdracht uitgevoerd door de plug-in Zoeken en vervangen.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-toolviews-searchandreplace">
+<term
+><menuchoice
+><guimenu
+>Beeld</guimenu
+><guisubmenu
+>Hulpmiddelenweergaven</guisubmenu
+> <guimenuitem
+>Zoeken en vervangen tonen</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Toont of verbergt het hulpmiddel van &kate; <guilabel
+>Zoeken en vervangen</guilabel
+>. </para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+</sect1>
+
+<sect1 id="kate-application-plugin-snippets">
+<sect1info>
+<authorgroup>
+<author
+><firstname
+>Martin</firstname
+> <surname
+>Gergov</surname
+></author>
+<author
+>&TC.Hollingsworth; &TC.Hollingsworth.mail;</author>
+</authorgroup>
+</sect1info>
+<title
+>&kate;-fragmenten</title>
+
+<sect2 id="snippets-intro">
+<title
+>Inleiding</title>
+<para
+>&kate;-fragmenten is een plug-in die wordt gebruikt om u tijd te besparen door ondersteuning toe te voegen voor zogenaamde <quote
+>fragmenten</quote
+> (herbruikbare broncode, machinecode of tekst). De plug-in ondersteunt ook code-aanvulling en &javascript;.</para>
+</sect2>
+
+<sect2 id="snippets-menu">
+<title
+>Menustructuur</title>
+
+<variablelist>
+<varlistentry>
+<term
+><menuchoice
+><guimenu
+>Beeld</guimenu
+> <guisubmenu
+>Hulpmiddelenweergaven</guisubmenu
+> <guimenuitem
+>Fragmenten tonen</guimenuitem
+></menuchoice
+></term>
+<listitem
+><para
+>Toont het fragmentenpaneel met alle fragmenten in uw opslag voor het huidige geopende bestandstype.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="tools-create-snippet">
+<term
+><menuchoice
+><guimenu
+>Hulpmiddelen</guimenu
+> <guimenuitem
+>Fragment maken</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Een nieuw fragment maken, wat een herbruikbaar stuk tekst is dat u in elk deel van elk document kan invoegen.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+
+<sect2 id="snippets-panel">
+<title
+>Paneel voor fragmenten</title>
+
+<screenshot id="screenshot-snippets-panel">
+<screeninfo
+>Paneel voor fragmenten van &kate;</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="snippets-panel.png" format="PNG"/></imageobject>
+<textobject
+><phrase
+>Het paneel voor fragmenten van &kate;.</phrase
+></textobject>
+<caption
+><para
+>Het paneel voor fragmenten van &kate;.</para
+></caption>
+</mediaobject>
+</screenshot>
+
+<para
+>In het paneel zou u een lijst met opslagruimten voor fragmenten moeten zien, samen met opties om uw eigen ruimten aan te maken, ze van het internet te halen of te laden uit een lokaal bestand. Elke opslagruimte heeft een keuzevakje dat gebruikt kan worden om het te activeren of te deactiveren. Er zijn ook knoppen om bestaande opslagruimten te bewerken en te verwijderen.</para>
+
+<sect3 id="snippets-repo-internet">
+<title
+>Fragment-opslagruimte-bestanden laden</title>
+<para
+>U kunt fragment-opslagruimten van het internet downloaden. Klik eenvoudig op <guibutton
+>Nieuwe fragmenten ophalen</guibutton
+> en er opent zich een venster met een lijst met fragment-opslagruimten. Controleer na het downloaden van het gewenste fragment of het is geactiveerd.</para>
+<!--FIXME no way to load a local file ?
+<para
+>You can also load snippet repositories from a local file using the file
+browser at the bottom of the panel.  Click <guibutton
+>Copy to repository</guibutton>
+when finished.</para
+>-->
+</sect3>
+
+<sect3 id="snippets-repo-editor">
+<title
+>Opslagruimten aanmaken en bewerken</title>
+
+<para
+>Om een nieuwe fragment-opslagruimte aan te maken klikt u op <guibutton
+>Opslagruimte toevoegen</guibutton
+>. U zou nu een dialoog moeten zien die naar de naam van het fragmentenbestand, de licentie en auteur vraagt. Na het kiezen van de gewenste opties, klikt u op <guibutton
+>OK</guibutton
+>.</para>
+
+<screenshot id="screenshot-snippets-repository">
+<screeninfo
+>Bewerker van fragmenten</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="snippets-repository.png" format="PNG"/></imageobject>
+<textobject
+><phrase
+>De bewerker van opslagruimten.</phrase
+></textobject>
+<caption
+><para
+>Het interface van de bewerker van opslagruimten.</para
+></caption>
+</mediaobject>
+</screenshot>
+
+<para
+>De bewerker van opslagruimten voor fragmenten bevat de volgende opties:</para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><guilabel
+>Naam</guilabel
+></term>
+<listitem
+><para
+>Verschijnt in de lijst met fragmenten in de hulpmiddelenweergave en wordt ook doorzocht bij het gebruiken van de functie code-aanvullen.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Naamruimte</guilabel
+></term>
+<listitem
+><para
+>Gebruikt voorvoegsel bij gebruik van aanvulling van code.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Licentie</guilabel
+></term>
+<listitem
+><para
+>Selecteer de licentie voor uw fragment-opslagruimte.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Auteurs</guilabel
+></term>
+<listitem
+><para
+>Voer de na(a)m(en) in van de auteur(s) van het fragmentenbestand.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Bestandstypen</guilabel
+></term>
+<listitem
+><para
+>Selecteer het/de bestandstype(n) waarop de fragment-opslagruimte moet worden toegepast. Het is standaard ingesteld op <quote
+></quote
+>, dus is de opslagruimte op alle bestanden van toepassing. U kunt het bijvoorbeeld wijzigen in zoiets als <userinput
+>C++</userinput
+> of iets uit een lijst selecteren door op de items te drukken. U kunt meer dan één bestandstype selecteren door &Shift; in te drukken bij het toevoegen van typen.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect3>
+
+<sect3 id="snippets-editor">
+<title
+>Fragmenten aanmaken en bewerken</title>
+
+<screenshot id="screenshot-snippets-form">
+<screeninfo
+>Bewerker van fragmenten</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="snippets-form.png" format="PNG"/></imageobject>
+<textobject
+><phrase
+>De bewerker van fragmenten.</phrase
+></textobject>
+<caption
+><para
+>Het interface van de bewerker van fragmenten.</para
+></caption>
+</mediaobject>
+</screenshot>
+
+<variablelist>
+
+<varlistentry>
+<term
+><guilabel
+>Naam</guilabel
+></term>
+<listitem
+><para
+>De naam zal getoond worden in de lijst voor aanvullen.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Sneltoets</term>
+<listitem
+><para
+>Op deze sneltoets drukken zal het fragment in het document invoegen.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Fragmenten</guilabel
+></term>
+<listitem
+><para
+>De tekst die uw fragment zal invoegen in het document.</para>
+<para
+>Een fragment kan bewerkbare velden bevatten. Deze kunnen doorlopen worden door op &Tab; te drukken. De volgende uitdrukkingen kunnen gebruikt worden in de tekst van het sjabloon om velden aan te maken:</para>
+<para
+><userinput
+>${<replaceable
+>veldnaam</replaceable
+>}</userinput
+> maakt een eenvoudig, bewerkbaar veld aan. Alle volgende exemplaren van dezelfde <replaceable
+>veldnaam</replaceable
+> maken velden die dezelfde inhoud hebben als de eerste tijdens bewerking.</para>
+<para
+><userinput
+>${<replaceable
+>veldnaam=default</replaceable
+>}</userinput
+> kan gebruikt worden om een standaard waarde voor het veld te specificeren. <replaceable
+>standaard</replaceable
+> kan elke &javascript;-expressie zijn.</para>
+<para
+>Gebruik <userinput
+>${<replaceable
+>veldnaam</replaceable
+>=<replaceable
+>tekst</replaceable
+>}</userinput
+> om een vaste tekenreeks als standaard waarde te specificeren.</para>
+<para
+><userinput
+>${func(<replaceable
+>ander_veld1</replaceable
+>, <replaceable
+>ander_veld2</replaceable
+>, ...)}</userinput
+> kan gebruikt worden om een veld te definiëren die een &javascript;-functie evalueert bij elke bewerking en zijn inhouden bevat. Zie het tabblad <guilabel
+>Scripts</guilabel
+> voor meer informatie.</para>
+<para
+><userinput
+>${cursor}</userinput
+> kan gebruikt worden om de eindpositie van de cursor te markeren nadat al het andere is ingevuld.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Scripts</guilabel
+></term>
+<listitem
+><para
+>Te gebruiken &javascript; hulpfuncties in uw fragmenten.</para>
+<para
+>Alle &javascript;-functies zouden de inhoud, die u wilt plaatsen in een sjabloonveld, als een tekenreeks moeten teruggeven.</para>
+<para
+>Functies worden aangeroepen in een scope die de inhouden van alle bewerkbare sjabloonvelden als lokale variabelen bevatten. In een fragment bijvoorbeeld met <userinput
+>${<replaceable
+>veld</replaceable
+>}</userinput
+> zal een variabele genaamd <userinput
+>veld</userinput
+> aanwezig zijn die de bijgewerkte inhoud van het sjabloonveld bevat. Deze variabelen kunnen ofwel statisch gebruikt worden in de functie of doorgegeven worden als argumenten, door de syntaxis <userinput
+>${func(field)}</userinput
+> of <userinput
+>${<replaceable
+>field2=func(field)</replaceable
+>}</userinput
+> in de tekenreeks van het fragment te gebruiken.</para>
+<para
+>U kunt de <ulink url="help:/katepart/dev-scripting.html#dev-scripting-api"
+>scripting API van &kate;</ulink
+> gebruiken om de geselecteerde tekst, de volledige tekst, de bestandsnaam en meer te verkrijgen door de van toepassing zijnde methoden van de objecten van het <userinput
+>document</userinput
+> en <userinput
+>weergave</userinput
+> te gebruiken. Kijk in de documentatie van de scripting API voor meer informatie</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+</sect3>
+</sect2>
+
+<sect2 id="snippets-using">
+<title
+>Fragmenten gebruiken</title>
+
+<screenshot id="screenshot-snippets-usage">
+<screeninfo
+>&kate;-fragmenten in actie</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="snippets-usage.png" format="PNG"/></imageobject>
+<textobject
+><phrase
+>&kate;-fragmenten gebruiken vanuit een hulpmiddelenweergave en een afrolmenu.</phrase
+></textobject>
+<caption
+><para
+>Uit een lijst met fragmenten kiezen.</para
+></caption>
+</mediaobject>
+</screenshot>
+
+<para
+>U kunt fragmenten aanroepen op twee manieren:</para>
+
+<itemizedlist>
+<listitem
+><para
+>Door het fragment uit de hulpmiddelenweergave te kiezen.</para
+></listitem>
+<listitem
+><para
+>Bij het schrijven kunt u <keycombo action="simul"
+>&Ctrl; &Space;</keycombo
+> indrukken, die alle fragmenten zal weergeven in een gemaksvenster waaruit u kunt kiezen. Deze toetscombinatie biedt functionaliteit gelijkend op code-aanvulling.</para
+></listitem>
+</itemizedlist>
+
+<para
+>Als het fragment variabelen (naast <literal
+>${cursor}</literal
+>) bevat dan zal de cursor automatisch naar het eerste voorkomen van een variabele gaan en zal op u wachten om iets te schrijven. Als u klaar bent, drukt u op &Tab; om naar de volgende variabele te gaan, enzovoort.</para>
+
+</sect2>
+
+<sect2 id="snippets-ack">
+<title
+>Dankbetuigingen en licentie</title>
+<para
+>&kate; Snippets is geschreven door Joseph Wenninger.</para>
+<para
+>Speciale dank gaat naar de deelnemer van Google Code-In 2011 Martin Gergov voor het schrijven van veel van deze sectie.</para>
+</sect2>
+
+</sect1>
+
+
+<sect1 id="kate-application-plugin-sql">
+<sect1info>
+<authorgroup>
+<author
+><firstname
+>Ömer</firstname
+> <othername
+>Faruk</othername
+> <surname
+>ORUÇ</surname
+></author>
+<author
+>&TC.Hollingsworth; &TC.Hollingsworth.mail;</author>
+</authorgroup>
+</sect1info>
+<title
+>SQL-plug-in</title>
+
+<sect2 id="sql-intro">
+<title
+>Inleiding</title>
+
+<para
+>De Structured Query Language (SQL) is een gespecialiseerde taal voor het bijwerken, verwijderen en opvragen van informatie uit databases.</para>
+
+<para
+>The plug-in SQL van &kate; stelt u in staat om:</para>
+
+<itemizedlist>
+<listitem
+><para
+>Een database aan te maken</para
+></listitem>
+<listitem
+><para
+>Te verbinden met bestaande databases</para
+></listitem>
+<listitem
+><para
+>Gegevens in de database te voegen en uit de database te verwijderen</para
+></listitem>
+<listitem
+><para
+>Zoekopdrachten uit te voeren</para
+></listitem>
+<listitem
+><para
+>Resultaten in een tabel te tonen</para
+></listitem>
+</itemizedlist>
+
+</sect2>
+
+<sect2 id="sql-connecting">
+<title
+>Te verbinden met een database</title>
+
+<para
+>Selecteer <guibutton
+>Verbinding toevoegen</guibutton
+> uit het menu <guimenu
+>SQL</guimenu
+> of de werkbalk en selecteer daarna het &Qt;-databasestuurprogramma dat u wilt gebruiken (inclusief QSQLITE, QMYSQL3, QMYSQL, QODBC3, QODBC, QPSQL7 en QPSQL). Als u het gewenste stuurprogramma niet ziet, dan moet u het installeren. Druk daarna op <guibutton
+>Volgende</guibutton
+>. </para>
+
+<para
+>Als de door u geselecteerde database een bestand gebruikt, geeft dan eenvoudig de locatie van de database en druk op de knop <guibutton
+>Volgende</guibutton
+>. Als een verbinding met een server vereist is, moet u de hostnaam van de server, uw gebruikersnaam en wachtwoord invoeren en elke andere informatie die het specifieke stuurprogramma kan vereisen. Druk daarna op <guibutton
+>Volgende</guibutton
+>.</para>
+
+<para
+>Geef tot slot een naam aan uw verbinding en druk op <guibutton
+>Beëindigen</guibutton
+>.</para>
+
+</sect2>
+
+<sect2 id="sql-querying">
+<title
+>Queries uitvoeren</title>
+
+<sect3 id="sql-querying-insert-delete-update">
+<title
+>INVOEGEN/VERWIJDEREN/BIJWERKEN</title>
+
+<para
+>U kunt gegevens invoegen, verwijderen en bijwerken met de SQL-plug-in op dezelfde manier als vanaf de commandoregel of in een programma. Voer eenvoudig een query in en druk op de knop <guibutton
+>Query uitvoeren</guibutton
+> in de werkbalk of gebruik <menuchoice
+><guimenu
+>SQL</guimenu
+><guimenuitem
+>Query uitvoeren</guimenuitem
+></menuchoice
+> (<keycombo action="simul"
+>&Ctrl;<keycap
+>E</keycap
+></keycombo
+>).</para>
+
+<example>
+<title
+>Enkele voorbeeld queries</title>
+<variablelist>
+
+<varlistentry>
+<term
+><command
+>INSERT</command
+></term>
+<listitem
+><para
+><programlisting
+>INSERT INTO <replaceable
+>tabelnaam</replaceable
+> ("<replaceable
+>feature1</replaceable
+>", "<replaceable
+>feature2</replaceable
+>", "<replaceable
+>feature3</replaceable
+>", "<replaceable
+>feature4</replaceable
+>", "<replaceable
+>feature5</replaceable
+>")
+VALUES ("<replaceable
+>waarde1</replaceable
+>", "<replaceable
+>waarde2</replaceable
+>", "<replaceable
+>waarde3</replaceable
+>", "<replaceable
+>waarde4</replaceable
+>", "<replaceable
+>waarde5</replaceable
+>" )
+</programlisting
+></para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><command
+>DELETE</command
+></term>
+<listitem
+><para
+><programlisting
+>DELETE FROM <replaceable
+>tabelnaam</replaceable
+> WHERE name = "<replaceable
+>tekst</replaceable
+>"
+</programlisting
+></para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><command
+>UPDATE</command
+></term>
+<listitem
+><para
+><programlisting
+>UPDATE <replaceable
+>tabelnaam</replaceable
+> SET "<replaceable
+>feature1</replaceable
+>" = "<replaceable
+>tekst</replaceable
+>", "<replaceable
+>feature2</replaceable
+>" = "<replaceable
+>tekst</replaceable
+>", "<replaceable
+>feature3</replaceable
+>" = "<replaceable
+>text</replaceable
+>", "<replaceable
+>feature4</replaceable
+>" = "<replaceable
+>tekst</replaceable
+>", "<replaceable
+>feature5</replaceable
+>" = "<replaceable
+>tekst</replaceable
+>"
+</programlisting
+></para
+></listitem>
+</varlistentry>
+
+</variablelist>
+</example>
+
+</sect3>
+
+<sect3 id="sql-querying-select">
+<title
+>SELECT</title>
+
+<para
+>Na het uitvoeren van een query <command
+>SELECT</command
+>, kunt u de resultaten als een tabel bekijken die zal verschijnen in het weergavehulpmiddel <guilabel
+>SQL-gegevensuitvoer</guilabel
+> onderaan &kate; of als tekst in de <guilabel
+>SQL-tekstuitvoer</guilabel
+>. Als er een fout is ziet u dat in de tekstuitvoer.</para>
+
+<example>
+<title
+>Voorbeeld <command
+>SELECT</command
+> zoekopdracht</title>
+<para
+><programlisting
+>SELECT * FROM <replaceable
+>tabelnaam</replaceable
+>
+</programlisting
+></para>
+</example>
+
+<para
+>In de hulpmiddelweergave <guilabel
+>SQL-gegevensuitvoer</guilabel
+> bevinden zich een aantal knoppen:</para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><guibutton
+>Kolomgrootte aanpassen aan inhoud</guibutton
+></term>
+<listitem
+><para
+>Wijzigt de grootte van kolommen om hun inhoud te laten passen.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guibutton
+>Rijgrootte aanpassen aan inhoud</guibutton
+></term>
+<listitem
+><para
+>Wijzigt de grootte van Rijen om hun inhoud te laten passen.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guibutton
+>Kopiëren</guibutton
+></term>
+<listitem
+><para
+>Selecteert de gehele tabelinhoud en kopieert deze naar de klembordbuffer.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guibutton
+>Exporteren</guibutton
+></term>
+<listitem
+><para
+>Exporteert de gehele tabelinhoud naar een bestand, het klembord of het huidige document in het formaat kommagescheiden waarden.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guibutton
+>Wissen</guibutton
+></term>
+<listitem
+><para
+>Verwijdert alles uit de tabelweergave.</para
+></listitem>
+</varlistentry>
+
+<!--FIXME Use system locale -->
+
+</variablelist>
+
+<para
+>U kunt nu de kleuren wijzigen die getoond worden in de tabel in de sectie <guilabel
+>SQL</guilabel
+> van <menuchoice
+><guimenu
+>Instellingen</guimenu
+><guimenuitem
+>&kate; configureren...</guimenuitem
+> </menuchoice
+>.</para>
+
+</sect3>
+</sect2>
+
+<sect2 id="sql-browsing">
+<title
+>Bladeren</title>
+
+<para
+>U kunt door uw database bladeren met het browserweergavehulpmiddel <guilabel
+>Databaseschema</guilabel
+> links. De weergegeven informatie varieert afhankelijk van welk stuurprogramma voor de database u gebruikt.</para>
+
+<para
+>Om deze lijst te verversen klikt u rechts ergens in het weergavehulpmiddel en selecteert u <guimenuitem
+>Verversen</guimenuitem
+>. Om een query te maken op een item in de lijst, klikt u rechts op een item, selecteert <guisubmenu
+>Genereren</guisubmenu
+> en selecteert u het type query (<guimenuitem
+>SELECT</guimenuitem
+>, <guimenuitem
+>UPDATE</guimenuitem
+>, <guimenuitem
+>INSERT</guimenuitem
+> of <guimenuitem
+>DELETE</guimenuitem
+>) uit het submenu dat verschijnt.</para>
+
+</sect2>
+
+<sect2 id="sql-menus">
+<title
+>Menustructuur</title>
+<variablelist>
+
+<varlistentry>
+<term
+><menuchoice
+><guimenu
+>SQL</guimenu
+><guimenuitem
+>Verbinding toevoegen...</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Voegt een nieuwe verbinding toe met elk databasestuurprogramma. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><menuchoice
+><guimenu
+>SQL</guimenu
+><guimenuitem
+>Verbinding verwijderen</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Verwijdert de geselecteerde verbinding. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><menuchoice
+><guimenu
+>SQL</guimenu
+><guimenuitem
+>Verbinding bewerken...</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Bewerkt de huidige verbindingsinstellingen. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Verbindingen</term>
+<listitem
+><para
+>Alle door u gemaakte databaseverbindingen staan in de lijst tussen de menu-items <guimenuitem
+>Verbinding bewerken</guimenuitem
+> en <guimenuitem
+>Query uitvoeren</guimenuitem
+>. Selecteer er een om queries uit te voeren of maak er wijzigingen in. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+>&Ctrl;<keycap
+>E</keycap
+></keycombo
+></shortcut
+> <guimenu
+>SQL</guimenu
+><guimenuitem
+>Query uitvoeren</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Voer uw query uit. </para
+></listitem>
+</varlistentry>
+
+</variablelist>
+</sect2>
+
+<sect2 id="sql-ack">
+<title
+>Dankbetuigingen en licentie</title>
+
+<para
+>De SQL-plug-in is geschreven door Marco Mentasti.</para>
+<para
+>Speciale dank gaat naar de deelnemer van Google Code-In 2011 Ömer Faruk ORUÇ voor het schrijven van veel van deze sectie.</para>
+
+</sect2>
+
+</sect1>
+
+<sect1 id="kate-application-plugin-symbolviewer">
+<!--https://kate-editor.org/2010/10/27/php-treeview-improvements-in-kate/?-->
+<title
+>Plug-in voor Symboolviewer</title>
+
+<sect2 id="symbolviewer-using">
+<title
+>De plug-in Behalve/zoals sluiten gebruiken</title>
+
+<para
+>Het stelt ontwikkelaars in staat om symbolen te bekijken (functies, macro's en structures) uit broncode.</para>
+<para
+>Door te klikken op de ontlede informatie kunt u gemakkelijk door de code wandelen.</para>
+<para
+>Op dit moment worden de volgende talen ondersteund:</para>
+<para
+>C/C++, &Java;, Perl, PHP, Python, Ruby, XSLT, Tcl/Tk, Fortran</para>
+
+<para
+>Lijst met mogelijkheden:</para>
+<simplelist>
+<member
+>Modus Lijst/boomstructuur</member>
+<member
+>Sorteren in-/uitschakelen</member>
+<member
+>Functieparameters verbergen/tonen</member>
+<member
+>Boomstructuur uit-/invouwen</member>
+<member
+>Bij wijzigen van document automatisch bijwerken</member>
+<member
+>Ontleden van code is gebaseerd op het framework van accentueren van syntaxis uit &kde-frameworks;</member>
+</simplelist>
+
+</sect2>
+
+<sect2 id="symbolviewer-menu">
+<title
+>Menustructuur</title>
+<variablelist>
+
+<varlistentry id="tools-symbolviewer">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>\</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Beeld</guimenu
+> <guisubmenu
+>Hulpmiddelenweergaven</guisubmenu
+> <guimenuitem
+>Symbolenlijst tonen</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Schakel het tonen om, van de lijst symbolen van &kate;, die functies, macro's en structures van de broncode in het actieve document toont.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+
+<sect2 id="symbolviewer-config">
+<title
+>Configuratie</title>
+
+<screenshot id="screenshot-symbolviewer-settings">
+<screeninfo
+>Symboolviewer</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="symbolviewer-settings.png" format="PNG"/></imageobject>
+<caption
+><para
+>Kies de standaard ontlederopties</para
+></caption>
+</mediaobject>
+</screenshot>
+
+</sect2>
+
+</sect1>
+
+
+<sect1 id="kate-application-plugin-konsole">
+<title
+>Plug-in voor terminalweergave</title>
+
+<para
+><indexterm
+><primary
+>Terminalemulator</primary
+></indexterm
+> De ingebouwde terminal, een kopie van &konsole;, de terminal van &kde;, is er om het u gemakkelijk te maken. U kunt hem beschikbaar maken door het menu <menuchoice
+><guimenu
+>Beeld</guimenu
+><guisubmenu
+>Hulpmiddelenweergave</guisubmenu
+><guimenuitem
+>Terminalpaneel tonen</guimenuitem
+></menuchoice
+> te gebruiken, de terminal krijgt dan direct de focus. Als de optie <link linkend="konsole-config"
+>automatisch de terminal, indien mogelijk, met het huidige document synchroniseren</link
+> ingeschakeld is, zal er bovendien naar de map van het huidige bestand overgeschakeld worden (indien mogelijk) zodra het weergegeven wordt of zodra het huidige bestand gewijzigd wordt.</para>
+
+<para
+>De standaardlocatie in het venster van &kate; is onderaan, onder het editor-gedeelte.</para>
+
+<para
+>U kunt &konsole; instellen met behulp van het &RMB;-menu. Meer informatie kunt u vinden in het <ulink url="help:/konsole/index.html"
+>&konsole; handboek</ulink
+>.</para>
+
+<para
+>De ingebouwde terminalemulator wordt geleverd door de plug-in voor terminalweergave.</para>
+
+<sect2 id="konsole-menus">
+<title
+>Menustructuur</title>
+
+<variablelist>
+
+<varlistentry id="view-toolviews-show-terminal">
+<term
+><menuchoice
+><guimenu
+>Beeld</guimenu
+><guisubmenu
+>Hulpmiddelenweergaven</guisubmenu
+> <guimenuitem
+>Terminalpaneel tonen</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Toont of verbergt de ingebouwde terminalemulator.</para>
+<para
+>De eerste keer dat deze optie geactiveerd wordt, zal de terminal aangemaakt worden.</para>
+<para
+>De terminal krijgt de focus zodra hij weergegeven wordt, zodat u onmiddellijk commando's kunt intypen. Als de optie <link linkend="konsole-config"
+>Terminal automatisch synchroniseren met actief document, indien mogelijk</link
+> ingeschakeld is op de pagina <guilabel
+>Terminal</guilabel
+> van <link linkend="config-dialog"
+>het hoofddialoogvenster "Instellingen"</link
+>), zal de shell-sessie de map wijzigen naar de map van het actieve document als het een lokaal bestand is.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-toolviews-pipe-to-terminal">
+<term
+><menuchoice
+><guimenu
+>Hulpmiddelen</guimenu
+><guimenuitem
+>Pipe naar terminal</guimenuitem
+></menuchoice
+></term>
+<listitem
+><para
+>Voer de nu geselecteerde tekst in de ingebouwde terminalemulator in. Er wordt geen nieuwe-regel-teken toegevoegd na de tekst.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="tools-sync-terminal-document">
+<term
+><menuchoice
+><guimenu
+>Hulpmiddelen</guimenu
+> <guimenuitem
+>De terminal synchroniseren met het huidige document</guimenuitem
+></menuchoice
+></term>
+<listitem>
+<para
+>Dit veroorzaakt dat in de ingebouwde terminal het commando <command
+>cd</command
+> wordt uitgevoerd naar de map van het actieve document.</para>
+
+<para
+>Als alternatief kunt u &kate; zo instellen dat het altijd de terminal gesynchroniseerd houdt met het huidige document. Zie <xref linkend="konsole-config"/> voor meer informatie.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="tools-focus-terminal">
+<term
+><menuchoice
+><guimenu
+>Hulpmiddelen</guimenu
+> <guimenuitem
+>Focus wel/niet op terminalpaneel</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Schakel de focus van het huidige document naar de terminal en omgekeerd. </para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+</sect2>
+
+<sect2 id="konsole-config">
+<title
+>Configuratie</title>
+
+<para
+>De plug-in Terminalweergave kan worden geconfigureerd op de pagina <guilabel
+>Terminal</guilabel
+> van de <link linkend="configuring-kate"
+>instellingendialoog</link
+>.</para>
+
+<para
+>De volgende opties zijn beschikbaar:</para>
+
+<variablelist>
+<varlistentry>
+<term>
+<guilabel
+>De terminal automatisch synchroniseren met het huidige document, wanneer mogelijk</guilabel
+></term>
+<listitem
+><para
+>Dit heeft als gevolg dat de ingebouwde terminal een <command
+>cd</command
+> doet in de map van het actieve document wanneer gestart en wanneer een nieuw document de focus krijgt. Indien niet ingeschakeld, dan moet u al uw navigatie in de terminal zelf doen. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Stel de omgevingsvariabele EDITOR in op 'kate -b'</guilabel
+></term>
+<listitem
+><para
+>Dit stelt de omgevingsvariabele <envar
+>EDITOR</envar
+> in zodat programma's die in de ingebouwde terminal werken die automatisch een bestand in een tekstbewerker openen deze in &kate; openen in plaats daarvan in de standaard tekstbewerker van uw shell. U zult niet in staat zijn met het gebruik van de terminal totdat u het bestand in &kate; hebt gesloten, zodat het aanroepende programma weet dat u klaar bent met het bewerken van het bestand.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>&konsole; verbergen bij indrukken van 'Esc'</guilabel
+></term>
+<listitem
+><para
+>Dit biedt het sluiten van de ingebouwde terminal door de toets &Esc; in te drukken. Kan probleem veroorzaken met terminaltoepassingen die toetst &Esc; gebruiken, &eg; <application
+>vim</application
+>. Voeg zulke toepassingen toe aan het onderstaande tekstvak. De items in de lijst moeten gescheiden zijn door komma's.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+</sect2>
+
+</sect1>
+
+<sect1 id="kate-application-plugin-textfilter">
+
+<title
+>Plug-in Tekstfilter</title>
+
+<sect2 id="textfilter-using">
+<title
+>De plug-in Tekstfilter gebruiken</title>
+
+<para
+>U kunt deze plug-in gebruiken om geselecteerde tekst te verwerken met commando's op de terminal. De selectie zal gebruikt worden als invoer voor het commando en de uitvoer zal ofwel de selectie vervangen of gekopieerd worden naar het klembord, afhankelijk van de voorkeur van de gebruiker. </para>
+
+<itemizedlist>
+<title
+>Voorbeelden:</title>
+<listitem
+><para
+><command
+>less /etc/fstab</command
+> - plakt de inhoud van dit bestand of kopieert het naar het klembord </para
+></listitem>
+<listitem
+><para
+><command
+>wc</command
+> - telt regels, woorden en tekens van de selectie en plakt dit in het document of kopieert het naar het klembord </para
+></listitem>
+<listitem
+><para
+><command
+>sort</command
+> - sorteert regels van de selectie en plakt het resultaat in het document of kopieert het naar het klembord </para
+></listitem>
+</itemizedlist>
+
+</sect2>
+
+<sect2 id="textfilter-menu">
+<title
+>Menustructuur</title>
+
+<variablelist>
+
+<varlistentry id="tools-textfilter">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>\</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Hulpmiddelen</guimenu
+> <guisubmenu
+>Tekst filteren</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+
+<para
+><action
+>Opent</action
+> de dialoog voor tekstfilteren:</para>
+
+<screenshot id="screenshot-filtertext">
+<screeninfo
+>Dialoog van Tekstfilter</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="textfilter.png" format="PNG"/></imageobject>
+</mediaobject>
+</screenshot>
+
+<para
+>Voer het shell-commando in in de keuzelijst of selecteer een vorig commando uit de geschiedenis.</para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><guilabel
+>Kopieer het resultaat in plaats van het te plakken</guilabel
+></term>
+<listitem>
+<para
+>Kopieer het resultaat naar het klembord en laat een document ongewijzigd.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>STDOUT en STDERR samenvoegen</guilabel
+></term>
+<listitem>
+<para
+>Indien geactiveerd zal uitvoer uit STDOUT en STDERR samengevoegd worden en zullen geen fouten worden gerapporteerd. Anders zal STDERR worden getoond als een passief bericht</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+
+</sect1>
+
+<sect1 id="kate-application-plugin-xmlcheck">
+<!-- from doc/kate-addons/xmlcheck.docbook -->
+<sect1info>
+<authorgroup
+><author
+>&Daniel.Naber; &Daniel.Naber.mail; </author
+></authorgroup>
+</sect1info>
+
+<title
+>&XML;-validatie</title>
+
+<para
+>Deze plug-in controleert of &XML;-bestanden geldig zijn en op de juiste manier zijn opgemaakt.</para>
+<para
+>Deze plug-in controleert het huidige bestand. Een lijst met waarschuwingen en foutmeldingen zal aan de onderzijde van &kate;'s venster verschijnen. Klik op een foutmelding om naar de bijhorende plaats in het bestand te gaan. Als het bestand een <quote
+>DOCTYPE</quote
+> heeft, dan zal deze worden gebruikt om de validatie van het bestand te controleren. De DTD wordt op een relatieve positie van het bestand verwacht; dus als de DTD verwijst naar <quote
+>DTD/xhtml1-transitional.dtd</quote
+> en het bestand is <filename
+>/home/rinse/test.xml</filename
+>, dan wordt de DTD verwacht op <filename
+>/home/rinse/DTD/xhtml1-transitional.dtd</filename
+>. DTD's op afstand die zijn gespecificeerd via HTTP worden ook ondersteund.</para>
+
+<para
+>Als het bestand geen doctype heeft, zal het worden gecontroleerd op op de juiste manier is samengesteld.</para>
+
+<para
+>Als u meer wilt weten over &XML;, ga dan naar de <ulink url="https://www.w3.org/XML/"
+>officiële W3C &XML;-webpagina's</ulink
+>.</para>
+
+<para
+>Intern roept deze plugin het commando <command
+>xmllint</command
+> aan. Dit hulpprogramma is onderdeel van libxml2. Als dit niet correct op uw systeem is geïnstalleerd, zal deze plugin niet werken.</para>
+
+<para
+>Om deze plugin te laden opent u de instellingendialoog van &kate; onder <menuchoice
+><guimenu
+>Instellingen</guimenu
+> <guimenuitem
+>&kate; instellen...</guimenuitem
+></menuchoice
+>. Selecteer daarna <guilabel
+>&XML;-validatie</guilabel
+> die zal verschijnen in de sectie <guilabel
+>Toepassing</guilabel
+> / <guilabel
+>Plugins</guilabel
+> en de dialoog afsluit. </para>
+
+<sect2 id="xmlcheck-menu">
+<title
+>Menustructuur</title>
+
+<variablelist>
+<varlistentry>
+<term>
+<menuchoice
+><guimenu
+>&XML;</guimenu
+> <guimenuitem
+>&XML; valideren</guimenuitem
+> </menuchoice>
+</term>
+<listitem
+><para
+>Dit start de controle, zoals hierboven beschreven.</para
+></listitem>
+</varlistentry>
+</variablelist>
+
+</sect2>
+
+<sect2 id="xmlcheck-thanks-and-acknowledgements">
+<title
+>Dankbetuigingen en licentie</title>
+<para
+>&kate;-plugin <quote
+>&XML; Validation</quote
+> copyright 2002 &Daniel.Naber; &Daniel.Naber.mail; </para>
+<para
+>Documentatie copyright 2002 &Daniel.Naber;</para>
+
+</sect2>
+</sect1>
+
+<sect1 id="kate-application-plugin-xmltools">
+<!-- from doc/kate-addons/xmlcheck.docbook -->
+<sect1info>
+<authorgroup
+><author
+>&Daniel.Naber; &Daniel.Naber.mail; </author
+></authorgroup>
+</sect1info>
+<title
+>&XML;-aanvulling</title>
+
+<para
+>Deze plugin geeft hints over wat is toegestaan op een bepaalde positie in een &XML;-bestand volgens de DTD van het bestand. Het toont mogelijke elementen, attributen, attribuutwaarden of entiteiten, afhankelijk van de positie van de cursor (&eg; alle entiteiten worden getoond als het teken links van de cursor een <quote
+>&amp;</quote
+>) is. Het is ook mogelijk om de dichtstbijzijnde open tag aan de linker kant te sluiten.</para>
+
+<para
+>De <acronym
+>DTD</acronym
+> moet bestaan in &XML;-formaat, zoals geproduceerd door het Perl programma <command
+>dtdparse</command
+>. We zullen een DTD in dit formaat <quote
+>meta DTD</quote
+> noemen. Sommige meta DTD's zijn meegeleverd. Zij zijn geïnstalleerd in <filename class="directory"
+>katexmltools/</filename
+> in <userinput
+><command
+>qtpaths</command
+> <option
+>--paths GenericDataLocation </option
+></userinput
+>, die ook de standaard map is wanneer u kiest <guimenuitem
+>Meta DTD toekennen...</guimenuitem
+>. Om uw eigen meta DTD's te maken, haal <command
+>dtdparse</command
+> op uit <ulink url="http://dtdparse.sourceforge.net"
+>http://dtdparse.sourceforge.net</ulink
+>.</para>
+
+<sect2 id="xmltools-how-to-use">
+<title
+>Hoe te gebruiken</title>
+
+<para
+>Start &kate; en open de instellingendialoog onder <menuchoice
+><guimenu
+>Instellingen</guimenu
+> <guimenuitem
+>&kate; instellen...</guimenuitem
+></menuchoice
+>. Selecteer daarna <guilabel
+>&XML;-aanvulling</guilabel
+> die zal verschijnen in de pagina <guimenu
+>Toepassing</guimenu
+><guimenuitem
+>Plug-ins</guimenuitem
+> en de dialoog afsluit. Selecteer hierna <menuchoice
+><guimenu
+>&XML;</guimenu
+><guimenuitem
+>Meta DTD toekennen...</guimenuitem
+></menuchoice
+>. Als uw document geen <quote
+>DOCTYPE</quote
+> bevat of de doctype is onbekend, dan moet u een meta DTD uit het bestandssysteem kiezen. Anders wordt de meta DTD, die overeenkomt met de huidige DOCTYPE van het document, automatisch geladen.</para>
+
+<para
+>U kunt de plugin gebruiken terwijl u uw tekst intypt:</para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><keycap
+>&lt;</keycap
+> (kleiner-dan-toets)</term>
+<listitem
+><para
+>Dit start een lijst met mogelijke elementen tenzij de cursor zich al in een tag bevindt. Merk op dat u dit nu niet kunt gebruiken om het element op topniveau in te voegen (&eg; <quote
+>&lt;html&gt;</quote
+>).</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><keycap
+>&lt;</keycap
+><keycap
+>/</keycap
+>(kleiner-dan-toets + schuine streep)</term>
+<listitem
+><para
+>Invoeren van deze tekens biedt het sluiten van het huidige element (het dichtst bij de geopende links van de cursor). Druk op &Enter; om de suggestie te accepteren. Anders dan met de menu-items <guimenuitem
+>Element sluiten</guimenuitem
+>, werkt dit alleen met een toegekende DTD.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><keycap
+>"</keycap
+> (aanhalingsteken-toets)</term>
+<listitem
+><para
+>De toets aanhalingsteken start een lijst met mogelijke attribuutwaarden (als die er zijn) als u zich in een tag bevindt.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><keycap
+>&nbsp;</keycap
+> (spatietoets)</term>
+<listitem
+><para
+>Deze toets start een lijst met mogelijke attribuutwaarden voor het huidige element als u zich in een tag bevindt.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><keycap
+>&amp;</keycap
+> (ampersand-toets)</term>
+<listitem
+><para
+>Deze toets start een lijst met benoemde entiteiten.</para
+></listitem>
+</varlistentry>
+</variablelist>
+
+</sect2>
+
+<sect2 id="xmltools-features-and-limitations">
+<title
+>Mogelijkheden en beperkingen</title>
+
+<para
+>U kunt alle functies en beperkingen testen door <filename
+>katexmltools/testcases.xml</filename
+> in <userinput
+><command
+>qtpaths</command
+> <option
+>--paths GenericDataLocation </option
+></userinput
+> in &kate; te laden en de instructies te volgen.</para>
+
+</sect2>
+
+
+<sect2 id="xmltools-menu">
+<title
+>Menustructuur</title>
+
+<variablelist id="xml-insert-element">
+<varlistentry>
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;&Enter;</keycombo
+> </shortcut
+> <guimenu
+>&XML;</guimenu
+> <guimenuitem
+>Element invoegen...</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Dit opent een dialoog die u een &XML;-element laat invoegen. De tekens &lt;, &gt; en de sluittag zullen automatisch worden ingevoegd. Als u tekst hebt geselecteerd wanneer dit menu-item is geselecteerd, dan zal de geselecteerde tekst worden omgeven door de openings- en sluittag. De dialoog biedt ook aanvulling van alle elementen die kunnen worden ingevoegd op de huidige positie van de cursor als u een meta DTD hebt toegekend via <guimenuitem
+>Meta DTD toekennen...</guimenuitem
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="xml-close-element">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>&lt;</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>&XML;</guimenu
+> <guimenuitem
+>Element sluiten</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Hiermee wordt uw tekst doorzocht naar een tag die nog niet is gesloten en zal deze sluiten door de overeenkomstige sluittag. Het zoeken start op de positie van de cursor en gaat naar links. Als het geen open tag kan vinden dan zal er niets gebeuren.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="xml-assign-metadtd">
+<term
+><menuchoice
+><guimenu
+>&XML;</guimenu
+> <guimenuitem
+>Meta-DTD toekennen...</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Dit vertelt de plugin welke meta DTD voor het huidige document te gebruiken. Merk op dat dit toekennen niet zal worden opgeslagen. U zult het moeten herhalen wanneer u &kate; de volgende keer opstart.</para
+></listitem>
+</varlistentry>
+</variablelist>
+
+</sect2>
+
+<sect2 id="xmltools-thanks-and-acknowledgements">
+<title
+>Dankbetuigingen en licentie</title>
+<para
+>&kate;-plugin <quote
+>&XML;-aanvulling</quote
+> copyright 2001,2002 &Daniel.Naber; &Daniel.Naber.mail; </para>
+<para
+>&kde; SC 4 versie copyright 2010 Tomáš Trnka</para>
+<para
+>Documentatie copyright 2001,2002 &Daniel.Naber;</para>
+</sect2>
+</sect1>
+
+
+</chapter>

@@ -1,0 +1,3287 @@
+# translation of kate.po into Russian
+# translation of kate.po to
+# KDE3 - kdebase/kate.po Russian translation.
+# Copyright (C) 2005, KDE Russian translation team.
+#
+# Gregory Mokhin <mokhin@bog.msu.ru>, 2001.
+# Andrey Cherepanov <sibskull@mail.ru>, 2001-2005.
+# Leonid Kanter <leon@asplinux.ru>, 2004, 2005.
+# Gregory Mokhin <mok@kde.ru>, 2005.
+# Nick Shaforostoff <shafff@ukr.net>, 2005, 2006, 2008, 2009.
+# Evgeniy Ivanov <powerfox@kde.ru>, 2008.
+# Nick Shaforostoff <shaforostoff@kde.ru>, 2008, 2009.
+# Alexander Potashev <aspotashev@gmail.com>, 2010, 2011, 2014, 2015, 2017.
+# Yury G. Kudryashov <urkud.urkud@gmail.com>, 2012.
+# Yuri Efremov <yur.arh@gmail.com>, 2013.
+# Alexander Lakhin <exclusion@gmail.com>, 2013, 2014.
+# Alexander Yavorsky <kekcuha@gmail.com>, 2019.
+msgid ""
+msgstr ""
+"Project-Id-Version: kate\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2021-06-07 00:21+0000\n"
+"PO-Revision-Date: 2019-07-21 12:20+0300\n"
+"Last-Translator: Alexander Yavorsky <kekcuha@gmail.com>\n"
+"Language-Team: Russian <kde-russian@lists.kde.ru>\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Lokalize 19.04.3\n"
+"Plural-Forms: nplurals=4; plural=n==1 ? 3 : n%10==1 && n%100!=11 ? 0 : n"
+"%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"X-Environment: kde\n"
+"X-Accelerator-Marker: &\n"
+"X-Text-Markup: kde4\n"
+
+#, kde-format
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr "Андрей Черепанов, Григорий Мохин, Евгений Иванов, Александр Лахин"
+
+#, kde-format
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr "sibskull@mail.ru, mok@kde.ru, powerfox@kde.ru, exclusion@gmail.com"
+
+#: katefiletree.cpp:96
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Reloa&d"
+msgstr "П&ерезагрузить"
+
+#: katefiletree.cpp:98
+#, kde-format
+msgid "Reload selected document(s) from disk."
+msgstr "Заново прочитать выбранные документы с диска."
+
+#: katefiletree.cpp:100
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Close"
+msgstr "Закрыть"
+
+#: katefiletree.cpp:102
+#, kde-format
+msgid "Close the current document."
+msgstr "Закрыть текущий документ."
+
+#: katefiletree.cpp:104
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Expand recursively"
+msgstr "Развернуть рекурсивно"
+
+#: katefiletree.cpp:106
+#, kde-format
+msgid "Expand the file list sub tree recursively."
+msgstr "Развернуть рекурсивно поддерево с списке документов."
+
+#: katefiletree.cpp:108
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Collapse recursively"
+msgstr "Свернуть рекурсивно"
+
+#: katefiletree.cpp:110
+#, kde-format
+msgid "Collapse the file list sub tree recursively."
+msgstr "Свернуть рекурсивно поддерево с списке документов."
+
+#: katefiletree.cpp:112
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Close Other"
+msgstr "Закрыть другие"
+
+#: katefiletree.cpp:114
+#, kde-format
+msgid "Close other documents in this folder."
+msgstr "Закрыть остальные открытые документы в этой папке."
+
+#: katefiletree.cpp:117
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Open Containing Folder"
+msgstr "Открыть содержащую папку"
+
+#: katefiletree.cpp:119
+#, kde-format
+msgid "Open the folder this file is located in."
+msgstr "Открыть папку, в которой расположен этот файл."
+
+#: katefiletree.cpp:121
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Copy File Path"
+msgstr "Копировать путь к файлу"
+
+#: katefiletree.cpp:123
+#, kde-format
+msgid "Copy path and filename to the clipboard."
+msgstr "Копировать путь к файлу и его имя буфер обмена."
+
+#: katefiletree.cpp:125
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Rename..."
+msgstr "Переименовать..."
+
+#: katefiletree.cpp:127
+#, kde-format
+msgid "Rename the selected file."
+msgstr "Переименовать выбранный файл."
+
+#: katefiletree.cpp:130
+#, kde-format
+msgid "Print selected document."
+msgstr "Напечатанный выбранный документ."
+
+#: katefiletree.cpp:133
+#, kde-format
+msgid "Show print preview of current document"
+msgstr "Открыть окно предварительного просмотра печати выбранного документа."
+
+#: katefiletree.cpp:135
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Delete"
+msgstr "Удалить"
+
+#: katefiletree.cpp:137
+#, kde-format
+msgid "Close and delete selected file from storage."
+msgstr "Закрыть и удалить выбранный файл с диска."
+
+#: katefiletree.cpp:143
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Tree Mode"
+msgstr "Дерево"
+
+#: katefiletree.cpp:144
+#, kde-format
+msgid "Set view style to Tree Mode"
+msgstr "Показывать документы в виде дерева папок."
+
+#: katefiletree.cpp:150
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "List Mode"
+msgstr "Список"
+
+#: katefiletree.cpp:151
+#, kde-format
+msgid "Set view style to List Mode"
+msgstr "Показывать документы в виде списка."
+
+#: katefiletree.cpp:158
+#, kde-format
+msgctxt "@action:inmenu sorting option"
+msgid "Document Name"
+msgstr "По имени документа"
+
+#: katefiletree.cpp:158
+#, kde-format
+msgid "Sort by Document Name"
+msgstr "Сортировать по имени документа."
+
+#: katefiletree.cpp:161
+#, kde-format
+msgctxt "@action:inmenu sorting option"
+msgid "Document Path"
+msgstr "По пути к документу"
+
+#: katefiletree.cpp:161
+#, kde-format
+msgid "Sort by Document Path"
+msgstr "Сортировать по пути к документу."
+
+#: katefiletree.cpp:165
+#, kde-format
+msgctxt "@action:inmenu sorting option"
+msgid "Opening Order"
+msgstr "По порядку открытия"
+
+#: katefiletree.cpp:166
+#, kde-format
+msgid "Sort by Opening Order"
+msgstr "Сортировать по порядку открытия."
+
+#: katefiletree.cpp:170
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Clear History"
+msgstr "Сбросить историю активации"
+
+#: katefiletree.cpp:172
+#, kde-format
+msgid "Clear edit/view history."
+msgstr "Сбросить историю открытия файлов и переходов между файлами."
+
+#: katefiletree.cpp:308
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Open With"
+msgstr "Открыть с помощью..."
+
+#: katefiletree.cpp:321
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "View Mode"
+msgstr "Режим просмотра"
+
+#: katefiletree.cpp:325
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Sort By"
+msgstr "Сортировать"
+
+#: katefiletree.cpp:366
+#, kde-format
+msgid "&Other..."
+msgstr "&Другое приложение..."
+
+#: katefiletree.cpp:511
+#, kde-format
+msgid "Rename file"
+msgstr "Переименование файла"
+
+#: katefiletree.cpp:511
+#, kde-format
+msgid "New file name"
+msgstr "Введите новое имя файла:"
+
+#: katefiletree.cpp:539
+#, kde-format
+msgid "File \"%1\" could not be moved to \"%2\""
+msgstr "Не удалось переместить файл «%1» в «%2»."
+
+#: katefiletree.cpp:751
+#, kde-format
+msgid "Do you really want to delete file \"%1\" from storage?"
+msgstr "Удалить файл «%1» с диска?"
+
+#: katefiletree.cpp:752
+#, kde-format
+msgid "Delete file?"
+msgstr "Удаление файла"
+
+#: katefiletree.cpp:769
+#, kde-format
+msgid "File \"%1\" could not be deleted."
+msgstr "Произошла ошибка при попытке удаления файла «%1»."
+
+#: katefiletreeconfigpage.cpp:45
+#, kde-format
+msgid "Background Shading"
+msgstr "Подсветка фона"
+
+#: katefiletreeconfigpage.cpp:52
+#, kde-format
+msgid "&Viewed documents' shade:"
+msgstr "Подсветка &просмотренных документов:"
+
+#: katefiletreeconfigpage.cpp:58
+#, kde-format
+msgid "&Modified documents' shade:"
+msgstr "Подсветка &изменённых документов:"
+
+#: katefiletreeconfigpage.cpp:66
+#, kde-format
+msgid "&Sort by:"
+msgstr "&Сортировать по:"
+
+#: katefiletreeconfigpage.cpp:71
+#, kde-format
+msgid "Opening Order"
+msgstr "Порядку открытия"
+
+#: katefiletreeconfigpage.cpp:72
+#, kde-format
+msgid "Document Name"
+msgstr "Имени документа"
+
+#: katefiletreeconfigpage.cpp:73
+#, kde-format
+msgid "Url"
+msgstr "URL"
+
+#: katefiletreeconfigpage.cpp:78
+#, kde-format
+msgid "&View Mode:"
+msgstr "&Режим просмотра:"
+
+#: katefiletreeconfigpage.cpp:83
+#, kde-format
+msgid "Tree View"
+msgstr "Дерево документов"
+
+#: katefiletreeconfigpage.cpp:84
+#, kde-format
+msgid "List View"
+msgstr "Список документов"
+
+#: katefiletreeconfigpage.cpp:89
+#, kde-format
+msgid "&Show Full Path"
+msgstr "П&оказывать полный путь"
+
+#: katefiletreeconfigpage.cpp:94
+#, fuzzy, kde-format
+#| msgid "Toolbar"
+msgid "Show &Toolbar"
+msgstr "Панель инструментов"
+
+#: katefiletreeconfigpage.cpp:97
+#, kde-format
+msgid "Show Close Button"
+msgstr ""
+
+#: katefiletreeconfigpage.cpp:99
+#, kde-format
+msgid ""
+"When enabled, this will show a close button for opened documents on hover."
+msgstr ""
+
+#: katefiletreeconfigpage.cpp:104
+#, kde-format
+msgid ""
+"When background shading is enabled, documents that have been viewed or "
+"edited within the current session will have a shaded background. The most "
+"recent documents have the strongest shade."
+msgstr ""
+"При включении подсветки фона документы, просмотренные или изменённые в "
+"текущем сеансе, будут иметь затенённый фон. Последние документы будут "
+"выделены этим цветом."
+
+#: katefiletreeconfigpage.cpp:107
+#, kde-format
+msgid "Set the color for shading viewed documents."
+msgstr "Задать цвет для подсветки просматриваемых документов."
+
+#: katefiletreeconfigpage.cpp:109
+#, kde-format
+msgid ""
+"Set the color for modified documents. This color is blended into the color "
+"for viewed files. The most recently edited documents get most of this color."
+msgstr ""
+"Задать цвет для изменённых документов. Этот цвет будет смешиваться с цветом "
+"просматриваемых файлов. Последние документы будут выделены этим цветом."
+
+#: katefiletreeconfigpage.cpp:114
+#, kde-format
+msgid ""
+"When enabled, in tree mode, top level folders will show up with their full "
+"path rather than just the last folder name."
+msgstr ""
+"При включении этого параметра, в режиме просмотра документов в виде дерева, "
+"у папок верхнего уровня будут указаны полные пути, а не их имена."
+
+#: katefiletreeconfigpage.cpp:117
+#, kde-format
+msgid ""
+"When enabled, a toolbar with actions like “Save” are displayed above the "
+"list of documents."
+msgstr ""
+
+#: katefiletreeconfigpage.cpp:136 katefiletreeplugin.cpp:137
+#, kde-format
+msgid "Documents"
+msgstr "Документы"
+
+#: katefiletreeconfigpage.cpp:141
+#, kde-format
+msgid "Configure Documents"
+msgstr "Управление документами"
+
+#: katefiletreemodel.cpp:547
+#, kde-format
+msgctxt "%1 is the full path"
+msgid ""
+"<p><b>%1</b></p><p>The document has been modified by another application.</p>"
+msgstr "<p><b>%1</b></p><p>Документ был изменён в другом приложении.</p>"
+
+#: katefiletreeplugin.cpp:130
+#, kde-format
+msgid "Kate File Tree"
+msgstr "Панель дерева документов"
+
+#: katefiletreeplugin.cpp:237
+#, kde-format
+msgid "Previous Document"
+msgstr "Предыдущий документ"
+
+#: katefiletreeplugin.cpp:243
+#, kde-format
+msgid "Next Document"
+msgstr "Следующий документ"
+
+#: katefiletreeplugin.cpp:249
+#, kde-format
+msgid "&Show Active"
+msgstr "&Показать активный документ"
+
+#: katefiletreeplugin.cpp:254
+#, kde-format
+msgid "Save Current Document"
+msgstr "Сохранить текущий документ"
+
+#: katefiletreeplugin.cpp:255
+#, kde-format
+msgid "Save the current document"
+msgstr "Сохранить текущий документ"
+
+#: katefiletreeplugin.cpp:259
+#, kde-format
+msgid "Save Current Document As"
+msgstr "Сохранить текущий документ как"
+
+#: katefiletreeplugin.cpp:260
+#, kde-format
+msgid "Save current document under new name"
+msgstr "Сохранить текущий документ под новым именем"
+
+#. i18n: ectx: Menu (view)
+#: ui.rc:7
+#, kde-format
+msgid "&View"
+msgstr "&Вид"
+
+#~ msgid "Application '%1' not found."
+#~ msgstr "Приложение %1 не найдено."
+
+#~ msgid "Application not found"
+#~ msgstr "Приложение не найдено"
+
+#~ msgctxt "@action:inmenu"
+#~ msgid "Rename File"
+#~ msgstr "Переименовать файл"
+
+#~ msgctxt "@action:inmenu"
+#~ msgid "Delete Document"
+#~ msgstr "Удалить документ"
+
+#~ msgid ""
+#~ "The file '%1' could not be opened: it is not a normal file, it is a "
+#~ "folder."
+#~ msgstr ""
+#~ "Файл «%1» не может быть открыт, поскольку является папкой, а не обычным "
+#~ "файлом."
+
+#~ msgid "All documents written to disk"
+#~ msgstr "Документы сохранены на диск"
+
+#~ msgid "Document written to disk"
+#~ msgstr "Документ сохранён на диск"
+
+#~ msgid ""
+#~ "<p><b>w/wa &mdash; write document(s) to disk</b></p><p>Usage: "
+#~ "<tt><b>w[a]</b></tt></p><p>Writes the current document(s) to disk. It can "
+#~ "be called in two ways:<br /> <tt>w</tt> &mdash; writes the current "
+#~ "document to disk<br /> <tt>wa</tt> &mdash; writes all documents to disk.</"
+#~ "p><p>If no file name is associated with the document, a file dialog will "
+#~ "be shown.</p>"
+#~ msgstr ""
+#~ "<p><b>w/wa &mdash; сохранить документ(ы) на диск</b></p><p>Использование: "
+#~ "<tt><b>w[a]</b></tt></p><p>Сохранить текущий документ(ы) на диск. Есть "
+#~ "два варианта команды:<br /> <tt>w</tt> &mdash; сохранить текущий документ "
+#~ "на диск<br /> <tt>wa</tt> &mdash; сохранить все открытые документы на "
+#~ "диск.</p><p>Если для документа ещё не задано имя файла, будет открыт "
+#~ "файловый диалог.</p>"
+
+#~ msgid ""
+#~ "<p><b>q/qa/wq/wqa &mdash; [write and] quit</b></p><p>Usage: "
+#~ "<tt><b>[w]q[a]</b></tt></p><p>Quits the application. If <tt>w</tt> is "
+#~ "prepended, it also writes the document(s) to disk. This command can be "
+#~ "called in several ways:<br /> <tt>q</tt> &mdash; closes the current view."
+#~ "<br /> <tt>qa</tt> &mdash; closes all views, effectively quitting the "
+#~ "application.<br /> <tt>wq</tt> &mdash; writes the current document to "
+#~ "disk and closes its view.<br /> <tt>wqa</tt> &mdash; writes all documents "
+#~ "to disk and quits.</p><p>In all cases, if the view being closed is the "
+#~ "last view, the application quits. If no file name is associated with the "
+#~ "document and it should be written to disk, a file dialog will be shown.</"
+#~ "p>"
+#~ msgstr ""
+#~ "<p><b>q/qa/wq/wqa &mdash; [сохранить и] выйти</b></p><p>Использование:"
+#~ "<tt><b>[w]q[a]</b></tt></p><p>Выйти из приложения. Если предваряется "
+#~ "<tt>w</tt>, то открытые документы предварительно сохраняются на диск. "
+#~ "Возможны несколько вариантов команды: <br /> <tt>q</tt> &mdash; закрыть "
+#~ "текущий документ.<br /> <tt>qa</tt> &mdash; закрыть все документы, по "
+#~ "сути выход из приложения.<br /> <tt>wq</tt> &mdash; сохранить текущий "
+#~ "документ на диск и закрыть его.<br /> <tt>wqa</tt> &mdash; сохранить все "
+#~ "документы на диск и выйти.</p><p>Во всех случаях после закрытия "
+#~ "последнего документа приложение завершается. Если для документа ещё не "
+#~ "задано имя файла и он должен быть сохранён, будет открыт файловый диалог."
+#~ "</p>"
+
+#~ msgid ""
+#~ "<p><b>x/xa &mdash; write and quit</b></p><p>Usage: <tt><b>x[a]</b></tt></"
+#~ "p><p>Saves document(s) and quits (e<b>x</b>its). This command can be "
+#~ "called in two ways:<br /> <tt>x</tt> &mdash; closes the current view.<br /"
+#~ "> <tt>xa</tt> &mdash; closes all views, effectively quitting the "
+#~ "application.</p><p>In all cases, if the view being closed is the last "
+#~ "view, the application quits. If no file name is associated with the "
+#~ "document and it should be written to disk, a file dialog will be shown.</"
+#~ "p><p>Unlike the 'w' commands, this command only writes the document if it "
+#~ "is modified.</p>"
+#~ msgstr ""
+#~ "<p><b>x/xa &mdash; сохранить и выйти</b></p><p>Использование:<tt><b>x[a]</"
+#~ "b></tt></p><p>Сохранить документ(ы) и выйти из приложения. Есть два "
+#~ "варианта команды:<br /> <tt>x</tt> &mdash; закрыть текущий документ.<br /"
+#~ "> <tt>xa</tt> &mdash; закрыть все документы, по сути выход из приложения."
+#~ "</p><p>Во всех случаях после закрытия последнего документа приложение "
+#~ "завершается. Если для документа ещё не задано имя файла и он должен быть "
+#~ "сохранён, будет открыт файловый диалог.</p><p>В отличии от команды «w» "
+#~ "эта сохраняет документ, только если он был изменён.</p>"
+
+#~ msgid ""
+#~ "<p><b>sp,split&mdash; Split horizontally the current view into two</b></"
+#~ "p><p>Usage: <tt><b>sp[lit]</b></tt></p><p>The result is two views on the "
+#~ "same document.</p>"
+#~ msgstr ""
+#~ "<p><b>sp,split&mdash; Разделить текущую область редактирования на две по "
+#~ "горизонтали.</b></p><p>Использование: <tt><b>sp[lit]</b></tt></"
+#~ "p><p>Результат: две области редактирования с тем же самым документом.</p>"
+
+#~ msgid ""
+#~ "<p><b>vs,vsplit&mdash; Split vertically the current view into two</b></"
+#~ "p><p>Usage: <tt><b>vs[plit]</b></tt></p><p>The result is two views on the "
+#~ "same document.</p>"
+#~ msgstr ""
+#~ "<p><b>vs,vsplit&mdash; Разделить текущую область редактирования на две по "
+#~ "вертикали.</b></p><p>Использование: <tt><b>vs[plit]</b></tt></"
+#~ "p><p>Результат: две области редактирования с тем же самым документом.</p>"
+
+#~ msgid ""
+#~ "<p><b>[v]new &mdash; split view and create new document</b></p><p>Usage: "
+#~ "<tt><b>[v]new</b></tt></p><p>Splits the current view and opens a new "
+#~ "document in the new view. This command can be called in two ways:<br /> "
+#~ "<tt>new</tt> &mdash; splits the view horizontally and opens a new "
+#~ "document.<br /> <tt>vnew</tt> &mdash; splits the view vertically and "
+#~ "opens a new document.<br /></p>"
+#~ msgstr ""
+#~ "<p><b>[v]new &mdash; разделить область редактирования и создать новый "
+#~ "документ.</b></p><p>Использование:<tt><b>[v]new</b></tt></p><p>Разделить "
+#~ "текущую область редактирования и создать в одной из них пустой документ. "
+#~ "Есть два варианта команды:<br /> <tt>new</tt> &mdash; разделить текущую "
+#~ "область редактирования на две по горизонтали и создать документ.<br /> "
+#~ "<tt>vnew</tt> &mdash; разделить текущую область редактирования на две по "
+#~ "вертикали и создать документ.<br /></p>"
+
+#~ msgid ""
+#~ "<p><b>e[dit] &mdash; reload current document</b></p><p>Usage: "
+#~ "<tt><b>e[dit]</b></tt></p><p>Starts <b>e</b>diting the current document "
+#~ "again. This is useful to re-edit the current file, when it has been "
+#~ "changed by another program.</p>"
+#~ msgstr ""
+#~ "<p><b>e[dit] &mdash; обновить текущий документ.</b></p><p>Использование: "
+#~ "<tt><b>e[dit]</b></tt></p><p>Открыть документ заново и начать его "
+#~ "редактирование. Это может быть удобно для повторной правки файла, "
+#~ "изменённого другим приложением.<b>"
+
+#~ msgid "Configure"
+#~ msgstr "Настройка"
+
+#~ msgid "Application"
+#~ msgstr "Приложение"
+
+#~ msgid "Application Options"
+#~ msgstr "Настройки приложения"
+
+#~ msgid "General"
+#~ msgstr "Общие"
+
+#~ msgid "General Options"
+#~ msgstr "Общие параметры"
+
+#~ msgid "&Behavior"
+#~ msgstr "&Поведение"
+
+#~ msgid "Wa&rn about files modified by foreign processes"
+#~ msgstr "&Предупреждать об изменении файла другой программой"
+
+#~ msgid ""
+#~ "If enabled, when Kate receives focus you will be asked what to do with "
+#~ "files that have been modified on the hard disk. If not enabled, you will "
+#~ "be asked what to do with a file that has been modified on the hard disk "
+#~ "only when that file is tried to be saved."
+#~ msgstr ""
+#~ "Показывать предупреждение об изменении файла другой программой сразу при "
+#~ "получении окном фокуса. Примечание: если параметр не выбран, "
+#~ "предупреждение будет показываться только при попытке сохранить изменённый "
+#~ "файл на диск."
+
+#~ msgid "Meta-Information"
+#~ msgstr "Метаинформация"
+
+#~ msgid "Keep &meta-information past sessions"
+#~ msgstr "Сохранять &метаинформацию сеанса"
+
+#~ msgid ""
+#~ "Check this if you want document configuration like for example bookmarks "
+#~ "to be saved past editor sessions. The configuration will be restored if "
+#~ "the document has not changed when reopened."
+#~ msgstr ""
+#~ "Включите эту опцию, чтобы сохранять настройки сеанса, такие как "
+#~ "установленные отметки. Эти настройки будут восстановлены, если документ "
+#~ "не изменится с момента последнего редактирования."
+
+#~ msgid "&Delete unused meta-information after:"
+#~ msgstr "&Удалить неиспользуемые данные через:"
+
+#~ msgid "(never)"
+#~ msgstr "(никогда)"
+
+#~ msgid "Sessions"
+#~ msgstr "Сеансы"
+
+#~ msgid "Session Management"
+#~ msgstr "Управление сеансами"
+
+#~ msgid "Elements of Sessions"
+#~ msgstr "Элементы сеанса"
+
+#~ msgid "Include &window configuration"
+#~ msgstr "&Восстанавливать положение и размеры окна"
+
+#~ msgid ""
+#~ "Check this if you want all your views and frames restored each time you "
+#~ "open Kate"
+#~ msgstr ""
+#~ "Включите этот параметр, чтобы восстанавливать расположение элементов "
+#~ "интерфейса при запуске редактора"
+
+#~ msgid "Behavior on Application Startup"
+#~ msgstr "Поведение при запуске приложения"
+
+#~ msgid "&Start new session"
+#~ msgstr "&Начать новый сеанс"
+
+#~ msgid "&Load last-used session"
+#~ msgstr "&Загрузить последний сеанс"
+
+#~ msgid "&Manually choose a session"
+#~ msgstr "&Выбрать сеанс"
+
+#~ msgid "Plugins"
+#~ msgstr "Модули"
+
+#~ msgid "Plugin Manager"
+#~ msgstr "Управление модулями"
+
+#~ msgid "Editor Component"
+#~ msgstr "Компонент редактирования"
+
+#~ msgid "Editor Component Options"
+#~ msgstr "Настройка компонента редактирования"
+
+#~ msgctxt "The suffix of 'Delete unused meta-information after'"
+#~ msgid " day"
+#~ msgid_plural " days"
+#~ msgstr[0] " день"
+#~ msgstr[1] " дня"
+#~ msgstr[2] " дней"
+#~ msgstr[3] " день"
+
+#~ msgid "Name"
+#~ msgstr "Название"
+
+#~ msgid "Comment"
+#~ msgstr "Комментарий"
+
+#~ msgid ""
+#~ "Here you can see all available Kate plugins. Those with a check mark are "
+#~ "loaded, and will be loaded again the next time Kate is started."
+#~ msgstr ""
+#~ "Здесь показаны все доступные модули Kate. После включении флажка у "
+#~ "соответствующего модуля он будет загружен при следующем запуске Kate."
+
+#~ msgid ""
+#~ "A KDE text-editor component could not be found.\n"
+#~ "Please check your KDE installation."
+#~ msgstr ""
+#~ "Компонент текстового редактора KDE не найден.\n"
+#~ "Возможно, среда KDE установлена неправильно."
+
+#~ msgid ""
+#~ "The supposedly temporary file %1 has been modified. Do you want to delete "
+#~ "it anyway?"
+#~ msgstr "Временный файл %1 был изменён. Вы всё равно хотите его удалить?"
+
+#~ msgid ""
+#~ "<p>The document '%1' has been modified, but not saved.</p><p>Do you want "
+#~ "to save your changes or discard them?</p>"
+#~ msgstr ""
+#~ "<p>Документ «%1» изменён, но не сохранён.</p><p>Сохранить изменения или "
+#~ "отклонить их?</p>?"
+
+#~ msgid "Close Document"
+#~ msgstr "Закрыть документ"
+
+#~ msgid "Save As"
+#~ msgstr "Сохранить как"
+
+#~ msgid "New file opened while trying to close Kate, closing aborted."
+#~ msgstr "Открывается новый файл при выходе из Kate. Выход прерван."
+
+#~ msgid "Closing Aborted"
+#~ msgstr "Выход прерван"
+
+#~ msgid "Starting Up"
+#~ msgstr "Запуск"
+
+#~ msgid "Reopening files from the last session..."
+#~ msgstr "Открываются файлы последнего сеанса..."
+
+#~ msgid "Errors/Warnings while opening documents"
+#~ msgstr "При открытии документа возникли ошибки/замечания"
+
+#~ msgid "Kate"
+#~ msgstr "Kate"
+
+#~ msgid "Kate - Advanced Text Editor"
+#~ msgstr "Kate — мощный текстовый редактор"
+
+#~ msgid "(c) 2000-2013 The Kate Authors"
+#~ msgstr "© Авторы Kate, 2000-2013"
+
+#~ msgid "Christoph Cullmann"
+#~ msgstr "Christoph Cullmann"
+
+#~ msgid "Maintainer"
+#~ msgstr "Сопровождающий"
+
+#~ msgid "Anders Lund"
+#~ msgstr "Anders Lund"
+
+#~ msgid "Core Developer"
+#~ msgstr "Ведущий разработчик"
+
+#~ msgid "Joseph Wenninger"
+#~ msgstr "Joseph Wenninger"
+
+#~ msgid "Hamish Rodda"
+#~ msgstr "Hamish Rodda"
+
+#~ msgid "Dominik Haumann"
+#~ msgstr "Dominik Haumann"
+
+#~ msgid "Developer & Highlight wizard"
+#~ msgstr "Разработчик, мастер подсветки"
+
+#~ msgid "Alexander Neundorf"
+#~ msgstr "Alexander Neundorf"
+
+#~ msgid "Developer"
+#~ msgstr "Разработчик"
+
+#~ msgid "Waldo Bastian"
+#~ msgstr "Waldo Bastian"
+
+#~ msgid "The cool buffersystem"
+#~ msgstr "Классная реализация буфера"
+
+#~ msgid "Charles Samuels"
+#~ msgstr "Charles Samuels"
+
+#~ msgid "The Editing Commands"
+#~ msgstr "Команды редактирования"
+
+#~ msgid "Matt Newell"
+#~ msgstr "Matt Newell"
+
+#~ msgid "Testing, ..."
+#~ msgstr "Тестирование и прочее"
+
+#~ msgid "Michael Bartl"
+#~ msgstr "Michael Bartl"
+
+#~ msgid "Former Core Developer"
+#~ msgstr "Бывший ведущий разработчик"
+
+#~ msgid "Michael McCallum"
+#~ msgstr "Michael McCallum"
+
+#~ msgid "Jochen Wilhemly"
+#~ msgstr "Jochen Wilhemly"
+
+#~ msgid "KWrite Author"
+#~ msgstr "Автор KWrite"
+
+#~ msgid "Michael Koch"
+#~ msgstr "Michael Koch"
+
+#~ msgid "KWrite port to KParts"
+#~ msgstr "Перенос KWrite на KParts"
+
+#~ msgid "Christian Gebauer"
+#~ msgstr "Christian Gebauer"
+
+#~ msgid "Simon Hausmann"
+#~ msgstr "Simon Hausmann"
+
+#~ msgid "Glen Parker"
+#~ msgstr "Glen Parker"
+
+#~ msgid "KWrite Undo History, Kspell integration"
+#~ msgstr "Журнал действий KWrite, подключение KSpell"
+
+#~ msgid "Scott Manson"
+#~ msgstr "Scott Manson"
+
+#~ msgid "KWrite XML Syntax highlighting support"
+#~ msgstr "Подсветка синтаксиса XML в KWrite"
+
+#~ msgid "John Firebaugh"
+#~ msgstr "John Firebaugh"
+
+#~ msgid "Patches and more"
+#~ msgstr "Исправления и прочее"
+
+#~ msgid "Pablo Martín"
+#~ msgstr "Pablo Martín"
+
+#~ msgid "Python Plugin Developer"
+#~ msgstr "Разработка модуля Python"
+
+#~ msgid "Gerald Senarclens de Grancy"
+#~ msgstr "Gerald Senarclens de Grancy"
+
+#~ msgid "QA and Scripting"
+#~ msgstr "Контроль качества, сценарии"
+
+#~ msgid "Matteo Merli"
+#~ msgstr "Matteo Merli"
+
+#~ msgid "Highlighting for RPM Spec-Files, Perl, Diff and more"
+#~ msgstr "Подсветка для spec-файлов RPM, Perl, diff и других"
+
+#~ msgid "Rocky Scaletta"
+#~ msgstr "Rocky Scaletta"
+
+#~ msgid "Highlighting for VHDL"
+#~ msgstr "Подсветка для VHDL"
+
+#~ msgid "Yury Lebedev"
+#~ msgstr "Юрий Лебедев"
+
+#~ msgid "Highlighting for SQL"
+#~ msgstr "Подсветка для SQL"
+
+#~ msgid "Chris Ross"
+#~ msgstr "Chris Ross"
+
+#~ msgid "Highlighting for Ferite"
+#~ msgstr "Подсветка для Ferite"
+
+#~ msgid "Nick Roux"
+#~ msgstr "Nick Roux"
+
+#~ msgid "Highlighting for ILERPG"
+#~ msgstr "Подсветка для ILERPG"
+
+#~ msgid "Carsten Niehaus"
+#~ msgstr "Carsten Niehaus"
+
+#~ msgid "Highlighting for LaTeX"
+#~ msgstr "Подсветка для LaTeX"
+
+#~ msgid "Per Wigren"
+#~ msgstr "Per Wigren"
+
+#~ msgid "Highlighting for Makefiles, Python"
+#~ msgstr "Подсветка для Makefile, Python"
+
+#~ msgid "Jan Fritz"
+#~ msgstr "Jan Fritz"
+
+#~ msgid "Highlighting for Python"
+#~ msgstr "Подсветка для Python"
+
+#~ msgid "Daniel Naber"
+#~ msgstr "Daniel Naber"
+
+#~ msgid "Roland Pabel"
+#~ msgstr "Roland Pabel"
+
+#~ msgid "Highlighting for Scheme"
+#~ msgstr "Подсветка для Scheme"
+
+#~ msgid "Cristi Dumitrescu"
+#~ msgstr "Cristi Dumitrescu"
+
+#~ msgid "PHP Keyword/Datatype list"
+#~ msgstr "Список ключевых слов и типов данных PHP"
+
+#~ msgid "Carsten Pfeiffer"
+#~ msgstr "Carsten Pfeiffer"
+
+#~ msgid "Very nice help"
+#~ msgstr "Очень ценная помощь"
+
+#~ msgid "All people who have contributed and I have forgotten to mention"
+#~ msgstr "Все, кто участвовал в этом проекте, но не были упомянуты"
+
+#~ msgid "Start Kate with a given session"
+#~ msgstr "Запуск Kate с указанным сеансом"
+
+#~ msgid "Start Kate with a new anonymous session, implies '-n'"
+#~ msgstr "Запуск Kate с новым безымянным сеансом, подразумевает параметр «-n»"
+
+#~ msgid ""
+#~ "Force start of a new kate instance (is ignored if start is used and "
+#~ "another kate instance already has the given session opened), forced if no "
+#~ "parameters and no URLs are given at all"
+#~ msgstr ""
+#~ "Запустить новый экземпляр Kate (если не используется вместе со --start и "
+#~ "указанный сеанс уже не открыт в другом); при запуске Kate без каких либо "
+#~ "параметров или URL данный параметр включается автоматически"
+
+#~ msgid ""
+#~ "If using an already running kate instance, block until it exits, if URLs "
+#~ "given to open"
+#~ msgstr ""
+#~ "Блокировать завершение нового процесса Kate, пока не будут закрыты файлы, "
+#~ "указанные в URL"
+
+#~ msgid ""
+#~ "Only try to reuse kate instance with this pid (is ignored if start is "
+#~ "used and another kate instance already has the given session opened)"
+#~ msgstr ""
+#~ "Попытаться использовать уже запущенный экземпляр Kate с указанным PID "
+#~ "(если не используется вместе со --start и указанный сеанс уже не открыт в "
+#~ "другом экземпляре)"
+
+#~ msgid "Set encoding for the file to open"
+#~ msgstr "Кодировка открываемого файла"
+
+#~ msgid "Navigate to this line"
+#~ msgstr "Перейти на строку"
+
+#~ msgid "Navigate to this column"
+#~ msgstr "Перейти на столбец"
+
+#~ msgid "Read the contents of stdin"
+#~ msgstr "Читать со стандартного ввода"
+
+#~ msgid "Reuse existing Kate instance; default, only for compatibility"
+#~ msgstr ""
+#~ "Использовать уже запущенный экземпляр приложения Kate; используется по "
+#~ "умолчания, параметр сохранён для совместимости"
+
+#~ msgid "Document to open"
+#~ msgstr "Открыть документ"
+
+#~ msgid "Use this command to show or hide the view's statusbar"
+#~ msgstr "Показать/скрыть строку состояния документа"
+
+#~ msgid "Sho&w Path in Titlebar"
+#~ msgstr "Показывать п&уть в заголовке окна"
+
+#~ msgid "Show the complete document path in the window caption"
+#~ msgstr "Показывать полный путь к файлу документа в заголовке окна"
+
+#~ msgid "Create a new document"
+#~ msgstr "Создать новый документ"
+
+#~ msgid "Open an existing document for editing"
+#~ msgstr "Открыть существующий документ для изменения"
+
+#~ msgid ""
+#~ "This lists files which you have opened recently, and allows you to easily "
+#~ "open them again."
+#~ msgstr ""
+#~ "Список последних открывавшихся файлов, позволяющий легко открыть их снова."
+
+#~ msgid "Save A&ll"
+#~ msgstr "Сохранить &все"
+
+#~ msgid "Save all open, modified documents to disk."
+#~ msgstr "Сохранить все открытые и изменённые документы."
+
+#~ msgid "&Reload All"
+#~ msgstr "Обновить &все"
+
+#~ msgid "Reload all open documents."
+#~ msgstr "Обновить все открытые документы."
+
+#~ msgid "Close Orphaned"
+#~ msgstr "Закрыть недоступные"
+
+#~ msgid ""
+#~ "Close all documents in the file list that could not be reopened, because "
+#~ "they are not accessible anymore."
+#~ msgstr ""
+#~ "Закрыть все открытые документы, которые уже невозможно открыть заново из-"
+#~ "за того, что соответствующие файлы стали недоступны."
+
+#~ msgid "Clos&e All"
+#~ msgstr "Закрыть вс&е"
+
+#~ msgid "Close all open documents."
+#~ msgstr "Закрыть все открытые документы."
+
+#~ msgid "Close this window"
+#~ msgstr "Закрыть окно"
+
+#~ msgid "&New Window"
+#~ msgstr "&Новое окно"
+
+#~ msgid "Create a new Kate view (a new window with the same document list)."
+#~ msgstr "Создание нового вида Kate (новое окно с тем же списком документов)."
+
+#~ msgid "&Quick Open"
+#~ msgstr "&Быстрый переход"
+
+#~ msgid "Open a form to quick open documents."
+#~ msgstr "Предлагает список документов для быстрого перехода."
+
+#~ msgid "Open W&ith"
+#~ msgstr "Открыть &в"
+
+#~ msgid ""
+#~ "Open the current document using another application registered for its "
+#~ "file type, or an application of your choice."
+#~ msgstr ""
+#~ "Открывает текущий документ в другом приложении, зарегистрированным для "
+#~ "этого типа файлов или в приложении, которые вы укажете вручную."
+
+#~ msgid "Configure the application's keyboard shortcut assignments."
+#~ msgstr "Настройка привязок «горячих» клавиш."
+
+#~ msgid "Configure which items should appear in the toolbar(s)."
+#~ msgstr "Выбор элементов для размещения на панелях инструментов."
+
+#~ msgid ""
+#~ "Configure various aspects of this application and the editing component."
+#~ msgstr "Настройка различных параметров программы."
+
+#~ msgid "This shows useful tips on the use of this application."
+#~ msgstr "Показ полезных для использования программы советов."
+
+#~ msgid "&Plugins Handbook"
+#~ msgstr "Руководство по &модулям"
+
+#~ msgid "This shows help files for various available plugins."
+#~ msgstr "Вывести справочную информацию по доступным модулям."
+
+#~ msgid "&About Editor Component"
+#~ msgstr "&О компоненте редактирования"
+
+#~ msgctxt "Menu entry Session->New"
+#~ msgid "&New"
+#~ msgstr "&Новый"
+
+#~ msgid "&Open Session"
+#~ msgstr "&Открыть сеанс..."
+
+#~ msgid "&Save Session"
+#~ msgstr "&Сохранить сеанс"
+
+#~ msgid "Save Session &As..."
+#~ msgstr "Сохранить сеанс &как..."
+
+#~ msgid "&Manage Sessions..."
+#~ msgstr "&Управление сеансами..."
+
+#~ msgid "&Quick Open Session"
+#~ msgstr "О&ткрыть сеанс"
+
+#~ msgid ""
+#~ "This will close all open documents. Are you sure you want to continue?"
+#~ msgstr "Будут закрыты все открытые документы. Продолжить?"
+
+#~ msgid "Close all documents"
+#~ msgstr "Закрытие всех документов"
+
+#~ msgid ""
+#~ "This will hide the menu bar completely. You can show it again by typing "
+#~ "%1."
+#~ msgstr ""
+#~ "Это действие полностью скроет меню. Для того чтобы снова вывести его, "
+#~ "нажмите %1."
+
+#~ msgid "Hide menu bar"
+#~ msgstr "Скрытие строки меню"
+
+#~ msgid " [read only]"
+#~ msgstr " [только для чтения]"
+
+#~ msgid "Tool &Views"
+#~ msgstr "&Боковые панели"
+
+#~ msgid "Show Side&bars"
+#~ msgstr "Показывать &боковые панели"
+
+#~ msgid "Show %1"
+#~ msgstr "Показать панель «%1»"
+
+#~ msgid "Configure ..."
+#~ msgstr "Настроить..."
+
+#~ msgid "Behavior"
+#~ msgstr "Поведение"
+
+#~ msgid "Make Non-Persistent"
+#~ msgstr "Автоматическое размещение"
+
+#~ msgid "Make Persistent"
+#~ msgstr "Постоянное место"
+
+#~ msgid "Move To"
+#~ msgstr "Поместить"
+
+#~ msgid "Left Sidebar"
+#~ msgstr "Слева"
+
+#~ msgid "Right Sidebar"
+#~ msgstr "Справа"
+
+#~ msgid "Top Sidebar"
+#~ msgstr "Сверху"
+
+#~ msgid "Bottom Sidebar"
+#~ msgstr "Снизу"
+
+#~ msgid ""
+#~ "<qt>You are about to hide the sidebars. With hidden sidebars it is not "
+#~ "possible to directly access the tool views with the mouse anymore, so if "
+#~ "you need to access the sidebars again invoke <b>View &gt; Tool Views &gt; "
+#~ "Show Sidebars</b> in the menu. It is still possible to show/hide the tool "
+#~ "views with the assigned shortcuts.</qt>"
+#~ msgstr ""
+#~ "<qt>Вы скрыли боковые панели. Получить прямой доступ к скрытым панелям с "
+#~ "помощью мыши теперь невозможно. Чтобы вернуть их, воспользуйтесь пунктом "
+#~ "меню <b>Вид &gt; Боковые панели &gt; Показывать боковые панели</b>. Кроме "
+#~ "того, можно получить доступ к разным боковым панелям с помощью "
+#~ "предварительно заданных комбинаций клавиш.</qt>"
+
+#~ msgid "Documents Modified on Disk"
+#~ msgstr "Документы на диске изменены"
+
+#~ msgid "&Ignore Changes"
+#~ msgstr "&Игнорировать"
+
+#~ msgid "&Reload"
+#~ msgstr "О&бновить"
+
+#~ msgid "Remove modified flag from selected documents"
+#~ msgstr "Удалить метку «Изменён» для выбранных документов"
+
+#~ msgid "Overwrite selected documents, discarding disk changes"
+#~ msgstr "Переписать выбранные документы, отклонить изменения на диске."
+
+#~ msgid ""
+#~ "<qt>The documents listed below have changed on disk.<p>Select one or more "
+#~ "at once, and press an action button until the list is empty.</p></qt>"
+#~ msgstr ""
+#~ "<qt>Документы, перечисленные ниже, были изменены на диске.<p>Выберите "
+#~ "один из них (или несколько одновременно) и нажмите кнопку действия, чтобы "
+#~ "очистить список.</p></qt>"
+
+#~ msgid "Status on Disk"
+#~ msgstr "Состояние на диске"
+
+#~ msgid "Modified"
+#~ msgstr "Изменён"
+
+#~ msgid "Created"
+#~ msgstr "Создан"
+
+#~ msgid "&View Difference"
+#~ msgstr "&Просмотреть различие"
+
+#~ msgid ""
+#~ "Calculates the difference between the editor contents and the disk file "
+#~ "for the selected document, and shows the difference with the default "
+#~ "application. Requires diff(1)."
+#~ msgstr ""
+#~ "Вычисляет различие между содержимым редактора и файлом на диске для "
+#~ "выбранного документа и показывает различие в приложении по умолчанию. "
+#~ "Требуется утилита diff(1)."
+
+#~ msgid ""
+#~ "Could not save the document \n"
+#~ "'%1'"
+#~ msgstr ""
+#~ "Не удаётся сохранить документ \n"
+#~ "«%1»"
+
+#~ msgid ""
+#~ "The diff command failed. Please make sure that diff(1) is installed and "
+#~ "in your PATH."
+#~ msgstr ""
+#~ "Сбой команды diff. Убедитесь, что программа diff(1) установлена и "
+#~ "доступна в пути, определённом переменной PATH."
+
+#~ msgid "Error Creating Diff"
+#~ msgstr "Ошибка поиска различий"
+
+#~ msgid "Ignoring amount of white space changed, the files are identical."
+#~ msgstr "Не считая различий в пробельных символах, файлы не отличаются."
+
+#~ msgid "Diff Output"
+#~ msgstr "Результат сравнения"
+
+#~ msgid "Quick Open Search"
+#~ msgstr "Поиск в списке быстрого доступа"
+
+#~ msgid "Save As (%1)"
+#~ msgstr "Сохранить как (%1)"
+
+#~ msgid ""
+#~ "A file named \"%1\" already exists. Are you sure you want to overwrite it?"
+#~ msgstr "Файл с именем «%1» уже существует. Заменить его?"
+
+#~ msgid "Overwrite File?"
+#~ msgstr "Заменить файл?"
+
+#~ msgid ""
+#~ "<qt>The following documents have been modified. Do you want to save them "
+#~ "before closing?</qt>"
+#~ msgstr "<qt>Документы были изменены. Сохранить их перед закрытием?</qt>"
+
+#~ msgid "Location"
+#~ msgstr "Расположение"
+
+#~ msgid "Se&lect All"
+#~ msgstr "&Выбрать все"
+
+#~ msgid ""
+#~ "Data you requested to be saved could not be written. Please choose how "
+#~ "you want to proceed."
+#~ msgstr "Не удаётся сохранить данные."
+
+#~ msgid ""
+#~ "Internal error: there is more than one instance open for a given session."
+#~ msgstr ""
+#~ "Внутренняя ошибка: один сеанс открыт в нескольких запущенных экземплярах "
+#~ "Kate."
+
+#~ msgid ""
+#~ "Session '%1' is already opened in another kate instance, change there "
+#~ "instead of reopening?"
+#~ msgstr ""
+#~ "Сеанс «%1» уже открыт в другом экземпляре Kate. Переключиться на уже "
+#~ "открытый сеанс вместо повторного открытия?"
+
+#~ msgid "No session selected to open."
+#~ msgstr "Сохранённый сеанс не найден."
+
+#~ msgid "No Session Selected"
+#~ msgstr "Нет сеансов"
+
+#~ msgid "No session selected to copy."
+#~ msgstr "Для копирования не выделен ни один сеанс."
+
+#~ msgid "Specify New Name for Current Session"
+#~ msgstr "Новое имя текущего сеанса"
+
+#~ msgid ""
+#~ "There is already an existing session with your chosen name.\n"
+#~ "Please choose a different one\n"
+#~ "Session name:"
+#~ msgstr ""
+#~ "Сеанс с таким именем уже существует.\n"
+#~ "Выберите другое имя\n"
+#~ "Имя сеанса:"
+
+#~ msgid "Session name:"
+#~ msgstr "Имя сеанса:"
+
+#~ msgid "To save a session, you must specify a name."
+#~ msgstr "Для сохранения сеанса вы должны указать имя сеанса."
+
+#~ msgid "Missing Session Name"
+#~ msgstr "Имя сеанса не указано"
+
+#~ msgid "Session Chooser"
+#~ msgstr "Выбор сеанса"
+
+#~ msgid "Open Session"
+#~ msgstr "Открыть сеанс"
+
+#~ msgid "New Session"
+#~ msgstr "Новый сеанс"
+
+#~ msgid "Session Name"
+#~ msgstr "Имя сеанса"
+
+#~ msgctxt "The number of open documents"
+#~ msgid "Open Documents"
+#~ msgstr "Открытые документы"
+
+#~ msgid "Use selected session as template"
+#~ msgstr "Использовать выбранный сеанс в качестве шаблона"
+
+#~ msgid "&Always use this choice"
+#~ msgstr "&Запомнить выбор"
+
+#~ msgid "&Open"
+#~ msgstr "&Открыть"
+
+#~ msgid "Manage Sessions"
+#~ msgstr "Управление сеансами"
+
+#~ msgid "Specify New Name for Session"
+#~ msgstr "Переименовать сеанс"
+
+#~ msgid ""
+#~ "The session could not be renamed to \"%1\", there already exists another "
+#~ "session with the same name"
+#~ msgstr ""
+#~ "Невозможно переименовать в «%1»: сеанс с таким именем уже существует"
+
+#~ msgid "Session Renaming"
+#~ msgstr "Переименовании сеанса"
+
+#~ msgid "Split Ve&rtical"
+#~ msgstr "Разделить по &вертикали"
+
+#~ msgid "Split the currently active view vertically into two views."
+#~ msgstr "Разделить текущую створку окна на две вертикальных"
+
+#~ msgid "Split &Horizontal"
+#~ msgstr "Разделить по &горизонтали"
+
+#~ msgid "Split the currently active view horizontally into two views."
+#~ msgstr "Разделить текущую створку окна на две горизонтальных"
+
+#~ msgid "Cl&ose Current View"
+#~ msgstr "&Закрыть текущую створку"
+
+#~ msgid "Close the currently active split view"
+#~ msgstr "Закрыть текущую створку окна"
+
+#~ msgid "Close Inactive Views"
+#~ msgstr "Закрыть неактивные створки"
+
+#~ msgid "Close every view but the active one"
+#~ msgstr "Закрыть все створки, кроме текущей"
+
+#~ msgid "Next Split View"
+#~ msgstr "Следующая створка"
+
+#~ msgid "Make the next split view the active one."
+#~ msgstr "Перейти в следующую створку окна"
+
+#~ msgid "Previous Split View"
+#~ msgstr "Предыдущая створка"
+
+#~ msgid "Make the previous split view the active one."
+#~ msgstr "Перейти в предыдущую створку окна"
+
+#~ msgid "Move Splitter Right"
+#~ msgstr "Переместить разделитель вправо"
+
+#~ msgid "Move the splitter of the current view to the right"
+#~ msgstr "Переместить разделитель текущего документа вправо"
+
+#~ msgid "Move Splitter Left"
+#~ msgstr "Переместить разделитель влево"
+
+#~ msgid "Move the splitter of the current view to the left"
+#~ msgstr "Переместить разделитель текущего документа влево"
+
+#~ msgid "Move Splitter Up"
+#~ msgstr "Переместить разделитель вверх"
+
+#~ msgid "Move the splitter of the current view up"
+#~ msgstr "Переместить разделитель текущего документа вверх"
+
+#~ msgid "Move Splitter Down"
+#~ msgstr "Переместить разделитель вниз"
+
+#~ msgid "Move the splitter of the current view down"
+#~ msgstr "Переместить разделитель текущего документа вниз"
+
+#~ msgid "Show Cursor Position"
+#~ msgstr "Координаты курсора"
+
+#~ msgid "Show Characters Count"
+#~ msgstr "Количество символов"
+
+#~ msgid "Show Insertion Mode"
+#~ msgstr "Режим вставки"
+
+#~ msgid "Show Selection Mode"
+#~ msgstr "Режим выделения"
+
+#~ msgid "Show Encoding"
+#~ msgstr "Кодировка"
+
+#~ msgid "Show Document Name"
+#~ msgstr "Имя документа"
+
+#~ msgid ""
+#~ "<p>You are attempting to open one or more large files:</p><ul>%1</"
+#~ "ul><p>Do you want to proceed?</p><p><strong>Beware that kate may stop "
+#~ "responding for some time when opening large files.</strong></p>"
+#~ msgstr ""
+#~ "<p>Вы пытаетесь открыть один или несколько больших файлов:</p><ul>%1</"
+#~ "ul><p>Вы действительно этого хотите?</p><p><strong>Учтите, что открывая "
+#~ "большие файлы, kate может некоторое время ни на что не реагировать.</"
+#~ "strong></p>"
+
+#~ msgid "Opening Large File"
+#~ msgstr "Открывается большой файл"
+
+#~ msgid " Line: %1 Col: %2 "
+#~ msgstr " Строка: %1 Столбец: %2 "
+
+#~ msgid " Characters: %1 "
+#~ msgstr " Символов: %1 "
+
+#~ msgid " LINE "
+#~ msgstr " СТРОКА "
+
+#~ msgid " INS "
+#~ msgstr " ВСТАВКА "
+
+#~ msgid " Line: %1 of %2 Col: %3 "
+#~ msgstr " Строка: %1 из %2 Столбец: %3 "
+
+#~ msgid " BLOCK "
+#~ msgstr " БЛОК "
+
+#~ msgid "&File"
+#~ msgstr "&Файл"
+
+#~ msgid "&Edit"
+#~ msgstr "&Правка"
+
+#~ msgid "Split View"
+#~ msgstr "Разделить окно"
+
+#~ msgid "&Tools"
+#~ msgstr "С&ервис"
+
+#~ msgid "Sess&ions"
+#~ msgstr "Се&анс"
+
+#~ msgid "&Settings"
+#~ msgstr "&Настройка"
+
+#~ msgid "&Help"
+#~ msgstr "&Справка"
+
+#~ msgid "Main Toolbar"
+#~ msgstr "Основная панель инструментов"
+
+#~ msgid "&Status Bar Items"
+#~ msgstr "Элементы &строки состояния"
+
+#~ msgid "Document Tree"
+#~ msgstr "Дерево документов"
+
+#~ msgid "Show open documents in a tree"
+#~ msgstr "Просмотр открытых документов в дереве папок"
+
+#~ msgid ""
+#~ "<p><b>b,buffer &mdash; Edit document N from the document list</b></"
+#~ "p><p>Usage: <tt><b>b[uffer] [N]</b></tt></p>"
+#~ msgstr ""
+#~ "<p><b>b,buffer &mdash; Редактировать документ под номером N из списка "
+#~ "документов</b></p><p>Использование: <tt><b>b[uffer] [N]</b></tt></p>"
+
+#~ msgid ""
+#~ "<p><b>bp,bprev &mdash; previous buffer</b></p><p>Usage: "
+#~ "<tt><b>bp[revious] [N]</b></tt></p><p>Goes to <b>[N]</b>th previous "
+#~ "document (\"<b>b</b>uffer\") in document list. </p><p> <b>[N]</b> "
+#~ "defaults to one. </p><p>Wraps around the start of the document list.</p>"
+#~ msgstr ""
+#~ "<p><b>bp,bprev &mdash; предыдущий документ</b></p><p>Использование: "
+#~ "<tt><b>bp[revious] [N]</b></tt></p><p>Перейти к предыдущему <b>[N]</b>-"
+#~ "ному документу (\"буферу\") в списке документов. <b>[N]</b> по умолчанию "
+#~ "равно 1.</p><p>Возможен переход через начало списка к концу.</p>"
+
+#~ msgid ""
+#~ "<p><b>bn,bnext &mdash; switch to next document</b></p><p>Usage: "
+#~ "<tt><b>bn[ext] [N]</b></tt></p><p>Goes to <b>[N]</b>th next document "
+#~ "(\"<b>b</b>uffer\") in document list.<b>[N]</b> defaults to one. </"
+#~ "p><p>Wraps around the end of the document list.</p>"
+#~ msgstr ""
+#~ "<p><b>bn,bnext &mdash; переход к следующему документу</b></"
+#~ "p><p>Использование: <tt><b>bn[ext] [N]</b></tt></p><p>Перейти к "
+#~ "следующему <b>[N]</b>-ному документу (\"буферу\") в списке документов. "
+#~ "<b>[N]</b> по умолчанию равно 1. </p><p>Возможен переход через конец "
+#~ "списка к началу.</p>"
+
+#~ msgid ""
+#~ "<p><b>bf,bfirst &mdash; first document</b></p><p>Usage: <tt><b>bf[irst]</"
+#~ "b></tt></p><p>Goes to the <b>f</b>irst document (\"<b>b</b>uffer\") in "
+#~ "document list.</p>"
+#~ msgstr ""
+#~ "<p><b>bf,bfirst &mdash; первый документ</b></p><p>Использование: "
+#~ "<tt><b>bf[irst]</b></tt></p><p>Перейти к первому документу (\"буферу\") в "
+#~ "списке.</p>"
+
+#~ msgid ""
+#~ "<p><b>bl,blast &mdash; last document</b></p><p>Usage: <tt><b>bl[ast]</b></"
+#~ "tt></p><p>Goes to the <b>l</b>ast document (\"<b>b</b>uffer\") in "
+#~ "document list.</p>"
+#~ msgstr ""
+#~ "<p><b>bl,blast &mdash; последний документ</b></p><p>Использование: "
+#~ "<tt><b>bl[ast]</b></tt></p><p>Перейти к последнему документу (\"буферу\") "
+#~ "в списке документов.</p>"
+
+#~ msgid ""
+#~ "<p>Kate comes with a nice set of plugins, providing simple\n"
+#~ "and advanced features of all sorts.</p>\n"
+#~ "<p>You can enable/disable plugins to suit your needs in the configuration "
+#~ "dialog,\n"
+#~ "choose <strong>Settings -&gt;configure</strong> to launch that.</p>\n"
+#~ msgstr ""
+#~ "<p>Kate поставляется с набором модулей, обеспечивающих простые и \n"
+#~ "расширенные возможности для редактирования.</p>\n"
+#~ "<p>Вы можете включить/выключить требуемые модули в диалоге настройки \n"
+#~ "<strong>Настройка -&gt;Настроить Kate</strong></p>\n"
+
+#~ msgid ""
+#~ "<p>You can swap the characters on each side of the cursor just by "
+#~ "pressing\n"
+#~ "<strong>Ctrl+T</strong></p>\n"
+#~ msgstr ""
+#~ "<p>Вы можете поменять символы справа и слева от курсора местами, нажав \n"
+#~ "<strong>Ctrl+T</strong></p>\n"
+
+#~ msgid ""
+#~ "<p>You can export the current document as a HTML file, including\n"
+#~ "syntax highlighting.</p>\n"
+#~ "<p>Just choose <strong>File -&gt; Export -&gt; HTML...</strong></p>\n"
+#~ msgstr ""
+#~ "<p>Вы можете экспортировать текущий документ в файл HTML, включая "
+#~ "подсветку \n"
+#~ "синтаксиса.</p>\n"
+#~ "<p>Выберите <strong>Файл -&gt; Экспорт в HTML...</strong></p>\n"
+
+#~ msgid ""
+#~ "<p>You can split the Kate editor as many times as you like and\n"
+#~ "in either direction. Each frame has its own status bar and\n"
+#~ "can display any open document.</p>\n"
+#~ "<p>Just choose <br><strong>View -&gt; Split View -&gt; Split [ Horizontal "
+#~ "| Vertical ]</strong></p>\n"
+#~ msgstr ""
+#~ "<p>Вы можете разделить окно редактора на несколько частей по\n"
+#~ "горизонтали и вертикали. Каждая створка окна будет иметь свою\n"
+#~ "строку состояния и может показывать любой открытый документ.</p>\n"
+#~ "<p>Выберите <br><strong>Вид -&gt; Разделить окно [ Разделить по "
+#~ "горизонтали | Разделить по вертикали ]</strong></p>\n"
+
+#~ msgid ""
+#~ "<p>You can move the Tool views to any side of the main window through "
+#~ "the\n"
+#~ "context menu.</p>\n"
+#~ msgstr ""
+#~ "<p>Вы можете разместить любую боковую панель с какой угодно стороны "
+#~ "основного окна, воспользовавшись контекстным меню этой панели.</p>\n"
+
+#~ msgid ""
+#~ "<p>Kate has a built-in terminal emulator, just click on <strong>\"Terminal"
+#~ "\"</strong> at\n"
+#~ "the bottom to show or hide it as you desire.</p>\n"
+#~ msgstr ""
+#~ "<p>В Kate имеется встроенный эмулятор терминала. Нажмите на кнопку "
+#~ "<strong>«Terminal»</strong> внизу окна\n"
+#~ "для показа или скрытия терминала.</p>\n"
+
+#~ msgid ""
+#~ "<p>Kate can highlight the current line with a\n"
+#~ "<table bgcolor=\"yellow\" border=\"0\" cellspacing=\"0\" cellpadding="
+#~ "\"0\" width=\"100%\"><tr><td>different\n"
+#~ "background color.<strong>|</strong></td></tr></table></p>\n"
+#~ "<p>You can set the color in the <em>Colors</em> page of the "
+#~ "configuration\n"
+#~ "dialog.</p>\n"
+#~ msgstr ""
+#~ "<p>Kate может подсвечивать текущую строку <table bgcolor=\"yellow\" "
+#~ "border=\"0\" cellspacing=\"0\" cellpadding=\"0\" width=\"100%"
+#~ "\"><tr><td>другим цветом фона.<strong>|</strong></td></tr></table></p>\n"
+#~ "<p>Вы можете выбрать этот цвет на вкладке <em>Цвета</em> диалога "
+#~ "настройки редактора.</p>\n"
+
+#~ msgid ""
+#~ "<p>You can open the currently edited file in any other application from "
+#~ "within\n"
+#~ "Kate.</p>\n"
+#~ "<p>Choose <strong>File -&gt; Open With</strong> for the list of programs\n"
+#~ "configured\n"
+#~ "for the document type. There is also an option <strong>Other...</strong> "
+#~ "to\n"
+#~ "choose any application on your system.</p>\n"
+#~ msgstr ""
+#~ "<p>Вы можете открыть текущий редактируемый файл в другом приложении.</p>\n"
+#~ "<p>Выберите <strong>Файл -&gt; Открыть в</strong> и в появившемся списке "
+#~ "выберите \n"
+#~ "приложение, которое связано с этим типом файлов. Также вы можете выбрать\n"
+#~ "<strong>Другое...</strong> для ручного указания имени программы.</p>\n"
+
+#~ msgid ""
+#~ "<p>You can configure the editor to always display the line numbers and/"
+#~ "or\n"
+#~ "bookmark panes when started from the <strong>Appearance</strong> page of "
+#~ "the\n"
+#~ "configuration dialog.</p>\n"
+#~ msgstr ""
+#~ "<p>Вы можете настроить редактор, чтобы номера строк и полоса отметок "
+#~ "всегда\n"
+#~ "показывались при запуске, на вкладке <strong>Внешний вид</strong> диалога "
+#~ "настройки.</p>\n"
+
+#~ msgid ""
+#~ "<p>You can download new or updated <em>Syntax highlight definitions</em> "
+#~ "from\n"
+#~ "the <strong>Open/Save</strong> page in the configuration dialog.</p>\n"
+#~ "<p>Just click the <em>Download...</em> button on the <em>Open/Save -&gt; "
+#~ "Modes &amp; Filetypes</em>\n"
+#~ "tab (You have to be online, of course...).</p>\n"
+#~ msgstr ""
+#~ "<p>Вы можете загрузить новые или обновлённые <em>правила подсветки</em>\n"
+#~ "на вкладке <strong>Открытие/Сохранение</strong> окна настройки Kate.</p>\n"
+#~ "<p>Воспользуйтесь для этого кнопкой <em>Загрузить файлы подсветки "
+#~ "синтаксиса...</em>\n"
+#~ "на вкладке <em>Типы файлов</em>\n"
+#~ "(естественно, для этого вам потребуется Интернет).</p>\n"
+
+#~ msgid ""
+#~ "<p>You can cycle through all open documents by pressing <strong>Alt+Left</"
+#~ "strong>\n"
+#~ "or <strong>Alt+Right</strong>. The next/previous document will "
+#~ "immediately be displayed\n"
+#~ "in the active frame.</p>\n"
+#~ msgstr ""
+#~ "<p>Вы можете переключаться между открытыми документами, нажимая "
+#~ "<strong>Alt+Стрелка влево</strong> \n"
+#~ "или <strong>Alt+Стрелка вправо</strong>. Следующий или предыдущий "
+#~ "документ будет показан в активной вкладке.</p>\n"
+
+#~ msgid ""
+#~ "<p>You can do cool sed-like regular expression replacements using "
+#~ "<em>Command Line</em>.</p>\n"
+#~ "<p>For example, press <strong>F7</strong> and enter <code>s /oldtext/"
+#~ "newtext/g</code>\n"
+#~ "to replace &quot;oldtext&quot; with &quot;newtext&quot; throughout the "
+#~ "current\n"
+#~ "line.</p>\n"
+#~ msgstr ""
+#~ "<p>Вы можете производить сложные замены регулярными выражениями в стиле "
+#~ "sed,\n"
+#~ "используя <em>Командную строку</em>.</p>\n"
+#~ "<p>Например, нажмите <strong>F7</strong> и введите <code>s /oldtext/"
+#~ "newtext/g</code> \n"
+#~ "для замены &quot;oldtext&quot; на &quot;newtext&quot; везде в текущей "
+#~ "строке.</p>\n"
+
+#~ msgid ""
+#~ "<p>You can repeat your last search by just pressing <strong>F3</strong>, "
+#~ "or\n"
+#~ "<strong>Shift+F3</strong> if you want to search backwards.</p>\n"
+#~ msgstr ""
+#~ "<p>Вы можете повторить поиск, нажав <strong>F3</strong> или <strong>Shift"
+#~ "+F3</strong> для поиска в обратном направлении.</p>\n"
+
+#~ msgid ""
+#~ "<p>You can filter the files displayed in the <em>Filesystem Browser</em> "
+#~ "tool view.\n"
+#~ "</p>\n"
+#~ "<p>Simply enter your filter in the filter entry at the bottom, for "
+#~ "example:\n"
+#~ "<code>*.html *.php</code> if you only want to see HTML and PHP files in "
+#~ "the\n"
+#~ "current folder.</p>\n"
+#~ "<p>The Filesystem Browser will even remember your filters for you.</p>\n"
+#~ msgstr ""
+#~ "<p>Вы можете отфильтровать файлы, отображаемые в боковой панели <em>Обзор "
+#~ "файловой системы</em>.</p>\n"
+#~ "<p>Просто введите фильтр в строке внизу панели. Например, если задать\n"
+#~ "<code>*.html *.php</code>, вы будете видеть только файлы HTML и PHP \n"
+#~ "в текущей папке.</p>\n"
+#~ "<p>И что очень удобно, введённые вами фильтры будут сохранены.</p>\n"
+
+#~ msgid ""
+#~ "<p>You can have two views - or even more - of the same document in Kate. "
+#~ "Editing\n"
+#~ "in either will be reflected in both.</p>\n"
+#~ "<p>So if you find yourself scrolling up and down to look at text at the "
+#~ "other\n"
+#~ "end of a document, just press <strong>Ctrl+Shift+T</strong> to split\n"
+#~ "horizontally.</p>\n"
+#~ msgstr ""
+#~ "<p>В Kate вы можете работать с одним документом в нескольких "
+#~ "представлениях;\n"
+#~ "при этом изменения будут видны сразу во всех.</p>\n"
+#~ "<p>Если вам приходится часто прокручивать документ вверх/вниз,\n"
+#~ "работая с текстом в разных частях документа, просто нажмите <strong>Ctrl"
+#~ "+Shift+T</strong>,\n"
+#~ "чтобы разделить окно документа на две горизонтальных створки.</p>\n"
+
+#~ msgid ""
+#~ "<p>Press <strong>F8</strong> or <strong>Shift+F8</strong> to switch to "
+#~ "the\n"
+#~ "next/previous frame.</p>\n"
+#~ msgstr ""
+#~ "<p>Нажмите <strong>F8</strong> или <strong>Shift+F8</strong>, чтобы "
+#~ "переключиться\n"
+#~ "на следующую или предыдущую створку окна.</p>\n"
+
+#~ msgid "Snippets"
+#~ msgstr "Фрагменты"
+
+#~ msgctxt "@item:inmenu"
+#~ msgid "C++ Source File (GPL)"
+#~ msgstr "Исходный файл С++ (GPL)"
+
+#~ msgctxt "@item:inmenu"
+#~ msgid "Source Code"
+#~ msgstr "Исходный код"
+
+#~ msgctxt "@info:whatsthis"
+#~ msgid "A very simple GPL C++ source file"
+#~ msgstr "Простой исходный файл С++ с GPL"
+
+#~ msgctxt "@info:credit"
+#~ msgid "Anders Lund <anders@alweb.dk>"
+#~ msgstr "Anders Lund <anders@alweb.dk>"
+
+#~ msgctxt "@item:inmenu"
+#~ msgid "C++ Header (GPL)"
+#~ msgstr "Заголовочный файл С++ (GPL)"
+
+#~ msgctxt "@info:whatsthis"
+#~ msgid "A very simple GPL C++ header file"
+#~ msgstr "Простой заголовочный файл С++ с GPL"
+
+#~ msgctxt "@item:inmenu"
+#~ msgid "C++ Source File (LGPL)"
+#~ msgstr "Исходный файл С++ (LGPL)"
+
+#~ msgctxt "@info:whatsthis"
+#~ msgid "A very simple LGPL C++ source file"
+#~ msgstr "Простой исходный файл С++ с LGPL"
+
+#~ msgctxt "@item:inmenu"
+#~ msgid "C++ Header (LGPL)"
+#~ msgstr "Заголовок С++ (LGPL)"
+
+#~ msgctxt "@info:whatsthis"
+#~ msgid "A very simple LGPL C++ header file"
+#~ msgstr "Простой заголовочный файл С++ с LGPL"
+
+#~ msgctxt "@item:inmenu"
+#~ msgid "Kate Plugin Docbook Chapter"
+#~ msgstr "Раздел документации Docbook о модуле Kate"
+
+#~ msgctxt "@item:inmenu"
+#~ msgid "Documentation"
+#~ msgstr "Документация"
+
+#~ msgctxt "@info:whatsthis"
+#~ msgid ""
+#~ "This creates a suitable beginning of a docbook chapter for a Kate plugin."
+#~ msgstr ""
+#~ "Создаёт начало главы документации в формате Docbook о модуле для Kate."
+
+#~ msgctxt "@item:inmenu"
+#~ msgid "HTML 4.01 Strict Document"
+#~ msgstr "HTML 4.01 Strict Document"
+
+#~ msgctxt "@item:inmenu"
+#~ msgid "Internet"
+#~ msgstr "Интернет"
+
+#~ msgctxt "@info:whatsthis"
+#~ msgid ""
+#~ "This will create a very basic HTML file with the HTML 4.01 strict DTD."
+#~ msgstr ""
+#~ "Будет создан шаблон HTML файла, соответствующий HTML 4.01 strict DTD "
+#~ "(строгое ОТД)."
+
+#~ msgctxt "@item:inmenu"
+#~ msgid "Kate Highlight Definition"
+#~ msgstr "Правила подсветки Kate"
+
+#~ msgctxt "@info:whatsthis"
+#~ msgid ""
+#~ "This template will create the basics of a kate highlight definition file."
+#~ msgstr "Создание базового файла правил подсветки Kate."
+
+#~ msgctxt "@info:credit"
+#~ msgid "Dominik Haumann <dhdev@gmx.de>"
+#~ msgstr "Dominik Haumann <dhdev@gmx.de>"
+
+#~ msgid "Hidden"
+#~ msgstr "Скрытый"
+
+#~ msgid "Missing plugin file %1"
+#~ msgstr "Отсутствует файл модуля %1"
+
+#~ msgid "Loaded"
+#~ msgstr "Загружено"
+
+#~ msgid "Not Loaded: %1"
+#~ msgstr "Не загружено: %1"
+
+#~ msgid "Actions"
+#~ msgstr "Действия"
+
+#~ msgid ""
+#~ "The icon associated with this action. It is shown alongside text in the "
+#~ "menu bar and in toolbars as required. A string to use KDE's image loading "
+#~ "system, or a custom QPixmap or QIcon, or None."
+#~ msgstr ""
+#~ "Значок, связанный с этим действием. Он может показываться рядом с текстом "
+#~ "в меню и панелях инструментов. Здесь задаётся строка для системы загрузки "
+#~ "изображений KDE или экземпляр QPixmap/QIcon, либо None."
+
+#~ msgid ""
+#~ "The shortcut to fire this action such as 'Ctrl+1', or a QKeySequence "
+#~ "instance, or None."
+#~ msgstr ""
+#~ "Комбинация клавиш для выполнения этого действия, например 'Ctrl+1' или "
+#~ "экземпляр QKeySequence, либо None."
+
+#~ msgid "Description:"
+#~ msgstr "Описание:"
+
+#~ msgid "Menu Item:"
+#~ msgstr "Пункт меню:"
+
+#~ msgid ""
+#~ "The text associated with the action (used as the menu item label, etc), "
+#~ "or None."
+#~ msgstr ""
+#~ "Текст, связанный с действием (используется в меню и т.д.), либо None."
+
+#~ msgid ""
+#~ "The menu under which to place this item such as 'tools' or 'settings', or "
+#~ "None."
+#~ msgstr ""
+#~ "Меню, в которое будет помещён этот пункт, например 'Сервис', 'Настройка', "
+#~ "либо None."
+
+#~ msgid "Shortcut:"
+#~ msgstr "Комбинация клавиш:"
+
+#~ msgid "Menu:"
+#~ msgstr "Меню:"
+
+#~ msgid "Icon:"
+#~ msgstr "Значок:"
+
+#~ msgid "Action:"
+#~ msgstr "Действие:"
+
+#~ msgid "Configuration Pages"
+#~ msgstr "Страницы настройки"
+
+#~ msgid "Title:"
+#~ msgstr "Заголовок:"
+
+#~ msgid "Name:"
+#~ msgstr "Имя:"
+
+#~ msgid "Page:"
+#~ msgstr "Страница:"
+
+#~ msgid "Programmer's Reference"
+#~ msgstr "Справочник программиста"
+
+#~ msgid "Select a Plugin or Built-in Module"
+#~ msgstr "Выберите расширение или встроенный модуль"
+
+#~ msgid "ERROR: The Python engine could not be initialised!"
+#~ msgstr "ОШИБКА: движок Python не может быть инициализирован!"
+
+#~ msgid "Manager"
+#~ msgstr "Менеджер"
+
+#~ msgid ""
+#~ "<html><head/><body><p>Reloading a running plugin may have unpredictable "
+#~ "effects. Consider saving your work before using this command.</p></body></"
+#~ "html>"
+#~ msgstr ""
+#~ "<html><head/><body><p>Перезагрузка работающего модуля может иметь "
+#~ "непредсказуемые последствия. Возможно, вам стоит сохранить работу, прежде "
+#~ "чем выполнять эту команду.</p></body></html>"
+
+#~ msgid "Reload Plugins"
+#~ msgstr "Обновить модули"
+
+#~ msgid "Pate engine could not be initialised"
+#~ msgstr "Инициализировать подсистему Pate не удалось"
+
+#~ msgid "Python Plugins"
+#~ msgstr "Модули Python"
+
+#~ msgid "Pâté host for Python plugins"
+#~ msgstr "Среда Pâté для модулей на языке Python"
+
+#~ msgid "Documentation"
+#~ msgstr "Документация"
+
+#~| msgid "Current Document Folder"
+#~ msgid "Rescan current document for #colors"
+#~ msgstr "Перечитать все #color в текущем документе"
+
+#~ msgid "Update"
+#~ msgstr "Обновить"
+
+#~ msgid "Same-line comment position"
+#~ msgstr "Позиция комментария в той же строке"
+
+#~ msgid "Django tags to close when call the \"Close Template tag\" action"
+#~ msgstr "Теги Django, закрываемые при выполнении \"Закрыть тег шаблона\""
+
+#~ msgid "View import snippet"
+#~ msgstr "Заготовка импорта представления"
+
+#~ msgid "Pattern Model Form"
+#~ msgstr "Заготовка формы модели"
+
+#~| msgid "Pattern:"
+#~ msgid "Pattern Model"
+#~ msgstr "Заготовка модели"
+
+#~ msgid "ID file:"
+#~ msgstr "Файл ID:"
+
+#~ msgid "Name of ID file, as generated by mkid(1)."
+#~ msgstr "Имя файла ID, созданного mkid(1)."
+
+#~ msgid ""
+#~ "ID\n"
+#~ "*|All Files"
+#~ msgstr ""
+#~ "ID\n"
+#~ "*|Все файлы"
+
+#~ msgid "Complete tokens after:"
+#~ msgstr "Завершать ввод при длине:"
+
+#~ msgid "Minimum length of token before completions will be shown."
+#~ msgstr ""
+#~ "Минимальная длина ключа, после которой будет предлагаться его завершение."
+
+#~| msgid "Copy Filename"
+#~ msgid "Transform Filenames"
+#~ msgstr "Преобразование имён файлов"
+
+#~ msgid "Replace file prefix ending with key:"
+#~ msgstr "Заменить префикс имени с этим окончанием:"
+
+#~ msgid "Discard the first part of the file name ending with this key."
+#~ msgstr "Отбросить начало полного имени файла с заданным окончанием."
+
+#~ msgid "With this file prefix:"
+#~ msgstr "Данным префиксом:"
+
+#~ msgid ""
+#~ "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/"
+#~ "REC-html40/strict.dtd\">\n"
+#~ "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/"
+#~ "css\">\n"
+#~ "p, li { white-space: pre-wrap; }\n"
+#~ "</style></head><body style=\" font-family:'Ubuntu'; font-size:9pt; font-"
+#~ "weight:400; font-style:normal;\">\n"
+#~ "<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-"
+#~ "right:0px; -qt-block-indent:0; text-indent:0px;\">Replacement prefix. To "
+#~ "use the prefix of the ID file ending with the key, use %{idPrefix}. This "
+#~ "can be used to work with remotely mounted Clearcase views, for example, "
+#~ "set:</p>\n"
+#~ "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-"
+#~ "right:0px; -qt-block-indent:0; text-indent:0px;\">ID "
+#~ "file:                                   /view/myview/<span style=\" font-"
+#~ "weight:600;\">topdir</span>/ID </p>\n"
+#~ "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-"
+#~ "right:0px; -qt-block-indent:0; text-indent:0px;\">Replace prefix "
+#~ "ending:     /<span style=\" font-weight:600;\">topdir</span> </p>\n"
+#~ "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-"
+#~ "right:0px; -qt-block-indent:0; text-indent:0px;\">With "
+#~ "prefix:                         %{idPrefix}/<span style=\" font-"
+#~ "weight:600;\">topdir</span> </p>\n"
+#~ "<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-"
+#~ "right:0px; -qt-block-indent:0; text-indent:0px;\">Or, to use a pre-"
+#~ "generated ID file with a different workspace, set:</p>\n"
+#~ "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-"
+#~ "right:0px; -qt-block-indent:0; text-indent:0px;\">ID "
+#~ "file:                                   /snapshots/<span style=\" font-"
+#~ "weight:600;\">topdir</span>/ID </p>\n"
+#~ "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-"
+#~ "right:0px; -qt-block-indent:0; text-indent:0px;\">Replace prefix "
+#~ "ending:     /<span style=\" font-weight:600;\">topdir</span> </p>\n"
+#~ "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-"
+#~ "right:0px; -qt-block-indent:0; text-indent:0px;\">With "
+#~ "prefix:                         /myworkspace/<span style=\" font-"
+#~ "weight:600;\">topdir</span> </p></body></html>"
+#~ msgstr ""
+#~ "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0//EN\" \"http://www.w3.org/TR/"
+#~ "REC-html40/strict.dtd\">\n"
+#~ "<html><head><meta name=\"qrichtext\" content=\"1\" /><style type=\"text/"
+#~ "css\">\n"
+#~ "p, li { white-space: pre-wrap; }\n"
+#~ "</style></head><body style=\" font-family:'Ubuntu'; font-size:9pt; font-"
+#~ "weight:400; font-style:normal;\">\n"
+#~ "<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-"
+#~ "right:0px; -qt-block-indent:0; text-indent:0px;\">Префикс замены. Для "
+#~ "префикса ID с заданным окончанием используйте запись %{idPrefix}. Это "
+#~ "может быть полезно для работы с удалёнными представлениями Clearcase. "
+#~ "Например, установите:</p>\n"
+#~ "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-"
+#~ "right:0px; -qt-block-indent:0; text-indent:0px;\">Файл "
+#~ "ID:                                  /view/myview/<span style=\" font-"
+#~ "weight:600;\">topdir</span>/ID </p>\n"
+#~ "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-"
+#~ "right:0px; -qt-block-indent:0; text-indent:0px;\">Заменить префикс с "
+#~ "окончанием:     /<span style=\" font-weight:600;\">topdir</span> </p>\n"
+#~ "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-"
+#~ "right:0px; -qt-block-indent:0; text-indent:0px;"
+#~ "\">Префиксом:                         %{idPrefix}/<span style=\" font-"
+#~ "weight:600;\">topdir</span> </p>\n"
+#~ "<p style=\" margin-top:12px; margin-bottom:12px; margin-left:0px; margin-"
+#~ "right:0px; -qt-block-indent:0; text-indent:0px;\">Либо, для использования "
+#~ "готового файла ID в другой рабочей среде, установите:</p>\n"
+#~ "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-"
+#~ "right:0px; -qt-block-indent:0; text-indent:0px;\">Файл "
+#~ "ID:                                  /snapshots/<span style=\" font-"
+#~ "weight:600;\">topdir</span>/ID </p>\n"
+#~ "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-"
+#~ "right:0px; -qt-block-indent:0; text-indent:0px;\">Заменить префикс с "
+#~ "окончанием:     /<span style=\" font-weight:600;\">topdir</span> </p>\n"
+#~ "<p style=\" margin-top:0px; margin-bottom:0px; margin-left:0px; margin-"
+#~ "right:0px; -qt-block-indent:0; text-indent:0px;"
+#~ "\">Префиксом:                         /myworkspace/<span style=\" font-"
+#~ "weight:600;\">topdir</span> </p></body></html>"
+
+#~ msgid "Highlight Matches"
+#~ msgstr "Подсветка найденного"
+
+#~| msgctxt "@item:inmenu"
+#~| msgid "Kate Highlight Definition"
+#~ msgid "Highlight definitions using etags(1):"
+#~ msgstr "Подсвечивать определения, применяя etags(1):"
+
+#~ msgid "Use etags(1) to find definitions, and highlight them."
+#~ msgstr "Найти определения с помощью etags(1) и подсветить их."
+
+#~ msgid "Enabled"
+#~ msgstr "Включено"
+
+#~ msgid "Highlight files with suffixes:"
+#~ msgstr "Подсвечивать файлы с расширениями:"
+
+#~ msgid "Use .h;.hxx to highlight files which may contain declarations."
+#~ msgstr ""
+#~ "Укажите здесь .h;.hxx, чтобы выделить файлы, которые могут содержать "
+#~ "определения."
+
+#~ msgid ""
+#~ "A regular expression which must also be matched. Use %{token} to include "
+#~ "the token.\n"
+#~ "\n"
+#~ "This can be used to get the effect of full text searching for strings "
+#~ "which contain the token and match the filter."
+#~ msgstr ""
+#~ "Регулярное выражение, которое также должно выполняться. Включить в него "
+#~ "ключевую фразу можно, используя %{token}.\n"
+#~ "\n"
+#~ "Это можно использовать для полнотекстового поиска строк, содержащих "
+#~ "ключевую фразу и удовлетворяющих фильтру."
+
+#~ msgid ""
+#~ "Find a symbol, filename or other token using auto-completion. Hit return "
+#~ "to lookup occurrences within files."
+#~ msgstr ""
+#~ "Поиск символа, имени файла или другой ключевой строки с автодополнением. "
+#~ "Нажмите Enter, чтобы найти все вхождения строки в файлах."
+
+#~ msgid "Settings..."
+#~ msgstr "Параметры..."
+
+#~ msgid "Token:"
+#~ msgstr "Ключевая строка:"
+
+#~ msgid "Filtered matches for the token. Activate a match to jump to it."
+#~ msgstr ""
+#~ "Отфильтрованные вхождения этой ключевой строки. Выберите вхождение, чтобы "
+#~ "перейти к нему."
+
+#~ msgid "Stack of previous locations. Activate an item to jump to it."
+#~ msgstr ""
+#~ "Список предыдущих расположений. Выберите элемент, чтобы перейти к нему."
+
+#~ msgid "Filter:"
+#~ msgstr "Фильтр:"
+
+#~ msgid "JSON config"
+#~ msgstr "Конфигурация JSON"
+
+#~ msgid "JSON Indent"
+#~ msgstr "Отступ JSON"
+
+#~| msgid "Show Encoding"
+#~ msgid "JSON encoding"
+#~ msgstr "Кодировка JSON"
+
+#~ msgid "utf-8"
+#~ msgstr "utf-8"
+
+#~ msgid "Check JSLint when save"
+#~ msgstr "При записи проверять код в JSLint"
+
+#~ msgid "Enable JavaScript Autocomplete (needs close and open kate editor)"
+#~ msgstr "Включить автодополнение JavaScript (требуется перезапуск Kate)"
+
+#~ msgid "Enable JQuery Autocomplete (needs close and open kate editor)"
+#~ msgstr "Включить автодополнение JQuery (требуется перезапуск Kate)"
+
+#~ msgid "Ready JQuery Snippet"
+#~ msgstr "Шаблон ready() для JQuery"
+
+#~ msgid "Continuation prompt"
+#~ msgstr "Приглашение к продолжению"
+
+#~ msgid "..."
+#~ msgstr "..."
+
+#~ msgid "Main prompt"
+#~ msgstr "Основное приглашение"
+
+#~ msgid ">>>"
+#~ msgstr ">>>"
+
+#~| msgid "Configure"
+#~ msgid "Continuation Prompt:"
+#~ msgstr "Приглашение к продолжению:"
+
+#~ msgid "Main Prompt:"
+#~ msgstr "Основное приглашение:"
+
+#~ msgid "Main display font"
+#~ msgstr "Основной шрифт"
+
+#~| msgid "Highlighting for SQL"
+#~ msgid "Highlighting"
+#~ msgstr "Выделение цветом"
+
+#~ msgid "Prompt:"
+#~ msgstr "Приглашение:"
+
+#~ msgid "String:"
+#~ msgstr "Строка:"
+
+#~| msgctxt "@item:inmenu"
+#~| msgid "Internet"
+#~ msgid "Integer:"
+#~ msgstr "Целое число:"
+
+#~ msgid "Float:"
+#~ msgstr "Дробное число:"
+
+#~| msgid "&Help"
+#~ msgid "Help:"
+#~ msgstr "Справка:"
+
+#~| msgid "Function"
+#~ msgid "Exception:"
+#~ msgstr "Исключение:"
+
+#~ msgid "Scrollback lines count (needs close and open kate editor)"
+#~ msgstr "Число строк для прокрутки назад (требуется перезапуск Kate)"
+
+#~ msgid "GUI completion type (needs close and open kate editor)"
+#~ msgstr "Тип завершения (требуется перезапуск Kate)"
+
+#~| msgid "Document List"
+#~ msgid "Drop List"
+#~ msgstr "Выпадающий список"
+
+#~ msgid "Normal"
+#~ msgstr "Обычный"
+
+#~ msgid "PEP-8 config"
+#~ msgstr "Настройка PEP-8"
+
+#~ msgid "Check PEP8 when save"
+#~ msgstr "Проверять соответствие PEP8 при записи"
+
+#~ msgid "Ignore PEP8 errors"
+#~ msgstr "Игнорировать нарушения PEP8"
+
+#~ msgid "Check PyFlakes when save"
+#~ msgstr "Выполнять проверку PyFlakes при сохранении"
+
+#~ msgid "Check Syntax Errors when save"
+#~ msgstr "Проверять синтаксис при сохранении"
+
+#~ msgid "IPython pdb snippet"
+#~ msgstr "Шаблон включения pdb"
+
+#~ msgid "import ipdb; ipdb.set_trace()"
+#~ msgstr "import ipdb; ipdb.set_trace()"
+
+#~ msgid "Indent"
+#~ msgstr "Отступ"
+
+#~ msgid "\\\\t"
+#~ msgstr "\\\\t"
+
+#~| msgid "Line"
+#~ msgid "New Line"
+#~ msgstr "Конец строки"
+
+#~ msgid "\\\\n"
+#~ msgstr "\\\\n"
+
+#, fuzzy
+#~| msgid "Configure"
+#~ msgid "ConfigWidget"
+#~ msgstr "Настройка"
+
+#~ msgid "Sho&w Path"
+#~ msgstr "Показать п&уть"
+
+#, fuzzy
+#~ msgid "Module:"
+#~ msgstr "Показывать &боковые панели"
+
+#, fuzzy
+#~| msgid "&View Difference"
+#~ msgid "Reference"
+#~ msgstr "&Просмотреть различие"
+
+#~ msgid "Text:"
+#~ msgstr "Текст:"
+
+#, fuzzy
+#~| msgid "Name"
+#~ msgid "Full Name:"
+#~ msgstr "Название"
+
+#, fuzzy
+#~ msgid "Modules"
+#~ msgstr "Показывать &боковые панели"
+
+#~ msgid ""
+#~ "<p>You can drag the Tool views (<em>File List</em> and <em>File Selector</"
+#~ "em>)\n"
+#~ "to any side that you want them in Kate, or stack them, or even tear them "
+#~ "off the\n"
+#~ "main window.</p>\n"
+#~ msgstr ""
+#~ "<p>Вы можете перетаскивать боковые панели (<em>Документы</em> и "
+#~ "<em>Проводник</em>)\n"
+#~ "на любую сторону, ставить их друг над другом и даже отделять их от "
+#~ "основного окна.</p>\n"
+
+#~ msgid "&Save Selected"
+#~ msgstr "Сохранить &выбранные"
+
+#~ msgid "Do &Not Close"
+#~ msgstr "Не закрывать"
+
+#~ msgid ""
+#~ "Removes the modified flag from the selected documents and closes the "
+#~ "dialog if there are no more unhandled documents."
+#~ msgstr ""
+#~ "Удаляет флаг модификации с выбранных документов и закрывает этот диалог, "
+#~ "если больше нет необработанных документов."
+
+#~ msgid ""
+#~ "Reloads the selected documents from disk and closes the dialog if there "
+#~ "are no more unhandled documents."
+#~ msgstr ""
+#~ "Перечитывает выбранные документы с диска и закрывает диалог, если больше "
+#~ "нет необработанных документов."
+
+#, fuzzy
+#~| msgid "Create a new document"
+#~ msgid "Cannot go to the document"
+#~ msgstr "Создать новый документ"
+
+#, fuzzy
+#~ msgid "Filter"
+#~ msgstr "Файлы:"
+
+#~ msgid "Configure Tree View"
+#~ msgstr "Настройка дерева документов"
+
+#~ msgctxt "'document name [*]', [*] means modified"
+#~ msgid "%1 [*]"
+#~ msgstr "%1 [*]"
+
+#~ msgid "Projects"
+#~ msgstr "Проекты"
+
+#~ msgid "&Go"
+#~ msgstr "Пере&ход"
+
+#~ msgid "Save Session as &Default..."
+#~ msgstr "Сохранить как сеанс &по умолчанию..."
+
+#~ msgid "Default Session"
+#~ msgstr "Сеанс по умолчанию"
+
+#, fuzzy
+#~| msgid "Plugins"
+#~ msgid "GDB Plugin"
+#~ msgstr "Модули"
+
+#, fuzzy
+#~| msgid "General Options"
+#~ msgid "GDB Integration"
+#~ msgstr "Общие настройки"
+
+#, fuzzy
+#~ msgid "Debug View"
+#~ msgstr "Назад"
+
+#, fuzzy
+#~| msgid "Name"
+#~ msgid "Frame"
+#~ msgstr "Название"
+
+#, fuzzy
+#~| msgid "Diff Output"
+#~ msgid "GDB Output"
+#~ msgstr "Вывод Diff (сравнение)"
+
+#, fuzzy
+#~| msgid "Starting Up"
+#~ msgid "Start Debugging"
+#~ msgstr "Запуск"
+
+#, fuzzy
+#~ msgid "Step In"
+#~ msgstr "Запуск"
+
+#, fuzzy
+#~| msgid "Move To"
+#~ msgid "Move PC"
+#~ msgstr "Поместить"
+
+#, fuzzy
+#~| msgid "Configure"
+#~ msgid "Continue"
+#~ msgstr "Настройка"
+
+#, fuzzy
+#~| msgid "&Remove"
+#~ msgid "Remove target"
+#~ msgstr "&Удалить"
+
+#~ msgid "Document List Settings"
+#~ msgstr "Параметры списка документов"
+
+#~ msgid "Close Selected"
+#~ msgstr "Закрыть выбранные"
+
+#~ msgid "Save Selected"
+#~ msgstr "Сохранить выбранные"
+
+#~ msgid "Sort &By"
+#~ msgstr "&Сортировать по"
+
+#~ msgid "URL"
+#~ msgstr "Адресу"
+
+#~ msgid "Custom"
+#~ msgstr "Вручную"
+
+#, fuzzy
+#~ msgid "Tabify Plugin"
+#~ msgstr "Шаблон:"
+
+#, fuzzy
+#~ msgid "TabifyPlugin"
+#~ msgstr "Шаблон:"
+
+#~ msgid "Filesystem Browser"
+#~ msgstr "Проводник"
+
+#~ msgid "&Open..."
+#~ msgstr "&Открыть..."
+
+#~ msgid "&Save"
+#~ msgstr "&Сохранить"
+
+#~ msgid "Save &As..."
+#~ msgstr "Сохранить &как..."
+
+#~ msgid "Only try to reuse kate instance with this pid"
+#~ msgstr "Использовать экземпляр с указанным идентификатором процесса"
+
+#~ msgid "&Abort Closing"
+#~ msgstr "&Прервать закрытие"
+
+#~ msgid "Behavior on Application Exit or Session Switch"
+#~ msgstr "Поведение при выходе из приложения или переключения сеанса"
+
+#~ msgid "&Do not save session"
+#~ msgstr "&Не сохранять сеанс"
+
+#~ msgid "&Ask user"
+#~ msgstr "&Спросить у пользователя"
+
+#~ msgid "Use a already running kate instance (if possible)"
+#~ msgstr "Применить к запущенному экземпляру (если возможно)"
+
+#~ msgid "Save current session?"
+#~ msgstr "Сохранить текущий сеанс?"
+
+#~ msgid "Do not ask again"
+#~ msgstr "Больше не спрашивать"
+
+#~ msgid "&Window"
+#~ msgstr "&Окно"
+
+#~ msgid "File Selector"
+#~ msgstr "Панель Проводник"
+
+#~ msgid "File Selector Settings"
+#~ msgstr "Параметры панели Проводник"
+
+#~ msgid "Search folders"
+#~ msgstr "Сканируемые папки"
+
+#~ msgid "&Add"
+#~ msgstr "&Добавить"
+
+#~ msgid "File types:"
+#~ msgstr "Типы файлов:"
+
+#~ msgid "List of file extensions. Example: *.cpp, *.h, *.c, etc..."
+#~ msgstr "Cписок расширений файлов, например: *.cpp, *.h, *.c, ..."
+
+#~ msgid "#"
+#~ msgstr "#"
+
+#~ msgid "File"
+#~ msgstr "Файл"
+
+#~ msgid "Load File..."
+#~ msgstr "Открыть файл..."
+
+#~ msgid "Indexing files..."
+#~ msgstr "Индексирование файлов"
+
+#~ msgid "File not found: %1"
+#~ msgstr "Файл не найден: %1"
+
+#~ msgid "Opened file: %1"
+#~ msgstr "Открыт файл: %1"
+
+#, fuzzy
+#~ msgid "D-Bus Call Failed"
+#~ msgstr "Послать файлы по почте"
+
+#~ msgid "Start Kate (no arguments)"
+#~ msgstr "Запуск Kate (без аргументов)"
+
+#~ msgid "New Kate Session"
+#~ msgstr "Новый сеанс Kate"
+
+#~ msgid "New Anonymous Session"
+#~ msgstr "Новый сеанс без имени"
+
+#~ msgid "Reload Session List"
+#~ msgstr "Обновить список сеансов"
+
+#~ msgid "Please enter a name for the new session"
+#~ msgstr "Введите имя нового сеанса"
+
+#~ msgid ""
+#~ "An unnamed session will not be saved automatically. Do you want to create "
+#~ "such a session?"
+#~ msgstr "Сеанс без имени не сохраняется автоматически. Создать такой сеанс?"
+
+#~ msgid "Create anonymous session?"
+#~ msgstr "Создать сеанс без имени?"
+
+#~ msgid ""
+#~ "You already have a session named %1. Do you want to open that session?"
+#~ msgstr "Сеанс «%1» уже существует. Открыть её?"
+
+#~ msgid "Session exists"
+#~ msgstr "Сеанс уже существует"
+
+#~ msgid "Hide Path"
+#~ msgstr "Скрыть путь"
+
+#~ msgid "Hide %1"
+#~ msgstr "Скрыть панель \"%1\""
+
+#~ msgid " NORM "
+#~ msgstr " ОБЫЧНЫЙ "
+
+#~ msgid "Folder:"
+#~ msgstr "Папка:"
+
+#~ msgid "Case sensitive"
+#~ msgstr "С учётом регистра"
+
+#~ msgid "Recursive"
+#~ msgstr "Во вложенных папках"
+
+#, fuzzy
+#~ msgid "Files:"
+#~ msgstr "Файлы:"
+
+#, fuzzy
+#~| msgid "Close the current document."
+#~ msgid "Use the current document's path."
+#~ msgstr "Закрыть текущий документ."
+
+#~ msgid "Terminal"
+#~ msgstr "Терминал"
+
+#~ msgid "&Pipe to Console"
+#~ msgstr "&Перенаправить в консоль"
+
+#~ msgid ""
+#~ "Do you really want to pipe the text to the console? This will execute any "
+#~ "contained commands with your user rights."
+#~ msgstr ""
+#~ "Вы действительно хотите перенаправить текст в консоль. Для этого будут "
+#~ "запущены соответствующие команды под вашими правами."
+
+#~ msgid "Pipe to Console?"
+#~ msgstr "Перенаправить в консоль?"
+
+#~ msgid "Pipe to Console"
+#~ msgstr "Перенаправить в консоль"
+
+#~ msgid ""
+#~ "<p>Enter the expression you want to search for here.<p>If 'regular "
+#~ "expression' is unchecked, any non-space letters in your expression will "
+#~ "be escaped with a backslash character.<p>Possible meta characters are:"
+#~ "<br><b>.</b> - Matches any character<br><b>^</b> - Matches the beginning "
+#~ "of a line<br><b>$</b> - Matches the end of a line<br><b>\\&lt;</b> - "
+#~ "Matches the beginning of a word<br><b>\\&gt;</b> - Matches the end of a "
+#~ "word<p>The following repetition operators exist:<br><b>?</b> - The "
+#~ "preceding item is matched at most once<br><b>*</b> - The preceding item "
+#~ "is matched zero or more times<br><b>+</b> - The preceding item is matched "
+#~ "one or more times<br><b>{<i>n</i>}</b> - The preceding item is matched "
+#~ "exactly <i>n</i> times<br><b>{<i>n</i>,}</b> - The preceding item is "
+#~ "matched <i>n</i> or more times<br><b>{,<i>n</i>}</b> - The preceding item "
+#~ "is matched at most <i>n</i> times<br><b>{<i>n</i>,<i>m</i>}</b> - The "
+#~ "preceding item is matched at least <i>n</i>, but at most <i>m</i> times."
+#~ "<p>Furthermore, backreferences to bracketed subexpressions are available "
+#~ "via the notation <code>\\#</code>.<p>See the grep(1) documentation for "
+#~ "the full documentation."
+#~ msgstr ""
+#~ "Введите регулярное выражение для поиска.<br>Возможные мета-символы:"
+#~ "<br><b>.</b> - соответствует любому символу<br><b>^</b> - соответствует "
+#~ "началу строки<br><b>$</b> - соответствует концу строки<br><b>\\\\\\&lt;</"
+#~ "b> - соответствует началу слова<br><b>\\\\\\&gt;/b> - соответствует концу "
+#~ "слова<br><br>Существуют следующие операторы повторения:<br><b>?</b> - "
+#~ "предваряющий элемент соответствует хотя бы один раз<br><b>*</b> - "
+#~ "предваряющий элемент соответствует ноль или более раз<br><b>+</b> - "
+#~ "предваряющий элемент соответствует один или более раз<br><b>{<i>n</i>}</"
+#~ "b> - предваряющий элемент соответствует ровно<i>n</i> раз<br><b>{<i>n</"
+#~ "i>,}</b> - предваряющий элемент соответствует <i>n</i> или более "
+#~ "раз<br><b>{,<i>n</i>}</b> - предваряющий элемент соответствует не более "
+#~ "<i>n</i> раз<br><b>{<i>n</i>,<i>m</i>}</b> - предваряющий элемент "
+#~ "соответствует не менее <i>n</i>,<br>   но и не более <i>m</i> раз."
+#~ "<br><br>Кроме того, допустимы ссылки на вложенные <br>выражения в "
+#~ "скобках, записываемые в виде <code>\\#</code>.За дополнительной "
+#~ "информацией обращайтесь к странице руководства grep(1)."
+
+#~ msgid ""
+#~ "Enter the file name pattern of the files to search here.\n"
+#~ "You may give several patterns separated by commas."
+#~ msgstr ""
+#~ "Введите шаблон имени файла для поиска.\n"
+#~ "Можно вводить несколько шаблонов, разделённых запятыми."
+
+#~ msgid ""
+#~ "Enter the folder which contains the files in which you want to search."
+#~ msgstr "Укажите папку для поиска в неё файлов."
+
+#~ msgid "Check this box to search in all subfolders."
+#~ msgstr "Отметьте этот флажок для поиска во вложенных папках."
+
+#~ msgid ""
+#~ "If this option is enabled (the default), the search will be case "
+#~ "sensitive."
+#~ msgstr ""
+#~ "Если этот параметр выбран (по умолчанию), поиск будет производиться с "
+#~ "учётом регистра."
+
+#~ msgid ""
+#~ "The results of the grep run are listed here. Select a\n"
+#~ "filename/line number combination and press Enter or doubleclick\n"
+#~ "on the item to show the respective line in the editor."
+#~ msgstr ""
+#~ "Результаты выполнения команды grep будут показаны здесь.\n"
+#~ "Выберите имя файла / строку и нажмите Enter или дважды\n"
+#~ "щёлкните мышкой, чтобы открыть это место в редакторе."
+
+#, fuzzy
+#~| msgid "Use this to close the current document"
+#~ msgid "Click to close the current search results."
+#~ msgstr "Закрыть текущий документ"
+
+#~ msgid "You must enter an existing local folder in the 'Folder' entry."
+#~ msgstr "Введите существующую папку."
+
+#~ msgid "Invalid Folder"
+#~ msgstr "Недопустимая папка"
+
+#~ msgid ""
+#~ "<p>Here you can enter a path for a folder to display.<p>To go to a folder "
+#~ "previously entered, press the arrow on the right and choose one. <p>The "
+#~ "entry has folder completion. Right-click to choose how completion should "
+#~ "behave."
+#~ msgstr ""
+#~ "<p>Введите путь к папке, который будет показан в панели выбора файлов."
+#~ "<p>Ранее указанную папку вы можете выбрать из выпадающего списка.<p>Кроме "
+#~ "того, поддерживается автозавершение имени папки. Нажмите правой кнопкой "
+#~ "мыши на поле ввода, чтобы настроить параметры завершения текста."
+
+#~ msgid ""
+#~ "<p>Here you can enter a name filter to limit which files are displayed."
+#~ "<p>To clear the filter, toggle off the filter button to the left.<p>To "
+#~ "reapply the last filter used, toggle on the filter button."
+#~ msgstr ""
+#~ "<p>Здесь вы можете указать фильтр по имени файлов, которые будут показаны "
+#~ "в списке.<p>Для очистки списка, сделайте кнопку фильтрования слева "
+#~ "отжатой.<p>Для применения изменённого фильтра, сделайте кнопку "
+#~ "фильтрования слева нажатой."
+
+#~ msgid ""
+#~ "<p>This button clears the name filter when toggled off, or reapplies the "
+#~ "last filter used when toggled on."
+#~ msgstr ""
+#~ "<p>Эта кнопка очищает фильтр в отжатом состоянии и применяет фильтр по "
+#~ "последнему указанному условию в нажатом состоянии."
+
+#~ msgid "Apply last filter (\"%1\")"
+#~ msgstr "Применить фильтр (\"%1\")"
+
+#~ msgid "A&vailable actions:"
+#~ msgstr "Доступные &действия:"
+
+#~ msgid "S&elected actions:"
+#~ msgstr "&Выбранные действия:"
+
+#~ msgid "Auto Synchronization"
+#~ msgstr "Автоматическая синхронизация"
+
+#~ msgid "When a docu&ment becomes active"
+#~ msgstr "При &активизации документа"
+
+#~ msgid "When the file selector becomes visible"
+#~ msgstr "При показе панели Проводник"
+
+#~ msgid "Remember &locations:"
+#~ msgstr "Сохранять &расположение:"
+
+#~ msgid "Remember &filters:"
+#~ msgstr "Сохранять &фильтры:"
+
+#~ msgid "Session"
+#~ msgstr "Сеанс"
+
+#~ msgid "Restore loca&tion"
+#~ msgstr "Восстанавливать р&асположение"
+
+#~ msgid "Restore last f&ilter"
+#~ msgstr "Восстанавливать последний ф&ильтр"
+
+#~ msgid ""
+#~ "<p>Decides how many locations to keep in the history of the location "
+#~ "combo box."
+#~ msgstr ""
+#~ "<p>Определяет количество адресов, которые будут хранится в истории "
+#~ "адресов."
+
+#~ msgid ""
+#~ "<p>Decides how many filters to keep in the history of the filter combo "
+#~ "box."
+#~ msgstr ""
+#~ "<p>Определяет количество фильтров, которые будут хранится в истории "
+#~ "фильтров."
+
+#~ msgid ""
+#~ "<p>These options allow you to have the File Selector automatically change "
+#~ "location to the folder of the active document on certain events.<p>Auto "
+#~ "synchronization is <em>lazy</em>, meaning it will not take effect until "
+#~ "the file selector is visible.<p>None of these are enabled by default, but "
+#~ "you can always sync the location by pressing the sync button in the "
+#~ "toolbar."
+#~ msgstr ""
+#~ "<p>Эти параметры позволяют вам автоматически изменять текущую папку в "
+#~ "панели Проводник на папку, содержащую активный документ.<p>Автоматическая "
+#~ "синхронизация <em>не осуществляется</em>, если панель выбора файлов "
+#~ "открыта.<p>Это опции не включены по умолчанию. Но синхронизировать папку "
+#~ "можно нажав кнопку синхронизации на панели инструментов."
+
+#~ msgid ""
+#~ "<p>If this option is enabled (default), the location will be restored "
+#~ "when you start Kate.<p><strong>Note</strong> that if the session is "
+#~ "handled by the KDE session manager, the location is always restored."
+#~ msgstr ""
+#~ "<p>Если эта опция включена (по умолчанию), текущая папка будет "
+#~ "восстанавливаться при запуске программы.<p><strong>Примечание:</strong> "
+#~ "помните, что если сеансы обрабатываются менеджером сеансов KDE, текущая "
+#~ "папка всегда будет восстанавливаться."
+
+#~ msgid ""
+#~ "<p>If this option is enabled (default), the current filter will be "
+#~ "restored when you start Kate.<p><strong>Note</strong> that if the session "
+#~ "is handled by the KDE session manager, the filter is always restored."
+#~ "<p><strong>Note</strong> that some of the autosync settings may override "
+#~ "the restored location if on."
+#~ msgstr ""
+#~ "<p>Если эта опция включена (по умолчанию), текущий фильтр будет "
+#~ "восстанавливаться при запуске программы.<p><strong>Примечание:</strong> "
+#~ "помните, что если сеансы обрабатываются менеджером сеансов KDE, фильтр "
+#~ "всегда будет восстанавливаться. <p><strong>Примечание:</strong> некоторые "
+#~ "из синхронизируемых настроек могут перезаписать сохранённое расположение, "
+#~ "если синхронизация включена."
+
+#, fuzzy
+#~ msgid "Document Quick Switch"
+#~ msgstr "Список документов"
+
+#~ msgid "Failed to expand the command '%1'."
+#~ msgstr "Не удаётся развернуть команду '%1'."
+
+#~ msgid "Kate External Tools"
+#~ msgstr "Внешние инструменты Kate"
+
+#~ msgid "Edit External Tool"
+#~ msgstr "Изменить настройки инструмента"
+
+#~ msgid "&Label:"
+#~ msgstr "&Название:"
+
+#~ msgid "The name will be displayed in the 'Tools->External' menu"
+#~ msgstr "Это название будет показано в меню 'Сервис-Внешние инструменты'"
+
+#~ msgid "S&cript:"
+#~ msgstr "&Команда:"
+
+#~ msgid ""
+#~ "<p>The script to execute to invoke the tool. The script is passed to /bin/"
+#~ "sh for execution. The following macros will be expanded:</p><ul><li><code>"
+#~ "%URL</code> - the URL of the current document.<li><code>%URLs</code> - a "
+#~ "list of the URLs of all open documents.<li><code>%directory</code> - the "
+#~ "URL of the directory containing the current document.<li><code>%filename</"
+#~ "code> - the filename of the current document.<li><code>%line</code> - the "
+#~ "current line of the text cursor in the current view.<li><code>%column</"
+#~ "code> - the column of the text cursor in the current view.<li><code>"
+#~ "%selection</code> - the selected text in the current view.<li><code>"
+#~ "%text</code> - the text of the current document.</ul>"
+#~ msgstr ""
+#~ "<p>Команда для запуска внешнего инструмента. Вы можете использовать "
+#~ "следующие подстановки:</p><ul><li><code>%URL</code> - адрес текущего "
+#~ "документа.<li><code>%URLs</code> - список адресов всех открытых "
+#~ "документов.<li><code>%directory</code> - адрес папки, содержащей текущий "
+#~ "документ.<li><code>%filename</code> - имя файла текущего документа."
+#~ "<li><code>%line</code> - строка, на которой установлен курсор в текущем "
+#~ "документе.<li><code>%column</code> - столбец, на которой установлен "
+#~ "курсор в текущем документе.<li><code>%selection</code> - выделенный текст."
+#~ "<li><code>%text</code> - содержимое текущего документа.</ul>"
+
+#~ msgid "&Executable:"
+#~ msgstr "&Программа:"
+
+#~ msgid ""
+#~ "The executable used by the command. This is used to check if a tool "
+#~ "should be displayed; if not set, the first word of <em>command</em> will "
+#~ "be used."
+#~ msgstr ""
+#~ "Программа, выполняющая команду. Используется, чтобы проверить доступность "
+#~ "инструмента. Если не заполнено, будет использовано первое слово "
+#~ "<em>команды</em>."
+
+#~ msgid ""
+#~ "A semicolon-separated list of mime types for which this tool should be "
+#~ "available; if this is left empty, the tool is always available. To choose "
+#~ "from known mimetypes, press the button on the right."
+#~ msgstr ""
+#~ "Список типов MIME, разделённый точкой с запятой. Этот список будет "
+#~ "ограничивать применение инструмента только для обработки файлов "
+#~ "определённых типов. Если поле оставить пустым, инструмент можно "
+#~ "использовать для любых документов. Для выбора типов MIME нажмите кнопку "
+#~ "справа."
+
+#~ msgid "Click for a dialog that can help you creating a list of mimetypes."
+#~ msgstr "Выбор известных типов MIME."
+
+#~ msgid "&Save:"
+#~ msgstr "&Сохранить:"
+
+#~ msgid "None"
+#~ msgstr "Не использовать"
+
+#~ msgid "All Documents"
+#~ msgstr "Все документы"
+
+#~ msgid ""
+#~ "You can elect to save the current or all [modified] documents prior to "
+#~ "running the command. This is helpful if you want to pass URLs to an "
+#~ "application like, for example, an FTP client."
+#~ msgstr ""
+#~ "Вы можете сохранить текущий документ или все изменённые документы перед "
+#~ "запуском команды. Это иногда бывает нужно для передачи файлов "
+#~ "посредством, к примеру, клиента FTP."
+
+#~ msgid "&Command line name:"
+#~ msgstr "&Команда правки:"
+
+#~ msgid ""
+#~ "If you specify a name here, you can invoke the command from the view "
+#~ "command lines with exttool-the_name_you_specified_here. Please do not use "
+#~ "spaces or tabs in the name."
+#~ msgstr ""
+#~ "При нажатии F7 появляется строка для команд правки. Вы сможете вызвать "
+#~ "этот внешний инструмент, указав exttool-название_команды. Не используйте "
+#~ "пробелы и табуляцию в названии."
+
+#~ msgid "You must specify at least a name and a command"
+#~ msgstr "Необходимо указать как минимум название и команду"
+
+#~ msgid "Select the MimeTypes for which to enable this tool."
+#~ msgstr "Выбор типов MIME для выбранного инструмента."
+
+#~ msgid "Select Mime Types"
+#~ msgstr "Типы MIME"
+
+#~ msgid "&New..."
+#~ msgstr "&Создать..."
+
+#~ msgid "&Edit..."
+#~ msgstr "&Изменить..."
+
+#~ msgid "Insert &Separator"
+#~ msgstr "Вставить &разделитель"
+
+#~ msgid ""
+#~ "This list shows all the configured tools, represented by their menu text."
+#~ msgstr "Список всех доступных инструментов."
+
+#~ msgid "Send one or more of the open documents as email attachments."
+#~ msgstr ""
+#~ "Послать один или несколько файлов как вложения по электронной почте."
+
+#~ msgid ""
+#~ "<p>The current document has not been saved, and cannot be attached to an "
+#~ "email message.<p>Do you want to save it and proceed?"
+#~ msgstr ""
+#~ "<p>Текущий документ не сохранён на диске и потому не может быть вложен в "
+#~ "электронное письмо. <p>Вы хотите сохранить его и продолжить?"
+
+#~ msgid "Cannot Send Unsaved File"
+#~ msgstr "Невозможно послать несохранённый файл"
+
+#~ msgid ""
+#~ "The file could not be saved. Please check if you have write permission."
+#~ msgstr ""
+#~ "Ошибка при сохранении файла. Проверьте, есть ли у вас доступ для записи."
+
+#~ msgid ""
+#~ "<p>The current file:<br><strong>%1</strong><br>has been modified. "
+#~ "Modifications will not be available in the attachment.<p>Do you want to "
+#~ "save it before sending it?"
+#~ msgstr ""
+#~ "<p>Текущий файл:<br><strong>%1</strong><br>был изменён. Изменения будут "
+#~ "недоступны во вложении. <p>Вы хотите сохранить изменения перед отправкой?"
+
+#~ msgid "Save Before Sending?"
+#~ msgstr "Сохранить перед отправкой?"
+
+#~ msgid "Email Files"
+#~ msgstr "Послать файлы по почте"
+
+#~ msgid "&Mail..."
+#~ msgstr "Отправить по по&чте..."
+
+#~ msgid ""
+#~ "<p>Press <strong>Mail...</strong> to email the current document.<p>To "
+#~ "select more documents to send, press <strong>Show All Documents&nbsp;&gt;"
+#~ "&gt;</strong>."
+#~ msgstr ""
+#~ "<p>Нажмите <strong>Отправить по почте...</strong> для посылки текущего "
+#~ "документа по электронной почте.<p>Для выбора нескольких документов для "
+#~ "отправки по почте нажмите <strong> Показать все документы&nbsp;&gt;&gt;</"
+#~ "strong>."
+
+#~ msgid "&Hide Document List <<"
+#~ msgstr "&Скрыть список документов <<"
+
+#~ msgid "Press <strong>Mail...</strong> to send selected documents"
+#~ msgstr ""
+#~ "Нажмите <strong>Отправить по почте...</strong> для посылки выбранных "
+#~ "документов по электронной почте."
+
+#, fuzzy
+#~ msgid "Previous Error"
+#~ msgstr "Назад"
+
+#, fuzzy
+#~ msgid "HT&ML Tag..."
+#~ msgstr "&Управление сеансами..."
+
+#, fuzzy
+#~ msgid "Python Browser"
+#~ msgstr "Проводник"
+
+#~ msgid "&Appearance"
+#~ msgstr "&Внешний вид"
+
+#, fuzzy
+#~ msgid "&Top"
+#~ msgstr "Панель инструментов"
+
+#, fuzzy
+#~ msgid "&follow current tab"
+#~ msgstr "Закрыть текущую вкладку"
+
+#, fuzzy
+#~ msgid "&opening order"
+#~ msgstr "Порядку открытия"
+
+#, fuzzy
+#~ msgid "document &name"
+#~ msgstr "Имени документа"
+
+#, fuzzy
+#~ msgid "document &URL"
+#~ msgstr "Список документов"
+
+#, fuzzy
+#~ msgid "Frame Colors"
+#~ msgstr "Создатель"
+
+#, fuzzy
+#~ msgid "Sorting Behavior"
+#~ msgstr "Поведение"
+
+#, fuzzy
+#~ msgid "&None"
+#~ msgstr "Не использовать"
+
+#, fuzzy
+#~ msgid "&Blue"
+#~ msgstr "Файлы:"
+
+#, fuzzy
+#~ msgid "&Close Tab"
+#~ msgstr "Закрыть текущую вкладку"
+
+#, fuzzy
+#~ msgid "Close &Other Tabs"
+#~ msgstr "Закрыть текущую вкладку"
+
+#, fuzzy
+#~ msgid "Close &All Tabs"
+#~ msgstr "Закрыть текущую вкладку"
+
+#, fuzzy
+#~ msgid "&Print command name"
+#~ msgstr "&Команда правки:"
+
+#, fuzzy
+#~ msgid "Remember"
+#~ msgstr "Сохранять &фильтры:"
+
+#, fuzzy
+#~ msgid "Co&mmands"
+#~ msgstr "Комментарий"
+
+#, fuzzy
+#~ msgid "Application &working folder"
+#~ msgstr "Приложение не найдено!"
+
+#, fuzzy
+#~ msgid "&Document folder"
+#~ msgstr "&Документ"
+
+#, fuzzy
+#~ msgid "Show Params"
+#~ msgstr "Показать п&уть"
+
+#, fuzzy
+#~ msgid "Show Variables"
+#~ msgstr "Показывать &боковые панели"
+
+#, fuzzy
+#~ msgid "Show Templates"
+#~ msgstr "Шаблон:"
+
+#, fuzzy
+#~ msgid "Templates"
+#~ msgstr "Шаблон:"
+
+#, fuzzy
+#~ msgid "Show Globals"
+#~ msgstr "Показывать &боковые панели"
+
+#, fuzzy
+#~ msgid "Show Methods"
+#~ msgstr "Показать п&уть"
+
+#, fuzzy
+#~ msgid "Hide Symbols"
+#~ msgstr "Скрыть &боковые панели"
+
+#, fuzzy
+#~ msgid "Show Symbols"
+#~ msgstr "Показывать &боковые панели"
+
+#, fuzzy
+#~ msgid "Show Macros"
+#~ msgstr "Показывать &боковые панели"
+
+#, fuzzy
+#~ msgid "Parser Options"
+#~ msgstr "Общие настройки"
+
+#, fuzzy
+#~ msgid "Show Uses"
+#~ msgstr "Показать панель \"%1\""
+
+#, fuzzy
+#~ msgid "Show Pragmas"
+#~ msgstr "Показать п&уть"
+
+#, fuzzy
+#~ msgid "&Manage Templates..."
+#~ msgstr "&Управление сеансами..."
+
+#, fuzzy
+#~ msgid "Open as Template"
+#~ msgstr "Шаблон:"
+
+#, fuzzy
+#~ msgid "&Template:"
+#~ msgstr "Шаблон:"
+
+#, fuzzy
+#~ msgid "Document &name:"
+#~ msgstr "Имени документа"
+
+#, fuzzy
+#~ msgid "Start with an &empty document"
+#~ msgstr "Создать новый документ"
+
+#, fuzzy
+#~ msgid "Choose Template Origin"
+#~ msgstr "Шаблон:"
+
+#, fuzzy
+#~ msgid "Custom location:"
+#~ msgstr "Восстанавливать р&асположение"
+
+#, fuzzy
+#~ msgid "Choose Location"
+#~ msgstr "Расположение"
+
+#, fuzzy
+#~ msgid "Open the template for editing"
+#~ msgstr "Открыть существующий документ для изменения"
+
+#, fuzzy
+#~ msgid "Create Template"
+#~ msgstr "Шаблон:"
+
+#, fuzzy
+#~ msgid "Save Failed"
+#~ msgstr "Сохранить &выбранные"
+
+#, fuzzy
+#~ msgid "Template"
+#~ msgstr "Шаблон:"
+
+#, fuzzy
+#~ msgid "Edit..."
+#~ msgstr "&Изменить..."
+
+#, fuzzy
+#~ msgid "Column"
+#~ msgstr "Комментарий"
+
+#, fuzzy
+#~ msgid ""
+#~ "The file '%1' could not be parsed. Please check that the file is well-"
+#~ "formed XML."
+#~ msgstr ""
+#~ "Ошибка при сохранении файла. Проверьте, есть ли у вас доступ для записи."
+
+#, fuzzy
+#~ msgid "&Close Element"
+#~ msgstr "Закрыть документ"
+
+#, fuzzy
+#~ msgid "The file '%1' could not be opened. The server returned an error."
+#~ msgstr ""
+#~ "Файл '%1' не может быть открыт, поскольку является папкой, а не обычным "
+#~ "файлом."
+
+#, fuzzy
+#~ msgid "Open .h/.cpp/.c"
+#~ msgstr "&Открыть"
+
+#, fuzzy
+#~| msgid "Open Session"
+#~ msgid "Empty session"
+#~ msgstr "Открыть сеанс"
+
+#~ msgid "New Tab"
+#~ msgstr "Новая вкладка"
+
+#~ msgid "Close Current Tab"
+#~ msgstr "Закрыть текущую вкладку"
+
+#~ msgid "Activate Next Tab"
+#~ msgstr "Перейти на следующую вкладку"
+
+#~ msgid "Activate Previous Tab"
+#~ msgstr "Перейти на предыдущую вкладку"
+
+#~ msgid "Open a new tab"
+#~ msgstr "Открыть новую вкладку"
+
+#~ msgid "Close the current tab"
+#~ msgstr "Закрыть текущую вкладку"
+
+#, fuzzy
+#~ msgid "Position"
+#~ msgstr "Расположение"
+
+#~ msgid " R/O "
+#~ msgstr " только чтение "
+
+#~ msgid " OVR "
+#~ msgstr " ЗАМЕНА "
+
+#~ msgid "External Tools"
+#~ msgstr "Внешние инструменты"
+
+#~ msgid "Launch external helper applications"
+#~ msgstr "Запустить внешнее вспомогательное приложение"
+
+#~ msgid "Other..."
+#~ msgstr "Разное..."
+
+#~ msgid ""
+#~ "If this option is checked, the full document path will be shown in the "
+#~ "window caption."
+#~ msgstr ""
+#~ "При выборе этой опции в заголовке окна редактора будет показан полный "
+#~ "путь к документу."
+
+#~ msgid "Sync &terminal emulator with active document"
+#~ msgstr "Синхронизировать эмулятор &консоли с активным документом"
+
+#~ msgid ""
+#~ "If this is checked, the built in Konsole will <code>cd</code> to the "
+#~ "directory of the active document when started and whenever the active "
+#~ "document changes, if the document is a local file."
+#~ msgstr ""
+#~ "При выборе этой опции встроенная консоль сменит папку на папку активного "
+#~ "документа при запуске и при изменении активного документа, если он "
+#~ "является локальным файлом."
+
+#~ msgid "Editor"
+#~ msgstr "Редактирование"
+
+#~ msgid "Regular expression"
+#~ msgstr "Регулярное выражение"
+
+#~ msgid "Find"
+#~ msgstr "Поиск"
+
+#~ msgid ""
+#~ "You can choose a template for the pattern from the combo box\n"
+#~ "and edit it here. The string %s in the template is replaced\n"
+#~ "by the pattern input field, resulting in the regular expression\n"
+#~ "to search for."
+#~ msgstr ""
+#~ "Можно использовать готовые образцы шаблонов из списка\n"
+#~ "и редактировать их. Строка %s в образце будет\n"
+#~ "заменена на ваш шаблон, тем самым будет осуществляться\n"
+#~ "поиск регулярного выражения."
+
+#~ msgid ""
+#~ "<p>If this is enabled, your pattern will be passed unmodified to "
+#~ "<em>grep(1)</em>. Otherwise, all characters that are not letters will be "
+#~ "escaped using a backslash character to prevent grep from interpreting "
+#~ "them as part of the expression."
+#~ msgstr ""
+#~ "<p>При включении этой опции шаблон будет передан команде <em>grep(1)</em> "
+#~ "как есть. В противном случае все символы будут экранированы обратной "
+#~ "косой чертой для предотвращения интерпретации их как части выражения."
+
+#~ msgid "<strong>Error:</strong><p>"
+#~ msgstr "<strong>Ошибка:</strong><p>"
+
+#~ msgid "Grep Tool Error"
+#~ msgstr "Ошибка утилиты grep"
+
+#~ msgid "Unnamed Session"
+#~ msgstr "Сеанс"
+
+#~ msgid "Session (%1)"
+#~ msgstr "Сеанс (%1)"
+
+#~ msgid "Specify Name for Current Session"
+#~ msgstr "Название текущего сеанса"
+
+#~ msgid "To save a new session, you must specify a name."
+#~ msgstr "Для сохранения нового сеанса вы должны указать название сеанса."
+
+#~ msgid ""
+#~ "<b>This file was changed (modified) on disk by another program.</b><br />"
+#~ msgstr "<b>Этот файл был изменён на диске другой программой.</b><br />"
+
+#~ msgid ""
+#~ "<b>This file was changed (created) on disk by another program.</b><br />"
+#~ msgstr ""
+#~ "<b>Этот файл был изменён на диске (создан) другой программой.</b><br />"
+
+#~ msgid ""
+#~ "<b>This file was changed (deleted) on disk by another program.</b><br />"
+#~ msgstr ""
+#~ "<b>Этот файл был изменён на диске (или удалён) другой программой.</b><br /"
+#~ ">"
+
+#~ msgid "&Enable background shading"
+#~ msgstr "&Включить подсветку фона"
+
+#~ msgid "Set the sorting method for the documents."
+#~ msgstr "Задать метод сортировки списка документов."
+
+#~ msgid "Use this command to print the current document"
+#~ msgstr "Распечатать текущий документ"
+
+#~ msgid "Use this command to create a new document"
+#~ msgstr "Создать новый документ"
+
+#~ msgid "Use this command to open an existing document for editing"
+#~ msgstr "Открыть существующий файл для редактирования"
+
+#~ msgid "Create another view containing the current document"
+#~ msgstr "Создание нового окна с текущим документом"
+
+#~ msgid "Choose Editor..."
+#~ msgstr "Выберите редактор..."
+
+#~ msgid "Override the system wide setting for the default editing component"
+#~ msgstr "Выбор редактора, отличного от компоненты редактора по умолчанию"
+
+#~ msgid ""
+#~ "The given file could not be read, check if it exists or if it is readable "
+#~ "for the current user."
+#~ msgstr ""
+#~ "Не удаётся прочесть указанный файл, проверьте, существует ли он и "
+#~ "доступен на чтение текущему пользователю."
+
+#~ msgid "KWrite"
+#~ msgstr "KWrite"
+
+#~ msgid "KWrite - Text Editor"
+#~ msgstr "KWrite - Текстовый редактор KDE"

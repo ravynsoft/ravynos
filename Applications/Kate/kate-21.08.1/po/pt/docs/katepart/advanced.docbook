@@ -1,0 +1,1905 @@
+<chapter id="advanced-editing-tools">
+<chapterinfo>
+<authorgroup>
+<author
+>&Anders.Lund; &Anders.Lund.mail;</author>
+<author
+>&Dominik.Haumann; &Dominik.Haumann.mail;</author>
+<othercredit role="translator"
+><firstname
+>José</firstname
+><surname
+>Pires</surname
+><affiliation
+><address
+><email
+>zepires@gmail.com</email
+></address
+></affiliation
+><contrib
+>Tradução</contrib
+></othercredit
+> 
+</authorgroup>
+</chapterinfo>
+<title
+>Ferramentas Avançadas de Edição</title>
+
+<sect1 id="advanced-editing-tools-comment">
+
+<title
+>Comentar/Descomentar</title>
+
+<para
+>Os comandos <guimenuitem
+>Comentar</guimenuitem
+> e <guimenuitem
+>Descomentar</guimenuitem
+>, disponíveis no menu <guimenu
+>Ferramentas</guimenu
+> permitem-lhe adicionar ou remover marcações de comentários à selecção ou à linha actual, se não estiver texto seleccionado. Os comentários são suportados pelo formato do texto que você está a editar.</para>
+
+<para
+>As regras de como os comentários são feitos estão descritas nas definições da sintaxe; por isso, se o realce de sintaxe não é usado, o comentar/descomentar não é possível. </para>
+
+<para
+>Alguns formatos definem comentários para linhas únicas, outros suportam comentários para várias linhas e ainda outros suportam ambos. Se não estiverem disponíveis os comentários para várias linhas, o acto de comentar uma selecção que não inclui por completo a sua última linha não é possível.</para>
+
+<para
+>Se estiver disponível uma marcação para linhas únicas, o acto de comentar linhas únicas é preferível quando aplicável, dado que evita os problemas com os comentários aninhados.</para>
+
+<para
+>Ao remover as marcações de comentários, não deve ser escolhido texto sem comentários. Ao retirar as marcações de comentários de várias linhas de uma selecção, todos os espaços em branco fora das marcações de comentários são ignorados.</para>
+
+<para
+><indexterm
+><primary
+>comentar</primary
+></indexterm
+> Para colocar marcações de comentários, use a opção do menu <menuchoice
+><guimenu
+>Ferramentas</guimenu
+><guimenuitem
+>Comentar</guimenuitem
+></menuchoice
+> ou a sequência de teclado relacionada, que por omissão é <keycombo action="simul"
+>&Ctrl;<keycap
+>D</keycap
+></keycombo
+>.</para>
+
+<para
+><indexterm
+><primary
+>descomentar</primary
+></indexterm
+> Para remover marcações de comentários, use a opção do menu <menuchoice
+><guimenu
+>Ferramentas</guimenu
+><guimenuitem
+>Descomentar</guimenuitem
+></menuchoice
+> ou o atalho de teclado relacionado, que por omissão é o <keycombo action="simul"
+>&Ctrl;&Shift;<keycap
+>D</keycap
+></keycombo
+>.</para>
+
+</sect1>
+
+<sect1 id="advanced-editing-tools-commandline">
+<title
+>A Linha de Comandos do Componente de Edição</title>
+
+<para
+>O componente de edição do &kappname; tem uma linha de comandos interna, que lhe permite efectuar várias acções a partir de uma interface mínima. A linha de comandos é um campo de texto no fundo da área de edição onde, para a mostrar, poderá seleccionar a opção <menuchoice
+><guimenu
+>Ver</guimenu
+><guimenuitem
+>Mudar para a Linha de Comandos</guimenuitem
+></menuchoice
+> ou usar o atalho (que é, por omissão, o <keycombo action="simul"
+><keycap
+>F7</keycap
+></keycombo
+>). O editor oferece um conjunto de comandos, tal como está documentado em baixo, sendo oferecidos mais comandos através de 'plugins'.</para>
+
+<para
+>Para executar um comando, carregue na tecla Return. A linha de comandos irá indicar se foi bem sucedida e, provavelmente, irá mostrar uma mensagem. Se você introduziu a linha de comandos ao carregar em <keycap
+>F7</keycap
+>, ele esconder-se-á automaticamente, ao fim de alguns segundos. Para limpar a mensagem e introduzir um comando novo, carregue em <keycap
+>F7</keycap
+> de novo.</para>
+
+<para
+>A linha de comandos tem um sistema de ajuda incorporado, pelo que poderá introduzir o comando <command
+>help</command
+> para iniciar. Para ver uma lista com todos os comandos disponíveis, invoque o comando <command
+>help list</command
+>; para ver a ajuda sobre um dado comando, faça <command
+>help <replaceable
+>comando</replaceable
+></command
+>.</para>
+
+<para
+>A linha de comandos tem um histórico incorporado, como tal, o utilizador poderá reutilizar os comandos já escritos. Para navegar no histórico, use as teclas <keycap
+>Cima</keycap
+> e <keycap
+>Baixo</keycap
+>. Ao mostrar os comandos do histórico, a parte de argumento do comando será seleccionada, o que lhe permite sobrepor facilmente os argumentos.</para>
+
+<sect2 id="advanced-editing-tools-commandline-commands">
+<title
+>Comandos Normais da Linha de Comandos</title>
+
+<variablelist>
+<title
+>Tipos de argumento</title>
+
+<varlistentry>
+<term
+>BOOLEANO</term>
+<listitem
+><para
+>Isto é usado com os comandos que activam ou desactivam certas coisas. Os valores válidos são o <userinput
+>on</userinput
+>, <userinput
+>off</userinput
+>, <userinput
+>true</userinput
+>, <userinput
+>false</userinput
+>, <userinput
+>1</userinput
+> ou <userinput
+>0</userinput
+>.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>INTEIRO</term>
+<listitem
+><para
+>Um número inteiro.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>TEXTO</term>
+<listitem
+><para
+>Um texto separado por plicas (') ou aspas (") quando tiver espaços.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+
+
+<sect3 id="advanced-editing-tools-commandline-commands-configure">
+<title
+>Comandos para Configurar o Editor</title>
+
+<para
+>Estes comandos são oferecidos pelo componente do editor e permitem-lhe configurar apenas o documento e a janela activos. Isto poderá ser útil se quiser usar uma configuração diferente da predefinida como, por exemplo, na indentação. </para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>set-tab-width</command
+><arg choice="req"
+>INTEGER largura</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Configura a largura da tabulação como sendo <userinput
+>largura</userinput
+>.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>set-indent-width</command
+><arg choice="req"
+>INTEGER largura</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Configura a largura da indentação como <userinput
+>largura</userinput
+>. Só é usado se o utilizador indentar com espaços.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>set-word-wrap-column</command
+><arg choice="req"
+>INTEGER largura</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Configura a largura da linha para uma mudança restrita como tendo <userinput
+>largura</userinput
+> colunas. Isto é usado se você tiver o seu texto a ser repartido automaticamente.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>set-icon-border</command
+><arg choice="req"
+>BOOLEAN activar</arg
+> </cmdsynopsis
+></term>
+<listitem
+><para
+>Configura a visibilidade do contorno dos ícones.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>set-folding-markers</command
+><arg choice="req"
+>BOOLEAN activar</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Configura a visibilidade da área de marcadores de dobragem/desdobramento do código.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>set-line-numbers</command
+><arg choice="req"
+>BOOLEAN activar</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Configura a visibilidade da área de números de linha.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>set-replace-tabs</command
+><arg choice="req"
+>BOOLEAN activar</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Se estiver activo, as tabulações são substituídas por espaços, à medida que você vai escrevendo. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>set-remove-trailing-space</command
+><arg choice="req"
+>BOOLEAN activar</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Se estiver activo, os espaços finais serão removidos quando o cursor abandonar uma dada linha.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>set-show-tabs</command
+><arg choice="req"
+>BOOLEAN activar</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Se estiver activo, os caracteres de tabulação e espaços estarão visíveis através de um pequeno ponto.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>set-show-indent</command
+><arg choice="req"
+>BOOLEAN activar</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Se estiver activo, a indentação será visualizada como uma linha pontilhada vertical.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>set-indent-spaces</command
+><arg choice="req"
+>BOOLEAN activar</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Se estiver activo, o editor irá indentar com <option
+>largura-indentação</option
+> espaços por cada nível de indentação, em vez de usar o carácter TAB.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>set-mixed-indent</command
+><arg choice="req"
+>BOOLEAN activar</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Se estiver activo, o &kappname; irá usar uma mistura de TABs e espaços para a indentação. Cada nível de indentação irá ter um tamanho de <option
+>largura-indentação</option
+>, enquanto os restantes níveis de indentação serão optimizados para usar tantos caracteres TAB quantos possíveis.</para>
+<para
+>Quando for executado, este comando irá activar a indentação com espaços e, se a largura de indentação não estiver definida, corresponderá a metade da <option
+>largura-tabulação</option
+> do documento, na altura da execução.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>set-word-wrap</command
+><arg choice="req"
+>BOOLEAN activar</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Activa a mudança de linha dinâmica, de acordo com o parâmetro <userinput
+>activar</userinput
+>.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>set-replace-tabs-save</command
+><arg choice="req"
+>BOOLEAN activar</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Quando estiver activo, as tabulações serão substituídas por espaços em branco, sempre que o documento for gravado.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>set-remove-trailing-space-save</command
+><arg choice="req"
+>BOOLEAN activar</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Quando estiver activo, os espaços finais serão removidos de cada linha, sempre que o documento for gravado.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>set-indent-mode</command
+><arg choice="req"
+>STRING nome</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Configura o modo de indentação automática como <userinput
+>nome</userinput
+>. Se o <userinput
+>nome</userinput
+> não for conhecido, o modo é configurado como 'none' (nenhum). Os modos válidos são o 'none', 'normal', 'cstyle', 'haskell', 'lilypond', 'lisp', 'python', 'ruby' e 'xml'.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>set-auto-ident</command
+><arg choice="req"
+>BOOLEAN programa</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Activa ou desactiva a indentação automática.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>set-highlight</command
+><arg choice="req"
+>STRING realce</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Configura o sistema de realce de sintaxe para o documento. O argumento deverá ser um nome de realce válido, como pode ser visto no menu <menuchoice
+><guimenu
+>Ferramentas</guimenu
+><guisubmenu
+>Realce</guisubmenu
+></menuchoice
+>. Este comando oferece uma lista de completação automática para o seu argumento.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>reload-scripts</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Volta a carregar todos os <link linkend="dev-scripting"
+>programas em JavaScript</link
+> usados pelo Kate, incluindo os módulos de indentação e programas da linha de comandos.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>set-mode</command
+><arg choice="req"
+>STRING modo</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Escolhe o esquema do tipo de ficheiro do documento actual. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>nn[oremap]</command
+><arg choice="req"
+>STRING original</arg
+> <arg choice="req"
+>STRING associado</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Associa a sequência de teclas <userinput
+>original</userinput
+> a <userinput
+>associado</userinput
+>.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect3>
+
+<sect3 id="advanced-editing-tools-commandline-commands-edit">
+<title
+>Comandos de edição</title>
+
+<para
+>Estes comandos modificam o documento actual.</para>
+
+<variablelist>
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>indent</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Indenta as linhas seleccionadas ou a linha actual.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>unindent</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Remove um nível de indentação das linhas seleccionadas ou da linha actual.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>cleanindent</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Limpa a indentação das linhas seleccionadas ou da linha actual, de acordo com a configuração de indentação no documento. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>comment</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Insere marcações de comentários para fazer da selecção, linhas seleccionadas ou da linha actual um comentário, de acordo com o formato de texto definido pela definição do realce de sintaxe para o documento.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>uncomment</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Remove os marcadores de comentários da selecção, linhas seleccionadas ou da linha actual, de acordo com o formato de texto definido pela definição do realce de sintaxe do documento.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>kill-line</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Remove a linha actual.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>replace</command
+><arg choice="req"
+> STRING padrão</arg
+> <arg choice="req"
+>STRING substituição</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Substitui o texto correspondente ao <userinput
+>padrão</userinput
+> por <userinput
+>substituição</userinput
+>. Se você quiser incluir espaços em branco no <userinput
+>padrão</userinput
+>, deverá colocar tanto o <userinput
+>padrão</userinput
+> como a <userinput
+>substituição</userinput
+> entre plicas ou aspas. Se os argumentos não estiverem entre estes caracteres, a primeira palavra é usada como <userinput
+>padrão</userinput
+> e o resto como a <userinput
+>substituição</userinput
+>. Se a <userinput
+>substituição</userinput
+> estiver em branco, cada ocorrência do <userinput
+>padrão</userinput
+> será removida.</para>
+<para
+>Você poderá configurar opções para modificar a procura, adicionando dois pontos (:), seguidos de uma ou mais letras, onde cada uma representa uma configuração, o que corresponderá ao formato <userinput
+>replace:opções padrão substituição</userinput
+>. As opções disponíveis são: <variablelist>
+
+<varlistentry>
+<term
+><userinput
+>b</userinput
+></term>
+<listitem
+><para
+>Procura para trás.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>c</userinput
+></term>
+<listitem
+><para
+>Procura a partir da posição do cursor.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>e</userinput
+></term>
+<listitem
+><para
+>Procura apenas na área seleccionada.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>r</userinput
+></term>
+<listitem
+><para
+>Faz uma pesquisa por uma dada expressão regular. Se estiver activo, você poderá usar o <userinput
+>\N</userinput
+>, onde o N é um número que representa as capturas no texto de substituição.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>s</userinput
+></term>
+<listitem
+><para
+>Faz uma pesquisa com distinção entre maiúsculas e minúsculas.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>p</userinput
+></term>
+<listitem
+><para
+>Pede permissões para substituir a próxima ocorrência.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>w</userinput
+></term>
+<listitem
+><para
+>Faz uma correspondência apenas com palavras inteiras.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>date</command
+><arg choice="req"
+>STRING formato</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Insere um texto de data/hora, tal como está definido pelo <userinput
+>formato</userinput
+> indicado, ou com o formato <quote
+>aaaa-MM-dd hh:mm:ss</quote
+>, se não for indicada qualquer formatação. As traduções seguintes são feitas quando for interpretado o <userinput
+>formato</userinput
+>: <informaltable
+> <tgroup cols="2"
+> <tbody>
+<row
+><entry
+><literal
+>d</literal
+></entry
+><entry
+>O dia, como um número sem um zero inicial (1-31).</entry
+></row>
+<row
+><entry
+><literal
+>dd</literal
+></entry
+><entry
+>O dia, como um número com um zero inicial (01-31).</entry
+></row>
+<row
+><entry
+><literal
+>ddd</literal
+></entry
+><entry
+>O nome do dia abreviado, no formato regional (p.ex. 'Seg'..'Dom').</entry
+></row>
+<row
+><entry
+><literal
+>dddd</literal
+></entry
+><entry
+>O nome do dia completo, no formato regional (p.ex. 'Segunda'..'Domingo').</entry
+></row>
+<row
+><entry
+><literal
+>M</literal
+></entry
+><entry
+>O mês, como um número sem um zero inicial (1-12).</entry
+></row>
+<row
+><entry
+><literal
+>MM</literal
+></entry
+><entry
+>O mês, como um número com um zero inicial (01-12).</entry
+></row>
+<row
+><entry
+><literal
+>MMMM</literal
+></entry
+><entry
+>O nome do mês por extenso, no formato regional (p.ex. 'Janeiro'..'Dezembro').</entry
+></row>
+<row
+><entry
+><literal
+>MMM</literal
+></entry
+><entry
+>O nome do mês abreviado, no formato regional (p.ex. 'Jan'..'Dez').</entry
+></row>
+<row
+><entry
+><literal
+>aa</literal
+></entry
+><entry
+>O ano, como um número de dois algarismos (00-99).</entry
+></row>
+<row
+><entry
+><literal
+>aaaa</literal
+></entry
+><entry
+>O ano, como um número de quatro algarismos (1752-8000).</entry
+></row>
+<row
+><entry
+><literal
+>h</literal
+></entry
+><entry
+>As horas sem um zero inicial (0..23 ou 1..12 no caso do formato AM/PM).</entry
+></row>
+<row
+><entry
+><literal
+>hh</literal
+></entry
+><entry
+>As horas com um zero inicial (00..23 ou 01..12 no caso do formato AM/PM).</entry
+></row>
+<row
+><entry
+><literal
+>m</literal
+></entry
+><entry
+>Os minutos sem um zero inicial (0..59).</entry
+></row>
+<row
+><entry
+><literal
+>mm</literal
+></entry
+><entry
+>Os minutos com um zero inicial (00..59).</entry
+></row>
+<row
+><entry
+><literal
+>s</literal
+></entry
+><entry
+>Os segundos sem um zero inicial (0..59).</entry
+></row>
+<row
+><entry
+><literal
+>ss</literal
+></entry
+><entry
+>Os minutos com um zero inicial (00..59).</entry
+></row>
+<row
+><entry
+><literal
+>z</literal
+></entry
+><entry
+>Os milisegundos sem um zero inicial (0..999).</entry
+></row>
+<row
+><entry
+><literal
+>zzz</literal
+></entry
+><entry
+>Os milisegundos com zeros iniciais (000..999).</entry
+></row>
+<row
+><entry
+><literal
+>AP</literal
+></entry
+><entry
+>Usar o formato de horas AM/PM. O AP será substituído por "AM" ou por "PM".</entry
+></row>
+<row
+><entry
+><literal
+>ap</literal
+></entry
+><entry
+>Usar o formato de horas am/pm. O AP será substituído por "am" ou por "pm".</entry
+></row>
+</tbody>
+</tgroup>
+</informaltable>
+
+</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>char</command
+><arg choice="req"
+>STRING identificador</arg
+></cmdsynopsis
+></term>
+<listitem>
+<para
+>Este comando permite-lhe introduzir caracteres literais pelo seu identificador numérico em decimal, octal ou hexadecimal. Para o usar, invoque a Janela do Comando de Edição e escreva <userinput
+>char: [number]</userinput
+> no campo de texto, carregando depois em <guibutton
+>OK</guibutton
+>.</para>
+
+<example>
+<title
+>Exemplos do <command
+>char</command
+></title>
+
+<para
+>Introdução: <userinput
+>char:234</userinput
+></para>
+<para
+>Resultado: <computeroutput
+>&#234;</computeroutput
+></para>
+<para
+>Introdução: <userinput
+>char:0x1234</userinput
+></para>
+<para
+>Resultado: <computeroutput
+>&#x1234;</computeroutput
+></para>
+</example>
+
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term>
+<indexterm
+><primary
+>substituir, estilo sed</primary>
+<secondary
+>procurar, estilo sed</secondary
+></indexterm>
+<command
+>s///[ig]</command
+> <command
+>%s///[ig]</command
+></term>
+
+<listitem>
+<para
+>Este comando efectua uma operação de pesquisa e substituição à 'sed' na linha actual ou em todo o ficheiro (<command
+>%s///</command
+>).</para>
+
+<para
+>Em resumo, o texto é percorrido à procura de uma sequência que corresponda ao <emphasis
+>padrão de busca</emphasis
+>, a expressão regular entre a primeira e a segunda barra, e quando for encontrada uma correspondência, esta é substituída pela expressão entre a parte do meio e a parte final do texto. Os parêntesis no padrão de busca criam <emphasis
+>referências anteriores</emphasis
+>, ou seja, o comando recorda qual a parte que correspondeu aos parêntesis; estas sequências podem ser reutilizadas no padrão de substituição, sendo referenciadas como <userinput
+>\1</userinput
+> para o primeiro conjunto de parêntesis, <userinput
+>\2</userinput
+> para o segundo e assim por diante.</para>
+
+<para
+>Para procurar por um <literal
+>(</literal
+> ou <literal
+>)</literal
+>, é necessário <emphasis
+>escapá-lo</emphasis
+>, usando uma barra invertida: <userinput
+>\(\)</userinput
+></para>
+
+<para
+>Se puser um <userinput
+>i</userinput
+> no fim da expressão, a correspondência não fará distinção entre maiúsculas ou minúsculas. Se, por outro lado, puser um <userinput
+>g</userinput
+> no fim, todas as ocorrências do padrão serão substituídas, caso contrário, só será substituída a primeira ocorrência.</para>
+
+<example>
+
+<title
+>Substituir texto na linha actual</title>
+
+<para
+>O seu amigo compilador parou, indicando que a classe <classname
+>myClass</classname
+> representada na linha 3902 do ficheiro de código não está definida.</para>
+
+<para
+>&quot;Bolas!&quot; pensa você, é óbvio que é <classname
+>MyClass</classname
+>. Vá à linha 3902 e, em vez de tentar procurar a palavra no texto, invoque a Janela de Comando de Edição, escreva <userinput
+>s/myclass/MyClass/i</userinput
+>, carregue no botão <guibutton
+>OK</guibutton
+>, grave o ficheiro e compile &ndash; com sucesso, sem o erro.</para>
+
+</example>
+
+<example>
+<title
+>Substituir texto no ficheiro inteiro</title>
+
+<para
+>Imagine que tem um ficheiro, no qual menciona uma <quote
+>Srª Silva</quote
+> várias vezes, quando vem alguém e lhe diz que ela se casou com o <quote
+>Sr. Pires</quote
+>. Irá querer, obviamente, substituir todas as ocorrências de <quote
+>Srª Silva</quote
+> por <quote
+>Srª Pires</quote
+>.</para>
+
+<para
+>Entre na linha de comandos e escreva no campo de texto o comando <userinput
+>%s/Srª Silva/Srª Pires/</userinput
+>, carregando em RETURN para terminar.</para>
+
+</example>
+
+<example>
+<title
+>Um Exemplo Mais Avançado</title>
+
+<para
+>Este exemplo tira partido das <emphasis
+>referências anteriores</emphasis
+> assim como das <emphasis
+>classes de palavras</emphasis
+> (se você não souber o que isso é, baseie-se na documentação referida em baixo).</para>
+
+<para
+>Imagine que tem a seguinte linha: <programlisting
+>void MinhaClass::OperacaoTexto( String      &amp;xpto, String &amp;xpto2 String *p, int  &amp;a, int &amp;b )</programlisting>
+</para>
+<para
+>Agora, chega à conclusão que este não é um código bonito, e decide que quer usar a palavra <constant
+>const</constant
+> para todos os <quote
+>endereços dos argumentos</quote
+>, os quais se caracterizam pelo operador &amp; à frente do nome do argumento. Também irá querer simplificar os espaços em branco, de modo a que haja apenas um espaço entre cada palavra.</para>
+
+<para
+>Lance a Janela de Comando de Edição, escreva: <userinput
+>s/\s+(\w+)\s+(&amp;)/ const \1 \2/g</userinput
+> e carregue no botão <guibutton
+>OK</guibutton
+>. O <userinput
+>g</userinput
+>, no fim da expressão, recompila a expressão para cada correspondência para poupar as <emphasis
+>referências anteriores</emphasis
+>.</para>
+
+<para
+>Resultado: <computeroutput
+>void MinhaClasse::OperacaoTexto( const String &amp;xpto, const String &amp;xpto2 String *p, const int &amp;a, const int &amp;b )</computeroutput
+></para>
+
+<para
+>Missão cumprida! Agora, o que se passou? Bem, procurou alguns espaços em branco (<literal
+>\s+</literal
+>) seguidos de um ou mais caracteres alfabéticos (<literal
+>\w+</literal
+>) seguidos por mais alguns espaços em branco (<literal
+>\s+</literal
+>) e um 'e' comercial, gravando durante o processo a sequência alfabética e o 'e' comercial para os reutilizar na operação de substituição. Assim, substituiu-se a parte correspondente da linha em questão por um espaço em branco seguido de <quote
+>const</quote
+>, um espaço em branco e depois pela sequência alfabética (<literal
+>\1</literal
+>) seguida de um espaço em branco e o '&amp;' guardado (<literal
+>\2</literal
+>)</para>
+
+<para
+>Agora, em alguns dos casos, a sequência alfabética era <quote
+>String</quote
+>, em outras era <quote
+>int</quote
+>, de modo que a utilização da classe de caracteres <literal
+>\w</literal
+> e do quantificador <literal
+>+</literal
+> foram uma ajuda preciosa.</para>
+
+</example>
+
+</listitem>
+
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>sort</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Ordena o texto seleccionado ou o documento inteiro.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>natsort</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Ordena naturalmente o texto seleccionado ou o documento inteiro.</para>
+
+<example>
+<title
+><command
+>sort</command
+> vs. <command
+>natsort</command
+></title>
+<para
+>O <userinput
+><command
+>sort</command
+>(a10, a1, a2)</userinput
+> devolverá <computeroutput
+>a1, a10, a2</computeroutput
+></para>
+<para
+>O <userinput
+><command
+>natsort</command
+>(a10, a1, a2)</userinput
+> devolverá <computeroutput
+>a1, a2, a10</computeroutput
+></para>
+</example
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>moveLinesDown</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Desce as linhas seleccionadas.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>moveLinesUp</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Sobe as linhas seleccionadas.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>uniq</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Remove as linhas duplicadas do texto seleccionado ou do documento inteiro.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>rtrim</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Remove os espaços finais do texto seleccionado ou do documento inteiro.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>ltrim</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Remove os espaços iniciais do texto seleccionado ou do documento inteiro.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>join</command
+><arg choice="opt"
+>STRING separador</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Junta as linhas seleccionadas ou o documento inteiro. Opcionalmente, recebe um parâmetro que define um separador, como por exemplo: <userinput
+><command
+>join</command
+> ', '</userinput
+> </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>rmblank</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Remove todos os espaços em branco do texto seleccionado ou do documento inteiro.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>unwrap</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Remove as mudanças de linha do texto seleccionado ou do documento inteiro.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>each</command
+><arg choice="req"
+>STRING programa</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Dada uma função em JavaScript como argumento, invoca-a para a lista de linhas seleccionadas e substitui-as pelo valor devolvido por essa chamada.</para>
+
+<example>
+<title
+>Juntar as linhas seleccionadas</title>
+<para
+><userinput
+><command
+>each</command
+> 'function(linhas){return linhas.join(", ")}' </userinput
+></para>
+
+<para
+>Ou, de forma mais resumida:</para>
+<para
+><userinput
+><command
+>each</command
+> 'linhas.join(", ")'</userinput
+></para>
+</example>
+
+</listitem>
+</varlistentry>
+
+
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>filter</command
+><arg choice="req"
+>STRING programa</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Dada uma função em JavaScript como argumento, invoca-a para a lista de linhas seleccionadas e remove as que devolvam um valor falso para essa chamada.</para>
+
+<example>
+<title
+>Remover as linhas em branco</title>
+<para
+><userinput
+><command
+>filter</command
+> 'function(1){return 1.length 
+> 0;}' </userinput
+></para>
+
+<para
+>Ou, de forma mais resumida:</para>
+<para
+><userinput
+><command
+>filter</command
+> 'linha.length 
+> 0'</userinput
+></para>
+</example>
+
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>map</command
+><arg choice="req"
+>STRING programa</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Dada uma função em JavaScript como argumento, invoca-a para a lista de linhas seleccionadas e substitui a linha pelo valor da chamada.</para>
+
+<example>
+<title
+>Remover as linhas em branco</title>
+<para
+><userinput
+><command
+>map</command
+> 'function(linha){return linha.replace(/^s+/,"");}' </userinput
+></para>
+
+<para
+>Ou, de forma mais resumida:</para>
+<para
+><userinput
+><command
+>map</command
+> 'linha.replace(/^s+/,"")'</userinput
+></para>
+</example>
+
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>duplicateLinesUp</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Duplica as linhas seleccionadas acima da selecção actual.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>duplicateLinesDown</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Duplica as linhas seleccionadas abaixo da selecção actual.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect3>
+
+<sect3 id="advanced-editing-tools-commandline-commands-navigation">
+<title
+>Comandos de navegação</title>
+
+<variablelist>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>goto</command
+><arg choice="req"
+>INT linha</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Este comando vai para a linha indicada.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>grep</command
+> <arg choice="req"
+>STRING padrão</arg
+> </cmdsynopsis
+></term>
+<listitem
+><para
+>Procura no documento pela expressão regular <userinput
+>padrão</userinput
+>. Para mais informações, veja as <xref linkend="regular-expressions"/></para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>find</command
+><arg choice="req"
+>STRING padrão</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Este comando vai para a primeira ocorrência do <userinput
+>padrão</userinput
+>, de acordo com a configuração. As ocorrências seguintes poderão ser encontradas com a opção <menuchoice
+><guimenu
+>Editar</guimenu
+><guimenuitem
+>Procurar o Seguinte</guimenuitem
+></menuchoice
+> (o atalho por omissão é o <keycap
+>F3</keycap
+>).</para>
+<para
+>O comando de procura poderá ser configurado se adicionar dois-pontos, seguidos de uma ou mais opções, sendo o formato <userinput
+>find:opções padrão</userinput
+>. São suportadas as seguintes opções:</para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><userinput
+>b</userinput
+></term>
+<listitem
+><para
+>Procura para trás.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>c</userinput
+></term>
+<listitem
+><para
+>Procura a partir da posição do cursor.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>e</userinput
+></term>
+<listitem
+><para
+>Procura apenas na área seleccionada.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>r</userinput
+></term>
+<listitem
+><para
+>Faz uma pesquisa por uma dada expressão regular. Se estiver activo, você poderá usar o <userinput
+>\N</userinput
+>, onde o N é um número que representa as capturas no texto de substituição.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>s</userinput
+></term>
+<listitem
+><para
+>Faz uma pesquisa com distinção entre maiúsculas e minúsculas.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>w</userinput
+></term>
+<listitem
+><para
+>Faz uma correspondência apenas com palavras inteiras.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+</listitem>
+
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>ifind</command
+><arg choice="req"
+>STRING padrão</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Este comando oferece uma procura <quote
+>à-medida-que-escreve</quote
+>. Você poderá configurar o comportamento da procura se adicionar dois-pontos (:), seguidos de uma ou mais opções, como se segue: <userinput
+>ifind:opções padrão</userinput
+>. As opções permitidas são <variablelist>
+<varlistentry>
+<term
+><userinput
+>b</userinput
+></term>
+<listitem
+><para
+>Procura para trás.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>r</userinput
+></term>
+<listitem
+><para
+>Faz uma procura por uma expressão regular.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>s</userinput
+></term>
+<listitem
+><para
+>Faz uma pesquisa com distinção entre maiúsculas e minúsculas.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>c</userinput
+></term>
+<listitem
+><para
+>Procura a partir da posição do cursor.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect3>
+
+
+<sect3 id="advanced-editing-tools-commandline-commands-basic">
+<title
+>Comandos das Funções Básicas de Edição (Estas dependem da aplicação em que o componente de edição é usado)</title>
+
+<variablelist>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>w</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Grava o documento actual.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>wa</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Grava todos os documentos abertos de momento.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>q</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Fecha o documento actual.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>qa</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Fecha todos os documentos abertos.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>wq</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Grava e fecha o documento actual.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>wqa</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Grava e fecha todos os documentos abertos de momento.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>x</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Grava e fecha o documento actual, somente se tiver sido alterado. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>x</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Grava e fecha todos os documentos abertos de momento, somente se tiverem sido alterados.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>bp</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Vai para o documento anterior na lista de documentos. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>bn</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Vai para o documento seguinte na lista de documentos. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>new</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Abre um documento numa janela dividida horizontalmente. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>vnew</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Abre um documento numa janela dividida verticalmente. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>e</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Volta a carregar o documento actual, caso tenha sido alterado no disco. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>enew</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Edita um novo documento. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>print</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Abre a janela de impressão para imprimir o documento actual. </para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect3>
+
+
+</sect2>
+
+</sect1>
+
+<sect1 id="advanced-editing-tools-code-folding">
+<title
+>Usar o Desdobramento de Código</title>
+
+<para
+>O desdobramento ou dobragem de código permite-lhe esconder partes de um documento no editor, tornando mais simples analisar globalmente ficheiros grandes. No &kappname;, as regiões desdobráveis são calculadas com base nas regras nas definições de realce de sintaxe, como tal só está disponível em alguns formatos - tipicamente em código-fonte de programas, código em XML e semelhantes. A maioria das definições de realce que suportam o desdobramento de código também lhe permitem definir manualmente regiões desdobráveis, tipicamente com as palavras-chave <userinput
+>BEGIN</userinput
+> e <userinput
+>END</userinput
+>.</para>
+
+<para
+>Para usar a funcionalidade de desdobramento de código, active os marcadores com a opção <menuchoice
+><guimenu
+>Ver</guimenu
+><guimenuitem
+>Mostrar as Marcações de Dobragem</guimenuitem
+></menuchoice
+>, se não estiverem já visíveis. A área de Marcações de Dobragem, no lado esquerdo do ecrã, mostra uma vista gráfica sobre as regiões que poderão ser recolhidas ou expandidas, com símbolos de triângulos para indicar a operação possível numa dada região: um triângulo para baixo significa que a região é expandida, enquanto se carregar nele irá recolher a região e ficará então visível um triângulo para a direita em alternativa.</para>
+<!--FIXME change Three to Four when Unfold Toplevel Nodes action is back-->
+<para
+>Estão disponíveis três comandos para manipular o estado das regiões dobradas; para tal, veja a <link linkend="view-code-folding"
+>documentação do menu</link
+>. </para>
+
+<para
+>As linhas dobradas são recordadas quando fechar um ficheiro; assim, quando o reabrir, os nós dobrados irão continuar dessa forma. Isto aplica-se também às operações de recarregamento.</para>
+
+<para
+>Se não quiser usar a funcionalidade de desdobramento do código, poderá desactivar a opção <guilabel
+>Mostrar as marcações de dobragem (se disponíveis)</guilabel
+> na página de <link linkend="appearance"
+>Aparência</link
+> da configuração do editor.</para>
+
+</sect1>
+
+</chapter>

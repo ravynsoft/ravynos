@@ -1,0 +1,1138 @@
+<chapter id="fundamentals">
+<chapterinfo>
+<authorgroup>
+<author
+><personname
+><firstname
+></firstname
+></personname
+></author>
+<othercredit role="translator"
+><firstname
+>José</firstname
+><surname
+>Pires</surname
+><affiliation
+><address
+><email
+>zepires@gmail.com</email
+></address
+></affiliation
+><contrib
+>Tradução</contrib
+></othercredit
+> 
+</authorgroup>
+</chapterinfo>
+<title
+>Os Fundamentos</title>
+
+<para
+>Se alguma vez utilizou um editor de texto, não terá problemas a usar o &kate;. Nas duas próximas secções, em <link linkend="starting-kate"
+>Iniciar o &kate; </link
+> e em <link linkend="working-with-kate"
+>Trabalhar com o &kate;</link
+>, mostrar-lhe-emos tudo o que precisa para interagir com ele. </para>
+
+<sect1 id="starting-kate">
+<title
+>Iniciar o &kate;</title>
+
+<para
+>Poderá iniciar o &kate; no lançador de aplicações ou na linha de comandos. </para>
+
+<sect2 id="starting-from-the-menu">
+<title
+>A Partir do Menu</title>
+<para
+>Abra o menu de programas do &kde; carregando no ícone de lançamento de aplicações na barra de ferramentas no canto inferior esquerdo do seu ecrã. Isto fará aparecer um menu. Mova o seu cursor para o menu até ao item <menuchoice
+><guimenu
+>Aplicações</guimenu
+> <guisubmenu
+>Utilitários</guisubmenu
+><guimenuitem
+>Editor de Texto Avançado &kate;</guimenuitem
+></menuchoice
+>. </para>
+
+</sect2>
+
+<sect2 id="starting-from-the-command-line">
+<title
+>A Partir da Linha de Comandos</title>
+
+<para
+>Poderá iniciar o &kate;, escrevendo o seu nome na linha de comandos. Se lhe der um nome de ficheiro, como no exemplo abaixo, ele irá abrir ou criar esse ficheiro. </para>
+
+<informalexample>
+<screen
+><prompt
+>%</prompt
+><userinput
+><command
+>kate</command
+> <option
+><replaceable
+>ficheiro.txt</replaceable
+></option
+></userinput
+>
+</screen>
+</informalexample>
+
+<para
+>Se tiver uma ligação activa e permissões para tal, poderá tirar partido da transparência de rede do &kde; para abrir ficheiros na Internet. </para>
+
+<informalexample>
+<screen
+><prompt
+>%</prompt
+><userinput
+><command
+>kate</command
+> <option
+><replaceable
+>ftp://ftp.kde.org/pub/kde/README</replaceable
+></option
+></userinput
+>
+</screen>
+</informalexample>
+
+<sect3 id="command-line-options">
+<title
+>Opções da Linha de Comandos</title>
+<para
+>O &kate; aceita as seguintes opções na linha de comandos:</para>
+
+<variablelist>
+<varlistentry>
+<term
+><userinput
+><command
+>kate</command
+> <option
+>--help</option
+></userinput
+></term>
+<listitem>
+<para
+>Isto lista as opções disponíveis na linha de comandos. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+><command
+>kate</command
+> <option
+>-s</option
+> <option
+>--start</option
+> <parameter
+>nome</parameter
+></userinput
+></term>
+<listitem>
+<para
+>Inicia o 'kate' com a sessão <parameter
+>nome</parameter
+>. A sessão é criada se não existir já. Se existir uma instância do &kate; que esteja a correr a sessão indicada, os ficheiros indicados são carregados nessa instância. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+><command
+>kate</command
+> <option
+>-p</option
+> <option
+>--pid</option
+> <parameter
+>PID</parameter
+></userinput
+></term>
+<listitem>
+<para
+>Só utiliza de novo uma instância com o PID indicado (ID do Processo). </para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+><command
+>kate</command
+> <option
+>-e</option
+> <option
+>--encoding</option
+> <parameter
+>codificação</parameter
+> <parameter
+>URL</parameter
+></userinput
+></term>
+<listitem
+><para
+>Usa a codificação usada para o documento. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+><command
+>kate</command
+> <option
+>-l</option
+> <option
+>--line</option
+> <parameter
+>linha</parameter
+> <parameter
+>URL</parameter
+></userinput
+></term>
+<listitem
+><para
+>Vai para a linha indicada, após abrir o documento. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+><command
+>kate</command
+> <option
+>-c</option
+> <option
+>--column</option
+> <parameter
+>coluna</parameter
+> <parameter
+>URL</parameter
+></userinput
+></term>
+<listitem
+><para
+>Vai para a coluna indicada, após abrir o documento. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+><command
+>kate</command
+> <option
+>-i</option
+> <option
+>--stdin</option
+></userinput
+></term>
+<listitem
+><para
+>Lê o conteúdo do documento a partir do STDIN. Isto é semelhante à opção comum <option
+>-</option
+>, que é usada por muitos programas da linha de comandos e lhe permite encaminhar o resultado do comando para o &kate;.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+><command
+>kate</command
+> <option
+>--startanon</option
+></userinput
+></term>
+<listitem
+><para
+>Inicia o &kate; com uma nova sessão anónima; a mesma implica o <option
+>-n</option
+>.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+><command
+>kate</command
+> <option
+>-n</option
+> <option
+>--new</option
+></userinput
+></term>
+<listitem
+><para
+>Força o início de uma nova instância do &kate; (é ignorado se for usada a opção <option
+>start</option
+> e se já estiver outra instância do &kate; com a sessão indicada aberta); será forçada, caso não sejam indicados quaisquer parâmetros ou URL's.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+><command
+>kate</command
+> <option
+>-b</option
+> <option
+>--block</option
+></userinput
+></term>
+<listitem
+><para
+>Se estiver a usar uma instância do &kate;, bloqueia até que esta saia, caso não sejam indicados quaisquer URL's a abrir.</para>
+<para
+>Poderá usar o &kate; com esta opção para escrever as mensagens de envio dos sistemas de controlo de versões como o <application
+>Git</application
+> ou o <application
+>Subversion</application
+>. Estes sistemas contam com o bloqueio do editor até que tenha introduzido a sua mensagem, dado que eles abrem o ficheiro temporário nesse caso, o qual estaria vazio se o Kate voltasse imediatamente a quem o invocou. </para>
+<para
+>Esta opção também é necessária com o KIO (&kde; Input/Output), caso aceda a um ficheiro remoto (que foi transferido para um local temporário) e que deverá voltar a ser enviado, após a gravação do mesmo. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+><command
+>kate</command
+> <option
+>--help</option
+></userinput
+></term>
+<listitem
+><para
+>Quando for usada, os ficheiros indicados são tratados como ficheiros temporários e removidos a seguir (se forem ficheiros locais e se tiver permissões suficientes) a ser fechados, a menos que tenham sido modificados desde a sua abertura.</para
+></listitem>
+</varlistentry>
+<!--FIXME usecase? -->
+<varlistentry>
+<term
+><userinput
+><command
+>kate</command
+> <option
+>--desktopfile</option
+> <parameter
+>ficheiro</parameter
+></userinput
+></term>
+<listitem
+><para
+>O nome de base do ficheiro do item '.desktop' para esta aplicação.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+><command
+>kate</command
+> <option
+>--author</option
+></userinput
+></term>
+<listitem>
+<para
+>Lista os autores do &kate; na janela do terminal. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+><command
+>kate</command
+> <option
+>-v</option
+> <option
+>--version</option
+></userinput
+></term>
+<listitem>
+<para
+>Indica as informações de versões do &kate;. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+><command
+>kate</command
+> <option
+>--license</option
+></userinput
+></term>
+<listitem>
+<para
+>Mostra informações sobre a licença. </para>
+</listitem>
+</varlistentry>
+</variablelist>
+</sect3>
+</sect2>
+
+<sect2 id="drag-and-drop">
+<title
+>Arrastar e Largar</title>
+<para
+>O &kate; utiliza o protocolo 'Drag and Drop' do &kde;. Os ficheiros podem ser arrastados e largados no &kate; a partir do ecrã, do &dolphin; ou de algum servidor de FTP remoto aberto numa das janelas do &dolphin;. </para>
+</sect2>
+</sect1>
+
+<sect1 id="working-with-kate">
+<title
+>Trabalhar com o &kate;</title>
+<para
+>O <link linkend="quick-start"
+>Arranque Rápido</link
+> mostrar-lhe-á como comutar quatro opções simples que lhe permitirão configurar algumas das funcionalidades mais poderosas do &kate; num instante. Os <link linkend="keystroke-commands"
+>Comandos do Teclado</link
+> fornece alguns atalhos de teclado para aqueles que não podem ou não querem usar um rato. </para>
+
+<sect2 id="quick-start">
+<title
+>Arranque Rápido</title>
+
+<para
+>Esta secção irá descrever alguns dos itens no menu <guimenu
+>Ver</guimenu
+>, de modo que possa configurar o &kate; como for da sua vontade. </para>
+
+<para
+>Quando arrancar o &kate; pela primeira vez, verá duas janelas com o fundo branco. Por cima das duas janelas existe uma barra de ferramentas com os ícones normais. Por cima desta, está a barra do menu. </para>
+
+<para
+>A janela da esquerda é uma barra lateral acoplável. Combina as janelas de <guilabel
+>Documentos</guilabel
+> e o <guilabel
+>Navegador do Sistema de Ficheiros</guilabel
+>. Alterne entre as duas carregando nos selectores de secção no topo da janela. </para>
+
+<para
+>Se invocou o &kate; com um ficheiro, a janela da direita irá mostrar o ficheiro que está a editar e a lista de <guilabel
+>Documentos</guilabel
+> na barra lateral irá mostrar o nome do ficheiro. Use a janela do <guilabel
+>Navegador do Sistema de Ficheiros</guilabel
+> para os abrir. </para>
+
+<para
+>Poderá activar ou desactivar as barras laterais com a opção <menuchoice
+><guimenu
+>Ver</guimenu
+><guimenu
+>Áreas de Ferramentas</guimenu
+></menuchoice
+> ou usando a combinação <keycombo action="simul"
+>&Ctrl;&Alt;&Shift;<keycap
+>F</keycap
+></keycombo
+>. Este menu oferece-lhe a sua primeira vista de olhos nas potencialidades e flexibilidade do &kate;. </para>
+
+<para
+>Nas <guisubmenu
+>Áreas de Ferramentas</guisubmenu
+> tem uma lista com todos os 'plugins' incorporados. Carregue na opção à frente de cada item ou carregue com o &LMB; nos botões das ferramentas na barra lateral para activar ou desactivar esta área de ferramentas. </para>
+
+</sect2>
+
+<sect2 id="keystroke-commands">
+<title
+>Atalhos</title>
+
+<para
+>Muitos dos comandos de teclado do &kate; (atalhos) são configuráveis através do menu <link linkend="settings-help-menu"
+>Configuração</link
+>. Por omissão, o &kate; respeita a seguinte configuração de teclas. </para>
+
+<!-- Ctrl+T Transpose Characters
+Meta+Ctrl+V ii input mode
+-->
+
+<informaltable>
+<tgroup cols="2">
+<tbody>
+
+<row
+><entry
+><para
+><keycap
+>Insert</keycap
+></para
+></entry>
+<entry
+><para
+>Alterna entre o modo de Inserção e Sobreposição. Quando está no modo de inserção, o editor irá adicionar os caracteres introduzidos ao texto e empurrar os dados introduzidos anteriormente à direita do cursor do texto. O modo de sobreposição fará com que a introdução de cada carácter elimine o carácter imediatamente à direita do cursor.</para
+></entry>
+</row>
+<row>
+<entry
+><para
+><keycombo
+><keycap
+>Esquerda</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Move o cursor um carácter para a esquerda </para
+></entry>
+</row>
+<row>
+<entry
+><para
+><keycombo
+><keycap
+>Direita</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Move o cursor um carácter para a direita </para
+></entry>
+</row>
+<row>
+<entry
+><para
+><keycombo action="simul"
+><keycap
+>Cima</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Sobe o cursor uma linha </para
+></entry>
+</row>
+<row>
+<entry
+><para
+><keycombo action="simul"
+><keycap
+>Baixo</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Desce o cursor uma linha </para
+></entry>
+</row>
+<row>
+<entry
+><para
+><keycombo action="simul"
+><keycap
+>Page Up</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Move o cursor uma página para cima </para
+></entry>
+</row>
+<row>
+<entry
+><para
+><keycombo action="simul"
+><keycap
+>Page Down</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Move o cursor uma página para baixo </para
+></entry>
+</row>
+<row>
+<entry
+><para
+><keycombo action="simul"
+>&Backspace;</keycombo
+></para
+></entry>
+<entry
+><para
+>Apaga o carácter à esquerda do cursor </para
+></entry>
+</row>
+<row>
+<entry
+><para
+><keycombo action="simul"
+><keycap
+>Home</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Move o cursor para o início da linha </para
+></entry>
+</row>
+<row>
+<entry
+><para
+><keycombo action="simul"
+><keycap
+>End</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Move o cursor para o fim da linha </para
+></entry>
+</row>
+<row>
+<entry
+><para
+><keycombo action="simul"
+><keycap
+>Delete</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Apaga o carácter à direita do cursor (ou qualquer texto seleccionado)</para
+></entry>
+</row>
+<row>
+<entry
+><para
+><keycombo action="simul"
+>&Shift;&Enter;</keycombo
+></para
+></entry>
+<entry
+><para
+>Introduz uma mudança de linha, incluindo os caracteres iniciais da linha actual que não sejam letras ou números. É útil, &eg;, para escrever comentários no código: No fim da linha <quote
+>// algum texto</quote
+>, carregue neste atalho para que a linha seguinte comece já com o <quote
+>// </quote
+>, para que não tenha de introduzir os caracteres de comentários no início de cada nova linha de comentários.</para
+></entry>
+</row>
+<row>
+<entry
+><para
+><keycombo action="simul"
+>&Shift;<keycap
+>Esquerda</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Marca o texto que está um carácter à esquerda </para
+></entry>
+</row>
+<row>
+<entry
+><para
+><keycombo action="simul"
+>&Shift;<keycap
+>Direita</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Marca o texto que está um carácter à direita </para
+></entry>
+</row>
+<row>
+<entry
+><para
+><keycombo action="simul"
+><keycap
+>F1</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Ajuda</para
+></entry>
+</row>
+<row>
+<entry
+><para
+><keycombo action="simul"
+>&Shift;<keycap
+>F1</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+><link linkend="whats-this"
+>O que é isto?</link
+></para
+></entry>
+</row>
+<row>
+<entry
+><para
+><keycombo action="simul"
+>&Ctrl;<keycap
+>F</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+><link linkend="edit-find"
+>Procurar</link
+></para
+></entry>
+</row>
+<row>
+<entry
+><para
+><keycombo action="simul"
+><keycap
+>F3</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+><link linkend="edit-find-next"
+>Procurar o Seguinte</link
+></para
+></entry>
+</row>
+<row>
+<entry
+><para
+><keycombo action="simul"
+>&Ctrl;<keycap
+>B</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Marca um Favorito</para
+></entry>
+</row>
+<row>
+<entry
+><para
+><keycombo action="simul"
+>&Ctrl;<keycap
+>C</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Copia o texto seleccionado para a área de transferência </para
+></entry>
+</row>
+
+<row>
+<entry
+><para
+><keycombo action="simul"
+>&Ctrl;<keycap
+>N</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+><link linkend="file-new"
+>Novo</link
+> documento</para
+></entry>
+</row>
+<row>
+<entry
+><para
+><keycombo action="simul"
+>&Ctrl;<keycap
+>P</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+><link linkend="file-print"
+>Imprimir</link
+> </para
+></entry>
+</row>
+<row>
+
+<entry
+><para
+><keycombo action="simul"
+>&Ctrl;<keycap
+>Q</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Sair - fecha a cópia activa do editor </para
+></entry>
+</row>
+<row>
+<entry
+><para
+><keycombo action="simul"
+>&Ctrl;<keycap
+>R</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+><link linkend="edit-replace"
+>Substituir</link
+></para
+></entry>
+</row>
+<row>
+<entry
+><para
+><keycombo action="simul"
+>&Ctrl;<keycap
+>S</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Grava o seu ficheiro</para
+></entry>
+</row>
+<row>
+<entry
+><para
+><keycombo action="simul"
+>&Ctrl;<keycap
+>V</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Colar</para
+></entry>
+</row>
+
+<row>
+<entry
+><para
+><keycombo action="simul"
+>&Ctrl;<keycap
+>X</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Apaga o texto seleccionado e copia-o para a área de transferência </para
+></entry>
+</row>
+<row>
+<entry
+><para
+><keycombo action="simul"
+>&Ctrl;<keycap
+>Z</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+><link linkend="edit-undo"
+>Desfazer</link
+></para
+></entry>
+</row>
+<row>
+<entry
+><para
+><keycombo action="simul"
+>&Ctrl;&Shift;<keycap
+>Z</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+><link linkend="edit-redo"
+>Refazer</link
+></para
+></entry>
+</row>
+</tbody>
+</tgroup>
+</informaltable>
+</sect2>
+
+</sect1>
+
+<sect1 id="kate-mdi">
+<title
+>Trabalhar com o <acronym
+>MDI</acronym
+> do &kate;</title>
+
+<sect2 id="kate-mdi-overview">
+<title
+>Introdução</title>
+
+<para
+>Janela, Documento, Editor... O que são todos estes conceitos na terminologia do &kate;, e como é possível tirar o maior partido dele? Este capítulo irá explicar tudo sobre o assunto e ainda mais.</para>
+
+<sect3 id="kate-mdi-overview-mainwindow">
+
+<title
+>A Janela Principal</title>
+
+<para
+><indexterm
+><primary
+>Janela principal</primary
+></indexterm
+> A Janela Principal do &kate; é uma janela de aplicação normal do &kde;, com a adição de sub-janelas acopláveis ou janelas de ferramentas. Tem uma barra de menu com todos os menus normais, para além de outros específicos, bem como uma barra de ferramentas que permite o acesso aos comandos mais usados.</para>
+
+<para
+>A parte mais importante da janela é a área de edição, que mostra por omissão uma componente de edição de texto, no qual o utilizador poderá trabalhar nos seus documentos.</para>
+
+<para
+>As capacidades de acoplagem da janela são usadas para as janelas de ferramentas de qualquer 'plugin' activo na janela de configuração.</para>
+
+<para
+>As ferramentas podem ser posicionadas em qualquer barra lateral; para mover uma ferramenta, carregue com o botão direito no seu botão da barra lateral e seleccione no menu do &RMB;</para>
+
+<para
+>Uma ferramenta pode ser marcada como <emphasis
+>persistente</emphasis
+> no menu do &RMB;, com o seu botão da barra lateral. A barra lateral pode conter mais ferramentas de cada vez para que, quando uma ferramenta for persistente, as outras ferramentas possam ser mostradas em simultâneo.</para>
+
+<para
+>Se um 'plugin' tiver opções de configuração, poderá usar o primeiro item no menu de contexto para abrir a página correspondente na janela de configuração do &kate;.</para>
+
+</sect3>
+
+</sect2>
+
+<sect2 id="kate-mdi-editor">
+
+<title
+>A área do Editor</title>
+
+<para
+><indexterm
+><primary
+>Área de Edição</primary
+></indexterm
+> O &kate; é capaz de ter mais que um documento aberto ao mesmo tempo, e também consegue repartir a área de edição em várias sub-janelas, de uma forma semelhante à que o &konqueror; ou o <application
+>emacs</application
+> praticam. Desta forma, poderá ver vários documentos ao mesmo tempo, ou mesmo várias instâncias do mesmo documento, o que é útil, por exemplo, se o seu documento contém definições no seu topo que deseje ver frequentemente como forma de referência. Poderá também ver um ficheiro de inclusão numa sub-janela, enquanto altera o ficheiro de implementação noutra.</para>
+
+<para
+>Quando um documento está disponível em mais de um editor, as alterações feitas num editor serão reflectidas imediatamente nos outros. Isto inclui a alteração do texto, bem como a sua selecção. As operações de pesquisa ou de movimentação do cursor só se reflectem no editor actual.</para>
+
+<para
+>Não é possível de momento ter mais que uma instância do mesmo documento aberta, na medida em que uma instância será editada enquanto a outra não.</para>
+
+<para
+>Ao repartir um editor em duas áreas, estas ficam divididas, por igual tamanho, e a mostrarem ambas o documento actual desse editor. A nova janela será a inferior (no caso de dividir horizontalmente) ou a da direita (se a divisão for vertical). A nova janela fica em primeiro plano, o qual é visível através do cursor intermitente na janela em questão.</para>
+
+</sect2>
+
+</sect1>
+
+<sect1 id="fundamentals-using-sessions">
+<title
+>Usar as Sessões</title>
+
+<para
+>As sessões são a forma como o &kate; lhe deixa manter uma lista de mais que um ficheiro e a configuração da interface. Poderá ter tantas sessões com nome quantas quiser e poderá usar sessões sem nome ou anónimas para os ficheiros que só queira usar uma vez. De momento, o &kate; pode gravar a lista de ficheiros abertos e a configuração geral da janela na sessão, enquanto as próximas versões do &kate; possam adicionar mais funcionalidades que possam ser gravadas em sessões. Com a introdução das sessões, o &kate; também lhe permite abrir um número qualquer de instâncias da aplicação, em vez de apenas uma, como costumava ser o comportamento por omissão.</para>
+
+<para
+>As sessões são suportadas em três áreas: <itemizedlist>
+<listitem
+><para
+><link linkend="command-line-options"
+><emphasis
+>Opções da linha de comandos</emphasis
+></link
+>, que lhe permite seleccionar e iniciar as sessões, ao lançar o Kate a partir da linha de comandos.</para>
+</listitem>
+<listitem
+><para
+><link linkend="sessions-menu"
+><emphasis
+>O menu de Sessões</emphasis
+></link
+>, que lhe permite mudar, gravar, iniciar e gerir as suas sessões.</para
+></listitem>
+<listitem
+><para
+><link linkend="config-dialog-sessions"
+><emphasis
+>Opções de configuração</emphasis
+></link
+>, que lhe permite decidir como as sessões se devem comportar normalmente.</para
+></listitem>
+</itemizedlist>
+
+</para>
+
+<para
+>Ao iniciar uma sessão nova, a configuração da GUI da <guilabel
+>Sessão Predefinida</guilabel
+> é carregada. Para gravar a configuração da janela na sessão predefinida, terá de activar a gravação da configuração de janelas na página de configuração da sessão e depois carregar a sessão predefinida, configurar a janela como desejar e gravar a sessão de novo.</para>
+
+<para
+>Quando uma sessão com nome for carregada, o &kate; irá mostrar o nome da sessão no início do título da janela, que poderá ter então o formato &quot;<replaceable
+>Nome da Sessão</replaceable
+>: <replaceable
+>Nome ou &URL; do documento</replaceable
+> - &kate;&quot;</para>
+
+<para
+>Ao abrir ficheiros na linha de comandos com a opção <option
+>--start <replaceable
+>nome</replaceable
+></option
+> ou, se uma sessão for seleccionada com o selector de sessões, a sessão indicada é carregada antes dos ficheiros indicados na linha de comandos. Para abrir os ficheiros da linha de comandos numa sessão nova sem nome, configure o 'kate' para iniciar uma sessão nova por omissão na página de sessões da janela de configuração ou use o <option
+>--start</option
+> com um texto vazio: <replaceable
+>''</replaceable
+>.</para>
+<!--FIXME still valid for kf5 -->
+<para
+>Desde o &kate; 2.5.1, o <acronym
+>PID</acronym
+> da instância actual é exportado na variável de ambiente <envar
+>KATE_PID</envar
+>. Ao abrir os ficheiros do terminar incorporado no Kate, irá seleccionar automaticamente a instância actual, se não for indicado mais nada na linha de comandos.</para>
+
+</sect1>
+
+<sect1 id="fundamentals-getting-help">
+
+<title
+>Obter Ajuda</title>
+
+<sect2>
+
+<title
+>Com o &kate;</title>
+<variablelist>
+
+<varlistentry>
+<term
+>Este manual</term>
+
+<listitem>
+<para
+>Oferece uma documentação detalhada sobre todos os comandos do menu, opções de configuração, ferramentas, janelas, 'plugins' &etc;, bem como descrições da janela do &kate;, do editor e vários conceitos usados na aplicação.</para>
+
+<para
+>Carregue em <keycap
+>F1</keycap
+> ou use o tópico do menu <menuchoice
+><guimenu
+>Ajuda</guimenu
+></menuchoice
+> <guimenuitem
+>Manual do &kate;</guimenuitem
+> para ver este manual.</para
+></listitem>
+
+</varlistentry>
+
+<varlistentry id="whats-this">
+<term
+>A ajuda O que é Isto?</term>
+<listitem>
+<para
+>A ajuda O Que É Isto? oferece uma ajuda imediata com os elementos simples das janelas, como os botões ou as outras áreas da janela.</para>
+
+<para
+>Nós tentamos providenciar ajudas O Que É Isto? para todos os elementos nos quais faça sentido. Está disponível por toda a janela de configuração, bem como em muitas outras janelas.</para>
+
+<para
+>Para você usar a ajuda O Que É Isto?, carregue em <keycombo
+>&Shift;<keycap
+>F1</keycap
+></keycombo
+>, ou use a opção do menu <menuchoice
+><guimenu
+>Ajuda</guimenu
+><guimenuitem
+>O Que É Isto?</guimenuitem
+></menuchoice
+>, para activar o modo de ajuda rápida. O cursor irá mudar para uma seta com um ponto de interrogação, para que possa então carregar em qualquer elemento da janela, de modo a ler a sua ajuda respectiva, se estiver disponível.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Botões de Ajuda nas Janelas</term>
+<listitem>
+<para
+>Algumas janelas têm um botão de <guibutton
+>Ajuda</guibutton
+>. Se carregar nele, irá iniciar o &khelpcenter; e abrir a documentação relevante.</para>
+</listitem>
+</varlistentry>
+</variablelist>
+
+</sect2>
+
+<sect2>
+<title
+>Com os Seus Ficheiros de Texto</title>
+
+<para
+>O &kate; não possibilita (ainda!) nenhum meio para ler a documentação relacionada com o documento. Dependendo do ficheiro que estiver a editar, poderá achar o <link linkend="kate-application-plugin-konsole"
+>Terminal Incorporado</link
+> útil para ver a documentação das páginas 'man' e 'info' do &UNIX; ou mesmo usar o &konqueror;.</para>
+
+</sect2>
+
+<sect2>
+<title
+>Artigos sobre o &kate;</title>
+
+<para
+>A página Web do &kate; mostra alguns <ulink url="http://kate-editor.org/featured-articles"
+> Artigos e 'Howtos'</ulink
+> com mais informações além do âmbito deste manual.</para>
+
+</sect2>
+
+</sect1>
+
+</chapter>

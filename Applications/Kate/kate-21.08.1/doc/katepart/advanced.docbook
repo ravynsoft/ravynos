@@ -1,0 +1,908 @@
+<chapter id="advanced-editing-tools">
+<chapterinfo>
+<authorgroup>
+<author>&Anders.Lund; &Anders.Lund.mail;</author>
+<author>&Dominik.Haumann; &Dominik.Haumann.mail;</author>
+<!-- TRANS:ROLES_OF_TRANSLATORS -->
+</authorgroup>
+</chapterinfo>
+<title>Advanced Editing Tools</title>
+
+<sect1 id="advanced-editing-tools-comment">
+
+<title>Comment/Uncomment</title>
+
+<para>The <guimenuitem>Comment</guimenuitem> and <guimenuitem>Uncomment</guimenuitem> commands, available from the
+<guimenu>Tools</guimenu> menu allow you to add or remove comment
+markers to the selection, or the current line if no text is selected,
+if comments are supported by the format of the text you are
+editing.</para>
+
+<para>The rules for how commenting is done are defined in the syntax
+definitions, so if syntax highlighting is not used, commenting/uncommenting
+is not possible. </para>
+
+<para>Some formats define single line comment markers, some multiline
+markers and some both.  If multiline markers are not available,
+commenting out a selection that does not fully include its last line
+is not possible.</para>
+
+<para>If a single line marker is available, commenting single lines is
+preferred where applicable, as this helps to avoid problems with
+nested comments.</para>
+
+<para>When removing comment markers, no uncommented text should be
+selected. When removing multiline comment markers from a selection,
+any whitespace outside the comment markers is ignored.</para>
+
+<para><indexterm><primary>comment</primary></indexterm>
+To place comment markers, use the
+<menuchoice><guimenu>Tools</guimenu><guimenuitem>Comment</guimenuitem></menuchoice>
+menu item or the related keyboard shortcut sequence, the default is
+<keycombo action="simul">&Ctrl;<keycap>D</keycap></keycombo>.</para>
+
+<para><indexterm><primary>uncomment</primary></indexterm>
+To remove comment markers, use the
+<menuchoice><guimenu>Tools</guimenu><guimenuitem>Uncomment</guimenuitem></menuchoice>
+menu item or the related keyboard shortcut, the default is <keycombo
+action="simul">&Ctrl;&Shift;<keycap>D</keycap></keycombo>.</para>
+
+</sect1>
+
+<sect1 id="advanced-editing-tools-commandline">
+<title>The Editor Component Command Line</title>
+
+<para>&kappname;'s editor component has an internal command line, allowing you to
+perform various actions from a minimal &GUI;. The command line is a text entry
+at the bottom of the editor area; to show it select
+<menuchoice><guimenu>View</guimenu><guimenuitem>Switch to Command Line</guimenuitem></menuchoice>
+or use the shortcut (default is
+<keycombo action="simul"><keycap>F7</keycap></keycombo>). The editor provides
+a set of commands as documented below, and additional commands can be provided
+by plugins.</para>
+
+<para>To execute a command, type the command then press the return key. The
+command line will indicate whether it succeeded and possibly display a message. If
+you entered the command line by pressing <keycap>F7</keycap> it will
+automatically hide after a few seconds. To clear the message and enter a new
+command, press <keycap>F7</keycap> again.</para>
+
+<para>The command line has a built-in help system; issue the command
+<command>help</command> to get started. To see a list of all available commands
+issue <command>help list</command>; to view help for a specific command, do
+<command>help <replaceable>command</replaceable></command>.</para>
+
+<para>The command line has a built in history, so you can reuse commands already
+typed. To navigate the history, use the &Up; and
+&Down; keys. When showing historical commands, the argument part
+of the command will be selected, allowing you to easily overwrite the
+arguments.</para>
+
+<sect2 id="advanced-editing-tools-commandline-commands">
+<title>Standard Command Line Commands</title>
+
+<variablelist>
+<title>Argument types</title>
+
+<varlistentry>
+<term>BOOLEAN</term>
+<listitem><para>This is used with commands that turns things on or off.
+Legal values are <userinput>on</userinput>, <userinput>off</userinput>,
+<userinput>true</userinput>, <userinput>false</userinput>,
+<userinput>1</userinput> or <userinput>0</userinput>.</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term>INTEGER</term>
+<listitem><para>An integer number.</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term>STRING</term>
+<listitem><para>A string, surrounded by single quotes (') or double quotes (") when it contains spaces.</para></listitem>
+</varlistentry>
+
+</variablelist>
+
+
+
+<sect3 id="advanced-editing-tools-commandline-commands-configure">
+<title>Commands for Configuring the Editor</title>
+
+<para>These commands are provided by the editor component, and allow you to
+configure the active document and view only. This is handy if you want to use
+a setting different from the default settings, for example for indentation.
+</para>
+
+<variablelist>
+
+<varlistentry>
+<term><cmdsynopsis><command>set-tab-width</command><arg choice="req">INTEGER width</arg></cmdsynopsis></term>
+<listitem><para>Sets the tab width to the number <userinput>width</userinput>.</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><cmdsynopsis><command>set-indent-width</command><arg choice="req">INTEGER width</arg></cmdsynopsis></term>
+<listitem><para>Sets the indentation width to the number
+<userinput>width</userinput>. Used only if you are indenting with
+spaces.</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><cmdsynopsis><command>set-word-wrap-column</command><arg choice="req">INTEGER width</arg></cmdsynopsis></term>
+<listitem><para>Sets the line width for hard wrapping to
+<userinput>width</userinput>. This is used if you are having your text wrapped
+automatically.</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><cmdsynopsis><command>set-icon-border</command><arg choice="req">BOOLEAN enable</arg>
+</cmdsynopsis></term>
+<listitem><para>Sets the visibility of the icon border.</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><cmdsynopsis><command>set-folding-markers</command><arg choice="req">BOOLEAN enable</arg></cmdsynopsis></term>
+<listitem><para>Sets the visibility of the folding markers pane.</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><cmdsynopsis><command>set-line-numbers</command><arg choice="req">BOOLEAN enable</arg></cmdsynopsis></term>
+<listitem><para>Sets the visibility of the line numbers pane.</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><cmdsynopsis><command>set-replace-tabs</command><arg choice="req">BOOLEAN enable</arg></cmdsynopsis></term>
+<listitem><para>If enabled, tabs are replaced with spaces as you type.
+</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><cmdsynopsis><command>set-remove-trailing-space</command><arg choice="req">BOOLEAN enable</arg></cmdsynopsis></term>
+<listitem><para>If enabled, trailing whitespace is removed whenever the cursor
+leaves a line.</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><cmdsynopsis><command>set-show-tabs</command><arg choice="req">BOOLEAN enable</arg></cmdsynopsis></term>
+<listitem><para>If enabled, TAB characters and trailing whitespace will be
+visualized by a small dot.</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><cmdsynopsis><command>set-show-indent</command><arg choice="req">BOOLEAN enable</arg></cmdsynopsis></term>
+<listitem><para>If enabled, indentation will be visualized by a vertical dotted
+line.</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><cmdsynopsis><command>set-indent-spaces</command><arg choice="req">BOOLEAN enable</arg></cmdsynopsis></term>
+<listitem><para>If enabled, the editor will indent with
+<option>indent-width</option> spaces for each indentation level, rather than
+with one TAB character.</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><cmdsynopsis><command>set-mixed-indent</command><arg choice="req">BOOLEAN enable</arg></cmdsynopsis></term>
+<listitem><para>If enabled, &kappname; will use a mix of TAB and spaces for
+indentation. Each indentation level will be <option>indent-width</option> wide,
+and more indentation levels will be optimized to use as many TAB characters as
+possible.</para>
+<para>When executed, this command will additionally set space indentation enabled,
+and if the indent width is unspecified it will be set to half of the
+<option>tab-width</option> for the document at the time of execution.</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><cmdsynopsis><command>set-word-wrap</command><arg choice="req">BOOLEAN
+enable</arg></cmdsynopsis></term>
+<listitem><para>Enables dynamic word wrap according to
+<userinput>enable</userinput>.</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><cmdsynopsis><command>set-replace-tabs-save</command><arg choice="req">BOOLEAN enable
+</arg></cmdsynopsis></term>
+<listitem><para>When enabled, tabs will be replaced with whitespace whenever
+ the document is saved.</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><cmdsynopsis><command>set-remove-trailing-space-save</command><arg choice="req">BOOLEAN enable</arg></cmdsynopsis></term>
+<listitem><para>When enabled, trailing space will be removed from each line
+whenever the document is saved.</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><cmdsynopsis><command>set-indent-mode</command><arg choice="req">STRING name</arg></cmdsynopsis></term>
+<listitem><para>Sets the autoindentation mode to <userinput>name</userinput>.
+If <userinput>name</userinput> is not known, the mode is set to 'none'. Valid
+modes are 'none', 'normal', 'cstyle', 'haskell', 'lilypond', 'lisp', 'python',
+'ruby' and 'xml'.</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><cmdsynopsis><command>set-auto-ident</command><arg choice="req">BOOLEAN script</arg></cmdsynopsis></term>
+<listitem><para>Enable or disable autoindentation.</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><cmdsynopsis><command>set-highlight</command><arg choice="req">STRING highlight</arg></cmdsynopsis></term>
+<listitem><para>Sets the syntax highlighting system for the document. The
+argument must be a valid highlight name, as seen in the
+<menuchoice><guimenu>Tools</guimenu><guisubmenu>Highlighting</guisubmenu></menuchoice>
+menu. This command provides an autocompletion list for its
+argument.</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><cmdsynopsis><command>reload-scripts</command></cmdsynopsis></term>
+<listitem><para>Reload all <link linkend="dev-scripting">&javascript;
+scripts</link> used by &kate;, including indenters and command line scripts.</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><cmdsynopsis><command>set-mode</command><arg choice="req">STRING mode</arg></cmdsynopsis></term>
+<listitem><para>Choose the filetype scheme for the current document.
+</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><cmdsynopsis><command>nn[oremap]</command><arg choice="req">STRING original</arg>
+<arg choice="req">STRING mapped</arg></cmdsynopsis></term>
+<listitem><para>Map the key sequence <userinput>original</userinput> to 
+<userinput>mapped</userinput>.</para></listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect3>
+
+<sect3 id="advanced-editing-tools-commandline-commands-edit">
+<title>Commands for editing</title>
+
+<para>These commands modify the current document.</para>
+
+<variablelist>
+<varlistentry>
+<term><cmdsynopsis><command>indent</command></cmdsynopsis></term>
+<listitem><para>Indents the selected lines or the current line.</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><cmdsynopsis><command>unindent</command></cmdsynopsis></term>
+<listitem><para>Unindents the selected lines or current line.</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><cmdsynopsis><command>cleanindent</command></cmdsynopsis></term>
+<listitem><para>Cleans up the indentation of the selected lines or current line
+according to the indentation settings in the document.
+</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><cmdsynopsis><command>comment</command></cmdsynopsis></term>
+<listitem><para>Inserts comment markers to make the selection or selected lines
+or current line a comment according to the text format as defined by the syntax
+highlight definition for the document.</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><cmdsynopsis><command>uncomment</command></cmdsynopsis></term>
+<listitem><para>Removes comment markers from the selection or selected lines
+or current line according to the text format as defined by the syntax highlight
+definition for the document.</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><cmdsynopsis><command>kill-line</command></cmdsynopsis></term>
+<listitem><para>Deletes the current line.</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><cmdsynopsis><command>replace</command><arg choice="req"> STRING pattern</arg>
+<arg choice="req">STRING replacement</arg></cmdsynopsis></term>
+<listitem><para>Replaces text matching <userinput>pattern</userinput> with
+<userinput>replacement</userinput>. If you want to include whitespace in the
+<userinput>pattern</userinput>, you must quote both the <userinput>pattern</userinput>
+and <userinput>replacement</userinput> with single or double quotes. If the
+arguments are unquoted, the first word is used as <userinput>pattern</userinput>
+and the rest for <userinput>replacement</userinput>. If
+<userinput>replacement</userinput> is empty, each occurrence of
+<userinput>pattern</userinput> is removed.</para>
+<para>You can set flags to configure the search by adding a colon, followed
+by one or more letters each representing a configuration, giving the form
+<userinput>replace:options pattern replacement</userinput>. Available options
+are:
+
+<variablelist>
+
+<varlistentry>
+<term><userinput>b</userinput></term>
+<listitem><para>Search backwards.</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><userinput>c</userinput></term>
+<listitem><para>Search from cursor position.</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><userinput>e</userinput></term>
+<listitem><para>Search in the selection only.</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><userinput>r</userinput></term>
+<listitem><para>Do regular expression search. If set, you may use
+<userinput>\N</userinput> where N is a number to represent captures in the
+replacement string.</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><userinput>s</userinput></term>
+<listitem><para>Do case sensitive search.</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><userinput>p</userinput></term>
+<listitem><para>Prompt for permission to replace the next occurrence.</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><userinput>w</userinput></term>
+<listitem><para>Match whole words only.</para></listitem>
+</varlistentry>
+
+</variablelist>
+
+</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term><cmdsynopsis><command>date</command><arg choice="req">STRING format</arg></cmdsynopsis></term>
+<listitem><para>Inserts a date/time string as defined by the specified
+<userinput>format</userinput>, or the format <quote>yyyy-MM-dd hh:mm:ss</quote>
+if none is specified. The following translations are done when interpreting
+<userinput>format</userinput>:
+
+<informaltable>
+<tgroup cols="2">
+<tbody>
+<row><entry><literal>d</literal></entry><entry>The day as number without a leading zero (1-31).</entry></row>
+<row><entry><literal>dd</literal></entry><entry>The day as number with a leading zero (01-31).</entry></row>
+<row><entry><literal>ddd</literal></entry><entry>The abbreviated localized day name (&eg; 'Mon'..'Sun').</entry></row>
+<row><entry><literal>dddd</literal></entry><entry>The long localized day name (&eg; 'Monday'..'Sunday').</entry></row>
+<row><entry><literal>M</literal></entry><entry>The month as number without a leading zero (1-12).</entry></row>
+<row><entry><literal>MM</literal></entry><entry>The month as number with a leading zero (01-12).</entry></row>
+<row><entry><literal>MMMM</literal></entry><entry>The long localized month name (&eg; 'January'..'December').</entry></row>
+<row><entry><literal>MMM</literal></entry><entry>The abbreviated localized month name (&eg; 'Jan'..'Dec').</entry></row>
+<row><entry><literal>yy</literal></entry><entry>The year as two digit number
+(00-99).</entry></row>
+<row><entry><literal>yyyy</literal></entry><entry>The year as four digit number (1752-8000).</entry></row>
+<row><entry><literal>h</literal></entry><entry>The hour without a leading zero (0..23 or 1..12 if AM/PM display).</entry></row>
+<row><entry><literal>hh</literal></entry><entry>The hour with a leading zero (00..23 or 01..12 if AM/PM display).</entry></row>
+<row><entry><literal>m</literal></entry><entry>The minute without a leading zero (0..59).</entry></row>
+<row><entry><literal>mm</literal></entry><entry>The minute with a leading zero (00..59).</entry></row>
+<row><entry><literal>s</literal></entry><entry>The second without a leading zero (0..59).</entry></row>
+<row><entry><literal>ss</literal></entry><entry>The second with a leading zero (00..59).</entry></row>
+<row><entry><literal>z</literal></entry><entry>The milliseconds without leading zeroes (0..999).</entry></row>
+<row><entry><literal>zzz</literal></entry><entry>The milliseconds with leading zeroes (000..999).</entry></row>
+<row><entry><literal>AP</literal></entry><entry>Use AM/PM display. AP will be replaced by either "AM" or "PM".</entry></row>
+<row><entry><literal>ap</literal></entry><entry>Use am/pm display. ap will be replaced by either "am" or "pm".</entry></row>
+</tbody>
+</tgroup>
+</informaltable>
+
+</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><cmdsynopsis><command>char</command><arg choice="req">STRING identifier</arg></cmdsynopsis></term>
+<listitem>
+<para>This command allows you to insert literal characters by their
+numerical identifier, in decimal, octal or hexadecimal form.
+To use it launch the Editing Command dialog and type <userinput>char:
+[number]</userinput> in the entry box, then hit
+<guibutton>OK</guibutton>.</para>
+
+<example>
+<title><command>char</command> examples</title>
+
+<para>Input: <userinput>char:234</userinput></para>
+<para>Output: <computeroutput>&#234;</computeroutput></para>
+<para>Input: <userinput>char:0x1234</userinput></para>
+<para>Output: <computeroutput>&#x1234;</computeroutput></para>
+</example>
+
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term>
+<indexterm><primary>replace, sed style</primary>
+<secondary>search, sed style</secondary></indexterm>
+<command>s///[ig]</command> <command>%s///[ig]</command></term>
+
+<listitem>
+<para>This command does a sed-like search/replace operation on the
+current line, or on the whole file (<command>%s///</command>).</para>
+
+<para>In short, the text is searched for text matching the
+<emphasis>search pattern</emphasis>, the regular expression between
+the first and the second slash, and when a match is found, the
+matching part of the text is replaced with the expression between the
+second and last slash. Parentheses in the search pattern
+create <emphasis>back references</emphasis>, that is the command
+remembers which part of the string matched in the parentheses; these
+strings can be reused in the replace pattern, referred to as
+<userinput>\1</userinput> for the first set of parentheses,
+<userinput>\2</userinput> for the second and so on.</para>
+
+<para>To search for a literal <literal>(</literal> or
+<literal>)</literal>, you need to <emphasis>escape</emphasis> it using
+a backslash character: <userinput>\(\)</userinput></para>
+
+<para>If you put an <userinput>i</userinput> at the end of the
+expression, the matching will be case insensitive. If you put a
+<userinput>g</userinput> at the end, all occurrences of the pattern will be
+replaced, otherwise only the first occurrence is replaced.</para>
+
+<example>
+
+<title>Replacing text in the current line</title>
+
+<para>Your friendly compiler just stopped, telling you that the class
+<classname>myClass</classname> mentioned in line 3902 in your source file
+is not defined.</para>
+
+<para>&quot;Buckle!&quot; you think, it is of course
+<classname>MyClass</classname>. You go to line 3902, and instead of trying
+to find the word in the text, you launch the Editing Command Dialog,
+enter <userinput>s/myclass/MyClass/i</userinput>, hit the
+<guibutton>OK</guibutton> button, save the file and compile &ndash;
+successfully without the error.</para>
+
+</example>
+
+<example>
+<title>Replacing text in the whole file</title>
+
+<para>Imagine that you have a file, in which you mention a <quote>Miss
+Jensen</quote> several times, when someone comes in and tells you that
+she just got married to <quote>Mr Jones</quote>. You want, of course,
+to replace each and every occurrence of <quote>Miss Jensen</quote>
+with <quote>Ms Jones</quote>.</para>
+
+<para>Enter the command line and issue the command
+<userinput>%s/Miss Jensen/Ms Jones/</userinput> and hit return, you
+are done.</para>
+
+</example>
+
+<example>
+<title>A More Advanced Example</title>
+
+<para>This example makes use of <emphasis>back references</emphasis>
+as well as a <emphasis>character class</emphasis> (if you do not know what
+that is, please refer to the related documentation mentioned
+below).</para>
+
+<para>Suppose you have the following line:
+
+<programlisting>void MyClass::DoStringOps( String      &amp;foo, String &amp;bar, String *p, int  &amp;a, int &amp;b )</programlisting>
+</para>
+<para>Now you realize that this is not nice code, and decide that you
+want to use the <constant>const</constant> keyword for all
+<quote>address of</quote> arguments, those characterized by the &amp;
+operator in front of the argument name. You would also like to
+simplify the white space, so that there is only 1 whitespace character
+between each word.</para>
+
+<para>Launch the Editing Command Dialog, and enter:
+<userinput>s/\s+(\w+)\s+(&amp;)/ const \1 \2/g</userinput> and hit the
+<guibutton>OK</guibutton> button. The <userinput>g</userinput> at the end of the expression makes
+the regular expression recompile for each match to save the <emphasis>backreferences</emphasis>.</para>
+
+<para>Output:
+
+<computeroutput>void MyClass::DoStringOps( const String &amp;foo, const String &amp;bar, String *p, const int &amp;a, const int &amp;b )</computeroutput></para>
+
+<para>Mission completed! Now, what happened? Well, we looked for some
+white space (<literal>\s+</literal>) followed by one or more
+alphabetic characters (<literal>\w+</literal>) followed by some more
+whitespace (<literal>\s+</literal>) followed by an ampersand, and in
+the process saved the alphabetic chunk and the ampersand for reuse in
+the replace operation. Then we replaced the matching part of our line
+with one whitespace followed by <quote>const</quote> followed by one
+whitespace followed by our saved alphabetical chunk
+(<literal>\1</literal>) followed by one whitespace followed by our
+saved ampersand (<literal>\2</literal>)</para>
+
+<para>Now in some cases the alphabetical chunk was
+<quote>String</quote>, in some <quote>int</quote>, so using the
+character class <literal>\w</literal> and the <literal>+</literal>
+quantifier proved a valuable asset.</para>
+
+</example>
+
+</listitem>
+
+</varlistentry>
+
+<varlistentry>
+<term><cmdsynopsis><command>sort</command></cmdsynopsis></term>
+<listitem><para>Sorts the selected text or entire document.</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><cmdsynopsis><command>natsort</command></cmdsynopsis></term>
+<listitem><para>Sort the selected lines or entire document naturally.</para>
+
+<example>
+<title><command>sort</command> vs. <command>natsort</command></title>
+<para><userinput><command>sort</command>(a10, a1, a2)</userinput> results in
+                            <computeroutput>a1, a10, a2</computeroutput></para>
+<para><userinput><command>natsort</command>(a10, a1, a2)</userinput> results in
+                            <computeroutput>a1, a2, a10</computeroutput></para>
+</example></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><cmdsynopsis><command>moveLinesDown</command></cmdsynopsis></term>
+<listitem><para>Move selected lines down.</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><cmdsynopsis><command>moveLinesUp</command></cmdsynopsis></term>
+<listitem><para>Move selected lines up.</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><cmdsynopsis><command>uniq</command></cmdsynopsis></term>
+<listitem><para>Remove duplicated lines from the selected text or the whole
+document.</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><cmdsynopsis><command>rtrim</command></cmdsynopsis></term>
+<listitem><para>Remove trailing space from the selected text or the whole
+document.</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><cmdsynopsis><command>ltrim</command></cmdsynopsis></term>
+<listitem><para>Remove leading space from the selected text or the whole
+document.</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><cmdsynopsis><command>join</command><arg choice="opt">STRING separator</arg></cmdsynopsis></term>
+<listitem><para>Join selected lines or whole document.  Optionally takes a parameter
+defining a separator, for example:  <userinput><command>join</command> ', '</userinput>
+</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><cmdsynopsis><command>rmblank</command></cmdsynopsis></term>
+<listitem><para>Remove all blank spaces from the selected text or the whole
+document.</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><cmdsynopsis><command>unwrap</command></cmdsynopsis></term>
+<listitem><para>Unwrap the selected text or the whole document.</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><cmdsynopsis><command>each</command><arg choice="req">STRING script</arg></cmdsynopsis></term>
+<listitem><para>Given a &javascript; function as an argument, call that for the list of
+selected lines and replace them with the return value of that callback.</para>
+
+<example>
+<title>Join selected lines</title>
+<para><userinput><command>each</command> 'function(lines){return lines.join(", ")}'
+</userinput></para>
+
+<para>Or, more briefly:</para>
+<para><userinput><command>each</command> 'lines.join(", ")'</userinput></para>
+</example>
+
+</listitem>
+</varlistentry>
+
+
+
+<varlistentry>
+<term><cmdsynopsis><command>filter</command><arg choice="req">STRING script</arg></cmdsynopsis></term>
+<listitem><para>Given a &javascript; function as an argument, call that for the list of
+selected lines and remove those where the callback returns false.</para>
+
+<example>
+<title>Remove blank lines</title>
+<para><userinput><command>filter</command> 'function(1){return 1.length > 0;}'
+</userinput></para>
+
+<para>Or, more briefly:</para>
+<para><userinput><command>filter</command> 'line.length > 0'</userinput></para>
+</example>
+
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term><cmdsynopsis><command>map</command><arg choice="req">STRING script</arg></cmdsynopsis></term>
+<listitem><para>Given a &javascript; function as an argument, call that for the list of
+selected lines and replace the line with the value of the callback.</para>
+
+<example>
+<title>Remove blank lines</title>
+<para><userinput><command>map</command> 'function(line){return
+line.replace(/^s+/,"");}'
+</userinput></para>
+
+<para>Or, more briefly:</para>
+<para><userinput><command>map</command> 'line.replace(/^s+/,"")'</userinput></para>
+</example>
+
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term><cmdsynopsis><command>duplicateLinesUp</command></cmdsynopsis></term>
+<listitem><para>Duplicate the selected lines above the current selection.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term><cmdsynopsis><command>duplicateLinesDown</command></cmdsynopsis></term>
+<listitem><para>Duplicate the selected lines below the current selection.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect3>
+
+<sect3 id="advanced-editing-tools-commandline-commands-navigation">
+<title>Commands for navigation</title>
+
+<variablelist>
+
+<varlistentry>
+<term><cmdsynopsis><command>goto</command><arg choice="req">INT line</arg></cmdsynopsis></term>
+<listitem><para>This command navigates to the specified line.</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><cmdsynopsis><command>grep</command> <arg choice="req">STRING pattern</arg>
+</cmdsynopsis></term>
+<listitem><para>Search the document for the regular expression
+<userinput>pattern</userinput>. For more information, see
+<xref linkend="regular-expressions" />.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term><cmdsynopsis><command>find</command><arg choice="req">STRING pattern</arg></cmdsynopsis></term>
+<listitem><para>This command navigates to the first occurrence of
+<userinput>pattern</userinput> according to the configuration. Following
+occurrences can be found using
+<menuchoice><guimenu>Edit</guimenu><guimenuitem>Find Next</guimenuitem></menuchoice>
+(the default shortcut is <keycap>F3</keycap>).</para>
+<para>The find command can be configured by appending a colon followed by one or
+more options, the form is
+<userinput>find:options pattern</userinput>. The
+    following options are supported:</para>
+
+<variablelist>
+
+<varlistentry>
+<term><userinput>b</userinput></term>
+<listitem><para>Search backwards.</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><userinput>c</userinput></term>
+<listitem><para>Search from cursor position.</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><userinput>e</userinput></term>
+<listitem><para>Search in the selection only.</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><userinput>r</userinput></term>
+<listitem><para>Do regular expression search. If set, you may use
+<userinput>\N</userinput> where N is a number to represent captures in the
+replacement string.</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><userinput>s</userinput></term>
+<listitem><para>Do case sensitive search.</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><userinput>w</userinput></term>
+<listitem><para>Match whole words only.</para></listitem>
+</varlistentry>
+
+</variablelist>
+</listitem>
+
+</varlistentry>
+
+<varlistentry>
+<term><cmdsynopsis><command>ifind</command><arg choice="req">STRING pattern</arg></cmdsynopsis></term>
+<listitem><para>This command provides <quote>as-you-type</quote> searching. You
+can configure the behavior of the search by appending a colon
+followed by one or more options, like this:
+<userinput>ifind:options pattern</userinput>. Allowed options are:
+
+<variablelist>
+<varlistentry>
+<term><userinput>b</userinput></term>
+<listitem><para>Search backwards.</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><userinput>r</userinput></term>
+<listitem><para>Do regular expression search.</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><userinput>s</userinput></term>
+<listitem><para>Do case sensitive search.</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><userinput>c</userinput></term>
+<listitem><para>Search from cursor position.</para></listitem>
+</varlistentry>
+
+</variablelist>
+</para></listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect3>
+
+
+<sect3 id="advanced-editing-tools-commandline-commands-basic">
+<title>Commands for Basic Editor Functions (These depend on the application the editor component is used in)</title>
+
+<variablelist>
+
+<varlistentry>
+<term><cmdsynopsis><command>w</command></cmdsynopsis></term>
+<listitem><para>Save the current document.</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><cmdsynopsis><command>wa</command></cmdsynopsis></term>
+<listitem><para>Save all currently open documents.</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><cmdsynopsis><command>q</command></cmdsynopsis></term>
+<listitem><para>Close the current document.</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><cmdsynopsis><command>qa</command></cmdsynopsis></term>
+<listitem><para>Close all open documents.</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><cmdsynopsis><command>wq</command></cmdsynopsis></term>
+<listitem><para>Save and close the current document.</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><cmdsynopsis><command>wqa</command></cmdsynopsis></term>
+<listitem><para>Save and close all currently open documents.</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><cmdsynopsis><command>x</command></cmdsynopsis></term>
+<listitem><para>Save and close the current document only if it has changed.
+</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><cmdsynopsis><command>x</command></cmdsynopsis></term>
+<listitem><para>Save and close all currently open documents only if they have
+changed.</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><cmdsynopsis><command>bp</command></cmdsynopsis></term>
+<listitem><para>Go to the previous document in the documents list.
+</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><cmdsynopsis><command>bn</command></cmdsynopsis></term>
+<listitem><para>Go to the next document in the documents list.
+</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><cmdsynopsis><command>new</command></cmdsynopsis></term>
+<listitem><para>Open a new document in horizontal split view.
+</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><cmdsynopsis><command>vnew</command></cmdsynopsis></term>
+<listitem><para>Open a new document in vertical split view.
+</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><cmdsynopsis><command>e</command></cmdsynopsis></term>
+<listitem><para>Reload the current document if it has changed on disk.
+</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><cmdsynopsis><command>enew</command></cmdsynopsis></term>
+<listitem><para>Edit a new document.
+</para></listitem>
+</varlistentry>
+
+<varlistentry>
+<term><cmdsynopsis><command>print</command></cmdsynopsis></term>
+<listitem><para>Open the Print dialog to print the current document.
+</para></listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect3>
+
+
+</sect2>
+
+</sect1>
+
+<sect1 id="advanced-editing-tools-code-folding">
+<title>Using Code Folding</title>
+
+<para>Code folding allows you to hide parts of a document in the editor, making
+it easier to overview large documents. In &kappname; the foldable regions are
+calculated using rules defined in the syntax highlight definitions, and
+therefore it is only available in some formats - typically program source code,
+XML markup and similar. Most highlight definitions supporting code folding
+also lets you manually define foldable regions, typically using the
+<userinput>BEGIN</userinput> and <userinput>END</userinput> keywords.</para>
+
+<para>To use the code folding feature, activate the folding markers using
+<menuchoice><guimenu>View</guimenu><guimenuitem>Show Folding
+Markers</guimenuitem></menuchoice> menu item if they are not already visible.
+The Folding Markers Pane on the left side of the screen displays a graphical
+view of the foldable regions, with triangle symbols to indicate the possible operation
+on a given region: a top down triangle means that the region is expanded, clicking it will
+collapse the region and a right pointing triangle will be displayed instead.</para>
+<!--FIXME change Three to Four when Unfold Toplevel Nodes action is back-->
+<para>Three commands are provided to manipulate the state of folding regions,
+ see the <link linkend="view-code-folding">menu documentation</link>.
+ </para>
+
+<para>The folded lines are remembered when a file is closed, so when you reopen
+the file the folded nodes will still be folded. This applies to reload operations
+as well.</para>
+
+<para>If you do not want to use the code folding feature, you can disable
+the <guilabel>Show folding markers (if available)</guilabel> option in the
+<link linkend="appearance">Appearance</link> page of the editor
+configuration.</para>
+
+</sect1>
+
+</chapter>

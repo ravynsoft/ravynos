@@ -1,0 +1,555 @@
+# Translation of kate-ctags-plugin.po to Ukrainian
+# Copyright (C) 2008-2021 This_file_is_part_of_KDE
+# This file is distributed under the license LGPL version 2.1 or
+# version 3 or later versions approved by the membership of KDE e.V.
+#
+# Yuri Chornoivan <yurchor@ukr.net>, 2008, 2009, 2010, 2011, 2013, 2014, 2015, 2018, 2020, 2021.
+msgid ""
+msgstr ""
+"Project-Id-Version: kate-ctags-plugin\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2021-03-28 16:13+0000\n"
+"PO-Revision-Date: 2021-01-11 08:23+0200\n"
+"Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
+"Language-Team: Ukrainian <kde-i18n-uk@kde.org>\n"
+"Language: uk\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Lokalize 20.11.70\n"
+"Plural-Forms: nplurals=4; plural=n==1 ? 3 : n%10==1 && n%100!=11 ? 0 : n"
+"%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+
+#, kde-format
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr "Юрій Чорноіван"
+
+#, kde-format
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr "yurchor@ukr.net"
+
+#. i18n: ectx: property (title), widget (QGroupBox, groupBox)
+#: CTagsGlobalConfig.ui:9
+#, kde-format
+msgid "Session-global index targets"
+msgstr "Цілі індексування загального сеансу"
+
+#. i18n: ectx: property (text), widget (QPushButton, addButton)
+#: CTagsGlobalConfig.ui:33 kate_ctags.ui:65
+#, kde-format
+msgid "Add"
+msgstr "Додати"
+
+#. i18n: ectx: property (text), widget (QPushButton, delButton)
+#: CTagsGlobalConfig.ui:40 kate_ctags.ui:72
+#, kde-format
+msgid "Remove"
+msgstr "Вилучити"
+
+#. i18n: ectx: property (text), widget (QPushButton, updateDB)
+#: CTagsGlobalConfig.ui:54
+#, kde-format
+msgid "Update"
+msgstr "Оновити"
+
+#. i18n: ectx: property (text), widget (QLabel, cmdLabel)
+#. i18n: ectx: property (title), widget (QGroupBox, groupBox_2)
+#: CTagsGlobalConfig.ui:66 kate_ctags.ui:119
+#, kde-format
+msgid "CTags command"
+msgstr "Команда CTags"
+
+#: ctagskinds.cpp:23
+#, kde-format
+msgctxt "Tag Type"
+msgid "define"
+msgstr "визначення"
+
+#: ctagskinds.cpp:24 ctagskinds.cpp:66
+#, kde-format
+msgctxt "Tag Type"
+msgid "label"
+msgstr "мітка"
+
+#: ctagskinds.cpp:25 ctagskinds.cpp:39 ctagskinds.cpp:85
+#, kde-format
+msgctxt "Tag Type"
+msgid "macro"
+msgstr "макрос"
+
+#: ctagskinds.cpp:28 ctagskinds.cpp:30 ctagskinds.cpp:41 ctagskinds.cpp:63
+#: ctagskinds.cpp:83 ctagskinds.cpp:87 ctagskinds.cpp:91 ctagskinds.cpp:93
+#: ctagskinds.cpp:98 ctagskinds.cpp:102 ctagskinds.cpp:104 ctagskinds.cpp:106
+#: ctagskinds.cpp:110
+#, kde-format
+msgctxt "Tag Type"
+msgid "function"
+msgstr "функція"
+
+#: ctagskinds.cpp:28 ctagskinds.cpp:71 ctagskinds.cpp:89 ctagskinds.cpp:95
+#, kde-format
+msgctxt "Tag Type"
+msgid "subroutine"
+msgstr "підпрограма"
+
+#: ctagskinds.cpp:32
+#, kde-format
+msgctxt "Tag Type"
+msgid "fragment definition"
+msgstr "визначення фрагмента"
+
+#: ctagskinds.cpp:33
+#, kde-format
+msgctxt "Tag Type"
+msgid "any pattern"
+msgstr "будь-який шаблон"
+
+#: ctagskinds.cpp:34
+#, kde-format
+msgctxt "Tag Type"
+msgid "slot"
+msgstr "слот"
+
+#: ctagskinds.cpp:35
+#, kde-format
+msgctxt "Tag Type"
+msgid "pattern"
+msgstr "шаблон"
+
+#: ctagskinds.cpp:38 ctagskinds.cpp:55 ctagskinds.cpp:76 ctagskinds.cpp:91
+#: ctagskinds.cpp:93 ctagskinds.cpp:97
+#, kde-format
+msgctxt "Tag Type"
+msgid "class"
+msgstr "клас"
+
+#: ctagskinds.cpp:40
+#, kde-format
+msgctxt "Tag Type"
+msgid "enumerator"
+msgstr "лічильник"
+
+#: ctagskinds.cpp:42
+#, kde-format
+msgctxt "Tag Type"
+msgid "enumeration"
+msgstr "нумерація"
+
+#: ctagskinds.cpp:43
+#, kde-format
+msgctxt "Tag Type"
+msgid "member"
+msgstr "член"
+
+#: ctagskinds.cpp:44 ctagskinds.cpp:106
+#, kde-format
+msgctxt "Tag Type"
+msgid "namespace"
+msgstr "простір назв"
+
+#: ctagskinds.cpp:45
+#, kde-format
+msgctxt "Tag Type"
+msgid "prototype"
+msgstr "прототип"
+
+#: ctagskinds.cpp:46
+#, kde-format
+msgctxt "Tag Type"
+msgid "struct"
+msgstr "структура"
+
+#: ctagskinds.cpp:47
+#, kde-format
+msgctxt "Tag Type"
+msgid "typedef"
+msgstr "визначення типу"
+
+#: ctagskinds.cpp:48
+#, kde-format
+msgctxt "Tag Type"
+msgid "union"
+msgstr "об'єднання"
+
+#: ctagskinds.cpp:49 ctagskinds.cpp:73
+#, kde-format
+msgctxt "Tag Type"
+msgid "variable"
+msgstr "змінна"
+
+#: ctagskinds.cpp:50
+#, kde-format
+msgctxt "Tag Type"
+msgid "external variable"
+msgstr "зовнішня змінна"
+
+#: ctagskinds.cpp:53
+#, kde-format
+msgctxt "Tag Type"
+msgid "paragraph"
+msgstr "параграф"
+
+#: ctagskinds.cpp:56
+#, kde-format
+msgctxt "Tag Type"
+msgid "feature"
+msgstr "можливість"
+
+#: ctagskinds.cpp:57
+#, kde-format
+msgctxt "Tag Type"
+msgid "local entity"
+msgstr "локальний елемент"
+
+#: ctagskinds.cpp:60
+#, kde-format
+msgctxt "Tag Type"
+msgid "block"
+msgstr "блок"
+
+#: ctagskinds.cpp:61
+#, kde-format
+msgctxt "Tag Type"
+msgid "common"
+msgstr "звичайний"
+
+#: ctagskinds.cpp:62
+#, kde-format
+msgctxt "Tag Type"
+msgid "entry"
+msgstr "запис"
+
+#: ctagskinds.cpp:64 ctagskinds.cpp:78
+#, kde-format
+msgctxt "Tag Type"
+msgid "interface"
+msgstr "інтерфейс"
+
+#: ctagskinds.cpp:65
+#, kde-format
+msgctxt "Tag Type"
+msgid "type component"
+msgstr "компонент типу"
+
+#: ctagskinds.cpp:67
+#, kde-format
+msgctxt "Tag Type"
+msgid "local"
+msgstr "локальний"
+
+#: ctagskinds.cpp:68
+#, kde-format
+msgctxt "Tag Type"
+msgid "module"
+msgstr "модуль"
+
+#: ctagskinds.cpp:69
+#, kde-format
+msgctxt "Tag Type"
+msgid "namelist"
+msgstr "список імен"
+
+#: ctagskinds.cpp:70
+#, kde-format
+msgctxt "Tag Type"
+msgid "program"
+msgstr "програма"
+
+#: ctagskinds.cpp:72
+#, kde-format
+msgctxt "Tag Type"
+msgid "type"
+msgstr "тип"
+
+#: ctagskinds.cpp:77
+#, kde-format
+msgctxt "Tag Type"
+msgid "field"
+msgstr "поле"
+
+#: ctagskinds.cpp:79
+#, kde-format
+msgctxt "Tag Type"
+msgid "method"
+msgstr "метод"
+
+#: ctagskinds.cpp:80
+#, kde-format
+msgctxt "Tag Type"
+msgid "package"
+msgstr "пакунок"
+
+#: ctagskinds.cpp:87 ctagskinds.cpp:108
+#, kde-format
+msgctxt "Tag Type"
+msgid "procedure"
+msgstr "процедура"
+
+#: ctagskinds.cpp:99
+#, kde-format
+msgctxt "Tag Type"
+msgid "mixin"
+msgstr "mixin"
+
+#: ctagskinds.cpp:102
+#, kde-format
+msgctxt "Tag Type"
+msgid "set"
+msgstr "множина"
+
+#: gotosymbolmodel.cpp:70
+#, kde-format
+msgid "CTags executable not found."
+msgstr "Не знайдено виконуваний файл CTags."
+
+#: gotosymbolmodel.cpp:138
+#, kde-format
+msgid "CTags was unable to parse this file."
+msgstr "CTags не вдалося обробити цей файл."
+
+#: gotosymbolwidget.cpp:254
+#, kde-format
+msgid ""
+"Tags file not found. Please generate one manually or using the CTags plugin"
+msgstr ""
+"Файла теґів не знайдено. Будь ласка, створіть його вручну або за допомогою "
+"додатка CTags"
+
+#: gotosymbolwidget.cpp:323
+#, kde-format
+msgid "File for '%1' not found."
+msgstr "Не знайдено файла для «%1»."
+
+#. i18n: ectx: attribute (title), widget (QWidget, widget)
+#: kate_ctags.ui:13
+#, kde-format
+msgid "Lookup"
+msgstr "Пошук"
+
+#. i18n: ectx: property (text), widget (QPushButton, updateButton)
+#. i18n: ectx: property (text), widget (QPushButton, updateButton2)
+#: kate_ctags.ui:26 kate_ctags.ui:92
+#, kde-format
+msgid "Update Index"
+msgstr "Оновити покажчик"
+
+#. i18n: ectx: property (text), widget (QTreeWidget, tagTreeWidget)
+#: kate_ctags.ui:37
+#, kde-format
+msgid "Tag"
+msgstr "Мітка"
+
+#. i18n: ectx: property (text), widget (QTreeWidget, tagTreeWidget)
+#: kate_ctags.ui:42
+#, kde-format
+msgid "Type"
+msgstr "Тип"
+
+#. i18n: ectx: property (text), widget (QTreeWidget, tagTreeWidget)
+#: kate_ctags.ui:47
+#, kde-format
+msgid "File"
+msgstr "Файл"
+
+#. i18n: ectx: attribute (title), widget (QWidget, targets)
+#: kate_ctags.ui:56
+#, kde-format
+msgid "Index Targets"
+msgstr "Цілі індексування"
+
+#. i18n: ectx: attribute (title), widget (QWidget, database)
+#: kate_ctags.ui:100
+#, kde-format
+msgid "Database"
+msgstr "База даних"
+
+#. i18n: ectx: property (text), widget (QLabel, fileLabel)
+#: kate_ctags.ui:109
+#, kde-format
+msgid "CTags database file"
+msgstr "Файл бази даних CTags"
+
+#. i18n: ectx: property (toolTip), widget (QToolButton, resetCMD)
+#: kate_ctags.ui:152
+#, kde-format
+msgid "Revert to the default command"
+msgstr "Повернутися до типової команди"
+
+#. i18n: ectx: property (text), widget (QToolButton, resetCMD)
+#: kate_ctags.ui:155
+#, kde-format
+msgid "..."
+msgstr "..."
+
+#: kate_ctags_plugin.cpp:79 kate_ctags_view.cpp:108
+#, kde-format
+msgid "Add a directory to index."
+msgstr "Додати каталог для індексування."
+
+#: kate_ctags_plugin.cpp:82 kate_ctags_view.cpp:111
+#, kde-format
+msgid "Remove a directory."
+msgstr "Вилучити каталог."
+
+#: kate_ctags_plugin.cpp:85
+#, kde-format
+msgid "(Re-)generate the common CTags database."
+msgstr "Повторно створити загальну базу даних CTags."
+
+#: kate_ctags_plugin.cpp:103 kate_ctags_view.cpp:52 kate_ctags_view.cpp:95
+#, kde-format
+msgid "CTags"
+msgstr "CTags"
+
+#: kate_ctags_plugin.cpp:109
+#, kde-format
+msgid "CTags Settings"
+msgstr "Параметри CTags"
+
+#: kate_ctags_plugin.cpp:235 kate_ctags_view.cpp:555
+#, kde-format
+msgid "Failed to run \"%1\". exitStatus = %2"
+msgstr "Не вдалося запустити «%1». exitStatus = %2"
+
+#: kate_ctags_plugin.cpp:246 kate_ctags_view.cpp:567
+#, kde-format
+msgid "The CTags executable crashed."
+msgstr "Виконання програми CTags завершилося аварією."
+
+#: kate_ctags_plugin.cpp:248
+#, kde-format
+msgid "The CTags command exited with code %1"
+msgstr "Виконання програми CTags завершилося повідомленням з кодом %1"
+
+#: kate_ctags_view.cpp:45
+#, kde-format
+msgid "Kate CTags"
+msgstr "CTags Kate"
+
+#: kate_ctags_view.cpp:56
+#, kde-format
+msgid "Jump back one step"
+msgstr "Повернутися на один крок"
+
+#: kate_ctags_view.cpp:60
+#, kde-format
+msgid "Go to Declaration"
+msgstr "Перейти до оголошення"
+
+#: kate_ctags_view.cpp:64
+#, kde-format
+msgid "Go to Definition"
+msgstr "Перейти до визначення"
+
+#: kate_ctags_view.cpp:68
+#, kde-format
+msgid "Lookup Current Text"
+msgstr "Шукати поточний текст"
+
+#: kate_ctags_view.cpp:72
+#, kde-format
+msgid "Configure ..."
+msgstr "Налаштувати…"
+
+#: kate_ctags_view.cpp:87
+#, kde-format
+msgctxt "@title:window"
+msgid "Configure CTags Plugin"
+msgstr "Налаштування додатка CTags"
+
+#: kate_ctags_view.cpp:98 kate_ctags_view.cpp:187
+#, kde-format
+msgid "Go to Declaration: %1"
+msgstr "Перейти до оголошення: %1"
+
+#: kate_ctags_view.cpp:99 kate_ctags_view.cpp:188
+#, kde-format
+msgid "Go to Definition: %1"
+msgstr "Перейти до визначення: %1"
+
+#: kate_ctags_view.cpp:100 kate_ctags_view.cpp:189
+#, kde-format
+msgid "Lookup: %1"
+msgstr "Шукати: %1"
+
+#: kate_ctags_view.cpp:114 kate_ctags_view.cpp:117
+#, kde-format
+msgid "(Re-)generate the session specific CTags database."
+msgstr "Повторно створити базу даних окремого сеансу CTags."
+
+#: kate_ctags_view.cpp:122
+#, kde-format
+msgid "Select new or existing database file."
+msgstr "Вкажіть новий або вже створений файл бази даних."
+
+#: kate_ctags_view.cpp:138
+#, kde-format
+msgid "Go To Local Symbol"
+msgstr "Перейти до локального символу"
+
+#: kate_ctags_view.cpp:143
+#, kde-format
+msgid "Go To Global Symbol"
+msgstr "Перейти до загального символу"
+
+#: kate_ctags_view.cpp:315 kate_ctags_view.cpp:347
+#, kde-format
+msgid "No hits found"
+msgstr "Нічого не знайдено"
+
+#: kate_ctags_view.cpp:540
+#, kde-format
+msgid "No folders or files to index"
+msgstr "Немає тек або файлів для індексування"
+
+#: kate_ctags_view.cpp:569
+#, kde-format
+msgid "The CTags program exited with code %1: %2"
+msgstr "Виконання програми CTags завершилося повідомленням з кодом %1: %2"
+
+#~ msgid ""
+#~ "&Automatically synchronize the terminal with the current document when "
+#~ "possible"
+#~ msgstr ""
+#~ "&Автоматично синхронізувати термінал з поточним документом, за можливості"
+
+#~ msgid "Set &EDITOR environment variable to 'kate -b'"
+#~ msgstr "З&мінити значення змінної середовища EDITOR на «kate -b»"
+
+#~ msgid ""
+#~ "Important: The document has to be closed to make the console application "
+#~ "continue"
+#~ msgstr ""
+#~ "Важливо: щоб консольна програма могла продовжити роботу, документ слід "
+#~ "закрити."
+
+#~ msgid "Load a CTags database file."
+#~ msgstr "Завантажити файл бази даних CTags."
+
+#~ msgid "Create a CTags database file."
+#~ msgstr "Створити файл бази даних CTags."
+
+#~ msgctxt "Button text for creating a new CTags database file."
+#~ msgid "Create New"
+#~ msgstr "Створити новий"
+
+#~ msgid "Select a location and create a new CTags database."
+#~ msgstr "Вибрати розташування і створити нову базу даних CTags."
+
+#~ msgctxt "Button text for loading a CTags database file"
+#~ msgid "Load"
+#~ msgstr "Завантажити"
+
+#~ msgid "No CTags database is loaded."
+#~ msgstr "Не завантажено жодної бази даних CTags."
+
+#~ msgid "CTags Database Location"
+#~ msgstr "Розташування бази даних CTags"
+
+#~ msgid "Tags"
+#~ msgstr "Мітки"
+
+#~ msgid "Settings"
+#~ msgstr "Параметри"

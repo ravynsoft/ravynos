@@ -1,0 +1,2288 @@
+<chapter id="config-dialog">
+<title
+>&kappname; instellen</title>
+<para
+>Met het kiezen van <menuchoice
+><guimenu
+>Instellingen</guimenu
+><guimenuitem
+><replaceable
+>Toepassing</replaceable
+> instellen...</guimenuitem
+></menuchoice
+> uit het menu verschijnt het dialoogvenster <guilabel
+>Instellen</guilabel
+>. Dit dialoogvenster kan gebruikt worden om een aantal verschillende instellingen te wijzigen. Welke instellingen gewijzigd kunnen worden hangt af van de categorie die u kiest uit een verticale lijst links van het dialoogvenster. Door middel van drie knoppen onderaan het venster kan de gebruiker het proces aansturen. </para>
+
+<para
+>U kunt het <guilabel
+>Help</guilabel
+>systeem aanroepen, de huidige instellingen accepteren en het dialoogvenster sluiten met de knop <guibutton
+>OK</guibutton
+>, of het proces <guibutton
+>Annuleren</guibutton
+>. De categorieën <guilabel
+>Uiterlijk</guilabel
+>, <guilabel
+>Lettertypen &amp; Kleuren</guilabel
+>, <guilabel
+>Bewerking</guilabel
+>, <guilabel
+>Openen/opslaan</guilabel
+> en <guilabel
+>Extensies</guilabel
+> worden hieronder besproken. </para>
+
+<sect1 id="config-dialog-editor">
+<title
+>De instellingen voor de tekstbewerkercomponent</title>
+<para
+>Deze groep bevat alle pagina's gerelateerd aan de tekstbewerkercomponent van &kate;. De meeste instellingen hier zijn standaards, zij kunnen overschreven worden door <link linkend="pref-open-save-modes-filetypes"
+>een bestandstype te definiëren</link
+> door <link linkend="config-variables"
+>Documentvariabelen</link
+> of door ze per document te wijzigen in een bewerkingssessie.</para>
+<sect2 id="appearance">
+<title
+>Uiterlijk</title>
+
+<sect3 id="prefcolors-fonts">
+<title
+>Lettertype</title>
+<para
+>Hier kunt u het lettertype kiezen voor de tekst in de bewerker. U kunt kiezen uit elk beschikbare lettertype op uw systeem, en een standaardgrootte instellen. Onderaan het dialoogvenster wordt een voorbeeldtekst getoond, zodat u het effect van uw keuze kunt zien. </para>
+<para
+>Voor meer informatie over het selecteren van een lettertype, zie de sectie <ulink url="help:/fundamentals/fonts.html"
+><emphasis
+>Lettertypen kiezen</emphasis
+> van de documentatie van <emphasis
+>&kde; Fundamentals</emphasis
+></ulink
+>.</para>
+</sect3>
+
+<sect3 id="appearance-general">
+<title
+>Algemeen</title>
+
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Dynamische regelafbreking</guilabel
+></term>
+<listitem>
+<para
+>Wanneer deze optie aangevinkt is, zullen de tekstregels afgebroken worden aan de rechter rand van het editorvenster.</para>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Dynamische regelafbreking-indicators (indien van toepassing)</guilabel
+></term>
+<listitem
+><para
+>Kies wanneer de dynamische regelafbreking-indicators getoond moeten worden, ofwel <guilabel
+>Uit</guilabel
+>, <guilabel
+>Volg regelnummers</guilabel
+> of <guilabel
+>Altijd aan</guilabel
+>. </para
+></listitem
+></varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Dynamisch afgebroken regels uitlijnen op inspringpositie: </guilabel
+></term>
+<listitem
+><para
+>Dynamisch afgebroken regels kunnen verticaal worden uitgelijnd op het inspringniveau van de eerste regel. Dit kan helpen code en markup leesbaarder te maken.</para
+><para
+>Bovendien kunt u hier een maximale breedte van het venster, als percentage, instellen waarna dynamisch afgebroken regels niet langer verticaal worden uitgelijnd. Ingesteld op bijvoorbeeld 50 % zullen regels, waarvan het inspringniveau groter is dan 50 % van de vensterbreedte, na afbreking niet verticaal worden uitgelijnd.</para
+></listitem>
+</varlistentry>
+</variablelist>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Witruimte accentueren</guilabel
+></term>
+<listitem>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Tabulators accentueren</guilabel
+></term>
+<listitem
+><para
+>De editor zal het symbool &raquo; tonen om de aanwezigheid van een tab in de tekst aan te geven.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Spaties aan het einde van de regel accentueren</guilabel
+></term>
+<listitem
+><para
+>De tekstbewerker zal punten tonen om het aanwezig zijn van witruimte aan het eind van regels aan te geven.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Grootte van markering van accentueren</guilabel
+></term>
+<listitem
+><para
+>De schuifregelaar gebruiken om de grootte van de zichtbare markering van accentuering te wijzigen.</para
+></listitem>
+</varlistentry>
+</variablelist>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Geavanceerd </guilabel
+></term>
+<listitem
+><para>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Inspronglijnen tonen </guilabel
+></term>
+<listitem
+><para
+>Wanneer dit aangevinkt is, toont de editor verticale lijnen om ingesprongen regels beter te herkennen.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Bereik tussen geselecteerde haakjes accentueren </guilabel
+></term>
+<listitem
+><para
+>Wanneer dit ingeschakeld is, zal het bereik tussen de geselecteerde, bij elkaar horende haakjes geaccentueerd worden.</para
+></listitem>
+</varlistentry>
+</variablelist>
+</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Overeenkomende vierkante haken animeren </guilabel
+></term>
+<listitem
+><para
+>Indien ingeschakeld, plaatsing op de haken (<keycap
+>{</keycap
+>, <keycap
+>[</keycap
+>, <keycap
+>]</keycap
+>, <keycap
+>}</keycap
+>,<keycap
+>(</keycap
+> of <keycap
+>)</keycap
+>) zal snel de overeenkomstige haak animeren.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Eerste regel invouwen </guilabel
+></term>
+<listitem
+><para
+>Indien ingeschakeld zal de eerste regel invouwen zijn, indien mogelijk. Dit is nuttig, als het bestand begint met een commentaarregel, zoals een copyright</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Aantal woorden tonen </guilabel
+></term>
+<listitem
+><para
+>Toont het aantal woorden en tekens in het document en in de huidige selectie in de statusbalk. Deze optie is ook beschikbaar in het contextmenu van de statusbalk.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Aantal regels tonen </guilabel
+></term>
+<listitem
+><para
+>Toont het aantal regels in het document en in de statusbalk. Deze optie is ook beschikbaar in het contextmenu van de statusbalk.</para
+></listitem>
+</varlistentry>
+</variablelist>
+</sect3>
+
+<sect3 id="appearance-borders">
+<title
+>Randen</title>
+
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Randen</guilabel
+></term>
+<listitem>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Invouwmarkeringen tonen </guilabel
+></term>
+<listitem
+><para
+>Wanneer deze optie is aangevinkt, zullen in de huidige weergave markeringen voor code-invouwing getoond worden indien code-invouwing beschikbaar is.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Voorbeeld van de ingevouwen code tonen </guilabel
+></term>
+<listitem
+><para
+>Als deze optie is geselecteerd zal met de muis over het ingevouwen gebied gaan een voorbeeld van de ingevouwen tekst laten zien in een pop-up.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Pictogramrand tonen </guilabel
+></term>
+<listitem
+><para
+>Wanneer dit aangevinkt is, ziet u links een pictogramrand. In de pictogramrand ziet u bijvoorbeeld bladwijzerpictogrammen.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Regelnummering tonen </guilabel
+></term>
+<listitem
+><para
+>Wanneer dit aangevinkt is, ziet u links regelnummers.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Markeringen voor wijzigingen in regels tonen </guilabel
+></term>
+<listitem
+><para
+>Als dit is geactiveerd zullen markeringen voor wijzigingen in regels zichtbaar zijn. Voor meer informatie, zie <xref linkend="kate-part-line-modification"/>. </para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Schuifbalkmarkeringen tonen </guilabel
+></term>
+<listitem
+><para
+>Wanneer deze optie aangevinkt is, worden in de huidige weergave markeringen getoond op de verticale schuifbalk. Deze markeringen tonen bijvoorbeeld bladwijzers.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Voorbeeld van tekst laten zien op de schuifbalk</guilabel
+></term>
+<listitem
+><para
+>Als deze optie is geactiveerd en u zweeft met de muiswijzer boven de schuifbalk dan zal een klein tekstvoorbeeld met enkele regels van het huidige document rond de cursorpositie worden getoond. Dit stelt u in staat om snel te schakelen naar een ander gedeelte van het document.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Schuifbalk van mini-weergave tonen</guilabel
+></term>
+<listitem
+><para
+>Als u deze optie selecteert zal elke nieuwe weergave een mini-map van het document op de verticale schuifbalk tonen.</para>
+<para
+>Voor meer informatie over de schuifbalk met mini-map, zie <xref linkend="kate-part-scrollbar-minimap"/>.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Breedte van mini-weergave</guilabel
+></term>
+<listitem
+><para
+>Pas de breedte van de schuifbalk van mini-weergave aan, gedefinieerd in pixels. </para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Zichtbaarheid van schuifbalken</guilabel
+></term>
+<listitem
+><para
+>Schakel de schuifbalk aan, uit of toon de schuifbalk alleen indien nodig. Druk met de &LMB; op de blauwe rechthoek om de reeks regelnummers van het getoonde document te tonen op het scherm. Houd de &LMB; ingedrukt buiten de blauwe rechthoek om automatisch door het document te rollen. </para
+></listitem>
+</varlistentry>
+</variablelist>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Bladwijzermenu sorteren </guilabel
+></term>
+<listitem>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Op aanmaakdatum </guilabel
+></term>
+<listitem
+><para
+>Elke nieuwe bladwijzer zal onderaan worden toegevoegd, onafhankelijk van waar die geplaatst is in het document.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Op positie </guilabel
+></term>
+<listitem
+><para
+>De bladwijzers zullen geordend worden volgens de regelnummers waarin ze staan.</para
+></listitem>
+</varlistentry>
+</variablelist>
+</listitem>
+</varlistentry>
+</variablelist>
+
+</sect3>
+</sect2>
+
+<sect2 id="prefcolors">
+<title
+>Kleurenthema's</title>
+
+<para
+>In deze sectie van het dialoogvenster kunt u alle kleuren in elk kleurenschema waarover u beschikt configureren. Tevens kunt u nieuwe thema's creëren of bestaande thema's wissen. Elk thema heeft instellingen voor kleuren en stijlen voor normale en geaccentueerde tekst. </para>
+
+<para
+>&kappname; zal het huidige actieve thema voor u voorselecteren. Als u aan een ander thema wilt werken moet u dat eerst kiezen uit de keuzelijst <guilabel
+>Thema</guilabel
+>. Met de knoppen <guibutton
+>Kopiëren</guibutton
+> en <guibutton
+>Verwijderen</guibutton
+> kunt u een nieuw thema (een bestaande kopiëren) creëren of een bestaande verwijderen.</para>
+<para
+>Onderaan de pagina kunt u het <guilabel
+>Standaard thema voor <replaceable
+>Toepassing</replaceable
+></guilabel
+> selecteren.</para>
+
+<para
+>Dit is in detail beschreven in <xref linkend="color-themes-gui"/>.</para>
+
+</sect2>
+
+<sect2 id="pref-edit">
+<title
+>Bewerking</title>
+
+<sect3 id="pref-edit-general">
+<title
+>Algemeen</title>
+<variablelist>
+
+<varlistentry>
+<term id="pref-word-wrap"
+><guilabel
+>Statische regelafbreking</guilabel
+></term>
+<listitem
+><para
+>Regelafbreking is een functie die ervoor zorgt dat de editor automatisch een nieuwe tekstregel begint en de cursor naar het begin van die nieuwe regel verplaatst. &kappname; zal automatisch een nieuwe tekstregel beginnen wanneer de huidige regel de positie bereikt opgegeven bij de optie <link linkend="pref-wrap-words-at"
+>Regels afbreken op:</link
+>.</para>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Statische regelafbreking activeren</guilabel
+></term>
+<listitem>
+<para
+>Schakelt statische regelafbreking in of uit.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Statische-regelafbreking-markering tonen (indien van toepassing)</guilabel
+></term>
+<listitem>
+<para
+>Wanneer deze optie is aangevinkt, verschijnt er een verticale lijn in de regelafbrekingkolom zoals gedefinieerd op het tabblad Bewerking van de <menuchoice
+> <guimenu
+>Instellingen</guimenu
+> <guimenuitem
+>Editor instellen</guimenuitem
+></menuchoice
+>. Merk op dat de regelafbrekingmarkering alleen getoond wordt wanneer u een niet-proportioneel lettertype gebruikt.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term id="pref-wrap-words-at"
+><guilabel
+>Regels afbreken op:</guilabel
+></term>
+<listitem>
+<para
+>Wanneer de optie <link linkend="pref-word-wrap"
+>Statische regelafbreking activeren</link
+> geselecteerd is, bepaalt de invoer hier de positie (in tekens) waarop de editor automatisch naar een nieuwe regel zal gaan.</para>
+</listitem>
+</varlistentry>
+</variablelist>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Invoermodus</guilabel
+></term
+> <listitem
+><para
+>De geselecteerde invoermethode zal geactiveerd worden wanneer er een nieuw venster wordt geopend. U kunt nog altijd schakelen tussen de een bepaald venster in het menu <guimenu
+>Bewerken</guimenu
+>. </para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Automatische blokhaakjes</guilabel
+></term
+> <listitem
+><para
+>Wanneer de gebruiker een linker haakje (<keycap
+>[</keycap
+>, <keycap
+>(</keycap
+> of <keycap
+>{</keycap
+>) intypt, plaatst &kappname; automatisch het rechter haakje (<keycap
+>}</keycap
+>, <keycap
+>)</keycap
+> of <keycap
+>]</keycap
+>) rechts van de cursor.</para>
+<para
+>Wanneer tekst is geselecteerd, zorgt typen van één van de tekens dat de geselecteerde tekst verdeelt wordt over meer regels.</para>
+</listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><guilabel
+>Knippen en plakken</guilabel
+></term>
+<listitem>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Kopieer/knip de huidige regel als er geen selectie is</guilabel
+></term
+> <listitem>
+<para
+>Als deze optie is ingeschakeld, en er geen tekst is geselecteerd, worden kopieer- en knipacties toegepast op de tekstregel waar de cursor zich bevindt.</para
+></listitem>
+</varlistentry>
+</variablelist>
+</listitem>
+</varlistentry>
+
+</variablelist>
+</sect3>
+
+<sect3 id="pref-edit-cursor-selection">
+<title
+>Tekstnavigatie</title>
+
+<variablelist>
+
+<varlistentry>
+<term
+><guilabel
+>Tekstcursorbeweging</guilabel
+></term>
+<listitem>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Intelligente begin- en eindpositie</guilabel
+></term>
+<listitem>
+<para
+>Wanneer dit geselecteerd is, zal bij het indrukken van de home-toets de cursor witruimte overslaan en naar het begin van de tekst in een regel gaan.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Page Up/Page Down beweegt de cursor</guilabel
+></term>
+<listitem>
+<para
+>Deze optie wijzigt het gedrag van de cursor wanneer de gebruiker drukt op de toets &PgUp; of &PgDn;. Wanneer deze optie niet aangevinkt is, behoudt de cursor zijn relatieve positie binnen de zichtbare tekst in &kappname; zodra nieuwe tekst zichtbaar wordt ten gevolge van deze handeling. Dus, wanneer de cursor zich in het midden van de zichtbare tekst bevindt wanneer er op de toets wordt gedrukt, zal die op die positie blijven (behalve wanneer het begin of einde bereikt wordt), Wanneer deze optie aangevinkt is, zorgt de eerste druk op de toets ervoor dat de cursor naar het begin of einde van de zichtbare tekst wordt verplaatst zodra een nieuwe pagina met tekst getoond wordt.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Cursorbeweging bij hoofdletters inschakelen</guilabel
+></term>
+<listitem>
+<para
+>Deze optie wijzigt het gedrag van de cursor wanneer de gebruiker de sneltoets <keycombo
+>&Ctrl;<keycap
+>Links</keycap
+></keycombo
+> of <keycombo
+>&Ctrl;<keycap
+>Rechts</keycap
+></keycombo
+> indrukt. Indien niet geactiveerd zal de tekstcursor over de volledige woorden springen. Met deze optie geactiveerd zal de cursorsprong stoppen bij hoofdletters.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Cursor automatisch centreren:</guilabel
+></term>
+<listitem>
+<para
+>Stelt het aantal regels in die zichtbaar blijven boven en onder de cursor indien mogelijk.</para>
+</listitem>
+</varlistentry>
+</variablelist>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Tekstselectiemodus</guilabel
+></term>
+<listitem>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Normaal</guilabel
+></term>
+<listitem>
+<para
+>Selecties worden overschreven door getypte tekst en worden opgeheven bij verplaatsing van de cursor. </para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Blijvend</guilabel
+></term>
+<listitem>
+<para
+>Selecties blijven bestaan, ook na verplaatsen van de cursor en typen.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Sta schuiven toe verder dan het einde van het document</guilabel
+></term
+> <listitem>
+<para
+>Met deze optie kunt u verder dan het einde van het document schuiven. Dit kan gebruikt worden om de onderkant van het document verticaal te centreren of om het bovenaan de huidige weergave te plaatsen.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>De toets backspace verwijdert het basis teken met zijn diakritische tekens</guilabel
+></term
+> <listitem>
+<para
+>Indien geselecteerd worden samengestelde tekens verwijderd met hun diakritische tekens in plaats van alleen het basis teken te verwijderen. Dit is nuttig voor Indic taalgebieden.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+</listitem>
+</varlistentry>
+
+</variablelist>
+</sect3>
+
+<sect3 id="pref-edit-indent">
+<title
+>Inspringmethode</title>
+
+<variablelist>
+
+<varlistentry>
+<term
+><guilabel
+>Standaard inspringmodus:</guilabel
+></term>
+<listitem>
+<para
+>Kies de automatische inspringmodus die u als standaard wilt gebruiken. Het is ten sterkste aan te raden hier <userinput
+>Geen</userinput
+> of <userinput
+>Normaal</userinput
+> te gebruiken en bestandstypeconfiguraties te gebruiken om andere inspringmodi in te stellen voor tekstformaten zoals C/C++ code of &XML;.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Inspringen gebruikt</guilabel
+></term>
+<listitem>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Tabulators</guilabel
+></term>
+<listitem>
+<para
+>Wanneer dit ingeschakeld is, zal de editor tab-tekens invoegen wanneer u de &Tab;-toets indrukt of gebruik<link linkend="kate-part-autoindent"
+>automatisch inspringen</link 
+>.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Spaties</guilabel
+></term>
+<listitem>
+<para
+>Wanneer dit ingeschakeld is, zal de editor een bepaald aantal spaties invoegen, afhankelijk van de positie in de tekst en de instelling <option
+>tabbreedte</option
+>, wanneer u op de &Tab;toets drukt of gebruik <link linkend="kate-part-autoindent"
+>automatisch inspringen</link
+>.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Tabulators en spaties</guilabel
+></term>
+<listitem>
+<para
+>Als dit is ingeschakeld zal de tekstbewerker spaties invoegen zoals hierboven beschreven bij inspringen of &Tab; indrukken aan het begin van een regel, maar voegt tabulators in bij het indrukken van de &Tab;-toets in het midden of einde van een regel.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Tabbreedte:</guilabel
+></term>
+<listitem>
+<para
+>Dit stelt het aantal spaties in dat wordt getoond in plaats van een tab-teken.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Inspringbreedte:</guilabel
+></term>
+<listitem>
+<para
+>De inspringbreedte is het aantal spaties dat gebruikt wordt om een regel in te springen. Wanneer is ingesteld dat tab-teken moet worden gebruikt, dan wordt er een tab-teken ingevoegd als de insprong deelbaar is door de tabbreedte.</para>
+</listitem>
+</varlistentry>
+</variablelist>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Inspringeigenschappen</guilabel
+></term>
+<listitem>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Extra spaties behouden</guilabel
+></term>
+<listitem
+><para
+>Wanneer deze optie uitgeschakeld is en het inspringniveau gewijzigd wordt, zal de regel uitgelijnd worden op een veelvoud van de breedte opgegeven bij <guilabel
+>Inspringbreedte</guilabel
+>.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Inspringen aanpassen van tekst geplakt vanaf het klembord</guilabel
+></term>
+<listitem>
+<para
+>Wanneer deze optie geactiveerd is, springt tekst die van het klembord geplakt wordt in. Door te kiezen voor <guimenuitem
+>Ongedaan maken</guimenuitem
+> wordt het inspringen verwijderd.</para>
+</listitem>
+</varlistentry>
+</variablelist>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Inspringacties</guilabel
+></term>
+<listitem>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Backspace-toets in eerste witruimte maakt insprong ongedaan</guilabel
+></term>
+<listitem>
+<para
+>Wanneer deze optie aangevinkt is, verlaagt de <keysym
+>Backspace</keysym
+>-toets het inspringniveau als de cursor in de witruimte aan het begin van de regel staat.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Tab-toets-actie (als er niets is geselecteerd)</guilabel
+></term>
+<listitem>
+<para
+>Als u wilt dat &Tab; de huidige regel uitlijnt in het huidige codeblok zoals in &Emacs;, maak dan van &Tab; een sneltoets voor de actie <guimenuitem
+>Uitlijnen</guimenuitem
+>. </para>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Altijd naar volgende tab-positie gaan</guilabel
+></term>
+<listitem>
+<para
+>Wanneer deze optie geselecteerd is, voegt de &Tab;-toets altijd witruimte in zodat de volgende tab-positie wordt bereikt. Wanneer de optie <guilabel
+>Spaties in plaats van tabs invoegen</guilabel
+> op het tabblad <guilabel
+>Algemeen</guilabel
+> in de sectie <guilabel
+>Bewerking</guilabel
+> geactiveerd is, worden er spaties ingevoegd; anders wordt een enkele tabsprong ingevoegd.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Altijd inspringniveau vergroten</guilabel
+></term>
+<listitem>
+<para
+>Wanneer deze optie geselecteerd is, wordt met de &Tab;-toets de huidige regel altijd ingesprongen met het aantal tekens opgegeven bij <guilabel
+>Inspringbreedte</guilabel
+>.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Inspringniveau vergroten wanneer in voorgaande witruimte</guilabel
+></term>
+<listitem>
+<para
+>Wanneer deze optie geselecteerd is, zorgt de &Tab;-toets voor het inspringen van de huidige regel of de cursor gaat naar de volgende tab-positie. Als het invoegpunt zich op of voor het eerste niet-witruimteteken in de regel bevindt, of wanneer er een selectie is, wordt de huidige regel ingesprongen met het aantal tekens opgegeven bij <guilabel
+>Inspringbreedte</guilabel
+>. Bevindt het invoegpunt zich achter het eerste niet-witruimteteken in de regel en er is geen selectie, dan wordt er witruimte ingevoegd zodat de volgende tabpositie bereikt wordt: Wanneer de optie <guilabel
+>Spaties in plaats van tabs invoegen</guilabel
+> op het tabblad <guilabel
+>Algemeen</guilabel
+> in de sectie <guilabel
+>Bewerking</guilabel
+> geactiveerd is, worden er spaties ingevoegd; anders wordt een enkele tabsprong ingevoegd.</para>
+</listitem>
+</varlistentry>
+</variablelist>
+
+</listitem>
+</varlistentry>
+
+</variablelist>
+</listitem>
+</varlistentry>
+
+</variablelist>
+</sect3>
+
+<sect3 id="pref-edit-autocompletion">
+<title
+>Automatische aanvulling</title>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Algemeen</guilabel
+></term>
+<listitem>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Automatisch aanvullen activeren</guilabel
+></term>
+<listitem>
+<para
+>Indien geactiveerd komt er automatisch een vakje met aanvullingen te voorschijn bij het intypen die een lijst met teksten toont om de huidige tekst onder de cursor aan te vullen.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Automatische selecteren van item voor eerste aanvulling</guilabel
+></term>
+<listitem>
+<para
+>Indien ingeschakeld is het eerste item met automatisch aanvulling altijd voorgeselecteerd zodat u het met &Enter; kunt invoegen. Als u dat gedrag niet wilt, &eg; als u &Enter; alleen om een een nieuwe regel in te voegen, schakel dan dit item uit.</para>
+</listitem>
+</varlistentry>
+</variablelist>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Minimale woordlengte aan te vullen</guilabel
+></term>
+<listitem
+><para
+>Tijdens het typen zoekt Woordaanvulling in het document naar woorden beginnend met de reeds getypte tekst. Deze optie stelt het minimum aantal tekens in, nodig om Woordaanvulling te activeren en een aanvullingslijst te tonen.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Achterste gedeelte bij aanvullen verwijderen</guilabel
+></term>
+<listitem
+><para
+>Verwijder het achterste deel van een vorig woord wanneer het aangevulde item is gekozen uit een lijst. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Automatische aanvulling van sleutelwoorden </guilabel
+></term>
+<listitem
+><para
+>Indien ingeschakeld gebruikt de ingebouwde automatische aanvulling de sleutelwoorden gedefinieerd door de accentuering van syntaxis. </para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect3>
+
+<sect3 id="pref-edit-spellcheck">
+<title
+>Spellingcontrole</title>
+<para
+>Deze instelopties worden beschreven in de documentatie voor de &systemsettings;-module <ulink url="help:/kcontrol/spellchecking"
+>Spellingcontrole</ulink
+>.</para>
+</sect3>
+
+<sect3 id="pref-edit-vi-input-mode">
+<title
+>VI-invoermethode</title>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Algemeen</guilabel
+></term>
+<listitem>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>VI-commando's in plaats van Kate-sneltoetsen gebruiken</guilabel
+></term>
+<listitem>
+<para
+>Wanneer dit aangevinkt is, zullen VI-commando's de ingebouwde commando's van &kappname; vervangen. Bijvoorbeeld: <keycombo action="simul"
+>&Ctrl;<keycap
+>R</keycap
+></keycombo
+> voert het commando Opnieuw uit in plaats van de standaard actie (het tonen van het dialoogvenster Zoeken en vervangen).</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Relatieve regelnummers tonen </guilabel
+></term>
+<listitem
+><para
+>als dit ingeschakeld is verwijst de huidige regel altijd naar lijn 0. Bovenliggende en onderliggende lijnen verhogen het regelnummer relatief.</para
+></listitem>
+</varlistentry>
+</variablelist>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Toetsmapping</guilabel
+></term>
+<listitem
+><para
+>Sneltoetsen instellen wordt gebruikt om de functie van toetsen te wijzigen. Hierdoor kunt u opdrachten aan andere toetsen toekennen of speciale toetsaanslagen maken voor het uitvoeren van een reeks opdrachten.</para>
+<para
+>Voorbeeld:</para>
+<para
+><keycap
+>F2</keycap
+> -> <userinput
+>I--</userinput
+> &Esc;</para>
+<para
+>Hiermee wordt <userinput
+>I--</userinput
+> voor een regel gezet wanneer <keycap
+>F2</keycap
+> wordt ingedrukt. </para>
+</listitem>
+<!-- Normal Mode Insert Mode Visual Mode 
+Commands Repacement Recursuive?
+Remove selected Add new mapping Import from vimrc file-->
+</varlistentry>
+</variablelist>
+
+</sect3>
+
+</sect2>
+
+<sect2 id="pref-open-save">
+<title
+> Openen/opslaan</title>
+
+<sect3 id="pref-open-save-general">
+<title
+>Algemeen</title>
+
+<variablelist>
+
+<varlistentry>
+<term
+><guilabel
+>Bestandsformaat</guilabel
+></term>
+<listitem>
+<variablelist>
+
+<varlistentry>
+<term
+><guilabel
+>Codering</guilabel
+></term>
+<listitem>
+<para
+>Dit definieert de standaard te gebruiken codering om bestanden te openen/op te slaan, indien niet gewijzigd in de dialoog openen/opslaan of door een commandoregel-optie te gebruiken.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Codering detecteren</guilabel
+></term>
+<listitem>
+<para
+>Selecteer een item uit de keuzelijst: u kunt automatisch detecteren uitschakelen of <guilabel
+>Universeel</guilabel
+> gebruiken om het automatisch detecteren in te schakelen voor alle coderingen. Omdat dit mogelijk alleen utf-8/utf-16 detecteert, zal het kiezen van een regio waarbij aangepaste heuristieken worden gebruikt tot betere resultaten leiden. Als noch de hierboven standaard gekozen codering, noch de codering gespecificeerd op de commandoregel overeenkomen met de inhoud van het bestand, dan zal deze detectie worden uitgevoerd.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Terugvalcodering</guilabel
+></term>
+<listitem>
+<para
+>Dit definieert de te proberen terugvalcodering bij het openen van bestanden als noch de boven als standaard gekozen codering, noch de codering gespecificeerd in de dialoog voor openen/opslaan, noch de codering gespecificeerd op de commandoregel overeenkomt met de inhoud van het bestand.  Voordat dit wordt gebruikt, wordt een poging gedaan om te kijken naar een bytevolgordemarkering aan het begin van het bestand voor de te gebruiken codering: als deze is gevonden, wordt de juiste unicode-codering gekozen; anders wordt detectie van codering gedaan, als beide mislukken wordt terugvalcodering geprobeerd.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Regeleinde</guilabel
+></term>
+<listitem>
+<para
+>Kies de gewenste regeleindemodus voor het actieve document. U kunt kiezen tussen &UNIX;, DOS/&Windows; of Macintosh.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Regeleinde automatisch detecteren</guilabel
+></term>
+<listitem>
+<para
+>Vink dit aan als u wilt dat de editor automatisch het soort regeleinde detecteert. Het soort regeleinde dat het eerst gevonden wordt zal gebruikt worden voor het hele bestand.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Bytevolgordemarkering (BOM) inschakelen</guilabel
+></term>
+<listitem>
+<para
+>De bytevolgordemarkering is een speciale reeks aan het begin van documenten gecodeerd in unicode. Het helpt gebruikers tekstdocumenten te openen met de juiste unicode-codering. Zie voor meer informatie: <ulink url="https://en.wikipedia.org/wiki/Byte_order_mark"
+>Byte Order Mark</ulink
+>.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Limiet van de regellengte</guilabel
+></term>
+<listitem>
+<para
+>Helaas ervaart, vanwege zwakke zaken in &Qt;, &kappname; slechte prestaties bij het werken met extreem lange regels. Daarom zal &kappname; regels automatisch opsplitsen wanneer ze langer zijn dan het aantal hier gespecificeerde tekens. Om dit uit te schakelen stelt u dit on op <userinput
+>0</userinput
+>.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Automatisch opschonen bij opslaan</guilabel
+></term>
+<listitem>
+<variablelist>
+
+<varlistentry>
+<term
+><guilabel
+>Spaties aan het einde van de regel tijdens het bewerken verwijderen</guilabel
+></term>
+<listitem>
+<para
+>De bewerker zal automatisch extra spaties aan het einde van regels tekst verwijderen bij het opslaan van het bestand. U kunt <guilabel
+>Nooit</guilabel
+> kiezen om deze functie uit te schakelen, <guilabel
+>Op gewijzigde regels</guilabel
+> om dat alleen te doen op regels die u hebt gewijzigd sinds u het document eerder hebt opgeslagen of <guilabel
+>In gehele document</guilabel
+> om ze onvoorwaardelijk uit het gehele document te verwijderen.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Nieuwe-regel aan het eind van het bestand bij opslaan</guilabel
+></term>
+<listitem>
+<para
+>De editor zal automatisch een nieuwe-regel aan het eind van het bestand voegen, als deze niet aanwezig is wanneer het bestand wordt opgeslagen.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+</listitem>
+</varlistentry>
+
+</variablelist>
+</sect3>
+
+<sect3 id="pref-open-save-advanced">
+<title
+>Geavanceerd</title>
+<variablelist>
+
+<varlistentry>
+<term
+><guilabel
+>Reservekopie maken bij opslaan</guilabel
+></term>
+<listitem
+><para
+>Het maken van een reservekopie bij opslaan houdt in dat &kappname; het bestand op schijf kopieert naar &lt;voorvoegsel&gt;&lt;bestandsnaam&gt;&lt;achtervoegsel&gt; voordat wijzigingen worden opgeslagen. Het standaard achtervoegsel is <emphasis role="bold"
+>~</emphasis
+> en standaard is het voorvoegsel leeg. </para>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Lokale bestanden</guilabel
+></term>
+<listitem>
+<para
+>Vink dit aan als u reservekopieën wilt hebben van lokale bestanden wanneer die worden opgeslagen.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Externe bestanden</guilabel
+></term>
+<listitem>
+<para
+>Vink dit aan als u reservekopieën wilt hebben van externe bestanden wanneer die worden opgeslagen.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Voorvoegsel</guilabel
+></term>
+<listitem>
+<para
+>Voer het voorvoegsel in dat u wilt gebruiken voor reservekopieën.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Achtervoegsel</guilabel
+></term>
+<listitem>
+<para
+>Voer het achtervoegsel in dat aan de naam van de reservekopie moet worden toegevoegd.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Opties voor swap-bestand</guilabel
+></term>
+<listitem>
+<para
+>&kappname; kan (het meeste van) wat is geschreven na een laatste opslag, in geval van een crash of stroomuitval herstellen. Een swapbestand (.swp.&lt;bestandsnaam&gt;) wordt aangemaakt na de eerste bewerkingsactie op een document. Als de gebruiker de wijzigingen niet opslaat en &kappname; crasht, dan blijft het swapbestand op de schijf. Bij het openen van een bestand controleert &kappname; of er een swapbestand voor het document bestaat en als het bestaat, dan vraagt het aan de gebruiker of hij de verloren gegevens wil herstellen of niet. De gebruiker heeft ook de mogelijkheid om de verschillen tussen het originele bestand en het herstelde te bekijken. Het swapbestand wordt verwijderd na elk opslaan en bij normaal beëindigen.</para>
+<para
+>&kappname; synchroniseert de swapbestanden op de schijf elke 15 seconden, maar alleen als ze zijn gewijzigd sinds de laatste synchronisatie. De gebruiker kan het synchroniseren van de swapbestanden uitschakelen, als hij dat wil, door het vakje <guilabel
+>Uitschakelen</guilabel
+> te selecteren, maar dat kan tot meer verlies van gegevens leiden.</para>
+<para
+>Indien ingeschakeld worden de swapbestanden opgeslagen in dezelfde map als het bestand. Wanneer <guilabel
+>Alternatieve map</guilabel
+> is gekozen worden swapbestanden aangemaakt in de gespecificeerde map. Dit is nuttig voor netwerkbestandssystemen om onnodig netwerkverkeer te voorkomen.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+</listitem>
+</varlistentry>
+
+</variablelist>
+</sect3>
+
+<sect3 id="pref-open-save-modes-filetypes">
+<title
+>Modi &amp; bestandstypen</title>
+<para
+>Op dit tabblad kunt u de standaardconfiguratie voor documenten van specifieke &MIME;-typen vervangen. Wanneer de editor een bestand laadt, wordt gekeken of het overeenkomt met de bestandsmaskers of &MIME;-typen voor één van de gedefinieerde bestandstypen. Indien dat het geval is worden de gedefinieerde variabelen toegepast. Als er meerdere bestandstypen overeenkomen, zal die met de hoogste prioriteit gebruikt worden. </para>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Bestandstype:</guilabel
+></term>
+<listitem
+><para
+>Het bestandstype met de hoogste prioriteit is het type dat in de eerste keuzelijst getoond wordt. Als er meerdere bestandstypen werden gevonden komen die ook in de lijst te staan.</para>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Nieuw</guilabel
+></term>
+<listitem
+><para
+>Dit wordt gebruikt voor het aanmaken van een nieuw bestandstype. Nadat u op deze knop gedrukt hebt, zijn de velden eronder leeg en kunt u de gewenste eigenschappen voor het nieuwe bestandstype invullen.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Verwijderen</guilabel
+></term>
+<listitem
+><para
+>Om een bestaand bestandstype te verwijderen kiest u het uit de keuzelijst en drukt u op de knop Verwijderen.</para
+></listitem>
+</varlistentry>
+</variablelist>
+</listitem
+> </varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Eigenschappen van <replaceable
+>huidige bestandstype</replaceable
+></guilabel
+></term>
+<listitem
+><para
+>Het bestandstype met de hoogste prioriteit is het type dat in de eerste keuzelijst getoond wordt. Als er meerdere bestandstypen werden gevonden komen die ook in de lijst te staan.</para>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Naam:</guilabel
+></term>
+<listitem
+><para
+>De naam van het bestandstype wordt de tekst van het overeenkomstige menu-item. Deze naam wordt getoond in het menu <menuchoice
+><guimenu
+>Hulpmiddelen</guimenu
+><guimenuitem
+>Bestandstypen</guimenuitem
+> </menuchoice
+>.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Sectie:</guilabel
+></term>
+<listitem
+><para
+>De sectienaam wordt gebruikt om de bestandstypen in menus te organiseren. Deze wordt ook gebruikt in het menu <menuchoice
+><guimenu
+>Hulpmiddelen</guimenu
+><guimenuitem
+>Bestandstypen</guimenuitem
+> </menuchoice
+>.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Variabelen:</guilabel
+></term>
+<listitem
+><para
+>Met deze tekenreeks kunt u de &kappname;-instellingen configureren voor de bestanden die door dit &MIME;-type gekozen zijn, gebruik makend van &kappname;-variabelen. U kunt bijna elke configuratie-optie instellen, zoals accentuering, inspringmethode, &etc;</para>
+<para
+>Druk op <guibutton
+>Bewerken</guibutton
+> om een lijst te zien van alle beschikbare variabelen en hun beschrijving. Selecteer het keuzevakje links om een bepaalde variabele in te schakelen en stel dan de waarde van de variabele rechts in. Sommige variabelen bieden een afrolvak om mogelijke waarden te selecteren terwijl anderen vereisen dat u handmatig een waarde invoert.</para>
+<para
+>Voor volledige informatie over deze variabelen, zie <link linkend="config-variables"
+>Configureren met documentvariabelen</link
+>.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Accentuering:</guilabel
+></term>
+<listitem
+><para
+>Als u een nieuw bestandstype aanmaakt, kunt u in deze keuzelijst een bestandstype selecteren voor de accentuering.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Inspringmodus:</guilabel
+></term>
+<listitem
+><para
+>In de keuzelijst kunt u de inspringmodus voor nieuwe documenten selecteren.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Bestandsextensies:</guilabel
+></term>
+<listitem
+><para
+>Het jokertekensmasker stelt u in staat bestanden op bestandsnaam te kiezen. Een masker bestaat vaak uit een asterisk en de extensie van het bestand, bijvoorbeeld <filename
+>*.txt; *.text</filename
+>. De tekenreeks bestaat uit een lijst van maskers, gescheiden door een puntkomma.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>MIME-bestandstypen:</guilabel
+></term>
+<listitem
+><para
+>Toont een assistent waarmee u gemakkelijk &MIME;-typen kunt selecteren.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Prioriteit:</guilabel
+></term>
+<listitem
+><para
+>Stelt een prioriteit in voor dit bestandstype. Als hetzelfde bestand door meer dan één bestandstype gekozen wordt, zal het type met de hoogste prioriteit gebruikt worden.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+</listitem
+> </varlistentry>
+
+</variablelist>
+</sect3>
+
+</sect2>
+
+</sect1>
+
+<sect1 id="config-variables">
+<title
+>Configureren met documentvariabelen</title>
+
+<para
+>&kappname;-variabelen is de implementatie van documentvariabelen van &kappname;, vergelijkbaar met modusregels van &Emacs; en vi. In katepart hebben de regels het volgende formaat <userinput
+>kate: VARIABELENAAM WAARDE; [ VARIABELENAAM WAARDE; ... ]</userinput
+> de regels kunnen zich natuurlijk in commentaar bevinden, als het bestand in een formaat is met commentaar. Variabelennamen zijn enkele woorden (geen witruimte) en alles tot aan de volgende puntkomma is de waarde. De puntkomma is vereist.</para>
+
+<para
+>Hier is een voorbeeld van een variabelenregel, die instellingen voor inspringen forceert voor een bestand met C++, &Java; of &javascript;: <programlisting
+>// kate: replace-tabs on; indent-width 4; indent-mode cstyle;</programlisting>
+</para>
+
+<note
+><para
+>Alleen in de eerste en laatste 10 regels worden gezocht naar variabelenregels.</para
+></note>
+
+<para
+>Bovendien, kunnen documentvariabelen in een bestand geplaatst worden genaamd <filename
+>.kateconfig</filename
+> in elke map en de geconfigureerde instellingen zullen worden toegepast alsof de modusregels ingevoerd zijn op elk bestand in de map en zijn submappen. Documentvariabelen in <filename
+>.kateconfig</filename
+> gebruiken dezelfde syntax als die in modusregels, maar met <link linkend="kateconfig-extended-options"
+>uitgebreide opties</link
+>.</para>
+
+<para
+>Er zijn variabelen om bijna alle configuraties in &kappname; te ondersteunen, en extra plugins kunnen variabelen gebruiken, in welk geval het gedocumenteerd zou moeten zijn in de documentatie van de plugin.</para>
+
+<para
+>&kappname; heeft ondersteuning voor het lezen van configuraties uit <filename
+>.editorconfig</filename
+> bestanden, wanneer de bibliotheek <ulink url="https://editorconfig.org/"
+>editorconfig</ulink
+> is geïnstalleerd. &kappname; zoekt automatisch naar een <filename
+>.editorconfig</filename
+> wanneer u een bestand opent. Het geeft echter prioriteit aan bestanden <filename
+>.kateconfig</filename
+>. </para>
+
+<sect2 id="config-variables-howto">
+<title
+>Hoe &kappname; variabelen gebruikt</title>
+
+<para
+>Bij het lezen van de instellingen kijkt katepart op de volgende plaatsen (in die volgorde): <itemizedlist
+> <listitem
+><para
+>De globale instellingen.</para
+></listitem
+> <listitem
+><para
+>Optionele sessiegegevens.</para
+></listitem
+> <listitem
+><para
+>De instellingen voor "Bestandstype".</para
+></listitem
+> <listitem
+><para
+>Documentvariabelen in <filename
+>.kateconfig</filename
+>.</para
+></listitem
+> <listitem
+><para
+>Documentvariabelen in het document zelf.</para
+></listitem
+> <listitem
+><para
+>Instellingen die zijn gemaakt tijdens het bewerken uit het menu of vanaf de commandoregel.</para
+></listitem
+> </itemizedlist
+> Zoals u kunt zien hebben documentvariabelen die gewijzigd zijn tijdens uitvoering voorrang. Wanneer een document wordt opgeslagen zullen de documentvariabelen worden herlezen en zullen de wijzigingen overschrijven die zijn gemaakt door menu-items of door de commandoregel te gebruiken.</para>
+
+<para
+>Elke variabele, die niet hieronder wordt genoemd, wordt opgeslagen in het document en kan door andere objecten, zoals plugins, worden opgevraagd, die ze voor hun eigen doeleinden kunnen gebruiken. De variabele 'indent-mode' gebruikt bijvoorbeeld documentvariabelen voor zijn configuratie.</para>
+
+<para
+>De hier getoonde variabelen documenteren &kappname; versie 5.38. Meer variabelen kunnen in de toekomst worden toegevoegd. Er zijn 3 mogelijke typen waarden voor variabelen, met de volgende geldige expressies: <itemizedlist>
+<listitem
+><para
+>BOOL - on|off|true|false|1|0</para
+></listitem>
+<listitem
+><para
+>INTEGER - elk geheel getal</para
+></listitem>
+<listitem
+><para
+>STRING - iets anders</para
+></listitem>
+</itemizedlist>
+</para>
+
+</sect2>
+
+<sect2 id="config-variables-list">
+<title
+>Beschikbare variabelen</title>
+
+<variablelist>
+
+<varlistentry id="variable-auto-brackets">
+<term
+><cmdsynopsis
+><command
+>auto-brackets</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Automatische vierkante haakjes invoegen inschakelen.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-auto-center-lines">
+<term
+><cmdsynopsis
+><command
+>auto-center-lines</command
+><arg
+>INT</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Stelt het aantal autocentreer-regels in.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-background-color">
+<term
+><cmdsynopsis
+><command
+>background-color</command
+><arg
+>STRING</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Stelt de kleur in kleur in van de achtergrond van het document. De waarde moet iets zijn dat geëvalueerd kan worden tot een geldige kleur, bijvoorbeeld <userinput
+>#ff0000</userinput
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-backspace-indents">
+<term
+><cmdsynopsis
+><command
+>backspace-indents</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Indentering in- of uitschakelen wanneer &Backspace; wordt ingedrukt.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-block-selection">
+<term
+><cmdsynopsis
+><command
+>block-selection</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Zet <link linkend="kate-part-selection-block"
+>selectie van blokken</link
+> aan of uit.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-byte-order-mark">
+<term
+><cmdsynopsis
+><command
+>bom | byte-order-mark | byte-order-marker</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Schakelt bytevolgordemarkering (BOM) in/uit bij het opslaan van bestanden in het formaat unicode (utf8, utf16, utf32).</para>
+<para
+>Sinds: &kate; 3.4 (&kde; 4.4)</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-bracket-highlight-color">
+<term
+><cmdsynopsis
+><command
+>bracket-highlight-color</command
+><arg
+>STRING</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Stel de kleur in voor accentuering van haakjes. De waarde moet iets zijn dat geëvalueerd kan worden tot een geldige kleur, bijvoorbeeld <userinput
+>#ff0000</userinput
+>" </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-current-line-color">
+<term
+><cmdsynopsis
+><command
+>current-line-color</command
+><arg
+>STRING</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Stelt de kleur in van de huidige regel. De waarde moet iets zijn dat geëvalueerd kan worden tot een geldige kleur, bijvoorbeeld <userinput
+>#ff0000</userinput
+>". </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-default-dictionary">
+<term
+><cmdsynopsis
+><command
+>default-dictionary</command
+><arg
+>STRING</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Stelt het standaard woordenboek in dat wordt gebruikt voor spellingcontrole.</para>
+<para
+>Sinds: &kate; 3.4 (&kde; 4.4)</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-dynamic-word-wrap">
+<term
+><cmdsynopsis
+><command
+>dynamic-word-wrap</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Schakelt <link linkend="kate-part-auto-wrap"
+>dynamische regelafbreking</link
+> in of uit.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-end-of-line">
+<term
+><cmdsynopsis
+><command
+>eol | end-of-line</command
+><arg
+>STRING</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Stelt de modus van einde-regel in. Geldige instellingen zijn <userinput
+>unix</userinput
+>, <userinput
+>mac</userinput
+> en <userinput
+>dos</userinput
+>.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-folding-markers">
+<term
+><cmdsynopsis
+><command
+>folding-markers</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Zet het tonen van <link linkend="advanced-editing-tools-code-folding"
+>invouwmarkering</link
+> aan of uit. </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-folding-preview">
+<term
+><cmdsynopsis
+><command
+>folding-preview</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Voorbeeld van invouwen in de rand van bewerker.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-font-size">
+<term
+><cmdsynopsis
+><command
+>font-size</command
+><arg
+>INT</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Stelt de grootte van het lettertype van het document in in punten.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-font">
+<term
+><cmdsynopsis
+><command
+>font</command
+><arg
+>STRING</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Stelt het lettertype van het document in. De waarde moet de naam van een geldig lettertype zijn, bijvoorbeeld <userinput
+>courier</userinput
+>.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-syntax">
+<term
+><cmdsynopsis
+><command
+>hl | syntax</command
+><arg
+>STRING</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Stelt de accentuering van de syntax in. Geldige tekenreeksen zijn alle namen beschikbaar in de menu's. Bijvoorbeeld voor C++, schrijf eenvoudig <userinput
+>C++</userinput
+>.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-icon-bar-color">
+<term
+><cmdsynopsis
+><command
+>icon-bar-color</command
+><arg
+>STRING</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Stelt de kleur in de pictogrambalk. De waarde moet iets zijn dat geëvalueerd kan worden tot een geldige kleur, bijvoorbeeld <userinput
+>#ff0000</userinput
+>.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-icon-border">
+<term
+><cmdsynopsis
+><command
+>icon-border</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Zet het tonen van de pictogramrand aan of uit.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-indent-mode">
+<term
+><cmdsynopsis
+><command
+>indent-mode</command
+><arg
+>STRING</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Stelt de auto-inspringmodus in. De opties <userinput
+>none</userinput
+>, <userinput
+>normal</userinput
+>, <userinput
+>cstyle</userinput
+>, <userinput
+>haskell</userinput
+>, <userinput
+>lilypond</userinput
+>, <userinput
+>lisp</userinput
+>, <userinput
+>python</userinput
+>, <userinput
+>ruby</userinput
+> en <userinput
+>xml</userinput
+> worden herkend. Zie de sectie <xref linkend="kate-part-autoindent"/> voor details.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-indent-pasted-text">
+<term
+><cmdsynopsis
+><command
+>indent-pasted-text</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Inspringen in-/uitschakelen van tekst geplakt vanaf het klembord</para>
+<para
+>Sinds: &kate; 3.11 (&kde; 4.11)</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-indent-width">
+<term
+><cmdsynopsis
+><command
+>indent-width</command
+><arg
+>INT</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Stelt de inspringbreedte in.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-keep-extra-spaces">
+<term
+><cmdsynopsis
+><command
+>keep-extra-spaces</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Stelt in of extra spaties behouden blijven wanneer de inspringbreedte wordt berekend.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-line-numbers">
+<term
+><cmdsynopsis
+><command
+>line-numbers</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Zet het tonen van regelnummers aan of uit.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-newline-at-eof">
+<term
+><cmdsynopsis
+><command
+>newline-at-eof</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Voeg een lege regel toe aan het eind van het bestand (EOF) wanneer document wordt opgeslagen.</para>
+<para
+>Sinds: &kate; 3.9 (&kde; 4.9)</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-overwrite-mode">
+<term
+><cmdsynopsis
+><command
+>overwrite-mode</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Overschrijfmodus aan/uitzetten.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-persistent-selection">
+<term
+><cmdsynopsis
+><command
+>persistent-selection</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Zet <link linkend="kate-part-selection-persistent"
+>blijvende selecties</link
+> aan of uit.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-replace-tabs-save">
+<term
+><cmdsynopsis
+><command
+>replace-tabs-save</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Zet conversie van tab naar spatie bij opslaan aan of uit.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-replace-tabs">
+<term
+><cmdsynopsis
+><command
+>replace-tabs</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Zet dynamische conversie van tab naar spatie aan of uit.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-remove-trailing-spaces">
+<term
+><cmdsynopsis
+><command
+>remove-trailing-spaces</command
+><arg
+>TEKENREEKS</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Spaties aan het einde van de regel bij het opslaan verwijderen. Geldige opties zijn:</para>
+<itemizedlist>
+<listitem
+><para
+><userinput
+>none</userinput
+>, <userinput
+>-</userinput
+> of <userinput
+>0</userinput
+>: nooit spaties aan het einde verwijderen.</para
+></listitem>
+<listitem
+><para
+><userinput
+>modified</userinput
+>, <userinput
+>mod</userinput
+>, <userinput
+>+</userinput
+> of <userinput
+>1</userinput
+>: spaties aan het eind alleen verwijderen in gewijzigde regels. De gewijzigde regels worden gemarkeerd door het regelwijzigingssysteem.</para
+></listitem>
+<listitem
+><para
+><userinput
+>all</userinput
+>, <userinput
+>*</userinput
+> or <userinput
+>2</userinput
+>: spaties aan het eind in het gehele document verwijderen.</para
+></listitem>
+</itemizedlist>
+</listitem>
+</varlistentry>
+
+<varlistentry id="variable-scrollbar-minimap">
+<term
+><cmdsynopsis
+><command
+>scrollbar-minimap</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Schuifbalk met mini-weergave tonen</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-scrollbar-preview">
+<term
+><cmdsynopsis
+><command
+>scrollbar-preview</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Voorbeeld op schuifbalk tonen</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-scheme">
+<term
+><cmdsynopsis
+><command
+>scheme</command
+><arg
+>STRING</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Stelt het kleurenschema in. De tekenreeks moet de naam van een kleurenschema zijn dat in uw configuratie bestaat om enig effect te hebben.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-selection-color">
+<term
+><cmdsynopsis
+><command
+>selection-color</command
+><arg
+>STRING</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Stelt de kleur van een selectie in. De waarde moet iets zijn dat geëvalueerd kan worden tot een geldige kleur, bijvoorbeeld <userinput
+>#ff0000</userinput
+>.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-show-tabs">
+<term
+><cmdsynopsis
+><command
+>show-tabs</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Zet het visuele tab-teken aan of uit.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-smart-home">
+<term
+><cmdsynopsis
+><command
+>smart-home</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Zet <link linkend="pref-edit-cursor-selection"
+>intelligent navigeren naar de basismap</link
+> aan of uit.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-tab-indents">
+<term
+><cmdsynopsis
+><command
+>tab-indents</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Zet het inspringen met de &Tab;-toets aan of uit.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-tab-width">
+<term
+><cmdsynopsis
+><command
+>tab-width</command
+><arg
+>INT</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Stelt de weergavebreedte van het tab-teken in.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-undo-steps">
+<term
+><cmdsynopsis
+><command
+>undo-steps</command
+><arg
+>INT</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Stelt het aantal te herinneren stappen in.</para>
+<para
+>Opmerking: Verouderd sinds &kate; 3 in &kde;4. Deze variabele wordt genegeerd. Het maximum aantal stappen voor terugdraaien is ongelimiteerd.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-word-wrap-column">
+<term
+><cmdsynopsis
+><command
+>word-wrap-column</command
+><arg
+>INT</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Stelt breedte in van <link linkend="kate-part-auto-wrap"
+>statische regelafbreking</link
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-word-wrap-marker-color">
+<term
+><cmdsynopsis
+><command
+>word-wrap-marker-color</command
+><arg
+>TEKENREEKS</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Stelt de kleur in van de marker voor regelafbreking. De waarde moet iets zijn dat geëvalueerd kan worden tot een geldige kleur, bijvoorbeeld <userinput
+>#ff0000</userinput
+>.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-word-wrap">
+<term
+><cmdsynopsis
+><command
+>word-wrap</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Zet statische regelafbreking aan of uit.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+
+<sect2 id="kateconfig-extended-options">
+<title
+>Uitgebreide opties in <filename
+>.kateconfig</filename
+> bestanden</title>
+
+<para
+>&kappname; zoekt altijd naar een <filename
+>.kateconfig</filename
+> bestand voor locale bestanden (geen bestanden op afstand). Bovendien is het mogelijk opties in te stellen gebaseerd op jokers (bestandsextensies) als volgt:</para>
+
+<programlisting
+>kate: tab-width 4; indent-width 4; replace-tabs on;
+kate-wildcard(*.xml): indent-width 2;
+kate-wildcard(Makefile): replace-tabs off;
+</programlisting>
+
+<para
+>In dit voorbeeld gebruiken alle bestanden een tab-breedte van 4 spaties, een indentatiebreedte van 4 spaties en tabs worden vervangen door spaties. Voor alle <filename class="extension"
+>*.xml</filename
+> bestanden, is de indentatiebreedte ingesteld op 2 spaties. En Makefiles gebruiken tabs, &ie; tabs worden niet vervangen door spaties.</para>
+
+<para
+>Jokers worden gescheiden door puntkomma's, &ie; u kunt ook meerdere bestandsextensies specificeren als volgt: </para>
+
+<programlisting
+>kate-wildcard(*.json;*.xml): indent-width 2;</programlisting>
+
+<para
+>U kunt verder ook het &MIME;-type te gebruiken om overeen te laten komen, &eg; om alle C++ bronbestanden te indenteren met 4 spaties, u kunt schrijven: </para>
+
+<programlisting
+>kate-mimetype(text/x-c++src): indent-width 4;</programlisting>
+
+<note
+><para
+>Naast de ondersteuning in <filename
+>.kateconfig</filename
+> bestandstypen, worden jokers en &MIME;-type afhankelijke documentvariabelen ook ondersteund in de bestandstype zelf als as commentaar. </para
+></note>
+
+</sect2>
+
+</sect1>
+
+</chapter>

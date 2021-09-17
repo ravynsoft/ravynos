@@ -1,0 +1,307 @@
+<?xml version="1.0" ?>
+<!DOCTYPE book PUBLIC "-//KDE//DTD DocBook XML V4.5-Based Variant V1.1//EN"
+"dtd/kdedbx45.dtd" [
+  <!ENTITY gdb "<acronym>GDB</acronym>">
+  <!ENTITY kparts "<acronym>KParts</acronym>">
+  <!ENTITY configuring-chapter SYSTEM "configuring.docbook">
+  <!ENTITY fundamentals-chapter SYSTEM "fundamentals.docbook">
+  <!ENTITY menu-chapter SYSTEM "menus.docbook">
+  <!ENTITY plugins-chapter SYSTEM "plugins.docbook">
+  <!ENTITY development-chapter SYSTEM "development.docbook">
+  <!ENTITY % addindex "IGNORE">
+  <!ENTITY % English "INCLUDE"><!-- change language only here -->
+]>
+
+<book id="kate" lang="&language;">
+<title>The &kate; Handbook</title>
+
+<bookinfo>
+<authorgroup>
+<author>&Anders.Lund; &Anders.Lund.mail;</author>
+<author>&Seth.Rothberg; &Seth.Rothberg.mail;</author>
+<author>&Dominik.Haumann; &Dominik.Haumann.mail;</author>
+<author>&TC.Hollingsworth; &TC.Hollingsworth.mail;</author>
+<!-- TRANS:ROLES_OF_TRANSLATORS -->
+</authorgroup>
+
+<copyright>
+<year>2000</year>
+<year>2001</year>
+<holder>&Seth.Rothberg;</holder>
+</copyright>
+<copyright>
+<year>2002</year><year>2003</year><year>2005</year>
+<holder>&Anders.Lund;</holder>
+</copyright>
+<copyright>
+<year>2005</year><year>2009</year>
+<holder>&Dominik.Haumann;</holder>
+</copyright>
+<copyright>
+<year>2011</year><year>2012</year><year>2013</year><year>2014</year>
+<holder>&TC.Hollingsworth;</holder>
+</copyright>
+<legalnotice>&FDLNotice;</legalnotice>
+
+<date>2021-03-06</date>
+<releaseinfo>Applications 21.04</releaseinfo>
+
+<abstract>
+<para>&kate; is a programmer's text editor by &kde;.</para>
+
+<para>This handbook documents &kate; Version 18.12</para>
+</abstract>
+
+<keywordset>
+<keyword>KDE</keyword>
+<keyword>kdebase</keyword>
+<keyword>Kate</keyword>
+<keyword>text</keyword>
+<keyword>editor</keyword>
+<keyword>programmer</keyword>
+<keyword>programming</keyword>
+<keyword>projects</keyword>
+<keyword>MDI</keyword>
+<keyword>Multi</keyword>
+<keyword>Document</keyword>
+<keyword>Interface</keyword>
+<keyword>terminal</keyword>
+<keyword>console</keyword>
+</keywordset>
+
+</bookinfo>
+
+<chapter id="introduction">
+<title>Introduction</title>
+
+<para>
+Welcome to &kate;, a programmer's text editor by &kde;.
+Some of &kate;'s many features include configurable syntax
+highlighting for languages ranging from C and C++ to
+&HTML; to bash scripts, the ability to create and
+maintain projects, a multiple document interface
+(<acronym>MDI</acronym>), and a self-contained terminal emulator.
+</para>
+
+<para>
+But &kate; is more than a programmer's editor. Its ability to open
+several files at once makes it ideal for editing &UNIX;'s many
+configuration files.  This document was written in &kate;.
+</para>
+
+<para>
+<mediaobject>
+<imageobject><imagedata format="PNG" fileref="kate.png"/></imageobject>
+<caption><para>Editing this manual...</para></caption>
+</mediaobject>
+</para>
+
+</chapter>
+
+&fundamentals-chapter;
+
+<chapter id="kate-part">
+<title>Working with the &kate; Editor</title>
+<para>For information about the basics of working with the editor component
+underlying &kate;, see the 
+<ulink url="help:/katepart/kate-part.html">Working with the
+&katepart; Editor chapter of the &katepart; Handbook</ulink>.</para>
+</chapter>
+
+&plugins-chapter;
+
+<chapter id="advanced-editing-tools">
+<title>Advanced Editing Tools</title>
+<para>For information about the advanced editing tools included with &kate;,
+see the <ulink url="help:/katepart/advanced-editing-tools.html">Advanced Editing Tools chapter
+of the &katepart; Handbook</ulink>.</para>
+</chapter>
+
+&development-chapter;
+
+<chapter id="vi-input-mode-chapter">
+<title>The VI Input Mode</title>
+<para>For information about &kate;'s VI input mode, see the 
+<ulink url="help:/katepart/vi-input-mode-chapter.html">VI Input Mode chapter
+of the &katepart; Handbook</ulink>.</para>
+</chapter>
+
+&menu-chapter;
+
+&configuring-chapter;
+
+<chapter id="credits">
+
+<title>Credits and License</title>
+
+<para>
+&kate;. Program copyright 2000, 2001, 2002 - 2005 by the &kate; developer team.
+</para>
+
+<variablelist>
+<title>The &kate; team:</title>
+<varlistentry>
+<term>&Christoph.Cullmann; &Christoph.Cullmann.mail;</term>
+<listitem><para>Project Manager &amp; Core Developer</para></listitem>
+</varlistentry>
+<varlistentry>
+<term>&Anders.Lund; &Anders.Lund.mail;</term>
+<listitem><para>Core Developer, Perl syntax highlighting,
+documentation</para></listitem>
+</varlistentry>
+<varlistentry>
+<term>&Joseph.Wenninger; &Joseph.Wenninger.mail;</term>
+<listitem><para>Core Developer, syntax highlighting</para></listitem>
+</varlistentry>
+<varlistentry>
+<term>Michael Bartl <email>michael.bartl1@chello.at</email></term>
+<listitem><para>Core Developer</para></listitem>
+</varlistentry>
+<varlistentry>
+<term>Phlip <email>phlip_cpp@my-deja.com</email></term>
+<listitem><para>The project compiler</para></listitem>
+</varlistentry>
+<varlistentry>
+<term>&Waldo.Bastian; &Waldo.Bastian.mail;</term>
+<listitem><para>The cool buffer system</para></listitem>
+</varlistentry>
+<varlistentry>
+<term>Matt Newell <email>newellm@proaxis.com</email></term>
+<listitem><para>Testing...</para></listitem>
+</varlistentry>
+<varlistentry>
+<term>Michael McCallum <email>gholam@xtra.co.nz</email></term>
+<listitem><para>Core Developer</para></listitem>
+</varlistentry>
+<varlistentry>
+<term>Jochen Wilhemly <email>digisnap@cs.tu-berlin.de</email></term>
+<listitem><para>&kwrite; Author</para></listitem>
+</varlistentry>
+<varlistentry>
+<term>&Michael.Koch; &Michael.Koch.mail;</term>
+<listitem><para>&kwrite; port to &kparts;</para></listitem>
+</varlistentry>
+<varlistentry>
+<term>&Christian.Gebauer; <email>gebauer@bigfoot.com</email></term>
+<listitem><para>Unspecified</para></listitem>
+</varlistentry>
+<varlistentry>
+<term>&Simon.Hausmann; &Simon.Hausmann.mail;</term>
+<listitem><para>Unspecified</para></listitem>
+</varlistentry>
+<varlistentry>
+<term>Glen Parker <email>glenebob@nwlink.com</email></term>
+<listitem><para>&kwrite; Undo History, KSpell integration</para></listitem>
+</varlistentry>
+<varlistentry>
+<term>Scott Manson <email>sdmanson@alltel.net</email></term>
+<listitem><para>&kwrite; &XML; syntax highlighting support</para></listitem>
+</varlistentry>
+<varlistentry>
+<term>&John.Firebaugh; &John.Firebaugh.mail;</term>
+<listitem><para>Various Patches</para></listitem>
+</varlistentry>
+<varlistentry>
+<term>&Dominik.Haumann; &Dominik.Haumann.mail;</term>
+<listitem><para>Developer, Highlight wizard</para></listitem>
+</varlistentry>
+</variablelist>
+
+<variablelist>
+<title>Many other people have contributed:</title>
+<varlistentry>
+<term>Matteo Merli <email>merlim@libero.it</email></term>
+<listitem><para>Highlighting for RPM Spec-Files, Diff and more</para></listitem>
+</varlistentry>
+<varlistentry>
+<term>Rocky Scaletta <email>rocky@purdue.edu</email></term>
+<listitem><para>Highlighting for VHDL</para></listitem>
+</varlistentry>
+<varlistentry>
+<term>Yury Lebedev </term>
+<listitem><para>Highlighting for SQL</para></listitem>
+</varlistentry>
+<varlistentry>
+<term>Chris Ross</term>
+<listitem><para>Highlighting for Ferite</para></listitem>
+</varlistentry>
+<varlistentry>
+<term>Nick Roux</term>
+<listitem><para>Highlighting for ILERPG</para></listitem>
+</varlistentry>
+<varlistentry>
+<term>&John.Firebaugh;</term>
+<listitem><para>Highlighting for &Java;, and much more</para></listitem>
+</varlistentry>
+<varlistentry>
+<term>&Carsten.Niehaus;</term>
+<listitem><para>Highlighting for &latex;</para></listitem>
+</varlistentry>
+<varlistentry>
+<term>Per Wigren</term>
+<listitem><para>Highlighting for Makefiles, Python</para></listitem>
+</varlistentry>
+<varlistentry>
+<term>Jan Fritz</term>
+<listitem><para>Highlighting for Python</para></listitem>
+</varlistentry>
+<varlistentry>
+<term>&Daniel.Naber;</term>
+<listitem><para>Small bugfixes, &XML; plugin</para></listitem>
+</varlistentry>
+</variablelist>
+
+<para>Documentation copyright 2000,2001 &Seth.Rothberg;
+&Seth.Rothberg.mail;</para>
+
+<para>Documentation copyright 2002, 2003, 2005 &Anders.Lund;
+&Anders.Lund.mail;</para>
+
+<!-- TRANS:CREDIT_FOR_TRANSLATORS -->
+
+&underFDL;               <!-- FDL: do not remove -->
+&underGPL;               <!-- GPL License -->
+
+</chapter>
+
+<appendix id="regular-expressions">
+<title>Regular Expressions</title>
+
+<para>For information about using regular expressions in &kate;, see the
+<ulink url="help:/katepart/regular-expressions.html">Regular Expressions appendix
+to the &katepart; Handbook</ulink>.</para>
+
+</appendix>
+
+&documentation.index;
+
+<!--
+Index Word List:
+menu - context - syntax - markup - shortcuts - highlighting
+embedded terminal - editing - search - replace - regexp -> Regular Expression
+split window - selection - insert overwrite - selection -
+configure/customize/preferences - insert/overwrite - non-printing characters
+font - unicode - wordwrap/linewrap - project - bookmarks - docks - plugins
+block selection / rectangles - view - indenting - editor - word processor
+copy - paste - find - spelling - language (both kinds) - encoding -
+pretty printing - formatting - line numbers - icon border -
+folding - insert time - sed
+
+done
+comment / uncomment
+configure / settings / preferences
+
+-->
+
+</book>
+
+<!--
+Local Variables:
+mode: sgml
+sgml-namecase-general: t
+sgml-namecase-entity: nil
+sgml-general-insert-case: lower
+sgml-minimize-attributes: nil
+sgml-omittag: nil
+End:
+-->

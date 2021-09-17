@@ -1,0 +1,17 @@
+variables:
+  PRODUCT: Applications
+
+include:
+  - project: 'sysadmin/ci-tooling'
+    file: '/invent/ci-before.yml'
+
+linux kf5-qt5 qt5.15:
+  image: "kdeorg/ci-suse-qt515"
+  extends: .linux
+  only:
+    - master
+    - merge_requests
+  variables:
+    PLATFORM: SUSEQt5.15
+    BRANCH_GROUP: stable-kf5-qt5
+

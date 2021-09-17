@@ -1,0 +1,214 @@
+<?xml version="1.0" ?>
+<!DOCTYPE book PUBLIC "-//KDE//DTD DocBook XML V4.5-Based Variant V1.1//EN"
+"dtd/kdedbx45.dtd" [
+  <!ENTITY kappname "&katepart;">
+  <!ENTITY fundamentals-chapter SYSTEM "fundamentals.docbook">
+  <!ENTITY configuring-chapter SYSTEM "configuring.docbook">
+  <!ENTITY menus-chapter SYSTEM "menus.docbook">
+  <!ENTITY part-chapter SYSTEM "part.docbook">
+  <!ENTITY advanced-chapter SYSTEM "advanced.docbook">
+  <!ENTITY dev-chapter SYSTEM "development.docbook">
+  <!ENTITY vi-appendix SYSTEM "vi.docbook">
+  <!ENTITY regexp-appendix SYSTEM "regular-expressions.docbook">
+  <!ENTITY % addindex "IGNORE">
+  <!ENTITY % English "INCLUDE" > <!-- change language only here -->
+]>
+
+<book id="katepart" lang="&language;">
+
+<bookinfo>
+<title>The &katepart; Handbook</title>
+<authorgroup>
+<author>&Thad.McGinnis; &Thad.McGinnis.mail;</author>
+<author>&Anne-Marie.Mahfouf; &Anne-Marie.Mahfouf.mail;</author>
+<author>&Anders.Lund; &Anders.Lund.mail;</author>
+<author>&TC.Hollingsworth; &TC.Hollingsworth.mail;</author>
+<othercredit role="developer">
+&Christoph.Cullmann; &Christoph.Cullmann.mail;
+<!-- <contrib>Core Developer and Maintainer</contrib> -->
+</othercredit>
+
+<othercredit role="reviewer">
+&Lauri.Watts; &Lauri.Watts.mail;
+<!-- <contrib>Reviewer</contrib> -->
+</othercredit>
+
+<!-- TRANS:ROLES_OF_TRANSLATORS -->
+
+</authorgroup>
+
+<copyright>
+<year>2000</year><year>2001</year>
+<holder>&Thad.McGinnis;</holder>
+</copyright>
+<copyright>
+<year>2005</year>
+<holder>&Anne-Marie.Mahfouf; &Anne-Marie.Mahfouf.mail;</holder>
+<holder>&Anders.Lund; &Anders.Lund.mail;</holder>
+</copyright>
+<copyright>
+<year>2011</year><year>2012</year><year>2013</year><year>2014</year>
+<holder>&TC.Hollingsworth; &TC.Hollingsworth.mail;</holder>
+</copyright>
+<legalnotice>&FDLNotice;</legalnotice>
+
+<date>2020-10-10</date>
+<releaseinfo>&frameworks; 5.75</releaseinfo>
+
+<abstract>
+<para>&katepart; is a fully featured editor component by &kde;.</para>
+</abstract>
+
+<keywordset>
+<keyword>KDE</keyword>
+<keyword>KatePart</keyword>
+<keyword>KWrite</keyword>
+<keyword>text</keyword>
+<keyword>editor</keyword>
+</keywordset>
+
+</bookinfo>
+
+<chapter id="introduction">
+<title>Introduction</title>
+
+<para>
+&katepart; is a fully featured text editor component used by many &Qt; and &kde;
+applications.
+&katepart; is more than a text editor; it is meant to be a programmer's editor,
+and could be considered as at least a partial alternative to more powerful
+editors. One of &katepart;'s main features is the colorized syntax, customized
+for many different programming languages such as: C/C++, &Java;, Python, Perl,
+Bash, Modula 2, &HTML;, and Ada.
+</para>
+<para>&kwrite; is a simple text editor application based on &katepart;.  It has
+a single document interface (<acronym>SDI</acronym>) allowing you to edit one
+file at the time per window.  Since &kwrite; is a very simple implementation of
+&katepart;, it does not require its own documentation.  If you know how to use
+&kwrite;, you can use &katepart; anywhere!
+</para>
+</chapter>
+
+&fundamentals-chapter;
+
+&part-chapter;
+
+&menus-chapter;
+
+&advanced-chapter;
+
+&dev-chapter;
+
+&configuring-chapter;
+
+<chapter id="credits">
+<title>Credits and License</title>
+
+<para>&katepart; and &kwrite; Copyright 2001-2021 by the &kate; team.</para>
+
+<para>
+Based on the original &kwrite;, which was Copyright 2000 by Jochen Wilhelmy
+<email>digisnap@cs.tu-berlin.de</email>
+</para>
+
+<para>Contributions:</para>
+
+<itemizedlist>
+<listitem>
+<para>&Christoph.Cullmann; &Christoph.Cullmann.mail;</para>
+</listitem>
+
+<listitem>
+<para>Michael Bartl <email>michael.bartl1@chello.at</email></para>
+</listitem>
+
+<listitem>
+<para>Phlip <email>phlip_cpp@my-deja.com</email></para>
+</listitem>
+
+<listitem>
+<para>&Anders.Lund; &Anders.Lund.mail;</para>
+</listitem>
+
+<listitem>
+<para>Matt Newell <email>newellm@proaxis.com</email></para>
+</listitem>
+
+<listitem>
+<para>&Joseph.Wenninger; &Joseph.Wenninger.mail;</para>
+</listitem>
+
+<listitem>
+<para>Jochen Wilhelmy <email>digisnap@cs.tu-berlin.de</email></para>
+</listitem>
+
+<listitem>
+<para>&Michael.Koch; &Michael.Koch.mail;</para>
+</listitem>
+
+<listitem>
+<para>&Christian.Gebauer; &Christian.Gebauer.mail;</para>
+</listitem>
+
+<listitem>
+<para>&Simon.Hausmann; &Simon.Hausmann.mail;</para>
+</listitem>
+
+<listitem>
+<para>Glen Parker <email>glenebob@nwlink.com</email></para>
+</listitem>
+
+<listitem>
+<para>Scott Manson <email>sdmanson@altel.net</email></para>
+</listitem>
+
+<listitem>
+<para>&John.Firebaugh; &John.Firebaugh.mail;</para>
+</listitem>
+
+<listitem>
+<para>Nibaldo González <email>nibgonz@gmail.com</email></para>
+</listitem>
+</itemizedlist>
+
+<para>
+The &katepart; documentation is based on the original &kwrite; documentation,
+modified to be relevant to all &katepart; consumers.
+</para>
+
+<para>
+The original &kwrite; documentation was written by &Thad.McGinnis;
+&Thad.McGinnis.mail;, with lots of modifications from
+&Cristian.Tibirna; &Cristian.Tibirna.mail;. Converted to docbook/proofreading by
+&Lauri.Watts; &Lauri.Watts.mail; and updated by &Anne-Marie.Mahfouf;
+&Anne-Marie.Mahfouf.mail; and &Anders.Lund; &Anders.Lund.mail;
+</para>
+
+<para>The current &katepart; documentation is maintained by &TC.Hollingsworth;
+&TC.Hollingsworth.mail;.  Please send comments or suggestions to the &katepart;
+development mailing list at <email>kwrite-devel@kde.org</email> or file a bug
+in the <ulink url="https://bugs.kde.org/">&kde; Bugtracking System</ulink>.</para>
+
+<!-- TRANS:CREDIT_FOR_TRANSLATORS -->
+
+&underFDL;
+&underGPL;
+</chapter>
+
+&vi-appendix;
+
+&regexp-appendix;
+
+&documentation.index;
+</book>
+<!--
+Local Variables:
+mode: sgml
+sgml-namecase-general: t
+sgml-namecase-entity: nil
+sgml-general-insert-case: lower
+sgml-minimize-attributes: nil
+sgml-omittag: nil
+End:
+-->
+

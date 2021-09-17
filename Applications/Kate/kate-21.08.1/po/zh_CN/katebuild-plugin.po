@@ -1,0 +1,450 @@
+# translation of katebuild-plugin.po to 简体中文
+# Copyright (C) YEAR This_file_is_part_of_KDE
+# This file is distributed under the same license as the PACKAGE package.
+#
+# Ni Hui <shuizhuyuanluo@126.com>, 2008, 2009, 2010.
+# Feng Chao <rainofchaos@gmail.com>, 2011, 2014.
+# Weng Xuetian <wengxt@gmail.com>, 2012, 2015.
+# Phoenix Nemo <phoenixlzx@archlinuxcn.org>, 2014.
+# Xuetian Weng <xweng@cs.stonybrook.edu>, 2014.
+msgid ""
+msgstr ""
+"Project-Id-Version: kdeorg\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2021-03-09 03:25+0100\n"
+"PO-Revision-Date: 2021-08-30 11:46\n"
+"Last-Translator: \n"
+"Language-Team: Chinese Simplified\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Crowdin-Project: kdeorg\n"
+"X-Crowdin-Project-ID: 269464\n"
+"X-Crowdin-Language: zh-CN\n"
+"X-Crowdin-File: /kf5-stable/messages/kate/katebuild-plugin.pot\n"
+"X-Crowdin-File-ID: 4129\n"
+
+#, kde-format
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr "KDE China,Guo Yunhe"
+
+#, kde-format
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr "kde-china@kde.org,i@guoyunhe.me"
+
+#. i18n: ectx: attribute (title), widget (QWidget, errs)
+#: build.ui:27
+#, kde-format
+msgid "Output"
+msgstr "输出"
+
+#. i18n: ectx: property (text), widget (QLabel, showLabel)
+#: build.ui:35
+#, kde-format
+msgid "Show:"
+msgstr "显示："
+
+#. i18n: ectx: property (text), widget (QPushButton, buildAgainButton)
+#. i18n: ectx: property (text), widget (QPushButton, buildAgainButton2)
+#: build.ui:100 build.ui:125
+#, kde-format
+msgid "Build again"
+msgstr "再次构建"
+
+#. i18n: ectx: property (text), widget (QPushButton, cancelBuildButton)
+#. i18n: ectx: property (text), widget (QPushButton, cancelBuildButton2)
+#: build.ui:107 build.ui:132
+#, kde-format
+msgid "Cancel"
+msgstr "取消"
+
+#. i18n: ectx: property (text), widget (QTreeWidget, errTreeWidget)
+#: build.ui:163
+#, kde-format
+msgctxt "Header for the file name column"
+msgid "File"
+msgstr "文件"
+
+#. i18n: ectx: property (text), widget (QTreeWidget, errTreeWidget)
+#: build.ui:168
+#, kde-format
+msgctxt "Header for the line number column"
+msgid "Line"
+msgstr "行数"
+
+#. i18n: ectx: property (text), widget (QTreeWidget, errTreeWidget)
+#: build.ui:173
+#, kde-format
+msgctxt "Header for the error message column"
+msgid "Message"
+msgstr "消息"
+
+#: plugin_katebuild.cpp:126
+#, kde-format
+msgid "Kate Build Plugin"
+msgstr "Kate 构建插件"
+
+#: plugin_katebuild.cpp:133
+#, kde-format
+msgid "Build Output"
+msgstr "构建输出"
+
+#: plugin_katebuild.cpp:136
+#, kde-format
+msgid "Select Target..."
+msgstr "选择目标..."
+
+#: plugin_katebuild.cpp:140
+#, kde-format
+msgid "Build Default Target"
+msgstr "构建默认目标"
+
+#: plugin_katebuild.cpp:144
+#, kde-format
+msgid "Build Previous Target"
+msgstr "构建之前的目标"
+
+#: plugin_katebuild.cpp:148
+#, kde-format
+msgid "Stop"
+msgstr "停止"
+
+#: plugin_katebuild.cpp:153
+#, kde-format
+msgid "Next Error"
+msgstr "下个错误"
+
+#: plugin_katebuild.cpp:159
+#, kde-format
+msgid "Previous Error"
+msgstr "上个错误"
+
+#: plugin_katebuild.cpp:165
+#, kde-format
+msgid "Show Marks"
+msgstr "显示标记"
+
+#: plugin_katebuild.cpp:172
+#, kde-format
+msgctxt "Tab label"
+msgid "Target Settings"
+msgstr "目标设置"
+
+#: plugin_katebuild.cpp:262 plugin_katebuild.cpp:1162
+#, kde-format
+msgid "Target Set"
+msgstr "目标集"
+
+#: plugin_katebuild.cpp:263 plugin_katebuild.cpp:283 plugin_katebuild.cpp:288
+#: plugin_katebuild.cpp:1319
+#, kde-format
+msgid "build"
+msgstr "构建"
+
+#: plugin_katebuild.cpp:264 plugin_katebuild.cpp:284 plugin_katebuild.cpp:1322
+#, kde-format
+msgid "clean"
+msgstr "清理"
+
+#: plugin_katebuild.cpp:265
+#, kde-format
+msgid "config"
+msgstr "配置"
+
+#: plugin_katebuild.cpp:269 plugin_katebuild.cpp:286 plugin_katebuild.cpp:1325
+#, kde-format
+msgid "quick"
+msgstr "快速"
+
+#: plugin_katebuild.cpp:321 plugin_katebuild.cpp:1258 plugin_katebuild.cpp:1269
+#: plugin_katebuild.cpp:1290 plugin_katebuild.cpp:1298
+#, kde-format
+msgid "Project Plugin Targets"
+msgstr "工程插件目标"
+
+#: plugin_katebuild.cpp:487
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"<title>Could not open file:</title><nl/>%1<br/>Try adding a search path to "
+"the working directory in the Target Settings"
+msgstr ""
+"<title>无法打开文件：</title><nl/>%1<br/>请尝试在“目标设置”中为工作目录添加搜"
+"索路径"
+
+#: plugin_katebuild.cpp:507
+#, kde-format
+msgctxt "The same word as 'make' uses to mark an error."
+msgid "error"
+msgstr "错误"
+
+#: plugin_katebuild.cpp:509
+#, kde-format
+msgctxt "The same word as 'ld' uses to mark an ..."
+msgid "undefined reference"
+msgstr "未定义的引用"
+
+#: plugin_katebuild.cpp:515
+#, kde-format
+msgctxt "The same word as 'make' uses to mark a warning."
+msgid "warning"
+msgstr "警告"
+
+#: plugin_katebuild.cpp:600
+#, kde-format
+msgid "Error"
+msgstr "错误"
+
+#: plugin_katebuild.cpp:605
+#, kde-format
+msgid "Warning"
+msgstr "警告"
+
+#: plugin_katebuild.cpp:736
+#, kde-format
+msgid "There is no file or directory specified for building."
+msgstr "没有指定要构建的文件或目录。"
+
+#: plugin_katebuild.cpp:740
+#, kde-format
+msgid ""
+"The file \"%1\" is not a local file. Non-local files cannot be compiled."
+msgstr "“%1”不是一个本地文件，不能编译非本地的文件。"
+
+#: plugin_katebuild.cpp:792
+#, kde-format
+msgid ""
+"Cannot run command: %1\n"
+"Work path does not exist: %2"
+msgstr ""
+"无法运行命令：%1\n"
+"工作路径不存在：%2"
+
+#: plugin_katebuild.cpp:811
+#, kde-format
+msgid "Failed to run \"%1\". exitStatus = %2"
+msgstr "运行“%1”失败。退出状态 = %2"
+
+#: plugin_katebuild.cpp:830
+#, kde-format
+msgid "Building <b>%1</b> cancelled"
+msgstr "<b>%1</b> 构建已取消"
+
+#: plugin_katebuild.cpp:888
+#, kde-format
+msgid "Already building..."
+msgstr "已经在构建..."
+
+#: plugin_katebuild.cpp:897
+#, kde-format
+msgid "No target available for building."
+msgstr "没有可供编译的目标."
+
+#: plugin_katebuild.cpp:911
+#, kde-format
+msgid "There is no local file or directory specified for building."
+msgstr "没有指定要构建的本地文件或目录。"
+
+#: plugin_katebuild.cpp:935
+#, kde-format
+msgid "Building target <b>%1</b> ..."
+msgstr "构建目标 <b>%1</b>..."
+
+#: plugin_katebuild.cpp:950
+#, kde-kuit-format
+msgctxt "@info"
+msgid "<title>Make Results:</title><nl/>%1"
+msgstr "<title>Make 的结果：</title><nl/>%1"
+
+#: plugin_katebuild.cpp:986
+#, kde-format
+msgid "Building <b>%1</b> completed."
+msgstr "<b>%1</b> 构建已完成。"
+
+#: plugin_katebuild.cpp:1005
+#, kde-format
+msgid "Found one error."
+msgid_plural "Found %1 errors."
+msgstr[0] "发现 %1 个错误。"
+
+#: plugin_katebuild.cpp:1006
+#, kde-format
+msgid "Building <b>%1</b> had errors."
+msgstr "构建 <b>%1</b> 时出现错误。"
+
+#: plugin_katebuild.cpp:1008
+#, kde-format
+msgid "Found one warning."
+msgid_plural "Found %1 warnings."
+msgstr[0] "发现 %1 个警告。"
+
+#: plugin_katebuild.cpp:1009
+#, kde-format
+msgid "Building <b>%1</b> had warnings."
+msgstr "构建 <b>%1</b> 时出现警告。"
+
+#: plugin_katebuild.cpp:1013
+#, kde-format
+msgid "Build failed."
+msgstr "构建失败。"
+
+#: plugin_katebuild.cpp:1015
+#, kde-format
+msgid "Build completed without problems."
+msgstr "构建完成，没有出现问题。"
+
+#: plugin_katebuild.cpp:1163
+#, kde-format
+msgid "Build"
+msgstr "构建"
+
+#: plugin_katebuild.cpp:1164
+#, kde-format
+msgid "Clean"
+msgstr "清理"
+
+#: plugin_katebuild.cpp:1165
+#, kde-format
+msgid "Config"
+msgstr "配置"
+
+#: plugin_katebuild.cpp:1166
+#, kde-format
+msgid "ConfigClean"
+msgstr "清理配置"
+
+#: plugin_katebuild.cpp:1202
+#, kde-format
+msgid "Only Errors"
+msgstr "只有错误"
+
+#: plugin_katebuild.cpp:1205
+#, kde-format
+msgid "Errors and Warnings"
+msgstr "错误和警告"
+
+#: plugin_katebuild.cpp:1208
+#, kde-format
+msgid "Parsed Output"
+msgstr "已解析输出"
+
+#: plugin_katebuild.cpp:1211
+#, kde-format
+msgid "Full Output"
+msgstr "完整输出"
+
+#. i18n: ectx: property (windowTitle), widget (QDialog, SelectTargetUi)
+#: SelectTargetUi.ui:14
+#, kde-format
+msgid "Select build target"
+msgstr "选择构建目标"
+
+#. i18n: ectx: property (text), widget (QLabel, u_label)
+#: SelectTargetUi.ui:29
+#, kde-format
+msgid "Filter"
+msgstr "过滤器"
+
+#: TargetHtmlDelegate.cpp:47
+#, kde-format
+msgctxt "T as in Target set"
+msgid "<B>T:</B> %1"
+msgstr "<B>目标:</B> %1"
+
+#: TargetHtmlDelegate.cpp:49
+#, kde-format
+msgctxt "D as in working Directory"
+msgid "<B>Dir:</B> %1"
+msgstr "<B>目录:</B> %1"
+
+#: TargetHtmlDelegate.cpp:101
+#, kde-format
+msgid ""
+"Leave empty to use the directory of the current document.\n"
+"Add search directories by adding paths separated by ';'"
+msgstr ""
+"留空使用当前文档的目录。\n"
+"可添加搜索目录，以 ';' 分隔。"
+
+#: TargetHtmlDelegate.cpp:105
+#, kde-format
+msgid ""
+"Use:\n"
+"\"%f\" for current file\n"
+"\"%d\" for directory of current file\n"
+"\"%n\" for current file name without suffix"
+msgstr ""
+"Use:\n"
+"\"%f\" 为当前文件\n"
+"\"%d\" 为当前文件的目录\n"
+"\"%n\" 为不包括后缀的当前文件名"
+
+#: TargetModel.cpp:297
+#, kde-format
+msgid "Check the check-box to make the command the default for the target-set."
+msgstr "选中会设置命令为目标的默认命令."
+
+#: TargetModel.cpp:355
+#, kde-format
+msgid "Command/Target-set Name"
+msgstr "命令/目标集名称"
+
+#: TargetModel.cpp:358
+#, kde-format
+msgid "Working Directory / Command"
+msgstr "工作目录 / 命令"
+
+#: targets.cpp:18
+#, kde-format
+msgid "Active target-set:"
+msgstr "活动目标集合:"
+
+#: targets.cpp:20
+#, kde-format
+msgid "Select active target set"
+msgstr "选择活动目标集合"
+
+#: targets.cpp:25
+#, kde-format
+msgid "Create new set of targets"
+msgstr "创建新的目标集"
+
+#: targets.cpp:29
+#, kde-format
+msgid "Copy command or target set"
+msgstr "拷贝命令或目标集"
+
+#: targets.cpp:33
+#, kde-format
+msgid "Delete current target or current set of targets"
+msgstr "删除当前目标或当前目标集"
+
+#: targets.cpp:38
+#, kde-format
+msgid "Add new target"
+msgstr "添加新目标"
+
+#: targets.cpp:42
+#, kde-format
+msgid "Build selected target"
+msgstr "构建选中的目标"
+
+#. i18n: ectx: Menu (Build Menubar)
+#: ui.rc:6
+#, kde-format
+msgid "&Build"
+msgstr "构建(&B)"
+
+#: UrlInserter.cpp:32
+#, kde-format
+msgid "Insert path"
+msgstr "插入路径"
+
+#: UrlInserter.cpp:51
+#, kde-format
+msgid "Select directory to insert"
+msgstr "选择要插入的目录"

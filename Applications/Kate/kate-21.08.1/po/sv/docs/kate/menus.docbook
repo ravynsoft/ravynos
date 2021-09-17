@@ -1,0 +1,2598 @@
+<chapter id="the-menu-entries">
+<title
+>Menyalternativen</title>
+
+<sect1 id="file-menu">
+<title
+>Menyn Arkiv</title>
+
+<variablelist>
+
+<varlistentry id="file-new">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>N</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Arkiv</guimenu
+> <guimenuitem
+>Ny</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Det här kommandot <action
+>skapar ett nytt dokument</action
+> i redigeringsfönstret. Det nya filnamnet <emphasis
+>Namnlös</emphasis
+> visas i listan <guibutton
+>Dokument</guibutton
+> till vänster. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="file-open">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>O</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Arkiv</guimenu
+> <guimenuitem
+>Öppna...</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Visar den vanliga dialogrutan <guilabel
+>Öppna fil</guilabel
+> i &kde;. Använd filvyn för att välja filen du vill öppna, och klicka på <guibutton
+>Öppna</guibutton
+> för att öppna den.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="file-open-recent">
+<term
+><menuchoice
+><guimenu
+>Arkiv</guimenu
+> <guisubmenu
+>Öppna senaste</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Det här är en genväg för att öppna nyligen sparade dokument. Genom att klicka på det här alternativet öppnas en lista vid sidan om menyn med flera av de senast sparade filerna. Genom att klicka på en specifik fil öppnas den i &kappname;, om filen fortfarande finns på samma plats. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="file-open-with">
+<term>
+<menuchoice
+><guimenu
+>Arkiv</guimenu
+> <guisubmenu
+>Öppna med</guisubmenu
+> </menuchoice>
+</term>
+<listitem>
+<para
+>Den här undermenyn visar en lista med program som är kända för att hantera det nuvarande dokumentets &MIME;-typ. Genom att välja ett alternativ öppnas det nuvarande dokumentet med det programmet.</para>
+<para
+>Dessutom gör alternativet <guimenuitem
+>Andra...</guimenuitem
+> att dialogrutan öppna med visas, som låter dig <action
+>välja ett annat program som ska öppna den aktiva filen</action
+>. Filen kommer fortfarande att vara öppen i &kate;. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="file-save">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>S</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Arkiv</guimenu
+> <guimenuitem
+>Spara</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Det här sparar det nuvarande dokumentet. Om dokumentet redan har sparats skriver det här över den tidigare sparade filen utan att fråga efter användarens samtycke. Om det här är första gången ett nytt dokument sparas, visas dialogrutan Spara som (beskrivs nedan). </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="file-save-as">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+>&Ctrl;&Shift;<keycap
+>S</keycap
+></keycombo
+></shortcut
+> <guimenu
+>Arkiv</guimenu
+> <guimenuitem
+>Spara som...</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Det här låter ett dokument sparas med ett nytt filnamn. Det här görs med fildialogrutan som beskrivs ovan under avsnittet <link linkend="file-open"
+>Öppna</link
+> i den här hjälpfilen. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="file-save-as-encoding">
+<term
+><menuchoice
+><guimenu
+>Arkiv</guimenu
+> <guimenuitem
+>Spara som med kodning</guimenuitem
+> </menuchoice>
+</term
+><listitem>
+<para
+>Spara ett dokumentet med ett nytt filnamn i en annan kodning.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="file-save-copy-as">
+<term
+><menuchoice
+><guimenu
+>Arkiv</guimenu
+> <guimenuitem
+>Spara kopia som</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Spara en kopia av dokumentet med ett nytt filnamn och fortsätt redigera originaldokumentet.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="file-save-all">
+<term>
+<menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>L</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Arkiv</guimenu
+> <guimenuitem
+>Spara alla</guimenuitem
+> </menuchoice>
+</term>
+<listitem>
+<para
+>Det här kommandot <action
+>sparar alla ändrade öppna filer</action
+>. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="file-reload">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+><keycap
+>F5</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Arkiv</guimenu
+> <guimenuitem
+>Återinladda (Uppdatera)</guimenuitem
+> </menuchoice>
+</term
+><listitem>
+<para
+>Laddar den aktiva filen igen. Kommandot är användbart om ett annat program eller en annan process har ändrat filen medan den varit öppen i &kappname;. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="file-reload-all">
+<term>
+<menuchoice
+><guimenu
+>Arkiv</guimenu
+> <guimenuitem
+>Uppdatera alla</guimenuitem
+> </menuchoice>
+</term>
+<listitem>
+<para
+><action
+>Uppdaterar alla öppna filer</action
+>. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="file-print">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>P</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Arkiv</guimenu
+> <guimenuitem
+>Skriv ut...</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Öppnar en enkel utskriftsdialog, som låter användaren ange vad, vart och hur utskrift ska ske. </para>
+</listitem>
+</varlistentry>
+
+<!--FIXME Print Preview -->
+
+<varlistentry id="file-export-as-html">
+<term
+><menuchoice
+><guimenu
+>Arkiv</guimenu
+><guimenuitem
+>Exportera som HTML</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Spara dokumentet som för närvarande är öppet som en &HTML;-fil, som kommer att formateras med användning av de nuvarande inställningarna av syntaxfärgläggning och färgschema.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="file-close">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>W</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Arkiv</guimenu
+> <guimenuitem
+>Stäng</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Stänger aktuell fil med det här kommandot. Har du gjort förändringar och inte sparat dessa, kommer du att få en fråga om du vill spara ändringarna innan &kate; stänger filen. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="file-close-other">
+<term>
+<menuchoice
+><guimenu
+>Arkiv</guimenu
+> <guimenuitem
+>Stäng övriga</guimenuitem
+> </menuchoice>
+</term>
+<listitem>
+<para
+>Stäng övriga öppna dokument. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="file-close-all">
+<term>
+<menuchoice
+><guimenu
+>Arkiv</guimenu
+> <guimenuitem
+>Stäng alla</guimenuitem
+> </menuchoice>
+</term>
+<listitem>
+<para
+>Det här kommandot <action
+>stänger alla filer som du har öppna</action
+> i &kate;. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="file-close-orphaned">
+<term>
+<menuchoice
+><guimenu
+>Arkiv</guimenu
+> <guimenuitem
+>Stäng övergivna</guimenuitem
+> </menuchoice>
+</term>
+<listitem>
+<para
+><action
+>Stäng</action
+> alla dokument i fillistan som inte kunde öppnas igen vid start, på grund av att de inte längre är tillgängliga. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="file-quit">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>Q</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Arkiv</guimenu
+> <guimenuitem
+>Avsluta</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Det här kommandot <action
+>avslutar &kate;</action
+> och alla filer som redigerades. Har du osparade ändringar, får du frågor om att spara dessa. </para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect1>
+
+<sect1 id="edit-menu">
+<title
+>Menyn Redigera</title>
+
+<variablelist>
+
+<varlistentry id="edit-undo">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+>&Ctrl;<keycap
+>Z</keycap
+></keycombo
+></shortcut
+> <guimenu
+>Redigera</guimenu
+> <guimenuitem
+>Ångra</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Ångra det senaste redigeringskommandot (inmatning, kopiering, utklippning etc.)</para>
+<note
+><para
+>Detta kan ångra flera redigeringskommandon av samma sort, som att skriva in tecken.</para
+></note>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-redo">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;&Shift;<keycap
+>Z</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Redigera</guimenu
+> <guimenuitem
+>Gör om</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Det här återställer den senaste ändringen (om det finns någon) som gjorts med Ångra.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-cut">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+>&Ctrl;<keycap
+>X</keycap
+> </keycombo
+> </shortcut
+> <guimenu
+>Redigera</guimenu
+> <guimenuitem
+>Klipp ut</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Det här kommandot tar bort den nuvarande markerade texten och placerar den på klippbordet. Klippbordet fungerar osynligt och erbjuder ett sätt att överföra data mellan program.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-copy">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+>&Ctrl;<keycap
+>C</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Redigera</guimenu
+> <guimenuitem
+>Kopiera</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Det här kopierar den nuvarande markerade texten till klippbordet så att den kan klistras in någon annanstans. Klippbordet fungerar osynligt och erbjuder ett sätt att överföra data mellan program.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-paste">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+>&Ctrl;<keycap
+>V</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Redigera</guimenu
+> <guimenuitem
+>Klistra in</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Det här infogar innehållet på klippbordet vid markörens position. Klippbordet fungerar osynligt och erbjuder ett sätt att överföra data mellan program.</para>
+<note
+><para
+>Om skriv över markering är aktiverad, så skriver den inklistrade texten över markerad text, om det finns någon.</para
+></note>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-paste-selection">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;&Shift;<keycap
+>Insert</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Redigera</guimenu
+> <guimenuitem
+>Klistra in markering</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Klistrar in <ulink url="https://en.wikipedia.org/wiki/Clipboard_(computing)#X_Window_System"
+>musmarkeringens</ulink
+> innehåll som tidigare valdes. Markera text med muspekaren för att klistra in den i filen som för närvarande är öppen med menyalternativet.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-swap-with-clipboard-contents">
+<term
+><menuchoice
+><guimenu
+>Redigera</guimenu
+> <guimenuitem
+>Byt mot klippbordets innehåll</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Byter den markerade texten med innehållet på <ulink url="https://en.wikipedia.org/wiki/Clipboard_(computing)#X_Window_System"
+>klippbordet</ulink
+>.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-clipboard-history">
+<term
+><menuchoice
+><guimenu
+>Arkiv</guimenu
+> <guisubmenu
+>Klippbordshistorik</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Undermenyn visar början av de textdelar som senast kopierats till klippbordet. Markera ett objekt i menyn för att klistra in det i filen som för närvarande är öppen.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-copy-as-html">
+<term
+><menuchoice
+><guimenu
+>Redigera</guimenu
+> <guimenuitem
+>Kopiera som HTML</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Kopiera markeringen som &HTML;, formaterad med användning av de nuvarande inställningarna av syntaxfärgläggning och färgschema.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-select-all">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>A</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Redigera</guimenu
+> <guimenuitem
+>Markera allt</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Det här väljer hela dokumentet. Det här kan vara mycket användbart för att kopiera hela filen till ett annat program.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-deselect">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;&Shift;<keycap
+>A</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Redigera</guimenu
+> <guimenuitem
+>Avmarkera</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Avmarkerar den markerade texten i editorn, om det finns någon.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-toggle-block-selection">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;&Shift;<keycap
+>B</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Redigera</guimenu
+> <guimenuitem
+>Blockmarkeringsläge</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Växlar markeringsläge. När markeringsläget är <guilabel
+>BLOCK</guilabel
+>, innehåller statusraden strängen <guilabel
+>[BLOCK]</guilabel
+> och du kan göra vertikala markeringar, t.ex. markera kolumn 5 till 10 på rad 9 till 15.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-input-modes">
+<term
+><menuchoice
+><guimenu
+>Redigera</guimenu
+> <guimenuitem
+>Inmatningslägen</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Byt till ett Vi-liknande redigeringsläge. Läget stöder de oftast använda kommandona och förflyttningarna från vim:s normala och visuella läge, och har en valfri Vi-statusrad. Statusraden visar kommandon medan de matas in, utmatning från kommandon och nuvarande läge. Lägets beteende kan anpassas under <ulink url="help:/katepart/config-dialog-editor.html#pref-edit-vi-input-mode"
+>Vi-inmatningsläge</ulink
+> på sidan <guilabel
+>Redigering</guilabel
+> i &kappname;s inställningsdialogruta.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-overwrite-mode">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+><keycap
+>Insert</keycap
+></keycombo
+></shortcut
+> <guimenu
+>Redigera</guimenu
+> <guimenuitem
+>Överskrivningsläge</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Växlar mellan infoga och ersätt. När värdet är <guilabel
+>INFOGA</guilabel
+>, infogas tecken där markören befinner sig. När värdet är C, ersätts aktuellt tecken om markören är placerad innan ett tecken när tecken skrivs in. Statusraden visar aktuell status för överskrivningsläget, antingen <guilabel
+>INFOGA</guilabel
+> eller <guilabel
+>ERSÄTT</guilabel
+>.</para>
+</listitem>
+</varlistentry>
+<!--FIXME keep in sync with katepart/part.docbook <sect2 id="finding-text"
+> -->
+<varlistentry id="edit-find">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>F</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Redigera</guimenu
+> <guimenuitem
+>Sök...</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Det här öppnar den inkrementella sökraden längst ner i editorfönstret. Till vänster på raden finns en knapp med en ikon för att stänga raden, följt av en liten textruta för att skriva in sökbegrepp.</para>
+<para
+>När du börjar skriva in tecknen i ditt sökbegrepp, börjar sökningen omedelbart. Om det finns en träff i texten markeras den och bakgrundsfärgen i inmatningsfältet ändras till ljusgrönt. Om sökbegreppet inte motsvarar någon sträng i texten, indikeras det av en ljusröd bakgrundsfärg i inmatningsfältet.</para>
+<para
+>Använd knapparna <inlinemediaobject
+><imageobject
+><imagedata fileref="arrow-up-double-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> eller <inlinemediaobject
+><imageobject
+><imagedata fileref="arrow-down-double-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> för att gå till nästa eller föregående träff i dokumentet.</para>
+<para
+>Träffar i dokumentet markeras även när sökraden har stängts. För att ta bort markeringarna, tryck på tangenten &Esc;.</para>
+<para
+>Du kan välja om sökningen ska vara skiftlägeskänslig. Genom att välja <inlinemediaobject
+><imageobject
+><imagedata fileref="format-text-superscript-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> begränsas träffar till värden som motsvarar skiftläget (stora eller små bokstäver) för varje tecken i sökbegreppet. </para>
+<para
+>Klicka på knappen <inlinemediaobject
+><imageobject
+><imagedata fileref="configure-shortcuts-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> med den gröna pilikonen till höger på den inkrementella sökraden för att byta till den avancerade sök- och ersättningsraden. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-find-next">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+><keycap
+>F3</keycap
+></keycombo
+></shortcut
+> <guimenu
+>Redigera</guimenu
+><guisubmenu
+>Sök varianter</guisubmenu
+> <guimenuitem
+>Sök nästa</guimenuitem
+> </menuchoice
+></term>
+ <listitem>
+<para
+>Det här upprepar den senaste sökningen, om det finns någon, utan att anropa den inkrementella sökraden, och söker framåt igenom dokumentet med början på markörens position. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-find-previous">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+>&Shift;<keycap
+>F3</keycap
+></keycombo
+></shortcut
+> <guimenu
+>Redigera</guimenu
+><guisubmenu
+>Sök varianter</guisubmenu
+> <guimenuitem
+>Sök föregående</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Det här upprepar den senaste sökningen, om det finns någon, utan att anropa den inkrementella sökraden, och söker bakåt istället för framåt igenom dokumentet. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-find-selected">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+>&Ctrl;<keycap
+>H</keycap
+></keycombo
+></shortcut
+> <guimenu
+>Redigera</guimenu
+><guisubmenu
+>Sök varianter</guisubmenu
+> <guimenuitem
+>Sök markering</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Söker efter nästa förekomst av markerad text.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-find-selected-backwards">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+>&Ctrl;&Shift;<keycap
+>H</keycap
+></keycombo
+></shortcut
+> <guimenu
+>Redigera</guimenu
+><guisubmenu
+>Sök varianter</guisubmenu
+> <guimenuitem
+>Sök markering bakåt</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Söker efter föregående förekomst av markerad text.</para>
+</listitem>
+</varlistentry>
+<!--FIXME keep in sync with katepart/part.docbook <sect2 id="replacing-text"
+> -->
+<varlistentry id="edit-replace">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+>&Ctrl;<keycap
+>R</keycap
+></keycombo
+></shortcut
+> <guimenu
+>Redigera</guimenu
+> <guimenuitem
+>Ersätt...</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Det här kommandot öppnar den avancerade sök- och ersättningsraden. Längst upp till vänster på raden finns en knapp med en ikon för att stänga raden, följt av en liten textruta för att skriva in sökbegreppet.</para>
+<para
+>Sökläget kan styras genom att välja <guilabel
+>Enkel text</guilabel
+>, <guilabel
+>Hela ord</guilabel
+>, <guilabel
+>Escape-sekvenser</guilabel
+> eller <guilabel
+>Reguljärt uttryck</guilabel
+> i kombinationsrutan. </para>
+<para
+>Om <guilabel
+>Escape-sekvenser</guilabel
+> eller <guilabel
+>Reguljärt uttryck</guilabel
+> väljes, aktiveras knappen <guilabel
+>Lägg till... </guilabel
+> längst ner i textrutornas sammanhangsberoende meny, som låter dig lägga till escape-sekvenser eller reguljära uttryck i sök- eller ersättningsbegrepp från fördefinierade listor.</para>
+<para
+>Använd knapparna <inlinemediaobject
+><imageobject
+><imagedata fileref="arrow-up-double-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> eller <inlinemediaobject
+><imageobject
+><imagedata fileref="arrow-down-double-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> för att gå till nästa eller föregående träff i dokumentet.</para>
+<para
+>Skriv in texten att ersätta med i textrutan med beteckningen <guilabel
+>Ersätt</guilabel
+> och klicka på knappen <guibutton
+>Ersätt</guibutton
+> för att bara ersätta markerad text eller <guibutton
+>Ersätt alla</guibutton
+> för att ersätta söktexten i hela dokumentet. </para>
+<para
+>Du kan ändra sök- och ersättningsbeteendet genom att välja olika alternativ längst ner på raden. Genom att välja <inlinemediaobject
+><imageobject
+><imagedata fileref="format-text-superscript-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+>begränsas träffar till poster som matchar skiftläget (stora eller små bokstäver) för varje tecken i sökbegreppet. <inlinemediaobject
+><imageobject
+><imagedata fileref="edit-select-all-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> söker och ersätter bara inom nuvarande markering. Knappen <guilabel
+>Sök alla</guilabel
+> markerar alla träffar i dokumentet och visar antal hittade träffar i ett litet meddelandefönster. </para>
+<para
+>Klicka på knappen <inlinemediaobject
+><imageobject
+><imagedata fileref="configure-shortcuts-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> med den gröna pilikonen till höger på den avancerade sök- och ersättningsraden för att byta till den inkrementella sökraden. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-go-to-matching-bracket">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>6</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Redigera</guimenu
+> <guisubmenu
+>Gå till</guisubmenu
+><guimenuitem
+>Gå till motsvarande parentes</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Flytta markören till samhörande inledande eller avslutande parentes.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-select-to-matching-bracket">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;&Shift;<keycap
+>6</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Redigera</guimenu
+> <guisubmenu
+>Gå till</guisubmenu
+> <guimenuitem
+>Markera till matchande parentes</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Markerar texten mellan samhörande inledande och avslutande parenteser.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-go-to-previous-modified-line">
+<term
+><menuchoice
+><guimenu
+>Redigera</guimenu
+> <guisubmenu
+>Gå till</guisubmenu
+> <guimenuitem
+>Gå till föregående ändrade rad</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Rader som ändrades efter filen öppnades kallas ändrade rader. Det här alternativet går till föregående ändrade rad. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-go-to-next-modified-line">
+<term
+><menuchoice
+><guimenu
+>Redigera</guimenu
+> <guisubmenu
+>Gå till</guisubmenu
+> <guimenuitem
+>Gå till nästa ändrade rad</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Rader som ändrades efter filen öppnades kallas ändrade rader. Det här alternativet går till nästa ändrade rad. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-edit-go-to-line">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>G</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Redigera</guimenu
+> <guisubmenu
+>Gå till</guisubmenu
+> <guimenuitem
+>Gå till rad...</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Det här öppnar gå till raden längst ner i fönstret, som används för att få markören att gå till en viss rad (som anges med dess nummer) i dokumentet. Radnumret kan skrivas in direkt i textrutan eller anges grafiskt genom att klicka på uppåt- eller nedåtpilarna vid sidan av textrutan. Den lilla uppåtpilen ökar radnumret och nedåtpilen minskar det. Stäng raden med ett klick på knappen med ikonen till vänster på raden. </para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect1>
+
+<sect1 id="view-menu">
+<title
+>Menyn Visa</title>
+
+<variablelist>
+
+<varlistentry id="view-new-window">
+<term
+><menuchoice
+><guimenu
+>Visa</guimenu
+><guimenuitem
+>Nytt fönster</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+><action
+>Öppnar ytterligare en kopia av &kate;</action
+>. Den nya kopian är identiskt med originalet. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-next-tab">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+>&Alt;<keysym
+>Höger</keysym
+></keycombo
+></shortcut
+> <guimenu
+>Visa</guimenu
+> <guimenuitem
+>Nästa flik</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Aktiverar nästa flik i flikraden.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-previous-tab">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+>&Alt;<keysym
+>Vänster</keysym
+></keycombo
+></shortcut
+> <guimenu
+>Visa</guimenu
+> <guimenuitem
+>Föregående flik</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Aktiverar föregående flik i flikraden.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-quick-open">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;&Alt;<keycap
+>O</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Visa</guimenu
+> <guimenuitem
+>Snabböppna</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Visar ett sökfält och en lista med öppnade filer i editorområdet. När text skrivs in i sökfältet letas dokumentens namn och webbadresser igenom efter motsvarande text. Medan text matas in i sökfältet, kan piltangenterna <keysym
+>Uppåtpil</keysym
+> och <keysym
+>Neråtpil</keysym
+> användas för att navigera i listvyn. Genom att trycka på returtangenten eller dubbelklicka på ett objekt i listan byter vyn till dokumentet som valts i listan. Det gör det enklare att byta mellan dokument, om en stor mängd är öppna.</para>
+<para
+>Åtgärden är också tillgänglig genom att använda ikonen <inlinemediaobject
+> <imageobject
+><imagedata fileref="tab-duplicate-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> längst upp till höger i editorfönstret.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-split-previous">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Shift;<keycap
+>F8</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Visa</guimenu
+><guisubmenu
+>Dela vy</guisubmenu
+> <guimenuitem
+>Föregående delade vy</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Fokusera på föregående dokumentvy, om du har delat redigeringsområdet i flera vyer.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-split-next">
+<term
+><menuchoice
+><shortcut
+> <keycap
+>F8</keycap
+> </shortcut
+> <guimenu
+>Visa</guimenu
+> <guisubmenu
+>Dela vy</guisubmenu
+> <guimenuitem
+>Nästa delade vy</guimenuitem
+> </menuchoice>
+</term
+><listitem>
+<para
+>Fokusera på nästa dokumentvy, om du har delat redigeringsområdet i flera vyer.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-split-vertical">
+<term>
+<menuchoice
+><shortcut
+><keycombo action="simul"
+>&Ctrl;&Shift;<keycap
+>L</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Visa</guimenu
+> <guisubmenu
+>Dela vy</guisubmenu
+> <guimenuitem
+>Dela vertikalt</guimenuitem
+> </menuchoice>
+</term>
+<listitem>
+<para
+>Det här delar fönstret (som kan vara det huvudsakliga redigeringsområdet) i två lika stora rutor, med den nya till vänster om den nuvarande. Den nya rutan får fokus, och visar samma dokument som den gamla.</para>
+<para
+>Se också <link linkend="kate-mdi"
+>Arbeta med &kate;s multipla dokumentgränssnitt</link
+>.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-split-horizontal">
+<term>
+<menuchoice
+><shortcut
+><keycombo action="simul"
+>&Ctrl;&Shift;<keycap
+>T</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Visa</guimenu
+> <guisubmenu
+>Dela vy</guisubmenu
+> <guimenuitem
+>Dela horisontellt</guimenuitem
+> </menuchoice>
+</term>
+<listitem>
+<para
+>Delar fönstret (som kan vara det huvudsakliga redigeringsområdet) i två lika stora rutor, med den nya under den nuvarande. Den nya rutan får fokus, och visar samma dokument som den gamla.</para>
+<para
+>Se också <link linkend="kate-mdi"
+>Arbeta med &kate;s multipla dokumentgränssnitt</link
+></para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-split-toggle-orientation">
+<term>
+<menuchoice
+><guimenu
+>Visa</guimenu
+> <guisubmenu
+>Delad vy</guisubmenu
+> <guimenuitem
+>Ändra orientering</guimenuitem
+> </menuchoice>
+</term>
+<listitem>
+<para
+>Växla mellan horisontell och vertikal delning.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-close-current">
+<term>
+<menuchoice
+><shortcut
+><keycombo action="simul"
+>&Ctrl;&Shift;<keycap
+>R</keycap
+></keycombo
+></shortcut
+> <guimenu
+>Visa</guimenu
+> <guisubmenu
+>Dela vy</guisubmenu
+><guimenuitem
+>Stäng aktuell vy</guimenuitem
+> </menuchoice>
+</term>
+<listitem>
+<para
+>Stänger den aktuella rutan, vilken kan identifieras som den som visar en blinkande markör. Detta är inaktivt om det bara finns en ruta (det huvudsakliga redigeringsområdet).</para
+> <para
+>Inga dokument stängs genom att stänga en ruta &ndash; de är fortfarande tillgängliga i <link linkend="view-menu"
+>menyn <guimenu
+>Visa</guimenu
+></link
+>, samt i fillistan.</para
+> <para
+>Se också <link linkend="kate-mdi"
+>Arbeta med &kate;s multipla dokumentgränssnitt</link
+></para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-close-inactive">
+<term>
+<menuchoice
+><guimenu
+>Visa</guimenu
+> <guisubmenu
+>Delad vy</guisubmenu
+> <guimenuitem
+>Stäng inaktiva vyer</guimenuitem
+> </menuchoice>
+</term>
+<listitem>
+<para
+>Stänger alla rutor utom den aktiva rutan (den med en blinkande markör). Detta är inaktivt om det bara finns en ruta (det huvudsakliga redigeringsområdet).</para>
+<para
+>Inga dokument stängs genom att stänga en ruta &ndash; de är fortfarande tillgängliga i <link linkend="view-menu"
+>menyn <guimenu
+>Visa</guimenu
+></link
+>, samt i fillistan.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-hide-inactive">
+<term>
+<menuchoice
+><guimenu
+>Visa</guimenu
+> <guisubmenu
+>Delad vy</guisubmenu
+> <guimenuitem
+>Dölj inaktiva vyer</guimenuitem
+> </menuchoice>
+</term>
+<listitem>
+<para
+>Det här döljer alla delade vyer, utom den som för närvarande är aktiv.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-move-splitter-left">
+<term>
+<menuchoice
+><guimenu
+>Visa</guimenu
+> <guisubmenu
+>Delad vy</guisubmenu
+> <guimenuitem
+>Flytta delning åt vänster</guimenuitem
+> </menuchoice>
+</term>
+<listitem>
+<para
+>När Delad vy är aktiverad, flyttar detta kanten mellan två vertikalt delade dokument längre åt vänster.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-move-splitter-right">
+<term>
+<menuchoice
+><guimenu
+>Visa</guimenu
+> <guisubmenu
+>Delad vy</guisubmenu
+> <guimenuitem
+>Flytta delning åt höger</guimenuitem
+> </menuchoice>
+</term>
+<listitem>
+<para
+>När Delad vy är aktiverad, flyttar detta kanten mellan två vertikalt delade dokument längre åt höger.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-move-splitter-up">
+<term>
+<menuchoice
+><guimenu
+>Visa</guimenu
+> <guisubmenu
+>Delad vy</guisubmenu
+> <guimenuitem
+>Flytta delning uppåt</guimenuitem
+> </menuchoice>
+</term>
+<listitem>
+<para
+>När Delad vy är aktiverad, flyttar detta kanten mellan två horisontellt delade dokument längre upp.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-move-splitter-down">
+<term>
+<menuchoice
+><guimenu
+>Visa</guimenu
+> <guisubmenu
+>Delad vy</guisubmenu
+> <guimenuitem
+>Flytta delning neråt</guimenuitem
+> </menuchoice>
+</term>
+<listitem>
+<para
+>När Delad vy är aktiverad, flyttar detta kanten mellan två horisontellt delade dokument längre ner.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+<note
+><para
+>Några vanliga åtgärder i menyn <guimenu
+>Visa</guimenu
+><guisubmenu
+>Delad vy</guisubmenu
+> är också tillgänglig genom att använda knappen <guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="view-split-left-right-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+></guiicon
+> längst upp i högra hörnet i editorfönstret </para
+></note>
+
+<variablelist>
+
+<varlistentry>
+<term
+><menuchoice
+><guimenu
+>Visa</guimenu
+> <guisubmenu
+>Verktygsvyer</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<variablelist>
+<varlistentry id="view-toolviews-show-sidebars">
+<term>
+<menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;&Alt;&Shift;<keycap
+>F</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Visa</guimenu
+> <guisubmenu
+>Verktygsvyer</guisubmenu
+> <guimenuitem
+>Visa sidorader</guimenuitem
+></menuchoice
+></term>
+<listitem
+><para
+>Byter visning av sidoradens knapprader. Kommandot påverkar inte visning av sidoradens innehållskomponenter, alla sidorader som är synliga kommer att förbli synliga, och om du tilldelat snabbtangenter till kommandona nedan kommer de förstås att fortsätta fungera.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="view-toolviews-show-plugins">
+<term
+><menuchoice
+><guimenu
+>Visa</guimenu
+> <guisubmenu
+>Verktygsvyer</guisubmenu
+> <guimenuitem
+>Visa <replaceable
+>Insticksprogram</replaceable
+></guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>En lista över aktiverade insticksprogram. Använd kryssrutan framför varje alternativ för att visa eller dölja verktygsvyn.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-command-line">
+<term
+><menuchoice
+><shortcut
+> <keycap
+>F7</keycap
+> </shortcut
+> <guimenu
+>Visa</guimenu
+> <guimenuitem
+>Byt till kommandorad</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Kommandot växlar visning av den <ulink url="help:/katepart/advanced-editing-tools-commandline.html"
+>inbyggda kommandoraden</ulink
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="view-enlarge-font">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+>&Ctrl;<keycap
+>+</keycap
+></keycombo
+></shortcut
+> <guimenu
+>Visa</guimenu
+><guimenuitem
+>Öka teckenstorlek</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Det här ökar teckenstorleken som används vid visning.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="view-shrink-font">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+>&Ctrl;<keycap
+>-</keycap
+></keycombo
+></shortcut
+> <guimenu
+>Visa</guimenu
+><guimenuitem
+>Minska teckenstorlek</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Det här minskar teckenstorleken som används vid visning.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="view-schema">
+<term
+><menuchoice
+><guimenu
+>Visa</guimenu
+> <guisubmenu
+>Schema</guisubmenu
+> </menuchoice
+></term>
+<listitem
+><para
+>Den här menyn visar tillgängliga färgscheman. Du kan ändra schema för den nuvarande vyn här. För att ändra förvalt schema måste du använda sidan <ulink url="help:/katepart/config-dialog-editor.html#prefcolors"
+>Teckensnitt och färger</ulink
+> i inställningsdialogrutan.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-dynamic-word-wrap">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+><keycap
+>F10</keycap
+> </keycombo
+></shortcut
+> <guimenu
+>Visa</guimenu
+> <guimenuitem
+>Dynamisk radbrytning</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Ändrar dynamisk radbrytning i den nuvarande vyn. Dynamisk ordbrytning gör att all text i en vy blir synlig utan att behöva rulla horisontellt genom att återge en verklig rad på fler synliga rader när det behövs.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-dynamic-word-wrap-indicators">
+<term
+><menuchoice
+><guimenu
+>Visa</guimenu
+><guimenuitem
+>Dynamiska radbrytningsmarkörer</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Välj när och hur dynamiska radbrytningsmarkörer ska visas. Det är bara tillgängligt om alternativet <guilabel
+>Dynamisk radbrytning</guilabel
+> är markerat.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-show-statik-word-wrap-markers">
+<term
+><menuchoice
+><guimenu
+>Visa</guimenu
+> <guisubmenu
+>Verktygsvyer</guisubmenu
+> <guimenuitem
+>Visa Sök och ersätt</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Ändrar visning av en vertikal linje som anger positionen för radbrytningsbredden som är inställd i <ulink url="help:/katepart/config-dialog-editor.html#pref-wrap-words-at"
+>inställningsdialogrutan</ulink
+>. Funktionen kräver att du använder ett teckensnitt med verkligt fast breddsteg. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-show-icon-border">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+><keycap
+>F6</keycap
+></keycombo
+></shortcut
+> <guimenu
+>Visa</guimenu
+> <guimenuitem
+>Visa ikonkant</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Det här är ett alternativ som växlar. Om det aktiveras, visas ikonkanten vid vänsterkanten i den aktiva editorn, och vice versa. Ikonkanten indikerar positionerna för de markerade raderna i editorn.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-show-line-numbers">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+><keycap
+>F11</keycap
+></keycombo
+></shortcut
+> <guimenu
+>Visa</guimenu
+> <guimenuitem
+>Visa radnummer</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Det här är ett alternativ som växlar. Om det aktiveras, visas en ruta med radnummer längs vänsterkanten på den aktiva editorn, och vice versa.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-scrollbar-marks">
+<term
+><menuchoice
+><guimenu
+>Visa</guimenu
+> <guimenuitem
+>Verktygsvyer</guimenuitem
+> <guimenuitem
+>Visa projekt</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Ändrar hur bokmärken (och andra markeringar) åskådliggörs på den vertikala rullningslisten. När de är aktiverade, representeras en markering av en tunn linje med markeringsfärgen på rullningslisten. Ett klick med musens mittenknapp på linjen flyttar vyn till en position nära markeringen.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="view-border-show-scrollbar-minimap">
+<term
+><menuchoice
+><guimenu
+>Visa</guimenu
+> <guimenuitem
+>Verktygsvyer</guimenuitem
+> <guimenuitem
+>Visa projekt</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Ersätter rullningslisten med en visualisering av det aktuella dokumentet. För mer information om rullningslistens miniavbildning, se avsnittet <ulink url="help:/katepart/kate-part-scrollbar-minimap.html"
+>Rullningslistens miniavbildning i handboken för &katepart;</ulink
+>.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="view-code-folding">
+<term
+><menuchoice
+><guimenu
+>Visa</guimenu
+> <guimenuitem
+>Kodvikning</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Dessa alternativ rör <ulink url="help:/katepart/advanced-editing-tools-code-folding.html"
+>kodvikning</ulink
+>:</para>
+<variablelist>
+
+<varlistentry id="view-show-folding-markers">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+><keycap
+>F9</keycap
+> </keycombo
+></shortcut
+> <guimenu
+>Visa</guimenu
+><guimenuitem
+>Visa vikmarkörer</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Visar eller gömmer den inbyggda terminalemulatorn.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="view-fold-current-node">
+<term
+><menuchoice>
+<guimenuitem
+>Fäll ihop aktuell nod</guimenuitem>
+</menuchoice
+></term>
+<listitem
+><para
+>Fäll ihop området som innehåller markören.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="view-unfold-current-node">
+<term
+><menuchoice>
+<guimenuitem
+>Expandera aktuell nod</guimenuitem>
+</menuchoice
+></term>
+<listitem
+><para
+>Expandera området som innehåller markören.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="view-fold-toplevel-nodes">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+>&Ctrl; &Shift;<keycap
+>-</keycap
+></keycombo
+></shortcut
+> <guimenuitem
+>Fäll ihop toppnivånoder</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Fäll ihop alla toppnivåområden i dokumentet. Klicka på triangeln som pekar åt höger för att expandera alla toppnivåområden.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="view-unfold-toplevel-nodes">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl; &Shift;<keycap
+>+</keycap
+> </keycombo
+></shortcut
+> <guimenuitem
+>Expandera toppnivånoder</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Expandera alla toppnivåområden i dokumentet.</para
+></listitem>
+</varlistentry>
+</variablelist>
+
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-show-non-printable-spaces">
+<term
+><menuchoice>
+<guimenuitem
+>Visa ej utskrivningsbara mellanslag</guimenuitem>
+</menuchoice
+></term>
+<listitem
+><para
+>Visa eller dölj omgivande ruta omkring ej utskrivningsbara mellanslag.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect1>
+
+<sect1 id="bookmarks-menu">
+<title
+>Menyn Bokmärken</title>
+
+<para
+>Under alternativen som beskrivs här, kommer det att finnas ett alternativ för varje bokmärke i det aktiva dokumentet. Texten är några få ord i början på den markerade raden. Välj ett alternativ för att flytta markören till början på den raden. Editorn panorerar om det behövs, för att göra raden synlig.</para>
+
+<variablelist>
+
+<varlistentry id="bookmarks-set-bookmark">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+>&Ctrl;<keycap
+>B</keycap
+></keycombo
+></shortcut
+> <guimenu
+>Bokmärken</guimenu
+> <guimenuitem
+>Nytt bokmärke</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Lägger till eller tar bort ett bokmärke på den nuvarande raden i det aktiva dokumentet (om det redan finns, tas det bort, annars läggs det till).</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="bookmarks-clear-bookmarks">
+<term
+><menuchoice
+><guimenu
+>Bokmärken</guimenu
+> <guimenuitem
+>Rensa alla bokmärken</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Det här kommandot tar bort alla bokmärken från dokumentet samt listan på bokmärken som läggs till längst ner i det här menyalternativet. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="bookmarks-bookmarks-previous">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+>&Alt; <keycap
+>Page Up</keycap
+></keycombo
+></shortcut
+> <guimenu
+>Bokmärken</guimenu
+><guimenuitem
+>Föregående</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Det här flyttar markören till början av den första raden ovan med ett bokmärke. Menyalternativets text innehåller radnummer och den inledande texten på raden. Alternativet är bara tillgängligt när det finns ett bokmärke på en rad ovanför markören.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="bookmarks-bookmarks-next">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+>&Alt; <keycap
+>Page Down</keycap
+></keycombo
+></shortcut
+> <guimenu
+>Bokmärken</guimenu
+><guimenuitem
+>Nästa</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Det här flyttar markören till början av nästa rad med ett bokmärke. Menyalternativets text innehåller radnummer och den inledande texten på raden. Alternativet är bara tillgängligt när det finns ett bokmärke på en rad nedanför markören.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect1>
+
+<sect1 id="sessions-menu">
+<title
+>Menyn Sessioner</title>
+
+<para
+>Den här menyn innehåller alternativ för att använda och hantera sessioner i &kate;. För mer information, läs <link linkend="fundamentals-using-sessions"
+>Använda sessioner</link
+>.</para>
+
+<variablelist>
+
+<varlistentry id="sessions-new">
+<term
+><menuchoice
+><guimenu
+>Sessioner</guimenu
+> <guimenuitem
+>Ny</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Skapar en ny tom session. Alla filer som för närvarande är öppna kommer att stängas.</para
+></listitem>
+
+</varlistentry>
+
+<varlistentry id="sessions-open">
+<term
+><menuchoice
+><guimenu
+>Sessioner</guimenu
+> <guimenuitem
+>Öppna session...</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Öppnar en befintlig session. Dialogrutan för sessionsval visas för att låta dig välja en.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="sessions-quick-open">
+<term
+><menuchoice
+><guimenu
+>Sessioner</guimenu
+> <guisubmenu
+>Snabböppna session</guisubmenu
+> </menuchoice
+></term>
+<listitem
+><para
+>Den här undermenyn låter dig öppna en befintlig session.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="sessions-save">
+<term
+><menuchoice
+><guimenu
+>Sessioner</guimenu
+> <guimenuitem
+>Spara session</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Sparar nuvarande session. Om sessionen är anonym, blir du tillfrågad om ett sessionsnamn.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="sessions-save-as">
+<term
+><menuchoice
+><guimenu
+>Sessioner</guimenu
+> <guimenuitem
+>Spara session som...</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Sparar nuvarande session med ett nytt namn. Du blir tillfrågad om namnet att använda.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="sessions-manage">
+<term
+><menuchoice
+><guimenu
+>Sessioner</guimenu
+> <guimenuitem
+>Hantera sessioner...</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Visar dialogrutan Sessionshantering som låter dig byta namn på och ta bort sessioner.</para
+></listitem>
+</varlistentry>
+
+
+</variablelist>
+
+</sect1>
+
+<sect1 id="tools-menu">
+
+<title
+>Menyn Verktyg</title>
+
+<variablelist>
+
+<varlistentry id="tools-read-only">
+<term
+><menuchoice
+><guimenu
+>Verktyg</guimenu
+> <guimenuitem
+>Skrivskyddat läge</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Ställer in aktuellt dokument till skrivskyddat läge. Det förhindrar tillägg av all text och alla ändringar av dokumentets formatering.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="tools-filetype">
+<term
+><menuchoice
+><guimenu
+>Verktyg</guimenu
+> <guisubmenu
+>Kodning</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Välj filtypschema som du föredrar för det aktiva dokumentet. Det skriver över det globala <ulink url="help:/katepart/pref-open-save-modes-filetypes.html"
+>filtypsläget</ulink
+> som ställts in i <menuchoice
+><guimenu
+>Inställningar</guimenu
+> <guimenuitem
+>Anpassa &kate;...</guimenuitem
+></menuchoice
+> under fliken Filtyper, men bara för det aktuella dokumentet.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="tools-highlighting">
+<term
+><menuchoice
+><guimenu
+>Verktyg</guimenu
+> <guisubmenu
+>Färgläggning</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Välj färgläggningsschema som du föredrar för det aktiva dokumentet. Det skriver över det globala färgläggningsläget som ställts in i <menuchoice
+><guimenu
+>Inställningar</guimenu
+> <guimenuitem
+>Anpassa editor...</guimenuitem
+></menuchoice
+>, men bara för det aktuella dokumentet.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="tools-indentation">
+<term
+><menuchoice
+><guimenu
+>Verktyg</guimenu
+> <guisubmenu
+>Indentering</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Välj <ulink url="help:/katepart/kate-part-autoindent.html"
+>indenteringsstil</ulink
+> som du vill ha för det aktiva dokumentet. Det skriver över det globala indenteringsläget som ställts in i <menuchoice
+><guimenu
+>Inställningar</guimenu
+><guimenuitem
+>Anpassa editor...</guimenuitem
+> </menuchoice
+>, men bara för det aktuella dokumentet.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="tools-encoding">
+<term
+><menuchoice
+><guimenu
+>Verktyg</guimenu
+> <guisubmenu
+>Kodning</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Du kan skriva över den förvalda kodningen inställd i <menuchoice
+><guimenu
+>Inställningar</guimenu
+> <guimenuitem
+>Anpassa editor...</guimenuitem
+></menuchoice
+> på sidan <guilabel
+>Öppna/spara</guilabel
+> för att ange en annan kodning för det aktuella dokumentet. Kodningen du ställer in här är bara giltig för det aktuella dokumentet.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="tools-end-of-line">
+<term
+><menuchoice
+><guimenu
+>Verktyg</guimenu
+> <guisubmenu
+>Radslut</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Välj radslutsläget som du föredrar för det aktiva dokumentet. Det skriver över det globala radslutsläget som ställts in i <menuchoice
+><guimenu
+>Inställningar</guimenu
+> <guimenuitem
+>Anpassa editor...</guimenuitem
+></menuchoice
+>, men bara för det aktuella dokumentet.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="tools-add-byte-mark-order">
+<term
+><menuchoice
+><guimenu
+>Verktyg</guimenu
+> <guisubmenu
+>Lägg till byte-ordningsmarkering (BOM)</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Genom att markera åtgärden kan du explicit lägga till en byte-ordningsmarkering för dokument kodade med Unicode. Byte-ordningsmarkeringen (BOM) är ett Unicode-tecken som används för att ange byte-ordningen i en textfil eller ström. För mer information se <ulink url="http://en.wikipedia.org/wiki/Byte_Order_Mark"
+>Byte Order Mark</ulink
+>.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="tools-scripts">
+<term
+><menuchoice
+><guimenu
+>Verktyg</guimenu
+> <guisubmenu
+>Skript</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Den här undermenyn innehåller en lista med alla skriptstyrda åtgärder. Listan kan enkelt ändras genom att <ulink url="help:/katepart/dev-scripting.html#dev-scripting-command-line"
+>skriva egna skript</ulink
+>. På så sätt kan &kate; utökas med användardefinierade verktyg. </para>
+<para
+><ulink url="help:/katepart/dev-scripting.html"
+>Det finns en fullständig lista över skript i dokumentationen av &katepart;.</ulink
+></para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="tools-invoke-code-completition">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>Mellanslag</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Verktyg</guimenu
+> <guimenuitem
+>Utför kodkomplettering</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Utför kommandokomplettering manuellt, oftast genom att använda en genväg kopplad till åtgärden.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="tools-word-completition">
+<term
+><menuchoice
+><guimenu
+>Verktyg</guimenu
+><guimenuitem
+>Ordkomplettering</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+><guimenuitem
+>Återanvänd ord nedanför</guimenuitem
+> (<keycombo action="simul"
+>&Ctrl; <keycap
+>9</keycap
+></keycombo
+>) och <guimenuitem
+>Återanvänd ord ovanför</guimenuitem
+> (<keycombo action="simul"
+>&Ctrl; <keycap
+>8</keycap
+></keycombo
+>) kompletterar texten som för närvarande är inskriven genom att söka bakåt eller framåt efter liknande ord från den nuvarande markörpositionen. <guimenuitem
+>Skalkomplettering</guimenuitem
+> visar en kompletteringsruta med poster som matchar.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="spelling-automatic-spell-checking">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;&Shift;<keycap
+>O</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Verktyg</guimenu
+> <guisubmenu
+>Stavning</guisubmenu
+><guimenuitem
+>Automatisk stavningskontroll</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>När <guimenuitem
+>Automatisk stavningskontroll</guimenuitem
+> är aktiverad, stryks felstavad text under i dokumentet medan du skriver.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="spelling-spelling">
+<term
+><menuchoice
+><guimenu
+>Verktyg</guimenu
+><guisubmenu
+>Stavning</guisubmenu
+><guimenuitem
+>Stavning...</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+><action
+>Aktiverar programmet för stavningskontroll, ett program konstruerat för att hjälpa användaren hitta och rätta eventuella stavfel.</action
+></para>
+
+<para
+>För mer information om hur man använder &kde;:s stavningskontrollprogram, se avsnittet <ulink url="help:/fundamentals/spellcheck.html"
+><emphasis
+>Kontrollera stavning</emphasis
+> i dokumentet <emphasis
+>&kde;:s grunder</emphasis
+></ulink
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="tools-spelling-from-cursor">
+<term
+><menuchoice
+><guimenu
+>Verktyg</guimenu
+><guisubmenu
+>Stavning</guisubmenu
+> <guimenuitem
+>Stavning (från markör)...</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Det här aktiverar programmet för stavningskontroll, men det startar där markören finns istället för från början i dokumentet.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="tools-spellcheck-selection">
+<term
+><menuchoice
+><guimenu
+>Verktyg</guimenu
+><guisubmenu
+>Stavning</guisubmenu
+> <guimenuitem
+>Stavningskontroll av markering...</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Stavningskontrollerar den aktuella markeringen.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="tools-change-dictionary">
+<term
+><menuchoice
+><guimenu
+>Verktyg</guimenu
+><guisubmenu
+>Stavning</guisubmenu
+> <guimenuitem
+>Byt ordlista</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Visar en kombinationsruta med alla tillgängliga ordlistor för stavningskontroll längst ner i editorns fönster. Det gör det möjligt att enkelt byta ordlista för stavningskontroll, t.ex. för automatisk stavningskontroll av text på andra språk.</para>
+</listitem>
+</varlistentry>
+
+<!-- Indent/Unindent no longer in the menu ???, but shortcuts work-->
+<!--
+<varlistentry id="tools-indent">
+<term
+><menuchoice>
+<shortcut>
+<keycombo action="simul"
+>&Ctrl;<keycap
+>I</keycap
+></keycombo>
+</shortcut>
+<guimenu
+>Tools</guimenu>
+<guimenuitem
+>Indent</guimenuitem>
+</menuchoice
+></term>
+<listitem>
+<para
+>This increases the paragraph's indentation by one step. The size of the
+step depends on the <link linkend="pref-edit-indent"
+> indentation
+settings</link
+>.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="tools-unindent">
+<term
+><menuchoice>
+<shortcut>
+<keycombo action="simul"
+>&Ctrl;&Shift;<keycap
+>I</keycap
+></keycombo>
+</shortcut>
+<guimenu
+>Tools</guimenu>
+<guimenuitem
+>Unindent</guimenuitem>
+</menuchoice
+></term>
+<listitem>
+<para
+>This reduces the paragraph's indentation by one step. The size of the step
+depends on the <link linkend="pref-edit-indent"
+> indentation settings</link
+>.</para>
+</listitem>
+</varlistentry>
+-->
+<varlistentry id="tools-cleanindent">
+<term
+><menuchoice
+><guimenu
+>Verktyg</guimenu
+><guimenuitem
+>Rensa indentering</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Det här rensar indenteringen för nuvarande markering eller för raden där markören för närvarande befinner sig. Att rensa indenteringen försäkrar dig om att den markerade texten följer indenteringsläget du valt.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="tools-align">
+<term
+><menuchoice
+><guimenu
+>Verktyg</guimenu
+> <guimenuitem
+>Justera</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Gör att nuvarande rad eller markerade rader justeras om med indenteringsläget och indenteringsinställningarna i dokumentet.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="tools-comment">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>D</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Verktyg</guimenu
+> <guimenuitem
+>Kommentera</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Det här lägger till ett blanktecken i början på raden där textmarkören befinner sig eller till början av alla markerade rader.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="tools-uncomment">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;&Shift;<keycap
+>D</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Verktyg</guimenu
+> <guimenuitem
+>Avkommentera</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Det här tar bort ett blanktecken (om det finns något) från början på raden där textmarkören befinner sig eller från början av alla markerade rader.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="tools-uppercase">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>U</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Verktyg</guimenu
+> <guimenuitem
+>Stora bokstäver</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Ändra den markerade texten eller bokstaven efter markören till stora bokstäver.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="tools-lowercase">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;&Shift;<keycap
+>U</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Verktyg</guimenu
+> <guimenuitem
+>Små bokstäver</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Ändra den markerade texten eller bokstaven efter markören till små bokstäver.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="tools-capitalize">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Alt;&Ctrl;<keycap
+>U</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Verktyg</guimenu
+> <guimenuitem
+>Inledande stor bokstav</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Ändra den inledande bokstaven för orden i den markerade texten eller i aktuellt ord till stor bokstav.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="tools-join-lines">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>J</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Verktyg</guimenu
+> <guimenuitem
+>Kombinera rader</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Kombinerar markerade rader, eller den nuvarande raden och raden under den med ett blanktecken som avskiljare. Inledande eller efterföljande blanktecken tas bort för kombinerade rader i ändarna som påverkas.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="tools-word-wrap-document">
+<term
+><menuchoice
+><guimenu
+>Verktyg</guimenu
+><guimenuitem
+>Bryt rader mellan ord i dokument</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Tillämpa statisk radbrytning i hela dokumentet. Det betyder att en ny textrad automatiskt börjar när den aktuella raden överskrider längden som anges av alternativet <guilabel
+>Bryt rader vid</guilabel
+> under fliken Redigering i <menuchoice
+> <guimenu
+>Inställningar</guimenu
+><guimenuitem
+>Anpassa editor...</guimenuitem
+></menuchoice
+>.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+</sect1>
+
+<sect1 id="settings-help-menu">
+<title
+>Menyerna Inställningar och Hjälp</title>
+
+<para
+>&kate; har de vanliga menyalternativen i &kde;, <guimenu
+>Inställningar</guimenu
+> och <guimenu
+>Hjälp</guimenu
+>, med följande ytterligare poster. För mer information läs avsnitten om <ulink url="help:/fundamentals/menus.html#menus-settings"
+>Menyn Inställningar</ulink
+> och <ulink url="help:/fundamentals/menus.html#menus-help"
+>Menyn Hjälp</ulink
+> i &kde;:s grunder. </para>
+
+<variablelist>
+
+<varlistentry id="settings-colorscheme">
+<term
+><menuchoice
+><guimenu
+>Inställningar</guimenu
+> <guimenuitem
+>Färgtema</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Använd ett annorlunda färgschema från systemets globala färgscheman, beskrivet i systeminställningsmodulen <ulink url="help:/kcontrol/colorsindex.html"
+>Färger</ulink
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="settings-show-tabs">
+<term
+><menuchoice
+><guimenu
+>Inställningar</guimenu
+> <guimenuitem
+>Visa flikar</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Flikar går att flytta med vänster musknapp, och har åtgärder i den sammanhangsberoende menyn för att stänga dokument, kopiera sökvägen till klippbordet eller öppna dokumentets katalog i filhanteraren. Genom att använda knappen <inlinemediaobject
+><imageobject
+><imagedata fileref="tab-duplicate-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> <link linkend="view-quick-open"
+><guibutton
+>Snabböppna</guibutton
+> </link
+> är det enkelt att byta mellan dokument. Klicka på knappen <inlinemediaobject
+><imageobject
+><imagedata fileref="view-split-left-right-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> med vänster musknapp för att visa en menyn med åtgärder från menyn <guimenu
+>Visa</guimenu
+><guisubmenu
+>Delad Vy</guisubmenu
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="settings-show-path">
+<term
+><menuchoice
+><guimenu
+>Inställningar</guimenu
+><guimenuitem
+>Visa sökväg i namnlist</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Om aktiverad visas det aktiva dokumentets fullständiga sökväg, annars bara filnamnet. Det är användbart om du redigerar flera filer med samma filnamn för att skilja dem åt.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect1>
+</chapter>

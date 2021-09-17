@@ -1,0 +1,2023 @@
+# Korean messages for kate
+# Copyright (C) 2001 Free Software Foundation, Inc.
+# Sae-keun Kim <segni@susekorea.net>, 2001.
+# Louis JANG <louis@mizi.com>, 2001.
+# Lee Seok <ddoman@kde.or.kr>, 2004.
+# Shinjo Park <kde@peremen.name>, 2008, 2009, 2011, 2012, 2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021.
+# Cedna <sptcedna@gmail.com>, 2010.
+# JungHee Lee <daemul72@gmail.com>, 2019.
+msgid ""
+msgstr ""
+"Project-Id-Version: kate\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2021-07-18 01:45+0000\n"
+"PO-Revision-Date: 2021-05-30 23:50+0200\n"
+"Last-Translator: Shinjo Park <kde@peremen.name>\n"
+"Language-Team: Korean <kde-kr@kde.org>\n"
+"Language: ko\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Generator: Lokalize 20.12.3\n"
+
+#, kde-format
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr "박신조,Cedna"
+
+#, kde-format
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr "kde@peremen.name,sptcedna@gmail.com"
+
+#. i18n: ectx: Menu (file)
+#: data/kateui.rc:6
+#, kde-format
+msgid "&File"
+msgstr "파일(&F)"
+
+#. i18n: ectx: Menu (edit)
+#: data/kateui.rc:40
+#, kde-format
+msgid "&Edit"
+msgstr "편집(&E)"
+
+#. i18n: ectx: Menu (view)
+#: data/kateui.rc:51
+#, kde-format
+msgid "&View"
+msgstr "보기(&V)"
+
+#. i18n: ectx: Menu (view-split)
+#: data/kateui.rc:64
+#, kde-format
+msgid "Split View"
+msgstr "나누어서 보기"
+
+#. i18n: ectx: Menu (tools)
+#: data/kateui.rc:91
+#, kde-format
+msgid "&Tools"
+msgstr "도구(&T)"
+
+#. i18n: ectx: Menu (sessions)
+#: data/kateui.rc:99
+#, kde-format
+msgid "Sess&ions"
+msgstr "세션(&I)"
+
+#. i18n: ectx: Menu (settings)
+#: data/kateui.rc:108
+#, kde-format
+msgid "&Settings"
+msgstr "설정(&S)"
+
+#. i18n: ectx: ToolBar (mainToolBar)
+#: data/kateui.rc:115
+#, kde-format
+msgid "Main Toolbar"
+msgstr "주 도구 모음"
+
+#. i18n: ectx: Menu (viewspace_popup_statusbar)
+#: data/kateui.rc:148
+#, kde-format
+msgid "&Status Bar Items"
+msgstr "상태 표시줄 항목(&S)"
+
+#: kateapp.cpp:215
+#, kde-format
+msgid "Folders can only be opened when the projects plugin is enabled"
+msgstr "프로젝트 플러그인이 활성화되어 있어야만 폴더를 열 수 있음"
+
+#: kateapp.cpp:324
+#, kde-format
+msgid ""
+"The file '%1' could not be opened: it is not a normal file, it is a folder."
+msgstr "파일 '%1'을(를) 열 수 없습니다: 일반적인 파일이 아닌 폴더입니다."
+
+#: katecolorschemechooser.cpp:44
+#, kde-format
+msgid "&Color Scheme"
+msgstr "색 배열(&C)"
+
+#: kateconfigdialog.cpp:41
+#, kde-format
+msgid "Configure"
+msgstr "설정"
+
+#: kateconfigdialog.cpp:72 katemdi.cpp:510
+#, kde-format
+msgid "Behavior"
+msgstr "행동"
+
+#: kateconfigdialog.cpp:73
+#, kde-format
+msgid "Behavior Options"
+msgstr "행동 옵션"
+
+#: kateconfigdialog.cpp:80
+#, kde-format
+msgid "&Behavior"
+msgstr "행동(&B)"
+
+#: kateconfigdialog.cpp:85
+#, kde-format
+msgid "&Switch to output view upon message type:"
+msgstr "메시지 형식에 따라서 출력 보기로 전환(&S):"
+
+#: kateconfigdialog.cpp:90
+#, kde-format
+msgid "Never"
+msgstr "하지 않음"
+
+#: kateconfigdialog.cpp:90
+#, kde-format
+msgid "Error"
+msgstr "오류"
+
+#: kateconfigdialog.cpp:90 kateconfigdialog.cpp:434
+#, kde-format
+msgid "Warning"
+msgstr "경고"
+
+#: kateconfigdialog.cpp:90
+#, kde-format
+msgid "Info"
+msgstr "정보"
+
+#: kateconfigdialog.cpp:90
+#, kde-format
+msgid "Log"
+msgstr "로그"
+
+#: kateconfigdialog.cpp:96
+#, kde-format
+msgid "Use a separate &dialog for handling externally modified files"
+msgstr "외부에서 수정된 파일을 처리할 때 별도의 대화 상자 사용(&D)"
+
+#: kateconfigdialog.cpp:99
+#, kde-format
+msgid ""
+"If enabled, a modal dialog will be used to show all of the modified files. "
+"If not enabled, you will be individually asked what to do for each modified "
+"file only when that file's view receives focus."
+msgstr ""
+"이 옵션을 사용하면 모덜 창에 모든 수정된 파일을 표시합니다. 이 옵션을 사용하"
+"지 않으면 해당 파일 보기로 전환할 때마다 수정된 파일별로 취할 동작을 물어 봅"
+"니다."
+
+#: kateconfigdialog.cpp:109
+#, kde-format
+msgid "&Tabs"
+msgstr "탭(&T)"
+
+#: kateconfigdialog.cpp:113
+#, kde-format
+msgid "&Limit number of tabs:"
+msgstr "최대 탭 개수 제한(&L):"
+
+#: kateconfigdialog.cpp:119
+#, kde-format
+msgid "Unlimited"
+msgstr "무제한"
+
+#: kateconfigdialog.cpp:124
+#, kde-format
+msgid "&Show close button"
+msgstr "닫기 단추 표시(&S)"
+
+#: kateconfigdialog.cpp:126
+#, kde-format
+msgid "When checked each tab will display a close button."
+msgstr "이 옵션을 사용하면 각각 탭에 닫기 단추를 표시합니다."
+
+#: kateconfigdialog.cpp:130
+#, kde-format
+msgid "&Expand tabs"
+msgstr "탭 확장(&E)"
+
+#: kateconfigdialog.cpp:132
+#, kde-format
+msgid "When checked tabs take as much size as possible."
+msgstr "이 옵션을 선택하면 탭의 크기를 최대로 늘립니다."
+
+#: kateconfigdialog.cpp:136
+#, kde-format
+msgid "&Double click opens a new document"
+msgstr "두 번 클릭해서 새로운 문서 열기(&D)"
+
+#: kateconfigdialog.cpp:138
+#, kde-format
+msgid "When checked double click opens a new document."
+msgstr "이 옵션을 사용하면 두 번 클릭할 때 새 문서를 엽니다."
+
+#: kateconfigdialog.cpp:142
+#, kde-format
+msgid "&Middle click closes a document"
+msgstr "가운데 단추로 클릭할 때 문서 닫기(&M)"
+
+#: kateconfigdialog.cpp:144
+#, kde-format
+msgid "When checked middle click closes a document."
+msgstr "이 옵션을 사용하면 가운데 단추로 클릭할 때 문서를 닫습니다."
+
+#: kateconfigdialog.cpp:159
+#, kde-format
+msgid "Session"
+msgstr "세션"
+
+#: kateconfigdialog.cpp:160
+#, kde-format
+msgid "Session Management"
+msgstr "세션 관리"
+
+#: kateconfigdialog.cpp:171
+#, kde-format
+msgctxt "The special case of 'Delete unused meta-information after'"
+msgid "(never)"
+msgstr "(하지 않음)"
+
+#: kateconfigdialog.cpp:172
+#, kde-format
+msgctxt "The suffix of 'Delete unused meta-information after'"
+msgid " day"
+msgid_plural " days"
+msgstr[0] "일"
+
+#: kateconfigdialog.cpp:221
+#, kde-format
+msgid "Plugins"
+msgstr "플러그인"
+
+#: kateconfigdialog.cpp:222
+#, kde-format
+msgid "Plugin Manager"
+msgstr "플러그인 관리자"
+
+#: kateconfigdialog.cpp:240 kateconfigdialog.cpp:241
+#, kde-format
+msgid "User Feedback"
+msgstr "사용자 피드백"
+
+#: kateconfigdialog.cpp:433
+#, kde-format
+msgid ""
+"You have unsaved changes. Do you want to apply the changes or discard them?"
+msgstr ""
+"저장하지 않은 변경 사항이 있습니다. 변경 사항을 저장하거나 무시하시겠습니까?"
+
+#: kateconfigplugindialogpage.cpp:66
+#, kde-format
+msgid "Name"
+msgstr "이름"
+
+#: kateconfigplugindialogpage.cpp:66
+#, kde-format
+msgid "Description"
+msgstr "설명"
+
+#: kateconfigplugindialogpage.cpp:69
+#, kde-format
+msgid ""
+"Here you can see all available Kate plugins. Those with a check mark are "
+"loaded, and will be loaded again the next time Kate is started."
+msgstr ""
+"모든 Kate 플러그인의 목록입니다. 선택한 플러그인은 매번 시작할 때 불러옵니다."
+
+#: katedocmanager.cpp:223
+#, kde-format
+msgid ""
+"The supposedly temporary file %1 has been modified. Do you want to delete it "
+"anyway?"
+msgstr "임시 파일 %1이(가) 수정되었습니다. 그래도 삭제하시겠습니까?"
+
+#: katedocmanager.cpp:226
+#, kde-format
+msgid "Delete File?"
+msgstr "파일을 삭제하시겠습니까?"
+
+#: katedocmanager.cpp:334
+#, kde-format
+msgid ""
+"<p>The document '%1' has been modified, but not saved.</p><p>Do you want to "
+"save your changes or discard them?</p>"
+msgstr ""
+"<p>문서 '%1'이(가) 수정되었지만 저장되지 않았습니다.</p><p>변경 사항을 저장하"
+"거나 무시하시겠습니까?</p>"
+
+#: katedocmanager.cpp:337
+#, kde-format
+msgid "Close Document"
+msgstr "문서 닫기"
+
+#: katedocmanager.cpp:346
+#, kde-format
+msgid "Save As"
+msgstr "다른 이름으로 저장"
+
+#: katedocmanager.cpp:364 katemainwindow.cpp:564
+#, kde-format
+msgid "New file opened while trying to close Kate, closing aborted."
+msgstr "Kate를 닫으려고 할 때 새 파일이 열려서 종료가 중단되었습니다."
+
+#: katedocmanager.cpp:364 katemainwindow.cpp:564
+#, kde-format
+msgid "Closing Aborted"
+msgstr "종료 중단됨"
+
+#: katedocmanager.cpp:442
+#, kde-format
+msgid "Starting Up"
+msgstr "시작하는 중"
+
+#: katedocmanager.cpp:443
+#, kde-format
+msgid "Reopening files from the last session..."
+msgstr "마지막 세션의 파일 다시 여는 중..."
+
+#: katefileactions.cpp:64
+#, kde-format
+msgid "Rename file"
+msgstr "파일 이름 바꾸기"
+
+#: katefileactions.cpp:65
+#, kde-format
+msgid "New file name"
+msgstr "새 파일 이름"
+
+#: katefileactions.cpp:96
+#, kde-format
+msgid "File \"%1\" could not be moved to \"%2\""
+msgstr "파일 \"%1\"을(를) \"%2\"(으)로 이동할 수 없습니다."
+
+#: katefileactions.cpp:117
+#, kde-format
+msgid "Do you really want to delete file \"%1\"?"
+msgstr "파일 \"%1\"을(를) 삭제하시겠습니까?"
+
+#: katefileactions.cpp:118
+#, kde-format
+msgid "Delete file"
+msgstr "파일 삭제"
+
+#: katefileactions.cpp:135
+#, kde-format
+msgid "File \"%1\" could not be deleted."
+msgstr "파일 \"%1\"을(를) 삭제할 수 없습니다."
+
+#: katemainwindow.cpp:216
+#, kde-format
+msgid "Use this command to show or hide the view's statusbar"
+msgstr "보기의 상태 표시줄을 숨기거나 보입니다"
+
+#: katemainwindow.cpp:219
+#, kde-format
+msgid "Show &Tabs"
+msgstr "탭 표시(&T)"
+
+#: katemainwindow.cpp:222
+#, kde-format
+msgid "Use this command to show or hide the tabs for the views"
+msgstr "화면 상 탭을 표시하거나 삭제하려면 이 명령을 사용하십시오"
+
+#: katemainwindow.cpp:224
+#, kde-format
+msgid "Sho&w Path in Titlebar"
+msgstr "제목 표시줄에 전체 경로 표시(&W)"
+
+#: katemainwindow.cpp:227
+#, kde-format
+msgid "Show the complete document path in the window caption"
+msgstr "창 제목 표시줄에 문서 전체 경로를 표시합니다"
+
+#: katemainwindow.cpp:233
+#, kde-format
+msgid "&Previous Tab"
+msgstr "이전 탭(&P)"
+
+#: katemainwindow.cpp:234
+#, kde-format
+msgid "Focus the previous tab."
+msgstr "이전 탭에 초점을 맞춥니다."
+
+#: katemainwindow.cpp:239
+#, kde-format
+msgid "&Next Tab"
+msgstr "다음 탭(&N)"
+
+#: katemainwindow.cpp:240
+#, kde-format
+msgid "Focus the next tab."
+msgstr "다음 탭에 초점을 맞춥니다."
+
+#: katemainwindow.cpp:247
+#, kde-format
+msgid "&Quick Open"
+msgstr "바로 열기(&Q)"
+
+#: katemainwindow.cpp:250
+#, kde-format
+msgid "Open a form to quick open documents."
+msgstr "문서를 빨리 여는 대화 상자를 표시합니다."
+
+#: katemainwindow.cpp:257
+#, kde-format
+msgid "&Command Bar"
+msgstr "명령 표시줄(&C)"
+
+#: katemainwindow.cpp:292
+#, kde-format
+msgid "Output"
+msgstr "출력"
+
+#: katemainwindow.cpp:302
+#, kde-format
+msgid "Create a new document"
+msgstr "새 문서 만들기"
+
+#: katemainwindow.cpp:305
+#, kde-format
+msgid "Open an existing document for editing"
+msgstr "기존 문서를 편집하려고 엽니다"
+
+#: katemainwindow.cpp:310
+#, kde-format
+msgid ""
+"This lists files which you have opened recently, and allows you to easily "
+"open them again."
+msgstr ""
+"이 목록은 최근에 열었던 파일 목록이며, 다시 쉽게 열 수 있도록 도와 줍니다."
+
+#: katemainwindow.cpp:314
+#, kde-format
+msgid "Save A&ll"
+msgstr "모두 저장(&L)"
+
+#: katemainwindow.cpp:317
+#, kde-format
+msgid "Save all open, modified documents to disk."
+msgstr "열려 있고 수정된 모든 문서를 저장합니다."
+
+#: katemainwindow.cpp:320
+#, kde-format
+msgid "&Reload All"
+msgstr "모두 다시 불러오기(&R)"
+
+#: katemainwindow.cpp:322
+#, kde-format
+msgid "Reload all open documents."
+msgstr "모든 열린 문서를 다시 불러옵니다."
+
+#: katemainwindow.cpp:326
+#, kde-format
+msgid "Copy File &Path"
+msgstr "파일 경로 복사(&P)"
+
+#: katemainwindow.cpp:331 katemainwindow.cpp:340
+#, kde-format
+msgid "Copies the file path of the current file to clipboard."
+msgstr "클립보드에 현재 파일 경로를 복사합니다."
+
+#: katemainwindow.cpp:335
+#, kde-format
+msgid "&Open Containing Folder"
+msgstr "포함하는 폴더 열기(&O)"
+
+#: katemainwindow.cpp:344
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Rename..."
+msgstr "이름 바꾸기..."
+
+#: katemainwindow.cpp:349
+#, kde-format
+msgid "Renames the file belonging to the current document."
+msgstr "현재 문서에 해당하는 파일의 이름을 바꿉니다."
+
+#: katemainwindow.cpp:353
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Delete"
+msgstr "삭제"
+
+#: katemainwindow.cpp:358 katemainwindow.cpp:367
+#, kde-format
+msgid "Deletes the file belonging to the current document."
+msgstr "현재 문서에 해당하는 파일을 삭제합니다."
+
+#: katemainwindow.cpp:362
+#, kde-format
+msgid "Properties"
+msgstr "속성"
+
+#: katemainwindow.cpp:370 katemainwindow.cpp:372
+#, kde-format
+msgid "Compare"
+msgstr "비교"
+
+#: katemainwindow.cpp:372
+#, kde-format
+msgid "Use the Tabbar context menu to compare two documents"
+msgstr "두 문서를 비교하려면 탭 표시줄 콘텍스트 메뉴를 사용하십시오"
+
+#: katemainwindow.cpp:374
+#, kde-format
+msgid "Shows a hint how to compare documents."
+msgstr "문서를 비교하는 방법 정보를 표시합니다."
+
+#: katemainwindow.cpp:377
+#, kde-format
+msgid "Close Orphaned"
+msgstr "접근 불가능한 문서 닫기"
+
+#: katemainwindow.cpp:379
+#, kde-format
+msgid ""
+"Close all documents in the file list that could not be reopened, because "
+"they are not accessible anymore."
+msgstr ""
+"목록에 있는 문서 중 접근할 수 없기 때문에 다시 열 수 없는 문서를 닫습니다."
+
+#: katemainwindow.cpp:383
+#, kde-format
+msgid "Close the current document."
+msgstr "현재 문서를 닫습니다."
+
+#: katemainwindow.cpp:386
+#, kde-format
+msgid "Close Other"
+msgstr "다른 문서 닫기"
+
+#: katemainwindow.cpp:388
+#, kde-format
+msgid "Close other open documents."
+msgstr "열린 다른 문서를 모두 닫습니다."
+
+#: katemainwindow.cpp:391
+#, kde-format
+msgid "Clos&e All"
+msgstr "모두 닫기(&E)"
+
+#: katemainwindow.cpp:393
+#, kde-format
+msgid "Close all open documents."
+msgstr "모든 열린 문서를 닫습니다."
+
+#: katemainwindow.cpp:398
+#, kde-format
+msgid "Close this window"
+msgstr "이 창 닫기"
+
+#: katemainwindow.cpp:402
+#, kde-format
+msgid "&New Window"
+msgstr "새 창(&N)"
+
+#: katemainwindow.cpp:404
+#, kde-format
+msgid "Create a new Kate view (a new window with the same document list)."
+msgstr "새 Kate 보기(같은 문서가 열려 있는 새 창)를 만듭니다."
+
+#: katemainwindow.cpp:411
+#, kde-format
+msgid "Open W&ith"
+msgstr "다음으로 열기(&I)"
+
+#: katemainwindow.cpp:413
+#, kde-format
+msgid ""
+"Open the current document using another application registered for its file "
+"type, or an application of your choice."
+msgstr ""
+"현재 문서를 파일 형식에 따른 다른 프로그램이나 사용자 정의 프로그램으로 엽니"
+"다."
+
+#: katemainwindow.cpp:418
+#, kde-format
+msgid "Configure the application's keyboard shortcut assignments."
+msgstr "프로그램의 단축키를 설정합니다."
+
+#: katemainwindow.cpp:421
+#, kde-format
+msgid "Configure which items should appear in the toolbar(s)."
+msgstr "도구 모음에 표시할 항목을 설정합니다."
+
+#: katemainwindow.cpp:424
+#, kde-format
+msgid ""
+"Configure various aspects of this application and the editing component."
+msgstr "편집기 구성 요소와 프로그램의 다양한 부분을 설정합니다."
+
+#: katemainwindow.cpp:428
+#, kde-format
+msgid "&Plugins Handbook"
+msgstr "플러그인 도움말(&P)"
+
+#: katemainwindow.cpp:430
+#, kde-format
+msgid "This shows help files for various available plugins."
+msgstr "사용 가능한 다양한 플러그인의 도움말을 표시합니다."
+
+#: katemainwindow.cpp:448
+#, kde-format
+msgctxt "Menu entry Session->New Session"
+msgid "&New Session"
+msgstr "새 세션(&N)"
+
+#: katemainwindow.cpp:453
+#, kde-format
+msgid "&Save Session"
+msgstr "세션 저장(&S)"
+
+#: katemainwindow.cpp:457
+#, kde-format
+msgid "Save Session &As..."
+msgstr "다른 이름으로 세션 저장(&A)..."
+
+#: katemainwindow.cpp:461
+#, kde-format
+msgid "&Manage Sessions..."
+msgstr "세션 관리(&M)..."
+
+#: katemainwindow.cpp:466
+#, kde-format
+msgid "&Quick Open Session"
+msgstr "빠른 세션 열기(&Q)"
+
+#: katemainwindow.cpp:472
+#, kde-format
+msgid "Go back"
+msgstr "뒤로 이동"
+
+#: katemainwindow.cpp:480
+#, kde-format
+msgid "Go forward"
+msgstr "앞으로 이동"
+
+#: katemainwindow.cpp:491
+#, kde-format
+msgid "This will close all open documents. Are you sure you want to continue?"
+msgstr "열려 있는 모든 문서를 닫습니다. 계속 진행하시겠습니까?"
+
+#: katemainwindow.cpp:492
+#, kde-format
+msgid "Close all documents"
+msgstr "모든 문서 닫기"
+
+#: katemainwindow.cpp:507
+#, kde-format
+msgid ""
+"This will close all open documents beside the current one. Are you sure you "
+"want to continue?"
+msgstr ""
+"현재 문서를 제외한 열려 있는 모든 문서를 닫습니다. 계속 진행하시겠습니까?"
+
+#: katemainwindow.cpp:508
+#, kde-format
+msgid "Close all documents beside current one"
+msgstr "현재 문서를 제외한 모든 문서 닫기"
+
+#: katemainwindow.cpp:700
+#, kde-format
+msgid ""
+"This will hide the menu bar completely. You can show it again by typing %1."
+msgstr "메뉴 표시줄을 완전히 숨깁니다. %1 키를 눌러서 다시 볼 수 있습니다."
+
+#: katemainwindow.cpp:703
+#, kde-format
+msgid "Hide menu bar"
+msgstr "메뉴 표시줄 숨기기"
+
+#: katemainwindow.cpp:815
+#, kde-format
+msgid ""
+"You dropped the directory %1 into Kate. Do you want to load all files "
+"contained in it ?"
+msgstr ""
+"Kate에 %1 디렉터리를 끌어다 놓았습니다. 디렉터리에 있는 모든 파일을 여시겠습"
+"니까?"
+
+#: katemainwindow.cpp:818
+#, kde-format
+msgid "Load files recursively?"
+msgstr "재귀적으로 파일을 불러오시겠습니까?"
+
+#: katemainwindow.cpp:946
+#, kde-format
+msgid "&Other..."
+msgstr "기타(&O)..."
+
+#: katemainwindow.cpp:1058
+#, kde-format
+msgid " [read only]"
+msgstr " [읽기 전용]"
+
+#: katemdi.cpp:92
+#, kde-format
+msgid "Tool &Views"
+msgstr "도구 보기(&V)"
+
+#: katemdi.cpp:94
+#, kde-format
+msgid "Show Side&bars"
+msgstr "사이드바 표시(&B)"
+
+#: katemdi.cpp:137
+#, kde-format
+msgid "Show %1"
+msgstr "%1 표시"
+
+#: katemdi.cpp:506
+#, kde-format
+msgid "Configure ..."
+msgstr "설정..."
+
+#: katemdi.cpp:513
+#, kde-format
+msgid "Make Non-Persistent"
+msgstr "항상 표시하지 않음"
+
+#: katemdi.cpp:513
+#, kde-format
+msgid "Make Persistent"
+msgstr "항상 표시"
+
+#: katemdi.cpp:516
+#, kde-format
+msgid "Move To"
+msgstr "다음으로 이동"
+
+#: katemdi.cpp:519
+#, kde-format
+msgid "Left Sidebar"
+msgstr "왼쪽 사이드바"
+
+#: katemdi.cpp:523
+#, kde-format
+msgid "Right Sidebar"
+msgstr "오른쪽 사이드바"
+
+#: katemdi.cpp:527
+#, kde-format
+msgid "Top Sidebar"
+msgstr "위쪽 사이드바"
+
+#: katemdi.cpp:531
+#, kde-format
+msgid "Bottom Sidebar"
+msgstr "아래쪽 사이드바"
+
+#: katemdi.cpp:862
+#, kde-format
+msgid ""
+"<qt>You are about to hide the sidebars. With hidden sidebars it is not "
+"possible to directly access the tool views with the mouse anymore, so if you "
+"need to access the sidebars again invoke <b>View &gt; Tool Views &gt; Show "
+"Sidebars</b> in the menu. It is still possible to show/hide the tool views "
+"with the assigned shortcuts.</qt>"
+msgstr ""
+"<qt>사이드바를 숨기려고 하고 있습니다. 사이드바가 숨어 있을 때에는 마우스로 "
+"도구 보기를 사용할 수 없습니다. 메뉴에서 <b>창 &gt; 도구 보기 &gt; 사이드바 "
+"표시</b>를 선택하면 다시 사이드바를 볼 수 있습니다. 또한 도구 보기에 할당된 "
+"단축키를 통하여 보이거나 숨길 수도 있습니다.</qt>"
+
+#: katemwmodonhddialog.cpp:59
+#, kde-format
+msgid "Documents Modified on Disk"
+msgstr "디스크에서 수정된 문서"
+
+#: katemwmodonhddialog.cpp:75
+#, kde-format
+msgid ""
+"<qt>The documents listed below have changed on disk.<p>Select one or more at "
+"once, and press an action button until the list is empty.</p></qt>"
+msgstr ""
+"<qt>아래에 있는 문서가 디스크에서 변경되었습니다.<p>목록이 빌 때까지 하나 이"
+"상의 문서를 선택한 후 동작 단추를 눌러 주십시오.</p></qt>"
+
+#: katemwmodonhddialog.cpp:85
+#, kde-format
+msgid "Filename"
+msgstr "파일 이름"
+
+#: katemwmodonhddialog.cpp:85
+#, kde-format
+msgid "Status on Disk"
+msgstr "디스크의 상태"
+
+#: katemwmodonhddialog.cpp:90
+#, kde-format
+msgid "Modified"
+msgstr "수정됨"
+
+#: katemwmodonhddialog.cpp:90
+#, kde-format
+msgid "Created"
+msgstr "생성됨"
+
+#: katemwmodonhddialog.cpp:90
+#, kde-format
+msgid "Deleted"
+msgstr "삭제됨"
+
+#: katemwmodonhddialog.cpp:105
+#, kde-format
+msgid "&View Difference"
+msgstr "차이 보기(&V)"
+
+#: katemwmodonhddialog.cpp:107
+#, kde-format
+msgid ""
+"Calculates the difference between the editor contents and the disk file for "
+"the selected document, and shows the difference with the default "
+"application. Requires diff(1)."
+msgstr ""
+"편집기 내용과 디스크의 파일 사이의 차이점을 계산하여 보여 줍니다. diff(1)가 "
+"필요합니다."
+
+#: katemwmodonhddialog.cpp:117
+#, kde-format
+msgid "&Ignore Changes"
+msgstr "변경 사항 무시(&I)"
+
+#: katemwmodonhddialog.cpp:118
+#, kde-format
+msgid "Remove modified flag from selected documents"
+msgstr "선택한 문서에서 수정 플래그 삭제"
+
+#: katemwmodonhddialog.cpp:124
+#, kde-format
+msgid "Overwrite selected documents, discarding disk changes"
+msgstr "디스크 변경 사항과 관계 없이 선택한 문서를 덮어씁니다"
+
+#: katemwmodonhddialog.cpp:128
+#, kde-format
+msgid "&Reload"
+msgstr "새로 고침(&R)"
+
+#: katemwmodonhddialog.cpp:130
+#, kde-format
+msgid "Reload selected documents from disk"
+msgstr "선택한 문서를 디스크에서 다시 불러옵니다"
+
+#: katemwmodonhddialog.cpp:196
+#, kde-format
+msgid ""
+"Could not save the document \n"
+"'%1'"
+msgstr ""
+"'%1'\n"
+"문서를 저장할 수 없습니다"
+
+#: katemwmodonhddialog.cpp:328
+#, kde-format
+msgid ""
+"The diff command failed. Please make sure that diff(1) is installed and in "
+"your PATH."
+msgstr ""
+"diff 명령이 실패했습니다. diff(1)가 설치되어 있고 PATH에 포함되어 있는지 확인"
+"하십시오."
+
+#: katemwmodonhddialog.cpp:330
+#, kde-format
+msgid "Error Creating Diff"
+msgstr "Diff를 만드는 중 오류 발생"
+
+#: katemwmodonhddialog.cpp:337
+#, kde-format
+msgid "Ignoring amount of white space changed, the files are identical."
+msgstr "공백 변경을 제외한 모든 부분이 같습니다."
+
+#: katemwmodonhddialog.cpp:337
+#, kde-format
+msgid "Diff Output"
+msgstr "Diff 출력"
+
+#: kateoutputview.cpp:39
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Copy to Clipboard"
+msgstr "클립보드에 복사"
+
+#: kateoutputview.cpp:189
+#, kde-format
+msgid "Type to filter..."
+msgstr "입력하여 필터..."
+
+#: kateoutputview.cpp:202
+#, kde-format
+msgid "Clear all messages"
+msgstr "모든 메시지 비우기"
+
+#: kateoutputview.cpp:293
+#, kde-format
+msgctxt "@info"
+msgid "Error"
+msgstr "오류"
+
+#: kateoutputview.cpp:297
+#, kde-format
+msgctxt "@info"
+msgid "Warning"
+msgstr "경고"
+
+#: kateoutputview.cpp:301
+#, kde-format
+msgctxt "@info"
+msgid "Info"
+msgstr "정보"
+
+#: kateoutputview.cpp:305
+#, kde-format
+msgctxt "@info"
+msgid "Log"
+msgstr "로그"
+
+#: katesavemodifieddialog.cpp:77
+#, kde-format
+msgid "Save As (%1)"
+msgstr "다른 이름으로 저장 (%1)"
+
+#: katesavemodifieddialog.cpp:127
+#, kde-format
+msgid "Save Documents"
+msgstr "문서 저장"
+
+#: katesavemodifieddialog.cpp:135
+#, kde-format
+msgid ""
+"<qt>The following documents have been modified. Do you want to save them "
+"before closing?</qt>"
+msgstr "<qt>다음 문서가 수정되었습니다. 닫기 전에 저장하시겠습니까?</qt>"
+
+#: katesavemodifieddialog.cpp:142
+#, kde-format
+msgid "Documents"
+msgstr "문서"
+
+#: katesavemodifieddialog.cpp:142
+#, kde-format
+msgid "Location"
+msgstr "위치"
+
+#: katesavemodifieddialog.cpp:152
+#, kde-format
+msgid "Se&lect All"
+msgstr "모두 선택(&L)"
+
+#: katesavemodifieddialog.cpp:225
+#, kde-format
+msgid ""
+"Data you requested to be saved could not be written. Please choose how you "
+"want to proceed."
+msgstr "저장하기로 요청한 데이터를 쓸 수 없습니다. 어떻게 할지 선택하십시오."
+
+#: kateviewmanager.cpp:113
+#, kde-format
+msgid "Split Ve&rtical"
+msgstr "세로로 나누기(&R)"
+
+#: kateviewmanager.cpp:117
+#, kde-format
+msgid "Split the currently active view vertically into two views."
+msgstr "현재 보기를 세로로 두 개로 나눕니다."
+
+#: kateviewmanager.cpp:121
+#, kde-format
+msgid "Split &Horizontal"
+msgstr "가로로 나누기(&H)"
+
+#: kateviewmanager.cpp:125
+#, kde-format
+msgid "Split the currently active view horizontally into two views."
+msgstr "현재 보기를 가로로 두 개로 나눕니다."
+
+#: kateviewmanager.cpp:129
+#, kde-format
+msgid "Cl&ose Current View"
+msgstr "현재 보기 닫기(&O)"
+
+#: kateviewmanager.cpp:133
+#, kde-format
+msgid "Close the currently active split view"
+msgstr "현재 활성화된 나뉜 보기를 닫습니다"
+
+#: kateviewmanager.cpp:137
+#, kde-format
+msgid "Close Inactive Views"
+msgstr "비활성 보기 닫기"
+
+#: kateviewmanager.cpp:140
+#, kde-format
+msgid "Close every view but the active one"
+msgstr "현재 보기를 제외한 보기 닫기"
+
+#: kateviewmanager.cpp:144
+#, kde-format
+msgid "Hide Inactive Views"
+msgstr "비활성 보기 닫기"
+
+#: kateviewmanager.cpp:148
+#, kde-format
+msgid "Hide every view but the active one"
+msgstr "현재 보기를 제외한 보기 닫기"
+
+#: kateviewmanager.cpp:151
+#, kde-format
+msgid "Toggle Orientation"
+msgstr "방향 전환"
+
+#: kateviewmanager.cpp:154
+#, kde-format
+msgid "Toggles the orientation of the current split view"
+msgstr "현재 나뉜 보기 방향 전환"
+
+#: kateviewmanager.cpp:157
+#, kde-format
+msgid "Next Split View"
+msgstr "다음 나뉜 보기로 이동"
+
+#: kateviewmanager.cpp:161
+#, kde-format
+msgid "Make the next split view the active one."
+msgstr "다음 나뉜 보기를 활성화합니다."
+
+#: kateviewmanager.cpp:164
+#, kde-format
+msgid "Previous Split View"
+msgstr "이전 나뉜 보기로 이동"
+
+#: kateviewmanager.cpp:168
+#, kde-format
+msgid "Make the previous split view the active one."
+msgstr "이전 나뉜 보기를 활성화합니다."
+
+#: kateviewmanager.cpp:171
+#, kde-format
+msgid "Move Splitter Right"
+msgstr "구분자 오른쪽으로 이동"
+
+#: kateviewmanager.cpp:174
+#, kde-format
+msgid "Move the splitter of the current view to the right"
+msgstr "현재 보기의 구분자를 오른쪽으로 이동"
+
+#: kateviewmanager.cpp:177
+#, kde-format
+msgid "Move Splitter Left"
+msgstr "구분자 왼쪽으로 이동"
+
+#: kateviewmanager.cpp:180
+#, kde-format
+msgid "Move the splitter of the current view to the left"
+msgstr "현재 보기의 구분자를 왼쪽으로 이동"
+
+#: kateviewmanager.cpp:183
+#, kde-format
+msgid "Move Splitter Up"
+msgstr "구분자 위로 이동"
+
+#: kateviewmanager.cpp:186
+#, kde-format
+msgid "Move the splitter of the current view up"
+msgstr "현재 보기의 구분자를 위로 이동"
+
+#: kateviewmanager.cpp:189
+#, kde-format
+msgid "Move Splitter Down"
+msgstr "구분자 아래로 이동"
+
+#: kateviewmanager.cpp:192
+#, kde-format
+msgid "Move the splitter of the current view down"
+msgstr "현재 보기의 구분자를 아래로 이동"
+
+#: kateviewmanager.cpp:222 kateviewmanager.cpp:224
+#, kde-format
+msgid "Open File"
+msgstr "파일 열기"
+
+#: kateviewmanager.cpp:243
+#, kde-format
+msgid ""
+"<p>You are attempting to open one or more large files:</p><ul>%1</ul><p>Do "
+"you want to proceed?</p><p><strong>Beware that kate may stop responding for "
+"some time when opening large files.</strong></p>"
+msgstr ""
+"<p>하나 이상의 큰 파일을 열려고 하고 있습니다:</p><ul>%1</ul><p>계속 진행하시"
+"겠습니까?</p><p><strong>큰 파일을 열 때 Kate가 응답하지 않을 수도 있습니다.</"
+"strong></p>"
+
+#: kateviewmanager.cpp:246
+#, kde-format
+msgid "Opening Large File"
+msgstr "큰 파일 열기"
+
+#: kateviewspace.cpp:54
+#, kde-format
+msgid "Go Back"
+msgstr "뒤로 가기"
+
+#: kateviewspace.cpp:67
+#, kde-format
+msgid "Go Forward"
+msgstr "앞으로 가기"
+
+#: kateviewspace.cpp:94
+#, kde-format
+msgctxt "indicator for more documents"
+msgid "+%1"
+msgstr "+%1"
+
+#: kateviewspace.cpp:99 kateviewspace.cpp:153
+#, kde-format
+msgid "Click here to switch to the Quick Open view."
+msgstr "빠른 열기 화면으로 전환하려면 누르십시오."
+
+#: kateviewspace.cpp:112
+#, kde-format
+msgid "Control view space splitting"
+msgstr "제어 화면 공간 나누기"
+
+#: kateviewspace.cpp:154
+#, kde-format
+msgid ""
+"Currently, there is one more document open. To see all open documents, "
+"switch to the Quick Open view by clicking here."
+msgid_plural ""
+"Currently, there are %1 more documents open. To see all open documents, "
+"switch to the Quick Open view by clicking here."
+msgstr[0] ""
+"문서 %1개가 더 열려 있습니다. 모든 열린 문서를 보려면 여기를 눌러서 빠른 열"
+"기 화면으로 전환하십시오."
+
+#: kateviewspace.cpp:571
+#, kde-format
+msgid "&Close Document"
+msgstr "문서 닫기(&C)"
+
+#: kateviewspace.cpp:572
+#, kde-format
+msgid "Close Other &Documents"
+msgstr "다른 문서 닫기(&D)"
+
+#: kateviewspace.cpp:581
+#, kde-format
+msgid "Compare with active document"
+msgstr "활성 문서와 비교"
+
+#: kateviewspace.cpp:637
+#, kde-format
+msgid "Could not start program"
+msgstr "프로그램을 시작할 수 없음"
+
+#: kateviewspace.cpp:638
+#, kde-format
+msgid "The selected program could not be started. Maybe it is not installed."
+msgstr "선택한 프로그램을 시작할 수 없습니다. 설치 상태를 확인하십시오."
+
+#: main.cpp:128
+#, kde-format
+msgid "Kate"
+msgstr "Kate"
+
+#: main.cpp:130
+#, kde-format
+msgid "Kate - Advanced Text Editor"
+msgstr "Kate - 고급 문서 편집기"
+
+#: main.cpp:132
+#, kde-format
+msgid "(c) 2000-2021 The Kate Authors"
+msgstr "(c) 2000-2021 The Kate Authors"
+
+#: main.cpp:150
+#, kde-format
+msgid "Christoph Cullmann"
+msgstr "Christoph Cullmann"
+
+#: main.cpp:150
+#, kde-format
+msgid "Maintainer"
+msgstr "관리자"
+
+#: main.cpp:151
+#, kde-format
+msgid "Dominik Haumann"
+msgstr "Dominik Haumann"
+
+#: main.cpp:151 main.cpp:154 main.cpp:156 main.cpp:159 main.cpp:165
+#, kde-format
+msgid "Core Developer"
+msgstr "핵심 개발자"
+
+#: main.cpp:152
+#, kde-format
+msgid "Sven Brauch"
+msgstr "Sven Brauch"
+
+#: main.cpp:152 main.cpp:153 main.cpp:160
+#, kde-format
+msgid "Developer"
+msgstr "개발자"
+
+#: main.cpp:153
+#, kde-format
+msgid "Kåre Särs"
+msgstr "Kåre Särs"
+
+#: main.cpp:154
+#, kde-format
+msgid "Anders Lund"
+msgstr "Anders Lund"
+
+#: main.cpp:155
+#, kde-format
+msgid "Joseph Wenninger"
+msgstr "Joseph Wenninger"
+
+#: main.cpp:159
+#, kde-format
+msgid "Hamish Rodda"
+msgstr "Hamish Rodda"
+
+#: main.cpp:160
+#, kde-format
+msgid "Alexander Neundorf"
+msgstr "Alexander Neundorf"
+
+#: main.cpp:161
+#, kde-format
+msgid "Waldo Bastian"
+msgstr "Waldo Bastian"
+
+#: main.cpp:161
+#, kde-format
+msgid "The cool buffersystem"
+msgstr "괜찮은 버퍼 시스템"
+
+#: main.cpp:162
+#, kde-format
+msgid "Charles Samuels"
+msgstr "Charles Samuels"
+
+#: main.cpp:162
+#, kde-format
+msgid "The Editing Commands"
+msgstr "편집 명령"
+
+#: main.cpp:163
+#, kde-format
+msgid "Matt Newell"
+msgstr "Matt Newell"
+
+#: main.cpp:163
+#, kde-format
+msgid "Testing, ..."
+msgstr "테스트, ..."
+
+#: main.cpp:164
+#, kde-format
+msgid "Michael Bartl"
+msgstr "Michael Bartl"
+
+#: main.cpp:164
+#, kde-format
+msgid "Former Core Developer"
+msgstr "예전 핵심 개발자"
+
+#: main.cpp:165
+#, kde-format
+msgid "Michael McCallum"
+msgstr "Michael McCallum"
+
+#: main.cpp:166
+#, kde-format
+msgid "Jochen Wilhemly"
+msgstr "Jochen Wilhemly"
+
+#: main.cpp:166
+#, kde-format
+msgid "KWrite Author"
+msgstr "KWrite 작성자"
+
+#: main.cpp:167
+#, kde-format
+msgid "Michael Koch"
+msgstr "Michael Koch"
+
+#: main.cpp:167
+#, kde-format
+msgid "KWrite port to KParts"
+msgstr "KWrite KParts 포팅"
+
+#: main.cpp:168
+#, kde-format
+msgid "Christian Gebauer"
+msgstr "Christian Gebauer"
+
+#: main.cpp:169
+#, kde-format
+msgid "Simon Hausmann"
+msgstr "Simon Hausmann"
+
+#: main.cpp:170
+#, kde-format
+msgid "Glen Parker"
+msgstr "Glen Parker"
+
+#: main.cpp:170
+#, kde-format
+msgid "KWrite Undo History, Kspell integration"
+msgstr "KWrite 실행 취소 역사, Kspell 통합"
+
+#: main.cpp:171
+#, kde-format
+msgid "Scott Manson"
+msgstr "Scott Manson"
+
+#: main.cpp:171
+#, kde-format
+msgid "KWrite XML Syntax highlighting support"
+msgstr "KWrite XML 구문 강조 지원"
+
+#: main.cpp:172
+#, kde-format
+msgid "John Firebaugh"
+msgstr "John Firebaugh"
+
+#: main.cpp:172
+#, kde-format
+msgid "Patches and more"
+msgstr "패치와 그 밖에 여러가지"
+
+#: main.cpp:173
+#, kde-format
+msgid "Pablo Martín"
+msgstr "Pablo Martín"
+
+#: main.cpp:174
+#, kde-format
+msgid "Python Plugin Developer"
+msgstr "파이썬 플러그인 개발자"
+
+#: main.cpp:177
+#, kde-format
+msgid "Gerald Senarclens de Grancy"
+msgstr "Gerald Senarclens de Grancy"
+
+#: main.cpp:178
+#, kde-format
+msgid "QA and Scripting"
+msgstr "QA 및 스크립팅"
+
+#: main.cpp:182
+#, kde-format
+msgid "Tyson Tan"
+msgstr "Tyson Tan"
+
+#: main.cpp:183
+#, kde-format
+msgid "Designer of Kate's mascot 'Kate the Cyber Woodpecker'"
+msgstr "Kate의 마스코트 'Kate 사이버 딱따구리' 제작자"
+
+#: main.cpp:186
+#, kde-format
+msgid "Matteo Merli"
+msgstr "Matteo Merli"
+
+#: main.cpp:186
+#, kde-format
+msgid "Highlighting for RPM Spec-Files, Perl, Diff and more"
+msgstr "RPM Spec 파일, 펄, Diff 등 구문 강조"
+
+#: main.cpp:187
+#, kde-format
+msgid "Rocky Scaletta"
+msgstr "Rocky Scaletta"
+
+#: main.cpp:187
+#, kde-format
+msgid "Highlighting for VHDL"
+msgstr "VHDL 구문 강조"
+
+#: main.cpp:188
+#, kde-format
+msgid "Yury Lebedev"
+msgstr "Yury Lebedev"
+
+#: main.cpp:188
+#, kde-format
+msgid "Highlighting for SQL"
+msgstr "SQL 구문 강조"
+
+#: main.cpp:189
+#, kde-format
+msgid "Chris Ross"
+msgstr "Chris Ross"
+
+#: main.cpp:189
+#, kde-format
+msgid "Highlighting for Ferite"
+msgstr "Ferite 구문 강조"
+
+#: main.cpp:190
+#, kde-format
+msgid "Nick Roux"
+msgstr "Nick Roux"
+
+#: main.cpp:190
+#, kde-format
+msgid "Highlighting for ILERPG"
+msgstr "ILERPG 구문 강조"
+
+#: main.cpp:191
+#, kde-format
+msgid "Carsten Niehaus"
+msgstr "Carsten Niehaus"
+
+#: main.cpp:191
+#, kde-format
+msgid "Highlighting for LaTeX"
+msgstr "LaTeX 구문 강조"
+
+#: main.cpp:192
+#, kde-format
+msgid "Per Wigren"
+msgstr "Per Wigren"
+
+#: main.cpp:192
+#, kde-format
+msgid "Highlighting for Makefiles, Python"
+msgstr "파이썬, Makefile 구문 강조"
+
+#: main.cpp:193
+#, kde-format
+msgid "Jan Fritz"
+msgstr "Jan Fritz"
+
+#: main.cpp:193
+#, kde-format
+msgid "Highlighting for Python"
+msgstr "파이썬 구문 강조"
+
+#: main.cpp:194
+#, kde-format
+msgid "Daniel Naber"
+msgstr "Daniel Naber"
+
+#: main.cpp:195
+#, kde-format
+msgid "Roland Pabel"
+msgstr "Roland Pabel"
+
+#: main.cpp:195
+#, kde-format
+msgid "Highlighting for Scheme"
+msgstr "스킴 구문 강조"
+
+#: main.cpp:196
+#, kde-format
+msgid "Cristi Dumitrescu"
+msgstr "Cristi Dumitrescu"
+
+#: main.cpp:196
+#, kde-format
+msgid "PHP Keyword/Datatype list"
+msgstr "PHP 키워드/자료형 목록"
+
+#: main.cpp:197
+#, kde-format
+msgid "Carsten Pfeiffer"
+msgstr "Carsten Pfeiffer"
+
+#: main.cpp:197
+#, kde-format
+msgid "Very nice help"
+msgstr "매우 좋은 도움말"
+
+#: main.cpp:198
+#, kde-format
+msgid "All people who have contributed and I have forgotten to mention"
+msgstr "여기에 언급하지 않았지만 기여를 해 준 많은 좋은 사람"
+
+#: main.cpp:223
+#, kde-format
+msgid "Start Kate with a given session."
+msgstr "지정한 세션으로 Kate를 시작합니다."
+
+#: main.cpp:224
+#, kde-format
+msgid "session"
+msgstr "세션"
+
+#: main.cpp:229
+#, kde-format
+msgid "Start Kate with a new anonymous session, implies '-n'."
+msgstr "이름 없는 새 세션으로 Kate를 시작합니다. '-n'이 지정됩니다."
+
+#: main.cpp:234
+#, kde-format
+msgid ""
+"Force start of a new kate instance (is ignored if start is used and another "
+"kate instance already has the given session opened), forced if no parameters "
+"and no URLs are given at all."
+msgstr ""
+"새 Kate 인스턴스를 강제로 시작합니다(다른 Kate 인스턴스에서 지정한 세션을 열"
+"어 둔 경우 제외). 만약 인자나 URL이 지정되지 않았으면 강제로 지정됩니다."
+
+#: main.cpp:240
+#, kde-format
+msgid ""
+"If using an already running kate instance, block until it exits, if URLs "
+"given to open."
+msgstr ""
+"만약 실행 중인 Kate 인스턴스가 있고 URL을 지정했으면 끝날 때까지 기다립니다."
+
+#: main.cpp:246
+#, kde-format
+msgid ""
+"Only try to reuse kate instance with this pid (is ignored if start is used "
+"and another kate instance already has the given session opened)."
+msgstr ""
+"이 PID와 연결되어 있는 Kate 인스턴스를 다시 사용합니다(다른 Kate 인스턴스에"
+"서 지정한 세션을 열어 둔 경우 제외)."
+
+#: main.cpp:247
+#, kde-format
+msgid "pid"
+msgstr "PID"
+
+#: main.cpp:252
+#, kde-format
+msgid "Set encoding for the file to open."
+msgstr "열 파일의 인코딩을 지정합니다."
+
+#: main.cpp:253
+#, kde-format
+msgid "encoding"
+msgstr "인코딩"
+
+#: main.cpp:257
+#, kde-format
+msgid "Navigate to this line."
+msgstr "이 줄로 찾아갑니다."
+
+#: main.cpp:257
+#, kde-format
+msgid "line"
+msgstr "줄"
+
+#: main.cpp:262
+#, kde-format
+msgid "Navigate to this column."
+msgstr "이 칸으로 찾아갑니다."
+
+#: main.cpp:263
+#, kde-format
+msgid "column"
+msgstr "칸"
+
+#: main.cpp:267
+#, kde-format
+msgid "Read the contents of stdin."
+msgstr "표준 입력의 내용을 읽어옵니다."
+
+#: main.cpp:272
+#, kde-format
+msgid "The files/URLs opened by the application will be deleted after use"
+msgstr "프로그램에서 연 파일/URL을 사용한 후 삭제합니다"
+
+#: main.cpp:276
+#, kde-format
+msgid "Documents to open."
+msgstr "열 문서입니다."
+
+#: main.cpp:276
+#, kde-format
+msgid "[urls...]"
+msgstr "[urls...]"
+
+#: quickopen/katequickopenlineedit.cpp:21
+#, kde-format
+msgid "Quick Open Search (configure via context menu)"
+msgstr "빠른 열기 검색(콘텍스트 메뉴로 설정 가능)"
+
+#: quickopen/katequickopenlineedit.cpp:57
+#, kde-format
+msgid "All Projects"
+msgstr "모든 프로젝트"
+
+#: quickopen/katequickopenlineedit.cpp:69
+#, kde-format
+msgid "Current Project"
+msgstr "현재 프로젝트"
+
+#: session/katesessionmanagedialog.cpp:29
+#, kde-format
+msgid "Manage Sessions"
+msgstr "세션 관리"
+
+#: session/katesessionmanagedialog.cpp:65
+#, kde-format
+msgid "Session Chooser"
+msgstr "세션 선택기"
+
+#: session/katesessionmanagedialog.cpp:149
+#, kde-format
+msgid "Restore"
+msgstr "복원"
+
+#: session/katesessionmanagedialog.cpp:305
+#, kde-format
+msgid "Session will be deleted on dialog close"
+msgstr "대화 상자를 닫으면 세션을 삭제합니다"
+
+#. i18n: ectx: property (placeholderText), widget (QLineEdit, m_filterBox)
+#: session/katesessionmanagedialog.ui:30
+#, kde-format
+msgid "Filter Sessions"
+msgstr "세션 필터"
+
+#. i18n: ectx: property (text), widget (QTreeWidget, m_sessionList)
+#: session/katesessionmanagedialog.ui:55
+#, kde-format
+msgid "Session Name"
+msgstr "세션 이름"
+
+#. i18n: The number of open documents
+#. i18n: ectx: property (text), widget (QTreeWidget, m_sessionList)
+#: session/katesessionmanagedialog.ui:60
+#, kde-format
+msgid "Files"
+msgstr "파일"
+
+#. i18n: ectx: property (text), widget (QTreeWidget, m_sessionList)
+#: session/katesessionmanagedialog.ui:68
+#, kde-format
+msgid "Last opened"
+msgstr "마지막으로 연 날짜"
+
+#. i18n: ectx: property (text), widget (QPushButton, m_openButton)
+#: session/katesessionmanagedialog.ui:87
+#, kde-format
+msgid "&Open"
+msgstr "열기(&O)"
+
+#. i18n: ectx: property (text), widget (QPushButton, m_newButton)
+#: session/katesessionmanagedialog.ui:98
+#, kde-format
+msgid "New Session"
+msgstr "새 세션"
+
+#. i18n: ectx: property (text), widget (QPushButton, m_templateButton)
+#: session/katesessionmanagedialog.ui:108
+#, kde-format
+msgid "Open as Template"
+msgstr "템플릿으로 열기"
+
+#. i18n: ectx: property (text), widget (QCheckBox, m_dontAskCheckBox)
+#: session/katesessionmanagedialog.ui:115
+#, kde-format
+msgid "Don't ask again"
+msgstr "다시 묻지 않기"
+
+#. i18n: ectx: property (text), widget (QPushButton, m_copyButton)
+#: session/katesessionmanagedialog.ui:135
+#, kde-format
+msgid "Duplicate..."
+msgstr "복제..."
+
+#. i18n: ectx: property (text), widget (QPushButton, m_renameButton)
+#: session/katesessionmanagedialog.ui:142
+#, kde-format
+msgid "&Rename..."
+msgstr "이름 바꾸기(&R)..."
+
+#. i18n: ectx: property (text), widget (QPushButton, m_deleteButton)
+#: session/katesessionmanagedialog.ui:162
+#, kde-format
+msgid "Delete"
+msgstr "삭제"
+
+#. i18n: ectx: property (text), widget (QPushButton, m_closeButton)
+#: session/katesessionmanagedialog.ui:184
+#, kde-format
+msgid "Close"
+msgstr "닫기"
+
+#: session/katesessionmanager.cpp:107
+#, kde-format
+msgid ""
+"Internal error: there is more than one instance open for a given session."
+msgstr "내부 오류: 지정한 세션의 인스턴스가 하나 이상 열려 있습니다."
+
+#: session/katesessionmanager.cpp:113
+#, kde-format
+msgid ""
+"Session '%1' is already opened in another kate instance, change there "
+"instead of reopening?"
+msgstr ""
+"세션 '%1'이(가) 다른 Kate 인스턴스에 열려 있습니다. 다시 열지 않고 그 인스턴"
+"스로 전환하시겠습니까?"
+
+#: session/katesessionmanager.cpp:306
+#, kde-format
+msgid "The session could not be renamed to \"%1\". Failed to write to \"%2\""
+msgstr "세션 이름을 \"%1\"(으)로 변경할 수 없습니다. \"%2\"에 쓸 수 없습니다"
+
+#: session/katesessionmanager.cpp:307
+#, kde-format
+msgid "Session Renaming"
+msgstr "세션 이름 바꾸기"
+
+#: session/katesessionmanager.cpp:450
+#, kde-format
+msgid "Session name:"
+msgstr "세션 이름:"
+
+#: session/katesessionmanager.cpp:452
+#, kde-format
+msgid ""
+"There is already an existing session with your chosen name: %1\n"
+"Please choose a different one."
+msgstr ""
+"지정한 이름의 세션이 이미 있습니다: %1\n"
+"다른 이름을 지정하십시오."
+
+#: session/katesessionmanager.cpp:454
+#, kde-format
+msgid "To save a session, you must specify a name."
+msgstr "세션을 저장하려면 이름을 입력해야 합니다."
+
+#: session/katesessionmanager.cpp:481
+#, kde-format
+msgid "Specify a name for this session"
+msgstr "이 세션의 이름 지정"
+
+#: session/katesessionmanager.cpp:483
+#, kde-format
+msgid "Specify a new name for session: %1"
+msgstr "세션의 새로운 이름 지정: %1"
+
+#. i18n: ectx: property (title), widget (QGroupBox, gbAppStartup)
+#: ui/sessionconfigwidget.ui:17
+#, kde-format
+msgid "Application Startup Behavior"
+msgstr "프로그램 시작 행동"
+
+#. i18n: ectx: property (text), widget (QRadioButton, startNewSessionRadioButton)
+#: ui/sessionconfigwidget.ui:23
+#, kde-format
+msgid "&Start new session"
+msgstr "새 세션 시작하기(&S)"
+
+#. i18n: ectx: property (text), widget (QRadioButton, loadLastUserSessionRadioButton)
+#: ui/sessionconfigwidget.ui:30
+#, kde-format
+msgid "&Load last used session"
+msgstr "마지막으로 사용한 세션 불러오기(&L)"
+
+#. i18n: ectx: property (text), widget (QRadioButton, manuallyChooseSessionRadioButton)
+#: ui/sessionconfigwidget.ui:37
+#, kde-format
+msgid "&Manually choose a session"
+msgstr "세션을 수동으로 선택하기(&M)"
+
+#. i18n: ectx: property (title), widget (QGroupBox, groupBox)
+#: ui/sessionconfigwidget.ui:47
+#, kde-format
+msgid "Application Shutdown Behavior"
+msgstr "프로그램 종료 행동"
+
+#. i18n: ectx: property (text), widget (QLabel, label_4)
+#: ui/sessionconfigwidget.ui:55
+#, kde-format
+msgid "Automatically save and restore:"
+msgstr "자동으로 저장하고 복원:"
+
+#. i18n: ectx: property (text), widget (QCheckBox, stashNewUnsavedFiles)
+#: ui/sessionconfigwidget.ui:67
+#, kde-format
+msgid "Newly-created unsaved files"
+msgstr "새로 생성된 저장하지 않은 파일"
+
+#. i18n: ectx: property (text), widget (QCheckBox, stashUnsavedFilesChanges)
+#: ui/sessionconfigwidget.ui:77
+#, kde-format
+msgid "Files with unsaved changes"
+msgstr "저장되지 않은 변경 사항이 있는 파일"
+
+#. i18n: ectx: property (whatsThis), widget (QCheckBox, modCloseAfterLast)
+#: ui/sessionconfigwidget.ui:88
+#, kde-format
+msgid ""
+"If enabled, Kate will shutdown when the last file being edited is closed, "
+"otherwise a blank page will open so that you can start a new file."
+msgstr ""
+"이 옵션을 사용하면 Kate에서 편집하는 마지막 파일을 닫을 때 Kate를 닫습니다. "
+"사용하지 않으면 빈 페이지를 열어서 새 파일을 편집할 수 있습니다."
+
+#. i18n: ectx: property (text), widget (QCheckBox, modCloseAfterLast)
+#: ui/sessionconfigwidget.ui:91
+#, kde-format
+msgid "Close Kate entirely when the last file is closed"
+msgstr "마지막 파일을 닫을 때 Kate 완전히 닫기"
+
+#. i18n: ectx: property (title), widget (QGroupBox, gbElements)
+#: ui/sessionconfigwidget.ui:101
+#, kde-format
+msgid "Session Elements"
+msgstr "세션 구성 요소"
+
+#. i18n: ectx: property (text), widget (QLabel, label)
+#: ui/sessionconfigwidget.ui:107
+#, kde-format
+msgid ""
+"The session contains the list of open documents, recently opened files list, "
+"bookmarks, cursor position etc. When the session is loaded all elements are "
+"restored."
+msgstr ""
+"세션에는 열려 있는 문서 목록, 최근에 연 파일 목록, 책갈피, 커서 위치 등이 들"
+"어 있습니다. 세션을 불러올 때 복원합니다."
+
+#. i18n: ectx: property (text), widget (QLabel, label_2)
+#: ui/sessionconfigwidget.ui:119
+#, kde-format
+msgid "Maximum number of entries in recent file list:"
+msgstr "최근에 연 파일 최대 개수:"
+
+#. i18n: ectx: property (whatsThis), widget (QCheckBox, restoreVC)
+#: ui/sessionconfigwidget.ui:147
+#, kde-format
+msgid ""
+"Check this if you want all your views and frames restored each time you open "
+"Kate."
+msgstr "Kate를 시작할 때마다 보기와 프레임을 복원하려면 선택하십시오."
+
+#. i18n: ectx: property (text), widget (QCheckBox, restoreVC)
+#: ui/sessionconfigwidget.ui:150
+#, kde-format
+msgid "Include &window configuration"
+msgstr "창 설정 포함(&W)"
+
+#. i18n: ectx: property (whatsThis), widget (QGroupBox, saveMetaInfos)
+#: ui/sessionconfigwidget.ui:160
+#, kde-format
+msgid ""
+"Check this if you want document configuration like for example bookmarks to "
+"be saved past editor sessions. The configuration will be restored if the "
+"document has not changed when reopened."
+msgstr ""
+"이전 세션에서 사용한 책갈피와 같은 문서 설정을 보존하려면 설정하십시오. 문서"
+"를 다시 열었을 때 그 문서가 바뀌지 않았으면 설정이 복원됩니다."
+
+#. i18n: ectx: property (title), widget (QGroupBox, saveMetaInfos)
+#: ui/sessionconfigwidget.ui:163
+#, kde-format
+msgid "Keep &meta-information past sessions"
+msgstr "이전 세션의 메타 정보 보존하기(&M)"
+
+#. i18n: ectx: property (text), widget (QLabel, label_3)
+#: ui/sessionconfigwidget.ui:174
+#, kde-format
+msgid "Delete unused meta-information after:"
+msgstr "사용하지 않은 메타 정보를 지울 시간:"
+
+#~ msgid "Wa&rn about files modified by foreign processes"
+#~ msgstr "외부 프로세스에 의한 파일 변경 알려 주기(&R)"
+
+#~ msgid "Application '%1' not found."
+#~ msgstr "프로그램 '%1'을(를) 찾을 수 없습니다."
+
+#~ msgid "Application not found"
+#~ msgstr "프로그램을 찾을 수 없음"
+
+#, fuzzy
+#~| msgid "Copy File &Path"
+#~ msgid "Filter By Path"
+#~ msgstr "파일 경로 복사(&P)"
+
+#~ msgid "Quick Open Search"
+#~ msgstr "빠른 열기 검색"
+
+#~ msgid "&Match Mode:"
+#~ msgstr "일치 모드(&M):"
+
+#~ msgid "Filepath"
+#~ msgstr "파일 경로"
+
+#~ msgid "&List Mode:"
+#~ msgstr "목록 모드(&L):"
+
+#~ msgid "Application"
+#~ msgstr "프로그램"
+
+#~ msgid "General"
+#~ msgstr "일반"
+
+#~ msgid "General Options"
+#~ msgstr "일반 옵션"
+
+#~ msgid "Meta-Information"
+#~ msgstr "메타 정보"
+
+#~ msgid "Editor Component"
+#~ msgstr "편집기 구성 요소"
+
+#~ msgid "Editor Component Options"
+#~ msgstr "편집기 구성 요소 설정"
+
+#~ msgid "Behaviour on Application Startup"
+#~ msgstr "프로그램 시작 시 행동"
+
+#~ msgid "&Help"
+#~ msgstr "도움말(&H)"
+
+#~ msgid "&About Editor Component"
+#~ msgstr "편집기 구성 요소 정보(&A)"
+
+#~ msgctxt "Menu entry Session->New"
+#~ msgid "&New"
+#~ msgstr "새로 만들기(&N)"
+
+#~ msgid "Sort Alphabetical"
+#~ msgstr "가나다순 정렬"
+
+#~ msgid "Sort Last Used"
+#~ msgstr "마지막 사용순 정렬"
+
+#~ msgid ""
+#~ "A file named \"%1\" already exists. Are you sure you want to overwrite it?"
+#~ msgstr "파일 \"%1\"이(가) 이미 존재합니다. 덮어쓰시겠습니까?"
+
+#~ msgid "Overwrite File?"
+#~ msgstr "파일을 덮어쓰시겠습니까?"
+
+#, fuzzy
+#~| msgid "&Rename..."
+#~ msgctxt "@action:inmenu"
+#~ msgid "Rename File..."
+#~ msgstr "이름 바꾸기(&R)..."
+
+#, fuzzy
+#~| msgid "Delete File?"
+#~ msgctxt "@action:inmenu"
+#~ msgid "Delete File"
+#~ msgstr "파일을 삭제하시겠습니까?"
+
+#, fuzzy
+#~| msgid "Meta-Information"
+#~ msgctxt "@title:window"
+#~ msgid "Confirmation"
+#~ msgstr "메타 정보"
+
+#, fuzzy
+#~| msgid "Close the current document."
+#~ msgid "C&lose Current Document"
+#~ msgstr "현재 문서를 닫습니다."
+
+#, fuzzy
+#~| msgid ""
+#~| "This will close all open documents. Are you sure you want to continue?"
+#~ msgid "You have multiple documents open, are you sure you want to quit?"
+#~ msgstr "열려 있는 모든 문서를 닫을 것입니다. 계속 진행하시겠습니까?"
+
+#~ msgid "Errors/Warnings while opening documents"
+#~ msgstr "문서를 여는 중 오류/경고 발생"
+
+#~ msgid "&Open Session"
+#~ msgstr "세션 열기(&O)"
+
+#~ msgctxt "The number of open documents"
+#~ msgid "Open Documents"
+#~ msgstr "문서 열기"
+
+#~ msgid "Clone session settings"
+#~ msgstr "세션 설정 복제"
+
+#~ msgid "Delete this session"
+#~ msgstr "이 세션 삭제"
+
+#~ msgid "&Always use this choice"
+#~ msgstr "이 선택을 항상 사용하기(&A)"
+
+#~ msgid "Open Session"
+#~ msgstr "세션 열기"
+
+#~ msgid "Missing Session Name"
+#~ msgstr "세션 이름 없음"
+
+#~ msgid ""
+#~ "The session could not be renamed to \"%1\", there already exists another "
+#~ "session with the same name"
+#~ msgstr ""
+#~ "같은 이름의 세션이 이미 존재하므로 이 세션의 이름을 \"%1\"(으)로 바꿀 수 "
+#~ "없습니다"
+
+#~ msgid "Specify New Name for Current Session"
+#~ msgstr "현재 세션의 새 이름 지정하기"
+
+#~ msgid "Developer & Highlight wizard"
+#~ msgstr "개발자, 구문 강조 마법사"

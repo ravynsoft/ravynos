@@ -1,0 +1,254 @@
+<?xml version="1.0" ?>
+<!DOCTYPE book PUBLIC "-//KDE//DTD DocBook XML V4.5-Based Variant V1.1//EN"
+"dtd/kdedbx45.dtd" [
+  <!ENTITY kappname "&katepart;">
+  <!ENTITY fundamentals-chapter SYSTEM "fundamentals.docbook">
+  <!ENTITY configuring-chapter SYSTEM "configuring.docbook">
+  <!ENTITY menus-chapter SYSTEM "menus.docbook">
+  <!ENTITY part-chapter SYSTEM "part.docbook">
+  <!ENTITY advanced-chapter SYSTEM "advanced.docbook">
+  <!ENTITY dev-chapter SYSTEM "development.docbook">
+  <!ENTITY vi-appendix SYSTEM "vi.docbook">
+  <!ENTITY regexp-appendix SYSTEM "regular-expressions.docbook">
+  <!ENTITY % addindex "IGNORE">
+  <!ENTITY % Dutch "INCLUDE"
+> <!-- change language only here -->
+]>
+
+<book id="katepart" lang="&language;">
+
+<bookinfo>
+<title
+>Het handboek van &katepart;</title>
+<authorgroup>
+<author
+>&Thad.McGinnis; &Thad.McGinnis.mail;</author>
+<author
+>&Anne-Marie.Mahfouf; &Anne-Marie.Mahfouf.mail;</author>
+<author
+>&Anders.Lund; &Anders.Lund.mail;</author>
+<author
+>&TC.Hollingsworth; &TC.Hollingsworth.mail;</author>
+<othercredit role="developer"
+>&Christoph.Cullmann; &Christoph.Cullmann.mail; </othercredit>
+
+<othercredit role="reviewer"
+>&Lauri.Watts; &Lauri.Watts.mail; </othercredit>
+
+&Niels.Reedijk;&Tom.Albers;&Hannie.Lafeber-Dumoleyn; 
+
+</authorgroup>
+
+<copyright>
+<year
+>2000</year
+><year
+>2001</year>
+<holder
+>&Thad.McGinnis;</holder>
+</copyright>
+<copyright>
+<year
+>2005</year>
+<holder
+>&Anne-Marie.Mahfouf; &Anne-Marie.Mahfouf.mail;</holder>
+<holder
+>&Anders.Lund; &Anders.Lund.mail;</holder>
+</copyright>
+<copyright>
+<year
+>2011</year
+><year
+>2012</year
+><year
+>2013</year
+><year
+>2014</year>
+<holder
+>&TC.Hollingsworth; &TC.Hollingsworth.mail;</holder>
+</copyright>
+<legalnotice
+>&FDLNotice;</legalnotice>
+
+<date
+>2020-10-10</date>
+<releaseinfo
+>&frameworks; 5.75</releaseinfo>
+
+<abstract>
+<para
+>&katepart; is een editorcomponent vol met functies door &Qt; voor &kde; toepassingen.</para>
+</abstract>
+
+<keywordset>
+<keyword
+>KDE</keyword>
+<keyword
+>KatePart</keyword>
+<keyword
+>KWrite</keyword>
+<keyword
+>tekst</keyword>
+<keyword
+>verwerker</keyword>
+</keywordset>
+
+</bookinfo>
+
+<chapter id="introduction">
+<title
+>Inleiding</title>
+
+<para
+>&katepart; is een tekstverwerkercomponent gebruikt door vele &Qt; en &kde; toepassingen. &katepart; is meer dan een tekstverwerker; het is bedoeld als editor voor programmeurs en zou kunnen worden beschouwd als op zijn minst deels een alternatief voor krachtigere editors. Eén van de hoofdfuncties van &katepart; is de gekleurde syntaxis, aangepast voor veel verschillende programmeertalen zoals: C/C++, &Java;, Python, Perl, Bash, Modula 2, &HTML; en Ada. </para>
+<para
+>&kwrite; is een eenvoudige tekstverwerker gebaseerd op &katepart;. Het heeft een interface voor een enkel document (<acronym
+>SDI</acronym
+>) waarmee u één bestand per keer per venster kunt bewerken. Omdat &kwrite; een erg eenvoudige implementatie is van &katepart;, vereist het geen eigen documentatie. Als u weet hoe &kwrite; te gebruiken, dan kunt u &katepart; overal gebruiken! </para>
+</chapter>
+
+&fundamentals-chapter;
+
+&part-chapter;
+
+&menus-chapter;
+
+&advanced-chapter;
+
+&dev-chapter;
+
+&configuring-chapter;
+
+<chapter id="credits">
+<title
+>Dankbetuigingen en licentie</title>
+
+<para
+>&katepart; en &kwrite; Copyright 2001-2021 door het team van &kate;.</para>
+
+<para
+>Gebaseerd op het originele &kwrite;, waarvoor geldt: Copyright 2000 door Jochen Wilhelmy <email
+>digisnap@cs.tu-berlin.de</email
+> </para>
+
+<para
+>Bijdragen:</para>
+
+<itemizedlist>
+<listitem>
+<para
+>&Christoph.Cullmann; &Christoph.Cullmann.mail;</para>
+</listitem>
+
+<listitem>
+<para
+>Michael Bartl <email
+>michael.bartl1@chello.at</email
+></para>
+</listitem>
+
+<listitem>
+<para
+>Phlip <email
+>phlip_cpp@my-deja.com</email
+></para>
+</listitem>
+
+<listitem>
+<para
+>&Anders.Lund; &Anders.Lund.mail;</para>
+</listitem>
+
+<listitem>
+<para
+>Matt Newell <email
+>newellm@proaxis.com</email
+></para>
+</listitem>
+
+<listitem>
+<para
+>&Joseph.Wenninger; &Joseph.Wenninger.mail;</para>
+</listitem>
+
+<listitem>
+<para
+>Jochen Wilhely <email
+>digisnap@cs.tu-berlin.de</email
+></para>
+</listitem>
+
+<listitem>
+<para
+>&Michael.Koch; &Michael.Koch.mail;</para>
+</listitem>
+
+<listitem>
+<para
+>&Christian.Gebauer; &Christian.Gebauer.mail;</para>
+</listitem>
+
+<listitem>
+<para
+>&Simon.Hausmann; &Simon.Hausmann.mail;</para>
+</listitem>
+
+<listitem>
+<para
+>Glen Parker <email
+>glenebob@nwlink.com</email
+></para>
+</listitem>
+
+<listitem>
+<para
+>Scott Manson <email
+>sdmanson@altel.net</email
+></para>
+</listitem>
+
+<listitem>
+<para
+>&John.Firebaugh; &John.Firebaugh.mail;</para>
+</listitem>
+
+<listitem>
+<para
+>Nibaldo González <email
+>nibgonz@gmail.com</email
+></para>
+</listitem>
+</itemizedlist>
+
+<para
+>De documentatie van &katepart; is gebaseerd op de originele documentatie van &kwrite;, gewijzigd om relevant te zijn voor alle &katepart; gebruikers. </para>
+
+<para
+>De originele documentatie van &kwrite; is geschreven door &Thad.McGinnis; &Thad.McGinnis.mail;, met veel wijzigen van &Cristian.Tibirna; &Cristian.Tibirna.mail;. Geconverteerd naar docbook/proofreading door &Lauri.Watts; &Lauri.Watts.mail; en bijgewerkt door &Anne-Marie.Mahfouf; &Anne-Marie.Mahfouf.mail; en &Anders.Lund; &Anders.Lund.mail; </para>
+
+<para
+>De huidige documentatie van &katepart; wordt onderhouden door &TC.Hollingsworth; &TC.Hollingsworth.mail;. Stuur commentaar of suggesties naar de e-maillijst voor ontwikkeling van &katepart; op <email
+>kwrite-devel@kde.org</email
+> of rapporteer een bug in het <ulink url="https://bugs.kde.org/"
+>&kde; Bugtracking Systeem</ulink
+>.</para>
+
+&meld.fouten;&vertaling.niels;&vertaling.tom;&vertaling.hannie; &underFDL; &underGPL; </chapter>
+
+&vi-appendix;
+
+&regexp-appendix;
+
+&documentation.index;
+</book>
+<!--
+Local Variables:
+mode: sgml
+sgml-namecase-general: t
+sgml-namecase-entity: nil
+sgml-general-insert-case: lower
+sgml-minimize-attributes: nil
+sgml-omittag: nil
+End:
+-->
+

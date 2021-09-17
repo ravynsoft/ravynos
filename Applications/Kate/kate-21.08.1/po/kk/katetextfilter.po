@@ -1,0 +1,129 @@
+# translation of katetextfilter.po to Kazakh
+#
+# Sairan Kikkarin <sairan@computer.org>, 2006, 2007.
+# Sairan Kikkarin <sairan@computer.org>, 2010, 2013.
+msgid ""
+msgstr ""
+"Project-Id-Version: katetextfilter\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2021-03-11 03:13+0100\n"
+"PO-Revision-Date: 2013-10-29 05:27+0600\n"
+"Last-Translator: Sairan Kikkarin <sairan@computer.org>\n"
+"Language-Team: Kazakh <kde-i18n-doc@kde.org>\n"
+"Language: kk\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Lokalize 1.2\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"\n"
+
+#: plugin_katetextfilter.cpp:90
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"<title>Result of:</title><nl /><pre><code>$ %1\n"
+"<nl />%2</code></pre>"
+msgstr ""
+"<title>Мынаның нәтижесі:</title><nl /><pre><code>$ %1\n"
+"<nl />%2</code></pre>"
+
+#: plugin_katetextfilter.cpp:153
+#, kde-format
+msgid ""
+"You are not allowed to execute arbitrary external applications. If you want "
+"to be able to do this, contact your system administrator."
+msgstr ""
+"Сыртқы қолданбаларды жегуге рұқсатыңыз жоқ. Рұқсатты жүйеңіздің әкімшісінен "
+"сұраңыз."
+
+#: plugin_katetextfilter.cpp:155
+#, kde-format
+msgid "Access Restrictions"
+msgstr "Рұқсатыңыз жоқ"
+
+#: plugin_katetextfilter.cpp:173 plugin_katetextfilter.cpp:261
+#, fuzzy, kde-format
+#| msgid "Filter"
+msgid "Text Filter"
+msgstr "Сүзгі"
+
+#: plugin_katetextfilter.cpp:239
+#, kde-format
+msgid "Usage: textfilter COMMAND"
+msgstr "Қолдануы: textfilter КОМАНДА"
+
+#: plugin_katetextfilter.cpp:250
+#, kde-format
+msgid ""
+"<qt><p>Usage: <code>textfilter COMMAND</code></p><p>Replace the selection "
+"with the output of the specified shell command.</p></qt>"
+msgstr ""
+"<qt><p>Қолдану: <code>textfilter КОМАНДА</code></p><p>Таңдалғады келтірілген "
+"қоршау-ортаның команданың шығарылымымен ауыстырыңыз.</p></qt>"
+
+#: plugin_katetextfilter.cpp:266
+#, kde-format
+msgid "&Filter Through Command..."
+msgstr ""
+
+#. i18n: ectx: property (windowTitle), widget (QDialog, TextFilterWidget)
+#: textfilterwidget.ui:14
+#, kde-format
+msgid "Dialog"
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QLabel, lblFilter)
+#: textfilterwidget.ui:26
+#, fuzzy, kde-format
+#| msgid "Enter command to pipe selected text through:"
+msgid "Enter command to &pipe selected text through:"
+msgstr "Таңдалған мәтінге қолданатын команданы келтіріңіз:"
+
+#. i18n: ectx: property (text), widget (QCheckBox, newDoc)
+#: textfilterwidget.ui:39
+#, kde-format
+msgid "Open results in a new document"
+msgstr ""
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, copyResult)
+#: textfilterwidget.ui:46
+#, kde-format
+msgid "Copy the result to clipboard leaving a document unchanged."
+msgstr "Құжатты өзгертпей нәтижесін алмасу буферіне көшіріп алу."
+
+#. i18n: ectx: property (text), widget (QCheckBox, copyResult)
+#: textfilterwidget.ui:49
+#, kde-format
+msgid "Copy the result instead of pasting it"
+msgstr "Нәтижесін орналастырудың орнына көшіріп алу"
+
+#. i18n: ectx: property (toolTip), widget (QCheckBox, mergeOutput)
+#: textfilterwidget.ui:57
+#, kde-format
+msgid ""
+"If checked, an output from STDOUT and STDERR will be merged and no errors "
+"will be reported.\n"
+"Otherwise, STDERR will be displayed as a passive message."
+msgstr ""
+"Белгілесе, STDOUT пен STDERR шығысы бірігіп қате туралы хабарламасы "
+"болмайды.\n"
+"Әйтпесе, STDERR пассивті хабарлама ретінде шығарылады."
+
+#. i18n: ectx: property (text), widget (QCheckBox, mergeOutput)
+#: textfilterwidget.ui:60
+#, kde-format
+msgid "Merge STDOUT and STDERR"
+msgstr "STDOUT пен STDERR біріксін"
+
+#. i18n: ectx: Menu (tools)
+#: ui.rc:6
+#, kde-format
+msgid "&Tools"
+msgstr "Құ&ралдар"
+
+#~ msgid "Filter Te&xt..."
+#~ msgstr "&Мәтінді сузгілеу..."
+
+#~ msgid "You need to have a selection to use textfilter"
+#~ msgstr "textfilter-ді қолдану үшін мәтінді таңдап қою керек"

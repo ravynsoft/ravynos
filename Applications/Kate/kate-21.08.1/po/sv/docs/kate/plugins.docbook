@@ -1,0 +1,6227 @@
+<chapter id="plugins">
+
+<chapterinfo>
+<authorgroup>
+<author
+>&Anders.Lund; &Anders.Lund.mail;</author>
+<othercredit role="translator"
+> <firstname
+>Johan</firstname
+> <surname
+>Thelmén</surname
+> <affiliation
+><address
+><email
+>jth@home.se</email
+></address
+></affiliation
+> <contrib
+>Översättare</contrib
+></othercredit
+> 
+</authorgroup>
+</chapterinfo>
+
+<title
+>Arbeta med insticksprogram</title>
+
+<para
+>Du kan aktivera de individuella insticksprogrammen i <link linkend="configuring-kate-configdialog"
+>inställningsdialogrutan</link
+>, som också ger tillgång till ytterligare inställningsalternativ för insticksprogram som kräver det.</para>
+
+<sect1 id="kate-application-plugins">
+<title
+>Insticksprogram för programmet &kate;</title>
+
+<!-- from doc/kate-addons/index.docbook -->
+<para
+>&kate; insticksprogram är ytterligare funktioner för editorn &kate;. De kan lägga till extra menyer och snabbtangenter, och utöka &kate;s funktioner. Du kan installera så många eller så få du vill, inne i &kate;. Öppna &kate;s inställningsdialogruta med <menuchoice
+><guimenu
+>Inställningar</guimenu
+> <guimenuitem
+>Anpassa &kate;...</guimenuitem
+></menuchoice
+> Använd <menuchoice
+><guimenu
+>Program</guimenu
+> <guimenuitem
+>Insticksprogram</guimenuitem
+></menuchoice
+> för att välja önskade insticksprogram. </para>
+
+<para
+>De tillgängliga insticksprogrammen är: </para>
+<itemizedlist>
+<listitem>
+<para
+><link linkend="kate-application-plugin-external-tools"
+>Externa verktyg</link
+> - Kör externa verktyg och program</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-backtracebrowser"
+>Bläddring i bakåtspårning</link
+>: Navigeringsverktyg med vy av C/C++ bakåtspårning</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-build"
+>Bygginsticksprogram</link
+>: Kompilera eller bygg och tolka felmeddelanden</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-closeexceptlike"
+>Stäng förutom/som</link
+>: Stäng grupp av dokument baserat på en gemensam sökväg eller filändelse</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-colorpicker"
+>Färghämtare</link
+> - Visa förhandsgranskning av kända färgnamn</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-ctags"
+>CTags</link
+>: Slå upp definitioner och deklarationer med CTags</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-preview"
+>Dokumentförhandsgranskning</link
+> - Förhandsgranska dokumentet i målformatet.</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-documentswitcher"
+>Dokumentbyte</link
+>: Snabbt dokumentbyte med beteende likt <keycombo action="simul"
+>&Alt;<keysym
+>Tabulator</keysym
+></keycombo
+>.</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-fsbrowser"
+>Filsystembläddrare</link
+>: Verktygsvy för filsystembläddring</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-documents"
+>Dokumentträdvy</link
+>: Visar öppna filer i ett filträd</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-gdb"
+>&gdb;</link
+> - Tillhandahåller ett enkelt gränssnitt för &gdb;</para>
+</listitem>
+<!--from workspace/plasma-sdk, why picked up here?
+<listitem>
+<para
+>Icon picker - Invokes Cuttlefish icon picker</para>
+</listitem>
+-->
+<listitem>
+<para
+><link linkend="kate-application-plugin-projects"
+>Projektinsticksprogram</link
+>: Integrering med &git; och andra källkontrollsystem</para>
+</listitem>
+<listitem>
+<para
+>Replicode: Konstruktivistiskt AI-språk och körprogram</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-lspclient"
+>LSP-klient</link
+>: LSP-klient som tillhandahåller kodnavigering och kodkomplettering för många språk</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-searchinfiles"
+>Sök och ersätt</link
+>: Sök eller ersätt mönster i öppnade dokument eller i filer på disk</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-snippets"
+>Verktygsvy med textsnuttar</link
+>: Verktygsvy som inbäddar hantering av textsnuttar</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-sql"
+>SQL-insticksprogram</link
+> - Utför en förfrågan i SQL-databaser</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-symbolviewer"
+>Symbolvisning</link
+>: Hämta och visa referenssymboler från källkod</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-konsole"
+>Verktygsvy med terminal</link
+>: Ha en lätt tillgänglig terminal, genom att använda &kde;:s grafiska &konsole;-komponent</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-textfilter"
+>Textfilter</link
+>: Behandla text med terminalkommandon</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-xmltools"
+>&XML;-komplettering</link
+>: Listar XML-element, attribut, attributvärden och objekt som tillåts av DTD</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-xmlcheck"
+>&XML;-validering</link
+>: Validerar &XML;-filer med XMLlint</para>
+</listitem>
+</itemizedlist>
+</sect1>
+
+<sect1 id="kate-application-plugin-external-tools">
+<title
+>Externa verktyg</title>
+
+<para
+>Insticksprogrammet <guilabel
+>Externa verktyg</guilabel
+> gör det möjligt att starta externa program med data relaterad till det aktuella dokument, exempelvis dess webbadress, katalog, text eller markering. När det väl är aktiverat, visas en inställningssida, avbildad nedan, som gör att befintliga verktyg kan ändas eller tas bort. På liknande sätt kan nya verktyg läggas till enligt tycke och smak. Verktygen visas därefter i undermenyn <guisubmenu
+>Externa verktyg</guisubmenu
+> i programmets meny <guimenu
+>Verktyg</guimenu
+>. </para>
+
+<mediaobject>
+<imageobject>
+<imagedata format="PNG" fileref="kateexternaltools.png"/>
+</imageobject>
+</mediaobject>
+
+<para
+>Inställningssidan gör det möjligt att lägga till nya externa verktyg genom att klicka på knappen <guilabel
+>Lägg till</guilabel
+>. När det görs, dyker en sammanhangsberoende meny upp där man antingen kan lägga till ett nytt externt verktyg, lägga till ett befintligt verktyg från en fördefinierad lista, eller lägga till en ny kategori för att organisera de externa verktygen i kategorier. På liknande sätt kan de befintliga verktygen ändras genom att antingen dubbelklicka eller använda <guilabel
+>Redigera...</guilabel
+>, och <guilabel
+>Ta bort</guilabel
+> tar bort de markerade verktygen. </para>
+
+<sect2 id="kate-application-plugin-external-tools-edit">
+<title
+>Anpassa externa verktyg</title>
+
+<para
+>Att redigera ett verktyg visar en inställningsdialogruta som tillåter finkornig inställning av verktyget:</para>
+
+<mediaobject>
+<imageobject>
+<imagedata format="PNG" fileref="kateeditexternaltool.png"/>
+</imageobject>
+</mediaobject>
+
+<variablelist>
+<varlistentry>
+<term
+>Som synes, kan många saker definieras, närmare bestämt:</term>
+<listitem>
+<para
+><userinput
+>Namn</userinput
+>, verktygets namn, som senare dyker upp i menyn.</para>
+<para
+><userinput
+>Ikon</userinput
+>, valfri ikon som syns i menyn.</para>
+<para
+><userinput
+>Körbart program</userinput
+>, körbart program som antingen innehåller en fullständig sökväg, eller så måste det körbara programmet finnas i miljövariabeln <envar
+>PATH</envar
+>.</para>
+<para
+><userinput
+>Väljare</userinput
+>, valfria väljare som skickas till det körbara programmet.</para>
+<para
+><userinput
+>Inmatning</userinput
+>, valfri indata som skickas till processen via standardinmatningen.</para>
+<para
+><userinput
+>Arbetskatalog</userinput
+>, arbetskatalogen som verktyget startas i. Om den är tom, ställs arbetskatalogen in till det aktuella dokumentets sökväg.</para>
+<para
+><userinput
+>Mime-typer</userinput
+>, om inställda är verktyget bara aktivt om de matchar det aktuella dokumentets Mime-typ.</para>
+<para
+><userinput
+>Spara</userinput
+>, när det aktiveras, sparas inget, det aktuella dokumentet eller alla dokument.</para>
+<para
+><userinput
+>Läs in aktuellt dokument efter körning</userinput
+>, användbart när den aktuella filen ändras på disk.</para>
+<para
+><userinput
+>Utmatning</userinput
+>, definierar målet för standardutmatningen. Den kan antingen ställas in till <userinput
+>Ignorera</userinput
+>, <userinput
+>Infoga vid markörposition</userinput
+>, <userinput
+>Ersätt markerad text</userinput
+>, <userinput
+>Ersätt aktuellt dokument</userinput
+>, <userinput
+>Lägg till sist i aktuellt dokument</userinput
+>, <userinput
+>Infoga i nytt dokument</userinput
+>, <userinput
+>Kopiera till klippbordet</userinput
+> eller <userinput
+>Visa i ruta</userinput
+>.</para>
+<para
+><userinput
+>Redigeringskommando</userinput
+>, valfritt kommando som kan användas för att starta det externa verktyget via den inbyggda <ulink url="help:/katepart/advanced.html#advanced-editing-tools-commandline"
+>kommandoraden</ulink
+>.</para>
+</listitem>
+</varlistentry>
+</variablelist>
+
+<para
+>Knappen <guilabel
+>Förval</guilabel
+> är bara synlig för verktyg som levereras med Kate. När den klickas, återgår alla verktygets inställningar till förvalda värden (fabriksinställning). </para>
+
+</sect2>
+
+<sect2 id="kate-application-plugin-external-tools-variables">
+<title
+>Variabelexpansion</title>
+
+<para
+>Visa redigeringsfält såsom <guilabel
+>Körbart program</guilabel
+>, <guilabel
+>Väljare</guilabel
+>, <guilabel
+>Inmatning</guilabel
+> och <guilabel
+>Arbetskatalog</guilabel
+> stöder variabler som expanderas när verktyget används. Det indikeras med ikonen <guilabel
+>{}</guilabel
+> som visas när väl ett av dessa textinmatningsfält har fokus (se den röda cirkeln). </para>
+
+<mediaobject>
+<imageobject>
+<imagedata format="PNG" fileref="katevariableexpansion.png"/>
+</imageobject>
+</mediaobject>
+
+<para
+>Att hålla musen över ett av textinmatningsfälten visar också ett verktygstips med den nuvarande expanderade texten. Dessutom visas en dialogruta som listar alla tillgängliga variabler vid klick på alternativet <guilabel
+>{}</guilabel
+>: </para>
+
+<mediaobject>
+<imageobject>
+<imagedata format="PNG" fileref="kateexternaltoolvariablechooser.png"/>
+</imageobject>
+</mediaobject>
+
+<para
+>Funktionen erbjuder stor flexibilitet när ett externt verktyg definieras, eftersom alla variabler på formen <userinput
+>%{...}</userinput
+> expanderas när verktyget startas. Det finns två sorters variabler som stöds: <itemizedlist
+> <listitem
+><para
+><userinput
+>%{variabelnamn}</userinput
+></para
+></listitem
+> <listitem
+><para
+><userinput
+>%{variabelnamn:&lt;värde&gt;}</userinput
+></para
+></listitem
+> </itemizedlist
+> Den första formen <userinput
+>%{variabelnamn}</userinput
+> ersätter helt enkelt variabeln med dess innehåll. Exempelvis ersätts variabeln <userinput
+>%{Document:FileName}</userinput
+> med det aktuella dokumentets filnamn utan sökväg. Den andra formen <userinput
+>%{variabelnamn:&lg;värde&gt;}</userinput
+> får <userinput
+>&lt;värde&gt;</userinput
+> som innehåll. Det kan exempelvis användas för att expandera en miljövariabel med <userinput
+>%{ENV:HOME}</userinput
+>, eller för att få dagens datum med önskat format, såsom <userinput
+>%{Date:yyyy-MM-dd}</userinput
+>. </para>
+
+<variablelist>
+<varlistentry>
+<term
+>Variabler som stöds inkluderar:</term>
+<listitem>
+<para
+><userinput
+>Document:FileBaseName</userinput
+>: Det aktuella dokumentets filbasnamn utan sökväg och filändelse.</para>
+<para
+><userinput
+>Document:FileExtension</userinput
+>: Det aktuella dokumentets filändelse.</para>
+<para
+><userinput
+>Document:FileName</userinput
+>: Det aktuella dokumentets filnamn utan sökväg.</para>
+<para
+><userinput
+>Document:FilePath</userinput
+>: Det aktuella dokumentets fullständiga sökväg, inklusive filnamnet.</para>
+<para
+><userinput
+>Document:Text</userinput
+>: Det aktuella dokumentets innehåll.</para>
+<para
+><userinput
+>Document:Path</userinput
+>: Det aktuella dokumentets fullständiga sökväg utan filnamnet.</para>
+<para
+><userinput
+>Document:NativeFilePath</userinput
+>: Fullständig dokumentsökväg inklusive filnamnet, med den inneboende sökvägsavgränsaren (bakstreck på Windows).</para>
+<para
+><userinput
+>Document:NativePath</userinput
+>: Fullständig dokumentsökväg utan filnamnet, med den inneboende sökvägsavgränsaren (bakstreck på Windows).</para>
+<para
+><userinput
+>Document:Cursor:Line</userinput
+>: Radnummer för textmarkören i det aktuella dokumentet (börjar med 0).</para>
+<para
+><userinput
+>Document:Cursor:Column</userinput
+>: Kolumnnummer för textmarkören i det aktuella dokumentet (börjar med 0).</para>
+<para
+><userinput
+>Document:Cursor:XPos</userinput
+>: X-komponenten i globala skärmkoordinater för markörpositionen.</para>
+<para
+><userinput
+>Document:Cursor:YPos</userinput
+>: Y-komponenten i globala skärmkoordinater för markörpositionen.</para>
+<para
+><userinput
+>Document:Selection:Text</userinput
+>: Det aktuella dokumentets textmarkering.</para>
+<para
+><userinput
+>Document:Selection:StartLine</userinput
+>: Den markerade textens startrad i det aktuella dokumentet.</para>
+<para
+><userinput
+>Document:Selection:StartColumn</userinput
+>: Den markerade textens startkolumn i det aktuella dokumentet.</para>
+<para
+><userinput
+>Document:Selection:EndLine</userinput
+>: Den markerade textens slutrad i det aktuella dokumentet.</para>
+<para
+><userinput
+>Document:Selection:EndColumn</userinput
+>: Den markerade textens slutkolumn i det aktuella dokumentet.</para>
+<para
+><userinput
+>Document:RowCount</userinput
+>: Det aktuella dokumentets antal rader.</para>
+<para
+><userinput
+>Document:Variable:&lt;variabel&gt;</userinput
+>: Expandera godtyckliga <ulink url="help:/katepart/config-variables.html"
+>dokumentvariabler</ulink
+>.</para>
+<para
+><userinput
+>Date:Locale</userinput
+>: Dagens datum med format enligt nuvarande landsinställning.</para>
+<para
+><userinput
+>Date:ISO</userinput
+>: Dagens datum (ISO).</para>
+<para
+><userinput
+>Date:&lt;värde&gt;</userinput
+>: Dagens datum (<ulink url="https://doc.qt.io/qt-5/qdate.html#toString"
+>QDate formatsträng</ulink
+>).</para>
+<para
+><userinput
+>Time:Locale</userinput
+>: Aktuell tid med format enligt nuvarande landsinställning.</para>
+<para
+><userinput
+>Time:ISO</userinput
+>: Aktuell tid (ISO).</para>
+<para
+><userinput
+>Time:&lt;value&gt;</userinput
+>: Aktuell tid (<ulink url="https://doc.qt.io/qt-5/qtime.html#toString"
+>QTime formatsträng</ulink
+>).</para>
+<para
+><userinput
+>ENV:&lt;värde&gt;</userinput
+>: Åtkomst till miljövariabler.</para>
+<para
+><userinput
+>JS:&lt;uttryck&gt;</userinput
+>: Utvärderar enkla satser i JavaScript.</para>
+<para
+><userinput
+>PercentEncoded:&lt;text&gt;</userinput
+>: Procentkodad text.</para>
+<para
+><userinput
+>UUID</userinput
+>: Skapa nytt UUID.</para>
+</listitem>
+</varlistentry>
+</variablelist>
+
+ 
+
+</sect2>
+
+<sect2 id="kate-application-plugin-external-tools-defaults">
+<title
+>Lista över standardverktyg</title>
+
+<para
+>Flera verktyg levereras som förval. Om du har fler användbara verktyg, bidra gärna med dem via <email
+>kwrite-devel@kde.org</email
+> så att vi kan lägga till dem i listan. Alla förvalda verktyg är normalt synliga i listan. Dock kan alla verktyg ändras som du vill, inklusive kategori eller till och med ta bort verktyg. Borttagna verktyg kan läggas till igen genom att klicka på knappen <guibutton
+>Lägg till</guibutton
+> på inställningssidan som beskrivs ovan. </para>
+
+<variablelist>
+<title
+>git-cola</title>
+
+<varlistentry>
+<term
+>git-cola är ett grafiskt git-program som låter dig enkelt skapa och checka in ändringar. Om det är installerat, är det också tillgängligt på kommandoraden genom att skriva <userinput
+>git-cola</userinput
+>.</term>
+<listitem>
+<para
+><userinput
+>Namn</userinput
+>: git-cola</para>
+<para
+><userinput
+>Ikon</userinput
+>: git-cola</para>
+<para
+><userinput
+>Körbart program</userinput
+>: git-cola</para>
+<para
+><userinput
+>Väljare</userinput
+>: -r %{Document:Path}</para>
+<para
+><userinput
+>Redigeringskommando</userinput
+>: git-cola</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+
+<variablelist>
+<title
+>gitk</title>
+
+<varlistentry>
+<term
+>gitk är ett git-program som dessutom gör det möjligt att snyggt åskådliggöra historiken i git.</term>
+<listitem>
+<para
+><userinput
+>Namn</userinput
+>: gitk</para>
+<para
+><userinput
+>Ikon</userinput
+>: git-gui</para>
+<para
+><userinput
+>Körbart program</userinput
+>: gitk</para>
+<para
+><userinput
+>Arbetskatalog</userinput
+>: %{Document:Path}</para>
+<para
+><userinput
+>Redigeringskommando</userinput
+>: gitk</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+
+<variablelist>
+<title
+>git blame</title>
+
+<varlistentry>
+<term
+>Startar git blame för att enkelt följa ändringar av den aktuella filen i git.</term>
+<listitem>
+<para
+><userinput
+>Namn</userinput
+>: git blame</para>
+<para
+><userinput
+>Körbart program</userinput
+>: git</para>
+<para
+><userinput
+>Väljare</userinput
+>: gui blame %{Document:FileName}</para>
+<para
+><userinput
+>Spara</userinput
+>: Aktuellt dokument</para>
+<para
+><userinput
+>Arbetskatalog</userinput
+>: %{Document:Path}</para>
+<para
+><userinput
+>Redigeringskommando</userinput
+>: git-blame</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+
+<variablelist>
+<title
+>Kör skalskript</title>
+
+<varlistentry>
+<term
+>Startar en extern terminal där det aktuella dokumentet körs. Skriptet måste ange tolken på första raden via <userinput
+>#!/sökväg/tolk</userinput
+>.</term>
+<listitem>
+<para
+><userinput
+>Namn</userinput
+>: Kör skalskript</para>
+<para
+><userinput
+>Ikon</userinput
+>: system-run</para>
+<para
+><userinput
+>Körbart program</userinput
+>: konsole</para>
+<para
+><userinput
+>Väljare</userinput
+>: -e sh -c &quot;cd %{Document:Path} &amp;&amp; pwd &amp;&amp; chmod -vc a+x %{Document:FileName} &amp;&amp; ./%{Document:FileName} ; echo Press any key to continue. &amp;&amp; read -n 1&quot;</para>
+<para
+><userinput
+>Spara</userinput
+>: Aktuellt dokument</para>
+<para
+><userinput
+>Arbetskatalog</userinput
+>: %{Document:Path}</para>
+<para
+><userinput
+>Redigeringskommando</userinput
+>: run-script</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+
+<variablelist>
+<title
+>Google markerad text</title>
+
+<varlistentry>
+<term
+>Sök efter markerad text på Google.</term>
+<listitem>
+<para
+><userinput
+>Namn</userinput
+>: Google markerad text</para>
+<para
+><userinput
+>Ikon</userinput
+>: globe</para>
+<para
+><userinput
+>Körbart program</userinput
+>: xdg-open</para>
+<para
+><userinput
+>Väljare</userinput
+>: &quot;https://www.google.com/search?q=%{Document:Selection:Text}&quot;</para>
+<para
+><userinput
+>Redigeringskommando</userinput
+>: google</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+
+<variablelist>
+<title
+>Infoga UUID</title>
+
+<varlistentry>
+<term
+>Infoga en ny UUID varje gång åtgärden utförs.</term>
+<listitem>
+<para
+><userinput
+>Namn</userinput
+>: Infoga UUID</para>
+<para
+><userinput
+>Körbart program</userinput
+>: echo</para>
+<para
+><userinput
+>Väljare</userinput
+>: %{UUID}</para>
+<para
+><userinput
+>Utmatning</userinput
+>: Infoga vid markörposition</para>
+<para
+><userinput
+>Redigeringskommando</userinput
+>: uuid</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+
+<variablelist>
+<title
+>Clang formatera hela filen</title>
+
+<varlistentry>
+<term
+>Kör clang-format på aktuell fil på disk. Dokumentet läses in igen efteråt.</term>
+<listitem>
+<para
+><userinput
+>Namn</userinput
+>: Clang formatera hela filen</para>
+<para
+><userinput
+>Körbart program</userinput
+>: clang-format</para>
+<para
+><userinput
+>Väljare</userinput
+>: -i %{Document:FileName}</para>
+<para
+><userinput
+>Arbetskatalog</userinput
+>: %{Document:Path}</para>
+<para
+><userinput
+>Spara</userinput
+>: Aktuellt dokument</para>
+<para
+><userinput
+>Läs in igen</userinput
+>: Ja</para>
+<para
+><userinput
+>Redigeringskommando</userinput
+>: clang-format-file</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+
+<variablelist>
+<title
+>Clang formatera markerad text</title>
+
+<varlistentry>
+<term
+>Kör clang-format enbart för den markerade texten i aktuellt dokument.</term>
+<listitem>
+<para
+><userinput
+>Namn</userinput
+>: Clang formatera markerad text</para>
+<para
+><userinput
+>Körbart program</userinput
+>: clang-format</para>
+<para
+><userinput
+>Väljare</userinput
+>: -assume-fileName: %{Document:FileName}</para>
+<para
+><userinput
+>Arbetskatalog</userinput
+>: %{Document:Path}</para>
+<para
+><userinput
+>Inmatning</userinput
+>: %{Document:Selection:Text}</para>
+<para
+><userinput
+>Utmatning</userinput
+>: Ersätt markerad text</para>
+<para
+><userinput
+>Redigeringskommando</userinput
+>: clang-format-selection</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+
+<variablelist>
+<title
+>Qt Quick 2 förhandsgranskning (qmlscene)</title>
+
+<varlistentry>
+<term
+>Förhandsgranskar aktuell QML-fil i qmlscene.</term>
+<listitem>
+<para
+><userinput
+>Namn</userinput
+>: Qt Quick 2 förhandsgranskning (qmlscene)</para>
+<para
+><userinput
+>Körbart program</userinput
+>: qmlscene</para>
+<para
+><userinput
+>Väljare</userinput
+>: %{Document:FileName}</para>
+<para
+><userinput
+>Spara</userinput
+>: Aktuellt dokument</para>
+<para
+><userinput
+>Arbetskatalog</userinput
+>: %{Document:Path}</para>
+<para
+><userinput
+>Redigeringskommando</userinput
+>: qml-preview</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+
+<variablelist>
+<title
+>JSON formatera hela filen</title>
+
+<varlistentry>
+<term
+>Formatera hela JSON-filen.</term>
+<listitem>
+<para
+><userinput
+>Namn</userinput
+>: JSON formatera hela filen</para>
+<para
+><userinput
+>Ikon</userinput
+>: application-json</para>
+<para
+><userinput
+>Körbart program</userinput
+>: jq</para>
+<para
+><userinput
+>Väljare</userinput
+>: %{Document:FileName}</para>
+<para
+><userinput
+>Spara</userinput
+>: Aktuellt dokument</para>
+<para
+><userinput
+>Arbetskatalog</userinput
+>: %{Document:Path}</para>
+<para
+><userinput
+>Utmatning</userinput
+>: Ersätt aktuellt dokument</para>
+<para
+><userinput
+>Redigeringskommando</userinput
+>: json-format-file</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+
+<variablelist>
+<title
+>XML formatera hela filer</title>
+
+<varlistentry>
+<term
+>Formatera hela XML-filen.</term>
+<listitem>
+<para
+><userinput
+>Namn</userinput
+>: JSON formatera hela filen</para>
+<para
+><userinput
+>Ikon</userinput
+>: application-xml</para>
+<para
+><userinput
+>Körbart program</userinput
+>: xmllint</para>
+<para
+><userinput
+>Väljare</userinput
+>: --format %{Document:FileName}</para>
+<para
+><userinput
+>Spara</userinput
+>: Aktuellt dokument</para>
+<para
+><userinput
+>Arbetskatalog</userinput
+>: %{Document:Path}</para>
+<para
+><userinput
+>Utmatning</userinput
+>: Ersätt aktuellt dokument</para>
+<para
+><userinput
+>Redigeringskommando</userinput
+>: xml-format-file</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+</sect1>
+
+<sect1 id="kate-application-plugin-backtracebrowser">
+<!--https://kate-editor.org/2008/08/12/kate-fast-backtrace-navigation/-->
+<title
+>Insticksprogrammet Bläddring i bakåtspårning</title>
+
+<sect2 id="backtracebrowser-using">
+<title
+>Använda insticksprogrammet Bläddring i bakåtspårning</title>
+
+<para
+>Insticksprogrammet är avsett för utvecklare och användare har troligtvis begränsad användning av det. Det visar en bakåtspårning levererad av gdb i en listvy i en &kate; verktygsvy. Att klicka på ett objekt öppnar den markerade filen och går till rätt radnummer. Det fungerar för bakåtspårningar skapade på den egna datorn, men fungerar också för bakåtspårningar från andra, t.ex. <filename
+>/home/exempel/qt-copy/.../qwidget.cpp</filename
+> hittas också på andra datorer. För att det ska fungera måste katalogerna där källkoden finns indexeras. </para>
+
+<para
+>Ibland finns det flera filer med samma namn, t.ex.</para>
+
+<simplelist>
+<member
+><filename
+>kdegraphics/okular/generators/dvi/config.h</filename
+></member>
+<member
+><filename
+>kdepim-runtime/resources/gmail/saslplugin/config.h</filename
+></member>
+</simplelist>
+
+<para
+>För att välja rätt alternativ, väljer insticksprogrammet webbadressens två sista delarna, som i detta fall skulle vara</para>
+
+<simplelist>
+<member
+><filename
+>dvi/config.h</filename
+></member>
+<member
+><filename
+>saslplugin/config.h</filename
+></member>
+</simplelist>
+
+<para
+>Och därefter hittar insticksprogrammet oftast den rätta.</para>
+
+<para
+>Indexering av master och en gren leder naturligtvis till kollisioner.</para>
+
+</sect2>
+
+<sect2 id="backtracebrowser-config">
+<title
+>Inställning</title>
+
+<para
+>Lägg till katalogerna som innehåller källkoden på inställningssidan.</para>
+
+<screenshot id="screenshot-backtrace-settings">
+<screeninfo
+>Bläddring i bakåtspårning</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="backtrace-settings.png" format="PNG"/></imageobject>
+<caption
+>Anpassa sökvägar med verktygsvyn i Bläddring i bakåtspårning</caption>
+</mediaobject>
+</screenshot>
+
+<para
+>Att klicka på <guibutton
+>Ok</guibutton
+> påbörjar indexeringen. Öppna verktygsvyn <guilabel
+>Bläddring i bakåtspårning</guilabel
+> när indexeringen är klar.</para>
+<para
+>Nu kan en bakåtspårning läsas in från klippbordet (t.ex. om du klickat på <guibutton
+>Kopiera till klippbordet</guibutton
+> i &drkonqi;) eller från en fil.</para>
+
+</sect2>
+
+</sect1>
+
+<sect1 id="kate-application-plugin-build">
+<!--https://kate-editor.org/2011/06/21/kate-plugin-updates-part-1/ -->
+<sect1info>
+<authorgroup>
+<author
+><firstname
+>Salma</firstname
+> <surname
+>Sultana</surname
+></author>
+<author
+>&TC.Hollingsworth; &TC.Hollingsworth.mail;</author>
+</authorgroup>
+</sect1info>
+<title
+>Bygginsticksprogram</title>
+
+<sect2 id="build-intro">
+<title
+>Inledning</title>
+
+<para
+>Bygginsticksprogrammet låter dig utföra åtgärder som bygg, rensa och kompilera för ett projekt.</para>
+
+</sect2>
+
+<sect2 id="build-using">
+<title
+>Använda bygginsticksprogrammet</title>
+
+<para
+>Bygginsticksprogrammet lägger till verktygsvyn <guilabel
+>Byggutmatning</guilabel
+> längst ner och menyn <guimenu
+>Bygg</guimenu
+> i menyraden. Verktygsvyn kan användas för att anpassa inställningar av byggmål, medan menyn kan användas för att bygga, rensa och kompilera.</para>
+
+<screenshot id="screenshot-build-output">
+<screeninfo
+>Byggutmatning</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="build-output.png" format="PNG"/></imageobject>
+</mediaobject>
+</screenshot>
+
+<para
+>Verktygsvyn <guilabel
+>Byggutmatning</guilabel
+> har två flikar:</para>
+
+<itemizedlist>
+<listitem
+><para
+><guilabel
+>Målinställningar</guilabel
+></para
+></listitem>
+<listitem
+><para
+><guilabel
+>Utmatning</guilabel
+></para
+></listitem>
+</itemizedlist>
+
+<sect3 id="build-using-target-settings">
+<title
+>Fliken målinställningar</title>
+
+<para
+>Fliken målinställningar kan användas för att anpassa diverse byggmål och definiera måluppsättningar.</para>
+
+<para
+>För att ändra namn eller kommandon, dubbelklicka på posterna i tabellen och använd kombinationsrutan för att välja aktiv måluppsättning. Använd kryssrutan framför varje mål för att definiera ett standardvärde.</para>
+
+<para
+>En ny måluppsättning innehåller flera olika inställningsalternativ:</para>
+
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Arbetskatalog</guilabel
+></term>
+<listitem
+><para
+>Här kan sökvägen till projektet anges. Lämna den tom för att använda katalogen där aktuellt dokument finns.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Bygg</guilabel
+></term>
+<listitem
+><para
+>Alternativen låter dig definiera byggkommandot. Det är normalt inställt till <command
+>make</command
+>.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Rensa</guilabel
+></term>
+<listitem
+><para
+>Alternativen låter dig definiera rensningskommandot. Det är normalt inställt till <command
+>make clean</command
+>.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Config</guilabel
+></term>
+<listitem
+><para
+>Alternativet låter dig definiera kommandot config. Det är normalt inställt till <command
+>cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=/usr/local ../</command
+></para
+></listitem>
+</varlistentry>
+</variablelist>
+
+<para
+>Längst upp har insticksprogrammet en verktygsrad med följande knappar:</para>
+
+<simplelist>
+<member
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="dialog-ok-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+></guiicon
+> Bygg markerat mål</member>
+<member
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="list-add-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+></guiicon
+> Lägg till nytt mål</member>
+<member
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="document-new-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+></guiicon
+> Skapa en ny byggmåluppsättning</member>
+<member
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="edit-copy-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+></guiicon
+> Kopiera kommando eller måluppsättning</member>
+<member
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="edit-delete-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+></guiicon
+> Ta bort nuvarande kommando eller måluppsättning</member>
+</simplelist>
+
+</sect3>
+
+<sect3 id="build-using-output">
+<title
+>Fliken Utmatning</title>
+
+<para
+>Fliken <guilabel
+>Utmatning</guilabel
+> visar terminalutmatningen som genererades av det senaste kommandot.</para>
+
+<para
+>Använd skjutreglaget längst upp för att dölja eller visa utmatningskategorier:</para>
+
+<para
+><guilabel
+>Fullständig utmatning</guilabel
+>, <guilabel
+>Tolkad utmatning</guilabel
+>, <guilabel
+>Fel och varningar</guilabel
+> eller <guilabel
+>Bara fel</guilabel
+> </para>
+
+<para
+>Varje rad innehåller ett meddelande, filnamnet och radnumret om tillgängligt. Att klicka på felet eller varningen går till lämplig fil och placerar markören på motsvarande radnummer.</para>
+
+<para
+>För att gå till föregående fel, tryck på <keycombo action="simul"
+>&Alt;&Shift;<keysym
+>Vänster</keysym
+></keycombo
+>. För att gå till nästa fel, tryck på <keycombo action="simul"
+>&Alt;&Shift;<keysym
+>Höger</keysym
+></keycombo
+>.</para>
+
+</sect3>
+</sect2>
+
+<sect2 id="build-menu">
+<title
+>Menystruktur</title>
+
+<variablelist id="build-build">
+<varlistentry>
+<term
+><menuchoice id="build-targets"
+><guimenu
+>Bygg</guimenu
+><guisubmenu
+>Välj mål</guisubmenu
+> </menuchoice
+></term>
+<listitem
+><para
+>Välj från en lista med mål inställda av användaren.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="build-default">
+<term
+><menuchoice
+><guimenu
+>Bygg</guimenu
+><guimenuitem
+>Bygg standardmål</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Bygger målet som är definierat som standardmål i den aktiva måluppsättningen.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="build-previous">
+<term
+><menuchoice
+><guimenu
+>Bygg</guimenu
+><guimenuitem
+>Bygg föregående mål</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Byt till föregående mål inställt av användaren.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="build-stop">
+<term
+><menuchoice
+><guimenu
+>Bygg</guimenu
+><guimenuitem
+>Stoppa</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Stoppa byggning av ett mål.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="build-previous-error">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+>&Ctrl;&Alt;<keysym
+>Vänster</keysym
+></keycombo
+></shortcut
+> <guimenu
+>Bygg</guimenu
+><guimenuitem
+>Föregående fel</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Flyttar markören till platsen för det föregående felet i dokumentet.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="build-next-error">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+>&Ctrl;&Alt;<keysym
+>Höger</keysym
+></keycombo
+></shortcut
+> <guimenu
+>Bygg</guimenu
+><guimenuitem
+>Nästa fel</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Flyttar markören till platsen för det nästa felet i dokumentet.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+</sect2>
+
+<sect2 id="build-ack">
+<title
+>Tack och erkännanden</title>
+<para
+>&kate;s bygginsticksprogram är skrivet av Kåre Särs.</para>
+<para
+>Särskilt tack till deltagaren i Google Code-In 2011, Salma Sultana, för att ha skrivit stora delar av det här avsnittet.</para>
+</sect2>
+</sect1>
+
+<sect1 id="kate-application-plugin-closeexceptlike">
+
+<title
+>Stäng förutom/som insticksprogram</title>
+
+<sect2 id="closeexceptlike-intro">
+<title
+>Inledning</title>
+
+<para
+>Insticksprogrammet låter dig stänga en grupp dokument baserat på deras filändelse och sökväg.</para>
+
+</sect2>
+
+<sect2 id="closeexceptlike-using">
+<title
+>Använda insticksprogrammet Stäng förutom/som</title>
+
+<para
+>Antag att följande dokument är öppna i &kate;:</para>
+
+<simplelist>
+<member
+>/tmp/subfolder/test.h</member>
+<member
+>/tmp/test.cpp</member>
+<member
+>/tmp/test.txt</member>
+</simplelist>
+
+<para
+>Då har du följande alternativ för att stänga dokument, som visas på skärmbilden:</para>
+
+<screenshot id="screenshot-closeexceptlike">
+<screeninfo
+>Stäng förutom</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="close-except-like.png" format="PNG"/></imageobject>
+</mediaobject>
+</screenshot>
+
+<para
+>Använd kryssrutan för det sista alternativet i listan för att aktivera eller inaktivera en bekräftelsedialogruta. Det valda alternativet gäller båda stängningsalternativen. </para>
+
+</sect2>
+
+<sect2 id="closeexceptlike-menu">
+<title
+>Menystruktur</title>
+
+<variablelist>
+<varlistentry id="file-close-except">
+<term
+><menuchoice
+><guimenu
+>Arkiv</guimenu
+> <guisubmenu
+>Stäng förutom</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+><action
+>Stäng</action
+> alla öppna dokument, <emphasis
+>förutom</emphasis
+> de som motsvarar sökvägen eller filändelsen som väljes i undermenyn.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="file-close-like">
+<term
+><menuchoice
+><guimenu
+>Arkiv</guimenu
+> <guisubmenu
+>Stäng som</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+><action
+>Stäng</action
+> alla öppna dokument som motsvarar sökvägen eller filändelsen som väljes i undermenyn.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+
+</sect1>
+
+<sect1 id="kate-application-plugin-colorpicker">
+
+<title
+>Insticksprogrammet Färghämtare</title>
+
+<sect2 id="colorpicker-intro">
+<title
+>Inledning</title>
+
+<para
+>Insticksprogrammet lägger till en färggranskare/färghämtare på plats i texten (t.ex. <literal
+>#FFFFFF</literal
+>, <literal
+>vit</literal
+>).</para>
+
+<para
+>För att ladda insticksprogrammet, öppna först &kate;s inställningsdialogruta under <menuchoice
+><guimenu
+>Inställningar</guimenu
+> <guimenuitem
+>Anpassa &kate;...</guimenuitem
+></menuchoice
+> . Markera därefter <guilabel
+>Färghämtare</guilabel
+> och stäng dialogrutan. </para>
+</sect2>
+
+<sect2 id="colorpicker-config">
+<title
+>Inställning</title>
+
+<para
+>På färghämtarens inställningssida i &kate;s inställningar kan du ställa in följande alternativ för insticksprogrammets beteende.</para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><guilabel
+>Visa förhandsgranskning av kända färgnamn</guilabel
+></term>
+<listitem>
+<para
+>Om färghämtaren ska visas för kända färgnamn (t.ex. <literal
+>skyblue</literal
+>). Se <ulink url="https://www.w3.org/TR/SVG11/types.html#ColorKeywords"
+>den här sidan</ulink
+> för en lista med färger.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Placera förhandsgranskning efter textfärg</guilabel
+></term>
+<listitem>
+<para
+>Om förhandsgranskningen på plats ska placeras efter färgen i texten.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Matchning av hexadecimal färg</guilabel
+></term>
+<listitem>
+<para
+>Här kan du välja det bästa matchningsalternativet för färgerna som används i din kod.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+
+</sect1>
+
+<sect1 id="kate-application-plugin-ctags">
+<!--https://kate-editor.org/2012/11/02/using-the-projects-plugin-in-kate/-->
+<title
+>CTags-insticksprogram</title>
+
+<sect2 id="ctags-intro">
+<title
+>Inledning</title>
+
+<para
+><ulink url="https://en.wikipedia.org/wiki/Ctags"
+>CTags</ulink
+> skapar en indexfil (eller taggfil) av språkobjekt som hittas i källkodsfiler, som gör det möjligt att snabbt och enkelt lokalisera objekten med det här insticksprogrammet i &kate;. </para>
+<para
+>En tagg betecknar ett språkobjekt som har en indexpost tillgänglig (eller alternativt, indexposten skapad för objektet).</para>
+
+<para
+>Att skapa taggar stöds för de här <ulink url="http://ctags.sourceforge.net/languages.html"
+>programspråken</ulink
+>. </para>
+</sect2>
+
+<sect2 id="ctags-config">
+<title
+>Inställning</title>
+
+<para
+>Insticksprogrammet CTags använder två olika databasfiler för indexet.</para>
+
+<para
+>På CTags inställningssida i &kate;s inställningar kan kataloger som innehåller källkod läggas till eller tas bort, och den gemensamma CTags databasen kan genereras om.</para>
+
+<sect3 id="ctags-config-common">
+<title
+>Gemensamt index</title>
+
+<screenshot id="screenshot-ctags-global-settings">
+<screeninfo
+>Inställningar av CTags</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="ctags-global-setting.png" format="PNG"/></imageobject>
+<caption
+>Anpassa CTags globala databas</caption>
+</mediaobject>
+</screenshot>
+
+<para
+>Längst ner på inställningssidan kan <guilabel
+>CTags-kommando</guilabel
+> anpassas. </para>
+
+<para
+>För mer information om alla tillgängliga väljare, läs CTags manualsida. Manualsidan är tillgänglig i Hjälpcentralen, och det går också att skriva in webbadressen <emphasis
+>man:/ctags</emphasis
+> direkt i &konqueror;. </para>
+
+<para
+>Att klicka på <guibutton
+>Uppdatera</guibutton
+> startar indexeringen. Stäng dialogrutan när indexeringen är färdig.</para>
+</sect3>
+
+<sect3 id="ctags-config-session">
+<title
+>Sessionsindex</title>
+
+<para
+>Öppna vyn <guilabel
+>CTags</guilabel
+> för att anpassa sessionsindexet.</para>
+
+<variablelist>
+<varlistentry>
+<term
+><menuchoice>
+<guimenu
+>Indexeringsmål</guimenu>
+</menuchoice
+></term>
+<listitem>
+<para
+>Under den här fliken kan kataloger som innehåller källkoden läggas till och tas bort, och den sessionsspecifika CTags databasen kan manuellt genereras om.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><menuchoice>
+<guimenu
+>Databas</guimenu>
+</menuchoice
+></term>
+<listitem>
+<screenshot id="screenshot-ctags-session-settings">
+<screeninfo
+>Databasinställningar</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="ctags-session-setting.png" format="PNG"/></imageobject>
+<caption
+>Anpassa CTags sessionsdatabas</caption>
+</mediaobject>
+</screenshot>
+<para
+>Välj en annan CTags databasfil, anpassa CTags-kommandot eller återgå till standardkommandot.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect3>
+
+</sect2>
+
+<sect2 id="ctags-using">
+<title
+>Använda CTags insticksprogrammet</title>
+
+<para
+>Placera muspekaren på ett språkobjekt, såsom en funktion, symbol, etc., som du är intresserad av och välj därefter en av åtgärderna i menyn <guimenu
+>CTags</guimenu
+> för att gå till raden och filen där objektet är definierat eller deklarerat.</para>
+<para
+>Normalt har alternativen i menyn <guimenu
+>CTags</guimenu
+> inga tilldelade genvägar. Använd <ulink url="help:/fundamentals/shortcuts.html"
+>editorn av snabbtangenter</ulink
+> för att ställa in egna genvägar.</para>
+
+<para
+>Som alternativ, använd sökfältet under fliken <guilabel
+>Slå upp</guilabel
+> i CTags vyn.</para>
+<para
+>Att skriva in tecken i sökfältet påbörjar sökningen och visar matchande namn på språkobjekt som funktioner, klasser, symboler, etc., tillsammans med typ och filnamn.</para>
+<para
+>Välj ett objekt i listan för att gå till motsvarande rad i källkodsfilen.</para>
+<!--FIXME why Tag Type here but Name Kind in Project plugin, is there really any difference?-->
+
+<!--FIXME completion as in Project plugin? -->
+
+</sect2>
+
+<sect2 id="ctags-menu">
+<title
+>Menystruktur</title>
+
+<variablelist>
+
+<varlistentry id="ctags-jumpback">
+<term
+><menuchoice
+><guimenu
+>CTags</guimenu
+> <guisubmenu
+>Gå tillbaka ett steg</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Navigera bakåt i historiken till den senast besökta taggen.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="ctags-lookup">
+<term
+><menuchoice
+><guimenu
+>CTags</guimenu
+> <guisubmenu
+>Slå upp nuvarande text</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Visar fliken <guilabel
+>Slå upp</guilabel
+> i CTags vyn och visar alla språkobjekt som motsvarar den nuvarande textmarkeringen i listan.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="ctags-gotodeclaration">
+<term
+><menuchoice
+><guimenu
+>CTags</guimenu
+> <guisubmenu
+>Gå till deklaration</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Om markören är i ett definitionsobjekt öppnas dokumentet som innehåller motsvarande deklaration om det behövs, dess vy aktiveras och markören placeras i början på deklarationen.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="ctags-gotodefinition">
+<term
+><menuchoice
+><guimenu
+>CTags</guimenu
+> <guisubmenu
+>Gå till definition</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Om markören är i ett deklarationsobjekt öppnas dokumentet som innehåller motsvarande definitionen om det behövs, dess vy aktiveras och markören placeras i början på definitionen.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+<!--context menu with Lookup Current Text, Goto Declaration, Goto Definition -->
+
+</sect2>
+
+</sect1>
+<!--https://frinring.wordpress.com/2017/11/07/ktexteditorpreviewplugin-0-2-1-last-stand-alone/-->
+<!-- https://frinring.wordpress.com/2017/08/21/look-what-you-have-donewwdo/-->
+<sect1 id="kate-application-plugin-preview">
+<title
+>Insticksprogram för dokumentförhandsgranskning</title>
+
+<sect2 id="preview-introduction">
+<title
+>Inledning</title>
+<para
+>Insticksprogrammet aktiverar en direkt förhandsgranskning av textdokumentet som för närvarande redigeras med det slutliga formatet i sidoraden. Så när t.ex. &Markdown;-text eller en &SVG;-bild redigeras, är resultatet omedelbart synligt intill källtexten. </para>
+
+<para
+>Insticksprogrammet använder &kparts;-insticksprogrammet som för närvarande är valt som det föredragna för dokumentets &MIME;-typ för visning. Om det inte finns något &kparts;-insticksprogram för typen är inte någon förhandsgranskning möjlig. </para>
+
+<para
+>För att ändra föredraget insticksprogram öppna modulen <guilabel
+>Filbindningar</guilabel
+> i systeminställningarna och redigera <guilabel
+>Önskad ordning av tjänster</guilabel
+> under fliken <guilabel
+>Inbäddning</guilabel
+>. </para>
+
+<table>
+<title
+>Några tillgängliga &kparts;-insticksprogram</title>
+<tgroup cols="2">
+<tbody>
+<row>
+<entry
+>&MIME;-typ</entry
+><entry
+>&kparts;-insticksprogram</entry>
+</row>
+<row>
+<entry
+>&Markdown;-text</entry
+><entry
+>KMarkdownWebViewPart eller OkularPart</entry>
+</row>
+<row>
+<entry
+>&SVG;-bild</entry
+><entry
+>SVGPart</entry>
+</row>
+<row>
+<entry
+>&Qt; UI-filer</entry
+><entry
+>KUIViewerPart</entry>
+</row>
+<row>
+<entry
+>&DOT; Graph-filer</entry
+><entry
+>KGraphviewerPart</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</sect2>
+
+<sect2 id="preview-menu">
+<title
+>Menystruktur</title>
+<variablelist>
+
+<varlistentry id="view-toolviews-show-preview">
+<term
+><menuchoice
+><guimenu
+>Visa</guimenu
+><guisubmenu
+>Verktygsvyer</guisubmenu
+> <guimenuitem
+>Visa förhandsgranskning</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Visar eller döljer &kate;s dokumentförhandsgranskning i en sidorad.</para>
+</listitem>
+</varlistentry>
+</variablelist>
+</sect2>
+
+<sect2 id="preview-interface">
+<title
+>Gränssnitt</title>
+<para
+>Knapparna ovanför förhandsgranskningsfönstret tillhandahåller följande åtgärder: </para>
+<itemizedlist>
+<listitem>
+<para
+>Lås förhandsgranskningen till ett givet dokument. Att välja alternativet försäkrar att om fokus ändras till att visa ett annat dokument i samma &kate;-fönster, följer inte förhandsgranskningen det dokumentet, utan fortsätter att förhandsgranska det här dokumentet.</para>
+</listitem>
+<listitem>
+<para
+>Aktivera eller inaktivera uppdateringar av förhandsgranskningen av aktuellt dokumentinnehåll</para>
+</listitem>
+<listitem>
+<para
+>Uppdatera förhandsgranskningen av aktuellt dokumentinnehåll manuellt</para>
+</listitem>
+<listitem>
+<para
+>En kombinationsmeny med åtgärder från &kparts;-insticksprogrammet</para>
+</listitem>
+</itemizedlist>
+</sect2>
+
+</sect1>
+
+<sect1 id="kate-application-plugin-documentswitcher">
+
+<title
+>Insticksprogrammet Dokumentbyte</title>
+
+<sect2 id="documentswitcher-menu">
+<title
+>Menystruktur</title>
+
+<variablelist>
+
+<varlistentry id="view-documentswitcher">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>Tabulator</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Visa</guimenu
+> <guisubmenu
+>Senast använda vyer</guisubmenu
+> </menuchoice
+></term>
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;&Shift;<keycap
+>Tabulator</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Visa</guimenu
+> <guisubmenu
+>Senast använda vyer (baklänges)</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+
+<para
+><action
+>Öppnar</action
+> en lista med senast visade dokument:</para>
+
+<screenshot id="screenshot-documentswitcher">
+<screeninfo
+>Senast visade dokument</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="documentswitcher.png" format="PNG"/></imageobject>
+</mediaobject>
+</screenshot>
+
+<para
+>Håll &Ctrl;-tangenten nertryckt och använd <keycap
+>Tabulator</keycap
+> för att gå framåt i listan. Håll dessutom nere &Shift;-tangenten för att vända på ordningen. </para>
+
+<para
+>Håll nere väljartangenterna <keycombo action="simul"
+>&Ctrl;<keycap
+>Tabulator</keycap
+></keycombo
+> och använd tangenterna <keysym
+>Uppåtpil</keysym
+>, <keysym
+>Neråtpil</keysym
+>, <keycap
+>Home</keycap
+>, eller <keycap
+>End</keycap
+> för att navigera i listan. Att trycka på en teckentangent går igenom alla objekt i listan där det första tecknet matchar i följd. Om väljartangenterna släpps byter vyn till dokumentet som är valt i listan. </para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+
+</sect1>
+
+
+<sect1 id="kate-application-plugin-fsbrowser">
+
+<title
+>Filsystembläddrare</title>
+
+<para
+>Filsystembläddraren är en katalogvy, som låter dig öppna filer i en katalog som visas i den nuvarande rutan.</para>
+
+<sect2 id="fsbrowser-menu">
+<title
+>Menystruktur</title>
+<variablelist>
+
+<varlistentry id="view-toolviews-show-filebrowser">
+<term
+><menuchoice
+><guimenu
+>Visa</guimenu
+> <guisubmenu
+>Verktygsvyer</guisubmenu
+> <guimenuitem
+>Visa Filsystembläddrare</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Visar eller döljer &kate;s filsystembläddrare.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+</sect2>
+
+<sect2 id="fsbrowser-interface">
+<title
+>Gränssnitt</title>
+
+<para
+>Uppifrån och ner, består filsystembläddraren av följande delar:</para>
+
+<variablelist>
+<varlistentry>
+<term
+>En verktygsrad</term>
+<listitem>
+<para
+>Den här innehåller vanliga navigationsknappar:</para>
+<variablelist>
+<varlistentry>
+<term
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="go-previous-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> Tillbaka</guiicon
+></term>
+<listitem
+><para
+>Gör att katalogvyn byter till katalogen som tidigare visades i historiken med kommandot <command
+>cd</command
+>. Knappen är inaktiv om det inte finns någon tidigare katalog.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="go-next-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> Framåt</guiicon
+></term>
+<listitem
+><para
+>Gör att katalogvyn byter till nästa katalog i historiken med kommandot <command
+>cd</command
+>. Knappen är inaktiv om det inte finns någon nästa katalog.</para
+></listitem>
+</varlistentry>
+<!--varlistentry>
+<term
+><guibutton
+>Parent Folder</guibutton
+></term>
+<listitem
+><para
+>This will cause the folder view to <command
+>cd</command
+> to the immediate parent of the currently displayed
+folder if possible.</para
+></listitem>
+</varlistentry-->
+<varlistentry>
+<term
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="bookmarks-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> Bokmärken</guiicon
+></term>
+<listitem
+><para
+>Visar en undermeny för att redigera eller lägga till bokmärken, och för att lägga till en ny bokmärkeskatalog.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="system-switch-user-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> Aktuell dokumentkatalog</guiicon
+></term>
+<listitem
+><para
+>Den här knappen gör att katalogvyn byter till katalogen för det nuvarande aktiva dokumentet med kommandot <command
+>cd</command
+>, om möjligt. Knappen är inaktiv om det nuvarande dokumentet är en ny, osparad fil, eller om katalogen som den finns i inte kan bestämmas.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="games-config-options-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> Alternativ</guiicon
+></term>
+<listitem>
+<variablelist>
+<varlistentry>
+<term
+><guimenuitem
+>Kort format</guimenuitem
+></term>
+<listitem
+><para
+>Visar bara filnamnen.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guimenuitem
+>Detaljerat format</guimenuitem
+></term>
+<listitem
+><para
+>Visar filernas <guilabel
+>Namn</guilabel
+>, <guilabel
+>Datum</guilabel
+>, och <guilabel
+>Storlek</guilabel
+>.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guimenuitem
+>Trädformat</guimenuitem
+></term>
+<listitem
+><para
+>Som Kort format, men kataloger kan expanderas för att se deras innehåll.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guimenuitem
+>Detaljerat trädformat</guimenuitem
+></term>
+<listitem
+><para
+>Det tillåter också att kataloger expanderas, men visar de ytterligare kolumnerna tillgängliga i Detaljerat format.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guimenuitem
+>Visa dolda filer</guimenuitem
+></term>
+<listitem
+><para
+>Visar filer som normalt döljs av operativsystemet.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guimenuitem
+>Synkronisera automatiskt med aktuellt dokument</guimenuitem
+></term>
+<listitem
+><para
+>När alternativet är aktiverat använder filsystembläddraren <command
+>cd</command
+> för att automatiskt gå till katalogen där dokumentet som för närvarande är öppet i redigeringsområdet finns, varje gång det ändras.</para
+></listitem>
+</varlistentry>
+</variablelist>
+</listitem>
+</varlistentry>
+</variablelist>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>En platsangivelse</term>
+<listitem>
+<para
+>Den visar en länkstig till katalogen som för närvarande är öppen, på liknande sätt som i &dolphin;. Du kan klicka på vilken katalog som helst för att gå till den, eller klicka på någon av pilarna till vänster om en katalog för att välja vilken katalog som helst under den. Du kan också välja i listan med platser genom att klicka på ikonen längst till vänster i länkstigen, där en ikon visas som representerar nuvarande platser.</para>
+
+<para
+>Du kan också klicka till höger om länkstigen för att ändra den till en textruta, där du kan skriva in sökvägen till katalogen som ska visas. Inmatningsrutan behåller en lista med de senast inskrivna sökvägarna. För att välja en, använd pilknappen till höger om fältet.</para>
+<tip
+><para
+>Inmatningsrutan har automatisk komplettering av kataloger. Kompletteringsmetoden kan anges via menyn som visas genom att klicka med höger musknapp på textfältet.</para
+></tip>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>En katalogvy</term>
+<listitem
+><para
+>Det här är &kde;:s standardkatalogvy.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Ett filterfält</term>
+<listitem>
+<para
+>Filterfältet låter dig skriva in ett filter för filerna som visas i katalogvyn. Filtret använder vanliga jokertecken, där mönster måste skiljas åt av blanktecken. Till exempel: <userinput
+>*.cpp *.h *.moc</userinput
+>.</para>
+<para
+>För att visa alla filer, skriv in en ensam asterisk <userinput
+>*</userinput
+>.</para>
+<para
+>Filterfältet sparar de senaste tio filtren mellan sessioner. För att använda ett, tryck på pilknappen till höger i fältet och välj önskad filtersträng. Filtret kan inaktiveras genom att klicka på knappen <guibutton
+>Rensa text</guibutton
+> till vänster om pilknappen för automatisk komplettering.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+</sect2>
+
+
+<sect2 id="fsbrowser-config">
+<title
+>Inställning</title>
+
+<para
+>Insticksprogrammet kan anpassas på sidan <guilabel
+>Filsystembläddrare</guilabel
+> i <link linkend="configuring-kate-configdialog"
+>&kate;s inställningsruta</link
+>.</para>
+
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Verktygsrad</guilabel
+></term>
+<listitem
+><para
+>Anpassa knapparna i filsystembläddrarens verktygsrad genom att flytta de du vill ha aktiverade till listan <guilabel
+>Markerade åtgärder</guilabel
+>, och ordna dem med pilknapparna vid sidan om listan.</para>
+ </listitem>
+</varlistentry>
+
+</variablelist>
+</sect2>
+</sect1>
+
+<sect1 id="kate-application-plugin-documents">
+<title
+>Dokumentlistan</title>
+<!-- https://kate-editor.org/2010/09/12/kate-tree-view-plugin-update/-->
+<sect2 id="documents-intro">
+<title
+>Inledning</title>
+
+<para
+><indexterm
+><primary
+>Dokumentlista</primary
+></indexterm
+> Dokumentlistan visar en lista över alla dokument som för närvarande är öppna i &kate;. Ändrade filer har en liten <guiicon
+>diskettikon</guiicon
+> till vänster för att ange tillståndet.</para>
+
+<para
+>Längst upp har dokumentlistan en verktygsrad med följande knappar:</para>
+
+<simplelist>
+<member
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="document-new-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+></guiicon
+> Skapa nytt dokument</member>
+<member
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="document-open-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+></guiicon
+> Öppna ett befintligt dokument</member>
+<member
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="go-up-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+></guiicon
+> Föregående dokument</member>
+<member
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="go-down-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+></guiicon
+> Nästa dokument</member>
+<member
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="document-save-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+></guiicon
+> Spara aktuellt dokument</member>
+<member
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="document-save-as-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+></guiicon
+>  Spara aktuellt dokument med ett nytt namn</member>
+</simplelist>
+
+<para
+>Normalt visas dokumentlistan i <guimenuitem
+>Trädläge</guimenuitem
+>, vilket visar katalogstrukturen som omger alla öppna dokument. <guimenuitem
+>Listläge</guimenuitem
+> är också tillgängligt, som visar en enkel lista över alla öppna dokument. Det går att byta läge genom att högerklicka på listan och välja i menyn <guisubmenu
+>Visningsläge</guisubmenu
+>.</para>
+
+<para
+>Om två eller flera filer med samma namn (placerade i olika kataloger) är öppna i <guimenuitem
+>Listläge</guimenuitem
+>, namnet på den andra inleds med <quote
+>(2)</quote
+> och så vidare. Filens verktygstips visar det fullständiga namnet inklusive sökvägen, vilket gör det möjligt att välja den önskade.</para
+> <para
+>Klicka på dokumentnamnet i listan för att visa ett dokument i fönstret som för närvarande är aktivt.</para>
+
+<para
+>Den sammanhangsberoende menyn har några vanliga alternativ från menyn <guimenu
+>Arkiv</guimenu
+>.</para>
+
+<para
+>Dessutom finns filhanteringsalternativ för att byta namn på eller ta bort filen. Med <guimenuitem
+>Kopiera filsökväg</guimenuitem
+> kan dokumentets fullständiga sökväg kopieras till klippbordet.</para>
+
+<para
+>Det går att sortera listan på några olika sätt genom att högerklicka på listan och välja i menyn <guisubmenu
+>Sortera enligt</guisubmenu
+>. Alternativen är: <variablelist>
+
+<varlistentry>
+<term
+><guimenuitem
+>Dokumentnamn</guimenuitem
+></term>
+<listitem
+><para
+>Listar dokumenten alfabetiskt enligt deras namn.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guimenuitem
+>Dokumentsökväg</guimenuitem
+></term>
+<listitem
+><para
+>Listar dokumenten alfabetiskt enligt sökvägen till dem.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guimenuitem
+>Öppningsordning</guimenuitem
+></term>
+<listitem
+><para
+>Listar dokumenten i den ordning de öppnades.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</para>
+
+<para
+>Dokumentlistan visar normalt historiken genom att skugga posterna för de senaste dokumenten med en bakgrundsfärg. Om dokumentet har redigerats, tonas extra färg in. Det senaste dokumentet har starkast färg, så att du lätt hittar dokumenten du arbetar med. Funktionen kan stängas av på sidan <link linkend="config-dialog-documents"
+>Dokument</link
+> i inställningsdialogrutan.</para>
+<para
+>Den normala platsen för dokumentlistan i &kate;s fönster är till vänster om redigeringsområdet.</para>
+
+</sect2>
+
+<sect2 id="documents-menus">
+<title
+>Menystruktur</title>
+
+<variablelist>
+
+<varlistentry id="view-document-previous">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+>&Alt;<keysym
+>Uppåtpil</keysym
+></keycombo
+></shortcut
+> <guimenu
+>Visa</guimenu
+> <guimenuitem
+>Föregående dokument</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Öppnar dokumentet som visas ovanför dokumentet som för närvarande är öppet i dokumentlistan.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-document-next">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+>&Alt;<keysym
+>Neråtpil</keysym
+></keycombo
+></shortcut
+> <guimenu
+>Visa</guimenu
+> <guimenuitem
+>Nästa dokument</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Öppnar dokumentet som visas nedanför dokumentet som för närvarande är öppet i dokumentlistan.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-active">
+<term
+><menuchoice
+><guimenu
+>Visa</guimenu
+><guimenuitem
+>Visa aktivt</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Visar dokumentet som för närvarande är öppet i dokumentlistan.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+
+<sect2 id="config-dialog-documents">
+<title
+>Inställning</title>
+
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Bakgrundsskuggning</guilabel
+></term>
+<listitem
+><para
+>Den här delen låter dig aktivera eller inaktivera visualiseringen med bakgrundsskuggning av senaste aktiviteter, och välja vilka färger att använda om den är aktiverad.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Sortera enligt</guilabel
+></term>
+<listitem
+><para
+>Ställ in hur du vill att dokumentlistan ska sorteras. Det kan också ställas in från menyn som visas med höger musknapp i dokumentlistan.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Visningsläge</guilabel
+></term>
+<listitem
+><para
+>Det här tillhandahåller två alternativ som påverkar visningen i verktygsvyn Dokument. Alternativet <guilabel
+>Trädvy</guilabel
+> visar dokumenten i ett träd under katalogerna de befinner sig i, medan <guilabel
+>Listvy</guilabel
+> visar en enkelt lista med dokument. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Visa fullständig sökväg</guilabel
+></term>
+<listitem
+><para
+>När trädvyn och detta alternativ är aktiverat, visas den fullständiga sökvägen i filsystemet till katalogen för de katalogposter som visas i verktygsvyn Dokument, förutom själva katalogens namn. Det har ingen effekt i listvyn.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Visa verktygsrad</guilabel
+></term>
+<listitem
+><para
+>När trädvyn och det här alternativet är aktiverade, visas en verktygsrad med åtgärder som <guibutton
+>Spara</guibutton
+> ovanför dokumentlistan. Avmarkera alternativet om verktygsraden ska vara dold.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Visa stängningsknapp</guilabel
+></term>
+<listitem
+><para
+>När alternativet är aktiverat, visar &kate; en stängningsknapp för öppnade dokument när musen hålls över.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+
+</sect1>
+
+<sect1 id="kate-application-plugin-gdb">
+<!--https://kate-editor.org/2011/06/23/kate-plugin-updates-part-2/-->
+<sect1info>
+<authorgroup>
+<author
+><firstname
+>Martin</firstname
+> <surname
+>Gergov</surname
+></author>
+<author
+>&TC.Hollingsworth; &TC.Hollingsworth.mail;</author>
+</authorgroup>
+</sect1info>
+<title
+>Insticksprogram för &gdb;</title>
+
+<sect2 id="gdb-intro">
+<title
+>Inledning</title>
+
+<para
+>Insticksprogrammet för &gdb; i &kate; tillhandahåller ett enkelt gränssnitt för den populära avlusaren från &GNU;-projektet.</para>
+
+<important>
+<para
+>Tidigare erfarenhet av &gdb; rekommenderas starkt. För mer information om att använda &gdb;, besök <ulink url="https://www.gnu.org/software/gdb/"
+>&gdb;:s hemsida</ulink
+>.</para>
+</important>
+
+<para
+>Insticksprogrammet för &gdb; kan aktiveras på <link linkend="config-dialog-plugins"
+>sidan med insticksprogram i &kate;s inställningar</link
+>.</para>
+
+<para
+>För att insticksprogrammet ska fungerar riktigt, måste du ha en källkodsfil (av vilken typ som helst som stöds av &gdb;) och ett körbart program.</para>
+
+<tip>
+<para
+>Om du kompilerar med &gcc;/<command
+>g++</command
+> bör du kanske använda kommandoradsväljaren <command
+><parameter
+>-ggdb</parameter
+></command
+>. </para>
+</tip>
+
+<para
+>Efter dessa förberedelser har gjorts, öppna källkodsfilen i &kate;, skriv in sökvägen till det körbara programmet under fliken <guilabel
+>Inställningar</guilabel
+> i verktygsvyn <guilabel
+>Avlusningsvy</guilabel
+>, och välj <menuchoice
+><guimenu
+>Avlusa</guimenu
+> <guimenuitem
+>Starta avlusning</guimenuitem
+></menuchoice
+> i menyn för att komma igång.</para>
+
+</sect2>
+
+<sect2 id="gdb-menus">
+<title
+>Meny- och verktygsradstruktur</title>
+
+<para
+>Alla dessa alternativ är tillgängliga i &kate;s menyer, och många är också tillgängliga från avlusningsverktygsraden.</para>
+
+<variablelist>
+
+<varlistentry id="gdb-menus-show-debug-view">
+<term
+><menuchoice
+><guimenu
+>Visa</guimenu
+> <guisubmenu
+>Verktygsvyer</guisubmenu
+> <guimenuitem
+>Visa avlusningsvy</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Visar en verktygsvy som innehåller utmatning från &gdb;, kommandoraden för &gdb; som använts, och andra inställningar.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="gdb-menus-show-locals-and-stack">
+<term
+><menuchoice
+><guimenu
+>Visa</guimenu
+> <guisubmenu
+>Verktygsvy</guisubmenu
+> <guimenuitem
+>Visa lokala objekt och stack</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Visar en lista med alla variabler som för närvarande är inlästa och deras värden, samt en &gdb; bakåtspårning. </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="gdb-menus-targets">
+<term
+><menuchoice
+><guimenu
+>Avlusa</guimenu
+><guimenuitem
+>Mål</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>En undermeny som innehåller en lista med mål (körbara program). </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="gdb-menus-start">
+<term
+><menuchoice
+><guimenu
+>Avlusa</guimenu
+> <guimenuitem
+>Starta avlusning</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Startar &gdb; med ett mål.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="gdb-menus-kill">
+<term
+><menuchoice
+><guimenu
+>Avlusa</guimenu
+> <guimenuitem
+>Döda eller stoppa avlusning</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Stoppar &gdb;.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="gdb-menus-restart">
+<term
+><menuchoice
+><guimenu
+>Avlusa</guimenu
+> <guimenuitem
+>Starta om avlusning</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Startar om &gdb;.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="gdb-menus-break">
+<term
+><menuchoice
+><guimenu
+>Avlusa</guimenu
+> <guimenuitem
+>Växla brytpunkt</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Sätt en brytpunkt på markörens nuvarande position. </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="gdb-menus-step-in">
+<term
+><menuchoice
+><guimenu
+>Avlusa</guimenu
+> <guimenuitem
+>Stega in i</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Kör aktuell sats (funktionsanrop avlusas). </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="gdb-menus-step-over">
+<term
+><menuchoice
+><guimenu
+>Avlusa</guimenu
+> <guimenuitem
+>Stega förbi</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Kör aktuell sats (funktionsanrop avlusas inte)</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="gdb-menus-step-out">
+<term
+><menuchoice
+><guimenu
+>Avlusa</guimenu
+> <guimenuitem
+>Stega ut ur</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Återupptar körning till programmet som kör avslutas.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="gdb-menus-move-pc">
+<term
+><menuchoice
+><guimenu
+>Avlusa</guimenu
+> <guimenuitem
+>Flytta programräknare</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Flyttar programräknaren (nästa körning).</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="gdb-menus-run-to-cursor">
+<term
+><menuchoice
+><guimenu
+>Avlusa</guimenu
+> <guimenuitem
+>Kör till markören</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Kör programmet till det når nuvarande markörposition. </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="gdb-menus-continue">
+<term
+><menuchoice
+><guimenu
+>Avlusa</guimenu
+> <guimenuitem
+>Fortsätt</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Ignorerar eventuella brytpunkter och kör programmet till det avslutas (med lyckat resultat eller inte).</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="gdb-menus-print-value">
+<term
+><menuchoice
+><guimenu
+>Avlusa</guimenu
+> <guimenuitem
+>Skriv ut värde</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Skriver ut värdet på variabeln som markören för närvarande pekar på.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="gdb-menus-toolbar">
+<term
+><menuchoice
+><guimenu
+>Inställningar</guimenu
+> <guisubmenu
+>Visade verktygsrader</guisubmenu
+> <guimenuitem
+>Insticksprogram för &gdb;</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Visar avlusningsverktygsraden.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+
+<sect2 id="gdb-debug-view">
+<title
+>Avlusningsvy</title>
+
+<para
+>Verktygsvyn <guilabel
+>Avlusningsvy</guilabel
+> består av flera flikar: </para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><guilabel
+>Utmatning från &gdb;</guilabel
+></term>
+<listitem>
+<para
+>Innehåller utmatning från &gdb; och en &gdb; kommandorad.</para>
+
+<screenshot id="screenshot-gdb-output">
+<screeninfo
+>Fliken Utmatning</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="gdb-output.png" format="PNG"/></imageobject>
+<textobject
+><phrase
+>Fliken Utmatning.</phrase
+></textobject>
+<caption
+><para
+>Fliken <guilabel
+>Utmatning</guilabel
+> visar utmatningen från en avlusningssession.</para
+></caption>
+</mediaobject>
+</screenshot>
+
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Inställningar</guilabel
+></term>
+<listitem>
+<variablelist>
+
+<varlistentry>
+<term
+><guilabel
+>Körbart program</guilabel
+></term>
+<listitem
+><para
+>Sökväg till mål (körbart program) att avlusa.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Arbetskatalog</guilabel
+></term>
+<listitem
+><para
+>Nuvarande arbetskatalog som tillhandahålls till målet. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Väljare</guilabel
+></term>
+<listitem
+><para
+>Väljare som skickas till programmet.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Behåll fokus</guilabel
+></term>
+<listitem
+><para
+>Behåller fokus på &gdb;:s kommandorad.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Omdirigera in- och utmatning</guilabel
+></term>
+<listitem
+><para
+>Visar en ny flik för <guilabel
+>I/O</guilabel
+> i <guilabel
+>Avlusningsvyn</guilabel
+> där du kan se utmatning från och ge inmatning till programmet som kör.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+<screenshot id="screenshot-gdb-settings">
+<screeninfo
+>Inställningsdialogrutan</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="gdb-settings.png" format="PNG"/></imageobject>
+<textobject
+><phrase
+>Inställningsdialogrutan</phrase
+></textobject>
+<caption
+><para
+>Dialogrutan <guilabel
+>Inställningar</guilabel
+> visar inställningen för en avlusningssession.</para
+></caption>
+</mediaobject>
+</screenshot>
+
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>I/O</guilabel
+></term>
+<listitem>
+<para
+>Innehåller ett område som visar utmatning från programmet som kör och en kommandorad där du kan ange inmatning till det.</para>
+
+<screenshot id="screenshot-gdb-io">
+<screeninfo
+>Fliken I/O</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="gdb-io.png" format="PNG"/></imageobject>
+<textobject
+><phrase
+>Fliken I/O.</phrase
+></textobject>
+<caption
+><para
+>Fliken <guilabel
+>I/O</guilabel
+> som visar utmatning från ett enkelt testprogram.</para
+></caption>
+</mediaobject>
+</screenshot>
+
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+
+<sect2 id="gdb-other">
+<title
+>Anropsstack och lokala objekt</title>
+
+<para
+>Verktygsvyn <guilabel
+>Anropsstack</guilabel
+> innehåller en lista av formaterad bakåtspårning som returneras från &gdb;.</para>
+
+<screenshot id="screenshot-gdb-call-stack">
+<screeninfo
+>Verktygsvyn Anropsstack i &gdb;</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="gdb-call-stack.png" format="PNG"/></imageobject>
+<textobject
+><phrase
+>Verktygsvyn Anropsstack.</phrase
+></textobject>
+<caption
+><para
+>Verktygsvyn <guilabel
+>Anropsstack</guilabel
+> i insticksprogrammet för &gdb;. </para
+></caption>
+</mediaobject>
+</screenshot>
+
+<para
+>Verktygsvyn <guilabel
+>Lokala objekt</guilabel
+> innehåller en lista över alla variabler som för närvarande är laddade från programmet, och deras motsvarande värden.</para>
+
+<screenshot id="screenshot-gdb-locals">
+<screeninfo
+>Verktygsvyn Lokala objekt i &gdb;</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="gdb-locals.png" format="PNG"/></imageobject>
+<textobject
+><phrase
+>Verktygsvyn Lokala objekt</phrase
+></textobject>
+<caption
+><para
+>Verktygsvyn <guilabel
+>Lokala objekt</guilabel
+> i insticksprogrammet för &gdb;. </para
+></caption>
+</mediaobject>
+</screenshot>
+
+</sect2>
+
+<sect2 id="gdb-ack">
+<title
+>Tack och erkännanden</title>
+
+<para
+>Särskilt tack till deltagaren i Google Code-In 2011, Martin Gergov, för att ha skrivit stora delar av det här avsnittet.</para>
+
+</sect2>
+
+</sect1>
+
+<sect1 id="kate-application-plugin-projects">
+<!--https://kate-editor.org/2012/11/02/using-the-projects-plugin-in-kate -->
+
+<title
+>Projektinsticksprogram</title>
+
+<sect2 id="project-intro">
+<title
+>Inledning</title>
+
+<para
+>Grundidén med projektinsticksprogrammet är att ha en strukturerad fillista som hör till projektet med följande egenskaper:</para>
+
+<orderedlist>
+<listitem
+><para
+>Tillhandahålla en strukturerad vy av filerna</para
+></listitem>
+<listitem
+><para
+>Göra det lätt och mycket snabbt att öppna och byta projekt</para
+></listitem>
+<listitem
+><para
+>Stödja sök och ersätt i ett projekt</para
+></listitem>
+<listitem
+><para
+>Tillhandahålla enkel automatisk komplettering</para
+></listitem>
+<listitem
+><para
+>Göra det lätt att snabbt öppna filer i projektet</para
+></listitem>
+<listitem
+><para
+>Stöd för att bygga projektet</para
+></listitem>
+</orderedlist>
+</sect2>
+
+<sect2 id="project-view">
+<title
+>Strukturerad vy av filerna</title>
+
+<para
+>När projektinsticksprogrammet väl har laddats från &kate;s inställningssida, öppna en fil i ett projekt så visas en sidorad där alla projekt samt projektfilerna listas på följande sätt:</para>
+
+<screenshot id="screenshot-project-view">
+<screeninfo
+>Projektvy</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="project-view.png" format="PNG"/></imageobject>
+</mediaobject>
+</screenshot>
+
+<para
+>Som synes är projektet som för närvarande är aktivt <quote
+>Kate</quote
+>, och dess innehåll listas i trädvyn. Genom att klicka på filer i trädvyn öppnas de i editorn. Dessutom tillhandahålls en sammanhangsberoende meny som gör att filer kan öppnas med andra program, såsom en <filename class="extension"
+>.ui</filename
+>-fil med Qt Designer.</para>
+<para
+>Det går att filtrera objekt genom att skriva in en del av filnamnet som du söker efter på sökraden längst ner i listan.</para>
+</sect2>
+
+<sect2 id="project-switch">
+<title
+>Byta projekt</title>
+
+<para
+>Idén är att man aldrig ska behöva öppna ett projekt manuellt, det stöds överhuvudtaget inte. Vad som sålunda sker om en fil öppnas är att projektinsticksprogrammet snabbt söker igenom katalogen och dess överliggande kataloger för att hitta filen <filename
+>.kateproject</filename
+>. Om den hittas, läses projektet automatiskt in.</para>
+
+<para
+>Dessutom om ett annat dokument öppnas i &kate; som hör till ett annat projekt, byter projektinsticksprogrammet automatiskt aktuellt projekt. Alltså är intuitivt alltid rätt projekt aktivt. Man kan naturligtvis också byta projekt som för närvarande är aktivt genom att använda kombinationsrutan.</para>
+
+</sect2>
+
+<sect2 id="project-search-replace">
+<title
+>Sök och ersätt i projekt</title>
+
+<para
+>&kate; har insticksprogrammet Sök och ersätt som dyker upp i den nedre sidoraden. Om ett projekt är inläst, öppna sidoraden Sök och ersätt, och byt till läget för att söka och ersätta i det aktuella projektet:</para>
+
+<screenshot id="screenshot-projects-search">
+<screeninfo
+>Sök i projekt</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="project-search.png" format="PNG"/></imageobject>
+</mediaobject>
+</screenshot>
+
+</sect2>
+
+<sect2 id="project-autocompletition">
+<title
+>Enkel automatisk komplettering</title>
+
+<para
+>Med kunskap om alla filer som hör till ett projekt, tillhandahåller projektinsticksprogrammet enkel automatisk komplettering baserat på CTags. Om ett projekt just har öppnats, tolkar CTags alla projektfiler i en bakgrundstråd och sparar CTags-information i <filename class="directory"
+>/tmp</filename
+>. Filen används sedan för att fylla i rutan med automatisk komplettering i &kate;.</para>
+
+<para
+>I motsats, utan automatisk komplettering klarar &kate; bara av att visa objekt för automatisk komplettering baserat på ord i den nuvarande filen. Alltså är den automatiska kompletteringen som tillhandahålls av projektinsticksprogrammet mycket kraftfullare.</para>
+
+<screenshot id="screenshot-completion-search">
+<screeninfo
+>Komplettering i projekt</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="project-completition.png" format="PNG"/></imageobject>
+</mediaobject>
+</screenshot>
+
+<para
+>Om CTags saknas, varnas du om problemet av en passiv meddelanderuta. Det är också värt att notera att CTags-filen i <filename class="directory"
+>/tmp</filename
+> städas bort när &kate; avslutas, så insticksprogrammet förorenar inte någon katalog med oönskade filer.</para>
+
+</sect2>
+
+<sect2 id="project-quickopen">
+<title
+>Snabböppna filer</title>
+
+<para
+>Eftersom att klicka på filer i trädvyn inte är det snabbaste sättet att öppna en fil, tillhandahåller &kate; en inbyggd mekanism för snabböppning som kan aktiveras med <keycombo action="simul"
+>&Ctrl;&Alt;<keycap
+>O</keycap
+></keycombo
+>. Vad du då får är en sådan här lista:</para>
+
+<screenshot id="screenshot-project-quickopen">
+<screeninfo
+>Snabböppna</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="project-quickopen.png" format="PNG"/></imageobject>
+</mediaobject>
+</screenshot>
+
+<para
+>Du kan också filtrera genom att skriva in delar av filnamnet som du letar efter, och du kan också navigera med piltangenterna, Page Up och Page Down i listan. Genom att trycka på returtangenten aktiveras den markerade filen, medan Esc döljer snabböppningsvyn igen.</para>
+
+<para
+>Dessutom kommer snabböppna ihåg föregående fil. Så när du byter till snabböppningsvyn är den föregående aktiva filen automatiskt markerad och du behöver bara trycka på returtangenten, vilket ibland är mycket bekvämt.</para>
+
+</sect2>
+
+<sect2 id="project-build">
+<title
+>Stöd för att bygga projektet</title>
+
+<para
+>En annan funktion är att ha stöd för <link linkend="projects-build-support"
+>insticksprogrammet Bygg</link
+> så att det automatiskt ställs in på ett riktigt sätt.</para>
+
+</sect2>
+
+<sect2 id="project-create">
+<title
+>Skapa projekt</title>
+
+<sect3 id="project-autoload">
+<!--https://kate-editor.org/2014/10/12/autoloading-projects-plugin-kate-5/-->
+<title
+>Läsa in projekt automatiskt</title>
+
+<para
+>Projektinsticksprogrammet har en funktion för automatisk inläsning. Du kan läsa fillistan från versionskontrollsystemet. För att åstadkomma det, måste automatisk inläsning vara aktiverat i inställningarna för respektive versionskontrollsystem (normalt är den det): </para>
+
+<screenshot id="screenshot-project-configure">
+<screeninfo
+>Inställning av projektinsticksprogrammet</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="project-configure.png" format="PNG"/></imageobject>
+</mediaobject>
+</screenshot>
+
+</sect3>
+
+<sect3 id="project-manual">
+<title
+>Skapa projekt manuellt</title>
+<para
+>Du behöver bara skapa filen <filename
+>.kateproject</filename
+> i projektets rotkatalog. Exempelvis ser <filename
+>.kateproject</filename
+>-filen för <quote
+>Kate</quote
+> ut så här: </para>
+
+<screen
+>{
+  "name": "Kate"
+, "files": [ { "git": 1 } ]
+}
+</screen>
+
+<para
+>Filens innehåll skrivs med &JSON;-syntax. Projektnamnet är <quote
+>Kate</quote
+>, och filerna som finns i det ska läsas från &git;. </para>
+
+<para
+>Istället för <literal
+>git</literal
+> stöds också Subversion via <literal
+>svn</literal
+> och Mercurial via <literal
+>hg</literal
+>. Om du inte vill läsa från ett versionskontrollsystem, kan du tala om att filer ska läsas in rekursivt från kataloger enligt följande: </para>
+
+<screen
+>{
+  "name": "Kate"
+, "files": [ { "directory": "kate", "filters": ["*.cpp", "*.h", "*.ui", "CMakeLists.txt", "Find*.cmake"], "recursive": 1 } ]
+}
+</screen>
+
+<para
+>Här definierar underkataloger och filter vad som ingår i projektet. Du kan också blanda versionskontroll och filer baserade på filter. </para>
+
+<para id="projects-build-support"
+>Om du vill lägga till stöd för insticksprogrammet Bygg, kan <filename
+>.kateproject</filename
+> skrivas så här:</para>
+
+<screen
+>{
+  "name": "Kate"
+, "files": [ { "git": 1 } ]
+, "build": {
+    "directory": "build"
+  , "build": "make all"
+  , "clean": "make clean"
+  , "install": "make install"
+  }
+}
+</screen>
+
+<para
+>Ifall du har filen <filename
+>.kateproject</filename
+> hanterad av ett versionshanteringssystem, men behöver finjustera inställningen för en viss arbetsrymd, kan du spara ändringarna i en separat fil vid namn <filename
+>.kateproject.local</filename
+>. Innehållet i den filen får företräde framför <filename
+>.kateproject</filename
+>. </para>
+
+</sect3>
+
+</sect2>
+
+<sect2 id="project-current">
+<title
+>Aktuellt projekt</title>
+
+<para
+>Genom att använda <menuchoice
+><shortcut
+><keycombo action="simul"
+>&Alt;<keycap
+>1</keycap
+></keycombo
+></shortcut
+> <guimenu
+>Projekt</guimenu
+><guimenuitem
+>Gå till</guimenuitem
+></menuchoice
+> kan vyn <guilabel
+>Aktuellt projekt</guilabel
+> öppnas längst ner i editorns fönster med fyra flikar:</para>
+
+<screenshot id="screenshot-project-current">
+<screeninfo
+>Aktuellt projekt</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="project-current-analysis.png" format="PNG"/></imageobject>
+</mediaobject>
+</screenshot>
+
+<variablelist>
+
+<varlistentry>
+<term>
+<guimenu
+>Terminalpanel</guimenu>
+</term>
+<listitem>
+<para
+>En <link linkend="kate-application-plugin-konsole"
+>Terminalemulator</link
+> som börjar i projektets rotkatalog.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term>
+<guimenu
+>Kodindex</guimenu>
+</term>
+<listitem>
+<para
+>Att skriva in tecken i sökraden påbörjar sökningen och visar matchande namn på funktioner, klasser, symboler, etc., tillsammans med typ, filnamn och radnummer.</para>
+<para
+>Välj ett objekt i listan för att gå till motsvarande rad i källkodsfilen.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term>
+<guimenu
+>Kodanalys</guimenu>
+</term>
+<listitem>
+<para
+>Klicka på <guilabel
+>Starta analys</guilabel
+> för att utföra en statisk kodanalys av C och C++ genom att använda <command
+>cppcheck</command
+> och skapa en rapport som visar filnamn, radnummer, svårighetsgrad (stil, varning, etc.) och problemet som hittades.</para>
+<para
+>Välj ett objekt i listan för att gå till motsvarande rad i källkodsfilen.</para>
+</listitem>
+</varlistentry>
+<!--FIXME options for cppcheck? configurable?-->
+<varlistentry>
+<term>
+<guimenu
+>Anteckningar</guimenu>
+</term>
+<listitem>
+<para
+>Text som matas in under den här fliken sparas i filen <filename
+>.kateproject.notes</filename
+>.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+
+<sect2 id="projects-menu">
+<title
+>Menyn Projekt</title>
+
+<para
+>Menyn <guimenu
+>Projekt</guimenu
+> låter dig byta mellan projekt som för närvarande är öppna. Den visas av insticksprogrammet Projekt.</para>
+
+<variablelist>
+
+<varlistentry id="projects-back">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;&Alt;<keysym
+>Vänsterpil</keysym
+></keycombo
+> </shortcut
+> <guimenu
+>Projekt</guimenu
+> <guimenuitem
+>Bakåt</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Byt till föregående projekt.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="projects-forward">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;&Alt;<keysym
+>Högerpil</keysym
+></keycombo
+> </shortcut
+> <guimenu
+>Projekt</guimenu
+> <guimenuitem
+>Framåt</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Byt till nästa projekt.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="projects-goto">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Alt;<keycap
+>1</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Projekt</guimenu
+><guimenuitem
+>Gå till</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Öppna vyn <guilabel
+>Aktuellt projekt</guilabel
+> längst ner i editorns fönster.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+<!--
+context menu Project->Lookup:xxx
+-->
+
+</sect1>
+
+<!--FIXME Replicode
+Projects Replicode run / stop-->
+
+<sect1 id="kate-application-plugin-lspclient">
+<title
+>LSP-klientinsticksprogram</title>
+
+<para
+>LSP-klientinsticksprogram tillhandahåller många språkfunktioner som kodkomplettering, kodnavigering eller hitta referenser baserade på <ulink url="https://microsoft.github.io/language-server-protocol/"
+>Language Server Protocol</ulink
+>.</para>
+
+<para
+>När LSP-klienten väl har aktiverats på insticksprogramsidan, visas en ny sida i &kate;s inställningsdialogruta som kallas LSP-klient. </para>
+
+<sect2 id="lspclient-menu">
+<title
+>Menystruktur</title>
+
+<para
+>Om det passar, nämns ett motsvarande LSP-kommando också i förklaringen nedan, och dokumentationen av det kan då ge ytterligare bakgrund och tolkning, även om det kan bero på själva språket. Uttrycket 'aktuell symbol' gäller symbolen som motsvarar markörens aktuella position, och sålunda bestämd av språket och serverimplementeringen. </para>
+
+<variablelist>
+
+<varlistentry id="lspclient-definition">
+<term
+><menuchoice
+><guimenu
+>LSP-klient</guimenu
+> <guisubmenu
+>Gå till definition</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>[textDocument/definition] Gå till aktuell symboldefinition.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-declaration">
+<term
+><menuchoice
+><guimenu
+>LSP-klient</guimenu
+> <guisubmenu
+>Gå till deklaration</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>[textDocument/declaration] Gå till aktuell symboldeklaration.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-typedefinition">
+<term
+><menuchoice
+><guimenu
+>LSP-klient</guimenu
+> <guisubmenu
+>Gå till typdefinition</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>[textDocument/typeDefinition] Gå till typdefinition för aktuell symbol.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-references">
+<term
+><menuchoice
+><guimenu
+>LSP-klient</guimenu
+> <guisubmenu
+>Sök efter referenser</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>[textDocument/references] Sök efter referenser till aktuell symbol.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-implementation">
+<term
+><menuchoice
+><guimenu
+>LSP-klient</guimenu
+> <guisubmenu
+>Sök efter implementeringar</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>[textDocument/implementation] Sök efter implementeringar av aktuell symbol.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-highlight">
+<term
+><menuchoice
+><guimenu
+>LSP-klient</guimenu
+> <guisubmenu
+>Färglägg</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>[textDocument/documentHighlight] Färglägg referenser till aktuell symbol i aktuellt dokument.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-hover">
+<term
+><menuchoice
+><guimenu
+>LSP-klient</guimenu
+> <guisubmenu
+>Håll över</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>[textDocument/hover] Håll musen över för information om aktuell symbol.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-format">
+<term
+><menuchoice
+><guimenu
+>LSP-klient</guimenu
+> <guisubmenu
+>Format</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>[textDocument/formatting] [textDocument/rangeFormatting] Formatera aktuellt dokument eller aktuell markering.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-rename">
+<term
+><menuchoice
+><guimenu
+>LSP-klient</guimenu
+> <guisubmenu
+>Byt namn</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>[textDocument/rename] Byt namn på aktuell symbol.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-quick-fix">
+<term
+><menuchoice
+><guimenu
+>LSP-klient</guimenu
+> <guisubmenu
+>Snabbrättning</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>[textDocument/codeAction, workspace/executeCommand] Beräknar och utför en snabbrättning för diagnostik på aktuell position (eller rad).</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-completion-documentation">
+<term
+><menuchoice
+><guimenu
+>LSP-klient</guimenu
+> <guisubmenu
+>Visa vald kompletteringsdokumentation</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Visa dokumentation för ett markerat objekt i kompletteringslistan.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-signature-help">
+<term
+><menuchoice
+><guimenu
+>LSP-klient</guimenu
+> <guisubmenu
+>Aktivera signaturhjälp med automatisk komplettering</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Visa också signaturhjälp i kompletteringslistan.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-declaration-references">
+<term
+><menuchoice
+><guimenu
+>LSP-klient</guimenu
+> <guisubmenu
+>Inkludera deklaration i referenser</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Begäran om att inkludera en symbols deklaration när referenser efterfrågas.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-completion-parens">
+<term
+><menuchoice
+><guimenu
+>LSP-klient</guimenu
+> <guisubmenu
+>Lägg till parenteser vid funktionskomplettering</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Lägg automatiskt till ett par parenteser efter att en funktion har kompletterats.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-show-hover">
+<term
+><menuchoice
+><guimenu
+>LSP-klient</guimenu
+> <guisubmenu
+>Visa information för muspekaren</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Visa information för muspekaren när den hålls över någonting. Oberoende av inställningen, kan en begäran alltid initieras manuellt. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-format-typing">
+<term
+><menuchoice
+><guimenu
+>LSP-klient</guimenu
+> <guisubmenu
+>Formatera vid inskrivning</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>[document/onTypeFormatting] Formatera delar av dokumentet när vissa utlösande tecken skrivs in. Det kan exempelvis utföra indentering vid nyrad, eller när det annars bestäms av LSP-servern. Observera att indenteringsskript i editorn kan försöka göra samma sak (beroende på läge), och därför kanske det inte är lämpligt att ha båda aktiverade samtidigt. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-incremental-sync">
+<term
+><menuchoice
+><guimenu
+>LSP-klient</guimenu
+> <guisubmenu
+>Inkrementell dokumentsynkronisering</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Skicka partiella dokumentredigeringar för att uppdatera servern istället för hela dokumentets text (om det stöds).</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-highlight-goto">
+<term
+><menuchoice
+><guimenu
+>LSP-klient</guimenu
+> <guisubmenu
+>Markera plats att gå till</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Tillhandahåll en tillfällig visuell antydan efter att ha gått till en plats (för en definition, deklaration, etc.).</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-diagnostics">
+<term
+><menuchoice
+><guimenu
+>LSP-klient</guimenu
+> <guisubmenu
+>Visa diagnostikunderrättelser</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>[textDocument/publishDiagnostics] Behandla och visa diagnostikunderrättelser som skickas av servern.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-diagnostics-highlight">
+<term
+><menuchoice
+><guimenu
+>LSP-klient</guimenu
+> <guisubmenu
+>Visa diagnostikfärgläggning</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Lägg till textfärgläggning för intervall som indikeras i diagnostiken.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-diagnostics-marks">
+<term
+><menuchoice
+><guimenu
+>LSP-klient</guimenu
+> <guisubmenu
+>Visa diagnostikmarkörer</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Lägg till dokumentmarkörer för rader som indikeras i diagnostiken.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-diagnostics-tab">
+<term
+><menuchoice
+><guimenu
+>LSP-klient</guimenu
+> <guisubmenu
+>Byt till diagnostikflik</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Byt till diagnostikfliken i insticksprogrammets verktygsvy.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-close-non-diagnostics">
+<term
+><menuchoice
+><guimenu
+>LSP-klient</guimenu
+> <guisubmenu
+>Stäng alla utom diagnostikflikar</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Stäng alla utom diagnostikflikar (t.ex. referensflikar) i insticksprogrammets verktygsvy.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-restart">
+<term
+><menuchoice
+><guimenu
+>LSP-klient</guimenu
+> <guisubmenu
+>Starta om LSP-server</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Starta om det aktuella dokumentets LSP-server.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-restart-all">
+<term
+><menuchoice
+><guimenu
+>LSP-klient</guimenu
+> <guisubmenu
+>Starta om alla LSP-servrar</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Stoppa alla LSP-servrar, som sedan startas (om) efter behov.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+
+
+<sect2 id="lspclient-configuration">
+<title
+>Inställning</title>
+
+<para
+>Insticksprogrammets inställningssida tillåter i huvudsak en bestående inställning av vissa av menyalternativen ovan. Dock finns det en ytterligare post för att ange serverns inställningsfil. Det är en &JSON;-fil som kan användas för att ange LSP-servern som ska startas (och sedan kommuniceras med via standardinmatning och standardutmatning). Av bekvämlighetsskäl inkluderas en standardinställning, som kan granskas på insticksprogrammets inställningssida. Som hjälp i förklaringen nedan, ges ett utdrag ur inställningen här: </para>
+
+<screen
+>{
+    "servers": {
+        "bibtex": {
+            "use": "latex",
+            "highlightingModeRegex": "^BibTeX$"
+        },
+        "c": {
+            "command": ["clangd", "-log=error", "--background-index"],
+            "commandDebug": ["clangd", "-log=verbose", "--background-index"],
+            "url": "https://clang.llvm.org/extra/clangd/",
+            "highlightingModeRegex": "^(C|ANSI C89|Objective-C)$"
+        },
+        "cpp": {
+            "use": "c",
+            "highlightingModeRegex": "^(C\\+\\+|ISO C\\+\\+|Objective-C\\+\\+)$"
+        },
+        "d": {
+            "command": ["dls", "--stdio"],
+            "url": "https://github.com/d-language-server/dls",
+            "highlightingModeRegex": "^D$"
+        },
+        "fortran": {
+            "command": ["fortls"],
+            "rootIndicationFileNames": [".fortls"],
+            "url": "https://github.com/hansec/fortran-language-server",
+            "highlightingModeRegex": "^Fortran.*$"
+        },
+        "javascript": {
+            "command": ["typescript-language-server", "--stdio"],
+            "rootIndicationFileNames": ["package.json", "package-lock.json"],
+            "url": "https://github.com/theia-ide/typescript-language-server",
+            "highlightingModeRegex": "^JavaScript.*$",
+            "documentLanguageId": false
+        },
+        "latex": {
+            "command": ["texlab"],
+            "url": "https://texlab.netlify.com/",
+            "highlightingModeRegex": "^LaTeX$"
+        },
+        "go": {
+            "command": ["go-langserver"],
+            "commandDebug": ["go-langserver", "-trace"],
+            "url": "https://github.com/sourcegraph/go-langserver",
+            "highlightingModeRegex": "^Go$"
+        },
+        "python": {
+            "command": ["python3", "-m", "pyls", "--check-parent-process"],
+            "url": "https://github.com/palantir/python-language-server",
+            "highlightingModeRegex": "^Python$"
+        },
+        "rust": {
+            "command": ["rls"],
+            "path": ["%{ENV:HOME}/.cargo/bin", "%{ENV:USERPROFILE}/.cargo/bin"],
+            "rootIndicationFileNames": ["Cargo.lock", "Cargo.toml"],
+            "url": "https://github.com/rust-lang/rls",
+            "highlightingModeRegex": "^Rust$"
+        },
+        "ocaml": {
+            "command": ["ocamlmerlin-lsp"],
+            "url": "https://github.com/ocaml/merlin",
+            "highlightingModeRegex": "^Objective Caml.*$"
+        }
+    }
+}
+</screen>
+
+<para
+>Observera att varje "kommando" kan vara ett fält eller en sträng (som delas till ett fält i detta fall). Dessutom tas också hänsyn till en toppnivå "global" post (intill "server"): se nedan. Den angivna binärfilen eftersöks på vanligt sätt, t.ex. genom att använda <literal
+>PATH</literal
+>. Om den är installerad på en egen plats, måste den senare utökas. Eller, som alternativ, kan en (symbolisk) länk eller omgivande skript användas på en plats som finns inom den vanliga <literal
+>PATH</literal
+>. Som åskådliggörs ovan, kan man också ange en "sökväg" som söks igenom efter de vanliga platserna. </para>
+
+<para
+>Alla posterna i "command", "root" och "path" är föremål för variabelexpansion. </para>
+
+<para
+>Posten "highlightingModeRegex" används för att konvertera färgläggningsläget som det används av &kate; till serverns språkidentifikation. Om inget reguljärt uttryck anges, används själva språkidentifikationen. Om posten "documentLanguageId" är false, tillhandahålls ingen språkidentifikation till servern när dokumentet öppnas. Det kan ge bättre resultat på vissa servrar som är mer noggranna med att avgöra dokumenttypen än att bara göra det baserat på en inställning i Kate. </para>
+
+<para
+>Kärnan är förmodligen klar från ovanstående exempel. Dessutom kan varje serverobjekt också ha posten "initializationOptions", som skickas med till servern som en del av metoden 'initialize'. Om den finns, skickas posten "settings" till servern via underrättelsen 'workspace/didChangeConfiguration'. </para>
+
+<para
+>Diverse steg av överskridning och sammanfogning utförs: <itemizedlist>
+<listitem>
+<para
+>användarinställningen (inläst från fil) överskrider (den interna) standardinställningen</para>
+</listitem>
+<listitem>
+<para
+>posten "lspclient" i projektinställningen <filename
+>.kateproject</filename
+> överskrider ovanstående</para>
+</listitem>
+<listitem>
+<para
+>den resulterande "globala" posten används för att fylla i (inte överskrida) en eventuell serverpost</para>
+</listitem>
+</itemizedlist>
+</para>
+
+<para
+>En serverinstans används per kombinationen (root, servertype). Om "root" anges som en absolut sökväg används den som den är, annars är den relativ till <quote
+>projectBase</quote
+> (som bestämd av <link linkend="kate-application-plugin-projects"
+>projektinsticksprogrammet</link
+>), om tillämpligt, eller annars relativt till dokumentets katalog. Om den inte anges och "rootIndicationFileNames" är ett fält av filnamn, väljes en överliggande katalog till den aktuella dokumentet som innehåller en sådan fil. Som en sista reserv, väljes hemkatalogen som "root". För alla dokument bestämmer resulterande "root" sedan om en separat instans behövs eller ej. Om det är fallet, skickas "root" över som rootUri/rootPath. </para>
+
+<para
+>I allmänhet rekommenderas att roten lämnas ospecificerad, eftersom den inte är så viktig för en server (ditt resultat kan dock avvika). Färre serverinstanser är uppenbarligen effektivare, och de har också en 'bredare' vy än många separata instanser. </para>
+
+<sect3 id="lspclient-customization">
+<title
+>LSP-serverinställning</title>
+
+<para
+>Varje särskild LSP-server har sitt eget sätt att anpassas och kan använda språk- eller verktygsspecifika sätt för inställning, t.ex.  <filename
+>tox.ini</filename
+> (a.o. för python), <filename
+>.clang-format</filename
+> för format med C++ stil. Sådana inställningar kan då också användas av andra (icke-LSP) verktyg (såsom <application
+>tox</application
+> eller <application
+>clang-format</application
+>). Förutom det, läser också vissa LSP-servrar in inställningar från egna filer (t.ex. <filename
+>.ccls</filename
+>). Dessutom kan egna serverinställningar också skickas via LSP (protokollet). Se ovannämnda posterna "initializationOptions" och "settings" i serverinställningen. </para>
+
+<para
+>Eftersom diverse nivåer av överskridning eller sammanfogning används, justerar följande exempel på en användarspecificerad klientinställning några serverinställningar för språket Python. </para>
+
+<screen
+>{
+    "servers": {
+        "python": {
+            "settings": {
+                "pyls": {
+                    "plugins": {
+                        "pylint": {
+                            "enable": true
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+</screen>
+
+<para
+>Tyvärr är inställningen och anpassningen av LSP-server ofta inte så bra dokumenterad, på ett sådant sätt att bara granskning av källkoden visar inställningstillvägagångssätten och mängden tillgängliga inställningsalternativ. I synnerhet stöder servern i ovanstående exempel många fler alternativ under "settings". Se <ulink url="https://github.com/neoclide/coc.nvim/wiki/Language-servers"
+>dokumentationen över en annan LSP klient</ulink
+> för diverse andra exempel på språkservrar och motsvarande inställningar, vilka lätt och enkelt kan omvandlas till &JSON;-inställningen som används här och beskrivs ovan. </para>
+
+</sect3>
+
+<sect3 id="lspclient-troubleshooting">
+<title
+>Felsökning av LSP-server</title>
+
+<para
+>Det är en sak att beskriva hur en (egen) LSP-server ska ställas in för vilket specifikt språk som helst, och en annan sak att få en server som kör utan problem. Oftast är det senare lyckligtvis fallet. Ibland kan dock problem uppstå, antingen på grund av någon "dum" felinställning eller ett mer fundamentalt problem med själva servern. Det senare kan typiskt visa sig som ett antal försök att starta servern, som rapporteras under &kate;s utdataflik. Det senare är dock bara avsett att framföra högnivåmeddelanden eller förlopp istället för att ge detaljerad diagnostik, och det gäller i ännu högre grad för vad som i själva verket är en annan process (LSP-servern). </para>
+
+<para
+>Det vanliga sättet att diagnostisera det är att lägga till några väljare i startkommandot (av språkservern) som aktiverar (ytterligare) loggning (i någon fil eller på standardfelutmatningen), i den utsträckning som det inte görs normalt. Om &kate; sedan startas på kommandoraden, kan man får mer insikt i vad som kan ha gått fel. </para>
+
+<para
+>Det kan också vara informativt att undersöka protokollutbytet mellan &kate;s LSP-klient och LSP-servern. Återigen har den senare oftast sätt att följa det. LSP-klienten tillhandahåller också ytterligare felsökningsspårning (till standardfelutmatningen) när &kate; startas med följande <literal
+>QT_LOGGING_RULES=katelspclientplugin=true</literal
+> lämpligt exporterat med <literal
+>export</literal
+>. </para>
+
+</sect3>
+
+</sect2>
+
+<!--TODO: Supported languages, describe features and actions a bit -->
+
+<!--<screenshot id="screenshot-rust-configuration">
+<screeninfo
+>Rust Configuration</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="rust-configuration.png" format="PNG"/></imageobject>
+</mediaobject>
+</screenshot>
+
+<para
+>Edit the command to run <ulink url="https://github.com/phildawes/racer"
+>Racer</ulink
+>,
+an utility intended to provide Rust code completion for editors.</para>
+
+<para
+>You also need the Rust source code and have to provide the path to the source tree.
+</para>
+
+<para
+>While typing code a popup list appears with items for completion:
+</para>
+
+<screenshot id="screenshot-rust-completion">
+<screeninfo
+>Rust Completion</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="rust-completion.png" format="PNG"/></imageobject>
+</mediaobject>
+</screenshot>
+
+<para
+>In addition to code completion popups, the plugin also installs
+a <guimenuitem
+>Go to Definition</guimenuitem
+> action in the <guimenu
+>Edit</guimenu
+> menu and
+in the context menu. You can configure a keyboard shortcut for it as well.
+</para>
+
+<para
+>This action will open the document containing the definition if needed, activate
+its view and place the cursor at the start of the definition.
+</para
+>-->
+
+</sect1>
+
+<sect1 id="kate-application-plugin-searchinfiles">
+<sect1info>
+<authorgroup
+><author
+>&TC.Hollingsworth; &TC.Hollingsworth.mail; </author
+></authorgroup>
+</sect1info>
+<title
+>Sök och ersätt</title>
+
+<sect2 id="searchinfiles-intro">
+<title
+>Inledning</title>
+<para
+>&kate;s insticksprogram Sök och ersätt låter dig söka efter text eller <ulink url="help:/katepart/regular-expressions.html"
+>reguljära uttryck</ulink
+> i många olika filer på en gång. Du kan söka i alla öppna filer, alla filer i en katalog och valfritt i dess underkataloger, eller i den aktiva filen. Du kan till och med filtrera enligt filnamn, exempelvis för att bara söka i filer som slutar med en viss filändelse.</para>
+
+</sect2>
+
+<sect2 id="searchinfiles-ui">
+<title
+>Gränssnitt</title>
+
+<sect3 id="searchinfiles-ui-query">
+<title
+>Sökbegrepp</title>
+
+<para
+>Följande alternativ visas alltid längst upp i verktygsvyn Sök i filer:</para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="tab-new-22.png" format="PNG"/>
+</imageobject
+></inlinemediaobject
+></guiicon
+></term>
+<listitem
+><para
+>Du kan ha så många sökningar som du vill igång samtidigt. Klicka helt enkelt på knappen Ny flik längst upp till vänster i sökverktygets vy, så öppnas en ny resultatflik som låter dig utföra en ny sökning. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="games-config-options-22.png" format="PNG"/>
+</imageobject
+></inlinemediaobject
+></guiicon
+></term>
+<listitem
+><para
+>Knappen i övre högra hörnet av verkygsvyn Sök i filer växlar nedre halvan av  verktygsvyn mellan att visa ytterligare alternativ för katalogsökläget och resultatet av sökningarna. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Sök</guilabel
+></term>
+<listitem
+><para
+>Här skriver du in vad du vill söka efter. Du kan skriva in vanlig text, eller ett reguljärt uttryck om det är aktiverat. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Ersätt</guilabel
+> (textruta)</term>
+<listitem
+><para
+>Ersättningstext som läggs till i filen eller filerna istället för texten i textrutan <guilabel
+>Sök</guilabel
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guibutton
+>Sök</guibutton
+></term>
+<listitem
+><para
+>När du är klar med att ställa in allting, klicka bara på knappen <guibutton
+>Sök</guibutton
+> för att utföra sökningen. Du kan också trycka på returtangenten i textruta <guilabel
+>Sök</guilabel
+> för att åstadkomma samma sak. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guibutton
+>Ersätt</guibutton
+></term>
+<listitem
+><para
+>När du är klar med att ställa in allting, klicka bara på knappen <guibutton
+>Ersätt</guibutton
+> för att ersätta texten som matades in i textrutan <guilabel
+>Sök</guilabel
+> med den i textrutan <guilabel
+>Ersätt</guilabel
+>. Du kan också trycka på returtangenten i textrutan <guilabel
+>Ersätt</guilabel
+> för att göra samma sak. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guibutton
+>Nästa</guibutton
+></term>
+<listitem
+><para
+>Gå till nästa träff i sökningen, byter filer om det behövs. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guibutton
+>Ersätt markerade</guibutton
+></term>
+<listitem
+><para
+>Samma som <guibutton
+>Ersätt</guibutton
+> men utför bara ersättningar i filer som är markerade i rutan nedanför. </para
+></listitem>
+</varlistentry>
+
+</variablelist>
+</sect3>
+
+<sect3 id="searchinfiles-ui-folder">
+<title
+>Alternativ för sök i katalog</title>
+
+<para
+>Alternativen visas under de tidigare nämnda sökalternativen. Om sökresultaten visas istället, klicka på knappen <guiicon
+><inlinemediaobject
+> <imageobject
+><imagedata fileref="games-config-options-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+></guiicon
+> för att visa dem.</para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><guilabel
+>Sök i</guilabel
+></term>
+<listitem
+><para
+>Det har tre alternativ. Välj <guilabel
+>Öppna filer</guilabel
+> för att söka i alla filer som för närvarande är öppna i &kate;. Välj <guilabel
+>Katalog</guilabel
+> för att söka inne i en katalog och valfritt i dess  underkataloger. Välj <guilabel
+>Aktuell fil</guilabel
+> för att bara söka i den aktiva filen. </para>
+<para
+>Om insticksprogrammet <guilabel
+>Projekt</guilabel
+> är laddat kan du också söka i <guilabel
+>Aktuellt projekt</guilabel
+> eller i <guilabel
+>Alla öppna projekt</guilabel
+>. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Matcha skiftläge</guilabel
+></term>
+<listitem
+><para
+>Begränsar sökresultaten till bara de som har exakt samma kombination av stora och små bokstäver som sökbegreppet. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Reguljära uttryck</guilabel
+></term>
+<listitem
+><para
+>Låter dig använda <ulink url="help:/katepart/regular-expressions.html"
+>reguljära uttryck</ulink
+> istället för enkel text som sökbegrepp. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Expandera resultat</guilabel
+></term>
+<listitem
+><para
+>Visar alla resultat som hittas i varje fil, istället för bara en lista med filer som innehåller sökbegreppet. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Katalog</guilabel
+></term>
+<listitem
+><para
+>Du kan skriva in sökvägen för katalogen som du vill söka i. Du kan exempelvis skriva in <userinput
+>~/utveckling/kde/kate/</userinput
+> om du skulle vilja söka i &kate;s källkod. Alternativet är bara tillgängligt när <guilabel
+>I katalog</guilabel
+> används. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guiicon
+>Öppna fildialogruta</guiicon
+></term>
+<listitem
+><para
+>Tryck på knappen för att bestämma katalogen med skrivbordets katalogbläddrare. Knappen är bara tillgänglig när alternativet <guilabel
+>Katalog</guilabel
+> används. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="go-up-22.png" format="PNG"/>
+</imageobject
+></inlinemediaobject
+></guiicon
+></term>
+<listitem
+><para
+>Klicka på knappen för att ändra <guilabel
+>Katalog</guilabel
+> till den överliggande katalogen till katalogen som för närvarande är vald. Knappen fungerar bara när alternativet <guilabel
+>Katalog</guilabel
+> används. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="view-refresh-22.png" format="PNG"/>
+</imageobject
+></inlinemediaobject
+></guiicon
+></term>
+<listitem
+><para
+>Den här knappen ändrar <guilabel
+>Katalog</guilabel
+> till den katalog där dokumentet som för närvarande är öppet finns. Knappen fungerar bara när alternativet <guilabel
+>Katalog</guilabel
+> används. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Filter</guilabel
+></term>
+<listitem
+><para
+>Det här låter dig enbart söka efter filnamn som motsvarar ett visst mönster. För att exempelvis bara söka efter filer som är skrivna i C++, ändra det till <userinput
+>*.cpp</userinput
+>. För att söka efter filer som börjar med <literal
+>kate</literal
+>, ändra det till <userinput
+>kate*</userinput
+>. Du kan skriva in flera filter åtskilda med kommatecken (<userinput
+>,</userinput
+>). Alternativet är inte tillgängligt när <guilabel
+>Öppna filer</guilabel
+> används. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Undanta</guilabel
+></term>
+<listitem
+><para
+>Motsatsen till <guilabel
+>Filter</guilabel
+>, och förhindrar &kate; från att söka i filer som motsvarar de angivna mönstren. Som med <guilabel
+>Filter</guilabel
+> kan du ange flera mönster åtskilda med kommatecken (<userinput
+>,</userinput
+>). Alternativet är inte tillgängligt när <guilabel
+>Öppna filer</guilabel
+> används. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Rekursiv</guilabel
+></term>
+<listitem
+><para
+>Om alternativet är aktiverat, söker &kate; också i alla underkataloger till den valda katalogen. Alternativet är bara tillgängligt när <guilabel
+>Katalog</guilabel
+> används. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>inkludera dolda</guilabel
+></term>
+<listitem
+><para
+>Om alternativet är aktiverat, söker &kate; också i filer eller kataloger som normalt är dolda av operativsystemet. Alternativet är bara tillgängligt när <guilabel
+>Katalog</guilabel
+> används. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Följ symboliska länkar</guilabel
+></term>
+<listitem
+><para
+>Insticksprogrammet Sök i filer, följer normalt inte <ulink url="https://sv.wikipedia.org/wiki/Symbolisk_länk"
+>symboliska länkar</ulink
+>. När det här alternativet är aktiverat, följer insticksprogrammet dem och söker i filerna eller katalogerna de refererar till. Alternativet är bara tillgängligt när <guilabel
+>Katalog</guilabel
+> används. </para>
+<warning
+><para
+>Det är möjligt för symboliska länkar att referera till en katalog som är överliggande katalog till den katalog som för närvarande söks igenom, eller andra kataloger som innehåller symboliska länkar till sina överliggande kataloger. Om en sådan länk finns i en katalog som söks igenom och det här alternativet är aktiverat, kommer &kate; följa länken upprepade gånger och söka igenom katalogen, och sökningen kommer aldrig att avslutas.</para
+></warning>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Sök även i binärfiler</guilabel
+></term>
+<listitem
+><para
+>Om aktiverat, söker &kate; också i filer som inte verkar vara textfiler. </para
+></listitem>
+</varlistentry>
+
+</variablelist>
+</sect3>
+
+<sect3 id="searchinfiles-ui-results">
+<title
+>Sökresultat</title>
+
+<para
+>Sökresultaten visas under sökalternativen. Om alternativen för Sök i katalog visas, klicka helt enkelt på knappen <guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="games-config-options-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+></guiicon
+> för att visa dem. De visas också automatiskt så fort en sökning utförs.</para>
+
+<para
+>Sökresultatet visar en lista med filer som innehåller text som motsvarar sökbegreppet, följt av antal träffar i den filen.</para>
+
+<para
+>För att se en lista med träffar i filen, klicka helt enkelt på expansionspilen till vänster om filnamnet (om du valde alternativet <guilabel
+>Expandera resultat</guilabel
+>, är det redan gjort åt dig). Radnumret där varje träff hittades visas, följt av innehållet på raden, med sökbegreppet angivet med fetstil.</para>
+
+<para
+>För att öppna filen som resultatet hittades i, dubbelklicka helt enkelt på den. &kate; öppnar filen om det behövs. Du kan också flytta markören till platsen för en viss träff genom att dubbelklicka där den listas istället för filnamnet. </para>
+
+</sect3>
+</sect2>
+
+<sect2 id="searchinfiles-menu">
+<title
+>Menystruktur</title>
+
+<variablelist>
+
+<varlistentry id="edit-searchinfiles">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+>&Ctrl;&Alt;<keycap
+>F</keycap
+></keycombo
+></shortcut
+> <guimenu
+>Redigera</guimenu
+><guimenuitem
+>Sök i filer</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Startar verktygsvyn Sök och ersätt</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-next-match">
+<term
+><menuchoice
+><guimenu
+>Redigera</guimenu
+> <guimenuitem
+>Gå till nästa träff</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Gå till nästa träff i en sökning utförd av insticksprogrammet Sök och ersätt.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-previous-match">
+<term
+><menuchoice
+><guimenu
+>Redigera</guimenu
+> <guimenuitem
+>Gå till föregående träff</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Gå till föregående träff i en sökning utförd av insticksprogrammet Sök och ersätt.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-toolviews-searchandreplace">
+<term
+><menuchoice
+><guimenu
+>Visa</guimenu
+> <guisubmenu
+>Verktygsvyer</guisubmenu
+> <guimenuitem
+>Visa Sök och ersätt</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Visar eller döljer &kate;s verktyg <guilabel
+>Sök och ersätt</guilabel
+>. </para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+</sect1>
+
+<sect1 id="kate-application-plugin-snippets">
+<sect1info>
+<authorgroup>
+<author
+><firstname
+>Martin</firstname
+> <surname
+>Gergov</surname
+></author>
+<author
+>&TC.Hollingsworth; &TC.Hollingsworth.mail;</author>
+</authorgroup>
+</sect1info>
+<title
+>Textsnuttar för &kate;</title>
+
+<sect2 id="snippets-intro">
+<title
+>Inledning</title>
+<para
+>Textsnuttar för &kate; är ett insticksprogram som används för att spara tid åt dig genom att lägga till stöd för så kallade <quote
+>textsnuttar</quote
+> (återanvändbar källkod, maskinkod eller text). Insticksprogrammet har också stöd för kodkomplettering och &javascript;.</para>
+</sect2>
+
+<sect2 id="snippets-menu">
+<title
+>Menystruktur</title>
+
+<variablelist>
+<varlistentry>
+<term
+><menuchoice
+><guimenu
+>Visa</guimenu
+> <guisubmenu
+>Verktygsvyer</guisubmenu
+> <guimenuitem
+>Visa Textsnuttar</guimenuitem
+></menuchoice
+></term>
+<listitem
+><para
+>Visar en panel som innehåller alla textsnuttar i ditt arkiv som gäller för den aktuella filtypen.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="tools-create-snippet">
+<term
+><menuchoice
+><guimenu
+>Verktyg</guimenu
+> <guimenuitem
+>Skapa textsnutt</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Skapa en ny textsnutt, vilket är ett återanvändbart textstycke som du kan infoga varsomhelst i vilket dokument som helst.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+
+<sect2 id="snippets-panel">
+<title
+>Textsnuttpanel</title>
+
+<screenshot id="screenshot-snippets-panel">
+<screeninfo
+>Textsnuttpanel för &kate;</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="snippets-panel.png" format="PNG"/></imageobject>
+<textobject
+><phrase
+>Textsnuttpanel för &kate;.</phrase
+></textobject>
+<caption
+><para
+>Panelen för &kate; textsnuttar.</para
+></caption>
+</mediaobject>
+</screenshot>
+
+<para
+>Panelen ska visa en lista över textsnuttarkiv, tillsammans med alternativ för att skapa dina egna, hämta dem från internet, eller ladda dem från en lokal fil. Varje arkiv har en kryssruta som kan användas för att aktivera eller inaktivera det. Det finns också knappar för att redigera eller ta bort befintliga arkiv.</para>
+
+<sect3 id="snippets-repo-internet">
+<title
+>Ladda textsnuttarkivfiler</title>
+<para
+>Du kan ladda ner textsnuttarkiv från internet. Klicka bara på <guibutton
+>Hämta nya textsnuttar</guibutton
+>, så visas ett fönster med en lista över textsnuttarkiv. När du har laddat ner den textsnutt du önskar, försäkra dig om att du har aktiverat den.</para>
+<!--FIXME no way to load a local file ?
+<para
+>You can also load snippet repositories from a local file using the file
+browser at the bottom of the panel.  Click <guibutton
+>Copy to repository</guibutton>
+when finished.</para
+>-->
+</sect3>
+
+<sect3 id="snippets-repo-editor">
+<title
+>Skapa och redigera arkiv</title>
+
+<para
+>För att skapa ett nytt textsnuttarkiv, klicka på <guibutton
+>Lägg till arkiv</guibutton
+>. Nu ska en dialogruta visas som frågar efter namnet på den nya textsnuttfilen, licens och upphovsman. Efter att du har gjort dina val, klicka på <guibutton
+>Ok</guibutton
+>.</para>
+
+<screenshot id="screenshot-snippets-repository">
+<screeninfo
+>Textsnutteditor</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="snippets-repository.png" format="PNG"/></imageobject>
+<textobject
+><phrase
+>Arkiveditorn.</phrase
+></textobject>
+<caption
+><para
+>Arkiveditorns gränssnitt.</para
+></caption>
+</mediaobject>
+</screenshot>
+
+<para
+>Arkiveditorn för textsnuttar innehåller följande alternativ:</para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><guilabel
+>Name</guilabel
+></term>
+<listitem
+><para
+>Visas i listan över textsnuttar i verktygsvyn och söks också igenom när funktionen för textkomplettering används.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Namnrymd</guilabel
+></term>
+<listitem
+><para
+>Prefix använt medan kodkomplettering används.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Licens</guilabel
+></term>
+<listitem
+><para
+>Välj licens för arkivet med textsnuttar.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Upphovsmän</guilabel
+></term>
+<listitem
+><para
+>Ange namnen på upphovsmännen till textsnuttfilen.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Filtyper</guilabel
+></term>
+<listitem
+><para
+>Välj filtypen eller filtyperna som du vill att textsnuttarkivet ska gälla. Det är normalt inställt till <quote
+>*</quote
+> så att arkivet gäller alla filer. Det kan exempelvis ändras till något som <userinput
+>C++</userinput
+>, eller väljas från en lista genom att klicka på objekten. Du kan ange mer än en filtyp genom att klicka på &Shift; när typer läggs till.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect3>
+
+<sect3 id="snippets-editor">
+<title
+>Skapa och redigera textsnuttar</title>
+
+<screenshot id="screenshot-snippets-form">
+<screeninfo
+>Textsnutteditor</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="snippets-form.png" format="PNG"/></imageobject>
+<textobject
+><phrase
+>Textsnutteditorn.</phrase
+></textobject>
+<caption
+><para
+>Redigeringsgränssnittet för textsnuttar.</para
+></caption>
+</mediaobject>
+</screenshot>
+
+<variablelist>
+
+<varlistentry>
+<term
+><guilabel
+>Name</guilabel
+></term>
+<listitem
+><para
+>Namnet visas i kompletteringslistan.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Genväg</term>
+<listitem
+><para
+>Att trycka på genvägen infogar textsnutten i dokumentet.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Textsnuttar</guilabel
+></term>
+<listitem
+><para
+>Texten som textsnutten infogar i dokumentet.</para>
+<para
+>En textsnutt kan innehålla redigerbara fält. Man kan gå mellan dem genom att trycka på tabulatortangenten. Följande uttryck kan användas i malltexten för att skapa fält:</para>
+<para
+><userinput
+>${<replaceable
+>fältnamn</replaceable
+>}</userinput
+> skapar ett enkelt redigerbart fält. Alla följande förekomster av samma <replaceable
+>fältnamn</replaceable
+> skapar fält som speglar innehållet i det första under redigering.</para>
+<para
+><userinput
+>${<replaceable
+>fältnamn=förval</replaceable
+>}</userinput
+> kan användas för att ange ett förvalt värde för fältet. <replaceable
+>förval</replaceable
+> kan vara vilket &javascript;-uttryck som helst.</para>
+<para
+>Använd <userinput
+>${<replaceable
+>fältnamn</replaceable
+>=<replaceable
+>text</replaceable
+>}</userinput
+> för att ange en konstant sträng som förvalt värde.</para>
+<para
+><userinput
+>${func(<replaceable
+>annat_fält_1</replaceable
+>, <replaceable
+>annat_fält_1</replaceable
+>, ...)}</userinput
+> kan användas för att skapa ett fält som utvärderar en &javascript;-funktion vid varje redigering och innehåller dess innehåll. Se fliken <guilabel
+>Skript</guilabel
+> för mer information.</para>
+<para
+><userinput
+>${cursor}</userinput
+> kan användas för att markera slutposition för markören efter allt annat har fyllts i.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Skript</guilabel
+></term>
+<listitem
+><para
+>&javascript;-hjälpfunktioner att använda i textsnuttar.</para>
+<para
+>Alla &javascript;-funktioner ska returnera innehållet som du vill placera i ett mallfält som en sträng.</para>
+<para
+>Funktioner anropas i en omgivning som innehåller alla redigerbara mallfälts innehåll som lokala variabler. I en textsnutt som exempelvis innehåller <userinput
+>${<replaceable
+>field</replaceable
+>}</userinput
+>, finns en variabel vid namn <userinput
+>field</userinput
+> som innehåller mallfältets aktuella värde. Variablerna kan antingen användas statiskt i funktionen eller skickas som väljare genom att använda syntaxen <userinput
+>${func(field)}</userinput
+> eller <userinput
+>${<replaceable
+>field2=func(field)</replaceable
+>}</userinput
+> i textsnuttens sträng.</para>
+<para
+>Det går att använda <ulink url="help:/katepart/dev-scripting.html#dev-scripting-api"
+>&kate;s skriptprogrammeringsgränssnitt</ulink
+> för att hämta markerad text, hela texten, filnamnet med mera genom att använda lämpliga metoder i objekten <userinput
+>document</userinput
+> och <userinput
+>view</userinput
+>. Se dokumentationen över skriptprogrammeringsgränssnittet för mer information.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+</sect3>
+</sect2>
+
+<sect2 id="snippets-using">
+<title
+>Använda textsnuttar</title>
+
+<screenshot id="screenshot-snippets-usage">
+<screeninfo
+>Textsnuttar för &kate; under användning</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="snippets-usage.png" format="PNG"/></imageobject>
+<textobject
+><phrase
+>Åtkomst av textsnuttar för &kate; från en verktygsvy och kombinationsruta.</phrase
+></textobject>
+<caption
+><para
+>Välj i en lista med textsnuttar.</para
+></caption>
+</mediaobject>
+</screenshot>
+
+<para
+>Textsnuttar kan anropas på två sätt:</para>
+
+<itemizedlist>
+<listitem
+><para
+>Genom att välja textsnutten i verktygsvyn.</para
+></listitem>
+<listitem
+><para
+>Under tiden du skriver, kan du trycka på <keycombo action="simul"
+>&Ctrl;<keysym
+>Mellanslag</keysym
+></keycombo
+>, som visar alla textsnuttar i ett bekvämt fönster där du kan välja en. Tangentkombinationen tillhandahåller en funktion som liknar kodkomplettering.</para
+></listitem>
+</itemizedlist>
+
+<para
+>Om textsnutten innehåller variabler (förutom <literal
+>${cursor}</literal
+>) flyttas markören automatiskt till den första förekomsten av en variabel och väntar på att något ska skrivas in. När du är klar kan du trycka på tabulatortangenten för att gå till nästa variabel, och så vidare.</para>
+
+</sect2>
+
+<sect2 id="snippets-ack">
+<title
+>Tack och erkännanden</title>
+<para
+>&kate; textsnuttar är skrivet av Joseph Wenninger.</para>
+<para
+>Särskilt tack till deltagaren i Google Code-In 2011, Martin Gergov, för att ha skrivit stora delar av det här avsnittet.</para>
+</sect2>
+
+</sect1>
+
+
+<sect1 id="kate-application-plugin-sql">
+<sect1info>
+<authorgroup>
+<author
+><firstname
+>Ömer</firstname
+> <othername
+>Faruk</othername
+> <surname
+>ORUÇ</surname
+></author>
+<author
+>&TC.Hollingsworth; &TC.Hollingsworth.mail;</author>
+</authorgroup>
+</sect1info>
+<title
+>SQL-insticksprogram</title>
+
+<sect2 id="sql-intro">
+<title
+>Inledning</title>
+
+<para
+>Structured Query Language (SQL) är ett specialiserat språk för att uppdatera, ta bort och efterfråga information i databaser.</para>
+
+<para
+>&kate;s SQL-insticksprogram låter dig:</para>
+
+<itemizedlist>
+<listitem
+><para
+>Skapa en databas</para
+></listitem>
+<listitem
+><para
+>Ansluta till befintliga databaser</para
+></listitem>
+<listitem
+><para
+>Infoga och ta bort data i databasen</para
+></listitem>
+<listitem
+><para
+>Utföra en förfrågan</para
+></listitem>
+<listitem
+><para
+>Visa resultat i en tabell</para
+></listitem>
+</itemizedlist>
+
+</sect2>
+
+<sect2 id="sql-connecting">
+<title
+>Ansluta till en databas</title>
+
+<para
+>Använd <guibutton
+>Lägg till anslutning</guibutton
+> i menyn <guimenu
+>SQL</guimenu
+> eller i verktygsraden, och välj därefter den &Qt;-databasdrivrutin du vill använda (inklusive QSQLITE, QMYSQL3, QMYSQL, QODBC3, QODBC, QPSQL7 och QPSQL). Om du inte kan se en önskad drivrutin, måste den installeras. Klicka därefter på <guibutton
+>Nästa</guibutton
+>. </para>
+
+<para
+>Om databasen du valde använder en fil, ange helt enkelt databasens plats och klicka på knappen <guibutton
+>Nästa</guibutton
+>. Om den kräver anslutning till en server, måste du skriva in serverns värddatornamn, ditt användarnamn och lösenord, och eventuell ytterligare information som just den drivrutinen kräver. Klicka därefter på <guibutton
+>Nästa</guibutton
+>.</para>
+
+<para
+>Ge till sist anslutningen ett namn, och klicka på <guibutton
+>Slutför</guibutton
+>.</para>
+
+</sect2>
+
+<sect2 id="sql-querying">
+<title
+>Starta en förfrågan</title>
+
+<sect3 id="sql-querying-insert-delete-update">
+<title
+>INSERT/DELETE/UPDATE</title>
+
+<para
+>Du kan infoga, ta bort och uppdatera data med SQL-insticksprogrammet, precis som du skulle göra på kommandoraden eller inne i ett program. Skriv helt enkelt in en förfrågan och klicka på knappen <guibutton
+>Utför förfrågan</guibutton
+> på verktygsraden eller använd <menuchoice
+><guimenu
+>SQL</guimenu
+><guimenuitem
+>Utför fråga</guimenuitem
+></menuchoice
+> (<keycombo action="simul"
+>&Ctrl;<keycap
+>E</keycap
+></keycombo
+>).</para>
+
+<example>
+<title
+>Några exempel på en förfrågan</title>
+<variablelist>
+
+<varlistentry>
+<term
+><command
+>INSERT</command
+></term>
+<listitem
+><para
+><programlisting
+>INSERT INTO <replaceable
+>tabellnamn</replaceable
+> ("<replaceable
+>nyckel-1</replaceable
+>", "<replaceable
+>nyckel-2</replaceable
+>", "<replaceable
+>nyckel-3</replaceable
+>", "<replaceable
+>nyckel-4</replaceable
+>", "<replaceable
+>nyckel-5</replaceable
+>")
+VALUES ("<replaceable
+>värde-1</replaceable
+>", "<replaceable
+>värde-2</replaceable
+>", "<replaceable
+>värde-3</replaceable
+>", "<replaceable
+>värde-4</replaceable
+>", "<replaceable
+>värde-5</replaceable
+>" )
+</programlisting
+></para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><command
+>DELETE</command
+></term>
+<listitem
+><para
+><programlisting
+>DELETE FROM <replaceable
+>tabellnamn</replaceable
+> WHERE name = "<replaceable
+>text</replaceable
+>"
+</programlisting
+></para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><command
+>UPDATE</command
+></term>
+<listitem
+><para
+><programlisting
+>UPDATE <replaceable
+>tabellnamn</replaceable
+> SET "<replaceable
+>nyckel-1</replaceable
+>" = "<replaceable
+>text</replaceable
+>", "<replaceable
+>nyckel-2</replaceable
+>" = "<replaceable
+>text</replaceable
+>", "<replaceable
+>nyckel-3</replaceable
+>" = "<replaceable
+>text</replaceable
+>", "<replaceable
+>nyckel-4</replaceable
+>" = "<replaceable
+>text</replaceable
+>", "<replaceable
+>nyckel-5</replaceable
+>" = "<replaceable
+>text</replaceable
+>"
+</programlisting
+></para
+></listitem>
+</varlistentry>
+
+</variablelist>
+</example>
+
+</sect3>
+
+<sect3 id="sql-querying-select">
+<title
+>SELECT</title>
+
+<para
+>Efter att ha utfört förfrågan <command
+>SELECT</command
+>, kan resultatet ses som en tabell som dyker upp i verktygsvyn <guilabel
+>SQL-datautmatning</guilabel
+> längst ner i &kate;, eller som text under <guilabel
+>SQL-textutmatning</guilabel
+>. Om ett fel uppstår visas det i textutmatningen.</para>
+
+<example>
+<title
+>Exempel på <command
+>SELECT</command
+>-förfrågan</title>
+<para
+><programlisting
+>SELECT * FROM <replaceable
+>tabellnamn</replaceable
+>
+</programlisting
+></para>
+</example>
+
+<para
+>I verktygsvyn <guilabel
+>SQL-datautmatning</guilabel
+> finns flera knappar:</para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><guibutton
+>Ändra storlek på kolumner till innehållet</guibutton
+></term>
+<listitem
+><para
+>Ändra storlek på kolumner så att de passar till innehållet.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guibutton
+>Ändra storlek på rader till innehållet</guibutton
+></term>
+<listitem
+><para
+>Ändra storlek på rader så att de passar till innehållet.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guibutton
+>Kopiera</guibutton
+></term>
+<listitem
+><para
+>Markerar hela tabellens innehåll och kopierar det till klippbordet.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guibutton
+>Exportera</guibutton
+></term>
+<listitem
+><para
+>Exporterar hela tabellens innehåll till en fil, eller det nuvarande dokumentet med formatet kommaseparerade värden (CSV).</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guibutton
+>Rensa</guibutton
+></term>
+<listitem
+><para
+>Tar bort allt från tabellvyn.</para
+></listitem>
+</varlistentry>
+
+<!--FIXME Use system locale -->
+
+</variablelist>
+
+<para
+>Nu kan du ändra färgerna som visas i tabellen på sidan <guilabel
+>SQL</guilabel
+> i <menuchoice
+><guimenu
+>Inställningar</guimenu
+> <guimenuitem
+>Anpassa &kate;...</guimenuitem
+> </menuchoice
+>.</para>
+
+</sect3>
+</sect2>
+
+<sect2 id="sql-browsing">
+<title
+>Bläddring</title>
+
+<para
+>Du kan bläddra i databasen genom att använda bläddringsverktygsvyn <guilabel
+>Databasschema</guilabel
+> till vänster. Informationen som visas beror på vilken databasdrivrutin som används.</para>
+
+<para
+>Högerklicka var som helst i verktygsvyn och välj <guimenuitem
+>Uppdatera</guimenuitem
+> för att uppdatera listan. För att skapa en förfrågan för någon post i listan, högerklicka på en post, välj <guisubmenu
+>Skapa</guisubmenu
+> och välj frågetyp (<guimenuitem
+>SELECT</guimenuitem
+>, <guimenuitem
+>UPDATE</guimenuitem
+>, <guimenuitem
+>INSERT</guimenuitem
+> eller <guimenuitem
+>DELETE</guimenuitem
+>) i undermenyn som visas.</para>
+
+</sect2>
+
+<sect2 id="sql-menus">
+<title
+>Menystruktur</title>
+<variablelist>
+
+<varlistentry>
+<term
+><menuchoice
+><guimenu
+>SQL</guimenu
+> <guimenuitem
+>Lägg till anslutning...</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Lägger till en ny anslutning med användning av vilken databasdrivrutin som helst. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><menuchoice
+><guimenu
+>SQL</guimenu
+> <guimenuitem
+>Ta bort anslutning</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Tar bort den markerade anslutningen. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><menuchoice
+><guimenu
+>SQL</guimenu
+> <guimenuitem
+>Redigera anslutning...</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Redigerar den nuvarande anslutningens inställningar. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Anslutningar</term>
+<listitem
+><para
+>Alla databasanslutningar som du har skapat listas mellan menyalternativen <guimenuitem
+>Redigera anslutning</guimenuitem
+> och <guimenuitem
+>Utför förfrågan</guimenuitem
+>. Välj en för att utföra en förfrågan eller göra ändringar i den. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+>&Ctrl;<keycap
+>E</keycap
+></keycombo
+></shortcut
+> <guimenu
+>SQL</guimenu
+><guimenuitem
+>Utför förfrågan</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Utför din förfrågan. </para
+></listitem>
+</varlistentry>
+
+</variablelist>
+</sect2>
+
+<sect2 id="sql-ack">
+<title
+>Tack och erkännanden</title>
+
+<para
+>SQL-insticksprogrammet är skrivet av Marco Mentasti.</para>
+<para
+>Särskilt tack till deltagaren i Google Code-In 2011, Ömer Faruk Oruç, för att ha skrivit stora delar av det här avsnittet.</para>
+
+</sect2>
+
+</sect1>
+
+<sect1 id="kate-application-plugin-symbolviewer">
+<!--https://kate-editor.org/2010/10/27/php-treeview-improvements-in-kate/?-->
+<title
+>Insticksprogrammet Symbolvisning</title>
+
+<sect2 id="symbolviewer-using">
+<title
+>Använda insticksprogrammet Stäng förutom/som</title>
+
+<para
+>Det gör det möjligt för utvecklare att visa symboler (funktioner, makron och strukturer) i källkod.</para>
+<para
+>Genom att klicka på den tolkade informationen kan man enkelt bläddra i koden.</para>
+<para
+>För närvarande stöds följande språk:</para>
+<para
+>C/C++, &Java;, Perl, PHP, Python, Ruby, XSLT, Tcl/Tk, Fortran</para>
+
+<para
+>Lista över funktioner:</para>
+<simplelist>
+<member
+>List- och trädläge</member>
+<member
+>Aktivera eller inaktivera sortering</member>
+<member
+>Dölj eller visa funktionsparametrar</member>
+<member
+>Expandera eller dra ihop i trädläge</member>
+<member
+>Automatisk uppdatering vid dokumentändring</member>
+<member
+>Tolkning av kod är baserad på ramverket för syntaxfärgläggning från KDE Ramverk</member>
+</simplelist>
+
+</sect2>
+
+<sect2 id="symbolviewer-menu">
+<title
+>Menystruktur</title>
+<variablelist>
+
+<varlistentry id="tools-symbolviewer">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>\</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Visa</guimenu
+> <guisubmenu
+>Verktygsvyer</guisubmenu
+> <guimenuitem
+>Visa symbollista</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Visa eller dölj &kate;s symbollista, som visar källkodens funktioner, makron och strukturer i det aktiva dokumentet.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+
+<sect2 id="symbolviewer-config">
+<title
+>Inställning</title>
+
+<screenshot id="screenshot-symbolviewer-settings">
+<screeninfo
+>Symbolvisning</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="symbolviewer-settings.png" format="PNG"/></imageobject>
+<caption
+><para
+>Välj standardalternativ för tolken</para
+></caption>
+</mediaobject>
+</screenshot>
+
+</sect2>
+
+</sect1>
+
+
+<sect1 id="kate-application-plugin-konsole">
+<title
+>Vyinsticksprogrammet Terminalverktyg</title>
+
+<para
+><indexterm
+><primary
+>Terminalemulator</primary
+></indexterm
+> Den inbyggda terminalemulatorn är en kopia av &kde;:s &konsole; terminalprogram, för bekväm användning. Den är tillgänglig via menyalternativet <menuchoice
+><guimenu
+>Visa</guimenu
+> <guisubmenu
+>Verktygsvyer</guisubmenu
+> <guimenuitem
+>Visa terminalpanel</guimenuitem
+></menuchoice
+>, och får fokus så fort den visas. Dessutom, om alternativet <link linkend="konsole-config"
+>Synkronisera automatiskt terminalen med nuvarande dokument om möjligt</link
+> är aktiverat, så byter den till det nuvarande dokumentets katalog om möjligt när den visas, eller när nuvarande dokument ändras.</para>
+
+<para
+>Den normala platsen i &kate;:s fönster är längst ner, under redigeringsområdet.</para>
+
+<para
+>Du kan anpassa terminalen, med menyn som visas med höger musknapp. För mer information, se <ulink url="help:/konsole/index.html"
+>handboken för Terminal</ulink
+>.</para>
+
+<para
+>Den inbyggda terminalemulatorn tillhandahålls av vyinsticksprogrammet Terminalverktyg.</para>
+
+<sect2 id="konsole-menus">
+<title
+>Menystruktur</title>
+
+<variablelist>
+
+<varlistentry id="view-toolviews-show-terminal">
+<term
+><menuchoice
+><guimenu
+>Visa</guimenu
+> <guisubmenu
+>Verktygsvyer</guisubmenu
+> <guimenuitem
+>Visa Terminalpanel</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Visar eller döljer den inbyggda terminalemulatorn.</para>
+<para
+>När det aktiveras för första gången, skapas terminalen.</para>
+<para
+>När terminalemulatorn visas, så får den fokus, så att du kan börja skriva in kommandon omedelbart. Om alternativet <link linkend="konsole-config"
+>Synkronisera automatiskt terminalen med nuvarande dokument om möjligt</link
+> är aktiverat på sidan <guilabel
+>Terminal</guilabel
+> i den huvudsakliga <link linkend="config-dialog"
+>inställningsdialogrutan</link
+>, så byter skalsessionen arbetskatalog till katalogen för det aktiva dokumentet, om det är en lokal fil.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-toolviews-pipe-to-terminal">
+<term
+><menuchoice
+><guimenu
+>Verktyg</guimenu
+> <guimenuitem
+>Skicka till terminal</guimenuitem
+></menuchoice
+></term>
+<listitem
+><para
+>Skicka texten som för närvarande är markerad till den inbyggda terminalemulatorn. Någon nyrad läggs inte till efter texten.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="tools-sync-terminal-document">
+<term
+><menuchoice
+><guimenu
+>Verktyg</guimenu
+> <guimenuitem
+>Synkronisera terminalen med nuvarande dokument</guimenuitem
+></menuchoice
+></term>
+<listitem>
+<para
+>Detta gör att den inbyggda terminalen byter arbetskatalog med <command
+>cd</command
+> till det aktiva dokumentets katalog.</para>
+
+<para
+>Som ett alternativ kan du ställa in &kate; att alltid hålla terminalen synkroniserad med aktuellt dokument. Se <xref linkend="konsole-config"/> för mer information.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="tools-focus-terminal">
+<term
+><menuchoice
+><guimenu
+>Verktyg</guimenu
+> <guimenuitem
+>Ge fokus till/Ta bort fokus från ' terminalpanel</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Byt fokus från aktuellt dokument till terminalen och vice versa. </para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+</sect2>
+
+<sect2 id="konsole-config">
+<title
+>Inställning</title>
+
+<para
+>Du kan ställa in vyinsticksprogrammet Terminalverktyg på sidan <guilabel
+>Terminal</guilabel
+> i <link linkend="configuring-kate"
+>inställningsdialogrutan</link
+>.</para>
+
+<para
+>Följande alternativ är tillgängliga:</para>
+
+<variablelist>
+<varlistentry>
+<term>
+<guilabel
+>Synkronisera automatiskt terminalen med aktuellt dokument om möjligt</guilabel
+></term>
+<listitem
+><para
+>Det gör att den inbyggda terminalen att byta katalog med <command
+>cd</command
+> till katalogen för det aktiva dokumentet, när den startas, och när ett nytt dokument får fokus. Om det inte aktiveras, måste du flytta dig i terminalen själv. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Ställ in miljövariabeln EDITOR till 'kate -b'</guilabel
+></term>
+<listitem
+><para
+>Detta ställer in miljövariabeln <envar
+>EDITOR</envar
+> så att program som kör i den inbyggda terminalen som automatiskt öppnar en fil i editorn, öppnar dem i &kate; istället för standardeditorn som är inställd i skalet. Du kommer inte att kunna fortsätta använda terminalen innan du har stängt filen i &kate;, så att det anropande programmet är medvetet om att du är klar med redigeringen av filen.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Dölj terminal vid tryck på 'Esc'</guilabel
+></term>
+<listitem
+><para
+>Gör det möjligt att stänga den inbyggda terminalen genom att trycka på tangenten &Esc;. Kan orsaka problem med terminalprogram som använder tangenten Esc, t.ex. för <application
+>vim</application
+>. Lägg till sådana program i textinmatningsrutan nedan. Objekten i listan ska åtskiljas av kommatecken.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+</sect2>
+
+</sect1>
+
+<sect1 id="kate-application-plugin-textfilter">
+
+<title
+>Insticksprogrammet Textfilter</title>
+
+<sect2 id="textfilter-using">
+<title
+>Använda insticksprogrammet Textfilter</title>
+
+<para
+>Insticksprogrammet kan användas för att utföra behandla markerad text med användning av terminalkommandon. Markeringen används som indata till kommandot, och utdata ersätter antingen markeringen eller kopieras till klippbordet, beroende på vad användaren föredrar. </para>
+
+<itemizedlist>
+<title
+>Exempel:</title>
+<listitem
+><para
+><command
+>less /etc/fstab</command
+>: Klistra in filens innehåll eller kopiera det till klippbordet </para
+></listitem>
+<listitem
+><para
+><command
+>wc</command
+>: Räkna markeringens rader, ord och tecken, och klistra in resultatet i dokumentet eller kopiera det till klippbordet </para
+></listitem>
+<listitem
+><para
+><command
+>sort</command
+>: Sortera markeringens rader, och klistra in resultatet i dokumentet eller kopiera det till klippbordet </para
+></listitem>
+</itemizedlist>
+
+</sect2>
+
+<sect2 id="textfilter-menu">
+<title
+>Menystruktur</title>
+
+<variablelist>
+
+<varlistentry id="tools-textfilter">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>\</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Verktyg</guimenu
+> <guisubmenu
+>Filtrera text</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+
+<para
+><action
+>Visar</action
+> dialogrutan Textfilter:</para>
+
+<screenshot id="screenshot-filtertext">
+<screeninfo
+>Dialogrutan Textfilter</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="textfilter.png" format="PNG"/></imageobject>
+</mediaobject>
+</screenshot>
+
+<para
+>Mata in skalkommandot i kombinationsrutan eller välj ett tidigare kommando i historiken.</para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><guilabel
+>Kopiera resultatet istället för att klistra in det</guilabel
+></term>
+<listitem>
+<para
+>Kopiera resultatet till klippbordet och lämna dokumentet oförändrat.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Sammanfoga standardutmatning och felutmatning</guilabel
+></term>
+<listitem>
+<para
+>Om markerad, sammanfogas data från standardutmatning och felutmatning och inga fel rapporteras. Annars visas felutmatning som ett passivt meddelande.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+
+</sect1>
+
+<sect1 id="kate-application-plugin-xmlcheck">
+<!-- from doc/kate-addons/xmlcheck.docbook -->
+<sect1info>
+<authorgroup
+><author
+>&Daniel.Naber; &Daniel.Naber.mail; </author
+></authorgroup>
+</sect1info>
+
+<title
+>&XML;-validering</title>
+
+<para
+>Det här insticksprogrammet kontrollerar att &XML;-filer är giltiga och välformade.</para>
+<para
+>Det här insticksprogrammet kontrollerar aktuell fil. En lista med varningar och fel visas längst ner i &kate;s huvudfönster. Du kan klicka på ett felmeddelande för att hoppa till motsvarande plats i filen. Om filen har en <quote
+>DOCTYPE</quote
+>, så används den DTD som anges av DOCTYPE för att kontrollera filens giltighet. Denna DTD förväntas finnas på en plats relativt den nuvarande filen, t.ex. om DOCTYPE refererar till <quote
+>DTD/xhtml1-transitional.dtd</quote
+> och filen heter <filename
+>/home/peter/test.xml</filename
+>, så förväntas denna DTD finnas under <filename
+>/home/peter/DTD/xhtml1-transitional.dtd</filename
+>. Dock så stöds också DTD:er som anges med HTTP.</para>
+
+<para
+>Om filen inte har någon doctype, så kontrolleras att den är välformad.</para>
+
+<para
+>För att ta reda på mer om &XML;, titta på <ulink url="https://www.w3.org/XML/"
+>de officiella W3C &XML;-sidorna</ulink
+>.</para>
+
+<para
+>Internt anropar insticksprogrammet det externa kommandot <command
+>xmllint</command
+>, som är en del av libxml2. Om det här programmet inte är riktigt installerat på systemet, fungerar inte insticksprogrammet.</para>
+
+<para
+>För att ladda insticksprogrammet, öppna först &kate;s inställningsdialogruta under <menuchoice
+><guimenu
+>Inställningar</guimenu
+> <guimenuitem
+>Anpassa &kate;...</guimenuitem
+></menuchoice
+> . Markera därefter <guilabel
+>&XML;-validering</guilabel
+>, som visas under <guilabel
+>Program</guilabel
+> <guilabel
+>Insticksprogram</guilabel
+> och stäng dialogrutan. </para>
+
+<sect2 id="xmlcheck-menu">
+<title
+>Menystruktur</title>
+
+<variablelist>
+<varlistentry>
+<term>
+<menuchoice
+><guimenu
+>&XML;</guimenu
+> <guimenuitem
+>Validera &XML;</guimenuitem
+> </menuchoice>
+</term>
+<listitem
+><para
+>Det här startar kontrollen, som beskrivs ovan.</para
+></listitem>
+</varlistentry>
+</variablelist>
+
+</sect2>
+
+<sect2 id="xmlcheck-thanks-and-acknowledgements">
+<title
+>Tack och erkännanden</title>
+<para
+>&kate;s insticksprogram <quote
+>&XML;-validering</quote
+> copyright 2002 &Daniel.Naber; &Daniel.Naber.mail;. </para>
+<para
+>Dokumentation copyright 2002 &Daniel.Naber;</para>
+
+</sect2>
+</sect1>
+
+<sect1 id="kate-application-plugin-xmltools">
+<!-- from doc/kate-addons/xmlcheck.docbook -->
+<sect1info>
+<authorgroup
+><author
+>&Daniel.Naber; &Daniel.Naber.mail; </author
+></authorgroup>
+</sect1info>
+<title
+>&XML;-komplettering</title>
+
+<para
+>Det här insticksprogrammet ger tips om vad som är tillåtet på vissa ställen i en &XML;-fil, i enlighet med filens DTD. Det listar möjliga element, egenskaper, egenskapsvärden eller objekt, beroende på markörens plats (t.ex. så listas alla objekt om tecknet till vänster om markören är <quote
+>&amp;</quote
+>). Det är också möjligt att avsluta den närmaste taggen till vänster som ännu ej avslutats.</para>
+
+<para
+>En <acronym
+>DTD</acronym
+> på &XML;-format, som skapas av Perl-programmet <command
+>dtdparse</command
+> måste finnas. Den här sortens DTD:er kallas för <quote
+>meta-DTD:er</quote
+>. Vissa meta-DTD:er medföljer. De är installerade i <filename class="directory"
+>katexmltools/</filename
+> i <userinput
+><command
+>qtpaths</command
+> <option
+>--paths GenericDataLocation </option
+></userinput
+>, som också är den förvalda katalogen när du väljer <guimenuitem
+>Tilldela meta-DTD...</guimenuitem
+>. För att skapa dina egna meta-DTD:er, hämta <command
+>dtdparse</command
+> från <ulink url="http://dtdparse.sourceforge.net"
+>http://dtdparse.sourceforge.net</ulink
+>.</para>
+
+<sect2 id="xmltools-how-to-use">
+<title
+>Användning</title>
+
+<para
+>Starta &kate; och öppna  inställningsdialogrutan med <menuchoice
+><guimenu
+>Inställningar</guimenu
+> <guimenuitem
+>Anpassa &kate;...</guimenuitem
+></menuchoice
+>. Markera därefter <guilabel
+>&XML;-komplettering</guilabel
+>, som visas på sidan <menuchoice
+><guimenu
+>Program</guimenu
+> <guimenuitem
+>Insticksprogram</guimenuitem
+></menuchoice
+> och stäng dialogrutan. Välj därefter <menuchoice
+><guimenu
+>&XML;</guimenu
+> <guimenuitem
+>Tilldela meta-DTD...</guimenuitem
+></menuchoice
+>. Om dokumentet inte innehåller någon <quote
+>DOCTYPE</quote
+> eller en okänd doctype, måste du välja en meta-DTD i filsystemet. Annars så laddas automatiskt den meta-DTD som hör ihop med det nuvarande dokumentets doctype.</para>
+
+<para
+>Nu kan du använda insticksprogrammet medan du skriver in text:</para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><keycap
+>&lt;</keycap
+> (mindre än tecken)</term>
+<listitem
+><para
+>Det här visar en lista med möjliga element om inte markören redan är inne i en tagg. Observera att du för närvarande inte kan använda det här för att infoga toppnivåelementet (t.ex. <quote
+>&lt;html&gt;</quote
+>).</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><keycap
+>&lt;</keycap
+><keycap
+>/</keycap
+> (mindre än tecken + snedstreck)</term>
+<listitem
+><para
+>Att skriva in de här tecknen erbjuder att avsluta det aktuella elementet (det närmaste oavslutade till vänster om markören). Tryck på returtangenten för att acceptera förslaget. I motsats till menyalternativet <guimenuitem
+>Avsluta element</guimenuitem
+>, fungerar det här bara när en DTD har tilldelats.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><keycap
+>"</keycap
+> (citationstecken)</term>
+<listitem
+><para
+>Ett citationstecken visar en lista med möjliga attributvärden (om det finns några) när du är inne i en tagg.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><keycap
+>&nbsp;</keycap
+> (mellanslag)</term>
+<listitem
+><para
+>Den här tangenten visar en lista med möjliga egenskaper för det nuvarande elementet om du är inne i en tagg.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><keycap
+>&amp;</keycap
+> (och-tecken)</term>
+<listitem
+><para
+>Den här tangenten visar en lista med namngivna objekt.</para
+></listitem>
+</varlistentry>
+</variablelist>
+
+</sect2>
+
+<sect2 id="xmltools-features-and-limitations">
+<title
+>Funktioner och begränsningar</title>
+
+<para
+>Du kan prova alla funktioner och begränsningar genom att ladda <filename
+>katexmltools/testcases.xml</filename
+> i <userinput
+><command
+>qtpaths</command
+> <option
+>--paths GenericDataLocation </option
+></userinput
+> med &kate; och följa instruktionerna.</para>
+
+</sect2>
+
+
+<sect2 id="xmltools-menu">
+<title
+>Menystruktur</title>
+
+<variablelist id="xml-insert-element">
+<varlistentry>
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>Retur</keycap
+> </keycombo
+> </shortcut
+> <guimenu
+>&XML;</guimenu
+> <guimenuitem
+>Infoga element...</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Det här visar en dialogrutan som låter dig infoga &XML;-element. Tecknen &lt;, &gt; och avslutande tagg infogas automatiskt. Om du har markerat text när menyalternativet utförs, omges den markerade texten av inledande och avslutande tagg. Dialogrutan erbjuder också komplettering av alla element som kan ha infogats på aktuell markörposition, om du har tilldelat en meta-DTD genom att använda <guimenuitem
+>Tilldela meta-DTD...</guimenuitem
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="xml-close-element">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>&lt;</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>&XML;</guimenu
+> <guimenuitem
+>Avsluta element</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Det här söker i texten efter en tagg som ännu inte avslutats och avslutar den genom att sätta in motsvarande avslutningstagg. Sökningen börjar på markörens plats och går åt vänster. Om ingen tagg som inte har avslutats hittas, händer ingenting.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="xml-assign-metadtd">
+<term
+><menuchoice
+><guimenu
+>&XML;</guimenu
+> <guimenuitem
+>Tilldela meta-DTD...</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Det här talar om för insticksprogrammet vilken meta-DTD som ska användas för det nuvarande dokumentet. Observera att den här tilldelningen inte sparas. Du måste upprepa den när du startar &kate; nästa gång.</para
+></listitem>
+</varlistentry>
+</variablelist>
+
+</sect2>
+
+<sect2 id="xmltools-thanks-and-acknowledgements">
+<title
+>Tack och erkännanden</title>
+<para
+>&kate;s insticksprogram <quote
+>&XML;-validering</quote
+> copyright 2001, 2002 &Daniel.Naber; &Daniel.Naber.mail;. </para>
+<para
+>&kde; programvarusamling 4 version copyright 2010 Tomáš Trnka</para>
+<para
+>Dokumentation copyright 2001,2002 &Daniel.Naber;</para>
+</sect2>
+</sect1>
+
+
+</chapter>

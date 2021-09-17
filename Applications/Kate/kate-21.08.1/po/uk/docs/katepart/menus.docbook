@@ -1,0 +1,2626 @@
+<chapter id="the-menu-entries">
+<title
+>Пункти меню</title>
+
+<sect1 id="file-menu">
+<title
+>Меню «Файл»</title>
+
+<variablelist>
+
+<varlistentry id="file-new">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>N</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Файл</guimenu
+> <guimenuitem
+>Створити</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>За допомогою цього пункту можна створити новий документ у новому незалежному вікні редактора. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="file-open">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>O</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Файл</guimenu
+> <guimenuitem
+>Відкрити...</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Відкриває стандартне діалогове вікно &kde; <guilabel
+>Відкрити файл</guilabel
+>. Скористайтеся областю перегляду файлів, щоб обрати потрібний вам файл, а потім натисніть кнопку <guibutton
+>Відкрити</guibutton
+>, щоб відкрити його.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="file-open-recent">
+<term
+><menuchoice
+><guimenu
+>Файл</guimenu
+> <guisubmenu
+>Відкрити недавні</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Це клавіатурне скорочення призначено для відкриття документів, які ви зберігали нещодавно. Натискання цього пункту відкриє список, розташований збоку від меню, у якому ви побачите назви декількох збережених нещодавно файлів. Натискання позначки одного з цих файлів відкриє відповідний файл у &kappname;, якщо файл все ще знаходиться за старою адресою. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="file-save">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>S</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Файл</guimenu
+> <guimenuitem
+>Зберегти</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>За допомогою цієї дії можна зберегти поточний документ. Якщо цей документ вже було збережено, ця дія призведе до перезапису попереднього збереженого файла без погодження з користувачем. Якщо документ зберігається вперше, буде відкрито діалогове вікно збереження (його описано нижче). </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="file-save-as">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;&Shift;<keycap
+>S</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Файл</guimenu
+> <guimenuitem
+>Зберегти як...</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>За допомогою цього пункту можна зберегти файл з новою назвою. Ця дія виконується за посередництвом діалогового вікна, описаного раніше у розділі цього підручника щодо дії <link linkend="file-open"
+>Відкрити</link
+>. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="file-save-as-encoding">
+<term
+><menuchoice
+><guimenu
+>Файл</guimenu
+> <guimenuitem
+>Зберегти з іншим кодуванням</guimenuitem
+> </menuchoice>
+</term
+><listitem>
+<para
+>Зберегти документ із новою назвою файла і іншим кодуванням.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="file-save-copy-as">
+<term
+><menuchoice
+><guimenu
+>Файл</guimenu
+> <guimenuitem
+>Зберегти копію як</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Зберегти копію документа у файлі з новою назвою та продовжити редагування початкового документа.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="file-reload">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+><keycap
+>F5</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Файл</guimenu
+> <guimenuitem
+>Перезавантажити</guimenuitem
+> </menuchoice>
+</term
+><listitem>
+<para
+>Перезавантажує поточний файл з диска. Цією командою зручно користуватися, якщо інша програма або процес змінили файл, який ви відкрили у &kappname;. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="file-print">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>P</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Файл</guimenu
+> <guimenuitem
+>Друкувати...</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Відкриває просте діалогове вікно друку, яке надає користувачеві можливість вказати що, де і як друкувати. </para>
+</listitem>
+</varlistentry>
+
+<!--FIXME Print Preview -->
+
+<varlistentry id="file-export-as-html">
+<term
+><menuchoice
+><guimenu
+>Файл</guimenu
+> <guimenuitem
+>Експортувати як HTML</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Зберегти поточний відкритий документ як файл &HTML;, який буде форматовано з використанням поточного режиму підсвічування синтаксичних конструкцій та параметрів схеми кольорів.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="file-close">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>W</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Файл</guimenu
+> <guimenuitem
+>Закрити</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>За допомогою цієї команди можна закрити вікно редагування активного файла. Якщо виконані вами зміни не було збережено, програма запитає вас про те, чи слід зберегти файл, перш ніж &kappname; закриє його. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="file-quit">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>Q</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Файл</guimenu
+> <guimenuitem
+>Вийти</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Цей пункт меню закриє вікно редактора, якщо запущено декілька екземплярів &kappname; за допомогою пунктів меню <guimenuitem
+>Створити</guimenuitem
+> або <guimenuitem
+>Нове вікно</guimenuitem
+>, ці екземпляри закрито не буде. </para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect1>
+
+<sect1 id="edit-menu">
+<title
+>Меню «Зміни»</title>
+
+<variablelist>
+
+<varlistentry id="edit-undo">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+>&Ctrl;<keycap
+>Z</keycap
+></keycombo
+></shortcut
+> <guimenu
+>Зміни</guimenu
+> <guimenuitem
+>Вернути</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Скасувати останню команду редагування (введення тексту, копіювання, вирізання тощо)</para>
+<note
+><para
+>За допомогою цього пункту можна скасувати одразу декілька команд редагування, які належать до одного типу, наприклад введення символів.</para
+></note>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-redo">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;&Shift;<keycap
+>Z</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Зміни</guimenu
+> <guimenuitem
+>Повторити</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Цей пункт дозволить вам повторити найостаннішу зміну (якщо така була) виконану за допомогою пункту «Вернути».</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-cut">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>X</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Зміни</guimenu
+> <guimenuitem
+>Вирізати</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Ця команда копіює поточний вибраний фрагмент до буфера і вилучає його з тексту. Буфер — елемент системи, який працює як фоновий процес для переносу даних між програмами.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-copy">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>C</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Зміни</guimenu
+> <guimenuitem
+>Копіювати</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Цей пункт меню призводить до копіювання вибраного тексту до буфера, отже, ви зможете вставити його у іншому місці. Буфер — елемент системи, який працює як фоновий процес для переносу даних між програмами.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-paste">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>V</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Зміни</guimenu
+> <guimenuitem
+>Вставити</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Цей пункт меню дасть вам змогу вставити перший пункт буфера обміну даними у позицію курсора. Буфер — елемент, який працює як фоновий процес для переносу даних між програмами.</para>
+<note
+><para
+>Якщо буде увімкнено перезапис виділеного тексту, вставлений текст замінить собою будь-який виділений текст, якщо такий існує у вашому документі.</para
+></note>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-paste-selection">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;&Shift;&Ins;</keycombo
+> </shortcut
+> <guimenu
+>Зміни</guimenu
+> <guimenuitem
+>Вставити позначене</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>За допомогою цього пункту можна вставити до тексту раніше позначений вміст <ulink url="https://en.wikipedia.org/wiki/Clipboard_(computing)#X_Window_System"
+>буфера позначення мишею</ulink
+>. Позначте який текст за допомогою вказівника миші і вставте його до поточного відкритого файла, скориставшись цим пунктом.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-swap-with-clipboard-contents">
+<term
+><menuchoice
+><guimenu
+>Зміни</guimenu
+> <guimenuitem
+>Поміняти місцями із вмістом буфера обміну даними</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>За допомогою цього пункту можна поміняти місцями позначений фрагмент текст із вмістом <ulink url="https://en.wikipedia.org/wiki/Clipboard_(computing)#X_Window_System"
+>буфера обміну даними</ulink
+>.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-clipboard-history">
+<term
+><menuchoice
+><guimenu
+>Файл</guimenu
+> <guisubmenu
+>Журнал буфера даних</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>У цьому підменю буде показано список з початкових фрагментів блоків тексту, які було скопійовано до буфера обміну даними. Вибір певного пункту у цьому підменю призводитиме до вставлення відповідного блоку у поточний відкритий файл.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-copy-as-html">
+<term
+><menuchoice
+><guimenu
+>Зміни</guimenu
+><guimenuitem
+>Копіювати як HTML</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Копіювати позначений фрагмент тексту як код &HTML;, який буде форматовано з використанням поточного режиму підсвічування синтаксичних конструкцій та параметрів схеми кольорів.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-select-all">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>A</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Зміни</guimenu
+> <guimenuitem
+>Вибрати все</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Використання цього пункту меню призведе до виділення всього документа. Це буває дуже корисно, якщо ви бажаєте скопіювати весь файл до іншої програми.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-deselect">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;&Shift;<keycap
+>A</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Зміни</guimenu
+> <guimenuitem
+>Скасувати вибір</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Скасовує виділення (якщо таке було) будь-якого тексту у редакторі.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-toggle-block-selection">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;&Shift;<keycap
+>B</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Зміни</guimenu
+><guimenuitem
+>Режим прямокутного вибору</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Перемикає режим вибору. У режимі вибору <guilabel
+>БЛК</guilabel
+>, коли на панелі стану показано рядок <guilabel
+>[БЛК]</guilabel
+>, ви зможете робити вибір по вертикалі, наприклад, вибирати стовпчики з 5 по 10 у рядках з 9 по 15.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-input-modes">
+<term
+><menuchoice
+><guimenu
+>Зміни</guimenu
+> <guimenuitem
+>Режими введення</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Перемикає програму між звичайним і подібним до vi модальним режимом редагування. У режимі введення vi передбачено підтримку найвживаніших команд і пересування курсора зі звичайного і візуального режимів vim, також передбачено можливість вмикання панелі стану режиму vi. На цій панелі стану буде показано команди під час їх введення, вивід команд і поточний режим. Поведінку програми у цьому режимі можна налаштувати на вкладці <link linkend="pref-edit-vi-input-mode"
+>Режим вводу Vi</link
+> на сторінці <guilabel
+>Редагування</guilabel
+> діалогового вікна параметрів &kappname;.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-overwrite-mode">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+><keycap
+>Ins</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Зміни</guimenu
+> <guimenuitem
+>Режим перезапису</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Перемикає ввід у програмі між режимами Вставки і Заміни. Якщо програма перебуває у режимі <guilabel
+>ВСТ</guilabel
+>, символ, який ви введете буде записано за позицією курсора. У режимі <guilabel
+>ЗАМ</guilabel
+> введені символи перезапишуть поточні символи, якщо курсор було розташовано всередині тексту. На панелі стану поточний режим введення буде показано у вигляді записів <guilabel
+>ВСТ</guilabel
+> або <guilabel
+>ЗАМ</guilabel
+>.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-find">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>F</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Зміни</guimenu
+> <guimenuitem
+>Пошук...</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Цей пункт відкриває додаткову панель пошуку, розташовану внизу вікна редактора. Ліворуч на цій панелі ви побачите піктограму для закриття панелі, за якою розташовано невеличке поле для введення шаблону пошуку.</para>
+<para
+>Пошук буде розпочато негайно після того, як ви почнете вводити символи вашого шаблону пошуку. Якщо буде знайдено відповідник у тексті, його буде підсвічено, а колір тла поля запису буде змінено на світло-зелений. Якщо шаблон пошуку не відповідає жодному з рядків тексту, програма продемонструє це зміною кольору тла поля запису на світло-червоний.</para>
+<para
+>Скористайтеся кнопкою <inlinemediaobject
+><imageobject
+><imagedata fileref="arrow-up-double-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> or <inlinemediaobject
+><imageobject
+><imagedata fileref="arrow-down-double-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> для переходу до наступного або попереднього відповідника пошуку у документі.</para>
+<para
+>Відповідники у документі буде підсвічено навіть після закриття панелі пошуку. Щоб зняти підсвічування, натисніть клавішу &Esc;.</para>
+<para
+>Ви можете визначитися з тим, чи слід виконувати пошук з врахуванням регістру символів. Позначення пункту <inlinemediaobject
+><imageobject
+><imagedata fileref="format-text-superscript-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> обмежить варіанти відповідності записами з точною відповідністю регістру для кожного з символів у ключі пошуку. </para>
+<para
+>Натисніть кнопку <inlinemediaobject
+><imageobject
+><imagedata fileref="configure-shortcuts-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> на правому краю додаткової панелі пошуку, щоб перемкнути панель у стан потужного пошуку і заміни. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-find-next">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+><keycap
+>F3</keycap
+></keycombo
+></shortcut
+> <guimenu
+>Зміни</guimenu
+><guisubmenu
+>Знайти варіанти</guisubmenu
+> <guimenuitem
+>Знайти далі</guimenuitem
+> </menuchoice
+></term>
+ <listitem>
+<para
+>Повторює останню операцію з пошуку, якщо така виконувалася, без відкриття панелі нагромаджувального пошуку, пошук виконується у напрямку до кінця документа, починаючи з позиції курсора. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-find-previous">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+>&Shift;<keycap
+>F3</keycap
+></keycombo
+></shortcut
+> <guimenu
+>Зміни</guimenu
+> <guisubmenu
+>Знайти варіанти</guisubmenu
+> <guimenuitem
+>Знайти позаду</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Повторює останню операцію з пошуку, якщо така виконувалася, без відкриття панелі нагромаджувального пошуку, пошук виконується у напрямку до початку документа, а не до його кінця. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-find-selected">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+>&Ctrl;<keycap
+>H</keycap
+></keycombo
+></shortcut
+> <guimenu
+>Зміни</guimenu
+><guisubmenu
+>Знайти варіанти</guisubmenu
+><guimenuitem
+>Знайти вибране</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Знаходить наступний елемент у виділеному тексті.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-find-selected-backwards">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+>&Ctrl;&Shift;<keycap
+>H</keycap
+></keycombo
+></shortcut
+> <guimenu
+>Зміни</guimenu
+><guisubmenu
+>Знайти варіанти</guisubmenu
+><guimenuitem
+>Знайти вибране позаду</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Знаходить попереднє елемент у виділеному тексті.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-replace">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>R</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Зміни</guimenu
+> <guimenuitem
+>Замінити...</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Цей пункт відкриє панель потужного пошуку і заміни. У лівій верхній частині цієї панелі ви побачите піктограму, призначену для закриття панелі, поряд з якою буде невеличке поле для введення шаблону тексту.</para>
+<para
+>Ви можете керувати режимом пошуку вибором одного з режимів <guilabel
+>Простий текст</guilabel
+>, <guilabel
+>Цілі слова</guilabel
+>, <guilabel
+>Керівні послідовності</guilabel
+> і <guilabel
+>Формальний вираз</guilabel
+> за допомогою спадного списку. </para>
+<para
+>Якщо позначено принаймні один з пунктів <guilabel
+>Керівні послідовності</guilabel
+> або <guilabel
+>Формальні вирази</guilabel
+>, програма увімкне пункт меню <guibutton
+>Додати...</guibutton
+> у нижній частині контекстного меню текстових панелей. Це надасть вам змогу додавати керівні послідовності або формальні вирази у шаблони пошуку або заміни за допомогою списку шаблонів.</para>
+<para
+>Скористайтеся кнопкою <inlinemediaobject
+><imageobject
+><imagedata fileref="arrow-up-double-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> or <inlinemediaobject
+><imageobject
+><imagedata fileref="arrow-down-double-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> для переходу до наступного або попереднього відповідника пошуку у документі.</para>
+<para
+>Текст, на який слід буде замінити ключ пошуку, слід ввести у поле для введення тексту з міткою <guilabel
+>Замінити</guilabel
+>, після чого слід натиснути кнопку <guibutton
+>Замінити</guibutton
+>, щоб замінити лише поточний підсвічений елемент, або кнопку <guibutton
+>Замінити всі</guibutton
+>, щоб замінити ключ пошуку у всьому документі. </para>
+<para
+>Ви можете змінити поведінку програми під час пошуку з заміною позначенням відповідних пунктів у правій частині панелі. За допомогою кнопки <inlinemediaobject
+><imageobject
+><imagedata fileref="format-text-superscript-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> можна обмежити пошук елементами, у яких регістр (верхній або нижній) кожного символу збігається з ключем пошуку. За допомогою кнопки <inlinemediaobject
+><imageobject
+><imagedata fileref="edit-select-all-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> можна обмежити пошук з заміною лише позначеним фрагментом тексту. Якщо ви позначите пункт <guilabel
+>Знайти всі</guilabel
+>, програма позначить кольором всі відповідники ключа пошуку у документі і покаже кількість знайдених відповідників на невеличкій контекстній панелі. </para>
+<para
+>Натисніть кнопку <inlinemediaobject
+><imageobject
+><imagedata fileref="configure-shortcuts-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+>, розташовану у правій частині панелі потужного пошуку і заміни, щоб перемкнутися на звичайну нагромаджувальну панель пошуку. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-go-to-matching-bracket">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>6</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Зміни</guimenu
+> <guisubmenu
+>Перейти</guisubmenu
+> <guimenuitem
+>Перейти до відповідної дужки</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Пересунути курсор до відповідної парної початкової чи кінцевої дужки.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-select-to-matching-bracket">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;&Shift;<keycap
+>6</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Зміни</guimenu
+> <guisubmenu
+>Перейти</guisubmenu
+> <guimenuitem
+>Вибрати до відповідної дужки</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Позначити текст між відповідними початковою і кінцевою дужками.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-go-to-previous-modified-line">
+<term
+><menuchoice
+><guimenu
+>Зміни</guimenu
+> <guisubmenu
+>Перейти</guisubmenu
+> <guimenuitem
+>Перейти до попереднього зміненого рядка</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Рядки, які було змінено з часу відкриття файла, називаються зміненими рядками. За допомогою цього пункту можна перейти до попереднього зміненого рядка. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-go-to-next-modified-line">
+<term
+><menuchoice
+><guimenu
+>Зміни</guimenu
+> <guisubmenu
+>Перейти</guisubmenu
+> <guimenuitem
+>Перейти до наступного зміненого рядка</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Рядки, які було змінено з часу відкриття файла, називаються зміненими рядками. За допомогою цього пункту можна перейти до наступного зміненого рядка. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-edit-go-to-line">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>G</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Зміни</guimenu
+> <guisubmenu
+>Перейти</guisubmenu
+> <guimenuitem
+>Перейти до рядка...</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>За допомогою цього пункту можна відкрити панель переходу внизу вікна. Цією панеллю можна скористатися для переведення курсора на певний рядок (який визначається номером) у документі. Номер рядка можна ввести безпосереднім набором на клавіатурі або за допомогою стрілочок вгору і вниз у керуванні лічильника збоку від поля для введення тексту. Маленька стрілочка вгору збільшує значення номера рядка, а стрілочка вниз збільшує його. Закрити панель можна за допомогою натискання піктограми у лівій частині панелі. </para>
+</listitem>
+</varlistentry>
+</variablelist>
+
+</sect1>
+
+<sect1 id="view-menu">
+
+<title
+>Меню «Перегляд»</title>
+
+<variablelist>
+
+<varlistentry id="view-new-window">
+<term
+><menuchoice
+><guimenu
+>Перегляд</guimenu
+> <guimenuitem
+>Нове вікно</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Створює ще одне вікно з поточним документом. Всі зміни у документі, що редагується у одному з вікон, повторюватимуться у іншому і навпаки.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-command-line">
+<term
+><menuchoice
+><shortcut
+><keycap
+>F7</keycap
+></shortcut
+> <guimenu
+>Перегляд</guimenu
+> <guimenuitem
+>Перемкнутися до командного рядка</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Показує командний рядок &katepart; внизу вікна. У цьому командному рядку можна ввести <userinput
+>help</userinput
+>, щоб переглянути довідкову інформацію, або <userinput
+>help list</userinput
+>, щоб переглянути список команд. Докладніші відомості щодо командного рядка можна знайти у розділі щодо <link linkend="advanced-editing-tools-commandline"
+>командного рядка компонента редактора</link
+>.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-enlarge-font">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+>&Ctrl;<keycap
+>+</keycap
+></keycombo
+></shortcut
+> <guimenu
+>Перегляд</guimenu
+><guimenuitem
+>Збільшити шрифт</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Буде збільшено розмір шрифту.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="view-shrink-font">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+>&Ctrl;<keycap
+>-</keycap
+></keycombo
+></shortcut
+> <guimenu
+>Перегляд</guimenu
+><guimenuitem
+>Зменшити шрифт</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Буде зменшено розмір шрифту.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="view-schema">
+<term
+><menuchoice
+><guimenu
+>Перегляд</guimenu
+> <guisubmenu
+>Схема</guisubmenu
+> </menuchoice
+></term>
+<listitem
+><para
+>У цьому меню ви знайдете список всіх доступних схем кольорів. За допомогою пунктів меню ви зможете змінити схему для поточного перегляду. Щоб змінити типову схему, вам слід скористатися сторінкою <ulink url="help:/katepart/config-dialog-editor.html#prefcolors"
+>Шрифти та кольори</ulink
+> діалогового вікна налаштовування.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-dynamic-word-wrap">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+><keycap
+>F10</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Перегляд</guimenu
+> <guisubmenu
+>Перенесення слів</guisubmenu
+> <guimenuitem
+>Динамічне перенесення слів</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Вмикає або вимикає динамічне перенесення рядків у поточному перегляді документа. За допомогою динамічного перенесення рядків можна зробити видимим весь текст документа: вам не потрібно буде використовувати горизонтальну смужку гортання, — рядки документа, за потреби, буде розбито на декілька рядків для перегляду.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-dynamic-word-wrap-indicators">
+<term
+><menuchoice
+><guimenu
+>Перегляд</guimenu
+> <guisubmenu
+>Перенесення слів</guisubmenu
+> <guisubmenu
+>Помітки динамічного перенесення слів</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>За допомогою цього пункту ви зможете обрати те, за яких умов і яким чином слід показувати помітки динамічного перенесення слів. Цей пункт доступний, лише якщо позначено пункт <guilabel
+>Динамічне перенесення слів</guilabel
+>.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-show-statik-word-wrap-markers">
+<term
+><menuchoice
+><guimenu
+>Перегляд</guimenu
+> <guisubmenu
+>Перенесення слів</guisubmenu
+> <guimenuitem
+>Показувати помітки статичного перенесення слів</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Якщо позначено цей пункт, у стовпчику перенесення слів буде намальовано вертикальну лінію, її розташування визначатиметься параметрами, вказаними у вікні, яке відкривається пунктом <menuchoice
+> <guimenu
+>Параметри</guimenu
+> <guimenuitem
+>Налаштувати редактор...</guimenuitem
+></menuchoice
+>, на вкладці Редагування. Будь ласка, зауважте, що помітку статичного перенесення слів буде показано, лише якщо ви використовуєте моноширинний шрифт.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-show-icon-border">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+><keycap
+>F6</keycap
+></keycombo
+></shortcut
+> <guimenu
+>Перегляд</guimenu
+> <guisubmenu
+>Межі</guisubmenu
+> <guimenuitem
+>Показувати рамку для піктограм</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Це пункт-перемикач. Якщо його позначено у лівій частині активного редактора буде показано рамку для піктограм, якщо позначку знято — рамки для піктограм показано не буде. На рамці для піктограм буде показано всі позначені рядки у редакторі.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-show-line-numbers">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+><keycap
+>F11</keycap
+></keycombo
+></shortcut
+> <guimenu
+>Перегляд</guimenu
+> <guisubmenu
+>Межі</guisubmenu
+> <guimenuitem
+>Показати номери рядків</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Це пункт-перемикач. Якщо його буде позначено у лівій частині вікна активного редактора буде показано панель з номерами рядків, якщо позначку буде знято — цю панель буде сховано.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-scrollbar-marks">
+<term
+><menuchoice
+><guimenu
+>Перегляд</guimenu
+> <guisubmenu
+>Межі</guisubmenu
+> <guimenuitem
+>Показувати позначки на смужці гортання</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Якщо позначено цей пункт, у поточному перегляді на вертикальній смужці гортання буде показано позначки. Цими позначками буде відмічено, наприклад, закладки. Перелік показаних позначок збігається з переліком позначок <link linkend="view-show-icon-border"
+>рамки для піктограм</link
+>.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-border-show-scrollbar-minimap">
+<term
+><menuchoice
+><guimenu
+>Перегляд</guimenu
+> <guisubmenu
+>Межі</guisubmenu
+> <guimenuitem
+>Показувати мінікарту на смужці гортання</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>За допомогою цього пункту можна замінити смужку гортання візуальним представленням вмісту поточного документа. Докладніший опис мінікарти на смужці гортання можна знайти у розділі <xref linkend="kate-part-scrollbar-minimap"/>.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="view-code-folding">
+<term
+><menuchoice
+><guimenu
+>Перегляд</guimenu
+> <guimenuitem
+>Згортання коду</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Пункти цього меню стосуються <ulink url="help:/katepart/advanced-editing-tools-code-folding.html"
+>згортання коду</ulink
+>:</para>
+<variablelist>
+
+<varlistentry id="view-show-folding-markers">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+><keycap
+>F9</keycap
+></keycombo
+> </shortcut
+> <guimenuitem
+>Показувати маркери згортання</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Вмикає або вимикає показ панелі маркерів згортання у лівій частині області перегляду.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="view-fold-current-node">
+<term
+><menuchoice>
+<guimenuitem
+>Згорнути поточний вузол</guimenuitem>
+</menuchoice
+></term>
+<listitem
+><para
+>Згортає область, у якій перебуває курсор.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="view-unfold-current-node">
+<term
+><menuchoice>
+<guimenuitem
+>Розгорнути поточний вузол</guimenuitem>
+</menuchoice
+></term>
+<listitem
+><para
+>Розгортає область, у якій перебуває курсор.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="view-fold-toplevel-nodes">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+>&Ctrl; &Shift;<keycap
+>-</keycap
+></keycombo
+></shortcut
+> <guimenuitem
+>Згорнути вузли найвищого рівня</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Згортає усі області верхнього рівня у документі. Натисніть стрілочку-трикутник, спрямовану праворуч, щоб розгорнути усі області верхнього рівня.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="view-unfold-toplevel-nodes">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+>&Ctrl; &Shift;<keycap
+>+</keycap
+></keycombo
+></shortcut
+> <guimenuitem
+>Розгорнути вузли найвищого рівня</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Розгортає всі області верхнього рівня у документі.</para
+></listitem>
+</varlistentry>
+</variablelist>
+
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-show-non-printable-spaces">
+<term
+><menuchoice>
+<guimenuitem
+>Показувати недруковані пробіли</guimenuitem>
+</menuchoice
+></term>
+<listitem
+><para
+>Показати або приховати рамку навколо непридатних до друку пробілів.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect1>
+
+<sect1 id="bookmarks-menu">
+<title
+>Меню «Закладки»</title>
+
+<para
+>Під описаними тут пунктами буде по одному пункту для кожної з закладок у поточному документі. Текст цих пунктів визначатиметься декількома першими словам позначеного рядка. Вибір одного з таких пунктів призведе до переведення курсора на початок відповідного рядка. Область перегляду редактора буде прогорнуто так, щоб зробити належний рядок видимим.</para>
+
+<variablelist>
+
+<varlistentry id="bookmarks-set-bookmark">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>B</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Закладки</guimenu
+> <guimenuitem
+>Встановити закладку</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Встановлює або вилучає закладку з поточного рядка активного документа (якщо там уже була закладка, її буде вилучено, якщо ж закладки не було, буде встановлено).</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="bookmarks-clear-bookmarks">
+<term
+><menuchoice
+><guimenu
+>Закладки</guimenu
+> <guimenuitem
+>Очистити всі закладки</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>За допомогою цього пункту можна вилучити з документа всі позначки, а також список позначок, який буде показано внизу цього меню. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="bookmarks-bookmarks-previous">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+>&Alt; <keycap
+>PgUp</keycap
+></keycombo
+></shortcut
+> <guimenu
+>Закладки</guimenu
+><guimenuitem
+>Попередня</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>За допомогою цього пункту можна перевести курсор на початок першого ж рядка вище за текстом, на якому встановлено закладку. У пункті меню буде показано номер рядка і перші символи тексту у рядку з закладкою. Цей пункт меню стане доступним, лише якщо вище за текстом від рядка з курсором існує закладка.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="bookmarks-bookmarks-next">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+>&Alt; <keycap
+>PgDown</keycap
+></keycombo
+></shortcut
+> <guimenu
+>Закладки</guimenu
+><guimenuitem
+>Наступна</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>За допомогою цього пункту можна перевести курсор на початок першого ж рядка нижче за текстом, на якому встановлено закладку. У пункті меню буде показано номер рядка і перші символи тексту у рядку з закладкою. Цей пункт меню стане доступним, лише якщо нижче за текстом від рядка з курсором існує закладка.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect1>
+
+<sect1 id="tools-menu">
+
+<title
+>Меню «Інструменти»</title>
+
+<variablelist>
+
+<varlistentry id="tools-read-only">
+<term
+><menuchoice
+><guimenu
+>Інструменти</guimenu
+> <guimenuitem
+>Режим тільки для читання</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Переводить поточний документ у режим «лише для читання». Цей режим призначено для запобігання будь-якому додаванню тексту та будь-якій зміні форматування документа.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="tools-filetype">
+<term
+><menuchoice
+><guimenu
+>Інструменти</guimenu
+> <guisubmenu
+>Режим</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Тут ви зможете обрати схему типу файла, якою ви бажаєте скористатися у активному документі Вказаний вами режим перевизначить для поточного документа загальний режим типу файлів, встановлений за допомогою вікна, що відкривається пунктом меню <menuchoice
+> <guimenu
+>Параметри</guimenu
+> <guimenuitem
+>Налаштувати &kate;</guimenuitem
+></menuchoice
+>, на вкладці «Режими і типи файлів».</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="tools-highlighting">
+<term
+><menuchoice
+><guimenu
+>Інструменти</guimenu
+> <guisubmenu
+>Підсвічування</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>За допомогою цього пункту ви можете обрати схему підсвічування, яка потрібна для вашого активного документа. Цей параметр перевизначить глобальний режим підсвічування, встановлений у вікні, яке відкривається за допомогою пункту меню <menuchoice
+> <guimenu
+>Параметри</guimenu
+> <guimenuitem
+>Налаштувати редактор...</guimenuitem
+></menuchoice
+>, але лише для поточного документа.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="tools-indentation">
+<term
+><menuchoice
+><guimenu
+>Інструменти</guimenu
+> <guisubmenu
+>Відступ</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>За допомогою цього пункту ви можете обрати стиль відступу, яку ви бажаєте використати для вашого активного документа. Цей параметр перевизначить глобальний режим відступів, встановлений у вікні, яке відкривається за допомогою пункту меню <menuchoice
+> <guimenu
+>Параметри</guimenu
+> <guimenuitem
+>Налаштувати редактор...</guimenuitem
+></menuchoice
+>, але лише для поточного документа.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="tools-encoding">
+<term
+><menuchoice
+><guimenu
+>Інструменти</guimenu
+> <guisubmenu
+>Кодування</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>За допомогою цього пункту ви можете перевизначити типове кодування, встановлене у вікні, яке відкривається за допомогою пункту меню <menuchoice
+> <guimenu
+>Параметри</guimenu
+> <guimenuitem
+>Налаштувати редактор...</guimenuitem
+></menuchoice
+>, на сторінці <guilabel
+>Відкрити/зберегти</guilabel
+>, тобто встановити інше кодування для вашого поточного документа. Кодування, яке ви встановите за допомогою цього пункту, буде діяти лише у межах поточного документа.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="tools-end-of-line">
+<term
+><menuchoice
+><guimenu
+>Інструменти</guimenu
+> <guisubmenu
+>Кінець рядка</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>За допомогою цього пункту ви можете обрати режим завершення рядків, який ви бажаєте використати для вашого активного документа. Цей параметр перевизначить глобальний режим завершення рядків, встановлений у вікні, яке відкривається за допомогою пункту меню <menuchoice
+> <guimenu
+>Параметри</guimenu
+> <guimenuitem
+>Налаштувати редактор...</guimenuitem
+></menuchoice
+>, але лише для поточного документа.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="tools-add-byte-mark-order">
+<term
+><menuchoice
+><guimenu
+>Інструменти</guimenu
+> <guisubmenu
+>Додати позначку порядку байтів (BOM)</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Після позначення цього пункту ви зможете явним чином додати позначку порядку байтів до документів у кодуванні Unicode. Позначка порядку байтів (BOM) — це символ Unicode, що використовується для визначення порядку байтів текстового файла або потоку даних. Докладніше про неї можна дізнатися зі статті <ulink url="http://uk.wikipedia.org/wiki/Маркер_порядку_байт"
+>Позначка порядку байтів</ulink
+>.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="tools-scripts">
+<term
+><menuchoice
+><guimenu
+>Інструменти</guimenu
+> <guisubmenu
+>Скрипти</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>У цьому підменю ви знайдете список всіх дій, пов’язаних з виконанням скриптів. Внести зміни до списку доволі просто: достатньо <link linkend="dev-scripting-command-line"
+>створити власні скрипти</link
+>. За допомогою цих скриптів користувач може удосконалити &katepart; власними інструментами. </para>
+
+<variablelist>
+
+<varlistentry id="tools-scripts-navigation">
+<term
+><menuchoice
+><guimenu
+>Інструменти</guimenu
+><guisubmenu
+>Скрипти</guisubmenu
+> <guimenuitem
+>Навігація</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><variablelist>
+
+<varlistentry id="tools-scripts-navigation-previous-indent">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+>&Alt;&Shift;<keysym
+>↑</keysym
+></keycombo
+></shortcut
+> <guimenu
+>Інструменти</guimenu
+><guisubmenu
+>Скрипти</guisubmenu
+><guisubmenu
+>Навігація</guisubmenu
+> <guimenuitem
+>Пересунути курсор до попереднього відповідного відступу</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Пересуває курсор на перший рядок над поточним рядком, відступ якого збігається з рівнем відступу поточного рядка. </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="tools-scripts-navigation-next-indent">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+>&Alt;&Shift;<keysym
+>↓</keysym
+></keycombo
+></shortcut
+> <guimenu
+>Інструменти</guimenu
+><guisubmenu
+>Скрипти</guisubmenu
+><guisubmenu
+>Навігація</guisubmenu
+> <guimenuitem
+>Пересунути курсор до наступного відповідного відступу</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Пересуває курсор на перший рядок під поточним рядком, відступ якого збігається з рівнем відступу поточного рядка. </para
+></listitem>
+</varlistentry>
+
+</variablelist>
+</listitem
+></varlistentry>
+
+<!--FIXME: Quick Coding -> Expand Abbreviation (CTRL+ALT+#)
+https://git.reviewboard.kde.org/r/127601/
+Dominik Haumann
+A bit experimental right now, therefore I suggest to keep the FIXME for now and not add further docs.
+-->
+
+<varlistentry id="tools-scripts-editing">
+<term
+><menuchoice
+><guimenu
+>Інструменти</guimenu
+><guisubmenu
+>Скрипти</guisubmenu
+> <guisubmenu
+>Редагування</guisubmenu
+> </menuchoice
+></term>
+<listitem
+><variablelist>
+
+<varlistentry id="tools-scripts-editing-sort">
+<term
+><menuchoice
+><guimenu
+>Інструменти</guimenu
+><guisubmenu
+>Скрипти</guisubmenu
+> <guisubmenu
+>Редагування</guisubmenu
+> <guimenuitem
+>Впорядкувати позначений текст</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Впорядкувати позначений фрагмент тексту або цілий документ за зростанням. </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="tools-scripts-editing-move-down">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+>&Ctrl;&Shift;<keysym
+>↓</keysym
+></keycombo
+></shortcut
+> <guimenu
+>Інструменти</guimenu
+><guisubmenu
+>Скрипти</guisubmenu
+> <guisubmenu
+>Редагування</guisubmenu
+> <guimenuitem
+>Пересунути рядки нижче</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Пересунути позначені рядки нижче. </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="tools-scripts-editing-move-up">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+>&Ctrl;&Shift;<keysym
+>↑</keysym
+></keycombo
+></shortcut
+> <guimenu
+>Інструменти</guimenu
+><guisubmenu
+>Скрипти</guisubmenu
+> <guisubmenu
+>Редагування</guisubmenu
+> <guimenuitem
+>Пересунути рядки вище</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Пересунути позначені рядки вище. </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="tools-scripts-editing-dupe-down">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+>&Ctrl;&Alt;<keysym
+>↓</keysym
+></keycombo
+></shortcut
+> <guimenu
+>Інструменти</guimenu
+><guisubmenu
+>Скрипти</guisubmenu
+> <guisubmenu
+>Редагування</guisubmenu
+> <guimenuitem
+>Здублювати позначені рядки нижче</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Дублювати позначені рядки нижче. </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="tools-scripts-editing-dupe-up">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+>&Ctrl;&Alt;<keysym
+>↑</keysym
+></keycombo
+></shortcut
+> <guimenu
+>Інструменти</guimenu
+><guisubmenu
+>Скрипти</guisubmenu
+> <guisubmenu
+>Редагування</guisubmenu
+> <guimenuitem
+>Здублювати позначені рядки вище</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Дублювати позначені рядки вище. </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="tools-scripts-editing-uri-encode">
+<term
+><menuchoice
+><guimenu
+>Інструменти</guimenu
+><guisubmenu
+>Скрипти</guisubmenu
+> <guisubmenu
+>Редагування</guisubmenu
+> <guimenuitem
+>Закодувати адресу у позначеному фрагменті</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Закодувати позначений фрагмент тексту так, щоб ним можна було скористатися як частиною адреси &URL; із запитом, замінивши позначений фрагмент тексту на закодований. </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="tools-scripts-editing-uri-decode">
+<term
+><menuchoice
+><guimenu
+>Інструменти</guimenu
+><guisubmenu
+>Скрипти</guisubmenu
+> <guisubmenu
+>Редагування</guisubmenu
+> <guimenuitem
+>Декодувати адресу у позначеному фрагменті</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Якщо позначено частину рядка запиту &URL;, за допомогою цього пункту можна її декодувати і замінити початковим фрагментом тексту. </para
+></listitem>
+</varlistentry>
+
+</variablelist
+></listitem>
+</varlistentry>
+
+<varlistentry id="tools-scripts-emmet">
+<term
+><menuchoice
+><guimenu
+>Інструменти</guimenu
+><guisubmenu
+>Скрипти</guisubmenu
+> <guimenuitem
+>Emmet</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><variablelist>
+
+<varlistentry id="tools-scripts-emmet-expand-abbreviation">
+<term
+><menuchoice
+><guimenu
+>Інструменти</guimenu
+><guisubmenu
+>Скрипти</guisubmenu
+> <guisubmenu
+>Emmet</guisubmenu
+> <guimenuitem
+>Розгорнути скорочення</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Перетворює позначений фрагмент тексту на пару з початкового та завершального теґу &HTML; або &XML;. Наприклад, якщо було позначено <userinput
+>div</userinput
+>, позначений фрагмент буде замінено на <computeroutput
+>&lt;div&gt;&lt;/div&gt;</computeroutput
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="tools-scripts-emmet-wrap-with-tag">
+<term
+><menuchoice
+><guimenu
+>Інструменти</guimenu
+><guisubmenu
+>Скрипти</guisubmenu
+> <guisubmenu
+>Emmet</guisubmenu
+> <guimenuitem
+>Згорнути цей теґ</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>За допомогою цієї команди можна огорнути позначений фрагмент тексту у теґ, вказаний у <link linkend="dev-scripting-command-line"
+>командному рядку</link
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="tools-scripts-emmet-move-cursor-to-matching-tag">
+<term
+><menuchoice
+><guimenu
+>Інструменти</guimenu
+><guisubmenu
+>Скрипти</guisubmenu
+> <guisubmenu
+>Emmet</guisubmenu
+> <guimenuitem
+>Пересунути курсор до парного теґу</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Якщо курсор перебуває на початковому тезі &HTML;/&XML;, за допомогою цього пункту можна пересунути його до завершального теґу. Якщо ж курсор перебуватиме на завершальному тезі, курсор буде пересунуто до початкового теґу. </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="tools-scripts-emmet-select-tag-inwards">
+<term
+><menuchoice
+><guimenu
+>Інструменти</guimenu
+><guisubmenu
+>Скрипти</guisubmenu
+> <guisubmenu
+>Emmet</guisubmenu
+> <guimenuitem
+>Позначити вміст, обмежений теґами &HTML;/&XML;</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Якщо курсор перебуває у парі теґів &HTML;/&XML;, вибір цього пункту змінить позначення фрагмента так, щоб до нього було включено вміст цих теґів &HTML;/&XML; без позначення самих теґів. </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="tools-scripts-emmet-select-tag-outwards">
+<term
+><menuchoice
+><guimenu
+>Інструменти</guimenu
+><guisubmenu
+>Скрипти</guisubmenu
+> <guisubmenu
+>Emmet</guisubmenu
+> <guimenuitem
+>Позначити зовнішню частину, обмежену теґами &HTML;/XML</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Якщо курсор перебуває у парі теґів &HTML;/XML, вибір цього пункту змінить позначення фрагмента так, щоб до нього було включено вміст цих теґів &HTML;/XML разом з цими теґами. </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="tools-scripts-emmet-toggle-comment">
+<term
+><menuchoice
+><guimenu
+>Інструменти</guimenu
+><guisubmenu
+>Скрипти</guisubmenu
+> <guisubmenu
+>Emmet</guisubmenu
+> <guimenuitem
+>Додати або вилучити коментування</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Якщо позначений фрагмент тексту не є коментарем, за допомогою цього пункту можна огорнути цей фрагмент у позначення коментарів &HTML;/XML (наприклад <computeroutput
+>&lt;!-- позначений текст --&gt;</computeroutput
+>). Якщо позначений фрагмент вже закоментовано, мітки коментування буде вилучено. </para
+></listitem>
+</varlistentry>
+
+<!--FIXME: (Go to|Select next) (previous|next) edit point -->
+
+<varlistentry id="tools-scripts-emmet-toggle-delete-tag">
+<term
+><menuchoice
+><guimenu
+>Інструменти</guimenu
+><guisubmenu
+>Скрипти</guisubmenu
+> <guisubmenu
+>Emmet</guisubmenu
+> <guimenuitem
+>Вилучити теґ під курсором</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Якщо курсор перебуває у тезі &HTML;/&XML;, за допомогою цього пункту можна вилучити весь теґ. </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="tools-scripts-emmet-decrement-number-by-1">
+<term
+><menuchoice
+><guimenu
+>Інструменти</guimenu
+><guisubmenu
+>Скрипти</guisubmenu
+> <guisubmenu
+>Emmet</guisubmenu
+> <guimenuitem
+>Зменшити число на 1</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>За допомогою цього пункту можна відняти одиницю від позначеного тексту, якщо позначено число. Наприклад, якщо позначено <userinput
+>5</userinput
+>, отримаєте <computeroutput
+>4</computeroutput
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="tools-scripts-emmet-decrement-number-by-10">
+<term
+><menuchoice
+><guimenu
+>Інструменти</guimenu
+><guisubmenu
+>Скрипти</guisubmenu
+> <guisubmenu
+>Emmet</guisubmenu
+> <guimenuitem
+>Зменшити число на 10</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>За допомогою цього пункту можна відняти десять від позначеного тексту, якщо позначено число. Наприклад, якщо позначено <userinput
+>15</userinput
+>, отримаєте <computeroutput
+>5</computeroutput
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="tools-scripts-emmet-decrement-number-by-0_1">
+<term
+><menuchoice
+><guimenu
+>Інструменти</guimenu
+><guisubmenu
+>Скрипти</guisubmenu
+> <guisubmenu
+>Emmet</guisubmenu
+> <guimenuitem
+>Зменшити число на 0.1</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>За допомогою цього пункту можна відняти 0.1 від позначеного тексту, якщо позначено число. Наприклад, якщо позначено <userinput
+>4.5</userinput
+>, отримаєте <computeroutput
+>4.4</computeroutput
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="tools-scripts-emmet-increment-number-by-1">
+<term
+><menuchoice
+><guimenu
+>Інструменти</guimenu
+><guisubmenu
+>Скрипти</guisubmenu
+> <guisubmenu
+>Emmet</guisubmenu
+> <guimenuitem
+>Збільшити число на 1</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>За допомогою цього пункту можна додати одиницю до позначеного тексту, якщо позначено число. Наприклад, якщо позначено <userinput
+>5</userinput
+>, отримаєте <computeroutput
+>6</computeroutput
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="tools-scripts-emmet-increment-number-by-10">
+<term
+><menuchoice
+><guimenu
+>Інструменти</guimenu
+><guisubmenu
+>Скрипти</guisubmenu
+> <guisubmenu
+>Emmet</guisubmenu
+> <guimenuitem
+>Збільшити число на 10</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>За допомогою цього пункту можна додати десять до позначеного тексту, якщо позначено число. Наприклад, якщо позначено <userinput
+>5</userinput
+>, отримаєте <computeroutput
+>15</computeroutput
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="tools-scripts-emmet-increment-number-by-0_1">
+<term
+><menuchoice
+><guimenu
+>Інструменти</guimenu
+><guisubmenu
+>Скрипти</guisubmenu
+> <guisubmenu
+>Emmet</guisubmenu
+> <guimenuitem
+>Збільшити число на 0.1</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>За допомогою цього пункту можна додати 0.1 до позначеного тексту, якщо позначено число. Наприклад, якщо позначено <userinput
+>4.5</userinput
+>, отримаєте <computeroutput
+>4.6</computeroutput
+>. </para
+></listitem>
+</varlistentry>
+
+</variablelist
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</listitem>
+</varlistentry>
+
+<varlistentry id="tools-invoke-code-completition">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>Пробіл</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Інструменти</guimenu
+> <guimenuitem
+>Увімкнути завершення коду</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Вручну викликати завершення команд за допомогою скорочення, яке прив’язане до цієї дії.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="tools-word-completition">
+<term
+><menuchoice
+><guimenu
+>Інструменти</guimenu
+> <guimenuitem
+>Завершення слів</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>За допомогою пунктів <guimenuitem
+>Повторно використати слово нижче</guimenuitem
+> (<keycombo action="simul"
+>&Ctrl; <keycap
+>9</keycap
+></keycombo
+>) і <guimenuitem
+>Повторно використати слово нижче</guimenuitem
+> (<keycombo action="simul"
+>&Ctrl; <keycap
+>8</keycap
+></keycombo
+>) можна наказати програмі завершувати поточні слова на основі подібних слів, розташованих у напрямку кінця чи початку документа відносно поточної позиції курсора. <guimenuitem
+>Завершення оболонки</guimenuitem
+> відкриває панель завершення з відповідними пунктами.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="spelling-automatic-spell-checking">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;&Shift;<keycap
+>O</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Інструменти</guimenu
+><guisubmenu
+>Перевірка правопису</guisubmenu
+>  <guimenuitem
+>Автоматична перевірка правопису</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Якщо буде позначено пункт <guimenuitem
+>Автоматична перевірка правопису</guimenuitem
+>, помилкові слова у тексті буде підкреслено на льоту.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="spelling-spelling">
+<term
+><menuchoice
+><guimenu
+>Інструменти</guimenu
+><guisubmenu
+>Перевірка правопису</guisubmenu
+> <guimenuitem
+>Перевірка правопису...</guimenuitem
+> </menuchoice
+></term>
+
+<!--para
+>These options are described in the documentation for the
+<ulink url="help:/sonnet/index.html"
+>Check Spelling Dialog</ulink
+>.</para
+Move / merge the following into kdelibs/doc/sonnet/index.docbook and replace it with the para above
+-->
+
+<listitem
+><para
+><action
+>Цей пункт запускає програму для перевірки правопису — програму, розроблену з метою допомоги користувачеві у виявленні і усуненні помилок у правописі.</action
+> Натискання цього пункту запустить перевірку правопису і відкриє діалогове вікно перевірки правопису, за допомогою якого користувач зможе керувати процесом перевірки. Існує чотири параметри, впорядковані вертикально у центрі діалогового вікна, позначені відповідними мітками, розташованими ліворуч. Починаючи згори це:</para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><guilabel
+>Невідоме слово:</guilabel
+></term>
+<listitem
+><para
+>Тут інструмент перевірки правопису показує слово, на якому було зупинено перевірку правопису. Така зупинка відбувається, якщо програма зустріне слово, якого немає у її словнику — файлі, де міститься список правильних написань слів, за допомогою якого програма перевіряє правопис кожного зі слів у редакторі.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Замінити на:</guilabel
+></term>
+<listitem
+><para
+>Якщо інструмент перевірки правопису знайде подібні слова у власному словнику, у цьому полі він покаже їх список. Користувач може погодитися з пропозицією, виконати виправлення самостійно або обрати з наступного списку іншу пропозицію.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Мова:</guilabel
+></term>
+<listitem
+><para
+>Якщо ви встановили декілька словників, тут ви можете обрати той з них, який слід використовувати.</para
+></listitem>
+</varlistentry>
+</variablelist>
+
+<para
+>У правій частині цього діалогового вікна розташовано 6 кнопок, за допомогою яких користувач може керувати процесом перевірки правопису. Це кнопки:</para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><guibutton
+>Додати до словника</guibutton
+></term>
+<listitem
+><para
+>Натискання цієї кнопки додає <guilabel
+>Невідоме слово</guilabel
+> до словника засобу для перевірки правопису. Це означає, що наступного разу, коли під час перевірки трапиться таке слово, засіб перевірки правопису вважатиме, що слово написано правильно.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Запропонувати</guilabel
+></term>
+<listitem
+><para
+>Тут засіб для перевірки правопису може показати список можливих правильних варіантів написання невідомого слова. Натискання одного з запропонованих варіантів вказівником миші призведе до введення цього слова до поля <guilabel
+>Замінити на</guilabel
+>, розташованого вище.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guibutton
+>Замінити</guibutton
+></term>
+<listitem
+><para
+>За допомогою цієї кнопки можна наказати засобу для перевірки правопису замінити невідоме слово у документі на слово з поля <guilabel
+>Замінити на</guilabel
+>.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guibutton
+>Замінити всі</guibutton
+></term>
+<listitem
+><para
+>За допомогою цієї кнопки можна наказати засобу для перевірки правопису замінити не лише поточне <guilabel
+>Невідоме слово:</guilabel
+>, а й автоматично зробити цю саму заміну для всіх подібних <guilabel
+>Невідомих слів</guilabel
+> у документі.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guibutton
+>Ігнорувати</guibutton
+></term>
+<listitem
+><para
+>Натискання цієї кнопки накаже засобу для перевірки правопису рухатися текстом далі, не виконуючи ніяких змін.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guibutton
+>Ігнорувати все</guibutton
+></term>
+<listitem
+><para
+>За допомогою цієї кнопки можна наказати засобу для перевірки правопису не виконувати ніяких дій з поточним <guilabel
+>Невідомим словом</guilabel
+>, а також пропускати всі інші випадки, коли у документі зустрічається це невідоме слово.</para
+> <note
+><para
+>Дії, які виконуються у результаті натискання цієї кнопки стосуються лише поточного сеансу запуску перевірки правопису. Якщо пізніше ви запустите перевірку правопису знову, перевірку знову буде зупинено на цьому слові.</para
+></note
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+<para
+>Вздовж нижньої частини діалогового вікна перевірки правопису по горизонталі розташовано це три кнопки. Це кнопки:</para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><guibutton
+>Довідка</guibutton
+></term>
+<listitem
+><para
+>За допомогою натискання цієї кнопки можна скористатися довідковою системою &kde;, яку буде відкрито на сторінці відповідного діалогового вікна.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guibutton
+>Завершено</guibutton
+></term>
+<listitem
+><para
+>Ця кнопка завершує процес перевірки правопису, і повертає фокус на документ.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guibutton
+>Скасувати</guibutton
+></term>
+<listitem
+><para
+>Ця кнопка скасовує процес перевірки правопису, всі зміни буде скасовано і ви повернетеся до редагування вашого документа.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</listitem>
+
+</varlistentry>
+
+<varlistentry id="tools-spelling-from-cursor">
+<term
+><menuchoice
+><guimenu
+>Інструменти</guimenu
+> <guisubmenu
+>Перевірка правопису</guisubmenu
+> <guimenuitem
+>Перевірка правопису (від курсора)...</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>За допомогою цього пункту можна розпочати перевірку правопису, але не з початку документа, а з місця, де зараз знаходиться курсор.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="tools-spellcheck-selection">
+<term
+><menuchoice
+><guimenu
+>Інструменти</guimenu
+> <guisubmenu
+>Перевірка правопису</guisubmenu
+> <guimenuitem
+>Перевірка правопису вибраного...</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Перевіряє правопис у вибраному.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="tools-change-dictionary">
+<term
+><menuchoice
+><guimenu
+>Інструменти</guimenu
+><guisubmenu
+>Перевірка правопису</guisubmenu
+>  <guimenuitem
+>Змінити словник</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Відкриває у нижній частині вікна редактора спадний список з усіма можливими словниками для перевірки правопису. За допомогою цього списку вам буде простіше перемикатися між словниками перевірки правопису, наприклад, у документах, написаних різними мовами.</para>
+</listitem>
+</varlistentry>
+
+<!-- Indent/Unindent no longer in the menu ???, but shortcuts work-->
+<!--
+<varlistentry id="tools-indent">
+<term
+><menuchoice>
+<shortcut>
+<keycombo action="simul"
+>&Ctrl;<keycap
+>I</keycap
+></keycombo>
+</shortcut>
+<guimenu
+>Tools</guimenu>
+<guimenuitem
+>Indent</guimenuitem>
+</menuchoice
+></term>
+<listitem>
+<para
+>This increases the paragraph's indentation by one step. The size of the
+step depends on the <link linkend="pref-edit-indent"
+> indentation
+settings</link
+>.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="tools-unindent">
+<term
+><menuchoice>
+<shortcut>
+<keycombo action="simul"
+>&Ctrl;&Shift;<keycap
+>I</keycap
+></keycombo>
+</shortcut>
+<guimenu
+>Tools</guimenu>
+<guimenuitem
+>Unindent</guimenuitem>
+</menuchoice
+></term>
+<listitem>
+<para
+>This reduces the paragraph's indentation by one step. The size of the step
+depends on the <link linkend="pref-edit-indent"
+> indentation settings</link
+>.</para>
+</listitem>
+</varlistentry>
+-->
+<varlistentry id="tools-cleanindent">
+<term
+><menuchoice
+><guimenu
+>Інструменти</guimenu
+> <guimenuitem
+>Очистити відступ</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>За допомогою цього пункту можна прибрати відступ у поточній виділеній ділянці документа або у рядку, де зараз знаходиться курсор. За допомогою прибирання відступу можна встановити обраний вами режим відступу для всього тексту.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="tools-align">
+<term
+><menuchoice
+><guimenu
+>Інструменти</guimenu
+> <guimenuitem
+>Вирівняти</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>За допомогою цього пункту можна вирівняти поточний рядок або вибрані рядки відповідно до режиму відступу і параметрів відступу, встановлених для документа.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="tools-comment">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>D</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Інструменти</guimenu
+> <guimenuitem
+>Закоментувати</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>За допомогою цього пункту можна додати один пробіл на початку рядка, де знаходить курсор, або на початку всіх вибраних рядків.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="tools-uncomment">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;&Shift;<keycap
+>D</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Інструменти</guimenu
+> <guimenuitem
+>Розкоментувати</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>За допомогою цього пункту можна прибрати один пробіл (якщо він є) на початку рядка, де знаходить курсор, або на початку всіх вибраних рядків.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="tools-uppercase">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>U</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Інструменти</guimenu
+> <guimenuitem
+>Верхній регістр</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Переводить вибраний текст або літеру, розташовану одразу за курсором у верхній регістр.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="tools-lowercase">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;&Shift;<keycap
+>U</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Інструменти</guimenu
+> <guimenuitem
+>Нижній регістр</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Переводить вибраний текст або літеру, розташовану одразу за курсором у нижній регістр.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="tools-capitalize">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;&Alt;<keycap
+>U</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Інструменти</guimenu
+> <guimenuitem
+>З великої літери</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Переводить першу літеру вибраного тексту або поточного слова у верхній регістр.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="tools-join-lines">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>J</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Інструменти</guimenu
+> <guimenuitem
+>Об’єднати рядки</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>За допомогою цього пункту меню можна об’єднати вибрані рядки або поточний рядок з рядком, розташованим нижче. Старі рядки в межах нового об’єднаного рядка буде відокремлено пробілом. Початкові і кінцеві пробіли у рядках, що об’єднуються буде прибрано.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="tools-word-wrap-document">
+<term
+><menuchoice
+><guimenu
+>Інструменти</guimenu
+> <guimenuitem
+>Застосувати перенесення слів</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Застосовує статичне перенесення слід до всього тексту документа. Це означає, що редактор автоматично починатиме новий рядок тексту після того, як кількість символів у поточному рядку перевищить довжину рядка, вказану у параметрі <guilabel
+>Переносити слова на</guilabel
+> вкладки «Редагування» вікна, яке відкривається за допомогою пункту меню <menuchoice
+> <guimenu
+>Параметри</guimenu
+> <guimenuitem
+>Налаштувати редактор...</guimenuitem
+></menuchoice
+></para
+></listitem>
+</varlistentry>
+
+</variablelist>
+</sect1>
+
+<sect1 id="settings-help-menu">
+<title
+>Меню «Параметри» і «Довідка»</title>
+
+<para
+>У &katepart; передбачено типові для &kde; пункти меню <guimenu
+>Параметри</guimenu
+> і <guimenu
+>Довідка</guimenu
+>. Щоб дізнатися більше, ознайомтеся з розділами щодо <ulink url="help:/fundamentals/menus.html#menus-settings"
+>меню «Параметри»</ulink
+> та <ulink url="help:/fundamentals/menus.html#menus-help"
+>меню «Довідка»</ulink
+> підручника з основ роботи у &kde;. </para>
+
+</sect1>
+</chapter>

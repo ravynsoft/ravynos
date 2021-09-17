@@ -1,0 +1,1212 @@
+<appendix id="regular-expressions">
+<appendixinfo>
+<authorgroup>
+<author
+>&Anders.Lund; &Anders.Lund.mail;</author>
+<othercredit role="translator"
+><firstname
+>Lisiane</firstname
+><surname
+>Sztoltz</surname
+><affiliation
+><address
+><email
+>lisiane@conectiva.com.br</email
+></address
+></affiliation
+><contrib
+>Tradução</contrib
+></othercredit
+> 
+</authorgroup>
+</appendixinfo>
+
+<title
+>Expressões Regulares</title>
+
+<synopsis
+>Este Apêndice contém uma breve mas suficiente introdução sobre o 
+mundo das <emphasis
+>expressões regulares</emphasis
+>. Ele documenta 
+expressões regulares na forma disponível dentro do &kappname;, que 
+não é compatível com as expressões regulares do Perl, ou de 
+outros comandos como o <command
+>grep</command
+>.</synopsis>
+
+<sect1>
+
+<title
+>Introdução</title>
+
+<para
+>As <emphasis
+>Expressões Regulares</emphasis
+> nos fornecem uma maneira de descrever alguns possíveis conteúdos de uma string de texto, de modo a ser entendido por um pedaço de software, e assim, ele pode investigar se um texto combina, e também no caso de aplicativos avançados, com o objetivo de salvar pedaços ou o texto que combina com a busca.</para>
+
+<para
+>Um exemplo. Digamos que você deseja buscar, em um texto, por parágrafos que iniciam com um desses nomes: <quote
+>Henrik</quote
+> ou<quote
+>Pernille </quote
+>, seguido por alguma forma do verbo <quote
+>dizer</quote
+>.</para>
+
+<para
+>Com uma pesquisa normal, você iria começar a procurar pelo primeiro nome, <quote
+>Henrique</quote
+>, sendo talvez seguido de <quote
+>di</quote
+>, como o seguinte: <userinput
+>Henrique di</userinput
+> e, enquanto procura por ocorrências, iria ignorar os que não se encontram no início de um parágrafo, assim como os que têm uma palavra que começa por <quote
+>di</quote
+> que não é <quote
+>diz</quote
+>, <quote
+>disse</quote
+> ou algo do gênero. Claro, e ainda ter que repetir isto com o próximo nome...</para>
+
+<para
+>Com as Expressões Regulares, aquela tarefa poderia ser cumprida com uma única busca, e com um grau maior de precisão.</para>
+
+<para
+>Para obter isto, as Expressões Regulares definem regras para expressar em detalhes uma generalização de uma string que será procurada. Podemos literalmente expressar nosso exemplo assim: <quote
+> Uma linha iniciada com <quote
+>Henrik</quote
+> ou <quote
+>Pernille</quote
+> (possivelmente seguido por 4 caracteres em branco ou tabs) seguido por um espaço em branco, seguido por um <quote
+>di</quote
+> e então, um <quote
+>iz</quote
+> ou <quote
+>sse</quote
+></quote
+>, que poderia ser colocado na seguinte expressão regular:</para
+> <para
+><userinput
+>^[ \t]{0,4}(Henrik|Pernille) di(sse|z)</userinput
+></para>
+
+<para
+>O exemplo anterior demonstra todos os quatro conceitos principais das Expressões Regulares modernas, chamados:</para>
+
+<itemizedlist>
+<listitem
+><para
+>Padrões</para
+></listitem>
+<listitem
+><para
+>Afirmações</para
+></listitem>
+<listitem
+><para
+>Quantificadores</para
+></listitem>
+<listitem
+><para
+>Referências para trás</para
+></listitem>
+</itemizedlist>
+
+<para
+>O acento circunflexo (<literal
+>^</literal
+>) no início da expressão é uma afirmação, sendo verdade somente se a string relacionada estiver no início de uma linha.</para>
+
+<para
+>As strings <literal
+>[ \t]</literal
+> e <literal
+>(Henrik|Pernille) di(sse|z)</literal
+> são padrões. A primeira é uma <emphasis
+>classe de caractere </emphasis
+> que combina ou com um espaço em branco ou com um caractere de tabulação (horizontal); o outro padrão contém primeiramente um subpadrão que combina ou com <literal
+>Henrik</literal
+> <emphasis
+>ou com </emphasis
+> <literal
+>Pernille</literal
+>. Em seguida, vem um pedaço que corresponde exatamente com a string <literal
+>di</literal
+> e, finalmente segue um subpadrão que combina com <literal
+>sse</literal
+> <emphasis
+>ou</emphasis
+> com <literal
+>z</literal
+>.</para>
+
+<para
+>A string <literal
+>{0,4}</literal
+> é um quantificado dizendo <quote
+>qualquer número de 0 até 4 da string anterior</quote
+>.</para>
+
+<para
+>Por causa do suporte ao conceito de <emphasis
+>referência para trás </emphasis
+> das expressões regulares, é economizado uma parte inteira combinada da string, bem como os subpadrões incluídos em parênteses; fornecidos alguns tipos de acesso para aquelas referências, podemos obter nossos meios de encontrar a string inteira (ao se procurar um documento de texto em um editor com uma expressão regular, o que é marcado frequentemente) ou o nome encontrado, ou a última parte do verbo.</para>
+
+<para
+>Toda junta, a expressão procurará o que você desejar que ela procure, e somente ali.</para>
+
+<para
+>As seções seguintes descreverão em detalhes como construir e usar padrões, classes de caracteres, afirmações, quantificadores e referências para trás, e a seção final fornecerá alguns exemplos úteis.</para>
+
+</sect1>
+
+<sect1 id="regex-patterns">
+
+<title
+>Padrões</title>
+
+<para
+>Padrões consistem de strings literais e classes de caracteres, e podem conter subpadrões, que são padrões cercados por parênteses.</para>
+
+<sect2>
+<title
+>Escapando caracteres</title>
+
+<para
+>Em padrões, bem como em classes de caracteres, alguns caracteres possuem um significado especial. Para combinar literalmente quaisquer um destes caracteres, eles devem ser marcados ou <emphasis
+> escapados</emphasis
+>, para deixar com que o software saiba que deve interpretar tais caracteres de maneira literal.</para>
+
+<para
+>Isto é feito anexando no início do caractere uma barra invertida (<literal
+>\</literal
+>).</para>
+
+
+<para
+>O software de expressão regular silenciosamente ignorará, escapando um caractere que não possui nenhum significado especial no contexto; assim, escapar, por exemplo, um <quote
+>j</quote
+> (<userinput
+>\j </userinput
+>) é seguro. Se você tiver dúvidas se um caractere possui significado especial, você pode, portanto, escapá-lo seguramente.</para>
+
+<para
+>A marcação inclui o próprio caractere de barra; por isso, para escapar uma barra, você deveria escrever <userinput
+>\\</userinput
+>.</para>
+
+</sect2>
+
+<sect2>
+<title
+>Classes de Caracteres e abreviações</title>
+
+<para
+>Uma <emphasis
+>classe de caractere</emphasis
+> é uma expressão que combina um dos caracteres de um conjunto definido. Em Expressões Regulares, as classes de caracteres são definidas colocando-se os caracteres legais em uma classe com colchetes (<literal
+>[]</literal
+>), ou usando uma das classes abreviadas descritas abaixo.</para>
+
+<para
+>Classes de caracteres simples contém um ou mais caracteres literais, como por exemplo <userinput
+>[abc]</userinput
+> (combinando com uma das letras: <quote
+>a</quote
+>, <quote
+>b</quote
+> ou <quote
+>c</quote
+>) ou <userinput
+>[0123456789]</userinput
+> (combinando com qualquer dígito).</para>
+
+<para
+>Uma vez que as letras e os números possuem uma ordem lógica, você poderá abreviá-los, definindo para isso intervalos: <userinput
+>[a-c]</userinput
+> é igual a <userinput
+>[abc]</userinput
+> e <userinput
+>[0-9]</userinput
+> é igual a <userinput
+>[0123456789]</userinput
+>. Combinar estas opções, por exemplo <userinput
+>[a-fynot1-38]</userinput
+> é perfeitamente possível (a última classe irá corresponder a um dos seguintes caracteres: <quote
+>a</quote
+>,<quote
+>b</quote
+>,<quote
+>c</quote
+>,<quote
+>d</quote
+>, <quote
+>e</quote
+>,<quote
+>f</quote
+>,<quote
+>y</quote
+>,<quote
+>n</quote
+>,<quote
+>o</quote
+>,<quote
+>t</quote
+>, <quote
+>1</quote
+>,<quote
+>2</quote
+>,<quote
+>3</quote
+> ou <quote
+>8</quote
+>).</para>
+
+<para
+>Como as letras maiúsculas são diferentes de minúsculas em expressões, para criar uma classe de caracteres que não diferenciasse maiúsculas de minúsculas, combinando por exemplo com <quote
+>a</quote
+> ou <quote
+>b</quote
+>, em qualquer caso, você precisaria escrever <userinput
+>[aAbB]</userinput
+>.</para>
+
+<para
+>Obviamente, é possível criar uma classe <quote
+>negativa</quote
+> que corresponda a <quote
+>tudo exceto</quote
+>. Para fazer isso, coloque um acento circunflexo (<literal
+>^</literal
+>) no início da classe: </para>
+
+<para
+><userinput
+>[^abc]</userinput
+> combinará com qualquer caractere <emphasis
+>menos com </emphasis
+> <quote
+>a</quote
+>, <quote
+>b</quote
+> ou <quote
+>c</quote
+>.</para>
+
+<para
+>Além disso, para caracteres literais, algumas abreviações são definidas, tornando a vida um pouco mais fácil: <variablelist>
+
+<varlistentry>
+<term
+><userinput
+>\a</userinput
+></term>
+<listitem
+><para
+>Isto combina com o caractere <acronym
+>ASCII</acronym
+> da campainha (BEL, 0x07).</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>\f</userinput
+></term>
+<listitem
+><para
+>Isto combina com o caractere <acronym
+>ASCII</acronym
+> de nova página (FF, 0x0C).</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>\n</userinput
+></term>
+<listitem
+><para
+>Isto combina com o caractere <acronym
+>ASCII</acronym
+> de nova linha (LF, 0x0A, nova linha do Unix).</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>\r</userinput
+></term>
+<listitem
+><para
+>Isto combina com o caractere <acronym
+>ASCII</acronym
+> de retorno de carro (CR, 0x0D).</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>\t</userinput
+></term>
+<listitem
+><para
+>Isto combina com o caractere <acronym
+>ASCII</acronym
+> de tabulação horizontal (HT, 0x09).</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>\v</userinput
+></term>
+<listitem
+><para
+>Isto combina com o caractere <acronym
+>ASCII</acronym
+> de tabulação vertical (VT, 0x0B).</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><userinput
+>\xhhhh</userinput
+></term>
+
+<listitem
+><para
+>Isto combina com o caractere Unicode correspondente ao número hexadecimal hhhh (entre 0x0000 e 0xFFFF). \0ooo (&ie;, \zero ooo) combina com o caractere <acronym
+>ASCII</acronym
+>/Latin-1 correspondente ao número octal ooo (entre 0 e 0377).</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>.</userinput
+> (ponto)</term>
+<listitem
+><para
+>Isto combina com qualquer caractere (incluindo nova linha).</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>\d</userinput
+></term>
+<listitem
+><para
+>Isto combina com um dígito. É igual a <literal
+>[0-9]</literal
+></para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>\D</userinput
+></term>
+<listitem
+><para
+>Isto combina com um caractere que não seja dígito. Igual a <literal
+> [^0-9]</literal
+> ou <literal
+>[^\d]</literal
+></para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>\s</userinput
+></term>
+<listitem
+><para
+>Isto combina com um caractere em branco. Praticamente igual a <literal
+>[\t\n\r]</literal
+></para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>\S</userinput
+></term>
+<listitem
+><para
+>Combina com o que não seja espaço em branco. Praticamente igual a <literal
+>[^\t\r\n]</literal
+>, e igual a <literal
+>[^\s]</literal
+></para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>\w</userinput
+></term>
+<listitem
+><para
+>Combina com quaisquer <quote
+>caractere da palavra</quote
+>, neste caso quaisquer letras ou dígitos. Note que o caractere de sublinhado (ou underscore - <literal
+>_</literal
+>) não combina, como é o caso com expressões regulares do Perl. Igual a <literal
+>[a-zA-Z0-9]</literal
+></para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>\W</userinput
+></term>
+<listitem
+><para
+>Combina com qualquer caractere diferente de palavra - qualquer coisa menos letras ou números. Igual a <literal
+>[^a-zA-Z0-9]</literal
+> ou <literal
+>[^\w]</literal
+></para
+></listitem>
+</varlistentry>
+
+
+</variablelist>
+
+</para>
+
+<para
+>As classes abreviadas pode ser colocadas dentro de classes personalizadas, como por exemplo: para combinar um caractere de palavra, um em branco ou um ponto, você poderia escrever <userinput
+>[\w\.]</userinput
+></para>
+
+<note
+> <para
+>A notação POSIX de classes, <userinput
+>[:&lt;nome da classe&gt;:]</userinput
+>, atualmente não é suportada.</para
+> </note>
+
+<sect3>
+<title
+>Caracteres com significado especial dentro das classes</title>
+
+<para
+>Os seguintes caracteres possuem um significado especial dentro da construção <quote
+>[]</quote
+> de classes de caractere, e deve ser escapado para ser literalmente incluído em uma classe:</para>
+
+<variablelist>
+<varlistentry>
+<term
+><userinput
+>]</userinput
+></term>
+<listitem
+><para
+>Finaliza a classe. Deve ser escapado, a menos que este caractere seja o primeiro da classe (pode ser seguido por um circunflexo não-escapado)</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><userinput
+>^</userinput
+> (circunflexo)</term>
+<listitem
+><para
+>Denota uma classe negativa, se for o primeiro caractere. Deve ser escapado para combinar literalmente, se for o primeiro caractere da classe.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><userinput
+>-</userinput
+> (hífen)</term>
+<listitem
+><para
+>Denota um intervalo lógico. Deve sempre ser escapado dentro de uma classe.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><userinput
+>\</userinput
+> (barra invertida)</term>
+<listitem
+><para
+>O caractere de escape. Deve sempre ser escapado.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect3>
+
+</sect2>
+
+<sect2>
+
+<title
+>Alternativas: combinando <quote
+>um deles</quote
+></title>
+
+<para
+>Se você deseja combinar um de um conjunto de padrões alternativos, pode separá-los com o caractere de barra vertical: <literal
+>|</literal
+></para>
+
+<para
+>Por exemplo: para encontrar a palavra <quote
+>John</quote
+> ou a palavra <quote
+>Harry</quote
+>, você usaria uma expressão do tipo <userinput
+>John|Harry</userinput
+>.</para>
+
+</sect2>
+
+<sect2>
+
+<title
+>Subpadrões</title>
+
+<para
+><emphasis
+>Subpadrões</emphasis
+> são padrões fechados entre parênteses, e possuem vários usos no mundo das expressões regulares.</para>
+
+<sect3>
+
+<title
+>Especificando alternativas</title>
+
+<para
+>Você pode usar subpadrões para agrupar um conjunto de alternativas dentro de um padrão maior. As alternativas são separadas pelo caractere <quote
+>|</quote
+> (barra vertical).</para>
+
+<para
+>Por exemplo: Para procurar uma das palavras <quote
+>int</quote
+>, <quote
+>float</quote
+> ou <quote
+>double</quote
+>, você poderia usar o padrão <userinput
+>int|float|double</userinput
+>. Se você deseja somente encontrar delas, se for seguida por algum espaço em branco e então algumas letras, coloque as alternativas dentro de um subpadrão: <userinput
+>(int|float|double)\s+\w+</userinput
+>.</para>
+
+</sect3>
+
+<sect3>
+
+<title
+>Capturando texto relacionado (referências anteriores)</title>
+
+<para
+>Se você deseja usar uma referência anterior, use um subpadrão para ter a parte desejada do padrão lembrada.</para>
+
+<para
+>Por exemplo: Se você deseja encontrar duas ocorrências da mesma palavra, separadas por vírgula, e possivelmente algum espaço em branco, poderia escrever: <userinput
+>(\w+),\s*\1</userinput
+>. O subpadrão <literal
+>\w+</literal
+> procuraria pelo pedaço dos caracteres da palavra, e a expressão inteira combinaria se aquelas forem separadas por uma vírgula, 0 ou mais espaços em branco, e então, um pedaço igual de caracteres da palavra (a string <literal
+>\1</literal
+> referencia <emphasis
+>o primeiro subpadrão entre os parênteses</emphasis
+>).</para>
+
+<!-- <para
+>See also <link linkend="backreferences"
+>Back references</link
+>.</para
+> -->
+
+</sect3>
+
+<sect3 id="lookahead-assertions">
+<title
+>Afirmações Adiante</title>
+
+<para
+>Uma afirmação do tipo adiante é um subpadrão, iniciando com <literal
+>?=</literal
+> ou <literal
+>?!</literal
+>.</para>
+
+<para
+>Por exemplo: para combinar a string literal <quote
+>Bill</quote
+>, mas somente seguida por <quote
+> Gates</quote
+>, você poderia usar esta expressão: <userinput
+>Bill(?! Gates)</userinput
+> (isto procuraria por <quote
+>Bill Clinton</quote
+>, bem como por <quote
+>Billy the kid</quote
+>, mas ele silenciosamente ignoraria as outras combinações).</para>
+
+<para
+>Os subpadrões usados para as afirmações não são capturados.</para>
+
+<para
+>Veja também em <link linkend="assertions"
+>Afirmações</link
+></para>
+
+</sect3>
+
+</sect2>
+
+<sect2 id="special-characters-in-patterns">
+<title
+>Caracteres com significado especial dentro de padrões</title>
+
+<para
+>Os seguintes caracteres possuem um significado especial dentro de um padrão, e devem ser escapados, caso você deseje procurá-los literalmente: <variablelist>
+
+<varlistentry>
+<term
+><userinput
+>\</userinput
+> (barra invertida)</term>
+<listitem
+><para
+>O caractere de escape.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>^</userinput
+> (circunflexo)</term>
+<listitem
+><para
+>Combina com o início da string.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>$</userinput
+></term>
+<listitem
+><para
+>Combina com o fim da string.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>()</userinput
+> (parênteses esquerdo e direito)</term>
+<listitem
+><para
+>Denota subpadrões.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>{}</userinput
+> (abre e fecha chaves)</term>
+<listitem
+><para
+>Denota quantificadores numéricos.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>[]</userinput
+> (abre e fecha colchetes)</term>
+<listitem
+><para
+>Denota classes de caracteres.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>|</userinput
+> (barra vertical)</term>
+<listitem
+><para
+>OR lógico. Alternativas separadas.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>+</userinput
+> (sinal de mais)</term>
+<listitem
+><para
+>Quantificador, 1 ou mais.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>*</userinput
+> (asterisco)</term>
+<listitem
+><para
+>Quantificador, 0 ou mais.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>?</userinput
+> (ponto de interrogação)</term>
+<listitem
+><para
+>Um caractere opcional. Pode ser interpretado como um quantificador, 0 ou 1.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</para>
+
+</sect2>
+
+</sect1>
+
+<sect1 id="quantifiers">
+<title
+>Quantificadores</title>
+
+<para
+><emphasis
+>Quantificadores</emphasis
+> permitem que uma expressão regular combine dentro de um número especificado ou de um intervalo de números, com um caractere, uma classe de caracteres ou um subpadrão.</para>
+
+<para
+>Os quantificadores estão dentro de chaves (<literal
+>{</literal
+> e <literal
+>} </literal
+>), e possuem como forma geral: <literal
+>{[mínimo-ocorrências][, [máximo-ocorrências]]}</literal
+> </para>
+
+<para
+>O uso é melhor explicado através do exemplo: <variablelist>
+
+<varlistentry>
+<term
+><userinput
+>{1}</userinput
+></term>
+<listitem
+><para
+>Exatamente 1 ocorrência</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>{0,1}</userinput
+></term>
+<listitem
+><para
+>Zero ou 1 ocorrência</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>{,1}</userinput
+></term>
+<listitem
+><para
+>O mesmo, mas com menos trabalho ;)</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>{5,10}</userinput
+></term>
+<listitem
+><para
+>No mínimo 5 e no máximo 10 ocorrências.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>{5,}</userinput
+></term>
+<listitem
+><para
+>No mínimo 5 ocorrências, sem máximo.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</para>
+
+<para
+>Adicionalmente, existe algumas abreviações: <variablelist>
+
+<varlistentry>
+<term
+><userinput
+>*</userinput
+> (asterisco)</term>
+<listitem
+><para
+>igual a <literal
+>{0,}</literal
+>, procura por quaisquer número de ocorrências.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>+</userinput
+> (sinal de mais)</term>
+<listitem
+><para
+>similar a <literal
+>{1,}</literal
+>, no mínimo 1 ocorrência.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>?</userinput
+> (ponto de interrogação)</term>
+<listitem
+><para
+>similar a <literal
+>{0,1}</literal
+>, zero ou 1 ocorrência.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</para>
+
+<sect2>
+
+<title
+>Guloso</title>
+
+<para
+>Ao usar os quantificadores sem máximo, as expressões regulares padronizam a combinação para o mais próximo da string procurada possível, comumente conhecido como comportamento <emphasis
+>guloso</emphasis
+>.</para>
+
+<para
+>O software moderno de expressões regulares fornece o chamado <quote
+>desligamento</quote
+> do modo 'guloso', embora em um ambiente gráfico a interface fornece a você o acesso a isto. Por exemplo, um diálogo de busca, fornecendo a busca para uma expressão regular, poderia ter uma caixa chamada <quote
+>Combinação Mínima</quote
+>, bem como indicar se o 'modo guloso' é o comportamento padrão.</para>
+
+</sect2>
+
+<sect2>
+<title
+>Exemplos do Contexto</title>
+
+<para
+>Aqui estão alguns exemplos do uso de quantificadores</para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><userinput
+>^\d{4,5}\s</userinput
+></term>
+<listitem
+><para
+>Combina com os dígitos em <quote
+>1234 ir</quote
+> e <quote
+>12345 agora,</quote
+> mas não combina com <quote
+>567 sete</quote
+> nem com <quote
+>223459 algum local</quote
+></para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>\s+</userinput
+></term>
+<listitem
+><para
+>Combina uma ou mais vezes com caracteres de espaço em branco</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>(bla){1,}</userinput
+></term>
+<listitem
+><para
+>Combina com todos os <quote
+>blablabla</quote
+>, e com <quote
+>bla</quote
+> em <quote
+>blackbird</quote
+> ou <quote
+>tabla</quote
+></para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>/?&gt;</userinput
+></term>
+<listitem
+><para
+>Combina com <quote
+>/&gt;</quote
+> em <quote
+>&lt;fecharitem/&gt;</quote
+> bem como com <quote
+>&gt;</quote
+> em <quote
+>&lt;abriritem&gt;</quote
+>.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+
+</sect1>
+
+<sect1 id="assertions">
+<title
+>Afirmações</title>
+
+<para
+><emphasis
+>Afirmações</emphasis
+> permitem que uma expressão regular combine com certas condições controladas.</para>
+
+<para
+>Uma afirmação não precisa de um caractere para combinar, e em vez disso ela investiga as adjacentes de uma possível combinação, antes de conhecê-la. Por exemplo: a afirmação <emphasis
+>limite da palavra </emphasis
+> não tenta encontrar um caractere que não seja da palavra, oposto de uma palavra em sua posição, e ao invés disso, ele certifica-se de que não existe um caractere da palavra. Isto significa que a afirmação pode combinar onde não existe caractere, &ie;, no final de uma string procurada.</para>
+
+<para
+>Algumas verificações, de fato, possuem um padrão de correspondência, mas a parte do texto que correspondeu não será uma parte do resultado da correspondência, em relação à expressão completa.</para>
+
+<para
+>As Expressões Regulares, como documentadas aqui, suportam as seguintes afirmações: <variablelist>
+
+<varlistentry>
+<term
+><userinput
+>^</userinput
+> (circunflexo: início de string)</term>
+<listitem
+><para
+>Combina com o início da string procurada.</para
+> <para
+>A expressão <userinput
+>^Peter</userinput
+> combinará com <quote
+> Peter</quote
+> na string <quote
+>Peter, ei!</quote
+>, mas não com <quote
+>Ei, Peter!</quote
+> </para
+> </listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>$</userinput
+> (final da string)</term>
+<listitem
+><para
+>Combina com o fim da string procurada.</para>
+
+<para
+>A expressão <userinput
+>você\?$</userinput
+> combinará com o 'você' no final da string <quote
+>É isto que deseja para você?</quote
+>, mas não combinará com <quote
+>É isto que deseja para você, certo?</quote
+></para>
+
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>\b</userinput
+> (limite da palavra)</term>
+<listitem
+><para
+>Combina se existir um caractere da palavra, mas não combina com o caractere de outra.</para>
+<para
+>Isto é útil para encontrar finais de palavras, como por exemplo, finais para encontrar uma expressão inteira. A expressão <userinput
+>\bem\b </userinput
+> procurará separado por <quote
+>em</quote
+> na string <quote
+>Ele estava em prantos no embarque</quote
+>, mas não combinará, por exemplo, com o <quote
+>em</quote
+> de <quote
+> embarque</quote
+>.</para
+></listitem>
+
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>\B</userinput
+> (sem limite de palavra)</term>
+<listitem
+><para
+>Combina com tudo que <quote
+>\b</quote
+> não combina.</para>
+<para
+>Isto significa que ele combinará com string dentro de palavras. A expressão <userinput
+>\Em\B</userinput
+> combinará com <quote
+>embarque</quote
+> mas não com <quote
+>Ele estava em prantos</quote
+>.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>(?=PADRÃO)</userinput
+> (adiante positivo)</term>
+<listitem
+><para
+>Uma afirmação adiante olha na parte da string seguinte, como uma possível combinação. O 'adiante positivo' prevenirá a string de combinação, se o texto seguinte não combina com o <emphasis
+>PADRÃO</emphasis
+> da afirmação, mas o texto combinado não será incluído no resultado.</para>
+<para
+>A expressão <userinput
+>carta(?=\w)</userinput
+> combinará com <quote
+>carta</quote
+> em <quote
+>cartada</quote
+>, mas não em <quote
+>O jogador deu uma cartada!</quote
+></para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>(?!PADRÃO)</userinput
+> (adiante negativo)</term>
+
+<listitem
+><para
+>O 'adiante negativo' previne que uma possível combinação seja de conhecimento, se a seguinte parte da string buscada não combina com seu <emphasis
+>PADRÃO</emphasis
+>.</para>
+<para
+>A expressão <userinput
+>const \w+\b(?!\s*&amp;)</userinput
+> combinará com <quote
+>const char</quote
+> na string <quote
+>const char* foo </quote
+> enquanto que não combinará <quote
+>const QString</quote
+> em <quote
+>const QString&amp; bar</quote
+>, pois o <quote
+>&amp; </quote
+> combina com o padrão de afirmação negativo.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</para>
+
+</sect1>
+
+<!-- TODO sect1 id="backreferences">
+
+<title
+>Back References</title>
+
+<para
+></para>
+
+</sect1 -->
+
+</appendix>

@@ -1,0 +1,2284 @@
+<chapter id="config-dialog">
+<title
+>Configura &kappname;</title>
+<para
+>Selezionando <menuchoice
+><guimenu
+>Impostazioni</guimenu
+><guimenuitem
+>Configura <replaceable
+>Applicazione</replaceable
+>...</guimenuitem
+></menuchoice
+> dal menu, si apre la finestra di dialogo <guilabel
+>Configura</guilabel
+>. Questa finestra di dialogo può essere utilizzata per modificare diverse impostazioni. Le impostazioni disponibili da cambiare variano a seconda della quale categoria scelta nella lista verticale sul lato sinistro della finestra. Per mezzo di tre pulsanti lungo la base della finestra l'utente può controllare il processo. </para>
+
+<para
+>Puoi invocare il sistema di <guilabel
+>Aiuto</guilabel
+>, accettare le impostazioni correnti e chiudere la finestra di dialogo con il pulsante <guibutton
+>OK</guibutton
+> oppure, con <guibutton
+>Annulla</guibutton
+>, annullare il processo. Le categorie <guilabel
+>Aspetto</guilabel
+>, <guilabel
+>Caratteri e colori</guilabel
+>, <guilabel
+>Modifica</guilabel
+>, <guilabel
+>Apri e salva</guilabel
+> e <guilabel
+>Estensioni</guilabel
+> sono descritte sotto. </para>
+
+<sect1 id="config-dialog-editor">
+<title
+>Configurazione del componente editor</title>
+<para
+>Questo gruppo contiene tutte le pagine relative al componente editor di &kappname; La maggior parte delle impostazioni sono quelle predefinite, che possono venir sostituite <link linkend="pref-open-save-modes-filetypes"
+>definendo un tipo di file</link
+>, con le <link linkend="config-variables"
+>variabili dei documenti</link
+> o cambiandole nel documento in una sessione di lavoro.</para>
+<sect2 id="appearance">
+<title
+>Aspetto</title>
+
+<sect3 id="prefcolors-fonts">
+<title
+>Carattere</title>
+<para
+>Qui puoi scegliere il tipo di carattere dell'editor di testo. È possibile scegliere qualsiasi carattere disponibile nel sistema ed impostare una dimensione predefinita. Un testo di esempio è mostrato nella parte inferiore della finestra, per valutare gli effetti delle tue scelte. </para>
+<para
+>Per maggiori informazioni su come selezionare un carattere, vedi la <ulink url="help:/fundamentals/fonts.html"
+>sezione <emphasis
+>Scegliere i caratteri</emphasis
+> della documentazione sui <emphasis
+>Fondamentali di &kde;</emphasis
+></ulink
+>.</para>
+</sect3>
+
+<sect3 id="appearance-general">
+<title
+>Generale</title>
+
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>A capo automatico dinamico</guilabel
+></term>
+<listitem>
+<para
+>Se quest'opzione è spuntata, le righe proseguiranno a capo quando raggiungeranno il bordo della finestra sullo schermo.</para>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Indicatori di a capo automatico dinamico (se applicabile)</guilabel
+></term>
+<listitem
+><para
+>Scegli quando mostrare gli indicatori di a capo automatico dinamico, <guilabel
+>Spenti</guilabel
+>, <guilabel
+>Dopo i numeri di riga</guilabel
+> o <guilabel
+>Sempre attivi</guilabel
+>. </para
+></listitem
+></varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Allinea le righe mandate a capo dinamicamente alla profondità di rientro: </guilabel
+></term>
+<listitem
+><para
+>Abilita l'allineamento verticale delle righe mandate a capo dinamicamente al livello di rientro della prima riga. Ciò può aiutare a rendere il codice e i marcatori più leggibili.</para
+><para
+>Inoltre permette di impostare la massima larghezza dello schermo come percentuale dopo la quale le righe andate a capo dinamicamente non saranno più allineate verticalmente. Ad esempio, a 50% le righe il cui livello di rientro è più profondo del 50% della larghezza dello schermo non saranno allineate verticalmente alle righe seguenti che sono andate a capo automaticamente.</para
+></listitem>
+</varlistentry>
+</variablelist>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Evidenziazione degli spazi</guilabel
+></term>
+<listitem>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Evidenzia le tabulazioni</guilabel
+></term>
+<listitem
+><para
+>L'editor mostra un simbolo &raquo; per indicare la presenza di una tabulazione nel testo.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Evidenziazione degli spazi finali</guilabel
+></term>
+<listitem
+><para
+>L'editor mostrerà dei punti per indicare la presenza di spazi finali in fondo alle righe.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Dimensione marcatore di evidenziazione</guilabel
+></term>
+<listitem
+><para
+>Usa il cursore per modificare la dimensione del marcatore di evidenziazione visibile.</para
+></listitem>
+</varlistentry>
+</variablelist>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Avanzate </guilabel
+></term>
+<listitem
+><para>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Mostra righe di rientro </guilabel
+></term>
+<listitem
+><para
+>Se spuntata, l'editor mostrerà delle righe verticali per favorire l'identificazione delle righe rientrate.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Evidenzia intervallo tra parentesi selezionate </guilabel
+></term>
+<listitem
+><para
+>Se abilitato, l'intervallo tra le parentesi selezionate corrispondenti sarà evidenziato.</para
+></listitem>
+</varlistentry>
+</variablelist>
+</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Anima le parentesi corrispondenti </guilabel
+></term>
+<listitem
+><para
+>Se abilitato, un passaggio sopra le parentesi (<keycap
+>{</keycap
+>, <keycap
+>[</keycap
+>, <keycap
+>]</keycap
+>, <keycap
+>}</keycap
+>,<keycap
+>(</keycap
+> or <keycap
+>)</keycap
+>) animerà rapidamente la parentesi corrispondente.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Contrai la prima riga </guilabel
+></term>
+<listitem
+><para
+>Se abilitato, la prima riga è contratta, se possibile. Questo è utile se il file inizia con un commento, ad esempio un copyright.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Mostra il conteggio delle parole </guilabel
+></term>
+<listitem
+><para
+>Visualizza il numero di parole e di caratteri nel documento e nella selezione corrente nella barra di stato. Questa opzione è disponibile anche nel menu contestuale della barra di stato.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Mostra il numero delle righe </guilabel
+></term>
+<listitem
+><para
+>Visualizza nella barra di stato il numero totale delle righe del documento. Questa opzione è disponibile anche nel menu contestuale della barra di stato.</para
+></listitem>
+</varlistentry>
+</variablelist>
+</sect3>
+
+<sect3 id="appearance-borders">
+<title
+>Bordi</title>
+
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Bordi</guilabel
+></term>
+<listitem>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Mostra segni di raggruppamento </guilabel
+></term>
+<listitem
+><para
+>Se questa opzione è spuntata, la vista corrente mostrerà degli indicatori per il raggruppamento del codice, se il raggruppamento del codice è disponibile.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Mostra l'anteprima del codice ripiegato </guilabel
+></term>
+<listitem
+><para
+>Se spuntata, l'anteprima del testo ripiegato viene mostrata in una finestra a comparsa al passaggio sopra ad una regione ripiegata</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Mostra bordo per le icone </guilabel
+></term>
+<listitem
+><para
+>Se spuntata, sarà visualizzato sul lato sinistro un bordo per le icone. Il bordo per le icone mostra, ad esempio, i marcatori dei segnalibri.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Mostra numeri di riga </guilabel
+></term>
+<listitem
+><para
+>Se spuntata, sul lato sinistro saranno visualizzati i numeri di riga.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Mostra segni di modifica delle righe </guilabel
+></term>
+<listitem
+><para
+>Se attivata, saranno visibili i segni di modifica delle righe. Per maggiori informazioni, vedi <xref linkend="kate-part-line-modification"/>. </para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Mostra i segni nella barra di scorrimento </guilabel
+></term>
+<listitem
+><para
+>Se questa opzione è spuntata, la vista attuale mostrerà indicatori sulla barra di scorrimento verticale. Questi segni possono mostrare, ad esempio, i segnalibri.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Mostra l'anteprima del testo nella barra di scorrimento</guilabel
+></term>
+<listitem
+><para
+>Se questa opzione è spuntata e passi con il cursore del mouse sopra la barra di scorrimento, verrà visualizzata una piccola anteprima del testo di alcune righe intorno la posizione del cursore. Questo ti permette di passare rapidamente ad un'altra parte del documento.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Mostra minimappa di scorrimento</guilabel
+></term>
+<listitem
+><para
+>Se questa opzione è selezionata, ogni nuova vista mostrerà una minimappa del documento sulla barra di scorrimento verticale.</para>
+<para
+>Per maggiori informazioni sulla minimappa di scorrimento, vedi <xref linkend="kate-part-scrollbar-minimap"/>.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Larghezza della minimappa</guilabel
+></term>
+<listitem
+><para
+>Regola la larghezza della minimappa di scorrimento, definita in pixel. </para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Visibilità delle barre di scorrimento</guilabel
+></term>
+<listitem
+><para
+>Attiva le barre di scorrimento, disattivale o mostrale solo se sono necessarie. Fai clic con il &LMB; sul rettangolo blu per visualizzare l'intervallo del numero di righe del documento che sono visualizzate sullo schermo. Tieni il &LMB; premuto al di fuori del rettangolo blu per scorrere automaticamente il documento </para
+></listitem>
+</varlistentry>
+</variablelist>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Ordina il menu dei segnalibri </guilabel
+></term>
+<listitem>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Per creazione </guilabel
+></term>
+<listitem
+><para
+>Ogni nuovo segnalibro verrà aggiunto in coda, indipendentemente da dove è collocato nel documento.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Per posizione </guilabel
+></term>
+<listitem
+><para
+>I segnalibri saranno ordinati a seconda dei numeri di riga a cui sono collocati.</para
+></listitem>
+</varlistentry>
+</variablelist>
+</listitem>
+</varlistentry>
+</variablelist>
+
+</sect3>
+</sect2>
+
+<sect2 id="prefcolors">
+<title
+>Temi di colori</title>
+
+<para
+>Questa sezione della finestra ti permette di configurare tutti i colori in qualsiasi tema tu abbia, e di creare nuovi schemi o a eliminare quelli esistenti. Ciascuno schema ha impostazioni per i colori, i tipi di carattere e per gli stili di evidenziazione del testo. </para>
+
+<para
+>&kappname; preselezionerà per te il tema attualmente attivo. Se vuoi lavorare su uno schema diverso, inizia selezionandolo dalla casella combinata <guilabel
+>Tema</guilabel
+>. Con i pulsanti <guibutton
+>Copia</guibutton
+> ed <guibutton
+>Elimina</guibutton
+> puoi creare nuovi temi ed eliminare quelli esistenti.</para>
+<para
+>Nella parte bassa della pagina puoi selezionare lo <guilabel
+>schema predefinito per <replaceable
+>Applicazione</replaceable
+></guilabel
+>.</para>
+
+<para
+>È descritto nei dettagli in <xref linkend="color-themes-gui"/>.</para>
+
+</sect2>
+
+<sect2 id="pref-edit">
+<title
+>Modifica</title>
+
+<sect3 id="pref-edit-general">
+<title
+>Generale</title>
+<variablelist>
+
+<varlistentry>
+<term id="pref-word-wrap"
+><guilabel
+>A capo automatico statico</guilabel
+></term>
+<listitem
+><para
+>L'a capo automatico è una funzionalità che fa in modo che l'editor inizi automaticamente una nuova riga di testo spostando (a capo) il cursore all'inizio di quella nuova riga. &kappname; comincerà automaticamente una nuova riga di testo quando la riga attuale raggiungerà la lunghezza specificata dall'opzione <link linkend="pref-wrap-words-at"
+>Torna a capo dopo:</link
+>.</para>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Abilita ritorno a capo statico</guilabel
+></term>
+<listitem>
+<para
+>Attiva o disattiva l'a capo automatico statico.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Mostra indicatore di a capo statico (se applicabile)</guilabel
+></term>
+<listitem>
+<para
+>Se questa opzione è spuntata, verrà disegnata una barra verticale sulla colonna di andata a capo definita in <menuchoice
+> <guimenu
+>Impostazioni</guimenu
+> <guimenuitem
+>Configura editor...</guimenuitem
+></menuchoice
+> nella scheda Modifica. Attenzione che l'indicatore di andata a capo sarà disegnato solo se utilizzi un carattere a spaziatura fissa.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term id="pref-wrap-words-at"
+><guilabel
+>Torna a capo dopo:</guilabel
+></term>
+<listitem>
+<para
+>Se l'opzione <link linkend="pref-word-wrap"
+>Abilita ritorno a capo statico</link
+> è spuntata, questa casella determina la lunghezza (in caratteri) alla quale l'editor comincerà automaticamente una nuova riga.</para>
+</listitem>
+</varlistentry>
+</variablelist>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Modalità di inserimento</guilabel
+></term
+> <listitem
+><para
+>La modalità di inserimento selezionata sarà abilitata quando si aprirà una nuova vista. Puoi sempre attivare o disattivare la modalità di inserimento Vi per una vista particolare nel menu <guimenu
+>Modifica</guimenu
+>. </para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Parentesi automatiche</guilabel
+></term
+> <listitem
+><para
+>Quando l'utente digita una parentesi sinistra (<keycap
+>[</keycap
+>, <keycap
+>(</keycap
+>, o <keycap
+>{</keycap
+>) &kappname; inserirà automaticamente la parentesi destra (}, ) o ]) alla destra del cursore.</para>
+<para
+>Quando c'è del testo selezionato, la digitazione di uno dei caratteri spezza il testo selezionato.</para>
+</listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><guilabel
+>Copia e incolla</guilabel
+></term>
+<listitem>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Copia o taglia la riga attuale se non c'è una selezione</guilabel
+></term
+> <listitem>
+<para
+>Se questa opzione è abilitata e la selezione è vuota, le operazioni di copia e taglia sono effettuate sulla riga in cui si trova il cursore.</para
+></listitem>
+</varlistentry>
+</variablelist>
+</listitem>
+</varlistentry>
+
+</variablelist>
+</sect3>
+
+<sect3 id="pref-edit-cursor-selection">
+<title
+>Navigazione del testo</title>
+
+<variablelist>
+
+<varlistentry>
+<term
+><guilabel
+>Movimento del cursore di testo</guilabel
+></term>
+<listitem>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Home e Fine intelligenti</guilabel
+></term>
+<listitem>
+<para
+>Se è spuntato, la pressione del tasto Home farà saltare al cursore gli spazi bianchi e lo farà posizionare all'inizio del testo della riga.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>PagSu e PagGiù spostano il cursore</guilabel
+></term>
+<listitem>
+<para
+>Questa opzione cambia il comportamento del cursore quando l'utente preme il tasto &PgUp; o &PgDn;. Se non è selezionato, il cursore del testo manterrà la sua posizione relativamente al testo visibile in &kappname;, quando del nuovo testo diventerà visibile come risultato dell'operazione. Così se il cursore è al centro del testo visibile, quando avviene l'operazione, rimarrà lì (eccetto quando si raggiunge l'inizio o la fine). Quando questa opzione è selezionata, il primo tasto premuto causerà lo spostamento del cursore alla cima o alla base del testo visibile non appena si visualizza una nuova pagina di testo.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Abilita il movimento del cursore sulla notazione delle maiuscole a cammello</guilabel
+></term>
+<listitem>
+<para
+>Questa opzione modifica il comportamento del cursore quando l'utente preme la scorciatoia <keycombo
+>&Ctrl;<keycap
+>Freccia sinistra</keycap
+></keycombo
+> or <keycombo
+>&Ctrl;<keycap
+>Freccia destra</keycap
+></keycombo
+>. Se non è selezionata il cursore salta parole intere, mentre se lo è il cursore si interrompe sulle gobbe della notazione delle maiuscole a cammello.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Centratura automatica del cursore:</guilabel
+></term>
+<listitem>
+<para
+>Imposta il numero di righe che, se possibile, devono rimanere visibili sopra e sotto il cursore.</para>
+</listitem>
+</varlistentry>
+</variablelist>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Modalità di selezione del testo</guilabel
+></term>
+<listitem>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Normale</guilabel
+></term>
+<listitem>
+<para
+>Le selezioni vengono sovrascritte con il testo digitato e vanno perse quando si muove il cursore.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Persistente</guilabel
+></term>
+<listitem>
+<para
+>Le selezioni rimangono anche dopo lo spostamento del cursore e l'inserimento di testo.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Permetti di scorrere oltre la fine del documento</guilabel
+></term
+> <listitem>
+<para
+>Questa opzione ti permette di scorrere oltre la fine del documento. Può essere usato per centrare verticalmente la parte bassa del documento, o portarla nella parte alta della vista.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Il tasto Backspace rimuove la base del carattere con i suoi diacritici</guilabel
+></term
+> <listitem>
+<para
+>Se selezionato, i caratteri composti sono rimossi insieme ai loro diacritici invece di rimuovere solo la base del carattere. Utile per le localizzazioni indiane.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+</listitem>
+</varlistentry>
+
+</variablelist>
+</sect3>
+
+<sect3 id="pref-edit-indent">
+<title
+>Rientro</title>
+
+<variablelist>
+
+<varlistentry>
+<term
+><guilabel
+>Modalità di rientro predefinita:</guilabel
+></term>
+<listitem>
+<para
+>Seleziona la modalità di rientro automatico da usare come predefinita. Si raccomanda caldamente di impostare <userinput
+>Nessuno</userinput
+> o <userinput
+>Normale</userinput
+> e di utilizzare le configurazioni specifiche per tipo di file per impostare altre modalità di rientro per formati di testo come codice C/C++ o &XML;.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Rientra con</guilabel
+></term>
+<listitem>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Tabulazioni</guilabel
+></term>
+<listitem>
+<para
+>Quando abilitato, l'editor inserirà caratteri di tabulazione quando premi il tasto &Tab; o usi il <link linkend="kate-part-autoindent"
+>rientro automatico</link
+>.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Spazi</guilabel
+></term>
+<listitem>
+<para
+>Quando questa opzione è abilitata, l'editor inserirà un numero appropriato di spazi a seconda della posizione nel testo e dell'impostazione <guilabel
+>Ampiezza delle tabulazioni</guilabel
+> alla pressione del tasto &Tab; o usi il <link linkend="kate-part-autoindent"
+>rientro automatico</link
+>.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Tabulazioni e spazi</guilabel
+></term>
+<listitem>
+<para
+>Quando abilitato, l'editor inserirà spazi come sopra descritto quando rientri o premi il tasto &Tab; all'inizio di una riga, ma inserirà tabulazioni quando il testo &Tab; viene premuto all'interno o alla fine di una riga.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Ampiezza delle tabulazioni:</guilabel
+></term>
+<listitem>
+<para
+>Configura il numero di spazi mostrati al posto di un carattere di tabulazione.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Larghezza del rientro:</guilabel
+></term>
+<listitem>
+<para
+>La larghezza del rientro è il numero di spazi usati per fare rientrare una riga. Se configurato per rientrare con le tabulazioni, viene inserito un carattere di tabulazione se il rientro è divisibile per l'ampiezza delle tabulazioni.</para>
+</listitem>
+</varlistentry>
+</variablelist>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Regole di rientro</guilabel
+></term>
+<listitem>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Mantieni gli spazi di troppo</guilabel
+></term>
+<listitem
+><para
+>Se questa opzione non è spuntata, la modifica del livello di rientro allineerà le righe a multipli della larghezza specificata in <guilabel
+>Larghezza di rientro</guilabel
+>.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Regola il rientro del testo incollato dagli appunti</guilabel
+></term>
+<listitem>
+<para
+>Se questa opzione è spuntata, il testo incollato dagli appunti verrà fatto rientrare. Puoi rimuovere il rientro con il comando <guimenuitem
+>Annulla</guimenuitem
+>.</para>
+</listitem>
+</varlistentry>
+</variablelist>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Azioni di rientro</guilabel
+></term>
+<listitem>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Il tasto Backspace nello spazio vuoto iniziale toglie il rientro</guilabel
+></term>
+<listitem>
+<para
+>Se è spuntato, il tasto &Backspace; diminuisce il livello di rientro se il cursore si trova nello spazio iniziale di una riga.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Azione del tasto Tab (senza selezione)</guilabel
+></term>
+<listitem>
+<para
+>Se vuoi che &Tab; allinei la riga attuale nel blocco di codice attuale come in &Emacs;, puoi rendere &Tab; una scorciatoia per l'azione <guimenuitem
+>Allinea</guimenuitem
+>. </para>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Avanza sempre alla prossima tabulazione</guilabel
+></term>
+<listitem>
+<para
+>Se è spuntato, il tasto &Tab; inserirà sempre spazio bianco in modo da raggiungere la prossima tabulazione. Se l'opzione <guilabel
+>Inserisci spazi invece di tabulazioni</guilabel
+> nella pagina <guilabel
+>Modifica</guilabel
+> è abilitata, vengono inseriti spazi; altrimenti, viene inserita una tabulazione.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Aumenta sempre il livello di rientro</guilabel
+></term>
+<listitem>
+<para
+>Se è spuntato, il tasto &Tab; farà rientrare sempre la riga attuale del numero di posizioni specificato in <guilabel
+>Larghezza di rientro</guilabel
+>.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Aumenta il livello di rientro se in uno spazio vuoto iniziale</guilabel
+></term>
+<listitem>
+<para
+>Se è spuntato, il tasto &Tab; farà rientrare la riga attuale o avanzerà alla prossima tabulazione. Se il punto di inserimento è sul primo carattere non di spaziatura della riga (o prima), o se c'è una selezione, la riga corrente verrà fatta rientrare del numero di posizioni specificato in <guilabel
+>Larghezza di rientro</guilabel
+>. Se il punto di inserimento è dopo il primo carattere non di spaziatura della linea e non c'è selezione, viene inserito dello spazio bianco in modo da raggiungere la prossima tabulazione: se l'opzione <guilabel
+>Inserisci spazi invece di tabulazioni</guilabel
+> nella scheda <guilabel
+>Generale</guilabel
+> della pagina <guilabel
+>Modifica</guilabel
+> è abilitata, vengono inseriti spazi; altrimenti, viene inserita una tabulazione.</para>
+</listitem>
+</varlistentry>
+</variablelist>
+
+</listitem>
+</varlistentry>
+
+</variablelist>
+</listitem>
+</varlistentry>
+
+</variablelist>
+</sect3>
+
+<sect3 id="pref-edit-autocompletion">
+<title
+>Completamento delle parole</title>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Generale</guilabel
+></term>
+<listitem>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Abilita il completamento delle parole</guilabel
+></term>
+<listitem>
+<para
+>Se è abilitato, si aprirà automaticamente un riquadro di completamento durante la digitazione, che visualizza un elenco di modi in cui è possibile completare il testo presente alla posizione del cursore.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Seleziona automaticamente la prima voce di completamento</guilabel
+></term>
+<listitem>
+<para
+>Se abilitato, la prima voce di completamento automatico viene sempre preselezionata, così da poter essere inserita con &Enter;. Se non vuoi questo comportamento, &eg; se vuoi premere &Enter; solo per inserire una nuova riga, disabilita questo elemento.</para>
+</listitem>
+</varlistentry>
+</variablelist>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Lunghezza minima delle parole da completare</guilabel
+></term>
+<listitem
+><para
+>Mentre si digita, il completamento automatico cerca nel documento le parole che iniziano con i caratteri già digitati. Questa opzione permette di configurare il numero minimo di caratteri che bisogna digitare prima che il completamento automatico si attivi e visualizzi le corrispondenze trovate.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Rimuovi coda al completamento</guilabel
+></term>
+<listitem
+><para
+>Rimuovi la coda di una parola precedente quando l'elemento di completamento viene scelto da un elenco. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Completamento delle parole </guilabel
+></term>
+<listitem
+><para
+>Se abilitato, il completamento automatico integrato usa le parole chiave definite dall'evidenziazione della sintassi. </para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect3>
+
+<sect3 id="pref-edit-spellcheck">
+<title
+>Controllo ortografico</title>
+<para
+>Queste opzioni di configurazione sono spiegate nella documentazione del modulo <ulink url="help:/kcontrol/spellchecking"
+>Controllo ortografico</ulink
+> di &systemsettings; .</para>
+</sect3>
+
+<sect3 id="pref-edit-vi-input-mode">
+<title
+>Modalità di inserimento Vi</title>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Generale</guilabel
+></term>
+<listitem>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Lascia che i comandi Vi abbiano precedenza su quelli di Kate</guilabel
+></term>
+<listitem>
+<para
+>Se selezionato, i comandi Vi avranno precedenza sui comandi interni di &kappname;. Per esempio, <keycombo action="simul"
+>&Ctrl;<keycap
+>R</keycap
+></keycombo
+> rifarà le modifiche, e sostituirà l'azione normale, che sarebbe mostrare la finestra di ricerca e sostituzione.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Visualizza i numeri di riga relativi </guilabel
+></term>
+<listitem
+><para
+>Se abilitato, la riga attuale diventa la riga 0. Le righe sopra e sotto incrementano il numero relativamente.</para
+></listitem>
+</varlistentry>
+</variablelist>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Mappatura dei tasti</guilabel
+></term>
+<listitem
+><para
+>La mappatura dei tasti è usata per cambiare il significato dei tasti mappati. Questo permette di spostare comandi su altri tasti o impostare dei tasti in modo da eseguire una serie di comandi.</para>
+<para
+>Esempio:</para>
+<para
+><keycap
+>F2</keycap
+> → <keycap
+>I--</keycap
+> &Esc;</para>
+<para
+>Questo anteporrà un <userinput
+>I--</userinput
+> a una riga quando si preme <keycap
+>F2</keycap
+>. </para>
+</listitem>
+<!-- Normal Mode Insert Mode Visual Mode 
+Commands Repacement Recursuive?
+Remove selected Add new mapping Import from vimrc file-->
+</varlistentry>
+</variablelist>
+
+</sect3>
+
+</sect2>
+
+<sect2 id="pref-open-save">
+<title
+>Apri e salva</title>
+
+<sect3 id="pref-open-save-general">
+<title
+>Generale</title>
+
+<variablelist>
+
+<varlistentry>
+<term
+><guilabel
+>Formato dei file</guilabel
+></term>
+<listitem>
+<variablelist>
+
+<varlistentry>
+<term
+><guilabel
+>Codifica</guilabel
+></term>
+<listitem>
+<para
+>Questo definisce la codifica normale da usare per aprire e salvare i file, se non viene modificata nelle finestre di apertura e salvataggio o usando un'opzione dalla riga di comando.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Rilevamento della codifica</guilabel
+></term>
+<listitem>
+<para
+>Selezionare un elemento dal menu a discesa, per disabilitare il rilevamento automatico o per usare <guilabel
+>Universale</guilabel
+> per abilitare il rilevamento automatico per tutte le codifiche. Dato che probabilmente rileverà solo utf-8/utf-16, è meglio selezionare una regione per poter indovinare meglio. Se né la codifica scelta come normale sopra, né quella specificata nella finestra di apertura e salvataggio, né quella specificata sulla riga di comando corrispondono ai contenuti del file, verrà usato questo rilevamento.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Codifica di riserva</guilabel
+></term>
+<listitem>
+<para
+>Qui si definisce la codifica di riserva per provare ad aprire file se né la codifica sopra indicata come normale, né quella specificata nella finestra di apertura o salvataggio, né quella specificata sulla riga di comando corrispondono ai contenuti del file. Prima di usare questa, si proverà a determinare la codifica da usare cercando un indicatore di ordinamento dei byte all'inizio del file: se ne si trova uno, sarà scelta la codifica Unicode corretta; altrimenti, verrà avviato il rilevamento della codifica, se entrambe le codifiche di riserva saranno provate.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Fine riga</guilabel
+></term>
+<listitem>
+<para
+>Sceglie la modalità di fine riga preferita per il documento attuale. Puoi scegliere tra &UNIX;, DOS/&Windows; oppure Macintosh.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Rilevamento automatico delle fini di riga</guilabel
+></term>
+<listitem>
+<para
+>Spuntalo se vuoi che l'editor riconosca automaticamente il tipo di fine riga. Il primo tipo di fine riga incontrato verrà usato per tutto il file.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Abilita il marcatore dell'ordine dei byte (BOM)</guilabel
+></term>
+<listitem>
+<para
+>Il marcatore dell'ordine dei byte è una sequenza speciale all'inizio dei documenti unicode. Permette ai programmi di aprire i documenti di testo con le impostazioni unicode corrette. Per maggiori informazioni, vedere <ulink url="http://it.wikipedia.org/wiki/Byte_Order_Mark"
+>Byte Order Mark</ulink
+>.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Limite di lunghezza delle righe</guilabel
+></term>
+<listitem>
+<para
+>Sfortunatamente, a causa di mancanze dovute a &Qt;, &kappname; non funziona bene con righe estremamente lunghe. Per quel motivo, &kappname; manderà a capo automaticamente le righe più lunghe del numero di caratteri qui specificato. Per disattivarlo, impostalo a <userinput
+>0</userinput
+>.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Pulizia automatica al salvataggio</guilabel
+></term>
+<listitem>
+<variablelist>
+
+<varlistentry>
+<term
+><guilabel
+>Rimuovi gli spazi finali durante la scrittura</guilabel
+></term>
+<listitem>
+<para
+>L'editor eliminerà automaticamente gli spazi di troppo alla fine delle righe di testo durante il salvataggio del file. Puoi selezionare di non usare <guilabel
+>Mai</guilabel
+> questa funzionalità, o di usarla solo <guilabel
+>Sulle righe modificate</guilabel
+> dall'ultimo salvataggio del documento, o di rimuoverli incondizionatamente <guilabel
+>In tutto il documento</guilabel
+>.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Aggiungi un ritorno a capo alla fine del file al salvataggio</guilabel
+></term>
+<listitem>
+<para
+>L'editor aggiungerà automaticamente un ritorno a capo alla fine del file se non ce n'è già uno al momento del salvataggio.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+</listitem>
+</varlistentry>
+
+</variablelist>
+</sect3>
+
+<sect3 id="pref-open-save-advanced">
+<title
+>Avanzate</title>
+<variablelist>
+
+<varlistentry>
+<term
+><guilabel
+>Copia di sicurezza al quando si salva</guilabel
+></term>
+<listitem
+><para
+>La copia di sicurezza al salvataggio fa copiare a &kappname; il file su disco in &lt;prefisso&gt;&lt;nomefile&gt;&lt;suffisso&gt; prima di salvare le modifiche. Il suffisso predefinito è <emphasis role="bold"
+>~</emphasis
+> ed il prefisso è vuoto. </para>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>File locali</guilabel
+></term>
+<listitem>
+<para
+>Spunta la casella se vuoi una copia di sicurezza dei file locali quando salvi.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>File remoti</guilabel
+></term>
+<listitem>
+<para
+>Spunta la casella se vuoi una copia di sicurezza dei file remoti quando salvi.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Prefisso</guilabel
+></term>
+<listitem>
+<para
+>Inserisci il prefisso per i nomi delle copie di sicurezza.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Suffisso</guilabel
+></term>
+<listitem>
+<para
+>Inserisci il suffisso per i nomi delle copie di sicurezza.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Opzioni dei file di swap</guilabel
+></term>
+<listitem>
+<para
+>&kappname; può recuperare (la maggior parte di) ciò che è stato scritto dall'ultimo salvataggio in caso di errore o di mancanza di corrente. Alla prima azione di modifica di un documento viene creato un file di swap (<filename
+>.swp.&lt;nome_file&gt;</filename
+>): se l'utente non salva le modifiche e &kappname; va in crash, questo rimane invece sul disco. All'apertura di un file &kappname; controlla se c'è un file di swap associato; in caso affermativo chiede all'utente se voglia o meno recuperare i dati persi. C'è anche la possibilità di vedere le differenze tra il file originale e quello recuperato. Il file di swap viene eliminato dopo ogni salvataggio e alla normale uscita dal programma.</para>
+<para
+>&kappname; sincronizza i file di swap sul disco ogni 15 secondi, ma solo se sono cambiati dall'ultima sincronizzazione. L'utente può scegliere di disabilitare la sincronizzazione, spuntando la casella <guilabel
+>Disabilita</guilabel
+>, ma ciò può portare a una perdita di dati maggiore.</para>
+<para
+>Quando abilitati, i file di swap vengono salvati nella stessa cartella del file. Se viene scelta una <guilabel
+>Cartella alternativa</guilabel
+>, essi vengono creati invece nella cartella specificata. Questo è utile nei filesystem di rete, per da evitare traffico di rete non necessario.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+</listitem>
+</varlistentry>
+
+</variablelist>
+</sect3>
+
+<sect3 id="pref-open-save-modes-filetypes">
+<title
+>Modi e tipi di file</title>
+<para
+>Questa pagina permette di modificare la configurazione predefinita per documenti aventi specifici tipi &MIME;. Quando l'editor carica un documento, ne cerca la corrispondenza, tramite le maschere o i tipi &MIME;, con un tipo di file conosciuto. Se viene trovata più di una corrispondenza verrà usata quella con la più alta priorità. </para>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Tipo di file:</guilabel
+></term>
+<listitem
+><para
+>Il tipo di file con la priorità più alta è quello mostrato nella prima casella combinata. Se vengono trovati più tipi di file, verranno mostrati tutti.</para>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Nuovo</guilabel
+></term>
+<listitem
+><para
+>Questo viene usato per creare un nuovo tipo di file. Se fai clic su questo pulsante i campi sottostanti si svuotano, quindi possono essere riempiti con i dati appropriati per il nuovo tipo di file.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Elimina</guilabel
+></term>
+<listitem
+><para
+>Per eliminare un tipo di file esistente, selezionalo dalla casella combinata e premi il pulsante Elimina.</para
+></listitem>
+</varlistentry>
+</variablelist>
+</listitem
+> </varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Proprietà del <replaceable
+>tipo di file attuale</replaceable
+></guilabel
+></term>
+<listitem
+><para
+>Il tipo di file con la priorità più alta è quello mostrato nella prima casella combinata. Se vengono trovati più tipi di file, verranno mostrati tutti.</para>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Nome:</guilabel
+></term>
+<listitem
+><para
+>Il nome del tipo di file sarà il testo della corrispondente voce del menu. Questo nome è mostrato nel menu <menuchoice
+><guimenu
+>Strumenti</guimenu
+><guimenuitem
+>Tipi di file</guimenuitem
+></menuchoice
+></para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Sezione:</guilabel
+></term>
+<listitem
+><para
+>Il nome della sezione viene usato per organizzare i tipi di file nei menu. Può essere anche usato nel menu <menuchoice
+><guimenu
+>Strumenti</guimenu
+><guimenuitem
+>Tipi di file</guimenuitem
+></menuchoice
+>.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Variabili:</guilabel
+></term>
+<listitem
+><para
+>Questa stringa permette di configurare le impostazioni di &kappname; per i file selezionati da questo tipo &MIME; usando le variabili di &kappname;. Puoi impostare quasi ogni opzione, come l'evidenziazione, la modalità di rientro, eccetera.</para>
+<para
+>Premi <guibutton
+>Modifica</guibutton
+> per vedere un elenco di tutte le variabili possibili e le loro descrizioni. Spunta la casella a sinistra per abilitare una variabile in particolare, e impostane quindi il valore sulla destra. Alcune variabili forniscono un menu a cascata da cui selezionarne i valori possibili, mentre altre richiedono che tu inserisca manualmente un valore valido.</para>
+<para
+>Per tutte le informazioni su queste variabili, vedi <link linkend="config-variables"
+>la configurazione delle variabili dei documenti</link
+>.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Evidenziazione:</guilabel
+></term>
+<listitem
+><para
+>Quando crei un nuovo tipo di file, questa casella combinata ti permette di selezionare un tipo di file per l'evidenziazione.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Modalità di indentazione:</guilabel
+></term>
+<listitem
+><para
+>Il menu a discesa permette di specificare la modalità di indentazione per i nuovi documenti.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Estensioni dei file:</guilabel
+></term>
+<listitem
+><para
+>La maschera per i caratteri jolly permette di selezionare i file per nome. Una tipica maschera usa un asterisco e l'estensione del file, ad esempio <filename
+>*.txt; *.text</filename
+>. La stringa è un elenco di maschere separato da punti e virgola.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Tipi MIME:</guilabel
+></term>
+<listitem
+><para
+>Mostra una procedura guidata che consente di scegliere facilmente i tipi &MIME;.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Priorità:</guilabel
+></term>
+<listitem
+><para
+>Imposta una priorità per questo tipo di file. Se uno stesso file è associato a più di un tipo di file, verrà utilizzato quello con priorità più alta.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+</listitem
+> </varlistentry>
+
+</variablelist>
+</sect3>
+
+</sect2>
+
+</sect1>
+
+<sect1 id="config-variables">
+<title
+>Configurazione con le variabili dei documenti</title>
+
+<para
+>Le variabili di &kappname; sono l'implementazione di &kappname; delle variabili dei documenti, simili ai file modeline di &Emacs; e di <application
+>vi</application
+>. Nella componente KatePart le righe hanno la seguente forma: <userinput
+>kate: NOME_VARIABILE VALORE; [ NOME_VARIABILE VALORE; ... ]</userinput
+>. Le righe possono naturalmente essere in un commento, se il formato del file lo prevede. I nomi delle variabili sono costituiti da una sola parola (cioè senza spazi), e tutto quello che c'è fino al successivo punto e virgola è il valore. Il punto e virgola è necessario.</para>
+
+<para
+>Ecco un esempio di riga di variabili, che impone le regole di rientro per un file C++, &Java; o &javascript;: <programlisting
+>// kate: replace-tabs on; indent-width 4; indent-mode cstyle;</programlisting>
+</para>
+
+<note
+><para
+>Le righe di variabili vengono cercate solo nelle prime e nelle ultime dieci righe.</para
+></note>
+
+<para
+>Inoltre, le variabili dei documenti possono essere messe in un file chiamato <filename
+>.kateconfig</filename
+> in qualsiasi cartella, e le impostazioni configurate saranno applicate come se le modeline fossero inserite su ogni file nella cartella e nelle sue sottocartelle. Le variabili dei documenti in <filename
+>.kateconfig</filename
+> usano la stessa sintassi delle modeline, ma con delle <link linkend="kateconfig-extended-options"
+>opzioni estese</link
+>.</para>
+
+<para
+>In &kappname; ci sono variabili per gestire quasi tutte le configurazioni; inoltre, anche le estensioni possono usare le variabili, il ché andrebbe documentato nel manuale dell'estensione.</para>
+
+<para
+>&kappname; supporta la lettura delle configurazioni dai file <filename
+>.editorconfig</filename
+> se è installata la libreria <ulink url="https://editorconfig.org/"
+>editorconfig</ulink
+>. &kappname; cerca automaticamente un <filename
+>.editorconfig</filename
+> quando apri un file, pur dando priorità ai file <filename
+>.kateconfig</filename
+>. </para>
+
+<sect2 id="config-variables-howto">
+<title
+>Come &kappname; usa le variabili</title>
+
+<para
+>Quando legge la configurazione, KatePart cerca in questi posti (nell'ordine): <itemizedlist
+> <listitem
+><para
+>nella configurazione globale;</para
+></listitem
+> <listitem
+><para
+>nei valori facoltativi di sessione;</para
+></listitem
+> <listitem
+><para
+>nella configurazione <quote
+>Tipi di file</quote
+>;</para
+></listitem
+> <listitem
+><para
+>nelle variabili del documento in <filename
+>.kateconfig;</filename
+></para
+></listitem
+> <listitem
+><para
+>nelle variabili del documento presenti nel documento stesso;</para
+></listitem
+> <listitem
+><para
+>nelle impostazioni modificate in fase di modifica da menu o dalla riga di comando.</para
+></listitem
+> </itemizedlist
+>Come puoi vedere, le variabili del documento possono essere sostituite solo da modifiche fatte al momento dell'esecuzione. Ogni volta che un documento viene salvato, le sue variabili verranno rilette e sovrascriveranno i cambiamenti fatti dalle voci di menu o dalla riga di comando.</para>
+
+<para
+>Ogni variabile non elencata qui sotto può essere inserita nel documento e ritrovata da altri oggetti, come estensioni, che possono usarle per i propri scopi. Per esempio, la modalità di rientro variabile usa le variabili dei documenti per la propria configurazione.</para>
+
+<para
+>Le variabili qui elencate documentano &kappname; versione 5.38. In futuro potrebbero essere aggiunte altre variabili. Ci sono tre possibili tipi di valori per le variabili, con le seguenti espressioni valide: <itemizedlist>
+<listitem
+><para
+>BOOL - on|off|true|false|1|0</para
+></listitem>
+<listitem
+><para
+>INT - un numero intero</para
+></listitem>
+<listitem
+><para
+>STRING - qualsiasi altra cosa</para
+></listitem>
+</itemizedlist>
+</para>
+
+</sect2>
+
+<sect2 id="config-variables-list">
+<title
+>Variabili disponibili</title>
+
+<variablelist>
+
+<varlistentry id="variable-auto-brackets">
+<term
+><cmdsynopsis
+><command
+>auto-brackets</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Abilita l'inserimento automatico delle parentesi.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-auto-center-lines">
+<term
+><cmdsynopsis
+><command
+>auto-center-lines</command
+><arg
+>INT</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Imposta il numero di righe autocentranti.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-background-color">
+<term
+><cmdsynopsis
+><command
+>background-color</command
+><arg
+>STRING</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Imposta il colore di sfondo del documento. Il valore deve essere qualcosa leggibile come un colore valido, come <userinput
+>#ff0000</userinput
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-backspace-indents">
+<term
+><cmdsynopsis
+><command
+>backspace-indents</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Abilita o disabilita la rimozione del rientro alla pressione di &Backspace;.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-block-selection">
+<term
+><cmdsynopsis
+><command
+>block-selection</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Attiva o disattiva la <link linkend="kate-part-selection-block"
+>selezione a blocchi</link
+>.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-byte-order-mark">
+<term
+><cmdsynopsis
+><command
+>bom | byte-order-mark | byte-order-marker</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Attiva o disattiva il marcatore dell'ordine dei byte quando si salvano dei file in formato Unicode (utf8, utf16, utf32).</para>
+<para
+>Da: &kate; 3.4 (&kde; 4.4)</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-bracket-highlight-color">
+<term
+><cmdsynopsis
+><command
+>bracket-highlight-color</command
+><arg
+>STRING</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Imposta il colore per l'evidenziazione delle parentesi. Deve essere qualcosa leggibile come un colore valido, come <userinput
+>#ff0000</userinput
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-current-line-color">
+<term
+><cmdsynopsis
+><command
+>current-line-color</command
+><arg
+>STRING</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Imposta il colore della riga attuale. Il valore deve essere qualcosa leggibile come un colore valido, come <userinput
+>#ff0000</userinput
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-default-dictionary">
+<term
+><cmdsynopsis
+><command
+>default-dictionary</command
+><arg
+>STRING</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Imposta il dizionario predefinito da usare per il controllo ortografico.</para>
+<para
+>Da: &kate; 3.4 (&kde; 4.4)</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-dynamic-word-wrap">
+<term
+><cmdsynopsis
+><command
+>dynamic-word-wrap</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Attiva o disattiva l'<link linkend="kate-part-auto-wrap"
+>andata a capo dinamica</link
+>.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-end-of-line">
+<term
+><cmdsynopsis
+><command
+>eol | end-of-line</command
+><arg
+>STRING</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Imposta la modalità di fine riga. Le impostazioni valide sono <userinput
+>unix</userinput
+>, <userinput
+>mac</userinput
+> e <userinput
+>dos</userinput
+>.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-folding-markers">
+<term
+><cmdsynopsis
+><command
+>folding-markers</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Attiva o disattiva la visualizzazione degli <link linkend="advanced-editing-tools-code-folding"
+>indicatori di raggruppamento</link
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-folding-preview">
+<term
+><cmdsynopsis
+><command
+>folding-preview</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Abilita l'anteprima del ripiegamento nei bordi dell'editor.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-font-size">
+<term
+><cmdsynopsis
+><command
+>font-size</command
+><arg
+>INT</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Imposta la dimensione in punti dei caratteri del documento.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-font">
+<term
+><cmdsynopsis
+><command
+>font</command
+><arg
+>STRING</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Imposta il carattere del documento. Il valore deve essere un nome di carattere valido, per esempio <userinput
+>courier</userinput
+>.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-syntax">
+<term
+><cmdsynopsis
+><command
+>hl | syntax</command
+><arg
+>STRING</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Imposta l'evidenziazione della sintassi. Le stringhe valide sono tutti i nomi disponibili nel menu. Per esempio, per il C++ basta scrivere <userinput
+>C++</userinput
+>.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-icon-bar-color">
+<term
+><cmdsynopsis
+><command
+>icon-bar-color</command
+><arg
+>STRING</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Imposta il colore della barra delle icone. Il valore deve essere qualcosa leggibile come un colore valido, come <userinput
+>#ff0000</userinput
+>.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-icon-border">
+<term
+><cmdsynopsis
+><command
+>icon-border</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Attiva o disattiva la visualizzazione del bordo delle icone.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-indent-mode">
+<term
+><cmdsynopsis
+><command
+>indent-mode</command
+><arg
+>STRING</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Imposta la modalità di rientro automatico. Sono riconosciute le opzioni <userinput
+>none</userinput
+>, <userinput
+>normal</userinput
+>, <userinput
+>cstyle</userinput
+>, <userinput
+>haskell</userinput
+>, <userinput
+>lilypond</userinput
+>, <userinput
+>lisp</userinput
+>, <userinput
+>python</userinput
+>, <userinput
+>ruby</userinput
+> e <userinput
+>xml</userinput
+>. Vedi <xref linkend="kate-part-autoindent"/> per i dettagli.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-indent-pasted-text">
+<term
+><cmdsynopsis
+><command
+>indent-pasted-text</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Attiva o disattiva la regolazione del rientro del testo incollato dagli appunti.</para>
+<para
+>Da: &kate; 3.11 (&kde; 4.11)</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-indent-width">
+<term
+><cmdsynopsis
+><command
+>indent-width</command
+><arg
+>INT</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Imposta la larghezza del rientro.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-keep-extra-spaces">
+<term
+><cmdsynopsis
+><command
+>keep-extra-spaces</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Imposta se tenere gli spazi aggiuntivi quando si calcola la larghezza del rientro.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-line-numbers">
+<term
+><cmdsynopsis
+><command
+>line-numbers</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Attiva o disattiva la visualizzazione del numero di riga.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-newline-at-eof">
+<term
+><cmdsynopsis
+><command
+>newline-at-eof</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Aggiungi una riga vuota alla fine del file (EOF) al salvataggio del documento.</para>
+<para
+>Da: &kate; 3.9 (&kde; 4.9)</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-overwrite-mode">
+<term
+><cmdsynopsis
+><command
+>overwrite-mode</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Attiva o disattiva la modalità sovrascrittura.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-persistent-selection">
+<term
+><cmdsynopsis
+><command
+>persistent-selection</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Attiva o disattiva la <link linkend="kate-part-selection-persistent"
+>selezione persistente</link
+>.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-replace-tabs-save">
+<term
+><cmdsynopsis
+><command
+>replace-tabs-save</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Attiva o disattiva la conversione di tabulazioni in spazi in fase di salvataggio.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-replace-tabs">
+<term
+><cmdsynopsis
+><command
+>replace-tabs</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Attiva o disattiva la conversione dinamica di tabulazioni in spazi.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-remove-trailing-spaces">
+<term
+><cmdsynopsis
+><command
+>remove-trailing-spaces</command
+><arg
+>STRING</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Rimuove gli spazi finali durante il salvataggio del documento. Le opzioni valide sono:</para>
+<itemizedlist>
+<listitem
+><para
+><userinput
+>none</userinput
+>, <userinput
+>-</userinput
+> o <userinput
+>0</userinput
+>: non rimuovere mai gli spazi finali.</para
+></listitem>
+<listitem
+><para
+><userinput
+>modified</userinput
+>, <userinput
+>mod</userinput
+>, <userinput
+>+</userinput
+> o <userinput
+>1</userinput
+>: rimuovi gli spazi finali solo nelle righe modificate. Le righe modificate vengono evidenziate dal sistema di evidenziazione delle righe.</para
+></listitem>
+<listitem
+><para
+><userinput
+>all</userinput
+>, <userinput
+>*</userinput
+> o <userinput
+>2</userinput
+>: rimuovi gli spazi finali in tutto il documento.</para
+></listitem>
+</itemizedlist>
+</listitem>
+</varlistentry>
+
+<varlistentry id="variable-scrollbar-minimap">
+<term
+><cmdsynopsis
+><command
+>scrollbar-minimap</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Mostra minimappa di scorrimento.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-scrollbar-preview">
+<term
+><cmdsynopsis
+><command
+>scrollbar-preview</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Mostra l'anteprima nella barra di scorrimento.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-scheme">
+<term
+><cmdsynopsis
+><command
+>scheme</command
+><arg
+>STRING</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Imposta lo schema di colori. Per avere effetto, La stringa deve essere il nome di uno schema di colori presente nella configurazione.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-selection-color">
+<term
+><cmdsynopsis
+><command
+>selection-color</command
+><arg
+>STRING</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Imposta il colore della selezione. Il valore deve essere qualcosa leggibile come un colore valido, come <userinput
+>#ff0000</userinput
+>.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-show-tabs">
+<term
+><cmdsynopsis
+><command
+>show-tabs</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Attiva o disattiva il carattere di tabulazione visibile.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-smart-home">
+<term
+><cmdsynopsis
+><command
+>smart-home</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Attiva o disattiva la <link linkend="pref-edit-cursor-selection"
+>navigazione all'inizio intelligente</link
+>.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-tab-indents">
+<term
+><cmdsynopsis
+><command
+>tab-indents</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Attiva o disattiva il rientro col tasto &Tab;.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-tab-width">
+<term
+><cmdsynopsis
+><command
+>tab-width</command
+><arg
+>INT</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Imposta la larghezza a schermo del carattere di tabulazione.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-undo-steps">
+<term
+><cmdsynopsis
+><command
+>undo-steps</command
+><arg
+>INT</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Imposta il numero di passi di annullamento da memorizzare.</para>
+<para
+>Nota: deprecato da &kate; 3 in &kde; 4. Questa variabile è ignorata. Il numero massimo di annullamenti è illimitato.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-word-wrap-column">
+<term
+><cmdsynopsis
+><command
+>word-wrap-column</command
+><arg
+>INT</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Imposta la larghezza dell'<link linkend="kate-part-auto-wrap"
+>andata a capo dinamica</link
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-word-wrap-marker-color">
+<term
+><cmdsynopsis
+><command
+>word-wrap-marker-color</command
+><arg
+>STRING</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Imposta il colore per l'indicatore di andata a capo. Il valore deve essere qualcosa leggibile come un colore valido, come <userinput
+>#ff0000</userinput
+>.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-word-wrap">
+<term
+><cmdsynopsis
+><command
+>word-wrap</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Attiva o disattiva l'andata a capo statica.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+
+<sect2 id="kateconfig-extended-options">
+<title
+>Opzioni estese nei file <filename
+>.kateconfig</filename
+></title>
+
+<para
+>&kappname; cerca sempre un file <filename
+>.kateconfig</filename
+> per i file locali (non per quelli remoti), inoltre è possibile impostare delle opzioni basate sui caratteri jolly (estensioni dei file) come segue:</para>
+
+<programlisting
+>kate: tab-width 4; indent-width 4; replace-tabs on;
+kate-wildcard(*.xml): indent-width 2;
+kate-wildcard(Makefile): replace-tabs off;
+</programlisting>
+
+<para
+>In questo esempio tutti i file usano un valore di tab-width ed uno di indent-width di 4 spazi, e le tabulazioni sono sostituite con gli spazi. Tuttavia la larghezza di rientro è impostata a 2 spazi per tutti i file <filename class="extension"
+>*.xml</filename
+> e i Makefile usano le tabulazioni, &ie; queste non sono sostituite dagli spazi.</para>
+
+<para
+>I caratteri jolly sono separati da virgole, ad esempio puoi specificare più estensioni di file così: </para>
+
+<programlisting
+>kate-wildcard(*.json;*.xml): indent-width 2;</programlisting>
+
+<para
+>Inoltre puoi usare il tipo &MIME; per associare certi file; &eg; per indentare tutti i file sorgente C con 4 spazi puoi scrivere: </para>
+
+<programlisting
+>kate-mimetype(text/x-c++src): indent-width 4;</programlisting>
+
+<note
+><para
+>Oltre al supporto nei file <filename
+>.kateconfig</filename
+> i caratteri jolly e le variabili dei documenti dipendenti dal tipo &MIME; sono anche supportati nel file stesso come commenti. </para
+></note>
+
+</sect2>
+
+</sect1>
+
+</chapter>

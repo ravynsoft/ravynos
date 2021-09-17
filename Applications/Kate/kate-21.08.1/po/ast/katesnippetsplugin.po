@@ -1,0 +1,343 @@
+# Copyright (C) YEAR This_file_is_part_of_KDE
+# This file is distributed under the same license as the PACKAGE package.
+#
+# enolp <enolp@softastur.org>, 2016, 2018, 2019, 2020.
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2021-01-30 03:20+0100\n"
+"PO-Revision-Date: 2020-11-10 18:52+0100\n"
+"Last-Translator: enolp <enolp@softastur.org>\n"
+"Language-Team: Asturian <alministradores@softastur.org>\n"
+"Language: ast\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"X-Generator: Lokalize 20.08.3\n"
+
+#, kde-format
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr "Softastur"
+
+#, kde-format
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr "alministradores@softastur.org"
+
+#: editrepository.cpp:77 editrepository.cpp:115
+#, kde-format
+msgid "Edit Snippet Repository %1"
+msgstr "Edición del repositoriu de snippets %1"
+
+#: editrepository.cpp:79
+#, kde-format
+msgid "Create New Snippet Repository"
+msgstr "Creación d'un repositoriu de snippets nuevu"
+
+#: editrepository.cpp:126
+#, kde-format
+msgid "<i>leave empty for general purpose snippets</i>"
+msgstr "<i>dexar balero pa snippets de propósitu xeneral</i>"
+
+#. i18n: ectx: property (text), widget (QLabel, repoNameLabel)
+#. i18n: ectx: property (text), widget (QLabel, snippetName)
+#: editrepository.ui:29 editsnippet.ui:35
+#, kde-format
+msgid "Name:"
+msgstr "Nome:"
+
+#. i18n: ectx: property (text), widget (QLabel, repoNamespaceLabel)
+#: editrepository.ui:36
+#, kde-format
+msgid "Namespace:"
+msgstr "Espaciu de nomes:"
+
+#. i18n: ectx: property (text), widget (QLabel, repoLicenseLabel)
+#: editrepository.ui:43
+#, kde-format
+msgid "&License:"
+msgstr "&Llicencia:"
+
+#. i18n: ectx: property (text), widget (QLabel, repoAuthorsLabel)
+#: editrepository.ui:56
+#, kde-format
+msgid "&Authors:"
+msgstr "&Autores:"
+
+#. i18n: ectx: property (text), widget (QLabel, repoFileTypesLabel)
+#: editrepository.ui:69
+#, kde-format
+msgid "&File types:"
+msgstr "&Tipos de ficheru:"
+
+#. i18n: ectx: property (placeholderText), widget (QLineEdit, repoNameEdit)
+#: editrepository.ui:96
+#, kde-format
+msgid "A short name for the repository"
+msgstr "Un nome curtiu pal repositoriu"
+
+#. i18n: ectx: property (placeholderText), widget (QLineEdit, repoNamespaceEdit)
+#: editrepository.ui:103
+#, kde-format
+msgid "Prefix to show in code completion"
+msgstr "Prefixu a amosar nel completáu de códigu"
+
+#: editsnippet.cpp:96 editsnippet.cpp:175
+#, kde-format
+msgid "Edit Snippet %1 in %2"
+msgstr "Edición del snippet %1 en %2"
+
+#: editsnippet.cpp:106
+#, kde-format
+msgid "Create New Snippet in Repository %1"
+msgstr "Creación d'un snippet nuevu nel repositoriu %1"
+
+#: editsnippet.cpp:143
+#, kde-format
+msgid "Snippet name cannot contain spaces"
+msgstr "El nome del snippet nun pue contener espacios"
+
+#: editsnippet.cpp:182
+#, kde-format
+msgid ""
+"The snippet contains unsaved changes. Do you want to continue and lose all "
+"changes?"
+msgstr ""
+"El snippet contién cambeos ensin guardar. ¿Quies zarralu y perder tolos "
+"cambeos?"
+
+#: editsnippet.cpp:183
+#, kde-format
+msgid "Warning - Unsaved Changes"
+msgstr "Alvertencia - Cambeos ensin guardar"
+
+#. i18n: ectx: property (placeholderText), widget (QLineEdit, snippetNameEdit)
+#: editsnippet.ui:42
+#, kde-format
+msgid "will be shown in the completion list"
+msgstr "va amosase na llista de completáu"
+
+#. i18n: ectx: attribute (title), widget (QWidget, snippetTab)
+#: editsnippet.ui:62
+#, kde-format
+msgid "&Snippet"
+msgstr "&Snippet"
+
+#. i18n: ectx: property (text), widget (QLabel, snippetLabel)
+#: editsnippet.ui:68
+#, kde-format
+msgid ""
+"The text your snippet will insert into the document. <a href=\"A snippet can "
+"contain editable fields. They can be cycled by pressing Tab. The following "
+"expressions can be used in the template text to create fields: <br><tt>"
+"${field_name}</tt> creates a simple, editable field. All subsequent "
+"occurrences of the same field_name create fields which mirror the contents "
+"of the first during editing.<br><tt>${field_name=default}</tt> can be used "
+"to specify a default value for the field. <tt>default</tt> can be any "
+"JavaScript expression.<br>Use <tt>${field_name=text}</tt> to specify a fixed "
+"string as default value.<br><tt>${func(other_field1, other_field2, ...)}</"
+"tt> can be used to create a field which evaluates a JavaScript function on "
+"each edit and contains its contents. See the Scripts tab for more "
+"information.<br><tt>${cursor}</tt> can be used to mark the end position of "
+"the cursor after everything else was filled in.\">More...</a>"
+msgstr ""
+
+#. i18n: ectx: attribute (title), widget (QWidget, scriptTab)
+#: editsnippet.ui:82
+#, kde-format
+msgid "S&cripts"
+msgstr "S&cripts"
+
+#. i18n: ectx: property (text), widget (QLabel, scriptLabel)
+#: editsnippet.ui:88
+#, kde-format
+msgid ""
+"Write down JavaScript helper functions to use in your snippets here. <a href="
+"\"All JavaScript functions should return the contents you want to place in a "
+"template field as a string.<br>Functions are called in a scope which "
+"contains the contents of all editable template fields as local variables. "
+"For example in a snippet containing <tt>${field}</tt>, a variable called "
+"<tt>field</tt> will be present which contains the up-to-date contents of the "
+"template field. Those variables can either be used in the function "
+"statically or passed as arguments, by using the <tt>${func(field)}</tt> or "
+"<tt>${field2=func(field)}</tt> syntax in the snippet string.<br>You can use "
+"the kate scripting API to get the selected text, full text, file name and "
+"more by using the appropriate methods of the <tt>document</tt> and <tt>view</"
+"tt> objects. Refer to the scripting API documentation for more information."
+"\">More...</a>"
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QPushButton, dotest_button)
+#: editsnippet.ui:105
+#, kde-format
+msgid "Test this snippet"
+msgstr "Probar esti snippet"
+
+#: katesnippetglobal.cpp:104
+#, kde-format
+msgctxt "Autogenerated repository name for a programming language"
+msgid "%1 snippets"
+msgstr "%1 snippets"
+
+#: katesnippets.cpp:47
+#, kde-format
+msgid "Snippets tool view"
+msgstr "Vista de ferramientes de snippets"
+
+#: katesnippets.cpp:55 snippetcompletionmodel.cpp:43 snippetview.cpp:80
+#: snippetview.cpp:194
+#, kde-format
+msgid "Snippets"
+msgstr "Snippets"
+
+#: katesnippets.cpp:66
+#, kde-format
+msgid "Create Snippet"
+msgstr "mbn iuhgiuhgiuhg"
+
+#: snippet.cpp:24
+#, kde-format
+msgid "<empty snippet>"
+msgstr "<snippet baleru>"
+
+#: snippet.cpp:62
+#, kde-format
+msgid "insert snippet %1"
+msgstr ""
+
+#: snippetrepository.cpp:45
+#, kde-format
+msgid "<empty repository>"
+msgstr "<repositoriu baleru>"
+
+#: snippetrepository.cpp:230
+#, kde-format
+msgid ""
+"You have edited a snippet repository file not located in your personal "
+"directory; as such, a copy of the original file has been created within your "
+"personal data directory."
+msgstr ""
+
+#: snippetrepository.cpp:236
+#, kde-format
+msgid "Output file '%1' could not be opened for writing"
+msgstr "Nun pudo abrise'l ficheru de salida «%1» pa la escritura"
+
+#: snippetrepository.cpp:271
+#, kde-format
+msgid "Cannot open snippet repository %1."
+msgstr "Nun pue abrise'l repositoriu de snippets %1."
+
+#: snippetrepository.cpp:284
+#, kde-format
+msgid ""
+"<qt>The error <b>%4</b><br /> has been detected in the file %1 at %2/%3</qt>"
+msgstr ""
+
+#: snippetrepository.cpp:291
+#, kde-format
+msgid "Invalid XML snippet file: %1"
+msgstr ""
+
+#: snippetrepository.cpp:357
+#, kde-format
+msgid ""
+"Repository is disabled, the contained snippets will not be shown during code-"
+"completion."
+msgstr ""
+"El repositoriu ta desactiváu, los snippets que contenga nun van amosase nel "
+"completáu del códigu."
+
+#: snippetrepository.cpp:360
+#, kde-format
+msgid "Applies to all filetypes"
+msgstr "Aplícase a tolos tipos de ficheru"
+
+#: snippetrepository.cpp:362
+#, kde-format
+msgid "Applies to the following filetypes: %1"
+msgstr "Aplícase a los tipos de ficheru de darréu: %1"
+
+#: snippetview.cpp:96
+#, kde-format
+msgid "Add Repository"
+msgstr "Amestar repositoriu"
+
+#: snippetview.cpp:99
+#, kde-format
+msgid "Edit Repository"
+msgstr "Editar repositoriu"
+
+#: snippetview.cpp:102
+#, kde-format
+msgid "Remove Repository"
+msgstr "Desaniciar repositoriu"
+
+#: snippetview.cpp:108
+#, kde-format
+msgid "Publish Repository"
+msgstr "Espublizar repositoriu"
+
+#: snippetview.cpp:117
+#, kde-format
+msgid "Add Snippet"
+msgstr "Amestar snippet"
+
+#: snippetview.cpp:120
+#, kde-format
+msgid "Edit Snippet"
+msgstr "Editar snippet"
+
+#: snippetview.cpp:123
+#, kde-format
+msgid "Remove Snippet"
+msgstr "Desaniciar Snippet"
+
+#: snippetview.cpp:129
+#, kde-format
+msgid "Get New Snippets"
+msgstr "Consiguir snippets nuevos"
+
+#: snippetview.cpp:202
+#, kde-format
+msgid "Snippet: %1"
+msgstr "Snippet: %1"
+
+#: snippetview.cpp:210
+#, kde-format
+msgid "Repository: %1"
+msgstr "Repositoriu: %1"
+
+#: snippetview.cpp:275
+#, kde-format
+msgid "Do you really want to delete the snippet \"%1\"?"
+msgstr "¿De xuru que quies desaniciar el snippet «%1»?"
+
+#: snippetview.cpp:317
+#, kde-format
+msgid ""
+"Do you really want to delete the repository \"%1\" with all its snippets?"
+msgstr ""
+"¿De xuru que quies desaniciar el repositoriu «%1» xunto con tolos sos "
+"snippets?"
+
+#. i18n: ectx: property (toolTip), widget (KLineEdit, filterText)
+#: snippetview.ui:35
+#, kde-format
+msgid "Define filter here"
+msgstr "Equí defínese la peñera"
+
+#. i18n: ectx: property (placeholderText), widget (KLineEdit, filterText)
+#: snippetview.ui:38
+#, kde-format
+msgid "Filter..."
+msgstr "Peñerar…"
+
+#. i18n: ectx: Menu (tools)
+#: ui.rc:6
+#, kde-format
+msgid "&Tools"
+msgstr "&Ferramientes"

@@ -1,0 +1,1663 @@
+<!DOCTYPE dtd PUBLIC "-//Norman Walsh//DTD DTDParse V2.0//EN"
+              "dtd.dtd" [
+<!ENTITY per ".">
+]>
+<dtd version='1.0'
+     unexpanded='1'
+     title="Kate Syntax Highlighting"
+     namecase-general="1"
+     namecase-entity="0"
+     xml="0"
+     system-id="language.dtd"
+     public-id=""
+     declaration=""
+     created-by="DTDParse V2.00"
+     created-on="Sat Oct 26 13:25:06 2013"
+>
+<entity name="boolean"
+        type="param"
+>
+<text-expanded>true|false|TRUE|FALSE|0|1</text-expanded>
+<text>true|false|TRUE|FALSE|0|1</text>
+</entity>
+
+<entity name="encodingPolicy"
+        type="param"
+>
+<text-expanded>EncodeAlways|EncodeWhenPresent|EncodeNever</text-expanded>
+<text>EncodeAlways|EncodeWhenPresent|EncodeNever</text>
+</entity>
+
+<entity name="defStyles"
+        type="param"
+>
+<text-expanded>dsNormal|dsKeyword|dsFunction|dsVariable|dsControlFlow|dsOperator|dsBuiltIn|dsExtension|dsPreprocessor|dsAttribute|dsChar|dsSpecialChar|dsString|dsVerbatimString|dsSpecialString|dsImport|dsDataType|dsDecVal|dsBaseN|dsFloat|dsConstant|dsComment|dsDocumentation|dsAnnotation|dsCommentVar|dsRegionMarker|dsInformation|dsWarning|dsAlert|dsOthers|dsError</text-expanded>
+<text>dsNormal|dsKeyword|dsFunction|dsVariable|dsControlFlow|dsOperator|dsBuiltIn|dsExtension|dsPreprocessor|dsAttribute|dsChar|dsSpecialChar|dsString|dsVerbatimString|dsSpecialString|dsImport|dsDataType|dsDecVal|dsBaseN|dsFloat|dsConstant|dsComment|dsDocumentation|dsAnnotation|dsCommentVar|dsRegionMarker|dsInformation|dsWarning|dsAlert|dsOthers|dsError</text>
+</entity>
+
+<entity name="commonAttributes"
+        type="param"
+>
+<text-expanded>attribute     CDATA       #IMPLIED
+  context       CDATA       #IMPLIED
+  beginRegion   CDATA       #IMPLIED
+  endRegion     CDATA       #IMPLIED
+  lookAhead     (true|false|TRUE|FALSE|0|1) #IMPLIED
+  firstNonSpace (true|false|TRUE|FALSE|0|1) #IMPLIED
+  column        CDATA       #IMPLIED</text-expanded>
+<text>attribute     CDATA       #IMPLIED
+  context       CDATA       #IMPLIED
+  beginRegion   CDATA       #IMPLIED
+  endRegion     CDATA       #IMPLIED
+  lookAhead     (%boolean;) #IMPLIED
+  firstNonSpace (%boolean;) #IMPLIED
+  column        CDATA       #IMPLIED</text>
+</entity>
+
+<entity name="per"
+        type="gen"
+>
+<text-expanded>.</text-expanded>
+<text>.</text>
+</entity>
+
+<element name="AnyChar"
+         content-type="element">
+<content-model-expanded>
+  <empty/>
+</content-model-expanded>
+<content-model>
+  <empty/>
+</content-model>
+</element>
+
+<attlist name="AnyChar">
+<attdecl>
+  %commonAttributes;
+  String        CDATA   #REQUIRED
+</attdecl>
+<attribute name="endRegion"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="lookAhead"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+<attribute name="String"
+           type="#REQUIRED"
+           value="CDATA"
+           default=""/>
+<attribute name="firstNonSpace"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+<attribute name="beginRegion"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="attribute"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="context"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="column"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+</attlist>
+
+<element name="encodings"
+         content-type="element">
+<content-model-expanded>
+  <sequence-group occurrence="+">
+    <element-name name="encoding"/>
+  </sequence-group>
+</content-model-expanded>
+<content-model>
+  <sequence-group occurrence="+">
+    <element-name name="encoding"/>
+  </sequence-group>
+</content-model>
+</element>
+
+<attlist name="encodings">
+<attdecl>
+</attdecl>
+</attlist>
+
+<element name="contexts"
+         content-type="element">
+<content-model-expanded>
+  <sequence-group occurrence="+">
+    <element-name name="context"/>
+  </sequence-group>
+</content-model-expanded>
+<content-model>
+  <sequence-group occurrence="+">
+    <element-name name="context"/>
+  </sequence-group>
+</content-model>
+</element>
+
+<element name="item"
+         content-type="mixed">
+<content-model-expanded>
+  <sequence-group>
+    <pcdata/>
+  </sequence-group>
+</content-model-expanded>
+<content-model>
+  <sequence-group>
+    <pcdata/>
+  </sequence-group>
+</content-model>
+</element>
+
+<element name="comments"
+         content-type="element">
+<content-model-expanded>
+  <sequence-group occurrence="+">
+    <element-name name="comment"/>
+  </sequence-group>
+</content-model-expanded>
+<content-model>
+  <sequence-group occurrence="+">
+    <element-name name="comment"/>
+  </sequence-group>
+</content-model>
+</element>
+
+<element name="keywords"
+         content-type="element">
+<content-model-expanded>
+  <empty/>
+</content-model-expanded>
+<content-model>
+  <empty/>
+</content-model>
+</element>
+
+<attlist name="keywords">
+<attdecl>
+  casesensitive         (%boolean;) #IMPLIED
+  weakDeliminator       CDATA       #IMPLIED
+  additionalDeliminator CDATA       #IMPLIED
+  wordWrapDeliminator   CDATA       #IMPLIED
+</attdecl>
+<attribute name="casesensitive"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+<attribute name="weakDeliminator"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="wordWrapDeliminator"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="additionalDeliminator"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+</attlist>
+
+<element name="WordDetect"
+         content-type="element">
+<content-model-expanded>
+  <empty/>
+</content-model-expanded>
+<content-model>
+  <empty/>
+</content-model>
+</element>
+
+<attlist name="WordDetect">
+<attdecl>
+  %commonAttributes;
+  String        CDATA       #REQUIRED
+  insensitive   (%boolean;)  #IMPLIED
+  dynamic       (%boolean;) #IMPLIED
+</attdecl>
+<attribute name="endRegion"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="lookAhead"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+<attribute name="insensitive"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+<attribute name="String"
+           type="#REQUIRED"
+           value="CDATA"
+           default=""/>
+<attribute name="firstNonSpace"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+<attribute name="dynamic"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+<attribute name="beginRegion"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="attribute"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="context"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="column"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+</attlist>
+
+<element name="DetectChar"
+         content-type="element">
+<content-model-expanded>
+  <empty/>
+</content-model-expanded>
+<content-model>
+  <empty/>
+</content-model>
+</element>
+
+<attlist name="DetectChar">
+<attdecl>
+  %commonAttributes;
+  char          CDATA   #REQUIRED
+  dynamic       (%boolean;) #IMPLIED
+</attdecl>
+<attribute name="endRegion"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="lookAhead"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+<attribute name="firstNonSpace"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+<attribute name="dynamic"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+<attribute name="beginRegion"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="attribute"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="char"
+           type="#REQUIRED"
+           value="CDATA"
+           default=""/>
+<attribute name="context"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="column"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+</attlist>
+
+<element name="configuration"
+         content-type="element">
+<content-model-expanded>
+  <empty/>
+</content-model-expanded>
+<content-model>
+  <empty/>
+</content-model>
+</element>
+
+<attlist name="configuration">
+<attdecl>
+  encodingReplacementPolicy   (%encodingPolicy;)   #IMPLIED
+</attdecl>
+<attribute name="encodingReplacementPolicy"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="EncodeAlways EncodeWhenPresent EncodeNever"
+           default=""/>
+</attlist>
+
+<element name="encoding"
+         content-type="element">
+<content-model-expanded>
+  <empty/>
+</content-model-expanded>
+<content-model>
+  <empty/>
+</content-model>
+</element>
+
+<attlist name="encoding">
+<attdecl>
+  string         CDATA        #REQUIRED
+  char           CDATA        #IMPLIED
+  ignored        (%boolean;)  #IMPLIED
+</attdecl>
+<attribute name="char"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="string"
+           type="#REQUIRED"
+           value="CDATA"
+           default=""/>
+<attribute name="ignored"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+</attlist>
+
+<element name="list"
+         content-type="element">
+<content-model-expanded>
+  <sequence-group occurrence="*">
+    <element-name name="item"/>
+  </sequence-group>
+</content-model-expanded>
+<content-model>
+  <sequence-group occurrence="*">
+    <element-name name="item"/>
+  </sequence-group>
+</content-model>
+</element>
+
+<attlist name="list">
+<attdecl>
+  name  CDATA   #REQUIRED
+</attdecl>
+<attribute name="name"
+           type="#REQUIRED"
+           value="CDATA"
+           default=""/>
+</attlist>
+
+<element name="emptyLine"
+         content-type="element">
+<content-model-expanded>
+  <empty/>
+</content-model-expanded>
+<content-model>
+  <empty/>
+</content-model>
+</element>
+
+<attlist name="emptyLine">
+<attdecl>
+  regexpr       CDATA       #REQUIRED
+  casesensitive (%boolean;) #IMPLIED
+</attdecl>
+<attribute name="casesensitive"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+<attribute name="regexpr"
+           type="#REQUIRED"
+           value="CDATA"
+           default=""/>
+</attlist>
+
+<element name="spellchecking"
+         content-type="element">
+<content-model-expanded>
+  <sequence-group>
+    <element-name name="configuration" occurrence="?"/>
+    <element-name name="encodings" occurrence="?"/>
+  </sequence-group>
+</content-model-expanded>
+<content-model>
+  <sequence-group>
+    <element-name name="configuration" occurrence="?"/>
+    <element-name name="encodings" occurrence="?"/>
+  </sequence-group>
+</content-model>
+</element>
+
+<attlist name="spellchecking">
+<attdecl>
+</attdecl>
+</attlist>
+
+<element name="HlCStringChar"
+         content-type="element">
+<content-model-expanded>
+  <empty/>
+</content-model-expanded>
+<content-model>
+  <empty/>
+</content-model>
+</element>
+
+<attlist name="HlCStringChar">
+<attdecl>
+  %commonAttributes;
+</attdecl>
+<attribute name="attribute"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="endRegion"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="lookAhead"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+<attribute name="firstNonSpace"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+<attribute name="context"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="column"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="beginRegion"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+</attlist>
+
+<element name="HlCHex"
+         content-type="element">
+<content-model-expanded>
+  <empty/>
+</content-model-expanded>
+<content-model>
+  <empty/>
+</content-model>
+</element>
+
+<attlist name="HlCHex">
+<attdecl>
+  %commonAttributes;
+</attdecl>
+<attribute name="attribute"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="endRegion"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="lookAhead"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+<attribute name="firstNonSpace"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+<attribute name="context"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="column"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="beginRegion"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+</attlist>
+
+<element name="RegExpr"
+         content-type="element">
+<content-model-expanded>
+  <empty/>
+</content-model-expanded>
+<content-model>
+  <empty/>
+</content-model>
+</element>
+
+<attlist name="RegExpr">
+<attdecl>
+  %commonAttributes;
+  String        CDATA       #REQUIRED
+  insensitive   (%boolean;) #IMPLIED
+  minimal       (%boolean;) #IMPLIED
+  dynamic       (%boolean;) #IMPLIED
+</attdecl>
+<attribute name="minimal"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+<attribute name="endRegion"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="lookAhead"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+<attribute name="insensitive"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+<attribute name="String"
+           type="#REQUIRED"
+           value="CDATA"
+           default=""/>
+<attribute name="firstNonSpace"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+<attribute name="dynamic"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+<attribute name="beginRegion"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="attribute"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="context"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="column"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+</attlist>
+
+<element name="LineContinue"
+         content-type="element">
+<content-model-expanded>
+  <empty/>
+</content-model-expanded>
+<content-model>
+  <empty/>
+</content-model>
+</element>
+
+<attlist name="LineContinue">
+<attdecl>
+  %commonAttributes;
+</attdecl>
+<attribute name="attribute"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="endRegion"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="lookAhead"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+<attribute name="firstNonSpace"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+<attribute name="context"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="column"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="beginRegion"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+</attlist>
+
+<element name="DetectIdentifier"
+         content-type="element">
+<content-model-expanded>
+  <empty/>
+</content-model-expanded>
+<content-model>
+  <empty/>
+</content-model>
+</element>
+
+<attlist name="DetectIdentifier">
+<attdecl>
+          %commonAttributes;
+</attdecl>
+<attribute name="attribute"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="endRegion"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="lookAhead"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+<attribute name="firstNonSpace"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+<attribute name="context"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="column"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="beginRegion"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+</attlist>
+
+<element name="RangeDetect"
+         content-type="element">
+<content-model-expanded>
+  <empty/>
+</content-model-expanded>
+<content-model>
+  <empty/>
+</content-model>
+</element>
+
+<attlist name="RangeDetect">
+<attdecl>
+  %commonAttributes;
+  char          CDATA   #REQUIRED
+  char1         CDATA   #REQUIRED
+</attdecl>
+<attribute name="endRegion"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="lookAhead"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+<attribute name="firstNonSpace"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+<attribute name="beginRegion"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="attribute"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="char"
+           type="#REQUIRED"
+           value="CDATA"
+           default=""/>
+<attribute name="context"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="char1"
+           type="#REQUIRED"
+           value="CDATA"
+           default=""/>
+<attribute name="column"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+</attlist>
+
+<element name="StringDetect"
+         content-type="element">
+<content-model-expanded>
+  <empty/>
+</content-model-expanded>
+<content-model>
+  <empty/>
+</content-model>
+</element>
+
+<attlist name="StringDetect">
+<attdecl>
+  %commonAttributes;
+  String        CDATA       #REQUIRED
+  insensitive   (%boolean;)  #IMPLIED
+  dynamic       (%boolean;) #IMPLIED
+</attdecl>
+<attribute name="endRegion"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="lookAhead"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+<attribute name="insensitive"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+<attribute name="String"
+           type="#REQUIRED"
+           value="CDATA"
+           default=""/>
+<attribute name="firstNonSpace"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+<attribute name="dynamic"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+<attribute name="beginRegion"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="attribute"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="context"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="column"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+</attlist>
+
+<element name="general"
+         content-type="element">
+<content-model-expanded>
+  <or-group occurrence="*">
+    <element-name name="folding"/>
+    <element-name name="comments"/>
+    <element-name name="keywords"/>
+    <element-name name="emptyLines"/>
+  </or-group>
+</content-model-expanded>
+<content-model>
+  <or-group occurrence="*">
+    <element-name name="folding"/>
+    <element-name name="comments"/>
+    <element-name name="keywords"/>
+    <element-name name="emptyLines"/>
+  </or-group>
+</content-model>
+</element>
+
+<element name="keyword"
+         content-type="element">
+<content-model-expanded>
+  <empty/>
+</content-model-expanded>
+<content-model>
+  <empty/>
+</content-model>
+</element>
+
+<attlist name="keyword">
+<attdecl>
+  %commonAttributes;
+  insensitive   CDATA #IMPLIED
+  String        CDATA #REQUIRED
+  weakDelimiter CDATA #IMPLIED
+</attdecl>
+<attribute name="endRegion"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="lookAhead"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+<attribute name="String"
+           type="#REQUIRED"
+           value="CDATA"
+           default=""/>
+<attribute name="insensitive"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="firstNonSpace"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+<attribute name="weakDelimiter"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="beginRegion"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="attribute"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="context"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="column"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+</attlist>
+
+<element name="IncludeRules"
+         content-type="element">
+<content-model-expanded>
+  <empty/>
+</content-model-expanded>
+<content-model>
+  <empty/>
+</content-model>
+</element>
+
+<attlist name="IncludeRules">
+<attdecl>
+  context       CDATA   #REQUIRED
+  includeAttrib (%boolean;) #IMPLIED
+</attdecl>
+<attribute name="context"
+           type="#REQUIRED"
+           value="CDATA"
+           default=""/>
+<attribute name="includeAttrib"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+</attlist>
+
+<element name="itemData"
+         content-type="element">
+<content-model-expanded>
+  <empty/>
+</content-model-expanded>
+<content-model>
+  <empty/>
+</content-model>
+</element>
+
+<attlist name="itemData">
+<attdecl>
+  name          CDATA   #REQUIRED
+  defStyleNum   (%defStyles;) #REQUIRED
+  color         CDATA   #IMPLIED
+  selColor      CDATA   #IMPLIED
+  italic        (%boolean;) #IMPLIED
+  bold          (%boolean;) #IMPLIED
+  underline     (%boolean;) #IMPLIED
+  strikeOut     (%boolean;) #IMPLIED
+  backgroundColor    CDATA  #IMPLIED
+  selBackgroundColor CDATA  #IMPLIED
+  spellChecking (%boolean;) #IMPLIED
+</attdecl>
+<attribute name="selColor"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="underline"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+<attribute name="bold"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+<attribute name="defStyleNum"
+           type="#REQUIRED"
+           enumeration="yes"
+           value="dsNormal dsKeyword dsFunction dsVariable dsControlFlow dsOperator dsBuiltIn dsExtension dsPreprocessor dsAttribute dsChar dsSpecialChar dsString dsVerbatimString dsSpecialString dsImport dsDataType dsDecVal dsBaseN dsFloat dsConstant dsComment dsDocumentation dsAnnotation dsCommentVar dsRegionMarker dsInformation dsWarning dsAlert dsOthers dsError"
+           default=""/>
+<attribute name="name"
+           type="#REQUIRED"
+           value="CDATA"
+           default=""/>
+<attribute name="selBackgroundColor"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="italic"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+<attribute name="color"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="strikeOut"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+<attribute name="spellChecking"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+<attribute name="backgroundColor"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+</attlist>
+
+<element name="context"
+         content-type="element">
+<content-model-expanded>
+  <or-group occurrence="*">
+    <element-name name="keyword"/>
+    <element-name name="Float"/>
+    <element-name name="HlCOct"/>
+    <element-name name="HlCHex"/>
+    <element-name name="HlCFloat"/>
+    <element-name name="Int"/>
+    <element-name name="DetectChar"/>
+    <element-name name="Detect2Chars"/>
+    <element-name name="AnyChar"/>
+    <element-name name="StringDetect"/>
+    <element-name name="WordDetect"/>
+    <element-name name="RegExpr"/>
+    <element-name name="LineContinue"/>
+    <element-name name="HlCStringChar"/>
+    <element-name name="RangeDetect"/>
+    <element-name name="HlCChar"/>
+    <element-name name="IncludeRules"/>
+    <element-name name="DetectSpaces"/>
+    <element-name name="DetectIdentifier"/>
+  </or-group>
+</content-model-expanded>
+<content-model>
+  <or-group occurrence="*">
+    <element-name name="keyword"/>
+    <element-name name="Float"/>
+    <element-name name="HlCOct"/>
+    <element-name name="HlCHex"/>
+    <element-name name="HlCFloat"/>
+    <element-name name="Int"/>
+    <element-name name="DetectChar"/>
+    <element-name name="Detect2Chars"/>
+    <element-name name="AnyChar"/>
+    <element-name name="StringDetect"/>
+    <element-name name="WordDetect"/>
+    <element-name name="RegExpr"/>
+    <element-name name="LineContinue"/>
+    <element-name name="HlCStringChar"/>
+    <element-name name="RangeDetect"/>
+    <element-name name="HlCChar"/>
+    <element-name name="IncludeRules"/>
+    <element-name name="DetectSpaces"/>
+    <element-name name="DetectIdentifier"/>
+  </or-group>
+</content-model>
+</element>
+
+<attlist name="context">
+<attdecl>
+  name              CDATA       #IMPLIED
+  attribute         CDATA       #REQUIRED
+  lineEndContext    CDATA       #REQUIRED
+  lineEmptyContext  CDATA       #IMPLIED
+  fallthrough       (%boolean;) #IMPLIED
+  fallthroughContext CDATA      #IMPLIED
+  dynamic           (%boolean;) #IMPLIED
+  noIndentationBasedFolding (%boolean;) #IMPLIED
+</attdecl>
+<attribute name="fallthrough"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+<attribute name="lineEmptyContext"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="noIndentationBasedFolding"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+<attribute name="dynamic"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+<attribute name="name"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="lineEndContext"
+           type="#REQUIRED"
+           value="CDATA"
+           default=""/>
+<attribute name="attribute"
+           type="#REQUIRED"
+           value="CDATA"
+           default=""/>
+<attribute name="fallthroughContext"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+</attlist>
+
+<element name="HlCFloat"
+         content-type="element">
+<content-model-expanded>
+  <empty/>
+</content-model-expanded>
+<content-model>
+  <empty/>
+</content-model>
+</element>
+
+<attlist name="HlCFloat">
+<attdecl>
+  %commonAttributes;
+</attdecl>
+<attribute name="attribute"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="endRegion"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="lookAhead"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+<attribute name="firstNonSpace"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+<attribute name="context"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="column"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="beginRegion"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+</attlist>
+
+<element name="Detect2Chars"
+         content-type="element">
+<content-model-expanded>
+  <empty/>
+</content-model-expanded>
+<content-model>
+  <empty/>
+</content-model>
+</element>
+
+<attlist name="Detect2Chars">
+<attdecl>
+  %commonAttributes;
+  char          CDATA   #REQUIRED
+  char1         CDATA   #REQUIRED
+  dynamic       (%boolean;) #IMPLIED
+</attdecl>
+<attribute name="endRegion"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="lookAhead"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+<attribute name="firstNonSpace"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+<attribute name="dynamic"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+<attribute name="beginRegion"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="attribute"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="char"
+           type="#REQUIRED"
+           value="CDATA"
+           default=""/>
+<attribute name="context"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="char1"
+           type="#REQUIRED"
+           value="CDATA"
+           default=""/>
+<attribute name="column"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+</attlist>
+
+<element name="folding"
+         content-type="element">
+<content-model-expanded>
+  <empty/>
+</content-model-expanded>
+<content-model>
+  <empty/>
+</content-model>
+</element>
+
+<attlist name="folding">
+<attdecl>
+  indentationsensitive (%boolean;) #IMPLIED
+</attdecl>
+<attribute name="indentationsensitive"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+</attlist>
+
+<element name="Float"
+         content-type="element">
+<content-model-expanded>
+  <sequence-group occurrence="*">
+    <element-name name="AnyChar"/>
+  </sequence-group>
+</content-model-expanded>
+<content-model>
+  <sequence-group occurrence="*">
+    <element-name name="AnyChar"/>
+  </sequence-group>
+</content-model>
+</element>
+
+<attlist name="Float">
+<attdecl>
+  %commonAttributes;
+</attdecl>
+<attribute name="attribute"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="endRegion"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="lookAhead"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+<attribute name="firstNonSpace"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+<attribute name="context"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="column"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="beginRegion"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+</attlist>
+
+<element name="language"
+         content-type="element">
+<content-model-expanded>
+  <sequence-group>
+    <element-name name="highlighting"/>
+    <element-name name="general" occurrence="?"/>
+    <element-name name="spellchecking" occurrence="?"/>
+  </sequence-group>
+</content-model-expanded>
+<content-model>
+  <sequence-group>
+    <element-name name="highlighting"/>
+    <element-name name="general" occurrence="?"/>
+    <element-name name="spellchecking" occurrence="?"/>
+  </sequence-group>
+</content-model>
+</element>
+
+<attlist name="language">
+<attdecl>
+  name          CDATA       #REQUIRED
+  section       NMTOKEN     #REQUIRED
+  extensions    CDATA       #REQUIRED
+  version       CDATA       #REQUIRED
+  kateversion   CDATA       #REQUIRED
+  style         CDATA       #IMPLIED
+  mimetype      CDATA       #IMPLIED
+  casesensitive (%boolean;) #IMPLIED
+  priority      CDATA       #IMPLIED
+  author        CDATA       #IMPLIED
+  license       CDATA       #IMPLIED
+  indenter      CDATA       #IMPLIED
+  hidden        (%boolean;) #IMPLIED
+</attdecl>
+<attribute name="priority"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="casesensitive"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+<attribute name="version"
+           type="#REQUIRED"
+           value="CDATA"
+           default=""/>
+<attribute name="style"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="name"
+           type="#REQUIRED"
+           value="CDATA"
+           default=""/>
+<attribute name="author"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="section"
+           type="#REQUIRED"
+           value="NMTOKEN"
+           default=""/>
+<attribute name="license"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="extensions"
+           type="#REQUIRED"
+           value="CDATA"
+           default=""/>
+<attribute name="indenter"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="hidden"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+<attribute name="kateversion"
+           type="#REQUIRED"
+           value="CDATA"
+           default=""/>
+<attribute name="mimetype"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+</attlist>
+
+<element name="itemDatas"
+         content-type="element">
+<content-model-expanded>
+  <sequence-group occurrence="+">
+    <element-name name="itemData"/>
+  </sequence-group>
+</content-model-expanded>
+<content-model>
+  <sequence-group occurrence="+">
+    <element-name name="itemData"/>
+  </sequence-group>
+</content-model>
+</element>
+
+<attlist name="itemDatas">
+<attdecl>
+</attdecl>
+</attlist>
+
+<element name="HlCChar"
+         content-type="element">
+<content-model-expanded>
+  <empty/>
+</content-model-expanded>
+<content-model>
+  <empty/>
+</content-model>
+</element>
+
+<attlist name="HlCChar">
+<attdecl>
+  %commonAttributes;
+</attdecl>
+<attribute name="attribute"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="endRegion"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="lookAhead"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+<attribute name="firstNonSpace"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+<attribute name="context"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="column"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="beginRegion"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+</attlist>
+
+<element name="Int"
+         content-type="element">
+<content-model-expanded>
+  <sequence-group occurrence="*">
+    <element-name name="StringDetect"/>
+  </sequence-group>
+</content-model-expanded>
+<content-model>
+  <sequence-group occurrence="*">
+    <element-name name="StringDetect"/>
+  </sequence-group>
+</content-model>
+</element>
+
+<attlist name="Int">
+<attdecl>
+  %commonAttributes;
+</attdecl>
+<attribute name="attribute"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="endRegion"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="lookAhead"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+<attribute name="firstNonSpace"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+<attribute name="context"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="column"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="beginRegion"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+</attlist>
+
+<element name="DetectSpaces"
+         content-type="element">
+<content-model-expanded>
+  <empty/>
+</content-model-expanded>
+<content-model>
+  <empty/>
+</content-model>
+</element>
+
+<attlist name="DetectSpaces">
+<attdecl>
+          %commonAttributes;
+</attdecl>
+<attribute name="attribute"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="endRegion"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="lookAhead"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+<attribute name="firstNonSpace"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+<attribute name="context"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="column"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="beginRegion"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+</attlist>
+
+<element name="highlighting"
+         content-type="element">
+<content-model-expanded>
+  <sequence-group>
+    <element-name name="list" occurrence="*"/>
+    <element-name name="contexts"/>
+    <element-name name="itemDatas"/>
+  </sequence-group>
+</content-model-expanded>
+<content-model>
+  <sequence-group>
+    <element-name name="list" occurrence="*"/>
+    <element-name name="contexts"/>
+    <element-name name="itemDatas"/>
+  </sequence-group>
+</content-model>
+</element>
+
+<attlist name="highlighting">
+<attdecl>
+</attdecl>
+</attlist>
+
+<element name="comment"
+         content-type="element">
+<content-model-expanded>
+  <empty/>
+</content-model-expanded>
+<content-model>
+  <empty/>
+</content-model>
+</element>
+
+<attlist name="comment">
+<attdecl>
+  name      (singleLine|multiLine)  #REQUIRED
+  start     CDATA                   #REQUIRED
+  end       CDATA                   #IMPLIED
+  region    CDATA                   #IMPLIED
+  position  (afterwhitespace)       #IMPLIED
+</attdecl>
+<attribute name="position"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="afterwhitespace"
+           default=""/>
+<attribute name="region"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="name"
+           type="#REQUIRED"
+           enumeration="yes"
+           value="singleLine multiLine"
+           default=""/>
+<attribute name="end"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="start"
+           type="#REQUIRED"
+           value="CDATA"
+           default=""/>
+</attlist>
+
+<element name="emptyLines"
+         content-type="element">
+<content-model-expanded>
+  <sequence-group>
+    <element-name name="emptyLine" occurrence="*"/>
+  </sequence-group>
+</content-model-expanded>
+<content-model>
+  <sequence-group>
+    <element-name name="emptyLine" occurrence="*"/>
+  </sequence-group>
+</content-model>
+</element>
+
+<element name="HlCOct"
+         content-type="element">
+<content-model-expanded>
+  <empty/>
+</content-model-expanded>
+<content-model>
+  <empty/>
+</content-model>
+</element>
+
+<attlist name="HlCOct">
+<attdecl>
+  %commonAttributes;
+</attdecl>
+<attribute name="attribute"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="endRegion"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="lookAhead"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+<attribute name="firstNonSpace"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="true false TRUE FALSE 0 1"
+           default=""/>
+<attribute name="context"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="column"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="beginRegion"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+</attlist>
+
+</dtd>

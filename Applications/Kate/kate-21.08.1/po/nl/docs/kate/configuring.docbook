@@ -1,0 +1,487 @@
+<chapter id="configuring-kate">
+<chapterinfo>
+<authorgroup>
+<author
+>&Anders.Lund; &Anders.Lund.mail;</author>
+&Otto.Bruggeman;&Freek.de.Kruijf; 
+</authorgroup>
+</chapterinfo>
+<title
+>&kate; instellen</title>
+
+<sect1 id="configuring-overview">
+<title
+>Overzicht</title>
+<para>
+<indexterm>
+<primary
+>instellen</primary>
+<secondary
+>instellingen</secondary>
+<tertiary
+>voorkeuren</tertiary
+></indexterm
+><anchor id="find"/> <anchor id="find-again"/> <anchor id="replace"/> <anchor id="undo"/> <anchor id="redo"/> &kate; biedt verschillende mogelijkheden om de toepassing te verfijnen om zich te gedragen naar uw wensen. De meest belangrijke zijn: </para>
+
+<variablelist>
+<varlistentry>
+<term id="configure"
+>Het configuratievenster</term>
+<listitem
+><para
+>De hoofdinstellingen, bieden u de mogelijkheid om de toepassing &kate;, de tekstbewerkercomponent en het gebruik van plugins te configureren.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term id="settings"
+>Het menu <guimenu
+>Instellingen</guimenu
+></term>
+<listitem
+><para
+>Biedt u de mogelijkheid om vaak gebruikte instellingen te wijzigen en om instellingsdialogen op te starten.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+>Het menu <guimenu
+>Beeld</guimenu
+></term>
+<listitem
+><para
+>Biedt u de mogelijkheid het huidige frame te splitsen, eveneens om pictogrammen te tonen en een regelnummerpaneel voor het huidige in bewerking zijnde document.</para
+></listitem>
+</varlistentry>
+</variablelist>
+
+<para
+>De ingebedde terminal gebruikt de configuratie gedefinieerd in de &systemsettings; en kan ook worden ingesteld door met de &RMB; te klikken om een contextmenu weer te geven.</para>
+
+</sect1>
+
+<sect1 id="configuring-kate-configdialog">
+<title
+>De hoofdinstellingendialoog</title>
+
+<mediaobject>
+<imageobject>
+<imagedata format="PNG" fileref="configdialog01.png"/>
+</imageobject>
+</mediaobject>
+
+<para
+>De instellingendialoog van &kate; toont links een boomstructuur met onderwerpen en rechts een instellingenpagina overeenkomend met het geselecteerde onderwerp.</para>
+
+<para
+>De instellingen zijn onderverdeeld in twee groepen, namelijk: <itemizedlist>
+<listitem
+><para
+><link linkend="config-dialog"
+>Toepassingen instellen</link>
+</para
+></listitem>
+<listitem
+><para
+><link linkend="config-dialog-editor"
+>Instellingen voor de tekstbewerkercomponent</link
+></para
+></listitem>
+
+</itemizedlist>
+
+</para>
+
+</sect1>
+
+<sect1 id="config-dialog">
+<title
+>De instellingen voor de toepassing &kate;</title>
+<para
+>Deze groep bevat pagina's om de hoofd toepassing &kate; in te stellen</para>
+
+<sect2 id="config-dialog-general">
+<title
+>Algemeen</title>
+<para
+>Deze sectie bevat een paar globale opties voor &kate;</para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><anchor id="config-general-behavior"/>
+<guilabel
+>Gedrag</guilabel
+></term>
+<listitem>
+<variablelist>
+
+<varlistentry>
+<term
+><anchor id="config-dialog-general-switch-to-output"/>
+<guilabel
+>Naar uitvoerweergave omschalen op type bericht</guilabel
+></term>
+<listitem
+><para
+>Deze optie biedt configuratie wanneer &kate; een uitvoerpaneel zou moeten tonen afhankelijk van het type uitvoer van de actie.</para>
+<para
+>Het is mogelijk om te kiezen tussen <guimenuitem
+>Nooit</guimenuitem
+>, <guimenuitem
+>Fout</guimenuitem
+> (bij fout), <guimenuitem
+>Waarschuwing</guimenuitem
+> (bij waarschuwing of bovenstaand), <guimenuitem
+>Informatie</guimenuitem
+> (bij informatie of bovenstaand) en <guimenuitem
+>Log</guimenuitem
+> (bij log of bovenstaand).</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><anchor id="config-dialog-general-separate-dialog"/>
+<guilabel
+>Een aparte dialoog gebruiken voor behandeling van extern gewijzigde bestanden</guilabel
+></term>
+<listitem
+><para
+>Indien ingeschakeld zal &kate; u met een modale dialoog melden, wanneer er bestanden buiten de toepassing om zijn gewijzigd, op het moment dat het hoofdvenster invoerfocus krijgt. U zult in staat zijn om verschillende gewijzigde bestanden tegelijk af te handelen, u kunt gewijzigde bestanden in groepen herladen, opslaan of verwijderen.</para>
+<para
+>Indien niet ingeschakeld zal &kate; u individueel vragen wat te doen voor elk gewijzigd bestand alleen wanneer de weergave van dat bestand focus krijgt.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+</listitem>
+</varlistentry
+><!-- /behavior group -->
+
+<varlistentry>
+<term
+><anchor id="config-general-quick-open"/>
+<guilabel
+>Snel openen</guilabel
+></term>
+ <listitem>
+
+<variablelist>
+<varlistentry>
+<term
+><anchor id="config-general-quick-open-match-mode"/>
+<guilabel
+>Overeenkomstmodus</guilabel
+></term>
+<listitem
+><para
+>De lijstmodus voor het hulpmiddel <link linkend="view-quick-open"
+>Snel openen</link
+> instellen. De bestanden kunnen overeenkomen met hun naam of met hun pad.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><anchor id="config-general-quick-open-list-mode"/>
+<guilabel
+>Lijstmodus</guilabel
+></term>
+<listitem
+><para
+>De lijstmodus voor het hulpmiddel <link linkend="view-quick-open"
+>Snel openen</link
+> instellen. Het is mogelijk te kiezen uit <guilabel
+>Huidige projectbestanden</guilabel
+> en <guilabel
+>Alle projectbestanden</guilabel
+>.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</listitem>
+</varlistentry
+><!-- /quick open group -->
+
+<varlistentry>
+<term
+><anchor id="config-general-tabs"/>
+<guilabel
+>Tabbladen</guilabel
+></term>
+ <listitem>
+
+<variablelist>
+<varlistentry>
+<term
+><anchor id="config-general-limit-number-of-tabs"/>
+<guilabel
+>Aantal tabbladen beperken</guilabel
+></term>
+<listitem
+><para
+>Het maximum aantal tabbladen instellen. Kies <guimenuitem
+>Onbeperkt</guimenuitem
+> als u dit aantal niet wilt beperken.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><anchor id="config-general-show-close-button"/>
+<guilabel
+>Sluitknop tonen</guilabel
+></term>
+<listitem
+><para
+>Indien geactiveerd zal elk tabblad een sluitknop tonen.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><anchor id="config-general-expand-tabs"/>
+<guilabel
+>Tabs expanderen</guilabel
+></term>
+<listitem
+><para
+>Indien geactiveerd nemen tabs zoveel mogelijk ruimte in.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><anchor id="config-general-double-click"/>
+<guilabel
+>Dubbelklikken opent een nieuw document</guilabel
+></term>
+<listitem
+><para
+>Indien geactiveerd opent dubbelklikken een nieuw document.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><anchor id="config-general-middle-click"/>
+<guilabel
+>Middel-klik sluit een document</guilabel
+></term>
+<listitem
+><para
+>Indien geactiveerd sluit middel-klikken een nieuw document.</para
+></listitem>
+</varlistentry>
+</variablelist>
+
+</listitem>
+</varlistentry
+><!-- /tabs group -->
+</variablelist>
+</sect2>
+
+<sect2 id="config-dialog-sessions">
+<title
+>Sessie</title>
+
+<para
+>Deze sectie bevat opties die verband houden met <link linkend="fundamentals-using-sessions"
+>het gebruik van sessies</link
+>.</para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><anchor id="config-dialog-sessions-startup-behavior"/>
+<guilabel
+>Gedrag bij programma opstarten</guilabel
+></term>
+<listitem>
+<para
+>Selecteert hoe u wilt dat &kate; zich gedraagt bij opstarten. Deze instelling kan overschreven worden door te specificeren wat te doen op de <link linkend="command-line-options"
+>commandoregel</link
+>.</para>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Nieuwe sessie starten</guilabel
+></term>
+<listitem
+><para
+>Met deze optie zal &kate; een nieuwe sessie zonder naam starten wanneer u de toepassing opstart.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Laatst gebruikte sessie laden</guilabel
+></term>
+<listitem
+><para
+>&kate; zal de meest recent geopende sessie bij opstarten gebruiken. Dit is goed als u dezelfde sessie altijd wilt gebruiken of zelden omschakelt.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Een sessie handmatig kiezen</guilabel
+></term>
+<listitem
+><para
+>&kate; zal een kleine dialoog tonen die u uw sessie met voorkeur laat kiezen of de standaard sessie als er geen is opgeslagen. Dit is het standaard gedrag. Leuk als u frequent heel wat verschillende sessies gebruikt.</para
+></listitem>
+</varlistentry>
+</variablelist>
+</listitem>
+</varlistentry
+><!-- /startup behavior -->
+
+<varlistentry>
+<term
+><anchor id="config-dialog-sessions-shutdown-behavior"/>
+<guilabel
+>Gedrag bij programma afsluiten</guilabel
+></term>
+<listitem>
+<para
+>Hoe u wilt dat &kate; zich gedraagt bij afsluiten. Het is mogelijk te definiëren wat &kate; zou moeten doen <guilabel
+>Automatisch opslaan en herstellen</guilabel
+>.</para>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Nieuw aangemaakte niet-opgeslagen bestanden</guilabel
+></term>
+<listitem
+><para
+>Met dit item geactiveerd zal &kate; automatisch alle nieuw aangemaakte niet opgeslagen bestanden opslaan.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Bestanden met niet opgeslagen wijzigingen</guilabel
+></term>
+<listitem
+><para
+>Dit item biedt het configureren van &kate; voor automatisch opslaan van alle bestanden met niet opgeslagen wijzigingen bij afsluiten.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><anchor id="config-dialog-sessions-close-mod"/>
+<guilabel
+>Kate helemaal sluiten wanneer het laatste bestand wordt gesloten</guilabel
+></term>
+<listitem
+><para
+>Indien geactiveerd zal &kate; afsluiten wanneer het laatste in bewerking zijnde bestand wordt gesloten, anders zal een lege pagina geopend worden zodat u een nieuw bestand kunt beginnen.</para>
+</listitem>
+</varlistentry>
+</variablelist>
+
+</listitem>
+</varlistentry
+><!-- /shutdown behavior -->
+
+<varlistentry>
+<term
+><anchor id="config-dialog-sessions-elements"/>
+<guilabel
+>Sessie-elementen</guilabel
+></term>
+<listitem>
+<variablelist>
+<!--FIXME Maximum number of entries in recent file list-->
+<varlistentry>
+<term
+><guilabel
+>Vensterconfiguratie insluiten</guilabel
+></term>
+<listitem
+><para
+>Indien ingeschakeld zal &kate; de vensterconfiguratie van elke sessie opslaan.</para
+></listitem>
+</varlistentry>
+</variablelist>
+</listitem>
+</varlistentry
+><!-- /elements of sessions -->
+
+<varlistentry>
+<term
+><anchor id="config-sessions-keep-meta-information"/>
+<guilabel
+>Meta-informatie na sessies behouden</guilabel
+></term>
+<listitem
+><para
+>Indien ingeschakeld zal &kate; metagegevens zoals bladwijzers en configuratie van de sessie zelfs wanneer u uw documenten sluit. De gegevens zullen worden gebruikt als het document ongewijzigd is wanneer het wordt heropend.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><anchor id="config-sessions-delete-meta-information-after"/>
+<guilabel
+>Ongebruikte meta-informatie verwijderen na</guilabel
+></term>
+<listitem
+><para
+>Stelt het maximum aantal dagen in om meta-informatie voor eerder geopende bestanden te bewaren. Dit helpt om de database van meta-informatie op een redelijke grootte te houden.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+<para
+>Elke wijziging aan de sessiegegevens (geopende bestanden en indien ingeschakeld, vensterconfiguratie) zal altijd worden opgeslagen.</para>
+
+</sect2>
+
+<sect2 id="config-dialog-plugins">
+<title
+>Plug-ins</title>
+
+<para
+>Deze pagina levert een lijst met geïnstalleerde plug-ins voor de toepassing &kate;. Elke plug-in wordt gerepresenteerd door zijn naam en een korte beschrijving. U kunt het keuzevakje activeren met een item om de plug-in, die het representeert te activeren. </para>
+
+<para
+>Als een plug-in instellingsopties levert, dan zal er een sectie, als een subpagina van deze pagina, verschijnen om hiertoe toegang te verlenen.</para>
+
+<para
+>Voor meer informatie over beschikbare plug-ins, zie <xref linkend="plugins"/>.</para>
+
+</sect2>
+
+<sect2 id="config-dialog-editor">
+<title
+>De instellingen voor de tekstbewerkercomponent</title>
+
+<para
+>Voor informatie over deze sectie van de instellingendialoog, zie het <ulink url="help:katepart/config-dialog.html"
+>Instellingensectie van de editor-component van het handboek van &katepart;</ulink
+>.</para>
+
+</sect2>
+
+<sect2 id="config-variables">
+<title
+>Configureren met documentvariabelen</title>
+
+<para
+>Voor informatie over het gebruik van documentvariabelen met &kate;, zie de <ulink url="help:katepart/config-variables.html"
+>Sectie instellen met documentvariabelen van het handboek &katepart;</ulink
+>.</para>
+
+</sect2>
+
+</sect1>
+
+</chapter>

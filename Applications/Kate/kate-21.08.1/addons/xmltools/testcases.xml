@@ -1,0 +1,73 @@
+This is a pseudo XML file to test the functions of the XML Plugin.
+v0.8, 2002-04-21
+
+1. Choose "Assign Meta DTD..." and load the file meta-dtd/html4-loose.dtd.xml
+
+2. Place cursor at the "X" and choose "Close Element" from the
+"XML Plugin" menu. "</P>" resp. "</p>" should be inserted:
+	<P> <a href=""> foo <i> test </i> bar </a> X
+	<P> <a x="xyz"> foo bar </a> X
+	<P> foo <img foo="&bar;"/> bar X
+	<P> foo <img/> bar X
+	<P> foo bar X
+	<p foo="bar">
+		next line, X
+	<p><!-- foo --> X (again, the "p" should be closed)
+	<p><? foo ?> X (again, the "p" should be closed)
+
+3. Place cursor after (outside) the tag and select "Insert Element...". The listed
+sub-elements should be offered as completion once you start typing.  Select one
+and it should be inserted, including its closing tag. The cursor should be
+placed behind the tag name in the opening tag. The same thing should work
+if you just type "<" outside the tag:
+	<a>	abbr, acronym, ....(i.e. no "a", as it cannot be nested!)
+	<A>	abbr, acronym, ....
+	<P foo="bar">	a, abbr, acronym, ...
+	<textarea>, (no possible sub-elements)
+
+4. Place cursor inside the element, but after the element name and outside the
+attribute values. Press space. A list of attributes should be displayed. Select one and
+it should be inserted, including the = and two quotation marks. The cursor should be
+placed inside the quotation marks:
+	<a>	accesskey, charset, ...
+	<a href="foo">	accesskey, charset, ...
+	<img href="foo" />	align, alt, border, ...
+	<html>	dir, lang, version
+
+5. Place cursor inside the attribute values and press space. A List of
+attribute values should be displayed. Select one and it should be inserted at
+the current cursor position, replacing the old value:
+	<td align="">	center, char, justify, left, right
+	<td valign="">	baseline, bottom, middle, top
+	<td valign="foobar"> -- "foobar" should be replaced
+	<area shape="">	circle, default, poly, rect
+	<area foobar="">	(no predefined values)
+
+6. Type "&". A list with named entities should appear. Select one and
+it should be inserted, including the trailing semicolon.
+
+7. Test that SGML (that is HTML, really) is treated as case-insensitive:
+	<TD AligN="center">
+	<Td AligN="justify">
+	<td AligN="leftcenter">
+	<TD align="">
+
+8. Single quotes work just like double quotes, whitespace inside element tags is okay:
+	<td align='right'>
+	<td align=''>
+	<td
+		align="">
+
+9. Current limitations: trigger completion at "X":
+	<a href="foo"> blah <em>X -- <a> inside <a> is not allowed, but this limitation is not
+		part of the DTD, so the plugin will incorrectly claim that <a> is allowed at "X".
+	<head><title> foobar</title> X -- <title> is only allowed once, but the plugin
+		only looks for the parent element (<head> in this case) and ignores the existing <title>.
+	<a href="foo" X > -- an attribute may only appear once, but "href" is listed by the plugin
+		although it's used already.
+	<td align = "X"> -- whitespace around '=' is not recognized although it's legal.
+
+10. Use "Assing Meta DTD..." to switch to kde-dockbook.dtd.xml. Try the above steps
+on the following tags:
+	<author lang="">
+	<surname>

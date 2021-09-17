@@ -1,0 +1,2287 @@
+<!--pulled in by kwrite too-->
+<chapter id="vi-input-mode-chapter">
+<chapterinfo>
+<authorgroup
+><author
+>&Erlend.Hamberg; &Erlend.Hamberg.mail; </author>
+<othercredit role="translator"
+> <firstname
+>Stefan</firstname
+> <surname
+>Asserhäll</surname
+> <affiliation
+><address
+><email
+>stefan.asserhall@bredband.net</email
+></address
+></affiliation
+> <contrib
+>Översättare</contrib
+></othercredit
+> 
+</authorgroup>
+</chapterinfo>
+
+<title
+>Vi-inmatningsläget</title>
+
+<sect1 id="vi-mode-sect1">
+<title
+>Vi-inmatningsläge</title>
+
+<para
+>Målet för VI-läget är inte att vara en fullständig ersättning av Vim och stödja alla funktioner i Vim. Dess mål är att göra <quote
+>Vim-sättet</quote
+> att redigera (och vanorna inlärda med Vim) tillgängligt för program som använder texteditorn &kappname; som intern editor.</para>
+
+<para
+>VI-lägets mål är att integreras väl med programmet och skilja sig från Vims beteende när det är lämpligt. Exempelvis öppnas en dialogruta för att spara med <userinput
+><command
+>:w</command
+></userinput
+> i &kappname;s VI-läge.</para>
+
+<para
+>För att aktivera VI-inmatningsläget för alla nya vyer, gå till <menuchoice
+><guimenu
+>Inställningar</guimenu
+><guimenuitem
+>Anpassa &kappname;...</guimenuitem
+> <guimenu
+>Redigering</guimenu
+><guimenuitem
+>Vi-inmatningsläge</guimenuitem
+></menuchoice
+>. Under denna flik kan du ställa in alternativ för VI-inmatningsläget samt definiera och redigera tangentbindningarna för läget. Vi-inmatningsläge kan också växlas med inställningen <guimenuitem
+>Vi-inmatningsläge</guimenuitem
+> i menyn <guimenu
+>Redigera</guimenu
+>. (Normal genväg är <keycombo action="simul"
+><keysym
+>Meta</keysym
+>&Ctrl;<keycap
+>V</keycap
+></keycombo
+>, där <keysym
+>Meta</keysym
+> oftast är <keysym
+>Windows</keysym
+>-tangenten).</para>
+
+<note>
+<para
+>Många tangentbordskommandon i VI-läget är skiftlägeskänslig, i motsats till de flesta tangentbordsgenvägar i &kde;. Det betyder att <userinput
+>y</userinput
+> och <userinput
+>Y</userinput
+> är olika kommandon. För att skriva in kommandot <userinput
+>y</userinput
+> (ryck ut), försäkra dig om att <keysym
+>Caps Lock</keysym
+> inte är aktivt och tryck på <keycap
+>Y</keycap
+>. För att skriva in kommandot <userinput
+>Y</userinput
+> (ryck ut till radens slut), tryck på <keycombo action="simul"
+>&Shift;<keycap
+>Y</keycap
+></keycombo
+>.</para>
+
+<para
+>Detta gäller inte för kommandon som använder &Ctrl;-tangenten, vilka kan skrivas in oberoende av värdet på <keycap
+>Caps Lock</keycap
+> och utan att hålla ner &Shift;. Dock kräver vissa kommandon användning av &Ctrl;-tangenten följt av en annan tangent som är skiftlägeskänslig. För att exempelvis skriva in <quote
+><keycombo action="simul"
+>&Ctrl;<keycap
+>W</keycap
+></keycombo
+><userinput
+>h</userinput
+></quote
+> (byt till delad vy höger) försäkra dig om att <keycap
+>Caps Lock</keycap
+> inte är aktivt, tryck på <keycombo action="simul"
+>&Ctrl;<keycap
+>W</keycap
+></keycombo
+>, släpp, och tryck därefter på <keycap
+>H</keycap
+>.</para>
+</note>
+
+<sect2 id="vi-incompatibilities">
+<title
+>Funktioner inkompatibla med Vim</title>
+
+<para
+>Det finns bara ett fåtal funktioner i &kappname;s VI-läge som är inkompatibla med Vim (om man inte räknar saknade funktioner). De listas nedan tillsammans med respektive orsak.</para>
+<itemizedlist>
+<listitem>
+<para
+>&kappname;: <userinput
+>U</userinput
+> och <keycombo action="simul"
+>&Ctrl;<keycap
+>R</keycap
+></keycombo
+> är gör om.</para>
+<para
+>Vim: <keycombo action="simul"
+>&Ctrl;<keycap
+>R</keycap
+></keycombo
+> är vanlig gör om, <keycap
+>U</keycap
+> används för att ångra alla senaste ändringarna på en rad.</para>
+<para
+>Orsaken att låta <keycap
+>U</keycap
+> fungera som ångra i &kappname;s VI-läge är att genvägen <keycombo action="simul"
+>&Ctrl;<keycap
+>R</keycap
+></keycombo
+> normalt används av &kappname;s ersättningsfunktion (sök och ersätt). Normalt överskrider inte VI-läget &kappname;s genvägar (det kan ställas in i <menuchoice
+><guimenu
+>Inställningar</guimenu
+><guimenuitem
+>Anpassa &kappname;...</guimenuitem
+> <guimenu
+>Redigering</guimenu
+><guimenuitem
+>Vi-inmatningsläge</guimenuitem
+></menuchoice
+>), och därför måste åtgärden Gör om också vara tillgänglig som en <quote
+>vanlig</quote
+> tangent. Dessutom motsvarar inte beteendet hos kommandot <userinput
+>U</userinput
+> i Vim &kappname;s interna ångringssystem väl, så det skulle hur som helst inte vara trivialt att stödja.</para>
+</listitem>
+<listitem>
+<para
+>&kappname;: <userinput
+><command
+>print</command
+></userinput
+> visar dialogrutan <guilabel
+>Skriv ut</guilabel
+>.</para>
+<para
+>Vim: <userinput
+><command
+>print</command
+></userinput
+> skriver ut raderna i det angivna intervallet, liksom i dess föregångare ed.</para>
+<para
+>Kommandon som <userinput
+><command
+>:print</command
+></userinput
+> är inte bara tillgängliga i VI-läge, utan också för användare som använder &kappname; på <quote
+>vanligt</quote
+> sätt. Därför visar kommandot <userinput
+><command
+>:print</command
+></userinput
+> utskriftsdialogrutan, med principen att minimera överraskningar istället för att härma Vims beteende.</para>
+</listitem>
+<listitem>
+<para
+>&kappname;: <userinput
+>Y</userinput
+> rycker ut till radens slut.</para>
+<para
+>Vim: <userinput
+>Y</userinput
+> rycker ut hela raden, precis som <userinput
+>y</userinput
+><userinput
+>y</userinput
+>.</para>
+<para
+>Vims beteende för kommandot <userinput
+>Y</userinput
+> är i praktiken ett fel. Både för ändrings- och borttagningskommandon utför <userinput
+>c</userinput
+><userinput
+>c</userinput
+>/ <userinput
+>d</userinput
+><userinput
+>d</userinput
+> åtgärden för aktuell rad och <userinput
+>C</userinput
+>/<userinput
+>D</userinput
+> fungerar från markörens kolumn till radens slut. Dock rycker både <userinput
+>y</userinput
+><userinput
+>y</userinput
+> och <userinput
+>Y</userinput
+> ut aktuell rad. I &kappname;s VI-läge rycker <userinput
+>Y</userinput
+> ut till radens slut. Det beskrivs som <quote
+>mer logiskt</quote
+> i Vims <ulink url="http://vimdoc.sourceforge.net/htmldoc/change.html#Y"
+>dokumentation</ulink
+>. </para>
+</listitem>
+<listitem>
+<para
+>&kappname;: <userinput
+>O</userinput
+> och <userinput
+>o</userinput
+> påbörjar [<replaceable
+>antal</replaceable
+>] nya rader och går till infogningsläge.</para>
+<para
+>Vim: <userinput
+>O</userinput
+> och <userinput
+>o</userinput
+> påbörjar en ny rad och infogar text [<replaceable
+>antal</replaceable
+>] gånger när infogningsläget lämnas.</para>
+<para
+>Det har i huvudsak gjorts som en följd av att ha stött på många som blivit förvirrade av beteendet på en Vim &irc;-kanal (#vim på Libera Chat).</para>
+</listitem>
+</itemizedlist>
+
+</sect2>
+
+<sect2 id="vi-switching-modes">
+<title
+>Byta lägen</title>
+
+<itemizedlist>
+<listitem>
+<para
+><emphasis
+>Normalt läge</emphasis
+> låter dig ange kommandon för att navigera eller redigera dokumentet, och är förvalt läge. Du kan återgå till det från vilket annat läge som helst genom att trycka på Esc. </para
+></listitem>
+<listitem>
+<para
+><emphasis
+>Visningsläge</emphasis
+> låter dig markera text i ett dokument. De flesta kommandon från normalläget är också giltiga i detta läget. Du kan gå till det genom att trycka på <userinput
+>v</userinput
+> för att markera tecken, eller <userinput
+>V</userinput
+> för att markera rader. </para
+></listitem>
+<listitem>
+<para
+><emphasis
+>Infogningsläge</emphasis
+> låter dig redigera dokumentet direkt. Du kan gå till det genom att trycka på <userinput
+>i</userinput
+> eller ett av flera andra kommandon som listas nedan. </para
+></listitem>
+<listitem>
+<para
+><emphasis
+>Kommandoläget</emphasis
+> aktiverar &kappname;s kommandorad, vilket möjliggör att köra många kommandon tillgängliga i Vi-implementeringar samt vissa specifika för &kappname;. För mer information om dessa kommandon, se <xref linkend="advanced-editing-tools-commandline"/>. För att använda det, tryck på <keycap
+>:</keycap
+>, skriv in kommandot och tryck på returtangenten.</para>
+</listitem>
+</itemizedlist>
+<!-- add a picture like https://de.wikipedia.org/wiki/Vi#Arbeitsmodi here? -->
+</sect2>
+
+<sect2 id="vi-integration">
+<title
+>Integrering med funktioner i &kate;</title>
+<itemizedlist>
+
+<listitem>
+<para
+>Visuellt läge aktiveras automatiskt när text markeras med musen. Det aktiveras också när funktioner i &kate; som markerar text används, såsom Markera alla (antingen från menyn eller via <keycombo action="simul"
+>&Ctrl;<keycap
+>A</keycap
+></keycombo
+>).</para>
+</listitem>
+
+<listitem>
+<para
+>Markörer i Vi och <link linkend="kate-part-bookmarks"
+>bokmärken i &kate;</link
+> är integrerade. När en markör skapas i VI-läge, skapas ett motsvarande bokmärke i &kate;, och dyker upp i menyn <guimenu
+>Bokmärken</guimenu
+>. Omvänt, när ett bokmärke skapas i &kate;, skapas en motsvarande markör i Vi på kolumn 0 också.</para>
+</listitem>
+
+</itemizedlist>
+</sect2>
+
+<sect2 id="vi-normal-visual-mode-commands">
+<title
+>Kommandon som stöds i normalt och visningsläge</title>
+
+<informaltable>
+<tgroup cols="2">
+<!--thead>
+<row>
+<entry
+><para
+>Key</para
+></entry>
+<entry
+><para
+>Command</para
+></entry>
+</row>
+</thead-->
+<tbody>
+<row
+><entry
+><para
+><userinput
+>a</userinput
+></para
+></entry>
+<entry
+><para
+>Gå till infogningsläge, lägg till efter markören</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>A</userinput
+></para
+></entry>
+<entry
+><para
+>Gå till infogningsläge, lägg till efter raden</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>i</userinput
+></para
+></entry>
+<entry
+><para
+>Gå till infogningsläge, lägg till före markören</para
+></entry>
+</row>
+<row
+><entry
+><para
+><keysym
+>Insert</keysym
+></para
+></entry>
+<entry
+><para
+>Gå till infogningsläge, lägg till före markören</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>I</userinput
+></para
+></entry>
+<entry
+><para
+>Gå till infogningsläge, infoga före första tecken på raden som inte är ett blanktecken</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>gi</userinput
+></para
+></entry>
+<entry
+><para
+>Gå till infogningsläge, lägg till före stället där det senaste infogningsläget lämnades</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>v</userinput
+></para
+></entry>
+<entry
+><para
+>Gå till visningsläge, markera tecken</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>V</userinput
+></para
+></entry>
+<entry
+><para
+>Gå till visningsläge, markera rader</para
+></entry>
+</row>
+<row
+><entry
+><para
+><keycombo action="simul"
+>&Ctrl;<keycap
+>v</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Gå till visningsläge, markera block</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>gb</userinput
+></para
+></entry>
+<entry
+><para
+>Gå till visningsläge, markera den senaste markeringen igen</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>o</userinput
+></para
+></entry>
+<entry
+><para
+>Påbörja en ny rad under den aktuella raden</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>O</userinput
+></para
+></entry>
+<entry
+><para
+>Påbörja en ny rad ovanför den aktuella raden</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>J</userinput
+></para
+></entry>
+<entry
+><para
+>Kombinera rader</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>c</userinput
+></para
+></entry>
+<entry
+><para
+>Ändra: Följ med en förflyttning för att ta bort och gå till infogningsläge</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>C</userinput
+></para
+></entry>
+<entry
+><para
+>Ändra till radens slut: Ta bort till radens slut och gå till infogningsläge</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>cc</userinput
+></para
+></entry>
+<entry
+><para
+>Ändra rad: Ta bort till raden och gå till infogningsläge</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>s</userinput
+></para
+></entry>
+<entry
+><para
+>Ersätt tecken</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>S</userinput
+></para
+></entry>
+<entry
+><para
+>Ersätt rad</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>dd</userinput
+></para
+></entry>
+<entry
+><para
+>Ta bort rad</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>d</userinput
+></para
+></entry>
+<entry
+><para
+>Följ med en förflyttning för att ta bort</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>D</userinput
+></para
+></entry>
+<entry
+><para
+>Ta bort till radens slut</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>x</userinput
+></para
+></entry>
+<entry
+><para
+>Ta bort tecken till höger om markören</para
+></entry>
+</row>
+<row
+><entry
+><para
+><keysym
+>Delete</keysym
+></para
+></entry>
+<entry
+><para
+>Ta bort tecken till höger om markören</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>X</userinput
+></para
+></entry>
+<entry
+><para
+>Ta bort tecken till vänster om markören</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>gu</userinput
+></para
+></entry>
+<entry
+><para
+>Följ med en förflyttning för att ändra till små bokstäver</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>guu</userinput
+></para
+></entry>
+<entry
+><para
+>Gör den aktuella raden till små bokstäver</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>gU</userinput
+></para
+></entry>
+<entry
+><para
+>Följ med en förflyttning för att ändra till stora bokstäver</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>gUU</userinput
+></para
+></entry>
+<entry
+><para
+>Gör den aktuella raden till stora bokstäver</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>y</userinput
+></para
+></entry>
+<entry
+><para
+>Följ med en förflyttning för att <quote
+>rycka ut</quote
+> (kopiera)</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>yy</userinput
+></para
+></entry>
+<entry
+><para
+>Ryck ut (kopiera) rad</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>Y</userinput
+></para
+></entry>
+<entry
+><para
+>Ryck ut (kopiera) rad</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>p</userinput
+></para
+></entry>
+<entry
+><para
+>Klistra in efter markören</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>P</userinput
+></para
+></entry>
+<entry
+><para
+>Klistra in före markören</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>]p</userinput
+></para
+></entry>
+<entry
+><para
+>Klistra in efter markören indenterat</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>[p</userinput
+></para
+></entry>
+<entry
+><para
+>Klistra in före markören indenterat</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>r</userinput
+></para
+></entry>
+<entry
+><para
+>Följ med ett tecken för att ersätta tecknet efter markören</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>R</userinput
+></para
+></entry>
+<entry
+><para
+>Gå till ersättningsläge</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>:</userinput
+></para
+></entry>
+<entry
+><para
+>Gå till kommandoläge</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>/</userinput
+></para
+></entry>
+<entry
+><para
+>Sök</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>u</userinput
+></para
+></entry>
+<entry
+><para
+>Ångra</para
+></entry>
+</row>
+<row
+><entry
+><para
+><keycombo action="simul"
+>&Ctrl;<keycap
+>R</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Gör om</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>U</userinput
+></para
+></entry>
+<entry
+><para
+>Gör om</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>m</userinput
+></para
+></entry>
+<entry
+><para
+>Ange markering (kan användas av senare förflyttningar)</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>n</userinput
+></para
+></entry>
+<entry
+><para
+>Sök igen</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>N</userinput
+></para
+></entry>
+<entry
+><para
+>Sök föregående</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>&gt;&gt;</userinput
+></para
+></entry>
+<entry
+><para
+>Indentera rad</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>&lt;&lt;</userinput
+></para
+></entry>
+<entry
+><para
+>Avindentera rad</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>&gt;</userinput
+></para
+></entry>
+<entry
+><para
+>Indentera rader</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>&lt;</userinput
+></para
+></entry>
+<entry
+><para
+>Avindentera rader</para
+></entry>
+</row>
+<row
+><entry
+><para
+><keycombo action="simul"
+>&Ctrl;<keycap
+>F</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Sida ner</para
+></entry>
+</row>
+<row
+><entry
+><para
+><keycombo action="simul"
+>&Ctrl;<keycap
+>B</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Sida upp</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>ga</userinput
+></para
+></entry>
+<entry
+><para
+>Skriv ut tecknets &ASCII;I-värde</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>.</userinput
+></para
+></entry>
+<entry
+><para
+>Upprepa senaste ändring</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>==</userinput
+></para
+></entry>
+<entry
+><para
+>commandAlignLine</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>=</userinput
+></para
+></entry>
+<entry
+><para
+>commandAlignLines</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>~</userinput
+></para
+></entry>
+<entry
+><para
+>Ändra skiftläge för aktuellt tecken</para
+></entry>
+</row>
+<row
+><entry
+><para
+><keycombo action="simul"
+>&Ctrl;<keycap
+>S</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Dela vyn horisontellt</para
+></entry>
+</row>
+<row
+><entry
+><para
+><keycombo action="simul"
+>&Ctrl;<keycap
+>V</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Dela vyn vertikalt</para
+></entry>
+</row>
+<row
+><entry
+><para
+><keycombo action="simul"
+>&Ctrl; <keycap
+>W</keycap
+></keycombo
+>, <userinput
+>w</userinput
+></para
+></entry>
+<entry
+><para
+>Gå cykliskt till nästa delade fönster</para
+></entry>
+</row>
+<row
+><entry
+><para
+><keycombo action="simul"
+>&Ctrl; <keycap
+>W</keycap
+></keycombo
+>, <userinput
+>h</userinput
+></para>
+<para
+><keycombo action="seq"
+><keycombo action="simul"
+>&Ctrl; <keycap
+>W</keycap
+></keycombo
+><keysym
+>Vänster</keysym
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Gå till det delade fönstret till vänster</para
+></entry>
+</row>
+<row
+><entry
+><para
+><keycombo action="simul"
+>&Ctrl; <keycap
+>W</keycap
+></keycombo
+>, <userinput
+>l</userinput
+></para>
+<para
+><keycombo action="seq"
+><keycombo action="simul"
+>&Ctrl; <keycap
+>W</keycap
+></keycombo
+><keysym
+>Höger</keysym
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Gå till det delade fönstret till höger</para
+></entry>
+</row>
+<row
+><entry
+><para
+><keycombo action="simul"
+>&Ctrl; <keycap
+>W</keycap
+></keycombo
+>, <userinput
+>k</userinput
+></para>
+<para
+><keycombo action="seq"
+><keycombo action="simul"
+>&Ctrl; <keycap
+>W</keycap
+></keycombo
+><keysym
+>Upp</keysym
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Gå till det delade fönstret ovanför</para
+></entry>
+</row>
+<row
+><entry
+><para
+><keycombo action="simul"
+>&Ctrl; <keycap
+>W</keycap
+></keycombo
+>, <userinput
+>j</userinput
+></para>
+<para
+><keycombo action="seq"
+><keycombo action="simul"
+>&Ctrl; <keycap
+>W</keycap
+></keycombo
+><keysym
+>Ner</keysym
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Gå till det delade fönstret nedanför</para
+></entry>
+</row>
+</tbody>
+</tgroup>
+</informaltable>
+</sect2>
+
+<sect2 id="vi-supported-motions">
+<title
+>Förflyttningar som stöds</title>
+
+<para
+>Dessa kan användas för att flytta omkring i dokumentet i Normalt läge eller Visningsläge, eller i samband med något av ovanstående kommandon. De kan föregås av ett antal, vilket anger hur många av motsvarande förflyttningar som ska göras.</para>
+
+<informaltable>
+<tgroup cols="2">
+<!--thead>
+<row>
+<entry
+><para
+>Key</para
+></entry>
+<entry
+><para
+>Command</para
+></entry>
+</row>
+</thead-->
+<tbody>
+<row
+><entry
+><para
+><userinput
+>h</userinput
+></para
+></entry>
+<entry
+><para
+>Vänster</para
+></entry>
+</row>
+<row
+><entry
+><para
+><keysym
+>Vänster</keysym
+></para
+></entry>
+<entry
+><para
+>Vänster</para
+></entry>
+</row>
+<row
+><entry
+><para
+><keysym
+>Baksteg</keysym
+></para
+></entry>
+<entry
+><para
+>Vänster</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>j</userinput
+></para
+></entry>
+<entry
+><para
+>Ner</para
+></entry>
+</row>
+<row
+><entry
+><para
+><keysym
+>Ner</keysym
+></para
+></entry>
+<entry
+><para
+>Ner</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>k</userinput
+></para
+></entry>
+<entry
+><para
+>Upp</para
+></entry>
+</row>
+<row
+><entry
+><para
+><keysym
+>Upp</keysym
+></para
+></entry>
+<entry
+><para
+>Upp</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>l</userinput
+></para
+></entry>
+<entry
+><para
+>Höger</para
+></entry>
+</row>
+<row
+><entry
+><para
+><keysym
+>Höger</keysym
+></para
+></entry>
+<entry
+><para
+>Höger</para
+></entry>
+</row>
+<row
+><entry
+><para
+><keysym
+>Mellanslag</keysym
+></para
+></entry>
+<entry
+><para
+>Höger</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>$</userinput
+></para
+></entry>
+<entry
+><para
+>Radens slut</para
+></entry>
+</row>
+<row
+><entry
+><para
+><keysym
+>End</keysym
+></para
+></entry>
+<entry
+><para
+>Radens slut</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>0</userinput
+></para
+></entry>
+<entry
+><para
+>Radens första tecken (kolumn 0)</para
+></entry>
+</row>
+<row
+><entry
+><para
+><keysym
+>Home</keysym
+></para
+></entry>
+<entry
+><para
+>Radens första tecken</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>^</userinput
+></para
+></entry>
+<entry
+><para
+>Radens första tecken som inte är ett blanktecken</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>f</userinput
+></para
+></entry>
+<entry
+><para
+>Följ av tecken för att flytta till höger om markören</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>F</userinput
+></para
+></entry>
+<entry
+><para
+>Följ av tecken för att flytta till vänster om markören</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>t</userinput
+></para
+></entry>
+<entry
+><para
+>Följ med tecken höger om markören att gå till, och placera markören på tecknet före det</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>T</userinput
+></para
+></entry>
+<entry
+><para
+>Följ med tecken vänster om markören att gå till, och placera markören på tecknet före det</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>gg</userinput
+></para
+></entry>
+<entry
+><para
+>Första raden</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>G</userinput
+></para
+></entry>
+<entry
+><para
+>Sista raden</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>w</userinput
+></para
+></entry>
+<entry
+><para
+>Nästa ord</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>W</userinput
+></para
+></entry>
+<entry
+><para
+>Nästa ord åtskilt av blanktecken</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>b</userinput
+></para
+></entry>
+<entry
+><para
+>Föregående ord</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>B</userinput
+></para
+></entry>
+<entry
+><para
+>Föregående ord åtskilt av blanktecken</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>e</userinput
+></para
+></entry>
+<entry
+><para
+>Ordets slut</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>E</userinput
+></para
+></entry>
+<entry
+><para
+>Ordets slut åtskilt av blanktecken</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>ge</userinput
+></para
+></entry>
+<entry
+><para
+>Föregående ords slut</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>gE</userinput
+></para
+></entry>
+<entry
+><para
+>Föregående ords slut åtskilt av blanktecken</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>|</userinput
+></para
+></entry>
+<entry
+><para
+>Följ med kolumnnummer för att gå till den kolumnen</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>%</userinput
+></para
+></entry>
+<entry
+><para
+>Följ med ett objekt för att gå till det objektet</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>`</userinput
+></para
+></entry>
+<entry
+><para
+>Markera</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>‘</userinput
+></para
+></entry>
+<entry
+><para
+>Första tecken på raden som inte är ett blanktecken där markeringen är</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>[[</userinput
+></para
+></entry>
+<entry
+><para
+>Föregående inledande hakparentes</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>]]</userinput
+></para
+></entry>
+<entry
+><para
+>Nästa inledande hakparentes</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>[]</userinput
+></para
+></entry>
+<entry
+><para
+>Föregående avslutande hakparentes</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>][</userinput
+></para
+></entry>
+<entry
+><para
+>Nästa avslutande hakparentes</para
+></entry>
+</row>
+<row
+><entry
+><para
+><keycombo action="simul"
+>&Ctrl;<keycap
+>I</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Gå till nästa position</para
+></entry
+></row>
+<row
+><entry
+><para
+><keycombo action="simul"
+>&Ctrl;<keycap
+>O</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Gå till föregående position</para
+></entry
+></row>
+<row
+><entry
+><para
+><userinput
+>H</userinput
+></para
+></entry>
+<entry
+>Gå till skärmens första rad</entry
+></row>
+<row
+><entry
+><para
+><userinput
+>M</userinput
+></para
+></entry>
+<entry
+>Gå till raden på skärmens mitt</entry
+></row>
+<row
+><entry
+><para
+><userinput
+>L</userinput
+></para
+></entry>
+<entry
+>Gå till skärmens sista rad</entry
+></row>
+<row
+><entry
+><para
+><userinput
+>%<replaceable
+>procentvärde</replaceable
+></userinput
+></para
+></entry>
+<entry
+><para
+>Gå till angivet procentvärde av dokumentet</para
+></entry
+></row>
+<row
+><entry
+><para
+><userinput
+>gk</userinput
+></para
+></entry>
+<entry
+><para
+>Gå en rad uppåt visuellt (när dynamisk radbrytning används)</para
+></entry
+></row>
+<row
+><entry
+><para
+><userinput
+>gj</userinput
+></para
+></entry>
+<entry
+><para
+>Gå en rad neråt visuellt (när dynamisk radbrytning används)</para
+></entry
+></row>
+<row
+><entry
+><para
+><keycombo action="simul"
+>&Ctrl;<keysym
+>Vänster</keysym
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Gå ett ord åt vänster</para
+></entry>
+</row>
+<row
+><entry
+><para
+><keycombo action="simul"
+>&Ctrl;<keysym
+>Höger</keysym
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Gå ett ord åt höger</para
+></entry>
+</row>
+</tbody>
+</tgroup>
+</informaltable>
+</sect2>
+
+<sect2 id="vi-supported-text-objects">
+<title
+>Textobjekt som stöds</title>
+
+<para
+>De kan användas för att markera vissa delar av ett dokument.</para>
+
+<informaltable>
+<tgroup cols="2">
+<!--thead>
+<row>
+<entry
+><para
+>Key</para
+></entry>
+<entry
+><para
+>Command</para
+></entry>
+</row>
+</thead-->
+<tbody>
+<row
+><entry
+><para
+><userinput
+>iw</userinput
+></para
+></entry>
+<entry
+><para
+>Inre ord: Ord inklusive blanktecken</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>aw</userinput
+></para
+></entry>
+<entry
+><para
+>Ett ord: Ord exklusive blanktecken</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>i"</userinput
+></para
+></entry>
+<entry
+><para
+>Föregående dubbla citationstecken (<userinput
+>"</userinput
+>) till nästa dubbla citationstecken, inklusive citationstecken</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>a”</userinput
+></para
+></entry>
+<entry
+><para
+>Föregående dubbla citationstecken (<userinput
+>"</userinput
+>) till nästa dubbla citationstecken, exklusive citationstecken</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>i'</userinput
+></para
+></entry>
+<entry
+><para
+>Föregående enkla citationstecken (<userinput
+>'</userinput
+>) till nästa enkla citationstecken, inklusive citationstecken</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>a'</userinput
+></para
+></entry>
+<entry
+><para
+>Föregående enkla citationstecken (<userinput
+>'</userinput
+>) till nästa enkla citationstecken, exklusive citationstecken</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>i(</userinput
+></para
+></entry>
+<entry
+><para
+>Föregående inledande parentes  [<userinput
+>(</userinput
+>] till nästa avslutande parenthesis [<userinput
+>)</userinput
+>], inklusive parentesen</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>a(</userinput
+></para
+></entry>
+<entry
+><para
+>Föregående inledande parentes  [<userinput
+>(</userinput
+>] till nästa avslutande parentes [<userinput
+>)</userinput
+>], exklusive parenteserna</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>i[</userinput
+></para
+></entry>
+<entry
+><para
+>Föregående inledande hakparentes  (<userinput
+>[</userinput
+>) till nästa avslutande hakparentes (<userinput
+>]</userinput
+>), inklusive parenteserna</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>a[</userinput
+></para
+></entry>
+<entry
+><para
+>Föregående inledande hakparentes  (<userinput
+>[</userinput
+>) till nästa avslutande hakparentes (<userinput
+>]</userinput
+>), exklusive parenteserna</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>i{</userinput
+></para
+></entry>
+<entry
+><para
+>Föregående inledande klammerparentes  (<userinput
+>{</userinput
+>) till nästa avslutande klammerparentes (<userinput
+>}</userinput
+>), inklusive parenteserna</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>a{</userinput
+></para
+></entry>
+<entry
+><para
+>Föregående inledande klammerparentes  (<userinput
+>{</userinput
+>) till nästa avslutande klammerparentes (<userinput
+>}</userinput
+>), exklusive parenteserna</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>i&lt;</userinput
+></para
+></entry>
+<entry
+><para
+>Föregående inledande vinkelparentes  (<userinput
+>&lt;</userinput
+>) till nästa avslutande vinkelparentes (<userinput
+>&gt;</userinput
+>), inklusive parenteserna</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>a&lt;</userinput
+></para
+></entry>
+<entry
+><para
+>Föregående inledande vinkelparentes  (<userinput
+>&lt;</userinput
+>) till nästa avslutande vinkelparentes (<userinput
+>&gt;</userinput
+>), exklusive parenteserna</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>i`</userinput
+></para
+></entry>
+<entry
+><para
+>Föregående grava accent (<userinput
+>`</userinput
+>) till nästa grava accent, inklusive accenterna</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>a`</userinput
+></para
+></entry>
+<entry
+><para
+>Föregående grava accent (<userinput
+>`</userinput
+>) till nästa grava accent, exklusive accenterna</para
+></entry>
+</row>
+</tbody>
+</tgroup>
+</informaltable>
+</sect2>
+
+<sect2 id="vi-insert-mode-commands">
+<title
+>Kommandon i infogningsläge som stöds</title>
+
+<informaltable>
+<tgroup cols="2">
+<!--thead>
+<row>
+<entry
+><para
+>Key</para
+></entry>
+<entry
+><para
+>Command</para
+></entry>
+</row>
+</thead-->
+<tbody>
+<row
+><entry
+><para
+><keycombo action="simul"
+>&Ctrl;<keycap
+>D</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Avindentera</para
+></entry>
+</row>
+<row
+><entry
+><para
+><keycombo action="simul"
+>&Ctrl;<keycap
+>T</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Indentera</para
+></entry>
+</row>
+<row
+><entry
+><para
+><keycombo action="simul"
+>&Ctrl;<keycap
+>E</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Infoga nerifrån</para
+></entry>
+</row>
+<row
+><entry
+><para
+><keycombo action="simul"
+>&Ctrl;<keycap
+>Y</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Ta bort ord</para
+></entry>
+</row>
+<row
+><entry
+><para
+><keycombo action="simul"
+>&Ctrl;<keycap
+>W</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Ta bort ord</para
+></entry>
+</row>
+<row
+><entry
+><para
+><keycombo action="simul"
+>&Ctrl;<keycap
+>U</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Ta bort rad</para
+></entry>
+</row>
+<row
+><entry
+><para
+><keycombo action="simul"
+>&Ctrl;<keycap
+>J</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Ny rad</para
+></entry>
+</row>
+<row
+><entry
+><para
+><keycombo action="simul"
+>&Ctrl;<keycap
+>H</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Ta bort tecken bakåt</para
+></entry>
+</row>
+<row
+><entry
+><para
+><keycombo action="simul"
+>&Ctrl;<keysym
+>Home</keysym
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Gå till första tecknet i dokumentet</para
+></entry>
+</row>
+<row
+><entry
+><para
+><keycombo action="simul"
+>&Ctrl;<keycap
+>R</keycap
+></keycombo
+> <userinput
+>n</userinput
+></para
+></entry>
+<entry
+>Infoga innehållet i register <literal
+>n</literal
+></entry
+></row>
+<row
+><entry
+><para
+><keycombo action="simul"
+>&Ctrl;<keycap
+>O</keycap
+></keycombo
+>, <replaceable
+>kommando</replaceable
+></para
+></entry>
+<entry
+><para
+>Gå till normalt läge för endast ett kommando</para
+></entry
+></row>
+<row
+><entry
+><para
+><keycombo action="simul"
+>&Ctrl;<keycap
+>A</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Inkrementera talet som för närvarande är markerat</para
+></entry
+></row>
+<row
+><entry
+><para
+><keycombo action="simul"
+>&Ctrl;<keycap
+>X</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Dekrementera talet som för närvarande är markerat</para
+></entry
+></row>
+</tbody>
+</tgroup>
+</informaltable>
+</sect2>
+
+<sect2 id="vi-text-object">
+<title
+>Komma-textobjektet</title>
+
+<para
+>Objektet saknas i Vim. Komma-textobjektet gör det enkelt att ändra parameterlistor i C-liknande språk och andra listor åtskilda med kommatecken. Det är egentligen området mellan två kommatecken eller mellan ett kommatecken och en parentes. På raden som visas i illustrationen är de tre områden som textobjektet kan omfatta färglagda.</para>
+
+<screenshot id="screenshot-resources">
+<screeninfo
+>Ett exempel på komma-textobjekt</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="comma-to.png" format="PNG"/></imageobject>
+<textobject
+><phrase
+>Ett exempel på komma-textobjekt</phrase
+></textobject>
+<caption
+><para
+>Intervall för komma-textobjekt. Om markören exempelvis är på <replaceable
+>arg2</replaceable
+>, skulle <userinput
+>ci</userinput
+>, (<quote
+>ändra inre kommatecken</quote
+>) ta bort <replaceable
+>double arg2</replaceable
+> och placera markören mellan de två kommatecknen i infogningsläge. Ett mycket bekvämt sätt att ändra en funktions parametrar.</para
+></caption>
+</mediaobject>
+</screenshot>
+
+</sect2>
+
+<sect2 id="vi-missing-features">
+<title
+>Saknade funktioner</title>
+
+<para
+>Som tidigare nämnts, är inte målet med &kappname;s VI-läge att stödja 100 % av Vims funktioner.</para>
+</sect2>
+
+</sect1>
+
+</chapter>

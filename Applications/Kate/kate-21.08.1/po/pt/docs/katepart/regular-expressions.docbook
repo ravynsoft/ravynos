@@ -1,0 +1,1248 @@
+<appendix id="regular-expressions">
+<appendixinfo>
+<authorgroup>
+<author
+>&Anders.Lund; &Anders.Lund.mail;</author>
+<othercredit role="translator"
+><firstname
+>José</firstname
+><surname
+>Pires</surname
+><affiliation
+><address
+><email
+>zepires@gmail.com</email
+></address
+></affiliation
+><contrib
+>Tradução</contrib
+></othercredit
+> 
+</authorgroup>
+</appendixinfo>
+
+<title
+>Expressões Regulares</title>
+
+<synopsis
+>Este Apêndice contém uma breve, mas abrangente e suficiente, introdução
+ao mundo das <emphasis
+>expressões regulares</emphasis
+>. Ela documenta as
+expressões regulares na forma que está disponível no &kappname;, a qual não é
+compatível com as expressões regulares do Perl, nem com as do 
+<command
+>grep</command
+>, por exemplo.</synopsis>
+
+<sect1>
+
+<title
+>Introdução</title>
+
+<para
+>As <emphasis
+>Expressões Regulares</emphasis
+> oferecem-nos uma forma de descrever alguns conteúdos possíveis de uma sequência de texto, a qual pode ser compreendida de certa forma por algum 'software', de modo a que este possa investigar se um texto corresponde, e também no caso das aplicações avançadas, com a possibilidade de guardar pedaços do texto correspondente.</para>
+
+<para
+>Um exemplo: Imagine que deseja procurar num texto por parágrafos que comecem quer pelos nomes <quote
+>Henrique</quote
+> ou <quote
+>Pedro</quote
+>, seguidos de alguma forma do verbo <quote
+>dizer</quote
+>.</para>
+
+<para
+>Com uma pesquisa normal, iria começar a procurar pelo primeiro nome, <quote
+>Henrique</quote
+>, sendo talvez seguido de <quote
+>di</quote
+>, como o seguinte: <userinput
+>Henrique di</userinput
+> e, enquanto procura por ocorrências, iria ignorar os que não se encontram no início de um parágrafo, assim como os que têm uma palavra que começa por <quote
+>di</quote
+> que não é <quote
+>diz</quote
+>, <quote
+>disse</quote
+> ou algo do género. Claro, e ainda ter que repetir isto com o próximo nome...</para>
+
+<para
+>Com as Expressões Regulares, essa tarefa pode ser acompanhada com uma única pesquisa e com um maior grau de precisão.</para>
+
+<para
+>Para conseguir isto, as Expressões Regulares definem regras para exprimir com detalhe uma generalização de uma sequência de texto com a qual corresponder. No nosso exemplo, o qual podemos exprimir literalmente da seguinte forma: <quote
+>Uma linha que começa por <quote
+>Henrique</quote
+> ou <quote
+>Pedro</quote
+> (possivelmente a seguir a 4 espaços ou tabulações) seguida de um espaço em branco e da sequência <quote
+>di</quote
+>, sendo esta seguida de <quote
+>z</quote
+> ou <quote
+>sse</quote
+></quote
+> pode ser expressa com a seguinte expressão regular:</para
+> <para
+><userinput
+>^[ \t]{0,4}(Henrique|Pedro) di(z|sse)</userinput
+></para>
+
+<para
+>O exemplo anterior demonstra todos os quatro maiores conceitos das expressões regulares modernas, nomeadamente:</para>
+
+<itemizedlist>
+<listitem
+><para
+>Padrões</para
+></listitem>
+<listitem
+><para
+>Asserções</para
+></listitem>
+<listitem
+><para
+>Quantificadores</para
+></listitem>
+<listitem
+><para
+>Referências anteriores</para
+></listitem>
+</itemizedlist>
+
+<para
+>O acento circunflexo (<literal
+>^</literal
+>) no início da expressão é uma asserção ou verificação que é verdadeira só se o texto correspondente está no início da linha.</para>
+
+<para
+>As sequências <literal
+>[ \t]</literal
+> e <literal
+>(Henrique|Pedro) di(z|se)</literal
+> são padrões. O primeiro é uma <emphasis
+>classe de caracteres</emphasis
+> que corresponde quer a um espaço em branco quer a uma tabulação (horizontal); o outro padrão contém, em primeiro lugar, um sub-padrão que corresponde quer a <literal
+>Henrique</literal
+> <emphasis
+>quer a</emphasis
+> <literal
+>Pedro</literal
+>, pelo que se segue o texto exacto <literal
+> di</literal
+> e, finalmente, existe um sub-padrão que corresponde a <literal
+>z</literal
+> <emphasis
+>ou</emphasis
+> a <literal
+>sse</literal
+></para>
+
+<para
+>A sequência <literal
+>{0,4}</literal
+> é um quantificador que diz <quote
+>qualquer número de vezes entre 0 e 4 da sequência anterior</quote
+>.</para>
+
+<para
+>Como o 'software' de expressões regulares suporta o conceito de <emphasis
+>referências anteriores</emphasis
+>, ele guarda a parte inteira correspondente ao texto, bem como aos sub-padrões entre parêntesis; se for dado um meio de aceder a essas referências, pode-se aceder a toda a correspondência (ao procurar num documento de texto num editor com uma expressão regular, esta é normalmente marcada como seleccionada), apenas ao nome encontrado, ou à última parte do verbo.</para>
+
+<para
+>Tudo em conjunto, a expressão irá corresponder onde nós queiramos que o faça, e só aí.</para>
+
+<para
+>As secções seguintes irão descrever em detalhe como construir e usar os padrões, as classes de caracteres, as verificações, os quantificadores e as referências anteriores; a secção final irá dar alguns exemplos úteis.</para>
+
+</sect1>
+
+<sect1 id="regex-patterns">
+
+<title
+>Padrões</title>
+
+<para
+>Os padrões consistem em cadeias de caracteres literais e em classes de caracteres. Os padrões podem conter sub-padrões, que são padrões entre parêntesis.</para>
+
+<sect2>
+<title
+>Caracteres de escape</title>
+
+<para
+>Tanto nos padrões como nas classes de caracteres, alguns caracteres têm um significado especial. Para corresponder literalmente com algum desses caracteres, estes têm de ser marcados ou <emphasis
+>escapados</emphasis
+>, para permitir ao 'software' de expressões regulares perceber que deve interpretar esses caracteres no seu sentido literal.</para>
+
+<para
+>Isto é feito, antecedendo o carácter com uma barra invertida (<literal
+>\</literal
+>).</para>
+
+
+<para
+>O 'software' de expressões regulares irá ignorar silenciosamente uma barra para um carácter que não tenha um significado especial no contexto; por isso, se escapar, por exemplo, um <quote
+>j</quote
+> (<userinput
+>\j</userinput
+>), não há problema. Se tiver dúvidas se um carácter poderá ter algum significado especial, podê-lo-á então escapar em segurança.</para>
+
+<para
+>A marcação inclui o próprio carácter de barra; por isso, para escapar uma barra, deveria escrever <userinput
+>\\</userinput
+>.</para>
+
+</sect2>
+
+<sect2>
+<title
+>Classes de Caracteres e abreviaturas</title>
+
+<para
+>Uma <emphasis
+>classe de caracteres</emphasis
+> é uma expressão que corresponde a um carácter, dentro de um conjunto definido de caracteres. Nas Expressões Regulares, as classes de caracteres são definidas, pondo os caracteres permitidos para a classe entre parêntesis rectos, <literal
+>[]</literal
+>, ou usando uma das classes abreviadas descritas em seguida.</para>
+
+<para
+>As classes de caracteres simples contêm apenas um ou mais caracteres literais, como por exemplo <userinput
+>[abc]</userinput
+> (o que pode corresponder quer a <quote
+>a</quote
+>, a <quote
+>b</quote
+> ou a <quote
+>c</quote
+>), ou então o <userinput
+>[0123456789]</userinput
+> (que corresponde a qualquer dígito).</para>
+
+<para
+>Dado que as letras e os números têm uma ordem lógica, poderá abreviá-los, definindo para tal intervalos: <userinput
+>[a-c]</userinput
+> é igual a <userinput
+>[abc]</userinput
+> e <userinput
+>[0-9]</userinput
+> é igual a <userinput
+>[0123456789]</userinput
+>. Combinando estas opções, por exemplo <userinput
+>[a-fynot1-38]</userinput
+> é perfeitamente possível (a última classe irá corresponder a um dos seguintes caracteres: <quote
+>a</quote
+>,<quote
+>b</quote
+>,<quote
+>c</quote
+>,<quote
+>d</quote
+>, <quote
+>e</quote
+>,<quote
+>f</quote
+>,<quote
+>y</quote
+>,<quote
+>n</quote
+>,<quote
+>o</quote
+>,<quote
+>t</quote
+>, <quote
+>1</quote
+>,<quote
+>2</quote
+>,<quote
+>3</quote
+> ou <quote
+>8</quote
+>).</para>
+
+<para
+>Dado que as letras maiúsculas são caracteres diferentes dos seus equivalentes minúsculos, para criar uma classe de caracteres indiferente da capitalização que corresponda quer a <quote
+>a</quote
+> ou a <quote
+>b</quote
+> em qualquer dos casos, será necessário indicá-la como <userinput
+>[aAbB]</userinput
+>.</para>
+
+<para
+>Obviamente, é possível criar uma classe <quote
+>negativa</quote
+> que corresponda a <quote
+>tudo excepto</quote
+>. Para o fazer, coloque um acento circunflexo (<literal
+>^</literal
+>) no início da classe: </para>
+
+<para
+><userinput
+>[^abc]</userinput
+> irá corresponder a qualquer carácter <emphasis
+>excepto</emphasis
+> o <quote
+>a</quote
+>, o <quote
+>b</quote
+> ou o <quote
+>c</quote
+>.</para>
+
+<para
+>Para além dos caracteres literais, estão definidas algumas abreviaturas, o que torna a vida um pouco mais fácil: <variablelist>
+
+<varlistentry>
+<term
+><userinput
+>\a</userinput
+></term>
+<listitem
+><para
+>Isto corresponde ao carácter <acronym
+>ASCII</acronym
+> da campainha (BEL, 0x07).</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>\f</userinput
+></term>
+<listitem
+><para
+>Isto corresponde ao carácter <acronym
+>ASCII</acronym
+> de 'form feed' (FF, 0x0C).</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>\n</userinput
+></term>
+<listitem
+><para
+>Isto corresponde ao carácter <acronym
+>ASCII</acronym
+> de 'line feed' (LF, 0x0A, a mudança de linha do Unix).</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>\r</userinput
+></term>
+<listitem
+><para
+>Isto corresponde ao carácter <acronym
+>ASCII</acronym
+> de 'carriage return' (CR, 0x0D).</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>\t</userinput
+></term>
+<listitem
+><para
+>Isto corresponde ao carácter <acronym
+>ASCII</acronym
+> de tabulação horizontal (HT, 0x09).</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>\v</userinput
+></term>
+<listitem
+><para
+>Isto corresponde ao carácter <acronym
+>ASCII</acronym
+> de tabulação vertical (VT, 0x0B).</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><userinput
+>\xhhhh</userinput
+></term>
+
+<listitem
+><para
+>Isto corresponde ao carácter Unicode com o código hexadecimal 'hhhh' (entre 0x0000 e 0xFFFF). O \0ooo (isto é, \zero ooo) corresponde ao carácter <acronym
+>ASCII</acronym
+>/Latin-1 com o código octal 'ooo' (entre 0 e 0377).</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>.</userinput
+> (ponto)</term>
+<listitem
+><para
+>Isto corresponde a qualquer carácter (mesmo à mudança de linha).</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>\d</userinput
+></term>
+<listitem
+><para
+>Corresponde a um dígito. É igual a <literal
+>[0-9]</literal
+></para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>\D</userinput
+></term>
+<listitem
+><para
+>Corresponde a um não-dígito. É igual a <literal
+>[^0-9]</literal
+> ou <literal
+>[^\d]</literal
+></para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>\s</userinput
+></term>
+<listitem
+><para
+>Corresponde a um carácter em branco. É praticamente igual a <literal
+>[ \t\n\r]</literal
+></para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>\S</userinput
+></term>
+<listitem
+><para
+>Corresponde a um carácter não-branco. É praticamente igual a <literal
+>[^ \t\r\n]</literal
+> e igual a <literal
+>[^\s]</literal
+></para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>\w</userinput
+></term>
+<listitem
+><para
+>Corresponde a qualquer <quote
+>carácter de palavra</quote
+> - neste caso, qualquer letra ou dígito. Repare que o sublinhado (<literal
+>_</literal
+>) não corresponde, como acontece com as expressões regulares do Perl. É igual a <literal
+>[a-zA-Z0-9]</literal
+></para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>\W</userinput
+></term>
+<listitem
+><para
+>Corresponde a um não-carácter de palavra - tudo menos letras ou dígitos. É igual a <literal
+>[^a-zA-Z0-9]</literal
+> ou <literal
+>[^\w]</literal
+></para
+></listitem>
+</varlistentry>
+
+
+</variablelist>
+
+</para>
+
+<para
+>As classes abreviadas podem ser postas dentro de uma classe personalizada; por exemplo, para corresponder a um carácter de palavra, a um espaço em branco ou a um ponto, poderia escrever <userinput
+>[\w \.]</userinput
+></para>
+
+<note
+> <para
+>A notação POSIX das classes, <userinput
+>[:&lt;nome da classe&gt;:]</userinput
+> não é suportada de momento.</para
+> </note>
+
+<sect3>
+<title
+>Os caracteres com significados especiais dentro de classes de caracteres</title>
+
+<para
+>Os seguintes caracteres têm um significado especial dentro da estrutura da classe de caracteres <quote
+>[]</quote
+>, devendo ser escapados para serem incluídos literalmente dentro de uma classe:</para>
+
+<variablelist>
+<varlistentry>
+<term
+><userinput
+>]</userinput
+></term>
+<listitem
+><para
+>Termina a classe de caracteres. Deve ser escapada, a menos que seja o primeiro carácter da classe (pode estar a seguir a um ^ não-escapado)</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><userinput
+>^</userinput
+> (acento circunflexo)</term>
+<listitem
+><para
+>Denota uma classe negativa, se for o primeiro carácter. Deve ser escapado para ser correspondido literalmente, se for o primeiro carácter da classe.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><userinput
+>-</userinput
+> (traço)</term>
+<listitem
+><para
+>Denota um intervalo lógico. Deve estar sempre escapado numa classe de caracteres.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><userinput
+>\</userinput
+> (barra invertida)</term>
+<listitem
+><para
+>O carácter de escape. Deve ser sempre escapado.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect3>
+
+</sect2>
+
+<sect2>
+
+<title
+>Alternativas: corresponder a <quote
+>um de</quote
+></title>
+
+<para
+>Se quiser corresponder a um elemento de um conjunto de padrões alternativos, podê-los-á separar com o <literal
+>|</literal
+> (carácter de barra vertical).</para>
+
+<para
+>Por exemplo, se quiser encontrar tanto <quote
+>João</quote
+> como <quote
+>Henrique</quote
+>, poderá usar uma expressão <userinput
+>João|Henrique</userinput
+>.</para>
+
+</sect2>
+
+<sect2>
+
+<title
+>Sub-Padrões</title>
+
+<para
+>Os <emphasis
+>sub-padrões</emphasis
+> são padrões colocados dentro de parêntesis, e podem ter várias utilizações no mundo das expressões regulares.</para>
+
+<sect3>
+
+<title
+>Definir alternativas</title>
+
+<para
+>Poderá usar um sub-padrão para agrupar um conjunto de alternativas num padrão maior. As alternativas são separadas pelo carácter <quote
+>|</quote
+> (barra vertical).</para>
+
+<para
+>Por exemplo, para corresponder a uma das palavras <quote
+>int</quote
+>, <quote
+>float</quote
+> ou <quote
+>double</quote
+>, poderia usar o padrão <userinput
+>int|float|double</userinput
+>. Se só desejar encontrar uma, se estiver seguida de algum espaço e de algumas letras, ponha as alternativas dentro de um sub-padrão: <userinput
+>(int|float|double)\s+\w+</userinput
+>.</para>
+
+</sect3>
+
+<sect3>
+
+<title
+>Capturar o texto correspondente (referências anteriores)</title>
+
+<para
+>Se desejar usar uma referência anterior, use um sub-padrão para obter a parte desejada do padrão recordado.</para>
+
+<para
+>Por exemplo, se quiser encontrar duas ocorrências da mesma palavra, separadas por uma vírgula e provavelmente por algum espaço, poderia escrever <userinput
+>(\w+),\s*\1</userinput
+>. O sub-padrão <literal
+>\w+</literal
+> iria encontrar um conjunto de caracteres de palavra e a expressão inteira iria corresponder, se estas fossem seguidas por uma vírgula, 0 ou mais espaços e por um conjunto igual de caracteres de palavras. (O texto <literal
+>\1</literal
+> referencia <emphasis
+>o primeiro sub-padrão entre parêntesis</emphasis
+>)</para>
+
+<note>
+<para
+>Para evitar ambiguidades com o uso do <userinput
+>\1</userinput
+> com alguns algarismos atrás (&eg; <userinput
+>\12</userinput
+>, poderá ser o 12º sub-padrão ou apenas o primeiro sub-padrão com o <userinput
+>2</userinput
+>), é usado o <userinput
+>\{12}</userinput
+> como sintaxe para os sub-padrões com vários algarismos.</para>
+<para
+>Exemplos:</para>
+<itemizedlist>
+<listitem
+><para
+>o <userinput
+>\{12}1</userinput
+> é <quote
+>usar o sub-padrão 12</quote
+></para
+></listitem>
+<listitem
+><para
+>o <userinput
+>\123</userinput
+> é <quote
+>usar a captura 1 e depois o 23 como texto normal</quote
+></para
+></listitem>
+</itemizedlist>
+
+</note>
+
+<!-- <para
+>See also <link linkend="backreferences"
+>Back references</link
+>.</para
+> -->
+
+</sect3>
+
+<sect3 id="lookahead-assertions">
+<title
+>Verificações Antecipadas</title>
+
+<para
+>Uma verificação antecipada é um sub-padrão que começa por <literal
+>?=</literal
+> ou por <literal
+>?!</literal
+>.</para>
+
+<para
+>Por exemplo, para fazer a correspondência com o nome <quote
+>Bill</quote
+> mas só se não for seguido de <quote
+> Gates</quote
+>, podia usar esta expressão: <userinput
+>Bill(?! Gates)</userinput
+>. (Isto iria encontrar o <quote
+>Bill Clinton</quote
+>, assim como o <quote
+>Billy the kid</quote
+>, mas iria ignorar as outras correspondências).</para>
+
+<para
+>Os sub-padrões usados para as verificações não são capturados.</para>
+
+<para
+>Veja também as <link linkend="assertions"
+>Asserções ou Verificações</link
+></para>
+
+</sect3>
+
+</sect2>
+
+<sect2 id="special-characters-in-patterns">
+<title
+>Os caracteres com um significado especial dentro de padrões</title>
+
+<para
+>Os seguintes caracteres têm significado próprio dentro de um padrão, e necessitam ser escapados se quiser fazer correspondência com eles: <variablelist>
+
+<varlistentry>
+<term
+><userinput
+>\</userinput
+> (barra invertida)</term>
+<listitem
+><para
+>O carácter de escape.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>^</userinput
+> (acento circunflexo)</term>
+<listitem
+><para
+>Corresponde ao início do texto.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>$</userinput
+></term>
+<listitem
+><para
+>Verifica o fim do texto.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>()</userinput
+> (parêntesis esquerdo e direito)</term>
+<listitem
+><para
+>Denota os sub-padrões.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>{}</userinput
+> (chavetas esquerda e direita)</term>
+<listitem
+><para
+>Denota os quantificadores numéricos.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>[]</userinput
+> (parêntesis rectos esquerdo e direito)</term>
+<listitem
+><para
+>Denota as classes de caracteres.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>|</userinput
+> (barra vertical)</term>
+<listitem
+><para
+>OU lógico; separa as alternativas.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>+</userinput
+> (sinal mais)</term>
+<listitem
+><para
+>Quantificador, 1 ou mais.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>*</userinput
+> (asterisco)</term>
+<listitem
+><para
+>Quantificador, 0 ou mais.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>?</userinput
+> (ponto de interrogação)</term>
+<listitem
+><para
+>Um carácter opcional. Pode ser interpretado como um quantificador 0 ou 1.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</para>
+
+</sect2>
+
+</sect1>
+
+<sect1 id="quantifiers">
+<title
+>Quantificadores</title>
+
+<para
+>Os <emphasis
+>quantificadores</emphasis
+> permitem a uma expressão regular fazer a correspondência com um número ou intervalo específico de vezes nas quais ocorre um carácter, classe de caracteres ou sub-padrão.</para>
+
+<para
+>Os quantificadores estão delimitados por chavetas (<literal
+>{</literal
+> e <literal
+>}</literal
+>) e têm a forma geral <literal
+>{[mínimo-de-ocorrências][,[máximo-de-ocorrências]]}</literal
+> </para>
+
+<para
+>A sua utilização será melhor explicada com um exemplo: <variablelist>
+
+<varlistentry>
+<term
+><userinput
+>{1}</userinput
+></term>
+<listitem
+><para
+>Exactamente 1 ocorrência</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>{0,1}</userinput
+></term>
+<listitem
+><para
+>Zero ou 1 ocorrências</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>{,1}</userinput
+></term>
+<listitem
+><para
+>O mesmo, mas com menos trabalho ;)</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>{5,10}</userinput
+></term>
+<listitem
+><para
+>Pelo menos 5, mas no máximo 10 ocorrências.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>{5,}</userinput
+></term>
+<listitem
+><para
+>Pelo menos 5 ocorrências, sem máximo.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</para>
+
+<para
+>Adicionalmente, existem algumas abreviaturas: <variablelist>
+
+<varlistentry>
+<term
+><userinput
+>*</userinput
+> (asterisco)</term>
+<listitem
+><para
+>semelhante a <literal
+>{0,}</literal
+>, encontra qualquer número de ocorrências.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>+</userinput
+> (sinal mais)</term>
+<listitem
+><para
+>semelhante a <literal
+>{1,}</literal
+>, pelo menos 1 ocorrência.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>?</userinput
+> (ponto de interrogação)</term>
+<listitem
+><para
+>semelhante a <literal
+>{0,1}</literal
+>, zero ou uma ocorrências.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</para>
+
+<sect2>
+
+<title
+>Ganância</title>
+
+<para
+>Ao usar quantificadores sem máximos, as expressões regulares tentam corresponder com o máximo do texto possível, um comportamento designado normalmente como <emphasis
+>greedy</emphasis
+> (ambicioso).</para>
+
+<para
+>O 'software' de expressões regulares moderno oferece as opções para <quote
+>desligar esse comportamento</quote
+>, ainda que, num ambiente gráfico, isto dependa da interface que der para a funcionalidade. Por exemplo, uma janela de procura, que ofereça uma pesquisa de expressões regulares, poderia ter uma opção chamada <quote
+>Correspondência mínima</quote
+>, assim como podia indicar se o comportamento ambicioso é o comportamento por omissão.</para>
+
+</sect2>
+
+<sect2>
+<title
+>Exemplos no contexto</title>
+
+<para
+>Aqui estão alguns exemplos da utilização de quantificadores</para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><userinput
+>^\d{4,5}\s</userinput
+></term>
+<listitem
+><para
+>Corresponde aos dígitos em <quote
+>1234 go</quote
+> e em <quote
+>12345 now</quote
+>, mas não corresponde a <quote
+>567 eleven</quote
+> ou a <quote
+>223459 somewhere</quote
+></para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>\s+</userinput
+></term>
+<listitem
+><para
+>Corresponde a um ou mais caracteres em branco</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>(bla){1,}</userinput
+></term>
+<listitem
+><para
+>Corresponde a tudo de <quote
+>blablabla</quote
+> e a <quote
+>bla</quote
+> em <quote
+>blackbird</quote
+> ou em <quote
+>tabela</quote
+></para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>/?&gt;</userinput
+></term>
+<listitem
+><para
+>Corresponde a <quote
+>/&gt;</quote
+> em <quote
+>&lt;closeditem/&gt;</quote
+> assim como a <quote
+>&gt;</quote
+> em <quote
+>&lt;openitem&gt;</quote
+>.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+
+</sect1>
+
+<sect1 id="assertions">
+<title
+>Asserções</title>
+
+<para
+>As <emphasis
+>verificações</emphasis
+> ou asserções permitem a uma expressão regular fazer a correspondência, apenas sob determinadas condições controladas.</para>
+
+<para
+>Uma verificação não precisa de um carácter com o qual corresponder; em vez disso, verifica os limites de uma possível correspondência antes de a indicar. Por exemplo, a verificação de <emphasis
+>limite de palavra</emphasis
+> não tenta encontrar um carácter não pertencente a uma palavra junto com um carácter de palavra, mas sim tenta ter a certeza que não existe um carácter de palavra. Isto significa que a verificação pode corresponder onde não existir um carácter, isto é, no fim do texto a pesquisar.</para>
+
+<para
+>Algumas verificações, de facto, têm um padrão de correspondência, mas a parte do texto que correspondeu não será uma parte do resultado da correspondência, em relação à expressão completa.</para>
+
+<para
+>As Expressões Regulares aqui referidas suportam as seguintes verificações: <variablelist>
+
+<varlistentry>
+<term
+><userinput
+>^</userinput
+> (acento circunflexo: início do texto)</term>
+<listitem
+><para
+>Corresponde ao início do texto a pesquisar.</para
+> <para
+>A expressão <userinput
+>^Pedro</userinput
+> irá corresponder a <quote
+>Pedro</quote
+> no texto <quote
+>Pedro, olá!</quote
+> mas não em <quote
+>Olá, Pedro!</quote
+> </para
+> </listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>$</userinput
+> (fim do texto)</term>
+<listitem
+><para
+>Corresponde ao fim do texto a pesquisar.</para>
+
+<para
+>A expressão <userinput
+>tu\?$</userinput
+> irá corresponder ao último 'tu' no texto <quote
+>tu não fizeste isto, ou foste tu?</quote
+> mas não fará correspondência em <quote
+>tu não fizeste isto, certo?</quote
+></para>
+
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>\b</userinput
+> (limite de palavra)</term>
+<listitem
+><para
+>Corresponde a um limite de palavra de um lado e se não é um carácter de palavra do outro.</para>
+<para
+>Isto é útil para encontrar limites das palavras como, por exemplo, ambos os extremos para encontrar uma palavra inteira. A expressão <userinput
+>\bem\b</userinput
+> irá corresponde ao <quote
+>em</quote
+> separado no texto <quote
+>Ele entrou em Enfermagem</quote
+>, mas não corresponder a <quote
+>em</quote
+> na palavra <quote
+>Enfermagem</quote
+>.</para
+></listitem>
+
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>\B</userinput
+> (não-limite de palavra)</term>
+<listitem
+><para
+>Corresponde nos locais onde o <quote
+>\b</quote
+> não faz correspondência.</para>
+<para
+>Isto significa que ele irá fazer correspondência, por exemplo, dentro de palavras. A expressão <userinput
+>\Bem\B</userinput
+> irá corresponder a <quote
+>sempre</quote
+> mas não a <quote
+>cem</quote
+> ou a <quote
+>Estou em casa</quote
+>.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>(?=PADRÃO)</userinput
+> (Antevisão positiva)</term>
+<listitem
+><para
+>Uma verificação antecipada olha para a parte do texto a seguir a uma possível correspondência. A antecipação positiva irá evitar que o texto corresponda se o texto que se encontra a seguir a possível correspondência não corresponder ao <emphasis
+>PADRÃO</emphasis
+> da verificação; o texto correspondente não será incluído no resultado.</para>
+<para
+>A expressão <userinput
+>utilizar(?=\w)</userinput
+> irá corresponder a <quote
+>utilizar</quote
+> em <quote
+>utilizarei</quote
+>, mas não irá corresponder com <quote
+>Não vou utilizar!</quote
+></para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>(?!PADRÃO)</userinput
+> (Antevisão Negativa)</term>
+
+<listitem
+><para
+>A antevisão negativa evita que uma possível correspondência seja extraída, se a parte subsequente ao texto procurado corresponder ao <emphasis
+>PADRÃO</emphasis
+>.</para>
+<para
+>A expressão <userinput
+>const \w+\b(?!\s*&amp;)</userinput
+> irá corresponder com o <quote
+>const char</quote
+> do texto <quote
+>const char* ola</quote
+>, embora não corresponderá a <quote
+>const QString</quote
+> em <quote
+>const QString&amp; bar</quote
+> porque o <quote
+>&amp;</quote
+> corresponde ao padrão de verificação antecipada negativa.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</para>
+
+</sect1>
+
+<!-- TODO sect1 id="backreferences">
+
+<title
+>Back References</title>
+
+<para
+></para>
+
+</sect1 -->
+
+</appendix>

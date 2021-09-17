@@ -1,0 +1,34 @@
+Snippet plugin for KDevelop4
+============================
+
+=> Moved to KatePart to allow other applications to take benefits
+
+(C) Robert Gruber [rgruber A users!sourceforge!net]
+(C) Milian Wolff <mail@milianw.de>
+
+*** work in progress ***
+
+1. Basics
+Snippets and repositoryies get displayed as tree.
+
+Snippets are grouped into repositories, which are saved as XML files to disk.
+The XML format is the same as used in the snippets_tng plugin for Kate.
+
+We look for available repository files via QStandardPaths in share/ktexteditor_snippets/{data,ghns}/.
+
+After importing, the repository and it's snippets and sup-repositories show
+up in the snippet tree and the snippets can be inserted like normal code-completion items.
+
+2. Editing
+Snipets and repositories can be edited via the contextmenu of the snippet tree.
+
+Changing a repository's name will also rename the file from which the snippet has
+been loaded.
+
+3. Contents of a snippet
+A snippet can contain any kind of text. A snippet's text will inserted into the
+currently active document uppon doubleclicking a snippet from the tree or by
+executing it's completion item.
+
+The snippets content's can contain variables, see the documentation of KTextEditor::TemplateInterface
+for more information.

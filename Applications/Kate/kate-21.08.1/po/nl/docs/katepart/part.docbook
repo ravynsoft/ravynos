@@ -1,0 +1,944 @@
+<!--pulled in by kwrite too-->
+<chapter id="kate-part">
+<chapterinfo>
+<authorgroup>
+<author
+>&Anders.Lund; &Anders.Lund.mail;</author>
+<author
+>&Dominik.Haumann; &Dominik.Haumann.mail;</author>
+&Natalie.Koning;&Freek.de.Kruijf; 
+</authorgroup>
+</chapterinfo>
+<title
+>Werken met de editor van &kappname;</title>
+
+<sect1 id="kate-part-overview">
+
+<title
+>Overzicht</title>
+
+<para
+>De editor van &kappname; is het editor-gedeelte in het venster van &kappname;. Deze editor wordt gedeeld tussen &kate; en &kwrite; en kan ook in &konqueror; gebruikt worden om tekstbestanden, vanaf de lokale computer of vanaf het netwerk, weer te geven.</para>
+
+<para
+>De editor bestaat uit de volgende componenten:</para>
+
+<variablelist>
+
+<varlistentry>
+<term
+>Het bewerkgebied</term>
+<listitem
+><para
+>Hier bevindt zich de tekst van uw document.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>De schuifbalken</term>
+<listitem>
+<para
+>De schuifbalken tonen de positie van het zichtbare gedeelte in het document en kunnen gebruikt worden om door het document te navigeren. De tekstcursor wordt niet verplaatst als de tekst door middel van de schuifbalken verplaatst wordt.</para>
+<para
+>De schuifbalken worden alleen getoond als dit noodzakelijk is, als dit niet noodzakelijk is blijven ze verborgen.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>De pictogramrand</term>
+<listitem>
+<para
+>De pictogramrand is een smalle rand aan de linkerkant van de editor, hierop worden naast gemarkeerde regels (regels met een bladwijzer) kleine pictogrammen geplaatst.</para>
+<para
+>U kunt <link linkend="kate-part-bookmarks"
+>bladwijzers</link
+> bij zichtbare regels plaatsen of verwijderen door met de &LMB; op de pictogramrand naast die regel te klikken.</para>
+<para
+>De pictogramrand kan in- of uitgeschakeld worden in het menu <menuchoice
+><guimenu
+>Beeld</guimenu
+><guimenuitem
+>Pictogramrand tonen</guimenuitem
+></menuchoice
+>.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>De regelnummering</term>
+<listitem>
+<para
+>De regelnummers van alle zichtbare regels worden in een rand aan de linkerkant van de editor geplaatst.</para>
+<para
+>Het tonen van regelnummers kan in- en uitgeschakeld worden in het menu <menuchoice
+><guimenu
+>Beeld</guimenu
+><guimenuitem
+>Regelnummering tonen</guimenuitem
+></menuchoice
+>.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Het invouwpaneel</term>
+<listitem>
+<para
+>Het opvouwpaneel stelt u in staat om opvouwbare blokken regels in of uit te vouwen. De berekening van de opvouwbare gebieden wordt gedaan volgens de regels in de syntaxis voor definities voor accentuering in het document.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+<itemizedlist>
+<title
+>Andere onderwerpen in dit hoofdstuk:</title>
+<listitem
+><para
+><link linkend="kate-part-navigation"
+>Door de tekst navigeren</link
+> </para
+></listitem>
+<listitem
+><para
+><link linkend="kate-part-selection"
+>Werken met de selectie</link
+></para
+></listitem>
+<listitem
+><para
+><link linkend="kate-part-copy-and-paste"
+>Tekst kopiëren en plakken</link
+></para
+></listitem>
+<listitem
+><para
+><link linkend="kate-part-find-replace"
+>Tekst zoeken en vervangen</link
+></para
+></listitem>
+<listitem
+><para
+><link linkend="kate-part-bookmarks"
+>Bladwijzers gebruiken</link
+></para
+></listitem>
+<listitem
+><para
+><link linkend="kate-part-auto-wrap"
+>Automatisch regels afbreken</link
+></para
+></listitem>
+<listitem
+><para
+><link linkend="kate-part-autoindent"
+>Automatisch inspringen gebruiken</link
+></para
+></listitem>
+</itemizedlist>
+
+</sect1>
+
+<sect1 id="kate-part-navigation">
+<title
+>Door de tekst navigeren</title>
+
+<para
+>Door de tekst lopen in &kappname; is vergelijkbaar met de meeste grafische tekstbewerkers. U beweegt de cursor door de pijltjestoetsen en de toetsen &PgUp;, &PgDn;, &Home; en &End; in combinatie met de &Ctrl; and &Shift; om de functie te wijzigen. De &Shift;-toets wordt altijd gebruikt om een selectie te maken, terwijl de &Ctrl;-toets verschillende effecten heeft op verschillende toetsen: <itemizedlist>
+<listitem
+><para
+>Voor de toetsen &Up; en &Down; betekent het schuiven van het beeld in plaats van verplaatsen van de cursor.</para
+></listitem>
+<listitem
+><para
+>Voor de toetsen &Left; en &Right; betekent het sla woorden over in plaats van tekens.</para
+></listitem>
+<listitem
+><para
+>Voor de toetsen &PgUp; en &PgDn; betekent het ga naar de zichtbare rand van het beeld in plaats van bladeren.</para>
+</listitem>
+<listitem
+><para
+>Voor de toetsen &Home; en &End; betekent het verplaatsen naar het begin of eind van het document in plaats van het begin of eind van de regel.</para
+></listitem>
+</itemizedlist>
+</para>
+
+<para
+>&kappname; biedt u ook een manier om snel naar een overeenkomstige accolade of haakje te gaan: plaats de cursor aan de binnenkant van een haakje of accolade, en druk op <keycombo action="simul"
+>&Ctrl;<keycap
+>6</keycap
+></keycombo
+> om naar het overeenkomstige haakje of de accolade te springen.</para>
+
+<para
+>U kunt ook <link linkend="kate-part-bookmarks"
+>bladwijzers</link
+> plaatsen om snel naar posities te springen die u zelf definieert.</para>
+
+</sect1>
+
+<sect1 id="kate-part-selection">
+<title
+>Werken met de selectie</title>
+
+<para
+>Er zijn twee manieren om tekst in &kappname; te selecteren: met de muis en met het toetsenbord.</para>
+
+<para
+>Om met de muis te selecteren houdt u de &LMB; ingedrukt terwijl u de muiswijzer van het begin van de te selecteren tekst tot het einde ervan sleept. De tekst wordt geselecteerd terwijl u sleept.</para>
+
+<para
+>Een dubbelklik op een woord selecteert dat woord.</para>
+
+<para
+>Een drievoudige klik in een regel selecteert de gehele regel.</para>
+
+<para
+>Als u de &Shift;-toets ingedrukt houdt terwijl u klikt, wordt tekst op de volgende manier geselecteerd:</para>
+
+<itemizedlist>
+<listitem
+><para
+>Als er nog niets geselecteerd is, vanaf de positie van de tekstcursor tot de positie van de muiswijzer.</para
+></listitem>
+<listitem
+><para
+>Als er al tekst geselecteerd is, vanaf het begin van die selectie tot de positie van de muiswijzer.</para
+></listitem>
+</itemizedlist>
+
+<note>
+<para
+>Wanneer u tekst selecteert door met de muis te slepen, wordt de geselecteerde tekst naar het klembord gekopieerd. De selectie kan geplakt worden door met de middelste muisknop in de editor of in een andere toepassing te klikken. </para>
+</note>
+
+<para
+>Om met het toetsenbord te selecteren houdt u de &Shift;-toets ingedrukt terwijl u de navigatietoetsen (de toetsen, &PgUp;, &PgDn;, &Home; en &End;) gebruikt, eventueel in combinatie met de &Ctrl;-toets om het verplaatsen van de cursor uit te breiden.</para>
+
+<para
+>Zie ook <link linkend="kate-part-navigation"
+>Door de tekst navigeren</link
+> in dit hoofdstuk.</para>
+
+<para
+>Om de huidige selectie te <action
+>Kopiëren</action
+> kunt u het menu <menuchoice
+><guimenu
+>Bewerken</guimenu
+> <guimenuitem
+>Kopiëren</guimenuitem
+></menuchoice
+> of de sneltoetsen <keycombo action="simul"
+>&Ctrl;<keycap
+>C</keycap
+></keycombo
+> gebruiken.</para>
+
+<para
+>Om de selectie te <action
+>Deselecteren</action
+> kunt u het menu <menuchoice
+><guimenu
+>Bewerken</guimenu
+> <guimenuitem
+>Deselecteren</guimenuitem
+></menuchoice
+>, of de sneltoetsen <keycombo action="simul"
+>&Ctrl;&Shift;<keycap
+>A</keycap
+></keycombo
+> gebruiken, of met de &LMB; in de editor klikken.</para>
+
+<sect2 id="kate-part-selection-block">
+<title
+>Blokselectie gebruiken</title>
+
+<para
+>Wanneer "Blokselectie" ingeschakeld is, kunt u <quote
+>verticale selecties</quote
+> in de tekst maken, dit betekent dat u een aantal kolommen uit meerdere regels kunt selecteren. Dit kan handig zijn als u met tekst werkt die opgemaakt is in kolommen.</para>
+
+<para
+>Blokselectie kan in-/uitgeschakeld worden door het menu <menuchoice
+><guimenu
+>Bewerken</guimenu
+> <guimenuitem
+>Blokselectiemodus</guimenuitem
+></menuchoice
+> te gebruiken. De standaard sneltoets is <keycombo action="simul"
+>&Ctrl;&Shift;<keycap
+>B</keycap
+> </keycombo
+>.</para>
+
+</sect2>
+
+<sect2 id="kate-part-selection-overwrite">
+<!-- term not used in settings Editing Text Seöection Mode, it is called "Normal"-->
+<title
+>Selectie overschrijven</title>
+
+<para
+>Als "Selectie overschrijven" ingeschakeld is, wordt de geselecteerde tekst vervangen door de tekst die u intypt of plakt. Als het niet ingeschakeld is, wordt nieuwe tekst op de cursorpositie ingevoegd.</para>
+
+<para
+>Selectie overschrijven is standaard ingeschakeld.</para>
+
+<para
+>De instellingen voor deze optie kunt u wijzigen door gebruik van de pagina <link linkend="pref-edit-cursor-selection"
+>Cursor &amp; selectie</link
+> in het dialoogvenster <link linkend="config-dialog"
+>Instellingendialoog</link
+>.</para>
+
+</sect2>
+
+<sect2 id="kate-part-selection-persistent">
+
+<title
+>Blijvende selectie</title>
+
+<para
+>Wanneer "Blijvende selectie" ingeschakeld is, wordt de selectie niet ongedaan gemaakt wanneer u tekst typt of de cursor verplaatst. Dit betekent dat u de cursor ergens anders heen kunt verplaatsen en daar tekst kunt intypen.</para>
+
+<para
+>Blijvende selectie is standaard uitgeschakeld.</para>
+
+<para
+>Blijvende selectie kan ingesteld worden op de pagina <link linkend="pref-edit-cursor-selection"
+>Cursor &amp; selectie</link
+> in <link linkend="config-dialog"
+>Instellingendialoog</link
+>.</para>
+
+<warning
+> <!-- is that still possible in 4.4? radio button Normal + Persistent!-->
+<para
+>Als "Blijvende selectie" en "Selectie overschrijven" beide ingeschakeld zijn, wordt de selectie gedeselecteerd en vervangen door getypte of geplakte tekst wanneer de tekstcursor zich binnen de selectie bevindt.</para>
+</warning>
+
+</sect2>
+
+</sect1>
+
+<sect1 id="kate-part-copy-and-paste">
+
+<title
+>Tekst kopiëren en plakken</title>
+
+<para
+>Om tekst te kopiëren selecteert u de tekst en daarna gebruikt u het menu <menuchoice
+><guimenu
+>Bewerken</guimenu
+> <guimenuitem
+>Kopiëren</guimenuitem
+></menuchoice
+>. Bovendien wordt met de muis geselecteerde tekst naar de X-selectie gekopieerd.</para>
+
+<para
+>Om tekst van het klembord te plakken gebruikt u het menu <menuchoice
+><guimenu
+>Bewerken</guimenu
+> <guimenuitem
+>Plakken</guimenuitem
+></menuchoice
+>.</para>
+
+<para
+>Bovendien kan tekst die met de muis is geselecteerd, geplakt worden door met de &MMB; op de gewenste positie te klikken.</para>
+
+<tip>
+<para
+>Als u het &kde;-bureaublad gebruikt, kunt u tekst die al eerder vanuit andere toepassingen gekopieerd is, ophalen door het &klipper;-pictogram in het systeemvak te gebruiken.</para>
+</tip>
+
+</sect1>
+
+<!-- changed in 4.5-->
+<sect1 id="kate-part-find-replace">
+<title
+>Tekst zoeken en vervangen</title>
+
+<sect2 id="find-replace-bars">
+<title
+>De balken voor zoeken en vervangen</title>
+
+
+<para
+>&kappname; heeft een incrementele zoekbalk en een krachtige zoek- en vervangbalk, die de mogelijkheid biedt om vervangende tekst in te voeren samen met enkele extra opties.</para>
+
+<para
+>De balken bieden de volgende gezamenlijke opties:</para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><guilabel
+>Zoeken</guilabel
+></term>
+<listitem
+><para
+>Hier typt u de tekenreeks in die gezocht moet worden. De interpretatie ervan is afhankelijk van enkele opties die hieronder beschreven worden.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Hoofdlettergevoelig</guilabel
+></term>
+<listitem>
+<para
+>Indien geactiveerd, kunt u kiezen of bij het zoeken rekening gehouden moet worden met hoofdletters of kleine letters.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+<para
+>De krachtige zoek- eb vervangbalk biedt enkele extra opties:</para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><guilabel
+>Platte tekst</guilabel
+></term>
+<listitem>
+<para
+>De te zoeken tekenreeks moet letterlijk overeenkomen.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Hele woorden</guilabel
+></term>
+<listitem>
+<para
+>Als deze optie geactiveerd is, wordt alleen een overeenkomst gevonden er een woordgrens aan beide kanten van de tekenreeks staat, wat betekent geen alfanumeriek teken of een ander zichtbaar teken of een einde regel.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Escape Sequences</guilabel
+></term>
+<listitem>
+<para
+>Als deze optie geactiveerd is, komt er een menuitem <guibutton
+>Toevoegen</guibutton
+> aan het eind van het contextmenu van de tekstvakken beschikbaar, die u in staat stelt om uit een voorgedefinieerde lijst "escape-reeksen" toe te voegen.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Reguliere expressie</guilabel
+></term>
+<listitem>
+<para
+>Als deze optie geactiveerd is, wordt de zoektekenreeks als een reguliere expressie geïnterpreteerd. Het menuitem <guibutton
+>Toevoegen</guibutton
+> komt aan het eind van het contextmenu van de tekstvakken beschikbaar,die u in staat stelt om uit een voorgedefinieerde lijst "reguliere expressies" toe te voegen aan het zoekpatroon.</para>
+<para
+>Zie <link linkend="regular-expressions"
+>Reguliere expressies</link
+> voor meer informatie hierover.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Alleen in de selectie zoeken</guilabel
+></term>
+<listitem>
+<para
+>Indien geactiveerd, zal zoeken en vervangen alleen worden uitgevoerd binnen de geselecteerd tekst.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Allen zoeken</guilabel
+></term>
+<listitem>
+<para
+>op deze knop drukken accentueert alle overeenkomsten in het document en toont het aantal gevonden overeenkomsten in een kleine popup. </para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+<!--FIXME keep in sync with kate/menus.docbook <varlistentry id="edit-find"
+> -->
+<sect2 id="finding-text">
+<title
+>Tekst vinden</title>
+
+<para
+>Om tekst te vinden start u de incrementele zoekbalk met <keycombo action="simul"
+>&Ctrl;<keycap
+>F</keycap
+></keycombo
+> of met het menuitem <menuchoice
+><guimenu
+>Bewerken</guimenu
+> <guimenuitem
+>Zoeken...</guimenuitem
+></menuchoice
+>.</para>
+<para
+>Dit opent de zoekbalk onder in het venster van de editor. Links in de balk bevindt zich een knop met een pictogram om de balk te sluiten, gevolgd door een klein invoerveld voor het opgeven van het zoekpatroon.</para>
+<para
+>Het zoeken begint onmiddellijk nadat u de eerste letters van uw zoekpatroon intypt. Als er een overeenkomst is in de tekst, wordt deze gemarkeerd en verandert de achtergrondkleur van de invoer in lichtgroen. Als er geen overeenkomst gevonden wordt in de tekst wordt dit aangegeven door een lichtrode achtergrondkleur van het invoerveld.</para>
+<para
+>Gebruik de knop <inlinemediaobject
+><imageobject
+><imagedata fileref="arrow-up-double-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> of <inlinemediaobject
+><imageobject
+><imagedata fileref="arrow-down-double-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> om naar de volgende of vorige overeenkomst in het document te gaan.</para>
+<para
+>Overeenkomsten in het document zijn geaccentueerd zelfs wanneer u de zoekbalk sluit. Om deze accentuering te wissen drukt u op de &Esc;-toets.</para>
+<para
+>U kunt kiezen of bij het zoeken rekening gehouden moet worden met hoofdletters of kleine letters. Kiest u <inlinemediaobject
+><imageobject
+><imagedata fileref="format-text-superscript-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+>, dan krijgt u alleen de tekst die precies overeenkomt met de hoofd- en kleine letters in het zoekpatroon.</para>
+<para
+>Klik op de knop <inlinemediaobject
+><imageobject
+><imagedata fileref="configure-shortcuts-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> rechts van de incrementele zoekbalk om over te schakelen naar het balk geavanceerd zoeken en vervangen. </para>
+<para
+>Om de laatste zoekbewerking te herhalen, indien aanwezig, zonder de incrementele zoekbalk op te roepen, gebruikt u <menuchoice
+> <shortcut
+><keycombo action="simul"
+><keycap
+>F3</keycap
+></keycombo
+></shortcut
+> <guimenu
+>Bewerken</guimenu
+><guimenuitem
+>Volgende zoeken</guimenuitem
+></menuchoice
+> of <menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Shift;<keycap
+>F3</keycap
+></keycombo
+></shortcut
+> <guimenu
+>Bewerken</guimenu
+><guimenuitem
+>Vorige zoeken</guimenuitem
+></menuchoice
+>. </para>
+
+</sect2>
+<!--FIXME keep in sync with kate/menus.docbook <varlistentry id="edit-replace"
+> -->
+<sect2 id="replacing-text">
+<title
+>Tekst vervangen</title>
+
+<para
+>Om tekst te vervangen, start u de krachtige zoek- en vervangbalk met het commando <menuchoice
+><guimenu
+>Bewerken</guimenu
+> <guimenuitem
+>vervangen</guimenuitem
+></menuchoice
+> of de sneltoets <keycombo action="simul"
+>&Ctrl;<keycap
+>R</keycap
+></keycombo
+>.</para>
+<para
+>Links op de balk bevindt zich een knop met een pictogram om de balk te sluiten, gevolgd door een kleine keuzelijst om het zoekpatroon in te voeren. De lijst herinnert zich recent gebruikte patronen.</para>
+<para
+>U kunt de zoekmodus aanpassen door uit het afrolvak te kiezen voor <guilabel
+>Platte tekst</guilabel
+>, <guilabel
+>Hele woorden</guilabel
+>, <guilabel
+>Escape-sequences</guilabel
+>  of <guilabel
+>Reguliere expressie</guilabel
+>. </para>
+<para
+>Als <guilabel
+>Escape sequences</guilabel
+> of <guilabel
+>Reguliere expressie</guilabel
+> geselecteerd is,  zal het menu-item<guibutton
+>Toevoegen...</guibutton
+> onderaan het contextmenu van de tekstinvoervelden geactiveerd worden. Hierdoor kunt u escape sequences of reguliere expressie-items toevoegen aan het zoek- of vervangpatroon vanuit voorgedefinieerde lijsten.</para>
+<para
+>Gebruik de knop <inlinemediaobject
+><imageobject
+><imagedata fileref="arrow-up-double-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> of <inlinemediaobject
+><imageobject
+><imagedata fileref="arrow-down-double-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> om naar de volgende of vorige overeenkomst in het document te gaan.</para>
+<para
+>Typ de vervangende tekst in in het tekstinvoerveld met de naam <guilabel
+>Vervangen</guilabel
+> en klik op de knop <guibutton
+>Vervangen</guibutton
+> om alleen de geaccentueerde tekst te vervangen, of de knop <guibutton
+>Alles vervangen</guibutton
+> om de gezochte tekst in het hele document te vervangen. </para>
+<para
+>U kunt het gedrag van zoeken en vervangen wijzigen door onderin de balk verschillende opties te kiezen. Het kiezen van <inlinemediaobject
+><imageobject
+><imagedata fileref="format-text-superscript-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> resulteert in alleen die tekenreeksen waarvan elke letter overeenkomt met de hoofdletter of kleine letter zoals opgegeven in de zoekopdracht. <inlinemediaobject
+><imageobject
+><imagedata fileref="edit-select-all-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> zal alleen binnen de huidige selectie zoeken en vervangen. De knop <guilabel
+>Alles zoeken</guilabel
+> accentueert alle overeenkomsten in het document en toont het aantal gevonden resultaten in een klein popup-venster. </para>
+<para
+>Klik op de knop <inlinemediaobject
+><imageobject
+><imagedata fileref="configure-shortcuts-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> rechts in de balk zoeken en vervangen om over te schakelen naar de incrementele zoekbalk. </para>
+<tip>
+<para
+>Als u reguliere expressies gebruikt om de te vervangen tekst te zoeken, kunt u gebruik maken van terugverwijzingen om tekst die tussen haakjes in subpatronen staat opnieuw te gebruiken.</para>
+<para
+>Zie <link linkend="regular-expressions"
+>Reguliere expressies</link
+> voor meer informatie hierover.</para>
+</tip>
+
+<tip
+><para
+>U kunt de commando's <command
+>find</command
+>, <command
+>replace</command
+> en <command
+>ifind</command
+> (incrementeel zoeken) vanaf de <link linkend="advanced-editing-tools-commandline"
+>commandoregel</link
+>.</para>
+</tip>
+
+</sect2>
+
+</sect1>
+
+<sect1 id="kate-part-bookmarks">
+<title
+>Bladwijzers gebruiken</title>
+
+<para
+>Door middel van bladwijzers kunt u bepaalde regels markeren om ze snel terug te kunnen vinden.</para>
+
+<para
+>U kunt op twee manieren bladwijzers instellen of verwijderen:</para>
+
+<itemizedlist>
+<listitem>
+<para
+>Beweeg de invoegcursor naar de regel en activeer het commando <menuchoice
+><guimenu
+>Bladwijzers</guimenu
+><guimenuitem
+>Bladwijzer instellen</guimenuitem
+></menuchoice
+> (<keycombo action="simul"
+>&Ctrl;<keycap
+>B</keycap
+></keycombo
+>).</para>
+</listitem>
+<listitem>
+<para
+>Klik in de pictogramrand naast de regel.</para>
+</listitem>
+</itemizedlist>
+
+
+<para
+>Het menu <guimenu
+>Bladwijzers</guimenu
+> bevat een lijst met alle bladwijzers. Elke bladwijzer is herkenbaar aan het regelnummer en het begin van de tekst op de regel. Om de tekstcursor naar het begin van een gemarkeerde regel te verplaatsen selecteert u de gewenste bladwijzer in het menu.</para>
+
+<para
+>Om snel van bladwijzer naar bladwijzer te bewegen of naar de volgende/vorige bladwijzer, gebruikt u de commando's <menuchoice
+><guimenu
+>Bladwijzers</guimenu
+><guimenuitem
+>Volgende</guimenuitem
+> </menuchoice
+> (<keycombo action="simul"
+>&Alt; &PgDn;</keycombo
+>) of <menuchoice
+> <guimenu
+>Bladwijzers</guimenu
+><guimenuitem
+>Vorige</guimenuitem
+></menuchoice
+> (<keycombo action="simul"
+>&Alt;&PgUp; </keycombo
+>).</para>
+
+</sect1>
+
+<sect1 id="kate-part-auto-wrap">
+<!--dynamic word wrap needs description here-->
+<title
+>Automatische regelafbreking</title>
+
+<para
+>Met behulp van deze functie kan tekst op een eenvoudige manier opgemaakt worden: de regels worden afgebroken op de ingestelde regellengte. Dit gebeurt echter niet bij aaneengesloten tekenreeksen die langer zijn dan de ingestelde regellengte.</para>
+
+<para
+>U kunt deze functie in- en uitschakelen door het keuzevakje <guibutton
+>Statische regelafbreking</guibutton
+> in de <link linkend="pref-word-wrap"
+>bewerkingspagina</link
+> van de <link linkend="config-dialog"
+>configuratiedialoog </link
+> aan of uit te zetten.</para>
+
+<para
+>Om de maximale regellengte in te stellen (het maximum aantal tekens per regel), gebruikt u de optie <link linkend="pref-wrap-words-at"
+><guibutton
+>Regels afbreken op</guibutton
+></link
+> in de pagina <link linkend="pref-edit"
+>Bewerking</link
+> van de <link linkend="config-dialog"
+>configuratiedialoog</link
+>.</para>
+
+<para
+>Ingeschakeld heeft deze optie de volgende effecten: <itemizedlist>
+<listitem
+><para
+>Terwijl u typt, zal de editor automatisch een regeleinde invoegen na de laatste witruimte (bijboorbeeld een spatie of tabstop) vóór de maximale regellengte is bereikt.</para
+></listitem>
+<listitem
+><para
+>Terwijl een document geladen wordt, zal de editor de tekst ook afbreken, indien de witruimte in de regels dit mogelijk maakt, zodat de regels niet langer zijn dan de maximale regellengte.</para
+></listitem>
+</itemizedlist>
+
+</para>
+
+<note
+><para
+>Het is momenteel niet mogelijk om regelafbreking per documenttype in te stellen; ook kan regelafbreking niet per document in- of uitgeschakeld worden. Dit zal wel mogelijk zijn in een toekomstige versie van &kappname;.</para
+></note>
+
+</sect1>
+
+<sect1 id="kate-part-autoindent">
+<title
+>Automatisch inspringen gebruiken</title>
+
+<para
+>De editor-component van &kappname; ondersteunt diverse modi om tekst automatisch in te laten springen, ontworpen voor verschillende soorten tekstbestanden. In het menu <menuchoice
+><guimenu
+>Hulpmiddelen</guimenu
+> <guisubmenu
+>Inspringen</guisubmenu
+></menuchoice
+> kunt u kiezen uit de beschikbare modi. Met behulp van de de functie <menuchoice
+><guimenu
+>Hulpmiddelen</guimenu
+> <guimenuitem
+>Uitlijnen</guimenuitem
+></menuchoice
+> kunt u de inspringbreedte van de geselecteerde regels of van de huidige regel laten herberekenen. U kunt dus in uw gehele document het inspringen opnieuw doen door alle tekst te selecteren en deze actie te activeren.</para>
+
+<para
+>Alle inspringmodi gebruiken het inspringen gerelateerd aan de instellingen in het actieve document.</para>
+
+<tip
+><para
+>U kunt allerlei soorten configuratievariabelen instellen, inclusief die zijn gerelateerd aan inspringen met <link linkend="config-variables"
+>Documentvariabelen</link
+> en <link linkend="pref-open-save-modes-filetypes"
+>Bestandstypen</link
+>.</para
+></tip>
+
+<variablelist>
+
+<title
+>Beschikbare modi bij automatisch inspringen</title>
+
+<varlistentry>
+<term
+>Geen</term>
+<listitem
+><para
+>In deze modus wordt automatisch inspringen uitgeschakeld.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Normaal</term>
+<listitem
+><para
+>Bij deze modus wordt de regel op dezelfde manier ingesprongen als de voorgaande regel. U kunt dit combineren met de opties "Inspringen" en "Inspringing verwijderen" om de tekst naar eigen inzicht in te laten springen. </para
+></listitem>
+</varlistentry>
+
+<varlistentry
+><term
+>C-stijl</term>
+<listitem
+><para
+>Een programma voor indentering dat de regels laat inspringen op de manier zoals gebruikt wordt in C en gelijksoortige talen, C++, C#, &Java;, &javascript;, enzovoort. Dit indenteren werkt niet voor scripttalen zoals Perl of PHP.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Haskell</term>
+<listitem
+><para
+>Een programma voor indentering dat specifiek is voor de Haskell taal. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Lilypond</term>
+<listitem
+><para
+>Een programma voor indentering dat specifiek is voor de Lilypond notatietaal voor muziek. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Lisp</term>
+<listitem
+><para
+>Een programma voor indentering dat specifiek is voor de Lisp scripttaal en Lisp dialecten. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Python</term>
+<listitem
+><para
+>Een programma voor indentering dat specifiek is voor de python scripttaal. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>XML-stijl</term>
+<listitem
+><para
+>Een programma voor indentering dat specifiek is voor talen die lijken op XML. </para
+></listitem>
+</varlistentry>
+<!--Ruby + Lua missing -->
+</variablelist>
+
+</sect1>
+
+<sect1 id="kate-part-line-modification">
+<title
+>Markeringen voor wijzigingen in regels</title>
+
+<para
+>De markeringen voor wijzigingen in regels van &kappname; laten u gemakkelijk zien wat u recent in een bestand hebt gewijzigd. Opgeslagen wijzigingen worden standaard aangegeven door een groene balk links van een document, terwijl niet opgeslagen wijzigingen aangegeven worden door een oranje balk.</para>
+
+<para>
+<mediaobject>
+<imageobject
+><imagedata format="PNG" fileref="line-modification-system.png"/></imageobject>
+<caption
+><para
+>Markeringen voor wijzigingen in regels in actie.</para
+></caption>
+</mediaobject>
+</para>
+
+<para
+>U kunt de kleuren gebruikt in het <link linkend="prefcolors"
+>instellingenpaneel <guilabel
+>Lettertypes &amp; kleuren</guilabel
+></link
+> wijzigen of u kunt deze mogelijkheid volledig uitschakelen in het tabblad <link linkend="appearance-borders"
+><guilabel
+>Randen</guilabel
+> van het instellingenpaneel <guilabel
+>Uiterlijk</guilabel
+></link
+>.</para>
+
+</sect1>
+
+<sect1 id="kate-part-scrollbar-minimap">
+<title
+>De schuifbalk met mini-map</title>
+
+<para
+>De schuifbalk met mini-map van &kappname; toont voorbeelden van documenten in plaats van de schuifbalk. Het nu zichtbare deel van het document is geaccentueerd. </para>
+
+<para>
+<mediaobject>
+<imageobject
+><imagedata format="PNG" fileref="minimap.png"/></imageobject>
+<caption
+><para
+>De schuifbalk met mini-map toont een voorbeeld van de broncode van &kate;. </para
+></caption>
+</mediaobject>
+</para>
+
+<para
+>U kunt de mini-map tijdelijk in- of uitschakelen door <menuchoice
+><guimenu
+>Beeld</guimenu
+><guimenuitem
+>Schuifbalk met mini-map tonen</guimenuitem
+></menuchoice
+> te selecteren of permanent in <link linkend="appearance-borders"
+>de sectie Uiterlijk van de instellingen van &kappname;</link
+>.</para>
+
+</sect1>
+
+</chapter>

@@ -1,0 +1,1362 @@
+<appendix id="regular-expressions">
+<appendixinfo>
+<authorgroup>
+<author
+>&Anders.Lund; &Anders.Lund.mail;</author>
+<othercredit role="translator"
+> <firstname
+>Johan</firstname
+> <surname
+>Thelmén</surname
+> <affiliation
+><address
+><email
+>jth@home.se</email
+></address
+></affiliation
+> <contrib
+>Översättare</contrib
+></othercredit
+> 
+</authorgroup>
+</appendixinfo>
+
+<title
+>Reguljära uttryck</title>
+
+<synopsis
+>Detta appendix innehåller en kortfattad, men förhoppningsvis tillräcklig och heltäckande introduktion till de <emphasis
+>reguljära uttryckens </emphasis
+> värld. Det dokumenterar reguljära uttryck på den form som är tillgänglig i &kappname;, som inte är likadana som reguljära uttryck i Perl, och inte heller i till exempel <command
+>grep</command
+>.</synopsis>
+
+<sect1>
+
+<title
+>Inledning</title>
+
+<para
+><emphasis
+>Reguljära uttryck</emphasis
+> ger oss en möjlighet att beskriva ett möjligt innehåll i en textsträng på ett sätt som enkelt kan förstås av programvara,  så att den kan undersöka om texten matchar, och för mer avancerade tillämpningar, ge möjlighet att spara delar av texten som matchar.</para>
+
+<para
+>Ett exempel: Säg att du vill leta i en text efter stycken som börjar med något av namnen <quote
+>Henrik</quote
+> eller <quote
+>Pernilla</quote
+>, följt av någon form av verbet <quote
+>säga</quote
+>.</para>
+
+<para
+>Med en normal sökning, skulle du börja med att leta efter det första namnet, <quote
+>Henrik</quote
+>, kanske följt av <quote
+>s</quote
+> på det här sättet: <userinput
+>Henrik s</userinput
+>, och medan du letar efter träffar måste du bortse från alla de som inte inleder ett stycke, samt de där ordet som börjar med <quote
+>s</quote
+> inte var antingen <quote
+>säger</quote
+>, <quote
+>sade</quote
+> etc. Och därefter måste du förstås repetera allt för nästa namn ...</para>
+
+<para
+>Med reguljära uttryck, kan den här uppgiften utföras med en enda sökning, och med högre noggrannhet.</para>
+
+<para
+>För att åstadkomma detta, definierar reguljära uttryck detaljerade regler för att beskriva en generell sträng som ska matcha. Vårt exempel, som vi kan beskriva så här med ord: <quote
+>En rad som börjar antingen med <quote
+>Henrik</quote
+> eller <quote
+>Pernilla</quote
+> (möjligen efter upp till fyra mellanslag eller tabulatortecken), följt av ett mellanslag, följt av <quote
+>s</quote
+> och sedan antingen <quote
+>äger</quote
+> eller <quote
+>ade</quote
+></quote
+>, skulle kunna uttryckas med följande reguljära uttryck:</para
+> <para
+><userinput
+>^[ \t]{0,4}(Henrik|Pernilla) s(äger|ade)</userinput
+></para>
+
+<para
+>Ovanstående exempel demonstrerar alla fyra huvudkoncepten i moderna reguljära uttryck, nämligen:</para>
+
+<itemizedlist>
+<listitem
+><para
+>Mönster</para
+></listitem>
+<listitem
+><para
+>Påståenden</para
+></listitem>
+<listitem
+><para
+>Kvalificering</para
+></listitem>
+<listitem
+><para
+>Bakåtreferenser</para
+></listitem>
+</itemizedlist>
+
+<para
+>Hatten (<literal
+>^</literal
+>) som inleder uttrycket är ett påstående, som bara är sant om den följande strängen som matchar är först på raden.</para>
+
+<para
+>Strängarna <literal
+>[ \t]</literal
+> och <literal
+>(Henrik|Pernilla) s(äger|ade)</literal
+> är mönster. Det första är en <emphasis
+>teckenklass</emphasis
+> som antingen matchar ett blanktecken eller ett (horisontellt) tabulatortecken. Det andra mönstret innehåller först ett delmönster som antingen matchar <literal
+>Henrik</literal
+> <emphasis
+>eller</emphasis
+> <literal
+>Pernilla</literal
+>, därefter en del som exakt matchar strängen <literal
+> s</literal
+> och slutligen ett delmönster som antingen matchar <literal
+>äger</literal
+> <emphasis
+>eller</emphasis
+> <literal
+>ade</literal
+>.</para>
+
+<para
+>Strängen <literal
+>{0,4}</literal
+> är en kvalificering som säger <quote
+>allt från noll upp till fyra av det föregående</quote
+>.</para>
+
+<para
+>Eftersom programvara för reguljära uttryck stöder konceptet med <emphasis
+>bakåtreferenser</emphasis
+>, så sparas hela den matchande delen av strängen, samt delmönster som finns mellan parenteser. Givet något sätt att komma åt de här referenserna, skulle vi kunna få tag på hela matchningen (när man söker i ett textdokument i en editor med ett reguljärt uttryck, så visas den ofta markerad), eller namnet som hittades, eller den sista delen av verbet.</para>
+
+<para
+>I sin helhet, så matchar uttrycket vad vi ville att det skulle göra, och bara det.</para>
+
+<para
+>Följande avsnitt beskriver i detalj hur man skapar och använder mönster, teckenklasser, påståenden, kvalificering och bakåtreferenser. Det sista avsnittet ger några användbara exempel.</para>
+
+</sect1>
+
+<sect1 id="regex-patterns">
+
+<title
+>Mönster</title>
+
+<para
+>Mönster består av vanliga strängar och teckenklasser. Mönster kan innehålla delmönster, vilket är mönster som är inneslutna i parenteser.</para>
+
+<sect2>
+<title
+>Undanta tecken</title>
+
+<para
+>I mönster och teckenklasser har vissa tecken en särskilt mening. För att uttryckligen matcha något av de här tecknen, måste de markeras eller <emphasis
+>undantas</emphasis
+> för att tala om för programvaran för reguljära uttryck att den ska tolka sådana tecken uttryckligen.</para>
+
+<para
+>Det här görs genom att lägga till ett bakstreck (<literal
+>\</literal
+>) före tecknet.</para>
+
+
+<para
+>Programvaran för reguljära uttryck ignorerar tecken som undantas även om de inte har någon särskild betydelse i sammanhanget, så att undanta till exempel ett <quote
+>j</quote
+> (<userinput
+>\j</userinput
+>) är säkert. Om du är tveksam om ett tecken kan ha en särskild betydelse, kan du därför alltid undanta det på ett säkert sätt.</para>
+
+<para
+>Undantag omfattar förstås också bakstrecket själv, för att uttryckligen matcha ett sådant, skulle du skriva <userinput
+>\\</userinput
+>.</para>
+
+</sect2>
+
+<sect2>
+<title
+>Teckenklasser och förkortningar</title>
+
+<para
+>En <emphasis
+>teckenklass</emphasis
+> är ett uttryck som matchar ett tecken i en mängd angivna tecken. I reguljära uttryck definieras teckenklasser genom att ange de giltiga tecknen i klassen inom hakparenterser, <literal
+>[]</literal
+>, eller genom att använda en av de förkortade klasserna som beskrivs nedan.</para>
+
+<para
+>Enkla teckenklasser innehåller bara uttryckligen ett eller flera tecken, till exempel <userinput
+>[abc]</userinput
+> (som matchar något av tecknen <quote
+>a</quote
+>, <quote
+>b</quote
+> eller <quote
+>c</quote
+>) eller <userinput
+>[0123456789]</userinput
+> (som matchar alla siffror).</para>
+
+<para
+>Eftersom bokstäver och siffror har en logisk ordning, kan du förkorta dem genom att ange intervall: <userinput
+>[a-c]</userinput
+> är samma sak som <userinput
+>[abc]</userinput
+> och <userinput
+>[0-9]</userinput
+> är samma sak som <userinput
+>[0123456789]</userinput
+>. Att kombineras dessa sammansättningar, till exempel med <userinput
+>[a-fynot1-38]</userinput
+> är fullständigt riktigt (detta skulle förstås matcha antingen <quote
+>a</quote
+>,<quote
+>b</quote
+>,<quote
+>c</quote
+>,<quote
+>d</quote
+>, <quote
+>e</quote
+>,<quote
+>f</quote
+>,<quote
+>y</quote
+>,<quote
+>n</quote
+>,<quote
+>o</quote
+>,<quote
+>t</quote
+>, <quote
+>1</quote
+>,<quote
+>2</quote
+>,<quote
+>3</quote
+> eller <quote
+>8</quote
+>).</para>
+
+<para
+>Eftersom stora bokstäver är andra tecken än motsvarande små bokstäver, så måste du alltså skriva <userinput
+>[aAbB]</userinput
+>, för att skapa en teckenklass som matchar både de små och stora bokstäverna <quote
+>a</quote
+> eller <quote
+>b</quote
+>.</para>
+
+<para
+>Det är förstås möjligt att skapa en <quote
+>negativ</quote
+> klass som matchar <quote
+>allting utom</quote
+>. För att göra detta lägg till en hatt (<literal
+>^</literal
+>) först i klassen: </para>
+
+<para
+><userinput
+>[^abc]</userinput
+> matchar alla tecken <emphasis
+>utom</emphasis
+> <quote
+>a</quote
+>, <quote
+>b</quote
+> eller <quote
+>c</quote
+>.</para>
+
+<para
+>Förutom uttryckliga tecken, definieras några förkortningar, som gör livet lite enklare: <variablelist>
+
+<varlistentry>
+<term
+><userinput
+>\a</userinput
+></term>
+<listitem
+><para
+>Det här matchar &ASCII;-tecknet BEL (0x07).</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>\f</userinput
+></term>
+<listitem
+><para
+>Det här matchar &ASCII;-tecknet ny sida (FF, 0x0C).</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>\n</userinput
+></term>
+<listitem
+><para
+>Det här matchar &ASCII;-tecknet nyrad (LF, 0x0A, Unix nyrad).</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>\r</userinput
+></term>
+<listitem
+><para
+>Det här matchar &ASCII; returtecken (CR, 0x0D).</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>\t</userinput
+></term>
+<listitem
+><para
+>Det här matchar &ASCII;-tecknet horisontell tabulator (HT, 0x09).</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>\v</userinput
+></term>
+<listitem
+><para
+>Det här matchar &ASCII;-tecknet vertikal tabulator (VT, 0x0B).</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><userinput
+>\xhhhh</userinput
+></term>
+
+<listitem
+><para
+>Det här matchar Unicode-tecknet som motsvarar det hexadecimala värdet hhhh (mellan 0x0000 och 0xFFFF). \0ooo (dvs. \noll ooo) matchar &ASCII;/Latin-1 tecknet som motsvarar det oktala värdet ooo (mellan 0 och 0377).</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>.</userinput
+> (punkt)</term>
+<listitem
+><para
+>Det här matchar vilket tecken som helst (inklusive nyrad).</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>\d</userinput
+></term>
+<listitem
+><para
+>Det här matchar en siffra. Samma som <literal
+>[0-9]</literal
+>.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>\D</userinput
+></term>
+<listitem
+><para
+>Det här matchar allt utom en siffra. Samma som <literal
+>[^0-9]</literal
+> eller <literal
+>[^\d]</literal
+>.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>\s</userinput
+></term>
+<listitem
+><para
+>Det här matchar ett blanktecken. Nästan samma sak som <literal
+>[ \t\n\r]</literal
+>.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>\S</userinput
+></term>
+<listitem
+><para
+>Det här matchar allt utom ett blanktecken. Nästan samma sak som <literal
+>[^ \t\r\n]</literal
+>, och samma som <literal
+>[^\s]</literal
+>.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>\w</userinput
+></term>
+<listitem
+><para
+>Matchar alla <quote
+>ord-tecken</quote
+> - i det här fallet alla bokstäver, siffror eller understreck. Samma som <literal
+>[a-zA-Z0-9_]</literal
+>.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>\W</userinput
+></term>
+<listitem
+><para
+>Matchar alla tecken som inte ingår i ord - allt utom bokstäver, siffror eller understreck. Samma som <literal
+>[^a-zA-Z0-9_]</literal
+> eller <literal
+>[^\w]</literal
+>.</para
+></listitem>
+</varlistentry>
+
+
+</variablelist>
+
+</para>
+
+<para
+><emphasis
+>POSIX klassnotation</emphasis
+>, <userinput
+>[:&lt;class namn&gt;:]</userinput
+> stöds också. Exempelvis är <userinput
+>[:digit:]</userinput
+> ekvivalent med <userinput
+>\d</userinput
+>, och <userinput
+>[:space:]</userinput
+> med <userinput
+>\s</userinput
+>. Se den fullständiga listan över POSIX teckenklasser <ulink url="https://www.regular-expressions.info/posixbrackets.html"
+>här</ulink
+>.</para>
+
+<para
+>De förkortade klasserna kan användas inne i en annan klass. För att till exempel matcha ett ord-tecken, ett mellanslag eller en punkt, skulle du kunna skriva <userinput
+>[\w \.]</userinput
+>.</para>
+
+<sect3>
+<title
+>Tecken med särskild betydelse inne i teckenklasser</title>
+
+<para
+>Följande tecken har en särskild betydelse inne i konstruktionen <quote
+>[]</quote
+> för teckenklasser, och måste undantas för att användas uttryckligen i en teckenklass:</para>
+
+<variablelist>
+<varlistentry>
+<term
+><userinput
+>]</userinput
+></term>
+<listitem
+><para
+>Avslutar teckenklassen. Måste undantas om det inte är det allra första tecknet i klassen (kan följa en hatt som inte undantas).</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><userinput
+>^</userinput
+> (hatt)</term>
+<listitem
+><para
+>Anger en negativ klass, om det är det första tecknet. Måste undantas för att uttryckligen matcha om det är det första tecknet i klassen.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><userinput
+>-</userinput
+> (minus)</term>
+<listitem
+><para
+>Anger ett logiskt intervall. Måste alltid undantas inne i en teckenklass.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><userinput
+>\</userinput
+> (bakstreck)</term>
+<listitem
+><para
+>Undantagstecknet. Måste alltid undantas.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect3>
+
+</sect2>
+
+<sect2>
+
+<title
+>Alternativ: matchar <quote
+>en av</quote
+></title>
+
+<para
+>Om du vill matcha en av ett antal olika mönster, kan du skilja dem åt med <literal
+>|</literal
+> (ett vertikalt streck).</para>
+
+<para
+>För att till exempel antingen hitta <quote
+>John</quote
+> eller <quote
+>Harry</quote
+> kan du använda uttrycket <userinput
+>John|Harry</userinput
+>.</para>
+
+</sect2>
+
+<sect2>
+
+<title
+>Delmönster</title>
+
+<para
+><emphasis
+>Delmönster</emphasis
+> är mönster som innesluts i parenteser, och som har flera användningar i de reguljära uttryckens värld.</para>
+
+<sect3>
+
+<title
+>Ange alternativ</title>
+
+<para
+>Du kan använda ett delmönster för att gruppera ett antal alternativ i ett större mönster. Alternativen delas av tecknet <quote
+>|</quote
+> (vertikalt streck).</para>
+
+<para
+>För att till exempel matcha antingen orden <quote
+>int</quote
+>, <quote
+>float</quote
+> eller <quote
+>double</quote
+>, skulle du kunna använda mönstret <userinput
+>int|float|double</userinput
+>. Om du bara vill hitta ordet om det följs av blanktecken och därefter några bokstäver, placera alternativen i ett delmönster: <userinput
+>(int|float|double)\s+\w+</userinput
+>.</para>
+
+</sect3>
+
+<sect3 id="regex-capturing">
+
+<title
+>Spara text som matchar (bakåtreferenser)</title>
+
+<para
+>Om du vill använda en bakåtreferens, använd ett delmönster <userinput
+>(MÖNSTER)</userinput
+> för att komma ihåg önskad del av mönstret. För att förhindra att delmönstret lagras, använd en icke-lagrande grupp <userinput
+>(?:PATTERN)</userinput
+>.</para>
+
+<para
+>Om du till exempel vill hitta två förekomster av samma ord åtskilda av ett kommatecken och möjligen några blanktecken, skulle du kunna skriva <userinput
+>(\w+),\s*\1</userinput
+>. Delmönstret <literal
+>\w+</literal
+> skulle hitta en grupp med ord-tecken, och hela uttrycket skulle matcha om de följdes av ett komma, noll eller flera blanktecken och sedan en likadan grupp med ord-tecken. (Strängen <literal
+>\1</literal
+> refererar till <emphasis
+>det första delmönstret inneslutet i parenteser</emphasis
+>).</para>
+
+<note>
+<para
+>För att undvika tvetydigheter vid användning av <userinput
+>\1</userinput
+> med efterföljande siffror (t.ex. kan <userinput
+>\12</userinput
+> vara det tolfte delmönstret eller bara det första delmönstret med <userinput
+>2</userinput
+>) använder vi <userinput
+>\{12}</userinput
+> som syntax för delmönster med flera siffror.</para>
+<para
+>Exempel:</para>
+<itemizedlist>
+<listitem
+><para
+><userinput
+>\{12}1</userinput
+> är <quote
+>använd delmönster 12</quote
+></para
+></listitem>
+<listitem
+><para
+><userinput
+>\123</userinput
+> är <quote
+>använd delmönster 1 därefter 23 som normal text</quote
+></para
+></listitem>
+</itemizedlist>
+
+</note>
+
+<!-- <para
+>See also <link linkend="backreferences"
+>Back references</link
+>.</para
+> -->
+
+</sect3>
+
+<sect3 id="lookahead-assertions">
+<title
+>Påståenden för sökning framåt</title>
+
+<para
+>Ett påstående för sökning framåt är ett delmönster, som antingen börjar med <literal
+>?=</literal
+> eller <literal
+>?!</literal
+>.</para>
+
+<para
+>För att till exempel uttryckligen matcha strängen <quote
+>Bill</quote
+> men bara om den inte följs av <quote
+> Gates</quote
+>, skulle du kunna använda det här uttrycket: <userinput
+>Bill(?! Gates)</userinput
+>. (Det här skulle hitta <quote
+>Bill Clinton</quote
+> samt <quote
+>Billy the kid</quote
+>, men tyst ignorera de andra träffarna).</para>
+
+<para
+>Delmönster som används för påståenden sparas inte.</para>
+
+<para
+>Se också <link linkend="assertions"
+>Påståenden</link
+>.</para>
+
+</sect3>
+
+<sect3 id="lookbehind-assertions">
+<title
+>Påståenden för sökning bakåt</title>
+
+<para
+>Ett påstående för sökning bakåt är ett delmönster, som antingen börjar med <literal
+>?&lt;=</literal
+> eller <literal
+>?&lt;!</literal
+>.</para>
+
+<para
+>Sökning bakåt har samma effekt som sökning framåt, men fungerar baklänges. För att exempelvis matcha den exakta strängen <quote
+>frukt</quote
+> men bara om den inte föregås av <quote
+>grape</quote
+>, skulle du kunna använda det här uttrycket: <userinput
+>(?&lt;!grape)frukt</userinput
+>.</para>
+
+<para
+>Delmönster som används för påståenden sparas inte.</para>
+
+<para
+>Se också <link linkend="assertions"
+>Påståenden</link
+>.</para>
+
+</sect3>
+
+</sect2>
+
+<sect2 id="special-characters-in-patterns">
+<title
+>Tecken med särskild betydelse inne i mönster</title>
+
+<para
+>Följande tecken har särskild betydelse inne i mönster, och måste undantas om du uttryckligen vill matcha dem: <variablelist>
+
+<varlistentry>
+<term
+><userinput
+>\</userinput
+> (bakstreck)</term>
+<listitem
+><para
+>Undantagstecknet.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>^</userinput
+> (hatt)</term>
+<listitem
+><para
+>Anger början på strängen.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>$</userinput
+></term>
+<listitem
+><para
+>Anger slutet på strängen.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>()</userinput
+> (vänster och höger parentes)</term>
+<listitem
+><para
+>Anger delmönster.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>{}</userinput
+> (vänster och höger klammer)</term>
+<listitem
+><para
+>Anger numerisk kvalificering.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>[]</userinput
+> (vänster och höger hakparentes)</term>
+<listitem
+><para
+>Anger teckenklasser.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>|</userinput
+> (vertikalt streck)</term>
+<listitem
+><para
+>Logiskt ELLER. Skiljer alternativ.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>+</userinput
+> (plustecken)</term>
+<listitem
+><para
+>Kvalificering, en eller flera.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>*</userinput
+> (asterisk)</term>
+<listitem
+><para
+>Kvalificering, noll eller flera.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>?</userinput
+> (frågetecken)</term>
+<listitem
+><para
+>Ett extra tecken. Kan tolkas som en kvalificering, noll eller ett.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</para>
+
+</sect2>
+
+</sect1>
+
+<sect1 id="quantifiers">
+<title
+>Kvalificering</title>
+
+<para
+>En <emphasis
+>kvalificering</emphasis
+> låter ett reguljärt uttryck antingen matcha ett angivet antal eller intervall av ett tecken, en teckenklass eller ett delmönster.</para>
+
+<para
+>En kvalificering innesluts av klamrar (<literal
+>{</literal
+> och <literal
+>}</literal
+>) och har den allmänna formen <literal
+>{[minimalt antal][,[maximalt antal]]}</literal
+>. </para>
+
+<para
+>Användningen förklaras bäst med exempel: <variablelist>
+
+<varlistentry>
+<term
+><userinput
+>{1}</userinput
+></term>
+<listitem
+><para
+>Exakt en förekomst</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>{0,1}</userinput
+></term>
+<listitem
+><para
+>Noll eller en förekomst</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>{,1}</userinput
+></term>
+<listitem
+><para
+>Samma sak, med mindre ansträngning ;)</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>{5,10}</userinput
+></term>
+<listitem
+><para
+>Minst 5 men maximalt 10 förekomster</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>{5,}</userinput
+></term>
+<listitem
+><para
+>Minst 5 förekomster, inget maximum</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</para>
+
+<para
+>Det finns dessutom några förkortningar: <variablelist>
+
+<varlistentry>
+<term
+><userinput
+>*</userinput
+> (asterisk)</term>
+<listitem
+><para
+>liknar <literal
+>{0,}</literal
+>, hittar ett godtyckligt antal förekomster.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>+</userinput
+> (plustecken)</term>
+<listitem
+><para
+>liknar <literal
+>{1,}</literal
+>, åtminstone en förekomst.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>?</userinput
+> (frågetecken)</term>
+<listitem
+><para
+>liknar <literal
+>{0,1}</literal
+>, noll eller en förekomst.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</para>
+
+<sect2>
+
+<title
+>Glupskt beteende</title>
+
+<para
+>När kvalificeringar utan maximum används, så matchar reguljära uttryck normalt så mycket av söksträngen som möjligt, ett beteende som ofta kallas för <emphasis
+>glupskt</emphasis
+>.</para>
+
+<para
+>Modern programvara för reguljära uttryck tillhandahåller en möjlighet att <quote
+>stänga av det glupska beteendet</quote
+>, även om det är det grafiska gränssnittet som måste ge dig tillgång till den här funktionen. En sökdialogruta som tillhandahåller sökning med reguljära uttryck skulle kunna ha en kryssruta som heter <quote
+>Minimal matchning</quote
+>, och borde också ange att glupskt beteende är det normala.</para>
+
+</sect2>
+
+<sect2>
+<title
+>Exempel i sammanhang</title>
+
+<para
+>Här är några exempel på att använda kvalificering:</para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><userinput
+>^\d{4,5}\s</userinput
+></term>
+<listitem
+><para
+>Matchar siffrorna i <quote
+>1234 gå</quote
+> och <quote
+>12345 nu</quote
+>, men varken <quote
+>567 elva</quote
+> eller <quote
+>223459 någonstans</quote
+>.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>\s+</userinput
+></term>
+<listitem
+><para
+>Matchar en eller flera blanktecken.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>(bla){1,}</userinput
+></term>
+<listitem
+><para
+>Matchar samtliga <quote
+>blablabla</quote
+> och <quote
+>bla</quote
+> i <quote
+>blad</quote
+> eller <quote
+>dubbla</quote
+>.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>/?&gt;</userinput
+></term>
+<listitem
+><para
+>Matchar <quote
+>/&gt;</quote
+> i <quote
+>&lt;slut/&gt;</quote
+> samt <quote
+>&gt;</quote
+> i <quote
+>&lt;start&gt;</quote
+>.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+
+</sect1>
+
+<sect1 id="assertions">
+<title
+>Påståenden</title>
+
+<para
+><emphasis
+>Påståenden</emphasis
+> gör att ett reguljärt uttryck bara matchar under vissa kontrollerade omständigheter.</para>
+
+<para
+>Ett påstående behöver inte ett tecken för att matcha, utan undersöker istället omgivningen runt en möjlig matchning innan den erkänns. Påståendet <emphasis
+>ordgräns</emphasis
+> försöker till exempel inte hitta ett tecken som inte ingår i ett ord intill ett ord-tecken på platsen, utan kontrollerar istället att det inte finns ett ord-tecken. Det här betyder att påståendet matchar där det inte finns något tecken alls, dvs. vid slutet på söksträngen.</para>
+
+<para
+>Vissa påståenden har verkligen ett mönster som ska matcha, men den delen av strängen som matchar kommer inte att ingå i resultatet för matchningen av hela uttrycket.</para>
+
+<para
+>Reguljära uttryck som de dokumenteras här stöder följande påståenden: <variablelist>
+
+<varlistentry>
+<term
+><userinput
+>^</userinput
+> (hatt: början på strängen)</term>
+<listitem
+><para
+>Matchar början på söksträngen.</para
+> <para
+>Uttrycket <userinput
+>^Peter</userinput
+> matchar vid <quote
+>Peter</quote
+> i strängen <quote
+>Peter, hej då!</quote
+> men inte <quote
+>Hej, Peter!</quote
+>. </para
+> </listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>$</userinput
+> (slutet på strängen)</term>
+<listitem
+><para
+>Matchar slutet på söksträngen.</para>
+
+<para
+>Uttrycket <userinput
+>du\?$</userinput
+> matchar det sista du i strängen <quote
+>Du gjorde det väl inte, eller var det verkligen du?</quote
+> men ingenstans i <quote
+>Du gjorde det väl inte, eller hur?</quote
+>.</para>
+
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>\b</userinput
+> (ordgräns)</term>
+<listitem
+><para
+>Matchar om det finns ett ordtecken på ena sidan och något annat än ett ordtecken på andra sidan.</para>
+<para
+>Det här är användbart för att hitta slutet på ord, till exempel för både början och slutet för att hitta ett helt ord. Uttrycket <userinput
+>\bin\b</userinput
+> matchar ett ensamt <quote
+>in</quote
+> i strängen <quote
+>Han kom in genom ingången</quote
+>, men inte det <quote
+>in</quote
+> som finns i <quote
+>ingången</quote
+>.</para
+></listitem>
+
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>\B</userinput
+> (icke ordgräns)</term>
+<listitem
+><para
+>Matchar överallt där <quote
+>\b</quote
+> inte gör det.</para>
+<para
+>Det här betyder att det matchar till exempel inne i ord: Uttrycket <userinput
+>\Bin\B</userinput
+> matchar in i <quote
+>minne</quote
+> men inte i <quote
+>ingång</quote
+> eller <quote
+>Han kom in genom fönstret</quote
+>.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>(?=MÖNSTER)</userinput
+> (Positiv sökning framåt)</term>
+<listitem
+><para
+>Ett påstående som söker framåt tittar på strängen som följer en möjlig matchning. Den positiva sökningen förhindrar att strängen matchar om inte texten som följer den möjliga matchningen matchar <emphasis
+>MÖNSTER</emphasis
+> i påståendet, men texten som matchas av det ingår inte i resultatet.</para>
+<para
+>Uttrycket <userinput
+>vakt(?=\w)</userinput
+> matchar för <quote
+>vakt</quote
+> in <quote
+>vaktmästare</quote
+> men inte i <quote
+>Han är en vakt!</quote
+></para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>(?!MÖNSTER)</userinput
+> (Negativ sökning framåt)</term>
+
+<listitem
+><para
+>Den negativa sökningen framåt förhindrar en möjlig matchning från att bekräftas om den följande delen av söksträngen matchar sitt <emphasis
+>MÖNSTER</emphasis
+>.</para>
+<para
+>Uttrycket <userinput
+>const \w+\b(?!\s*&amp;)</userinput
+> matchar vid <quote
+>const char</quote
+> i strängen <quote
+>const char* x</quote
+> medan den inte kan matcha <quote
+>const QString</quote
+> i <quote
+>const QString&amp; y</quote
+> eftersom <quote
+>&amp;</quote
+> matchar mönstret i den negativa sökningen framåt.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>(?&lt;=MÖNSTER)</userinput
+> (Positiv sökning bakåt)</term>
+<listitem
+><para
+>Sökning bakåt har samma effekt som sökning framåt, men fungerar baklänges. Ett påstående som söker bakåt tittar på strängen som föregår en möjlig matchning. Den positiva sökningen bakåt matchar bara en sträng om den föregås av <emphasis
+>MÖNSTER</emphasis
+> i påståendet, men texten som matchas av det ingår inte i resultatet.</para>
+<para
+>Uttrycket <userinput
+>(?&lt;=små)kaka</userinput
+> matchar vid <quote
+>kaka</quote
+> om det föregås av <quote
+>små</quote
+> (i <quote
+>småkaka</quote
+> men inte av <quote
+>ostkaka</quote
+> eller för bara <quote
+>kaka</quote
+>).</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>(?&lt;!MÖNSTER)</userinput
+> (Negativ sökning bakåt)</term>
+<listitem
+><para
+>Den negativa sökningen bakåt förhindrar en möjlig matchning från att bekräftas om den föregående delen av söksträngen matchar sitt <emphasis
+>MÖNSTER</emphasis
+>.</para>
+<para
+>Uttrycket <userinput
+>(?&lt;![\w\.])[0-9]+</userinput
+> matchar vid <quote
+>123</quote
+> i strängarna <quote
+>=123</quote
+> och <quote
+>-123</quote
+> medan det inte kan matcha <quote
+>123</quote
+> i <quote
+>.123</quote
+> eller <quote
+>ord123</quote
+>.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>(MÖNSTER)</userinput
+> (Spara grupp)</term>
+
+<listitem
+><para
+>Delmönstret inom parenteser lagras och blir ihågkommet, så att det kan användas i bakåtreferenser. Exempelvis matchar uttrycket <userinput
+>(&amp;quot;+)[^&amp;quot;]*\1</userinput
+> <userinput
+>&quot;&quot;&quot;&quot;text&quot;&quot;&quot;&quot;</userinput
+> och <userinput
+>&quot;text&quot;</userinput
+>.</para>
+<para
+>Se avsnittet <link linkend="regex-capturing"
+>Spara text som matchar (bakåtreferenser)</link
+> för mer information.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>(?:MÖNSTER)</userinput
+> (Spara inte grupp)</term>
+
+<listitem
+><para
+>Delmönstret inom parenteser lagras inte och blir inte ihågkommet. Det är bättre att alltid använda icke-lagrande grupper om det som platsmarkörerna inte ska användas.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</para>
+
+</sect1>
+
+<!-- TODO sect1 id="backreferences">
+
+<title
+>Back References</title>
+
+<para
+></para>
+
+</sect1 -->
+
+</appendix>

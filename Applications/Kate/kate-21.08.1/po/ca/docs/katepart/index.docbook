@@ -1,0 +1,256 @@
+<?xml version="1.0" ?>
+<!DOCTYPE book PUBLIC "-//KDE//DTD DocBook XML V4.5-Based Variant V1.1//EN"
+"dtd/kdedbx45.dtd" [
+  <!ENTITY kappname "&katepart;">
+  <!ENTITY fundamentals-chapter SYSTEM "fundamentals.docbook">
+  <!ENTITY configuring-chapter SYSTEM "configuring.docbook">
+  <!ENTITY menus-chapter SYSTEM "menus.docbook">
+  <!ENTITY part-chapter SYSTEM "part.docbook">
+  <!ENTITY advanced-chapter SYSTEM "advanced.docbook">
+  <!ENTITY dev-chapter SYSTEM "development.docbook">
+  <!ENTITY vi-appendix SYSTEM "vi.docbook">
+  <!ENTITY regexp-appendix SYSTEM "regular-expressions.docbook">
+  <!ENTITY % addindex "IGNORE">
+  <!ENTITY % Catalan  "INCLUDE"
+> <!-- change language only here -->
+]>
+
+<book id="katepart" lang="&language;">
+
+<bookinfo>
+<title
+>El manual de la &katepart;</title>
+<authorgroup>
+<author
+>&Thad.McGinnis; &Thad.McGinnis.mail;</author>
+<author
+>&Anne-Marie.Mahfouf; &Anne-Marie.Mahfouf.mail;</author>
+<author
+>&Anders.Lund; &Anders.Lund.mail;</author>
+<author
+>&TC.Hollingsworth; &TC.Hollingsworth.mail;</author>
+<othercredit role="developer"
+>&Christoph.Cullmann; &Christoph.Cullmann.mail; </othercredit>
+
+<othercredit role="reviewer"
+>&Lauri.Watts; &Lauri.Watts.mail; </othercredit>
+
+&traductor.Antoni.Bella; 
+
+</authorgroup>
+
+<copyright>
+<year
+>2000</year
+><year
+>2001</year>
+<holder
+>&Thad.McGinnis;</holder>
+</copyright>
+<copyright>
+<year
+>2005</year>
+<holder
+>&Anne-Marie.Mahfouf; &Anne-Marie.Mahfouf.mail;</holder>
+<holder
+>&Anders.Lund; &Anders.Lund.mail;</holder>
+</copyright>
+<copyright>
+<year
+>2011</year
+><year
+>2012</year
+><year
+>2013</year
+><year
+>2014</year>
+<holder
+>&TC.Hollingsworth; &TC.Hollingsworth.mail;</holder>
+</copyright>
+<legalnotice
+>&FDLNotice;</legalnotice>
+
+<date
+>10 d'octubre de 2020</date>
+<releaseinfo
+>&frameworks; 5.75</releaseinfo>
+
+<abstract>
+<para
+>La &katepart; és un component d'edició amb totes les funcions per al &kde;.</para>
+</abstract>
+
+<keywordset>
+<keyword
+>KDE</keyword>
+<keyword
+>KatePart</keyword>
+<keyword
+>KWrite</keyword>
+<keyword
+>text</keyword>
+<keyword
+>editor</keyword>
+</keywordset>
+
+</bookinfo>
+
+<chapter id="introduction">
+<title
+>Introducció</title>
+
+<para
+>La &katepart; és un component per a l'edició de text amb totes les funcions utilitzades per moltes aplicacions &Qt; i &kde;. La &katepart; és més que un simple editor de text. Pretén ser un editor per a programadors, i ser considerada almenys parcialment com a una alternativa als editors més potents. Una de les principals característiques de la &katepart; és l'acoloriment de la sintaxi, personalitzada per als diferents llenguatges de programació com són: C/C++, &Java;, Python, Perl, Bash, Modula 2, &HTML; i Ada. </para>
+<para
+>El &kwrite; és una simple aplicació per a l'edició de text basada en la &katepart;. Compta amb una única interfície de document (<acronym
+>SDI</acronym
+> -Single Document Interface-) que permet editar un fitxer alhora per finestra. Atès que el &kwrite; és una implementació molt simple de la &katepart;, no requereix la seva pròpia documentació. Si coneixeu com utilitzar el &kwrite;, podeu utilitzar la &katepart; onsevulla! </para>
+</chapter>
+
+&fundamentals-chapter;
+
+&part-chapter;
+
+&menus-chapter;
+
+&advanced-chapter;
+
+&dev-chapter;
+
+&configuring-chapter;
+
+<chapter id="credits">
+<title
+>Crèdits i llicència</title>
+
+<para
+>Copyright de la &katepart; i el &kwrite;, 2001-2021 per l'equip del &kate;.</para>
+
+<para
+>Basat en el &kwrite; original, Copyright 2000 per en Jochen Wilhelmy <email
+>digisnap@cs.tu-berlin.de</email
+> </para>
+
+<para
+>Contribucions:</para>
+
+<itemizedlist>
+<listitem>
+<para
+>&Christoph.Cullmann; &Christoph.Cullmann.mail;</para>
+</listitem>
+
+<listitem>
+<para
+>Michael Bartl <email
+>michael.bartl1@chello.at</email
+></para>
+</listitem>
+
+<listitem>
+<para
+>Phlip <email
+>phlip_cpp@my-deja.com</email
+></para>
+</listitem>
+
+<listitem>
+<para
+>&Anders.Lund; &Anders.Lund.mail;</para>
+</listitem>
+
+<listitem>
+<para
+>Matt Newell <email
+>newellm@proaxis.com</email
+></para>
+</listitem>
+
+<listitem>
+<para
+>&Joseph.Wenninger; &Joseph.Wenninger.mail;</para>
+</listitem>
+
+<listitem>
+<para
+>Jochen Wilhelmy <email
+>digisnap@cs.tu-berlin.de</email
+></para>
+</listitem>
+
+<listitem>
+<para
+>&Michael.Koch; &Michael.Koch.mail;</para>
+</listitem>
+
+<listitem>
+<para
+>&Christian.Gebauer; &Christian.Gebauer.mail;</para>
+</listitem>
+
+<listitem>
+<para
+>&Simon.Hausmann; &Simon.Hausmann.mail;</para>
+</listitem>
+
+<listitem>
+<para
+>Glen Parker <email
+>glenebob@nwlink.com</email
+></para>
+</listitem>
+
+<listitem>
+<para
+>Scott Manson <email
+>sdmanson@altel.net</email
+></para>
+</listitem>
+
+<listitem>
+<para
+>&John.Firebaugh; &John.Firebaugh.mail;</para>
+</listitem>
+
+<listitem>
+<para
+>Nibaldo González <email
+>nibgonz@gmail.com</email
+></para>
+</listitem>
+</itemizedlist>
+
+<para
+>La documentació de la &katepart; es basa en la documentació original del &kwrite;, modificada perquè sigui aplicable a tots els consumidors de la &katepart;. </para>
+
+<para
+>La documentació original del &kwrite; va ser escrita per en &Thad.McGinnis; &Thad.McGinnis.mail;, amb grans modificacions d'en &Cristian.Tibirna; &Cristian.Tibirna.mail;. Convertida a docbook/correcció de proves per en &Lauri.Watts; &Lauri.Watts.mail; i actualitzada per na &Anne-Marie.Mahfouf; &Anne-Marie.Mahfouf.mail; i en &Anders.Lund; &Anders.Lund.mail; </para>
+
+<para
+>La documentació actual de la &katepart; és mantinguda per en &TC.Hollingsworth; &TC.Hollingsworth.mail;. Envieu els vostres comentaris o suggeriments a la llista de correu de desenvolupament de la &katepart; a <email
+>kwrite-devel@kde.org</email
+> o obriu un informe d'error al <ulink url="https://bugs.kde.org/"
+>&kde; Bugtracking System</ulink
+>.</para>
+
+<para
+>Traductor/Revisor de la documentació: &credits.Antoni.Bella;</para
+> &underFDL; &underGPL; </chapter>
+
+&vi-appendix;
+
+&regexp-appendix;
+
+&documentation.index;
+</book>
+<!--
+Local Variables:
+mode: sgml
+sgml-namecase-general: t
+sgml-namecase-entity: nil
+sgml-general-insert-case: lower
+sgml-minimize-attributes: nil
+sgml-omittag: nil
+End:
+-->
+

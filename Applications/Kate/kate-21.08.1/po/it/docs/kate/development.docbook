@@ -1,0 +1,107 @@
+<chapter id="dev">
+<chapterinfo>
+<authorgroup>
+<author
+>&TC.Hollingsworth; &TC.Hollingsworth.mail;</author>
+<othercredit role="translator"
+><firstname
+>Paolo</firstname
+><surname
+>Zamponi</surname
+><affiliation
+><address
+><email
+>zapaolo@email.it</email
+></address
+></affiliation
+><contrib
+>Traduzione e manutenzione del documento</contrib
+></othercredit
+><othercredit role="translator"
+><firstname
+>Nicola</firstname
+> <surname
+>Ruggero</surname
+> <affiliation
+><address
+><email
+>nicola@nxnt.org</email
+></address
+></affiliation
+><contrib
+>Traduzione della documentazione.</contrib
+></othercredit
+><othercredit role="translator"
+><firstname
+>Luciano</firstname
+><surname
+>Montanaro</surname
+><affiliation
+><address
+><email
+>mikelima@cirulla.net</email
+></address
+></affiliation
+><contrib
+>Aggiornamento per Kate 2.5.6</contrib
+></othercredit
+> 
+</authorgroup>
+</chapterinfo>
+<title
+>Estensione di &kate;</title>
+
+<sect1 id="dev-intro">
+<title
+>Introduzione</title>
+
+<para
+>Come ogni editor di testi avanzato, &kate; offre una moltitudine di modi per espandere le sue funzionalità. Puoi <link linkend="dev-scripting"
+>scrivere semplici script per aggiungere funzionalità con &javascript;</link
+>, oppure aggiungere ulteriori caratteristiche all'editor con <link linkend="dev-app"
+>estensioni di &kate; scritte in C++</link
+>. Infine, dopo aver esteso &kate; saresti il benvenuto <ulink url="https://kate-editor.org/join-us/"
+>nel nostro gruppo</ulink
+> per condividere il tuo lavoro con il mondo intero!</para>
+
+</sect1>
+
+<sect1 id="highlight">
+<title
+>Lavorare con l'evidenziazione della sintassi</title>
+
+<para
+>Per informazioni sull'aggiunta o la modifica delle definizioni di evidenziazione della sintassi vedi la <ulink url="help:/katepart/highlight.html"
+>sezione evidenziazione del manuale sullo sviluppo di &katepart;</ulink
+>.</para>
+
+</sect1>
+
+<sect1 id="dev-scripting">
+<title
+>Scripting con &javascript;</title>
+
+<para
+>Per informazioni sullo scripting con &javascript; vedi la <ulink url="help:/katepart/dev-scripting.html"
+>sezione sullo scripting con &javascript; del capitolo del manuale sullo sviluppo di &katepart;</ulink
+>.</para>
+
+</sect1>
+
+<sect1 id="dev-app">
+<title
+>Estensioni dell'applicazione &kate; (C++)</title>
+
+<para
+>Le <link linkend="kate-application-plugins"
+>estensioni per l'applicazione &kate;</link
+> estendono le funzionalità dell'editor &kate; in tutti i modi che riesci ad immaginare, utilizzando lo stesso linguaggio di programmazione usato per &kate;: il C++.</para>
+
+<para
+>Per iniziare, vedi <ulink url="https://kate-editor.org/2004/01/06/writing-a-kate-plugin/"
+>la guida su come scrivere un'estensione per &kate; sul sito web di &kate;</ulink
+>.</para>
+
+</sect1>
+
+</chapter>

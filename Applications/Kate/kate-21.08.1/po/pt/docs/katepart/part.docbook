@@ -1,0 +1,996 @@
+<!--pulled in by kwrite too-->
+<chapter id="kate-part">
+<chapterinfo>
+<authorgroup>
+<author
+>&Anders.Lund; &Anders.Lund.mail;</author>
+<author
+>&Dominik.Haumann; &Dominik.Haumann.mail;</author>
+<othercredit role="translator"
+><firstname
+>José</firstname
+><surname
+>Pires</surname
+><affiliation
+><address
+><email
+>zepires@gmail.com</email
+></address
+></affiliation
+><contrib
+>Tradução</contrib
+></othercredit
+> 
+</authorgroup>
+</chapterinfo>
+<title
+>Trabalhar com o editor &kappname;</title>
+
+<sect1 id="kate-part-overview">
+
+<title
+>Introdução</title>
+
+<para
+>O editor &kappname; é a área de edição da janela do &kappname;. Este editor é partilhado entre o &kate; e o &kwrite;, podendo também ser usado no &konqueror; para mostrar os ficheiros de texto no seu computador local ou na rede.</para>
+
+<para
+>O editor é composto pelas seguintes partes:</para>
+
+<variablelist>
+
+<varlistentry>
+<term
+>A área de edição</term>
+<listitem
+><para
+>Aqui é onde se localiza o texto do seu documento.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>As Barras de Posicionamento</term>
+<listitem>
+<para
+>As barras de posicionamento indicam a posição da parte visível do texto do documento e podem ser usadas para o percorrer. Se você arrastar as barras de posicionamento, não mudará de posição o cursor de inserção.</para>
+<para
+>As barras de posicionamento podem estar visíveis ou não, dependendo da vontade.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>O Contorno dos Ícones</term>
+<listitem>
+<para
+>O contorno dos ícones é uma pequena área à esquerda do editor, a qual mostra um pequeno ícone junto às linhas marcadas.</para>
+<para
+>O utilizador poderá colocar ou retirar um <link linkend="kate-part-bookmarks"
+>favorito</link
+> numa linha visível, se carregar com o &LMB; ao lado dessa linha.</para>
+<para
+>Esta área pode ser ligada ou desligada se usar a opção do menu <menuchoice
+><guimenu
+>Ver</guimenu
+> <guimenuitem
+>Mostrar o Contorno do Ícone</guimenuitem
+></menuchoice
+>.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>A Área de Números de Linha</term>
+<listitem>
+<para
+>Esta área mostra os números de linha de todas as linhas visíveis do documento.</para>
+<para
+>A área pode ser ligada ou desligada, através da opção do menu <menuchoice
+><guimenu
+>Ver</guimenu
+> <guimenuitem
+>Mostrar Números de Linha</guimenuitem
+></menuchoice
+>.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>A Área de Dobragem</term>
+<listitem>
+<para
+>A área de dobragem/desdobramento permite-lhe expandir ou recolher blocos de linhas de código. O cálculo das regiões dobráveis é feito de acordo com regras na definição de realce de sintaxe do documento.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+<itemizedlist>
+<title
+>Também neste Capítulo:</title>
+<listitem
+><para
+><link linkend="kate-part-navigation"
+>Navegar no Texto</link
+> </para
+></listitem>
+<listitem
+><para
+><link linkend="kate-part-selection"
+>Trabalhar com a Selecção</link
+></para
+></listitem>
+<listitem
+><para
+><link linkend="kate-part-copy-and-paste"
+>Copiar e Colar Texto</link
+></para
+></listitem>
+<listitem
+><para
+><link linkend="kate-part-find-replace"
+>Procurar e Substituir Texto</link
+></para
+></listitem>
+<listitem
+><para
+><link linkend="kate-part-bookmarks"
+>Usar os Favoritos</link
+></para
+></listitem>
+<listitem
+><para
+><link linkend="kate-part-auto-wrap"
+>Mudar o Texto de Linha Automaticamente</link
+></para
+></listitem>
+<listitem
+><para
+><link linkend="kate-part-autoindent"
+>Usar a indentação automática</link
+></para
+></listitem>
+</itemizedlist>
+
+</sect1>
+
+<sect1 id="kate-part-navigation">
+<title
+>Navegar no Texto</title>
+
+<para
+>A deslocação pelo texto no &kappname; é feita como na maioria dos editores gráficos. Poderá deslocar o cursor com as teclas de cursores e as teclas <keycap
+>Page Up</keycap
+>, <keycap
+>Page Down</keycap
+>, <keycap
+>Home</keycap
+> e <keycap
+>End</keycap
+> em conjunto com as teclas modificadoras &Ctrl; e &Shift;. A tecla &Shift; é sempre usada para gerar uma selecção, enquanto a tecla &Ctrl; tem diferentes efeitos, dependendo das teclas: <itemizedlist>
+<listitem
+><para
+>Para as teclas <keycap
+>Cima</keycap
+> e <keycap
+>Baixo</keycap
+>, significa deslocar o cursor, em vez de o mover.</para
+></listitem>
+<listitem
+><para
+>Para as teclas <keycap
+>Esquerda</keycap
+> e <keycap
+>Direita</keycap
+>, significa saltar as palavras em vez de simples caracteres.</para
+></listitem>
+<listitem
+><para
+>Para as teclas <keycap
+>Page Up</keycap
+> e <keycap
+>Page Down</keycap
+>, significa ir para o limite visível da janela, em vez de navegar.</para>
+</listitem>
+<listitem
+><para
+>Para as teclas <keycap
+>Home</keycap
+> e <keycap
+>End</keycap
+>, significa ir para o início ou fim do documento, em vez de ir para o início ou fim da linha.</para
+></listitem>
+</itemizedlist>
+</para>
+
+<para
+>O &kappname; também lhe oferece uma forma de saltar rapidamente para um parêntesis ou chaveta correspondente: coloque o cursor no interior de um bloco de parêntesis ou chavetas e carregue em <keycombo action="simul"
+>&Ctrl;<keycap
+>6</keycap
+></keycombo
+> para saltar para o carácter correspondente.</para>
+
+<para
+>Para além disso, poderá colocar ou retirar um <link linkend="kate-part-bookmarks"
+>favorito</link
+>, para saltar para posições definidas por si.</para>
+
+</sect1>
+
+<sect1 id="kate-part-selection">
+<title
+>Trabalhar com a Selecção</title>
+
+<para
+>Existem duas formas básicas de seleccionar o texto no &kappname;: usando o rato ou o teclado.</para>
+
+<para
+>Para seleccionar com o rato, mantenha pressionado o &LMB; enquanto arrasta o cursor do rato de onde a selecção deve começar até ao sítio final desejado. O texto vai ficando seleccionado à medida que arrasta.</para>
+
+<para
+>Se carregar duas vezes numa palavra seleccioná-la-á.</para>
+
+<para
+>Se carregar três vezes numa linha seleccioná-la-á por completo.</para>
+
+<para
+>Se o &Shift; é mantido pressionado ao carregar, o texto ficará seleccionado:</para>
+
+<itemizedlist>
+<listitem
+><para
+>Se não estiver nada seleccionado previamente, da posição do cursor de texto até à posição do cursor do rato.</para
+></listitem>
+<listitem
+><para
+>Se estiver algo seleccionado, desde essa selecção até à posição do cursor do rato.</para
+></listitem>
+</itemizedlist>
+
+<note>
+<para
+>Ao seleccionar texto, arrastando para tal o rato, o texto seleccionado é copiado para a área de transferência, e poderá ser colado se carregar para isso no botão do meio do rato no editor ou em qualquer outra aplicação onde deseje colar o texto. </para>
+</note>
+
+<para
+>Para seleccionar com o teclado, mantenha a tecla &Shift; carregada enquanto utiliza as teclas de navegação (as teclas dos cursores, o <keycap
+>Page Up</keycap
+>, o <keycap
+>Page Down</keycap
+>, o <keycap
+>Home</keycap
+> e o <keycap
+>End</keycap
+>, possivelmente em combinação com o &Ctrl; para extender o movimento do cursor de texto).</para>
+
+<para
+>Veja também a secção <link linkend="kate-part-navigation"
+>Navegar no Texto</link
+> deste capítulo.</para>
+
+<para
+>Para <action
+>copiar</action
+> a selecção actual, utilize a opção do menu <menuchoice
+><guimenu
+>Editar</guimenu
+> <guimenuitem
+>Copiar</guimenuitem
+></menuchoice
+> ou a combinação de teclas respectiva (por omissão é o <keycombo action="simul"
+>&Ctrl;<keycap
+>C</keycap
+></keycombo
+>).</para>
+
+<para
+>Para <action
+>deseleccionar</action
+> a selecção actual, utilize a opção do menu <menuchoice
+><guimenu
+>Editar</guimenu
+> <guimenuitem
+>Deseleccionar</guimenuitem
+></menuchoice
+> ou o atalho de teclado correspondente (por omissão é o <keycombo action="simul"
+>&Ctrl;&Shift;<keycap
+>A</keycap
+></keycombo
+>) ou carregue com o botão esquerdo do rato no editor.</para>
+
+<sect2 id="kate-part-selection-block">
+<title
+>Usar a Selecção em Bloco</title>
+
+<para
+>Quando a Selecção de Blocos estiver activa, pode fazer <quote
+>selecções verticais</quote
+> de texto, seleccionando colunas específicas em várias linhas. Isto é útil, por exemplo, para trabalhar com linhas separadas por tabulações.</para>
+
+<para
+>A Selecção do Bloco pode ser ligada ou desligada através da opção <menuchoice
+><guimenu
+>Editar</guimenu
+> <guimenuitem
+>Modo de Selecção em Bloco</guimenuitem
+></menuchoice
+>. O atalho de teclado por omissão é o <keycombo action="simul"
+>&Ctrl;&Shift;<keycap
+>B</keycap
+> </keycombo
+>.</para>
+
+</sect2>
+
+<sect2 id="kate-part-selection-overwrite">
+<!-- term not used in settings Editing Text Seöection Mode, it is called "Normal"-->
+<title
+>Usar a Substituição da Selecção</title>
+
+<para
+>Se a opção Substituir a Selecção estiver activa, ao escrever ou colar texto na selecção, fará com que o texto seleccionado seja substituído. Se não estiver activo, o novo texto será adicionado à posição do cursor de texto.</para>
+
+<para
+>A Substituição da Selecção está activa por omissão.</para>
+
+<para
+>Para alterar a configuração desta opção, veja  página <link linkend="pref-edit-cursor-selection"
+>Cursor &amp; Selecção</link
+> da <link linkend="config-dialog"
+>Janela de Configuração</link
+>.</para>
+
+</sect2>
+
+<sect2 id="kate-part-selection-persistent">
+
+<title
+>Usar a Selecção Persistente</title>
+
+<para
+>Quando a selecção persistente estiver activa, à medida que o utilizador vai escrevendo caracteres ou movendo o cursor, não irá desfazer a selecção existente. Isto significa que poderá mover o cursor para longe da selecção e continuar a escrever texto.</para>
+
+<para
+>A selecção persistente está desligada por omissão.</para>
+
+<para
+>A Selecção Persistente pode ser activada na página <link linkend="pref-edit-cursor-selection"
+>Cursor &amp; Selecção</link
+> da <link linkend="config-dialog"
+>Janela de Configuração</link
+>.</para>
+
+<warning
+> <!-- is that still possible in 4.4? radio button Normal + Persistent!-->
+<para
+>Se ambas as opções estiverem activas, a introdução ou colagem de texto quando o cursor do texto estiver dentro da selecção fará com que este seja substituído e deseleccionado.</para>
+</warning>
+
+</sect2>
+
+</sect1>
+
+<sect1 id="kate-part-copy-and-paste">
+
+<title
+>Copiar e Colar Texto</title>
+
+<para
+>Para copiar texto, seleccione-o e use a opção do menu <menuchoice
+><guimenu
+>Editar</guimenu
+> <guimenuitem
+>Copiar</guimenuitem
+></menuchoice
+>. Adicionalmente, a selecção de texto com o rato fará com que o texto seleccionado seja copiado para a área de transferência.</para>
+
+<para
+>Para você colar o texto actualmente na área de transferência, use a opção do menu <menuchoice
+> <guimenu
+>Editar</guimenu
+><guimenuitem
+>Colar</guimenuitem
+></menuchoice
+>.</para>
+
+<para
+>Adicionalmente, o texto seleccionado com o rato pode ser colado se carregar no botão <mousebutton
+>do meio</mousebutton
+> do rato, na posição desejada.</para>
+
+<tip>
+<para
+>Se estiver a usar o ambiente do &kde;, poderá obter o texto copiado anteriormente de qualquer aplicação com o ícone do &klipper; na bandeja do sistema.</para>
+</tip>
+
+</sect1>
+
+<!-- changed in 4.5-->
+<sect1 id="kate-part-find-replace">
+<title
+>Procurar e Substituir Texto</title>
+
+<sect2 id="find-replace-bars">
+<title
+>As Barras para Procurar e Substituir</title>
+
+
+<para
+>O &kappname; tem uma barra de pesquisa incremental e uma barra de pesquisa e substituição poderosa, que lhe oferece a possibilidade de indicar um texto de substituição com algumas opções extra.</para>
+
+<para
+>As barras oferecem as seguintes opções comuns:</para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><guilabel
+>Procurar</guilabel
+></term>
+<listitem
+><para
+>Aqui é onde se indica o texto a procurar. A interpretação do texto depende de algumas das opções descritas em baixo.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Distinguir capitalização</guilabel
+></term>
+<listitem>
+<para
+>Se estiver activo, a pesquisa será limitada aos itens que correspondam a nível de capitalização (maiúsculas ou minúsculas) de cada um dos caracteres no padrão de pesquisa.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+<para
+>A barra de pesquisa e substituição avançadas oferece algumas opções adicionais:</para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><guilabel
+>Texto Simples</guilabel
+></term>
+<listitem>
+<para
+>Corresponde literalmente a qualquer ocorrência do texto de pesquisa.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Palavras Completas</guilabel
+></term>
+<listitem>
+<para
+>Se estiver seleccionado, a pesquisa só fará a correspondência se existir um limite de palavra em ambos os extremos da ocorrência, ou seja, um carácter não alfanumérico - seja outro carácter visível qualquer ou um fim de linha.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Sequências de Escape</guilabel
+></term>
+<listitem>
+<para
+>Se estiver seleccionada, o botão <guibutton
+>Adicionar</guibutton
+> ficará activo e permitir-lhe-á adicionar sequências de escape para o padrão de pesquisa, usando uma lista predefinida.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Expressão Regular</guilabel
+></term>
+<listitem>
+<para
+>Se estiver assinalada, o texto a procurar é interpretado como uma expressão regular. O botão <guibutton
+>Adicionar</guibutton
+> ficará activo, para que possa criar itens de expressão regular do padrão de pesquisa, usando como base uma lista predefinida.</para>
+<para
+>Veja as <link linkend="regular-expressions"
+>Expressões Regulares</link
+> para mais informações.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Pesquisar apenas na selecção</guilabel
+></term>
+<listitem>
+<para
+>Se estiver seleccionada, a pesquisa e substituição será feita apenas sobre o texto seleccionado.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Procurar tudo</guilabel
+></term>
+<listitem>
+<para
+>Se carregar neste botão, irá realçar todas as ocorrências no documento e mostrar o número de ocorrências encontradas numa pequena área. </para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+<!--FIXME keep in sync with kate/menus.docbook <varlistentry id="edit-find"
+> -->
+<sect2 id="finding-text">
+<title
+>Procurar Texto</title>
+
+<para
+>Para procurar texto, invoque a barra de pesquisa incremental com a combinação de teclas <keycombo action="simul"
+>&Ctrl;<keycap
+>F</keycap
+></keycombo
+> ou com a opção do menu <menuchoice
+> <guimenu
+>Editar</guimenu
+><guimenuitem
+>Procurar...</guimenuitem
+></menuchoice
+>.</para>
+<para
+>Isto abre a barra de pesquisa incremental no fundo da janela do editor. Do lado esquerdo da barra, existe um ícone para fechar a barra, seguido de um pequeno campo de texto para introduzir o padrão a pesquisar.</para>
+<para
+>Quando começar a introduzir caracteres no seu padrão de pesquisa, esta começa imediatamente. Se existir uma ocorrência no texto, esta fica realçada e a cor de fundo do campo muda para verde-claro. Se o padrão de pesquisa não corresponder a nenhum texto, isto é indicado por uma cor de fundo vermelha-clara no campo.</para>
+<para
+>Use os botões <inlinemediaobject
+><imageobject
+><imagedata fileref="arrow-up-double-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> ou <inlinemediaobject
+><imageobject
+><imagedata fileref="arrow-down-double-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> para saltar para a ocorrência anterior ou seguinte no documento.</para>
+<para
+>As correspondências são realçadas até quando fechar a barra de pesquisa. Para limpar este realce, carregue na tecla &Esc;.</para>
+<para
+>Poderá escolher aqui se a pesquisa faz a distinção entre minúsculas e maiúsculas ou não. Se seleccionar a opção <inlinemediaobject
+><imageobject
+><imagedata fileref="format-text-superscript-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+>, irá limitar as pesquisas para os itens que correspondam à capitalização (maiúsculas ou minúsculas) de cada um dos caracteres do padrão de pesquisa.</para>
+<para
+>Carregue no botão <inlinemediaobject
+><imageobject
+><imagedata fileref="configure-shortcuts-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+>, à direita da barra de pesquisa incremental, para mudar para a barra mais poderosa de pesquisa e substituição. </para>
+<para
+>Para repetir a última operação de pesquisa, se tiver ocorrido e sem ter de invocar a barra de pesquisa incremental, use a opção <menuchoice
+> <shortcut
+><keycombo action="simul"
+><keycap
+>F3</keycap
+></keycombo
+></shortcut
+> <guimenu
+>Editar</guimenu
+><guimenuitem
+>Procurar o Próximo</guimenuitem
+></menuchoice
+> ou <menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Shift;<keycap
+>F3</keycap
+></keycombo
+></shortcut
+> <guimenu
+>Editar</guimenu
+><guimenuitem
+>Procurar o Anterior</guimenuitem
+></menuchoice
+>. </para>
+
+</sect2>
+<!--FIXME keep in sync with kate/menus.docbook <varlistentry id="edit-replace"
+> -->
+<sect2 id="replacing-text">
+<title
+>Substituir Texto</title>
+
+<para
+>Para substituir o texto, invoque a barra avançada de pesquisa e substituição com a opção do menu <menuchoice
+><guimenu
+>Editar</guimenu
+> <guimenuitem
+>Substituir</guimenuitem
+></menuchoice
+> ou com a combinação de teclas <keycombo action="simul"
+>&Ctrl;<keycap
+>R</keycap
+></keycombo
+>.</para>
+<para
+>No canto superior esquerdo da barra existe um ícone para fechar a barra, seguido de um pequeno campo de texto para introduzir o padrão de pesquisa.</para>
+<para
+>Poderá controlar o modo de pesquisa se seleccionar as opções <guilabel
+>Texto Simples</guilabel
+>, <guilabel
+>Palavras Completas</guilabel
+>, <guilabel
+>Sequências de Escape</guilabel
+> ou <guilabel
+>Expressão Regular</guilabel
+>, que estão descritas acima. </para>
+<para
+>Se as <guilabel
+>Sequências de escape</guilabel
+> ou a <guilabel
+>Expressão regular</guilabel
+> estiverem seleccionadas, o item <guibutton
+>Adicionar...</guibutton
+>, no fundo do menu de contexto das áreas de texto, irá ficar activo, permitindo assim que adicione sequências de escape ou itens de expressões regulares ao padrão de pesquisa e substituição, a partir de listas predefinidas.</para>
+<para
+>Use os botões <inlinemediaobject
+><imageobject
+><imagedata fileref="arrow-up-double-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> ou <inlinemediaobject
+><imageobject
+><imagedata fileref="arrow-down-double-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> para saltar para a ocorrência anterior ou seguinte no documento.</para>
+<para
+>Indique o texto de substituição no campo de texto <guilabel
+>Substituir</guilabel
+> e carregue no botão <guibutton
+>Substituir</guibutton
+>, para substituir apenas o texto realçado, ou o botão <guibutton
+>Substituir Tudo</guibutton
+> para substituir o texto de pesquisa no documento inteiro. </para>
+<para
+>Poderá modificar o comportamento da pesquisa e da substituição ao seleccionar as diferentes opções no lado direito da barra. Se seleccionar a opção <inlinemediaobject
+><imageobject
+><imagedata fileref="format-text-superscript-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> irá limitar as pesquisas apenas aos itens com capitalização correspondente (maiúsculas ou minúsculas) para cada um dos caracteres no padrão de pesquisa. A opção <guilabel
+>Procurar Tudo</guilabel
+> realça todas as ocorrências no documento. A opção <inlinemediaobject
+><imageobject
+><imagedata fileref="edit-select-all-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> irá procurar e substituir apenas dentro do texto seleccionado de momento. </para>
+<para
+>Carregue no botão <inlinemediaobject
+><imageobject
+><imagedata fileref="configure-shortcuts-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+>, à direita da barra avançada de pesquisa e substituição, para mudar para a barra de pesquisa incremental. </para>
+<tip>
+<para
+>Se estiver a usar uma expressão regular para procurar o texto a substituir, pode usar referências anteriores para reutilizar o texto capturado nos sub-padrões entre parêntesis da expressão.</para>
+<para
+>Veja as <link linkend="regular-expressions"
+>Expressões Regulares</link
+> para mais informações sobre o assunto.</para>
+</tip>
+
+<tip
+><para
+>Poderá fazer um <command
+>find</command
+>, <command
+>replace</command
+> e um <command
+>ifind</command
+> (pesquisa incremental) na <link linkend="advanced-editing-tools-commandline"
+>linha de comandos</link
+>.</para>
+</tip>
+
+</sect2>
+
+</sect1>
+
+<sect1 id="kate-part-bookmarks">
+<title
+>Usar os Favoritos</title>
+
+<para
+>A possibilidade de o utilizador ter favoritos permite-lhe marcar certas linhas, para as encontrar de novo facilmente.</para>
+
+<para
+>Poderá colocar ou remover um favorito numa linha de duas formas:</para>
+
+<itemizedlist>
+<listitem>
+<para
+>Movendo o cursor de inserção para essa linha e activando o comando <menuchoice
+><guimenu
+>Favoritos</guimenu
+><guimenuitem
+>Marcar um Favorito</guimenuitem
+></menuchoice
+> (<keycombo action="simul"
+>&Ctrl;<keycap
+>B</keycap
+></keycombo
+>).</para>
+</listitem>
+<listitem>
+<para
+>Carregando no Contorno do Ícone junto a essa linha.</para>
+</listitem>
+</itemizedlist>
+
+
+<para
+>Os favoritos estão disponíveis no menu <guimenu
+>Favoritos</guimenu
+>. Os favoritos estão disponíveis individualmente como itens do menu, nomeados com o número de linha com o favorito e os primeiros caracteres de texto da linha. Para mover o cursor de inserção para o início de uma linha com uma marcação dessas, abra o menu e seleccione o Favorito.</para>
+
+<para
+>Para saltar rapidamente entre favoritos ou para o favorito anterior/seguinte, use as opções <menuchoice
+><guimenu
+>Favoritos</guimenu
+><guimenuitem
+>Seguinte</guimenuitem
+> </menuchoice
+> (<keycombo action="simul"
+>&Ctrl; <keycap
+>Page Down</keycap
+></keycombo
+>) ou <menuchoice
+> <guimenu
+>Favoritos</guimenu
+><guimenuitem
+>Anterior</guimenuitem
+></menuchoice
+> (<keycombo action="simul"
+>&Ctrl;<keycap
+>Page Up</keycap
+> </keycombo
+>).</para>
+
+</sect1>
+
+<sect1 id="kate-part-auto-wrap">
+<!--dynamic word wrap needs description here-->
+<title
+>Mudar o Texto de Linha Automaticamente</title>
+
+<para
+>Esta funcionalidade permite-lhe ter o texto formatado de uma forma muito simples: o texto será repartido, de modo a que não hajam linhas que excedam o número máximo de caracteres por linha, a menos que exista uma sequência de caracteres sem espaços maior do que o comprimento da linha.</para>
+
+<para
+>Para a activar ou desactivar, assinale a opção <guibutton
+>Mudança de Linha Estática</guibutton
+> na <link linkend="pref-word-wrap"
+>página de edição</link
+> da <link linkend="config-dialog"
+>janela de configuração</link
+>.</para>
+
+<para
+>Para definir o tamanho máximo da linha (número máximo de caracteres por linha), use a opção <link linkend="pref-wrap-words-at"
+><guibutton
+>Mudar de Linha A</guibutton
+></link
+> na página de <link linkend="pref-edit"
+>Edição</link
+> da <link linkend="config-dialog"
+>janela de configuração</link
+>.</para>
+
+<para
+>Se estiver activa, tem os seguintes efeitos: <itemizedlist>
+<listitem
+><para
+>À medida que se vai escrevendo, o editor irá inserir automaticamente uma quebra de linha depois do último carácter de separação de palavras numa posição antes do tamanho máximo da linha ser atingido.</para
+></listitem>
+<listitem
+><para
+>Enquanto se vai lendo o documento, o editor irá repartir o texto de uma forma semelhante, de modo a que não hajam linhas que sejam maiores que o tamanho máximo definido, se conterem alguns espaços que o permitam.</para
+></listitem>
+</itemizedlist>
+
+</para>
+
+<note
+><para
+>Não existe de momento nenhuma forma de configurar a mudança de linha para os tipos de documento ou de activar ou desactivar a funcionalidade ao nível do documento. Isto será resolvido numa versão futura do &kappname;</para
+></note>
+
+</sect1>
+
+<sect1 id="kate-part-autoindent">
+<title
+>Usar a indentação automática</title>
+
+<para
+>O componente de edição do &kappname; suporta uma variedade de modos de indentação automática, desenhadas para os diferentes formatos de texto. Poderá escolher qualquer um dos modos disponíveis com a opção do menu <menuchoice
+><guimenu
+>Ferramentas</guimenu
+><guisubmenu
+>Indentação</guisubmenu
+></menuchoice
+>. Os módulos de indentação automática também oferecem uma função <menuchoice
+><guimenu
+>Ferramentas</guimenu
+><guimenuitem
+>Alinhar</guimenuitem
+></menuchoice
+> que irá calcular de novo a indentação da linha seleccionada ou da actual. Como tal, poderá voltar a indentar todo o seu documento, seleccionando todo o texto e activando essa acção.</para>
+
+<para
+>Todos os modos de indentação usam a configuração de indentação no documento activo.</para>
+
+<tip
+><para
+>Poderá definir todos os tipos de variáveis de configuração, incluindo aqueles relacionados com a indentação com as <link linkend="config-variables"
+>Variáveis do Documento</link
+> e os <link linkend="pref-open-save-modes-filetypes"
+>Tipos de ficheiros</link
+>.</para
+></tip>
+
+<variablelist>
+
+<title
+>Modos de Indentação Automática Disponíveis</title>
+
+<varlistentry>
+<term
+>Nenhum</term>
+<listitem
+><para
+>Se seleccionar este modo, irá desactivar a indentação automática.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Normal</term>
+<listitem
+><para
+>Este sistema de indentação simplesmente mantém a indentação semelhante à da linha anterior, com o conteúdo que não corresponda a espaços em branco. Poderá combinar isto com a utilização das acções de indentação e remoção de indentação, para poder indentar de acordo com a sua vontade. </para
+></listitem>
+</varlistentry>
+
+<varlistentry
+><term
+>Estilo C</term>
+<listitem
+><para
+>Um sistema de indentação para o C e para as linguagens semelhantes, como o C++, C#, Java, JavaScript, entre outros. Este sistema não irá funcionar para as linguagens de 'scripting', como o Perl ou o PHP.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Haskell</term>
+<listitem
+><para
+>Um sistema de indentação específico para a linguagem de programação Haskell. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Lilypond</term>
+<listitem
+><para
+>Um sistema de indentação específico para a linguagem de notação musical Lilypond. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Lisp</term>
+<listitem
+><para
+>Um sistema de indentação específico para a linguagem de programação Lisp e respectivos dialectos. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Python</term>
+<listitem
+><para
+>Um sistema de indentação específico para a linguagem de programação Python. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Estilo XML</term>
+<listitem
+><para
+>Um sistema de indentação específico para linguagens semelhantes a XML. </para
+></listitem>
+</varlistentry>
+<!--Ruby + Lua missing -->
+</variablelist>
+
+</sect1>
+
+<sect1 id="kate-part-line-modification">
+<title
+>Indicadores de Modificação da Linha</title>
+
+<para
+>Os indicadores de modificação de linhas do &kappname; permitem-lhe ver facilmente o que alterou recentemente num ficheiro. As alterações gravadas são indicadas com uma barra verde à esquerda de um documento, enquanto as alterações não gravadas são indicadas com uma barra laranja.</para>
+
+<para>
+<mediaobject>
+<imageobject
+><imagedata format="PNG" fileref="line-modification-system.png"/></imageobject>
+<caption
+><para
+>Os indicadores de modificação da linha em acção.</para
+></caption>
+</mediaobject>
+</para>
+
+<para
+>Poderá alterar as cores usadas no <link linkend="prefcolors"
+>painel de configuração das <guilabel
+>Cores &amp; Tipos de Letra</guilabel
+></link
+> ou poderá desactivar esta funcionalidade por completo na página <link linkend="appearance-borders"
+><guilabel
+>Contornos</guilabel
+> do painel de configuração da <guilabel
+>Aparência</guilabel
+></link
+>.</para>
+
+</sect1>
+
+<sect1 id="kate-part-scrollbar-minimap">
+<title
+>O Mini-Mapa de Posicionamento</title>
+
+<para
+>O Mini-Mapa de Posicionamento do &kappname; mostra uma antevisão dos documentos no local da barra de posicionamento. A parte visível de momento do documento fica realçada. </para>
+
+<para>
+<mediaobject>
+<imageobject
+><imagedata format="PNG" fileref="minimap.png"/></imageobject>
+<caption
+><para
+>O Mini-Mapa de Posicionamento mostra uma antevisão do código-fonte do &kate;. </para
+></caption>
+</mediaobject>
+</para>
+
+<para
+>Poderá activar ou desactivar temporariamente o mini-mapa, seleccionando a opção <menuchoice
+><guimenu
+>Ver</guimenu
+><guimenuitem
+>Ver o Mini-Mapa de Posicionamento</guimenuitem
+></menuchoice
+> ou, de forma permanente, na <link linkend="appearance-borders"
+>secção de Aparência da configuração do &kappname;</link
+>.</para>
+
+</sect1>
+
+</chapter>

@@ -1,0 +1,425 @@
+<?xml version="1.0" ?>
+<!DOCTYPE article PUBLIC "-//KDE//DTD DocBook XML V4.5-Based Variant V1.1//EN"
+"dtd/kdedbx45.dtd" [
+<!ENTITY kappname "&kwrite;">
+<!ENTITY % Swedish "INCLUDE"
+> <!-- change language only here -->
+]>
+
+<article id="kwrite" lang="&language;">
+
+<articleinfo>
+<title
+>Handbok &kwrite;</title>
+<authorgroup>
+<author
+>&TC.Hollingsworth; &TC.Hollingsworth.mail;</author>
+<othercredit role="developer"
+>&Christoph.Cullmann; &Christoph.Cullmann.mail; </othercredit>
+
+<othercredit role="translator"
+> <firstname
+>Stefan</firstname
+> <surname
+>Asserhäll</surname
+> <affiliation
+><address
+><email
+>stefan.asserhall@bredband.net</email
+></address
+></affiliation
+> <contrib
+>Översättare</contrib
+></othercredit
+> 
+
+</authorgroup>
+
+<copyright>
+<year
+>2014</year>
+<holder
+>&TC.Hollingsworth; &TC.Hollingsworth.mail;</holder>
+</copyright>
+<legalnotice
+>&FDLNotice;</legalnotice>
+
+<date
+>2018-05-19</date>
+<releaseinfo
+>Program 18.08</releaseinfo>
+
+<abstract>
+<para
+>&kwrite; är en texteditor av &kde; som låter dig redigera en fil åt gången i varje fönster.</para>
+</abstract>
+
+<keywordset>
+<keyword
+>KDE</keyword>
+<keyword
+>Kwrite</keyword>
+<keyword
+>text</keyword>
+<keyword
+>editor</keyword>
+</keywordset>
+
+</articleinfo>
+
+<sect1 id="introduction">
+<title
+>Inledning</title>
+
+<para
+>&kwrite; är mer än en texteditor av &kde;. Den är avsedd som en editor för programmerare, och kan delvis anses som ett alternativ till mer kraftfulla editorer. Den kan vara bäst att använda tillsammans med &konqueror; eller &dolphin; för att bläddra i källkodsfiler med olika språk. &kwrite; fungerar också mycket bra som en enkel texteditor. En av &kwrite;s huvudfunktioner är syntaxfärgläggningen, som är anpassad för många olika programspråk som C/C++, &Java;, Python, Perl, Bash, Modula 2, &HTML; och Ada. &kwrite; har ett gränssnitt för ett enda dokument (<acronym
+>SDI</acronym
+>) vilket låter dig redigera en fil åt gången per fönster. </para>
+
+<para
+>&kwrite; är ett enkelt gränssnitt till komponenten &katepart; som också används av &kate;, &kdevelop;, och andra program från &kde; som kräver avancerad textredigering. Därför finns fullständig dokumentation av &kwrite; i <ulink url="help:/katepart"
+>Handbok &katepart;</ulink
+>. </para>
+</sect1>
+
+<sect1 id="command-line-options">
+<title
+>Kommandoradsväljare</title>
+
+<para
+>Även om &kwrite; oftast startas från &plasma;:s programstart, eller en skrivbordsikon, kan det också köras från kommandoraden i ett terminalfönster. Det finns ett antal användbara väljare som är tillgängliga när detta görs. </para>
+
+<para
+>Många andra program som använder &katepart; erbjuder liknande alternativ på kommandoraden.</para>
+
+<sect2 id="specify-a-file">
+<title
+>Ange en fil</title>
+
+<para
+>Genom att ange sökvägen och namnet på en viss fil kan användaren låta &kwrite; öppna (eller skapa) filen omedelbart vid start. Väljaren kan se ut ungefär på följande sätt:</para>
+
+<informalexample
+><screen
+><prompt
+>%</prompt
+> <userinput
+><command
+>kwrite</command>
+ <option
+><replaceable
+>/home/mitthem/dokument/minfil.txt</replaceable>
+</option
+></userinput
+>
+</screen>
+</informalexample>
+</sect2>
+<sect2 id="editing-files-on-the-internet">
+<title
+>Ange en fil på Internet</title>
+
+<para
+>Det ovanstående sättet kan till och med användas för att öppna filer på Internet (om användaren har en aktiv anslutning vid detta tillfället). Ett exempel på det här kan se ut som följer:</para>
+
+<informalexample
+><screen
+><prompt
+>%</prompt
+> <userinput
+><command
+>kwrite</command>
+<option
+><replaceable
+>ftp://ftp.kde.org/pub/kde/README</replaceable>
+</option
+></userinput
+>
+</screen>
+</informalexample>
+
+</sect2>
+
+<sect2 id="other-command-line-options">
+<title
+>Andra kommandoradsväljare</title>
+
+<para
+>Följande hjälpalternativ är tillgängliga på kommandoraden</para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><userinput
+><command
+>kwrite</command
+> <option
+>--help</option
+></userinput
+></term>
+<listitem
+><para
+>Visar de mest grundläggande alternativen som är tillgängliga från kommandoraden.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+><command
+>kwrite</command
+> <option
+>--author</option
+></userinput
+></term>
+<listitem
+><para
+>Visar &kwrite;s upphovsmän i terminalfönstret.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+
+<term
+><userinput
+><command
+>kwrite</command
+> <option
+>-v</option
+>, <option
+>--version</option
+></userinput
+></term>
+<listitem
+><para
+>Listar versionsinformation för programmet.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+><command
+>kwrite</command
+> <option
+>--license</option
+></userinput
+></term>
+<listitem>
+<para
+>Visar licensinformation.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+><command
+>kwrite</command
+> <option
+>--desktopfile</option
+> <parameter
+>filnamn</parameter
+></userinput
+></term>
+<listitem
+><para
+>Basfilnamnet på skrivbordsposten för programmet.</para>
+<para
+>Det är särskilt användbart för omgivande program och program som i allmänhet har flera skrivbordsfiler. På så sätt kan varje skrivbordsfil ha sin egen kommandorad i posten <option
+>Exec</option
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+><command
+>kwrite</command
+> <option
+>-e</option
+>, <option
+>--encoding</option
+> <parameter
+>kodning</parameter
+> </userinput
+></term>
+<listitem
+><para
+>Gör att &kwrite; använder angiven kodning för dokumentet. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+><command
+>kwrite</command
+> <option
+>-l</option
+>, <option
+>--line</option
+> <parameter
+>rad</parameter
+> </userinput
+></term>
+<listitem
+><para
+>Går till angiven rad efter att dokumentet har öppnats. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+><command
+>kwrite</command
+> <option
+>-c</option
+>, <option
+>--column</option
+> <parameter
+>kolumn</parameter
+> </userinput
+></term>
+<listitem
+><para
+>Går till angiven kolumn efter att dokumentet har öppnats. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+><command
+>kwrite</command
+> <option
+>-i</option
+>, <option
+>--stdin</option
+></userinput
+></term>
+<listitem
+><para
+>Gör att &kwrite; läser dokumentets innehåll från standardinmatningen. Det liknar den vanliga väljaren <option
+>-</option
+> som används av många kommandoradsprogram, och låter dig skicka utdata från ett kommando till &kwrite; via en rörledning.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+</sect2>
+</sect1>
+
+<sect1 id="credits">
+<title
+>Tack till och licens</title>
+
+<para
+>&kwrite; Copyright 2001-2014 av &kate;-gruppen.</para>
+
+<para
+>Baserad på den ursprungliga &kwrite;, som var copyright 2000 av Jochen Wilhelmy <email
+>digisnap@cs.tu-berlin.de</email
+> </para>
+
+<para
+>Bidragsgivare:</para>
+
+<itemizedlist>
+<listitem>
+<para
+>&Christoph.Cullmann; &Christoph.Cullmann.mail;</para>
+</listitem>
+
+<listitem>
+<para
+>Michael Bartl <email
+>michael.bartl1@chello.at</email
+></para>
+</listitem>
+
+<listitem>
+<para
+>Phlip <email
+>phlip_cpp@my-deja.com</email
+></para>
+</listitem>
+
+<listitem>
+<para
+>&Anders.Lund; &Anders.Lund.mail;</para>
+</listitem>
+
+<listitem>
+<para
+>Matt Newell <email
+>newellm@proaxis.com</email
+></para>
+</listitem>
+
+<listitem>
+<para
+>&Joseph.Wenninger; &Joseph.Wenninger.mail;</para>
+</listitem>
+
+<listitem>
+<para
+>Jochen Wilhelmy <email
+>digisnap@cs.tu-berlin.de</email
+></para>
+</listitem>
+
+<listitem>
+<para
+>&Michael.Koch; &Michael.Koch.mail;</para>
+</listitem>
+
+<listitem>
+<para
+>&Christian.Gebauer; &Christian.Gebauer.mail;</para>
+</listitem>
+
+<listitem>
+<para
+>&Simon.Hausmann; &Simon.Hausmann.mail;</para>
+</listitem>
+
+<listitem>
+<para
+>Glen Parker <email
+>glenebob@nwlink.com</email
+></para>
+</listitem>
+
+<listitem>
+<para
+>Scott Manson <email
+>sdmanson@altel.net</email
+></para>
+</listitem>
+
+<listitem>
+<para
+>&John.Firebaugh; &John.Firebaugh.mail;</para>
+</listitem>
+</itemizedlist>
+
+<para
+>Översättning Stefan Asserhäll <email
+>stefan.asserhall@bredband.net</email
+></para
+> &underFDL; &underGPL; </sect1>
+
+</article>
+<!--
+Local Variables:
+mode: sgml
+sgml-namecase-general: t
+sgml-namecase-entity: nil
+sgml-general-insert-case: lower
+sgml-minimize-attributes: nil
+sgml-omittag: nil
+End:
+-->

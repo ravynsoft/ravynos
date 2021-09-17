@@ -1,0 +1,517 @@
+<chapter id="configuring-kate">
+<chapterinfo>
+<authorgroup>
+<author
+>&Anders.Lund; &Anders.Lund.mail;</author>
+<othercredit role="translator"
+><firstname
+>Nicola</firstname
+><surname
+>Ruggero</surname
+><contrib
+>Traduzione della documentazione.</contrib
+></othercredit
+><othercredit role="translator"
+><firstname
+>Luciano</firstname
+><surname
+>Montanaro</surname
+><contrib
+>Aggiornamento della traduzione per &kate; 2.5.6</contrib
+></othercredit
+><othercredit role="translator"
+><firstname
+>Federico</firstname
+><surname
+>Zenith</surname
+><affiliation
+><address
+><email
+>federico.zenith@member.fsf.org</email
+></address
+></affiliation
+><contrib
+>Aggiornamento per &kde; 4.3 e manutenzione</contrib
+></othercredit
+> 
+</authorgroup>
+</chapterinfo>
+<title
+>Configurare &kate;</title>
+
+<sect1 id="configuring-overview">
+<title
+>Panoramica</title>
+<para>
+<indexterm>
+<primary
+>configurazione</primary>
+<secondary
+>impostazioni</secondary>
+<tertiary
+>preferenze</tertiary
+></indexterm
+><anchor id="find"/> <anchor id="find-again"/> <anchor id="replace"/> <anchor id="undo"/> <anchor id="redo"/> &kate; offre molti modi per adattare l'applicazione alle proprie esigenze. I più importanti sono: </para>
+
+<variablelist>
+<varlistentry>
+<term id="configure"
+>La finestra di configurazione</term>
+<listitem
+><para
+>Lo strumento principale di configurazione permette di configurare l'applicazione &kate;, il componente editor e l'uso delle estensioni.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term id="settings"
+>Il menu <guimenu
+>Impostazioni</guimenu
+></term>
+<listitem
+><para
+>Permette di cambiare le impostazioni usate più spesso e di aprire la finestra di configurazione.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+>Il menu <guimenu
+>Visualizza</guimenu
+></term>
+<listitem
+><para
+>Permette di dividere il riquadro attuale, oltre a visualizzare le aree delle icone e dei numeri di riga per il documento su cui stai attualmente lavorando.</para
+></listitem>
+</varlistentry>
+</variablelist>
+
+<para
+>Il terminale integrato usa la configurazione definita nelle &systemsettings;, e può anche essere configurato facendo clic con il &RMB; per visualizzare un menu contestuale.</para>
+
+</sect1>
+
+<sect1 id="configuring-kate-configdialog">
+<title
+>La finestra di configurazione principale</title>
+
+<mediaobject>
+<imageobject>
+<imagedata format="PNG" fileref="configdialog01.png"/>
+</imageobject>
+</mediaobject>
+
+<para
+>La finestra di configurazione di &kate; mostra a sinistra un albero di argomenti, e a destra la pagina di configurazione corrispondente all'argomento selezionato.</para>
+
+<para
+>La configurazione è divisa in due gruppi, cioè: <itemizedlist>
+<listitem
+><para
+><link linkend="config-dialog"
+>Configurazione dell'applicazione</link>
+</para
+></listitem>
+<listitem
+><para
+><link linkend="config-dialog-editor"
+>Configurazione del componente editor</link
+></para
+></listitem>
+
+</itemizedlist>
+
+</para>
+
+</sect1>
+
+<sect1 id="config-dialog">
+<title
+>La configurazione dell'applicazione &kate;</title>
+<para
+>Questo gruppo contiene le pagine per configurare l'applicazione principale di &kate;</para>
+
+<sect2 id="config-dialog-general">
+<title
+>Generale</title>
+<para
+>Questa sezione contiene alcune opzioni globali di &kate;.</para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><anchor id="config-general-behavior"/>
+<guilabel
+>Comportamento</guilabel
+></term>
+<listitem>
+<variablelist>
+
+<varlistentry>
+<term
+><anchor id="config-dialog-general-switch-to-output"/>
+<guilabel
+>Passa alla visualizzazione dell'output in base al tipo di messaggio</guilabel
+></term>
+<listitem
+><para
+>Questa opzione permette di configurare quando &kate; deve mostrare un pannello di output a seconda del tipo di azione dell'output.</para>
+<para
+>È possibile scegliere tra <guimenuitem
+>Mai</guimenuitem
+>, <guimenuitem
+>Errore</guimenuitem
+> (in case di livello errore), <guimenuitem
+>Avviso</guimenuitem
+> (in caso di livello avviso o superiore), <guimenuitem
+>Informazioni</guimenuitem
+> (in caso di livello informazioni o superiore), e <guimenuitem
+>Registro</guimenuitem
+> (in caso di livello registro o superiore).</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><anchor id="config-dialog-general-separate-dialog"/>
+<guilabel
+>Usa una finestra separata per gestire i file modificati esternamente</guilabel
+></term>
+<listitem
+><para
+>Se questa opzione è abilitata, &kate; segnalerà con una finestra modale tutti i file modificati dall'esterno dell'applicazione ogni volta che la finestra principale verrà attivata. Potrai gestire più file modificati alla volta, e puoi ricaricare, salvare o scartare i file modificati in gruppi.</para>
+<para
+>Se questa opzione è abilitata, &kate; chiederà cosa fare per ogni file modificato solo quando la vista di quel file riceve il fuoco.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+</listitem>
+</varlistentry
+><!-- /behavior group -->
+
+<varlistentry>
+<term
+><anchor id="config-general-quick-open"/>
+<guilabel
+>Apertura rapida</guilabel
+></term>
+ <listitem>
+
+<variablelist>
+<varlistentry>
+<term
+><anchor id="config-general-quick-open-match-mode"/>
+<guilabel
+>Modalità di corrispondenza</guilabel
+></term>
+<listitem
+><para
+>Imposta la modalità ad elenco dello strumento <link linkend="view-quick-open"
+>Apertura rapida</link
+>. I file possono essere associati in base al loro nome o al loro percorso.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><anchor id="config-general-quick-open-list-mode"/>
+<guilabel
+>Modalità ad elenco</guilabel
+></term>
+<listitem
+><para
+>Imposta la modalità ad elenco dello strumento <link linkend="view-quick-open"
+>Apertura rapida</link
+>. È possibile scegliere tra <guilabel
+>File del progetto corrente</guilabel
+> e <guilabel
+>Tutti i file di progetto</guilabel
+>.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</listitem>
+</varlistentry
+><!-- /quick open group -->
+
+<varlistentry>
+<term
+><anchor id="config-general-tabs"/>
+<guilabel
+>Schede</guilabel
+></term>
+ <listitem>
+
+<variablelist>
+<varlistentry>
+<term
+><anchor id="config-general-limit-number-of-tabs"/>
+<guilabel
+>Limita numero di schede</guilabel
+></term>
+<listitem
+><para
+>Imposta il numero massimo di schede. Scegli <guimenuitem
+>Illimitato</guimenuitem
+> se non vuoi delle restrizioni a questo numero.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><anchor id="config-general-show-close-button"/>
+<guilabel
+>Mostra il pulsante Chiudi</guilabel
+></term>
+<listitem
+><para
+>Se spuntato, ogni scheda mostrerà un pulsante di chiusura.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><anchor id="config-general-expand-tabs"/>
+<guilabel
+>Espandi schede</guilabel
+></term>
+<listitem
+><para
+>Se spuntato, le schede occuperanno più spazio possibile.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><anchor id="config-general-double-click"/>
+<guilabel
+>Un doppio clic apre un nuovo documento</guilabel
+></term>
+<listitem
+><para
+>Se spuntato, un doppio clic apre un nuovo documento.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><anchor id="config-general-middle-click"/>
+<guilabel
+>Un clic col tasto centrale chiude un documento</guilabel
+></term>
+<listitem
+><para
+>Se spuntato, un clic col tasto centrale chiude un documento.</para
+></listitem>
+</varlistentry>
+</variablelist>
+
+</listitem>
+</varlistentry
+><!-- /tabs group -->
+</variablelist>
+</sect2>
+
+<sect2 id="config-dialog-sessions">
+<title
+>Sessione</title>
+
+<para
+>Questa sezione contiene opzioni relative all'<link linkend="fundamentals-using-sessions"
+>uso delle sessioni</link
+>.</para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><anchor id="config-dialog-sessions-startup-behavior"/>
+<guilabel
+>Comportamento dell'applicazione all'avvio</guilabel
+></term>
+<listitem>
+<para
+>Seleziona il comportamento di &kate; all'avvio. Questa impostazione può essere ignorata specificando cosa fare dalla <link linkend="command-line-options"
+>riga di comando</link
+>.</para>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Avvia nuova sessione</guilabel
+></term>
+<listitem
+><para
+>Con questa opzione, &kate; creerà una nuova sessione senza nome all'avvio dell'applicazione.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Carica l'ultima sessione usata</guilabel
+></term>
+<listitem
+><para
+>&kate; userà la sessione usata più di recente all'avvio. È comodo se vuoi usare sempre la stessa sessione o se la cambi raramente.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Scegli a mano una sessione</guilabel
+></term>
+<listitem
+><para
+>&kate; mostrerà una finestrella per la scelta della sessione preferita, o caricherà la predefinita se non ne sono state salvate. Questo è il comportamento predefinito. È comodo se usi molte sessioni diverse di frequente.</para
+></listitem>
+</varlistentry>
+</variablelist>
+</listitem>
+</varlistentry
+><!-- /startup behavior -->
+
+<varlistentry>
+<term
+><anchor id="config-dialog-sessions-shutdown-behavior"/>
+<guilabel
+>Comportamento dell'applicazione alla chiusura</guilabel
+></term>
+<listitem>
+<para
+>Seleziona quello che vuoi che faccia &kate; alla chiusura. È possibile definire quello che &kate; dovrebbe <guilabel
+>Salvare automaticamente e ripristinare</guilabel
+>.</para>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>File non salvati di nuova creazione</guilabel
+></term>
+<listitem
+><para
+>Con questa voce selezionata &kate; salverà automaticamente tutti i nuovi file creati non ancora salvati.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>File con modifiche non salvate</guilabel
+></term>
+<listitem
+><para
+>Questa voce configura &kate; per salvare automaticamente allo spegnimento tutti i file con delle modifiche non salvate.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><anchor id="config-dialog-sessions-close-mod"/>
+<guilabel
+>Chiudi completamente Kate quando viene chiuso l'ultimo file</guilabel
+></term>
+<listitem
+><para
+>Se abilitato, &kate; si chiuderà quando verrà chiuso l'ultimo file che è stato modificato, diversamente si aprirà una pagina vuota in modo che potrai iniziare un nuovo file.</para>
+</listitem>
+</varlistentry>
+</variablelist>
+
+</listitem>
+</varlistentry
+><!-- /shutdown behavior -->
+
+<varlistentry>
+<term
+><anchor id="config-dialog-sessions-elements"/>
+<guilabel
+>Elementi della sessione</guilabel
+></term>
+<listitem>
+<variablelist>
+<!--FIXME Maximum number of entries in recent file list-->
+<varlistentry>
+<term
+><guilabel
+>Includi la configurazione della finestra</guilabel
+></term>
+<listitem
+><para
+>Se questa opzione è abilitata, &kate; salverà la configurazione della finestra con ogni sessione.</para
+></listitem>
+</varlistentry>
+</variablelist>
+</listitem>
+</varlistentry
+><!-- /elements of sessions -->
+
+<varlistentry>
+<term
+><anchor id="config-sessions-keep-meta-information"/>
+<guilabel
+>Ricorda le informazioni aggiuntive</guilabel
+></term>
+<listitem
+><para
+>Se questa opzione è abilitata, &kate; memorizzerà i metadati come i segnalibri e la configurazione della sessione anche quando chiudi i documenti. I dati saranno usati se il documento non è stato modificato alla riapertura.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><anchor id="config-sessions-delete-meta-information-after"/>
+<guilabel
+>Elimina informazioni aggiuntive inutilizzate dopo</guilabel
+></term>
+<listitem
+><para
+>Imposta il massimo numero di giorni per cui conservare le informazioni aggiuntive per i file precedentemente aperti. Questo permette di mantenere la banca dati delle informazioni aggiuntive entro dimensioni ragionevoli.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+<para
+>Tutte le modifiche ai dati della sessione (file aperti e, se abilitata, la configurazione delle finestre) saranno sempre salvate.</para>
+
+</sect2>
+
+<sect2 id="config-dialog-plugins">
+<title
+>Estensioni</title>
+
+<para
+>Questa pagina fornisce un elenco delle estensioni installate in &kate;. Ciascuna estensione è rappresentata dal suo nome e da una breve descrizione. Puoi spuntare la casella di una voce per abilitarne l'estensione. </para>
+
+<para
+>Se un'estensione ha delle opzioni di configurazione, apparirà una sezione per accedervi come figlia di questa pagina.</para>
+
+<para
+>Per maggiori informazioni sulle estensioni disponibili, vedi <xref linkend="plugins"/>.</para>
+
+</sect2>
+
+<sect2 id="config-dialog-editor">
+<title
+>Configurazione del componente editor</title>
+
+<para
+>Per informazioni su questa sezione della finestra di configurazione, vedi la <ulink url="help:/katepart/config-dialog.html"
+>sezione sulla configurazione del componente editor del manuale di &katepart;</ulink
+>.</para>
+
+</sect2>
+
+<sect2 id="config-variables">
+<title
+>Configurazione con le variabili dei documenti</title>
+
+<para
+>Per informazioni sull'uso delle variabili dei documenti con &kate;, vedi la <ulink url="help:/katepart/config-variables.html"
+>sezione sulla configurazione delle variabili dei documenti del manuale di &katepart;</ulink
+>.</para>
+
+</sect2>
+
+</sect1>
+
+</chapter>

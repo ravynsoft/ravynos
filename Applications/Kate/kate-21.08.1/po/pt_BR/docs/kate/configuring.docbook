@@ -1,0 +1,396 @@
+<chapter id="configuring-kate">
+<chapterinfo>
+<authorgroup>
+<author
+>&Anders.Lund; &Anders.Lund.mail;</author>
+<othercredit role="translator"
+><firstname
+>Lisiane</firstname
+><surname
+>Sztoltz</surname
+><affiliation
+><address
+><email
+>lisiane@conectiva.com.br</email
+></address
+></affiliation
+><contrib
+>Tradução</contrib
+></othercredit
+> <othercredit role="translator"
+><firstname
+>André Marcelo</firstname
+><surname
+>Alvarenga</surname
+><affiliation
+><address
+><email
+>alvarenga@kde.org</email
+></address
+></affiliation
+><contrib
+>Tradução</contrib
+></othercredit
+> 
+</authorgroup>
+</chapterinfo>
+<title
+>Configurando o &kate;</title>
+
+<sect1 id="configuring-overview">
+<title
+>Visão geral</title>
+<para>
+<indexterm>
+<primary
+>configurar</primary>
+<secondary
+>configurações</secondary>
+<tertiary
+>preferências</tertiary
+></indexterm>
+<anchor id="find"/> <anchor id="find-again"/> <anchor id="replace"/> <anchor id="undo"/> <anchor id="redo"/> O &kate; oferece vários meios de configurar o aplicativo para comportar-se como desejado. Os mais importantes são: </para>
+
+<variablelist>
+<varlistentry>
+<term id="configure"
+>O diálogo de configuração</term>
+<listitem
+><para
+>A principal ferramenta de configuração, permitindo a você configurar o aplicativo &kate;, o componente de edição e o uso de plugins.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term id="settings"
+>O Menu <guimenu
+>Preferências</guimenu
+></term>
+<listitem
+><para
+>Permite a você modificar preferências usadas com frequência, e lançar os diálogos de configuração.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+>Menu <guimenu
+>Exibir</guimenu
+></term>
+<listitem
+><para
+>Permite a você dividir o quadro atual, bem como exibir ícones e números de linha para o documento atualmente editado.</para
+></listitem>
+</varlistentry>
+</variablelist>
+
+<para
+>O terminal integrado usa as opções definidas nas &systemsettings; e pode ser configurado usando o clique <mousebutton
+>direito</mousebutton
+> do mouse para acessar o menu de contexto.</para>
+
+</sect1>
+
+<sect1 id="configuring-kate-configdialog">
+<title
+>O Diálogo de Configuração Principal</title>
+
+<mediaobject>
+<imageobject>
+<imagedata format="PNG" fileref="configdialog01.png"/>
+</imageobject>
+</mediaobject>
+
+<para
+>A janela de configuração do &kate; mostra uma árvore com os tópicos à esquerda, bem como uma página de configuração correspondente ao tópico selecionado à direita.</para>
+
+<para
+>A configuração está dividida em dois grupos, denominados <itemizedlist>
+<listitem
+><para
+><link linkend="config-dialog"
+>Configuração do aplicativo</link>
+</para
+></listitem>
+<listitem
+><para
+><link linkend="config-dialog-editor"
+>Configuração do componente de edição</link
+></para
+></listitem>
+
+</itemizedlist>
+
+</para>
+
+</sect1>
+
+<sect1 id="config-dialog">
+<title
+>A configuração do aplicativo &kate;</title>
+<para
+>Este grupo contém páginas para se configurar o aplicativo principal do &kate;</para>
+
+<sect2 id="config-dialog-general">
+<title
+>Geral</title>
+<para
+>Esta seção contém algumas opções globais para o &kate;</para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><anchor id="config-general-behavior"/>
+<guilabel
+>Comportamento</guilabel
+></term>
+<listitem>
+<variablelist>
+
+<varlistentry>
+<term
+><anchor id="config-dialog-general-warn-mod"/>
+<guilabel
+>Avisar sobre arquivos modificados por outros processos</guilabel
+></term>
+<listitem
+><para
+>Quando esta opção estiver ativa, o &kate; irá notificá-lo dos arquivos modificados fora do aplicativo, sempre que a janela principal for colocada em primeiro plano. Você será então capaz de lidar com vários arquivos modificados de uma vez, os quais poderá recarregar, salvar ou descartar os arquivos alterados nos grupos.</para>
+<para
+>Se não estiver ativada, o &kate; irá perguntar-lhe a ação a tomar, quando um arquivo modificado externamente ficar em primeiro plano, dentro do aplicativo.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+</listitem>
+</varlistentry
+><!-- /behavior group -->
+
+<varlistentry>
+<term
+><anchor id="config-general-meta-data"/>
+<guilabel
+>Metainformações</guilabel
+></term>
+ <listitem>
+
+<variablelist>
+<varlistentry>
+<term
+><anchor id="config-general-keep-meta-information"/>
+<guilabel
+>Manter metainformações de sessões passadas</guilabel
+></term>
+<listitem
+><para
+>Quando estiver ativa, o &kate; irá guardar alguns metadados, como a configuração dos favoritos e da sessão, mesmo quando fechar os seus documentos. Os dados serão usados, se o documento não estiver alterado, quando for aberto de novo.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><anchor id="config-general-delete-meta-information-after"/>
+<guilabel
+>Remover metainformações que não forem utilizadas após</guilabel
+></term>
+<listitem
+><para
+>Indica o número máximo de dias durante os quais serão mantidas as metainformações dos arquivos previamente abertos. Isto mantém o banco de dados de informação com um tamanho razoável.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</listitem>
+</varlistentry
+><!-- /meta data group -->
+
+</variablelist>
+</sect2>
+
+<sect2 id="config-dialog-sessions">
+<title
+>Sessões</title>
+
+<para
+>Esta seção contém opções relacionadas com a <link linkend="fundamentals-using-sessions"
+>utilização das sessões</link
+>.</para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><anchor id="config-dialog-sessions-elements"/>
+<guilabel
+>Elementos das Sessões</guilabel
+></term>
+<listitem>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Incluir configurações da janela</guilabel
+></term>
+<listitem
+><para
+>Se estiver ativada esta opção, o &kate; irá salvar as configurações da janela com cada sessão.</para
+></listitem>
+</varlistentry>
+</variablelist>
+</listitem>
+</varlistentry
+><!-- /elements of sessions -->
+
+<varlistentry>
+<term
+><anchor id="config-dialog-sessions-startup-behavior"/>
+<guilabel
+>Comportamento ao Iniciar o Aplicativo</guilabel
+></term>
+<listitem>
+<para
+>Selecione a forma como deseja que o &kate; se comporte na inicialização. Esta opção poderá ser substituída se especificar o que fazer na <link linkend="command-line-options"
+>linha de comando</link
+>.</para>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Iniciar uma nova sessão</guilabel
+></term>
+<listitem
+><para
+>Com esta opção, o &kate; irá iniciar uma nova sessão sem nome, quando iniciar o aplicativo.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Carregar a última sessão usada</guilabel
+></term>
+<listitem
+><para
+>O &kate; irá usar a sessão mais recente na inicialização. Isto é bom se quiser usar a mesma sessão sempre ou raramente deseje mudar.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Escolher manualmente uma sessão</guilabel
+></term>
+<listitem
+><para
+>O &kate; irá mostrar uma pequena janela que lhe permite escolher a sua sessão preferida, ou carregar a sessão padrão se nenhum tiver sido salva. Este é o comportamento padrão. Isso é bom se usar diversas sessões diferentes com frequência.</para
+></listitem>
+</varlistentry>
+</variablelist>
+</listitem>
+</varlistentry
+><!-- /startup behavior -->
+
+</variablelist>
+<para
+>Quaisquer alterações nos dados da sessão (arquivos abertos e, se estiver ativa, a configuração das janelas) serão sempre guardadas.</para>
+
+</sect2>
+
+<sect2 id="config-dialog-plugins">
+<title
+>Plugins</title>
+
+<para
+>Esta página oferece uma lista de plugins instalados para o aplicativo &kate;. Cada plugin é representado pelo seu nome e uma breve descrição. Você poderá assinalar a opção com um item para ativar o plugin que representa. </para>
+
+<para
+>Se um plugin tiver opções de configuração, irá aparecer uma seção para acessá-las, como filha desta página.</para>
+
+<para
+>Para mais informações sobre os plugins disponíveis, veja <xref linkend="plugins"/>.</para>
+
+</sect2>
+
+<sect2 id="config-dialog-treeview">
+<title
+>Documentos</title
+> <!-- Tree View was renamed to Documents - http://commit-digest.org/issues/2011-08-28/ -->
+<!-- Tree View plugin http://kate-editor.org/2010/09/10/tree-view-plugin-introduction/ -->
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Sombra do Fundo</guilabel
+></term>
+<listitem
+><para
+>Esta página permite-lhe ativar ou desativar a visualização sombreada do fundo da sua atividade recente e escolher as cores a usar, se estiver ativada. Veja a seção sobre a <link linkend="kate-mdi-tools-file-list"
+>Lista de Documentos</link
+> para mais dados sobre esta funcionalidade.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Ordenar Por</guilabel
+></term>
+<listitem
+><para
+>Indique como deseja ordenar a lista de documentos. Isto também poderá ser feito, com o menu do &RMB;, na lista de documentos.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Modo de exibição</guilabel
+></term>
+<listitem
+><para
+>Isto fornece duas opções que afetam a apresentação da exibição dos Documentos. A <guilabel
+>Exibição em árvore</guilabel
+> irá mostrar os documentos em uma árvore por baixo das pasta onde estiverem, enquanto a opção para <guilabel
+>Exibição em lista</guilabel
+> irá mostrar uma lista simples de documentos. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Mostrar localização completa</guilabel
+></term>
+<listitem
+><para
+>Quando a Exibição em árvore e esta opção estiverem ativas, os itens da pasta mostrada na exibição de Documentos irá mostrar o caminho completo do sistema de arquivos até a pasta e também o nome desta. Ele não tem efeito na Exibição em lista.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+
+</sect1>
+
+<sect1 id="config-dialog-editor">
+<title
+>Configuração do Componente de Edição</title>
+
+<para
+>Para obter mais informações sobre esta seção da janela de configuração, leia a <ulink url="help:/katepart/config-dialog-editor.html"
+>seção Configuração do Componente de Edição do Manual do &katepart;</ulink
+>.</para>
+
+</sect1>
+
+<sect1 id="config-variables">
+<title
+>Configurando com as Variáveis do Documento</title>
+
+<para
+>Para obter mais informações sobre o uso de variáveis do documento com o &kate;, leia a <ulink url="help:/katepart/config-variables.html"
+>seção Configuração com variáveis do documento no Manual do &katepart;</ulink
+>.</para>
+
+</sect1>
+
+</chapter>

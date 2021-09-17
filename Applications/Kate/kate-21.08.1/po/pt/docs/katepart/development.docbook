@@ -1,0 +1,5092 @@
+<chapter id="dev">
+<chapterinfo>
+<authorgroup>
+<author
+>&TC.Hollingsworth; &TC.Hollingsworth.mail;</author>
+<othercredit role="translator"
+><firstname
+>José</firstname
+><surname
+>Pires</surname
+><affiliation
+><address
+><email
+>zepires@gmail.com</email
+></address
+></affiliation
+><contrib
+>Tradução</contrib
+></othercredit
+> 
+</authorgroup>
+</chapterinfo>
+<title
+>Melhorar o &katepart;</title>
+
+<sect1 id="dev-intro">
+<title
+>Introdução</title>
+
+<para
+>Como em qualquer editor de texto avançado, o &katepart; oferece uma grande diversidade de formas para ampliar a sua funcionalidade. Poderá <link linkend="dev-scripting"
+>criar programa simples para adicionar funcionalidades com o JavaScript</link
+>. Finalmente, assim que tiver melhorado o &kate;, está à vontade para <ulink url="http://kate-editor.org/join-us/"
+>se juntar a nós</ulink
+> e partilhar as suas melhorias com o mundo!</para>
+
+</sect1>
+
+<sect1 id="highlight">
+<title
+>Trabalhar com o Realce de Sintaxe</title>
+
+<sect2 id="highlight-overview">
+
+<title
+>Introdução</title>
+
+<para
+>O Realce de Sintaxe é o que faz o editor mostrar automaticamente o texto em diferentes estilos/cores, dependendo da função do texto em relação ao propósito do ficheiro. No código-fonte de um programa, por exemplo, as instruções de controlo podem ser representadas a negrito, enquanto os tipos de dados e os comentários têm cores diferentes do resto do texto. Isto aumenta em larga medida a legibilidade do texto, e por isso ajuda o autor a ser mais eficiente e produtivo.</para>
+
+<mediaobject>
+<imageobject
+><imagedata format="PNG" fileref="highlighted.png"/></imageobject>
+<textobject
+><phrase
+>Uma função de Perl, representada com realce de sintaxe.</phrase
+></textobject>
+<caption
+><para
+>Uma função de Perl, representada com realce de sintaxe.</para>
+</caption>
+</mediaobject>
+
+<mediaobject>
+<imageobject
+><imagedata format="PNG" fileref="unhighlighted.png"/></imageobject>
+<textobject
+><phrase
+>A mesma função de Perl, sem realce de sintaxe.</phrase
+></textobject>
+<caption
+><para
+>A mesma função de Perl, sem realce de sintaxe.</para
+></caption>
+</mediaobject>
+
+<para
+>Dos dois exemplos, qual é o mais fácil de ler?</para>
+
+<para
+>O &kappname; vem com um sistema flexível, configurável e capaz de fazer realce de sintaxe; a distribuição normal oferece definições para um conjunto vasto de linguagens de programação, de manipulação e de 'scripting', bem como para outros formatos de texto. Para além disso, pode criar as suas próprias definições em ficheiros &XML; simples.</para>
+
+<para
+>O &kappname; irá detectar automaticamente as regras de sintaxe correctas quando abrir um ficheiro, baseando-se no tipo &MIME; do ficheiro, pela sua extensão, ou se não tiver nenhuma, pelo seu conteúdo. Se a escolha for errada, pode definir manualmente a sintaxe a usar no menu <menuchoice
+><guimenu
+>Documentos</guimenu
+><guisubmenu
+>Realce</guisubmenu
+></menuchoice
+>.</para>
+
+<para
+>Os estilos e cores usados por cada definição de realce de sintaxe podem ser configurados usando a página de <link linkend="prefcolors-highlighting-text-styles"
+>Estilos de Texto do Realce</link
+> da <link linkend="config-dialog"
+>Janela de Configuração</link
+>; por outro lado, os tipos &MIME; para os quais deve ser usada, podem ser configurados usando a página de <link linkend="pref-open-save-modes-filetypes"
+>Modos &amp; Tipos de Ficheiros</link
+>.</para>
+
+<note>
+<para
+>O realce de sintaxe existe para melhorar a legibilidade do texto correcto, mas não pode esperar que ela valide o seu texto. A marcação do texto para a sintaxe é complicada, dependendo do formato que está a usar e, em muitos dos casos, os autores das regras de sintaxe sentir-se-ão orgulhosos se 98% do texto for correctamente apresentado, ainda que na maior parte das vezes precisa de um estilo raro para ver os 2% incorrectos.</para>
+</note>
+
+<tip>
+<para
+>Pode obter as definições de sintaxe adicionais ou actualizadas na página Web do &kappname; se carregar no botão <guibutton
+>Obter Ficheiros de Realce...</guibutton
+> na página de <link linkend="pref-open-save-modes-filetypes"
+>Modos &amp; Tipos de Ficheiros</link
+> da <link linkend="config-dialog"
+>Janela de Configuração</link
+>.</para>
+</tip>
+
+</sect2>
+
+<sect2 id="katehighlight-system">
+
+<title
+>O Sistema de Realce de Sintaxe do &kappname;</title>
+
+<para
+>Esta secção irá discutir o realce de sintaxe do &kappname; com mais detalhe. É para si, se quiser saber acerca dele ou se quiser criar ou alterar as definições de sintaxe.</para>
+
+<sect3 id="katehighlight-howitworks">
+
+<title
+>Como Funciona</title>
+
+<para
+>Sempre que o utilizador abrir um ficheiro, uma das primeiras coisas que o editor do &kappname; faz é detectar qual a definição de sintaxe a usar para o ficheiro. Enquanto vai lendo o texto do ficheiro, e enquanto você vai escrevendo nele, o sistema de realce de sintaxe irá analisar o texto usando as regras definidas pela definição da sintaxe e marcá-la onde os diferentes contextos e estilos começam e acabam.</para>
+
+<para
+>Quando escrever no documento, o novo texto é analisado e marcado na altura, por isso, se apagar um carácter que está marcado como o início ou o fim de um contexto, o estilo do texto circundante muda de acordo com esse facto.</para>
+
+<para
+>As definições de sintaxe usadas pelo sistema de realce de sintaxe do &kappname; são ficheiros &XML; que contêm <itemizedlist>
+<listitem
+><para
+>As regras para detectar o papel do texto, organizado em blocos de contextos</para
+></listitem>
+<listitem
+><para
+>Listas de palavras-chave</para
+></listitem>
+<listitem
+><para
+>Definições de Itens de Estilo</para
+></listitem>
+</itemizedlist>
+</para>
+
+<para
+>Ao analisar o texto, as regras de detecção são avaliadas na ordem em que são definidas, e se o início do texto actual corresponder a uma regra, o contexto relacionado será usado. O ponto inicial do texto é movido para o ponto final a partir do qual essa regra correspondeu, dando-se início a mais um ciclo das regras, o qual dá início no conjunto de contextos definido pela regra correspondente.</para>
+
+</sect3>
+
+<sect3 id="highlight-system-rules">
+<title
+>Regras</title>
+
+<para
+>As regras de detecção são o 'coração' do sistema de detecção de sintaxe. Uma regra é uma cadeia de caracteres, um carácter ou uma <link linkend="regular-expressions"
+>expressão regular</link
+> com a qual se faz a correspondência do texto a analisar. Contém informações sobre o estilo a usar para a parte correspondente do texto. Pode mudar do contexto actual do sistema para um outro contexto explícito ou para o contexto anterior usado pelo texto.</para>
+
+<para
+>As regras são organizadas em grupos de contextos. Um grupo de contextos é usado para os conceitos principais do formato como, por exemplo, as cadeias de caracteres entre aspas ou os blocos de comentários no código-fonte do programa. Isto garante que o sistema de realce de sintaxe não precisa de circular por todas as regras quando não é necessário, e que algumas sequências de caracteres no texto podem ser tratadas de modo diferente, dependendo do contexto actual. </para>
+
+<para
+>Os contextos poderão ser gerados dinamicamente, para permitir a utilização de dados específicos das instâncias nas regras.</para>
+
+</sect3>
+
+<sect3 id="highlight-context-styles-keywords">
+<title
+>Estilos de Contexto e Palavras-Chave</title>
+
+<para
+>Em algumas linguagens de programação, os números inteiros são tratados de forma diferente dos números de vírgula flutuante pelo compilador (o programa que converte o código-fonte num executável binário), assim como podem existir caracteres com um significado especial dentro de uma cadeia de caracteres entre aspas. Em ambos os casos, faz sentido mostrá-los de forma diferente dos seus vizinhos, de modo a que sejam fáceis de identificar enquanto o utilizador lê o texto. Por isso, mesmo que não representem contextos especiais, podem ser vistos como tal pelo sistema de realce de sintaxe, de modo que possam ser marcados para ser desenhados de diferente forma.</para>
+
+<para
+>Uma definição de sintaxe pode conter tantos estilos quantos necessários para cobrir os conceitos do formato no qual é usado.</para>
+
+<para
+>Em vários formatos, existem listas de palavras que representam um conceito específico. Como exemplo nas linguagens de programação, as instruções de controlo são um conceito, os tipos de dados são outro e as funções intrínsecas à linguagem são um terceiro conceito. O Sistema de Realce de Sintaxe do &kappname; pode usar essas listas para detectar e marcar as palavras no texto de modo a realçar os conceitos dos formatos de texto.</para>
+
+</sect3>
+
+<sect3 id="kate-highlight-system-default-styles">
+<title
+>Estilos por Omissão</title>
+
+<para
+>Se abrir um ficheiro de código em C++, um ficheiro de &Java; e um documento em <acronym
+>HTML</acronym
+> no &kappname;, irá ver que, ainda que os formatos sejam diferentes e, por isso, sejam seleccionadas palavras diferentes para um tratamento especial, as cores usadas são as mesmas. Isto deve-se ao facto do &kappname; ter uma lista predefinida de Estilos Predefinidos, os quais são empregues pelas definições de sintaxe individuais.</para>
+
+<para
+>Isto facilita o reconhecimento de conceitos similares nos diferentes formatos de texto. Por exemplo, os comentários estão presentes em quase todas as linguagens de programação, 'scripting' ou de marcação, e quando são representados com o mesmo estilo em todas as linguagens, você não terá de parar e pensar para os identificar no texto.</para>
+
+<tip>
+<para
+>Todos os estilos de uma definição de sintaxe usam um dos estilos por omissão. Algumas definições de sintaxe usam mais estilos para além dos predefinidos, por isso se usar um formato frequentemente, pode ser útil abrir a janela de configuração para ver se alguns conceitos estão a usar o mesmo estilo. Por exemplo, só existe um estilo por omissão para as cadeias de caracteres, mas como a linguagem de programação Perl lida com dois tipos de cadeias de caracteres, pode melhorar o realce se configurar esses dois tipos de uma forma ligeiramente diferente. Todos os <link linkend="kate-highlight-default-styles"
+>estilos predefinidos disponíveis</link
+> serão explicados mais tarde.</para>
+</tip>
+
+</sect3>
+
+</sect2>
+
+<sect2 id="katehighlight-xml-format">
+<title
+>O Formato &XML; da Definição de Realce</title>
+
+<sect3>
+<title
+>Introdução</title>
+
+<para
+>O &kappname; usa a plataforma de realce de sintaxe das &kde-frameworks;. Os ficheiros XML predefinidos do realce de sintaxe que vêm com o &kappname; são compilados na biblioteca de Realce de Sintaxe por omissão. </para>
+
+<para
+>Esta secção é uma introdução ao formato &XML; da Definição de Realce. Irá descrever as componentes principais, bem como o seu significado e utilização, indo em mais detalhes com as regras de detecção.</para>
+
+<para
+>A definição formal, também conhecida como <acronym
+>XSD</acronym
+>, poderá ser encontrada no <ulink url="https://commits.kde.org/syntax-highlighting?path=data/schema"
+>repositório de Realces de Sintaxe</ulink
+>, no ficheiro <filename
+>language.xsd</filename
+> </para>
+
+<para
+>Os ficheiros <filename class="extension"
+>.xml</filename
+> de definições personalizadas de realce localizam-se em <filename class="directory"
+>org.kde.syntax-highlighting/syntax/</filename
+>, na sua pasta de utilizador, podendo consultar o valor com <userinput
+><command
+>qtpaths</command
+><option
+>--paths GenericDataLocation</option
+></userinput
+>, que normalmente corresponde a <filename class="directory"
+><envar
+>$HOME</envar
+>/.local</filename
+> </para>
+
+<para
+>No &Windows;, estes ficheiros localizam-se em <filename
+>%USERPROFILE%/AppData/Local/org.kde.syntax-highlighting/syntax</filename
+>. O <replaceable
+>%USERPROFILE%</replaceable
+> normalmente corresponde a <filename
+>C:\\Users\\<replaceable
+>utilizador</replaceable
+></filename
+>.</para>
+
+<variablelist>
+<title
+>Componentes principais das Definições de Realce do &kappname;</title>
+
+<varlistentry>
+<term
+>Um ficheiro de realce contém um cabeçalho que define a versão do XML:</term>
+<listitem>
+<programlisting
+>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+</programlisting>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>A raiz do ficheiro de definição é o elemento <userinput
+>language</userinput
+>. Os atributos disponíveis são:</term>
+
+<listitem>
+<para
+>Atributos necessários:</para>
+<para
+>O <userinput
+>name</userinput
+> define o nome da linguagem. Ele aparece nos menus e nas janelas respectivas.</para>
+<para
+>O <userinput
+>section</userinput
+> indica a categoria.</para>
+<para
+>O <userinput
+>extensions</userinput
+> define as extensões dos ficheiros, como por exemplo &quot;*.cpp;*.h&quot;</para>
+<para
+>O <userinput
+>version</userinput
+> define a versão actual do ficheiro de definições como um número inteiro. Sempre que mudar um ficheiro de definições de realce, certifique-se que incrementa este número.</para>
+<para
+>O <userinput
+>kateversion</userinput
+> indica a última versão suportada pelo &kappname;.</para>
+
+<para
+>Atributos opcionais:</para>
+<para
+>O <userinput
+>mimetype</userinput
+> associa os ficheiros com base no Tipo &MIME;.</para>
+<para
+>O <userinput
+>casesensitive</userinput
+> define se as palavras-chave fazem distinção entre maiúsculas e minúsculas.</para>
+<para
+>O <userinput
+>priority</userinput
+> é necessário se outro ficheiro de definições de realce usar as mesmas extensões. Ganhará o que tiver maior prioridade.</para>
+<para
+>O <userinput
+>author</userinput
+> contém o nome do autor e o seu endereço de e-mail.</para>
+<para
+>O <userinput
+>license</userinput
+> contém a licença, que é normalmente a LGPL, a Artistic, a GPL, entre outras.</para>
+<para
+>O <userinput
+>style</userinput
+> contém a linguagem oferecida e é usado pelos sistemas de indentação para o atributo <literal
+>required-syntax-style</literal
+>.</para>
+<para
+>O <userinput
+>hidden</userinput
+> define se o nome deverá aparecer nos menus do &kappname;.</para>
+<para
+>Como tal, a próxima linha parece-se com o seguinte:</para>
+<programlisting
+>&lt;language name=&quot;C++&quot; version=&quot;1&quot; kateversion=&quot;2.4&quot; section=&quot;Sources&quot; extensions=&quot;*.cpp;*.h&quot; /&gt;
+</programlisting>
+</listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+>A seguir vem o elemento <userinput
+>highlighting</userinput
+>, que contém o elemento opcional <userinput
+>list</userinput
+> e os elementos obrigatórios <userinput
+>contexts</userinput
+> e <userinput
+>itemDatas</userinput
+>.</term>
+<listitem>
+<para
+>O elemento <userinput
+>list</userinput
+> contém uma lista de palavras-chave. Neste caso, as palavras-chave são a <emphasis
+>class</emphasis
+> e a <emphasis
+>const</emphasis
+>. Poderá adicionar tantas listas quanto desejar.</para>
+<para
+>O elemento <userinput
+>contexts</userinput
+> contém todos os contextos. O primeiro contexto é, por omissão, o início do realce. Existem duas regras no contexto <emphasis
+>Normal Text</emphasis
+> (Texto Normal), que correspondem à lista de palavras-chave com o nome <emphasis
+>um_nome</emphasis
+> e uma regra que detecta aspas e muda o contexto para <emphasis
+>string</emphasis
+> (cadeia de caracteres). Para aprender mais sobre as regras, leia o próximo capítulo.</para>
+<para
+>A terceira parte é o elemento <userinput
+>itemDatas</userinput
+>. Contém todas as cores e estilos de letra necessários pelos contextos e regras. Neste exemplo, são usados o <userinput
+>itemData</userinput
+> de <emphasis
+>Normal Text</emphasis
+> (Texto Normal), <emphasis
+>String</emphasis
+> (Cadeia de Caracteres) e <emphasis
+>Keyword</emphasis
+> (Palavra-Chave). </para>
+<programlisting
+>&lt;highlighting&gt;
+    &lt;list name=&quot;um_nome&quot;&gt;
+      &lt;item&gt; class &lt;/item&gt;
+      &lt;item&gt; const &lt;/item&gt;
+    &lt;/list&gt;
+    &lt;contexts&gt;
+      &lt;context attribute=&quot;Normal Text&quot; lineEndContext=&quot;#pop&quot; name=&quot;Normal Text&quot; &gt;
+        &lt;keyword attribute=&quot;Keyword&quot; context=&quot;#stay&quot; String=&quot;somename&quot; /&gt;
+        &lt;DetectChar attribute=&quot;String&quot; context=&quot;string&quot; char=&quot;&amp;quot;&quot; /&gt;
+      &lt;/context&gt;
+      &lt;context attribute=&quot;String&quot; lineEndContext=&quot;#stay&quot; name=&quot;string&quot; &gt;
+        &lt;DetectChar attribute=&quot;String&quot; context=&quot;#pop&quot; char=&quot;&amp;quot;&quot; /&gt;
+      &lt;/context&gt;
+    &lt;/contexts&gt;
+    &lt;itemDatas&gt;
+      &lt;itemData name=&quot;Normal Text&quot; defStyleNum=&quot;dsNormal&quot; /&gt;
+      &lt;itemData name=&quot;Keyword&quot; defStyleNum=&quot;dsKeyword&quot; /&gt;
+      &lt;itemData name=&quot;String&quot; defStyleNum=&quot;dsString&quot; /&gt;
+    &lt;/itemDatas&gt;
+  &lt;/highlighting&gt;
+</programlisting>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>A última parte de uma definição de realce é a secção opcional <userinput
+>general</userinput
+>. Poderá conter informações acerca das palavras-chave, expansão/recolhimento de código, comentários e indentação.</term>
+
+<listitem>
+<para
+>A secção <userinput
+>comment</userinput
+> define com que texto é introduzido um comentário para uma única linha. Poderá também definir comentários multi-linha, usando o <emphasis
+>multiLine</emphasis
+> com o atributo adicional <emphasis
+>end</emphasis
+>. Isto aplica-se se o utilizador carregar no atalho correspondente para <emphasis
+>comentar/descomentar</emphasis
+>.</para>
+<para
+>A secção <userinput
+>keywords</userinput
+> define se as listas de palavras-chave fazem distinção entre maiúsculas e minúsculas ou não. Os outros atributos serão explicados mais tarde.</para>
+<programlisting
+>&lt;general&gt;
+    &lt;comments&gt;
+      &lt;comment name="singleLine" start="#"/&gt;
+    &lt;/comments&gt;
+    &lt;keywords casesensitive="1"/&gt;
+  &lt;/general&gt;
+&lt;/language&gt;
+</programlisting>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+
+</sect3>
+
+<sect3 id="kate-highlight-sections">
+<title
+>As Secções em Detalhe</title>
+<para
+>Esta parte irá descrever todos os atributos disponíveis para o 'contexts', o 'itemDatas', o 'keywords', o 'comments', a expansão de código e a indentação.</para>
+
+<variablelist>
+<varlistentry>
+<term
+>O elemento <userinput
+>context</userinput
+> pertence ao grupo <userinput
+>contexts</userinput
+>. Um contexto, por si só, define as regras específicas do contexto, como o que deve acontecer se o sistema de realce chegar ao fim de uma linha. Os atributos disponíveis são:</term>
+
+
+<listitem>
+<para
+><userinput
+>name</userinput
+> o nome do contexto. As regras irão usar este nome para indicar o contexto para onde mudar, se a regra corresponder.</para>
+<para
+>O <userinput
+>lineEndContext</userinput
+> define o contexto para onde o sistema de realce salta, se atingir o fim de uma linha. Poderá ser o nome de outro contexto, o <userinput
+>#stay</userinput
+> para não mudar de contexto (&eg;, não fazer nada) ou o <userinput
+>#pop</userinput
+> que fará com que saia deste contexto. É possível usar, por exemplo, <userinput
+>#pop#pop#pop</userinput
+> para sair de dentro de três contextos, ou ainda <userinput
+>#pop#pop!OutroContexto</userinput
+> para sair duas vezes e mudar para o contexto <userinput
+>OutroContexto</userinput
+>.</para>
+<para
+>O <userinput
+>lineEmptyContext</userinput
+> define o contexto, se for encontrada uma linha vazia. Por omissão: #stay.</para>
+<para
+>O <userinput
+>fallthrough</userinput
+> define se o sistema de realce salta para o contexto indicado em 'fallthroughContext' se não corresponder nenhuma regra. Por omissão: <emphasis
+>false</emphasis
+>.</para>
+<para
+>O <userinput
+>fallthroughContext</userinput
+> define o próximo contexto, se nenhuma regra corresponder.</para>
+<para
+>O <userinput
+>dynamic</userinput
+>, se for <emphasis
+>true</emphasis
+> (verdadeiro), fará com que o contexto recorde os textos/sequências de substituição gravados pelas regras dinâmicas. Isto é necessário, por exemplo, para os documentos do HERE. Por omissão: <emphasis
+>false</emphasis
+>.</para>
+</listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+>O elemento <userinput
+>itemData</userinput
+> está no grupo <userinput
+>itemDatas</userinput
+>. Define o estilo e as cores do tipo de letra. Como tal, é possível definir os seus próprios estilos e cores, contudo recomenda-se que use os estilos predefinidos, para que o utilizador veja sempre as mesmas cores que são usadas nas várias linguagens. Todavia, existem casos em que não existe outra forma e, como tal, é necessário mudar os atributos de cores e tipos de letra. Os atributos 'name' e 'defStyleNum' são obrigatórios, enquanto os outros são opcionais. Os atributos disponíveis são:</term>
+
+<listitem>
+<para
+>O <userinput
+>name</userinput
+> define o nome do 'itemData'. Os contextos e regras irão usar este nome no seu atributo <emphasis
+>attribute</emphasis
+>, para referenciar um 'itemData'.</para>
+<para
+>O <userinput
+>defStyleNum</userinput
+> define qual o estilo predefinido a usar. Os estilos predefinidos disponíveis são explicados mais tarde em detalhe.</para>
+<para
+>O <userinput
+>color</userinput
+> define uma cor. Os formatos válidos são o '#rrggbb' ou '#rgb'.</para>
+<para
+>O <userinput
+>selColor</userinput
+> define a cor da selecção.</para>
+<para
+>O <userinput
+>italic</userinput
+>, se for <emphasis
+>true</emphasis
+> (verdadeiro), irá colocar o texto em itálico.</para>
+<para
+>O <userinput
+>bold</userinput
+>, se for <emphasis
+>true</emphasis
+> (verdadeiro), irá colocar o texto em negrito.</para>
+<para
+>O <userinput
+>underline</userinput
+>, se for <emphasis
+>true</emphasis
+> (verdadeiro), irá colocar o texto sublinhado.</para>
+<para
+>O <userinput
+>strikeout</userinput
+>, se for <emphasis
+>true</emphasis
+> (verdadeiro), irá colocar o texto traçado.</para>
+<para
+>O <userinput
+>underline</userinput
+>, se for <emphasis
+>true</emphasis
+> (verdadeiro), irá colocar o texto sublinhado.</para>
+</listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+>O elemento <userinput
+>keywords</userinput
+>, no grupo <userinput
+>general</userinput
+>, define as propriedades das palavras-chave. Os atributos disponíveis são:</term>
+
+<listitem>
+<para
+>O <userinput
+>casesensitive</userinput
+> poderá ser <emphasis
+>true</emphasis
+> (verdadeiro) ou <emphasis
+>false</emphasis
+> (falso). Se for <emphasis
+>true</emphasis
+>, todas as palavras-chave farão distinção entre maiúsculas e minúsculas.</para>
+<para
+>O <userinput
+>weakDeliminator</userinput
+> é uma lista de caracteres que não irão actuar como separadores de palavras. Por exemplo, o ponto <userinput
+>'.'</userinput
+> é um separador de palavras. Assuma que uma palavra-chave num <userinput
+>list</userinput
+> contém um ponto; nesse caso, só irá corresponder se indicar que o ponto é um delimitador fraco.</para>
+<para
+>O <userinput
+>additionalDeliminator</userinput
+> define os delimitadores ou separadores adicionais.</para>
+<para
+>O <userinput
+>wordWrapDeliminator</userinput
+> define os caracteres após os quais poderá ocorrer uma mudança de linha.</para>
+<para
+>Os delimitadores predefinidos e de mudança de linha são os caracteres <userinput
+>.():!+,-&lt;=&gt;%&amp;*/;?[]^{|}~\</userinput
+>, o espaço (<userinput
+>' '</userinput
+>) e a tabulação (<userinput
+>'\t'</userinput
+>).</para>
+</listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+>O elemento <userinput
+>comment</userinput
+>, no grupo <userinput
+>comments</userinput
+>, define as propriedades dos comentários que são usadas nas opções <menuchoice
+><guimenu
+>Ferramentas</guimenu
+><guimenuitem
+>Comentar</guimenuitem
+></menuchoice
+> e <menuchoice
+><guimenu
+>Ferramentas</guimenu
+><guimenuitem
+>Descomentar</guimenuitem
+></menuchoice
+>. Os atributos disponíveis são:</term>
+
+<listitem>
+<para
+>O <userinput
+>name</userinput
+> tanto poderá ser <emphasis
+>singleLine</emphasis
+> como <emphasis
+>multiLine</emphasis
+>. Se escolher o <emphasis
+>multiLine</emphasis
+>, serão necessários os atributos <emphasis
+>end</emphasis
+> e <emphasis
+>region</emphasis
+>.</para>
+<para
+>O <userinput
+>start</userinput
+> define o texto usado para iniciar um comentário. No C++, este será o &quot;/*&quot;.</para>
+<para
+>O <userinput
+>end</userinput
+> define o texto usado para fechar um comentário. No  C++, será o &quot;*/&quot;.</para>
+<para
+>O <userinput
+>region</userinput
+> deverá ser o nome do comentário multi-linhas que poderá expandir ou recolher. Assuma que tem o <emphasis
+>beginRegion="Comment"</emphasis
+> ... <emphasis
+>endRegion="Comment"</emphasis
+> nas suas regras; nesse caso, deverá usar o <emphasis
+>region="Comment"</emphasis
+>. Desta forma, a remoção de comentários funciona, mesmo que não tenha seleccionado todo o texto do comentário multi-linhas. O cursor só necessita de estar dentro deste comentário.</para>
+</listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+>O elemento <userinput
+>folding</userinput
+>, no grupo <userinput
+>general</userinput
+>, define as propriedades de dobragem/desdobramento do código. Os atributos disponíveis são:</term>
+
+<listitem>
+<para
+>O <userinput
+>indentationsensitive</userinput
+>, se for <emphasis
+>true</emphasis
+>, aplicará os marcadores de dobragem de código com base na indentação, como acontece na linguagem de programação Python. Normalmente não terá de definir isto, dado que é por omissão <emphasis
+>false</emphasis
+>.</para>
+</listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+>O elemento <userinput
+>indentation</userinput
+>, no grupo <userinput
+>general</userinput
+>, define qual o sistema de indentação a usar; contudo, recomenda-se que omita este elemento, dado que o sistema de indentação será normalmente definido a partir de um Tipo de Ficheiro ou através da adição da linha de modo no ficheiro de texto. Se indicar um sistema de indentação, todavia, irá obrigar o utilizador a usar um sistema de indentação específico, o que poderá não ser do agrado dele. Os atributos disponíveis são:</term>
+
+<listitem>
+<para
+>O <userinput
+>mode</userinput
+> é o nome do sistema de indentação. Os sistemas disponíveis de momento são: <emphasis
+>normal, cstyle, haskell, lilypond, lisp, python, ruby</emphasis
+> e <emphasis
+>xml</emphasis
+>.</para>
+</listitem>
+</varlistentry>
+
+
+</variablelist>
+
+
+</sect3>
+
+<sect3 id="kate-highlight-default-styles">
+<title
+>Estilos Predefinidos Disponíveis</title>
+<para
+>Os estilos por omissão <link linkend="kate-highlight-system-default-styles"
+>já foram explicados</link
+>, em resumo: Os estilos predefinidos são os estilos de cores e tipos de letra predefinidos.</para>
+<variablelist>
+<varlistentry>
+<term
+>Estilos predefinidos gerais:</term>
+<listitem>
+<para
+><userinput
+>dsNormal</userinput
+>, quando não é necessário nenhum realce em especial.</para>
+<para
+><userinput
+>dsKeyword</userinput
+>, para as palavras-chave incorporadas.</para>
+<para
+><userinput
+>dsFunction</userinput
+>, nas chamadas e definições de funções.</para>
+<para
+><userinput
+>dsVariable</userinput
+>, se aplicável: nomes das variáveis (p.ex. $umaVariavel em PHP/Perl).</para>
+<para
+><userinput
+>dsControlFlow</userinput
+>, palavras-chave de controlo de fluxo, como o 'if', 'else', 'switch', 'break', 'return', 'yield', ...</para>
+<para
+><userinput
+>dsOperator</userinput
+>, operadores como o + - * / :: &lt; &gt;</para>
+<para
+><userinput
+>dsBuiltIn</userinput
+>, usado nas funções, classes e objectos predefinidos.</para>
+<para
+><userinput
+>dsExtension</userinput
+>, extensões comuns, como as classes e funções/macros do Qt em C++ e Python.</para>
+<para
+><userinput
+>dsPreprocessor</userinput
+>, para as instruções do pré-processador ou para as definições de macros.</para>
+<para
+><userinput
+>dsAttribute</userinput
+>, anotações como o @override e o __declspec(...).</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Estilos predefinidos relacionados com os textos:</term>
+<listitem>
+<para
+><userinput
+>dsChar</userinput
+>, usado para caracteres únicos, como o 'x'.</para>
+<para
+><userinput
+>dsSpecialChar</userinput
+>, caracteres com significados especiais nos textos, como as sequências de escape, substituições ou operadores de expressões regulares.</para>
+<para
+><userinput
+>dsString</userinput
+>, para os textos do tipo "olá mundo".</para>
+<para
+><userinput
+>dsVerbatimString</userinput
+>, textos literais como o 'raw \backlash' do Perl, CoffeeScript e das linhas de comando, assim como o r'\raw' do Python.</para>
+<para
+><userinput
+>dsSpecialString</userinput
+>, SQL, expressões regulares, documentação, modo matemático do LaTeX, ...</para>
+<para
+><userinput
+>dsImport</userinput
+>, para a importação ou inclusão de módulos.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Estilos predefinidos relacionados com números:</term>
+<listitem>
+<para
+><userinput
+>dsDataType</userinput
+>, para os tipos de dados predefinidos, como o 'int', 'void', 'u64'.</para>
+<para
+><userinput
+>dsDecVal</userinput
+>, para os valores decimais.</para>
+<para
+><userinput
+>dsBaseN</userinput
+>, para os valores com uma base diferente de 10.</para>
+<para
+><userinput
+>dsFloat</userinput
+>, para os valores de vírgula flutuante.</para>
+<para
+><userinput
+>dsConstant</userinput
+>, para as constantes predefinidas e definidas pelo utilizador, como o PI.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Estilos predefinidos de comentários e relacionados com a documentação:</term>
+<listitem>
+<para
+><userinput
+>dsComment</userinput
+>, para os comentários.</para>
+<para
+><userinput
+>dsDocumentation</userinput
+>, para os /** Comentários de documentação */ ou os """Comentários de documentação""".</para>
+<para
+><userinput
+>dsAnnotation</userinput
+>, para os comandos de documentação como o @param, @brief.</para>
+<para
+><userinput
+>dsCommentVar</userinput
+>, os nomes das variáveis usadas nos comandos acima, como o "xpto" no @param xpto.</para>
+<para
+><userinput
+>dsRegionMarker</userinput
+>, para os marcadores de regiões, como o //BEGIN, //END dos comentários.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Outros estilos predefinidos:</term>
+<listitem>
+<para
+><userinput
+>dsInformation</userinput
+>, notas e dicas do tipo @note no Doxygen.</para>
+<para
+><userinput
+>dsWarning</userinput
+>, para os avisos do tipo @warning no Doxygen.</para>
+<para
+><userinput
+>dsAlert</userinput
+>, para as palavras especiais como o TODO, FIXME, XXXX.</para>
+<para
+><userinput
+>dsError</userinput
+>, para o realce dos erros e sintaxes inválidas.</para>
+<para
+><userinput
+>dsOthers</userinput
+>, quando nada mais se aplica.</para>
+</listitem>
+</varlistentry>
+</variablelist>
+
+</sect3>
+
+</sect2>
+
+<sect2 id="kate-highlight-rules-detailled">
+<title
+>Regras de Detecção do Realce</title>
+
+<para
+>Esta secção descreve as regras de detecção da sintaxe.</para>
+
+<para
+>Cada regra pode corresponder a zero ou mais caracteres no início do texto que é testado. Se a regra corresponder, é atribuído o estilo ou <emphasis
+>atributo</emphasis
+> definido pela regra aos caracteres correspondentes; uma regra poderá perguntar se o contexto actual será alterado.</para>
+
+<para
+>Uma regra parece-se com o seguinte:</para>
+
+<programlisting
+>&lt;NomeRegra attribute=&quot;(identificador)&quot; context=&quot;(identifier|order)&quot; [atributos específicos da regra] /&gt;</programlisting>
+
+<para
+>O <emphasis
+>attribute</emphasis
+> identifica o estilo a usar para os caracteres correspondentes pelo nome ou índice; o <emphasis
+>context</emphasis
+> identifica, como será de esperar, o contexto a usar a partir daqui.</para>
+
+<para
+>O <emphasis
+>context</emphasis
+> pode ser identificado por:</para>
+
+<itemizedlist>
+<listitem>
+<para
+>Um <emphasis
+>identificador</emphasis
+>, o qual é o nome do outro contexto.</para>
+</listitem>
+<listitem>
+<para
+>Uma <emphasis
+>ordem</emphasis
+> que indica ao motor para permanecer no contexto actual (<userinput
+>#stay</userinput
+>) ou para voltar a um contexto anterior usado no texto (<userinput
+>#pop</userinput
+>).</para>
+<para
+>Para recuar mais vezes, a palavra '#pop' pode ser repetida: <userinput
+>#pop#pop#pop</userinput
+></para>
+</listitem>
+<listitem>
+<para
+>Uma <emphasis
+>ordem</emphasis
+> seguida de um ponto de exclamação (<emphasis
+>!</emphasis
+>) e um <emphasis
+>identificador</emphasis
+>, que fará com que o motor siga primeiro a ordem e depois mude para o outro contexto, p.ex. <userinput
+>#pop#pop!OutroContexto</userinput
+>.</para>
+</listitem>
+</itemizedlist>
+
+<para
+>Algumas regras podem ter <emphasis
+>regras-filhas</emphasis
+>, as quais podem ser avaliadas se e só se a regra-mãe foi verificada. O texto inteiro verificado terá o atributo definido pela regra-mãe. Uma regra com regras-filhas será algo do género:</para>
+
+<programlisting
+>&lt;NomeRegra (atributos)&gt;
+  &lt;NomeRegraFilho (atributos) /&gt;
+  ...
+&lt;/NomeRegra&gt;
+</programlisting>
+
+
+<para
+>Os atributos específicos da regra variam e estão descritos nas seguintes secções.</para>
+
+
+<itemizedlist>
+<title
+>Atributos comuns</title>
+<para
+>Todas as regras têm os seguintes atributos em comum e estão disponíveis sempre que os <userinput
+>(atributos comuns)</userinput
+> aparecerem. O <emphasis
+>attribute</emphasis
+> e o <emphasis
+>context</emphasis
+> são atributos obrigatórios, enquanto os outros são opcionais. </para>
+
+<listitem>
+<para
+><emphasis
+>atributo</emphasis
+>: Um atributo mapeia-se num <emphasis
+>itemData</emphasis
+> definido.</para>
+</listitem>
+<listitem>
+<para
+><emphasis
+>context</emphasis
+>: Indica o contexto para onde muda o sistema de realce, se a regra corresponder.</para>
+</listitem>
+<listitem>
+<para
+><emphasis
+>beginRegion</emphasis
+>: Inicia um bloco de dobragem de código. Por omissão: não definido.</para>
+</listitem>
+<listitem>
+<para
+><emphasis
+>endRegion</emphasis
+>: Fecha uma região de dobragem de código. Por omissão: não definido.</para>
+</listitem>
+<listitem>
+<para
+><emphasis
+>lookAhead</emphasis
+>: Se for <emphasis
+>true</emphasis
+> (verdadeiro), o sistema de realce não irá processar o tamanho da correspondência. Por omissão:  <emphasis
+>false</emphasis
+>.</para>
+</listitem>
+<listitem>
+<para
+><emphasis
+>firstNonSpace</emphasis
+>: Corresponder apenas se o texto for o primeiro não-espaço em branco da linha. Por omissão: <emphasis
+>false</emphasis
+>.</para>
+</listitem>
+<listitem>
+<para
+><emphasis
+>column</emphasis
+>: Corresponder apenas se a coluna corresponder. Por omissão: não definido.</para>
+</listitem>
+</itemizedlist>
+
+<itemizedlist>
+<title
+>Regras dinâmicas</title>
+<para
+>Algumas regras permitem o atributo opcional <userinput
+>dynamic</userinput
+>, do tipo booleano, cujo valor por omissão é <emphasis
+>false</emphasis
+>. Se o 'dynamic' for <emphasis
+>true</emphasis
+>, uma regra poderá usar sequências de substituição que representam o texto correspondente a uma <emphasis
+>expressão regular</emphasis
+> que mudou para o contexto actua, nos seus atributos <userinput
+>string</userinput
+> ou <userinput
+>char</userinput
+>. Num <userinput
+>string</userinput
+>, o texto de substituição <replaceable
+>%N</replaceable
+> (em que o N é um número) será substituído pela captura correspondente a <replaceable
+>N</replaceable
+> na expressão regular de chamada. Num <userinput
+>char</userinput
+>, a sequência de substituição deverá ser um número <replaceable
+>N</replaceable
+> que será substituído pelo primeiro carácter da captura <replaceable
+>N</replaceable
+> da expressão regular de chamada. Sempre que uma regra permitir este atributo, irá conter um <emphasis
+>(dinâmico)</emphasis
+>.</para>
+
+<listitem>
+<para
+><emphasis
+>dynamic</emphasis
+>: poderá ser <emphasis
+>(true|false)</emphasis
+>.</para>
+</listitem>
+</itemizedlist>
+
+<sect3 id="highlighting-rules-in-detail">
+<title
+>As Regras em Detalhe</title>
+
+<variablelist>
+<varlistentry>
+<term
+>DetectChar</term>
+<listitem>
+<para
+>Detecta um único carácter específico. É usado vulgarmente para encontrar, por exemplo, o fim das cadeias de caracteres entre aspas.</para>
+<programlisting
+>&lt;DetectChar char=&quot;(carácter)&quot; (atributos comuns) (dinâmico) /&gt;</programlisting>
+<para
+>O atributo <userinput
+>char</userinput
+> define o carácter a encontrar.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Detect2Chars</term>
+<listitem>
+<para
+>Detecta dois caracteres específicos numa ordem definida.</para>
+<programlisting
+>&lt;Detect2Chars char=&quot;(carácter)&quot; char1=&quot;(carácter)&quot; (atributos comuns) (dinâmico) /&gt;</programlisting>
+<para
+>O atributo <userinput
+>char</userinput
+> define o primeiro carácter a encontrar, enquanto <userinput
+>char1</userinput
+> define o segundo.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>AnyChar</term>
+<listitem>
+<para
+>Detecta um carácter de um conjunto de caracteres especificados.</para>
+<programlisting
+>&lt;AnyChar String=&quot;(texto)&quot; (atributos comuns) /&gt;</programlisting>
+<para
+>O atributo <userinput
+>String</userinput
+> define o conjunto de caracteres.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>StringDetect</term>
+<listitem>
+<para
+>Detecta um texto exacto.</para>
+<programlisting
+>&lt;StringDetect String=&quot;(string)&quot; [insensitive=&quot;TRUE|FALSE;&quot;] (atributos comuns) (dinâmico) /&gt;</programlisting>
+<para
+>O atributo <userinput
+>String</userinput
+> define a sequência a encontrar. O atributo <userinput
+>insensitive</userinput
+> é por omissão <userinput
+>false</userinput
+> e é passado à função de comparação de cadeias de caracteres. Se o valor for <userinput
+>true</userinput
+> a comparação não faz distinção entre maiúsculas e minúsculas.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>WordDetect</term>
+<listitem>
+<para
+>Detecta um texto exacto, mas obriga adicionalmente a que esteja rodeado por limites de palavras, como um ponto <userinput
+>'.'</userinput
+> ou um espaço em branco no início e no fim da palavra. Pense em <userinput
+>\b&lt;texto&gt;\b</userinput
+> em termos de uma expressão regular, só que é mais rápido que a regra <userinput
+>Exp Reg</userinput
+>.</para>
+<programlisting
+>&lt;WordDetect String=&quot;(string)&quot; [insensitive=&quot;true|false;&quot;] (atributos comuns) (dinâmico) /&gt;</programlisting>
+<para
+>O atributo <userinput
+>String</userinput
+> define a sequência a encontrar. O atributo <userinput
+>insensitive</userinput
+> é por omissão <userinput
+>false</userinput
+> e é passado à função de comparação de cadeias de caracteres. Se o valor for <userinput
+>true</userinput
+> a comparação não faz distinção entre maiúsculas e minúsculas.</para>
+<para
+>Desde: Kate 3.5 (KDE 4.5)</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>RegExpr</term>
+<listitem>
+<para
+>Corresponde a uma expressão regular.</para>
+<programlisting
+>&lt;RegExpr String=&quot;(texto)&quot; [insensitive=&quot;TRUE|FALSE;&quot;] [minimal=&quot;TRUE|FALSE&quot;] (atributos comuns) (dinâmico) /&gt;</programlisting>
+<para
+>O atributo <userinput
+>String</userinput
+> define a expressão regular.</para>
+<para
+>O <userinput
+>insensitive</userinput
+> é, por omissão, <userinput
+>false</userinput
+> e é passado ao motor de expressões regulares.</para>
+<para
+>O <userinput
+>minimal</userinput
+> é, por omissão, <userinput
+>false</userinput
+> e é passado ao motor de expressões regulares.</para>
+<para
+>Como as regras se aplicam ao início do texto actual, uma expressão regular que comece por um acento circunflexo (<literal
+>^</literal
+>) indica que a regra só deve ser verificada se for no início de uma linha.</para>
+<para
+>Veja as <link linkend="regular-expressions"
+>Expressões Regulares</link
+> para mais informações sobre elas.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>keyword</term>
+<listitem>
+<para
+>Detecta uma palavra-chave a partir de uma lista específica.</para>
+<programlisting
+>&lt;keyword String=&quot;(nome da lista)&quot; (atributos comuns) /&gt;</programlisting>
+<para
+>O atributo <userinput
+>String</userinput
+> identifica a lista de palavras-chave pelo seu nome. Deve existir uma lista com esse nome.</para>
+<para
+>O sistema de realce processa as regras das palavras-chave de forma muito optimizada. Isto torna-a uma necessidade absoluta em que quaisquer palavras-chave a corresponder sejam envolvidas por separadores definidos, quer implícitos (os separadores predefinidos) quer explícitos com a propriedade <emphasis
+>additionalDeliminator</emphasis
+> da marca <emphasis
+>keywords</emphasis
+>.</para>
+<para
+>Se uma palavra-chave a corresponder tiver um carácter separador, este carácter respectivo deverá ser adicionado à propriedade <emphasis
+>weakDeliminator</emphasis
+> da marca <emphasis
+>keywords</emphasis
+>. Este carácter irá então perder a sua capacidade de separador em todas as regras <emphasis
+>keyword</emphasis
+>.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Int</term>
+<listitem>
+<para
+>Detecta um número inteiro.</para>
+<para
+><programlisting
+>&lt;Int (atributos comuns) (dinâmico) /&gt;</programlisting
+></para>
+<para
+>Esta regra não tem atributos específicos. As regras-filho são tipicamente usadas para detectar as combinações de <userinput
+>L</userinput
+> e <userinput
+>U</userinput
+> depois do número, o que indica o tipo inteiro no código do programa. De facto, todas as regras são permitidas como regras-filhas, contudo, o <acronym
+>DTD</acronym
+> só permite a regra-filha <userinput
+>StringDetect</userinput
+>.</para>
+<para
+>O exemplo seguinte faz correspondência com os números inteiros, seguidos do carácter 'L'. <programlisting
+>&lt;Int attribute="Decimal" context="#stay" &gt;
+  &lt;StringDetect attribute="Decimal" context="#stay" String="L" insensitive="true"/&gt;
+&lt;/Int&gt;
+</programlisting
+></para>
+
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Real</term>
+<listitem>
+<para
+>Detecta um número de vírgula flutuante.</para>
+<para
+><programlisting
+>&lt;Float (atributos comuns) /&gt;</programlisting
+></para>
+<para
+>Esta regra não tem atributos específicos. O <userinput
+>AnyChar</userinput
+> é permitido como regra-filha e é tipicamente usada para detectar combinações; veja a regra <userinput
+>Int</userinput
+> para mais referências.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>HlCOct</term>
+<listitem>
+<para
+>Detecta uma representação de um número octal.</para>
+<para
+><programlisting
+>&lt;HlCOct (atributos comuns) /&gt;</programlisting
+></para>
+<para
+>Esta regra não tem atributos específicos.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>HlCHex</term>
+<listitem>
+<para
+>Detecta uma representação de um número em hexadecimal.</para>
+<para
+><programlisting
+>&lt;HlCHex (atributos comuns) /&gt;</programlisting
+></para>
+<para
+>Esta regra não tem atributos específicos.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>HlCStringChar</term>
+<listitem>
+<para
+>Detecta um carácter 'escapado'.</para>
+<para
+><programlisting
+>&lt;HlCStringChar (atributos comuns) /&gt;</programlisting
+></para>
+<para
+>Esta regra não tem atributos específicos.</para>
+
+<para
+>Corresponde a representações literais dos caracteres usados normalmente no código do programa como, por exemplo, o <userinput
+>\n</userinput
+> (nova linha) ou o <userinput
+>\t</userinput
+> (TAB).</para>
+
+<para
+>Os seguintes caracteres irão corresponder se estiverem a seguir a uma barra invertida (<literal
+>\</literal
+>): <userinput
+>abefnrtv&quot;'?\</userinput
+>. Para além disso, os números escapados em hexadecimal como, por exemplo, o <userinput
+>\xff</userinput
+> e os números octais escapados, como o <userinput
+>\033</userinput
+>, irão corresponder.</para>
+
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>HlCChar</term>
+<listitem>
+<para
+>Detecta um carácter do C.</para>
+<para
+><programlisting
+>&lt;HlCChar (atributos comuns) /&gt;</programlisting
+></para>
+<para
+>Esta regra não tem atributos específicos.</para>
+
+<para
+>Corresponde aos caracteres em C colocados dentro de plicas (Exemplo: <userinput
+>'c'</userinput
+>). Como tal, dentro das plicas poderá estar um único carácter ou um carácter de escape. Veja o 'HlCStringChar' para ver as sequências de caracteres de escape correspondentes.</para>
+
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>RangeDetect</term>
+<listitem>
+<para
+>Detecta uma cadeia de caracteres com os caracteres de início e fim definidos.</para>
+<programlisting
+>&lt;RangeDetect char=&quot;(carácter)&quot;  char1=&quot;(carácter)&quot; (atributos comuns) /&gt;</programlisting>
+<para
+>O <userinput
+>char</userinput
+> define o carácter de início e o <userinput
+>char1</userinput
+> o carácter que termina o intervalo.</para>
+<para
+>Útil para detectar, por exemplo, pequenas cadeias de caracteres entre aspas e semelhantes, mas repare que, dado que o motor de realce de sintaxe funciona com uma linha de cada vez, isto não irá encontrar as cadeias de caracteres que se prolonguem por mais do que uma linha.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>LineContinue</term>
+<listitem>
+<para
+>Corresponde um carácter indicado ao fim de uma linha.</para>
+<programlisting
+>&lt;LineContinue (atributos comuns) [char="\"] /&gt;</programlisting>
+<para
+><userinput
+>char</userinput
+> carácter opcional a corresponder; por omissão é a barra invertida (<userinput
+>'\'</userinput
+>). Novo desde o KDE 4.13.</para>
+<para
+>Esta regra é útil para mudar de contexto no fim da linha. Isto é necessário, por exemplo no C/C++, para continuar as macros ou cadeias de caracteres.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>IncludeRules</term>
+<listitem>
+<para
+>Inclui as regras de outro contexto ou linguagem/ficheiro.</para>
+<programlisting
+>&lt;IncludeRules context=&quot;ligacao_contexto&quot; [includeAttrib=&quot;true|false&quot;] /&gt;</programlisting>
+
+<para
+>O atributo <userinput
+>context</userinput
+> define o contexto a incluir.</para>
+<para
+>Se for texto simples, inclui todas as regras definidas no contexto actual, como por exemplo: <programlisting
+>&lt;IncludeRules context=&quot;outroContexto&quot; /&gt;</programlisting
+></para>
+
+<para
+>Se o texto tiver um <userinput
+>##</userinput
+>, o sistema de realce irá procurar por um contexto de outra definição de linguagens com o nome indicado, por exemplo <programlisting
+>&lt;IncludeRules context=&quot;String##C++&quot; /&gt;</programlisting
+> iria incluir o contexto <emphasis
+>String</emphasis
+> da definição de realce <emphasis
+>C++</emphasis
+>.</para>
+<para
+>Se o atributo <userinput
+>includeAttrib</userinput
+> for <emphasis
+>true</emphasis
+>, muda o atributo de destino para o da origem. Isto é necessário para fazer, por exemplo, funcionar os comentários, se o texto correspondente ao contexto incluído for de um realce diferente do contexto-anfitrião. </para>
+</listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+>DetectSpaces</term>
+<listitem>
+<para
+>Detecta espaços em branco.</para>
+<programlisting
+>&lt;DetectSpaces (atributos comuns) /&gt;</programlisting>
+
+<para
+>Esta regra não tem atributos específicos.</para>
+<para
+>Use esta regra se souber que poderão existir vários espaços em branco à frente como, por exemplo, no início das linhas indentadas. Esta regra irá ignorar todos os espaços em branco, em vez de testar várias regras e ignorar uma de cada vez, devido a uma falta de correspondência.</para>
+</listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+>DetectIdentifier</term>
+<listitem>
+<para
+>Detecta os textos dos identificadores (como acontece na expressão regular: [a-zA-Z_][a-zA-Z0-9_]*).</para>
+<programlisting
+>&lt;DetectIdentifier (atributos comuns) /&gt;</programlisting>
+
+<para
+>Esta regra não tem atributos específicos.</para>
+<para
+>Use esta regra para ignorar uma sequência de caracteres de palavras de uma vez, em vez de testar com várias regras e ignorar uma de cada vez, por falta de correspondência.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+</sect3>
+
+<sect3>
+<title
+>Dicas &amp; Truques</title>
+
+<itemizedlist>
+<para
+>Logo que tenha compreendido como funciona a mudança de contexto, será fácil de criar definições de realce. Ainda que deva verificar com cuidado a regra que escolhe, dependendo da situação, as expressões regulares são muito poderosas, só que são lentas em comparação com as outras regras. Como tal, poderá considerar as seguintes dicas. </para>
+
+<listitem>
+<para
+>Se só corresponder com 2 caracteres, use o <userinput
+>Detect2Chars</userinput
+> em vez do <userinput
+>StringDetect</userinput
+>. O mesmo aplica-se ao <userinput
+>DetectChar</userinput
+>.</para>
+</listitem>
+<listitem>
+<para
+>As expressões regulares são fáceis de usar mas, normalmente, existe outra forma muito mais rápida de obter o mesmo resultado. Assuma que só deseja corresponder com o carácter <userinput
+>'#'</userinput
+> se for o primeiro carácter da linha. Uma solução baseada em expressões regulares seria semelhante à seguinte: <programlisting
+>&lt;RegExpr attribute=&quot;Macro&quot; context=&quot;macro&quot; String=&quot;^\s*#&quot; /&gt;</programlisting
+> Poderá obter o mesmo se usar: <programlisting
+>&lt;DetectChar attribute=&quot;Macro&quot; context=&quot;macro&quot; char=&quot;#&quot; firstNonSpace=&quot;true&quot; /&gt;</programlisting
+> Se quiser corresponder à expressão regular <userinput
+>'^#'</userinput
+>, poderá usar à mesma o <userinput
+>DetectChar</userinput
+> com o atributo <userinput
+>column=&quot;0&quot;</userinput
+>. O atributo <userinput
+>column</userinput
+> conta com base no número de caracteres; como tal, uma tabulação conta à mesma como se fosse apenas um carácter. </para>
+</listitem>
+<listitem>
+<para
+>Poderá mudar de contextos sem processar os caracteres. Assuma que deseja mudar de contexto quando encontrar o texto <userinput
+>*/</userinput
+>, mas necessita de processar essa sequência no próximo contexto. A regra abaixo irá corresponder e o atributo <userinput
+>lookAhead</userinput
+> fará com que o sistema de realce mantenha o texto correspondente no próximo contexto. <programlisting
+>&lt;Detect2Chars attribute=&quot;Comment&quot; context=&quot;#pop&quot; char=&quot;*&quot; char1=&quot;/&quot; lookAhead=&quot;true&quot; /&gt;</programlisting>
+</para>
+</listitem>
+<listitem>
+<para
+>Use o <userinput
+>DetectSpaces</userinput
+> se souber que irão ocorrer vários espaços em branco.</para>
+</listitem>
+<listitem>
+<para
+>Use o <userinput
+>DetectIdentifier</userinput
+> em vez da expressão regular <userinput
+>'[a-zA-Z_]\w*'</userinput
+>.</para>
+</listitem>
+<listitem>
+<para
+>Use os estilos predefinidos sempre que puder. Desta forma, o utilizador irá encontrar um ambiente familiar.</para>
+</listitem>
+<listitem>
+<para
+>Procure noutros ficheiros XML para ver como as outras pessoas implementam as regras mais complicadas.</para>
+</listitem>
+<listitem>
+<para
+>Poderá validar todos os ficheiros XML se usar o comando <command
+>validatehl.sh language.xsd minhaSintaxe.xml</command
+>. Os ficheiros <filename
+>validatehl.sh</filename
+> e <filename
+>language.xsd</filename
+> estão disponíveis no <ulink url="https://commits.kde.org/syntax-highlighting?path=data/schema"
+>repositório de Realces de Sintaxe</ulink
+>. </para>
+</listitem>
+<listitem>
+<para
+>Se repetir algumas expressões regulares complexas com frequência, poderá usar as <emphasis
+>ENTIDADES</emphasis
+>. Por exemplo:</para>
+<programlisting
+>&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;!DOCTYPE language SYSTEM "language.dtd"
+[
+        &lt;!ENTITY referencia    "[A-Za-z_:][\w.:_-]*"&gt;
+]&gt;
+</programlisting>
+<para
+>Agora, poderá usar o <emphasis
+>&amp;referencia;</emphasis
+> em vez da expressão regular.</para>
+</listitem>
+</itemizedlist>
+</sect3>
+
+</sect2>
+
+</sect1>
+
+
+<sect1 id="dev-scripting">
+<title
+>Programar em JavaScript</title>
+
+<para
+>O componente de edição do &kappname; é facilmente extensível, através da criação de programas. A linguagem de programação é o ECMAScript (vulgarmente conhecido como JavaScript). O &kappname; suporta dois tipos de programas: os de indentação e os de linha de comandos. </para>
+
+<sect2 id="dev-scripting-indentation">
+<title
+>Programas de Indentação</title>
+
+<para
+>Programas de indentação - também conhecidos por indentadores - formatam automaticamente o código-fonte enquanto escreve o texto. Por exemplo, depois de carregar na tecla Return, o nível de indentação costuma aumentar. </para>
+
+<para
+>As seguintes secções descrevem, passo-a-passo, como criar o esqueleto de um módulo de indentação simples. Como primeiro passo, crie um novo ficheiro <filename
+>*.js</filename
+>, chamado &eg; <filename
+>javascript.js</filename
+> na pasta pessoal local <filename
+>$<envar
+>XDG_DATA_HOME</envar
+>share/apps/katepart5/script/indentation</filename
+>. Normalmente, a variável de ambiente <envar
+>XDG_DATA_HOME</envar
+> expande-se normalmente para <filename
+>~/.local</filename
+> ou <filename
+>~/.local/share</filename
+>. </para>
+<para
+>No &Windows;, estes ficheiros localizam-se em <filename
+>%USER%\AppData\Local\katepart5\indentation</filename
+>. O <replaceable
+>%USERPROFILE%</replaceable
+> normalmente corresponde a <filename
+>C:\\Users\\<replaceable
+>utilizador</replaceable
+></filename
+>.</para>
+
+<sect3 id="dev-scripting-indentation-header">
+<title
+>O Cabeçalho do Programa de Indentação</title>
+<para
+>O cabeçalho do ficheiro <filename
+>javascript.js</filename
+> está incorporado como JSON no início do documento, da seguinte forma: <programlisting>
+var katescript = {
+    "name": "JavaScript",
+    "author": "Nome de Exemplo &lt;nome.exemplo@endereco.org&gt;",
+    "license": "Licença BSD",
+    "revision": 1,
+    "kate-version": "5.1",
+    "required-syntax-style": "javascript",
+    "indent-languages": ["javascript"],
+    "priority": 0,
+}; // kate-script-header, must be at the start of the file without comments
+</programlisting
+> Cada item será explicado em detalhe agora: <itemizedlist>
+<listitem
+><para
+><literal
+>name</literal
+> [obrigatório]: Este é o nome do modo de indentação que aparece no menu <menuchoice
+><guimenu
+>Ferramentas</guimenu
+><guimenuitem
+>Indentação</guimenuitem
+></menuchoice
+> e na janela de configuração. </para
+></listitem>
+<listitem
+><para
+><literal
+>author</literal
+> [opcional]: O nome e a informação de contacto do autor. </para
+></listitem>
+<listitem
+><para
+><literal
+>license</literal
+> [opcional]: Forma curta da licença, como por exemplo BSD ou LGPLv3. </para
+></listitem>
+<listitem
+><para
+><literal
+>revision</literal
+> [obrigatório]: A versão do programa. Este número deverá ser aumentado sempre que o programa for modificado. </para
+></listitem>
+<listitem
+><para
+><literal
+>kate-version</literal
+> [obrigatório]: A versão mínima do &kappname; necessária. </para
+></listitem>
+<listitem
+><para
+><literal
+>required-syntax-style</literal
+> [opcional]: Uma lista, separada por vírgulas, dos estilos de realce de sintaxe obrigatórios. Isto é importante para os módulos de indentação que se baseiam em alguma informação específica de realce no documento. Se for indicado um estilo de sintaxe obrigatório, o módulo só ficará disponível quando estiver o realce apropriado seleccionado. Isto evita algum <quote
+>comportamento indefinido</quote
+> causado pela utilização da indentação sem o esquema de realce esperado. Por exemplo, a indentação de Ruby tira partido disto nos ficheiros <filename
+>ruby.js</filename
+> e <filename
+>ruby.xml</filename
+>. </para
+></listitem>
+<listitem
+><para
+><literal
+>indent-languages</literal
+> [opcional]: Uma lista em JSON de estilos de sintaxe que este módulo consegue indentar correctamente, &eg;: <literal
+>["c++", "java"]</literal
+>. </para
+></listitem>
+<listitem
+><para
+><literal
+>priority</literal
+> [opcional]: Se existirem vários módulos de indentação adequados para um determinado ficheiro de realce, este campo decide qual deverá ser usado por omissão. </para
+></listitem>
+</itemizedlist>
+</para>
+
+</sect3>
+
+<sect3 id="dev-scripting-indentation-body">
+<title
+>O Código-Fonte da Indentação</title>
+<para
+>Tendo definido o cabeçalho, esta secção explica como é que funciona a programação de indentações em si. O esqueleto básico do código parece-se com o seguinte: <programlisting>
+require("range.js");
+caracteresActivacao = "{}/:;";
+function indent(linha, larguraIndentacao, carácter)
+{
+    // invocado para cada linha nova (carácter == '\n') e todos os caracteres indicados na
+    // variável global 'caracteresActivacao'. Ao invocar o <menuchoice
+><guimenu
+>Ferramentas</guimenu
+><guimenuitem
+>Alinhar</guimenuitem
+></menuchoice>
+    // a variável 'carácter' está em branco, i.e. carácter == ''.
+    //
+    // ver também: API de Programação
+    return -2;
+}
+</programlisting
+> A função <function
+>indent()</function
+> tem três parâmetros: <itemizedlist
+> <listitem
+><para
+><literal
+>linha</literal
+>: a linha que tem de ser indentada</para
+></listitem
+> <listitem
+><para
+><literal
+>larguraIndentacao</literal
+>: o número de espaços correspondentes a cada indentação</para
+></listitem
+> <listitem
+><para
+><literal
+>carácter</literal
+>: ou um carácter de mudança de linha (<literal
+>ch == '\n'</literal
+>), algum dos caracteres de activação indicados em <literal
+>caracteresActivacao</literal
+> ou vazio, caso o utilizador tenha invocado a acção <menuchoice
+><guimenu
+>Ferramentas</guimenu
+><guimenuitem
+>Alinhar</guimenuitem
+></menuchoice
+>.</para
+></listitem
+> </itemizedlist
+> O valor devolvido pela função <function
+>indent()</function
+> define como é que a linha será indentada. Se o valor devolvido for um número inteiro, é interpretado da seguinte forma: <itemizedlist
+> <listitem
+><para
+>valor devolvido <literal
+>-2</literal
+>: não fazer nada</para
+></listitem
+> <listitem
+><para
+>valor devolvido <literal
+>-1</literal
+>: mantém a indentação (procura pela linha não-vazia anterior)</para
+></listitem
+> <listitem
+><para
+>valor devolvido <literal
+> 0</literal
+>: números &gt;= 0 definem a largura de indentação em espaços</para
+></listitem
+> </itemizedlist
+> Em alternativa, poderá ser devolvida uma lista com dois elementos: <itemizedlist
+> <listitem
+><para
+><literal
+>return [ indentação, alinhamento ];</literal
+></para
+></listitem
+> </itemizedlist
+> Nesse caso, o primeiro elemento é a profundidade de indentação, tendo o mesmo significado que os valores especiais. Contudo, o segundo elemento é um valor absoluto que representa uma coluna para o <quote
+>alinhamento</quote
+>. Se este valor for maior que o valor de indentação, a diferença representa um número de espaços a adicionar após a indentação do primeiro parâmetro. Caso contrário, o segundo número será ignorado. A utilização de tabulações e espaços na indentação é normalmente referida como sendo um <quote
+>modo misto</quote
+>. </para>
+
+<para
+>Considere o seguinte exemplo: Assuma que usa as tabulações para indentar, e que o tamanho da tabulação é de 4. Aqui, o &lt;tab&gt; representa uma tabulação e o '.' representa um espaço: <programlisting>
+1: &lt;tab&gt;&lt;tab&gt;xpto("olá",
+2: &lt;tab&gt;&lt;tab&gt;......."mundo");
+</programlisting
+> Ao indentar a linha 2, a função <function
+>indent()</function
+> devolve [8, 15]. Em função disso, são introduzidas duas tabulações para indentar até à coluna 8, e são introduzidos 7 espaços para alinhar o segundo parâmetro com o primeiro, de modo a permanecer alinhado, caso o ficheiro seja visto com outro tamanho de tabulação. </para>
+
+<para
+>Uma instalação predefinida do &kde; fornece o &kappname; com vários módulos de indentação. O código-fonte correspondente em JavaScript poderá ser encontrado em <filename
+>$<envar
+>XDG_DATA_DIRS</envar
+>/katepart5/script/indentation</filename
+>.</para>
+<para
+>No &Windows;, estes ficheiros localizam-se em <filename
+>%USER%\AppData\Local\katepart5\indentation</filename
+>. O <replaceable
+>%USER%</replaceable
+> normalmente corresponde a <filename
+>C:\\Users\\<replaceable
+>utilizador</replaceable
+></filename
+>. </para>
+
+<para
+>A criação de um módulo de indentação necessita que actualize os programas, de modo a ver se as alterações se comportam de forma adequada. Em vez de reiniciar a aplicação, basta ir para a linha de comandos e invocar o comando <command
+>reload-scripts</command
+>. </para>
+
+<para
+>Se criar programas úteis, por favor considere a hipótese de contribuir com eles para o Projecto do &kappname;, <ulink url="mailto:kwrite-devel@kde.org"
+>contactando para tal a lista de correio</ulink
+>. </para>
+
+</sect3>
+</sect2>
+
+<sect2 id="dev-scripting-command-line">
+<title
+>Programas da Linha de Comandos</title>
+
+<para
+>Como é difícil satisfazer as necessidades de todos, o &kappname; suporta algumas ferramentas auxiliares para manipular rapidamente o texto, usando para tal a <link linkend="advanced-editing-tools-commandline"
+>linha de comandos incorporada</link
+>. Por exemplo, o comando <command
+>sort</command
+> está implementado como um programa. Esta secção explica como criar ficheiros <filename
+>*.js</filename
+> que melhoram o &kappname; com algumas funções auxiliares arbitrárias. </para>
+
+<para
+>Os programas da linha de comandos estão localizados na mesma pasta que os programas de indentação. Como tal, como primeiro passo, crie um ficheiro <filename
+>*.js</filename
+> novo, chamado <filename
+>utilitários.js</filename
+> na pasta pessoal local, em <filename
+>$<envar
+>XDG_DATA_HOME</envar
+>/katepart5/script/commands</filename
+>. Normalmente, a variável de ambiente <envar
+>XDG_DATA_HOME</envar
+> expande-se tipicamente para <filename
+>~/.local</filename
+> ou <filename
+>~/.local/share</filename
+>.</para>
+<para
+>No &Windows;, estes ficheiros localizam-se em <filename
+>%USER%\AppData\Local\katepart5\commands</filename
+>. O <replaceable
+>%USER%</replaceable
+> normalmente corresponde a <filename
+>C:\\Users\\<replaceable
+>utilizador</replaceable
+></filename
+>. </para>
+
+<sect3 id="dev-scripting-command-line-header">
+<title
+>O Cabeçalho do Programa da Linha de Comandos</title>
+<para
+>O cabeçalho de cada programa da linha de comandos está incorporado como JSON no início do programa, da seguinte forma: <programlisting>
+var katescript = {
+    "author": "Nome de Exemplo &lt;nome.exemplo@endereco.org&gt;",
+    "license": "LGPLv2+",
+    "revision": 1,
+    "kate-version": "5.1",
+    "functions": ["ordenar", "descerLinhas"],
+    "actions": [
+        {   "function": "ordenar",
+            "name": "Ordenar o Texto Seleccionado",
+            "category": "Edição",
+            "interactive": "false"
+        },
+        {   "function": "descerLinhas",
+            "name": "Descer as Linhas",
+            "category": "Edição",
+            "shortcut": "Ctrl+Shift+Down",
+            "interactive": "false"
+        }
+    ]
+}; // kate-script-header, must be at the start of the file without comments
+</programlisting
+> Cada item será explicado em detalhe agora: <itemizedlist>
+<listitem
+><para
+><literal
+>author</literal
+> [opcional]: O nome e a informação de contacto do autor.</para
+></listitem>
+<listitem
+><para
+><literal
+>license</literal
+> [opcional]: Forma curta da licença, como por exemplo BSD ou LGPLv3.</para
+></listitem>
+<listitem
+><para
+><literal
+>revision</literal
+> [obrigatório]: A versão do programa. Este número deverá ser aumentado sempre que o programa for modificado.</para
+></listitem>
+<listitem
+><para
+><literal
+>kate-version</literal
+> [obrigatório]: A versão mínima do &kappname; necessária.</para
+></listitem>
+<listitem
+><para
+><literal
+>functions</literal
+> [obrigatório]: Uma lista em JSON dos comandos do programa.</para
+></listitem>
+<listitem
+><para
+><literal
+>actions</literal
+> [opcional]: Lista em JSON de objectos JSON que definem as acções que aparecem no menu da aplicação. É oferecida alguma informação detalhada na secção <link linkend="advanced-editing-tools-commandline"
+>Associar Atalhos</link
+>.</para
+></listitem>
+</itemizedlist>
+</para>
+
+<para
+>Dado que o valor de <literal
+>functions</literal
+> é uma lista em JSON, um único programa é capaz de conter um número arbitrário de comandos da consola. Cada função está disponível através da <link linkend="advanced-editing-tools-commandline"
+>linha de comandos incorporada do &kappname;</link
+>. </para>
+</sect3>
+
+<sect3 id="dev-scripting-command-line-body">
+<title
+>O Código-Fonte do Programa</title>
+
+<para
+>Todas as funções indicadas no cabeçalho terão de estar implementadas no programa. Por exemplo, o ficheiro de programa do exemplo acima tem de implementar as duas funções <command
+>ordenar</command
+> e <command
+>descerLinhas</command
+>. Todas as funções têm a seguinte sintaxe: <programlisting
+>// bibliotecas necessárias do Katepart, p.ex. o range.js se usar o Range
+require ("range.js");
+
+function &lt;nome&gt;(arg1, arg2, ...)
+{
+    // ... implementação, ver também: API de Programação
+}
+</programlisting>
+</para>
+
+<para
+>Os argumentos na linha de comandos são passados à função como <parameter
+>arg1</parameter
+>, <parameter
+>arg2</parameter
+>, etc. Para poder fornecer a documentação para cada comando, basta implementar a função '<function
+>help</function
+>' da seguinte forma: <programlisting>
+function help(comando)
+{
+    if (comando == "ordenar") {
+        return i18n("Ordena o texto seleccionado.");
+    } else if (cmd == "...") {
+        // ...
+    }
+}
+</programlisting
+> Se executar <command
+>help ordenar</command
+> na linha de comandos, irá invocar esta função 'help' com o argumento <parameter
+>comando</parameter
+> configurado com o comando indicado, &ie; <parameter
+>comando == "ordenar"</parameter
+>. O &kappname; irá então apresentar o texto devolvido como documentação para o utilizador. Certifique-se que <link linkend="dev-scripting-api-i18n"
+>traduz os textos</link
+>. </para>
+
+<para
+>Criar um programa para a linha de comandos obriga a actualizar os programas, de modo a ver se as alterações funcionam apropriadamente. Em vez de reiniciar a aplicação, basta mudar para a linha de comandos e invocar o comando <command
+>reload-scripts</command
+>. </para>
+
+<sect4 id="dev-scripting-command-line-shortcuts">
+<title
+>Associar Combinações de Teclas</title>
+<para
+>Para tornar os programas acessíveis no menu da aplicação e para atribuir combinações de teclas de atalho, o programa terá de fornecer um cabeçalho do programa apropriado. No exemplo acima, ambas as funções In <literal
+>ordenar</literal
+> e <literal
+>descerLinhas</literal
+> aparecem no menu, graças à seguinte componente no cabeçalho do programa: <programlisting>
+var katescript = {
+    ...
+    "actions": [
+        {   "function": "ordenar",
+            "name": "Ordenar o Texto Seleccionado",
+            "icon": "",
+            "category": "Edição",
+            "interactive": "false"
+        },
+        {   "function": "descerLinhas",
+            "name": "Descer as Linhas",
+            "icon": "",
+            "category": "Edição",
+            "shortcut": "Ctrl+Shift+Down",
+            "interactive": "false"
+        }
+    ]
+};
+</programlisting
+> Os campos de uma acção são os seguintes: <itemizedlist>
+<listitem
+><para
+><literal
+>function</literal
+> [obrigatório]: A função que deverá aparecer no menu <menuchoice
+><guimenu
+>Ferramentas</guimenu
+><guisubmenu
+>Programas</guisubmenu
+></menuchoice
+>.</para
+></listitem>
+<listitem
+><para
+><literal
+>name</literal
+> [obrigatório]: O texto que aparece no menu do programa.</para
+></listitem>
+<listitem
+><para
+><literal
+>icon</literal
+> [opcional]: O ícone aparece a seguir ao texto no menu. Todos os nomes de ícones do &kde; poderão ser aqui usados.</para
+></listitem>
+<listitem
+><para
+><literal
+>category</literal
+> [opcional]: Se for indicada uma categoria, o programa aparece num submenu.</para
+></listitem>
+<listitem
+><para
+><literal
+>shortcut</literal
+> [opcional]: A combinação de teclas indicada aqui é o atalho de teclado predefinido. Por exemplo: Ctrl+Alt+T. Veja a <ulink url="http://qt-project.org/doc/qt-5/qt.html#Key-enum"
+>documentação do Qt</ulink
+> para mais detalhes.</para
+></listitem>
+<listitem
+><para
+><literal
+>interactive</literal
+> [opcional]: Se o programa precisa de interacção por parte do utilizador, configure este valor como <literal
+>true</literal
+> (verdadeiro).</para
+></listitem>
+</itemizedlist>
+</para>
+
+<para
+>Se criar programas úteis, por favor considere a hipótese de contribuir com eles para o Projecto do &kappname;, <ulink url="mailto:kwrite-devel@kde.org"
+>contactando para tal a lista de correio</ulink
+>. </para>
+
+</sect4>
+</sect3>
+</sect2>
+
+<sect2 id="dev-scripting-api">
+<title
+>API de Programação</title>
+
+<para
+>A API de programação aqui apresentada está disponível em todos os programas, &ie; os programas de indentação e os comandos da consola. O <classname
+>Cursor</classname
+> e o <classname
+>Range</classname
+> são fornecidos através de ficheiros de bibliotecas no <filename
+>$<envar
+>XDG_DATA_DIRS</envar
+>/katepart5/libraries</filename
+>. Se quiser usá-los no seu programa, o que será necessário para usar algumas das funções do <classname
+>Document</classname
+> ou do <classname
+>View</classname
+>, inclua por favor a biblioteca necessária, usando: <programlisting
+>// bibliotecas em JS do katepart necessárias, p.ex. o "range.js" se usar o Range
+require ("range.js");
+</programlisting>
+</para>
+
+<para
+>Para extender a API-padrão de programação com funções e protótipos próprio, basta criar um ficheiro novo na pasta de configuração local do &kde;, em <filename
+>$<envar
+>XDG_DATA_HOME</envar
+>/katepart5/libraries</filename
+> e inclua-a no seu programa, usando: <programlisting
+>require ("nome-do-meu-programa.js");
+</programlisting>
+
+</para>
+
+<para
+>No &Windows;, estes ficheiros localizam-se em <filename
+>%USER%\AppData\Local\katepart5\libraries</filename
+>. O <replaceable
+>%USER%</replaceable
+> normalmente corresponde a <filename
+>C:\\Users\\<replaceable
+>utilizador</replaceable
+></filename
+>.</para>
+
+<para
+>Para extender os protótipos existentes, como o <classname
+>Cursor</classname
+> ou o <classname
+>Range</classname
+>, a forma recomendada é <emphasis
+>não</emphasis
+> modificar os ficheiros <filename
+>*.js</filename
+> globais. Em vez disso, altere o protótipo do <classname
+>Cursor</classname
+> em JavaScript, após o <filename
+>cursor.js</filename
+> que é incluído no seu programa com o <literal
+>require</literal
+>. </para>
+
+<sect3 id="dev-scripting-api-prototypes">
+<title
+>Cursores e Intervalos</title>
+
+<para
+>Como o &kappname; é um editor de texto, toda a API de programação é baseada em cursores e intervalos, sempre que possível. Um cursor é um simples tuplo <literal
+>(linha, coluna)</literal
+> que representa uma posição de texto no documento. Um Range (Intervalo) corresponde a uma área de texto coberta desde uma posição inicial do cursor até outra posição de fim. A API é explicada em detalhe nas secções seguintes. </para>
+
+<sect4 id="dev-scripting-api-cursors">
+<title
+>O Protótipo do Cursor</title>
+
+<variablelist
+><varlistentry>
+<term
+><synopsis
+>Cursor();
+</synopsis
+></term>
+<listitem
+><para
+>Construtor. Devolve um Cursor na posição <literal
+>(0, 0)</literal
+>.</para>
+<para
+>Exemplo: <function
+>var cursor = new Cursor();</function
+> </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>Cursor(<parameter
+>int <replaceable
+>linha</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>coluna</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Construtor. Devolve um Cursor na posição (linha, coluna). </para>
+<para
+>Exemplo: <function
+>var cursor = new Cursor(3, 42);</function
+> </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>Cursor(<parameter
+>Cursor <replaceable
+>outro</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Construtor de cópia. Devolve uma cópia do cursor <replaceable
+>outro</replaceable
+>. </para>
+<para
+>Exemplo: <function
+>var copia = new Cursor(outro);</function
+> </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>Cursor Cursor.clone();
+</synopsis
+></term>
+<listitem
+><para
+>Devolve uma cópia do cursor.</para>
+<para
+>Exemplo: <function
+>var clone = cursor.clone();</function
+> </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>Cursor.setPosition(<parameter
+>int <replaceable
+>linha</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>coluna</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Configura a posição do cursor em <replaceable
+>linha</replaceable
+> e <replaceable
+>coluna</replaceable
+>.</para>
+<para
+>Desde: &kde; 4.11 </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool Cursor.isValid();
+</synopsis
+></term>
+<listitem
+><para
+>Verifica se o cursor é válido. O cursor é inválido no caso em que a linha e/ou coluna sejam iguais a <literal
+>-1</literal
+>. </para>
+<para
+>Exemplo: <function
+>var valido = cursor.isValid();</function
+> </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>Cursor Cursor.invalid();
+</synopsis
+></term>
+<listitem
+><para
+>Devolve um novo cursor inválido, localizado em <literal
+>(-1, -1)</literal
+>. </para>
+<para
+>Exemplo: <function
+>var cursorInvalido = cursor.invalid();</function
+> </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><synopsis
+>int Cursor.compareTo(<parameter
+>Cursor <replaceable
+>outro</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Compara este cursor com o cursor <replaceable
+>outro</replaceable
+>. Devolve <itemizedlist>
+<listitem
+><para
+><literal
+>-1</literal
+>, se este cursor for localizado antes do cursor <replaceable
+>outro</replaceable
+>,</para
+></listitem>
+<listitem
+><para
+><literal
+>0</literal
+>, se ambos os cursores forem iguais e</para
+></listitem>
+<listitem
+><para
+><literal
+>+1</literal
+>, se este cursor se localizar a seguir ao cursor <replaceable
+>outro</replaceable
+>.</para
+></listitem>
+</itemizedlist>
+</para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool Cursor.equals(<parameter
+>Cursor <replaceable
+>outro</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Devolve <literal
+>true</literal
+> (verdadeiro), se este o cursor e o <replaceable
+>outro</replaceable
+> forem iguais, caso contrário devolve <literal
+>false</literal
+> (falso). </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>String Cursor.toString();
+</synopsis
+></term>
+<listitem
+><para
+>Devolve o cursor como um texto no formato <quote
+><literal
+>Cursor(linha, coluna)</literal
+></quote
+>. </para
+></listitem>
+</varlistentry
+></variablelist>
+
+</sect4>
+
+
+<sect4 id="dev-scripting-api-ranges">
+<title
+>O Protótipo do Intervalo</title>
+
+<variablelist
+><varlistentry>
+<term
+><synopsis
+>Range();
+</synopsis
+></term>
+<listitem
+><para
+>Construtor. A invocação de <literal
+>new Range()</literal
+> devolve um intervalo Range de (0, 0) - (0, 0). </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>Range(<parameter
+>Cursor <replaceable
+>inicio</replaceable
+></parameter
+>, <parameter
+>Cursor <replaceable
+>fim</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Construtor. A invocação de <literal
+>new Range(<replaceable
+>início</replaceable
+>, <replaceable
+>fim</replaceable
+>)</literal
+> devolve o intervalo (<replaceable
+>início</replaceable
+>, <replaceable
+>fim</replaceable
+>). </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>Range(<parameter
+>int <replaceable
+>linhaInicial</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>colunaInicial</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>linhaFinal</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>colunaFinal</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Construtor. A invocação de <literal
+>new Range(<replaceable
+>linhaInicial</replaceable
+>, <replaceable
+>colunaInicial</replaceable
+>, <replaceable
+>linhaFinal</replaceable
+>, <replaceable
+>colunaFinal</replaceable
+>)</literal
+> devolve um intervalo Range de (<replaceable
+>linhaInicial</replaceable
+>, <replaceable
+>colunaInicial</replaceable
+>) até (<replaceable
+>linhaFinal</replaceable
+>, <replaceable
+>colunaFinal</replaceable
+>). </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>Range(<parameter
+>Range <replaceable
+>outro</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Construtor de cópia. Devolve uma cópia do intervalo Range <replaceable
+>outro</replaceable
+>. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>Range Range.clone();
+</synopsis
+></term>
+<listitem
+><para
+>Devolve uma cópia do intervalo. </para>
+<para
+>Exemplo: <function
+>var clone = intervalo.clone();</function
+> </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool Range.isEmpty();
+</synopsis
+></term>
+<listitem
+><para
+>Devolve <literal
+>true</literal
+> (verdadeiro), se tanto o cursor de início como o de fim forem iguais. </para>
+<para
+>Exemplo: <function
+>var vazio = intervalo.isEmpty();</function
+> </para>
+<para
+>Desde: &kde; 4.11 </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool Range.isValid();
+</synopsis
+></term>
+<listitem
+><para
+>Devolve <literal
+>true</literal
+> (verdadeiro), se tanto o cursor de início como o de fim forem válidos, caso contrário devolve <literal
+>false</literal
+> (falso). </para>
+<para
+>Exemplo: <function
+>var valido = intervalo.isValid();</function
+> </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>Range Range.invalid();
+</synopsis
+></term>
+<listitem
+><para
+>Devolve o intervalo Range de (-1, -1) até (-1, -1). </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool Range.contains(<parameter
+>Cursor <replaceable
+>cursor</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Devolve <constant
+>true</constant
+> (verdadeiro) se este intervalo contiver a posição do cursor, caso contrário devolve <constant
+>false</constant
+>. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool Range.contains(<parameter
+>Range <replaceable
+>outro</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Devolve <literal
+>true</literal
+> (verdadeiro), se este intervalo contiver o intervalo Range <replaceable
+>outro</replaceable
+>, caso contrário devolve <literal
+>false</literal
+> (falso). </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool Range.containsColumn(<parameter
+>int <replaceable
+>coluna</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Devolve <literal
+>true</literal
+> (verdadeiro), se a <replaceable
+>coluna</replaceable
+> estiver no intervalo semi-aberto <literal
+>[início.coluna, fim.coluna)</literal
+>, caso contrário devolve <literal
+>false</literal
+> (falso). </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool Range.containsLine(<parameter
+>int <replaceable
+>linha</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Devolve <literal
+>true</literal
+> (verdadeiro) se a <replaceable
+>linha</replaceable
+> estiver no intervalo semi-aberto <literal
+>[início.linha, fim.linha)</literal
+>, caso contrário devolve <literal
+>false</literal
+> (falso). </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool Range.overlaps(<parameter
+>Range <replaceable
+>outro</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Devolve <literal
+>true</literal
+> (verdadeiro), se este intervalo e o intervalo <replaceable
+>outro</replaceable
+> partilharem uma região em comum, caso contrário devolve <literal
+>false</literal
+> (falso). </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool Range.overlapsLine(<parameter
+>int <replaceable
+>linha</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Devolve <literal
+>true</literal
+> (verdadeiro), se a <replaceable
+>linha</replaceable
+> estiver no intervalo <literal
+>[início.linha, fim.linha]</literal
+>, caso contrário devolve <literal
+>false</literal
+> (falso). </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool Range.overlapsColumn(<parameter
+>int <replaceable
+>coluna</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Devolve <literal
+>true</literal
+> (verdadeiro), se a <replaceable
+>coluna</replaceable
+> estiver no intervalo <literal
+>[início.coluna, fim.coluna]</literal
+>, caso contrário devolve <literal
+>false</literal
+> (falso). </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool Range.onSingleLine();
+</synopsis
+></term>
+<listitem
+><para
+>Devolve <literal
+>true</literal
+> (verdadeiro), se o intervalo começar e acabar na mesma linha, &ie; se <replaceable
+>Range.start.line == Range.end.line</replaceable
+>. </para>
+<para
+>Desde: &kde; 4.9 </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool Range.equals(<parameter
+>Range <replaceable
+>outro</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Devolve <literal
+>true</literal
+> (verdadeiro), se este intervalo e o intervalo <replaceable
+>outro</replaceable
+> forem iguais, caso contrário devolve <literal
+>false</literal
+> (falso). </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>String Range.toString();
+</synopsis
+></term>
+<listitem
+><para
+>Devolve o intervalo como um texto no formato <quote
+><literal
+>Range(Cursor(linha, coluna), Cursor(linha, coluna))</literal
+></quote
+>. </para
+></listitem>
+</varlistentry
+></variablelist>
+
+</sect4>
+</sect3>
+
+<sect3 id="dev-scripting-api-global">
+<title
+>Funções Globais</title>
+<para
+>Esta secção apresenta todas as funções globais.</para>
+
+
+<sect4 id="dev-scripting-api-includes">
+<title
+>Ler &amp; Incluir os Ficheiros</title>
+
+<variablelist
+><varlistentry>
+<term
+><synopsis
+>String read(<parameter
+>String <replaceable
+>ficheiro</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Irá procurar pelo <replaceable
+>ficheiro</replaceable
+> indicado em relação à pasta <literal
+>katepart/script/files</literal
+> e irá devolver o seu conteúdo como texto. </para
+></listitem>
+</varlistentry
+></variablelist>
+
+<variablelist
+><varlistentry>
+<term
+><synopsis
+>void require(<parameter
+>String <replaceable
+>ficheiro</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Irá procurar pelo <replaceable
+>ficheiro</replaceable
+> indicado em relação à pasta <literal
+>katepart/script/libraries</literal
+> e este será avaliado. O <literal
+>require</literal
+> está protegido internamente contra inclusões múltiplas do mesmo <replaceable
+>ficheiro</replaceable
+>. </para>
+<para
+>Desde: &kde; 4.10 </para>
+</listitem>
+</varlistentry
+></variablelist>
+
+</sect4>
+
+<sect4 id="dev-scripting-api-debug">
+<title
+>Depuração</title>
+
+<variablelist
+><varlistentry>
+<term
+><synopsis
+>void debug(<parameter
+>String <replaceable
+>texto</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Imprime o <replaceable
+>texto</replaceable
+> no <literal
+>stdout</literal
+>, mais precisamente na consola que lança a aplicação. </para
+></listitem>
+</varlistentry
+></variablelist>
+
+</sect4>
+
+<sect4 id="dev-scripting-api-i18n">
+<title
+>Tradução</title>
+
+<para
+>Para um suporte regional completo, existem diversas funções para traduzir os textos nos programas, nomeadamente o <literal
+>i18n</literal
+>, o <literal
+>i18nc</literal
+>, o <literal
+>i18np</literal
+> e o <literal
+>i18ncp</literal
+>. Estas funções comportam-se exactamente como as <ulink url="http://techbase.kde.org/Development/Tutorials/Localization/i18n"
+> funções de tradução do &kde;</ulink
+>. </para>
+
+<para
+>As funções de tradução convertem os textos indicados ao sistema de traduções do &kde; para a língua usada na aplicação. Os textos nos programas que são desenvolvidos no âmbito do código oficial do &kappname; são automaticamente extraídos e preparados para traduções. Por outras palavras, como programador do &kappname;, não terá de se preocupar com a extracção e tradução das mensagens. Contudo, a tradução só funciona dentro da infra-estrutura do &kde;, &ie; novos textos em programas de terceiros, desenvolvidos fora do &kde;, não são traduzidos. Como tal, pense em contribuir com os seus programas para o &kate;, para que uma tradução adequada seja possível. </para>
+
+<variablelist
+><varlistentry>
+<term
+><synopsis
+>void i18n(<parameter
+>String <replaceable
+>texto</replaceable
+></parameter
+>, <replaceable
+>arg1</replaceable
+>, ...);
+</synopsis
+></term>
+<listitem
+><para
+>Traduz o <replaceable
+>texto</replaceable
+> na língua usada pela aplicação. Os argumentos <replaceable
+>arg1</replaceable
+>, ..., são opcionais e usados para substituir os itens <literal
+>%1</literal
+>, <literal
+>%2</literal
+>, etc.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><synopsis
+>void i18nc(<parameter
+>String <replaceable
+>contexto</replaceable
+></parameter
+>, <parameter
+>String <replaceable
+>texto</replaceable
+></parameter
+>, <replaceable
+>arg1</replaceable
+>, ...);
+</synopsis
+></term>
+<listitem
+><para
+>Traduz o <replaceable
+>texto</replaceable
+> na língua usada pela aplicação. Para ale´m disso, o texto do <replaceable
+>contexto</replaceable
+> fica visível aos tradutores para que possam dar uma tradução mais adequada. Os argumentos <replaceable
+>arg1</replaceable
+>, ..., são opcionais e são usados para substituir os itens de substituição <literal
+>%1</literal
+>, <literal
+>%2</literal
+>, etc.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><synopsis
+>void i18np(<parameter
+>String <replaceable
+>singular</replaceable
+></parameter
+>, <parameter
+>String <replaceable
+>plural</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>número</replaceable
+></parameter
+>, <replaceable
+>arg1</replaceable
+>, ...);
+</synopsis
+></term>
+<listitem
+><para
+>Traduz tanto o texto <replaceable
+>singular</replaceable
+> como o <replaceable
+>plural</replaceable
+> para a língua usada pela aplicação, dependendo do <replaceable
+>número</replaceable
+> indicado. Os argumentos <replaceable
+>arg1</replaceable
+>, ..., são opcionais e usados para substituir os itens de substituição <literal
+>%1</literal
+>, <literal
+>%2</literal
+>, etc.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><synopsis
+>void i18ncp(<parameter
+>String <replaceable
+>contexto</replaceable
+></parameter
+>, <parameter
+>String <replaceable
+>singular</replaceable
+></parameter
+>, <parameter
+>String <replaceable
+>plural</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>número</replaceable
+></parameter
+>, <replaceable
+>arg1</replaceable
+>, ...);
+</synopsis
+></term>
+<listitem
+><para
+>Traduz tanto o texto <replaceable
+>singular</replaceable
+> como o <replaceable
+>plural</replaceable
+> para a língua usada pela aplicação, dependendo do <replaceable
+>número</replaceable
+> indicado. Adicionalmente, o texto do <replaceable
+>contexto</replaceable
+> é visível para as tradutores, para que possam fornecer uma tradução mais adequada. Os argumentos <replaceable
+>arg1</replaceable
+>, ..., são opcionais e são usados para substituir os itens <literal
+>%1</literal
+>, <literal
+>%2</literal
+>, etc.</para
+></listitem>
+</varlistentry
+></variablelist>
+
+</sect4>
+</sect3>
+
+<sect3 id="dev-scripting-api-view">
+<title
+>A API do View</title>
+<para
+>Sempre que um programa está a ser executado, existe uma variável global <quote
+><literal
+>view</literal
+></quote
+> que representa a área de edição activa no momento. Segue-se uma lista com todas as funções disponíveis para o View. <variablelist
+><varlistentry>
+<term
+><synopsis
+><function
+>Cursor view.cursorPosition()</function
+>
+</synopsis
+></term>
+<listitem
+><para
+>Devolve a posição actual do cursor na janela.</para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>void view.setCursorPosition(<parameter
+>int <replaceable
+>linha</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>coluna</replaceable
+></parameter
+>);
+void view.setCursorPosition(<parameter
+>Cursor <replaceable
+>cursor</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Altera a posição actual do cursor para uma (linha, coluna) qualquer ou para o cursor indicado. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>Cursor view.virtualCursorPosition();
+</synopsis
+></term>
+<listitem
+><para
+>Devolve a posição virtual do cursor com cada tabulação a corresponder ao número indicado de espaços, dependente da largura de tabulação actual. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>void view.setVirtualCursorPosition(<parameter
+>int <replaceable
+>linha</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>coluna</replaceable
+></parameter
+>);
+void view.setVirtualCursorPosition(<parameter
+>Cursor <replaceable
+>cursor</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Altera a posição actual do cursor virtual para uma (linha, coluna) qualquer ou para o cursor indicado. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>String view.selectedText();
+</synopsis
+></term>
+<listitem
+><para
+>Devolve o texto seleccionado. Se não estiver nenhum texto seleccionado, o texto devolvido vem vazio. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool view.hasSelection();
+</synopsis
+></term>
+<listitem
+><para
+>Devolve <constant
+>true</constant
+> (verdadeiro) se a janela contiver algum texto seleccionado, caso contrário devolve <constant
+>false</constant
+>. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>Range view.selection();
+</synopsis
+></term>
+<listitem
+><para
+>Devolve o intervalo de texto seleccionado. O intervalo devolvido é inválido, caso não esteja seleccionado nenhum texto. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>void view.setSelection(<parameter
+>Range <replaceable
+>intervalo</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Altera o texto seleccionado para o intervalo indicado. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>void view.removeSelectedText();
+</synopsis
+></term>
+<listitem
+><para
+>Remove o texto seleccionado. Se a janela não tiver nenhuma selecção feita, isto não faz nada. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>void view.selectAll();
+</synopsis
+></term>
+<listitem
+><para
+>Selecciona o texto por inteiro no documento. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>void view.clearSelection();
+</synopsis
+></term>
+<listitem
+><para
+>Limpa a selecção de texto actual, sem remover o texto. </para
+></listitem>
+</varlistentry
+></variablelist>
+</para>
+</sect3>
+
+<sect3 id="dev-scripting-api-document">
+<title
+>A API do Document</title>
+<para
+>Sempre que está a executar um programa, existe uma variável global <quote
+><literal
+>document</literal
+></quote
+> que representa o documento activo no momento. Segue-se uma lista com todas as funções disponíveis para o Document. <variablelist
+><varlistentry>
+<term
+><synopsis
+>String document.fileName();
+</synopsis
+></term>
+<listitem
+><para
+>Devolve o nome do ficheiro do documento, ou então um texto vazio para as janelas de texto ainda por gravar. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>String document.url();
+</synopsis
+></term>
+<listitem
+><para
+>Devolve o URL completo do documento, ou então um texto vazio para as janelas de texto ainda por gravar. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>String document.mimeType();
+</synopsis
+></term>
+<listitem
+><para
+>Devolve o tipo MIME do documento, ou então o tipo <literal
+>application/octet-stream</literal
+> se não for encontrado qualquer tipo MIME apropriado. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>String document.encoding();
+</synopsis
+></term>
+<listitem
+><para
+>Devolve a codificação usada actualmente para gravar o ficheiro. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><synopsis
+>String document.highlightingMode();
+</synopsis
+></term>
+<listitem
+><para
+>Devolve o modo de realce global usado para todo o documento. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><synopsis
+>String document.highlightingModeAt(<parameter
+>Cursor <replaceable
+>posição</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Devolve o modo de realce usado na posição do cursor indicada do documento. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><synopsis
+>Array document.embeddedHighlightingModes();
+</synopsis
+></term>
+<listitem
+><para
+>Devolve uma lista com os modos de realce incorporados neste documento. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><synopsis
+>bool document.isModified();
+</synopsis
+></term>
+<listitem
+><para
+>Devolve <constant
+>true</constant
+> (verdadeiro) se o documento tiver algumas alterações por gravar, caso contrário devolve <constant
+>false</constant
+>. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>String document.text();
+</synopsis
+></term>
+<listitem
+><para
+>Devolve o conteúdo inteiro do documento numa única sequência de texto. As mudanças de linha estão marcadas com o carácter de mudança de linha <quote
+><literal
+>\n</literal
+></quote
+>. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>String document.text(<parameter
+>int <replaceable
+>daLinha</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>daColuna</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>ateLinha</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>ateColuna</replaceable
+></parameter
+>);
+String document.text(<parameter
+>Cursor <replaceable
+>de</replaceable
+></parameter
+>, <parameter
+>Cursor <replaceable
+>ate</replaceable
+></parameter
+>);
+String document.text(<parameter
+>Range <replaceable
+>intervalo</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Devolve o texto no intervalo indicado. Recomenda-se que use a versão baseada nos cursores e nos intervalos, de modo a ter uma melhor visibilidade do código-fonte. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>String document.line(<parameter
+>int <replaceable
+>linha</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Devolve a linha de texto indicada como uma sequência de texto. O texto devolvido fica em branco, caso a linha pedida esteja fora do intervalo. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>String document.wordAt(<parameter
+>int <replaceable
+>linha</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>coluna</replaceable
+></parameter
+>);
+String document.wordAt(<parameter
+>Cursor <replaceable
+>cursor</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Devolve a palavra na posição do cursor indicada. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term>
+<synopsis
+>Range document.wordRangeAt(<parameter
+>int <replaceable
+>linha</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>coluna</replaceable
+></parameter
+>);
+Range document.wordRangeAt(<parameter
+>Cursor <replaceable
+>cursor</replaceable
+></parameter
+>);
+</synopsis>
+</term>
+<listitem
+><para
+>Devolve o intervalo da palavra na posição indicada do cursor. O intervalo devolvido é inválido (ver com Range.isValid()), caso a posição do texto esteja após o fim de uma linha. Se não existir nenhuma palavra no cursor indicado, é devolvido um intervalo vazio. </para>
+<para
+>Desde: &kde; 4.9 </para>
+</listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>String document.charAt(<parameter
+>int <replaceable
+>linha</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>coluna</replaceable
+></parameter
+>);
+String document.charAt(<parameter
+>Cursor <replaceable
+>cursor</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Devolve o carácter na posição do cursor indicada. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>String document.firstChar(<parameter
+>int <replaceable
+>linha</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Devolve o primeiro carácter da <replaceable
+>linha</replaceable
+> indicada que não seja um espaço em branco. O primeiro carácter encontra-se na coluna 0. Se a linha estiver em branco ou só tiver espaços em branco, o texto devolvido vem vazio. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>String document.lastChar(<parameter
+>int <replaceable
+>linha</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Devolve o último carácter da <replaceable
+>linha</replaceable
+> indicada que não seja um espaço em branco. O primeiro carácter encontra-se na coluna 0. Se a linha estiver em branco ou só tiver espaços em branco, o texto devolvido vem vazio. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool document.isSpace(<parameter
+>int <replaceable
+>linha</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>coluna</replaceable
+></parameter
+>);
+bool document.isSpace(<parameter
+>Cursor <replaceable
+>cursor</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Devolve <literal
+>true</literal
+> (verdadeiro), se o carácter na posição indicada do cursor for um espaço em branco, caso contrário devolve <literal
+>false</literal
+> (falso). </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool document.matchesAt(<parameter
+>int <replaceable
+>linha</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>coluna</replaceable
+></parameter
+>, <parameter
+>String <replaceable
+>texto</replaceable
+></parameter
+>);
+bool document.matchesAt(<parameter
+>Cursor <replaceable
+>cursor</replaceable
+></parameter
+>, <parameter
+>String <replaceable
+>texto</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Devolve <literal
+>true</literal
+> (verdadeiro) se o <replaceable
+>texto</replaceable
+> indicado corresponder à posição indicada do cursor, caso contrário devolve <literal
+>false</literal
+> (falso). </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool document.startsWith(<parameter
+>int <replaceable
+>linha</replaceable
+></parameter
+>, <parameter
+>String <replaceable
+>texto</replaceable
+></parameter
+>, <parameter
+>bool <replaceable
+>ignorarEspacos</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Devolve <literal
+>true</literal
+> (verdadeiro) se a linha começar por <replaceable
+>texto</replaceable
+>, caso contrário devolve <literal
+>false</literal
+> (falso). O argumento <replaceable
+>ignorarEspacos</replaceable
+> controla se os espaços envolventes são ignorados ou não. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool document.endsWith(<parameter
+>int <replaceable
+>linha</replaceable
+></parameter
+>, <parameter
+>String <replaceable
+>texto</replaceable
+></parameter
+>, <parameter
+>bool <replaceable
+>ignorarEspacos</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Devolve <literal
+>true</literal
+> (verdadeiro), caso a linha termine em <replaceable
+>texto</replaceable
+>, caso contrário devolve <literal
+>false</literal
+> (falso). O argumento <replaceable
+>ignorarEspacos</replaceable
+> controla se os espaços envolventes são ignorados. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool document.setText(<parameter
+>String <replaceable
+>texto</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Altera o texto do documento por inteiro. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool document.clear();
+</synopsis
+></term>
+<listitem
+><para
+>Limpa o texto no documento por inteiro. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool document.truncate(<parameter
+>int <replaceable
+>linha</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>coluna</replaceable
+></parameter
+>);
+bool document.truncate(<parameter
+>Cursor <replaceable
+>cursor</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Trunca a linha indicada, na coluna ou posição do cursor indicadas. Devolve <literal
+>true</literal
+> (verdadeiro) em caso de sucesso ou <literal
+>false</literal
+> (falso) se a linha não estiver dentro do intervalo do documento. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool document.insertText(<parameter
+>int <replaceable
+>linha</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>coluna</replaceable
+></parameter
+>, <parameter
+>String <replaceable
+>texto</replaceable
+></parameter
+>);
+bool document.insertText(<parameter
+>Cursor <replaceable
+>cursor</replaceable
+></parameter
+>, <parameter
+>String <replaceable
+>texto</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Insere o <replaceable
+>texto</replaceable
+> na posição do cursor indicada. Devolve <literal
+>true</literal
+>, em caso de sucesso, ou <literal
+>false</literal
+> (falso), se o documento estiver apenas para leitura. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool document.removeText(<parameter
+>int <replaceable
+>daLinha</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>dacoluna</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>ateLinha</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>ateColuna</replaceable
+></parameter
+>);
+bool document.removeText(<parameter
+>Cursor <replaceable
+>de</replaceable
+></parameter
+>, <parameter
+>Cursor <replaceable
+>ate</replaceable
+></parameter
+>);
+bool document.removeText(<parameter
+>Range <replaceable
+>intervalo</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Remove o texto no intervalo indicado. Devolve <literal
+>true</literal
+> (verdadeiro), em caso de sucesso, ou <literal
+>false</literal
+> (falso), se o documento estiver no modo apenas para leitura. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool document.insertLine(<parameter
+>int <replaceable
+>linha</replaceable
+></parameter
+>, <parameter
+>String <replaceable
+>texto</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Insere o texto na linha indicada. Devolve <literal
+>true</literal
+> (verdadeiro), em caso de sucesso, ou <literal
+>false</literal
+> (falso), caso o documento esteja apenas para leitura ou se a linha não estiver no intervalo do documento. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool document.removeLine(<parameter
+>int <replaceable
+>linha</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Remove a linha de texto indicada. Devolve <literal
+>true</literal
+> (verdadeiro), em caso de sucesso, ou <literal
+>false</literal
+> (falso), caso o documento esteja no modo apenas para leitura ou se a linha não estiver no intervalo do documento. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool document.wrapLine(<parameter
+>int <replaceable
+>linha</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>coluna</replaceable
+></parameter
+>);
+bool document.wrapLine(<parameter
+>Cursor <replaceable
+>cursor</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Reparte a linha na posição indicada pelo cursor. Devolve <literal
+>true</literal
+> (verdadeiro) em caso de sucesso ou <literal
+>false</literal
+> (falso) se &eg; a linha &lt; 0. </para>
+<para
+>Desde: &kde; 4.9 </para>
+</listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>void document.joinLines(<parameter
+>int <replaceable
+>linhaInicial</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>linhaFinal</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Junta as linhas de <replaceable
+>linhaInicial</replaceable
+> até <replaceable
+>linhaFinal</replaceable
+>. Duas linhas de texto sucessivas estão sempre separadas por um espaço em branco. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>int document.lines();
+</synopsis
+></term>
+<listitem
+><para
+>Devolve o número de linhas do documento. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool document.isLineModified(<parameter
+>int <replaceable
+>linha</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Devolve <literal
+>true</literal
+> (verdadeiro), se a <replaceable
+>linha</replaceable
+> tiver neste momento dados por gravar. </para>
+<para
+>Desde: &kde; 5.0 </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool document.isLineSaved(<parameter
+>int <replaceable
+>linha</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Devolve <literal
+>true</literal
+> (verdadeiro), se a <replaceable
+>linha</replaceable
+> tiver sido alterada, mas o documento tiver sido gravado. Como tal, neste momento a linha não deverá conter dados por gravar. </para>
+<para
+>Desde: &kde; 5.0 </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool document.isLineTouched(<parameter
+>int <replaceable
+>linha</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Devolve <literal
+>true</literal
+> (verdadeiro), se a <replaceable
+>linha</replaceable
+> tiver neste momento dados por gravar ou tiver sido alterada anteriormente. </para>
+<para
+>Desde: &kde; 5.0 </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool document.findTouchedLine(<parameter
+>int <replaceable
+>linhaInicio</replaceable
+></parameter
+>, <parameter
+>bool <replaceable
+>baixo</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Procurar pela próxima linha tocada que comece em <replaceable
+>linhaInicio</replaceable
+>. A pesquisa é efectuada tanto para cima como para baixo, dependendo da direcção de pesquisa indicada em <replaceable
+>baixo</replaceable
+>. </para>
+<para
+>Desde: &kde; 5.0 </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>int document.length();
+</synopsis
+></term>
+<listitem
+><para
+>Devolve o número de caracteres do documento. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>int document.lineLength(<parameter
+>int <replaceable
+>linha</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Devolve o comprimento da <replaceable
+>linha</replaceable
+>. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>void document.editBegin();
+</synopsis
+></term>
+<listitem
+><para
+>Inicia um grupo de edição para agrupar operações a desfazer/refazer. Certifique-se que invoca sempre o <function
+>editEnd()</function
+> tantas vezes como invoca o <function
+>editBegin()</function
+>. A invocação do <function
+>editBegin()</function
+> usa um contador de referências interno, &ie; esta chamada pode ser encadeada. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>void document.editEnd();
+</synopsis
+></term>
+<listitem
+><para
+>Termina um grupo de edição. A última invocação do <function
+>editEnd()</function
+> (&ie;, a correspondente à primeira chamada do <function
+>editBegin()</function
+>) termina o passo de edição. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>int document.firstColumn(<parameter
+>int <replaceable
+>linha</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Devolve a primeira coluna não em branco para a <replaceable
+>linha</replaceable
+> indicada. Se só existirem espaços em branco na linha, o valor devolvido é <literal
+>-1</literal
+>. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>int document.lastColumn(<parameter
+>int <replaceable
+>linha</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Devolve a última coluna que não esteja em branco para a <replaceable
+>linha</replaceable
+> indicada. Se só existirem espaços em branco na linha, o valor devolvido é <literal
+>-1</literal
+>. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>int document.prevNonSpaceColumn(<parameter
+>int <replaceable
+>linha</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>coluna</replaceable
+></parameter
+>);
+int document.prevNonSpaceColumn(<parameter
+>Cursor <replaceable
+>cursor</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Devolve a coluna com caracteres não-brancos que começa na posição de cursor indicada e pesquisa para trás. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>int document.nextNonSpaceColumn(<parameter
+>int <replaceable
+>linha</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>coluna</replaceable
+></parameter
+>);
+int document.nextNonSpaceColumn(<parameter
+>Cursor <replaceable
+>cursor</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Devolve a coluna com caracteres não-brancos que começa na posição de cursor indicada e pesquisa para a frente. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>int document.prevNonEmptyLine(<parameter
+>int <replaceable
+>linha</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Devolve a primeira linha não-vazia que contém caracteres não-nulos, pesquisando depois para trás. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>int document.nextNonEmptyLine(<parameter
+>int <replaceable
+>linha</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Devolve a primeira linha não-vazia que contém caracteres não-nulos, pesquisando depois para a frente. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool document.isInWord(<parameter
+>String <replaceable
+>carácter</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>atributo</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Devolve <literal
+>true</literal
+> (verdadeiro), caso o <replaceable
+>carácter</replaceable
+> e <replaceable
+>atributo</replaceable
+> indicados possam fazer parte de uma palavra, caso contrário devolve <literal
+>false</literal
+> (falso). </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool document.canBreakAt(<parameter
+>String <replaceable
+>carácter</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>atributo</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Devolve <constant
+>true</constant
+> (verdadeiro) se o <replaceable
+>carácter</replaceable
+> indicado com o <replaceable
+>atributo</replaceable
+> indicado for adequado para mudar de linha, caso contrário devolve <constant
+>false</constant
+>. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool document.canComment(<parameter
+>int <replaceable
+>atributoInicial</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>atributoFinal</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Devolve <literal
+>true</literal
+> (falso), caso um intervalo que começa e termina com os atributos indicados possa ser comentado; caso contrário, devolve <literal
+>false</literal
+> (falso). </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>String document.commentMarker(<parameter
+>int <replaceable
+>atributo</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Devolve o marcador de comentários, usado em linhas únicas, para um determinado <replaceable
+>atributo</replaceable
+>. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>String document.commentStart(<parameter
+>int <replaceable
+>atributo</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Devolve o marcador de início de comentários, usado em linhas múltiplas, para um determinado <replaceable
+>atributo</replaceable
+>. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>String document.commentEnd(<parameter
+>int <replaceable
+>atributo</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Devolve o marcador de fim de comentários, usado em linhas múltiplas, para um determinado <replaceable
+>atributo</replaceable
+>. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>Range document.documentRange();
+</synopsis
+></term>
+<listitem
+><para
+>Devolve um intervalo que contém todo o documento. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>Cursor documentEnd();
+</synopsis
+></term>
+<listitem
+><para
+>Devolve um cursor posicionado na última coluna da última linha do documento. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool isValidTextPosition(<parameter
+>int <replaceable
+>linha</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>coluna</replaceable
+></parameter
+>);
+bool isValidTextPosition(<parameter
+>Cursor <replaceable
+>cursor</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Devolve <literal
+>true</literal
+> (verdadeiro), se a posição actual do cursor estiver numa posição de texto válida. Uma posição de texto é válida apenas se se localizar no início, no meio ou no fim de uma linha válida. Para além disso, uma posição de texto é inválida se estiver localizada num item de referência de Unicode. </para
+><para
+>Desde: &kde; 5.0 </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>int document.attribute(<parameter
+>int <replaceable
+>linha</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>coluna</replaceable
+></parameter
+>);
+int document.attribute(<parameter
+>Cursor <replaceable
+>cursor</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Devolve o atributo na posição do cursor indicada. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool document.isAttribute(<parameter
+>int <replaceable
+>linha</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>coluna</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>atributo</replaceable
+></parameter
+>);
+bool document.isAttribute(<parameter
+>Cursor <replaceable
+>cursor</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>atributo</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Devolve <literal
+>true</literal
+> (verdadeiro), se o atributo na posição do cursor indicada for igual a <replaceable
+>atributo</replaceable
+>, caso contrário devolve <literal
+>false</literal
+> (falso). </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>String document.attributeName(<parameter
+>int <replaceable
+>linha</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>coluna</replaceable
+></parameter
+>);
+String document.attributeName(<parameter
+>Cursor <replaceable
+>cursor</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Devolve o nome do atributo como um texto legível. Isto é igual ao nome <literal
+>itemData</literal
+> dos ficheiros de realce de sintaxe. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool document.isAttributeName(<parameter
+>int <replaceable
+>linha</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>coluna</replaceable
+></parameter
+>, <parameter
+>String <replaceable
+>nome</replaceable
+></parameter
+>);
+bool document.isAttributeName(<parameter
+>Cursor <replaceable
+>cursor</replaceable
+></parameter
+>, <parameter
+>String <replaceable
+>nome</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Devolve <literal
+>true</literal
+> (verdadeiro), se o nome do atributo, numa dada posição do cursor, corresponder ao <replaceable
+>nome</replaceable
+> indicado, caso contrário devolve <literal
+>false</literal
+> (falso). </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>String document.variable(<parameter
+>String <replaceable
+>chave</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Devolve o valor da variável do documento identificada pela <replaceable
+>chave</replaceable
+>. Se a variável do documento não existir, o valor devolvido é um texto em branco. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>void document.setVariable(<parameter
+>String <replaceable
+>chave</replaceable
+></parameter
+>, <parameter
+>String <replaceable
+>valor</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Altera o valor da variável do documento identificada pela <replaceable
+>chave</replaceable
+>. </para>
+<para
+>Ver também: <link linkend="config-variables"
+>Variáveis de documento do Kate</link
+> </para>
+<para
+>Desde: &kde; 4.8 </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>int document.firstVirtualColumn(<parameter
+>int <replaceable
+>linha</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Devolve a coluna virtual do primeiro carácter não-nulo na linha indicada, ou então <literal
+>-1</literal
+> se a linha estiver em branco ou só tiver caracteres de espaços em branco. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>int document.lastVirtualColumn(<parameter
+>int <replaceable
+>linha</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Devolve a coluna virtual do último carácter não-nulo na linha indicada, ou então <literal
+>-1</literal
+> se a linha estiver em branco ou só tiver caracteres de espaços em branco. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>int document.toVirtualColumn(<parameter
+>int <replaceable
+>linha</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>coluna</replaceable
+></parameter
+>);
+int document.toVirtualColumn(<parameter
+>Cursor <replaceable
+>cursor</replaceable
+></parameter
+>);
+Cursor document.toVirtualCursor(<parameter
+>Cursor <replaceable
+>cursor</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Converte a posição do cursor <quote
+>real</quote
+> para uma posição virtual, devolvendo um objecto inteiro ou um Cursor. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>int document.fromVirtualColumn(<parameter
+>int <replaceable
+>linha</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>colunaVirtual</replaceable
+></parameter
+>);
+int document.fromVirtualColumn(<parameter
+>Cursor <replaceable
+>cursorVirtual</replaceable
+></parameter
+>);
+Cursor document.fromVirtualCursor(<parameter
+>Cursor <replaceable
+>cursorVirtual</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Converte a posição virtual do cursor para uma posição do cursor <quote
+>real</quote
+>, devolvendo um objecto inteiro ou um Cursor. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>Cursor document.anchor(<parameter
+>int <replaceable
+>linha</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>coluna</replaceable
+></parameter
+>, <parameter
+>Char <replaceable
+>carácter</replaceable
+></parameter
+>);
+Cursor document.anchor(<parameter
+>Cursor <replaceable
+>cursor</replaceable
+></parameter
+>, <parameter
+>Char <replaceable
+>carácter</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Pesquisa para trás pelo carácter indicado, começando na posição do cursor indicada. Por exemplo, se for passado o '(', como carácter, esta função irá devolve a posição do '(' de abertura. Isto implica uma contagem das referências, &ie; os outros '(...)' são ignorados. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>Cursor document.rfind(<parameter
+>int <replaceable
+>linha</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>coluna</replaceable
+></parameter
+>, <parameter
+>String <replaceable
+>texto</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>atributo</replaceable
+> = -1</parameter
+>);
+Cursor document.rfind(<parameter
+>Cursor <replaceable
+>cursor</replaceable
+></parameter
+>, <parameter
+>String <replaceable
+>texto</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>atributo</replaceable
+> = -1</parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Pesquisa para trás pelo texto indicado, com o <replaceable
+>atributo</replaceable
+> apropriado. O argumento <replaceable
+>atributo</replaceable
+> é ignorado se for igual a <literal
+>-1</literal
+>. O cursor devolvido é inválido, caso o texto não tenha sido encontrado. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>int document.defStyleNum(<parameter
+>int <replaceable
+>linha</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>coluna</replaceable
+></parameter
+>);
+int document.defStyleNum(<parameter
+>Cursor <replaceable
+>cursor</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Devolve o estilo predefinido que é usado na posição do cursor indicada. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool document.isCode(<parameter
+>int <replaceable
+>linha</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>coluna</replaceable
+></parameter
+>);
+bool document.isCode(<parameter
+>Cursor <replaceable
+>cursor</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Devolve <literal
+>true</literal
+> (verdadeiro) se o atributo na posição do cursor indicada não for igual a todos os seguintes estilos: <literal
+>dsComment</literal
+>, <literal
+>dsString</literal
+>, <literal
+>dsRegionMarker</literal
+>, <literal
+>dsChar</literal
+>, <literal
+>dsOthers</literal
+>. </para
+></listitem>
+</varlistentry>
+
+
+
+<varlistentry>
+<term
+><synopsis
+>bool document.isComment(<parameter
+>int <replaceable
+>linha</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>coluna</replaceable
+></parameter
+>);
+bool document.isComment(<parameter
+>Cursor <replaceable
+>cursor</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Devolve <literal
+>true</literal
+> se o atributo do carácter na posição do cursor for <literal
+>dsComment</literal
+>; caso contrário devolve <literal
+>false</literal
+>. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool document.isString(<parameter
+>int <replaceable
+>linha</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>coluna</replaceable
+></parameter
+>);
+bool document.isString(<parameter
+>Cursor <replaceable
+>cursor</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Devolve <literal
+>true</literal
+> (verdadeiro) se o atributo do carácter na posição do cursor for <literal
+>dsString</literal
+>, caso contrário devolve <literal
+>false</literal
+> (falso). </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool document.isRegionMarker(<parameter
+>int <replaceable
+>linha</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>coluna</replaceable
+></parameter
+>);
+bool document.isRegionMarker(<parameter
+>Cursor <replaceable
+>cursor</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Devolve <literal
+>true</literal
+> (verdadeiro) se o atributo do carácter na posição do cursor for <literal
+>dsRegionMarker</literal
+>, caso contrário devolve <literal
+>false</literal
+> (falso). </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool document.isChar(<parameter
+>int <replaceable
+>linha</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>coluna</replaceable
+></parameter
+>);
+bool document.isChar(<parameter
+>Cursor <replaceable
+>cursor</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Devolve <literal
+>true</literal
+> (verdadeiro) se o atributo do carácter na posição do cursor for <literal
+>dsChar</literal
+>, caso contrário devolve <literal
+>false</literal
+> (falso). </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool document.isOthers(<parameter
+>int <replaceable
+>linha</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>coluna</replaceable
+></parameter
+>);
+bool document.isOthers(<parameter
+>Cursor <replaceable
+>cursor</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Devolve <literal
+>true</literal
+> (verdadeiro) se o atributo do carácter na posição do cursor for <literal
+>dsOthers</literal
+>, caso contrário devolve <literal
+>false</literal
+> (falso). </para
+></listitem>
+</varlistentry
+></variablelist>
+</para>
+
+</sect3>
+</sect2>
+
+</sect1>
+
+</chapter>

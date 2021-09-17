@@ -1,0 +1,1887 @@
+<chapter id="advanced-editing-tools">
+<chapterinfo>
+<authorgroup>
+<author
+>&Anders.Lund; &Anders.Lund.mail;</author>
+<author
+>&Dominik.Haumann; &Dominik.Haumann.mail;</author>
+&traductor.Antoni.Bella; 
+</authorgroup>
+</chapterinfo>
+<title
+>Eines d'edició avançades</title>
+
+<sect1 id="advanced-editing-tools-comment">
+
+<title
+>Comenta/descomenta</title>
+
+<para
+>Les ordres <guimenuitem
+>Comenta</guimenuitem
+> i <guimenuitem
+>Descomenta</guimenuitem
+>, disponibles des del menú <guimenu
+>Eines</guimenu
+> us permeten afegir o eliminar marques de comentari per a la selecció, o de la línia actual si no hi ha cap selecció. El format dels comentaris dependrà del format del text que esteu editant.</para>
+
+<para
+>Les regles que determinen com hauran de ser els comentaris s'estableixen en les definicions de sintaxi, de manera que si no s'utilitza el ressaltat de la sintaxi, no serà possible fer això. </para>
+
+<para
+>Alguns formats defineixen marques de comentaris d'una sola línia, d'altres de múltiples línies i d'altres utilitzen ambdues possibilitats. Si no hi ha disponibles les marques de comentaris de múltiples línies, no serà possible comentar una selecció en que l'última línia d'aquesta no estigui inclosa completament.</para>
+
+<para
+>Si hi ha disponible una marca de comentari d'una sola línia, és preferible comentar les línies individualment, atès que així s'eviten problemes de comentaris imbricats.</para>
+
+<para
+>En eliminar les marques de comentari, s'haurà de seleccionar el text sense comentar. En eliminar les marques de comentari multilínia d'una selecció, s'ignorarà qualsevol espai en blanc que quedi fora de les marques de comentari.</para>
+
+<para
+><indexterm
+><primary
+>comentar</primary
+></indexterm
+> Per a posar marques de comentari, utilitzeu l'element <menuchoice
+><guimenu
+>Eines</guimenu
+><guimenuitem
+>Comenta</guimenuitem
+></menuchoice
+> del menú o la drecera de teclat corresponent, de manera predeterminada és <keycombo action="simul"
+>&Ctrl;<keycap
+>D</keycap
+></keycombo
+>.</para>
+
+<para
+><indexterm
+><primary
+>descomentar</primary
+></indexterm
+> Per a eliminar marques de comentari, utilitzeu l'element <menuchoice
+><guimenu
+>Eines</guimenu
+><guimenuitem
+>Descomenta</guimenuitem
+></menuchoice
+> del menú o la drecera de teclat corresponent, de manera predeterminada és <keycombo action="simul"
+>&Ctrl;&Maj;<keycap
+>D</keycap
+></keycombo
+>.</para>
+
+</sect1>
+
+<sect1 id="advanced-editing-tools-commandline">
+<title
+>El component línia d'ordres de l'editor</title>
+
+<para
+>El component editor de la &kappname; té una línia d'ordres interna, permetent-vos dur a terme diverses accions des d'una &IGU; mínima. La línia d'ordres és una entrada de text a la part inferior de l'àrea d'edició, i per a veure-la només haureu de seleccionar <menuchoice
+><guimenu
+>Visualitza</guimenu
+> <guimenuitem
+>Canvia a línia d'ordres</guimenuitem
+></menuchoice
+> o utilitzar la drecera (de manera predeterminada és <keycombo action="simul"
+><keycap
+>F7</keycap
+></keycombo
+>). L'editor proveeix un joc d'ordres com les que es documenten a continuació, així com aquelles altres que es puguin proveir a partir dels connectors.</para>
+
+<para
+>Per a executar una ordre, escriviu-la i després premeu la tecla &Intro;. La línia d'ordres indicarà què ha succeït mostrant un possible missatge. Si entreu a la línia d'ordres i premeu <keycap
+>F7</keycap
+> aquest missatge s'ocultarà automàticament després d'uns pocs segons. Per a esborrar el missatge i introduir una ordre nova, premeu <keycap
+>F7</keycap
+> altra vegada.</para>
+
+<para
+>La línia d'ordres té un sistema d'ajuda inclòs, escriviu l'ordre <command
+>help</command
+> per a iniciar-la. Per a veure una llista de totes les ordres disponibles escriviu <command
+>help list</command
+>. Per a veure l'ajuda específica d'una ordre, escriviu <command
+>help <replaceable
+>ordre</replaceable
+></command
+>.</para>
+
+<para
+>La línia d'ordres té integrat un historial, de manera que podreu tornar a utilitzar les ordres ja teclejades. Per a navegar a través de l'historial, utilitzeu les tecles &Up; i &Down;. Quan es mostrin les ordres de l'historial, restarà seleccionada la part de l'argument, permetent-vos tornar a escriure-les amb facilitat.</para>
+
+<sect2 id="advanced-editing-tools-commandline-commands">
+<title
+>Ordres estàndard de la línia d'ordres</title>
+
+<variablelist>
+<title
+>Tipus d'arguments</title>
+
+<varlistentry>
+<term
+>BOOLEÀ</term>
+<listitem
+><para
+>Aquest s'utilitza amb ordres que activen o desactiven coses. Els valors acceptats són: <userinput
+>on</userinput
+> (activat), <userinput
+>off</userinput
+> (desactivat), <userinput
+>true</userinput
+> (cert), <userinput
+>false</userinput
+> (fals), <userinput
+>1</userinput
+> (activat) o <userinput
+>0</userinput
+> (desactivat).</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>ENTER</term>
+<listitem
+><para
+>Un nombre enter.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>CADENA</term>
+<listitem
+><para
+>Una cadena, entre cometes simples (') o cometes dobles (") si conté espais.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+
+
+<sect3 id="advanced-editing-tools-commandline-commands-configure">
+<title
+>Ordres per a configurar l'editor</title>
+
+<para
+>Aquestes ordres són les proporcionades pel component editor, i permeten configurar només la vista i el document actiu. Això és especialment pràctic si voleu utilitzar una configuració diferent de la predeterminada, per exemple per al sagnat. </para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>set-tab-width</command
+><arg choice="req"
+>ENTER amplada</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Estableix l'amplada de la pestanya al número <userinput
+>amplada</userinput
+>.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>set-indent-width</command
+><arg choice="req"
+>ENTER amplada</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Estableix l'amplada del sagnat al número <userinput
+>amplada</userinput
+>. Només s'utilitza si esteu sagnant amb espais.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>set-word-wrap-column</command
+><arg choice="req"
+>ENTER amplada</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Estableix l'amplada per a l'ajust de línia al número <userinput
+>amplada</userinput
+>. Només s'utilitza si teniu l'ajust de línia automàtic.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>set-icon-border</command
+><arg choice="req"
+>BOOLEÀ enable</arg
+> </cmdsynopsis
+></term>
+<listitem
+><para
+>Estableix la visibilitat de la vora de les icones.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>set-folding-markers</command
+><arg choice="req"
+>BOOLEÀ enable</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Estableix la visibilitat de la subfinestra de les marques de plegat.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>set-line-numbers</command
+><arg choice="req"
+>BOOLEÀ enable</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Estableix la visibilitat de la subfinestra dels números de línia.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>set-replace-tabs</command
+><arg choice="req"
+>BOOLEÀ enable</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Si està activat, se substitueixen els espais de tabulació per espais normals mentre aneu escrivint. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>set-remove-trailing-space</command
+><arg choice="req"
+>BOOLEÀ enable</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Si està activat, els espais en blanc finals seran eliminats en el moment en que el cursor surti d'una línia.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>set-show-tabs</command
+><arg choice="req"
+>BOOLEÀ enable</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Si està activat, els caràcters de tabulació i espais en blanc finals es veuran com un punt petit.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>set-show-indent</command
+><arg choice="req"
+>BOOLEÀ enable</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Si està activat, el sagnat es veurà com una línia puntejada vertical.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>set-indent-spaces</command
+><arg choice="req"
+>BOOLEÀ enable</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Si està activat, l'editor farà un sagnat amb <option
+>indent-width</option
+> espais per a cada nivell de sagnat, en comptes d'un caràcter de tabulació.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>set-mixed-indent</command
+><arg choice="req"
+>BOOLEÀ enable</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Si està activat, la &kappname; utilitzarà una barreja de tabulacions i espais per al sagnat. Cada nivell de sagnat serà d'amplada <option
+>indent-width</option
+>, i els diferents nivells de sagnat s'optimitzaran utilitzant el màxim de caràcters de tabulació com sigui possible.</para>
+<para
+>Quan s'executa, aquesta ordre activa el sagnat amb espais, i si no s'especifica l'amplada se li assignarà un valor igual que la meitat de <option
+>tab-width</option
+> per al document en temps d'execució.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>set-word-wrap</command
+><arg choice="req"
+>BOOLEÀ enable</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Activa l'ajust dinàmic de la línia d'acord amb el valor <userinput
+>enable</userinput
+>.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>set-replace-tabs-save</command
+><arg choice="req"
+>BOOLEÀ enable</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Quan està activat, les tabulacions seran substituïdes amb espais en blanc en desar el document.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>set-remove-trailing-space-save</command
+><arg choice="req"
+>BOOLEÀ enable</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Quan està activat, els espais finals seran eliminats de cada línia en desar el document.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>set-indent-mode</command
+><arg choice="req"
+>CADENA nom</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Estableix el mode de sagnat automàtic a <userinput
+>nom</userinput
+>. Si <userinput
+>nom</userinput
+> és desconegut, el mode seleccionat serà «none». Els modes vàlids són «none», «normal», «cstyle», «haskell», «lilypond», «lisp», «python», «ruby» i «xml».</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>set-auto-ident</command
+><arg choice="req"
+>BOOLEÀ script</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Activa o desactiva el sagnat automàtic.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>set-highlight</command
+><arg choice="req"
+>CADENA ressaltat</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Estableix el sistema de ressaltat de la sintaxi per al document. L'argument haurà de ser un nom de ressaltat vàlid, com aquells que es poden veure en el menú <menuchoice
+><guimenu
+>Eines</guimenu
+><guisubmenu
+>Ressaltat</guisubmenu
+></menuchoice
+>. Aquesta ordre proveeix una llista de compleció automàtica per als seus arguments.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>reload-scripts</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Torna a carregar tots els <link linkend="dev-scripting"
+>scripts en &javascript;</link
+> emprats pel &kate;, inclosos els scripts de sagnat i de línia d'ordres.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>set-mode</command
+><arg choice="req"
+>CADENA mode</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Tria l'esquema del tipus de fitxer per al document actual. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>nn[oremap]</command
+><arg choice="req"
+>CADENA original</arg
+> <arg choice="req"
+>CADENA mapped</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Mapa de la seqüència de tecles <userinput
+>original</userinput
+> a <userinput
+>mapped</userinput
+>.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect3>
+
+<sect3 id="advanced-editing-tools-commandline-commands-edit">
+<title
+>Ordres per a l'edició</title>
+
+<para
+>Aquestes ordres modifiquen el document actual.</para>
+
+<variablelist>
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>indent</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Sagna les línies seleccionades o la línia actual.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>unindent</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Treu el sagnat de les línies seleccionades o la línia actual.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>cleanindent</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Treu el sagnat de les línies seleccionades o la línia actual d'acord amb la configuració de sagnat que teniu establerts al document. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>comment</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Insereix marques de comentari fent que la selecció, les línies seleccionades o la línia actual siguin un comentari d'acord amb el format de text que s'hagi definit al ressaltat de la sintaxi per al document.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>uncomment</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Elimina les marques de comentari de la selecció, de les línies seleccionades o la línia actual, d'acord amb el format del text tal com és definit per la definició de ressaltat de la sintaxi per al document.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>kill-line</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Elimina la línia actual.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>replace</command
+><arg choice="req"
+>CADENA patró</arg
+> <arg choice="req"
+>CADENA substitució</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Substitueix el text en que coincideixi el <userinput
+>patró</userinput
+> amb el valor de <userinput
+>substitució</userinput
+>. Si voleu incloure espais en blanc en el <userinput
+>patró</userinput
+>, haureu de posar entre cometes tant el <userinput
+>patró</userinput
+> com la <userinput
+>substitució</userinput
+> amb cometes simples o dobles. Si els arguments no es troben entre cometes, s'utilitzarà la primera paraula com a <userinput
+>patró</userinput
+> i la resta com a <userinput
+>substitució</userinput
+>. Si la <userinput
+>substitució</userinput
+> està buida, cada ocurrència del <userinput
+>patró</userinput
+> serà eliminada.</para>
+<para
+>Podeu establir etiquetes per a configurar la cerca afegint dos punts, seguits d'una o més lletres cadascuna de les quals representa una configuració, quedant de la forma <userinput
+>replace:opcions patró substitució</userinput
+>. Les opcions disponibles són: <variablelist>
+
+<varlistentry>
+<term
+><userinput
+>b</userinput
+></term>
+<listitem
+><para
+>Cerca enrere.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>c</userinput
+></term>
+<listitem
+><para
+>Cerca des de la posició del cursor.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>e</userinput
+></term>
+<listitem
+><para
+>Cerca només en el text seleccionat.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>r</userinput
+></term>
+<listitem
+><para
+>Cerca utilitzant una expressió regular. Si està establerta, podeu utilitzar <userinput
+>\N</userinput
+> a on N serà un número per a representar captures en la cadena de substitució.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>s</userinput
+></term>
+<listitem
+><para
+>Cerca distingint entre majúscules i minúscules.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>p</userinput
+></term>
+<listitem
+><para
+>Demana permís per a substituir la següent ocurrència.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>w</userinput
+></term>
+<listitem
+><para
+>Només coincidiran paraules senceres.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>date</command
+><arg choice="req"
+>CADENA format</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Insereix una cadena de data/hora definida d'acord amb el <userinput
+>format</userinput
+>, o si aquest no s'especifica s'utilitzarà el format <quote
+>aaaa-MM-dd hh:mm:ss</quote
+>. La interpretació del <userinput
+>format</userinput
+> serà la següent: <informaltable
+> <tgroup cols="2"
+> <tbody>
+<row
+><entry
+><literal
+>d</literal
+></entry
+><entry
+>El dia com a número sense zeros a l'esquerra (1-31).</entry
+></row>
+<row
+><entry
+><literal
+>dd</literal
+></entry
+><entry
+>El dia com a número amb dos dígits (01-31).</entry
+></row>
+<row
+><entry
+><literal
+>ddd</literal
+></entry
+><entry
+>L'abreujament del nom del dia segons la localització (&pex;, «Dl»..«Dg»).</entry
+></row>
+<row
+><entry
+><literal
+>dddd</literal
+></entry
+><entry
+>El nom llarg del dia segons la localització (&pex;, «Dilluns»..«Diumenge»).</entry
+></row>
+<row
+><entry
+><literal
+>M</literal
+></entry
+><entry
+>El mes com a número sense zeros a l'esquerra (1-31).</entry
+></row>
+<row
+><entry
+><literal
+>MM</literal
+></entry
+><entry
+>El mes com a número amb dos dígits (01-31).</entry
+></row>
+<row
+><entry
+><literal
+>MMMM</literal
+></entry
+><entry
+>El nom llarg del mes segons la localització (&pex;, «Gener»..«Desembre»).</entry
+></row>
+<row
+><entry
+><literal
+>MMM</literal
+></entry
+><entry
+>El nom abreujat del mes segons la localització (&pex;, «Gen»..«Dec»).</entry
+></row>
+<row
+><entry
+><literal
+>yy</literal
+></entry
+><entry
+>L'any amb un número de dos dígits (00-99).</entry
+></row>
+<row
+><entry
+><literal
+>yyyy</literal
+></entry
+><entry
+>L'any amb un número de quatre dígits (1752-8000).</entry
+></row>
+<row
+><entry
+><literal
+>h</literal
+></entry
+><entry
+>L'hora sense zeros a l'esquerra (0..23 o 1..12 si es mostra AM/PM).</entry
+></row>
+<row
+><entry
+><literal
+>hh</literal
+></entry
+><entry
+>L'hora amb dos dígits (00..23 o 01..12 si es mostra AM/PM).</entry
+></row>
+<row
+><entry
+><literal
+>m</literal
+></entry
+><entry
+>Els minuts sense zeros a l'esquerra (0..59).</entry
+></row>
+<row
+><entry
+><literal
+>mm</literal
+></entry
+><entry
+>Els minuts amb dos dígits (00..59).</entry
+></row>
+<row
+><entry
+><literal
+>s</literal
+></entry
+><entry
+>Els segons sense zeros a l'esquerra (0..59).</entry
+></row>
+<row
+><entry
+><literal
+>ss</literal
+></entry
+><entry
+>Els segons amb dos dígits (00..59).</entry
+></row>
+<row
+><entry
+><literal
+>z</literal
+></entry
+><entry
+>Els mil·lisegons sense zeros a l'esquerra (0..999).</entry
+></row>
+<row
+><entry
+><literal
+>zzz</literal
+></entry
+><entry
+>Els mil·lisegons amb tres dígits (000..999).</entry
+></row>
+<row
+><entry
+><literal
+>AP</literal
+></entry
+><entry
+>S'usa per a mostrar AM/PM. AP serà substituït per «AM» o «PM».</entry
+></row>
+<row
+><entry
+><literal
+>ap</literal
+></entry
+><entry
+>S'usa per a mostrar am/pm. ap serà substituït per «am» o «pm».</entry
+></row>
+</tbody>
+</tgroup>
+</informaltable>
+
+</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>char</command
+><arg choice="req"
+>CADENA identificador</arg
+></cmdsynopsis
+></term>
+<listitem>
+<para
+>Aquesta ordre permet inserir caràcters literals pel seu identificador numèric, en format decimal, octal o hexadecimal. Per a utilitzar-la llanceu el diàleg Ordre d'edició i escriviu <userinput
+>char:[número]</userinput
+> en el quadre d'entrada, després premeu <guibutton
+>D'acord</guibutton
+>.</para>
+
+<example>
+<title
+>Exemples de <command
+>char</command
+></title>
+
+<para
+>Entrada: <userinput
+>char:234</userinput
+></para>
+<para
+>Eixida: <computeroutput
+>&#234;</computeroutput
+></para>
+<para
+>Entrada: <userinput
+>char:0x1234</userinput
+></para>
+<para
+>Eixida: <computeroutput
+>&#x1234;</computeroutput
+></para>
+</example>
+
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term>
+<indexterm
+><primary
+>substitueix, estil sed</primary>
+<secondary
+>cerca, estil sed</secondary
+></indexterm
+><command
+>s///[ig]</command
+> <command
+>%s///[ig]</command
+></term>
+
+<listitem>
+<para
+>Aquesta ordre realitzarà una operació de cerca/substitució similar a les de «sed» sobre la línia actual o en tot el fitxer (<command
+>%s///</command
+>).</para>
+
+<para
+>Abreujat, se cerca en el text alguna cadena que coincideixi amb el <emphasis
+>patró de cerca</emphasis
+>, l'expressió regular entre la primera i la segona barra, i quan es troba una coincidència, la part coincident del text és substituïda per l'expressió continguda entre les barres segona i última. Els parèntesis en el patró de cerca creen <emphasis
+>referències enrere</emphasis
+>, és a dir, que l'ordre recorda quina part de la cadena es correspon amb els parèntesis; aquestes cadenes es poden tornar a utilitzar en el patró de substitució, referint-se a elles com a <userinput
+>\1</userinput
+> per al primer conjunt de parèntesis, <userinput
+>\2</userinput
+> per al segon i així successivament.</para>
+
+<para
+>Per a fer una cerca literal de <literal
+>(</literal
+> o <literal
+>)</literal
+>, haureu d'<emphasis
+>escapar</emphasis
+> el caràcter emprant un altre caràcter de barra inversa: <userinput
+>\(\)</userinput
+></para>
+
+<para
+>Si poseu una <userinput
+>i</userinput
+> al final de l'expressió, les coincidències seran sensibles a majúscules i minúscules. Si poseu una <userinput
+>g</userinput
+> al final, se substituiran totes les ocurrències del patró, en qualsevol altre cas només se substituirà la primera ocurrència.</para>
+
+<example>
+
+<title
+>Substitució de text en la línia actual</title>
+
+<para
+>El vostre bon amic l'ordinador s'ha aturat, dient que la classe <classname
+>myClass</classname
+> mencionada en la línia 3902 del fitxer font no està definida.</para>
+
+<para
+>«Llamps i trons!» Pensareu. Per descomptat és <classname
+>MyClass</classname
+>. Anireu fins a la línia 3902 i en comptes d'intentar cercar la paraula en el text, obrireu el diàleg Ordre d'edició, introduireu <userinput
+>s/myclass/MyClass/i</userinput
+>, premereu el botó <guibutton
+>D'acord</guibutton
+>, desareu el fitxer i tornareu a compilar aquesta vegada sense l'error.</para>
+
+</example>
+
+<example>
+<title
+>Substitució de text en tot el fitxer</title>
+
+<para
+>Imagineu que teniu un fitxer, en el que mencioneu a <quote
+>Miss Jensen</quote
+> diverses vegades, quan resulta que algú ve i us diu que s'acaba de casar amb <quote
+>Mr Jones</quote
+>. Per descomptat, voldreu substituir cada ocurrència de <quote
+>Miss Jensen</quote
+> per <quote
+>Ms Jones</quote
+>.</para>
+
+<para
+>Entreu a la línia d'ordres, escriviu l'ordre <userinput
+>%s/Miss Jensen/Ms Jones/</userinput
+>, una vegada premeu &Intro; ja estarà fet.</para>
+
+</example>
+
+<example>
+<title
+>Un exemple més avançat</title>
+
+<para
+>Aquest exemple fa ús de <emphasis
+>referències enrere</emphasis
+> així com d'una <emphasis
+>classe de caràcter</emphasis
+> (si no sabeu què és això, si us plau, consulteu la documentació mencionada a sota).</para>
+
+<para
+>Suposeu que teniu la següent línia: <programlisting
+>void MyClass::DoStringOps( String      &amp;foo, String &amp;bar, String *p, int  &amp;a, int &amp;b )</programlisting>
+</para>
+<para
+>Però us adoneu que aquest codi no està bé i decidiu que voleu utilitzar la paraula clau <constant
+>const</constant
+> per a tots els arguments <quote
+>adreça de</quote
+>, que es caracteritzen per tenir un operador &amp; al davant del nom de l'argument. També voldreu simplificar l'espai en blanc, de manera que només n'hi hagi un entre cada paraula.</para>
+
+<para
+>Obriu el diàleg Ordre d'edició i introduïu: <userinput
+>s/\s+(\w+)\s+(&amp;)/ const \1 \2/g</userinput
+>, i després premeu el botó <guibutton
+>D'acord</guibutton
+>. La <userinput
+>g</userinput
+> al final de l'expressió fa que l'expressió regular recompili cada coincidència per a desar les <emphasis
+>referències enrere</emphasis
+>.</para>
+
+<para
+>Eixida: <computeroutput
+>void MyClass::DoStringOps( const String &amp;foo, const String &amp;bar, String *p, const int &amp;a, const int &amp;b )</computeroutput
+></para>
+
+<para
+>Missió completada! Ara, què ha passat? Vaja, hem cercat algun espai en blanc (<literal
+>\s+</literal
+>) seguit d'un o més caràcters alfabètics (<literal
+>\w+</literal
+>) seguits d'algun espai en blanc (<literal
+>\s+</literal
+>) seguit del símbol «&amp;», i en el procés hem desat el bloc alfabètic i el caràcter «&amp;» per a tornar a emprar-los en l'operació de substitució. Aleshores hem substituït la part coincident de la nostra línia per un espai en blanc seguit de <quote
+>const</quote
+> seguit d'un espai en blanc seguit del nostre bloc alfabètic (<literal
+>\1</literal
+>) seguit d'un espai en blanc seguit del nostre caràcter «&amp;» emmagatzemat (<literal
+>\2</literal
+>)</para>
+
+<para
+>En alguns casos el bloc alfabètic era <quote
+>String</quote
+>, en d'altres <quote
+>int</quote
+>, de manera que emprant la classe de caràcter <literal
+>\w</literal
+> i el quantificador <literal
+>+</literal
+> ens ha proveït d'un valuós actiu.</para>
+
+</example>
+
+</listitem>
+
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>sort</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Ordena el text seleccionat o tot el document.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>natsort</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Ordena el text seleccionat o tot el document de forma natural.</para>
+
+<example>
+<title
+><command
+>sort</command
+> vs. <command
+>natsort</command
+></title>
+<para
+><userinput
+><command
+>sort</command
+>(a10, a1, a2)</userinput
+> resulta en <computeroutput
+>a1, a10, a2</computeroutput
+></para>
+<para
+><userinput
+><command
+>natsort</command
+>(a10, a1, a2)</userinput
+> resulta en <computeroutput
+>a1, a2, a10</computeroutput
+></para>
+</example
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>moveLinesDown</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Mou cap avall les línies seleccionades.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>moveLinesUp</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Mou cap amunt les línies seleccionades.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>uniq</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Elimina les línies duplicades del text seleccionat o de tot el document.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>rtrim</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Elimina els espais finals del text seleccionat o de tot el document.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>ltrim</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Elimina els espais al començament del text seleccionat o de tot el document.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>join</command
+><arg choice="opt"
+>separador CADENA</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Uneix les línies seleccionades o tot el document. De manera opcional pren un paràmetre definint un separador, per exemple: <userinput
+><command
+>join</command
+> ', '</userinput
+> </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>rmblank</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Elimina tots els espais en blanc del text seleccionat o de tot el document.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>unwrap</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Ajusta les línies del text seleccionat o de tot el document.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>each</command
+><arg choice="req"
+>CADENA script</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Dóna una funció de &javascript; com un argument, aquesta crida a la llista de línies seleccionades i les substitueix pel valor retornat per aquesta crida.</para>
+
+<example>
+<title
+>Unir les línies seleccionades</title>
+<para
+><userinput
+><command
+>each</command
+> 'function(lines){return lines.join(", ")}' </userinput
+></para>
+
+<para
+>O, més curt:</para>
+<para
+><userinput
+><command
+>each</command
+> 'lines.join(", ")'</userinput
+></para>
+</example>
+
+</listitem>
+</varlistentry>
+
+
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>filter</command
+><arg choice="req"
+>CADENA script</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Dóna una funció de &javascript; com un argument, aquesta crida a la llista de línies seleccionades i elimina les que el valor retornat és «false».</para>
+
+<example>
+<title
+>Elimina les línies buides</title>
+<para
+><userinput
+><command
+>filter</command
+> 'function(1){return 1.length 
+> 0;}' </userinput
+></para>
+
+<para
+>O, més curt:</para>
+<para
+><userinput
+><command
+>filter</command
+> 'line.length 
+> 0'</userinput
+></para>
+</example>
+
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>map</command
+><arg choice="req"
+>CADENA script</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Dóna una funció de &javascript; com un argument, aquesta crida a la llista de línies seleccionades i substitueix la línia amb el valor de la crida.</para>
+
+<example>
+<title
+>Elimina les línies buides</title>
+<para
+><userinput
+><command
+>map</command
+> 'function(line){return line.replace(/^s+/,"");}' </userinput
+></para>
+
+<para
+>O, més curt:</para>
+<para
+><userinput
+><command
+>map</command
+> 'line.replace(/^s+/,"")'</userinput
+></para>
+</example>
+
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>duplicateLinesUp</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Duplica les línies seleccionades per sobre de la selecció actual.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>duplicateLinesDown</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Duplica les línies seleccionades per sota de la selecció actual.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect3>
+
+<sect3 id="advanced-editing-tools-commandline-commands-navigation">
+<title
+>Ordres per a navegar</title>
+
+<variablelist>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>goto</command
+><arg choice="req"
+>ENTER línia</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Aquesta ordre va a la línia especificada.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>grep</command
+> <arg choice="req"
+>CADENA patró</arg
+> </cmdsynopsis
+></term>
+<listitem
+><para
+>Cercar al document per al <userinput
+>patró</userinput
+> d'expressió regular. Per a més informació, vegeu <xref linkend="regular-expressions"/>.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>find</command
+><arg choice="req"
+>CADENA patró</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Aquesta ordre navega fins a la primera ocurrència del <userinput
+>patró</userinput
+> d'acord amb la configuració. Les següents ocurrències es poden trobar utilitzant <menuchoice
+><guimenu
+>Edita</guimenu
+><guimenuitem
+>Cerca la següent</guimenuitem
+></menuchoice
+> (la drecera predeterminada és <keycap
+>F3</keycap
+>).</para>
+<para
+>L'ordre «find» pot configurar-se afegint dos punts seguits per una o més opcions, el format serà <userinput
+>find:opcions patró</userinput
+>. Estan suportades les següents opcions:</para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><userinput
+>b</userinput
+></term>
+<listitem
+><para
+>Cerca enrere.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>c</userinput
+></term>
+<listitem
+><para
+>Cerca des de la posició del cursor.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>e</userinput
+></term>
+<listitem
+><para
+>Cerca només en el text seleccionat.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>r</userinput
+></term>
+<listitem
+><para
+>Cerca utilitzant una expressió regular. Si està establerta, podeu utilitzar <userinput
+>\N</userinput
+> a on N serà un número per a representar captures en la cadena de substitució.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>s</userinput
+></term>
+<listitem
+><para
+>Cerca distingint entre majúscules i minúscules.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>w</userinput
+></term>
+<listitem
+><para
+>Només coincidiran paraules senceres.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+</listitem>
+
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>ifind</command
+><arg choice="req"
+>CADENA patró</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Aquesta ordre proveeix cerca <quote
+>quan-escriviu</quote
+>. Podeu configurar-ne el comportament o la cerca afegint dos punts seguits per a una o més opcions, de forma similar a: <userinput
+>ifind:patró d'opcions</userinput
+>. Les opcions permeses són: <variablelist>
+<varlistentry>
+<term
+><userinput
+>b</userinput
+></term>
+<listitem
+><para
+>Cerca enrere.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>r</userinput
+></term>
+<listitem
+><para
+>Cerca mitjançant expressions regulars.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>s</userinput
+></term>
+<listitem
+><para
+>Cerca distingint entre majúscules i minúscules.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>c</userinput
+></term>
+<listitem
+><para
+>Cerca des de la posició del cursor.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect3>
+
+
+<sect3 id="advanced-editing-tools-commandline-commands-basic">
+<title
+>Ordres per a les funcions bàsiques de l'editor (aquestes depenen de l'aplicació, el component d'edició s'utilitza en)</title>
+
+<variablelist>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>w</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Desa el document actual.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>wa</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Desa tots els documents oberts.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>q</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Tanca el document actual.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>qa</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Tanca tots els documents oberts.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>wq</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Tanca i desa el document obert.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>wqa</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Tanca i desa tots els documents oberts.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>x</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Desa el document actual només si ha canviat i després el tanca. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>x</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Desa tots els documents oberts només si han canviat i després els tanca.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>bp</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Va al document anterior en la llista de documents. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>bn</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Va al document següent en la llista de documents. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>new</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Obre un document nou en una vista dividida horitzontal. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>vnew</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Obre un document nou en una vista dividida vertical. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>e</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Torna a carregar el document actual si ha canviat al disc. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>enew</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Edita un document nou. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><cmdsynopsis
+><command
+>print</command
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Obre el diàleg d'impressió per a imprimir el document actual. </para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect3>
+
+
+</sect2>
+
+</sect1>
+
+<sect1 id="advanced-editing-tools-code-folding">
+<title
+>Usar el plegat del codi</title>
+
+<para
+>El plegat del codi permet ocultar parts d'un document en l'editor, facilitant la visió de documents grans. A la &kappname;, les regions plegables es calculen utilitzant regles definides en les definicions de ressaltat de la sintaxi, i per tant només està disponible en alguns formats (típicament codi font de programes, com ara el de marques XML i similars). La majoria de les definicions de ressaltat suporten plegat del codi i també permeten definir manualment regions plegables, generalment utilitzant les paraules clau <userinput
+>BEGIN</userinput
+> i <userinput
+>END</userinput
+>.</para>
+
+<para
+>Per a utilitzar la característica de plegat del codi, activeu els marcadors plegables utilitzant l'element <menuchoice
+><guimenu
+>Visualitza</guimenu
+><guimenuitem
+>Mostra els marcadors plegables</guimenuitem
+></menuchoice
+> del menú si no estan visibles. La subfinestra dels marcadors plegables a la part esquerra de la pantalla mostra una vista gràfica de les regions plegables, amb els símbols de triangle per a indicar la possible operació sobre una certa regió: Un triangle cap avall vol dir que la regió està desplegada, fent clic sobre seu es plegarà i es mostrarà un triangle apuntant cap a la dreta.</para>
+<!--FIXME change Three to Four when Unfold Toplevel Nodes action is back-->
+<para
+>Es proveeixen tres ordres per a manipular l'estat de les regions plegables, vegeu la <link linkend="view-code-folding"
+>documentació del menú</link
+>. </para>
+
+<para
+>Les línies de plegat es recorden quan es tanca un fitxer, de manera que quan el torneu a obrir els nodes plegats encara ho estaran. Això també s'aplica a les operacions de tornar a carregar.</para>
+
+<para
+>Si no voleu utilitzar la característica de plegat del codi, podeu desactivar l'opció <guilabel
+>Mostra els marcadors plegables (si estan disponibles)</guilabel
+> a la pàgina <link linkend="appearance"
+>Aparença</link
+> de la configuració de l'editor.</para>
+
+</sect1>
+
+</chapter>

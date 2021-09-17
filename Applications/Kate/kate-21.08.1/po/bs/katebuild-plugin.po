@@ -1,0 +1,543 @@
+# translation of katebuild-plugin.po to bosanski
+# Bosnian translation for kdesdk
+# Copyright (c) 2010 Rosetta Contributors and Canonical Ltd 2010
+# This file is distributed under the same license as the kdesdk package.
+#
+# FIRST AUTHOR <EMAIL@ADDRESS>, 2010.
+# KDE 4 <megaribi@epn.ba>, 2011.
+msgid ""
+msgstr ""
+"Project-Id-Version: katebuild-plugin\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2021-03-09 03:25+0100\n"
+"PO-Revision-Date: 2014-02-08 10:06+0100\n"
+"Last-Translator: Samir Ribić <megaribi@epn.ba>\n"
+"Language-Team: bosanski <bs@li.org>\n"
+"Language: bs\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
+"%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"X-Generator: Launchpad (build 16451)\n"
+"X-Launchpad-Export-Date: 2013-01-29 05:56+0000\n"
+
+#, kde-format
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr "Samir Ribić"
+
+#, kde-format
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr "samir.ribic@etf.unsa.ba"
+
+#. i18n: ectx: attribute (title), widget (QWidget, errs)
+#: build.ui:27
+#, kde-format
+msgid "Output"
+msgstr "Izlaz"
+
+#. i18n: ectx: property (text), widget (QLabel, showLabel)
+#: build.ui:35
+#, kde-format
+msgid "Show:"
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QPushButton, buildAgainButton)
+#. i18n: ectx: property (text), widget (QPushButton, buildAgainButton2)
+#: build.ui:100 build.ui:125
+#, fuzzy, kde-format
+#| msgid "Build Plugin"
+msgid "Build again"
+msgstr "Izgradi priključak"
+
+#. i18n: ectx: property (text), widget (QPushButton, cancelBuildButton)
+#. i18n: ectx: property (text), widget (QPushButton, cancelBuildButton2)
+#: build.ui:107 build.ui:132
+#, kde-format
+msgid "Cancel"
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QTreeWidget, errTreeWidget)
+#: build.ui:163
+#, kde-format
+msgctxt "Header for the file name column"
+msgid "File"
+msgstr "Datoteka"
+
+#. i18n: ectx: property (text), widget (QTreeWidget, errTreeWidget)
+#: build.ui:168
+#, kde-format
+msgctxt "Header for the line number column"
+msgid "Line"
+msgstr "Linija"
+
+#. i18n: ectx: property (text), widget (QTreeWidget, errTreeWidget)
+#: build.ui:173
+#, kde-format
+msgctxt "Header for the error message column"
+msgid "Message"
+msgstr "Poruka"
+
+#: plugin_katebuild.cpp:126
+#, fuzzy, kde-format
+#| msgid "Build Plugin"
+msgid "Kate Build Plugin"
+msgstr "Izgradi priključak"
+
+#: plugin_katebuild.cpp:133
+#, kde-format
+msgid "Build Output"
+msgstr "Izgradi Izlaz"
+
+#: plugin_katebuild.cpp:136
+#, fuzzy, kde-format
+#| msgid "Build Target..."
+msgid "Select Target..."
+msgstr "Gradnja odredišta..."
+
+#: plugin_katebuild.cpp:140
+#, kde-format
+msgid "Build Default Target"
+msgstr "Gradnja podrazumijevanog odredišta"
+
+#: plugin_katebuild.cpp:144
+#, fuzzy, kde-format
+#| msgid "Build Previous Target Again"
+msgid "Build Previous Target"
+msgstr "Sagradi prethodno odredište ponovo"
+
+#: plugin_katebuild.cpp:148
+#, kde-format
+msgid "Stop"
+msgstr "Zaustavi"
+
+#: plugin_katebuild.cpp:153
+#, kde-format
+msgid "Next Error"
+msgstr "Sljedeća greška"
+
+#: plugin_katebuild.cpp:159
+#, kde-format
+msgid "Previous Error"
+msgstr "Prethodna greška"
+
+#: plugin_katebuild.cpp:165
+#, kde-format
+msgid "Show Marks"
+msgstr ""
+
+#: plugin_katebuild.cpp:172
+#, kde-format
+msgctxt "Tab label"
+msgid "Target Settings"
+msgstr "Postavke odredišta"
+
+#: plugin_katebuild.cpp:262 plugin_katebuild.cpp:1162
+#, fuzzy, kde-format
+#| msgid "Target set"
+msgid "Target Set"
+msgstr "Skup odredišta"
+
+#: plugin_katebuild.cpp:263 plugin_katebuild.cpp:283 plugin_katebuild.cpp:288
+#: plugin_katebuild.cpp:1319
+#, fuzzy, kde-format
+#| msgid "Build"
+msgid "build"
+msgstr "Izgradi"
+
+#: plugin_katebuild.cpp:264 plugin_katebuild.cpp:284 plugin_katebuild.cpp:1322
+#, fuzzy, kde-format
+#| msgid "Clean"
+msgid "clean"
+msgstr "Očisti"
+
+#: plugin_katebuild.cpp:265
+#, fuzzy, kde-format
+#| msgid "Config"
+msgid "config"
+msgstr "Konfiguracija"
+
+#: plugin_katebuild.cpp:269 plugin_katebuild.cpp:286 plugin_katebuild.cpp:1325
+#, kde-format
+msgid "quick"
+msgstr ""
+
+#: plugin_katebuild.cpp:321 plugin_katebuild.cpp:1258 plugin_katebuild.cpp:1269
+#: plugin_katebuild.cpp:1290 plugin_katebuild.cpp:1298
+#, kde-format
+msgid "Project Plugin Targets"
+msgstr "Odredište dodatka projekta"
+
+#: plugin_katebuild.cpp:487
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"<title>Could not open file:</title><nl/>%1<br/>Try adding a search path to "
+"the working directory in the Target Settings"
+msgstr ""
+
+#: plugin_katebuild.cpp:507
+#, kde-format
+msgctxt "The same word as 'make' uses to mark an error."
+msgid "error"
+msgstr "greška"
+
+#: plugin_katebuild.cpp:509
+#, kde-format
+msgctxt "The same word as 'ld' uses to mark an ..."
+msgid "undefined reference"
+msgstr "nedefinisana referenca"
+
+#: plugin_katebuild.cpp:515
+#, kde-format
+msgctxt "The same word as 'make' uses to mark a warning."
+msgid "warning"
+msgstr "upozorenje"
+
+#: plugin_katebuild.cpp:600
+#, fuzzy, kde-format
+#| msgctxt "The same word as 'make' uses to mark an error."
+#| msgid "error"
+msgid "Error"
+msgstr "greška"
+
+#: plugin_katebuild.cpp:605
+#, fuzzy, kde-format
+#| msgid "Warnings"
+msgid "Warning"
+msgstr "Upozorenja"
+
+#: plugin_katebuild.cpp:736
+#, kde-format
+msgid "There is no file or directory specified for building."
+msgstr "NIje označena takva datoteka ili direktorij za pravljenje."
+
+#: plugin_katebuild.cpp:740
+#, kde-format
+msgid ""
+"The file \"%1\" is not a local file. Non-local files cannot be compiled."
+msgstr ""
+"Datoteka \"%1\" nije lokalna datoteka. Ne lokalne datoteke nije moguće "
+"kompjalirati."
+
+#: plugin_katebuild.cpp:792
+#, kde-format
+msgid ""
+"Cannot run command: %1\n"
+"Work path does not exist: %2"
+msgstr ""
+
+#: plugin_katebuild.cpp:811
+#, kde-format
+msgid "Failed to run \"%1\". exitStatus = %2"
+msgstr "Neuspjelo izvršavanje „%1“. Izlazni status: %2"
+
+#: plugin_katebuild.cpp:830
+#, kde-format
+msgid "Building <b>%1</b> cancelled"
+msgstr ""
+
+#: plugin_katebuild.cpp:888
+#, kde-format
+msgid "Already building..."
+msgstr ""
+
+#: plugin_katebuild.cpp:897
+#, kde-format
+msgid "No target available for building."
+msgstr ""
+
+#: plugin_katebuild.cpp:911
+#, fuzzy, kde-format
+#| msgid "There is no file or directory specified for building."
+msgid "There is no local file or directory specified for building."
+msgstr "NIje označena takva datoteka ili direktorij za pravljenje."
+
+#: plugin_katebuild.cpp:935
+#, fuzzy, kde-format
+#| msgid "Build Target..."
+msgid "Building target <b>%1</b> ..."
+msgstr "Gradnja odredišta..."
+
+#: plugin_katebuild.cpp:950
+#, kde-kuit-format
+msgctxt "@info"
+msgid "<title>Make Results:</title><nl/>%1"
+msgstr ""
+
+#: plugin_katebuild.cpp:986
+#, kde-format
+msgid "Building <b>%1</b> completed."
+msgstr ""
+
+#: plugin_katebuild.cpp:1005
+#, kde-format
+msgid "Found one error."
+msgid_plural "Found %1 errors."
+msgstr[0] "Nađena %1 greška"
+msgstr[1] "Nađene %1 greške"
+msgstr[2] "Nađeno %1 grešaka"
+
+#: plugin_katebuild.cpp:1006
+#, kde-format
+msgid "Building <b>%1</b> had errors."
+msgstr ""
+
+#: plugin_katebuild.cpp:1008
+#, kde-format
+msgid "Found one warning."
+msgid_plural "Found %1 warnings."
+msgstr[0] "Nađeno %1 upozorenje"
+msgstr[1] "Nađena %1 upozorenja"
+msgstr[2] "Nađeno %1 upozorenja"
+
+#: plugin_katebuild.cpp:1009
+#, fuzzy, kde-format
+#| msgid "Build Target..."
+msgid "Building <b>%1</b> had warnings."
+msgstr "Gradnja odredišta..."
+
+#: plugin_katebuild.cpp:1013
+#, kde-format
+msgid "Build failed."
+msgstr "Gradnja neuspjela."
+
+#: plugin_katebuild.cpp:1015
+#, kde-format
+msgid "Build completed without problems."
+msgstr "Gradnja završena bez problema."
+
+#: plugin_katebuild.cpp:1163
+#, kde-format
+msgid "Build"
+msgstr "Izgradi"
+
+#: plugin_katebuild.cpp:1164
+#, kde-format
+msgid "Clean"
+msgstr "Očisti"
+
+#: plugin_katebuild.cpp:1165
+#, kde-format
+msgid "Config"
+msgstr "Konfiguracija"
+
+#: plugin_katebuild.cpp:1166
+#, fuzzy, kde-format
+#| msgid "Config"
+msgid "ConfigClean"
+msgstr "Konfiguracija"
+
+#: plugin_katebuild.cpp:1202
+#, fuzzy, kde-format
+#| msgid "Errors"
+msgid "Only Errors"
+msgstr "Greške"
+
+#: plugin_katebuild.cpp:1205
+#, fuzzy, kde-format
+#| msgid "Errors && Warnings"
+msgid "Errors and Warnings"
+msgstr "Greške i Upozorenja"
+
+#: plugin_katebuild.cpp:1208
+#, fuzzy, kde-format
+#| msgid "Build Output"
+msgid "Parsed Output"
+msgstr "Izgradi Izlaz"
+
+#: plugin_katebuild.cpp:1211
+#, fuzzy, kde-format
+#| msgid "Build Output"
+msgid "Full Output"
+msgstr "Izgradi Izlaz"
+
+#. i18n: ectx: property (windowTitle), widget (QDialog, SelectTargetUi)
+#: SelectTargetUi.ui:14
+#, fuzzy, kde-format
+#| msgid "Delete selected target"
+msgid "Select build target"
+msgstr "Izbriši odabrano odredište"
+
+#. i18n: ectx: property (text), widget (QLabel, u_label)
+#: SelectTargetUi.ui:29
+#, kde-format
+msgid "Filter"
+msgstr ""
+
+#: TargetHtmlDelegate.cpp:47
+#, kde-format
+msgctxt "T as in Target set"
+msgid "<B>T:</B> %1"
+msgstr ""
+
+#: TargetHtmlDelegate.cpp:49
+#, kde-format
+msgctxt "D as in working Directory"
+msgid "<B>Dir:</B> %1"
+msgstr ""
+
+#: TargetHtmlDelegate.cpp:101
+#, fuzzy, kde-format
+#| msgid "Leave empty to use the directory of the current document. "
+msgid ""
+"Leave empty to use the directory of the current document.\n"
+"Add search directories by adding paths separated by ';'"
+msgstr "Ostavite prazno da bi se uzeo direktorij tekućeg dokumenta. "
+
+#: TargetHtmlDelegate.cpp:105
+#, kde-format
+msgid ""
+"Use:\n"
+"\"%f\" for current file\n"
+"\"%d\" for directory of current file\n"
+"\"%n\" for current file name without suffix"
+msgstr ""
+"Koristite:\n"
+"\"%f\" za trenutnu datoteku\n"
+"\"%d\" za direktorij trenutne datoteke\"%n\" za trenutno ime datoteke bez "
+"sufiksa"
+
+#: TargetModel.cpp:297
+#, kde-format
+msgid "Check the check-box to make the command the default for the target-set."
+msgstr ""
+
+#: TargetModel.cpp:355
+#, kde-format
+msgid "Command/Target-set Name"
+msgstr ""
+
+#: TargetModel.cpp:358
+#, fuzzy, kde-format
+#| msgid "Working directory"
+msgid "Working Directory / Command"
+msgstr "Radni direktorij"
+
+#: targets.cpp:18
+#, kde-format
+msgid "Active target-set:"
+msgstr ""
+
+#: targets.cpp:20
+#, fuzzy, kde-format
+#| msgid "Delete selected target"
+msgid "Select active target set"
+msgstr "Izbriši odabrano odredište"
+
+#: targets.cpp:25
+#, kde-format
+msgid "Create new set of targets"
+msgstr "Kreiraj novi skup odredišta"
+
+#: targets.cpp:29
+#, fuzzy, kde-format
+#| msgid "Copy set of targets"
+msgid "Copy command or target set"
+msgstr "Kopiraj skup odredišta"
+
+#: targets.cpp:33
+#, fuzzy, kde-format
+#| msgid "Delete current set of targets"
+msgid "Delete current target or current set of targets"
+msgstr "Obriši trenutni skup odredišta"
+
+#: targets.cpp:38
+#, kde-format
+msgid "Add new target"
+msgstr "Dodaj novo odredište"
+
+#: targets.cpp:42
+#, kde-format
+msgid "Build selected target"
+msgstr "Gradnja izabranog odredišta"
+
+#. i18n: ectx: Menu (Build Menubar)
+#: ui.rc:6
+#, kde-format
+msgid "&Build"
+msgstr "&Izgradi"
+
+#: UrlInserter.cpp:32
+#, kde-format
+msgid "Insert path"
+msgstr ""
+
+#: UrlInserter.cpp:51
+#, kde-format
+msgid "Select directory to insert"
+msgstr ""
+
+#~ msgid "Next Set of Targets"
+#~ msgstr "Sljedeći skup odredišta"
+
+#~ msgid "No previous target to build."
+#~ msgstr "Nema prethodnog odredišta za gradnju"
+
+#~ msgid "No target set as default target."
+#~ msgstr "Nijedno odredište nije postavljeno kao podrazumijevano odredište"
+
+#~ msgid "No target set as clean target."
+#~ msgstr "Nema postavljenog čistog odredišta"
+
+#~ msgid "Target \"%1\" not found for building."
+#~ msgstr "Odredište \"%1\" nije nađeno za gradnju."
+
+#~ msgid "Really delete target %1?"
+#~ msgstr "Zaista obrisati odredište %1?"
+
+#~ msgid "Target Set %1"
+#~ msgstr "Skup odredišta %1"
+
+#~ msgid "Target"
+#~ msgstr "Odredište"
+
+#~ msgid "Target:"
+#~ msgstr "Odredište:"
+
+#~ msgid "from"
+#~ msgstr "od"
+
+#~ msgid "Command:"
+#~ msgstr "Komanda:"
+
+#~ msgid "Sets of Targets"
+#~ msgstr "Skupovi odredišta"
+
+#~ msgid "Make Results"
+#~ msgstr "Rezultati make-a"
+
+#~ msgid "Others"
+#~ msgstr "Drugo"
+
+#~ msgid "Quick Compile"
+#~ msgstr "Brzo prevedi"
+
+#~ msgid "Targets"
+#~ msgstr "Odredišta"
+
+#~ msgid "Next Target"
+#~ msgstr "Sljedeće odredište"
+
+#~ msgid "The custom command is empty."
+#~ msgstr "Vlastita naredba je prazna."
+
+#~ msgid "Target %1"
+#~ msgstr "Odredište %1"
+
+#~ msgid "Project Plugin Target"
+#~ msgstr "Odredište dodatka projekta"
+
+#~ msgid "New"
+#~ msgstr "Novo"
+
+#~ msgid "Copy"
+#~ msgstr "Kopija"
+
+#~ msgid "Delete"
+#~ msgstr "Brisanje"
+
+#~ msgid "Quick compile"
+#~ msgstr "Brzo prevođenje"

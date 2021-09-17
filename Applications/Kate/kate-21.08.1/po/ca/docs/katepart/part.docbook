@@ -1,0 +1,946 @@
+<!--pulled in by kwrite too-->
+<chapter id="kate-part">
+<chapterinfo>
+<authorgroup>
+<author
+>&Anders.Lund; &Anders.Lund.mail;</author>
+<author
+>&Dominik.Haumann; &Dominik.Haumann.mail;</author>
+&traductor.Antoni.Bella; 
+</authorgroup>
+</chapterinfo>
+<title
+>Treballar amb l'editor &kappname;</title>
+
+<sect1 id="kate-part-overview">
+
+<title
+>Vista general</title>
+
+<para
+>L'editor de la &kappname; és l'àrea d'edició de la finestra de la &kappname;. Aquest editor és compartit entre el &kate; i el &kwrite;, i es pot utilitzar en el &konqueror; per a mostrar fitxers de text des del vostre ordinador local o des de la xarxa.</para>
+
+<para
+>L'editor es compon dels següents components:</para>
+
+<variablelist>
+
+<varlistentry>
+<term
+>L'àrea d'edició</term>
+<listitem
+><para
+>Aquest és el lloc a on s'ubica el text del vostre document.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Les barres de desplaçament</term>
+<listitem>
+<para
+>Les barres de desplaçament indiquen la posició de la part visible del document de text i es poden utilitzar per a moure's a través del document. Arrossegar les barres de desplaçament no causarà el moviment del cursor d'inserció.</para>
+<para
+>Les barres de desplaçament es mostren i oculten en ser requerit.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>La vora de la icona</term>
+<listitem>
+<para
+>La vora de la icona és una petita subfinestra al costat esquerre de l'editor, que mostra una petita icona propera a les línies marcades.</para>
+<para
+>Podeu establir o eliminar un <link linkend="kate-part-bookmarks"
+>punt</link
+> en una línia visible fent clic amb el &BER; en la vora de la icona propera a aquesta línia.</para>
+<para
+>La vora de la icona es pot mostrar/ocultar utilitzant l'element <menuchoice
+><guimenu
+>Visualitza</guimenu
+> <guimenuitem
+>Mostra la vora per a les icones</guimenuitem
+></menuchoice
+> del menú.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>La subfinestra dels números de les línies</term>
+<listitem>
+<para
+>La subfinestra dels números de les línies mostra els números de línia de totes les línies visibles en el document.</para>
+<para
+>La subfinestra dels números de les línies es pot mostrar/ocultar utilitzant l'element <menuchoice
+><guimenu
+>Visualitza</guimenu
+> <guimenuitem
+>Mostra els números de les línies</guimenuitem
+></menuchoice
+> del menú.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>La subfinestra de plegat</term>
+<listitem>
+<para
+>La subfinestra de plegat us permet contraure o expandir els blocs plegables de línies. El càlcul de les regions plegables es realitza d'acord amb les regles en la definició de ressaltat de la sintaxi per al document.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+<itemizedlist>
+<title
+>També en aquest capítol:</title>
+<listitem
+><para
+><link linkend="kate-part-navigation"
+>Navegar pel text</link
+> </para
+></listitem>
+<listitem
+><para
+><link linkend="kate-part-selection"
+>Treballar amb la selecció</link
+></para
+></listitem>
+<listitem
+><para
+><link linkend="kate-part-copy-and-paste"
+>Copiar i enganxar text</link
+></para
+></listitem>
+<listitem
+><para
+><link linkend="kate-part-find-replace"
+>Cercar i substituir text</link
+></para
+></listitem>
+<listitem
+><para
+><link linkend="kate-part-bookmarks"
+>Usar els punts</link
+></para
+></listitem>
+<listitem
+><para
+><link linkend="kate-part-auto-wrap"
+>Ajustar el text automàticament</link
+></para
+></listitem>
+<listitem
+><para
+><link linkend="kate-part-autoindent"
+>Usar el sagnat automàtic</link
+></para
+></listitem>
+</itemizedlist>
+
+</sect1>
+
+<sect1 id="kate-part-navigation">
+<title
+>Navegar pel text</title>
+
+<para
+>Moure's pel text en la &kappname; és similar a la resta d'editors gràfics. Podeu desplaçar el cursor utilitzant les tecles del cursor i les tecles &PgUp;, &PgDn;, &Home; i &End; en combinació amb els modificadors &Ctrl; i &Maj;. La tecla &Maj; sempre s'utilitza per a generar una selecció, mentre que la tecla &Ctrl; té diferents efectes sobre tecles diferents: <itemizedlist>
+<listitem
+><para
+>Per a les tecles &Up; i &Down; vol dir desplaçament i no moviment del cursor.</para
+></listitem>
+<listitem
+><para
+>Per a les tecles &Left; i &Right; vol dir deixar paraules en comptes de caràcters.</para
+></listitem>
+<listitem
+><para
+>Per a les tecles &PgUp; i &PgDn; vol dir moure's a la vora visible de la vora en comptes de navegar.</para>
+</listitem>
+<listitem
+><para
+>Per a les tecles &Home; i &End; vol dir moure's fins al començament o final del document en comptes de fins al començament i al final de la línia.</para
+></listitem>
+</itemizedlist>
+</para>
+
+<para
+>La &kappname; també proveeix una manera d'anar ràpidament fins a la parella d'una clau o un parèntesi: situeu el cursor en un caràcter de parèntesi o clau, i premeu <keycombo action="simul"
+>&Ctrl;<keycap
+>6</keycap
+></keycombo
+> per a anar fins al parèntesi o clau amb què s'emparella.</para>
+
+<para
+>A més podeu utilitzar els <link linkend="kate-part-bookmarks"
+>punts</link
+> per a saltar ràpidament fins a posicions que heu definit.</para>
+
+</sect1>
+
+<sect1 id="kate-part-selection">
+<title
+>Treballar amb la selecció</title>
+
+<para
+>Hi ha dues maneres bàsiques de seleccionar text en la &kappname;: utilitzant el ratolí i utilitzant el teclat.</para>
+
+<para
+>Per a seleccionar utilitzant el ratolí, manteniu premut el &BER; mentre arrossegueu el cursor del ratolí des d'on calgui començar la selecció, fins al marcador que desitgeu. El text s'anirà seleccionant a mesura que aneu arrossegant.</para>
+
+<para
+>Doble clic a sobre d'una paraula, seleccionarà aquesta paraula.</para>
+
+<para
+>Triple clic sobre una línia, la seleccionarà tota.</para>
+
+<para
+>Si es manté premuda la tecla &Maj; mentre es fa clic, se seleccionarà el text:</para>
+
+<itemizedlist>
+<listitem
+><para
+>Si no hi ha res seleccionat, des de la posició del cursor fins a la posició del cursor del ratolí.</para
+></listitem>
+<listitem
+><para
+>Si hi ha una selecció, des de i incloent aquesta selecció fins a la posició del cursor del ratolí.</para
+></listitem>
+</itemizedlist>
+
+<note>
+<para
+>Mentre se selecciona text arrossegant el ratolí, el text seleccionat es copiarà al porta-retalls i es podrà enganxar a l'editor fent clic amb el &BMR;, o en qualsevol altra aplicació en la que es vulgui enganxar el text. </para>
+</note>
+
+<para
+>Per a seleccionar utilitzant el teclat, manteniu premuda la tecla &Maj; mentre empreu les tecles de navegació (les tecles de fletxa, &PgUp;, &PgDn;, &Home; i &End;, possiblement en combinació amb &Ctrl; per a estendre el moviment del cursor de text).</para>
+
+<para
+>Consulteu també la secció <link linkend="kate-part-navigation"
+>Navegar pel text</link
+> en aquest capítol.</para>
+
+<para
+>Per a <action
+>copiar</action
+> la selecció actual, utilitzeu l'element <menuchoice
+><guimenu
+>Edita</guimenu
+> <guimenuitem
+>Copia</guimenuitem
+></menuchoice
+> del menú o la drecera de teclat (la predeterminada <keycombo action="simul"
+>&Ctrl;<keycap
+>C</keycap
+></keycombo
+>).</para>
+
+<para
+>Per a <action
+>desseleccionar</action
+> la selecció actual, utilitzeu l'element <menuchoice
+><guimenu
+>Edita</guimenu
+> <guimenuitem
+>Desselecciona</guimenuitem
+></menuchoice
+> del menú, la drecera de teclat (predeterminada <keycombo action="simul"
+>&Ctrl;&Maj;<keycap
+>A</keycap
+></keycombo
+>) o feu clic amb el &BER; a l'editor.</para>
+
+<sect2 id="kate-part-selection-block">
+<title
+>Usar la selecció en bloc</title>
+
+<para
+>Quan la selecció en bloc estigui activada, podreu realitzar <quote
+>seleccions verticals</quote
+> en el text, el qual vol dir que podeu seleccionar un nombre determinat de columnes en diverses línies a la vegada. Això és útil, per exemple, si treballeu amb línies separades per tabulacions.</para>
+
+<para
+>La selecció en bloc es pot activar/desactivar en l'element <menuchoice
+><guimenu
+>Edita</guimenu
+> <guimenuitem
+>Mode de selecció per blocs</guimenuitem
+></menuchoice
+> del menú. La drecera de teclat predeterminada és <keycombo action="simul"
+>&Ctrl;&Maj;<keycap
+>B</keycap
+> </keycombo
+>.</para>
+
+</sect2>
+
+<sect2 id="kate-part-selection-overwrite">
+<!-- term not used in settings Editing Text Seöection Mode, it is called "Normal"-->
+<title
+>Usar el mode sobreescriure</title>
+
+<para
+>Si l'opció mode sobreescriure està activada, en escriure o enganxar text a sobre d'una selecció, aquesta serà substituïda. Si no està activada, el text nou serà afegit a la posició del cursor de text.</para>
+
+<para
+>El mode sobreescriure està activat de manera predeterminada.</para>
+
+<para
+>Per a canviar la configuració d'aquesta opció, utilitzeu la pàgina <link linkend="pref-edit-cursor-selection"
+>Cursor i selecció</link
+> del <link linkend="config-dialog"
+>diàleg de configuració</link
+>.</para>
+
+</sect2>
+
+<sect2 id="kate-part-selection-persistent">
+
+<title
+>Usar les seleccions persistents</title>
+
+<para
+>Si les seleccions persistents estan activades, escriure caràcters o moure el cursor no causarà que desaparegui la selecció. Això vol dir que podeu moure el cursor a fora de la selecció i escriure.</para>
+
+<para
+>Les seleccions persistents estan desactivades de manera predeterminada.</para>
+
+<para
+>Les seleccions persistents es poden activar a la pàgina <link linkend="pref-edit-cursor-selection"
+>Cursor i selecció</link
+> del <link linkend="config-dialog"
+>diàleg de configuració</link
+>.</para>
+
+<warning
+> <!-- is that still possible in 4.4? radio button Normal + Persistent!-->
+<para
+>Si està activada, tant les seleccions persistents com el mode sobreescriure, escriure o enganxar text quan el cursor es troba a dins de la selecció causarà que aquesta sigui substituïda i desseleccionada.</para>
+</warning>
+
+</sect2>
+
+</sect1>
+
+<sect1 id="kate-part-copy-and-paste">
+
+<title
+>Copiar i enganxar text</title>
+
+<para
+>Per a copiar text, seleccioneu-lo i utilitzeu l'element <menuchoice
+><guimenu
+>Edita</guimenu
+> <guimenuitem
+>Copia</guimenuitem
+></menuchoice
+> del menú. De manera addicional, el fet de seleccionar text amb el ratolí causarà que aquest sigui copiat a la selecció X.</para>
+
+<para
+>Per a enganxar el text que es troba en el porta-retalls, utilitzeu l'element <menuchoice
+> <guimenu
+>Edita</guimenu
+><guimenuitem
+>Enganxa</guimenuitem
+></menuchoice
+> del menú.</para>
+
+<para
+>De forma addicional, el text seleccionat amb el ratolí es pot enganxar fent clic amb el &BMR; a la posició desitjada.</para>
+
+<tip>
+<para
+>Si esteu utilitzant l'escriptori &kde;, podeu recuperar el text que s'ha copiat des de qualsevol aplicació utilitzant la icona del &klipper;, que es troba a la safata del sistema.</para>
+</tip>
+
+</sect1>
+
+<!-- changed in 4.5-->
+<sect1 id="kate-part-find-replace">
+<title
+>Cercar i substituir text</title>
+
+<sect2 id="find-replace-bars">
+<title
+>Les barres de cerca i substitueix</title>
+
+
+<para
+>La &kappname; té una barra de cerca incremental i una barra de cerca i substitució potent, la qual ofereix l'opció d'introduir una cadena de substitució amb algunes opcions extra.</para>
+
+<para
+>Les barres ofereixen les següents opcions comunes:</para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><guilabel
+>Cerca</guilabel
+></term>
+<listitem
+><para
+>Aquí és a on s'introdueix la cadena de cerca. La interpretació de la mateixa dependrà d'algunes de les opcions descrites tot seguit.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Fes concordar les majúscules</guilabel
+></term>
+<listitem>
+<para
+>Si s'activa, la cerca es limitarà a les entrades que coincideixin amb (majúscules o minúscules) cadascun dels caràcters en el patró de cerca.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+<para
+>Les poderoses barres de cerca i substitució ofereixen algunes opcions addicionals:</para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><guilabel
+>Text net</guilabel
+></term>
+<listitem>
+<para
+>Coincideix literalment amb qualsevol ocurrència de la cadena de cerca.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Paraules completes</guilabel
+></term>
+<listitem>
+<para
+>Si està marcada, la cerca tan sols coincidirà si hi ha un límit de paraula en ambdós extrems de la cadena coincident, no sent aquest límit un caràcter alfanumèric, sinó un altre caràcter visible o un fi de línia.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Seqüències d'escapada</guilabel
+></term>
+<listitem>
+<para
+>Si està marcada, serà activat l'element <guibutton
+>Afegeix</guibutton
+> del menú a la part inferior del menú contextual dels quadres de text i us permetrà afegir seqüències d'escapament per al patró de cerca a partir d'una llista predefinida.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Expressió regular</guilabel
+></term>
+<listitem>
+<para
+>Si està marcada, la cadena de cerca s'interpretarà com una expressió regular. S'activarà l'element <guibutton
+>Afegeix</guibutton
+> del menú, a la part inferior del menú contextual dels quadres de text i us permetrà afegir elements d'expressions regulars a la cadena de cerca a partir d'una llista predefinida.</para>
+<para
+>Per a obtenir més informació referent a això, vegeu <link linkend="regular-expressions"
+>expressions regulars</link
+>.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Cerca només en la selecció</guilabel
+></term>
+<listitem>
+<para
+>Si està marcada, la cerca i substitució només es durà a terme dins del text seleccionat.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Cerca-ho tot</guilabel
+></term>
+<listitem>
+<para
+>En fer clic en aquest botó es ressaltaran totes les coincidències en el document i se'n mostra el nombre en una petita finestra emergent. </para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+<!--FIXME keep in sync with kate/menus.docbook <varlistentry id="edit-find"
+> -->
+<sect2 id="finding-text">
+<title
+>Cercar text</title>
+
+<para
+>Per a cercar text, obriu la barra de cerca incremental amb <keycombo action="simul"
+>&Ctrl;<keycap
+>F</keycap
+></keycombo
+> o des de l'element <menuchoice
+><guimenu
+>Edita</guimenu
+> <guimenuitem
+>Cerca...</guimenuitem
+></menuchoice
+> del menú.</para>
+<para
+>Això obre la barra de cerca incremental a la part inferior de la finestra de l'editor. En el costat esquerre de la barra hi ha un botó amb una icona per a tancar la barra, seguit d'un petit quadre de text per a introduir el patró de cerca.</para>
+<para
+>Quan comenceu a escriure els caràcters del patró de cerca, aquesta s'iniciarà immediatament. Si hi ha una coincidència en el text, aquest serà ressaltat i el color de fons del camp d'entrada canviarà a una llum verda. Si el patró de cerca no coincideix amb cap cadena en el text, això s'indicarà per un color de fons de llum vermella en el camp d'entrada i <guilabel
+>No s'ha trobat</guilabel
+> es mostrarà al costat dret de la barra.</para>
+<para
+>Empreu el botó <inlinemediaobject
+><imageobject
+><imagedata fileref="arrow-up-double-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> o <inlinemediaobject
+><imageobject
+><imagedata fileref="arrow-down-double-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> per a saltar a la següent o anterior coincidència en el document.</para>
+<para
+>Les coincidències en el document seran ressaltades, fins i tot quan tanqueu la barra de cerca. Per a netejar el ressaltat, premeu la tecla &Esc;.</para>
+<para
+>Podeu decidir si la cerca ha de ser amb majúscules i minúscules. Seleccionant <inlinemediaobject
+><imageobject
+><imagedata fileref="format-text-superscript-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> es limitarà la cerca d'entrades amb el cas (majúscules i minúscules) de cadascun dels caràcters en el patró de cerca.</para>
+<para
+>Feu clic sobre el botó <inlinemediaobject
+><imageobject
+><imagedata fileref="configure-shortcuts-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> al costat dret de la barra de cerca incremental per a canviar entre la cerca i substitució. </para>
+<para
+>Repeteix l'última operació de cerca, si n'hi ha cap, sense cridar la barra de cerca incremental, utilitzeu <menuchoice
+> <shortcut
+><keycombo action="simul"
+><keycap
+>F3</keycap
+></keycombo
+></shortcut
+> <guimenu
+>Edita</guimenu
+><guimenuitem
+>Cerca la següent</guimenuitem
+></menuchoice
+> o <menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Maj;<keycap
+>F3</keycap
+></keycombo
+></shortcut
+> <guimenu
+>Edita</guimenu
+><guimenuitem
+>Cerca l'anterior</guimenuitem
+></menuchoice
+>. </para>
+
+</sect2>
+<!--FIXME keep in sync with kate/menus.docbook <varlistentry id="edit-replace"
+> -->
+<sect2 id="replacing-text">
+<title
+>Substituir text</title>
+
+<para
+>Per a substituir text, llanceu potent la barra de cerca i substitució utilitzant l'ordre <menuchoice
+><guimenu
+>Edita</guimenu
+> <guimenuitem
+>Substitueix</guimenuitem
+></menuchoice
+> o la drecera <keycombo action="simul"
+>&Ctrl;<keycap
+>R</keycap
+></keycombo
+>.</para>
+<para
+>A la part superior esquerra de la barra hi ha un botó amb una icona per a tancar la barra, seguit d'un petit quadre combinat per a introduir el patró de cerca. El quadre recordarà els patrons emprats recentment.</para>
+<para
+>Podeu controlar el mode de cerca seleccionant les opcions <guilabel
+>Text net</guilabel
+>, <guilabel
+>Paraules completes</guilabel
+>, <guilabel
+>Seqüències d'escapada</guilabel
+> o <guilabel
+>Expressions regulars</guilabel
+> des de la llista desplegable. </para>
+<para
+>Si s'ha marcat <guilabel
+>Seqüències d'escapada</guilabel
+> o <guilabel
+>Expressions regulars</guilabel
+>, l'element <guibutton
+>Afegeix</guibutton
+> del menú, a la part inferior del menú contextual dels quadres de text i us permetrà afegir elements d'expressió regular al patró de cerca o substitució a partir d'una llista predefinida.</para>
+<para
+>Empreu el botó <inlinemediaobject
+><imageobject
+><imagedata fileref="arrow-up-double-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> o <inlinemediaobject
+><imageobject
+><imagedata fileref="arrow-down-double-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> per a saltar a la següent o anterior coincidència en el document.</para>
+<para
+>Introduïu el text a substituir en el quadre de text <guilabel
+>Substitueix</guilabel
+> i feu clic al botó <guibutton
+>Substitueix</guibutton
+> per a substituir només el text seleccionat o el botó <guibutton
+>Substitueix-ho tot</guibutton
+> per a substituir el text de cerca en tot el document. </para>
+<para
+>Podeu modificar el comportament de cerca i substitueix seleccionant les diferents opcions a la part inferior de la barra. Seleccionant <inlinemediaobject
+><imageobject
+><imagedata fileref="format-text-superscript-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> es trobaran les entrades que coincideixin amb (majúscules o minúscules) cadascun dels caràcters en el patró de cerca.<inlinemediaobject
+><imageobject
+><imagedata fileref="edit-select-all-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+>, només cercarà i substituirà dins de la selecció actual. El botó <guilabel
+>Cerca-ho tot</guilabel
+> ressaltarà totes les coincidències en el document i en mostrarà el nombre en una petita finestra emergent. </para>
+<para
+>Feu clic al botó <inlinemediaobject
+><imageobject
+><imagedata fileref="configure-shortcuts-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> a la part dreta de la barra de cerca i substitueix per a veure la barra de cerca incremental. </para>
+<tip>
+<para
+>Si esteu utilitzant una expressió regular per a cercar el text a substituir, podreu emprar referències enrere per a tornar a utilitzar text en subpatrons entre parèntesis de l'expressió.</para>
+<para
+>Per a obtenir més informació referent a això, vegeu <link linkend="regular-expressions"
+>expressions regulars</link
+>.</para>
+</tip>
+
+<tip
+><para
+>Podeu utilitzar les ordres <command
+>find</command
+>, <command
+>replace</command
+> i <command
+>ifind</command
+> (cerca incremental) des de la <link linkend="advanced-editing-tools-commandline"
+>línia d'ordres</link
+>.</para>
+</tip>
+
+</sect2>
+
+</sect1>
+
+<sect1 id="kate-part-bookmarks">
+<title
+>Ús dels punts</title>
+
+<para
+>La característica dels punts us permet marcar certes línies i poder tornar-hi d'una forma fàcil.</para>
+
+<para
+>Podeu establir o eliminar un punt d'una línia de dues maneres:</para>
+
+<itemizedlist>
+<listitem>
+<para
+>Movent el cursor cap aquesta línia i activant l'ordre <menuchoice
+><guimenu
+>Punts</guimenu
+><guimenuitem
+>Defineix un punt</guimenuitem
+></menuchoice
+> (<keycombo action="simul"
+>&Ctrl;<keycap
+>B</keycap
+></keycombo
+>).</para>
+</listitem>
+<listitem>
+<para
+>Fent clic en la vora de les icones al costat de la línia.</para>
+</listitem>
+</itemizedlist>
+
+
+<para
+>Els punts estan disponibles en el menú <guimenu
+>Punts</guimenu
+>. Els punts individuals estan disponibles com a elements del menú, etiquetats amb el número de línia del punt o els primers caràcters del text en la línia. Per a moure el cursor d'inserció cap al començament d'una línia marcada, obriu el menú i seleccioneu el punt.</para>
+
+<para
+>Per a moure-us ràpidament entre els punts o per a anar cap al següent/anterior punt, utilitzeu les ordres <menuchoice
+><guimenu
+>Punts</guimenu
+><guimenuitem
+>Següent</guimenuitem
+> </menuchoice
+> (<keycombo action="simul"
+>&Alt;&PgDn;</keycombo
+>) o <menuchoice
+> <guimenu
+>Punts</guimenu
+><guimenuitem
+>Anterior</guimenuitem
+></menuchoice
+> (<keycombo action="simul"
+>&Alt;&PgUp;</keycombo
+>).</para>
+
+</sect1>
+
+<sect1 id="kate-part-auto-wrap">
+<!--dynamic word wrap needs description here-->
+<title
+>Ajust automàtic del text</title>
+
+<para
+>Aquesta característica permet donar un format simple al text: el text serà tallat, de manera que cap línia excedeixi un cert nombre de caràcters, a menys que hi hagi una cadena més llarga que no contingui espais en blanc.</para>
+
+<para
+>Per a activar/desactivar aquesta opció, marqueu/desmarqueu la casella de selecció <guibutton
+>Ajust de línia</guibutton
+> a la <link linkend="pref-word-wrap"
+>pàgina Edició</link
+> del <link linkend="config-dialog"
+>diàleg de configuració</link
+>.</para>
+
+<para
+>Per a establir l'amplada màxima de la línia (màxim nombre de caràcters per línia), utilitzeu l'opció <link linkend="pref-wrap-words-at"
+><guibutton
+>Ajusta línia a</guibutton
+></link
+> en la <link linkend="pref-edit"
+>pàgina Edició</link
+> del <link linkend="config-dialog"
+>diàleg de configuració</link
+>.</para>
+
+<para
+>Si està activada, tindrà els següents efectes: <itemizedlist>
+<listitem
+><para
+>En escriure l'editor inserirà automàticament un salt de línia després de l'últim caràcter d'espai en una posició abans d'abastar l'amplada màxima de la línia.</para
+></listitem>
+<listitem
+><para
+>Mentre es carrega un document, l'editor en processarà el text d'una manera similar, així cap línia superarà en longitud el màxim establert, sempre que contingui un espai en blanc que ho permeti.</para
+></listitem>
+</itemizedlist>
+
+</para>
+
+<note
+><para
+>En aquest moment no hi ha forma d'establir l'ajust de línia només per a alguns tipus de documents en concret o activar/desactivar aquesta característica en un punt del document. Aquest problema serà solucionat en futures versions de la &kappname;.</para
+></note>
+
+</sect1>
+
+<sect1 id="kate-part-autoindent">
+<title
+>Usar el sagnat automàtic</title>
+
+<para
+>L'editor &kappname; suporta una varietat dels modes de sagnat automàtic, ha estat dissenyada per a diferents formats de text. Podeu seleccionar un dels modes disponibles usant l'element <menuchoice
+><guimenu
+>Eines</guimenu
+><guisubmenu
+>Sagnat</guisubmenu
+></menuchoice
+> del menú. El mòdul de sagnat automàtic també proveeix la funció <menuchoice
+><guimenu
+>Eines</guimenu
+><guimenuitem
+>Alinea</guimenuitem
+></menuchoice
+> que tornarà a calcular el sagnat del text seleccionat o de la línia actual. D'aquesta manera podreu tornar a establir el sagnat sencer al vostre document seleccionant tot el text i activant aquesta acció.</para>
+
+<para
+>Tots els modes de sagnat utilitzen la configuració de sagnat per al document actiu.</para>
+
+<tip
+><para
+>Podeu configurar l'ordenació de totes les variables de configuració, incloses les relatives a l'ús del sagnat utilitzant les <link linkend="config-variables"
+>Variables de document</link
+> i els <link linkend="pref-open-save-modes-filetypes"
+>Tipus de fitxer</link
+>.</para
+></tip>
+
+<variablelist>
+
+<title
+>Modes de sagnat automàtic disponibles</title>
+
+<varlistentry>
+<term
+>Cap</term>
+<listitem
+><para
+>Seleccionant aquest mode es desactiva per complet el sagnat automàtic.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Normal</term>
+<listitem
+><para
+>Aquest sagnat simplement manté un sagnat similar al de la línia anterior amb qualsevol contingut diferent d'un espai en blanc. Podeu combinar aquest amb les accions sagna i sense sagnar segons els vostres gustos. </para
+></listitem>
+</varlistentry>
+
+<varlistentry
+><term
+>Estil C</term>
+<listitem
+><para
+>Un sagnat per als llenguatges C i similars, com C++, C#, &Java;, &javascript; i més. Aquest sagnat no funcionarà amb llenguatges per a la creació de scripts com Perl o PHP.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Haskell</term>
+<listitem
+><para
+>Un sagnat per al funcional llenguatge de programació Haskell. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Lilypond</term>
+<listitem
+><para
+>Un sagnat especial per al llenguatge de notació Lilypond, per a música. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Lisp</term>
+<listitem
+><para
+>Un sagnat especial per al llenguatge Lisp i els seus dialectes per a la creació de scripts. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Python</term>
+<listitem
+><para
+>Un sagnat especial per al llenguatge Python per a la creació de scripts. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Estil XML</term>
+<listitem
+><para
+>Un sagnat especial per als llenguatges com XML. </para
+></listitem>
+</varlistentry>
+<!--Ruby + Lua missing -->
+</variablelist>
+
+</sect1>
+
+<sect1 id="kate-part-line-modification">
+<title
+>Indicadors de modificació de línia</title>
+
+<para
+>Els indicadors de modificació de línia de la &kappname; permeten veure amb facilitat el que heu canviat recentment en un fitxer. De manera predeterminada, els canvis desats s'indiquen mitjançant una barra verda a l'esquerra d'un document, mentre que els canvis sense desar s'indiquen amb una barra taronja.</para>
+
+<para>
+<mediaobject>
+<imageobject
+><imagedata format="PNG" fileref="line-modification-system.png"/></imageobject>
+<caption
+><para
+>Els indicadors de modificació de línia en acció.</para
+></caption>
+</mediaobject>
+</para>
+
+<para
+>Podeu canviar els colors utilitzats des del plafó de configuració <link linkend="prefcolors"
+><guilabel
+>Tipus de lletra i colors</guilabel
+></link
+>, o podeu desactivar completament aquesta característica a la pestanya <link linkend="appearance-borders"
+><guilabel
+>Vores</guilabel
+> del plafó de configuració <guilabel
+>Aparença</guilabel
+></link
+>.</para>
+
+</sect1>
+
+<sect1 id="kate-part-scrollbar-minimap">
+<title
+>El mapa en miniatura a la barra de desplaçament</title>
+
+<para
+>El mapa en miniatura a la barra de desplaçament de la &kappname; mostra una vista prèvia del document en lloc de la barra de desplaçament. La porció actualment visible del document està ressaltada. </para>
+
+<para>
+<mediaobject>
+<imageobject
+><imagedata format="PNG" fileref="minimap.png"/></imageobject>
+<caption
+><para
+>El mapa en miniatura a la barra de desplaçament mostra una vista prèvia del codi font del &kate;. </para
+></caption>
+</mediaobject>
+</para>
+
+<para
+>Podeu activar o desactivar temporalment el mapa en miniatura seleccionant <menuchoice
+><guimenu
+>Visualitza</guimenu
+><guimenuitem
+>Mostra un mapa en miniatura a la barra de desplaçament</guimenuitem
+></menuchoice
+> o permanentment a <link linkend="appearance-borders"
+>la secció Aparença de la configuració de la &kappname;</link
+>.</para>
+
+</sect1>
+
+</chapter>

@@ -1,0 +1,1376 @@
+<appendix id="regular-expressions">
+<appendixinfo>
+<authorgroup>
+<author
+>&Anders.Lund; &Anders.Lund.mail;</author>
+<othercredit role="translator"
+><firstname
+>Юрій</firstname
+><surname
+>Чорноіван</surname
+><affiliation
+><address
+><email
+>yurchor@ukr.net</email
+></address
+></affiliation
+><contrib
+>Переклад українською</contrib
+></othercredit
+> 
+</authorgroup>
+</appendixinfo>
+
+<title
+>Формальні вирази</title>
+
+<synopsis
+>У цьому додатку наведено короткий, але, як сподіваються автори, достатній і інформативний вступ до світу <emphasis
+>формальних виразів</emphasis
+>. Тут наведено документацію щодо формальних виразів у тому вигляді, у якому вони використовуються у &kappname;, і який не є сумісним ні з формальними виразами у perl, ні з формальними виразами, наприклад, у <command
+>grep</command
+>.</synopsis>
+
+<sect1>
+
+<title
+>Вступ</title>
+
+<para
+>За допомогою <emphasis
+>формальних виразів</emphasis
+> можна описати можливий вміст рядка тексту так, щоб ваш опис був зрозумілим програмі і вона змогла визначати відповідність тексту шуканому рядку, а також, у випадку програм з додатковими можливостями, зберігати знайдені фрагменти для наступного використання.</para>
+
+<para
+>Приклад: припустімо, вам потрібно знайти у тексті абзаци, які починаються зі слів <quote
+>Іван</quote
+> або <quote
+>Франко</quote
+>, за якими слідує одна з форм дієслова <quote
+>говорити</quote
+>.</para>
+
+<para
+>Якщо б ви виконували пошук у звичайний спосіб, ви мали б почати з пошуку імені, <quote
+>Іван</quote
+>, можливо у супроводі <quote
+>говори</quote
+>, десь так: <userinput
+>Іван говори</userinput
+>, серед відповідників вам слід би було відкинути ті, які стоять не на початку абзацу, а також ті, у яких літери <quote
+>говори</quote
+> не є літерами слів <quote
+>говорить</quote
+>, <quote
+>говорив</quote
+> тощо. Потім, звичайно ж, вам слід було б повторити пошук для прізвища...</para>
+
+<para
+>За допомогою формальних виразів завдання з пошуку виконується в одну дію і з вищим рівнем точності.</para>
+
+<para
+>Щоб досягти цього, за допомогою формальних виразів визначаються правила, за допомогою яких створюється узагальнена форма рядка пошуку. У нашому прикладі це правило можна висловити буквально так: <quote
+>Рядок, який починається з <quote
+>Іван</quote
+> або <quote
+>Франко</quote
+> (перед цим словом може бути до 4 пробілів або символів табуляції), продовжується пробілом, за яким йде слово <quote
+>говори</quote
+>, яке закінчується на <quote
+>ть</quote
+> або <quote
+>в</quote
+></quote
+>. Все це визначає формальний вираз:</para
+> <para
+><userinput
+>^[ \t]{0,4}(Іван|Франко) говори(ть|в)</userinput
+></para>
+
+<para
+>У наведеному вище прикладі продемонстровано всі чотири компоненти сучасних формальних виразів, а саме:</para>
+
+<itemizedlist>
+<listitem
+><para
+>Шаблони</para
+></listitem>
+<listitem
+><para
+>Умовні вирази</para
+></listitem>
+<listitem
+><para
+>Лічильники</para
+></listitem>
+<listitem
+><para
+>Зворотні посилання</para
+></listitem>
+</itemizedlist>
+
+<para
+>Символ каретки (<literal
+>^</literal
+>) на початку виразу є умовним виразом, який визначає, що наступний рядок має розпочинати рядок у тексті.</para>
+
+<para
+>Рядки <literal
+>[ \t]</literal
+> і <literal
+>(Іван|Франко) говори(ть|в)</literal
+> є шаблонами. Перший з них визначає <emphasis
+>клас символів</emphasis
+>, до якого належить пробіл або символ горизонтальної табуляції; у другому шаблоні міститься спочатку підшаблон, який визначає рядок <literal
+>Іван</literal
+> <emphasis
+>або</emphasis
+> <literal
+>Франко</literal
+>, потім рядка <literal
+> говори</literal
+> і нарешті підшаблону, що визначає закінчення: <literal
+>ть</literal
+> <emphasis
+>або</emphasis
+> <literal
+>ив</literal
+></para>
+
+<para
+>Рядок <literal
+>{0,4}</literal
+> є лічильником, який повідомляє інструментові пошуку, що рядок знаходиться <quote
+>будь-де, за від 0 до 4 рядками, вказаними раніше</quote
+>.</para>
+
+<para
+>Програмне забезпечення, яке працює з формальними виразами, підтримує концепцію <emphasis
+>зворотних посилань</emphasis
+>, використання цієї концепції надає змогу зберегти повністю знайдену частину рядка або підрядки, позначені круглими дужками, а потім у певний спосіб використати ці посилання. Отже, ми можемо повністю позбутися ручної роботи з пошуку рядка (під час пошуку за допомогою формального виразу у текстовому документі, відкритому у редакторі, цей рядок буде позначено як виділений), пошуку імені або навіть фраз з різними закінченнями у дієслів.</para>
+
+<para
+>Разом, формальний вираз визначає саме той рядок, який ми бажали знайти, і лише у потрібному місці тексту.</para>
+
+<para
+>У наступних розділах буде докладно описано побудову і використання шаблонів, класів символів, умовних виразів, лічильників і зворотних посилань. Нарешті у останньому розділі ви знайдете декілька корисних прикладів.</para>
+
+</sect1>
+
+<sect1 id="regex-patterns">
+
+<title
+>Шаблони</title>
+
+<para
+>Шаблони складаються з рядків і класів символів. У шаблонах можуть міститися підшаблони, тобто шаблони, взяті у круглі дужки.</para>
+
+<sect2>
+<title
+>Символи керування</title>
+
+<para
+>У шаблонах, так само як і у класах символів, певні символи мають особливе призначення. Для пошуку цих символів не за значенням, а за візуальним представленням, ці символи слід позначити або <emphasis
+>екранувати</emphasis
+>, щоб повідомити рушієві пошуку за формальним виразом, що відповідні символи слід шукати за їх візуальним представленням.</para>
+
+<para
+>Це завдання можна виконати за допомогою додавання перед символом зворотної навскісної риски (<literal
+>\</literal
+>).</para>
+
+
+<para
+>Рушій пошуку за формальним виразом без додаткових повідомлень ігноруватиме екрановані символи, які не мають спеціального призначення, отже екранування, наприклад, символу <quote
+>j</quote
+> (<userinput
+>\j</userinput
+>) є безпечним. Якщо ви не пам’ятаєте, чи може символ мати спеціальне призначення, ви можете про всяк випадок його заекранувати.</para>
+
+<para
+>Екранування, звичайно ж, можна застосовувати і до самого символу зворотної навскісної риски, щоб програма сприймала введену вами зворотну навскісну риску як зворотну навскісну риску, вам слід ввести <userinput
+>\\</userinput
+>.</para>
+
+</sect2>
+
+<sect2>
+<title
+>Класи символів і абревіатури</title>
+
+<para
+><emphasis
+>Клас символів</emphasis
+> — це вираз, якому відповідає один символ з вказаного набору символів. У формальних виразах, класи символів визначаються зазначенням дозволених символів класу у квадратних дужках, <literal
+>[]</literal
+>, або за допомогою абревіатур класів, які описано нижче.</para>
+
+<para
+>Прості класи символів містять один або декілька буквених символів, наприклад, <userinput
+>[abc]</userinput
+> (це означає одну з літер: <quote
+>a</quote
+>, <quote
+>b</quote
+> або <quote
+>c</quote
+>) або <userinput
+>[0123456789]</userinput
+> (цей клас визначає одну цифру).</para>
+
+<para
+>Оскільки для літер і цифр характерний певний порядок (абетка або порядок цифр), ви можете скорочувати запис за допомогою діапазонів: <userinput
+>[a-c]</userinput
+> рівнозначний до <userinput
+>[abc]</userinput
+>, а <userinput
+>[0-9]</userinput
+> — до <userinput
+>[0123456789]</userinput
+>. Можна також використовувати комбінації таких конструкцій, наприклад, <userinput
+>[a-fynot1-38]</userinput
+> (звичайно ж, остання комбінація відповідає одному з символів <quote
+>a</quote
+>,<quote
+>b</quote
+>,<quote
+>c</quote
+>,<quote
+>d</quote
+>, <quote
+>e</quote
+>,<quote
+>f</quote
+>,<quote
+>y</quote
+>,<quote
+>n</quote
+>,<quote
+>o</quote
+>,<quote
+>t</quote
+>, <quote
+>1</quote
+>,<quote
+>2</quote
+>,<quote
+>3</quote
+> або <quote
+>8</quote
+>).</para>
+
+<para
+>Оскільки великі літери відрізняються від своїх малих еквівалентів, для створення класу символів, у якому б регістр не мав значення, з літер <quote
+>a</quote
+> і <quote
+>b</quote
+>, вам слід записати <userinput
+>[aAbB]</userinput
+>.</para>
+
+<para
+>Звичайно ж можна створити і <quote
+>негативний клас</quote
+>, до якого б входили <quote
+>всі літери окрім вказаних</quote
+>. Для запису такого класу вам слід скористатися символом каретки (<literal
+>^</literal
+>) на початку запису класу: </para>
+
+<para
+>Набір <userinput
+>[^abc]</userinput
+> відповідає будь-якому символу, <emphasis
+>окрім</emphasis
+> <quote
+>a</quote
+>, <quote
+>b</quote
+> і <quote
+>c</quote
+>.</para>
+
+<para
+>Окрім звичайних символів, передбачено використання деяких скорочень, які спрощують запис формальних виразів: <variablelist>
+
+<varlistentry>
+<term
+><userinput
+>\a</userinput
+></term>
+<listitem
+><para
+>Цей рядок відповідає символу дзвінка у <acronym
+>ASCII</acronym
+> (BEL, 0x07).</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>\f</userinput
+></term>
+<listitem
+><para
+>Цей рядок відповідає символу зміни сторінки у <acronym
+>ASCII</acronym
+> (FF, 0x0C).</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>\n</userinput
+></term>
+<listitem
+><para
+>Цей рядок відповідає символу зміни рядка у <acronym
+>ASCII</acronym
+> (LF, 0x0A, символ нового рядка у Unix).</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>\r</userinput
+></term>
+<listitem
+><para
+>Цей рядок відповідає символу повернення каретки у <acronym
+>ASCII</acronym
+> (CR, 0x0D).</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>\t</userinput
+></term>
+<listitem
+><para
+>Цей рядок відповідає символу горизонтальної табуляції у <acronym
+>ASCII</acronym
+> (HT, 0x09).</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>\v</userinput
+></term>
+<listitem
+><para
+>Цей рядок відповідає символу вертикальної табуляції у <acronym
+>ASCII</acronym
+> (VT, 0x0B).</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><userinput
+>\xhhhh</userinput
+></term>
+
+<listitem
+><para
+>Такий рядок відповідає символу Unicode з шістнадцятковим номером hhhh (у межах від 0x0000 до 0xFFFF). \0ooo (тобто \нульo ooo) відповідає символу з <acronym
+>ASCII</acronym
+>/Latin-1 з вісімковим номером ooo (у межах від 0 до 0377).</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>.</userinput
+> (крапка)</term>
+<listitem
+><para
+>Цей рядок відповідає будь-якому символу (зокрема символу нового рядка).</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>\d</userinput
+></term>
+<listitem
+><para
+>Цей рядок відповідає будь-якій цифрі. Він рівнозначний до <literal
+>[0-9]</literal
+></para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>\D</userinput
+></term>
+<listitem
+><para
+>Цей рядок відповідає будь-якому символу, окрім цифри. Він рівнозначний до <literal
+>[^0-9]</literal
+> або <literal
+>[^\d]</literal
+></para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>\s</userinput
+></term>
+<listitem
+><para
+>Цей рядок відповідає символу проміжку між символами. З практичної точки зору, він рівнозначний до <literal
+>[ \t\n\r]</literal
+></para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>\S</userinput
+></term>
+<listitem
+><para
+>Цей рядок відповідає символу, який не є пробілом. З практичної точки зору, цей рядок еквівалентний до <literal
+>[^ \t\r\n]</literal
+> або <literal
+>[^\s]</literal
+></para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>\w</userinput
+></term>
+<listitem
+><para
+>Цей рядок відповідає будь-якому <quote
+>символу слова</quote
+> — у нашому випадку, літері, цифрі або символу підкреслювання. Цей рядок еквівалентний до рядка <literal
+>[a-zA-Z0-9_]</literal
+></para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>\W</userinput
+></term>
+<listitem
+><para
+>Цей рядок відповідає будь-якому символу, який не є символом запису слів, тобто будь-якому символу, який не є літерою, цифрою або символом підкреслювання. Рядок еквівалентний до рядка <literal
+>[^a-zA-Z0-9_]</literal
+> або <literal
+>[^\w]</literal
+></para
+></listitem>
+</varlistentry>
+
+
+</variablelist>
+
+</para>
+
+<para
+>Передбачено також підтримку <emphasis
+>позначення класів POSIX</emphasis
+> — <userinput
+>[:&lt;назва класу&gt;:]</userinput
+>. Наприклад, <userinput
+>[:digit:]</userinput
+> є тим самим, що і <userinput
+>\d</userinput
+>, а <userinput
+>[:space:]</userinput
+> — тим самим, що і <userinput
+>\s</userinput
+>. Із повним списком класів символів POSIX можна ознайомитися <ulink url="https://www.regular-expressions.info/posixbrackets.html"
+>тут</ulink
+>.</para>
+
+<para
+>Класи-скорочення можна використовувати в межах загальних класів, наприклад, щоб знайти літеру слова, символ пробілу або крапку, ви можете скористатися записом <userinput
+>[\w \.]</userinput
+></para>
+
+<sect3>
+<title
+>Символи з особливим призначенням у класах символів</title>
+
+<para
+>Перелічені далі символи мають особливе призначення у конструкціях класів символів <quote
+>[]</quote
+>, отже для включення їх за візуальним значенням до класу ці символи слід екранувати:</para>
+
+<variablelist>
+<varlistentry>
+<term
+><userinput
+>]</userinput
+></term>
+<listitem
+><para
+>Завершує визначення класу символів. Цей символ слід екранувати, якщо він не є найпершим символом у класі (можна використовувати одразу за неекранованим символом каретки).</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><userinput
+>^</userinput
+> (знак вставки)</term>
+<listitem
+><para
+>Змінює значення вказаного класу на протилежне, якщо є першим символом класу. Цей символ слід екранувати, якщо він є першим символом класу.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><userinput
+>-</userinput
+> (дефіс)</term>
+<listitem
+><para
+>Визначає діапазон. Цей символ завжди слід екранувати, якщо він визначає символ у класі символів.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><userinput
+>\</userinput
+> (зворотна навскісна риска)</term>
+<listitem
+><para
+>Символ керівної послідовності. Цей символ завжди слід екранувати, якщо він потрібен вам як символ зворотної навскісної риски.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect3>
+
+</sect2>
+
+<sect2>
+
+<title
+>Варіанти: пошук <quote
+>одного з</quote
+></title>
+
+<para
+>Якщо вам потрібно знайти один з декількох варіантів шаблонів, ви можете відокремити ці шаблони символом <literal
+>|</literal
+> (вертикальною рискою).</para>
+
+<para
+>Наприклад, щоб знайти один з рядків, <quote
+>Іван</quote
+> або <quote
+>Юрій</quote
+>, вам слід скористатися виразом <userinput
+>Іван|Юрій</userinput
+>.</para>
+
+</sect2>
+
+<sect2>
+
+<title
+>Підшаблони</title>
+
+<para
+><emphasis
+>Підшаблони</emphasis
+> — це шаблони взяті у круглі дужки, у світі формальних виразів існує декілька способів використання підшаблонів.</para>
+
+<sect3>
+
+<title
+>Визначення варіантів</title>
+
+<para
+>Ви можете скористатися підшаблоном, щоб згрупувати набір варіантів у більший шаблон. Варіанти відокремлюються символом <quote
+>|</quote
+> (вертикальною рискою).</para>
+
+<para
+>Наприклад, для того, щоб знайти одне зі слів <quote
+>int</quote
+>, <quote
+>float</quote
+> або <quote
+>double</quote
+>, ви можете скористатися шаблоном <userinput
+>int|float|double</userinput
+>. Якщо вам потрібно знайти одне з цих слів, і вам відомо, що за цим словом має йти пробіл, а потім якісь літери, згрупуйте варіанти у підшаблон: <userinput
+>(int|float|double)\s+\w+</userinput
+>.</para>
+
+</sect3>
+
+<sect3 id="regex-capturing">
+
+<title
+>Збереження знайденого тексту (зворотні посилання)</title>
+
+<para
+>Якщо ви хочете скористатися зворотним посиланням, скористайтеся рядком <userinput
+>(ШАБЛОН)</userinput
+> для запам'ятовування бажаної частини рядка. Щоб запобігти запам'ятовуванню шаблона, скористайтеся групуванням без захоплення вмісту <userinput
+>(?:ШАБЛОН)</userinput
+>.</para>
+
+<para
+>Наприклад, якщо вам потрібно знайти два однакових слова, відокремлені комою і, можливо, пробільними символами, ви можете скористатися формальним виразом <userinput
+>(\w+),\s*\1</userinput
+>. За допомогою підшаблону <literal
+>\w+</literal
+> буде знайдено послідовність символів слів, збіг з формальним виразом буде зареєстровано, якщо за цією послідовністю буде кома, 0 або більше пробільних символів і така сама послідовність символів слів. (Рядок <literal
+>\1</literal
+> відповідає <emphasis
+>першому підшаблону, взятому у круглі дужки</emphasis
+>)</para>
+
+<note>
+<para
+>Щоб уникнути двозначностей, пов’язаних із використанням <userinput
+>\1</userinput
+> з якимись цифрами за ним (наприклад <userinput
+>\12</userinput
+> може означати 12 підшаблон або просто перший підшаблон із наступним <userinput
+>2</userinput
+>) ми використовуємо синтаксичну конструкцію <userinput
+>\{12}</userinput
+> для багатоцифрових номерів підшаблонів.</para>
+<para
+>Приклади:</para>
+<itemizedlist>
+<listitem
+><para
+><userinput
+>\{12}1</userinput
+> — це <quote
+>використати підшаблон 12</quote
+></para
+></listitem>
+<listitem
+><para
+><userinput
+>\123</userinput
+> — це <quote
+>використати підшаблон 1, потім 23 як звичайний текст</quote
+></para
+></listitem>
+</itemizedlist>
+
+</note>
+
+<!-- <para
+>See also <link linkend="backreferences"
+>Back references</link
+>.</para
+> -->
+
+</sect3>
+
+<sect3 id="lookahead-assertions">
+<title
+>Умовні вирази з перевіркою</title>
+
+<para
+>Умовний вираз з перевіркою — це підшаблон, що починається з символів <literal
+>?=</literal
+> або <literal
+>?!</literal
+>.</para>
+
+<para
+>Наприклад, для того, щоб знайти рядок <quote
+>Білл</quote
+>, за яким не буде рядка <quote
+> Гейтс</quote
+>, можна скористатися таким виразом: <userinput
+>Bill(?! Gates)</userinput
+>. (Таким чином буде знайдено послідовності <quote
+>Білл Клінтон</quote
+> і <quote
+>Біллі Кід</quote
+>, але проігноровано всі інші варіанти.)</para>
+
+<para
+>Підшаблони, які було використано для перевірки умови, не будуть запам’ятовуватися рушієм пошуку.</para>
+
+<para
+>Див. також <link linkend="assertions"
+>Умовні вирази</link
+>.</para>
+
+</sect3>
+
+<sect3 id="lookbehind-assertions">
+<title
+>Умовні вирази з перевіркою і пошуком назад</title>
+
+<para
+>Умовний вираз з перевіркою і пошуком назад — це підшаблон, що починається з символів <literal
+>?&lt;=</literal
+> або <literal
+>?&lt;!</literal
+>.</para>
+
+<para
+>Пошук назад працює так само, як і пошук вперед, але пошук виконується у протилежному напрямку. Наприклад, знайти рядок <quote
+>команда</quote
+>, але лише якщо перед ним немає рядка <quote
+>Зе</quote
+>, ви можете скористатися таким виразом: <userinput
+>(?&lt;!Зе)команда</userinput
+>.</para>
+
+<para
+>Підшаблони, які було використано для перевірки умови, не будуть запам’ятовуватися рушієм пошуку.</para>
+
+<para
+>Див. також <link linkend="assertions"
+>Умовні вирази</link
+></para>
+
+</sect3>
+
+</sect2>
+
+<sect2 id="special-characters-in-patterns">
+<title
+>Символи зі спеціальним значення у шаблонах</title>
+
+<para
+>Перелічені нижче символи мають особливе призначення в межах шаблону, отже, якщо вам потрібно буде знайти ці символи за візуальним представленням, вам слід буде екранувати їх: <variablelist>
+
+<varlistentry>
+<term
+><userinput
+>\</userinput
+> (зворотна навскісна риска)</term>
+<listitem
+><para
+>Символ керівної послідовності.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>^</userinput
+> (знак вставки)</term>
+<listitem
+><para
+>Умовний початок рядка.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>$</userinput
+></term>
+<listitem
+><para
+>Умовне завершення рядка.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>()</userinput
+> (ліва і права круглі дужки)</term>
+<listitem
+><para
+>Визначення підшаблону.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>{}</userinput
+> (ліва і права фігурні дужки)</term>
+<listitem
+><para
+>Визначення числових лічильників.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>[]</userinput
+> (ліва і права квадратні дужки)</term>
+<listitem
+><para
+>Визначення класів символів.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>|</userinput
+> (вертикальна риска)</term>
+<listitem
+><para
+>Логічне АБО. Відокремлює варіанти значення.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>+</userinput
+> (знак «плюс»)</term>
+<listitem
+><para
+>Лічильник, 1 або більше.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>*</userinput
+> (зірочка)</term>
+<listitem
+><para
+>Лічильник, 0 або більше.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>?</userinput
+> (знак питання)</term>
+<listitem
+><para
+>Необов’язковий символ. Може бути інтерпретовано яка лічильник, 0 або 1.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</para>
+
+</sect2>
+
+</sect1>
+
+<sect1 id="quantifiers">
+<title
+>Лічильники</title>
+
+<para
+>За допомогою <emphasis
+>лічильників</emphasis
+> можна виконувати пошук вказаної кількості або певного діапазону кількостей відповідників символу, класу символів або підшаблону.</para>
+
+<para
+>Лічильники слід вказувати між фігурними дужками (<literal
+>{</literal
+> і <literal
+>}</literal
+>). У загальному випадку вони виглядають так: <literal
+>{[мінімальна кількість][,[максимальна кількість]]}</literal
+> </para>
+
+<para
+>Використання найкраще пояснюється прикладом: <variablelist>
+
+<varlistentry>
+<term
+><userinput
+>{1}</userinput
+></term>
+<listitem
+><para
+>Точно один збіг.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>{0,1}</userinput
+></term>
+<listitem
+><para
+>Жодного або 1 збіг.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>{,1}</userinput
+></term>
+<listitem
+><para
+>Те саме, але меншими зусиллями ;)</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>{5,10}</userinput
+></term>
+<listitem
+><para
+>Не менше 5, але не більше 10 збігів.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>{5,}</userinput
+></term>
+<listitem
+><para
+>Не менше 5 збігів, без обмежень згори.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</para>
+
+<para
+>Крім того, існує декілька скорочень: <variablelist>
+
+<varlistentry>
+<term
+><userinput
+>*</userinput
+> (зірочка)</term>
+<listitem
+><para
+>те саме, що і <literal
+>{0,}</literal
+>, шукати без обмеження на кількість відповідників.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>+</userinput
+> (знак «плюс»)</term>
+<listitem
+><para
+>те саме, що і <literal
+>{1,}</literal
+>, принаймні один відповідник.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>?</userinput
+> (знак питання)</term>
+<listitem
+><para
+>те саме, що і <literal
+>{0,1}</literal
+>, жодного або один відповідник.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</para>
+
+<sect2>
+
+<title
+>Жадібність</title>
+
+<para
+>За використання лічильників без зазначення максимальної кількості, типово, буде виконано пошук якомога більшої кількості відповідників формального виразу, така поведінка називається <emphasis
+>жадібною</emphasis
+>.</para>
+
+<para
+>У сучасних рушіях пошуку за формальними виразами передбачено можливість <quote
+>вимикання жадібності</quote
+>, забезпечення доступу до цієї можливості є проблемою лише графічного інтерфейсу. Наприклад, у діалоговому вікні пошуку за формальним виразом може бути поле для позначки з міткою <quote
+>Мінімальна кількість збігів</quote
+>, а також певним чином позначено, що жадібність є типовою поведінкою.</para>
+
+</sect2>
+
+<sect2>
+<title
+>Приклади використання</title>
+
+<para
+>Ось декілька прикладів використання лічильників.</para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><userinput
+>^\d{4,5}\s</userinput
+></term>
+<listitem
+><para
+>Буде знайдено цифри у <quote
+>1234 поїхали</quote
+> і <quote
+>12345 давай</quote
+>, але не у <quote
+>567 одинадцять</quote
+> і у <quote
+>223459 десь</quote
+>.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>\s+</userinput
+></term>
+<listitem
+><para
+>Буде знайдено один або декілька пробільних символів.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>(ля){1,}</userinput
+></term>
+<listitem
+><para
+>Буде знайдено <quote
+>ляляля</quote
+>, а також <quote
+>ля</quote
+> у словах <quote
+>шабля</quote
+> або <quote
+>пляшка</quote
+>.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>/?&gt;</userinput
+></term>
+<listitem
+><para
+>Буде знайдено <quote
+>/&gt;</quote
+> у <quote
+>&lt;closeditem/&gt;</quote
+>, а також <quote
+>&gt;</quote
+> у <quote
+>&lt;openitem&gt;</quote
+>.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+
+</sect1>
+
+<sect1 id="assertions">
+<title
+>Умовні вирази</title>
+
+<para
+>За допомогою <emphasis
+>умовних виразів</emphasis
+> відповідники формального виразу буде знайдено лише за виконання певних керованих умов.</para>
+
+<para
+>За використання умовного виразу не буде виконуватися пошук певного символу, рушій скоріше вивчатиме оточення можливого відповідника формального виразу і визначатиме, чи той це вираз, який вам потрібен. Наприклад, за використання умови <emphasis
+>межа слова</emphasis
+> рушій пошуку не намагатиметься знайти символ, який не є символом слова, поряд зі знайденим словом, — рушій просто переконається, що цей символ не є символом слова. Це означає, що за використання умовного виразу, рядок буде знайдено і там, де пробільного символу немає, наприклад, наприкінці рядка.</para>
+
+<para
+>У деяких умовних виразах можуть міститися шаблони, але за їх використання виконуватиметься лише перевірка на збіг рядка з вказаним шаблоном, — результат перевірки не буде включено до результатів пошуку.</para>
+
+<para
+>У формальних виразах, описаних у цій документації, підтримуються такі умовні вирази: <variablelist>
+
+<varlistentry>
+<term
+><userinput
+>^</userinput
+> (каретка: початок рядка)</term>
+<listitem
+><para
+>Пошук на початку рядка.</para
+> <para
+>За виразом <userinput
+>^Петре</userinput
+> буде знайдено рядок <quote
+>Петре</quote
+> у рядку <quote
+>Петре, агов!</quote
+>, але не у рядку <quote
+>Агов, Петре!</quote
+> </para
+> </listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>$</userinput
+> (кінець рядка)</term>
+<listitem
+><para
+>Пошук наприкінці рядка.</para>
+
+<para
+>За виразом <userinput
+>ти\?$</userinput
+> буде знайдено останнє «ти» у рядку <quote
+>Це зробив не ти?</quote
+>, але нічого не буде знайдено у рядку <quote
+>Це ж не ти зробив?</quote
+></para>
+
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>\b</userinput
+> (межа слова)</term>
+<listitem
+><para
+>Пошук рядка, з одного боку якого стоїть символ запису слів, а з іншого — символ, який не використовується для запису слів.</para>
+<para
+>Цей вираз корисний для перевірки на те, чи завершується у певному місці слово, наприклад під час пошуку цілого слова. Вираз <userinput
+>\bу\b</userinput
+> буде знайдено як окреме слово <quote
+>у</quote
+> у рядку <quote
+>Він увійшов у вікно</quote
+>, але не як частину <quote
+>у</quote
+> слова <quote
+>увійшов</quote
+>.</para
+></listitem>
+
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>\B</userinput
+> (відсутність межі слова)</term>
+<listitem
+><para
+>Пошук всіх відповідників, які не буде пропущено за використання умовного виразу <quote
+>\b</quote
+>.</para>
+<para
+>Такий вираз можна використовувати, наприклад, для пошуку внутрішніх частин слів: вираз <userinput
+>\Bу\B</userinput
+> буде знайдено у слові <quote
+>вухо</quote
+>, але не у слові <quote
+>увійшов</quote
+> або виразі <quote
+>Бачив у кіно</quote
+>.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>(?=ШАБЛОН)</userinput
+> (перевірка на збіг)</term>
+<listitem
+><para
+>За допомогою умовного виразу перевірки на збіг можна перевірити на відповідність частину рядка, яку розташовано безпосередньо за можливим відповідником. За використання перевірки на збіг частина рядка вважатиметься невідповідною, якщо за нею не йде вказаний <emphasis
+>ШАБЛОН</emphasis
+> умовного виразу, але текст цього шаблону не буде додано до результату пошуку.</para>
+<para
+>За виразом <userinput
+>зручно(?=\w)</userinput
+> буде знайдено рядок <quote
+>зручно</quote
+> у слові <quote
+>зручності</quote
+>, а у рядку <quote
+>Це дуже зручно!</quote
+> нічого не буде знайдено.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>(?!ШАБЛОН)</userinput
+> (перевірка на відсутність збігу)</term>
+
+<listitem
+><para
+>За перевірки на відсутність збігу знайдений рядок не буде вважатися потрібним, якщо за ним йде рядок вказаний як <emphasis
+>ШАБЛОН</emphasis
+>.</para>
+<para
+>Вираз <userinput
+>const \w+\b(?!\s*&amp;)</userinput
+> відповідатиме частині <quote
+>const char</quote
+> у рядку <quote
+>const char* foo</quote
+>, але не частині <quote
+>const QString</quote
+> у рядку <quote
+>const QString&amp; bar</quote
+>, оскільки символ <quote
+>&amp;</quote
+> збігається з шаблоном перевірки на відсутність збігу.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>(?&lt;=ШАБЛОН)</userinput
+> (перевірка на збіг із пошуком назад)</term>
+<listitem
+><para
+>Пошук назад працює так само, як і пошук вперед, але пошук виконується у протилежному напрямку. За допомогою умовного виразу перевірки на збіг із пошуком назад можна перевірити на відповідність частину рядка, яку розташовано безпосередньо перед можливим відповідником. Частина рядка вважатиметься відповідною, лише якщо перед нею не йде вказаний <emphasis
+>ШАБЛОН</emphasis
+> умовного виразу, але текст цього шаблону не буде додано до результату пошуку.</para>
+<para
+>За виразом <userinput
+>(?&lt;=диво)сміх</userinput
+> буде знайдено <quote
+>сміх</quote
+>, якщо перед ним є рядок <quote
+>диво</quote
+> (тобто буде знайдено <quote
+>дивосміх</quote
+>, але не <quote
+>вогнесміх</quote
+> і не окреме слово <quote
+>сміх</quote
+>).</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>(?&lt;!ШАБЛОН)</userinput
+> (перевірка на відсутність збігу із пошуком назад)</term>
+<listitem
+><para
+>За перевірки на відсутність збігу із пошуком назад знайдений рядок не буде вважатися потрібним, якщо перед ним йде рядок вказаний як <emphasis
+>ШАБЛОН</emphasis
+>.</para>
+<para
+>За виразом <userinput
+>(?&lt;![\w\.])[0-9]+</userinput
+> буде знайдено <quote
+>123</quote
+> у рядках <quote
+>=123</quote
+> і <quote
+>-123</quote
+>, але не буде знайдено <quote
+>123</quote
+> у <quote
+>.123</quote
+> і <quote
+>слово123</quote
+>.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>(ШАБЛОН)</userinput
+> (Захоплення групи)</term>
+
+<listitem
+><para
+>Засіб обробки захопить і запам'ятає шаблон у дужках так, щоб ним можна було скористатися для зворотного посилання. Наприклад, вираз <userinput
+>(&amp;quot;+)[^&amp;quot;]*\1</userinput
+> відповідає одразу рядку <userinput
+>&quot;&quot;&quot;&quot;текст&quot;&quot;&quot;&quot;</userinput
+> і рядку <userinput
+>&quot;текст&quot;</userinput
+>.</para>
+<para
+>Докладніший опис можна знайти у розділі <link linkend="regex-capturing"
+>Збереження знайденого тексту (зворотні посилання)</link
+>.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>(?:ШАБЛОН)</userinput
+> (Групування без захоплення)</term>
+
+<listitem
+><para
+>Засіб обробки не захоплюватиме і не запам'ятовуватиме шаблон у дужках. Якщо ви не маєте наміру використовувати запам'ятовування груп, варто завжди користуватися саме цим варіантом запису груп.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</para>
+
+</sect1>
+
+<!-- TODO sect1 id="backreferences">
+
+<title
+>Back References</title>
+
+<para
+></para>
+
+</sect1 -->
+
+</appendix>

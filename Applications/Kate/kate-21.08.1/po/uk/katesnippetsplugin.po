@@ -1,0 +1,383 @@
+# Translation of katesnippetsplugin.po to Ukrainian
+# Copyright (C) 2012-2020 This_file_is_part_of_KDE
+# This file is distributed under the license LGPL version 2.1 or
+# version 3 or later versions approved by the membership of KDE e.V.
+#
+# Yuri Chornoivan <yurchor@ukr.net>, 2012, 2014, 2015, 2016, 2019, 2020.
+msgid ""
+msgstr ""
+"Project-Id-Version: katesnippetsplugin\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2021-01-30 03:20+0100\n"
+"PO-Revision-Date: 2020-09-13 08:34+0300\n"
+"Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
+"Language-Team: Ukrainian <kde-i18n-uk@kde.org>\n"
+"Language: uk\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=4; plural=n==1 ? 3 : n%10==1 && n%100!=11 ? 0 : n"
+"%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"X-Generator: Lokalize 20.11.70\n"
+
+#, kde-format
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr "Юрій Чорноіван"
+
+#, kde-format
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr "yurchor@ukr.net"
+
+#: editrepository.cpp:77 editrepository.cpp:115
+#, kde-format
+msgid "Edit Snippet Repository %1"
+msgstr "Зміна параметрів сховища %1"
+
+#: editrepository.cpp:79
+#, kde-format
+msgid "Create New Snippet Repository"
+msgstr "Створення сховища фрагментів"
+
+#: editrepository.cpp:126
+#, kde-format
+msgid "<i>leave empty for general purpose snippets</i>"
+msgstr ""
+"<i>не заповнюйте, якщо фрагменти є фрагментами загального використання</i>"
+
+#. i18n: ectx: property (text), widget (QLabel, repoNameLabel)
+#. i18n: ectx: property (text), widget (QLabel, snippetName)
+#: editrepository.ui:29 editsnippet.ui:35
+#, kde-format
+msgid "Name:"
+msgstr "Назва:"
+
+#. i18n: ectx: property (text), widget (QLabel, repoNamespaceLabel)
+#: editrepository.ui:36
+#, kde-format
+msgid "Namespace:"
+msgstr "Простір назв:"
+
+#. i18n: ectx: property (text), widget (QLabel, repoLicenseLabel)
+#: editrepository.ui:43
+#, kde-format
+msgid "&License:"
+msgstr "&Ліцензія:"
+
+#. i18n: ectx: property (text), widget (QLabel, repoAuthorsLabel)
+#: editrepository.ui:56
+#, kde-format
+msgid "&Authors:"
+msgstr "&Автори:"
+
+#. i18n: ectx: property (text), widget (QLabel, repoFileTypesLabel)
+#: editrepository.ui:69
+#, kde-format
+msgid "&File types:"
+msgstr "Типи &файлів:"
+
+#. i18n: ectx: property (placeholderText), widget (QLineEdit, repoNameEdit)
+#: editrepository.ui:96
+#, kde-format
+msgid "A short name for the repository"
+msgstr "Скорочена назва сховища"
+
+#. i18n: ectx: property (placeholderText), widget (QLineEdit, repoNamespaceEdit)
+#: editrepository.ui:103
+#, kde-format
+msgid "Prefix to show in code completion"
+msgstr "Префікс, який слід показувати у автозавершенні коду"
+
+#: editsnippet.cpp:96 editsnippet.cpp:175
+#, kde-format
+msgid "Edit Snippet %1 in %2"
+msgstr "Зміна фрагмента %1 у %2"
+
+#: editsnippet.cpp:106
+#, kde-format
+msgid "Create New Snippet in Repository %1"
+msgstr "Створення нового фрагмента у сховищі %1"
+
+#: editsnippet.cpp:143
+#, kde-format
+msgid "Snippet name cannot contain spaces"
+msgstr "Назва фрагмента не повинна містити пробілів"
+
+#: editsnippet.cpp:182
+#, kde-format
+msgid ""
+"The snippet contains unsaved changes. Do you want to continue and lose all "
+"changes?"
+msgstr ""
+"У фрагменті містяться незбережені зміни. Чи бажаєте ви продовжити виконання "
+"дії з втратою всіх змін?"
+
+#: editsnippet.cpp:183
+#, kde-format
+msgid "Warning - Unsaved Changes"
+msgstr "Попередження: незбережені зміни"
+
+#. i18n: ectx: property (placeholderText), widget (QLineEdit, snippetNameEdit)
+#: editsnippet.ui:42
+#, kde-format
+msgid "will be shown in the completion list"
+msgstr "буде показано у списку автозавершення"
+
+#. i18n: ectx: attribute (title), widget (QWidget, snippetTab)
+#: editsnippet.ui:62
+#, kde-format
+msgid "&Snippet"
+msgstr "&Фрагмент"
+
+#. i18n: ectx: property (text), widget (QLabel, snippetLabel)
+#: editsnippet.ui:68
+#, kde-format
+msgid ""
+"The text your snippet will insert into the document. <a href=\"A snippet can "
+"contain editable fields. They can be cycled by pressing Tab. The following "
+"expressions can be used in the template text to create fields: <br><tt>"
+"${field_name}</tt> creates a simple, editable field. All subsequent "
+"occurrences of the same field_name create fields which mirror the contents "
+"of the first during editing.<br><tt>${field_name=default}</tt> can be used "
+"to specify a default value for the field. <tt>default</tt> can be any "
+"JavaScript expression.<br>Use <tt>${field_name=text}</tt> to specify a fixed "
+"string as default value.<br><tt>${func(other_field1, other_field2, ...)}</"
+"tt> can be used to create a field which evaluates a JavaScript function on "
+"each edit and contains its contents. See the Scripts tab for more "
+"information.<br><tt>${cursor}</tt> can be used to mark the end position of "
+"the cursor after everything else was filled in.\">More...</a>"
+msgstr ""
+"Текст, який ваш фрагмент вставлятиме до документа. <a href=\"Фрагмент може "
+"містити придатні до редагування поля. Циклічний перехід цими полями можна "
+"здійснювати натисканням клавіші Tab. У тексті шаблона можна використовувати "
+"такі вирази для створення полів: <br><tt>${назва_поля}</tt> створює просте "
+"придатне до редагування поле. Під час редагування усі наступні вставки тієї "
+"самої назви_поля будуть дзеркальними копіями вмісту першого поля.<br><tt>"
+"${назва_поля=типове значення}</tt> може бути використане для визначення "
+"типового значення поля. Вмістом фрагмента <tt>типове значення</tt> може бути "
+"будь-який вираз JavaScript.<br><tt>${назва_поля=текст}</tt> — вказати "
+"фіксований рядок як типове значення.<br><tt>${функція(інше_поле1, "
+"інше_поле2, ...)}</tt> — цим можна скористатися для створення поля, яке "
+"міститиме результат виконання функції JavaScript під час кожного "
+"редагування. Докладнішу інформацію можна знайти на вкладці «Скрипти».<br><tt>"
+"${курсор}</tt> — цим можна скористатися для того, щоб вказати кінцеву "
+"позицію курсора після заповнення усіх інших даних.\">Докладніше…</a>"
+
+#. i18n: ectx: attribute (title), widget (QWidget, scriptTab)
+#: editsnippet.ui:82
+#, kde-format
+msgid "S&cripts"
+msgstr "Ск&рипти"
+
+#. i18n: ectx: property (text), widget (QLabel, scriptLabel)
+#: editsnippet.ui:88
+#, kde-format
+msgid ""
+"Write down JavaScript helper functions to use in your snippets here. <a href="
+"\"All JavaScript functions should return the contents you want to place in a "
+"template field as a string.<br>Functions are called in a scope which "
+"contains the contents of all editable template fields as local variables. "
+"For example in a snippet containing <tt>${field}</tt>, a variable called "
+"<tt>field</tt> will be present which contains the up-to-date contents of the "
+"template field. Those variables can either be used in the function "
+"statically or passed as arguments, by using the <tt>${func(field)}</tt> or "
+"<tt>${field2=func(field)}</tt> syntax in the snippet string.<br>You can use "
+"the kate scripting API to get the selected text, full text, file name and "
+"more by using the appropriate methods of the <tt>document</tt> and <tt>view</"
+"tt> objects. Refer to the scripting API documentation for more information."
+"\">More...</a>"
+msgstr ""
+"Тут можна запрограмувати допоміжні функції JavaScript, які "
+"використовуватимуться у ваших фрагментах. <a href=\"Усі функції JavaScript "
+"мають повертати дані, які ви хочете вставити до поля шаблона як рядок."
+"<br>Функції викликаються у області, яка містить вміст усіх редагованих полів "
+"як локальні змінні. Наприклад, у фрагменті, що містить <tt>${поле}</tt>, "
+"міститься змінна із назвою <tt>поле</tt>, яка матиме значення поточного "
+"вмісту поля шаблона. Такими змінними у функції можна скористатися або "
+"статично, або передати вміст змінних як аргумент функції, використовуючи у "
+"рядку фрагмента такий синтаксис: <tt>${функція(поле)}</tt> або <tt>"
+"${поле2=функція(поле)}</tt>.<br>Ви можете скористатися скриптовим програмним "
+"інтерфейсом Kate для отримання даних щодо позначеного тексту, усього тексту "
+"документа, назви файла та інших даних за допомогою методів у об’єктах "
+"<tt>document</tt> та <tt>view</tt>. Щоб дізнатися більше, зверніться до "
+"документації із скриптового програмного інтерфейсу.\">Докладніше…</a>"
+
+#. i18n: ectx: property (text), widget (QPushButton, dotest_button)
+#: editsnippet.ui:105
+#, kde-format
+msgid "Test this snippet"
+msgstr "Перевірити цей фрагмент"
+
+#: katesnippetglobal.cpp:104
+#, kde-format
+msgctxt "Autogenerated repository name for a programming language"
+msgid "%1 snippets"
+msgstr "Фрагменти %1"
+
+#: katesnippets.cpp:47
+#, kde-format
+msgid "Snippets tool view"
+msgstr "Перегляд панелі засобу фрагментів"
+
+#: katesnippets.cpp:55 snippetcompletionmodel.cpp:43 snippetview.cpp:80
+#: snippetview.cpp:194
+#, kde-format
+msgid "Snippets"
+msgstr "Фрагменти"
+
+#: katesnippets.cpp:66
+#, kde-format
+msgid "Create Snippet"
+msgstr "Створити фрагмент"
+
+#: snippet.cpp:24
+#, kde-format
+msgid "<empty snippet>"
+msgstr "<порожній фрагмент>"
+
+#: snippet.cpp:62
+#, kde-format
+msgid "insert snippet %1"
+msgstr "вставити фрагмент %1"
+
+#: snippetrepository.cpp:45
+#, kde-format
+msgid "<empty repository>"
+msgstr "<порожнє сховище>"
+
+#: snippetrepository.cpp:230
+#, kde-format
+msgid ""
+"You have edited a snippet repository file not located in your personal "
+"directory; as such, a copy of the original file has been created within your "
+"personal data directory."
+msgstr ""
+"Ви здійснювали редагування файла сховища фрагментів, що зберігається поза "
+"межами вашого особистого каталогу даних. У вашому особистому каталозі даних "
+"створено копію початкового файла даних."
+
+#: snippetrepository.cpp:236
+#, kde-format
+msgid "Output file '%1' could not be opened for writing"
+msgstr "Не вдалося відкрити для запису файл для виведення даних «%1»"
+
+#: snippetrepository.cpp:271
+#, kde-format
+msgid "Cannot open snippet repository %1."
+msgstr "Не вдалося відкрити сховище фрагментів %1."
+
+#: snippetrepository.cpp:284
+#, kde-format
+msgid ""
+"<qt>The error <b>%4</b><br /> has been detected in the file %1 at %2/%3</qt>"
+msgstr "<qt>Було знайдено помилку <b>%4</b><br /> у файлі %1 в %2/%3</qt>"
+
+#: snippetrepository.cpp:291
+#, kde-format
+msgid "Invalid XML snippet file: %1"
+msgstr "Некоректний файл XML фрагментів: %1"
+
+#: snippetrepository.cpp:357
+#, kde-format
+msgid ""
+"Repository is disabled, the contained snippets will not be shown during code-"
+"completion."
+msgstr ""
+"Сховище вимкнено, під час доповнення коду програма не показуватиме "
+"фрагментів, що у ньому містяться."
+
+#: snippetrepository.cpp:360
+#, kde-format
+msgid "Applies to all filetypes"
+msgstr "Застосовувати до файлів усіх типів"
+
+#: snippetrepository.cpp:362
+#, kde-format
+msgid "Applies to the following filetypes: %1"
+msgstr "Застосовувати лише до файлів типів: %1"
+
+#: snippetview.cpp:96
+#, kde-format
+msgid "Add Repository"
+msgstr "Додати сховище"
+
+#: snippetview.cpp:99
+#, kde-format
+msgid "Edit Repository"
+msgstr "Змінити параметри сховища"
+
+#: snippetview.cpp:102
+#, kde-format
+msgid "Remove Repository"
+msgstr "Вилучити сховище"
+
+#: snippetview.cpp:108
+#, kde-format
+msgid "Publish Repository"
+msgstr "Оприлюднення сховища"
+
+#: snippetview.cpp:117
+#, kde-format
+msgid "Add Snippet"
+msgstr "Додати фрагмент"
+
+#: snippetview.cpp:120
+#, kde-format
+msgid "Edit Snippet"
+msgstr "Змінити фрагмент"
+
+#: snippetview.cpp:123
+#, kde-format
+msgid "Remove Snippet"
+msgstr "Вилучити фрагмент"
+
+#: snippetview.cpp:129
+#, kde-format
+msgid "Get New Snippets"
+msgstr "Отримання нових фрагментів"
+
+#: snippetview.cpp:202
+#, kde-format
+msgid "Snippet: %1"
+msgstr "Фрагмент: %1"
+
+#: snippetview.cpp:210
+#, kde-format
+msgid "Repository: %1"
+msgstr "Сховище: %1"
+
+#: snippetview.cpp:275
+#, kde-format
+msgid "Do you really want to delete the snippet \"%1\"?"
+msgstr "Ви справді бажаєте вилучити фрагмент «%1»?"
+
+#: snippetview.cpp:317
+#, kde-format
+msgid ""
+"Do you really want to delete the repository \"%1\" with all its snippets?"
+msgstr "Ви справді бажаєте вилучити сховище «%1» з усіма фрагментами?"
+
+#. i18n: ectx: property (toolTip), widget (KLineEdit, filterText)
+#: snippetview.ui:35
+#, kde-format
+msgid "Define filter here"
+msgstr "Тут вкажіть фільтр"
+
+#. i18n: ectx: property (placeholderText), widget (KLineEdit, filterText)
+#: snippetview.ui:38
+#, kde-format
+msgid "Filter..."
+msgstr "Фільтрувати…"
+
+#. i18n: ectx: Menu (tools)
+#: ui.rc:6
+#, kde-format
+msgid "&Tools"
+msgstr "&Інструменти"
+
+#~ msgid "Snippets..."
+#~ msgstr "Фрагменти…"
+
+#~ msgid "Help"
+#~ msgstr "Довідка"

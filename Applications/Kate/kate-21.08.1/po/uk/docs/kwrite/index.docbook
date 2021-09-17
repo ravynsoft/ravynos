@@ -1,0 +1,425 @@
+<?xml version="1.0" ?>
+<!DOCTYPE article PUBLIC "-//KDE//DTD DocBook XML V4.5-Based Variant V1.1//EN"
+"dtd/kdedbx45.dtd" [
+<!ENTITY kappname "&kwrite;">
+<!ENTITY % Ukrainian "INCLUDE"
+> <!-- change language only here -->
+]>
+
+<article id="kwrite" lang="&language;">
+
+<articleinfo>
+<title
+>Підручник з &kwrite;</title>
+<authorgroup>
+<author
+>&TC.Hollingsworth; &TC.Hollingsworth.mail;</author>
+<othercredit role="developer"
+>&Christoph.Cullmann; &Christoph.Cullmann.mail; </othercredit>
+
+<othercredit role="translator"
+><firstname
+>Юрій</firstname
+><surname
+>Чорноіван</surname
+><affiliation
+><address
+><email
+>yurchor@ukr.net</email
+></address
+></affiliation
+><contrib
+>Переклад українською</contrib
+></othercredit
+> 
+
+</authorgroup>
+
+<copyright>
+<year
+>2014</year>
+<holder
+>&TC.Hollingsworth; &TC.Hollingsworth.mail;</holder>
+</copyright>
+<legalnotice
+>&FDLNotice;</legalnotice>
+
+<date
+>19 травня 2018 року</date>
+<releaseinfo
+>Програми 18.08</releaseinfo>
+
+<abstract>
+<para
+>&kwrite; — це текстовий редактор, створений розробниками &kde;, за допомогою якого ви можете редагувати по одному файлу у кожному з вікон цієї програми.</para>
+</abstract>
+
+<keywordset>
+<keyword
+>KDE</keyword>
+<keyword
+>KWrite</keyword>
+<keyword
+>текст</keyword>
+<keyword
+>редактор</keyword>
+</keywordset>
+
+</articleinfo>
+
+<sect1 id="introduction">
+<title
+>Вступ</title>
+
+<para
+>&kwrite; — це не просто текстовий редактор, створений розробниками &kde;. Його призначено бути редактором програмістів, цю програму можна розглядати як, принаймні частково, альтернативу іншим потужнішим редакторам. Можливо, найкраще використовувати цей редактор у зв’язці з &konqueror; або &dolphin; для перегляду вихідних файлів різними мовами програмування. Крім того, &kwrite; дуже непогано зарекомендував себе як простий редактор текстів. Однією з головних можливостей &kwrite; є розфарбовування синтаксису, налаштоване для багатьох різних мов програмування, зокрема C/C++, &Java;, Python, Perl, Bash, Modula 2, &HTML; і Ada. У &kwrite; передбачено інтерфейс одного документа (<acronym
+>SDI</acronym
+>), що надає вам змогу редагувати по одному файлу у одному вікні. </para>
+
+<para
+>&kwrite; — простий інтерфейс до компонента &katepart;, який використовується у &kate;, KDevelop та інших програмах з &kde;, у яких потрібна можливість редагування тексту. Тому з усіма можливостями &kwrite; можна ознайомитися за допомогою <ulink url="help:/katepart"
+>підручника з &katepart;</ulink
+>. </para>
+</sect1>
+
+<sect1 id="command-line-options">
+<title
+>Параметри командного рядка</title>
+
+<para
+>Хоча найчастіше &kwrite; запускається з меню програм &plasma; або за допомогою піктограми стільниці, його також можна відкрити за допомогою командного рядка у вікні термінала. Існує декілька корисних параметрів, якими можна скористатися для такого способу запуску. </para>
+
+<para
+>Подібні параметри командного рядка передбачено і у багатьох інших програмах, у яких використовується &katepart;.</para>
+
+<sect2 id="specify-a-file">
+<title
+>Визначення файла</title>
+
+<para
+>Визначення шляху або окремого файла користувач може наказати &kwrite; відкрити (або створити) цей файл одразу після запуску. Цей параметр може виглядати так:</para>
+
+<informalexample
+><screen
+><prompt
+>%</prompt
+> <userinput
+><command
+>kwrite</command>
+<option
+><replaceable
+>/home/myhome/docs/myfile.txt</replaceable
+></option>
+</userinput
+>
+</screen>
+</informalexample>
+</sect2>
+<sect2 id="editing-files-on-the-internet">
+<title
+>Визначення файла у мережі Інтернет</title>
+
+<para
+>Вказаним вище способом можна скористатися навіть для відкриття файлів у Інтернеті (якщо на час виконання команди з’єднання з мережею буде активним). Приклад може бути таким:</para>
+
+<informalexample
+><screen
+><prompt
+>%</prompt
+> <userinput
+><command
+>kwrite</command>
+<option
+><replaceable
+>ftp://ftp.kde.org/pub/kde/README</replaceable>
+</option
+></userinput
+>
+</screen>
+</informalexample>
+
+</sect2>
+
+<sect2 id="other-command-line-options">
+<title
+>Інші параметри командного рядка</title>
+
+<para
+>Для отримання довідки ви можете використовувати такі параметри командного рядка</para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><userinput
+><command
+>kwrite</command
+> <option
+>--help</option
+></userinput
+></term>
+<listitem
+><para
+>Ця команда покаже список основних параметрів, доступ до яких можна отримати з командного рядка.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+><command
+>kwrite</command
+> <option
+>--author</option
+></userinput
+></term>
+<listitem
+><para
+>Ця команда покаже вам список авторів &kwrite; у вікні термінала.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+
+<term
+><userinput
+><command
+>kwrite</command
+> <option
+>-v</option
+>, <option
+>--version</option
+></userinput
+></term>
+<listitem
+><para
+>Показує дані щодо версії програми.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+><command
+>kwrite</command
+> <option
+>--license</option
+></userinput
+></term>
+<listitem>
+<para
+>Показує інформацію щодо умов ліцензування програми.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+><command
+>kwrite</command
+> <option
+>--desktopfile</option
+> <parameter
+>назва_файла</parameter
+></userinput
+></term>
+<listitem
+><para
+>Базова назва файла для стільничного запису цієї програми.</para>
+<para
+>Цей параметр, зокрема, корисний для програм-обгорток та програм, які мають декілька стільничних файлів (desktop). За його допомогою кожен стільничний файл може мати власний рядок команди, який вказується у записі <option
+>Exec</option
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+><command
+>kwrite</command
+> <option
+>-e</option
+>, <option
+>--encoding</option
+> <parameter
+>кодування</parameter
+> </userinput
+></term>
+<listitem
+><para
+>Вказує &kwrite; на те, що у документі слід використовувати визначене кодування. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+><command
+>kwrite</command
+> <option
+>-l</option
+>, <option
+>--line</option
+> <parameter
+>рядок</parameter
+> </userinput
+></term>
+<listitem
+><para
+>Переводить курсор на вказаний рядок після відкриття документа. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+><command
+>kwrite</command
+> <option
+>-c</option
+>, <option
+>--column</option
+> <parameter
+>позиція</parameter
+> </userinput
+></term>
+<listitem
+><para
+>Переводить курсор у вказаний стовпчик після відкриття документа. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+><command
+>kwrite</command
+> <option
+>-i</option
+>, <option
+>--stdin</option
+></userinput
+></term>
+<listitem
+><para
+>Наказує &kwrite; читати вміст документа з STDIN. Цей параметр схожий на загальний параметр <option
+>-</option
+>, що використовується у багатьох програмах, які працюють з командного рядка, за допомогою цього параметра ви можете переспрямувати вивід команди до &kwrite;.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+</sect2>
+</sect1>
+
+<sect1 id="credits">
+<title
+>Подяки і ліцензування</title>
+
+<para
+>Авторські права на &kwrite; належать команді розробників &kate;, 2001–2014.</para>
+
+<para
+>Код програми засновано на початковому коді &kwrite;, авторські права на який належали Jochen Wilhelmy <email
+>digisnap@cs.tu-berlin.de</email
+>, ©2000 </para>
+
+<para
+>Учасники розробки:</para>
+
+<itemizedlist>
+<listitem>
+<para
+>&Christoph.Cullmann; &Christoph.Cullmann.mail;</para>
+</listitem>
+
+<listitem>
+<para
+>Michael Bartl <email
+>michael.bartl1@chello.at</email
+></para>
+</listitem>
+
+<listitem>
+<para
+>Phlip <email
+>phlip_cpp@my-deja.com</email
+></para>
+</listitem>
+
+<listitem>
+<para
+>&Anders.Lund; &Anders.Lund.mail;</para>
+</listitem>
+
+<listitem>
+<para
+>Matt Newell <email
+>newellm@proaxis.com</email
+></para>
+</listitem>
+
+<listitem>
+<para
+>&Joseph.Wenninger; &Joseph.Wenninger.mail;</para>
+</listitem>
+
+<listitem>
+<para
+>Jochen Wilhelmy <email
+>digisnap@cs.tu-berlin.de</email
+></para>
+</listitem>
+
+<listitem>
+<para
+>&Michael.Koch; &Michael.Koch.mail;</para>
+</listitem>
+
+<listitem>
+<para
+>&Christian.Gebauer; &Christian.Gebauer.mail;</para>
+</listitem>
+
+<listitem>
+<para
+>&Simon.Hausmann; &Simon.Hausmann.mail;</para>
+</listitem>
+
+<listitem>
+<para
+>Glen Parker <email
+>glenebob@nwlink.com</email
+></para>
+</listitem>
+
+<listitem>
+<para
+>Scott Manson <email
+>sdmanson@altel.net</email
+></para>
+</listitem>
+
+<listitem>
+<para
+>&John.Firebaugh; &John.Firebaugh.mail;</para>
+</listitem>
+</itemizedlist>
+
+<para
+>Переклад українською: Юрій Чорноіван <email
+>yurchor@ukr.net</email
+></para
+> &underFDL; &underGPL; </sect1>
+
+</article>
+<!--
+Local Variables:
+mode: sgml
+sgml-namecase-general: t
+sgml-namecase-entity: nil
+sgml-general-insert-case: lower
+sgml-minimize-attributes: nil
+sgml-omittag: nil
+End:
+-->

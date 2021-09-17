@@ -1,0 +1,324 @@
+# Translation of kateproject.po into Serbian.
+# Chusslove Illich <caslav.ilic@gmx.net>, 2012, 2013, 2014, 2015, 2016, 2017.
+msgid ""
+msgstr ""
+"Project-Id-Version: kateproject\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2020-04-26 02:38+0200\n"
+"PO-Revision-Date: 2017-09-28 17:56+0200\n"
+"Last-Translator: Chusslove Illich <caslav.ilic@gmx.net>\n"
+"Language-Team: Serbian <kde-i18n-sr@kde.org>\n"
+"Language: sr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=4; plural=n==1 ? 3 : n%10==1 && n%100!=11 ? 0 : n"
+"%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"X-Accelerator-Marker: &\n"
+"X-Text-Markup: kde4\n"
+"X-Environment: kde\n"
+
+#: kateproject.cpp:379
+#, kde-format
+msgid "<untracked>"
+msgstr "<непраћено>"
+
+#: kateprojectcompletion.cpp:55
+#, kde-format
+msgid "Project Completion"
+msgstr "Допуњавање по пројекту"
+
+#: kateprojectconfigpage.cpp:37
+#, kde-format
+msgctxt "Groupbox title"
+msgid "Autoload Repositories"
+msgstr "Аутоматско учитавање ризница"
+
+#: kateprojectconfigpage.cpp:39
+#, kde-format
+msgid ""
+"Project plugin is able to autoload repository working copies when there is "
+"no .kateproject file defined yet."
+msgstr ""
+"Пројектни прикључак може да аутоматски учита радне копије ризница када ."
+"kateproject фајл још није дефинисан."
+
+#: kateprojectconfigpage.cpp:42
+#, kde-format
+msgid "&Git"
+msgstr "&Гит"
+
+#: kateprojectconfigpage.cpp:45
+#, kde-format
+msgid "&Subversion"
+msgstr "&Субверзија"
+
+#: kateprojectconfigpage.cpp:47
+#, kde-format
+msgid "&Mercurial"
+msgstr "&Меркјуријал"
+
+#: kateprojectconfigpage.cpp:56
+#, fuzzy, kde-format
+#| msgid "Project"
+msgctxt "Groupbox title"
+msgid "Project Index"
+msgstr "Пројект"
+
+#: kateprojectconfigpage.cpp:57
+#, kde-format
+msgid "Project ctags index settings"
+msgstr ""
+
+#: kateprojectconfigpage.cpp:58
+#, kde-format
+msgid "Enable indexing"
+msgstr ""
+
+#: kateprojectconfigpage.cpp:61
+#, kde-format
+msgid "Directory for index files"
+msgstr ""
+
+#: kateprojectconfigpage.cpp:64
+#, kde-format
+msgid ""
+"The system temporary directory is used if not specified, which may overflow "
+"for very large repositories"
+msgstr ""
+
+#: kateprojectconfigpage.cpp:71
+#, kde-format
+msgctxt "Groupbox title"
+msgid "Cross-Project Functionality"
+msgstr ""
+
+#: kateprojectconfigpage.cpp:72
+#, kde-format
+msgid ""
+"Project plugin is able to perform some operations across multiple projects"
+msgstr ""
+
+#: kateprojectconfigpage.cpp:73
+#, fuzzy, kde-format
+#| msgid "Project Completion"
+msgid "Cross-Project Completion"
+msgstr "Допуњавање по пројекту"
+
+#: kateprojectconfigpage.cpp:75
+#, kde-format
+msgid "Cross-Project Goto Symbol"
+msgstr ""
+
+#: kateprojectconfigpage.cpp:97 kateprojectpluginview.cpp:65
+#, kde-format
+msgid "Projects"
+msgstr "Пројекти"
+
+#: kateprojectconfigpage.cpp:102
+#, kde-format
+msgctxt "Groupbox title"
+msgid "Projects Properties"
+msgstr "Својства пројеката"
+
+#: kateprojectinfoview.cpp:45
+#, kde-format
+msgid "Terminal (.kateproject)"
+msgstr ""
+
+# >> @title:tab
+#: kateprojectinfoview.cpp:53
+#, fuzzy, kde-format
+#| msgid "Terminal"
+msgid "Terminal (Base)"
+msgstr "Терминал"
+
+# >> @title:tab
+#: kateprojectinfoview.cpp:60
+#, kde-format
+msgid "Code Index"
+msgstr "Индекс кода"
+
+#: kateprojectinfoview.cpp:65
+#, kde-format
+msgid "Code Analysis"
+msgstr "Анализа кода"
+
+# >> @title:tab
+#: kateprojectinfoview.cpp:70
+#, kde-format
+msgid "Notes"
+msgstr "Белешке"
+
+#: kateprojectinfoviewcodeanalysis.cpp:38
+#, kde-format
+msgid "Start Analysis..."
+msgstr "Започни анализирање..."
+
+# >> @title:column
+#: kateprojectinfoviewcodeanalysis.cpp:51 kateprojectinfoviewindex.cpp:43
+#, kde-format
+msgid "File"
+msgstr "фајл"
+
+# >> @title:column
+#: kateprojectinfoviewcodeanalysis.cpp:51 kateprojectinfoviewindex.cpp:43
+#, kde-format
+msgid "Line"
+msgstr "ред"
+
+# >> @title:column
+#: kateprojectinfoviewcodeanalysis.cpp:51
+#, kde-format
+msgid "Severity"
+msgstr "озбиљност"
+
+# >> @title:column
+#: kateprojectinfoviewcodeanalysis.cpp:51
+#, kde-format
+msgid "Message"
+msgstr "порука"
+
+#: kateprojectinfoviewcodeanalysis.cpp:107
+#, kde-format
+msgid ""
+"%1<br/><br/>The tool will be run on all project files which match this list "
+"of file extensions:<br/><br/><b>%2</b>"
+msgstr ""
+
+#: kateprojectinfoviewcodeanalysis.cpp:239
+#, fuzzy, kde-format
+#| msgid "Analysis finished."
+msgid "Analysis on %1 file finished."
+msgid_plural "Analysis on %1 files finished."
+msgstr[0] "Анализа завршена."
+msgstr[1] "Анализа завршена."
+msgstr[2] "Анализа завршена."
+msgstr[3] "Анализа завршена."
+
+#: kateprojectinfoviewcodeanalysis.cpp:244
+#, kde-format
+msgid "Analysis on %1 file failed with exit code %2."
+msgid_plural "Analysis on %1 files failed with exit code %2."
+msgstr[0] ""
+msgstr[1] ""
+msgstr[2] ""
+msgstr[3] ""
+
+# >> @title:column
+#: kateprojectinfoviewindex.cpp:43
+#, kde-format
+msgid "Name"
+msgstr "име"
+
+# >> @title:column
+#: kateprojectinfoviewindex.cpp:43
+#, kde-format
+msgid "Kind"
+msgstr "врста"
+
+#: kateprojectinfoviewindex.cpp:44
+#, kde-format
+msgid "Search"
+msgstr "Тражи"
+
+#: kateprojectinfoviewindex.cpp:185
+#, kde-format
+msgid "The index could not be created. Please install 'ctags'."
+msgstr "Не може да се направи индекс. Инсталирајте „ctags“."
+
+#: kateprojectinfoviewindex.cpp:187
+#, kde-format
+msgid ""
+"The index is not enabled. Please add '\"index\": true' to your .kateproject "
+"file."
+msgstr ""
+
+#: kateprojectplugin.cpp:434
+#, kde-format
+msgid "Full path to current project excluding the file name."
+msgstr ""
+
+#: kateprojectplugin.cpp:449
+#, kde-format
+msgid ""
+"Full path to current project excluding the file name, with native path "
+"separator (backslash on Windows)."
+msgstr ""
+
+#: kateprojectpluginview.cpp:59
+#, kde-format
+msgid "Kate Project Manager"
+msgstr "Кејтин менаџер пројеката"
+
+#: kateprojectpluginview.cpp:66
+#, kde-format
+msgid "Current Project"
+msgstr "Текући пројекат"
+
+#: kateprojectpluginview.cpp:125
+#, fuzzy, kde-format
+#| msgid "Lookup: %1"
+msgid "Lookup"
+msgstr "Потрага: %1"
+
+#: kateprojectpluginview.cpp:130
+#, kde-format
+msgid "Project"
+msgstr "Пројект"
+
+#: kateprojectpluginview.cpp:133 kateprojectpluginview.cpp:518
+#, kde-format
+msgid "Lookup: %1"
+msgstr "Потрага: %1"
+
+#: kateprojectpluginview.cpp:134 kateprojectpluginview.cpp:519
+#, fuzzy, kde-format
+#| msgid "Lookup: %1"
+msgid "Goto: %1"
+msgstr "Потрага: %1"
+
+#: kateprojectpluginview.cpp:183
+#, fuzzy, kde-format
+#| msgid "Projects"
+msgid "Projects Index"
+msgstr "Пројекти"
+
+#: kateprojecttreeviewcontextmenu.cpp:86
+#, fuzzy, kde-format
+#| msgid "Copy Filename"
+msgid "Copy File Path"
+msgstr "Копирај име фајла"
+
+#: kateprojecttreeviewcontextmenu.cpp:92
+#, kde-format
+msgid "Open With"
+msgstr "Отвори помоћу"
+
+#: kateprojecttreeviewcontextmenu.cpp:109
+#, kde-format
+msgid "&Open Containing Folder"
+msgstr ""
+
+#: kateprojecttreeviewcontextmenu.cpp:114
+#, fuzzy, kde-format
+#| msgctxt "Groupbox title"
+#| msgid "Projects Properties"
+msgid "Properties"
+msgstr "Својства пројеката"
+
+#: kateprojecttreeviewcontextmenu.cpp:123
+#, kde-format
+msgid "Git:"
+msgstr "Гит:"
+
+#: kateprojectview.cpp:56
+#, kde-format
+msgid "Filter..."
+msgstr ""
+
+#. i18n: ectx: Menu (projects)
+#: ui.rc:6
+#, kde-format
+msgid "&Projects"
+msgstr "&Пројекти"

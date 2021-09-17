@@ -1,0 +1,152 @@
+# KDE3 - katexmltools.pot Russian translation
+# KDE3 - kdeaddons/katexmltools.po Russian translation.
+# Copyright (C) 2004, KDE Team.
+#
+# Gregory Mokhin <mok@kde.ru>, 2001, 2002,2003.
+# Nick Shafff <linux@l10n.org.ua>, 2004.
+# Nickolai Shaforostoff <shafff@ukr.net>, 2004.
+# Evgeniy Ivanov <powerfox@kde.ru>, 2008.
+# Alexander Lakhin <exclusion@gmail.com>, 2014.
+# Alexander Potashev <aspotashev@gmail.com>, 2015.
+msgid ""
+msgstr ""
+"Project-Id-Version: katexmltools\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2021-01-30 03:20+0100\n"
+"PO-Revision-Date: 2015-05-05 14:22+0300\n"
+"Last-Translator: Alexander Potashev <aspotashev@gmail.com>\n"
+"Language-Team: Russian <kde-russian@lists.kde.ru>\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Lokalize 2.0\n"
+"Plural-Forms: nplurals=4; plural=n==1 ? 3 : n%10==1 && n%100!=11 ? 0 : n"
+"%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
+"X-Environment: kde\n"
+"X-Accelerator-Marker: &\n"
+"X-Text-Markup: kde4\n"
+
+#: plugin_katexmltools.cpp:118
+#, kde-format
+msgid "Kate XML Tools"
+msgstr "Инструменты XML для Kate"
+
+#: plugin_katexmltools.cpp:121
+#, kde-format
+msgid "&Insert Element..."
+msgstr "&Вставить элемент..."
+
+#: plugin_katexmltools.cpp:126
+#, kde-format
+msgid "&Close Element"
+msgstr "&Закрыть элемент"
+
+#: plugin_katexmltools.cpp:131
+#, kde-format
+msgid "Assign Meta &DTD..."
+msgstr "Назначить &мета DTD..."
+
+#: plugin_katexmltools.cpp:442
+#, kde-format
+msgid "Assign Meta DTD in XML Format"
+msgstr "Назначить мета DTD в формате XML"
+
+#: plugin_katexmltools.cpp:448
+#, kde-format
+msgid ""
+"The current file has been identified as a document of type \"%1\". The meta "
+"DTD for this document type will now be loaded."
+msgstr ""
+"Текущий файл имеет тип «%1». Сейчас будет загружен файл DTD для этого "
+"документа."
+
+#: plugin_katexmltools.cpp:452
+#, kde-format
+msgid "Loading XML Meta DTD"
+msgstr "Загрузка мета DTD в формате XML"
+
+#: plugin_katexmltools.cpp:484
+#, kde-format
+msgid "The file '%1' could not be opened. The server returned an error."
+msgstr "Не удалось открыть файл «%1». Сервер сообщил об ошибке."
+
+#: plugin_katexmltools.cpp:487 pseudo_dtd.cpp:48 pseudo_dtd.cpp:60
+#, kde-format
+msgid "XML Plugin Error"
+msgstr "Ошибка модуля XML"
+
+#: plugin_katexmltools.cpp:992
+#, kde-format
+msgid "XML entities"
+msgstr "XML-сущности"
+
+#: plugin_katexmltools.cpp:994
+#, kde-format
+msgid "XML attribute values"
+msgstr "Значения XML-атрибутов"
+
+#: plugin_katexmltools.cpp:996
+#, kde-format
+msgid "XML attributes"
+msgstr "XML-атрибуты"
+
+#: plugin_katexmltools.cpp:999
+#, kde-format
+msgid "XML elements"
+msgstr "XML-элементы"
+
+#: plugin_katexmltools.cpp:1039
+#, kde-format
+msgid "Insert XML Element"
+msgstr "Вставить XML-элемент"
+
+#: plugin_katexmltools.cpp:1044
+#, kde-format
+msgid ""
+"Enter XML tag name and attributes (\"<\", \">\" and closing tag will be "
+"supplied):"
+msgstr ""
+"Введите имя XML-тега и его атрибуты. Символы <, > и закрывающий тег будут "
+"подставлены автоматически."
+
+#: pseudo_dtd.cpp:45
+#, kde-format
+msgid ""
+"The file '%1' could not be parsed. Please check that the file is well-formed "
+"XML."
+msgstr "Не удалось обработать файл «%1». Проверьте структуру файла XML"
+
+#: pseudo_dtd.cpp:54
+#, kde-format
+msgid ""
+"The file '%1' is not in the expected format. Please check that the file is "
+"of this type:\n"
+"-//Norman Walsh//DTD DTDParse V2.0//EN\n"
+"You can produce such files with dtdparse. See the Kate Plugin documentation "
+"for more information."
+msgstr ""
+"Файл «%1» не соответствует предполагаемому формату. Проверьте, соответствует "
+"ли этот файл определению:\n"
+" -//Norman Walsh//DTD DTDParse V2.0//EN\n"
+"Вы можете создать такой файл сами с помощью dtdparse. За подробностями "
+"обратитесь к документации по модулю Kate."
+
+#: pseudo_dtd.cpp:70
+#, kde-format
+msgid "Analyzing meta DTD..."
+msgstr "Анализ мета DTD..."
+
+#: pseudo_dtd.cpp:70
+#, kde-format
+msgid "Cancel"
+msgstr "Отмена"
+
+#. i18n: ectx: Menu (xml)
+#: ui.rc:6
+#, kde-format
+msgid "&XML"
+msgstr "&XML"
+
+#~ msgid "&XML Plugin"
+#~ msgstr "&Модуль XML"

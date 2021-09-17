@@ -1,0 +1,1006 @@
+<chapter id="fundamentals">
+<chapterinfo>
+<authorgroup>
+<author
+><personname
+><firstname
+></firstname
+></personname
+></author>
+<othercredit role="translator"
+><firstname
+>Юрій</firstname
+><surname
+>Чорноіван</surname
+><affiliation
+><address
+><email
+>yurchor@ukr.net</email
+></address
+></affiliation
+><contrib
+>Переклад українською</contrib
+></othercredit
+> 
+</authorgroup>
+</chapterinfo>
+<title
+>Основи</title>
+
+<para
+>Якщо ви вже колись користувалися текстовим редактором, у вас не буде проблем з користуванням &kate;. У наступних двох розділах, <link linkend="starting-kate"
+>Запуск &kate;</link
+> і <link linkend="working-with-kate"
+>Робота у &kate;</link
+>, ви ознайомитеся з усіма відомостями, потрібними вам для того, щоб якомога швидше розпочати роботу. </para>
+
+<sect1 id="starting-kate">
+<title
+>Як запустити &kate;</title>
+
+<para
+>Ви можете запустити &kate; за допомогою засобу запуску програм або командного рядка. </para>
+
+<sect2 id="starting-from-the-menu">
+<title
+>За допомогою меню</title>
+<para
+>Відкрийте меню програм &kde; натисканням великої кнопки засобу запуску програм. Після натискання буде відкрито меню. Пересуньте вказівник у верхню частину меню до пункту <menuchoice
+><guimenu
+>Програми</guimenu
+> <guisubmenu
+>Інструменти</guisubmenu
+> <guimenuitem
+>Текстовий редактор з додатковими можливостями &kate;</guimenuitem
+></menuchoice
+>. </para>
+
+</sect2>
+
+<sect2 id="starting-from-the-command-line">
+<title
+>За допомогою командного рядка</title>
+
+<para
+>Ви можете запустити &kate; виконанням відповідної команди у командному рядку. Якщо ви вкажете як параметр команди назву файла, як у наведеному нижче прикладі, &kate; створить або відкриє вказаний вами файл. </para>
+
+<informalexample>
+<screen
+><prompt
+>%</prompt
+><userinput
+><command
+>kate</command
+> <option
+><replaceable
+>мій_файл.txt</replaceable
+></option
+></userinput
+>
+</screen>
+</informalexample>
+
+<para
+>Якщо на вашому комп’ютері задіяно з’єднання з мережею, ви можете скористатися перевагами мережевої прозорості у &kde; для того, щоб відкривати файли з мережі Інтернет. </para>
+
+<informalexample>
+<screen
+><prompt
+>%</prompt
+><userinput
+><command
+>kate</command
+> <option
+><replaceable
+>&kde-ftp;README</replaceable
+></option
+></userinput
+>
+</screen>
+</informalexample>
+
+<para
+>Щоб змінити каталог для тимчасових файлів, типовою адресою якого є <filename class="directory"
+>/tmp</filename
+>, встановіть відповідне значення змінної середовища <envar
+>TMPDIR</envar
+> до запуску &kate;. Приклад: <informalexample
+> <screen
+><prompt
+>%</prompt
+><userinput
+><command
+>mkdir</command
+> /tmp/kate -p &amp;&amp; export TMPDIR=/tmp/kate &amp;&amp; kate</userinput
+>
+</screen>
+</informalexample>
+</para>
+
+<sect3 id="command-line-options">
+<title
+>Параметри командного рядка</title>
+<para
+>&kate; сприймає такі параметри командного рядка:</para>
+
+<variablelist>
+<varlistentry>
+<term
+><userinput
+><command
+>kate</command
+> <option
+>--help</option
+></userinput
+></term>
+<listitem>
+<para
+>Ця команда покаже список параметрів, доступ до яких можна отримати з командного рядка. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+><command
+>kate</command
+> <option
+>-s</option
+> <option
+>--start</option
+> <parameter
+>назва</parameter
+></userinput
+></term>
+<listitem>
+<para
+>Запускає &kate; з відкритим сеансом <parameter
+>назва</parameter
+>. Якщо цього сеансу ще не існує, його буде створено. Якщо вказаний сеанс вже відкрито у іншому екземплярі &kate;, вказані у параметрах файли буде завантажено у вже відкритий сеанс. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+><command
+>kate</command
+> <option
+>-p</option
+> <option
+>--pid</option
+> <parameter
+>PID</parameter
+></userinput
+></term>
+<listitem>
+<para
+>Використовувати лише екземпляр з вказаним PID (ідентифікатором процесу). </para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+><command
+>kate</command
+> <option
+>-e</option
+> <option
+>--encoding</option
+> <parameter
+>кодування</parameter
+> <parameter
+>URL</parameter
+></userinput
+></term>
+<listitem
+><para
+>Використовувати вказане кодування для документа. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+><command
+>kate</command
+> <option
+>-l</option
+> <option
+>--line</option
+> <parameter
+>рядок</parameter
+> <parameter
+>URL</parameter
+></userinput
+></term>
+<listitem
+><para
+>Переводить курсор у вказаний рядок після відкриття документа. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+><command
+>kate</command
+> <option
+>-c</option
+> <option
+>--column</option
+> <parameter
+>стовпчик</parameter
+> <parameter
+>URL</parameter
+></userinput
+></term>
+<listitem
+><para
+>Переводить курсор у вказаний стовпчик після відкриття документа. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+><command
+>kate</command
+> <option
+>-i</option
+> <option
+>--stdin</option
+></userinput
+></term>
+<listitem
+><para
+>Читає вміст документа з STDIN. Цей параметр подібний до звичайного параметра <option
+>-</option
+>, який використовується у багатьох програмах, які працюють за допомогою командного рядка, цей параметр надає вам змогу передати результати роботи певної команди до &kate;.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+><command
+>kate</command
+> <option
+>--startanon</option
+></userinput
+></term>
+<listitem
+><para
+>Запустити &kate; у новому анонімному сеансі з параметром <option
+>-n</option
+></para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+><command
+>kate</command
+> <option
+>-n</option
+> <option
+>--new</option
+></userinput
+></term>
+<listitem
+><para
+>Примусово запустити новий екземпляр &kate; (буде проігноровано, якщо було використано параметр <option
+>start</option
+>, а вказаний сеанс &kate; уже було відкрито). Буде використано, якщо ви не вкажете ніяких параметрів і ніяких адрес URL.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+><command
+>kate</command
+> <option
+>-b</option
+> <option
+>--block</option
+></userinput
+></term>
+<listitem
+><para
+>За використання вже запущеного екземпляра &kate;, заблокувати дії у ньому до завершення його роботи, якщо надійшов наказ відкрити певні адреси URL.</para>
+<para
+>Програмою &kate;, запущеною з цим параметром, можна скористатися як редактором для введення повідомлень щодо внесків до систем керування версіями, зокрема <application
+>Git</application
+> або <application
+>Subversion</application
+>. Ці системи блокують редактор до завершення введення вами повідомлення, оскільки згодом відкривають тимчасовий файл, який буде порожнім, якщо буде виконано негайне повернення даних з &kate; до програми, якою було викликано редактор. </para>
+<para
+>Цей параметр потрібен для KIO (модулів введення-виведення даних &kde;), якщо ви відкриваєте файл на віддаленому комп’ютері (який було тимчасово отримано до вашої системи), який згодом має бути вивантажено на його основне місце зберігання під час виконання дії зі збереження. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+><command
+>kate</command
+> <option
+>--tempfile</option
+></userinput
+></term>
+<listitem
+><para
+>Якщо використано цей параметр, вказані файли вважатимуться тимчасовими і вилучатимуться (якщо ці файли зберігаються на вашому комп’ютері і ваш користувач має потрібні дозволи на зміну файлів) під час закриття програми, якщо їх не буде змінено з часу відкриття.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+><command
+>kate</command
+> <option
+>--desktopfile</option
+> <parameter
+>назва_файла</parameter
+></userinput
+></term>
+<listitem
+><para
+>Базова назва файла для стільничного запису цієї програми.</para>
+<para
+>Цей параметр, зокрема, корисний для програм-обгорток та програм, які мають декілька стільничних файлів (desktop). За його допомогою кожен стільничний файл може мати власний рядок команди, який вказується у записі <option
+>Exec</option
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+><command
+>kate</command
+> <option
+>--author</option
+></userinput
+></term>
+<listitem>
+<para
+>Показує список авторів &kate; у вікні термінала. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+><command
+>kate</command
+> <option
+>-v</option
+> <option
+>--version</option
+></userinput
+></term>
+<listitem>
+<para
+>Показує список відомостей щодо версії &kate;. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+><command
+>kate</command
+> <option
+>--license</option
+></userinput
+></term>
+<listitem>
+<para
+>Показує інформацію щодо ліцензії на програму. </para>
+</listitem>
+</varlistentry>
+</variablelist>
+
+</sect3>
+</sect2>
+
+<sect2 id="drag-and-drop">
+<title
+>Перетягування і скидання</title>
+<para
+>&kate; використовує протокол перетягування зі скиданням &kde;. Позначки файлів можна перетягнути і скинути до вікна &kate; зі стільниці, інструменту для керування файлами — &dolphin; або певного віддаленого сайта &FTP;, відкритого у одному з вікон &dolphin;. </para>
+</sect2>
+</sect1>
+
+<sect1 id="working-with-kate">
+<title
+>Робота у &kate;</title>
+<para
+>У розділі <link linkend="quick-start"
+>Початок роботи</link
+> ви вже познайомилися з тим, як вмикати або вимикати чотири прості параметри, які нададуть вам змогу швидко налаштувати деякі з потужніших можливостей &kate;. У розділі <link linkend="keystroke-commands"
+>Клавіатурні скорочення</link
+> наведено декілька типових клавіатурних скорочень для тих користувачів, які не можуть або не бажають використовувати мишу. </para>
+
+<sect2 id="quick-start">
+<title
+>Швидкий запуск</title>
+
+<para
+>У цьому розділі буде описано декілька з пункті у меню <guimenu
+>Перегляд</guimenu
+>, за допомогою цих пунктів ви зможете швидко налаштувати &kate; на роботу у бажаному для вас режимі. </para>
+
+<para
+>Після першого запуску &kate; ви побачите два вікна з білим тлом. Над цими вікнами буде розташовано панель інструментів з піктограмами з типовими мітками. Над всім цим буде розташовано смужку меню. </para>
+
+<para
+>Вікно, розташоване ліворуч, — це бічна панель. У ній поєднано вікна <guilabel
+>Документів</guilabel
+> і <guilabel
+>Навігатора файлової системи</guilabel
+>. Перемикання між цими двома вікнами можна здійснити за допомогою натискання заголовків вкладок, розташованих ліворуч від вікна. </para>
+
+<para
+>Якщо ви запустили &kate; з зазначенням назви файла, який слід було відкрити, у вікні, розташованому праворуч, буде показано вміст файла, який ви редагуєте, а у вікні <guilabel
+>Документи</guilabel
+> на бічній панелі буде показано назву файла. Вікном <guilabel
+>Навігатора файлової системи</guilabel
+> можна скористатися для відкриття файлів. </para>
+
+<para
+>Ви можете вмикати і вимикати показ усіх бічних панелей за допомогою меню <menuchoice
+><guimenu
+>Перегляд</guimenu
+> <guisubmenu
+>Вікна інструментів</guisubmenu
+></menuchoice
+> або натискання комбінації клавіш <keycombo action="simul"
+>&Ctrl;&Alt;&Shift;<keycap
+>F</keycap
+></keycombo
+>. За допомогою цього меню ви зможете поверхово оцінити потужність і гнучкість &kate;. У цьому розділі меню ви побачите три пункти: </para>
+
+<para
+>У списку <guisubmenu
+>Вікна інструментів</guisubmenu
+> буде наведено перелік усіх встановлених додатків. Щоб увімкнути чи вимкнути показ відповідного вікна інструментів позначте чи зніміть позначку із пункту у списку за допомогою клацання лівою кнопкою миші. </para>
+
+</sect2>
+
+<sect2 id="keystroke-commands">
+<title
+>Клавіатурні скорочення</title>
+
+<para
+>Значну кількість клавіатурних команд &kate; (клавіатурних скорочень), можна налаштувати за допомогою меню <link linkend="settings-help-menu"
+>Параметри</link
+>. Типово, у &kate; використовуються наведені нижче клавіатурні скорочення. </para>
+
+<informaltable>
+<tgroup cols="2">
+<tbody>
+
+<row>
+<entry
+><para
+><keycombo action="simul"
+><keycap
+>F1</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Довідка</para
+></entry>
+</row>
+<row>
+<entry
+><para
+><keycombo action="simul"
+>&Shift;<keycap
+>F1</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+><link linkend="whats-this"
+>Що це?</link
+></para
+></entry>
+</row>
+<row>
+<entry
+><para
+><keycombo action="simul"
+>&Ctrl;<keycap
+>N</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+><link linkend="file-new"
+>Створює</link
+> документ</para
+></entry>
+</row>
+<row>
+<entry
+><para
+><keycombo action="simul"
+>&Ctrl;<keycap
+>L</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Зберегти все</para
+></entry>
+</row>
+<row>
+<entry
+><para
+><keycombo
+action="simul"
+>&Ctrl;<keycap
+>O</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+><link linkend="file-open"
+>Відкрити документ</link
+> </para
+></entry>
+</row>
+<row>
+<entry
+><para
+><keycombo action="simul"
+>&Ctrl;&Alt;<keycap
+>O</keycap
+></keycombo
+> </para
+></entry>
+<entry
+><para
+>Швидке відкриття</para
+></entry>
+</row>
+<row>
+<entry
+><para
+><keycombo action="simul"
+>&Ctrl;&Shift;<keycap
+>F</keycap
+></keycombo
+> </para
+></entry>
+<entry
+><para
+>Повноекранний режим</para
+></entry>
+</row>
+<row>
+<entry
+><para
+><keycombo action="simul"
+>&Ctrl;&Shift;<keycap
+>,</keycap
+></keycombo
+> </para
+></entry>
+<entry
+><para
+>Налаштувати &kate;</para
+></entry>
+</row>
+<row>
+<entry
+><para
+><keycombo action="simul"
+>&Ctrl;<keycap
+>W</keycap
+></keycombo
+> / <keycombo action="simul"
+>&Ctrl;&Esc;</keycombo
+></para
+></entry>
+<entry
+><para
+><link linkend="file-close"
+>Закрити</link
+> </para
+></entry>
+</row>
+<row>
+<entry
+><para
+><keycombo action="simul"
+>&Ctrl;<keycap
+>Q</keycap
+></keycombo
+> </para
+></entry>
+<entry
+><para
+>Вихід — закриває активну копію редактора </para
+></entry>
+</row>
+<row>
+<entry
+><para
+><keycombo action="simul"
+>&Ctrl;&Alt;&Shift;<keycap
+>F</keycap
+></keycombo
+> </para
+></entry>
+<entry
+><para
+>Показати бічні панелі</para
+></entry>
+</row>
+<row>
+<entry
+><para
+><keycombo action="simul"
+>&Ctrl;&Shift;<keycap
+>T</keycap
+></keycombo
+> </para
+></entry>
+<entry
+><para
+>Розділити горизонтально</para
+></entry>
+</row>
+<row>
+<entry
+><para
+><keycombo action="simul"
+>&Ctrl;&Shift;<keycap
+>L</keycap
+></keycombo
+> </para
+></entry>
+<entry
+><para
+>Розділити вертикально</para
+></entry>
+</row>
+<row>
+<entry
+><para
+><keycap
+>F8</keycap
+></para
+></entry>
+<entry
+><para
+>Наступний розділ перегляду</para
+></entry>
+</row>
+<row>
+<entry
+><para
+><keycombo action="simul"
+>&Shift;<keycap
+>F8</keycap
+></keycombo
+> / <keycombo action="simul"
+>&Ctrl;&Esc;</keycombo
+></para
+></entry>
+<entry
+><para
+>Попередній розділ перегляду</para
+></entry>
+</row>
+<row>
+<entry
+><para
+><keycombo action="simul"
+>&Ctrl;&Shift;<keycap
+>R</keycap
+></keycombo
+> </para
+></entry>
+<entry
+><para
+>Закрити поточну панель перегляду</para
+></entry>
+</row>
+<row>
+<entry
+><para
+><keycombo action="simul"
+>&Alt;<keycap
+>→</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Наступна вкладка</para
+></entry>
+</row>
+<row>
+<entry
+><para
+><keycombo action="simul"
+>&Alt;<keycap
+>←</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Попередня вкладка</para
+></entry>
+</row>
+
+</tbody>
+</tgroup>
+</informaltable>
+
+<para
+>Крім того, ви можете скористатися клавіатурними скороченням компонента <ulink url="help:/katepart/keybindings.html"
+>&katepart;</ulink
+> і усіх увімкнених <link linkend="plugins"
+>додатків до &kate;</link
+>.</para>
+
+</sect2>
+
+</sect1>
+
+<sect1 id="kate-mdi">
+<title
+>Робота з багатодокументним інтерфейсом (<acronym
+>MDI</acronym
+>) &kate; </title>
+
+<sect2 id="kate-mdi-overview">
+<title
+>Огляд</title>
+
+<para
+>Вікно, перегляд, документ, фрейм, редактор... Що означають всі ці терміни у контексті &kate;, як отримати найбільше користі від кожного з них? Цю главу присвячено відповідям на ці та деякі інші питання.</para>
+
+<sect3 id="kate-mdi-overview-mainwindow">
+
+<title
+>Головне вікно</title>
+
+<para
+><indexterm
+><primary
+>Головне вікно</primary
+></indexterm
+> Головним вікном &kate; є стандартне вікно програми &kde; з додаванням бічних панелей, на яких розташовано переліки інструментів. У вікні ви знайдете всі типові пункти меню разом з деякими додатковими пунктами, а також панель інструментів, призначену для доступу до команд, якими користуються найчастіше.</para>
+
+<para
+>Найголовнішою частиною вікна є область редагування. Типово, буде показано єдиний компонент текстового редактора, за допомогою якого ви зможете працювати над вашими документами.</para>
+
+<para
+>Можливості швартування панелей у вікні використовуються для вікон інструментів усіх додатків, які увімкнено за допомогою діалогового вікна параметрів програми.</para>
+
+<para
+>Панелі інструментів можна розташовувати на будь-якій з бічних панелей. Щоб пересунути інструмент, наведіть вказівник миші на кнопку інструменту на бічній панелі, клацніть правою кнопкою миші і оберіть потрібну панель з контекстного меню.</para>
+
+<para
+>Панель інструментів можна зробити <emphasis
+>стійкою</emphasis
+> за допомогою контекстного меню, яке викликається клацанням правою кнопкою миші на відповідній кнопці бічної панелі. На бічній панелі може бути показано декілька інструментів, отже, якщо один з них є стійким, інші інструменти також може бути показано одночасно з ним.</para>
+
+<para
+>Якщо у додатка є параметри налаштовування, ви можете скористатися першим пунктом контекстного меню для відкриття відповідної сторінки у діалоговому вікні параметрів роботи &kate;.</para>
+
+</sect3>
+
+</sect2>
+
+<sect2 id="kate-mdi-editor">
+
+<title
+>Область редактора</title>
+
+<para
+><indexterm
+><primary
+>Область редагування</primary
+></indexterm
+> У &kate; ви можете відкрити декілька документів одночасно, а також розділити область редагування на довільну кількість фреймів, такий поділ схожий, наприклад, на поділ, який застосовується у &konqueror; або популярному текстовому редакторі <application
+>emacs</application
+>. Таким чином ви зможете переглядати декілька документів або екземплярів одного документа одночасно, це зручно, наприклад, якщо на початку вашого документа містяться визначення, у які вам доводиться часто підглядати з довідковою метою. Іншим варіантом застосування фреймів є редагування файла реалізації функцій програми з одночасним переглядом файла заголовків у іншому фреймі.</para>
+
+<para
+>Якщо документ відкрито у декількох редакторах, зміни, внесені у одному з редакторів, негайно буде показано у всіх інших областях редагування. Це стосується як зміни тексту, так і виділення фрагмента тексту. Результати дій з пошуку та пересування курсора відображатиметься лише у поточному редакторі.</para>
+
+<para
+>У поточній версії програми неможливо відкрити декілька екземплярів одного документа так, щоб один з екземплярів можна було змінити, залишивши інший екземпляр незмінним.</para>
+
+<para
+>Якщо ви накажете програмі з розділити вікно редактора на два фрейми, буде створено два фрейми однакового розміру, у обох буде показано поточний документ редактора. Новий фрейм буде розташовано в нижній частині вікна (у випадку горизонтального розподілу) або у правій частині (у випадку вертикального розподілу). Фокус буде передано новому фрейму, це буде показано за допомогою блимання курсора у фреймі, який знаходиться у фокусі.</para>
+
+</sect2>
+
+</sect1>
+
+<sect1 id="fundamentals-using-sessions">
+<title
+>Користування сеансами</title>
+
+<para
+>За допомогою сеансів ви зможете зберігати у &kate; декілька списків файлів і налаштувань графічного інтерфейсу програми. Ви можете створити довільну кількість сеансів з назвами, а сеанси без назви або анонімні сеанси використовувати для файлів, які ви маєте намір відкрити для редагування лише один раз. У поточній версії &kate; може зберігати у сеансі список відкритих файлів і загальне налаштування вікна, у майбутніх версіях &kate; до сеансів може бути додано інші відомості для зберігання. За допомогою сеансів ви також зможете відкривати довільну кількість екземплярів &kate; замість одного, як було б за типової поведінки програми.</para>
+
+<para
+>Підтримка сеансів передбачена у трьох областях: <itemizedlist>
+<listitem
+><para
+>За допомогою <link linkend="command-line-options"
+><emphasis
+>параметрів командного рядка</emphasis
+></link
+> ви зможете обирати і запускати сеанси під час запуску &kate; з командного рядка.</para>
+</listitem>
+<listitem
+><para
+>За допомогою <link linkend="sessions-menu"
+><emphasis
+>меню «Сеанси»</emphasis
+></link
+> ви зможете перемикати, зберігати, запускати ваші сеанси, а також керувати ними.</para
+></listitem>
+<listitem
+><para
+>За допомогою <link linkend="config-dialog-sessions"
+><emphasis
+>параметрів налаштування</emphasis
+></link
+> ви зможете визначити загальну поведінку сеансів.</para
+></listitem>
+</itemizedlist>
+
+</para>
+
+<para
+>Після запуску нового сеансу буде завантажено налаштування графічного інтерфейсу для <guilabel
+>Типового сеансу</guilabel
+>. Щоб зберегти налаштування вікон у типовому сеансі, вам слід увімкнути збереження налаштувань вікон на сторінці налаштування сеансів діалогового вікна налаштувань, а потім завантажити типовий сеанс, потрібним чином налаштувати вікно і знову зберегти сеанс.</para>
+
+<para
+>Якщо завантажено сеанс з назвою, &kate; покаже назву сеансу у заголовку вікна, який набуде вигляду «<replaceable
+>Назва сеансу</replaceable
+>: <replaceable
+>Назва або адреса &URL; документа</replaceable
+> - &kate;»</para>
+
+<para
+>Якщо ви відкриваєте файли з командного рядка за допомогою параметра <option
+>--start <replaceable
+>назва</replaceable
+></option
+> або якщо сеанс обрано за допомогою інструменту вибору сеансів, вказаний сеанс буде завантажено перед файлами, вказаними у командному рядку. Щоб відкрити файли з командного рядка у новому сеансі без назви, налаштуйте &kate; на запуск нового сеансу як типового на сторінці сеансів діалогового вікна налаштування, або скористайтеся параметром <option
+>--start</option
+> з порожнім аргументом: <replaceable
+>''</replaceable
+>.</para>
+<!--FIXME still valid for kf5 -->
+<para
+>Починаючи з версії &kate; 2.5.1 ідентифікатор процесу програми (<acronym
+>PID</acronym
+>) поточного екземпляра експортується до змінної середовища <envar
+>KATE_PID</envar
+>. Якщо ви відкриватимете файли з вбудованого термінала, Kate автоматично обиратиме поточний екземпляр програми, якщо за допомогою командного рядка не буде вказано інших параметрів.</para>
+
+</sect1>
+
+<sect1 id="fundamentals-getting-help">
+
+<title
+>Як отримати довідку</title>
+
+<sect2>
+
+<title
+>За допомогою &kate;</title>
+<variablelist>
+
+<varlistentry>
+<term
+>Цей підручник</term>
+
+<listitem>
+<para
+>Відкриває докладну довідку з усіх команд меню, параметрів налаштування, інструментів, діалогових вікон, додатків тощо, а також вікна &kate; редактора та різноманітних концепцій, використаних у цій програмі.</para>
+
+<para
+>Натисніть клавішу <keycap
+>F1</keycap
+> або скористайтеся пунктом меню <menuchoice
+><guimenu
+>Довідка</guimenu
+> <guimenuitem
+>Підручник з &kate;</guimenuitem
+></menuchoice
+>, щоб переглянути цей підручник.</para
+></listitem>
+
+</varlistentry>
+
+<varlistentry id="whats-this">
+<term
+>Довідка «Що це?»</term>
+<listitem>
+<para
+>За допомогою довідки «Що це?» можна негайно отримати довідку щодо призначення окремих елементів вікон графічного інтерфейсу програми, таких як кнопки та інші ділянок вікна.</para>
+
+<para
+>Автори намагалися створити контекстну довідку до всіх елементів вікна, для яких вона має сенс. Ви, зокрема, зможете скористатися нею у діалоговому вікні налаштування, а також у багатьох інших вікнах.</para>
+
+<para
+>Щоб задіяти довідку «Що це?», натисніть комбінацію клавіш <keycombo action="simul"
+>&Shift;<keycap
+>F1</keycap
+></keycombo
+> або скористайтеся пунктом меню <menuchoice
+><guimenu
+>Довідка</guimenu
+> <guimenuitem
+>Що це?</guimenuitem
+></menuchoice
+>. Виконавши ці дії, ви увімкнете режим «Що це?»: вигляд вказівника миші зміниться на стрілочку зі знаком питання, ви зможете натиснути нею будь-який з елементів у вікні, щоб прочитати коротеньку довідку щодо цього елемента, якщо ця довідка доступна.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Кнопки «Довідка» у діалогових вікнах</term>
+<listitem>
+<para
+>У деяких з діалогових вікон є кнопки <guibutton
+>Довідка</guibutton
+>. Натискання таких кнопок призводить до запуску &khelpcenter; і відкриття відповідної документації.</para>
+</listitem>
+</varlistentry>
+</variablelist>
+
+</sect2>
+
+<sect2>
+<title
+>З вашими текстовими файлами</title>
+
+<para
+>У &kate; (ще) не передбачено ніяких засобів для читання пов’язаної з документом документації. Залежно від типу документа, який ви редагуєте, ви можете скористатися <link linkend="kate-application-plugin-konsole"
+>вбудованим емулятором термінала</link
+> для перегляду відповідних сторінок довідки (man) &UNIX; та документації info або &konqueror; для перегляду іншої документації.</para>
+
+</sect2>
+
+<sect2>
+<title
+>Статті щодо &kate;</title>
+
+<para
+>На домашній сторінці &kate; наведено декілька <ulink url="https://kate-editor.org/featured-articles"
+>статей та настанов</ulink
+> щодо відомостей, які не належать до кола питань цього підручника.</para>
+
+</sect2>
+
+</sect1>
+
+</chapter>

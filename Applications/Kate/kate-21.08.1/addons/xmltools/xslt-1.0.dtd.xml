@@ -1,0 +1,1690 @@
+<!DOCTYPE dtd PUBLIC "-//Norman Walsh//DTD DTDParse V2.0//EN"
+              "dtd.dtd" [
+]>
+<dtd version='1.0'
+     unexpanded='1'
+     title="XSLT"
+     namecase-general="1"
+     namecase-entity="0"
+     xml="0"
+     system-id="xslt.dtd"
+     public-id=""
+     declaration=""
+     created-by="DTDParse V2.0beta6"
+     created-on="Sun Sep 23 14:10:52 2001"
+>
+<entity name="pattern"
+        type="param"
+>
+<text-expanded>CDATA</text-expanded>
+<text>CDATA</text>
+</entity>
+
+<entity name="char"
+        type="param"
+>
+<text-expanded>CDATA</text-expanded>
+<text>CDATA</text>
+</entity>
+
+<entity name="char-template"
+        type="param"
+>
+<text-expanded>
+ (#PCDATA
+  
+  | xsl:apply-templates
+  | xsl:call-template
+  | xsl:apply-imports
+  | xsl:for-each
+  | xsl:value-of
+  | xsl:copy-of
+  | xsl:number
+  | xsl:choose
+  | xsl:if
+  | xsl:text
+  | xsl:copy
+  | xsl:variable
+  | xsl:message
+  | xsl:fallback
+)*
+</text-expanded>
+<text>
+ (#PCDATA
+  %char-instructions;)*
+</text>
+</entity>
+
+<entity name="qnames"
+        type="param"
+>
+<text-expanded>NMTOKENS</text-expanded>
+<text>NMTOKENS</text>
+</entity>
+
+<entity name="space-att"
+        type="param"
+>
+<text-expanded>xml:space (default|preserve) #IMPLIED</text-expanded>
+<text>xml:space (default|preserve) #IMPLIED</text>
+</entity>
+
+<entity name="result-elements"
+        type="param"
+>
+<text-expanded></text-expanded>
+<text></text>
+</entity>
+
+<entity name="avt"
+        type="param"
+>
+<text-expanded>CDATA</text-expanded>
+<text>CDATA</text>
+</entity>
+
+<entity name="top-level"
+        type="param"
+>
+<text-expanded>
+ (xsl:import*,
+  (xsl:include
+  | xsl:strip-space
+  | xsl:preserve-space
+  | xsl:output
+  | xsl:key
+  | xsl:decimal-format
+  | xsl:attribute-set
+  | xsl:variable
+  | xsl:param
+  | xsl:template
+  | xsl:namespace-alias
+  )*)
+</text-expanded>
+<text>
+ (xsl:import*,
+  (xsl:include
+  | xsl:strip-space
+  | xsl:preserve-space
+  | xsl:output
+  | xsl:key
+  | xsl:decimal-format
+  | xsl:attribute-set
+  | xsl:variable
+  | xsl:param
+  | xsl:template
+  | xsl:namespace-alias
+  %non-xsl-top-level;)*)
+</text>
+</entity>
+
+<entity name="non-xsl-top-level"
+        type="param"
+>
+<text-expanded></text-expanded>
+<text></text>
+</entity>
+
+<entity name="char-instructions"
+        type="param"
+>
+<text-expanded>
+  | xsl:apply-templates
+  | xsl:call-template
+  | xsl:apply-imports
+  | xsl:for-each
+  | xsl:value-of
+  | xsl:copy-of
+  | xsl:number
+  | xsl:choose
+  | xsl:if
+  | xsl:text
+  | xsl:copy
+  | xsl:variable
+  | xsl:message
+  | xsl:fallback
+</text-expanded>
+<text>
+  | xsl:apply-templates
+  | xsl:call-template
+  | xsl:apply-imports
+  | xsl:for-each
+  | xsl:value-of
+  | xsl:copy-of
+  | xsl:number
+  | xsl:choose
+  | xsl:if
+  | xsl:text
+  | xsl:copy
+  | xsl:variable
+  | xsl:message
+  | xsl:fallback
+</text>
+</entity>
+
+<entity name="top-level-atts"
+        type="param"
+>
+<text-expanded>
+  extension-element-prefixes CDATA #IMPLIED
+  exclude-result-prefixes CDATA #IMPLIED
+  id ID #IMPLIED
+  version NMTOKEN #REQUIRED
+  xmlns:xsl CDATA #FIXED "http://www.w3.org/1999/XSL/Transform"
+  xml:space (default|preserve) #IMPLIED
+</text-expanded>
+<text>
+  extension-element-prefixes CDATA #IMPLIED
+  exclude-result-prefixes CDATA #IMPLIED
+  id ID #IMPLIED
+  version NMTOKEN #REQUIRED
+  xmlns:xsl CDATA #FIXED "http://www.w3.org/1999/XSL/Transform"
+  %space-att;
+</text>
+</entity>
+
+<entity name="URI"
+        type="param"
+>
+<text-expanded>CDATA</text-expanded>
+<text>CDATA</text>
+</entity>
+
+<entity name="result-element-atts"
+        type="param"
+>
+<text-expanded>
+  xsl:extension-element-prefixes CDATA #IMPLIED
+  xsl:exclude-result-prefixes CDATA #IMPLIED
+  xsl:use-attribute-sets NMTOKENS #IMPLIED
+  xsl:version NMTOKEN #IMPLIED
+</text-expanded>
+<text>
+  xsl:extension-element-prefixes CDATA #IMPLIED
+  xsl:exclude-result-prefixes CDATA #IMPLIED
+  xsl:use-attribute-sets %qnames; #IMPLIED
+  xsl:version NMTOKEN #IMPLIED
+</text>
+</entity>
+
+<entity name="instructions"
+        type="param"
+>
+<text-expanded>
+  
+  | xsl:apply-templates
+  | xsl:call-template
+  | xsl:apply-imports
+  | xsl:for-each
+  | xsl:value-of
+  | xsl:copy-of
+  | xsl:number
+  | xsl:choose
+  | xsl:if
+  | xsl:text
+  | xsl:copy
+  | xsl:variable
+  | xsl:message
+  | xsl:fallback
+
+  | xsl:processing-instruction
+  | xsl:comment
+  | xsl:element
+  | xsl:attribute
+</text-expanded>
+<text>
+  %char-instructions;
+  | xsl:processing-instruction
+  | xsl:comment
+  | xsl:element
+  | xsl:attribute
+</text>
+</entity>
+
+<entity name="template"
+        type="param"
+>
+<text-expanded>
+ (#PCDATA
+  
+  
+  | xsl:apply-templates
+  | xsl:call-template
+  | xsl:apply-imports
+  | xsl:for-each
+  | xsl:value-of
+  | xsl:copy-of
+  | xsl:number
+  | xsl:choose
+  | xsl:if
+  | xsl:text
+  | xsl:copy
+  | xsl:variable
+  | xsl:message
+  | xsl:fallback
+
+  | xsl:processing-instruction
+  | xsl:comment
+  | xsl:element
+  | xsl:attribute
+
+  )*
+</text-expanded>
+<text>
+ (#PCDATA
+  %instructions;
+  %result-elements;)*
+</text>
+</entity>
+
+<entity name="expr"
+        type="param"
+>
+<text-expanded>CDATA</text-expanded>
+<text>CDATA</text>
+</entity>
+
+<entity name="qname"
+        type="param"
+>
+<text-expanded>NMTOKEN</text-expanded>
+<text>NMTOKEN</text>
+</entity>
+
+<entity name="priority"
+        type="param"
+>
+<text-expanded>NMTOKEN</text-expanded>
+<text>NMTOKEN</text>
+</entity>
+
+<element name="xsl:processing-instruction"
+         content-type="mixed">
+<content-model-expanded>
+  <or-group occurrence="*">
+    <pcdata/>
+    <element-name name="xsl:apply-templates"/>
+    <element-name name="xsl:call-template"/>
+    <element-name name="xsl:apply-imports"/>
+    <element-name name="xsl:for-each"/>
+    <element-name name="xsl:value-of"/>
+    <element-name name="xsl:copy-of"/>
+    <element-name name="xsl:number"/>
+    <element-name name="xsl:choose"/>
+    <element-name name="xsl:if"/>
+    <element-name name="xsl:text"/>
+    <element-name name="xsl:copy"/>
+    <element-name name="xsl:variable"/>
+    <element-name name="xsl:message"/>
+    <element-name name="xsl:fallback"/>
+  </or-group>
+</content-model-expanded>
+<content-model>
+  <sequence-group>
+    <parament-name name="char-template"/>
+  </sequence-group>
+</content-model>
+</element>
+
+<attlist name="xsl:processing-instruction">
+<attdecl> 
+  name %avt; #REQUIRED
+  %space-att;
+</attdecl>
+<attribute name="xml:space"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="default preserve"
+           default=""/>
+<attribute name="name"
+           type="#REQUIRED"
+           value="CDATA"
+           default=""/>
+</attlist>
+
+<element name="xsl:call-template"
+         content-type="element">
+<content-model-expanded>
+  <sequence-group occurrence="*">
+    <element-name name="xsl:with-param"/>
+  </sequence-group>
+</content-model-expanded>
+<content-model>
+  <sequence-group occurrence="*">
+    <element-name name="xsl:with-param"/>
+  </sequence-group>
+</content-model>
+</element>
+
+<attlist name="xsl:call-template">
+<attdecl>
+  name %qname; #REQUIRED
+</attdecl>
+<attribute name="name"
+           type="#REQUIRED"
+           value="NMTOKEN"
+           default=""/>
+</attlist>
+
+<element name="xsl:strip-space"
+         content-type="element">
+<content-model-expanded>
+  <empty/>
+</content-model-expanded>
+<content-model>
+  <empty/>
+</content-model>
+</element>
+
+<attlist name="xsl:strip-space">
+<attdecl> elements CDATA #REQUIRED</attdecl>
+<attribute name="elements"
+           type="#REQUIRED"
+           value="CDATA"
+           default=""/>
+</attlist>
+
+<element name="xsl:apply-imports"
+         content-type="element">
+<content-model-expanded>
+  <empty/>
+</content-model-expanded>
+<content-model>
+  <empty/>
+</content-model>
+</element>
+
+<element name="xsl:otherwise"
+         content-type="mixed">
+<content-model-expanded>
+  <or-group occurrence="*">
+    <pcdata/>
+    <element-name name="xsl:apply-templates"/>
+    <element-name name="xsl:call-template"/>
+    <element-name name="xsl:apply-imports"/>
+    <element-name name="xsl:for-each"/>
+    <element-name name="xsl:value-of"/>
+    <element-name name="xsl:copy-of"/>
+    <element-name name="xsl:number"/>
+    <element-name name="xsl:choose"/>
+    <element-name name="xsl:if"/>
+    <element-name name="xsl:text"/>
+    <element-name name="xsl:copy"/>
+    <element-name name="xsl:variable"/>
+    <element-name name="xsl:message"/>
+    <element-name name="xsl:fallback"/>
+    <element-name name="xsl:processing-instruction"/>
+    <element-name name="xsl:comment"/>
+    <element-name name="xsl:element"/>
+    <element-name name="xsl:attribute"/>
+  </or-group>
+</content-model-expanded>
+<content-model>
+  <sequence-group>
+    <parament-name name="template"/>
+  </sequence-group>
+</content-model>
+</element>
+
+<attlist name="xsl:otherwise">
+<attdecl> %space-att;</attdecl>
+<attribute name="xml:space"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="default preserve"
+           default=""/>
+</attlist>
+
+<element name="xsl:comment"
+         content-type="mixed">
+<content-model-expanded>
+  <or-group occurrence="*">
+    <pcdata/>
+    <element-name name="xsl:apply-templates"/>
+    <element-name name="xsl:call-template"/>
+    <element-name name="xsl:apply-imports"/>
+    <element-name name="xsl:for-each"/>
+    <element-name name="xsl:value-of"/>
+    <element-name name="xsl:copy-of"/>
+    <element-name name="xsl:number"/>
+    <element-name name="xsl:choose"/>
+    <element-name name="xsl:if"/>
+    <element-name name="xsl:text"/>
+    <element-name name="xsl:copy"/>
+    <element-name name="xsl:variable"/>
+    <element-name name="xsl:message"/>
+    <element-name name="xsl:fallback"/>
+  </or-group>
+</content-model-expanded>
+<content-model>
+  <sequence-group>
+    <parament-name name="char-template"/>
+  </sequence-group>
+</content-model>
+</element>
+
+<attlist name="xsl:comment">
+<attdecl> %space-att;</attdecl>
+<attribute name="xml:space"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="default preserve"
+           default=""/>
+</attlist>
+
+<element name="xsl:preserve-space"
+         content-type="element">
+<content-model-expanded>
+  <empty/>
+</content-model-expanded>
+<content-model>
+  <empty/>
+</content-model>
+</element>
+
+<attlist name="xsl:preserve-space">
+<attdecl> elements CDATA #REQUIRED</attdecl>
+<attribute name="elements"
+           type="#REQUIRED"
+           value="CDATA"
+           default=""/>
+</attlist>
+
+<element name="xsl:text"
+         content-type="mixed">
+<content-model-expanded>
+  <sequence-group>
+    <pcdata/>
+  </sequence-group>
+</content-model-expanded>
+<content-model>
+  <sequence-group>
+    <pcdata/>
+  </sequence-group>
+</content-model>
+</element>
+
+<attlist name="xsl:text">
+<attdecl>
+  disable-output-escaping (yes|no) "no"
+</attdecl>
+<attribute name="disable-output-escaping"
+           type=""
+           enumeration="yes"
+           value="yes no"
+           default="no"/>
+</attlist>
+
+<element name="xsl:import"
+         content-type="element">
+<content-model-expanded>
+  <empty/>
+</content-model-expanded>
+<content-model>
+  <empty/>
+</content-model>
+</element>
+
+<attlist name="xsl:import">
+<attdecl> href %URI; #REQUIRED</attdecl>
+<attribute name="href"
+           type="#REQUIRED"
+           value="CDATA"
+           default=""/>
+</attlist>
+
+<element name="xsl:fallback"
+         content-type="mixed">
+<content-model-expanded>
+  <or-group occurrence="*">
+    <pcdata/>
+    <element-name name="xsl:apply-templates"/>
+    <element-name name="xsl:call-template"/>
+    <element-name name="xsl:apply-imports"/>
+    <element-name name="xsl:for-each"/>
+    <element-name name="xsl:value-of"/>
+    <element-name name="xsl:copy-of"/>
+    <element-name name="xsl:number"/>
+    <element-name name="xsl:choose"/>
+    <element-name name="xsl:if"/>
+    <element-name name="xsl:text"/>
+    <element-name name="xsl:copy"/>
+    <element-name name="xsl:variable"/>
+    <element-name name="xsl:message"/>
+    <element-name name="xsl:fallback"/>
+    <element-name name="xsl:processing-instruction"/>
+    <element-name name="xsl:comment"/>
+    <element-name name="xsl:element"/>
+    <element-name name="xsl:attribute"/>
+  </or-group>
+</content-model-expanded>
+<content-model>
+  <sequence-group>
+    <parament-name name="template"/>
+  </sequence-group>
+</content-model>
+</element>
+
+<attlist name="xsl:fallback">
+<attdecl> %space-att;</attdecl>
+<attribute name="xml:space"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="default preserve"
+           default=""/>
+</attlist>
+
+<element name="xsl:attribute"
+         content-type="mixed">
+<content-model-expanded>
+  <or-group occurrence="*">
+    <pcdata/>
+    <element-name name="xsl:apply-templates"/>
+    <element-name name="xsl:call-template"/>
+    <element-name name="xsl:apply-imports"/>
+    <element-name name="xsl:for-each"/>
+    <element-name name="xsl:value-of"/>
+    <element-name name="xsl:copy-of"/>
+    <element-name name="xsl:number"/>
+    <element-name name="xsl:choose"/>
+    <element-name name="xsl:if"/>
+    <element-name name="xsl:text"/>
+    <element-name name="xsl:copy"/>
+    <element-name name="xsl:variable"/>
+    <element-name name="xsl:message"/>
+    <element-name name="xsl:fallback"/>
+  </or-group>
+</content-model-expanded>
+<content-model>
+  <sequence-group>
+    <parament-name name="char-template"/>
+  </sequence-group>
+</content-model>
+</element>
+
+<attlist name="xsl:attribute">
+<attdecl> 
+  name %avt; #REQUIRED
+  namespace %avt; #IMPLIED
+  %space-att;
+</attdecl>
+<attribute name="xml:space"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="default preserve"
+           default=""/>
+<attribute name="namespace"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="name"
+           type="#REQUIRED"
+           value="CDATA"
+           default=""/>
+</attlist>
+
+<element name="xsl:namespace-alias"
+         content-type="element">
+<content-model-expanded>
+  <empty/>
+</content-model-expanded>
+<content-model>
+  <empty/>
+</content-model>
+</element>
+
+<attlist name="xsl:namespace-alias">
+<attdecl>
+  stylesheet-prefix CDATA #REQUIRED
+  result-prefix CDATA #REQUIRED
+</attdecl>
+<attribute name="stylesheet-prefix"
+           type="#REQUIRED"
+           value="CDATA"
+           default=""/>
+<attribute name="result-prefix"
+           type="#REQUIRED"
+           value="CDATA"
+           default=""/>
+</attlist>
+
+<element name="xsl:param"
+         content-type="mixed">
+<content-model-expanded>
+  <or-group occurrence="*">
+    <pcdata/>
+    <element-name name="xsl:apply-templates"/>
+    <element-name name="xsl:call-template"/>
+    <element-name name="xsl:apply-imports"/>
+    <element-name name="xsl:for-each"/>
+    <element-name name="xsl:value-of"/>
+    <element-name name="xsl:copy-of"/>
+    <element-name name="xsl:number"/>
+    <element-name name="xsl:choose"/>
+    <element-name name="xsl:if"/>
+    <element-name name="xsl:text"/>
+    <element-name name="xsl:copy"/>
+    <element-name name="xsl:variable"/>
+    <element-name name="xsl:message"/>
+    <element-name name="xsl:fallback"/>
+    <element-name name="xsl:processing-instruction"/>
+    <element-name name="xsl:comment"/>
+    <element-name name="xsl:element"/>
+    <element-name name="xsl:attribute"/>
+  </or-group>
+</content-model-expanded>
+<content-model>
+  <sequence-group>
+    <parament-name name="template"/>
+  </sequence-group>
+</content-model>
+</element>
+
+<attlist name="xsl:param">
+<attdecl> 
+  name %qname; #REQUIRED
+  select %expr; #IMPLIED
+</attdecl>
+<attribute name="select"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="name"
+           type="#REQUIRED"
+           value="NMTOKEN"
+           default=""/>
+</attlist>
+
+<element name="xsl:with-param"
+         content-type="mixed">
+<content-model-expanded>
+  <or-group occurrence="*">
+    <pcdata/>
+    <element-name name="xsl:apply-templates"/>
+    <element-name name="xsl:call-template"/>
+    <element-name name="xsl:apply-imports"/>
+    <element-name name="xsl:for-each"/>
+    <element-name name="xsl:value-of"/>
+    <element-name name="xsl:copy-of"/>
+    <element-name name="xsl:number"/>
+    <element-name name="xsl:choose"/>
+    <element-name name="xsl:if"/>
+    <element-name name="xsl:text"/>
+    <element-name name="xsl:copy"/>
+    <element-name name="xsl:variable"/>
+    <element-name name="xsl:message"/>
+    <element-name name="xsl:fallback"/>
+    <element-name name="xsl:processing-instruction"/>
+    <element-name name="xsl:comment"/>
+    <element-name name="xsl:element"/>
+    <element-name name="xsl:attribute"/>
+  </or-group>
+</content-model-expanded>
+<content-model>
+  <sequence-group>
+    <parament-name name="template"/>
+  </sequence-group>
+</content-model>
+</element>
+
+<attlist name="xsl:with-param">
+<attdecl>
+  name %qname; #REQUIRED
+  select %expr; #IMPLIED
+</attdecl>
+<attribute name="select"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="name"
+           type="#REQUIRED"
+           value="NMTOKEN"
+           default=""/>
+</attlist>
+
+<element name="xsl:if"
+         content-type="mixed">
+<content-model-expanded>
+  <or-group occurrence="*">
+    <pcdata/>
+    <element-name name="xsl:apply-templates"/>
+    <element-name name="xsl:call-template"/>
+    <element-name name="xsl:apply-imports"/>
+    <element-name name="xsl:for-each"/>
+    <element-name name="xsl:value-of"/>
+    <element-name name="xsl:copy-of"/>
+    <element-name name="xsl:number"/>
+    <element-name name="xsl:choose"/>
+    <element-name name="xsl:if"/>
+    <element-name name="xsl:text"/>
+    <element-name name="xsl:copy"/>
+    <element-name name="xsl:variable"/>
+    <element-name name="xsl:message"/>
+    <element-name name="xsl:fallback"/>
+    <element-name name="xsl:processing-instruction"/>
+    <element-name name="xsl:comment"/>
+    <element-name name="xsl:element"/>
+    <element-name name="xsl:attribute"/>
+  </or-group>
+</content-model-expanded>
+<content-model>
+  <sequence-group>
+    <parament-name name="template"/>
+  </sequence-group>
+</content-model>
+</element>
+
+<attlist name="xsl:if">
+<attdecl>
+  test %expr; #REQUIRED
+  %space-att;
+</attdecl>
+<attribute name="xml:space"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="default preserve"
+           default=""/>
+<attribute name="test"
+           type="#REQUIRED"
+           value="CDATA"
+           default=""/>
+</attlist>
+
+<element name="xsl:sort"
+         content-type="element">
+<content-model-expanded>
+  <empty/>
+</content-model-expanded>
+<content-model>
+  <empty/>
+</content-model>
+</element>
+
+<attlist name="xsl:sort">
+<attdecl>
+  select %expr; "."
+  lang %avt; #IMPLIED
+  data-type %avt; "text"
+  order %avt; "ascending"
+  case-order %avt; #IMPLIED
+</attdecl>
+<attribute name="select"
+           type=""
+           value="CDATA"
+           default="."/>
+<attribute name="case-order"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="order"
+           type=""
+           value="CDATA"
+           default="ascending"/>
+<attribute name="data-type"
+           type=""
+           value="CDATA"
+           default="text"/>
+<attribute name="lang"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+</attlist>
+
+<element name="xsl:copy"
+         content-type="mixed">
+<content-model-expanded>
+  <or-group occurrence="*">
+    <pcdata/>
+    <element-name name="xsl:apply-templates"/>
+    <element-name name="xsl:call-template"/>
+    <element-name name="xsl:apply-imports"/>
+    <element-name name="xsl:for-each"/>
+    <element-name name="xsl:value-of"/>
+    <element-name name="xsl:copy-of"/>
+    <element-name name="xsl:number"/>
+    <element-name name="xsl:choose"/>
+    <element-name name="xsl:if"/>
+    <element-name name="xsl:text"/>
+    <element-name name="xsl:copy"/>
+    <element-name name="xsl:variable"/>
+    <element-name name="xsl:message"/>
+    <element-name name="xsl:fallback"/>
+    <element-name name="xsl:processing-instruction"/>
+    <element-name name="xsl:comment"/>
+    <element-name name="xsl:element"/>
+    <element-name name="xsl:attribute"/>
+  </or-group>
+</content-model-expanded>
+<content-model>
+  <sequence-group>
+    <parament-name name="template"/>
+  </sequence-group>
+</content-model>
+</element>
+
+<attlist name="xsl:copy">
+<attdecl>
+  %space-att;
+  use-attribute-sets %qnames; #IMPLIED
+</attdecl>
+<attribute name="xml:space"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="default preserve"
+           default=""/>
+<attribute name="use-attribute-sets"
+           type="#IMPLIED"
+           value="NMTOKENS"
+           default=""/>
+</attlist>
+
+<element name="xsl:stylesheet"
+         content-type="element">
+<content-model-expanded>
+  <sequence-group>
+    <element-name name="xsl:import" occurrence="*"/>
+    <or-group occurrence="*">
+      <element-name name="xsl:include"/>
+      <element-name name="xsl:strip-space"/>
+      <element-name name="xsl:preserve-space"/>
+      <element-name name="xsl:output"/>
+      <element-name name="xsl:key"/>
+      <element-name name="xsl:decimal-format"/>
+      <element-name name="xsl:attribute-set"/>
+      <element-name name="xsl:variable"/>
+      <element-name name="xsl:param"/>
+      <element-name name="xsl:template"/>
+      <element-name name="xsl:namespace-alias"/>
+    </or-group>
+  </sequence-group>
+</content-model-expanded>
+<content-model>
+  <sequence-group>
+    <parament-name name="top-level"/>
+  </sequence-group>
+</content-model>
+</element>
+
+<attlist name="xsl:stylesheet">
+<attdecl> %top-level-atts;</attdecl>
+<attribute name="xml:space"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="default preserve"
+           default=""/>
+<attribute name="exclude-result-prefixes"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="id"
+           type="#IMPLIED"
+           value="ID"
+           default=""/>
+<attribute name="version"
+           type="#REQUIRED"
+           value="NMTOKEN"
+           default=""/>
+<attribute name="xmlns:xsl"
+           type="#FIXED"
+           value="CDATA"
+           default="http://www.w3.org/1999/XSL/Transform"/>
+<attribute name="extension-element-prefixes"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+</attlist>
+
+<element name="xsl:apply-templates"
+         content-type="element">
+<content-model-expanded>
+  <or-group occurrence="*">
+    <element-name name="xsl:sort"/>
+    <element-name name="xsl:with-param"/>
+  </or-group>
+</content-model-expanded>
+<content-model>
+  <or-group occurrence="*">
+    <element-name name="xsl:sort"/>
+    <element-name name="xsl:with-param"/>
+  </or-group>
+</content-model>
+</element>
+
+<attlist name="xsl:apply-templates">
+<attdecl>
+  select %expr; "node()"
+  mode %qname; #IMPLIED
+</attdecl>
+<attribute name="select"
+           type=""
+           value="CDATA"
+           default="node()"/>
+<attribute name="mode"
+           type="#IMPLIED"
+           value="NMTOKEN"
+           default=""/>
+</attlist>
+
+<element name="xsl:choose"
+         content-type="element">
+<content-model-expanded>
+  <sequence-group>
+    <element-name name="xsl:when" occurrence="+"/>
+    <element-name name="xsl:otherwise" occurrence="?"/>
+  </sequence-group>
+</content-model-expanded>
+<content-model>
+  <sequence-group>
+    <element-name name="xsl:when" occurrence="+"/>
+    <element-name name="xsl:otherwise" occurrence="?"/>
+  </sequence-group>
+</content-model>
+</element>
+
+<attlist name="xsl:choose">
+<attdecl> %space-att;</attdecl>
+<attribute name="xml:space"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="default preserve"
+           default=""/>
+</attlist>
+
+<element name="xsl:for-each"
+         content-type="mixed">
+<content-model-expanded>
+  <or-group occurrence="*">
+    <pcdata/>
+    <element-name name="xsl:apply-templates"/>
+    <element-name name="xsl:call-template"/>
+    <element-name name="xsl:apply-imports"/>
+    <element-name name="xsl:for-each"/>
+    <element-name name="xsl:value-of"/>
+    <element-name name="xsl:copy-of"/>
+    <element-name name="xsl:number"/>
+    <element-name name="xsl:choose"/>
+    <element-name name="xsl:if"/>
+    <element-name name="xsl:text"/>
+    <element-name name="xsl:copy"/>
+    <element-name name="xsl:variable"/>
+    <element-name name="xsl:message"/>
+    <element-name name="xsl:fallback"/>
+    <element-name name="xsl:processing-instruction"/>
+    <element-name name="xsl:comment"/>
+    <element-name name="xsl:element"/>
+    <element-name name="xsl:attribute"/>
+    <element-name name="xsl:sort"/>
+  </or-group>
+</content-model-expanded>
+<content-model>
+  <sequence-group occurrence="*">
+    <pcdata/>
+    <parament-name name="instructions"/>
+    <parament-name name="result-elements"/>
+    <element-name name="xsl:sort"/>
+  </sequence-group>
+</content-model>
+</element>
+
+<attlist name="xsl:for-each">
+<attdecl>
+  select %expr; #REQUIRED
+  %space-att;
+</attdecl>
+<attribute name="select"
+           type="#REQUIRED"
+           value="CDATA"
+           default=""/>
+<attribute name="xml:space"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="default preserve"
+           default=""/>
+</attlist>
+
+<element name="xsl:transform"
+         content-type="element">
+<content-model-expanded>
+  <sequence-group>
+    <element-name name="xsl:import" occurrence="*"/>
+    <or-group occurrence="*">
+      <element-name name="xsl:include"/>
+      <element-name name="xsl:strip-space"/>
+      <element-name name="xsl:preserve-space"/>
+      <element-name name="xsl:output"/>
+      <element-name name="xsl:key"/>
+      <element-name name="xsl:decimal-format"/>
+      <element-name name="xsl:attribute-set"/>
+      <element-name name="xsl:variable"/>
+      <element-name name="xsl:param"/>
+      <element-name name="xsl:template"/>
+      <element-name name="xsl:namespace-alias"/>
+    </or-group>
+  </sequence-group>
+</content-model-expanded>
+<content-model>
+  <sequence-group>
+    <parament-name name="top-level"/>
+  </sequence-group>
+</content-model>
+</element>
+
+<attlist name="xsl:transform">
+<attdecl> %top-level-atts;</attdecl>
+<attribute name="xml:space"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="default preserve"
+           default=""/>
+<attribute name="exclude-result-prefixes"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="id"
+           type="#IMPLIED"
+           value="ID"
+           default=""/>
+<attribute name="version"
+           type="#REQUIRED"
+           value="NMTOKEN"
+           default=""/>
+<attribute name="xmlns:xsl"
+           type="#FIXED"
+           value="CDATA"
+           default="http://www.w3.org/1999/XSL/Transform"/>
+<attribute name="extension-element-prefixes"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+</attlist>
+
+<element name="xsl:include"
+         content-type="element">
+<content-model-expanded>
+  <empty/>
+</content-model-expanded>
+<content-model>
+  <empty/>
+</content-model>
+</element>
+
+<attlist name="xsl:include">
+<attdecl> href %URI; #REQUIRED</attdecl>
+<attribute name="href"
+           type="#REQUIRED"
+           value="CDATA"
+           default=""/>
+</attlist>
+
+<element name="xsl:number"
+         content-type="element">
+<content-model-expanded>
+  <empty/>
+</content-model-expanded>
+<content-model>
+  <empty/>
+</content-model>
+</element>
+
+<attlist name="xsl:number">
+<attdecl>
+   level (single|multiple|any) "single"
+   count %pattern; #IMPLIED
+   from %pattern; #IMPLIED
+   value %expr; #IMPLIED
+   format %avt; '1'
+   lang %avt; #IMPLIED
+   letter-value %avt; #IMPLIED
+   grouping-separator %avt; #IMPLIED
+   grouping-size %avt; #IMPLIED
+</attdecl>
+<attribute name="letter-value"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="lang"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="grouping-separator"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="value"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="from"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="level"
+           type=""
+           enumeration="yes"
+           value="single multiple any"
+           default="single"/>
+<attribute name="format"
+           type=""
+           value="CDATA"
+           default="1"/>
+<attribute name="grouping-size"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="count"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+</attlist>
+
+<element name="xsl:decimal-format"
+         content-type="element">
+<content-model-expanded>
+  <empty/>
+</content-model-expanded>
+<content-model>
+  <empty/>
+</content-model>
+</element>
+
+<attlist name="xsl:decimal-format">
+<attdecl>
+  name %qname; #IMPLIED
+  decimal-separator %char; "."
+  grouping-separator %char; ","
+  infinity CDATA "Infinity"
+  minus-sign %char; "-"
+  NaN CDATA "NaN"
+  percent %char; "%"
+  per-mille %char; "&amp;#x2030;"
+  zero-digit %char; "0"
+  digit %char; "#"
+  pattern-separator %char; ";"
+</attdecl>
+<attribute name="NaN"
+           type=""
+           value="CDATA"
+           default="NaN"/>
+<attribute name="pattern-separator"
+           type=""
+           value="CDATA"
+           default=";"/>
+<attribute name="digit"
+           type=""
+           value="CDATA"
+           default="#"/>
+<attribute name="decimal-separator"
+           type=""
+           value="CDATA"
+           default="."/>
+<attribute name="grouping-separator"
+           type=""
+           value="CDATA"
+           default=","/>
+<attribute name="per-mille"
+           type=""
+           value="CDATA"
+           default="&#x2030;"/>
+<attribute name="name"
+           type="#IMPLIED"
+           value="NMTOKEN"
+           default=""/>
+<attribute name="zero-digit"
+           type=""
+           value="CDATA"
+           default="0"/>
+<attribute name="infinity"
+           type=""
+           value="CDATA"
+           default="Infinity"/>
+<attribute name="percent"
+           type=""
+           value="CDATA"
+           default="%"/>
+<attribute name="minus-sign"
+           type=""
+           value="CDATA"
+           default="-"/>
+</attlist>
+
+<element name="xsl:variable"
+         content-type="mixed">
+<content-model-expanded>
+  <or-group occurrence="*">
+    <pcdata/>
+    <element-name name="xsl:apply-templates"/>
+    <element-name name="xsl:call-template"/>
+    <element-name name="xsl:apply-imports"/>
+    <element-name name="xsl:for-each"/>
+    <element-name name="xsl:value-of"/>
+    <element-name name="xsl:copy-of"/>
+    <element-name name="xsl:number"/>
+    <element-name name="xsl:choose"/>
+    <element-name name="xsl:if"/>
+    <element-name name="xsl:text"/>
+    <element-name name="xsl:copy"/>
+    <element-name name="xsl:variable"/>
+    <element-name name="xsl:message"/>
+    <element-name name="xsl:fallback"/>
+    <element-name name="xsl:processing-instruction"/>
+    <element-name name="xsl:comment"/>
+    <element-name name="xsl:element"/>
+    <element-name name="xsl:attribute"/>
+  </or-group>
+</content-model-expanded>
+<content-model>
+  <sequence-group>
+    <parament-name name="template"/>
+  </sequence-group>
+</content-model>
+</element>
+
+<attlist name="xsl:variable">
+<attdecl> 
+  name %qname; #REQUIRED
+  select %expr; #IMPLIED
+</attdecl>
+<attribute name="select"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="name"
+           type="#REQUIRED"
+           value="NMTOKEN"
+           default=""/>
+</attlist>
+
+<element name="xsl:copy-of"
+         content-type="element">
+<content-model-expanded>
+  <empty/>
+</content-model-expanded>
+<content-model>
+  <empty/>
+</content-model>
+</element>
+
+<attlist name="xsl:copy-of">
+<attdecl> select %expr; #REQUIRED</attdecl>
+<attribute name="select"
+           type="#REQUIRED"
+           value="CDATA"
+           default=""/>
+</attlist>
+
+<element name="xsl:output"
+         content-type="element">
+<content-model-expanded>
+  <empty/>
+</content-model-expanded>
+<content-model>
+  <empty/>
+</content-model>
+</element>
+
+<attlist name="xsl:output">
+<attdecl>
+  method %qname; #IMPLIED
+  version NMTOKEN #IMPLIED
+  encoding CDATA #IMPLIED
+  omit-xml-declaration (yes|no) #IMPLIED
+  standalone (yes|no) #IMPLIED
+  doctype-public CDATA #IMPLIED
+  doctype-system CDATA #IMPLIED
+  cdata-section-elements %qnames; #IMPLIED
+  indent (yes|no) #IMPLIED
+  media-type CDATA #IMPLIED
+</attdecl>
+<attribute name="media-type"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="doctype-system"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="method"
+           type="#IMPLIED"
+           value="NMTOKEN"
+           default=""/>
+<attribute name="omit-xml-declaration"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="yes no"
+           default=""/>
+<attribute name="standalone"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="yes no"
+           default=""/>
+<attribute name="cdata-section-elements"
+           type="#IMPLIED"
+           value="NMTOKENS"
+           default=""/>
+<attribute name="version"
+           type="#IMPLIED"
+           value="NMTOKEN"
+           default=""/>
+<attribute name="indent"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="yes no"
+           default=""/>
+<attribute name="encoding"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="doctype-public"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+</attlist>
+
+<element name="xsl:when"
+         content-type="mixed">
+<content-model-expanded>
+  <or-group occurrence="*">
+    <pcdata/>
+    <element-name name="xsl:apply-templates"/>
+    <element-name name="xsl:call-template"/>
+    <element-name name="xsl:apply-imports"/>
+    <element-name name="xsl:for-each"/>
+    <element-name name="xsl:value-of"/>
+    <element-name name="xsl:copy-of"/>
+    <element-name name="xsl:number"/>
+    <element-name name="xsl:choose"/>
+    <element-name name="xsl:if"/>
+    <element-name name="xsl:text"/>
+    <element-name name="xsl:copy"/>
+    <element-name name="xsl:variable"/>
+    <element-name name="xsl:message"/>
+    <element-name name="xsl:fallback"/>
+    <element-name name="xsl:processing-instruction"/>
+    <element-name name="xsl:comment"/>
+    <element-name name="xsl:element"/>
+    <element-name name="xsl:attribute"/>
+  </or-group>
+</content-model-expanded>
+<content-model>
+  <sequence-group>
+    <parament-name name="template"/>
+  </sequence-group>
+</content-model>
+</element>
+
+<attlist name="xsl:when">
+<attdecl>
+  test %expr; #REQUIRED
+  %space-att;
+</attdecl>
+<attribute name="xml:space"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="default preserve"
+           default=""/>
+<attribute name="test"
+           type="#REQUIRED"
+           value="CDATA"
+           default=""/>
+</attlist>
+
+<element name="xsl:key"
+         content-type="element">
+<content-model-expanded>
+  <empty/>
+</content-model-expanded>
+<content-model>
+  <empty/>
+</content-model>
+</element>
+
+<attlist name="xsl:key">
+<attdecl>
+  name %qname; #REQUIRED
+  match %pattern; #REQUIRED
+  use %expr; #REQUIRED
+</attdecl>
+<attribute name="use"
+           type="#REQUIRED"
+           value="CDATA"
+           default=""/>
+<attribute name="match"
+           type="#REQUIRED"
+           value="CDATA"
+           default=""/>
+<attribute name="name"
+           type="#REQUIRED"
+           value="NMTOKEN"
+           default=""/>
+</attlist>
+
+<element name="xsl:template"
+         content-type="mixed">
+<content-model-expanded>
+  <or-group occurrence="*">
+    <pcdata/>
+    <element-name name="xsl:apply-templates"/>
+    <element-name name="xsl:call-template"/>
+    <element-name name="xsl:apply-imports"/>
+    <element-name name="xsl:for-each"/>
+    <element-name name="xsl:value-of"/>
+    <element-name name="xsl:copy-of"/>
+    <element-name name="xsl:number"/>
+    <element-name name="xsl:choose"/>
+    <element-name name="xsl:if"/>
+    <element-name name="xsl:text"/>
+    <element-name name="xsl:copy"/>
+    <element-name name="xsl:variable"/>
+    <element-name name="xsl:message"/>
+    <element-name name="xsl:fallback"/>
+    <element-name name="xsl:processing-instruction"/>
+    <element-name name="xsl:comment"/>
+    <element-name name="xsl:element"/>
+    <element-name name="xsl:attribute"/>
+    <element-name name="xsl:param"/>
+  </or-group>
+</content-model-expanded>
+<content-model>
+  <sequence-group occurrence="*">
+    <pcdata/>
+    <parament-name name="instructions"/>
+    <parament-name name="result-elements"/>
+    <element-name name="xsl:param"/>
+  </sequence-group>
+</content-model>
+</element>
+
+<attlist name="xsl:template">
+<attdecl>
+  match %pattern; #IMPLIED
+  name %qname; #IMPLIED
+  priority %priority; #IMPLIED
+  mode %qname; #IMPLIED
+  %space-att;
+</attdecl>
+<attribute name="xml:space"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="default preserve"
+           default=""/>
+<attribute name="mode"
+           type="#IMPLIED"
+           value="NMTOKEN"
+           default=""/>
+<attribute name="priority"
+           type="#IMPLIED"
+           value="NMTOKEN"
+           default=""/>
+<attribute name="name"
+           type="#IMPLIED"
+           value="NMTOKEN"
+           default=""/>
+<attribute name="match"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+</attlist>
+
+<element name="xsl:attribute-set"
+         content-type="element">
+<content-model-expanded>
+  <sequence-group occurrence="*">
+    <element-name name="xsl:attribute"/>
+  </sequence-group>
+</content-model-expanded>
+<content-model>
+  <sequence-group occurrence="*">
+    <element-name name="xsl:attribute"/>
+  </sequence-group>
+</content-model>
+</element>
+
+<attlist name="xsl:attribute-set">
+<attdecl>
+  name %qname; #REQUIRED
+  use-attribute-sets %qnames; #IMPLIED
+</attdecl>
+<attribute name="use-attribute-sets"
+           type="#IMPLIED"
+           value="NMTOKENS"
+           default=""/>
+<attribute name="name"
+           type="#REQUIRED"
+           value="NMTOKEN"
+           default=""/>
+</attlist>
+
+<element name="xsl:element"
+         content-type="mixed">
+<content-model-expanded>
+  <or-group occurrence="*">
+    <pcdata/>
+    <element-name name="xsl:apply-templates"/>
+    <element-name name="xsl:call-template"/>
+    <element-name name="xsl:apply-imports"/>
+    <element-name name="xsl:for-each"/>
+    <element-name name="xsl:value-of"/>
+    <element-name name="xsl:copy-of"/>
+    <element-name name="xsl:number"/>
+    <element-name name="xsl:choose"/>
+    <element-name name="xsl:if"/>
+    <element-name name="xsl:text"/>
+    <element-name name="xsl:copy"/>
+    <element-name name="xsl:variable"/>
+    <element-name name="xsl:message"/>
+    <element-name name="xsl:fallback"/>
+    <element-name name="xsl:processing-instruction"/>
+    <element-name name="xsl:comment"/>
+    <element-name name="xsl:element"/>
+    <element-name name="xsl:attribute"/>
+  </or-group>
+</content-model-expanded>
+<content-model>
+  <sequence-group>
+    <parament-name name="template"/>
+  </sequence-group>
+</content-model>
+</element>
+
+<attlist name="xsl:element">
+<attdecl> 
+  name %avt; #REQUIRED
+  namespace %avt; #IMPLIED
+  use-attribute-sets %qnames; #IMPLIED
+  %space-att;
+</attdecl>
+<attribute name="xml:space"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="default preserve"
+           default=""/>
+<attribute name="namespace"
+           type="#IMPLIED"
+           value="CDATA"
+           default=""/>
+<attribute name="use-attribute-sets"
+           type="#IMPLIED"
+           value="NMTOKENS"
+           default=""/>
+<attribute name="name"
+           type="#REQUIRED"
+           value="CDATA"
+           default=""/>
+</attlist>
+
+<element name="xsl:message"
+         content-type="mixed">
+<content-model-expanded>
+  <or-group occurrence="*">
+    <pcdata/>
+    <element-name name="xsl:apply-templates"/>
+    <element-name name="xsl:call-template"/>
+    <element-name name="xsl:apply-imports"/>
+    <element-name name="xsl:for-each"/>
+    <element-name name="xsl:value-of"/>
+    <element-name name="xsl:copy-of"/>
+    <element-name name="xsl:number"/>
+    <element-name name="xsl:choose"/>
+    <element-name name="xsl:if"/>
+    <element-name name="xsl:text"/>
+    <element-name name="xsl:copy"/>
+    <element-name name="xsl:variable"/>
+    <element-name name="xsl:message"/>
+    <element-name name="xsl:fallback"/>
+    <element-name name="xsl:processing-instruction"/>
+    <element-name name="xsl:comment"/>
+    <element-name name="xsl:element"/>
+    <element-name name="xsl:attribute"/>
+  </or-group>
+</content-model-expanded>
+<content-model>
+  <sequence-group>
+    <parament-name name="template"/>
+  </sequence-group>
+</content-model>
+</element>
+
+<attlist name="xsl:message">
+<attdecl>
+  %space-att;
+  terminate (yes|no) "no"
+</attdecl>
+<attribute name="xml:space"
+           type="#IMPLIED"
+           enumeration="yes"
+           value="default preserve"
+           default=""/>
+<attribute name="terminate"
+           type=""
+           enumeration="yes"
+           value="yes no"
+           default="no"/>
+</attlist>
+
+<element name="xsl:value-of"
+         content-type="element">
+<content-model-expanded>
+  <empty/>
+</content-model-expanded>
+<content-model>
+  <empty/>
+</content-model>
+</element>
+
+<attlist name="xsl:value-of">
+<attdecl>
+  select %expr; #REQUIRED
+  disable-output-escaping (yes|no) "no"
+</attdecl>
+<attribute name="select"
+           type="#REQUIRED"
+           value="CDATA"
+           default=""/>
+<attribute name="disable-output-escaping"
+           type=""
+           enumeration="yes"
+           value="yes no"
+           default="no"/>
+</attlist>
+
+</dtd>

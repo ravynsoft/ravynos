@@ -1,0 +1,1000 @@
+<!--pulled in by kwrite too-->
+<chapter id="kate-part">
+<chapterinfo>
+<authorgroup>
+<author
+>&Anders.Lund; &Anders.Lund.mail;</author>
+<author
+>&Dominik.Haumann; &Dominik.Haumann.mail;</author>
+<othercredit role="translator"
+> <firstname
+>Johan</firstname
+> <surname
+>Thelmén</surname
+> <affiliation
+><address
+><email
+>jth@home.se</email
+></address
+></affiliation
+> <contrib
+>Översättare</contrib
+></othercredit
+> 
+</authorgroup>
+</chapterinfo>
+<title
+>Arbeta med &kappname;-editorn</title>
+
+<sect1 id="kate-part-overview">
+
+<title
+>Översikt</title>
+
+<para
+>&kappname;-editorn är redigeringsområdet i &kappname;s fönster. Editorn delas mellan &kate; och &kwrite;, och kan också användas i &konqueror; för att visa textfiler från den lokala datorn, eller från nätverket.</para>
+
+<para
+>Editorn består av följande komponenter:</para>
+
+<variablelist>
+
+<varlistentry>
+<term
+>Redigeringsområdet</term>
+<listitem
+><para
+>Det här är platsen där texten i ditt dokument finns.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Rullningslisterna</term>
+<listitem>
+<para
+>Rullningslisterna anger positionen av den synliga delen av dokumentets text, och kan användas för att flytta omkring i dokumentet. Att dra i rullningslisterna gör inte att infogningsmarkören flyttar sig.</para>
+<para
+>Rullningslisterna visas eller göms efter behov.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Ikonkanten</term>
+<listitem>
+<para
+>Ikonkanten är en smal ruta till vänster om editorn, som visar en liten ikon intill markerade rader.</para>
+<para
+>Du kan lägga till eller ta bort ett <link linkend="kate-part-bookmarks"
+>bokmärke</link
+> för en synlig rad genom att klicka med vänster musknapp i ikonkanten intill raden.</para>
+<para
+>Visning av ikonkanten kan ändras med menyalternativet <menuchoice
+><guimenu
+>Visa</guimenu
+> <guimenuitem
+>Visa ikonkant</guimenuitem
+></menuchoice
+>.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Radnummerrutan</term>
+<listitem>
+<para
+>Rutan med radnummer visar radnummer för alla synliga rader i dokumentet.</para>
+<para
+>Visning av radnummer kan ändras med menyalternativet <menuchoice
+><guimenu
+>Visa</guimenu
+> <guimenuitem
+>Visa radnummer</guimenuitem
+></menuchoice
+>.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Kodvikningsrutan</term>
+<listitem>
+<para
+>Kodvikningsrutan låter dig fälla ihop eller expandera block av rader som kan fällas ihop. Beräkningen av områden som kan fällas ihop görs enligt reglerna i definitionen av syntaxfärgläggning för dokumentet.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+<itemizedlist>
+<title
+>Också i det här kapitlet:</title>
+<listitem
+><para
+><link linkend="kate-part-navigation"
+>Flytta sig i texten</link
+> </para
+></listitem>
+<listitem
+><para
+><link linkend="kate-part-selection"
+>Arbeta med markeringar</link
+></para
+></listitem>
+<listitem
+><para
+><link linkend="kate-part-copy-and-paste"
+>Kopiera och klistra in text</link
+></para
+></listitem>
+<listitem
+><para
+><link linkend="kate-part-find-replace"
+>Söka och ersätta text</link
+></para
+></listitem>
+<listitem
+><para
+><link linkend="kate-part-bookmarks"
+>Använda bokmärken</link
+></para
+></listitem>
+<listitem
+><para
+><link linkend="kate-part-auto-wrap"
+>Automatiskt radbryta text</link
+></para
+></listitem>
+<listitem
+><para
+><link linkend="kate-part-autoindent"
+>Använda automatisk indentering</link
+></para
+></listitem>
+</itemizedlist>
+
+</sect1>
+
+<sect1 id="kate-part-navigation">
+<title
+>Flytta sig i texten</title>
+
+<para
+>Att flytta omkring i texten i &kappname; sker på liknande sätt som i de flesta grafiska texteditorer. Du flyttar markören med piltangenterna och tangenterna <keycap
+>Page Up</keycap
+>, <keycap
+>Page Down</keycap
+>, <keycap
+>Home</keycap
+> och <keycap
+>End</keycap
+> tillsammans med väljartangenterna &Ctrl; och &Shift;. Tangenten &Shift; används alltid för att skapa en markering, medan tangenten &Ctrl; har olika effekt för olika tangenter: <itemizedlist>
+<listitem
+><para
+>För tangenterna <keycap
+>Upp</keycap
+> och <keycap
+>Ner</keycap
+> betyder den rulla istället för att flytta markören.</para
+></listitem>
+<listitem
+><para
+>För tangenterna <keycap
+>Vänster</keycap
+> och <keycap
+>Höger</keycap
+> betyder den hoppa över ord istället för tecken.</para
+></listitem>
+<listitem
+><para
+>För tangenterna <keycap
+>Page Up</keycap
+> och <keycap
+>Page Down</keycap
+> betyder den att gå till vyns synliga kant istället för att bläddra.</para>
+</listitem>
+<listitem
+><para
+>För tangenterna <keycap
+>Home</keycap
+> och <keycap
+>End</keycap
+> betyder den att gå till dokumentets början eller slut istället för radens början eller slut.</para
+></listitem>
+</itemizedlist>
+</para>
+
+<para
+>&kappname; tillhandahåller också ett sätt att snabbt gå till motsvarande klammer eller parentes: Placera markören innanför ett parentes- eller klammertecken och tryck på <keycombo
+>&Ctrl;<keycap
+>6</keycap
+></keycombo
+> för att gå till motsvarande parentes eller klammer.</para>
+
+<para
+>Dessutom kan du använda <link linkend="kate-part-bookmarks"
+>bokmärken</link
+> för att snabbt gå till platser som du själv definierar.</para>
+
+</sect1>
+
+<sect1 id="kate-part-selection">
+<title
+>Arbeta med markeringar</title>
+
+<para
+>Det finns två grundläggande sätt att markera text i &kappname;: med musen, och med tangentbordet.</para>
+
+<para
+>För att markera med musen, håll nere vänsterknappen medan du drar markören från stället där markeringen ska börja, till den önskade slutpunkten. Texten markeras medan du drar.</para>
+
+<para
+>Dubbelklicka på ett ord för att markera ordet.</para>
+
+<para
+>Trippelklicka på en rad markerar hela raden.</para>
+
+<para
+>Om <keycap
+>Skift</keycap
+> hålls nere vid ett klick, så markeras texten.</para>
+
+<itemizedlist>
+<listitem
+><para
+>Om ingenting redan är markerat, från textmarkörens position till musens position.</para
+></listitem>
+<listitem
+><para
+>Om det finns en markering, från och inklusive den markeringen till musens position.</para
+></listitem>
+</itemizedlist>
+
+<note>
+<para
+>När text markeras genom att dra med musen, kopieras den markerade texten till klippbordet, och kan klistras in genom att klicka med musens mittenknapp i editorn, eller i vilket annat program som helst där du vill klistra in texten. </para>
+</note>
+
+<para
+>För att markera med tangentbordet, håll nere &Shift;-tangenten medan du använder förflyttningstangenterna (piltangenterna, <keycap
+>Page Up</keycap
+>, <keycap
+>Page Down</keycap
+>, <keycap
+>Home</keycap
+> och <keycap
+>End</keycap
+>, möjligen tillsammans med &Ctrl; för att utöka förflyttningen av textmarkören).</para>
+
+<para
+>Se också avsnittet <link linkend="kate-part-navigation"
+>Flytta sig i texten</link
+> i det här kapitlet.</para>
+
+<para
+>För att <action
+>Kopiera</action
+> den nuvarande markeringen, använd menyalternativet <menuchoice
+><guimenu
+>Redigera</guimenu
+> <guimenuitem
+>Kopiera</guimenuitem
+></menuchoice
+> eller snabbtangenten (normalt <keycombo action="simul"
+>&Ctrl;<keycap
+>C</keycap
+></keycombo
+>).</para>
+
+<para
+>För att <action
+>avmarkera</action
+> den nuvarande markeringen använd menyalternativet <menuchoice
+><guimenu
+>Redigera</guimenu
+> <guimenuitem
+>Avmarkera</guimenuitem
+></menuchoice
+>, eller snabbtangenten (normalt <keycombo action="simul"
+>&Ctrl; <keycap
+>Skift</keycap
+> <keycap
+>A</keycap
+></keycombo
+>), eller klicka med vänster musknapp i editorn.</para>
+
+<sect2 id="kate-part-selection-block">
+<title
+>Använda blockmarkering</title>
+
+<para
+>När blockmarkering är aktiverat, kan du göra <quote
+>vertikala markeringar</quote
+> i texten, vilket betyder att markera vissa kolumner i flera rader. Det här är praktiskt för att till exempel arbeta med tabulatoråtskilda rader.</para>
+
+<para
+>Blockmarkering kan väljas genom att använda menyalternativet <menuchoice
+><guimenu
+>Redigera</guimenu
+> <guimenuitem
+>Blockmarkeringsläge</guimenuitem
+></menuchoice
+>. Den normala snabbtangenten är <keycombo action="simul"
+>&Ctrl;&Shift;<keycap
+>B</keycap
+></keycombo
+>.</para>
+
+</sect2>
+
+<sect2 id="kate-part-selection-overwrite">
+<!-- term not used in settings Editing Text Seöection Mode, it is called "Normal"-->
+<title
+>Använda skriv över-markering</title>
+
+<para
+>Om skriv över-markering är aktiverad, så ersätts markeringen genom att skriva in eller klistra in text. Om det inte är aktiverat, så läggs ny text till på markörens plats.</para>
+
+<para
+>Skriv över-markering är normalt aktiverad.</para>
+
+<para
+>För att ändra inställning av alternativet, använd sidan <link linkend="pref-edit-cursor-selection"
+>Markör och markering</link
+> i <link linkend="config-dialog"
+>inställningsdialogrutan</link
+>.</para>
+
+</sect2>
+
+<sect2 id="kate-part-selection-persistent">
+
+<title
+>Att använda långlivade markeringar</title>
+
+<para
+>När långlivade markeringar är aktiverade, så blir inte markerad text avmarkerad när tecken skrivs in eller markören flyttas. Det här betyder att du kan flytta markören från den markerade texten, och skriva in ny text.</para>
+
+<para
+>Långlivade markeringar är normalt inte aktiverade.</para>
+
+<para
+>Långlivade markeringar kan aktiveras på sidan <link linkend="pref-edit-cursor-selection"
+>Markör och markering</link
+> i <link linkend="config-dialog"
+>inställningsdialogrutan</link
+>.</para>
+
+<warning
+> <!-- is that still possible in 4.4? radio button Normal + Persistent!-->
+<para
+>Om både långlivade markeringar och skriv över-markering är aktiverade, så ersätts markeringen och avmarkeras om ny text skrivs in eller klistras in, då textmarkören är inne i markeringen.</para>
+</warning>
+
+</sect2>
+
+</sect1>
+
+<sect1 id="kate-part-copy-and-paste">
+
+<title
+>Kopiera och klistra in text</title>
+
+<para
+>För att kopiera text, markera den och använd menyalternativet <menuchoice
+><guimenu
+>Redigera</guimenu
+> <guimenuitem
+>Kopiera</guimenuitem
+></menuchoice
+>. Dessutom, vid markering av text med musen kopieras den markerade texten till X-markeringen.</para>
+
+<para
+>För att klistra in text som för närvarande finns på klippbordet, använd menyalternativet <menuchoice
+><guimenu
+>Redigera</guimenu
+> <guimenuitem
+>Klistra in</guimenuitem
+></menuchoice
+>.</para>
+
+<para
+>Dessutom, så kan text som markeras med musen klistras in genom att klicka med musens <mousebutton
+>mitt</mousebutton
+>knapp på önskad plats.</para>
+
+<tip>
+<para
+>Om du använder &kde;-skrivbordet, kan du hämta text som tidigare kopierats från vilket program som helst med &klipper;-ikonen i systembrickan.</para>
+</tip>
+
+</sect1>
+
+<!-- changed in 4.5-->
+<sect1 id="kate-part-find-replace">
+<title
+>Söka och ersätta text</title>
+
+<sect2 id="find-replace-bars">
+<title
+>Sök- och ersättningsrader</title>
+
+
+<para
+>&kappname; har en inkrementell sökrad och en avancerad sök- och ersättningsrad, som erbjuder möjlighet att skriva in en ersättningssträng tillsammans med några extra alternativ.</para>
+
+<para
+>Raderna erbjuder följande gemensamma alternativ:</para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><guilabel
+>Sök</guilabel
+></term>
+<listitem
+><para
+>Här skriver du in söksträngen. Tolkningen av strängen beror på några av alternativen som beskrivs nedan.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Matcha skiftläge</guilabel
+></term>
+<listitem>
+<para
+>Om aktiverad, begränsas sökningen till värden som motsvarar skiftläget (stora eller små bokstäver) för varje tecken i sökbegreppet.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+<para
+>Den avancerade sök- och ersättningsraden erbjuder några  ytterligare alternativ:</para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><guilabel
+>Vanlig text</guilabel
+></term>
+<listitem>
+<para
+>Matcha bokstavligen en förekomst av söksträngen.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Hela ord</guilabel
+></term>
+<listitem>
+<para
+>Om markerad, så fås bara en träff om det finns en ordgräns på båda sidor om söksträngen, i betydelsen inte en bokstav eller siffra: antingen ett annat synligt tecken, eller ett radslut.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Escape-sekvenser</guilabel
+></term>
+<listitem>
+<para
+>Om markerad, aktiveras menyalternativet <guibutton
+>Lägg till</guibutton
+> längst ner i den sammanhangsberoende menyn i textrutorna, och låter dig lägga till escape-sekvenser till sökbegreppet från en fördefinierad lista.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Reguljärt uttryck</guilabel
+></term>
+<listitem>
+<para
+>Om markerad, tolkas söksträngen som ett reguljärt uttryck. Menyalternativet <guibutton
+>Lägg till</guibutton
+> längst ner i den sammanhangsberoende menyn i textrutorna aktiveras och låter dig lägga till reguljära uttryck till sökbegreppet från en fördefinierad lista.</para>
+<para
+>Se <link linkend="regular-expressions"
+>Reguljära uttryck</link
+> för mer om detta.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Sök bara i markeringen</guilabel
+></term>
+<listitem>
+<para
+>Om markerad, utförs sökning och ersättning bara inom den markerade texten.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Sök alla</guilabel
+></term>
+<listitem>
+<para
+>Genom att klicka på den här knappen markeras alla träffar i dokumentet, och antal träffar visas i en liten meddelanderuta. </para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+<!--FIXME keep in sync with kate/menus.docbook <varlistentry id="edit-find"
+> -->
+<sect2 id="finding-text">
+<title
+>Söka efter text</title>
+
+<para
+>Starta den inkrementella sökraden med <keycombo action="simul"
+>&Ctrl;<keycap
+>F</keycap
+></keycombo
+> eller med menyalternativet <menuchoice
+><guimenu
+>Redigera</guimenu
+> <guimenuitem
+>Sök...</guimenuitem
+></menuchoice
+>, för att söka efter text.</para>
+<para
+>Det här öppnar den inkrementella sökraden längst ner i editorfönstret. Till vänster på raden finns en knapp med en ikon för att stänga raden, följt av en liten textruta för att skriva in sökbegrepp."</para>
+<para
+>När du börjar skriva in tecknen i ditt sökbegrepp, börjar sökningen omedelbart. Om det finns en träff i texten markeras den och bakgrundsfärgen i inmatningsfältet ändras till ljusgrönt. Om sökbegreppet inte motsvarar någon sträng i texten, indikeras det av en ljusröd bakgrundsfärg i inmatningsfältet.</para>
+<para
+>Använd knappen <inlinemediaobject
+><imageobject
+><imagedata fileref="arrow-up-double-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> eller <inlinemediaobject
+><imageobject
+><imagedata fileref="arrow-down-double-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> för att gå till nästa eller föregående träff i dokumentet.</para>
+<para
+>Träffar markeras även när sökraden har stängts. För att ta bort markeringarna, tryck på tangenten &Esc;.</para>
+<para
+>Du kan välja om sökningen ska vara skiftlägeskänslig. Genom att välja <inlinemediaobject
+><imageobject
+><imagedata fileref="format-text-superscript-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> begränsas träffar till värden som motsvarar skiftläget (stora eller små bokstäver) för varje tecken i sökbegreppet.</para>
+<para
+>Klicka på knappen <inlinemediaobject
+><imageobject
+><imagedata fileref="configure-shortcuts-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> till höger på den inkrementella sökraden för att byta till den avancerade sök- och ersättningsraden. </para>
+<para
+>För att upprepa den senaste sökningen, om någon, utan att visa den inkrementella sökraden, använd <menuchoice
+><shortcut
+><keycombo action="simul"
+><keycap
+>F3</keycap
+></keycombo
+></shortcut
+> <guimenu
+>Redigera</guimenu
+> <guimenuitem
+>Sök igen</guimenuitem
+></menuchoice
+> eller <menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Shift;<keycap
+>F3</keycap
+></keycombo
+></shortcut
+> <guimenu
+>Redigera</guimenu
+><guimenuitem
+>Sök föregående</guimenuitem
+></menuchoice
+>. </para>
+
+</sect2>
+<!--FIXME keep in sync with kate/menus.docbook <varlistentry id="edit-replace"
+> -->
+<sect2 id="replacing-text">
+<title
+>Ersätta text</title>
+
+<para
+>Starta den avancerade sök- och ersättningsraden med kommandot <menuchoice
+><guimenu
+>Redigera</guimenu
+> <guimenuitem
+>Ersätt</guimenuitem
+></menuchoice
+>, eller genvägen <keycombo action="simul"
+>&Ctrl;<keycap
+>R</keycap
+></keycombo
+>, för att ersätta text.</para>
+<para
+>På radens övre vänstra sida finns en knapp med en ikon för att stänga raden, följt av en liten kombinationsruta för att skriva in sökbegrepp. Rutan kommer ihåg nyligen använda mönster.</para>
+<para
+>Du kan styra sökläget genom att välja <guilabel
+>Enkel text</guilabel
+>, <guilabel
+>Hela ord</guilabel
+>, <guilabel
+>Escape-sekvenser</guilabel
+> eller <guilabel
+>Reguljärt uttryck</guilabel
+> i kombinationsrutan. </para>
+<para
+>Om <guilabel
+>Escape-sekvenser</guilabel
+> eller <guilabel
+>Reguljärt uttryck</guilabel
+> är markerat, aktiveras menyalternativet <guibutton
+>Lägg till...</guibutton
+> längst ner i den sammanhangsberoende menyn i textrutorna och låter dig lägga till reguljära uttryckstecken i sökbegreppet eller ersätta mönster från fördefinierade listor.</para>
+<para
+>Använd knappen <inlinemediaobject
+><imageobject
+><imagedata fileref="arrow-up-double-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> eller <inlinemediaobject
+><imageobject
+><imagedata fileref="arrow-down-double-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> för att gå till nästa eller föregående träff i dokumentet.</para>
+<para
+>Skriv in texten att ersätta med i textrutan med beteckningen <guilabel
+>Ersätt</guilabel
+> och klicka på knappen <guibutton
+>Ersätt</guibutton
+> för att bara ersätta markerad text eller <guibutton
+>Ersätt alla</guibutton
+> för att ersätta söktexten i hela dokumentet. </para>
+<para
+>Du kan ändra sök- och ersättningsbeteendet genom att välja de olika alternativen längst ner på raden. Genom att välja <inlinemediaobject
+><imageobject
+><imagedata fileref="format-text-superscript-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> begränsas träffar till poster som matchar skiftläget (stora eller små bokstäver) för varje tecken i sökbegreppet. <inlinemediaobject
+><imageobject
+><imagedata fileref="edit-select-all-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> söker och ersätter bara inom nuvarande markering. Knappen <guilabel
+>Sök alla</guilabel
+> markerar alla träffar i dokumentet och visar antal hittade träffar i ett litet meddelandefönster. </para>
+<para
+>Klicka på knappen <inlinemediaobject
+><imageobject
+><imagedata fileref="configure-shortcuts-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> till höger på den avancerade sök- och ersättningsraden för att byta till den inkrementella sökraden. </para>
+<tip>
+<para
+>Om du använder ett reguljärt uttryck för att hitta texten som ska ersättas, kan du använda bakåtreferenser för att återanvända text som sparats i parentetiserade delmönster i uttrycket.</para>
+<para
+>Se <link linkend="regular-expressions"
+>Reguljära uttryck</link
+> för mer information om dem.</para>
+</tip>
+
+<tip
+><para
+>Du kan utföra <command
+>find</command
+> (sök), <command
+>replace</command
+> (ersätt) och <command
+>ifind</command
+> (inkrementell sökning) från <link linkend="advanced-editing-tools-commandline"
+>kommandoraden</link
+>.</para>
+</tip>
+
+</sect2>
+
+</sect1>
+
+<sect1 id="kate-part-bookmarks">
+<title
+>Att använda bokmärken</title>
+
+<para
+>Bokmärkesfunktionen låter dig markera vissa rader, för att lätt kunna hitta dem igen.</para>
+
+<para
+>Du kan lägga till och ta bort ett bokmärke för en rad på två olika sätt:</para>
+
+<itemizedlist>
+<listitem>
+<para
+>Flytta infogningsmarkören till raden, och välj kommandot <menuchoice
+><guimenu
+>Bokmärken</guimenu
+><guimenuitem
+>Nytt bokmärke</guimenuitem
+></menuchoice
+> (<keycombo action="simul"
+>&Ctrl;<keycap
+>B</keycap
+></keycombo
+>).</para>
+</listitem>
+<listitem>
+<para
+>Klicka på ikonkanten intill raden.</para>
+</listitem>
+</itemizedlist>
+
+
+<para
+>Bokmärken är tillgängliga i menyn <guimenu
+>Bokmärken</guimenu
+>. Varje individuellt bokmärke är tillgängligt som ett menyalternativ, namngivet med radnumret för raden med bokmärket, och de första tecknen i texten på raden. För att flytta infogningsmarkören till början av en rad med ett bokmärke, öppna menyn och välj bokmärket.</para>
+
+<para
+>För att snabbt gå mellan bokmärken eller till nästa/föregående bokmärke, använd kommandona <menuchoice
+><guimenu
+>Bokmärken</guimenu
+> <guimenuitem
+>Nästa</guimenuitem
+> </menuchoice
+> (<keycombo action="simul"
+>&Alt; <keycap
+>Page Down</keycap
+></keycombo
+>) eller <menuchoice
+> <guimenu
+>Bokmärken</guimenu
+> <guimenuitem
+>Föregående</guimenuitem
+></menuchoice
+> (<keycombo action="simul"
+>&Alt; <keycap
+>Page Up</keycap
+> </keycombo
+>).</para>
+
+</sect1>
+
+<sect1 id="kate-part-auto-wrap">
+<!--dynamic word wrap needs description here-->
+<title
+>Automatisk radbrytning av text</title>
+
+<para
+>Den här funktionen låter dig formatera texten på ett mycket enkelt sätt: texten radbryts, så att inga rader överskrider ett maximalt antal tecken per rad, om det inte finns en längre sträng av andra tecken än blanktecken.</para>
+
+<para
+>För att aktivera/inaktivera det, markera/avmarkera kryssrutan <guibutton
+>Statisk radbrytning</guibutton
+> på <link linkend="pref-word-wrap"
+>redigeringssidan</link
+> i <link linkend="config-dialog"
+>inställningsdialogrutan</link
+>.</para>
+
+<para
+>För att ställa in maximal radlängd (maximalt antal tecken per rad), använd alternativet <link linkend="pref-wrap-words-at"
+><guibutton
+>Bryt rader vid</guibutton
+></link
+> på <link linkend="pref-edit"
+>redigeringssidan</link
+> i <link linkend="config-dialog"
+>inställningsdialogrutan</link
+>.</para>
+
+<para
+>Om aktiverad, så har det fäljande effekter: <itemizedlist>
+<listitem
+><para
+>Medan du skriver, lägger editorn automatiskt till en hård nyrad efter det sista blanktecknet på en position innan den maximala radlängden nås.</para
+></listitem>
+<listitem
+><para
+>När dokumentet laddas, radbryter editorn texten på ett liknande sätt, så att inga rader är längre än den maximala radlängden, om de innehåller några blanktecken som tillåter detta.</para
+></listitem>
+</itemizedlist>
+
+</para>
+
+<note
+><para
+>Det finns för närvarande inget sätt att ställa in radbrytning för typer av dokument, eller aktivera och inaktivera funktionen på dokumentnivå. Det här kommer att rättas i en framtida version av &kappname;.</para
+></note>
+
+</sect1>
+
+<sect1 id="kate-part-autoindent">
+<title
+>Att använda automatisk indentering</title>
+
+<para
+>&kappname;s editorkomponent stöder en mängd olika automatiska indenteringslägen, skapade för olika textformat. Du kan välja bland tillgängliga lägen med menyn <menuchoice
+><guimenu
+>Verktyg</guimenu
+> <guisubmenu
+>Indentering</guisubmenu
+></menuchoice
+>. Modulerna för automatisk indentering tillhandahåller också funktionen <menuchoice
+><guimenu
+>Verktyg</guimenu
+> <guimenuitem
+>Justera</guimenuitem
+></menuchoice
+> som beräknar indenteringen för markeringen eller nuvarande rad igen. Alltså kan du indentera om hela dokumentet genom att markera all text och utföra åtgärden.</para>
+
+<para
+>Alla indenteringslägen använder inställningar som hör ihop med indentering i det aktiva dokumentet.</para>
+
+<tip
+><para
+>Du kan ställa in alla möjliga inställningsvariabler, inklusive de som hör ihop med indentering, genom att använda <link linkend="config-variables"
+>dokumentvariabler</link
+> och <link linkend="pref-open-save-modes-filetypes"
+>filtyper</link
+>.</para
+></tip>
+
+<variablelist>
+
+<title
+>Tillgängliga lägen för automatisk indentering</title>
+
+<varlistentry>
+<term
+>Inget</term>
+<listitem
+><para
+>Väljes det här läget stängs automatisk indentering av helt och hållet.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Normal</term>
+<listitem
+><para
+>Den här indenteringen behåller helt enkelt en indentering som liknar den föregående raden med något innehåll som inte är blanktecken. Du kan kombinera den med alternativen indentera och avindentera för att indentera efter din egen smak. </para
+></listitem>
+</varlistentry>
+
+<varlistentry
+><term
+>C-stil</term>
+<listitem
+><para
+>Indentering för C och liknande språk, såsom C++, C#, &Java;, &javascript; och så vidare. Indenteringen fungerar inte med skriptspråk som Perl eller PHP.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Haskell</term>
+<listitem
+><para
+>Indentering för det funktionella programspråket Haskell. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Lilypond</term>
+<listitem
+><para
+>Indentering för notskriftsspråket Lilypond för musik. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Lisp</term>
+<listitem
+><para
+>Indentering särskilt för skriptspråket Lisp och dialekter av Lisp. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Python</term>
+<listitem
+><para
+>Indentering särskilt för skriptspråket Python. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>XML-stil</term>
+<listitem
+><para
+>Indentering särskilt för XML-liknande språk. </para
+></listitem>
+</varlistentry>
+<!--Ruby + Lua missing -->
+</variablelist>
+
+</sect1>
+
+<sect1 id="kate-part-line-modification">
+<title
+>Indikering av radändringar</title>
+
+<para
+>&kappname; indikering av radändringar låter dig enkelt se vad du nyligen har ändrat i en fil. Sparade ändringar anges av en grön rad till vänster om ett dokument, medan osparade ändringar anges av en orange rad.</para>
+
+<para>
+<mediaobject>
+<imageobject
+><imagedata format="PNG" fileref="line-modification-system.png"/></imageobject>
+<caption
+><para
+>Indikering av radändringar under användning.</para
+></caption>
+</mediaobject>
+</para>
+
+<para
+>Färgerna som används kan ändras i <link linkend="prefcolors"
+>inställningsrutan <guilabel
+>Teckensnitt och färger</guilabel
+></link
+>, eller inaktivera funktionen helt under fliken <link linkend="appearance-borders"
+><guilabel
+>Kanter</guilabel
+> i inställningsrutan <guilabel
+>Utseende</guilabel
+></link
+>.</para>
+
+</sect1>
+
+<sect1 id="kate-part-scrollbar-minimap">
+<title
+>Rullningslistens miniavbildning</title>
+
+<para
+>Rullningslistens miniavbildning i &kappname; visar en förhandsgranskning av dokument på rullningslistens plats. Den del av dokumentet som för närvarande är synlig markeras. </para>
+
+<para>
+<mediaobject>
+<imageobject
+><imagedata format="PNG" fileref="minimap.png"/></imageobject>
+<caption
+><para
+>Rullningslistens miniavbildning visar en förhandsgranskning av &kate;s källkod. </para
+></caption>
+</mediaobject>
+</para>
+
+<para
+>Miniavbildningen kan tillfälligt aktiveras eller inaktiveras genom att använda <menuchoice
+><guimenu
+>Visa</guimenu
+> <guimenuitem
+>Visa rullningslistens miniavbildning</guimenuitem
+></menuchoice
+> eller permanent i <link linkend="appearance-borders"
+>avdelningen Utseende i &kappname;s inställningar</link
+>.</para>
+
+</sect1>
+
+</chapter>

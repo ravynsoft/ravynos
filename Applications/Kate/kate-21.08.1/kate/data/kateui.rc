@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE gui SYSTEM "kpartgui.dtd">
+<gui name="kate" version="89" translationDomain="kate">
+  <MenuBar>
+    <Menu name="file" noMerge="1">
+      <text>&amp;File</text>
+      <Action name="file_new"/>
+      <DefineGroup name="new_merge"/>
+      <Separator/>
+      <Action name="file_open"/>
+      <Action name="file_open_recent"/>
+      <Action name="file_open_with"/>
+      <DefineGroup name="open_merge"/>
+      <Separator/>
+      <DefineGroup name="save_merge"/>
+      <Action name="file_save_all"/>
+      <Separator/>
+      <DefineGroup name="revert_merge"/>
+      <Action name="file_reload_all"/>
+      <DefineGroup name="print_merge"/>
+      <DefineGroup name="export_merge"/>
+      <Separator/>
+      <Action name="file_rename"/>
+      <Action name="file_delete"/>
+      <Action name="file_compare"/>
+      <Separator/>
+      <Action name="file_copy_filepath"/>
+      <Action name="file_open_containing_folder"/>
+      <Action name="file_properties"/>
+      <Separator/>
+      <Action name="file_close"/>
+      <Action name="file_close_other"/>
+      <Action name="file_close_all"/>
+      <Action name="file_close_orphaned"/>
+      <DefineGroup name="close_merge"/>
+      <Separator/>
+      <Action name="file_quit"/>
+    </Menu>
+    <Menu name="edit">
+      <text>&amp;Edit</text>
+      <DefineGroup name="edit_undo_merge"/>
+      <Separator group="edit_undo_merge"/>
+      <DefineGroup name="edit_paste_merge"/>
+      <Separator/>
+      <DefineGroup name="edit_select_merge"/>
+      <Separator/>
+      <DefineGroup name="edit_find_merge"/>
+      <Separator/>
+    </Menu>
+    <Menu name="view">
+      <text>&amp;View</text>
+      <Action name="view_new_view"/>
+      <Separator/>
+      <DefineGroup name="switch_document"/>
+      <Separator/>
+      <Action name="view_next_tab"/>
+      <Action name="view_prev_tab"/>
+      <Action name="view_lru_document_next"/>
+      <Action name="view_quick_open"/>
+      <Separator/>
+      <Action name="view_commandbar_open"/>
+      <Separator/>
+      <Menu name="view-split">
+        <text>Split View</text>
+        <Action name="go_prev_split_view"/>
+        <Action name="go_next_split_view"/>
+        <Separator/>
+        <Action name="view_split_vert"/>
+        <Action name="view_split_horiz"/>
+        <Action name="view_split_toggle"/>
+        <Separator/>
+        <Action name="view_close_current_space"/>
+        <Action name="view_close_others"/>
+        <Separator/>
+        <Action name="view_hide_others"/>
+        <Separator/>
+        <Action name="view_split_move_left"/>
+        <Action name="view_split_move_right"/>
+        <Action name="view_split_move_up"/>
+        <Action name="view_split_move_down"/>
+      </Menu>
+      <Separator/>
+      <Merge name="kate_mdi_view_actions"/>
+      <Separator/>
+      <DefineGroup name="view_operations"/>
+    </Menu>
+    <DefineGroup name="after_view"/>
+    <Merge/>
+    <DefineGroup name="before_tools"/>
+    <Menu name="tools">
+      <text>&amp;Tools</text>
+      <Action name="tools_external"/>
+      <Separator/>
+      <DefineGroup name="tools_operations"/>
+      <DefineGroup name="tools_operations2"/>
+      <Action name="scripts"/>
+    </Menu>
+    <Menu name="sessions">
+      <text>Sess&amp;ions</text>
+      <Action name="sessions_new"/>
+      <Action name="sessions_list"/>
+      <Action name="sessions_manage"/>
+      <Separator/>
+      <Action name="sessions_save"/>
+      <Action name="sessions_save_as"/>
+    </Menu>
+    <Menu name="settings">
+      <text>&amp;Settings</text>
+      <Action name="settings_show_tab_bar" append="show_merge"/>
+      <Action name="settings_show_full_path" append="show_merge"/>
+      <Action name="colorscheme_menu"/>
+    </Menu>
+  </MenuBar>
+  <ToolBar name="mainToolBar" noMerge="1">
+    <text>Main Toolbar</text>
+    <Action name="file_new"/>
+    <Action name="file_open"/>
+    <Separator/>
+    <DefineGroup name="file_operations"/>
+    <Separator/>
+    <DefineGroup name="print_merge"/>
+    <Separator/>
+    <Action name="file_close"/>
+    <Separator/>
+    <DefineGroup name="edit_operations"/>
+    <Separator/>
+    <DefineGroup name="find_operations"/>
+    <Separator/>
+    <DefineGroup name="zoom_operations"/>
+    <Separator/>
+    <Action name="view_history_back"/>
+    <Action name="view_history_forward"/>
+  </ToolBar>
+  <Menu name="ktexteditor_popup" noMerge="1">
+    <DefineGroup name="popup_operations"/>
+    <DefineGroup name="popup_operations2"/>
+  </Menu>
+  <Menu name="viewspace_popup" noMerge="1">
+    <Action name="view_split_vert"/>
+    <Action name="view_split_horiz"/>
+    <Separator/>
+    <Action name="view_close_current_space"/>
+    <Separator/>
+    <Action name="go_back"/>
+    <Action name="go_forward"/>
+    <Action name="doc_list"/>
+    <Menu name="viewspace_popup_statusbar">
+      <text>&amp;Status Bar Items</text>
+      <Action name="show_cursor_pos"/>
+      <Action name="show_char_count"/>
+      <Action name="show_insert_mode"/>
+      <Action name="show_select_mode"/>
+      <Action name="show_encoding"/>
+      <Action name="show_doc_name"/>
+    </Menu>
+  </Menu>
+</gui>
+<!-- kate: space-indent on; indent-width 4; replace-tabs on; -->

@@ -1,0 +1,1901 @@
+# Malayalam translations for kate package.
+# Copyright (C) 2019 This file is copyright:
+# This file is distributed under the same license as the kate package.
+# Automatically generated, 2019.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: kate\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2021-07-18 01:45+0000\n"
+"PO-Revision-Date: 2020-03-17 11:50+0000\n"
+"Last-Translator: amrithandh m <amrithanadhm@gmail.com>\n"
+"Language-Team: Swathanthra|സ്വതന്ത്ര Malayalam|മലയാളം Computing|കമ്പ്യൂട്ടിങ്ങ് <smc."
+"org.in>\n"
+"Language: ml\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#, kde-format
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr "സുബിന്‍ സിബി,ഷിജു അലക്സ്,ശങ്കരനാരായണന്‍ എന്‍ എം,വിവേക് കെ.ജെ."
+
+#, kde-format
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr ""
+"mail@subinsb.com,shijualexonline@gmail.com,snalledam@dataone.in,"
+"vivekkj2004@gmail.com"
+
+#. i18n: ectx: Menu (file)
+#: data/kateui.rc:6
+#, kde-format
+msgid "&File"
+msgstr "ഫയല്‍ (&F)"
+
+#. i18n: ectx: Menu (edit)
+#: data/kateui.rc:40
+#, kde-format
+msgid "&Edit"
+msgstr "തിരുത്തുക (&E)"
+
+#. i18n: ectx: Menu (view)
+#: data/kateui.rc:51
+#, kde-format
+msgid "&View"
+msgstr "കാഴ്ച (&V)"
+
+#. i18n: ectx: Menu (view-split)
+#: data/kateui.rc:64
+#, kde-format
+msgid "Split View"
+msgstr "വിഭജിച്ച കാഴ്ച"
+
+#. i18n: ectx: Menu (tools)
+#: data/kateui.rc:91
+#, kde-format
+msgid "&Tools"
+msgstr "ഉപകരണങ്ങള്‍ (&T)"
+
+#. i18n: ectx: Menu (sessions)
+#: data/kateui.rc:99
+#, kde-format
+msgid "Sess&ions"
+msgstr "സെഷനുകള്‍ (&i)"
+
+#. i18n: ectx: Menu (settings)
+#: data/kateui.rc:108
+#, kde-format
+msgid "&Settings"
+msgstr "സജ്ജീകരണങ്ങള്‍ (&S)"
+
+#. i18n: ectx: ToolBar (mainToolBar)
+#: data/kateui.rc:115
+#, kde-format
+msgid "Main Toolbar"
+msgstr "പ്രധാന ഉപകരണപ്പട്ട"
+
+#. i18n: ectx: Menu (viewspace_popup_statusbar)
+#: data/kateui.rc:148
+#, kde-format
+msgid "&Status Bar Items"
+msgstr "സ്ഥിതിവിവര ബാറിലെ ഇനങ്ങൾ (&S)"
+
+#: kateapp.cpp:215
+#, kde-format
+msgid "Folders can only be opened when the projects plugin is enabled"
+msgstr ""
+
+#: kateapp.cpp:324
+#, kde-format
+msgid ""
+"The file '%1' could not be opened: it is not a normal file, it is a folder."
+msgstr "ഫയൽ '%1' തുറക്കാൻ കഴിഞ്ഞില്ല: ഇത് ഒരു സാധാരണ ഫയലല്ല, ഇത് ഒരു ഫോൾഡറാണ്."
+
+#: katecolorschemechooser.cpp:44
+#, fuzzy, kde-format
+msgid "&Color Scheme"
+msgstr "നിറങ്ങളുടെ  പ്രമേയം (&C)"
+
+#: kateconfigdialog.cpp:41
+#, kde-format
+msgid "Configure"
+msgstr "ക്രമീകരിക്കുക"
+
+#: kateconfigdialog.cpp:72 katemdi.cpp:510
+#, kde-format
+msgid "Behavior"
+msgstr "സ്വഭാവം"
+
+#: kateconfigdialog.cpp:73
+#, fuzzy, kde-format
+#| msgid "Behavior"
+msgid "Behavior Options"
+msgstr "സ്വഭാവം"
+
+#: kateconfigdialog.cpp:80
+#, kde-format
+msgid "&Behavior"
+msgstr "പെരുമാറ്റം (&B)"
+
+#: kateconfigdialog.cpp:85
+#, kde-format
+msgid "&Switch to output view upon message type:"
+msgstr ""
+
+#: kateconfigdialog.cpp:90
+#, fuzzy, kde-format
+#| msgctxt "The special case of 'Delete unused meta-information after'"
+#| msgid "(never)"
+msgid "Never"
+msgstr "(ഒരിക്കലും വേണ്ട )"
+
+#: kateconfigdialog.cpp:90
+#, kde-format
+msgid "Error"
+msgstr ""
+
+#: kateconfigdialog.cpp:90 kateconfigdialog.cpp:434
+#, kde-format
+msgid "Warning"
+msgstr "മുന്നറിയിപ്പ്"
+
+#: kateconfigdialog.cpp:90
+#, kde-format
+msgid "Info"
+msgstr ""
+
+#: kateconfigdialog.cpp:90
+#, kde-format
+msgid "Log"
+msgstr ""
+
+#: kateconfigdialog.cpp:96
+#, kde-format
+msgid "Use a separate &dialog for handling externally modified files"
+msgstr ""
+
+#: kateconfigdialog.cpp:99
+#, fuzzy, kde-format
+#| msgid ""
+#| "If enabled, when Kate receives focus you will be asked what to do with "
+#| "files that have been modified on the hard disk. If not enabled, you will "
+#| "be asked what to do with a file that has been modified on the hard disk "
+#| "only when that file is tried to be saved."
+msgid ""
+"If enabled, a modal dialog will be used to show all of the modified files. "
+"If not enabled, you will be individually asked what to do for each modified "
+"file only when that file's view receives focus."
+msgstr ""
+"പ്രവർത്തനക്ഷമമാക്കിയിട്ടുണ്ടെങ്കിൽ, കേറ്റിന് ഫോക്കസ് ലഭിക്കുമ്പോൾ ഹാർഡ് ഡിസ്കിൽ പരിഷ്‌ക്കരിച്ച "
+"ഫയലുകൾ എന്തുചെയ്യണമെന്ന് നിങ്ങളോട് ചോദിക്കും. പ്രവർത്തനക്ഷമമാക്കിയിട്ടില്ലെങ്കിൽ, ഹാർഡ് ഡിസ്കിൽ "
+"പരിഷ്‌ക്കരിച്ച ഒരു ഫയൽ സംരക്ഷിക്കാൻ ശ്രമിക്കുമ്പോൾ മാത്രം എന്തുചെയ്യണമെന്ന് നിങ്ങളോട് ചോദിക്കും."
+
+#: kateconfigdialog.cpp:109
+#, fuzzy, kde-format
+#| msgid "Show &Tabs"
+msgid "&Tabs"
+msgstr "ടാബുകള്‍ കാണിക്കുക (&T)"
+
+#: kateconfigdialog.cpp:113
+#, kde-format
+msgid "&Limit number of tabs:"
+msgstr ""
+
+#: kateconfigdialog.cpp:119
+#, kde-format
+msgid "Unlimited"
+msgstr ""
+
+#: kateconfigdialog.cpp:124
+#, kde-format
+msgid "&Show close button"
+msgstr ""
+
+#: kateconfigdialog.cpp:126
+#, kde-format
+msgid "When checked each tab will display a close button."
+msgstr ""
+
+#: kateconfigdialog.cpp:130
+#, kde-format
+msgid "&Expand tabs"
+msgstr ""
+
+#: kateconfigdialog.cpp:132
+#, kde-format
+msgid "When checked tabs take as much size as possible."
+msgstr ""
+
+#: kateconfigdialog.cpp:136
+#, kde-format
+msgid "&Double click opens a new document"
+msgstr ""
+
+#: kateconfigdialog.cpp:138
+#, kde-format
+msgid "When checked double click opens a new document."
+msgstr ""
+
+#: kateconfigdialog.cpp:142
+#, kde-format
+msgid "&Middle click closes a document"
+msgstr ""
+
+#: kateconfigdialog.cpp:144
+#, kde-format
+msgid "When checked middle click closes a document."
+msgstr ""
+
+#: kateconfigdialog.cpp:159
+#, fuzzy, kde-format
+#| msgid "Sessions"
+msgid "Session"
+msgstr "സെഷനുകൾ"
+
+#: kateconfigdialog.cpp:160
+#, kde-format
+msgid "Session Management"
+msgstr "സെഷന് നടത്തിപ്പ്‌"
+
+#: kateconfigdialog.cpp:171
+#, kde-format
+msgctxt "The special case of 'Delete unused meta-information after'"
+msgid "(never)"
+msgstr "(ഒരിക്കലും വേണ്ട )"
+
+#: kateconfigdialog.cpp:172
+#, kde-format
+msgctxt "The suffix of 'Delete unused meta-information after'"
+msgid " day"
+msgid_plural " days"
+msgstr[0] " ദിവസം"
+msgstr[1] " ദിവസങ്ങൾ"
+
+#: kateconfigdialog.cpp:221
+#, kde-format
+msgid "Plugins"
+msgstr "സംയോജകങ്ങള്‍"
+
+#: kateconfigdialog.cpp:222
+#, kde-format
+msgid "Plugin Manager"
+msgstr "സംയോജക കാര്യസ്ഥന്‍"
+
+#: kateconfigdialog.cpp:240 kateconfigdialog.cpp:241
+#, kde-format
+msgid "User Feedback"
+msgstr "ഉപയോക്താവിൻെറ അഭിപ്രായം"
+
+#: kateconfigdialog.cpp:433
+#, kde-format
+msgid ""
+"You have unsaved changes. Do you want to apply the changes or discard them?"
+msgstr ""
+
+#: kateconfigplugindialogpage.cpp:66
+#, kde-format
+msgid "Name"
+msgstr "പേര്"
+
+#: kateconfigplugindialogpage.cpp:66
+#, kde-format
+msgid "Description"
+msgstr "വിവരണം"
+
+#: kateconfigplugindialogpage.cpp:69
+#, kde-format
+msgid ""
+"Here you can see all available Kate plugins. Those with a check mark are "
+"loaded, and will be loaded again the next time Kate is started."
+msgstr ""
+"ലഭ്യമായ എല്ലാ കേറ്റ് പ്ലഗ്ഗിനുകളും ഇവിടെ കാണാം. ടിക് മാർക്ക് ഉള്ളവ ലോഡുചെയ്തിട്ടുണ്ട്, കൂടാതെ "
+"അവ അടുത്തതവണ കേറ്റ് തുറക്കുമ്പോൾ സ്വതേ ലോഡുചെയ്യപ്പെടും."
+
+#: katedocmanager.cpp:223
+#, kde-format
+msgid ""
+"The supposedly temporary file %1 has been modified. Do you want to delete it "
+"anyway?"
+msgstr ""
+
+#: katedocmanager.cpp:226
+#, kde-format
+msgid "Delete File?"
+msgstr "ഫയല്‍ കളയട്ടെ?"
+
+#: katedocmanager.cpp:334
+#, kde-format
+msgid ""
+"<p>The document '%1' has been modified, but not saved.</p><p>Do you want to "
+"save your changes or discard them?</p>"
+msgstr ""
+"<p>'%1' പ്രമാണത്തിൽ മാറ്റങ്ങൾ വന്നിട്ടുണ്ട്, പക്ഷേ സേവ് ചെയ്തിട്ടില്ല.</p><p>മാറ്റങ്ങൾ  സേവ് "
+"ചെയ്യണോ അതോ കളയണോ?</p>"
+
+#: katedocmanager.cpp:337
+#, kde-format
+msgid "Close Document"
+msgstr "പ്രമാണം അടയ്ക്കുക"
+
+#: katedocmanager.cpp:346
+#, kde-format
+msgid "Save As"
+msgstr ""
+
+#: katedocmanager.cpp:364 katemainwindow.cpp:564
+#, kde-format
+msgid "New file opened while trying to close Kate, closing aborted."
+msgstr ""
+
+#: katedocmanager.cpp:364 katemainwindow.cpp:564
+#, kde-format
+msgid "Closing Aborted"
+msgstr ""
+
+#: katedocmanager.cpp:442
+#, kde-format
+msgid "Starting Up"
+msgstr "തുടങ്ങുന്നു"
+
+#: katedocmanager.cpp:443
+#, kde-format
+msgid "Reopening files from the last session..."
+msgstr "തൊട്ട് മുൻപത്തെ സെഷനിൽ നിന്നും ഫയലുകള്‍ തുറക്കുന്നു..."
+
+#: katefileactions.cpp:64
+#, kde-format
+msgid "Rename file"
+msgstr "ഫയല്‍ പുനഃനാമകരണം ചെയ്യുക"
+
+#: katefileactions.cpp:65
+#, kde-format
+msgid "New file name"
+msgstr "ഫയലിന്റെ പുതിയ പേര്"
+
+#: katefileactions.cpp:96
+#, kde-format
+msgid "File \"%1\" could not be moved to \"%2\""
+msgstr "ഫയല്‍ \"%1\", \"%2\"വിലേക്ക് മാറ്റുവാൻ സാധിച്ചില്ല"
+
+#: katefileactions.cpp:117
+#, kde-format
+msgid "Do you really want to delete file \"%1\"?"
+msgstr "താങ്കൾ \"%1\" പ്രമാണം കളയുന്നത് തീര്‍ച്ചപ്പെടുത്തിയോ?"
+
+#: katefileactions.cpp:118
+#, kde-format
+msgid "Delete file"
+msgstr "പ്രമാണം കളയുക"
+
+#: katefileactions.cpp:135
+#, kde-format
+msgid "File \"%1\" could not be deleted."
+msgstr "ഫയല്‍ \"%1\" കളയാന്‍ സാധിച്ചില്ല."
+
+#: katemainwindow.cpp:216
+#, kde-format
+msgid "Use this command to show or hide the view's statusbar"
+msgstr ""
+
+#: katemainwindow.cpp:219
+#, kde-format
+msgid "Show &Tabs"
+msgstr "ടാബുകള്‍ കാണിക്കുക (&T)"
+
+#: katemainwindow.cpp:222
+#, kde-format
+msgid "Use this command to show or hide the tabs for the views"
+msgstr ""
+
+#: katemainwindow.cpp:224
+#, kde-format
+msgid "Sho&w Path in Titlebar"
+msgstr ""
+
+#: katemainwindow.cpp:227
+#, kde-format
+msgid "Show the complete document path in the window caption"
+msgstr ""
+
+#: katemainwindow.cpp:233
+#, kde-format
+msgid "&Previous Tab"
+msgstr ""
+
+#: katemainwindow.cpp:234
+#, kde-format
+msgid "Focus the previous tab."
+msgstr ""
+
+#: katemainwindow.cpp:239
+#, kde-format
+msgid "&Next Tab"
+msgstr ""
+
+#: katemainwindow.cpp:240
+#, kde-format
+msgid "Focus the next tab."
+msgstr ""
+
+#: katemainwindow.cpp:247
+#, kde-format
+msgid "&Quick Open"
+msgstr "പെട്ടന്ന് തുറക്കുക (&Q)"
+
+#: katemainwindow.cpp:250
+#, kde-format
+msgid "Open a form to quick open documents."
+msgstr ""
+
+#: katemainwindow.cpp:257
+#, kde-format
+msgid "&Command Bar"
+msgstr ""
+
+#: katemainwindow.cpp:292
+#, kde-format
+msgid "Output"
+msgstr ""
+
+#: katemainwindow.cpp:302
+#, kde-format
+msgid "Create a new document"
+msgstr ""
+
+#: katemainwindow.cpp:305
+#, kde-format
+msgid "Open an existing document for editing"
+msgstr ""
+
+#: katemainwindow.cpp:310
+#, kde-format
+msgid ""
+"This lists files which you have opened recently, and allows you to easily "
+"open them again."
+msgstr ""
+
+#: katemainwindow.cpp:314
+#, kde-format
+msgid "Save A&ll"
+msgstr ""
+
+#: katemainwindow.cpp:317
+#, kde-format
+msgid "Save all open, modified documents to disk."
+msgstr ""
+
+#: katemainwindow.cpp:320
+#, kde-format
+msgid "&Reload All"
+msgstr ""
+
+#: katemainwindow.cpp:322
+#, kde-format
+msgid "Reload all open documents."
+msgstr ""
+
+#: katemainwindow.cpp:326
+#, kde-format
+msgid "Copy File &Path"
+msgstr ""
+
+#: katemainwindow.cpp:331 katemainwindow.cpp:340
+#, kde-format
+msgid "Copies the file path of the current file to clipboard."
+msgstr ""
+
+#: katemainwindow.cpp:335
+#, kde-format
+msgid "&Open Containing Folder"
+msgstr ""
+
+#: katemainwindow.cpp:344
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Rename..."
+msgstr ""
+
+#: katemainwindow.cpp:349
+#, kde-format
+msgid "Renames the file belonging to the current document."
+msgstr ""
+
+#: katemainwindow.cpp:353
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Delete"
+msgstr ""
+
+#: katemainwindow.cpp:358 katemainwindow.cpp:367
+#, kde-format
+msgid "Deletes the file belonging to the current document."
+msgstr ""
+
+#: katemainwindow.cpp:362
+#, kde-format
+msgid "Properties"
+msgstr ""
+
+#: katemainwindow.cpp:370 katemainwindow.cpp:372
+#, kde-format
+msgid "Compare"
+msgstr ""
+
+#: katemainwindow.cpp:372
+#, kde-format
+msgid "Use the Tabbar context menu to compare two documents"
+msgstr ""
+
+#: katemainwindow.cpp:374
+#, kde-format
+msgid "Shows a hint how to compare documents."
+msgstr ""
+
+#: katemainwindow.cpp:377
+#, kde-format
+msgid "Close Orphaned"
+msgstr ""
+
+#: katemainwindow.cpp:379
+#, kde-format
+msgid ""
+"Close all documents in the file list that could not be reopened, because "
+"they are not accessible anymore."
+msgstr ""
+
+#: katemainwindow.cpp:383
+#, kde-format
+msgid "Close the current document."
+msgstr ""
+
+#: katemainwindow.cpp:386
+#, kde-format
+msgid "Close Other"
+msgstr ""
+
+#: katemainwindow.cpp:388
+#, kde-format
+msgid "Close other open documents."
+msgstr ""
+
+#: katemainwindow.cpp:391
+#, kde-format
+msgid "Clos&e All"
+msgstr ""
+
+#: katemainwindow.cpp:393
+#, kde-format
+msgid "Close all open documents."
+msgstr ""
+
+#: katemainwindow.cpp:398
+#, kde-format
+msgid "Close this window"
+msgstr ""
+
+#: katemainwindow.cpp:402
+#, kde-format
+msgid "&New Window"
+msgstr ""
+
+#: katemainwindow.cpp:404
+#, kde-format
+msgid "Create a new Kate view (a new window with the same document list)."
+msgstr ""
+
+#: katemainwindow.cpp:411
+#, kde-format
+msgid "Open W&ith"
+msgstr ""
+
+#: katemainwindow.cpp:413
+#, kde-format
+msgid ""
+"Open the current document using another application registered for its file "
+"type, or an application of your choice."
+msgstr ""
+
+#: katemainwindow.cpp:418
+#, kde-format
+msgid "Configure the application's keyboard shortcut assignments."
+msgstr ""
+
+#: katemainwindow.cpp:421
+#, kde-format
+msgid "Configure which items should appear in the toolbar(s)."
+msgstr ""
+
+#: katemainwindow.cpp:424
+#, kde-format
+msgid ""
+"Configure various aspects of this application and the editing component."
+msgstr ""
+
+#: katemainwindow.cpp:428
+#, kde-format
+msgid "&Plugins Handbook"
+msgstr ""
+
+#: katemainwindow.cpp:430
+#, kde-format
+msgid "This shows help files for various available plugins."
+msgstr ""
+
+#: katemainwindow.cpp:448
+#, fuzzy, kde-format
+#| msgid "Sessions"
+msgctxt "Menu entry Session->New Session"
+msgid "&New Session"
+msgstr "സെഷനുകൾ"
+
+#: katemainwindow.cpp:453
+#, kde-format
+msgid "&Save Session"
+msgstr ""
+
+#: katemainwindow.cpp:457
+#, kde-format
+msgid "Save Session &As..."
+msgstr ""
+
+#: katemainwindow.cpp:461
+#, kde-format
+msgid "&Manage Sessions..."
+msgstr ""
+
+#: katemainwindow.cpp:466
+#, kde-format
+msgid "&Quick Open Session"
+msgstr ""
+
+#: katemainwindow.cpp:472
+#, kde-format
+msgid "Go back"
+msgstr ""
+
+#: katemainwindow.cpp:480
+#, kde-format
+msgid "Go forward"
+msgstr ""
+
+#: katemainwindow.cpp:491
+#, kde-format
+msgid "This will close all open documents. Are you sure you want to continue?"
+msgstr ""
+
+#: katemainwindow.cpp:492
+#, kde-format
+msgid "Close all documents"
+msgstr ""
+
+#: katemainwindow.cpp:507
+#, kde-format
+msgid ""
+"This will close all open documents beside the current one. Are you sure you "
+"want to continue?"
+msgstr ""
+
+#: katemainwindow.cpp:508
+#, kde-format
+msgid "Close all documents beside current one"
+msgstr ""
+
+#: katemainwindow.cpp:700
+#, kde-format
+msgid ""
+"This will hide the menu bar completely. You can show it again by typing %1."
+msgstr ""
+
+#: katemainwindow.cpp:703
+#, kde-format
+msgid "Hide menu bar"
+msgstr ""
+
+#: katemainwindow.cpp:815
+#, kde-format
+msgid ""
+"You dropped the directory %1 into Kate. Do you want to load all files "
+"contained in it ?"
+msgstr ""
+
+#: katemainwindow.cpp:818
+#, kde-format
+msgid "Load files recursively?"
+msgstr ""
+
+#: katemainwindow.cpp:946
+#, kde-format
+msgid "&Other..."
+msgstr ""
+
+#: katemainwindow.cpp:1058
+#, kde-format
+msgid " [read only]"
+msgstr ""
+
+#: katemdi.cpp:92
+#, kde-format
+msgid "Tool &Views"
+msgstr ""
+
+#: katemdi.cpp:94
+#, kde-format
+msgid "Show Side&bars"
+msgstr ""
+
+#: katemdi.cpp:137
+#, kde-format
+msgid "Show %1"
+msgstr "%1 കാണിക്കുക"
+
+#: katemdi.cpp:506
+#, kde-format
+msgid "Configure ..."
+msgstr "ക്രമീകരിക്കുക ..."
+
+#: katemdi.cpp:513
+#, kde-format
+msgid "Make Non-Persistent"
+msgstr ""
+
+#: katemdi.cpp:513
+#, kde-format
+msgid "Make Persistent"
+msgstr ""
+
+#: katemdi.cpp:516
+#, kde-format
+msgid "Move To"
+msgstr ""
+
+#: katemdi.cpp:519
+#, kde-format
+msgid "Left Sidebar"
+msgstr ""
+
+#: katemdi.cpp:523
+#, kde-format
+msgid "Right Sidebar"
+msgstr ""
+
+#: katemdi.cpp:527
+#, kde-format
+msgid "Top Sidebar"
+msgstr ""
+
+#: katemdi.cpp:531
+#, kde-format
+msgid "Bottom Sidebar"
+msgstr ""
+
+#: katemdi.cpp:862
+#, kde-format
+msgid ""
+"<qt>You are about to hide the sidebars. With hidden sidebars it is not "
+"possible to directly access the tool views with the mouse anymore, so if you "
+"need to access the sidebars again invoke <b>View &gt; Tool Views &gt; Show "
+"Sidebars</b> in the menu. It is still possible to show/hide the tool views "
+"with the assigned shortcuts.</qt>"
+msgstr ""
+
+#: katemwmodonhddialog.cpp:59
+#, kde-format
+msgid "Documents Modified on Disk"
+msgstr ""
+
+#: katemwmodonhddialog.cpp:75
+#, kde-format
+msgid ""
+"<qt>The documents listed below have changed on disk.<p>Select one or more at "
+"once, and press an action button until the list is empty.</p></qt>"
+msgstr ""
+
+#: katemwmodonhddialog.cpp:85
+#, kde-format
+msgid "Filename"
+msgstr "ഫയല്‍പേര്"
+
+#: katemwmodonhddialog.cpp:85
+#, kde-format
+msgid "Status on Disk"
+msgstr ""
+
+#: katemwmodonhddialog.cpp:90
+#, kde-format
+msgid "Modified"
+msgstr ""
+
+#: katemwmodonhddialog.cpp:90
+#, kde-format
+msgid "Created"
+msgstr ""
+
+#: katemwmodonhddialog.cpp:90
+#, kde-format
+msgid "Deleted"
+msgstr ""
+
+#: katemwmodonhddialog.cpp:105
+#, kde-format
+msgid "&View Difference"
+msgstr ""
+
+#: katemwmodonhddialog.cpp:107
+#, kde-format
+msgid ""
+"Calculates the difference between the editor contents and the disk file for "
+"the selected document, and shows the difference with the default "
+"application. Requires diff(1)."
+msgstr ""
+
+#: katemwmodonhddialog.cpp:117
+#, kde-format
+msgid "&Ignore Changes"
+msgstr ""
+
+#: katemwmodonhddialog.cpp:118
+#, kde-format
+msgid "Remove modified flag from selected documents"
+msgstr ""
+
+#: katemwmodonhddialog.cpp:124
+#, kde-format
+msgid "Overwrite selected documents, discarding disk changes"
+msgstr ""
+
+#: katemwmodonhddialog.cpp:128
+#, kde-format
+msgid "&Reload"
+msgstr ""
+
+#: katemwmodonhddialog.cpp:130
+#, kde-format
+msgid "Reload selected documents from disk"
+msgstr ""
+
+#: katemwmodonhddialog.cpp:196
+#, kde-format
+msgid ""
+"Could not save the document \n"
+"'%1'"
+msgstr ""
+
+#: katemwmodonhddialog.cpp:328
+#, kde-format
+msgid ""
+"The diff command failed. Please make sure that diff(1) is installed and in "
+"your PATH."
+msgstr ""
+
+#: katemwmodonhddialog.cpp:330
+#, kde-format
+msgid "Error Creating Diff"
+msgstr ""
+
+#: katemwmodonhddialog.cpp:337
+#, kde-format
+msgid "Ignoring amount of white space changed, the files are identical."
+msgstr ""
+
+#: katemwmodonhddialog.cpp:337
+#, kde-format
+msgid "Diff Output"
+msgstr ""
+
+#: kateoutputview.cpp:39
+#, kde-format
+msgctxt "@action:inmenu"
+msgid "Copy to Clipboard"
+msgstr ""
+
+#: kateoutputview.cpp:189
+#, kde-format
+msgid "Type to filter..."
+msgstr ""
+
+#: kateoutputview.cpp:202
+#, kde-format
+msgid "Clear all messages"
+msgstr ""
+
+#: kateoutputview.cpp:293
+#, kde-format
+msgctxt "@info"
+msgid "Error"
+msgstr ""
+
+#: kateoutputview.cpp:297
+#, fuzzy, kde-format
+#| msgid "Warning"
+msgctxt "@info"
+msgid "Warning"
+msgstr "മുന്നറിയിപ്പ്"
+
+#: kateoutputview.cpp:301
+#, kde-format
+msgctxt "@info"
+msgid "Info"
+msgstr ""
+
+#: kateoutputview.cpp:305
+#, kde-format
+msgctxt "@info"
+msgid "Log"
+msgstr ""
+
+#: katesavemodifieddialog.cpp:77
+#, kde-format
+msgid "Save As (%1)"
+msgstr ""
+
+#: katesavemodifieddialog.cpp:127
+#, kde-format
+msgid "Save Documents"
+msgstr ""
+
+#: katesavemodifieddialog.cpp:135
+#, kde-format
+msgid ""
+"<qt>The following documents have been modified. Do you want to save them "
+"before closing?</qt>"
+msgstr ""
+
+#: katesavemodifieddialog.cpp:142
+#, kde-format
+msgid "Documents"
+msgstr ""
+
+#: katesavemodifieddialog.cpp:142
+#, kde-format
+msgid "Location"
+msgstr ""
+
+#: katesavemodifieddialog.cpp:152
+#, kde-format
+msgid "Se&lect All"
+msgstr ""
+
+#: katesavemodifieddialog.cpp:225
+#, kde-format
+msgid ""
+"Data you requested to be saved could not be written. Please choose how you "
+"want to proceed."
+msgstr ""
+
+#: kateviewmanager.cpp:113
+#, kde-format
+msgid "Split Ve&rtical"
+msgstr ""
+
+#: kateviewmanager.cpp:117
+#, kde-format
+msgid "Split the currently active view vertically into two views."
+msgstr ""
+
+#: kateviewmanager.cpp:121
+#, kde-format
+msgid "Split &Horizontal"
+msgstr ""
+
+#: kateviewmanager.cpp:125
+#, kde-format
+msgid "Split the currently active view horizontally into two views."
+msgstr ""
+
+#: kateviewmanager.cpp:129
+#, kde-format
+msgid "Cl&ose Current View"
+msgstr ""
+
+#: kateviewmanager.cpp:133
+#, kde-format
+msgid "Close the currently active split view"
+msgstr ""
+
+#: kateviewmanager.cpp:137
+#, kde-format
+msgid "Close Inactive Views"
+msgstr ""
+
+#: kateviewmanager.cpp:140
+#, kde-format
+msgid "Close every view but the active one"
+msgstr ""
+
+#: kateviewmanager.cpp:144
+#, kde-format
+msgid "Hide Inactive Views"
+msgstr ""
+
+#: kateviewmanager.cpp:148
+#, kde-format
+msgid "Hide every view but the active one"
+msgstr ""
+
+#: kateviewmanager.cpp:151
+#, kde-format
+msgid "Toggle Orientation"
+msgstr ""
+
+#: kateviewmanager.cpp:154
+#, kde-format
+msgid "Toggles the orientation of the current split view"
+msgstr ""
+
+#: kateviewmanager.cpp:157
+#, kde-format
+msgid "Next Split View"
+msgstr ""
+
+#: kateviewmanager.cpp:161
+#, kde-format
+msgid "Make the next split view the active one."
+msgstr ""
+
+#: kateviewmanager.cpp:164
+#, kde-format
+msgid "Previous Split View"
+msgstr ""
+
+#: kateviewmanager.cpp:168
+#, kde-format
+msgid "Make the previous split view the active one."
+msgstr ""
+
+#: kateviewmanager.cpp:171
+#, kde-format
+msgid "Move Splitter Right"
+msgstr ""
+
+#: kateviewmanager.cpp:174
+#, kde-format
+msgid "Move the splitter of the current view to the right"
+msgstr ""
+
+#: kateviewmanager.cpp:177
+#, kde-format
+msgid "Move Splitter Left"
+msgstr ""
+
+#: kateviewmanager.cpp:180
+#, kde-format
+msgid "Move the splitter of the current view to the left"
+msgstr ""
+
+#: kateviewmanager.cpp:183
+#, kde-format
+msgid "Move Splitter Up"
+msgstr ""
+
+#: kateviewmanager.cpp:186
+#, kde-format
+msgid "Move the splitter of the current view up"
+msgstr ""
+
+#: kateviewmanager.cpp:189
+#, kde-format
+msgid "Move Splitter Down"
+msgstr ""
+
+#: kateviewmanager.cpp:192
+#, kde-format
+msgid "Move the splitter of the current view down"
+msgstr ""
+
+#: kateviewmanager.cpp:222 kateviewmanager.cpp:224
+#, kde-format
+msgid "Open File"
+msgstr ""
+
+#: kateviewmanager.cpp:243
+#, kde-format
+msgid ""
+"<p>You are attempting to open one or more large files:</p><ul>%1</ul><p>Do "
+"you want to proceed?</p><p><strong>Beware that kate may stop responding for "
+"some time when opening large files.</strong></p>"
+msgstr ""
+
+#: kateviewmanager.cpp:246
+#, kde-format
+msgid "Opening Large File"
+msgstr ""
+
+#: kateviewspace.cpp:54
+#, kde-format
+msgid "Go Back"
+msgstr ""
+
+#: kateviewspace.cpp:67
+#, kde-format
+msgid "Go Forward"
+msgstr ""
+
+#: kateviewspace.cpp:94
+#, kde-format
+msgctxt "indicator for more documents"
+msgid "+%1"
+msgstr ""
+
+#: kateviewspace.cpp:99 kateviewspace.cpp:153
+#, kde-format
+msgid "Click here to switch to the Quick Open view."
+msgstr ""
+
+#: kateviewspace.cpp:112
+#, kde-format
+msgid "Control view space splitting"
+msgstr ""
+
+#: kateviewspace.cpp:154
+#, kde-format
+msgid ""
+"Currently, there is one more document open. To see all open documents, "
+"switch to the Quick Open view by clicking here."
+msgid_plural ""
+"Currently, there are %1 more documents open. To see all open documents, "
+"switch to the Quick Open view by clicking here."
+msgstr[0] ""
+msgstr[1] ""
+
+#: kateviewspace.cpp:571
+#, kde-format
+msgid "&Close Document"
+msgstr ""
+
+#: kateviewspace.cpp:572
+#, kde-format
+msgid "Close Other &Documents"
+msgstr ""
+
+#: kateviewspace.cpp:581
+#, kde-format
+msgid "Compare with active document"
+msgstr ""
+
+#: kateviewspace.cpp:637
+#, kde-format
+msgid "Could not start program"
+msgstr ""
+
+#: kateviewspace.cpp:638
+#, kde-format
+msgid "The selected program could not be started. Maybe it is not installed."
+msgstr ""
+
+#: main.cpp:128
+#, kde-format
+msgid "Kate"
+msgstr "കെയ്റ്റ്"
+
+#: main.cpp:130
+#, kde-format
+msgid "Kate - Advanced Text Editor"
+msgstr ""
+
+#: main.cpp:132
+#, kde-format
+msgid "(c) 2000-2021 The Kate Authors"
+msgstr ""
+
+#: main.cpp:150
+#, kde-format
+msgid "Christoph Cullmann"
+msgstr ""
+
+#: main.cpp:150
+#, kde-format
+msgid "Maintainer"
+msgstr ""
+
+#: main.cpp:151
+#, kde-format
+msgid "Dominik Haumann"
+msgstr ""
+
+#: main.cpp:151 main.cpp:154 main.cpp:156 main.cpp:159 main.cpp:165
+#, kde-format
+msgid "Core Developer"
+msgstr ""
+
+#: main.cpp:152
+#, kde-format
+msgid "Sven Brauch"
+msgstr ""
+
+#: main.cpp:152 main.cpp:153 main.cpp:160
+#, kde-format
+msgid "Developer"
+msgstr ""
+
+#: main.cpp:153
+#, kde-format
+msgid "Kåre Särs"
+msgstr ""
+
+#: main.cpp:154
+#, kde-format
+msgid "Anders Lund"
+msgstr ""
+
+#: main.cpp:155
+#, kde-format
+msgid "Joseph Wenninger"
+msgstr ""
+
+#: main.cpp:159
+#, kde-format
+msgid "Hamish Rodda"
+msgstr ""
+
+#: main.cpp:160
+#, kde-format
+msgid "Alexander Neundorf"
+msgstr ""
+
+#: main.cpp:161
+#, kde-format
+msgid "Waldo Bastian"
+msgstr ""
+
+#: main.cpp:161
+#, kde-format
+msgid "The cool buffersystem"
+msgstr ""
+
+#: main.cpp:162
+#, kde-format
+msgid "Charles Samuels"
+msgstr ""
+
+#: main.cpp:162
+#, kde-format
+msgid "The Editing Commands"
+msgstr ""
+
+#: main.cpp:163
+#, kde-format
+msgid "Matt Newell"
+msgstr ""
+
+#: main.cpp:163
+#, kde-format
+msgid "Testing, ..."
+msgstr ""
+
+#: main.cpp:164
+#, kde-format
+msgid "Michael Bartl"
+msgstr ""
+
+#: main.cpp:164
+#, kde-format
+msgid "Former Core Developer"
+msgstr ""
+
+#: main.cpp:165
+#, kde-format
+msgid "Michael McCallum"
+msgstr ""
+
+#: main.cpp:166
+#, kde-format
+msgid "Jochen Wilhemly"
+msgstr ""
+
+#: main.cpp:166
+#, kde-format
+msgid "KWrite Author"
+msgstr ""
+
+#: main.cpp:167
+#, kde-format
+msgid "Michael Koch"
+msgstr ""
+
+#: main.cpp:167
+#, kde-format
+msgid "KWrite port to KParts"
+msgstr ""
+
+#: main.cpp:168
+#, kde-format
+msgid "Christian Gebauer"
+msgstr ""
+
+#: main.cpp:169
+#, kde-format
+msgid "Simon Hausmann"
+msgstr ""
+
+#: main.cpp:170
+#, kde-format
+msgid "Glen Parker"
+msgstr ""
+
+#: main.cpp:170
+#, kde-format
+msgid "KWrite Undo History, Kspell integration"
+msgstr ""
+
+#: main.cpp:171
+#, kde-format
+msgid "Scott Manson"
+msgstr ""
+
+#: main.cpp:171
+#, kde-format
+msgid "KWrite XML Syntax highlighting support"
+msgstr ""
+
+#: main.cpp:172
+#, kde-format
+msgid "John Firebaugh"
+msgstr ""
+
+#: main.cpp:172
+#, kde-format
+msgid "Patches and more"
+msgstr ""
+
+#: main.cpp:173
+#, kde-format
+msgid "Pablo Martín"
+msgstr ""
+
+#: main.cpp:174
+#, kde-format
+msgid "Python Plugin Developer"
+msgstr ""
+
+#: main.cpp:177
+#, kde-format
+msgid "Gerald Senarclens de Grancy"
+msgstr ""
+
+#: main.cpp:178
+#, kde-format
+msgid "QA and Scripting"
+msgstr ""
+
+#: main.cpp:182
+#, kde-format
+msgid "Tyson Tan"
+msgstr ""
+
+#: main.cpp:183
+#, kde-format
+msgid "Designer of Kate's mascot 'Kate the Cyber Woodpecker'"
+msgstr ""
+
+#: main.cpp:186
+#, kde-format
+msgid "Matteo Merli"
+msgstr ""
+
+#: main.cpp:186
+#, kde-format
+msgid "Highlighting for RPM Spec-Files, Perl, Diff and more"
+msgstr ""
+
+#: main.cpp:187
+#, kde-format
+msgid "Rocky Scaletta"
+msgstr ""
+
+#: main.cpp:187
+#, kde-format
+msgid "Highlighting for VHDL"
+msgstr ""
+
+#: main.cpp:188
+#, kde-format
+msgid "Yury Lebedev"
+msgstr ""
+
+#: main.cpp:188
+#, kde-format
+msgid "Highlighting for SQL"
+msgstr ""
+
+#: main.cpp:189
+#, kde-format
+msgid "Chris Ross"
+msgstr ""
+
+#: main.cpp:189
+#, kde-format
+msgid "Highlighting for Ferite"
+msgstr ""
+
+#: main.cpp:190
+#, kde-format
+msgid "Nick Roux"
+msgstr ""
+
+#: main.cpp:190
+#, kde-format
+msgid "Highlighting for ILERPG"
+msgstr ""
+
+#: main.cpp:191
+#, kde-format
+msgid "Carsten Niehaus"
+msgstr ""
+
+#: main.cpp:191
+#, kde-format
+msgid "Highlighting for LaTeX"
+msgstr ""
+
+#: main.cpp:192
+#, kde-format
+msgid "Per Wigren"
+msgstr ""
+
+#: main.cpp:192
+#, kde-format
+msgid "Highlighting for Makefiles, Python"
+msgstr ""
+
+#: main.cpp:193
+#, kde-format
+msgid "Jan Fritz"
+msgstr ""
+
+#: main.cpp:193
+#, kde-format
+msgid "Highlighting for Python"
+msgstr ""
+
+#: main.cpp:194
+#, kde-format
+msgid "Daniel Naber"
+msgstr ""
+
+#: main.cpp:195
+#, kde-format
+msgid "Roland Pabel"
+msgstr ""
+
+#: main.cpp:195
+#, kde-format
+msgid "Highlighting for Scheme"
+msgstr ""
+
+#: main.cpp:196
+#, kde-format
+msgid "Cristi Dumitrescu"
+msgstr ""
+
+#: main.cpp:196
+#, kde-format
+msgid "PHP Keyword/Datatype list"
+msgstr ""
+
+#: main.cpp:197
+#, kde-format
+msgid "Carsten Pfeiffer"
+msgstr ""
+
+#: main.cpp:197
+#, kde-format
+msgid "Very nice help"
+msgstr ""
+
+#: main.cpp:198
+#, kde-format
+msgid "All people who have contributed and I have forgotten to mention"
+msgstr ""
+
+#: main.cpp:223
+#, kde-format
+msgid "Start Kate with a given session."
+msgstr ""
+
+#: main.cpp:224
+#, kde-format
+msgid "session"
+msgstr ""
+
+#: main.cpp:229
+#, kde-format
+msgid "Start Kate with a new anonymous session, implies '-n'."
+msgstr ""
+
+#: main.cpp:234
+#, kde-format
+msgid ""
+"Force start of a new kate instance (is ignored if start is used and another "
+"kate instance already has the given session opened), forced if no parameters "
+"and no URLs are given at all."
+msgstr ""
+
+#: main.cpp:240
+#, kde-format
+msgid ""
+"If using an already running kate instance, block until it exits, if URLs "
+"given to open."
+msgstr ""
+
+#: main.cpp:246
+#, kde-format
+msgid ""
+"Only try to reuse kate instance with this pid (is ignored if start is used "
+"and another kate instance already has the given session opened)."
+msgstr ""
+
+#: main.cpp:247
+#, kde-format
+msgid "pid"
+msgstr ""
+
+#: main.cpp:252
+#, kde-format
+msgid "Set encoding for the file to open."
+msgstr ""
+
+#: main.cpp:253
+#, kde-format
+msgid "encoding"
+msgstr ""
+
+#: main.cpp:257
+#, kde-format
+msgid "Navigate to this line."
+msgstr ""
+
+#: main.cpp:257
+#, kde-format
+msgid "line"
+msgstr ""
+
+#: main.cpp:262
+#, kde-format
+msgid "Navigate to this column."
+msgstr ""
+
+#: main.cpp:263
+#, kde-format
+msgid "column"
+msgstr ""
+
+#: main.cpp:267
+#, kde-format
+msgid "Read the contents of stdin."
+msgstr ""
+
+#: main.cpp:272
+#, kde-format
+msgid "The files/URLs opened by the application will be deleted after use"
+msgstr ""
+
+#: main.cpp:276
+#, kde-format
+msgid "Documents to open."
+msgstr ""
+
+#: main.cpp:276
+#, kde-format
+msgid "[urls...]"
+msgstr ""
+
+#: quickopen/katequickopenlineedit.cpp:21
+#, kde-format
+msgid "Quick Open Search (configure via context menu)"
+msgstr ""
+
+#: quickopen/katequickopenlineedit.cpp:57
+#, fuzzy, kde-format
+#| msgid "All Projects Files"
+msgid "All Projects"
+msgstr "എല്ലാ പദ്ധതി ഫയലുകളും"
+
+#: quickopen/katequickopenlineedit.cpp:69
+#, fuzzy, kde-format
+#| msgid "Current Project Files"
+msgid "Current Project"
+msgstr "നിലവിലുള്ള പദ്ധതിയുടെ ഫയലുകള്‍"
+
+#: session/katesessionmanagedialog.cpp:29
+#, kde-format
+msgid "Manage Sessions"
+msgstr ""
+
+#: session/katesessionmanagedialog.cpp:65
+#, kde-format
+msgid "Session Chooser"
+msgstr ""
+
+#: session/katesessionmanagedialog.cpp:149
+#, kde-format
+msgid "Restore"
+msgstr ""
+
+#: session/katesessionmanagedialog.cpp:305
+#, kde-format
+msgid "Session will be deleted on dialog close"
+msgstr ""
+
+#. i18n: ectx: property (placeholderText), widget (QLineEdit, m_filterBox)
+#: session/katesessionmanagedialog.ui:30
+#, kde-format
+msgid "Filter Sessions"
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QTreeWidget, m_sessionList)
+#: session/katesessionmanagedialog.ui:55
+#, kde-format
+msgid "Session Name"
+msgstr ""
+
+#. i18n: The number of open documents
+#. i18n: ectx: property (text), widget (QTreeWidget, m_sessionList)
+#: session/katesessionmanagedialog.ui:60
+#, kde-format
+msgid "Files"
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QTreeWidget, m_sessionList)
+#: session/katesessionmanagedialog.ui:68
+#, kde-format
+msgid "Last opened"
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QPushButton, m_openButton)
+#: session/katesessionmanagedialog.ui:87
+#, kde-format
+msgid "&Open"
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QPushButton, m_newButton)
+#: session/katesessionmanagedialog.ui:98
+#, kde-format
+msgid "New Session"
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QPushButton, m_templateButton)
+#: session/katesessionmanagedialog.ui:108
+#, kde-format
+msgid "Open as Template"
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QCheckBox, m_dontAskCheckBox)
+#: session/katesessionmanagedialog.ui:115
+#, kde-format
+msgid "Don't ask again"
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QPushButton, m_copyButton)
+#: session/katesessionmanagedialog.ui:135
+#, kde-format
+msgid "Duplicate..."
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QPushButton, m_renameButton)
+#: session/katesessionmanagedialog.ui:142
+#, kde-format
+msgid "&Rename..."
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QPushButton, m_deleteButton)
+#: session/katesessionmanagedialog.ui:162
+#, kde-format
+msgid "Delete"
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QPushButton, m_closeButton)
+#: session/katesessionmanagedialog.ui:184
+#, kde-format
+msgid "Close"
+msgstr ""
+
+#: session/katesessionmanager.cpp:107
+#, kde-format
+msgid ""
+"Internal error: there is more than one instance open for a given session."
+msgstr ""
+
+#: session/katesessionmanager.cpp:113
+#, kde-format
+msgid ""
+"Session '%1' is already opened in another kate instance, change there "
+"instead of reopening?"
+msgstr ""
+
+#: session/katesessionmanager.cpp:306
+#, kde-format
+msgid "The session could not be renamed to \"%1\". Failed to write to \"%2\""
+msgstr ""
+
+#: session/katesessionmanager.cpp:307
+#, kde-format
+msgid "Session Renaming"
+msgstr ""
+
+#: session/katesessionmanager.cpp:450
+#, kde-format
+msgid "Session name:"
+msgstr ""
+
+#: session/katesessionmanager.cpp:452
+#, kde-format
+msgid ""
+"There is already an existing session with your chosen name: %1\n"
+"Please choose a different one."
+msgstr ""
+
+#: session/katesessionmanager.cpp:454
+#, kde-format
+msgid "To save a session, you must specify a name."
+msgstr ""
+
+#: session/katesessionmanager.cpp:481
+#, kde-format
+msgid "Specify a name for this session"
+msgstr ""
+
+#: session/katesessionmanager.cpp:483
+#, kde-format
+msgid "Specify a new name for session: %1"
+msgstr ""
+
+#. i18n: ectx: property (title), widget (QGroupBox, gbAppStartup)
+#: ui/sessionconfigwidget.ui:17
+#, fuzzy, kde-format
+#| msgid "Application Options"
+msgid "Application Startup Behavior"
+msgstr "ആപ്ലിക്കേഷൻ സാധ്യതകൾ"
+
+#. i18n: ectx: property (text), widget (QRadioButton, startNewSessionRadioButton)
+#: ui/sessionconfigwidget.ui:23
+#, kde-format
+msgid "&Start new session"
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QRadioButton, loadLastUserSessionRadioButton)
+#: ui/sessionconfigwidget.ui:30
+#, kde-format
+msgid "&Load last used session"
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QRadioButton, manuallyChooseSessionRadioButton)
+#: ui/sessionconfigwidget.ui:37
+#, kde-format
+msgid "&Manually choose a session"
+msgstr ""
+
+#. i18n: ectx: property (title), widget (QGroupBox, groupBox)
+#: ui/sessionconfigwidget.ui:47
+#, fuzzy, kde-format
+#| msgid "Application Options"
+msgid "Application Shutdown Behavior"
+msgstr "ആപ്ലിക്കേഷൻ സാധ്യതകൾ"
+
+#. i18n: ectx: property (text), widget (QLabel, label_4)
+#: ui/sessionconfigwidget.ui:55
+#, kde-format
+msgid "Automatically save and restore:"
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QCheckBox, stashNewUnsavedFiles)
+#: ui/sessionconfigwidget.ui:67
+#, kde-format
+msgid "Newly-created unsaved files"
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QCheckBox, stashUnsavedFilesChanges)
+#: ui/sessionconfigwidget.ui:77
+#, kde-format
+msgid "Files with unsaved changes"
+msgstr ""
+
+#. i18n: ectx: property (whatsThis), widget (QCheckBox, modCloseAfterLast)
+#: ui/sessionconfigwidget.ui:88
+#, kde-format
+msgid ""
+"If enabled, Kate will shutdown when the last file being edited is closed, "
+"otherwise a blank page will open so that you can start a new file."
+msgstr ""
+"പ്രവർത്തനക്ഷമമാക്കിയിട്ടുണ്ടെങ്കിൽ, അവസാനമായി ചിട്ടപെടുത്തിയ ഫയൽ അടയ്‌ക്കുമ്പോൾ കേറ്റ് പ്രവര്‍"
+"ത്തനരഹിതമാക്കും, അല്ലാത്തപക്ഷം ഒരു ശൂന്യ താള്‍ തുറക്കുന്നതിനാൽ നിങ്ങൾക്ക് ഒരു പുതിയ ഫയൽ "
+"ആരംഭിക്കാൻ കഴിയും."
+
+#. i18n: ectx: property (text), widget (QCheckBox, modCloseAfterLast)
+#: ui/sessionconfigwidget.ui:91
+#, kde-format
+msgid "Close Kate entirely when the last file is closed"
+msgstr "അവസാന ഫയൽ അടയ്‌ക്കുമ്പോൾ കേറ്റ് പൂർണ്ണമായും അടയ്‌ക്കുക"
+
+#. i18n: ectx: property (title), widget (QGroupBox, gbElements)
+#: ui/sessionconfigwidget.ui:101
+#, kde-format
+msgid "Session Elements"
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QLabel, label)
+#: ui/sessionconfigwidget.ui:107
+#, kde-format
+msgid ""
+"The session contains the list of open documents, recently opened files list, "
+"bookmarks, cursor position etc. When the session is loaded all elements are "
+"restored."
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QLabel, label_2)
+#: ui/sessionconfigwidget.ui:119
+#, kde-format
+msgid "Maximum number of entries in recent file list:"
+msgstr ""
+
+#. i18n: ectx: property (whatsThis), widget (QCheckBox, restoreVC)
+#: ui/sessionconfigwidget.ui:147
+#, kde-format
+msgid ""
+"Check this if you want all your views and frames restored each time you open "
+"Kate."
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QCheckBox, restoreVC)
+#: ui/sessionconfigwidget.ui:150
+#, kde-format
+msgid "Include &window configuration"
+msgstr ""
+
+#. i18n: ectx: property (whatsThis), widget (QGroupBox, saveMetaInfos)
+#: ui/sessionconfigwidget.ui:160
+#, kde-format
+msgid ""
+"Check this if you want document configuration like for example bookmarks to "
+"be saved past editor sessions. The configuration will be restored if the "
+"document has not changed when reopened."
+msgstr ""
+"കഴിഞ്ഞ എഡിറ്റർ സെഷനുകളിൽ ഓര്‍മ്മക്കുറിപ്പു് സംരക്ഷിക്കാൻ നിങ്ങൾ ആഗ്രഹിക്കുന്നുവെങ്കിൽ ഇത് "
+"പരിശോധിക്കുക. വീണ്ടും തുറക്കുമ്പോൾ കുറിപ്പ്/ഡോക്യുമെന്റ് മാറ്റിയിട്ടില്ലെങ്കിൽ ക്രമീകരണം "
+"പുനഃസ്ഥാപിക്കപ്പെടും."
+
+#. i18n: ectx: property (title), widget (QGroupBox, saveMetaInfos)
+#: ui/sessionconfigwidget.ui:163
+#, kde-format
+msgid "Keep &meta-information past sessions"
+msgstr "കഴിഞ്ഞ സെഷനുകളിൽ മെറ്റാ-വിവരങ്ങൾ സൂക്ഷിക്കുക (&M)"
+
+#. i18n: ectx: property (text), widget (QLabel, label_3)
+#: ui/sessionconfigwidget.ui:174
+#, fuzzy, kde-format
+#| msgid "&Delete unused meta-information after:"
+msgid "Delete unused meta-information after:"
+msgstr "ശേഷം ഉപയോഗമില്ലാത്ത മെറ്റാ-വിവരങ്ങൾ കളയുക (&D)"
+
+#~ msgid "Wa&rn about files modified by foreign processes"
+#~ msgstr "വിദേശ പ്രക്രിയകൾ പരിഷ്‌ക്കരിച്ച ഫയലുകളെക്കുറിച്ച് മുന്നറിയിപ്പ് നൽകുക (&R)"
+
+#~ msgid "Filepath"
+#~ msgstr "ഫയല്‍സ്ഥലം"
+
+#~ msgid "&List Mode:"
+#~ msgstr "പട്ടിക രീതി (&L):"
+
+#~ msgid "Application"
+#~ msgstr "ആപ്ലിക്കേഷൻ"
+
+#~ msgid "General"
+#~ msgstr "പൊതുവായത്"
+
+#~ msgid "General Options"
+#~ msgstr "പൊതുവായ സാധ്യതകൾ"
+
+#~ msgid "Meta-Information"
+#~ msgstr "മെറ്റാ-വിവരങ്ങൾ"
+
+#~ msgid "Editor Component"
+#~ msgstr "എഡിറ്റർ ഘടകം"
+
+#~ msgid "Editor Component Options"
+#~ msgstr "എഡിറ്റർ ഘടകത്തിന്റെ ഓപ്ഷനുകൾ"
+
+#~ msgid "&Help"
+#~ msgstr "സഹായം (&H)"

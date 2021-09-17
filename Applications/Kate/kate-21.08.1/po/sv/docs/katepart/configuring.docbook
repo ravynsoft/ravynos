@@ -1,0 +1,2290 @@
+<chapter id="config-dialog">
+<title
+>Att anpassa &kappname;</title>
+<para
+>Genom att välja <menuchoice
+><guimenu
+>Inställningar</guimenu
+><guimenuitem
+>Anpassa <replaceable
+>program</replaceable
+>...</guimenuitem
+></menuchoice
+> i menyn visar dialogrutan <guilabel
+>Anpassa</guilabel
+>. Dialogrutan kan användas för att ändra ett antal olika inställningar. Inställningarna som är tillgängliga för att ändras varierar beroende på vilken kategori som användaren väljer i den vertikala listan till vänster i dialogrutan. Förloppet kan styras med de tre knapparna längs rutans nederkant. </para>
+
+<para
+>Du kan starta <guilabel
+>Hjälp</guilabel
+>-systemet, acceptera de nuvarande inställningarna och stänga dialogrutan med användning av knappen <guibutton
+>Ok</guibutton
+>, eller <guibutton
+>Avbryta</guibutton
+> förfarandet. Kategorierna <guilabel
+>Utseende</guilabel
+>, <guilabel
+>Teckensnitt och färger</guilabel
+>, <guilabel
+>Redigering</guilabel
+>, <guilabel
+>Öppna/spara</guilabel
+> och <guilabel
+>Utökningar</guilabel
+> beskrivs i detalj nedan. </para>
+
+<sect1 id="config-dialog-editor">
+<title
+>Inställning av editorkomponenten</title>
+<para
+>Den här gruppen innehåller alla sidor som hör till editorkomponenten i &kappname; De flesta inställningarna här är förvalda, och kan överskridas genom att <link linkend="pref-open-save-modes-filetypes"
+>definiera en filtyp</link
+>, genom <link linkend="config-variables"
+>dokumentvariabler</link
+> eller genom att ändra dem per dokument under en redigeringssession.</para>
+<sect2 id="appearance">
+<title
+>Utseende</title>
+
+<sect3 id="prefcolors-fonts">
+<title
+>Teckensnitt</title>
+<para
+>Här kan du välja teckensnitt för editorns text. Du kan välja bland alla teckensnitt som är tillgängliga i systemet, och ange en normal storlek och kodning. Ett textexempel visas längst ner i dialogrutan, så att du kan se effekten av det du väljer. </para>
+<para
+>För mer information om hur man väljer ett teckensnitt, se avsnittet <ulink url="help:/fundamentals/fonts.html"
+><emphasis
+>Välja teckensnitt</emphasis
+> i dokumentet <emphasis
+>&kde;:s grunder</emphasis
+></ulink
+>.</para>
+</sect3>
+
+<sect3 id="appearance-general">
+<title
+>Allmänt</title>
+
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Dynamisk radbrytning</guilabel
+></term>
+<listitem>
+<para
+>Om det här alternativet markeras, bryts textrader vid fönstrets kant på skärmen.</para>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Dynamiska radbrytningsmarkörer (om tillämpliga)</guilabel
+></term>
+<listitem
+><para
+>Välj när dynamiska radbrytningsmarkörer ska visas, antingen <guilabel
+>Av</guilabel
+>, <guilabel
+>Följ radnummer</guilabel
+> eller <guilabel
+>Alltid på </guilabel
+>. </para
+></listitem
+></varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Justera dynamiskt radbrutna rader till indenteringsdjupet: </guilabel
+></term>
+<listitem
+><para
+>Aktiverar att dynamiskt radbrytna rader justeras vertikalt till den första radens indenteringsnivå. Det kan hjälpa till att göra kod och taggar mer läsbara.</para
+><para
+>Dessutom låter det dig att ställa in en maximal bredd av skärmen, som ett procenttal. Därefter justeras inte längre dynamiskt radbrytna rader vertikalt. Vid 50 % får exempelvis inte rader vars indenteringsdjup är mer än 50 % av skärmens bredd någon vertikal justering för efterföljande radbrutna rader.</para
+></listitem>
+</varlistentry>
+</variablelist>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Färgläggning av blanktecken</guilabel
+></term>
+<listitem>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Markera tabulatorer</guilabel
+></term>
+<listitem
+><para
+>Editorn kommer att visa symbolen &raquo; som indikerar närvaron av en tabulator i texten.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Markera avslutande mellanslag</guilabel
+></term>
+<listitem
+><para
+>Editorn kommer att visa punkter som indikerar närvaron av extra blanktecken i slutet av rader.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Markörstorlek</guilabel
+></term>
+<listitem
+><para
+>Använd skjutreglaget för att ändra storlek på den synliga markören.</para
+></listitem>
+</varlistentry>
+</variablelist>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Avancerat </guilabel
+></term>
+<listitem
+><para>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Visa indenteringslinjer </guilabel
+></term>
+<listitem
+><para
+>Om det här är markerat, visar editorn vertikala linjer för att hjälpa till att identifiera indenterade rader.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Markera område mellan samhörande parenteser </guilabel
+></term>
+<listitem
+><para
+>Om det här är aktiverat, markeras området mellan de valda samhörande parenteserna.</para
+></listitem>
+</varlistentry>
+</variablelist>
+</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Animera matchande parenteser </guilabel
+></term>
+<listitem
+><para
+>Om aktiverad och man går till en parentes (<keycap
+>{</keycap
+>, <keycap
+>[</keycap
+>, <keycap
+>]</keycap
+>, <keycap
+>}</keycap
+>,<keycap
+>(</keycap
+> eller <keycap
+>)</keycap
+>) animeras den motsvarande parentesen snabbt.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Fäll ihop första raden </guilabel
+></term>
+<listitem
+><para
+>Om aktiverad fälls den första raden ihop om möjligt. Det är användbart om filen börjar med en kommentar, såsom en copyright.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Visa antal ord </guilabel
+></term>
+<listitem
+><para
+>Visar antal ord och tecken i dokumentet och aktuell markering i statusraden. Alternativet är också tillgängligt i statusradens sammanhangsberoende meny.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Visa antal rader </guilabel
+></term>
+<listitem
+><para
+>Visar totalt antal rader i dokumentet i statusraden. Alternativet är också tillgängligt i statusradens sammanhangsberoende meny.</para
+></listitem>
+</varlistentry>
+</variablelist>
+</sect3>
+
+<sect3 id="appearance-borders">
+<title
+>Kanter</title>
+
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Kanter</guilabel
+></term>
+<listitem>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Visa vikmarkörer </guilabel
+></term>
+<listitem
+><para
+>Om det här alternativet är markerat, visar den aktuella vyn markeringar för kodvikning, om kodvikning är tillgänglig.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Visa förhandsgranskning av hopvikt kod </guilabel
+></term>
+<listitem
+><para
+>Om markerat, visas en förhandsgranskning av den hopvikta texten i en meddelanderuta när musen hålls över en hopvikt region.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Visa ikonkant </guilabel
+></term>
+<listitem
+><para
+>Om det här är markerat, ser du en ikonkant till vänster. Ikonkanten visar till exempel bokmärkesmarkeringar.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Visa radnummer </guilabel
+></term>
+<listitem
+><para
+>Om det här är markerat, ser du radnummer till vänster.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Visa markörer av radändringar </guilabel
+></term>
+<listitem
+><para
+>Om det här är markerat, visas markörer av radändringar. För mer information,se <xref linkend="kate-part-line-modification"/>. </para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Visa rullningslistmarkeringar </guilabel
+></term>
+<listitem
+><para
+>Om det här alternativet är markerat visar aktuell vy markeringar på den vertikala rullningslisten. Markeringarna visar till exempel bokmärken.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Visa förhandsgranskning av text på rullningslist</guilabel
+></term>
+<listitem
+><para
+>Om alternativet är markerat, och du håller muspekaren över rullningslisten, visas en liten textförhandsgranskning med flera rader i det nuvarande dokumentet omkring pekarens position. Det låter dig snabbt gå till en annan del av dokumentet.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Visa rullningslistens miniavbildning</guilabel
+></term>
+<listitem
+><para
+>Om det här alternativet är markerat visar varje ny vy en miniavbildning av dokumentet på den vertikala rullningslisten.</para>
+<para
+>För mer information om rullningslistens miniavbildning, se <xref linkend="kate-part-scrollbar-minimap"/>.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Miniavbildningens bredd</guilabel
+></term>
+<listitem
+><para
+>Justerar bredden på rullningslistens miniavbildning, definierad i bildpunkter. </para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Rullningslisternas synlighet</guilabel
+></term>
+<listitem
+><para
+>Visa rullningslisten, dölj den eller visa bara rullningslisten när det behövs. Klicka med vänster musknapp på den blåa rektangeln för att visa radnummerintervallet för dokumentet som visas på skärmen. Håll vänster musknapp nertryckt utanför den blåa rektangeln för automatiskt förflyttning genom dokumentet. </para
+></listitem>
+</varlistentry>
+</variablelist>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Sortera menyn bokmärken </guilabel
+></term>
+<listitem>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Enligt tillkomst </guilabel
+></term>
+<listitem
+><para
+>Varje nytt bokmärke läggs till längst ner, oberoende av var det är placerat i dokumentet.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Enligt position </guilabel
+></term>
+<listitem
+><para
+>Bokmärken ordnas enligt radnumret där de är placerade.</para
+></listitem>
+</varlistentry>
+</variablelist>
+</listitem>
+</varlistentry>
+</variablelist>
+
+</sect3>
+</sect2>
+
+<sect2 id="prefcolors">
+<title
+>Färgteman</title>
+
+<para
+>Den här sidan i dialogrutan låter dig ställa in alla färger i de olika färgteman du har, och skapa nya teman eller ta bort befintliga. Varje tema har inställningar av färger, normal och markerad textstil. </para>
+
+<para
+>&kappname; väljer temat som för närvarande är aktivt i förväg åt dig. Om du vill arbeta med ett annat tema, börja med att välja det med kombinationsrutan <guilabel
+>Tema</guilabel
+>. Du kan skapa ett nytt tema eller ta bort befintliga med knapparna <guibutton
+>Ny</guibutton
+> och <guibutton
+>Ta bort</guibutton
+>.</para>
+<para
+>Längst ner på sidan kan du välja <guilabel
+>Standardtema för <replaceable
+>program</replaceable
+></guilabel
+>.</para>
+
+<para
+>Det beskrivs detaljerat i <xref linkend="color-themes-gui"/>.</para>
+
+</sect2>
+
+<sect2 id="pref-edit">
+<title
+>Redigering</title>
+
+<sect3 id="pref-edit-general">
+<title
+>Allmänt</title>
+<variablelist>
+
+<varlistentry>
+<term id="pref-word-wrap"
+><guilabel
+>Statisk radbrytning</guilabel
+></term>
+<listitem
+><para
+>Radbrytning är en funktion som orsakar att editorn automatiskt börjar en ny rad med text och flyttar (bryter) markören till början på den nya raden. &kappname; startar automatiskt en ny rad med text när den nuvarande raden når längden som anges av alternativet <link linkend="pref-wrap-words-at"
+>Bryt rader vid:</link
+>.</para>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Aktivera statisk radbrytning</guilabel
+></term>
+<listitem>
+<para
+>Sätter på eller stänger av statisk radbrytning.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Visa statisk radbrytningsmarkör (om tillämplig)</guilabel
+></term>
+<listitem>
+<para
+>Om det här alternativet är markerat, ritas en vertikal linje i radbrytningskolumnen som definieras i <menuchoice
+><guimenu
+>Inställningar</guimenu
+> <guimenuitem
+>Anpassa editor...</guimenuitem
+></menuchoice
+> under fliken Redigering. Observera att radbrytningsmarkören bara ritas om du använder ett teckensnitt med fast breddsteg.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term id="pref-wrap-words-at"
+><guilabel
+>Bryt rader vid:</guilabel
+></term>
+<listitem>
+<para
+>Om alternativet <link linkend="pref-word-wrap"
+>Aktivera statisk radbrytning</link
+> är valt avgör det här värdet längden (i tecken) där editorn automatiskt påbörjar en ny rad.</para>
+</listitem>
+</varlistentry>
+</variablelist>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Inmatningsläge</guilabel
+></term
+> <listitem
+><para
+>Det valda inmatningsläget aktiveras när en ny vy öppnas. Du kan fortfarande sätta på eller stänga av Vi-inmatningsläge för en viss vy från menyn <guimenu
+>Redigera</guimenu
+>. </para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Automatiska hakparenteser</guilabel
+></term
+> <listitem
+><para
+>När användaren skriver en vänsterparentes (<keycap
+>[</keycap
+>, <keycap
+>(</keycap
+>, eller <keycap
+>{</keycap
+>) skriver &kappname; automatiskt in högerparentesen (<keycap
+>}</keycap
+>, <keycap
+>)</keycap
+>, eller <keycap
+>]</keycap
+>) till höger om markören.</para>
+<para
+>När text markeras, radbryts den markerade texten om ett av tecknen skrivs in.</para>
+</listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><guilabel
+>Kopiera och klistra in</guilabel
+></term>
+<listitem>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Kopiera eller klipp ut nuvarande rad om markering saknas</guilabel
+></term
+> <listitem>
+<para
+>Om alternativet är aktiverat och textmarkeringen är tom, utförs åtgärderna kopiera och klipp ut för textraden på den verkliga markörpositionen.</para
+></listitem>
+</varlistentry>
+</variablelist>
+</listitem>
+</varlistentry>
+
+</variablelist>
+</sect3>
+
+<sect3 id="pref-edit-cursor-selection">
+<title
+>Textnavigering</title>
+
+<variablelist>
+
+<varlistentry>
+<term
+><guilabel
+>Förflyttning av textmarkör</guilabel
+></term>
+<listitem>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Smarta Home- och End-tangenter</guilabel
+></term>
+<listitem>
+<para
+>Om markerad, hoppar markören över blanktecken och går till början av radens text när tangenten Home trycks ner.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Page Up och Page Down flyttar markören</guilabel
+></term>
+<listitem>
+<para
+>Det här alternativet ändrar beteendet hos markören om användaren trycker på tangenterna <keycap
+>Page Up</keycap
+> eller <keycap
+>Page Down</keycap
+>. Om det här inte är valt, behåller textmarkören sin relativa position i den synliga texten i &kappname; när ny text blir synlig som ett resultat av åtgärden. Så om markören befinner sig mitt i den synliga texten när åtgärden sker kommer den att förbli där (utom när man kommer till början eller slutet). Om det här alternativet är valt, gör den första tangenttryckningen att markören antingen flyttas längst upp eller längst ner när en ny sida med text visas.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Aktivera markörförflyttning till stora bokstäver</guilabel
+></term>
+<listitem>
+<para
+>Alternativet ändrar beteendet hos markören när användaren trycker på genvägen <keycombo
+>&Ctrl;<keycap
+>Vänsterpil</keycap
+></keycombo
+> eller <keycombo
+>&Ctrl;<keycap
+>Högerpil</keycap
+></keycombo
+>. Om avmarkerat går textmarkören förbi hela ord. Med alternativet markerat, stoppar markörförflyttningen vid stora bokstäver.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Centrera markör automatiskt:</guilabel
+></term>
+<listitem>
+<para
+>Anger antalet rader som behålls synliga ovanför och under markören om möjligt.</para>
+</listitem>
+</varlistentry>
+</variablelist>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Textmarkeringsläge</guilabel
+></term>
+<listitem>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Normal</guilabel
+></term>
+<listitem>
+<para
+>Markeringar skrivs över av inskriven text, och försvinner när markören flyttas.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Långlivat</guilabel
+></term>
+<listitem>
+<para
+>Markeringar blir kvar också efter markören flyttas och text skrivs in.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Tillåt att rulla förbi dokumentets slut</guilabel
+></term
+> <listitem>
+<para
+>Det här alternativet låter dig rulla förbi dokumentets slut. Det kan användas för att centrera dokumentets sista del vertikalt, eller placera det ovanpå den nuvarande vyn.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Backstegstangenten tar bort grundtecknet med diakritiska markeringar</guilabel
+></term
+> <listitem>
+<para
+>När de är markerade, tas sammansatta tecken bort med sina diakritiska markeringar istället för att bara ta bort grundtecknet. Det är användbart för Indiska landsinställningar.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+</listitem>
+</varlistentry>
+
+</variablelist>
+</sect3>
+
+<sect3 id="pref-edit-indent">
+<title
+>Indentering</title>
+
+<variablelist>
+
+<varlistentry>
+<term
+><guilabel
+>Standardläge för indentering:</guilabel
+></term>
+<listitem>
+<para
+>Välj automatiskt indenteringsläge som du normalt vill använda. Du rekommenderas starkt att använda <userinput
+>Inget</userinput
+> eller <userinput
+>Normal</userinput
+> här, och använda inställning av filtyper för att ställa in andra indenteringslägen för textformat som C/C++ kod eller &XML;.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Indentera med</guilabel
+></term>
+<listitem>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Tabulatorer</guilabel
+></term>
+<listitem>
+<para
+>När det här är aktiverat, infogar editorn tabulatortecken när du trycker på tabulatortangenten eller använder <link linkend="kate-part-autoindent"
+>automatisk indentering</link
+>.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Mellanslag</guilabel
+></term>
+<listitem>
+<para
+>När det här är aktiverat, infogar editorn ett beräknat antal mellanslag enligt positionen i texten och inställningen <option
+>tab-width</option
+> när du trycker på tabulatortangenten eller använder <link linkend="kate-part-autoindent"
+>automatisk indentering</link
+>.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Tabulatorer och mellanslag</guilabel
+></term>
+<listitem>
+<para
+>När det här är aktiverat, infogar editorn mellanslag som beskrivs ovan vid indentering eller när tabulatortangenten används i början av en rad, men infogar tabulatorer när tabulatortangenten används i mitten eller slutet av en rad.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Tabulatorbredd:</guilabel
+></term>
+<listitem>
+<para
+>Detta ställer in antal mellanslag som visas istället för ett tabulatortecken.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Indenteringsbredd:</guilabel
+></term>
+<listitem>
+<para
+>Indenteringsbredden är antalet mellanslag som används för att indentera en rad. Om indentera med tabulator är inställt, infogas ett tabulatortecken om indenteringen är jämnt delbar med tabulatorbredden.</para>
+</listitem>
+</varlistentry>
+</variablelist>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Indenteringsegenskaper</guilabel
+></term>
+<listitem>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Behåll extra mellanslag</guilabel
+></term>
+<listitem
+><para
+>Om alternativet är inaktiverat, justeras en rad till en multipel av bredden som anges med <guilabel
+>indenteringsbredd</guilabel
+> när indenteringsnivån ändras.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Justera indentering av text som klistrats in från klippbordet</guilabel
+></term>
+<listitem>
+<para
+>Om alternativet markeras, indenteras text som klistras in från klippbordet. Genom att använda alternativet <guimenuitem
+>ångra</guimenuitem
+> kan indenteringen tas bort.</para>
+</listitem>
+</varlistentry>
+</variablelist>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Indenteringsåtgärder</guilabel
+></term>
+<listitem>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Backsteg i inledande blanktecken avindenterar</guilabel
+></term>
+<listitem>
+<para
+>Om alternativet är markerat, minskar tangenten <keysym
+>Backsteg</keysym
+> indenteringsnivån om markören är placerad i de inledande blanktecknen på en rad.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Åtgärd för tabulatortangent (om det inte finns någon markering)</guilabel
+></term>
+<listitem>
+<para
+>Om du vill att Tabulator ska justera nuvarande rad i nuvarande kodblock som i &Emacs;, gör Tabulator till en genväg till åtgärden <guimenuitem
+>Justera</guimenuitem
+>. </para>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Gå alltid vidare till nästa tabulatorposition</guilabel
+></term>
+<listitem>
+<para
+>Om alternativet är markerat, infogar alltid tangenten Tabulator blanktecken så att nästa tabulatorposition nås. Om alternativet <guilabel
+>Infoga mellanslag i stället för tabulatorer</guilabel
+> under fliken <guilabel
+>Allmänt</guilabel
+> på sidan <guilabel
+>Redigering</guilabel
+> är aktiverat, infogas mellanslag. Annars infogas ett enda tabulatortecken.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Öka alltid indenteringsnivån</guilabel
+></term>
+<listitem>
+<para
+>Om alternativet är markerat, indenterar alltid tangenten Tabulator raden med det antal teckenpositioner som anges av <guilabel
+>Indenteringsbredd</guilabel
+>.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Öka indenteringsnivån om i inledande blanktecken</guilabel
+></term>
+<listitem>
+<para
+>Om alternativet är markerat, indenterar antingen tangenten Tabulator nuvarande rad eller går vidare till nästa tabulatorposition. Om markörens position är på eller före det första tecknet som inte är ett blanktecken på raden, eller om det finns en markering, indenteras nuvarande rad med det antal teckenpositioner som anges av <guilabel
+>Indenteringsbredd</guilabel
+>. Om markörens position är efter det första tecknet som inte är ett blanktecken på raden och det inte finns någon markering, infogas blanktecken så att nästa tabulatorposition nås: om alternativet <guilabel
+>Infoga mellanslag i stället för tabulatorer</guilabel
+> under <guilabel
+>Redigering</guilabel
+> är aktiverat, infogas mellanslag. Annars infogas ett enda tabulatortecken.</para>
+</listitem>
+</varlistentry>
+</variablelist>
+
+</listitem>
+</varlistentry>
+
+</variablelist>
+</listitem>
+</varlistentry>
+
+</variablelist>
+</sect3>
+
+<sect3 id="pref-edit-autocompletion">
+<title
+>Automatisk komplettering</title>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Allmänt</guilabel
+></term>
+<listitem>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Aktivera automatisk komplettering</guilabel
+></term>
+<listitem>
+<para
+>Om aktiverad, dyker en ordkompletteringsruta automatiskt upp vid inskrivning, som visar en lista med texter som kompletterar texten som för närvarande är under markören.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Välj första kompletteringspost automatiskt</guilabel
+></term>
+<listitem>
+<para
+>Om aktiverad, är alltid det första objektet i automatisk komplettering förvalt så att du kan infoga det med returtangenten. Om du inte vill ha det beteendet, t.ex. om du vill trycka på returtangenten för att bara infoga en nyrad, inaktivera då det här alternativet.</para>
+</listitem>
+</varlistentry>
+</variablelist>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Minimal ordlängd att komplettera</guilabel
+></term>
+<listitem
+><para
+>Medan du skriver in text, söker ordkomplettering efter ord i dokumentet som börjar med texten som redan skrivits in. Alternativet ställer in det minsta antal tecken som behövs för att aktivera ordkompletteringen och visa en kompletteringsruta.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Ta bort slutet vid komplettering</guilabel
+></term>
+<listitem
+><para
+>Ta bort slutet av ett föregående ord när kompletteringsobjektet väljes i en lista. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Nyckelordskomplettering </guilabel
+></term>
+<listitem
+><para
+>Om aktiverad, använder den inbyggda automatiska kompletteringen nyckelorden definierade av syntaxfärgläggningen. </para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect3>
+
+<sect3 id="pref-edit-spellcheck">
+<title
+>Stavningskontroll</title>
+<para
+>De här inställningsalternativen beskrivs i dokumentationen för modulen <ulink url="help:/kcontrol/spellchecking"
+>Stavningskontroll</ulink
+> i systeminställningarna.</para>
+</sect3>
+
+<sect3 id="pref-edit-vi-input-mode">
+<title
+>VI-inmatningsläge</title>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Allmänt</guilabel
+></term>
+<listitem>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Låt Vi-kommandon överskrida genvägar i Kate</guilabel
+></term>
+<listitem>
+<para
+>Om markerad, överskrider Vi-kommandon &kappname;s inbyggda kommandon. Exempel: <keycombo action="simul"
+>&Ctrl;<keycap
+>R</keycap
+></keycombo
+> gör om, och överskrider standardåtgärden (att visa dialogrutan för sökning och ersättning).</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Visa relativa radnummer </guilabel
+></term>
+<listitem
+><para
+>Om det här är aktiverat, refererar aktuell rad alltid till rad 0. Rader ovanför och nedanför ökar radnumret relativt.</para
+></listitem>
+</varlistentry>
+</variablelist>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Tangentavbildning</guilabel
+></term>
+<listitem
+><para
+>Tangentavbildning används för att ändra betydelsen hos inskrivna tecken. Det låter dig flytta kommandon till andra tangenter, eller trycka på särskilda tangenter för att utföra en serie kommandon.</para>
+<para
+>Exempel:</para>
+<para
+><keycap
+>F2</keycap
+> -> <userinput
+>I--</userinput
+> Esc</para>
+<para
+>Lägger till <userinput
+>!--</userinput
+> först på en rad när <keycap
+>F2</keycap
+> trycks ner. </para>
+</listitem>
+<!-- Normal Mode Insert Mode Visual Mode 
+Commands Repacement Recursuive?
+Remove selected Add new mapping Import from vimrc file-->
+</varlistentry>
+</variablelist>
+
+</sect3>
+
+</sect2>
+
+<sect2 id="pref-open-save">
+<title
+>Öppna/spara</title>
+
+<sect3 id="pref-open-save-general">
+<title
+>Allmänt</title>
+
+<variablelist>
+
+<varlistentry>
+<term
+><guilabel
+>Filformat</guilabel
+></term>
+<listitem>
+<variablelist>
+
+<varlistentry>
+<term
+><guilabel
+>Kodning</guilabel
+></term>
+<listitem>
+<para
+>Det här definierar standardkodningen som ska användas för att öppna och spara filer, om den inte ändras i dialogrutan för att öppna eller spara, eller genom att använda en kommandoradsväljare.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Detektering av kodning</guilabel
+></term>
+<listitem>
+<para
+>Välj ett värde i kombinationsrutan, för att antingen inaktivera automatisk detektering eller använda <guilabel
+>Allmän</guilabel
+> för att aktivera automatisk detektering av alla kodningar. Men eftersom den troligen bara detekterar UTF-8 eller UTF-16, erhålls bättre resultat genom att välja ett område för att använda anpassade metoder. Om varken kodningen vald som standard ovan, eller kodningen angiven i dialogrutan för att öppna eller spara motsvarar filens innehåll, utförs den här detekteringen.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Reservkodning</guilabel
+></term>
+<listitem>
+<para
+>Det här definierar reservkodningen att prova för att öppna filer, om kodningen definierad som standard ovan, eller den som anges via dialogrutan för att öppna eller spara, inte motsvarar filens innehåll. Innan den provas, görs ett försök att bestämma kodningen genom att läsa en möjlig byte-ordningsmarkering i början av filen. Om någon sådan hittas, väljes riktig Unicode-kodning, annars utförs kodningsdetektering. Om båda misslyckas provas reservkodningen.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Radens slut</guilabel
+></term>
+<listitem>
+<para
+>Välj radslutsläget du föredrar för det aktiva dokumentet. Du kan välja bland &UNIX;, DOS/&Windows; eller MacIntosh.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Automatisk detektering av radslut</guilabel
+></term>
+<listitem>
+<para
+>Markera det här om du vill att editorn automatiskt ska detektera radslutstyp. Den första radslutstypen som hittas används för hela filen.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Aktivera byte-ordningsmarkering (BOM)</guilabel
+></term>
+<listitem>
+<para
+>Byte-ordningsmarkören är en speciell sekvens i början av dokument kodade med Unicode. Den hjälper editorer att öppna textdokument med riktig Unicode-kodning. För mer information, se <ulink url="http://en.wikipedia.org/wiki/Byte_Order_Mark"
+>Byte Order Mark</ulink
+>.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Radlängdsgräns</guilabel
+></term>
+<listitem>
+<para
+>Tyvärr får &kappname; dålig prestanda vid arbete med extremt långa rader, på grund av brister i &Qt;. Av den orsaken bryter &kappname; automatiskt rader när de är längre än antalet tecken som anges här. För att inaktivera det, ställ in den till <userinput
+>0</userinput
+>.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Automatisk rensning vid spara</guilabel
+></term>
+<listitem>
+<variablelist>
+
+<varlistentry>
+<term
+><guilabel
+>Ta bort mellanslag i slutet av en rad</guilabel
+></term>
+<listitem>
+<para
+>Editorn tar automatiskt bort extra mellanslag i slutet på textrader när filen sparas. Du kan välja <guilabel
+>Aldrig</guilabel
+> för att inaktivera funktionen, <guilabel
+>På ändrade rader</guilabel
+> för att bara göra det på rader som du har ändrat sedan dokumentet senast sparades, eller <guilabel
+>I hela dokumentet</guilabel
+> för att ta bort dem ovillkorligt i hela dokumentet.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Lägg till radbrytning sist i filen när den sparas</guilabel
+></term>
+<listitem>
+<para
+>Editorn lägger automatiskt till en nyrad i slutet av filen om det inte redan finns en när filen sparas.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+</listitem>
+</varlistentry>
+
+</variablelist>
+</sect3>
+
+<sect3 id="pref-open-save-advanced">
+<title
+>Avancerat</title>
+<variablelist>
+
+<varlistentry>
+<term
+><guilabel
+>Spara säkerhetskopia</guilabel
+></term>
+<listitem
+><para
+>Säkerhetskopiering när du sparar gör att &kappname; kopierar filen på disk till &lt;prefix&gt;&lt;filnamn&gt;&lt;suffix&gt; innan ändringarna sparas. Suffixet har normalvärdet <emphasis role="bold"
+>~</emphasis
+> och prefixet är normalt tomt. </para>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Lokala filer</guilabel
+></term>
+<listitem>
+<para
+>Markera det här om du vill ha säkerhetskopior av lokala filer när du sparar.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Fjärrfiler</guilabel
+></term>
+<listitem>
+<para
+>Markera det här om du vill ha säkerhetskopior av fjärrfiler när du sparar.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Prefix</guilabel
+></term>
+<listitem>
+<para
+>Skriv in prefixet som ska läggas till i början av den säkerhetskopierade filens namn.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Suffix</guilabel
+></term>
+<listitem>
+<para
+>Skriv in suffixet som ska läggas till sist i den säkerhetskopierade filens namn.</para>
+</listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Alternativ för växlingsfil</guilabel
+></term>
+<listitem>
+<para
+>&kappname; kan återställa (det mesta) som skrevs efter den senaste gången det sparats i händelse av en krasch eller strömavbrott. En växlingsfil (.swp.&lt;filnamn&gt;) skapas efter den första redigeringsåtgärden i ett dokument. Om användaren inte sparar ändringarna och &kappname; kraschar, förblir växlingsfilen på disk. När en fil öppnas, kontrollerar &kappname; om det finns en växlingsfil för dokumentet, och om det gör det, frågar användaren om förlorad data ska återställas eller inte. Användaren har också möjlighet att granska skillnaderna mellan originalfilen och den återställda filen. Växlingsfilen tas bort varje gång dokumentet sparas, och vid normal avslutning.</para>
+<para
+>&kappname; synkroniserar växlingsfilen på disk var 15:e sekund, men bara om det finns ändringar sedan den senaste synkroniseringen. Användaren kan inaktivera synkroniseringen av växlingsfiler om det önskas, genom att välja <guilabel
+>Inaktivera</guilabel
+>, men det kan leda till förlust av mer data.</para>
+<para
+>När aktiverat, sparas växlingsfiler i samma katalog som filen. När <guilabel
+>Alternativ katalog</guilabel
+> väljes, skapas växlingsfiler i den angivna katalogen. Det är användbart för nätverksfilsystem för att undvika onödig nätverkstrafik.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+</listitem>
+</varlistentry>
+
+</variablelist>
+</sect3>
+
+<sect3 id="pref-open-save-modes-filetypes">
+<title
+>Lägen och filtyper</title>
+<para
+>Den här sidan låter dig överskrida förvalda inställningar för dokument med angivna &MIME;-typer. När editorn laddar ett dokument, kontrollerar den om det matchar filmasken eller &MIME;-typerna för en av de definierade filtyperna, och om det är fallet tillämpas variablerna som är definierade. Om mer än en filtyp matchas, används den med högst prioritet. </para>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Filtyp:</guilabel
+></term>
+<listitem
+><para
+>Filtypen med högst prioritet är den som visas först i kombinationsrutan. Om fler filtyper hittas, anges de också.</para>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Ny</guilabel
+></term>
+<listitem
+><para
+>Det här används för att skapa en ny filtyp. Efter du klickat på knappen, blir fälten nedanför tomma och du kan fylla i de egenskaper du vill ha för den nya filtypen.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Ta bort</guilabel
+></term>
+<listitem
+><para
+>För att ta bort en befintlig filtyp, markera den i kombinationsrutan och tryck på knappen Ta bort.</para
+></listitem>
+</varlistentry>
+</variablelist>
+</listitem
+> </varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Egenskaper för <replaceable
+>aktuell filtyp</replaceable
+></guilabel
+></term>
+<listitem
+><para
+>Filtypen med högst prioritet är den som visas först i kombinationsrutan. Om fler filtyper hittas, anges de också.</para>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Namn:</guilabel
+></term>
+<listitem
+><para
+>Filtypens namn är texten i motsvarande menyalternativ. Namnet visas i menyn <menuchoice
+><guisubmenu
+>Verktyg</guisubmenu
+> <guisubmenu
+>Filtyp</guisubmenu
+></menuchoice
+>.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Sektion:</guilabel
+></term>
+<listitem
+><para
+>Sektionsnamnet används för att organisera filtyper i menyer. Det används också i menyn <menuchoice
+><guisubmenu
+>Verktyg</guisubmenu
+> <guisubmenu
+>Filtyp</guisubmenu
+></menuchoice
+>.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Variabler:</guilabel
+></term>
+<listitem
+><para
+>Strängen låter dig ställa in &kappname;s inställningar för filer som väljes av den här Mime-typen genom att använda variabler i &kappname;. Du kan ställa in nästan alla inställningsalternativ, såsom färgläggning, indenteringsläge, etc.</para>
+<para
+>Klicka på <guibutton
+>Redigera</guibutton
+> för att se en lista med alla tillgängliga variabler och deras beskrivningar. Markera kryssrutan till vänster för att aktivera en viss variabel och ange därefter variabelns värde till höger. Vissa variabler tillhandahåller en kombinationsruta för att välja möjliga värden medan andra kräver att du matar in ett giltigt värde manuellt.</para>
+<para
+>För fullständig information om dessa variabler, se <link linkend="config-variables"
+>Anpassa med dokumentvariabler</link
+>.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Färgläggning:</guilabel
+></term>
+<listitem
+><para
+>Om du skapar en ny filtyp, låter den här kombinationsrutan dig välja en filtyp för färgläggning.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Indenteringsläge:</guilabel
+></term>
+<listitem
+><para
+>Kombinationsrutan anger indenteringsläget för nya dokument.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Filändelser:</guilabel
+></term>
+<listitem
+><para
+>Jokerteckenmasken låter dig välja filer enligt filnamn. En typisk mask använder en asterisk och filändelsen, till exempel <filename
+>*.txt; *.text</filename
+>. Strängen är en lista med masker åtskilda av semikolon.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Mime-typer:</guilabel
+></term>
+<listitem
+><para
+>Visar en guide som hjälper dig att enkelt välja &MIME;-typer.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Prioritet:</guilabel
+></term>
+<listitem
+><para
+>Anger en prioritet för filtypen. Om fler filtyper väljer samma fil, används den med högst prioritet.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+</listitem
+> </varlistentry>
+
+</variablelist>
+</sect3>
+
+</sect2>
+
+</sect1>
+
+<sect1 id="config-variables">
+<title
+>Anpassa med dokumentvariabler</title>
+
+<para
+>Variabler i &kappname; är &kappname;s implementering av dokumentvariabler, som liknar modelines i &Emacs; och Vi. I Kate-programdelen har raderna följande format: <userinput
+>kate: VARIABELNAMN VÄRDE; [ VARIABELNAMN VÄRDE; ... ]</userinput
+>. Raderna kan förstås finnas i en kommentar, om filen har ett format med kommentarer. Variabelnamn är enstaka ord (inga blanktecken), och allt fram till nästa semikolon är värdet. Semikolonet är nödvändigt.</para>
+
+<para
+>Här är ett exempel på en variabelrad, som styr indenteringsinställningar för en C++, &Java; eller &javascript;-fil: <programlisting
+>// kate: replace-tabs on; indent-width 4; indent-mode cstyle;</programlisting>
+</para>
+
+<note
+><para
+>Bara de första och sista 10 raderna söks igenom efter variabelrader.</para
+></note>
+
+<para
+>Dessutom kan dokumentvariabler placeras i en fil som heter <filename
+>.kateconfig</filename
+> i vilken katalog som helst, och de angivna inställningarna verkställs som om modelines skrivits in i varje fil i katalogen och i dess underkataloger. Dokumentvariabler i <filename
+>.kateconfig</filename
+> använder samma syntax som modelines, men med <link linkend="kateconfig-extended-options"
+>utökade alternativ</link
+>.</para>
+
+<para
+>Det finns variabler som stöder nästan alla inställningar i &kappname;, och ytterligare insticksprogram kan använda variabler, som i så fall ska vara dokumenterade i insticksprogrammets dokumentation.</para>
+
+<para
+>&kappname; har stöd för att läsa inställningar från <filename
+>.editorconfig</filename
+>-filer, där biblioteket <ulink url="https://editorconfig.org/"
+>editorconfig</ulink
+> är installerat. &kappname; söker automatiskt efter <filename
+>.editorconfig</filename
+> så fort en fil öppnas. Den ger dock prioritet till <filename
+>.kateconfig</filename
+>-filer. </para>
+
+<sect2 id="config-variables-howto">
+<title
+>Hur &kappname; använder variabler</title>
+
+<para
+>När inställningarna läses, letar Kate-programdelen på följande ställen (i denna ordning): <itemizedlist
+><listitem
+><para
+>Den allmänna inställningen.</para
+></listitem
+><listitem
+><para
+>Valfri sessionsdata.</para
+></listitem
+><listitem
+><para
+>Inställningen under "filtyp".</para
+></listitem
+><listitem
+><para
+>Dokumentvariabler i <filename
+>.kateconfig</filename
+>.</para
+></listitem
+><listitem
+><para
+>Dokumentvariabler i själva dokumentet.</para
+></listitem
+><listitem
+><para
+>Inställningar som görs under redigering från menyn eller kommandoraden.</para
+></listitem
+></itemizedlist
+> Som du märker överskrids dokumentvariabler av ändringar som görs under körning. Så fort ett dokument sparas, läses dokumentvariablerna om, och skriver över ändringar som gjorts med menyalternativ eller från kommandoraden.</para>
+
+<para
+>Alla variabler som inte anges nedan lagras i dokumentet och kan läsas av andra objekt, exempelvis insticksprogram, som kan använda dem för egna syften. Det variabelbaserade indenteringsläget använder till exempel dokumentvariabler för sin inställning.</para>
+
+<para
+>Variablerna som anges här dokumenterar &kappname; version 5.38. Fler variabler kan läggas till i framtiden. Det finns tre möjliga typer av värden för variabler, med följande giltiga uttryck: <itemizedlist>
+<listitem
+><para
+>BOOL - on|off|true|false|1|0</para
+></listitem>
+<listitem
+><para
+>HELTAL - vilket heltal som helst</para
+></listitem>
+<listitem
+><para
+>STRÄNG - allt annat</para
+></listitem>
+</itemizedlist>
+</para>
+
+</sect2>
+
+<sect2 id="config-variables-list">
+<title
+>Tillgängliga variabler</title>
+
+<variablelist>
+
+<varlistentry id="variable-auto-brackets">
+<term
+><cmdsynopsis
+><command
+>auto-brackets</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Aktivera automatisk infogning av hakparenteser.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-auto-center-lines">
+<term
+><cmdsynopsis
+><command
+>auto-center-lines</command
+><arg
+>HELTAL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Ange rader för automatisk centrering.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-background-color">
+<term
+><cmdsynopsis
+><command
+>background-color</command
+><arg
+>STRÄNG</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Ställ in dokumentets bakgrundsfärg. Värdet måste vara något som kan tolkas som en giltig färg, till exempel <userinput
+>#ff0000</userinput
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-backspace-indents">
+<term
+><cmdsynopsis
+><command
+>backspace-indents</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Aktivera eller inaktivera avindentering när backsteg trycks ner.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-block-selection">
+<term
+><cmdsynopsis
+><command
+>block-selection</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Sätt på eller stäng av <link linkend="kate-part-selection-block"
+>blockmarkering</link
+>.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-byte-order-mark">
+<term
+><cmdsynopsis
+><command
+>bom | byte-order-mark | byte-order-marker</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Aktivera eller inaktivera byte-ordningsmarkering (BOM) när filer sparas med Unicode-format (utf8, utf16, utf32).</para>
+<para
+>Sedan: &kate; 3.4 (&kde; 4.4)</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-bracket-highlight-color">
+<term
+><cmdsynopsis
+><command
+>bracket-highlight-color</command
+><arg
+>STRÄNG</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Ställer in färgen för markering av parenteser. Värdet måste vara något som kan tolkas som en giltig färg, till exempel <userinput
+>#ff0000</userinput
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-current-line-color">
+<term
+><cmdsynopsis
+><command
+>current-line-color</command
+><arg
+>STRÄNG</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Ställer in färgen för nuvarande rad. Värdet måste vara något som kan tolkas som en giltig färg, till exempel <userinput
+>#ff0000</userinput
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-default-dictionary">
+<term
+><cmdsynopsis
+><command
+>default-dictionary</command
+><arg
+>STRÄNG</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Ställer in förvald ordlista använd vid stavningskontroll.</para>
+<para
+>Sedan: &kate; 3.4 (&kde; 4.4)</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-dynamic-word-wrap">
+<term
+><cmdsynopsis
+><command
+>dynamic-word-wrap</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Sätter på eller stänger av <link linkend="kate-part-auto-wrap"
+>dynamisk radbrytning</link
+>.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-end-of-line">
+<term
+><cmdsynopsis
+><command
+>eol | end-of-line</command
+><arg
+>STRÄNG</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Ställer in radslutsläget. Giltiga inställningar är <userinput
+>unix</userinput
+>, <userinput
+>mac</userinput
+> och <userinput
+>dos</userinput
+>.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-folding-markers">
+<term
+><cmdsynopsis
+><command
+>folding-markers</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Sätter på eller stänger av visning av <link linkend="advanced-editing-tools-code-folding"
+>vikmarkörer</link
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-folding-preview">
+<term
+><cmdsynopsis
+><command
+>folding-preview</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Aktivera förhandsgranskning av vikning längs editorns kant.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-font-size">
+<term
+><cmdsynopsis
+><command
+>font-size</command
+><arg
+>HELTAL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Ange dokumentets teckenstorlek i punkter.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-font">
+<term
+><cmdsynopsis
+><command
+>font</command
+><arg
+>STRÄNG</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Ställer in dokumentets teckensnitt. Värdet måste vara ett giltigt teckensnittsnamn, till exempel <userinput
+>courier</userinput
+>.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-syntax">
+<term
+><cmdsynopsis
+><command
+>hl | syntax</command
+><arg
+>STRÄNG</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Ställer in syntaxfärgläggning. Giltiga strängar är alla namn tillgängliga i menyerna. Skriv exempelvis helt enkelt <userinput
+>C++</userinput
+> för C++.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-icon-bar-color">
+<term
+><cmdsynopsis
+><command
+>icon-bar-color</command
+><arg
+>STRÄNG</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Ställer in ikonradens färg. Värdet måste vara något som kan tolkas som en giltig färg, till exempel <userinput
+>#ff0000</userinput
+>.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-icon-border">
+<term
+><cmdsynopsis
+><command
+>icon-border</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Sätter på eller stänger av visning av ikonkanten.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-indent-mode">
+<term
+><cmdsynopsis
+><command
+>indent-mode</command
+><arg
+>STRÄNG</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Ställer in automatiskt indenteringsläge. Alternativen <userinput
+>none</userinput
+>, <userinput
+>normal</userinput
+>, <userinput
+>cstyle</userinput
+>, <userinput
+>haskell</userinput
+>, <userinput
+>lilypond</userinput
+>, <userinput
+>lisp</userinput
+>, <userinput
+>python</userinput
+>, <userinput
+>ruby</userinput
+> och <userinput
+>xml</userinput
+> känns igen. Se avsnittet <xref linkend="kate-part-autoindent"/> för detaljinformation.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-indent-pasted-text">
+<term
+><cmdsynopsis
+><command
+>indent-pasted-text</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Aktivera eller inaktivera Justering av indentering för text som klistrats in från klippbordet.</para>
+<para
+>Sedan: &kate; 3.11 (&kde; 4.11)</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-indent-width">
+<term
+><cmdsynopsis
+><command
+>indent-width</command
+><arg
+>HELTAL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Ange indenteringsbredden.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-keep-extra-spaces">
+<term
+><cmdsynopsis
+><command
+>keep-extra-spaces</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Ställer in om extra mellanslag ska behållas när indenteringsbredden beräknas.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-line-numbers">
+<term
+><cmdsynopsis
+><command
+>line-numbers</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Sätt på eller stäng av visning av radnummer.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-newline-at-eof">
+<term
+><cmdsynopsis
+><command
+>newline-at-eof</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Lägg till en tom rad i slutet av filen (EOF) när dokumentet sparas.</para>
+<para
+>Sedan: &kate; 3.9 (&kde; 4.9)</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-overwrite-mode">
+<term
+><cmdsynopsis
+><command
+>overwrite-mode</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Sätter på eller stänger av överskrivningsläge.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-persistent-selection">
+<term
+><cmdsynopsis
+><command
+>persistent-selection</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Sätt på eller stäng av <link linkend="kate-part-selection-persistent"
+>långlivade markeringar</link
+>.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-replace-tabs-save">
+<term
+><cmdsynopsis
+><command
+>replace-tabs-save</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Sätter på eller stänger av konvertering av tabulatortecken till mellanslag.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-replace-tabs">
+<term
+><cmdsynopsis
+><command
+>replace-tabs</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Sätter på eller stänger av dynamisk konvertering av tabulatortecken till mellanslag.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-remove-trailing-spaces">
+<term
+><cmdsynopsis
+><command
+>remove-trailing-spaces</command
+><arg
+>STRÄNG</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Tar bort avslutande mellanslag när dokumentet sparas. Giltig alternativ är:</para>
+<itemizedlist>
+<listitem
+><para
+><userinput
+>none</userinput
+>, <userinput
+>-</userinput
+> eller <userinput
+>0</userinput
+>: ta aldrig bort avslutande mellanslag.</para
+></listitem>
+<listitem
+><para
+><userinput
+>modified</userinput
+>, <userinput
+>mod</userinput
+>, <userinput
+>+</userinput
+> eller <userinput
+>1</userinput
+>: ta bara bort avslutande mellanslag på ändrade rader. De ändrade raderna markeras av radändringssystemet.</para
+></listitem>
+<listitem
+><para
+><userinput
+>all</userinput
+>, <userinput
+>*</userinput
+> eller <userinput
+>2</userinput
+>: ta bort avslutande mellanslag i hela dokumentet.</para
+></listitem>
+</itemizedlist>
+</listitem>
+</varlistentry>
+
+<varlistentry id="variable-scrollbar-minimap">
+<term
+><cmdsynopsis
+><command
+>scrollbar-minimap</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Visa rullningslistens miniavbildning.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-scrollbar-preview">
+<term
+><cmdsynopsis
+><command
+>scrollbar-preview</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Visa rullningslistens förhandsgranskning.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-scheme">
+<term
+><cmdsynopsis
+><command
+>scheme</command
+><arg
+>STRÄNG</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Ställer in färgschemat. Strängen måste vara namnet på ett färgschema som finns i dina inställningar för att ha någon effekt.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-selection-color">
+<term
+><cmdsynopsis
+><command
+>selection-color</command
+><arg
+>STRÄNG</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Ställer in markeringsfärgen. Värdet måste vara något som kan tolkas som en giltig färg, till exempel <userinput
+>#ff0000</userinput
+>.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-show-tabs">
+<term
+><cmdsynopsis
+><command
+>show-tabs</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Sätter på eller stänger av synligt tabulatortecken.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-smart-home">
+<term
+><cmdsynopsis
+><command
+>smart-home</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Sätter på eller stänger av <link linkend="pref-edit-cursor-selection"
+>smart Home-navigering</link
+>.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-tab-indents">
+<term
+><cmdsynopsis
+><command
+>tab-indents</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Sätter på eller stänger av indentering med tabulatortecken.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-tab-width">
+<term
+><cmdsynopsis
+><command
+>tab-width</command
+><arg
+>HELTAL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Ställer in tabulatorvisningsbredden.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-undo-steps">
+<term
+><cmdsynopsis
+><command
+>undo-steps</command
+><arg
+>HELTAL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Ange antalet ångra-steg som ska kommas ihåg ( = oändigt)</para>
+<para
+>Observera: Användning avråds från sedan &kate; 3 i &kde; 4. Variabeln ignoreras. Det maximala antalet steg som kan ångras är obegränsat.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-word-wrap-column">
+<term
+><cmdsynopsis
+><command
+>word-wrap-column</command
+><arg
+>HELTAL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Ställer in bredden för <link linkend="kate-part-auto-wrap"
+>hård radbrytning</link
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-word-wrap-marker-color">
+<term
+><cmdsynopsis
+><command
+>word-wrap-marker-color</command
+><arg
+>STRÄNG</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Ställer in färgen som markerar radbrytningar. Värdet måste vara något som kan tolkas som en giltig färg, till exempel <userinput
+>#ff0000</userinput
+>.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="variable-word-wrap">
+<term
+><cmdsynopsis
+><command
+>word-wrap</command
+><arg
+>BOOL</arg
+></cmdsynopsis
+></term>
+<listitem
+><para
+>Sätter på eller stänger av hård radbrytning.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+
+<sect2 id="kateconfig-extended-options">
+<title
+>Utökade alternativ i <filename
+>.kateconfig</filename
+>-filer</title>
+
+<para
+>&kappname; letar alltid efter en <filename
+>.kateconfig</filename
+>-fil för lokala filer (inte fjärrfiler). Dessutom är det möjligt att ange alternativ baserat på jokertecken (filändelser) enligt följande:</para>
+
+<programlisting
+>kate: tab-width 4; indent-width 4; replace-tabs on;
+kate-wildcard(*.xml): indent-width 2;
+kate-wildcard(Makefile): replace-tabs off;
+</programlisting>
+
+<para
+>I exemplet använder alla filer tabulatorbredd (tab-width) 4 mellanslag, indenteringsbredd (indent-width) 4 mellanslag och tabulatorer ersätts expanderade till mellanslag. För alla <filename class="extension"
+>*.xml</filename
+>-filer är dock indenteringsbredden inställd till 2 mellanslag. Och Makefile-filer använder tabulatorer, dvs. tabulatorer ersätts inte med mellanslag.</para>
+
+<para
+>Jokertecken skiljs åt av semikolon, dvs. det går också att ange flera filändelser enligt följande: </para>
+
+<programlisting
+>kate-wildcard(*.json;*.xml): indent-width 2;</programlisting>
+
+<para
+>Dessutom kan &MIME;-typer också användas för att matcha vissa filer, för att t.ex. indentera all C++ källkodsfiler med 4 mellanslag kan man skriva: </para>
+
+<programlisting
+>kate-mimetype(text/x-c++src): indent-width 4;</programlisting>
+
+<note
+><para
+>Förutom stödet i <filename
+>.kateconfig</filename
+>-filer, stöds också dokumentvariabler som beror på jokertecken och &MIME;-typer i själva filerna som kommentarer. </para
+></note>
+
+</sect2>
+
+</sect1>
+
+</chapter>

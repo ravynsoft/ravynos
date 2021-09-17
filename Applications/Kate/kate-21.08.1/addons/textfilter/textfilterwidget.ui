@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>TextFilterWidget</class>
+ <widget class="QDialog" name="TextFilterWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>370</width>
+    <height>190</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QLabel" name="lblFilter">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="text">
+      <string>Enter command to &amp;pipe selected text through:</string>
+     </property>
+     <property name="buddy">
+      <cstring>filterBox</cstring>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="KHistoryComboBox" name="filterBox"/>
+   </item>
+   <item>
+    <widget class="QCheckBox" name="newDoc">
+     <property name="text">
+      <string>Open results in a new document</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QCheckBox" name="copyResult">
+     <property name="toolTip">
+      <string>Copy the result to clipboard leaving a document unchanged.</string>
+     </property>
+     <property name="text">
+      <string>Copy the result instead of pasting it</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QCheckBox" name="mergeOutput">
+     <property name="toolTip">
+      <string>If checked, an output from STDOUT and STDERR will be merged and no errors will be reported.
+Otherwise, STDERR will be displayed as a passive message.</string>
+     </property>
+     <property name="text">
+      <string>Merge STDOUT and STDERR</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>KComboBox</class>
+   <extends>QComboBox</extends>
+   <header>kcombobox.h</header>
+  </customwidget>
+  <customwidget>
+   <class>KHistoryComboBox</class>
+   <extends>KComboBox</extends>
+   <header>khistorycombobox.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>accepted()</signal>
+   <receiver>TextFilterWidget</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>177</x>
+     <y>136</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>182</x>
+     <y>118</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>rejected()</signal>
+   <receiver>TextFilterWidget</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>326</x>
+     <y>141</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>358</x>
+     <y>117</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

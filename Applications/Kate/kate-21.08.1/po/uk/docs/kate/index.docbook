@@ -1,0 +1,500 @@
+<?xml version="1.0" ?>
+<!DOCTYPE book PUBLIC "-//KDE//DTD DocBook XML V4.5-Based Variant V1.1//EN"
+"dtd/kdedbx45.dtd" [
+  <!ENTITY gdb "<acronym
+>GDB</acronym
+>">
+  <!ENTITY kparts "<acronym
+>KParts</acronym
+>">
+  <!ENTITY configuring-chapter SYSTEM "configuring.docbook">
+  <!ENTITY fundamentals-chapter SYSTEM "fundamentals.docbook">
+  <!ENTITY menu-chapter SYSTEM "menus.docbook">
+  <!ENTITY plugins-chapter SYSTEM "plugins.docbook">
+  <!ENTITY development-chapter SYSTEM "development.docbook">
+  <!ENTITY % addindex "IGNORE">
+  <!ENTITY % Ukrainian "INCLUDE"
+><!-- change language only here -->
+]>
+
+<book id="kate" lang="&language;">
+<title
+>Підручник з &kate;</title>
+
+<bookinfo>
+<authorgroup>
+<author
+>&Anders.Lund; &Anders.Lund.mail;</author>
+<author
+>&Seth.Rothberg; &Seth.Rothberg.mail;</author>
+<author
+>&Dominik.Haumann; &Dominik.Haumann.mail;</author>
+<author
+>&TC.Hollingsworth; &TC.Hollingsworth.mail;</author>
+<othercredit role="translator"
+><firstname
+>Юрій</firstname
+><surname
+>Чорноіван</surname
+><affiliation
+><address
+><email
+>yurchor@ukr.net</email
+></address
+></affiliation
+><contrib
+>Переклад українською</contrib
+></othercredit
+> 
+</authorgroup>
+
+<copyright>
+<year
+>2000</year>
+<year
+>2001</year>
+<holder
+>&Seth.Rothberg;</holder>
+</copyright>
+<copyright>
+<year
+>2002</year
+><year
+>2003</year
+><year
+>2005</year>
+<holder
+>&Anders.Lund;</holder>
+</copyright>
+<copyright>
+<year
+>2005</year
+><year
+>2009</year>
+<holder
+>&Dominik.Haumann;</holder>
+</copyright>
+<copyright>
+<year
+>2011</year
+><year
+>2012</year
+><year
+>2013</year
+><year
+>2014</year>
+<holder
+>&TC.Hollingsworth;</holder>
+</copyright>
+<legalnotice
+>&FDLNotice;</legalnotice>
+
+<date
+>6 березня 2021 року</date>
+<releaseinfo
+>Програми 21.04</releaseinfo>
+
+<abstract>
+<para
+>&kate; — це текстовий редактор для програмістів, створений командою розробників &kde;.</para>
+
+<para
+>У цьому підручнику описано &kate; версії 18.12</para>
+</abstract>
+
+<keywordset>
+<keyword
+>KDE</keyword>
+<keyword
+>kdebase</keyword>
+<keyword
+>Kate</keyword>
+<keyword
+>текст</keyword>
+<keyword
+>редактор</keyword>
+<keyword
+>програміст</keyword>
+<keyword
+>програмування</keyword>
+<keyword
+>проєкти</keyword>
+<keyword
+>MDI</keyword>
+<keyword
+>Декілька</keyword>
+<keyword
+>Документ</keyword>
+<keyword
+>Інтерфейс</keyword>
+<keyword
+>термінал</keyword>
+<keyword
+>консоль</keyword>
+</keywordset>
+
+</bookinfo>
+
+<chapter id="introduction">
+<title
+>Вступ</title>
+
+<para
+>Ласкаво просимо до &kate;, текстового редактора для програмістів, створеного розробниками &kde;. Серед багатьох можливостей &kate; придатне для налаштування підсвічування синтаксису для мов програмування від C і C++ до &HTML; і скриптів bash, можливість створення і підтримки проєктів, багатодокументний інтерфейс (<acronym
+>MDI</acronym
+>) та вбудований емулятор термінала. </para>
+
+<para
+>Але &kate; є не лише редактором для програмістів. Закладена у програму можливість відкриття одразу декількох файлів робить її ідеальною для редагування багатьох файлів налаштування &UNIX;. Наприклад, цей документ було написано у &kate;. </para>
+
+<para>
+<mediaobject>
+<imageobject
+><imagedata format="PNG" fileref="kate.png"/></imageobject>
+<caption
+><para
+>Редагування цього підручника...</para
+></caption>
+</mediaobject>
+</para>
+
+</chapter>
+
+&fundamentals-chapter;
+
+<chapter id="kate-part">
+<title
+>Робота у редакторі &kate;</title>
+<para
+>Щоб дізнатися більше про основи роботи з компонентом редактора, який є основою &kate;, ознайомтеся із <ulink url="help:katepart/kate-part.html"
+>главою щодо роботи з редактором &katepart; підручника з &katepart;</ulink
+>.</para>
+</chapter>
+
+&plugins-chapter;
+
+<chapter id="advanced-editing-tools">
+<title
+>Додаткові інструменти редагування</title>
+<para
+>Щоб дізнатися більше про розширені засоби редагування, які включено до &kate;, ознайомтеся із <ulink url="help:/katepart/advanced-editing-tools.html"
+>главою щодо додаткових засобів редагування підручника з &katepart;</ulink
+>.</para>
+</chapter>
+
+&development-chapter;
+
+<chapter id="vi-input-mode-chapter">
+<title
+>Режим введення VI</title>
+<para
+>Щоб дізнатися більше про режим введення VI у &kate;, ознайомтеся із <ulink url="help:/katepart/vi-input-mode-chapter.html"
+>главою щодо режиму введення VI у підручнику з &katepart;</ulink
+>.</para>
+</chapter>
+
+&menu-chapter;
+
+&configuring-chapter;
+
+<chapter id="credits">
+
+<title
+>Подяки і ліцензія</title>
+
+<para
+>&kate;. Авторські права на програму належать команді розробників &kate;, ©2000–2005 </para>
+
+<variablelist>
+<title
+>Команда розробників &kate;:</title>
+<varlistentry>
+<term
+>&Christoph.Cullmann; &Christoph.Cullmann.mail;</term>
+<listitem
+><para
+>Керівник проєкту і розробник ядра</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+>&Anders.Lund; &Anders.Lund.mail;</term>
+<listitem
+><para
+>Основний розробник, підсвічування синтаксису Perl, документація</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+>&Joseph.Wenninger; &Joseph.Wenninger.mail;</term>
+<listitem
+><para
+>Основний розробник, підсвічування синтаксису</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+>Michael Bartl <email
+>michael.bartl1@chello.at</email
+></term>
+<listitem
+><para
+>Головний розробник</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+>Phlip <email
+>phlip_cpp@my-deja.com</email
+></term>
+<listitem
+><para
+>Компілятор проєкту</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+>&Waldo.Bastian; &Waldo.Bastian.mail;</term>
+<listitem
+><para
+>Класна система буферів</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+>Matt Newell <email
+>newellm@proaxis.com</email
+></term>
+<listitem
+><para
+>Тестування...</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+>Michael McCallum <email
+>gholam@xtra.co.nz</email
+></term>
+<listitem
+><para
+>Головний розробник</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+>Jochen Wilhemly <email
+>digisnap@cs.tu-berlin.de</email
+></term>
+<listitem
+><para
+>Автор &kwrite;</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+>&Michael.Koch; &Michael.Koch.mail;</term>
+<listitem
+><para
+>портування &kwrite; на KParts</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+>&Christian.Gebauer; <email
+>gebauer@bigfoot.com</email
+></term>
+<listitem
+><para
+>Не вказано</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+>&Simon.Hausmann; &Simon.Hausmann.mail;</term>
+<listitem
+><para
+>Не вказано</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+>Glen Parker <email
+>glenebob@nwlink.com</email
+></term>
+<listitem
+><para
+>Журнал дій у &kwrite;, інтеграція з KSpell</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+>Scott Manson <email
+>sdmanson@alltel.net</email
+></term>
+<listitem
+><para
+>Підтримка підсвічування синтаксису &XML; у &kwrite;</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+>&John.Firebaugh; &John.Firebaugh.mail;</term>
+<listitem
+><para
+>Різноманітні латки</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+>&Dominik.Haumann; &Dominik.Haumann.mail;</term>
+<listitem
+><para
+>Розробник, майстер підсвічування програми</para
+></listitem>
+</varlistentry>
+</variablelist>
+
+<variablelist>
+<title
+>Свій внесок зробили і багато інших людей:</title>
+<varlistentry>
+<term
+>Matteo Merli <email
+>merlim@libero.it</email
+></term>
+<listitem
+><para
+>Підсвічування синтаксису для файлів Spec RPM, Diff та інші речі</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+>Rocky Scaletta <email
+>rocky@purdue.edu</email
+></term>
+<listitem
+><para
+>Підсвічування синтаксису для VHDL</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+>Yury Lebedev </term>
+<listitem
+><para
+>Підсвічування синтаксису для SQL</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+>Chris Ross</term>
+<listitem
+><para
+>Підсвічування синтаксису для Ferite</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+>Nick Roux</term>
+<listitem
+><para
+>Підсвічування синтаксису для ILERPG</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+>&John.Firebaugh;</term>
+<listitem
+><para
+>Підсвічування синтаксису для &Java; та багато інших речей</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+>&Carsten.Niehaus;</term>
+<listitem
+><para
+>Підсвічування синтаксису для &latex;</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+>Per Wigren</term>
+<listitem
+><para
+>Підсвічування синтаксису для Makefiles та Python</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+>Jan Fritz</term>
+<listitem
+><para
+>Підсвічування синтаксису для Python</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+>&Daniel.Naber;</term>
+<listitem
+><para
+>Невеличкі виправлення вад, додаток &XML;</para
+></listitem>
+</varlistentry>
+</variablelist>
+
+<para
+>Авторські права на документацію до програми належать &Seth.Rothberg; &Seth.Rothberg.mail;, ©2000, 2001</para>
+
+<para
+>Авторські права на документацію до програми належать &Anders.Lund; &Anders.Lund.mail;, ©2002, 2003, 2005</para>
+
+<para
+>Переклад українською: Юрій Чорноіван <email
+>yurchor@ukr.net</email
+></para
+> &underFDL; &underGPL; </chapter>
+
+<appendix id="regular-expressions">
+<title
+>Формальні вирази</title>
+
+<para
+>Щоб дізнатися більше про використання формальних виразів у &kate;, ознайомтеся із <ulink url="help:/katepart/regular-expressions.html"
+>додатком щодо формальних виразів у підручнику з &katepart;</ulink
+>.</para>
+
+</appendix>
+
+&documentation.index;
+
+<!--
+Index Word List:
+menu - context - syntax - markup - shortcuts - highlighting
+embedded terminal - editing - search - replace - regexp -> Regular Expression
+split window - selection - insert overwrite - selection -
+configure/customize/preferences - insert/overwrite - non-printing characters
+font - unicode - wordwrap/linewrap - project - bookmarks - docks - plugins
+block selection / rectangles - view - indenting - editor - word processor
+copy - paste - find - spelling - language (both kinds) - encoding -
+pretty printing - formatting - line numbers - icon border -
+folding - insert time - sed
+
+done
+comment / uncomment
+configure / settings / preferences
+
+-->
+
+</book>
+
+<!--
+Local Variables:
+mode: sgml
+sgml-namecase-general: t
+sgml-namecase-entity: nil
+sgml-general-insert-case: lower
+sgml-minimize-attributes: nil
+sgml-omittag: nil
+End:
+-->

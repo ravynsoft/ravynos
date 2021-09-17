@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE gui SYSTEM "kpartgui.dtd">
+<gui name="katectags-plugin" library="katectagsplugin" version="4" translationDomain="kate-ctags-plugin">
+  <MenuBar>
+    <Menu name="CTags Menubar">
+      <text>CTags</text>
+      <Action name="ctags_return_step"/>
+      <Action name="ctags_lookup_current"/>
+      <Action name="ctags_lookup_current_as_declaration"/>
+      <Action name="ctags_lookup_current_as_definition"/>
+      <Action name="ctags_jump_to_next_matcht"/>
+      <Separator/>
+      <Action name="ctags_update_global_db"/>
+    </Menu>
+  </MenuBar>
+  <Menu name="ktexteditor_popup" noMerge="1">
+    <Action name="popup_ctags"/>
+  </Menu>
+</gui>
+<!-- kate: space-indent on; indent-width 4; replace-tabs on; -->

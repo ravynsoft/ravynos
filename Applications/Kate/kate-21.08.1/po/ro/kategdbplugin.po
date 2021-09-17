@@ -1,0 +1,388 @@
+# Copyright (C) YEAR This_file_is_part_of_KDE
+# This file is distributed under the same license as the PACKAGE package.
+# Sergiu Bivol <sergiu@cip.md>, 2011.
+# Cristian Oneț <onet.cristian@gmail.com>, 2011, 2012.
+# Cristian Buzduga <cristianbzdg@gmail.com>, 2011.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2021-05-06 00:20+0000\n"
+"PO-Revision-Date: 2012-01-21 12:41+0200\n"
+"Last-Translator: Cristian Oneț <onet.cristian@gmail.com>\n"
+"Language-Team: Romanian <kde-i18n-ro@kde.org>\n"
+"Language: ro\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=n==1 ? 0 : (n==0 || (n%100 > 0 && n%100 < "
+"20)) ? 1 : 2;\n"
+
+#, kde-format
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr "Sergiu Bivol, Cristian Buzdugă"
+
+#, kde-format
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr "sergiu@cip.md, cristianbzdg@gmail.com"
+
+#. i18n: ectx: property (text), widget (QLabel, u_gdbLabel)
+#: advanced_settings.ui:17
+#, kde-format
+msgid "GDB command"
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QToolButton, u_gdbBrowse)
+#. i18n: ectx: property (text), widget (QToolButton, u_addSrcPath)
+#. i18n: ectx: property (text), widget (QToolButton, u_delSrcPath)
+#. i18n: ectx: property (text), widget (QToolButton, u_setSoPrefix)
+#. i18n: ectx: property (text), widget (QToolButton, u_addSoSearchPath)
+#. i18n: ectx: property (text), widget (QToolButton, u_delSoSearchPath)
+#: advanced_settings.ui:30 advanced_settings.ui:62 advanced_settings.ui:69
+#: advanced_settings.ui:241 advanced_settings.ui:274 advanced_settings.ui:281
+#, kde-format
+msgid "..."
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QLabel, u_srcPathsLabel)
+#: advanced_settings.ui:37
+#, kde-format
+msgid "Source file search paths"
+msgstr ""
+
+#. i18n: ectx: property (text), item, widget (QComboBox, u_localRemote)
+#: advanced_settings.ui:92
+#, kde-format
+msgid "Local application"
+msgstr ""
+
+#. i18n: ectx: property (text), item, widget (QComboBox, u_localRemote)
+#: advanced_settings.ui:97
+#, kde-format
+msgid "Remote TCP"
+msgstr ""
+
+#. i18n: ectx: property (text), item, widget (QComboBox, u_localRemote)
+#: advanced_settings.ui:102
+#, fuzzy, kde-format
+#| msgid "Remove breakpoint"
+msgid "Remote Serial Port"
+msgstr "Elimină punct de oprire"
+
+#. i18n: ectx: property (text), widget (QLabel, u_hostLabel)
+#: advanced_settings.ui:127
+#, kde-format
+msgid "Host"
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QLabel, u_tcpPortLabel)
+#. i18n: ectx: property (text), widget (QLabel, u_ttyLabel)
+#: advanced_settings.ui:141 advanced_settings.ui:166
+#, kde-format
+msgid "Port"
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QLabel, u_ttyBaudLabel)
+#: advanced_settings.ui:183
+#, kde-format
+msgid "Baud"
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QLabel, u_soAbsPrefixLabel)
+#: advanced_settings.ui:231
+#, kde-format
+msgid "solib-absolute-prefix"
+msgstr ""
+
+#. i18n: ectx: property (text), widget (QLabel, u_soSearchLabel)
+#: advanced_settings.ui:248
+#, kde-format
+msgid "solib-search-path"
+msgstr ""
+
+#. i18n: ectx: property (title), widget (QGroupBox, u_customInitGB)
+#: advanced_settings.ui:317
+#, kde-format
+msgid "Custom Init Commands"
+msgstr ""
+
+#: configview.cpp:46
+#, fuzzy, kde-format
+#| msgid "Add executable target"
+msgid "Add new target"
+msgstr "Adaugă țintă pentru executabil"
+
+#: configview.cpp:50
+#, fuzzy, kde-format
+#| msgid "Remove target"
+msgid "Copy target"
+msgstr "Elimină ținta"
+
+#: configview.cpp:54
+#, fuzzy, kde-format
+#| msgid "Remove target"
+msgid "Delete target"
+msgstr "Elimină ținta"
+
+#: configview.cpp:59
+#, kde-format
+msgid "Executable:"
+msgstr ""
+
+#: configview.cpp:79
+#, fuzzy, kde-format
+#| msgid "&Working Directory:"
+msgid "Working Directory:"
+msgstr "&Dosar de lucru:"
+
+#: configview.cpp:86
+#, fuzzy, kde-format
+#| msgid "Add Argument List"
+msgctxt "Program argument list"
+msgid "Arguments:"
+msgstr "Adaugă listă de argumenți"
+
+#: configview.cpp:89
+#, kde-format
+msgctxt "Checkbox to for keeping focus on the command line"
+msgid "Keep focus"
+msgstr "Păstrează focalizarea"
+
+#: configview.cpp:90
+#, kde-format
+msgid "Keep the focus on the command line"
+msgstr "Păstrează focalizarea pe linia de comandă"
+
+#: configview.cpp:92
+#, kde-format
+msgid "Redirect IO"
+msgstr "Redirectează IO"
+
+#: configview.cpp:93
+#, kde-format
+msgid "Redirect the debugged programs IO to a separate tab"
+msgstr "Redirectează IO-ul programelor depanate către o filă separată"
+
+#: configview.cpp:95
+#, fuzzy, kde-format
+#| msgctxt "Tab label"
+#| msgid "Settings"
+msgid "Advanced Settings"
+msgstr "Configurări"
+
+#: configview.cpp:126
+#, kde-format
+msgid "Targets"
+msgstr "Ținte"
+
+#: configview.cpp:320 configview.cpp:336
+#, fuzzy, kde-format
+#| msgid "Targets"
+msgid "Target %1"
+msgstr "Ținte"
+
+#: debugview.cpp:123
+#, kde-format
+msgid "Could not start debugger process"
+msgstr "Nu s-a putut porni procesul de depanare"
+
+#: debugview.cpp:166
+#, kde-format
+msgid "*** gdb exited normally ***"
+msgstr "*** gdb a ieșit normal ***"
+
+#: localsview.cpp:17
+#, kde-format
+msgid "Symbol"
+msgstr "Simbol"
+
+#: localsview.cpp:18
+#, kde-format
+msgid "Value"
+msgstr "Valoare"
+
+#: plugin_kategdb.cpp:69
+#, kde-format
+msgid "Kate GDB"
+msgstr ""
+
+#: plugin_kategdb.cpp:73 plugin_kategdb.cpp:76
+#, kde-format
+msgid "Debug View"
+msgstr "Vizualizare depanare"
+
+#: plugin_kategdb.cpp:79 plugin_kategdb.cpp:82
+#, fuzzy, kde-format
+#| msgid "Call Stack"
+msgid "Locals and Stack"
+msgstr "Stiva de apeluri"
+
+#: plugin_kategdb.cpp:127
+#, kde-format
+msgctxt "Column label (frame number)"
+msgid "Nr"
+msgstr "Nr"
+
+#: plugin_kategdb.cpp:127
+#, kde-format
+msgctxt "Column label"
+msgid "Frame"
+msgstr "Cadru"
+
+#: plugin_kategdb.cpp:150
+#, kde-format
+msgctxt "Tab label"
+msgid "GDB Output"
+msgstr "Ieșire GDB"
+
+#: plugin_kategdb.cpp:151
+#, kde-format
+msgctxt "Tab label"
+msgid "Settings"
+msgstr "Configurări"
+
+#: plugin_kategdb.cpp:184
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"<title>Could not open file:</title><nl/>%1<br/>Try adding a search path to "
+"Advanced Settings -> Source file search paths"
+msgstr ""
+
+#: plugin_kategdb.cpp:202
+#, kde-format
+msgid "Start Debugging"
+msgstr "Începe depanarea"
+
+#: plugin_kategdb.cpp:207
+#, kde-format
+msgid "Kill / Stop Debugging"
+msgstr "Omoară / Oprește depanarea"
+
+#: plugin_kategdb.cpp:212
+#, kde-format
+msgid "Restart Debugging"
+msgstr "Repornește depanarea"
+
+#: plugin_kategdb.cpp:217
+#, kde-format
+msgid "Toggle Breakpoint / Break"
+msgstr "Comută între Punct de oprire / Oprire"
+
+#: plugin_kategdb.cpp:222
+#, kde-format
+msgid "Step In"
+msgstr "Pășește în"
+
+#: plugin_kategdb.cpp:227
+#, kde-format
+msgid "Step Over"
+msgstr "Pășește peste"
+
+#: plugin_kategdb.cpp:232
+#, kde-format
+msgid "Step Out"
+msgstr "Pășește în afară"
+
+#: plugin_kategdb.cpp:237 plugin_kategdb.cpp:265
+#, kde-format
+msgctxt "Move Program Counter (next execution)"
+msgid "Move PC"
+msgstr "Mută PC"
+
+#: plugin_kategdb.cpp:241 plugin_kategdb.cpp:263
+#, kde-format
+msgid "Run To Cursor"
+msgstr "Rulează până la cursor"
+
+#: plugin_kategdb.cpp:246
+#, kde-format
+msgid "Continue"
+msgstr "Continuă"
+
+#: plugin_kategdb.cpp:251
+#, kde-format
+msgid "Print Value"
+msgstr "Tipărește valoarea"
+
+#: plugin_kategdb.cpp:256
+#, kde-format
+msgid "Debug"
+msgstr "Depanează"
+
+#: plugin_kategdb.cpp:260
+#, kde-format
+msgid "popup_breakpoint"
+msgstr "popup_breakpoint"
+
+#: plugin_kategdb.cpp:262
+#, kde-format
+msgid "popup_run_to_cursor"
+msgstr "popup_run_to_cursor"
+
+#: plugin_kategdb.cpp:331 plugin_kategdb.cpp:347
+#, kde-format
+msgid "Insert breakpoint"
+msgstr "Inserează punct de oprire"
+
+#: plugin_kategdb.cpp:345
+#, kde-format
+msgid "Remove breakpoint"
+msgstr "Elimină punct de oprire"
+
+#: plugin_kategdb.cpp:369
+#, kde-format
+msgid "Breakpoint"
+msgstr "Punct de oprire"
+
+#: plugin_kategdb.cpp:464
+#, kde-format
+msgid "Execution point"
+msgstr "Punct de execuție"
+
+#: plugin_kategdb.cpp:581 plugin_kategdb.cpp:583
+#, kde-format
+msgid "Thread %1"
+msgstr "Fir de execuție %1"
+
+#: plugin_kategdb.cpp:676
+#, kde-format
+msgid "IO"
+msgstr "IO"
+
+#. i18n: ectx: Menu (debug)
+#: ui.rc:6
+#, kde-format
+msgid "&Debug"
+msgstr "&Depanează"
+
+#. i18n: ectx: ToolBar (gdbplugin)
+#: ui.rc:29
+#, kde-format
+msgid "GDB Plugin"
+msgstr "Modul GDB"
+
+#~ msgid "GDB Integration"
+#~ msgstr "Integrare GDB"
+
+#~ msgid "Kate GDB Integration"
+#~ msgstr "Integrare GDB Kate"
+
+#~ msgid "Locals"
+#~ msgstr "Locale"
+
+#~ msgid "&Target:"
+#~ msgstr "Țin&tă:"
+
+#~ msgctxt "Program argument list"
+#~ msgid "&Arg List:"
+#~ msgstr "Listă &argumenți:"
+
+#~ msgid "Remove Argument List"
+#~ msgstr "Elimină listă de argumenți"
+
+#~ msgid "Arg Lists"
+#~ msgstr "Liste arg"

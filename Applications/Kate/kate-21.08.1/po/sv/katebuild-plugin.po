@@ -1,0 +1,530 @@
+# translation of katebuild-plugin.po to Swedish
+# Copyright (C) YEAR This_file_is_part_of_KDE
+# This file is distributed under the same license as the PACKAGE package.
+#
+# Stefan Asserhäll <stefan.asserhall@bredband.net>, 2008, 2009, 2010.
+# Stefan Asserhall <stefan.asserhall@bredband.net>, 2010, 2011, 2012, 2013, 2014, 2015, 2016, 2018, 2019, 2020, 2021.
+# Arve Eriksson <031299870@telia.com>, 2011.
+msgid ""
+msgstr ""
+"Project-Id-Version: katebuild-plugin\n"
+"Report-Msgid-Bugs-To: https://bugs.kde.org\n"
+"POT-Creation-Date: 2021-03-09 03:25+0100\n"
+"PO-Revision-Date: 2021-03-06 09:36+0100\n"
+"Last-Translator: Stefan Asserhäll <stefan.asserhall@bredband.net>\n"
+"Language-Team: Swedish <kde-i18n-doc@kde.org>\n"
+"Language: sv\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Lokalize 20.08.1\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+
+#, kde-format
+msgctxt "NAME OF TRANSLATORS"
+msgid "Your names"
+msgstr "Stefan Asserhäll,Arve Eriksson"
+
+#, kde-format
+msgctxt "EMAIL OF TRANSLATORS"
+msgid "Your emails"
+msgstr "stefan.asserhall@bredband.net,031299870@telia.com"
+
+#. i18n: ectx: attribute (title), widget (QWidget, errs)
+#: build.ui:27
+#, kde-format
+msgid "Output"
+msgstr "Utmatning"
+
+#. i18n: ectx: property (text), widget (QLabel, showLabel)
+#: build.ui:35
+#, kde-format
+msgid "Show:"
+msgstr "Visa:"
+
+#. i18n: ectx: property (text), widget (QPushButton, buildAgainButton)
+#. i18n: ectx: property (text), widget (QPushButton, buildAgainButton2)
+#: build.ui:100 build.ui:125
+#, kde-format
+msgid "Build again"
+msgstr "Bygg igen"
+
+#. i18n: ectx: property (text), widget (QPushButton, cancelBuildButton)
+#. i18n: ectx: property (text), widget (QPushButton, cancelBuildButton2)
+#: build.ui:107 build.ui:132
+#, kde-format
+msgid "Cancel"
+msgstr "Avbryt"
+
+#. i18n: ectx: property (text), widget (QTreeWidget, errTreeWidget)
+#: build.ui:163
+#, kde-format
+msgctxt "Header for the file name column"
+msgid "File"
+msgstr "Fil"
+
+#. i18n: ectx: property (text), widget (QTreeWidget, errTreeWidget)
+#: build.ui:168
+#, kde-format
+msgctxt "Header for the line number column"
+msgid "Line"
+msgstr "Rad"
+
+#. i18n: ectx: property (text), widget (QTreeWidget, errTreeWidget)
+#: build.ui:173
+#, kde-format
+msgctxt "Header for the error message column"
+msgid "Message"
+msgstr "Meddelande"
+
+#: plugin_katebuild.cpp:126
+#, kde-format
+msgid "Kate Build Plugin"
+msgstr "Kate bygginsticksprogram"
+
+#: plugin_katebuild.cpp:133
+#, kde-format
+msgid "Build Output"
+msgstr "Byggutmatning"
+
+#: plugin_katebuild.cpp:136
+#, kde-format
+msgid "Select Target..."
+msgstr "Välj mål..."
+
+#: plugin_katebuild.cpp:140
+#, kde-format
+msgid "Build Default Target"
+msgstr "Bygg standardmål"
+
+#: plugin_katebuild.cpp:144
+#, kde-format
+msgid "Build Previous Target"
+msgstr "Bygg föregående mål"
+
+#: plugin_katebuild.cpp:148
+#, kde-format
+msgid "Stop"
+msgstr "Stoppa"
+
+#: plugin_katebuild.cpp:153
+#, kde-format
+msgid "Next Error"
+msgstr "Nästa fel"
+
+#: plugin_katebuild.cpp:159
+#, kde-format
+msgid "Previous Error"
+msgstr "Föregående fel"
+
+#: plugin_katebuild.cpp:165
+#, kde-format
+msgid "Show Marks"
+msgstr "Visa markörer"
+
+#: plugin_katebuild.cpp:172
+#, kde-format
+msgctxt "Tab label"
+msgid "Target Settings"
+msgstr "Målinställningar"
+
+#: plugin_katebuild.cpp:262 plugin_katebuild.cpp:1162
+#, kde-format
+msgid "Target Set"
+msgstr "Måluppsättning"
+
+#: plugin_katebuild.cpp:263 plugin_katebuild.cpp:283 plugin_katebuild.cpp:288
+#: plugin_katebuild.cpp:1319
+#, kde-format
+msgid "build"
+msgstr "bygg"
+
+#: plugin_katebuild.cpp:264 plugin_katebuild.cpp:284 plugin_katebuild.cpp:1322
+#, kde-format
+msgid "clean"
+msgstr "rensa"
+
+#: plugin_katebuild.cpp:265
+#, kde-format
+msgid "config"
+msgstr "config"
+
+#: plugin_katebuild.cpp:269 plugin_katebuild.cpp:286 plugin_katebuild.cpp:1325
+#, kde-format
+msgid "quick"
+msgstr "snabb"
+
+#: plugin_katebuild.cpp:321 plugin_katebuild.cpp:1258 plugin_katebuild.cpp:1269
+#: plugin_katebuild.cpp:1290 plugin_katebuild.cpp:1298
+#, kde-format
+msgid "Project Plugin Targets"
+msgstr "Mål projektinsticksprogram"
+
+#: plugin_katebuild.cpp:487
+#, kde-kuit-format
+msgctxt "@info"
+msgid ""
+"<title>Could not open file:</title><nl/>%1<br/>Try adding a search path to "
+"the working directory in the Target Settings"
+msgstr ""
+"<title>Kunde inte öppna fil:</title><nl/>%1<br/>Försök att lägga till en "
+"sökväg till arbetskatalogen i målinställningarna"
+
+#: plugin_katebuild.cpp:507
+#, kde-format
+msgctxt "The same word as 'make' uses to mark an error."
+msgid "error"
+msgstr "fel"
+
+#: plugin_katebuild.cpp:509
+#, kde-format
+msgctxt "The same word as 'ld' uses to mark an ..."
+msgid "undefined reference"
+msgstr "odefinierad referens"
+
+#: plugin_katebuild.cpp:515
+#, kde-format
+msgctxt "The same word as 'make' uses to mark a warning."
+msgid "warning"
+msgstr "varning"
+
+#: plugin_katebuild.cpp:600
+#, kde-format
+msgid "Error"
+msgstr "Fel"
+
+#: plugin_katebuild.cpp:605
+#, kde-format
+msgid "Warning"
+msgstr "Varning"
+
+#: plugin_katebuild.cpp:736
+#, kde-format
+msgid "There is no file or directory specified for building."
+msgstr "Det finns ingen fil eller katalog angiven att bygga."
+
+#: plugin_katebuild.cpp:740
+#, kde-format
+msgid ""
+"The file \"%1\" is not a local file. Non-local files cannot be compiled."
+msgstr ""
+"Filen \"%1\" är inte en lokal fil. Icke-lokala filer kan inte kompileras."
+
+#: plugin_katebuild.cpp:792
+#, kde-format
+msgid ""
+"Cannot run command: %1\n"
+"Work path does not exist: %2"
+msgstr ""
+"Kan inte köra kommando: %1\n"
+"Arbetssökvägen finns inte: %2"
+
+#: plugin_katebuild.cpp:811
+#, kde-format
+msgid "Failed to run \"%1\". exitStatus = %2"
+msgstr "Misslyckades köra \"%1\". Avslutningsstatus = %2"
+
+#: plugin_katebuild.cpp:830
+#, kde-format
+msgid "Building <b>%1</b> cancelled"
+msgstr "Byggning av <b>%1</b> avbruten"
+
+#: plugin_katebuild.cpp:888
+#, kde-format
+msgid "Already building..."
+msgstr "Bygger redan..."
+
+#: plugin_katebuild.cpp:897
+#, kde-format
+msgid "No target available for building."
+msgstr "Inget mål tillgängligt att bygga."
+
+#: plugin_katebuild.cpp:911
+#, kde-format
+msgid "There is no local file or directory specified for building."
+msgstr "Det finns ingen lokal fil eller katalog angiven att bygga."
+
+#: plugin_katebuild.cpp:935
+#, kde-format
+msgid "Building target <b>%1</b> ..."
+msgstr "Bygger mål <b>%1</b>..."
+
+#: plugin_katebuild.cpp:950
+#, kde-kuit-format
+msgctxt "@info"
+msgid "<title>Make Results:</title><nl/>%1"
+msgstr "<title>Byggresultat:</title><nl/>%1"
+
+#: plugin_katebuild.cpp:986
+#, kde-format
+msgid "Building <b>%1</b> completed."
+msgstr "Byggning av <b>%1</b> färdig."
+
+#: plugin_katebuild.cpp:1005
+#, kde-format
+msgid "Found one error."
+msgid_plural "Found %1 errors."
+msgstr[0] "Hittade ett fel."
+msgstr[1] "Hittade %1 fel."
+
+#: plugin_katebuild.cpp:1006
+#, kde-format
+msgid "Building <b>%1</b> had errors."
+msgstr "Byggning av <b>%1</b> hade fel."
+
+#: plugin_katebuild.cpp:1008
+#, kde-format
+msgid "Found one warning."
+msgid_plural "Found %1 warnings."
+msgstr[0] "Hittade en varning."
+msgstr[1] "Hittade %1 varningar."
+
+#: plugin_katebuild.cpp:1009
+#, kde-format
+msgid "Building <b>%1</b> had warnings."
+msgstr "Byggning av <b>%1</b> hade varningar."
+
+#: plugin_katebuild.cpp:1013
+#, kde-format
+msgid "Build failed."
+msgstr "Byggning misslyckades."
+
+#: plugin_katebuild.cpp:1015
+#, kde-format
+msgid "Build completed without problems."
+msgstr "Byggning avslutades utan problem."
+
+#: plugin_katebuild.cpp:1163
+#, kde-format
+msgid "Build"
+msgstr "Bygg"
+
+#: plugin_katebuild.cpp:1164
+#, kde-format
+msgid "Clean"
+msgstr "Rensa"
+
+#: plugin_katebuild.cpp:1165
+#, kde-format
+msgid "Config"
+msgstr "Config"
+
+#: plugin_katebuild.cpp:1166
+#, kde-format
+msgid "ConfigClean"
+msgstr "Rensa Config"
+
+#: plugin_katebuild.cpp:1202
+#, kde-format
+msgid "Only Errors"
+msgstr "Bara fel"
+
+#: plugin_katebuild.cpp:1205
+#, kde-format
+msgid "Errors and Warnings"
+msgstr "Fel och varningar"
+
+#: plugin_katebuild.cpp:1208
+#, kde-format
+msgid "Parsed Output"
+msgstr "Tolkad utmatning"
+
+#: plugin_katebuild.cpp:1211
+#, kde-format
+msgid "Full Output"
+msgstr "Fullständig utmatning"
+
+#. i18n: ectx: property (windowTitle), widget (QDialog, SelectTargetUi)
+#: SelectTargetUi.ui:14
+#, kde-format
+msgid "Select build target"
+msgstr "Välj byggmål"
+
+#. i18n: ectx: property (text), widget (QLabel, u_label)
+#: SelectTargetUi.ui:29
+#, kde-format
+msgid "Filter"
+msgstr "Filter"
+
+#: TargetHtmlDelegate.cpp:47
+#, kde-format
+msgctxt "T as in Target set"
+msgid "<B>T:</B> %1"
+msgstr "<B>M:</B> %1"
+
+#: TargetHtmlDelegate.cpp:49
+#, kde-format
+msgctxt "D as in working Directory"
+msgid "<B>Dir:</B> %1"
+msgstr "<B>Kat:</B> %1"
+
+#: TargetHtmlDelegate.cpp:101
+#, kde-format
+msgid ""
+"Leave empty to use the directory of the current document.\n"
+"Add search directories by adding paths separated by ';'"
+msgstr ""
+"Lämna tom för att använda katalogen för det aktuella dokumentet.\n"
+"Lägg till sökkataloger genom att lägga till sökvägar åtskilda av ';'"
+
+#: TargetHtmlDelegate.cpp:105
+#, kde-format
+msgid ""
+"Use:\n"
+"\"%f\" for current file\n"
+"\"%d\" for directory of current file\n"
+"\"%n\" for current file name without suffix"
+msgstr ""
+"Använd:\n"
+"\"%f\" för den aktuella filen\n"
+"\"%d\" för den aktuella filens katalog\n"
+"\"%n\" för aktuellt filnamn utan suffix."
+
+#: TargetModel.cpp:297
+#, kde-format
+msgid "Check the check-box to make the command the default for the target-set."
+msgstr ""
+"Markera kryssrutan för att välja förvalt kommando för måluppsättningen."
+
+#: TargetModel.cpp:355
+#, kde-format
+msgid "Command/Target-set Name"
+msgstr "Kommando/Måluppsättningens namn"
+
+#: TargetModel.cpp:358
+#, kde-format
+msgid "Working Directory / Command"
+msgstr "Arbetskatalog/Kommando"
+
+#: targets.cpp:18
+#, kde-format
+msgid "Active target-set:"
+msgstr "Aktiv måluppsättning:"
+
+#: targets.cpp:20
+#, kde-format
+msgid "Select active target set"
+msgstr "Välj aktiv måluppsättning"
+
+#: targets.cpp:25
+#, kde-format
+msgid "Create new set of targets"
+msgstr "Skapa ny måluppsättning"
+
+#: targets.cpp:29
+#, kde-format
+msgid "Copy command or target set"
+msgstr "Kopiera kommando eller måluppsättning"
+
+#: targets.cpp:33
+#, kde-format
+msgid "Delete current target or current set of targets"
+msgstr "Ta bort nuvarande mål eller måluppsättning"
+
+#: targets.cpp:38
+#, kde-format
+msgid "Add new target"
+msgstr "Lägg till nytt mål"
+
+#: targets.cpp:42
+#, kde-format
+msgid "Build selected target"
+msgstr "Bygg markerat mål"
+
+#. i18n: ectx: Menu (Build Menubar)
+#: ui.rc:6
+#, kde-format
+msgid "&Build"
+msgstr "&Bygg"
+
+#: UrlInserter.cpp:32
+#, kde-format
+msgid "Insert path"
+msgstr "Infoga sökväg"
+
+#: UrlInserter.cpp:51
+#, kde-format
+msgid "Select directory to insert"
+msgstr "Välj katalog att infoga"
+
+#~ msgctxt "@info"
+#~ msgid "<title>Could not open file:</title><nl/>%1"
+#~ msgstr "<title>Kunde inte öppna filen:</title><nl/>%1"
+
+#~ msgid "Next Set of Targets"
+#~ msgstr "Nästa måluppsättningar"
+
+#~ msgid "No previous target to build."
+#~ msgstr "Inget föregående mål att bygga."
+
+#~ msgid "No target set as default target."
+#~ msgstr "Inget mål inställt som standardmål."
+
+#~ msgid "No target set as clean target."
+#~ msgstr "Inget mål inställt som rent mål."
+
+#~ msgid "Target \"%1\" not found for building."
+#~ msgstr "Mål \"%1\" kunde inte hittas för att byggas."
+
+#~ msgid "Really delete target %1?"
+#~ msgstr "Verkligen ta bort mål %1?"
+
+#~ msgid "Nothing built yet."
+#~ msgstr "Ingenting byggt ännu."
+
+#~ msgid "Target Set %1"
+#~ msgstr "Måluppsättning %1"
+
+#~ msgid "Target"
+#~ msgstr "Mål"
+
+#~ msgid "Target:"
+#~ msgstr "Mål:"
+
+#~ msgid "from"
+#~ msgstr "från"
+
+#~ msgid "Command:"
+#~ msgstr "Kommando:"
+
+#~ msgid "Sets of Targets"
+#~ msgstr "Måluppstättningar"
+
+#~ msgid "Make Results"
+#~ msgstr "Byggresultat"
+
+#~ msgid "Others"
+#~ msgstr "Övriga"
+
+#~ msgid "Quick Compile"
+#~ msgstr "Snabbkompilering"
+
+#~ msgid "The custom command is empty."
+#~ msgstr "Det egna kommandot är tomt."
+
+#~ msgid "New"
+#~ msgstr "Nytt"
+
+#~ msgid "Copy"
+#~ msgstr "Kopiera"
+
+#~ msgid "Delete"
+#~ msgstr "Ta bort"
+
+#~ msgid "Quick compile"
+#~ msgstr "Snabbkompilering"
+
+#~ msgid "Run make"
+#~ msgstr "Bygg"
+
+#~ msgid "Build command:"
+#~ msgstr "Byggkommando:"
+
+#~ msgid "..."
+#~ msgstr "..."
+
+#~ msgid "Break"
+#~ msgstr "Avbryt"
+
+#~ msgid "There is no file to compile."
+#~ msgstr "Det finns ingen fil att kompilera."

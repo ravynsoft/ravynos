@@ -1,0 +1,4752 @@
+<chapter id="plugins">
+
+<chapterinfo>
+<authorgroup>
+<author
+>&Anders.Lund; &Anders.Lund.mail;</author>
+<othercredit role="translator"
+><firstname
+>José</firstname
+><surname
+>Pires</surname
+><affiliation
+><address
+><email
+>zepires@gmail.com</email
+></address
+></affiliation
+><contrib
+>Tradução</contrib
+></othercredit
+> 
+</authorgroup>
+</chapterinfo>
+
+<title
+>Lidar com 'Plugins'</title>
+
+<para
+>O &kate; oferece diversos tipos de 'plugins'. Existem dois desses tipos de 'plugins': alguns são escritos em C++ nativo, enquanto outros são programados em Python. Existem diferenças subtis entre eles, descritas mais abaixo.</para>
+
+<para
+>Poderá activar ambos os tipos de 'plugins' na <link linkend="configuring-kate-configdialog"
+>janela de configuração</link
+>, a qual também oferece acesso às opções de configuração adicionais dos 'plugins' que necessitem deles.</para>
+
+<sect1 id="kate-application-plugins">
+<title
+>'Plugins' da Aplicação &kate;</title>
+
+<!-- from doc/kate-addons/index.docbook -->
+<para
+>Os 'plugins' do &kate; são funções adicionais para o editor &kate;. Eles poderão adicionar menus e atalhos extra, assim como extender as funcionalidades do &kate;. Poderá instalar ou desinstalar os que quiser, dentro do &kate;. Abra a janela de configuração do &kate; com a opção <menuchoice
+><guimenu
+>Configuração</guimenu
+><guimenuitem
+>Configurar o &kate;...</guimenuitem
+></menuchoice
+>. Seleccione o <menuchoice
+><guimenu
+>Aplicação</guimenu
+><guimenuitem
+>'Plugins'</guimenuitem
+></menuchoice
+> para escolher os 'plugins' desejados. </para>
+
+<para
+>Os 'plugins' de aplicações disponíveis são: </para>
+<itemizedlist>
+<listitem>
+<para
+><link linkend="kate-application-plugin-backtracebrowser"
+>Navegador de registos de chamadas</link
+> - Ferramenta de navegação em chamadas a funções</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-build"
+>'Plugin' de Compilação</link
+> - Compila o projecto e processa as mensagens de erro</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-closeexceptlike"
+>Fechar Excluindo/Incluindo</link
+> - Fecha um grupo de documentos com base numa extensão ou localização comuns</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-ctags"
+>CTags</link
+> - Procurar definições/declarações com o CTags</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-documentswitcher"
+>Selector de documentos</link
+> - Mudança rápida de documentos com o comportamento do <keycombo action="simul"
+>&Alt;&Tab;</keycombo
+></para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-fsbrowser"
+>Navegador do sistema de ficheiros</link
+> - Ferramenta de navegação no sistema de ficheiros</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-documents"
+>Documentos</link
+> - Mostra os ficheiros abertos numa árvore de ficheiros</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-gdb"
+>&gdb;</link
+> - Oferece uma interface simples para o &gdb;</para>
+</listitem>
+<!--from workspace/plasma-sdk, why picked up here?
+<listitem>
+<para
+>Icon picker - Invokes Cuttlefish icon picker</para>
+</listitem>
+-->
+<listitem>
+<para
+><link linkend="kate-application-plugin-lumen"
+>Lumen</link
+> - o Lumen é um 'plugin' de completação automática para o D, usando o servidor DCD</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-openheader"
+>Abrir o Ficheiro de Inclusão</link
+> - Abre o ficheiro .h/[.cpp|.c] correspondente</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-projects"
+>'Plugin' de Projectos</link
+> - 'Plugin' de gestão de projectos para o Kate</para>
+</listitem>
+<listitem>
+<para
+>Replicode</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-rust"
+>Completação de código Rust</link
+> - Ajuda na finalização de código-fonte em Rust</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-searchinfiles"
+>Pesquisa &amp; Substituição</link
+> - Pesquisa ou substitui padrões nos documentos abertos ou nos ficheiros em disco</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-snippets"
+>Área de excertos</link
+> - uma janela que incorpora a gestão de excertos de texto</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-sql"
+>'Plugin' de SQL</link
+> - Executa pesquisas sobre bases de dados em SQL</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-symbolviewer"
+>Visualizador de Símbolos</link
+> - Extrair e apresentar símbolos de referência em código-fonte</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-konsole"
+>Área de terminal</link
+> - uma janela que incorpora um emulador de terminal</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-textfilter"
+>Filtro de Texto</link
+> - Filtragem de texto simples</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-xmltools"
+>Completação de &XML;</link
+>- Apresenta os elementos de &XML;, os seus atributos, valores e entidades permitidas pela DTD</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-xmlcheck"
+>Validação de &XML;</link
+> - Valida os ficheiros em &XML; com o 'xmllint'</para>
+</listitem>
+</itemizedlist>
+</sect1>
+
+<sect1 id="kate-application-plugin-backtracebrowser">
+<!--https://kate-editor.org/2008/08/12/kate-fast-backtrace-navigation/-->
+<title
+>'Plugin' de Navegação em Registos de Chamadas</title>
+
+<sect2 id="backtracebrowser-using">
+<title
+>Usar o 'Plugin' de Navegação de Registos de Chamadas</title>
+
+<para
+>Este 'plugin' destina-se aos programadores e poderá ser de pouca utilidade para utilizadores comuns. Ele mostra um registo de chamadas gerado pelo 'gdb' numa lista especial no &kate;. Se carregar sobre um item, irá abrir o ficheiro seleccionado, saltando para o número de linha correcto. Funciona para os registos de chamadas gerados na sua própria máquina, mas também irá funcionar para os registos de chamadas de outras pessoas, &ie; com o <filename
+>/home/teste/qt-copy/…/qwidget.cpp</filename
+>, o mesmo também poderá existir noutras máquinas. Para isso funcionar, tem de indexar as pastas em que se localiza o código-fonte. </para>
+
+<para
+>Em algumas vezes existem diversos ficheiros com o mesmo nome, &eg;</para>
+
+<simplelist>
+<member
+><filename
+>kdegraphics/okular/generators/dvi/config.h</filename
+></member>
+<member
+><filename
+>kdepim-runtime/resources/gmail/saslplugin/config.h</filename
+></member>
+</simplelist>
+
+<para
+>Para escolher a opção correcta, o 'plugin' recolhe as duas últimas partes do URL, sendo que neste caso seria</para>
+
+<simplelist>
+<member
+><filename
+>dvi/config.h</filename
+></member>
+<member
+><filename
+>saslplugin/config.h</filename
+></member>
+</simplelist>
+
+<para
+>E então normalmente o 'plugin' descobre o correcto.</para>
+
+<para
+>A indexação do 'master' e de algumas ramificações irá obviamente conduzir a um conflito.</para>
+
+</sect2>
+
+<sect2 id="backtracebrowser-config">
+<title
+>Configuração</title>
+
+<para
+>Na página de configuração, adicione as pastas que contêm o código-fonte.</para>
+
+<screenshot id="screenshot-backtrace-settings">
+<screeninfo
+>Gestor de Estoiros</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="backtrace-settings.png" format="PNG"/></imageobject>
+<caption
+>Área de ferramentas de Configuração de Localizações no Registos de Chamadas</caption>
+</mediaobject>
+</screenshot>
+
+<para
+>Se carregar em <guibutton
+>OK</guibutton
+>, irá iniciar a indexação. Quando esta terminar, abra a área de ferramentas do <guilabel
+>Navegador de Registos de Chamadas</guilabel
+>.</para>
+<para
+>Agora poderá carregar um registo de chamadas a partir da área de transferência (&eg;. quando carregou em <guibutton
+>Copiar para a Área de Transferências</guibutton
+> no DrKonqi) ou de um ficheiro.</para>
+
+</sect2>
+
+</sect1>
+
+<sect1 id="kate-application-plugin-build">
+<!--http://kate-editor.org/2011/06/21/kate-plugin-updates-part-1/ -->
+<sect1info>
+<authorgroup>
+<author
+><firstname
+>Salma</firstname
+> <surname
+>Sultana</surname
+></author>
+<author
+>&TC.Hollingsworth; &TC.Hollingsworth.mail;</author>
+</authorgroup>
+</sect1info>
+<title
+>'Plugin' de Compilação</title>
+
+<sect2 id="build-intro">
+<title
+>Introdução</title>
+
+<para
+>O 'plugin' de Compilação permite-lhe executar passos como a compilação ou limpeza de um projecto.</para>
+
+</sect2>
+
+<sect2 id="build-using">
+<title
+>Usar o 'Plugin' de Compilação</title>
+
+<para
+>O plugin' de compilação adiciona uma área de ferramentas <guilabel
+>Resultado da Compilação</guilabel
+> no fundo e um submenu <guimenu
+>Compilar</guimenu
+> no menu principal. A área de ferramentas poderá ser usada para configurar as opções do alvo de compilação, enquanto o menu pode ser usado para executar as acções de compilação e limpeza.</para>
+
+<screenshot id="screenshot-build-output">
+<screeninfo
+>Resultado da Compilação</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="build-output.png" format="PNG"/></imageobject>
+</mediaobject>
+</screenshot>
+
+<para
+>A área do <guilabel
+>Resultado da Compilação</guilabel
+> tem duas páginas:</para>
+
+<itemizedlist>
+<listitem
+><para
+><guilabel
+>Configuração do Alvo</guilabel
+></para
+></listitem>
+<listitem
+><para
+><guilabel
+>Resultado</guilabel
+></para
+></listitem>
+</itemizedlist>
+
+<sect3 id="build-using-target-settings">
+<title
+>Página de Configuração do Alvo</title>
+
+<para
+>A página de configuração do alvo pode ser usada para configurar diversos alvos de compilação e definir conjuntos para os mesmos.</para>
+
+<para
+>Para mudar os nomes ou os comandos, faça duplo-click sobre os elementos na tabela e use a lista para seleccionar o conjunto de alvos activo. Use a opção de marcação à frente de cada alvo para criar uma predefinição.</para>
+
+<para
+>Um novo conjunto de alvos contém diversas opções de configuração:</para>
+
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Pasta de Trabalho</guilabel
+></term>
+<listitem
+><para
+>Poderá definir a localização do projecto aqui. Deixe-a em branco para usar a pasta onde se encontra o documento actual.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Compilar</guilabel
+></term>
+<listitem
+><para
+>Esta opção permite-lhe definir o comando de compilação. Está configurada como <command
+>make</command
+> por omissão.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Limpar</guilabel
+></term>
+<listitem
+><para
+>Esta opção permite-lhe definir o comando de limpeza. Está configurada como <command
+>make clean</command
+> por omissão.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Configuração</guilabel
+></term>
+<listitem
+><para
+>Esta opção permite-lhe definir o comando de limpeza. Está configurada como <command
+>cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=/usr/local ../</command
+> por omissão.</para
+></listitem>
+</varlistentry>
+</variablelist>
+
+<para
+>No topo, este 'plugin' tem uma barra de ferramentas com os seguintes botões :</para>
+
+<simplelist>
+<member
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="dialog-ok-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+></guiicon
+> Compilar o alvo seleccionado</member>
+<member
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="list-add-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+></guiicon
+> Adicionar um novo alvo de compilação</member>
+<member
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="document-new-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+></guiicon
+> Criar um novo conjunto de alvos de compilação</member>
+<member
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="edit-copy-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+></guiicon
+> Copiar um comando ou conjunto de alvos</member>
+<member
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="edit-delete-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+></guiicon
+> Apagar o comando actual ou o conjunto de alvos</member>
+</simplelist>
+
+</sect3>
+
+<sect3 id="build-using-output">
+<title
+>Página do Resultado</title>
+
+<para
+>A página do <guilabel
+>Resultado</guilabel
+> mostra o resultado na consola gerado pelo último comando.</para>
+
+<para
+>Use a barra no topo para mostrar ou esconder as categorias do resultado:</para>
+
+<para
+><guilabel
+>Resultado Completo</guilabel
+>, <guilabel
+>Resultado Processado</guilabel
+>, <guilabel
+>Erros e Avisos</guilabel
+> ou <guilabel
+>Apenas os Erros</guilabel
+> </para>
+
+<para
+>Cada linha contém uma mensagem, o nome e o número da linha do ficheiro, se estiver disponível. Se carregar no erro ou aviso irá para o ficheiro apropriado e coloca o cursor no número de linha correspondente.</para>
+
+<!--FIXME: These shortcuts now seem to be used by the Project plugin as well.
+            https://bugs.kde.org/show_bug.cgi?id=328170 -->
+<para
+>Para ir para o erro anterior, carregue em <keycombo action="simul"
+>&Ctrl;&Alt;<keysym
+>Esquerda</keysym
+></keycombo
+>. No caso do erro seguinte, carregue em <keycombo action="simul"
+>&Ctrl;&Alt;<keysym
+>Direita</keysym
+></keycombo
+>.</para>
+
+</sect3>
+</sect2>
+
+<sect2 id="build-menu">
+<title
+>Estrutura do Menu</title>
+
+<variablelist id="build-build">
+<varlistentry>
+<term
+><menuchoice id="build-targets"
+><guimenu
+>Compilar</guimenu
+><guisubmenu
+>Seleccionar o Alvo</guisubmenu
+> </menuchoice
+></term>
+<listitem
+><para
+>Seleccione um item da lista de alvos configurados pelo utilizador.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="build-default">
+<term
+><menuchoice
+><guimenu
+>Compilar</guimenu
+><guimenuitem
+>Compilar o Alvo Por Omissão</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Compila o alvo definido por omissão no conjunto de alvos activo.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="build-previous">
+<term
+><menuchoice
+><guimenu
+>Compilar</guimenu
+><guimenuitem
+>Compilar o Alvo Anterior</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Muda para o alvo anterior que estiver configurado pelo utilizador.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="build-stop">
+<term
+><menuchoice
+><guimenu
+>Compilar</guimenu
+><guimenuitem
+>Parar</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Interrompe a compilação de um alvo.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="build-previous-error">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+>&Ctrl;&Alt;<keysym
+>Esquerda</keysym
+></keycombo
+></shortcut
+> <guimenu
+>Compilar</guimenu
+><guimenuitem
+>Erro Anterior</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Move o cursor para o local do erro anterior no documento.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="build-next-error">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+>&Ctrl;&Alt;<keysym
+>Direita</keysym
+></keycombo
+></shortcut
+> <guimenu
+>Compilar</guimenu
+><guimenuitem
+>Erro Seguinte</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Move o cursor para a posição do erro seguinte no documento.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+</sect2>
+
+<sect2 id="build-ack">
+<title
+>Agradecimentos e Reconhecimentos</title>
+<para
+>O 'Plugin' de Compilação do &kate; foi criado por Kåre Särs.</para>
+<para
+>Muito obrigado ao participante no Google Code-In de 2011, Salma Sultana, por escrever a maior parte desta secção.</para>
+</sect2>
+</sect1>
+
+<sect1 id="kate-application-plugin-closeexceptlike">
+
+<title
+>'Plugin' de Fecho com Exclusão/Inclusão</title>
+
+<sect2 id="closeexceptlike-intro">
+<title
+>Introdução</title>
+
+<para
+>Este 'plugin' permite-lhe fechar um grupo de documentos com base numa extensão ou localização comuns.</para>
+
+</sect2>
+
+<sect2 id="closeexceptlike-using">
+<title
+>Usar o 'Plugin' de Fecho de Inclusão/Exclusão</title>
+
+<para
+>Assumindo que tem estes documentos abertos no &kate;:</para>
+
+<simplelist>
+<member
+>/tmp/subpastas/teste.h</member>
+<member
+>/tmp/teste.cpp</member>
+<member
+>/tmp/teste.txt</member>
+</simplelist>
+
+<para
+>Então terá as seguintes opções para fechar os documentos, como representado na imagem:</para>
+
+<screenshot id="screenshot-closeexceptlike">
+<screeninfo
+>Fechar Excluindo</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="close-except-like.png" format="PNG"/></imageobject>
+</mediaobject>
+</screenshot>
+
+<para
+>Use a opção de marcação no último item da lista para activar ou desactivar uma janela de confirmação. A opção seleccionada será aplicada a ambas as acções de fecho. </para>
+
+</sect2>
+
+<sect2 id="closeexceptlike-menu">
+<title
+>Estrutura do Menu</title>
+
+<variablelist>
+<varlistentry id="file-close-except">
+<term
+><menuchoice
+><guimenu
+>Ficheiro</guimenu
+><guisubmenu
+>Fechar Excluindo</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+><action
+>Fecha</action
+> todos os documentos abertos, <emphasis
+>excepto</emphasis
+> os que corresponderem à localização ou extensão de ficheiros seleccionada no submenu.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="file-close-like">
+<term
+><menuchoice
+><guimenu
+>Ficheiro</guimenu
+><guisubmenu
+>Fechar do Tipo</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+><action
+>Fecha</action
+> todos os documentos abertos que corresponderem à localização ou extensão de ficheiros seleccionada no submenu.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+
+</sect1>
+
+
+<sect1 id="kate-application-plugin-ctags">
+<!--https://kate-editor.org/2012/11/02/using-the-projects-plugin-in-kate/-->
+<title
+>'Plugin' do CTags</title>
+
+<sect2 id="ctags-intro">
+<title
+>Introdução</title>
+
+<para
+>O <ulink url="https://en.wikipedia.org/wiki/Ctags"
+>CTags</ulink
+> gera um ficheiro de índice (ou de marcas) com os objectos da linguagem descobertos nos ficheiros de código, o que permite que estes itens sejam localizados de forma rápida e simples, usando este 'plugin' no &kate;. </para>
+<para
+>Uma marca corresponde a um objecto da linguagem para o qual está disponível um elemento do índice (ou, em alternativa, o elemento do índice criado para esse objecto).</para>
+
+<para
+>A geração de marcas é suportada para estas <ulink url="http://ctags.sourceforge.net/languages.html"
+>linguagens de programação</ulink
+>. </para>
+</sect2>
+
+<sect2 id="ctags-config">
+<title
+>Configuração</title>
+
+<para
+>O 'plugin' do CTags usa dois ficheiros de bases de dados diferentes para o índice.</para>
+
+<para
+>Na página de configuração do CTags, na configuração do &kate;, poderá adicionar ou remover pastas que contêm o código-fonte e voltar a gerar a base de dados comuns do CTags.</para>
+
+<sect3 id="ctags-config-common">
+<title
+>Índice Comum</title>
+
+<screenshot id="screenshot-ctags-global-settings">
+<screeninfo
+>Configuração do CTags</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="ctags-global-setting.png" format="PNG"/></imageobject>
+<caption
+>Configurar a Base de Dados Global do CTags</caption>
+</mediaobject>
+</screenshot>
+
+<para
+>No fundo da página de configuração, poderá adaptar o <guilabel
+>comando CTags</guilabel
+>. </para>
+
+<para
+>Para mais informações sobre todas as opções disponíveis, leia por favor a página de manual do CTags. Esta página de manual está disponível no &khelpcenter;. podendo também introduzir directamente o &URL; <emphasis
+>man/:ctags</emphasis
+> no &konqueror; </para>
+
+<para
+>Se carregar em <guibutton
+>Actualizar</guibutton
+>, irá iniciar a indexação. Quando esta terminar, feche a janela.</para>
+</sect3>
+
+<sect3 id="ctags-config-session">
+<title
+>Índice da Sessão</title>
+
+<para
+>Para configurar o índice da sessão, abra a área do <guilabel
+>CTags</guilabel
+>.</para>
+
+<variablelist>
+<varlistentry>
+<term
+><menuchoice>
+<guimenu
+>Destinos do Índice</guimenu>
+</menuchoice
+></term>
+<listitem>
+<para
+>Nesta página, poderá adicionar ou remover pastas que contêm o código-fonte, gerando de novo manualmente a base de dados do CTags específica da sessão.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><menuchoice>
+<guimenu
+>Base de Dados</guimenu>
+</menuchoice
+></term>
+<listitem>
+<screenshot id="screenshot-ctags-session-settings">
+<screeninfo
+>Configuração da Base de Dados</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="ctags-session-setting.png" format="PNG"/></imageobject>
+<caption
+>Configurar a Base de Dados de Sessões do CTags</caption>
+</mediaobject>
+</screenshot>
+<para
+>Seleccione um outro ficheiro de base de dados do CTags, configure o comando CTags ou reponha o comando por omissão.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect3>
+
+</sect2>
+
+<sect2 id="ctags-using">
+<title
+>Usar o 'Plugin' do CTags</title>
+
+<para
+>Poderá colocar o cursor do rato no objecto da linguagem, por exemplo a função, símbolo, &etc; em que está interessado, seleccionando depois uma das acções no menu <guimenu
+>CTags</guimenu
+> para saltar para a linha e ficheiro onde se encontra definido ou declarado o objecto.</para>
+<para
+>Por omissão, as acções do menu <guimenu
+>CTags</guimenu
+> não têm combinações de teclas associadas. Use o <ulink url="help:/fundamentals/shortcuts.html"
+>editor de atalhos do teclado</ulink
+> para configurar os seus próprios atalhos.</para>
+
+<para
+>Em alternativa, use o campo de pesquisa da página <guilabel
+>Pesquisa</guilabel
+> na área do CTags.</para>
+<para
+>A introdução de caracteres no campo de pesquisa irá iniciar a mesma e apresentará os nomes dos objectos da linguagem, como as funções, classes, símbolos &etc;, em conjunto com o tipo e nome do ficheiro.</para>
+<para
+>Seleccione um item na lista para ir para a linha correspondente no ficheiro de código.</para>
+<!--FIXME why Tag Type here but Name Kind in Project plugin, is there really any difference?-->
+
+<!--FIXME completion as in Project plugin? -->
+
+</sect2>
+
+<sect2 id="ctags-menu">
+<title
+>Estrutura do Menu</title>
+
+<variablelist>
+
+<varlistentry id="ctags-jumpback">
+<term
+><menuchoice
+><guimenu
+>CTags</guimenu
+><guisubmenu
+>Recuar um passo</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Recua um passo no histórico para a última marca visitada.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="ctags-lookup">
+<term
+><menuchoice
+><guimenu
+>CTags</guimenu
+><guisubmenu
+>Procurar o Texto Actual</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Abre a página <guilabel
+>Pesquisa</guilabel
+> da área do CTags e mostra todos os objectos da linguagem que correspondem à selecção de texto actual na lista.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="ctags-gotodeclaration">
+<term
+><menuchoice
+><guimenu
+>CTags</guimenu
+><guisubmenu
+>Ir para a Declaração</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Se o cursor estiver num objecto de definição, isto irá abrir o documento que contém a declaração correspondente, caso necessário, activar a sua visualização e colocando o cursor no início da declaração.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="ctags-gotodefinition">
+<term
+><menuchoice
+><guimenu
+>CTags</guimenu
+><guisubmenu
+>Ir para a Definição</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Se o cursor estiver num objecto de declaração, isto irá abrir o documento que contém a definição correspondente se necessário, activar a sua visualização e colocar o cursor no início da definição.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+<!--context menu with Lookup Current Text, Goto Declaration, Goto Definition -->
+
+</sect2>
+
+</sect1>
+
+<sect1 id="kate-application-plugin-documentswitcher">
+
+<title
+>'Plugin' de Mudança de Documentos</title>
+
+<sect2 id="documentswitcher-menu">
+<title
+>Estrutura do Menu</title>
+
+<variablelist>
+
+<varlistentry id="view-documentswitcher">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;&Tab;</keycombo
+> </shortcut
+> <guimenu
+>Ver</guimenu
+> <guisubmenu
+>Últimas Vistas Usadas</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+
+<para
+><action
+>Abre</action
+> uma lista com os últimos documentos visualizados:</para>
+
+<screenshot id="screenshot-documentswitcher">
+<screeninfo
+>Últimos documentos visualizados</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="documentswitcher.png" format="PNG"/></imageobject>
+</mediaobject>
+</screenshot>
+
+<para
+>Mantenha a combinação de teclas <keycombo action="simul"
+>&Ctrl;&Tab;</keycombo
+> carregada, podendo usar as teclas <keysym
+>Cima</keysym
+>, <keysym
+>Baixo</keysym
+>, <keycap
+>Home</keycap
+> ou <keycap
+>End</keycap
+> para navegar na lista. Se carregar num carácter, irá consecutivamente circular por todos os itens que correspondam ao mesmo na lista. Se libertar as teclas de atalho, a vista irá mudar para o documento seleccionado na lista. </para>
+</listitem>
+</varlistentry>
+</variablelist>
+
+</sect2>
+
+</sect1>
+
+
+<sect1 id="kate-application-plugin-fsbrowser">
+
+<title
+>Navegador no Sistema de Ficheiros</title>
+
+<para
+>O Navegador do Sistema de Ficheiros é um visualizador de pastas que lhe permite abrir os ficheiros de uma pasta visível na área actual.</para>
+
+<sect2 id="fsbrowser-menu">
+<title
+>Estrutura do Menu</title>
+<variablelist>
+
+<varlistentry id="view-toolviews-show-filebrowser">
+<term
+><menuchoice
+><guimenu
+>Ver</guimenu
+><guisubmenu
+>Áreas de Ferramentas</guisubmenu
+> <guimenuitem
+>Mostrar o Navegador do Sistema de Ficheiros</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Activa/desactiva a visualização do Navegador do Sistema de Ficheiros do &kate;.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+</sect2>
+
+<sect2 id="fsbrowser-interface">
+<title
+>Interface</title>
+
+<para
+>De cima para baixo, o Navegador do Sistema de Ficheiros consiste nos seguintes elementos:</para>
+
+<variablelist>
+<varlistentry>
+<term
+>Uma Barra de Ferramentas</term>
+<listitem>
+<para
+>Esta contém os botões de navegação comuns:</para>
+<variablelist>
+<varlistentry>
+<term
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="go-previous-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> Recuar</guiicon
+></term>
+<listitem
+><para
+>Faz com que a área de pastas faça um <command
+>cd</command
+> para a pasta anteriormente apresentada no histórico. Este botão está desactivado caso não exista nenhum item anterior.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="go-next-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> Avançar</guiicon
+></term>
+<listitem
+><para
+>Faz com que a área de pastas faça um <command
+>cd</command
+> para a pasta seguinte apresentada no histórico. Este botão está desactivado caso não exista nenhum item posterior.</para
+></listitem>
+</varlistentry>
+<!--varlistentry>
+<term
+><guibutton
+>Parent Folder</guibutton
+></term>
+<listitem
+><para
+>This will cause the folder view to <command
+>cd</command
+> to the immediate parent of the currently displayed
+folder if possible.</para
+></listitem>
+</varlistentry-->
+<varlistentry>
+<term
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="bookmarks-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> Favoritos</guiicon
+></term>
+<listitem
+><para
+>Abre um submenu para editar ou adicionar favoritos, bem como para adicionar uma nova pasta de favoritos.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="system-switch-user-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> Pasta Actual do Documento</guiicon
+></term>
+<listitem
+><para
+>Este botão fará com que a área de pastas faça um <command
+>cd</command
+> para a pasta do documento activo de momento, se possível. Este botão está desactivado se o documento activo for um ficheiro novo e não-gravado ou se a pasta onde reside não puder ser acedida.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="games-config-options-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> Opções</guiicon
+></term>
+<listitem>
+<variablelist>
+<varlistentry>
+<term
+><guimenuitem
+>Vista Abreviada</guimenuitem
+></term>
+<listitem
+><para
+>Mostra apenas os nomes dos ficheiros.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guimenuitem
+>Vista Detalhada</guimenuitem
+></term>
+<listitem
+><para
+>Mostra o <guilabel
+>Nome</guilabel
+>, a <guilabel
+>Data</guilabel
+> e o <guilabel
+>Tamanho</guilabel
+> dos ficheiros.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guimenuitem
+>Vista em Árvore</guimenuitem
+></term>
+<listitem
+><para
+>Como a Vista Curta, só que poderá expandir as pastas para ver o seu conteúdo.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guimenuitem
+>Árvore Detalhada</guimenuitem
+></term>
+<listitem
+><para
+>Isto também permite expandir as pastas, mas mostra as colunas adicionais que estão disponíveis na Vista Detalhada.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guimenuitem
+>Mostrar os Ficheiros Escondidos</guimenuitem
+></term>
+<listitem
+><para
+>Mostra os ficheiros normalmente escondidos pelo seu &OS;.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guimenuitem
+>Sincronizar automaticamente com o documento actual</guimenuitem
+></term>
+<listitem
+><para
+>Quando esta opção estiver activa, o navegador do sistema de ficheiros fará um <command
+>cd</command
+> automático para a pasta do documento aberto de momento na área de edição, sempre que esta alterar.</para
+></listitem>
+</varlistentry>
+</variablelist>
+</listitem>
+</varlistentry>
+</variablelist>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Um Item de Localização</term>
+<listitem>
+<para
+>Isto mostra a navegação pelas pastas constituintes da localização completa da pasta aberta de momento, como no &dolphin;. Poderá carregar em qualquer pasta para navegar para dentro dela ou carregar numa das setas para seleccionar qualquer pasta abaixo dela. Seleccione a primeira seta para escolher dentro da sua lista de Locais, a qual lhe mostrará um ícone que representa o seu local actual.</para>
+
+<para
+>Poderá também carregar à direita da área de navegação para que esta mude para um campo de texto, no qual poderá escrever a localização da pasta a navegar. O item do &URL; mantém uma lista com as localizações escritas anteriormente. Para escolher uma, use o botão da seta à direita do campo.</para>
+<tip
+><para
+>O item do &URL; tem activada a completação automática das pastas. O método de completação pode ser definido com o menu do &RMB; do campo de texto.</para
+></tip>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Uma Área de Pastas</term>
+<listitem
+><para
+>Esta é uma área de pastas normal do &kde;.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Um Item de Filtragem</term>
+<listitem>
+<para
+>O campo do Filtro permite-lhe indicar um filtro para os ficheiros apresentados na área de pastas. O filtro usa padrões globais normais, separados por espaços em branco. Exemplo: <userinput
+>*.cpp *.h *.moc</userinput
+></para>
+<para
+>Para mostrar todos os ficheiros, indique um simples asterisco <userinput
+>*</userinput
+>.</para>
+<para
+>O campo do filtro grava os últimos 10 filtros introduzidos entre sessões. Para usar um, carregue no botão de setas à direita do campo e seleccione o filtro desejado. Poderá desactivar o filtro se carregar no botão <guibutton
+>Limpar o texto</guibutton
+> à esquerda do botão de auto-completação.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+</sect2>
+
+
+<sect2 id="fsbrowser-config">
+<title
+>Configuração</title>
+
+<para
+>Este 'plugin' pode ser configurado na página do <guilabel
+>Navegador do Sistema de Ficheiros</guilabel
+> da <link linkend="configuring-kate-configdialog"
+>configuração do &kate;</link
+>.</para>
+
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Barra de Ferramentas</guilabel
+></term>
+<listitem
+><para
+>Configure os botões da barra do navegador, movendo os que deseja activar para a lista de <guilabel
+>Acções Seleccionadas</guilabel
+>, ordenando-os com os botões das setas ao lado da lista.</para>
+ </listitem>
+</varlistentry>
+
+</variablelist>
+</sect2>
+</sect1>
+
+<sect1 id="kate-application-plugin-documents">
+<title
+>A Lista de Documentos</title>
+<!-- https://kate-editor.org/2010/09/12/kate-tree-view-plugin-update/-->
+<sect2 id="documents-intro">
+<title
+>Introdução</title>
+
+<para
+><indexterm
+><primary
+>Lista de documentos</primary
+></indexterm
+> A lista de documentos apresenta uma lista com todos os documentos abertos de momento no &kate;. Os ficheiros modificados irá ter um pequeno ícone de <guiicon
+>disquete</guiicon
+> à sua esquerda para indicar esse estado.</para>
+
+<para
+>No topo da lista de Documentos, existe uma barra de ferramentas com os seguintes botões:</para>
+
+<simplelist>
+<member
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="document-new-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+></guiicon
+> Criar um novo documento</member>
+<member
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="document-open-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+></guiicon
+> Abrir um documento existente</member>
+<member
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="go-up-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+></guiicon
+> Documento Anterior</member>
+<member
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="go-down-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+></guiicon
+> Documento Seguinte</member>
+<member
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="document-save-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+></guiicon
+> Gravar o documento actual</member>
+<member
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="document-save-as-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+></guiicon
+> Gravar o documento actual com um novo nome</member>
+</simplelist>
+
+<para
+>Por omissão, a lista de Documentos aparece no <guimenuitem
+>Modo em Árvore</guimenuitem
+>, que apresenta a estrutura de pastas que rodeia todos os documentos abertos de momento. Também está disponível o <guimenuitem
+>Modo em Lista</guimenuitem
+>, que apresenta uma lista simples com todos os documentos abertos. Poderá mudar de modos se carregar com o botão direito sobre a lista e os seleccionar no menu <guisubmenu
+>Modo de Visualização</guisubmenu
+>.</para>
+
+<para
+>Se dois ou mais ficheiros com o mesmo nome (em pastas diferentes) estiver abertos no <guimenuitem
+>Modo de Lista</guimenuitem
+>, os nomes dos seguintes terão um <quote
+>(2)</quote
+> adicional e assim por diante. A dica para o ficheiro irá mostrar o seu nome completo, incluindo a localização, permitindo-lhe escolher o que pretende realmente.</para
+> <para
+>Para mostrar um documento na página activa de momento, carregue no nome do documento na lista.</para>
+
+<para
+>O menu de contexto tem algumas acções comuns do menu <guimenu
+>Ficheiro</guimenu
+>.</para>
+
+<para
+>Para além disso, existem acções de gestão de ficheiros para mudar o nome ou remover o ficheiro. Com a opção <guimenuitem
+>Copiar o Nome do Ficheiro</guimenuitem
+>, poderá copiar a localização completa do documento para a área de transferência.</para>
+
+<para
+>Poderá ordenar a lista de diferentes formas, carregando para tal com o botão direito na lista e seleccionando a opção <guisubmenu
+>Ordenar Por</guisubmenu
+> do menu. As opções são: <variablelist>
+
+<varlistentry>
+<term
+><guimenuitem
+>Nome do Documento</guimenuitem
+></term>
+<listitem
+><para
+>Apresenta os documentos por ordem alfabética do seu nome.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guimenuitem
+>Localização do Documento</guimenuitem
+></term>
+<listitem
+><para
+>Apresenta os documentos por ordem alfabética da sua localização.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guimenuitem
+>Ordem de Abertura</guimenuitem
+></term>
+<listitem
+><para
+>Apresenta os documentos pela ordem da sua abertura.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</para>
+
+<para
+>A lista de documentos irá por omissão visualizar o seu histórico, sombreando os itens mais recentes com uma determinada cor de fundo. Se o documento foi editado, será misturada uma cor extra. O documento mais recente tem a cor mais forte, pelo que poderá encontrar facilmente os documentos em que está a trabalhar. Esta funcionalidade poderá ser desactivada na página de <link linkend="config-dialog-documents"
+>Documentos</link
+> da janela de configuração.</para>
+<para
+>A localização predefinida da lista de documentos na janela do &kate; é à esquerda da área de edição.</para>
+
+</sect2>
+
+<sect2 id="documents-menus">
+<title
+>Estrutura do Menu</title>
+
+<variablelist>
+
+<varlistentry id="view-document-previous">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+>&Ctrl;&Alt;<keysym
+>Cima</keysym
+></keycombo
+></shortcut
+> <guimenu
+>Ver</guimenu
+><guimenuitem
+>Documento Anterior</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Abre o documento apresentado acima do documento aberto de momento na lista de Documentos.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-document-next">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+>&Ctrl;&Alt;<keysym
+>Baixo</keysym
+></keycombo
+></shortcut
+> <guimenu
+>Ver</guimenu
+><guimenuitem
+>Documento Seguinte</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Abre o documento apresentado abaixo do documento aberto de momento na lista de Documentos.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-active">
+<term
+><menuchoice
+><guimenu
+>Ver</guimenu
+><guimenuitem
+>Mostrar o Activo</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Mostra o documento aberto de momento na lista de Documentos.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+
+<sect2 id="config-dialog-documents">
+<title
+>Configuração</title>
+
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Sombra do Fundo</guilabel
+></term>
+<listitem
+><para
+>Esta secção permite-lhe activar ou desactivar a visualização sombreada do fundo face à sua actividade recente, escolhendo quais as cores a usar se estiver activa.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Ordenar Por</guilabel
+></term>
+<listitem
+><para
+>Defina como deseja ordenar a lista de documentos. Isto também poderá ser feito a partir do menu do &RMB; na lista documentos.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Modo de Visualização</guilabel
+></term>
+<listitem
+><para
+>Isto oferece duas opções que afectam a visualização da área de Documentos. A opção da <guilabel
+>Vista em Árvore</guilabel
+> irá apresentar os documentos numa árvore por baixo da pastas em que se encontram, enquanto a <guilabel
+>Vista em Lista</guilabel
+> irá apresentar uma lista simples de documentos. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Mostrar a Localização Completa</guilabel
+></term>
+<listitem
+><para
+>Quando a vista em Árvore e esta opção estiverem activadas, os itens da pasta apresentados na área de Documentos irão apresentar a localização completa da pasta, para além do nome da pasta. Não fará qualquer efeito na vista em Árvore.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+
+</sect1>
+
+<sect1 id="kate-application-plugin-gdb">
+<!--http://kate-editor.org/2011/06/23/kate-plugin-updates-part-2/-->
+<sect1info>
+<authorgroup>
+<author
+><firstname
+>Martin</firstname
+> <surname
+>Gergov</surname
+></author>
+<author
+>&TC.Hollingsworth; &TC.Hollingsworth.mail;</author>
+</authorgroup>
+</sect1info>
+<title
+>'Plugin' do &gdb;</title>
+
+<sect2 id="gdb-intro">
+<title
+>Introdução</title>
+
+<para
+>O 'plugin' do &gdb; para o &kate; oferece uma interface simples para o conhecido depurador do Projecto &GNU;.</para>
+
+<important>
+<para
+>Recomenda-se alguma experiência anterior com o &gdb;. Para mais informações sobre a utilização do &gdb;, visite a <ulink url="http://www.gnu.org/s/gdb/"
+>página Web do &gdb;</ulink
+>.</para>
+</important>
+
+<para
+>Poderá activar o 'plugin' do &gdb; na <link linkend="config-dialog-plugins"
+>secção 'Plugins' da configuração do &kate;</link
+>.</para>
+
+<para
+>Para o 'plugin' funcionar correctamente, deverá ter um ficheiro de código (de qualquer tipo suportado pelo &gdb;) e um executável.</para>
+
+<tip>
+<para
+>Se compilar com o &gcc;/<command
+>g++</command
+>, poderá querer usar o argumento da linha de comandos <command
+><parameter
+>-ggdb</parameter
+></command
+>. </para>
+</tip>
+
+<para
+>Depois de efectuar estas preparações, abra o ficheiro de código no &kate;, indique a localização do executável na página de <guilabel
+>Configuração</guilabel
+> da área de <guilabel
+>Depuração</guilabel
+> e seleccione a opção do menu <menuchoice
+><guimenu
+>Depuração</guimenu
+><guimenuitem
+>Iniciar a Depuração</guimenuitem
+></menuchoice
+> para começar.</para>
+
+</sect2>
+
+<sect2 id="gdb-menus">
+<title
+>Estrutura do Menu e da Barra de Ferramentas</title>
+
+<para
+>Todas estas opções estão disponíveis nos menus do &kate;, estando também muitas disponíveis na barra de Depuração.</para>
+
+<variablelist>
+
+<varlistentry id="gdb-menus-show-debug-view">
+<term
+><menuchoice
+><guimenu
+>Ver</guimenu
+><guisubmenu
+>Áreas de Ferramentas</guisubmenu
+> <guimenuitem
+>Mostrar a Área de Depuração</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Mostra uma área de ferramentas que contém o resultado do &gdb;, a linha de comandos usada pelo &gdb; e outras opções.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="gdb-menus-show-locals-and-stack">
+<term
+><menuchoice
+><guimenu
+>Ver</guimenu
+><guisubmenu
+>Áreas de Ferramentas</guisubmenu
+> <guimenuitem
+>Mostrar os Locais e Pilha</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Mostra uma lista com todas as variáveis carregadas de momento e os seus valores, bem como um registo de chamadas do &gdb;. </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="gdb-menus-targets">
+<term
+><menuchoice
+><guimenu
+>Depurar</guimenu
+><guisubmenu
+>Alvos</guisubmenu
+> </menuchoice
+></term>
+<listitem
+><para
+>Um submenu que contém uma lista de alvos (executáveis). </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="gdb-menus-start">
+<term
+><menuchoice
+><guimenu
+>Depurar</guimenu
+><guimenuitem
+>Iniciar a Depuração</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Inicia o &gdb; com um dado alvo.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="gdb-menus-kill">
+<term
+><menuchoice
+><guimenu
+>Depurar</guimenu
+><guimenuitem
+>Matar / Parar a Depuração</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Pára o &gdb;.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="gdb-menus-restart">
+<term
+><menuchoice
+><guimenu
+>Depurar</guimenu
+><guimenuitem
+>Reiniciar a Depuração</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Reinicia o &gdb;.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="gdb-menus-break">
+<term
+><menuchoice
+><guimenu
+>Depurar</guimenu
+><guimenuitem
+>Comutar o Ponto de Paragem</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Define um ponto de paragem na posição actual do cursor. </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="gdb-menus-step-in">
+<term
+><menuchoice
+><guimenu
+>Depurar</guimenu
+><guimenuitem
+>Avançar Para</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Executa a instrução actual (a chamada à função será depurada). </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="gdb-menus-step-over">
+<term
+><menuchoice
+><guimenu
+>Depurar</guimenu
+><guimenuitem
+>Avançar Sobre</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Executa a instrução actual (a chamada à função não será depurada).</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="gdb-menus-step-out">
+<term
+><menuchoice
+><guimenu
+>Depurar</guimenu
+><guimenuitem
+>Sair De</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Prossegue a execução até que o programa em execução termine.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="gdb-menus-move-pc">
+<term
+><menuchoice
+><guimenu
+>Depurar</guimenu
+><guimenuitem
+>Mover o PC</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Move o contador do programa (execução seguinte).</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="gdb-menus-run-to-cursor">
+<term
+><menuchoice
+><guimenu
+>Depurar</guimenu
+><guimenuitem
+>Executar Até ao Cursor</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Executa o programa até que atinja a posição actual do cursor. </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="gdb-menus-continue">
+<term
+><menuchoice
+><guimenu
+>Depurar</guimenu
+><guimenuitem
+>Continuar</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Ignora os pontos de paragem e executa o programa até que termine (com sucesso ou não).</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="gdb-menus-print-value">
+<term
+><menuchoice
+><guimenu
+>Depurar</guimenu
+><guimenuitem
+>Imprimir o Valor</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Imprime o valor da variável para onde aponta o cursor de momento.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="gdb-menus-toolbar">
+<term
+><menuchoice
+><guimenu
+>Configuração</guimenu
+><guisubmenu
+>Barras de Ferramentas Visíveis</guisubmenu
+><guimenuitem
+>'Plugin' do &gdb;</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Mostra a barra de depuração.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+
+<sect2 id="gdb-debug-view">
+<title
+>Área de Depuração</title>
+
+<para
+>A <guilabel
+>Área de Depuração</guilabel
+> consiste em várias páginas: </para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><guilabel
+>Resultado do &gdb;</guilabel
+></term>
+<listitem>
+<para
+>Contém o resultado do &gdb; e uma linha de comandos também do &gdb;.</para>
+
+<screenshot id="screenshot-gdb-output">
+<screeninfo
+>A Página do Resultado</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="gdb-output.png" format="PNG"/></imageobject>
+<textobject
+><phrase
+>A página do Resultado.</phrase
+></textobject>
+<caption
+><para
+>A página do <guilabel
+>Resultado</guilabel
+> mostra o resultado de uma sessão de depuração.</para
+></caption>
+</mediaobject>
+</screenshot>
+
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Configuração</guilabel
+></term>
+<listitem>
+<variablelist>
+
+<varlistentry>
+<term
+><guilabel
+>Executável</guilabel
+></term>
+<listitem
+><para
+>Localização do alvo (executável) para depuração.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Pasta de Trabalho</guilabel
+></term>
+<listitem
+><para
+>A pasta de trabalho conferida ao alvo. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Argumentos</guilabel
+></term>
+<listitem
+><para
+>Os argumentos passados ao programa.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Manter o foco</guilabel
+></term>
+<listitem
+><para
+>Mantém a linha de comandos do &gdb; em primeiro plano.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Direccionar a E/S</guilabel
+></term>
+<listitem
+><para
+>Abre uma nova página de <guilabel
+>E/S</guilabel
+> na <guilabel
+>Janela de Depuração</guilabel
+>, onde poderá ver os resultados e introduzir dados no programa em execução.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+<screenshot id="screenshot-gdb-settings">
+<screeninfo
+>A janela de Configuração</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="gdb-settings.png" format="PNG"/></imageobject>
+<textobject
+><phrase
+>A janela de Configuração</phrase
+></textobject>
+<caption
+><para
+>A página <guilabel
+>Configuração</guilabel
+> mostra as definições de uma sessão de depuração.</para
+></caption>
+</mediaobject>
+</screenshot>
+
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>E/S</guilabel
+></term>
+<listitem>
+<para
+>Contém uma área que mostra os resultados do programa em execução e uma linha de comandos onde pode introduzir dados para ele.</para>
+
+<screenshot id="screenshot-gdb-io">
+<screeninfo
+>A Página de E/S</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="gdb-io.png" format="PNG"/></imageobject>
+<textobject
+><phrase
+>A página de E/S.</phrase
+></textobject>
+<caption
+><para
+>A página do <guilabel
+>E/S</guilabel
+> mostra o resultado de um programa de testes simples.</para
+></caption>
+</mediaobject>
+</screenshot>
+
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+
+<sect2 id="gdb-other">
+<title
+>Pilha de Chamadas e Variáveis Locais</title>
+
+<para
+>A área da <guilabel
+>Pilha de Chamadas</guilabel
+> contém uma lista dos registos de chamadas que são devolvidos pelo &gdb;.</para>
+
+<screenshot id="screenshot-gdb-call-stack">
+<screeninfo
+>A Área de Registos de Chamadas do &gdb;</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="gdb-call-stack.png" format="PNG"/></imageobject>
+<textobject
+><phrase
+>A área de ferramentas para o registo de chamadas.</phrase
+></textobject>
+<caption
+><para
+>A área da <guilabel
+>Pilha de Chamadas</guilabel
+> do 'plugin' do &gdb;. </para
+></caption>
+</mediaobject>
+</screenshot>
+
+<para
+>A área de <guilabel
+>Locais</guilabel
+> contém uma lista com todas as variáveis carregadas de momento do programa, bem como os seus valores correspondentes.</para>
+
+<screenshot id="screenshot-gdb-locals">
+<screeninfo
+>A Área de Variáveis Locais do &gdb;</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="gdb-locals.png" format="PNG"/></imageobject>
+<textobject
+><phrase
+>A área de ferramentas de Variáveis Locais.</phrase
+></textobject>
+<caption
+><para
+>A área de <guilabel
+>Variáveis Locais</guilabel
+> do 'plugin' do &gdb;. </para
+></caption>
+</mediaobject>
+</screenshot>
+
+</sect2>
+
+<sect2 id="gdb-ack">
+<title
+>Agradecimentos e Reconhecimentos</title>
+
+<para
+>Muito obrigado ao participante no Google Code-In de 2011, Martin Gergov, por escrever a maior parte desta secção.</para>
+
+</sect2>
+
+</sect1>
+
+<sect1 id="kate-application-plugin-lumen">
+<!-- https://kate-editor.org/2014/02/20/lumen-a-code-completion-plugin-for-the-d-programming-language/ -->
+<title
+>'Plugin' do Lumen</title>
+
+<para
+>O Lumen é um 'plugin' que oferece a completação de código para a <ulink url="https://en.wikipedia.org/wiki/D_(programming_language)"
+> linguagem de programação D</ulink
+>. É apenas uma interligação entre o editor e o Servidor de Completação de D (um servidor que fornece todas as as informações), chamado de DCD. O 'plugin' suporta todas as funcionalidades importantes do servidor de completação: fornecer o servidor com ficheiros de importação, apresentar a documentação e diversos tipos de completação: </para>
+
+<para
+>Importações:</para>
+<screenshot id="screenshot-lumen-import">
+<screeninfo
+>Importações</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="lumen-import.png" format="PNG"/></imageobject>
+</mediaobject>
+</screenshot>
+
+<para
+>Completação Básica:</para>
+<screenshot id="screenshot-lumen-completion">
+<screeninfo
+>Completação Básica</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="lumen-completition.png" format="PNG"/></imageobject>
+</mediaobject>
+</screenshot>
+
+<para
+>Completação (Função substituída):</para>
+<screenshot id="screenshot-lumen-completitionoverload">
+<screeninfo
+>Completação (Função substituída)</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="lumen-completition-overload.png" format="PNG"/></imageobject>
+</mediaobject>
+</screenshot>
+
+<para
+>Dica de chamadas:</para>
+<screenshot id="screenshot-lumen-calltips">
+<screeninfo
+>Dica de chamadas</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="lumen-calltips.png" format="PNG"/></imageobject>
+</mediaobject>
+</screenshot>
+
+<para
+>Para que o Lumen funcione, terá de instalar o DCD, usando a informação fornecida pela <ulink url="https://dlang.org/"
+>comunidade do D</ulink
+>. </para>
+
+<para
+>Depois de instalar o DCD, edite o <filename
+>~/.config/dcd/dcd.conf</filename
+> (crie-o se não existir já) e adicione uma localização dos seus ficheiros de inclusão/importação do D &eg; <filename class="directory"
+>/usr/include/dlang/dmd</filename
+> ou <filename class="directory"
+>/usr/include/d</filename
+>. </para>
+
+<para
+>Para além disso, o Lumen irá tentar ler um <filename
+>.lumenconfig</filename
+> em cada pasta-mãe do ficheiro de código em D aberto de momento e adiciona todas as linhas neste ficheiro como locais de inclusão no servidor DCD. Adicione todas as dependências do seu projecto actual a este ficheiro. </para>
+
+<para
+>Agora inicie o servidor de completação com o <command
+>dcd-server</command
+>, active o 'plugin' do Lumen na sua configuração e poderá ter a completação de código da linguagem de programação D no &kate; </para>
+
+</sect1>
+
+
+<sect1 id="kate-application-plugin-openheader">
+
+<title
+>'Plugin' de Abertura de Ficheiros de Inclusão</title>
+
+<sect2 id="openheader-using">
+<title
+>Usar o 'Plugin' para Abrir o Ficheiro de Inclusão</title>
+
+<para
+>Ao editar código em C ou C++, este comando irá alternar entre um ficheiro de inclusão e o seu ficheiro de código em C/C++ e vice-versa.</para>
+
+<para
+>Por exemplo, se estiver a editar o ficheiro <filename
+>classe.cpp</filename
+>, esta acção irá mudar para o <filename
+>classe.h</filename
+> se este ficheiro estiver disponível na mesma pasta.</para>
+
+<para
+>Os pares das seguintes extensões de ficheiros irão funcionar:</para>
+
+<simplelist>
+<member
+>Ficheiros de inclusão: h, H, hh, hpp</member>
+<member
+>Ficheiros de código: c, cpp, cc, cp, cxx</member>
+</simplelist>
+
+</sect2>
+
+<sect2 id="openheader-menu">
+<title
+>Estrutura do Menu</title>
+
+<variablelist>
+
+<varlistentry id="file-openheader">
+<term
+><menuchoice
+><shortcut
+> <keycap
+>F12</keycap
+> </shortcut
+> <guimenu
+>Ficheiro</guimenu
+> <guisubmenu
+>Abrir o .h/.cpp/.c</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+><action
+>Abre</action
+> os ficheiros de inclusão ou de código correspondentes para o documento activo.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+
+</sect1>
+
+
+<sect1 id="kate-application-plugin-projects">
+<!--https://kate-editor.org/2012/11/02/using-the-projects-plugin-in-kate -->
+
+<title
+>'Plugin' de Projectos</title>
+
+<sect2 id="project-intro">
+<title
+>Introdução</title>
+
+<para
+>A ideia básica do 'plugin' do Projecto é ter uma lista estrutura dos ficheiros que pertencem ao projecto, com as seguintes propriedades:</para>
+
+<orderedlist>
+<listitem
+><para
+>Oferece uma vista estruturada dos ficheiros</para
+></listitem>
+<listitem
+><para
+>Tornar mais rápida e simples a mudança de projectos</para
+></listitem>
+<listitem
+><para
+>Suporte para a pesquisa/substituição num projecto</para
+></listitem>
+<listitem
+><para
+>Oferta de uma completação automática simples</para
+></listitem>
+<listitem
+><para
+>Facilitar a abertura rápida de ficheiros no projecto</para
+></listitem>
+<listitem
+><para
+>Suporte para a compilação do projecto</para
+></listitem>
+</orderedlist>
+</sect2>
+
+<sect2 id="project-view">
+<title
+>Vista Estrutura dos Ficheiros</title>
+
+<para
+>Assim que o 'plugin' do Projecto for carregado na página de configuração do &kate;, abra um ficheiro num projecto para que apareça uma barra lateral que apresenta todos os projectos, assim como os ficheiros do projecto, da seguinte forma:</para>
+
+<screenshot id="screenshot-project-view">
+<screeninfo
+>Área do Projecto</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="project-view.png" format="PNG"/></imageobject>
+</mediaobject>
+</screenshot>
+
+<para
+>Como poderá ver, o projecto activo de momento é o <quote
+>Kate</quote
+>, e o seu conteúdo está apresentado na árvore. Se carregar nos ficheiros da vista em árvore, irá abrir o ficheiro no editor. Para além disso, será oferecido um menu de contexto com o qual poderá abrir os ficheiros com outras aplicações, como poderá acontecer com um ficheiro <filename class="extension"
+>.ui</filename
+> no Qt Designer.</para>
+<para
+>Poderá filtrar os itens, escrevendo parte do nome do ficheiro que está a tentar procurar na barra de pesquisa que existe no fundo da lista.</para>
+</sect2>
+
+<sect2 id="project-switch">
+<title
+>Mudança de Projectos</title>
+
+<para
+>A ideia é que nunca teria de abrir um projecto manualmente; isto até nem é suportado de todo. Como tal, o que acontece é que, se abrir um ficheiro, o 'plugin' do Projecto analisa rapidamente a pasta e as suas pastas-mãe à procura de um ficheiro <filename
+>.kateproject</filename
+>. Se o encontrar, o projecto será carregado automaticamente.</para>
+
+<para
+>Para além disso, se abrir outro documento no &kate; que pertença a outro projecto, o 'plugin' de Projecto muda automaticamente o projecto actual. Assim, de forma intuitiva, estará sempre activo o projecto correcto. Obviamente, também poderá mudar o projecto activo de momento com a lista.</para>
+
+</sect2>
+
+<sect2 id="project-search-replace">
+<title
+>Procurar e Substituir nos Projectos</title>
+
+<para
+>O &kate; tem um 'plugin' de Pesquisa e Substituição que aparece na barra lateral inferior. Se for carregado um projecto, abra a barra de Pesquisa e Substituição e mude para o modo respectivo para pesquisar e substituir no projecto actual:</para>
+
+<screenshot id="screenshot-projects-search">
+<screeninfo
+>Pesquisar nos Projectos</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="project-search.png" format="PNG"/></imageobject>
+</mediaobject>
+</screenshot>
+
+</sect2>
+
+<sect2 id="project-autocompletition">
+<title
+>Completação Automática Simples</title>
+
+<para
+>Com o conhecimento de todos os ficheiros que pertencem a um projecto, o 'plugin' de Projectos oferece algumas capacidades simples de completação automática com base no CTags. Se um projecto estiver inicialmente aberto, o CTags processa todos os ficheiros do projecto em segundo plano, gravando a informação do CTags na pasta <filename class="directory"
+>/tmp</filename
+>. Este ficheiro será então usado para preencher a área de completação automática no &kate;.</para>
+
+<para
+>Em contraste, sem esta completação automática, o &kate; só será capaz de apresentar os itens de completação automática com base nas palavras do ficheiro actual. Como tal, a completação automática fornecida pelo 'plugin' de Projectos é muito mais poderosa.</para>
+
+<screenshot id="screenshot-completion-search">
+<screeninfo
+>Completação nos Projectos</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="project-completition.png" format="PNG"/></imageobject>
+</mediaobject>
+</screenshot>
+
+<para
+>Se o CTags estiver em falta, irá aparecer uma mensagem de aviso passiva a avisar desse facto. Também de notar que o ficheiro do CTags na pasta <filename class="directory"
+>/tmp</filename
+> é apagado quando o &kate; sair, pelo que o 'plugin' não polui nenhuma pasta com ficheiros indesejados.</para>
+
+</sect2>
+
+<sect2 id="project-quickopen">
+<title
+>Abertura Rápida dos Ficheiros</title>
+
+<para
+>Dado que carregar nos ficheiros da árvore não é a forma mais rápida de abrir um ficheiro, o &kate; oferece um mecanismo de abertura rápida incorporado, que poderá activar com a combinação <keycombo action="simul"
+>&Ctrl;&Alt;<keycap
+>O</keycap
+></keycombo
+>. O que irá obter é uma lista como a seguinte:</para>
+
+<screenshot id="screenshot-project-quickopen">
+<screeninfo
+>Abertura Rápida</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="project-quickopen.png" format="PNG"/></imageobject>
+</mediaobject>
+</screenshot>
+
+<para
+>Também poderá filtrar se escrever partes do nome do ficheiro que está à procura, podendo também navegar com as teclas de cursores e com a tecla Page Up/Down na lista. Se carregar em &Enter;, irá activar o ficheiro seleccionado, enquanto o &Esc; esconde a área de abertura rápida de novo.</para>
+
+<para
+>Para além disso, a abertura rápida recorda o ficheiro anterior. Como tal, quando muda para a área de abertura rápida, o ficheiro activado anteriormente é seleccionado automaticamente, pelo que só terá de carregar em &Enter;, o que se torna muito útil às vezes.</para>
+
+</sect2>
+
+<sect2 id="project-build">
+<title
+>Suporte para a Compilação do Projecto</title>
+
+<para
+>Outra funcionalidade é ter o suporte para o <link linkend="projects-build-support"
+>'Plugin' de Completação</link
+>, para que o mesmo seja configurado de forma correcta e automática.</para>
+
+</sect2>
+
+<sect2 id="project-create">
+<title
+>Criar Projectos</title>
+
+<sect3 id="project-autoload">
+<!--https://kate-editor.org/2014/10/12/autoloading-projects-plugin-kate-5/-->
+<title
+>Carregar os Projectos Automaticamente</title>
+
+<para
+>O 'plugin' do Projecto tem uma funcionalidade de carregamento automático. Poderá ler a lista de ficheiros a partir do sistema de controlo de versões. Para esse fim, o carregamento automático do sistema de controlo de versões respectivo tem de estar activado na configuração (como acontece por omissão): </para>
+
+<screenshot id="screenshot-project-configure">
+<screeninfo
+>Configuração do 'Plugin' de Projectos</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="project-configure.png" format="PNG"/></imageobject>
+</mediaobject>
+</screenshot>
+
+</sect3>
+
+<sect3 id="project-manual">
+<title
+>Criar Projectos Manualmente</title>
+<para
+>Apenas terá de criar um ficheiro <filename
+>.kateproject</filename
+> na pasta de topo do projecto. Por exemplo, o ficheiro <filename
+>.kateproject</filename
+> do <quote
+>Kate</quote
+> parece-se com o seguinte: </para>
+
+<screen
+>{
+  "name": "Kate"
+, "files": [ { "git": 1 } ]
+}
+</screen>
+
+<para
+>O conteúdo do ficheiro é escrito com a sintaxe do JSON. O nome do projecto é <quote
+>Kate</quote
+>, e os ficheiros que contém deverão ser lidos a partir do Git. </para>
+
+<para
+>Também é suportado, em vez do <literal
+>git</literal
+>, o Subversion através do <literal
+>svn</literal
+> e o Mercurial com o <literal
+>hg</literal
+>. Se não quiser ler a partir de um sistema de controlo de versões, poderá dizer para ele carregar os ficheiros de forma recursiva a partir das pastas, da seguinte forma: </para>
+
+<screen
+>{
+  "name": "Kate"
+, "files": [ { "directory": "kate", "filters": ["*.cpp", "*.h", "*.ui", "CMakeLists.txt", "Find*.cmake"], "recursive": 1 } ]
+}
+</screen>
+
+<para
+>Aqui, as sub-pastas e filtros definem o que faz parte do projecto. Também poderá misturar o controlo de versões e os ficheiros, com base nos filtros. </para>
+
+<para id="projects-build-support"
+>Se quiser adicionar o suporte para o 'plugin' de Compilação, poderá criar um ficheiro <filename
+>.kateproject</filename
+> como o seguinte:</para>
+
+<screen
+>{
+  "name": "Kate"
+, "files": [ { "git": 1 } ]
+, "build": {
+    "directory": "build"
+  , "build": "make all"
+  , "clean": "make clean"
+  , "install": "make install"
+  }
+}
+</screen>
+
+</sect3>
+
+</sect2>
+
+<sect2 id="project-current">
+<title
+>Projecto Actual</title>
+
+<para
+>Se usar a opção <menuchoice
+><shortcut
+><keycombo action="simul"
+>&Alt;<keycap
+>1</keycap
+></keycombo
+></shortcut
+> <guimenu
+>Projectos</guimenu
+><guimenuitem
+>Ir Para</guimenuitem
+></menuchoice
+>, poderá abrir a área do <guilabel
+>Projecto Actual</guilabel
+> no fundo da janela do editor com quatro páginas:</para>
+
+<screenshot id="screenshot-project-current">
+<screeninfo
+>Projecto Actual</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="project-current-analysis.png" format="PNG"/></imageobject>
+</mediaobject>
+</screenshot>
+
+<variablelist>
+
+<varlistentry>
+<term>
+<guimenu
+>Terminal</guimenu>
+</term>
+<listitem>
+<para
+><link linkend="kate-application-plugin-konsole"
+>Emulador de terminal</link
+> - a iniciar na pasta de topo do projecto.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term>
+<guimenu
+>Índice do Código</guimenu>
+</term>
+<listitem>
+<para
+>A introdução de caracteres no campo de pesquisa irá iniciar a procura e apresentação dos nomes das funções, classes, símbolos, &etc; correspondentes, em conjunto com o tipo, nome do ficheiro e número de linha.</para>
+<para
+>Seleccione um item na lista para ir para a linha correspondente no ficheiro de código.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term>
+<guimenu
+>Análise de Código</guimenu>
+</term>
+<listitem>
+<para
+>Carregue em <guilabel
+>Iniciar a Análise</guilabel
+> para executar uma análise estática do código para C e C++, usando o <command
+>cppcheck</command
+>, e para gerar um relatório que mostra o nome do ficheiro, o número da linha, a criticidade (estilo, aviso, &etc;) e o problema detectado.</para>
+<para
+>Seleccione um item na lista para ir para a linha correspondente no ficheiro de código.</para>
+</listitem>
+</varlistentry>
+<!--FIXME options for cppcheck? configurable?-->
+<varlistentry>
+<term>
+<guimenu
+>Notas</guimenu>
+</term>
+<listitem>
+<para
+>O texto introduzido nesta página será gravado no ficheiro <filename
+><replaceable
+>nome-projecto</replaceable
+>.kateproject.notes</filename
+>.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+
+<sect2 id="projects-menu">
+<title
+>O Menu de Projectos</title>
+
+<para
+>O menu <guimenu
+>Projectos</guimenu
+> permite-lhe mudar directamente entre os vários projectos abertos de momento. É apresentado pelo 'plugin' do Projecto.</para>
+
+<variablelist>
+
+<!--FIXME: these shortcuts conflict with the preexisting Build plugin
+            https://bugs.kde.org/show_bug.cgi?id=328170 -->
+
+<varlistentry id="projects-back">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;&Alt;<keysym
+>Esquerda</keysym
+></keycombo
+> </shortcut
+> <guimenu
+>Projectos</guimenu
+> <guimenuitem
+>Recuar</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Mudar para o projecto anterior.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="projects-forward">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;&Alt;<keysym
+>Direita</keysym
+></keycombo
+> </shortcut
+> <guimenu
+>Projectos</guimenu
+> <guimenuitem
+>Avançar</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Mudar para o projecto seguinte.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="projects-goto">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Alt;<keycap
+>1</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Projectos</guimenu
+><guimenuitem
+>Ir Para</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Abre a área do <guilabel
+>Projecto Actual</guilabel
+>, no fundo da janela de edição.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+<!--
+context menu Project->Lookup:xxx
+-->
+
+</sect1>
+
+<!--FIXME Replicode
+Projects Replicode run / stop-->
+
+<sect1 id="kate-application-plugin-rust">
+<!--https://blogs.kde.org/2015/05/18/basic-code-completion-rust-kdes-kate-and-later-kdevelop
+https://blogs.kde.org/2015/05/22/updates-kates-rust-plugin-syntax-highlighting-and-rust-source-mime-type-->
+<title
+>'Plugin' de completação de código em Rust</title>
+
+<para
+>Este 'plugin' oferece a completação de código para a linguagem de programação <ulink url="https://www.rust-lang.org/"
+>Rust</ulink
+>.</para>
+
+<para
+>Assim que tiver activado o item de completação de código em Rust, na página do 'plugin', irá aparecer uma nova página na janela de configuração do seu &kate;. </para>
+
+<screenshot id="screenshot-rust-configuration">
+<screeninfo
+>Configuração do Rust</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="rust-configuration.png" format="PNG"/></imageobject>
+</mediaobject>
+</screenshot>
+
+<para
+>Edite o comando para executar o <ulink url="https://github.com/phildawes/racer"
+>Racer</ulink
+>, um utilitário que pretende oferecer a completação de código em Rust para os editores.</para>
+
+<para
+>Também precisa do código-fonte do Rust e terá de indicar a localização do mesmo. </para>
+
+<para
+>Ao escrever o código, aparece uma lista com os itens possíveis: </para>
+
+<screenshot id="screenshot-rust-completion">
+<screeninfo
+>Completação de Rust</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="rust-completion.png" format="PNG"/></imageobject>
+</mediaobject>
+</screenshot>
+
+<para
+>Para além das janelas de completação de código, o 'plugin' também instala uma acção <guimenuitem
+>Ir Para a Definição</guimenuitem
+> no menu <guimenu
+>Editar</guimenu
+> e no menu de contexto. Também poderá configurar uma combinação de teclas para a mesma. </para>
+
+<para
+>Esta acção irá abrir o documento que contém a definição, se necessário, activando a sua visualização e colocando o cursor no início da definição. </para>
+
+</sect1>
+
+<sect1 id="kate-application-plugin-searchinfiles">
+<sect1info>
+<authorgroup
+><author
+>&TC.Hollingsworth; &TC.Hollingsworth.mail; </author
+></authorgroup>
+</sect1info>
+<title
+>Procurar &amp; Substituir</title>
+
+<sect2 id="searchinfiles-intro">
+<title
+>Introdução</title>
+<para
+>O 'plugin' do &kate; para Procurar &amp; Substituir permite-lhe procurar por um dado texto ou <ulink url="help:/katepart/regular-expressions.html"
+>expressão regular</ulink
+> em diversos ficheiros ao mesmo tempo. Poderá procurar em todos os ficheiros abertos, em todos os ficheiros de uma pasta e, opcionalmente, nas suas sub-pastas. Poderá até filtrar pelo nome do ficheiro, por exemplo, para procurar apenas nos ficheiros que terminem com uma dada extensão.</para>
+
+</sect2>
+
+<sect2 id="searchinfiles-ui">
+<title
+>Interface</title>
+
+<sect3 id="searchinfiles-ui-query">
+<title
+>Consulta de Pesquisa</title>
+
+<para
+>As seguintes opções aparecem sempre no topo da ferramenta para Procurar nos Ficheiros:</para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="tab-new-22.png" format="PNG"/>
+</imageobject
+></inlinemediaobject
+></guiicon
+></term>
+<listitem
+><para
+>Poderá efectuar tantas pesquisas quantas desejar ao mesmo tempo. Basta carregar no botão de Nova Página no canto superior-esquerdo na ferramenta de Pesquisa, para que apareça uma nova página de resultados, onde poderá efectuar outra pesquisa. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="games-config-options-22.png" format="PNG"/>
+</imageobject
+></inlinemediaobject
+></guiicon
+></term>
+<listitem
+><para
+>O botão no canto superior-direito da ferramenta para Procurar nos Ficheiros, irá activar ou desactivar a metade inferior da área de ferramentas, mostrando as opções adicionais da ferramenta ou os resultados da sua pesquisa. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Procurar</guilabel
+></term>
+<listitem
+><para
+>Aqui é onde poderá escrever o que deseja procurar. Poderá indicar texto normal ou uma expressão regular, caso esta última opção esteja activa. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Substituir</guilabel
+> (campo de texto)</term>
+<listitem
+><para
+>O texto de substituição que será adicionado aos ficheiros, em vez do texto no campo <guilabel
+>Procurar</guilabel
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guibutton
+>Procurar</guibutton
+></term>
+<listitem
+><para
+>Quando acabar de configurar tudo, basta carregar no botão <guibutton
+>Procurar</guibutton
+> para efectuar a sua pesquisa. Poderá também carregar em &Enter; no campo <guilabel
+>Procurar</guilabel
+> para fazer o mesmo. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guibutton
+>Substituir</guibutton
+></term>
+<listitem
+><para
+>Quando acabar de configurar tudo, basta carregar no botão <guibutton
+>Substituir</guibutton
+> para substituir o texto introduzido no campo <guilabel
+>Procurar</guilabel
+> pelo conteúdo do campo <guilabel
+>Substituir</guilabel
+>. Poderá também carregar em &Enter; no campo <guilabel
+>Substituir</guilabel
+> para fazer o mesmo. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guibutton
+>Seguinte</guibutton
+></term>
+<listitem
+><para
+>Vai para a ocorrência seguinte da sua pesquisa, mudando de ficheiros se necessário. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guibutton
+>Substituir as verificadas</guibutton
+></term>
+<listitem
+><para
+>Igual ao <guibutton
+>Substituir</guibutton
+>, mas só irá efectuar as substituições nos ficheiros assinalados na área em baixo. </para
+></listitem>
+</varlistentry>
+
+</variablelist>
+</sect3>
+
+<sect3 id="searchinfiles-ui-folder">
+<title
+>Opções de Pesquisa na Pasta</title>
+
+<para
+>Estas opções aparecem debaixo das opções de pesquisa acima mencionadas. Se os resultados da pesquisa estiverem a serem apresentados em alternativa, carregue no botão <guiicon
+><inlinemediaobject
+><imageobject
+> <imagedata fileref="games-config-options-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+></guiicon
+> para os apresentar.</para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><guilabel
+>Pesquisar em</guilabel
+></term>
+<listitem
+><para
+>Isto tem três opções. Seleccione os <guilabel
+>Ficheiros Abertos</guilabel
+> para procurar em todos os ficheiros abertos de momento no &kate;. Seleccione a <guilabel
+>Pasta</guilabel
+> para procurar dentro de uma pasta e, opcionalmente, sobre as suas sub-pastas. Seleccione o <guilabel
+>Projecto</guilabel
+> para procurar em todos os ficheiros que constem no projecto aberto de momento. </para>
+<para
+>Se o 'plugin' de <guilabel
+>Projectos</guilabel
+> for carregado, também poderá pesquisar no <guilabel
+>Projecto Actual</guilabel
+> ou em <guilabel
+>Todos os Projectos Abertos</guilabel
+>. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Corresponder à capitalização</guilabel
+></term>
+<listitem
+><para
+>Restringe os resultados da pesquisa apenas aos que tiverem a combinação exacta de letras maiúsculas e minúsculas do texto da sua pesquisa. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Expressões regulares</guilabel
+></term>
+<listitem
+><para
+>Permite-lhe usar <ulink url="help:/katepart/regular-expressions.html"
+>expressões regulares</ulink
+>, em vez de texto simples, no seu texto de pesquisa. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Expandir os resultados</guilabel
+></term>
+<listitem
+><para
+>Mostra todos os resultados encontrados em cada ficheiro, em vez de apenas uma lista dos ficheiros que contêm o texto da pesquisa. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Pasta</guilabel
+></term>
+<listitem
+><para
+>Poderá indicar a localização da pasta onde deseja procurar. Por exemplo, poderá indicar <userinput
+>~/desenvolvimento/kde/kate/</userinput
+> se desejar procurar algo no código-fonte do &kate;. Esta opção só fica disponível quando usar o modo <guilabel
+>Na Pasta</guilabel
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guiicon
+>Abrir a janela de ficheiros</guiicon
+></term>
+<listitem
+><para
+>Carregue neste botão para procurar pela pasta no navegador de pastas do seu ambiente de trabalho. Este botão só funciona quando usar o modo na <guilabel
+>Pasta</guilabel
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="go-up-22.png" format="PNG"/>
+</imageobject
+></inlinemediaobject
+></guiicon
+></term>
+<listitem
+><para
+>Carregue neste botão para mudar a <guilabel
+>Pasta</guilabel
+> para a mãe da pasta seleccionada de momento. Este botão só funciona quando usar o modo da <guilabel
+>Pasta</guilabel
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="view-refresh-22.png" format="PNG"/>
+</imageobject
+></inlinemediaobject
+></guiicon
+></term>
+<listitem
+><para
+>Este botão irá mudar a <guilabel
+>Pasta</guilabel
+> para a pasta onde se encontra o documento aberto de momento. Este botão só funciona quando usar o modo da <guilabel
+>Pasta</guilabel
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Filtro</guilabel
+></term>
+<listitem
+><para
+>Isto permite-lhe procurar pelos nomes de ficheiros que correspondam a um dado padrão. Por exemplo, para procurar apenas pelos ficheiros escritos em C++, mude o valor para <userinput
+>*.cpp</userinput
+>. Para procurar apenas pelos ficheiros que comecem por <literal
+>kate</literal
+>, mude-o para <userinput
+>kate*</userinput
+>. Poderá indicar vários filtros separados por vírgulas (<userinput
+>,</userinput
+>). Esta opção não está disponível se estiver a usar o modo dos <guilabel
+>Ficheiros Abertos</guilabel
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Excluir</guilabel
+></term>
+<listitem
+><para
+>Sendo o oposto do <guilabel
+>Filtro</guilabel
+>, isto impede que o  &kate; procure por ficheiros que correspondam aos padrões indicados. Como no <guilabel
+>Filtro</guilabel
+>, poderá indicar vários padrões separados por vírgulas (<userinput
+>,</userinput
+>). Esta opção não está disponível quando usar o modo dos <guilabel
+>Ficheiros Abertos</guilabel
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Recursivo</guilabel
+></term>
+<listitem
+><para
+>Se esta opção estiver seleccionada, o &kate; irá também pesquisar em todas as sub-pastas da pasta seleccionada. Esta opção só está disponível quando usar o modo da <guilabel
+>Pasta</guilabel
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Incluir os escondidos</guilabel
+></term>
+<listitem
+><para
+>Se esta opção estiver activa, o &kate; irá também pesquisar nas pastas ou ficheiros que estejam escondidos pelo seu &OS;. Esta opção só está disponível quando usar o modo da <guilabel
+>Pasta</guilabel
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Seguir as ligações simbólicas</guilabel
+></term>
+<listitem
+><para
+>O 'plugin' de Pesquisa nos Ficheiros normalmente não seguem as <ulink url="http://en.wikipedia.org/wiki/Symbolic_link"
+>ligações simbólicas</ulink
+>. Quando esta opção estiver activada, o 'plugin' segui-las-á e irá pesquisar dentro dos ficheiros ou pastas que estas referenciam. Esta opção só está disponível quando usar o modo da <guilabel
+>Pasta</guilabel
+>. </para>
+<warning
+><para
+>É possível as ligações simbólicas fazerem referência a uma pasta-mãe da pasta actualmente a ser pesquisada ou então outras pastas que contenham ligações simbólicas para a sua pasta-mãe. Se existir uma dessas ligações na pasta a pesquisar, e caso esta opção esteja activa, o &kate; irá seguir de forma repetida a ligação e procurar nessa pasta, algo que fará com que a pesquisa nunca termine.</para
+></warning>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Incluir os ficheiros binários</guilabel
+></term>
+<listitem
+><para
+>Se esta opção estiver seleccionada, o &kate; irá também pesquisar nos ficheiros que não parecem ser de texto. </para
+></listitem>
+</varlistentry>
+
+</variablelist>
+</sect3>
+
+<sect3 id="searchinfiles-ui-results">
+<title
+>Resultados da Procura</title>
+
+<para
+>Os resultados da sua pesquisa são apresentados por baixo das opções da pesquisa. Se as opções do modo de Pesquisa na Pasta estiverem visíveis, basta carregar no botão <guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="games-config-options-22.png" format="PNG"/> </imageobject
+></inlinemediaobject
+></guiicon
+> para os mostrar. Serão também apresentados assim que efectuar uma pesquisa.</para>
+
+<para
+>Os resultados da pesquisa mostram uma lista dos ficheiros que contêm o texto correspondente à sua pesquisa, seguido do número de ocorrências encontradas nesse ficheiro.</para>
+
+<para
+>Para ver uma lista das ocorrências nesse ficheiro, basta carregar na seta de expansão à esquerda do nome do ficheiro. (Se tiver seleccionado a opção <guilabel
+>Expandir os resultados</guilabel
+>, isso já terá sido feito por si). Será apresentado o número da linha em que foi encontrada a ocorrência, seguido do conteúdo dessa linha, onde o texto da sua pesquisa será realçado a negrito.</para>
+
+<para
+>Para abrir o ficheiro em que foi encontrado o seu resultado, basta fazer duplo-click sobre ele. O &kate; irá abrir o ficheiro se necessário, colocando o cursor no início do texto indicado na sua listagem em vez do nome do ficheiro. </para>
+
+</sect3>
+</sect2>
+
+<sect2 id="searchinfiles-menu">
+<title
+>Estrutura do Menu</title>
+
+<variablelist>
+
+<varlistentry id="edit-searchinfiles">
+<term
+><menuchoice
+><guimenu
+>Editar</guimenu
+> <guimenuitem
+>Pesquisar nos Ficheiros</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Invoca a janela para Procurar e Substituir.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-next-match">
+<term
+><menuchoice
+><guimenu
+>Editar</guimenu
+> <guimenuitem
+>Ir para a Ocorrência Seguinte</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Vai para a ocorrência seguinte de uma pesquisa efectuada pelo 'plugin' de Pesquisa e Substituição.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-previous-match">
+<term
+><menuchoice
+><guimenu
+>Editar</guimenu
+> <guimenuitem
+>Ir para a Ocorrência Anterior</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Vai para a ocorrência anterior de uma pesquisa efectuada pelo 'plugin' de Pesquisa e Substituição.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-toolviews-searchandreplace">
+<term
+><menuchoice
+><guimenu
+>Ver</guimenu
+> <guisubmenu
+>Áreas de Ferramentas</guisubmenu
+> <guimenuitem
+>Mostrar a Pesquisa e Substituição</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Activa/desactiva a visualização da ferramenta do &kate; para <guilabel
+>Procurar e Substituir</guilabel
+>. </para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+</sect1>
+
+<sect1 id="kate-application-plugin-snippets">
+<sect1info>
+<authorgroup>
+<author
+><firstname
+>Martin</firstname
+> <surname
+>Gergov</surname
+></author>
+<author
+>&TC.Hollingsworth; &TC.Hollingsworth.mail;</author>
+</authorgroup>
+</sect1info>
+<title
+>Excertos do Kate</title>
+
+<sect2 id="snippets-intro">
+<title
+>Introdução</title>
+<para
+>Os Excertos do Kate é um 'plugin' usado para lhe poupar algum tempo, adicionando o suporte para os <quote
+>excertos</quote
+> (código-fonte, código-máquina ou texto reutilizável). O 'plugin' também suporta a completação de código e o JavaScript.</para>
+</sect2>
+
+<sect2 id="snippets-menu">
+<title
+>Estrutura do Menu</title>
+
+<variablelist>
+<varlistentry>
+<term
+><menuchoice
+><guimenu
+>Ver</guimenu
+><guisubmenu
+>Áreas de Ferramentas</guisubmenu
+> <guimenuitem
+>Mostrar os Excertos</guimenuitem
+></menuchoice
+></term>
+<listitem
+><para
+>Mostra o painel de excertos que contém todos os excertos no seu repositório que digam respeito ao tipo de ficheiro aberto de momento.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="tools-create-snippet">
+<term
+><menuchoice
+><guimenu
+>Ferramentas</guimenu
+><guimenuitem
+>Criar um Excerto</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Cria um novo excerto, que é um bloco de texto reutilizável que poderá inserir em qualquer parte de um documento qualquer.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+
+<sect2 id="snippets-panel">
+<title
+>Painel de excertos</title>
+
+<screenshot id="screenshot-snippets-panel">
+<screeninfo
+>Painel de Excertos do Kate</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="snippets-panel.png" format="PNG"/></imageobject>
+<textobject
+><phrase
+>O painel de excertos do &kate;.</phrase
+></textobject>
+<caption
+><para
+>O painel para os excertos do &kate;.</para
+></caption>
+</mediaobject>
+</screenshot>
+
+<para
+>No painel, deverá ver uma lista de repositórios de excertos, em conjunto com as opções para criar os seus próprios, obtê-los da Internet ou carregá-los a partir de um ficheiro local. Cada repositório tem uma opção de marcação que poderá ser usada para o activar ou desactivar. Existem também botões para editara e apagar os repositórios existentes.</para>
+
+<sect3 id="snippets-repo-internet">
+<title
+>Carregamento dos Ficheiros do Repositório de Excertos</title>
+<para
+>Poderá obter repositórios de excertos a partir da Internet. Basta carregar em <guibutton
+>Obter Novos Excertos</guibutton
+> para abrir uma janela com uma lista de repositórios de excertos.  Depois de obter o excerto desejado, certifique-se que o activou.</para>
+<!--FIXME no way to load a local file ?
+<para
+>You can also load snippet repositories from a local file using the file
+browser at the bottom of the panel.  Click <guibutton
+>Copy to repository</guibutton>
+when finished.</para
+>-->
+</sect3>
+
+<sect3 id="snippets-repo-editor">
+<title
+>Criar e Editar Repositórios</title>
+
+<para
+>Para criar um novo repositório de excertos, carregue em <guibutton
+>Adicionar um Repositório</guibutton
+>. Deverá agora ver uma janela que lhe pede o nome, licença e autor do ficheiro de excertos. Depois de escolher as opções desejadas, carregue em <guibutton
+>OK</guibutton
+>.</para>
+
+<screenshot id="screenshot-snippets-repository">
+<screeninfo
+>Editor de Excertos</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="snippets-repository.png" format="PNG"/></imageobject>
+<textobject
+><phrase
+>O editor de repositórios.</phrase
+></textobject>
+<caption
+><para
+>A interface do editor de repositórios.</para
+></caption>
+</mediaobject>
+</screenshot>
+
+<para
+>O editor do repositório de excertos contém as seguintes opções:</para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><guilabel
+>Nome</guilabel
+></term>
+<listitem
+><para
+>Aparece na lista de excertos na área de ferramentas e também é pesquisada quando é usada a funcionalidade de completação do código.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Espaço de nomes</guilabel
+></term>
+<listitem
+><para
+>O prefixo usado quando aplicar a completação de código.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Licença</guilabel
+></term>
+<listitem
+><para
+>Seleccione a licença para o seu repositório de excertos.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Autores</guilabel
+></term>
+<listitem
+><para
+>Indique o nome do autor ou autores do ficheiro do excerto.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Tipos de ficheiros</guilabel
+></term>
+<listitem
+><para
+>Seleccione os tipos de ficheiros onde quer que o repositório de excertos se aplique. Está configurado como <quote
+></quote
+> por omissão, pelo que o repositório se aplica a todos os ficheiros. Poderá configurar como algo do tipo <userinput
+>C++</userinput
+>, por exemplo, ou seleccione numa lista, carregando no &Shift;, enquanto adiciona os tipos.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect3>
+
+<sect3 id="snippets-editor">
+<title
+>Criar e Editar Excertos</title>
+
+<screenshot id="screenshot-snippets-form">
+<screeninfo
+>Editor de Excertos</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="snippets-form.png" format="PNG"/></imageobject>
+<textobject
+><phrase
+>O editor de excertos.</phrase
+></textobject>
+<caption
+><para
+>A interface do editor de excertos.</para
+></caption>
+</mediaobject>
+</screenshot>
+
+<variablelist>
+
+<varlistentry>
+<term
+><guilabel
+>Nome</guilabel
+></term>
+<listitem
+><para
+>O nome será apresentado na lista de completações.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Atalho</term>
+<listitem
+><para
+>Se carregar neste atalho, irá inserir o excerto no documento.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Excertos</guilabel
+></term>
+<listitem
+><para
+>O texto que o seu excerto irá inserir no documento.</para>
+<para
+>Um excerto poderá conter campos para edição. Poderá circular por eles, carregando para tal em &Tab;. Poderá usar as seguintes expressões no texto do modelo para criar os campos:</para>
+<para
+><userinput
+>${<replaceable
+>nome_campo</replaceable
+>}</userinput
+> cria um campo simples e editável. Todas as ocorrências subsequentes do mesmo <replaceable
+>nome_campo</replaceable
+> irão replicar o conteúdo do primeiro durante a edição.</para>
+<para
+>O <userinput
+>${<replaceable
+>nome_campo=valor_predefinido</replaceable
+>}</userinput
+> pode ser usado para definir um valor por omissão para o campo. O <replaceable
+>valor_predefinido</replaceable
+> poderá ser qualquer expressão em JavaScript.</para>
+<para
+>Use o <userinput
+>${<replaceable
+>nome_campo</replaceable
+>=<replaceable
+>texto</replaceable
+>}</userinput
+> para definir um texto fixo como valor por omissão.</para>
+<para
+>O <userinput
+>${func(<replaceable
+>outro_campo1</replaceable
+>, <replaceable
+>outro_campo2</replaceable
+>, ...)}</userinput
+> pode ser usado para criar um campo que avalia uma função em JavaScript para cada edição e que possui o seu conteúdo. Veja a página de <guilabel
+>Programas</guilabel
+> para mais informações.</para>
+<para
+>O <userinput
+>${cursor}</userinput
+> pode ser usado para marcar a posição final do cursor, depois de estar tudo preenchido.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Programas</guilabel
+></term>
+<listitem
+><para
+>Funções utilitárias em JavaScript para usar nos seus excertos.</para>
+<para
+>Todas as funções em JavaScript deverão devolver o conteúdo que deseja colocar num campo do modelo como texto.</para>
+<para
+>As funções são invocadas num âmbito que contém os dados de todos os campos editáveis do modelo como variáveis locais. Por exemplo, num excerto que contém <userinput
+>${<replaceable
+>campo</replaceable
+>}</userinput
+>, existirá uma variável chamada <userinput
+>campo</userinput
+> que contém o conteúdo actualizado do campo do modelo. Estas variáveis tanto poderão ser usados na função a nível estático ou passados como argumentos, usando a sintaxe <userinput
+>${func(campo)}</userinput
+> ou <userinput
+>${<replaceable
+>campo2=func(campo)</replaceable
+>}</userinput
+> no texto do excerto.</para>
+<para
+>Poderá usar a API de programação do &kate; para obter o texto seleccionado, o texto completo, o nome do ficheiro, entre outras coisas, usando os métodos apropriados dos objectos <userinput
+>document</userinput
+> e <userinput
+>view</userinput
+>. Consulte a documentação da API de programação para saber mais informações.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+</sect3>
+</sect2>
+
+<sect2 id="snippets-using">
+<title
+>Usar os Excertos</title>
+
+<screenshot id="screenshot-snippets-usage">
+<screeninfo
+>Excertos do Kate em Acção</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="snippets-usage.png" format="PNG"/></imageobject>
+<textobject
+><phrase
+>Aceder aos Excertos do &kate; a partir de uma área de ferramentas e de uma lista.</phrase
+></textobject>
+<caption
+><para
+>Seleccione um item da lista de excertos.</para
+></caption>
+</mediaobject>
+</screenshot>
+
+<para
+>Poderá invocar os excertos de duas formas:</para>
+
+<itemizedlist>
+<listitem
+><para
+>Escolhendo-os na área de ferramentas.</para
+></listitem>
+<listitem
+><para
+>Enquanto escreve, poderá carregar em <keycombo action="simul"
+>&Ctrl; <keysym
+>Espaço</keysym
+></keycombo
+>, para mostrar todos os excertos numa janela conveniente onde poderá efectuar a selecção. Esta combinação de teclas oferece uma funcionalidade semelhante à completação de código.</para
+></listitem>
+</itemizedlist>
+
+<para
+>Se o excerto tiver variáveis (para além do <literal
+>${cursor}</literal
+>), o cursor irá ficar colocado automaticamente sobre a primeira ocorrência de uma variável, esperando que você escreva algo. Quando terminar, poderá carregar em &Tab; passe para a variável seguinte, e assim por diante.</para>
+
+</sect2>
+
+<sect2 id="snippets-ack">
+<title
+>Agradecimentos e Reconhecimentos</title>
+<para
+>Os Excertos do &kate; foram escritos por Joseph Wenninger.</para>
+<para
+>Muito obrigado ao participante no Google Code-In de 2011, Martin Gergov, por escrever a maior parte desta secção.</para>
+</sect2>
+
+</sect1>
+
+
+<sect1 id="kate-application-plugin-sql">
+<sect1info>
+<authorgroup>
+<author
+><firstname
+>Ömer</firstname
+> <othername
+>Faruk</othername
+> <surname
+>ORUÇ</surname
+></author>
+<author
+>&TC.Hollingsworth; &TC.Hollingsworth.mail;</author>
+</authorgroup>
+</sect1info>
+<title
+>'Plugin' de SQL</title>
+
+<sect2 id="sql-intro">
+<title
+>Introdução</title>
+
+<para
+>O SQL ('Structured Query Language') é uma linguagem especializada para actualizar, apagar e pedir informações das bases de dados.</para>
+
+<para
+>O 'plugin' de SQL do &kate; permite-lhe:</para>
+
+<itemizedlist>
+<listitem
+><para
+>Criar uma base de dados</para
+></listitem>
+<listitem
+><para
+>Ligar a bases de dados existentes</para
+></listitem>
+<listitem
+><para
+>Inserir e apagar dados na base de dados</para
+></listitem>
+<listitem
+><para
+>Executar pesquisas</para
+></listitem>
+<listitem
+><para
+>Mostrar os resultados numa tabela</para
+></listitem>
+</itemizedlist>
+
+</sect2>
+
+<sect2 id="sql-connecting">
+<title
+>Ligar a uma Base de Dados</title>
+
+<para
+>Seleccione a opção <guibutton
+>Adicionar uma Ligação</guibutton
+> do menu <guimenu
+>SQL</guimenu
+> ou na barra de ferramentas; depois, seleccione o controlador de base de dados do Qt que deseja usar (isto inclui o QSQLITE, QMYSQL3, QMYSQL, QODBC3, QODBC, QPSQL7 e o QPSQL). Se não conseguir ver o controlador desejado, terá de o instalar. Depois, carregue em <guibutton
+>Seguinte</guibutton
+>. </para>
+
+<para
+>Se a base de dados que seleccionar usar um ficheiro, basta indicar a localização da base de dados e carregar no botão <guibutton
+>Seguinte</guibutton
+>. Se precisar de se ligar a um servidor, terá de indicar o nome do servidor, o seu utilizador e senha, bem como qualquer outra informação que o controlador necessite em particular. Depois, carregue em <guibutton
+>Seguinte</guibutton
+>.</para>
+
+<para
+>Finalmente, dê um nome à sua ligação e carregue em <guibutton
+>Terminar</guibutton
+>.</para>
+
+</sect2>
+
+<sect2 id="sql-querying">
+<title
+>Executar Pesquisas</title>
+
+<sect3 id="sql-querying-insert-delete-update">
+<title
+>INSERT/DELETE/UPDATE</title>
+
+<para
+>Poderá inserir, apagar e actualizar dados com o 'plugin' de SQL, como faria a partir da linha de comandos ou dentro de um programa. Basta indicar uma pesquisa e carregar em <guibutton
+>Executar a pesquisa</guibutton
+>, na barra de ferramentas, ou usar a opção <menuchoice
+><guimenu
+>SQL</guimenu
+><guimenuitem
+>Executar uma pesquisa</guimenuitem
+></menuchoice
+> (<keycombo action="simul"
+>&Ctrl;<keycap
+>E</keycap
+></keycombo
+>).</para>
+
+<example>
+<title
+>Algumas Pesquisas de Exemplo</title>
+<variablelist>
+
+<varlistentry>
+<term
+><command
+>INSERT</command
+></term>
+<listitem
+><para
+><programlisting
+>INSERT INTO <replaceable
+>nome_tabela</replaceable
+> ("<replaceable
+>campo1</replaceable
+>", "<replaceable
+>campo2</replaceable
+>", "<replaceable
+>campo3</replaceable
+>", "<replaceable
+>campo4</replaceable
+>", "<replaceable
+>campo5</replaceable
+>")
+VALUES ("<replaceable
+>valor1</replaceable
+>", "<replaceable
+>valor2</replaceable
+>", "<replaceable
+>valor3</replaceable
+>", "<replaceable
+>valor4</replaceable
+>", "<replaceable
+>valor5</replaceable
+>" )
+</programlisting
+></para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><command
+>DELETE</command
+></term>
+<listitem
+><para
+><programlisting
+>DELETE FROM <replaceable
+>nome_tabela</replaceable
+> WHERE nome = "<replaceable
+>texto</replaceable
+>"
+</programlisting
+></para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><command
+>UPDATE</command
+></term>
+<listitem
+><para
+><programlisting
+>UPDATE <replaceable
+>nome_tabela</replaceable
+> SET "<replaceable
+>campo1</replaceable
+>" = "<replaceable
+>texto</replaceable
+>", "<replaceable
+>campo2</replaceable
+>" = "<replaceable
+>texto</replaceable
+>", "<replaceable
+>campo3</replaceable
+>" = "<replaceable
+>texto</replaceable
+>", "<replaceable
+>campo4</replaceable
+>" = "<replaceable
+>texto</replaceable
+>", "<replaceable
+>campo5</replaceable
+>" = "<replaceable
+>texto</replaceable
+>"
+</programlisting
+></para
+></listitem>
+</varlistentry>
+
+</variablelist>
+</example>
+
+</sect3>
+
+<sect3 id="sql-querying-select">
+<title
+>SELECT</title>
+
+<para
+>Depois de executar uma instrução <command
+>SELECT</command
+>, poderá ver o resultado como uma tabela, aparecendo esta na área de ferramentas <guilabel
+>Resultado dos Dados em SQL</guilabel
+> no fundo do &kappname; ou como texto no <guilabel
+>Resultado do Texto em SQL</guilabel
+>. Se ocorrer um erro, podê-lo-á ver no resultado de texto.</para>
+
+<example>
+<title
+>Pesquisa <command
+>SELECT</command
+> de Exemplo</title>
+<para
+><programlisting
+>SELECT * FROM <replaceable
+>nome_tabela</replaceable
+>
+</programlisting
+></para>
+</example>
+
+<para
+>Na área do <guilabel
+>Resultado dos Dados em SQL</guilabel
+>, existem alguns botões:</para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><guibutton
+>Ajustar as colunas ao conteúdo</guibutton
+></term>
+<listitem
+><para
+>Muda o tamanho das colunas para caber o seu conteúdo.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guibutton
+>Ajustar as linhas ao conteúdo</guibutton
+></term>
+<listitem
+><para
+>Muda o tamanho das linhas para caber o seu conteúdo.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guibutton
+>Copiar</guibutton
+></term>
+<listitem
+><para
+>Selecciona todo o conteúdo da tabela e copia-o para a área de transferência.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guibutton
+>Exportar</guibutton
+></term>
+<listitem
+><para
+>Exporta todo o conteúdo da tabela para um ficheiro, para a área de transferência ou então o documento actual, no formato de valores separados por vírgulas (CSV).</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guibutton
+>Limpar</guibutton
+></term>
+<listitem
+><para
+>Remove tudo da área da tabela</para
+></listitem>
+</varlistentry>
+
+<!--FIXME Use system locale -->
+
+</variablelist>
+
+<para
+>Poderá agora ver as cores que são apresentadas na tabela, na secção <guilabel
+>SQL</guilabel
+> da opção <menuchoice
+><guimenu
+>Configuração</guimenu
+><guimenuitem
+>Configurar o &kate;</guimenuitem
+> </menuchoice
+>.</para>
+
+</sect3>
+</sect2>
+
+<sect2 id="sql-browsing">
+<title
+>Navegação</title>
+
+<para
+>Poderá navegar pela sua base de dados com a ferramenta de <guilabel
+>Navegação do Esquema</guilabel
+> no lado esquerdo. A informação apresentada varia de acordo com o controlador de bases de dados que estiver a usar.</para>
+
+<para
+>Para actualizar esta lista, carregue com o botão direito em qualquer lado da área da ferramenta e seleccione a opção <guimenuitem
+>Recarregar</guimenuitem
+>. Para gerar uma pesquisa sobre qualquer item da lista, carregue com o botão direito sobre um item, seleccione <guisubmenu
+>Gerar</guisubmenu
+> e seleccione o tipo de instrução (<guimenuitem
+>SELECT</guimenuitem
+>, <guimenuitem
+>UPDATE</guimenuitem
+>, <guimenuitem
+>INSERT</guimenuitem
+> ou <guimenuitem
+>DELETE</guimenuitem
+>) no submenu que aparece.</para>
+
+</sect2>
+
+<sect2 id="sql-menus">
+<title
+>Estrutura do Menu</title>
+<variablelist>
+
+<varlistentry>
+<term
+><menuchoice
+><guimenu
+>SQL</guimenu
+><guimenuitem
+>Adicionar uma ligação...</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Adiciona uma nova ligação que usa um dos vários controladores de bases de dados disponível. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><menuchoice
+><guimenu
+>SQL</guimenu
+><guimenuitem
+>Remover a ligação</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Remove a ligação seleccionada. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><menuchoice
+><guimenu
+>SQL</guimenu
+><guimenuitem
+>Editar a ligação...</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Edita a configuração da ligação actual. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Ligações</term>
+<listitem
+><para
+>Todas as ligações às bases de dados que tiver criado estão apresentadas entre os itens do menu <guimenuitem
+>Editar a ligação</guimenuitem
+> e <guimenuitem
+>Executar a pesquisa</guimenuitem
+>. Seleccione uma para executar pesquisas ou efectuar modificações sobre elas. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+>&Ctrl;<keycap
+>E</keycap
+></keycombo
+></shortcut
+> <guimenu
+>SQL</guimenu
+><guimenuitem
+>Executar a pesquisa</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Executa a sua pesquisa. </para
+></listitem>
+</varlistentry>
+
+</variablelist>
+</sect2>
+
+<sect2 id="sql-ack">
+<title
+>Agradecimentos e Reconhecimentos</title>
+
+<para
+>O 'Plugin' de SQL foi criado por Marco Mentasti.</para>
+<para
+>Muito obrigado ao participante no Google Code-In de 2011, Ömer Faruk ORUÇ, por escrever a maior parte desta secção.</para>
+
+</sect2>
+
+</sect1>
+
+<sect1 id="kate-application-plugin-symbolviewer">
+<!--https://kate-editor.org/2010/10/27/php-treeview-improvements-in-kate/?-->
+<title
+>'Plugin' de Visualização de Símbolos</title>
+
+<sect2 id="symbolviewer-using">
+<title
+>Usar o 'Plugin' de Fecho de Inclusão/Exclusão</title>
+
+<para
+>Permite aos programadores ver os símbolos (funções, macros e estruturas) do código-fonte.</para>
+<para
+>Ao carregar na informação processada, poderá navegar facilmente pelo código.</para>
+<para
+>De momento, são suportadas as seguintes linguagens:</para>
+<para
+>C/C++, Java, Perl, PHP, Python, Ruby, XSLT, Tcl/Tk, Fortran</para>
+
+<para
+>Lista de funcionalidades:</para>
+<simplelist>
+<member
+>Modo em lista/árvore</member>
+<member
+>Activar/desactivar a ordenação</member>
+<member
+>Esconder/Mostrar os parâmetros das funções</member>
+<member
+>Expandir/recolher o modo em árvore</member>
+<member
+>Auto-actualizar em caso de mudança do documento</member>
+<member
+>O processamento do código baseia-se na plataforma de Realce de Sintaxe das &kde-frameworks;</member>
+</simplelist>
+
+</sect2>
+
+<sect2 id="symbolviewer-menu">
+<title
+>Estrutura do Menu</title>
+<variablelist>
+
+<varlistentry id="tools-symbolviewer">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>\</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Ver</guimenu
+> <guisubmenu
+>Áreas de Ferramentas</guisubmenu
+> <guimenuitem
+>Mostrar a Lista de Símbolos</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Activa/desactiva a visualização da Lista de Símbolos do &kate;, que apresenta as funções, macros e estruturas do código-fonte no documento activo.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+
+<sect2 id="symbolviewer-config">
+<title
+>Configuração</title>
+
+<screenshot id="screenshot-symbolviewer-settings">
+<screeninfo
+>Visualizador de Símbolos</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="symbolviewer-settings.png" format="PNG"/></imageobject>
+<caption
+><para
+>Escolha as opções de processamento por omissão</para
+></caption>
+</mediaobject>
+</screenshot>
+
+</sect2>
+
+</sect1>
+
+
+<sect1 id="kate-application-plugin-konsole">
+<title
+>'Plugin' na Área do Terminal</title>
+
+<para
+><indexterm
+><primary
+>Emulador de terminal</primary
+></indexterm
+> O Terminal Incorporado é uma cópia da aplicação de terminal &konsole; do &kde;, para sua conveniência. Está disponível na opção do menu <menuchoice
+><guimenu
+>Ver</guimenu
+><guisubmenu
+>Áreas de Ferramentas</guisubmenu
+> <guimenuitem
+>Mostrar o Terminal</guimenuitem
+></menuchoice
+>, para que obtenha o foco sempre que for apresentado. Adicionalmente, se a opção <link linkend="konsole-config"
+>Sincronizar automaticamente o terminal com o documento actual, se possível</link
+> estiver activa, irá mudar para a pasta do documento actual se possível, quando estiver visível, ou quando o documento actual mudar.</para>
+
+<para
+>A localização predefinida na janela do &kate; é no fundo, por baixo da área de edição.</para>
+
+<para
+>Poderá configurar o &konsole; com o seu menu do &RMB;; para mais informações, veja o <ulink url="help:/konsole/index.html"
+>manual do &konsole;</ulink
+>.</para>
+
+<para
+>O emulador de terminal incorporado é oferecido pelo 'plugin' do Terminal.</para>
+
+<sect2 id="konsole-menus">
+<title
+>Estrutura do Menu</title>
+
+<variablelist>
+
+<varlistentry id="view-toolviews-show-terminal">
+<term
+><menuchoice
+><guimenu
+>Ver</guimenu
+><guisubmenu
+>Áreas de Ferramentas</guisubmenu
+> <guimenuitem
+>Mostrar o Terminal</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Activa/desactiva a visualização do emulador de terminal incorporado.</para>
+<para
+>Quando for activado pela primeira vez, será criado o terminal.</para>
+<para
+>Quando o emulador de terminal estiver visível, irá ficar em primeiro plano, para que possa começar a escrever comandos imediatamente. Se a opção <link linkend="konsole-config"
+>Sincronizar automaticamente o terminal com o documento actual, quando possível</link
+> na página <guilabel
+>Terminal</guilabel
+> da <link linkend="config-dialog"
+>janela de configuração principal</link
+>, a sessão da consola irá mudar para a pasta do documento activo, se for um ficheiro local.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-toolviews-pipe-to-terminal">
+<term
+><menuchoice
+><guimenu
+>Ferramentas</guimenu
+> <guimenuitem
+>Encaminhar para o Terminal</guimenuitem
+></menuchoice
+></term>
+<listitem
+><para
+>Fornece o texto seleccionado de momento ao emulador de terminal incorporado. Não será adicionada nenhuma mudança de linha a seguir ao texto.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="tools-sync-terminal-document">
+<term
+><menuchoice
+><guimenu
+>Ferramentas</guimenu
+> <guimenuitem
+>Sincronizar o Terminal com o Documento Actual</guimenuitem
+></menuchoice
+></term>
+<listitem>
+<para
+>Isto fará com que o terminal incorporado faça <command
+>cd</command
+> para a pasta do documento activo.</para>
+
+<para
+>Em alternativa, poderá configurar o &kate; para manter sempre o terminal sincronizado com o documento actual. Veja mais informações em <xref linkend="konsole-config"/>.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="tools-focus-terminal">
+<term
+><menuchoice
+><guimenu
+>Ferramentas</guimenu
+> <guimenuitem
+>Focar/Desfocar o Terminal</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Muda o foco do documento actual para o terminal e vice-versa. </para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+</sect2>
+
+<sect2 id="konsole-config">
+<title
+>Configuração</title>
+
+<para
+>Este 'plugin' pode ser configurado na página do <guilabel
+>Terminal</guilabel
+> da <link linkend="configuring-kate"
+>janela de configuração</link
+>.</para>
+
+<para
+>Estão disponíveis as seguintes opções:</para>
+
+<variablelist>
+<varlistentry>
+<term>
+<guilabel
+>Sincronizar automaticamente o terminal com o documento actual se possível</guilabel
+></term>
+<listitem
+><para
+>Isto fará com que o terminal incorporado faça <command
+>cd</command
+> para a pasta do documento activo, quando for lançado, e quando um documento novo fica em primeiro plano. Se não estiver activo, terá de fazer toda a sua navegação no terminal a seu gosto. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Mudar a variável de ambiente EDITOR para 'kate -b'</guilabel
+></term>
+<listitem
+><para
+>Isto configura a variável de ambiente <envar
+>EDITOR</envar
+>, para que os programas que se executem no terminal incorporado e que abram automaticamente um ficheiro num editor, o façam no &kate; em vez do editor predefinido que está configurado na sua consola. Não será capaz de continuar a usar o terminal até que tenha fechado o ficheiro no &kate;, para que o programa que o invocou sabia que acabou de editar o ficheiro.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+</sect2>
+
+</sect1>
+
+<sect1 id="kate-application-plugin-textfilter">
+
+<title
+>'Plugin' do Filtro de Texto</title
+><!--Name is completely misleading and should be changed-->
+
+<sect2 id="textfilter-using">
+<title
+>Usar o 'Plugin' do Filtro de Texto</title>
+
+<para
+>Poderá usar este 'plugin' para executar comandos na consola. Será usada uma selecção como argumento para o comando da consola, sendo que o resultado irá substituir essa selecção ou será copiado para a área de transferência. </para>
+
+<itemizedlist>
+<title
+>Exemplos:</title>
+<listitem
+><para
+><command
+>less /etc/fstab</command
+> - cola o conteúdo deste ficheiro ou copia-o para a área de transferência </para
+></listitem>
+<listitem
+><para
+><command
+>wc</command
+> - conta as linhas, palavras e caracteres da selecção, colando estes dados no documento ou copiando-os para a área de transferência </para
+></listitem>
+<listitem
+><para
+><command
+>sort</command
+> - ordena as linhas da selecção e cola o resultado no documento ou copia-o para a área de transferência </para
+></listitem>
+</itemizedlist>
+
+</sect2>
+
+<sect2 id="textfilter-menu">
+<title
+>Estrutura do Menu</title>
+
+<variablelist>
+
+<varlistentry id="tools-textfilter">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>\</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Ferramentas</guimenu
+> <guisubmenu
+>Filtrar o Texto</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+
+<para
+><action
+>Abre</action
+> a janela do Filtro de Texto:</para>
+
+<screenshot id="screenshot-filtertext">
+<screeninfo
+>Janela do Filtro de Texto</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="textfilter.png" format="PNG"/></imageobject>
+</mediaobject>
+</screenshot>
+
+<para
+>Indique o comando da consola na lista ou seleccione um comando anterior no histórico.</para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><guilabel
+>Copiar o resultado em vez de o colar</guilabel
+></term>
+<listitem>
+<para
+>Copia o resultado para a área de transferência, deixando um documento inalterado.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Reunir o STDOUT e o STDERR</guilabel
+></term>
+<listitem>
+<para
+>Se estiver assinalado, será reunido o resultado do STDOUT e STDERR, não sendo comunicados nenhuns erros. Caso contrário, o STDERR será apresentado como uma mensagem passiva.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+
+</sect1>
+
+<sect1 id="kate-application-plugin-xmlcheck">
+<!-- from doc/kate-addons/xmlcheck.docbook -->
+<sect1info>
+<authorgroup
+><author
+>&Daniel.Naber; &Daniel.Naber.mail; </author
+></authorgroup>
+</sect1info>
+
+<title
+>Validação de &XML;</title>
+
+<para
+>Este 'plugin' efectua a validação sintáctica e semântica dos ficheiros &XML;.</para>
+<para
+>Este 'plugin' verifica o ficheiro actual. Irá aparecer uma lista de avisos e erros no fundo da janela principal do &kate;. Poderá carregar sobre uma mensagem de erro para saltar para o local correspondente no ficheiro. Se o mesmo tiver um <quote
+>DOCTYPE</quote
+>, o DTD indicado com este tipo de documento será usado para verificar a validade do ficheiro. Espera-se que o DTD esteja numa posição relativa ao ficheiro actual, &eg; se o DOCTYPE fizer referência a <quote
+>DTD/xhtml1-transitional.dtd</quote
+> e o ficheiro for <filename
+>/home/ze/teste.xml</filename
+>, espera-se que o DTD esteja localizado em <filename
+>/home/ze/DTD/xhtml1-transitional.dtd</filename
+>. Contudo, os DTD's remotos por HTTP também são suportados.</para>
+
+<para
+>Se o ficheiro não tiver um DOCTYPE associado, será verificado se tem uma estrutura/formatação correcta.</para>
+
+<para
+>Para aprender mais sobre o &XML;, verifique as <ulink url="http://www.w3.org/XML/"
+> páginas oficiais do &XML; </ulink
+>.</para>
+
+<para
+>Internamente, este 'plugin' invoca o comando externo <command
+>xmllint</command
+>, que faz parte da 'libxml2'. Se este comando não estiver instalado correctamente no seu sistema, o 'plugin' não irá funcionar.</para>
+
+<para
+>Para carregar este 'plugin', abra a janela de configuração do &kate; em <menuchoice
+><guimenu
+>Configuração</guimenu
+> <guimenuitem
+>Configurar o &kate;...</guimenuitem
+></menuchoice
+>. Depois, seleccione a <guilabel
+>Validação de &XML;</guilabel
+>, que irá aparecer na secção <guilabel
+>Aplicação</guilabel
+> / <guilabel
+>'Plugins'</guilabel
+> e feche a janela. </para>
+
+<sect2 id="xmlcheck-menu">
+<title
+>Estrutura do Menu</title>
+
+<variablelist>
+<varlistentry>
+<term>
+<menuchoice
+><guimenu
+>&XML;</guimenu
+> <guimenuitem
+>Validar o &XML;</guimenuitem
+> </menuchoice>
+</term>
+<listitem
+><para
+>Isso irá iniciar a verificação, como descrito em cima.</para
+></listitem>
+</varlistentry>
+</variablelist>
+
+</sect2>
+
+<sect2 id="xmlcheck-thanks-and-acknowledgements">
+<title
+>Agradecimentos e Reconhecimentos</title>
+<para
+>Plugin para o &kate; de <quote
+>Validação de XML</quote
+> com 'copyright' 2002 de &Daniel.Naber; &Daniel.Naber.mail;. </para>
+<para
+>Documentação com 'copyright' 2002 de &Daniel.Naber;</para>
+
+</sect2>
+</sect1>
+
+<sect1 id="kate-application-plugin-xmltools">
+<!-- from doc/kate-addons/xmlcheck.docbook -->
+<sect1info>
+<authorgroup
+><author
+>&Daniel.Naber; &Daniel.Naber.mail; </author
+></authorgroup>
+</sect1info>
+<title
+>Completação de &XML;</title>
+
+<para
+>Este 'plugin' dá-lhe algumas sugestões sobre o que é permitido numa dada posição de um ficheiro &XML;, de acordo com a DTD do ficheiro. Irá apresentar os elementos, atributos, valores de atributos ou entidades possíveis, dependendo da posição do cursor (&eg; todas as entidades aparecem se o carácter à esquerda do cursor for o <quote
+>&amp;</quote
+>). Também é possível fechar a marca aberta mais próxima à esquerda.</para>
+
+<para
+>A <acronym
+>DTD</acronym
+> deverá existir no formato &XML;, como é produzido pelo programa em Perl <command
+>dtdparse</command
+>. Iremos chamar a uma DTD neste formato uma <quote
+>meta-DTD</quote
+>. São fornecidas algumas meta-DTD's. As mesmas estão instaladas na pasta <filename class="directory"
+>katexmltools/</filename
+> em <userinput
+><command
+>qtpaths</command
+> <option
+>--paths GenericDataLocation </option
+></userinput
+>, que também é a pasta predefinida quando escolhe a opção <guimenuitem
+>Atribuir uma Meta-DTD...</guimenuitem
+>. Para produzir as suas próprias meta-DTD's, obtenha o <command
+>dtdparse</command
+> em <ulink url="http://dtdparse.sourceforge.net"
+>http://dtdparse.sourceforge.net</ulink
+>.</para>
+
+<sect2 id="xmltools-how-to-use">
+<title
+>Como Usar</title>
+
+<para
+>Inicie o &kate; e abra a janela de configuração em <menuchoice
+><guimenu
+>Configuração</guimenu
+> <guimenuitem
+>Configurar o &kate;...</guimenuitem
+></menuchoice
+>. Depois, seleccione a <guilabel
+>Completação de &XML;</guilabel
+> que irá aparecer na secção <guilabel
+>Aplicação</guilabel
+>/<guilabel
+>'Plugins'</guilabel
+>, fechando depois a janela. Depois disso, seleccione a opção do menu <menuchoice
+><guimenu
+>&XML;</guimenu
+><guimenuitem
+>Atribuir uma Meta-DTD...</guimenuitem
+></menuchoice
+>. Se o seu documento não tiver nenhum <quote
+>DOCTYPE</quote
+> ou se este for desconhecido, terá de seleccionar uma meta-DTD no sistema de ficheiros. Caso contrário, será carregada automaticamente a meta-DTD que corresponder ao DOCTYPE do documento actual.</para>
+
+<para
+>Pode agora usar o 'plugin' enquanto escreve o seu texto:</para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><keycap
+>&lt;</keycap
+> (tecla 'menor que')</term>
+<listitem
+><para
+>Isto irá despoleta uma lista com os elementos possíveis, a menos que o cursor já esteja dentro de uma marca. Lembre-se que não pode usar isto para inserir o elemento de topo (&eg; <quote
+>&lt;html&gt;</quote
+>).</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><keycap
+>&lt;</keycap
+><keycap
+>/</keycap
+> (tecla 'menor que' + barra)</term>
+<listitem
+><para
+>Se introduzir estes caracteres, irá oferecer o fecho do elemento actual (o mais próximo do que se encontra à esquerda do cursor). Carregue em &Enter; para aceitar a sugestão. Ao contrário do item <guimenuitem
+>Fechar o Elemento</guimenuitem
+>, isto funciona apenas com uma DTD atribuída.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><keycap
+>"</keycap
+> (tecla de 'aspas')</term>
+<listitem
+><para
+>A tecla de aspas irá despoletar uma lista com os valores possíveis dos atributos (se existirem), caso esteja dentro de uma marca.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><keycap
+>&nbsp;</keycap
+> (tecla de espaço)</term>
+<listitem
+><para
+>Esta tecla irá despoletar uma lista com os atributos possíveis para o elemento actual, caso esteja dentro de uma marca.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><keycap
+>&amp;</keycap
+> (tecla de 'e-comercial')</term>
+<listitem
+><para
+>Esta tecla irá despoletar uma lista com as entidades conhecidas.</para
+></listitem>
+</varlistentry>
+</variablelist>
+
+</sect2>
+
+<sect2 id="xmltools-features-and-limitations">
+<title
+>Funcionalidades e Limitações</title>
+
+<para
+>Poderá testar todas as funções e limitações se carregar o ficheiro <filename
+>katexmltools/testcases.xml</filename
+> em <userinput
+><command
+>qtpaths</command
+> <option
+>--paths GenericDataLocation </option
+></userinput
+> no &kate; e seguir as instruções descritas.</para>
+
+</sect2>
+
+
+<sect2 id="xmltools-menu">
+<title
+>Estrutura do Menu</title>
+
+<variablelist id="xml-insert-element">
+<varlistentry>
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>Return</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>&XML;</guimenu
+> <guimenuitem
+>Inserir um Elemento...</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Isto irá abrir uma janela que lhe permite introduzir um elemento em &XML;. Os caracteres &lt;, &gt; e a marca de fecho serão inseridos automaticamente. Se tiver seleccionado algum texto quando tiver seleccionado este item do menu, o texto seleccionado será rodeado pela marca de abertura e de fecho. A janela também oferece a completação de todos os elementos que poderão ser inseridos na posição actual do cursor, caso tenha atribuído uma meta-DTD com a opção <guimenuitem
+>Atribuir uma Meta-DTD...</guimenuitem
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="xml-close-element">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>&lt;</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>&XML;</guimenu
+> <guimenuitem
+>Fechar o Elemento</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Isto irá procurar no seu texto por uma marca que ainda não tenha sido fechada, fechando-a então ao introduzir a marca de fecho correspondente. A procura começa na posição do cursor e segue para a esquerda. Se não encontrar nenhuma marca aberta, não irá acontecer nada.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="xml-assign-metadtd">
+<term
+><menuchoice
+><guimenu
+>&XML;</guimenu
+> <guimenuitem
+>Atribuir uma Meta-DTD...</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Isto irá indicar ao 'plugin' qual a meta-DTD a usar para o documento actual. Lembre-se que esta associação não será gravada. Terá de a repetir quando iniciar o  &kate; da próxima vez.</para
+></listitem>
+</varlistentry>
+</variablelist>
+
+</sect2>
+
+<sect2 id="xmltools-thanks-and-acknowledgements">
+<title
+>Agradecimentos e Reconhecimentos</title>
+<para
+>Plugin para o &kate; de <quote
+>Completação de XML</quote
+> com 'copyright' 2002 de &Daniel.Naber; &Daniel.Naber.mail;. </para>
+<para
+>Versão para o KDE SC 4 com 'copyright' 2010 de Tomáš Trnka</para>
+<para
+>Documentação com 'copyright' 2001,2002 de &Daniel.Naber;</para>
+</sect2>
+</sect1>
+
+
+</chapter>

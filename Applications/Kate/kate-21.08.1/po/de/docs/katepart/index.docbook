@@ -1,0 +1,284 @@
+<?xml version="1.0" ?>
+<!DOCTYPE book PUBLIC "-//KDE//DTD DocBook XML V4.5-Based Variant V1.1//EN"
+"dtd/kdedbx45.dtd" [
+  <!ENTITY kappname "&katepart;">
+  <!ENTITY fundamentals-chapter SYSTEM "fundamentals.docbook">
+  <!ENTITY configuring-chapter SYSTEM "configuring.docbook">
+  <!ENTITY menus-chapter SYSTEM "menus.docbook">
+  <!ENTITY part-chapter SYSTEM "part.docbook">
+  <!ENTITY advanced-chapter SYSTEM "advanced.docbook">
+  <!ENTITY dev-chapter SYSTEM "development.docbook">
+  <!ENTITY vi-appendix SYSTEM "vi.docbook">
+  <!ENTITY regexp-appendix SYSTEM "regular-expressions.docbook">
+  <!ENTITY % addindex "IGNORE">
+  <!ENTITY % German "INCLUDE"
+> <!-- change language only here -->
+]>
+
+<book id="katepart" lang="&language;">
+
+<bookinfo>
+<title
+>Das Handbuch zu &katepart;</title>
+<authorgroup>
+<author
+>&Thad.McGinnis; &Thad.McGinnis.mail;</author>
+<author
+>&Anne-Marie.Mahfouf; &Anne-Marie.Mahfouf.mail;</author>
+<author
+>&Anders.Lund; &Anders.Lund.mail;</author>
+<author
+>&TC.Hollingsworth; &TC.Hollingsworth.mail;</author>
+<othercredit role="developer"
+>&Christoph.Cullmann; &Christoph.Cullmann.mail; </othercredit>
+
+<othercredit role="reviewer"
+>&Lauri.Watts; &Lauri.Watts.mail; </othercredit>
+
+<othercredit role="translator"
+><firstname
+>Matthias</firstname
+><surname
+>Schulz</surname
+><affiliation
+><address
+><email
+>matthias.schulz@kdemail.net</email
+></address
+></affiliation
+><contrib
+>Übersetzer</contrib
+></othercredit
+> 
+
+</authorgroup>
+
+<copyright>
+<year
+>2000</year
+><year
+>2001</year>
+<holder
+>&Thad.McGinnis;</holder>
+</copyright>
+<copyright>
+<year
+>2005</year>
+<holder
+>&Anne-Marie.Mahfouf; &Anne-Marie.Mahfouf.mail;</holder>
+<holder
+>&Anders.Lund; &Anders.Lund.mail;</holder>
+</copyright>
+<copyright>
+<year
+>2011</year
+><year
+>2012</year
+><year
+>2013</year
+><year
+>2014</year>
+<holder
+>&TC.Hollingsworth; &TC.Hollingsworth.mail;</holder>
+</copyright>
+<legalnotice
+>&FDLNotice;</legalnotice>
+
+<date
+>2020-10-10</date>
+<releaseinfo
+>&frameworks; 5.75</releaseinfo>
+
+<abstract>
+<para
+>&katepart; ist eine voll ausgestattete Texteditorkomponente von &kde;.</para>
+</abstract>
+
+<keywordset>
+<keyword
+>KDE</keyword>
+<keyword
+>KatePart</keyword>
+<keyword
+>KWrite</keyword>
+<keyword
+>text</keyword>
+<keyword
+>editor</keyword>
+</keywordset>
+
+</bookinfo>
+
+<chapter id="introduction">
+<title
+>Einleitung</title>
+
+<para
+>&katepart; ist eine voll ausgestattete Texteditorkomponente, die in vielen &Qt;- und &kde;-Programmen verwendet wird. &katepart; ist mehr als nur ein Texteditor, es ist als Editor für Programmierer gedacht und könnte mindestens als teilweise Alternative zu leistungsfähigeren Editoren betrachtet werden. Einer der wesentlichen Vorteile von &katepart; ist die farbige Darstellung von Quelltext, angepasst für viele verschiedene Programmiersprachen wie: C/C++, &Java;, Python, Perl, Bash, Modula 2, &HTML; und Ada. </para>
+<para
+>&kwrite; ist eine einfache Texteditoranwendung, die auf &katepart; aufbaut. &kwrite; hat eine Oberfläche für das Bearbeiten eines einzelnen Dokumentes (<acronym
+>SDI</acronym
+>). &kwrite; ist eine sehr einfache Anwendung, deswegen gibt es keine eigene Dokumentation. Wenn Sie &kwrite; benutzen können, dann können Sie &katepart; überall benutzen.  </para>
+</chapter>
+
+&fundamentals-chapter;
+
+&part-chapter;
+
+&menus-chapter;
+
+&advanced-chapter;
+
+&dev-chapter;
+
+&configuring-chapter;
+
+<chapter id="credits">
+<title
+>Danksagungen und Lizenz</title>
+
+<para
+>&katepart; und &kwrite; Copyright 2001-2021 das &kate;-Team.</para>
+
+<para
+>Basiert auf dem Original-&kwrite;, mit Copyright 2000 von Jochen Wilhelmy <email
+>digisnap@cs.tu-berlin.de</email
+> </para>
+
+<para
+>Mitarbeit:</para>
+
+<itemizedlist>
+<listitem>
+<para
+>&Christoph.Cullmann; &Christoph.Cullmann.mail;</para>
+</listitem>
+
+<listitem>
+<para
+>Michael Bartl <email
+>michael.bartl1@chello.at</email
+></para>
+</listitem>
+
+<listitem>
+<para
+>Phlip <email
+>phlip_cpp@my-deja.com</email
+></para>
+</listitem>
+
+<listitem>
+<para
+>&Anders.Lund; &Anders.Lund.mail;</para>
+</listitem>
+
+<listitem>
+<para
+>Matt Newell <email
+>newellm@proaxis.com</email
+></para>
+</listitem>
+
+<listitem>
+<para
+>&Joseph.Wenninger; &Joseph.Wenninger.mail;</para>
+</listitem>
+
+<listitem>
+<para
+>Jochen Wilhelmy <email
+>digisnap@cs.tu-berlin.de</email
+></para>
+</listitem>
+
+<listitem>
+<para
+>&Michael.Koch; &Michael.Koch.mail;</para>
+</listitem>
+
+<listitem>
+<para
+>&Christian.Gebauer; &Christian.Gebauer.mail;</para>
+</listitem>
+
+<listitem>
+<para
+>&Simon.Hausmann; &Simon.Hausmann.mail;</para>
+</listitem>
+
+<listitem>
+<para
+>Glen Parker <email
+>glenebob@nwlink.com</email
+></para>
+</listitem>
+
+<listitem>
+<para
+>Scott Manson <email
+>sdmanson@altel.net</email
+></para>
+</listitem>
+
+<listitem>
+<para
+>&John.Firebaugh; &John.Firebaugh.mail;</para>
+</listitem>
+
+<listitem>
+<para
+>Nibaldo González <email
+>nibgonz@gmail.com</email
+></para>
+</listitem>
+</itemizedlist>
+
+<para
+>Die Dokumentation zu &katepart; basiert auf der Originaldokumentation zu &kwrite; angepasst für alle Nutzer von &katepart;. </para>
+
+<para
+>Die Originaldokumentation für &kwrite; wurde von &Thad.McGinnis; &Thad.McGinnis.mail; verfasst, viele Änderungen stammen von &Cristian.Tibirna; &Cristian.Tibirna.mail;. Kontrollgelesen und nach Docbook konvertiert wurde diese von &Lauri.Watts; &Lauri.Watts.mail;. Aktualisierungen kamen von &Anne-Marie.Mahfouf; &Anne-Marie.Mahfouf.mail; und &Anders.Lund; &Anders.Lund.mail;. </para>
+
+<para
+>Die aktuelle Dokumentation für &katepart; wird von &TC.Hollingsworth; &TC.Hollingsworth.mail; gepflegt. Bitte  schicken Sie Kommentare oder Verbesserungsvorschläge unter der Adresse <email
+>kwrite-devel@kde.org</email
+> an die Entwickler-Mailingliste von &katepart; oder eröffnen Sie ein Ticket im <ulink url="https://bugs.kde.org/"
+>&kde; Bugtracking System</ulink
+>. </para>
+
+<para
+>Übersetzungen von:</para
+><itemizedlist
+><listitem
+><para
+>Thomas Diehl <email
+>thd@kde.org</email
+>, GUI-Übersetzung</para
+></listitem
+><listitem
+><para
+>Matthias Schulz<email
+>matthias.schulz@kdemail.net</email
+>, Übersetzung der Dokumentation</para
+></listitem
+></itemizedlist
+> &underFDL; &underGPL; </chapter>
+
+&vi-appendix;
+
+&regexp-appendix;
+
+&documentation.index;
+</book>
+<!--
+Local Variables:
+mode: sgml
+sgml-namecase-general: t
+sgml-namecase-entity: nil
+sgml-general-insert-case: lower
+sgml-minimize-attributes: nil
+sgml-omittag: nil
+End:
+-->
+

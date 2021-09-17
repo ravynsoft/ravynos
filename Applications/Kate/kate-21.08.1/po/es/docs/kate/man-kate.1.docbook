@@ -1,0 +1,362 @@
+<?xml version="1.0" ?>
+<!DOCTYPE refentry PUBLIC "-//KDE//DTD DocBook XML V4.5-Based Variant V1.1//EN" "dtd/kdedbx45.dtd" [
+<!ENTITY % Spanish "INCLUDE">
+]>
+
+<refentry lang="&language;">
+<refentryinfo>
+<title
+>Manual del usuario de &kate;</title>
+<author
+>&Lauri.Watts; &Lauri.Watts.mail;</author>
+<date
+>2016-04-26</date>
+<releaseinfo
+>Aplicaciones 16.04</releaseinfo>
+<productname
+>KDE Applications</productname>
+</refentryinfo>
+
+<refmeta>
+<refentrytitle
+><command
+>kate</command
+></refentrytitle>
+<manvolnum
+>1</manvolnum>
+</refmeta>
+
+<refnamediv>
+<refname
+><command
+>kate</command
+></refname>
+<refpurpose
+>Editor de texto avanzado para &kde;</refpurpose>
+</refnamediv>
+
+<refsynopsisdiv>
+<cmdsynopsis
+><command
+>kate</command
+> <group choice="opt"
+><option
+>-s, --start</option
+> <replaceable
+>nombre</replaceable
+> </group
+> <group choice="opt"
+><option
+>--startanon</option
+></group
+> <group choice="opt"
+><option
+>-n, --new</option
+></group
+> <group choice="opt"
+><option
+>-b, --block</option
+></group
+> <group choice="opt"
+><option
+>-p, --pid</option
+> <replaceable
+>pid</replaceable
+></group
+> <group choice="opt"
+><option
+>-e, --encoding</option
+> <replaceable
+>nombre</replaceable
+></group
+> <group choice="opt"
+><option
+>-l, --line</option
+> <replaceable
+>línea</replaceable
+></group
+> <group choice="opt"
+><option
+>-c, --column</option
+> <replaceable
+>columna</replaceable
+></group
+> <group choice="opt"
+><option
+>-i, --stdin</option
+></group
+> <group choice="opt"
+><option
+>--tempfile</option
+></group
+> <group choice="opt"
+><option
+><replaceable
+>archivo</replaceable
+></option
+></group
+> </cmdsynopsis>
+</refsynopsisdiv>
+
+<refsect1>
+<title
+>Descripción</title>
+<para
+>&kate; es el editor de texto avanzado de &kde;. </para>
+<para
+>&kate; también proporciona la parte de edición para varias aplicaciones bajo el nombre &kwrite;.</para>
+<para
+>Algunas de las muchas características de &kate; son: resaltado de sintaxis configurable para lenguajes que abarcan desde C y C++ hasta <acronym
+>HTML</acronym
+> y guiones bash, la posibilidad de crear y mantener proyectos, una interfaz de múltiples documentos (<acronym
+>MDI</acronym
+>), y un emulador de terminal integrado. </para>
+
+<para
+>Pero &kate; es más que un editor para programadores. Su capacidad para abrir varios archivos a la vez lo hace ideal para editar los numerosos archivos de configuración de un entorno &UNIX;. Este documento ha sido escrito en &kate;. </para>
+
+
+</refsect1>
+
+<refsect1>
+<title
+>Opciones</title>
+
+<variablelist>
+<varlistentry>
+<term
+><option
+>-s</option
+>, <option
+>--start</option
+> <replaceable
+>nombre</replaceable
+></term>
+<listitem
+><para
+>Inicia &kate; con una sesión determinada.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><option
+>--startanon</option
+></term>
+<listitem
+><para
+>Inicia &kate; con una nueva sesión anónima; implica <option
+>-n</option
+>.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><option
+>-n</option
+>, <option
+>--new</option
+></term>
+<listitem
+><para
+>Fuerza el inicio de una nueva instancia de &kate; (se ignora si se usa <option
+>start</option
+> y otra instancia de &kate; ya tiene abierta la sesión dada); se fuerza si no se da ningún parámetro ni ninguna URL.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><option
+>-b</option
+>, <option
+>--block</option
+></term>
+<listitem
+><para
+>Si se utiliza una instancia de &kate; que ya se está ejecutando, se bloquea hasta que se salga de ella si se da una URL para abrir.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><option
+>-p, --pid</option
+> <replaceable
+> pid</replaceable
+></term>
+<listitem
+><para
+>Solo intenta reutilizar la instancia de &kate; con este <replaceable
+>pid</replaceable
+> (se ignora si se usa <option
+>start</option
+> y otra instancia de &kate; ya tiene abierta la sesión dada).</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><option
+>-e, --encoding</option
+> <replaceable
+> nombre</replaceable
+></term>
+<listitem
+><para
+>Establece la codificación para el archivo a abrir</para
+><para
+>Puede utilizar esto para forzar la apertura de un archivo en formato UTF-8, por ejemplo. (La orden <command
+>iconv -l</command
+> proporciona una lista de codificaciones que le puede resultar útil).</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><option
+>-l, --line</option
+> <replaceable
+> línea</replaceable
+></term>
+<listitem
+><para
+>Se desplaza hasta esta línea</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><option
+>-c, --column</option
+> <replaceable
+> columna</replaceable
+></term>
+<listitem
+><para
+>Se desplaza hasta esta columna</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><option
+>-i, --stdin</option
+></term>
+<listitem
+><para
+>Lee el contenido de <filename
+>stdin</filename
+></para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><option
+>--tempfile</option
+></term>
+<listitem
+><para
+>Los archivos o &URL; abiertos por la aplicación se borrarán después de haberlos utilizado.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><option
+><replaceable
+>archivo</replaceable
+></option
+></term>
+<listitem
+><para
+>Archivo que se quiere abrir</para
+></listitem>
+</varlistentry>
+</variablelist>
+
+</refsect1>
+
+<refsect1>
+<title
+>Ver también</title>
+
+<simplelist
+><member
+>Se dispone de documentación de usuario más detallada en <ulink url="help:/kate"
+>help:/kate</ulink
+> (puede introducir esta <acronym
+>URL</acronym
+> en &konqueror;, o ejecutar <userinput
+><command
+>khelpcenter</command
+> <parameter
+>help:/kate</parameter
+></userinput
+>).</member>
+<member
+>kf5options(7)</member>
+<member
+>qt5options(7)</member>
+<member
+>También existe más información disponible en <ulink url="http://kate-editor.org/"
+>el sitio web de &kate;</ulink
+>.</member>
+</simplelist>
+</refsect1>
+
+<refsect1>
+<title
+>Ejemplos</title>
+
+<para
+>Para abrir un archivo con el nombre <filename
+>source.cpp</filename
+> en la columna 15, línea 25, en una ventana existente de &kate;, puede usar:</para>
+<screen
+><userinput
+><command
+>kate</command
+> <option
+>-c 15</option
+> <option
+>-l
+25</option
+> <option
+>-u</option
+> <filename
+>source.cpp</filename
+></userinput
+> </screen>
+
+<para
+>Si dispone de una conexión permanente a Internet, puede aprovechar la característica de transparencia de red de &kde; para abrir un archivo de un sitio FTP. Si no tiene permiso de escritura en el servidor remoto, podrá abrir el archivo en modo de lectura, y se le preguntará por una ubicación local para guardarlo en caso de que lo modifique. Si tiene permiso de escritura en el servidor, los cambios se guardarán transparentemente sobre la red.</para>
+<screen
+><userinput
+><command
+>kate</command
+> <option
+><replaceable
+>ftp://ftp.kde.org/pub/kde/README</replaceable
+></option
+></userinput
+></screen>
+
+<!-- FIXME: Some more useful examples would be cool, how about this snagged -->
+<!-- from a mail of anders (slightly edited /line/l to remove the double -->
+<!-- dashes:
+> /some/file/path/file.name:lineno
+
+> it would rock if Kate could understand that and not only open up file.name,
+
+> but jump to lineno after the file is opened.
+
+How bad is it to have to convert that into
+-l lineno /some/file/path/file.name
+
+sed s,([^:]*):(\d+),-l \2 \1,
+
+will do that, for example.-->
+
+</refsect1>
+
+<refsect1>
+<title
+>Autores</title>
+<para
+>El encargado de &kate; es &Christoph.Cullmann; &Christoph.Cullmann.mail;. Una extensa lista de autores y demás personas implicadas está disponible en el manual de usuario completo, antes mencionado.</para>
+</refsect1>
+
+</refentry>

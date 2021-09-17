@@ -1,0 +1,7818 @@
+<!-- auto-generate scripting documentation (kwrite-devel@kde.org Re: [kate] doc/kate: document most of the new scripts in 4.10) -->
+<chapter id="dev">
+<chapterinfo>
+<authorgroup>
+<author
+>&TC.Hollingsworth; &TC.Hollingsworth.mail;</author>
+<othercredit role="translator"
+> <firstname
+>Johan</firstname
+> <surname
+>Thelmén</surname
+> <affiliation
+><address
+><email
+>jth@home.se</email
+></address
+></affiliation
+> <contrib
+>Översättare</contrib
+></othercredit
+> 
+</authorgroup>
+</chapterinfo>
+<title
+>Utöka &katepart;</title>
+
+<sect1 id="dev-intro">
+<title
+>Inledning</title>
+
+<para
+>Som alla avancerade editorer erbjuder &katepart; en mängd sätt att utöka dess funktionalitet. Du kan <link linkend="dev-scripting"
+>skriva enkla skript för att lägga till funktionalitet med &javascript;</link
+>. Till sist, när du väl har utökat &katepart;, är du välkommen att <ulink url="https://kate-editor.org/join-us/"
+>gå med</ulink
+> och dela med dig av dina förbättringar med hela världen.</para>
+
+</sect1>
+
+<sect1 id="highlight">
+<title
+>Arbeta med syntaxfärgläggning</title>
+
+<sect2 id="highlight-overview">
+
+<title
+>Översikt</title>
+
+<para
+>Syntaxfärgläggning är det som gör att editorn automatiskt visar text med olika stilar/färger, beroende på strängens funktion i relation till filens syfte. Till exempel i programkällkod, så kan kontrollsatser visas i fetstil, medan datatyper och kommentarer får annorlunda färg än resten av texten. Det här ökar textens läsbarhet väsentligt, och hjälper på så sätt författaren att vara effektivare och mer produktiv.</para>
+
+<mediaobject>
+<imageobject
+><imagedata format="PNG" fileref="highlighted.png"/></imageobject>
+<textobject
+><phrase
+>En C++ funktion i Perl, återgiven med syntaxfärgläggning.</phrase
+></textobject>
+<caption
+><para
+>En C++ funktion i Perl, återgiven med syntaxfärgläggning.</para>
+</caption>
+</mediaobject>
+
+<mediaobject>
+<imageobject
+><imagedata format="PNG" fileref="unhighlighted.png"/></imageobject>
+<textobject
+><phrase
+>Samma C++ funktion, utan syntaxfärgläggning.</phrase
+></textobject>
+<caption
+><para
+>Samma C++ funktion, utan syntaxfärgläggning.</para
+></caption>
+</mediaobject>
+
+<para
+>Av de två exemplen, vilket är lättast att läsa?</para>
+
+<para
+>&kappname; levereras med ett flexibelt, anpassningsbart och avancerat system för att göra syntaxfärgläggning, och standarddistributionen tillhandahåller definitioner för ett brett område av programspråk, formaterings- och skriptspråk samt andra textfilformat. Dessutom kan du tillhandahålla dina egna definitioner med enkla &XML;-filer.</para>
+
+<para
+>&kappname; detekterar automatiskt de riktiga syntaxreglerna när du öppnar en fil, baserat på filens &MIME;-typ, som avgörs av dess filändelse, eller om den inte har någon, dess innehåll. Skulle du råka ut för ett dåligt val, kan du ställa in syntaxen som används för hand med menyn <menuchoice
+><guimenu
+>Verktyg</guimenu
+> <guisubmenu
+>Färgläggning</guisubmenu
+></menuchoice
+>.</para>
+
+<para
+>Stilarna och färgerna som används av varje syntaxfärgläggningsläge kan anpassas under fliken <link linkend="prefcolors-highlighting-text-styles"
+>Färgläggnińgstextstilar</link
+> i <link linkend="config-dialog"
+>inställningsdialogrutan</link
+>, medan &MIME;-typerna och filändelserna det ska användas för hanteras under fliken <link linkend="pref-open-save-modes-filetypes"
+>Lägen och filtyper</link
+>.</para>
+
+<note>
+<para
+>Syntaxfärgläggning finns för att förbättra läsbarheten för riktig text, men du kan inte lita på att den validerar din text. Att markera text för syntax kan vara svårt, beroende på formatet som du använder, och i vissa fall är upphovsmännen till syntaxreglerna stolta om 98 procent av texten visas korrekt, även om du behöver en ovanlig stil för att se de felaktiga 2 procenten.</para>
+</note>
+
+</sect2>
+
+<sect2 id="katehighlight-system">
+
+<title
+>&kappname;s syntaxfärgläggningssystem</title>
+
+<para
+>Det här avsnittet beskriver &kappname;s syntaxfärgläggningsmekanism i mer detalj. Det är avsett för dig, om du vill veta mer om den, eller om du vill skapa och ändra syntaxdefinitioner.</para>
+
+<sect3 id="katehighlight-howitworks">
+
+<title
+>Hur det fungerar</title>
+
+<para
+>Så fort du öppnar en fil, är en av de första sakerna som &kappname;-editorn gör att avgöra vilken syntaxdefinition som ska användas för filen. När filens text läses in, och medan du skriver i den, så analyserar syntaxfärgläggningssystemet texten enligt reglerna som definieras i syntaxdefinitionen och markerar var i den som olika sammanhang och stilar börjar och slutar.</para>
+
+<para
+>När du skriver in text i dokumentet, så analyseras och markeras den nya texten i farten, så att om du tar bort ett tecken som markeras som början eller slutet på ett sammanhang, så ändras stilen på den omgivande texten i enlighet med detta.</para>
+
+<para
+>Syntaxdefinitioner som används av &kappname;s syntaxfärgläggningssystem är &XML;-filer, som innehåller <itemizedlist>
+<listitem
+><para
+>Regler för att detektera funktionen hos text, organiserade i sammanhangsblock</para
+></listitem>
+<listitem
+><para
+>Listor med nyckelord</para
+></listitem>
+<listitem
+><para
+>Definitioner av stilobjekt</para
+></listitem>
+</itemizedlist>
+</para>
+
+<para
+>När texten analyseras utvärderas detekteringsreglerna i den ordning som de definierades, och om början på den nuvarande strängen matchar en regel, så används motsvarande sammanhang. Startpunkten i texten flyttas till den sista punkten där regeln matchade, och en ny genomgång av reglerna sker, med början i sammanhanget som anges av den matchande regeln.</para>
+
+</sect3>
+
+<sect3 id="highlight-system-rules">
+<title
+>Regler</title>
+
+<para
+>Detekteringsreglerna är centrala för färgläggningsdetekteringssystemet. En regel är en sträng, ett tecken eller ett reguljärt uttryck som texten som ska analyseras matchas mot. Den innehåller information om vilken stil som ska användas för den delen av texten som matchar. Den kan byta arbetssammanhanget för systemet, antingen till ett sammanhang som anges explicit, eller till det föregående sammanhanget som användes av texten.</para>
+
+<para
+>Reglerna organiseras i sammanhangsgrupper. En sammanhangsgrupp används för de huvudsakliga koncepten i formatets text, till exempel textsträngar inom citationstecken eller kommentarblock i programkällkod. Det här försäkrar att färgläggningssystemet inte behöver gå igenom alla regler när det inte är nödvändigt, och att vissa teckensekvenser i texten kan hanteras annorlunda beroende på det nuvarande sammanhanget. </para>
+
+<para
+>Sammanhang kan skapas dynamiskt för att till exempel tillåta användning av instansspecifik data i regler.</para>
+
+</sect3>
+
+<sect3 id="highlight-context-styles-keywords">
+<title
+>Sammanhangsstilar och nyckelord</title>
+
+<para
+>I vissa programspråk, hanteras heltal annorlunda än flyttal av kompilatorn (programmet som översätter källkoden till körbart binärformat), och det kan finnas tecken som har en särskild mening i en sträng med citationstecken. I sådana fall är det vettigt att visa dem på ett annat sätt än omgivningen så att de är lätta att identifiera när texten läses. Så även om de inte representerar speciella sammanhang, så kan de betraktas som sådana av syntaxfärgläggningssystemet, så att de kan markeras för att visas på ett annorlunda sätt.</para>
+
+<para
+>En syntaxdefinition kan innehålla så många stilar som krävs för att täcka koncepten i det format den används för.</para>
+
+<para
+>I många format finns det en lista på ord som representerar ett speciellt koncept. Till exempel i programspråk, så är kontrollsatser ett koncept, namn på datatyper ett annat, och inbyggda funktioner i språket ett tredje. &kappname;s syntaxfärgläggningssystem kan använda sådana listor för att detektera och markera ord i texten för att visa koncepten för textformaten.</para>
+
+</sect3>
+
+<sect3 id="kate-highlight-system-default-styles">
+<title
+>Standardstilar</title>
+
+<para
+>Om du öppnar en C++ källkodsfil, en &Java; källkodsfil och ett &HTML;-dokument i &kappname;, så ser du att även om formaten är olika, och olika ord därför väljes för särskild behandling, så är färgerna som används samma. Det här beror på att &kappname; har en fördefinierad lista med standardstilar, som används av varje individuell syntaxdefinition.</para>
+
+<para
+>Det här gör det lätt att känna igen liknande koncept i olika textformat. Kommentarer finns till exempel i nästa alla program-, skript- eller formateringsspråk, och när de visas med samma stil i alla språk, behöver du inte stanna och tänka efter för att identifiera dem i texten.</para>
+
+<tip>
+<para
+>Alla stilar i en syntaxdefinition använder en av standardstilarna. Några få syntaxdefinitioner använder fler stilar än det finns som standard, så om du ofta använder ett format, kan det vara värt att titta i inställningsdialogrutan för att se om några koncept använder samma stil. Det finns till exempel bara en standardstil för strängar, men eftersom programspråket Perl hanterar två sorters strängar, kan du utöka färgläggningen genom att ställa in dessa så att de skiljer sig något. Alla <link linkend="kate-highlight-default-styles"
+>tillgängliga standardstilar</link
+> förklaras senare.</para>
+</tip>
+
+</sect3>
+
+</sect2>
+
+<sect2 id="katehighlight-xml-format">
+<title
+>&XML; formatet för syntaxfärgläggningsdefinitioner</title>
+
+<sect3>
+<title
+>Översikt</title>
+
+<para
+>&kappname; använder ramverket för syntaxfärgläggning från KDE Ramverk. &XML;-standardfilen för färgläggning som levereras med &kappname; kompileras normalt i syntaxfärgläggningsbiblioteket. </para>
+
+<para
+>Det här avsnittet är en översikt av färgläggningsdefinitionernas &XML;-format. Det beskriver huvudkomponenterna och deras betydelse och användning, och går djupare in i detaljerna för detekteringsreglerna.</para>
+
+<para
+>Den formella definitionen, som också kallas <acronym
+>XSD</acronym
+> finns i <ulink url="https://commits.kde.org/syntax-highlighting?path=data/schema"
+>arkivet för syntaxfärgläggning</ulink
+> i filen <filename
+>language.xsd</filename
+>. </para>
+
+<para
+>Egna <filename class="extension"
+>.xml</filename
+> färgläggningsdefinitionsfiler finns i <filename class="directory"
+>org.kde.syntax-highlighting/syntax/</filename
+> i användarkatalogen som hittas med <userinput
+><command
+>qtpaths</command
+><option
+> --paths GenericDataLocation</option
+></userinput
+> som oftast är <filename class="directory"
+><envar
+>$HOME</envar
+>/.local/share/</filename
+> och <filename class="directory"
+>/usr/share/</filename
+>. </para>
+
+<para
+>För Flatpak- och Snap-paket, fungerar inte ovanstående katalog eftersom dataplatsen är olika för varje program. I ett Flatpak-program, är platsen för anpassade &XML;-filer oftast <filename class="directory"
+><envar
+>$HOME</envar
+>/.var/app/<replaceable
+>flatpak-paketnamn</replaceable
+>/data/org.kde.syntax-highlighting/syntax/</filename
+> och i ett Snap-program är platsen <filename class="directory"
+><envar
+>$HOME</envar
+>/snap/<replaceable
+>snap-paketnamn</replaceable
+>/current/.local/share/org.kde.syntax-highlighting/syntax/</filename
+>. </para>
+
+<para
+>På &Windows; är filerna placerade i <filename
+>%USERPROFILE%&#92;AppData&#92;Local&#92;org.kde.syntax-highlighting&#92;syntax</filename
+>. <replaceable
+>%USERPROFILE%</replaceable
+> som oftast expanderas till <filename
+>C:&#92;Users&#92;<replaceable
+>user</replaceable
+></filename
+>.</para>
+
+<para
+>Sammanfattningsvis, för de de flesta konfigurationer är katalogen för anpassade &XML;-filer följande:</para>
+
+<informaltable>
+<tgroup cols="2">
+<tbody>
+<row>
+<entry
+>För lokal användare</entry>
+<entry
+><filename class="directory"
+><envar
+>$HOME</envar
+>/.local/share/org.kde.syntax-highlighting/syntax/</filename
+></entry>
+</row>
+<row>
+<entry
+>För alla användare</entry>
+<entry
+><filename class="directory"
+>/usr/share/org.kde.syntax-highlighting/syntax/</filename
+></entry>
+</row>
+<row>
+<entry
+>För Flatpak-paket</entry>
+<entry
+><filename class="directory"
+><envar
+>$HOME</envar
+>/.var/app/<replaceable
+>flatpak-paketnamn</replaceable
+>/data/org.kde.syntax-highlighting/syntax/</filename
+></entry>
+</row>
+<row>
+<entry
+>För Snap-paket</entry>
+<entry
+><filename class="directory"
+><envar
+>$HOME</envar
+>/snap/<replaceable
+>snap-paketnamn</replaceable
+>/current/.local/share/org.kde.syntax-highlighting/syntax/</filename
+></entry>
+</row>
+<row>
+<entry
+>På &Windows;</entry>
+<entry
+><filename
+>%USERPROFILE%&#92;AppData&#92;Local&#92;org.kde.syntax-highlighting&#92;syntax</filename
+></entry>
+</row>
+</tbody>
+</tgroup>
+</informaltable>
+
+<para
+>Om flera filer finns för samma språk, läses filen med det största värdet på attributet <userinput
+>version</userinput
+> i elementet <userinput
+>language</userinput
+> in.</para>
+
+<variablelist>
+<title
+>Huvudkomponenter i &kappname;s färgläggningsdefinitioner</title>
+
+<varlistentry>
+<term
+>En syntaxfärgläggningsfil innehåller ett huvud som anger &XML;-versionen:</term>
+<listitem>
+<programlisting
+>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+</programlisting>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Definitionsfilens rot är elementet <userinput
+>language</userinput
+>. Följande egenskaper är tillgängliga:</term>
+
+<listitem>
+<para
+>Egenskaper som krävs:</para>
+<para
+><userinput
+>name</userinput
+> anger språkets namn. Det visas senare i menyer och dialogrutor.</para>
+<para
+><userinput
+>section</userinput
+> anger kategorin.</para>
+<para
+><userinput
+>extensions</userinput
+> definierar filändelser, såsom &quot;*.cpp;*.h&quot;.</para>
+<para
+><userinput
+>version</userinput
+> anger aktuell version av definitionsfilen i form av ett heltal. När en definitionsfil för färgläggning ändras, försäkra dig om att talet ökas.</para>
+<para
+><userinput
+>kateversion</userinput
+> anger senaste version av &kappname; som stöds.</para>
+
+<para
+>Valfria egenskaper:</para>
+<para
+><userinput
+>mimetype</userinput
+> associerar filers &MIME;-typ.</para>
+<para
+><userinput
+>casesensitive</userinput
+> definierar om nyckelord är skiftlägeskänsliga eller inte.</para>
+<para
+><userinput
+>priority</userinput
+> krävs om en annan syntaxfärgläggningsfil använder samma filändelse. Den högsta prioriteten vinner.</para>
+<para
+><userinput
+>author</userinput
+> innehåller författarens namn och e-postadress.</para>
+<para
+><userinput
+>license</userinput
+> innehåller licensen, oftast MIT-licensen för nya syntaxfärgläggningsfiler.</para>
+<para
+><userinput
+>stil</userinput
+> innehåller språket som tillhandahålls och används av indenterare för egenskapen <literal
+>required-syntax-style</literal
+>.</para>
+<para
+><userinput
+>indenter</userinput
+> definierar vilken indenterare som normalt används. Tillgängliga indenterare är:<emphasis
+>ada, normal, cstyle, cmake, haskell, latex, lilypond, lisp, lua, pascal, python, replicode, ruby</emphasis
+> och <emphasis
+>xml</emphasis
+>.</para>
+<para
+><userinput
+>hidden</userinput
+> definierar om namnet ska visas i &kappname;s menyer.</para>
+<para
+>Nästa rad kan alltså se ut så här:</para>
+<programlisting
+>&lt;language name=&quot;C++&quot; version=&quot;1&quot; kateversion=&quot;2.4&quot; section=&quot;Sources&quot; extensions=&quot;*.cpp;*.h&quot; /&gt;
+</programlisting>
+</listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+>Därefter kommer elementet <userinput
+>highlighting</userinput
+> som innehåller det valfria elementet <userinput
+>list</userinput
+> och det nödvändiga elementen <userinput
+>contexts</userinput
+> och <userinput
+>itemDatas</userinput
+>.</term>
+<listitem>
+<para
+><userinput
+>list</userinput
+> element innehåller en lista med nyckelord. I det här fallet är nyckelorden <emphasis
+>class</emphasis
+> och <emphasis
+>const</emphasis
+>. Du kan lägga till så många listor som du behöver.</para>
+<para
+>Sedan KDE Ramverk 5.53 kan en lista inkludera nyckelord från en annan lista, språk eller fil, genom att använda elementet <userinput
+>include</userinput
+> element.<userinput
+>##</userinput
+> är att separera listnamnet och språkdefinitionens namn, på samma sätt som regeln <userinput
+>IncludeRules</userinput
+>. Det är användbart för att undvika att duplicera nyckelordslistor, om du behöver inkludera nyckelorden från ett annat språk eller fil. Exempelvis innehåller listan <emphasis
+>annat-namn</emphasis
+> nyckelordet <emphasis
+>str</emphasis
+> och alla nyckelorden från listan <emphasis
+>types</emphasis
+>, vilken hör till språket <emphasis
+>ISO C++</emphasis
+>.</para>
+<para
+>Elementet <userinput
+>contexts</userinput
+> innehåller alla sammanhang. Det första sammanhanget är förvalt som start för färgläggningen. Det finns två regler i sammanhanget <emphasis
+>Normal Text</emphasis
+> som matchar listan av nyckelord med namnet <emphasis
+>något-namn</emphasis
+> och en regel som detekterar ett citationstecken och byter sammanhang till <emphasis
+>string</emphasis
+>. För att lära dig mer om regler, läs nästa kapitel.</para>
+<para
+>Den tredje delen är elementet <userinput
+>itemDatas</userinput
+>. Det innehåller alla färger och teckenstilar som behövs av sammanhangen och reglerna. I det här exemplet används <userinput
+>itemData</userinput
+> <emphasis
+>Normal Text</emphasis
+>, <emphasis
+>String</emphasis
+> och <emphasis
+>Keyword</emphasis
+>. </para>
+<programlisting
+>&lt;highlighting&gt;
+    &lt;list name=&quot;något-namn&quot;&gt;
+      &lt;item&gt; class &lt;/item&gt;
+      &lt;item&gt; const &lt;/item&gt;
+    &lt;/list&gt;
+    &lt;list name=&quot;annat-namn&quot;&gt;
+      &lt;item&gt;str&lt;/item&gt;
+      &lt;include&gt;types##ISO C++&lt;/include&gt;
+    &lt;/list&gt;
+    &lt;contexts&gt;
+      &lt;context attribute=&quot;Normal Text&quot; lineEndContext=&quot;#pop&quot; name=&quot;Normal Text&quot; &gt;
+        &lt;keyword attribute=&quot;Keyword&quot; context=&quot;#stay&quot; String=&quot;något-namn&quot; /&gt;
+        &lt;DetectChar attribute=&quot;String&quot; context=&quot;String=&quot;annat-namn&quot; /&gt;
+        &lt;DetectChar attribute=&quot;String&quot; context=&quot;string&quot; char=&quot;&amp;quot;&quot; /&gt;
+      &lt;/context&gt;
+      &lt;context attribute=&quot;String&quot; lineEndContext=&quot;#stay&quot; name=&quot;string&quot; &gt;
+        &lt;DetectChar attribute=&quot;String&quot; context=&quot;#pop&quot; char=&quot;&amp;quot;&quot; /&gt;
+      &lt;/context&gt;
+    &lt;/contexts&gt;
+    &lt;itemDatas&gt;
+      &lt;itemData name=&quot;Normal Text&quot; defStyleNum=&quot;dsNormal&quot; /&gt;
+      &lt;itemData name=&quot;Keyword&quot; defStyleNum=&quot;dsKeyword&quot; /&gt;
+      &lt;itemData name=&quot;String&quot; defStyleNum=&quot;dsString&quot; /&gt;
+    &lt;/itemDatas&gt;
+  &lt;/highlighting&gt;
+</programlisting>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Den sista delen av färgläggningsdefinitionen är den valfria sektionen <userinput
+>general</userinput
+>. Den kan innehålla information om nyckelord, kodvikning, kommentarer, indentering, tomma rader och stavningskontroll.</term>
+
+<listitem>
+<para
+>Sektionen <userinput
+>comment</userinput
+> definierar den sträng som enradskommentarer inleds med. Du kan också definiera en flerradskommentar med <emphasis
+>multiLine</emphasis
+> och den ytterligare egenskapen <emphasis
+>end</emphasis
+>. Det är användbart när användaren trycker på snabbtangenten som motsvarar <emphasis
+>kommentera/avkommentera</emphasis
+>.</para>
+<para
+>Sektionen <userinput
+>keywords</userinput
+> definierar om listor med nyckelord är skiftlägeskänsliga eller inte. Andra egenskaper förklaras senare.</para>
+<para
+>Övriga sektioner, <userinput
+>folding</userinput
+>, <userinput
+>emptyLines</userinput
+> och <userinput
+>spellchecking</userinput
+>, behövs oftast inte och förklaras senare.</para>
+<programlisting
+>&lt;general&gt;
+    &lt;comments&gt;
+      &lt;comment name="singleLine" start="#"/&gt;
+      &lt;comment name="multiLine" start="###" end="###" region="CommentFolding"/&gt;
+    &lt;/comments&gt;
+    &lt;keywords casesensitive="1"/&gt;
+    &lt;folding indentationsensitive="0"/&gt;
+    &lt;emptyLines&gt;
+      &lt;emptyLine regexpr="\s+"/&gt;
+      &lt;emptyLine regexpr="\s*#.*"/&gt;
+    &lt;/emptyLines&gt;
+    &lt;spellchecking&gt;
+      &lt;encoding char="&#225;" string="\&#39;a"/&gt;
+      &lt;encoding char="&#224;" string="\&#96;a"/&gt;
+    &lt;/spellchecking&gt;
+  &lt;/general&gt;
+&lt;/language&gt;
+</programlisting>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+
+</sect3>
+
+<sect3 id="kate-highlight-sections">
+<title
+>Sektionerna i detalj</title>
+<para
+>Den här delen beskriver alla tillgängliga egenskaper för sammanhang, itemData, nyckelord, kommentarer, kodvikning och indentering.</para>
+
+<variablelist>
+<varlistentry>
+<term
+>Elementet <userinput
+>context</userinput
+> hör till gruppen <userinput
+>contexts</userinput
+>. Själva sammanhanget definierar sammanhangsspecifika regler, som vad som ska ske om färgläggningssystemet når slutet på en rad. Tillgängliga egenskaper är:</term>
+
+
+<listitem>
+<para
+><userinput
+>name</userinput
+> anger sammanhangets namn. Regler använder namnet för att ange sammanhanget att byta till om regeln matchar.</para>
+
+<para
+><userinput
+>lineEndContext</userinput
+> definierar sammanhanget som färgläggningssystemet byter till om det når ett radslut. Det kan antingen vara namnet på ett annat sammanhang, <userinput
+>#stay</userinput
+> för att inte byta sammanhang (dvs. göra ingenting) eller <userinput
+>#pop</userinput
+> som gör att det lämnar sammanhanget. Det är till exempel möjligt att använda <userinput
+>#pop#pop#pop</userinput
+> för att återgå tre steg, eller till och med <userinput
+>#pop#pop!Annat_Sammanhang</userinput
+> för att återgå två steg och byta till sammanhanget som heter <userinput
+>Annat_Sammanhang</userinput
+>. Det är också möjligt att byta till ett sammanhang som hör till en annan språkdefinition, på samma sätt som för reglerna <userinput
+>IncludeRules</userinput
+>, t.ex. <userinput
+>Något_Sammanhang##JavaScript</userinput
+>. Observera att det inte går att använda det här sammanhangsbytet tillsammans med <userinput
+>#pop</userinput
+>, exempelvis är <userinput
+>#pop!Något_Sammanhang##JavaScript</userinput
+> inte giltigt. Sammanhangsbyten beskrivs också i <xref linkend="kate-highlight-rules-detailled"/>.</para>
+<para
+><userinput
+>lineEmptyContex</userinput
+> definierar sammanhanget om en tom rad påträffas. Terminologin för sammanhangsbyte är samma som tidigare beskrivits i <emphasis
+>lineEndContext</emphasis
+>. Förval: #stay.</para>
+<para
+><userinput
+>fallthroughContext</userinput
+> anger nästa sammanhang att byta till om ingen regel matchar. Terminologin för sammanhangsbyte är samma som tidigare beskrivits i <emphasis
+>lineEndContext</emphasis
+>. Förval: #stay.</para>
+<para
+><userinput
+>fallthrough</userinput
+> definierar om färgläggningssystemet byter till sammanhanget som anges i <userinput
+>fallthroughContext</userinput
+> om ingen regel matchar. Observera att sedan &kde; &frameworks; 5.62 avråds användning av egenskapen, använd istället <userinput
+>fallthroughContext</userinput
+>, eftersom om egenskapen <userinput
+>fallthroughContext</userinput
+> finns förstås implicit att värdet på <userinput
+>fallthrough</userinput
+> är <emphasis
+>true</emphasis
+>. Förval: <emphasis
+>false</emphasis
+>.</para>
+<para
+><userinput
+>noIndentationBasedFolding</userinput
+> inaktiverar indenteringsbaserad vikning i sammanhanget. Om indenteringsbaserad vikning inte är aktiverad är egenskapen meningslös. Det definieras av elementet <emphasis
+>folding</emphasis
+> i gruppen <emphasis
+>general</emphasis
+>. Förval: <emphasis
+>false</emphasis
+>.</para>
+</listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+>Elementet <userinput
+>itemData</userinput
+> är i gruppen <userinput
+>itemDatas</userinput
+>. Det definierar teckenstilen och färgerna. Det är alltså möjligt att definiera egna stilar och färger. Dock rekommenderar vi att du håller dig till standardstilarna om möjligt, så att användaren alltid ser samma färger använda i olika språk. Ibland finns det dock inget annat sätt, och det är nödvändigt att ändra färg- och teckenegenskaper. Egenskapens namn och defStyleNum krävs, övriga är valfria. Tillgängliga egenskaper är:</term>
+
+<listitem>
+<para
+><userinput
+>name</userinput
+> anger namnet på itemData. Sammanhang och regler använder namnet i egenskapen <emphasis
+>attribute</emphasis
+> för att referera till itemData.</para>
+<para
+><userinput
+>defStyleNum</userinput
+> definierar vilken standardstil som ska användas. Tillgängliga standardstilar förklaras i detalj senare.</para>
+<para
+><userinput
+>color</userinput
+> definierar en färg. Giltiga format är '#rrggbb' eller '#rgb'.</para>
+<para
+><userinput
+>selColor</userinput
+> definierar markeringens färg.</para>
+<para
+><userinput
+>italic</userinput
+> om <emphasis
+>true</emphasis
+>, är texten kursiv.</para>
+<para
+><userinput
+>bold</userinput
+> om <emphasis
+>true</emphasis
+>, är texten i fetstil.</para>
+<para
+><userinput
+>underline</userinput
+> om <emphasis
+>true</emphasis
+>, är texten understruken.</para>
+<para
+><userinput
+>strikeout</userinput
+> om <emphasis
+>true</emphasis
+>, är texten överstruken.</para>
+<para
+><userinput
+>spellChecking</userinput
+> om <emphasis
+>true</emphasis
+>, stavningskontrolleras texten.</para>
+</listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+>Elementet <userinput
+>keywords</userinput
+> i gruppen <userinput
+>general</userinput
+> definierar nyckelordens egenskaper. Tillgängliga egenskaper är:</term>
+
+<listitem>
+<para
+><userinput
+>casesensitive</userinput
+> kan vara <emphasis
+>true</emphasis
+> eller <emphasis
+>false</emphasis
+>. Om det är <emphasis
+>true</emphasis
+>, matchas alla nyckelord skiftlägeskänsligt.</para>
+<para
+><userinput
+>weakDeliminator</userinput
+> är en lista med tecken som inte fungerar som ordavgränsare. Punkt <userinput
+>'.'</userinput
+> är till exempel en ordavgränsare. Med antagandet att ett nyckelord i en <userinput
+>list</userinput
+> innehåller en punkt, matchar det bara om du anger att punkten är en svag avgränsare.</para>
+<para
+><userinput
+>additionalDeliminator</userinput
+> definierar ytterligare avgränsare.</para>
+<para
+><userinput
+>wordWrapDeliminator</userinput
+> definierar tecken som en radbrytning kan ske efter.</para>
+<para
+>Standardavgränsare och radbrytningsavgränsare är tecknen <userinput
+>.():!+,-&lt;=&gt;%&amp;*/;?[]^{|}~\</userinput
+>, mellanslag (<userinput
+>' '</userinput
+>) och tabulator (<userinput
+>'\t'</userinput
+>).</para>
+</listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+>Elementet <userinput
+>comment</userinput
+> i gruppen <userinput
+>comments</userinput
+> definierar kommentaregenskaper som används för <menuchoice
+><guimenu
+>Verktyg</guimenu
+> <guimenuitem
+>Kommentera</guimenuitem
+></menuchoice
+>, <menuchoice
+><guimenu
+>Verktyg</guimenu
+> <guimenuitem
+>Avkommentera</guimenuitem
+></menuchoice
+> och <menuchoice
+><guimenu
+>Verktyg</guimenu
+><guimenuitem
+>Växla kommentar</guimenuitem
+></menuchoice
+>. Tillgängliga egenskaper är:</term>
+
+<listitem>
+<para
+><userinput
+>name</userinput
+> är antingen <emphasis
+>singleLine</emphasis
+> eller <emphasis
+>multiLine</emphasis
+>. Om du väljer <emphasis
+>multiLine</emphasis
+> krävs egenskaperna <emphasis
+>end</emphasis
+> och <emphasis
+>region</emphasis
+>. Om du väljer <emphasis
+>singleLine</emphasis
+> kan du lägga till den valfria egenskapen <emphasis
+>position</emphasis
+>.</para>
+<para
+><userinput
+>start</userinput
+> definierar strängen som används för att inleda en kommentar. I C++ skulle det vara &quot;/*&quot;. Egenskapen krävs för typerna <emphasis
+>multiLine</emphasis
+> och <emphasis
+>singleLine</emphasis
+>.</para>
+<para
+><userinput
+>end</userinput
+> definierar strängen som används för att avslutar en kommentar. I C++ skulle det vara &quot;*/&quot;. Egenskapen är bara tillgänglig för och krävs för kommentarer av typen <emphasis
+>multiLine</emphasis
+>.</para>
+<para
+><userinput
+>region</userinput
+> ska vara namnet på den vikbara flerraderskommentaren. Med antagandet att du har <emphasis
+>beginRegion="Comment"</emphasis
+> ... <emphasis
+>endRegion="Comment"</emphasis
+> i dina regler, ska du använda <emphasis
+>region="Comment"</emphasis
+>. På så sätt fungerar avkommentering även om du inte markerar all text i en flerraderskommentar. Markören måste bara vara inne i flerraderskommentaren. Egenskapen är bara tillgänglig för typen <emphasis
+>multiLine</emphasis
+>.</para>
+<para
+><userinput
+>position</userinput
+> definierar var enraderskommentaren infogas. Normalt placeras enraderskommentaren i början av raden på kolumn 0, men om  <emphasis
+>position="afterwhitespace"</emphasis
+> används infogas kommentaren efter inledande blanktecken, precis före det första tecknet som inte är ett blanktecken. Det är användbart för att placera kommentarer korrekt i språk där indentering är viktig, såsom Python eller YAML. Egenskapen är valfri och det enda möjliga värdet är <emphasis
+>afterwhitespace</emphasis
+>. Den är bara tillgänglig för typen <emphasis
+>singleLine</emphasis
+>.</para>
+</listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+>Elementet <userinput
+>folding</userinput
+> i gruppen <userinput
+>general</userinput
+> definierar kodvikningsegenskaper. Tillgängliga egenskaper är:</term>
+
+<listitem>
+<para
+><userinput
+>indentationsensitive</userinput
+> om <emphasis
+>true</emphasis
+> läggs kodvikningsmarkörerna till baserat på indentering, som i skriptspråket Python. Oftast behöver du inte ange det, eftersom det har det förvalda värdet <emphasis
+>false</emphasis
+>.</para>
+</listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+>Elementet <userinput
+>emptyLine</userinput
+> i gruppen <userinput
+>emptyLines</userinput
+> definierar vilka rader som ska behandlas som tomma rader. Det gör det möjligt att ändra beteendet hos egenskapen <emphasis
+>lineEmptyContext</emphasis
+> i elementets <userinput
+>context</userinput
+>. Tillgängliga egenskaper är:</term>
+
+<listitem>
+<para
+><userinput
+>regexpr</userinput
+> definierar ett reguljärt uttryck som behandlas som en tom rad. Normalt innehåller tomma rader inte några tecken, därför lägger det här till ytterligare tomma rader, om du exempelvis vill att rader med mellanslag också ska anses vara tomma rader. Dock behöver man inte ange den här egenskapen i de flesta syntaxdefinitioner.</para>
+</listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+>Elementet <userinput
+>encoding</userinput
+> i gruppen<userinput
+>spellchecking</userinput
+> definierar en teckenkodning för stavningskontroll. Tillgängliga egenskaper:</term>
+
+<listitem>
+<para
+><userinput
+>char</userinput
+>är ett kodat tecken.</para>
+<para
+><userinput
+>string</userinput
+> är en teckenföljd som kodas som tecknet <emphasis
+>char</emphasis
+> i stavningskontrollen. Exempelvis representerar strängen <userinput
+>\&quot;{A}</userinput
+> tecknet <userinput
+>&#196;</userinput
+> i språket Latex.</para>
+</listitem>
+</varlistentry>
+
+
+</variablelist>
+
+
+</sect3>
+
+<sect3 id="kate-highlight-default-styles">
+<title
+>Tillgängliga standardstilar</title>
+<para
+>Standardstilar har <link linkend="kate-highlight-system-default-styles"
+>redan förklarats</link
+>. En kort sammanfattning: Standardstilar är fördefinierade stilar för teckensnitt och färger.</para>
+<variablelist>
+<varlistentry>
+<term
+>Allmänna standardstilar:</term>
+<listitem>
+<para
+><userinput
+>dsNormal</userinput
+>, när ingen särskild färgläggning krävs.</para>
+<para
+><userinput
+>dsKeyword</userinput
+>, nyckelord för inbyggda språk.</para>
+<para
+><userinput
+>dsFunction</userinput
+>, funktionsanrop och definitioner.</para>
+<para
+><userinput
+>dsVariable</userinput
+>, om tillämpligt: variabelnamn (t.ex. $enVariabel i PHP eller Perl).</para>
+<para
+><userinput
+>dsControlFlow</userinput
+>, nyckelord för kontrollflöde såsom if, else, switch, break, return, yield, ...</para>
+<para
+><userinput
+>dsOperator</userinput
+>, operatorer såsom + - * / :: &lt; &gt;</para>
+<para
+><userinput
+>dsBuiltin</userinput
+>, inbyggda funktioner, klasser och objekt.</para>
+<para
+><userinput
+>dsExtension</userinput
+>, vanliga ändelser såsom &Qt;-klasser och funktioner eller makron i C++ och Python.</para>
+<para
+><userinput
+>dsPreprocessor</userinput
+>, preprocessorsatser eller makrodefinitioner.</para>
+<para
+><userinput
+>dsAttribute</userinput
+>, anmärkningar som @override och __declspec(...).</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Strängrelaterade standardstilar:</term>
+<listitem>
+<para
+><userinput
+>dsChar</userinput
+>, enstaka tecken såsom 'x'.</para>
+<para
+><userinput
+>dsSpecialChar</userinput
+>, tecken med speciell betydelse i strängar som undantag, ersättningar eller operatorer i reguljära uttryck.</para>
+<para
+><userinput
+>dsString</userinput
+>, strängar såsom "hej allihop".</para>
+<para
+><userinput
+>dsVerbatimString</userinput
+>, ordagranna eller obehandlade strängar som 'raw \backlash' i Perl, CoffeeScript och skal, samt r'\raw' i Python.</para>
+<para
+><userinput
+>dsSpecialString</userinput
+>, SQL-satser, reguljära uttryck, HERE-dokument, &latex;-matematikläge, ...</para>
+<para
+><userinput
+>dsImport</userinput
+>, import, inkludering och require för moduler.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Nummerrelaterade standardstilar:</term>
+<listitem>
+<para
+><userinput
+>dsDataType</userinput
+>, inbyggda datatyper såsom int, void, u64.</para>
+<para
+><userinput
+>dsDecVal</userinput
+>, decimala värden.</para>
+<para
+><userinput
+>dsBaseN</userinput
+>, värden med en bas skild från 10.</para>
+<para
+><userinput
+>dsFloat</userinput
+>, flyttalsvärden.</para>
+<para
+><userinput
+>dsConstant</userinput
+>, inbyggda och användardefinierade konstanter såsom PI.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Kommentar- och dokumentationsrelaterade standardstilar:</term>
+<listitem>
+<para
+><userinput
+>dsComment</userinput
+>, kommentarer.</para>
+<para
+><userinput
+>dsDocumentation</userinput
+>, /** dokumentationskommentarer */ eller """dokumentsträngar""".</para>
+<para
+><userinput
+>dsAnnotation</userinput
+>, dokumentationskommandon som @param, @brief.</para>
+<para
+><userinput
+>dsCommentVar</userinput
+>, variabelnamnen som används i ovanstående kommandon, som "exempel" i @param exempel.</para>
+<para
+><userinput
+>dsRegionMarker</userinput
+>, områdesmarkeringar som //BEGIN, //END i kommentarer.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Andra standardstilar:</term>
+<listitem>
+<para
+><userinput
+>dsInformation</userinput
+>, anmärkningar och tips som @note i doxygen.</para>
+<para
+><userinput
+>dsWarning</userinput
+>, varningar som @warning i doxygen.</para>
+<para
+><userinput
+>dsAlert</userinput
+>, specialord som TODO, FIXME, XXXX.</para>
+<para
+><userinput
+>dsError</userinput
+>, färgläggning av fel och felaktig syntax.</para>
+<para
+><userinput
+>dsOthers</userinput
+>, när ingenting annat passar in.</para>
+</listitem>
+</varlistentry>
+</variablelist>
+
+</sect3>
+
+</sect2>
+
+<sect2 id="kate-highlight-rules-detailled">
+<title
+>Regler för syntaxdetektering</title>
+
+<para
+>Den här sektionen beskriver reglerna för syntaxdetektering.</para>
+
+<para
+>Varje regel kan matcha noll eller flera tecken i början av strängen som de ska testas med. Om regeln matchar, så tilldelas de matchande tecknen stilen eller <emphasis
+>egenskapen</emphasis
+> som definieras av regeln. En regel kan också begära att det nuvarande sammanhanget byts.</para>
+
+<para
+>En regel ser ut så här:</para>
+
+<programlisting
+>&lt;Regelnamn attribute=&quot;(identifierare)&quot; context=&quot;(identifierare)&quot; [regelspecifika egenskaper] /&gt;</programlisting>
+
+<para
+>Ordet <emphasis
+>attribute</emphasis
+> identifierar stilen som ska användas för tecken som matchar med namn eller index, och <emphasis
+>context</emphasis
+> identifierar sammanhanget som ska användas i fortsättningen.</para>
+
+<para
+><emphasis
+>Sammanhanget</emphasis
+> kan identifieras av:</para>
+
+<itemizedlist>
+<listitem>
+<para
+>En <emphasis
+>identifierare</emphasis
+>, som är namnet på det andra sammanhanget.</para>
+</listitem>
+<listitem>
+<para
+>En <emphasis
+>ordning</emphasis
+> som talar om att färgläggningen ska stanna kvar i det nuvarande sammanhanget (<userinput
+>#stay</userinput
+>), eller gå tillbaka till det föregående sammanhanget som använts i strängen (<userinput
+>#pop</userinput
+>).</para>
+<para
+>För att gå tillbaka flera steg, kan nyckelordet #pop upprepas: <userinput
+>#pop#pop#pop</userinput
+></para>
+</listitem>
+<listitem>
+<para
+>En <emphasis
+>ordning</emphasis
+> följd av ett utropstecken (<emphasis
+>!</emphasis
+>) och en <emphasis
+>identifierare</emphasis
+>, som gör att färgläggningen först följer ordningen och därefter byter till det andra sammanhanget, t.ex. <userinput
+>#pop#pop!Annat_sammanhang</userinput
+>.</para>
+</listitem>
+<listitem>
+<para
+>En <emphasis
+>identifierare</emphasis
+>, som är ett sammanhangsnamn, följd av två nummertecken (<userinput
+>##</userinput
+>) och en annan <emphasis
+>identifierare</emphasis
+>, som är namnet på en språkdefinition. Namngivningen liknar den som används i regeln <userinput
+>IncludeRules</userinput
+> och låter dig byta till ett sammanhang som hör till en annat syntaxfärgläggningsdefinition, t.ex. <userinput
+>Något_Sammanhang##JavaScript</userinput
+>. Observera att det inte går att använda det här sammanhangsbytet tillsammans med <userinput
+>#pop</userinput
+>, exempelvis är <userinput
+>#pop!Något_Sammanhang##JavaScript</userinput
+> inte giltigt.</para>
+</listitem>
+</itemizedlist>
+
+<para
+>Regelspecifika egenskaper varierar och beskrivs i följande avsnitt.</para>
+
+<itemizedlist>
+<title
+>Gemensamma egenskaper</title>
+<para
+>Alla regler har följande egenskaper gemensamma och är tillgängliga på alla ställen <userinput
+>(gemensamma egenskaper)</userinput
+> visas. Egenskaperna <emphasis
+>attribute</emphasis
+> och <emphasis
+>context</emphasis
+> är nödvändiga, alla övriga är valfria. </para>
+
+<listitem>
+<para
+><emphasis
+>attribute</emphasis
+>: En egenskap avbildas på en definierad <emphasis
+>itemData</emphasis
+>.</para>
+</listitem>
+<listitem>
+<para
+><emphasis
+>context</emphasis
+>: Anger sammanhanget som färgläggningssystemet byter till om regeln matchar.</para>
+</listitem>
+<listitem>
+<para
+><emphasis
+>beginRegion</emphasis
+>: Inled ett kodvikningsblock. Förval: unset.</para>
+</listitem>
+<listitem>
+<para
+><emphasis
+>endRegion</emphasis
+>: Avsluta ett kodvikningsblock. Förval: unset.</para>
+</listitem>
+<listitem>
+<para
+><emphasis
+>lookAhead</emphasis
+>: Om <emphasis
+>true</emphasis
+> behandlar inte färgläggningssystemet matchningens längd. Förval: <emphasis
+>false</emphasis
+>.</para>
+</listitem>
+<listitem>
+<para
+><emphasis
+>firstNonSpace</emphasis
+>: Matcha bara om strängen är den första förutom blanktecken på raden. Förval: <emphasis
+>false</emphasis
+>.</para>
+</listitem>
+<listitem>
+<para
+><emphasis
+>column</emphasis
+>: Matcha bara om kolumnen matchar. Förval: unset.</para>
+</listitem>
+</itemizedlist>
+
+<itemizedlist>
+<title
+>Dynamiska regler</title>
+<para
+>Vissa regler tillåter den valfria egenskapen <userinput
+>dynamic</userinput
+> med Boolesk typ, som har förvalt värde <emphasis
+>false</emphasis
+>. Om dynamic är <emphasis
+>true</emphasis
+>, kan en regel använda platsmarkörer som representerar texten som matchas av en regel med ett <emphasis
+>reguljärt uttryck</emphasis
+> som byter till nuvarande sammanhang med sin egenskap <userinput
+>string</userinput
+> eller <userinput
+>char</userinput
+>. I en <userinput
+>string</userinput
+> ersätts platsmarkören <replaceable
+>%N</replaceable
+> (där N är ett tal) med motsvarande <replaceable
+>N</replaceable
+> i det anropande reguljära uttrycket med början på 1. I en <userinput
+>char</userinput
+> måste platsmarkören vara ett tal <replaceable
+>N</replaceable
+> och det ersätts med första tecknet i motsvarande <replaceable
+>N</replaceable
+> i det anropande reguljära uttrycket. Närhelst en regel tillåter den här egenskapen, innehåller den <emphasis
+>(dynamic)</emphasis
+>.</para>
+
+<listitem>
+<para
+><emphasis
+>dynamic</emphasis
+>: kan vara <emphasis
+>(true | false)</emphasis
+>.</para>
+</listitem>
+</itemizedlist>
+
+<para
+><userinput
+>Hur det fungerar:</userinput
+></para>
+
+<para
+>I länken för <link linkend="regular-expressions"
+>reguljärt uttryck</link
+> i <userinput
+>RegExpr</userinput
+> reglerna, lagras all text inom vanliga kurvparenteser i <userinput
+>(MÖNSTER)</userinput
+> och blir ihågkomna. Sådana platsmarkörer kan användas i sammanhanget som man går till i reglerna med egenskapen <userinput
+>dynamic</userinput
+> <emphasis
+>true</emphasis
+>, med <replaceable
+>%N</replaceable
+> (i <emphasis
+>String</emphasis
+>) eller <replaceable
+>N</replaceable
+> (i <emphasis
+>char</emphasis
+>).</para>
+
+<para
+>Det är viktigt att nämna att en text lagrad i en <userinput
+>RegExpr</userinput
+> regel bara lagras för sammanhanget som man byter till, angivet i dess egenskap <userinput
+>context</userinput
+>.</para>
+
+<tip>
+<itemizedlist>
+
+<listitem>
+<para
+>Om platsmarkörerna inte kommer att används, varken av dynamiska regler eller i samma reguljära uttryck, ska <userinput
+>icke-lagrande grupper</userinput
+> användas: <userinput
+>(?:MÖNSTER)</userinput
+></para>
+<para
+>Grupperna <emphasis
+>framåtreferens</emphasis
+> eller <emphasis
+>bakåtreferens</emphasis
+> såsom <userinput
+>(?=MÖNSTER)</userinput
+>, <userinput
+>(?!MÖNSTER)</userinput
+> eller <userinput
+>(?&lt;=MÖNSTER)</userinput
+> lagras inte. Se <link linkend="regular-expressions"
+>Reguljära uttryck</link
+> för mer information.</para>
+</listitem>
+
+<listitem>
+<para
+>Lagringsgrupperna kan användas inom samma reguljära uttryck, använder <replaceable
+>\N</replaceable
+> istället för <replaceable
+>%N</replaceable
+>. För mer information, se <link linkend="regex-capturing"
+>Spara text som matchar (bakåtreferenser)</link
+> under <link linkend="regular-expressions"
+>Reguljära uttryck</link
+>.</para>
+</listitem>
+
+</itemizedlist>
+</tip>
+
+<para
+>Exempel 1:</para>
+<para
+>I det här enkla exemplet lagras texten som matchas av det reguljära uttrycket <userinput
+>=*</userinput
+> och infogas med <replaceable
+>%1</replaceable
+> i den dynamiska regeln. Det tillåter att kommentaren slutar med samma antal <userinput
+>=</userinput
+> som i början. Det matchar text som: <userinput
+>[[ comment ]]</userinput
+>, <userinput
+>[=[ comment ]=]</userinput
+> eller <userinput
+>[=====[ comment ]=====]</userinput
+>.</para>
+<para
+>Dessutom är lagrad text bara tillgänglig i sammanhanget <emphasis
+>Multi-line Comment</emphasis
+> man byter till.</para>
+
+<programlisting
+>&lt;context name="Normal" attribute="Normal Text" lineEndContext="#stay"&gt;
+  &lt;RegExpr context="Multi-line Comment" attribute="Comment" String="\[(=*)\[" beginRegion="RegionComment"/&gt;
+&lt;/context&gt;
+&lt;context name="Multi-line Comment" attribute="Comment" lineEndContext="#stay"&gt;
+  &lt;StringDetect context="#pop" attribute="Comment" String="]%1]" dynamic="true" endRegion="RegionComment"/&gt;
+&lt;/context&gt;
+</programlisting>
+
+<para
+>Exempel 2:</para>
+<para
+>I den dynamiska regeln motsvarar <replaceable
+>%1</replaceable
+> platsmarkörerna <userinput
+>#+</userinput
+>, och <replaceable
+>%2</replaceable
+> till <userinput
+>&amp;quot;+</userinput
+>. Det matchar text som: <userinput
+>#beteckning""""inne i sammanhanget""""#</userinput
+>.</para>
+<para
+>Platsmarkörerna är inte tillgängliga i andra sammanhang som <emphasis
+>OtherContext</emphasis
+>, <emphasis
+>FindEscapes</emphasis
+> eller <emphasis
+>SomeContext</emphasis
+>.</para>
+
+<programlisting
+>&lt;context name="SomeContext" attribute="Normal Text" lineEndContext="#stay"&gt;
+  &lt;RegExpr context="#pop!NamedString" attribute="String" String="(#+)(?:[\w-]|[^[:ascii:]])(&amp;quot;+)"/&gt;
+&lt;/context&gt;
+&lt;context name="NamedString" attribute="String" lineEndContext="#stay"&gt;
+  &lt;RegExpr context="#pop!OtherContext" attribute="String" String="%2(?:%1)?" dynamic="true"/&gt;
+  &lt;DetectChar context="FindEscapes" attribute="Escape" char="\"/&gt;
+&lt;/context&gt;
+</programlisting>
+
+<para
+>Exempel 3:</para>
+<para
+>Det matchar text som: <userinput
+>Class::function&lt;T&gt;( ... )</userinput
+>.</para>
+
+<programlisting
+>&lt;context name="Normal" attribute="Normal Text" lineEndContext="#stay"&gt;
+  &lt;RegExpr context="FunctionName" lookAhead="true"
+              String="\b([a-zA-Z_][\w-]*)(::)([a-zA-Z_][\w-]*)(?:&amp;lt;[\w\-\s]*&amp;gt;)?(\()"/&gt;
+&lt;/context&gt;
+&lt;context name="FunctionName" attribute="Normal Text" lineEndContext="#pop"&gt;
+  &lt;StringDetect context="#stay" attribute="Class" String="%1" dynamic="true"/&gt;
+  &lt;StringDetect context="#stay" attribute="Operator" String="%2" dynamic="true"/&gt;
+  &lt;StringDetect context="#stay" attribute="Function" String="%3" dynamic="true"/&gt;
+  &lt;DetectChar context="#pop" attribute="Normal Text" char="4" dynamic="true"/&gt;
+&lt;/context&gt;
+</programlisting>
+
+<itemizedlist>
+<title
+>Lokala avgränsare</title>
+<para
+>Vissa regler tillåter de valfria egenskaperna <userinput
+>weakDeliminator</userinput
+> och <userinput
+>additionalDeliminator</userinput
+> som kombineras med egenskaper med samma namn i taggen <userinput
+>keywords</userinput
+>. När <userinput
+>'%'</userinput
+> exempelvis är en svag avgränsare i <userinput
+>keywords</userinput
+>, kan det bli en ordavgränsare för bara en regel genom att placera det i egenskapen <userinput
+>additionalDeliminator</userinput
+>. När en regel tillåter dessa egenskaper innehåller den <emphasis
+>(local deliminators)</emphasis
+>.</para>
+
+<listitem>
+<para
+><emphasis
+>weakDeliminator</emphasis
+>: lista med tecken som inte fungerar som ordavgränsare.</para>
+</listitem>
+<listitem>
+<para
+><emphasis
+>additionalDeliminator</emphasis
+> definierar ytterligare avgränsare.</para>
+</listitem>
+</itemizedlist>
+
+<sect3 id="highlighting-rules-in-detail">
+<title
+>Reglerna i detalj</title>
+
+<variablelist>
+<varlistentry>
+<term
+>DetectChar</term>
+<listitem>
+<para
+>Detektera ett enda specifikt tecken. Används ofta för att till exempel hitta slutet på strängar inom citationstecken.</para>
+<programlisting
+>&lt;DetectChar char=&quot;(tecken)&quot; (gemensamma egenskaper) (dynamisk) /&gt;</programlisting>
+<para
+>Egenskapen <userinput
+>char</userinput
+> definierar tecknet som ska matchas.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Detect2Chars</term>
+<listitem>
+<para
+>Detektera två angivna tecken i en definierad ordning.</para>
+<programlisting
+>&lt;Detect2Chars char=&quot;(tecken)&quot; char1=&quot;(tecken)&quot; (gemensamma egenskaper) /&gt;</programlisting>
+<para
+>Egenskapen <userinput
+>char</userinput
+> definierar det första tecknet som ska matcha, <userinput
+>char1</userinput
+> det andra.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>AnyChar</term>
+<listitem>
+<para
+>Detektera ett tecken i en angiven teckenmängd.</para>
+<programlisting
+>&lt;AnyChar String=&quot;(sträng)&quot; (gemensamma egenskaper) /&gt;</programlisting>
+<para
+>Egenskapen <userinput
+>String</userinput
+> definierar teckenmängden.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>StringDetect</term>
+<listitem>
+<para
+>Detektera en sträng exakt.</para>
+<programlisting
+>&lt;StringDetect String=&quot;(sträng)&quot; [insensitive=&quot;TRUE|FALSE;&quot;] (gemensamma egenskaper) (dynamisk) /&gt;</programlisting>
+<para
+>Egenskapen <userinput
+>String</userinput
+> definierar strängen som ska matcha. Egenskapen <userinput
+>insensitive</userinput
+> (okänslig) är normalt <userinput
+>FALSE</userinput
+> (FALSK) och skickas med till strängjämförelsefunktionen. Om värdet är <userinput
+>TRUE</userinput
+> (SANT) så används en jämförelse som inte bryr sig om skiftläge.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>WordDetect</term>
+<listitem>
+<para
+>Detektera en exakt sträng, men kräv dessutom ordgränser som en punkt <userinput
+>'.'</userinput
+> eller ett blanktecken i början och slutet av ordet. Betrakta <userinput
+>\b&lt;string&gt;\b</userinput
+> som ett reguljärt uttryck, men snabbare än regeln <userinput
+>RegExpr</userinput
+>.</para>
+<programlisting
+>&lt;WordDetect String=&quot;(sträng)&quot; [insensitive=&quot;TRUE|FALSE;&quot;] (gemensamma egenskaper) (lokala avgränsare)/&gt;</programlisting>
+<para
+>Egenskapen <userinput
+>String</userinput
+> definierar strängen som ska matcha. Egenskapen <userinput
+>insensitive</userinput
+> (okänslig) är normalt <userinput
+>FALSE</userinput
+> (FALSK) och skickas med till strängjämförelsefunktionen. Om värdet är <userinput
+>TRUE</userinput
+> (SANT) så används en jämförelse som inte bryr sig om skiftläge.</para>
+<para
+>Sedan: &kate; 3.5 (&kde;  4.5)</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>RegExpr</term>
+<listitem>
+<para
+>Matchar med ett reguljärt uttryck.</para>
+<programlisting
+>&lt;RegExpr String=&quot;(sträng)&quot; [insensitive=&quot;TRUE|FALSE;&quot;] [minimal=&quot;TRUE| FALSE&quot;] (gemensamma egenskaper) (dynamisk) /&gt;</programlisting>
+<para
+>Egenskapen <userinput
+>String</userinput
+> definierar det reguljära uttrycket.</para>
+<para
+>Egenskapen <userinput
+>insensitive</userinput
+> (okänslig) är normalt <userinput
+>FALSE</userinput
+> (FALSK) och skickas med det reguljära uttrycket.</para>
+<para
+>Egenskapen <userinput
+>minimal</userinput
+> är normalt <userinput
+>FALSE</userinput
+> (FALSK) och skickas med det reguljära uttrycket.</para>
+<para
+>Eftersom reglerna alltid matchas mot början av den nuvarande strängen, så anger ett reguljärt uttryck som börjar med en hatt (<literal
+>^</literal
+>) att regeln bara ska matchas mot radens början.</para>
+<para
+>Se <link linkend="regular-expressions"
+>Reguljära uttryck</link
+> för mer information om dem.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>keyword</term>
+<listitem>
+<para
+>Detektera ett nyckelord från en angiven lista.</para>
+<programlisting
+>&lt;keyword String=&quot;(listnamn)&quot; (gemensamma egenskaper) (lokala avgränsare)/&gt;</programlisting>
+<para
+>Egenskapen <userinput
+>String</userinput
+> identifierar en lista på nyckelord med namn. En lista med det namnet måste finnas.</para>
+<para
+>Färgläggningssystemet behandlar nyckelordsregler på ett mycket optimerat sätt. Det gör det absolut nödvändigt att alla nyckelord som ska matchas måste omges med definierade avgränsare, antingen underförstått (standardavgränsare) eller explicit definierade inne i egenskapen <emphasis
+>additionalDeliminator</emphasis
+> i taggen <emphasis
+>keywords</emphasis
+>.</para>
+<para
+>Om ett nyckelord som ska matchas måste innehålla ett skiljetecken, måste detta tecken läggas till i egenskapen <emphasis
+>weakDeliminator</emphasis
+>i taggen <emphasis
+>keywords</emphasis
+>. Detta tecken förlorar då sin avgränsningsegenskap i alla regler med <emphasis
+>keyword</emphasis
+>. Det är också möjligt att använda egenskapen <emphasis
+>weakDeliminator</emphasis
+> i <emphasis
+>keyword</emphasis
+> så att ändringen bara gäller den regeln.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Int</term>
+<listitem>
+<para
+>Detektera ett heltal (som det reguljära uttrycket: <userinput
+>\b[0-9]+</userinput
+>).</para>
+<para
+><programlisting
+>&lt;Int (gemensamma egenskaper) (lokala avgränsare) /&gt;</programlisting
+></para>
+<para
+>Den här regeln har inga specifika egenskaper.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Float</term>
+<listitem>
+<para
+>Detektera ett flyttal (som det reguljära uttrycket: <userinput
+>(\b[0-9]+\.[0-9]*|\.[0-9]+)([eE][-+]?[0-9]+)?</userinput
+>).</para>
+<para
+><programlisting
+>&lt;Float (gemensamma egenskaper) (lokala avgränsare) /&gt;</programlisting
+></para>
+<para
+>Den här regeln har inga specifika egenskaper.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>HlCOct</term>
+<listitem>
+<para
+>Detektera en oktal talrepresentation (som det reguljära uttrycket: <userinput
+>\b0[0-7]+</userinput
+>).</para>
+<para
+><programlisting
+>&lt;HlCOct (gemensamma egenskaper) (lokala avgränsare) /&gt;</programlisting
+></para>
+<para
+>Den här regeln har inga specifika egenskaper.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>HlCHex</term>
+<listitem>
+<para
+>Detektera en hexadecimal talrepresentation (som det reguljära uttrycket: <userinput
+>\b0[xX][0-9a-fA-F]+</userinput
+>).</para>
+<para
+><programlisting
+>&lt;HlCHex (gemensamma egenskaper) (lokala avgränsare) /&gt;</programlisting
+></para>
+<para
+>Den här regeln har inga specifika egenskaper.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>HlCStringChar</term>
+<listitem>
+<para
+>Detektera ett undantaget tecken.</para>
+<para
+><programlisting
+>&lt;HlCStringChar (gemensamma egenskaper) /&gt;</programlisting
+></para>
+<para
+>Den här regeln har inga specifika egenskaper.</para>
+
+<para
+>Det matchar bokstavsrepresentationer av osynliga tecken som ofta används i programkod, till exempel <userinput
+>\n</userinput
+> (nyrad) eller <userinput
+>\t</userinput
+> (tabulator).</para>
+
+<para
+>Följande tecken matchar om de följer ett bakstreck (<literal
+>\</literal
+>): <userinput
+>abefnrtv&quot;'?</userinput
+>. Dessutom matchar undantagna hexadecimala tal, som till exempel <userinput
+>\xff</userinput
+> och undantagna oktala tal, till exempel <userinput
+>\033</userinput
+>.</para>
+
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>HlCChar</term>
+<listitem>
+<para
+>Detektera ett C-tecken.</para>
+<para
+><programlisting
+>&lt;HlCChar (gemensamma egenskaper) /&gt;</programlisting
+></para>
+<para
+>Den här regeln har inga specifika egenskaper.</para>
+
+<para
+>Det matchar C-tecken omgivna av apostrofer (till exempel <userinput
+>'c'</userinput
+>). Apostroferna kan innehålla ett enkelt tecken eller en teckenföljd. Se HlCStringChar för matchade teckenföljder.</para>
+
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>RangeDetect</term>
+<listitem>
+<para
+>Detektera en sträng med definierade start- och sluttecken.</para>
+<programlisting
+>&lt;RangeDetect char=&quot;(tecken)&quot;  char1=&quot;(tecken)&quot; (gemensamma egenskaper) /&gt;</programlisting>
+<para
+><userinput
+>char</userinput
+> definierar tecknet som inleder intervallet, och <userinput
+>char1</userinput
+> tecknet som avslutar intervallet.</para>
+<para
+>Användbar för att till exempel detektera små strängar inom citationstecken och liknande, men observera att eftersom färgläggningen arbetar med en rad i taget, så hittar det inte strängar som fortsätter på nästa rad.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>LineContinue</term>
+<listitem>
+<para
+>Matchar ett angivet tecken vid radens slut.</para>
+<programlisting
+>&lt;LineContinue (gemensamma egenskaper) [char="\"] /&gt;</programlisting>
+<para
+>Egenskapen <userinput
+>char</userinput
+> definierar valfritt tecken som ska matchas, förval är bakstreck (<userinput
+>'\'</userinput
+>). Ny sedan &kde; 4.13.</para>
+<para
+>Regeln är användbar för att byta sammanhang vid radslut. Det behövs till exempel i C/C++ för att fortsätta makron eller strängar.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>IncludeRules</term>
+<listitem>
+<para
+>Inkludera regler från ett annat sammanhang eller språk/fil.</para>
+<programlisting
+>&lt;IncludeRules context=&quot;sammanhangslänk&quot; [includeAttrib=&quot;true|false&quot;] /&gt;</programlisting>
+
+<para
+>Egenskapen <userinput
+>context</userinput
+> definierar vilket sammanhang som ska inkluderas.</para>
+<para
+>Om den är en enkelt sträng innehåller den alla definierade regler i det nuvarande sammanhanget, till exempel: <programlisting
+>&lt;IncludeRules context=&quot;annat-sammanhang&quot; /&gt;</programlisting
+></para>
+
+<para
+>Om strängen innehåller <userinput
+>##</userinput
+> letar färgläggningssystemet efter ett sammanhang från en annan språkdefinition med angivet namn, exempelvis skulle <programlisting
+>&lt;IncludeRules context=&quot;String##C++&quot; /&gt;</programlisting
+> inkludera sammanhanget <emphasis
+>String</emphasis
+> från färgläggningsdefinitionen av <emphasis
+>C++</emphasis
+>.</para>
+<para
+>Om egenskapen <userinput
+>includeAttrib</userinput
+> är <emphasis
+>true</emphasis
+>, ändras målegenskapen till källans egenskap. Det krävs till exempel för att kommentarer ska fungera om text som matchas av det inkluderade sammanhanget har en annan färgläggning än värdsammanhanget. </para>
+</listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+>DetectSpaces</term>
+<listitem>
+<para
+>Detektera blanktecken.</para>
+<programlisting
+>&lt;DetectSpaces (gemensamma egenskaper) /&gt;</programlisting>
+
+<para
+>Den här regeln har inga specifika egenskaper.</para>
+<para
+>Använd den här regeln om du vet att det kan finnas flera blanktecken framför, till exempel i början av indenterade rader. Regeln hoppar över alla blanktecken på en gång, istället för att prova flera regler och hoppa över en åt gången eftersom den inte matchar.</para>
+</listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+>DetectIdentifier</term>
+<listitem>
+<para
+>Detektera strängar för identifierare (som det reguljära uttrycket: <userinput
+>[a-zA-Z_][a-zA-Z0-9_]*</userinput
+>).</para>
+<programlisting
+>&lt;DetectIdentifier (gemensamma egenskaper) /&gt;</programlisting>
+
+<para
+>Den här regeln har inga specifika egenskaper.</para>
+<para
+>Använd den här regeln för att hoppa över en sträng med ordtecken på en gång, istället för att testa den med flera regler och hoppa ett steg i taget beroende på att ingenting matchar.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+</sect3>
+
+<sect3>
+<title
+>Tips och trick</title>
+
+<itemizedlist>
+<para
+>När du väl har förstått hur sammanhangsbyte fungerar blir det enkelt att skriva färgläggningsdefinitioner. Du bör ändå kontrollera noggrant vilken regel du väljer i vilken situation. Reguljära uttryck är mycket kraftfulla, men de är långsamma jämfört med andra regler. Du bör därför ta hänsyn till följande tips. </para>
+
+<listitem>
+<para
+>Om du bara matchar två tecken, använd <userinput
+>Detect2Chars</userinput
+> istället för <userinput
+>StringDetect</userinput
+>. Samma sak gäller för <userinput
+>DetectChar</userinput
+>.</para>
+</listitem>
+<listitem>
+<para
+>Reguljära uttryck är enkla att använda, men oftast finns det ett annat mycket snabbare sätt att uppnå samma resultat. Antag att du bara vill matcha tecknet <userinput
+>'#'</userinput
+> om det är det första tecknet på en rad. En lösning baserad på reguljära uttryck skulle se ut så här: <programlisting
+>&lt;RegExpr attribute=&quot;Macro&quot; context=&quot;macro&quot; String=&quot;^\s*#&quot; /&gt;</programlisting
+> Du kan uppnå samma sak mycket snabbare med: <programlisting
+>&lt;DetectChar attribute=&quot;Macro&quot; context=&quot;macro&quot; char=&quot;#&quot; firstNonSpace=&quot;true&quot; /&gt;</programlisting
+> Om du vill matcha det reguljära uttrycket <userinput
+>'^#'</userinput
+> kan du fortfarande använda <userinput
+>DetectChar</userinput
+> med egenskapen <userinput
+>column=&quot;0&quot;</userinput
+>. Egenskapen <userinput
+>column</userinput
+> räknar tecken, så en tabulator är bara ett tecken. </para>
+</listitem>
+<listitem>
+<para
+>Använd egenskapen <userinput
+>column="0"</userinput
+> i <userinput
+>RegExpr</userinput
+> reglerna om mönstret <userinput
+>^MÖNSTER</userinput
+> kommer att användas för att matcha text i början av en rad. Det förbättrar prestanda, eftersom det undviker sökning efter matchningar i resten av kolumnerna.</para>
+</listitem>
+<listitem>
+<para
+>Använd icke-lagrande grupper <userinput
+>(?:MÖNSTER)</userinput
+> istället för lagrande grupper <userinput
+>(MÖNSTER)</userinput
+>, om platsmarkörerna inte kommer att användas i samma reguljära uttryck eller i dynamiska regler. Det undviker att platsmarkörer lagras i onödan.</para>
+</listitem>
+<listitem>
+<para
+>Du kan byta sammanhang utan att behandla tecken. Antag att du vill byta sammanhang när du stöter på strängen <userinput
+>*/</userinput
+>, men måste behandla denna sträng i nästa sammanhang. Regeln nedan matchar, och egenskapen <userinput
+>lookAhead</userinput
+> gör att färgläggningen behåller den matchade strängen för nästa sammanhang. <programlisting
+>&lt;Detect2Chars attribute=&quot;Comment&quot; context=&quot;#pop&quot; char=&quot;*&quot; char1=&quot;/&quot; lookAhead=&quot;true&quot; /&gt;</programlisting>
+</para>
+</listitem>
+<listitem>
+<para
+>Använd <userinput
+>DetectSpaces</userinput
+> om du vet att många blanktecken förekommer.</para>
+</listitem>
+<listitem>
+<para
+>Använd <userinput
+>DetectIdentifier</userinput
+> instället för ett reguljärt uttryck <userinput
+>'[a-zA-Z_]\w*'</userinput
+>.</para>
+</listitem>
+<listitem>
+<para
+>Använd standardstilar överallt du kan. På så sätt finner användaren en bekant miljö.</para>
+</listitem>
+<listitem>
+<para
+>Titta i andra &XML;-filer för att se hur andra implementerade knepiga regler.</para>
+</listitem>
+<listitem>
+<para
+>Det går att validera alla &XML;-filer genom att använda kommandot <command
+>validatehl.sh language.xsd min-syntax.xml</command
+>. Filerna <filename
+>validatehl.sh</filename
+> och <filename
+>language.xsd</filename
+> är tillgängliga i <ulink url="https://commits.kde.org/syntax-highlighting?path=data/schema"
+>arkivet för syntaxfärgläggning</ulink
+>. </para>
+</listitem>
+<listitem>
+<para
+>Om du mycket ofta upprepar komplexa reguljära uttryck kan du använda <emphasis
+>ENTITETER</emphasis
+>. Till exempel:</para>
+<programlisting
+>&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;!DOCTYPE language SYSTEM "language.dtd"
+[
+        &lt;!ENTITY minref    "[A-Za-z_:][\w.:_-]*"&gt;
+]&gt;
+</programlisting>
+<para
+>Nu kan du använda <emphasis
+>&amp;myref;</emphasis
+> istället för det reguljära uttrycket.</para>
+</listitem>
+</itemizedlist>
+</sect3>
+
+</sect2>
+
+</sect1>
+
+
+<sect1 id="color-themes">
+<title
+>Arbeta med färgteman</title>
+
+<sect2 id="color-themes-overview">
+
+<title
+>Översikt</title>
+
+<para
+>Färgteman definierar färgerna i <link linkend="kate-part"
+>textredigeringsområdet</link
+> och <link linkend="highlight"
+>syntaxfärgläggningen</link
+>. Ett färgtema omfattar följande: <itemizedlist>
+<listitem
+><para
+>Textstilen, använd för syntaxfärgläggning via <emphasis
+>förvalda stilegenskaper</emphasis
+>. Exempelvis textfärgen och den markerade textfärgen.</para
+></listitem>
+<listitem
+><para
+>Textredigeringsområdets bakgrund, inklusive textmarkeringen och aktuell rad.</para
+></listitem>
+<listitem
+><para
+>Textområdets ikonkant: deras bakgrund, separationslinjen, radnumren, markörerna för radbrytning, de modifierade radmarkörerna och kodvikningen.</para
+></listitem>
+<listitem
+><para
+>Textdekorationer såsom sökmarkörerna, indenteringen och radmarkörer för tabulator och mellanslag, parentesmatchningen och stavningskontrollen.</para
+></listitem>
+<listitem
+><para
+>Bokmärken och textsnuttar</para
+></listitem>
+</itemizedlist>
+</para>
+
+<para
+>För att undvika förvirring, följande är omfattas inte: <itemizedlist>
+<listitem
+><para
+>Teckensnittstypen och teckenstorleken.</para
+></listitem>
+<listitem
+><para
+>Textredigeringsprogrammets färger, såsom rullningslistens avbildning, menyerna, flikraden, fönsterfärgen, etc. I &kde;-program, såsom &kate; eller &kdevelop; definieras de här färgerna av <userinput
+>&kde; &plasma; globala färgschema</userinput
+>, som ställs in i modulen <ulink url="help:/kcontrol/colors/"
+><quote
+>Färger</quote
+> i systeminställningarna</ulink
+> eller från programmet själv i menyn <menuchoice
+><guimenu
+>Inställningar</guimenu
+><guisubmenu
+>Färgschema</guisubmenu
+></menuchoice
+>. </para
+></listitem>
+</itemizedlist>
+</para>
+
+<mediaobject>
+<imageobject
+><imagedata format="PNG" fileref="breeze-color-theme-preview.png"/></imageobject>
+<textobject
+><phrase
+><quote
+>Breeze Light</quote
+> och <quote
+>Breeze mörk</quote
+> färgteman med <quote
+>C++</quote
+> syntaxfärgläggning.</phrase>
+</textobject>
+<caption
+><para
+><quote
+>Breeze Light</quote
+> och <quote
+>Breeze mörk</quote
+> färgteman med <quote
+>C++</quote
+> syntaxfärgläggning.</para>
+</caption>
+</mediaobject>
+
+</sect2>
+
+<sect2 id="color-themes-ksyntaxhighlighting">
+
+<title
+>Färgteman i KSyntaxHighlighting</title>
+
+<para
+>Ramverket <ulink url="https://api.kde.org/frameworks/syntax-highlighting/html/"
+>KSyntaxHighlighting</ulink
+>, som är gränssnittet för <link linkend="highlight"
+>syntaxfärgläggning</link
+>, är biblioteket som <userinput
+>tillhandahåller och hanterar färgteman</userinput
+>. Det är en del av &kde; Ramverk och används i &kde;:s texteditorer såsom <ulink url="https://apps.kde.org/en/kate"
+>&kate;</ulink
+>, <ulink url="https://apps.kde.org/en/kwrite"
+>&kwrite;</ulink
+>, <ulink url="https://apps.kde.org/en/kile"
+>&kile;</ulink
+> och <ulink url="https://apps.kde.org/en/kdevelop"
+>&kdevelop;</ulink
+>. Beroendet ser ut på följande sätt:</para>
+
+<mediaobject>
+<imageobject
+><imagedata format="PNG" fileref="kf5-ksyntaxhighlighting.png"/></imageobject>
+<textobject
+><phrase
+>Beroende av texteditorer i &kde; Ramverk 5 biblioteken.</phrase
+></textobject>
+<caption
+><para
+>Beroende av texteditorer i &kde; Ramverk biblioteken.</para>
+</caption>
+</mediaobject>
+
+<para
+>KSyntaxHighlighting inkluderar ett antal inbyggda teman som visas på sidan <ulink url="https://kate-editor.org/themes/"
+><quote
+>Färgteman</quote
+> på Kate editorns webbplats</ulink
+>.</para>
+
+<para
+>Ramverket <ulink url="https://api.kde.org/frameworks/ktexteditor/html/"
+>KTextEditor</ulink
+>, som är textredigeringsgränssnittet, tillhandahåller ett användargränssnitt för att skapa och redigera färgteman, inklusive ett verktyg för att exportera och importera teman. Det är det enklaste sättet att skapa och redigera dem, och du kan komma åt det från <link linkend="config-dialog"
+>dialogrutan <quote
+>Anpassa</quote
+></link
+> i texteditorn. Mer detaljerad information finns i <xref linkend="color-themes-gui"/>.</para>
+
+<mediaobject>
+<imageobject
+><imagedata format="PNG" fileref="color-themes-gui-breeze-dark-default-text-styles.png"/></imageobject>
+<textobject
+><phrase
+>Grafiskt användargränssnitt för att hantera färgteman i &kate;s inställningar.</phrase
+></textobject>
+<caption
+><para
+>Grafiskt användargränssnitt för att hantera färgteman i &kate;s inställningar.</para>
+</caption>
+</mediaobject>
+
+<para
+>Det är viktigt att nämna att i &kde; texteditorer som &kate; eller &kdevelop;, används KSyntaxHighlighting färgteman <ulink url="https://kate-editor.org/post/2020/2020-09-13-kate-color-themes-5.75/"
+>sedan &kde; Ramverk 5.75</ulink
+>, utgivet 10:e oktober, 2020. Tidigare, användes &kate;s färgscheman (KConfig baserad schemainställning) och avråds nu från. Dock är det möjligt att konvertera de gamla &kate; schema till KSyntaxHighlighting färgteman. <ulink url="https://invent.kde.org/frameworks/syntax-highlighting"
+>Arkivet KSyntaxHighlighting</ulink
+> inkluderar skriptet <userinput
+>utils/kateschema_to_theme_converter.py</userinput
+> och verktyget <userinput
+>utils/schema-converter/</userinput
+> i det syftet. </para>
+
+</sect2>
+
+<sect2 id="color-themes-json">
+
+<title
+>&JSON;-format för färgteman</title>
+
+<sect3 id="color-themes-json-overview">
+
+<title
+>Översikt</title>
+
+<para
+>Färgteman lagras i filer med &JSON;-format, med filändelsen <userinput
+>.theme</userinput
+>.</para>
+
+<para
+>I <ulink url="https://invent.kde.org/frameworks/syntax-highlighting"
+>källkoden för KSyntaxHighlighting</ulink
+>, finns &JSON;-filerna för inbyggda teman i katalogen <userinput
+>data/themes/</userinput
+>. Observera att i texteditorer kompileras inbyggda teman i biblioteket KSyntaxHighlighting, därför är sättet att komma åt dem via källkoden eller genom att <link linkend="color-themes-gui-import-export"
+>exportera dem från det grafiska användargränssnittet för att hantera teman i KTextEditor</link
+>.</para>
+
+<para
+>Det är också möjligt att enkelt lägga till ytterligare eller egna teman, som läses in från filsystemet. Användaranpassade temafiler finns i katalogen <filename class="directory"
+>org.kde.syntax-highlighting/themes/</filename
+> i användarkatalogen, som hittas med kommandot <userinput
+><command
+>qtpaths</command
+><option
+> --paths GenericDataLocation</option
+></userinput
+> och som oftast är <filename class="directory"
+><envar
+>$HOME</envar
+>/.local/share/</filename
+> och <filename class="directory"
+>/usr/share/</filename
+>. </para>
+
+<para
+>För Flatpak- och Snap-paket, fungerar inte ovanstående katalog eftersom dataplatsen är olika för varje program. I ett Flatpak-program, är platsen för anpassade temafiler oftast <filename class="directory"
+><envar
+>$HOME</envar
+>/.var/app/<replaceable
+>flatpak-paketnamn</replaceable
+>/data/org.kde.syntax-highlighting/themes/</filename
+> och i ett Snap-program är platsen <filename class="directory"
+><envar
+>$HOME</envar
+>/snap/<replaceable
+>snap-paketnamn</replaceable
+>/current/.local/share/org.kde.syntax-highlighting/themes/</filename
+>. </para>
+
+<para
+>På &Windows; är filerna placerade i <filename
+>%USERPROFILE%&#92;AppData&#92;Local&#92;org.kde.syntax-highlighting&#92;themes</filename
+>. <replaceable
+>%USERPROFILE%</replaceable
+> expanderas oftast till <filename
+>C:&#92;Users&#92;<replaceable
+>användarnamn</replaceable
+></filename
+>.</para>
+
+<para
+>Sammanfattningsvis, för de de flesta konfigurationer är den egna temakatalogen följande:</para>
+
+<informaltable>
+<tgroup cols="2">
+<tbody>
+<row>
+<entry
+>För lokal användare</entry>
+<entry
+><filename class="directory"
+><envar
+>$HOME</envar
+>/.local/share/org.kde.syntax-highlighting/themes/</filename
+></entry>
+</row>
+<row>
+<entry
+>För alla användare</entry>
+<entry
+><filename class="directory"
+>/usr/share/org.kde.syntax-highlighting/themes/</filename
+></entry>
+</row>
+<row>
+<entry
+>För Flatpak-paket</entry>
+<entry
+><filename class="directory"
+><envar
+>$HOME</envar
+>/.var/app/<replaceable
+>flatpak-paketnamn</replaceable
+>/data/org.kde.syntax-highlighting/themes/</filename
+></entry>
+</row>
+<row>
+<entry
+>För Snap-paket</entry>
+<entry
+><filename class="directory"
+><envar
+>$HOME</envar
+>/snap/<replaceable
+>snap-paketnamn</replaceable
+>/current/.local/share/org.kde.syntax-highlighting/themes/</filename
+></entry>
+</row>
+<row>
+<entry
+>På &Windows;</entry>
+<entry
+><filename
+>%USERPROFILE%&#92;AppData&#92;Local&#92;org.kde.syntax-highlighting&#92;themes</filename
+></entry>
+</row>
+</tbody>
+</tgroup>
+</informaltable>
+
+<para
+>Om flera temafiler finns med samma namn, läses filen med största <userinput
+>revision</userinput
+> in. </para>
+
+</sect3>
+
+<sect3 id="color-themes-json-basic">
+
+<title
+>&JSON;-strukturen</title>
+
+<para
+>Strukturen för en &JSON;-fil förklaras på <ulink url="https://www.json.org"
+>deras webbplats</ulink
+>. I huvudsak består en &JSON;-formaterad fil av: <itemizedlist>
+<listitem
+><para
+>Samlingar av nyckel-värde par, åtskilda av kommatecken och grupperade inom <userinput
+>{ }</userinput
+>, som vi kallar <quote
+>objekt</quote
+>.</para
+></listitem>
+<listitem
+><para
+>Ordnade listor av värden, åtskilda av kommatecken och grupperade inom <userinput
+>[ ]</userinput
+>, vilket vi kallar <quote
+>fält</quote
+>.</para
+></listitem
+></itemizedlist>
+</para>
+
+<para
+>Terminologin <quote
+>nyckel</quote
+>, <quote
+>värde</quote
+>, <quote
+>objekt</quote
+> och <quote
+>fält</quote
+> används i det här avsnittet. Om det är första gången du arbetar med &JSON;-filer, är det enkelt nog att förstå dem genom att titta på exemplen nedan. </para>
+
+</sect3>
+
+<sect3 id="color-themes-json-root">
+
+<title
+>Huvudsektionerna i &JSON;-färgtemafiler</title>
+
+<para
+>Färgtemats rotobjekt i &JSON;-filer innehåller följande schemanycklar:</para>
+
+<itemizedlist>
+<listitem
+><para
+><userinput
+>metadata</userinput
+>: Det är nödvändigt. Värdet är ett objekt med temats metadata, såsom ett namn, revision och licens.</para>
+<para
+>Det beskrivs detaljerat i <xref linkend="color-themes-json-metadata"/>.</para>
+</listitem>
+
+<listitem
+><para
+><userinput
+>editor-colors</userinput
+>: Det är nödvändigt. Värdet är ett objekt med färgerna i textredigeringsområdet, såsom bakgrunden, ikonkanten och textdekorationen.</para>
+<para
+>Det beskrivs detaljerat i <xref linkend="color-themes-editor-colors"/>.</para>
+</listitem>
+
+<listitem
+><para
+><userinput
+>text-styles</userinput
+>: De är nödvändiga. Värdet är ett objekt med egenskapen <emphasis
+>förvald textstil</emphasis
+> för syntaxfärgläggningen. Varje egenskap definierar exempelvis sin <emphasis
+>textfärg</emphasis
+>, sin <emphasis
+>markerad textfärg</emphasis
+>, eller om den är <emphasis
+>fetstil</emphasis
+> eller <emphasis
+>kursiv</emphasis
+>. Textstilar kan refereras från <link linkend="kate-highlight-default-styles"
+>egenskaperna i syntaxdefinitionens &XML;-filer</link
+>.</para>
+<para
+>Det beskrivs detaljerat i <xref linkend="color-themes-text-styles"/>.</para>
+</listitem>
+
+<listitem
+><para
+><userinput
+>custom-styles</userinput
+>: De är valfria. Definierar textstilar för egenskaperna av specifika syntaxfärgläggningsdefinitioner. Exempelvis, i en färgläggningsdefinition såsom <userinput
+>Python</userinput
+> eller <userinput
+>Markdown</userinput
+> kan man ange en annorlunda textstil som överskrider förval definierade av <userinput
+>text-styles</userinput
+>.</para>
+<para
+>Det beskrivs detaljerat i <xref linkend="color-themes-custom-styles"/>.</para>
+</listitem>
+</itemizedlist>
+
+<para
+>&JSON;-språket stöder inte kommentarer. Dock kan du använda den valfria nyckeln <userinput
+>_comments</userinput
+> i rotobjektet för att skriva kommentarer. Om du exempelvis anpassar ett befintligt tema kan du lägga till webbadressen för originalarkivet. Det mest praktiska sättet är att använda ett fält av strängar. </para>
+
+<para
+>Nedan finns en exempelfil för temat <quote
+>Breeze Light</quote
+>. Du kanske märker att för att undvika att exemplet blir för stort, innehåller inte objekten <userinput
+>editor-colors</userinput
+> och <userinput
+>text-styles</userinput
+> alla nödvändiga nycklar. Du hittar hela arkivet av <ulink url="https://invent.kde.org/frameworks/syntax-highlighting/-/blob/master/data/themes/breeze-light.theme"
+> temat <quote
+>Breeze Light</quote
+> i arkivet för KSyntaxHighlighting</ulink
+>. </para>
+
+<programlisting
+>{
+    "_comments": [
+        "Det här är en kommentar.",
+        "Om temat är en anpassning av ett annat, ange länken till originalarkivet."
+    ],
+    "metadata": {
+        "name" : "Breeze Light",
+        "revision" : 5,
+        "copyright": [
+            "SPDX-FileCopyrightText: 2016 Volker Krause &lt;vkrause@kde.org&gt;",
+            "SPDX-FileCopyrightText: 2016 Dominik Haumann &lt;dhaumann@kde.org&gt;"
+        ],
+        "license": "SPDX-License-Identifier: MIT"
+    },
+    "editor-colors": {
+        "BackgroundColor" : "#ffffff",
+        "CodeFolding" : "#94caef",
+        "BracketMatching" : "#ffff00",
+        "CurrentLine" : "#f8f7f6",
+        "IconBorder" : "#f0f0f0",
+        "IndentationLine" : "#d2d2d2",
+        "LineNumbers" : "#a0a0a0",
+        "CurrentLineNumber" : "#1e1e1e",
+        <replaceable
+>Andra färgnycklar för editorn ...</replaceable>
+
+    },
+    "text-styles": {
+        "Normal" : {
+            "text-color" : "#1f1c1b",
+            "selected-text-color" : "#ffffff",
+            "bold" : false,
+            "italic" : false,
+            "underline" : false,
+            "strike-through" : false
+        },
+        "Keyword" : {
+            "text-color" : "#1f1c1b",
+            "selected-text-color" : "#ffffff",
+            "bold" : true
+        },
+        "Function" : {
+            "text-color" : "#644a9b",
+            "selected-text-color" : "#452886"
+        },
+        "Variable" : {
+            "text-color" : "#0057ae",
+            "selected-text-color" : "#00316e"
+        },
+        <replaceable
+>Nycklar för andra textstilar...</replaceable>
+
+    },
+    "custom-styles": {
+        "ISO C++": {
+            "Data Type": {
+                "bold": true,
+                "selected-text-color": "#009183",
+                "text-color": "#00b5cf"
+            },
+            "Keyword": {
+                "text-color": "#6431b3"
+            }
+        },
+        "YAML": {
+            "Attribute": {
+                "selected-text-color": "#00b5cf",
+                "text-color": "#00b5cf"
+            }
+        }
+    }
+}
+</programlisting>
+
+</sect3>
+
+<sect3 id="color-themes-json-metadata">
+
+<title
+>Metadata</title>
+
+<para
+>&JSON;-objektet för nyckeln <userinput
+>metadata</userinput
+> innehåller relevant information om temat. Objektet har följande nycklar: <itemizedlist>
+<listitem
+><para
+><userinput
+>name</userinput
+>: Det är en <emphasis
+>sträng</emphasis
+> som anger språkets namn. Det visas senare i menyer och dialogrutor. Det är nödvändigt.</para
+></listitem>
+
+<listitem
+><para
+><userinput
+>revision</userinput
+>: Det är ett <emphasis
+>heltal</emphasis
+> som anger aktuell version av temafilen. När du uppdaterar en färgtemafil, säkerställ att talet ökas. Det är nödvändigt.</para
+></listitem>
+
+<listitem
+><para
+><userinput
+>license</userinput
+>: Det är en <emphasis
+>sträng</emphasis
+> som definierar temats licens, som använder identifieraren <userinput
+>SPDX-License-Identifier</userinput
+> från standarden <ulink url="https://spdx.dev/"
+>SPDX license communication format</ulink
+>. Det är valfritt.</para>
+<para
+>Du kan se hela listan med SPDX-licensidentifierare <ulink url="https://spdx.org/licenses/"
+>här</ulink
+>.</para
+></listitem>
+
+<listitem
+><para
+><userinput
+>copyright</userinput
+>: Det är ett <emphasis
+>fält</emphasis
+> av <emphasis
+>strängar</emphasis
+> som anger temats upphovsman, och använder identifieraren <userinput
+>SPDX-FileCopyrightText</userinput
+> från standarden <ulink url="https://spdx.dev/"
+>SPDX license communication format</ulink
+>. Det är valfritt.</para
+></listitem>
+</itemizedlist>
+</para>
+
+<programlisting
+>"metadata": {
+    "name" : "Breeze Light",
+    "revision" : 5,
+    "copyright": [
+        "SPDX-FileCopyrightText: 2016 Volker Krause &lt;vkrause@kde.org&gt;",
+        "SPDX-FileCopyrightText: 2016 Dominik Haumann &lt;dhaumann@kde.org&gt;"
+    ],
+    "license": "SPDX-License-Identifier: MIT"
+}
+</programlisting>
+
+</sect3>
+
+</sect2>
+
+<sect2 id="color-themes-editing">
+
+<title
+>Färger i detalj</title>
+
+<para
+>Det här avsnittet beskriver alla tillgängliga färgegenskaper och tillgängliga färginställningar i detalj.</para>
+
+<sect3 id="color-themes-editor-colors">
+
+<title
+>Editorns färger</title>
+
+<para
+>Motsvarar färgerna i <link linkend="kate-part"
+>textredigeringsområdet</link
+>.</para>
+
+<para
+>I <link linkend="color-themes-json"
+>&JSON;-temafiler</link
+>, respektive nyckel <userinput
+>editor-colors</userinput
+> har ett värde, ett <emphasis
+>object</emphasis
+>, där varje nyckelreferens refererar till en egenskapsfärg i texteditorn. Här är <userinput
+>alla tillgängliga nycklar nödvändiga</userinput
+>, och deras värden är <userinput
+>strängar</userinput
+> med hexadecimala färgkoder, som <quote
+>#00B5CF</quote
+>. </para>
+
+<para
+>I <link linkend="color-themes-gui"
+>det grafiska användargränssnitt för att hantera teman i KTextEditor</link
+>, kan egenskaperna ändras under fliken <userinput
+><guilabel
+>Färger</guilabel
+></userinput
+>. </para>
+
+<para
+>Följande nycklar är tillgängliga: nycklarna använda i <link linkend="color-themes-json"
+>&JSON;-filen</link
+> listas med <emphasis
+>fetstil</emphasis
+>, och namnen använda i det <link linkend="color-themes-gui"
+>grafiska användargränssnittet</link
+> visas inom parentes. </para>
+
+<variablelist>
+
+<varlistentry id="variable-prefcolors-colors-text-background">
+<term
+><guilabel
+>Editorns bakgrundsfärger</guilabel
+></term>
+<listitem>
+
+<variablelist>
+
+<varlistentry id="variable-pref-colors-normal-text">
+<term
+><userinput
+>BackgroundColor</userinput
+> (<guilabel
+>Textområde</guilabel
+>)</term>
+<listitem
+><para
+>Det här är förvald bakgrund för redigeringsområdet. Det kommer att vara den dominerande färgen i redigeringsområdet.</para>
+<mediaobject>
+<imageobject
+><imagedata format="PNG" fileref="editor-colors-BackgroundColor.png"/></imageobject>
+<caption
+><para
+></para
+></caption>
+</mediaobject>
+</listitem>
+</varlistentry>
+
+<varlistentry id="variable-pref-colors-selected-text">
+<term
+><userinput
+>TextSelection</userinput
+> (<guilabel
+>Markerad text</guilabel
+>)</term>
+<listitem
+><para
+>Det är bakgrunden för markerad text. </para>
+<mediaobject>
+<imageobject
+><imagedata format="PNG" fileref="editor-colors-TextSelection.png"/></imageobject>
+<caption
+><para
+></para
+></caption>
+</mediaobject>
+</listitem>
+</varlistentry>
+
+<varlistentry id="variable-pref-colors-current-line">
+<term
+><userinput
+>CurrentLine</userinput
+> (<guilabel
+>Aktuell rad</guilabel
+>)</term>
+<listitem
+><para
+>Ställ in färgen för aktuell rad. Att ställa in den något annorlunda jämfört med den normala textbakgrunden hjälper till att hålla fokus på den aktuella raden. </para>
+<mediaobject>
+<imageobject
+><imagedata format="PNG" fileref="editor-colors-CurrentLine.png"/></imageobject>
+<caption
+><para
+></para
+></caption>
+</mediaobject>
+</listitem>
+</varlistentry>
+
+<varlistentry id="variable-pref-colors-search-highlight">
+<term
+><userinput
+>SearchHighlight</userinput
+> (<guilabel
+>Sökfärgläggning</guilabel
+>)</term>
+<listitem
+><para
+>Ställ in färgen på texten som matchar den senaste sökningen. </para>
+<mediaobject>
+<imageobject
+><imagedata format="PNG" fileref="editor-colors-SearchHighlight.png"/></imageobject>
+<caption
+><para
+></para
+></caption>
+</mediaobject>
+</listitem>
+</varlistentry>
+
+<varlistentry id="variable-pref-colors-replace-highlight">
+<term
+><userinput
+>ReplaceHighlight</userinput
+> (<guilabel
+>Ersättningsfärgläggning</guilabel
+>)</term>
+<listitem
+><para
+>Ställ in färgen på texten som matchar den senaste ersättningsåtgärden.</para>
+<mediaobject>
+<imageobject
+><imagedata format="PNG" fileref="editor-colors-ReplaceHighlight.png"/></imageobject>
+<caption
+><para
+></para
+></caption>
+</mediaobject>
+</listitem>
+</varlistentry>
+
+</variablelist>
+</listitem>
+</varlistentry>
+
+<varlistentry id="variable-prefcolors-colors-icon-border">
+<term
+><guilabel
+>Ikonkant</guilabel
+></term>
+<listitem>
+<variablelist>
+
+<varlistentry>
+<term
+><userinput
+>IconBorder</userinput
+> (<guilabel
+>Bakgrundsområde</guilabel
+>)</term>
+<listitem
+><para
+>Den här färgen används för markeringar, radnummer och vikmarkörkanter till vänster i redigeringsvyn när de visas. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>LineNumbers</userinput
+> (<guilabel
+>Radnummer</guilabel
+>)</term>
+<listitem
+><para
+>Den här färgen används för att visa radnummer till vänster i vyn när de visas.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>CurrentLineNumber</userinput
+> (<guilabel
+>Aktuellt radnummer</guilabel
+>)</term>
+<listitem
+><para
+>Deh här färgen används för att återge den aktuella radens radnummer, på vänster sida om vyn när det visas. Att ställa  in det lite annorlunda från <quote
+>LineNumbers</quote
+> hjälper till att fokusera på den aktuella raden. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>Separator</userinput
+> (<guilabel
+>Separator</guilabel
+>)</term>
+<listitem
+><para
+>Den här färgen används för att återge den vertikala linjen som separerar ikonkanten från textområdets bakgrund.</para>
+<mediaobject>
+<imageobject
+><imagedata format="PNG" fileref="editor-colors-IconBorder.png"/></imageobject>
+<caption
+><para
+></para
+></caption>
+</mediaobject>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>WordWrapMarker</userinput
+> (<guilabel
+>Radbrytningsmarkör</guilabel
+>)</term>
+<listitem
+><para
+>Den här färgen används för att rita ett mönster till vänster om rader med dynamisk radbrytning när de är vertikalt justerade, samt för statiska radbrytningsmarkörer.</para>
+<mediaobject>
+<imageobject
+><imagedata format="PNG" fileref="editor-colors-WordWrapMarker.png"/></imageobject>
+<caption
+><para
+></para
+></caption>
+</mediaobject>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>CodeFolding</userinput
+> (<guilabel
+>Kodvikning</guilabel
+>)</term>
+<listitem
+><para
+>Den här färgen används för att markera delen av koden som skulle kodvikas när du klickar på kodvikningspilen till vänster om ett dokument För mer information, se <link linkend="advanced-editing-tools-code-folding"
+>dokumentationen av kodvikning</link
+>.</para>
+<mediaobject>
+<imageobject
+><imagedata format="PNG" fileref="editor-colors-CodeFolding.png"/></imageobject>
+<caption
+><para
+></para
+></caption>
+</mediaobject>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>ModifiedLines</userinput
+> (<guilabel
+>Ändrade rader</guilabel
+>)</term>
+<listitem
+><para
+>Den här färgen används för att färglägga rader som har ändrats men inte ännu sparats till vänster om ett dokument. För mer information se <xref linkend="kate-part-line-modification"/>.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>SavedLines</userinput
+> (<guilabel
+>Sparade rader</guilabel
+>)</term>
+<listitem
+><para
+>Den här färgen används för att färglägga rader som har ändrats under den här sessionen och sparats till vänster om ett dokument. För mer information se <xref linkend="kate-part-line-modification"/>.</para>
+<mediaobject>
+<imageobject
+><imagedata format="PNG" fileref="editor-colors-ModifiedLines.png"/></imageobject>
+<caption
+><para
+></para
+></caption>
+</mediaobject>
+</listitem>
+</varlistentry>
+
+</variablelist>
+</listitem>
+</varlistentry>
+
+<varlistentry id="variable-prefcolors-colors-text-decorations">
+<term
+><guilabel
+>Textdekorationer</guilabel
+></term>
+<listitem>
+<variablelist>
+
+<varlistentry>
+<term
+><userinput
+>SpellChecking</userinput
+> (<guilabel
+>Rad med stavfel</guilabel
+>)</term>
+<listitem
+><para
+>Den här färgen används för att indikera stavfel.</para>
+<mediaobject>
+<imageobject
+><imagedata format="PNG" fileref="editor-colors-SpellChecking.png"/></imageobject>
+<caption
+><para
+></para
+></caption>
+</mediaobject>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>TabMarker</userinput
+> (<guilabel
+>Tabulator- och mellanslagsmarkörer</guilabel
+>)</term>
+<listitem
+><para
+>Den här färgen används för att visa indikering av blanktecken, när de är aktiverade.</para>
+<mediaobject>
+<imageobject
+><imagedata format="PNG" fileref="editor-colors-TabMarker.png"/></imageobject>
+<caption
+><para
+></para
+></caption>
+</mediaobject>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>IndentationLine</userinput
+> (<guilabel
+>Indenteringslinje</guilabel
+>)</term>
+<listitem
+><para
+>Den här färgen används för att rita en linje till vänster om indenterade block, om <link linkend="appearance-general"
+>funktionen är aktiverad</link
+>.</para>
+<mediaobject>
+<imageobject
+><imagedata format="PNG" fileref="editor-colors-IndentationLine.png"/></imageobject>
+<caption
+><para
+></para
+></caption>
+</mediaobject>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>BracketMatching</userinput
+> (<guilabel
+>Färglägg parenteser</guilabel
+>)</term>
+<listitem
+><para
+>Den här färgen används för att markera bakgrunden för matchande parenteser. </para>
+<mediaobject>
+<imageobject
+><imagedata format="PNG" fileref="editor-colors-BracketMatching.png"/></imageobject>
+<caption
+><para
+></para
+></caption>
+</mediaobject>
+</listitem>
+</varlistentry>
+
+</variablelist>
+</listitem>
+</varlistentry>
+
+<varlistentry id="variable-prefcolors-colors-marker-colors">
+<term
+><guilabel
+>Markeringsfärger</guilabel
+></term>
+<listitem>
+<variablelist>
+
+<varlistentry>
+<term
+><userinput
+>MarkBookmark</userinput
+> (<guilabel
+>Bokmärke</guilabel
+>)</term>
+<listitem
+><para
+>Den här färgen används för att ange bokmärken. Observera att färgen har ogenomskinlighet 22 % (33 % för den aktuella raden). För mer information, se <xref linkend="kate-part-bookmarks"/>.</para>
+<mediaobject>
+<imageobject
+><imagedata format="PNG" fileref="editor-colors-MarkBookmark.png"/></imageobject>
+<caption
+><para
+></para
+></caption>
+</mediaobject>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>MarkBreakpointActive</userinput
+> (<guilabel
+>Aktiv brytpunkt</guilabel
+>)</term>
+<listitem
+><para
+>Den här färgen används av GDB-insticksprogrammet för att ange en aktiv brytpunkt. Observera att färgen är ogenomskinlig mot bakgrunden. För mer information, se <ulink url="help:/kate/kate-application-plugin-gdb.html"
+>dokumentationen av GDB-insticksprogrammet</ulink
+>.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>MarkBreakpointReached</userinput
+> (<guilabel
+>Nådd brytpunkt</guilabel
+>)</term>
+<listitem
+><para
+>Den här färgen används av GDB-insticksprogrammet för att ange en brytpunkt du har nått under avlusning. Observera att färgen är ogenomskinlig mot bakgrunden. För mer information, se <ulink url="help:/kate/kate-application-plugin-gdb.html"
+>dokumentationen av GDB-insticksprogrammet</ulink
+>.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>MarkBreakpointDisabled</userinput
+> (<guilabel
+>Inaktiv brytpunkt</guilabel
+>)</term>
+<listitem
+><para
+>Den här färgen används av GDB-insticksprogrammet för att ange en inaktiv brytpunkt. Observera att färgen är ogenomskinlig mot bakgrunden. För mer information, se <ulink url="help:/kate/kate-application-plugin-gdb.html"
+>dokumentationen av GDB-insticksprogrammet</ulink
+>.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>MarkExecution</userinput
+> (<guilabel
+>Körning</guilabel
+>)</term>
+<listitem
+><para
+>Den här färgen används av GDB-insticksprogrammet för raden som för närvarande körs. Observera att färgen är ogenomskinlig mot bakgrunden. För mer information, se <ulink url="help:/kate/kate-application-plugin-gdb.html"
+>dokumentationen av GDB-insticksprogrammet</ulink
+>.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>MarkWarning</userinput
+> (<guilabel
+>Varning</guilabel
+>)</term>
+<listitem
+><para
+>Den här färgen används av bygginsticksprogrammet för att ange en rad som har orsakat en kompilatorvarning. Observera att färgen är ogenomskinlig mot bakgrunden. För mer information, se <ulink url="help:/kate/kate-application-plugin-build.html"
+>dokumentationen av bygginsticksprogrammet</ulink
+>.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>MarkError</userinput
+> (<guilabel
+>Fel</guilabel
+>)</term>
+<listitem
+><para
+>Den här färgen används av bygginsticksprogrammet för att ange en rad som har orsakat ett kompilatorfel. Observera att färgen är ogenomskinlig mot bakgrunden. För mer information, se <ulink url="help:/kate/kate-application-plugin-build.html"
+>dokumentationen av bygginsticksprogrammet</ulink
+>.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+</listitem>
+</varlistentry>
+
+<varlistentry id="variable-prefcolors-colors-text-templates-snippets">
+<term
+><guilabel
+>Textmallar och snuttar</guilabel
+></term>
+<listitem>
+<variablelist>
+
+<varlistentry>
+<term
+><userinput
+>TemplateBackground</userinput
+> (<guilabel
+>Bakgrund</guilabel
+>)</term>
+<listitem
+><para
+>Den här färgen används av &kate;s insticksprogram för textsnuttar för att markera bakgrunden för en textsnutt. För mer information, se <ulink url="help:/kate/kate-application-plugin-snippets.html"
+>dokumentationen av &kate;s textsnuttar</ulink
+>.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>TemplatePlaceholder</userinput
+> (<guilabel
+>Redigerbar platsmarkör</guilabel
+>)</term>
+<listitem
+><para
+>Den här färgen används av &kate;s insticksprogram för textsnuttar för att markera en platsmarkör som du kan klicka för att redigera manuellt. För mer information, se <ulink url="help:/kate/kate-application-plugin-snippets.html"
+>dokumentationen av &kate;s insticksprogram för textsnuttar</ulink
+>.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>TemplateFocusedPlaceholder</userinput
+> (<guilabel
+>Fokuserad redigerbar platsmarkör</guilabel
+>)</term>
+<listitem
+><para
+>Den här färgen används av &kate;s insticksprogram för textsnuttar för att markera en platsmarkör som du för närvarande redigerar. För mer information, se <ulink url="help:/kate/kate-application-plugin-snippets.html"
+>dokumentationen av &kate;s insticksprogram för textsnuttar</ulink
+>.</para>
+<mediaobject>
+<imageobject
+><imagedata format="PNG" fileref="editor-colors-Template.png"/></imageobject>
+<caption
+><para
+></para
+></caption>
+</mediaobject>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+>TemplateReadOnlyPlaceholder</userinput
+> (<guilabel
+>Icke-redigerbar platsmarkör</guilabel
+>)</term>
+<listitem
+><para
+>Färgen används av &kate;s insticksprogram för textsnuttar för att markera en platsmarkör som inte kan redigeras manuellt, såsom en som fylls i automatiskt. För mer information, se <ulink url="help:/kate/kate-application-plugin-snippets.html"
+>dokumentationen av &kate;s insticksprogram för textsnuttar</ulink
+>.</para>
+<mediaobject>
+<imageobject
+><imagedata format="PNG" fileref="editor-colors-TemplateReadOnlyPlaceholder.png"/></imageobject>
+<caption
+><para
+></para
+></caption>
+</mediaobject>
+</listitem>
+</varlistentry>
+
+</variablelist>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect3>
+
+<sect3 id="color-themes-text-styles">
+
+<title
+>Förvalda textstilar</title>
+
+<para
+>De förvalda textstilarna ärvs av färgläggningstextstilarna, vilket gör det möjligt för editorn att visa text på ett mycket konsekvent sätt, till exempel använder kommentartext samma stil i nästan alla textformat som KSyntaxHighlighting kan färglägga. </para>
+
+<note>
+<para
+>Textstilarna kan refereras till från <userinput
+>default styles</userinput
+> använda i &XML;-definitionsfilerna för <link linkend="highlight"
+>syntaxfärgläggning</link
+>, exempelvis egenskapen <quote
+>Normal</quote
+> är ekvivalent med <quote
+>dsNormal</quote
+> i &XML;-filer, och <quote
+>DataType</quote
+> är ekvivalent med <quote
+>dsDataType</quote
+>. Se <xref linkend="kate-highlight-default-styles"/> i dokumentationen av syntaxfärgläggning. </para>
+</note>
+
+<tip>
+<para
+>Säkerställ att läsbara färger med god kontrast väljes, särskilt i kombination med <userinput
+><link linkend="color-themes-editor-colors"
+>editorns färger</link
+></userinput
+>. Se <xref linkend="color-themes-contrast"/>. </para>
+</tip>
+
+<para
+>I <link linkend="color-themes-json"
+>&JSON;-filen</link
+> har respektive <userinput
+>text-styles</userinput
+> nyckel värdet <emphasis
+>object</emphasis
+> där varje nyckel motsvarar namnet på en <emphasis
+>förvald textstil</emphasis
+>, som är ekvivalent med de som används i syntaxfärgläggningsdefinitioner. Här <userinput
+>är alla tillgängliga nycklarna för textstilar nödvändiga</userinput
+>, och de listas nedan. </para>
+
+<programlisting
+>"text-styles": {
+    "Normal" : {
+        "text-color" : "#1f1c1b",
+        "selected-text-color" : "#ffffff",
+        "bold" : false,
+        "italic" : false,
+        "underline" : false,
+        "strike-through" : false
+    },
+    "Keyword" : {
+        "text-color" : "#1f1c1b",
+        "selected-text-color" : "#ffffff",
+        "bold" : true
+    },
+    "Function" : {
+        "text-color" : "#644a9b",
+        "selected-text-color" : "#452886"
+    },
+    <replaceable
+>Nycklar för andra textstilar...</replaceable>
+}
+</programlisting>
+
+<variablelist>
+<varlistentry>
+
+<term
+>Varje nyckel för en <emphasis
+>förvald textstil</emphasis
+> har ett &JSON;-objekt som sitt värde, där värden såsom <emphasis
+>color</emphasis
+>, <emphasis
+>bold</emphasis
+>, <emphasis
+>italic</emphasis
+>, etc. anges. Nycklarna är följande: </term>
+
+<listitem>
+
+<para
+><userinput
+>text-color</userinput
+>: Det är en <emphasis
+>sträng</emphasis
+> med textfärg i hexadecimal färgkod. Det här nyckel/värdet är nödvändigt.</para>
+
+<para
+><userinput
+>selected-text-color</userinput
+>: Textfärg när den är markerat är i allmänhet samma värde som <quote
+>text-color</quote
+>. När texten är markerad, definieras bakgrunden av värdet <link linkend="variable-pref-colors-selected-text"
+>TextSelection</link
+> i <link linkend="color-themes-editor-colors"
+>editorns färger</link
+>, så du måste säkerställa att texten har god kontrast och är läsbar med den bakgrunden. Värdet är en <emphasis
+>sträng</emphasis
+> med en hexadecimal färgkod. Det här nyckel/värdet är nödvändigt.</para>
+
+<para
+><userinput
+>bold</userinput
+>: Det är en <emphasis
+>boolean</emphasis
+> som bestämmer om texten är i fetstil. Nyckeln är valfri, och förvalt värde är <userinput
+>false</userinput
+>.</para>
+
+<para
+><userinput
+>italic</userinput
+>: Det är en <emphasis
+>boolean</emphasis
+> som bestämmer om texten är kursiv. Nyckeln är valfri, och förvalt värde är <userinput
+>false</userinput
+>.</para>
+
+<para
+><userinput
+>underline</userinput
+>: Det är en <emphasis
+>boolean</emphasis
+> som bestämmer om texten är understruken. Nyckeln är valfri, och förvalt värde är <userinput
+>false</userinput
+>.</para>
+
+<para
+><userinput
+>strike-through</userinput
+>: Det är en <emphasis
+>boolean</emphasis
+> som bestämmer om texten är överstruken. Nyckeln är valfri, och förvalt värde är <userinput
+>false</userinput
+>.</para>
+
+<para
+><userinput
+>background-color</userinput
+>: Bestämmer textens bakgrund, exempelvis används för varningar i kommentarer. Värdet är en <emphasis
+>sträng</emphasis
+> med en hexadecimal färgkod. Nyckeln är valfri, normalt finns ingen bakgrund.</para>
+
+<para
+><userinput
+>selected-background-color</userinput
+>: Bestämmer textens bakgrund när den är markerad. Värdet är en <emphasis
+>sträng</emphasis
+> med en hexadecimal färgkod. Nyckeln är valfri, normalt finns ingen bakgrund.</para>
+
+</listitem>
+</varlistentry>
+</variablelist>
+
+<para
+>De här egenskaperna kan ändras i <link linkend="color-themes-gui"
+>det grafiska användargränssnittet för att hantera färgteman i KTextEditor</link
+>, under fliken<userinput
+><guilabel
+>Förvalda textstilar</guilabel
+></userinput
+>. Namnet i listan över stilar använder stilen inställd för det objektet, vilket ger dig en omedelbar förhandsgranskning när en stil anpassas. Varje stil låter dig välja vanliga egenskaper samt förgrunds- och bakgrundsfärger. För att välja bort en bakgrundsfärg, högerklicka för att använda den sammanhangsberoende menyn.</para>
+
+<para
+>Följande nycklar för textstil är tillgängliga: nycklarna använda i <link linkend="color-themes-json"
+>&JSON;-filen</link
+> listas med <emphasis
+>fetstil</emphasis
+>, och namnen använda i det <link linkend="color-themes-gui"
+>grafiska användargränssnittet</link
+> visas inom parentes om de är annorlunda.</para>
+
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Normal text och källkod</guilabel
+></term>
+<listitem>
+<para
+><userinput
+>Normal</userinput
+>: Förvald textstil för normal text och källkod utan speciell färgläggning.</para>
+
+<para
+><userinput
+>Keyword</userinput
+>: Textstil för inbyggda nyckelord i språket.</para>
+
+<para
+><userinput
+>Function</userinput
+>: Textstil för funktionsdefinitioner och funktionsanrop.</para>
+
+<para
+><userinput
+>Variable</userinput
+>: Textstil för variabler, om tillämplig. Exempelvis variabler i PHP/Perl typiskt börjar med <userinput
+>$</userinput
+>, så alla identifierare som följer mönstret <userinput
+>$exempel</userinput
+> färgläggs som variabler.</para>
+
+<para
+><userinput
+>ControlFlow</userinput
+> (<guilabel
+>Kontrollflöde</guilabel
+>): Textstil för kontrollflödesnyckelord, såsom <emphasis
+>if</emphasis
+>, <emphasis
+>then</emphasis
+>, <emphasis
+>else</emphasis
+>, <emphasis
+>return</emphasis
+>, <emphasis
+>switch</emphasis
+>, <emphasis
+>break</emphasis
+>, <emphasis
+>yield</emphasis
+>, <emphasis
+>continue</emphasis
+>, etc.</para>
+
+<para
+><userinput
+>Operator</userinput
+>: Textstil för operatorer, såsom <userinput
+>+</userinput
+>, <userinput
+>-</userinput
+>, <userinput
+>*</userinput
+>, <userinput
+>/</userinput
+>, <userinput
+>%</userinput
+>, etc.</para>
+
+<para
+><userinput
+>BuiltIn</userinput
+> (<guilabel
+>Inbyggda</guilabel
+>): Textstil för inbyggda språkklasser, funktioner och objekt.</para>
+
+<para
+><userinput
+>Extension</userinput
+>: Textstil för välkända ändelser såsom &Qt;-klasser och funktioner eller makron i C++ och Python eller boost.</para>
+
+<para
+><userinput
+>Preprocessor</userinput
+>: Textstil för preprocessorsatser eller makrodefinitioner.</para>
+
+<para
+><userinput
+>Attribute</userinput
+>: Textstilar för anmärkningar eller attribut för funktioner eller objekt, t.ex. <userinput
+>@override</userinput
+> i Java, eller <userinput
+>__declspec(...)</userinput
+> och <userinput
+>__attribute__((...))</userinput
+> i C++.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Tal, typer och konstanter</guilabel
+></term>
+<listitem>
+<para
+><userinput
+>DataType</userinput
+> (<guilabel
+>Datatyp</guilabel
+>): Textstilar för inbyggda datatyper såsom <emphasis
+>int</emphasis
+>, <emphasis
+>char</emphasis
+>, <emphasis
+>float</emphasis
+>, <emphasis
+>void</emphasis
+>, <emphasis
+>u64</emphasis
+>, etc.</para>
+
+<para
+><userinput
+>DecVal</userinput
+> (<guilabel
+>Decimal/Värde</guilabel
+>): Textstil för decimala värden.</para>
+
+<para
+><userinput
+>BaseN</userinput
+> (<guilabel
+>Bas-N heltal</guilabel
+>): Textstil för nummer med en bas som skiljer sig från 10.</para>
+
+<para
+><userinput
+>Float</userinput
+> (<guilabel
+>Flyttal</guilabel
+>): Textstil för flyttal.</para>
+
+<para
+><userinput
+>Constant</userinput
+>: Textstil för språkkonstanter och användardefinierade konstanter, t.ex. <emphasis
+>True</emphasis
+>, <emphasis
+>False</emphasis
+>, <emphasis
+>None</emphasis
+> i Python eller <emphasis
+>nullptr</emphasis
+> i C/C++, eller matematiska konstanter som <emphasis
+>PI</emphasis
+>.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Strängar och tecken</guilabel
+></term>
+<listitem>
+<para
+><userinput
+>Char</userinput
+> (<guilabel
+>Tecken</guilabel
+>): Textstil för enstaka tecken såsom <userinput
+>'x'</userinput
+>.</para>
+
+<para
+><userinput
+>SpecialChar</userinput
+> (<guilabel
+>Specialtecken</guilabel
+>): Textstil för undantagna tecken i strängar, t.ex. <quote
+><userinput
+>hej\n</userinput
+></quote
+>, och andra tecken med specialmening i strängar, såsom ersättningar eller operatorer i reguljära uttryck.</para>
+
+<para
+><userinput
+>String</userinput
+>: Textstil som strängar såsom <quote
+><userinput
+>hej allesamman</userinput
+></quote
+>.</para>
+
+<para
+><userinput
+>VerbatimString</userinput
+> (<guilabel
+>Ordagrann sträng</guilabel
+>): Textstil för ordagranna eller obehandlade strängar som <userinput
+>'obehandlad \bakstreck'</userinput
+> i Perl, CoffeeScript och skal, samt <userinput
+>r'\obehandlad'</userinput
+> i Python, eller sådant som HERE-dokument.</para>
+
+<para
+><userinput
+>SpecialString</userinput
+> (<guilabel
+>Specialsträng</guilabel
+>): Textstil för specialsträng, såsom reguljära uttryck i ECMAScript, &latex; matematikläge, SQL, etc.</para>
+
+<para
+><userinput
+>Import</userinput
+> (<guilabel
+>Importer, Moduler, Inkluderade filer</guilabel
+>): Textstil för inkluderade filer, importer, moduler eller &latex;-paket.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Kommentarer och dokumentation</guilabel
+></term>
+<listitem>
+<para
+><userinput
+>Comment</userinput
+>: Textstil för normala kommentarer.</para>
+
+<para
+><userinput
+>Dokumentation</userinput
+>: Textstil för kommentarer som anger dokumentation av programmeringsgränssnitt, såsom <userinput
+>/** doxygen-kommentarer */</userinput
+> eller <userinput
+>"""docstrings"""</userinput
+>.</para>
+
+<para
+><userinput
+>Annotation</userinput
+>: Textstilar för anmärkningar i kommentarer eller dokumentationskommandon, såsom <userinput
+>@param</userinput
+> i Doxygen eller JavaDoc.</para>
+
+<para
+><userinput
+>CommentVar</userinput
+> (<guilabel
+>Kommentarvariabel</guilabel
+>): Textstil som refererar till variabelnamn använda i kommandona ovan i en kommentar, såsom <userinput
+>exempel</userinput
+> i <quote
+><userinput
+>@param exempel</userinput
+></quote
+>, i Doxygen eller JavaDoc.</para>
+
+<para
+><userinput
+>RegionMarker</userinput
+> (<guilabel
+>Områdesmarkering</guilabel
+>): Textstil för områdesmarkeringar, ofta definierade av <userinput
+>//BEGIN</userinput
+> och <userinput
+>//END</userinput
+> i kommentarer.</para>
+
+<para
+><userinput
+>Information</userinput
+>: Textstil för information, anteckningar och tips, såsom nyckelordet <userinput
+>@note</userinput
+> i Doxygen.</para>
+
+<para
+><userinput
+>Warning</userinput
+>: Textstil för varningar, såsom nyckelordet <userinput
+>@warning</userinput
+> i Doxygen.</para>
+
+<para
+><userinput
+>Alert</userinput
+>: Textstil för speciella ord i kommentarer, såsom <userinput
+>TODO</userinput
+>, <userinput
+>FIXME</userinput
+>, <userinput
+>XXXX</userinput
+> och <userinput
+>WARNING</userinput
+>.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Diverse</guilabel
+></term>
+<listitem>
+<para
+><userinput
+>Error</userinput
+>: Textstil som anger felmarkering och felaktig syntax.</para>
+
+<para
+><userinput
+>Others</userinput
+>: Textstil för egenskaper som inte motsvarar någon av de andra förvalda stilarna.</para>
+</listitem>
+</varlistentry>
+</variablelist>
+
+</sect3>
+
+<sect3 id="color-themes-custom-styles">
+
+<title
+>Egna färgläggningstextstilar</title>
+
+<para
+>Här kan du etablera textstilar för en specifik syntaxfärgläggningsdefinition, och överskrida <userinput
+>förvald textstil</userinput
+> beskriven <link linkend="color-themes-text-styles"
+>i föregående avsnitt</link
+>. </para>
+
+<para
+>i <link linkend="color-themes-json"
+>&JSON;-temafilen</link
+> motsvarar det nyckeln <userinput
+>custom-styles</userinput
+> vars värde är ett <emphasis
+>objekt</emphasis
+> där varje delschemanyckel motsvarar <userinput
+>namnet på en syntaxfärgläggningsdefinition</userinput
+>. Dess värde är ett <emphasis
+>objekt</emphasis
+> där en nyckel refererar till <userinput
+>stilens egenskapsnamn</userinput
+> definierat i <link linkend="kate-highlight-sections"
+>elementen <userinput
+>itemData</userinput
+></link
+> i &XML;-filens syntaxfärgläggning, och respektive värde är ett delobjekt med nycklarna <emphasis
+>text-color</emphasis
+>, <emphasis
+>selected-text-color</emphasis
+>, <emphasis
+>bold</emphasis
+>, <emphasis
+>italic</emphasis
+>, <emphasis
+>underline</emphasis
+>, <emphasis
+>strike-through</emphasis
+>, <emphasis
+>background-color</emphasis
+> och <emphasis
+>selected-background-color</emphasis
+>, definierade i <link linkend="color-themes-text-styles"
+>föregående avsnitt</link
+>. Vart och ett av värdena är valfritt, eftersom om de inte anges, beaktas stilen angiven i <userinput
+>text-styles</userinput
+>. </para>
+
+<para
+>Exempelvis, i det här kodavsnittet, har <quote
+>ISO C++</quote
+> syntaxfärgläggningsdefinition en särskild textstil för egenskaperna <quote
+>Type Modifiers</quote
+> och <quote
+>Standard Classes</quote
+>. I motsvarande &XML;-fil <quote
+>isocpp.xml</quote
+> använder den definierade egenskapen <quote
+>Standard Classes</quote
+> förvald stil <userinput
+>BuiltIn</userinput
+> (eller dsBuiltIn). I denna egenskap överskrids bara värdet <userinput
+>text-color</userinput
+> av den nya färgen <quote
+>#6431b3</quote
+>. </para>
+
+<programlisting
+>"custom-styles": {
+    "ISO C++": {
+        "Standard Classes": {
+            "text-color": "#6431b3"
+        },
+        "Type Modifiers": {
+            "bold": true,
+            "selected-text-color": "#009183",
+            "text-color": "#00b5cf"
+        }
+    }
+}
+</programlisting>
+
+<note>
+<itemizedlist>
+
+<listitem>
+<para
+>Du bör ta hänsyn till att de här textstilarna hör ihop med egenskapsnamnen definierade i &XML;-filerna för syntaxfärgläggning. Om en XML-fil uppdateras och namnet ändras på vissa egenskaper eller de tas bort, gäller inte längre den egna stilen definierad i temat.</para>
+</listitem>
+
+<listitem>
+<para
+>Syntaxfärgläggningsdefinitioner inkluderar ofta andra definitioner. Exempelvis inkluderar <quote
+>QML</quote
+>-färgläggningen <quote
+>JavaScript</quote
+>-färgläggning, eftersom de delar funktionaliteten i färgläggning.</para>
+</listitem>
+
+</itemizedlist>
+</note>
+
+<para
+>I <link linkend="color-themes-gui"
+>det grafiska användargränssnitt för att hantera teman i KTextEditor</link
+>, kan egenskaperna ändras under fliken <userinput
+><guilabel
+>Färgläggningstextstilar</guilabel
+></userinput
+>. Normalt väljer editorn färgläggningen av det aktuella dokumentet i förväg. Du kommer att märka att många färgläggningar innehåller andra färgläggningar som representeras av grupper i stillistan. Exempelvis importerar de flesta färgläggningar <quote
+>Alert</quote
+>, och många källkodsformat importerar <quote
+>Doxygen</quote
+>. </para>
+
+</sect3>
+
+</sect2>
+
+<sect2 id="color-themes-gui">
+
+<title
+>Det grafiska användargränssnittet för färgteman</title>
+
+<para
+>Det enklaste sättet att skapa och redigera färgteman är via det grafiska användargränssnittet i <link linkend="config-dialog"
+>dialogrutan <quote
+>Anpassa</quote
+></link
+> som tillhandahålls av <ulink url="https://api.kde.org/frameworks/ktexteditor/html/"
+>KTextEditor</ulink
+>. För att komma åt det, välj <menuchoice
+><guimenu
+>Inställningar</guimenu
+> <guimenuitem
+>Anpassa <replaceable
+>program</replaceable
+>...</guimenuitem
+></menuchoice
+> i texteditorns menyrad. Det visar dialogrutan <guilabel
+>Anpassa</guilabel
+>. Välj där <guilabel
+>Färgteman</guilabel
+> i sidopanelen. </para>
+
+<mediaobject>
+<imageobject
+><imagedata format="PNG" fileref="color-themes-gui-default-text-styles.png"/></imageobject>
+<textobject
+><phrase
+>&kate;s inställningsdialogruta med färgtemahantering.</phrase
+></textobject>
+<caption
+><para
+>&kate;s inställningsdialogruta med färgtemahantering.</para>
+</caption>
+</mediaobject>
+
+<para
+>I den här <link linkend="config-dialog"
+>dialogrutan</link
+> kan du ställa in alla färgerna i de teman du har, samt skapa/kopiera nya teman, ta bort dem, exportera dem till <userinput
+>.theme</userinput
+>-filer med <link linkend="color-themes-json"
+>&JSON;-format</link
+> eller importera dem från externa <userinput
+>.theme</userinput
+>-filer. Varje tema har inställningar för textfärger och stilar. </para>
+
+<para
+>Inbyggda teman kan normalt inte ändras. För att göra det måste du kopiera dem och ge dem nya namn.</para>
+
+<para
+>För att använda ett tema permanent i din texteditor måste du välja det i kombinationsrutan med beteckningen <guilabel
+>Standardtema för <replaceable
+>program</replaceable
+></guilabel
+> längst ner i dialogrutan och klicka på <guibutton
+>Verkställ</guibutton
+> eller <guibutton
+>Ok</guibutton
+>. Normalt är alternativet <userinput
+><guilabel
+>Automatiskt val</guilabel
+></userinput
+> aktivt, vilket väljer ett lämpligt färgtema enligt det <emphasis
+>&kde; &plasma; färgschema</emphasis
+> som används i textredigeringsprogrammet. Det väljer oftast mellan <quote
+>Breeze Light</quote
+> och <quote
+>Breeze mörk</quote
+> beroende på om schemat är ljust eller mörkt. </para>
+
+<tip>
+<para
+>Du kan justera &kde;:s globala färgschema i modulen <ulink url="help:/kcontrol/colors/"
+><quote
+>Färger</quote
+> i systeminställningarna</ulink
+>. Du kan också ändra det individuellt i vissa program, såsom &kate; eller &kdevelop;, i menyn <menuchoice
+><guimenu
+>Inställningar</guimenu
+><guisubmenu
+>Färgschema</guisubmenu
+></menuchoice
+>. </para>
+</tip>
+
+<sect3 id="color-themes-gui-new-theme">
+
+<title
+>Skapa ett nytt tema</title>
+
+<para
+>För att skapa ett nytt tema är det först nödvändigt att kopiera ett befintligt. Välj ett befintligt tema som du vill använda som grund, såsom <quote
+>Breeze Light</quote
+> eller <quote
+>Breeze mörk</quote
+>, och klicka på <guibutton
+>Kopiera</guibutton
+>. Skriv sedan in ett namn på det nya temat. </para>
+
+<para
+>Om du vill ändra en inbyggt eller skrivskyddat tema, måste det först kopieras till ett annat namn.</para>
+
+</sect3>
+
+<sect3 id="color-themes-gui-import-export">
+
+<title
+>Importera eller exportera &JSON;-temafiler</title>
+
+<para
+>Du kan exportera ett valt tema (inklusive inbyggda) till en <link linkend="color-themes-json"
+>&JSON;-fil</link
+> med filändelsen <userinput
+>.theme</userinput
+>, med knappen <guibutton
+>Exportera</guibutton
+>. Det visar en dialogruta för att spara filen. För att lägga till ett färgtema från en extern <link linkend="color-themes-json"
+>&JSON;-fil</link
+>, klicka helt enkelt på knappen <guibutton
+>Importera</guibutton
+> och välj <userinput
+>.theme</userinput
+>-filen i dialogrutan. </para>
+
+<tip>
+<itemizedlist>
+
+<listitem>
+<para
+>Som <link linkend="color-themes-json-overview"
+>nämnts ovan</link
+>, lagras användaranpassade temafiler i katalogen <filename class="directory"
+>org.kde.syntax-highlighting/themes/</filename
+>. När du kopierar eller skapar ett tema hamnar det automatiskt där. Dessutom, är import eller tillägg av ett tema ekvivalent med att kopiera en extern <userinput
+>.theme</userinput
+>-fil till katalogen. KSyntaxHighlighting hämtar automatiskt färgtemafiler från den här katalogen.</para>
+</listitem>
+
+<listitem>
+<para
+>Om du vill publicera ett tema du skapar, är det ytterst viktigt att kontrollera <link linkend="color-themes-json-metadata"
+>metadata</link
+>-objektet i <link linkend="color-themes-json"
+>&JSON;-filen</link
+>, lägga till respektive licens och kontrollera revisionsnumret.</para>
+</listitem>
+
+</itemizedlist>
+</tip>
+
+</sect3>
+
+<sect3 id="color-themes-gui-editing">
+
+<title
+>Redigera färgteman</title>
+
+<sect4 id="prefcolors-colors">
+
+<title
+>Färger</title>
+
+<para
+>Här justerar färgerna i textredigeringsområdet. De beskrivs detaljerat i <xref linkend="color-themes-editor-colors"/>.</para>
+
+</sect4>
+
+<sect4 id="prefcolors-normal-text-styles">
+
+<title
+>Förvalda textstilar</title>
+
+<para
+>De förvalda textstilarna ärvs av färgläggningstextstilarna, vilket gör det möjligt för editorn att visa text på ett mycket konsekvent sätt, till exempel använder kommentartext samma stil i nästan alla textformat som KSyntaxHighlighting kan färglägga.</para>
+<para
+>Namnet i listan med stilar använder stilen som är inställd för objektet, vilket ger en omedelbar förhandsgranskning när en stil ställs in. </para>
+<para
+>Varje stil låter dig välja gemensamma egenskaper samt förgrunds- och bakgrundsfärger. För att inte använda en bakgrundsfärg, högerklicka och använd den sammanhangsberoende menyn.</para>
+<para
+>Det här områdets egenskaper beskrivs detaljerat i <xref linkend="color-themes-text-styles"/>.</para>
+
+</sect4>
+
+<sect4 id="prefcolors-highlighting-text-styles">
+
+<title
+>Färgläggningstextstilar</title>
+
+<para
+>Här kan du redigera textstilarna som används av en viss färgläggningsdefinition. Editorn väljer färgläggningen som används av aktuellt dokument i förväg. För att arbeta med en annan färgläggning, välja en i kombinationsrutan ovanför listan med stilar. </para>
+<para
+>Namnet i listan med stilar använder stilen som är inställd för objektet, vilket ger en omedelbar förhandsgranskning när en stil ställs in. </para>
+<para
+>Varje stil låter dig välja gemensamma egenskaper samt förgrunds- och bakgrundsfärger. För att inte använda en bakgrundsfärg, högerklicka och använd den sammanhangsberoende menyn. Dessutom kan du se om en stil är samma som den förvalda stilen för objektet, och ställa in den till det om den inte är det.</para>
+<para
+>Du märker att många färgläggningar innehåller andra färgläggningar representerade av grupper i stillistan. De flesta färgläggningar importerar till exempel färgläggningen Alerts, och många källkodsformat importerar färgläggningen Doxygen. Redigering av färger i grupperna påverkar bara stilarna när de används i det redigerade färgläggningsformatet. </para>
+
+</sect4>
+
+</sect3>
+
+</sect2>
+
+<sect2 id="color-themes-tips-and-tricks">
+
+<title
+>Tips och trick</title>
+
+<sect3 id="color-themes-contrast">
+
+<title
+>Textfärgernas kontrast</title>
+
+<para
+>En viktig aspekt vid arbete med färgteman är att välja en textkontrast som gör det lättare att läsa, särskilt i kombination med bakgrunden.</para>
+
+<para
+>Programmet <userinput
+>Kontrast</userinput
+> är ett verktyg för kontroll av färgkontrast. Det talar om för dig att kombinationen av textfärg och bakgrundsfärg är läsbara och handikappanpassade, så det är ett utmärkt verktyg för att hjälpa dig skapa färgteman.</para>
+
+<para
+>Du kan ladda ner <userinput
+>Kontrast</userinput
+> från <ulink url="https://apps.kde.org/en/kontrast"
+>webbplatsen för &kde; program</ulink
+> eller från <ulink url="https://flathub.org/apps/details/org.kde.kontrast"
+>Flatpak-paketet på Flathub</ulink
+> (bara i GNU/Linux).</para>
+
+<para
+>GNOME-programmet <userinput
+>Contrast</userinput
+> är liknande. Du kan ladda ner <ulink url="https://flathub.org/apps/details/org.gnome.design.Contrast"
+>Flatpak-paketet på Flathub</ulink
+> (bara på GNU/Linux).</para>
+
+</sect3>
+
+<sect3 id="color-themes-tips-and-tricks-consistency">
+
+<title
+>Förslag för konsekvent syntaxfärgläggning</title>
+
+<para
+>KSyntaxHighlighting inkluderar <ulink url="https://kate-editor.org/syntax/"
+>mer än 300 syntaxfärgläggningsdefinitioner</ulink
+>, och därför är det idealiskt att du säkerställer att ditt nya tema ser bra ut i alla syntaxfärgläggningsdefinitioner. De inbyggda färgteman har följande likheter som det rekommenderas (men inte krävs) att du följer för att åstadkomma korrekt visning av alla syntaxfärgläggningsdefinitioner:</para>
+
+<itemizedlist>
+<listitem
+><para
+>Använd fetstil för  <link linkend="color-themes-text-styles"
+>textstilarna</link
+> <quote
+>Keyword</quote
+> och <quote
+>ControlFlow</quote
+>.</para
+></listitem>
+
+<listitem
+><para
+>Använd inte bakgrundsfärg i någon <link linkend="color-themes-text-styles"
+>textstil</link
+>, utom <quote
+>Alert</quote
+> och <quote
+>RegionMarker</quote
+>.</para
+></listitem>
+</itemizedlist>
+
+<para
+>De flesta av syntaxfärgläggningarna är avsedda att se bra ut med standardteman <quote
+>Breeze Light</quote
+> och <quote
+>Breeze mörk</quote
+>, därför är ett annat sätt att behålla likformighet att använda liknande färger <link linkend="color-themes-text-styles"
+>textstilar</link
+>, som <emphasis
+>grön</emphasis
+> för <quote
+>Preprocessor</quote
+> och <quote
+>Others</quote
+>, <emphasis
+>blå</emphasis
+> för <quote
+>DataType</quote
+> och <quote
+>Attribute</quote
+>, eller <emphasis
+>violett</emphasis
+> för <quote
+>Function</quote
+>.</para>
+
+<para
+>Observera att rekommendationerna inte är obligatoriska när ett tema skapas och publiceras.</para>
+
+</sect3>
+
+</sect2>
+
+</sect1>
+
+
+<sect1 id="dev-scripting">
+<title
+>Skapa skript med &javascript;</title>
+
+<para
+>&kappname;s editorkomponent kan enkelt utökas genom att skriva skript. Skriptspråket är ECMAscript (känt överallt som &javascript;). &kappname; stöder två sorters skript: intenterings- och kommandoradskript. </para>
+
+<sect2 id="dev-scripting-indentation">
+<title
+>Indenteringsskript</title>
+
+<para
+>Indenteringsskript, som också kallas indenterare, indenterar automatiskt källkoden medan texten skrivs in. Som ett exempel, efter att ha tryckt på returtangenten ökar ofta indenteringsnivån. </para>
+
+<para
+>Följande avsnitt beskriver steg för steg hur skelettet för en enkel indenterare skapas. Som ett första steg, skapa en ny <filename
+>*.js</filename
+>-fil, som t.ex. heter <filename
+>javascript.js</filename
+> i den lokala hemkatalogen <filename
+>$<envar
+>XDG_DATA_HOME</envar
+>/katepart5/script/indentation</filename
+>. I detta expanderas miljövariabeln <envar
+>XDG_DATA_DIRS</envar
+> typiskt antingen som <filename
+>~/.local</filename
+> eller <filename
+>~/.local/share</filename
+>. </para>
+<para
+>På &Windows; är filerna placerade i <filename
+>%USERPROFILE%\AppData\Local\katepart5\indentation</filename
+>. <replaceable
+>%USERPROFILE%</replaceable
+> expanderas oftast till <filename
+>C:\\Users\\<replaceable
+>användare</replaceable
+></filename
+>.</para>
+
+<sect3 id="dev-scripting-indentation-header">
+<title
+>Indenteringsskriptets huvud</title>
+<para
+>Huvudet i filen <filename
+>javascript.js</filename
+> är inbäddat som &JSON; i början av dokumentet enligt följande: <programlisting>
+var katescript = {
+    "name": "JavaScript",
+    "author": "Exempelnamn &lt;exempel.namn@någon.adress.org&gt;",
+    "license": "BSD-licens",
+    "revision": 1,
+    "kate-version": "5.1",
+    "required-syntax-style": "javascript",
+    "indent-languages": ["javascript"],
+    "priority": 0,
+}; // kate-script-header, måste finnas i början av filen utan kommentarer
+</programlisting
+> Varje post förklaras nu i detalj: <itemizedlist>
+<listitem
+><para
+><literal
+>name</literal
+> [krävs]: Detta är indenterarens namn som visas i menyn  <menuchoice
+><guimenu
+>Verktyg</guimenu
+><guimenuitem
+>Indentering</guimenuitem
+></menuchoice
+> och i inställningsdialogrutan. </para
+></listitem>
+<listitem
+><para
+><literal
+>author</literal
+> [valfri]: Upphovsmannens namn och kontaktinformation. </para
+></listitem>
+<listitem
+><para
+><literal
+>license</literal
+> [valfri]: Kort form av licensen, såsom BSD-licensen eller LGPLv3. </para
+></listitem>
+<listitem
+><para
+><literal
+>revision</literal
+> [krävs]: Skriptets utgåva. Numret ska ökas så fort skriptet ändras. </para
+></listitem>
+<listitem
+><para
+><literal
+>kate-version</literal
+> [krävs]: Lägsta version av &kappname; som krävs. </para
+></listitem>
+<listitem
+><para
+><literal
+>required-syntax-style</literal
+> [valfri]: Syntaxstilen som krävs, som matchar angiven <literal
+>stil</literal
+> i syntaxfärgläggningsfiler. Det är viktigt för indenterare som förlitar sig på specifik syntaxfärgläggningsinformation i dokumentet. Om en krävd syntaxstil specificeras, är bara indenteraren tillgänglig när lämplig syntaxfärgläggning är aktiv. Det förhindrar <quote
+>odefinierat beteende</quote
+> orsakat av att använda indenteraren utan den förväntade färgläggningsmetoden. Exempelvis använder sig Ruby-indenteraren sig av det i filen <filename
+>ruby.js</filename
+> och <filename
+>ruby.xml</filename
+>. </para
+></listitem>
+<listitem
+><para
+><literal
+>indent-languages</literal
+> [valfri]: &JSON;-fält av syntaxstilar som indenteraren kan indentera korrekt, t.ex. <literal
+>["c++", "java"]</literal
+>. </para
+></listitem>
+<listitem
+><para
+><literal
+>priority</literal
+> [valfri]: Om flera indenterare är lämpliga för en viss färglagd fil, bestämmer prioriteten vilken indenterare som väljes som standardindenterare. </para
+></listitem>
+</itemizedlist>
+</para>
+
+</sect3>
+
+<sect3 id="dev-scripting-indentation-body">
+<title
+>Indenteringens källkod</title>
+<para
+>Efter att ha specificerat huvudet, förklarar det här avsnittet hur själva indenteringsskriptet fungerar. Det grundläggande skelettet för implementeringen ser ut så här: <programlisting>
+// nödvändiga katepart js bibliotek, t.ex. range.js om Range används
+require ("range.js");
+
+triggerCharacters = "{}/:;";
+function indent(line, indentWidth, ch)
+{
+    // anropas för varje nyrad (ch == '\n') och alla tecken angivna i
+    // den globala variabeln triggerCharacters. Vid anrop av <menuchoice
+><guimenu
+>Verktyg</guimenu
+><guimenuitem
+>Justera</guimenuitem
+></menuchoice>
+    // är variabeln ch tom, dvs. ch == ''.
+    //
+    // se också: Programmeringsgränssnittet för skripthantering
+    return -2;
+}
+</programlisting
+> Funktionen <function
+>indent()</function
+> har tre parametrar: <itemizedlist
+> <listitem
+><para
+><literal
+>line</literal
+>: raden som ska indenteras</para
+></listitem
+> <listitem
+><para
+><literal
+>indentWidth</literal
+>: indenteringsbredden i antal mellanslag</para
+></listitem
+> <listitem
+><para
+><literal
+>ch</literal
+>: antingen ett nyradstecken (<literal
+>ch == '\n'</literal
+>), avtryckartecknet angivet i <literal
+>triggerCharacters</literal
+> eller tom om användaren utförde åtgärden <menuchoice
+><guimenu
+>Verktyg</guimenu
+><guimenuitem
+>Justera</guimenuitem
+></menuchoice
+>.</para
+></listitem
+> </itemizedlist
+> Returvärdet från funktionen <function
+>indent()</function
+> anger hur raden kommer att indenteras. Om returvärdet är ett enkelt heltal, tolkas det på följande sätt: <itemizedlist
+> <listitem
+><para
+>returvärde <literal
+>-2</literal
+>: gör ingenting</para
+></listitem
+> <listitem
+><para
+>returvärde <literal
+>-1</literal
+>: behåll indentering (söker efter föregående icke tomma rad)</para
+></listitem
+> <listitem
+><para
+>returvärde <literal
+> 0</literal
+>: tal &gt;= 0 anger indenteringsdjupet i mellanslag</para
+></listitem
+> </itemizedlist
+> Som alternativ kan ett fält med två element returneras. <itemizedlist
+> <listitem
+><para
+><literal
+>return [ indent, align ];</literal
+></para
+></listitem
+> </itemizedlist
+> I detta fall är det först elementet indenteringsdjupet ovan med samma betydelse för specialvärden. Det andra elementet är dock ett absolutvärde som representerar en kolumn för <quote
+>justering</quote
+>. Om värdet är större än indenteringsvärdet, representerar skillnaden ett antal mellanslag att lägga till efter indentering av den första parametern. Annars ignoreras det andra numret. Att använda tabulator och mellanslag för indentering kallas ofta <quote
+>blandat läge</quote
+>. </para>
+
+<para
+>Betrakta följande exempel: Antag att tabulator används för indentering, och tabulatorbredden är inställd till 4. Här representerar &lt;tab&gt; en tabulator, och '.' ett mellanslag. <programlisting>
+1: &lt;tab&gt;&lt;tab&gt;anropa("Hej",
+2: &lt;tab&gt;&lt;tab&gt;......."allesamman");
+</programlisting
+> Vid indentering av rad 2, returnerar funktionen <function
+>indent()</function
+> [8, 15]. Som resultat infogas två tabulatorer för att indentera till kolumn 8, och 7 mellanslag läggs till för att justera den andra parametern under den första, så att den förblir justerad om filen visas med en annan tabulatorbredd. </para>
+
+<para
+>En standardinstallation av &kde; levererar &kappname; med flera indenterare. Den motsvarande &javascript;-koden finns i <filename
+>$<envar
+>XDG_DATA_DIRS</envar
+>/katepart5/script/indentation</filename
+>.</para>
+<para
+>På &Windows; är filerna placerade i <filename
+>%USERPROFILE%\AppData\Local\katepart5\indentation</filename
+>. <replaceable
+>%USERPROFILE%</replaceable
+> expanderas oftast till <filename
+>C:\\Users\\<replaceable
+>användare</replaceable
+></filename
+>. </para>
+
+<para
+>Att utveckla en indenterare kräver att skript läses in igen för att se om ändringar beter sig lämpligt. Istället för att starta om programmet, byt helt enkelt till kommandoraden och utför kommandot <command
+>reload-scripts</command
+>. </para>
+
+<para
+>Om du utvecklar användbara skript, fundera på att bidra med det till &kappname;-projektet genom att <ulink url="mailto:kwrite-devel@kde.org"
+>kontakta e-postlistan</ulink
+>. </para>
+
+</sect3>
+</sect2>
+
+<sect2 id="dev-scripting-command-line">
+<title
+>Kommandoradskript</title>
+
+<para
+>Eftersom det är svårt att uppfylla allas behov, stöder &kappname; små hjälpverktyg för snabb textbehandling via den <link linkend="advanced-editing-tools-commandline"
+>inbyggda kommandoraden</link
+>. Exempelvis är kommandot <command
+>sort</command
+> implementerat som ett skript. Det här avsnittet förklarar hur man skapar <filename
+>*.js</filename
+>-filer för att utöka &kappname; med godtyckliga hjälpskript. </para>
+
+<para
+>Kommandoradskript är placerade i samma katalog som indenteringsskript. Som ett första steg, skapa alltså en ny <filename
+>*.js</filename
+>-fil som heter <filename
+>mina_verktyg.js</filename
+> i den lokala hemkatalogen <filename
+>$<envar
+>XDG_DATA_HOME</envar
+>/katepart5/script/commands</filename
+>. I detta expanderas miljövariabeln <envar
+>XDG_DATA_DIRS</envar
+> typiskt antingen som <filename
+>~/.local</filename
+> eller <filename
+>~/.local/share</filename
+>.</para>
+<para
+>På &Windows; är filerna placerade i <filename
+>%USERPROFILE%\AppData\Local\katepart5\commands</filename
+>. <replaceable
+>%USERPROFILE%</replaceable
+> expanderas oftast till <filename
+>C:\\Users\\<replaceable
+>användare</replaceable
+></filename
+>. </para>
+
+<sect3 id="dev-scripting-command-line-header">
+<title
+>Kommandoradskriptets huvud</title>
+<para
+>Huvudet för varje kommandoradskript är inbäddat som &JSON; i början av skriptet enligt följande: <programlisting>
+var katescript = {
+    "author": "Exempelnamn &lt;exempel.namn@någon.adress.org&gt;",
+    "license": "LGPLv2+",
+    "revision": 1,
+    "kate-version": "5.1",
+    "functions": ["sort", "moveLinesDown"],
+    "actions": [
+        {  "function": "sort",
+            "name": "Sortera markerad text",
+            "category": "Editing",
+            "interactive": "false"
+        },
+        {   "function": "moveLinesDown",
+            "name": "Flytta rader neråt",
+            "category": "Editing",
+            "shortcut": "Ctrl+Shift+Down",
+            "interactive": "false"
+        }
+    ]
+}; // kate-script-header, måste finnas i början av filen utan kommentarer
+</programlisting
+> Varje post förklaras nu i detalj: <itemizedlist>
+<listitem
+><para
+><literal
+>author</literal
+> [valfri]: Upphovsmannens namn och kontaktinformation.</para
+></listitem>
+<listitem
+><para
+><literal
+>license</literal
+> [valfri]: Kort form av licensen, såsom BSD-licensen eller LGPLv2.</para
+></listitem>
+<listitem
+><para
+><literal
+>revision</literal
+> [krävs]: Skriptets utgåva. Numret ska ökas så fort skriptet ändras.</para
+></listitem>
+<listitem
+><para
+><literal
+>kate-version</literal
+> [krävs]: Lägsta version av &kappname; som krävs.</para
+></listitem>
+<listitem
+><para
+><literal
+>functions</literal
+> [krävs]: &JSON;-fält av kommandon i skriptet.</para
+></listitem>
+<listitem
+><para
+><literal
+>actions</literal
+> [valfri]: Ett &JSON;-fält av &JSON;-objekt som definierar åtgärderna som visas i programmenyn. Detaljerad information tillhandahålls i avsnittet <link linkend="advanced-editing-tools-commandline"
+>Tilldela genvägar</link
+>.</para
+></listitem>
+</itemizedlist>
+</para>
+
+<para
+>Eftersom värdet på <literal
+>functions</literal
+> är ett &JSON;-fält, kan ett enda skript innehålla godtyckligt antal kommandon för kommandoraden. Varje funktion är tillgänglig via &kappname;s <link linkend="advanced-editing-tools-commandline"
+>inbyggda kommandorad</link
+>. </para>
+</sect3>
+
+<sect3 id="dev-scripting-command-line-body">
+<title
+>Skriptets källkod</title>
+
+<para
+>Alla funktioner specificerade i huvudet måste implementeras i skriptet. Exempelvis måste skriptfilen i exemplet ovan implementera de två funktionerna <command
+>sort</command
+> och <command
+>moveLinesDown</command
+>. Alla funktioner har följande syntax: <programlisting
+>// nödvändiga katepart.js bibliotek, t.ex. range.js om Range används
+require ("range.js");
+
+function &lt;namn&gt;(arg1, arg2, ...)
+{
+    // ... implementering, se också: Programmeringsgränssnittet för skripthantering
+}
+</programlisting>
+</para>
+
+<para
+>Argument på kommandoraden skickas till funktionen som <parameter
+>arg1</parameter
+>, <parameter
+>arg2</parameter
+>, etc. För att ge dokumentation av varje kommando, implementera helt enkelt funktionen '<function
+>help</function
+>' på följande sätt: <programlisting>
+function help(cmd)
+{
+    if (cmd == "sort") {
+        return "Sortera markerad text.";
+    } else if (cmd == "...") {
+        // ...
+    }
+}
+</programlisting
+> Att utföra <command
+>help sort</command
+> på kommandoraden anropar hjälpfunktionen med argumentet <parameter
+>cmd</parameter
+> inställd till det givna kommandot, dvs. <parameter
+>cmd == "sort"</parameter
+>. &kappname; visar därefter den returnerade texten som dokumentation för användaren. Försäkra dig om att <link linkend="dev-scripting-api-i18n"
+>översätta strängarna</link
+>. </para>
+
+<para
+>Att utveckla ett kommandoradskript kräver att skript läses in igen för att se om ändringar beter sig lämpligt. Istället för att starta om programmet, byt helt enkelt till kommandoraden och utför kommandot <command
+>reload-scripts</command
+>. </para>
+
+<sect4 id="dev-scripting-command-line-shortcuts">
+<title
+>Tilldela genvägar</title>
+<para
+>För att göra det möjligt att komma åt skripten i programmenyn och tilldela genvägar, måste skriptet tillhandahålla ett lämpligt skripthuvud. I exemplet ovan, visas båda funktionerna <literal
+>sort</literal
+> och <literal
+>moveLinesDown</literal
+> i menyn på grund a följande del av skripthuvudet: <programlisting>
+var katescript = {
+    ...
+    "actions": [
+        {   "function": "sort",
+            "name": "Sortera markerad text",
+            "icon": "",
+            "category": "Editing",
+            "interactive": "false"
+        },
+        {   "function": "moveLinesDown",
+            "name": "Flytta rader neråt",
+            "icon": "",
+            "category": "Editing",
+            "shortcut": "Ctrl+Shift+Down",
+            "interactive": "false"
+        }
+    ]
+};
+</programlisting
+> Fälten för en åtgärd är följande: <itemizedlist>
+<listitem
+><para
+><literal
+>function</literal
+> [krävs]: Funktionen som ska visas i menyn <menuchoice
+><guimenu
+>Verktyg</guimenu
+> <guisubmenu
+>Skript</guisubmenu
+></menuchoice
+>.</para
+></listitem>
+<listitem
+><para
+><literal
+>name</literal
+> [krävs]: Texten visas i skriptmenyn.</para
+></listitem>
+<listitem
+><para
+><literal
+>icon</literal
+> [valfri]: Ikonen visas intill texten i menyn. Alla &kde;:s ikonnamn kan användas här.</para
+></listitem>
+<listitem
+><para
+><literal
+>category</literal
+> [valfri]: Om en kategori anges, visas skriptet i en undermeny.</para
+></listitem>
+<listitem
+><para
+><literal
+>shortcut</literal
+> [valfri]: Genvägen som anges här är förvald genväg. Exempel: <literal
+>Ctrl+Alt+t</literal
+>. Se <ulink url="https://doc.qt.io/qt-5/qt.html#Key-enum"
+>&Qt;:s dokumentation</ulink
+> för ytterligare detaljinformation.</para
+></listitem>
+<listitem
+><para
+><literal
+>interactive</literal
+> [valfri]: Om skriptet kräver användarinmatning via kommandoraden, ange det här som <literal
+>true</literal
+>.</para
+></listitem>
+</itemizedlist>
+</para>
+
+<para
+>Om du utvecklar användbara skript, fundera på att bidra med det till &kappname;-projektet genom att <ulink url="mailto:kwrite-devel@kde.org"
+>kontakta e-postlistan</ulink
+>. </para>
+
+</sect4>
+</sect3>
+</sect2>
+
+<sect2 id="dev-scripting-api">
+<title
+>Programmeringsgränssnittet för skripthantering</title>
+
+<para
+>Programmeringsgränssnittet för skripthantering som presenteras här är tillgängligt i alla skript, dvs. indenteringsskript och kommandon för kommandoraden. Klasserna <classname
+>Cursor</classname
+> och <classname
+>Range</classname
+> tillhandahålls av biblioteksfiler i <filename
+>$<envar
+>XDG_DATA_DIRS</envar
+>/katepart5/libraries</filename
+>. Om du vill använda dem i skriptet, vilket behöver använda vissa av funktionerna i <classname
+>Document</classname
+> eller <classname
+>View </classname
+>, inkludera det nödvändiga biblioteket med: <programlisting
+>// nödvändiga katepart.js bibliotek, t.ex. range.js om Range används
+require ("range.js");
+</programlisting>
+</para>
+
+<para
+>För att utöka det vanliga skriptprogrammeringsgränssnittet med egna funktioner och prototyper, skapa helt enkelt en ny fil i &kde;:s lokala inställningskatalog <filename
+>$<envar
+>XDG_DATA_HOME</envar
+>/katepart5/libraries</filename
+> och inkludera den i skriptet med: <programlisting
+>require ("mitt_skriptnamn.js");
+</programlisting>
+
+</para>
+
+<para
+>På &Windows; är filerna placerade i <filename
+>%USERPROFILE%\AppData\Local\katepart5\libraries</filename
+>. <replaceable
+>%USERPROFILE%</replaceable
+> expanderas oftast till <filename
+>C:\\Users\\<replaceable
+>användare</replaceable
+></filename
+>.</para>
+
+<para
+>För att utöka befintliga prototyper som <classname
+>Cursor</classname
+> eller <classname
+>Range</classname
+>, är det rekommenderade sättet <emphasis
+>inte</emphasis
+> att ändra den globala <filename
+>*.js</filename
+>-filen. Ändra istället prototypen för <classname
+>Cursor</classname
+> i &javascript; efter att <filename
+>cursor.js</filename
+> har inkluderats i skriptet via <literal
+>require</literal
+>. </para>
+
+<sect3 id="dev-scripting-api-prototypes">
+<title
+>Markörer och intervall</title>
+
+<para
+>Eftersom &kappname; är en texteditor är alla programmeringsgränssnitt baserade på markörer och intervall om det är möjligt. En markör (Cursor) är ett enkelt par <literal
+>(rad, kolumn)</literal
+>, som representerar en textposition i dokumentet. Ett intervall (Range) omfattar text från en markörs startposition till en markörs slutposition. Programmeringsgränssnittet förklaras i detalj i följande avsnitt. </para>
+
+<sect4 id="dev-scripting-api-cursors">
+<title
+>Prototypen för Cursor</title>
+
+<variablelist
+><varlistentry>
+<term
+><synopsis
+>Cursor();
+</synopsis
+></term>
+<listitem
+><para
+>Konstruktor. Returnerar en markör på position <literal
+>(0, 0)</literal
+>.</para>
+<para
+>Exempel: <function
+>var cursor = new Cursor();</function
+> </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>Cursor(<parameter
+>int <replaceable
+>rad</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>kolumn</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Konstruktor. Returnerar en markör på position (rad, kolumn). </para>
+<para
+>Exempel: <function
+>var cursor = new Cursor(3, 42);</function
+> </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>Cursor(<parameter
+>Cursor <replaceable
+>annan</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Kopieringskonstruktor. Returnerar en kopia av markören <replaceable
+>annan</replaceable
+>. </para>
+<para
+>Exempel: <function
+>var copy = new Cursor(other);</function
+> </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>Cursor Cursor.clone();
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar en klon av markören.</para>
+<para
+>Exempel: <function
+>var clone = cursor.clone();</function
+> </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>Cursor.setPosition(<parameter
+>int <replaceable
+>rad</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>kolumn</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Ställer in markörens position till <replaceable
+>rad</replaceable
+> och <replaceable
+>kolumn</replaceable
+>.</para>
+<para
+>Sedan: &kde; 4.11 </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool Cursor.isValid();
+</synopsis
+></term>
+<listitem
+><para
+>Kontrollera om markören är giltig. Markören är ogiltig om rad och/eller kolumn har värdet <literal
+>-1</literal
+>. </para>
+<para
+>Exampel: <function
+>var valid = cursor.isValid();</function
+> </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>Cursor Cursor.invalid();
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar en ny ogiltig markör placerad på <literal
+>(-1, -1)</literal
+>. </para>
+<para
+>Exempel: <function
+>var invalidCursor = cursor.invalid();</function
+> </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><synopsis
+>int Cursor.compareTo(<parameter
+>Cursor <replaceable
+>annan</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Jämför den här markören med markören <replaceable
+>annan</replaceable
+>. Returnerar <itemizedlist>
+<listitem
+><para
+><literal
+>-1</literal
+>, om den här markören är placerad innan markören <replaceable
+>annan</replaceable
+>,</para
+></listitem>
+<listitem
+><para
+><literal
+>0</literal
+>, om båda markörerna är lika, och</para
+></listitem>
+<listitem
+><para
+><literal
+>+1</literal
+>, om den här markören är placerad efter markören <replaceable
+>annan</replaceable
+>.</para
+></listitem>
+</itemizedlist>
+</para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool Cursor.equals(<parameter
+>Cursor <replaceable
+>annan</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar <literal
+>sant</literal
+> om den här markören och markören <replaceable
+>annan</replaceable
+> är lika, annars <literal
+>falskt</literal
+>. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>String Cursor.toString();
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar markören som en sträng på formen <quote
+><literal
+>Cursor(rad, kolumn)</literal
+></quote
+>. </para
+></listitem>
+</varlistentry
+></variablelist>
+
+</sect4>
+
+
+<sect4 id="dev-scripting-api-ranges">
+<title
+>Prototyp för Range</title>
+
+<variablelist
+><varlistentry>
+<term
+><synopsis
+>Range();
+</synopsis
+></term>
+<listitem
+><para
+>Konstruktor. Att anropa <literal
+>new Range()</literal
+> returnerar intervallet (0, 0) - (0, 0). </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>Range(<parameter
+>Cursor <replaceable
+>start</replaceable
+></parameter
+>, <parameter
+>Cursor <replaceable
+>slut</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Konstruktor. Att anropa <literal
+>new Range(<replaceable
+>start</replaceable
+>, <replaceable
+>slut</replaceable
+>)</literal
+> returnerar intervallet (<replaceable
+>start</replaceable
+>, <replaceable
+>slut</replaceable
+>). </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>Range(<parameter
+>int <replaceable
+>startrad</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>startkolumn</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>slutrad</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>slutkolumn</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Constructor. Calling <literal
+>new Range(<replaceable
+>startrad</replaceable
+>, <replaceable
+>startkolumn</replaceable
+>, <replaceable
+>slutrad</replaceable
+>, <replaceable
+>slutkolumn</replaceable
+>)</literal
+> returnerar intervallet från (<replaceable
+>startrad</replaceable
+>, <replaceable
+>startkolumn</replaceable
+>) to (<replaceable
+>startrad</replaceable
+>, <replaceable
+>slutkolumn</replaceable
+>). </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>Range(<parameter
+>Range <replaceable
+>annat</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Kopieringskonstruktor. Returnerar en kopia av intervallet <replaceable
+>annat</replaceable
+>. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>Range Range.clone();
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar en klon av intervallet. </para>
+<para
+>Exempel: <function
+>var clone = range.clone();</function
+> </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool Range.isEmpty();
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar <literal
+>sant</literal
+> om både start- och slutmarkörerna är lika. </para>
+<para
+>Exempel: <function
+>var empty = range.isEmpty();</function
+> </para>
+<para
+>Sedan: &kde; 4.11 </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool Range.isValid();
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar <literal
+>sant</literal
+> om både start- och slutmarkörerna är giltiga, annars <literal
+>falskt</literal
+>. </para>
+<para
+>Exempel: <function
+>var valid = range.isValid();</function
+> </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>Range Range.invalid();
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar intervallet från (-1, -1) till (-1, -1). </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool Range.contains(<parameter
+>Cursor <replaceable
+>markör</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar <constant
+>true</constant
+> om intervallet innehåller markörpositionen, annars <constant
+>false</constant
+>. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool Range.contains(<parameter
+>Range <replaceable
+>annat</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar <literal
+>sant</literal
+> om det här intervallet innehåller intervallet <replaceable
+>annat</replaceable
+>, annars <literal
+>falskt</literal
+>. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool Range.containsColumn(<parameter
+>int <replaceable
+>kolumn</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar <literal
+>sant</literal
+> om <replaceable
+>kolumn</replaceable
+> är i det halvöppna intervallet <literal
+>[startkolumn, slutkolumn)</literal
+>, annars <literal
+>falskt</literal
+>. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool Range.containsLine(<parameter
+>int <replaceable
+>rad</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar <literal
+>sant</literal
+> om <replaceable
+>rad</replaceable
+> är i det halvöppna intervallet <literal
+>[startrad, slutrad)</literal
+>, annars <literal
+>falskt</literal
+>. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool Range.overlaps(<parameter
+>Range <replaceable
+>annat</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar <literal
+>sant</literal
+> om det här intervallet och intervallet <replaceable
+>annat</replaceable
+> delar ett gemensamt område, annars <literal
+>falskt</literal
+>. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool Range.overlapsLine(<parameter
+>int <replaceable
+>rad</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar <literal
+>sant</literal
+> om <replaceable
+>rad</replaceable
+> är i intervallet <literal
+>[startrad, slutrad]</literal
+>, annars <literal
+>falskt</literal
+>. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool Range.overlapsColumn(<parameter
+>int <replaceable
+>kolumn</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar <literal
+>sant</literal
+> om <replaceable
+>kolumn</replaceable
+> är i intervallet <literal
+>[startkolumn, slutkolumn]</literal
+>, annars <literal
+>falskt</literal
+>. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool Range.onSingleLine();
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar <literal
+>sant</literal
+> om intervallet startar och slutar på samma rad, dvs. om <replaceable
+>Range.start.line == Range.end.line</replaceable
+>. </para>
+<para
+>Sedan: &kde; 4.9 </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool Range.equals(<parameter
+>Range <replaceable
+>annan</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar <literal
+>sant</literal
+> om det här intervallet och intervallet <replaceable
+>annat</replaceable
+> är lika, annars <literal
+>falskt</literal
+>. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>String Range.toString();
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar intervallet som en sträng på formen <quote
+><literal
+>Range(Cursor(rad, kolumn), Cursor(rad, kolumn))</literal
+></quote
+>. </para
+></listitem>
+</varlistentry
+></variablelist>
+
+</sect4>
+</sect3>
+
+<sect3 id="dev-scripting-api-global">
+<title
+>Globala funktioner</title>
+<para
+>Det här avsnittet listar alla globala funktioner.</para>
+
+
+<sect4 id="dev-scripting-api-includes">
+<title
+>Att läsa och inkludera filer</title>
+
+<variablelist
+><varlistentry>
+<term
+><synopsis
+>String read(<parameter
+>String <replaceable
+>fil</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Söker efter angiven <replaceable
+>fil</replaceable
+> relativt i förhållande till katalogen <literal
+>katepart/script/files</literal
+> och returnerar innehållet som en sträng. </para
+></listitem>
+</varlistentry
+></variablelist>
+
+<variablelist
+><varlistentry>
+<term
+><synopsis
+>void require(<parameter
+>String <replaceable
+>fil</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Söker efter angiven <replaceable
+>fil</replaceable
+> relativt i förhållande till katalogen <literal
+>katepart/script/libraries</literal
+> och utvärdera den. Internt skyddas <literal
+>require</literal
+> från att samma <replaceable
+>fil</replaceable
+> inkluderas flera gånger. </para>
+<para
+>Sedan: &kde; 4.10 </para>
+</listitem>
+</varlistentry
+></variablelist>
+
+</sect4>
+
+<sect4 id="dev-scripting-api-debug">
+<title
+>Felsökning</title>
+
+<variablelist
+><varlistentry>
+<term
+><synopsis
+>void debug(<parameter
+>String <replaceable
+>text</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Skriver ut <replaceable
+>text</replaceable
+> på <literal
+>standardutmatningen</literal
+> i terminalen som startade programmet. </para
+></listitem>
+</varlistentry
+></variablelist>
+
+</sect4>
+
+<sect4 id="dev-scripting-api-i18n">
+<title
+>Översättning</title>
+
+<para
+>För att stödja fullständig landsanpassning, finns det flera funktioner för att översätta strängar i skript, närmare bestämt <literal
+>i18n</literal
+>, <literal
+>i18nc</literal
+>, <literal
+>i18np</literal
+> och <literal
+>i18ncp</literal
+>. Funktionerna beter sig exakt likadant som <ulink url="https://techbase.kde.org/Development/Tutorials/Localization/i18n"
+>&kde;:s översättningsfunktioner</ulink
+>. </para>
+
+<para
+>Översättningsfunktionerna översätter strängarna de omger via &kde;:s översättningssystem till det språk som används i programmet. Strängar i skript som utvecklas i &kappname;s officiella källkod extraheras automatiskt och är översättningsbara. Med andra ord, som utvecklare av &kappname; behöver man inte bry dig om att extrahera och översätta meddelanden. Observera dock att översättningen bara fungerar inne i &kde;:s infrastruktur, nya strängar i skript från tredjepart som utvecklas utanför &kde;, översätts inte. Överväg därför gärna att bidra med dina skript till &kate; så att en passande översättning blir möjlig. </para>
+
+<variablelist
+><varlistentry>
+<term
+><synopsis
+>void i18n(<parameter
+>String <replaceable
+>text</replaceable
+></parameter
+>, <replaceable
+>arg1</replaceable
+>, ...);
+</synopsis
+></term>
+<listitem
+><para
+>Översätter <replaceable
+>text</replaceable
+> till språket som används av programmet. Parametrarna <replaceable
+>arg1</replaceable
+>, ... , är valfria och används för att ersätta platsmarkörerna <literal
+>%1</literal
+>, <literal
+>%2</literal
+>, etc.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><synopsis
+>void i18nc(<parameter
+>String <replaceable
+>sammanhang</replaceable
+></parameter
+>, <parameter
+>String <replaceable
+>text</replaceable
+></parameter
+>, <replaceable
+>arg1</replaceable
+>, ...);
+</synopsis
+></term>
+<listitem
+><para
+>Översätter <replaceable
+>text</replaceable
+> till språket som används av programmet. Dessutom är strängen <replaceable
+>sammanhang</replaceable
+> synlig för översättare, så att de kan tillhandahålla en bättre översättning. Parametrarna <replaceable
+>arg1</replaceable
+>, ... , är valfria och används för att ersätta platsmarkörerna <literal
+>%1</literal
+>, <literal
+>%2</literal
+>, etc.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><synopsis
+>void i18np(<parameter
+>String <replaceable
+>singularis</replaceable
+></parameter
+>, <parameter
+>String <replaceable
+>pluralis</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>antal</replaceable
+></parameter
+>, <replaceable
+>arg1</replaceable
+>, ...);
+</synopsis
+></term>
+<listitem
+><para
+>Översätter antingen <replaceable
+>singularis</replaceable
+> eller <replaceable
+>pluralis</replaceable
+> till språket som används av programmet, beroende på angivet <replaceable
+>antal</replaceable
+>. Parametrarna <replaceable
+>arg1</replaceable
+>, ... , är valfria och används för att ersätta platsmarkörerna <literal
+>%1</literal
+>, <literal
+>%2</literal
+>, etc.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><synopsis
+>void i18ncp(<parameter
+>String <replaceable
+>sammanhang</replaceable
+></parameter
+>, <parameter
+>String <replaceable
+>singularis</replaceable
+></parameter
+>, <parameter
+>String <replaceable
+>pluralis</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>antal</replaceable
+></parameter
+>, <replaceable
+>arg1</replaceable
+>, ...);
+</synopsis
+></term>
+<listitem
+><para
+>Översätter antingen <replaceable
+>singularis</replaceable
+> eller <replaceable
+>pluralis</replaceable
+> till språket som används av programmet, beroende på angivet <replaceable
+>antal</replaceable
+>. Dessutom är strängen <replaceable
+>sammanhang</replaceable
+> synlig för översättare, så att de kan tillhandahålla en bättre översättning. Parametrarna <replaceable
+>arg1</replaceable
+>, ... , är valfria och används för att ersätta platsmarkörerna <literal
+>%1</literal
+>, <literal
+>%2</literal
+>, etc.</para
+></listitem>
+</varlistentry
+></variablelist>
+
+</sect4>
+</sect3>
+
+<sect3 id="dev-scripting-api-view">
+<title
+>Programmeringsgränssnittet för vyn</title>
+<para
+>När ett skript håller på att köras, finns det en global variabel <quote
+><literal
+>view</literal
+></quote
+> som representerar den för närvarande aktiva editorvyn. Det följande är en lista med alla tillgängliga funktioner i View. <variablelist>
+
+<varlistentry>
+<term
+><synopsis
+><function
+>void view.copy()</function
+>
+</synopsis
+></term>
+<listitem>
+<para
+>Kopiera markeringen om det finns någon, annars aktuell rad om alternativet <userinput
+>[ ] Kopiera eller klipp ut nuvarande rad om markering saknas</userinput
+> är aktiverat.</para>
+<para
+>Sedan: KDE Ramverk 5.79</para>
+</listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+><function
+>void view.cut()</function
+>
+</synopsis
+></term>
+<listitem>
+<para
+>Klipp ut markeringen om det finns någon, annars aktuell rad om alternativet <userinput
+>[ ] Kopiera eller klipp ut nuvarande rad om markering saknas</userinput
+> är aktiverat.</para>
+<para
+>Sedan: KDE Ramverk 5.79</para>
+</listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+><function
+>void view.paste()</function
+>
+</synopsis
+></term>
+<listitem>
+<para
+>Klistra in klippbordets innehåll.</para>
+<para
+>Sedan: KDE Ramverk 5.79</para>
+</listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+><function
+>Cursor view.cursorPosition()</function
+>
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar den nuvarande markörpositionen i vyn.</para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>void view.setCursorPosition(<parameter
+>int <replaceable
+>rad</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>kolumn</replaceable
+></parameter
+>);
+void view.setCursorPosition(<parameter
+>Cursor <replaceable
+>markör</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Ställ in den nuvarande markörpositionen till antingen (rad, kolumn) eller till den givna markören. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>Cursor view.virtualCursorPosition();
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar den virtuella markörpositionen, där varje tabulator räknas som motsvarande antal mellanslag, beroende på nuvarande tabulatorbredd. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>void view.setVirtualCursorPosition(<parameter
+>int <replaceable
+>rad</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>kolumn</replaceable
+></parameter
+>);
+void view.setVirtualCursorPosition(<parameter
+>Cursor <replaceable
+>markör</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Ställ in den nuvarande virtuella markörpositionen till (rad, kolumn) eller till den givna markören. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>String view.selectedText();
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar den markerade texten. Om ingen text är markerad, är den returnerade strängen tom. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool view.hasSelection();
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar <constant
+>true</constant
+> om vyn har markerad text, annars <constant
+>false</constant
+>. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>Range view.selection();
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar det markerade textintervallet. Det returnerade intervallet är ogiltigt om det inte finns någon markerad text. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>void view.setSelection(<parameter
+>Range <replaceable
+>intervall</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Ställer in markerad text till angivet intervall. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>void view.removeSelectedText();
+</synopsis
+></term>
+<listitem
+><para
+>Tar bort den markerade texten. Om vyn inte har någon markerad text, händer ingenting. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>void view.selectAll();
+</synopsis
+></term>
+<listitem
+><para
+>Markerar hela texten i dokumentet. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>void view.clearSelection();
+</synopsis
+></term>
+<listitem
+><para
+>Rensar textmarkeringen utan att ta bort texten. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><synopsis
+>object view.executeCommand(<parameter
+>String <replaceable
+>kommando</replaceable
+></parameter
+>,
+                           <parameter
+>String <replaceable
+>argument</replaceable
+></parameter
+>,
+                           <parameter
+>Range <replaceable
+>intervall</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Kör <link linkend="advanced-editing-tools-commandline"
+>kommandoradskommandot</link
+> <replaceable
+>kommando</replaceable
+> med de valfria argumenten <replaceable
+>argument</replaceable
+> och ett valfritt <replaceable
+>intervall</replaceable
+>. Returnerat <replaceable
+>objekt</replaceable
+> har den Booleska egenskapen <replaceable
+>objekt.ok</replaceable
+> som anger om körning av <replaceable
+>kommando</replaceable
+> lyckades. I händelse av fel, innehåller strängen <replaceable
+>objekt.status</replaceable
+> ett felmeddelande. </para>
+<para
+>Sedan: KDE Ramverk 5.50</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+</para>
+</sect3>
+
+<sect3 id="dev-scripting-api-document">
+<title
+>Programmeringsgränssnittet för dokumentet</title>
+<para
+>När ett skript håller på att köras, finns det en global variabel <quote
+><literal
+>document</literal
+></quote
+> som representerar det för närvarande aktiva dokumentet. Det följande är en lista med alla tillgängliga funktioner i Document. <variablelist>
+
+<varlistentry>
+<term
+><synopsis
+>String document.fileName();
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar dokumentets filnamn eller en tom sträng för osparade textbuffrar. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>String document.url();
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar dokumentets fullständiga webbadress eller en tom sträng för osparade textbuffrar. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>String document.mimeType();
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar dokumentets Mime-typ eller &MIME;-typen <literal
+>application/octet-stream</literal
+> om ingen lämplig &MIME;-typ kunde hittas. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>String document.encoding();
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar den nuvarande kodningen använd för att spara filen. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><synopsis
+>String document.highlightingMode();
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar det allmänna färgläggningsläget som används för hela dokumentet. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><synopsis
+>String document.highlightingModeAt(<parameter
+>Cursor <replaceable
+>pos</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar färgläggningsläget som används på den givna positionen i dokumentet. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><synopsis
+>Array document.embeddedHighlightingModes();
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar ett fält med färgläggningslägen inbäddade i det här dokumentet. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><synopsis
+>bool document.isModified();
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar <constant
+>true</constant
+> om dokumentet har osparade ändringar (är modifierat), annars <constant
+>false</constant
+>. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>String document.text();
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar dokumentets hela innehåll i en enda textsträng. Nya rader är markerade med nyradstecknet <quote
+><literal
+>\n</literal
+></quote
+>. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>String document.text(<parameter
+>int <replaceable
+>från_rad</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>från_kolumn</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>till_rad</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>till_kolumn</replaceable
+></parameter
+>);
+String document.text(<parameter
+>Cursor <replaceable
+>från</replaceable
+></parameter
+>, <parameter
+>Cursor <replaceable
+>till</replaceable
+></parameter
+>);
+String document.text(<parameter
+>Range <replaceable
+>intervall</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar texten i det angivna intervallet. Det rekommenderas att använda markör- och intervallbaserade versioner för bättre läsbarhet hos källkoden. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>String document.line(<parameter
+>int <replaceable
+>rad</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar den givna textraden som en sträng. Strängen är tom om den begärda raden är utanför tillgängligt intervall. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>String document.wordAt(<parameter
+>int <replaceable
+>rad</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>kolumn</replaceable
+></parameter
+>);
+String document.wordAt(<parameter
+>Cursor <replaceable
+>markör</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar ordet på den angivna markörposition. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term>
+<synopsis
+>Range document.wordRangeAt(<parameter
+>int <replaceable
+>rad</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>kolumn</replaceable
+></parameter
+>);
+Range document.wordRangeAt(<parameter
+>Cursor <replaceable
+>markör</replaceable
+></parameter
+>);
+</synopsis>
+</term>
+<listitem
+><para
+>Returnerar intervallet för ordet på den givna markörpositionen. Det returnerade intervallet är ogiltigt (se Range.isValid()) om textpositionen är efter ett radslut. Om det inte finns något ord vid den givna markörpositionen returneras ett tomt intervall. </para>
+<para
+>Sedan: &kde; 4.9 </para>
+</listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>String document.charAt(<parameter
+>int <replaceable
+>rad</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>kolumn</replaceable
+></parameter
+>);
+String document.charAt(<parameter
+>Cursor <replaceable
+>markör</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar tacknet på den angivna markörpositionen. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>String document.firstChar(<parameter
+>int <replaceable
+>rad</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar det första tecknet på angiven <replaceable
+>rad</replaceable
+> som inte är ett blanktecken. Det första tecknet finns på kolumn 0. Om raden är tom, eller bara innehåller blanktecken, är den returnerade strängen tom. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>String document.lastChar(<parameter
+>int <replaceable
+>rad</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar det sista tecknet på angiven <replaceable
+>rad</replaceable
+> som inte är ett blanktecken. Om raden är tom, eller bara innehåller blanktecken, är den returnerade strängen tom. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool document.isSpace(<parameter
+>int <replaceable
+>rad</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>kolumn</replaceable
+></parameter
+>);
+bool document.isSpace(<parameter
+>Cursor <replaceable
+>markör</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar <literal
+>sant</literal
+> om tecknet på den givna markörpositionen är ett blanktecken, annars <literal
+>falskt</literal
+>. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool document.matchesAt(<parameter
+>int <replaceable
+>rad</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>kolumn</replaceable
+></parameter
+>, <parameter
+>String <replaceable
+>text</replaceable
+></parameter
+>);
+bool document.matchesAt(<parameter
+>Cursor <replaceable
+>markör</replaceable
+></parameter
+>, <parameter
+>String <replaceable
+>text</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar <literal
+>sant</literal
+> om given <replaceable
+>text</replaceable
+> matchar på den motsvarande markörpositionen, annars <literal
+>falskt</literal
+>. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool document.startsWith(<parameter
+>int <replaceable
+>rad</replaceable
+></parameter
+>, <parameter
+>String <replaceable
+>text</replaceable
+></parameter
+>, <parameter
+>bool <replaceable
+>hoppa_över_blanktecken</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar <literal
+>sant</literal
+> om raden börjar med <replaceable
+>text</replaceable
+>, annars <literal
+>falskt</literal
+>. Argumentet <replaceable
+>hoppa_över_blanktecken</replaceable
+> bestämmer om inledande blanktecken ignoreras. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool document.endsWith(<parameter
+>int <replaceable
+>rad</replaceable
+></parameter
+>, <parameter
+>String <replaceable
+>text</replaceable
+></parameter
+>, <parameter
+>bool <replaceable
+>hoppa_över_blanktecken</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar <literal
+>sant</literal
+> om raden slutar med <replaceable
+>text</replaceable
+>, annars <literal
+>falskt</literal
+>. Argumentet <replaceable
+>hoppa_över_blanktecken</replaceable
+> bestämmer om inledande blanktecken ignoreras. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool document.setText(<parameter
+>String <replaceable
+>text</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Anger hela dokumentets text. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool document.clear();
+</synopsis
+></term>
+<listitem
+><para
+>Tar bort hela texten i dokumentet. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool document.truncate(<parameter
+>int <replaceable
+>rad</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>kolumn</replaceable
+></parameter
+>);
+bool document.truncate(<parameter
+>Cursor <replaceable
+>markör</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Avkortar den givna raden på den givna kolumnen eller markörpositionen. Returnerar <literal
+>sant</literal
+> om det lyckas, eller <literal
+>falskt</literal
+> om den givna raden inte ingår i dokumentets intervall. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool document.insertText(<parameter
+>int <replaceable
+>rad</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>kolumn</replaceable
+></parameter
+>, <parameter
+>String <replaceable
+>text</replaceable
+></parameter
+>);
+bool document.insertText(<parameter
+>Cursor <replaceable
+>markör</replaceable
+></parameter
+>, <parameter
+>String <replaceable
+>text</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Infogar <replaceable
+>text</replaceable
+> på den givna markörpositionen. Returnerar <literal
+>sant</literal
+> om det lyckas, eller <literal
+>falskt</literal
+> om dokumentet är skrivskyddat. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool document.removeText(<parameter
+>int <replaceable
+>från_rad</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>från_kolumn</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>till_rad</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>till_kolumn</replaceable
+></parameter
+>);
+bool document.removeText(<parameter
+>Cursor <replaceable
+>från</replaceable
+></parameter
+>, <parameter
+>Cursor <replaceable
+>till</replaceable
+></parameter
+>);
+bool document.removeText(<parameter
+>Range <replaceable
+>intervall</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Tar bort text i det givna intervallet. Returnerar <literal
+>sant</literal
+> om det lyckas, eller <literal
+>falskt</literal
+> om dokumentet är skrivskyddat. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool document.insertLine(<parameter
+>int <replaceable
+>rad</replaceable
+></parameter
+>, <parameter
+>String <replaceable
+>text</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Infogar text på den givna raden. Returnerar <literal
+>sant</literal
+> om det lyckas, eller <literal
+>falskt</literal
+> om dokumentet är skrivskyddat eller raden inte ingår i dokumentets intervall. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool document.removeLine(<parameter
+>int <replaceable
+>rad</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Tar bort den givna textraden. Returnerar <literal
+>sant</literal
+> om det lyckas, eller <literal
+>falskt</literal
+> om dokumentet är skrivskyddat eller raden inte ingår i dokumentets intervall. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool document.wrapLine(<parameter
+>int <replaceable
+>rad</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>kolumn</replaceable
+></parameter
+>);
+bool document.wrapLine(<parameter
+>Cursor <replaceable
+>markör</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Radbryter raden vid den givna markörpositionen. Returnerar <literal
+>sant</literal
+> om det lyckas, eller <literal
+>falskt</literal
+>, t.ex. om rad &lt; 0. </para>
+<para
+>Sedan: &kde; 4.9 </para>
+</listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>void document.joinLines(<parameter
+>int <replaceable
+>startrad</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>slutrad</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Sammanfogar rader från <replaceable
+>startrad</replaceable
+> till <replaceable
+>slutrad</replaceable
+>. Två på varandra följande rader åtskiljs alltid med exakt ett mellanslag. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>int document.lines();
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar antal rader i dokumentet. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool document.isLineModified(<parameter
+>int <replaceable
+>rad</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar <literal
+>sant</literal
+> om <replaceable
+>rad</replaceable
+> för närvarande innehåller osparad data. </para>
+<para
+>Since: &kde; 5.0 </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool document.isLineSaved(<parameter
+>int <replaceable
+>rad</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar <literal
+>sant</literal
+> om <replaceable
+>rad</replaceable
+> har ändrats, men dokumentet har sparats. Sålunda innehåller raden för närvarande ingen osparad data. </para>
+<para
+>Since: &kde; 5.0 </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool document.isLineTouched(<parameter
+>int <replaceable
+>rad</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar <literal
+>sant</literal
+> om <replaceable
+>rad</replaceable
+> för närvarande innehåller osparad data eller tidigare har ändrats. </para>
+<para
+>Since: &kde; 5.0 </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool document.findTouchedLine(<parameter
+>int <replaceable
+>startrad</replaceable
+></parameter
+>, <parameter
+>bool <replaceable
+>ner</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Sök efter nästa ändrade rad med början på <replaceable
+>rad</replaceable
+>. Sökningen utförs antingen uppåt eller neråt beroende på sökriktningen angiven med <replaceable
+>ner</replaceable
+>. </para>
+<para
+>Since: &kde; 5.0 </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>int document.length();
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar antal tecken i dokumentet. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>int document.lineLength(<parameter
+>int <replaceable
+>rad</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar längden på <replaceable
+>rad</replaceable
+>. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>void document.editBegin();
+</synopsis
+></term>
+<listitem
+><para
+>Startar en redigeringsgrupp för gruppering av ångra/gör om. Försäkra dig om att alltid anropa <function
+>editEnd()</function
+> lika många gånger som du anropar <function
+>editBegin()</function
+>. Att anropa <function
+>editBegin()</function
+> använder en referensräknare internt, dvs. anropet kan nästlas. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>void document.editEnd();
+</synopsis
+></term>
+<listitem
+><para
+>Avslutar en redigeringsgrupp. Det sista anropet av <function
+>editEnd()</function
+> (dvs. det för det första anropet till <function
+>editBegin()</function
+>) avslutar redigeringssteget. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>int document.firstColumn(<parameter
+>int <replaceable
+>rad</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar det första tecknet som inte är ett blanktecken på given <replaceable
+>rad</replaceable
+>. Om det bara finns blanktecken på raden, är returvärdet <literal
+>-1</literal
+>. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>int document.lastColumn(<parameter
+>int <replaceable
+>rad</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar det sista tecknet som inte är ett blanktecken på given <replaceable
+>rad</replaceable
+>. Om det bara finns blanktecken på raden, är returvärdet <literal
+>-1</literal
+>. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>int document.prevNonSpaceColumn(<parameter
+>int <replaceable
+>rad</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>kolumn</replaceable
+></parameter
+>);
+int document.prevNonSpaceColumn(<parameter
+>Cursor <replaceable
+>markör</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar kolumnen med ett tecken som inte är ett blanktecken med början på given markörposition genom att söka bakåt. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>int document.nextNonSpaceColumn(<parameter
+>int <replaceable
+>rad</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>kolumn</replaceable
+></parameter
+>);
+int document.nextNonSpaceColumn(<parameter
+>Cursor <replaceable
+>markör</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar kolumnen med ett tecken som inte är ett blanktecken med början på given markörposition genom att söka framåt. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>int document.prevNonEmptyLine(<parameter
+>int <replaceable
+>rad</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar nästa rad som inte är tom och som innehåller tecken som inte är blanktecken, genom att söka bakåt. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>int document.nextNonEmptyLine(<parameter
+>int <replaceable
+>rad</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar nästa rad som inte är tom och som innehåller tecken som inte är blanktecken, genom att söka framåt. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool document.isInWord(<parameter
+>String <replaceable
+>tecken</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>egenskap</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar <literal
+>sant</literal
+>, om givet <replaceable
+>tecken</replaceable
+> med given <replaceable
+>egenskap</replaceable
+> kan vara en del av ett  ord, annars <literal
+>falskt</literal
+>. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool document.canBreakAt(<parameter
+>String <replaceable
+>tecken</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>egenskap</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar <literal
+>sant</literal
+>, om givet <replaceable
+>tecken</replaceable
+> med given <replaceable
+>egenskap</replaceable
+> är lämpat att bryta en rad, annars <literal
+>falskt</literal
+>. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool document.canComment(<parameter
+>int <replaceable
+>startegenskap</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>slutegenskap</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar <literal
+>sant</literal
+> om ett intervall som börjar och slutar med den givna egenskapen är lämpat att kommenteras bort, annars <literal
+>falskt</literal
+>. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>String document.commentMarker(<parameter
+>int <replaceable
+>egenskap</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar kommentarmarkören för enraderskommentarar för en given <replaceable
+>egenskap</replaceable
+>. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>String document.commentStart(<parameter
+>int <replaceable
+>egenskap</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar kommentarmarkören för början av flerraderskommentarer för en given <replaceable
+>egenskap</replaceable
+>. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>String document.commentEnd(<parameter
+>int <replaceable
+>egenskap</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar kommentarmarkören för slutet av flerraderskommentarer för en given <replaceable
+>egenskap</replaceable
+>. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>Range document.documentRange();
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar ett intervall som omfattar hela dokumentet. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>Cursor documentEnd();
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar en markör placerad på den sista radens sista kolumn i dokumentet. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool isValidTextPosition(<parameter
+>int <replaceable
+>rad</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>kolumn</replaceable
+></parameter
+>);
+bool isValidTextPosition(<parameter
+>Cursor <replaceable
+>markör</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar <literal
+>sant</literal
+> om den angivna markörpositionen är placerad på en giltig textposition. En textposition är bara giltig om den finns i början av, mitten av eller slutet av en giltig rad. Dessutom är en textposition ogiltig om den är placerad i ett Unicode-surrogat. </para
+><para
+>Since: &kde; 5.0 </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>int document.attribute(<parameter
+>int <replaceable
+>rad</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>kolumn</replaceable
+></parameter
+>);
+int document.attribute(<parameter
+>Cursor <replaceable
+>markör</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar egenskapen på den angivna markörpositionen. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool document.isAttribute(<parameter
+>int <replaceable
+>rad</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>kolumn</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>egenskap</replaceable
+></parameter
+>);
+bool document.isAttribute(<parameter
+>Cursor <replaceable
+>markör</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>egenskap</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar <literal
+>sant</literal
+> om egenskapen på den givna markörpositionen är lika med <replaceable
+>egenskap</replaceable
+>, annars <literal
+>falskt</literal
+>. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>String document.attributeName(<parameter
+>int <replaceable
+>rad</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>kolumn</replaceable
+></parameter
+>);
+String document.attributeName(<parameter
+>Cursor <replaceable
+>markör</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar egenskapsnamnet som läsbar text. Det är lika med namnet <literal
+>itemData</literal
+> i syntaxfärgläggningsfilerna. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool document.isAttributeName(<parameter
+>int <replaceable
+>rad</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>kolumn</replaceable
+></parameter
+>, <parameter
+>String <replaceable
+>namn</replaceable
+></parameter
+>);
+bool document.isAttributeName(<parameter
+>Cursor <replaceable
+>markör</replaceable
+></parameter
+>, <parameter
+>String <replaceable
+>namn</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar <literal
+>sant</literal
+> om egenskapsnamnet på en viss markörposition motsvara givet <replaceable
+>namn</replaceable
+>, annars <literal
+>falskt</literal
+>. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>String document.variable(<parameter
+>String <replaceable
+>nyckel</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar värdet på den begärda dokumentvariabeln <replaceable
+>nyckel</replaceable
+>. Om dokumentvariabeln inte finns, är returvärdet en tom sträng. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>void document.setVariable(<parameter
+>String <replaceable
+>nyckel</replaceable
+></parameter
+>, <parameter
+>String <replaceable
+>värde</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Ställ in värdet på den begärda dokumentvariabeln <replaceable
+>nyckel</replaceable
+>. </para>
+<para
+>Se också: <link linkend="config-variables"
+>Kate-dokumentvariabler</link
+> </para>
+<para
+>Sedan: &kde; 4.8 </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>int document.firstVirtualColumn(<parameter
+>int <replaceable
+>rad</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar den virtuella kolumnen för det första tecknet som inte är ett blanktecken på den givna raden, eller <literal
+>-1</literal
+> om raden är tom eller bara innehåller blanktecken. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>int document.lastVirtualColumn(<parameter
+>int <replaceable
+>rad</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar den virtuella kolumnen för det sista tecknet som inte är ett blanktecken på den givna raden, eller <literal
+>-1</literal
+> om raden är tom eller bara innehåller blanktecken. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>int document.toVirtualColumn(<parameter
+>int <replaceable
+>rad</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>kolumn</replaceable
+></parameter
+>);
+int document.toVirtualColumn(<parameter
+>Cursor <replaceable
+>markör</replaceable
+></parameter
+>);
+Cursor document.toVirtualCursor(<parameter
+>Cursor <replaceable
+>markör</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Konverterar den givna <quote
+>verkliga</quote
+> markörpositionen till en virtuell markörposition, och returnerar antingen ett heltal eller ett markörobjekt. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>int document.fromVirtualColumn(<parameter
+>int <replaceable
+>rad</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>virtuell_kolumn</replaceable
+></parameter
+>);
+int document.fromVirtualColumn(<parameter
+>Cursor <replaceable
+>virtuell_markör</replaceable
+></parameter
+>);
+Cursor document.fromVirtualCursor(<parameter
+>Cursor <replaceable
+>virtuell_markör</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Konverterar den givna virtuella markörpositionen till en <quote
+>verklig</quote
+> markörposition, och returnerar antingen ett heltal eller ett markörobjekt. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>Cursor document.anchor(<parameter
+>int <replaceable
+>rad</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>kolumn</replaceable
+></parameter
+>, <parameter
+>Char <replaceable
+>tecken</replaceable
+></parameter
+>);
+Cursor document.anchor(<parameter
+>Cursor <replaceable
+>markör</replaceable
+></parameter
+>, <parameter
+>Char <replaceable
+>tecken</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Söker bakåt efter det givna tecknet med början på den givna markören. Om exempelvis '(' anges som tecken, returnerar funktionen positionen på ett inledande '('. Det sker med referensräkning, dvs. andra '(...)' ignoreras. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>Cursor document.rfind(<parameter
+>int <replaceable
+>rad</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>kolumn</replaceable
+></parameter
+>, <parameter
+>String <replaceable
+>text</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>egenskap</replaceable
+> = -1</parameter
+>);
+Cursor document.rfind(<parameter
+>Cursor <replaceable
+>markör</replaceable
+></parameter
+>, <parameter
+>String <replaceable
+>text</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>egenskap</replaceable
+> = -1</parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Söker bakåt efter den givna texten med lämplig <replaceable
+>egenskap</replaceable
+>. Argumentet <replaceable
+>egenskap</replaceable
+> ignoreras om det anges som <literal
+>-1</literal
+>. Den returnerade markören är ogiltig om texten inte kunde hittas. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>int document.defStyleNum(<parameter
+>int <replaceable
+>rad</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>kolumn</replaceable
+></parameter
+>);
+int document.defStyleNum(<parameter
+>Cursor <replaceable
+>markör</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar standardstilen som används på den givna markörpositionen. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool document.isCode(<parameter
+>int <replaceable
+>rad</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>kolumn</replaceable
+></parameter
+>);
+bool document.isCode(<parameter
+>Cursor <replaceable
+>markör</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar <literal
+>sant</literal
+> om egenskapen på given markörposition inte är lika med någon av följande stilar: <literal
+>dsComment</literal
+>, <literal
+>dsString</literal
+>, <literal
+>dsRegionMarker</literal
+>, <literal
+>dsChar</literal
+>, <literal
+>dsOthers</literal
+>. </para
+></listitem>
+</varlistentry>
+
+
+
+<varlistentry>
+<term
+><synopsis
+>bool document.isComment(<parameter
+>int <replaceable
+>rad</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>kolumn</replaceable
+></parameter
+>);
+bool document.isComment(<parameter
+>Cursor <replaceable
+>markör</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar <literal
+>sant</literal
+>, om egenskapen för tecknet på markörpositionen är <literal
+>dsComment</literal
+>, annars <literal
+>falskt</literal
+>. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool document.isString(<parameter
+>int <replaceable
+>rad</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>kolumn</replaceable
+></parameter
+>);
+bool document.isString(<parameter
+>Cursor <replaceable
+>markör</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar <literal
+>sant</literal
+>, om egenskapen för tecknet på markörpositionen är <literal
+>dsString</literal
+>, annars <literal
+>falskt</literal
+>. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool document.isRegionMarker(<parameter
+>int <replaceable
+>rad</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>kolumn</replaceable
+></parameter
+>);
+bool document.isRegionMarker(<parameter
+>Cursor <replaceable
+>markör</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar <literal
+>sant</literal
+>, om egenskapen för tecknet på markörpositionen är <literal
+>dsRegionMarker</literal
+>, annars <literal
+>falskt</literal
+>. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool document.isChar(<parameter
+>int <replaceable
+>rad</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>kolumn</replaceable
+></parameter
+>);
+bool document.isChar(<parameter
+>Cursor <replaceable
+>markör</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar <literal
+>sant</literal
+>, om egenskapen för tecknet på markörpositionen är <literal
+>dsChar</literal
+>, annars <literal
+>falskt</literal
+>. </para
+></listitem>
+</varlistentry>
+
+
+<varlistentry>
+<term
+><synopsis
+>bool document.isOthers(<parameter
+>int <replaceable
+>rad</replaceable
+></parameter
+>, <parameter
+>int <replaceable
+>kolumn</replaceable
+></parameter
+>);
+bool document.isOthers(<parameter
+>Cursor <replaceable
+>markör</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar <literal
+>sant</literal
+>, om egenskapen för tecknet på markörpositionen är <literal
+>dsOthers</literal
+>, annars <literal
+>falskt</literal
+>. </para
+></listitem>
+</varlistentry>
+
+</variablelist>
+</para>
+
+</sect3>
+
+<sect3 id="dev-scripting-api-editor">
+<title
+>Programmeringsgränssnittet för editorn</title>
+<para
+>Förutom dokumentet och programmeringsgränssnittet för vyn, finns ett generellt programmeringsgränssnitt för editorn som tillhandahåller funktioner för allmän redigeringsskriptfunktionalitet. <variablelist>
+
+<varlistentry>
+<term
+><synopsis
+>String editor.clipboardText();
+</synopsis
+></term>
+<listitem
+><para
+>Returnerar texten som för närvarande finns i det globala klippbordet. </para>
+<para
+>Sedan: KDE Ramverk 5.50</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><synopsis
+>String editor.clipboardHistory();
+</synopsis
+></term>
+<listitem
+><para
+>Editorn har en klippbordshistorik som innehåller upp till tio klippbordsposter. Funktionen returnerar alla poster som för närvarande finns i klippbordshistoriken. </para>
+<para
+>Sedan: KDE Ramverk 5.50</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><synopsis
+>void editor.setClipboardText(<parameter
+>String <replaceable
+>text</replaceable
+></parameter
+>);
+</synopsis
+></term>
+<listitem
+><para
+>Ställ in klippbordets innehåll till <replaceable
+>text</replaceable
+>. <replaceable
+>text</replaceable
+> läggs till i klippbordshistoriken. </para>
+<para
+>Sedan: KDE Ramverk 5.50</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+</para>
+</sect3>
+</sect2>
+
+</sect1>
+
+</chapter>

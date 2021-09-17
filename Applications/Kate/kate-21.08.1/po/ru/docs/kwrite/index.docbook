@@ -1,0 +1,204 @@
+<?xml version="1.0" ?>
+<!DOCTYPE article PUBLIC "-//KDE//DTD DocBook XML V4.5-Based Variant V1.1//EN"
+"dtd/kdedbx45.dtd" [
+<!ENTITY kappname "&kwrite;">
+<!ENTITY % Russian "INCLUDE"
+> <!-- change language only here -->
+]>
+
+<article id="kwrite" lang="&language;">
+
+<articleinfo>
+<title
+>Руководство пользователя &kwrite;</title>
+<authorgroup>
+<author
+>&TC.Hollingsworth; &TC.Hollingsworth.mail;</author>
+<othercredit role="developer"
+>&Christoph.Cullmann; &Christoph.Cullmann.mail; </othercredit>
+
+<othercredit role="translator"
+><firstname
+>Ольга</firstname
+><surname
+>Миронова</surname
+><affiliation
+><address
+><email
+>omiro@basealt.ru</email
+></address
+></affiliation
+><contrib
+>Перевод на русский язык</contrib
+></othercredit
+> <othercredit role="reviewer"
+><firstname
+>Александр</firstname
+><surname
+>Яворский</surname
+><contrib
+>Рецензирование</contrib
+></othercredit
+> 
+
+</authorgroup>
+
+<copyright>
+<year
+>2014</year>
+<holder
+>&TC.Hollingsworth; &TC.Hollingsworth.mail;</holder>
+</copyright>
+<legalnotice
+>&FDLNotice;</legalnotice>
+
+<date
+>2016-04-22</date>
+<releaseinfo
+>Приложения KDE 16.04</releaseinfo>
+
+<abstract>
+<para
+>&kwrite; — это текстовый редактор от &kde;, позволяющий одновременно редактировать не более одного файла в каждом окне.</para>
+</abstract>
+
+<keywordset>
+<keyword
+>KDE</keyword>
+<keyword
+>KWrite</keyword>
+<keyword
+>текст</keyword>
+<keyword
+>редактор</keyword>
+</keywordset>
+
+</articleinfo>
+
+<sect1 id="introduction">
+<title
+>Введение</title>
+
+<para
+>&kwrite; от &kde; — это больше, чем просто текстовый редактор. Он предназначен для программистов и, хотя бы частично, может рассматриваться как альтернатива более серьёзным редакторам. Наилучшим образом он может быть  использован в сочетании с веб-браузером &konqueror; или диспетчером файлов &dolphin; для просмотра исходных текстов программ, написанных на разных языках программирования. &kwrite; также отлично работает в качестве простого текстового редактора. Одна из основных особенностей &kwrite; — подсветка синтаксиса разных языков программирования, таких как C/C++, &Java;, Python, Perl, Bash, Modula 2, &HTML;, и Ada. Текстовый редактор &kwrite; имеет однодокументный интерфейс (<acronym
+>SDI</acronym
+>), который позволяет единовременно редактировать не более одного файла в окне. </para>
+
+<para
+>&kwrite; — простой пользовательский интерфейс к компоненту &katepart;. Компонент &katepart; также используется в улучшенном текстовом редакторе &kate;, интегрированной среде разработки KDevelop и других приложениях &kde;, для которых необходимы расширенные возможности редактирования текста. Поэтому полную документацию с описанием всех характеристик &kwrite; можно найти в <ulink url="help:/katepart"
+>Руководстве пользователя &katepart;</ulink
+>. </para>
+</sect1>
+
+<sect1 id="credits">
+<title
+>Авторские права и лицензия</title>
+
+<para
+>© Команда разработчиков &kate;, программа &kwrite;, 2001-2014.</para>
+
+<para
+>Основано на исходной версии &kwrite;, © Jochen Wilhelmy <email
+>digisnap@cs.tu-berlin.de</email
+>, 2000 </para>
+
+<para
+>Участники проекта:</para>
+
+<itemizedlist>
+<listitem>
+<para
+>&Christoph.Cullmann; &Christoph.Cullmann.mail;</para>
+</listitem>
+
+<listitem>
+<para
+>Michael Bartl <email
+>michael.bartl1@chello.at</email
+></para>
+</listitem>
+
+<listitem>
+<para
+>Phlip <email
+>phlip_cpp@my-deja.com</email
+></para>
+</listitem>
+
+<listitem>
+<para
+>&Anders.Lund; &Anders.Lund.mail;</para>
+</listitem>
+
+<listitem>
+<para
+>Matt Newell <email
+>newellm@proaxis.com</email
+></para>
+</listitem>
+
+<listitem>
+<para
+>&Joseph.Wenninger; &Joseph.Wenninger.mail;</para>
+</listitem>
+
+<listitem>
+<para
+>Jochen Wilhelmy <email
+>digisnap@cs.tu-berlin.de</email
+></para>
+</listitem>
+
+<listitem>
+<para
+>&Michael.Koch; &Michael.Koch.mail;</para>
+</listitem>
+
+<listitem>
+<para
+>&Christian.Gebauer; &Christian.Gebauer.mail;</para>
+</listitem>
+
+<listitem>
+<para
+>&Simon.Hausmann; &Simon.Hausmann.mail;</para>
+</listitem>
+
+<listitem>
+<para
+>Glen Parker <email
+>glenebob@nwlink.com</email
+></para>
+</listitem>
+
+<listitem>
+<para
+>Scott Manson <email
+>sdmanson@altel.net</email
+></para>
+</listitem>
+
+<listitem>
+<para
+>&John.Firebaugh; &John.Firebaugh.mail;</para>
+</listitem>
+</itemizedlist>
+
+<para
+>Перевод на русский язык: Ольга Миронова <email
+>omiro@basealt.ru</email
+></para
+> 
+&underFDL; &underGPL; </sect1>
+
+</article>
+<!--
+Local Variables:
+mode: sgml
+sgml-namecase-general: t
+sgml-namecase-entity: nil
+sgml-general-insert-case: lower
+sgml-minimize-attributes: nil
+sgml-omittag: nil
+End:
+-->

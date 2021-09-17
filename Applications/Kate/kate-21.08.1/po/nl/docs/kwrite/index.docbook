@@ -1,0 +1,407 @@
+<?xml version="1.0" ?>
+<!DOCTYPE article PUBLIC "-//KDE//DTD DocBook XML V4.5-Based Variant V1.1//EN"
+"dtd/kdedbx45.dtd" [
+<!ENTITY kappname "&kwrite;">
+<!ENTITY % Dutch "INCLUDE"
+> <!-- change language only here -->
+]>
+
+<article id="kwrite" lang="&language;">
+
+<articleinfo>
+<title
+>Het handboek van &kwrite;</title>
+<authorgroup>
+<author
+>&TC.Hollingsworth; &TC.Hollingsworth.mail;</author>
+<othercredit role="developer"
+>&Christoph.Cullmann; &Christoph.Cullmann.mail; </othercredit>
+
+&Freek.de.Kruijf; 
+
+</authorgroup>
+
+<copyright>
+<year
+>2014</year>
+<holder
+>&TC.Hollingsworth; &TC.Hollingsworth.mail;</holder>
+</copyright>
+<legalnotice
+>&FDLNotice;</legalnotice>
+
+<date
+>2018-05-19</date>
+<releaseinfo
+>Applications 18.08</releaseinfo>
+
+<abstract>
+<para
+>&kwrite; is een tekstbewerker door &kde; waarmee u per venster één bestand tegelijk kunt bewerken.</para>
+</abstract>
+
+<keywordset>
+<keyword
+>KDE</keyword>
+<keyword
+>KWrite</keyword>
+<keyword
+>tekst</keyword>
+<keyword
+>editor</keyword>
+</keywordset>
+
+</articleinfo>
+
+<sect1 id="introduction">
+<title
+>Inleiding</title>
+
+<para
+>&kwrite; is meer dan een tekstbewerker door &kde;. Het is bedoeld om een editor te zijn voor de programmeur en kan beschouwd worden als minstens een gedeeltelijk alternatief voor meer krachtige editors. Het zou net beste gebruikt kunnen worden samen met &konqueror; of &dolphin; voor bladeren door broncode voor verschillende talen. &kwrite; werkt ook erg goed als een eenvoudige tekstbewerker. Een van hoofdfuncties van &kwrite; is de gekeurde syntaxis, aangepast voor vele verschillende programmeertalen zoals: C/C++, &Java;, Python, Perl, Bash, Modula 2, &HTML; en Ada. &kwrite; heeft een interface naar een enkel document (<acronym
+>SDI</acronym
+>), waarmee u per venster één bestand tegelijk kunt bewerken. </para>
+
+<para
+>&kwrite; is een eenvoudig interface tot de component &katepart; die ook gebruikt wordt door &kate;, &kdevelop; en andere toepassingen uit &kde; die geavanceerde tekstbewerking nodig hebben. Complete documentatie over alle mogelijkheden van &kwrite; zijn te vinden in het <ulink url="help:/katepart"
+>Handbook van &katepart;</ulink
+>. </para>
+</sect1>
+
+<sect1 id="command-line-options">
+<title
+>Commandoregelopties</title>
+
+<para
+>In de meeste gevallen wordt &kwrite; gestart vanuit het &plasma; programma-starter of een pictogram op het bureaublad, het kan ook worden geopend vanaf de commandoregel van een terminalvenster. Er is een aantal nuttige opties beschikbaar wanneer u het programma op deze manier start. </para>
+
+<para
+>Vele andere toepassingen die &katepart; gebruiken bieden overeenkomstige opties voor de opdrachtregel.</para>
+
+<sect2 id="specify-a-file">
+<title
+>Een bestand opgeven</title>
+
+<para
+>Door een pad en bestandsnaam van een bepaald bestand op te geven, opent of creëert &kwrite; bij het opstarten dat bestand. De opdracht ziet er dan als volgt uit:</para>
+
+<informalexample
+><screen
+><prompt
+>%</prompt
+> <userinput
+><command
+>kwrite</command
+> <option
+><replaceable
+>/home/mijnpersoonlijkemap/docs/mijnbestand.txt</replaceable
+></option
+></userinput
+>
+</screen>
+</informalexample>
+</sect2>
+<sect2 id="editing-files-on-the-internet">
+<title
+>Een bestand op het internet opgeven</title>
+
+<para
+>De hierboven vermelde methode werkt ook om bestanden van het internet rechtstreeks te open (indien er een verbinding met internet is). Een voorbeeld:</para>
+
+<informalexample
+><screen
+><prompt
+>%</prompt
+> <userinput
+><command
+>kwrite</command
+> <option
+><replaceable
+>ftp://ftp.kde.org/pub/kde/Welcome.msg</replaceable
+></option
+></userinput
+>
+</screen>
+</informalexample>
+
+</sect2>
+
+<sect2 id="other-command-line-options">
+<title
+>Overige opties op de opdrachtregel</title>
+
+<para
+>De volgende opties op de opdrachtregel zijn beschikbaar</para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><userinput
+><command
+>kwrite</command
+> <option
+>--help</option
+></userinput
+></term>
+<listitem
+><para
+>Toont een lijst van de meeste beschikbare basisopties op de opdrachtregel.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+><command
+>kwrite</command
+> <option
+>--author</option
+></userinput
+></term>
+<listitem
+><para
+>Geeft een lijst van de auteurs van &kwrite; in het terminalvenster.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+
+<term
+><userinput
+><command
+>kwrite</command
+> <option
+>-v</option
+>, <option
+>--version</option
+></userinput
+></term>
+<listitem
+><para
+>Toont versie-informatie van de toepassing.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+><command
+>kwrite</command
+> <option
+>--license</option
+></userinput
+></term>
+<listitem>
+<para
+>Toont informatie over de licentie.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+><command
+>kwrite</command
+> <option
+>--desktop-bestand</option
+> <parameter
+>bestandsnaam</parameter
+></userinput
+></term>
+<listitem
+><para
+>De basis bestandsnaam van het desktop-item voor deze toepassing.</para>
+<para
+>Dit is speciaal nuttig voor wrapper-toepassingen en toepassingen die in het algemeen meerdere desktop-bestanden hebben. Dus elk desktop-bestand kan zijn eigen opdrachtregel voor het item <option
+>Exec</option
+> hebben. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+><command
+>kwrite</command
+> <option
+>-e</option
+>, <option
+>--encoding</option
+> <parameter
+>codering</parameter
+> </userinput
+></term>
+<listitem
+><para
+>Hierdoor gebruikt &kwrite; de opgegeven codering voor het document. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+><command
+>kwrite</command
+> <option
+>-l</option
+>, <option
+>--line</option
+> <parameter
+>regel</parameter
+> </userinput
+></term>
+<listitem
+><para
+>Ga na het openen van het document naar de opgegeven regel. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+><command
+>kwrite</command
+> <option
+>-c</option
+>, <option
+>--column</option
+> <parameter
+>kolom</parameter
+> </userinput
+></term>
+<listitem
+><para
+>Ga na het openen van het document naar de opgegeven kolom. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+><command
+>kwrite</command
+> <option
+>-i</option
+>, <option
+>--stdin</option
+></userinput
+></term>
+<listitem
+><para
+>Zorgt ervoor dat &kwrite; de documentinhoud van standaardinvoer leest. Dit is hetzelfde als de algemene optie <option
+>-</option
+> die in veel commandoregelprogramma's gebruikt wordt; het stelt u in staat commando-uitvoer door te sluizen naar &kwrite;.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+</sect2>
+</sect1>
+
+<sect1 id="credits">
+<title
+>Dankbetuigingen en licentie</title>
+
+<para
+>&kwrite; Copyright 2001-2014 door het &kate;-team.</para>
+
+<para
+>Gebaseerd op het originele &kwrite;, waarvoor geldt: Copyright 2000 door Jochen Wilhelmy <email
+>digisnap@cs.tu-berlin.de</email
+> </para>
+
+<para
+>Bijdragen:</para>
+
+<itemizedlist>
+<listitem>
+<para
+>&Christoph.Cullmann; &Christoph.Cullmann.mail;</para>
+</listitem>
+
+<listitem>
+<para
+>Michael Bartl <email
+>michael.bartl1@chello.at</email
+></para>
+</listitem>
+
+<listitem>
+<para
+>Phlip <email
+>phlip_cpp@my-deja.com</email
+></para>
+</listitem>
+
+<listitem>
+<para
+>&Anders.Lund; &Anders.Lund.mail;</para>
+</listitem>
+
+<listitem>
+<para
+>Matt Newell <email
+>newellm@proaxis.com</email
+></para>
+</listitem>
+
+<listitem>
+<para
+>&Joseph.Wenninger; &Joseph.Wenninger.mail;</para>
+</listitem>
+
+<listitem>
+<para
+>Jochen Wilhely <email
+>digisnap@cs.tu-berlin.de</email
+></para>
+</listitem>
+
+<listitem>
+<para
+>&Michael.Koch; &Michael.Koch.mail;</para>
+</listitem>
+
+<listitem>
+<para
+>&Christian.Gebauer; &Christian.Gebauer.mail;</para>
+</listitem>
+
+<listitem>
+<para
+>&Simon.Hausmann; &Simon.Hausmann.mail;</para>
+</listitem>
+
+<listitem>
+<para
+>Glen Parker <email
+>glenebob@nwlink.com</email
+></para>
+</listitem>
+
+<listitem>
+<para
+>Scott Manson <email
+>sdmanson@altel.net</email
+></para>
+</listitem>
+
+<listitem>
+<para
+>&John.Firebaugh; &John.Firebaugh.mail;</para>
+</listitem>
+</itemizedlist>
+
+&meld.fouten;&vertaling.freek; &underFDL; &underGPL; </sect1>
+
+</article>
+<!--
+Local Variables:
+mode: sgml
+sgml-namecase-general: t
+sgml-namecase-entity: nil
+sgml-general-insert-case: lower
+sgml-minimize-attributes: nil
+sgml-omittag: nil
+End:
+-->

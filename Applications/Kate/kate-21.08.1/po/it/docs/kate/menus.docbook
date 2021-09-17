@@ -1,0 +1,2594 @@
+<chapter id="the-menu-entries">
+<title
+>Le voci dei menu</title>
+
+<sect1 id="file-menu">
+<title
+>Il menu File</title>
+
+<variablelist>
+
+<varlistentry id="file-new">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>N</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>File</guimenu
+> <guimenuitem
+>Nuovo</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Questo comando <action
+>crea un nuovo documento</action
+> nella finestra di modifica; nell'elenco dei <guibutton
+>Documenti</guibutton
+> sulla sinistra il nuovo file è indicato come <emphasis
+>Senza nome</emphasis
+>. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="file-open">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>O</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>File</guimenu
+> <guimenuitem
+>Apri..</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Visualizza la finestra <guilabel
+>Apri file</guilabel
+> standard di &kde;. Usa la vista dei file per selezionare quello che vuoi aprire, e fai clic su <guibutton
+>Apri</guibutton
+> per aprirlo.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="file-open-recent">
+<term
+><menuchoice
+><guimenu
+>File</guimenu
+> <guisubmenu
+>Apri recenti</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Questa è una scorciatoia per aprire i documenti salvati di recente: un clic su questo elemento apre un elenco a fianco del menu con alcuni degli ultimi file salvati. Se fai clic su di uno in particolare &kappname; lo aprirà, purché che il file sia ancora nello stesso posto. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="file-open-with">
+<term>
+<menuchoice
+><guimenu
+>File</guimenu
+> <guisubmenu
+>Apri con</guisubmenu
+> </menuchoice>
+</term>
+<listitem>
+<para
+>Questo sotto-menu presenta un elenco di applicazioni in grado di gestire il tipo &MIME; del documento attuale; l'attivazione di una voce aprirà il documento con l'applicazione corrispondente.</para>
+<para
+>Inoltre la voce <guimenuitem
+>Altro...</guimenuitem
+> apre una finestra per <action
+>selezionare un'altra applicazione con cui aprire il file attivo</action
+>. Il file resterà aperto in &kate;. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="file-save">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>S</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>File</guimenu
+> <guimenuitem
+>Salva</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Permette di salvare il documento corrente. Se c'è già un salvataggio del documento questa operazione sovrascriverà il file precedente, senza chiedere il consenso all'utente. Se è invece il primo salvataggio di un nuovo documento, verrà invocata la finestra di dialogo «Salva come...» (descritta più sotto). </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="file-save-as">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;&Shift;<keycap
+>S</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>File</guimenu
+> <guimenuitem
+>Salva come...</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Permette di salvare un documento con un nuovo nome. Questo viene fatto attraverso la finestra di dialogo descritta sopra, nella sezione <link linkend="file-open"
+>Apri</link
+> di questa guida. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="file-save-as-encoding">
+<term
+><menuchoice
+><guimenu
+>File</guimenu
+> <guimenuitem
+>Salva come con codifica</guimenuitem
+> </menuchoice>
+</term
+><listitem>
+<para
+>Salva un documento con un nuovo nome in una codifica diversa.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="file-save-copy-as">
+<term
+><menuchoice
+><guimenu
+>File</guimenu
+> <guimenuitem
+>Salva copia come</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Salva una copia del documento con un nuovo nome, e continua a modificare il documento originale.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="file-save-all">
+<term>
+<menuchoice
+><shortcut
+><keycombo action="simul"
+>&Ctrl;<keycap
+>L</keycap
+></keycombo
+></shortcut
+><guimenu
+>File</guimenu
+><guimenuitem
+>Salva tutto</guimenuitem
+> </menuchoice>
+</term>
+<listitem>
+<para
+>Questo comando <action
+>salva tutti i file modificati aperti</action
+>. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="file-reload">
+<term
+><menuchoice
+><shortcut
+><keycap
+>F5</keycap
+></shortcut
+><guimenu
+>File</guimenu
+> <guimenuitem
+>Ricarica</guimenuitem
+> </menuchoice>
+</term
+><listitem>
+<para
+>Ricarica il file attivo da disco. Questo comando è utile se un altro programma o processo ha cambiato il file mentre era aperto in &kappname;. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="file-reload-all">
+<term>
+<menuchoice
+><guimenu
+>File</guimenu
+> <guimenuitem
+>Ricarica tutto</guimenuitem
+> </menuchoice>
+</term>
+<listitem>
+<para
+><action
+>Ricarica tutti i file aperti</action
+>. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="file-print">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>P</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>File</guimenu
+> <guimenuitem
+>Stampa...</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Apre una semplice finestra di dialogo di stampa, che permette all'utente di specificare cosa, dove e come stampare. </para>
+</listitem>
+</varlistentry>
+
+<!--FIXME Print Preview -->
+
+<varlistentry id="file-export-as-html">
+<term
+><menuchoice
+><guimenu
+>File</guimenu
+> <guimenuitem
+>Esporta come HTML</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Salva il documento attualmente aperto come file &HTML;, che verrà formattato con l'evidenziazione della sintassi e le impostazioni dello schema di colori attuali.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="file-close">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>W</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>File</guimenu
+> <guimenuitem
+>Chiudi</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Chiude il file attivo con questo comando. Se hai fatto delle modifiche senza salvarle ti verrà chiesto se vuoi salvarle prima che &kate; lo chiuda. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="file-close-other">
+<term>
+<menuchoice
+><guimenu
+>File</guimenu
+> <guimenuitem
+>Chiudi gli altri</guimenuitem
+> </menuchoice>
+</term>
+<listitem>
+<para
+>Chiudi gli altri documenti aperti. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="file-close-all">
+<term>
+<menuchoice
+><guimenu
+>File</guimenu
+> <guimenuitem
+>Chiudi tutti</guimenuitem
+> </menuchoice>
+</term>
+<listitem>
+<para
+>Questo comando <action
+>chiude tutti i file aperti</action
+> in &kate;. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="file-close-orphaned">
+<term>
+<menuchoice
+><guimenu
+>File</guimenu
+> <guimenuitem
+>Chiudi orfani</guimenuitem
+> </menuchoice>
+</term>
+<listitem>
+<para
+><action
+>Chiudi</action
+> tutti i documenti nell'elenco dei file che non possono venire riaperti all'avvio perché non sono più accessibili. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="file-quit">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>Q</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>File</guimenu
+> <guimenuitem
+>Esci</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Questo comando <action
+>chiude &kate;</action
+> e tutti i file che stavi modificando. Se hai delle modifiche non salvate in uno o più file ti verrà chiesto se le vuoi salvare. </para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect1>
+
+<sect1 id="edit-menu">
+<title
+>Il menu Modifica</title>
+
+<variablelist>
+
+<varlistentry id="edit-undo">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+>&Ctrl;<keycap
+>Z</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Modifica</guimenu
+> <guimenuitem
+>Annulla</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Annulla l'ultima azione di modifica (inserimento di testo, copia, taglio eccetera).</para>
+<note
+><para
+>Potrebbe annullare diversi comandi di modifica dello stesso tipo, come l'inserimento di caratteri.</para
+></note>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-redo">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;&Shift;<keycap
+>Z</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Modifica</guimenu
+> <guimenuitem
+>Rifai</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Questo annullerà la modifica più recente (se c'è) fatta usando Annulla.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-cut">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>X</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Modifica</guimenu
+> <guimenuitem
+>Taglia</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Questo comando cancella la selezione corrente e la mette negli appunti. Gli appunti lavorano in maniera invisibile, e forniscono un modo per trasferire dei dati tra le applicazioni.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-copy">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>C</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Modifica</guimenu
+> <guimenuitem
+>Copia</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Copia la selezione corrente negli appunti, così che possa essere incollata da qualche altra parte. Gli appunti lavorano in maniera invisibile, e forniscono un modo per trasferire dei dati tra le applicazioni.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-paste">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>V</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Modifica</guimenu
+> <guimenuitem
+>Incolla</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Inserisce il primo elemento negli appunti, alla posizione del cursore. Gli appunti lavorano in maniera invisibile, e forniscono un modo per trasferire dei dati tra le applicazioni.</para>
+<note
+><para
+>Se l'opzione di sovrascrittura della selezione è attiva, il testo incollato sovrascriverà l'eventuale selezione.</para
+></note>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-paste-selection">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;&Shift;&Ins;</keycombo
+> </shortcut
+> <guimenu
+>Modifica</guimenu
+> <guimenuitem
+>Incolla la selezione</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Questo incollerà il contenuto della <ulink url="https://en.wikipedia.org/wiki/Clipboard_(computing)#X_Window_System"
+>selezione del mouse</ulink
+> che era stato scelto in precedenza. Seleziona del testo col puntatore del mouse per incollarlo nel file attualmente aperto utilizzando questa voce di menu.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-swap-with-clipboard-contents">
+<term
+><menuchoice
+><guimenu
+>Modifica</guimenu
+> <guimenuitem
+>Scambia con il contenuto degli appunti</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Questo scambierà il testo selezionato col contenuto degli <ulink url="https://en.wikipedia.org/wiki/Clipboard_(computing)#X_Window_System"
+>appunti</ulink
+>.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-clipboard-history">
+<term
+><menuchoice
+><guimenu
+>File</guimenu
+> <guisubmenu
+>Cronologia degli appunti</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Questo sotto-menu mostrerà l'inizio delle porzioni di testo recentemente copiate negli appunti. Seleziona un elemento da questo menu per incollarlo nel file attualmente aperto.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-copy-as-html">
+<term
+><menuchoice
+><guimenu
+>Modifica</guimenu
+> <guimenuitem
+>Copia come HTML</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Copia la selezione come &HTML;, formattato con l'evidenziazione della sintassi e le impostazioni dello schema dei colori attuali.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-select-all">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>A</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Modifica</guimenu
+> <guimenuitem
+>Seleziona tutto</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Seleziona l'intero documento. Può essere molto utile per copiare l'intero file in un'altra applicazione.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-deselect">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;&Shift;<keycap
+>A</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Modifica</guimenu
+> <guimenuitem
+>Deseleziona</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Deseleziona l'eventuale testo selezionato nell'editor.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-toggle-block-selection">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;&Shift;<keycap
+>B</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Modifica</guimenu
+> <guimenuitem
+>Modalità di selezione a blocchi</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Cambia la modalità di selezione. Quando la modalità di selezione è quella <guilabel
+>BLOCCO</guilabel
+> la barra di stato contiene la stringa <guilabel
+>[BLOCCO]</guilabel
+> e puoi fare selezioni verticali, &eg; selezionare le colonne dalla 5 alla 10 e le righe dalla 9 alla 15.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-input-modes">
+<term
+><menuchoice
+><guimenu
+>Modifica</guimenu
+> <guimenuitem
+>Modalità di inserimento</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Passa da una modalità di editing normale ad una stile Vi, modale. La modalità Vi supporta i comandi più usati, gli spostamenti dalla modalità normale alla visuale di vim, ed ha una barra di stato facoltativa per la modalità vi, che visualizza i comandi che vengono dati, i loro risultati e la modalità corrente. Il comportamento di questa modalità può essere configurato nella sezione <ulink url="help:/katepart/config-dialog-editor.html#pref-edit-vi-input-mode"
+>Modalità di inserimento Vi</ulink
+> della pagina <guilabel
+>Modifica</guilabel
+> nella finestra delle impostazioni di &kappname;.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-overwrite-mode">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+><keycap
+>Ins</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Modifica</guimenu
+> <guimenuitem
+>Modalità di sovrascrittura</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Alterna le modalità di inserimento e sovrascrittura. Quando la modalità è <guilabel
+>INS</guilabel
+>, i caratteri vengono inseriti alla posizione del cursore. Quando la modalità è <guilabel
+>SSC</guilabel
+>, i caratteri digitati sostituiranno quelli presenti se il cursore è posizionato davanti a un carattere. La barra di stato mostra lo stato attuale della modalità di sovrascrittura, con <guilabel
+>INS</guilabel
+> o <guilabel
+>SSC</guilabel
+>.</para>
+</listitem>
+</varlistentry>
+<!--FIXME keep in sync with katepart/part.docbook <sect2 id="finding-text"
+> -->
+<varlistentry id="edit-find">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>F</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Modifica</guimenu
+> <guimenuitem
+>Trova...</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Apre la barra di ricerca incrementale nella parte bassa della finestra dell'editor. Nella parte sinistra della barra c'è un pulsante con un'icona per chiuderla, seguita da una piccola casella di testo per inserire la chiave di ricerca.</para>
+<para
+>Quando si inizia ad inserire la chiave di ricerca, la ricerca inizia immediatamente. Se c'è una corrispondenza nel testo questa viene evidenziata, e lo sfondo della casella di testo diventa verde chiaro. Se la ricerca non dà risultati, lo sfondo della casella di testo diventa rosso chiaro.</para>
+<para
+>Usa il pulsante<inlinemediaobject
+><imageobject
+><imagedata fileref="arrow-up-double-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> oppure <inlinemediaobject
+><imageobject
+><imagedata fileref="arrow-down-double-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> per andare alla corrispondenza precedente o successiva nel documento.</para>
+<para
+>Le corrispondenze nel documento sono evidenziate anche quando chiudi la barra di ricerca; premi il tasto &Esc; per togliere questa evidenziazione.</para>
+<para
+>Puoi scegliere di limitare la ricerca alle corrispondenze con le stesse maiuscole nello schema di ricerca. Selezionando <inlinemediaobject
+><imageobject
+><imagedata fileref="format-text-superscript-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> la ricerca si limiterà ai risultati con le maiuscole e minuscole uguali a quelle specificate nello schema di ricerca. </para>
+<para
+>Fai clic sul pulsante <inlinemediaobject
+><imageobject
+><imagedata fileref="configure-shortcuts-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> nella parte destra della barra di ricerca incrementale per usare la barra potenziata di ricerca e sostituzione. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-find-next">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+><keycap
+>F3</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Modifica</guimenu
+> <guisubmenu
+>Trova varianti</guisubmenu
+> <guimenuitem
+>Trova successivo</guimenuitem
+> </menuchoice
+></term>
+ <listitem>
+<para
+>Ripete l'ultima ricerca, se c'è, senza richiamare la barra di ricerca incrementale, cercando in avanti nel documento a partire dalla posizione del puntatore. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-find-previous">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Shift;<keycap
+>F3</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Modifica</guimenu
+> <guisubmenu
+>Trova varianti</guisubmenu
+> <guimenuitem
+>Trova precedente</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Ripete l'ultima ricerca, se c'è, senza richiamare la barra di ricerca incrementale, cercando all'indietro invece che in avanti nel documento. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-find-selected">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>H</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Edit</guimenu
+> <guisubmenu
+>Trova varianti</guisubmenu
+> <guimenuitem
+>Trova selezionato</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Trova l'occorrenza successiva del testo selezionato.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-find-selected-backwards">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;&Shift;<keycap
+>H</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Modifica</guimenu
+> <guisubmenu
+>Trova varianti</guisubmenu
+> <guimenuitem
+>Trova selezionato all'indietro</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Trova l'occorrenza precedente del testo selezionato.</para>
+</listitem>
+</varlistentry>
+<!--FIXME keep in sync with katepart/part.docbook <sect2 id="replacing-text"
+> -->
+<varlistentry id="edit-replace">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>R</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Modifica</guimenu
+> <guimenuitem
+>Sostituisci...</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Questo comando apre la barra avanzata di trova e sostituisci. Nella parte a sinistra in alto della barra c'è un pulsante con un'icona per chiuderla, seguita da una piccola casella di testo per inserire la chiave di ricerca.</para>
+<para
+>Si può modificare la modalità di ricerca marcando <guilabel
+>Testo semplice</guilabel
+>, <guilabel
+>Parole intere</guilabel
+>, <guilabel
+>Sequenze di escape</guilabel
+> o <guilabel
+>Espressioni regolari</guilabel
+> dal menu a discesa. </para>
+<para
+>Se sono selezionate <guilabel
+>Sequenze di escape</guilabel
+> o <guilabel
+>Espressione regolare</guilabel
+>, l'elemento di menu <guibutton
+>Aggiungi...</guibutton
+> in fondo al menu contestuale delle caselle di testo sarà abilitato, e ti permetterà di aggiungere delle sequenze di escape o delle espressioni regolari per cercare o sostituire dei modelli da liste predefinite.</para>
+<para
+>Usa il pulsante<inlinemediaobject
+><imageobject
+><imagedata fileref="arrow-up-double-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> oppure <inlinemediaobject
+><imageobject
+><imagedata fileref="arrow-down-double-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> per andare alla corrispondenza precedente o successiva nel documento.</para>
+<para
+>Inserisci il testo da sostituire nella casella di testo indicata con <guilabel
+>Sostituisci</guilabel
+> e premi il pulsante <guibutton
+>Sostituisci</guibutton
+> per sostituire solo il testo evidenziato; premi il pulsante <guibutton
+>Sostituisci tutto</guibutton
+> per sostituire il testo cercato in tutto il documento. </para>
+<para
+>Puoi modificare il comportamento di ricerca e sostituzione selezionando opzioni diverse in fondo alla barra. Selezionando <inlinemediaobject
+><imageobject
+><imagedata fileref="format-text-superscript-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> restringerai i risultati a quelli che corrispondono alle maiuscole e minuscole di ogni carattere dello schema di ricerca, mentre con <inlinemediaobject
+><imageobject
+><imagedata fileref="edit-select-all-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> effettuerai la ricerca e la sostituzione solo all'interno della selezione attuale. Il pulsante <guilabel
+>Trova tutti</guilabel
+> evidenzia tutte le corrispondenze nel documento, e ne mostra il numero in una finestrella a comparsa. </para>
+<para
+>Fai clic sul pulsante <inlinemediaobject
+><imageobject
+><imagedata fileref="configure-shortcuts-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> sul lato destro della barra potenziata di ricerca e sostituzione per passare alla barra di ricerca incrementale. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-go-to-matching-bracket">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>6</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Modifica</guimenu
+> <guisubmenu
+>Vai a</guisubmenu
+> <guimenuitem
+>Vai alla parentesi corrispondente</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Sposta il cursore alla parentesi di apertura o di chiusura associata.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-select-to-matching-bracket">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;&Shift;<keycap
+>6</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Modifica</guimenu
+> <guisubmenu
+>Vai a</guisubmenu
+> <guimenuitem
+>Seleziona fino alla parentesi corrispondente</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Seleziona il testo tra le parentesi di apertura e di chiusura associate.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-go-to-previous-modified-line">
+<term
+><menuchoice
+><guimenu
+>Modifica</guimenu
+> <guisubmenu
+>Vai a</guisubmenu
+> <guimenuitem
+>Vai alla riga modificata precedente</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Le righe che sono cambiate dall'apertura del file sono chiamate righe modificate. Questa azione salta alla riga modificata precedente. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-go-to-next-modified-line">
+<term
+><menuchoice
+><guimenu
+>Modifica</guimenu
+> <guisubmenu
+>Vai a</guisubmenu
+> <guimenuitem
+>Vai alla riga modificata successiva</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Le righe che sono cambiate dall'apertura del file sono chiamate righe modificate. Questa azione salta alla riga modificata successiva. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-edit-go-to-line">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>G</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Modifica</guimenu
+> <guisubmenu
+>Vai a</guisubmenu
+> <guimenuitem
+>Va alla riga...</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Apre la barra vai alla riga nella parte bassa della finestra, che serve per far saltare il cursore ad una particolare riga (specificata dal numero) nel documento. Il numero della riga può essere inserito direttamente nella casella di testo oppure graficamente, facendo clic sulle frecce direzionali su o giù a lato della casella di testo. La piccola freccia su incrementerà il numero della riga, e la freccia giù lo decrementerà. Si può chiudere la barra facendo clic sul pulsante con un'icona nella parte sinistra. </para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect1>
+
+<sect1 id="view-menu">
+<title
+>Il menu Visualizza</title>
+
+<variablelist>
+
+<varlistentry id="view-new-window">
+<term
+><menuchoice
+><guimenu
+>Visualizza</guimenu
+><guimenuitem
+>Nuova finestra</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+><action
+>Apre una nuova istanza di &kate;</action
+>, che sarà identica alla precedente. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-next-tab">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Alt;&Right;</keycombo
+> </shortcut
+> <guimenu
+>Visualizza</guimenu
+> <guimenuitem
+>Scheda successiva</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Attiva la scheda successiva nella barra delle schede.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-previous-tab">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Alt;&Left;</keycombo
+> </shortcut
+> <guimenu
+>Visualizza</guimenu
+> <guimenuitem
+>Scheda precedente</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Attiva la scheda precedente nella barra delle schede.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-quick-open">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;&Alt;<keycap
+>O</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Visualizza</guimenu
+> <guimenuitem
+>Apertura rapida</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Mostra un campo di ricerca ed un elenco di file aperti nell'area dell'editor: inserendo del testo nel campo lo si cerca tra i nomi e gli &URL; dei documenti. Mentre inserisci il testo nel campo di ricerca puoi usare i tasti &Up; e &Down; per scorrere la vista a elenco. Premendo il tasto &Enter; o facendo doppio clic su un elemento dell'elenco si visualizzerà il documento selezionato; ciò facilita il passaggio tra i documenti, se ce ne sono molti aperti.</para>
+<para
+>Questa azione è disponibile anche usando l'icona <inlinemediaobject
+><imageobject
+><imagedata fileref="tab-duplicate-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> che si trova in alto a destra nella finestra dell'editor.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-split-previous">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Shift;<keycap
+>F8</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Visualizza</guimenu
+> <guisubmenu
+>Dividi vista</guisubmenu
+> <guimenuitem
+>Vista divisa precedente</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Attiva la vista precedente del documento, se hai suddiviso l'area di modifica in più viste.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-split-next">
+<term
+><menuchoice
+><shortcut
+> <keycap
+>F8</keycap
+> </shortcut
+><guimenu
+>Visualizza</guimenu
+><guisubmenu
+>Dividi vista</guisubmenu
+><guimenuitem
+>Vista divisa successiva</guimenuitem
+> </menuchoice>
+</term
+><listitem>
+<para
+>Attiva la vista successiva del documento, se hai suddiviso l'area di modifica in più viste.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-split-vertical">
+<term>
+<menuchoice
+><shortcut
+><keycombo action="simul"
+>&Ctrl;&Shift;<keycap
+>L</keycap
+></keycombo
+></shortcut
+><guimenu
+>Visualizza</guimenu
+><guisubmenu
+>Dividi vista</guisubmenu
+><guimenuitem
+>Dividi verticalmente</guimenuitem
+> </menuchoice>
+</term>
+<listitem>
+<para
+>Divide il riquadro (che può essere l'intera area di modifica) in due riquadri di uguale dimensione, quello nuovo a destra dell'attuale. Il nuovo riquadro è attivo, e mostra lo stesso documento di quello vecchio.</para>
+<para
+>Vedi anche <link linkend="kate-mdi"
+>Lavorare con &kate; MDI</link
+>.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-split-horizontal">
+<term>
+<menuchoice
+><shortcut
+><keycombo action="simul"
+>&Ctrl;&Shift;<keycap
+>T</keycap
+></keycombo
+></shortcut
+> <guimenu
+>Visualizza</guimenu
+><guisubmenu
+>Dividi vista</guisubmenu
+> <guimenuitem
+>Dividi orizzontalmente</guimenuitem
+> </menuchoice>
+</term>
+<listitem>
+<para
+>Divide il riquadro (che può essere l'intera area di modifica) in due riquadri di uguale dimensione, il nuovo sotto l'attuale. Quello nuovo è attivo, e mostra lo stesso documento di quello vecchio.</para>
+<para
+>Vedi anche <link linkend="kate-mdi"
+>Lavorare con &kate; MDI</link
+></para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-split-toggle-orientation">
+<term>
+<menuchoice
+><guimenu
+>Visualizza</guimenu
+><guisubmenu
+>Dividi vista</guisubmenu
+><guimenuitem
+>Commuta orientamento</guimenuitem
+> </menuchoice>
+</term>
+<listitem>
+<para
+>Passa dalla divisione orizzontale a quella verticale e viceversa.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-close-current">
+<term>
+<menuchoice
+><shortcut
+><keycombo action="simul"
+>&Ctrl;&Shift;<keycap
+>R</keycap
+></keycombo
+></shortcut
+> <guimenu
+>Visualizza</guimenu
+><guisubmenu
+>Dividi vista</guisubmenu
+> <guimenuitem
+>Chiudi la vista corrente</guimenuitem
+> </menuchoice>
+</term>
+<listitem>
+<para
+>Chiude il riquadro attivo, identificabile dal cursore lampeggiante. Se c'è solo un riquadro (l'area di modifica principale) questa voce è disabilitata.</para
+> <para
+>Nessun documento viene chiuso chiudendo un riquadro: i documenti saranno ancora disponibili nel menu <link linkend="view-menu"
+><guimenu
+>Visualizza</guimenu
+></link
+>, oltre che nell'elenco dei file.</para
+> <para
+>Vedi anche <link linkend="kate-mdi"
+>Lavorare con &kate; MDI</link
+></para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-close-inactive">
+<term>
+<menuchoice
+><guimenu
+>Visualizza</guimenu
+><guisubmenu
+>Dividi vista</guisubmenu
+><guimenuitem
+>Chiudi le viste inattive</guimenuitem
+> </menuchoice>
+</term>
+<listitem>
+<para
+>Chiude tutti i riquadri tranne quello attivo (quello con il cursore lampeggiante). Questa voce è disabilitata se c'è un solo riquadro (l'area di modifica principale).</para>
+<para
+>Nessun documento viene chiuso chiudendo un riquadro: i documenti saranno ancora disponibili nel menu <link linkend="view-menu"
+><guimenu
+>Visualizza</guimenu
+></link
+>, oltre che nell'elenco dei file.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-hide-inactive">
+<term>
+<menuchoice
+><guimenu
+>Visualizza</guimenu
+><guisubmenu
+>Dividi vista</guisubmenu
+> <guimenuitem
+>Nascondi le viste inattive</guimenuitem
+> </menuchoice>
+</term>
+<listitem>
+<para
+>Nasconde tutte le viste inattive tranne quella attuale.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-move-splitter-left">
+<term>
+<menuchoice
+><guimenu
+>Visualizza</guimenu
+><guisubmenu
+>Dividi vista</guisubmenu
+><guimenuitem
+>Sposta la divisione a sinistra</guimenuitem
+> </menuchoice>
+</term>
+<listitem>
+<para
+>Quando la vista divisa è abilitata, questo sposta a sinistra la divisione tra i due documenti divisi verticalmente.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-move-splitter-right">
+<term>
+<menuchoice
+><guimenu
+>Visualizza</guimenu
+><guisubmenu
+>Dividi vista</guisubmenu
+><guimenuitem
+>Sposta la divisione a destra</guimenuitem
+> </menuchoice>
+</term>
+<listitem>
+<para
+>Quando la vista divisa è abilitata, questo sposta a destra la divisione tra i due documenti divisi verticalmente.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-move-splitter-up">
+<term>
+<menuchoice
+><guimenu
+>Visualizza</guimenu
+><guisubmenu
+>Dividi vista</guisubmenu
+><guimenuitem
+>Sposta la divisione in alto</guimenuitem
+> </menuchoice>
+</term>
+<listitem>
+<para
+>Quando la vista divisa è abilitata, questo sposta in alto la divisione tra i due documenti divisi orizzontalmente.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-move-splitter-down">
+<term>
+<menuchoice
+><guimenu
+>Visualizza</guimenu
+><guisubmenu
+>Dividi vista</guisubmenu
+><guimenuitem
+>Sposta la divisione in basso</guimenuitem
+> </menuchoice>
+</term>
+<listitem>
+<para
+>Quando la vista divisa è abilitata, questo sposta in basso la divisione tra i due documenti divisi orizzontalmente.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+<note
+><para
+>Alcune delle azioni comuni nel <guimenu
+>Visualizza</guimenu
+><guisubmenu
+>Dividi vista</guisubmenu
+> sono disponibili usando il pulsante <guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="view-split-left-right-22.png" format="PNG"/> </imageobject
+></inlinemediaobject
+></guiicon
+> che si trova nell'angolo in alto a destra della finestra dell'editor </para
+></note>
+
+<variablelist>
+
+<varlistentry>
+<term
+><menuchoice
+><guimenu
+>Visualizza</guimenu
+> <guisubmenu
+>Viste degli strumenti</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<variablelist>
+<varlistentry id="view-toolviews-show-sidebars">
+<term>
+<menuchoice
+><shortcut
+><keycombo action="simul"
+>&Ctrl;&Alt;&Shift;<keycap
+>F</keycap
+></keycombo
+></shortcut
+><guimenu
+>Visualizza</guimenu
+><guisubmenu
+>Viste degli strumenti</guisubmenu
+><guimenuitem
+>Mostra barre laterali</guimenuitem
+></menuchoice
+></term>
+<listitem
+><para
+>Attiva o disattiva la visualizzazione delle barre dei pulsanti laterali. Questo comando non influenza la visualizzazione del contenuto della barra laterale, le barre visibili lo resteranno, e, se hai assegnato delle scorciatoie ai comandi seguenti, queste continueranno a funzionare normalmente.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="view-toolviews-show-plugins">
+<term
+><menuchoice
+><guimenu
+>Visualizza</guimenu
+> <guisubmenu
+>Viste degli strumenti</guisubmenu
+> <guimenuitem
+>Mostra<replaceable
+>Estensione</replaceable
+></guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Una lista di tutte le estensioni abilitate. Usa la casella davanti a ciascun elemento per attivare o disattivare la visualizzazione della vista strumento.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-command-line">
+<term
+><menuchoice
+><shortcut
+> <keycap
+>F7</keycap
+> </shortcut
+> <guimenu
+>Visualizza</guimenu
+> <guimenuitem
+>Passa alla riga di comando</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Questo comando commuta la visualizzazione della <ulink url="help:/katepart/advanced-editing-tools-commandline.html"
+>riga di comando integrata</ulink
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="view-enlarge-font">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>+</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Visualizza</guimenu
+> <guimenuitem
+>Ingrandisci i caratteri</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Aumenta la dimensione dei caratteri.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="view-shrink-font">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>-</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Visualizza</guimenu
+> <guimenuitem
+>Rimpicciolisci i caratteri</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Diminuisce la dimensione dei caratteri.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="view-schema">
+<term
+><menuchoice
+><guimenu
+>Visualizza</guimenu
+> <guisubmenu
+>Schema</guisubmenu
+> </menuchoice
+></term>
+<listitem
+><para
+>Questo menu elenca tutti gli schemi di colore disponibili. Da qui puoi cambiare lo schema per la vista attuale, mentre per cambiare lo schema predefinito devi usare la pagina <ulink url="help:/katepart/config-dialog-editor.html#prefcolors"
+>Caratteri e colori</ulink
+> nella finestra di configurazione.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-dynamic-word-wrap">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+><keycap
+>F10</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Visualizza</guimenu
+> <guisubmenu
+>A capo automatico</guisubmenu
+> <guimenuitem
+>Ritorno a capo dinamico</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Attiva o disattiva l'andata a capo automatica dinamica della vista attuale. L'andata a capo dinamica rende tutto il testo di una vista visibile senza scorrere orizzontalmente, rendendo una riga di testo effettivo su una o più righe quando necessario.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-dynamic-word-wrap-indicators">
+<term
+><menuchoice
+><guimenu
+>Visualizza</guimenu
+> <guisubmenu
+>A capo automatico</guisubmenu
+> <guisubmenu
+>Indicatori di a capo dinamico</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Scegli quando e come visualizzare gli indicatori di andata a capo automatica dinamica. Ciò è disponibile solo se è spuntata l'opzione <guilabel
+>A capo automatico dinamico</guilabel
+>.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-show-statik-word-wrap-markers">
+<term
+><menuchoice
+><guimenu
+>Visualizza</guimenu
+> <guisubmenu
+>A capo automatico</guisubmenu
+> <guimenuitem
+>Mostra indicatore di ritorno a capo statico</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Attiva o disattiva la visualizzazione della riga verticale che indica l'ampiezza della pagina come configurata nella <ulink url="help:/katepart/config-dialog-editor.html#pref-wrap-words-at"
+>finestra di configurazione</ulink
+>. Questa funzione presuppone che si usi un carattere a spaziatura fissa. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-show-icon-border">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+><keycap
+>F6</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Visualizza</guimenu
+> <guisubmenu
+>Bordi</guisubmenu
+> <guimenuitem
+>Mostra bordo delle icone</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Questa è una voce di commutazione. Renderà visibile o meno il bordo per le icone sul lato sinistro dell'editor attivo. Il bordo dell'icona indica le posizioni delle righe segnate nell'editor.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-show-line-numbers">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+><keycap
+>F11</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Visualizza</guimenu
+> <guisubmenu
+>Bordi</guisubmenu
+> <guimenuitem
+>Mostra i numeri di riga</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Attivando questo elemento verrà visualizzato un pannello sul bordo sinistro dell'editor attivo per visualizzare i numeri di riga del documento, disattivandolo il pannello non sarà mostrato.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-scrollbar-marks">
+<term
+><menuchoice
+><guimenu
+>Visualizza</guimenu
+> <guisubmenu
+>Bordi</guisubmenu
+> <guimenuitem
+>Mostra i segni nella barra di scorrimento</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Attiva o disattiva la visualizzazione dei segnalibri (ed altri segni) sulla barra di scorrimento verticale. Quando è attiva, un indicatore è rappresentato da sottili righe nel colore di evidenziazione sulla barra di scorrimento; un clic col &MMB; farà scorrere la vista ad una posizione prossima all'indicatore.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="view-border-show-scrollbar-minimap">
+<term
+><menuchoice
+><guimenu
+>Visualizza</guimenu
+> <guisubmenu
+>Bordi</guisubmenu
+> <guimenuitem
+>Mostra minimappa di scorrimento</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Questo sostituirà la barra di scorrimento con una rappresentazione del documento attuale. Per maggiori informazioni sulla mini-mappa di scorrimento, vedi la <ulink url="help:/katepart/kate-part-scrollbar-minimap.html"
+>sezione sulla mini-mappa della barra di scorrimento del manuale di &katepart;</ulink
+>.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="view-code-folding">
+<term
+><menuchoice
+><guimenu
+>Visualizza</guimenu
+> <guimenuitem
+>Raggruppamento del codice</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Queste opzioni sono rilevanti per il <ulink url="help:/katepart/advanced-editing-tools-code-folding.html"
+>raggruppamento del codice</ulink
+>:</para>
+<variablelist>
+
+<varlistentry id="view-show-folding-markers">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+><keycap
+>F9</keycap
+></keycombo
+> </shortcut
+> <guimenuitem
+>Mostra segni di raggruppamento</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Attiva e disattiva la visualizzazione degli indicatori di raggruppamento a sinistra della vista.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="view-fold-current-node">
+<term
+><menuchoice>
+<guimenuitem
+>Contrai il nodo attuale</guimenuitem>
+</menuchoice
+></term>
+<listitem
+><para
+>Contrae la regione contenente il cursore.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="view-unfold-current-node">
+<term
+><menuchoice>
+<guimenuitem
+>Espandi il nodo attuale</guimenuitem>
+</menuchoice
+></term>
+<listitem
+><para
+>Espande la regione contenente il cursore.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="view-fold-toplevel-nodes">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;&Shift;<keycap
+>-</keycap
+></keycombo
+> </shortcut
+> <guimenuitem
+>Contrai nodi di massimo livello</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Contrae tutte le regioni di massimo livello nel documento. Fai clic sul triangolo che punta a destra per espandere tutte le regioni di massimo livello.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="view-unfold-toplevel-nodes">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;&Shift;<keycap
+>+</keycap
+></keycombo
+> </shortcut
+> <guimenuitem
+>Contrai nodi di massimo livello</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Espande tutte le regioni di livello superiore nel documento.</para
+></listitem>
+</varlistentry>
+</variablelist>
+
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-show-non-printable-spaces">
+<term
+><menuchoice>
+<guimenuitem
+>Mostra spazi non stampabili</guimenuitem>
+</menuchoice
+></term>
+<listitem
+><para
+>Mostra/nasconde i riquadri che delimitano gli spazi non stampabili.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect1>
+
+<sect1 id="bookmarks-menu">
+<title
+>Il menu Segnalibri</title>
+
+<para
+>Sotto le voci qui descritte ne sarà disponibile una per ciascun segnalibro nel documento attivo. Il testo sarà composto dalle prime parole della riga indicata: scegli una voce per spostare il cursore all'inizio della riga corrispondente, e l'editor scorrerà il testo di quanto è necessario per mostrarla.</para>
+
+<variablelist>
+
+<varlistentry id="bookmarks-set-bookmark">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>B</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Segnalibri</guimenu
+> <guimenuitem
+>Metti segnalibro</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Imposta o rimuove un segnalibro nella riga attuale del documento attivo (se c'è un segnalibro questo viene rimosso, altrimenti viene impostato).</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="bookmarks-clear-bookmarks">
+<term
+><menuchoice
+><guimenu
+>Segnalibri</guimenu
+> <guimenuitem
+>Pulisci tutti i segnalibri</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Questo comando rimuoverà tutti i segnalibri dal documento, così come la lista dei segnalibri che si trova sotto questo elemento del menu. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="bookmarks-bookmarks-previous">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Alt;&PgUp;</keycombo
+> </shortcut
+> <guimenu
+>Segnalibri</guimenu
+> <guimenuitem
+>Precedente</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Questo sposterà il cursore all'inizio della prima riga superiore avente un segnalibro. Il testo dell'elemento del menu include il numero di riga e l'inizio del testo della riga. Questo elemento è disponibile solo quando esiste un segnalibro in una riga sopra al cursore.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="bookmarks-bookmarks-next">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Alt;&PgDn;</keycombo
+> </shortcut
+> <guimenu
+>Segnalibri</guimenu
+> <guimenuitem
+>Successivo</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Sposta il cursore all'inizio della prossima riga avente un segnalibro. La voce nel menu conterrà il numero della riga e il primo pezzo del testo nella riga. Questa voce è disponibile quando esiste un segnalibro in una riga sotto al cursore.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect1>
+
+<sect1 id="sessions-menu">
+<title
+>Il menu Sessioni</title>
+
+<para
+>Questo menu contiene le voci per usare e gestire le sessioni di &kate;. Per maggiori informazioni vedi <link linkend="fundamentals-using-sessions"
+>Usare le sessioni</link
+>.</para>
+
+<variablelist>
+
+<varlistentry id="sessions-new">
+<term
+><menuchoice
+><guimenu
+>Sessioni</guimenu
+><guimenuitem
+>Nuova</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Crea una nuova sessione vuota. Tutti i file attualmente aperti saranno chiusi.</para
+></listitem>
+
+</varlistentry>
+
+<varlistentry id="sessions-open">
+<term
+><menuchoice
+><guimenu
+>Sessioni</guimenu
+> <guimenuitem
+>Apri sessione...</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Apri una sessione esistente. Per permetterti la scelta viene visualizzata la finestra di scelta delle sessioni.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="sessions-quick-open">
+<term
+><menuchoice
+><guimenu
+>Sessioni</guimenu
+> <guimenuitem
+>Apri sessione rapidamente</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Questo sotto-menu ti permette di aprire una sessione esistente.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="sessions-save">
+<term
+><menuchoice
+><guimenu
+>Sessioni</guimenu
+> <guimenuitem
+>Salva sessione</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Salva la sessione attuale. Se la sessione è anonima ti verrà chiesto di sceglierle un nome.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="sessions-save-as">
+<term
+><menuchoice
+><guimenu
+>Sessioni</guimenu
+> <guimenuitem
+>Salva sessione come...</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Salva la sessione attuale con un nuovo nome. Ti verrà chiesto il nome da usare.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="sessions-manage">
+<term
+><menuchoice
+><guimenu
+>Sessioni</guimenu
+> <guimenuitem
+>Gestisci sessioni...</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Mostra la finestra di gestione delle sessioni, che ti permette di rinominare e di eliminare le sessioni.</para
+></listitem>
+</varlistentry>
+
+
+</variablelist>
+
+</sect1>
+
+<sect1 id="tools-menu">
+
+<title
+>Il menu Strumenti</title>
+
+<variablelist>
+
+<varlistentry id="tools-read-only">
+<term
+><menuchoice
+><guimenu
+>Strumenti</guimenu
+><guimenuitem
+>Modalità di sola lettura</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Imposta il documento attuale nella modalità di sola lettura. Ciò impedisce l'aggiunta di testo e le modifiche alla formattazione del documento.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="tools-filetype">
+<term
+><menuchoice
+><guimenu
+>Strumenti</guimenu
+> <guisubmenu
+>Modalità</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Scegli lo schema del tipo di file che preferisci per il documento attivo. Questo sostituisce la modalità del <ulink url="help:/katepart/pref-open-save-modes-filetypes.html"
+>tipo di file</ulink
+> globale impostata da <menuchoice
+><guimenu
+>Impostazioni</guimenu
+><guimenuitem
+>Configura &kate;...</guimenuitem
+></menuchoice
+> nella scheda Modalità e tipi di file solo per il documento attuale.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="tools-highlighting">
+<term
+><menuchoice
+><guimenu
+>Strumenti</guimenu
+><guisubmenu
+>Evidenziazione</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Sceglie il tuo schema di evidenziazione preferito per il documento attivo. Questo sostituisce unicamente per il documento attuale quella globale impostata da <menuchoice
+> <guimenu
+>Impostazioni</guimenu
+><guimenuitem
+>Configura editor...</guimenuitem
+> </menuchoice
+>.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="tools-indentation">
+<term
+><menuchoice
+><guimenu
+>Strumenti</guimenu
+><guisubmenu
+>Rientro</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Scegli lo <ulink url="help:/katepart/kate-part-autoindent.html"
+>stile di rientro</ulink
+> che preferisci per il documento attivo. Questo sostituisce solo per il documento attuale quella globale impostata da <menuchoice
+> <guimenu
+>Impostazioni</guimenu
+><guimenuitem
+>Configura editor...</guimenuitem
+> </menuchoice
+>.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="tools-encoding">
+<term
+><menuchoice
+><guimenu
+>Strumenti</guimenu
+><guisubmenu
+>Codifica</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Puoi sovrascrivere l'impostazione di codifica predefinita in <menuchoice
+> <guimenu
+>Impostazioni</guimenu
+><guimenuitem
+>Configura editor...</guimenuitem
+> </menuchoice
+> nella pagina <guilabel
+>Apri e salva</guilabel
+> per impostare una differente codifica per il documento corrente. La codifica qui impostata sarà valida unicamente per il documento corrente.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="tools-end-of-line">
+<term
+><menuchoice
+><guimenu
+>Strumenti</guimenu
+><guisubmenu
+>Fine riga</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Sceglie la modalità di fine riga preferita per il documento attivo. Questa avrà priorità rispetto quella globale impostata da <menuchoice
+> <guimenu
+>Settings</guimenu
+><guimenuitem
+>Configura editor...</guimenuitem
+> </menuchoice
+> unicamente per il documento corrente.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="tools-add-byte-mark-order">
+<term
+><menuchoice
+><guimenu
+>Strumenti</guimenu
+><guisubmenu
+>Aggiungi indicatore dell'ordine dei byte (BOM)</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Attivando questa azione puoi aggiungere esplicitamente un indicatore dell'ordine dei byte per i documenti codificati con Unicode. L'indicatore dell'ordine dei byte (<acronym
+>BOM</acronym
+>) è un carattere Unicode usato per indicare appunto l'ordine dei byte (in gergo inglese, <foreignphrase lang="en"
+>endianness</foreignphrase
+>) di un file o flusso di testo; per maggiori informazioni vedi su <ulink url="https://it.wikipedia.org/wiki/Byte_Order_Mark"
+>Wikipedia</ulink
+>.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="tools-scripts">
+<term
+><menuchoice
+><guimenu
+>Strumenti</guimenu
+><guisubmenu
+>Script</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Questo sotto-menu contiene un elenco di tutte le azioni di script. L'elenco può essere facilmente modificato <ulink url="help:/katepart/dev-scripting.html#dev-scripting-command-line"
+>scrivendo i tuoi script</ulink
+>. In questo modo &kate; può essere esteso con strumenti definiti dall'utente. </para>
+<para
+><ulink url="help:/katepart/dev-scripting.html"
+>C'è un elenco completo di script nella documentazione di &katepart;.</ulink
+></para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="tools-invoke-code-completition">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;&Space;</keycombo
+> </shortcut
+> <guimenu
+>Strumenti</guimenu
+> <guimenuitem
+>Invoca completamento del codice</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Invoca manualmente il completamento del codice, di solito usando una scorciatoia associata a questa azione.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="tools-word-completition">
+<term
+><menuchoice
+><guimenu
+>Strumenti</guimenu
+><guimenuitem
+>Completamento delle parole</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+><guimenuitem
+>Riusa parola sotto</guimenuitem
+> (<keycombo action="simul"
+>&Ctrl;<keycap
+>9</keycap
+></keycombo
+>) e <guimenuitem
+>Riusa parola sopra</guimenuitem
+> (<keycombo action="simul"
+>&Ctrl;<keycap
+>8</keycap
+></keycombo
+>) completano il testo durante la digitazione, cercando parole simili prima o dopo la posizione attuale. <guimenuitem
+>Completamento di shell</guimenuitem
+> fa apparire un riquadro di completamento con le voci corrispondenti.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="spelling-automatic-spell-checking">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;&Shift;<keycap
+>O</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Strumenti</guimenu
+> <guisubmenu
+>Ortografia</guisubmenu
+> <guimenuitem
+>Controllo ortografico automatico</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Quando il <guimenuitem
+>Controllo ortografico automatico</guimenuitem
+> è attivo, gli errori di ortografia rilevati vengono immediatamente sottolineati nel documento.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="spelling-spelling">
+<term
+><menuchoice
+><guimenu
+>Strumenti</guimenu
+> <guisubmenu
+>Ortografia</guisubmenu
+> <guimenuitem
+>Ortografia...</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+><action
+>Questo avvia il programma di correzione ortografica, che ti aiuta a individuare e correggere gli errori di ortografia.</action
+></para>
+
+<para
+>Per maggiori informazioni su come usare il programma di correzione ortografica di &kde; vedi la <ulink url="help:/fundamentals/spellcheck.html"
+>sezione <emphasis
+>Controllo ortografico</emphasis
+> nella documentazione sui <emphasis
+>Fondamentali di &kde;</emphasis
+></ulink
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="tools-spelling-from-cursor">
+<term
+><menuchoice
+><guimenu
+>Strumenti</guimenu
+> <guisubmenu
+>Ortografia</guisubmenu
+> <guimenuitem
+>Ortografia (dal cursore)...</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Ciò avvierà il programma di correzione ortografica iniziando dalla posizione corrente del cursore invece che dall'inizio del documento.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="tools-spellcheck-selection">
+<term
+><menuchoice
+><guimenu
+>Strumenti</guimenu
+> <guisubmenu
+>Ortografia</guisubmenu
+> <guimenuitem
+>Ortografia della selezione...</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Controlla l'ortografia della selezione attuale.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="tools-change-dictionary">
+<term
+><menuchoice
+><guimenu
+>Strumenti</guimenu
+> <guisubmenu
+>Ortografia</guisubmenu
+> <guimenuitem
+>Cambia dizionario</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Visualizza un menu a discesa nella parte bassa della finestra dell'editor, con i dizionari disponibili per la correzione ortografica. Permette di cambiare il dizionario in modo veloce, ad esempio per la correzione ortografica di documenti in più lingue.</para>
+</listitem>
+</varlistentry>
+
+<!-- Indent/Unindent no longer in the menu ???, but shortcuts work-->
+<!--
+<varlistentry id="tools-indent">
+<term
+><menuchoice>
+<shortcut>
+<keycombo action="simul"
+>&Ctrl;<keycap
+>I</keycap
+></keycombo>
+</shortcut>
+<guimenu
+>Tools</guimenu>
+<guimenuitem
+>Indent</guimenuitem>
+</menuchoice
+></term>
+<listitem>
+<para
+>This increases the paragraph's indentation by one step. The size of the
+step depends on the <link linkend="pref-edit-indent"
+> indentation
+settings</link
+>.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="tools-unindent">
+<term
+><menuchoice>
+<shortcut>
+<keycombo action="simul"
+>&Ctrl;&Shift;<keycap
+>I</keycap
+></keycombo>
+</shortcut>
+<guimenu
+>Tools</guimenu>
+<guimenuitem
+>Unindent</guimenuitem>
+</menuchoice
+></term>
+<listitem>
+<para
+>This reduces the paragraph's indentation by one step. The size of the step
+depends on the <link linkend="pref-edit-indent"
+> indentation settings</link
+>.</para>
+</listitem>
+</varlistentry>
+-->
+<varlistentry id="tools-cleanindent">
+<term
+><menuchoice
+><guimenu
+>Strumenti</guimenu
+> <guimenuitem
+>Pulisci rientro</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Pulisce il rientro della selezione attuale o per la riga su cui si trova al momento il cursore. La pulizia del rientro garantisce che tutto il testo selezionato segua quella scelta.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="tools-align">
+<term
+><menuchoice
+><guimenu
+>Strumenti</guimenu
+><guimenuitem
+>Allinea</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Riallinea la riga attuale o le righe selezionate usando la modalità e le impostazioni di rientro del documento.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="tools-comment">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>D</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Strumenti</guimenu
+> <guimenuitem
+>Commenta</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Aggiunge i caratteri necessari per rendere la riga attuale o tutte le righe selezionate un commento, a seconda del tipo di file.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="tools-uncomment">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;&Shift;<keycap
+>D</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Strumenti</guimenu
+> <guimenuitem
+>Decommenta</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Rimuove i caratteri che rendono la riga attuale o le righe selezionate dei commenti, a seconda del tipo di file.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="tools-uppercase">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>U</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Strumenti</guimenu
+> <guimenuitem
+>Maiuscolo</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Mette il testo selezionato, o la lettera dopo il cursore, in maiuscolo.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="tools-lowercase">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;&Shift;<keycap
+>U</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Strumenti</guimenu
+> <guimenuitem
+>Minuscolo</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Mette il testo selezionato, o la lettera dopo il cursore, in minuscolo.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="tools-capitalize">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;&Alt;<keycap
+>U</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Strumenti</guimenu
+> <guimenuitem
+>Iniziali maiuscole</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Mette le iniziali del testo selezionato, o della parola attuale, in maiuscolo.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="tools-join-lines">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>J</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Strumenti</guimenu
+> <guimenuitem
+>Unisci righe</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Unisce le righe selezionate, o la riga attuale e quella successiva, con un carattere di spazio come separatore. Gli spazi bianchi iniziali o finali delle righe unite saranno rimossi dalle estremità coinvolte.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="tools-word-wrap-document">
+<term
+><menuchoice
+><guimenu
+>Strumenti</guimenu
+><guimenuitem
+>Applica il ritorno a capo automatico</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Applica l'andata a capo statica all'intero documento. Ciò significa che una nuova riga di testo verrà iniziata automaticamente quando la riga attuale supererà la lunghezza specificata dall'opzione <guilabel
+>Torna a capo dopo</guilabel
+> nella scheda <guilabel
+>Modifica</guilabel
+> in <menuchoice
+> <guimenu
+>Impostazioni</guimenu
+><guimenuitem
+>Configura editor...</guimenuitem
+></menuchoice
+>.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+</sect1>
+
+<sect1 id="settings-help-menu">
+<title
+>I menu Impostazioni e Aiuto</title>
+
+<para
+>Nel menu di &kate; compaiono due voci comuni dei menu di &kde;, <guimenu
+>Impostazioni</guimenu
+> e <guimenu
+>Aiuto</guimenu
+>. Per maggiori informazioni leggi le sezioni <ulink url="help:/fundamentals/menus.html#menus-settings"
+>Menu impostazioni</ulink
+> e <ulink url="help:/fundamentals/menus.html#menus-help"
+>Menu di aiuto</ulink
+> nei Fondamentali di &kde;, con queste voci aggiuntive: </para>
+
+<variablelist>
+
+<varlistentry id="settings-colorscheme">
+<term
+><menuchoice
+><guimenu
+>Impostazioni</guimenu
+> <guimenuitem
+>Tema di colori</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Usa un diverso schema di colori da quelli globali di sistema descritti nel modulo <ulink url="help:/kcontrol/colors/index.html"
+>Colori</ulink
+> delle &systemsettings;. </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="settings-show-tabs">
+<term
+><menuchoice
+><guimenu
+>Impostazioni</guimenu
+> <guimenuitem
+>Mostra schede</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Le schede possono essere spostate usando il &LMB;, e hanno delle azioni nel menu contestuale per chiudere i documenti, copiare il percorso negli appunti, o per aprire la cartella del documento nel gestore dei file. Usare il pulsante <inlinemediaobject
+><imageobject
+><imagedata fileref="tab-duplicate-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> <link linkend="view-quick-open"
+><guibutton
+>Apertura rapida</guibutton
+> </link
+> rende semplice il passaggio tra i documenti. Fai clic sul pulsante <inlinemediaobject
+><imageobject
+><imagedata fileref="view-split-left-right-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> con il &LMB; per aprire un menu con le azioni del menu <guimenu
+>Visualizza</guimenu
+><guisubmenu
+>Dividi vista</guisubmenu
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="settings-show-path">
+<term
+><menuchoice
+><guimenu
+>Impostazioni</guimenu
+> <guimenuitem
+>Mostra il percorso nella barra del titolo</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Se abilitato viene visualizzato il percorso completo del documento attivo, diversamente solo il nome del file. Questo è utile se modifichi molti file con lo stesso nome, in modo da poterli distinguere.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect1>
+</chapter>

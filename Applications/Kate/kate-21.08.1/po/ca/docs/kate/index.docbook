@@ -1,0 +1,484 @@
+<?xml version="1.0" ?>
+<!DOCTYPE book PUBLIC "-//KDE//DTD DocBook XML V4.5-Based Variant V1.1//EN"
+"dtd/kdedbx45.dtd" [
+  <!ENTITY gdb "<acronym
+>GDB</acronym
+>">
+  <!ENTITY kparts "<acronym
+>KParts</acronym
+>">
+  <!ENTITY configuring-chapter SYSTEM "configuring.docbook">
+  <!ENTITY fundamentals-chapter SYSTEM "fundamentals.docbook">
+  <!ENTITY menu-chapter SYSTEM "menus.docbook">
+  <!ENTITY plugins-chapter SYSTEM "plugins.docbook">
+  <!ENTITY development-chapter SYSTEM "development.docbook">
+  <!ENTITY % addindex "IGNORE">
+  <!ENTITY % Catalan  "INCLUDE"
+><!-- change language only here -->
+]>
+
+<book id="kate" lang="&language;">
+<title
+>El manual del &kate;</title>
+
+<bookinfo>
+<authorgroup>
+<author
+>&Anders.Lund; &Anders.Lund.mail;</author>
+<author
+>&Seth.Rothberg; &Seth.Rothberg.mail;</author>
+<author
+>&Dominik.Haumann; &Dominik.Haumann.mail;</author>
+<author
+>&TC.Hollingsworth; &TC.Hollingsworth.mail;</author>
+&traductor.Antoni.Bella; 
+</authorgroup>
+
+<copyright>
+<year
+>2000</year>
+<year
+>2001</year>
+<holder
+>&Seth.Rothberg;</holder>
+</copyright>
+<copyright>
+<year
+>2002</year
+><year
+>2003</year
+><year
+>2005</year>
+<holder
+>&Anders.Lund;</holder>
+</copyright>
+<copyright>
+<year
+>2005</year
+><year
+>2009</year>
+<holder
+>&Dominik.Haumann;</holder>
+</copyright>
+<copyright>
+<year
+>2011</year
+><year
+>2012</year
+><year
+>2013</year
+><year
+>2014</year>
+<holder
+>&TC.Hollingsworth;</holder>
+</copyright>
+<legalnotice
+>&FDLNotice;</legalnotice>
+
+<date
+>6 de març de 2021</date>
+<releaseinfo
+>Aplicacions 21.04</releaseinfo>
+
+<abstract>
+<para
+>El &kate; és un editor de texts per a programadors per al &kde;.</para>
+
+<para
+>Aquest manual documenta la versió 18.12 del &kate;</para>
+</abstract>
+
+<keywordset>
+<keyword
+>KDE</keyword>
+<keyword
+>kdebase</keyword>
+<keyword
+>Kate</keyword>
+<keyword
+>text</keyword>
+<keyword
+>editor</keyword>
+<keyword
+>programador</keyword>
+<keyword
+>programant</keyword>
+<keyword
+>projectes</keyword>
+<keyword
+>MDI</keyword>
+<keyword
+>Multi</keyword>
+<keyword
+>Document</keyword>
+<keyword
+>Interfície</keyword>
+<keyword
+>terminal</keyword>
+<keyword
+>consola</keyword>
+</keywordset>
+
+</bookinfo>
+
+<chapter id="introduction">
+<title
+>Introducció</title>
+
+<para
+>Us donem la benvinguda al &kate;, un editor de text per a programadors per al &kde;. Algunes de les moltes característiques del &kate; inclouen el ressaltat configurable de la sintaxi per a llenguatges de programació des de C i C++ fins a l'&HTML; i els scripts de bash, l'habilitat de crear i mantenir projectes, una interfície de múltiples documents (<acronym
+>MDI</acronym
+>) i un emulador de terminal contingut en el mateix. </para>
+
+<para
+>Però el &kate; és molt més que un editor per a programadors. La seva capacitat d'obrir diversos fitxers simultàniament és ideal per a editar molts fitxers de configuració d'&UNIX;. Aquest document s'ha escrit amb el &kate;. </para>
+
+<para>
+<mediaobject>
+<imageobject
+><imagedata format="PNG" fileref="kate.png"/></imageobject>
+<caption
+><para
+>Editant aquest manual...</para
+></caption>
+</mediaobject>
+</para>
+
+</chapter>
+
+&fundamentals-chapter;
+
+<chapter id="kate-part">
+<title
+>Treballar amb l'editor &kate;</title>
+<para
+>Per a obtenir informació sobre el bàsic de treballar amb el component d'edició subjacent del &kate;, vegeu el capítol <ulink url="help:/katepart/kate-part.html"
+>Treballar amb l'editor de la &katepart; al manual de la &katepart;</ulink
+>.</para>
+</chapter>
+
+&plugins-chapter;
+
+<chapter id="advanced-editing-tools">
+<title
+>Eines d'edició avançades</title>
+<para
+>Per a obtenir informació sobre les eines d'edició avançades incloses amb el &kate;, vegeu el capítol <ulink url="help:/katepart/advanced-editing-tools.html"
+>Eines d'edició avançades al manual de la &katepart;</ulink
+>.</para>
+</chapter>
+
+&development-chapter;
+
+<chapter id="vi-input-mode-chapter">
+<title
+>El mode d'entrada del Vi</title>
+<para
+>Per a obtenir informació sobre el mode d'entrada del VI per al &kate;, vegeu el capítol <ulink url="help:/katepart/vi-input-mode-chapter.html"
+>Mode d'entrada del VI al manual de la &katepart;</ulink
+>.</para>
+</chapter>
+
+&menu-chapter;
+
+&configuring-chapter;
+
+<chapter id="credits">
+
+<title
+>Crèdits i llicència</title>
+
+<para
+>Copyright del programa &kate;, 2000, 2001, 2002-2005 per l'equip de desenvolupament del &kate;. </para>
+
+<variablelist>
+<title
+>L'equip del &kate;:</title>
+<varlistentry>
+<term
+>&Christoph.Cullmann; &Christoph.Cullmann.mail;</term>
+<listitem
+><para
+>Administrador del projecte i principal desenvolupador</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+>&Anders.Lund; &Anders.Lund.mail;</term>
+<listitem
+><para
+>Principal desenvolupador, ressaltat de sintaxi de Perl, documentació</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+>&Joseph.Wenninger; &Joseph.Wenninger.mail;</term>
+<listitem
+><para
+>Principal desenvolupador, ressaltat de sintaxi</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+>Michael Bartl <email
+>michael.bartl1@chello.at</email
+></term>
+<listitem
+><para
+>Desenvolupador principal</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+>Phlip <email
+>phlip_cpp@my-deja.com</email
+></term>
+<listitem
+><para
+>El compilador del projecte</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+>&Waldo.Bastian; &Waldo.Bastian.mail;</term>
+<listitem
+><para
+>El magnífic sistema de memòria cau</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+>Matt Newell <email
+>newellm@proaxis.com</email
+></term>
+<listitem
+><para
+>Proves...</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+>Michael McCallum <email
+>gholam@xtra.co.nz</email
+></term>
+<listitem
+><para
+>Desenvolupador principal</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+>Jochen Wilhemly <email
+>digisnap@cs.tu-berlin.de</email
+></term>
+<listitem
+><para
+>Autor del &kwrite;</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+>&Michael.Koch; &Michael.Koch.mail;</term>
+<listitem
+><para
+>Adaptació del &kwrite; a la &kparts;</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+>&Christian.Gebauer; <email
+>gebauer@bigfoot.com</email
+></term>
+<listitem
+><para
+>Sense especificar</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+>&Simon.Hausmann; &Simon.Hausmann.mail;</term>
+<listitem
+><para
+>Sense especificar</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+>Glen Parker <email
+>glenebob@nwlink.com</email
+></term>
+<listitem
+><para
+>Historial desfés del &kwrite;, integració amb el Kspell</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+>Scott Manson <email
+>sdmanson@alltel.net</email
+></term>
+<listitem
+><para
+>Suport del ressaltat de sintaxi &XML; de &kwrite;</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+>&John.Firebaugh; &John.Firebaugh.mail;</term>
+<listitem
+><para
+>Diversos pedaços</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+>&Dominik.Haumann; &Dominik.Haumann.mail;</term>
+<listitem
+><para
+>Desenvolupador, Assistent de ressaltat</para
+></listitem>
+</varlistentry>
+</variablelist>
+
+<variablelist>
+<title
+>Moltes altres persones han contribuït:</title>
+<varlistentry>
+<term
+>Matteo Merli <email
+>merlim@libero.it</email
+></term>
+<listitem
+><para
+>Ressaltat per als fitxers d'especificació RPM (*.spec), diff i més</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+>Rocky Scaletta <email
+>rocky@purdue.edu</email
+></term>
+<listitem
+><para
+>Ressaltat per a VHDL</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+>Yury Lebedev </term>
+<listitem
+><para
+>Ressaltat per a SQL</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+>Chris Ross</term>
+<listitem
+><para
+>Ressaltat per a Ferite</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+>Nick Roux</term>
+<listitem
+><para
+>Ressaltat per a ILERPG</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+>&John.Firebaugh;</term>
+<listitem
+><para
+>Ressaltat per a &Java; i molt més</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+>&Carsten.Niehaus;</term>
+<listitem
+><para
+>Ressaltat per a &latex;</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+>Per Wigren</term>
+<listitem
+><para
+>Ressaltat per als fitxers en Make, Python</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+>Jan Fritz</term>
+<listitem
+><para
+>Ressaltat per a Python</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+>&Daniel.Naber;</term>
+<listitem
+><para
+>Petites esmenes d'errors, connector &XML;</para
+></listitem>
+</varlistentry>
+</variablelist>
+
+<para
+>Copyright de la documentació, 2000, 2001 per en &Seth.Rothberg; &Seth.Rothberg.mail;</para>
+
+<para
+>Copyright de la documentació, 2002, 2003, 2005 per en &Anders.Lund; &Anders.Lund.mail;</para>
+
+<para
+>Traductor/Revisor de la documentació: &credits.Antoni.Bella;</para
+> &underFDL; &underGPL; </chapter>
+
+<appendix id="regular-expressions">
+<title
+>Expressions regulars</title>
+
+<para
+>Per a obtenir informació sobre l'ús de les expressions regulars al &kate;, vegeu l'apèndix <ulink url="help:/katepart/regular-expressions.html"
+>expressions regulars al manual de la &katepart;</ulink
+>.</para>
+
+</appendix>
+
+&documentation.index;
+
+<!--
+Index Word List:
+menu - context - syntax - markup - shortcuts - highlighting
+embedded terminal - editing - search - replace - regexp -> Regular Expression
+split window - selection - insert overwrite - selection -
+configure/customize/preferences - insert/overwrite - non-printing characters
+font - unicode - wordwrap/linewrap - project - bookmarks - docks - plugins
+block selection / rectangles - view - indenting - editor - word processor
+copy - paste - find - spelling - language (both kinds) - encoding -
+pretty printing - formatting - line numbers - icon border -
+folding - insert time - sed
+
+done
+comment / uncomment
+configure / settings / preferences
+
+-->
+
+</book>
+
+<!--
+Local Variables:
+mode: sgml
+sgml-namecase-general: t
+sgml-namecase-entity: nil
+sgml-general-insert-case: lower
+sgml-minimize-attributes: nil
+sgml-omittag: nil
+End:
+-->

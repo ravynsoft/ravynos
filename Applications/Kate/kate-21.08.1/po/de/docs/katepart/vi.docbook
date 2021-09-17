@@ -1,0 +1,2249 @@
+<!--pulled in by kwrite too-->
+<chapter id="vi-input-mode-chapter">
+<chapterinfo>
+<authorgroup
+><author
+>&Erlend.Hamberg; &Erlend.Hamberg.mail; </author>
+<othercredit role="translator"
+><firstname
+>Frederik</firstname
+><surname
+>Schwarzer</surname
+><affiliation
+><address
+><email
+>schwarzer@kde.org</email
+></address
+></affiliation
+><contrib
+>Übersetzung</contrib
+></othercredit
+> 
+</authorgroup>
+</chapterinfo>
+
+<title
+>Der VI-Eingabemodus</title>
+
+<sect1 id="vi-mode-sect1">
+<title
+>VI-Eingabemodus</title>
+
+<para
+>Ziel des VI-Modus ist nicht, Vim zu ersetzen indem alle Vim-Funktionen unterstützt werden. Das Ziel ist es, die <quote
+>Vim-Art</quote
+> der Textbearbeitung und somit die angelernten Gewohnheiten in Programmen zur Verfügung zu stellen, die den &kappname;-Texteditor als ihren internen Editor verwenden.</para>
+
+<para
+>Der VI-Modus hat zum Ziel, sich in die Programme zu integrieren und, wo sinnvoll, das Verhalten von Vim nachzubilden. Zum Beispiel öffnet <userinput
+><command
+>:w</command
+></userinput
+> in &kappname;s VI-Modus einen Dialog zum Speichern.</para>
+
+<para
+>Um den VI-Modus für alle neuen Ansichten zu aktivieren, gehen Sie auf <menuchoice
+><guimenu
+>Einstellungen</guimenu
+><guimenuitem
+>&kappname; einrichten ...</guimenuitem
+> <guimenu
+>Bearbeitung</guimenu
+><guimenuitem
+>VI-Eingabemodus</guimenuitem
+></menuchoice
+>. Auf dieser Karteikarte können Sie den VI-Modus einrichten und die Tastenzuordnungen für diesen Modus anlegen und ändern. Der VI-Modus kann auch mit dem Menüpunkt <guimenuitem
+>VI-Eingabemodus</guimenuitem
+> im Menü <guimenu
+>Bearbeiten</guimenu
+> ein- bzw. ausgeschaltet werden. (Der Standardkurzbefehl ist <keycombo action="simul"
+>&Meta;&Ctrl;<keycap
+>V</keycap
+></keycombo
+>, wobei &Meta; normalerweise die <keysym
+>Windows</keysym
+>-Taste ist.)</para>
+
+<note>
+<para
+>Viele Kurzbefehle im VI-Modus beachten die Groß- und Kleinschreibung, im Gegensatz zu den meisten &kde;-Kurzbefehlen. Das heißt, dass <userinput
+>y</userinput
+> und <userinput
+>Y</userinput
+> verschiedene Kurzbefehle sind. Um den Befehl <userinput
+>y</userinput
+> (kopieren) einzugeben, überprüfen Sie dass die <keysym
+>Feststelltaste</keysym
+> nicht aktiviert ist und drücken <keycap
+>Y</keycap
+> auf der Tastatur. Um den Befehl <userinput
+>Y</userinput
+> (kopieren bis zum Zeilenende) einzugeben, drücken Sie die Tastenkombination <keycombo action="simul"
+>&Shift;<keycap
+>Y</keycap
+></keycombo
+>.</para>
+
+<para
+>Die betrifft nicht die Kurzbefehle mit der &Ctrl;-Taste, die unabhängig vom Status der <keycap
+>Feststelltaste</keycap
+> und ohne Drücken der &Shift;-Taste eingegeben werden können. Bei einige Befehle jedoch muss bei einer Tasteneingabe nach der Tastenkombination mit der &Ctrl;-Taste die Groß-/Kleinschreibung berücksichtigt werden. Um zum Beispiel den Befehl <quote
+><keycombo action="simul"
+>&Ctrl;<keycap
+>W</keycap
+></keycombo
+>, <userinput
+>h</userinput
+></quote
+> (Wechsel zum rechten Fenster der geteilten Ansicht) einzugeben, überprüfen Sie dass die <keysym
+>Feststelltaste</keysym
+> nicht aktiviert ist, drücken die Tastenkombination <keycombo action="simul"
+>&Ctrl;<keycap
+>W</keycap
+></keycombo
+> und dann <keycap
+>H</keycap
+>.</para>
+</note>
+
+<sect2 id="vi-incompatibilities">
+<title
+>Inkompatibilitäten mit Vim</title>
+
+<para
+>Es gibt ein paar Funktionen in &kappname;s VI-Modus, die mit Vim nicht kompatibel sind (abgesehen von den fehlenden Funktionen). Diese sind hier aufgelistet, einschließlich. der entsprechenden Begründungen.</para>
+<itemizedlist>
+<listitem>
+<para
+>&kappname;: <userinput
+>U</userinput
+> und <keycombo action="simul"
+>&Ctrl;<keycap
+>R</keycap
+></keycombo
+> ist Wiederherstellen.</para>
+<para
+>Vim: <keycombo action="simul"
+>&Ctrl;<keycap
+>R</keycap
+></keycombo
+> ist normales Wiederherstellen; <keycap
+>U</keycap
+> macht alle Änderungen in einer Zeile rückgängig.</para>
+<para
+>Der Grund dafür, in &kappname;s VI-Modus <keycap
+>U</keycap
+> für die Wiederherstellen-Aktion zu verwenden, ist, dass der Kurzbefehl <keycombo action="simul"
+>&Ctrl;<keycap
+>R</keycap
+></keycombo
+> voreingestellt von &kappname;s Ersetzen-Funktion belegt ist (Suchen und ersetzen). Der VI-Modus überschreibt keine &kappname;-Kurzbefehle (dies kann in <menuchoice
+><guimenu
+>Einstellungen</guimenu
+><guimenuitem
+>&kappname; einrichten ...</guimenuitem
+> <guimenu
+>Bearbeitung</guimenu
+><guimenuitem
+>Vi-Eingabemodus</guimenuitem
+></menuchoice
+> eingestellt werden), weshalb eine Wiederherstellen-Aktion auch über einen <quote
+>normalen</quote
+> Tastendruck verfügbar sein muss. Davon abgesehen lässt sich die Funktionsweise des <userinput
+>U</userinput
+>-Befehls aus Vim nicht gut auf das interne System zum Rückgängigmachen in &kappname; abbilden, weshalb es nicht einfach wäre, dies zu unterstützen.</para>
+</listitem>
+<listitem>
+<para
+>&kappname;: der Befehl <userinput
+><command
+>print</command
+></userinput
+> öffnet den Dialog <guilabel
+>Drucken</guilabel
+>.</para>
+<para
+>Vim:  der Befehl <userinput
+><command
+>print</command
+></userinput
+> gibt die Zeilen des angegebenen Bereichs wie sein Vorläufer <application
+>ed</application
+> aus.</para>
+<para
+>Befehle wie <userinput
+><command
+>:print</command
+></userinput
+> sind nicht nur im VI-Modus, sondern für alle &kappname;-Benutzer verfügbar. Daher öffnet der  <userinput
+><command
+>:print</command
+></userinput
+>-Befehl den bekannten Dialog zum Drucken, anstatt das Verhalten von Vim nachzubilden.</para>
+</listitem>
+<listitem>
+<para
+>&kappname;: <userinput
+>Y</userinput
+> kopiert bis zum Ende der Zeile.</para>
+<para
+>Vim: <userinput
+>Y</userinput
+> kopiert gesamte Zeile, genau wie <userinput
+>y</userinput
+><userinput
+>y</userinput
+>.</para>
+<para
+>Das Verhalten des <userinput
+>Y</userinput
+>-Befehls von VI kann als Fehlerhaft angesehen werden. Beim Ändern und Löschen wirken sich <userinput
+>c</userinput
+><userinput
+>c</userinput
+>/ <userinput
+>d</userinput
+><userinput
+>d</userinput
+> auf die gesamte Zeile aus und <userinput
+>C</userinput
+>/<userinput
+>D</userinput
+> arbeiten von der aktuellen Cursor-Position bis zum Zeilenende. Beide, <userinput
+>y</userinput
+><userinput
+>y</userinput
+> und <userinput
+>Y</userinput
+> hingegen kopieren die gesamte Zeile. In &kappname;s VI-Modus kopiert <userinput
+>Y</userinput
+> bis zum Zeilenende kopieren. Dieses Verhalten wird in der <ulink url="http://vimdoc.sourceforge.net/htmldoc/change.html#Y"
+>Vim-Dokumentation</ulink
+> als <quote
+>logischer</quote
+> beschrieben. </para>
+</listitem>
+<listitem>
+<para
+>&kappname;: <userinput
+>O</userinput
+> und <userinput
+>o</userinput
+> öffnen [<replaceable
+>eine Anzahl</replaceable
+>] neuer Zeilen und wechseln in den Eingabemodus.</para>
+<para
+>Vim: <userinput
+>O</userinput
+> und <userinput
+>o</userinput
+> öffnen eine neue Zeile und fügen den eingegebenen Text [<replaceable
+>so oft</replaceable
+>] ein, sobald der Eingabemodus verlassen wird.</para>
+<para
+>Diese unterscheiden sich hauptsächlich, weil sich viele Benutzer im Vim-&irc;-Kanal (#vim auf Libera Chat) verwirrt über die Funktionsweise geäußert haben.</para>
+</listitem>
+</itemizedlist>
+
+</sect2>
+
+<sect2 id="vi-switching-modes">
+<title
+>Wechseln der Modi</title>
+
+<itemizedlist>
+<listitem>
+<para
+>Im <emphasis
+>Normalen Modus</emphasis
+> können Sie Befehle zum Navigieren und Ändern eines Dokuments eingeben. Dieser Modus ist der Standardmodus. Sie können aus allen anderen Modi mit der &Esc;-Taste in diesen Modus zurückkehren. </para
+></listitem>
+<listitem>
+<para
+>Im <emphasis
+>Visuellen Modus</emphasis
+> können Sie Text in einem Dokument markieren. Die meisten Befehle aus dem Normalen Modus sind auch in diesem Modus gültig. Zum zeichenweise auszuwählen, wechseln in diesen Modus, indem Sie die Taste <userinput
+>v</userinput
+> drücken; für zeilenweise Auswahl, drücken Sie <userinput
+>V</userinput
+>. </para
+></listitem>
+<listitem>
+<para
+>Im <emphasis
+>Eingabemodus</emphasis
+> können Sie das Dokument direkt bearbeiten. Sie wechseln in diesen Modus, indem Sie die Taste <userinput
+>i</userinput
+> oder einen der anderen, oben genannten Befehle drücken. </para
+></listitem>
+<listitem>
+<para
+>Der <emphasis
+>Befehlsmodus</emphasis
+> ruft &kappname;s Befehlszeile auf. Hier können Sie viele in Vi implementierte Befehle wie auch spezielle Befehle für &kappname; aufrufen. Weitere Informationen über diese Befehle finden Sie unter <xref linkend="advanced-editing-tools-commandline"/>. Um diesen Modus zu benutzen, drücken Sie die Taste <keycap
+>:</keycap
+>, geben den Befehl ein und drücken dann die &Enter;taste.</para>
+</listitem>
+</itemizedlist>
+<!-- add a picture like https://de.wikipedia.org/wiki/Vi#Arbeitsmodi here? -->
+</sect2>
+
+<sect2 id="vi-integration">
+<title
+>Einbindung in &kate;'s Funktionen</title>
+<itemizedlist>
+
+<listitem>
+<para
+>Es wird automatisch in den Visuellen Modus gewechselt, wenn Text mit der Maus ausgewählt ist. Dieser Wechsel findet auch dann statt, wenn Funktion von &kate; benutzt werden, die Text auswählen, wie zum Beispiel <guilabel
+>Alles auswählen</guilabel
+> aus dem Menü oder mit dem Kurzbefehl <keycombo action="simul"
+>&Ctrl;<keycap
+>A</keycap
+></keycombo
+>.</para>
+</listitem>
+
+<listitem>
+<para
+>Marker in Vi und <link linkend="kate-part-bookmarks"
+>Lesezeichen</link
+> in &kate; sind integriert. Erstellen Sie einen Marker im Vi-Modus, dann wird auch das zugehörige Lesezeichen für &kate; erstellt und im Menü <guimenu
+>Lesezeichen</guimenu
+> angezeigt. Umgekehrt wird mit einem Lesezeichen in &kate; auch der zugehörige Marker in Vi an Spalte Null der Zeile erzeugt. </para>
+</listitem>
+
+</itemizedlist>
+</sect2>
+
+<sect2 id="vi-normal-visual-mode-commands">
+<title
+>Unterstützte Befehle im normalen/visuellen Modus</title>
+
+<informaltable>
+<tgroup cols="2">
+<!--thead>
+<row>
+<entry
+><para
+>Key</para
+></entry>
+<entry
+><para
+>Command</para
+></entry>
+</row>
+</thead-->
+<tbody>
+<row
+><entry
+><para
+><userinput
+>a</userinput
+></para
+></entry>
+<entry
+><para
+>Wechselt zum Eingabemodus und fügt hinter dem Cursor ein</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>A</userinput
+></para
+></entry>
+<entry
+><para
+>Wechselt zum Eingabemodus und fügt hinter der Zeile ein</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>i</userinput
+></para
+></entry>
+<entry
+><para
+>Wechselt zum Eingabemodus und fügt vor dem Cursor ein</para
+></entry>
+</row>
+<row
+><entry
+><para
+>&Ins;</para
+></entry>
+<entry
+><para
+>Wechselt zum Eingabemodus und fügt vor dem Cursor ein</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>I</userinput
+></para
+></entry>
+<entry
+><para
+>Wechselt zum Einfügemodus und fügt vor dem ersten nicht leeren Zeichen auf der Zeile ein</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>gi</userinput
+></para
+></entry>
+<entry
+><para
+>Wechselt zum Einfügemodus und fügt vor der Stelle ein, an der der letzte Einfügemodus verlassen wurde</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>v</userinput
+></para
+></entry>
+<entry
+><para
+>Wechsel in den visuellen Modus; Auswahl von Zeichen</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>V</userinput
+></para
+></entry>
+<entry
+><para
+>Wechsel in den visuellen Modus; Auswahl von Zeilen</para
+></entry>
+</row>
+<row
+><entry
+><para
+><keycombo action="simul"
+>&Ctrl;<keycap
+>v</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Wechselt in den visuellen Modus; Auswahl von Blöcken</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>gb</userinput
+></para
+></entry>
+<entry
+><para
+>Wechselt in den visuellen Modus und aktiviert die letzte Auswahl erneut</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>o</userinput
+></para
+></entry>
+<entry
+><para
+>Fügt unter der aktuellen Zeile eine neue Zeile ein</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>O</userinput
+></para
+></entry>
+<entry
+><para
+>Fügt über der aktuellen Zeile eine neue Zeile ein</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>J</userinput
+></para
+></entry>
+<entry
+><para
+>Zeilen zusammenführen</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>c</userinput
+></para
+></entry>
+<entry
+><para
+>Ändern: gefolgt von einer Richtungstaste; löscht ein Zeichen und wechselt in den Eingabemodus</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>C</userinput
+></para
+></entry>
+<entry
+><para
+>Bis zum Zeilenende ändern: löscht bis zum Zeilenende und wechselt in den Eingabemodus</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>cc</userinput
+></para
+></entry>
+<entry
+><para
+>Zeile ändern: Zeile löschen und in den Eingabemodus wechseln</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>s</userinput
+></para
+></entry>
+<entry
+><para
+>Zeichen ersetzen</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>S</userinput
+></para
+></entry>
+<entry
+><para
+>Zeilen ersetzen</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>dd</userinput
+></para
+></entry>
+<entry
+><para
+>Zeile löschen</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>d</userinput
+></para
+></entry>
+<entry
+><para
+>Gefolgt von einer Richtungstaste, um eine Zeile zu löschen</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>D</userinput
+></para
+></entry>
+<entry
+><para
+>Löschen bis Zeilenende</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>x</userinput
+></para
+></entry>
+<entry
+><para
+>Zeichen rechts vom Cursor löschen</para
+></entry>
+</row>
+<row
+><entry
+><para
+>&Del;</para
+></entry>
+<entry
+><para
+>Zeichen rechts vom Cursor löschen</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>X</userinput
+></para
+></entry>
+<entry
+><para
+>Zeichen links vom Cursor löschen</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>gu</userinput
+></para
+></entry>
+<entry
+><para
+>Gefolgt von einer Richtungstaste, um ein Zeichen in Kleinbuchstaben zu ändern</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>guu</userinput
+></para
+></entry>
+<entry
+><para
+>Ändert die aktuelle Zeile in Kleinschreibung</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>gU</userinput
+></para
+></entry>
+<entry
+><para
+>Gefolgt von einer Richtungstaste, um ein Zeichen in Großbuchstaben zu ändern</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>gUU</userinput
+></para
+></entry>
+<entry
+><para
+>Ändert die aktuelle Zeile in Großschreibung</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>y</userinput
+></para
+></entry>
+<entry
+><para
+>Gefolgt von einer Richtungstaste, um eine Zeile zu kopieren</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>yy</userinput
+></para
+></entry>
+<entry
+><para
+>Zeile kopieren</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>Y</userinput
+></para
+></entry>
+<entry
+><para
+>Zeile kopieren</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>p</userinput
+></para
+></entry>
+<entry
+><para
+>Hinter dem Cursor einfügen</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>P</userinput
+></para
+></entry>
+<entry
+><para
+>Vor dem Cursor einfügen</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>]p</userinput
+></para
+></entry>
+<entry
+><para
+>Hinter dem Cursor mit Einrückung einfügen</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>[p</userinput
+></para
+></entry>
+<entry
+><para
+>Vor dem Cursor mit Einrückung einfügen</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>r</userinput
+></para
+></entry>
+<entry
+><para
+>Gefolgt von einem Zeichen, um das Zeichen hinter dem Cursor zu ersetzen</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>R</userinput
+></para
+></entry>
+<entry
+><para
+>Zu Ersetzungsmodus wechseln</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>:</userinput
+></para
+></entry>
+<entry
+><para
+>Zu Befehlsmodus wechseln</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>/</userinput
+></para
+></entry>
+<entry
+><para
+>Suchen</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>u</userinput
+></para
+></entry>
+<entry
+><para
+>Rückgängig</para
+></entry>
+</row>
+<row
+><entry
+><para
+><keycombo action="simul"
+>&Ctrl;<keycap
+>R</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Wiederherstellen</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>U</userinput
+></para
+></entry>
+<entry
+><para
+>Wiederherstellen</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>m</userinput
+></para
+></entry>
+<entry
+><para
+>Marker setzen (kann später zum Navigieren verwendet werden)</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>n</userinput
+></para
+></entry>
+<entry
+><para
+>Weitersuchen</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>N</userinput
+></para
+></entry>
+<entry
+><para
+>Frühere suchen</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>&gt;&gt;</userinput
+></para
+></entry>
+<entry
+><para
+>Zeile einrücken</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>&lt;&lt;</userinput
+></para
+></entry>
+<entry
+><para
+>Zeileneinrückung rückgängig</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>&gt;</userinput
+></para
+></entry>
+<entry
+><para
+>Zeilen einrücken</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>&lt;</userinput
+></para
+></entry>
+<entry
+><para
+>Einrückung mehrere Zeilen rückgängig</para
+></entry>
+</row>
+<row
+><entry
+><para
+><keycombo action="simul"
+>&Ctrl;<keycap
+>F</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Seite nach unten</para
+></entry>
+</row>
+<row
+><entry
+><para
+><keycombo action="simul"
+>&Ctrl;<keycap
+>B</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Seite nach oben</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>ga</userinput
+></para
+></entry>
+<entry
+><para
+>&ASCII;-Wert des Zeichens ausgeben</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>.</userinput
+></para
+></entry>
+<entry
+><para
+>Letzte Änderung wiederholen</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>==</userinput
+></para
+></entry>
+<entry
+><para
+>commandAlignLine</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>=</userinput
+></para
+></entry>
+<entry
+><para
+>commandAlignLines</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>~</userinput
+></para
+></entry>
+<entry
+><para
+>Groß-/Kleinschreibung des aktuellen Zeichens ändern </para
+></entry>
+</row>
+<row
+><entry
+><para
+><keycombo action="simul"
+>&Ctrl;<keycap
+>S</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Ansicht waagerecht teilen</para
+></entry>
+</row>
+<row
+><entry
+><para
+><keycombo action="simul"
+>&Ctrl;<keycap
+>V</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Ansicht senkrecht teilen</para
+></entry>
+</row>
+<row
+><entry
+><para
+><keycombo action="simul"
+>&Ctrl; <keycap
+>W</keycap
+></keycombo
+>, <userinput
+>w</userinput
+></para
+></entry>
+<entry
+><para
+>Wechselt zum nächsten Fenster der geteilten Ansicht</para
+></entry>
+</row>
+<row
+><entry
+><para
+><keycombo action="simul"
+>&Ctrl; <keycap
+>W</keycap
+></keycombo
+>, <userinput
+>h</userinput
+></para>
+<para
+><keycombo action="seq"
+><keycombo action="simul"
+>&Ctrl; <keycap
+>W</keycap
+></keycombo
+>&Left;</keycombo
+></para
+></entry>
+<entry
+><para
+>Wechselt zum linken Fenster der geteilten Ansicht</para
+></entry>
+</row>
+<row
+><entry
+><para
+><keycombo action="simul"
+>&Ctrl; <keycap
+>W</keycap
+></keycombo
+>, <userinput
+>l</userinput
+></para>
+<para
+><keycombo action="seq"
+><keycombo action="simul"
+>&Ctrl; <keycap
+>W</keycap
+></keycombo
+>&Right;</keycombo
+></para
+></entry>
+<entry
+><para
+>Wechselt zum rechten Fenster der geteilten Ansicht</para
+></entry>
+</row>
+<row
+><entry
+><para
+><keycombo action="simul"
+>&Ctrl; <keycap
+>W</keycap
+></keycombo
+>, <userinput
+>k</userinput
+></para>
+<para
+><keycombo action="seq"
+><keycombo action="simul"
+>&Ctrl; <keycap
+>W</keycap
+></keycombo
+>&Up;</keycombo
+></para
+></entry>
+<entry
+><para
+>Wechselt zum oberen Fenster der geteilten Ansicht</para
+></entry>
+</row>
+<row
+><entry
+><para
+><keycombo action="simul"
+>&Ctrl; <keycap
+>W</keycap
+></keycombo
+>, <userinput
+>j</userinput
+></para>
+<para
+><keycombo action="seq"
+><keycombo action="simul"
+>&Ctrl; <keycap
+>W</keycap
+></keycombo
+>&Down;</keycombo
+></para
+></entry>
+<entry
+><para
+>Wechselt zum unteren Fenster der geteilten Ansicht</para
+></entry>
+</row>
+</tbody>
+</tgroup>
+</informaltable>
+</sect2>
+
+<sect2 id="vi-supported-motions">
+<title
+>Unterstützte Richtungstasten</title>
+
+<para
+>Diese können zum Bewegen in einem Dokument im Normalen und im Visuellen Modus oder im Zusammenspiel mit einem der oben genannten Befehle verwendet werden. Es können Nummern angehängt werden, um anzugeben, wie oft die entsprechende Bewegung ausgeführt werden soll.</para>
+
+<informaltable>
+<tgroup cols="2">
+<!--thead>
+<row>
+<entry
+><para
+>Key</para
+></entry>
+<entry
+><para
+>Command</para
+></entry>
+</row>
+</thead-->
+<tbody>
+<row
+><entry
+><para
+><userinput
+>h</userinput
+></para
+></entry>
+<entry
+><para
+>Links</para
+></entry>
+</row>
+<row
+><entry
+><para
+>&Left;</para
+></entry>
+<entry
+><para
+>Links</para
+></entry>
+</row>
+<row
+><entry
+><para
+>&Backspace;</para
+></entry>
+<entry
+><para
+>Links</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>j</userinput
+></para
+></entry>
+<entry
+><para
+>Nach unten</para
+></entry>
+</row>
+<row
+><entry
+><para
+>&Down;</para
+></entry>
+<entry
+><para
+>Nach unten</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>k</userinput
+></para
+></entry>
+<entry
+><para
+>Nach oben</para
+></entry>
+</row>
+<row
+><entry
+><para
+>&Up;</para
+></entry>
+<entry
+><para
+>Nach oben</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>l</userinput
+></para
+></entry>
+<entry
+><para
+>Rechts</para
+></entry>
+</row>
+<row
+><entry
+><para
+>&Right;</para
+></entry>
+<entry
+><para
+>Rechts</para
+></entry>
+</row>
+<row
+><entry
+><para
+>&Space;</para
+></entry>
+<entry
+><para
+>Rechts</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>$</userinput
+></para
+></entry>
+<entry
+><para
+>Zum Zeilenende</para
+></entry>
+</row>
+<row
+><entry
+><para
+>&End;</para
+></entry>
+<entry
+><para
+>Zum Zeilenende</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>0</userinput
+></para
+></entry>
+<entry
+><para
+>Zum ersten Zeichen der Zeile (Spalte 0)</para
+></entry>
+</row>
+<row
+><entry
+><para
+>&Home;</para
+></entry>
+<entry
+><para
+>Zum ersten Zeichen der Zeile</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>^</userinput
+></para
+></entry>
+<entry
+><para
+>Erstes Zeichen, das kein Leerzeichen ist, in dieser Zeile</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>f</userinput
+></para
+></entry>
+<entry
+><para
+>Gefolgt von einem Zeichen rechts vom Cursor, zu dem der Cursor bewegt werden soll</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>F</userinput
+></para
+></entry>
+<entry
+><para
+>Gefolgt von einem Zeichen links vom Cursor, zu dem der Cursor bewegt werden soll</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>t</userinput
+></para
+></entry>
+<entry
+><para
+>Gefolgt von einem Zeichen rechts vom Cursor, vor das der Cursor bewegt werden soll</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>T</userinput
+></para
+></entry>
+<entry
+><para
+>Gefolgt von einem Zeichen links vom Cursor, vor das der Cursor bewegt werden soll</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>gg</userinput
+></para
+></entry>
+<entry
+><para
+>Zur ersten Zeile</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>G</userinput
+></para
+></entry>
+<entry
+><para
+>Zur letzten Zeile</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>w</userinput
+></para
+></entry>
+<entry
+><para
+>Nächstes Wort</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>W</userinput
+></para
+></entry>
+<entry
+><para
+>Nächstes Wort getrennt durch Leerzeichen</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>b</userinput
+></para
+></entry>
+<entry
+><para
+>Vorheriges Wort</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>B</userinput
+></para
+></entry>
+<entry
+><para
+>Vorheriges Wort getrennt durch Leerzeichen</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>e</userinput
+></para
+></entry>
+<entry
+><para
+>Wortende</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>E</userinput
+></para
+></entry>
+<entry
+><para
+>Ende des Worts getrennt durch Leerzeichen</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>ge</userinput
+></para
+></entry>
+<entry
+><para
+>Ende des vorheriges Wortes</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>gE</userinput
+></para
+></entry>
+<entry
+><para
+>Ende des vorherigen Worts getrennt durch Leerzeichen</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>|</userinput
+></para
+></entry>
+<entry
+><para
+>Gefolgt von einer Spaltennummer, um in die Spalte zu springen</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>%</userinput
+></para
+></entry>
+<entry
+><para
+>Gefolgt von einem Element, um zu dem Element zu springen</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>`</userinput
+></para
+></entry>
+<entry
+><para
+>Marker</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>‘</userinput
+></para
+></entry>
+<entry
+><para
+>Erstes Zeichen, das kein Leerzeichen ist, in der Zeile, in der sich der Marker befindet</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>[[</userinput
+></para
+></entry>
+<entry
+><para
+>Vorherige öffnende eckige Klammer</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>]]</userinput
+></para
+></entry>
+<entry
+><para
+>Nächste öffnende eckige Klammer</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>[]</userinput
+></para
+></entry>
+<entry
+><para
+>Vorherige schließende eckige Klammer</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>][</userinput
+></para
+></entry>
+<entry
+><para
+>Nächste schließende eckige Klammer</para
+></entry>
+</row>
+<row
+><entry
+><para
+><keycombo action="simul"
+>&Ctrl;<keycap
+>I</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Geht zur nächsten Adresse</para
+></entry
+></row>
+<row
+><entry
+><para
+><keycombo action="simul"
+>&Ctrl;<keycap
+>O</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Geht zur vorherigen Adresse</para
+></entry
+></row>
+<row
+><entry
+><para
+><userinput
+>H</userinput
+></para
+></entry>
+<entry
+>Geht zur ersten Zeile auf dem Bildschirm</entry
+></row>
+<row
+><entry
+><para
+><userinput
+>M</userinput
+></para
+></entry>
+<entry
+>Geht zur mittleren Zeile auf dem Bildschirm</entry
+></row>
+<row
+><entry
+><para
+><userinput
+>L</userinput
+></para
+></entry>
+<entry
+>Geht zur letzten Zeile auf dem Bildschirm</entry
+></row>
+<row
+><entry
+><para
+><userinput
+>%<replaceable
+>Prozentsatz</replaceable
+></userinput
+></para
+></entry>
+<entry
+><para
+>Geht zum angegebenen Prozentsatz des Dokuments</para
+></entry
+></row>
+<row
+><entry
+><para
+><userinput
+>gk</userinput
+></para
+></entry>
+<entry
+><para
+>Geht optisch eine Zeile aufwärts (bei dynamischem Zeilenumbruch)</para
+></entry
+></row>
+<row
+><entry
+><para
+><userinput
+>gj</userinput
+></para
+></entry>
+<entry
+><para
+>Geht optisch eine Zeile abwärts (bei dynamischem Zeilenumbruch)</para
+></entry
+></row>
+<row
+><entry
+><para
+><keycombo action="simul"
+>&Ctrl;&Left;</keycombo
+></para
+></entry>
+<entry
+><para
+>Verschiebt ein Wort nach links</para
+></entry>
+</row>
+<row
+><entry
+><para
+><keycombo action="simul"
+>&Ctrl;&Right;</keycombo
+></para
+></entry>
+<entry
+><para
+>Verschiebt ein Wort nach rechts</para
+></entry>
+</row>
+</tbody>
+</tgroup>
+</informaltable>
+</sect2>
+
+<sect2 id="vi-supported-text-objects">
+<title
+>Unterstützte Textobjekte</title>
+
+<para
+>Diese können verwendet werden, um bestimmte Bereiche eines Dokuments auszuwählen.</para>
+
+<informaltable>
+<tgroup cols="2">
+<!--thead>
+<row>
+<entry
+><para
+>Key</para
+></entry>
+<entry
+><para
+>Command</para
+></entry>
+</row>
+</thead-->
+<tbody>
+<row
+><entry
+><para
+><userinput
+>iw</userinput
+></para
+></entry>
+<entry
+><para
+>Inneres Wort: Wort inklusive Leerzeichen</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>aw</userinput
+></para
+></entry>
+<entry
+><para
+>Ein Wort: Wort ohne Leerzeichen</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>i"</userinput
+></para
+></entry>
+<entry
+><para
+>Vorherige Anführungszeichen (<userinput
+>"</userinput
+>) bis nächste Anführungszeichen, inklusive der Anführungszeichen</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>a”</userinput
+></para
+></entry>
+<entry
+><para
+>Vorherige Anführungszeichen (<userinput
+>"</userinput
+>) bis nächste Anführungszeichen, ohne die Anführungszeichen</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>i'</userinput
+></para
+></entry>
+<entry
+><para
+>Vorherige einfache Anführungszeichen (<userinput
+>"</userinput
+>) bis nächste einfache Anführungszeichen, inklusive der Anführungszeichen</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>a'</userinput
+></para
+></entry>
+<entry
+><para
+>Vorherige einfache Anführungszeichen (<userinput
+>"</userinput
+>) bis nächste einfache Anführungszeichen, ohne die Anführungszeichen</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>i(</userinput
+></para
+></entry>
+<entry
+><para
+>Vorherige öffnende Klammer [<userinput
+>(</userinput
+>] bis nächste schließende Klammer [<userinput
+>)</userinput
+>], inklusive der Klammern</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>a(</userinput
+></para
+></entry>
+<entry
+><para
+>Vorherige öffnende Klammer [<userinput
+>(</userinput
+>] bis nächste schließende Klammer [<userinput
+>)</userinput
+>], ohne die Klammern</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>i[</userinput
+></para
+></entry>
+<entry
+><para
+>Vorherige öffnende eckige Klammer (<userinput
+>[</userinput
+>) bis nächste schließende eckige Klammer (<userinput
+>]</userinput
+>), inklusive der Klammern</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>a[</userinput
+></para
+></entry>
+<entry
+><para
+>Vorherige öffnende eckige Klammer (<userinput
+>[</userinput
+>) bis nächste schließende eckige Klammer (<userinput
+>]</userinput
+>), ohne die Klammern</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>i{</userinput
+></para
+></entry>
+<entry
+><para
+>Vorherige öffnende geschweifte Klammer (<userinput
+>{</userinput
+>) bis nächste schließende geschweifte Klammer (<userinput
+>}</userinput
+>), inklusive der Klammern</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>a{</userinput
+></para
+></entry>
+<entry
+><para
+>Vorherige öffnende geschweifte Klammer (<userinput
+>{</userinput
+>) bis nächste schließende geschweifte Klammer (<userinput
+>}</userinput
+>), ohne die Klammern</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>i&lt;</userinput
+></para
+></entry>
+<entry
+><para
+>Vorherige öffnende spitze Klammer (<userinput
+>&lt;</userinput
+>) bis nächste schließende spitze Klammer (<userinput
+>&gt;</userinput
+>), inklusive der Klammern</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>a&lt;</userinput
+></para
+></entry>
+<entry
+><para
+>Vorherige öffnende spitze Klammer (<userinput
+>&lt;</userinput
+>) bis nächste schließende spitze Klammer (<userinput
+>&gt;</userinput
+>), ohne die Klammern</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>i`</userinput
+></para
+></entry>
+<entry
+><para
+>Vorheriges Backtick („rückwärts geneigtes Hochkomma“) (<userinput
+>"</userinput
+>) bis nächstes Backtick, inklusive der Backticks</para
+></entry>
+</row>
+<row
+><entry
+><para
+><userinput
+>a`</userinput
+></para
+></entry>
+<entry
+><para
+>Vorheriges Backtick („rückwärts geneigtes Hochkomma“) (<userinput
+>"</userinput
+>) bis nächstes Backtick, ohne die Backticks</para
+></entry>
+</row>
+</tbody>
+</tgroup>
+</informaltable>
+</sect2>
+
+<sect2 id="vi-insert-mode-commands">
+<title
+>Unterstützte Befehle im Eingabemodus</title>
+
+<informaltable>
+<tgroup cols="2">
+<!--thead>
+<row>
+<entry
+><para
+>Key</para
+></entry>
+<entry
+><para
+>Command</para
+></entry>
+</row>
+</thead-->
+<tbody>
+<row
+><entry
+><para
+><keycombo action="simul"
+>&Ctrl;<keycap
+>D</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Einrückung verringern</para
+></entry>
+</row>
+<row
+><entry
+><para
+><keycombo action="simul"
+>&Ctrl;<keycap
+>T</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Einrücken</para
+></entry>
+</row>
+<row
+><entry
+><para
+><keycombo action="simul"
+>&Ctrl;<keycap
+>E</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Von unten einfügen</para
+></entry>
+</row>
+<row
+><entry
+><para
+><keycombo action="simul"
+>&Ctrl;<keycap
+>Y</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Wort löschen</para
+></entry>
+</row>
+<row
+><entry
+><para
+><keycombo action="simul"
+>&Ctrl;<keycap
+>W</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Wort löschen</para
+></entry>
+</row>
+<row
+><entry
+><para
+><keycombo action="simul"
+>&Ctrl;<keycap
+>U</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Zeile löschen</para
+></entry>
+</row>
+<row
+><entry
+><para
+><keycombo action="simul"
+>&Ctrl;<keycap
+>J</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Neue Zeile</para
+></entry>
+</row>
+<row
+><entry
+><para
+><keycombo action="simul"
+>&Ctrl;<keycap
+>H</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Löscht Zeichen rückwärts</para
+></entry>
+</row>
+<row
+><entry
+><para
+><keycombo action="simul"
+>&Ctrl;&Home;</keycombo
+></para
+></entry>
+<entry
+><para
+>Geht zum ersten Zeichen im Dokument</para
+></entry>
+</row>
+<row
+><entry
+><para
+><keycombo action="simul"
+>&Ctrl;<keycap
+>R</keycap
+></keycombo
+> <userinput
+>n</userinput
+></para
+></entry>
+<entry
+>Fügt den Inhalt des Registers <literal
+>n</literal
+> ein</entry
+></row>
+<row
+><entry
+><para
+><keycombo action="simul"
+>&Ctrl;<keycap
+>O</keycap
+></keycombo
+>, <replaceable
+>Befehl</replaceable
+></para
+></entry>
+<entry
+><para
+>Wechselt für einen Befehl zum normalen Modus</para
+></entry
+></row>
+<row
+><entry
+><para
+><keycombo action="simul"
+>&Ctrl;<keycap
+>A</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Verringert die aktuell gewählte Zahl</para
+></entry
+></row>
+<row
+><entry
+><para
+><keycombo action="simul"
+>&Ctrl;<keycap
+>X</keycap
+></keycombo
+></para
+></entry>
+<entry
+><para
+>Erhöht die aktuell gewählte Zahl</para
+></entry
+></row>
+</tbody>
+</tgroup>
+</informaltable>
+</sect2>
+
+<sect2 id="vi-text-object">
+<title
+>Das Komma-Textobjekt</title>
+
+<para
+>Dieses Objekt fehlt in Vim. Das Komma-Text-Objekt vereinfacht das Ändern von Parameterlisten in C-ähnlichen Sprachen und anderen durch Komma getrennte Listen. Dies ist der Bereich zwischen zwei Kommas oder einem Komma und einer Klammer. In der Demonstrationszeile sind die Bereiche, die dieses Text-Objekt umfassen kann, hervorgehoben.</para>
+
+<screenshot id="screenshot-resources">
+<screeninfo
+>Ein Beispiel für ein Komma-Textobjekt</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="comma-to.png" format="PNG"/></imageobject>
+<textobject
+><phrase
+>Ein Beispiel für ein Komma-Textobjekt</phrase
+></textobject>
+<caption
+><para
+>Bereiche des Komma-Text-Objekts. Wenn sich der Cursor &eg; über <replaceable
+>arg2</replaceable
+> befindet, bewirkt das Drücken von <userinput
+>ci</userinput
+>(<quote
+>inneres Komma ändern</quote
+>), dass <replaceable
+>double arg2</replaceable
+> gelöscht wird und der Cursor im Eingabemodus zwischen die beiden Kommas platziert wird. Das ist ein sehr angenehme Art, Funktionsparameter zu ändern.</para
+></caption>
+</mediaobject>
+</screenshot>
+
+</sect2>
+
+<sect2 id="vi-missing-features">
+<title
+>Fehlende Funktionen</title>
+
+<para
+>Wie bereits erwähnt, ist es nicht Ziel des VI-Modus in &kappname;, die Funktionen von Vim zu 100 % zu unterstützen.</para>
+</sect2>
+
+</sect1>
+
+</chapter>

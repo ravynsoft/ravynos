@@ -1,0 +1,6197 @@
+<chapter id="plugins">
+
+<chapterinfo>
+<authorgroup>
+<author
+>&Anders.Lund; &Anders.Lund.mail;</author>
+<othercredit role="translator"
+><firstname
+>Юрій</firstname
+><surname
+>Чорноіван</surname
+><affiliation
+><address
+><email
+>yurchor@ukr.net</email
+></address
+></affiliation
+><contrib
+>Переклад українською</contrib
+></othercredit
+> 
+</authorgroup>
+</chapterinfo>
+
+<title
+>Робота з додатками</title>
+
+<para
+>Увімкнути окремі додатки можна за допомогою <link linkend="configuring-kate-configdialog"
+>діалогового вікна налаштування</link
+>, за допомогою цього вікна можна також отримати доступ до додаткових параметрів налаштування тих додатків, які потребують налаштування.</para>
+
+<sect1 id="kate-application-plugins">
+<title
+>Додатки програми &kate;</title>
+
+<!-- from doc/kate-addons/index.docbook -->
+<para
+>Додатки &kate; призначено для виконання додаткових функцій у редакторі &kate;. За їх допомогою можна додавати нові меню і скорочення, а також розширювати список можливостей &kate;. Ви можете встановити будь-яку бажану кількість додатків за допомогою самої програми &kate;. Для цього скористайтеся діалоговим вікном налаштування &kate;, яке можна відкрити за допомогою пункту меню <menuchoice
+><guimenu
+>Параметри</guimenu
+> <guimenuitem
+>Налаштувати &kate;...</guimenuitem
+></menuchoice
+>. Щоб обрати потрібні додатки, перейдіть на сторінку <menuchoice
+><guimenu
+>Програма</guimenu
+> <guimenuitem
+>Додатки</guimenuitem
+></menuchoice
+>. </para>
+
+<para
+>Серед можливих додатків до програми: </para>
+<itemizedlist>
+<listitem>
+<para
+><link linkend="kate-application-plugin-external-tools"
+>Зовнішні інструменти</link
+> — запуск зовнішніх інструментів і програм</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-backtracebrowser"
+>Переглядач зворотного трасування</link
+> допоможе вам переглянути дані зворотного трасування C/C++</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-build"
+>Додаток збирання</link
+> — компілює або збирає програми і обробляє повідомлення про помилки.</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-closeexceptlike"
+>Додаток закриття за критерієм</link
+> — закрити групу документів на основі даних щодо спільного для них розташування у файловій системі або суфікса назви файла.</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-colorpicker"
+>Піпетка</link
+> — показує панель попереднього перегляду для відомих назв кольорів</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-ctags"
+>Додаток CTags</link
+> виконує пошук визначень або оголошень за допомогою CTags.</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-preview"
+>Попередній перегляд документів</link
+> — попередній перегляд документів у форматі призначення.</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-documentswitcher"
+>Перемикач між документами</link
+> — налаштовування швидкого перемикання документів за допомогою натискання комбінації клавіш <keycombo action="simul"
+>&Alt;&Tab;</keycombo
+>.</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-fsbrowser"
+>Переглядач файлової системи</link
+> — панель засобу навігації файловою системою</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-documents"
+>Ієрархія документів</link
+> показує структуру відкритих файлів.</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-gdb"
+>&gdb;</link
+> — надає доступ до простої графічної оболонки до &gdb;</para>
+</listitem>
+<!--from workspace/plasma-sdk, why picked up here?
+<listitem>
+<para
+>Icon picker - Invokes Cuttlefish icon picker</para>
+</listitem>
+-->
+<listitem>
+<para
+><link linkend="kate-application-plugin-projects"
+>Додаток проєктів</link
+> — інтеграція із Git та іншими системами керування кодом</para>
+</listitem>
+<listitem>
+<para
+>Replicode — конструктивістська мова програмування і середовище виконання для штучного інтелекту</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-lspclient"
+>Клієнт LSP</link
+> — клієнт LSP, який надає можливості навігації кодом та автоматичного доповнення коду для багатьох мов.</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-searchinfiles"
+>Пошук з заміною</link
+> — пошук з заміною у відкритих документах, теках або проєктах</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-snippets"
+>Панель фрагментів</link
+> — вбудована панель для керування фрагментами.</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-sql"
+>Додаток SQL</link
+> — виконання запитів до баз даних SQL.</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-symbolviewer"
+>Переглядач символів</link
+> призначено для добування і показу символів з початкового коду.</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-konsole"
+>Панель термінала</link
+> — термінал на основі віджета &konsole; &kde;</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-textfilter"
+>Фільтр тексту</link
+> — обробка тексту за допомогою команд з термінала</para>
+</listitem>
+<listitem>
+<para
+><link linkend="kate-application-plugin-xmltools"
+>Доповнення &XML;</link
+> — показує список елементів, атрибутів, значень атрибутів та об’єктів &XML;, передбачених у DTD.</para>
+</listitem>
+<listitem>
+<para
+>Додаток <link linkend="kate-application-plugin-xmlcheck"
+>Перевірка &XML;</link
+> перевіряє коректність файлів &XML; за допомогою xmllint.</para>
+</listitem>
+</itemizedlist>
+</sect1>
+
+<sect1 id="kate-application-plugin-external-tools">
+<title
+>Зовнішні інструменти</title>
+
+<para
+>За допомогою додатка <guilabel
+>Зовнішні інструменти</guilabel
+> можна викликати зовнішні програми, передаючи їм дані, які пов'язано із поточним документом, наприклад його адресу, каталог, текст або позначений фрагмент тексту. Після вмикання буде показано сторінку налаштовування, знімок якої наведено нижче. За допомогою цієї сторінки ви зможете змінити роботу наявних інструментів або вилучити їх. Так само, може бути додано потрібні вам інструменти. Пункти цих інструментів згодом з'являться у підменю <guisubmenu
+>Зовнішні інструменти</guisubmenu
+> меню <guimenu
+>Інструменти</guimenu
+> програми. </para>
+
+<mediaobject>
+<imageobject>
+<imagedata format="PNG" fileref="kateexternaltools.png"/>
+</imageobject>
+</mediaobject>
+
+<para
+>Додати нові зовнішні інструменти на сторінці налаштувань можна натисканням кнопки <guilabel
+>Додати</guilabel
+>. У відповідь буде показано контекстне меню, за допомогою якого можна або додати новий зовнішній інструмент, або додати наявний інструмент із попередньо визначеного списку, або додати нову категорію для упорядковування зовнішніх інструментів за категоріями. Так само, можна вносити зміни до наявних записів інструментів: двічі клацніть на відповідному пункті у списку або натисніть <guilabel
+>Змінити...</guilabel
+>. Натискання кнопки <guilabel
+>Вилучити</guilabel
+> вилучає запис інструмента зі списку. </para>
+
+<sect2 id="kate-application-plugin-external-tools-edit">
+<title
+>Налаштовування зовнішніх інструментів</title>
+
+<para
+>У відповідь на вибір редагування запису програма відкриває діалогове вікно налаштовування, за допомогою якого можна виконати коригування поведінки інструмента:</para>
+
+<mediaobject>
+<imageobject>
+<imagedata format="PNG" fileref="kateeditexternaltool.png"/>
+</imageobject>
+</mediaobject>
+
+<variablelist>
+<varlistentry>
+<term
+>Як можна бачити, ви можете визначити багато елементів поведінки інструмента, зокрема:</term>
+<listitem>
+<para
+><userinput
+>Назва</userinput
+> — назва інструмента, яку буде показано у меню.</para>
+<para
+><userinput
+>Піктограма</userinput
+> — необов'язкова піктограма, яку буде показано у меню.</para>
+<para
+><userinput
+>Виконуваний файл</userinput
+> — назва виконуваного файла — можна вказати повний шлях або просто назву програми, якщо виконуваний файл зберігається в одному з каталогів, описаних у змінній <envar
+>PATH</envar
+>.</para>
+<para
+><userinput
+>Аргументи</userinput
+> — необов'язкові аргументи, які передаються виконуваному файлу.</para>
+<para
+><userinput
+>Вхідні дані</userinput
+> — необов'язкові вхідні дані, які буде передано процесу за допомогою стандартного потоку вхідних даних (stdin).</para>
+<para
+><userinput
+>Робочий каталог</userinput
+> — робочий каталог, з якого буде запущено інструмент. Якщо значення буде порожнім, робочим каталогом буде каталог поточного документа.</para>
+<para
+><userinput
+>Типи MIME</userinput
+> — якщо встановлено, інструмент ставатиме активним, лише якщо відповідним буде тип MIME поточного документа.</para>
+<para
+><userinput
+>Збереження</userinput
+> — якщо задіяно, не зберігає нічого, зберігає поточний документ або зберігає усі документи.</para>
+<para
+><userinput
+>Перезавантажити поточний документ після виконання</userinput
+> — корисно, якщо до поточного файла внесено зміни на диску.</para>
+<para
+><userinput
+>Виведення</userinput
+> — визначає призначення даних стандартного виведення (stdout). Можна вибрати один з таких варіантів: <userinput
+>Ігнорувати</userinput
+>, <userinput
+>Вставити у позиції курсора</userinput
+>, <userinput
+>Замінити позначений фрагмент тексту</userinput
+>, <userinput
+>Замінити поточний документ</userinput
+>, <userinput
+>Дописати до поточного документа</userinput
+>, <userinput
+>Вставити до нового документа</userinput
+>, <userinput
+>Скопіювати до буфера</userinput
+> або <userinput
+>Показати на панелі</userinput
+>.</para>
+<para
+><userinput
+>Команда редактора</userinput
+> — необов'язкова команда, яку буде використано для виклику зовнішнього інструмента за допомогою вбудованого <ulink url="help:/katepart/advanced.html#advanced-editing-tools-commandline"
+>командного рядка</ulink
+>.</para>
+</listitem>
+</varlistentry>
+</variablelist>
+
+<para
+>Кнопку <guilabel
+>Типові параметри</guilabel
+> буде показано лише для інструментів, які постачаються разом із &kate;. Якщо натиснути цю кнопку, усі параметри інструмента буде повернуто до типових (встановлених разом із програмою) значень. </para>
+
+</sect2>
+
+<sect2 id="kate-application-plugin-external-tools-variables">
+<title
+>Розгортання змінних</title>
+
+<para
+>У деяких з полів редагування, зокрема полях <guilabel
+>Виконуваний файл</guilabel
+>, <guilabel
+>Аргументи</guilabel
+>, <guilabel
+>Вхідні дані</guilabel
+> і <guilabel
+>Робочий каталог</guilabel
+>, передбачено підтримку змінних, які буде замінено на значення під час виклику інструмента. Це позначається піктограмою <guilabel
+>{}</guilabel
+>, яку програма показує, коли фокус передається на одне з цих полів введення (див. у червоному колі): </para>
+
+<mediaobject>
+<imageobject>
+<imagedata format="PNG" fileref="katevariableexpansion.png"/>
+</imageobject>
+</mediaobject>
+
+<para
+>Крім того, при наведенні вказівника миші на одне з таких полів для введення тексту програма показує панель підказки із поточним розгорнутим текстом. Також, натискання кнопки <guilabel
+>{}</guilabel
+> відкриває діалогове вікно, у якому наведено список усіх доступних змінних: </para>
+
+<mediaobject>
+<imageobject>
+<imagedata format="PNG" fileref="kateexternaltoolvariablechooser.png"/>
+</imageobject>
+</mediaobject>
+
+<para
+>Ця можливість додає гнучкості у визначенні зовнішнього інструмента, оскільки усіх змінні у формі <userinput
+>%{...}</userinput
+> розгортаються під час виклику інструмента. Передбачено підтримку двох типів змінних: <itemizedlist
+> <listitem
+><para
+><userinput
+>%{назва-змінної}</userinput
+></para
+></listitem
+> <listitem
+><para
+><userinput
+>%{назва-змінної:&lt;значення&gt;}</userinput
+></para
+></listitem
+> </itemizedlist
+> Якщо використано першу форму, <userinput
+>%{назва-змінної}</userinput
+>, програма просто замінить змінну її вмістом. Наприклад, змінну <userinput
+>%{Document:FileName}</userinput
+> буде замінено на назву файла поточного документа без шляху до нього. Якщо використано другу форму, <userinput
+>%{назва-змінної:&lg;значення&gt;}</userinput
+>, отримаємо <userinput
+>&lt;значення&gt;</userinput
+> як вміст. Наприклад, цим можна скористатися для розгортання змінної середовища за допомогою <userinput
+>%{ENV:HOME}</userinput
+> або можна отримати поточну дату у бажаному форматі, ось так: <userinput
+>%{Date:yyyy-MM-dd}</userinput
+>. </para>
+
+<variablelist>
+<varlistentry>
+<term
+>Ось підтримувані змінні:</term>
+<listitem>
+<para
+><userinput
+>Document:FileBaseName</userinput
+>: базова назва файла поточного документа без шляху і суфікса назви.</para>
+<para
+><userinput
+>Document:FileExtension</userinput
+>: суфікс назви файла поточного документа.</para>
+<para
+><userinput
+>Document:FileName</userinput
+>: назва файла поточного документа без шляху.</para>
+<para
+><userinput
+>Document:FilePath</userinput
+>: повний шлях до поточного документа, включно із назвою файла.</para>
+<para
+><userinput
+>Document:Text</userinput
+>: вміст поточного документа.</para>
+<para
+><userinput
+>Document:Path</userinput
+>: повний шлях до поточного документа без назви файла.</para>
+<para
+><userinput
+>Document:NativeFilePath</userinput
+>: шлях до документа повністю, разом із назвою файла та роздільниками шляху операційної системи (зворотними похилими рисками у Windows).</para>
+<para
+><userinput
+>Document:NativePath</userinput
+>: шлях до документа повністю, без назви файла та роздільниками шляху операційної системи (зворотними похилими рисками у Windows).</para>
+<para
+><userinput
+>Document:Cursor:Line</userinput
+>: номер рядка поточної позиції текстового курсора у поточному документі (нумерація рядків починається з 0).</para>
+<para
+><userinput
+>Document:Cursor:Column</userinput
+>: номер позиції у рядку текстового курсора у поточному документі (нумерація рядків починається з 0).</para>
+<para
+><userinput
+>Document:Cursor:XPos</userinput
+>: компонент X загальної позиції курсора на екрані.</para>
+<para
+><userinput
+>Document:Cursor:YPos</userinput
+>: компонент Y загальної позиції курсора на екрані.</para>
+<para
+><userinput
+>Document:Selection:Text</userinput
+>: позначений текст у поточному документі.</para>
+<para
+><userinput
+>Document:Selection:StartLine</userinput
+>: номер початкового рядка для позначеного фрагмента поточного документа.</para>
+<para
+><userinput
+>Document:Selection:StartColumn</userinput
+>: номер позиції позиції у рядку для позначеного фрагмента поточного документа.</para>
+<para
+><userinput
+>Document:Selection:EndLine</userinput
+>: номер кінцевого рядка для позначеного фрагмента поточного документа.</para>
+<para
+><userinput
+>Document:Selection:EndColumn</userinput
+>: номер кінцевої позиції у рядку для позначеного фрагмента поточного документа.</para>
+<para
+><userinput
+>Document:RowCount</userinput
+>: кількість рядків у поточному документі.</para>
+<para
+><userinput
+>Document:Variable:&lt;змінна&gt;</userinput
+>: розгорнути довільні <ulink url="help:/katepart/config-variables.html"
+>змінні документа</ulink
+>.</para>
+<para
+><userinput
+>Date:Locale</userinput
+>: поточна дата у форматі поточної локалі.</para>
+<para
+><userinput
+>Date:ISO</userinput
+>: поточна дата (ISO).</para>
+<para
+><userinput
+>Date:&lt;значення&gt;</userinput
+>: поточна дата (<ulink url="https://doc.qt.io/qt-5/qdate.html#toString"
+>у форматі, вказаному рядком форматування QDate</ulink
+>).</para>
+<para
+><userinput
+>Time:Locale</userinput
+>: поточний час у форматі поточної локалі.</para>
+<para
+><userinput
+>Time:ISO</userinput
+>: поточний час (ISO).</para>
+<para
+><userinput
+>Time:&lt;значення&gt;</userinput
+>: поточний час (<ulink url="https://doc.qt.io/qt-5/qtime.html#toString"
+>рядок у форматі QTime</ulink
+>).</para>
+<para
+><userinput
+>ENV:&lt;значення&gt;</userinput
+>: доступ до змінних середовища.</para>
+<para
+><userinput
+>JS:&lt;вираз&gt;</userinput
+>: обробка простих інструкцій JavaScript.</para>
+<para
+><userinput
+>PercentEncoded:&lt;текст&gt;</userinput
+>: текст у кодуванні з використанням кодів спеціальних символів із символом відсотків.</para>
+<para
+><userinput
+>UUID</userinput
+>: створити UUID.</para>
+</listitem>
+</varlistentry>
+</variablelist>
+
+ 
+
+</sect2>
+
+<sect2 id="kate-application-plugin-external-tools-defaults">
+<title
+>Список типових інструментів</title>
+
+<para
+>До типового комплекту програми входять декілька інструментів. Втім, якщо у вас є ідеї щодо корисніших інструментів, будь ласка, повідомте про них на адресу <email
+>kwrite-devel@kde.org</email
+>, щоб розробники могли включити ці інструменти до наступних випусків програми. Усі типові інструменти, типово, буде показано на панелі списку. Втім, ви можете вносити зміни до списку, категоризувати пункти або навіть вилучити інструменти. Вилучені інструменти можна знову додати за допомогою натискання кнопки <guibutton
+>Додати</guibutton
+> на панелі налаштувань, як це описано вище. </para>
+
+<variablelist>
+<title
+>git-cola</title>
+
+<varlistentry>
+<term
+>git-cola — графічний клієнт git, за допомогою якого можна без проблем створювати записи змін і вносити зміни до сховища. Якщо програму встановлено, доступ до неї можна також отримати введенням команди <userinput
+>git-cola</userinput
+> у командному рядку.</term>
+<listitem>
+<para
+><userinput
+>Назва</userinput
+>: git-cola</para>
+<para
+><userinput
+>Піктограма</userinput
+>: git-cola</para>
+<para
+><userinput
+>Виконуваний файл</userinput
+>: git-cola</para>
+<para
+><userinput
+>Аргументи</userinput
+>: -r %{Document:Path}</para>
+<para
+><userinput
+>Команда редактора</userinput
+>: git-cola</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+
+<variablelist>
+<title
+>gitk</title>
+
+<varlistentry>
+<term
+>gitk — також клієнтська програма git, за допомогою якої можна візуалізувати журнал змін у git.</term>
+<listitem>
+<para
+><userinput
+>Назва</userinput
+>: gitk</para>
+<para
+><userinput
+>Піктограма</userinput
+>: git-gui</para>
+<para
+><userinput
+>Виконуваний файл</userinput
+>: gitk</para>
+<para
+><userinput
+>Робочий каталог</userinput
+>: %{Document:Path}</para>
+<para
+><userinput
+>Команда редактора</userinput
+>: gitk</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+
+<variablelist>
+<title
+>git blame</title>
+
+<varlistentry>
+<term
+>Запускає git blame для полегшення стеження за змінами у git для поточного файла.</term>
+<listitem>
+<para
+><userinput
+>Назва</userinput
+>: git blame</para>
+<para
+><userinput
+>Виконуваний файл</userinput
+>: git</para>
+<para
+><userinput
+>Аргументи</userinput
+>: gui blame %{Document:FileName}</para>
+<para
+><userinput
+>Збереження</userinput
+>: поточний документ</para>
+<para
+><userinput
+>Робочий каталог</userinput
+>: %{Document:Path}</para>
+<para
+><userinput
+>Команда редактора</userinput
+>: git-blame</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+
+<variablelist>
+<title
+>Виконати скрипт оболонки</title>
+
+<varlistentry>
+<term
+>Запускає зовнішню &konsole;, у якій виконує поточний документ. Скрипт має оголошувати у першому рядку свій інтерпретатор, ось так: <userinput
+>#!/шлях/інтерпретатор</userinput
+>.</term>
+<listitem>
+<para
+><userinput
+>Назва</userinput
+>: Run Shell Script</para>
+<para
+><userinput
+>Піктограма</userinput
+>: system-run</para>
+<para
+><userinput
+>Виконуваний файл</userinput
+>: konsole</para>
+<para
+><userinput
+>Аргументи</userinput
+>: -e sh -c &quot;cd %{Document:Path} &amp;&amp; pwd &amp;&amp; chmod -vc a+x %{Document:FileName} &amp;&amp; ./%{Document:FileName} ; echo Press any key to continue. &amp;&amp; read -n 1&quot;</para>
+<para
+><userinput
+>Збереження</userinput
+>: поточний документ</para>
+<para
+><userinput
+>Робочий каталог</userinput
+>: %{Document:Path}</para>
+<para
+><userinput
+>Команда редактора</userinput
+>: run-script</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+
+<variablelist>
+<title
+>Пошук у Google позначеного тексту</title>
+
+<varlistentry>
+<term
+>Пошук позначеного фрагмента тексту за допомогою рушія пошуку Google.</term>
+<listitem>
+<para
+><userinput
+>Назва</userinput
+>: Google Selected Text</para>
+<para
+><userinput
+>Піктограма</userinput
+>: globe</para>
+<para
+><userinput
+>Виконуваний файл</userinput
+>: xdg-open</para>
+<para
+><userinput
+>Аргументи</userinput
+>: &quot;https://www.google.com/search?q=%{Document:Selection:Text}&quot;</para>
+<para
+><userinput
+>Команда редактора</userinput
+>: google</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+
+<variablelist>
+<title
+>Вставити UUID</title>
+
+<varlistentry>
+<term
+>Вставляє новий UUID під час кожного виклику цієї дії.</term>
+<listitem>
+<para
+><userinput
+>Назва</userinput
+>: Insert UUID</para>
+<para
+><userinput
+>Виконуваний файл</userinput
+>: echo</para>
+<para
+><userinput
+>Аргументи</userinput
+>: %{UUID}</para>
+<para
+><userinput
+>Виведення</userinput
+>: Вставити у позиції курсора</para>
+<para
+><userinput
+>Команда редактора</userinput
+>: uuid</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+
+<variablelist>
+<title
+>Форматування Clang усього файла</title>
+
+<varlistentry>
+<term
+>Виконує clang-format для поточного файла на диску. Після обробки програма повторно завантажує документ.</term>
+<listitem>
+<para
+><userinput
+>Назва</userinput
+>: Clang Format Full File</para>
+<para
+><userinput
+>Виконуваний файл</userinput
+>: clang-format</para>
+<para
+><userinput
+>Аргументи</userinput
+>: -i %{Document:FileName}</para>
+<para
+><userinput
+>Робочий каталог</userinput
+>: %{Document:Path}</para>
+<para
+><userinput
+>Збереження</userinput
+>: поточний документ</para>
+<para
+><userinput
+>Перезавантажити</userinput
+>: Так</para>
+<para
+><userinput
+>Команда редактора</userinput
+>: clang-format-file</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+
+<variablelist>
+<title
+>Форматування Clang позначеного тексту</title>
+
+<varlistentry>
+<term
+>Запускає clang-format лише до позначеного тексту у поточному документі.</term>
+<listitem>
+<para
+><userinput
+>Назва</userinput
+>: позначений для форматування Clang текст</para>
+<para
+><userinput
+>Виконуваний файл</userinput
+>: clang-format</para>
+<para
+><userinput
+>Аргументи</userinput
+>: -assume-fileName: %{Document:FileName}</para>
+<para
+><userinput
+>Робочий каталог</userinput
+>: %{Document:Path}</para>
+<para
+><userinput
+>Вхідні дані</userinput
+>: %{Document:Selection:Text}</para>
+<para
+><userinput
+>Виведення</userinput
+>: замінити позначений фрагмент тексту</para>
+<para
+><userinput
+>Команда редактора</userinput
+>: clang-format-selection</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+
+<variablelist>
+<title
+>Попередній перегляд Qt Quick 2 (qmlscene)</title>
+
+<varlistentry>
+<term
+>Попередній перегляд поточного файла QML у qmlscene.</term>
+<listitem>
+<para
+><userinput
+>Назва</userinput
+>: Qt Quick 2 Preview (qmlscene)</para>
+<para
+><userinput
+>Виконуваний файл</userinput
+>: qmlscene</para>
+<para
+><userinput
+>Аргументи</userinput
+>: %{Document:FileName}</para>
+<para
+><userinput
+>Збереження</userinput
+>: поточний документ</para>
+<para
+><userinput
+>Робочий каталог</userinput
+>: %{Document:Path}</para>
+<para
+><userinput
+>Команда редактора</userinput
+>: qml-preview</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+
+<variablelist>
+<title
+>Форматування JSON усього файла</title>
+
+<varlistentry>
+<term
+>Форматування усього файла коду JSON.</term>
+<listitem>
+<para
+><userinput
+>Назва</userinput
+>: JSON Format Full File</para>
+<para
+><userinput
+>Піктограма</userinput
+>: application-json</para>
+<para
+><userinput
+>Виконуваний файл</userinput
+>: jq</para>
+<para
+><userinput
+>Аргументи</userinput
+>: %{Document:FileName}</para>
+<para
+><userinput
+>Збереження</userinput
+>: поточний документ</para>
+<para
+><userinput
+>Робочий каталог</userinput
+>: %{Document:Path}</para>
+<para
+><userinput
+>Виведення</userinput
+>: Замінити поточний документ</para>
+<para
+><userinput
+>Команда редактора</userinput
+>: json-format-file</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+
+<variablelist>
+<title
+>Форматування XML усього файла</title>
+
+<varlistentry>
+<term
+>Форматування усього файла коду XML.</term>
+<listitem>
+<para
+><userinput
+>Назва</userinput
+>: JSON Format Full File</para>
+<para
+><userinput
+>Піктограма</userinput
+>: application-xml</para>
+<para
+><userinput
+>Виконуваний файл</userinput
+>: xmllint</para>
+<para
+><userinput
+>Аргументи</userinput
+>: --format %{Document:FileName}</para>
+<para
+><userinput
+>Збереження</userinput
+>: поточний документ</para>
+<para
+><userinput
+>Робочий каталог</userinput
+>: %{Document:Path}</para>
+<para
+><userinput
+>Виведення</userinput
+>: Замінити поточний документ</para>
+<para
+><userinput
+>Команда редактора</userinput
+>: xml-format-file</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+</sect1>
+
+<sect1 id="kate-application-plugin-backtracebrowser">
+<!--https://kate-editor.org/2008/08/12/kate-fast-backtrace-navigation/-->
+<title
+>Додаток перегляду зворотного трасування</title>
+
+<sect2 id="backtracebrowser-using">
+<title
+>Користування додатком перегляду зворотного трасування</title>
+
+<para
+>Цей додаток призначено в основному для розробників, а не для звичайних користувачів. За його допомогою можна переглянути дані зворотного трасування, які створено за допомогою gdb, у форматі списку у вікні інструмента &kate;. Наведенням вказівника миші на пункт у цьому списку із наступним клацанням лівою кнопкою миші можна відкрити відповідний файл і перейти у ньому до відповідного рядка коду. Такий спосіб навігації працює із даними зворотного трасування, які створено не лише на вашому комп’ютері: ви можете скористатися даними інших користувачів, якщо файли коду розташовано у однакових місцях. Для роботи інструментів додатка слід проіндексувати каталоги, у яких зберігаються файли із початковим кодом програми. </para>
+
+<para
+>Іноді може існувати декілька файлів із однаковою назвою. Приклад:</para>
+
+<simplelist>
+<member
+><filename
+>kdegraphics/okular/generators/dvi/config.h</filename
+></member>
+<member
+><filename
+>kdepim-runtime/resources/gmail/saslplugin/config.h</filename
+></member>
+</simplelist>
+
+<para
+>Для того, щоб зробити правильний вибір, у додатку використовуються останні дві частини адреси, у нашому прикладі такі:</para>
+
+<simplelist>
+<member
+><filename
+>dvi/config.h</filename
+></member>
+<member
+><filename
+>saslplugin/config.h</filename
+></member>
+</simplelist>
+
+<para
+>Зазвичай, додаток визначає належний файл автоматично.</para>
+
+<para
+>Одночасне індексування основної і бічних гілок розробки, звичайно ж, призведе до конфлікту.</para>
+
+</sect2>
+
+<sect2 id="backtracebrowser-config">
+<title
+>Налаштування</title>
+
+<para
+>На сторінці налаштовування можна додати каталоги, у яких міститься початковий код програми.</para>
+
+<screenshot id="screenshot-backtrace-settings">
+<screeninfo
+>Переглядач зворотного трасування</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="backtrace-settings.png" format="PNG"/></imageobject>
+<caption
+>Налаштовування шляхів у вікні інструмента перегляду зворотного трасування</caption>
+</mediaobject>
+</screenshot>
+
+<para
+>Натисканням кнопки <guibutton
+>Гаразд</guibutton
+> можна дозволити програмі розпочати індексування. Після завершення індексування можна відкрити вікно інструмента <guilabel
+>Перегляд зворотного трасування</guilabel
+>.</para>
+<para
+>Після цього можна завантажити дані зворотного трасування з буфера обміну даними (наприклад, після натискання кнопки <guibutton
+>Копіювати до буфера</guibutton
+> у &drkonqi;) або з файла.</para>
+
+</sect2>
+
+</sect1>
+
+<sect1 id="kate-application-plugin-build">
+<!--https://kate-editor.org/2011/06/21/kate-plugin-updates-part-1/ -->
+<sect1info>
+<authorgroup>
+<author
+><firstname
+>Salma</firstname
+> <surname
+>Sultana</surname
+></author>
+<author
+>&TC.Hollingsworth; &TC.Hollingsworth.mail;</author>
+</authorgroup>
+</sect1info>
+<title
+>Додаток для збирання</title>
+
+<sect2 id="build-intro">
+<title
+>Вступ</title>
+
+<para
+>За допомогою додатка збирання ви зможете збирати, вилучати зібрані файли та компілювати ваші проєкти зі створення програмного забезпечення.</para>
+
+</sect2>
+
+<sect2 id="build-using">
+<title
+>Користування додатком збирання</title>
+
+<para
+>Додаток збирання додає панель інструментів <guilabel
+>Вивід збирання</guilabel
+> у нижній частині вікна програми та меню <guimenu
+>Збирання</guimenu
+> на смужку меню. За допомогою панелі інструментів ви зможете налаштовувати параметри збирання цілей, меню ж можна скористатися для ініціювання дій зі збирання, очищення та компіляції.</para>
+
+<screenshot id="screenshot-build-output">
+<screeninfo
+>Вивід збирання</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="build-output.png" format="PNG"/></imageobject>
+</mediaobject>
+</screenshot>
+
+<para
+>На панелі <guilabel
+>Вивід збирання</guilabel
+> передбачено дві вкладки:</para>
+
+<itemizedlist>
+<listitem
+><para
+><guilabel
+>Параметри цілі</guilabel
+></para
+></listitem>
+<listitem
+><para
+><guilabel
+>Вивід</guilabel
+></para
+></listitem>
+</itemizedlist>
+
+<sect3 id="build-using-target-settings">
+<title
+>Вкладка «Параметри цілі»</title>
+
+<para
+>Вкладкою «Параметри цілі» можна скористатися для налаштовування різноманітних цілей збирання та визначення наборів збирання.</para>
+
+<para
+>Щоб змінити назви або команди, двічі клацніть на відповідному пункті у таблиці і скористайтеся спадним списком для вибору активного набору цілей. Полем для позначки перед пунктом у списку можна скористатися для визначення відповідної цілі як типової.</para>
+
+<para
+>Для нового набору цілей передбачено декілька параметрів налаштовування:</para>
+
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Робочий каталог</guilabel
+></term>
+<listitem
+><para
+>За допомогою цього пункту ви можете встановити шлях до теки проєкту. Шлях можна не вказувати, якщо ним є адреса каталогу, у якому зберігається поточний документ.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Зібрати</guilabel
+></term>
+<listitem
+><para
+>За допомогою цього пункту можна визначити команду збирання. Типовою командою збирання є <command
+>make</command
+>.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Спорожнити</guilabel
+></term>
+<listitem
+><para
+>За допомогою цього пункту можна визначити команду очищення. Типовою командою очищення є <command
+>make clean</command
+>.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Налаштування</guilabel
+></term>
+<listitem
+><para
+>За допомогою цього пункту можна визначити команду налаштовування збирання. Типовою командою є <command
+>cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=/usr/local ../</command
+>.</para
+></listitem>
+</varlistentry>
+</variablelist>
+
+<para
+>У верхній частині вікна цього додатка розташовано панель інструмента із такими кнопками:</para>
+
+<simplelist>
+<member
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="dialog-ok-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+></guiicon
+> — зібрати позначену ціль</member>
+<member
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="list-add-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+></guiicon
+> — додати нову ціль збирання</member>
+<member
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="document-new-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+></guiicon
+> — створити набір цілей збирання</member>
+<member
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="edit-copy-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+></guiicon
+> — копіювати команду або набір цілей</member>
+<member
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="edit-delete-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+></guiicon
+> — вилучити поточну команду або набір цілей</member>
+</simplelist>
+
+</sect3>
+
+<sect3 id="build-using-output">
+<title
+>Вкладка «Вивід»</title>
+
+<para
+>На вкладці <guilabel
+>Вивід</guilabel
+> буде показано повідомлення, виведені під час виконання останньої команди.</para>
+
+<para
+>Скористайтеся повзунком у верхній частині вікна, щоб наказати програмі показувати або приховувати категорії повідомлень:</para>
+
+<para
+><guilabel
+>Виведені дані повністю</guilabel
+>, <guilabel
+>Оброблені виведені дані</guilabel
+>, <guilabel
+>Помилки і попередження</guilabel
+> або <guilabel
+>Лише помилки</guilabel
+> </para>
+
+<para
+>У кожному рядку буде вказано повідомлення, назву файла та номер рядка, якщо ці дані можна визначити. Натискання рядка помилки або попередження призведе до відкриття у редакторі відповідного файла і розташування курсора у відповідному рядку цього файла.</para>
+
+<para
+>Щоб перейти до місця попередньої помилки, натисніть комбінацію клавіш <keycombo action="simul"
+>&Alt;&Shift;<keysym
+>←</keysym
+></keycombo
+>. Щоб перейти до наступної помилки, натисніть комбінацію клавіш <keycombo action="simul"
+>&Alt;&Shift;<keysym
+>→</keysym
+></keycombo
+>.</para>
+
+</sect3>
+</sect2>
+
+<sect2 id="build-menu">
+<title
+>Структура меню</title>
+
+<variablelist id="build-build">
+<varlistentry>
+<term
+><menuchoice id="build-targets"
+><guimenu
+>Збирання</guimenu
+><guisubmenu
+>Вибрати ціль</guisubmenu
+> </menuchoice
+></term>
+<listitem
+><para
+>Надає змогу вибрати одну з цілей, налаштованих користувачем.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="build-default">
+<term
+><menuchoice
+><guimenu
+>Збирання</guimenu
+><guimenuitem
+>Зібрати типову ціль</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Збирає ціль, визначену як типову у активному наборі цілей.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="build-previous">
+<term
+><menuchoice
+><guimenu
+>Збирання</guimenu
+><guimenuitem
+>Зібрати попередню ціль</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Перейти до попередньої цілі, налаштованої користувачем.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="build-stop">
+<term
+><menuchoice
+><guimenu
+>Збирання</guimenu
+> <guimenuitem
+>Зупинити</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Припинити збирання цілі.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="build-previous-error">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+>&Ctrl;&Alt;<keysym
+>←</keysym
+></keycombo
+></shortcut
+> <guimenu
+>Збирання</guimenu
+><guimenuitem
+>Попередня помилка</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Пересуває курсор до місця попередньої помилки у документі.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="build-next-error">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+>&Ctrl;&Alt;<keysym
+>→</keysym
+></keycombo
+></shortcut
+> <guimenu
+>Збирання</guimenu
+><guimenuitem
+>Наступна помилка</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Пересуває курсор до місця наступної помилки у документі.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+</sect2>
+
+<sect2 id="build-ack">
+<title
+>Подяки</title>
+<para
+>Додаток збирання &kate; створено Kåre Särs.</para>
+<para
+>Особлива подяка учасниці Google Code-In 2011 Salma Sultana за написання більшої частини цього розділу.</para>
+</sect2>
+</sect1>
+
+<sect1 id="kate-application-plugin-closeexceptlike">
+
+<title
+>Додаток закриття за критерієм</title>
+
+<sect2 id="closeexceptlike-intro">
+<title
+>Вступ</title>
+
+<para
+>За допомогою цього додатка можна закрити групу документів на основі вказаних даних щодо суфікса назви і шляху.</para>
+
+</sect2>
+
+<sect2 id="closeexceptlike-using">
+<title
+>Користування додатком закриття за критерієм</title>
+
+<para
+>Нехай у &kate; відкрито такі документи:</para>
+
+<simplelist>
+<member
+>/tmp/subfolder/test.h</member>
+<member
+>/tmp/test.cpp</member>
+<member
+>/tmp/test.txt</member>
+</simplelist>
+
+<para
+>Ви зможете скористатися такими варіантами закриття документів, показаними на знімку:</para>
+
+<screenshot id="screenshot-closeexceptlike">
+<screeninfo
+>Закрити, окрім</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="close-except-like.png" format="PNG"/></imageobject>
+</mediaobject>
+</screenshot>
+
+<para
+>Скористайтеся полем для позначки навпроти останнього пункту у списку, щоб увімкнути або вимкнути діалогове вікно підтвердження дії. Вибраний варіант буде застосовано до обох дій із закриття. </para>
+
+</sect2>
+
+<sect2 id="closeexceptlike-menu">
+<title
+>Структура меню</title>
+
+<variablelist>
+<varlistentry id="file-close-except">
+<term
+><menuchoice
+><guimenu
+>Файл</guimenu
+> <guisubmenu
+>Закрити, окрім</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+><action
+>Закрити</action
+> усі відкриті документи, <emphasis
+>окрім</emphasis
+> тих, які за шляхом або суфіксом назви збігаються із варіантом, вибраним за допомогою підменю.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="file-close-like">
+<term
+><menuchoice
+><guimenu
+>Файл</guimenu
+> <guisubmenu
+>Закрити подібні</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+><action
+>Закрити</action
+> усі відкриті документи, які за шляхом або суфіксом назви збігаються із варіантом, вибраним за допомогою підменю.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+
+</sect1>
+
+<sect1 id="kate-application-plugin-colorpicker">
+
+<title
+>Додаток піпетки</title>
+
+<sect2 id="colorpicker-intro">
+<title
+>Вступ</title>
+
+<para
+>За допомогою цього додатка можна скористатися вбудованою панеллю попереднього перегляду або піпеткою для кольорів у тексті (наприклад <literal
+>#FFFFFF</literal
+>, <literal
+>white</literal
+>).</para>
+
+<para
+>Щоб завантажити цей додаток, відкрийте діалогове вікно налаштування &kate; за допомогою пункту меню <menuchoice
+><guimenu
+>Параметри</guimenu
+> <guimenuitem
+>Налаштувати &kate;...</guimenuitem
+></menuchoice
+>. Після цього позначте пункт <guilabel
+>Піпетка</guilabel
+> і закрийте діалогове вікно. </para>
+</sect2>
+
+<sect2 id="colorpicker-config">
+<title
+>Налаштування</title>
+
+<para
+>На сторінці параметрів додатка «Піпетка» у налаштуваннях &kate; ви можете налаштувати вказані нижче параметри роботи додатка.</para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><guilabel
+>Показ попереднього перегляду кольорів із відомими назвами</guilabel
+></term>
+<listitem>
+<para
+>Визначає, чи слід показувати панель піпетки для відомих назв кольорів (наприклад <literal
+>skyblue</literal
+>). Список назв кольорів наведено на <ulink url="https://www.w3.org/TR/SVG11/types.html#ColorKeywords"
+>цій сторінці</ulink
+>.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Вставляти перегляд після текстового кольору</guilabel
+></term>
+<listitem>
+<para
+>Визначає, чи слід вставляти вбудовану панель попереднього перегляду після текстового запису кольору у коді.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Шістнадцяткові коди кольорів</guilabel
+></term>
+<listitem>
+<para
+>Тут ви можете вибрати найвідповідніший варіант для кольорів у вашому коді.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+
+</sect1>
+
+<sect1 id="kate-application-plugin-ctags">
+<!--https://kate-editor.org/2012/11/02/using-the-projects-plugin-in-kate/-->
+<title
+>Додаток CTags</title>
+
+<sect2 id="ctags-intro">
+<title
+>Вступ</title>
+
+<para
+><ulink url="https://en.wikipedia.org/wiki/Ctags"
+>CTags</ulink
+> створює файл покажчика (або файл міток) об’єктів мови, які буде знайдено у файлах початкового коду. Після створення такого файла об’єкти можна буде швидко і просто знайти за допомогою цього додатка до &kate;. </para>
+<para
+>Мітка позначає об’єкт мови програмування, для якого існує запис у покажчику (або, інакше кажучи, запис покажчика для цього об’єкта).</para>
+
+<para
+>Створення міток можливе для <ulink url="http://ctags.sourceforge.net/languages.html"
+>цих мов програмування</ulink
+>. </para>
+</sect2>
+
+<sect2 id="ctags-config">
+<title
+>Налаштування</title>
+
+<para
+>Додаток CTags використовує два різних файли баз даних для зберігання даних покажчика.</para>
+
+<para
+>За допомогою сторінки налаштовування додатка CTags у вікні параметрів &kate; ви можете додавати або вилучати записи каталогів, у яких містяться файли із початковим кодом, а також повторно створювати загальну базу даних CTags.</para>
+
+<sect3 id="ctags-config-common">
+<title
+>Загальний покажчик</title>
+
+<screenshot id="screenshot-ctags-global-settings">
+<screeninfo
+>Параметри CTags</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="ctags-global-setting.png" format="PNG"/></imageobject>
+<caption
+>Налаштовування загальної бази даних CTags</caption>
+</mediaobject>
+</screenshot>
+
+<para
+>За допомогою нижньої частини сторінки налаштовування ви можете вказати <guilabel
+>Команду CTags</guilabel
+>. </para>
+
+<para
+>Щоб дізнатися більше про усі доступні параметри, будь ласка, ознайомтеся із сторінкою підручника (man) CTags. Прочитати цю сторінку можна у «Центрі довідки» (&khelpcenter;). Крім того, можна просто ввести адресу <emphasis
+>man:/ctags</emphasis
+> безпосередньо у поле для адреси вікна &konqueror; </para>
+
+<para
+>Натискання кнопки <guibutton
+>Оновити</guibutton
+> накаже програмі розпочати індексування. Коли індексування буде завершено, закрийте діалогове вікно.</para>
+</sect3>
+
+<sect3 id="ctags-config-session">
+<title
+>Покажчик сеансу</title>
+
+<para
+>Щоб налаштувати покажчик сеансу, відкрийте панель <guilabel
+>CTags</guilabel
+>.</para>
+
+<variablelist>
+<varlistentry>
+<term
+><menuchoice>
+<guimenu
+>Цілі індексування</guimenu>
+</menuchoice
+></term>
+<listitem>
+<para
+>За допомогою цієї вкладки ви можете додавати або вилучати записи каталогів, які містять початковий код програми, і вручну запускати процедуру повторного створення специфічної для сеансу бази даних CTags.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><menuchoice>
+<guimenu
+>База даних</guimenu>
+</menuchoice
+></term>
+<listitem>
+<screenshot id="screenshot-ctags-session-settings">
+<screeninfo
+>Параметри бази даних</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="ctags-session-setting.png" format="PNG"/></imageobject>
+<caption
+>Налаштовування бази даних сеансів CTags</caption>
+</mediaobject>
+</screenshot>
+<para
+>Вибір іншого файла бази даних CTags, налаштовування команди CTags або повернення до типової команди.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect3>
+
+</sect2>
+
+<sect2 id="ctags-using">
+<title
+>Користування додатком CTags</title>
+
+<para
+>Вам достатньо навести вказівник миші на об’єкт мови, зокрема функцію, символ тощо, який вам потрібен, а потім вибрати один із пунктів меню <guimenu
+>CTags</guimenu
+>, щоб перейти до рядка і файла, де цей об’єкт визначено чи оголошено.</para>
+<para
+>Типово, із пунктами меню <guimenu
+>CTags</guimenu
+> не пов’язано жодних клавіатурних скорочень. Якщо вам хочеться визначити такі скорочення, скористайтеся <ulink url="help:/fundamentals/shortcuts.html"
+>редактором клавіатурних скорочень</ulink
+>.</para>
+
+<para
+>Крім того, можна скористатися полем для пошуку на вкладці <guilabel
+>Пошук</guilabel
+> панелі CTags.</para>
+<para
+>Після введення перших символів назви об’єкта у поле для пошуку програма спробує знайти відповідні об’єкти мови за назвою. Буде показано відповідні функції, класи, символи тощо разом із даними щодо їхнього типу та назви відповідного файла.</para>
+<para
+>Позначте пункт у списку, щоб перейти до відповідного рядка у файлі із початковим кодом.</para>
+<!--FIXME why Tag Type here but Name Kind in Project plugin, is there really any difference?-->
+
+<!--FIXME completion as in Project plugin? -->
+
+</sect2>
+
+<sect2 id="ctags-menu">
+<title
+>Структура меню</title>
+
+<variablelist>
+
+<varlistentry id="ctags-jumpback">
+<term
+><menuchoice
+><guimenu
+>CTags</guimenu
+> <guisubmenu
+>Повернутися на один крок</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Перейти назад за записом журналу щодо останньої відвіданої мітки.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="ctags-lookup">
+<term
+><menuchoice
+><guimenu
+>CTags</guimenu
+> <guisubmenu
+>Шукати поточний текст</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Відкриває вкладку <guilabel
+>Пошук</guilabel
+> панелі CTags і показує список усіх об’єктів мови, що відповідають поточному позначеному фрагменту тексту.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="ctags-gotodeclaration">
+<term
+><menuchoice
+><guimenu
+>CTags</guimenu
+> <guisubmenu
+>Перейти до оголошення</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Якщо курсор перебуває у межах визначення об’єкта, буде відкритого документ, що містить відповідне оголошення об’єкта, активовано цей документ, а курсор буде пересунуто на початок оголошення.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="ctags-gotodefinition">
+<term
+><menuchoice
+><guimenu
+>CTags</guimenu
+> <guisubmenu
+>Перейти до визначення</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Якщо курсор перебуває у межах оголошення об’єкта, буде відкритого документ, що містить відповідне визначення об’єкта, активовано цей документ, а курсор буде пересунуто на початок визначення.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+<!--context menu with Lookup Current Text, Goto Declaration, Goto Definition -->
+
+</sect2>
+
+</sect1>
+<!--https://frinring.wordpress.com/2017/11/07/ktexteditorpreviewplugin-0-2-1-last-stand-alone/-->
+<!-- https://frinring.wordpress.com/2017/08/21/look-what-you-have-donewwdo/-->
+<sect1 id="kate-application-plugin-preview">
+<title
+>Додаток попереднього перегляду документів</title>
+
+<sect2 id="preview-introduction">
+<title
+>Вступ</title>
+<para
+>За допомогою цього додатка реалізовано інтерактивний попередній перегляд поточного редагованого документа у остаточному форматі на бічній панелі. Отже, редагуючи, наприклад, текст у форматі Markdown або зображення SVG, ви одразу бачитимете результати поряд із початковим текстом. </para>
+
+<para
+>Для показу даних додаток використовує додаток KParts, який визначено як бажаний для типу &MIME; документа. Якщо додатка KParts для відповідного типу документа не буде знайдено, попередній перегляд не буде показано. </para>
+
+<para
+>Щоб змінити бажаний додаток, відкрийте вікно модуля <guilabel
+>Прив'язка файлів</guilabel
+> програми «Системні параметри» і змініть значення <guilabel
+>Порядок пріоритету служб</guilabel
+> на вкладці <guilabel
+>Вмонтовані</guilabel
+>. </para>
+
+<table>
+<title
+>Деякі доступні додатки KParts</title>
+<tgroup cols="2">
+<tbody>
+<row>
+<entry
+>Тип &MIME;</entry
+><entry
+>Додаток KParts</entry>
+</row>
+<row>
+<entry
+>Текст Markdown</entry
+><entry
+>KMarkdownWebViewPart або OkularPart</entry>
+</row>
+<row>
+<entry
+>Зображення SVG</entry
+><entry
+>SVGPart</entry>
+</row>
+<row>
+<entry
+>Файли інтерфейсу користувача &Qt;</entry
+><entry
+>KUIViewerPart</entry>
+</row>
+<row>
+<entry
+>Файли графів Dot</entry
+><entry
+>KGraphviewerPart</entry>
+</row>
+</tbody>
+</tgroup>
+</table>
+</sect2>
+
+<sect2 id="preview-menu">
+<title
+>Структура меню</title>
+<variablelist>
+
+<varlistentry id="view-toolviews-show-preview">
+<term
+><menuchoice
+><guimenu
+>Перегляд</guimenu
+><guisubmenu
+>Вікна інструментів</guisubmenu
+> <guimenuitem
+>Показати Попередній перегляд</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Увімкнути або вимкнути показ панелі попереднього перегляду документа &kate; на бічній панелі вікна програми.</para>
+</listitem>
+</varlistentry>
+</variablelist>
+</sect2>
+
+<sect2 id="preview-interface">
+<title
+>Інтерфейс</title>
+<para
+>За допомогою кнопок у верхній частині панелі попереднього перегляду можна виконувати такі дії: </para>
+<itemizedlist>
+<listitem>
+<para
+>Заблокувати попередній перегляд вказаного документа. Якщо ви скористаєтеся цим пунктом, при перемиканні фокуса перегляду на інший документ у тому самому вікні &kate; попередній перегляд не буде оновлено вмістом нового документа, — у ньому лишатиметься показаним попередній, заблокований документ.</para>
+</listitem>
+<listitem>
+<para
+>Увімкнути або вимкнути оновлення попереднього перегляду вмісту поточного документа</para>
+</listitem>
+<listitem>
+<para
+>Вручну оновити попередній перегляд вмісту поточного документа</para>
+</listitem>
+<listitem>
+<para
+>Спадне меню із пунктами дій додатка KParts</para>
+</listitem>
+</itemizedlist>
+</sect2>
+
+</sect1>
+
+<sect1 id="kate-application-plugin-documentswitcher">
+
+<title
+>Додаток перемикання документів</title>
+
+<sect2 id="documentswitcher-menu">
+<title
+>Структура меню</title>
+
+<variablelist>
+
+<varlistentry id="view-documentswitcher">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;&Tab;</keycombo
+> </shortcut
+> <guimenu
+>Перегляд</guimenu
+> <guisubmenu
+>Попередні перегляди</guisubmenu
+> </menuchoice
+></term>
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;&Shift;&Tab;</keycombo
+> </shortcut
+> <guimenu
+>Перегляд</guimenu
+> <guisubmenu
+>Попередні перегляди (у зв. порядку)</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+
+<para
+><action
+>Відкриває</action
+> список останніх переглянутих документів:</para>
+
+<screenshot id="screenshot-documentswitcher">
+<screeninfo
+>Останні переглянуті документи</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="documentswitcher.png" format="PNG"/></imageobject>
+</mediaobject>
+</screenshot>
+
+<para
+>Тримайте натиснутою клавішу &Ctrl; і натискайте клавішу &Tab;, щоб циклічно переходити пунктами списку вперед. Додаткове натискання клавіші &Shift; надає змогу пересуватися списком у зворотному напрямку. </para>
+
+<para
+>Якщо утримувати натиснутою комбінацію клавіш <keycombo action="simul"
+>&Ctrl;&Tab;</keycombo
+>, можна скористатися клавішами <keysym
+>↑</keysym
+>, <keysym
+>↓</keysym
+>, <keycap
+>Home</keycap
+> та <keycap
+>End</keycap
+> для навігації списком. Натисканням клавіші з літерою можна циклічно переходити між усіма пунктами у списку із відповідною першою літерою. Після відпускання натиснутих клавіш програма негайно перемкнеться на поточний позначений документ зі списку. </para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+
+</sect1>
+
+
+<sect1 id="kate-application-plugin-fsbrowser">
+
+<title
+>Навігатор файловою системою</title>
+
+<para
+>Навігатор файлової системи — це переглядач тек, за допомогою якого ви зможете відкривати файли з показаної у навігаторі теки у поточному фреймі.</para>
+
+<sect2 id="fsbrowser-menu">
+<title
+>Структура меню</title>
+<variablelist>
+
+<varlistentry id="view-toolviews-show-filebrowser">
+<term
+><menuchoice
+><guimenu
+>Перегляд</guimenu
+><guisubmenu
+>Вікна інструментів</guisubmenu
+> <guimenuitem
+>Показати Навігатор файлової системи</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Вмикає або вимикає показ переглядача файлової системи &kate;.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+</sect2>
+
+<sect2 id="fsbrowser-interface">
+<title
+>Інтерфейс</title>
+
+<para
+>Перелічимо всі елементи навігатора файлової системи, починаючи згори:</para>
+
+<variablelist>
+<varlistentry>
+<term
+>Панель інструментів</term>
+<listitem>
+<para
+>На цій панелі містяться стандартні кнопки інструментів навігації:</para>
+<variablelist>
+<varlistentry>
+<term
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="go-previous-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> Назад</guiicon
+></term>
+<listitem
+><para
+>За допомогою цієї кнопки можна повернути переглядач тек до перегляду попередньої теки з журналу перегляду. Якщо попередніх тек у журналі немає, цю кнопку буде вимкнено.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="go-next-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> Вперед</guiicon
+></term>
+<listitem
+><para
+>За допомогою цієї кнопки можна повернути переглядач тек до перегляду наступної теки з журналу перегляду. Якщо наступних тек у журналі немає, цю кнопку буде вимкнено.</para
+></listitem>
+</varlistentry>
+<!--varlistentry>
+<term
+><guibutton
+>Parent Folder</guibutton
+></term>
+<listitem
+><para
+>This will cause the folder view to <command
+>cd</command
+> to the immediate parent of the currently displayed
+folder if possible.</para
+></listitem>
+</varlistentry-->
+<varlistentry>
+<term
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="bookmarks-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> Закладки</guiicon
+></term>
+<listitem
+><para
+>Ця кнопка відкриває підменю, за допомогою якого ви змінити або додати закладку, а також створити нову теку закладок.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="system-switch-user-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> Поточна тека документа</guiicon
+></term>
+<listitem
+><para
+>За допомогою цієї кнопки можна перевести фокус переглядача тек на теку, де зберігається файл поточного документа, якщо це можливо. Якщо поточний документ є новим, ще не збереженим, або теку, де зберігається файл документа не може бути визначено, цю кнопку буде вимкнено.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="games-config-options-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+> Параметри</guiicon
+></term>
+<listitem>
+<variablelist>
+<varlistentry>
+<term
+><guimenuitem
+>Стислий вигляд</guimenuitem
+></term>
+<listitem
+><para
+>За натискання цієї кнопки у переглядачі буде показано лише назви файлів.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guimenuitem
+>Детальний вигляд</guimenuitem
+></term>
+<listitem
+><para
+>За натискання цієї кнопки у переглядачі буде показано дані про <guilabel
+>Назву</guilabel
+>, <guilabel
+>Дату створення</guilabel
+> і <guilabel
+>Розмір</guilabel
+> файлів.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guimenuitem
+>Ієрархічний вигляд</guimenuitem
+></term>
+<listitem
+><para
+>Подібний до скороченого вигляду, але теки можна розгортати для перегляду їхнього вмісту.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guimenuitem
+>Детальний ієрархічний вигляд</guimenuitem
+></term>
+<listitem
+><para
+>У цьому режимі також можна розгортати теки, але буде показано додаткові стовпчики даних з детального вигляду.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guimenuitem
+>Показувати приховані файли</guimenuitem
+></term>
+<listitem
+><para
+>Показує файли, які зазвичай приховуються вашою операційною системою.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guimenuitem
+>Автоматично синхронізувати з поточним документом</guimenuitem
+></term>
+<listitem
+><para
+>Якщо позначено цей пункт, інструмент перегляду файлової системи автоматично переходитиме до теки поточного відкритого документа у разі зміни цього документа.</para
+></listitem>
+</varlistentry>
+</variablelist>
+</listitem>
+</varlistentry>
+</variablelist>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Запис розташування</term>
+<listitem>
+<para
+>Показує панель послідовної навігації до поточної відкритої теки, подібно до &dolphin;. Для переходу до будь-якої з тек просто клацніть на її назві. Ви також можете натиснути кнопку зі стрілочкою поряд з назвою теки, щоб відкрити список підтек цієї теки. Натискання першого з пунктів навігації з зображенням піктограми певного місця у вашій системі відкриє список панелі «Місця».</para>
+
+<para
+>Ви можете клацнути лівою кнопкою миші праворуч від поля послідовної навігації і ввести шлях до теки, вміст якої слід показати у переглядачі тек. У рядку &URL;-адреси передбачено підказку у вигляді списку раніше введених адрес. Ви можете обрати одну з цих адрес за допомогою натискання кнопки зі стрілочкою, розташованої праворуч від рядка адреси.</para>
+<tip
+><para
+>У рядку &URL;-адреси передбачено автоматичне доповнення назв тек. Спосіб доповнення можна обрати за допомогою контекстного меню поля адреси (викликати це меню можна за допомогою клацання правою кнопкою миші).</para
+></tip>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Перегляд тек</term>
+<listitem
+><para
+>Це стандартне вікно перегляду тек &kde;.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Поле фільтрування</term>
+<listitem>
+<para
+>За допомогою поля фільтрування ви зможете ввести шаблон для файлів, які буде показано у переглядачі тек. У шаблоні можна використовувати стандартні замінники; декілька шаблонів слід відокремлювати один від одного пробілами. Приклад: <userinput
+>*.cpp *.h *.moc</userinput
+></para>
+<para
+>Щоб було показано всі файли, просто введіть у поле фільтрування символ зірочки, <userinput
+>*</userinput
+>.</para>
+<para
+>У полі фільтрування передбачено запам’ятовування останніх 10 шаблонів, щоб скористатися одним з них, натисніть кнопку зі стрілочкою, розташовану праворуч від поля, і виберіть потрібний рядок шаблону зі списку. Ви можете вимкнути фільтр натисканням кнопки <guibutton
+>Вилучити текст</guibutton
+>, розташованої ліворуч від кнопки автоматичного доповнення.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+</sect2>
+
+
+<sect2 id="fsbrowser-config">
+<title
+>Налаштування</title>
+
+<para
+>Налаштувати цей додаток можна на сторінці <guilabel
+>Навігатор файлової системи</guilabel
+> діалогового вікна <link linkend="configuring-kate-configdialog"
+>налаштування &kate;</link
+>.</para>
+
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Панель інструментів</guilabel
+></term>
+<listitem
+><para
+>Тут можна налаштувати перелік кнопок на панелі навігатора файлової системи: пересуньте потрібні кнопки, які ви бажаєте додати на панель, до списку <guilabel
+>Вибраних дій</guilabel
+>, впорядкувати кнопки можна за допомогою кнопок зі стрілочками, розташованих збоку від списку.</para>
+ </listitem>
+</varlistentry>
+
+</variablelist>
+</sect2>
+</sect1>
+
+<sect1 id="kate-application-plugin-documents">
+<title
+>Список документів</title>
+<!-- https://kate-editor.org/2010/09/12/kate-tree-view-plugin-update/-->
+<sect2 id="documents-intro">
+<title
+>Вступ</title>
+
+<para
+><indexterm
+><primary
+>Список документів</primary
+></indexterm
+> На панелі списку документів ви побачите список всіх документів, які зараз відкрито у &kate;. Поруч з позначками файлів з незбереженими змінами буде показано невеличку піктограму <guiicon
+>дискети</guiicon
+>, яка позначатиме їх стан.</para>
+
+<para
+>Над списком документів розташовано панель інструментів із такими кнопками:</para>
+
+<simplelist>
+<member
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="document-new-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+></guiicon
+> — створити документ</member>
+<member
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="document-open-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+></guiicon
+> відкрити наявний документ</member>
+<member
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="go-up-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+></guiicon
+> — попередній документ</member>
+<member
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="go-down-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+></guiicon
+> — наступний документ</member>
+<member
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="document-save-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+></guiicon
+> — зберегти поточний документ</member>
+<member
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="document-save-as-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+></guiicon
+> — зберегти поточний документ із новою назвою</member>
+</simplelist>
+
+<para
+>Типово список документів буде показано у <guimenuitem
+>Ієрархічному режимі</guimenuitem
+>, у якому програма показує структуру тек навколо поточних відкритих документів. Ним також можна скористатися у <guimenuitem
+>Режимі списку</guimenuitem
+>, у якому програма показує простий список всіх відкритих документів. Перемкнутися між режимами перегляду можна клацанням правою кнопкою на списку з наступним вибором режиму зі списку <guisubmenu
+>Режим перегляду</guisubmenu
+>.</para>
+
+<para
+>Якщо буде відкрито декілька файлів з однаковою назвою (розташованих у різних теках) у <guimenuitem
+>Режимі списку</guimenuitem
+>, перед назвою другого з цих файлів ви побачите цифру «(2)», інші файли з тією ж назвою нумеруватимуться послідовно. У контекстній підказці файла буде показано назву файла повністю, разом зі шляхом до теки, де він знаходиться, отже вам буде просто обрати потрібний вам файл зі списку.</para
+> <para
+>Щоб програма показала документ у поточному активному фреймі, натисніть позначку документа у списку.</para>
+
+<para
+>У контекстному меню буде показано деякі з пунктів дій меню <guimenu
+>Файл</guimenu
+>.</para>
+
+<para
+>Крім того, передбачено пункти дій з керування файлами для перейменовування та вилучення файла. За допомогою пункту <guimenuitem
+>Копіювати шлях до файла</guimenuitem
+> можна скопіювати повний шлях до документа до буфера обміну даними.</para>
+
+<para
+>Ви можете впорядковувати список у декілька різних способів за допомогою пункту <guisubmenu
+>Впорядкувати за</guisubmenu
+> контекстного меню, яке відкривається після клацання правою кнопкою миші, коли вказівник миші знаходитиметься у списку. Серед можливих варіантів впорядкування: <variablelist>
+
+<varlistentry>
+<term
+><guimenuitem
+>Назва документа</guimenuitem
+></term>
+<listitem
+><para
+>Список буде побудовано в алфавітному порядку назв файлів.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guimenuitem
+>Адреса документа</guimenuitem
+></term>
+<listitem
+><para
+>Список буде побудовано в алфавітному порядку адрес файлів.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guimenuitem
+>Порядок відкриття</guimenuitem
+></term>
+<listitem
+><para
+>Список буде побудовано за порядком відкриття документів.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</para>
+
+<para
+>Типово, у списку документів буде показано порядок роботи з документами за допомогою підсвічування у списку документів, з якими ви працювали нещодавно, кольором. Якщо документ було змінено, до кольору буде додано відповідний відтінок. Документи з якими ви працювали останніми буде показано яскравішим кольором, отже вам буде простіше знайти документи, над якими ви працюєте. Цю можливість можна вимкнути за допомогою <link linkend="config-dialog-documents"
+>сторінки документів</link
+> діалогового вікна налаштування програми.</para>
+<para
+>Типово, список документів у вікні &kate; розташовано у лівій частині області редагування.</para>
+
+</sect2>
+
+<sect2 id="documents-menus">
+<title
+>Структура меню</title>
+
+<variablelist>
+
+<varlistentry id="view-document-previous">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+>&Alt;<keysym
+>↑</keysym
+></keycombo
+></shortcut
+> <guimenu
+>Перегляд</guimenu
+> <guimenuitem
+>Попередній документ</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Відкриває документ, показаний у списку документів перед поточним відкритим документом.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-document-next">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+>&Alt;<keysym
+>↓</keysym
+></keycombo
+></shortcut
+> <guimenu
+>Перегляд</guimenu
+> <guimenuitem
+>Наступний документ</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Відкриває документ, показаний у списку документів після поточного відкритого документа.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-active">
+<term
+><menuchoice
+><guimenu
+>Перегляд</guimenu
+> <guimenuitem
+>Показати активні</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Показує поточний відкритий документ у списку документів.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+
+<sect2 id="config-dialog-documents">
+<title
+>Налаштування</title>
+
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Затінення тла</guilabel
+></term>
+<listitem
+><para
+>За допомогою цього розділу ви можете увімкнути або вимкнути візуалізацію затіненням останніх дій із документом та вибрати кольори, які буде використано для затінення, якщо його увімкнено.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Впорядкувати за</guilabel
+></term>
+<listitem
+><para
+>Тут ви можете встановити спосіб впорядкування списку документів. Ви також можете встановити порядок за допомогою контекстного меню списку документів.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Режим перегляду</guilabel
+></term>
+<listitem
+><para
+>За допомогою цього пункту можна вибрати один з двох варіантів показу даних на панелі документів. Якщо буде вибрано варіант <guilabel
+>Ієрархічний перегляд</guilabel
+>, список документів буде показано у форматі дерева, де списки документів будуть гілками пунктів тек, у яких ці документи зберігаються. Якщо ж буде вибрано варіант <guilabel
+>Перегляд списком</guilabel
+>, програма показуватиме плоский список документів. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Показати повний шлях</guilabel
+></term>
+<listitem
+><para
+>Якщо буде увімкнено режим ієрархічного перегляду, записи тек на панелі документів буде показано з повним шляхом у файловій системі у назві теки. Ці дані не буде показано у режимі перегляду списком.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Показати панель інструментів</guilabel
+></term>
+<listitem
+><para
+>Якщо увімкнено ієрархічний перегляд і позначено цей пункт, над списком документів буде показано панель інструментів із кнопками, подібним до кнопки <guibutton
+>Зберегти</guibutton
+>. Зніміть позначку з цього пункту, якщо панель інструментів має бути приховано.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Показати кнопку закриття</guilabel
+></term>
+<listitem
+><para
+>Якщо позначено цей пункт, &kate; при наведенні на пункти відкритих документів показуватиме кнопку закриття.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+
+</sect1>
+
+<sect1 id="kate-application-plugin-gdb">
+<!--https://kate-editor.org/2011/06/23/kate-plugin-updates-part-2/-->
+<sect1info>
+<authorgroup>
+<author
+><firstname
+>Martin</firstname
+> <surname
+>Gergov</surname
+></author>
+<author
+>&TC.Hollingsworth; &TC.Hollingsworth.mail;</author>
+</authorgroup>
+</sect1info>
+<title
+>Додаток &gdb;</title>
+
+<sect2 id="gdb-intro">
+<title
+>Вступ</title>
+
+<para
+>Додаток &gdb; до &kate; є простою графічною оболонкою до популярного інструмента діагностики виконання програм &GNU;, &gdb;.</para>
+
+<important>
+<para
+>Користувачам додатка варто спочатку добре ознайомитися з самим &gdb;. Щоб дізнатися більше про те, як користуватися &gdb;, зверніться до <ulink url="https://www.gnu.org/software/gdb/"
+>сайта &gdb;</ulink
+>.</para>
+</important>
+
+<para
+>Увімкнути додаток &gdb; можна за допомогою <link linkend="config-dialog-plugins"
+>розділу «Додатки» діалогового вікна налаштувань &kate;</link
+>.</para>
+
+<para
+>Щоб додаток працював належним чином, вам знадобиться файл з кодом (будь-якого підтримуваного у &gdb; типу) та виконуваний файл.</para>
+
+<tip>
+<para
+>Якщо виконуваний файл збирається за допомогою &gcc;/<command
+>g++</command
+>, варто скористатися під час збирання параметром командного рядка <command
+><parameter
+>-ggdb</parameter
+></command
+>. </para>
+</tip>
+
+<para
+>Після виконання всіх попередніх етапів збирання відкрийте файл коду у &kate;, вкажіть адресу виконуваного файла за допомогою вкладки <guilabel
+>Параметри</guilabel
+> панелі <guilabel
+>Панель налагоджування</guilabel
+> і виберіть у меню пункт <menuchoice
+><guimenu
+>Налагоджування</guimenu
+><guimenuitem
+>Почати налагоджування</guimenuitem
+></menuchoice
+>, щоб розпочати сеанс налагоджування.</para>
+
+</sect2>
+
+<sect2 id="gdb-menus">
+<title
+>Структура меню і панелі інструментів</title>
+
+<para
+>Доступ до всіх пунктів дій можна отримати за допомогою меню &kate;. Крім того, скористатися значною частиною цих пунктів можна за допомогою панелі інструментів налагоджування.</para>
+
+<variablelist>
+
+<varlistentry id="gdb-menus-show-debug-view">
+<term
+><menuchoice
+><guimenu
+>Перегляд</guimenu
+><guisubmenu
+>Вікна інструментів</guisubmenu
+> <guimenuitem
+>Панель налагоджування</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Показує панель з даними, виведеними &gdb;, дані щодо використаного командного рядка &gdb; та інших параметрів.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="gdb-menus-show-locals-and-stack">
+<term
+><menuchoice
+><guimenu
+>Перегляд</guimenu
+><guisubmenu
+>Вікна інструментів</guisubmenu
+> <guimenuitem
+>Показати Локальні і стек викликів</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Показує список всіх завантажених змінних та їхніх значень, а також зворотне трасування &gdb;. </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="gdb-menus-targets">
+<term
+><menuchoice
+><guimenu
+>Налагоджування</guimenu
+><guisubmenu
+>Призначення</guisubmenu
+> </menuchoice
+></term>
+<listitem
+><para
+>Підменю зі списком призначень (виконуваних файлів). </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="gdb-menus-start">
+<term
+><menuchoice
+><guimenu
+>Налагоджування</guimenu
+> <guimenuitem
+>Почати налагоджування</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Запускає &gdb; для обробки певного виконуваного файла.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="gdb-menus-kill">
+<term
+><menuchoice
+><guimenu
+>Налагоджування</guimenu
+><guimenuitem
+>Перервати або припинити налагоджування</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Зупиняє роботу &gdb;.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="gdb-menus-restart">
+<term
+><menuchoice
+><guimenu
+>Налагоджування</guimenu
+><guimenuitem
+>Перезапустити налагоджування</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Перезапускає &gdb;.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="gdb-menus-break">
+<term
+><menuchoice
+><guimenu
+>Налагоджування</guimenu
+><guimenuitem
+>Встановити/Зняти точку зупинки</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Встановити або зняти точку зупинки у поточному розташуванні курсора. </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="gdb-menus-step-in">
+<term
+><menuchoice
+><guimenu
+>Налагоджування</guimenu
+><guimenuitem
+>Увійти</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Виконати поточну інструкцію (буде виконано діагностику виклику функції). </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="gdb-menus-step-over">
+<term
+><menuchoice
+><guimenu
+>Налагоджування</guimenu
+><guimenuitem
+>Переступити</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Виконати поточну інструкцію (діагностику виклику функції не буде виконано).</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="gdb-menus-step-out">
+<term
+><menuchoice
+><guimenu
+>Налагоджування</guimenu
+> <guimenuitem
+>Вийти</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Поновлює виконання, аж до моменту переривання програми, яка виконується.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="gdb-menus-move-pc">
+<term
+><menuchoice
+><guimenu
+>Налагоджування</guimenu
+><guimenuitem
+>Пересунути PC</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Пересунути лічильник програми (наступне виконання).</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="gdb-menus-run-to-cursor">
+<term
+><menuchoice
+><guimenu
+>Налагоджування</guimenu
+> <guimenuitem
+>Виконати до курсора</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Запускає виконання програми до інструкції, у якій зараз перебуває курсор. </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="gdb-menus-continue">
+<term
+><menuchoice
+><guimenu
+>Налагоджування</guimenu
+><guimenuitem
+>Продовжити</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Ігнорує всі точки зупинки і виконує програму аж до її переривання (у режимі успішного виконання або у режимі аварійної зупинки).</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="gdb-menus-print-value">
+<term
+><menuchoice
+><guimenu
+>Налагоджування</guimenu
+> <guimenuitem
+>Вивести значення</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Виводить значення змінної, на якій перебуває курсор у тексті програми.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="gdb-menus-toolbar">
+<term
+><menuchoice
+><guimenu
+>Параметри</guimenu
+> <guisubmenu
+>Показані панелі</guisubmenu
+> <guimenuitem
+>Додаток &gdb;</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Показати панель налагоджування.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+
+<sect2 id="gdb-debug-view">
+<title
+>Панель налагоджування</title>
+
+<para
+>На панелі <guilabel
+>Панель налагоджування</guilabel
+> буде показано декілька вкладок: </para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><guilabel
+>Вивід &gdb;</guilabel
+></term>
+<listitem>
+<para
+>Містить дані, отримані від &gdb;, та командний рядок &gdb;.</para>
+
+<screenshot id="screenshot-gdb-output">
+<screeninfo
+>Вкладка «Вивід»</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="gdb-output.png" format="PNG"/></imageobject>
+<textobject
+><phrase
+>Вкладка «Вивід».</phrase
+></textobject>
+<caption
+><para
+>На вкладці <guilabel
+>Вивід</guilabel
+> буде показано повідомлення, виведені під час виконання сеансу налагоджування.</para
+></caption>
+</mediaobject>
+</screenshot>
+
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Параметри</guilabel
+></term>
+<listitem>
+<variablelist>
+
+<varlistentry>
+<term
+><guilabel
+>Виконуваний файл</guilabel
+></term>
+<listitem
+><para
+>Шлях до призначення (виконуваного файла) для виконання діагностики.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Робочий каталог</guilabel
+></term>
+<listitem
+><para
+>Поточний робочий каталог, вказаний виконуваному файлу (призначенню). </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Аргументи</guilabel
+></term>
+<listitem
+><para
+>Аргументи, передані програмі.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Зберігати фокусування</guilabel
+></term>
+<listitem
+><para
+>Зберігає фокусування на командному рядку &gdb;.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Переспрямувати ввід-вивід</guilabel
+></term>
+<listitem
+><para
+>Відкриває нову вкладку <guilabel
+>Ввід-вивід</guilabel
+> на панелі <guilabel
+>Панель налагоджування</guilabel
+>. За допомогою цієї вкладки ви зможете переглядати виведені дані та вводити дані, потрібні запущеній програмі.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+<screenshot id="screenshot-gdb-settings">
+<screeninfo
+>Діалогове вікно параметрів</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="gdb-settings.png" format="PNG"/></imageobject>
+<textobject
+><phrase
+>Діалогове вікно параметрів</phrase
+></textobject>
+<caption
+><para
+>У діалоговому вікні <guilabel
+>Параметри</guilabel
+> буде показано налаштування сеансу налагоджування (діагностики).</para
+></caption>
+</mediaobject>
+</screenshot>
+
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Ввід-вивід</guilabel
+></term>
+<listitem>
+<para
+>Містить область з даними, виведеними запущеною програмою, та запрошенням командного рядка, за допомогою якого ви можете вводити дані, потрібні програмі.</para>
+
+<screenshot id="screenshot-gdb-io">
+<screeninfo
+>Вкладка «Ввід-вивід»</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="gdb-io.png" format="PNG"/></imageobject>
+<textobject
+><phrase
+>Вкладка «Ввід-вивід».</phrase
+></textobject>
+<caption
+><para
+>На вкладці <guilabel
+>Ввід-вивід</guilabel
+> показано повідомлення, виведені простою тестовою програмою.</para
+></caption>
+</mediaobject>
+</screenshot>
+
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+
+<sect2 id="gdb-other">
+<title
+>Стек викликів і локальні змінні</title>
+
+<para
+>На панелі <guilabel
+>Стек викликів</guilabel
+> буде показано форматовані дані зворотного трасування, отримані від &gdb;.</para>
+
+<screenshot id="screenshot-gdb-call-stack">
+<screeninfo
+>Панель інструмента стеку викликів &gdb;</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="gdb-call-stack.png" format="PNG"/></imageobject>
+<textobject
+><phrase
+>Панель інструмента стеку викликів.</phrase
+></textobject>
+<caption
+><para
+>Панель інструмента <guilabel
+>Стек викликів</guilabel
+> додатка &gdb;. </para
+></caption>
+</mediaobject>
+</screenshot>
+
+<para
+>На панелі інструмента <guilabel
+>Локальні змінні</guilabel
+> буде показано список всіх завантажених зараз змінних програми та їхніх значень.</para>
+
+<screenshot id="screenshot-gdb-locals">
+<screeninfo
+>Панель інструмента «Локальні змінні» &gdb;</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="gdb-locals.png" format="PNG"/></imageobject>
+<textobject
+><phrase
+>Панель інструмента локальних змінних.</phrase
+></textobject>
+<caption
+><para
+>Панель інструмента <guilabel
+>Локальні змінні</guilabel
+> додатка &gdb;. </para
+></caption>
+</mediaobject>
+</screenshot>
+
+</sect2>
+
+<sect2 id="gdb-ack">
+<title
+>Подяки</title>
+
+<para
+>Особлива подяка учаснику Google Code-In 2011 Martin Gergov за написання більшої частини цього розділу.</para>
+
+</sect2>
+
+</sect1>
+
+<sect1 id="kate-application-plugin-projects">
+<!--https://kate-editor.org/2012/11/02/using-the-projects-plugin-in-kate -->
+
+<title
+>Додаток проєктів</title>
+
+<sect2 id="project-intro">
+<title
+>Вступ</title>
+
+<para
+>Основне призначення додатка роботи з проєктами — створення структурованого списку файлів, які належать до проєкту. Реалізовано такі можливості:</para>
+
+<orderedlist>
+<listitem
+><para
+>Надання структурованого перегляду файлів проєкту</para
+></listitem>
+<listitem
+><para
+>Спрощення і пришвидшення відкриття проєктів і перемикання між проєктами</para
+></listitem>
+<listitem
+><para
+>Підтримка пошуку із заміною у межах проєкту</para
+></listitem>
+<listitem
+><para
+>Підтримка простого механізму автоматичного доповнення коду</para
+></listitem>
+<listitem
+><para
+>Спрощення швидкого відкриття файлів у проєкті</para
+></listitem>
+<listitem
+><para
+>Підтримка збирання проєкту</para
+></listitem>
+</orderedlist>
+</sect2>
+
+<sect2 id="project-view">
+<title
+>Структурований перегляд файлів</title>
+
+<para
+>Після вмикання додатка роботи з проєктами за допомогою вікна налаштовування &kate; відкрийте файл з проєкту. У відповідь на бічній панелі буде показано список усіх проєктів та файлів у цих проєктах:</para>
+
+<screenshot id="screenshot-project-view">
+<screeninfo
+>Панель проєкту</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="project-view.png" format="PNG"/></imageobject>
+</mediaobject>
+</screenshot>
+
+<para
+>Як можна бачити у нашому прикладі, поточним активним проєктом є <quote
+>Kate</quote
+>, а його вміст показано у форматі ієрархічного списку. Якщо натиснути пункт файла у такому списку, програма відкриє його для редагування. Крім того, передбачено контекстне меню, за допомогою якого можна відкривати файли у інших програмах, зокрема можна відкривати файли <filename class="extension"
+>.ui</filename
+> за допомогою Qt Designer.</para>
+<para
+>Фільтрувати список можна ввівши частину назви файла, який ви шукаєте у поле для пошуку, розташоване під списком.</para>
+</sect2>
+
+<sect2 id="project-switch">
+<title
+>Перемикання проєктів</title>
+
+<para
+>Ідея роботи додатка полягає у тому, що вам ніколи не доведеться відкривати проєкт вручну (таку можливість, зрештою, взагалі не передбачено). Якщо ви відкриєте якийсь файл, додаток роботи з проєктами швидко виконає сканування теки, де він зберігається, і усіх її батьківських тек, і спробує знайти файл <filename
+>.kateproject</filename
+>. Якщо такий файл буде знайдено, програма автоматично завантажить відповідний проєкт.</para>
+
+<para
+>Крім того, якщо ви відкриєте якийсь інший документ, що належить до іншого проєкту, у &kate;, додаток роботи з проєктами автоматично змінить поточний проєкт на проєкт нововідкритого файла. Отже, без потреби у додаткових діях, завжди буде відкрито відповідний проєкт. Звичайно ж, ви також можете перемкнути поточний активний проєкт за допомогою спадного списку.</para>
+
+</sect2>
+
+<sect2 id="project-search-replace">
+<title
+>Пошук і заміна у проєктах</title>
+
+<para
+>У &kate; передбачено додаток пошуку із заміною, сторінку якого буде показано на нижній панелі. Якщо відкрито проєкт, ви можете розгорнути панель пошуку із заміною і перемкнути додаток на режим пошуку із заміною у поточному проєкті:</para>
+
+<screenshot id="screenshot-projects-search">
+<screeninfo
+>Пошук у проєктах</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="project-search.png" format="PNG"/></imageobject>
+</mediaobject>
+</screenshot>
+
+</sect2>
+
+<sect2 id="project-autocompletition">
+<title
+>Просте автоматичне доповнення</title>
+
+<para
+>Маючи дані щодо усіх файлів, які належать до проєкту, додаток роботи з проєктами надає можливості з автоматичного доповнення коду, реалізовані на основі CTags. Під час першого відкриття проєкту CTags виконує обробку усіх файлів проєкту у фоновому режимі і зберігає усі дані CTags до каталогу <filename class="directory"
+>/tmp</filename
+>. Отримані дані потім використовуються для заповнення списку контекстної панелі автоматичного доповнення у &kate;.</para>
+
+<para
+>Якщо ж відповідні можливості автоматичного доповнення виявляться недоступними, &kate; зможе показувати у списку автоматичного доповнення лише пункти, отримані на основі даних слів з поточного файла. Таким чином, можливості автоматичного доповнення, реалізовані у додатку роботи з проєктами є набагато потужнішими за стандартні.</para>
+
+<screenshot id="screenshot-completion-search">
+<screeninfo
+>Доповнення коду у проєктах</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="project-completition.png" format="PNG"/></imageobject>
+</mediaobject>
+</screenshot>
+
+<para
+>Якщо у системі не буде виявлено програм CTags, &kate; повідомить вам про це панеллю нагадування. Крім того, варто зауважити, що файл CTags у <filename class="directory"
+>/tmp</filename
+> спорожнюється кожного разу, коли ви завершуєте роботу &kate;. Отже, додаток не засмічуватиме теку зайвими застарілими файлами.</para>
+
+</sect2>
+
+<sect2 id="project-quickopen">
+<title
+>Швидке відкриття файлів</title>
+
+<para
+>Оскільки клацання на пунктах файлів у ієрархічному списку не є найшвидшим способом відкрити файл, у &kate; передбачено вбудований механізм швидкого відкриття файлів, активувати який можна за допомогою натискання комбінації клавіш <keycombo action="simul"
+>&Ctrl;&Alt;<keycap
+>O</keycap
+></keycombo
+>. У відповідь буде показано список, подібний до цього:</para>
+
+<screenshot id="screenshot-project-quickopen">
+<screeninfo
+>Швидке відкриття</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="project-quickopen.png" format="PNG"/></imageobject>
+</mediaobject>
+</screenshot>
+
+<para
+>Фільтрувати список можна введенням частини назви файла, який ви шукаєте. Навігацію списком можна здійснювати за допомогою натискання клавіш зі стрілками та клавіш <keycap
+>Page Up/Down</keycap
+>. Натисканням клавіші &Enter; можна активувати позначений файл. Натискання клавіші &Esc; приховує панель відкриття.</para>
+
+<para
+>Крім того, засіб швидкого відкриття запам’ятовує попередні файли. Отже, одразу після розгортання панелі швидкого відкриття буде позначено попередній відкритий файл, — вам достатньо буде натиснути клавішу &Enter;, щоб його відкрити. Іноді, це дуже зручно.</para>
+
+</sect2>
+
+<sect2 id="project-build">
+<title
+>Підтримка збирання проєкту</title>
+
+<para
+>Ще однією можливістю є підтримка автоматичного налаштовування <link linkend="projects-build-support"
+>додатка збирання</link
+>.</para>
+
+</sect2>
+
+<sect2 id="project-create">
+<title
+>Створення проєктів</title>
+
+<sect3 id="project-autoload">
+<!--https://kate-editor.org/2014/10/12/autoloading-projects-plugin-kate-5/-->
+<title
+>Автоматичне завантаження проєктів</title>
+
+<para
+>У додатку роботи з проєктами передбачено можливість автоматичного завантаження. Список файлів формується на основі даних системи керування версіями. Для того, щоб скористатися цією можливістю, вам слід увімкнути відповідну систему керування версіями у параметрах програми (типово увімкнено): </para>
+
+<screenshot id="screenshot-project-configure">
+<screeninfo
+>Налаштовування додатка роботи з проєктами</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="project-configure.png" format="PNG"/></imageobject>
+</mediaobject>
+</screenshot>
+
+</sect3>
+
+<sect3 id="project-manual">
+<title
+>Створення проєктів вручну</title>
+<para
+>Вам достатньо створити файл <filename
+>.kateproject</filename
+> у кореневій теці проєкту. Наприклад, для <quote
+>Kate</quote
+> файл <filename
+>.kateproject</filename
+> містить такі дані: </para>
+
+<screen
+>{
+  "name": "Kate"
+, "files": [ { "git": 1 } ]
+}
+</screen>
+
+<para
+>Вміст файла записується із використанням синтаксису JSON. Проєкт називається <quote
+>Kate</quote
+>, а список файлів, які у ньому містяться, отримується з даних git. </para>
+
+<para
+>Окрім підтримки <literal
+>git</literal
+>, передбачено підтримку subversion (<literal
+>svn</literal
+>) та mercurial (<literal
+>hg</literal
+>). Якщо ви не хочете, щоб додаток читав дані із системи керування версіями, ви можете наказати йому рекурсивно завантажити файли з каталогів так: </para>
+
+<screen
+>{
+  "name": "Kate"
+, "files": [ { "directory": "kate", "filters": ["*.cpp", "*.h", "*.ui", "CMakeLists.txt", "Find*.cmake"], "recursive": 1 } ]
+}
+</screen>
+
+<para
+>Тут підкаталоги та фільтри визначають те, що є частиною проєкту. За допомогою фільтрів також можна поєднувати дані з системи керування версіями і вказані вручну файли. </para>
+
+<para id="projects-build-support"
+>Якщо вам потрібно додати підтримку додатка збирання, ви можете вписати до файла <filename
+>.kateproject</filename
+> такі рядки:</para>
+
+<screen
+>{
+  "name": "Kate"
+, "files": [ { "git": 1 } ]
+, "build": {
+    "directory": "build"
+  , "build": "make all"
+  , "clean": "make clean"
+  , "install": "make install"
+  }
+}
+</screen>
+
+<para
+>Якщо у вашому проєкті є файл <filename
+>.kateproject</filename
+>, за яким стежить система керування версіями, але вам потрібно скоригувати налаштування певного робочого простору, ви можете зберегти ці зміни до окремого файла із назвою <filename
+>.kateproject.local</filename
+>. Вміст цього файла матиме вищий пріоритет за вміст <filename
+>.kateproject</filename
+>. </para>
+
+</sect3>
+
+</sect2>
+
+<sect2 id="project-current">
+<title
+>Поточний проєкт</title>
+
+<para
+>За допомогою пункту меню <menuchoice
+><shortcut
+><keycombo action="simul"
+>&Alt;<keycap
+>1</keycap
+></keycombo
+></shortcut
+> <guimenu
+>Проєкти</guimenu
+><guimenuitem
+>Перейти</guimenuitem
+></menuchoice
+> ви можете відкрити панель <guilabel
+>Поточний проєкт</guilabel
+> у нижній частині вікна редактора із такими чотирма вкладками:</para>
+
+<screenshot id="screenshot-project-current">
+<screeninfo
+>Поточний проєкт</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="project-current-analysis.png" format="PNG"/></imageobject>
+</mediaobject>
+</screenshot>
+
+<variablelist>
+
+<varlistentry>
+<term>
+<guimenu
+>Панель термінала</guimenu>
+</term>
+<listitem>
+<para
+>Запуск <link linkend="kate-application-plugin-konsole"
+>емулятора термінала</link
+> у кореневій теці проєкту.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term>
+<guimenu
+>Покажчик коду</guimenu>
+</term>
+<listitem>
+<para
+>Після введення перших символів назви об’єкта у поле для пошуку програма спробує знайти відповідні об’єкти мови за назвою. Буде показано відповідні функції, класи, символи тощо разом із даними щодо їхнього типу та назви відповідного файла та номера рядка.</para>
+<para
+>Позначте пункт у списку, щоб перейти до відповідного рядка у файлі із початковим кодом.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term>
+<guimenu
+>Аналіз коду</guimenu>
+</term>
+<listitem>
+<para
+>Натисніть пункт <guilabel
+>Розпочати аналіз</guilabel
+>, щоб запустити статичний аналіз коду мовами програмування C та C++ за допомогою <command
+>cppcheck</command
+> і отримати звіт із показаними назвами файлів, номерами рядків та рівнем критичності помилки (стильова, попередження тощо) та даними щодо знайденої вади.</para>
+<para
+>Позначте пункт у списку, щоб перейти до відповідного рядка у файлі із початковим кодом.</para>
+</listitem>
+</varlistentry>
+<!--FIXME options for cppcheck? configurable?-->
+<varlistentry>
+<term>
+<guimenu
+>Нотатки</guimenu>
+</term>
+<listitem>
+<para
+>Текст, введений на цій вкладці, буде збережено у файлі <filename
+>.kateproject.notes</filename
+>.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+
+<sect2 id="projects-menu">
+<title
+>Меню «Проєкти»</title>
+
+<para
+>За допомогою меню <guimenu
+>Проєкти</guimenu
+> ви зможете перемикатися між поточними відкритими проєктами. Відповідальним за цей пункт меню є додаток «Проєкти».</para>
+
+<variablelist>
+
+<varlistentry id="projects-back">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+>&Ctrl;&Alt;<keysym
+>←</keysym
+></keycombo
+></shortcut
+> <guimenu
+>Проєкти</guimenu
+> <guimenuitem
+>Назад</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Перемкнутися на попередній проєкт.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="projects-forward">
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+>&Ctrl;&Alt;<keysym
+>→</keysym
+></keycombo
+></shortcut
+> <guimenu
+>Проєкти</guimenu
+> <guimenuitem
+>Вперед</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Перемкнутися на наступний проєкт.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="projects-goto">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Alt;<keycap
+>1</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Проєкти</guimenu
+><guimenuitem
+>Перейти до</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Відкрити панель <guilabel
+>Поточний проєкт</guilabel
+> у нижній частині вікна редактора.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+<!--
+context menu Project->Lookup:xxx
+-->
+
+</sect1>
+
+<!--FIXME Replicode
+Projects Replicode run / stop-->
+
+<sect1 id="kate-application-plugin-lspclient">
+<title
+>Додаток клієнта LSP</title>
+
+<para
+>За допомогою додатка клієнта LSP можна отримати доступ до багатьох можливостей, зокрема автоматичного доповнення коду, навігації кодом та пошуку довідкової інформації на основі <ulink url="https://microsoft.github.io/language-server-protocol/"
+>протоколу сервера мов (Language Server Protocol)</ulink
+>.</para>
+
+<para
+>Після позначення пункту додатка клієнта LSP на сторінці додатків, у діалоговому вікні налаштовування &kate; з’явиться нова сторінка із назвою «Клієнт LSP». </para>
+
+<sect2 id="lspclient-menu">
+<title
+>Структура меню</title>
+
+<para
+>Нижче, у пояснення щодо пунктів меню, наведено відповідні команди LSP (якщо такі існують). У документації з цих команд можна знайти додаткові відомості та пояснення, які можуть залежати від мови програмування, яку використано. Термін «поточний символ» використано на позначення символу, який відповідає поточній позиції курсора і визначається на основі мови програмування та з використанням відповідної реалізації сервера обробки. </para>
+
+<variablelist>
+
+<varlistentry id="lspclient-definition">
+<term
+><menuchoice
+><guimenu
+>Клієнт LSP</guimenu
+> <guisubmenu
+>Перейти до визначення</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>[textDocument/definition] Перейти до визначення поточного символу.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-declaration">
+<term
+><menuchoice
+><guimenu
+>Клієнт LSP</guimenu
+> <guisubmenu
+>Перейти до оголошення</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>[textDocument/declaration] Перейти до оголошення поточного символу.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-typedefinition">
+<term
+><menuchoice
+><guimenu
+>Клієнт LSP</guimenu
+> <guisubmenu
+>Перейти до визначення типу</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>[textDocument/typeDefinition] Перейти до визначення типу поточного символу.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-references">
+<term
+><menuchoice
+><guimenu
+>Клієнт LSP</guimenu
+> <guisubmenu
+>Знайти посилання</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>[textDocument/references] Знайти посилання на поточний символ.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-implementation">
+<term
+><menuchoice
+><guimenu
+>Клієнт LSP</guimenu
+> <guisubmenu
+>Знайти реалізації</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>[textDocument/implementation] Знайти реалізації поточного символу.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-highlight">
+<term
+><menuchoice
+><guimenu
+>Клієнт LSP</guimenu
+> <guisubmenu
+>Підсвітити</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>[textDocument/documentHighlight] Підсвітити посилання на поточний символ у поточному документі.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-hover">
+<term
+><menuchoice
+><guimenu
+>Клієнт LSP</guimenu
+> <guisubmenu
+>Наведення</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>[textDocument/hover] Показати при наведенні дані щодо поточного символу.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-format">
+<term
+><menuchoice
+><guimenu
+>Клієнт LSP</guimenu
+> <guisubmenu
+>Форматувати</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>[textDocument/formatting] [textDocument/rangeFormatting] Форматувати поточний документ або поточний позначений фрагмент документа.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-rename">
+<term
+><menuchoice
+><guimenu
+>Клієнт LSP</guimenu
+> <guisubmenu
+>Перейменувати</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>[textDocument/rename] Перейменувати поточний символ.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-quick-fix">
+<term
+><menuchoice
+><guimenu
+>Клієнт LSP</guimenu
+> <guisubmenu
+>Швидке виправлення</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>[textDocument/codeAction, workspace/executeCommand] Обчислює і застосовує швидке виправлення для діагностики у поточній позиції (або рядку).</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-completion-documentation">
+<term
+><menuchoice
+><guimenu
+>Клієнт LSP</guimenu
+><guisubmenu
+>Показувати документацію щодо доповнення позначеного</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Показати документацію щодо позначеного елемента у списку автоматичного доповнення.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-signature-help">
+<term
+><menuchoice
+><guimenu
+>Клієнт LSP</guimenu
+> <guisubmenu
+>Увімкнути довідку щодо підписів із автодоповненням</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Крім того, показувати довідку щодо підписів у списку автозавершення.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-declaration-references">
+<term
+><menuchoice
+><guimenu
+>Клієнт LSP</guimenu
+><guisubmenu
+>Включати оголошення до посилань</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Надіслати запит щодо включення оголошення поточного символу при запиті щодо посилань.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-completion-parens">
+<term
+><menuchoice
+><guimenu
+>Клієнт LSP</guimenu
+> <guisubmenu
+>Додавати дужки при доповненні функцій</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Автоматично додати пару дужок після автоматично доповненої назви функції.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-show-hover">
+<term
+><menuchoice
+><guimenu
+>Клієнт LSP</guimenu
+><guisubmenu
+>Показувати відомості при наведенні</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Показати дані, які програма показує при наведенні вказівника миші. Незалежно від значення цього параметра, запит щодо цих даних можна завжди ініціювати вручну. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-format-typing">
+<term
+><menuchoice
+><guimenu
+>Клієнт LSP</guimenu
+><guisubmenu
+>Форматувати при введенні</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>[document/onTypeFormatting] Форматувати частини документа, коли користувач вводитиме певні контрольні символи. Прикладом може бути застосування відступів рядків при введенні символу розриву рядка або іншого форматування, яке визначено на сервері LSP. Зауважте, що скрипти встановлення відступів текстового редактора можуть намагатися виконати те саме завдання (залежно від режиму роботу), тому не радимо одночасно використовувати обидва ці засоби форматування. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-incremental-sync">
+<term
+><menuchoice
+><guimenu
+>Клієнт LSP</guimenu
+><guisubmenu
+>Нарощувальна синхронізація документів</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Надсилати для обробки сервером окремі частини документа під час редагування, а не цілий документ (якщо підтримку такого режиму обробки передбачено на сервері).</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-highlight-goto">
+<term
+><menuchoice
+><guimenu
+>Клієнт LSP</guimenu
+> <guisubmenu
+>Підсвітити місце переходу</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Надати тимчасовий візуальний сигнал після виконання переходу до місця (визначення, оголошення тощо).</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-diagnostics">
+<term
+><menuchoice
+><guimenu
+>Клієнт LSP</guimenu
+><guisubmenu
+>Показувати діагностичні сповіщення</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>[textDocument/publishDiagnostics] Обробити і показати діагностичні сповіщення, які було надіслано сервером.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-diagnostics-highlight">
+<term
+><menuchoice
+><guimenu
+>Клієнт LSP</guimenu
+><guisubmenu
+>Показувати підсвічування діагностики</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Додати підсвічування фрагментів тексту для діапазонів, які визначено діагностикою.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-diagnostics-marks">
+<term
+><menuchoice
+><guimenu
+>Клієнт LSP</guimenu
+><guisubmenu
+>Показувати позначки діагностики</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Додати позначки у документі для рядків, які визначено діагностикою.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-diagnostics-tab">
+<term
+><menuchoice
+><guimenu
+>Клієнт LSP</guimenu
+><guisubmenu
+>Перемкнутися на вкладку діагностики</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Перемкнутися на вкладку діагностики на панелі інструментів додатків.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-close-non-diagnostics">
+<term
+><menuchoice
+><guimenu
+>Клієнт LSP</guimenu
+><guisubmenu
+>Закрити усі вкладки, які не є діагностичними</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Закрити усі вкладки (наприклад, вкладки посилань) на панелі інструментів додатків, які не пов'язано із діагностикою.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-restart">
+<term
+><menuchoice
+><guimenu
+>Клієнт LSP</guimenu
+><guisubmenu
+>Перезапустити сервер LSP</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Перезапустити сервер LSP документа.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="lspclient-restart-all">
+<term
+><menuchoice
+><guimenu
+>Клієнт LSP</guimenu
+><guisubmenu
+>Перезапустити усі сервери LSP</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+<para
+>Зупинити роботу усіх серверів LSP, які згодом, якщо потрібно, буде запущено або перезапущено.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+
+
+<sect2 id="lspclient-configuration">
+<title
+>Налаштування</title>
+
+<para
+>За допомогою сторінки налаштовування додатка ви можете визначити типові значення для описаних вище пунктів меню. Втім, на цій сторінці є один додатковий пункт, за допомогою якого можна вказати файл налаштувань сервера. Цей файл є файлом &JSON;, яким можна наказати серверу LSP запускатися (і потім вести обмін даними за допомогою stdin/stdout). Для зручності, до типового пакунка включено типовий файл налаштувань, який можна вивчати на сторінці налаштування додатка. Щоб полегшити розуміння наведених нижче пояснень, ось витяг з налаштувань: </para>
+
+<screen
+>{
+    "servers": {
+        "bibtex": {
+            "use": "latex",
+            "highlightingModeRegex": "^BibTeX$"
+        },
+        "c": {
+            "command": ["clangd", "-log=error", "--background-index"],
+            "commandDebug": ["clangd", "-log=verbose", "--background-index"],
+            "url": "https://clang.llvm.org/extra/clangd/",
+            "highlightingModeRegex": "^(C|ANSI C89|Objective-C)$"
+        },
+        "cpp": {
+            "use": "c",
+            "highlightingModeRegex": "^(C\\+\\+|ISO C\\+\\+|Objective-C\\+\\+)$"
+        },
+        "d": {
+            "command": ["dls", "--stdio"],
+            "url": "https://github.com/d-language-server/dls",
+            "highlightingModeRegex": "^D$"
+        },
+        "fortran": {
+            "command": ["fortls"],
+            "rootIndicationFileNames": [".fortls"],
+            "url": "https://github.com/hansec/fortran-language-server",
+            "highlightingModeRegex": "^Fortran.*$"
+        },
+        "javascript": {
+            "command": ["typescript-language-server", "--stdio"],
+            "rootIndicationFileNames": ["package.json", "package-lock.json"],
+            "url": "https://github.com/theia-ide/typescript-language-server",
+            "highlightingModeRegex": "^JavaScript.*$",
+            "documentLanguageId": false
+        },
+        "latex": {
+            "command": ["texlab"],
+            "url": "https://texlab.netlify.com/",
+            "highlightingModeRegex": "^LaTeX$"
+        },
+        "go": {
+            "command": ["go-langserver"],
+            "commandDebug": ["go-langserver", "-trace"],
+            "url": "https://github.com/sourcegraph/go-langserver",
+            "highlightingModeRegex": "^Go$"
+        },
+        "python": {
+            "command": ["python3", "-m", "pyls", "--check-parent-process"],
+            "url": "https://github.com/palantir/python-language-server",
+            "highlightingModeRegex": "^Python$"
+        },
+        "rust": {
+            "command": ["rls"],
+            "path": ["%{ENV:HOME}/.cargo/bin", "%{ENV:USERPROFILE}/.cargo/bin"],
+            "rootIndicationFileNames": ["Cargo.lock", "Cargo.toml"],
+            "url": "https://github.com/rust-lang/rls",
+            "highlightingModeRegex": "^Rust$"
+        },
+        "ocaml": {
+            "command": ["ocamlmerlin-lsp"],
+            "url": "https://github.com/ocaml/merlin",
+            "highlightingModeRegex": "^Objective Caml.*$"
+        }
+    }
+}
+</screen>
+
+<para
+>Зауважте, що кожен запис команди («command») може масивом або рядком (який буде поділено на записи масиву). Крім того, буде взято до уваги запис верхнього рівня «global» (поряд із «server»)(докладніший опис наведено нижче). Пошук вказаного виконуваного файла відбуватиметься у звичний спосіб, наприклад, з використанням <literal
+>PATH</literal
+>. Якщо виконуваний файл встановлено у якомусь нетиповому місці, шлях до цього місця може бути згодом розгорнуто. Крім того, можна скористатися у записі місця (символічним) посиланням або скриптом-обгорткою, який зберігається у звичайному <literal
+>PATH</literal
+>. Як проілюстровано вище, можна також вказати «path», місце, в якому буде виконано пошук після стандартних місць. </para>
+
+<para
+>В усіх записах «command», «root» та «path» буде виконано розгортання змінних. </para>
+
+<para
+>Інструкцією «highlightingModeRegex» можна скористатися для прив'язування режиму підсвічування, який використовує &kate;, до ідентифікатора мови сервера. Якщо не буде надано формального виразу, буде використано сам ідентифікатор мови. Якщо для запису «documentLanguageId» встановлено значення false, при відкритті документа серверу не буде передано ідентифікатора мови. Це може дати кращі результати для деяких серверів, які є точнішими у визначенні типу документа, ніж засоби на основі режиму &kate;. </para>
+
+<para
+>З наведеного вище прикладу можна зрозуміти суть. Крім того, кожен об'єкт запису сервера може мати запис "initializationOptions", який містить дані, які передаються серверу як частина методу «initialize». Якщо такий запис буде знайдено, параметр «settings» буде передано серверу за допомогою сповіщення «workspace/didChangeConfiguration». </para>
+
+<para
+>Застосовуються різні етапи перевизначення та об'єднання. <itemizedlist>
+<listitem>
+<para
+>Налаштування користувача (завантажені з файла) мають пріоритет над типовими (вбудованими) налаштуваннями.</para>
+</listitem>
+<listitem>
+<para
+>Запис «lspclient» у налаштуваннях проєкту <filename
+>.kateproject</filename
+> має пріоритет над усіма попередніми записами.</para>
+</listitem>
+<listitem>
+<para
+>Отриманий у результаті обробки запис «global» використовується як доповнення (не перевизначення) будь-якого із записів сервера.</para>
+</listitem>
+</itemizedlist>
+</para>
+
+<para
+>Для кожної комбінації (root, servertype) використовується один екземпляр сервера. Якщо значення "root" вказано як абсолютний шлях, його буде використано без обробки. Якщо ж це не так, значення вважатиметься вказаним відносно каталогу <quote
+>projectBase</quote
+> (як його визначено у <link linkend="kate-application-plugin-projects"
+>додатку проєктів</link
+>), якщо такий існує, або відносно каталогу документа, якщо цього каталогу не існує. Якщо значення не вказано, і "rootIndicationFileNames" є масивом назв файлів, буде використано батьківський каталог поточного документа, який містить такий файл. Останнім резервним варіантом для "root" є домашній каталог користувача. Для будь-якого документа отриманий у результаті описаної обробки "root" визначає, чи потрібен окремий екземпляр сервера. Якщо такий екземпляр потрібен, значення "root" буде передано як rootUri/rootPath. </para>
+
+<para
+>Загалом, рекомендуємо не визначати "root", оскільки він не є важливим для роботи сервера (хоча, ви можете визначити його у вашому конкретному випадку). Якщо екземплярів сервера буде небагато, вони працюватимуть ефективніше і матимуть, очевидно, «ширше» поле зору, ніж у випадку використання багатьох окремих екземплярів сервера. </para>
+
+<sect3 id="lspclient-customization">
+<title
+>Налаштування сервера LSP</title>
+
+<para
+>У кожного окремо взятого сервера LSP є власний спосіб налаштовування. У ньому можуть використовуватися специфічні засоби для мови або інструменти, наприклад <filename
+>tox.ini</filename
+> (для python), <filename
+>.clang-format</filename
+> для форматування у стилі C++. Такі налаштування може бути потім використано іншими (не пов'язаними із LSP) інструментами (зокрема <application
+>tox</application
+> або <application
+>clang-format</application
+>). Крім того, деякі сервери LSP завантажують налаштування з нетипових файлів (наприклад, <filename
+>.ccls</filename
+>). Далі, нетипові налаштування сервера можна передавати за допомогою LSP (протоколу), див. згадані раніше записи «initializationOptions» і «settings» у налаштуваннях сервера. </para>
+
+<para
+>Оскільки застосовуються різні рівні перевизначення і об'єднання налаштувань, у наведеному нижче прикладі визначені користувачем специфічні налаштування клієнта коригують деякі з налаштувань python-language-server. </para>
+
+<screen
+>{
+    "servers": {
+        "python": {
+            "settings": {
+                "pyls": {
+                    "plugins": {
+                        "pylint": {
+                            "enable": true
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+</screen>
+
+<para
+>На жаль, засоби налаштовування серверів LSP часто не мають належної докладної документації. Лише вивчення коду сервера надає змогу ознайомитися із підходами до налаштовування та переліком доступних параметрів. Зокрема, у наведеному вище прикладі у сервері передбачено підтримку ширшого спектра параметрів у «settings». У <ulink url="https://github.com/neoclide/coc.nvim/wiki/Language-servers"
+>документації до іншого клієнта LSP</ulink
+> можна знайти приклади для серверів інших мов та відповіді параметри, які доволі просто перетворити на налаштування &JSON;, які використовуються у нашому клієнті, і які у загальних рисах описано вище. </para>
+
+</sect3>
+
+<sect3 id="lspclient-troubleshooting">
+<title
+>Діагностика сервера LSP</title>
+
+<para
+>Одна річ описати як налаштувати (нетиповий) сервер LSP для будь-якої окремої мови програмування, інша ж — зробити так, щоб сервер працював без будь-яких проблем. На щастя, зазвичай, маємо безпроблемну роботу сервера. Втім, іноді можуть виникати проблеми або із певними «тупими» помилками у налаштуваннях або фундаментальні проблеми із самим сервером. Другий варіант може проявляти себе як повідомлення про невдалі спроби запустити сервер, які з'являються на вкладці виведення даних &kate;. Втім, такі повідомлення є лише повідомленнями верхнього рівня або повідомленням поступу обробки, а не докладними діагностичними повідомленнями, і навіть можуть не містити даних щодо того, що є, фактично, іншим процесом (сервером LSP). </para>
+
+<para
+>Звичайним способом діагностики є додавання певних прапорців до команди запуску (сервера мови), які увімкнуть (додаткове) журналювання (до якогось файла або стандартного виведення помилок), якщо цього не зроблено типово. Якщо потім запустити &kate; з термінала, можна отримати додаткові дані щодо джерела помилки. </para>
+
+<para
+>Також дані можна отримати вивченням обміну даними між клієнтом LSP &kate; і сервером LSP. Знову ж таки, на останньому, зазвичай, є засоби трасування. Крім того, клієнт LSP надає додаткове діагностичне трасування (до stderr), якщо викликати &kate; із належним чином експортованою змінною середовища <literal
+>QT_LOGGING_RULES=katelspclientplugin=true</literal
+>. </para>
+
+</sect3>
+
+</sect2>
+
+<!--TODO: Supported languages, describe features and actions a bit -->
+
+<!--<screenshot id="screenshot-rust-configuration">
+<screeninfo
+>Rust Configuration</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="rust-configuration.png" format="PNG"/></imageobject>
+</mediaobject>
+</screenshot>
+
+<para
+>Edit the command to run <ulink url="https://github.com/phildawes/racer"
+>Racer</ulink
+>,
+an utility intended to provide Rust code completion for editors.</para>
+
+<para
+>You also need the Rust source code and have to provide the path to the source tree.
+</para>
+
+<para
+>While typing code a popup list appears with items for completion:
+</para>
+
+<screenshot id="screenshot-rust-completion">
+<screeninfo
+>Rust Completion</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="rust-completion.png" format="PNG"/></imageobject>
+</mediaobject>
+</screenshot>
+
+<para
+>In addition to code completion popups, the plugin also installs
+a <guimenuitem
+>Go to Definition</guimenuitem
+> action in the <guimenu
+>Edit</guimenu
+> menu and
+in the context menu. You can configure a keyboard shortcut for it as well.
+</para>
+
+<para
+>This action will open the document containing the definition if needed, activate
+its view and place the cursor at the start of the definition.
+</para
+>-->
+
+</sect1>
+
+<sect1 id="kate-application-plugin-searchinfiles">
+<sect1info>
+<authorgroup
+><author
+>&TC.Hollingsworth; &TC.Hollingsworth.mail; </author
+></authorgroup>
+</sect1info>
+<title
+>Пошук з заміною</title>
+
+<sect2 id="searchinfiles-intro">
+<title
+>Вступ</title>
+<para
+>За допомогою додатка «Пошук з заміною» &kate; ви зможете шукати фрагмент тексту або текст за <ulink url="help:/katepart/regular-expressions.html"
+>формальним виразом</ulink
+> у декількох файлах одночасно. Пошук може виконуватися у всіх відкритих файлах або всіх файлах у одному каталозі і, якщо потрібно, у всіх його підкаталогах чи у активному файлі. Шукати можна з фільтруванням за назвою файлів, наприклад шукати лише файли з певним суфіксом назви.</para>
+
+</sect2>
+
+<sect2 id="searchinfiles-ui">
+<title
+>Інтерфейс</title>
+
+<sect3 id="searchinfiles-ui-query">
+<title
+>Запит з пошуку</title>
+
+<para
+>У верхній частині панелі інструмента пошуку у файлах завжди буде показано такі пункти:</para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="tab-new-22.png" format="PNG"/>
+</imageobject
+></inlinemediaobject
+></guiicon
+></term>
+<listitem
+><para
+>Ви можете відкрити довільну кількість панелей пошуку одночасно. Просто натисніть кнопку створення вкладки у верхній лівій частині панелі інструмента пошуку, і програма відкриє нову вкладку, за допомогою якої можна буде виконати пошук за новими критеріями. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="games-config-options-22.png" format="PNG"/>
+</imageobject
+></inlinemediaobject
+></guiicon
+></term>
+<listitem
+><para
+>За допомогою кнопки, розташованої у правому верхньому куті панелі пошуку у файлах, ви можете перемикати нижню половину панелі між режимом показу додаткових параметрів пошуку у теці та режимом показу результатів пошуку. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Знайти</guilabel
+></term>
+<listitem
+><para
+>За допомогою цього поля можна вказати критерій пошуку. Ви можете ввести звичайний фрагмент тексту або формальний вираз, якщо увімкнено пошук за формальними виразами. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Замінити</guilabel
+> (поле для введення тексту)</term>
+<listitem
+><para
+>Текст рядка заміни буде додано замість тексту у полі <guilabel
+>Знайти</guilabel
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guibutton
+>Шукати</guibutton
+></term>
+<listitem
+><para
+>Після того, як параметри пошуку буде налаштовано, достатньо натиснути кнопку <guibutton
+>Шукати</guibutton
+>, щоб пошук було розпочато. Ви також можете просто натиснути клавішу &Enter; після введення тексту до поля <guilabel
+>Знайти</guilabel
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guibutton
+>Замінити</guibutton
+></term>
+<listitem
+><para
+>Після того, як параметри пошуку буде налаштовано, достатньо натиснути кнопку <guibutton
+>Замінити</guibutton
+>, щоб програма замінила текст, вказаний у полі <guilabel
+>Знайти</guilabel
+>, текстом, вказаним у полі <guilabel
+>Замінити</guilabel
+>. Ви також можете просто натиснути клавішу &Enter; після введення тексту-замінника у полі <guilabel
+>Замінити</guilabel
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guibutton
+>Далі</guibutton
+></term>
+<listitem
+><para
+>Перейти до наступного відповідника вашого критерію пошуку, якщо потрібно, у іншому файлі. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guibutton
+>Замінити у позначених</guibutton
+></term>
+<listitem
+><para
+>Те саме, що і <guibutton
+>Замінити</guibutton
+>, але заміну буде виконано лише у файлах, які було позначено на розташованій нижче панелі. </para
+></listitem>
+</varlistentry>
+
+</variablelist>
+</sect3>
+
+<sect3 id="searchinfiles-ui-folder">
+<title
+>Параметри пошуку у теці</title>
+
+<para
+>Ці пункти буде показано під раніше згаданими пунктами параметрів пошуку. Якщо замість них буде показано результати пошуку, натисніть кнопку <guiicon
+><inlinemediaobject
+><imageobject
+> <imagedata fileref="games-config-options-22.png" format="PNG"/></imageobject
+></inlinemediaobject
+></guiicon
+>, щоб програма їх показала.</para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><guilabel
+>Шукати у</guilabel
+></term>
+<listitem
+><para
+>Тут ви можете вибрати один з трьох варіантів. Позначте пункт <guilabel
+>Відкриті файли</guilabel
+>, щоб пошук було виконано у файлах, які відкрито у &kate;. За допомогою позначення пункту <guilabel
+>у теці</guilabel
+> можна наказати програмі виконати пошук у теці і, якщо потрібно, її підтеках. Пунктом <guilabel
+>Поточний файл</guilabel
+> можна скористатися для пошуку у поточному активному файлі. </para>
+<para
+>Якщо завантажено додаток <guilabel
+>Проєкти</guilabel
+>, ви зможете вибрати область пошуку: <guilabel
+>Поточний проєкт</guilabel
+> або <guilabel
+>Усі відкриті проєкти</guilabel
+>. </para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Враховувати регістр</guilabel
+></term>
+<listitem
+><para
+>Виконувати пошук лише точних відповідників комбінації великих та малих літер, вказаної у полі запиту пошуку. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Формальні вирази</guilabel
+></term>
+<listitem
+><para
+>Надає вам змогу використовувати <ulink url="help:/katepart/regular-expressions.html"
+>формальні вирази</ulink
+> замість звичайного тексту у запитах. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Розгорнути результати</guilabel
+></term>
+<listitem
+><para
+>Показати усі пункти знайдених фрагментів у кожному з файлів, а не просто список файлів, у яких міститься шуканий фрагмент. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Тека</guilabel
+></term>
+<listitem
+><para
+>Ви можете вказати адресу теки, у якій слід виконати пошук. Наприклад, ви можете ввести <userinput
+>~/development/kde/kate/</userinput
+>, якщо пошук слід виконати у початковому коді &kate;. Цим пунктом можна буде скористатися лише у режимі <guilabel
+>у теці</guilabel
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guiicon
+>Діалогове вікно відкриття файлів</guiicon
+></term>
+<listitem
+><para
+>Натисніть цю кнопку, щоб вказати теку за допомогою діалогового вікна перегляду ієрархії тек. Цим пунктом можна буде скористатися лише у режимі <guilabel
+>теки</guilabel
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="go-up-22.png" format="PNG"/>
+</imageobject
+></inlinemediaobject
+></guiicon
+></term>
+<listitem
+><para
+>Натисніть цю кнопку, щоб змінити значення у полі <guilabel
+>Тека</guilabel
+> на батьківську теку поточної позначеної теки. Цим пунктом можна буде скористатися лише у режимі <guilabel
+>теки</guilabel
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="view-refresh-22.png" format="PNG"/>
+</imageobject
+></inlinemediaobject
+></guiicon
+></term>
+<listitem
+><para
+>За допомогою цієї кнопки можна змінити значення у полі <guilabel
+>Тека</guilabel
+> на адресу теки, у якій зберігається поточний відкритий документ. Цим пунктом можна буде скористатися лише у режимі <guilabel
+>теки</guilabel
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Фільтр</guilabel
+></term>
+<listitem
+><para
+>За допомогою цього поля можна наказати програмі виконувати пошук лише у тих файлах, назви яких відповідають певному шаблону. Наприклад, якщо потрібно виконати пошук лише у файлах початкових кодів мовою C++, вкажіть <userinput
+>*.cpp</userinput
+>. Щоб пошук було виконано лише у файлах, назви яких починаються на <literal
+>kate</literal
+>, вкажіть <userinput
+>kate*</userinput
+>. Можна вказувати декілька фільтрів, відокремлених комами (<userinput
+>,</userinput
+>). Щоб виключити деякі результати з пошуку додайте символ мінус (<userinput
+>-</userinput
+>) перед записом у списку. Цим пунктом не можна буде скористатися у режимі <guilabel
+>відкритих файлів</guilabel
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Виключити</guilabel
+></term>
+<listitem
+><para
+>Варіант, який є протилежним до <guilabel
+>Фільтр</guilabel
+>. Забороняє &kate; шукати у файлах, назви яких відповідають певному зразку. Так само, як і у полі <guilabel
+>Фільтр</guilabel
+>, ви можете вказати декілька зразків, відокремлених комою (<userinput
+>,</userinput
+>). Цим пунктом можна буде скористатися, якщо пошук виконується у режимі <guilabel
+>у відкритих файлах</guilabel
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Рекурсивний</guilabel
+></term>
+<listitem
+><para
+>Якщо буде позначено цей пункт, &kate; виконуватиме пошук у всіх підтеках вказаної вами теки. Цим пунктом можна буде скористатися лише у режимі <guilabel
+>теки</guilabel
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Шукати у прихованих</guilabel
+></term>
+<listitem
+><para
+>Якщо буде позначено цей пункт, &kate; виконуватиме пошук у файлах та теках, які позначено як приховані у вашій операційній системі. Цим пунктом можна буде скористатися лише у режимі <guilabel
+>теки</guilabel
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Переходити за символічними посиланнями</guilabel
+></term>
+<listitem
+><para
+>Типово, інструмент пошуку у файлах не здійснює переходів за <ulink url="https://en.wikipedia.org/wiki/Symbolic_link"
+>символічними посиланнями</ulink
+>. Якщо буде позначено цей пункт, під час пошуку здійснюватиметься перехід за символічними посиланнями та пошук у файлах, на які вони посилаються. Цим пунктом можна буде скористатися лише у режимі <guilabel
+>теки</guilabel
+>. </para>
+<warning
+><para
+>Символічні посилання можуть бути посиланнями на теку, яка є батьківською щодо тієї, у якій виконується пошук, або на теку, у якій міститься символічне посилання на її батьківську теку. Якщо у теці для пошуку є таке посилання, &kate; виконуватиме перехід за кожним з посилань і пошук у відповідній теці, отже пошук не буде завершено у автоматичному режимі.</para
+></warning>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Включати двійкові файли</guilabel
+></term>
+<listitem
+><para
+>Якщо буде позначено цей пункт, &kate; не виконуватиме пошук у файлах, які не є текстовими файлами. </para
+></listitem>
+</varlistentry>
+
+</variablelist>
+</sect3>
+
+<sect3 id="searchinfiles-ui-results">
+<title
+>Результати пошуку</title>
+
+<para
+>Результати пошуку буде показано під параметрами пошуку. Якщо замість них показано параметри пошуку у теці, просто натисніть кнопку <guiicon
+><inlinemediaobject
+><imageobject
+><imagedata fileref="games-config-options-22.png" format="PNG"/> </imageobject
+></inlinemediaobject
+></guiicon
+>, щоб програма їх показала. Їх також буде автоматично показано після завершення пошуку.</para>
+
+<para
+>На панелі результатів пошуку буде показано список файлів, у яких міститься рядок пошуку. Поряд з назвою кожного з файлів буде у дужках вказано кількість знайдених відповідників.</para>
+
+<para
+>Щоб переглянути список відповідників у файлі, просто натисніть кнопку розгортання (стрілку), розташовану ліворуч від пункту з назвою файла. Якщо вами було позначено пункт <guilabel
+>Розгорнути результати</guilabel
+>, список буде показано вже розгорнутим. У списку буде показано дані щодо номера рядка та частину вмісту рядка, у якій знайдений фрагмент буде позначено напівжирним шрифтом.</para>
+
+<para
+>Щоб відкрити файл, у якому було виявлено рядок, просто двічі клацніть лівою кнопкою миші на його пункті. &kate; відкриє файл, якщо його ще не відкрито. Перейти до відповідника можна подвійним клацанням лівою кнопкою миші на пункті відповідника у списку знайдених у файлі відповідників. </para>
+
+</sect3>
+</sect2>
+
+<sect2 id="searchinfiles-menu">
+<title
+>Структура меню</title>
+
+<variablelist>
+
+<varlistentry id="edit-searchinfiles">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;&Alt;<keycap
+>F</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Зміни</guimenu
+> <guimenuitem
+>Пошук у файлах</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Відкриває панель засобу «Пошук з заміною».</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-next-match">
+<term
+><menuchoice
+><guimenu
+>Зміни</guimenu
+> <guimenuitem
+>Перейти до наступного відповідника</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Перейти до наступного відповідника під час пошуку за допомогою додатку «Пошук з заміною».</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="edit-previous-match">
+<term
+><menuchoice
+><guimenu
+>Зміни</guimenu
+> <guimenuitem
+>Перейти до попереднього відповідника</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Перейти до попереднього відповідника під час пошуку за допомогою додатку «Пошук з заміною».</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-toolviews-searchandreplace">
+<term
+><menuchoice
+><guimenu
+>Перегляд</guimenu
+><guisubmenu
+>Вікна інструментів</guisubmenu
+> <guimenuitem
+>Показати панель пошуку із заміною</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Вмикає або вимикає показ інструмента <guilabel
+>Пошук з заміною</guilabel
+> &kate;. </para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+</sect1>
+
+<sect1 id="kate-application-plugin-snippets">
+<sect1info>
+<authorgroup>
+<author
+><firstname
+>Martin</firstname
+> <surname
+>Gergov</surname
+></author>
+<author
+>&TC.Hollingsworth; &TC.Hollingsworth.mail;</author>
+</authorgroup>
+</sect1info>
+<title
+>Фрагменти тексту &kate;</title>
+
+<sect2 id="snippets-intro">
+<title
+>Вступ</title>
+<para
+>Інструмент «Фрагменти тексту Kate» — додаток, призначений для раціонального використання ваших зусиль за допомогою так званих «фрагментів» (характерних частин коду мовою програмування, комп’ютерних команд або тексту). У додатку передбачено підтримку автоматичного доповнення коду та JavaScript.</para>
+</sect2>
+
+<sect2 id="snippets-menu">
+<title
+>Структура меню</title>
+
+<variablelist>
+<varlistentry>
+<term
+><menuchoice
+><guimenu
+>Перегляд</guimenu
+><guisubmenu
+>Вікна інструментів</guisubmenu
+> <guimenuitem
+>Показати Фрагменти тексту</guimenuitem
+></menuchoice
+></term>
+<listitem
+><para
+>Показує панель фрагментів з усіма фрагментами у вашому сховищі, які відповідають типу поточного відкритого файла.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="tools-create-snippet">
+<term
+><menuchoice
+><guimenu
+>Інструменти</guimenu
+> <guimenuitem
+>Створити фрагмент</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Створити фрагмент, тобто придатний до повторного використання фрагмент тексту, який можна буде потім вставити у довільну частину будь-якого документа.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+
+<sect2 id="snippets-panel">
+<title
+>Панель фрагментів</title>
+
+<screenshot id="screenshot-snippets-panel">
+<screeninfo
+>Панель фрагментів тексту &kate;</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="snippets-panel.png" format="PNG"/></imageobject>
+<textobject
+><phrase
+>Панель фрагментів тексту &kate;.</phrase
+></textobject>
+<caption
+><para
+>Панель для фрагментів тексту &kate;.</para
+></caption>
+</mediaobject>
+</screenshot>
+
+<para
+>На цій панелі буде показано список сховищ фрагментів разом з пунктами, призначеними для створення власних сховищ, отримання даних з інтернету та завантаження даних з локального файла. Поряд з пунктом кожного зі сховищ буде показано поле для позначки, за допомогою якого можна буде увімкнути або вимкнути сховище. Також передбачено кнопки для редагування та вилучення вже створених сховищ.</para>
+
+<sect3 id="snippets-repo-internet">
+<title
+>Завантаження файлів сховища фрагментів</title>
+<para
+>Ви можете отримати сховища фрагментів з інтернету. Просто натисніть кнопку <guibutton
+>Отримати нові фрагменти</guibutton
+> і програма покаже вікно зі списком сховищ фрагментів. Після отримання потрібного вам сховища не забудьте позначити його пункт, щоб згодом скористатися вмістом сховища.</para>
+<!--FIXME no way to load a local file ?
+<para
+>You can also load snippet repositories from a local file using the file
+browser at the bottom of the panel.  Click <guibutton
+>Copy to repository</guibutton>
+when finished.</para
+>-->
+</sect3>
+
+<sect3 id="snippets-repo-editor">
+<title
+>Створення і редагування сховищ фрагментів</title>
+
+<para
+>Щоб створити нове сховище фрагментів, натисніть кнопку <guibutton
+>Додати сховище</guibutton
+>. У відповідь має бути відкрито діалогове вікно, у якому програма попросить вас вказати назву файла фрагментів, умови ліцензування цього файла та його автора. Після визначення бажаних параметрів натисніть кнопку <guibutton
+>Гаразд</guibutton
+>, щоб відкрити вікно редактора фрагментів.</para>
+
+<screenshot id="screenshot-snippets-repository">
+<screeninfo
+>Редактор фрагментів</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="snippets-repository.png" format="PNG"/></imageobject>
+<textobject
+><phrase
+>Редактор даних сховища.</phrase
+></textobject>
+<caption
+><para
+>Інтерфейс редактора сховища.</para
+></caption>
+</mediaobject>
+</screenshot>
+
+<para
+>У редакторі даних сховища фрагментів можна визначити такі поля:</para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><guilabel
+>Name</guilabel
+></term>
+<listitem
+><para
+>Буде показано у списку фрагментів панелі інструментів, а також використовуватиметься під час пошуку варіантів для автодоповнення.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Простір назв</guilabel
+></term>
+<listitem
+><para
+>Префікс, що використовується під час доповнення коду.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Ліцензія</guilabel
+></term>
+<listitem
+><para
+>Виберіть умови ліцензування даних вашого сховища фрагментів.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Автори</guilabel
+></term>
+<listitem
+><para
+>Вкажіть імена авторів файла фрагментів.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Типи файлів</guilabel
+></term>
+<listitem
+><para
+>Виберіть типи файлів, до яких будуть застосовуватися дані зі сховища. Типово встановлено значення <quote
+>*</quote
+>, тобто сховище застосовуватиметься до всіх файлів. Ви можете змінити тип, наприклад визначити <userinput
+>C++</userinput
+>, або вибрати значення зі списку, який відкривається натисканням кнопки пунктів. Ви можете вказати декілька типів файлів, якщо натиснете клавішу &Shift; під час їхнього додавання.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect3>
+
+<sect3 id="snippets-editor">
+<title
+>Створення і редагування фрагментів</title>
+
+<screenshot id="screenshot-snippets-form">
+<screeninfo
+>Редактор фрагментів</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="snippets-form.png" format="PNG"/></imageobject>
+<textobject
+><phrase
+>Редактор фрагментів.</phrase
+></textobject>
+<caption
+><para
+>Інтерфейс редактора фрагментів.</para
+></caption>
+</mediaobject>
+</screenshot>
+
+<variablelist>
+
+<varlistentry>
+<term
+><guilabel
+>Name</guilabel
+></term>
+<listitem
+><para
+>Цю назву буде показано у списку автозавершення.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>Скорочення</term>
+<listitem
+><para
+>Натискання цієї комбінації клавіш призведе до вставлення фрагмента до документа.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Фрагменти</guilabel
+></term>
+<listitem
+><para
+>Текст, який ваш фрагмент вставлятиме до документа.</para>
+<para
+>Фрагмент може містити придатні до редагування поля. Циклічний перехід цими полями можна здійснювати натисканням клавіші &Tab;. У тексті шаблона можна використовувати такі вирази для створення полів:</para>
+<para
+><userinput
+>${<replaceable
+>назва_поля</replaceable
+>}</userinput
+> створює просте придатне до редагування поле. Під час редагування усі наступні вставки тієї самої <replaceable
+>назви_поля</replaceable
+> будуть дзеркальними копіями вмісту першого поля.</para>
+<para
+><userinput
+>${<replaceable
+>назва_поля=типове значення</replaceable
+>}</userinput
+> може бути використане для визначення типового значення поля. Вмістом фрагмента <replaceable
+>типове значення</replaceable
+> може бути будь-який вираз JavaScript.</para>
+<para
+><userinput
+>${<replaceable
+>назва_поля</replaceable
+>=<replaceable
+>текст</replaceable
+>}</userinput
+> — вказати фіксований рядок як типове значення.</para>
+<para
+><userinput
+>${функція(<replaceable
+>інше_поле</replaceable
+>, <replaceable
+>інше_поле</replaceable
+>, ...)}</userinput
+> — цим можна скористатися для створення поля, яке міститиме результат виконання функції JavaScript під час кожного редагування. Докладнішу інформацію можна знайти на вкладці <guilabel
+>Скрипти</guilabel
+>.</para>
+<para
+><userinput
+>${курсор}</userinput
+> — цим можна скористатися для того, щоб вказати кінцеву позицію курсора після заповнення усіх інших даних.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Скрипти</guilabel
+></term>
+<listitem
+><para
+>Допоміжні функції JavaScript, якими можна скористатися у ваших фрагментах.</para>
+<para
+>Усі використані функції JavaScript мають повертати рядкові дані, якими ви хочете замінити поле шаблона.</para>
+<para
+>Функції викликаються у області, яка містить вміст усіх редагованих полів як локальні змінні. Наприклад, у фрагменті, що містить <userinput
+>${<replaceable
+>поле</replaceable
+>}</userinput
+>, міститься змінна із назвою <userinput
+>поле</userinput
+>, яка матиме значення поточного вмісту поля шаблона. Такими змінними у функції можна скористатися або статично, або передати вміст змінних як аргумент функції, використовуючи у рядку фрагмента такий синтаксис: <userinput
+>${функція(поле)}</userinput
+> або <userinput
+>${<replaceable
+>поле2=функція(поле)</replaceable
+>}</userinput
+>.</para>
+<para
+>Ви можете скористатися <ulink url="help:/katepart/dev-scripting.html#dev-scripting-api"
+>програмним інтерфейсом роботи зі скриптами &kate;</ulink
+> для отримання позначеного фрагмента тексту, усього тексту документа, назви файла та інших даних за допомогою відповідних методів об’єктів <userinput
+>document</userinput
+> та <userinput
+>view</userinput
+>. Щоб дізнатися більше, зверніться до документації із програмного інтерфейсу для роботи зі скриптами.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+</sect3>
+</sect2>
+
+<sect2 id="snippets-using">
+<title
+>Користування фрагментами</title>
+
+<screenshot id="screenshot-snippets-usage">
+<screeninfo
+>Робота з фрагментами у &kate;</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="snippets-usage.png" format="PNG"/></imageobject>
+<textobject
+><phrase
+>Доступ до фрагментів &kate; з панелі інструментів або спадного меню.</phrase
+></textobject>
+<caption
+><para
+>Вибір зі списку фрагментів.</para
+></caption>
+</mediaobject>
+</screenshot>
+
+<para
+>Викликати фрагменти можна у два способи:</para>
+
+<itemizedlist>
+<listitem
+><para
+>Вибором пункту фрагментів на панелі інструментів.</para
+></listitem>
+<listitem
+><para
+>Під час написання тексту чи коду ви можете натиснути комбінацію клавіш <keycombo action="simul"
+>&Ctrl; <keysym
+>Пробіл</keysym
+></keycombo
+> і програма покаже зручне вікно зі списком всіх фрагментів, за допомогою якого ви зможете вибрати потрібний вам фрагмент. Натискання цієї комбінації клавіш надає доступ до функціональних можливостей, подібних до автоматичного доповнення коду.</para
+></listitem>
+</itemizedlist>
+
+<para
+>Якщо у фрагменті містяться змінні (окрім змінної <literal
+>${cursor}</literal
+>) курсор буде автоматично пересунуто до першого екземпляра таких змінних, після чого програма перейде у стан очікування на введення тексту. Після введення відповідного значення натисніть клавішу &Tab;, щоб перейти до наступної змінної.</para>
+
+</sect2>
+
+<sect2 id="snippets-ack">
+<title
+>Подяки</title>
+<para
+>Розділ щодо роботи з фрагментами у &kate; було написано Джозефом Веніґером (Joseph Wenninger).</para>
+<para
+>Особлива подяка учаснику Google Code-In 2011 Martin Gergov за написання більшої частини цього розділу.</para>
+</sect2>
+
+</sect1>
+
+
+<sect1 id="kate-application-plugin-sql">
+<sect1info>
+<authorgroup>
+<author
+><firstname
+>Ömer</firstname
+> <othername
+>Faruk</othername
+> <surname
+>ORUÇ</surname
+></author>
+<author
+>&TC.Hollingsworth; &TC.Hollingsworth.mail;</author>
+</authorgroup>
+</sect1info>
+<title
+>Додаток SQL</title>
+
+<sect2 id="sql-intro">
+<title
+>Вступ</title>
+
+<para
+>Структурована мова запитів (SQL) — спеціалізована мова, призначена для оновлення, вилучення та отримання даних з баз даних.</para>
+
+<para
+>За допомогою додатка SQL &kate; ви зможете виконувати такі дії:</para>
+
+<itemizedlist>
+<listitem
+><para
+>створювати бази даних;</para
+></listitem>
+<listitem
+><para
+>встановлювати з’єднання з уже створеною базою даних;</para
+></listitem>
+<listitem
+><para
+>вставляти дані у базу даних і вилучати дані з бази даних;</para
+></listitem>
+<listitem
+><para
+>надсилати запити до бази даних;</para
+></listitem>
+<listitem
+><para
+>переглядати результати у форматі таблиці.</para
+></listitem>
+</itemizedlist>
+
+</sect2>
+
+<sect2 id="sql-connecting">
+<title
+>Встановлення з’єднання з базою даних</title>
+
+<para
+>Виберіть пункт <guibutton
+>Додати з’єднання</guibutton
+> з меню <guimenu
+>SQL</guimenu
+> або відповідний пункт на панелі інструментів, а потім виберіть драйвер бази даних &Qt;, який слід використовувати (ви можете вибрати QSQLITE, QMYSQL3, QMYSQL, QODBC3, QODBC, QPSQL7 або QPSQL). Якщо потрібного вам драйвера немає у списку, вам слід встановити його. Після визначення драйвера натисніть кнопку <guibutton
+>Далі</guibutton
+>. </para>
+
+<para
+>Якщо у вибраній вами базі даних для зберігання даних використовується файл, просто вкажіть розташування цього файла і натисніть кнопку <guibutton
+>Далі</guibutton
+>. Якщо для роботи з базою даних потрібне з’єднання з сервером, вам слід вказати назву вузла сервера, ім’я вашого користувача та пароль, а також будь-які інші дані, потрібні для роботи відповідного драйвера. Після визначення всіх потрібних даних натисніть кнопку <guibutton
+>Далі</guibutton
+>.</para>
+
+<para
+>Нарешті, надайте вашому з’єднанню назву і натисніть кнопку <guibutton
+>Завершити</guibutton
+>.</para>
+
+</sect2>
+
+<sect2 id="sql-querying">
+<title
+>Виконання запитів</title>
+
+<sect3 id="sql-querying-insert-delete-update">
+<title
+>INSERT/DELETE/UPDATE</title>
+
+<para
+>За допомогою додатка SQL ви можете вставляти, вилучати і оновлювати дані так само, як це можна робити із командного рядка чи програми-скрипту. Просто введіть запит на панелі інструментів і натисніть кнопку <guibutton
+>Виконати запит</guibutton
+> або скористайтеся пунктом меню <menuchoice
+><guimenu
+>SQL</guimenu
+><guimenuitem
+>Виконати запит</guimenuitem
+></menuchoice
+> (<keycombo action="simul"
+>&Ctrl;<keycap
+>E</keycap
+></keycombo
+>).</para>
+
+<example>
+<title
+>Декілька прикладів запитів</title>
+<variablelist>
+
+<varlistentry>
+<term
+><command
+>INSERT</command
+></term>
+<listitem
+><para
+><programlisting
+>INSERT INTO <replaceable
+>назва_таблиці</replaceable
+> ("<replaceable
+>запис1</replaceable
+>", "<replaceable
+>запис2</replaceable
+>", "<replaceable
+>запис3</replaceable
+>", "<replaceable
+>запис4</replaceable
+>", "<replaceable
+>запис5</replaceable
+>")
+VALUES ("<replaceable
+>значення1</replaceable
+>", "<replaceable
+>значення2</replaceable
+>", "<replaceable
+>значення3</replaceable
+>", "<replaceable
+>значення4</replaceable
+>", "<replaceable
+>значення5</replaceable
+>" )
+</programlisting
+></para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><command
+>DELETE</command
+></term>
+<listitem
+><para
+><programlisting
+>DELETE FROM <replaceable
+>назва_таблиці</replaceable
+> WHERE name = "<replaceable
+>текст</replaceable
+>"
+</programlisting
+></para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><command
+>UPDATE</command
+></term>
+<listitem
+><para
+><programlisting
+>UPDATE <replaceable
+>назва_таблиці</replaceable
+> SET "<replaceable
+>запис1</replaceable
+>" = "<replaceable
+>текст</replaceable
+>", "<replaceable
+>запис2</replaceable
+>" = "<replaceable
+>текст</replaceable
+>", "<replaceable
+>запис3</replaceable
+>" = "<replaceable
+>текст</replaceable
+>", "<replaceable
+>запис4</replaceable
+>" = "<replaceable
+>текст</replaceable
+>", "<replaceable
+>запис5</replaceable
+>" = "<replaceable
+>текст</replaceable
+>"
+</programlisting
+></para
+></listitem>
+</varlistentry>
+
+</variablelist>
+</example>
+
+</sect3>
+
+<sect3 id="sql-querying-select">
+<title
+>SELECT</title>
+
+<para
+>Після виконання запиту <command
+>SELECT</command
+> ви зможете переглянути результати у таблиці, яку буде показано на панелі <guilabel
+>Вивід даних SQL</guilabel
+> у нижній частині вікна &kate; або у текстовому форматі на панелі <guilabel
+>Текстовий вивід SQL</guilabel
+>. Якщо під час виконання запиту станеться помилка, ви зможете переглянути відповідне повідомлення на панелі текстового виводу.</para>
+
+<example>
+<title
+>Приклад запиту <command
+>SELECT</command
+></title>
+<para
+><programlisting
+>SELECT * FROM <replaceable
+>назва_таблиці</replaceable
+>
+</programlisting
+></para>
+</example>
+
+<para
+>На панелі інструментів <guilabel
+>Вивід даних SQL</guilabel
+> розташовано декілька кнопок:</para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><guibutton
+>Ширина стовпчиків за вмістом</guibutton
+></term>
+<listitem
+><para
+>Змінити ширину стовпчиків відповідно до вмісту цих стовпчиків.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guibutton
+>Висота рядків за вмістом</guibutton
+></term>
+<listitem
+><para
+>Змінити висоту рядків відповідно до вмісту цих рядків.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guibutton
+>Копіювати</guibutton
+></term>
+<listitem
+><para
+>Позначити весь вміст таблиці і скопіювати його до буфера обміну даними.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guibutton
+>Експортувати</guibutton
+></term>
+<listitem
+><para
+>Експортувати весь вміст таблиці до файла, буфера обміну даними або поточного документа у форматі тексту, розділеного комами (CSV).</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guibutton
+>Спорожнити</guibutton
+></term>
+<listitem
+><para
+>Вилучає всі дані з перегляду таблиці.</para
+></listitem>
+</varlistentry>
+
+<!--FIXME Use system locale -->
+
+</variablelist>
+
+<para
+>Змінити кольори, які буде використано під час показу таблиці, можна за допомогою розділу <guilabel
+>SQL</guilabel
+> вікна, яке відкривається за допомогою пункту меню <menuchoice
+><guimenu
+>Параметри</guimenu
+><guimenuitem
+>Налаштувати &kate;...</guimenuitem
+> </menuchoice
+>.</para>
+
+</sect3>
+</sect2>
+
+<sect2 id="sql-browsing">
+<title
+>Навігація</title>
+
+<para
+>Навігацію вашою базою даних можна здійснювати за допомогою панелі інструментів <guilabel
+>Схеми бази даних</guilabel
+>, розташованої у вікні ліворуч. Перелік показаних на цій панелі даних залежатиме від використаного вами драйвера бази даних.</para>
+
+<para
+>Щоб оновити вміст списку, наведіть вказівник миші на вільне місце панелі інструментів і клацніть правою кнопкою миші, потім виберіть у контекстному меню пункт <guimenuitem
+>Оновити</guimenuitem
+>. Щоб створити запит щодо якогось з записів у списку, наведіть вказівник миші на цей запис, клацніть правою кнопкою миші і виберіть у контекстному меню пункт <guisubmenu
+>Створити</guisubmenu
+>, а потім виберіть тип запиту (<guimenuitem
+>SELECT</guimenuitem
+>, <guimenuitem
+>UPDATE</guimenuitem
+>, <guimenuitem
+>INSERT</guimenuitem
+> або <guimenuitem
+>DELETE</guimenuitem
+>) з підменю.</para>
+
+</sect2>
+
+<sect2 id="sql-menus">
+<title
+>Структура меню</title>
+<variablelist>
+
+<varlistentry>
+<term
+><menuchoice
+><guimenu
+>SQL</guimenu
+><guimenuitem
+>Додати з’єднання...</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Додає нове з’єднання за допомогою одного з драйверів баз даних. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><menuchoice
+><guimenu
+>SQL</guimenu
+><guimenuitem
+>Вилучити з’єднання</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Вилучає позначене з’єднання. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><menuchoice
+><guimenu
+>SQL</guimenu
+><guimenuitem
+>Змінити параметри з’єднання...</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Змінити параметри поточного з’єднання. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+>З'єднання</term>
+<listitem
+><para
+>Всі створені вами з’єднання з базами даних буде показано у списку між пунктами меню <guimenuitem
+>Змінити параметри з’єднання</guimenuitem
+> та <guimenuitem
+>Виконати запит</guimenuitem
+>. Щоб надіслати запити до відповідної бази даних або внести зміни до цієї бази даних, просто виберіть один з цих пунктів. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><menuchoice
+><shortcut
+><keycombo action="simul"
+>&Ctrl;<keycap
+>E</keycap
+></keycombo
+></shortcut
+> <guimenu
+>SQL</guimenu
+><guimenuitem
+>Виконати запит</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Виконати ваш запит. </para
+></listitem>
+</varlistentry>
+
+</variablelist>
+</sect2>
+
+<sect2 id="sql-ack">
+<title
+>Подяки</title>
+
+<para
+>Додаток SQL було створено Marco Mentasti.</para>
+<para
+>Особлива подяка учаснику Google Code-In 2011 Ömer Faruk ORUÇ за написання більшої частини цього розділу.</para>
+
+</sect2>
+
+</sect1>
+
+<sect1 id="kate-application-plugin-symbolviewer">
+<!--https://kate-editor.org/2010/10/27/php-treeview-improvements-in-kate/?-->
+<title
+>Додаток перегляду символів</title>
+
+<sect2 id="symbolviewer-using">
+<title
+>Користування додатком закриття за критерієм</title>
+
+<para
+>Цей додаток надає змогу розробникам переглядати символи (функції, макроси і структури) під час редагування початкового коду.</para>
+<para
+>Клацанням на пунктах обробленої інформації ви можете без проблем здійснювати навігацію кодом.</para>
+<para
+>У поточній версії передбачено підтримку таких мов:</para>
+<para
+>C/C++, Java, Perl, PHP, Python, Ruby, XSLT, Tcl/Tk, Fortran</para>
+
+<para
+>Список можливостей:</para>
+<simplelist>
+<member
+>Режим списку/дерева</member>
+<member
+>Вмикання або вимикання упорядковування</member>
+<member
+>Приховування або показ параметрів функцій</member>
+<member
+>Розгортання або згортання ієрархічних списків</member>
+<member
+>Автоматичне оновлення у відповідь на зміну у документах</member>
+<member
+>Обробку коду засновано на засобах підсвічування синтаксичних конструкцій з &kde-frameworks;.</member>
+</simplelist>
+
+</sect2>
+
+<sect2 id="symbolviewer-menu">
+<title
+>Структура меню</title>
+<variablelist>
+
+<varlistentry id="tools-symbolviewer">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>\</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Перегляд</guimenu
+> <guisubmenu
+>Вікна інструментів</guisubmenu
+> <guimenuitem
+>Показати список символів</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Увімкнути або вимкнути показ панелі списку символів &kate;. На цій панелі буде показано список функцій, макросів і структур у початковому коді активного документа.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+
+<sect2 id="symbolviewer-config">
+<title
+>Налаштування</title>
+
+<screenshot id="screenshot-symbolviewer-settings">
+<screeninfo
+>Переглядач символів</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="symbolviewer-settings.png" format="PNG"/></imageobject>
+<caption
+><para
+>Вибір параметрів типового обробника</para
+></caption>
+</mediaobject>
+</screenshot>
+
+</sect2>
+
+</sect1>
+
+
+<sect1 id="kate-application-plugin-konsole">
+<title
+>Додаток перегляду інструмента термінала</title>
+
+<para
+><indexterm
+><primary
+>Емулятор термінала</primary
+></indexterm
+> Вбудований емулятор термінала є копією термінала з програми &konsole;, його додано для зручності. Доступ до емулятора можна отримати за допомогою пункту меню <menuchoice
+><guimenu
+>Перегляд</guimenu
+><guisubmenu
+>Вікна інструментів</guisubmenu
+> <guimenuitem
+>Показати панель термінала</guimenuitem
+></menuchoice
+>, це вікно завжди отримуватиме фокус після увімкнення його показу. Крім того, якщо буде позначено пункт <link linkend="konsole-config"
+>Автоматично синхронізувати термінал з поточним документом, за можливості</link
+>, поточний каталог у терміналі буде за можливості змінено на каталог поточного документа після показу або внесення змін у поточний документ.</para>
+
+<para
+>Типовим розташуванням емулятора термінала у вікні &kate;, є нижня частина вікна, під областю редагування.</para>
+
+<para
+>Ви можете налаштувати &konsole; за допомогою контекстного меню, яке можна викликати клацанням правою кнопкою миші. Докладніші відомості можна знайти у <ulink url="help:/konsole/index.html"
+>підручнику з &konsole;</ulink
+>.</para>
+
+<para
+>Відповідальним за роботу емулятора термінала є додаток перегляду інструмента термінала.</para>
+
+<sect2 id="konsole-menus">
+<title
+>Структура меню</title>
+
+<variablelist>
+
+<varlistentry id="view-toolviews-show-terminal">
+<term
+><menuchoice
+><guimenu
+>Перегляд</guimenu
+><guisubmenu
+>Вікна інструментів</guisubmenu
+> <guimenuitem
+>Показати панель термінала</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Вмикає або вимикає показ вбудованого емулятора термінала.</para>
+<para
+>Після першого активування буде створено термінал.</para>
+<para
+>Якщо буде показано панель емулятора термінала, їй буде передано фокус, і ви зможете негайно перейти до набору команд. Якщо буде позначено пункт <link linkend="konsole-config"
+>Автоматично синхронізувати термінал з поточним документом, за можливості</link
+> на сторінці <guilabel
+>Термінал</guilabel
+> <link linkend="config-dialog"
+>головного діалогового вікна налаштування</link
+>, у сеансі командної оболонки каталог автоматично змінюватиметься на каталог активного документа, якщо активним документом є локальний файл.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="view-toolviews-pipe-to-terminal">
+<term
+><menuchoice
+><guimenu
+>Інструменти</guimenu
+><guimenuitem
+>Спрямувати через канал у консоль</guimenuitem
+></menuchoice
+></term>
+<listitem
+><para
+>Передає поточний виділений текст у рядок введення вбудованого емулятора термінала. Символ нового рядка у кінець рядка додано не буде.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="tools-sync-terminal-document">
+<term
+><menuchoice
+><guimenu
+>Інструменти</guimenu
+> <guimenuitem
+>Синхронізувати термінал з поточним документом</guimenuitem
+></menuchoice
+></term>
+<listitem>
+<para
+>Позначення цього пункту призведе до того, що вбудований термінал автоматично змінюватиме свій поточний каталог на каталог активного документа.</para>
+
+<para
+>Крім того, ви можете налаштувати &kate; так, щоб термінал було завжди синхронізовано з поточним документом. Докладніше про це у розділі <xref linkend="konsole-config"/>.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry id="tools-focus-terminal">
+<term
+><menuchoice
+><guimenu
+>Інструменти</guimenu
+> <guimenuitem
+>Фокус на панель термінала/Зняти фокус з панелі термінала</guimenuitem
+> </menuchoice
+></term>
+<listitem>
+<para
+>Перемикає фокус з поточного документа на термінал, і навпаки. </para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+</sect2>
+
+<sect2 id="konsole-config">
+<title
+>Налаштування</title>
+
+<para
+>Налаштувати додаток панелі термінала можна за допомогою сторінки <guilabel
+>Термінал</guilabel
+> <link linkend="configuring-kate"
+>діалогового вікна налаштовування програми</link
+>.</para>
+
+<para
+>Можна вибрати один з таких варіантів:</para>
+
+<variablelist>
+<varlistentry>
+<term>
+<guilabel
+>Автоматично синхронізувати термінал з поточним документом, за можливості</guilabel
+></term>
+<listitem
+><para
+>Якщо буде позначено цей пункт, вбудований термінал змінюватиме поточний каталог на каталог активного документа після запуску і після того, як новий документ отримуватиме фокус. Якщо пункт не буде позначено, вам слід буде виконувати всі дії з навігації у терміналі вручну. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Змінити значення змінної середовища EDITOR на «kate -b»</guilabel
+></term>
+<listitem
+><para
+>За допомогою цього пункту можна визначити змінну середовища <envar
+>EDITOR</envar
+> так, щоб програми, що працюють у вбудованому терміналі і автоматично відкривають файл у редакторі, відкривали його у &kate; замість типового текстового редактора командної оболонки. Ви не зможете продовжувати користування таким терміналом, аж доки редагований файл не буде закрито у &kate; з надсиланням програмі, якій потрібно було редагування, повідомлення про завершення редагування файла.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Приховувати &konsole; у відповідь на натискання «Esc»</guilabel
+></term>
+<listitem
+><para
+>Уможливлює закриття вбудованого термінала натисканням клавіші &Esc;. Може спричинити проблеми із програмами, які працюють у терміналі і використовують клавішу &Esc;, наприклад <application
+>vim</application
+>. Такі програми можна вказати за допомогою поля для введення тексту, розташованого нижче. Пункти у списку програм слід відокремлювати комами.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+</sect2>
+
+</sect1>
+
+<sect1 id="kate-application-plugin-textfilter">
+
+<title
+>Додаток для фільтрування тексту</title>
+
+<sect2 id="textfilter-using">
+<title
+>Користування додатком фільтрування тексту</title>
+
+<para
+>Цим додатком можна скористатися для обробки позначеного тексту за допомогою команд термінала. Вхідними даними команди буде позначений фрагмент тексту. Виведені дані буде або використано як замінник позначеного фрагмента, або скопійовано до буфера обміну, залежно від визначених користувачем налаштувань. </para>
+
+<itemizedlist>
+<title
+>Приклади:</title>
+<listitem
+><para
+><command
+>less /etc/fstab</command
+> — вставити вміст цього файла або скопіювати вміст до буфера обміну даними </para
+></listitem>
+<listitem
+><para
+><command
+>wc</command
+> — порахувати кількість рядків, слів і символів у позначеному фрагменті тексту і вставити ці дані до документа або скопіювати їх до буфера обміну даними </para
+></listitem>
+<listitem
+><para
+><command
+>sort</command
+> — упорядкувати рядки у позначеному фрагменті тексту і вставити результат до документа або скопіювати його до буфера обміну даними </para
+></listitem>
+</itemizedlist>
+
+</sect2>
+
+<sect2 id="textfilter-menu">
+<title
+>Структура меню</title>
+
+<variablelist>
+
+<varlistentry id="tools-textfilter">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>\</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>Інструменти</guimenu
+> <guisubmenu
+>Фільтрувати текст</guisubmenu
+> </menuchoice
+></term>
+<listitem>
+
+<para
+><action
+>Відкриває</action
+> діалогове вікно фільтрування тексту:</para>
+
+<screenshot id="screenshot-filtertext">
+<screeninfo
+>Діалогове вікно фільтрування тексту</screeninfo>
+<mediaobject>
+<imageobject
+><imagedata fileref="textfilter.png" format="PNG"/></imageobject>
+</mediaobject>
+</screenshot>
+
+<para
+>Введіть до поля спадного списку команду оболонки або виберіть раніше введену команду зі списку журналу.</para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><guilabel
+>Копіювати результат замість його вставлення</guilabel
+></term>
+<listitem>
+<para
+>Копіювати результат до буфера обміну даними без внесення змін до документа.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><guilabel
+>Об’єднати STDOUT і STDERR</guilabel
+></term>
+<listitem>
+<para
+>Якщо позначити цей пункт, виведення до каналів STDOUT та STDERR буде об’єднано і програма не повідомлятиме про помилки. Якщо пункт не буде позначено, програма показуватиме дані, виведені до STDERR, за допомогою панелі пасивного повідомлення.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</listitem>
+</varlistentry>
+
+</variablelist>
+
+</sect2>
+
+</sect1>
+
+<sect1 id="kate-application-plugin-xmlcheck">
+<!-- from doc/kate-addons/xmlcheck.docbook -->
+<sect1info>
+<authorgroup
+><author
+>&Daniel.Naber; &Daniel.Naber.mail; </author
+></authorgroup>
+</sect1info>
+
+<title
+>Перевірка &XML;</title>
+
+<para
+>За допомогою цього додатка можна перевірити належний формат і коректність файлів &XML;.</para>
+<para
+>За допомогою цього додатка можна перевірити коректність поточного файла. Список попереджень і помилок буде показано у нижній частині головного вікна &kate;. Ви можете натиснути повідомлення про помилку, щоб перевести фокус програми на відповідне місце у тексті документа. Якщо у тексті документа є теґ <quote
+>DOCTYPE</quote
+> для перевірки документа на коректність буде використано саме вказаний цим теґом DTD. Пошук файла DTD буде проводитися відносно розташування файла поточного документа, тобто, якщо тим документа вказано як <quote
+>DTD/xhtml1-transitional.dtd</quote
+>, а файл документа знаходиться за адресою <filename
+>/home/peter/test.xml</filename
+>, програма очікуватиме, що файл DTD знаходиться за адресою <filename
+>/home/peter/DTD/xhtml1-transitional.dtd</filename
+>. Додатком підтримується і зовнішні DTD, вказані за допомогою http-адреси.</para>
+
+<para
+>Якщо у файлі не встановлено параметр doctype, файл буде перевірено на належне форматування.</para>
+
+<para
+>Щоб дізнатися більше про перевірку &XML;, відвідайте <ulink url="https://www.w3.org/XML/"
+>офіційні сторінки W3C, присвячені &XML;</ulink
+>.</para>
+
+<para
+>Для виконання своїх завдань цей додаток викликає зовнішню програму <command
+>xmllint</command
+>, яка є частиною libxml2. Якщо цю програму у вашій системі не було встановлено належним чином, цей додаток не працюватиме.</para>
+
+<para
+>Щоб завантажити цей додаток, відкрийте діалогове вікно налаштування &kate; за допомогою пункту меню <menuchoice
+><guimenu
+>Параметри</guimenu
+> <guimenuitem
+>Налаштувати &kate;...</guimenuitem
+></menuchoice
+>. Після цього позначте пункт <guilabel
+>Перевірка XML</guilabel
+> на сторінці <guilabel
+>Програма</guilabel
+>/<guilabel
+>Додатки</guilabel
+> і закрийте діалогове вікно. </para>
+
+<sect2 id="xmlcheck-menu">
+<title
+>Структура меню</title>
+
+<variablelist>
+<varlistentry>
+<term>
+<menuchoice
+><guimenu
+>XML</guimenu
+> <guimenuitem
+>Перевірити XML</guimenuitem
+> </menuchoice>
+</term>
+<listitem
+><para
+>За допомогою цього пункту меню можна запустити перевірку, яку було описано раніше.</para
+></listitem>
+</varlistentry>
+</variablelist>
+
+</sect2>
+
+<sect2 id="xmlcheck-thanks-and-acknowledgements">
+<title
+>Подяки</title>
+<para
+>Авторські права на додаток до &kate; <quote
+>Перевірка XML</quote
+> належать &Daniel.Naber; &Daniel.Naber.mail;, ©2002 </para>
+<para
+>Авторські права на документацію до додатка належать &Daniel.Naber;, ©2002</para>
+
+</sect2>
+</sect1>
+
+<sect1 id="kate-application-plugin-xmltools">
+<!-- from doc/kate-addons/xmlcheck.docbook -->
+<sect1info>
+<authorgroup
+><author
+>&Daniel.Naber; &Daniel.Naber.mail; </author
+></authorgroup>
+</sect1info>
+<title
+>Доповнення &XML;</title>
+
+<para
+>Цей додаток надаватиме вам підказки щодо того, які з елементів є дозволеними на певній позиції у файлі &XML;, відповідно до обмежень DTD цього файла. Програма покаже вам список можливих елементі, атрибутів, значень атрибутів або об’єктів, залежно від позиції курсора (наприклад, якщо символом, що знаходиться ліворуч від курсора, є <quote
+>&amp;</quote
+>, буде показано список всіх об’єктів). Додаток також може завершувати найближчий незакритий теґ, розташований ліворуч.</para>
+
+<para
+>Для роботи додатка потрібен файл <acronym
+>DTD</acronym
+> у форматі &XML;, створений програмою на Perl <command
+>dtdparse</command
+>. DTD у такому форматі називається <quote
+>мета-DTD</quote
+>. Деякі з мета-DTD встановлюються разом з програмою. Їх можна знайти у підкаталозі <filename class="directory"
+>katexmltools/</filename
+> каталогу <userinput
+><command
+>qtpaths</command
+> <option
+>--paths GenericDataLocation </option
+></userinput
+>, який також є типовим під час використання функції додатка <guimenuitem
+>Призначити мета-DTD...</guimenuitem
+>. Щоб мати змогу створювати ваші власні мета-DTD, вам слід отримати програму <command
+>dtdparse</command
+> за адресою <ulink url="http://dtdparse.sourceforge.net"
+>http://dtdparse.sourceforge.net</ulink
+>.</para>
+
+<sect2 id="xmltools-how-to-use">
+<title
+>Як користуватися</title>
+
+<para
+>Щоб завантажити цей додаток, відкрийте діалогове вікно налаштування &kate; за допомогою пункту меню <menuchoice
+><guimenu
+>Параметри</guimenu
+> <guimenuitem
+>Налаштувати &kate;...</guimenuitem
+></menuchoice
+>. Після цього позначте пункт <guilabel
+>Перевірка XML</guilabel
+> на сторінці <guilabel
+>Програма</guilabel
+>/<guilabel
+>Додатки</guilabel
+> і закрийте діалогове вікно. Після цього скористайтеся пунктом меню <menuchoice
+><guimenu
+>&XML;</guimenu
+><guimenuitem
+>Призначити мета-DTD...</guimenuitem
+></menuchoice
+>. Якщо у документі не міститься означення <quote
+>DOCTYPE</quote
+> або тип документа є невідомим, вам доведеться вказати файл мета-DTD у файловій системі. Якщо ж усе гаразд, буде автоматично завантажено мета-DTD, який відповідає DOCTYPE поточного документа.</para>
+
+<para
+>Тепер ви зможете скористатися додатком, після набору таких символів у тексті:</para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><keycap
+>&lt;</keycap
+> (клавіша знак «менше»)</term>
+<listitem
+><para
+>Натискання цієї клавіші відкриє список можливих елементів, якщо курсор ще не знаходиться усередині теґу. Зауважте, що у поточній версії ви ще не можете скористатися цією можливістю для вставки елемента найвищого рівня (наприклад <quote
+>&lt;html&gt;</quote
+>).</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><keycap
+>&lt;</keycap
+><keycap
+>/</keycap
+> (клавіша знак «менше» + клавіша похилої риски)</term>
+<listitem
+><para
+>Введення цих символів призведе до виводу панелі з пропозицією завершення поточного елемента (найближчого елемента ліворуч від курсора). Натисніть &Enter;, щоб прийняти пропозицію. На відміну від пункту меню <guimenuitem
+>Завершити елемент</guimenuitem
+>, комбінація символів працюватиме лише у разі призначення DTD.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><keycap
+>"</keycap
+> (клавіша лапок)</term>
+<listitem
+><para
+>Після введення лапок буде відкрито список можливих значень атрибута (якщо такий існує), якщо курсор знаходиться всередині теґу.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><keycap
+>&nbsp;</keycap
+> (клавіша пробілу)</term>
+<listitem
+><para
+>Після введення цього символу додаток відкриє список можливих атрибутів для поточного елемента, якщо курсор знаходиться всередині теґу.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><keycap
+>&amp;</keycap
+> (клавіша амперсанда)</term>
+<listitem
+><para
+>За допомогою цієї клавіші можна викликати список іменованих об’єктів.</para
+></listitem>
+</varlistentry>
+</variablelist>
+
+</sect2>
+
+<sect2 id="xmltools-features-and-limitations">
+<title
+>Можливості і обмеження</title>
+
+<para
+>Ви можете перевірити всі функціональні можливості і обмеження завантаженням файла <filename
+>katexmltools/testcases.xml</filename
+> у каталозі <userinput
+><command
+>qtpaths</command
+> <option
+>--paths GenericDataLocation </option
+></userinput
+> до &kate; з наступним виконанням настанов з цього файла.</para>
+
+</sect2>
+
+
+<sect2 id="xmltools-menu">
+<title
+>Структура меню</title>
+
+<variablelist id="xml-insert-element">
+<varlistentry>
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;&Enter;</keycombo
+> </shortcut
+> <guimenu
+>XML</guimenu
+> <guimenuitem
+>Вставити елемент...</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Відкриє діалогове вікно, за допомогою якого ви зможете вставити елемент &XML;. Символи &lt; та &gt;, а також завершальний теґ буде вставлено автоматично. Якщо ви під час вибору цього пункту меню було позначено фрагмент тексту, позначений текст буде вставлено між початковим та завершальним теґами. За допомогою цього діалогового вікна також можна буде завершувати запис всіх елементів, які вставляються у поточній позиції курсора, якщо ви призначили загальний DTD за допомогою пункту меню <guimenuitem
+>Призначити мета-DTD...</guimenuitem
+>. </para
+></listitem>
+</varlistentry>
+
+<varlistentry id="xml-close-element">
+<term
+><menuchoice
+><shortcut
+> <keycombo action="simul"
+>&Ctrl;<keycap
+>&lt;</keycap
+></keycombo
+> </shortcut
+> <guimenu
+>XML</guimenu
+> <guimenuitem
+>Завершити елемент</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>Якщо ви скористаєтеся цим пунктом меню, програма виконає у вашому документі пошук теґу, який ще не було завершено, і вставить до тексту відповідний завершальний теґ. Пошук буде розпочато з позиції курсора і продовжено у напрямку ліворуч. Якщо програмі не вдасться знайти жодного незакритого теґу, ніяких дій зі зміни тексту виконано не буде.</para
+></listitem>
+</varlistentry>
+
+<varlistentry id="xml-assign-metadtd">
+<term
+><menuchoice
+><guimenu
+>XML</guimenu
+> <guimenuitem
+>Призначити мета-DTD...</guimenuitem
+> </menuchoice
+></term>
+<listitem
+><para
+>За допомогою цього пункту меню ви зможете повідомити додатку, який з файлів мета-DTD слід використовувати для поточного документа. Зауважте, що додаток не зберігатиме даних вашого вибору. Вам доведеться повторити процедуру визначення після наступного запуску &kate;.</para
+></listitem>
+</varlistentry>
+</variablelist>
+
+</sect2>
+
+<sect2 id="xmltools-thanks-and-acknowledgements">
+<title
+>Подяки</title>
+<para
+>Авторські права на додаток до &kate; <quote
+>Доповнення &XML;</quote
+> належать &Daniel.Naber; &Daniel.Naber.mail;, 2001, 2002. </para>
+<para
+>Версія для &kde; SC 4, © Tomáš Trnka, 2010</para>
+<para
+>Авторські права на документацію до додатка належать &Daniel.Naber;, 2001, 2002.</para>
+</sect2>
+</sect1>
+
+
+</chapter>

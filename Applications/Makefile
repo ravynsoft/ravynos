@@ -1,6 +1,6 @@
 SUBDIR_TARGETS+= build
 
-SUBDIR= Terminal
+SUBDIR= Terminal Kate
 
 SUBDIR_PARALLEL=
 

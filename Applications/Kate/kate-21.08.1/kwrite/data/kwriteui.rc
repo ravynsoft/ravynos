@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE gui SYSTEM "kpartgui.dtd">
+<gui name="kwrite" version="19">
+  <MenuBar>
+    <Menu name="file" noMerge="1">
+      <text>&amp;File</text>
+      <Action name="file_new"/>
+      <Separator/>
+      <Action name="file_open"/>
+      <Action name="file_open_recent"/>
+      <Separator/>
+      <DefineGroup name="save_merge" append="save_merge"/>
+      <Separator/>
+      <DefineGroup name="revert_merge" append="revert_merge"/>
+      <DefineGroup name="print_merge" append="print_merge"/>
+      <Separator/>
+      <Action name="file_close"/>
+      <DefineGroup name="close_merge" append="close_merge"/>
+      <Separator/>
+      <Action name="file_quit"/>
+    </Menu>
+    <Menu name="edit" noMerge="1">
+      <text>&amp;Edit</text>
+      <DefineGroup name="edit_undo_merge"/>
+      <Separator/>
+      <DefineGroup name="edit_paste_merge"/>
+      <Separator/>
+      <DefineGroup name="edit_select_merge"/>
+      <Separator/>
+      <DefineGroup name="edit_find_merge"/>
+      <Separator/>
+      <Merge/>
+    </Menu>
+    <Menu name="view" noMerge="1">
+      <text>&amp;View</text>
+      <Action name="view_new_view"/>
+      <Separator/>
+      <DefineGroup name="view_operations"/>
+    </Menu>
+    <Menu name="tools" noMerge="1">
+      <text>&amp;Tools</text>
+      <DefineGroup name="tools_operations"/>
+    </Menu>
+    <Merge/>
+    <Menu name="settings">
+      <text>&amp;Settings</text>
+      <Merge name="StandardToolBarMenuHandler"/>
+      <DefineGroup name="show_toolbar_merge"/>
+      <Action name="set_showPath" append="show_merge"/>
+      <DefineGroup name="show_merge"/>
+      <Action name="options_configure_toolbars"/>
+      <Action name="set_confdlg" />
+    </Menu>
+  </MenuBar>
+  <ToolBar name="mainToolBar" noMerge="1">
+    <text>Main Toolbar</text>
+    <Action name="file_new"/>
+    <Action name="file_open"/>
+    <Separator/>
+    <DefineGroup name="file_operations"/>
+    <Separator/>
+    <DefineGroup name="print_merge"/>
+    <Separator/>
+    <Action name="file_close"/>
+    <Separator/>
+    <DefineGroup name="edit_operations"/>
+    <Separator/>
+    <DefineGroup name="find_operations"/>
+    <Separator/>
+    <DefineGroup name="zoom_operations"/>
+  </ToolBar>
+  <Menu name="ktexteditor_popup" noMerge="1">
+    <DefineGroup name="popup_operations"/>
+  </Menu>
+</gui>
+<!-- kate: space-indent on; indent-width 4; replace-tabs on; -->

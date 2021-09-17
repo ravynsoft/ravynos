@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>SessionConfigWidget</class>
+ <widget class="QWidget" name="SessionConfigWidget">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>730</width>
+    <height>603</height>
+   </rect>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout_4">
+   <item>
+    <widget class="QGroupBox" name="gbAppStartup">
+     <property name="title">
+      <string>Application Startup Behavior</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <item>
+       <widget class="QRadioButton" name="startNewSessionRadioButton">
+        <property name="text">
+         <string>&amp;Start new session</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QRadioButton" name="loadLastUserSessionRadioButton">
+        <property name="text">
+         <string>&amp;Load last used session</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QRadioButton" name="manuallyChooseSessionRadioButton">
+        <property name="text">
+         <string>&amp;Manually choose a session</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBox">
+     <property name="title">
+      <string>Application Shutdown Behavior</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_5">
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_3">
+        <item>
+         <widget class="QLabel" name="label_4">
+          <property name="text">
+           <string>Automatically save and restore:</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <layout class="QVBoxLayout" name="verticalLayout_6">
+          <item>
+           <widget class="QCheckBox" name="stashNewUnsavedFiles">
+            <property name="text">
+             <string>Newly-created unsaved files</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QCheckBox" name="stashUnsavedFilesChanges">
+            <property name="text">
+             <string>Files with unsaved changes</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="modCloseAfterLast">
+        <property name="whatsThis">
+         <string>If enabled, Kate will shutdown when the last file being edited is closed, otherwise a blank page will open so that you can start a new file.</string>
+        </property>
+        <property name="text">
+         <string>Close Kate entirely when the last file is closed</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="gbElements">
+     <property name="title">
+      <string>Session Elements</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_3">
+      <item>
+       <widget class="QLabel" name="label">
+        <property name="text">
+         <string>The session contains the list of open documents, recently opened files list, bookmarks, cursor position etc. When the session is loaded all elements are restored.</string>
+        </property>
+        <property name="wordWrap">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="QLabel" name="label_2">
+          <property name="text">
+           <string>Maximum number of entries in recent file list:</string>
+          </property>
+          <property name="buddy">
+           <cstring>spinBoxRecentFilesCount</cstring>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QSpinBox" name="spinBoxRecentFilesCount"/>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="restoreVC">
+        <property name="whatsThis">
+         <string>Check this if you want all your views and frames restored each time you open Kate.</string>
+        </property>
+        <property name="text">
+         <string>Include &amp;window configuration</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="saveMetaInfos">
+     <property name="whatsThis">
+      <string>Check this if you want document configuration like for example bookmarks to be saved past editor sessions. The configuration will be restored if the document has not changed when reopened.</string>
+     </property>
+     <property name="title">
+      <string>Keep &amp;meta-information past sessions</string>
+     </property>
+     <property name="checkable">
+      <bool>true</bool>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <item>
+         <widget class="QLabel" name="label_3">
+          <property name="text">
+           <string>Delete unused meta-information after:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="KPluralHandlingSpinBox" name="daysMetaInfos"/>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer_2">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>KPluralHandlingSpinBox</class>
+   <extends>QSpinBox</extends>
+   <header>kpluralhandlingspinbox.h</header>
+  </customwidget>
+ </customwidgets>
+ <tabstops>
+  <tabstop>spinBoxRecentFilesCount</tabstop>
+  <tabstop>restoreVC</tabstop>
+  <tabstop>startNewSessionRadioButton</tabstop>
+  <tabstop>loadLastUserSessionRadioButton</tabstop>
+  <tabstop>manuallyChooseSessionRadioButton</tabstop>
+ </tabstops>
+ <resources/>
+ <connections/>
+</ui>

@@ -1,0 +1,425 @@
+<?xml version="1.0" ?>
+<!DOCTYPE article PUBLIC "-//KDE//DTD DocBook XML V4.5-Based Variant V1.1//EN"
+"dtd/kdedbx45.dtd" [
+<!ENTITY kappname "&kwrite;">
+<!ENTITY % Korean "INCLUDE"
+> <!-- change language only here -->
+]>
+
+<article id="kwrite" lang="&language;">
+
+<articleinfo>
+<title
+>&kwrite; 도움말</title>
+<authorgroup>
+<author
+>&TC.Hollingsworth; &TC.Hollingsworth.mail;</author>
+<othercredit role="developer"
+>&Christoph.Cullmann; &Christoph.Cullmann.mail; </othercredit>
+
+<othercredit lang="ko" role="translator"
+><surname
+>박</surname
+><firstname
+>신조</firstname
+><affiliation
+><address
+><email
+>kde@peremen.name</email
+></address
+></affiliation
+><contrib
+>한국어 번역</contrib
+></othercredit
+> 
+
+</authorgroup>
+
+<copyright>
+<year
+>2014</year>
+<holder
+>&TC.Hollingsworth; &TC.Hollingsworth.mail;</holder>
+</copyright>
+<legalnotice
+>&FDLNotice;</legalnotice>
+
+<date
+>2018-05-19</date>
+<releaseinfo
+>프로그램 18.08</releaseinfo>
+
+<abstract>
+<para
+>&kwrite;는 &kde;의 텍스트 편집기입니다. 창 하나에서 하나의 파일을 편집할 수 있습니다.</para>
+</abstract>
+
+<keywordset>
+<keyword
+>KDE</keyword>
+<keyword
+>KWrite</keyword>
+<keyword
+>텍스트</keyword>
+<keyword
+>편집기</keyword>
+</keywordset>
+
+</articleinfo>
+
+<sect1 id="introduction">
+<title
+>소개</title>
+
+<para
+>&kwrite;는 &kde;의 텍스트 편집기 그 이상입니다. 프로그래머의 편집기로 사용하는 것을 염두에 두고 있으며 더 강력한 편집기의 부분적인 대안으로 간주될 수 있습니다. &konqueror; 또는 &dolphin;과 함께 사용하여 여러 언어의 원본 코드 파일 탐색이 가능합니다. &kwrite;는 간단한 텍스트 편집기로도 사용할 수 있습니다. &kwrite;의 주요 기능 중 하나는 C/C++, &Java;, Python, Perl, Bash, Modula 2, &HTML;, Ada 등 다양한 프로그래밍 언어에 사용할 수 있는 색이 있는 구문 강조 기능입니다. &kwrite;는 단일 문서 인터페이스(<acronym
+>SDI</acronym
+>)를 사용하여 한 창에서 하나의 파일을 편집할 수 있습니다. </para>
+
+<para
+>&kwrite;는 &kate;, &kdevelop;, &kde; 프로그램 중 고급 텍스트 편집 기능이 필요한 것에서도 사용하는 &katepart; 구성 요소의 간단한 인터페이스입니다. &kwrite;의 전체 기능에 대한 완전한 문서를 보려면 <ulink url="help:/katepart"
+>&katepart; 도움말</ulink
+>을 참조하십시오. </para>
+</sect1>
+
+<sect1 id="command-line-options">
+<title
+>명령행 옵션</title>
+
+<para
+>비록 대부분 경우 &plasma; 프로그램 실행기나 데스크톱 아이콘으로 &kwrite;를 시작하는 경우가 대부분이지만 터미널 창의 명령 프롬프트에서도 열 수 있습니다. 명령행에서 열 때 사용할 수 있는 몇 가지 유용한 옵션이 있습니다. </para>
+
+<para
+>&katepart;를 사용하는 다른 프로그램에서도 유사한 명령행 옵션을 제공합니다.</para>
+
+<sect2 id="specify-a-file">
+<title
+>파일 지정</title>
+
+<para
+>특정 파일의 경로와 이름을 지정하여 &kwrite;를 시작할 때 해당 파일을 열거나 생성할 수 있습니다. 이 옵션은 다음처럼 사용할 수 있습니다:</para>
+
+<informalexample
+><screen
+><prompt
+>%</prompt
+> <userinput
+><command
+>kwrite</command>
+<option
+><replaceable
+>/home/myhome/docs/myfile.txt</replaceable
+></option>
+</userinput
+>
+</screen>
+</informalexample>
+</sect2>
+<sect2 id="editing-files-on-the-internet">
+<title
+>인터넷에서 파일 지정</title>
+
+<para
+>위에서 언급한 방법을 사용하여 인터넷 상의 파일을 열 수도 있습니다(인터넷에 연결된 경우). 이 옵션은 다음처럼 사용할 수 있습니다:</para>
+
+<informalexample
+><screen
+><prompt
+>%</prompt
+> <userinput
+><command
+>kwrite</command>
+<option
+><replaceable
+>ftp://ftp.kde.org/pub/kde/README</replaceable>
+</option
+></userinput
+>
+</screen>
+</informalexample>
+
+</sect2>
+
+<sect2 id="other-command-line-options">
+<title
+>기타 명령행 옵션</title>
+
+<para
+>다음과 같이 명령행 도움말 옵션을 사용할 수 있습니다</para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><userinput
+><command
+>kwrite</command
+> <option
+>--help</option
+></userinput
+></term>
+<listitem
+><para
+>명령행에서 사용할 수 있는 가장 기본적인 옵션의 목록입니다.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+><command
+>kwrite</command
+> <option
+>--author</option
+></userinput
+></term>
+<listitem
+><para
+>터미널 창에 &kwrite; 개발자를 표시합니다.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+
+<term
+><userinput
+><command
+>kwrite</command
+> <option
+>-v</option
+>, <option
+>--version</option
+></userinput
+></term>
+<listitem
+><para
+>프로그램의 버전 정보를 표시합니다.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+><command
+>kwrite</command
+> <option
+>--license</option
+></userinput
+></term>
+<listitem>
+<para
+>라이선스 정보를 표시합니다.</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+><command
+>kwrite</command
+> <option
+>--desktopfile</option
+> <parameter
+>filename</parameter
+></userinput
+></term>
+<listitem
+><para
+>이 프로그램의 데스크톱 항목의 기반 파일 이름입니다.</para>
+<para
+>래퍼 프로그램이나 여러 개의 desktop 파일이 있는 프로그램에 유용합니다. 각각 desktop 파일의 <option
+>Exec</option
+> 항목에 개별 명령행을 지정할 수 있습니다. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+><command
+>kwrite</command
+> <option
+>-e</option
+>, <option
+>--encoding</option
+> <parameter
+>encoding</parameter
+> </userinput
+></term>
+<listitem
+><para
+>&kwrite;에서 문서를 편집할 때 지정한 인코딩을 사용합니다. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+><command
+>kwrite</command
+> <option
+>-l</option
+>, <option
+>--line</option
+> <parameter
+>line</parameter
+> </userinput
+></term>
+<listitem
+><para
+>문서를 연 다음 지정한 행으로 이동합니다. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+><command
+>kwrite</command
+> <option
+>-c</option
+>, <option
+>--column</option
+> <parameter
+>column</parameter
+> </userinput
+></term>
+<listitem
+><para
+>문서를 연 다음 지정한 열로 이동합니다. </para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><userinput
+><command
+>kwrite</command
+> <option
+>-i</option
+>, <option
+>--stdin</option
+></userinput
+></term>
+<listitem
+><para
+>표준 입력(STDIN)에서 읽어 온 내용을 &kwrite;에 표시합니다. 많은 프로그램의 명령행 옵션 <option
+>-</option
+>와 유사하며, 명령 출력을 &kwrite;로 파이프 할 수 있습니다.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+</sect2>
+</sect1>
+
+<sect1 id="credits">
+<title
+>작성자 및 라이선스</title>
+
+<para
+>&kwrite; Copyright 2001-2014 by the &kate; team.</para>
+
+<para
+>원본 &kwrite; 기반, Copyright 2000 by Jochen Wilhelmy <email
+>digisnap@cs.tu-berlin.de</email
+> </para>
+
+<para
+>기여:</para>
+
+<itemizedlist>
+<listitem>
+<para
+>&Christoph.Cullmann; &Christoph.Cullmann.mail;</para>
+</listitem>
+
+<listitem>
+<para
+>Michael Bartl <email
+>michael.bartl1@chello.at</email
+></para>
+</listitem>
+
+<listitem>
+<para
+>Phlip <email
+>phlip_cpp@my-deja.com</email
+></para>
+</listitem>
+
+<listitem>
+<para
+>&Anders.Lund; &Anders.Lund.mail;</para>
+</listitem>
+
+<listitem>
+<para
+>Matt Newell <email
+>newellm@proaxis.com</email
+></para>
+</listitem>
+
+<listitem>
+<para
+>&Joseph.Wenninger; &Joseph.Wenninger.mail;</para>
+</listitem>
+
+<listitem>
+<para
+>Jochen Wilhelmy <email
+>digisnap@cs.tu-berlin.de</email
+></para>
+</listitem>
+
+<listitem>
+<para
+>&Michael.Koch; &Michael.Koch.mail;</para>
+</listitem>
+
+<listitem>
+<para
+>&Christian.Gebauer; &Christian.Gebauer.mail;</para>
+</listitem>
+
+<listitem>
+<para
+>&Simon.Hausmann; &Simon.Hausmann.mail;</para>
+</listitem>
+
+<listitem>
+<para
+>Glen Parker <email
+>glenebob@nwlink.com</email
+></para>
+</listitem>
+
+<listitem>
+<para
+>Scott Manson <email
+>sdmanson@altel.net</email
+></para>
+</listitem>
+
+<listitem>
+<para
+>&John.Firebaugh; &John.Firebaugh.mail;</para>
+</listitem>
+</itemizedlist>
+
+<para
+>박신조<email
+>kde@peremen.name</email
+></para
+> &underFDL; &underGPL; </sect1>
+
+</article>
+<!--
+Local Variables:
+mode: sgml
+sgml-namecase-general: t
+sgml-namecase-entity: nil
+sgml-general-insert-case: lower
+sgml-minimize-attributes: nil
+sgml-omittag: nil
+End:
+-->

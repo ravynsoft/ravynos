@@ -1,0 +1,501 @@
+<chapter id="configuring-kate">
+<chapterinfo>
+<authorgroup>
+<author
+>&Anders.Lund; &Anders.Lund.mail;</author>
+<othercredit role="translator"
+><firstname
+>Юрій</firstname
+><surname
+>Чорноіван</surname
+><affiliation
+><address
+><email
+>yurchor@ukr.net</email
+></address
+></affiliation
+><contrib
+>Переклад українською</contrib
+></othercredit
+> 
+</authorgroup>
+</chapterinfo>
+<title
+>Як налаштувати &kate;</title>
+
+<sect1 id="configuring-overview">
+<title
+>Огляд</title>
+<para>
+<indexterm>
+<primary
+>налаштування</primary>
+<secondary
+>параметри</secondary>
+<tertiary
+>уподобання</tertiary
+></indexterm
+><anchor id="find"/> <anchor id="find-again"/> <anchor id="replace"/> <anchor id="undo"/> <anchor id="redo"/> У &kate; передбачено декілька інструментів, за допомогою яких ви зможете налаштувати програму бажаним чином. Серед найважливіших інструментів: </para>
+
+<variablelist>
+<varlistentry>
+<term id="configure"
+>Діалогове вікно налаштування</term>
+<listitem
+><para
+>Основний інструмент налаштування, за його допомогою ви зможете налаштувати програму &kate;, компонент редактора і додатки до програми.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term id="settings"
+>Меню <guimenu
+>Параметри</guimenu
+></term>
+<listitem
+><para
+>За допомогою цього меню можна змінити найвживаніші параметри, а також відкрити діалогові вікна налаштування.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+>Меню <guimenu
+>Перегляд</guimenu
+></term>
+<listitem
+><para
+>За допомогою цього меню ви зможете розділити поточний фрейм на частини, а також увімкнути або вимкнути показ панелей піктограм і номерів рядків для поточного документа, який ви редагуєте.</para
+></listitem>
+</varlistentry>
+</variablelist>
+
+<para
+>Вбудований термінал використовує параметри, визначені вами у «Системних параметрах», крім того, ви зможете налаштувати цей термінал за допомогою контекстного меню, відкрити яке можна клацанням правою кнопкою миші.</para>
+
+</sect1>
+
+<sect1 id="configuring-kate-configdialog">
+<title
+>Основне діалогове вікно налаштування</title>
+
+<mediaobject>
+<imageobject>
+<imagedata format="PNG" fileref="configdialog01.png"/>
+</imageobject>
+</mediaobject>
+
+<para
+>У вікні налаштування &kate; ліворуч розташовано деревоподібний список розділів, праворуч же буде показано сторінку налаштування, що відповідає позначеному розділу.</para>
+
+<para
+>Розділи налаштування поділено на дві групи, а саме: <itemizedlist>
+<listitem
+><para
+><link linkend="config-dialog"
+>Налаштування програми</link>
+</para
+></listitem>
+<listitem
+><para
+><link linkend="config-dialog-editor"
+>Налаштування компонента редактора</link
+></para
+></listitem>
+
+</itemizedlist>
+
+</para>
+
+</sect1>
+
+<sect1 id="config-dialog">
+<title
+>Налаштування програми &kate;</title>
+<para
+>У цій групі зібрано сторінки, які стосуються налаштування основної програми &kate;.</para>
+
+<sect2 id="config-dialog-general">
+<title
+>Загальне</title>
+<para
+>У цьому розділі зібрано декілька загальних параметрів &kate;</para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><anchor id="config-general-behavior"/>
+<guilabel
+>Поведінка</guilabel
+></term>
+<listitem>
+<variablelist>
+
+<varlistentry>
+<term
+><anchor id="config-dialog-general-switch-to-output"/>
+<guilabel
+>Перемикання на панель виведення, якщо маємо повідомлення типу</guilabel
+></term>
+<listitem
+><para
+>За допомогою цього пункту можна налаштувати умови, за яких &kate; має показувати панель виведення залежно від типу результату дії.</para>
+<para
+>Можна вибрати між такими варіантами: <guimenuitem
+>Ніколи</guimenuitem
+>, <guimenuitem
+>Помилка</guimenuitem
+> (при помилці), <guimenuitem
+>Попередження</guimenuitem
+> (при попередженні чи критичніших випадках), <guimenuitem
+>Інформація</guimenuitem
+> (при появі інформації чи критичніших повідомлень) і <guimenuitem
+>Журнал</guimenuitem
+> (при появі повідомлень журналу чи критичніших повідомлень).</para>
+</listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><anchor id="config-dialog-general-separate-dialog"/>
+<guilabel
+>Окреме вікно для обробки файлів, які змінено сторонніми програмами</guilabel
+></term>
+<listitem
+><para
+>Якщо позначити цей пункт, &kate; сповіщатиме вас модальним діалоговим вікном про усі файли, які було змінено у зовнішній програми, коли головне вікно програми отримуватиме фокус. Ви зможете одночасно виконувати одну і ту саму дію з групою з декількох файлів: перезавантажити, зберегти або відкинути змінені файли.</para>
+<para
+>Якщо пункт не позначено, &kate; питатиме вас про подальші дії щодо кожного зміненого файла окремо і лише тоді, коли панель перегляду файла отримуватиме фокусування.</para>
+</listitem>
+</varlistentry>
+
+</variablelist>
+</listitem>
+</varlistentry
+><!-- /behavior group -->
+
+<varlistentry>
+<term
+><anchor id="config-general-quick-open"/>
+<guilabel
+>Швидке відкривання</guilabel
+></term>
+ <listitem>
+
+<variablelist>
+<varlistentry>
+<term
+><anchor id="config-general-quick-open-match-mode"/>
+<guilabel
+>Режим відповідності</guilabel
+></term>
+<listitem
+><para
+>Встановлює режим списку для інструмента <link linkend="view-quick-open"
+>Швидке відкривання</link
+>. Відповідність може бути встановлено за назвою або шляхом до файла.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><anchor id="config-general-quick-open-list-mode"/>
+<guilabel
+>Режим списку</guilabel
+></term>
+<listitem
+><para
+>Встановлює режим списку для інструмента <link linkend="view-quick-open"
+>Швидке відкривання</link
+>. Можна вибрати один із таких варіантів: <guilabel
+>Файли поточного проєкту</guilabel
+> та <guilabel
+>Файли усіх проєктів</guilabel
+>.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+
+</listitem>
+</varlistentry
+><!-- /quick open group -->
+
+<varlistentry>
+<term
+><anchor id="config-general-tabs"/>
+<guilabel
+>Вкладки</guilabel
+></term>
+ <listitem>
+
+<variablelist>
+<varlistentry>
+<term
+><anchor id="config-general-limit-number-of-tabs"/>
+<guilabel
+>Обмеження кількості вкладок</guilabel
+></term>
+<listitem
+><para
+>Встановлює максимальну кількість вкладок. Виберіть варіант <guimenuitem
+>Без обмежень</guimenuitem
+>, якщо ви не хочете обмежувати цю кількість.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><anchor id="config-general-show-close-button"/>
+<guilabel
+>Показувати кнопку закриття</guilabel
+></term>
+<listitem
+><para
+>Якщо позначено, на кожній вкладці буде показано кнопку закриття.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><anchor id="config-general-expand-tabs"/>
+<guilabel
+>Розширювати вкладки</guilabel
+></term>
+<listitem
+><para
+>Якщо позначено, вкладки займатимуть максимум доступного місця.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><anchor id="config-general-double-click"/>
+<guilabel
+>Подвійне клацання відкриває новий документ</guilabel
+></term>
+<listitem
+><para
+>Якщо позначено, подвійне клацання відкриває документ.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><anchor id="config-general-middle-click"/>
+<guilabel
+>Клацання середньою закриває документ</guilabel
+></term>
+<listitem
+><para
+>Якщо позначено, клацання середньою закриває документ.</para
+></listitem>
+</varlistentry>
+</variablelist>
+
+</listitem>
+</varlistentry
+><!-- /tabs group -->
+</variablelist>
+</sect2>
+
+<sect2 id="config-dialog-sessions">
+<title
+>Сеанс</title>
+
+<para
+>У цьому розділі містяться параметри, що стосуються <link linkend="fundamentals-using-sessions"
+>використання сеансів</link
+>.</para>
+
+<variablelist>
+
+<varlistentry>
+<term
+><anchor id="config-dialog-sessions-startup-behavior"/>
+<guilabel
+>Параметри запуску програми</guilabel
+></term>
+<listitem>
+<para
+>Тут ви можете обрати бажаний спосіб, у який &kate; поводитиметься під час запуску. Цей параметр може бути перевизначено дії, які виконуватиме програма у відповідь на <link linkend="command-line-options"
+>рядок команди</link
+>.</para>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Почати новий сеанс</guilabel
+></term>
+<listitem
+><para
+>Якщо обрати цей варіант, &kate; після запуску відкриє новий сеанс без назви.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Завантажити останній сеанс</guilabel
+></term>
+<listitem
+><para
+>За вибору цього варіанта &kate; після запуску використовуватиме останній відкритий сеанс. Це добрий вибір, якщо ви бажаєте завжди використовувати один і той самий сеанс або рідко змінюєте сеанси.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Вручну вибрати сеанс</guilabel
+></term>
+<listitem
+><para
+>За вибору цього варіанта &kate; покаже невеличке діалогове вікно, за допомогою якого ви зможете обрати бажаний сеанс або завантажити типовий сеанс, якщо жодного сеансу ще не збережено. Це типова поведінка. Чудовий вибір, якщо ви часто використовуєте різні сеанси.</para
+></listitem>
+</varlistentry>
+</variablelist>
+</listitem>
+</varlistentry
+><!-- /startup behavior -->
+
+<varlistentry>
+<term
+><anchor id="config-dialog-sessions-shutdown-behavior"/>
+<guilabel
+>Параметри завершення програми</guilabel
+></term>
+<listitem>
+<para
+>Виберіть режим поведінки &kate; при завершенні роботи програми. Можна визначити, які дані &kate; має <guilabel
+>Автоматично зберігати і відновлювати</guilabel
+>.</para>
+<variablelist>
+<varlistentry>
+<term
+><guilabel
+>Новостворені незбережені файли</guilabel
+></term>
+<listitem
+><para
+>Якщо буде позначено цей пункт, &kate; автоматично зберігатиме усі новостворені незбережені файли.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><guilabel
+>Файли із незбереженими змінами</guilabel
+></term>
+<listitem
+><para
+>За допомогою цього пункту можна налаштувати &kate; на автоматичне збереження усіх файлів із незбереженими змінами під час завершення роботи програми.</para
+></listitem>
+</varlistentry>
+<varlistentry>
+<term
+><anchor id="config-dialog-sessions-close-mod"/>
+<guilabel
+>Завершувати роботу Kate, якщо закрито вікно останнього файла</guilabel
+></term>
+<listitem
+><para
+>Якщо позначено, &kate; завершуватиме роботу, якщо закрито останній редагований файл. Якщо не позначено, програма продовжуватиме роботу із порожньою сторінкою, з якої ви можете розпочати створення нового файла.</para>
+</listitem>
+</varlistentry>
+</variablelist>
+
+</listitem>
+</varlistentry
+><!-- /shutdown behavior -->
+
+<varlistentry>
+<term
+><anchor id="config-dialog-sessions-elements"/>
+<guilabel
+>Елементи сеансу</guilabel
+></term>
+<listitem>
+<variablelist>
+<!--FIXME Maximum number of entries in recent file list-->
+<varlistentry>
+<term
+><guilabel
+>Включити конфігурацію вікон</guilabel
+></term>
+<listitem
+><para
+>Якщо буде позначено цей пункт, &kate; зберігатиме налаштування вікна кожного сеансу.</para
+></listitem>
+</varlistentry>
+</variablelist>
+</listitem>
+</varlistentry
+><!-- /elements of sessions -->
+
+<varlistentry>
+<term
+><anchor id="config-sessions-keep-meta-information"/>
+<guilabel
+>Зберігати метаінформацію проміж сеансами</guilabel
+></term>
+<listitem
+><para
+>Якщо буде позначено цей пункт, &kate; зберігатиме метадані, такі як закладки і налаштування сеансу, навіть якщо ви закриєте ваші документи. Дані буде використано, якщо документ до часу, коли його буде знову відкрито, не буде змінено.</para
+></listitem>
+</varlistentry>
+
+<varlistentry>
+<term
+><anchor id="config-sessions-delete-meta-information-after"/>
+<guilabel
+>Вилучати метадані, що не використовуються, через</guilabel
+></term>
+<listitem
+><para
+>Тут ви можете встановити максимальну кількість днів, протягом яких зберігатимуться метадані для файлів, які не відкриватимуться у програмі. Цей пункт допоможе вам зберігати невеликий розмір бази метаданих.</para
+></listitem>
+</varlistentry>
+
+</variablelist>
+<para
+>Зміни, внесені до даних сеансу (відкриті файли і, якщо увімкнено, налаштування вікон) зберігатимуться завжди.</para>
+
+</sect2>
+
+<sect2 id="config-dialog-plugins">
+<title
+>Додатки</title>
+
+<para
+>На цій сторінці ви знайдете список встановлених додатків до програми &kate;. На ній буде показано назву кожного з додатків і його короткий опис. Щоб увімкнути додаток, вам слід позначити відповідний пункт у списку. </para>
+
+<para
+>Якщо додаток надає можливості налаштування, доступ до розділу з налаштуваннями буде відкрито на дочірній панелі цієї сторінки.</para>
+
+<para
+>Докладніший опис доступних додатків можна знайти у розділі <xref linkend="plugins"/>.</para>
+
+</sect2>
+
+<sect2 id="config-dialog-editor">
+<title
+>Налаштування компонента редактора</title>
+
+<para
+>Щоб дізнатися більше про цей розділ діалогового вікна налаштовування, ознайомтеся із <ulink url="help:/katepart/config-dialog.html"
+>розділом щодо налаштовування компонента редактора з підручника щодо &katepart;</ulink
+>.</para>
+
+</sect2>
+
+<sect2 id="config-variables">
+<title
+>Налаштування змінних документа</title>
+
+<para
+>Щоб дізнатися більше про використання змінних документа у &kate;, ознайомтеся із <ulink url="help:/katepart/config-variables.html"
+>розділом щодо налаштовування змінних документа у підручнику з &katepart;</ulink
+>.</para>
+
+</sect2>
+
+</sect1>
+
+</chapter>

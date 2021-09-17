@@ -1,0 +1,31 @@
+# general
+/build*/
+*.rej
+*.orig
+*.out
+CMakeLists.txt.user*
+/.clang-format
+/.idea
+
+# kate
+*~
+*-swp
+
+# kdevelop
+*.kdev4
+
+# from kdiff3
+*.BACKUP.*
+*.BASE.*
+*.LOCAL.*
+*.REMOTE.*
+
+# from dolphin
+.directory
+
+# LSP Server data
+/.clangd
+/.cmake/
+/.cache/
+/compile_commands.json
+/cmake-build*
