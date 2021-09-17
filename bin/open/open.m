@@ -149,6 +149,9 @@ int main(int argc, const char **argv)
                 if(![arg isAbsolutePath])
                     arg = [cwd stringByAppendingPathComponent:arg];
                 url = [NSURL fileURLWithPath:arg];
+                // some apps can't handle a local file URL with 'localhost'
+                if([[url host] isEqualToString:@"localhost"])
+                    url = [[NSURL alloc] initWithScheme:[url scheme] host:nil path:[@"//" stringByAppendingString:[url path]]];
             }
             [itemURLs addObject:url];
         }
@@ -172,7 +175,25 @@ int main(int argc, const char **argv)
     spec.taskArgs = (CFArrayRef)taskArgs;
     spec.taskEnv = (CFDictionaryRef)taskEnv;
 
-    return LSOpenFromURLSpec(&spec, NULL);
+    OSStatus rc = LSOpenFromURLSpec(&spec, NULL);
+    switch(rc) {
+    case kLSServerCommunicationErr:
+        fprintf(stderr, "An error occurred communicating with the LaunchServices database\n");
+        break;
+    case kLSApplicationNotFoundErr:
+        fprintf(stderr, "Unable to find a suitable application\n");
+        break;
+    case kLSDataErr:
+        fprintf(stderr, "Data format error\n");
+        break;
+    case kLSNoExecutableErr:
+        fprintf(stderr, "Application is not executable\n");
+        break;
+    case kLSUnknownErr:
+        fprintf(stderr, "An unknown error occurred\n");
+        break;
+    }
+    return rc;
 }
 
 void unimplemented(NSString *msg)
