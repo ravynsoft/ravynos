@@ -719,22 +719,22 @@ OSStatus LSOpenFromURLSpec(const LSLaunchURLSpec *inLaunchSpec, CFURLRef _Nullab
     while(item = [items nextObject]) {
         if(LSIsNSBundle((CFURLRef)item)) {
             LSLaunchURLSpec spec;
-        memset(&spec, 0, sizeof(spec));
-        spec.appURL = (CFURLRef)item;
-        spec.itemURLs = NULL;
-        spec.launchFlags = inLaunchSpec->launchFlags;
-        spec.taskArgs = taskArgs;
-        spec.taskEnv = taskEnv;
-        _LSOpenAllWithSpecifiedApp(&spec, NULL);
+            memset(&spec, 0, sizeof(spec));
+            spec.appURL = (CFURLRef)item;
+            spec.itemURLs = NULL;
+            spec.launchFlags = inLaunchSpec->launchFlags;
+            spec.taskArgs = taskArgs;
+            spec.taskEnv = taskEnv;
+            _LSOpenAllWithSpecifiedApp(&spec, NULL);
         } else if(LSIsAppDir((CFURLRef)item)) {
             LSLaunchURLSpec spec;
-        memset(&spec, 0, sizeof(spec));
-        spec.appURL = (CFURLRef)([item URLByAppendingPathComponent:@"AppRun"]);
-        spec.itemURLs = NULL;
-        spec.launchFlags = inLaunchSpec->launchFlags;
-        spec.taskArgs = taskArgs;
-        spec.taskEnv = taskEnv;
-        _LSOpenAllWithSpecifiedApp(&spec, NULL);
+            memset(&spec, 0, sizeof(spec));
+            spec.appURL = (CFURLRef)([item URLByAppendingPathComponent:@"AppRun"]);
+            spec.itemURLs = NULL;
+            spec.launchFlags = inLaunchSpec->launchFlags;
+            spec.taskArgs = taskArgs;
+            spec.taskEnv = taskEnv;
+            _LSOpenAllWithSpecifiedApp(&spec, NULL);
         } else {
             NSMutableArray *appCandidates = [NSMutableArray arrayWithCapacity:6];
             NSMutableArray *conforms = [NSMutableArray arrayWithCapacity:20];
