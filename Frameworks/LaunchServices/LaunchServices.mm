@@ -34,6 +34,8 @@
 #include <stdio.h>
 #include <QDBusConnection>
 #include <QDBusInterface>
+#include <QMimeDatabase>
+#include <QMimeType>
 
 #ifndef _XOPEN_SOURCE
 #define _XOPEN_SOURCE 500
@@ -736,13 +738,32 @@ OSStatus LSOpenFromURLSpec(const LSLaunchURLSpec *inLaunchSpec, CFURLRef _Nullab
             spec.taskEnv = taskEnv;
             _LSOpenAllWithSpecifiedApp(&spec, NULL);
         } else {
-            NSMutableArray *appCandidates = [NSMutableArray arrayWithCapacity:6];
-            NSMutableArray *conforms = [NSMutableArray arrayWithCapacity:20];
+            NSString *uti = nil;
+            if([[item pathExtension] isEqualToString:@""] == NO)
+                uti = (NSString *)UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension,
+                    (CFStringRef)[item pathExtension], NULL);
 
-            NSString *uti = (NSString *)UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension,
-                (CFStringRef)[item pathExtension], NULL);
+            if(uti == nil) {
+                // We don't have a recognized extension. Try to identify by mime type.
+                QMimeDatabase mimedb;
+                QMimeType mimetype = mimedb.mimeTypeForFile(QString::fromUtf8([[item path] UTF8String]));
+                QStringList parents(mimetype.name());
+                parents.append(mimetype.parentMimeTypes());
+
+                for(QString s : parents) {
+                    NSString *mimestring = [NSString stringWithCString:s.toUtf8()];
+                    uti = (NSString *)UTTypeCreatePreferredIdentifierForTag(kUTTagClassMIMEType,
+                        (CFStringRef)mimestring, NULL);
+                    if(uti)
+                        break;
+                }
+            }
+
             if(uti == nil)
                 return kLSApplicationNotFoundErr;
+
+            NSMutableArray *appCandidates = [NSMutableArray arrayWithCapacity:6];
+            NSMutableArray *conforms = [NSMutableArray arrayWithCapacity:20];
 
             [conforms addObject:uti];
             for(int x=0; x<[conforms count]; ++x) {
