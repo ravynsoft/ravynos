@@ -427,8 +427,8 @@ static void PostXEvent(Display *display, Window window, Atom messageType, long d
 void LSRevealInFiler(CFArrayRef inItemURLs)
 {
     QDBusConnection dbus = QDBusConnection::sessionBus();
-    QDBusInterface filerIface(QStringLiteral("org.filer.Filer"),
-        QStringLiteral("/Application"), "", dbus);
+    QDBusInterface filerIface(QStringLiteral("org.freedesktop.FileManager1"),
+        QStringLiteral("/org/freedesktop/FileManager1"), "", dbus);
     if(filerIface.isValid()) {
         // we need to convert the CFArray into a QList in order to call DBus
         // this sucks. FIXME: maybe use DBusKit instead?
