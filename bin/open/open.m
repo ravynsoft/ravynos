@@ -164,6 +164,9 @@ int main(int argc, const char **argv)
         return 0;
     }
 
+    close(0);
+    close(1);
+    close(2);
     if(stdinPipe)
         openInputPipe(stdinPipe);
     if(stdoutPipe)
