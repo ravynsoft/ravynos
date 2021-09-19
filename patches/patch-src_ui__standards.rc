@@ -1,0 +1,99 @@
+--- src/ui_standards.rc.orig	2021-09-19 14:54:09 UTC
++++ src/ui_standards.rc
+@@ -1,7 +1,23 @@
+ <!DOCTYPE gui SYSTEM "kpartgui.dtd">
+ <gui name="standard_containers" version="20" translationDomain="kxmlgui5">
+ <MenuBar>
+-  <MergeLocal name="first_menu"/>
++  <Menu name="first_menu">
++    <Action name="help_about_app"/>
++    <Action name="help_about_kde"/>
++    <MergeLocal name="about_merge"/>
++    <Separator/>
++    <MergeLocal name="configure_merge"/>
++    <Action name="options_configure"/>
++    <Action name="options_save_options"/>
++    <MergeLocal name="save_merge"/>
++    <Action name="switch_application_language"/>
++    <Action name="options_configure_keybinding"/>
++    <Action name="options_configure_toolbars"/>
++    <Action name="options_configure_notifications"/>
++    <Separator/>
++    <MergeLocal name="before_quit_merge"/>
++    <Action name="file_quit"/>
++  </Menu>
+   <Menu name="file"><text>&amp;File</text>
+     <Action name="file_new"/>
+     <MergeLocal name="new_merge"/>
+@@ -28,10 +44,14 @@
+     <Action name="file_close"/>
+     <Action name="file_close_all"/>
+     <MergeLocal name="close_merge"/>
+-    <Separator/>
+-    <Action name="file_quit"/>
+   </Menu>
+   <Menu name="game"><text>&amp;Game</text>
++    <Action name="options_choose_game_type"/>
++    <Action name="options_game_difficulty"/>
++    <Separator/>
++    <Action name="options_configure_carddecks"/>
++    <Action name="options_configure_highscores"/>
++    <Separator/>
+     <Action name="game_new"/>
+     <Action name="game_load"/>
+     <Action name="game_load_recent"/>
+@@ -112,9 +132,6 @@
+     <Action name="view_redisplay"/>
+     <Separator/>
+     <MergeLocal/>
+-    <Separator/>
+-    <Action name="fullscreen"/>
+-    <MergeLocal name="fullscreen_merge"/>
+   </Menu>
+   <MergeLocal name="before_go"/>
+   <Menu name="go"><text>&amp;Go</text>
+@@ -148,7 +165,7 @@
+     <Action name="tools_spelling"/>
+     <MergeLocal/>
+   </Menu>
+-  <Menu name="settings"><text>&amp;Settings</text>
++  <Menu name="window"><text>&amp;Window</text>
+     <MergeLocal/>
+     <Separator/>
+     <Action name="options_show_menubar"/>
+@@ -159,22 +176,9 @@
+     <Action name="options_show_statusbar"/>
+     <MergeLocal name="show_merge"/>
+     <Separator/>
+-    <Action name="options_save_options"/>
+-    <Action name="options_choose_game_type"/>
+-    <Action name="options_game_difficulty"/>
+-    <MergeLocal name="save_merge"/>
+-    <Separator/>
+-    <Action name="switch_application_language"/>
+-    <Action name="options_configure_keybinding"/>
+-    <Action name="options_configure_toolbars"/>
+-    <Action name="options_configure_notifications"/>
+-    <Action name="options_configure_carddecks"/>
+-    <Action name="options_configure_highscores"/>
+-    <MergeLocal name="configure_merge"/>
+-    <Action name="options_configure"/>
++    <Action name="fullscreen"/>
++    <MergeLocal name="fullscreen_merge"/>
+   </Menu>
+-  <MergeLocal name="settings_merge"/>
+-  <Separator/>
+   <Menu name="help"><text>&amp;Help</text>
+     <Action name="help_contents"/>
+     <Action name="help_whats_this"/>
+@@ -186,10 +190,6 @@
+     <Action name="help_report_bug"/>
+     <Separator/>
+     <Action name="help_donate"/>
+-    <Separator/>
+-    <MergeLocal name="about_merge"/>
+-    <Action name="help_about_app"/>
+-    <Action name="help_about_kde"/>
+   </Menu>
+ </MenuBar>
+ <ToolBar name="mainToolBar"><text>Main Toolbar</text>

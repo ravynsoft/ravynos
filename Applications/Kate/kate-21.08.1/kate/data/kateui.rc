@@ -2,10 +2,8 @@
 <!DOCTYPE gui SYSTEM "kpartgui.dtd">
 <gui name="kate" version="89" translationDomain="kate">
   <MenuBar>
-    <Menu name="Kate" noMerge="1">
+    <Menu name="first_menu">
       <text>Kate</text>
-      <Separator/>
-      <Action name="file_quit"/>
     </Menu>
     <Menu name="file" noMerge="1">
       <text>&amp;File</text>
@@ -98,8 +96,7 @@
       <DefineGroup name="tools_operations2"/>
       <Action name="scripts"/>
     </Menu>
-    <Menu name="sessions">
-      <text>Sess&amp;ions</text>
+    <Menu name="window">
       <Action name="sessions_new"/>
       <Action name="sessions_list"/>
       <Action name="sessions_manage"/>
@@ -107,12 +104,12 @@
       <Action name="sessions_save"/>
       <Action name="sessions_save_as"/>
     </Menu>
-    <Menu name="settings">
+<!--    <Menu name="settings">
       <text>&amp;Settings</text>
       <Action name="settings_show_tab_bar" append="show_merge"/>
       <Action name="settings_show_full_path" append="show_merge"/>
-      <Action name="colorscheme_menu"/>
-    </Menu>
+      <Action name="colorscheme_menu"/> 
+    </Menu> -->
   </MenuBar>
   <ToolBar name="mainToolBar" noMerge="1">
     <text>Main Toolbar</text>

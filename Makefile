@@ -61,7 +61,7 @@ cleanroot:
 	fi
 
 getports:
-	${SUDO} portsnap auto
+	${SUDO} git clone https://git.freebsd.org/ports.git /usr/ports
 	${SUDO} ${TOPDIR}/Tools/patch-ports.sh
 	${SUDO} cp -f ${TOPDIR}/patches/patch-conf.d_link__confs.py /usr/ports/x11-fonts/fontconfig/files/
 	${SUDO} mkdir -p /usr/ports/graphics/jpeg-turbo/files
@@ -76,6 +76,8 @@ getports:
 	${SUDO} cp -f ${TOPDIR}/patches/patch-waflib_extras_autowaf.py /usr/ports/audio/lilv/files/
 	${SUDO} cp -f ${TOPDIR}/patches/patch-libsysinfo_Makefile /usr/ports/devel/libsysinfo/files/
 	${SUDO} cp -f ${TOPDIR}/patches/patch-libtaskmanager_xwindowtasksmodel.cpp /usr/ports/x11/plasma5-plasma-workspace/files/
+	${SUDO} mkdir -p /usr/ports/x11-toolkits/kf5-kxmlgui/files
+	${SUDO} cp -f ${TOPDIR}/patches/patch-src_ktoolbarhandler.cpp ${TOPDIR}/patches/patch-src_ui__standards.rc /usr/ports/x11-toolkits/kf5-kxmlgui/files/
 	${SUDO} mkdir -p /usr/ports/distfiles
 
 # Prepare the chroot jail for our ports builds
