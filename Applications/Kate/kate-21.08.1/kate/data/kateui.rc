@@ -2,6 +2,11 @@
 <!DOCTYPE gui SYSTEM "kpartgui.dtd">
 <gui name="kate" version="89" translationDomain="kate">
   <MenuBar>
+    <Menu name="Kate" noMerge="1">
+      <text>Kate</text>
+      <Separator/>
+      <Action name="file_quit"/>
+    </Menu>
     <Menu name="file" noMerge="1">
       <text>&amp;File</text>
       <Action name="file_new"/>
@@ -33,8 +38,6 @@
       <Action name="file_close_all"/>
       <Action name="file_close_orphaned"/>
       <DefineGroup name="close_merge"/>
-      <Separator/>
-      <Action name="file_quit"/>
     </Menu>
     <Menu name="edit">
       <text>&amp;Edit</text>

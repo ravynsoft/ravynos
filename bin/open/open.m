@@ -307,7 +307,7 @@ void openInputPipe(NSString *path)
 
 void openOutputPipe(NSString *path, int fd)
 {
-    int sink = open([path UTF8String], O_WRONLY);
+    int sink = open([path UTF8String], O_CREAT|O_WRONLY, 0644);
     if(sink< 0) {
         fprintf(stderr, "Unable to open %s for output\n", [path UTF8String]);
         exit(1);

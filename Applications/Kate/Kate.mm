@@ -1,6 +1,7 @@
 #import <Foundation/Foundation.h>
 #import <Foundation/NSPlatform.h>
 #include <unistd.h>
+#include <fcntl.h>
 
 int main(int argc, const char **argv)
 {

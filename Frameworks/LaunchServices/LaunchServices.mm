@@ -461,6 +461,10 @@ static void _LSCheckAndHandleLaunchFlags(NSTask *task, LSLaunchFlags launchFlags
         XGetInputFocus(display, &oldWindow, &oldRevert);
     }
 
+    // we may have already dup()'d other descriptors to 0,1,2 in `open`.
+    [task setStandardInput:[[NSFileHandle alloc] initWithFileDescriptor:0]];
+    [task setStandardOutput:[[NSFileHandle alloc] initWithFileDescriptor:1]];
+    [task setStandardError:[[NSFileHandle alloc] initWithFileDescriptor:2]];
     [task launch];
 
     int times = 100000;
@@ -688,7 +692,7 @@ OSStatus LSOpenFromURLSpec(const LSLaunchURLSpec *inLaunchSpec, CFURLRef _Nullab
     _LSInitializeDatabase();
 
     CFArrayRef taskArgs = NULL;
-    CFDictionaryRef taskEnv = NULL;
+    CFDictionaryRef taskEnv = (CFDictionaryRef)[[NSPlatform currentPlatform] environment];
 
     if(inLaunchSpec->launchFlags & kLSALaunchTaskEnvIsValid)
         taskEnv = inLaunchSpec->taskEnv;
