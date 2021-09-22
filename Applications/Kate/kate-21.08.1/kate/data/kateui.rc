@@ -8,6 +8,7 @@
     <Menu name="file" noMerge="1">
       <text>&amp;File</text>
       <Action name="file_new"/>
+      <Action name="view_new_view"/>
       <DefineGroup name="new_merge"/>
       <Separator/>
       <Action name="file_open"/>
@@ -50,15 +51,6 @@
     </Menu>
     <Menu name="view">
       <text>&amp;View</text>
-      <Action name="view_new_view"/>
-      <Separator/>
-      <DefineGroup name="switch_document"/>
-      <Separator/>
-      <Action name="view_next_tab"/>
-      <Action name="view_prev_tab"/>
-      <Action name="view_lru_document_next"/>
-      <Action name="view_quick_open"/>
-      <Separator/>
       <Action name="view_commandbar_open"/>
       <Separator/>
       <Menu name="view-split">
@@ -85,9 +77,6 @@
       <Separator/>
       <DefineGroup name="view_operations"/>
     </Menu>
-    <DefineGroup name="after_view"/>
-    <Merge/>
-    <DefineGroup name="before_tools"/>
     <Menu name="tools">
       <text>&amp;Tools</text>
       <Action name="tools_external"/>
@@ -97,19 +86,24 @@
       <Action name="scripts"/>
     </Menu>
     <Menu name="window">
+      <text>Window</text>
+      <DefineGroup name="switch_document"/>
+      <Separator/>
+      <Action name="view_next_tab"/>
+      <Action name="view_prev_tab"/>
+      <Action name="view_lru_document_next"/>
+      <Action name="view_quick_open"/>
+      <Separator/>
       <Action name="sessions_new"/>
       <Action name="sessions_list"/>
       <Action name="sessions_manage"/>
       <Separator/>
       <Action name="sessions_save"/>
       <Action name="sessions_save_as"/>
-    </Menu>
-<!--    <Menu name="settings">
-      <text>&amp;Settings</text>
+      <Separator/>
       <Action name="settings_show_tab_bar" append="show_merge"/>
       <Action name="settings_show_full_path" append="show_merge"/>
-      <Action name="colorscheme_menu"/> 
-    </Menu> -->
+    </Menu>
   </MenuBar>
   <ToolBar name="mainToolBar" noMerge="1">
     <text>Main Toolbar</text>
