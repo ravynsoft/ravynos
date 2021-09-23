@@ -78,6 +78,8 @@ getports:
 	${SUDO} cp -f ${TOPDIR}/patches/patch-libtaskmanager_xwindowtasksmodel.cpp /usr/ports/x11/plasma5-plasma-workspace/files/
 	${SUDO} mkdir -p /usr/ports/x11-toolkits/kf5-kxmlgui/files
 	${SUDO} cp -f ${TOPDIR}/patches/patch-src_ktoolbarhandler.cpp ${TOPDIR}/patches/patch-src_ui__standards.rc /usr/ports/x11-toolkits/kf5-kxmlgui/files/
+	${SUDO} mkdir -p /usr/ports/devel/kf5-ktexteditor/files
+	${SUDO} cp -f ${TOPDIR}/patches/patch-src_data_katepart5ui.rc /usr/ports/devel/kf5-ktexteditor/files/
 	${SUDO} mkdir -p /usr/ports/distfiles
 
 # Prepare the chroot jail for our ports builds
