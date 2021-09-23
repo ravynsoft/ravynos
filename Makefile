@@ -76,6 +76,7 @@ getports:
 	${SUDO} cp -f ${TOPDIR}/patches/patch-waflib_extras_autowaf.py /usr/ports/audio/lilv/files/
 	${SUDO} cp -f ${TOPDIR}/patches/patch-libsysinfo_Makefile /usr/ports/devel/libsysinfo/files/
 	${SUDO} cp -f ${TOPDIR}/patches/patch-libtaskmanager_xwindowtasksmodel.cpp /usr/ports/x11/plasma5-plasma-workspace/files/
+	${SUDO} cp -f ${TOPDIR}/patches/patch-airyx-boldmenus.cpp /usr/ports/x11/plasma5-plasma-workspace/files/
 	${SUDO} mkdir -p /usr/ports/x11-toolkits/kf5-kxmlgui/files
 	${SUDO} cp -f ${TOPDIR}/patches/patch-src_ktoolbarhandler.cpp ${TOPDIR}/patches/patch-src_ui__standards.rc /usr/ports/x11-toolkits/kf5-kxmlgui/files/
 	${SUDO} mkdir -p /usr/ports/devel/kf5-ktexteditor/files

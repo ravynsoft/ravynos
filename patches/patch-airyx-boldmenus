@@ -1,0 +1,71 @@
+diff -ur applets/appmenu/package/contents/ui/main.qml.orig applets/appmenu/package/contents/ui/main.qml
+--- applets/appmenu/package/contents/ui/main.qml.orig	2021-07-27 06:35:03.000000000 -0400
++++ applets/appmenu/package/contents/ui/main.qml	2021-09-22 22:08:44.088143000 -0400
+@@ -120,6 +120,7 @@
+                 Layout.fillHeight: !root.vertical
+                 text: {
+                     var text = activeMenu;
++                    var isBold = appMenuModel.isBoldAction(text)
+ 
+                     var alt = keystateSource.data.Alt;
+                     if (!alt || !alt.Pressed) {
+@@ -129,7 +130,7 @@
+                         });
+                     }
+ 
+-                    return text;
++                    return isBold ? '<b>'+text+'</b>' : text;
+                 }
+                 // fake highlighted
+                 checkable: plasmoid.nativeInterface.currentIndex === index
+diff -ur applets/appmenu/plugin/appmenumodel.cpp.orig applets/appmenu/plugin/appmenumodel.cpp
+--- applets/appmenu/plugin/appmenumodel.cpp.orig	2021-07-27 06:35:03.000000000 -0400
++++ applets/appmenu/plugin/appmenumodel.cpp	2021-09-23 12:45:37.524159000 -0400
+@@ -35,6 +35,7 @@
+ #include <QLineEdit>
+ #include <QListView>
+ #include <QWidgetAction>
++#include <QDebug>
+ 
+ #include <abstracttasksmodel.h>
+ #include <dbusmenuimporter.h>
+@@ -276,6 +277,16 @@
+     return QVariant();
+ }
+ 
++bool AppMenuModel::isBoldAction(const QString &text)
++{
++    for(auto action : m_menu->actions()) {
++        if(action->text() == text) {
++            return (action->menuRole() == QAction::ApplicationSpecificRole);
++        }
++    }
++    return false;
++}
++
+ void AppMenuModel::updateApplicationMenu(const QString &serviceName, const QString &menuObjectPath)
+ {
+     if (m_serviceName == serviceName && m_menuObjectPath == menuObjectPath) {
+@@ -306,6 +317,11 @@
+         // cache first layer of sub menus, which we'll be popping up
+         const auto actions = m_menu->actions();
+         for (QAction *a : actions) {
++            QString text(a->text());
++            if(text.length() > 0 && text.front() == QChar('!')) {
++                a->setText(text.right(text.length() - 1));
++                a->setMenuRole(QAction::ApplicationSpecificRole);
++            }
+             // signal dataChanged when the action changes
+             connect(a, &QAction::changed, this, [this, a] {
+                 if (m_menuAvailable && m_menu) {
+diff -ur applets/appmenu/plugin/appmenumodel.h.orig applets/appmenu/plugin/appmenumodel.h
+--- applets/appmenu/plugin/appmenumodel.h.orig	2021-07-27 06:35:03.000000000 -0400
++++ applets/appmenu/plugin/appmenumodel.h	2021-09-22 22:04:31.664577000 -0400
+@@ -67,6 +67,7 @@
+     QRect screenGeometry() const;
+     void setScreenGeometry(QRect geometry);
+     QList<QAction *> flatActionList();
++    Q_INVOKABLE bool isBoldAction(const QString &text);
+ 
+ Q_SIGNALS:
+     void requestActivateIndex(int index);
