@@ -61,6 +61,7 @@ INCS= \
 
 RESOURCES=Info.plist English.lproj
 CFLAGS+= ${FMWK_CFLAGS} -I.. -I../OpenGL/include -I../libobjc2 -I../Foundation/Headers
-LDFLAGS+= ${FMWK_LDFLAGS} -framework OpenGL -lGL
+LDFLAGS+= ${FMWK_LDFLAGS} -L${BUILDROOT}/System/Library/Frameworks/OpenGL.framework \
+	-lOpenGL -lGL -Wl,-R/System/Library/Frameworks/OpenGL.framework/Versions/A
 
 .include <airyx.framework.mk>

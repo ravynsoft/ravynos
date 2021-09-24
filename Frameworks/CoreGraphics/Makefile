@@ -65,6 +65,9 @@ INCS= \
 
 RESOURCES=Info.plist 
 CFLAGS+= ${FMWK_CFLAGS} -I../OpenGL/include -I.. -I../libobjc2 -I../Foundation/Headers
-LDFLAGS+= ${FMWK_LDFLAGS} -framework Onyx2D -framework OpenGL -lGL
+LDFLAGS+= ${FMWK_LDFLAGS} -L${BUILDROOT}/System/Library/Frameworks/Onyx2D.framework \
+	-L${BUILDROOT}/System/Library/Frameworks/OpenGL.framework -lOnyx2D -lOpenGL -lGL \
+	-Wl,-R/System/Library/Frameworks/Onyx2D.framework/Versions/A \
+	-Wl,-R/System/Library/Frameworks/OpenGL.framework/Versions/A
 
 .include <airyx.framework.mk>
