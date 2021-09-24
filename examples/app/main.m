@@ -18,22 +18,13 @@ int main(int argc, const char *argv[])
         [NSApplication sharedApplication];
 
 	NSMenu *menubar = [[NSMenu new] autorelease];
-	NSMenuItem *appMenuItem = [[NSMenuItem new] autorelease];
 	NSMenuItem *fileMenuItem = [[NSMenuItem new] autorelease];
         NSMenuItem *windowsMenuItem = [[NSMenuItem new] autorelease];
-	[menubar addItem:appMenuItem];
 	[menubar addItem:fileMenuItem];
         [menubar addItem:windowsMenuItem];
-	[appMenuItem setTitle:appName];
         [fileMenuItem setTitle:@"File"];
         [windowsMenuItem setTitle:@"Window"];
 
-	NSMenu *appMenu = [[NSMenu new] autorelease];
-	NSMenuItem *quitMenuItem = [[[NSMenuItem alloc]
-        initWithTitle:[NSString stringWithFormat:@"Quit %@", appName]
-		action:@selector(terminate:) keyEquivalent:@"q"] autorelease];
-	[appMenu addItem:quitMenuItem];
-	[appMenuItem setSubmenu:appMenu];
 
     NSMenu *fileMenu = [[NSMenu new] autorelease];
     NSMenuItem *openMenuItem = [[[NSMenuItem alloc] initWithTitle:@"Open"

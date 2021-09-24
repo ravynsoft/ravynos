@@ -344,6 +344,16 @@ id NSApp=nil;
    [_mainMenu autorelease];
    _mainMenu=[menu retain];
 
+   // ensure we have an "Apple" (application) menu
+   if([_mainMenu _menuWithName:@"NSAppleMenu"] == nil) {
+     NSString *appName = [[NSProcessInfo processInfo] processName];
+     NSMenuItem *appleMenuItem = [[NSMenuItem new] autorelease];
+     [appleMenuItem setTitle:[@"!" stringByAppendingString:appName]];
+     NSMenu *appleMenu = [[NSMenu alloc] initApplicationMenu:appName];
+     [appleMenuItem setSubmenu:appleMenu];
+     [_mainMenu insertItem:appleMenuItem atIndex:0];
+   }
+
    for(i=0;i<count;i++){
     NSWindow *window=[_windows objectAtIndex:i];
 
