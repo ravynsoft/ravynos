@@ -125,7 +125,7 @@ KateMainWindow::KateMainWindow(KConfig *sconfig, const QString &sgroup)
     // setup the actions
     setupActions();
 
-    setStandardToolBarMenuEnabled(false);
+    setStandardToolBarMenuEnabled(true);
     setXMLFile(QStringLiteral("kateui.rc"));
     createShellGUI(true);
 
