@@ -164,6 +164,7 @@ sed -i_ -e 's@man/man3@${MANPREFIX}/&@' /usr/ports/devel/libsysinfo/Makefile
 sed -i_ '5,13d' /usr/ports/math/qhull/files/patch-CMakeLists.txt
 rm -f /usr/ports/math/qhull/files/patch-CMakeLists.txt_
 sed -i_ -e '/INSTALL_MAN/s@PREFIX@MANPREFIX@' /usr/ports/archivers/minizip/Makefile
+sed -i_ -e '/^PLIST_FILES/,+3s@man/man1@${MANPREFIX}/&@g' /usr/ports/archivers/zip/Makefile
 sed -i_ -e '$s@^.*$@CMAKE_ARGS+=\t-DCMAKE_INSTALL_MANDIR=${MANPREFIX}/man\n&@' /usr/ports/math/cgal/Makefile
 sed -i_ -e 's@${PREFIX}/etc@/etc@g' /usr/ports/databases/postgresql14-server/Makefile /usr/ports/graphics/gdal/Makefile
 sed -i_ -e 's@^man@%%MANPREFIX%%/man@' /usr/ports/databases/postgresql12-server/pkg-plist-client /usr/ports/databases/postgresql12-server/pkg-plist-server
