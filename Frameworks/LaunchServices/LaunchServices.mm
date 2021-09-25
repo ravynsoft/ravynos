@@ -518,6 +518,21 @@ static void _LSCheckAndHandleLaunchFlags(NSTask *task, LSLaunchFlags launchFlags
         [task waitUntilExit];
 }
 
+// Some apps can't handle a local file URL with 'localhost', so remove it
+NSArray *_LSCleanFileURLs(NSArray *inItemURLs)
+{
+    NSMutableArray *outItemURLs = [NSMutableArray arrayWithCapacity:[inItemURLs count]];
+
+    NSEnumerator *urls = [inItemURLs objectEnumerator];
+    while(NSURL *url = [urls nextObject]) {
+        if([[url host] isEqualToString:@"localhost"])
+            url = [[NSURL alloc] initWithScheme:[url scheme] host:nil
+                path:[@"//" stringByAppendingString:[url path]]];
+        [outItemURLs addObject:url];
+    }
+    return [outItemURLs autorelease];
+}
+
 static OSStatus _LSOpenAllWithSpecifiedApp(const LSLaunchURLSpec *inLaunchSpec, CFURLRef _Nullable *outLaunchedURL)
 {
     const NSURL *appURL = (NSURL *)inLaunchSpec->appURL;
@@ -541,13 +556,13 @@ static OSStatus _LSOpenAllWithSpecifiedApp(const LSLaunchURLSpec *inLaunchSpec, 
 
         if(outLaunchedURL != NULL)
             *outLaunchedURL = (CFURLRef)[NSURL fileURLWithPath:[app executablePath]];
-        
+
         NSMutableArray *args = [NSMutableArray new];
         if(inLaunchSpec->taskArgs)
             [args addObjectsFromArray:(NSArray *)inLaunchSpec->taskArgs];
         else
             [args addObjectsFromArray:[[app infoDictionary] objectForKey:@"ProgramArguments"]];
-        [args addObjectsFromArray:(NSArray *)inLaunchSpec->itemURLs];
+        [args addObjectsFromArray:_LSCleanFileURLs((NSArray *)inLaunchSpec->itemURLs)];
         NSTask *task = [[NSTask new] autorelease];
         [task setEnvironment:(NSDictionary *)inLaunchSpec->taskEnv];
         [task setArguments:args];
@@ -592,10 +607,10 @@ static OSStatus _LSOpenAllWithSpecifiedApp(const LSLaunchURLSpec *inLaunchSpec, 
             return 0;
         }
 
-    NSEnumerator *items = [(NSArray *)inLaunchSpec->itemURLs objectEnumerator];
-        BOOL found = NO;
+        NSEnumerator *items = [_LSCleanFileURLs((NSArray *)inLaunchSpec->itemURLs) objectEnumerator];
+            BOOL found = NO;
 
-    while(NSURL *item = [items nextObject]) {
+        while(NSURL *item = [items nextObject]) {
             NSMutableArray *copyargs = args;
             for(int i=0; i<[copyargs count]; ++i) {
                 if([[copyargs objectAtIndex:i] caseInsensitiveCompare:@"%U"] == NSOrderedSame) {

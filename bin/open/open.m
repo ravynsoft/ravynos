@@ -149,9 +149,6 @@ int main(int argc, const char **argv)
                 if(![arg isAbsolutePath])
                     arg = [cwd stringByAppendingPathComponent:arg];
                 url = [NSURL fileURLWithPath:arg];
-                // some apps can't handle a local file URL with 'localhost'
-                if([[url host] isEqualToString:@"localhost"])
-                    url = [[NSURL alloc] initWithScheme:[url scheme] host:nil path:[@"//" stringByAppendingString:[url path]]];
             }
             [itemURLs addObject:url];
         }
