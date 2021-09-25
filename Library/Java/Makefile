@@ -23,6 +23,7 @@ install:
 	  cp -a support ${BUNDLEDIR}/Contents/
 	mkdir -p ${BUNDLEDIR}/Contents/Airyx
 	ln -sf ../Home/lib/libjli.so ${BUNDLEDIR}/Contents/Airyx/libjli.so
+	find ${BUNDLEDIR} -name \*.debuginfo -exec rm {} \;
 	# create Info.plist in Contents
 
 clean:
