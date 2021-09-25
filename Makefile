@@ -26,6 +26,9 @@ bin: .PHONY
 applications: .PHONY
 	${MAKE} -C Applications build
 
+jdk: .PHONY
+	${MAKE} -C Library/Java all
+
 sysmenu: .PHONY
 	mkdir -p ${OBJPREFIX}/sysmenu
 	echo '#define AIRYX_VERSION "${AIRYX_VERSION}"' > ${TOPDIR}/sysmenu/src/version.h
