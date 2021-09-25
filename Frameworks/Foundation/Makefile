@@ -685,7 +685,7 @@ LDFLAGS+= ${FMWK_LDFLAGS} \
 	  -Wl,-R/System/Library/Frameworks/CFNetwork.framework/Versions/A \
 	  -L${BUILDROOT}/System/Library/Frameworks/CFNetwork.framework/Versions/Current \
 	  -lCFNetwork \
-	  -lobjc -lunwind -lpthread
+	  -lobjc -lexecinfo -lpthread
 
 build: marshallheaders all
 	mv Foundation.framework/Resources/NSCharacterSet/*.bitmap Foundation.framework/Resources/

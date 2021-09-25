@@ -53,7 +53,7 @@ CFNetwork.framework:
 	${MAKE} -C ${THISDIR}/CFNetwork BUILDROOT=${BUILDROOT}
 	cp -Rvf ${THISDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
 
-Foundation.framework: libobjc2 libunwind
+Foundation.framework: libobjc2 
 	rm -rf ${THISDIR}/Foundation/${.TARGET}
 	${MAKE} -C ${THISDIR}/Foundation BUILDROOT=${BUILDROOT} clean build
 	cp -Rvf ${THISDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks

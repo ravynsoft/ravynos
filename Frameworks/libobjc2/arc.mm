@@ -427,9 +427,11 @@ static inline void initAutorelease(void)
 	}
 }
 
-void objc_autoreleasePoolAdd(struct arc_autorelease_pool *pool, id object)
-{
+extern "C" {
+  void objc_autoreleasePoolAdd(struct arc_autorelease_pool *pool, id object)
+  {
 	//fprintf(stderr, "autoreleasePoolAdd %p %d\n", pool, object);
+  }
 }
 
 static inline id autorelease(id obj)
