@@ -57,6 +57,7 @@ FOUNDATION_EXPORT NSString *const NSTaskDidTerminateNotification;
 - (int)terminationStatus;
 
 - (void)waitUntilExit;
+- (void)blockAndWaitUntilExit;
 
 - (int)processIdentifier;
 

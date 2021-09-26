@@ -28,7 +28,7 @@ int main(int argc, const char **argv)
         [task setArguments:args];
         [task setEnvironment:env];
         [task launch];
-        [task waitUntilExit];
+        [task blockAndWaitUntilExit];
         return [task terminationStatus];
     }
 }

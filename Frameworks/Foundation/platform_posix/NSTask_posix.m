@@ -28,54 +28,55 @@ static BOOL           _taskFinished = NO;
 
 @implementation NSTask_posix
 
+void synchronizedUpdateTaskStatus(int status, pid_t pid) {
+    NSTask_posix *task;
+
+    @synchronized(_liveTasks) {
+        NSEnumerator *taskEnumerator = [_liveTasks objectEnumerator];
+        while (task = [taskEnumerator nextObject]) {
+            if ([task processIdentifier] == pid) {
+                if (WIFEXITED(status))
+                    [task setTerminationStatus:WEXITSTATUS(status)];
+                else
+                    [task setTerminationStatus:-1];
+
+                [task retain];
+                [task taskFinished];
+
+                [[NSNotificationCenter defaultCenter] postNotification:[NSNotification notificationWithName:NSTaskDidTerminateNotification object:task]];
+                [task release];
+
+            }
+        }
+    }
+}
+
 void waitForTaskChildProcess()
 {
-    NSTask_posix *task;
     pid_t pid;
     int status;
     
-   // if (_taskFinished == YES) {
-   //     _taskFinished = NO;
-        while(YES) {
-            pid = wait3(&status, WNOHANG, NULL);
-            
-            if (pid < 0) {
-                if (errno == ECHILD) {
-                    break; // no child exists
-                }
-                else if (errno == EINTR) {
-                    continue;
-                }
-                
-                NSCLog("Invalid wait3 result [%s] in child signal handler", strerror(errno));
+    while(YES) {
+        pid = wait3(&status, WNOHANG, NULL);
+
+        if (pid < 0) {
+            if (errno == ECHILD) {
+                break; // no child exists
             }
-            else if (pid == 0) {
-                //no child exited
-                break;
+            else if (errno == EINTR) {
+                continue;
             }
-            else {
-                @synchronized(_liveTasks) {
-                    NSEnumerator *taskEnumerator = [_liveTasks objectEnumerator];
-                    while (task = [taskEnumerator nextObject]) {
-                        if ([task processIdentifier] == pid) {
-                            if (WIFEXITED(status))
-                                [task setTerminationStatus:WEXITSTATUS(status)];
-                            else
-                                [task setTerminationStatus:-1];
-                            
-                            [task retain];
-                            [task taskFinished];
-                            
-                            [[NSNotificationCenter defaultCenter] postNotification:[NSNotification notificationWithName:NSTaskDidTerminateNotification object:task]];
-                            [task release];
-                            
-                        }
-                    }
-                }
-                
-            } 
+
+            NSCLog("Invalid wait3 result [%s] in child signal handler", strerror(errno));
         }
-    //}
+        else if (pid == 0) {
+            //no child exited
+            break;
+        }
+        else {
+            synchronizedUpdateTaskStatus(status, pid);
+        }
+    }
 }
 
 void childSignalHandler(int sig) {
@@ -259,6 +260,12 @@ void childSignalHandler(int sig) {
     }
 }
 
+// airyxOS-specific
+-(void)blockAndWaitUntilExit {
+    int status = 0;
+    pid_t id = waitpid([self processIdentifier], &status, 0);
+    synchronizedUpdateTaskStatus(status, id);
+}
 @end
 #endif
 
