@@ -1,0 +1,20 @@
+name = "airyx-bin"
+version = "%%VERSION%%"
+origin = "airyx/bin"
+comment = "System tools (/usr/bin) from airyxOS"
+licenses = [ "MIT" ]
+desc = <<EOD
+This package provides some system tools normally found
+in /usr/bin on airyxOS, an open-source BSD-derived
+operating system aiming for macOS compatibility.
+EOD
+deps : {
+  "airyx-frameworks" : {
+    "version" : "%%VERSION%%",
+    "origin" : "airyx/frameworks"
+  }
+}
+arch = "amd64"
+www = "https://airyx.org"
+maintainer = "zoe@airyx.org"
+prefix = "/"

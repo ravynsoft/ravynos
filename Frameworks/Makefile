@@ -1,6 +1,16 @@
 THISDIR:= ${.CURDIR}
+CIRRUS_BUILD_ID?= local
 
-all: .PHONY clean frameworks
+all: .PHONY clean frameworks package
+package:
+	rm -rf /tmp/meta
+	mkdir -p /tmp/meta
+	find ${BUILDROOT}/System/Library/Frameworks -not -type d | \
+	  sed 's@${BUILDROOT}@@' > /tmp/meta/pkg-plist
+	sed "s/%%VERSION%%/${AIRYX_VERSION}_${CIRRUS_BUILD_ID}/" < +MANIFEST \
+	  > /tmp/meta/+MANIFEST
+	pkg create -o ${TOPDIR}/dist -m /tmp/meta --plist /tmp/meta/pkg-plist
+
 clean:
 	rm -rf ${BUILDROOT}/System/Library/Frameworks/*.framework
 	for fmwk in ${.ALLTARGETS:M*.framework:R}; do \

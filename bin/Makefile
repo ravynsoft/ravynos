@@ -1,4 +1,4 @@
-SUBDIR= open
+SUBDIR= open package
 
 SUBDIR_PARALLEL=
 
