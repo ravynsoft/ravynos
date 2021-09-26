@@ -47,14 +47,14 @@ sed -i_ -e 's@MANPAGES%%man@MANPAGES%%%%MANPREFIX%%/man@' /usr/ports/devel/cmake
 sed -i_ -e 's@ICC%%man@ICC%%%%MANPREFIX%%/man@' /usr/ports/graphics/lcms2/pkg-plist
 sed -i_ -e 's@--prefix=@--mandir=${MANPREFIX_REL}/man &@' /usr/ports/devel/cmake/Makefile
 sed -i_ -e 's@${PREFIX}/man@${MANPREFIX}/man@g' /usr/ports/devel/libedit/Makefile /usr/ports/graphics/lcms2/Makefile
-sed -i_ -e 's@${PREFIX}/man@${MANPREFIX}/man@g' -e 's@INSTALL_EXEC=@INSTALL_MAN=${STAGEDIR}${MANPREFIX}/man/man1 &@' /usr/ports/lang/lua53/Makefile
+sed -i_ -e 's@${PREFIX}/man@${MANPREFIX}/man@g' -e 's@INSTALL_EXEC=@INSTALL_MAN=${STAGEDIR}${MANPREFIX}/man/man1 &@' /usr/ports/lang/lua53/Makefile /usr/ports/lang/lua52/Makefile
 sed -i_ -e 's@CONFIGURE_ARGS=@& --mandir=${MANPREFIX}/man@' /usr/ports/devel/pcre/Makefile
 sed -i_ -e 's@MAN3%%@MANPREFIX%%/@' -e 's@%%DANE%%man@%%DANE%%%%MANPREFIX%%/man@' /usr/ports/devel/pcre/pkg-plist /usr/ports/security/gnutls/pkg-plist 
 sed -i_ -e 's@^\.include <bsd\.port\.mk>@pre-install:\n\t${MKDIR} -p ${STAGEDIR}${PREFIX}/share/xml ${STAGEDIR}${PREFIX}/share/sgml\n&@' -e 's@ man/@ ${MANPREFIX}/man/@g' /usr/ports/textproc/xmlcatmgr/Makefile
 sed -i_ -e 's@^post-install:@pre-install:\n\t${MKDIR} -p ${STAGEDIR}${PREFIX}/libdata/ldconfig\n&@' /usr/ports/devel/qt5-core/Makefile
 sed -i_ -e 's@^FCDEFAULTFONTS.*@FCDEFAULTFONTS= /System/Library/Fonts</dir> <dir>/Library/Fonts</dir> <dir>~/Library/Fonts@' -e 's@post-patch:@&\n\t${REINPLACE_CMD} -e "s,%%STAGEDIR%%,${STAGEDIR},g" ${PATCH_WRKSRC}/conf.d/link_confs.py@' /usr/ports/x11-fonts/fontconfig/Makefile
 sed -i_ -e 's@${LOCALBASE}/share/fonts@/System/Library/Fonts@' -e 's@man/man1@${MANPREFIX}/man/man1@g' /usr/ports/x11/luit/Makefile
-sed -i_ -e 's@^post-install:@pre-install:\n\t${MKDIR} -p ${STAGEDIR}${PREFIX}/libdata/ldconfig\n&@' /usr/ports/devel/llvm12/Makefile
+sed -i_ -e 's@^post-install:@pre-install:\n\t${MKDIR} -p ${STAGEDIR}${PREFIX}/libdata/ldconfig\n&@' /usr/ports/devel/llvm12/Makefile /usr/ports/devel/llvm10/Makefile
 sed -i_ -e 's@^post-stage:@pre-install:\n\t${MKDIR} -p ${STAGEDIR}${PREFIX}/libdata/ldconfig\n&@' /usr/ports/lang/gcc10/Makefile
 sed -i_ -e 's@^post-install:@pre-install:\n\t${MKDIR} -p ${STAGEDIR}/etc/rc.d\n&@' -e's@CONFIGURE_ARGS=@& --sysconfdir=/etc @' /usr/ports/devel/dbus/Makefile
 sed -i_ -e 's@^post-install:@pre-install:\n\t${MKDIR} -p ${STAGEDIR}/usr/share/pixmaps\n&@' /usr/ports/x11-toolkits/qt5-widgets/Makefile
@@ -135,7 +135,7 @@ sed -i_ -e 's@man/man3@${MANPREFIX}/man/man3@' /usr/ports/devel/talloc/Makefile
 sed -i_ -e 's@man/man8@${MANPREFIX}/man/man8@' /usr/ports/databases/tdb/Makefile
 sed -i_ -e 's@${PREFIX}/etc@/etc@g' -e 's@${PREFIX}/man@${MANPREFIX}/man@g' -e 's@^post-install:@pre-install:\n\t${MKDIR} -p ${STAGEDIR}/etc/rc.d ${STAGEDIR}${PREFIX}/libdata/ldconfig\n&@' -e '/FRUIT_PLIST/s@man@${MANPREFIX}/man@' /usr/ports/net/samba412/Makefile
 sed -i_ -e 's@USE_LDCONFIG.*@&\npost-patch:\n\tsed -i_ -e "s,/man/man,/share/man/man," ${WRKSRC}/Makefile\n@' /usr/ports/audio/gsm/Makefile
-sed -i_ -e 's@^post-install:@pre-install:\n\t${MKDIR} -p ${STAGEDIR}/etc/rc.d\n&@' /usr/ports/audio/jack/Makefile
+sed -i_ -e 's@^post-build:@CONFIGURE_ARGS+= --sysconfdir=/etc\npre-install:\n\t${MKDIR} -p ${STAGEDIR}/etc/rc.d\n&@' /usr/ports/audio/jack/Makefile
 sed -i_ -e 's@${PREFIX}/man@${MANPREFIX}/man@' /usr/ports/multimedia/libkate/Makefile
 sed -i_ -e 's@s|$$|.gz|@&;s|man/man3|${MANPREFIX}/\&|@' /usr/ports/math/lapack/Makefile
 sed -i_ -e 's@^WRKSRC=.*@&\npost-patch:\n\tsed -i_ -e "/^mandir/s,/man,/share/man," ${WRKSRC}/Makefile\n@' /usr/ports/multimedia/librtmp/Makefile

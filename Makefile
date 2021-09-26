@@ -9,7 +9,6 @@ AIRYX_CODENAME != tail -1 ${TOPDIR}/version.txt
 MKINCDIR := -m/usr/share/mk -m${TOPDIR}/mk
 CORES != sysctl -n hw.ncpu
 SUDO != test "$$USER" == "root" && echo "" || echo "sudo"
-PKGDATE!= date "+%Y%m%d"
 
 .export TOPDIR OBJPREFIX BUILDROOT PORTSROOT AIRYX_VERSION AIRYX_CODENAME MKINCDIR CORES SUDO
 
@@ -64,7 +63,7 @@ cleanroot:
 	fi
 
 getports:
-	${SUDO} git clone https://git.freebsd.org/ports.git /usr/ports
+	${SUDO} git clone https://git.freebsd.org/ports.git -b2021Q3 /usr/ports
 	${SUDO} ${TOPDIR}/Tools/patch-ports.sh
 	${SUDO} cp -f ${TOPDIR}/patches/patch-conf.d_link__confs.py /usr/ports/x11-fonts/fontconfig/files/
 	${SUDO} mkdir -p /usr/ports/graphics/jpeg-turbo/files
@@ -79,7 +78,7 @@ getports:
 	${SUDO} cp -f ${TOPDIR}/patches/patch-waflib_extras_autowaf.py /usr/ports/audio/lilv/files/
 	${SUDO} cp -f ${TOPDIR}/patches/patch-libsysinfo_Makefile /usr/ports/devel/libsysinfo/files/
 	${SUDO} cp -f ${TOPDIR}/patches/patch-libtaskmanager_xwindowtasksmodel.cpp /usr/ports/x11/plasma5-plasma-workspace/files/
-	${SUDO} cp -f ${TOPDIR}/patches/patch-airyx-boldmenus.cpp /usr/ports/x11/plasma5-plasma-workspace/files/
+	${SUDO} cp -f ${TOPDIR}/patches/patch-airyx-boldmenus /usr/ports/x11/plasma5-plasma-workspace/files/
 	${SUDO} mkdir -p /usr/ports/x11-toolkits/kf5-kxmlgui/files
 	${SUDO} cp -f ${TOPDIR}/patches/patch-src_ktoolbarhandler.cpp ${TOPDIR}/patches/patch-src_ui__standards.rc /usr/ports/x11-toolkits/kf5-kxmlgui/files/
 	${SUDO} mkdir -p /usr/ports/devel/kf5-ktexteditor/files
@@ -122,8 +121,8 @@ buildports: zsh xorg plasma misc misc2 misc3
 
 makepackages:
 	${SUDO} rm -rf /usr/ports/packages
-	${SUDO} mkdir -p /usr/ports/packages/${PKGDATE}
-	${SUDO} mount_nullfs /usr/ports/packages/${PKGDATE} ${PORTSROOT}/mnt
+	${SUDO} mkdir -p /usr/ports/packages
+	${SUDO} mount_nullfs /usr/ports/packages ${PORTSROOT}/mnt
 	${SUDO} chroot ${PORTSROOT} /bin/sh -c '/usr/sbin/pkg-static create -a -o /mnt'
 	${SUDO} umount ${PORTSROOT}/mnt
 	${SUDO} pkg repo -o /usr/ports/packages /usr/ports/packages
