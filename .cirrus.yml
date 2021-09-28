@@ -32,5 +32,4 @@ airyx_task:
   only_if: $CIRRUS_BRANCH == 'main'
   airyx_artifacts:
     path: dist/airyx.txz
-  package_artifacts:
     path: dist/airyx-*.txz

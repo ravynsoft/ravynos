@@ -34,13 +34,13 @@ Item {
     Plasmoid.preferredRepresentation: Plasmoid.fullRepresentation
     Plasmoid.fullRepresentation: Item {
         Layout.minimumWidth: 32 * units.devicePixelRatio
-        Layout.minimumHeight: 20 * units.devicePixelRatio
+        Layout.minimumHeight: 24 * units.devicePixelRatio
         anchors.fill: parent
         PlasmaCore.IconItem {
             id: menuIcon
             source: plasmoid.file('','icons/tree.svg')
-            width: 18 * units.devicePixelRatio
-            height: 18 * units.devicePixelRatio
+            width: 20 * units.devicePixelRatio
+            height: 20 * units.devicePixelRatio
             anchors.centerIn: parent
             smooth: true
         }
@@ -54,7 +54,7 @@ Item {
             anchors.fill: parent
     
             onClicked: {
-                plasmoid.nativeInterface.openMenu(0,20 * units.devicePixelRatio)
+                plasmoid.nativeInterface.openMenu(0,24 * units.devicePixelRatio)
             }
         }
     }
