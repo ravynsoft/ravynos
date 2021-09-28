@@ -3,6 +3,7 @@ CIRRUS_BUILD_ID?= local
 all: .PHONY
 build: .PHONY
 install:
+	tar -C ${BUILDROOT} -cf - . | ${SUDO} tar -C / -xvf -
 	rm -rf /tmp/meta
 	mkdir -p /tmp/meta
 	find ${BUILDROOT}/usr/bin -not -type d | \
