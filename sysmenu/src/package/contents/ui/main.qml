@@ -38,7 +38,7 @@ Item {
         anchors.fill: parent
         PlasmaCore.IconItem {
             id: menuIcon
-            source: plasmoid.file('','icons/tree.svg')
+            source: plasmoid.file('','icons/2x.png')
             width: 20 * units.devicePixelRatio
             height: 20 * units.devicePixelRatio
             anchors.centerIn: parent
@@ -54,7 +54,7 @@ Item {
             anchors.fill: parent
     
             onClicked: {
-                plasmoid.nativeInterface.openMenu(0,24 * units.devicePixelRatio)
+                plasmoid.nativeInterface.openMenu(0,20 * units.devicePixelRatio)
             }
         }
     }
