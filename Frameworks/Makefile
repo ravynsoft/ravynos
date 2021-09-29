@@ -9,7 +9,8 @@ package:
 	  sed 's@${BUILDROOT}@@' > /tmp/meta/pkg-plist
 	sed "s/%%VERSION%%/${AIRYX_VERSION}_${CIRRUS_BUILD_ID}/" < +MANIFEST \
 	  > /tmp/meta/+MANIFEST
-	pkg create -o ${TOPDIR}/dist -m /tmp/meta --plist /tmp/meta/pkg-plist
+	pkg create -o ${TOPDIR}/dist -r ${BUILDROOT} -m /tmp/meta \
+	  --plist /tmp/meta/pkg-plist
 
 clean:
 	rm -rf ${BUILDROOT}/System/Library/Frameworks/*.framework
