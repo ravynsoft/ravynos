@@ -5,13 +5,14 @@ all: .PHONY clean frameworks package
 package:
 	rm -rf /tmp/meta
 	mkdir -p /tmp/meta
-	find ${BUILDROOT}/System/Library/Frameworks -not -type d | \
-	  sed 's@${BUILDROOT}@@' > /tmp/meta/pkg-plist
+	cd ${BUILDROOT}; find ./System/Library/Frameworks -not -type d | \
+	  sed 's@^\.@@' > /tmp/meta/pkg-plist
 	sed "s/%%VERSION%%/${AIRYX_VERSION}_${CIRRUS_BUILD_ID}/" < +MANIFEST \
 	  > /tmp/meta/+MANIFEST
 	mkdir -p ${TOPDIR}/dist
 	pkg create -o ${TOPDIR}/dist/ -r ${BUILDROOT} -m /tmp/meta \
 	  --plist /tmp/meta/pkg-plist
+	ls -l ${TOPDIR}/dist
 
 clean:
 	rm -rf ${BUILDROOT}/System/Library/Frameworks/*.framework
