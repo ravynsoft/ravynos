@@ -24,7 +24,7 @@ For everything else, please first check the [open issues](https://github.com/msz
 
 ### Ground rules
 
-Please don't submit general questions or support requests to the issue tracker. There are [discussion boards](https://https://github.com/mszoek/airyx/discussions) for that, or ask on the Discord, Matrix or IRC channels.
+Please don't submit general questions or support requests to the issue tracker. There are [discussion boards](https://github.com/mszoek/airyx/discussions) for that, or ask on the Discord, Matrix or IRC channels.
 
 Follow the code of conduct.
 
