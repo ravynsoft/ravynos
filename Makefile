@@ -13,7 +13,7 @@ SUDO != test "$$USER" == "root" && echo "" || echo "sudo"
 .export TOPDIR OBJPREFIX BUILDROOT PORTSROOT AIRYX_VERSION AIRYX_CODENAME MKINCDIR CORES SUDO
 
 # We need the installed frameworks to correctly link CoreServices and applications
-airyx: airyxbase installairyx sysmenu coreservices bin jdk
+airyx: airyxbase installairyx sysmenu coreservices bin
 
 airyxbase: mkfiles frameworks copyfiles
 	tar -C ${BUILDROOT}/usr/lib -cpf pkgconfig | tar -C ${BUILDROOT}/usr/share -xpf -
@@ -115,7 +115,7 @@ xorg: /usr/ports/x11/xorg /usr/ports/x11-themes/adwaita-icon-theme /usr/ports/de
 misc: /usr/ports/archivers/brotli /usr/ports/graphics/argyllcms /usr/ports/multimedia/gstreamer1-plugins-all
 misc2: /usr/ports/x11/zenity /usr/ports/sysutils/cpdup /usr/ports/audio/freedesktop-sound-theme /usr/ports/sysutils/fusefs-libs mountsrc /usr/ports/graphics/gpu-firmware-kmod /usr/ports/sysutils/iichid /usr/ports/net/libdnet /usr/ports/archivers/libmspack /usr/ports/security/libretls /usr/ports/devel/libsigc++20 /usr/ports/multimedia/libva-intel-driver /usr/ports/dns/nss_mdns /usr/ports/emulators/open-vm-tools /usr/ports/net/openntpd /usr/ports/sysutils/pv /usr/ports/misc/usbids /usr/ports/misc/utouch-kmod umountsrc /usr/ports/net/wpa_supplicant_gui /usr/ports/devel/xdg-user-dirs
 misc3: /usr/ports/security/sudo /usr/ports/devel/libqtxdg /usr/ports/devel/git /usr/ports/x11/slim /usr/ports/lang/python3 /usr/ports/x11-toolkits/py-qt5-widgets /usr/ports/www/py-qt5-webengine /usr/ports/misc/qt5-l10n /usr/ports/www/py-beautifulsoup /usr/ports/devel/py-dateutil /usr/ports/sysutils/py-psutil /usr/ports/devel/py-qt5-dbus /usr/ports/databases/sqlite3 /usr/ports/devel/py-xmltodict /usr/ports/devel/py-pip /usr/ports/x11-fonts/font-awesome /usr/ports/sysutils/dmidecode /usr/ports/ports-mgmt/pkg /usr/ports/x11/libfm-qt /usr/ports/x11/libfm /usr/ports/graphics/mesa-gallium-xa /usr/ports/x11-drivers/xf86-video-intel /usr/ports/x11-drivers/xf86-video-vmware /usr/ports/x11-fonts/sourcecodepro-ttf /usr/ports/x11-fonts/wqy /usr/ports/databases/py-sqlite3 /usr/ports/multimedia/py-qt5-multimedia /usr/ports/archivers/zip /usr/ports/devel/kf5-ktexteditor
-misc4: /usr/ports/x11-drivers/xf86-input-evdev /usr/ports/x11-drivers/xf86-input-synaptics /usr/ports/x11-drivers/xf86-input-vmmouse /usr/ports/x11-drivers/xf86-video-vmware /usr/ports/x11-drivers/xf86-video-nv /usr/ports/x11-drivers/xf86-video-intel /usr/ports/x11-drivers/xf86-video-ati /usr/ports/x11-drivers/xf86-video-cirrus
+misc4: /usr/ports/x11-drivers/xf86-input-evdev /usr/ports/x11-drivers/xf86-input-synaptics /usr/ports/x11-drivers/xf86-input-vmmouse /usr/ports/x11-drivers/xf86-video-vmware /usr/ports/x11-drivers/xf86-video-nv /usr/ports/x11-drivers/xf86-video-intel /usr/ports/x11-drivers/xf86-video-ati /usr/ports/x11-drivers/xf86-video-cirrus /usr/ports/www/node
 buildports: zsh xorg plasma misc misc2 misc3 misc4
 
 makepackages:
