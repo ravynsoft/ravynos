@@ -14,9 +14,9 @@ As an open-source project, we love receiving contributions from our community - 
 
 ### Join the community
 
-Join us on Discord, Matrix or IRC (see [README.md]) to meet other users and developers. We're also [airyxOS](https://twitter.com/airyxOS) on Twitter.
+Join us on Discord, Matrix or IRC (see [README.md](README.md)) to meet other users and developers. We're also [airyxOS](https://twitter.com/airyxOS) on Twitter.
 
-=== Reporting Issues ===
+### Reporting Issues
 
 If you have found a security issue, please _do not_ open a GitHub issue. Please email zoe@pixin.net ([PGP key](https://pixin.net/zoe.asc)) instead.
 
