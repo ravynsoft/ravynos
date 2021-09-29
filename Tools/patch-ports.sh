@@ -169,6 +169,7 @@ sed -i_ -e '$s@^.*$@CMAKE_ARGS+=\t-DCMAKE_INSTALL_MANDIR=${MANPREFIX}/man\n&@' /
 sed -i_ -e 's@${PREFIX}/etc@/etc@g' /usr/ports/databases/postgresql14-server/Makefile /usr/ports/graphics/gdal/Makefile
 sed -i_ -e 's@^man@%%MANPREFIX%%/man@' /usr/ports/databases/postgresql12-server/pkg-plist-client /usr/ports/databases/postgresql12-server/pkg-plist-server
 sed -i_ -e 's@ man/man1/@ %%MANPREFIX%%/man/man1/@' /usr/ports/www/node/pkg-plist
+sed -i_ -e 's@^post-install:@&\n\tgzip <${STAGEDIR}/usr/man/man1/node.1 >${STAGEDIR}${MANPREFIX}/man/man1/node.1.gz@' /usr/ports/www/node/Makefile
 
 # Port out of date?
 sed -i_ -e 's@2391904@2446510@' -e 's@a65b84821765cfd4bb8bf8c05e4279a9d81130da4eb8741ef2690064c57610cf@1eaa672dfa1ac921c795117b29b830eb84902a66248ef08d461f093305e2aaf5@' /usr/ports/math/lapack/distinfo
