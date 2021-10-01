@@ -6,7 +6,8 @@ set -x
 mkdir -p /tmp/system-overlay 
 cd /tmp/system-overlay
 
-curl -L -o "${uzip}"/usr/share/slim/themes/default/background.jpg "https://github.com/helloSystem/ISO/releases/download/assets/graphite.jpg" 
+#curl -L -o "${uzip}"/usr/share/slim/themes/default/background.jpg "https://github.com/helloSystem/ISO/releases/download/assets/graphite.jpg"
+cp -f "${uzip}"/usr/share/plasma/look-and-feel/Airyx/contents/splash/images/tanuki.png "${uzip}"/usr/share/slim/themes/default/background.jpg
 
 # Use blue folder icons instead of the ones packaged in FreeBSD which have yellow folder icons
 # Don't extract directly in /tmp, as tar will modify its permissions
@@ -32,8 +33,23 @@ find "${uzip}/usr/share/icons/macOSBigSur" -type f -exec chmod 644 {} \;
 ( cd "${uzip}/usr/share/icons/" ; ln -s macOSBigSur default )
 rm -f macOSBigSur.tar.gz
 
+# Pull in the default JDK
+mkdir -p "${uzip}/Library/Java/JavaVirtualMachines/"
+curl -Lo - https://github.com/mszoek/airyx/releases/download/jdk17-bootstrap/openjdk-17.jdk.txz | \
+    tar -xf - -C "${uzip}/Library/Java/JavaVirtualMachines/"
+
+# Install our standard app bundles
+mkdir -p "${uzip}/Applications/Utilities"
+for app in Kate Firefox; do
+    curl -Lo - https://api.cirrus-ci.com/v1/artifact/github/airyxos/${app}_app/build/app/${app}.app.txz | \
+        tar -xf - -C "${uzip}/Applications/"
+done
+for app in Terminal; do
+    curl -Lo - https://api.cirrus-ci.com/v1/artifact/github/airyxos/${app}_app/build/app/${app}.app.txz | \
+        tar -xf - -C "${uzip}/Applications/Utilities/"
+done
+
 # Add applications from the helloSystem/Utilities repository
-mkdir -p "${uzip}/Applications/"
 fetch https://github.com/helloSystem/Utilities/archive/master.zip
 unzip -o master.zip
 mv 'Utilities-master/Utilities/Install FreeBSD.app' "${uzip}/Applications/Utilities/"
