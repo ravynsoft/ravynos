@@ -1,7 +1,7 @@
 APP=Install_airyxOS
-SRCS=main.mm ContentWindow.mm
+SRCS=main.mm AppDelegate.m
 MK_DEBUG_FILES=no
-RESOURCES=TanukiLogo.jpg Emblem.jpg terms.rtf
+RESOURCES=TanukiLogo.jpg Emblem.jpg terms.rtf English.lproj
 SLF=/System/Library/Frameworks
 FRAMEWORKS=${SLF}/AppKit ${SLF}/CoreGraphics ${SLF}/Onyx2D ${SLF}/OpenGL \
 	${SLF}/Foundation ${SLF}/CoreFoundation ${SLF}/DBusKit

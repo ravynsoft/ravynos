@@ -1,8 +1,4 @@
 /*
- * ContentWindow: utility class for drawing a titled window with a
- * logo image centered vertically on the left side and some standard
- * controls
- *
  * Copyright (C) 2021 Zoe Knox <zoe@pixin.net>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -24,16 +20,10 @@
  * THE SOFTWARE.
  */
 
-#import <Foundation/Foundation.h>
-#import <AppKit/AppKit.h>
+#import <Cocoa/Cocoa.h>
 
-@interface ContentWindow: NSWindow {
-    NSView *_cview;
-    NSImageView *_iview;
-    NSTextView *_tview;
-}
+@interface AppDelegate : NSObject <NSApplicationDelegate>
 
--initWithSize:(NSSize)sz bgColor:(NSColor *)color;
--(void)setSideImage:(NSString *)path size:(NSSize)sz;
--(void)setText:(NSAttributedString *)text;
+
 @end
+

@@ -23,36 +23,8 @@
 #import "ContentWindow.h"
 #import <AppKit/NSRichTextReader.h>
 
+
 int main(int argc, const char *argv[])
 {
-    __NSInitializeProcess(argc, argv);
-    NSAutoreleasePool *pool = [NSAutoreleasePool new];
-
-    NSString *appName = [[NSProcessInfo processInfo] processName];
-    [NSApplication sharedApplication];
-
-    NSMenu *menubar = [[NSMenu new] autorelease];
-    [NSApp setMainMenu:menubar];
-
-    NSBundle *myBundle = [NSBundle mainBundle];
-    NSString *imgName = [myBundle objectForInfoDictionaryKey:@"SideImage"];
-    if(imgName == nil)
-        imgName = @"Emblem.jpg";
-
-    ContentWindow *w = [[[ContentWindow alloc]
-        initWithSize:NSMakeSize(720,480)
-        bgColor:[NSColor
-            colorWithDeviceRed:245.0 green:245.0 blue:245.0 alpha:255.0]]
-        autorelease];
-    [w setTitle:appName];
-    [w setSideImage:[myBundle pathForResource:imgName ofType:@"jpg"]
-        size:NSMakeSize(160,160)];
-
-    NSAttributedString *text = [NSRichTextReader
-        attributedStringWithContentsOfFile:[myBundle pathForResource:@"terms"
-        ofType:@"rtf"]];
-    [w setText:text];
-
-    [NSApp run];
-    return 0;
+    return NSApplicationMain(argc, argv);
 }
