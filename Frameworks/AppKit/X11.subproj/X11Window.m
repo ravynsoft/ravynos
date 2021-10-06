@@ -7,10 +7,13 @@
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #import <AppKit/X11Window.h>
+#import <AppKit/NSApplication.h>
 #import <AppKit/NSWindow.h>
 #import <AppKit/NSPanel.h>
 #import <AppKit/X11Display.h>
 #import <AppKit/NSRaise.h>
+#import <DBusKit/DKMenu.h>
+#import <DBusKit/DKConnection.h>
 #import <X11/Xutil.h>
 #import <Foundation/NSException.h>
 #import "O2Context_cairo.h"
@@ -104,6 +107,10 @@ void CGNativeBorderFrameWidthsForStyle(unsigned styleMask,CGFloat *top,CGFloat *
 
    Atom atm=XInternAtom(_display, "WM_DELETE_WINDOW", False);
    XSetWMProtocols(_display, _window, &atm , 1);
+
+   [self setProperty:@"_KDE_NET_WM_APPMENU_SERVICE_NAME" toValue:[[NSApp dbusConnection] name]];
+   [self setProperty:@"_KDE_NET_WM_APPMENU_OBJECT_PATH" toValue:[[NSApp dbusMenu] objectPath]];
+   [[NSApp dbusMenu] registerWindow:_window];
       
    XSetWindowBackgroundPixmap(_display, _window, None);
       
@@ -186,7 +193,7 @@ void CGNativeBorderFrameWidthsForStyle(unsigned styleMask,CGFloat *top,CGFloat *
    if(_backingContext==nil){
     _backingContext=[O2Context createBackingContextWithSize:_frame.size context:[self createCGContextIfNeeded] deviceDictionary:_deviceDictionary];
    }
-   
+
    return _backingContext;
 }
 
@@ -210,10 +217,10 @@ void CGNativeBorderFrameWidthsForStyle(unsigned styleMask,CGFloat *top,CGFloat *
     if(![_context resizeWithNewSize:size]){
      [_context release];
      _context=nil;
+     [_backingContext release];
+     _backingContext=nil;
     }
-    [_backingContext release];
-    _backingContext=nil;
-   }  
+   }
 }
 
 -(void)invalidateContextsWithNewSize:(NSSize)size {
@@ -329,7 +336,7 @@ CGL_EXPORT CGLError CGLCreateContextForWindow(CGLPixelFormatObj pixelFormat,CGLC
 -(void)openGLFlushBuffer {
    CGLError error;
 
-   CGLContextObj prevContext = CGLGetCurrentContext();
+  CGLContextObj prevContext = CGLGetCurrentContext();
    
    [self createCGLContextObjIfNeeded];
    if(_caContext==NULL)
@@ -345,7 +352,7 @@ CGL_EXPORT CGLError CGLCreateContextForWindow(CGLPixelFormatObj pixelFormat,CGLC
    glFlush();
    glXSwapBuffers(_display,_window);
 
-   CGLSetCurrentContext(prevContext);
+  CGLSetCurrentContext(prevContext);
 }
 
 -(void)flushBuffer {

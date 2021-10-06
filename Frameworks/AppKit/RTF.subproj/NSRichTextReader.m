@@ -506,7 +506,7 @@ static inline void flushPreviousString(NSRichTextReader *self) {
             _range.length--;
             {
                 NSString         *path=[_imageDirectory stringByAppendingPathComponent:self];
-                NSTextAttachment *attachment=[[[NSTextAttachment alloc] initWithContentsOfFile:path] autorelease];
+                NSTextAttachment *attachment=[[[NSTextAttachment alloc] initWithFileWrapper:[[NSFileWrapper alloc] initWithPath:path]] autorelease];
                 unichar           attachChar=NSAttachmentCharacter;
                 
                 if(attachment!=nil){

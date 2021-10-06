@@ -166,19 +166,19 @@ static NSSize scaledImageSizeInFrameSize(NSSize imageSize,NSSize frameSize,NSIma
 
 -(void)drawInteriorWithFrame:(NSRect)controlFrame inView:(NSView *)control {
     if([self _imageValue]!=nil) {
-		
+
 		CGContextRef ctx=[[NSGraphicsContext currentContext] graphicsPort];
 		CGContextSaveGState(ctx);
 		CGContextClipToRect(ctx,controlFrame);
         
         NSRect drawInRect=[self _scaledAndAlignedImageFrame:controlFrame];
-        
+
         if([control isFlipped]){
             CGAffineTransform flip={1,0,0,-1,0,controlFrame.size.height};
             
             CGContextConcatCTM(ctx,flip);
         }
-        
+
         [[self _imageValue] drawInRect:drawInRect fromRect:NSZeroRect operation:NSCompositeSourceOver fraction:1.0];
         
 		CGContextRestoreGState(ctx);

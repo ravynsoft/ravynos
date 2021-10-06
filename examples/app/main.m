@@ -6,16 +6,16 @@ int main(int argc, const char *argv[])
     __NSInitializeProcess(argc, argv);
 
 	NSString *appName = [[NSProcessInfo processInfo] processName];
+        [NSApplication sharedApplication];
+
         NSAutoreleasePool *pool = [NSAutoreleasePool new];
 
-	NSBundle *main = [[NSBundle mainBundle] autorelease];
-	NSString *path = [[main pathForResource:@"sample" ofType:@"txt" inDirectory:@"rsc"]
-		autorelease];
-	NSFileManager *fm = [[NSFileManager defaultManager] autorelease];
-	NSString *text = [[[NSString alloc] initWithData:[fm contentsAtPath:path]
-		encoding:NSASCIIStringEncoding] autorelease];
+	NSBundle *main = [[NSBundle mainBundle] retain];
+	NSString *path = [main pathForResource:@"sample" ofType:@"txt" inDirectory:@"rsc"];
+	NSFileManager *fm = [NSFileManager defaultManager];
+	NSString *text = [[NSString alloc] initWithData:[fm contentsAtPath:path]
+		encoding:NSASCIIStringEncoding];
 
-        [NSApplication sharedApplication];
 
 	NSMenu *menubar = [[NSMenu new] autorelease];
 	NSMenuItem *fileMenuItem = [[NSMenuItem new] autorelease];
@@ -36,18 +36,18 @@ int main(int argc, const char *argv[])
     [windowsMenuItem setSubmenu:windowsMenu];
     [NSApp setWindowsMenu:windowsMenu];
 
-    NSImage *image = [[[NSImage alloc] initWithContentsOfFile:
-    	[main pathForResource:@"Cloudy_Mountains" ofType:@"jpg"]] autorelease];
+    NSImage *image = [[NSImage alloc] initWithContentsOfFile:
+    	[main pathForResource:@"Cloudy_Mountains" ofType:@"jpg"]];
     NSSize imageSize = [image size];
 
     NSRect rect = NSMakeRect(0,0,imageSize.width, imageSize.height);
-    NSWindow *window = [[[NSWindow alloc] initWithContentRect:rect 
-        styleMask:NSTitledWindowMask backing:NSBackingStoreBuffered defer:NO] autorelease];
+    NSWindow *window = [[NSWindow alloc] initWithContentRect:rect 
+        styleMask:NSTitledWindowMask backing:NSBackingStoreBuffered defer:NO];
     [window cascadeTopLeftFromPoint:NSMakePoint(10,10)];
     [window setTitle:appName];
     [window makeKeyAndOrderFront:nil];
 
-	NSImageView *view = [[[NSImageView alloc] init] autorelease];
+	NSImageView *view = [[NSImageView alloc] init];
 	[view setImage:image];
 	[window setContentView:view];
 	[view setNeedsDisplay:YES];
@@ -68,6 +68,7 @@ int main(int argc, const char *argv[])
 	[window2 display];
 	[NSApp setMainMenu:menubar];
 
+    [pool release];
     [NSApp run];
     return 0;
 }

@@ -486,9 +486,9 @@ NSArray *CGSOrderedWindowNumbers() {
      break;
      
     case VisibilityNotify:
-     NSLog(@"VisibilityNotify");
+//      NSLog(@"VisibilityNotify");
      break;
-     
+
     case CreateNotify:
      NSLog(@"CreateNotify");
      break;
