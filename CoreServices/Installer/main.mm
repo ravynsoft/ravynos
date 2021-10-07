@@ -20,9 +20,7 @@
  * THE SOFTWARE.
  */
 
-#import "ContentWindow.h"
-#import <AppKit/NSRichTextReader.h>
-
+#import <Cocoa/Cocoa.h>
 
 int main(int argc, const char *argv[])
 {

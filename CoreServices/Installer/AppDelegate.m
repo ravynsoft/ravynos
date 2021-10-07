@@ -20,12 +20,9 @@
  * THE SOFTWARE.
  */
 
-#import <AppKit/NSRichTextReader.h>
 #import "AppDelegate.h"
 
-@interface AppDelegate () {
-    NSScrollView *_scrollView;
-}
+@interface AppDelegate ()
 
 @property (strong) IBOutlet NSWindow *window;
 @end
@@ -47,9 +44,8 @@
     if(_scrollView) {
         [_scrollView setAutoresizesSubviews:YES];
         NSBundle *myBundle = [NSBundle mainBundle];
-        NSAttributedString *text = [[NSRichTextReader
-            attributedStringWithContentsOfFile:[myBundle pathForResource:@"terms"
-            ofType:@"rtf"]] retain];
+        NSData *rtf = [NSData dataWithContentsOfFile:[myBundle pathForResource:@"terms" ofType:@"rtf"]];
+        NSAttributedString *text = [[NSAttributedString alloc] initWithRTF:rtf documentAttributes:nil];
 
         NSTextView *content = [[_scrollView contentView] documentView];
         [[content textStorage] setAttributedString:text];
