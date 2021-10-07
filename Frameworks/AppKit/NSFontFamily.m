@@ -145,7 +145,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
    for(i=0;i<count;i++){
     NSFontTypeface *typeface=[_typefaces objectAtIndex:i];
-
     if([typeface traits]==traits)
      return typeface;
    }

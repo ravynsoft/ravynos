@@ -46,7 +46,7 @@ static DBusHandlerResult DBusKit_Message_Callback(DBusConnection *connection, DB
     _vtable.unregister_function = DBusKit_Unregister_Callback;
     _vtable.message_function = DBusKit_Message_Callback;
     _running = NO;
-    messageHandlers = [NSMutableDictionary dictionaryWithCapacity: 5];
+    messageHandlers = [[NSMutableDictionary dictionaryWithCapacity: 5] retain];
 
     _DBusConnection = dbus_bus_get(DBUS_BUS_SESSION, NULL);
     if(_DBusConnection == NULL) {
@@ -57,13 +57,11 @@ static DBusHandlerResult DBusKit_Message_Callback(DBusConnection *connection, DB
         _name = [NSString stringWithCString:dbus_bus_get_unique_name(_DBusConnection)];
         // NSLog(@"%@ is %@ on the bus",self,_name);
     }
-
-    return [self autorelease];
+    return self;
 }
 
 - (oneway void) release {
     [self stop];
-    // NSLog(@"%@ releasing refcount=%d\n",self,[self retainCount]);
     int refcount = [self retainCount];
     if((_DBusConnection != NULL) && (refcount <= 0)) {
         // NSLog(@"%@ unref DBUS connection\n",self);
@@ -80,7 +78,11 @@ static DBusHandlerResult DBusKit_Message_Callback(DBusConnection *connection, DB
     _running = YES;
     while(_running) {
         [self readWrite: 10]; // wait up to 10ms for any events
-        [self dispatch];
+        DBusDispatchStatus st = [self dispatch];
+        switch(st) {
+            case DBUS_DISPATCH_NEED_MEMORY:
+                NSLog(@"DBusKit: DispatchStatus=DBUS_DISPATCH_NEED_MEMORY"); break;
+        }
     }
 }
 
@@ -142,11 +144,14 @@ static DBusHandlerResult DBusKit_Message_Callback(DBusConnection *connection, DB
 }
 
 - (void) registerHandlerForInterface:(id)handler interface:(NSString *)iface {
-    [messageHandlers setObject:handler forKey:iface];
+    [messageHandlers setObject:[handler retain] forKey:iface];
 }
 
 - (void) unregisterHandlerForInterface:(NSString *)iface {
+    id handler = [messageHandlers objectForKey:iface];
     [messageHandlers removeObjectForKey:iface];
+    if(handler)
+        [handler release];
 }
 
 - (DBusHandlerResult) messageFunction:(DKMessage *)msg  {

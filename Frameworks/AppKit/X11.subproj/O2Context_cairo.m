@@ -32,7 +32,7 @@
 
 +(BOOL)canInitBackingWithContext:(O2Context *)context deviceDictionary:(NSDictionary *)deviceDictionary {
    NSString *name=[deviceDictionary objectForKey:@"O2Context"];
-   
+
    if(name==nil || [name isEqual:@"cairo"])
     return YES;
     
@@ -310,9 +310,7 @@
 }
 
 -(BOOL)resizeWithNewSize:(O2Size)size {
-
    switch(cairo_surface_get_type(_surface)){
-   
     case CAIRO_SURFACE_TYPE_XLIB:
   //   if(_context!=NULL)
     //  cairo_destroy(_context);

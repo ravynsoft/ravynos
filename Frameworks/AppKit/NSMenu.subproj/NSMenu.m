@@ -76,10 +76,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 -initApplicationMenu:(NSString*)appName {
    [self init];
-   NSMenuItem *quitItem = [[[NSMenuItem alloc] initWithTitle:[@"Quit " stringByAppendingString:appName] action:@selector(terminate:) keyEquivalent:@"q"] autorelease];
+   NSMenuItem *quitItem = [[NSMenuItem alloc] initWithTitle:[@"Quit " stringByAppendingString:appName] action:@selector(terminate:) keyEquivalent:@"q"];
    [self addItem: quitItem];
    [self setValue:@"NSAppleMenu" forKey:@"name"];
-   return [self autorelease];
+   return self;
 }
 
 -(void)dealloc {

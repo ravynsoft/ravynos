@@ -893,7 +893,7 @@ static inline void buildTransformsIfNeeded(NSView *self) {
 }
 
 -(void)addSubview:(NSView *)view positioned:(NSWindowOrderingMode)ordering relativeTo:(NSView *)relativeTo {
-   unsigned index=[_subviews indexOfObjectIdenticalTo:relativeTo];
+   NSUInteger index=[_subviews indexOfObjectIdenticalTo:relativeTo];
    
    if(index==NSNotFound)
     index=(ordering==NSWindowBelow)?0:NSNotFound;
@@ -904,7 +904,7 @@ static inline void buildTransformsIfNeeded(NSView *self) {
 }
 
 -(void)replaceSubview:(NSView *)oldView with:(NSView *)newView {
-   unsigned index=[_subviews indexOfObjectIdenticalTo:oldView];
+   NSUInteger index=[_subviews indexOfObjectIdenticalTo:oldView];
 
    [oldView retain];
    [oldView removeFromSuperview];
