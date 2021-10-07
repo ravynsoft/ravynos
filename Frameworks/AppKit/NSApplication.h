@@ -205,6 +205,8 @@ typedef enum {
 - (NSDockTile *)dockTile;
 
 // private
+- (DKMenu *)dbusMenu;
+- (DKConnection *)dbusConnection;
 - (void)_addWindow:(NSWindow *)window;
 
 - (void)_windowWillBecomeActive:(NSWindow *)window;

@@ -122,10 +122,10 @@ id NSApp=nil;
 -init {
    if(NSApp)
       NSAssert(!NSApp, @"NSApplication is a singleton");
-   NSApp=self;
+   NSApp=[self retain];
    _display=[[NSDisplay currentDisplay] retain];
 
-   _windows=[NSMutableArray new];
+   _windows=[[NSMutableArray new] retain];
    _mainMenu=nil;
       
    _dockTile=[[NSDockTile alloc] initWithOwner:self];
@@ -133,9 +133,9 @@ id NSApp=nil;
     
    _lock=NSZoneMalloc(NULL,sizeof(pthread_mutex_t));
 
-   dbusConnection = [DKConnection new];
+   dbusConnection = [[DKConnection new] retain];
    if([dbusConnection isConnected] == YES) {
-      dbusMenu = [[DKMenu alloc] initWithConnection:dbusConnection];
+      dbusMenu = [[[DKMenu alloc] initWithConnection:dbusConnection] retain];
    } else {
       [dbusConnection release];
       dbusConnection = nil;
@@ -147,6 +147,14 @@ id NSApp=nil;
    [self _showSplashImage];
    
    return NSApp;
+}
+
+-(DKMenu *)dbusMenu {
+    return [dbusMenu retain];
+}
+
+-(DKConnection *)dbusConnection {
+    return [dbusConnection retain];
 }
 
 -(NSGraphicsContext *)context {
@@ -347,9 +355,9 @@ id NSApp=nil;
    // ensure we have an "Apple" (application) menu
    if([_mainMenu _menuWithName:@"NSAppleMenu"] == nil) {
      NSString *appName = [[NSProcessInfo processInfo] processName];
-     NSMenuItem *appleMenuItem = [[NSMenuItem new] autorelease];
+     NSMenuItem *appleMenuItem = [[NSMenuItem new] retain];
      [appleMenuItem setTitle:[@"!" stringByAppendingString:appName]];
-     NSMenu *appleMenu = [[NSMenu alloc] initApplicationMenu:appName];
+     NSMenu *appleMenu = [[[NSMenu alloc] initApplicationMenu:appName] retain];
      [appleMenuItem setSubmenu:appleMenu];
      [_mainMenu insertItem:appleMenuItem atIndex:0];
    }
@@ -596,7 +604,7 @@ id NSApp=nil;
 }
 
 -(void)run {
-    
+
   static BOOL didlaunch = NO;
   NSAutoreleasePool *pool;
 
@@ -604,9 +612,9 @@ id NSApp=nil;
 
   if (!didlaunch) {
     didlaunch = YES;
-    pool=[NSAutoreleasePool new];
+//     pool=[NSAutoreleasePool new];
     [self finishLaunching];
-    [pool release];
+//     [pool release];
   }
 
   [dbusConnection performSelectorInBackground:@selector(run) withObject:nil];
@@ -674,7 +682,7 @@ id NSApp=nil;
    NSAutoreleasePool *pool=[NSAutoreleasePool new];
 
    NS_DURING
-    [NSClassFromString(@"Win32RunningCopyPipe") performSelector:@selector(createRunningCopyPipe)];
+    //[NSClassFromString(@"Win32RunningCopyPipe") performSelector:@selector(createRunningCopyPipe)];
 
        // This should happen before _makeSureIsOnAScreen so we don't reposition done windows
     [self _checkForReleasedWindows];
@@ -1168,7 +1176,7 @@ id NSApp=nil;
     {
       [[NSNotificationCenter defaultCenter] postNotificationName:NSApplicationWillTerminateNotification object:self];
       
-      [NSClassFromString(@"Win32RunningCopyPipe") performSelector:@selector(invalidateRunningCopyPipe)];
+      //[NSClassFromString(@"Win32RunningCopyPipe") performSelector:@selector(invalidateRunningCopyPipe)];
       
       exit(0);
     }
@@ -1310,14 +1318,6 @@ standardAboutPanel] retain];
 
 -(void)_addWindow:(NSWindow *)window {
    [_windows addObject:window];
-
-   // Apply the properties needed by hello menubar & register window. See:
-   // https://github.com/helloSystem/Menu/blob/actionsearch/src/appmenu/appmenumodel.cpp
-   if(dbusConnection != nil) {
-       [[window platformWindow] setProperty:@"_KDE_NET_WM_APPMENU_SERVICE_NAME" toValue:[dbusConnection name]];
-       [[window platformWindow] setProperty:@"_KDE_NET_WM_APPMENU_OBJECT_PATH" toValue:[dbusMenu objectPath]];
-       [dbusMenu registerWindow:[window windowNumber]];
-   }
 }
 
 -(void)_windowWillBecomeActive:(NSWindow *)window {
@@ -1374,7 +1374,7 @@ int NSApplicationMain(int argc, const char *argv[]) {
     __NSInitializeProcess(argc, argv);
 
     NSAutoreleasePool *pool=[NSAutoreleasePool new];
-    NSBundle *bundle=[NSBundle mainBundle];
+    NSBundle *bundle=[[NSBundle mainBundle] retain];
     Class     class=[bundle principalClass];
     NSString *nibFile=[[bundle infoDictionary] objectForKey:@"NSMainNibFile"];
 
@@ -1393,12 +1393,12 @@ int NSApplicationMain(int argc, const char *argv[]) {
             [[NSUserDefaults standardUserDefaults] setObject:((argc == 1) ? [arguments lastObject] : arguments) forKey:@"NSOpen"];
     }
 
-    [NSClassFromString(@"Win32RunningCopyPipe") performSelector:@selector(startRunningCopyPipe)];
+//     [NSClassFromString(@"Win32RunningCopyPipe") performSelector:@selector(startRunningCopyPipe)];
 
     if(class==Nil)
         class=[NSApplication class];
 
-    [class sharedApplication];
+    [[class sharedApplication] retain];
 
     nibFile=[nibFile stringByDeletingPathExtension];
 
@@ -1408,6 +1408,9 @@ int NSApplicationMain(int argc, const char *argv[]) {
     [pool release];
 
     [NSApp run];
+
+    [NSApp release];
+    [bundle release];
 
     return 0;
 }

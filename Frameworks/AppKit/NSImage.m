@@ -782,7 +782,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 	NSRect fullRect = { .origin = NSZeroPoint, .size = self.size };
 	BOOL drawFullImage = (NSIsEmptyRect(source) || NSEqualRects(source, fullRect));
 	BOOL canCache = drawFullImage && !_isFlipped;
-	
+
 	if (canCache) {
 		// If we're drawing the full image unflipped then we can just draw from a cached rep or a bitmap rep (assuming we have one)
 		if([any isKindOfClass:[NSCachedImageRep class]] ||

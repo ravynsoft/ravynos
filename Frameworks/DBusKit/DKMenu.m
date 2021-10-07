@@ -54,20 +54,32 @@ void enumerateMenuLayout(DKMessageIterator *iterator, NSMenu *menu, int rootID, 
         DKMessageIterator *innerStruct = [variant openStruct];
 
         NSMenuItem *item = [items objectAtIndex:i];
+        [item _setMenu:menu]; // make sure we can link back to parent. Nib files don't do this.
         int itemID = [item DBusItemID];
         [innerStruct appendBasic:DBUS_TYPE_INT32 value:&itemID];
         properties = [innerStruct openArray:"{sv}"];
         s = [[item title] UTF8String];
-        [properties appendDictEntry:@"label" variantType:DBUS_TYPE_STRING value:&s];
+        if(s)
+            [properties appendDictEntry:@"label" variantType:DBUS_TYPE_STRING value:&s];
+
+        if([item isSeparatorItem]) {
+            s = "separator";
+            [properties appendDictEntry:@"type" variantType:DBUS_TYPE_STRING value:&s];
+        }
 
         if([item hasSubmenu]) {
             s = "submenu";
             [properties appendDictEntry:@"children-display" variantType:DBUS_TYPE_STRING value:&s];
         }
+
         s = (([item isEnabled] || [item hasSubmenu]) ? "true" : "false");
         [properties appendDictEntry:@"enabled" variantType:DBUS_TYPE_STRING value:&s];
         s = ([item isHidden] ? "false" : "true"); // translate "hidden" to "visible"
         [properties appendDictEntry:@"visible" variantType:DBUS_TYPE_STRING value:&s];
+
+        // FIXME: support the "icon-data", "shortcut", "toggle-type"
+        // and "toggle-state" properties
+
         [properties close];
         [properties release];
 
@@ -122,7 +134,7 @@ int recursivelyPopulateItemMap(NSMutableDictionary *itemMap, NSMenu *submenu, in
     menu = nil;
 
     srandomdev();
-    menuObjectPath = [NSString stringWithFormat:@"%@/%08x",DBUSMENU_PATH, random()];
+    menuObjectPath = [[NSString stringWithFormat:@"%@/%08x",DBUSMENU_PATH, random()] retain];
 
     [connection registerHandlerForInterface:self interface:DBUSMENU_INTERFACE];
     _pathWasRegistered = [connection registerObjectPath:menuObjectPath];
@@ -134,7 +146,7 @@ int recursivelyPopulateItemMap(NSMutableDictionary *itemMap, NSMenu *submenu, in
             NSLog(@"%@ cannot register object path for menus!",self);
         }
     }
-    return [self autorelease];
+    return self;
 }
 
 - (oneway void) release {
@@ -144,12 +156,14 @@ int recursivelyPopulateItemMap(NSMutableDictionary *itemMap, NSMenu *submenu, in
         [connection flush];
         _pathWasRegistered = NO;
     }
+    [layout release];
+    [menuObjectPath release];
 }
 
 - (void) setMenu: (NSMenu *)aMenu {
     menu = aMenu;
     if(layout == nil) {
-        layout = [[NSMutableDictionary dictionaryWithCapacity:20] autorelease];
+        layout = [[NSMutableDictionary dictionaryWithCapacity:20] retain];
     }
     recursivelyPopulateItemMap(layout, menu, 0);
     [self layoutDidUpdate];
@@ -169,7 +183,6 @@ int recursivelyPopulateItemMap(NSMutableDictionary *itemMap, NSMenu *submenu, in
         [self event:msg];
         return DBUS_HANDLER_RESULT_HANDLED;
     }
-
     return DBUS_HANDLER_RESULT_NOT_YET_HANDLED;
 }
 
@@ -252,7 +265,7 @@ int recursivelyPopulateItemMap(NSMutableDictionary *itemMap, NSMenu *submenu, in
     NSMenuItem *item = [objEnum nextObject];
 
     while(item != nil) {
-        NSLog(@"layout %@",item);
+//        NSLog(@"layout %@",item);
         if([item hasSubmenu]) {
             DKMessage *update = [[DKMessage alloc] initSignal:"LayoutUpdated"
                 interface:[DBUSMENU_INTERFACE UTF8String] path:[menuObjectPath UTF8String]];

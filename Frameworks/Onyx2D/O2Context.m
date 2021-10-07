@@ -88,7 +88,7 @@ static NSMutableArray *possibleContextClasses=nil;
    
    while(--count>=0){
     Class check=[array objectAtIndex:count];
-    
+
     if([check canInitBackingWithContext:context deviceDictionary:deviceDictionary]){
      O2Context *result=[[check alloc] initWithSize:size context:context];
      if(result!=nil)

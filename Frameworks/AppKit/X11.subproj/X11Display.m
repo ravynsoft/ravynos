@@ -221,25 +221,26 @@ static int errorHandler(Display *display,XErrorEvent *errorEvent) {
          NSFontTraitMask traits=0;
          int slant, width, weight;
          
-         FcPatternGetInteger(p, FC_SLANT, FC_SLANT_ROMAN, &slant);
-         FcPatternGetInteger(p, FC_WIDTH, FC_WIDTH_NORMAL, &width);
-         FcPatternGetInteger(p, FC_WEIGHT, FC_WEIGHT_REGULAR, &weight);
+         FcPatternGetInteger(p, FC_SLANT, 0, &slant);
+         FcPatternGetInteger(p, FC_WIDTH, 0, &width);
+         FcPatternGetInteger(p, FC_WEIGHT, 0, &weight);
 
          switch(slant) {
             case FC_SLANT_OBLIQUE:
             case FC_SLANT_ITALIC:
                traits|=NSItalicFontMask;
                break;
-            default:
-               traits|=NSUnitalicFontMask;
-               break;
+//             default:
+//                traits|=NSUnitalicFontMask;
+//                break;
          }
          
-         if(weight<=FC_WEIGHT_LIGHT)
-            traits|=NSUnboldFontMask;
-         else if(weight>=FC_WEIGHT_SEMIBOLD)
+//          if(weight<=FC_WEIGHT_LIGHT)
+//             traits|=NSUnboldFontMask;
+//          else
+         if(weight>=FC_WEIGHT_SEMIBOLD)
             traits|=NSBoldFontMask;
-         
+
          if(width<=FC_WIDTH_SEMICONDENSED)
             traits|=NSNarrowFontMask;
          else if(width>=FC_WIDTH_SEMIEXPANDED)
@@ -485,9 +486,9 @@ NSArray *CGSOrderedWindowNumbers() {
      break;
      
     case VisibilityNotify:
-     NSLog(@"VisibilityNotify");
+//      NSLog(@"VisibilityNotify");
      break;
-     
+
     case CreateNotify:
      NSLog(@"CreateNotify");
      break;
