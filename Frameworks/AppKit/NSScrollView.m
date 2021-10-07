@@ -915,6 +915,7 @@ static Class _rulerViewClass = nil;
    }
 
    [_clipView scrollToPoint:clipRect.origin];
+   [[self superview] setNeedsDisplay:YES];
 }
 
 -(void)_horizontalScroll:(NSScroller *)scroller {
@@ -952,6 +953,7 @@ static Class _rulerViewClass = nil;
    headerClipRect.origin.x = clipRect.origin.x;
    [_clipView scrollToPoint:clipRect.origin];
    [_headerClipView scrollToPoint:headerClipRect.origin];
+   [[self superview] setNeedsDisplay:YES];
 }
 
 -(void)resizeSubviewsWithOldSize:(NSSize)oldSize {
