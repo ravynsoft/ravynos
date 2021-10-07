@@ -122,6 +122,12 @@ QuartzCore.framework:
 	${MAKE} -C ${THISDIR}/QuartzCore BUILDROOT=${BUILDROOT}
 	cp -Rvf ${THISDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
 
+DBusKit.framework:
+	rm -rf ${THISDIR}/DBusKit/${.TARGET}
+	${MAKE} -C ${THISDIR}/DBusKit BUILDROOT=${BUILDROOT} clean build
+	cp -Rvf ${THISDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
+
+
 AppKit.framework:
 	rm -rf ${THISDIR}/AppKit/${.TARGET}
 	${MAKE} -C ${THISDIR}/AppKit BUILDROOT=${BUILDROOT} clean build
@@ -131,11 +137,6 @@ Cocoa.framework:
 	rm -rf ${THISDIR}/Cocoa/${.TARGET}
 	${MAKE} -C ${THISDIR}/Cocoa BUILDROOT=${BUILDROOT} clean
 	${MAKE} -C ${THISDIR}/Cocoa BUILDROOT=${BUILDROOT}
-	cp -Rvf ${THISDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
-
-DBusKit.framework:
-	rm -rf ${THISDIR}/DBusKit/${.TARGET}
-	${MAKE} -C ${THISDIR}/DBusKit BUILDROOT=${BUILDROOT} clean build
 	cp -Rvf ${THISDIR}/${.TARGET:R}/${.TARGET} ${BUILDROOT}/System/Library/Frameworks
 
 LaunchServices.framework:
