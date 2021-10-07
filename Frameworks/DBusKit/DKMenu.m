@@ -54,6 +54,7 @@ void enumerateMenuLayout(DKMessageIterator *iterator, NSMenu *menu, int rootID, 
         DKMessageIterator *innerStruct = [variant openStruct];
 
         NSMenuItem *item = [items objectAtIndex:i];
+        [item _setMenu:menu]; // make sure we can link back to parent. Nib files don't do this.
         int itemID = [item DBusItemID];
         [innerStruct appendBasic:DBUS_TYPE_INT32 value:&itemID];
         properties = [innerStruct openArray:"{sv}"];
