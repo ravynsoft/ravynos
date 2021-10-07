@@ -1,5 +1,5 @@
 APP=Install_airyxOS
-SRCS=main.mm AppDelegate.m
+SRCS=main.m AppDelegate.m
 MK_DEBUG_FILES=no
 RESOURCES=TanukiLogo.jpg terms.rtf English.lproj
 SLF=/System/Library/Frameworks
