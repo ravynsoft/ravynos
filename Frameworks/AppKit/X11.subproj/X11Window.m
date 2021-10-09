@@ -17,6 +17,7 @@
 #import <X11/Xutil.h>
 #import <Foundation/NSException.h>
 #import "O2Context_cairo.h"
+#import "O2Context_builtin_FT.h"
 #import <Onyx2D/O2Surface.h>
 #import <QuartzCore/CAWindowOpenGLContext.h>
 
@@ -167,6 +168,7 @@ void CGNativeBorderFrameWidthsForStyle(unsigned styleMask,CGFloat *top,CGFloat *
 }
 
 -(void)invalidate {
+   [_delegate platformWindowDidInvalidateCGContext:self];
    _delegate=nil;
    [_context release];
    _context=nil;
@@ -183,10 +185,16 @@ void CGNativeBorderFrameWidthsForStyle(unsigned styleMask,CGFloat *top,CGFloat *
 }
 
 -(O2Context *)createCGContextIfNeeded {
-   if(_context==nil)
-    _context=[O2Context createContextWithSize:_frame.size window:self];
-
-   return _context;
+    if(_context == nil) {
+        O2ColorSpaceRef colorSpace = O2ColorSpaceCreateDeviceRGB();
+        O2Surface *surface = [[O2Surface alloc] initWithBytes:NULL
+            width:_frame.size.width height:_frame.size.height
+            bitsPerComponent:8 bytesPerRow:0 colorSpace:colorSpace
+            bitmapInfo:kO2ImageAlphaPremultipliedFirst|kO2BitmapByteOrder32Little];
+        O2ColorSpaceRelease(colorSpace);
+        _context = [[O2Context_builtin_FT alloc] initWithSurface:surface flipped:NO];
+    }
+    return _context;
 }
 
 -(O2Context *)createBackingCGContextIfNeeded {
@@ -198,28 +206,26 @@ void CGNativeBorderFrameWidthsForStyle(unsigned styleMask,CGFloat *top,CGFloat *
 }
 
 -(O2Context *)cgContext {
-   switch(_backingType){
-
-    case CGSBackingStoreRetained:
-    case CGSBackingStoreNonretained:
-    default:
-     return [self createCGContextIfNeeded];
-
-    case CGSBackingStoreBuffered:
-     return [self createBackingCGContextIfNeeded];
-   }
-   return nil;
+    return [self createCGContextIfNeeded];
 }
 
 -(void)invalidateContextsWithNewSize:(NSSize)size forceRebuild:(BOOL)forceRebuild {
    if(!NSEqualSizes(_frame.size,size) || forceRebuild){
+    NSSize oldSize = _frame.size;
     _frame.size=size;
-    if(![_context resizeWithNewSize:size]){
-     [_context release];
-     _context=nil;
-     [_backingContext release];
-     _backingContext=nil;
-    }
+
+    O2Context *currentContext = _context;
+    O2ColorSpaceRef colorSpace = O2ColorSpaceCreateDeviceRGB();
+    O2Surface *surface = [[O2Surface alloc] initWithBytes:NULL
+        width:_frame.size.width height:_frame.size.height
+        bitsPerComponent:8 bytesPerRow:0 colorSpace:colorSpace
+        bitmapInfo:kO2ImageAlphaPremultipliedFirst|kO2BitmapByteOrder32Little];
+    O2ColorSpaceRelease(colorSpace);
+    _context = [[O2Context_builtin_FT alloc] initWithSurface:surface flipped:NO];
+    [_context drawImage:[currentContext surface]
+        inRect:NSMakeRect(0,0,oldSize.width,oldSize.height)];
+    [_delegate platformWindowDidInvalidateCGContext:self];
+    [currentContext release];
    }
 }
 
@@ -342,7 +348,7 @@ CGL_EXPORT CGLError CGLCreateContextForWindow(CGLPixelFormatObj pixelFormat,CGLC
    if(_caContext==NULL)
     return;
 
-   O2Surface *surface=[_backingContext surface];
+   O2Surface *surface=[_context surface]; // [_backingContext surface];
    size_t width=O2ImageGetWidth(surface);
    size_t height=O2ImageGetHeight(surface);
 
@@ -356,27 +362,8 @@ CGL_EXPORT CGLError CGLCreateContextForWindow(CGLPixelFormatObj pixelFormat,CGLC
 }
 
 -(void)flushBuffer {
-
-    switch(_backingType){
-
-     case CGSBackingStoreRetained:
-     case CGSBackingStoreNonretained:
-      O2ContextFlush(_context);
-      break;
- 
-     case CGSBackingStoreBuffered:
-      if(_backingContext!=nil){
-       O2ContextFlush(_backingContext);
-
-       if(1)
-        [self openGLFlushBuffer];
-       else {
-        //[_context drawBackingContext:_backingContext size:_frame.size];
-        O2ContextFlush(_context);
-       }
-      }
-      break;
-    }
+    O2ContextFlush(_context);
+    [self openGLFlushBuffer];
 }
 
 
@@ -428,6 +415,7 @@ static int ignoreBadWindow(Display* display,
       };
       
      [self invalidateContextsWithNewSize:rect.size];
+     _frame = rect;
    }
    @finally {
       XSetErrorHandler(previousHandler);

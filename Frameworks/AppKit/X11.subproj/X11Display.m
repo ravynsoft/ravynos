@@ -474,7 +474,7 @@ NSArray *CGSOrderedWindowNumbers() {
      // rect=NSInsetRect(rect, -10, -10);
      // [_backingContext addToDirtyRect:rect];
      if(ev->xexpose.count==0)
-      [window flushBuffer]; 
+      [window flushBuffer];
      break;
 
     case GraphicsExpose:
