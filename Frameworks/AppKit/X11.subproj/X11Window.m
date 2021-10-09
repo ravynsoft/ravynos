@@ -17,6 +17,7 @@
 #import <X11/Xutil.h>
 #import <Foundation/NSException.h>
 #import "O2Context_cairo.h"
+#import "O2Context_builtin_FT.h"
 #import <Onyx2D/O2Surface.h>
 #import <QuartzCore/CAWindowOpenGLContext.h>
 
@@ -167,6 +168,7 @@ void CGNativeBorderFrameWidthsForStyle(unsigned styleMask,CGFloat *top,CGFloat *
 }
 
 -(void)invalidate {
+   [_delegate platformWindowDidInvalidateCGContext:self];
    _delegate=nil;
    [_context release];
    _context=nil;
@@ -183,10 +185,17 @@ void CGNativeBorderFrameWidthsForStyle(unsigned styleMask,CGFloat *top,CGFloat *
 }
 
 -(O2Context *)createCGContextIfNeeded {
-   if(_context==nil)
-    _context=[O2Context createContextWithSize:_frame.size window:self];
-
-   return _context;
+    if(_context == nil) {
+//     _context=[O2Context createContextWithSize:_frame.size window:self];
+        O2ColorSpaceRef colorSpace = O2ColorSpaceCreateDeviceRGB();
+        O2Surface *surface = [[O2Surface alloc] initWithBytes:NULL
+            width:_frame.size.width height:_frame.size.height
+            bitsPerComponent:8 bytesPerRow:0 colorSpace:colorSpace
+            bitmapInfo:kO2ImageAlphaPremultipliedFirst|kO2BitmapByteOrder32Little];
+        O2ColorSpaceRelease(colorSpace);
+        _context = [[O2Context_builtin_FT alloc] initWithSurface:surface flipped:NO];
+    }
+    return _context;
 }
 
 -(O2Context *)createBackingCGContextIfNeeded {
@@ -198,6 +207,8 @@ void CGNativeBorderFrameWidthsForStyle(unsigned styleMask,CGFloat *top,CGFloat *
 }
 
 -(O2Context *)cgContext {
+    return [self createCGContextIfNeeded];
+#if 0
    switch(_backingType){
 
     case CGSBackingStoreRetained:
@@ -209,6 +220,7 @@ void CGNativeBorderFrameWidthsForStyle(unsigned styleMask,CGFloat *top,CGFloat *
      return [self createBackingCGContextIfNeeded];
    }
    return nil;
+#endif
 }
 
 -(void)invalidateContextsWithNewSize:(NSSize)size forceRebuild:(BOOL)forceRebuild {
@@ -217,9 +229,10 @@ void CGNativeBorderFrameWidthsForStyle(unsigned styleMask,CGFloat *top,CGFloat *
     if(![_context resizeWithNewSize:size]){
      [_context release];
      _context=nil;
-     [_backingContext release];
-     _backingContext=nil;
+     [_delegate platformWindowDidInvalidateCGContext:self];
     }
+//     [_backingContext release];
+//     _backingContext = nil;
    }
 }
 
@@ -342,7 +355,7 @@ CGL_EXPORT CGLError CGLCreateContextForWindow(CGLPixelFormatObj pixelFormat,CGLC
    if(_caContext==NULL)
     return;
 
-   O2Surface *surface=[_backingContext surface];
+   O2Surface *surface=[_context surface]; // [_backingContext surface];
    size_t width=O2ImageGetWidth(surface);
    size_t height=O2ImageGetHeight(surface);
 
@@ -356,7 +369,10 @@ CGL_EXPORT CGLError CGLCreateContextForWindow(CGLPixelFormatObj pixelFormat,CGLC
 }
 
 -(void)flushBuffer {
+    O2ContextFlush(_context);
+    [self openGLFlushBuffer];
 
+#if 0
     switch(_backingType){
 
      case CGSBackingStoreRetained:
@@ -377,6 +393,7 @@ CGL_EXPORT CGLError CGLCreateContextForWindow(CGLPixelFormatObj pixelFormat,CGLC
       }
       break;
     }
+#endif
 }
 
 
@@ -428,6 +445,7 @@ static int ignoreBadWindow(Display* display,
       };
       
      [self invalidateContextsWithNewSize:rect.size];
+     _frame = rect;
    }
    @finally {
       XSetErrorHandler(previousHandler);
