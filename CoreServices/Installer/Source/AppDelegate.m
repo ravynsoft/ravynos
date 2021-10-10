@@ -54,6 +54,10 @@
     }
 }
 
+- (IBAction)proceedToDiskList:(id)sender {
+    NSLog(@"proceed to disk list");
+    [[_scrollView contentView] setDocumentView:_diskTableScrollView];
+}
 
 - (void)applicationWillTerminate:(NSNotification *)aNotification {
     // Insert code here to tear down your application

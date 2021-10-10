@@ -25,7 +25,6 @@
 @implementation GSGeomDisk
 
 -init {
-    [super init];
     _type = GS_DISK_TYPE_OTHER;
     _mediaSize = _sectorSize = 0;
     return self;
