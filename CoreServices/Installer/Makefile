@@ -1,5 +1,5 @@
 APP=Install_airyxOS
-SRCS=Source/main.m Source/AppDelegate.m
+SRCS=Source/main.m Source/AppDelegate.m Source/GSGeomDisk.m
 MK_DEBUG_FILES=no
 RESOURCES=TanukiLogo.jpg terms.rtf English.lproj
 SLF=/System/Library/Frameworks
