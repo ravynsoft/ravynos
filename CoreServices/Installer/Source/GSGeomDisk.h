@@ -22,12 +22,24 @@
 
 #import <Foundation/Foundation.h>
 
+extern NSMutableArray *disks;
+
+const long KB = 1024;
+const long MB = 1024 * KB;
+const long GB = 1024 * MB;
+const long TB = 1024 * GB;
+
 typedef enum {
     GS_DISK_TYPE_OTHER = 0,
     GS_DISK_TYPE_ATA,
     GS_DISK_TYPE_SCSI,
     GS_DISK_TYPE_CD
 } GSDiskType;
+
+NSData *runCommand(const char *tool, const char *args);
+BOOL parserError(NSString *msg);
+BOOL discoverGEOMs(BOOL onlyUsable);
+
 
 @interface GSGeomDisk: NSObject {
     GSDiskType _type;
@@ -41,6 +53,7 @@ typedef enum {
 -(NSString *)mediaDescription;
 -(long)mediaSize;
 -(int)sectorSize;
+-(GSDiskType)type;
 
 -(void)setName:(NSString *)name;
 -(void)setMediaDescription:(NSString *)description;

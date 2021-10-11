@@ -21,6 +21,7 @@
  */
 
 #import "AppDelegate.h"
+#import "GSGeomDisk.h"
 
 @interface AppDelegate ()
 
@@ -55,8 +56,35 @@
 }
 
 - (IBAction)proceedToDiskList:(id)sender {
-    NSLog(@"proceed to disk list");
-    [[_scrollView contentView] setDocumentView:_diskTableScrollView];
+    if(discoverGEOMs(YES) == NO)
+        NSLog(@"error discovering devices!");
+
+    NSTableView *table = [[NSTableView alloc]
+        initWithFrame:[[_scrollView contentView] frame]];
+    [table setAllowsColumnReordering:NO];
+    [table setDelegate:self];
+    [table setDataSource:[GSGeomDisk new]];
+
+    NSArray *columnIDs = @[@"device",@"size",@"descr"];
+    NSArray *headerLabels = @[@"Device",@"Size",@"Description"]; // FIXME: localize
+    for(int x = 0; x < 3; ++x) {
+        NSTableColumn *col = [NSTableColumn new];
+        [col setIdentifier:[columnIDs objectAtIndex:x]];
+        [col setMinWidth:10.0];
+        [col setMaxWidth:MAXFLOAT];
+        [col setWidth:100.0];
+        [col setHeaderCell:[[NSTableHeaderCell alloc]
+            initTextCell:[headerLabels objectAtIndex:x]]];
+        [col setDataCell:[[NSTextFieldCell alloc] initTextCell:@""]];
+        [table addTableColumn:col];
+    }
+
+    NSClipView *clip = [NSClipView new];
+    [clip setDocumentView:table];
+    [table sizeLastColumnToFit];
+
+    [_scrollView setContentView:clip];
+    [_scrollView setAutohidesScrollers:YES];
 }
 
 - (void)applicationWillTerminate:(NSNotification *)aNotification {

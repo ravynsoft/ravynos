@@ -23,12 +23,15 @@
 #import <Cocoa/Cocoa.h>
 
 @interface AppDelegate : NSObject <NSApplicationDelegate> {
-    //NSScrollView *_scrollView;
+    NSScrollView *_scrollView;
+    NSButton *_ProceedButton;
+    NSButton *_CancelButton;
 }
-@property (weak) IBOutlet NSScrollView *scrollView;
-@property (weak) IBOutlet NSButton *ProceedButton;
-@property (weak) IBOutlet NSButton *CancelButton;
-@property (weak) IBOutlet NSScrollView *diskTableScrollView;
+
+@property (strong) IBOutlet NSScrollView *scrollView;
+@property (strong) IBOutlet NSButton *ProceedButton;
+@property (strong) IBOutlet NSButton *CancelButton;
+@property (strong) IBOutlet NSScrollView *diskTableScrollView;
 
 - (IBAction)proceedToDiskList:(id)sender;
 
