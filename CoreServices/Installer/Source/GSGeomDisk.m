@@ -29,6 +29,11 @@
 const char *GEOM_CMD = "/sbin/geom";
 NSMutableArray *disks = nil;
 
+const long KB = 1024;
+const long MB = 1024 * KB;
+const long GB = 1024 * MB;
+const long TB = 1024 * GB;
+
 // FIXME: this should be replaced with libgeom
 NSData *runCommand(const char *tool, const char *args) {
     int filedesc[2];

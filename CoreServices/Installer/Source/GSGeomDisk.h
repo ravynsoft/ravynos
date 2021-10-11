@@ -24,10 +24,10 @@
 
 extern NSMutableArray *disks;
 
-const long KB = 1024;
-const long MB = 1024 * KB;
-const long GB = 1024 * MB;
-const long TB = 1024 * GB;
+extern const long KB;
+extern const long MB;
+extern const long GB;
+extern const long TB;
 
 typedef enum {
     GS_DISK_TYPE_OTHER = 0,

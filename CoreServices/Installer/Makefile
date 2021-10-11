@@ -11,7 +11,7 @@ AIRYX_CODENAME!= tail -1 ../../version.txt
 
 clean:
 	rm -rf ${APP_DIR} "${APP_DIR:S/_/ /}"
-	rm -f *.o
+	rm -f Source/*.o
 
 build: clean all
 	sed -i_ -e 's@%C@${AIRYX_CODENAME}@' -e 's@%v@${AIRYX_VERSION}@' "${APP_DIR}/Contents/Resources/terms.rtf"
