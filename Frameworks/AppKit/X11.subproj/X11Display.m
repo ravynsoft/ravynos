@@ -124,7 +124,7 @@ static int errorHandler(Display *display,XErrorEvent *errorEvent) {
    if([colorName isEqual:@"controlShadowColor"])
       return [NSColor darkGrayColor];
    if([colorName isEqual:@"selectedControlColor"])
-      return [NSColor blueColor];
+      return [NSColor cyanColor];
    if([colorName isEqual:@"controlBackgroundColor"])
       return [NSColor whiteColor];
    if([colorName isEqual:@"controlLightHighlightColor"])

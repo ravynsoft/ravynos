@@ -27,6 +27,7 @@
 #include <string.h>
 
 const char *GEOM_CMD = "/sbin/geom";
+const char *GPART_CMD = "/sbin/gpart";
 NSMutableArray *disks = nil;
 
 const long KB = 1024;
@@ -192,6 +193,30 @@ NSString *formatMediaSize(long bytes) {
 
 -(void)setSectorSize:(int)size {
     _sectorSize = size;
+}
+
+-(void)createGPT {
+    NSString *cmd = [NSString stringWithFormat:@"destroy %@", _name];
+    runCommand(GPART_CMD, cmd);
+    [cmd release];
+    cmd = [NSString stringWithFormat:@"create -s gpt %@", _name];
+    runCommand(GPART_CMD, cmd);
+    [cmd release];
+}
+
+-(void)createPartitions {
+    NSString *cmd = [NSString stringWithFormat:@"add -t efi -s 1m -l efi %@", _name];
+    runCommand(GPART_CMD, cmd);
+    [cmd release];
+    cmd = [NSString stringWithFormat:@"/dev/gpt/efi"];
+    runCommand("/sbin/newfs_msdos", cmd);
+    [cmd release];
+    cmd = [NSString stringWithFormat:@"add -t freebsd-swap -l swap -a 1m -s 4096m %@", _name];
+    runCommand(GPART_CMD, cmd);
+    [cmd release];
+    cmd = [NSString stringWithFormat:@"add -t freebsd-zfs -l zroot -a 1m %@", _name];
+    runCommand(GPART_CMD, cmd);
+    [cmd release];
 }
 
 -(NSString *)description {

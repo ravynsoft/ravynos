@@ -24,8 +24,6 @@
 #import "GSGeomDisk.h"
 
 @interface AppDelegate ()
-
-@property (strong) IBOutlet NSWindow *window;
 @end
 
 @implementation AppDelegate
@@ -85,6 +83,41 @@
 
     [_scrollView setContentView:clip];
     [_scrollView setAutohidesScrollers:YES];
+
+    [_CancelButton setHidden:YES];
+    [_ProceedButton setEnabled:NO];
+
+    [[NSNotificationCenter defaultCenter] addObserver:self
+        selector:@selector(deviceSelected:)
+        name:NSTableViewSelectionDidChangeNotification
+        object:table];
+    [_ProceedButton setAction:@selector(proceedToPartition:)];
+}
+
+- (void)deviceSelected:(NSNotification *)aNotification {
+    [_ProceedButton setEnabled:YES];
+    selectedDisk = [[[aNotification object] selectedRowIndexes] firstIndex];
+}
+
+- (IBAction)proceedToPartition:(id)sender {
+    NSLog(@"proceedToPartition");
+
+    [[[_scrollView contentView] documentView] release];
+    [[_scrollView contentView] release];
+
+    NSTextView *v = [[NSTextView alloc] initWithFrame:[_scrollView frame]];
+
+    NSClipView *clip = [NSClipView new];
+    [clip setDocumentView:v];
+
+    [_scrollView setContentView:clip];
+
+    GSGeomDisk *disk = [disks objectAtIndex:selectedDisk];
+    [v insertText:[NSString stringWithFormat:@"Partitioning disk %@",
+        [disk name]]];
+    [disk createGPT];
+    [v insertText:@"Creating partitions"];
+    [disk createPartitions];
 }
 
 - (void)applicationWillTerminate:(NSNotification *)aNotification {

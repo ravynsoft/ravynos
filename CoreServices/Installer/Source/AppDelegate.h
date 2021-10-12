@@ -26,14 +26,19 @@
     NSScrollView *_scrollView;
     NSButton *_ProceedButton;
     NSButton *_CancelButton;
+    int selectedDisk; // table row = disks array index
 }
 
 @property (strong) IBOutlet NSScrollView *scrollView;
 @property (strong) IBOutlet NSButton *ProceedButton;
 @property (strong) IBOutlet NSButton *CancelButton;
 @property (strong) IBOutlet NSScrollView *diskTableScrollView;
+@property (strong) IBOutlet NSWindow *window;
 
 - (IBAction)proceedToDiskList:(id)sender;
+- (IBAction)proceedToPartition:(id)sender;
+
+- (void)deviceSelected:(NSNotification *)aNotification;
 
 @end
 
