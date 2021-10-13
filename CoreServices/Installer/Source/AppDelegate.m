@@ -113,11 +113,16 @@
     [_scrollView setContentView:clip];
 
     GSGeomDisk *disk = [disks objectAtIndex:selectedDisk];
-    [v insertText:[NSString stringWithFormat:@"Partitioning disk %@",
+    [v insertText:[NSString stringWithFormat:@"Clearing disk %@\n",
         [disk name]]];
     [disk createGPT];
-    [v insertText:@"Creating partitions"];
+    [v insertText:@"Creating partitions\n"];
     [disk createPartitions];
+    [v insertText:@"Creating volumes\n"];
+    [disk createPools];
+    [v insertText:@"Installing EFI loader\n"];
+    [disk initializeEFI];
+    [v insertText:@"Reticulating splines\n"];
 }
 
 - (void)applicationWillTerminate:(NSNotification *)aNotification {

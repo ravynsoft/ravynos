@@ -25,9 +25,15 @@
 
 #include <unistd.h>
 #include <string.h>
+#include <fcntl.h>
+#include <sys/param.h>
+#include <sys/mount.h>
 
 const char *GEOM_CMD = "/sbin/geom";
 const char *GPART_CMD = "/sbin/gpart";
+const char *ZPOOL_CMD = "/sbin/zpool";
+const char *ZFS_CMD = "/sbin/zfs";
+const char *ZFS_POOL_NAME = "airyxOS";
 NSMutableArray *disks = nil;
 
 const long KB = 1024;
@@ -65,6 +71,7 @@ NSData *runCommand(const char *tool, const char *args) {
         close(filedesc[1]);
         return nil;
     } else { // parent
+        NSLog(@"Executing: %s %s",tool,args);
         close(filedesc[1]);
         NSFileHandle *reader = [[NSFileHandle alloc] initWithFileDescriptor:filedesc[0]];
         NSData *data = [[reader readDataToEndOfFile] retain];
@@ -195,29 +202,109 @@ NSString *formatMediaSize(long bytes) {
     _sectorSize = size;
 }
 
+-(void)deletePartitions {
+  @autoreleasepool {
+    NSString *cmd = [[NSString stringWithFormat:@"list %@", _name] autorelease];
+    NSData *parts = runCommand(GPART_CMD, [cmd UTF8String]);
+    NSString *str = [[[NSString alloc] initWithData:parts encoding:NSUTF8StringEncoding] autorelease];
+    [parts release];
+    NSArray *lines = [[str componentsSeparatedByString:@"\n"] autorelease];
+
+    for(int x = 0; x < [lines count]; ++x) {
+        NSString *line = [lines objectAtIndex:x];
+        if([line hasPrefix:@"   index:"]) {
+            int part = [[line substringFromIndex:10] integerValue];
+            cmd = [[NSString stringWithFormat:@"delete -i %d %@", part, _name] autorelease];
+            runCommand(GPART_CMD, [cmd UTF8String]);
+        }
+    }
+  }
+}
+
 -(void)createGPT {
-    NSString *cmd = [NSString stringWithFormat:@"destroy %@", _name];
-    runCommand(GPART_CMD, cmd);
-    [cmd release];
-    cmd = [NSString stringWithFormat:@"create -s gpt %@", _name];
-    runCommand(GPART_CMD, cmd);
-    [cmd release];
+    [self deletePartitions]; // just in case
+
+  @autoreleasepool {
+    NSString *cmd = [[NSString stringWithFormat:@"destroy %@", _name] autorelease];
+    runCommand(GPART_CMD, [cmd UTF8String]);
+    cmd = [[NSString stringWithFormat:@"create -s gpt %@", _name] autorelease];
+    runCommand(GPART_CMD, [cmd UTF8String]);
+  }
 }
 
 -(void)createPartitions {
-    NSString *cmd = [NSString stringWithFormat:@"add -t efi -s 1m -l efi %@", _name];
-    runCommand(GPART_CMD, cmd);
-    [cmd release];
-    cmd = [NSString stringWithFormat:@"/dev/gpt/efi"];
-    runCommand("/sbin/newfs_msdos", cmd);
-    [cmd release];
-    cmd = [NSString stringWithFormat:@"add -t freebsd-swap -l swap -a 1m -s 4096m %@", _name];
-    runCommand(GPART_CMD, cmd);
-    [cmd release];
-    cmd = [NSString stringWithFormat:@"add -t freebsd-zfs -l zroot -a 1m %@", _name];
-    runCommand(GPART_CMD, cmd);
-    [cmd release];
+  @autoreleasepool {
+    NSString *cmd = [[NSString stringWithFormat:@"add -t efi -s 1m -l efi %@", _name] autorelease];
+    runCommand(GPART_CMD, [cmd UTF8String]);
+    cmd = [[NSString stringWithFormat:@"/dev/gpt/efi"] autorelease];
+    runCommand("/sbin/newfs_msdos", [cmd UTF8String]);
+    cmd = [[NSString stringWithFormat:@"add -t freebsd-swap -l swap -a 1m -s 4096m %@", _name] autorelease];
+    runCommand(GPART_CMD, [cmd UTF8String]);
+    cmd = [[NSString stringWithFormat:@"add -t freebsd-zfs -l %s -a 1m %@", ZFS_POOL_NAME, _name] autorelease];
+    runCommand(GPART_CMD, [cmd UTF8String]);
+  }
 }
+
+-(void)createPools {
+  @autoreleasepool {
+    mkdir("/tmp/pool",0700);
+    NSString *cmd = [[NSString stringWithFormat:@"create -R /tmp/pool -O mountpoint=/ -O atime=off -O canmount=off -O compression=on %s %@p3", ZFS_POOL_NAME, _name] autorelease];
+    runCommand(ZPOOL_CMD, [cmd UTF8String]);
+
+    cmd = [[NSString stringWithFormat:@"create -o canmount=off -o mountpoint=none %s/ROOT", ZFS_POOL_NAME, _name] autorelease];
+    runCommand(ZFS_CMD, [cmd UTF8String]);
+    cmd = [[NSString stringWithFormat:@"create -o mountpoint=/ %s/ROOT/default", ZFS_POOL_NAME] autorelease];
+    runCommand(ZFS_CMD, [cmd UTF8String]);
+
+    NSArray *volumes = [NSArray arrayWithObjects:@"/Users",@"/usr/local",@"/usr/obj",@"/usr/src",@"/usr/ports",@"/usr/ports/distfiles",@"/tmp",@"/var/jail",@"/var/log",@"/var/tmp",nil];
+    cmd = [[NSString stringWithFormat:@"create -o canmount=off %s/usr", ZFS_POOL_NAME] autorelease];
+    runCommand(ZFS_CMD, [cmd UTF8String]);
+    cmd = [[NSString stringWithFormat:@"create -o canmount=off %s/var", ZFS_POOL_NAME] autorelease];
+    runCommand(ZFS_CMD, [cmd UTF8String]);
+
+    for(int x = 0; x < [volumes count]; ++x) {
+        cmd = [[NSString stringWithFormat:@"create %s%@", ZFS_POOL_NAME, [volumes objectAtIndex:x]] autorelease];
+        runCommand(ZFS_CMD, [cmd UTF8String]);
+    }
+
+    cmd = [[NSString stringWithFormat:@"set bootfs=%s/ROOT/default %s", ZFS_POOL_NAME, ZFS_POOL_NAME] autorelease];
+    runCommand(ZPOOL_CMD, [cmd UTF8String]);
+  }
+}
+
+-(void)initializeEFI {
+    mkdir("/tmp/efi",0700);
+    runCommand("/sbin/mount_msdosfs", "/dev/gpt/efi /tmp/efi");
+    mkdir("/tmp/efi/efi",0755);
+    mkdir("/tmp/efi/efi/boot",0755);
+    int bootx64 = open("/tmp/efi/efi/boot/bootx64.efi", O_CREAT|O_RDWR, 0644);
+    int loader = open("/boot/loader.efi", O_RDONLY);
+
+    char buffer[4096];
+    int len;
+    while((len = read(loader, buffer, sizeof(buffer)*sizeof(char))) > 0)
+        write(bootx64, buffer, len);
+    close(bootx64);
+    close(loader);
+    unmount("/tmp/efi", 0);
+}
+
+#if 0
+-(void)configureLoader {
+    int loader = open("/tmp/pool/boot/loader.conf", O_CREAT|O_RDWR, 0644);
+cat >> /boot/loader.conf <<END
+zfs_load="YES"
+vfs.root.mountfrom="zfs:airyxOS/ROOT/default"
+END
+
+cat >> /etc/rc.conf <<END
+zfs_enable="YES"
+zfsd_enable="YES"
+END
+
+cpdup -udvf -X /full/path/to/excludes / /tmp/pool
+}
+#endif
 
 -(NSString *)description {
     return [NSString stringWithFormat:@"<%@:%08x> type:%d name:%@ size:%ld",[self class],self,_type,_name,_mediaSize];
