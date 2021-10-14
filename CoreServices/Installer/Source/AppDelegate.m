@@ -100,19 +100,20 @@
 }
 
 - (IBAction)proceedToPartition:(id)sender {
-    NSLog(@"proceedToPartition");
-
+    NSTextView *v = [[NSTextView alloc] initWithFrame:[[_scrollView contentView] frame]];
     [[[_scrollView contentView] documentView] release];
     [[_scrollView contentView] release];
-
-    NSTextView *v = [[NSTextView alloc] initWithFrame:[_scrollView frame]];
 
     NSClipView *clip = [NSClipView new];
     [clip setDocumentView:v];
 
     [_scrollView setContentView:clip];
+    [_scrollView setAutohidesScrollers:YES];
 
     GSGeomDisk *disk = [disks objectAtIndex:selectedDisk];
+    [disk setDelegate:self];
+    [disk copyFilesystem];
+#if 0
     [v insertText:[NSString stringWithFormat:@"Clearing disk %@\n",
         [disk name]]];
     [disk createGPT];
@@ -122,7 +123,33 @@
     [disk createPools];
     [v insertText:@"Installing EFI loader\n"];
     [disk initializeEFI];
+#endif
     [v insertText:@"Reticulating splines\n"];
+}
+
+- (void)appendInstallLog:(NSString *)text {
+    NSFont *font = [NSFont systemFontOfSize:12.0];
+    font = [[NSFontManager sharedFontManager] convertFont:font
+        toNotHaveTrait:NSItalicFontMask];
+    NSDictionary *attr = [NSDictionary
+        dictionaryWithObjects:@[font, [NSColor blackColor]]
+        forKeys:@[NSFontAttributeName, NSForegroundColorAttributeName]];
+    NSAttributedString *string = [[NSAttributedString alloc] initWithString:text
+        attributes:attr];
+    NSTextStorage *ts = [[[_scrollView contentView] documentView] textStorage];
+    if([ts length] == 0)
+        [ts setAttributedString:string];
+    else
+        [ts appendAttributedString:string];
+}
+
+- (void)fileHandleReadDidComplete:(NSNotification *)aNotification {
+    NSData *data = [[aNotification userInfo] objectForKey:NSFileHandleNotificationDataItem];
+    if([data length] == 0)
+        return;
+    NSString *text = [[NSString alloc] initWithData:data
+        encoding:NSUTF8StringEncoding];
+    [self appendInstallLog:text];
 }
 
 - (void)applicationWillTerminate:(NSNotification *)aNotification {

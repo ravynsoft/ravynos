@@ -47,6 +47,7 @@ BOOL discoverGEOMs(BOOL onlyUsable);
     NSString *_description;
     long _mediaSize;
     int _sectorSize;
+    id _delegate;
 }
 
 -(NSString *)name;
@@ -54,10 +55,12 @@ BOOL discoverGEOMs(BOOL onlyUsable);
 -(long)mediaSize;
 -(int)sectorSize;
 -(GSDiskType)type;
+-(id)delegate;
 
 -(void)setName:(NSString *)name;
 -(void)setMediaDescription:(NSString *)description;
 -(void)setMediaSize:(long)size;
 -(void)setSectorSize:(int)size;
+-(void)setDelegate:(id)delegate;
 
 @end

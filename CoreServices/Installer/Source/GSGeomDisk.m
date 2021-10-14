@@ -28,6 +28,7 @@
 #include <fcntl.h>
 #include <sys/param.h>
 #include <sys/mount.h>
+#include <sys/stat.h>
 
 const char *GEOM_CMD = "/sbin/geom";
 const char *GPART_CMD = "/sbin/gpart";
@@ -42,7 +43,7 @@ const long GB = 1024 * MB;
 const long TB = 1024 * GB;
 
 // FIXME: this should be replaced with libgeom
-NSData *runCommand(const char *tool, const char *args) {
+NSData *_runCommand(const char *tool, const char *args, id delegate) {
     int filedesc[2];
 
     signal(SIGCHLD, SIG_IGN); // no walking dead please.
@@ -74,10 +75,34 @@ NSData *runCommand(const char *tool, const char *args) {
         NSLog(@"Executing: %s %s",tool,args);
         close(filedesc[1]);
         NSFileHandle *reader = [[NSFileHandle alloc] initWithFileDescriptor:filedesc[0]];
-        NSData *data = [[reader readDataToEndOfFile] retain];
-        [reader release];
-        return data; // caller must release
+        if(delegate == nil) {
+            NSData *data = [[reader readDataToEndOfFile] retain];
+            [reader release];
+            return data; // caller must release
+        } else {
+            [[NSNotificationCenter defaultCenter] addObserver:delegate
+                selector:@selector(fileHandleReadDidComplete:)
+                name:NSFileHandleReadCompletionNotification
+                object:reader];
+            NSData *data;
+            do {
+                data = [reader availableData];
+                NSDictionary *userInfo = [NSDictionary dictionaryWithObject:data
+                    forKey:NSFileHandleNotificationDataItem];
+                NSNotification *note = [NSNotification
+                    notificationWithName:NSFileHandleReadCompletionNotification
+                    object:reader userInfo:userInfo];
+                [[NSNotificationCenter defaultCenter] postNotification:note];
+            } while(data != nil && [data length] > 0);
+
+        }
     }
+
+    return nil;
+}
+
+NSData *runCommand(const char *tool, const char *args) {
+    return _runCommand(tool, args, nil);
 }
 
 BOOL parserError(NSString *msg) {
@@ -108,6 +133,7 @@ BOOL discoverGEOMs(BOOL onlyUsable) {
                     case GS_DISK_TYPE_SCSI:
                         [disks addObject:curDisk];
                         break;
+                    default: break;
                     }
                 }
             } else // onlyUsable == NO
@@ -287,6 +313,20 @@ NSString *formatMediaSize(long bytes) {
     close(bootx64);
     close(loader);
     unmount("/tmp/efi", 0);
+}
+
+-(void)copyFilesystem {
+    //NSData *out = runCommand("/usr/bin/cpdup","-udof / /tmp/pool");
+    _runCommand("/bin/ls","-l /",_delegate);
+}
+
+
+-(id)delegate {
+    return _delegate;
+}
+
+-(void)setDelegate:(id)delegate {
+    _delegate = delegate;
 }
 
 #if 0
