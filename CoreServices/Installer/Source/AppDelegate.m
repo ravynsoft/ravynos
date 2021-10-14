@@ -112,19 +112,19 @@
 
     GSGeomDisk *disk = [disks objectAtIndex:selectedDisk];
     [disk setDelegate:self];
-    [disk copyFilesystem];
-#if 0
-    [v insertText:[NSString stringWithFormat:@"Clearing disk %@\n",
-        [disk name]]];
+
+    [self appendInstallLog:[NSString
+        stringWithFormat:@"Clearing disk %@\n", [disk name]]];
     [disk createGPT];
-    [v insertText:@"Creating partitions\n"];
+    [self appendInstallLog:@"Creating partitions\n"];
     [disk createPartitions];
-    [v insertText:@"Creating volumes\n"];
+    [self appendInstallLog:@"Creating volumes\n"];
     [disk createPools];
-    [v insertText:@"Installing EFI loader\n"];
+    [self appendInstallLog:@"Installing EFI loader\n"];
     [disk initializeEFI];
-#endif
-    [v insertText:@"Reticulating splines\n"];
+
+    [self appendInstallLog:@"Reticulating splines\n"];
+    [disk copyFilesystem];
 }
 
 - (void)appendInstallLog:(NSString *)text {

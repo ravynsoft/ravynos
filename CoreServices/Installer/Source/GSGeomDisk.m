@@ -316,8 +316,11 @@ NSString *formatMediaSize(long bytes) {
 }
 
 -(void)copyFilesystem {
-    //NSData *out = runCommand("/usr/bin/cpdup","-udof / /tmp/pool");
-    _runCommand("/bin/ls","-l /",_delegate);
+    int fd = open("/tmp/excludes", O_CREAT|O_RDWR, 0644);
+    const char *str = "/dev\n/proc\n/tmp\n";
+    write(fd, str, strlen(str));
+    close(fd);
+    _runCommand("/usr/bin/cpdup","-udof -X/tmp/excludes / /tmp/pool",_delegate);
 }
 
 
