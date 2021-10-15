@@ -323,6 +323,46 @@ NSString *formatMediaSize(long bytes) {
     _runCommand("/usr/bin/cpdup","-udof -X/tmp/excludes / /tmp/pool",_delegate);
 }
 
+-(void)finalizeInstallation {
+    setenv("BSDINSTALL_CHROOT", "/tmp/pool", 1);
+    runCommand("/usr/sbin/bsdinstall", "config");
+    runCommand("/usr/sbin/bsdinstall", "entropy");
+
+    // prevent root logins but allow 'sudo su'
+    runCommand("/usr/sbin/pw", "-R /tmp/pool usermod -n root -h -");
+
+    // get rid of liveuser
+    runCommand("/usr/sbin/pw", "-R /tmp/pool userdel -n liveuser");
+    runCommand("/usr/sbin/pw", "-R /tmp/pool groupdel -n liveuser");
+    runCommand("/bin/rm", "-rf /tmp/pool/Users/liveuser");
+
+    // can't use runCommand here because we split the arg string by spaces
+    const char *args[3] = {
+        "-rf", "/tmp/pool/Applications/Utilities/Install airyxOS.app", NULL };
+    if(fork() == 0)
+        execv("/bin/rm", args);
+
+    runCommand("/usr/sbin/pkg", "-c /tmp/pool remove -y furybsd-live-settings");
+    runCommand("/usr/sbin/pkg", "-c /tmp/pool remove -y freebsd-installer");
+
+    // update rc.conf on the installed system
+    unlink("/tmp/pool/etc/rc.conf.local");
+    NSMutableArray *entries = [NSMutableArray arrayWithCapacity:30];
+    [entries addObjectsFromArray:[[NSString
+        stringWithContentsOfFile:@"/etc/rc.conf.local"]
+        componentsSeparatedByString:@"\n"]];
+    [entries addObject:@"root_rw_mount=\"YES\""];
+    [entries addObject:[NSString stringWithFormat:@"hostname=\"%s\"", "airyxSystem"]];
+
+    for(int x = 0; x < [entries count]; ++x) {
+        FILE *fp = popen("/usr/sbin/sysrc -f /tmp/pool/etc/rc.conf", "w");
+        fprintf(fp, "%s", [[entries objectAtIndex:x] UTF8String]);
+        pclose(fp);
+    }
+
+    unlink("/tmp/pool/var/initgfx_config.id");
+
+}
 
 -(id)delegate {
     return _delegate;
