@@ -6,17 +6,21 @@
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
-        <customObject id="-2" userLabel="File's Owner" customClass="NSApplication"/>
+        <customObject id="-2" userLabel="File's Owner" customClass="NSApplication">
+            <connections>
+                <outlet property="delegate" destination="Voe-Tx-rLC" id="5Dz-Rh-NF3"/>
+            </connections>
+        </customObject>
         <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
         <customObject id="-3" userLabel="Application" customClass="NSObject"/>
         <customObject id="Voe-Tx-rLC" customClass="AppDelegate">
             <connections>
                 <outlet property="CancelButton" destination="OFx-nr-vEW" id="FE9-MN-woZ"/>
                 <outlet property="ProceedButton" destination="cma-Gu-p3n" id="Qsh-ay-i4z"/>
-                <outlet property="instructionsView" destination="VuB-Bw-1Cy" id="Bjw-yH-JIj"/>
-                <outlet property="mainWindow" destination="QvC-M9-y7g" id="r6S-IH-z9p"/>
-                <outlet property="progressView" destination="OVE-YS-uBI" id="W4K-eu-nzz"/>
-                <outlet property="progressWindow" destination="Lu6-Kh-ZDg" id="24R-YX-k9v"/>
+                <outlet property="instructionsView" destination="0Ww-vo-N35" id="USi-Hd-U3e"/>
+                <outlet property="mainWindow" destination="QvC-M9-y7g" id="S3W-dE-wvQ"/>
+                <outlet property="progressView" destination="ruj-0v-7d1" id="Ik7-gt-pZj"/>
+                <outlet property="progressWindow" destination="Lu6-Kh-ZDg" id="Vp8-Ll-8HC"/>
                 <outlet property="scrollView" destination="3Wj-JG-PUA" id="doL-E3-twq"/>
                 <outlet property="versionLabel" destination="O13-b7-1xM" id="spG-zq-mGD"/>
             </connections>
@@ -175,19 +179,10 @@ Gw
                         </connections>
                     </button>
                     <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="F6G-vx-ikt">
-                        <rect key="frame" x="35" y="240" width="141" height="36"/>
+                        <rect key="frame" x="35" y="222" width="141" height="54"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                         <textFieldCell key="cell" lineBreakMode="clipping" title="airyxOS" id="oni-yT-squ">
                             <font key="font" size="36" name="Helvetica-Bold"/>
-                            <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
-                            <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                        </textFieldCell>
-                    </textField>
-                    <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="O13-b7-1xM">
-                        <rect key="frame" x="18" y="196" width="164" height="35"/>
-                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                        <textFieldCell key="cell" lineBreakMode="truncatingTail" alignment="center" title="Tanuki X.X.X" id="jbY-ZN-4gP">
-                            <font key="font" size="20" name="Helvetica"/>
                             <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
                             <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                         </textFieldCell>
@@ -219,6 +214,15 @@ Gw
                             <autoresizingMask key="autoresizingMask"/>
                         </scroller>
                     </scrollView>
+                    <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="O13-b7-1xM">
+                        <rect key="frame" x="18" y="179" width="164" height="35"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                        <textFieldCell key="cell" lineBreakMode="truncatingTail" alignment="center" title="Tanuki X.X.X" id="jbY-ZN-4gP">
+                            <font key="font" size="20" name="Helvetica"/>
+                            <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                            <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                        </textFieldCell>
+                    </textField>
                 </subviews>
             </view>
             <connections>
