@@ -32,7 +32,6 @@
 @property (strong) IBOutlet NSScrollView *scrollView;
 @property (strong) IBOutlet NSButton *ProceedButton;
 @property (strong) IBOutlet NSButton *CancelButton;
-@property (strong) IBOutlet NSScrollView *diskTableScrollView;
 @property (strong) IBOutlet NSWindow *window;
 
 - (IBAction)proceedToDiskList:(id)sender;
