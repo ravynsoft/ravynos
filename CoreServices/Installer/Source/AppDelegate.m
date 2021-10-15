@@ -29,16 +29,15 @@
 @implementation AppDelegate
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
-    // Insert code here to initialize your application
-    [_window setBackgroundColor:[NSColor textBackgroundColor]];
-    NSView *cview = [_window contentView];
-    NSArray *subviews = [cview subviews];
-    for(int x=0; x < [subviews count]; ++x) {
-        id obj = [subviews objectAtIndex:x];
-        if([obj isKindOfClass:[NSScrollView class]]) {
-            _scrollView = obj;
-        }
-    }
+    [_mainWindow setBackgroundColor:[NSColor textBackgroundColor]];
+//     NSView *cview = [_mainWindow contentView];
+//     NSArray *subviews = [cview subviews];
+//     for(int x=0; x < [subviews count]; ++x) {
+//         id obj = [subviews objectAtIndex:x];
+//         if([obj isKindOfClass:[NSScrollView class]]) {
+//             _scrollView = obj;
+//         }
+//     }
 
     if(_scrollView) {
         [_scrollView setAutoresizesSubviews:YES];

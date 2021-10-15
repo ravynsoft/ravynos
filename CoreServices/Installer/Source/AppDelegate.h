@@ -23,16 +23,21 @@
 #import <Cocoa/Cocoa.h>
 
 @interface AppDelegate : NSObject <NSApplicationDelegate> {
-    NSScrollView *_scrollView;
-    NSButton *_ProceedButton;
-    NSButton *_CancelButton;
     int selectedDisk; // table row = disks array index
 }
 
+// Main window
+@property (strong) IBOutlet NSWindow *mainWindow;
 @property (strong) IBOutlet NSScrollView *scrollView;
+@property (strong) IBOutlet NSScrollView *instructionsView;
 @property (strong) IBOutlet NSButton *ProceedButton;
 @property (strong) IBOutlet NSButton *CancelButton;
-@property (strong) IBOutlet NSWindow *window;
+@property (strong) IBOutlet NSTextField *versionLabel;
+
+// Progress sheet
+@property (strong) IBOutlet NSPanel *progressWindow;
+@property (strong) IBOutlet NSScrollView *progressView;
+
 
 - (IBAction)proceedToDiskList:(id)sender;
 - (IBAction)proceedToPartition:(id)sender;

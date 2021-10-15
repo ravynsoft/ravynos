@@ -6,17 +6,19 @@
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
-        <customObject id="-2" userLabel="File's Owner" customClass="NSApplication"/>
+        <customObject id="-2" userLabel="File's Owner" customClass="NSApplication">
+            <connections>
+                <outlet property="delegate" destination="Voe-Tx-rLC" id="5Dz-Rh-NF3"/>
+            </connections>
+        </customObject>
         <customObject id="-1" userLabel="First Responder" customClass="FirstResponder"/>
         <customObject id="-3" userLabel="Application" customClass="NSObject"/>
         <customObject id="Voe-Tx-rLC" customClass="AppDelegate">
             <connections>
                 <outlet property="CancelButton" destination="OFx-nr-vEW" id="FE9-MN-woZ"/>
                 <outlet property="ProceedButton" destination="cma-Gu-p3n" id="Qsh-ay-i4z"/>
-                <outlet property="instructionsView" destination="VuB-Bw-1Cy" id="Bjw-yH-JIj"/>
-                <outlet property="mainWindow" destination="QvC-M9-y7g" id="r6S-IH-z9p"/>
-                <outlet property="progressView" destination="OVE-YS-uBI" id="W4K-eu-nzz"/>
-                <outlet property="progressWindow" destination="Lu6-Kh-ZDg" id="24R-YX-k9v"/>
+                <outlet property="instructionsView" destination="0Ww-vo-N35" id="USi-Hd-U3e"/>
+                <outlet property="mainWindow" destination="QvC-M9-y7g" id="S3W-dE-wvQ"/>
                 <outlet property="scrollView" destination="3Wj-JG-PUA" id="doL-E3-twq"/>
                 <outlet property="versionLabel" destination="O13-b7-1xM" id="spG-zq-mGD"/>
             </connections>
@@ -174,21 +176,12 @@ Gw
                             <action selector="terminate:" target="-1" id="ZMV-Hh-i9o"/>
                         </connections>
                     </button>
-                    <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="F6G-vx-ikt">
-                        <rect key="frame" x="35" y="240" width="141" height="36"/>
+                    <textField hidden="YES" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="F6G-vx-ikt">
+                        <rect key="frame" x="35" y="222" width="141" height="54"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                         <textFieldCell key="cell" lineBreakMode="clipping" title="airyxOS" id="oni-yT-squ">
-                            <font key="font" size="36" name="Helvetica-Bold"/>
-                            <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
-                            <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                        </textFieldCell>
-                    </textField>
-                    <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="O13-b7-1xM">
-                        <rect key="frame" x="18" y="196" width="164" height="35"/>
-                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                        <textFieldCell key="cell" lineBreakMode="truncatingTail" alignment="center" title="Tanuki X.X.X" id="jbY-ZN-4gP">
-                            <font key="font" size="20" name="Helvetica"/>
-                            <color key="textColor" name="labelColor" catalog="System" colorSpace="catalog"/>
+                            <font key="font" metaFont="system" size="36"/>
+                            <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
                             <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                         </textFieldCell>
                     </textField>
@@ -219,55 +212,21 @@ Gw
                             <autoresizingMask key="autoresizingMask"/>
                         </scroller>
                     </scrollView>
+                    <textField hidden="YES" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="O13-b7-1xM">
+                        <rect key="frame" x="18" y="179" width="164" height="35"/>
+                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                        <textFieldCell key="cell" lineBreakMode="truncatingTail" alignment="center" title="Tanuki X.X.X" id="jbY-ZN-4gP">
+                            <font key="font" metaFont="system" size="20"/>
+                            <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
+                            <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                        </textFieldCell>
+                    </textField>
                 </subviews>
             </view>
             <connections>
-                <outlet property="delegate" destination="Voe-Tx-rLC" id="JbS-v5-aqh"/>
+                <outlet property="delegate" destination="-2" id="BIn-aJ-Kx6"/>
             </connections>
             <point key="canvasLocation" x="200" y="400"/>
-        </window>
-        <window title="Window" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" restorable="NO" hidesOnDeactivate="YES" releasedWhenClosed="NO" visibleAtLaunch="NO" frameAutosaveName="" animationBehavior="default" id="Lu6-Kh-ZDg" customClass="NSPanel">
-            <windowStyleMask key="styleMask" titled="YES" utility="YES"/>
-            <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
-            <rect key="contentRect" x="181" y="118" width="459" height="238"/>
-            <rect key="screenRect" x="0.0" y="0.0" width="1792" height="1095"/>
-            <view key="contentView" id="OVE-YS-uBI">
-                <rect key="frame" x="0.0" y="0.0" width="459" height="238"/>
-                <autoresizingMask key="autoresizingMask"/>
-                <subviews>
-                    <scrollView fixedFrame="YES" borderType="none" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasHorizontalScroller="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ruj-0v-7d1">
-                        <rect key="frame" x="20" y="46" width="419" height="192"/>
-                        <autoresizingMask key="autoresizingMask"/>
-                        <clipView key="contentView" drawsBackground="NO" id="qPu-Zc-hmJ">
-                            <rect key="frame" x="0.0" y="0.0" width="404" height="192"/>
-                            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                            <subviews>
-                                <textView importsGraphics="NO" richText="NO" verticallyResizable="YES" spellingCorrection="YES" smartInsertDelete="YES" id="Fqc-k7-mM0">
-                                    <rect key="frame" x="0.0" y="0.0" width="404" height="192"/>
-                                    <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                                    <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
-                                    <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                                    <size key="minSize" width="404" height="192"/>
-                                    <size key="maxSize" width="424" height="10000000"/>
-                                    <color key="insertionPointColor" name="textColor" catalog="System" colorSpace="catalog"/>
-                                </textView>
-                            </subviews>
-                        </clipView>
-                        <scroller key="horizontalScroller" hidden="YES" verticalHuggingPriority="750" horizontal="YES" id="UZz-tU-GPt">
-                            <rect key="frame" x="-100" y="-100" width="225" height="15"/>
-                            <autoresizingMask key="autoresizingMask"/>
-                        </scroller>
-                        <scroller key="verticalScroller" verticalHuggingPriority="750" horizontal="NO" id="xME-ob-eCd">
-                            <rect key="frame" x="404" y="0.0" width="15" height="192"/>
-                            <autoresizingMask key="autoresizingMask"/>
-                        </scroller>
-                    </scrollView>
-                </subviews>
-            </view>
-            <connections>
-                <outlet property="delegate" destination="Voe-Tx-rLC" id="22t-kA-5Yb"/>
-            </connections>
-            <point key="canvasLocation" x="378" y="-60"/>
         </window>
     </objects>
     <resources>
