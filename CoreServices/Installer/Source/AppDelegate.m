@@ -30,31 +30,52 @@
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
     [_mainWindow setBackgroundColor:[NSColor textBackgroundColor]];
-//     NSView *cview = [_mainWindow contentView];
-//     NSArray *subviews = [cview subviews];
-//     for(int x=0; x < [subviews count]; ++x) {
-//         id obj = [subviews objectAtIndex:x];
-//         if([obj isKindOfClass:[NSScrollView class]]) {
-//             _scrollView = obj;
-//         }
-//     }
 
-    if(_scrollView) {
-        [_scrollView setAutoresizesSubviews:YES];
-        NSBundle *myBundle = [NSBundle mainBundle];
-        NSData *rtf = [NSData dataWithContentsOfFile:[myBundle pathForResource:@"terms" ofType:@"rtf"]];
-        NSAttributedString *text = [[NSAttributedString alloc] initWithRTF:rtf documentAttributes:nil];
+    [_scrollView setAutoresizesSubviews:YES];
+    NSBundle *myBundle = [NSBundle mainBundle];
+    NSData *rtf = [NSData dataWithContentsOfFile:[myBundle pathForResource:@"terms" ofType:@"rtf"]];
+    NSAttributedString *text = [[NSAttributedString alloc] initWithRTF:rtf documentAttributes:nil];
 
-        NSTextView *content = [[_scrollView contentView] documentView];
-        [[content textStorage] setAttributedString:text];
-        [content setSelectable:NO];
-        [content setEditable:NO];
-    }
+    NSTextView *content = [[_scrollView contentView] documentView];
+    [[content textStorage] setAttributedString:text];
+    [content setSelectable:NO];
+    [content setEditable:NO];
+
+    rtf = [NSData dataWithContentsOfFile:[myBundle pathForResource:@"header" ofType:@"rtf"]];
+    text = [[NSAttributedString alloc] initWithRTF:rtf documentAttributes:nil];
+    content = [[_instructionsView contentView] documentView];
+    [[content textStorage] setAttributedString:text];
+    [content setSelectable:NO];
+    [content setEditable:NO];
 }
 
 - (IBAction)proceedToDiskList:(id)sender {
-    if(discoverGEOMs(YES) == NO)
+    if(discoverGEOMs(YES) == NO) {
         NSLog(@"error discovering devices!");
+        // FIXME: do error sheet
+    }
+
+    NSFont *font = [NSFont systemFontOfSize:12.0];
+    font = [[NSFontManager sharedFontManager] convertFont:font
+        toNotHaveTrait:NSItalicFontMask];
+    NSMutableDictionary *attr = [NSMutableDictionary
+        dictionaryWithObjects:@[font, [NSColor blackColor]]
+        forKeys:@[NSFontAttributeName, NSForegroundColorAttributeName]];
+
+    NSTextStorage *textStorage = [[[_instructionsView contentView]
+        documentView] textStorage];
+    [textStorage setAttributedString:[[NSAttributedString alloc]
+        initWithString:@"\nSelect where airyxOS should be installed.\n\n"
+        attributes:attr]];
+
+    [attr setObject:[NSColor redColor] forKey:NSForegroundColorAttributeName];
+    font = [[NSFontManager sharedFontManager] convertFont:font
+        toHaveTrait:NSBoldFontMask];
+    [attr setObject:font forKey:NSFontAttributeName];
+
+    [textStorage appendAttributedString:[[NSAttributedString alloc]
+        initWithString:@"WARNING! Everything on the selected disk will be erased."
+        attributes:attr]];
 
     NSTableView *table = [[NSTableView alloc]
         initWithFrame:[[_scrollView contentView] frame]];
