@@ -29,6 +29,11 @@
 @implementation AppDelegate
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
+    NSMenu *timezones = [[NSMenu alloc] initWithTitle:@"Select time zone"];
+    [timezones addItemWithTitle:@"Select..." action:nil keyEquivalent:nil];
+    [_timeZones setMenu:timezones];
+    [_timeZones setDelegate:self];
+
     [_mainWindow setBackgroundColor:[NSColor textBackgroundColor]];
 
     [_scrollView setAutoresizesSubviews:YES];
@@ -65,7 +70,7 @@
     NSTextStorage *textStorage = [[[_instructionsView contentView]
         documentView] textStorage];
     [textStorage setAttributedString:[[NSAttributedString alloc]
-        initWithString:@"\nSelect where airyxOS should be installed.\n\n"
+        initWithString:@"\nSelect where airyxOS should be installed.\n\n" // FIXME: localize
         attributes:attr]];
 
     [attr setObject:[NSColor redColor] forKey:NSForegroundColorAttributeName];
@@ -74,7 +79,7 @@
     [attr setObject:font forKey:NSFontAttributeName];
 
     [textStorage appendAttributedString:[[NSAttributedString alloc]
-        initWithString:@"WARNING! Everything on the selected disk will be erased."
+        initWithString:@"WARNING! Everything on the selected disk will be erased." // FIXME: localize
         attributes:attr]];
 
     NSTableView *table = [[NSTableView alloc]
@@ -111,7 +116,35 @@
         selector:@selector(deviceSelected:)
         name:NSTableViewSelectionDidChangeNotification
         object:table];
-    [_ProceedButton setAction:@selector(proceedToPartition:)];
+    [_ProceedButton setAction:@selector(proceedToUserInfo:)]; // FIXME: do confirmation sheet
+}
+
+- (IBAction)proceedToUserInfo:(id)sender {
+    NSFont *font = [NSFont systemFontOfSize:12.0];
+    font = [[NSFontManager sharedFontManager] convertFont:font
+        toNotHaveTrait:NSItalicFontMask];
+    NSMutableDictionary *attr = [NSMutableDictionary
+        dictionaryWithObjects:@[font, [NSColor blackColor]]
+        forKeys:@[NSFontAttributeName, NSForegroundColorAttributeName]];
+
+    NSTextStorage *textStorage = [[[_instructionsView contentView]
+        documentView] textStorage];
+    [textStorage setAttributedString:[[NSAttributedString alloc]
+        initWithString:@"\nEnter the information below to finish setting "
+        "up your new system.\nAll fields are required.\n\n" // FIXME: localize
+        attributes:attr]];
+
+    [_scrollView setContentView:_userInfoView];
+    [_ProceedButton setAction:@selector(validateUserInfo:)];
+}
+
+- (IBAction)validateUserInfo:(id)sender {
+    NSLog(@"validating user info");
+    [_ProceedButton setAction:@selector(proceedToFinalize:)];
+}
+
+- (IBAction)proceedToFinalize:(id)sender {
+    NSLog(@"finalizing");
 }
 
 - (void)deviceSelected:(NSNotification *)aNotification {
@@ -120,6 +153,8 @@
 }
 
 - (IBAction)proceedToPartition:(id)sender {
+    [_ProceedButton setEnabled:NO];
+
     NSTextView *v = [[NSTextView alloc] initWithFrame:[[_scrollView contentView] frame]];
     [[[_scrollView contentView] documentView] release];
     [[_scrollView contentView] release];
@@ -143,8 +178,12 @@
     [self appendInstallLog:@"Installing EFI loader\n"];
     [disk initializeEFI];
 
-    [self appendInstallLog:@"Reticulating splines\n"];
+    [self appendInstallLog:@"Installing files\n"];
     [disk copyFilesystem];
+
+    [_ProceedButton setEnabled:YES];
+    [_ProceedButton setAction:@selector(proceedToUserInfo:)];
+    [_ProceedButton performClick:nil];
 }
 
 - (void)appendInstallLog:(NSString *)text {

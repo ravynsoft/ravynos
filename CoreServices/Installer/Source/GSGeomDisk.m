@@ -352,7 +352,9 @@ NSString *formatMediaSize(long bytes) {
         stringWithContentsOfFile:@"/etc/rc.conf.local"]
         componentsSeparatedByString:@"\n"]];
     [entries addObject:@"root_rw_mount=\"YES\""];
-    [entries addObject:[NSString stringWithFormat:@"hostname=\"%s\"", "airyxSystem"]];
+    [entries addObject:@"zfs_enable=\"YES\""];
+    [entries addObject:@"zfsd_enable=\"YES\""];
+    [entries addObject:[NSString stringWithFormat:@"hostname=\"%s\"", "airyxSystem"]]; // FIXME: read this from user
 
     for(int x = 0; x < [entries count]; ++x) {
         FILE *fp = popen("/usr/sbin/sysrc -f /tmp/pool/etc/rc.conf", "w");
@@ -379,13 +381,6 @@ cat >> /boot/loader.conf <<END
 zfs_load="YES"
 vfs.root.mountfrom="zfs:airyxOS/ROOT/default"
 END
-
-cat >> /etc/rc.conf <<END
-zfs_enable="YES"
-zfsd_enable="YES"
-END
-
-cpdup -udvf -X /full/path/to/excludes / /tmp/pool
 }
 #endif
 

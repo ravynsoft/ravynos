@@ -26,18 +26,18 @@
     int selectedDisk; // table row = disks array index
 }
 
-// Main window
 @property (strong) IBOutlet NSWindow *mainWindow;
 @property (strong) IBOutlet NSScrollView *scrollView;
 @property (strong) IBOutlet NSScrollView *instructionsView;
 @property (strong) IBOutlet NSButton *ProceedButton;
 @property (strong) IBOutlet NSButton *CancelButton;
 @property (strong) IBOutlet NSTextField *versionLabel;
-
-// Progress sheet
-@property (strong) IBOutlet NSPanel *progressWindow;
-@property (strong) IBOutlet NSScrollView *progressView;
-
+@property (strong) IBOutlet NSClipView *userInfoView;
+@property (strong) IBOutlet NSTextField *fullName;
+@property (strong) IBOutlet NSTextField *userName;
+@property (strong) IBOutlet NSSecureTextField *password;
+@property (strong) IBOutlet NSTextField *hostName;
+@property (strong) IBOutlet NSPopUpButton *timeZones;
 
 - (IBAction)proceedToDiskList:(id)sender;
 - (IBAction)proceedToPartition:(id)sender;
