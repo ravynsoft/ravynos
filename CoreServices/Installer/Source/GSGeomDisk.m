@@ -428,7 +428,7 @@ END
     return (disks == nil) ? 0 : [disks count];
 }
 
-- (id)tableView:(NSTableView *)tableView objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row {
+- (id)tableView:(NSTableView *)tableView objectValueForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row {
     if(row > [disks count] || row < 0)
         return @"";
 

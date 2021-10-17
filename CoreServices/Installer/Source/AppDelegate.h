@@ -32,21 +32,30 @@
     BOOL userDidEditUserName;
     NSString *selectedTimeZone;
     NSMutableDictionary *userInfo;
+    NSBundle *myBundle;
 }
 
 @property (strong) IBOutlet NSWindow *mainWindow;
 @property (strong) IBOutlet NSScrollView *scrollView;
 @property (strong) IBOutlet NSScrollView *instructionsView;
-@property (strong) IBOutlet NSButton *ProceedButton;
+@property (strong) IBOutlet NSButton *BackButton;
+@property (strong) IBOutlet NSButton *NextButton;
 @property (strong) IBOutlet NSButton *CancelButton;
 @property (strong) IBOutlet NSTextField *airyxOSLabel;
 @property (strong) IBOutlet NSTextField *versionLabel;
 @property (strong) IBOutlet NSForm *userInfoView;
+@property (strong) IBOutlet NSView *infoConfirmationView;
 @property (strong) IBOutlet NSTextField *fullName;
 @property (strong) IBOutlet NSTextField *userName;
 @property (strong) IBOutlet NSSecureTextField *password;
 @property (strong) IBOutlet NSTextField *hostName;
 @property (strong) IBOutlet NSPopUpButton *timeZones;
+@property (strong) IBOutlet NSTextField *confirmFullName;
+@property (strong) IBOutlet NSTextField *confirmUserName;
+@property (strong) IBOutlet NSSecureTextField *confirmPassword;
+@property (strong) IBOutlet NSTextField *confirmHostName;
+@property (strong) IBOutlet NSTextField *confirmTimeZone;
+@property (strong) IBOutlet NSTextField *confirmDisk;
 
 - (IBAction)proceedToDiskList:(id)sender;
 - (IBAction)proceedToInstall:(id)sender;

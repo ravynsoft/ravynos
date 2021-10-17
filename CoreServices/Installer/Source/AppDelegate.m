@@ -35,6 +35,7 @@ const NSString *UserInfoHostNameKey = @"UIHostName";
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
     //[_mainWindow setBackgroundColor:[NSColor textBackgroundColor]];
+    myBundle = [NSBundle mainBundle];
     
     userInfo = [NSMutableDictionary
         dictionaryWithObjects:@[@"",@"",@"",@""]
@@ -44,7 +45,6 @@ const NSString *UserInfoHostNameKey = @"UIHostName";
     [_versionLabel setStringValue:verLabel];
 
     [_scrollView setAutoresizesSubviews:YES];
-    NSBundle *myBundle = [NSBundle mainBundle];
     NSData *rtf = [NSData dataWithContentsOfFile:[myBundle pathForResource:@"terms" ofType:@"rtf"]];
     NSAttributedString *text = [[NSAttributedString alloc] initWithRTF:rtf documentAttributes:nil];
 
@@ -60,16 +60,9 @@ const NSString *UserInfoHostNameKey = @"UIHostName";
 //    [content setSelectable:NO];
 //    [content setEditable:NO];
 
-//    [_ProceedButton setAction:@selector(proceedToUserInfo:)];
-//    [_ProceedButton performClick:nil];
 }
 
 - (IBAction)proceedToDiskList:(id)sender {
-    if(discoverGEOMs(YES) == NO) {
-        NSLog(@"error discovering devices!");
-        // FIXME: do error sheet
-    }
-
     NSFont *font = [NSFont systemFontOfSize:12.0];
     font = [[NSFontManager sharedFontManager] convertFont:font
         toNotHaveTrait:NSItalicFontMask];
@@ -79,8 +72,9 @@ const NSString *UserInfoHostNameKey = @"UIHostName";
 
     NSTextStorage *textStorage = [[[_instructionsView contentView]
         documentView] textStorage];
+
     [textStorage setAttributedString:[[NSAttributedString alloc]
-        initWithString:@"\nSelect the disk where airyxOS should be installed.\n\n" // FIXME: localize
+        initWithString:@"Select the disk where airyxOS should be installed.\n\n" // FIXME: localize
         attributes:attr]];
 
     [attr setObject:[NSColor redColor] forKey:NSForegroundColorAttributeName];
@@ -91,6 +85,19 @@ const NSString *UserInfoHostNameKey = @"UIHostName";
     [textStorage appendAttributedString:[[NSAttributedString alloc]
         initWithString:@"WARNING! Everything on the selected disk will be erased." // FIXME: localize
         attributes:attr]];
+
+    if(discoverGEOMs(YES) == NO || [disks count] < 1) {
+        NSLog(@"error discovering devices!");
+        [textStorage setAttributedString:[[NSAttributedString alloc]
+            initWithString:@"No suitable disk was found on which to install airyxOS.\n\n"
+            "Ensure you have a compatible device of at least 10 GB installed and try again." // FIXME: localize
+            attributes:attr]];
+
+        [_BackButton setEnabled:NO];
+        [_NextButton setEnabled:NO];
+        [[_scrollView contentView] setDocumentView:nil];
+        return;
+    }
 
     NSTableView *table = [[NSTableView alloc]
         initWithFrame:[[_scrollView contentView] frame]];
@@ -118,16 +125,16 @@ const NSString *UserInfoHostNameKey = @"UIHostName";
     [_scrollView setContentView:clip];
     [_scrollView setAutohidesScrollers:YES];
 
-    [_versionLabel setHidden:NO];
-    [_airyxOSLabel setHidden:NO];
-    [_CancelButton setHidden:YES];
-//    [_ProceedButton setEnabled:NO];
-
+#ifdef __AIRYX__
+    [_ProceedButton setEnabled:NO];
+#endif
+    
     [[NSNotificationCenter defaultCenter] addObserver:self
         selector:@selector(deviceSelected:)
         name:NSTableViewSelectionDidChangeNotification
         object:table];
-    [_ProceedButton setAction:@selector(proceedToUserInfo:)];
+    [_BackButton setEnabled:NO];
+    [_NextButton setAction:@selector(proceedToUserInfo:)];
 }
 
 - (IBAction)proceedToUserInfo:(id)sender {
@@ -146,26 +153,96 @@ const NSString *UserInfoHostNameKey = @"UIHostName";
         attributes:attr]];
 
 //    [_timeZones removeAllItems];
-//    [_timeZones setTitle:@"select a zone"];
-    [_timeZones addItemWithTitle:@"zone one"];
-    [_timeZones addItemWithTitle:@"zone two"];
+//    [_timeZones setTitle:@"Select a time zone..."];
+    if([[[_timeZones menu] itemArray] count] < 2) {
+        NSArray *zones = @[@"America", @"Asia", @"Atlantic", @"Australia", @"Europe",
+            @"Indian", @"Iran", @"Israel", @"Pacific", @"UTC", @"Zulu"];
+        NSFileManager *fm = [NSFileManager defaultManager];
+        NSEnumerator *dirs = [zones objectEnumerator];
+        NSString *dir;
+        BOOL isDir = NO;
+        while(dir = [dirs nextObject]) {
+            NSString *zonepath = [NSString stringWithFormat:@"/usr/share/zoneinfo/%@", dir];
+            if([fm fileExistsAtPath:zonepath isDirectory:&isDir]) {
+                if(isDir) {
+                    NSArray *entries = [fm contentsOfDirectoryAtPath:zonepath error:nil];
+                    NSEnumerator *entryiter = [entries objectEnumerator];
+                    NSString *zone;
+                    while(zone = [entryiter nextObject]) {
+                        NSString *title = [NSString stringWithFormat:@"%@/%@",dir,zone];
+                        [_timeZones addItemWithTitle:title];
+                    }
+                } else {
+                    [_timeZones addItemWithTitle:dir];
+                }
+            }
+        }
+    }
+    
+    if(selectedTimeZone) {
+        [_timeZones selectItemWithTitle:selectedTimeZone];
+        [_timeZones synchronizeTitleAndSelectedItem];
+    }
 
     [_scrollView setAutohidesScrollers:YES];
     [[_scrollView contentView] setDocumentView:_userInfoView];
-    [_ProceedButton setAction:@selector(validateUserInfo:)];
+    [_BackButton setAction:@selector(proceedToDiskList:)];
+    [_BackButton setEnabled:YES];
+    [_NextButton setAction:@selector(validateUserInfo:)];
 }
 
 - (IBAction)validateUserInfo:(id)sender {
-    NSLog(@"validating user info\n%@\n%@",userInfo,selectedTimeZone);
-    [_ProceedButton setAction:@selector(proceedToFinalize:)];
+    NSFont *font = [NSFont systemFontOfSize:12.0];
+    font = [[NSFontManager sharedFontManager] convertFont:font
+        toNotHaveTrait:NSItalicFontMask];
+    NSMutableDictionary *attr = [NSMutableDictionary
+        dictionaryWithObjects:@[font, [NSColor blackColor]]
+        forKeys:@[NSFontAttributeName, NSForegroundColorAttributeName]];
+
+    NSTextStorage *textStorage = [[[_instructionsView contentView]
+        documentView] textStorage];
+    [textStorage setAttributedString:[[NSAttributedString alloc]
+        initWithString:@"Verify that the information below is correct. "
+        "When you are finished, click the Next button to start the install process.\n\n" // FIXME: localize
+        attributes:attr]];
+    font = [[NSFontManager sharedFontManager] convertFont:font
+        toHaveTrait:NSBoldFontMask];
+    [attr setObject:font forKey:NSFontAttributeName];
+    [textStorage appendAttributedString:[[NSAttributedString alloc]
+        initWithString:@"All contents of the selected disk will be ERASED if you proceed!" // FIXME: localize
+        attributes:attr]];
+    
+    [self fullNameEditingDidFinish:_fullName];
+    [self userNameEditingDidFinish:_userName];
+    [self passwordEditingDidFinish:_password];
+    [self hostNameEditingDidFinish:_hostName];
+    
+    if(selectedTimeZone == nil)
+        selectedTimeZone = @"UTC";
+    
+    [_confirmFullName setStringValue:userInfo[UserInfoFullNameKey]];
+    [_confirmUserName setStringValue:userInfo[UserInfoUserNameKey]];
+    [_confirmHostName setStringValue:userInfo[UserInfoHostNameKey]];
+    [_confirmPassword setStringValue:userInfo[UserInfoPasswordKey]];
+    [_confirmTimeZone setStringValue:selectedTimeZone];
+    GSGeomDisk *disk = [disks objectAtIndex:selectedDisk];
+    [_confirmDisk setStringValue:[NSString stringWithFormat:@"%@ (%@, %@)", [disk name],
+        formatMediaSize([disk mediaSize]), [disk mediaDescription]]];
+    [[_scrollView contentView] setDocumentView:_infoConfirmationView];
+    [_BackButton setAction:@selector(proceedToUserInfo:)];
+    [_NextButton setAction:@selector(proceedToInstall:)];
 }
 
 - (IBAction)proceedToFinalize:(id)sender {
     NSLog(@"finalizing");
+    [_NextButton setAction:@selector(terminate:)];
+    [_NextButton setTarget:NSApp];
+    [_NextButton setTitle:@"Quit"];
+    // FIXME: display "all done" screen
 }
 
 - (void)deviceSelected:(NSNotification *)aNotification {
-    [_ProceedButton setEnabled:YES];
+    [_NextButton setEnabled:YES];
     selectedDisk = [[[aNotification object] selectedRowIndexes] firstIndex];
 }
 
@@ -219,7 +296,9 @@ const NSString *UserInfoHostNameKey = @"UIHostName";
 }
 
 - (IBAction)proceedToInstall:(id)sender {
-    [_ProceedButton setEnabled:NO];
+    [_NextButton setEnabled:NO];
+    [_BackButton setEnabled:NO];
+    [_CancelButton setEnabled:NO];
 
     NSTextView *v = [[NSTextView alloc] initWithFrame:[[_scrollView contentView] frame]];
 #ifdef __AIRYX__
@@ -248,9 +327,9 @@ const NSString *UserInfoHostNameKey = @"UIHostName";
     [self appendInstallLog:@"Installing files\n"];
     [disk copyFilesystem];
 
-    [_ProceedButton setEnabled:YES];
-    [_ProceedButton setAction:@selector(proceedToFinalize:)];
-    [_ProceedButton performClick:nil];
+    [_NextButton setAction:@selector(proceedToFinalize:)];
+    [_NextButton setEnabled:YES];
+    [_NextButton performClick:self];
 }
 
 - (void)appendInstallLog:(NSString *)text {

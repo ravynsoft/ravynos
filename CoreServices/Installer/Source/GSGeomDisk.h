@@ -39,9 +39,9 @@ typedef enum {
 NSData *runCommand(const char *tool, const char *args);
 BOOL parserError(NSString *msg);
 BOOL discoverGEOMs(BOOL onlyUsable);
+NSString *formatMediaSize(long bytes);
 
-
-@interface GSGeomDisk: NSObject {
+@interface GSGeomDisk: NSObject <NSTableViewDataSource,NSTableViewDelegate> {
     GSDiskType _type;
     NSString *_name;
     NSString *_description;
@@ -73,6 +73,7 @@ BOOL discoverGEOMs(BOOL onlyUsable);
 
 // act as data source for NSTableView
 - (int)numberOfRowsInTableView:(NSTableView *)tableView;
-- (id)tableView:(NSTableView *)tableView objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row;
+- (id)tableView:(NSTableView *)tableView objectValueForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row;
 
 @end
+
