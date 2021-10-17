@@ -204,12 +204,16 @@ const NSString *UserInfoHostNameKey = @"UIHostName";
         host = @"Airyx";
     }
     
-    if(!userDidEditUserName)
+    if(!userDidEditUserName) {
         [_userName setStringValue:[[user lowercaseString]
             substringWithRange:NSMakeRange(0,MIN(8, [user length]))]];
+        userInfo[UserInfoUserNameKey] = [_userName stringValue];
+    }
 
-    if(!userDidEditHostName)
+    if(!userDidEditHostName) {
         [_hostName setStringValue:host];
+        userInfo[UserInfoHostNameKey] = host;
+    }
 
     userInfo[UserInfoFullNameKey] = [sender stringValue];
 }
