@@ -17,6 +17,7 @@
             <connections>
                 <outlet property="CancelButton" destination="OFx-nr-vEW" id="FE9-MN-woZ"/>
                 <outlet property="ProceedButton" destination="cma-Gu-p3n" id="Qsh-ay-i4z"/>
+                <outlet property="airyxOSLabel" destination="F6G-vx-ikt" id="OEA-dC-n5U"/>
                 <outlet property="fullName" destination="sUn-s9-Xo3" id="44d-Xk-rbf"/>
                 <outlet property="hostName" destination="4fS-fj-y8c" id="lv3-Kl-EYY"/>
                 <outlet property="instructionsView" destination="0Ww-vo-N35" id="USi-Hd-U3e"/>
@@ -116,8 +117,8 @@
             </items>
             <point key="canvasLocation" x="-31" y="42"/>
         </menu>
-        <window title="Install airyxOS" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" releasedWhenClosed="NO" animationBehavior="default" id="QvC-M9-y7g">
-            <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES" resizable="YES"/>
+        <window title="Install airyxOS" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" restorable="NO" releasedWhenClosed="NO" animationBehavior="default" id="QvC-M9-y7g">
+            <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES"/>
             <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
             <rect key="contentRect" x="335" y="390" width="720" height="480"/>
             <rect key="screenRect" x="0.0" y="0.0" width="1792" height="1095"/>
@@ -126,18 +127,18 @@
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
                     <scrollView fixedFrame="YES" borderType="none" horizontalLineScroll="10" horizontalPageScroll="10" verticalLineScroll="10" verticalPageScroll="10" hasHorizontalScroller="NO" translatesAutoresizingMaskIntoConstraints="NO" id="3Wj-JG-PUA">
-                        <rect key="frame" x="206" y="53" width="494" height="330"/>
+                        <rect key="frame" x="206" y="53" width="493" height="330"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxX="YES" heightSizable="YES"/>
                         <clipView key="contentView" drawsBackground="NO" id="nBT-cM-H4P">
-                            <rect key="frame" x="0.0" y="0.0" width="479" height="330"/>
+                            <rect key="frame" x="0.0" y="0.0" width="478" height="330"/>
                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                             <subviews>
-                                <textView importsGraphics="NO" verticallyResizable="YES" spellingCorrection="YES" smartInsertDelete="YES" id="nNm-y8-282">
-                                    <rect key="frame" x="0.0" y="0.0" width="479" height="330"/>
+                                <textView editable="NO" selectable="NO" importsGraphics="NO" verticallyResizable="YES" allowsCharacterPickerTouchBarItem="NO" textCompletion="NO" id="nNm-y8-282">
+                                    <rect key="frame" x="0.0" y="0.0" width="478" height="330"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
-                                    <size key="minSize" width="479" height="330"/>
+                                    <size key="minSize" width="478" height="330"/>
                                     <size key="maxSize" width="499" height="10000000"/>
                                     <color key="insertionPointColor" name="textColor" catalog="System" colorSpace="catalog"/>
                                 </textView>
@@ -148,7 +149,7 @@
                             <autoresizingMask key="autoresizingMask"/>
                         </scroller>
                         <scroller key="verticalScroller" verticalHuggingPriority="750" horizontal="NO" id="TcQ-AV-Sat">
-                            <rect key="frame" x="479" y="0.0" width="15" height="330"/>
+                            <rect key="frame" x="478" y="0.0" width="15" height="330"/>
                             <autoresizingMask key="autoresizingMask"/>
                         </scroller>
                     </scrollView>
@@ -182,10 +183,10 @@ Gw
                             <action selector="terminate:" target="-1" id="ZMV-Hh-i9o"/>
                         </connections>
                     </button>
-                    <textField hidden="YES" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="F6G-vx-ikt">
+                    <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" textCompletion="NO" translatesAutoresizingMaskIntoConstraints="NO" id="F6G-vx-ikt">
                         <rect key="frame" x="35" y="222" width="141" height="54"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                        <textFieldCell key="cell" lineBreakMode="clipping" title="airyxOS" id="oni-yT-squ">
+                        <textFieldCell key="cell" lineBreakMode="clipping" allowsUndo="NO" title="airyxOS" id="oni-yT-squ">
                             <font key="font" metaFont="system" size="36"/>
                             <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
                             <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
@@ -198,11 +199,11 @@ Gw
                             <rect key="frame" x="0.0" y="0.0" width="494" height="69"/>
                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                             <subviews>
-                                <textView verticallyResizable="YES" usesFontPanel="YES" usesInspectorBar="YES" findStyle="bar" allowsDocumentBackgroundColorChange="YES" usesRuler="YES" spellingCorrection="YES" smartInsertDelete="YES" id="VuB-Bw-1Cy">
+                                <textView editable="NO" selectable="NO" drawsBackground="NO" importsGraphics="NO" verticallyResizable="YES" findStyle="bar" allowsCharacterPickerTouchBarItem="NO" allowsDocumentBackgroundColorChange="YES" textCompletion="NO" id="VuB-Bw-1Cy">
                                     <rect key="frame" x="0.0" y="0.0" width="494" height="69"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <color key="textColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                    <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                    <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
                                     <size key="minSize" width="494" height="69"/>
                                     <size key="maxSize" width="494" height="10000000"/>
                                     <color key="insertionPointColor" name="textColor" catalog="System" colorSpace="catalog"/>
@@ -218,10 +219,10 @@ Gw
                             <autoresizingMask key="autoresizingMask"/>
                         </scroller>
                     </scrollView>
-                    <textField hidden="YES" horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="O13-b7-1xM">
+                    <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="O13-b7-1xM">
                         <rect key="frame" x="18" y="179" width="164" height="35"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                        <textFieldCell key="cell" lineBreakMode="truncatingTail" alignment="center" title="Tanuki X.X.X" id="jbY-ZN-4gP">
+                        <textFieldCell key="cell" lineBreakMode="truncatingTail" allowsUndo="NO" alignment="center" title="Tanuki X.X.X" id="jbY-ZN-4gP">
                             <font key="font" metaFont="system" size="20"/>
                             <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
                             <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
@@ -234,7 +235,7 @@ Gw
             </connections>
             <point key="canvasLocation" x="200" y="400"/>
         </window>
-        <customView id="0dv-go-1Vb" customClass="NSClipView">
+        <customView id="0dv-go-1Vb">
             <rect key="frame" x="0.0" y="0.0" width="494" height="318"/>
             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
             <subviews>
@@ -277,17 +278,21 @@ Gw
                 <popUpButton verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="qvQ-KR-nCZ">
                     <rect key="frame" x="94" y="106" width="259" height="25"/>
                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                    <popUpButtonCell key="cell" type="push" title="Item 1" bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" state="on" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" selectedItem="JTM-eq-5qX" id="lAG-3K-qAZ">
+                    <popUpButtonCell key="cell" type="push" title="Select a time zone..." bezelStyle="rounded" alignment="left" lineBreakMode="truncatingTail" state="on" borderStyle="borderAndBezel" imageScaling="proportionallyDown" inset="2" selectedItem="JTM-eq-5qX" id="lAG-3K-qAZ">
                         <behavior key="behavior" lightByBackground="YES" lightByGray="YES"/>
                         <font key="font" metaFont="menu"/>
                         <menu key="menu" id="yMk-kJ-QNt">
                             <items>
-                                <menuItem title="Item 1" state="on" id="JTM-eq-5qX"/>
+                                <menuItem title="Select a time zone..." state="on" id="JTM-eq-5qX"/>
                                 <menuItem title="Item 2" id="mbC-00-Wph"/>
                                 <menuItem title="Item 3" id="ew1-cF-l1a"/>
                             </items>
                         </menu>
                     </popUpButtonCell>
+                    <connections>
+                        <action selector="timeZoneSelected:" target="Voe-Tx-rLC" id="kj3-SJ-w9r"/>
+                        <outlet property="nextKeyView" destination="cma-Gu-p3n" id="YhJ-B5-34w"/>
+                    </connections>
                 </popUpButton>
                 <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="0Uz-zM-SON">
                     <rect key="frame" x="19" y="112" width="71" height="16"/>
@@ -305,7 +310,13 @@ Gw
                         <font key="font" metaFont="system"/>
                         <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                         <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
+                        <connections>
+                            <action selector="fullNameEditingDidFinish:" target="Voe-Tx-rLC" id="I46-nF-qbL"/>
+                        </connections>
                     </textFieldCell>
+                    <connections>
+                        <outlet property="nextKeyView" destination="JAn-ET-EbB" id="cBy-VI-gcd"/>
+                    </connections>
                 </textField>
                 <textField verticalHuggingPriority="750" fixedFrame="YES" contentType="username" translatesAutoresizingMaskIntoConstraints="NO" id="JAn-ET-EbB">
                     <rect key="frame" x="97" y="236" width="133" height="21"/>
@@ -318,6 +329,10 @@ Gw
                             <string>NSAllRomanInputSourcesLocaleIdentifier</string>
                         </allowedInputSourceLocales>
                     </textFieldCell>
+                    <connections>
+                        <action selector="userNameEditingDidFinish:" target="Voe-Tx-rLC" id="Gij-y7-bfZ"/>
+                        <outlet property="nextKeyView" destination="LZf-H3-Guu" id="uSd-aK-gTg"/>
+                    </connections>
                 </textField>
                 <secureTextField verticalHuggingPriority="750" fixedFrame="YES" contentType="password" translatesAutoresizingMaskIntoConstraints="NO" id="LZf-H3-Guu">
                     <rect key="frame" x="330" y="236" width="144" height="21"/>
@@ -330,6 +345,10 @@ Gw
                             <string>NSAllRomanInputSourcesLocaleIdentifier</string>
                         </allowedInputSourceLocales>
                     </secureTextFieldCell>
+                    <connections>
+                        <action selector="passwordEditingDidFinish:" target="Voe-Tx-rLC" id="uRV-xM-OhW"/>
+                        <outlet property="nextKeyView" destination="4fS-fj-y8c" id="0Ni-fS-TJz"/>
+                    </connections>
                 </secureTextField>
                 <textField verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="4fS-fj-y8c">
                     <rect key="frame" x="97" y="172" width="377" height="21"/>
@@ -342,6 +361,10 @@ Gw
                             <string>NSAllRomanInputSourcesLocaleIdentifier</string>
                         </allowedInputSourceLocales>
                     </textFieldCell>
+                    <connections>
+                        <action selector="hostNameEditingDidFinish:" target="Voe-Tx-rLC" id="Bl8-ZC-ztV"/>
+                        <outlet property="nextKeyView" destination="qvQ-KR-nCZ" id="Wor-te-3KR"/>
+                    </connections>
                 </textField>
             </subviews>
             <point key="canvasLocation" x="884" y="425"/>

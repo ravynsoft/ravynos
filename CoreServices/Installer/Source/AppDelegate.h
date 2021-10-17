@@ -22,8 +22,16 @@
 
 #import <Cocoa/Cocoa.h>
 
+#ifndef AIRYX_VERSION
+#define AIRYX_VERSION "0.1.2a"
+#endif
+
 @interface AppDelegate : NSObject <NSApplicationDelegate> {
     int selectedDisk; // table row = disks array index
+    BOOL userDidEditHostName;
+    BOOL userDidEditUserName;
+    NSString *selectedTimeZone;
+    NSMutableDictionary *userInfo;
 }
 
 @property (strong) IBOutlet NSWindow *mainWindow;
@@ -31,8 +39,9 @@
 @property (strong) IBOutlet NSScrollView *instructionsView;
 @property (strong) IBOutlet NSButton *ProceedButton;
 @property (strong) IBOutlet NSButton *CancelButton;
+@property (strong) IBOutlet NSTextField *airyxOSLabel;
 @property (strong) IBOutlet NSTextField *versionLabel;
-@property (strong) IBOutlet NSClipView *userInfoView;
+@property (strong) IBOutlet NSForm *userInfoView;
 @property (strong) IBOutlet NSTextField *fullName;
 @property (strong) IBOutlet NSTextField *userName;
 @property (strong) IBOutlet NSSecureTextField *password;
@@ -40,9 +49,15 @@
 @property (strong) IBOutlet NSPopUpButton *timeZones;
 
 - (IBAction)proceedToDiskList:(id)sender;
-- (IBAction)proceedToPartition:(id)sender;
+- (IBAction)proceedToInstall:(id)sender;
+- (IBAction)fullNameEditingDidFinish:(id)sender;
+- (IBAction)userNameEditingDidFinish:(id)sender;
+- (IBAction)passwordEditingDidFinish:(id)sender;
+- (IBAction)hostNameEditingDidFinish:(id)sender;
+- (IBAction)timeZoneSelected:(id)sender;
 
 - (void)deviceSelected:(NSNotification *)aNotification;
+- (void)fileHandleReadDidComplete:(NSNotification *)aNotification;
 
 @end
 

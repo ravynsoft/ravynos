@@ -23,13 +23,25 @@
 #import "AppDelegate.h"
 #import "GSGeomDisk.h"
 
+const NSString *UserInfoFullNameKey = @"UIFullName";
+const NSString *UserInfoUserNameKey = @"UIUserName";
+const NSString *UserInfoPasswordKey = @"UIPassword";
+const NSString *UserInfoHostNameKey = @"UIHostName";
+
 @interface AppDelegate ()
 @end
 
 @implementation AppDelegate
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
-    [_mainWindow setBackgroundColor:[NSColor textBackgroundColor]];
+    //[_mainWindow setBackgroundColor:[NSColor textBackgroundColor]];
+    
+    userInfo = [NSMutableDictionary
+        dictionaryWithObjects:@[@"",@"",@"",@""]
+        forKeys:@[UserInfoFullNameKey,UserInfoUserNameKey,UserInfoPasswordKey,UserInfoHostNameKey]];
+    
+    NSString *verLabel = [[_versionLabel stringValue] stringByReplacingOccurrencesOfString:@"X.X.X" withString:[NSString stringWithUTF8String:AIRYX_VERSION]];
+    [_versionLabel setStringValue:verLabel];
 
     [_scrollView setAutoresizesSubviews:YES];
     NSBundle *myBundle = [NSBundle mainBundle];
@@ -38,18 +50,18 @@
 
     NSTextView *content = [[_scrollView contentView] documentView];
     [[content textStorage] setAttributedString:text];
-    [content setSelectable:NO];
-    [content setEditable:NO];
+//    [content setSelectable:NO];
+//    [content setEditable:NO];
 
     rtf = [NSData dataWithContentsOfFile:[myBundle pathForResource:@"header" ofType:@"rtf"]];
     text = [[NSAttributedString alloc] initWithRTF:rtf documentAttributes:nil];
     content = [[_instructionsView contentView] documentView];
     [[content textStorage] setAttributedString:text];
-    [content setSelectable:NO];
-    [content setEditable:NO];
+//    [content setSelectable:NO];
+//    [content setEditable:NO];
 
-    [_ProceedButton setAction:@selector(proceedToUserInfo:)];
-    [_ProceedButton performClick:nil];
+//    [_ProceedButton setAction:@selector(proceedToUserInfo:)];
+//    [_ProceedButton performClick:nil];
 }
 
 - (IBAction)proceedToDiskList:(id)sender {
@@ -68,7 +80,7 @@
     NSTextStorage *textStorage = [[[_instructionsView contentView]
         documentView] textStorage];
     [textStorage setAttributedString:[[NSAttributedString alloc]
-        initWithString:@"\nSelect where airyxOS should be installed.\n\n" // FIXME: localize
+        initWithString:@"\nSelect the disk where airyxOS should be installed.\n\n" // FIXME: localize
         attributes:attr]];
 
     [attr setObject:[NSColor redColor] forKey:NSForegroundColorAttributeName];
@@ -83,8 +95,6 @@
     NSTableView *table = [[NSTableView alloc]
         initWithFrame:[[_scrollView contentView] frame]];
     [table setAllowsColumnReordering:NO];
-    [table setDelegate:self];
-    [table setDataSource:[GSGeomDisk new]];
 
     NSArray *columnIDs = @[@"device",@"size",@"descr"];
     NSArray *headerLabels = @[@"Device",@"Size",@"Description"]; // FIXME: localize
@@ -99,6 +109,7 @@
         [col setDataCell:[[NSTextFieldCell alloc] initTextCell:@""]];
         [table addTableColumn:col];
     }
+    [table setDataSource:[GSGeomDisk new]];
 
     NSClipView *clip = [NSClipView new];
     [clip setDocumentView:table];
@@ -107,14 +118,16 @@
     [_scrollView setContentView:clip];
     [_scrollView setAutohidesScrollers:YES];
 
+    [_versionLabel setHidden:NO];
+    [_airyxOSLabel setHidden:NO];
     [_CancelButton setHidden:YES];
-    [_ProceedButton setEnabled:NO];
+//    [_ProceedButton setEnabled:NO];
 
     [[NSNotificationCenter defaultCenter] addObserver:self
         selector:@selector(deviceSelected:)
         name:NSTableViewSelectionDidChangeNotification
         object:table];
-    [_ProceedButton setAction:@selector(proceedToUserInfo:)]; // FIXME: do confirmation sheet
+    [_ProceedButton setAction:@selector(proceedToUserInfo:)];
 }
 
 - (IBAction)proceedToUserInfo:(id)sender {
@@ -132,21 +145,18 @@
         "up your new system.\nAll fields are required.\n\n" // FIXME: localize
         attributes:attr]];
 
-    [_timeZones removeAllItems];
-    [_timeZones setTitle:@"select a zone"];
+//    [_timeZones removeAllItems];
+//    [_timeZones setTitle:@"select a zone"];
     [_timeZones addItemWithTitle:@"zone one"];
     [_timeZones addItemWithTitle:@"zone two"];
 
     [_scrollView setAutohidesScrollers:YES];
-    [[_scrollView contentView] removeFromSuperview];
-    [_scrollView setContentView:_userInfoView];
+    [[_scrollView contentView] setDocumentView:_userInfoView];
     [_ProceedButton setAction:@selector(validateUserInfo:)];
 }
 
 - (IBAction)validateUserInfo:(id)sender {
-    NSLog(@"validating user info");
-    NSLog(@"menu is %@, selected %@", [_timeZones menu],[_timeZones selectedItem]);
-    NSLog(@"name is %@", [_fullName stringValue]);
+    NSLog(@"validating user info\n%@\n%@",userInfo,selectedTimeZone);
     [_ProceedButton setAction:@selector(proceedToFinalize:)];
 }
 
@@ -159,7 +169,52 @@
     selectedDisk = [[[aNotification object] selectedRowIndexes] firstIndex];
 }
 
-- (IBAction)proceedToPartition:(id)sender {
+- (IBAction)timeZoneSelected:(id)sender {
+    selectedTimeZone = [sender titleOfSelectedItem];
+}
+
+- (IBAction)hostNameEditingDidFinish:(id)sender {
+    userDidEditHostName = YES;
+    userInfo[UserInfoHostNameKey] = [sender stringValue];
+}
+
+- (IBAction)passwordEditingDidFinish:(id)sender {
+    userInfo[UserInfoPasswordKey] = [sender stringValue];
+}
+
+- (IBAction)userNameEditingDidFinish:(id)sender {
+    userDidEditUserName = YES;
+    userInfo[UserInfoUserNameKey] = [sender stringValue];
+}
+
+- (IBAction)fullNameEditingDidFinish:(id)sender {
+    NSArray *name = [[sender stringValue] componentsSeparatedByString:@" "];
+    
+    NSString *user;
+    NSString *host;
+
+    if([name count] > 1) {
+        user = [NSString stringWithFormat:@"%@%@",
+            [[name firstObject] substringToIndex:1],
+            [name lastObject]];
+        host = [[name componentsJoinedByString:@"-"]
+                stringByAppendingString:@"-Airyx"];
+    } else {
+        user = [name firstObject];
+        host = @"Airyx";
+    }
+    
+    if(!userDidEditUserName)
+        [_userName setStringValue:[[user lowercaseString]
+            substringWithRange:NSMakeRange(0,MIN(8, [user length]))]];
+
+    if(!userDidEditHostName)
+        [_hostName setStringValue:host];
+
+    userInfo[UserInfoFullNameKey] = [sender stringValue];
+}
+
+- (IBAction)proceedToInstall:(id)sender {
     [_ProceedButton setEnabled:NO];
 
     NSTextView *v = [[NSTextView alloc] initWithFrame:[[_scrollView contentView] frame]];
@@ -177,7 +232,6 @@
     GSGeomDisk *disk = [disks objectAtIndex:selectedDisk];
     [disk setDelegate:self];
 
-#ifdef __AIRYX__
     [self appendInstallLog:[NSString
         stringWithFormat:@"Clearing disk %@\n", [disk name]]];
     [disk createGPT];
@@ -187,13 +241,11 @@
     [disk createPools];
     [self appendInstallLog:@"Installing EFI loader\n"];
     [disk initializeEFI];
-
     [self appendInstallLog:@"Installing files\n"];
     [disk copyFilesystem];
-#endif
 
     [_ProceedButton setEnabled:YES];
-    [_ProceedButton setAction:@selector(proceedToUserInfo:)];
+    [_ProceedButton setAction:@selector(proceedToFinalize:)];
     [_ProceedButton performClick:nil];
 }
 

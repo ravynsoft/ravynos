@@ -76,8 +76,11 @@ NSData *_runCommand(const char *tool, const char *args, id delegate) {
         close(filedesc[1]);
         NSFileHandle *reader = [[NSFileHandle alloc] initWithFileDescriptor:filedesc[0]];
         if(delegate == nil) {
-            NSData *data = [[reader readDataToEndOfFile] retain];
+            NSData *data = [reader readDataToEndOfFile];
+#ifdef __AIRYX__
+            [data retain]
             [reader release];
+#endif
             return data; // caller must release
         } else {
             [[NSNotificationCenter defaultCenter] addObserver:delegate
@@ -155,7 +158,7 @@ BOOL discoverGEOMs(BOOL onlyUsable) {
         }
     }
 #else
-    disks = [[NSMutableArray arrayWithCapacity:1] retain];
+    disks = [NSMutableArray arrayWithCapacity:1];
     GSGeomDisk *disk = [GSGeomDisk new];
     [disk setName:@"da9"];
     [disk setMediaSize:20*GB];
@@ -217,7 +220,11 @@ NSString *formatMediaSize(long bytes) {
 }
 
 -(void)setName:(NSString *)name {
+#ifdef __AIRYX__
     _name = [name retain];
+#else
+    _name = name;
+#endif
 
     if([_name hasPrefix:@"ada"])
         _type = GS_DISK_TYPE_ATA;
@@ -228,7 +235,11 @@ NSString *formatMediaSize(long bytes) {
 }
 
 -(void)setMediaDescription:(NSString *)description {
+#ifdef __AIRYX__
     _description = [description retain];
+#else
+    _description = description;
+#endif
 }
 
 -(void)setMediaSize:(long)size {
@@ -239,8 +250,8 @@ NSString *formatMediaSize(long bytes) {
     _sectorSize = size;
 }
 
-#ifdef __AIRYX__
 -(void)deletePartitions {
+#ifdef __AIRYX__
   @autoreleasepool {
     NSString *cmd = [[NSString stringWithFormat:@"list %@", _name] autorelease];
     NSData *parts = runCommand(GPART_CMD, [cmd UTF8String]);
@@ -257,9 +268,11 @@ NSString *formatMediaSize(long bytes) {
         }
     }
   }
+#endif
 }
 
 -(void)createGPT {
+#ifdef __AIRYX__
     [self deletePartitions]; // just in case
 
   @autoreleasepool {
@@ -268,9 +281,11 @@ NSString *formatMediaSize(long bytes) {
     cmd = [[NSString stringWithFormat:@"create -s gpt %@", _name] autorelease];
     runCommand(GPART_CMD, [cmd UTF8String]);
   }
+#endif
 }
 
 -(void)createPartitions {
+#ifdef __AIRYX__
   @autoreleasepool {
     NSString *cmd = [[NSString stringWithFormat:@"add -t efi -s 1m -l efi %@", _name] autorelease];
     runCommand(GPART_CMD, [cmd UTF8String]);
@@ -281,9 +296,11 @@ NSString *formatMediaSize(long bytes) {
     cmd = [[NSString stringWithFormat:@"add -t freebsd-zfs -l %s -a 1m %@", ZFS_POOL_NAME, _name] autorelease];
     runCommand(GPART_CMD, [cmd UTF8String]);
   }
+#endif
 }
 
 -(void)createPools {
+#ifdef __AIRYX__
   @autoreleasepool {
     mkdir("/tmp/pool",0700);
     NSString *cmd = [[NSString stringWithFormat:@"create -R /tmp/pool -O mountpoint=/ -O atime=off -O canmount=off -O compression=on %s %@p3", ZFS_POOL_NAME, _name] autorelease];
@@ -308,9 +325,11 @@ NSString *formatMediaSize(long bytes) {
     cmd = [[NSString stringWithFormat:@"set bootfs=%s/ROOT/default %s", ZFS_POOL_NAME, ZFS_POOL_NAME] autorelease];
     runCommand(ZPOOL_CMD, [cmd UTF8String]);
   }
+#endif
 }
 
 -(void)initializeEFI {
+#ifdef __AIRYX__
     mkdir("/tmp/efi",0700);
     runCommand("/sbin/mount_msdosfs", "/dev/gpt/efi /tmp/efi");
     mkdir("/tmp/efi/efi",0755);
@@ -325,17 +344,21 @@ NSString *formatMediaSize(long bytes) {
     close(bootx64);
     close(loader);
     unmount("/tmp/efi", 0);
+#endif
 }
 
 -(void)copyFilesystem {
+#ifdef __AIRYX__
     int fd = open("/tmp/excludes", O_CREAT|O_RDWR, 0644);
     const char *str = "/dev\n/proc\n/tmp\n";
     write(fd, str, strlen(str));
     close(fd);
     _runCommand("/usr/bin/cpdup","-udof -X/tmp/excludes / /tmp/pool",_delegate);
+#endif
 }
 
 -(void)finalizeInstallation {
+#ifdef __AIRYX__
     setenv("BSDINSTALL_CHROOT", "/tmp/pool", 1);
     runCommand("/usr/sbin/bsdinstall", "config");
     runCommand("/usr/sbin/bsdinstall", "entropy");
@@ -375,9 +398,8 @@ NSString *formatMediaSize(long bytes) {
     }
 
     unlink("/tmp/pool/var/initgfx_config.id");
-
-}
 #endif
+}
 
 -(id)delegate {
     return _delegate;

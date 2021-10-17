@@ -63,4 +63,16 @@ BOOL discoverGEOMs(BOOL onlyUsable);
 -(void)setSectorSize:(int)size;
 -(void)setDelegate:(id)delegate;
 
+-(void)deletePartitions;
+-(void)createGPT;
+-(void)createPartitions;
+-(void)createPools;
+-(void)initializeEFI;
+-(void)copyFilesystem;
+-(void)finalizeInstallation;
+
+// act as data source for NSTableView
+- (int)numberOfRowsInTableView:(NSTableView *)tableView;
+- (id)tableView:(NSTableView *)tableView objectValueForTableColumn:(NSTableColumn *)tableColumn row:(int)row;
+
 @end
