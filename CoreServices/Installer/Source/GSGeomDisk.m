@@ -111,6 +111,7 @@ BOOL parserError(NSString *msg) {
 }
 
 BOOL discoverGEOMs(BOOL onlyUsable) {
+#ifdef __AIRYX__
     if(disks != nil)
         [disks release];
     disks = [[NSMutableArray arrayWithCapacity:4] retain];
@@ -153,9 +154,19 @@ BOOL discoverGEOMs(BOOL onlyUsable) {
             [curDisk setMediaDescription:[line substringFromIndex:10]];
         }
     }
+#else
+    disks = [[NSMutableArray arrayWithCapacity:1] retain];
+    GSGeomDisk *disk = [GSGeomDisk new];
+    [disk setName:@"da9"];
+    [disk setMediaSize:20*GB];
+    [disk setMediaDescription:@"Fake disk device for UI testing"];
+    [disk setSectorSize:512];
+    [disks addObject:disk];
+#endif
 
     return YES;
 }
+
 
 NSString *formatMediaSize(long bytes) {
     double value;
@@ -228,6 +239,7 @@ NSString *formatMediaSize(long bytes) {
     _sectorSize = size;
 }
 
+#ifdef __AIRYX__
 -(void)deletePartitions {
   @autoreleasepool {
     NSString *cmd = [[NSString stringWithFormat:@"list %@", _name] autorelease];
@@ -352,7 +364,9 @@ NSString *formatMediaSize(long bytes) {
         stringWithContentsOfFile:@"/etc/rc.conf.local"]
         componentsSeparatedByString:@"\n"]];
     [entries addObject:@"root_rw_mount=\"YES\""];
-    [entries addObject:[NSString stringWithFormat:@"hostname=\"%s\"", "airyxSystem"]];
+    [entries addObject:@"zfs_enable=\"YES\""];
+    [entries addObject:@"zfsd_enable=\"YES\""];
+    [entries addObject:[NSString stringWithFormat:@"hostname=\"%s\"", "airyxSystem"]]; // FIXME: read this from user
 
     for(int x = 0; x < [entries count]; ++x) {
         FILE *fp = popen("/usr/sbin/sysrc -f /tmp/pool/etc/rc.conf", "w");
@@ -363,6 +377,7 @@ NSString *formatMediaSize(long bytes) {
     unlink("/tmp/pool/var/initgfx_config.id");
 
 }
+#endif
 
 -(id)delegate {
     return _delegate;
@@ -379,13 +394,6 @@ cat >> /boot/loader.conf <<END
 zfs_load="YES"
 vfs.root.mountfrom="zfs:airyxOS/ROOT/default"
 END
-
-cat >> /etc/rc.conf <<END
-zfs_enable="YES"
-zfsd_enable="YES"
-END
-
-cpdup -udvf -X /full/path/to/excludes / /tmp/pool
 }
 #endif
 
