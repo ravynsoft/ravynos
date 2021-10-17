@@ -111,6 +111,7 @@ BOOL parserError(NSString *msg) {
 }
 
 BOOL discoverGEOMs(BOOL onlyUsable) {
+#ifdef __AIRYX__
     if(disks != nil)
         [disks release];
     disks = [[NSMutableArray arrayWithCapacity:4] retain];
@@ -153,9 +154,19 @@ BOOL discoverGEOMs(BOOL onlyUsable) {
             [curDisk setMediaDescription:[line substringFromIndex:10]];
         }
     }
+#else
+    disks = [[NSMutableArray arrayWithCapacity:1] retain];
+    GSGeomDisk *disk = [GSGeomDisk new];
+    [disk setName:@"da9"];
+    [disk setMediaSize:20*GB];
+    [disk setMediaDescription:@"Fake disk device for UI testing"];
+    [disk setSectorSize:512];
+    [disks addObject:disk];
+#endif
 
     return YES;
 }
+
 
 NSString *formatMediaSize(long bytes) {
     double value;
@@ -228,6 +239,7 @@ NSString *formatMediaSize(long bytes) {
     _sectorSize = size;
 }
 
+#ifdef __AIRYX__
 -(void)deletePartitions {
   @autoreleasepool {
     NSString *cmd = [[NSString stringWithFormat:@"list %@", _name] autorelease];
@@ -365,6 +377,7 @@ NSString *formatMediaSize(long bytes) {
     unlink("/tmp/pool/var/initgfx_config.id");
 
 }
+#endif
 
 -(id)delegate {
     return _delegate;

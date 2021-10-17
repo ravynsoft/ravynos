@@ -29,11 +29,6 @@
 @implementation AppDelegate
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
-    NSMenu *timezones = [[NSMenu alloc] initWithTitle:@"Select time zone"];
-    [timezones addItemWithTitle:@"Select..." action:nil keyEquivalent:nil];
-    [_timeZones setMenu:timezones];
-    [_timeZones setDelegate:self];
-
     [_mainWindow setBackgroundColor:[NSColor textBackgroundColor]];
 
     [_scrollView setAutoresizesSubviews:YES];
@@ -52,6 +47,9 @@
     [[content textStorage] setAttributedString:text];
     [content setSelectable:NO];
     [content setEditable:NO];
+
+    [_ProceedButton setAction:@selector(proceedToUserInfo:)];
+    [_ProceedButton performClick:nil];
 }
 
 - (IBAction)proceedToDiskList:(id)sender {
@@ -134,12 +132,21 @@
         "up your new system.\nAll fields are required.\n\n" // FIXME: localize
         attributes:attr]];
 
+    [_timeZones removeAllItems];
+    [_timeZones setTitle:@"select a zone"];
+    [_timeZones addItemWithTitle:@"zone one"];
+    [_timeZones addItemWithTitle:@"zone two"];
+
+    [_scrollView setAutohidesScrollers:YES];
+    [[_scrollView contentView] removeFromSuperview];
     [_scrollView setContentView:_userInfoView];
     [_ProceedButton setAction:@selector(validateUserInfo:)];
 }
 
 - (IBAction)validateUserInfo:(id)sender {
     NSLog(@"validating user info");
+    NSLog(@"menu is %@, selected %@", [_timeZones menu],[_timeZones selectedItem]);
+    NSLog(@"name is %@", [_fullName stringValue]);
     [_ProceedButton setAction:@selector(proceedToFinalize:)];
 }
 
@@ -156,8 +163,10 @@
     [_ProceedButton setEnabled:NO];
 
     NSTextView *v = [[NSTextView alloc] initWithFrame:[[_scrollView contentView] frame]];
+#ifdef __AIRYX__
     [[[_scrollView contentView] documentView] release];
     [[_scrollView contentView] release];
+#endif
 
     NSClipView *clip = [NSClipView new];
     [clip setDocumentView:v];
@@ -168,6 +177,7 @@
     GSGeomDisk *disk = [disks objectAtIndex:selectedDisk];
     [disk setDelegate:self];
 
+#ifdef __AIRYX__
     [self appendInstallLog:[NSString
         stringWithFormat:@"Clearing disk %@\n", [disk name]]];
     [disk createGPT];
@@ -180,6 +190,7 @@
 
     [self appendInstallLog:@"Installing files\n"];
     [disk copyFilesystem];
+#endif
 
     [_ProceedButton setEnabled:YES];
     [_ProceedButton setAction:@selector(proceedToUserInfo:)];
