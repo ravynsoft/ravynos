@@ -31,8 +31,12 @@
     BOOL userDidEditHostName;
     BOOL userDidEditUserName;
     NSString *selectedTimeZone;
-    NSMutableDictionary *userInfo;
+    NSMutableDictionary *userInfoDict;
     NSBundle *myBundle;
+    NSString *UserInfoFullName;
+    NSString *UserInfoUserName;
+    NSString *UserInfoPassword;
+    NSString *UserInfoHostName;
 }
 
 @property (strong) IBOutlet NSWindow *mainWindow;

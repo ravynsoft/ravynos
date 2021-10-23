@@ -78,7 +78,7 @@ NSData *_runCommand(const char *tool, const char *args, id delegate) {
         if(delegate == nil) {
             NSData *data = [reader readDataToEndOfFile];
 #ifdef __AIRYX__
-            [data retain]
+            [data retain];
             [reader release];
 #endif
             return data; // caller must release

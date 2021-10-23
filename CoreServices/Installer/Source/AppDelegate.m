@@ -23,23 +23,13 @@
 #import "AppDelegate.h"
 #import "GSGeomDisk.h"
 
-const NSString *UserInfoFullNameKey = @"UIFullName";
-const NSString *UserInfoUserNameKey = @"UIUserName";
-const NSString *UserInfoPasswordKey = @"UIPassword";
-const NSString *UserInfoHostNameKey = @"UIHostName";
-
 @interface AppDelegate ()
 @end
 
 @implementation AppDelegate
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
-    //[_mainWindow setBackgroundColor:[NSColor textBackgroundColor]];
     myBundle = [NSBundle mainBundle];
-    
-    userInfo = [NSMutableDictionary
-        dictionaryWithObjects:@[@"",@"",@"",@""]
-        forKeys:@[UserInfoFullNameKey,UserInfoUserNameKey,UserInfoPasswordKey,UserInfoHostNameKey]];
     
     NSString *verLabel = [[_versionLabel stringValue] stringByReplacingOccurrencesOfString:@"X.X.X" withString:[NSString stringWithUTF8String:AIRYX_VERSION]];
     [_versionLabel setStringValue:verLabel];
@@ -50,16 +40,11 @@ const NSString *UserInfoHostNameKey = @"UIHostName";
 
     NSTextView *content = [[_scrollView contentView] documentView];
     [[content textStorage] setAttributedString:text];
-//    [content setSelectable:NO];
-//    [content setEditable:NO];
 
     rtf = [NSData dataWithContentsOfFile:[myBundle pathForResource:@"header" ofType:@"rtf"]];
     text = [[NSAttributedString alloc] initWithRTF:rtf documentAttributes:nil];
     content = [[_instructionsView contentView] documentView];
     [[content textStorage] setAttributedString:text];
-//    [content setSelectable:NO];
-//    [content setEditable:NO];
-
 }
 
 - (IBAction)proceedToDiskList:(id)sender {
@@ -126,7 +111,7 @@ const NSString *UserInfoHostNameKey = @"UIHostName";
     [_scrollView setAutohidesScrollers:YES];
 
 #ifdef __AIRYX__
-    [_ProceedButton setEnabled:NO];
+    [_NextButton setEnabled:NO];
 #endif
     
     [[NSNotificationCenter defaultCenter] addObserver:self
@@ -152,11 +137,14 @@ const NSString *UserInfoHostNameKey = @"UIHostName";
         "up your new system.\nAll fields are required.\n\n" // FIXME: localize
         attributes:attr]];
 
-//    [_timeZones removeAllItems];
-//    [_timeZones setTitle:@"Select a time zone..."];
     if([[[_timeZones menu] itemArray] count] < 2) {
-        NSArray *zones = @[@"America", @"Asia", @"Atlantic", @"Australia", @"Europe",
-            @"Indian", @"Iran", @"Israel", @"Pacific", @"UTC", @"Zulu"];
+#ifdef __AIRYX__
+//         [_timeZones removeAllItems];
+//         [_timeZones setTitle:@"Select a time zone..."];
+#endif
+        //NSArray *zones = @[@"America", @"Asia", @"Atlantic", @"Australia", @"Europe",
+        //    @"Indian", @"Pacific", @"UTC", @"Zulu"];
+        NSArray *zones = @[@"Atlantic",@"Zulu"];
         NSFileManager *fm = [NSFileManager defaultManager];
         NSEnumerator *dirs = [zones objectEnumerator];
         NSString *dir;
@@ -165,7 +153,7 @@ const NSString *UserInfoHostNameKey = @"UIHostName";
             NSString *zonepath = [NSString stringWithFormat:@"/usr/share/zoneinfo/%@", dir];
             if([fm fileExistsAtPath:zonepath isDirectory:&isDir]) {
                 if(isDir) {
-                    NSArray *entries = [fm contentsOfDirectoryAtPath:zonepath error:nil];
+                    NSArray *entries = [fm contentsOfDirectoryAtPath:zonepath error:NULL];
                     NSEnumerator *entryiter = [entries objectEnumerator];
                     NSString *zone;
                     while(zone = [entryiter nextObject]) {
@@ -180,12 +168,14 @@ const NSString *UserInfoHostNameKey = @"UIHostName";
     }
     
     if(selectedTimeZone) {
+        NSLog(@"selected time zone is %@",selectedTimeZone);
         [_timeZones selectItemWithTitle:selectedTimeZone];
         [_timeZones synchronizeTitleAndSelectedItem];
     }
 
     [_scrollView setAutohidesScrollers:YES];
     [[_scrollView contentView] setDocumentView:_userInfoView];
+    [_userInfoView becomeKey];
     [_BackButton setAction:@selector(proceedToDiskList:)];
     [_BackButton setEnabled:YES];
     [_NextButton setAction:@selector(validateUserInfo:)];
@@ -211,26 +201,28 @@ const NSString *UserInfoHostNameKey = @"UIHostName";
     [textStorage appendAttributedString:[[NSAttributedString alloc]
         initWithString:@"All contents of the selected disk will be ERASED if you proceed!" // FIXME: localize
         attributes:attr]];
-    
+
     [self fullNameEditingDidFinish:_fullName];
     [self userNameEditingDidFinish:_userName];
     [self passwordEditingDidFinish:_password];
     [self hostNameEditingDidFinish:_hostName];
-    
+
+    NSLog(@"validate: selected time zone is %@",selectedTimeZone);
     if(selectedTimeZone == nil)
         selectedTimeZone = @"UTC";
-    
-    [_confirmFullName setStringValue:userInfo[UserInfoFullNameKey]];
-    [_confirmUserName setStringValue:userInfo[UserInfoUserNameKey]];
-    [_confirmHostName setStringValue:userInfo[UserInfoHostNameKey]];
-    [_confirmPassword setStringValue:userInfo[UserInfoPasswordKey]];
+
+    [_confirmFullName setStringValue:UserInfoFullName];
+    [_confirmUserName setStringValue:UserInfoUserName];
+    [_confirmHostName setStringValue:UserInfoHostName];
+    [_confirmPassword setStringValue:UserInfoPassword];
     [_confirmTimeZone setStringValue:selectedTimeZone];
     GSGeomDisk *disk = [disks objectAtIndex:selectedDisk];
     [_confirmDisk setStringValue:[NSString stringWithFormat:@"%@ (%@, %@)", [disk name],
         formatMediaSize([disk mediaSize]), [disk mediaDescription]]];
     [[_scrollView contentView] setDocumentView:_infoConfirmationView];
     [_BackButton setAction:@selector(proceedToUserInfo:)];
-    [_NextButton setAction:@selector(proceedToInstall:)];
+//     [_NextButton setAction:@selector(proceedToInstall:)];
+     [_NextButton setAction:@selector(proceedToFinalize:)];
 }
 
 - (IBAction)proceedToFinalize:(id)sender {
@@ -248,20 +240,21 @@ const NSString *UserInfoHostNameKey = @"UIHostName";
 
 - (IBAction)timeZoneSelected:(id)sender {
     selectedTimeZone = [sender titleOfSelectedItem];
+    NSLog(@"selection complete - time zone is %@",selectedTimeZone);
 }
 
 - (IBAction)hostNameEditingDidFinish:(id)sender {
     userDidEditHostName = YES;
-    userInfo[UserInfoHostNameKey] = [sender stringValue];
+    UserInfoHostName = [sender stringValue];
 }
 
 - (IBAction)passwordEditingDidFinish:(id)sender {
-    userInfo[UserInfoPasswordKey] = [sender stringValue];
+    UserInfoPassword = [sender stringValue];
 }
 
 - (IBAction)userNameEditingDidFinish:(id)sender {
     userDidEditUserName = YES;
-    userInfo[UserInfoUserNameKey] = [sender stringValue];
+    UserInfoUserName = [sender stringValue];
 }
 
 - (IBAction)fullNameEditingDidFinish:(id)sender {
@@ -284,15 +277,15 @@ const NSString *UserInfoHostNameKey = @"UIHostName";
     if(!userDidEditUserName) {
         [_userName setStringValue:[[user lowercaseString]
             substringWithRange:NSMakeRange(0,MIN(8, [user length]))]];
-        userInfo[UserInfoUserNameKey] = [_userName stringValue];
+        UserInfoUserName = [_userName stringValue];
     }
 
     if(!userDidEditHostName) {
         [_hostName setStringValue:host];
-        userInfo[UserInfoHostNameKey] = host;
+        UserInfoHostName = host;
     }
 
-    userInfo[UserInfoFullNameKey] = [sender stringValue];
+    UserInfoFullName = [sender stringValue];
 }
 
 - (IBAction)proceedToInstall:(id)sender {

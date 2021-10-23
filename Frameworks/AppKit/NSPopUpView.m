@@ -25,6 +25,7 @@ enum {
 
 @implementation NSPopUpView
 
+
 // If the user clicks and holds on a popup menu and then releases
 // the app should just dismiss the popup and reselect the current value.
 // If the user clicks and immediately releases the popup menu should remain
@@ -80,7 +81,7 @@ static const float kMenuInitialClickThreshold = .3f;
     BOOL useCustomFont = _font != nil;
     if (useCustomFont) {
         // If we have the default font, then really use the default menu one instead of forcing it
-        if ([_font isEqual:[NSFont fontWithName:@"Nimbus Sans" size:9.]]) {
+        if ([_font isEqual:[NSFont fontWithName:@"Nimbus Sans" size:12.]]) {
             useCustomFont = NO;
         }
     }
@@ -425,6 +426,7 @@ partRect.size.width = __partSize.width;                              \
 				([[items objectAtIndex: i] isSeparatorItem])) {
 				return -1;
 			}
+			NSLog(@"indexforpoint %.0f,%.0f = %d",point.x,point.y,i);
 			return i;
 		}
 	}
@@ -464,7 +466,7 @@ partRect.size.width = __partSize.width;                              \
         STATE_MOUSEUP,
         STATE_EXIT
     } state=STATE_FIRSTMOUSEDOWN;
-    NSPoint firstLocation,point=[NSEvent mouseLocation];
+    NSPoint firstLocation,point=[event locationInWindow];
     NSInteger initialSelectedIndex = _selectedIndex;
     firstLocation = point;
     

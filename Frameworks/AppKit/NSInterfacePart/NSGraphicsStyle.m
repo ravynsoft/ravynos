@@ -169,6 +169,8 @@ static NSDictionary *sDimmedMenuTextShadowAttributes = nil;
 
 -(float)menuBarHeight
 {
+    return 0.0;
+#if 0
 	NSDictionary *attributes=[NSDictionary dictionaryWithObjectsAndKeys:
 							  [NSFont menuFontOfSize:0],NSFontAttributeName,nil];
 	float         result=[@"Menu" sizeWithAttributes:attributes].height;
@@ -178,6 +180,7 @@ static NSDictionary *sDimmedMenuTextShadowAttributes = nil;
 	result+=1; // sunken title baseline
 	
 	return result;
+#endif
 }
 
 -(float)menuItemGutterGap

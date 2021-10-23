@@ -230,9 +230,9 @@ static int errorHandler(Display *display,XErrorEvent *errorEvent) {
             case FC_SLANT_ITALIC:
                traits|=NSItalicFontMask;
                break;
-//             default:
-//                traits|=NSUnitalicFontMask;
-//                break;
+            default:
+               traits&=~NSItalicFontMask;
+               break;
          }
          
 //          if(weight<=FC_WEIGHT_LIGHT)
@@ -293,8 +293,19 @@ static int errorHandler(Display *display,XErrorEvent *errorEvent) {
 }
 
 -(NSPoint)mouseLocation {
-   NSUnimplementedMethod();
-   return NSMakePoint(0,0);
+    Window window;
+    int rootX, rootY, winX, winY;
+    unsigned int mask;
+
+    BOOL result = XQueryPointer(_display, DefaultRootWindow(_display),
+        &window, &window, &rootX, &rootY, &winX, &winY, &mask);
+    if(result == YES) {
+        // invert the Y since Cocoa's origin is lower left
+        int height = DisplayHeight(_display, DefaultScreen(_display));
+        return NSMakePoint(rootX, height - rootY);
+    }
+    NSLog(@"-[X11Display mouseLocation] unable to locate mouse pointer");
+    return NSMakePoint(0,0);
 }
 
 -(void)setWindow:(id)window forID:(XID)i
@@ -357,7 +368,7 @@ NSArray *CGSOrderedWindowNumbers() {
      char buf[4]={0};
      
      XLookupString((XKeyEvent*)ev, buf, 4, NULL, NULL);
-     id str=[[NSString alloc] initWithCString:buf encoding:NSISOLatin1StringEncoding];
+     id str=[[NSString alloc] initWithCString:buf encoding:NSUTF8StringEncoding];
      NSPoint pos=[window transformPoint:NSMakePoint(ev->xkey.x, ev->xkey.y)];
          
      id strIg=[str lowercaseString];
@@ -392,7 +403,7 @@ NSArray *CGSOrderedWindowNumbers() {
       clickCount=1;  
      }
      lastClickTimeStamp=now;
-         
+
      pos=[window transformPoint:NSMakePoint(ev->xbutton.x, ev->xbutton.y)];
          
      event=[NSEvent mouseEventWithType:NSLeftMouseDown

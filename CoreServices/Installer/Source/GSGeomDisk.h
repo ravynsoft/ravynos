@@ -41,7 +41,7 @@ BOOL parserError(NSString *msg);
 BOOL discoverGEOMs(BOOL onlyUsable);
 NSString *formatMediaSize(long bytes);
 
-@interface GSGeomDisk: NSObject <NSTableViewDataSource,NSTableViewDelegate> {
+@interface GSGeomDisk: NSObject {
     GSDiskType _type;
     NSString *_name;
     NSString *_description;

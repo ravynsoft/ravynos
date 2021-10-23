@@ -109,9 +109,11 @@ void CGNativeBorderFrameWidthsForStyle(unsigned styleMask,CGFloat *top,CGFloat *
    Atom atm=XInternAtom(_display, "WM_DELETE_WINDOW", False);
    XSetWMProtocols(_display, _window, &atm , 1);
 
-   [self setProperty:@"_KDE_NET_WM_APPMENU_SERVICE_NAME" toValue:[[NSApp dbusConnection] name]];
-   [self setProperty:@"_KDE_NET_WM_APPMENU_OBJECT_PATH" toValue:[[NSApp dbusMenu] objectPath]];
-   [[NSApp dbusMenu] registerWindow:_window];
+   if(!isPanel) {
+    [self setProperty:@"_KDE_NET_WM_APPMENU_SERVICE_NAME" toValue:[[NSApp dbusConnection] name]];
+    [self setProperty:@"_KDE_NET_WM_APPMENU_OBJECT_PATH" toValue:[[NSApp dbusMenu] objectPath]];
+    [[NSApp dbusMenu] registerWindow:_window];
+   }
       
    XSetWindowBackgroundPixmap(_display, _window, None);
       
@@ -366,10 +368,19 @@ CGL_EXPORT CGLError CGLCreateContextForWindow(CGLPixelFormatObj pixelFormat,CGLC
     [self openGLFlushBuffer];
 }
 
-
+// This seems wrong but it's exactly what was done in the Win32 version
 -(NSPoint)mouseLocationOutsideOfEventStream {
-   NSUnimplementedMethod();
-   return NSZeroPoint;
+    Window window;
+    int rootX, rootY, winX, winY;
+    unsigned int mask;
+
+    BOOL result = XQueryPointer(_display, DefaultRootWindow(_display),
+        &window, &window, &rootX, &rootY, &winX, &winY, &mask);
+    if(result == YES) {
+        return [self transformPoint:NSMakePoint(rootX, rootY)];
+    }
+    NSLog(@"-[X11Window mouseLocationOutsideOfEventStream] unable to locate mouse pointer");
+    return NSMakePoint(0,0);
 }
 
 
