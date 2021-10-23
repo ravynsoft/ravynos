@@ -175,16 +175,27 @@ QStringList AiryxMenu::graphicsAdaptors()
 void AiryxMenu::pciconfOutputReady()
 {
     QProcess *p = (QProcess *)sender();
-    QByteArray output = p->readAllStandardOutput();
+    QList<QByteArray> lines = p->readAllStandardOutput().split('\n');
+    QByteArray vendor, device, subclass;
 
-    if(output.contains("vendor")) {
-        QList<QByteArray> lines = output.split('\n');
-        QByteArray vendor = lines[1].mid(lines[1].indexOf('\'')+1, -1);
-        vendor.chop(1);
-        QByteArray device = lines[2].mid(lines[2].indexOf('\'')+1, -1);
-        device.chop(1);
-        m_adaptorsFound << QString::asprintf("%s %s", vendor.constData(), device.constData());
+    for(int n = 0; n < lines.count(); ++n) {
+        QByteArray line = lines[n];
+
+        if(line.contains("vendor")) {
+            vendor = line.mid(line.indexOf('\'')+1, -1);
+            vendor.chop(1);
+        } else if(line.contains("device")) {
+            device = line.mid(line.indexOf('\'')+1, -1);
+            device.chop(1);
+        } else if(line.contains("subclass")) {
+            subclass = line.mid(line.indexOf('=')+1, -1);
+        }
     }
+
+    if(device.count() && vendor.count())
+        m_adaptorsFound << QString::asprintf("%s %s", vendor.constData(), device.constData());
+    else
+        m_adaptorsFound << QString::asprintf("%s", subclass.constData());
 }
 
 void AiryxMenu::processFinished(int exitCode, QProcess::ExitStatus exitStatus)
