@@ -357,8 +357,10 @@ NSArray *CGSOrderedWindowNumbers() {
    id event=nil;
    NSEventType type;
    id window=[self windowForID:ev->xany.window];
-   if(window == nil) // guard against unknown IDs
-      window = [NSApp keyWindow];
+   if(window == nil) { // guard against unknown IDs
+      //NSLog(@"postXEvent: unknown window ID %d",ev->xany.window);
+      return;
+   }
    id delegate=[window delegate];
    
    switch(ev->type) {
@@ -381,7 +383,7 @@ NSArray *CGSOrderedWindowNumbers() {
      id event=[NSEvent keyEventWithType:ev->type == KeyPress ? NSKeyDown : NSKeyUp location:pos
                               modifierFlags:modifierFlags
                                   timestamp:0.0 
-                               windowNumber:(NSInteger)delegate
+                               windowNumber:(NSInteger)[delegate windowNumber]
                                     context:nil
                                  characters:str 
                 charactersIgnoringModifiers:strIg
