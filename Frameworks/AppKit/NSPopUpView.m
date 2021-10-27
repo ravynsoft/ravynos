@@ -81,7 +81,7 @@ static const float kMenuInitialClickThreshold = .3f;
     BOOL useCustomFont = _font != nil;
     if (useCustomFont) {
         // If we have the default font, then really use the default menu one instead of forcing it
-        if ([_font isEqual:[NSFont fontWithName:@"Nimbus Sans" size:12.]]) {
+        if ([_font isEqual:[NSFont fontWithName:@"Nimbus Sans-Regular" size:12.]]) {
             useCustomFont = NO;
         }
     }
@@ -148,14 +148,22 @@ static const float kMenuInitialClickThreshold = .3f;
 	// Add the left+right and bottom borders
 	result.width += WINDOW_BORDER_THICKNESS*2;
 	result.height += WINDOW_BORDER_THICKNESS;
+
+    // Normalize the items widths to the pulldown or menu width,
+    // whichever is wider
+	result.width = MAX(_cellSize.width, result.width);
 	
     if (_cachedItemRects == nil && [items isEqual:[self visibleItemArray]]) {
         // Build our cached item rects
         _cachedItemRects = [[NSMutableArray arrayWithCapacity: count] retain];
         for (int i = 0; i < count; ++i) {
-            // Normalize the items widths to the menu widths
             rects[i].size.width = result.width;
             [_cachedItemRects addObject:[NSValue valueWithRect:rects[i]]];
+            NSLog(@"rect[%d] origin %.0f,%.0f size %.0fx%.0f",i,rects[i].origin.x,rects[i].origin.y,rects[i].size.width,rects[i].size.height);
+            NSRect f = rects[i];
+            f.origin = [self convertPoint:f.origin toView:nil];
+            f.origin = [[self window] convertBaseToScreen:f.origin];
+            NSLog(@"rect[%d] origin %.0f,%.0f size %.0fx%.0f",i,f.origin.x,f.origin.y,f.size.width,f.size.height);
         }
     }
 	return result;
@@ -215,27 +223,30 @@ static const float kMenuInitialClickThreshold = .3f;
 // For attributed strings - precalcing the the item rects makes performance much faster.
 - (NSArray*)_cachedItemRects
 {
-	if (_cachedItemRects == nil) {
+	//if (_cachedItemRects == nil) {
 		[self _buildCachedItemRects];
-	}
+	//}
 	return _cachedItemRects;
 }
 
 -(NSRect)rectForItemAtIndex:(NSInteger)index {
 	NSRect result = [[[self _cachedItemRects] objectAtIndex: index] rectValue];
     // Be sure we cover the full view width
-    result.size.width = self.bounds.size.width;
+    result.size.width = _cellSize.width; //self.bounds.size.width;
     return result;
 }
 
 -(NSRect)rectForSelectedItem {
+    NSRect r;
     if(_pullsDown) {
-        return NSZeroRect;
+        r= NSZeroRect;
     } else if(_selectedIndex==-1) {
-        return [self rectForItemAtIndex:0];
+        r= [self rectForItemAtIndex:0];
     } else {
-        return [self rectForItemAtIndex:_selectedIndex];
+        r= [self rectForItemAtIndex:_selectedIndex];
     }
+    NSLog(@"rectForSelectedItem %d %.0f,%.0f %.0fx%.0f",_selectedIndex,r.origin.x,r.origin.y,r.size.width,r.size.height);
+    return r;
 }
 
 static NSRect boundsToTitleAreaRect(NSRect rect){
@@ -253,7 +264,7 @@ static NSRect boundsToTitleAreaRect(NSRect rect){
     BOOL useCustomFont = _font != nil;
     if (useCustomFont) {
         // If we have the default font, then really use the default menu one instead of forcing it
-        if ([_font isEqual:[NSFont fontWithName:@"Nimbus Sans" size:9.]]) {
+        if ([_font isEqual:[NSFont fontWithName:@"Nimbus Sans-Regular" size:12.]]) {
             useCustomFont = NO;
         }
     }
@@ -426,7 +437,7 @@ partRect.size.width = __partSize.width;                              \
 				([[items objectAtIndex: i] isSeparatorItem])) {
 				return -1;
 			}
-			NSLog(@"indexforpoint %.0f,%.0f = %d",point.x,point.y,i);
+			//NSLog(@"indexforpoint %.0f,%.0f = %d",point.x,point.y,i);
 			return i;
 		}
 	}
@@ -531,7 +542,7 @@ partRect.size.width = __partSize.width;                              \
                 cancelled = YES;
             }
         }
-        point=[NSEvent mouseLocation];
+        point=[event locationInWindow]; //[NSEvent mouseLocation];
         if (mouseMoved == NO) {
             mouseMoved = ABS(point.x-firstLocation.x) > 2. || ABS(point.y-firstLocation.y) > 2.;
         }

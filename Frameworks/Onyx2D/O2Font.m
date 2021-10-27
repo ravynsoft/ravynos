@@ -18,11 +18,11 @@ static NSArray *_preferredFontNames = nil;
         // Set some decent defaut substitution fonts
         // Override that by a better list in the O2Font concrete subclass
         [O2Font setPreferredFontNames:[NSArray arrayWithObjects:
-                                       @"Nimbus Sans:style=Regular",         // Latin/Greek/Cyrillic, Arabic, Hebrew
-                                       @"WenQuanYi Micro Hei:style=Regular", // Japanese
-                                       @"WenQuanYi Micro Hei:style=Regular", // Simplified Chinese
-                                       @"WenQuanYi Micro Hei:style=Regular", // Traditional Chinese
-                                       @"WenQuanYi Micro Hei:style=Regular", // Korean
+                                       @"Nimbus Sans-Regular",         // Latin/Greek/Cyrillic, Arabic, Hebrew
+                                       @"WenQuanYi Micro Hei-Regular", // Japanese
+                                       @"WenQuanYi Micro Hei-Regular", // Simplified Chinese
+                                       @"WenQuanYi Micro Hei-Regular", // Traditional Chinese
+                                       @"WenQuanYi Micro Hei-Regular", // Korean
                                        nil]];
     }
  }

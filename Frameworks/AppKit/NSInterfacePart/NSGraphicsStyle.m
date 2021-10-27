@@ -288,7 +288,7 @@ static NSDictionary *sDimmedMenuTextShadowAttributes = nil;
 		color = [NSColor disabledControlTextColor];
 	
 	checkMark = [[NSInterfacePartAttributedString alloc] initWithCharacter:0x61 
-																  fontName:@"FreeSans" 
+																  fontName:@"Nimbus Sans-Regular"
 																 pointSize:10 
 																	 color:color];
 	rect.origin.x += margins.left;
