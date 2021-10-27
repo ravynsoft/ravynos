@@ -138,10 +138,6 @@
         attributes:attr]];
 
     if([[[_timeZones menu] itemArray] count] < 2) {
-#ifdef __AIRYX__
-//         [_timeZones removeAllItems];
-//         [_timeZones setTitle:@"Select a time zone..."];
-#endif
         //NSArray *zones = @[@"America", @"Asia", @"Atlantic", @"Australia", @"Europe",
         //    @"Indian", @"Pacific", @"UTC", @"Zulu"];
         NSArray *zones = @[@"Atlantic",@"Zulu"];

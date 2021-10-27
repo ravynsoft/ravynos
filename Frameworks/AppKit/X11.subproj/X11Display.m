@@ -239,6 +239,8 @@ static int errorHandler(Display *display,XErrorEvent *errorEvent) {
             traits|=NSNarrowFontMask;
          else if(width>=FC_WIDTH_SEMIEXPANDED)
             traits|=NSExpandedFontMask;
+
+        // FIXME: we should set FixedPitch (monospace) and other attrs too (see NSFontManager.h)
          
          name = [NSString stringWithFormat:@"%@-%@",
             [[name componentsSeparatedByString:@":"] firstObject], // strip off any 'style=XXX' stuff
@@ -404,7 +406,7 @@ NSArray *CGSOrderedWindowNumbers() {
      lastClickTimeStamp=now;
 
      pos=[window transformPoint:NSMakePoint(ev->xbutton.x, ev->xbutton.y)];
-         
+
      event=[NSEvent mouseEventWithType:NSLeftMouseDown
                                   location:pos
                              modifierFlags:[self modifierFlagsForState:ev->xbutton.state]

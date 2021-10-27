@@ -50,9 +50,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
    frame=[self frame];
    frame.size=size;
 
-   NSLog(@"window frame %.0f,%.0f %.0fx%.0f",frame.origin.x,frame.origin.y,frame.size.width,frame.size.height);
-   //frame.origin.y-=(size.height-selectedRect.origin.y)-selectedRect.size.height;
-   NSLog(@"window frame %.0f,%.0f %.0fx%.0f",frame.origin.x,frame.origin.y,frame.size.width,frame.size.height);
+   frame.origin.y-=(size.height-selectedRect.origin.y)-selectedRect.size.height;
    [self setFrame:frame display:NO];
 
    [_view setFrameSize:size];

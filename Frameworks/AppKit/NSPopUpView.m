@@ -159,11 +159,6 @@ static const float kMenuInitialClickThreshold = .3f;
         for (int i = 0; i < count; ++i) {
             rects[i].size.width = result.width;
             [_cachedItemRects addObject:[NSValue valueWithRect:rects[i]]];
-            NSLog(@"rect[%d] origin %.0f,%.0f size %.0fx%.0f",i,rects[i].origin.x,rects[i].origin.y,rects[i].size.width,rects[i].size.height);
-            NSRect f = rects[i];
-            f.origin = [self convertPoint:f.origin toView:nil];
-            f.origin = [[self window] convertBaseToScreen:f.origin];
-            NSLog(@"rect[%d] origin %.0f,%.0f size %.0fx%.0f",i,f.origin.x,f.origin.y,f.size.width,f.size.height);
         }
     }
 	return result;
@@ -223,9 +218,9 @@ static const float kMenuInitialClickThreshold = .3f;
 // For attributed strings - precalcing the the item rects makes performance much faster.
 - (NSArray*)_cachedItemRects
 {
-	//if (_cachedItemRects == nil) {
+	if (_cachedItemRects == nil) {
 		[self _buildCachedItemRects];
-	//}
+	}
 	return _cachedItemRects;
 }
 
@@ -245,7 +240,6 @@ static const float kMenuInitialClickThreshold = .3f;
     } else {
         r= [self rectForItemAtIndex:_selectedIndex];
     }
-    NSLog(@"rectForSelectedItem %d %.0f,%.0f %.0fx%.0f",_selectedIndex,r.origin.x,r.origin.y,r.size.width,r.size.height);
     return r;
 }
 
@@ -437,7 +431,6 @@ partRect.size.width = __partSize.width;                              \
 				([[items objectAtIndex: i] isSeparatorItem])) {
 				return -1;
 			}
-			//NSLog(@"indexforpoint %.0f,%.0f = %d",point.x,point.y,i);
 			return i;
 		}
 	}
@@ -542,28 +535,28 @@ partRect.size.width = __partSize.width;                              \
                 cancelled = YES;
             }
         }
-        point=[event locationInWindow]; //[NSEvent mouseLocation];
+        point=[NSEvent mouseLocation];
         if (mouseMoved == NO) {
             mouseMoved = ABS(point.x-firstLocation.x) > 2. || ABS(point.y-firstLocation.y) > 2.;
         }
-        
+
 
         if (NSPointInRect(point,[[self window] frame])) {
             if (!NSPointInRect(point,screenVisible)){
-                // The point is inside the menu, and on the top or bottom border of the screen - let's autoscroll
+//              The point is inside the menu, and on the top or bottom border of the screen - let's autoscroll
                 NSPoint origin=[[self window] frame].origin;
                 BOOL    change=NO;
-                
+
                 if(point.y<NSMinY(screenVisible)){
                     origin.y+=_cellSize.height;
                     change=YES;
                 }
-                
+
                 if(point.y>NSMaxY(screenVisible)){
                     origin.y-=_cellSize.height;
                     change=YES;
                 }
-                
+
                 if(change)
                     [[self window] setFrameOrigin:origin];
             }

@@ -459,9 +459,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 }
 
 -(BOOL)trackMouse:(NSEvent *)event inRect:(NSRect)cellFrame ofView:(NSView *)controlView untilMouseUp:(BOOL)flag {
-   NSPoint        origin=[controlView bounds].origin;
+   NSRect bounds = [controlView bounds];
+   NSPoint        origin=bounds.origin;
    
-
+#if 0
    // Note: the min options don't mean much unless we don't have room for the menu, so either way we just pop
    // up over the button itself. However, maxX and maxY *do* have special meanings
    switch( _preferredEdge )
@@ -478,7 +479,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 		 origin.y -= [controlView bounds].size.height - 4;
 	     break;
    }
-
+#endif
 	origin=[controlView convertPoint:origin toView:nil];
    origin=[[controlView window] convertBaseToScreen:origin];
 
@@ -492,9 +493,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 	}
     [menu update];
 
-    // origin.y is in raw X11 coords for some reason, so convert it
-    // this makes the popup menu appear properly over the control
-    origin.y = [[[controlView window] screen] visibleFrame].size.height - origin.y;
 	NSPopUpWindow *window=[[NSPopUpWindow alloc] initWithFrame:NSMakeRect(origin.x,origin.y,
 														   cellFrame.size.width,cellFrame.size.height)];
     [window setPullsDown:_pullsDown];

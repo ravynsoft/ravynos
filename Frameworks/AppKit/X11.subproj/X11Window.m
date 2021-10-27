@@ -426,7 +426,7 @@ static int ignoreBadWindow(Display* display,
       };
       
      [self invalidateContextsWithNewSize:rect.size];
-     _frame = rect;
+     _frame = [self transformFrame:rect];
    }
    @finally {
       XSetErrorHandler(previousHandler);
