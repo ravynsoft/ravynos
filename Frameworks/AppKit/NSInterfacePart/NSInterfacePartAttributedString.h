@@ -18,6 +18,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 - initWithCharacter:(unichar)character fontName:(NSString *)fontName pointSize:(float)pointSize color:(NSColor *)color;
 
 - initWithMarlettCharacter:(unichar)character;
+- initWithFACharacter:(unichar)character;
 
 + (NSColor *)textColor;
 

@@ -3,7 +3,7 @@ SRCS=Source/main.m Source/AppDelegate.m Source/GSGeomDisk.m
 MK_DEBUG_FILES=no
 RESOURCES=TanukiLogo.tiff header.rtf terms.rtf English.lproj
 SLF=/System/Library/Frameworks
-FRAMEWORKS=/Users/zoe/airyx/Frameworks/AppKit/AppKit ${SLF}/CoreGraphics ${SLF}/Onyx2D ${SLF}/OpenGL \
+FRAMEWORKS=${SLF}/AppKit ${SLF}/CoreGraphics ${SLF}/Onyx2D ${SLF}/OpenGL \
 	${SLF}/Foundation ${SLF}/CoreFoundation ${SLF}/DBusKit
 LDFLAGS+=-lGL
 AIRYX_VERSION!= head -1 ../../version.txt

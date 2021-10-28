@@ -137,9 +137,9 @@ static int errorHandler(Display *display,XErrorEvent *errorEvent) {
    if([colorName isEqual:@"menuItemTextColor"])
       return [NSColor blackColor];
    if([colorName isEqual:@"selectedMenuItemTextColor"])
-      return [NSColor whiteColor];
+      return [NSColor blackColor];
    if([colorName isEqual:@"selectedMenuItemColor"])
-      return [NSColor blueColor];
+      return [NSColor cyanColor];
    if([colorName isEqual:@"selectedControlTextColor"])
       return [NSColor blackColor];
    
@@ -243,7 +243,8 @@ static int errorHandler(Display *display,XErrorEvent *errorEvent) {
         // FIXME: we should set FixedPitch (monospace) and other attrs too (see NSFontManager.h)
          
          name = [NSString stringWithFormat:@"%@-%@",
-            [[name componentsSeparatedByString:@":"] firstObject], // strip off any 'style=XXX' stuff
+            [[[[name componentsSeparatedByString:@":"] firstObject] // strip off any 'style=XXX' stuff
+            componentsSeparatedByString:@","] firstObject],         // and any multiple names
             traitName]; // and append "-Traits"
          NSFontTypeface *face=[[NSFontTypeface alloc] initWithName:name traitName:traitName traits:traits];
          [ret addObject:face];

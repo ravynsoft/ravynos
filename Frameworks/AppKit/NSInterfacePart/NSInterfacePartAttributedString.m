@@ -14,7 +14,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 @implementation NSInterfacePartAttributedString
 
 -initWithCharacter:(unichar)character fontName:(NSString *)fontName pointSize:(float)pointSize color:(NSColor *)color {
-   NSString     *string=[NSString stringWithCharacters:&character length:1];
+   NSString     *string=[NSString stringWithCharacters:&character length:4];
    NSFont       *font=[NSFont fontWithName:fontName size:pointSize];
    NSDictionary *attributes=[NSDictionary dictionaryWithObjectsAndKeys:
      font,NSFontAttributeName,
@@ -32,6 +32,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 -initWithMarlettCharacter:(unichar)character {
    return [self initWithCharacter:character fontName:@"Nimbus Sans-Regular" pointSize:10 color:[isa textColor]];
+}
+
+-initWithFACharacter:(unichar)character {
+   return [self initWithCharacter:character fontName:@"Font Awesome 5 Free-Solid" pointSize:10 color:[isa textColor]];
 }
 
 -(void)dealloc {
