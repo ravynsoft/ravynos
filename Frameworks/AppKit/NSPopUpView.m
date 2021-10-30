@@ -200,7 +200,7 @@ static const float kMenuInitialClickThreshold = .3f;
     _pullsDown=pullsDown;
 }
 
--(void)selectItemAtIndex:(int)index {
+-(void)selectItemAtIndex:(NSInteger)index {
     _selectedIndex=index;
     _initialSelectedIndex=index;
 }
@@ -463,7 +463,7 @@ partRect.size.width = __partSize.width;                              \
  * This method may return NSNotFound when the view positioned outside the initial tracking area due to preferredEdge settings and the user clicks the mouse.
  * The NSPopUpButtonCell code deals with it. It might make sense for this to return the previous value.
  */
--(int)runTrackingWithEvent:(NSEvent *)event {
+-(NSInteger)runTrackingWithEvent:(NSEvent *)event {
 	enum {
         STATE_FIRSTMOUSEDOWN,
         STATE_MOUSEDOWN,
@@ -602,12 +602,11 @@ partRect.size.width = __partSize.width;                              \
                 }
                 break;
         }
-        
     }while(cancelled == NO && state!=STATE_EXIT);
     [NSEvent stopPeriodicEvents];
     
     [[self window] setAcceptsMouseMovedEvents: oldAcceptsMouseMovedEvents];
-    
+
     _keyboardUIState = KEYBOARD_INACTIVE;
     
 	return (_selectedIndex == -1) ? NSNotFound : _selectedIndex;

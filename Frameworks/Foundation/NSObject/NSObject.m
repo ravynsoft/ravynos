@@ -366,40 +366,33 @@ static IMP objc_msg_forward(id rcv, SEL message) {
    return class_respondsToSelector(isa,selector);
 }
 
-
 -autorelease {
    return NSAutorelease(self);
 }
 
-
 +autorelease {
    return self;
 }
-
 
 -(oneway void)release {
    if(NSDecrementExtraRefCountWasZero(self))
     [self dealloc];
 }
 
-
 +(oneway void)release {
 }
-
 
 -retain {
    NSIncrementExtraRefCount(self);
    return self;
 }
 
-
 +retain {
    return self;
 }
 
-
 -(NSUInteger)retainCount {
-   return NSExtraRefCount(self);
+   return object_getRetainCount_np(self);
 }
 
 +(NSString *)className {

@@ -322,14 +322,14 @@ static inline id retain(id obj)
 extern "C" OBJC_PUBLIC void object_incrementExternalRefCount(id value)
 {
 	objc_retain_fast_np(value);
-//	fprintf(stderr,"object_incrementExternalRefCount %p = %d\n",value,object_getRetainCount_np(value));
+// 	fprintf(stderr,"object_incrementExternalRefCount %p = %d\n",value,object_getRetainCount_np(value));
 }
 
 
 extern "C" OBJC_PUBLIC void object_decrementExternalRefCount(id value)
 {
 	objc_release_fast_np(value);
-//	fprintf(stderr,"object_decrementExternalRefCount %p = %d\n",value,object_getRetainCount_np(value));
+// 	fprintf(stderr,"object_decrementExternalRefCount %p = %d\n",value,object_getRetainCount_np(value));
 }
 
 #define objc_DecrementExtraRefCountWasZero(object) objc_release_fast_no_destroy_np(object)
@@ -413,6 +413,7 @@ static inline void initAutorelease(void)
 		{
 			useARCAutoreleasePool = (0 != class_getInstanceMethod(AutoreleasePool,
 			                                                      SELECTOR(_ARCCompatibleAutoreleasePool)));
+//             printf("useARCAutoreleasePool = %d\n",useARCAutoreleasePool);
 			if (!useARCAutoreleasePool)
 			{
 				[AutoreleasePool class];
@@ -430,13 +431,13 @@ static inline void initAutorelease(void)
 extern "C" {
   void objc_autoreleasePoolAdd(struct arc_autorelease_pool *pool, id object)
   {
-	//fprintf(stderr, "autoreleasePoolAdd %p %d\n", pool, object);
+// 	fprintf(stderr, "autoreleasePoolAdd %p %d\n", pool, object);
   }
 }
 
 static inline id autorelease(id obj)
 {
-	//fprintf(stderr, "Autoreleasing %p\n", obj);
+// 	fprintf(stderr, "Autoreleasing %p (ARC %d)\n", obj, useARCAutoreleasePool);
 	if (useARCAutoreleasePool)
 	{
 		struct arc_tls *tls = getARCThreadData();

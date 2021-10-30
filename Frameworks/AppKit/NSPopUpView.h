@@ -28,6 +28,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 - (NSSize)sizeForContents;
 - (NSRect)rectForSelectedItem;
 
-- (int)runTrackingWithEvent:(NSEvent *)event;
+- (NSInteger)runTrackingWithEvent:(NSEvent *)event;
 
 @end

@@ -202,7 +202,7 @@ static NSString * const NSPopUpButtonBindingObservationContext=@"NSPopUpButtonBi
 }
 
 -(void)performClick:sender {
-
+   [self lockFocus];
    if([_cell trackMouse:[NSApp currentEvent] inRect:[self bounds] ofView:self untilMouseUp:YES]){
     NSMenuItem *item=[self selectedItem];
     SEL         action=[item action];
@@ -224,9 +224,11 @@ static NSString * const NSPopUpButtonBindingObservationContext=@"NSPopUpButtonBi
      target=[self target];
     }
 
-	   [NSApp sendAction:action to:target from: sender];
+    [NSApp sendAction:action to:target from: sender];
    }
-	
+
+   [self unlockFocus];
+
 }
 
 -(void)mouseDown:(NSEvent *)event {

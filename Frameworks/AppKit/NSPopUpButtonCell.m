@@ -518,7 +518,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
         }
 	}
     _selectedIndex = (itemIndex == NSNotFound) ? -1 : itemIndex;
-   [window close]; // release when closed=YES
+    [window close]; // release when closed=YES
 //	[[_menu delegate] menuDidClose: _menu];
 
    return itemIndex!=NSNotFound;

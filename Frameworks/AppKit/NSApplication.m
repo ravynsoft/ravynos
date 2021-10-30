@@ -594,13 +594,11 @@ id NSApp=nil;
 }
 
 -(void)_checkForAppActivation {
-#if 1
    if([self isActive])
     [_windows makeObjectsPerformSelector:@selector(_showForActivation)];
    else {
     [_windows makeObjectsPerformSelector:@selector(_hideForDeactivation)];
    }
-#endif
 }
 
 -(void)run {
@@ -612,17 +610,15 @@ id NSApp=nil;
 
   if (!didlaunch) {
     didlaunch = YES;
-//     pool=[NSAutoreleasePool new];
     [self finishLaunching];
-//     [pool release];
   }
 
   [dbusConnection performSelectorInBackground:@selector(run) withObject:nil];
    
    do {
-       pool = [NSAutoreleasePool new];
-       NSEvent           *event;
-
+    // There is another pool inside nextEventMatchingMask. Do we really need this one?
+    //pool = [NSAutoreleasePool new];
+    NSEvent           *event;
 
     event=[self nextEventMatchingMask:NSAnyEventMask untilDate:[NSDate distantFuture] inMode:NSDefaultRunLoopMode dequeue:YES];
 
@@ -636,7 +632,7 @@ id NSApp=nil;
     [self _checkForReleasedWindows];
     [self _checkForTerminate];
 
-    [pool release];
+    //[pool release];
    }while(_isRunning);
    [dbusConnection stop];
    [dbusMenu release];
@@ -684,7 +680,7 @@ id NSApp=nil;
    NS_DURING
     //[NSClassFromString(@"Win32RunningCopyPipe") performSelector:@selector(createRunningCopyPipe)];
 
-       // This should happen before _makeSureIsOnAScreen so we don't reposition done windows
+    // This should happen before _makeSureIsOnAScreen so we don't reposition done windows
     [self _checkForReleasedWindows];
 
     [[NSApp windows] makeObjectsPerformSelector:@selector(_makeSureIsOnAScreen)];

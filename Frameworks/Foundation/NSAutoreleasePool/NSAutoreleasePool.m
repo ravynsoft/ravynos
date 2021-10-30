@@ -48,7 +48,6 @@ id NSAutorelease(id object){
    [NSException raise:NSInvalidArgumentException format:@"-[NSAutoreleasePool retain] not allowed"];
    return nil;
 }
-
 // indicate this class is ARC compatible
 -(void)_ARCCompatibleAutoreleasePool {}
 

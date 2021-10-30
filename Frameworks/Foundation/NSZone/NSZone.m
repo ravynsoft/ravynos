@@ -23,7 +23,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 // NSZone functions implemented in platform subproject
 
 void NSIncrementExtraRefCount(id object) {
-    object_incrementExternalRefCount(object);
+    objc_retain_fast_np(object);
 }
 
 BOOL NSDecrementExtraRefCountWasZero(id object) {
@@ -31,7 +31,7 @@ BOOL NSDecrementExtraRefCountWasZero(id object) {
 }
 
 NSUInteger NSExtraRefCount(id object) {
-    return object_getRetainCount_np(object);
+    return object_getRetainCount_np(object) - 1;
 }
 
 BOOL NSShouldRetainWithZone(id object,NSZone *zone) {
@@ -50,11 +50,6 @@ id NSAllocateObject(Class class, NSUInteger extraBytes, NSZone *zone)
 {
     id result;
 
-    if (zone == NULL) {
-        zone = NSDefaultMallocZone();
-    }
-
-#if defined(__AIRYX__)
     // FIXME: make this support Zones
     result = class_createInstance(class, extraBytes);
     if(result != nil) {
@@ -63,23 +58,6 @@ id NSAllocateObject(Class class, NSUInteger extraBytes, NSZone *zone)
         }
     }
 
-#else
-    result = NSZoneCalloc(zone, 1, class_getInstanceSize(class) + extraBytes);
-
-    if (result) {
-	object_setClass(result, class);
-
-// constructor is called automatically by objc/runtime.c
-//        if (!call_cxx_construct_for_class(result->isa, result)) {
-//            NSZoneFree(zone, result);
-//            result = nil;
-//        }
-        if (__NSAllocateObjectHook) {
-            __NSAllocateObjectHook(result);
-        }
-    }
-#endif
-    
     return result;
 }
 
@@ -94,20 +72,13 @@ void NSDeallocateObject(id object)
     if (NSZombieEnabled) {
         NSRegisterZombie(object);
     } else {
-        NSZone *zone = NULL;
-
-        if (zone == NULL) {
-            zone = NSDefaultMallocZone();
-        }
 
 #if !defined(GCC_RUNTIME_3) && !defined(APPLE_RUNTIME_4)
         object->isa = 0;
 #endif
 
-#if defined(__AIRYX__)
-	object = (id)((uintptr_t)object-sizeof(uintptr_t));
-#endif
-        NSZoneFree(zone, object);
+//         object = (id)((uintptr_t)object-sizeof(uintptr_t));
+        object_dispose(object);
     }
 }
 

@@ -323,7 +323,7 @@ static int errorHandler(Display *display,XErrorEvent *errorEvent) {
 
 -(NSEvent *)nextEventMatchingMask:(unsigned)mask untilDate:(NSDate *)untilDate inMode:(NSString *)mode dequeue:(BOOL)dequeue {
    NSEvent *result;
-   
+
    [[NSRunLoop currentRunLoop] addInputSource:_inputSource forMode:mode];
    result=[super nextEventMatchingMask:mask untilDate:untilDate inMode:mode dequeue:dequeue];
    [[NSRunLoop currentRunLoop] removeInputSource:_inputSource forMode:mode];
