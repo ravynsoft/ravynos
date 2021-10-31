@@ -49,8 +49,6 @@
 
 - (IBAction)proceedToDiskList:(id)sender {
     NSFont *font = [NSFont systemFontOfSize:12.0];
-    font = [[NSFontManager sharedFontManager] convertFont:font
-        toNotHaveTrait:NSItalicFontMask];
     NSMutableDictionary *attr = [NSMutableDictionary
         dictionaryWithObjects:@[font, [NSColor blackColor]]
         forKeys:@[NSFontAttributeName, NSForegroundColorAttributeName]];
@@ -124,8 +122,6 @@
 
 - (IBAction)proceedToUserInfo:(id)sender {
     NSFont *font = [NSFont systemFontOfSize:12.0];
-    font = [[NSFontManager sharedFontManager] convertFont:font
-        toNotHaveTrait:NSItalicFontMask];
     NSMutableDictionary *attr = [NSMutableDictionary
         dictionaryWithObjects:@[font, [NSColor blackColor]]
         forKeys:@[NSFontAttributeName, NSForegroundColorAttributeName]];
@@ -138,9 +134,8 @@
         attributes:attr]];
 
     if([[[_timeZones menu] itemArray] count] < 2) {
-        //NSArray *zones = @[@"America", @"Asia", @"Atlantic", @"Australia", @"Europe",
-        //    @"Indian", @"Pacific", @"UTC", @"Zulu"];
-        NSArray *zones = @[@"Atlantic",@"Zulu"];
+        NSArray *zones = @[@"America", @"Asia", @"Atlantic", @"Australia", @"Europe",
+            @"Indian", @"Pacific", @"UTC", @"Zulu"];
         NSFileManager *fm = [NSFileManager defaultManager];
         NSEnumerator *dirs = [zones objectEnumerator];
         NSString *dir;
@@ -163,15 +158,23 @@
         }
     }
     
-    if(selectedTimeZone) {
-        NSLog(@"selected time zone is %@",selectedTimeZone);
+    if(selectedTimeZone)
         [_timeZones selectItemWithTitle:selectedTimeZone];
-        [_timeZones synchronizeTitleAndSelectedItem];
-    }
+    else
+        [_timeZones selectItemWithTitle:@"UTC"];
+    [_timeZones synchronizeTitleAndSelectedItem];
 
+#ifdef __AIRYX__
+    [[_scrollView contentView] release];
+#endif
+
+    NSClipView *clip = [NSClipView new];
+    [clip setDocumentView:_userInfoView];
+    [_scrollView setContentView:clip];
     [_scrollView setAutohidesScrollers:YES];
-    [[_scrollView contentView] setDocumentView:_userInfoView];
-    [_userInfoView becomeKey];
+    [[_scrollView documentView] scrollPoint:
+        NSMakePoint(0,[_userInfoView bounds].size.height)];
+
     [_BackButton setAction:@selector(proceedToDiskList:)];
     [_BackButton setEnabled:YES];
     [_NextButton setAction:@selector(validateUserInfo:)];
@@ -179,8 +182,6 @@
 
 - (IBAction)validateUserInfo:(id)sender {
     NSFont *font = [NSFont systemFontOfSize:12.0];
-    font = [[NSFontManager sharedFontManager] convertFont:font
-        toNotHaveTrait:NSItalicFontMask];
     NSMutableDictionary *attr = [NSMutableDictionary
         dictionaryWithObjects:@[font, [NSColor blackColor]]
         forKeys:@[NSFontAttributeName, NSForegroundColorAttributeName]];
@@ -195,7 +196,7 @@
         toHaveTrait:NSBoldFontMask];
     [attr setObject:font forKey:NSFontAttributeName];
     [textStorage appendAttributedString:[[NSAttributedString alloc]
-        initWithString:@"All contents of the selected disk will be ERASED if you proceed!" // FIXME: localize
+        initWithString:@"WARNING: All contents of the selected disk will be ERASED if you proceed!" // FIXME: localize
         attributes:attr]];
 
     [self fullNameEditingDidFinish:_fullName];
@@ -203,7 +204,6 @@
     [self passwordEditingDidFinish:_password];
     [self hostNameEditingDidFinish:_hostName];
 
-    NSLog(@"validate: selected time zone is %@",selectedTimeZone);
     if(selectedTimeZone == nil)
         selectedTimeZone = @"UTC";
 
@@ -215,18 +215,49 @@
     GSGeomDisk *disk = [disks objectAtIndex:selectedDisk];
     [_confirmDisk setStringValue:[NSString stringWithFormat:@"%@ (%@, %@)", [disk name],
         formatMediaSize([disk mediaSize]), [disk mediaDescription]]];
-    [[_scrollView contentView] setDocumentView:_infoConfirmationView];
+
+#ifdef __AIRYX__
+    [[_scrollView contentView] release];
+#endif
+    NSClipView *clip = [NSClipView new];
+    [clip setDocumentView:_infoConfirmationView];
+    [_scrollView setContentView:clip];
+    [[_scrollView documentView] scrollPoint:
+        NSMakePoint(0,[_userInfoView bounds].size.height)];
+    [_scrollView setAutohidesScrollers:YES];
+
     [_BackButton setAction:@selector(proceedToUserInfo:)];
-//     [_NextButton setAction:@selector(proceedToInstall:)];
-     [_NextButton setAction:@selector(proceedToFinalize:)];
+    [_NextButton setAction:@selector(proceedToInstall:)];
 }
 
 - (IBAction)proceedToFinalize:(id)sender {
-    NSLog(@"finalizing");
     [_NextButton setAction:@selector(terminate:)];
     [_NextButton setTarget:NSApp];
     [_NextButton setTitle:@"Quit"];
-    // FIXME: display "all done" screen
+    [_BackButton setHidden:YES];
+    [_CancelButton setHidden:YES];
+
+    NSFont *font = [NSFont systemFontOfSize:12.0];
+    NSMutableDictionary *attr = [NSMutableDictionary
+        dictionaryWithObjects:@[font, [NSColor blackColor]]
+        forKeys:@[NSFontAttributeName, NSForegroundColorAttributeName]];
+
+    NSAttributedString *rest = [[NSAttributedString alloc]
+        initWithString:@" Review the log below for any errors."
+        "You can Quit this application when you are finished.\n\nRemove the installation"
+        " media and restart to try your new system." // FIXME: localize
+        attributes:attr];
+
+    font = [[NSFontManager sharedFontManager] convertFont:font
+        toHaveTrait:NSBoldFontMask];
+    [attr setObject:font forKey:NSFontAttributeName];
+
+    NSTextStorage *textStorage = [[[_instructionsView contentView]
+        documentView] textStorage];
+    [textStorage setAttributedString:[[NSAttributedString alloc]
+        initWithString:@"Installation has finished!" // FIXME: localize
+        attributes:attr]];
+    [textStorage appendAttributedString:rest];
 }
 
 - (void)deviceSelected:(NSNotification *)aNotification {
@@ -236,7 +267,6 @@
 
 - (IBAction)timeZoneSelected:(id)sender {
     selectedTimeZone = [sender titleOfSelectedItem];
-    NSLog(@"selection complete - time zone is %@",selectedTimeZone);
 }
 
 - (IBAction)hostNameEditingDidFinish:(id)sender {
@@ -259,17 +289,23 @@
     NSString *user;
     NSString *host;
 
-    if([name count] > 1) {
+    switch([name count]) {
+    case 0:
+        user = [sender stringValue];
+        host = @"Airyx";
+        break;
+    case 1:
+        user = [sender stringValue];
+        host = [user stringByAppendingString:@"-Airyx"];
+        break;
+    default:
         user = [NSString stringWithFormat:@"%@%@",
             [[name firstObject] substringToIndex:1],
             [name lastObject]];
         host = [[name componentsJoinedByString:@"-"]
                 stringByAppendingString:@"-Airyx"];
-    } else {
-        user = [name firstObject];
-        host = @"Airyx";
     }
-    
+
     if(!userDidEditUserName) {
         [_userName setStringValue:[[user lowercaseString]
             substringWithRange:NSMakeRange(0,MIN(8, [user length]))]];
@@ -305,26 +341,32 @@
     [disk setDelegate:self];
 
     [self appendInstallLog:[NSString
-        stringWithFormat:@"Clearing disk %@\n", [disk name]]];
+        stringWithFormat:@"Clearing disk %@\n", [disk name]] bold:YES];
     [disk createGPT];
-    [self appendInstallLog:@"Creating partitions\n"];
+    [self appendInstallLog:@"Creating partitions\n" bold:YES];
     [disk createPartitions];
-    [self appendInstallLog:@"Creating volumes\n"];
+    [self appendInstallLog:@"Creating volumes\n" bold:YES];
     [disk createPools];
-    [self appendInstallLog:@"Installing EFI loader\n"];
+    [self appendInstallLog:@"Installing EFI loader\n" bold:YES];
     [disk initializeEFI];
-    [self appendInstallLog:@"Installing files\n"];
+    [self appendInstallLog:@"Installing files\n" bold:YES];
     [disk copyFilesystem];
+    [self appendInstallLog:@"Configuring installed system\n" bold:YES];
+    [disk finalizeInstallation];
 
     [_NextButton setAction:@selector(proceedToFinalize:)];
     [_NextButton setEnabled:YES];
     [_NextButton performClick:self];
 }
 
-- (void)appendInstallLog:(NSString *)text {
+- (void)proceed {
+    [_NextButton performClick:self];
+}
+
+- (void)appendInstallLog:(NSString *)text bold:(BOOL)bold {
     NSFont *font = [NSFont systemFontOfSize:12.0];
-    font = [[NSFontManager sharedFontManager] convertFont:font
-        toNotHaveTrait:NSItalicFontMask];
+    if(bold)
+        font = [[NSFontManager sharedFontManager] convertFont:font toHaveTrait:NSBoldFontMask];
     NSDictionary *attr = [NSDictionary
         dictionaryWithObjects:@[font, [NSColor blackColor]]
         forKeys:@[NSFontAttributeName, NSForegroundColorAttributeName]];
@@ -335,6 +377,31 @@
         [ts setAttributedString:string];
     else
         [ts appendAttributedString:string];
+    [_scrollView setNeedsDisplay:YES];
+}
+
+- (void)appendInstallLog:(NSString *)text {
+    [self appendInstallLog:text bold:NO];
+}
+
+- (NSString *)userInfoHostName {
+    return UserInfoHostName;
+}
+
+- (NSString *)userInfoUserName {
+    return UserInfoUserName;
+}
+
+- (NSString *)userInfoFullName {
+    return UserInfoFullName;
+}
+
+- (NSString *)userInfoPassword {
+    return UserInfoPassword;
+}
+
+- (NSString *)timeZone {
+    return selectedTimeZone;
 }
 
 - (void)fileHandleReadDidComplete:(NSNotification *)aNotification {
@@ -348,7 +415,7 @@
 
 - (void)applicationWillTerminate:(NSNotification *)aNotification {
     // Insert code here to tear down your application
-    NSLog(@"will terminate");
+    //NSLog(@"will terminate");
 }
 
 

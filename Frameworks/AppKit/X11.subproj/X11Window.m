@@ -109,7 +109,7 @@ void CGNativeBorderFrameWidthsForStyle(unsigned styleMask,CGFloat *top,CGFloat *
    Atom atm=XInternAtom(_display, "WM_DELETE_WINDOW", False);
    XSetWMProtocols(_display, _window, &atm , 1);
 
-   if(!isPanel) {
+   if(styleMask & NSTitledWindowMask) {
     [self setProperty:@"_KDE_NET_WM_APPMENU_SERVICE_NAME" toValue:[[NSApp dbusConnection] name]];
     [self setProperty:@"_KDE_NET_WM_APPMENU_OBJECT_PATH" toValue:[[NSApp dbusMenu] objectPath]];
     [[NSApp dbusMenu] registerWindow:_window];

@@ -303,7 +303,7 @@ NSString *formatMediaSize(long bytes) {
 #ifdef __AIRYX__
   @autoreleasepool {
     mkdir("/tmp/pool",0700);
-    NSString *cmd = [[NSString stringWithFormat:@"create -R /tmp/pool -O mountpoint=/ -O atime=off -O canmount=off -O compression=on %s %@p3", ZFS_POOL_NAME, _name] autorelease];
+    NSString *cmd = [[NSString stringWithFormat:@"create -f -R /tmp/pool -O mountpoint=/ -O atime=off -O canmount=off -O compression=on %s %@p3", ZFS_POOL_NAME, _name] autorelease];
     runCommand(ZPOOL_CMD, [cmd UTF8String]);
 
     cmd = [[NSString stringWithFormat:@"create -o canmount=off -o mountpoint=none %s/ROOT", ZFS_POOL_NAME, _name] autorelease];
@@ -389,15 +389,67 @@ NSString *formatMediaSize(long bytes) {
     [entries addObject:@"root_rw_mount=\"YES\""];
     [entries addObject:@"zfs_enable=\"YES\""];
     [entries addObject:@"zfsd_enable=\"YES\""];
-    [entries addObject:[NSString stringWithFormat:@"hostname=\"%s\"", "airyxSystem"]]; // FIXME: read this from user
+    [entries addObject:[NSString stringWithFormat:@"hostname=\"%@\"",
+        [_delegate userInfoHostName]]];
 
     for(int x = 0; x < [entries count]; ++x) {
-        FILE *fp = popen("/usr/sbin/sysrc -f /tmp/pool/etc/rc.conf", "w");
+        FILE *fp = popen("/usr/bin/xargs /usr/sbin/sysrc -f /tmp/pool/etc/rc.conf", "w");
         fprintf(fp, "%s", [[entries objectAtIndex:x] UTF8String]);
         pclose(fp);
     }
 
     unlink("/tmp/pool/var/initgfx_config.id");
+
+    [entries removeAllObjects];
+    [entries addObjectsFromArray:@[
+        @"boot_mute=\"YES\"\n",
+        @"beastie_disable=\"YES\"\n",
+        @"autoboot_delay=\"3\"\n",
+        @"hw.psm.elantech_support=\"1\"\n",
+        @"hw.psm.synaptics_support=\"1\"\n",
+        @"vfs.root.mountfrom.options=\"rw\"\n",
+        @"zfs_load=\"YES\"\n"
+    ]];
+    [entries addObject:[NSString stringWithFormat:
+        @"vfs.root.mountfrom=\"zfs:%s/ROOT/default\"\n", ZFS_POOL_NAME]];
+
+    int loader = open("/tmp/pool/boot/loader.conf", O_CREAT|O_RDWR, 0644);
+    if(loader) {
+        lseek(loader, 0, SEEK_END);
+        for(int x = 0; x < [entries count]; ++x) {
+            NSString *line = [entries objectAtIndex:x];
+            write(loader, [line cString], [line length]);
+        }
+        close(loader);
+    }
+
+    NSString *username = [_delegate userInfoUserName];
+    NSString *userinfo = [NSString stringWithFormat:
+        @"%@::::::%@:/Users/%@:/usr/bin/zsh:%@",
+        username, [_delegate userInfoFullName],
+        username, [_delegate userInfoPassword]];
+    NSString *tz = [NSString stringWithFormat:@"/usr/share/zoneinfo/%@",
+        [_delegate timeZone]];
+
+    // exec this in the new system, not the install media
+    if(fork() == 0) {
+        chdir("/tmp/pool");
+        chroot("/tmp/pool");
+        FILE *fp = popen("/usr/sbin/adduser -f -", "w");
+        fprintf(fp, "%s", [userinfo UTF8String]);
+        pclose(fp);
+
+        NSArray *groups = @[@"wheel",@"video",@"webcamd"];
+        for(int x = 0; x < 3; ++x) {
+            [userinfo initWithFormat:@"groupmod %@ -m %@",
+                [groups objectAtIndex:x], username];
+            runCommand("/usr/sbin/pw", [userinfo UTF8String]);
+        }
+
+        unlink("/etc/localtime");
+        link([tz UTF8String], "/etc/localtime");
+        exit(0);
+    }
 #endif
 }
 
@@ -408,16 +460,6 @@ NSString *formatMediaSize(long bytes) {
 -(void)setDelegate:(id)delegate {
     _delegate = delegate;
 }
-
-#if 0
--(void)configureLoader {
-    int loader = open("/tmp/pool/boot/loader.conf", O_CREAT|O_RDWR, 0644);
-cat >> /boot/loader.conf <<END
-zfs_load="YES"
-vfs.root.mountfrom="zfs:airyxOS/ROOT/default"
-END
-}
-#endif
 
 -(NSString *)description {
     return [NSString stringWithFormat:@"<%@:%08x> type:%d name:%@ size:%ld",[self class],self,_type,_name,_mediaSize];

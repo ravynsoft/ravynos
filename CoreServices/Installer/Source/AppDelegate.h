@@ -69,6 +69,17 @@
 - (IBAction)hostNameEditingDidFinish:(id)sender;
 - (IBAction)timeZoneSelected:(id)sender;
 
+- (void)appendInstallLog:(NSString *)text bold:(BOOL)bold;
+- (void)appendInstallLog:(NSString *)text;
+
+
+- (NSString *)userInfoHostName;
+- (NSString *)userInfoUserName;
+- (NSString *)userInfoFullName;
+- (NSString *)userInfoPassword;
+- (NSString *)timeZone;
+- (void)proceed;
+
 - (void)deviceSelected:(NSNotification *)aNotification;
 - (void)fileHandleReadDidComplete:(NSNotification *)aNotification;
 
