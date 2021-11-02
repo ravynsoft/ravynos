@@ -37,6 +37,7 @@
     NSString *UserInfoUserName;
     NSString *UserInfoPassword;
     NSString *UserInfoHostName;
+    NSTimer *_updateTimer;
 }
 
 @property (strong) IBOutlet NSWindow *mainWindow;

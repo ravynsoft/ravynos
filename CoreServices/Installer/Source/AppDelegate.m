@@ -335,31 +335,30 @@
     [clip setDocumentView:v];
 
     [_scrollView setContentView:clip];
-    [_scrollView setAutohidesScrollers:YES];
+    [_scrollView setAutohidesScrollers:NO];
+    [_NextButton setAction:@selector(proceedToFinalize:)];
 
     GSGeomDisk *disk = [disks objectAtIndex:selectedDisk];
     [disk setDelegate:self];
 
-    [self appendInstallLog:[NSString
-        stringWithFormat:@"Clearing disk %@\n", [disk name]] bold:YES];
-    [disk createGPT];
-    [self appendInstallLog:@"Creating partitions\n" bold:YES];
-    [disk createPartitions];
-    [self appendInstallLog:@"Creating volumes\n" bold:YES];
-    [disk createPools];
-    [self appendInstallLog:@"Installing EFI loader\n" bold:YES];
-    [disk initializeEFI];
-    [self appendInstallLog:@"Installing files\n" bold:YES];
-    [disk copyFilesystem];
-    [self appendInstallLog:@"Configuring installed system\n" bold:YES];
-    [disk finalizeInstallation];
+    _updateTimer = [[NSTimer timerWithTimeInterval:0.7
+        target:self selector:@selector(redisplay:) userInfo:nil
+        repeats:YES] retain];
+    [[NSRunLoop currentRunLoop] addTimer:_updateTimer forMode:NSDefaultRunLoopMode];
+    [disk performSelectorInBackground:@selector(runInstall) withObject:nil];
+}
 
-    [_NextButton setAction:@selector(proceedToFinalize:)];
-    [_NextButton setEnabled:YES];
-    [_NextButton performClick:self];
+- (void)redisplay:(id)sender {
+    [[_scrollView documentView] setNeedsDisplay:YES];
 }
 
 - (void)proceed {
+    if(_updateTimer != nil) {
+        [_updateTimer invalidate];
+        [_updateTimer release];
+        _updateTimer=nil;
+    }
+    [_NextButton setEnabled:YES];
     [_NextButton performClick:self];
 }
 
@@ -377,6 +376,8 @@
         [ts setAttributedString:string];
     else
         [ts appendAttributedString:string];
+    [[_scrollView documentView] scrollPoint:NSZeroPoint];
+    [[_scrollView documentView] setNeedsDisplay:YES];
     [_scrollView setNeedsDisplay:YES];
 }
 

@@ -302,7 +302,7 @@ NSString *formatMediaSize(long bytes) {
 -(void)createPools {
 #ifdef __AIRYX__
   @autoreleasepool {
-    mkdir("/tmp/pool",0700);
+    mkdir("/tmp/pool",0755);
     NSString *cmd = [[NSString stringWithFormat:@"create -f -R /tmp/pool -O mountpoint=/ -O atime=off -O canmount=off -O compression=on %s %@p3", ZFS_POOL_NAME, _name] autorelease];
     runCommand(ZPOOL_CMD, [cmd UTF8String]);
 
@@ -330,7 +330,7 @@ NSString *formatMediaSize(long bytes) {
 
 -(void)initializeEFI {
 #ifdef __AIRYX__
-    mkdir("/tmp/efi",0700);
+    mkdir("/tmp/efi",0755);
     runCommand("/sbin/mount_msdosfs", "/dev/gpt/efi /tmp/efi");
     mkdir("/tmp/efi/efi",0755);
     mkdir("/tmp/efi/efi/boot",0755);
@@ -394,7 +394,7 @@ NSString *formatMediaSize(long bytes) {
 
     for(int x = 0; x < [entries count]; ++x) {
         FILE *fp = popen("/usr/bin/xargs /usr/sbin/sysrc -f /tmp/pool/etc/rc.conf", "w");
-        fprintf(fp, "%s", [[entries objectAtIndex:x] UTF8String]);
+        fprintf(fp, "%s\n", [[entries objectAtIndex:x] UTF8String]);
         pclose(fp);
     }
 
@@ -436,14 +436,14 @@ NSString *formatMediaSize(long bytes) {
         chdir("/tmp/pool");
         chroot("/tmp/pool");
         FILE *fp = popen("/usr/sbin/adduser -f -", "w");
-        fprintf(fp, "%s", [userinfo UTF8String]);
+        fprintf(fp, "%s\n", [userinfo UTF8String]);
         pclose(fp);
 
         NSArray *groups = @[@"wheel",@"video",@"webcamd"];
         for(int x = 0; x < 3; ++x) {
-            [userinfo initWithFormat:@"groupmod %@ -m %@",
+            NSString *line = [NSString stringWithFormat:@"groupmod %@ -m %@",
                 [groups objectAtIndex:x], username];
-            runCommand("/usr/sbin/pw", [userinfo UTF8String]);
+            runCommand("/usr/sbin/pw", [line UTF8String]);
         }
 
         unlink("/etc/localtime");
@@ -459,6 +459,23 @@ NSString *formatMediaSize(long bytes) {
 
 -(void)setDelegate:(id)delegate {
     _delegate = delegate;
+}
+
+-(void)runInstall {
+    [_delegate appendInstallLog:[NSString
+        stringWithFormat:@"Clearing disk %@\n", [self name]] bold:YES];
+    [self createGPT];
+    [_delegate appendInstallLog:@"Creating partitions\n" bold:YES];
+    [self createPartitions];
+    [_delegate appendInstallLog:@"Creating volumes\n" bold:YES];
+    [self createPools];
+    [_delegate appendInstallLog:@"Installing EFI loader\n" bold:YES];
+    [self initializeEFI];
+    [_delegate appendInstallLog:@"Installing files\n" bold:YES];
+    [self copyFilesystem];
+    [_delegate appendInstallLog:@"Configuring installed system\n" bold:YES];
+    [self finalizeInstallation];
+    [_delegate performSelectorOnMainThread:@selector(proceed) withObject:nil];
 }
 
 -(NSString *)description {
