@@ -399,7 +399,6 @@ void closeLog() {
         _updateTimer=nil;
     }
     [spinner stopAnimation:nil];
-    [spinner removeFromSuperview];
     closeLog();
     [_NextButton setEnabled:YES];
     [_NextButton performClick:self];
