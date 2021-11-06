@@ -7,7 +7,7 @@ FRAMEWORKS=${SLF}/AppKit ${SLF}/CoreGraphics ${SLF}/Onyx2D ${SLF}/OpenGL \
 	${SLF}/Foundation ${SLF}/CoreFoundation ${SLF}/DBusKit
 LDFLAGS+=-lGL
 AIRYX_VERSION!= head -1 ../../version.txt
-CFLAGS+=-DAIRYX_VERSION=\"${AIRYX_VERSION}\"
+CFLAGS+=-g -DAIRYX_VERSION=\"${AIRYX_VERSION}\"
 
 clean:
 	rm -rf ${APP_DIR} "${APP_DIR:S/_/ /}"

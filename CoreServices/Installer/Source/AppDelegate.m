@@ -23,6 +23,21 @@
 #import "AppDelegate.h"
 #import "GSGeomDisk.h"
 
+#include <fcntl.h>
+
+int logfd = -1;
+
+void appendLog(NSData *data) {
+    if(logfd < 0)
+        logfd = open("/tmp/Installer_Log.txt", O_CREAT|O_RDWR, 0644);
+    write(logfd, [data bytes], [data length]);
+}
+
+void closeLog() {
+    if(logfd >= 0)
+        close(logfd);
+}
+
 @interface AppDelegate ()
 @end
 
@@ -30,6 +45,7 @@
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
     myBundle = [NSBundle mainBundle];
+    _updateTimer = nil;
     
     NSString *verLabel = [[_versionLabel stringValue] stringByReplacingOccurrencesOfString:@"X.X.X" withString:[NSString stringWithUTF8String:AIRYX_VERSION]];
     [_versionLabel setStringValue:verLabel];
@@ -219,12 +235,12 @@
 #ifdef __AIRYX__
     [[_scrollView contentView] release];
 #endif
+    [_scrollView setAutohidesScrollers:YES];
     NSClipView *clip = [NSClipView new];
     [clip setDocumentView:_infoConfirmationView];
     [_scrollView setContentView:clip];
     [[_scrollView documentView] scrollPoint:
         NSMakePoint(0,[_userInfoView bounds].size.height)];
-    [_scrollView setAutohidesScrollers:YES];
 
     [_BackButton setAction:@selector(proceedToUserInfo:)];
     [_NextButton setAction:@selector(proceedToInstall:)];
@@ -325,31 +341,55 @@
     [_BackButton setEnabled:NO];
     [_CancelButton setEnabled:NO];
 
-    NSTextView *v = [[NSTextView alloc] initWithFrame:[[_scrollView contentView] frame]];
 #ifdef __AIRYX__
     [[[_scrollView contentView] documentView] release];
-    [[_scrollView contentView] release];
 #endif
 
-    NSClipView *clip = [NSClipView new];
-    [clip setDocumentView:v];
+    NSSize contentSize = [_scrollView contentSize];
+    NSTextView *v = [[NSTextView alloc] initWithFrame:
+        NSMakeRect(0, 0, contentSize.width, contentSize.height)];
+    [v setMinSize:NSMakeSize(0.0, contentSize.height)];
+    [v setMaxSize:NSMakeSize(FLT_MAX, FLT_MAX)];
+    [v setVerticallyResizable:YES];
+    [v setHorizontallyResizable:NO];
+    [v setEditable:NO];
+    [v setAutoresizingMask:NSViewWidthSizable];
 
-    [_scrollView setContentView:clip];
+    [[v textContainer] setContainerSize:
+        NSMakeSize(contentSize.width, FLT_MAX)];
+    [[v textContainer] setWidthTracksTextView:YES];
+
+    [_scrollView setDocumentView:v];
     [_scrollView setAutohidesScrollers:NO];
     [_NextButton setAction:@selector(proceedToFinalize:)];
+
+    [[_scrollView window] makeFirstResponder:v];
 
     GSGeomDisk *disk = [disks objectAtIndex:selectedDisk];
     [disk setDelegate:self];
 
-    _updateTimer = [[NSTimer timerWithTimeInterval:0.7
+    _updateTimer = [[NSTimer timerWithTimeInterval:0.05
         target:self selector:@selector(redisplay:) userInfo:nil
         repeats:YES] retain];
     [[NSRunLoop currentRunLoop] addTimer:_updateTimer forMode:NSDefaultRunLoopMode];
+
+    spinner = [[NSProgressIndicator alloc] initWithFrame:
+    NSMakeRect(contentSize.width / 2 - 12, contentSize.height / 2 - 12, 24, 24)];
+    [spinner setControlSize:NSRegularControlSize];
+    [spinner setIndeterminate:YES];
+    [spinner setAnimationDelay:0.025];
+    [spinner setUsesThreadedAnimation:YES];
+    [spinner setStyle:NSProgressIndicatorSpinningStyle];
+    [v addSubview:spinner];
+    [spinner startAnimation:nil];
+
     [disk performSelectorInBackground:@selector(runInstall) withObject:nil];
 }
 
 - (void)redisplay:(id)sender {
-    [[_scrollView documentView] setNeedsDisplay:YES];
+    NSTextView *tv = [_scrollView documentView];
+    [tv scrollToEndOfDocument:nil];
+    [tv setNeedsDisplay:YES];
 }
 
 - (void)proceed {
@@ -358,11 +398,14 @@
         [_updateTimer release];
         _updateTimer=nil;
     }
+    [spinner stopAnimation:nil];
+    [spinner removeFromSuperview];
+    closeLog();
     [_NextButton setEnabled:YES];
     [_NextButton performClick:self];
 }
 
-- (void)appendInstallLog:(NSString *)text bold:(BOOL)bold {
+- (void)appendStatus:(NSString *)text bold:(BOOL)bold {
     NSFont *font = [NSFont systemFontOfSize:12.0];
     if(bold)
         font = [[NSFontManager sharedFontManager] convertFont:font toHaveTrait:NSBoldFontMask];
@@ -371,18 +414,15 @@
         forKeys:@[NSFontAttributeName, NSForegroundColorAttributeName]];
     NSAttributedString *string = [[NSAttributedString alloc] initWithString:text
         attributes:attr];
-    NSTextStorage *ts = [[[_scrollView contentView] documentView] textStorage];
-    if([ts length] == 0)
-        [ts setAttributedString:string];
-    else
-        [ts appendAttributedString:string];
-    [[_scrollView documentView] scrollPoint:NSZeroPoint];
-    [[_scrollView documentView] setNeedsDisplay:YES];
-    [_scrollView setNeedsDisplay:YES];
+
+    NSTextStorage *ts = [[_scrollView documentView] textStorage];
+    [ts beginEditing];
+    [ts appendAttributedString:string];
+    [ts endEditing];
 }
 
-- (void)appendInstallLog:(NSString *)text {
-    [self appendInstallLog:text bold:NO];
+- (void)appendStatus:(NSString *)text {
+    [self appendStatus:text bold:NO];
 }
 
 - (NSString *)userInfoHostName {
@@ -411,7 +451,7 @@
         return;
     NSString *text = [[NSString alloc] initWithData:data
         encoding:NSUTF8StringEncoding];
-    [self appendInstallLog:text];
+    appendLog(data);
 }
 
 - (void)applicationWillTerminate:(NSNotification *)aNotification {

@@ -21,10 +21,14 @@
  */
 
 #import <Cocoa/Cocoa.h>
+#include <pthread.h>
 
 #ifndef AIRYX_VERSION
 #define AIRYX_VERSION "0.1.2a"
 #endif
+
+void appendLog(NSData *data);
+void closeLog();
 
 @interface AppDelegate : NSObject <NSApplicationDelegate> {
     int selectedDisk; // table row = disks array index
@@ -38,6 +42,7 @@
     NSString *UserInfoPassword;
     NSString *UserInfoHostName;
     NSTimer *_updateTimer;
+    NSProgressIndicator *spinner;
 }
 
 @property (strong) IBOutlet NSWindow *mainWindow;
@@ -70,8 +75,8 @@
 - (IBAction)hostNameEditingDidFinish:(id)sender;
 - (IBAction)timeZoneSelected:(id)sender;
 
-- (void)appendInstallLog:(NSString *)text bold:(BOOL)bold;
-- (void)appendInstallLog:(NSString *)text;
+- (void)appendStatus:(NSString *)text bold:(BOOL)bold;
+- (void)appendStatus:(NSString *)text;
 
 
 - (NSString *)userInfoHostName;

@@ -22,6 +22,7 @@
 
 #import <AppKit/AppKit.h>
 #import "GSGeomDisk.h"
+#import "AppDelegate.h"
 
 #include <unistd.h>
 #include <string.h>
@@ -72,7 +73,8 @@ NSData *_runCommand(const char *tool, const char *args, id delegate) {
         close(filedesc[1]);
         return nil;
     } else { // parent
-        NSLog(@"Executing: %s %s",tool,args);
+        appendLog([[NSString stringWithFormat:@"Executing: %s %s\n",tool,args]
+            dataUsingEncoding:NSUTF8StringEncoding]);
         close(filedesc[1]);
         NSFileHandle *reader = [[NSFileHandle alloc] initWithFileDescriptor:filedesc[0]];
         if(delegate == nil) {
@@ -277,9 +279,9 @@ NSString *formatMediaSize(long bytes) {
 
   @autoreleasepool {
     NSString *cmd = [[NSString stringWithFormat:@"destroy %@", _name] autorelease];
-    runCommand(GPART_CMD, [cmd UTF8String]);
+    appendLog(runCommand(GPART_CMD, [cmd UTF8String]));
     cmd = [[NSString stringWithFormat:@"create -s gpt %@", _name] autorelease];
-    runCommand(GPART_CMD, [cmd UTF8String]);
+    appendLog(runCommand(GPART_CMD, [cmd UTF8String]));
   }
 #endif
 }
@@ -288,13 +290,13 @@ NSString *formatMediaSize(long bytes) {
 #ifdef __AIRYX__
   @autoreleasepool {
     NSString *cmd = [[NSString stringWithFormat:@"add -t efi -s 1m -l efi %@", _name] autorelease];
-    runCommand(GPART_CMD, [cmd UTF8String]);
+    appendLog(runCommand(GPART_CMD, [cmd UTF8String]));
     cmd = [[NSString stringWithFormat:@"/dev/gpt/efi"] autorelease];
-    runCommand("/sbin/newfs_msdos", [cmd UTF8String]);
+    appendLog(runCommand("/sbin/newfs_msdos", [cmd UTF8String]));
     cmd = [[NSString stringWithFormat:@"add -t freebsd-swap -l swap -a 1m -s 4096m %@", _name] autorelease];
-    runCommand(GPART_CMD, [cmd UTF8String]);
+    appendLog(runCommand(GPART_CMD, [cmd UTF8String]));
     cmd = [[NSString stringWithFormat:@"add -t freebsd-zfs -l %s -a 1m %@", ZFS_POOL_NAME, _name] autorelease];
-    runCommand(GPART_CMD, [cmd UTF8String]);
+    appendLog(runCommand(GPART_CMD, [cmd UTF8String]));
   }
 #endif
 }
@@ -304,26 +306,26 @@ NSString *formatMediaSize(long bytes) {
   @autoreleasepool {
     mkdir("/tmp/pool",0755);
     NSString *cmd = [[NSString stringWithFormat:@"create -f -R /tmp/pool -O mountpoint=/ -O atime=off -O canmount=off -O compression=on %s %@p3", ZFS_POOL_NAME, _name] autorelease];
-    runCommand(ZPOOL_CMD, [cmd UTF8String]);
+    appendLog(runCommand(ZPOOL_CMD, [cmd UTF8String]));
 
     cmd = [[NSString stringWithFormat:@"create -o canmount=off -o mountpoint=none %s/ROOT", ZFS_POOL_NAME, _name] autorelease];
-    runCommand(ZFS_CMD, [cmd UTF8String]);
+    appendLog(runCommand(ZFS_CMD, [cmd UTF8String]));
     cmd = [[NSString stringWithFormat:@"create -o mountpoint=/ %s/ROOT/default", ZFS_POOL_NAME] autorelease];
-    runCommand(ZFS_CMD, [cmd UTF8String]);
+    appendLog(runCommand(ZFS_CMD, [cmd UTF8String]));
 
     NSArray *volumes = [NSArray arrayWithObjects:@"/Users",@"/usr/local",@"/usr/obj",@"/usr/src",@"/usr/ports",@"/usr/ports/distfiles",@"/tmp",@"/var/jail",@"/var/log",@"/var/tmp",nil];
     cmd = [[NSString stringWithFormat:@"create -o canmount=off %s/usr", ZFS_POOL_NAME] autorelease];
-    runCommand(ZFS_CMD, [cmd UTF8String]);
+    appendLog(runCommand(ZFS_CMD, [cmd UTF8String]));
     cmd = [[NSString stringWithFormat:@"create -o canmount=off %s/var", ZFS_POOL_NAME] autorelease];
-    runCommand(ZFS_CMD, [cmd UTF8String]);
+    appendLog(runCommand(ZFS_CMD, [cmd UTF8String]));
 
     for(int x = 0; x < [volumes count]; ++x) {
         cmd = [[NSString stringWithFormat:@"create %s%@", ZFS_POOL_NAME, [volumes objectAtIndex:x]] autorelease];
-        runCommand(ZFS_CMD, [cmd UTF8String]);
+        appendLog(runCommand(ZFS_CMD, [cmd UTF8String]));
     }
 
     cmd = [[NSString stringWithFormat:@"set bootfs=%s/ROOT/default %s", ZFS_POOL_NAME, ZFS_POOL_NAME] autorelease];
-    runCommand(ZPOOL_CMD, [cmd UTF8String]);
+    appendLog(runCommand(ZPOOL_CMD, [cmd UTF8String]));
   }
 #endif
 }
@@ -360,25 +362,25 @@ NSString *formatMediaSize(long bytes) {
 -(void)finalizeInstallation {
 #ifdef __AIRYX__
     setenv("BSDINSTALL_CHROOT", "/tmp/pool", 1);
-    runCommand("/usr/sbin/bsdinstall", "config");
-    runCommand("/usr/sbin/bsdinstall", "entropy");
+    appendLog(runCommand("/usr/sbin/bsdinstall", "config"));
+    appendLog(runCommand("/usr/sbin/bsdinstall", "entropy"));
 
     // prevent root logins but allow 'sudo su'
-    runCommand("/usr/sbin/pw", "-R /tmp/pool usermod -n root -h -");
+    appendLog(runCommand("/usr/sbin/pw", "-R /tmp/pool usermod -n root -h -"));
 
     // get rid of liveuser
-    runCommand("/usr/sbin/pw", "-R /tmp/pool userdel -n liveuser");
-    runCommand("/usr/sbin/pw", "-R /tmp/pool groupdel -n liveuser");
-    runCommand("/bin/rm", "-rf /tmp/pool/Users/liveuser");
+    appendLog(runCommand("/usr/sbin/pw", "-R /tmp/pool userdel -n liveuser"));
+    appendLog(runCommand("/usr/sbin/pw", "-R /tmp/pool groupdel -n liveuser"));
+    appendLog(runCommand("/bin/rm", "-rf /tmp/pool/Users/liveuser"));
 
     // can't use runCommand here because we split the arg string by spaces
-    const char *args[3] = {
-        "-rf", "/tmp/pool/Applications/Utilities/Install airyxOS.app", NULL };
+    const char *args[4] = {
+        "/bin/rm", "-rf", "/tmp/pool/Applications/Utilities/Install airyxOS.app", NULL };
     if(fork() == 0)
-        execv("/bin/rm", args);
+        execv(args[0], args);
 
-    runCommand("/usr/sbin/pkg", "-c /tmp/pool remove -y furybsd-live-settings");
-    runCommand("/usr/sbin/pkg", "-c /tmp/pool remove -y freebsd-installer");
+    appendLog(runCommand("/usr/sbin/pkg", "-c /tmp/pool remove -y furybsd-live-settings"));
+    appendLog(runCommand("/usr/sbin/pkg", "-c /tmp/pool remove -y freebsd-installer"));
 
     // update rc.conf on the installed system
     unlink("/tmp/pool/etc/rc.conf.local");
@@ -462,20 +464,20 @@ NSString *formatMediaSize(long bytes) {
 }
 
 -(void)runInstall {
-    [_delegate appendInstallLog:[NSString
+    [_delegate appendStatus:[NSString
         stringWithFormat:@"Clearing disk %@\n", [self name]] bold:YES];
     [self createGPT];
-    [_delegate appendInstallLog:@"Creating partitions\n" bold:YES];
+    [_delegate appendStatus:@"Creating partitions\n" bold:YES];
     [self createPartitions];
-    [_delegate appendInstallLog:@"Creating volumes\n" bold:YES];
+    [_delegate appendStatus:@"Creating volumes\n" bold:YES];
     [self createPools];
-    [_delegate appendInstallLog:@"Installing EFI loader\n" bold:YES];
+    [_delegate appendStatus:@"Installing EFI loader\n" bold:YES];
     [self initializeEFI];
-    [_delegate appendInstallLog:@"Installing files\n" bold:YES];
+    [_delegate appendStatus:@"Installing files\n" bold:YES];
     [self copyFilesystem];
-    [_delegate appendInstallLog:@"Configuring installed system\n" bold:YES];
+    [_delegate appendStatus:@"Configuring installed system\n" bold:YES];
     [self finalizeInstallation];
-    [_delegate performSelectorOnMainThread:@selector(proceed) withObject:nil];
+    [_delegate proceed];
 }
 
 -(NSString *)description {
