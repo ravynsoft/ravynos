@@ -25,6 +25,7 @@ enum {
 
 @implementation NSPopUpView
 
+
 // If the user clicks and holds on a popup menu and then releases
 // the app should just dismiss the popup and reselect the current value.
 // If the user clicks and immediately releases the popup menu should remain
@@ -80,7 +81,7 @@ static const float kMenuInitialClickThreshold = .3f;
     BOOL useCustomFont = _font != nil;
     if (useCustomFont) {
         // If we have the default font, then really use the default menu one instead of forcing it
-        if ([_font isEqual:[NSFont fontWithName:@"Nimbus Sans" size:9.]]) {
+        if ([_font isEqual:[NSFont fontWithName:@"Nimbus Sans-Regular" size:12.]]) {
             useCustomFont = NO;
         }
     }
@@ -147,12 +148,15 @@ static const float kMenuInitialClickThreshold = .3f;
 	// Add the left+right and bottom borders
 	result.width += WINDOW_BORDER_THICKNESS*2;
 	result.height += WINDOW_BORDER_THICKNESS;
+
+    // Normalize the items widths to the pulldown or menu width,
+    // whichever is wider
+	result.width = MAX(_cellSize.width, result.width);
 	
     if (_cachedItemRects == nil && [items isEqual:[self visibleItemArray]]) {
         // Build our cached item rects
         _cachedItemRects = [[NSMutableArray arrayWithCapacity: count] retain];
         for (int i = 0; i < count; ++i) {
-            // Normalize the items widths to the menu widths
             rects[i].size.width = result.width;
             [_cachedItemRects addObject:[NSValue valueWithRect:rects[i]]];
         }
@@ -196,7 +200,7 @@ static const float kMenuInitialClickThreshold = .3f;
     _pullsDown=pullsDown;
 }
 
--(void)selectItemAtIndex:(int)index {
+-(void)selectItemAtIndex:(NSInteger)index {
     _selectedIndex=index;
     _initialSelectedIndex=index;
 }
@@ -223,18 +227,20 @@ static const float kMenuInitialClickThreshold = .3f;
 -(NSRect)rectForItemAtIndex:(NSInteger)index {
 	NSRect result = [[[self _cachedItemRects] objectAtIndex: index] rectValue];
     // Be sure we cover the full view width
-    result.size.width = self.bounds.size.width;
+    result.size.width = _cellSize.width; //self.bounds.size.width;
     return result;
 }
 
 -(NSRect)rectForSelectedItem {
+    NSRect r;
     if(_pullsDown) {
-        return NSZeroRect;
+        r= NSZeroRect;
     } else if(_selectedIndex==-1) {
-        return [self rectForItemAtIndex:0];
+        r= [self rectForItemAtIndex:0];
     } else {
-        return [self rectForItemAtIndex:_selectedIndex];
+        r= [self rectForItemAtIndex:_selectedIndex];
     }
+    return r;
 }
 
 static NSRect boundsToTitleAreaRect(NSRect rect){
@@ -252,7 +258,7 @@ static NSRect boundsToTitleAreaRect(NSRect rect){
     BOOL useCustomFont = _font != nil;
     if (useCustomFont) {
         // If we have the default font, then really use the default menu one instead of forcing it
-        if ([_font isEqual:[NSFont fontWithName:@"Nimbus Sans" size:9.]]) {
+        if ([_font isEqual:[NSFont fontWithName:@"Nimbus Sans-Regular" size:12.]]) {
             useCustomFont = NO;
         }
     }
@@ -457,14 +463,14 @@ partRect.size.width = __partSize.width;                              \
  * This method may return NSNotFound when the view positioned outside the initial tracking area due to preferredEdge settings and the user clicks the mouse.
  * The NSPopUpButtonCell code deals with it. It might make sense for this to return the previous value.
  */
--(int)runTrackingWithEvent:(NSEvent *)event {
+-(NSInteger)runTrackingWithEvent:(NSEvent *)event {
 	enum {
         STATE_FIRSTMOUSEDOWN,
         STATE_MOUSEDOWN,
         STATE_MOUSEUP,
         STATE_EXIT
     } state=STATE_FIRSTMOUSEDOWN;
-    NSPoint firstLocation,point=[NSEvent mouseLocation];
+    NSPoint firstLocation,point=[event locationInWindow];
     NSInteger initialSelectedIndex = _selectedIndex;
     firstLocation = point;
     
@@ -533,24 +539,24 @@ partRect.size.width = __partSize.width;                              \
         if (mouseMoved == NO) {
             mouseMoved = ABS(point.x-firstLocation.x) > 2. || ABS(point.y-firstLocation.y) > 2.;
         }
-        
+
 
         if (NSPointInRect(point,[[self window] frame])) {
             if (!NSPointInRect(point,screenVisible)){
-                // The point is inside the menu, and on the top or bottom border of the screen - let's autoscroll
+//              The point is inside the menu, and on the top or bottom border of the screen - let's autoscroll
                 NSPoint origin=[[self window] frame].origin;
                 BOOL    change=NO;
-                
+
                 if(point.y<NSMinY(screenVisible)){
                     origin.y+=_cellSize.height;
                     change=YES;
                 }
-                
+
                 if(point.y>NSMaxY(screenVisible)){
                     origin.y-=_cellSize.height;
                     change=YES;
                 }
-                
+
                 if(change)
                     [[self window] setFrameOrigin:origin];
             }
@@ -596,12 +602,11 @@ partRect.size.width = __partSize.width;                              \
                 }
                 break;
         }
-        
     }while(cancelled == NO && state!=STATE_EXIT);
     [NSEvent stopPeriodicEvents];
     
     [[self window] setAcceptsMouseMovedEvents: oldAcceptsMouseMovedEvents];
-    
+
     _keyboardUIState = KEYBOARD_INACTIVE;
     
 	return (_selectedIndex == -1) ? NSNotFound : _selectedIndex;

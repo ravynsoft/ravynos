@@ -21,43 +21,441 @@
  */
 
 #import "AppDelegate.h"
+#import "GSGeomDisk.h"
+
+#include <fcntl.h>
+
+int logfd = -1;
+
+void appendLog(NSData *data) {
+    if(logfd < 0)
+        logfd = open("/tmp/Installer_Log.txt", O_CREAT|O_RDWR, 0644);
+    write(logfd, [data bytes], [data length]);
+}
+
+void closeLog() {
+    if(logfd >= 0)
+        close(logfd);
+}
 
 @interface AppDelegate ()
-
-@property (strong) IBOutlet NSWindow *window;
 @end
 
 @implementation AppDelegate
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
-    // Insert code here to initialize your application
-    [_window setBackgroundColor:[NSColor textBackgroundColor]];
-    NSView *cview = [_window contentView];
-    NSArray *subviews = [cview subviews];
-    for(int x=0; x < [subviews count]; ++x) {
-        id obj = [subviews objectAtIndex:x];
-        if([obj isKindOfClass:[NSScrollView class]]) {
-            _scrollView = obj;
-        }
-    }
+    myBundle = [NSBundle mainBundle];
+    _updateTimer = nil;
+    
+    NSString *verLabel = [[_versionLabel stringValue] stringByReplacingOccurrencesOfString:@"X.X.X" withString:[NSString stringWithUTF8String:AIRYX_VERSION]];
+    [_versionLabel setStringValue:verLabel];
 
-    if(_scrollView) {
-        [_scrollView setAutoresizesSubviews:YES];
-        NSBundle *myBundle = [NSBundle mainBundle];
-        NSData *rtf = [NSData dataWithContentsOfFile:[myBundle pathForResource:@"terms" ofType:@"rtf"]];
-        NSAttributedString *text = [[NSAttributedString alloc] initWithRTF:rtf documentAttributes:nil];
+    [_scrollView setAutoresizesSubviews:YES];
+    NSData *rtf = [NSData dataWithContentsOfFile:[myBundle pathForResource:@"terms" ofType:@"rtf"]];
+    NSAttributedString *text = [[NSAttributedString alloc] initWithRTF:rtf documentAttributes:nil];
 
-        NSTextView *content = [[_scrollView contentView] documentView];
-        [[content textStorage] setAttributedString:text];
-        [content setSelectable:NO];
-        [content setEditable:NO];
-    }
+    NSTextView *content = [[_scrollView contentView] documentView];
+    [[content textStorage] setAttributedString:text];
+
+    rtf = [NSData dataWithContentsOfFile:[myBundle pathForResource:@"header" ofType:@"rtf"]];
+    text = [[NSAttributedString alloc] initWithRTF:rtf documentAttributes:nil];
+    content = [[_instructionsView contentView] documentView];
+    [[content textStorage] setAttributedString:text];
 }
 
+- (IBAction)proceedToDiskList:(id)sender {
+    NSFont *font = [NSFont systemFontOfSize:12.0];
+    NSMutableDictionary *attr = [NSMutableDictionary
+        dictionaryWithObjects:@[font, [NSColor blackColor]]
+        forKeys:@[NSFontAttributeName, NSForegroundColorAttributeName]];
+
+    NSTextStorage *textStorage = [[[_instructionsView contentView]
+        documentView] textStorage];
+
+    [textStorage setAttributedString:[[NSAttributedString alloc]
+        initWithString:@"Select the disk where airyxOS should be installed.\n\n" // FIXME: localize
+        attributes:attr]];
+
+    [attr setObject:[NSColor redColor] forKey:NSForegroundColorAttributeName];
+    font = [[NSFontManager sharedFontManager] convertFont:font
+        toHaveTrait:NSBoldFontMask];
+    [attr setObject:font forKey:NSFontAttributeName];
+
+    [textStorage appendAttributedString:[[NSAttributedString alloc]
+        initWithString:@"WARNING! Everything on the selected disk will be erased." // FIXME: localize
+        attributes:attr]];
+
+    if(discoverGEOMs(YES) == NO || [disks count] < 1) {
+        NSLog(@"error discovering devices!");
+        [textStorage setAttributedString:[[NSAttributedString alloc]
+            initWithString:@"No suitable disk was found on which to install airyxOS.\n\n"
+            "Ensure you have a compatible device of at least 10 GB installed and try again." // FIXME: localize
+            attributes:attr]];
+
+        [_BackButton setEnabled:NO];
+        [_NextButton setEnabled:NO];
+        [[_scrollView contentView] setDocumentView:nil];
+        return;
+    }
+
+    NSTableView *table = [[NSTableView alloc]
+        initWithFrame:[[_scrollView contentView] frame]];
+    [table setAllowsColumnReordering:NO];
+
+    NSArray *columnIDs = @[@"device",@"size",@"descr"];
+    NSArray *headerLabels = @[@"Device",@"Size",@"Description"]; // FIXME: localize
+    for(int x = 0; x < 3; ++x) {
+        NSTableColumn *col = [NSTableColumn new];
+        [col setIdentifier:[columnIDs objectAtIndex:x]];
+        [col setMinWidth:10.0];
+        [col setMaxWidth:MAXFLOAT];
+        [col setWidth:100.0];
+        [col setHeaderCell:[[NSTableHeaderCell alloc]
+            initTextCell:[headerLabels objectAtIndex:x]]];
+        [col setDataCell:[[NSTextFieldCell alloc] initTextCell:@""]];
+        [table addTableColumn:col];
+    }
+    [table setDataSource:[GSGeomDisk new]];
+
+    NSClipView *clip = [NSClipView new];
+    [clip setDocumentView:table];
+    [table sizeLastColumnToFit];
+
+    [_scrollView setContentView:clip];
+    [_scrollView setAutohidesScrollers:YES];
+
+#ifdef __AIRYX__
+    [_NextButton setEnabled:NO];
+#endif
+    
+    [[NSNotificationCenter defaultCenter] addObserver:self
+        selector:@selector(deviceSelected:)
+        name:NSTableViewSelectionDidChangeNotification
+        object:table];
+    [_BackButton setEnabled:NO];
+    [_NextButton setAction:@selector(proceedToUserInfo:)];
+}
+
+- (IBAction)proceedToUserInfo:(id)sender {
+    NSFont *font = [NSFont systemFontOfSize:12.0];
+    NSMutableDictionary *attr = [NSMutableDictionary
+        dictionaryWithObjects:@[font, [NSColor blackColor]]
+        forKeys:@[NSFontAttributeName, NSForegroundColorAttributeName]];
+
+    NSTextStorage *textStorage = [[[_instructionsView contentView]
+        documentView] textStorage];
+    [textStorage setAttributedString:[[NSAttributedString alloc]
+        initWithString:@"\nEnter the information below to finish setting "
+        "up your new system.\nAll fields are required.\n\n" // FIXME: localize
+        attributes:attr]];
+
+    if([[[_timeZones menu] itemArray] count] < 2) {
+        NSArray *zones = @[@"America", @"Asia", @"Atlantic", @"Australia", @"Europe",
+            @"Indian", @"Pacific", @"UTC", @"Zulu"];
+        NSFileManager *fm = [NSFileManager defaultManager];
+        NSEnumerator *dirs = [zones objectEnumerator];
+        NSString *dir;
+        BOOL isDir = NO;
+        while(dir = [dirs nextObject]) {
+            NSString *zonepath = [NSString stringWithFormat:@"/usr/share/zoneinfo/%@", dir];
+            if([fm fileExistsAtPath:zonepath isDirectory:&isDir]) {
+                if(isDir) {
+                    NSArray *entries = [fm contentsOfDirectoryAtPath:zonepath error:NULL];
+                    NSEnumerator *entryiter = [entries objectEnumerator];
+                    NSString *zone;
+                    while(zone = [entryiter nextObject]) {
+                        NSString *title = [NSString stringWithFormat:@"%@/%@",dir,zone];
+                        [_timeZones addItemWithTitle:title];
+                    }
+                } else {
+                    [_timeZones addItemWithTitle:dir];
+                }
+            }
+        }
+    }
+    
+    if(selectedTimeZone)
+        [_timeZones selectItemWithTitle:selectedTimeZone];
+    else
+        [_timeZones selectItemWithTitle:@"UTC"];
+    [_timeZones synchronizeTitleAndSelectedItem];
+
+#ifdef __AIRYX__
+    [[_scrollView contentView] release];
+#endif
+
+    NSClipView *clip = [NSClipView new];
+    [clip setDocumentView:_userInfoView];
+    [_scrollView setContentView:clip];
+    [_scrollView setAutohidesScrollers:YES];
+    [[_scrollView documentView] scrollPoint:
+        NSMakePoint(0,[_userInfoView bounds].size.height)];
+
+    [_BackButton setAction:@selector(proceedToDiskList:)];
+    [_BackButton setEnabled:YES];
+    [_NextButton setAction:@selector(validateUserInfo:)];
+}
+
+- (IBAction)validateUserInfo:(id)sender {
+    NSFont *font = [NSFont systemFontOfSize:12.0];
+    NSMutableDictionary *attr = [NSMutableDictionary
+        dictionaryWithObjects:@[font, [NSColor blackColor]]
+        forKeys:@[NSFontAttributeName, NSForegroundColorAttributeName]];
+
+    NSTextStorage *textStorage = [[[_instructionsView contentView]
+        documentView] textStorage];
+    [textStorage setAttributedString:[[NSAttributedString alloc]
+        initWithString:@"Verify that the information below is correct. "
+        "When you are finished, click the Next button to start the install process.\n\n" // FIXME: localize
+        attributes:attr]];
+    font = [[NSFontManager sharedFontManager] convertFont:font
+        toHaveTrait:NSBoldFontMask];
+    [attr setObject:font forKey:NSFontAttributeName];
+    [textStorage appendAttributedString:[[NSAttributedString alloc]
+        initWithString:@"WARNING: All contents of the selected disk will be ERASED if you proceed!" // FIXME: localize
+        attributes:attr]];
+
+    [self fullNameEditingDidFinish:_fullName];
+    [self userNameEditingDidFinish:_userName];
+    [self passwordEditingDidFinish:_password];
+    [self hostNameEditingDidFinish:_hostName];
+
+    if(selectedTimeZone == nil)
+        selectedTimeZone = @"UTC";
+
+    [_confirmFullName setStringValue:UserInfoFullName];
+    [_confirmUserName setStringValue:UserInfoUserName];
+    [_confirmHostName setStringValue:UserInfoHostName];
+    [_confirmPassword setStringValue:UserInfoPassword];
+    [_confirmTimeZone setStringValue:selectedTimeZone];
+    GSGeomDisk *disk = [disks objectAtIndex:selectedDisk];
+    [_confirmDisk setStringValue:[NSString stringWithFormat:@"%@ (%@, %@)", [disk name],
+        formatMediaSize([disk mediaSize]), [disk mediaDescription]]];
+
+#ifdef __AIRYX__
+    [[_scrollView contentView] release];
+#endif
+    [_scrollView setAutohidesScrollers:YES];
+    NSClipView *clip = [NSClipView new];
+    [clip setDocumentView:_infoConfirmationView];
+    [_scrollView setContentView:clip];
+    [[_scrollView documentView] scrollPoint:
+        NSMakePoint(0,[_userInfoView bounds].size.height)];
+
+    [_BackButton setAction:@selector(proceedToUserInfo:)];
+    [_NextButton setAction:@selector(proceedToInstall:)];
+}
+
+- (IBAction)proceedToFinalize:(id)sender {
+    [_NextButton setAction:@selector(terminate:)];
+    [_NextButton setTarget:NSApp];
+    [_NextButton setTitle:@"Quit"];
+    [_BackButton setHidden:YES];
+    [_CancelButton setHidden:YES];
+
+    NSFont *font = [NSFont systemFontOfSize:12.0];
+    NSMutableDictionary *attr = [NSMutableDictionary
+        dictionaryWithObjects:@[font, [NSColor blackColor]]
+        forKeys:@[NSFontAttributeName, NSForegroundColorAttributeName]];
+
+    NSAttributedString *rest = [[NSAttributedString alloc]
+        initWithString:@" Review the log below for any errors."
+        "You can Quit this application when you are finished.\n\nRemove the installation"
+        " media and restart to try your new system." // FIXME: localize
+        attributes:attr];
+
+    font = [[NSFontManager sharedFontManager] convertFont:font
+        toHaveTrait:NSBoldFontMask];
+    [attr setObject:font forKey:NSFontAttributeName];
+
+    NSTextStorage *textStorage = [[[_instructionsView contentView]
+        documentView] textStorage];
+    [textStorage setAttributedString:[[NSAttributedString alloc]
+        initWithString:@"Installation has finished!" // FIXME: localize
+        attributes:attr]];
+    [textStorage appendAttributedString:rest];
+}
+
+- (void)deviceSelected:(NSNotification *)aNotification {
+    [_NextButton setEnabled:YES];
+    selectedDisk = [[[aNotification object] selectedRowIndexes] firstIndex];
+}
+
+- (IBAction)timeZoneSelected:(id)sender {
+    selectedTimeZone = [sender titleOfSelectedItem];
+}
+
+- (IBAction)hostNameEditingDidFinish:(id)sender {
+    userDidEditHostName = YES;
+    UserInfoHostName = [sender stringValue];
+}
+
+- (IBAction)passwordEditingDidFinish:(id)sender {
+    UserInfoPassword = [sender stringValue];
+}
+
+- (IBAction)userNameEditingDidFinish:(id)sender {
+    userDidEditUserName = YES;
+    UserInfoUserName = [sender stringValue];
+}
+
+- (IBAction)fullNameEditingDidFinish:(id)sender {
+    NSArray *name = [[sender stringValue] componentsSeparatedByString:@" "];
+    
+    NSString *user;
+    NSString *host;
+
+    switch([name count]) {
+    case 0:
+        user = [sender stringValue];
+        host = @"Airyx";
+        break;
+    case 1:
+        user = [sender stringValue];
+        host = [user stringByAppendingString:@"-Airyx"];
+        break;
+    default:
+        user = [NSString stringWithFormat:@"%@%@",
+            [[name firstObject] substringToIndex:1],
+            [name lastObject]];
+        host = [[name componentsJoinedByString:@"-"]
+                stringByAppendingString:@"-Airyx"];
+    }
+
+    if(!userDidEditUserName) {
+        [_userName setStringValue:[[user lowercaseString]
+            substringWithRange:NSMakeRange(0,MIN(8, [user length]))]];
+        UserInfoUserName = [_userName stringValue];
+    }
+
+    if(!userDidEditHostName) {
+        [_hostName setStringValue:host];
+        UserInfoHostName = host;
+    }
+
+    UserInfoFullName = [sender stringValue];
+}
+
+- (IBAction)proceedToInstall:(id)sender {
+    [_NextButton setEnabled:NO];
+    [_BackButton setEnabled:NO];
+    [_CancelButton setEnabled:NO];
+
+#ifdef __AIRYX__
+    [[[_scrollView contentView] documentView] release];
+#endif
+
+    NSSize contentSize = [_scrollView contentSize];
+    NSTextView *v = [[NSTextView alloc] initWithFrame:
+        NSMakeRect(0, 0, contentSize.width, contentSize.height)];
+    [v setMinSize:NSMakeSize(0.0, contentSize.height)];
+    [v setMaxSize:NSMakeSize(FLT_MAX, FLT_MAX)];
+    [v setVerticallyResizable:YES];
+    [v setHorizontallyResizable:NO];
+    [v setEditable:NO];
+    [v setAutoresizingMask:NSViewWidthSizable];
+
+    [[v textContainer] setContainerSize:
+        NSMakeSize(contentSize.width, FLT_MAX)];
+    [[v textContainer] setWidthTracksTextView:YES];
+
+    [_scrollView setDocumentView:v];
+    [_scrollView setAutohidesScrollers:NO];
+    [_NextButton setAction:@selector(proceedToFinalize:)];
+
+    [[_scrollView window] makeFirstResponder:v];
+
+    GSGeomDisk *disk = [disks objectAtIndex:selectedDisk];
+    [disk setDelegate:self];
+
+    _updateTimer = [[NSTimer timerWithTimeInterval:0.05
+        target:self selector:@selector(redisplay:) userInfo:nil
+        repeats:YES] retain];
+    [[NSRunLoop currentRunLoop] addTimer:_updateTimer forMode:NSDefaultRunLoopMode];
+
+    spinner = [[NSProgressIndicator alloc] initWithFrame:
+    NSMakeRect(contentSize.width / 2 - 12, contentSize.height / 2 - 12, 24, 24)];
+    [spinner setControlSize:NSRegularControlSize];
+    [spinner setIndeterminate:YES];
+    [spinner setAnimationDelay:0.025];
+    [spinner setUsesThreadedAnimation:YES];
+    [spinner setStyle:NSProgressIndicatorSpinningStyle];
+    [v addSubview:spinner];
+    [spinner startAnimation:nil];
+
+    [disk performSelectorInBackground:@selector(runInstall) withObject:nil];
+}
+
+- (void)redisplay:(id)sender {
+    NSTextView *tv = [_scrollView documentView];
+    [tv scrollToEndOfDocument:nil];
+    [tv setNeedsDisplay:YES];
+}
+
+- (void)proceed {
+    if(_updateTimer != nil) {
+        [_updateTimer invalidate];
+        [_updateTimer release];
+        _updateTimer=nil;
+    }
+    [spinner stopAnimation:nil];
+    closeLog();
+    [_NextButton setEnabled:YES];
+    [_NextButton performClick:self];
+}
+
+- (void)appendStatus:(NSString *)text bold:(BOOL)bold {
+    NSFont *font = [NSFont systemFontOfSize:12.0];
+    if(bold)
+        font = [[NSFontManager sharedFontManager] convertFont:font toHaveTrait:NSBoldFontMask];
+    NSDictionary *attr = [NSDictionary
+        dictionaryWithObjects:@[font, [NSColor blackColor]]
+        forKeys:@[NSFontAttributeName, NSForegroundColorAttributeName]];
+    NSAttributedString *string = [[NSAttributedString alloc] initWithString:text
+        attributes:attr];
+
+    NSTextStorage *ts = [[_scrollView documentView] textStorage];
+    [ts beginEditing];
+    [ts appendAttributedString:string];
+    [ts endEditing];
+}
+
+- (void)appendStatus:(NSString *)text {
+    [self appendStatus:text bold:NO];
+}
+
+- (NSString *)userInfoHostName {
+    return UserInfoHostName;
+}
+
+- (NSString *)userInfoUserName {
+    return UserInfoUserName;
+}
+
+- (NSString *)userInfoFullName {
+    return UserInfoFullName;
+}
+
+- (NSString *)userInfoPassword {
+    return UserInfoPassword;
+}
+
+- (NSString *)timeZone {
+    return selectedTimeZone;
+}
+
+- (void)fileHandleReadDidComplete:(NSNotification *)aNotification {
+    NSData *data = [[aNotification userInfo] objectForKey:NSFileHandleNotificationDataItem];
+    if([data length] == 0)
+        return;
+    NSString *text = [[NSString alloc] initWithData:data
+        encoding:NSUTF8StringEncoding];
+    appendLog(data);
+}
 
 - (void)applicationWillTerminate:(NSNotification *)aNotification {
     // Insert code here to tear down your application
-    NSLog(@"will terminate");
+    //NSLog(@"will terminate");
 }
 
 

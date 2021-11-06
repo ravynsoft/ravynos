@@ -25,18 +25,18 @@ FOUNDATION_EXPORT char *NSUnicodeToSymbol(const unichar *characters,unsigned len
 // It seems the default mapping should really go to some platform specific place
 -(NSString *)translateToNibFontName:(NSString *)name {
 	NSString *displayName = [O2Font displayNameForPostscriptName:name];
-	if([displayName isEqual:@"Arial"])
+	if([displayName isEqual:@"Nimbus Sans-Regular"])
 		return[O2Font postscriptNameForDisplayName:@"Helvetica"];
-	if([displayName isEqual:@"Arial Bold"])
+	if([displayName isEqual:@"Nimbus Sans-Bold"])
 		return @"Helvetica-Bold";
-	if([displayName isEqual:@"Arial Italic"])
+	if([displayName isEqual:@"Nimbus Sans-Italic"])
 		return @"Helvetica-Oblique";
-	if([displayName isEqual:@"Arial Bold Italic"])
+	if([displayName isEqual:@"Nimbus Sans-Bold Italic"])
 		return @"Helvetica-BoldOblique";
 	
-	if([displayName isEqual:@"Times New Roman"])
+	if([displayName isEqual:@"Nimbus Roman-Regular"])
 		return @"Times-Roman";
-	if([displayName isEqual:@"Courier New"])
+	if([displayName isEqual:@"Source Code Pro-Regular"])
 		return @"Courier";
 	
 	return name;
@@ -45,39 +45,39 @@ FOUNDATION_EXPORT char *NSUnicodeToSymbol(const unichar *characters,unsigned len
 -(NSString *)translateFromNibFontName:(NSString *)name {
 	NSString *displayName = [O2Font displayNameForPostscriptName:name];
 
-	if ([name isEqual:@"Helvetica"])
-		return [O2Font postscriptNameForDisplayName:@"Arial"];
-	if([name isEqual:@"Helvetica-Bold"])
-		return [O2Font postscriptNameForDisplayName:@"Arial Bold"];
+	if ([name isEqual:@"Helvetica"] || [name isEqual:@".AppleSystemUIFont"])
+		return [O2Font postscriptNameForDisplayName:@"Nimbus Sans-Regular"];
+	if([name isEqual:@"Helvetica-Bold"] || [name isEqual:@".AppleSystemUIFontBold"])
+		return [O2Font postscriptNameForDisplayName:@"Nimbus Sans-Bold"];
 	if([name isEqual:@"Helvetica-Oblique"])
-		return [O2Font postscriptNameForDisplayName:@"Arial Bold"];
+		return [O2Font postscriptNameForDisplayName:@"Nimbus Sans-Italic"];
 	if([name isEqual:@"Helvetica-BoldOblique"])
-		return [O2Font postscriptNameForDisplayName:@"Arial Bold Italic"];
+		return [O2Font postscriptNameForDisplayName:@"Nimbus Sans-Bold Italic"];
 	
 	if([name isEqual:@"Times-Roman"])
-		return [O2Font postscriptNameForDisplayName:@"Times New Roman"];
+		return [O2Font postscriptNameForDisplayName:@"Nimbus Roman-Regular"];
 	if([name isEqual:@"Ohlfs"])
-		return [O2Font postscriptNameForDisplayName:@"Courier New"];
+		return [O2Font postscriptNameForDisplayName:@"Nimbus Mono PS-Regular"];
 	if([name isEqual:@"Courier"])
-		return [O2Font postscriptNameForDisplayName:@"Courier New"];
+		return [O2Font postscriptNameForDisplayName:@"Source Code Pro-Regular"];
 	
 	if([name isEqual:@"LucidaGrande"])
-		return [O2Font postscriptNameForDisplayName:@"Arial"];
+		return [O2Font postscriptNameForDisplayName:@"URW Bookman-Light"];
 	if([name isEqual:@"LucidaGrande-Bold"])
-		return [O2Font postscriptNameForDisplayName:@"Arial Bold"];
+		return [O2Font postscriptNameForDisplayName:@"URW Bookman-Demi"];
     
     // Special fonts used by Xcode 5 when compiling some xibs
 	if([name isEqual:@".LucidaGrandeUI"])
-		return [O2Font postscriptNameForDisplayName:@"Arial"];
+		return [O2Font postscriptNameForDisplayName:@"URW Bookman-Light"];
 	if([name isEqual:@".LucidaGrandeUI-Bold"])
-		return [O2Font postscriptNameForDisplayName:@"Arial Bold"];
+		return [O2Font postscriptNameForDisplayName:@"URW Bookman-Demi"];
     
 	if([name isEqual:@"HelveticaNeue-CondensedBold"])
-		return [O2Font postscriptNameForDisplayName:@"Arial"];    
+		return [O2Font postscriptNameForDisplayName:@"Nimbus Sans Narrow-Bold"];
 	if([name isEqual:@"HelveticaNeue-Bold"])
-		return [O2Font postscriptNameForDisplayName:@"Arial"];
+		return [O2Font postscriptNameForDisplayName:@"Nimbus Sans-Bold"];
 	if([name isEqual:@"HelveticaNeue-Regular"])
-		return [O2Font postscriptNameForDisplayName:@"Arial"];
+		return [O2Font postscriptNameForDisplayName:@"Nimbus Sans-Regular"];
 
 	return name;
 }
@@ -193,7 +193,6 @@ static NSLock *_cacheLock=nil;
     CTFontRef ctFont=CTFontCreateUIFontForLanguage(type,size,nil);
     if (ctFont) {
         NSString *name=(NSString *)CTFontCopyFullName(ctFont);
-        
         size=CTFontGetSize(ctFont);
         
         result=[NSFont fontWithName:name size:size];
@@ -213,27 +212,27 @@ static NSLock *_cacheLock=nil;
 }
 
 +(NSFont *)controlContentFontOfSize:(float)size {
-    return [self _uiFontOfType:kCTFontControlContentFontType size:(size==0)?10.0:size fallbackName:@"Nimbus Sans"];
+    return [self _uiFontOfType:kCTFontControlContentFontType size:(size==0)?10.0:size fallbackName:@"Nimbus Sans-Regular"];
 }
 
 +(NSFont *)labelFontOfSize:(float)size {
-    return [self _uiFontOfType:kCTFontLabelFontType size:(size==0)?10.0:size fallbackName:@"Nimbus Sans"];
+    return [self _uiFontOfType:kCTFontLabelFontType size:(size==0)?10.0:size fallbackName:@"Nimbus Sans-Regular"];
 }
 
 +(NSFont *)menuFontOfSize:(float)size {
-    return [self _uiFontOfType:kCTFontMenuItemFontType size:size fallbackName:@"Nimbus Sans"];
+    return [self _uiFontOfType:kCTFontMenuItemFontType size:size fallbackName:@"Nimbus Sans-Regular"];
 }
 
 +(NSFont *)menuBarFontOfSize:(float)size {
-    return [self _uiFontOfType:kCTFontMenuTitleFontType size:size fallbackName:@"Nimbus Sans"];
+    return [self _uiFontOfType:kCTFontMenuTitleFontType size:size fallbackName:@"Nimbus Sans-Regular"];
 }
 
 +(NSFont *)messageFontOfSize:(float)size {
-    return [self _uiFontOfType:kCTFontSystemFontType size:(size==0)?10.0:size fallbackName:@"Nimbus Sans"];
+    return [self _uiFontOfType:kCTFontSystemFontType size:(size==0)?10.0:size fallbackName:@"Nimbus Sans-Regular"];
 }
 
 +(NSFont *)paletteFontOfSize:(float)size {
-    return [self _uiFontOfType:kCTFontPaletteFontType size:(size==0)?10.0:size fallbackName:@"Nimbus Sans"];
+    return [self _uiFontOfType:kCTFontPaletteFontType size:(size==0)?10.0:size fallbackName:@"Nimbus Sans-Regular"];
 }
 
 +(NSFont *)systemFontOfSize:(float)size {
@@ -245,15 +244,15 @@ static NSLock *_cacheLock=nil;
 }
 
 +(NSFont *)toolTipsFontOfSize:(float)size {
-    return [self _uiFontOfType:kCTFontToolTipFontType size:(size==0)?9.:size fallbackName:@"Nimbus Sans"];
+    return [self _uiFontOfType:kCTFontToolTipFontType size:(size==0)?9.:size fallbackName:@"Nimbus Sans-Regular"];
 }
 
 +(NSFont *)userFontOfSize:(float)size {
-   return [NSFont fontWithName:[O2Font postscriptNameForDisplayName:@"Nimbus Sans"] size:(size==0)?10.0:size];
+   return [NSFont fontWithName:[O2Font postscriptNameForDisplayName:@"Nimbus Sans-Regular"] size:(size==0)?10.0:size];
 }
 
 +(NSFont *)userFixedPitchFontOfSize:(float)size {
-   return [NSFont fontWithName:[O2Font postscriptNameForDisplayName:@"FreeMono"] size:(size==0)?12.0:size];
+   return [NSFont fontWithName:[O2Font postscriptNameForDisplayName:@"Source Code Pro-Regular"] size:(size==0)?12.0:size];
 }
 
 +(void)setUserFont:(NSFont *)value {

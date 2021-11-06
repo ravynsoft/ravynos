@@ -124,7 +124,7 @@ static int errorHandler(Display *display,XErrorEvent *errorEvent) {
    if([colorName isEqual:@"controlShadowColor"])
       return [NSColor darkGrayColor];
    if([colorName isEqual:@"selectedControlColor"])
-      return [NSColor blueColor];
+      return [NSColor cyanColor];
    if([colorName isEqual:@"controlBackgroundColor"])
       return [NSColor whiteColor];
    if([colorName isEqual:@"controlLightHighlightColor"])
@@ -137,9 +137,9 @@ static int errorHandler(Display *display,XErrorEvent *errorEvent) {
    if([colorName isEqual:@"menuItemTextColor"])
       return [NSColor blackColor];
    if([colorName isEqual:@"selectedMenuItemTextColor"])
-      return [NSColor whiteColor];
+      return [NSColor blackColor];
    if([colorName isEqual:@"selectedMenuItemColor"])
-      return [NSColor blueColor];
+      return [NSColor cyanColor];
    if([colorName isEqual:@"selectedControlTextColor"])
       return [NSColor blackColor];
    
@@ -221,8 +221,8 @@ static int errorHandler(Display *display,XErrorEvent *errorEvent) {
          NSFontTraitMask traits=0;
          int slant, width, weight;
          
-         FcPatternGetInteger(p, FC_SLANT, 0, &slant);
-         FcPatternGetInteger(p, FC_WIDTH, 0, &width);
+         FcPatternGetInteger(p, FC_SLANT, FC_SLANT_ROMAN, &slant);
+         FcPatternGetInteger(p, FC_WIDTH, FC_WIDTH_NORMAL, &width);
          FcPatternGetInteger(p, FC_WEIGHT, 0, &weight);
 
          switch(slant) {
@@ -230,22 +230,22 @@ static int errorHandler(Display *display,XErrorEvent *errorEvent) {
             case FC_SLANT_ITALIC:
                traits|=NSItalicFontMask;
                break;
-//             default:
-//                traits|=NSUnitalicFontMask;
-//                break;
          }
          
-//          if(weight<=FC_WEIGHT_LIGHT)
-//             traits|=NSUnboldFontMask;
-//          else
-         if(weight>=FC_WEIGHT_SEMIBOLD)
+         if(weight>FC_WEIGHT_SEMIBOLD)
             traits|=NSBoldFontMask;
 
          if(width<=FC_WIDTH_SEMICONDENSED)
             traits|=NSNarrowFontMask;
          else if(width>=FC_WIDTH_SEMIEXPANDED)
             traits|=NSExpandedFontMask;
+
+        // FIXME: we should set FixedPitch (monospace) and other attrs too (see NSFontManager.h)
          
+         name = [NSString stringWithFormat:@"%@-%@",
+            [[[[name componentsSeparatedByString:@":"] firstObject] // strip off any 'style=XXX' stuff
+            componentsSeparatedByString:@","] firstObject],         // and any multiple names
+            traitName]; // and append "-Traits"
          NSFontTypeface *face=[[NSFontTypeface alloc] initWithName:name traitName:traitName traits:traits];
          [ret addObject:face];
          [face release];
@@ -293,8 +293,19 @@ static int errorHandler(Display *display,XErrorEvent *errorEvent) {
 }
 
 -(NSPoint)mouseLocation {
-   NSUnimplementedMethod();
-   return NSMakePoint(0,0);
+    Window window;
+    int rootX, rootY, winX, winY;
+    unsigned int mask;
+
+    BOOL result = XQueryPointer(_display, DefaultRootWindow(_display),
+        &window, &window, &rootX, &rootY, &winX, &winY, &mask);
+    if(result == YES) {
+        // invert the Y since Cocoa's origin is lower left
+        int height = DisplayHeight(_display, DefaultScreen(_display));
+        return NSMakePoint(rootX, height - rootY);
+    }
+    NSLog(@"-[X11Display mouseLocation] unable to locate mouse pointer");
+    return NSMakePoint(0,0);
 }
 
 -(void)setWindow:(id)window forID:(XID)i
@@ -312,7 +323,7 @@ static int errorHandler(Display *display,XErrorEvent *errorEvent) {
 
 -(NSEvent *)nextEventMatchingMask:(unsigned)mask untilDate:(NSDate *)untilDate inMode:(NSString *)mode dequeue:(BOOL)dequeue {
    NSEvent *result;
-   
+
    [[NSRunLoop currentRunLoop] addInputSource:_inputSource forMode:mode];
    result=[super nextEventMatchingMask:mask untilDate:untilDate inMode:mode dequeue:dequeue];
    [[NSRunLoop currentRunLoop] removeInputSource:_inputSource forMode:mode];
@@ -346,8 +357,10 @@ NSArray *CGSOrderedWindowNumbers() {
    id event=nil;
    NSEventType type;
    id window=[self windowForID:ev->xany.window];
-   if(window == nil) // guard against unknown IDs
-      window = [NSApp keyWindow];
+   if(window == nil) { // guard against unknown IDs
+      //NSLog(@"postXEvent: unknown window ID %d",ev->xany.window);
+      return;
+   }
    id delegate=[window delegate];
    
    switch(ev->type) {
@@ -357,7 +370,7 @@ NSArray *CGSOrderedWindowNumbers() {
      char buf[4]={0};
      
      XLookupString((XKeyEvent*)ev, buf, 4, NULL, NULL);
-     id str=[[NSString alloc] initWithCString:buf encoding:NSISOLatin1StringEncoding];
+     id str=[[NSString alloc] initWithCString:buf encoding:NSUTF8StringEncoding];
      NSPoint pos=[window transformPoint:NSMakePoint(ev->xkey.x, ev->xkey.y)];
          
      id strIg=[str lowercaseString];
@@ -370,7 +383,7 @@ NSArray *CGSOrderedWindowNumbers() {
      id event=[NSEvent keyEventWithType:ev->type == KeyPress ? NSKeyDown : NSKeyUp location:pos
                               modifierFlags:modifierFlags
                                   timestamp:0.0 
-                               windowNumber:(NSInteger)delegate
+                               windowNumber:(NSInteger)[delegate windowNumber]
                                     context:nil
                                  characters:str 
                 charactersIgnoringModifiers:strIg
@@ -392,9 +405,9 @@ NSArray *CGSOrderedWindowNumbers() {
       clickCount=1;  
      }
      lastClickTimeStamp=now;
-         
+
      pos=[window transformPoint:NSMakePoint(ev->xbutton.x, ev->xbutton.y)];
-         
+
      event=[NSEvent mouseEventWithType:NSLeftMouseDown
                                   location:pos
                              modifierFlags:[self modifierFlagsForState:ev->xbutton.state]

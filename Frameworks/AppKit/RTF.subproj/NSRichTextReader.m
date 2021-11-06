@@ -437,13 +437,13 @@ static inline void flushPreviousString(NSRichTextReader *self) {
                 if (font == nil) {
                     // Try to get some default font for the given family
                     if([family isEqualToString:@"roman"])
-                        font=[NSFont fontWithName:@"Nimbus Roman" size:12];
+                        font=[NSFont fontWithName:@"Nimbus Roman-Regular" size:12];
                     else if([family isEqualToString:@"modern"])
-                        font=[NSFont fontWithName:@"Nimbus Mono PS" size:12];
+                        font=[NSFont fontWithName:@"Nimbus Mono PS-Regular" size:12];
                     else if([family isEqualToString:@"swiss"])
-                        font=[NSFont fontWithName:@"Nimbus Sans" size:12];
+                        font=[NSFont fontWithName:@"Nimbus Sans-Regular" size:12];
                     else if([family isEqualToString:@"script"])
-                        font=[NSFont fontWithName:@"Cursive" size:12];
+                        font=[NSFont fontWithName:@"Nimbus Sans-Italic" size:12];
                     else if([family isEqualToString:@"symbol"])
                         font=[NSFont fontWithName:@"D050000L" size:12];
                     else if([family isEqualToString:@"nil"]){
@@ -451,7 +451,7 @@ static inline void flushPreviousString(NSRichTextReader *self) {
                     }
                 }
                 if (font == nil) {
-                    font=[NSFont fontWithName:@"Nimbus Sans" size:12.0];
+                    font=[NSFont fontWithName:@"Nimbus Sans-Regular" size:12.0];
                 }
                 if (font) {
                     NSFont *currentFont=[_currentAttributes objectForKey:NSFontAttributeName];

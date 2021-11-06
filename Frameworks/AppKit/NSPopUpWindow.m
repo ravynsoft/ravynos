@@ -49,6 +49,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
    frame=[self frame];
    frame.size=size;
+
    frame.origin.y-=(size.height-selectedRect.origin.y)-selectedRect.size.height;
    [self setFrame:frame display:NO];
 

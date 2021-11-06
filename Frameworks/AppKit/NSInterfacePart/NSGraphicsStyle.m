@@ -73,7 +73,7 @@ static NSDictionary *sDimmedMenuTextShadowAttributes = nil;
 	static NSInterfacePartAttributedString *sBranchArrow = nil;
 
 	if (sBranchArrow == nil)
-		sBranchArrow = [[NSInterfacePartAttributedString alloc] initWithMarlettCharacter:0x34];
+		sBranchArrow = [[NSInterfacePartAttributedString alloc] initWithFACharacter:0xF054];
 	return sBranchArrow;
 }
 
@@ -82,7 +82,7 @@ static NSDictionary *sDimmedMenuTextShadowAttributes = nil;
 	static NSInterfacePartAttributedString *sCheckMark = nil;
 	
 	if (sCheckMark == nil)
-		sCheckMark = [[NSInterfacePartAttributedString alloc] initWithMarlettCharacter:0x61];
+		sCheckMark = [[NSInterfacePartAttributedString alloc] initWithFACharacter:0xF00C];
 	return sCheckMark;
 }
 
@@ -169,6 +169,8 @@ static NSDictionary *sDimmedMenuTextShadowAttributes = nil;
 
 -(float)menuBarHeight
 {
+    return 0.0;
+#if 0
 	NSDictionary *attributes=[NSDictionary dictionaryWithObjectsAndKeys:
 							  [NSFont menuFontOfSize:0],NSFontAttributeName,nil];
 	float         result=[@"Menu" sizeWithAttributes:attributes].height;
@@ -178,6 +180,7 @@ static NSDictionary *sDimmedMenuTextShadowAttributes = nil;
 	result+=1; // sunken title baseline
 	
 	return result;
+#endif
 }
 
 -(float)menuItemGutterGap
@@ -284,9 +287,9 @@ static NSDictionary *sDimmedMenuTextShadowAttributes = nil;
 	else
 		color = [NSColor disabledControlTextColor];
 	
-	checkMark = [[NSInterfacePartAttributedString alloc] initWithCharacter:0x61 
-																  fontName:@"FreeSans" 
-																 pointSize:10 
+	checkMark = [[NSInterfacePartAttributedString alloc] initWithCharacter:0xF00C
+																  fontName:@"Font Awesome 5 Free-Solid"
+																 pointSize:10
 																	 color:color];
 	rect.origin.x += margins.left;
 	rect.origin.y += margins.top;
@@ -530,7 +533,7 @@ static NSDictionary *sDimmedMenuTextShadowAttributes = nil;
 @implementation NSGraphicsStyle (NSScroller)
 
 -(void)drawScrollerButtonInRect:(NSRect)rect enabled:(BOOL)enabled pressed:(BOOL)pressed vertical:(BOOL)vertical upOrLeft:(BOOL)upOrLeft {
-   unichar code=vertical?(upOrLeft?0x74:0x75):(upOrLeft?0x33:0x34);
+   unichar code=vertical?(upOrLeft?0xF0D8:0xF0D7):(upOrLeft?0xF0D9:0xF0DA);
    Class   class;
    NSInterfacePart *arrow;
    
@@ -539,7 +542,7 @@ static NSDictionary *sDimmedMenuTextShadowAttributes = nil;
    else
     class=[NSInterfacePartDisabledAttributedString class];
 
-   arrow=[[[class alloc] initWithMarlettCharacter:code] autorelease];
+   arrow=[[[class alloc] initWithFACharacter:code] autorelease];
    
    if(!NSIsEmptyRect(rect)){
     NSSize arrowSize=[arrow size];
@@ -626,13 +629,13 @@ static NSDictionary *sDimmedMenuTextShadowAttributes = nil;
 @implementation NSGraphicsStyle (NSStepper)
 
 -(void)drawStepperButtonInRect:(NSRect)rect clipRect:(NSRect)clipRect enabled:(BOOL)enabled highlighted:(BOOL)highlighted upNotDown:(BOOL)upNotDown {
-   unichar         code=upNotDown?0x74:0x75;
+   unichar         code=upNotDown?0xF0D8:0xF0D7;
    NSInterfacePart *arrow;
      
    if(enabled)
-    arrow=[[[NSInterfacePartAttributedString alloc] initWithMarlettCharacter:code] autorelease];
+    arrow=[[[NSInterfacePartAttributedString alloc] initWithFACharacter:code] autorelease];
    else
-    arrow=[[[NSInterfacePartDisabledAttributedString alloc] initWithMarlettCharacter:code] autorelease];
+    arrow=[[[NSInterfacePartDisabledAttributedString alloc] initWithFACharacter:code] autorelease];
       
    if(highlighted)
     NSDrawWhiteBezel(rect,clipRect);

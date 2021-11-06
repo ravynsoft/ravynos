@@ -33,7 +33,7 @@
     case kCTFontMenuItemFontType:
      if(size==0)
       size=12.0;
-     font=O2FontCreateWithFontName(@"Nimbus Sans");
+     font=O2FontCreateWithFontName(@"Nimbus Sans-Regular");
      break;
  
     default:

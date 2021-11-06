@@ -55,6 +55,7 @@ FcConfig *O2FontSharedFontConfig() {
 
 +(NSString*)filenameForPattern:(NSString *)pattern {
    int i;
+   pattern = [self nativeFontNameForPostscriptName:pattern];
    FcPattern *pat=FcNameParse((unsigned char*)[pattern UTF8String]);
 
    FcObjectSet *props=FcObjectSetBuild(FC_FILE, NULL);
@@ -72,7 +73,6 @@ FcConfig *O2FontSharedFontConfig() {
    FcPatternDestroy(pat);
    FcObjectSetDestroy(props);
    FcFontSetDestroy(set);
-   
    return ret;
 }
 
@@ -84,15 +84,7 @@ FcConfig *O2FontSharedFontConfig() {
     filename=[isa filenameForPattern:@""];
     
     if(filename==nil) {
-#if defined(__AIRYX__)
-      filename=@"/System/Library/Fonts/NimbusSans-Regular.ttf";
-#else
-#ifdef LINUX
-      filename=@"/usr/share/fonts/truetype/freefont/FreeSans.ttf";
-#else
-      filename=@"/System/Library/Fonts/HelveticaNeue.ttc";
-#endif
-#endif
+      filename=@"/System/Library/Fonts/TTF/NimbusSans-Regular.ttf";
     }
    }
       
@@ -168,6 +160,39 @@ FcConfig *O2FontSharedFontConfig() {
 		_coveredCharSet = set;
 	}
 	return _coveredCharSet;
+}
+
+@end
+
+@implementation O2Font(FT)
+
++ (NSString *)nativeFontNameForPostscriptName:(NSString *)name
+{
+    if([name rangeOfString:@"-"].length == NSNotFound)
+        return [NSString stringWithFormat:@"%@:style=Regular", name];
+    return [name stringByReplacingOccurrencesOfString:@"-" withString:@":style="];
+}
+
++ (NSString *)postscriptNameForNativeName:(NSString *)name
+{
+	return [[name stringByReplacingOccurrencesOfString:@":style="
+        withString:@"-"] stringByReplacingOccurrencesOfString:@"-Regular"
+        withString:@""];
+}
+
++ (NSString *)postscriptNameForDisplayName:(NSString *)name
+{
+	return name;
+}
+
++ (NSString *)displayNameForPostscriptName:(NSString *)name
+{
+	return name;
+}
+
++ (NSString *)postscriptNameForFontName:(NSString *)name
+{
+	return name;
 }
 
 @end

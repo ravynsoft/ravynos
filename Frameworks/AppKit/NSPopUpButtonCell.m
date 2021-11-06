@@ -459,7 +459,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 }
 
 -(BOOL)trackMouse:(NSEvent *)event inRect:(NSRect)cellFrame ofView:(NSView *)controlView untilMouseUp:(BOOL)flag {
-   NSPoint        origin=[controlView bounds].origin;
+   NSRect bounds = [controlView bounds];
+   NSPoint        origin=bounds.origin;
    
 #if 0
    // Note: the min options don't mean much unless we don't have room for the menu, so either way we just pop
@@ -491,7 +492,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 		[menu removeItemAtIndex:0];
 	}
     [menu update];
-    
+
 	NSPopUpWindow *window=[[NSPopUpWindow alloc] initWithFrame:NSMakeRect(origin.x,origin.y,
 														   cellFrame.size.width,cellFrame.size.height)];
     [window setPullsDown:_pullsDown];
@@ -517,7 +518,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
         }
 	}
     _selectedIndex = (itemIndex == NSNotFound) ? -1 : itemIndex;
-   [window close]; // release when closed=YES
+    [window close]; // release when closed=YES
 //	[[_menu delegate] menuDidClose: _menu];
 
    return itemIndex!=NSNotFound;

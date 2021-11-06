@@ -558,7 +558,44 @@ X11.subproj/X11Event.h \
 X11.subproj/X11Window.h 
 
 
-RESOURCES=Info.plist en.lproj de.lproj fr.lproj
+RESOURCES=Info.plist en.lproj de.lproj fr.lproj \
+	NSToolbar.subproj/NSToolbarPrintItem.tiff \
+	NSToolbar.subproj/NSToolbarOverflowArrow.tiff \
+	NSToolbar.subproj/NSToolbarShowFontsItem.tiff \
+	NSToolbar.subproj/NSToolbarShowColorsItem.tiff \
+	NSToolbar.subproj/NSToolbarCustomizeToolbarItem.tiff \
+	NSToolbar.subproj/NSToolbarMoreToolbarItems.tiff \
+	NSMenu.subproj/NSMenuArrow.tiff \
+	NSMenu.subproj/NSMenuViewDoubleRightArrow.tiff \
+	NSMenu.subproj/NSMenuViewDoubleRightArrowGray.tiff \
+	NSColorPicker.subproj/NSColorPickerColorList.tiff \
+	NSColorPicker.subproj/NSColorWheel.png \
+	NSColorPicker.subproj/NSColorPickerWheelIcon.png \
+	NSColorPicker.subproj/NSColorPickerSlidersGray.tiff \
+	NSColorPicker.subproj/NSColorPickerSlidersRGB.tiff \
+	NSColorPicker.subproj/NSColorPickerSlidersIcon.png \
+	NSColorPicker.subproj/NSColorPickerSlidersHSB.tiff \
+	NSColorPicker.subproj/NSColorPickerListIcon.png \
+	NSColorPicker.subproj/NSColorPickerSlidersCMYK.tiff \
+	NSButtonCell_disclosure_selected.tif \
+	NSButtonCell_disclosure_normal.tif \
+	NSButtonCell_disclosure_highlighted.tif \
+	NSSystemInfoPanel/NSApplicationIcon.tiff \
+	NSPoof.png \
+	NSAlertPanelExclamation.tiff \
+	NSBrowserCellArrow.tiff \
+	NSComboBoxCellDown.tiff \
+	NSHighlightedBrowserCellArrow.tiff \
+	NSHighlightedRadioButton.tiff \
+	NSHighlightedSwitch.tiff \
+	NSPopUpButtonCellPopUp.tiff \
+	NSPopUpButtonCellPullDown.tiff \
+	NSRadioButton.tiff \
+	NSRulerMarkerTab.tiff \
+	NSSplitViewHDimple.tiff \
+	NSSplitViewVDimple.tiff \
+	NSSwitch.tiff
+
 CFLAGS+= ${FMWK_CFLAGS} -I${.CURDIR}/.. -I${BUILDROOT}/usr/include -I/usr/local/include \
 	 -I../OpenGL/include -I${.CURDIR}/Headers -I../Foundation/Headers \
 	 -I/usr/include/dbus-1.0 -I/usr/lib/dbus-1.0/include \

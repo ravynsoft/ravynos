@@ -65,7 +65,6 @@ void CFRelease(CFTypeRef self){
 }
 CFIndex CFGetRetainCount(CFTypeRef self){
    return [(id) self retainCount];
-   return 0;
 }
 
 CFAllocatorRef CFGetAllocator(CFTypeRef self){
