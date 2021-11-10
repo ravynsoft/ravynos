@@ -358,60 +358,72 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
    return [NSColor colorWithCalibratedRed:0 green:0 blue:0 alpha:0];
 }
 
-+(NSColor *)blackColor {
-   return [NSColor colorWithCalibratedWhite:0 alpha:1.0];
-}
-
-+(NSColor *)blueColor {
-   return [NSColor colorWithCalibratedRed:0.0 green:0.0 blue:1.0 alpha:1.0];
-}
-
-+(NSColor *)brownColor {
-   return [NSColor colorWithCalibratedRed:0.6 green:0.4 blue:0.2 alpha:1.0];
-}
-
-+(NSColor *)cyanColor {
-   return [NSColor colorWithCalibratedRed:0.0 green:1.0 blue:1.0 alpha:1.0];
-}
-
 +(NSColor *)darkGrayColor {
    return [NSColor colorWithCalibratedWhite:1.3/3.0 alpha:1.0];
 }
 
 +(NSColor *)grayColor {
-   return [NSColor colorWithCalibratedWhite:0.5 alpha:1.0];
-}
-
-+(NSColor *)greenColor {
-   return [NSColor colorWithCalibratedRed:0.0 green:1.0 blue:0.0 alpha:1.0];
+   return [NSColor colorWithCatalogName:@"System" colorName:@"systemGrayColor"];
 }
 
 +(NSColor *)lightGrayColor {
    return [NSColor colorWithCalibratedWhite:2.3/3.0 alpha:1.0];
 }
 
++(NSColor *)blackColor {
+   return [NSColor colorWithCalibratedWhite:0 alpha:1.0];
+}
+
++(NSColor *)blueColor {
+   return [NSColor colorWithCatalogName:@"System" colorName:@"systemBlueColor"];
+}
+
++(NSColor *)brownColor {
+   return [NSColor colorWithCatalogName:@"System" colorName:@"systemBrownColor"];
+}
+
++(NSColor *)cyanColor {
+   return [NSColor colorWithCatalogName:@"Basic" colorName:@"Cyan"];
+}
+
++(NSColor *)tealColor {
+   return [NSColor colorWithCatalogName:@"System" colorName:@"systemTealColor"];
+}
+
++(NSColor *)indigoColor {
+   return [NSColor colorWithCatalogName:@"System" colorName:@"systemIndigoColor"];
+}
+
++(NSColor *)greenColor {
+   return [NSColor colorWithCatalogName:@"System" colorName:@"systemGreenColor"];
+}
+
 +(NSColor *)magentaColor {
-   return [NSColor colorWithCalibratedRed:1.0 green:0.0 blue:1.0 alpha:1.0];
+   return [NSColor colorWithCatalogName:@"Basic" colorName:@"Magenta"];
 }
 
 +(NSColor *)orangeColor {
-   return [NSColor colorWithCalibratedRed:1.0 green:0.5 blue:0.0 alpha:1.0];
+   return [NSColor colorWithCatalogName:@"System" colorName:@"systemOrangeColor"];
+}
+
++(NSColor *)pinkColor {
+   return [NSColor colorWithCatalogName:@"System" colorName:@"systemPinkColor"];
 }
 
 +(NSColor *)purpleColor {
-   return [NSColor colorWithCalibratedRed:0.5 green:0.0 blue:0.5 alpha:1.0];
+   return [NSColor colorWithCatalogName:@"System" colorName:@"systemPurpleColor"];
 }
 
 +(NSColor *)redColor {
-   return [NSColor colorWithCalibratedRed:1.0 green:0.0 blue:0.0 alpha:1.0];
+   return [NSColor colorWithCatalogName:@"System" colorName:@"systemRedColor"];
+}
+
++(NSColor *)yellowColor {
+   return [NSColor colorWithCatalogName:@"System" colorName:@"systemYellowColor"];
 }
 
 +(NSColor *)whiteColor {
    return [NSColor colorWithCalibratedWhite:1 alpha:1.0];
-}
-
-+(NSColor *)yellowColor {
-   return [NSColor colorWithCalibratedRed:1.0 green:1.0 blue:0.0 alpha:1.0];
 }
 
 +(NSColor *)colorWithDeviceWhite:(CGFloat)white alpha:(CGFloat)alpha {
@@ -444,10 +456,27 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 +(NSColor *)colorWithCatalogName:(NSString *)catalogName colorName:(NSString *)colorName {
     NSColorList *list = [NSColorList colorListNamed:catalogName];
-    if(!list)
+    if(!list) {
+        NSLog(@"*** Unknown color catalog %@",catalogName);
         return nil;
+    }
 
-    return [[list colorWithKey:colorName] color];
+    NSColor *color = [list colorWithKey:colorName];
+    if(!color) {
+        NSLog(@"*** Unknown color %@ for catalog %@",colorName,catalogName);
+        return nil;
+    }
+
+    // handle aliases to other catalog colors
+    while([color isKindOfClass:[NSColor_catalog class]]) {
+        NSValue *value = [color color];
+        if([value isKindOfClass:[NSColor_catalog class]])
+            color = [NSColor colorWithCatalogName:catalogName colorName:[value colorName]];
+        else
+            return value;
+    }
+
+    return color;
 }
 
 +(NSColor *)colorFromPasteboard:(NSPasteboard *)pasteboard {
