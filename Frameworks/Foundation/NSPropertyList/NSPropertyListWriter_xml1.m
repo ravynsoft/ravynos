@@ -78,14 +78,14 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 - (void)encodeInteger:(NSInteger)integer
 {
     [_data appendBytes:"<integer>" length:9];
-    [self _encodeString:[NSString stringWithFormat:@"%i", integer]];
+    [self _encodeString:[NSString stringWithFormat:@"%li", integer]];
     [_data appendBytes:"</integer>\n" length:11];
 }
 
 - (void)encodeUnsignedInteger:(NSUInteger)uinteger
 {
     [_data appendBytes:"<integer>" length:9];
-    [self _encodeString:[NSString stringWithFormat:@"%u", uinteger]];
+    [self _encodeString:[NSString stringWithFormat:@"%lu", uinteger]];
     [_data appendBytes:"</integer>\n" length:11];
 }
 
@@ -119,10 +119,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     switch (*type) {
         case 'i':
         case 'l':
+        case 'q':
             [self encodeInteger:[number intValue]];  break;
             
         case 'I':
         case 'L':
+        case 'Q':
             [self encodeUnsignedInteger:[number unsignedIntValue]];  break;
             
         case 'c':  // this is the encoding for BOOL

@@ -112,7 +112,6 @@ static int errorHandler(Display *display,XErrorEvent *errorEvent) {
 
 
 -(NSColor *)colorWithName:(NSString *)colorName {
-   
    if([colorName isEqual:@"controlColor"])
       return [NSColor lightGrayColor];
    if([colorName isEqual:@"disabledControlTextColor"])

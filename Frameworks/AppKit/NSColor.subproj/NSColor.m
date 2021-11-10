@@ -9,6 +9,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <AppKit/NSColor.h>
 #import <AppKit/NSColor_catalog.h>
 #import <AppKit/NSColor_CGColor.h>
+#import <AppKit/NSColorList.h>
 #import <AppKit/NSRaise.h>
 #import <AppKit/NSImage.h>
 #import <AppKit/NSBezierPath.h>
@@ -80,7 +81,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
      [coder encodeInt:6 forKey:@"NSColorSpace"];
      [coder encodeObject:[self catalogName] forKey:@"NSCatalogName"];
      [coder encodeObject:[self colorName] forKey:@"NSColorName"];
-// FIXME: encode @"NSColor"
+     [coder encodeObject:[self color] forKey:@"NSColor"];
+    } else {
+     NSLog(@"Unknown colorSpace %@",spaceName);
     }
 
 
@@ -109,7 +112,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
        const uint8_t *rgb=[keyed decodeBytesForKey:@"NSRGB" returnedLength:&length];
        NSString   *string=[[[NSString alloc] initWithBytes:rgb length:length encoding:NSUTF8StringEncoding] autorelease];
        NSArray    *components=[string componentsSeparatedByString:@" "];
-       float       values[4]={0,0,0,1};
+       CGFloat       values[4]={0,0,0,1};
        int         i,count=[components count];
        
        for(i=0;i<count && i<4;i++)
@@ -124,7 +127,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
        const uint8_t *rgb=[keyed decodeBytesForKey:@"NSRGB" returnedLength:&length];
        NSString   *string=[[[NSString alloc] initWithBytes:rgb length:length encoding:NSUTF8StringEncoding] autorelease];
        NSArray    *components=[string componentsSeparatedByString:@" "];
-       float       values[4]={0,0,0,1};
+       CGFloat       values[4]={0,0,0,1};
        int         i,count=[components count];
        
        for(i=0;i<count && i<4;i++)
@@ -139,7 +142,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
        const uint8_t *white=[keyed decodeBytesForKey:@"NSWhite" returnedLength:&length];
        NSString   *string=[[[NSString alloc] initWithBytes:white length:length encoding:NSUTF8StringEncoding] autorelease];
        NSArray    *components=[string componentsSeparatedByString:@" "];
-       float       values[2]={0,1};
+       CGFloat       values[2]={0,1};
        int         i,count=[components count];
               
        for(i=0;i<count && i<2;i++)
@@ -154,7 +157,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
        const uint8_t *white=[keyed decodeBytesForKey:@"NSWhite" returnedLength:&length];
        NSString   *string=[[[NSString alloc] initWithBytes:white length:length encoding:NSUTF8StringEncoding] autorelease];
        NSArray    *components=[string componentsSeparatedByString:@" "];
-       float       values[2]={0,1};
+       CGFloat       values[2]={0,1};
        int         i,count=[components count];
        
        for(i=0;i<count && i<2;i++)
@@ -171,7 +174,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
        const uint8_t *cmyk=[keyed decodeBytesForKey:@"NSCMYK" returnedLength:&length];
        NSString   *string=[[[NSString alloc] initWithBytes:cmyk length:length-1 encoding:NSUTF8StringEncoding] autorelease];
        NSArray    *components=[string componentsSeparatedByString:@" "];
-       float       values[5]={0,0,0,0,1};
+       CGFloat       values[5]={0,0,0,0,1};
        int         i,count=[components count];
        
        for(i=0;i<count && i<5;i++)
@@ -282,8 +285,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 // NOTE: the list may contain more then two colors
 +(NSArray *)controlAlternatingRowBackgroundColors {
    return [NSArray arrayWithObjects:
-    [NSColor whiteColor],
-    [NSColor colorWithCalibratedRed:0.90 green:0.95 blue:1.0 alpha:1.0],
+    [NSColor controlBackgroundColor],
+    [NSColor colorWithCatalogName:@"System" colorName:@"controlAlternatingRowColor"],
     nil];
 }
 
@@ -324,7 +327,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 }
 
 +(NSColor *)windowBackgroundColor {
-   return [NSColor controlColor];
+   return [NSColor colorWithCatalogName:@"System" colorName:@"windowBackgroundColor"];
 }
 
 +(NSColor *)windowFrameColor {
@@ -440,7 +443,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 }
 
 +(NSColor *)colorWithCatalogName:(NSString *)catalogName colorName:(NSString *)colorName {
-   return [NSColor_catalog colorWithCatalogName:catalogName colorName:colorName];
+    NSColorList *list = [NSColorList colorListNamed:catalogName];
+    if(!list)
+        return nil;
+
+    return [[list colorWithKey:colorName] color];
 }
 
 +(NSColor *)colorFromPasteboard:(NSPasteboard *)pasteboard {
@@ -496,31 +503,31 @@ static void releasePatternInfo(void *info){
    NSInvalidAbstractInvocation();
 }
 
--(void)getWhite:(float *)white alpha:(float *)alpha {
+-(void)getWhite:(CGFloat *)white alpha:(CGFloat *)alpha {
     NSInvalidAbstractInvocation();
 }
 
--(void)getRed:(float *)red green:(float *)green blue:(float *)blue alpha:(float *)alpha {
+-(void)getRed:(CGFloat *)red green:(CGFloat *)green blue:(CGFloat *)blue alpha:(CGFloat *)alpha {
    NSInvalidAbstractInvocation();
 }
 
--(void)getHue:(float *)hue saturation:(float *)saturation brightness:(float *)brightness alpha:(float *)alpha {
+-(void)getHue:(CGFloat *)hue saturation:(CGFloat *)saturation brightness:(CGFloat *)brightness alpha:(CGFloat *)alpha {
    NSInvalidAbstractInvocation();
 }
 
--(void)getCyan:(float *)cyan magenta:(float *)magenta yellow:(float *)yellow black:(float *)black alpha:(float *)alpha {
+-(void)getCyan:(CGFloat *)cyan magenta:(CGFloat *)magenta yellow:(CGFloat *)yellow black:(CGFloat *)black alpha:(CGFloat *)alpha {
     NSInvalidAbstractInvocation();
 }
 
 -(CGFloat)whiteComponent {
-    float white;
+    CGFloat white;
 
     [self getWhite:&white alpha:NULL];
     return white;
 }
 
 -(CGFloat)redComponent {
-   float red;
+   CGFloat red;
 
    [self getRed:&red green:NULL blue:NULL alpha:NULL];
 
@@ -528,7 +535,7 @@ static void releasePatternInfo(void *info){
 }
 
 -(CGFloat)greenComponent {
-   float green;
+   CGFloat green;
 
    [self getRed:NULL green:&green blue:NULL alpha:NULL];
 
@@ -536,7 +543,7 @@ static void releasePatternInfo(void *info){
 }
 
 -(CGFloat)blueComponent {
-   float blue;
+   CGFloat blue;
 
    [self getRed:NULL green:NULL blue:&blue alpha:NULL];
 
@@ -544,7 +551,7 @@ static void releasePatternInfo(void *info){
 }
 
 -(CGFloat)hueComponent {
-   float hue;
+   CGFloat hue;
 
    [self getHue:&hue saturation:NULL brightness:NULL alpha:NULL];
 
@@ -552,7 +559,7 @@ static void releasePatternInfo(void *info){
 }
 
 -(CGFloat)saturationComponent {
-   float saturation;
+   CGFloat saturation;
 
    [self getHue:NULL saturation:&saturation brightness:NULL alpha:NULL];
 
@@ -560,7 +567,7 @@ static void releasePatternInfo(void *info){
 }
 
 -(CGFloat)brightnessComponent {
-   float brightness;
+   CGFloat brightness;
 
    [self getHue:NULL saturation:NULL brightness:&brightness alpha:NULL];
 
@@ -568,28 +575,28 @@ static void releasePatternInfo(void *info){
 }
 
 -(CGFloat)cyanComponent {
-    float cyan;
+    CGFloat cyan;
 
     [self getCyan:&cyan magenta:NULL yellow:NULL black:NULL alpha:NULL];
     return cyan;
 }
 
 -(CGFloat)magentaComponent {
-    float magenta;
+    CGFloat magenta;
 
     [self getCyan:NULL magenta:&magenta yellow:NULL black:NULL alpha:NULL];
     return magenta;
 }
 
 -(CGFloat)yellowComponent {
-    float yellow;
+    CGFloat yellow;
 
     [self getCyan:NULL magenta:NULL yellow:&yellow black:NULL alpha:NULL];
     return yellow;
 }
 
 -(CGFloat)blackComponent {
-    float black;
+    CGFloat black;
 
     [self getCyan:NULL magenta:NULL yellow:NULL black:&black alpha:NULL];
     return black;
@@ -624,9 +631,9 @@ static void releasePatternInfo(void *info){
    if(primary==nil || secondary==nil)
     return nil;
    else {
-    float pr,pg,pb,pa;
-    float sr,sg,sb,sa;
-    float rr,rg,rb,ra;
+    CGFloat pr,pg,pb,pa;
+    CGFloat sr,sg,sb,sa;
+    CGFloat rr,rg,rb,ra;
 
     [primary getRed:&pr green:&pg blue:&pb alpha:&pa];
     [secondary getRed:&sr green:&sg blue:&sb alpha:&sa];

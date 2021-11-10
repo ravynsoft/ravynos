@@ -31,11 +31,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
    return [[[self alloc] initWithColorRef:colorRef spaceName:spaceName] autorelease];
 }
 
-+(NSColor *)colorWithGray:(float)gray alpha:(float)alpha spaceName:(NSString *)spaceName {
++(NSColor *)colorWithGray:(CGFloat)gray alpha:(CGFloat)alpha spaceName:(NSString *)spaceName {
    NSColor *result;
    
    CGColorSpaceRef colorSpace=CGColorSpaceCreateDeviceGray();
-   float         components[2]={gray,alpha};
+   CGFloat         components[2]={gray,alpha};
    CGColorRef     cgColor=CGColorCreate(colorSpace,components);
    
    result=[self colorWithColorRef:cgColor spaceName:spaceName];
@@ -46,11 +46,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
    return result;
 }
 
-+(NSColor *)colorWithCyan:(float)cyan magenta:(float)magenta yellow:(float)yellow black:(float)black alpha:(float)alpha spaceName:(NSString *)spaceName {
++(NSColor *)colorWithCyan:(CGFloat)cyan magenta:(CGFloat)magenta yellow:(CGFloat)yellow black:(CGFloat)black alpha:(CGFloat)alpha spaceName:(NSString *)spaceName {
    NSColor *result;
    
    CGColorSpaceRef colorSpace=CGColorSpaceCreateDeviceCMYK();
-   float         components[5]={cyan,magenta,yellow,black,alpha};
+   CGFloat         components[5]={cyan,magenta,yellow,black,alpha};
    CGColorRef     cgColor=CGColorCreate(colorSpace,components);
    
    result=[self colorWithColorRef:cgColor spaceName:spaceName];
@@ -61,11 +61,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
    return result;
 }
 
-+(NSColor *)colorWithRed:(float)red green:(float)green blue:(float)blue alpha:(float)alpha spaceName:(NSString *)spaceName {
++(NSColor *)colorWithRed:(CGFloat)red green:(CGFloat)green blue:(CGFloat)blue alpha:(CGFloat)alpha spaceName:(NSString *)spaceName {
    NSColor *result;
    
    CGColorSpaceRef colorSpace=CGColorSpaceCreateDeviceRGB();
-   float           components[4]={red,green,blue,alpha};
+   CGFloat           components[4]={red,green,blue,alpha};
    CGColorRef     cgColor=CGColorCreate(colorSpace,components);
    
    result=[self colorWithColorRef:cgColor spaceName:spaceName];
@@ -76,8 +76,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
    return result;
 }
 
-+(NSColor *)colorWithHue:(float)hue saturation:(float)saturation brightness:(float)brightness alpha:(float)alpha spaceName:(NSString *)spaceName {
-   float red,green,blue;
++(NSColor *)colorWithHue:(CGFloat)hue saturation:(CGFloat)saturation brightness:(CGFloat)brightness alpha:(CGFloat)alpha spaceName:(NSString *)spaceName {
+   CGFloat red,green,blue;
 
    NSColorHSBToRGB(hue,saturation,brightness,&red,&green,&blue);
 
@@ -114,7 +114,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     components[i]=comps[i];
 }
 
--(float)alphaComponent {
+-(CGFloat)alphaComponent {
    return CGColorGetAlpha(_colorRef);
 }
 
@@ -234,7 +234,7 @@ static inline CGFloat calibratedWhiteFromRGB(CGFloat r, CGFloat g, CGFloat b) {
      return [NSColor colorWithDeviceRed:red green:green blue:blue alpha:alpha];
    }
     
-   if(NSDebugEnabled)
+   //if(NSDebugEnabled)
     NSLog(@"Unable to convert color to space %@",otherSpaceName);
    return nil;
 }
@@ -243,7 +243,7 @@ static inline CGFloat calibratedWhiteFromRGB(CGFloat r, CGFloat g, CGFloat b) {
    return _colorSpaceName;
 }
 
--(void)getWhite:(float *)white alpha:(float *)alpha {
+-(void)getWhite:(CGFloat *)white alpha:(CGFloat *)alpha {
    CGColorSpaceRef   colorSpace=CGColorGetColorSpace(_colorRef);
    CGColorSpaceModel model=CGColorSpaceGetModel(colorSpace);
    const CGFloat    *components=CGColorGetComponents(_colorRef);
@@ -259,7 +259,7 @@ static inline CGFloat calibratedWhiteFromRGB(CGFloat r, CGFloat g, CGFloat b) {
    NSLog(@"-[%@ %s] failed, space=%@",isa,_cmd,_colorSpaceName);
 }
 
--(void)getRed:(float *)red green:(float *)green blue:(float *)blue alpha:(float *)alpha {
+-(void)getRed:(CGFloat *)red green:(CGFloat *)green blue:(CGFloat *)blue alpha:(CGFloat *)alpha {
    CGColorSpaceRef   colorSpace=CGColorGetColorSpace(_colorRef);
    CGColorSpaceModel model=CGColorSpaceGetModel(colorSpace);
    const CGFloat    *components=CGColorGetComponents(_colorRef);
@@ -291,7 +291,7 @@ static inline CGFloat calibratedWhiteFromRGB(CGFloat r, CGFloat g, CGFloat b) {
    NSLog(@"-[%@ %s] failed, space=%@",isa,_cmd,_colorSpaceName);
 }
 
--(void)getHue:(float *)huep saturation:(float *)saturationp brightness:(float *)brightnessp alpha:(float *)alphap {
+-(void)getHue:(CGFloat *)huep saturation:(CGFloat *)saturationp brightness:(CGFloat *)brightnessp alpha:(CGFloat *)alphap {
    CGColorSpaceRef   colorSpace=CGColorGetColorSpace(_colorRef);
    CGColorSpaceModel model=CGColorSpaceGetModel(colorSpace);
    const CGFloat    *components=CGColorGetComponents(_colorRef);
@@ -313,7 +313,7 @@ static inline CGFloat calibratedWhiteFromRGB(CGFloat r, CGFloat g, CGFloat b) {
    NSLog(@"-[%@ %s] failed, space=%@",isa,_cmd,_colorSpaceName);
 }
 
--(void)getCyan:(float *)cyan magenta:(float *)magenta yellow:(float *)yellow black:(float *)black alpha:(float *)alpha {
+-(void)getCyan:(CGFloat *)cyan magenta:(CGFloat *)magenta yellow:(CGFloat *)yellow black:(CGFloat *)black alpha:(CGFloat *)alpha {
    CGColorSpaceRef   colorSpace=CGColorGetColorSpace(_colorRef);
    CGColorSpaceModel model=CGColorSpaceGetModel(colorSpace);
    const CGFloat    *components=CGColorGetComponents(_colorRef);

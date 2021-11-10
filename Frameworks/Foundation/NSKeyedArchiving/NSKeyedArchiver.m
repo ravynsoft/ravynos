@@ -67,7 +67,8 @@ static NSMapTable *_globalNameToClass=NULL;
    // object that returns YES to -isEqual with the mutable parent (and thus wouldn't get encoded at all without this change)
    
    _objectToUid=NSCreateMapTable(objectToUidKeyCb,NSObjectMapValueCallBacks,0);
-   
+
+   // FIXME: should be binary format per Apple's docs but we don't support writing that yet
    _outputFormat=NSPropertyListXMLFormat_v1_0;
    return self;
 }
@@ -169,7 +170,7 @@ static NSMapTable *_globalNameToClass=NULL;
    [[_plistStack lastObject] setObject:[NSNumber numberWithDouble:value] forKey:key];
 }
 
--(void)encodeBytes:(const void *)ptr length:(NSUInteger)length forKey:(NSString *)key {
+-(void)encodeBytes:(const uint8_t *)ptr length:(NSUInteger)length forKey:(NSString *)key {
    if(_pass==0)
     return;
    

@@ -14,7 +14,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     NSColor *_color;
 }
 
-+ (NSColor *)colorWithCatalogName:(NSString *)catalogName colorName:(NSString *)colorName;
-+ (NSColor *)colorWithCatalogName:(NSString *)catalogName colorName:(NSString *)colorName color:(NSColor *)color;
+//+ (NSColor *)colorWithCatalogName:(NSString *)catalogName colorName:(NSString *)colorName;
+//+ (NSColor *)colorWithCatalogName:(NSString *)catalogName colorName:(NSString *)colorName color:(NSColor *)color;
 
 @end

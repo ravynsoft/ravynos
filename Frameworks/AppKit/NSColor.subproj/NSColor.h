@@ -96,10 +96,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 - (NSInteger)numberOfComponents;
 - (void)getComponents:(CGFloat *)components;
 
-- (void)getWhite:(float *)white alpha:(float *)alpha;
-- (void)getRed:(float *)red green:(float *)green blue:(float *)blue alpha:(float *)alpha;
-- (void)getHue:(float *)hue saturation:(float *)saturation brightness:(float *)brightness alpha:(float *)alpha;
-- (void)getCyan:(float *)cyan magenta:(float *)magenta yellow:(float *)yellow black:(float *)black alpha:(float *)alpha;
+- (void)getWhite:(CGFloat *)white alpha:(CGFloat *)alpha;
+- (void)getRed:(CGFloat *)red green:(CGFloat *)green blue:(CGFloat *)blue alpha:(CGFloat *)alpha;
+- (void)getHue:(CGFloat *)hue saturation:(CGFloat *)saturation brightness:(CGFloat *)brightness alpha:(CGFloat *)alpha;
+- (void)getCyan:(CGFloat *)cyan magenta:(CGFloat *)magenta yellow:(CGFloat *)yellow black:(CGFloat *)black alpha:(CGFloat *)alpha;
 
 - (CGFloat)whiteComponent;
 

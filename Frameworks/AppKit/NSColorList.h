@@ -17,6 +17,7 @@ APPKIT_EXPORT NSString *const NSColorListDidChangeNotification;
     NSMutableArray *_colors;
     NSString *_name;
     NSString *_path;
+    BOOL _isEditable;
 }
 
 + (NSArray *)availableColorLists;
@@ -27,6 +28,7 @@ APPKIT_EXPORT NSString *const NSColorListDidChangeNotification;
 + (NSColorList *)colorListNamed:(NSString *)name;
 
 - (BOOL)isEditable;
+- (BOOL)editable;
 - (NSString *)name;
 - (NSArray *)allKeys;
 - (NSColor *)colorWithKey:(NSString *)key;
@@ -35,7 +37,7 @@ APPKIT_EXPORT NSString *const NSColorListDidChangeNotification;
 - (void)removeColorWithKey:(NSString *)key;
 - (void)insertColor:(NSColor *)color key:(NSString *)key atIndex:(unsigned)index;
 
-- (void)writeToFile:(NSString *)path;
+- (BOOL)writeToFile:(NSString *)path;
 - (void)removeFile;
 
 @end

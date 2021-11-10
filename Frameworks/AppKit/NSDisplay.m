@@ -7,6 +7,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 #import <AppKit/NSDisplay.h>
 #import <AppKit/NSRaise.h>
+#import <AppKit/NSColorList.h>
 
 @implementation NSDisplay
 
@@ -226,9 +227,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 @end
 
 void NSColorSetCatalogColor(NSString *catalogName,NSString *colorName,NSColor *color){
-   [[NSDisplay currentDisplay] _addSystemColor:color forName: colorName];
+    NSColorList *list = [NSColorList colorListNamed:catalogName];
+    if(list)
+        [list setColor:color forKey:colorName];
 }
 
 NSColor *NSColorGetCatalogColor(NSString *catalogName,NSString *colorName){
-   return [[NSDisplay currentDisplay] colorWithName:colorName];
+    return [NSColor colorWithCatalogName:catalogName colorName:colorName];
 }

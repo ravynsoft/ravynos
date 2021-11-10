@@ -7,6 +7,7 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #import <AppKit/NSColor_catalog.h>
+#import <AppKit/NSColorList.h>
 #import <AppKit/NSGraphics.h>
 
 @interface NSColor(NSAppKitPrivate)
@@ -48,20 +49,15 @@ NSColor *NSColorGetCatalogColor(NSString *catalogName,NSString *colorName);
 }
 
 -(NSString *)description {
-    return [NSString stringWithFormat:@"<%@ catalogName: %@ colorName: %@>",
-        [[self class] description], _catalogName, _colorName];
-}
-
-+(NSColor *)colorWithCatalogName:(NSString *)catalogName colorName:(NSString *)colorName {
-   return [[[self alloc] initWithCatalogName:catalogName colorName:colorName color:nil] autorelease];
+    return [NSString stringWithFormat:@"<%@ catalogName: %@ colorName: %@ color:%@>",
+        [[self class] description], _catalogName, _colorName, _color];
 }
 
 +(NSColor *)colorWithCatalogName:(NSString *)catalogName colorName:(NSString *)colorName color:(NSColor *)color {
-   if(NSColorGetCatalogColor(catalogName,colorName)==nil)
-    NSColorSetCatalogColor(catalogName,colorName,color);
-   
    return [[[self alloc] initWithCatalogName:catalogName colorName:colorName color:color] autorelease];
 }
+
+-(NSColor *)color { return _color; }
 
 -(NSString *)colorSpaceName {
    return NSNamedColorSpace;
@@ -80,8 +76,10 @@ NSColor *NSColorGetCatalogColor(NSString *catalogName,NSString *colorName);
 
    if ([colorSpace isEqualToString:[self colorSpaceName]])
     return self;
+   if([colorSpace isEqualToString:[_color colorSpaceName]])
+    return _color;
 
-   result=[NSColorGetCatalogColor(_catalogName,_colorName) colorUsingColorSpaceName:colorSpace device:device];
+   result=[_color colorUsingColorSpaceName:colorSpace device:device];
    
    if(result==nil)
     NSLog(@"result ==nil %@ %@",_colorName,colorSpace);
@@ -90,25 +88,53 @@ NSColor *NSColorGetCatalogColor(NSString *catalogName,NSString *colorName);
 }
 
 -(CGColorRef)CGColorRef {
-   return [NSColorGetCatalogColor(_catalogName,_colorName) CGColorRef];
+   return [_color CGColorRef];
 }
 
 -(void)setFill {
-   NSColor *color=NSColorGetCatalogColor(_catalogName,_colorName);
-    
-   if(color==nil)
+   if(_color==nil)
     [NSException raise:@"NSUnknownColor" format:@"Unknown color %@ in catalog %@",_colorName,_catalogName];
     
-   [color setFill];
+   [_color setFill];
 }
 
 -(void)setStroke {
-   NSColor *color=NSColorGetCatalogColor(_catalogName,_colorName);
-    
-   if(color==nil)
+   if(_color==nil)
     [NSException raise:@"NSUnknownColor" format:@"Unknown color %@ in catalog %@",_colorName,_catalogName];
     
-   [color setStroke];
+   [_color setStroke];
+}
+
+-(NSInteger)numberOfComponents {
+   [NSException raise:NSInvalidArgumentException format:@"-numberOfComponents not valid for the NSColor Catalog color: %@ %@; need to first convert colorspace.",_catalogName,_colorName];
+}
+
+-(void)getComponents:(CGFloat *)components {
+   [NSException raise:NSInvalidArgumentException format:@"-getComponents not valid for the NSColor Catalog color: %@ %@; need to first convert colorspace.",_catalogName,_colorName];
+}
+
+-(CGFloat)alphaComponent {
+   [NSException raise:NSInvalidArgumentException format:@"-alphaComponent not valid for the NSColor Catalog color: %@ %@; need to first convert colorspace.",_catalogName,_colorName];
+}
+
+-(NSColor *)colorWithAlphaComponent:(CGFloat)alpha {
+   [NSException raise:NSInvalidArgumentException format:@"-colorWithAlphaComponent not valid for the NSColor Catalog color: %@ %@; need to first convert colorspace.",_catalogName,_colorName];
+}
+
+-(void)getWhite:(CGFloat *)white alpha:(CGFloat *)alpha {
+   [NSException raise:NSInvalidArgumentException format:@"getWhite not valid for the NSColor Catalog color: %@ %@; need to first convert colorspace.",_catalogName,_colorName];
+}
+
+-(void)getRed:(CGFloat *)red green:(CGFloat *)green blue:(CGFloat *)blue alpha:(CGFloat *)alpha {
+   [NSException raise:NSInvalidArgumentException format:@"-getRed not valid for the NSColor Catalog color: %@ %@; need to first convert colorspace.",_catalogName,_colorName];
+}
+
+-(void)getHue:(CGFloat *)huep saturation:(CGFloat *)saturationp brightness:(CGFloat *)brightnessp alpha:(CGFloat *)alphap {
+   [NSException raise:NSInvalidArgumentException format:@"-getHue not valid for the NSColor Catalog color: %@ %@; need to first convert colorspace.",_catalogName,_colorName];
+}
+
+-(void)getCyan:(CGFloat *)cyan magenta:(CGFloat *)magenta yellow:(CGFloat *)yellow black:(CGFloat *)black alpha:(CGFloat *)alpha {
+   [NSException raise:NSInvalidArgumentException format:@"-getCyan not valid for the NSColor Catalog color: %@ %@; need to first convert colorspace.",_catalogName,_colorName];
 }
 
 @end
