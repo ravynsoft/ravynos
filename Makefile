@@ -130,6 +130,7 @@ copyfiles:
 	cp -fvR ${TOPDIR}/etc ${BUILDROOT}
 	sed -i_ -e "s/__VERSION__/${AIRYX_VERSION}/" -e "s/__CODENAME__/${AIRYX_CODENAME}/" ${BUILDROOT}/etc/motd
 	rm -f ${BUILDROOT}/etc/motd_
+	${MAKE} -C Colors
 
 mkfiles:
 	mkdir -p ${BUILDROOT}/usr/share/mk
