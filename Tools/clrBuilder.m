@@ -7,25 +7,6 @@ typedef struct {
     CGFloat components[5];
 } RawColor;
 
-
-
-#if 0
-
-
-+(NSColor *)darkGrayColor {
-   return [NSColor colorWithCalibratedWhite:1.3/3.0 alpha:1.0];
-}
-
-+(NSColor *)grayColor {
-   return [NSColor colorWithCatalogName:@"System" colorName:@"systemGrayColor" /*colorWithCalibratedWhite:0.5 alpha:1.0*/];
-}
-
-+(NSColor *)lightGrayColor {
-   return [NSColor colorWithCalibratedWhite:2.3/3.0 alpha:1.0];
-}
-
-#endif
-
 void buildList(NSString *name, RawColor *colors) {
     NSAutoreleasePool *pool = [NSAutoreleasePool new];
 
@@ -81,7 +62,9 @@ int main(int argc, char **argv) {
     {@"systemPurpleColor", NSCalibratedRGBColorSpace, {0.418191, 0.000000, 0.424301, 1.000000}},
     {@"systemTealColor", NSCalibratedRGBColorSpace, {0.000000, 0.000000, 0.998189, 1.000000}},
     {@"systemIndigoColor", NSCalibratedRGBColorSpace, {0.000000, 0.000000, 0.998189, 1.000000}},
-    {@"systemGrayColor", NSCalibratedWhiteColorSpace, {0.424672, 1.000000}},
+    {@"systemGrayColor", NSCalibratedWhiteColorSpace, {0.525518, 1.000000}},
+    {@"systemLightGrayColor", NSCalibratedWhiteColorSpace, {0.602715, 1.000000}},
+    {@"systemDarkGrayColor", NSCalibratedWhiteColorSpace, {0.325426, 1.000000}},
     {@"linkColor", NSCalibratedRGBColorSpace, {0.000000, 0.000000, 0.998189, 1.000000}},
     {@"placeholderTextColor", NSCalibratedWhiteColorSpace, {0.424672, 1.000000}},
     {@"windowFrameColor", NSCalibratedWhiteColorSpace, {1.000000, 1.000000}},
@@ -100,7 +83,7 @@ int main(int argc, char **argv) {
     {@"selectedTextBackgroundColor", NSCalibratedWhiteColorSpace, {0.602715, 1.000000}},
     {@"unemphasizedSelectedTextBackgroundColor", NSCalibratedWhiteColorSpace, {0.602715, 1.000000}},
     {@"unemphasizedSelectedTextColor", NSCalibratedWhiteColorSpace, {0.000000, 1.000000}},
-    {@"windowBackgroundColor", NSCalibratedWhiteColorSpace, {0.424672, 1.000000}},
+    {@"windowBackgroundColor", NSCalibratedWhiteColorSpace, {0.710715, 1.000000}},
     {@"underPageBackgroundColor", NSCalibratedWhiteColorSpace, {0.602715, 1.000000}},
     {@"controlBackgroundColor", NSCalibratedWhiteColorSpace, {0.602715, 1.000000}},
     {@"controlAlternatingRowColor", NSCalibratedWhiteColorSpace, {0.998189, 1.000000}},

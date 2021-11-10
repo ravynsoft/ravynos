@@ -359,7 +359,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 }
 
 +(NSColor *)darkGrayColor {
-   return [NSColor colorWithCalibratedWhite:1.3/3.0 alpha:1.0];
+   return [NSColor colorWithCatalogName:@"System" colorName:@"systemDarkGrayColor"];
 }
 
 +(NSColor *)grayColor {
@@ -367,7 +367,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 }
 
 +(NSColor *)lightGrayColor {
-   return [NSColor colorWithCalibratedWhite:2.3/3.0 alpha:1.0];
+   return [NSColor colorWithCatalogName:@"System" colorName:@"systemLightGrayColor"];
 }
 
 +(NSColor *)blackColor {
