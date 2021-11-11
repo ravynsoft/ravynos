@@ -3,6 +3,18 @@
 
 @implementation MyView
 
+-initWithFrame:(NSRect)frame {
+    [super initWithFrame:frame];
+    NSColorList *web = [NSColorList colorListNamed:@"Web"];
+    NSArray *keys = [web allKeys];
+    _colors = [[NSMutableArray arrayWithCapacity:[keys count]] retain];
+    for(int i=0; i<[keys count]; ++i) {
+        NSColor *color = [[web colorWithKey:[keys objectAtIndex:i]] color];
+        [_colors addObject:[color retain]];
+    }
+    return self;
+}
+
 -(void)setText:(NSString *)string {
     _text = string;
 }
@@ -12,33 +24,17 @@
 }
 
 -(void)drawRect:(NSRect)dirtyRect {
-
-    NSRect rect = NSMakeRect(20, 20, 100, 100);
-    [[NSColor blueColor] set];
-    [NSBezierPath fillRect:rect];
-
-    NSGraphicsContext *gc = [NSGraphicsContext currentContext];
-    CGContextRef ref = [gc graphicsPort];
-    [[NSColor yellowColor] set];
-
-    CGContextBeginPath(ref);
-    CGContextMoveToPoint(ref, 20, 20);
-    CGContextAddLineToPoint(ref, 120, 120);
-    CGContextAddLineToPoint(ref, 20, 120);
-    CGContextClosePath(ref);
-    CGContextFillPath(ref);
-
-    NSDictionary *attr = @{
-	NSFontAttributeName : _font
-    };
-    NSAttributedString *s = [[NSAttributedString alloc] initWithString:_text
-	    attributes:attr];
-    rect = NSMakeRect(38,38,142,142);
-    [[NSColor whiteColor] set];
-    [NSBezierPath fillRect:rect];
-
-    rect = NSMakeRect(40,40,140,140);
-    [s drawInRect:rect];
+    NSSize size = [self frame].size;
+    NSRect swatch = NSMakeRect(6,size.height - 56,48,48);
+    for(int i=0; i<[_colors count]; ++i) {
+        [[_colors objectAtIndex:i] drawSwatchInRect:swatch];
+        swatch.origin.x += 56;
+        if(swatch.origin.x > size.width) {
+            swatch.origin.x = 6;
+            swatch.origin.y -= 56;
+            if(swatch.origin.y < 6) break;
+        }
+    }
 }
 
 @end

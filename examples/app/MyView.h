@@ -1,12 +1,9 @@
 #import <AppKit/AppKit.h>
 
 @interface MyView: NSView {
-	NSString * _text;
-	NSFont * _font;
+    NSMutableArray *_colors;
 }
 
--(void)setText:(NSString *)string;
--(void)setFont:(NSFont *)font;
 @end
 
 
