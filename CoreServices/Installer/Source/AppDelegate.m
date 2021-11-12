@@ -24,6 +24,7 @@
 #import "GSGeomDisk.h"
 
 #include <fcntl.h>
+#include <unistd.h>
 
 int logfd = -1;
 
@@ -51,14 +52,15 @@ void closeLog() {
     [_versionLabel setStringValue:verLabel];
 
     [_scrollView setAutoresizesSubviews:YES];
+    NSDictionary *attr = [NSDictionary new];
     NSData *rtf = [NSData dataWithContentsOfFile:[myBundle pathForResource:@"terms" ofType:@"rtf"]];
-    NSAttributedString *text = [[NSAttributedString alloc] initWithRTF:rtf documentAttributes:nil];
+    NSAttributedString *text = [[NSAttributedString alloc] initWithRTF:rtf documentAttributes:&attr];
 
     NSTextView *content = [[_scrollView contentView] documentView];
     [[content textStorage] setAttributedString:text];
 
     rtf = [NSData dataWithContentsOfFile:[myBundle pathForResource:@"header" ofType:@"rtf"]];
-    text = [[NSAttributedString alloc] initWithRTF:rtf documentAttributes:nil];
+    text = [[NSAttributedString alloc] initWithRTF:rtf documentAttributes:&attr];
     content = [[_instructionsView contentView] documentView];
     [[content textStorage] setAttributedString:text];
 }
@@ -150,8 +152,8 @@ void closeLog() {
         attributes:attr]];
 
     if([[[_timeZones menu] itemArray] count] < 2) {
-        NSArray *zones = @[@"America", @"Asia", @"Atlantic", @"Australia", @"Europe",
-            @"Indian", @"Pacific", @"UTC", @"Zulu"];
+        NSArray *zones = @[@"Pacific", @"America", @"Atlantic", @"UTC", @"Europe",
+            @"Indian", @"Asia", @"Australia"];
         NSFileManager *fm = [NSFileManager defaultManager];
         NSEnumerator *dirs = [zones objectEnumerator];
         NSString *dir;
@@ -161,7 +163,8 @@ void closeLog() {
             if([fm fileExistsAtPath:zonepath isDirectory:&isDir]) {
                 if(isDir) {
                     NSArray *entries = [fm contentsOfDirectoryAtPath:zonepath error:NULL];
-                    NSEnumerator *entryiter = [entries objectEnumerator];
+                    NSEnumerator *entryiter = [[entries
+                        sortedArrayUsingSelector:@selector(compare:)] objectEnumerator];
                     NSString *zone;
                     while(zone = [entryiter nextObject]) {
                         NSString *title = [NSString stringWithFormat:@"%@/%@",dir,zone];
@@ -247,6 +250,17 @@ void closeLog() {
 }
 
 - (IBAction)proceedToFinalize:(id)sender {
+    [self appendStatus:@"Configuring installed system\n" bold:YES];
+    [[disks objectAtIndex:selectedDisk] finalizeInstallation];
+
+    [spinner stopAnimation:nil];
+    closeLog();
+    if(_updateTimer != nil) {
+        [_updateTimer invalidate];
+        [_updateTimer release];
+        _updateTimer=nil;
+    }
+
     [_NextButton setAction:@selector(terminate:)];
     [_NextButton setTarget:NSApp];
     [_NextButton setTitle:@"Quit"];
@@ -264,16 +278,31 @@ void closeLog() {
         " media and restart to try your new system." // FIXME: localize
         attributes:attr];
 
+    NSTextStorage *textStorage = [[_scrollView documentView] textStorage];
+    NSString *s = [[[NSString alloc] initWithContentsOfFile:@"/tmp/Installer_Log.txt"] retain];
+
+    [textStorage beginEditing];
+    [textStorage setAttributedString:
+        [[[NSAttributedString alloc] initWithString:s attributes:attr] retain]];
+    [textStorage endEditing];
+    [[_scrollView documentView] scrollToBeginningOfDocument:nil];
+
     font = [[NSFontManager sharedFontManager] convertFont:font
         toHaveTrait:NSBoldFontMask];
     [attr setObject:font forKey:NSFontAttributeName];
 
-    NSTextStorage *textStorage = [[[_instructionsView contentView]
+    textStorage = [[[_instructionsView contentView]
         documentView] textStorage];
+    [textStorage beginEditing];
     [textStorage setAttributedString:[[NSAttributedString alloc]
         initWithString:@"Installation has finished!" // FIXME: localize
         attributes:attr]];
     [textStorage appendAttributedString:rest];
+    [textStorage endEditing];
+
+    [_scrollView setNeedsDisplay:YES];
+    [[_scrollView contentView] setNeedsDisplay:YES];
+    [[_scrollView documentView] setNeedsDisplay:YES];
 }
 
 - (void)deviceSelected:(NSNotification *)aNotification {
@@ -378,33 +407,38 @@ void closeLog() {
     [spinner setControlSize:NSRegularControlSize];
     [spinner setIndeterminate:YES];
     [spinner setAnimationDelay:0.025];
-    [spinner setUsesThreadedAnimation:YES];
+    [spinner setUsesThreadedAnimation:NO];
     [spinner setStyle:NSProgressIndicatorSpinningStyle];
     [v addSubview:spinner];
     [spinner startAnimation:nil];
 
-    [disk performSelectorInBackground:@selector(runInstall) withObject:nil];
+    [self appendStatus:[NSString
+        stringWithFormat:@"Clearing disk %@\n", [disk name]] bold:YES];
+    [disk createGPT];
+    [self appendStatus:@"Creating partitions\n" bold:YES];
+    [disk createPartitions];
+    [self appendStatus:@"Creating volumes\n" bold:YES];
+    [disk createPools];
+    [self appendStatus:@"Installing EFI loader\n" bold:YES];
+    [disk initializeEFI];
+    [self appendStatus:@"Installing files\n" bold:YES];
+
+    [disk performSelectorInBackground:@selector(copyFilesystem) withObject:nil];
 }
 
 - (void)redisplay:(id)sender {
     NSTextView *tv = [_scrollView documentView];
-    [tv scrollToEndOfDocument:nil];
     [tv setNeedsDisplay:YES];
 }
 
 - (void)proceed {
-    if(_updateTimer != nil) {
-        [_updateTimer invalidate];
-        [_updateTimer release];
-        _updateTimer=nil;
-    }
-    [spinner stopAnimation:nil];
-    closeLog();
     [_NextButton setEnabled:YES];
-    [_NextButton performClick:self];
+    [self performSelectorOnMainThread:@selector(proceedToFinalize:) withObject:nil waitUntilDone:NO];
 }
 
 - (void)appendStatus:(NSString *)text bold:(BOOL)bold {
+    appendLog([text dataUsingEncoding:NSUTF8StringEncoding]);
+
     NSFont *font = [NSFont systemFontOfSize:12.0];
     if(bold)
         font = [[NSFontManager sharedFontManager] convertFont:font toHaveTrait:NSBoldFontMask];
@@ -418,6 +452,7 @@ void closeLog() {
     [ts beginEditing];
     [ts appendAttributedString:string];
     [ts endEditing];
+    [[_scrollView documentView] scrollToEndOfDocument:nil];
 }
 
 - (void)appendStatus:(NSString *)text {
@@ -448,8 +483,6 @@ void closeLog() {
     NSData *data = [[aNotification userInfo] objectForKey:NSFileHandleNotificationDataItem];
     if([data length] == 0)
         return;
-    NSString *text = [[NSString alloc] initWithData:data
-        encoding:NSUTF8StringEncoding];
     appendLog(data);
 }
 

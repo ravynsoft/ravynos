@@ -30,6 +30,8 @@
 #include <sys/param.h>
 #include <sys/mount.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 const char *GEOM_CMD = "/sbin/geom";
 const char *GPART_CMD = "/sbin/gpart";
@@ -54,6 +56,7 @@ NSData *_runCommand(const char *tool, const char *args, id delegate) {
     if(pid == 0) { // child
         close(filedesc[0]);
         dup2(filedesc[1], 1); // pipe stdout to parent
+        dup2(filedesc[1], 2); // pipe stderr to parent
         char **argv = malloc(sizeof(char *)*8);
         argv[0] = (char *)tool;
 
@@ -65,7 +68,7 @@ NSData *_runCommand(const char *tool, const char *args, id delegate) {
             argv[++i] = arg;
         } while(arg != NULL);
 
-        execv(tool, argv);
+        execv(tool, (char * const *)argv);
         return nil;
     } else if(pid < 0) { // error
         perror(tool);
@@ -355,8 +358,9 @@ NSString *formatMediaSize(long bytes) {
     const char *str = "/dev\n/proc\n/tmp\n";
     write(fd, str, strlen(str));
     close(fd);
-    _runCommand("/usr/bin/cpdup","-udof -X/tmp/excludes / /tmp/pool",_delegate);
+    _runCommand("/usr/bin/cpdup","-uIof -X/tmp/excludes / /tmp/pool",_delegate);
 #endif
+    [_delegate proceed];
 }
 
 -(void)finalizeInstallation {
@@ -374,7 +378,7 @@ NSString *formatMediaSize(long bytes) {
     appendLog(runCommand("/bin/rm", "-rf /tmp/pool/Users/liveuser"));
 
     // can't use runCommand here because we split the arg string by spaces
-    const char *args[4] = {
+    char * const args[] = {
         "/bin/rm", "-rf", "/tmp/pool/Applications/Utilities/Install airyxOS.app", NULL };
     if(fork() == 0)
         execv(args[0], args);
@@ -383,6 +387,7 @@ NSString *formatMediaSize(long bytes) {
     appendLog(runCommand("/usr/sbin/pkg", "-c /tmp/pool remove -y freebsd-installer"));
 
     // update rc.conf on the installed system
+    appendLog([@"Updating rc.conf\n" dataUsingEncoding:NSUTF8StringEncoding]);
     unlink("/tmp/pool/etc/rc.conf.local");
     NSMutableArray *entries = [NSMutableArray arrayWithCapacity:30];
     [entries addObjectsFromArray:[[NSString
@@ -402,6 +407,7 @@ NSString *formatMediaSize(long bytes) {
 
     unlink("/tmp/pool/var/initgfx_config.id");
 
+    appendLog([@"Configuring loader\n" dataUsingEncoding:NSUTF8StringEncoding]);
     [entries removeAllObjects];
     [entries addObjectsFromArray:@[
         @"boot_mute=\"YES\"\n",
@@ -425,6 +431,7 @@ NSString *formatMediaSize(long bytes) {
         close(loader);
     }
 
+    appendLog([@"Creating user account\n" dataUsingEncoding:NSUTF8StringEncoding]);
     NSString *username = [_delegate userInfoUserName];
     NSString *userinfo = [NSString stringWithFormat:
         @"%@::::::%@:/Users/%@:/usr/bin/zsh:%@",
@@ -433,8 +440,15 @@ NSString *formatMediaSize(long bytes) {
     NSString *tz = [NSString stringWithFormat:@"/usr/share/zoneinfo/%@",
         [_delegate timeZone]];
 
+    NSString *slimconf = [NSString
+        stringWithContentsOfFile:@"/tmp/pool/etc/slim.conf"];
+    [[slimconf stringByAppendingFormat:@"default_user %@\n", username]
+        writeToFile:@"/tmp/pool/etc/slim.conf" atomically:YES];
+
     // exec this in the new system, not the install media
-    if(fork() == 0) {
+    int status = 0;
+    pid_t pid = fork();
+    if(pid == 0) {
         chdir("/tmp/pool");
         chroot("/tmp/pool");
         FILE *fp = popen("/usr/sbin/adduser -f -", "w");
@@ -451,7 +465,11 @@ NSString *formatMediaSize(long bytes) {
         unlink("/etc/localtime");
         link([tz UTF8String], "/etc/localtime");
         exit(0);
-    }
+    } else if(pid < 0)
+        appendLog([@"Error creating user account - fork() failed\n"
+            dataUsingEncoding:NSUTF8StringEncoding]);
+    else
+        waitpid(pid, &status, WEXITED);
 #endif
 }
 
@@ -461,23 +479,6 @@ NSString *formatMediaSize(long bytes) {
 
 -(void)setDelegate:(id)delegate {
     _delegate = delegate;
-}
-
--(void)runInstall {
-    [_delegate appendStatus:[NSString
-        stringWithFormat:@"Clearing disk %@\n", [self name]] bold:YES];
-    [self createGPT];
-    [_delegate appendStatus:@"Creating partitions\n" bold:YES];
-    [self createPartitions];
-    [_delegate appendStatus:@"Creating volumes\n" bold:YES];
-    [self createPools];
-    [_delegate appendStatus:@"Installing EFI loader\n" bold:YES];
-    [self initializeEFI];
-    [_delegate appendStatus:@"Installing files\n" bold:YES];
-    [self copyFilesystem];
-    [_delegate appendStatus:@"Configuring installed system\n" bold:YES];
-    [self finalizeInstallation];
-    [_delegate proceed];
 }
 
 -(NSString *)description {

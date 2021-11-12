@@ -147,19 +147,22 @@ FcConfig *O2FontSharedFontConfig() {
 
 -(NSCharacterSet *)coveredCharacterSet {
     if(_coveredCharSet == nil) {
-		NSMutableCharacterSet *set = [[NSMutableCharacterSet alloc] init];
-		uint32_t code, first, last, index;
+        NSMutableCharacterSet *set = [[NSMutableCharacterSet alloc] init];
+        uint32_t code, first, last, index;
 
-		code = first = FT_Get_First_Char(_face, &index);
-      while(index != 0) {
-         last = code;
-         code = FT_Get_Next_Char(_face, code, &index);
- 		}
-      // FIXME: This should create a range for each contiguous block of glyphs
-      [set addCharactersInRange: NSMakeRange(first, last - first)];
-		_coveredCharSet = set;
-	}
-	return _coveredCharSet;
+        code = first = FT_Get_First_Char(_face, &index);
+        while(index != 0) {
+            last = code;
+            code = FT_Get_Next_Char(_face, code, &index);
+            if(code > (last+1)) {
+                [set addCharactersInRange:NSMakeRange(first, last - first)];
+                first = code;
+            }
+        }
+        [set addCharactersInRange: NSMakeRange(first, last - first)];
+        _coveredCharSet = set;
+    }
+    return _coveredCharSet;
 }
 
 @end

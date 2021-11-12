@@ -70,7 +70,6 @@ NSString *formatMediaSize(long bytes);
 -(void)initializeEFI;
 -(void)copyFilesystem;
 -(void)finalizeInstallation;
--(void)runInstall;
 
 // act as data source for NSTableView
 - (int)numberOfRowsInTableView:(NSTableView *)tableView;
