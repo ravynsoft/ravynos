@@ -112,6 +112,7 @@ void CGNativeBorderFrameWidthsForStyle(unsigned styleMask,CGFloat *top,CGFloat *
    if(styleMask & NSTitledWindowMask) {
     [self setProperty:@"_KDE_NET_WM_APPMENU_SERVICE_NAME" toValue:[[NSApp dbusConnection] name]];
     [self setProperty:@"_KDE_NET_WM_APPMENU_OBJECT_PATH" toValue:[[NSApp dbusMenu] objectPath]];
+    [self setProperty:@"_NET_WM_PID" toValue:[[NSNumber numberWithInt:getpid()] stringValue]];
     [[NSApp dbusMenu] registerWindow:_window];
    }
       

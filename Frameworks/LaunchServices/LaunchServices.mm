@@ -486,7 +486,7 @@ static void _LSCheckAndHandleLaunchFlags(NSTask *task, LSLaunchFlags launchFlags
             // XRes and XCB Res APIs did not return any PIDs -_-
             XInternAtom(display, "_NET_WM_PID", True), 0, 1024, False,
             AnyPropertyType, &actualType, &actualFormat, &numItems,
-            &bytesAfter, &property) == 0)
+            &bytesAfter, &property) == 0 && property != NULL)
         {
             pid = property[1] * 256;
             pid = pid + property[0];
