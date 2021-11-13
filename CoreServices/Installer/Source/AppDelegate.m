@@ -197,6 +197,8 @@ void closeLog() {
     [_BackButton setAction:@selector(proceedToDiskList:)];
     [_BackButton setEnabled:YES];
     [_NextButton setAction:@selector(validateUserInfo:)];
+
+    [_fullName becomeFirstResponder];
 }
 
 - (IBAction)validateUserInfo:(id)sender {

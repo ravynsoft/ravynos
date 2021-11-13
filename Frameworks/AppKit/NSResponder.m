@@ -70,9 +70,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
    for(i=0;i<icount;i++){
     NSEvent      *event=[events objectAtIndex:i];
     NSString     *string=[event charactersIgnoringModifiers];
+
     NSKeyboardBinding *keyBinding=[[NSKeyboardBindingManager defaultKeyBindingManager] keyBindingWithString:string modifierFlags:[event modifierFlags]];
     NSArray      *selectorNames=[keyBinding selectorNames];
-
     if(selectorNames!=nil){
      int j = 0, jcount = [selectorNames count];
 

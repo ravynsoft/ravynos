@@ -26,7 +26,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 + (NSKeyboardBindingManager *)defaultKeyBindingManager {
     static NSKeyboardBindingManager *firstKeyBindingManager = nil;
-
     if (firstKeyBindingManager == nil) {
         NSArray *paths = [self keyBindingPaths];
         int i, count = [paths count];

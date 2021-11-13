@@ -24,6 +24,7 @@
 #import <fcntl.h>
 #import <fontconfig.h>
 #import <X11/Xutil.h>
+#import <X11/keysym.h>
 
 @implementation NSDisplay(X11)
 
@@ -366,17 +367,83 @@ NSArray *CGSOrderedWindowNumbers() {
     case KeyPress:
     case KeyRelease:;
      unsigned int modifierFlags=[self modifierFlagsForState:ev->xkey.state];
-     char buf[4]={0};
+     unichar keys[32]={0};
+     size_t buflen = 0;
+     char buf[4];
      
-     XLookupString((XKeyEvent*)ev, buf, 4, NULL, NULL);
-     id str=[[NSString alloc] initWithCString:buf encoding:NSUTF8StringEncoding];
+     KeySym ks;
+     XLookupString((XKeyEvent*)ev, buf, 4, &ks, NULL);
+
+     // translate special characters
+     switch(ks) {
+        case XK_Home:
+        case XK_KP_Home: keys[buflen++] = NSHomeFunctionKey; break;
+        case XK_Left:
+        case XK_KP_Left: keys[buflen++] = NSLeftArrowFunctionKey; break;
+        case XK_Up:
+        case XK_KP_Up: keys[buflen++] = NSUpArrowFunctionKey; break;
+        case XK_Right:
+        case XK_KP_Right: keys[buflen++] = NSRightArrowFunctionKey; break;
+        case XK_Down:
+        case XK_KP_Down: keys[buflen++] = NSDownArrowFunctionKey; break;
+        case XK_Page_Up:
+        case XK_KP_Page_Up: keys[buflen++] = NSPageUpFunctionKey; break;
+        case XK_Page_Down:
+        case XK_KP_Page_Down: keys[buflen++] = NSPageDownFunctionKey; break;
+        case XK_End:
+        case XK_KP_End: keys[buflen++] = NSEndFunctionKey; break;
+        case XK_Begin:
+        case XK_KP_Begin: keys[buflen++] = NSHomeFunctionKey; break;
+        case XK_Delete:
+        case XK_KP_Delete: keys[buflen++] = NSDeleteFunctionKey; break;
+        case XK_Insert:
+        case XK_KP_Insert: keys[buflen++] = NSInsertFunctionKey; break;
+        case XK_F1: keys[buflen++] = NSF1FunctionKey; break;
+        case XK_F2: keys[buflen++] = NSF2FunctionKey; break;
+        case XK_F3: keys[buflen++] = NSF3FunctionKey; break;
+        case XK_F4: keys[buflen++] = NSF4FunctionKey; break;
+        case XK_F5: keys[buflen++] = NSF5FunctionKey; break;
+        case XK_F6: keys[buflen++] = NSF6FunctionKey; break;
+        case XK_F7: keys[buflen++] = NSF7FunctionKey; break;
+        case XK_F8: keys[buflen++] = NSF8FunctionKey; break;
+        case XK_F9: keys[buflen++] = NSF9FunctionKey; break;
+        case XK_F10: keys[buflen++] = NSF10FunctionKey; break;
+        case XK_F11: keys[buflen++] = NSF11FunctionKey; break;
+        case XK_F12: keys[buflen++] = NSF12FunctionKey; break;
+        case XK_F13: keys[buflen++] = NSF13FunctionKey; break;
+        case XK_F14: keys[buflen++] = NSF14FunctionKey; break;
+        case XK_F15: keys[buflen++] = NSF15FunctionKey; break;
+        case XK_F16: keys[buflen++] = NSF16FunctionKey; break;
+        case XK_F17: keys[buflen++] = NSF17FunctionKey; break;
+        case XK_F18: keys[buflen++] = NSF18FunctionKey; break;
+        case XK_F19: keys[buflen++] = NSF19FunctionKey; break;
+        case XK_F20: keys[buflen++] = NSF20FunctionKey; break;
+        case XK_F21: keys[buflen++] = NSF21FunctionKey; break;
+        case XK_F22: keys[buflen++] = NSF22FunctionKey; break;
+        case XK_F23: keys[buflen++] = NSF23FunctionKey; break;
+        case XK_F24: keys[buflen++] = NSF24FunctionKey; break;
+        case XK_F25: keys[buflen++] = NSF25FunctionKey; break;
+        case XK_F26: keys[buflen++] = NSF26FunctionKey; break;
+        case XK_F27: keys[buflen++] = NSF27FunctionKey; break;
+        case XK_F28: keys[buflen++] = NSF28FunctionKey; break;
+        case XK_F29: keys[buflen++] = NSF29FunctionKey; break;
+        case XK_F30: keys[buflen++] = NSF30FunctionKey; break;
+        case XK_F31: keys[buflen++] = NSF31FunctionKey; break;
+        case XK_F32: keys[buflen++] = NSF32FunctionKey; break;
+        case XK_F33: keys[buflen++] = NSF33FunctionKey; break;
+        case XK_F34: keys[buflen++] = NSF34FunctionKey; break;
+        case XK_F35: keys[buflen++] = NSF35FunctionKey; break;
+        default: keys[buflen++] = buf[0];
+     }
+
+     id str=[[NSString alloc] initWithCharacters:keys length:buflen];
      NSPoint pos=[window transformPoint:NSMakePoint(ev->xkey.x, ev->xkey.y)];
-         
+
      id strIg=[str lowercaseString];
      if(ev->xkey.state) {
       ev->xkey.state=0;
       XLookupString((XKeyEvent*)ev, buf, 4, NULL, NULL);
-      strIg=[[NSString alloc] initWithCString:buf encoding:NSISOLatin1StringEncoding];
+      strIg=[[NSString alloc] initWithCharacters:buf length:1];
      }
       
      id event=[NSEvent keyEventWithType:ev->type == KeyPress ? NSKeyDown : NSKeyUp location:pos
@@ -387,7 +454,7 @@ NSArray *CGSOrderedWindowNumbers() {
                                  characters:str 
                 charactersIgnoringModifiers:strIg
                                   isARepeat:NO
-                                    keyCode:ev->xkey.keycode];
+                                    keyCode:ev->xkey.keycode]; // FIXME: translate these to Apple keycodes?
          
      [self postEvent:event atStart:NO];
          

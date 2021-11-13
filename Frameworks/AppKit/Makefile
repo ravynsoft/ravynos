@@ -594,7 +594,8 @@ RESOURCES=Info.plist en.lproj de.lproj fr.lproj \
 	NSRulerMarkerTab.tiff \
 	NSSplitViewHDimple.tiff \
 	NSSplitViewVDimple.tiff \
-	NSSwitch.tiff
+	NSSwitch.tiff \
+	NSKeyboardBinding/StandardKeyBindings.keyBindings
 
 CFLAGS+= ${FMWK_CFLAGS} -I${.CURDIR}/.. -I${BUILDROOT}/usr/include -I/usr/local/include \
 	 -I../OpenGL/include -I${.CURDIR}/Headers -I../Foundation/Headers \
