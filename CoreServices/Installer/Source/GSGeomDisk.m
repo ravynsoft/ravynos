@@ -410,13 +410,14 @@ NSString *formatMediaSize(long bytes) {
     appendLog([@"Configuring loader\n" dataUsingEncoding:NSUTF8StringEncoding]);
     [entries removeAllObjects];
     [entries addObjectsFromArray:@[
+        @"opensolaris_load=\"YES\"\n",
+        @"zfs_load=\"YES\"\n",
         @"boot_mute=\"YES\"\n",
         @"beastie_disable=\"YES\"\n",
         @"autoboot_delay=\"3\"\n",
         @"hw.psm.elantech_support=\"1\"\n",
         @"hw.psm.synaptics_support=\"1\"\n",
-        @"vfs.root.mountfrom.options=\"rw\"\n",
-        @"zfs_load=\"YES\"\n"
+        @"vfs.root.mountfrom.options=\"rw\"\n"
     ]];
     [entries addObject:[NSString stringWithFormat:
         @"vfs.root.mountfrom=\"zfs:%s/ROOT/default\"\n", ZFS_POOL_NAME]];
