@@ -294,7 +294,7 @@ NSString *formatMediaSize(long bytes) {
   @autoreleasepool {
     NSString *cmd = [[NSString stringWithFormat:@"add -t efi -s 1m -l efi %@", _name] autorelease];
     appendLog(runCommand(GPART_CMD, [cmd UTF8String]));
-    cmd = [[NSString stringWithFormat:@"/dev/gpt/efi"] autorelease];
+    cmd = [[NSString stringWithFormat:@"/dev/%@p1", _name] autorelease];
     appendLog(runCommand("/sbin/newfs_msdos", [cmd UTF8String]));
     cmd = [[NSString stringWithFormat:@"add -t freebsd-swap -l swap -a 1m -s 4096m %@", _name] autorelease];
     appendLog(runCommand(GPART_CMD, [cmd UTF8String]));
@@ -336,7 +336,7 @@ NSString *formatMediaSize(long bytes) {
 -(void)initializeEFI {
 #ifdef __AIRYX__
     mkdir("/tmp/efi",0755);
-    runCommand("/sbin/mount_msdosfs", "/dev/gpt/efi /tmp/efi");
+    runCommand("/sbin/mount_msdosfs", [[NSString stringWithFormat:@"/dev/%@p1 /tmp/efi", _name] UTF8String]);
     mkdir("/tmp/efi/efi",0755);
     mkdir("/tmp/efi/efi/boot",0755);
     int bootx64 = open("/tmp/efi/efi/boot/bootx64.efi", O_CREAT|O_RDWR, 0644);
@@ -355,7 +355,7 @@ NSString *formatMediaSize(long bytes) {
 -(void)copyFilesystem {
 #ifdef __AIRYX__
     int fd = open("/tmp/excludes", O_CREAT|O_RDWR, 0644);
-    const char *str = "/dev\n/proc\n/tmp\n";
+    const char *str = "/dev\n/proc\n/tmp\n/Applications/Utilities/Install airyxOS.app\n";
     write(fd, str, strlen(str));
     close(fd);
     _runCommand("/usr/bin/cpdup","-uIof -X/tmp/excludes / /tmp/pool",_delegate);
@@ -376,12 +376,6 @@ NSString *formatMediaSize(long bytes) {
     appendLog(runCommand("/usr/sbin/pw", "-R /tmp/pool userdel -n liveuser"));
     appendLog(runCommand("/usr/sbin/pw", "-R /tmp/pool groupdel -n liveuser"));
     appendLog(runCommand("/bin/rm", "-rf /tmp/pool/Users/liveuser"));
-
-    // can't use runCommand here because we split the arg string by spaces
-    char * const args[] = {
-        "/bin/rm", "-rf", "/tmp/pool/Applications/Utilities/Install airyxOS.app", NULL };
-    if(fork() == 0)
-        execv(args[0], args);
 
     appendLog(runCommand("/usr/sbin/pkg", "-c /tmp/pool remove -y furybsd-live-settings"));
     appendLog(runCommand("/usr/sbin/pkg", "-c /tmp/pool remove -y freebsd-installer"));
