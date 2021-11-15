@@ -21,8 +21,13 @@
  */
 
 #import <Cocoa/Cocoa.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <stdlib.h>
 
 int main(int argc, const char *argv[])
 {
+    if(getuid() != 0)
+        execl("/usr/bin/sudo", "-E", "-A", argv[0], NULL);
     return NSApplicationMain(argc, argv);
 }

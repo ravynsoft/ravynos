@@ -14,8 +14,6 @@ clean:
 	rm -f Source/*.o
 
 build: clean all
-	${SUDO} chown 0:0 ${APP_DIR}/Contents/Airyx/${APP}
-	${SUDO} chmod 4755 ${APP_DIR}/Contents/Airyx/${APP}
 	rm -f ${APP_DIR}/${APP}
 	ln -sf "Contents/Airyx/${APP:S/_/ /}" "${APP_DIR}/${APP:S/_/ /}"
 	mv -f ${APP_DIR}/Contents/Airyx/${APP} "${APP_DIR}/Contents/Airyx/${APP:S/_/ /}"
