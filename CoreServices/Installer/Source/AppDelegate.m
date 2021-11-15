@@ -331,18 +331,23 @@ void closeLog() {
 }
 
 - (IBAction)fullNameEditingDidFinish:(id)sender {
-    NSArray *name = [[sender stringValue] componentsSeparatedByString:@" "];
-    
+    NSMutableArray *name = [NSMutableArray arrayWithCapacity:5];
+    NSArray *input = [[sender stringValue] componentsSeparatedByString:@" "];
+
+    for(int x = 0; x < [input count]; ++x)
+        if(! [[input objectAtIndex:x] isEqualToString:@""])
+            [name addObject:[input objectAtIndex:x]];
+
     NSString *user;
     NSString *host;
 
     switch([name count]) {
     case 0:
-        user = [sender stringValue];
+        user = [name firstObject];
         host = @"Airyx";
         break;
     case 1:
-        user = [sender stringValue];
+        user = [name firstObject];
         host = [user stringByAppendingString:@"-Airyx"];
         break;
     default:
