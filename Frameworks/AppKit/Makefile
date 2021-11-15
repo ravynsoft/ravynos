@@ -622,6 +622,9 @@ LDFLAGS+= ${FMWK_LDFLAGS} -L/usr/local/lib \
 	  -lobjc -lcairo -lfreetype -lfontconfig -lGL -lX11 -lXext -lXfixes -lXdamage -lm
 
 build: marshallheaders all
+	mv AppKit.framework/Resources/NSKeyboardBinding/StandardKeyBindings.keyBindings \
+		AppKit.framework/Resources/
+	rmdir AppKit.framework/Resources/NSKeyboardBinding
 
 marshallheaders: .PHONY
 	mkdir -p Headers/AppKit
