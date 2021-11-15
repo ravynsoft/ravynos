@@ -465,6 +465,8 @@ NSString *formatMediaSize(long bytes) {
             dataUsingEncoding:NSUTF8StringEncoding]);
     else
         waitpid(pid, &status, WEXITED);
+
+    chmod("/tmp/pool/tmp", 01777);
 #endif
 }
 
