@@ -343,7 +343,7 @@ void closeLog() {
 
     switch([name count]) {
     case 0:
-        user = [name firstObject];
+        user = @"user";
         host = @"Airyx";
         break;
     case 1:
