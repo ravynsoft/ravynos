@@ -24,5 +24,7 @@ FRAMEWORK=Foo
 SRCS=foo.c
 INCS=foo.h
 RESOURCES=
+CFLAGS+= --target=x86_64-airyx-freebsd-macho
+LDFLAGS= -arch x86_64 -dylib
 
 .include <airyx.framework.mk>

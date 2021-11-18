@@ -23,7 +23,7 @@ airyx_task:
     - tar -C / -xf /tmp/libarchive.pkg
     - pkg update
     - pkg install -y cmake jpeg-turbo openjpeg tiff png cairo fontconfig freetype2 libX11 libXext libXfixes libXdamage mesa-libs dbus pkgconf libqtxdg sqlite3 git-tiny qt5-buildtools qt5-qmake qt5-dbus qt5-linguisttools qt5-widgets qt5-x11extras qt5-dbus glib dbus-glib libffi libfm libfm-qt menu-cache gettext-runtime icu kf5-extra-cmake-modules lxqt-build-tools kf5-ki18n kf5-plasma-framework kf5-ktexteditor qt5-testlib gmake autoconf zip bash alsa-lib alsa-plugins
-    - fetch -o /tmp/openjdk-17.jdk.txz https://github.com/mszoek/airyx/releases/download/jdk17-bootstrap/openjdk-17.jdk.txz
+    - fetch -o /tmp/openjdk-17.jdk.txz https://github.com/mszoek/airyx/releases/download/jdk-17.0.1/openjdk-17.0.1.jdk.txz
     - mkdir -p /Library/Java/JavaVirtualMachines
     - tar -C /Library/Java/JavaVirtualMachines -xf /tmp/openjdk-17.jdk.txz
     - make prep airyx
