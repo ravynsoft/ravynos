@@ -10,8 +10,8 @@ ${SRCDIR}:
 
 build: ${SRCDIR}
 	cd ${SRCDIR} && bash configure --with-boot-jdk=${INSTDIR}/Contents/Home \
-	  --with-toolchain-type=clang --with-source-date="2021-09-14" \
-	  --with-version-opt="airyx" --with-version-pre=""
+	  --with-toolchain-type=clang --with-source-date="2021-10-30" \
+	  --with-version-opt="airyx" --with-version-pre="" --with-version-build=12
 	gmake -C ${SRCDIR}
 
 install:
