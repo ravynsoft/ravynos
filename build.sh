@@ -326,8 +326,8 @@ initgfx()
     else
       PKGS="release_2"
     fi
-	ver=460
-        pkgfile='nvidia-driver-460.84.txz' #$(/usr/sbin/pkg-static -c ${uzip} rquery %n-%v.txz nvidia-driver${ver:+-$ver})
+	ver=470
+        pkgfile='nvidia-driver-470.74.txz' #$(/usr/sbin/pkg-static -c ${uzip} rquery %n-%v.txz nvidia-driver${ver:+-$ver})
         fetch -o "${cache}/" "https://pkg.freebsd.org/FreeBSD:${MAJOR}:amd64/${PKGS}/All/${pkgfile}"
         mkdir -p "${uzip}/usr/local/nvidia/${ver:-440}/"
         tar xfC "${cache}"/${pkgfile} "${uzip}/usr/local/nvidia/${ver:-440}/"

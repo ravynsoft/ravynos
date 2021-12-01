@@ -35,7 +35,7 @@ rm -f macOSBigSur.tar.gz
 
 # Pull in the default JDK
 mkdir -p "${uzip}/Library/Java/JavaVirtualMachines/"
-curl -Lo - https://github.com/mszoek/airyx/releases/download/jdk17-bootstrap/openjdk-17.jdk.txz | \
+curl -Lo - https://github.com/mszoek/airyx/releases/download/jdk-17.0.1/openjdk-17.0.1.jdk.txz | \
     tar -xf - -C "${uzip}/Library/Java/JavaVirtualMachines/"
 
 # Install our standard app bundles

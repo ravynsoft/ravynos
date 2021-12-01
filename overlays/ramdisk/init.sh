@@ -22,7 +22,7 @@ set -x
 
 AIRYX_VERSION=$(head -1 /version)
 AIRYX_CODENAME=$(tail -1 /version)
-echo "Hello. This is Airyx ${AIRYX_VERSION} (${AIRYX_CODENAME})" > /dev/tty
+echo "Hello. This is airyxOS ${AIRYX_VERSION} (${AIRYX_CODENAME})" > /dev/tty
 
 echo "==> Ramdisk /init.sh running"
 
@@ -54,9 +54,6 @@ mdconfig -u 1 -f /cdrom/data/system.uzip
 echo "==> Importing ZFS pool"
 zpool import furybsd -o readonly=on
 
-#echo "==> Mount /sysroot"
-#mdmfs -P -F /cdrom/data/system.uzip -o ro md.uzip /sysroot # FIXME: This does not seem to work; why?
-
 if [ "$SINGLE_USER" = "true" ]; then
 	echo -n "Enter memdisk size used for read-write access in the live system: "
 	read MEMDISK_SIZE
@@ -71,6 +68,9 @@ mount -t unionfs -o noatime -o copymode=transparent /memdisk /sysroot
 echo "==> Mount /sysroot/sysroot/boot" # https://github.com/helloSystem/ISO/issues/4#issuecomment-800636914
 mkdir -p /sysroot/sysroot/boot
 mount -t nullfs /sysroot/boot /sysroot/sysroot/boot
+
+echo "==> Mounting tmpfs on /tmp"
+mount -t tmpfs tmpfs /sysroot/tmp
 
 echo "==> Change into /sysroot"
 mount -t devfs devfs /sysroot/dev
