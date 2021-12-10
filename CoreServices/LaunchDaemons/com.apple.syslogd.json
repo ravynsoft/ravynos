@@ -1,0 +1,25 @@
+{
+  "HopefullyExitsLast": true,
+  "EnvironmentVariables": {
+    "ASL_DISABLE": "1"
+  },
+  "POSIXSpawnType": "Adaptive",
+  "MachServices": {
+    "com.apple.system.logger": {
+      "ResetAtClose": true
+    }
+  },
+  "EnableTransactions": true,
+  "ProgramArguments": [
+    "/usr/sbin/asld", "-d"
+  ],
+  "Sockets": {
+    "BSDSystemLogger": {
+      "SockPathMode": 438,
+      "SockPathName": "/var/run/log",
+      "SockType": "dgram"
+    }
+  },
+  "OnDemand": false,
+  "Label": "com.apple.syslogd"
+}
