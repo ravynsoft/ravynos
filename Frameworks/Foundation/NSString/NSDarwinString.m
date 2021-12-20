@@ -7,13 +7,13 @@
 
 #import "NSDarwinString.h"
 
-#if __APPLE__
+#if defined(__APPLE__)
 #import <Foundation/NSException.h>
 #import <Foundation/NSStringHashing.h>
 #import <Foundation/NSRaiseException.h>
 
 // only needed for Darwin ppc
-struct objc_class _NSConstantStringClassReference;
+//struct objc_class _NSConstantStringClassReference;
 
 // only needed for Darwin i386/x86
 #if __LP64__

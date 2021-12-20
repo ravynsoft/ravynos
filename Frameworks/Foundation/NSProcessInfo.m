@@ -203,12 +203,12 @@ FOUNDATION_EXPORT void __NSInitializeProcess(int argc,const char *argv[]) {
 #if !defined(APPLE_RUNTIME_4)
     OBJCInitializeProcess();
 #endif
-#ifdef __APPLE__
+#if defined(__APPLE__) || defined(__AIRYX__)
     // init NSConstantString reference-tag (see http://lists.apple.com/archives/objc-language/2006/Jan/msg00013.html)
     // only Darwin ppc!?
     Class cls = objc_lookUpClass("NSConstantString");
 //    memcpy(&_NSConstantStringClassReference, cls, sizeof(_NSConstantStringClassReference));
-    cls = objc_lookUpClass("NSDarwinString");
+    //cls = objc_lookUpClass("NSDarwinString");
 
 #if __LP64__
     extern int __CFConstantStringClassReference[24];

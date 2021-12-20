@@ -106,6 +106,7 @@ SRCS= \
 ./NSKeyValueCoding/NSKeyPathObserver.m \
 ./NSPointerFunctions.m \
 ./NSOrthography.m \
+./NSString/NSDarwinString.m \
 ./NSString/NSStringUTF8.m \
 ./NSString/NSString_placeholder.m \
 ./NSString/NSMutableString.m \
