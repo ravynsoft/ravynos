@@ -6,21 +6,30 @@
  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #import "NSDarwinString.h"
+#include <stdio.h>
 
-#if defined(__APPLE__)
+#if defined(__APPLE__) || defined(__AIRYX__)
 #import <Foundation/NSException.h>
 #import <Foundation/NSStringHashing.h>
 #import <Foundation/NSRaiseException.h>
 
-// only needed for Darwin ppc
-//struct objc_class _NSConstantStringClassReference;
-
-// only needed for Darwin i386/x86
 #if __LP64__
 int __CFConstantStringClassReference[24] = {0};
 #else
 int __CFConstantStringClassReference[12] = {0};
 #endif
+
+@implementation __builtin_NSString
+-init {
+    fprintf(stderr, "[__builtin_NSString init]\n");
+    return self;
+}
+
+-alloc {
+    fprintf(stderr, "[__builtin_NSString alloc]\n");
+    return self;
+}
+@end
 
 @implementation NSDarwinString
 

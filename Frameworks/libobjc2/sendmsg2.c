@@ -91,17 +91,14 @@ static
 __attribute__((always_inline))
 struct objc_slot2 *objc_msg_lookup_internal(id *receiver, SEL selector, uint64_t *version)
 {
-    fprintf(stderr, "objc_msg_lookup_internal rcv %p sel %p\n", receiver, selector);
-    fprintf(stderr, "sel->name %lx idx %lx\n", selector->name, selector->index); 
 	if (version)
 	{
 		*version = objc_method_cache_version;
 	}
 	Class class = classForObject((*receiver));
-	fprintf(stderr, "class %s\n", class->name);
 
 	/* Sometimes, we can get here from a MachO object with `selector`
-	 * pointing to a string literal in the executable instead of the
+	 * pointing to a method name str in the executable instead of the
 	 * SEL we expect. Try to detect this and fake it
 	 */
 	uint64_t name = ((uint64_t)selector->name);
@@ -118,8 +115,8 @@ struct objc_slot2 *objc_msg_lookup_internal(id *receiver, SEL selector, uint64_t
 	    while(*p)
 		++p;
 	    if(*(p-1) == ':') {
-		/* it seems likely that selector is a char * */
-		fprintf(stderr, "Faking a SEL\n");
+		/* it seems likely that selector is a ptr to char */
+		//fprintf(stderr, "Faking a SEL\n");
 		SEL tmp = malloc(sizeof(SEL));
 		tmp->name = selector;
 		selector = tmp;
