@@ -284,6 +284,12 @@ static void deallocHiddenClass(id obj, SEL _cmd)
 
 static struct reference_list* referenceListForObject(id object, BOOL create)
 {
+	Class cls = object_getClass(object);
+	// NSDarwinString is __builtin_CFString, our __CFConstantStringClassReference
+	// It has a different structure so don't poke into it!
+	if(!strcmp(class_getName(cls), "NSDarwinString")) {
+	    return NULL;
+	}
 	if (class_isMetaClass(object->isa))
 	{
 		Class cls = (Class)object;
@@ -396,7 +402,8 @@ int objc_sync_enter(id object)
 {
 	if ((object == 0) || isSmallObject(object)) { return 0; }
 	struct reference_list *list = referenceListForObject(object, YES);
-	LOCK(&list->lock);
+	if(list)
+	    LOCK(&list->lock);
 	return 0;
 }
 
