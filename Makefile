@@ -48,10 +48,16 @@ installairyx: airyx-package
 prep: cleanroot
 	mkdir -p ${OBJPREFIX} ${TOPDIR}/dist ${BUILDROOT}
 	mkdir -p ${BUILDROOT}/etc ${BUILDROOT}/var/run ${BUILDROOT}/usr/sbin
-	${SUDO} cp -f ${TOPDIR}/make.conf ${TOPDIR}/resolv.conf ${BUILDROOT}/etc/
-	for x in System System/Library/Frameworks Library Users Applications Volumes; \
+	cp -f ${TOPDIR}/make.conf ${TOPDIR}/resolv.conf ${BUILDROOT}/etc/
+	for x in System System/Library/Frameworks System/Library/LaunchDaemons \
+		System/Library/LaunchAgents Library Library/LaunchDaemons \
+		Users Applications Volumes; \
 		do mkdir -p ${BUILDROOT}/$$x; \
 	done
+	mkdir -p ${BUILDROOT}/private
+.for x in dev etc var
+	ln -sf ../$x ${BUILDROOT}/private/$x
+.endfor
 
 cleanroot:
 	if [ -d ${BUILDROOT} ]; then \
