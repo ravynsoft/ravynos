@@ -29,6 +29,8 @@
 
 #define RADIUS 10      // rounded corner radius
 #define CELL_SPACER 4  // pixels between grid cells
+#define ICON_MIN 24
+#define DOCK_HEIGHT_MAX 136
 
 class Dock : public QWidget {
 public:
@@ -45,7 +47,11 @@ public:
     void loadItems();   // Load the items we should display
 
 private:
+    void swapWH(void);  // swap current width and height
+    bool capLength(void); // cap size at max for screen. Ret true if capped
+
     Location m_location;
+    int m_maxLength;
     QScreen *m_screen;
     QSize m_currentSize;
     QGridLayout *m_cells;

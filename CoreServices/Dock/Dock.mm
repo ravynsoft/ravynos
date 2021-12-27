@@ -38,7 +38,7 @@ Dock::Dock()
     :QWidget(nullptr, Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint |
             Qt::WindowOverridesSystemGestures | Qt::WindowDoesNotAcceptFocus)
     ,m_location(LOCATION_BOTTOM)
-    ,m_currentSize(900,64) // TODO: calculate this from icons
+    ,m_currentSize(900,64)
 {
     Display *display = XOpenDisplay(":0");
     Atom wintype = XInternAtom(display, "_NET_WM_WINDOW_TYPE_DOCK", True);
@@ -65,24 +65,40 @@ Dock::~Dock()
 
 void Dock::loadItems()
 {
-    int columns = m_currentSize.width() / (48 + CELL_SPACER + CELL_SPACER);
-    // addItem( trash, column );
-    --columns;
-    m_cells->setColumnStretch(columns, 100);
-    --columns;
+    int size = (m_location == LOCATION_BOTTOM)
+        ? m_currentSize.height() : m_currentSize.width()) - 16;
 
-    int column = 0;
+    int items = (m_location == LOCATION_BOTTOM
+        ? m_currentSize.width() : m_currentSize.height())
+        / (size + CELL_SPACER + CELL_SPACER);
+
+    // addItem( trash, items );
+    --items;
+    if(m_location == LOCATION_BOTTOM)
+        m_cells->setColumnStretch(items, 100);
+    else
+        m_cells->setRowStretch(items, 100);
+    --items;
+
+    int item = 0;
 
     NSFileManager *fm = [NSFileManager defaultManager];
-    NSArray *apps = [fm directoryContentsAtPath:@"/Applications"];
+    NSMutableArray *apps = [NSMutableArray new];
+    [apps addObject:@"/System/Library/CoreServices/Filer.app"];
 
-    for(int x = 0; x < [apps count]; ++x) {
+    NSArray *apps2 = [fm directoryContentsAtPath:@"/Applications"];
+    for(int x = 0; x < [apps2 count]; ++x) {
         NSString *s = [NSString stringWithFormat:@"/Applications/%@",
-            [apps objectAtIndex:x]];
-
+            [apps2 objectAtIndex:x]];
         if(![s hasSuffix:@"app"])
             continue;
-        NSBundle *b = [NSBundle bundleWithPath:s];
+        [apps addObject:s];
+    }
+
+    int size = m_currentSize.height() - 
+
+    for(int x = 0; x < [apps count]; ++x) {
+        NSBundle *b = [NSBundle bundleWithPath:[apps objectAtIndex:x]];
         if(!b)
             continue;
 
@@ -96,20 +112,51 @@ void Dock::loadItems()
         QLabel *iconLabel = new QLabel;
         iconLabel->setAlignment(Qt::AlignCenter);
         iconLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-        iconLabel->setMinimumSize(48, 48);
+        iconLabel->setMinimumSize(ICON_MIN, ICON_MIN);
 
-        QPixmap pix(icon.pixmap(QSize(48, 48)));
+        QPixmap pix(icon.pixmap(QSize(size, size)));
         iconLabel->setPixmap(pix);
 
-        m_cells->addWidget(iconLabel, 0, column++, Qt::AlignCenter);
+        if(m_location == LOCATION_BOTTOM)
+            m_cells->addWidget(iconLabel, 0, item++, Qt::AlignCenter);
+        else
+            m_cells->addWidget(iconLabel, item++, 0, Qt::AlignCenter);
 
-        if(column > columns) {
+        if(item > items) {
+            // FIXME: do resize up to maximum
             NSLog(@"Too many items!");
             return;
         }
     }
 }
 
+void Dock::swapWH()
+{
+    int h = m_currentSize.height();
+    m_currentSize.setHeight(m_currentSize.width());
+    m_currentSize.setWidth(h);
+}
+
+bool Dock::capLength()
+{
+    bool capped = false;
+
+    switch(m_location) {
+        case LOCATION_BOTTOM:
+            if(m_currentSize.width() > m_maxLength) {
+                m_currentSize.setWidth(m_maxLength);
+                capped = true;
+            }
+            break;
+        default:
+            if(m_currentSize.height() > m_maxLength) {
+                m_currentSize.setHeight(m_maxLength);
+                capped = true;
+            }
+    }
+
+    return capped;
+}
 
 // TODO: connect primaryScreenChanged signal to this
 // TODO: connect availableGeometryChanged signal to this
@@ -118,10 +165,36 @@ void Dock::relocate()
     m_screen = QGuiApplication::primaryScreen();
     QRect geom(m_screen->availableGeometry());
 
-    int edgeGap = (m_location == LOCATION_BOTTOM) ? 8 : 0;
+    int edgeGap = 0;
+    int ypos, xpos;
 
-    int ypos = (geom.bottom() - edgeGap - m_currentSize.height());
-    int xpos = (geom.center().x() - (m_currentSize.width() / 2));
+    if(m_location == LOCATION_BOTTOM) {
+        edgeGap = 8;
+        m_maxLength = geom.right().x() - geom.left().x() - 16;
+
+        // currently taller than wide? swap width & height for new layout
+        if(m_currentSize.width() < m_currentSize().height())
+            swapWH();
+        capLength();
+
+        ypos = geom.bottom() - edgeGap - m_currentSize.height();
+        xpos = geom.center().x() - (m_currentSize.width() / 2);
+    } else {
+        // available geom should already exclude menu bar
+        m_maxLength = geom.bottom().y() - geom.top().y() - 16;
+
+        // wider than tall? swap width & height for new layout
+        if(m_currentSize.width() > m_currentSize().height())
+            swapWH();
+        capLength();
+
+        ypos = geom.center().y() - edgeGap - (m_currentSize.height() / 2);
+        
+        if(m_location == LOCATION_LEFT)
+            xpos = edgeGap;
+        else
+            xpos = geom.right().x() - edgeGap - m_currentSize.width();
+    }
 
     // Get in position and update size
     this->move(xpos, ypos);
@@ -131,6 +204,8 @@ void Dock::relocate()
     QPainterPath roundy;
     roundy.addRoundedRect(this->rect(), RADIUS, RADIUS);
     QRegion mask = QRegion(roundy.toFillPolygon().toPolygon());
+    if(this->mask())
+        this->clearMask();
     this->setMask(mask);
 
     this->show();
