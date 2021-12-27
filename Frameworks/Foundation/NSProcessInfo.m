@@ -11,6 +11,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <Foundation/NSPathUtilities.h>
 #import <Foundation/NSStringFormatter.h>
 #import <Foundation/NSRaise.h>
+#import <Foundation/NSDarwinString.h>
 #import <Foundation/NSString_cString.h>
 #import <Foundation/NSThread-Private.h>
 #import <Foundation/NSPlatform.h>
@@ -205,9 +206,8 @@ FOUNDATION_EXPORT void __NSInitializeProcess(int argc,const char *argv[]) {
     OBJCInitializeProcess();
 #endif
 #if defined(__APPLE__) || defined(__AIRYX__)
-    Class cls = objc_lookUpClass("__builtin_NSString");
+    Class cls = objc_getClass("__builtin_NSString");
     memcpy(&__NSConstantStringClassReference, cls, sizeof(__NSConstantStringClassReference));
-    cls = objc_lookUpClass("NSDarwinString");
 
 #if __LP64__
     extern int __CFConstantStringClassReference[24];
@@ -215,6 +215,7 @@ FOUNDATION_EXPORT void __NSInitializeProcess(int argc,const char *argv[]) {
     extern int __CFConstantStringClassReference[12];
 #endif
 
+    cls = objc_getClass("NSDarwinString");
     memcpy(&__CFConstantStringClassReference, cls, sizeof(__CFConstantStringClassReference));
     
     // Override the compiler version of the class

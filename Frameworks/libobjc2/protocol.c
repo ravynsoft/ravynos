@@ -47,6 +47,9 @@ struct objc_protocol *protocol_for_name(const char *name)
 	return protocol_table_get(known_protocol_table, name);
 }
 
+__attribute__((used))
+const struct objc_class _OBJC_CLASS_Object __asm__("OBJC_METACLASS_$_NSObject");
+
 static id incompleteProtocolClass(void)
 {
 	static id IncompleteProtocolClass = 0;

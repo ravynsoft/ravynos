@@ -49,6 +49,7 @@ BOOL NSObjectIsKindOfClass(id object,Class kindOf) {
 +(NSInvocation *)invocationWithMethodSignature:(NSMethodSignature *)signature arguments:(void *)arguments;
 @end
 
+
 @implementation NSObject
 
 +(NSInteger)version {
@@ -412,6 +413,7 @@ static IMP objc_msg_forward(id rcv, SEL message) {
 }
 
 @end
+
 
 #import <Foundation/NSCFTypeID.h>
 

@@ -44,7 +44,6 @@ FOUNDATION_EXPORT void __attribute__ ((constructor)) libmain(void)
 	abort();
     }
 
-    
     int allocated = 5;
     const char **argv = (const char**)calloc(allocated,sizeof(char*));
     
