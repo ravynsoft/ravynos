@@ -24,8 +24,9 @@
 
 #include "Dock.h"
 
-int main(int argc, char **argv) {
-    QApplication app(argc, argv);
+int main(int argc, const char *argv[]) {
+    __NSInitializeProcess(argc, argv);
+    QApplication app(argc, (char **)argv);
 
     Dock dock;
     return app.exec();

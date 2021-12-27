@@ -47,12 +47,10 @@
 #define _NET_WM_STATE_ADD 1
 #define _NET_WM_STATE_TOGGLE 2
 
-NSString *LS_DATABASE = [[[NSPlatform currentPlatform] libraryDirectory] stringByAppendingString:@"/db/launchservices.db"];
-
-@interface LaunchServices: NSObject
-@end
-
 @implementation LaunchServices
++database {
+    return [[[NSPlatform currentPlatform] libraryDirectory] stringByAppendingString:@"/db/launchservices.db"];
+}
 @end
 
 
@@ -76,7 +74,7 @@ static BOOL _LSCheckAndUpdateSchema()
     const int desiredSchema = 4;
 
     sqlite3 *pDB = 0;
-    if(sqlite3_open([LS_DATABASE UTF8String], &pDB) != SQLITE_OK) {
+    if(sqlite3_open([[LaunchServices database] UTF8String], &pDB) != SQLITE_OK) {
         sqlite3_close(pDB);
         return false; // FIXME: log error somewhere
     }
@@ -132,13 +130,13 @@ static BOOL _LSCheckAndUpdateSchema()
 static BOOL _LSInitializeDatabase()
 {
     NSFileManager *fm = [NSFileManager defaultManager];
-    if([fm fileExistsAtPath:LS_DATABASE])
+    if([fm fileExistsAtPath:[LaunchServices database]])
         return _LSCheckAndUpdateSchema();
 
-    [fm createFileAtPath:LS_DATABASE contents:[NSData new] attributes:[NSDictionary new]];
+    [fm createFileAtPath:[LaunchServices database] contents:[NSData new] attributes:[NSDictionary new]];
 
     sqlite3 *pDB = 0;
-    if(sqlite3_open([LS_DATABASE UTF8String], &pDB) != SQLITE_OK) {
+    if(sqlite3_open([[LaunchServices database] UTF8String], &pDB) != SQLITE_OK) {
         sqlite3_close(pDB);
         return false; // FIXME: log error somewhere
     }
@@ -172,7 +170,7 @@ static BOOL _LSInitializeDatabase()
 BOOL LSFindRecordInDatabase(const NSURL *appURL, LSAppRecord **appRecord)
 {
     sqlite3 *pDB = 0;
-    if(sqlite3_open([LS_DATABASE UTF8String], &pDB) != SQLITE_OK) {
+    if(sqlite3_open([[LaunchServices database] UTF8String], &pDB) != SQLITE_OK) {
         sqlite3_close(pDB);
         return false; // FIXME: log error somewhere
     }
@@ -211,7 +209,7 @@ BOOL LSFindRecordInDatabase(const NSURL *appURL, LSAppRecord **appRecord)
 BOOL LSFindRecordInDatabaseByBundleID(const NSString *bundleID, LSAppRecord **appRecord)
 {
     sqlite3 *pDB = 0;
-    if(sqlite3_open([LS_DATABASE UTF8String], &pDB) != SQLITE_OK) {
+    if(sqlite3_open([[LaunchServices database] UTF8String], &pDB) != SQLITE_OK) {
         sqlite3_close(pDB);
         return false; // FIXME: log error somewhere
     }
@@ -249,7 +247,7 @@ BOOL LSFindRecordInDatabaseByBundleID(const NSString *bundleID, LSAppRecord **ap
 OSStatus LSFindAppsForUTI(NSString *uti, NSMutableArray **outAppURLs)
 {
     sqlite3 *pDB = 0;
-    if(sqlite3_open([LS_DATABASE UTF8String], &pDB) != SQLITE_OK) {
+    if(sqlite3_open([[LaunchServices database] UTF8String], &pDB) != SQLITE_OK) {
         sqlite3_close(pDB);
         return kLSServerCommunicationErr; // FIXME: log error somewhere
     }
@@ -288,7 +286,7 @@ OSStatus LSFindAppsForUTI(NSString *uti, NSMutableArray **outAppURLs)
 
 static BOOL _LSAddRecordToDatabase(const LSAppRecord *appRecord, BOOL isUpdate) {
     sqlite3 *pDB = 0;
-    if(sqlite3_open([LS_DATABASE UTF8String], &pDB) != SQLITE_OK) {
+    if(sqlite3_open([[LaunchServices database] UTF8String], &pDB) != SQLITE_OK) {
         sqlite3_close(pDB);
         return false; // FIXME: log error somewhere
     }

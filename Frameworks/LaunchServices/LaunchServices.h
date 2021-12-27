@@ -25,6 +25,11 @@
 #import <CoreFoundation/CFURL.h>
 #import <CoreFoundation/CFArray.h>
 
+@interface LaunchServices: NSObject
++database;
+@end
+
+
 typedef UInt32 OptionBits;
 #define _Nullable
 

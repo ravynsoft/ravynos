@@ -23,11 +23,10 @@
  */
 
 #import <Foundation/Foundation.h>
+#import "LaunchServices.h"
 #import "UTTypes.h"
 #import "UTTypes-private.h"
 #include <sqlite3.h>
-
-extern NSString *LS_DATABASE;
 
 Boolean UTTypeEqual(CFStringRef inUTI1, CFStringRef inUTI2)
 {
@@ -82,7 +81,7 @@ Boolean UTTypeEqual(CFStringRef inUTI1, CFStringRef inUTI2)
 CFArrayRef UTTypeCopyConformsTo(CFStringRef inUTI)
 {
     sqlite3 *pDB = 0;
-    if(sqlite3_open([LS_DATABASE UTF8String], &pDB) != SQLITE_OK) {
+    if(sqlite3_open([[LaunchServices database] UTF8String], &pDB) != SQLITE_OK) {
         sqlite3_close(pDB);
         return (CFArrayRef)0; // FIXME: log error somewhere
     }
@@ -190,7 +189,7 @@ CFArrayRef UTTypeCreateAllIdentifiersForTag(CFStringRef inTagClass,
 	CFStringRef inTag, CFStringRef inConformingToUTI)
 {
     sqlite3 *pDB = 0;
-    if(sqlite3_open([LS_DATABASE UTF8String], &pDB) != SQLITE_OK) {
+    if(sqlite3_open([[LaunchServices database] UTF8String], &pDB) != SQLITE_OK) {
         sqlite3_close(pDB);
         return (CFArrayRef)0; // FIXME: log error somewhere
     }
@@ -246,7 +245,7 @@ CFArrayRef UTTypeCopyAllTagsWithClass(CFStringRef inUTI,
         CFStringRef inTagClass)
 {
     sqlite3 *pDB = 0;
-    if(sqlite3_open([LS_DATABASE UTF8String], &pDB) != SQLITE_OK) {
+    if(sqlite3_open([[LaunchServices database] UTF8String], &pDB) != SQLITE_OK) {
         sqlite3_close(pDB);
         return (CFArrayRef)0; // FIXME: log error somewhere
     }

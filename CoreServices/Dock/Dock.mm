@@ -47,11 +47,11 @@ Dock::Dock()
         m_currentSize.setHeight(sz.height);
     }
 
-    int pos = [m_prefs intForKey:INFOKEY_LOCATION];
+    int pos = [m_prefs integerForKey:INFOKEY_LOCATION];
     switch(pos) {
         LOCATION_RIGHT:
         LOCATION_LEFT:
-            m_location = pos;
+            m_location = (Location)pos;
             break;
         default:
             m_location = LOCATION_BOTTOM;
@@ -86,7 +86,7 @@ Dock::~Dock()
 
 void Dock::loadItems()
 {
-    int size = (m_location == LOCATION_BOTTOM)
+    int size = (m_location == LOCATION_BOTTOM
         ? m_currentSize.height() : m_currentSize.width()) - 16;
 
     int items = (m_location == LOCATION_BOTTOM
@@ -116,10 +116,9 @@ void Dock::loadItems()
         [apps addObject:s];
     }
 
-    int size = m_currentSize.height() - 
-
     for(int x = 0; x < [apps count]; ++x) {
-        NSBundle *b = [NSBundle bundleWithPath:[apps objectAtIndex:x]];
+        NSString *s = [apps objectAtIndex:x];
+        NSBundle *b = [NSBundle bundleWithPath:s];
         if(!b)
             continue;
 
@@ -158,7 +157,7 @@ void Dock::swapWH()
     m_currentSize.setWidth(h);
 }
 
-void savePrefs()
+void Dock::savePrefs()
 {
     NSSize sz = NSMakeSize(m_currentSize.width(), m_currentSize.height());
     [m_prefs setObject:NSStringFromSize(sz) forKey:INFOKEY_CUR_SIZE];
@@ -201,10 +200,10 @@ void Dock::relocate()
 
     if(m_location == LOCATION_BOTTOM) {
         edgeGap = 8;
-        m_maxLength = geom.right().x() - geom.left().x() - 16;
+        m_maxLength = geom.right() - geom.left() - 16;
 
         // currently taller than wide? swap width & height for new layout
-        if(m_currentSize.width() < m_currentSize().height())
+        if(m_currentSize.width() < m_currentSize.height())
             swapWH();
         capLength();
 
@@ -212,10 +211,10 @@ void Dock::relocate()
         xpos = geom.center().x() - (m_currentSize.width() / 2);
     } else {
         // available geom should already exclude menu bar
-        m_maxLength = geom.bottom().y() - geom.top().y() - 16;
+        m_maxLength = geom.bottom() - geom.top() - 16;
 
         // wider than tall? swap width & height for new layout
-        if(m_currentSize.width() > m_currentSize().height())
+        if(m_currentSize.width() > m_currentSize.height())
             swapWH();
         capLength();
 
@@ -224,7 +223,7 @@ void Dock::relocate()
         if(m_location == LOCATION_LEFT)
             xpos = edgeGap;
         else
-            xpos = geom.right().x() - edgeGap - m_currentSize.width();
+            xpos = geom.right() - edgeGap - m_currentSize.width();
     }
 
     // Get in position and update size
@@ -235,8 +234,7 @@ void Dock::relocate()
     QPainterPath roundy;
     roundy.addRoundedRect(this->rect(), RADIUS, RADIUS);
     QRegion mask = QRegion(roundy.toFillPolygon().toPolygon());
-    if(this->mask())
-        this->clearMask();
+    this->clearMask();
     this->setMask(mask);
 
     this->savePrefs();

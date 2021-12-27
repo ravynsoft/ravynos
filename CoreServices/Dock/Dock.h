@@ -36,8 +36,8 @@
 #define DOCK_HEIGHT_MIN 32
 #define DOCK_LENGTH_MIN 300
 
-const NSString *INFOKEY_CUR_SIZE = @"CurrentSize";
-const NSString *INFOKEY_LOCATION = @"Location";
+#define INFOKEY_CUR_SIZE @"CurrentSize"
+#define INFOKEY_LOCATION @"Location"
 
 class Dock : public QWidget {
 public:
