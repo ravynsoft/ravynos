@@ -22,6 +22,8 @@
  * THE SOFTWARE.
  */
 
+#import <Foundation/Foundation.h>
+
 #include <QWidget>
 #include <QScreen>
 #include <QApplication>
@@ -31,6 +33,11 @@
 #define CELL_SPACER 4  // pixels between grid cells
 #define ICON_MIN 24
 #define DOCK_HEIGHT_MAX 136
+#define DOCK_HEIGHT_MIN 32
+#define DOCK_LENGTH_MIN 300
+
+const NSString *INFOKEY_CUR_SIZE = @"CurrentSize";
+const NSString *INFOKEY_LOCATION = @"Location";
 
 class Dock : public QWidget {
 public:
@@ -47,9 +54,11 @@ public:
     void loadItems();   // Load the items we should display
 
 private:
+    void savePrefs(void);
     void swapWH(void);  // swap current width and height
     bool capLength(void); // cap size at max for screen. Ret true if capped
 
+    NSUserDefaults *m_prefs;
     Location m_location;
     int m_maxLength;
     QScreen *m_screen;

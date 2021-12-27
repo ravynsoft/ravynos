@@ -37,9 +37,26 @@
 Dock::Dock()
     :QWidget(nullptr, Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint |
             Qt::WindowOverridesSystemGestures | Qt::WindowDoesNotAcceptFocus)
-    ,m_location(LOCATION_BOTTOM)
     ,m_currentSize(900,64)
 {
+    m_prefs = [[NSUserDefaults standardUserDefaults] retain];
+    NSString *s = [m_prefs stringForKey:INFOKEY_CUR_SIZE];
+    if(s) {
+        NSSize sz = NSSizeFromString(s);
+        m_currentSize.setWidth(sz.width);
+        m_currentSize.setHeight(sz.height);
+    }
+
+    int pos = [m_prefs intForKey:INFOKEY_LOCATION];
+    switch(pos) {
+        LOCATION_RIGHT:
+        LOCATION_LEFT:
+            m_location = pos;
+            break;
+        default:
+            m_location = LOCATION_BOTTOM;
+    }
+
     Display *display = XOpenDisplay(":0");
     Atom wintype = XInternAtom(display, "_NET_WM_WINDOW_TYPE_DOCK", True);
 
@@ -60,7 +77,11 @@ Dock::Dock()
 
 Dock::~Dock()
 {
-    delete m_cells;
+    if(m_cells)
+        delete m_cells;
+
+    if(m_prefs)
+        [m_prefs release];
 }
 
 void Dock::loadItems()
@@ -137,6 +158,13 @@ void Dock::swapWH()
     m_currentSize.setWidth(h);
 }
 
+void savePrefs()
+{
+    NSSize sz = NSMakeSize(m_currentSize.width(), m_currentSize.height());
+    [m_prefs setObject:NSStringFromSize(sz) forKey:INFOKEY_CUR_SIZE];
+    [m_prefs setInteger:m_location forKey:INFOKEY_LOCATION];
+}
+
 bool Dock::capLength()
 {
     bool capped = false;
@@ -147,14 +175,17 @@ bool Dock::capLength()
                 m_currentSize.setWidth(m_maxLength);
                 capped = true;
             }
+            if(m_currentSize.width() < DOCK_LENGTH_MIN)
+                m_currentSize.setWidth(DOCK_LENGTH_MIN);
             break;
         default:
             if(m_currentSize.height() > m_maxLength) {
                 m_currentSize.setHeight(m_maxLength);
                 capped = true;
             }
+            if(m_currentSize.height() < DOCK_LENGTH_MIN)
+                m_currentSize.setHeight(DOCK_LENGTH_MIN);
     }
-
     return capped;
 }
 
@@ -208,5 +239,6 @@ void Dock::relocate()
         this->clearMask();
     this->setMask(mask);
 
+    this->savePrefs();
     this->show();
 }
