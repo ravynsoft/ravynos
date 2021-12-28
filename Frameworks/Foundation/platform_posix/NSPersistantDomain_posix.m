@@ -21,7 +21,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     NSDictionary *serializedDictionary;
     
     _path = [NSHomeDirectory() stringByAppendingPathComponent:@"Library"];
-    _path = [_path stringByAppendingPathComponent:@"NSUserDefaults"];
+    _path = [_path stringByAppendingPathComponent:@"Preferences"];
     _path = [_path stringByAppendingPathComponent:name];
     _path = [[_path stringByAppendingPathExtension:@"plist"] retain];
     

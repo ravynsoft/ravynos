@@ -40,6 +40,7 @@ Dock::Dock()
     ,m_currentSize(900,64)
 {
     m_prefs = [[NSUserDefaults standardUserDefaults] retain];
+
     NSString *s = [m_prefs stringForKey:INFOKEY_CUR_SIZE];
     if(s) {
         NSSize sz = NSSizeFromString(s);
@@ -49,8 +50,8 @@ Dock::Dock()
 
     int pos = [m_prefs integerForKey:INFOKEY_LOCATION];
     switch(pos) {
-        LOCATION_RIGHT:
-        LOCATION_LEFT:
+        case LOCATION_LEFT:
+        case LOCATION_RIGHT:
             m_location = (Location)pos;
             break;
         default:
@@ -162,6 +163,7 @@ void Dock::savePrefs()
     NSSize sz = NSMakeSize(m_currentSize.width(), m_currentSize.height());
     [m_prefs setObject:NSStringFromSize(sz) forKey:INFOKEY_CUR_SIZE];
     [m_prefs setInteger:m_location forKey:INFOKEY_LOCATION];
+    [m_prefs synchronize];
 }
 
 bool Dock::capLength()

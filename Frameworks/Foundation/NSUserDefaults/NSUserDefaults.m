@@ -261,6 +261,9 @@ static NSUserDefaults* stdUserDefaults = nil;
 }
 
 -(BOOL)synchronize {
+   NSMutableDictionary *p = [self persistantDomain];
+   if(p)
+      [p synchronize];
    return 0;
 }
 

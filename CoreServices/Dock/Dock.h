@@ -44,10 +44,10 @@ public:
     Dock();
     virtual ~Dock();
 
-    enum Location {
-        LOCATION_BOTTOM,
-        LOCATION_LEFT,
-        LOCATION_RIGHT
+    enum Location : int {
+        LOCATION_BOTTOM = 0,
+        LOCATION_LEFT = 1,
+        LOCATION_RIGHT = 2
     };
 
     void relocate();    // Move self to preferred location & size
