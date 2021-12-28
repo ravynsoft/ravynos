@@ -23,14 +23,21 @@
  */
 
 #import <Foundation/Foundation.h>
+#import <LaunchServices/LaunchServices.h>
 
 #include "Dock.h"
+#include "DockItem.h"
+
 #include <QPainterPath>
 #include <QRegion>
 #include <QWindow>
 #include <QFrame>
 #include <QLabel>
 #include <QPixmap>
+#include <QMouseEvent>
+
+#include <fcntl.h>
+#include <unistd.h>
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
 
@@ -38,8 +45,10 @@ Dock::Dock()
     :QWidget(nullptr, Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint |
             Qt::WindowOverridesSystemGestures | Qt::WindowDoesNotAcceptFocus)
     ,m_currentSize(900,64)
+    ,m_itemSlots(0)
 {
     m_prefs = [[NSUserDefaults standardUserDefaults] retain];
+    m_items = [NSMutableArray arrayWithCapacity:20];
 
     NSString *s = [m_prefs stringForKey:INFOKEY_CUR_SIZE];
     if(s) {
@@ -78,11 +87,9 @@ Dock::Dock()
 
 Dock::~Dock()
 {
-    if(m_cells)
-        delete m_cells;
-
-    if(m_prefs)
-        [m_prefs release];
+    delete m_cells;
+    [m_prefs release];
+    [m_items release];
 }
 
 void Dock::loadItems()
@@ -93,6 +100,7 @@ void Dock::loadItems()
     int items = (m_location == LOCATION_BOTTOM
         ? m_currentSize.width() : m_currentSize.height())
         / (size + CELL_SPACER + CELL_SPACER);
+    m_itemSlots = items;
 
     // addItem( trash, items );
     --items;
@@ -104,24 +112,25 @@ void Dock::loadItems()
 
     int item = 0;
 
-    NSFileManager *fm = [NSFileManager defaultManager];
+
     NSMutableArray *apps = [NSMutableArray new];
     [apps addObject:@"/System/Library/CoreServices/Filer.app"];
-
-    NSArray *apps2 = [fm directoryContentsAtPath:@"/Applications"];
-    for(int x = 0; x < [apps2 count]; ++x) {
-        NSString *s = [NSString stringWithFormat:@"/Applications/%@",
-            [apps2 objectAtIndex:x]];
-        if(![s hasSuffix:@"app"])
-            continue;
-        [apps addObject:s];
-    }
+    NSEnumerator *currentItems = [[m_prefs objectForKey:INFOKEY_CUR_ITEMS]
+        objectEnumerator];
+    NSString *cur;
+    while(cur = [currentItems nextObject])
+        [apps addObject:cur];
 
     for(int x = 0; x < [apps count]; ++x) {
         NSString *s = [apps objectAtIndex:x];
         NSBundle *b = [NSBundle bundleWithPath:s];
         if(!b)
             continue;
+
+        DockItem *info = [DockItem dockItemWithPath:s];
+        if(item == 0)
+            [info setLocked:YES];
+        [m_items addObject:info]; // must keep in same order as m_cells!
 
         NSString *iconFile = [b objectForInfoDictionaryKey:
             @"CFBundleIconFile"];
@@ -149,6 +158,10 @@ void Dock::loadItems()
             return;
         }
     }
+
+    // FIXME: fill in remaining item slots with empty iteminfo & trash info
+
+    loadProcessTable();
 }
 
 void Dock::swapWH()
@@ -163,6 +176,8 @@ void Dock::savePrefs()
     NSSize sz = NSMakeSize(m_currentSize.width(), m_currentSize.height());
     [m_prefs setObject:NSStringFromSize(sz) forKey:INFOKEY_CUR_SIZE];
     [m_prefs setInteger:m_location forKey:INFOKEY_LOCATION];
+    if([m_prefs stringForKey:INFOKEY_FILER_DEF_FOLDER] == nil)
+        [m_prefs setObject:@"~" forKey:INFOKEY_FILER_DEF_FOLDER];
     [m_prefs synchronize];
 }
 
@@ -241,4 +256,97 @@ void Dock::relocate()
 
     this->savePrefs();
     this->show();
+}
+
+int Dock::itemFromPos(int x, int y)
+{
+    int size = (m_location == LOCATION_BOTTOM)
+        ? m_currentSize.width() : m_currentSize.height();
+    int cellsize = size / m_itemSlots;
+
+    int item = -1;
+    if(m_location == LOCATION_BOTTOM)
+        item = x / cellsize;
+    else
+        item = y / cellsize;
+    return item;
+}
+
+void Dock::mousePressEvent(QMouseEvent *e)
+{
+    int itempos = itemFromPos(e->x(), e->y());
+    DockItem *item = [m_items objectAtIndex:itempos];
+    if(!item)
+        return;
+
+    switch(e->button()) {
+        case Qt::LeftButton: // logical left, the primary action
+        {
+            LSLaunchURLSpec spec = { 0 };
+            spec.appURL = (CFURLRef)[NSURL fileURLWithPath:[item path]];
+            if(itempos == 0) // Filer is special
+                spec.itemURLs = (CFArrayRef)[NSArray arrayWithObject:
+                    [NSURL fileURLWithPath:
+                    [[m_prefs stringForKey:INFOKEY_FILER_DEF_FOLDER]
+                    stringByStandardizingPath]]];
+            LSOpenFromURLSpec(&spec, NULL);
+            [item setNeedsAttention:YES]; // bouncy bouncy
+            // FIXME: get and save PID
+            break;
+        }
+        case Qt::RightButton: // logical right, the secondary action
+            NSLog(@"right click %d, show the menu now",itempos);
+            break;
+        default: break;
+    }
+}
+
+void Dock::mouseReleaseEvent(QMouseEvent *e)
+{
+    NSLog(@"mouseRelease");
+}
+
+void Dock::mouseDoubleClickEvent(QMouseEvent *e)
+{
+    NSLog(@"mouseDouble");
+}
+
+void Dock::mouseMoveEvent(QMouseEvent *e)
+{
+    NSLog(@"mouseMove - dragging item %d", itemFromPos(e->x(), e->y()));
+}
+
+// At startup, load a snapshot of running processes to init status indicators
+// After startup, we track launch/exits in other ways
+void Dock::loadProcessTable()
+{
+    NSMutableDictionary *processDict = [NSMutableDictionary
+        dictionaryWithCapacity:200];
+
+    NSFileManager *fm = [NSFileManager defaultManager];
+    NSEnumerator *procs = [[fm directoryContentsAtPath:@"/proc"]
+        objectEnumerator];
+
+    NSString *spid;
+    char buf[1024];
+    while((spid = [procs nextObject])) {
+        int pid = [spid intValue];
+        if(pid < 2)
+            continue;
+
+        NSString *path = [NSString stringWithFormat:@"/proc/%@/cmdline",spid];
+        int fd = open([path cString], O_RDONLY);
+        if(fd < 0)
+            continue;
+        int len = read(fd, buf, 1024);
+        if(len <= 0) {
+            ::close(fd);
+            continue;
+        }
+
+        NSString *name = [NSString stringWithCString:buf];
+        [processDict setObject:[NSNumber numberWithInteger:pid] forKey:name];
+    }
+
+    NSLog(@"dict %@",processDict);
 }

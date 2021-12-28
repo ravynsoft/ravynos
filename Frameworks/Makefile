@@ -38,7 +38,7 @@ frameworks:
 libobjc2: .PHONY
 	mkdir -p ${OBJPREFIX}/libobjc2
 	cd ${OBJPREFIX}/libobjc2; cmake \
-		-DCMAKE_C_FLAGS="-nodefaultlibs -DNO_SELECTOR_MISMATCH_WARNINGS -lc -lunwind" \
+		-DCMAKE_C_FLAGS="-D__AIRYX__ -DNO_SELECTOR_MISMATCH_WARNINGS" \
 		-DCMAKE_BUILD_TYPE=Release \
 		-DCMAKE_INSTALL_PREFIX=/usr \
 		-DOLDABI_COMPAT=false -DLEGACY_COMPAT=false \

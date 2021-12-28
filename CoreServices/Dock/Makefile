@@ -1,8 +1,9 @@
 APP=	Dock
-SRCS=	main.mm Dock.mm
+SRCS=	main.mm Dock.mm DockItem.mm
 RESOURCES=	Dock.png
 
 Dock.o: Dock.mm Dock.h
+DockItem.o: DockItem.mm DockItem.h
 
 QT_CFLAGS!=	pkg-config --cflags Qt5Widgets
 QT_LDFLAGS!=	pkg-config --libs Qt5Widgets

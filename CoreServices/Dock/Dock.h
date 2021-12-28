@@ -22,6 +22,8 @@
  * THE SOFTWARE.
  */
 
+#pragma once
+
 #import <Foundation/Foundation.h>
 
 #include <QWidget>
@@ -38,6 +40,8 @@
 
 #define INFOKEY_CUR_SIZE @"CurrentSize"
 #define INFOKEY_LOCATION @"Location"
+#define INFOKEY_CUR_ITEMS @"CurrentItems"
+#define INFOKEY_FILER_DEF_FOLDER @"FilerDefaultFolder"
 
 class Dock : public QWidget {
 public:
@@ -53,12 +57,21 @@ public:
     void relocate();    // Move self to preferred location & size
     void loadItems();   // Load the items we should display
 
+    void mousePressEvent(QMouseEvent *e);
+    void mouseReleaseEvent(QMouseEvent *e);
+    void mouseDoubleClickEvent(QMouseEvent *e);
+    void mouseMoveEvent(QMouseEvent *e);
+
 private:
     void savePrefs(void);
     void swapWH(void);  // swap current width and height
     bool capLength(void); // cap size at max for screen. Ret true if capped
+    int itemFromPos(int x, int y);
+    void loadProcessTable();
 
     NSUserDefaults *m_prefs;
+    NSMutableArray *m_items;
+    int m_itemSlots;
     Location m_location;
     int m_maxLength;
     QScreen *m_screen;
