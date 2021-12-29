@@ -25,10 +25,13 @@
 #pragma once
 
 #import <Foundation/Foundation.h>
+#include <QIcon>
 
 enum DockItemType : unsigned int {
+    DIT_INVALID,
     DIT_APP_BUNDLE,
     DIT_APP_DESKTOP,
+    DIT_APP_APPDIR,
     DIT_FOLDER,
     DIT_MAX = DIT_FOLDER
 };
@@ -41,17 +44,22 @@ enum DockItemFlags : unsigned int {
 };
 
 @interface DockItem : NSObject {
-    NSString *_path;    // path of the item represented
+    NSString *_path;        // path of the item represented
+    NSString *_execPath;    // actual executable for _path
+    NSString *_bundleID;    // CFBundleIdentifier if one exists
     DockItemType _type;
     unsigned int _flags;
-    pid_t _pid;         // PID, if running
-    NSString *_label;   // displayed on hover
+    pid_t _pid;             // PID, if running
+    NSString *_label;       // displayed on hover
+    QIcon *_icon;
 }
 
 +dockItemWithPath:(NSString *)path;
 -initWithPath:(NSString *)path;
 
 -(NSString *)path;
+-(NSString *)execPath;
+-(NSString *)bundleIdentifier;
 -(DockItemType)type;
 -(DockItemFlags)flags;
 -(BOOL)isNormal;
@@ -60,6 +68,7 @@ enum DockItemFlags : unsigned int {
 -(BOOL)isResident;
 -(BOOL)needsAttention;
 -(pid_t)pid;
+-(QIcon *)icon;
 
 -(void)setFlags:(DockItemFlags)flags;
 -(void)setNormal; // clears all flags

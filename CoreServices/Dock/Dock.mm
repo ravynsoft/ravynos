@@ -83,6 +83,7 @@ Dock::Dock()
     m_cells->setHorizontalSpacing(CELL_SPACER);
 
     this->loadItems();
+    this->loadProcessTable();
 }
 
 Dock::~Dock()
@@ -123,28 +124,17 @@ void Dock::loadItems()
 
     for(int x = 0; x < [apps count]; ++x) {
         NSString *s = [apps objectAtIndex:x];
-        NSBundle *b = [NSBundle bundleWithPath:s];
-        if(!b)
-            continue;
-
         DockItem *info = [DockItem dockItemWithPath:s];
         if(item == 0)
             [info setLocked:YES];
         [m_items addObject:info]; // must keep in same order as m_cells!
-
-        NSString *iconFile = [b objectForInfoDictionaryKey:
-            @"CFBundleIconFile"];
-        QString iconPath(QString::fromUtf8(
-            [[NSString stringWithFormat:@"%@/Resources/%@",s,iconFile]
-            UTF8String]));
-        QIcon icon(iconPath);
 
         QLabel *iconLabel = new QLabel;
         iconLabel->setAlignment(Qt::AlignCenter);
         iconLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
         iconLabel->setMinimumSize(ICON_MIN, ICON_MIN);
 
-        QPixmap pix(icon.pixmap(QSize(size, size)));
+        QPixmap pix([info icon]->pixmap(QSize(size, size)));
         iconLabel->setPixmap(pix);
 
         if(m_location == LOCATION_BOTTOM)
@@ -160,8 +150,6 @@ void Dock::loadItems()
     }
 
     // FIXME: fill in remaining item slots with empty iteminfo & trash info
-
-    loadProcessTable();
 }
 
 void Dock::swapWH()
@@ -328,25 +316,53 @@ void Dock::loadProcessTable()
         objectEnumerator];
 
     NSString *spid;
-    char buf[1024];
+    char buf[PATH_MAX];
     while((spid = [procs nextObject])) {
         int pid = [spid intValue];
         if(pid < 2)
             continue;
 
-        NSString *path = [NSString stringWithFormat:@"/proc/%@/cmdline",spid];
-        int fd = open([path cString], O_RDONLY);
-        if(fd < 0)
+        // Read the actual path of the executable
+        NSString *path = [NSString stringWithFormat:@"/proc/%@/file", spid];
+        int len = readlink([path UTF8String], buf, PATH_MAX-1);
+        if(len <= 0)
             continue;
-        int len = read(fd, buf, 1024);
-        if(len <= 0) {
-            ::close(fd);
-            continue;
+        NSString *name = [NSString stringWithCString:buf length:len];
+        NSBundle *bundle = [NSBundle bundleWithModulePath:name];
+        NSString *bname = [bundle bundlePath];
+
+        if([processDict objectForKey:name] == nil) {
+            NSMutableArray *pids = [NSMutableArray new];
+            [pids addObject:[NSNumber numberWithInteger:pid]];
+            [processDict setObject:pids forKey:name];
+        } else {
+            NSMutableArray *pids = [processDict objectForKey:name];
+            [pids addObject:[NSNumber numberWithInteger:pid]];
         }
 
-        NSString *name = [NSString stringWithCString:buf];
-        [processDict setObject:[NSNumber numberWithInteger:pid] forKey:name];
+        if(![bname isEqualToString:@"/"] && ![bname isEqualToString:name]) {
+            if([processDict objectForKey:bname] == nil) {
+                NSMutableArray *pids = [NSMutableArray new];
+                [pids addObject:[NSNumber numberWithInteger:pid]];
+                [processDict setObject:pids forKey:bname];
+            } else {
+                NSMutableArray *pids = [processDict objectForKey:bname];
+                [pids addObject:[NSNumber numberWithInteger:pid]];
+            }
+        }
     }
 
-    NSLog(@"dict %@",processDict);
+    for(int i = 0; i < [m_items count]; ++i) {
+        DockItem *di = [m_items objectAtIndex:i];
+        pid_t pid = 0;
+        NSArray *pids = [processDict objectForKey:[di execPath]];
+        if(pids)
+            pid = [[pids firstObject] intValue];
+        if(pid == 0) {
+            pids = [processDict objectForKey:[di path]];
+            if(pids)
+                pid = [[pids firstObject] intValue];
+        }
+        [di setRunning:pid];
+    }
 }
