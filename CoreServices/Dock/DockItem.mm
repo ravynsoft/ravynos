@@ -89,6 +89,8 @@
 -(void)dealloc {
     if(_icon)
         delete _icon;
+    if(_runMarker)
+        delete _runMarker;
     [super dealloc];
 }
 
@@ -171,6 +173,12 @@
         _flags |= DIF_ATTENTION;
     else
         _flags &= ~DIF_ATTENTION;
+}
+
+-(void)setRunningMarker:(QLabel *)label {
+    if(_runMarker)
+        delete _runMarker;
+    _runMarker = label;
 }
 
 -(NSString *)description {

@@ -30,6 +30,7 @@
 #include <QScreen>
 #include <QApplication>
 #include <QGridLayout>
+#include <QPixmap>
 
 #define RADIUS 10      // rounded corner radius
 #define CELL_SPACER 4  // pixels between grid cells
@@ -77,4 +78,5 @@ private:
     QScreen *m_screen;
     QSize m_currentSize;
     QGridLayout *m_cells;
+    QPixmap *m_iconRun;
 };

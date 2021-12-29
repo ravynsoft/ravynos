@@ -26,6 +26,7 @@
 
 #import <Foundation/Foundation.h>
 #include <QIcon>
+#include <QLabel>
 
 enum DockItemType : unsigned int {
     DIT_INVALID,
@@ -52,6 +53,7 @@ enum DockItemFlags : unsigned int {
     pid_t _pid;             // PID, if running
     NSString *_label;       // displayed on hover
     QIcon *_icon;
+    QLabel *_runMarker;
 }
 
 +dockItemWithPath:(NSString *)path;
@@ -76,4 +78,5 @@ enum DockItemFlags : unsigned int {
 -(void)setRunning:(pid_t)pid;
 -(void)setResident:(BOOL)value;
 -(void)setNeedsAttention:(BOOL)value;
+-(void)setRunningMarker:(QLabel *)label;
 @end

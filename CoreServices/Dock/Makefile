@@ -1,6 +1,6 @@
 APP=	Dock
 SRCS=	main.mm Dock.mm DockItem.mm
-RESOURCES=	Dock.png
+RESOURCES=	Dock.png running.png
 
 Dock.o: Dock.mm Dock.h
 DockItem.o: DockItem.mm DockItem.h

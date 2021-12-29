@@ -34,7 +34,9 @@
 #include <QFrame>
 #include <QLabel>
 #include <QPixmap>
+#include <QPainter>
 #include <QMouseEvent>
+#include <QDebug>
 
 #include <fcntl.h>
 #include <unistd.h>
@@ -49,6 +51,10 @@ Dock::Dock()
 {
     m_prefs = [[NSUserDefaults standardUserDefaults] retain];
     m_items = [NSMutableArray arrayWithCapacity:20];
+
+    m_iconRun = new QPixmap(QIcon(QString::fromUtf8(
+        [[[NSBundle mainBundle] pathForResource:@"running" ofType:@"png"]
+        UTF8String])).pixmap(8, 8));
 
     NSString *s = [m_prefs stringForKey:INFOKEY_CUR_SIZE];
     if(s) {
@@ -67,6 +73,9 @@ Dock::Dock()
             m_location = LOCATION_BOTTOM;
     }
 
+    this->relocate();
+    this->setWindowOpacity(0.92);
+
     Display *display = XOpenDisplay(":0");
     Atom wintype = XInternAtom(display, "_NET_WM_WINDOW_TYPE_DOCK", True);
 
@@ -76,11 +85,7 @@ Dock::Dock()
         (const unsigned char *)&wintype, 1L);
     XFlush(display);
 
-    this->relocate();
-    this->setWindowOpacity(0.92);
-
     m_cells = new QGridLayout(this);
-    m_cells->setHorizontalSpacing(CELL_SPACER);
 
     this->loadItems();
     this->loadProcessTable();
@@ -89,6 +94,7 @@ Dock::Dock()
 Dock::~Dock()
 {
     delete m_cells;
+    delete m_iconRun;
     [m_prefs release];
     [m_items release];
 }
@@ -105,10 +111,16 @@ void Dock::loadItems()
 
     // addItem( trash, items );
     --items;
-    if(m_location == LOCATION_BOTTOM)
+    m_cells->setMargin(2);
+    if(m_location == LOCATION_BOTTOM) {
+        m_cells->setHorizontalSpacing(CELL_SPACER);
+        m_cells->setVerticalSpacing(0);
         m_cells->setColumnStretch(items, 100);
-    else
+    } else {
+        m_cells->setHorizontalSpacing(0);
+        m_cells->setVerticalSpacing(CELL_SPACER);
         m_cells->setRowStretch(items, 100);
+    }
     --items;
 
     int item = 0;
@@ -131,8 +143,8 @@ void Dock::loadItems()
 
         QLabel *iconLabel = new QLabel;
         iconLabel->setAlignment(Qt::AlignCenter);
-        iconLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-        iconLabel->setMinimumSize(ICON_MIN, ICON_MIN);
+        iconLabel->setSizePolicy(QSizePolicy::Expanding,
+            QSizePolicy::Expanding);
 
         QPixmap pix([info icon]->pixmap(QSize(size, size)));
         iconLabel->setPixmap(pix);
@@ -364,5 +376,26 @@ void Dock::loadProcessTable()
                 pid = [[pids firstObject] intValue];
         }
         [di setRunning:pid];
+
+        if([di isRunning]) {
+            QLabel *l = new QLabel;
+            l->setPixmap(*m_iconRun);
+            [di setRunningMarker:l]; // save this so we can delete later
+
+            switch(m_location) {
+                case LOCATION_LEFT:
+                    m_cells->addWidget(l, i, 0,
+                        Qt::AlignVCenter | Qt::AlignLeft);
+                    break;
+                case LOCATION_RIGHT:
+                    m_cells->addWidget(l, i, 0,
+                        Qt::AlignVCenter | Qt::AlignRight);
+                    break;
+                default:
+                    m_cells->addWidget(l, 0, i,
+                        Qt::AlignHCenter | Qt::AlignBottom);
+                    break;
+            }
+        }
     }
 }
