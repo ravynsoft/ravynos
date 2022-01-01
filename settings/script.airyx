@@ -150,10 +150,10 @@ chroot ${uzip} ln -s /usr/bin/bash /bin/bash
 # Remove unwanted UDisks2VolumeMonitor D-Bus service
 # TODO: Find a proper way to do this. The correct thing to do would probably to split up the FreeBSD package
 # FIXME: This is guaranteed to break as soon as the user updates/upgrades the package
-if [ -f "${uzip}/usr/local/share/dbus-1/services/org.gtk.vfs.UDisks2VolumeMonitor.service" ] ; then
-  rm -rf "${uzip}/usr/local/share/dbus-1/services/org.gtk.vfs.UDisks2VolumeMonitor.service"
-  touch "${uzip}/usr/local/share/dbus-1/services/org.gtk.vfs.UDisks2VolumeMonitor.service"
+if [ -f "${uzip}/usr/share/dbus-1/services/org.gtk.vfs.UDisks2VolumeMonitor.service" ] ; then
+  rm -rf "${uzip}/usr/share/dbus-1/services/org.gtk.vfs.UDisks2VolumeMonitor.service"
+  touch "${uzip}/usr/share/dbus-1/services/org.gtk.vfs.UDisks2VolumeMonitor.service"
   # Make the file immutable so that even root cannot overwrite it
-  chflags schg "${uzip}/usr/local/share/dbus-1/services/org.gtk.vfs.UDisks2VolumeMonitor.service"
+  chflags schg "${uzip}/usr/share/dbus-1/services/org.gtk.vfs.UDisks2VolumeMonitor.service"
 fi
 
