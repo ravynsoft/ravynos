@@ -13,8 +13,8 @@ airyx_task:
     KEY: ENCRYPTED[f68765a53df76c1b9cd6d870e0054317f9cc517313bf6c56d0b094a1ad01e968a95e6328b37b53db7840d112ff165c46]
     PKG_CONFIG_PATH: /usr/libdata/pkgconfig:/usr/local/libdata/pkgconfig
   script:
-    - fetch -o /tmp/base.txz https://dl.cloudsmith.io/public/airyx/core/raw/files/base.txz
-    - tar -C / -xf /tmp/base.txz --exclude=./var/empty --exclude=./usr/lib --exclude=./sbin/init --exclude=./lib/libthr.so.3 --exclude=./libcrypt.so.5 --exclude=./lib/libc.so.7 --exclude=./libexec/ld-elf.so.1 --exclude=./usr/bin/crontab --exclude=./usr/bin/su --exclude=./usr/bin/opiepasswd --exclude=./usr/bin/passwd --exclude=./usr/bin/opieinfo --exclude=./usr/bin/login --exclude=./usr/bin/chpass --exclude=./usr/lib/librt.so.1
+    - fetch -o /tmp/base_${CIRRUS_BRANCH%/*}.txz https://dl.cloudsmith.io/public/airyx/core/raw/files/base.txz
+    - tar -C / -xf /tmp/base_${CIRRUS_BRANCH%/*}.txz --exclude=./var/empty --exclude=./usr/lib --exclude=./sbin/init --exclude=./lib/libthr.so.3 --exclude=./libcrypt.so.5 --exclude=./lib/libc.so.7 --exclude=./libexec/ld-elf.so.1 --exclude=./usr/bin/crontab --exclude=./usr/bin/su --exclude=./usr/bin/opiepasswd --exclude=./usr/bin/passwd --exclude=./usr/bin/opieinfo --exclude=./usr/bin/login --exclude=./usr/bin/chpass --exclude=./usr/lib/librt.so.1
     - cp -afv mk/*.mk /usr/share/mk
     - cp -fv etc/pkg/*.conf /etc/pkg/ && rm -fv /etc/pkg/FreeBSD.conf
     - fetch -o /tmp/liblz4.pkg https://dl.cloudsmith.io/public/airyx/core/raw/files/liblz4-1.9.3,1.pkg
