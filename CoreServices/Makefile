@@ -5,7 +5,6 @@ clean:
 	rm -rf ${BUILDROOT}/System/Library/CoreServices
 	rm -rf ${BUILDROOT}/Applications/Utilities/"Install airyxOS.app"
 	rm -rf Filer/build Filer/Filer.app Installer/"Install airyxOS.app"
-	${MAKE} -C LaunchDaemons clean
 
 DMIHelper: DMIHelper.c
 	mkdir -p ${BUILDROOT}/System/Library/CoreServices
@@ -17,7 +16,6 @@ build: buildFiler DMIHelper buildInstaller
 	mkdir -p ${BUILDROOT}/Applications/Utilities/
 	cp -av Filer/Filer.app ${BUILDROOT}/System/Library/CoreServices
 	cp -av Installer/"Install airyxOS.app" ${BUILDROOT}/Applications/Utilities/
-	${MAKE} -C LaunchDaemons build
 
 buildInstaller:
 	${MAKE} -C Installer build

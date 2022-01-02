@@ -51,7 +51,7 @@ prep: cleanroot
 	cp -f ${TOPDIR}/make.conf ${TOPDIR}/resolv.conf ${BUILDROOT}/etc/
 	for x in System System/Library/Frameworks System/Library/LaunchDaemons \
 		System/Library/LaunchAgents Library Library/LaunchDaemons \
-		Users Applications Volumes; \
+		Library/LaunchAgents Users Applications Volumes; \
 		do mkdir -p ${BUILDROOT}/$$x; \
 	done
 	mkdir -p ${BUILDROOT}/private
@@ -136,7 +136,7 @@ copyfiles:
 	cp -fvR ${TOPDIR}/etc ${BUILDROOT}
 	sed -i_ -e "s/__VERSION__/${AIRYX_VERSION}/" -e "s/__CODENAME__/${AIRYX_CODENAME}/" ${BUILDROOT}/etc/motd
 	rm -f ${BUILDROOT}/etc/motd_
-	${MAKE} -C Colors
+	${MAKE} -C Library
 
 mkfiles:
 	mkdir -p ${BUILDROOT}/usr/share/mk
