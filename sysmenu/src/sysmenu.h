@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Zoe Knox <zoe@pixin.net>
+ * Copyright (C) 2021-2022 Zoe Knox <zoe@pixin.net>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,6 +27,10 @@
 #include <QProcess>
 #include <QMenu>
 #include <QAction>
+#ifdef __MACH__
+#include <mach/mach.h>
+#include <servers/bootstrap.h>
+#endif
 
 /* A simple wrapper around QMessageBox that allows closing it
  * with the titlebar button */
@@ -85,4 +89,8 @@ private:
     QMenu m_recentItems;
     QAction *m_recentItemsAction;
     bool m_refreshedRecent;
+#ifdef __MACH__
+    mach_port_t m_bportDock;
+    mach_port_t m_bportFiler;
+#endif
 };

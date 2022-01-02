@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Zoe Knox <zoe@pixin.net>
+ * Copyright (C) 2021-2022 Zoe Knox <zoe@pixin.net>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -83,6 +83,19 @@ AiryxMenu::AiryxMenu(QObject *parent, const QVariantList &args)
 
     connect(&m_menu, &QMenu::hovered, this, &AiryxMenu::menuHovered);
     connect(&m_menu, &QMenu::triggered, this, &AiryxMenu::menuTriggered);
+
+#ifdef __MACH__
+    /* Kickstart the Mach subsystem to trigger launchd. Save the ports
+     * of our core services in case we want them later.
+     */
+    kern_return_t kr = bootstrap_look_up(bootstrap_port, "org.airyx.Dock",
+	&m_bportDock);
+    if(kr != KERN_SUCCESS)
+    	m_bportDock = MACH_PORT_NULL;
+    kr = bootstrap_look_up(bootstrap_port, "org.airyx.Filer", &m_bportFiler);
+    if(kr != KERN_SUCCESS)
+    	m_bportFiler = MACH_PORT_NULL;
+#endif
 }
 
 AiryxMenu::~AiryxMenu()

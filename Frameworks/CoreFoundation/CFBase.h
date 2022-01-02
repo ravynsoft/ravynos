@@ -21,6 +21,10 @@ THE SOFTWARE IS PROVIDED "AS IS",WITHOUT WARRANTY OF ANY KIND,EXPRESS OR IMPLIED
 #include <stdint.h>
 #include <time.h>
 
+#ifdef __MACH__
+#include <mach/mach.h>
+#endif
+
 #ifdef __clang__
 #define COREFOUNDATION_DLLEXPORT
 #define COREFOUNDATION_DLLIMPORT
@@ -205,7 +209,7 @@ COREFOUNDATION_EXPORT CFStringRef CFCopyTypeIDDescription(CFTypeID typeID);
 COREFOUNDATION_EXPORT CFStringRef CFCopyDescription(CFTypeRef self);
 COREFOUNDATION_EXPORT CFTypeRef CFMakeCollectable(CFTypeRef self);
 
-#ifndef MACH
+#ifndef __MACH__
 
 // mach/mach_types.h
 
@@ -228,18 +232,6 @@ typedef struct mach_timebase_info {
 
 uint64_t mach_absolute_time(void);
 kern_return_t mach_timebase_info(mach_timebase_info_t timebase);
-#endif
-
-#ifdef WINDOWS
-COREFOUNDATION_EXPORT unsigned int sleep(unsigned int seconds);
-//COREFOUNDATION_EXPORT int usleep(long useconds);
-COREFOUNDATION_EXPORT size_t strlcpy(char *dst, const char *src, size_t size);
-COREFOUNDATION_EXPORT char *strnstr(const char *s1, const char *s2, size_t n);
-COREFOUNDATION_EXPORT void bzero(void *ptr, size_t size);
-COREFOUNDATION_EXPORT void bcopy(const void *s1, void *s2, size_t n);
-COREFOUNDATION_EXPORT int bcmp(const void *s1, void *s2, size_t n);
-COREFOUNDATION_EXPORT int mkstemps(char *tmplt, int suffixlen);
-COREFOUNDATION_EXPORT long random(void);
 #endif
 
 // Enums and Options

@@ -18,6 +18,7 @@ target_link_libraries(plasma_applet_AiryxMenu
     "-framework CoreFoundation"
     "-framework CFNetwork"
     "-lobjc"
+    "-lSystem"
     )
 
 
