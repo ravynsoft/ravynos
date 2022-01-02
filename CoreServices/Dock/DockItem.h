@@ -62,6 +62,7 @@ enum DockItemFlags : unsigned int {
 -(NSString *)path;
 -(NSString *)execPath;
 -(NSString *)bundleIdentifier;
+-(NSString *)label;
 -(DockItemType)type;
 -(DockItemFlags)flags;
 -(BOOL)isNormal;

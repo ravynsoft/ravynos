@@ -106,6 +106,10 @@
     return _bundleID;
 }
 
+-(NSString *)label {
+    return _label;
+}
+
 -(DockItemType)type {
     return _type;
 }

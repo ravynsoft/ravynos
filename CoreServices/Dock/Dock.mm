@@ -52,6 +52,8 @@ Dock::Dock()
     m_prefs = [[NSUserDefaults standardUserDefaults] retain];
     m_items = [NSMutableArray arrayWithCapacity:20];
 
+    this->setAttribute(Qt::WA_AlwaysShowToolTips);
+
     m_iconRun = new QPixmap(QIcon(QString::fromUtf8(
         [[[NSBundle mainBundle] pathForResource:@"running" ofType:@"png"]
         UTF8String])).pixmap(8, 8));
@@ -148,6 +150,7 @@ void Dock::loadItems()
 
         QPixmap pix([info icon]->pixmap(QSize(size, size)));
         iconLabel->setPixmap(pix);
+        iconLabel->setToolTip(QString::fromUtf8([[info label] UTF8String]));
 
         if(m_location == LOCATION_BOTTOM)
             m_cells->addWidget(iconLabel, 0, item++, Qt::AlignCenter);
