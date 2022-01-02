@@ -4,15 +4,16 @@
     "DISPLAY": "unix:0.0"
   },
   "MachServices": {
-    "org.airyx.Dock": {
-      "HostSpecialPort": 12
+    "org.airyx.Filer": {
+      "HostSpecialPort": 11
     }
   },
   "EnableTransactions": true,
   "ProgramArguments": [
-    "/System/Library/CoreServices/Dock.app/Contents/Airyx/Dock"
+    "/System/Library/CoreServices/Filer.app/Contents/Airyx/Filer",
+    "--desktop"
   ],
   "RunAtLoad": true,
   "KeepAlive": true,
-  "Label": "org.airyx.Dock"
+  "Label": "org.airyx.Filer"
 }
