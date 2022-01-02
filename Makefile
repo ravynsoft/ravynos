@@ -147,14 +147,9 @@ ${TOPDIR}/ISO:
 	cd ${TOPDIR} && git clone https://github.com/mszoek/ISO.git
 	cd ${TOPDIR}/ISO && git checkout airyx
 
-${TOPDIR}/dist/CocoaDemo.app.txz:
-	${MAKE} -C ${TOPDIR}/examples/app clean
-	${MAKE} -C ${TOPDIR}/examples/app 
-	tar -C ${TOPDIR}/examples/app -cf ${.TARGET} CocoaDemo.app
-
 iso:
 	cp -f ${TOPDIR}/version.txt ${TOPDIR}/ISO/overlays/ramdisk/version
 	cd ${TOPDIR}/ISO && workdir=${OBJPREFIX} AIRYX=${TOPDIR} ${SUDO} -E ./build.sh airyx Airyx_${AIRYX_VERSION}
 
-release: airyx-package ${TOPDIR}/ISO ${TOPDIR}/dist/CocoaDemo.app.txz iso
+release: airyx-package ${TOPDIR}/ISO iso
 
