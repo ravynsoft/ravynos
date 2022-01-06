@@ -26,7 +26,6 @@
 #import <LaunchServices/LaunchServices.h>
 
 #include "Dock.h"
-#include "DockItem.h"
 
 #include <QPainterPath>
 #include <QRegion>
@@ -42,6 +41,21 @@
 #include <unistd.h>
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
+
+unsigned long eventID()
+{
+    static unsigned long _ID = 256000;
+    return ++_ID;
+}
+
+int piper(int n)
+{
+    static int pipefd[2] = {-1};
+
+    if(pipefd[0] == -1)
+        pipe(pipefd);
+    return pipefd[n];
+}
 
 Dock::Dock()
     :QWidget(nullptr, Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint |
@@ -87,10 +101,24 @@ Dock::Dock()
         (const unsigned char *)&wintype, 1L);
     XFlush(display);
 
+    connect(this, &Dock::itemShouldClearIndicator, this,
+        &Dock::clearRunningLabel);
+    connect(this, &Dock::itemShouldSetIndicator, this,
+        &Dock::setRunningLabel);
     m_cells = new QGridLayout(this);
 
     this->loadItems();
     this->loadProcessTable();
+
+    // Track process launches from Dock and per-user launchd
+    struct kevent e[3];
+    EV_SET(&e[0], getpid(), EVFILT_PROC, EV_ADD, NOTE_FORK|NOTE_TRACK, 0, nil);
+    EV_SET(&e[1], getppid(), EVFILT_PROC, EV_ADD, NOTE_FORK|NOTE_TRACK, 0, nil);
+
+    // Wake up kq when this descriptor has data to read
+    EV_SET(&e[2], piper(0), EVFILT_READ, EV_ADD, 0, 0, NULL);
+
+    kevent(kqPIDs, e, 3, NULL, 0, NULL);
 }
 
 Dock::~Dock()
@@ -99,6 +127,16 @@ Dock::~Dock()
     delete m_iconRun;
     [m_prefs release];
     [m_items release];
+}
+
+// Helper to emit signals which is needed because our kq loop
+// is not part of the class. It can't 'emit' on its own.
+void Dock::emitSignal(int i, void *di)
+{
+    if(di)
+        emit itemShouldClearIndicator(di);
+    else
+        emit itemShouldSetIndicator(i);
 }
 
 void Dock::loadItems()
@@ -141,6 +179,7 @@ void Dock::loadItems()
         DockItem *info = [DockItem dockItemWithPath:s];
         if(item == 0)
             [info setLocked:YES];
+        [info setResident:YES];
         [m_items addObject:info]; // must keep in same order as m_cells!
 
         QLabel *iconLabel = new QLabel;
@@ -294,7 +333,6 @@ void Dock::mousePressEvent(QMouseEvent *e)
                     stringByStandardizingPath]]];
             LSOpenFromURLSpec(&spec, NULL);
             [item setNeedsAttention:YES]; // bouncy bouncy
-            // FIXME: get and save PID
             break;
         }
         case Qt::RightButton: // logical right, the secondary action
@@ -318,6 +356,27 @@ void Dock::mouseMoveEvent(QMouseEvent *e)
 {
     NSLog(@"mouseMove - dragging item %d", itemFromPos(e->x(), e->y()));
 }
+
+DockItem *Dock::findDockItemForPath(char *path)
+{
+    NSString *s = [NSString stringWithCString:path];
+
+    for(int i = 0; i < [m_items count]; ++i) {
+        DockItem *di = [m_items objectAtIndex:i];
+        if([di hasPath:s])
+            return di;
+    }
+    return nil;
+}
+
+int Dock::indexOfItem(DockItem *di)
+{
+    NSUInteger i = [m_items indexOfObjectIdenticalTo:di];
+    if(i != NSNotFound)
+        return (int)i;
+    return -1;
+}
+
 
 // At startup, load a snapshot of running processes to init status indicators
 // After startup, we track launch/exits in other ways
@@ -380,25 +439,49 @@ void Dock::loadProcessTable()
         }
         [di setRunning:pid];
 
-        if([di isRunning]) {
-            QLabel *l = new QLabel;
-            l->setPixmap(*m_iconRun);
-            [di setRunningMarker:l]; // save this so we can delete later
+        [di isRunning] ? setRunningLabel(i) : clearRunningLabel(di);
+    }
+}
 
-            switch(m_location) {
-                case LOCATION_LEFT:
-                    m_cells->addWidget(l, i, 0,
-                        Qt::AlignVCenter | Qt::AlignLeft);
-                    break;
-                case LOCATION_RIGHT:
-                    m_cells->addWidget(l, i, 0,
-                        Qt::AlignVCenter | Qt::AlignRight);
-                    break;
-                default:
-                    m_cells->addWidget(l, 0, i,
-                        Qt::AlignHCenter | Qt::AlignBottom);
-                    break;
-            }
+void Dock::setRunningLabel(int i)
+{
+    QLabel *l = new QLabel;
+    l->setPixmap(*m_iconRun);
+
+    DockItem *di = [m_items objectAtIndex:i];
+    [di setRunningMarker:l]; // save this so we can delete later
+
+    switch(m_location) {
+        case LOCATION_LEFT:
+            m_cells->addWidget(l, i, 0,
+                Qt::AlignVCenter | Qt::AlignLeft);
+            break;
+        case LOCATION_RIGHT:
+            m_cells->addWidget(l, i, 0,
+                Qt::AlignVCenter | Qt::AlignRight);
+            break;
+        default:
+            m_cells->addWidget(l, 0, i,
+                Qt::AlignHCenter | Qt::AlignBottom);
+            break;
+    }
+}
+
+void Dock::clearRunningLabel(void *di)
+{
+    DockItem *item = (DockItem *)di;
+    NSLog(@"clearRunningLabel %@", [item label]);
+    QLayoutItem *label = [item _getRunMarker];
+
+    for(int i = 0; i < m_cells->count(); ++i) {
+        QLayoutItem *layout = m_cells->itemAt(i);
+        if(layout == label) {
+            NSLog(@"(not really) removing item %@ from slot %d", item, i);
+            m_cells->removeItem(layout);
+            [item setRunningMarker:NULL];
+            return;
         }
     }
 }
+
+#include "Dock.moc"

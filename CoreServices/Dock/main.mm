@@ -23,12 +23,75 @@
  */
 
 #include "Dock.h"
+#include <QThread>
+
+int kqPIDs = 0;
+Dock *g_dock = 0;
+
+void pidMonitorLoop(void) {
+    struct kevent out[128], in[128];
+    char buf[PATH_MAX];
+    int inCount = 0;
+
+    while(1) {
+        int count = kevent(kqPIDs, in, inCount, out, 128, NULL);
+        inCount = 0;
+
+        for(int i = 0; i < count; ++i) {
+            switch(out[i].filter) {
+                case EVFILT_READ:
+                    inCount = read(out[i].ident, &in[inCount], out[i].data)
+                        / sizeof(struct kevent);
+                    break;
+                case EVFILT_PROC:
+                    if(out[i].fflags & NOTE_CHILD) {
+                        NSString *path = [NSString
+                            stringWithFormat:@"/proc/%lu/file", out[i].ident];
+                        int len = readlink([path UTF8String], buf, PATH_MAX-1);
+                        if(len <= 0)
+                            break;
+
+                        buf[len] = 0;
+                        DockItem *item = g_dock->findDockItemForPath(buf);
+                        if(item == nil)
+                            break; // FIXME: add to Dock as non-resident
+
+                        [item setRunning:out[i].ident];
+                        int index = g_dock->indexOfItem(item);
+                        NSLog(@"Item Started: %d %@", index, [item label]);
+                        if(index >= 0)
+                            g_dock->emitSignal(index, NULL);
+                        else
+                            NSLog(@"NOTE_CHILD: Invalid index for %@", item);
+                    } else if((out[i].fflags & NOTE_EXIT)) {
+                        NSLog(@"PID %lu exited", out[i].ident);
+                        DockItem *item = (DockItem *)(out[i].udata);
+                        [item setRunning:0];
+                        NSLog(@"Item Stopped: %@", [item label]);
+                        g_dock->emitSignal(0, (void *)item);
+                        // FIXME: remove non-resident from Dock if last PID
+                    }
+                    break;
+                default:
+                    NSLog(@"unknown filter");
+            }
+        }
+    }
+}
 
 int main(int argc, const char *argv[]) {
     __NSInitializeProcess(argc, argv);
     QApplication app(argc, (char **)argv);
 
-    Dock dock;
-    return app.exec();
+    kqPIDs = kqueue();
+    g_dock = new Dock();
+
+    QThread *pidMonitor = QThread::create(pidMonitorLoop);
+    pidMonitor->start();
+
+    int ret = app.exec();
+
+    pidMonitor->terminate();
+    return ret;
 }
 

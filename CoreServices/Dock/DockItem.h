@@ -72,6 +72,9 @@ enum DockItemFlags : unsigned int {
 -(BOOL)needsAttention;
 -(pid_t)pid;
 -(QIcon *)icon;
+-(BOOL)hasPath:(NSString *)path;
+
+-(QLayoutItem *)_getRunMarker;
 
 -(void)setFlags:(DockItemFlags)flags;
 -(void)setNormal; // clears all flags

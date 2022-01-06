@@ -32,6 +32,11 @@
 #include <QGridLayout>
 #include <QPixmap>
 
+#include <unistd.h>
+#include <sys/event.h>
+
+#import "DockItem.h"
+
 #define RADIUS 10      // rounded corner radius
 #define CELL_SPACER 4  // pixels between grid cells
 #define ICON_MIN 24
@@ -44,7 +49,11 @@
 #define INFOKEY_CUR_ITEMS @"CurrentItems"
 #define INFOKEY_FILER_DEF_FOLDER @"FilerDefaultFolder"
 
+extern int kqPIDs;
+
 class Dock : public QWidget {
+    Q_OBJECT
+
 public:
     Dock();
     virtual ~Dock();
@@ -62,6 +71,17 @@ public:
     void mouseReleaseEvent(QMouseEvent *e);
     void mouseDoubleClickEvent(QMouseEvent *e);
     void mouseMoveEvent(QMouseEvent *e);
+    DockItem *findDockItemForPath(char *path);
+    int indexOfItem(DockItem *di);
+    void emitSignal(int i, void *di);
+
+public slots:
+    void clearRunningLabel(void *di);
+    void setRunningLabel(int i);
+
+signals:
+    void itemShouldClearIndicator(void *di);
+    void itemShouldSetIndicator(int i);
 
 private:
     void savePrefs(void);

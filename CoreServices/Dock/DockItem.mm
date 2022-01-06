@@ -22,9 +22,12 @@
  * THE SOFTWARE.
  */
 
-#import "DockItem.h"
+#import "Dock.h"
 #import <LaunchServices/LaunchServices.h>
 #include <XdgDesktopFile>
+
+extern unsigned long eventID();
+extern int piper(int n);
 
 @implementation DockItem
 
@@ -146,6 +149,26 @@
     return _icon;
 }
 
+// YES if equal to either item path
+// YES if bundle and path is within bundle
+// NO otherwise
+-(BOOL)hasPath:(NSString *)path {
+    if([path isEqualToString:_execPath] || [path isEqualToString:_path])
+        return YES;
+
+    if(_type == DIT_APP_BUNDLE) {
+        while(path && [path hasSuffix:@"app"] == NO)
+            path = [path stringByDeletingLastPathComponent];
+        if(!path)
+            return NO;
+        NSBundle *b = [NSBundle bundleWithModulePath:path];
+        if([[b bundlePath] isEqualToString:_path])
+            return YES;
+    }
+
+    return NO;
+}
+
 -(void)setFlags:(DockItemFlags)flags {
     _flags = flags;
 }
@@ -162,7 +185,20 @@
 }
 
 -(void)setRunning:(pid_t)pid {
+    struct kevent e[1];
+
+    // trying to stop already stopped process?
+    if(!pid && !_pid)
+        return;
+
+    if(pid != 0) {
+        EV_SET(e, pid, EVFILT_PROC, EV_ADD, NOTE_EXIT, 0, self);
+    } else {
+        EV_SET(e, _pid, EVFILT_PROC, EV_DELETE, NOTE_EXIT, 0, self);
+    }
     _pid = pid;
+    // wake up kqueue to insert the event
+    write(piper(1), e, sizeof(struct kevent));
 }
 
 -(void)setResident:(BOOL)value {
@@ -183,6 +219,10 @@
     if(_runMarker)
         delete _runMarker;
     _runMarker = label;
+}
+
+-(QLayoutItem *)_getRunMarker {
+    return (QLayoutItem *)_runMarker;
 }
 
 -(NSString *)description {
