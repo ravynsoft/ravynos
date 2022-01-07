@@ -85,7 +85,7 @@ extern int piper(int n);
     }
 
     _flags = DIF_NORMAL;
-    _pid = 0;
+    _pids = [NSMutableArray new];
     return self;
 }
 
@@ -93,7 +93,7 @@ extern int piper(int n);
     if(_icon)
         delete _icon;
     if(_runMarker)
-        delete _runMarker;
+        _runMarker->deleteLater();
     [super dealloc];
 }
 
@@ -122,27 +122,35 @@ extern int piper(int n);
 }
 
 -(BOOL)isNormal {
-    return (_flags == DIF_NORMAL);
+    return (_flags == DIF_NORMAL) ? YES : NO;
 }
 
 -(BOOL)isLocked {
-    return (_flags & DIF_LOCKED);
+    return (_flags & DIF_LOCKED) ? YES : NO;
 }
 
 -(BOOL)isRunning {
-    return (_pid != 0);
+    if(_pids && [_pids count])
+        return YES;
+    return NO;
 }
 
 -(BOOL)isResident {
-    return (_flags & DIF_RESIDENT);
+    return (_flags & DIF_RESIDENT) ? YES : NO;
 }
 
 -(BOOL)needsAttention {
-    return (_flags & DIF_ATTENTION);
+    return (_flags & DIF_ATTENTION) ? YES : NO;
 }
 
 -(pid_t)pid {
-    return _pid;
+    if(_pids && [_pids count])
+        return [[_pids firstObject] intValue];
+    return 0;
+}
+
+-(NSArray *)pids {
+    return [NSArray arrayWithArray:_pids];
 }
 
 -(QIcon *)icon {
@@ -156,16 +164,20 @@ extern int piper(int n);
     if([path isEqualToString:_execPath] || [path isEqualToString:_path])
         return YES;
 
-    if(_type == DIT_APP_BUNDLE) {
-        while(path && [path hasSuffix:@"app"] == NO)
-            path = [path stringByDeletingLastPathComponent];
-        if(!path)
-            return NO;
-        NSBundle *b = [NSBundle bundleWithModulePath:path];
-        if([[b bundlePath] isEqualToString:_path])
-            return YES;
-    }
+    if(_type != DIT_APP_BUNDLE)
+        return NO;
 
+    NSArray *comps = [path pathComponents];
+    for(int i = 0; i < [comps count]; ++i) {
+        if([[comps objectAtIndex:i] hasSuffix:@"app"] == YES) {
+            NSString *newpath = [NSString stringWithFormat:@"/%@",
+            [NSString pathWithComponents:
+                [comps subarrayWithRange:NSMakeRange(0,i+1)]]];
+            NSBundle *b = [NSBundle bundleWithModulePath:newpath];
+            if([[b bundlePath] isEqualToString:_path])
+                return YES;
+        }
+    }
     return NO;
 }
 
@@ -178,38 +190,59 @@ extern int piper(int n);
 }
 
 -(void)setLocked:(BOOL)value {
-    if(value)
+    if(value == YES)
         _flags |= DIF_LOCKED;
     else
         _flags &= ~DIF_LOCKED;
 }
 
--(void)setRunning:(pid_t)pid {
-    struct kevent e[1];
+-(void)addPID:(pid_t)pid {
+    if(pid == 0)
+        NSLog(@"addPID: pid of 0 is invalid");
+    else {
+        struct kevent e[1];
 
-    // trying to stop already stopped process?
-    if(!pid && !_pid)
-        return;
+        for(int i = 0; i < [_pids count]; ++i) {
+            if([[_pids objectAtIndex:i] intValue] == pid)
+                return; // already have this PID
+        }
+        [_pids addObject:[NSNumber numberWithInteger:pid]];
+        EV_SET(e, pid, EVFILT_PROC, EV_ADD, NOTE_FORK|NOTE_EXEC|NOTE_TRACK|NOTE_EXIT, 0, self);
 
-    if(pid != 0) {
-        EV_SET(e, pid, EVFILT_PROC, EV_ADD, NOTE_EXIT, 0, self);
-    } else {
-        EV_SET(e, _pid, EVFILT_PROC, EV_DELETE, NOTE_EXIT, 0, self);
+        // wake up kqueue to insert the event
+        write(piper(1), e, sizeof(struct kevent));
     }
-    _pid = pid;
-    // wake up kqueue to insert the event
-    write(piper(1), e, sizeof(struct kevent));
+}
+
+-(void)removePID:(pid_t)pid {
+    if(pid == 0)
+        NSLog(@"removePID: pid of 0 is invalid");
+    else {
+        struct kevent e[1];
+
+        for(int i = 0; i < [_pids count]; ++i) {
+            if([[_pids objectAtIndex:i] intValue] == pid) {
+                [_pids removeObjectAtIndex:i];
+                EV_SET(e, pid, EVFILT_PROC, EV_DELETE, 0, 0, self);
+
+                // wake up kqueue to insert the event
+                write(piper(1), e, sizeof(struct kevent));
+                return;
+            }
+        }
+        NSDebugLog(@"removePID: pid %d not found", pid);
+    }
 }
 
 -(void)setResident:(BOOL)value {
-    if(value)
+    if(value == YES)
         _flags |= DIF_RESIDENT;
     else
         _flags &= ~DIF_RESIDENT;
 }
 
 -(void)setNeedsAttention:(BOOL)value {
-    if(value)
+    if(value == YES)
         _flags |= DIF_ATTENTION;
     else
         _flags &= ~DIF_ATTENTION;
@@ -217,17 +250,17 @@ extern int piper(int n);
 
 -(void)setRunningMarker:(QLabel *)label {
     if(_runMarker)
-        delete _runMarker;
+        _runMarker->deleteLater();
     _runMarker = label;
 }
 
--(QLayoutItem *)_getRunMarker {
-    return (QLayoutItem *)_runMarker;
+-(QLabel *)_getRunMarker {
+    return _runMarker;
 }
 
 -(NSString *)description {
     return [NSString stringWithFormat:
-        @"<%@ 0x%p> path:%@ exec:%@ label:%@ pid:%u flags:0x%02x id:%@",
-        [self class], self, _path, _execPath, _label, _pid, _flags, _bundleID];
+        @"<%@ 0x%p> path:%@ exec:%@ label:%@ pid:%@ flags:0x%02x id:%@",
+        [self class], self, _path, _execPath, _label, _pids, _flags, _bundleID];
 }
 @end

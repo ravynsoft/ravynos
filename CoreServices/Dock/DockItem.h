@@ -50,7 +50,7 @@ enum DockItemFlags : unsigned int {
     NSString *_bundleID;    // CFBundleIdentifier if one exists
     DockItemType _type;
     unsigned int _flags;
-    pid_t _pid;             // PID, if running
+    NSMutableArray *_pids;  // PIDs, if running
     NSString *_label;       // displayed on hover
     QIcon *_icon;
     QLabel *_runMarker;
@@ -71,15 +71,17 @@ enum DockItemFlags : unsigned int {
 -(BOOL)isResident;
 -(BOOL)needsAttention;
 -(pid_t)pid;
+-(NSArray *)pids;
 -(QIcon *)icon;
 -(BOOL)hasPath:(NSString *)path;
 
--(QLayoutItem *)_getRunMarker;
+-(QLabel *)_getRunMarker;
 
 -(void)setFlags:(DockItemFlags)flags;
 -(void)setNormal; // clears all flags
 -(void)setLocked:(BOOL)value;
--(void)setRunning:(pid_t)pid;
+-(void)addPID:(pid_t)pid;
+-(void)removePID:(pid_t)pid;
 -(void)setResident:(BOOL)value;
 -(void)setNeedsAttention:(BOOL)value;
 -(void)setRunningMarker:(QLabel *)label;

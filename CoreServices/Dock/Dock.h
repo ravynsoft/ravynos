@@ -49,6 +49,14 @@
 #define INFOKEY_CUR_ITEMS @"CurrentItems"
 #define INFOKEY_FILER_DEF_FOLDER @"FilerDefaultFolder"
 
+#define DEBUG 1
+
+#ifdef DEBUG
+#define NSDebugLog NSLog
+#else
+#define NSDebugLog(fmt,...)
+#endif
+
 extern int kqPIDs;
 
 class Dock : public QWidget {

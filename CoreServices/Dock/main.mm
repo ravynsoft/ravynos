@@ -44,7 +44,8 @@ void pidMonitorLoop(void) {
                         / sizeof(struct kevent);
                     break;
                 case EVFILT_PROC:
-                    if(out[i].fflags & NOTE_CHILD) {
+                    if((out[i].fflags & NOTE_FORK|NOTE_EXEC|NOTE_CHILD)
+                        && ((out[i].fflags & NOTE_EXIT) == 0)) {
                         NSString *path = [NSString
                             stringWithFormat:@"/proc/%lu/file", out[i].ident];
                         int len = readlink([path UTF8String], buf, PATH_MAX-1);
@@ -53,23 +54,30 @@ void pidMonitorLoop(void) {
 
                         buf[len] = 0;
                         DockItem *item = g_dock->findDockItemForPath(buf);
+                        NSDebugLog(@"New process: %d %s %@",out[i].ident,
+                            buf, item);
                         if(item == nil)
                             break; // FIXME: add to Dock as non-resident
 
-                        [item setRunning:out[i].ident];
+                        BOOL wasRunning = [item isRunning];
+                        [item addPID:out[i].ident];
                         int index = g_dock->indexOfItem(item);
-                        NSLog(@"Item Started: %d %@", index, [item label]);
-                        if(index >= 0)
-                            g_dock->emitSignal(index, NULL);
-                        else
-                            NSLog(@"NOTE_CHILD: Invalid index for %@", item);
-                    } else if((out[i].fflags & NOTE_EXIT)) {
-                        NSLog(@"PID %lu exited", out[i].ident);
+                        if(!wasRunning) {
+                            NSDebugLog(@"Item Started: %d %@", index, [item label]);
+                            if(index >= 0)
+                                g_dock->emitSignal(index, NULL);
+                            else
+                                NSLog(@"Invalid index for %@", item);
+                        }
+                    }
+                    if((out[i].fflags & NOTE_EXIT)) {
+                        NSDebugLog(@"PID %lu exited", out[i].ident);
                         DockItem *item = (DockItem *)(out[i].udata);
-                        [item setRunning:0];
-                        NSLog(@"Item Stopped: %@", [item label]);
-                        g_dock->emitSignal(0, (void *)item);
-                        // FIXME: remove non-resident from Dock if last PID
+                        [item removePID:out[i].ident];
+                        if(![item isRunning]) {
+                            NSDebugLog(@"Item Stopped: %@", [item label]);
+                            g_dock->emitSignal(0, (void *)item);
+                        }
                     }
                     break;
                 default:

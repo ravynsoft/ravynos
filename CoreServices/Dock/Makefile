@@ -1,6 +1,6 @@
 APP=	Dock
 SRCS=	main.mm Dock.mm DockItem.mm
-RESOURCES=	Dock.png running.png
+RESOURCES=	Dock.png running.png Trash.app
 
 Dock.o: Dock.mm Dock.h Dock.moc
 DockItem.o: DockItem.mm DockItem.h
@@ -13,8 +13,12 @@ CXXFLAGS+=	${QT_CFLAGS} -g -fPIC
 LDFLAGS+=	${QT_LDFLAGS} -lc++ -framework Foundation \
 		-framework LaunchServices -lobjc -lX11
 
+Trash.app::
+	rm -rf ${.TARGET}
+	${MAKE} -C Trash
+	mv Trash/${.TARGET} .
 
 .include <airyx.app.mk>
 
-all:
+all: Trash.app
 	cp -fv ${.CURDIR}/Info.plist ${APP_DIR}/Contents/

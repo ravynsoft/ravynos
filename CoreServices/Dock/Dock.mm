@@ -112,8 +112,8 @@ Dock::Dock()
 
     // Track process launches from Dock and per-user launchd
     struct kevent e[3];
-    EV_SET(&e[0], getpid(), EVFILT_PROC, EV_ADD, NOTE_FORK|NOTE_TRACK, 0, nil);
-    EV_SET(&e[1], getppid(), EVFILT_PROC, EV_ADD, NOTE_FORK|NOTE_TRACK, 0, nil);
+    EV_SET(&e[0], getpid(), EVFILT_PROC, EV_ADD, NOTE_FORK|NOTE_EXEC|NOTE_TRACK, 0, nil);
+    EV_SET(&e[1], getppid(), EVFILT_PROC, EV_ADD, NOTE_FORK|NOTE_EXEC|NOTE_TRACK, 0, nil);
 
     // Wake up kq when this descriptor has data to read
     EV_SET(&e[2], piper(0), EVFILT_READ, EV_ADD, 0, 0, NULL);
@@ -149,7 +149,7 @@ void Dock::loadItems()
         / (size + CELL_SPACER + CELL_SPACER);
     m_itemSlots = items;
 
-    // addItem( trash, items );
+    // last 2 slots are reserved for Downloads and Trash
     --items;
     m_cells->setMargin(2);
     if(m_location == LOCATION_BOTTOM) {
@@ -164,7 +164,6 @@ void Dock::loadItems()
     --items;
 
     int item = 0;
-
 
     NSMutableArray *apps = [NSMutableArray new];
     [apps addObject:@"/System/Library/CoreServices/Filer.app"];
@@ -199,11 +198,35 @@ void Dock::loadItems()
         if(item > items) {
             // FIXME: do resize up to maximum
             NSLog(@"Too many items!");
-            return;
+            break;
         }
     }
 
-    // FIXME: fill in remaining item slots with empty iteminfo & trash info
+    DockItem *emptyItem = [DockItem new];
+    for(int x = item; x < items; ++x)
+        [m_items addObject:emptyItem];
+
+    [m_items addObject:emptyItem]; // FIXME: Downloads
+
+    NSString *trashapp = [[NSBundle mainBundle] pathForResource:@"Trash"
+        ofType:@"app"];
+    DockItem *trashitem = [DockItem dockItemWithPath:trashapp];
+    [trashitem setResident:YES];
+    [trashitem setLocked:YES];
+    [m_items addObject:trashitem];
+
+    QLabel *iconLabel = new QLabel;
+    iconLabel->setAlignment(Qt::AlignCenter);
+    iconLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+
+    QPixmap pix([trashitem icon]->pixmap(QSize(size, size)));
+    iconLabel->setPixmap(pix);
+    iconLabel->setToolTip(QString::fromUtf8([[trashitem label] UTF8String]));
+
+    if(m_location == LOCATION_BOTTOM)
+        m_cells->addWidget(iconLabel, 0, m_itemSlots, Qt::AlignCenter);
+    else
+        m_cells->addWidget(iconLabel, m_itemSlots, 0, Qt::AlignCenter);
 }
 
 void Dock::swapWH()
@@ -336,7 +359,7 @@ void Dock::mousePressEvent(QMouseEvent *e)
             break;
         }
         case Qt::RightButton: // logical right, the secondary action
-            NSLog(@"right click %d, show the menu now",itempos);
+            NSDebugLog(@"right click %d, show the menu now",itempos);
             break;
         default: break;
     }
@@ -344,17 +367,17 @@ void Dock::mousePressEvent(QMouseEvent *e)
 
 void Dock::mouseReleaseEvent(QMouseEvent *e)
 {
-    NSLog(@"mouseRelease");
+    NSDebugLog(@"mouseRelease");
 }
 
 void Dock::mouseDoubleClickEvent(QMouseEvent *e)
 {
-    NSLog(@"mouseDouble");
+    NSDebugLog(@"mouseDouble");
 }
 
 void Dock::mouseMoveEvent(QMouseEvent *e)
 {
-    NSLog(@"mouseMove - dragging item %d", itemFromPos(e->x(), e->y()));
+    NSDebugLog(@"mouseMove - dragging item %d", itemFromPos(e->x(), e->y()));
 }
 
 DockItem *Dock::findDockItemForPath(char *path)
@@ -431,13 +454,13 @@ void Dock::loadProcessTable()
         pid_t pid = 0;
         NSArray *pids = [processDict objectForKey:[di execPath]];
         if(pids)
-            pid = [[pids firstObject] intValue];
-        if(pid == 0) {
-            pids = [processDict objectForKey:[di path]];
-            if(pids)
-                pid = [[pids firstObject] intValue];
-        }
-        [di setRunning:pid];
+            for(int j = 0; j < [pids count]; ++j)
+                [di addPID:[[pids objectAtIndex:j] intValue]];
+
+        pids = [processDict objectForKey:[di path]];
+        if(pids)
+            for(int j = 0; j < [pids count]; ++j)
+                [di addPID:[[pids objectAtIndex:j] intValue]];
 
         [di isRunning] ? setRunningLabel(i) : clearRunningLabel(di);
     }
@@ -445,10 +468,12 @@ void Dock::loadProcessTable()
 
 void Dock::setRunningLabel(int i)
 {
+    DockItem *di = [m_items objectAtIndex:i];
+    if([di _getRunMarker] != NULL)
+        return;
+
     QLabel *l = new QLabel;
     l->setPixmap(*m_iconRun);
-
-    DockItem *di = [m_items objectAtIndex:i];
     [di setRunningMarker:l]; // save this so we can delete later
 
     switch(m_location) {
@@ -467,20 +492,38 @@ void Dock::setRunningLabel(int i)
     }
 }
 
-void Dock::clearRunningLabel(void *di)
+void Dock::clearRunningLabel(void *item)
 {
-    DockItem *item = (DockItem *)di;
-    NSLog(@"clearRunningLabel %@", [item label]);
-    QLayoutItem *label = [item _getRunMarker];
+    DockItem *di = (DockItem *)item;
+    QLabel *marker = [di _getRunMarker];
+    m_cells->removeWidget(marker);
+    [di setRunningMarker:NULL];
 
-    for(int i = 0; i < m_cells->count(); ++i) {
-        QLayoutItem *layout = m_cells->itemAt(i);
-        if(layout == label) {
-            NSLog(@"(not really) removing item %@ from slot %d", item, i);
-            m_cells->removeItem(layout);
-            [item setRunningMarker:NULL];
+    if([di isResident] == NO && [di isLocked] == NO) {
+        int index = [m_items indexOfObjectIdenticalTo:di];
+        if(index < 0 || index > m_itemSlots)
             return;
-        }
+
+        QLayoutItem *layout = m_cells->itemAtPosition(
+            m_location == LOCATION_BOTTOM ? 0 : index,
+            m_location == LOCATION_BOTTOM ? index : 0);
+
+        if(layout == nullptr)
+            return;
+
+        QWidget *w = layout->widget();
+
+        if(w == nullptr)
+            return;
+
+        NSDebugLog(@"Removing non-resident app %@ from slot %d",
+            [di label], index);
+
+        m_cells->removeWidget(w);
+        w->deleteLater();
+
+        [di release];
+        [m_items replaceObjectAtIndex:index withObject:[DockItem new]];
     }
 }
 
