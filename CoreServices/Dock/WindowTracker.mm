@@ -45,6 +45,11 @@ static int pathForPID(unsigned int pid, char *buf, int len)
     return 0;
 }
 
+void WindowTracker::activateWindow(WId window)
+{
+    KWindowSystem::self()->forceActiveWindow(window);
+}
+
 WindowTracker::WindowTracker()
     : QObject()
 {
@@ -56,16 +61,21 @@ WindowTracker::WindowTracker()
         static_cast<void (KWindowSystem::*)(WId, NET::Properties,
         NET::Properties2)>(&KWindowSystem::windowChanged), this,
         &WindowTracker::windowWasChanged);
+
+    for(WId window : KWindowSystem::self()->windows()) {
+        windowWasAdded(window);
+        windowWasChanged(window, NET::WMPid, 0);
+    }
 }
 
 void WindowTracker::windowWasAdded(WId window)
 {
-    NSLog(@"windowWasAdded: %u", window);
+//     NSLog(@"windowWasAdded: %u", window);
 }
 
 void WindowTracker::windowWasRemoved(WId window)
 {
-    NSLog(@"windowWasRemoved: %u", window);
+//     NSLog(@"windowWasRemoved: %u", window);
     g_dock->removeWindowFromAll(window);
 }
 
@@ -83,17 +93,16 @@ void WindowTracker::windowWasChanged(WId window, NET::Properties props,
     if(!info.valid())
         return;
 
-    NSLog(@"windowWasChanged: %u -> PID %u", window, info.pid());
+//     NSLog(@"windowWasChanged: %u -> PID %u", window, info.pid());
     char path[PATH_MAX];
     if(pathForPID(info.pid(), path, PATH_MAX-1) != 0)
         return;
 
-    NSLog(@"Path for %u is %s", info.pid(), path);
     DockItem *di = g_dock->findDockItemForPath(path);
     if(di == nil)
         return;
 
     g_dock->removeWindowFromAll(window); // just in case owner changed
     [di addWindow:window];
-    NSLog(@"Added window to DockItem %@", [di label]);
+//     NSLog(@"Added window to DockItem %@", [di label]);
 }

@@ -31,6 +31,8 @@
 class WindowTracker : public QObject
 {
 public:
+    static void activateWindow(WId window);
+
     WindowTracker();
 
 public slots:

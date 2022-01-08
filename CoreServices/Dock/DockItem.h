@@ -30,11 +30,12 @@
 
 enum DockItemType : unsigned int {
     DIT_INVALID,
-    DIT_APP_BUNDLE,
-    DIT_APP_DESKTOP,
-    DIT_APP_APPDIR,
-    DIT_WINDOW,
-    DIT_FOLDER,
+    DIT_APP_BUNDLE,     // item is NSBundle
+    DIT_APP_DESKTOP,    // item is XDG desktop file
+    DIT_APP_APPDIR,     // item is AppDir
+    DIT_APP_X11,        // item is unknown app found by window event
+    DIT_WINDOW,         // item is X11 window
+    DIT_FOLDER,         // item is a folder shortcut
     DIT_MAX = DIT_FOLDER
 };
 

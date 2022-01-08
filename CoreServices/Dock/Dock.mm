@@ -26,6 +26,7 @@
 #import <LaunchServices/LaunchServices.h>
 
 #include "Dock.h"
+#include "WindowTracker.h"
 
 #include <QPainterPath>
 #include <QRegion>
@@ -91,6 +92,10 @@ Dock::Dock()
     }
 
     this->relocate();
+    QPalette pal;
+    pal.setColor(QPalette::Window, QColor(0x66,0x66,0x66,0xff));
+    this->setAutoFillBackground(true);
+    this->setPalette(pal);
     this->setWindowOpacity(0.92);
 
     Display *display = XOpenDisplay(":0");
@@ -167,6 +172,12 @@ void Dock::addNonResident(unsigned int pid, const char *path)
             pid, path);
         return;
     }
+
+    // never show icons for my own services, which can happen because
+    // of weird fork() scenarios like fail to exec()
+    if([[di bundleIdentifier] isEqualToString:@"org.airyx.Dock"] ||
+       [[di bundleIdentifier] isEqualToString:@"org.airyx.Dock.Trash"])
+        return;
 
     int size = (m_location == LOCATION_BOTTOM
         ? m_currentSize.height() : m_currentSize.width()) - 16;
@@ -429,6 +440,15 @@ void Dock::mouseReleaseEvent(QMouseEvent *e)
     switch(e->button()) {
         case Qt::LeftButton: // logical left, the primary action
         {
+            if([item isRunning]) {
+                unsigned int window = [item window];
+                if(window)
+                    WindowTracker::activateWindow(window);
+
+                // If Filer with no windows, fall through & launch folder
+                if(itempos != 0 || [[item windows] count] > 1)
+                    break;
+            }
             LSLaunchURLSpec spec = { 0 };
             spec.appURL = (CFURLRef)[NSURL fileURLWithPath:[item path]];
             if(itempos == 0) // Filer is special
