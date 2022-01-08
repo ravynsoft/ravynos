@@ -1,5 +1,5 @@
 APP=	Dock
-SRCS=	main.mm Dock.mm DockItem.mm
+SRCS=	main.mm Dock.mm DockItem.mm EventFilter.mm
 RESOURCES=	Dock.png running.png Trash.app
 
 Dock.o: Dock.mm Dock.h Dock.moc

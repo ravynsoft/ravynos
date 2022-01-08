@@ -23,6 +23,7 @@
  */
 
 #include "Dock.h"
+#include "EventFilter.h"
 #include <QThread>
 
 int kqPIDs = 0;
@@ -56,8 +57,10 @@ void pidMonitorLoop(void) {
                         DockItem *item = g_dock->findDockItemForPath(buf);
                         NSDebugLog(@"New process: %d %s %@",out[i].ident,
                             buf, item);
-                        if(item == nil)
-                            break; // FIXME: add to Dock as non-resident
+                        if(item == nil) {
+                            g_dock->emitAddNonResident(out[i].ident, buf);
+                            break;
+                        }
 
                         BOOL wasRunning = [item isRunning];
                         [item addPID:out[i].ident];
@@ -93,6 +96,9 @@ int main(int argc, const char *argv[]) {
 
     kqPIDs = kqueue();
     g_dock = new Dock();
+
+    XEventFilter xef;
+    app.installNativeEventFilter(&xef);
 
     QThread *pidMonitor = QThread::create(pidMonitorLoop);
     pidMonitor->start();

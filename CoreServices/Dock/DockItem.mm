@@ -42,6 +42,18 @@ extern int piper(int n);
     _icon = NULL;
     _bundleID = nil;
 
+    // first, walk the path for .app or .AppDir in case this is the
+    // path to the actual executable inside
+    NSArray *comps = [path pathComponents];
+    for(int i = [comps count] - 1; i >= 0; --i) {
+        if([[comps objectAtIndex:i] hasSuffix:@"app"] == YES) {
+            path = [NSString stringWithFormat:@"/%@",
+                [NSString pathWithComponents:
+                [comps subarrayWithRange:NSMakeRange(0,i+1)]]];
+            break;
+        }
+    }
+
     NSURL *url = [NSURL fileURLWithPath:path];
     if(LSIsNSBundle((CFURLRef)url)) {
         _type = DIT_APP_BUNDLE;
@@ -86,6 +98,23 @@ extern int piper(int n);
 
     _flags = DIF_NORMAL;
     _pids = [NSMutableArray new];
+    _windows = [NSMutableArray new];
+    return self;
+}
+
+// FIXME: try to extract PID from _NET_WM_PID and identify bundle etc
+// FIXME: set a standard icon
+-initWithWindow:(unsigned int)window {
+    _path = nil;
+    _execPath = nil;
+    _label = nil;
+    _type = DIT_WINDOW;
+    _icon = NULL;
+    _bundleID = nil;
+    _flags = DIF_NORMAL;
+    _pids = [NSMutableArray new];
+    _windows = [NSMutableArray new];
+    [_windows addObject:[NSNumber numberWithInteger:window]];
     return self;
 }
 
@@ -153,6 +182,16 @@ extern int piper(int n);
     return [NSArray arrayWithArray:_pids];
 }
 
+-(unsigned int)window {
+    if(_windows && [_windows count])
+        return [[_windows firstObject] intValue];
+    return 0;
+}
+
+-(NSArray *)windows {
+    return [NSArray arrayWithArray:_windows];
+}
+
 -(QIcon *)icon {
     return _icon;
 }
@@ -168,6 +207,7 @@ extern int piper(int n);
         return NO;
 
     NSArray *comps = [path pathComponents];
+    // FIXME: should this be reverse order to find sub bundles?
     for(int i = 0; i < [comps count]; ++i) {
         if([[comps objectAtIndex:i] hasSuffix:@"app"] == YES) {
             NSString *newpath = [NSString stringWithFormat:@"/%@",
@@ -231,6 +271,23 @@ extern int piper(int n);
             }
         }
         NSDebugLog(@"removePID: pid %d not found", pid);
+    }
+}
+
+-(void)addWindow:(unsigned int)window {
+    for(int i = 0; i < [_windows count]; ++i) {
+        if([[_windows objectAtIndex:i] intValue] == window)
+            return;
+    }
+    [_windows addObject:[NSNumber numberWithInteger:window]];
+}
+
+-(void)removeWindow:(unsigned int)window {
+    for(int i = 0; i < [_windows count]; ++i) {
+        if([[_windows objectAtIndex:i] intValue] == window) {
+            [_windows removeObjectAtIndex:i];
+            return;
+        }
     }
 }
 

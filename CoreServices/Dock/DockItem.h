@@ -33,6 +33,7 @@ enum DockItemType : unsigned int {
     DIT_APP_BUNDLE,
     DIT_APP_DESKTOP,
     DIT_APP_APPDIR,
+    DIT_WINDOW,
     DIT_FOLDER,
     DIT_MAX = DIT_FOLDER
 };
@@ -51,6 +52,7 @@ enum DockItemFlags : unsigned int {
     DockItemType _type;
     unsigned int _flags;
     NSMutableArray *_pids;  // PIDs, if running
+    NSMutableArray *_windows; // Window IDs
     NSString *_label;       // displayed on hover
     QIcon *_icon;
     QLabel *_runMarker;
@@ -72,6 +74,8 @@ enum DockItemFlags : unsigned int {
 -(BOOL)needsAttention;
 -(pid_t)pid;
 -(NSArray *)pids;
+-(unsigned int)window;
+-(NSArray *)windows;
 -(QIcon *)icon;
 -(BOOL)hasPath:(NSString *)path;
 
@@ -82,6 +86,8 @@ enum DockItemFlags : unsigned int {
 -(void)setLocked:(BOOL)value;
 -(void)addPID:(pid_t)pid;
 -(void)removePID:(pid_t)pid;
+-(void)addWindow:(unsigned int)window;
+-(void)removeWindow:(unsigned int)window;
 -(void)setResident:(BOOL)value;
 -(void)setNeedsAttention:(BOOL)value;
 -(void)setRunningMarker:(QLabel *)label;

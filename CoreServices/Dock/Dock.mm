@@ -65,6 +65,7 @@ Dock::Dock()
 {
     m_prefs = [[NSUserDefaults standardUserDefaults] retain];
     m_items = [NSMutableArray arrayWithCapacity:20];
+    m_emptyItem = [DockItem new];
 
     this->setAttribute(Qt::WA_AlwaysShowToolTips);
 
@@ -105,6 +106,8 @@ Dock::Dock()
         &Dock::clearRunningLabel);
     connect(this, &Dock::itemShouldSetIndicator, this,
         &Dock::setRunningLabel);
+    connect(this, &Dock::dockShouldAddNonResident, this,
+        &Dock::addNonResident);
     m_cells = new QGridLayout(this);
 
     this->loadItems();
@@ -138,6 +141,68 @@ void Dock::emitSignal(int i, void *di)
     else
         emit itemShouldSetIndicator(i);
 }
+
+void Dock::emitAddNonResident(unsigned int pid, const char *path)
+{
+    emit dockShouldAddNonResident(pid, path);
+}
+
+void Dock::addNonResident(unsigned int pid, const char *path)
+{
+    // We can be invoked multiple times by the kq thread due to fork/exec
+    // The first time should create the item and the rest should only
+    // add PIDs.
+    DockItem *di = findDockItemForPath((char *)path);
+    if(di != nil) {
+        [di addPID:pid];
+        NSDebugLog(@"addNonResident: adding PID %u to %@", pid, [di label]);
+        return;
+    }
+
+    // not found so it must truly be a new item
+    di = [DockItem dockItemWithPath:[NSString stringWithCString:path]];
+    if([di type] == DIT_INVALID) {
+        // Not a bundle or AppDir so handle as Window
+        NSDebugLog(@"addNonResident: %lu %s is not bundle or AppDir",
+            pid, path);
+        return;
+    }
+
+    int size = (m_location == LOCATION_BOTTOM
+        ? m_currentSize.height() : m_currentSize.width()) - 16;
+
+    int index;
+    for(index = 0; index < [m_items count]; ++index) {
+        if([[m_items objectAtIndex:index] isEqual:m_emptyItem]) {
+            [m_items replaceObjectAtIndex:index withObject:di];
+            break;
+        }
+    }
+
+    if(index > [m_items count]) {
+        // All slots are full with non-empty items. FIXME: Can we expand?
+        NSLog(@"addNonResident: too many items!");
+        return;
+    }
+
+    NSDebugLog(@"addNonResident at %u", index);
+    QLabel *iconLabel = new QLabel;
+    iconLabel->setAlignment(Qt::AlignCenter);
+    iconLabel->setSizePolicy(QSizePolicy::Expanding,
+        QSizePolicy::Expanding);
+
+    QPixmap pix([di icon]->pixmap(QSize(size, size)));
+    iconLabel->setPixmap(pix);
+    iconLabel->setToolTip(QString::fromUtf8([[di label] UTF8String]));
+
+    if(m_location == LOCATION_BOTTOM)
+        m_cells->addWidget(iconLabel, 0, index, Qt::AlignCenter);
+    else
+        m_cells->addWidget(iconLabel, index, 0, Qt::AlignCenter);
+
+    setRunningLabel(index);
+}
+
 
 void Dock::loadItems()
 {
@@ -202,11 +267,10 @@ void Dock::loadItems()
         }
     }
 
-    DockItem *emptyItem = [DockItem new];
     for(int x = item; x < items; ++x)
-        [m_items addObject:emptyItem];
+        [m_items addObject:m_emptyItem];
 
-    [m_items addObject:emptyItem]; // FIXME: Downloads
+    [m_items addObject:m_emptyItem]; // FIXME: Downloads
 
     NSString *trashapp = [[NSBundle mainBundle] pathForResource:@"Trash"
         ofType:@"app"];
@@ -346,6 +410,24 @@ void Dock::mousePressEvent(QMouseEvent *e)
 
     switch(e->button()) {
         case Qt::LeftButton: // logical left, the primary action
+            NSDebugLog(@"click %d, start long-press timer for menu", itempos);
+            break;
+        case Qt::RightButton: // logical right, the secondary action
+            NSDebugLog(@"right click %d, show the menu now",itempos);
+            break;
+        default: break;
+    }
+}
+
+void Dock::mouseReleaseEvent(QMouseEvent *e)
+{
+    int itempos = itemFromPos(e->x(), e->y());
+    DockItem *item = [m_items objectAtIndex:itempos];
+    if(!item)
+        return;
+
+    switch(e->button()) {
+        case Qt::LeftButton: // logical left, the primary action
         {
             LSLaunchURLSpec spec = { 0 };
             spec.appURL = (CFURLRef)[NSURL fileURLWithPath:[item path]];
@@ -358,16 +440,8 @@ void Dock::mousePressEvent(QMouseEvent *e)
             [item setNeedsAttention:YES]; // bouncy bouncy
             break;
         }
-        case Qt::RightButton: // logical right, the secondary action
-            NSDebugLog(@"right click %d, show the menu now",itempos);
-            break;
         default: break;
     }
-}
-
-void Dock::mouseReleaseEvent(QMouseEvent *e)
-{
-    NSDebugLog(@"mouseRelease");
 }
 
 void Dock::mouseDoubleClickEvent(QMouseEvent *e)

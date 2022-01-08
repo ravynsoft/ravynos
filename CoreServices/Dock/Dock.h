@@ -31,6 +31,7 @@
 #include <QApplication>
 #include <QGridLayout>
 #include <QPixmap>
+#include <QThread>
 
 #include <unistd.h>
 #include <sys/event.h>
@@ -81,15 +82,20 @@ public:
     void mouseMoveEvent(QMouseEvent *e);
     DockItem *findDockItemForPath(char *path);
     int indexOfItem(DockItem *di);
+
+    // thread safety helpers for the kq loop
     void emitSignal(int i, void *di);
+    void emitAddNonResident(unsigned int pid, const char *path);
 
 public slots:
     void clearRunningLabel(void *di);
     void setRunningLabel(int i);
+    void addNonResident(unsigned int pid, const char *path);
 
 signals:
     void itemShouldClearIndicator(void *di);
     void itemShouldSetIndicator(int i);
+    void dockShouldAddNonResident(unsigned int pid, const char *path);
 
 private:
     void savePrefs(void);
@@ -101,6 +107,7 @@ private:
     NSUserDefaults *m_prefs;
     NSMutableArray *m_items;
     int m_itemSlots;
+    DockItem *m_emptyItem;
     Location m_location;
     int m_maxLength;
     QScreen *m_screen;
