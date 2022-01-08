@@ -466,6 +466,14 @@ DockItem *Dock::findDockItemForPath(char *path)
     return nil;
 }
 
+void Dock::removeWindowFromAll(unsigned int window)
+{
+    for(int i = 0; i < [m_items count]; ++i) {
+        DockItem *di = [m_items objectAtIndex:i];
+        [di removeWindow:window];
+    }
+}
+
 int Dock::indexOfItem(DockItem *di)
 {
     NSUInteger i = [m_items indexOfObjectIdenticalTo:di];

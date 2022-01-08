@@ -261,7 +261,7 @@ void AiryxMenu::aboutThisComputer()
     m_about->setWindowTitle("About This Computer");
     m_about->setStandardButtons(0);
     m_about->setText("<table style=\"table-layout: fixed; borders: 0;\"><tr><td width=\"100%\" align=\"center\" valign=\"middle\">"
-                   "<img width=\"140\" height=\"140\" src=\"/usr/share/plasma/plasmoids/org.airyx.plasma.AiryxMenu/contents/images/tanuki_logo.png\">"
+                   "<img width=\"140\" height=\"140\" src=\"/usr/share/plasma/plasmoids/org.airyx.plasma.AiryxMenu/contents/images/MarmosetLogo.tiff\">"
                    "</td><td>&nbsp;&nbsp;</td><td style=\"word-wrap: break-word; width: 100%;\">"
                    "<font face=\"Nimbus Sans\"><font size=\"+7\"><b>airyxOS</b> " AIRYX_CODENAME "</font><br>"
                    "Version " AIRYX_VERSION "<br>"

@@ -1,5 +1,5 @@
 APP=	Dock
-SRCS=	main.mm Dock.mm DockItem.mm EventFilter.mm
+SRCS=	main.mm Dock.mm DockItem.mm WindowTracker.mm
 RESOURCES=	Dock.png running.png Trash.app
 
 Dock.o: Dock.mm Dock.h Dock.moc
@@ -9,9 +9,9 @@ Dock.moc: Dock.h
 
 QT_CFLAGS!=	pkg-config --cflags Qt5Widgets Qt5Xdg
 QT_LDFLAGS!=	pkg-config --libs Qt5Widgets Qt5Xdg
-CXXFLAGS+=	${QT_CFLAGS} -g -fPIC
+CXXFLAGS+=	${QT_CFLAGS} -g -fPIC -I/usr/include/KF5/KWindowSystem
 LDFLAGS+=	${QT_LDFLAGS} -lc++ -framework Foundation \
-		-framework LaunchServices -lobjc -lX11
+		-framework LaunchServices -lobjc -lKF5WindowSystem -lX11
 
 Trash.app::
 	rm -rf ${.TARGET}

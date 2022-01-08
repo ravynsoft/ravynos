@@ -81,6 +81,7 @@ public:
     void mouseDoubleClickEvent(QMouseEvent *e);
     void mouseMoveEvent(QMouseEvent *e);
     DockItem *findDockItemForPath(char *path);
+    void removeWindowFromAll(unsigned int window);
     int indexOfItem(DockItem *di);
 
     // thread safety helpers for the kq loop

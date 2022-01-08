@@ -25,16 +25,18 @@
 #pragma once
 
 #import <Foundation/Foundation.h>
-#include <QAbstractNativeEventFilter>
-#include <X11/Xlib.h>
+#include <QObject>
+#include <KWindowSystem>
 
-class XEventFilter : public QAbstractNativeEventFilter
+class WindowTracker : public QObject
 {
 public:
-    XEventFilter();
-    ~XEventFilter();
-    bool nativeEventFilter(const QByteArray& type, void *msg, long *result);
+    WindowTracker();
 
-private:
-    Display *m_display;
+public slots:
+    void windowWasAdded(WId window);
+    void windowWasRemoved(WId window);
+    void windowWasChanged(WId window, NET::Properties props,
+                          NET::Properties2 props2);
+
 };

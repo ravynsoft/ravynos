@@ -23,7 +23,7 @@
  */
 
 #include "Dock.h"
-#include "EventFilter.h"
+#include "WindowTracker.h"
 #include <QThread>
 
 int kqPIDs = 0;
@@ -97,8 +97,7 @@ int main(int argc, const char *argv[]) {
     kqPIDs = kqueue();
     g_dock = new Dock();
 
-    XEventFilter xef;
-    app.installNativeEventFilter(&xef);
+    WindowTracker tracker;
 
     QThread *pidMonitor = QThread::create(pidMonitorLoop);
     pidMonitor->start();
