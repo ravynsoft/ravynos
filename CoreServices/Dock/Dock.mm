@@ -464,10 +464,22 @@ void Dock::mouseReleaseEvent(QMouseEvent *e)
     switch(e->button()) {
         case Qt::LeftButton: // logical left, the primary action
         {
-            if([item isRunning]) {
+            if([item type] == DIT_WINDOW) { // unminimizing?
                 unsigned int window = [item window];
-                if(window)
+                WindowTracker::activateWindow(window);
+                clearRunningLabel(item);
+                break;
+            }
+            if([item isRunning]) { // clicked a running app?
+                unsigned int window = [item window];
+                if(window) {
                     WindowTracker::activateWindow(window);
+                    DockItem *winDI = findDockItemForMinimizedWindow(window);
+                    if(winDI) {
+                        clearRunningLabel(winDI);
+                        [winDI release];
+                    }
+                }
 
                 // If Filer with no windows, fall through & launch folder
                 if(itempos != 0 || [[item windows] count] > 1)
@@ -500,7 +512,7 @@ void Dock::mouseMoveEvent(QMouseEvent *e)
 
 DockItem *Dock::findDockItemForPath(char *path)
 {
-    NSString *s = [NSString stringWithCString:path];
+    NSString *s = [NSString stringWithUTF8String:path];
 
     for(int i = 0; i < [m_items count]; ++i) {
         DockItem *di = [m_items objectAtIndex:i];
@@ -510,11 +522,22 @@ DockItem *Dock::findDockItemForPath(char *path)
     return nil;
 }
 
+DockItem *Dock::findDockItemForMinimizedWindow(unsigned int window)
+{
+    for(int i = 0; i < [m_items count]; ++i) {
+        DockItem *di = [m_items objectAtIndex:i];
+        if([di type] == DIT_WINDOW && [di window] == window)
+            return di;
+    }
+    return nil;
+}
+
 void Dock::removeWindowFromAll(unsigned int window)
 {
     for(int i = 0; i < [m_items count]; ++i) {
         DockItem *di = [m_items objectAtIndex:i];
-        [di removeWindow:window];
+        if([di type] != DIT_WINDOW)
+            [di removeWindow:window];
     }
 }
 
@@ -598,7 +621,7 @@ void Dock::loadProcessTable()
 void Dock::setRunningLabel(int i)
 {
     DockItem *di = [m_items objectAtIndex:i];
-    if([di _getRunMarker] != NULL)
+    if([di _getRunMarker] != NULL || [di type] == DIT_WINDOW)
         return;
 
     QLabel *l = new QLabel;

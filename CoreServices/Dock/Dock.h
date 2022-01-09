@@ -81,6 +81,7 @@ public:
     void mouseDoubleClickEvent(QMouseEvent *e);
     void mouseMoveEvent(QMouseEvent *e);
     DockItem *findDockItemForPath(char *path);
+    DockItem *findDockItemForMinimizedWindow(unsigned int window);
     void removeWindowFromAll(unsigned int window);
     int indexOfItem(DockItem *di);
 

@@ -53,8 +53,8 @@ void WindowTracker::activateWindow(WId window)
 WindowTracker::WindowTracker()
     : QObject()
 {
-    connect(KWindowSystem::self(), &KWindowSystem::windowAdded, this,
-        &WindowTracker::windowWasAdded);
+//     connect(KWindowSystem::self(), &KWindowSystem::windowAdded, this,
+//         &WindowTracker::windowWasAdded);
     connect(KWindowSystem::self(), &KWindowSystem::windowRemoved, this,
         &WindowTracker::windowWasRemoved);
     connect(KWindowSystem::self(),
@@ -63,7 +63,7 @@ WindowTracker::WindowTracker()
         &WindowTracker::windowWasChanged);
 
     for(WId window : KWindowSystem::self()->windows()) {
-        windowWasAdded(window);
+//         windowWasAdded(window);
         windowWasChanged(window, NET::WMPid, 0);
     }
 }
@@ -95,14 +95,13 @@ void WindowTracker::windowWasChanged(WId window, NET::Properties props,
         return;
 
     KWindowInfo info(window, NET::WMWindowType|NET::WMPid|
-        NET::WMVisibleName|NET::WMState|NET::WMIcon,
+        NET::WMVisibleName|NET::WMState|NET::WMIcon|NET::XAWMState,
         NET::WM2WindowClass | NET::WM2IconPixmap);
     if(!info.valid())
         return;
 
     if(info.hasState(NET::Modal) || info.hasState(NET::SkipTaskbar) ||
-        info.hasState(NET::SkipPager) || info.hasState(NET::Hidden) ||
-        info.hasState(NET::SkipSwitcher) ||
+        info.hasState(NET::SkipPager) || info.hasState(NET::SkipSwitcher) ||
         info.windowType(NET::AllTypesMask) != 0)
         return;
 
@@ -131,29 +130,46 @@ void WindowTracker::windowWasChanged(WId window, NET::Properties props,
         }
     }
 
-    if(di == nil)
-        return;
-
-    switch([di type]) {
-        case DIT_WINDOW:
-        case DIT_APP_X11:
-        {
+    if(di != nil) {
+        if([di type] == DIT_APP_X11) {
             QString name(info.visibleName());
             if(name.size() > 0)
                 [di setLabel:name.toLocal8Bit().data()];
-            QPixmap pix(KWindowSystem::self()->icon(window, -1, -1,
-                false, 0x3));
+            QPixmap pix(KWindowSystem::self()->icon(window, -1, -1, false,
+                0x3));
             if(pix.width() > 0 && pix.height() > 0)
                 [di setIcon:pix];
-            break;
         }
-        default:
-            break;
+
+        g_dock->removeWindowFromAll(window); // just in case owner changed
+        [di addWindow:window];
+
+        if(created)
+            g_dock->_addNonResident(di);
     }
 
-    g_dock->removeWindowFromAll(window); // just in case owner changed
-    [di addWindow:window];
+    /* Now handle minimized windows regardless of item type. These are
+     * always shown even if we can't identify the owning application.
+     *
+     * ...aaaaaand handle windows that got unminimized some other way
+     * than clicking their Dock icon.
+     */
+    if(info.isMinimized()) {
+        if(g_dock->findDockItemForMinimizedWindow(window) != nil)
+            return;
 
-    if(created)
-        g_dock->_addNonResident(di);
+        DockItem *winDI = [DockItem dockItemWithMinimizedWindow:window];
+
+        QString name(info.name());
+        if(name.size() > 0)
+            [winDI setLabel:info.visibleName().toLocal8Bit().data()];
+
+        // FIXME: do a thumbnail of window contents as icon
+
+        g_dock->_addNonResident(winDI);
+    } else { // not minimized so remove any DIT_WINDOWs for it
+        DockItem *winDI = g_dock->findDockItemForMinimizedWindow(window);
+        if(winDI != nil)
+            g_dock->clearRunningLabel(winDI);
+    }
 }

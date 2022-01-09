@@ -39,6 +39,10 @@ extern int piper(int n);
     return [[self alloc] initWithWindow:window path:path];
 }
 
++dockItemWithMinimizedWindow:(unsigned int)window {
+    return [[self alloc] initWithMinimizedWindow:window];
+}
+
 -initWithPath:(NSString *)path {
     _path = path;
     _label = nil;
@@ -117,6 +121,23 @@ extern int piper(int n);
     _execPath = [_path copy];
     _label = [[_path copy] lastPathComponent];
     _type = DIT_APP_X11;
+
+    _icon = new QIcon(QString::fromUtf8([[[NSBundle mainBundle]
+        pathForResource:@"window" ofType:@"png"] UTF8String]));
+
+    _bundleID = nil;
+    _flags = DIF_NORMAL;
+    _pids = [NSMutableArray new];
+    _windows = [NSMutableArray new];
+    [_windows addObject:[NSNumber numberWithInteger:window]];
+    return self;
+}
+
+-initWithMinimizedWindow:(unsigned int)window {
+    _path = nil;
+    _execPath = nil;
+    _label = nil;
+    _type = DIT_WINDOW;
 
     _icon = new QIcon(QString::fromUtf8([[[NSBundle mainBundle]
         pathForResource:@"window" ofType:@"png"] UTF8String]));
