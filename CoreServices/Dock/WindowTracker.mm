@@ -79,6 +79,11 @@ void WindowTracker::windowWasRemoved(WId window)
     g_dock->removeWindowFromAll(window);
 }
 
+/*
+ * WindowTracker has two main jobs:
+ *  1. create DockItems for running apps that are not bundles
+ *  2. create DockItems for minimized windows
+ */
 void WindowTracker::windowWasChanged(WId window, NET::Properties props,
     NET::Properties2 props2)
 {
@@ -89,20 +94,52 @@ void WindowTracker::windowWasChanged(WId window, NET::Properties props,
         NET::DemandsAttention | NET::WMState | NET::XAWMState)))
         return;
 
-    KWindowInfo info(window, NET::WMPid, 0);
+    KWindowInfo info(window, NET::WMWindowType|NET::WMPid|
+        NET::WMVisibleName|NET::WMState, props2);
     if(!info.valid())
         return;
 
-//     NSLog(@"windowWasChanged: %u -> PID %u", window, info.pid());
-    char path[PATH_MAX];
-    if(pathForPID(info.pid(), path, PATH_MAX-1) != 0)
+    if(info.hasState(NET::Modal) || info.hasState(NET::SkipTaskbar) ||
+        info.hasState(NET::SkipPager) || info.hasState(NET::Hidden) ||
+        info.hasState(NET::SkipSwitcher) ||
+        info.windowType(NET::AllTypesMask) != 0)
         return;
 
-    DockItem *di = g_dock->findDockItemForPath(path);
+    DockItem *di = nil;
+    bool created = false;
+
+    if(info.pid() != 0) {
+        char path[PATH_MAX];
+        if(pathForPID(info.pid(), path, PATH_MAX-1) != 0)
+            return;
+
+        di = g_dock->findDockItemForPath(path);
+        NSLog(@"INFO di=%p path=%s",di,path);
+        if(di == nil) {
+            di = [DockItem dockItemWithWindow:window path:path];
+            [di addPID:info.pid()];
+            created = true;
+        }
+    }
+
     if(di == nil)
         return;
+    NSLog(@"INFO states=%x wid=%u name=%s type=%u", info.state(), window,
+        info.name().toLocal8Bit().data(), info.windowType(NET::AllTypesMask));
+
+    switch([di type]) {
+        case DIT_WINDOW:
+        case DIT_APP_X11:
+            [di setLabel:info.visibleName().toLocal8Bit().data()];
+            [di setIcon:KWindowSystem::self()->icon(window, -1, -1, false, 0xF)];
+            break;
+        default:
+            break;
+    }
 
     g_dock->removeWindowFromAll(window); // just in case owner changed
     [di addWindow:window];
-//     NSLog(@"Added window to DockItem %@", [di label]);
+
+    if(created)
+        g_dock->_addNonResident(di);
 }

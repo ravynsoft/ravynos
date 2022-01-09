@@ -179,6 +179,13 @@ void Dock::addNonResident(unsigned int pid, const char *path)
        [[di bundleIdentifier] isEqualToString:@"org.airyx.Dock.Trash"])
         return;
 
+    _addNonResident(di);
+}
+
+// This is split out so it can be called by above (add by PID) or by
+// WindowTracker for DIs created by window.
+void Dock::_addNonResident(DockItem *di)
+{
     int size = (m_location == LOCATION_BOTTOM
         ? m_currentSize.height() : m_currentSize.width()) - 16;
 
@@ -190,7 +197,7 @@ void Dock::addNonResident(unsigned int pid, const char *path)
         }
     }
 
-    if(index > [m_items count]) {
+    if(index >= [m_items count]) {
         // All slots are full with non-empty items. FIXME: Can we expand?
         NSLog(@"addNonResident: too many items!");
         return;
@@ -217,13 +224,32 @@ void Dock::addNonResident(unsigned int pid, const char *path)
 
 void Dock::loadItems()
 {
+    // Figure out our size by taking the height to get an icon square.
+    // Then multiply by number of pinned items + Filer + Trash +
+    // Dowloads + 3 minimum non-resident spots to get width.
     int size = (m_location == LOCATION_BOTTOM
         ? m_currentSize.height() : m_currentSize.width()) - 16;
 
-    int items = (m_location == LOCATION_BOTTOM
-        ? m_currentSize.width() : m_currentSize.height())
-        / (size + CELL_SPACER + CELL_SPACER);
+    NSArray *pinnedItems = [m_prefs objectForKey:INFOKEY_CUR_ITEMS];
+    int items = [pinnedItems count] + 6;
+    int length = size*items + items*CELL_SPACER;
+
+    if(m_location == LOCATION_BOTTOM)
+        m_currentSize.setWidth(length);
+    else
+        m_currentSize.setHeight(length);
     m_itemSlots = items;
+    this->relocate();
+
+    // Relocate caps our length to the screen size if needed. If length
+    // has changed, recalculate how many items we can display
+    int curlength = (m_location == LOCATION_BOTTOM)
+        ? m_currentSize.width()
+        : m_currentSize.height();
+    if(length != curlength) {
+        items = curlength / (size + CELL_SPACER*2);
+        m_itemSlots = items;
+    }
 
     // last 2 slots are reserved for Downloads and Trash
     --items;
@@ -243,8 +269,7 @@ void Dock::loadItems()
 
     NSMutableArray *apps = [NSMutableArray new];
     [apps addObject:@"/System/Library/CoreServices/Filer.app"];
-    NSEnumerator *currentItems = [[m_prefs objectForKey:INFOKEY_CUR_ITEMS]
-        objectEnumerator];
+    NSEnumerator *currentItems = [pinnedItems objectEnumerator];
     NSString *cur;
     while(cur = [currentItems nextObject])
         [apps addObject:cur];
@@ -272,7 +297,6 @@ void Dock::loadItems()
             m_cells->addWidget(iconLabel, item++, 0, Qt::AlignCenter);
 
         if(item > items) {
-            // FIXME: do resize up to maximum
             NSLog(@"Too many items!");
             break;
         }
@@ -551,6 +575,9 @@ void Dock::loadProcessTable()
         }
     }
 
+    // FIXME: also create items for any non-resident running bundles,
+    // even if they have no windows
+
     for(int i = 0; i < [m_items count]; ++i) {
         DockItem *di = [m_items objectAtIndex:i];
         pid_t pid = 0;
@@ -625,7 +652,7 @@ void Dock::clearRunningLabel(void *item)
         w->deleteLater();
 
         [di release];
-        [m_items replaceObjectAtIndex:index withObject:[DockItem new]];
+        [m_items replaceObjectAtIndex:index withObject:m_emptyItem];
     }
 }
 

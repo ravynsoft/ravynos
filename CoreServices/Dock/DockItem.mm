@@ -35,6 +35,10 @@ extern int piper(int n);
     return [[self alloc] initWithPath:path];
 }
 
++dockItemWithWindow:(unsigned int)window path:(const char *)path {
+    return [[self alloc] initWithWindow:window path:path];
+}
+
 -initWithPath:(NSString *)path {
     _path = path;
     _label = nil;
@@ -87,7 +91,7 @@ extern int piper(int n);
         XdgDesktopFile df;
         if(df.load([path UTF8String]) && df.isValid()
             && df.type() == XdgDesktopFile::ApplicationType) {
-            _label = [NSString stringWithCString:
+            _label = [NSString stringWithUTF8String:
                 df.name().toLocal8Bit().constData()];
             _execPath = [[[NSString stringWithCString:
                 df.value("Exec").toString().toLocal8Bit().constData()]
@@ -104,11 +108,11 @@ extern int piper(int n);
 
 // FIXME: try to extract PID from _NET_WM_PID and identify bundle etc
 // FIXME: set a standard icon
--initWithWindow:(unsigned int)window {
-    _path = nil;
-    _execPath = nil;
+-initWithWindow:(unsigned int)window path:(const char *)path {
+    _path = [NSString stringWithCString:path];
+    _execPath = [_path copy];
     _label = nil;
-    _type = DIT_WINDOW;
+    _type = DIT_APP_X11;
     _icon = NULL;
     _bundleID = nil;
     _flags = DIF_NORMAL;
@@ -315,9 +319,20 @@ extern int piper(int n);
     return _runMarker;
 }
 
+-(void)setLabel:(const char *)label {
+    _label = [NSString stringWithUTF8String:label];
+}
+
+-(void)setIcon:(QIcon)icon {
+    if(_icon)
+        delete _icon;
+    _icon = new QIcon(icon);
+}
+
 -(NSString *)description {
     return [NSString stringWithFormat:
-        @"<%@ 0x%p> path:%@ exec:%@ label:%@ pid:%@ flags:0x%02x id:%@",
-        [self class], self, _path, _execPath, _label, _pids, _flags, _bundleID];
+    @"<%@ 0x%p> path:%@ exec:%@ label:%@ pid:%@ windows:%@ flags:0x%02x id:%@",
+    [self class], self, _path, _execPath, _label, _pids, _windows, _flags,
+    _bundleID];
 }
 @end

@@ -88,10 +88,13 @@ public:
     void emitSignal(int i, void *di);
     void emitAddNonResident(unsigned int pid, const char *path);
 
+    void _addNonResident(DockItem *di);
+
 public slots:
     void clearRunningLabel(void *di);
     void setRunningLabel(int i);
     void addNonResident(unsigned int pid, const char *path);
+
 
 signals:
     void itemShouldClearIndicator(void *di);

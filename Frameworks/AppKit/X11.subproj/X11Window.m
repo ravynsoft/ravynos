@@ -15,6 +15,7 @@
 #import <DBusKit/DKMenu.h>
 #import <DBusKit/DKConnection.h>
 #import <X11/Xutil.h>
+#import <X11/Xatom.h>
 #import <Foundation/NSException.h>
 #import "O2Context_cairo.h"
 #import "O2Context_builtin_FT.h"
@@ -112,8 +113,10 @@ void CGNativeBorderFrameWidthsForStyle(unsigned styleMask,CGFloat *top,CGFloat *
    if(styleMask & NSTitledWindowMask) {
     [self setProperty:@"_KDE_NET_WM_APPMENU_SERVICE_NAME" toValue:[[NSApp dbusConnection] name]];
     [self setProperty:@"_KDE_NET_WM_APPMENU_OBJECT_PATH" toValue:[[NSApp dbusMenu] objectPath]];
-    [self setProperty:@"_NET_WM_PID" toValue:[[NSNumber numberWithInt:getpid()] stringValue]];
+    [self setProperty:@"_NET_WM_PID" toCardinal:getpid()];
     [[NSApp dbusMenu] registerWindow:_window];
+    [self setProperty:@"_NET_WM_WINDOW_TYPE"
+        toAtom:XInternAtom(_display, "_NET_WM_WINDOW_TYPE_NORMAL", False)];
    }
       
    XSetWindowBackgroundPixmap(_display, _window, None);
@@ -249,6 +252,24 @@ void CGNativeBorderFrameWidthsForStyle(unsigned styleMask,CGFloat *top,CGFloat *
      XInternAtom (_display, "STRING", False), 8,
      PropModeReplace, (const unsigned char *)[value UTF8String],
      [value length]))
+       return NO;
+   return YES;
+}
+
+-(BOOL)setProperty:(NSString *)property toAtom:(Atom)atom {
+   if(XChangeProperty(_display, _window,
+     XInternAtom (_display, [property UTF8String], False),
+     XA_ATOM, 32,
+     PropModeReplace, (const unsigned char *)&atom, 1))
+       return NO;
+   return YES;
+}
+
+-(BOOL)setProperty:(NSString *)property toCardinal:(unsigned long)value {
+   if(XChangeProperty(_display, _window,
+     XInternAtom (_display, [property UTF8String], False),
+     XA_CARDINAL, 32,
+     PropModeReplace, (const unsigned char *)&value, 1))
        return NO;
    return YES;
 }

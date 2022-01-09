@@ -60,7 +60,10 @@ enum DockItemFlags : unsigned int {
 }
 
 +dockItemWithPath:(NSString *)path;
++dockItemWithWindow:(unsigned int)window path:(const char *)path;
+
 -initWithPath:(NSString *)path;
+-initWithWindow:(unsigned int)window path:(const char *)path;
 
 -(NSString *)path;
 -(NSString *)execPath;
@@ -92,4 +95,7 @@ enum DockItemFlags : unsigned int {
 -(void)setResident:(BOOL)value;
 -(void)setNeedsAttention:(BOOL)value;
 -(void)setRunningMarker:(QLabel *)label;
+-(void)setLabel:(const char *)label;
+-(void)setIcon:(QIcon)icon;
+
 @end
