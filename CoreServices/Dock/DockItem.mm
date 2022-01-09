@@ -100,6 +100,10 @@ extern int piper(int n);
         }
     }
 
+    if(_icon == NULL)
+        _icon = new QIcon(QString::fromUtf8([[[NSBundle mainBundle]
+            pathForResource:@"window" ofType:@"png"] UTF8String]));
+
     _flags = DIF_NORMAL;
     _pids = [NSMutableArray new];
     _windows = [NSMutableArray new];
@@ -111,9 +115,12 @@ extern int piper(int n);
 -initWithWindow:(unsigned int)window path:(const char *)path {
     _path = [NSString stringWithCString:path];
     _execPath = [_path copy];
-    _label = nil;
+    _label = [[_path copy] lastPathComponent];
     _type = DIT_APP_X11;
-    _icon = NULL;
+
+    _icon = new QIcon(QString::fromUtf8([[[NSBundle mainBundle]
+        pathForResource:@"window" ofType:@"png"] UTF8String]));
+
     _bundleID = nil;
     _flags = DIF_NORMAL;
     _pids = [NSMutableArray new];

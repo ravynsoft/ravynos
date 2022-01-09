@@ -91,11 +91,12 @@ void WindowTracker::windowWasChanged(WId window, NET::Properties props,
     if(!props && !(props2 & NET::WM2TransientFor))
         return;
     if(!(props & (NET::WMPid | NET::WMName | NET::WMVisibleName |
-        NET::DemandsAttention | NET::WMState | NET::XAWMState)))
+        NET::DemandsAttention | NET::WMState | NET::XAWMState | NET::WMIcon)))
         return;
 
     KWindowInfo info(window, NET::WMWindowType|NET::WMPid|
-        NET::WMVisibleName|NET::WMState, props2);
+        NET::WMVisibleName|NET::WMState|NET::WMIcon,
+        NET::WM2WindowClass | NET::WM2IconPixmap);
     if(!info.valid())
         return;
 
@@ -114,25 +115,38 @@ void WindowTracker::windowWasChanged(WId window, NET::Properties props,
             return;
 
         di = g_dock->findDockItemForPath(path);
-        NSLog(@"INFO di=%p path=%s",di,path);
         if(di == nil) {
-            di = [DockItem dockItemWithWindow:window path:path];
-            [di addPID:info.pid()];
-            created = true;
+            di = [DockItem dockItemWithPath:[NSString
+                stringWithUTF8String:path]];
+            if([di type] != DIT_INVALID) {
+                [di addWindow:window];
+                [di addPID:info.pid()];
+                created = true;
+            } else {
+                [di release];
+                di = [DockItem dockItemWithWindow:window path:path];
+                [di addPID:info.pid()];
+                created = true;
+            }
         }
     }
 
     if(di == nil)
         return;
-    NSLog(@"INFO states=%x wid=%u name=%s type=%u", info.state(), window,
-        info.name().toLocal8Bit().data(), info.windowType(NET::AllTypesMask));
 
     switch([di type]) {
         case DIT_WINDOW:
         case DIT_APP_X11:
-            [di setLabel:info.visibleName().toLocal8Bit().data()];
-            [di setIcon:KWindowSystem::self()->icon(window, -1, -1, false, 0xF)];
+        {
+            QString name(info.visibleName());
+            if(name.size() > 0)
+                [di setLabel:name.toLocal8Bit().data()];
+            QPixmap pix(KWindowSystem::self()->icon(window, -1, -1,
+                false, 0x3));
+            if(pix.width() > 0 && pix.height() > 0)
+                [di setIcon:pix];
             break;
+        }
         default:
             break;
     }
