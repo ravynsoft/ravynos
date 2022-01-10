@@ -77,6 +77,10 @@ void WindowTracker::windowWasRemoved(WId window)
 {
 //     NSLog(@"windowWasRemoved: %u", window);
     g_dock->removeWindowFromAll(window);
+
+    DockItem *winDI = g_dock->findDockItemForMinimizedWindow(window);
+    if(winDI != nil)
+        g_dock->clearRunningLabel(winDI);
 }
 
 /*

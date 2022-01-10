@@ -115,6 +115,9 @@ Dock::Dock()
         &Dock::addNonResident);
     m_cells = new QGridLayout(this);
 
+    connect(m_screen, &QScreen::availableGeometryChanged, this,
+        &Dock::relocate);
+
     this->loadItems();
     this->loadProcessTable();
 
@@ -198,9 +201,66 @@ void Dock::_addNonResident(DockItem *di)
     }
 
     if(index >= [m_items count]) {
-        // All slots are full with non-empty items. FIXME: Can we expand?
-        NSLog(@"addNonResident: too many items!");
-        return;
+        // All slots are full. Can we expand Dock?
+        bool expanded = false;
+
+        if(m_location == LOCATION_BOTTOM) {
+            int length = size + CELL_SPACER*2 + m_currentSize.width();
+            if(length <= m_maxLength) {
+                m_currentSize.setWidth(length);
+
+                // shift the right-most icons over
+                QLayoutItem *layout = m_cells->itemAtPosition(0, index);
+                QWidget *w = layout->widget();
+                m_cells->removeWidget(w);
+                m_cells->addWidget(w, 0, index + 1, Qt::AlignCenter);
+
+                --index;
+                layout = m_cells->itemAtPosition(0, index);
+                if(layout) {
+                    w = layout->widget();
+                    m_cells->removeWidget(w);
+                    m_cells->addWidget(w, 0, index + 1, Qt::AlignCenter);
+                }
+
+                [m_items insertObject:m_emptyItem atIndex:index];
+                ++m_itemSlots;
+                --index;
+                relocate();
+                expanded = true;
+            }
+        } else {
+            int length = size + CELL_SPACER*2 + m_currentSize.height();
+            if(length <= m_maxLength) {
+                m_currentSize.setHeight(length);
+
+                // shift the bottom-most icons down
+                QLayoutItem *layout = m_cells->itemAtPosition(index, 0);
+                QWidget *w = layout->widget();
+                m_cells->removeWidget(w);
+                m_cells->addWidget(w, index + 1, 0, Qt::AlignCenter);
+
+                --index;
+                layout = m_cells->itemAtPosition(index, 0);
+                if(layout) {
+                    w = layout->widget();
+                    m_cells->removeWidget(w);
+                    m_cells->addWidget(w, index + 1, 0, Qt::AlignCenter);
+                }
+
+                [m_items insertObject:m_emptyItem atIndex:index];
+                ++m_itemSlots;
+                --index;
+                relocate();
+                expanded = true;
+            }
+        }
+
+        if(!expanded) {
+            NSLog(@"addNonResident: too many items!");
+            // FIXME: should we just make icons smaller and pack them in?
+            return;
+        }
     }
 
     NSDebugLog(@"addNonResident at %u", index);
@@ -305,7 +365,7 @@ void Dock::loadItems()
     for(int x = item; x < items; ++x)
         [m_items addObject:m_emptyItem];
 
-    [m_items addObject:m_emptyItem]; // FIXME: Downloads
+    [m_items addObject:[DockItem new]]; // FIXME: Downloads
 
     NSString *trashapp = [[NSBundle mainBundle] pathForResource:@"Trash"
         ofType:@"app"];
@@ -370,7 +430,6 @@ bool Dock::capLength()
 }
 
 // TODO: connect primaryScreenChanged signal to this
-// TODO: connect availableGeometryChanged signal to this
 void Dock::relocate()
 {
     m_screen = QGuiApplication::primaryScreen();
