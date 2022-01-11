@@ -1,6 +1,6 @@
 APP=	Dock
-SRCS=	main.mm Dock.mm DockItem.mm WindowTracker.mm
-RESOURCES=	Dock.png running.png window.png Trash.app
+SRCS=	main.mm Dock.mm DockItem.mm WindowTracker.mm Utils.mm
+RESOURCES=	Dock.png running.png window.png Trash.app folder.png
 
 Dock.o: Dock.mm Dock.h Dock.moc
 DockItem.o: DockItem.mm DockItem.h

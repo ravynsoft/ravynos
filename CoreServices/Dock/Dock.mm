@@ -27,6 +27,7 @@
 
 #include "Dock.h"
 #include "WindowTracker.h"
+#include "Utils.h"
 
 #include <QPainterPath>
 #include <QRegion>
@@ -36,27 +37,9 @@
 #include <QPixmap>
 #include <QPainter>
 #include <QMouseEvent>
-#include <QDebug>
 
-#include <fcntl.h>
-#include <unistd.h>
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
-
-unsigned long eventID()
-{
-    static unsigned long _ID = 256000;
-    return ++_ID;
-}
-
-int piper(int n)
-{
-    static int pipefd[2] = {-1};
-
-    if(pipefd[0] == -1)
-        pipe(pipefd);
-    return pipefd[n];
-}
 
 Dock::Dock()
     :QWidget(nullptr, Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint |
@@ -65,7 +48,7 @@ Dock::Dock()
     ,m_itemSlots(0)
 {
     m_prefs = [[NSUserDefaults standardUserDefaults] retain];
-    m_items = [NSMutableArray arrayWithCapacity:20];
+    m_items = m_itemsPinned = m_itemsSpecial = nil;
     m_emptyItem = [DockItem new];
 
     this->setAttribute(Qt::WA_AlwaysShowToolTips);
@@ -91,6 +74,24 @@ Dock::Dock()
             m_location = LOCATION_BOTTOM;
     }
 
+    m_box = new QBoxLayout(m_location == LOCATION_BOTTOM
+        ? QBoxLayout::LeftToRight : QBoxLayout::TopToBottom, this);
+    m_cells = new QGridLayout();
+    m_cellsPinned = new QGridLayout();
+    m_cellsSpecial = new QGridLayout();
+
+    m_divider = makeDivider();
+    m_divider2 = makeDivider();
+
+    m_box->addLayout(m_cellsPinned);
+    m_box->addWidget(m_divider);
+    m_box->addLayout(m_cells);
+    m_box->addWidget(m_divider2);
+    m_box->addLayout(m_cellsSpecial);
+
+    m_box->setSpacing(4);
+    m_box->setContentsMargins(0, 0, 0, 0);
+
     this->relocate();
     QPalette pal;
     pal.setColor(QPalette::Window, QColor(0x66,0x66,0x66,0xff));
@@ -113,7 +114,6 @@ Dock::Dock()
         &Dock::setRunningLabel);
     connect(this, &Dock::dockShouldAddNonResident, this,
         &Dock::addNonResident);
-    m_cells = new QGridLayout(this);
 
     connect(m_screen, &QScreen::availableGeometryChanged, this,
         &Dock::relocate);
@@ -168,7 +168,7 @@ void Dock::addNonResident(unsigned int pid, const char *path)
     }
 
     // not found so it must truly be a new item
-    di = [DockItem dockItemWithPath:[NSString stringWithCString:path]];
+    di = [DockItem dockItemWithPath:[NSString stringWithUTF8String:path]];
     if([di type] == DIT_INVALID) {
         // Not a bundle or AppDir so handle as Window
         NSDebugLog(@"addNonResident: %lu %s is not bundle or AppDir",
@@ -202,61 +202,10 @@ void Dock::_addNonResident(DockItem *di)
 
     if(index >= [m_items count]) {
         // All slots are full. Can we expand Dock?
-        bool expanded = false;
-
-        if(m_location == LOCATION_BOTTOM) {
-            int length = size + CELL_SPACER*2 + m_currentSize.width();
-            if(length <= m_maxLength) {
-                m_currentSize.setWidth(length);
-
-                // shift the right-most icons over
-                QLayoutItem *layout = m_cells->itemAtPosition(0, index);
-                QWidget *w = layout->widget();
-                m_cells->removeWidget(w);
-                m_cells->addWidget(w, 0, index + 1, Qt::AlignCenter);
-
-                --index;
-                layout = m_cells->itemAtPosition(0, index);
-                if(layout) {
-                    w = layout->widget();
-                    m_cells->removeWidget(w);
-                    m_cells->addWidget(w, 0, index + 1, Qt::AlignCenter);
-                }
-
-                [m_items insertObject:m_emptyItem atIndex:index];
-                ++m_itemSlots;
-                --index;
-                relocate();
-                expanded = true;
-            }
-        } else {
-            int length = size + CELL_SPACER*2 + m_currentSize.height();
-            if(length <= m_maxLength) {
-                m_currentSize.setHeight(length);
-
-                // shift the bottom-most icons down
-                QLayoutItem *layout = m_cells->itemAtPosition(index, 0);
-                QWidget *w = layout->widget();
-                m_cells->removeWidget(w);
-                m_cells->addWidget(w, index + 1, 0, Qt::AlignCenter);
-
-                --index;
-                layout = m_cells->itemAtPosition(index, 0);
-                if(layout) {
-                    w = layout->widget();
-                    m_cells->removeWidget(w);
-                    m_cells->addWidget(w, index + 1, 0, Qt::AlignCenter);
-                }
-
-                [m_items insertObject:m_emptyItem atIndex:index];
-                ++m_itemSlots;
-                --index;
-                relocate();
-                expanded = true;
-            }
-        }
-
-        if(!expanded) {
+        bool expanded = addSlot();
+        if(expanded)
+            [m_items addObject:di];
+        else {
             NSLog(@"addNonResident: too many items!");
             // FIXME: should we just make icons smaller and pack them in?
             return;
@@ -264,19 +213,11 @@ void Dock::_addNonResident(DockItem *di)
     }
 
     NSDebugLog(@"addNonResident at %u", index);
-    QLabel *iconLabel = new QLabel;
-    iconLabel->setAlignment(Qt::AlignCenter);
-    iconLabel->setSizePolicy(QSizePolicy::Expanding,
-        QSizePolicy::Expanding);
-
-    QPixmap pix([di icon]->pixmap(QSize(size, size)));
-    iconLabel->setPixmap(pix);
-    iconLabel->setToolTip(QString::fromUtf8([[di label] UTF8String]));
 
     if(m_location == LOCATION_BOTTOM)
-        m_cells->addWidget(iconLabel, 0, index, Qt::AlignCenter);
+        m_cells->addWidget([di widget], 0, index, Qt::AlignCenter);
     else
-        m_cells->addWidget(iconLabel, index, 0, Qt::AlignCenter);
+        m_cells->addWidget([di widget], index, 0, Qt::AlignCenter);
 
     setRunningLabel(index);
 }
@@ -284,48 +225,32 @@ void Dock::_addNonResident(DockItem *di)
 
 void Dock::loadItems()
 {
-    // Figure out our size by taking the height to get an icon square.
-    // Then multiply by number of pinned items + Filer + Trash +
-    // Dowloads + 3 minimum non-resident spots to get width.
-    int size = (m_location == LOCATION_BOTTOM
-        ? m_currentSize.height() : m_currentSize.width()) - 16;
-
+    int size = iconSize();
     NSArray *pinnedItems = [m_prefs objectForKey:INFOKEY_CUR_ITEMS];
-    int items = [pinnedItems count] + 6;
-    int length = size*items + items*CELL_SPACER;
 
-    if(m_location == LOCATION_BOTTOM)
-        m_currentSize.setWidth(length);
-    else
-        m_currentSize.setHeight(length);
+    if(m_itemsPinned == nil)
+        m_itemsPinned = [NSMutableArray arrayWithCapacity:[pinnedItems count]];
+
+    if(m_itemsSpecial == nil)
+        m_itemsSpecial = [NSMutableArray arrayWithCapacity:2];
+
+    if(m_items == nil)
+        m_items = [NSMutableArray arrayWithCapacity:3];
+
+    int items = [pinnedItems count] + 6; // 3 transient & 3 special items
+    int length = size * items;
+
+    setLength(length);
     m_itemSlots = items;
     this->relocate();
 
     // Relocate caps our length to the screen size if needed. If length
     // has changed, recalculate how many items we can display
-    int curlength = (m_location == LOCATION_BOTTOM)
-        ? m_currentSize.width()
-        : m_currentSize.height();
+    int curlength = currentLength();
     if(length != curlength) {
-        items = curlength / (size + CELL_SPACER*2);
+        items = curlength / size;
         m_itemSlots = items;
     }
-
-    // last 2 slots are reserved for Downloads and Trash
-    --items;
-    m_cells->setMargin(2);
-    if(m_location == LOCATION_BOTTOM) {
-        m_cells->setHorizontalSpacing(CELL_SPACER);
-        m_cells->setVerticalSpacing(0);
-        m_cells->setColumnStretch(items, 100);
-    } else {
-        m_cells->setHorizontalSpacing(0);
-        m_cells->setVerticalSpacing(CELL_SPACER);
-        m_cells->setRowStretch(items, 100);
-    }
-    --items;
-
-    int item = 0;
 
     NSMutableArray *apps = [NSMutableArray new];
     [apps addObject:@"/System/Library/CoreServices/Filer.app"];
@@ -335,98 +260,57 @@ void Dock::loadItems()
         [apps addObject:cur];
 
     for(int x = 0; x < [apps count]; ++x) {
-        NSString *s = [apps objectAtIndex:x];
-        DockItem *info = [DockItem dockItemWithPath:s];
-        if(item == 0)
-            [info setLocked:YES];
-        [info setResident:YES];
-        [m_items addObject:info]; // must keep in same order as m_cells!
-
-        QLabel *iconLabel = new QLabel;
-        iconLabel->setAlignment(Qt::AlignCenter);
-        iconLabel->setSizePolicy(QSizePolicy::Expanding,
-            QSizePolicy::Expanding);
-
-        QPixmap pix([info icon]->pixmap(QSize(size, size)));
-        iconLabel->setPixmap(pix);
-        iconLabel->setToolTip(QString::fromUtf8([[info label] UTF8String]));
-
-        if(m_location == LOCATION_BOTTOM)
-            m_cells->addWidget(iconLabel, 0, item++, Qt::AlignCenter);
-        else
-            m_cells->addWidget(iconLabel, item++, 0, Qt::AlignCenter);
-
-        if(item > items) {
+        if(x > items) {
             NSLog(@"Too many items!");
             break;
         }
+
+        NSString *s = [apps objectAtIndex:x];
+        DockItem *info = [DockItem dockItemWithPath:s];
+
+        if(x == 0)
+            [info setLocked:YES];
+        [info setResident:YES];
+        [m_itemsPinned addObject:info]; // must keep in same order as cells!
+
+        if(m_location == LOCATION_BOTTOM)
+            m_cellsPinned->addWidget([info widget], 0, x, Qt::AlignCenter);
+        else
+            m_cellsPinned->addWidget([info widget], x, 0, Qt::AlignCenter);
     }
 
-    for(int x = item; x < items; ++x)
+    // All the pinned items are done. Now create 3 placeholders for
+    // non-resident apps or minimized windows. We expand this area as
+    // needed.
+    for(int x = 0; x < 3; ++x)
         [m_items addObject:m_emptyItem];
 
-    [m_items addObject:[DockItem new]]; // FIXME: Downloads
+    NSString *dlapp = [[NSBundle mainBundle] pathForResource:@"Trash"
+        ofType:@"app"]; // FIXME: Downloads
+    DockItem *downloads = [DockItem dockItemWithPath:dlapp];
+    [downloads setIcon:QIcon([[[NSBundle mainBundle] pathForResource:@"folder"
+        ofType:@"png"] UTF8String])];
+    [downloads setLabel:"Downloads"];
+    [downloads setResident:YES];
+    [downloads setLocked:YES];
+    [m_itemsSpecial addObject:downloads];
+
+    if(m_location == LOCATION_BOTTOM)
+        m_cellsSpecial->addWidget([downloads widget], 0, 0, Qt::AlignCenter);
+    else
+        m_cellsSpecial->addWidget([downloads widget], 0, 0, Qt::AlignCenter);
 
     NSString *trashapp = [[NSBundle mainBundle] pathForResource:@"Trash"
         ofType:@"app"];
     DockItem *trashitem = [DockItem dockItemWithPath:trashapp];
     [trashitem setResident:YES];
     [trashitem setLocked:YES];
-    [m_items addObject:trashitem];
-
-    QLabel *iconLabel = new QLabel;
-    iconLabel->setAlignment(Qt::AlignCenter);
-    iconLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-
-    QPixmap pix([trashitem icon]->pixmap(QSize(size, size)));
-    iconLabel->setPixmap(pix);
-    iconLabel->setToolTip(QString::fromUtf8([[trashitem label] UTF8String]));
+    [m_itemsSpecial addObject:trashitem];
 
     if(m_location == LOCATION_BOTTOM)
-        m_cells->addWidget(iconLabel, 0, m_itemSlots, Qt::AlignCenter);
+        m_cellsSpecial->addWidget([trashitem widget], 0, 1, Qt::AlignCenter);
     else
-        m_cells->addWidget(iconLabel, m_itemSlots, 0, Qt::AlignCenter);
-}
-
-void Dock::swapWH()
-{
-    int h = m_currentSize.height();
-    m_currentSize.setHeight(m_currentSize.width());
-    m_currentSize.setWidth(h);
-}
-
-void Dock::savePrefs()
-{
-    NSSize sz = NSMakeSize(m_currentSize.width(), m_currentSize.height());
-    [m_prefs setObject:NSStringFromSize(sz) forKey:INFOKEY_CUR_SIZE];
-    [m_prefs setInteger:m_location forKey:INFOKEY_LOCATION];
-    if([m_prefs stringForKey:INFOKEY_FILER_DEF_FOLDER] == nil)
-        [m_prefs setObject:@"~" forKey:INFOKEY_FILER_DEF_FOLDER];
-    [m_prefs synchronize];
-}
-
-bool Dock::capLength()
-{
-    bool capped = false;
-
-    switch(m_location) {
-        case LOCATION_BOTTOM:
-            if(m_currentSize.width() > m_maxLength) {
-                m_currentSize.setWidth(m_maxLength);
-                capped = true;
-            }
-            if(m_currentSize.width() < DOCK_LENGTH_MIN)
-                m_currentSize.setWidth(DOCK_LENGTH_MIN);
-            break;
-        default:
-            if(m_currentSize.height() > m_maxLength) {
-                m_currentSize.setHeight(m_maxLength);
-                capped = true;
-            }
-            if(m_currentSize.height() < DOCK_LENGTH_MIN)
-                m_currentSize.setHeight(DOCK_LENGTH_MIN);
-    }
-    return capped;
+        m_cellsSpecial->addWidget([trashitem widget], 1, 0, Qt::AlignCenter);
 }
 
 // TODO: connect primaryScreenChanged signal to this
@@ -449,6 +333,11 @@ void Dock::relocate()
 
         ypos = geom.bottom() - edgeGap - m_currentSize.height();
         xpos = geom.center().x() - (m_currentSize.width() / 2);
+
+        m_divider->setFrameShape(QFrame::VLine);
+        m_divider2->setFrameShape(QFrame::VLine);
+        m_divider->setContentsMargins(0, DIVIDER_MARGIN, 0, DIVIDER_MARGIN);
+        m_divider->setContentsMargins(0, DIVIDER_MARGIN, 0, DIVIDER_MARGIN);
     } else {
         // available geom should already exclude menu bar
         m_maxLength = geom.bottom() - geom.top() - 16;
@@ -464,6 +353,11 @@ void Dock::relocate()
             xpos = edgeGap;
         else
             xpos = geom.right() - edgeGap - m_currentSize.width();
+
+        m_divider->setFrameShape(QFrame::HLine);
+        m_divider2->setFrameShape(QFrame::HLine);
+        m_divider->setContentsMargins(DIVIDER_MARGIN, 0, DIVIDER_MARGIN, 0);
+        m_divider->setContentsMargins(DIVIDER_MARGIN, 0, DIVIDER_MARGIN, 0);
     }
 
     // Get in position and update size
@@ -573,16 +467,26 @@ DockItem *Dock::findDockItemForPath(char *path)
 {
     NSString *s = [NSString stringWithUTF8String:path];
 
+    // Check pinned items
+    for(int i = 0; i < [m_itemsPinned count]; ++i) {
+        DockItem *di = [m_itemsPinned objectAtIndex:i];
+        if([di hasPath:s])
+            return di;
+    }
+
+    // Not pinned. Check non-resident items.
     for(int i = 0; i < [m_items count]; ++i) {
         DockItem *di = [m_items objectAtIndex:i];
         if([di hasPath:s])
             return di;
     }
+
     return nil;
 }
 
 DockItem *Dock::findDockItemForMinimizedWindow(unsigned int window)
 {
+    // No need to check Pinned items; window icons are always non-resident
     for(int i = 0; i < [m_items count]; ++i) {
         DockItem *di = [m_items objectAtIndex:i];
         if([di type] == DIT_WINDOW && [di window] == window)
@@ -593,6 +497,9 @@ DockItem *Dock::findDockItemForMinimizedWindow(unsigned int window)
 
 void Dock::removeWindowFromAll(unsigned int window)
 {
+    for(int i = 0; i < [m_itemsPinned count]; ++i)
+        [[m_items objectAtIndex:i] removeWindow:window];
+
     for(int i = 0; i < [m_items count]; ++i) {
         DockItem *di = [m_items objectAtIndex:i];
         if([di type] != DIT_WINDOW)
@@ -632,7 +539,7 @@ void Dock::loadProcessTable()
         int len = readlink([path UTF8String], buf, PATH_MAX-1);
         if(len <= 0)
             continue;
-        NSString *name = [NSString stringWithCString:buf length:len];
+        NSString *name = [NSString stringWithUTF8String:buf];
         NSBundle *bundle = [NSBundle bundleWithModulePath:name];
         NSString *bname = [bundle bundlePath];
 
@@ -660,8 +567,8 @@ void Dock::loadProcessTable()
     // FIXME: also create items for any non-resident running bundles,
     // even if they have no windows
 
-    for(int i = 0; i < [m_items count]; ++i) {
-        DockItem *di = [m_items objectAtIndex:i];
+    for(int i = 0; i < [m_itemsPinned count]; ++i) {
+        DockItem *di = [m_itemsPinned objectAtIndex:i];
         pid_t pid = 0;
         NSArray *pids = [processDict objectForKey:[di execPath]];
         if(pids)
@@ -703,6 +610,9 @@ void Dock::setRunningLabel(int i)
     }
 }
 
+// FIXME: this needs to shift icons to keep display position aligned
+// with m_items index or else clicking the displayed icon invokes the
+// wrong item slot
 void Dock::clearRunningLabel(void *item)
 {
     DockItem *di = (DockItem *)item;

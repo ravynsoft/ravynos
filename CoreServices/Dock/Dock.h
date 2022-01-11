@@ -26,15 +26,16 @@
 
 #import <Foundation/Foundation.h>
 
-#include <QWidget>
-#include <QScreen>
-#include <QApplication>
-#include <QGridLayout>
-#include <QPixmap>
-#include <QThread>
+#import <QWidget>
+#import <QScreen>
+#import <QApplication>
+#import <QGridLayout>
+#import <QBoxLayout>
+#import <QPixmap>
+#import <QThread>
 
-#include <unistd.h>
-#include <sys/event.h>
+#import <unistd.h>
+#import <sys/event.h>
 
 #import "DockItem.h"
 
@@ -49,6 +50,8 @@
 #define INFOKEY_LOCATION @"Location"
 #define INFOKEY_CUR_ITEMS @"CurrentItems"
 #define INFOKEY_FILER_DEF_FOLDER @"FilerDefaultFolder"
+
+#define DIVIDER_MARGIN 10
 
 #define DEBUG 1
 
@@ -74,7 +77,7 @@ public:
     };
 
     void relocate();    // Move self to preferred location & size
-    void loadItems();   // Load the items we should display
+    void loadItems();   // Load the pinned items we should display
 
     void mousePressEvent(QMouseEvent *e);
     void mouseReleaseEvent(QMouseEvent *e);
@@ -84,6 +87,8 @@ public:
     DockItem *findDockItemForMinimizedWindow(unsigned int window);
     void removeWindowFromAll(unsigned int window);
     int indexOfItem(DockItem *di);
+    int iconSize(void);
+    bool addSlot(void);
 
     // thread safety helpers for the kq loop
     void emitSignal(int i, void *di);
@@ -103,20 +108,30 @@ signals:
     void dockShouldAddNonResident(unsigned int pid, const char *path);
 
 private:
+    void setLength(int length);
+    int currentLength(void);
     void savePrefs(void);
     void swapWH(void);  // swap current width and height
     bool capLength(void); // cap size at max for screen. Ret true if capped
     int itemFromPos(int x, int y);
     void loadProcessTable();
+    QFrame *makeDivider();
 
     NSUserDefaults *m_prefs;
-    NSMutableArray *m_items;
+    NSMutableArray *m_itemsPinned;  // Filer & resident icons go first
+    NSMutableArray *m_items;        // then temporary icons & windows
+    NSMutableArray *m_itemsSpecial; // then Downloads & Trash at the end
     int m_itemSlots;
     DockItem *m_emptyItem;
     Location m_location;
     int m_maxLength;
     QScreen *m_screen;
     QSize m_currentSize;
+    QBoxLayout *m_box;
+    QGridLayout *m_cellsPinned;
     QGridLayout *m_cells;
+    QGridLayout *m_cellsSpecial;
+    QFrame *m_divider;
+    QFrame *m_divider2;
     QPixmap *m_iconRun;
 };

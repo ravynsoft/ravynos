@@ -25,8 +25,8 @@
 #pragma once
 
 #import <Foundation/Foundation.h>
-#include <QIcon>
-#include <QLabel>
+#import <QIcon>
+#import <QLabel>
 
 enum DockItemType : unsigned int {
     DIT_INVALID,
@@ -46,6 +46,21 @@ enum DockItemFlags : unsigned int {
     DIF_ATTENTION = 0x4     // app wants attention
 };
 
+class DIWidget : public QLabel
+{
+public:
+    DIWidget(NSObject *owner);
+    ~DIWidget();
+
+    void mousePressEvent(QMouseEvent *e);
+    void mouseReleaseEvent(QMouseEvent *e);
+    void mouseDoubleClickEvent(QMouseEvent *e);
+    void mouseMoveEvent(QMouseEvent *e);
+
+private:
+    NSObject *_owner;
+};
+
 @interface DockItem : NSObject {
     NSString *_path;        // path of the item represented
     NSString *_execPath;    // actual executable for _path
@@ -57,6 +72,7 @@ enum DockItemFlags : unsigned int {
     NSString *_label;       // displayed on hover
     QIcon *_icon;
     QLabel *_runMarker;
+    DIWidget *_widget;
 }
 
 +dockItemWithPath:(NSString *)path;
@@ -85,6 +101,7 @@ enum DockItemFlags : unsigned int {
 -(QIcon *)icon;
 -(BOOL)hasPath:(NSString *)path;
 
+-(QLabel *)widget;
 -(QLabel *)_getRunMarker;
 
 -(void)setFlags:(DockItemFlags)flags;
@@ -99,5 +116,6 @@ enum DockItemFlags : unsigned int {
 -(void)setRunningMarker:(QLabel *)label;
 -(void)setLabel:(const char *)label;
 -(void)setIcon:(QIcon)icon;
+-(void)resize:(int)size;
 
 @end

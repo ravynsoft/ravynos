@@ -23,11 +23,38 @@
  */
 
 #import "Dock.h"
+#import "Utils.h"
 #import <LaunchServices/LaunchServices.h>
-#include <XdgDesktopFile>
+#import <XdgDesktopFile>
 
-extern unsigned long eventID();
-extern int piper(int n);
+
+DIWidget::DIWidget(NSObject *owner)
+{
+    _owner = owner;
+    setAlignment(Qt::AlignCenter);
+    setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+}
+
+DIWidget::~DIWidget()
+{
+}
+
+void DIWidget::mousePressEvent(QMouseEvent *e)
+{
+}
+
+void DIWidget::mouseReleaseEvent(QMouseEvent *e)
+{
+}
+
+void DIWidget::mouseDoubleClickEvent(QMouseEvent *e)
+{
+}
+
+void DIWidget::mouseMoveEvent(QMouseEvent *e)
+{
+}
+
 
 @implementation DockItem
 
@@ -41,6 +68,19 @@ extern int piper(int n);
 
 +dockItemWithMinimizedWindow:(unsigned int)window {
     return [[self alloc] initWithMinimizedWindow:window];
+}
+
+/* We can't rely on g_dock->iconSize because DockItems are constructed
+ * from within the Dock constructor. Boooo.
+ */
++(int)iconSize {
+    NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
+    NSString *s = [prefs stringForKey:INFOKEY_CUR_SIZE];
+    if(s) {
+        NSSize sz = NSSizeFromString(s);
+        return ((sz.width < sz.height) ? sz.width : sz.height) - 16;
+    }
+    return 64;
 }
 
 -initWithPath:(NSString *)path {
@@ -111,6 +151,10 @@ extern int piper(int n);
     _flags = DIF_NORMAL;
     _pids = [NSMutableArray new];
     _windows = [NSMutableArray new];
+    _widget = new DIWidget(self);
+    int size = [DockItem iconSize];
+    _widget->setPixmap(_icon->pixmap(size, size));
+    _widget->setToolTip(QString::fromUtf8([_label UTF8String]));
     return self;
 }
 
@@ -130,6 +174,10 @@ extern int piper(int n);
     _pids = [NSMutableArray new];
     _windows = [NSMutableArray new];
     [_windows addObject:[NSNumber numberWithInteger:window]];
+    _widget = new DIWidget(self);
+    int size = [DockItem iconSize];
+    _widget->setPixmap(_icon->pixmap(size, size));
+    _widget->setToolTip(QString::fromUtf8([_label UTF8String]));
     return self;
 }
 
@@ -147,6 +195,10 @@ extern int piper(int n);
     _pids = [NSMutableArray new];
     _windows = [NSMutableArray new];
     [_windows addObject:[NSNumber numberWithInteger:window]];
+    _widget = new DIWidget(self);
+    int size = [DockItem iconSize];
+    _widget->setPixmap(_icon->pixmap(size, size));
+    _widget->setToolTip(QString::fromUtf8([_label UTF8String]));
     return self;
 }
 
@@ -155,6 +207,8 @@ extern int piper(int n);
         delete _icon;
     if(_runMarker)
         _runMarker->deleteLater();
+    if(_widget)
+        _widget->deleteLater();
     [super dealloc];
 }
 
@@ -226,6 +280,10 @@ extern int piper(int n);
 
 -(QIcon *)icon {
     return _icon;
+}
+
+-(QLabel *)widget {
+    return static_cast<QLabel *>(_widget);
 }
 
 // YES if equal to either item path
@@ -349,12 +407,19 @@ extern int piper(int n);
 
 -(void)setLabel:(const char *)label {
     _label = [NSString stringWithUTF8String:label];
+    _widget->setToolTip(label);
 }
 
 -(void)setIcon:(QIcon)icon {
     if(_icon)
         delete _icon;
     _icon = new QIcon(icon);
+    int size = [DockItem iconSize];
+    _widget->setPixmap(_icon->pixmap(size, size));
+}
+
+-(void)resize:(int)size {
+    _widget->setPixmap(_icon->pixmap(size, size));
 }
 
 -(NSString *)description {
