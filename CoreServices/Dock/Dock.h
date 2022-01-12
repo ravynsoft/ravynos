@@ -86,8 +86,7 @@ public:
     DockItem *findDockItemForMinimizedWindow(unsigned int window);
     void removeWindowFromAll(unsigned int window);
     int iconSize(void);
-    bool addSlot(void);
-    bool removeSlot(void);
+    bool adjustSize(void);
 
     // thread safety helpers for the kq loop
     void emitStarted(void *di);

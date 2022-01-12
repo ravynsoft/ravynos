@@ -79,10 +79,8 @@ void DIWidget::mouseReleaseEvent(QMouseEvent *e)
                     WindowTracker::activateWindow(window);
                     DockItem *di =
                         g_dock->findDockItemForMinimizedWindow(window);
-                    if(di) {
+                    if(di)
                         g_dock->clearRunningLabel(di);
-                        [di release];
-                    }
                 }
 
                 // If Filer with no windows, fall through & launch folder
@@ -199,8 +197,7 @@ void DIWidget::mouseMoveEvent(QMouseEvent *e)
     } else if([[path pathExtension] isEqualToString:@"desktop"]) {
         _type = DIT_APP_DESKTOP;
 
-        // Simplified version of the LSAppRecord parser. Desktop files must
-        // contain an absolute Exec= path and Icon to go on the Dock
+        // Simplified version of the LSAppRecord parser
         XdgDesktopFile df;
         if(df.load([path UTF8String]) && df.isValid()
             && df.type() == XdgDesktopFile::ApplicationType) {

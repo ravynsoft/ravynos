@@ -1,6 +1,7 @@
 APP=	Dock
 SRCS=	main.mm Dock.mm DockItem.mm WindowTracker.mm Utils.mm
-RESOURCES=	Dock.png running.png window.png Trash.app folder.png
+RESOURCES=	Dock.png running.png window.png Trash.app folder.png \
+		Downloads.app
 
 Dock.o: Dock.mm Dock.h Dock.moc
 DockItem.o: DockItem.mm DockItem.h
@@ -18,7 +19,12 @@ Trash.app::
 	${MAKE} -C Trash
 	mv Trash/${.TARGET} .
 
+Downloads.app::
+	rm -rf ${.TARGET}
+	${MAKE} -C Downloads
+	mv Downloads/${.TARGET} .
+
 .include <airyx.app.mk>
 
-all: Trash.app
+all: Trash.app Downloads.app
 	cp -fv ${.CURDIR}/Info.plist ${APP_DIR}/Contents/

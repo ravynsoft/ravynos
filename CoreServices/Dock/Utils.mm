@@ -107,62 +107,15 @@ bool Dock::capLength()
     return capped;
 }
 
-bool Dock::addSlot()
+bool Dock::adjustSize()
 {
     int count =[m_itemsPinned count] + [m_itemsSpecial count] +
         [m_items count];
-    NSLog(@"addSlot orig len=%d count=%d (%d %d %d)", currentLength(), count,
-        [m_itemsPinned count], [m_itemsSpecial count], [m_items count]);
-
     int length = iconSize()*count + CELL_SPACER*count + CELL_SPACER*2;
     setLength(length);
-    NSLog(@"addSlot new len=%d", length);
 
     relocate();
     return true;
-#if 0
-    int length = iconSize() + CELL_SPACER*2;
-    switch(m_location) {
-        case LOCATION_BOTTOM:
-            length += m_currentSize.width();
-            if(length <= m_maxLength) {
-                m_currentSize.setWidth(length);
-                relocate();
-                return true;
-            }
-        default:
-            length += m_currentSize.height();
-            if(length <= m_maxLength) {
-                m_currentSize.setHeight(length);
-                relocate();
-                return true;
-            }
-    }
-
-    return false;
-#endif
-}
-
-bool Dock::removeSlot()
-{
-    return addSlot();
-#if 0
-    int length;
-    switch(m_location) {
-        case LOCATION_BOTTOM:
-            length = m_currentSize.width() - iconSize() - CELL_SPACER*2;
-            m_currentSize.setWidth(length);
-            relocate();
-            return true;
-        default:
-            length = m_currentSize.height() - iconSize() - CELL_SPACER*2;
-            m_currentSize.setHeight(length);
-            relocate();
-            return true;
-    }
-
-    return false;
-#endif
 }
 
 QFrame *Dock::makeDivider()

@@ -181,7 +181,7 @@ void Dock::addNonResident(unsigned int pid, const char *path)
     // never show icons for my own services, which can happen because
     // of weird fork() scenarios like fail to exec()
     if([[di bundleIdentifier] isEqualToString:@"org.airyx.Dock"] ||
-       [[di bundleIdentifier] isEqualToString:@"org.airyx.Dock.Trash"])
+       [[di bundleIdentifier] hasPrefix:@"org.airyx.Dock."])
         return;
 
     _addNonResident(di);
@@ -192,7 +192,7 @@ void Dock::addNonResident(unsigned int pid, const char *path)
 void Dock::_addNonResident(DockItem *di)
 {
     [m_items addObject:di];
-    if(!addSlot()) {
+    if(!adjustSize()) {
         NSLog(@"addNonResident: too many items!");
         // FIXME: should we just make icons smaller and pack them in?
         [m_items removeObjectIdenticalTo:di];
@@ -261,32 +261,20 @@ void Dock::loadItems()
             m_cellsPinned->addWidget([info widget], x, 0, Qt::AlignCenter);
     }
 
-    NSString *dlapp = [[NSBundle mainBundle] pathForResource:@"Trash"
-        ofType:@"app"]; // FIXME: Downloads
-    DockItem *downloads = [DockItem dockItemWithPath:dlapp];
-    [downloads setIcon:QIcon([[[NSBundle mainBundle] pathForResource:@"folder"
-        ofType:@"png"] UTF8String])];
-    [downloads setLabel:"Downloads"];
-    [downloads setResident:YES];
-    [downloads setLocked:YES];
-    [m_itemsSpecial addObject:downloads];
+    NSString *specials[] = {@"Downloads",@"Trash"};
+    for(int x = 0; x < 2; ++x) {
+        NSString *bundle = [[NSBundle mainBundle]
+            pathForResource:specials[x] ofType:@"app"];
+        DockItem *it = [DockItem dockItemWithPath:bundle];
+        [it setResident:YES];
+        [it setLocked:YES];
+        [m_itemsSpecial addObject:it];
 
-    if(m_location == LOCATION_BOTTOM)
-        m_cellsSpecial->addWidget([downloads widget], 0, 0, Qt::AlignCenter);
-    else
-        m_cellsSpecial->addWidget([downloads widget], 0, 0, Qt::AlignCenter);
-
-    NSString *trashapp = [[NSBundle mainBundle] pathForResource:@"Trash"
-        ofType:@"app"];
-    DockItem *trashitem = [DockItem dockItemWithPath:trashapp];
-    [trashitem setResident:YES];
-    [trashitem setLocked:YES];
-    [m_itemsSpecial addObject:trashitem];
-
-    if(m_location == LOCATION_BOTTOM)
-        m_cellsSpecial->addWidget([trashitem widget], 0, 1, Qt::AlignCenter);
-    else
-        m_cellsSpecial->addWidget([trashitem widget], 1, 0, Qt::AlignCenter);
+        if(m_location == LOCATION_BOTTOM)
+            m_cellsSpecial->addWidget([it widget], 0, x, Qt::AlignCenter);
+        else
+            m_cellsSpecial->addWidget([it widget], x, 0, Qt::AlignCenter);
+    }
 }
 
 // TODO: connect primaryScreenChanged signal to this
@@ -489,14 +477,12 @@ void Dock::setRunningLabel(void *di)
     [(DockItem *)di setRunningMarker:l]; // save this so we can delete later
 
     int i;
-    NSMutableArray *collection = ([(DockItem *)di isResident]
-        ? m_itemsPinned : m_items);
-    int count = [collection count];
     QGridLayout *cells = ([(DockItem *)di isResident]
         ? m_cellsPinned : m_cells);
 
-    for(i = 0; i < count; ++i) {
-        if((void *)[collection objectAtIndex:i] == di) {
+    for(i = 0; i < cells->count(); ++i) {
+        QLayoutItem *layout = cells->itemAt(i);
+        if(layout && layout->widget() == [di widget]) {
             switch(m_location) {
                 case LOCATION_RIGHT:
                 case LOCATION_LEFT:
@@ -513,7 +499,7 @@ void Dock::setRunningLabel(void *di)
         }
     }
 
-    if(i > count)
+    if(i > cells->count())
         NSLog(@"setRunningLabel: item %@ not found in layout",
             [(DockItem *)di label]);
 }
@@ -533,7 +519,7 @@ void Dock::clearRunningLabel(void *item)
 
         [m_items removeObjectIdenticalTo:di];
         [di release];
-        removeSlot();
+        adjustSize();
     }
 }
 
