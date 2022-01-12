@@ -44,7 +44,7 @@
 #define ICON_MIN 24
 #define DOCK_HEIGHT_MAX 136
 #define DOCK_HEIGHT_MIN 32
-#define DOCK_LENGTH_MIN 300
+#define DOCK_LENGTH_MIN 128
 
 #define INFOKEY_CUR_SIZE @"CurrentSize"
 #define INFOKEY_LOCATION @"Location"
@@ -81,30 +81,30 @@ public:
 
     void mousePressEvent(QMouseEvent *e);
     void mouseReleaseEvent(QMouseEvent *e);
-    void mouseDoubleClickEvent(QMouseEvent *e);
-    void mouseMoveEvent(QMouseEvent *e);
+
     DockItem *findDockItemForPath(char *path);
     DockItem *findDockItemForMinimizedWindow(unsigned int window);
     void removeWindowFromAll(unsigned int window);
-    int indexOfItem(DockItem *di);
     int iconSize(void);
     bool addSlot(void);
+    bool removeSlot(void);
 
     // thread safety helpers for the kq loop
-    void emitSignal(int i, void *di);
+    void emitStarted(void *di);
+    void emitStopped(void *di);
     void emitAddNonResident(unsigned int pid, const char *path);
 
     void _addNonResident(DockItem *di);
 
 public slots:
     void clearRunningLabel(void *di);
-    void setRunningLabel(int i);
+    void setRunningLabel(void *di);
     void addNonResident(unsigned int pid, const char *path);
 
 
 signals:
     void itemShouldClearIndicator(void *di);
-    void itemShouldSetIndicator(int i);
+    void itemShouldSetIndicator(void *di);
     void dockShouldAddNonResident(unsigned int pid, const char *path);
 
 private:

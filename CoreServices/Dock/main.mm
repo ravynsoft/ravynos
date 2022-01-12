@@ -64,13 +64,9 @@ void pidMonitorLoop(void) {
 
                         BOOL wasRunning = [item isRunning];
                         [item addPID:out[i].ident];
-                        int index = g_dock->indexOfItem(item);
                         if(!wasRunning) {
-                            NSDebugLog(@"Item Started: %d %@", index, [item label]);
-                            if(index >= 0)
-                                g_dock->emitSignal(index, NULL);
-                            else
-                                NSLog(@"Invalid index for %@", item);
+                            NSDebugLog(@"Item Started: %@", [item label]);
+                            g_dock->emitStarted((void *)item);
                         }
                     }
                     if((out[i].fflags & NOTE_EXIT)) {
@@ -79,7 +75,7 @@ void pidMonitorLoop(void) {
                         [item removePID:out[i].ident];
                         if(![item isRunning]) {
                             NSDebugLog(@"Item Stopped: %@", [item label]);
-                            g_dock->emitSignal(0, (void *)item);
+                            g_dock->emitStopped((void *)item);
                         }
                     }
                     break;

@@ -24,9 +24,12 @@
 
 #import "Dock.h"
 #import "Utils.h"
+#import "WindowTracker.h"
 #import <LaunchServices/LaunchServices.h>
 #import <XdgDesktopFile>
+#import <QMouseEvent>
 
+extern Dock *g_dock;
 
 DIWidget::DIWidget(NSObject *owner)
 {
@@ -41,18 +44,84 @@ DIWidget::~DIWidget()
 
 void DIWidget::mousePressEvent(QMouseEvent *e)
 {
+    switch(e->button()) {
+        case Qt::LeftButton: // logical left, the primary action
+            NSDebugLog(@"click res=%d type=%d %@, start timer for menu",
+                [(DockItem*)_owner isResident],
+                [(DockItem*)_owner type],
+                [(DockItem*)_owner label]);
+            e->accept();
+            break;
+        case Qt::RightButton: // logical right, the secondary action
+            NSDebugLog(@"right click %@, show the menu now",
+                [(DockItem*)_owner label]);
+            e->accept();
+            break;
+        default: break;
+    }
 }
 
 void DIWidget::mouseReleaseEvent(QMouseEvent *e)
 {
+    switch(e->button()) {
+        case Qt::LeftButton: // logical left, the primary action
+        {
+            if([(DockItem*)_owner type] == DIT_WINDOW) { // unminimizing?
+                unsigned int window = [(DockItem*)_owner window];
+                WindowTracker::activateWindow(window);
+                g_dock->clearRunningLabel(_owner);
+                e->accept();
+                break;
+            }
+            if([(DockItem*)_owner isRunning]) { // clicked a running app?
+                unsigned int window = [(DockItem*)_owner window];
+                if(window) {
+                    WindowTracker::activateWindow(window);
+                    DockItem *di =
+                        g_dock->findDockItemForMinimizedWindow(window);
+                    if(di) {
+                        g_dock->clearRunningLabel(di);
+                        [di release];
+                    }
+                }
+
+                // If Filer with no windows, fall through & launch folder
+                if(![[(DockItem*)_owner bundleIdentifier]
+                    isEqualToString:@"org.airyx.Filer"] ||
+                    [[(DockItem*)_owner windows] count] > 1) {
+                    e->accept();
+                    break;
+                }
+            }
+            LSLaunchURLSpec spec = { 0 };
+            spec.appURL = (CFURLRef)[NSURL fileURLWithPath:
+                [(DockItem*)_owner path]];
+            if([[(DockItem*)_owner bundleIdentifier]
+                isEqualToString:@"org.airyx.Filer"]) // Filer is special
+                spec.itemURLs = (CFArrayRef)[NSArray arrayWithObject:
+                    [NSURL fileURLWithPath:
+                    [[[NSUserDefaults standardUserDefaults]
+                    stringForKey:INFOKEY_FILER_DEF_FOLDER]
+                    stringByStandardizingPath]]];
+            LSOpenFromURLSpec(&spec, NULL);
+            [(DockItem*)_owner setNeedsAttention:YES]; // bouncy bouncy
+            e->accept();
+            break;
+        }
+        default: break;
+    }
 }
 
 void DIWidget::mouseDoubleClickEvent(QMouseEvent *e)
 {
+    NSLog(@"Mouse DoubleClick %@", _owner);
+    e->accept();
 }
 
 void DIWidget::mouseMoveEvent(QMouseEvent *e)
 {
+    NSLog(@"Mouse Move %@", _owner);
+    e->accept();
 }
 
 

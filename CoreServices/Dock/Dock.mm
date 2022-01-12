@@ -45,7 +45,6 @@ Dock::Dock()
     :QWidget(nullptr, Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint |
             Qt::WindowOverridesSystemGestures | Qt::WindowDoesNotAcceptFocus)
     ,m_currentSize(900,64)
-    ,m_itemSlots(0)
 {
     m_prefs = [[NSUserDefaults standardUserDefaults] retain];
     m_items = m_itemsPinned = m_itemsSpecial = nil;
@@ -86,6 +85,7 @@ Dock::Dock()
     m_box->addLayout(m_cellsPinned);
     m_box->addWidget(m_divider);
     m_box->addLayout(m_cells);
+    m_box->setStretchFactor(m_cells, 10);
     m_box->addWidget(m_divider2);
     m_box->addLayout(m_cellsSpecial);
 
@@ -140,14 +140,16 @@ Dock::~Dock()
     [m_items release];
 }
 
-// Helper to emit signals which is needed because our kq loop
+// Helpers to emit signals which is needed because our kq loop
 // is not part of the class. It can't 'emit' on its own.
-void Dock::emitSignal(int i, void *di)
+void Dock::emitStarted(void *di)
 {
-    if(di)
-        emit itemShouldClearIndicator(di);
-    else
-        emit itemShouldSetIndicator(i);
+    emit itemShouldSetIndicator(di);
+}
+
+void Dock::emitStopped(void *di)
+{
+    emit itemShouldClearIndicator(di);
 }
 
 void Dock::emitAddNonResident(unsigned int pid, const char *path)
@@ -189,37 +191,20 @@ void Dock::addNonResident(unsigned int pid, const char *path)
 // WindowTracker for DIs created by window.
 void Dock::_addNonResident(DockItem *di)
 {
-    int size = (m_location == LOCATION_BOTTOM
-        ? m_currentSize.height() : m_currentSize.width()) - 16;
-
-    int index;
-    for(index = 0; index < [m_items count]; ++index) {
-        if([[m_items objectAtIndex:index] isEqual:m_emptyItem]) {
-            [m_items replaceObjectAtIndex:index withObject:di];
-            break;
-        }
+    [m_items addObject:di];
+    if(!addSlot()) {
+        NSLog(@"addNonResident: too many items!");
+        // FIXME: should we just make icons smaller and pack them in?
+        [m_items removeObjectIdenticalTo:di];
+        return;
     }
-
-    if(index >= [m_items count]) {
-        // All slots are full. Can we expand Dock?
-        bool expanded = addSlot();
-        if(expanded)
-            [m_items addObject:di];
-        else {
-            NSLog(@"addNonResident: too many items!");
-            // FIXME: should we just make icons smaller and pack them in?
-            return;
-        }
-    }
-
-    NSDebugLog(@"addNonResident at %u", index);
 
     if(m_location == LOCATION_BOTTOM)
-        m_cells->addWidget([di widget], 0, index, Qt::AlignCenter);
+        m_cells->addWidget([di widget],0,m_cells->count(),Qt::AlignCenter);
     else
-        m_cells->addWidget([di widget], index, 0, Qt::AlignCenter);
+        m_cells->addWidget([di widget],m_cells->count(),0,Qt::AlignCenter);
 
-    setRunningLabel(index);
+    setRunningLabel(di);
 }
 
 
@@ -237,20 +222,17 @@ void Dock::loadItems()
     if(m_items == nil)
         m_items = [NSMutableArray arrayWithCapacity:3];
 
-    int items = [pinnedItems count] + 6; // 3 transient & 3 special items
-    int length = size * items;
+    int items = [pinnedItems count] + 3; // 3 special items
+    int length = size * items + CELL_SPACER*items + CELL_SPACER*2;
 
     setLength(length);
-    m_itemSlots = items;
     this->relocate();
 
     // Relocate caps our length to the screen size if needed. If length
     // has changed, recalculate how many items we can display
     int curlength = currentLength();
-    if(length != curlength) {
+    if(length != curlength)
         items = curlength / size;
-        m_itemSlots = items;
-    }
 
     NSMutableArray *apps = [NSMutableArray new];
     [apps addObject:@"/System/Library/CoreServices/Filer.app"];
@@ -271,19 +253,13 @@ void Dock::loadItems()
         if(x == 0)
             [info setLocked:YES];
         [info setResident:YES];
-        [m_itemsPinned addObject:info]; // must keep in same order as cells!
+        [m_itemsPinned addObject:info];
 
         if(m_location == LOCATION_BOTTOM)
             m_cellsPinned->addWidget([info widget], 0, x, Qt::AlignCenter);
         else
             m_cellsPinned->addWidget([info widget], x, 0, Qt::AlignCenter);
     }
-
-    // All the pinned items are done. Now create 3 placeholders for
-    // non-resident apps or minimized windows. We expand this area as
-    // needed.
-    for(int x = 0; x < 3; ++x)
-        [m_items addObject:m_emptyItem];
 
     NSString *dlapp = [[NSBundle mainBundle] pathForResource:@"Trash"
         ofType:@"app"]; // FIXME: Downloads
@@ -362,6 +338,8 @@ void Dock::relocate()
 
     // Get in position and update size
     this->move(xpos, ypos);
+    this->setMinimumSize(0, 0);
+    this->setMaximumSize(m_currentSize);
     this->resize(m_currentSize);
 
     // Round our corners
@@ -375,92 +353,14 @@ void Dock::relocate()
     this->show();
 }
 
-int Dock::itemFromPos(int x, int y)
-{
-    int size = (m_location == LOCATION_BOTTOM)
-        ? m_currentSize.width() : m_currentSize.height();
-    int cellsize = size / m_itemSlots;
-
-    int item = -1;
-    if(m_location == LOCATION_BOTTOM)
-        item = x / cellsize;
-    else
-        item = y / cellsize;
-    return item;
-}
-
 void Dock::mousePressEvent(QMouseEvent *e)
 {
-    int itempos = itemFromPos(e->x(), e->y());
-    DockItem *item = [m_items objectAtIndex:itempos];
-    if(!item)
-        return;
-
-    switch(e->button()) {
-        case Qt::LeftButton: // logical left, the primary action
-            NSDebugLog(@"click %d, start long-press timer for menu", itempos);
-            break;
-        case Qt::RightButton: // logical right, the secondary action
-            NSDebugLog(@"right click %d, show the menu now",itempos);
-            break;
-        default: break;
-    }
+    NSDebugLog(@"Dock::mousePressEvent - ignored");
 }
 
 void Dock::mouseReleaseEvent(QMouseEvent *e)
 {
-    int itempos = itemFromPos(e->x(), e->y());
-    DockItem *item = [m_items objectAtIndex:itempos];
-    if(!item)
-        return;
-
-    switch(e->button()) {
-        case Qt::LeftButton: // logical left, the primary action
-        {
-            if([item type] == DIT_WINDOW) { // unminimizing?
-                unsigned int window = [item window];
-                WindowTracker::activateWindow(window);
-                clearRunningLabel(item);
-                break;
-            }
-            if([item isRunning]) { // clicked a running app?
-                unsigned int window = [item window];
-                if(window) {
-                    WindowTracker::activateWindow(window);
-                    DockItem *winDI = findDockItemForMinimizedWindow(window);
-                    if(winDI) {
-                        clearRunningLabel(winDI);
-                        [winDI release];
-                    }
-                }
-
-                // If Filer with no windows, fall through & launch folder
-                if(itempos != 0 || [[item windows] count] > 1)
-                    break;
-            }
-            LSLaunchURLSpec spec = { 0 };
-            spec.appURL = (CFURLRef)[NSURL fileURLWithPath:[item path]];
-            if(itempos == 0) // Filer is special
-                spec.itemURLs = (CFArrayRef)[NSArray arrayWithObject:
-                    [NSURL fileURLWithPath:
-                    [[m_prefs stringForKey:INFOKEY_FILER_DEF_FOLDER]
-                    stringByStandardizingPath]]];
-            LSOpenFromURLSpec(&spec, NULL);
-            [item setNeedsAttention:YES]; // bouncy bouncy
-            break;
-        }
-        default: break;
-    }
-}
-
-void Dock::mouseDoubleClickEvent(QMouseEvent *e)
-{
-    NSDebugLog(@"mouseDouble");
-}
-
-void Dock::mouseMoveEvent(QMouseEvent *e)
-{
-    NSDebugLog(@"mouseMove - dragging item %d", itemFromPos(e->x(), e->y()));
+    NSDebugLog(@"Dock::mouseReleaseEvent - ignored");
 }
 
 DockItem *Dock::findDockItemForPath(char *path)
@@ -498,21 +398,13 @@ DockItem *Dock::findDockItemForMinimizedWindow(unsigned int window)
 void Dock::removeWindowFromAll(unsigned int window)
 {
     for(int i = 0; i < [m_itemsPinned count]; ++i)
-        [[m_items objectAtIndex:i] removeWindow:window];
+        [[m_itemsPinned objectAtIndex:i] removeWindow:window];
 
     for(int i = 0; i < [m_items count]; ++i) {
         DockItem *di = [m_items objectAtIndex:i];
         if([di type] != DIT_WINDOW)
             [di removeWindow:window];
     }
-}
-
-int Dock::indexOfItem(DockItem *di)
-{
-    NSUInteger i = [m_items indexOfObjectIdenticalTo:di];
-    if(i != NSNotFound)
-        return (int)i;
-    return -1;
 }
 
 
@@ -539,6 +431,8 @@ void Dock::loadProcessTable()
         int len = readlink([path UTF8String], buf, PATH_MAX-1);
         if(len <= 0)
             continue;
+        buf[len] = 0;
+
         NSString *name = [NSString stringWithUTF8String:buf];
         NSBundle *bundle = [NSBundle bundleWithModulePath:name];
         NSString *bname = [bundle bundlePath];
@@ -580,39 +474,50 @@ void Dock::loadProcessTable()
             for(int j = 0; j < [pids count]; ++j)
                 [di addPID:[[pids objectAtIndex:j] intValue]];
 
-        [di isRunning] ? setRunningLabel(i) : clearRunningLabel(di);
+        [di isRunning] ? setRunningLabel(di) : clearRunningLabel(di);
     }
 }
 
-void Dock::setRunningLabel(int i)
+void Dock::setRunningLabel(void *di)
 {
-    DockItem *di = [m_items objectAtIndex:i];
-    if([di _getRunMarker] != NULL || [di type] == DIT_WINDOW)
+    if([(DockItem *)di _getRunMarker] != NULL ||
+        [(DockItem *)di type] == DIT_WINDOW)
         return;
 
     QLabel *l = new QLabel;
     l->setPixmap(*m_iconRun);
-    [di setRunningMarker:l]; // save this so we can delete later
+    [(DockItem *)di setRunningMarker:l]; // save this so we can delete later
 
-    switch(m_location) {
-        case LOCATION_LEFT:
-            m_cells->addWidget(l, i, 0,
-                Qt::AlignVCenter | Qt::AlignLeft);
+    int i;
+    NSMutableArray *collection = ([(DockItem *)di isResident]
+        ? m_itemsPinned : m_items);
+    int count = [collection count];
+    QGridLayout *cells = ([(DockItem *)di isResident]
+        ? m_cellsPinned : m_cells);
+
+    for(i = 0; i < count; ++i) {
+        if((void *)[collection objectAtIndex:i] == di) {
+            switch(m_location) {
+                case LOCATION_RIGHT:
+                case LOCATION_LEFT:
+                    cells->addWidget(l, i, 0,
+                        Qt::AlignVCenter |
+                        (m_location == LOCATION_RIGHT
+                        ? Qt::AlignRight : Qt::AlignLeft));
+                    break;
+                default:
+                    cells->addWidget(l, 0, i,
+                        Qt::AlignHCenter | Qt::AlignBottom);
+            }
             break;
-        case LOCATION_RIGHT:
-            m_cells->addWidget(l, i, 0,
-                Qt::AlignVCenter | Qt::AlignRight);
-            break;
-        default:
-            m_cells->addWidget(l, 0, i,
-                Qt::AlignHCenter | Qt::AlignBottom);
-            break;
+        }
     }
+
+    if(i > count)
+        NSLog(@"setRunningLabel: item %@ not found in layout",
+            [(DockItem *)di label]);
 }
 
-// FIXME: this needs to shift icons to keep display position aligned
-// with m_items index or else clicking the displayed icon invokes the
-// wrong item slot
 void Dock::clearRunningLabel(void *item)
 {
     DockItem *di = (DockItem *)item;
@@ -620,31 +525,15 @@ void Dock::clearRunningLabel(void *item)
     m_cells->removeWidget(marker);
     [di setRunningMarker:NULL];
 
-    if([di isResident] == NO && [di isLocked] == NO) {
-        int index = [m_items indexOfObjectIdenticalTo:di];
-        if(index < 0 || index > m_itemSlots)
-            return;
+    QWidget *w = (QWidget *)[di widget];
 
-        QLayoutItem *layout = m_cells->itemAtPosition(
-            m_location == LOCATION_BOTTOM ? 0 : index,
-            m_location == LOCATION_BOTTOM ? index : 0);
-
-        if(layout == nullptr)
-            return;
-
-        QWidget *w = layout->widget();
-
-        if(w == nullptr)
-            return;
-
-        NSDebugLog(@"Removing non-resident app %@ from slot %d",
-            [di label], index);
-
+    if(![di isResident] && ![di isLocked] && w) {
         m_cells->removeWidget(w);
         w->deleteLater();
 
+        [m_items removeObjectIdenticalTo:di];
         [di release];
-        [m_items replaceObjectAtIndex:index withObject:m_emptyItem];
+        removeSlot();
     }
 }
 
