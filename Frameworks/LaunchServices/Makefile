@@ -1,7 +1,7 @@
 .include <internal/framework.common.mk>
 
 FRAMEWORK=LaunchServices
-SRCS= LaunchServices.mm LSAppRecord.mm UTTypes.mm
+SRCS= LaunchServices.mm LSAppRecord.mm UTTypes.mm LSIPC.mm
 INCS= LaunchServices.h UTCoreTypes.h UTTypes.h
 RESOURCES= Info.plist InitDB.sql DBSchema_3_4.sql
 QT5CFLAGS!= pkg-config --cflags Qt5Xdg Qt5DBus
