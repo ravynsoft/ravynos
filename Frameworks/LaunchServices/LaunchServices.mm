@@ -1,7 +1,7 @@
 /*
  * Airyx LaunchServices
  *
- * Copyright (C) 2021 Zoe Knox <zoe@pixin.net>
+ * Copyright (C) 2021-2022 Zoe Knox <zoe@pixin.net>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -32,6 +32,7 @@
 
 #include <sqlite3.h>
 #include <stdio.h>
+#include <unistd.h>
 #include <QDBusConnection>
 #include <QDBusInterface>
 #include <QMimeDatabase>
@@ -49,21 +50,17 @@
 
 @implementation LaunchServices
 +database {
-    return [[[NSPlatform currentPlatform] libraryDirectory] stringByAppendingString:@"/db/launchservices.db"];
+    static NSString *db = nil;
+
+    if(db == nil)
+        db = [NSString stringWithFormat:
+        @"/var/db/launchd/com.apple.launchd.peruser.%u/launchservices.db",
+        getuid()];
+    return db;
 }
 @end
 
-
-// FIXME: these should talk to a privileged service (maybe over DBus) but for now we'll
-// just manipulate some files. The service is /System/Library/CoreServices/launchservicesd
-// on macOS.
-// See https://developer.gnome.org/DBusApplicationLaunching/ and 
-// https://techbase.kde.org/Development/Tutorials/D-Bus/Autostart_Services
-
 // FIXME: which error code to return for each case is just a guess
-
-// FIXME: stuff to track per application:
-// - DBus activatable boolean
 
 //------------------------------------------------------------------------
 //    INTERNAL FUNCTIONS - DON'T USE. SEE BELOW FOR PUBLIC API
