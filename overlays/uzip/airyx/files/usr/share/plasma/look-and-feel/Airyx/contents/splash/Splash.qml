@@ -23,7 +23,7 @@ import org.kde.plasma.core 2.0 as PlasmaCore
 
 Image {
     id: root
-    source: "images/tanuki.png"
+    source: "images/marmoset.png"
 
     property int stage
 
@@ -64,7 +64,7 @@ Image {
 	Text {
 	    id: verstext
 	    color: "#eff0f1"
-	    text: "Tanuki v0.3.0"
+	    text: "Pygmy Marmoset v0.4.0pre1"
 	    font.pointSize: 20
 	    font { family: "Nimbus Sans"; weight: Font.Regular }
 	    x: (PlasmaCore.Units.gridUnit * 2)

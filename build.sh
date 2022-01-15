@@ -165,12 +165,12 @@ base()
   # TODO: Signature checking
   if [ ! -f "${base}/base.txz" ] ; then 
     cd ${base}
-    fetch https://dl.cloudsmith.io/public/airyx/core/raw/files/base.txz
+    fetch -o base.txz https://dl.cloudsmith.io/public/airyx/core/raw/names/base_airyx.txz/files/base.txz
   fi
   
   if [ ! -f "${base}/kernel.txz" ] ; then
     cd ${base}
-    fetch https://dl.cloudsmith.io/public/airyx/core/raw/files/kernel.txz
+    fetch -o kernel.txz https://dl.cloudsmith.io/public/airyx/core/raw/names/kernel_airyx.txz/files/kernel.txz
   fi
 
   if [ ! -f "${base}/airyx.txz" ] ; then
@@ -327,7 +327,7 @@ initgfx()
       PKGS="release_2"
     fi
 	ver=470
-        pkgfile='nvidia-driver-470.74.txz' #$(/usr/sbin/pkg-static -c ${uzip} rquery %n-%v.txz nvidia-driver${ver:+-$ver})
+        pkgfile='nvidia-driver-470.86.txz' #$(/usr/sbin/pkg-static -c ${uzip} rquery %n-%v.txz nvidia-driver${ver:+-$ver})
         fetch -o "${cache}/" "https://pkg.freebsd.org/FreeBSD:${MAJOR}:amd64/${PKGS}/All/${pkgfile}"
         mkdir -p "${uzip}/usr/local/nvidia/${ver:-440}/"
         tar xfC "${cache}"/${pkgfile} "${uzip}/usr/local/nvidia/${ver:-440}/"
