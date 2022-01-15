@@ -406,6 +406,8 @@ NSString *formatMediaSize(long bytes) {
     [entries addObjectsFromArray:@[
         @"opensolaris_load=\"YES\"\n",
         @"zfs_load=\"YES\"\n",
+        @"mach_load=\"YES\"\n",
+        @"init_path=\"/sbin/launchd\"\n",
         @"boot_mute=\"YES\"\n",
         @"beastie_disable=\"YES\"\n",
         @"autoboot_delay=\"3\"\n",
