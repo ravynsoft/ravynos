@@ -33,6 +33,8 @@ typedef enum {
     GS_DISK_TYPE_OTHER = 0,
     GS_DISK_TYPE_ATA,
     GS_DISK_TYPE_SCSI,
+    GS_DISK_TYPE_MMC,
+    GS_DISK_TYPE_VIRTIO, // bhyve image
     GS_DISK_TYPE_CD
 } GSDiskType;
 
