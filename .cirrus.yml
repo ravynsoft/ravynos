@@ -1,6 +1,6 @@
 compute_engine_instance:
-  image_project: freebsd-org-cloud-dev
-  image: family/freebsd-12-3
+  image_project: airyxos-images
+  image: packer-1642357192
   platform: freebsd
   cpu: 8
   memory: 16G
@@ -13,9 +13,6 @@ airyx_task:
     KEY: ENCRYPTED[f68765a53df76c1b9cd6d870e0054317f9cc517313bf6c56d0b094a1ad01e968a95e6328b37b53db7840d112ff165c46]
     PKG_CONFIG_PATH: /usr/libdata/pkgconfig:/usr/local/libdata/pkgconfig
   script:
-    - fetch -o /tmp/base.txz https://dl.cloudsmith.io/public/airyx/core/raw/names/base_airyx.txz/files/base.txz
-    - chflags -R 0 /
-    - tar -C / -xf /tmp/base.txz
     - cp -afv mk/*.mk /usr/share/mk
     - cp -fv etc/pkg/*.conf /etc/pkg/ && rm -fv /etc/pkg/FreeBSD.conf
     - fetch -o /tmp/liblz4.pkg https://dl.cloudsmith.io/public/airyx/core/raw/files/liblz4-1.9.3,1.pkg
