@@ -9,7 +9,7 @@ compute_engine_instance:
 iso_task:
   timeout_in: 120m
   script:
-    - pkg-static install -y sshpass bash
+    - pkg install -y sshpass bash
     - ln -sf /usr/local/bin/bash /bin/bash
     - curl -Lo /tmp/version.txt https://raw.githubusercontent.com/mszoek/airyx/main/version.txt
     - cp -fv /tmp/version.txt overlays/ramdisk/version

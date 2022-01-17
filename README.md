@@ -1,19 +1,10 @@
-# hello Live ISO builder [![Build Status](https://api.cirrus-ci.com/github/helloSystem/ISO.svg)](https://cirrus-ci.com/github/helloSystem/ISO)
+# airyxOS ISO builder [![Build Status](https://api.cirrus-ci.com/github/mszoek/ISO.svg)](https://cirrus-ci.com/github/mszoek/ISO)
 
-This Live ISO builder builds Live ISOs from FreeBSD ingredients. It is based on [furybsd-livecd](https://github.com/furybsd/furybsd-livecd/) by Joe Maloney.
+This Live ISO builder builds Live ISOs for airyxOS. It is based on [furybsd-livecd](https://github.com/furybsd/furybsd-livecd/) by Joe Maloney and enhancements from [helloSystem](https://hellosystem.github.io).
 
 ## Continuous builds
 
-Continuous builds can be downloaded [here](../../releases/). __CAUTION:__ These are meant for development only. Use at your own risk. Do not use in production environments.
-
-To minimize the amount of data when going from build to build, `.zsync` files are also provided. [More information](https://askubuntu.com/questions/54241/how-do-i-update-an-iso-with-zsync)
-
-It is possible to directly download and write straight to a USB stick in one go. __Caution:__ This will OVERWRITE the entire contents of the USB stick.
-
-```
-root@FreeBSD:/ # umount /dev/daX*
-root@FreeBSD:/ # curl -L "https://github.com/probonopd/furybsd-livecd/releases/download/continuous/...iso" | dd of=/dev/daX bs=4m
-```
+Continuous builds can be downloaded [here](https://dl.airyx.org/nightly/). __CAUTION:__ These are meant for development only. Use at your own risk.
 
 ## System Requirements for live media
 
@@ -21,6 +12,8 @@ root@FreeBSD:/ # curl -L "https://github.com/probonopd/furybsd-livecd/releases/d
 * 4 GiB RAM (system memory for physical and viritualized installs)
 * VGA capable of 1024x768 screen resolution 
 * Either a CD/DVD drive or a USB port for booting the installer media
+
+airyxOS also runs well in virtual environments. It has been successfully run in VMware Fusion, VirtualBox, Proxmox, QEMU/KVM, and bhyve.
 
 ## Credentials for live media
 
