@@ -141,7 +141,7 @@ BOOL discoverGEOMs(BOOL onlyUsable) {
                     case GS_DISK_TYPE_ATA:
                     case GS_DISK_TYPE_SCSI:
                     case GS_DISK_TYPE_MMC:
-                    case GS_DISK_TYPE_VBD:
+                    case GS_DISK_TYPE_VIRTIO:
                         [disks addObject:curDisk];
                         break;
                     default: break;
@@ -240,7 +240,7 @@ NSString *formatMediaSize(long bytes) {
     else if([_name hasPrefix:@"mmc"])
         _type = GS_DISK_TYPE_MMC;
     else if([_name hasPrefix:@"vbd"])
-        _type = GS_DISK_TYPE_VBD;
+        _type = GS_DISK_TYPE_VIRTIO;
     else if([_name hasPrefix:@"cd"])
         _type = GS_DISK_TYPE_CD;
 }
