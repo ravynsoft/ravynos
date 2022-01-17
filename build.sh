@@ -8,19 +8,6 @@ VER="12.2"
 MAJOR="12"
 VERSIONSUFFIX="RELEASE"
 
-# Determine the version of the running host system.
-# Building ISOs for other major versions than the running host system
-# is not supported and results in broken images anyway
-#version=$(uname -r | cut -d "-" -f 1-2) # "12.2-RELEASE" or "13.0-CURRENT"
-
-#if [ "${version}" = "13.0-CURRENT" ] ; then
-  # version="13.0-RC3"
-#  version="13.0-RELEASE"
-#fi
-
-#VER=$(uname -r | cut -d "-" -f 1) # "12.2" or "13.0"
-#MAJOR=$(uname -r | cut -d "." -f 1) # "12" or "13"
-
 if [ -z "${AIRYX}" ]; then
   AIRYX=$(pwd)/..
 fi
@@ -121,7 +108,11 @@ if [ "${desktop}" = "hello" ] ; then
 fi
 
 if [ "${desktop}" = "airyx" ]; then
-    isopath="${iso}/${tag}_f${MAJOR}_${arch}.iso"
+    MAJLABEL="f${MAJOR}"
+    if [ ! -z "${CIRRUS_BUILD_ID}" ]; then
+      MAJLABEL="${MAJLABEL}_${CIRRUS_BUILD_ID}"
+    fi
+    isopath="${iso}/${tag}_${MAJLABEL}_${arch}.iso"
 fi
 
 cleanup()
@@ -369,6 +360,10 @@ ramdisk()
   cd ${cwd} && zpool import furybsd && zfs set mountpoint=${workdir}/furybsd/uzip furybsd
   sync ### Needed?
   cd "${uzip}" && tar -cf - rescue | tar -xf - -C "${ramdisk_root}"
+  mkdir -p "${ramdisk_root}/bin" "${ramdisk_root}/sbin" "${ramdisk_root}/usr/libexec"
+  ln -sf "../rescue/rescue" "${ramdisk_root}/bin/launchctl"
+  ln -sf "../rescue/rescue" "${ramdisk_root}/usr/libexec/launchproxy"
+  cp -vf "${uzip}/sbin/launchd" "${ramdisk_root}/sbin"
   touch "${ramdisk_root}/etc/fstab"
   cp ${uzip}/etc/login.conf ${ramdisk_root}/etc/login.conf
   makefs -b '10%' "${cdroot}/data/ramdisk.ufs" "${ramdisk_root}"
