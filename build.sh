@@ -3,10 +3,23 @@
 # Exit on errors
 set -e
 
+# I don't think these are really even used anymore...
 version="12.2-RELEASE"  # branch releng/12.2
 VER="12.2"
 MAJOR="12"
 VERSIONSUFFIX="RELEASE"
+
+if [ -x /usr/sbin/pkg ]; then
+  PKG=/usr/sbin/pkg
+elif [ -x /usr/local/sbin/pkg ]; then
+  PKG=/usr/local/sbin/pkg
+elif [ -x ${PKG} ]; then
+  PKG=${PKG}
+else
+  echo Cannot locate pkg command
+  exit 127
+fi
+
 
 if [ -z "${AIRYX}" ]; then
   AIRYX=$(pwd)/..
@@ -185,9 +198,9 @@ pkg_add_from_url()
       if [ ! -e ${uzip}${pkg_cachedir}/${pkg_cachesubdir}/${pkgfile} ]; then
         fetch -o ${uzip}${pkg_cachedir}/${pkg_cachesubdir}/ $url
       fi
-      IGNORE_OSVERSION=yes /usr/sbin/pkg-static -c "${uzip}" install -y $(/usr/sbin/pkg-static query -F ${uzip}${pkg_cachedir}/${pkg_cachesubdir}/${pkgfile} %dn)
-      IGNORE_OSVERSION=yes $abi /usr/sbin/pkg-static -c "${uzip}" add ${pkg_cachedir}/${pkg_cachesubdir}/${pkgfile}
-      IGNORE_OSVERSION=yes /usr/sbin/pkg-static -c "${uzip}" lock -y $(/usr/sbin/pkg-static query -F ${uzip}${pkg_cachedir}/${pkg_cachesubdir}/${pkgfile} %o)
+      IGNORE_OSVERSION=yes ${PKG} -c "${uzip}" install -y $(${PKG} query -F ${uzip}${pkg_cachedir}/${pkg_cachesubdir}/${pkgfile} %dn)
+      IGNORE_OSVERSION=yes $abi ${PKG} -c "${uzip}" add ${pkg_cachedir}/${pkg_cachesubdir}/${pkgfile}
+      IGNORE_OSVERSION=yes ${PKG} -c "${uzip}" lock -y $(${PKG} query -F ${uzip}${pkg_cachedir}/${pkg_cachesubdir}/${pkgfile} %o)
 }
 
 packages()
@@ -200,7 +213,7 @@ packages()
   # FIXME: In the following line, the hardcoded "i386" needs to be replaced by "${arch}" - how?
   for p in common-${MAJOR} ${desktop}; do
     sed '/^#/d;/\!i386/d;/^cirrus:/d;/^https:/d' "${cwd}/settings/packages.$p" | \
-      xargs /usr/sbin/pkg-static -c "${uzip}" install -y
+      xargs ${PKG} -c "${uzip}" install -y
     pkg_cachedir=/var/cache/pkg
     # Install packages beginning with 'cirrus:'
     mkdir -p ${uzip}${pkg_cachedir}/furybsd-cirrus
@@ -217,16 +230,16 @@ packages()
   # Install the packages we have generated in pkg() that are listed in transient-packages-list
   ls -lh "${packages}/transient/"
   while read -r p; do
-    # FIXME: Is there something like "/usr/sbin/pkg-static add" that can be used
+    # FIXME: Is there something like "${PKG} add" that can be used
     # to install local packages (not from a repository) that will
     # resolve dependencies from the repositories?
     # The following will just fail in the case of unmet dependencies
-    /usr/sbin/pkg-static -r ${uzip} add "${packages}/transient/${p}" # pkg-static add has no -y
+    ${PKG} -r ${uzip} add "${packages}/transient/${p}" # pkg-static add has no -y
   done <"${packages}/transient/transient-packages-list"
   
-  # /usr/sbin/pkg-static -c ${uzip} info > "${cdroot}/data/system.uzip.manifest"
+  # ${PKG} -c ${uzip} info > "${cdroot}/data/system.uzip.manifest"
   # Manifest of installed packages ordered by size in bytes
-  /usr/sbin/pkg-static -c ${uzip} query "%sb\t%n\t%v\t%c" | sort -r -s -n -k 1,1 > "${cdroot}/data/system.uzip.manifest"
+  ${PKG} -c ${uzip} query "%sb\t%n\t%v\t%c" | sort -r -s -n -k 1,1 > "${cdroot}/data/system.uzip.manifest"
   cp "${cdroot}/data/system.uzip.manifest" "${isopath}.manifest"
 }
 
@@ -318,7 +331,7 @@ initgfx()
       PKGS="release_2"
     fi
 	ver=470
-        pkgfile='nvidia-driver-470.86.txz' #$(/usr/sbin/pkg-static -c ${uzip} rquery %n-%v.txz nvidia-driver${ver:+-$ver})
+        pkgfile='nvidia-driver-470.86.txz' #$(${PKG} -c ${uzip} rquery %n-%v.txz nvidia-driver${ver:+-$ver})
         fetch -o "${cache}/" "https://pkg.freebsd.org/FreeBSD:${MAJOR}:amd64/${PKGS}/All/${pkgfile}"
         mkdir -p "${uzip}/usr/local/nvidia/${ver:-440}/"
         tar xfC "${cache}"/${pkgfile} "${uzip}/usr/local/nvidia/${ver:-440}/"
