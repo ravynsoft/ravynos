@@ -13,8 +13,8 @@ iso_task:
   script:
     - pkg install -y sshpass bash
     - ln -sf /usr/local/bin/bash /bin/bash
-    - sshpass -e scp -B -o StrictHostKeyChecking=no /usr/local/furybsd/iso/*.iso airyxos@dl.int.airyx.org:/var/www/html/releases/nightly/
     - curl -Lo /tmp/version.txt https://raw.githubusercontent.com/mszoek/airyx/main/version.txt
     - cp -fv /tmp/version.txt overlays/ramdisk/version
     - AIRYX=/tmp ./build.sh airyx airyxOS_$(head -1 /tmp/version.txt)
+    - sshpass -e scp -o StrictHostKeyChecking=no /usr/local/furybsd/iso/*.iso airyxos@dl.int.airyx.org:releases/nightly/
   only_if: $CIRRUS_BRANCH == 'airyx'
