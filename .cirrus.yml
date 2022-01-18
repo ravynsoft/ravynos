@@ -14,5 +14,7 @@ iso_task:
     - curl -Lo /tmp/version.txt https://raw.githubusercontent.com/mszoek/airyx/main/version.txt
     - cp -fv /tmp/version.txt overlays/ramdisk/version
     - AIRYX=/tmp VERSION=$(head -1 /tmp/version.txt) ./build.sh airyx airyxOS_${VERSION}
+    - mkdir -p $HOME/.ssh
+    - echo 'dl.int.airyx.org,141.94.64.232 ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBHUm2XCPo2tMTif5BvC612ADKBb/gdNHK9zjkSt7HIw265LZI89iwuOEpUsl8HdV1olRv5V0xSFXoiho0T6xZy0=' > $HOME/.ssh/known_hosts
     - sshpass -e scp /usr/local/furybsd/iso/*.iso airyxos@dl.int.airyx.org:/var/www/html/releases/nightly/
   only_if: $CIRRUS_BRANCH == 'airyx'
