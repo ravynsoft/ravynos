@@ -60,6 +60,7 @@
 #include "llvm/Support/raw_ostream.h"
 #include <cstdlib>
 #include <utility>
+#include <unistd.h> // readlink
 
 using namespace llvm;
 using namespace llvm::ELF;
@@ -279,6 +280,49 @@ void LinkerDriver::addLibrary(StringRef name) {
     addFile(*path, /*withLOption=*/true);
   else
     error("unable to find library -l" + name);
+}
+
+// Add all libraries within a framework found on the framework search path
+void LinkerDriver::addFramework(StringRef name) {
+  if (Optional<std::string> path = searchFramework(name)) {
+    path->append(llvm::sys::path::get_separator());
+    path->append("Versions");
+    path->append(llvm::sys::path::get_separator());
+
+    std::string rpath(path.getValue());
+
+    path->append("Current");
+    config->searchPaths.push_back(path.getValue());
+
+    char buffer[_POSIX_PATH_MAX];
+    int count = ::readlink(path.getValue().c_str(), buffer, sizeof(buffer));
+    if(count > 0)
+      rpath.append(buffer, buffer + count);
+    else
+      rpath.append("Current");
+
+    // handle frameworks relative to executable (in the app bundle)
+    if(llvm::sys::path::is_relative(Twine(rpath))) {
+      std::string opath("$ORIGIN");
+      opath.append(llvm::sys::path::get_separator());
+      opath.append(rpath);
+      rpath = opath;
+    }
+    config->frameworkRunPaths.push_back(rpath);
+
+    // Now that we've added the current version folder of the framework, find
+    // all the shared libs inside it and add them to the link
+    std::error_code EC;
+    llvm::sys::fs::directory_iterator Dir = llvm::sys::fs::directory_iterator(Twine(path.getValue()), EC, true);
+    llvm::sys::fs::directory_iterator DirEnd;
+    for(Dir; Dir != DirEnd && !EC; Dir.increment(EC)) {
+      if (llvm::sys::path::extension(Dir->path()) != ".so")
+        continue;
+      addFile(Dir->path(), true);
+    }
+  }
+  else
+    error("unable to find framework " + name);
 }
 
 // This function is called on startup. We need this for LTO since
@@ -937,6 +981,7 @@ static void readConfigs(opt::InputArgList &args) {
       args.hasFlag(OPT_export_dynamic, OPT_no_export_dynamic, false);
   config->filterList = args::getStrings(args, OPT_filter);
   config->fini = args.getLastArgValue(OPT_fini, "_fini");
+  config->frameworkSearchPaths = args::getStrings(args, OPT_F);
   config->fixCortexA53Errata843419 = args.hasArg(OPT_fix_cortex_a53_843419) &&
                                      !args.hasArg(OPT_relocatable);
   config->fixCortexA8 =
@@ -1308,6 +1353,9 @@ void LinkerDriver::createFiles(opt::InputArgList &args) {
     switch (arg->getOption().getID()) {
     case OPT_library:
       addLibrary(arg->getValue());
+      break;
+    case OPT_framework:
+      addFramework(arg->getValue());
       break;
     case OPT_INPUT:
       addFile(arg->getValue(), /*withLOption=*/false);

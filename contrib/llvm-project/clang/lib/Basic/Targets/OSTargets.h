@@ -227,6 +227,8 @@ protected:
     Builder.defineMacro("__KPRINTF_ATTRIBUTE__");
     DefineStd(Builder, "unix", Opts);
     Builder.defineMacro("__ELF__");
+    Builder.defineMacro("__MACH__");
+    Builder.defineMacro("__AIRYX__");
 
     // On FreeBSD, wchar_t contains the number of the code point as
     // used by the character set of the locale. These character sets are

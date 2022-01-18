@@ -238,6 +238,9 @@ P1003_1B_MQUEUE			opt_posix.h
 P1003_1B_SEMAPHORES		opt_posix.h
 _KPOSIX_PRIORITY_SCHEDULING	opt_posix.h
 
+# PThread WorkQueue Option
+THRWORKQ	opt_thrworkq.h
+
 # Do we want the config file compiled into the kernel?
 INCLUDE_CONFIG_FILE	opt_config.h
 
@@ -975,6 +978,10 @@ RANDOM_LOADABLE	opt_global.h
 # the uma slab allocator.
 RANDOM_ENABLE_UMA	opt_global.h
 RANDOM_ENABLE_ETHER	opt_global.h
+
+# Mach support options
+COMPAT_MACH_STATIC
+COMPAT_MACH_PORT_DEBUG opt_compat_mach.h
 
 # This options turns TPM into entropy source.
 TPM_HARVEST	opt_tpm.h

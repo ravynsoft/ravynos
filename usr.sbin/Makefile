@@ -5,6 +5,7 @@
 
 SUBDIR=	adduser \
 	arp \
+	asl \
 	binmiscctl \
 	camdd \
 	cdcontrol \
@@ -55,6 +56,7 @@ SUBDIR=	adduser \
 	nfsuserd \
 	nmtree \
 	nologin \
+	notifyd \
 	pciconf \
 	periodic \
 	pnfsdscopymr \

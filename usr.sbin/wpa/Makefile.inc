@@ -21,6 +21,8 @@ HOSTAPD_DISTDIR?=	${WPA_DISTDIR}/hostapd
 	${WPA_DISTDIR}/src/utils \
 	${WPA_DISTDIR}/src/wps
 
+# Undef __MACH__ until we have a proper CF
+CFLAGS+=-U__MACH__
 CFLAGS+=-I${.CURDIR}
 CFLAGS+=-I${HOSTAPD_DISTDIR}
 CFLAGS+=-I${WPA_DISTDIR}/src

@@ -46,6 +46,11 @@ typedef __size_t	size_t;
 /* Create the system scope thread. */
 #define	THR_SYSTEM_SCOPE	0x0002
 
+/* Default thread stack size. */
+#define        THR_STACK_DEFAULT       (sizeof(void *) / 4 * 1024 * 1024)
+/* Initial (main) thread's stack size. */
+#define        THR_STACK_INITIAL       (THR_STACK_DEFAULT * 2)
+
 struct thr_param {
     void	(*start_func)(void *);	/* thread entry function. */
     void	*arg;			/* argument for entry function. */
@@ -81,6 +86,7 @@ int thr_kill2(pid_t pid, long id, int sig);
 int thr_suspend(const struct timespec *timeout);
 int thr_wake(long id);
 int thr_set_name(long id, const char *name);
+void *thr_stack(size_t stacksize, size_t guardsize);
 __END_DECLS
 #endif /* !_KERNEL */
 

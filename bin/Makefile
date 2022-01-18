@@ -20,6 +20,7 @@ SUBDIR= cat \
 	hostname \
 	kenv \
 	kill \
+	launchctl \
 	ln \
 	ls \
 	mkdir \

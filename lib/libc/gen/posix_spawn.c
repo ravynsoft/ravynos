@@ -45,6 +45,10 @@ __FBSDID("$FreeBSD$");
 #include "un-namespace.h"
 #include "libc_private.h"
 
+#ifdef __AIRYX__
+#include <apple/sys/spawn.h>
+#endif
+
 extern char **environ;
 
 struct __posix_spawnattr {
@@ -297,6 +301,16 @@ do_posix_spawn(pid_t *pid, const char *path,
 	psa.envp = envp;
 	psa.use_env_path = use_env_path;
 	psa.error = 0;
+
+#ifdef __AIRYX__
+	/* Apple extension needed for launchd */
+	if(sa && ((*sa)->sa_flags & POSIX_SPAWN_SETEXEC)) {
+		if (pid != NULL)
+			*pid = getpid();
+		_posix_spawn_thr(&psa); /* does not return unless error */
+		return (errno);
+	}
+#endif
 
 	/*
 	 * Passing RFSPAWN to rfork(2) gives us effectively a vfork that drops

@@ -10,7 +10,7 @@ CFLAGS+=	-I${OPENBSMDIR}
 PROG=	auditreduce
 MAN=	auditreduce.1
 
-LIBADD=	bsm
+LIBADD=	bsm System notify
 
 WARNS?=	3
 

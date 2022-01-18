@@ -32,6 +32,7 @@ __FBSDID("$FreeBSD$");
 #include "opt_capsicum.h"
 #include "opt_hwpmc_hooks.h"
 #include "opt_ktrace.h"
+#include "opt_thrworkq.h"
 #include "opt_vm.h"
 
 #include <sys/param.h>
@@ -67,6 +68,9 @@ __FBSDID("$FreeBSD$");
 #include <sys/sysctl.h>
 #include <sys/sysent.h>
 #include <sys/sysproto.h>
+#ifdef THRWORKQ
+#include <sys/thrworkq.h>
+#endif
 #include <sys/timers.h>
 #include <sys/umtx.h>
 #include <sys/vnode.h>
@@ -306,6 +310,10 @@ pre_execve(struct thread *td, struct vmspace **oldvmspace)
 			error = ERESTART;
 		PROC_UNLOCK(p);
 	}
+#ifdef THRWORKQ
+	if (error == 0)
+		thrworkq_exit(p);
+#endif
 	KASSERT(error != 0 || (td->td_pflags & TDP_EXECVMSPC) == 0,
 	    ("nested execve"));
 	*oldvmspace = p->p_vmspace;

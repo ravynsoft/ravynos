@@ -33,6 +33,7 @@ __FBSDID("$FreeBSD$");
 
 #include "opt_ktrace.h"
 #include "opt_kqueue.h"
+#include "opt_compat_mach.h"
 
 #ifdef COMPAT_FREEBSD11
 #define	_WANT_FREEBSD11_KEVENT
@@ -362,6 +363,8 @@ static struct {
 	{ &user_filtops, 1 },			/* EVFILT_USER */
 	{ &null_filtops },			/* EVFILT_SENDFILE */
 	{ &file_filtops, 1 },                   /* EVFILT_EMPTY */
+	{ &null_filtops , 1},		/* EVFILT_MACHPORT */
+	{ &null_filtops },			/* EVFILT_VM */
 };
 
 /*
@@ -1106,6 +1109,27 @@ sys_kevent(struct thread *td, struct kevent_args *uap)
 		.k_copyout = kevent_copyout,
 		.k_copyin = kevent_copyin,
 		.kevent_size = sizeof(struct kevent),
+	};
+	struct g_kevent_args gk_args = {
+		.fd = uap->fd,
+		.changelist = uap->changelist,
+		.nchanges = uap->nchanges,
+		.eventlist = uap->eventlist,
+		.nevents = uap->nevents,
+		.timeout = uap->timeout,
+	};
+
+	return (kern_kevent_generic(td, &gk_args, &k_ops, "kevent"));
+}
+
+int
+sys_kevent64(struct thread *td, struct kevent64_args *uap)
+{
+	struct kevent_copyops k_ops = {
+		.arg = uap,
+		.k_copyout = kevent_copyout,
+		.k_copyin = kevent_copyin,
+		.kevent_size = sizeof(struct kevent64_s),
 	};
 	struct g_kevent_args gk_args = {
 		.fd = uap->fd,

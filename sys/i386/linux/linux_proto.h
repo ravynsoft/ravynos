@@ -19,6 +19,8 @@
 
 #include <bsm/audit_kevents.h>
 
+#include <sys/mach/mach_types.h>
+
 struct proc;
 
 struct thread;

@@ -168,12 +168,17 @@ MIASM =  \
 	aio_read.o \
 	aio_write.o \
 	lio_listio.o \
+	__proc_info.o \
+	__iopolicysys.o \
 	freebsd11_getdents.o \
 	lchmod.o \
 	lutimes.o \
 	freebsd11_nstat.o \
 	freebsd11_nfstat.o \
 	freebsd11_nlstat.o \
+	audit_session_self.o \
+	audit_session_join.o \
+	audit_session_port.o \
 	preadv.o \
 	pwritev.o \
 	fhopen.o \
@@ -233,6 +238,7 @@ MIASM =  \
 	getresgid.o \
 	kqueue.o \
 	freebsd11_kevent.o \
+	kevent64.o \
 	extattr_set_fd.o \
 	extattr_get_fd.o \
 	extattr_delete_fd.o \
@@ -316,6 +322,8 @@ MIASM =  \
 	thr_set_name.o \
 	aio_fsync.o \
 	rtprio_thread.o \
+	thr_stack.o \
+	thr_workq.o \
 	sctp_peeloff.o \
 	sctp_generic_sendmsg.o \
 	sctp_generic_sendmsg_iov.o \

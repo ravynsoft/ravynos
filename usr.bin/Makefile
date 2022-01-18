@@ -6,6 +6,7 @@
 SUBDIR=	alias \
 	apply \
 	asa \
+	aslutil \
 	awk \
 	backlight \
 	banner \
@@ -88,6 +89,7 @@ SUBDIR=	alias \
 	m4 \
 	mandoc \
 	mesg \
+	migcom \
 	minigzip \
 	ministat \
 	mkdep \
@@ -103,6 +105,7 @@ SUBDIR=	alias \
 	nice \
 	nl \
 	nohup \
+	notifyutil \
 	opieinfo \
 	opiekey \
 	opiepasswd \
@@ -184,6 +187,7 @@ SUBDIR=	alias \
 	xargs \
 	xinstall \
 	xo \
+	xpc-tests \
 	xz \
 	xzdec \
 	yes \

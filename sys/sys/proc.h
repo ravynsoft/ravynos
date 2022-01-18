@@ -372,6 +372,10 @@ struct thread {
 	int		td_ma_cnt;	/* (k) size of *td_ma */
 	/* LP64 hole */
 	void		*td_emuldata;	/* Emulator state data */
+    mi_switchcb_t   td_cswitchcb;   /* (k) context switch callback. */
+	struct threadlist *td_threadlist; /* (?) thread workq thread list. */
+	void            *td_reuse_stack;  /* (?) reuse workq thread stack.  */
+    void		*td_machdata;	/* (k) mach state. */
 	int		td_lastcpu;	/* (t) Last cpu we were on. */
 	int		td_oncpu;	/* (t) Which cpu we are on. */
 	void		*td_lkpi_task;	/* LinuxKPI task struct pointer */
@@ -460,7 +464,7 @@ do {									\
 #define	TDF_THRWAKEUP	0x00100000 /* Libthr thread must not suspend itself. */
 #define	TDF_SEINTR	0x00200000 /* EINTR on stop attempts. */
 #define	TDF_SWAPINREQ	0x00400000 /* Swapin request due to wakeup. */
-#define	TDF_UNUSED23	0x00800000 /* --available-- */
+#define	TDF_WORKQ	0x00800000 /* a workq thread */
 #define	TDF_SCHED0	0x01000000 /* Reserved for scheduler private use */
 #define	TDF_SCHED1	0x02000000 /* Reserved for scheduler private use */
 #define	TDF_SCHED2	0x04000000 /* Reserved for scheduler private use */
@@ -868,6 +872,9 @@ struct proc {
 #define	SW_VOL		0x0100		/* Voluntary switch. */
 #define	SW_INVOL	0x0200		/* Involuntary switch. */
 #define SW_PREEMPT	0x0400		/* The invol switch is a preemption */
+/* Callback type. */
+#define	SWCB_BLOCK		1	/* Thread is about to block. */
+#define	SWCB_UNBLOCK		2	/* Thread was just unblocked. */
 
 /* How values for thread_single(). */
 #define	SINGLE_NO_EXIT	0

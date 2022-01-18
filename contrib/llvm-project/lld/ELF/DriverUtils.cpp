@@ -243,6 +243,14 @@ Optional<std::string> elf::searchLibrary(StringRef name) {
   return searchLibraryBaseName(name);
 }
 
+Optional<std::string> searchFramework(StringRef name) {
+  for (StringRef dir : config->frameworkSearchPaths) {
+    if (Optional<std::string> s = findFile(dir, name + ".framework"))
+      return s;
+  }
+  return None;
+}
+
 // If a linker/version script doesn't exist in the current directory, we also
 // look for the script in the '-L' search paths. This matches the behaviour of
 // '-T', --version-script=, and linker script INPUT() command in ld.bfd.

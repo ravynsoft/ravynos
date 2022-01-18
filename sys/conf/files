@@ -414,6 +414,52 @@ contrib/ck/src/ck_hp.c					standard compile-with "${NORMAL_C} -I$S/contrib/ck/in
 contrib/ck/src/ck_hs.c					standard compile-with "${NORMAL_C} -I$S/contrib/ck/include"
 contrib/ck/src/ck_ht.c					standard compile-with "${NORMAL_C} -I$S/contrib/ck/include"
 contrib/ck/src/ck_rhs.c					standard compile-with "${NORMAL_C} -I$S/contrib/ck/include"
+
+compat/mach/host_priv_server.c	optional  compat_mach_static
+compat/mach/mach_host_server.c	optional  compat_mach_static
+compat/mach/mach_port_server.c	optional  compat_mach_static
+compat/mach/mach_vm_server.c	optional  compat_mach_static
+compat/mach/task_server.c		optional  compat_mach_static
+compat/mach/vm_map_server.c		optional  compat_mach_static
+compat/mach/clock_server.c		optional  compat_mach_static
+
+compat/mach/proc_info.c			optional  compat_mach_static		no-depend compile-with "${MACH_C}"
+compat/mach/mach_clock.c        optional  compat_mach_static
+compat/mach/mach_convert.c		optional  compat_mach_static
+compat/mach/mach_host.c         optional  compat_mach_static
+compat/mach/mach_host_priv.c    optional  compat_mach_static
+compat/mach/mach_misc.c         optional  compat_mach_static
+compat/mach/mach_processor.c         optional  compat_mach_static
+compat/mach/mach_semaphore.c    optional  compat_mach_static
+compat/mach/mach_task.c         optional  compat_mach_static
+compat/mach/mach_thread.c       optional  compat_mach_static
+compat/mach/mach_traps.c        optional  compat_mach_static
+compat/mach/mach_vm.c           optional  compat_mach_static
+
+
+compat/mach/ipc/ipc_entry.c		optional  compat_mach_static
+compat/mach/ipc/ipc_hash.c		optional  compat_mach_static
+compat/mach/ipc/ipc_init.c		optional  compat_mach_static
+compat/mach/ipc/ipc_kmsg.c		optional  compat_mach_static
+compat/mach/ipc/ipc_kobject.c	optional  compat_mach_static
+compat/mach/ipc/ipc_mqueue.c	optional  compat_mach_static
+compat/mach/ipc/ipc_notify.c	optional  compat_mach_static
+compat/mach/ipc/ipc_object.c	optional  compat_mach_static
+compat/mach/ipc/ipc_port.c		optional  compat_mach_static
+compat/mach/ipc/ipc_pset.c		optional  compat_mach_static
+compat/mach/ipc/ipc_right.c		optional  compat_mach_static
+compat/mach/ipc/ipc_space.c		optional  compat_mach_static
+compat/mach/ipc/ipc_table.c		optional  compat_mach_static
+compat/mach/ipc/ipc_thread.c	optional  compat_mach_static
+compat/mach/ipc/mach_debug.c	optional  compat_mach_static
+compat/mach/ipc/mach_msg.c		optional  compat_mach_static
+compat/mach/ipc/mach_port.c		optional  compat_mach_static
+
+compat/mach/kern/ipc_tt.c		optional  compat_mach_static
+compat/mach/kern/ipc_host.c		optional  compat_mach_static
+compat/mach/kern/task.c			optional  compat_mach_static
+compat/mach/kern/thread_pool.c	optional  compat_mach_static
+
 contrib/dev/acpica/common/ahids.c			optional acpi acpi_debug
 contrib/dev/acpica/common/ahuuids.c			optional acpi acpi_debug
 contrib/dev/acpica/components/debugger/dbcmds.c		optional acpi acpi_debug
@@ -3862,6 +3908,7 @@ kern/kern_sysctl.c		standard
 kern/kern_tc.c			standard
 kern/kern_thr.c			standard
 kern/kern_thread.c		standard
+kern/kern_thrworkq.c		standard
 kern/kern_time.c		standard
 kern/kern_timeout.c		standard
 kern/kern_tslog.c		optional tslog

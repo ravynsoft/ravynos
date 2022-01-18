@@ -518,6 +518,11 @@ mi_switch(int flags)
 	SCHED_STAT_INC(sched_switch_stats[flags & SW_TYPE_MASK]);
 #endif
 	/*
+	 * Do the context switch callback before blocking.
+	 */
+	if (td->td_cswitchcb != NULL)
+		(*td->td_cswitchcb)(SWCB_BLOCK, td);
+	/*
 	 * Compute the amount of time during which the current
 	 * thread was running, and add that to its total so far.
 	 */
@@ -541,6 +546,11 @@ mi_switch(int flags)
 	CTR4(KTR_PROC, "mi_switch: new thread %ld (td_sched %p, pid %ld, %s)",
 	    td->td_tid, td_get_sched(td), td->td_proc->p_pid, td->td_name);
 
+	/*
+	 * Do the context switch callback for unblocking.
+	 */
+	if (td->td_cswitchcb != NULL)
+		(*td->td_cswitchcb)(SWCB_UNBLOCK, td);
 	/* 
 	 * If the last thread was exiting, finish cleaning it up.
 	 */

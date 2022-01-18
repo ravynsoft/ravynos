@@ -124,6 +124,8 @@ struct Configuration {
   std::vector<llvm::StringRef> auxiliaryList;
   std::vector<llvm::StringRef> filterList;
   std::vector<llvm::StringRef> searchPaths;
+  std::vector<llvm::StringRef> frameworkSearchPaths;
+  std::vector<std::string> frameworkRunPaths;
   std::vector<llvm::StringRef> symbolOrderingFile;
   std::vector<llvm::StringRef> thinLTOModulesToCompile;
   std::vector<llvm::StringRef> undefined;

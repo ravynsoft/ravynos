@@ -42,6 +42,7 @@ __FBSDID("$FreeBSD$");
 #include "opt_ddb.h"
 #include "opt_hwpmc_hooks.h"
 #include "opt_sched.h"
+#include "opt_thrworkq.h"
 
 #include <sys/param.h>
 #include <sys/systm.h>
@@ -1220,6 +1221,10 @@ mutex_init(void)
 	blocked_lock.mtx_lock = 0xdeadc0de;	/* Always blocked. */
 	mtx_init(&proc0.p_mtx, "process lock", NULL, MTX_DEF | MTX_DUPOK);
 	mtx_init(&proc0.p_slock, "process slock", NULL, MTX_SPIN);
+#ifdef THRWORKQ
+	mtx_init(&proc0.p_twqlock, "thr workq lock", NULL, MTX_DEF | MTX_DUPOK);
+	proc0.p_twq = NULL;
+#endif /* THRWORKQ */
 	mtx_init(&proc0.p_statmtx, "pstatl", NULL, MTX_SPIN);
 	mtx_init(&proc0.p_itimmtx, "pitiml", NULL, MTX_SPIN);
 	mtx_init(&proc0.p_profmtx, "pprofl", NULL, MTX_SPIN);

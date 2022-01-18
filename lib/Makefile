@@ -63,19 +63,24 @@ SUBDIR=	${SUBDIR_BOOTSTRAP} \
 	libifconfig \
 	libipsec \
 	libjail \
+	libjansson \
 	libkiconv \
 	libkvm \
+	liblaunch \
 	liblua \
 	liblzma \
+	libmach \
 	libmemstat \
 	libmd \
 	libmt \
 	lib80211 \
 	libnetbsd \
 	libnetmap \
+	libnotify \
 	libnv \
 	libopenbsd \
 	libopie \
+	libosxsupport \
 	libpam \
 	libpathconv \
 	libpcap \
@@ -103,6 +108,7 @@ SUBDIR=	${SUBDIR_BOOTSTRAP} \
 	${_libvgl} \
 	libwrap \
 	libxo \
+	libxpc \
 	liby \
 	libz \
 	libzstd \
@@ -129,6 +135,7 @@ SUBDIR_DEPEND_libgeom= libexpat libsbuf
 SUBDIR_DEPEND_librpcsec_gss= libgssapi
 SUBDIR_DEPEND_libmagic= libz
 SUBDIR_DEPEND_libmemstat= libkvm
+SUBDIR_DEPEND_liblaunch= libasl
 SUBDIR_DEPEND_libopie= libmd
 SUBDIR_DEPEND_libpam= libcrypt libopie ${_libradius} librpcsvc libtacplus libutil ${_libypclnt} ${_libcom_err} 
 SUBDIR_DEPEND_libpjdlog= libutil
@@ -142,6 +149,7 @@ SUBDIR_DEPEND_liblzma= libthr
 .if ${MK_OFED} != "no"
 SUBDIR_DEPEND_libpcap= ofed
 .endif
+SUBDIR_DEPEND_libxpc= libdispatch
 
 .if !defined(COMPAT_32BIT)
 SUBDIR+=	flua

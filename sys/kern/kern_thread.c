@@ -349,6 +349,10 @@ thread_ctor(void *mem, int size, void *arg, int flags)
 	td->td_state = TDS_INACTIVE;
 	td->td_lastcpu = td->td_oncpu = NOCPU;
 
+	td->td_cswitchcb = NULL;
+	td->td_threadlist = NULL;
+	td->td_reuse_stack = NULL;
+
 	/*
 	 * Note that td_critnest begins life as 1 because the thread is not
 	 * running and is thereby implicitly waiting to be on the receiving
@@ -1225,6 +1229,12 @@ thread_single(struct proc *p, int mode)
 			if (td2 == td)
 				continue;
 			thread_lock(td2);
+			/* a workq thread may not actually be runnable */
+			if (td2->td_state == TDS_INACTIVE && (td2->td_flags & TDF_WORKQ)) {
+				thread_unlock(td2);
+				thread_stopped(p);
+				continue;
+			}
 			td2->td_flags |= TDF_ASTPENDING | TDF_NEEDSUSPCHK;
 			if (TD_IS_INHIBITED(td2)) {
 				wakeup_swapper |= weed_inhib(mode, td2, p);

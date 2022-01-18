@@ -1,3 +1,20 @@
+# Airyx FreeBSD Source
+
+## What is Airyx?
+
+Airyx is a new open source OS project that aims to provide a similar experience and some compatibiilty with macOS on x86-64 sytems. It builds on the solid foundations of FreeBSD, existing open source packages in the same space, and new code to fill the gaps. Please visit [airyx.org](https://airyx.org/) or join us on [Libera IRC](https://libera.chat) in `#airyx` for more info!
+
+![](https://api.cirrus-ci.com/github/mszoek/airyx-freebsd.svg?branch=airyx/12&task=base)
+
+This repository holds the patched FreeBSD base system on which Airyx is built.
+
+## Acknowledgements
+This project would not be possible without the generous support of [Cirrus CI](https://cirrus-ci.org/) for CI/CD and [Cloudsmith](https://cloudsmith.io/) for package hosting! Thanks to these awesome organizations for supporting open source software!
+
+[![Packages hosted by: Cloudsmith](https://img.shields.io/badge/OSS%20hosting%20by-cloudsmith-blue?logo=cloudsmith&style=flat-square)](https://cloudsmith.com)
+
+---
+
 FreeBSD Source:
 ---------------
 This is the top level of the FreeBSD source directory.  This file

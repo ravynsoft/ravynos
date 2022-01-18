@@ -15,7 +15,7 @@ WARNS?=	5
 .if ${MK_AUDIT} != "no"
 SRCS+=	login_audit.c
 CFLAGS+= -DUSE_BSM_AUDIT
-LIBADD+=	bsm
+LIBADD+=	bsm System notify
 .endif
 
 .if ${MK_SETUID_LOGIN} != "no"

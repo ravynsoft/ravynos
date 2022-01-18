@@ -14,7 +14,7 @@ MAN=	praudit.1
 
 WARNS?=	3
 
-LIBADD=	bsm
+LIBADD=	bsm System notify
 
 HAS_TESTS=
 SUBDIR.${MK_TESTS}+= tests

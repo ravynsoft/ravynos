@@ -12,6 +12,7 @@
 #include "Arch/Sparc.h"
 #include "CommonArgs.h"
 #include "clang/Driver/Compilation.h"
+#include "clang/Driver/Driver.h"
 #include "clang/Driver/DriverDiagnostic.h"
 #include "clang/Driver/Options.h"
 #include "clang/Driver/SanitizerArgs.h"
@@ -240,6 +241,27 @@ void freebsd::Linker::ConstructJob(Compilation &C, const JobAction &JA,
     assert(Output.isNothing() && "Invalid output.");
   }
 
+  CmdArgs.push_back("-F");
+  CmdArgs.push_back("/System/Library/Frameworks");
+  CmdArgs.push_back("-F");
+  CmdArgs.push_back("/Library/Frameworks");
+
+  Driver::InputList PPInputs;
+  D.BuildInputs(C.getDefaultToolChain(), C.getArgs(), PPInputs);
+
+  // Auto-link Foundation & objc for executables but not shared libs
+  // because that breaks
+  for (Driver::InputList::iterator it = PPInputs.begin(), ie = PPInputs.end(); it != ie;) {
+    if (types::isObjC(it->first) && !Args.hasArg(options::OPT_shared) &&
+      !Args.hasArg(options::OPT_nostdlib, options::OPT_nodefaultlibs)) {
+        CmdArgs.push_back("-framework");
+        CmdArgs.push_back("Foundation");
+        CmdArgs.push_back("-lobjc");
+	break;
+      }
+    it++;
+  }
+
   if (!Args.hasArg(options::OPT_nostdlib, options::OPT_nostartfiles)) {
     const char *crt1 = nullptr;
     if (!Args.hasArg(options::OPT_shared)) {
@@ -274,7 +296,7 @@ void freebsd::Linker::ConstructJob(Compilation &C, const JobAction &JA,
   Args.AddAllArgs(CmdArgs, options::OPT_t);
   Args.AddAllArgs(CmdArgs, options::OPT_Z_Flag);
   Args.AddAllArgs(CmdArgs, options::OPT_r);
-
+  
   if (D.isUsingLTO()) {
     assert(!Inputs.empty() && "Must have at least one input.");
     addLTOOptions(ToolChain, Args, CmdArgs, Output, Inputs[0],

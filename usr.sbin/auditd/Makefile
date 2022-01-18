@@ -23,7 +23,7 @@ PROG=	auditd
 SRCS=	auditd.c audit_warn.c auditd_fbsd.c
 MAN=	auditd.8
 
-LIBADD=	auditd bsm
+LIBADD=	auditd bsm System notify
 
 WARNS?=	3
 

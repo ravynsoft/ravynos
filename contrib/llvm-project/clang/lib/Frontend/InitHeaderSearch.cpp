@@ -443,14 +443,14 @@ void InitHeaderSearch::AddDefaultIncludePaths(const LangOptions &Lang,
   }
 
   // All header search logic is handled in the Driver for Darwin.
-  if (triple.isOSDarwin()) {
+  //if (triple.isOSDarwin()) {
     if (HSOpts.UseStandardSystemIncludes) {
       // Add the default framework include paths on Darwin.
       AddPath("/System/Library/Frameworks", System, true);
       AddPath("/Library/Frameworks", System, true);
     }
-    return;
-  }
+    //return;
+  //}
 
   if (Lang.CPlusPlus && !Lang.AsmPreprocessor &&
       HSOpts.UseStandardCXXIncludes && HSOpts.UseStandardSystemIncludes) {

@@ -8,6 +8,12 @@
 #include <sys/param.h>
 #include <sys/sysent.h>
 #include <sys/sysproto.h>
+#include <vm/vm.h>
+#include <sys/mach/mach_types.h>
+#include <sys/mach/message.h>
+#include <sys/mach/mach_time.h>
+#include <sys/mach/port.h>
+#include <sys/mach/clock_server.h>
 
 #define AS(name) (sizeof(struct name) / sizeof(register_t))
 

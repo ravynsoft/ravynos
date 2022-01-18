@@ -6368,7 +6368,7 @@ ObjCRuntime Clang::AddObjCRuntimeArgs(const ArgList &args,
 
       objcABIVersion = 1 + nonFragileABIVersion;
     } else {
-      objcABIVersion = 1;
+      objcABIVersion = 3;
     }
   }
 

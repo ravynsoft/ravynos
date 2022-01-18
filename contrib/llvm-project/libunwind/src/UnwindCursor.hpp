@@ -1551,7 +1551,7 @@ bool UnwindCursor<A, R>::getInfoFromCompactEncodingSection(pint_t pc,
                                               const UnwindInfoSections &sects) {
   const bool log = false;
   if (log)
-    fprintf(stderr, "getInfoFromCompactEncodingSection(pc=0x%llX, mh=0x%llX)\n",
+    fprintf(stderr, "getInfoFromCompactEncodingSection(pc=0x%lX, mh=0x%lX)\n",
             (uint64_t)pc, (uint64_t)sects.dso_base);
 
   const UnwindSectionHeader<A> sectionHeader(_addressSpace,
@@ -1594,7 +1594,7 @@ bool UnwindCursor<A, R>::getInfoFromCompactEncodingSection(pint_t pc,
       sects.compact_unwind_section + topIndex.lsdaIndexArraySectionOffset(low+1);
   if (log)
     fprintf(stderr, "\tfirst level search for result index=%d "
-                    "to secondLevelAddr=0x%llX\n",
+                    "to secondLevelAddr=0x%lX\n",
                     low, (uint64_t) secondLevelAddr);
   // do a binary search of second level page index
   uint32_t encoding = 0;
@@ -1612,8 +1612,8 @@ bool UnwindCursor<A, R>::getInfoFromCompactEncodingSection(pint_t pc,
     // binary search looks for entry with e where index[e].offset <= pc <
     // index[e+1].offset
     if (log)
-      fprintf(stderr, "\tbinary search for targetFunctionOffset=0x%08llX in "
-                      "regular page starting at secondLevelAddr=0x%llX\n",
+      fprintf(stderr, "\tbinary search for targetFunctionOffset=0x%08lX in "
+                      "regular page starting at secondLevelAddr=0x%lX\n",
               (uint64_t) targetFunctionOffset, (uint64_t) secondLevelAddr);
     low = 0;
     high = pageHeader.entryCount();
@@ -1643,7 +1643,7 @@ bool UnwindCursor<A, R>::getInfoFromCompactEncodingSection(pint_t pc,
       if (log)
         fprintf(
             stderr,
-            "\tpc not in table, pc=0x%llX, funcStart=0x%llX, funcEnd=0x%llX\n",
+            "\tpc not in table, pc=0x%lX, funcStart=0x%lX, funcEnd=0x%lX\n",
             (uint64_t) pc, (uint64_t) funcStart, (uint64_t) funcEnd);
       return false;
     }
@@ -1651,7 +1651,7 @@ bool UnwindCursor<A, R>::getInfoFromCompactEncodingSection(pint_t pc,
       if (log)
         fprintf(
             stderr,
-            "\tpc not in table, pc=0x%llX, funcStart=0x%llX, funcEnd=0x%llX\n",
+            "\tpc not in table, pc=0x%lX, funcStart=0x%lX, funcEnd=0x%lX\n",
             (uint64_t) pc, (uint64_t) funcStart, (uint64_t) funcEnd);
       return false;
     }
@@ -1667,7 +1667,7 @@ bool UnwindCursor<A, R>::getInfoFromCompactEncodingSection(pint_t pc,
     // index[e+1].offset
     if (log)
       fprintf(stderr, "\tbinary search of compressed page starting at "
-                      "secondLevelAddr=0x%llX\n",
+                      "secondLevelAddr=0x%lX\n",
               (uint64_t) secondLevelAddr);
     low = 0;
     last = pageHeader.entryCount() - 1;
@@ -1753,7 +1753,7 @@ bool UnwindCursor<A, R>::getInfoFromCompactEncodingSection(pint_t pc,
     }
     if (lsda == 0) {
       _LIBUNWIND_DEBUG_LOG("found encoding 0x%08X with HAS_LSDA bit set for "
-                    "pc=0x%0llX, but lsda table has no entry",
+                    "pc=0x%0lX, but lsda table has no entry",
                     encoding, (uint64_t) pc);
       return false;
     }
@@ -1778,14 +1778,14 @@ bool UnwindCursor<A, R>::getInfoFromCompactEncodingSection(pint_t pc,
     pint_t personalityPointer = sects.dso_base + (pint_t)personalityDelta;
     personality = _addressSpace.getP(personalityPointer);
     if (log)
-      fprintf(stderr, "getInfoFromCompactEncodingSection(pc=0x%llX), "
-                      "personalityDelta=0x%08X, personality=0x%08llX\n",
+      fprintf(stderr, "getInfoFromCompactEncodingSection(pc=0x%lX), "
+                      "personalityDelta=0x%08X, personality=0x%08lX\n",
               (uint64_t) pc, personalityDelta, (uint64_t) personality);
   }
 
   if (log)
-    fprintf(stderr, "getInfoFromCompactEncodingSection(pc=0x%llX), "
-                    "encoding=0x%08X, lsda=0x%08llX for funcStart=0x%llX\n",
+    fprintf(stderr, "getInfoFromCompactEncodingSection(pc=0x%lX), "
+                    "encoding=0x%08X, lsda=0x%08lX for funcStart=0x%lX\n",
             (uint64_t) pc, encoding, (uint64_t) lsda, (uint64_t) funcStart);
   _info.start_ip = funcStart;
   _info.end_ip = funcEnd;
@@ -1808,7 +1808,7 @@ bool UnwindCursor<A, R>::getInfoFromSEH(pint_t pc) {
   pint_t base;
   RUNTIME_FUNCTION *unwindEntry = lookUpSEHUnwindInfo(pc, &base);
   if (!unwindEntry) {
-    _LIBUNWIND_DEBUG_LOG("\tpc not in table, pc=0x%llX", (uint64_t) pc);
+    _LIBUNWIND_DEBUG_LOG("\tpc not in table, pc=0x%lX", (uint64_t) pc);
     return false;
   }
   _info.gp = 0;

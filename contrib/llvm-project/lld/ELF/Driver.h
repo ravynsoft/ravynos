@@ -29,6 +29,7 @@ public:
   void main(ArrayRef<const char *> args);
   void addFile(StringRef path, bool withLOption);
   void addLibrary(StringRef name);
+  void addFramework(StringRef name);
 
 private:
   void createFiles(llvm::opt::InputArgList &args);
@@ -70,6 +71,7 @@ llvm::Optional<std::string> findFromSearchPaths(StringRef path);
 llvm::Optional<std::string> searchScript(StringRef path);
 llvm::Optional<std::string> searchLibraryBaseName(StringRef path);
 llvm::Optional<std::string> searchLibrary(StringRef path);
+llvm::Optional<std::string> searchFramework(StringRef path);
 
 } // namespace elf
 } // namespace lld

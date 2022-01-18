@@ -29,11 +29,14 @@
 #include <sys/cdefs.h>
 __FBSDID("$FreeBSD$");
 
+#include "opt_compat.h"
 #include "opt_posix.h"
+#include "opt_thrworkq.h"
 #include "opt_hwpmc_hooks.h"
 #include <sys/param.h>
 #include <sys/kernel.h>
 #include <sys/lock.h>
+#include <sys/mman.h>
 #include <sys/mutex.h>
 #include <sys/priv.h>
 #include <sys/proc.h>
@@ -54,6 +57,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/ucontext.h>
 #include <sys/thr.h>
 #include <sys/rtprio.h>
+#include <sys/thrworkq.h>
 #include <sys/umtx.h>
 #include <sys/limits.h>
 #ifdef	HWPMC_HOOKS
@@ -309,6 +313,13 @@ int
 sys_thr_exit(struct thread *td, struct thr_exit_args *uap)
     /* long *state */
 {
+
+#ifdef THRWORKQ
+	if (td->td_reuse_stack != NULL) {
+		thrworkq_reusestack(td->td_proc, td->td_reuse_stack);
+		td->td_reuse_stack = NULL;
+	}
+#endif
 
 	umtx_thread_exit(td);
 
@@ -607,6 +618,137 @@ sys_thr_set_name(struct thread *td, struct thr_set_name_args *uap)
 #endif
 	PROC_UNLOCK(p);
 	return (error);
+}
+
+int
+sys_thr_stack(struct thread *td, struct thr_stack_args *uap)
+{
+	vm_size_t stacksz, guardsz;
+	void *addr;
+	int error;
+
+	/* Round up to the nearest page size. */
+	stacksz = (vm_size_t)round_page(uap->stacksize);
+	guardsz = (vm_size_t)round_page(uap->guardsize);
+
+	if (stacksz == 0)
+		stacksz = thr_stack_default;
+
+	error = kern_thr_stack(td->td_proc, &addr, stacksz, guardsz);
+
+	td->td_retval[0] = (register_t) addr;
+
+	return (error);
+}
+
+/*
+ * kern_thr_stack() maps a new thread stack in the process.  It returns
+ * the stack address in the 'addr' arg.
+ *
+ * Base address of the last stack allocated (including its red zone, if
+ * there is one).  Stacks are allocated contiguously, starting beyond the
+ * top of the main stack.  When a new stack is created, a red zone is
+ * typically created (actually, the red zone is mapped with PROT_NONE) above
+ * the top of the stack, such that the stack will not be able to grow all
+ * the way to the bottom of the next stack.  This isn't fool-proof.  It is
+ * possible for a stack to grow by a large amount, such that it grows into
+ * the next stack, and as long as the memory within the red zone is never
+ * accessed, nothing will prevent one thread stack from trouncing all over
+ * the next.
+ *
+ * low memory
+ *     . . . . . . . . . . . . . . . . . .
+ *    |                                   |
+ *    |             stack 3               | start of 3rd thread stack
+ *    +-----------------------------------+
+ *    |                                   |
+ *    |       Red Zone (guard page)       | red zone for 2nd thread
+ *    |                                   |
+ *    +-----------------------------------+
+ *    |  stack 2 - thr_stack_default      | top of 2nd thread stack
+ *    |                                   |
+ *    |                                   |
+ *    |                                   |
+ *    |                                   |
+ *    |             stack 2               |
+ *    +-----------------------------------+ <-- start of 2nd thread stack
+ *    |                                   |
+ *    |       Red Zone (guard page)       | red zone for 1st thread
+ *    |                                   |
+ *    +-----------------------------------+
+ *    |  stack 1 - thr_stack_default      | top of 1st thread stack
+ *    |                                   |
+ *    |                                   |
+ *    |                                   |
+ *    |                                   |
+ *    |             stack 1               |
+ *    +-----------------------------------+ <-- start of 1st thread stack
+ *    |                                   |   (initial value of p->p_thrstack)
+ *    |       Red Zone (guard page)       |
+ *    |                                   | red zone for main thread
+ *    +-----------------------------------+
+ *    | ->sv_usrstack - thr_stack_initial | top of main thread stack
+ *    |                                   | ^
+ *    |                                   | |
+ *    |                                   | |
+ *    |                                   | | stack growth
+ *    |                                   |
+ *    +-----------------------------------+ <-- start of main thread stack
+ *                                              (p->p_sysent->sv_usrstack)
+ * high memory
+ *
+ * XXX - This code assumes that the stack always grows down in address space.
+ */
+int
+kern_thr_stack(struct proc *p, void **addr, vm_size_t stacksz,
+    vm_size_t guardsz)
+{
+	vm_offset_t stackaddr;
+	vm_map_t map;
+	int error;
+
+	KASSERT(stacksz != 0, ("[%s: %d] stacksz = 0", __FILE__, __LINE__));
+
+	*addr = NULL;
+
+	PROC_LOCK(p);
+	if (p->p_thrstack == 0)  {
+		/* Compute the start of the first thread stack. */
+		p->p_thrstack = p->p_sysent->sv_usrstack -
+		    (vm_offset_t)(thr_stack_initial + THR_GUARD_DEFAULT);
+	}
+
+	stackaddr = p->p_thrstack - (vm_offset_t)(stacksz + guardsz);
+
+	/*
+	 * Compute the next stack location unconditionally.  Under normal
+	 * operating conditions, the most likely reason for no being able
+	 * to map the thread stack is a stack overflow of the adjacent
+	 * thread stack.
+	 */
+	p->p_thrstack -= (vm_offset_t)(stacksz + guardsz);
+	PROC_UNLOCK(p);
+
+	map = &p->p_vmspace->vm_map;
+	error = vm_mmap(map, &stackaddr, (stacksz + guardsz), VM_PROT_ALL,
+	    PROT_READ | PROT_WRITE, MAP_STACK, OBJT_DEFAULT, NULL, 0);
+	if (error)
+		return (error);
+
+	if (guardsz != 0) {
+		error = vm_map_protect(map, stackaddr, stackaddr + guardsz,
+		    PROT_NONE, 0);
+		if (error) {
+			/* unmap memory */
+			(void) vm_map_remove(map, stackaddr, stackaddr +
+			    (stacksz + guardsz));
+
+			return (error);
+		}
+	}
+
+	*addr = (void *)(stackaddr + guardsz);
+	return (0);
 }
 
 int

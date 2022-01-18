@@ -39,6 +39,7 @@
 __FBSDID("$FreeBSD$");
 
 #include "opt_posix.h"
+#include "opt_thrworkq.h"
 
 #include <sys/param.h>
 #include <sys/systm.h>
@@ -54,6 +55,9 @@ __FBSDID("$FreeBSD$");
 #include <sys/sysent.h>
 #include <sys/syslog.h>
 #include <sys/sysproto.h>
+#ifdef THRWORKQ
+#include <sys/thrworkq.h>
+#endif
 
 MALLOC_DEFINE(M_P31B, "p1003.1b", "Posix 1003.1B");
 
@@ -294,6 +298,9 @@ int
 sys_sched_yield(struct thread *td, struct sched_yield_args *uap)
 {
 
+#ifdef THRWORKQ
+	thrworkq_thread_yielded();
+#endif
 	sched_relinquish(td);
 	return (0);
 }

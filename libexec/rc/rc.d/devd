@@ -13,7 +13,9 @@
 name="devd"
 desc="Device state change daemon"
 rcvar="devd_enable"
-command="/sbin/${name}"
+# This is now started by launchd and will hang if we try here
+#command="/sbin/${name}"
+command="/bin/echo"
 
 start_precmd=${name}_prestart
 stop_precmd=find_pidfile

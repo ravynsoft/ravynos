@@ -71,6 +71,7 @@ struct nameidata;
 #define	DTYPE_PROCDESC	12	/* process descriptor */
 #define	DTYPE_EVENTFD	13	/* eventfd */
 #define	DTYPE_LINUXTFD	14	/* emulation timerfd type */
+#define	DTYPE_MACH_IPC	15	/* port or portset */
 
 #ifdef _KERNEL
 

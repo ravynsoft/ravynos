@@ -378,7 +378,7 @@ def D : JoinedOrSeparate<["-"], "D">, Group<Preprocessor_Group>,
     HelpText<"Define <macro> to <value> (or 1 if <value> omitted)">;
 def E : Flag<["-"], "E">, Flags<[DriverOption,CC1Option]>, Group<Action_Group>,
     HelpText<"Only run the preprocessor">;
-def F : JoinedOrSeparate<["-"], "F">, Flags<[RenderJoined,CC1Option]>,
+def F : JoinedOrSeparate<["-"], "F">, Flags<[RenderJoined,CC1Option,LinkerInput]>,
     HelpText<"Add directory to framework include search path">;
 def G : JoinedOrSeparate<["-"], "G">, Flags<[DriverOption]>, Group<m_Group>,
     MetaVarName<"<size>">, HelpText<"Put objects of at most <size> bytes "

@@ -47,7 +47,9 @@
 #define EVFILT_USER		(-11)	/* User events */
 #define EVFILT_SENDFILE		(-12)	/* attached to sendfile requests */
 #define EVFILT_EMPTY		(-13)	/* empty send socket buf */
-#define EVFILT_SYSCOUNT		13
+#define	EVFILT_MACHPORT	(-14)	/* Mach portsets */
+#define EVFILT_VM		(-15)	/* Virtual Memory events */
+#define EVFILT_SYSCOUNT		15
 
 #if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
 #define	EV_SET(kevp_, a, b, c, d, e, f) do {	\
@@ -59,6 +61,18 @@
 	    .data = (e),			\
 	    .udata = (f),			\
 	    .ext = {0},				\
+	};					\
+} while(0)
+
+#define	EV_SET64(kevp_, a, b, c, d, e, f, g, h) do {	\
+	*(kevp_) = (struct kevent64_s){		\
+	    .ident = (a),			\
+	    .filter = (b),			\
+	    .flags = (c),			\
+	    .fflags = (d),			\
+	    .data = (e),			\
+	    .udata = (f),			\
+	    .ext = {g, h, 0, 0},	\
 	};					\
 } while(0)
 #else /* Pre-C99 or not STDC (e.g., C++) */
@@ -78,9 +92,34 @@
 	(kevp)->ext[2] = 0;			\
 	(kevp)->ext[3] = 0;			\
 } while(0)
+
+#define EV_SET64(kevp_, a, b, c, d, e, f, g, h) do {	\
+	struct kevent64_s *kevp = (kevp_);		\
+	(kevp)->ident = (a);			\
+	(kevp)->filter = (b);			\
+	(kevp)->flags = (c);			\
+	(kevp)->fflags = (d);			\
+	(kevp)->data = (e);			\
+	(kevp)->udata = (f);			\
+	(kevp)->ext[0] = g;			\
+	(kevp)->ext[1] = h;			\
+	(kevp)->ext[2] = 0;			\
+	(kevp)->ext[3] = 0;			\
+} while(0)
 #endif
 
 struct kevent {
+	__uintptr_t	ident;		/* identifier for this event */
+	short		filter;		/* filter for event */
+	unsigned short	flags;		/* action flags for kqueue */
+	unsigned int	fflags;		/* filter flag value */
+	__int64_t	data;		/* filter data value */
+	void		*udata;		/* opaque user data identifier */
+	__uint64_t	ext[4];		/* extensions */
+};
+
+/* yes, this is identical to kevent */
+struct kevent64_s {
 	__uintptr_t	ident;		/* identifier for this event */
 	short		filter;		/* filter for event */
 	unsigned short	flags;		/* action flags for kqueue */
@@ -209,12 +248,39 @@ struct kevent32_freebsd11 {
 #define	NOTE_TRACKERR	0x00000002		/* could not track child */
 #define	NOTE_CHILD	0x00000004		/* am a child process */
 
+/*
+ * data/hint fflags for EVFILT_VM, shared with userspace.
+ */
+#define NOTE_VM_PRESSURE			0x80000000              /* will react on memory pressure */
+#define NOTE_VM_PRESSURE_TERMINATE		0x40000000              /* will quit on memory pressure, possibly after cleaning up dirty state */
+#define NOTE_VM_PRESSURE_SUDDEN_TERMINATE	0x20000000		/* will quit immediately on memory pressure */
+#define NOTE_VM_ERROR				0x10000000              /* there was an error */
+
+
 /* additional flags for EVFILT_TIMER */
 #define NOTE_SECONDS		0x00000001	/* data is seconds */
 #define NOTE_MSECONDS		0x00000002	/* data is milliseconds */
 #define NOTE_USECONDS		0x00000004	/* data is microseconds */
 #define NOTE_NSECONDS		0x00000008	/* data is nanoseconds */
 #define	NOTE_ABSTIME		0x00000010	/* timeout is absolute */
+#define NOTE_ABSOLUTE       NOTE_ABSTIME /* Darwin compatibility */
+
+#define	NOTE_EXITSTATUS		0x04000000	/* exit status to be returned, valid for child process only */
+#define	NOTE_EXIT_DETAIL	0x02000000	/* provide details on reasons for exit */
+
+/*
+ * If NOTE_EXIT_DETAIL is present, these bits indicate specific reasons for exiting.
+ */
+#define NOTE_EXIT_DETAIL_MASK		0x00070000
+#define	NOTE_EXIT_DECRYPTFAIL		0x00010000
+#define	NOTE_EXIT_MEMORY		0x00020000
+#define NOTE_EXIT_CSERROR		0x00040000
+
+/*
+ * Flag indicating hint is a signal.  Used by EVFILT_SIGNAL, and also
+ * shared by EVFILT_PROC  (all knotes attached to p->p_klist)
+ */
+#define NOTE_SIGNAL	0x08000000
 
 struct knote;
 SLIST_HEAD(klist, knote);
@@ -310,6 +376,8 @@ struct knote {
 #define kn_flags	kn_kevent.flags
 #define kn_fflags	kn_kevent.fflags
 #define kn_data		kn_kevent.data
+#define kn_udata	kn_kevent.udata
+#define kn_ext		kn_kevent.ext
 #define kn_fp		kn_ptr.p_fp
 };
 struct kevent_copyops {
@@ -359,6 +427,10 @@ int     kqueue(void);
 int     kevent(int kq, const struct kevent *changelist, int nchanges,
 	    struct kevent *eventlist, int nevents,
 	    const struct timespec *timeout);
+int     kevent64(int kq, const struct kevent64_s *changelist,
+		    int nchanges, struct kevent64_s *eventlist,
+		    int nevents, unsigned int flags,
+		    const struct timespec *timeout);
 __END_DECLS
 
 #endif /* !_KERNEL */

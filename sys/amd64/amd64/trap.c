@@ -111,6 +111,7 @@ void dblfault_handler(struct trapframe *frame);
 
 static int trap_pfault(struct trapframe *, bool, int *, int *);
 static void trap_fatal(struct trapframe *, vm_offset_t);
+struct sysent *mach_sysent_p;
 #ifdef KDTRACE_HOOKS
 static bool trap_user_dtrace(struct trapframe *,
     int (**hook)(struct trapframe *));

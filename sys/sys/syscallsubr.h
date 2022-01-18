@@ -321,6 +321,8 @@ int	kern_ktimer_getoverrun(struct thread *td, int timer_id);
 int	kern_thr_alloc(struct proc *, int pages, struct thread **);
 int	kern_thr_exit(struct thread *td);
 int	kern_thr_new(struct thread *td, struct thr_param *param);
+int	kern_thr_stack(struct proc *p, void **addr, vm_size_t stacksz,
+	    vm_size_t guardsz);
 int	kern_thr_suspend(struct thread *td, struct timespec *tsp);
 int	kern_truncate(struct thread *td, const char *path,
 	    enum uio_seg pathseg, off_t length);

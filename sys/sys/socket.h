@@ -390,6 +390,7 @@ struct sockproto {
 #define	PF_IEEE80211	AF_IEEE80211
 #define	PF_INET_SDP	AF_INET_SDP
 #define	PF_INET6_SDP	AF_INET6_SDP
+#define PF_SYSTEM	AF_SYSTEM
 
 #define	PF_MAX		AF_MAX
 

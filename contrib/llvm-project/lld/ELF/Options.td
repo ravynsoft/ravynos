@@ -47,6 +47,14 @@ def Bstatic: F<"Bstatic">, HelpText<"Do not link against shared libraries">;
 
 def build_id: F<"build-id">, HelpText<"Alias for --build-id=fast">;
 
+def F : JoinedOrSeparate<["-"], "F">,
+     MetaVarName<"<dir>">,
+     HelpText<"Add directory to framework search path">;
+
+def framework : Separate<["-"], "framework">,
+     MetaVarName<"<name>">,
+     HelpText<"Base name of framework searched for in -F directories">;
+
 def build_id_eq: J<"build-id=">, HelpText<"Generate build ID note">,
   MetaVarName<"[fast,md5,sha1,uuid,0x<hexstring>]">;
 
@@ -485,7 +493,7 @@ def: Flag<["-"], "q">, Alias<emit_relocs>, HelpText<"Alias for --emit-relocs">;
 def: Flag<["-"], ")">, Alias<end_group>, HelpText<"Alias for --end-group">;
 def: JoinedOrSeparate<["-"], "e">, Alias<entry>, HelpText<"Alias for --entry">;
 def: Flag<["-"], "E">, Alias<export_dynamic>, HelpText<"Alias for --export-dynamic">;
-def: Separate<["-"], "F">, Alias<filter>, HelpText<"Alias for --filter">;
+//def: Separate<["-"], "F">, Alias<filter>, HelpText<"Alias for --filter">;
 def: Separate<["-"], "b">, Alias<format>, HelpText<"Alias for --format">;
 def: JoinedOrSeparate<["-"], "l">, Alias<library>, HelpText<"Alias for --library">;
 def: JoinedOrSeparate<["-"], "L">, Alias<library_path>, HelpText<"Alias for --library-path">;

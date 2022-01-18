@@ -234,6 +234,8 @@
 #define	SYS_aio_read	255
 #define	SYS_aio_write	256
 #define	SYS_lio_listio	257
+#define	SYS___proc_info	258
+#define	SYS___iopolicysys	259
 #define	SYS_freebsd11_getdents	272
 #define	SYS_lchmod	274
 				/* 275 is obsolete netbsd_lchown */
@@ -242,6 +244,9 @@
 #define	SYS_freebsd11_nstat	278
 #define	SYS_freebsd11_nfstat	279
 #define	SYS_freebsd11_nlstat	280
+#define	SYS_audit_session_self	281
+#define	SYS_audit_session_join	282
+#define	SYS_audit_session_port	283
 #define	SYS_preadv	289
 #define	SYS_pwritev	290
 				/* 297 is freebsd4 fhstatfs */
@@ -317,6 +322,7 @@
 				/* 367 is obsolete __cap_get_file */
 				/* 368 is obsolete __cap_set_fd */
 				/* 369 is obsolete __cap_set_file */
+#define	SYS_kevent64	370
 #define	SYS_extattr_set_fd	371
 #define	SYS_extattr_get_fd	372
 #define	SYS_extattr_delete_fd	373
@@ -407,6 +413,8 @@
 #define	SYS_thr_set_name	464
 #define	SYS_aio_fsync	465
 #define	SYS_rtprio_thread	466
+#define	SYS_thr_stack	467
+#define	SYS_thr_workq	468
 #define	SYS_sctp_peeloff	471
 #define	SYS_sctp_generic_sendmsg	472
 #define	SYS_sctp_generic_sendmsg_iov	473

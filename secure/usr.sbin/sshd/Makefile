@@ -42,7 +42,7 @@ CFLAGS+=	-DHAVE_LDNS=1
 
 .if ${MK_AUDIT} != "no"
 CFLAGS+= -DUSE_BSM_AUDIT=1 -DHAVE_GETAUDIT_ADDR=1
-LIBADD+=	bsm
+LIBADD+=	bsm System notify
 .endif
 
 .if ${MK_BLACKLIST_SUPPORT} != "no"

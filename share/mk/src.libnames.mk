@@ -107,6 +107,7 @@ _LIBRARIES=	\
 		devinfo \
 		devstat \
 		dialog \
+		dispatch \
 		dl \
 		dpv \
 		dtrace \
@@ -130,6 +131,7 @@ _LIBRARIES=	\
 		ipsec \
 		ipt \
 		jail \
+		jansson \
 		kadm5clnt \
 		kadm5srv \
 		kafs5 \
@@ -138,8 +140,10 @@ _LIBRARIES=	\
 		krb5 \
 		kvm \
 		l \
+		launch \
 		lzma \
 		m \
+		mach \
 		magic \
 		md \
 		memstat \
@@ -149,10 +153,12 @@ _LIBRARIES=	\
 		netgraph \
 		netmap \
 		ngatm \
+		notify \
 		nv \
 		nvpair \
 		opencsd \
 		opie \
+		osxsupport \
 		pam \
 		panel \
 		panelw \
@@ -196,6 +202,7 @@ _LIBRARIES=	\
 		wind \
 		wrap \
 		xo \
+		xpc \
 		y \
 		ypclnt \
 		z \

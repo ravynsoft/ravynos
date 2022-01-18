@@ -72,7 +72,7 @@ bool ObjCRuntime::tryParse(StringRef input) {
   } else if (runtimeName == "gnustep") {
     // If no version is specified then default to the most recent one that we
     // know about.
-    Version = VersionTuple(1, 6);
+    Version = VersionTuple(2, 0);
     kind = ObjCRuntime::GNUstep;
   } else if (runtimeName == "gcc") {
     kind = ObjCRuntime::GCC;

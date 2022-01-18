@@ -79,6 +79,8 @@ process_irelocs(void)
 #error "Define platform reloc type"
 #endif
 
+extern int *__argc;
+extern char ***__argv;
 char **environ;
 const char *__progname = "";
 
@@ -127,6 +129,8 @@ static inline void
 handle_argv(int argc, char *argv[], char **env)
 {
 	const char *s;
+	__argc = &argc;
+	__argv = &argv;
 
 	if (environ == NULL)
 		environ = env;

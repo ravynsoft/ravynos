@@ -320,6 +320,38 @@ FBSD_1.2 {
 	pthread_getthreadid_np;
 };
 
+FBSD_1.3 {
+  _pthread_workqueue_additem_np;
+  _pthread_workqueue_atfork_child;
+  _pthread_workqueue_atfork_parent;
+  _pthread_workqueue_atfork_prepare;
+  _pthread_workqueue_attr_destroy_np;
+  _pthread_workqueue_attr_getovercommit_np;
+  _pthread_workqueue_attr_getqueuepriority_np;
+  _pthread_workqueue_attr_init_np;
+  _pthread_workqueue_attr_setovercommit_np;
+  _pthread_workqueue_attr_setqueuepriority_np;
+  _pthread_workqueue_create_np;
+  _pthread_workqueue_getovercommit_np;
+  _pthread_workqueue_init_np;
+  _pthread_workqueue_requestconcurrency_np;
+
+  pthread_workqueue_additem_np;
+  pthread_workqueue_atfork_child;
+  pthread_workqueue_atfork_parent;
+  pthread_workqueue_atfork_prepare;
+  pthread_workqueue_attr_destroy_np;
+  pthread_workqueue_attr_getovercommit_np;
+  pthread_workqueue_attr_getqueuepriority_np;
+  pthread_workqueue_attr_init_np;
+  pthread_workqueue_attr_setovercommit_np;
+  pthread_workqueue_attr_setqueuepriority_np;
+  pthread_workqueue_create_np;
+  pthread_workqueue_getovercommit_np;
+  pthread_workqueue_init_np;
+  pthread_workqueue_requestconcurrency_np;
+};
+
 FBSD_1.4 {
 	 pthread_mutex_consistent;
 	 pthread_mutexattr_getrobust;

@@ -433,6 +433,13 @@ FBSD_1.6 {
 	sigorset;
 	tcgetwinsize;
 	tcsetwinsize;
+
+	/* airyxOS */
+	_NSGetArgc;
+	_NSGetArgv;
+	_NSGetEnviron;
+	_NSGetProgname;
+	_NSGetMachExecuteHeader;
 };
 
 FBSDprivate_1.0 {
@@ -560,4 +567,8 @@ FBSDprivate_1.0 {
 	__fillcontextx;
 	__fillcontextx2;
 	__getcontextx_size;
+
+	/* airyxOS */
+	__argc;
+	__argv;
 };

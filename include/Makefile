@@ -10,7 +10,7 @@ CLEANFILES= osreldate.h version
 SUBDIR= arpa protocols rpcsvc rpc xlocale
 SUBDIR_PARALLEL=
 INCS=	a.out.h ar.h assert.h bitstring.h complex.h cpio.h _ctype.h ctype.h \
-	db.h \
+	crt_externs.h db.h \
 	dirent.h dlfcn.h elf.h elf-hints.h err.h fmtmsg.h fnmatch.h fstab.h \
 	fts.h ftw.h getopt.h glob.h grp.h \
 	ieeefp.h ifaddrs.h \
@@ -18,7 +18,7 @@ INCS=	a.out.h ar.h assert.h bitstring.h complex.h cpio.h _ctype.h ctype.h \
 	locale.h malloc.h malloc_np.h memory.h monetary.h mpool.h mqueue.h \
 	ndbm.h netconfig.h \
 	netdb.h nl_types.h nlist.h nss.h nsswitch.h paths.h \
-	printf.h proc_service.h pthread.h \
+	printf.h proc_service.h pthread.h pthread_workqueue.h \
 	pthread_np.h pwd.h ranlib.h readpassphrase.h regex.h \
 	res_update.h resolv.h runetype.h search.h semaphore.h setjmp.h \
 	signal.h spawn.h stab.h stdalign.h stdbool.h stddef.h \
@@ -27,6 +27,31 @@ INCS=	a.out.h ar.h assert.h bitstring.h complex.h cpio.h _ctype.h ctype.h \
 	time.h timeconv.h timers.h ttyent.h \
 	uchar.h ulimit.h unistd.h utime.h utmpx.h uuid.h varargs.h \
 	wchar.h wctype.h wordexp.h xlocale.h
+
+# APSL headers
+INCS+=	Availability.h \
+	AvailabilityInternal.h \
+	AvailabilityMacros.h \
+	CrashReporterClient.h \
+	MacTypes.h \
+	NSSystemDirectories.h \
+	TargetConditionals.h \
+	_simple.h \
+	_types.h \
+	aliasdb.h \
+	ils.h \
+	libinfo.h \
+	si_data.h \
+	si_module.h \
+	util.h \
+	utmp.h
+
+ASUBDIRS= apple gen libkern mach mach_debug mach-o os servers
+SUBDIR+= ${ASUBDIRS}
+ASUBDIRS+= apple/uuid apple/sys apple/sys/_types apple/sys/_pthread
+ASUBDIRS+= libkern/i386 mach/device mach/i386 mach-o/arm mach-o/arm64
+ASUBDIRS+= mach-o/hppa mach-o/i386 mach-o/i860 mach-o/m68k mach-o/m88k
+ASUBDIRS+= mach-o/ppc mach-o/sparc mach-o/x86_64
 
 .PATH: ${SRCTOP}/contrib/libc-vis
 INCS+=	vis.h
@@ -61,9 +86,9 @@ LSUBDIRS=	dev/acpica dev/agp dev/an dev/ciss dev/filemon dev/firewire \
 	security/mac_mls security/mac_partition \
 	security/mac_veriexec \
 	sys/disk \
-	ufs/ffs ufs/ufs
+	ufs/ffs ufs/ufs sys/mach sys/mach_debug
 
-LSUBSUBDIRS=	dev/mpt/mpilib
+LSUBSUBDIRS=	dev/mpt/mpilib sys/mach/device sys/mach/ipc
 
 .PATH: ${SRCTOP}/sys/dev/acpica
 ACPICA=		acpi_hpet.h \
@@ -327,6 +352,12 @@ _MARCHS+=	x86
 META_TARGETS+=	compat
 stage_includes: ${SHARED}
 SDESTDIR=	${SYSROOT:U${DESTDIR}}
+
+afterdepend: .PHONY
+.for i in ${ASUBDIRS}
+	${INSTALL} -d ${TAG_ARGS} -o ${BINOWN} -g ${BINGRP} -m 755 \
+	    ${SDESTDIR}${INCLUDEDIR}/$i;
+.endfor
 
 # Take care of stale directory-level symlinks.
 # Note: The "|| true" after find is needed in case one of the directories does

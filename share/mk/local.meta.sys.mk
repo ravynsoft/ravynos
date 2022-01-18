@@ -249,10 +249,12 @@ ${var}=		${HOST_${var}}
 FREEBSD_REVISION!= sed -n '/^REVISION=/{s,.*=,,;s,",,g;p; }' ${SRCTOP}/sys/conf/newvers.sh
 .export FREEBSD_REVISION
 .endif
-CROSS_TARGET_FLAGS= -target ${MACHINE_ARCH}-unknown-freebsd${FREEBSD_REVISION}
+#CROSS_TARGET_FLAGS= -target ${MACHINE_ARCH}-unknown-freebsd${FREEBSD_REVISION}
+#CROSS_TARGET_FLAGS= -target ${MACHINE_ARCH}-airyx-airyxos-macho
 CFLAGS+= ${CROSS_TARGET_FLAGS}
 ACFLAGS+= ${CROSS_TARGET_FLAGS}
 LDFLAGS+= -Wl,-m -Wl,elf_${MACHINE_ARCH}_fbsd
+#LDFLAGS+= -Wl,-arch -Wl,x86_64
 .endif
 
 META_MODE+=	missing-meta=yes
