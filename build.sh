@@ -447,8 +447,8 @@ ramdisk
 boot
 image
 
-if [ -n "$CIRRUS_CI" ] ; then
-  # On Cirrus CI we want to upload to GitHub Releases which has a 2 GB file size limit,
-  # hence we need to split the ISO there if it is too large
-  split
-fi
+# if [ -n "$CIRRUS_CI" ] ; then
+#   # On Cirrus CI we want to upload to GitHub Releases which has a 2 GB file size limit,
+#   # hence we need to split the ISO there if it is too large
+#   split
+# fi
