@@ -1,0 +1,130 @@
+.\" Copyright (c) 2008-2013 Apple Inc. All rights reserved.
+.Dd May 1, 2009
+.Dt dispatch_time 3
+.Os Darwin
+.Sh NAME
+.Nm dispatch_time ,
+.Nm dispatch_walltime
+.Nd Calculate temporal milestones
+.Sh SYNOPSIS
+.Fd #include <dispatch/dispatch.h>
+.Vt static const dispatch_time_t DISPATCH_TIME_NOW = 0ull ;
+.Vt static const dispatch_time_t DISPATCH_TIME_FOREVER = ~0ull ;
+.Ft dispatch_time_t
+.Fo dispatch_time
+.Fa "dispatch_time_t base" "int64_t offset"
+.Fc
+.Ft dispatch_time_t
+.Fo dispatch_walltime
+.Fa "struct timespec *base" "int64_t offset"
+.Fc
+.Sh DESCRIPTION
+The
+.Fn dispatch_time
+and
+.Fn dispatch_walltime
+functions provide a simple mechanism for expressing temporal milestones for use
+with dispatch functions that need timeouts or operate on a schedule.
+.Pp
+The
+.Fa dispatch_time_t
+type is a semi-opaque integer, with only the special values
+.Vt DISPATCH_TIME_NOW
+and
+.Vt DISPATCH_TIME_FOREVER
+being externally defined. All other values are represented using an internal
+format that is not safe for integer arithmetic or comparison.
+The internal format is subject to change.
+.Pp
+The
+.Fn dispatch_time
+function returns a milestone relative to an existing milestone after adding
+.Fa offset
+nanoseconds.
+If the
+.Fa base
+parameter maps internally to a wall clock, then the returned value is
+relative to the wall clock.
+Otherwise, if
+.Fa base
+is
+.Vt DISPATCH_TIME_NOW ,
+then the the current time of the default host clock is used.
+.Pp
+The
+.Fn dispatch_walltime
+function is useful for creating a milestone relative to a fixed point in time
+using the wall clock, as specified by the optional
+.Fa base
+parameter. If
+.Fa base
+is NULL, then the current time of the wall clock is used.
+.Sh EDGE CONDITIONS
+The
+.Fn dispatch_time
+and
+.Fn dispatch_walltime
+functions detect overflow and underflow conditions when applying the
+.Fa offset
+parameter.
+.Pp
+Overflow causes
+.Vt DISPATCH_TIME_FOREVER
+to be returned. When
+.Fa base
+is
+.Vt DISPATCH_TIME_FOREVER ,
+then the
+.Fa offset
+parameter is ignored.
+.Pp
+Underflow causes the smallest representable value to be
+returned for a given clock.
+.Sh CAVEATS
+Under the C language, untyped numbers default to the
+.Vt int
+type. This can lead to truncation bugs when arithmetic operations with other
+numbers are expected to generate a
+.Vt int64_t
+sized result, such as the
+.Fa offset
+argument to
+.Fn dispatch_time
+and
+.Fn dispatch_walltime .
+When in doubt, use
+.Vt ull
+as a suffix. For example:
+.Bd -literal -offset indent
+3ull * NSEC_PER_SEC
+.Ed
+.Sh EXAMPLES
+Create a milestone two seconds in the future:
+.Bd -literal -offset indent
+milestone = dispatch_time(DISPATCH_TIME_NOW, 2LL * NSEC_PER_SEC);
+.Ed
+.Pp
+Create a milestone for use as an infinite timeout:
+.Bd -literal -offset indent
+milestone = DISPATCH_TIME_FOREVER;
+.Ed
+.Pp
+Create a milestone on Tuesday, January 19, 2038:
+.Bd -literal -offset indent
+struct timespec ts;
+ts.tv_sec = 0x7FFFFFFF;
+ts.tv_nsec = 0;
+milestone = dispatch_walltime(&ts, 0);
+.Ed
+.Sh RETURN VALUE
+These functions return an abstract value for use with
+.Fn dispatch_after ,
+.Fn dispatch_group_wait ,
+.Fn dispatch_semaphore_wait ,
+or
+.Fn dispatch_source_set_timer .
+.Sh SEE ALSO
+.Xr dispatch 3 ,
+.Xr dispatch_after 3 ,
+.Xr dispatch_group_create 3 ,
+.Xr dispatch_semaphore_create 3

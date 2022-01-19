@@ -1,0 +1,180 @@
+.\" Copyright (c) 2008-2012 Apple Inc. All rights reserved.
+.Dd May 1, 2009
+.Dt dispatch_group_create 3
+.Os Darwin
+.Sh NAME
+.Nm dispatch_group_create ,
+.Nm dispatch_group_async ,
+.Nm dispatch_group_wait ,
+.Nm dispatch_group_notify
+.Nd group blocks submitted to queues
+.Sh SYNOPSIS
+.Fd #include <dispatch/dispatch.h>
+.Ft dispatch_group_t
+.Fo dispatch_group_create
+.Fa void
+.Fc
+.Ft void
+.Fo dispatch_group_enter
+.Fa "dispatch_group_t group"
+.Fc
+.Ft void
+.Fo dispatch_group_leave
+.Fa "dispatch_group_t group"
+.Fc
+.Ft long
+.Fo dispatch_group_wait
+.Fa "dispatch_group_t group" "dispatch_time_t timeout"
+.Fc
+.Ft void
+.Fo dispatch_group_notify
+.Fa "dispatch_group_t group" "dispatch_queue_t queue" "void (^block)(void)"
+.Fc
+.Ft void
+.Fo dispatch_group_notify_f
+.Fa "dispatch_group_t group" "dispatch_queue_t queue" "void *context" "void (*function)(void *)"
+.Fc
+.Ft void
+.Fo dispatch_group_async
+.Fa "dispatch_group_t group" "dispatch_queue_t queue" "void (^block)(void)"
+.Fc
+.Ft void
+.Fo dispatch_group_async_f
+.Fa "dispatch_group_t group" "dispatch_queue_t queue" "void *context" "void (*function)(void *)"
+.Fc
+.Sh DESCRIPTION
+A dispatch group is an association of one or more blocks submitted to dispatch
+queues for asynchronous invocation.
+Applications may use dispatch groups to
+wait for the completion of blocks associated with the group.
+.Pp
+The
+.Fn dispatch_group_create
+function returns a new and empty dispatch group.
+.Pp
+The
+.Fn dispatch_group_enter
+and
+.Fn dispatch_group_leave
+functions update the number of blocks running within a group.
+.Pp
+The
+.Fn dispatch_group_wait
+function waits until all blocks associated with the
+.Fa group
+have completed, or until the specified
+.Fa timeout
+has elapsed.
+If the
+.Fa group
+becomes empty within the specified amount of time, the function will return zero
+indicating success. Otherwise, a non-zero return code will be returned.
+When
+.Va DISPATCH_TIME_FOREVER
+is passed as the
+.Fa timeout ,
+calls to this function will wait an unlimited amount of time until the group
+becomes empty and the return value is always zero.
+.Pp
+The
+.Fn dispatch_group_notify
+function provides asynchronous notification of the completion of the blocks
+associated with the
+.Fa group
+by submitting the
+.Fa block
+to the specified
+.Fa queue
+once all blocks associated with the
+.Fa group
+have completed.
+The system holds a reference to the dispatch group while an asynchronous
+notification is pending, therefore it is valid to release the
+.Fa group
+after setting a notification block.
+The group will be empty at the time the notification block is submitted to the
+target queue. The group may either be released with
+.Fn dispatch_release
+or reused for additional operations.
+.Pp
+The
+.Fn dispatch_group_async
+convenience function behaves like so:
+.Bd -literal
+void
+dispatch_group_async(dispatch_group_t group, dispatch_queue_t queue, dispatch_block_t block)
+{
+	dispatch_retain(group);
+	dispatch_group_enter(group);
+	dispatch_async(queue, ^{
+		block();
+		dispatch_group_leave(group);
+		dispatch_release(group);
+	});
+}
+.Ed
+.Sh RETURN VALUE
+The
+.Fn dispatch_group_create
+function returns NULL on failure and non-NULL on success.
+.Pp
+The
+.Fn dispatch_group_wait
+function returns zero upon success and non-zero after the timeout expires.
+If the timeout is
+.Va DISPATCH_TIME_FOREVER ,
+then
+.Fn dispatch_group_wait
+waits forever and always returns zero.
+.Sh MEMORY MODEL
+Dispatch groups are retained and released via calls to
+.Fn dispatch_retain
+and
+.Fn dispatch_release .
+.Sh FUNDAMENTALS
+The
+.Fn dispatch_group_async
+and
+.Fn dispatch_group_notify
+functions are wrappers around
+.Fn dispatch_group_async_f
+and
+.Fn dispatch_group_notify_f
+respectively.
+.Sh CAVEATS
+In order to ensure deterministic behavior, it is recommended to call
+.Fn dispatch_group_wait
+only once all blocks have been submitted to the group. If it is later
+determined that new blocks should be run, it is recommended not to reuse an
+already-running group, but to create a new group.
+.Pp
+.Fn dispatch_group_wait
+returns as soon as there are exactly zero
+.Em enqueued or running
+blocks associated with a group (more precisely, as soon as every
+.Fn dispatch_group_enter
+call has been balanced by a
+.Fn dispatch_group_leave
+call). If one thread waits for a group while another thread submits
+new blocks to the group, then the count of associated blocks might
+momentarily reach zero before all blocks have been submitted. If this happens,
+.Fn dispatch_group_wait
+will return too early: some blocks associated with the group have finished,
+but some have not yet been submitted or run.
+.Pp
+However, as a special case, a block associated with a group may submit new
+blocks associated with its own group. In this case, the behavior is
+deterministic: a waiting thread will
+.Em not
+wake up until the newly submitted blocks have also finished.
+.Pp
+All of the foregoing also applies to
+.Fn dispath_group_notify
+as well, with "block to be submitted" substituted for "waiting thread".
+.Sh SEE ALSO
+.Xr dispatch 3 ,
+.Xr dispatch_async 3 ,
+.Xr dispatch_object 3 ,
+.Xr dispatch_queue_create 3 ,
+.Xr dispatch_semaphore_create 3 ,
+.Xr dispatch_time 3

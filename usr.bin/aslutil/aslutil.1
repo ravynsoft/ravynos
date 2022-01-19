@@ -1,0 +1,874 @@
+.\"Copyright (c) 2004-2012 Apple Inc. All rights reserved.
+.\"
+.\"@APPLE_LICENSE_HEADER_START@
+.\"
+.\"This file contains Original Code and/or Modifications of Original Code
+.\"as defined in and that are subject to the Apple Public Source License
+.\"Version 2.0 (the 'License'). You may not use this file except in
+.\"compliance with the License. Please obtain a copy of the License at
+.\"http://www.opensource.apple.com/apsl/ and read it before using this
+.\"file.
+.\"
+.\"The Original Code and all software distributed under the License are
+.\"distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
+.\"EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
+.\"INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
+.\"FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
+.\"Please see the License for the specific language governing rights and
+.\"limitations under the License.
+.\"
+.\"@APPLE_LICENSE_HEADER_END@
+.\"
+.Dd October 18, 2004
+.Dt ASLUTIL 1
+.Os
+.Sh NAME
+.Nm aslutil
+.Nd Apple System Log utility
+.Sh SYNOPSIS
+.Nm
+.Fl help
+.D1 ""
+.Nm
+.Fl s
+.Op Fl r Ar host
+.Op Fl l Ar level
+message...
+.D1 ""
+.Nm
+.Fl s
+.Op Fl r Ar host
+.Fl k
+key val
+.Op key val 
+.Li ...
+.D1 ""
+.Nm
+.Fl C
+.D1 ""
+.Nm
+.Op Fl f Ar file ...
+.Op Fl d Ar dir ...
+.Op Fl B
+.Op Fl w Op Ar n
+.Op Fl F Ar format
+.Op Fl T Ar format
+.Op Fl E Ar format
+.Ar expression
+.D1 ""
+.Nm
+.Op Fl f Ar file ...
+.Op Fl d Ar dir ...
+.Fl x Ar file Ar expression
+.D1 ""
+.Nm
+.Fl c Ar process Op filter
+.D1 ""
+.Nm 
+.Fl config Op options
+.D1 ""
+.Nm 
+.Fl module
+.Op name Op action
+.Sh DESCRIPTION
+.Nm
+is a command-line utility for a variety of tasks relating to the Apple System Log (ASL) facility.
+It provides mechanisms for sending and viewing log messages,
+copying log messages to ASL format data store files,
+and for controlling the flow of log messages from client processes.
+.Pp
+When invoked with the
+.Fl help
+option, 
+.Nm 
+prints a usage message.
+.Ss SENDING MESSAGES
+The
+.Fl s
+option is used send log messages to the
+.Xr asld 8
+log message daemon,
+either locally or to a remote server if the
+.Fl r Ar host
+option in used.
+.Pp
+There are two main forms of the command.
+If the 
+.Fl k
+option is used, then it must be followed by a list of keys and values.
+A structured message will be sent to the server with the keys and values given as arguments.
+If a key or a value has embedded white space, it must be enclosed in quotes.
+.Pp
+Note that the text of the log message should be supplied as a value following the
+.Dq Message
+key.
+.Pp
+If the 
+.Fl k
+option is not specified, then the rest of the command line is treated as the message text.
+The text may be preceded by 
+.Fl l Ar level
+to set the log level (priority) of the message.
+Levels may be an integer value corresponding the the log levels specified in 
+.Xr syslog 3
+or
+.Xr asl 3 ,
+or they may be a string.
+String values are case insensitive, and should be one of:
+.Pp
+.Bl -tag -compact
+.It Emergency
+(level 0)
+.It Alert
+(level 1)
+.It Critical
+(level 2)
+.It Error
+(level 3)
+.It Warning
+(level 4)
+.It Notice
+(level 5)
+.It Info
+(level 6)
+.It Debug
+(level 7)
+.El
+.Pp
+The string 
+.Dq Panic
+is an alias for 
+.Dq Emergency .
+.Pp
+If the
+.Fl l
+option is omitted, the log level defaults to 7 (Debug).
+.Pp
+.Nm
+only requires one or two leading characters for a level specification.
+A single character suffices in most cases.
+Use 
+.Dq P
+or 
+.Dq \&Em
+for Panic / Emergency, and
+.Dq \&Er
+or
+.Dq X
+for Error).
+.Ss READING MESSAGES
+The 
+.Nm asld
+daemon filters and saves log messages to different output streams.
+One module saves messages to files specified in the
+.Xr syslog.conf 5
+file.
+Those log files may be examined with any file printing or editing utility, 
+e.g.
+.Pp
+.Dl cat /var/log/system.log
+.Pp
+Another module saves messages in a data store (/var/log/asl).
+.Pp
+If invoked with no arguments,
+.Nm
+fetches all messages from the active data store.
+Messages are then printed to standard output,
+subject to formatting options and character encoding as described below.
+Some log messages are read-access controlled,
+so only messages that are readable by the user running
+.Nm
+will be fetched and printed.
+.Pp
+If invoked with the
+.Fl C
+option,
+.Nm
+fetches and prints console messages.
+The 
+.Fl C
+option is actually an alias for the expression:
+.Pp
+.Dl -k Facility com.apple.console
+.Pp
+See the EXPRESSIONS section below for more details.
+.Pp
+Individual ASL data store files may be read by providing one or more file names as arguments to the
+.Fl f
+option.
+This may be useful when searching archived files, files on alternate disk volumes,
+or files created as export files with the
+.Fl x
+option.
+.Pp
+The
+.Fl d
+option may be followed by a list of directory paths.
+.Nm
+will read or search all ASL data store files in those directories.
+Any files that are not readable will be skipped.
+Specifying
+.Fl d
+with the name
+.Dq archive
+will open all readable files in the default ASL archive directory /var/log/asl.archive.
+Specifying
+.Fl d
+with the name
+.Dq store
+will open all readable files in the ASL store directory /var/log/asl.
+.Pp
+Legacy ASL database files that were written by
+.Nm asld
+on Mac OS X 10.5 (Leopard) may also be read using the
+.Fl f
+option.
+However only one such legacy database may be read or searched at a time.
+Note that a legacy database may be read and copied into a new ASL data store format file using a combination of
+.Fl f
+and
+.Fl x
+options.
+.Pp
+The
+.Fl B
+option causes
+.Nm
+to start processing messages beginning at the time of the last system startup.
+If used in conjunction with
+.Fl w ,
+all messages since the last system startup are displayed, or matched against an expression, before
+.Nm
+waits for new messages.
+.Pp
+The
+.Fl w
+option causes
+.Nm
+to wait for new messages.
+By default, 
+.Nm
+prints the last 10 messages,
+then waits for new messages to be added to the data store.
+A number following the
+.Fl w
+option specifies the number of messages to print and overrides the default value of 10.
+For example:
+.Pp
+.Dl aslutil -w 20
+.Pp
+Use the value
+.Dq all
+to view all messages in the data store before watching for new messages.
+The value
+.Dq boot
+will display messages since the last system startup before watching for new messages.
+Specifying
+.Dq -w boot
+is equivalent to using
+.Fl w
+and
+.Fl B
+together.
+.Pp
+Using
+.Nm
+with the
+.Fl w
+option is similar to watching a log file using, e.g.
+.Pp
+.Dl tail -f /var/log/system.log
+.Pp
+The
+.Fl w
+option can only be used when reading the system's ASL data store or when reading a single data store file,
+and when printing messages to standard output.
+.Pp
+If the 
+.Fl x Ar file
+option is specified, messages are copied to the named file rather than being printed.
+The file will be created if it does not exist.
+.Pp
+When called without the
+.Fl x
+option, messages are printed to standard output.
+Messages are printed in a format similar to that used in the system.log file,
+except that the message priority level is printed between angle-brackets.
+.Pp
+The output format may by changed by specifying the
+.Fl F Ar format
+option.
+Non-printable and control characters are encoded by default.
+Text encoding may be controlled using the
+.Fl E
+option (see below).
+The value of
+.Ar format 
+may be one of the following:
+.Pp
+.Bl -tag -width "xxxx"
+.It bsd
+Format used by the
+.Nm syslogd
+daemon for system log files, e.g. /var/log/system.log.
+.It std
+Standard (default) format.
+Similar to 
+.Dq bsd ,
+but includes the message priority level.
+.It raw
+Prints the complete message structure.
+Each key/value pair is enclosed in square brackets.
+Embedded closing brackets and white space are escaped.
+Time stamps are printed as seconds since the epoch by default, but may also be
+printed in local time or UTC if the
+.Fl T
+option is specified (see below).
+.It xml
+The list of messages is printed as an XML property list.
+Each message is represented as a dictionary in a array.
+Dictionary keys represent message keys.
+Dictionary values are strings.
+.El
+.Pp
+Each of the format styles above may optionally be followed by a dot character and an integer value, for example:
+.Pp
+.Dl aslutil -F std.4
+.Pp
+This causes sub-second time values to be printed.
+In the example above, 4 decimal digits would be printed.
+The sub-second time values come from the value of the TimeNanoSec key in the ASL message.
+If the TimeNanoSec key is missing, a value of zero is used.
+.Pp
+The value of the
+.Ar format
+argument may also be a custom print format string.  
+A custom format should in most cases be enclosed in single quotes to prevent the shell from substituting
+special characters and breaking at white space.
+.Pp
+Custom format strings may include variables of the form
+.Dq $Name ,
+.Dq $(Name) ,
+or
+.Dq $((Name)(format)) .
+which will be expanded to the value associated with the named key.
+For example, the command:
+.Pp
+.Dl aslutil -F '$Time $Host $(Sender)[$(PID)] <$((Level)(str))>: $Message'
+.Pp
+produces output similar to the 
+.Dq std
+format.
+The simple
+.Dq $Name
+form is sufficient in most cases.
+However, the second form:
+.Dq $(Name)
+must be used if the name is not delimited by white space.
+The third form allows different formats of the value to be printed.
+For example, a message priority level may appear as an integer value (e.g.
+.Dq 3 )
+or as a string (``Error'').
+The following print formats are known.
+.Pp
+.Bl -tag -width "$((Time)([+|-]HH[:MM]))"
+.It $((Level)(str))
+Formats a Level value as a string, for example 
+.Dq Error ,
+.Dq Alert ,
+.Dq Warning ,
+and so on.
+Note that $(Level) or $Level formats the value as an integer 0 through 7.
+.It $((Time)(sec))
+Formats a Time value as the number of seconds since the Epoch.
+.It $((Time)(raw))
+Alias for $((Time)(sec)).
+.It $((Time)(local))
+Formats a Time value as a string of the form
+.Dq "Mmm dd hh:mm:ss" ,
+where Mmm is the abbreviation for the month, dd is the date (1 - 31) and hh:mm:ss is the time.
+The local timezone is used.
+.It $((Time)(lcl))
+Alias for $((Time)(local)).
+.It $((Time)(utc))
+Formats a Time value as a string of the form
+.Dq "yyyy-mm-dd hh:mm:ssZ" ,
+using Coordinated Universal Time, or the
+.Dq Zulu
+time zone.
+.It $((Time)(zulu))
+Alias for $((Time)(utc)).
+.It $((Time)(X))
+Where X may be any letter in the range A - Z or a - z.
+Formats the Time using the format
+.Dq "yyyy-mm-dd hh:mm:ssX" ,
+using the specified nautical timezone.
+Z is the same as UTC/Zulu time.  Timezones A - M (except J) decrease by one hour to the east of the
+Zulu time zone.
+Timezones N - Y increase by one hour to the west of Z.
+M and Y have the same clock time, but differ by one day.
+J is used to indicate the local timezone.
+When printing using $((Time)(J)), the output format is
+.Dq "yyyy-mm-dd hh:mm:ss" ,
+without a trailing timezone letter.
+.It $((Time)(JZ))
+Specifies the local timezone.
+The timezone offset from UTC follows the date and time.
+The time is formatted as
+.Dq "yyyy-mm-dd hh:mm:ss[+|-]HH[:MM]" .
+Minutes in the timezone offset are only printed if they are non-zero.
+.It $((Time)(ISO8601))
+Specifies the local timezone and ISO 8601 extended format.
+The timezone offset from UTC follows the date and time.
+The time is formatted as
+.Dq "yyyy-mm-ddThh:mm:ss[+|-]HH[:MM]" .
+Minutes in the timezone offset are only printed if they are non-zero.
+Note that this differs from
+.Dq JZ
+format only in that a
+.Dq T
+character separates the date and time.
+.It $((Time)(ISO8601B))
+Specifies the local timezone and ISO 8601 basic format, in the form:
+.Dq "yyyymmddThhmmss[+|-]HH[:MM]" .
+.It $((Time)(ISO8601Z))
+Specifies UTC/Zulu time and ISO 8601 extended format, in the form:
+.Dq "yyyy-mm-ddThh:mm:ssZ" .
+.It $((Time)(ISO8601BZ))
+Specifies UTC/Zulu time and ISO 8601 basic format, in the form:
+.Dq "yyyymmddThhmmssZ" .
+.It $((Time)([+|-]HH[:MM]))
+Specifies an offset (+ or -) of the indicated number of hours (HH) and optionally minutes (MM) to UTC.
+The value is formatted as a string of the form
+.Dq "yyyy-mm-dd hh:mm:ss[+|-]HH[:MM]" .
+Minutes in the timezone offset are only printed if they are non-zero.
+.El
+.Pp
+Each of the print formats listed above for Time values may optionally be followed by a dot character and an integer value.
+In that case, sub-second time values will be printed.
+For example, the following line prints messages with a UTC time format, and includes 6 digits of sub-second time:
+.Pp
+.Dl aslutil -F '$((Time)(utc.6)) $Host $(Sender)[$(PID)] <$((Level)(str))>: $Message
+.Pp
+If a custom format is not being used to specify the format for Time values, then Time values
+are generally converted to local time, except when the
+.Fl F Ar raw
+option is used, in which case times are printed as the number of seconds since the epoch.
+The
+.Fl T Ar format
+option may be used to control the format used for timestamps.
+The value of
+.Ar format 
+may be one of the following:
+.Pp
+.Bl -tag -width "local or lcl"
+.It sec or raw
+Times are printed as the number of seconds since the epoch.
+.It local or lcl
+Times are converted to the local time zone, and printed with the format
+.Dl mmm dd hh:mm:ss
+where mmm is the month name abbreviated as three characters.
+.It utc or zulu
+Times are converted to UTC, and printed with the format
+.Dl yyyy-mm-dd hh:mm:ssZ
+.It A-Z
+Times are converted to the indicated nautical time zone,
+printed in the same format as UTC.
+.Dq J
+is interpreted as the local timezone and printed in the same format,
+but without a trailing timezone letter.
+.It JZ
+is interpreted as the local timezone and printed with the format
+.Dl yyyy-mm-dd hh:mm:ss[+|-]HH[:MM] .
+The trailing 
+.Dq [+|-]HH[:MM]
+string represents the local timezone offset from UTC in hours,
+or in hours and minutes if minutes are non-zero.
+.It ISO8601
+Times are printed with the format specified by ISO 8601:
+.Dl yyyy-mm-ddThh:mm:ss[+|-]HH[:MM] .
+This is the same as the 
+.Dq JZ
+format, except a 
+.Dq T character separates the date and time components.
+.It [+|-]hh[:mm]
+The specified offset is used to adjust time.
+.El
+.Pp
+Each of the time formats above may optionally be followed by a dot character and an integer value.
+In that case, sub-second time values will be printed.
+For example:
+.Pp
+.Dl aslutil -T bsd.3
+.Pp
+The 
+.Fl u
+option is a short form for 
+.Fl T Ar utc . 
+.Pp
+By default, control characters and non-printable characters are encoded in the output stream.
+In some cases this may make messages less natural in appearance.
+The encoding is designed to preserve all the information in the log message,
+and to prevent malicious users from spoofing or obscuring information in log messages.
+.Pp
+Text in the
+.Dq std ,
+.Dq bsd ,
+and
+.Dq raw
+formats is encoded as it is by the
+.Nm vis
+utility with the
+.Fl c
+option.
+Newlines and tabs are also encoded as "\\n" and "\\t" respectively.
+In 
+.Dq raw
+format, space characters embedded in log message keys are encoded as "\\s"
+and embedded brackets are escaped to print as "\\[" and "\\]".
+.Pp
+XML format output requires that keys are valid UTF8 strings.
+Keys which are not valid UTF8 are ignored, and the associated value is not printed.
+.Pp
+Values that contain legal UTF8 are printed as strings.
+Ampersand, less than, greater than, quotation mark, and apostrophe characters are encoded according to XML conventions.
+Embedded control characters are encoded as
+.Dq &#xNN;
+where NN is the character's hexadecimal value.
+.Pp
+Values that do not contain legal UTF8 are encoded in base-64 and printed as data objects.
+.Pp
+The 
+.Fl E Ar format
+option may be used to explicitly control the text encoding.
+The value of
+.Ar format 
+may be one of the following:
+.Pp
+.Bl -tag -width "safe"
+.It safe
+This is the default encoding for
+.Nm aslutil
+output.
+Encodes backspace characters as ^H.
+Carriage returns are mapped to newlines.
+A tab character is appended after newlines so that message text is indented.
+.It vis
+The C-style backslash encoding similar to that produced by the
+.Dq vis -c
+command, as described above.
+.It none
+No encoding is used.
+.El
+.Pp
+The intent of the
+.Dq safe
+encoding is to prevent obvious message spoofing or damage.
+The appearance of messages printed will depend on terminal settings and UTF-8 string handling.
+It is possible that messages printed using the
+.Dq safe
+or
+.Dq none
+options may be garbled or subject to manipulation through the use of control characters and control sequences
+embedded in user-supplied message text.
+The
+.Dq vis
+encoding should be used to view messages if there is any suspicion
+that message text may have been used to manipulate the printed representation.
+.Pp
+If no further command line options are specified,
+.Nm
+displays all messages, or copies all messages to a data store file.
+However, an expression may be specified using the
+.Fl k
+and
+.Fl o
+options.
+.Ss EXPRESSIONS
+Expressions specify matching criteria.
+They may be used to search for messages of interest.
+.Pp
+A simple expression
+has the form:
+.Pp
+.Dl -k key [[op] val]
+.Pp
+The
+.Fl k
+option may be followed by one, two, or three arguments. 
+A single argument causes a match to occur if a message has the specified key, regardless of value.
+If two arguments are specified, a match occurs when a message has exactly the specified value for a given key.
+For example, to find all messages sent by the portmap process:
+.Pp
+.Dl aslutil -k Sender portmap
+.Pp
+Note that the
+.Fl C
+option is treated as an alias for the expression:
+.Pp
+.Dl -k Facility com.apple.console
+.Pp
+This provides a quick way to search for console messages.
+.Pp
+If three arguments are given, they are of the form
+.Fl k Ar key operation value .
+.Nm
+supports the following matching operators:
+.Pp
+.Bl -tag -width "xxx" -compact 
+.It eq
+equal
+.It ne
+not equal
+.It gt
+greater than
+.It ge
+greater than or equal to
+.It lt
+less than
+.It le
+less than or equal to
+.El
+.Pp
+Additionally, the operator may be preceded by one or more of the following modifiers:
+.Pp
+.Bl -tag -width "xxx" -compact 
+.It C
+case-fold
+.It R
+regular expression (see 
+.Xr regex 3 )
+.It S
+substring
+.It A
+prefix
+.It Z
+suffix
+.It N
+numeric comparison
+.El
+.Pp
+More complex search expressions may be built by combining two or more simple expressions. 
+A complex expression that has more than one 
+.Dq -k key [[op] val]
+term matches a message if all of the key-value operations match.
+Logically, the result is an AND of all of key-value operations.
+For example:
+.Pp
+.Dl aslutil -k Sender portmap -k Time ge -2h
+.Pp
+finds all messages sent by portmap in the last 2 hours
+(-2h means "two hours ago").
+.Pp
+The 
+.Fl o
+option may be used to build even more complex searches by providing an OR operation.
+If two or more sub-expressions are given, separated by
+.Fl o
+options, then a match occurs is a message matches any of the sub-expressions.
+For example, to find all messages which have either a 
+.Dq Sender
+value of
+.Dq portmap
+or that have a numeric priority level of 4 or less:
+.Pp
+.Dl aslutil -k Sender portmap -o -k Level Nle 4
+.Pp
+Log priority levels are internally handled as an integer value between 0 and 7.
+Level values in expressions may either be given as integers, or as string equivalents.
+See the table string values in the SENDING MESSAGES section for details.
+The example query above could also be specified with the command:
+.Pp
+.Dl aslutil -k Sender portmap -o -k Level Nle warning
+.Pp
+.Pp
+A special convention exists for matching time stamps.
+An unsigned integer value is regarded as the given number of seconds since
+0 hours, 0 minutes, 0 seconds, January 1, 1970, Coordinated Universal Time.
+An negative integer value is regarded as the given number of seconds before the current time.
+For example, to find all messages of Error priority level (3) or less which were logged in the last 30 seconds:
+.Pp
+.Dl aslutil -k Level Nle error -k Time ge -30
+.Pp
+a relative time value may be optionally followed by one of the characters 
+.Dq s ,
+.Dq m ,
+.Dq h ,
+.Dq d ,
+or
+.Dq w
+to specify seconds, minutes, hours, days, or weeks respectively.
+Upper case may be used equivalently.
+A week is taken to be 7 complete days (i.e. 604800 seconds).
+.Ss FILTERING CONTROLS
+Clients of the Apple System Log facility using either the
+.Xr asl 3
+or
+.Xr syslog 3
+interfaces may specify a log filter mask.
+The mask specifies which messages should be sent to the
+.Nm asld 
+daemon by specifying a yes/no setting for each priority level.
+Many clients set a filter mask to avoid sending relatively unimportant messages.
+Debug or Info priority level messages are generally only useful for debugging operations.
+By setting a filter mask, a process can improve performance by avoiding spending
+time sending messages that are in most cases unnecessary.
+.Pp
+The
+.Fl c
+option may be used to control filtering.
+In addition to the internal filter value that processes may set as described above,
+the system maintains a global 
+.Dq master
+filter.
+This filter is normally 
+.Dq off , 
+meaning that it has no effect.
+If a value is set for the master filter, it overrides the local filter for all processes. 
+Root user access is required to set the master filter value.
+.Pp
+The current setting of the master filter mask may be inspected using:
+.Pp
+.Dl aslutil -c 0
+.Pp
+The value of the master filter mask my be set by providing a second argument following
+.Fl c Ar 0 .
+The value may a set of characters from the set 
+.Dq pacewnid .
+These correspond to the priority levels Emergency (Panic), Alert, Critical, Error, Warning, Notice, Info, and Debug.
+The character 
+.Dq x
+may be used for Error, as it is used for sending messages.
+The master filter may be unset with:
+.Pp
+.Dl aslutil -c 0 off
+.Pp
+Since it is common to use the filter as a 
+.Dq cutoff
+mechanism, for example to cut off messages with Debug and Info priority,
+a single character from the list above may be specified, preceded by a minus sign.
+In this case,
+.Nm
+uses a filter mask starting at level 0 (Emergency)
+.Dq up to
+the given level.
+For example, to set the master filter level to cause all processes to log messages from Emergency up to Debug:
+.Pp
+.Dl aslutil -c 0 -d
+.Pp
+While the master filter level may be set to control the messages produced by all processes,
+another filter mask may be specified for an individual process. 
+If a per-process filter mask is set, it overrides both the local filter mask and the master filter mask.
+The current setting for a per-process filter mask may be inspected using
+.Fl c Ar process ,
+where
+.Ar process
+is either a PID or the name of a process.
+If a name is used, it must uniquely identify a process.
+To set a per-process filter mask, an second argument may be supplied following
+.Fl c Ar process
+as described above for the master filter mask.
+Root access is required to set the per-process filter mask for system (UID 0) processes.
+.Pp
+The 
+.Nm asld
+server follows filtering rules specified in the /etc/asl.conf file.
+When the remote-control mechanism is used to change the filter of a process,
+.Nm asld
+will save any messages received from that process until the remote-control filter is turned off.
+.Ss SERVER CONFIGURATION
+When
+.Nm asld
+starts up, and when it receives a HUP signal, it re-reads its configuration settings from /etc/asl.conf.
+It is sometimes useful to change configuration parameters temporarily, without needing to make changes
+to the configuration file.
+Any of the configuration options that may be set in the file (following an ``='' character) may also
+be sent to asld using the
+.Fl config
+flag (without an ``='' character).
+For example, to temporarily disable the kernel message-per-second limit:
+.Pp
+.Dl aslutil -config mps_limit 0
+.Pp
+Note that only the superuser (root) may change configuration parameters.
+.Pp
+In addition to the parameter setting options that are described in the
+.Xr asl.conf 5
+manual page, an additional option:
+.Pp
+.Dl aslutil -config reset
+.Pp
+will cause
+.Nm asld
+to reset its configuration.
+.Ss ASL OUTPUT MODULES
+ASL Output Modules are named configuration bundles used by the ASL server
+.Nm asld ,
+and by the ASL filesystem manager
+.Nm aslmanager .
+The /etc/asl.conf file represents the system's primary output module,
+and is given the name
+.Dq com.apple.asl .
+Other modules are read from files in the /etc/asl directory.
+File names serve as module names.
+ASL Output Modules are described in detail in
+.Xr asl.conf 5 .
+.Pp
+When invoked with
+.Fl module ,
+.Nm asld
+prints a summary of all loaded ASL Output Modules.
+The summary includes the output files and ASL store directories used by each module,
+a list of the module's configuration rules, and the module's current enabled or disabled status.
+.Fl module Ar name
+prints a summary for the module with the given name.
+.Pp
+ASL Output Modules may be enabled or disabled using the command:
+.Pp
+    aslutil -module 
+.Ar name
+enable 
+.Op 0
+.Pp
+Note that only the superuser (root) may enable or disable a module.
+.Pp
+The name '*'
+(including the single-quote characters)
+may be used to change the status of all ASL Output Modules, 
+excluding the primary com.apple.asl module.
+com.apple.asl may be enabled or disabled, but only specifically by name.
+.Pp
+If a module includes rotated files, the command:
+.Pp
+	aslutil -module 
+.Ar name
+checkpoint
+.Op file
+.Pp
+Will force the module to checkpoint all of its rotated files,
+or just the single optionally named file.
+The name '*'
+(including the single-quote characters)
+may be used to force checkpointing of all rotated files for all ASL Output Modules, 
+including the primary com.apple.asl module.
+.Pp
+Note that only the superuser (root) may force files to be checkpointed.
+.Pp
+The checkpoint action sends a command to
+.Nm asld
+and waits for a reply to be returned.
+This means that any files currently in use will be checkpointed when the
+.Nm aslutil
+command completes.
+.Sh SEE ALSO
+.Xr logger 1 ,
+.Xr asl 3 ,
+.Xr syslog 3 ,
+.Xr asl.conf 5 ,
+.Xr asld 8 .
+.Sh HISTORY
+The
+.Nm
+utility appeared as
+.Nm syslog
+in Mac OS X 10.4.

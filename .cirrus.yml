@@ -4,32 +4,28 @@ compute_engine_instance:
   # Image list available via
   # gcloud compute images list --project freebsd-org-cloud-dev --no-standard-images
   platform: freebsd
-  image_project: freebsd-org-cloud-dev
-  image: freebsd-13-0-release-amd64
+  image_project: airyxos-images
+  image: airyxbuild-0-4-b2
   cpu: 8
-  memory: 24G
-  disk: 40
+  memory: 16G
+  disk: 80
 
 env:
   CIRRUS_CLONE_DEPTH: 1
 
 task:
-  name: World and kernel amd64 build and boot smoke test
+  name: World and kernel amd64 build
   timeout_in: 120m
-  install_script:
-  - sh .cirrus-ci/pkg-install.sh qemu uefi-edk2-qemu-x86_64 llvm11
-  setup_script:
-  - uname -a
-  - df -m
+  environment:
+    KEY: ENCRYPTED[c6d3080b5345b008742b349fdb0ce9b6433d34a5d29c27364fe878a40dd00d00951db0d0a23504bc59f34f0732b5dee7]
+  script:
+  - pkg install -y git py38-pip
   - pw useradd user
   - mkdir -p /usr/obj/$(pwd -P)
   - chown user:user /usr/obj/$(pwd -P)
-  script:
-  - su user -c "make -j$(sysctl -n hw.ncpu) CROSS_TOOLCHAIN=llvm11 WITHOUT_TOOLCHAIN=yes buildworld buildkernel"
-  package_script:
-  - su user -c "make CROSS_TOOLCHAIN=llvm11 WITHOUT_TOOLCHAIN=yes PKG_FORMAT=tar packages"
-  test_script:
-  - sh tools/boot/ci-qemu-test.sh
-  post_script:
-  - df -m
-  - du -m -s /usr/obj
+  - su user -c "make -j$(sysctl -n hw.ncpu) MK_LIB32=no buildworld buildkernel"
+  - su user -c "make -C /usr/obj/$(pwd -P)/release MK_LIB32=no NOSRC=true NOPORTS=true packagesystem
+  - pip install --upgrade cloudsmith-cli
+  - cloudsmith push raw -k $KEY airyx/core --name base_${CIRRUS_BRANCH%/*}.txz /usr/obj/$(pwd -P)/release/base.txz
+  - cloudsmith push raw -k $KEY airyx/core --name kernel_${CIRRUS_BRANCH%/*}.txz /usr/obj/$(pwd -P)/release/kernel.txz
+  - ls -l /usr/obj/$(pwd -P)/release/

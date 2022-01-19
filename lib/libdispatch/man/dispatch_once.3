@@ -1,0 +1,46 @@
+.\" Copyright (c) 2008-2009 Apple Inc. All rights reserved.
+.Dd May 1, 2009
+.Dt dispatch_once 3
+.Os Darwin
+.Sh NAME
+.Nm dispatch_once
+.Nd execute a block only once
+.Sh SYNOPSIS
+.Fd #include <dispatch/dispatch.h>
+.Ft void
+.Fo dispatch_once
+.Fa "dispatch_once_t *predicate" "void (^block)(void)"
+.Fc
+.Ft void
+.Fo dispatch_once_f
+.Fa "dispatch_once_t *predicate" "void *context" "void (*function)(void *)"
+.Fc
+.Sh DESCRIPTION
+The
+.Fn dispatch_once
+function provides a simple and efficient mechanism to run an initializer
+exactly once, similar to
+.Xr pthread_once 3 .
+Well designed code hides the use of lazy initialization.
+For example:
+.Bd -literal
+FILE *getlogfile(void)
+{
+	static dispatch_once_t pred;
+	static FILE *logfile;
+
+	dispatch_once(&pred, ^{
+		logfile = fopen(MY_LOG_FILE, "a");
+	});
+
+	return logfile;
+}
+.Ed
+.Pp
+.Sh FUNDAMENTALS
+The
+.Fn dispatch_once
+function is a wrapper around
+.Fn dispatch_once_f .
+.Sh SEE ALSO
+.Xr dispatch 3

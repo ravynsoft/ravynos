@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>Label</key>
+	<string>com.apple.syslogd</string>
+	<key>OnDemand</key>
+	<false/>
+	<key>JetsamProperties</key>
+	<dict>
+		<key>JetsamPriority</key>
+		<integer>-49</integer>
+		<key>JetsamMemoryLimit</key>
+		<integer>300</integer>
+	</dict>
+	<key>HopefullyExitsLast</key>
+	<true/>
+	<key>EnableTransactions</key>
+	<true/>
+        <key>POSIXSpawnType</key>
+        <string>Adaptive</string>
+	<key>ProgramArguments</key>
+	<array>
+<!--
+	Un-comment the following lines to run syslogd with a sandbox profile.
+	Sandbox profiles restrict processes from performing unauthorized
+	operations; so it may be necessary to update the profile
+	(/usr/share/sandbox/syslogd.sb) if any changes are made to the syslog
+	configuration (/etc/syslog.conf).
+-->
+<!--
+		<string>/usr/bin/sandbox-exec</string>
+		<string>-f</string>
+		<string>/usr/share/sandbox/syslogd.sb</string>
+-->
+		<string>/usr/sbin/syslogd</string>
+	</array>
+	<key>EnvironmentVariables</key>
+	<dict>
+		<key>ASL_DISABLE</key>
+		<string>1</string>
+	</dict>
+	<key>MachServices</key>
+	<dict>
+		<key>com.apple.system.logger</key>
+		<dict>
+			<key>ResetAtClose</key>
+			<true/>
+		</dict>
+	</dict>
+	<key>Sockets</key>
+	<dict>
+		<key>BSDSystemLogger</key>
+		<dict>
+			<key>SockPathName</key>
+			<string>/var/run/syslog</string>
+			<key>SockType</key>
+			<string>dgram</string>
+			<key>SockPathMode</key>
+			<integer>438</integer>
+		</dict>
+<!--
+	Un-comment the following lines to enable the network syslog protocol listener.
+-->
+<!--
+		<key>NetworkListener</key>
+		<dict>
+			<key>SockServiceName</key>
+			<string>syslog</string>
+			<key>SockType</key>
+			<string>dgram</string>
+		</dict>
+-->
+	</dict>
+</dict>
+</plist>

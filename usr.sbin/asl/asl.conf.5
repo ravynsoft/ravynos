@@ -1,0 +1,965 @@
+.\"Copyright (c) 2004-2013 Apple Inc. All rights reserved.
+.\"
+.\"@APPLE_LICENSE_HEADER_START@
+.\"
+.\"This file contains Original Code and/or Modifications of Original Code
+.\"as defined in and that are subject to the Apple Public Source License
+.\"Version 2.0 (the 'License'). You may not use this file except in
+.\"compliance with the License. Please obtain a copy of the License at
+.\"http://www.opensource.apple.com/apsl/ and read it before using this
+.\"file.
+.\"
+.\"The Original Code and all software distributed under the License are
+.\"distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
+.\"EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
+.\"INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
+.\"FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
+.\"Please see the License for the specific language governing rights and
+.\"limitations under the License.
+.\"
+.\"@APPLE_LICENSE_HEADER_END@
+.\"
+.Dd Sept 19, 2008
+.Dt asl.conf 5
+.Os
+.Sh NAME
+.Nm asl.conf
+.Nd configuration file for
+.Xr asld 8
+and
+.Xr aslmanager 8
+.Sh DESCRIPTION
+The
+.Xr asld 8
+server reads the /etc/asl.conf file at startup, and re-reads the file when it receives a HUP signal.
+The
+.Xr aslmanager 8
+daemon reads the file when it starts.
+See the ASLMANAGER PARAMETER SETTINGS section for details on aslmanager-specific parameters.
+.Pp
+If the /etc/asl directory exists, then
+.Nm asld
+and
+.Nm aslmanager
+will read each file it contains.
+These files must have the same format as
+.Nm asl.conf .
+Each file configures an independent module, identified by the file name.
+Modules may be enabled or disabled independently.
+Each module may specify its own set of rules for acting on received messages.
+See the ASL MODULES section for details.
+.Pp
+The files contain several types of lines, described below.
+Each type is identified by the first non-whitespace character in the line.
+.Pp
+.Bl -tag -width "=" -compact
+.It =
+Parameter settings
+.It ?
+Query-action rules
+.It >
+Output file or directory configuration options
+.It #
+Comments
+.El
+.Pp
+Parameter setting lines in the configuration file are generally of the form:
+.Pp
+.Dl = parameter_name value ...
+.Pp
+Most parameter settings require a single value, although some may take several values.
+See the PARAMETER SETTINGS section for details.
+.Pp
+Query-action rules in the file generally have the form:
+.Pp
+.Dl ? query action ...
+.Pp
+This directs
+.Nm asld
+to perform the specified action when a received message matches the given query.
+Actions may be followed by optional arguments.
+See the QUERY-ACTION RULES section for details.
+.Pp
+Most query-action rules specify output files or ASL-format data stores where matching messages should be saved.
+The optional parameters for those rules can specify a number of options for these outputs.
+As a convenience, these configuration options may be specified on a separate line.
+Output configuration settings in the file begin with a greater-than sign 
+.Dq >
+followed by a file or ASL directory name and the configuration options for that file or directory.
+These lines generally have the form:
+.Pp
+.Dl > filename option ...
+.Pp
+See the OUTPUT CONFIGURATION SETTINGS section for details.
+.Pp
+Comment lines are ignored.
+.Ss PARAMETER SETTINGS
+The following parameter-settings are recognized by
+.Nm asld .
+.Pp
+.Bl -tag -width "bsd_max_dup_time" -compact -offset indent
+.It debug
+Enables or disables internal debugging output.
+This is probably of little interest to most users.
+The debug parameter requires a value of
+.Dq 1
+to enable debug output, or a value of
+.Dq 0
+to disable it.
+Debugging messages are written to /var/log/syslogd.log.
+.Pp
+.It mark_time
+Sets the time interval for the mark facility.
+The default is 0 seconds, which indicates that mark messages are not generated.
+.Pp
+.It dup_delay
+Sets the maximum time before writing a
+.Dq "last message repeated <N> times"
+message in a log file when duplicate messages have been detected.
+The default is 30 seconds.
+.Pp
+.It utmp_ttl
+Sets the time-to-live for messages used by the utmp, wtmp, and lastlog subsystems.
+The default is 31622400 seconds (approximately 1 year).
+.Pp
+.It mps_limit
+Sets the kernel message per second quota.
+The default is value is 500.
+A value of 0 disables the quota mechanism.
+Note that this setting only limits the number of kernel messages that will be saved by
+.Nm syslogd .
+User processes are limited to 36000 messages per hour.
+The limit for a user process is not enforced if a remote-control ASL filter is in
+place for the process.
+See the
+.Xr aslutil 1
+manual for enabling a remote-control filter using the 
+.Fl c
+option with the
+.Nm aslutil
+command.
+.Pp
+.It max_file_size
+Sets the maximum file size for individual files in the ASL database.
+The default is 25600000 bytes.
+.El
+.Ss QUERY-ACTION RULES
+Query-action rules are used to cause
+.Nm syslogd
+to perform specific actions when received messages match a specified query pattern.
+For example, to save certain messages in a file.
+The rules are processed in the order in which they appear in the file.
+This matters because some actions can affect further processing.
+For example, an 
+.Dq ignore 
+action causes
+.Nm asld
+to stop processing the rules in a file for messages that match a given query pattern.
+.Pp
+Query-action rules contain three components: a query, an action, and optional parameters specific to that action.
+For example, the following rule matches log messages sent by the 
+.Dq example
+process which have log priority levels in the range emergency to error.
+If a received message matches, 
+.Nm asld
+posts a BSD notification for the key 
+.Dq com.example.log_message .
+.Pp
+.Dl ? [= Sender example] [<= Level error] notify com.example.log_message
+.Ss Query Format
+Queries comprise one or more message matching components, each of which has the form:
+.Pp
+.Dl [OP KEY VAL]
+.Pp
+OP is a comparison operator.
+It can have the following values:
+.Pp
+.Bl -tag -width "<=  " -compact -offset indent
+.It T
+true (always matches)
+.It =
+equal
+.It !
+not equal
+.It >
+greater than
+.It >=
+greater than or equal to
+.It <
+less than
+.It <=
+less than or equal to
+.El
+.Pp
+It can also be preceded by one or more modifiers:
+.Bl -tag -width "C   " -compact -offset indent
+.Pp
+.It C
+casefold
+.It N
+numeric comparison
+.It S
+substring
+.It A
+prefix
+.It Z
+suffix
+.El
+.Pp
+KEY and VAL are message keys and values.
+For example
+.Pp
+.Dl [= Sender example]
+.Pp
+matches any message with value 
+.Dq example
+for the 
+.Dq Sender
+key.
+The query
+.Pp
+.Dl [CA= Color gr]
+.Pp
+matches any message with a value beginning with the letters GR, Gr, gr, or gR
+(
+.Dq C
+meaning casefold,
+.Dq A
+meaning prefix) for the
+.Dq Color
+key.
+The example query above,
+.Pp
+.Dl [= Sender example] [N< Level 3]
+.Pp
+matches any message from 
+.Dq example
+with a level numerically less than 3
+(string values are converted to integers, and the comparison is done on the integer values).
+Note that the string values may be used equivalently for the Level key,
+so the example above may also be written as:
+.Pp
+.Dl [= Sender example] [< Level Error]
+.Pp
+String values for levels may be any of the set
+.Dq emergency ,
+.Dq alert ,
+.Dq critical ,
+.Dq error ,
+.Dq warning ,
+.Dq notice ,
+.Dq info ,
+or
+.Dq debug .
+These strings may be upper, lower, or mixed case.
+.Pp
+The
+.Dq T
+operator is useful to test for the presence of a particular key.
+.Pp
+.Dl [T Flavor]
+.Pp
+Will match any message that has a
+.Dq Flavor
+key, regardless of its value.
+.Pp
+Note that space characters and closing square bracket characters (']') are specially processed.
+The first space character following the beginning of a key delimits the key.
+The first closing square bracket following the beginning of a value delimits the value.
+So '[= foo bar\ ]'
+will match messages which have a key 'foo' with the value 'bar ', including a trailing space character.
+.Pp
+As a special case, the query
+.Pp
+.Dl *
+.Pp
+matches all messages.
+.Ss Actions
+The following actions are available.
+.Pp
+.Bl -tag -width "directory" -compact -offset indent
+.It store
+Causes
+.Nm asld
+to save matching messages in the ASL database.
+Note that if /etc/asl.conf contains no 
+.Dq store 
+action rules, then
+.Nm asld
+will save all messages it receives in the ASL database.
+.Pp
+.It file
+Causes matching messages to be stored in a log file.
+The file's path name must follow as the first parameter.
+If the path already exists, it must be a plain file.
+If the file does not exist, it will be created when the first message is written.
+If the pathname specified is not an absolute path,
+.Nm asld
+will treat the given path as relative to /var/log (for /etc/asl.conf), 
+or for other output modules relative to /var/log/module/NAME where NAME is the module name.
+.Pp
+By default, the file's owner will be root, and the file will be readable by the admin group.
+Various options may follow the file name to specify ownership and access controls,
+printed log message format, and controls for file rotation, compression, time-to-live,
+and other aspects of output file life-cycle management.
+See the OUTPUT CONFIGURATION SETTINGS section for more details.
+.Pp
+.It directory
+Causes matching messages to be stored in an ASL-format log message data store.
+A directory path name must follow as the first parameter.
+If the path exists, it must be a directory.
+.Pp
+Messages saved to an ASL directory are saved in files that are named
+.Dq yyyy.mm.dd.asl ,
+where 
+.Dq yyyy ,
+.Dq mm ,
+and
+.Dq dd
+are the year, month (01 to 12) and day of the month (01 to 31) associated with
+matching messages.
+This has the effect of saving messages in a separate file for each day.
+.Pp
+By default, files in the directory will be owned by root, and readable by the admin group.
+Various options may follow the directory name to control ownership, access controls,
+and the management of the store and its contents.
+See the OUTPUT CONFIGURATION SETTINGS section for a list of options that may be set for store directories.
+.Pp
+.It notify
+Causes
+.Nm asld
+to post a notification with
+.Fn notify_post .
+The notification key must appear as a single parameter following the
+.Dq notify
+action.
+.Pp
+.It skip
+Causes a matching message to be ignored in all subsequent matching rules in the file.
+Its scope is local to a single module configuration file.
+.Pp
+.It claim
+Messages that match the query associated with a
+.Dq claim
+action are not processed by the main ASL configuration file /etc/asl.conf.
+While claimed messages are not processed by /etc/asl.conf,
+they are not completely private.
+Other modules may also claim messages,
+and in some cases two or more modules may have claim actions
+that match the same messages.
+This action only blocks processing by /etc/asl.conf.
+.Pp
+The
+.Dq claim
+action may be followed by the keyword
+.Dq only .
+In this case, only those messages that match the 
+.Dq claim only
+query will be processed by subsequent rules in the module.
+.Pp
+.It access
+Sets read access controls for messages that match the associated query pattern.
+.Nm asld
+will restrict read access to matching messages to a specific user and group.
+The user ID number and group ID number must follow the
+.Dq access
+keyword as parameters.
+.Pp
+.It broadcast
+Causes syslogd to write the text of matching messages to all terminal windows.
+If optional text follows the
+.Dq broadcast
+keyword, then that text is written rather that the matching message text.
+Note that this action is restricted to the main ASL configuration file /etc/asl.conf.
+.Pp
+.It ignore
+Causes a matching message to be ignored in all subsequent matching rules in the file.
+This action is equivalent to the
+.Dq skip
+action in all module configuration files except the main ASL configuration file /etc/asl.conf.
+When used in the main configuration file, the scope of the action is global,
+and matching messages will be ignored by all ASL modules.
+.El
+.Ss OUTPUT CONFIGURATION SETTINGS
+Various options may follow the path name in a
+.Dq file
+or
+.Dq directory
+query-action rule.
+For example, the following rule specifies that all messages from the
+.Dq example
+facility will be saved in the file
+.Dq example.log ,
+and that messages are printed in a
+.Dq raw
+format that shows all the keys and values in the message:
+.Pp
+.Dl ? [= Facility example] file example.log format=raw
+.Pp
+Multiple options may be specified separated by whitespace characters.
+For example:
+.Pp
+.Dl ? [= Facility example] file example.log format=raw rotate=local compress ttl=3 mode=0640 uid=0 gid=5 gid=20
+.Pp
+As a convenience, a file or directory name and any associated options can be specified on a separate
+output configuration line following a 
+.Dq >
+character:
+.Pp
+.Dl > example.log format=raw rotate=local compress ttl=3 mode=0640 uid=0 gid=5 gid=20
+.Pp
+Options for a file or directory are taken from the first query-action rule
+or output configuration line for the given path.
+A good usage pattern for multiple rules that specify the same output file or directory is:
+.Pp
+.Dl > example.log options ...
+.Dl ? query1 file example.log
+.Dl ? query2 file example.log
+.Dl ? query3 file example.log
+.Pp
+Most of the options listed below may be used with either file or directory outputs.
+Exceptions are noted.
+.Pp
+.Bl -tag -width "coalesce=VAL" -compact -offset indent
+.It format=FMT
+Controls the format of log messages saved in a file.
+Note that this option is specific to file outputs.
+It is ignored for ASL directories.
+.Pp
+The format is specified by the value given for FMT.
+Several pre-defined formats are available:
+.Bl -tag -width "abcd"
+.It bsd
+Format used by the
+.Nm asld
+daemon for system log files, e.g. /var/log/system.log.
+.It std
+Standard (default) format.
+Similar to 
+.Dq bsd ,
+but includes the message priority level.
+.It raw
+Prints the complete message structure.
+Each key/value pair is enclosed in square brackets.
+Embedded closing brackets and white space are escaped.
+Time stamps are printed as seconds since the epoch.
+.It xml
+The list of messages is printed as an XML property list.
+Each message is represented as a dictionary in a array.
+Dictionary keys represent message keys.
+Dictionary values are strings.
+.It asl
+The output file is written as an ASL-format data store file.
+Files in this format may be read and searched using the
+.Nm aslutil
+command line utility with the use of the
+.Fl f Ar path
+option.
+.El
+.Pp
+Custom format strings may also be specified.
+Since custom formats often contain white-space characters, 
+the entire string may be enclosed in single or double quote characters,
+or each white-space character may be preceded by a backslash escape character.
+Escaped characters are not interpreted.
+Custom format strings are described in detail in the READING MESSAGES section of the
+.Xr alsutil 1
+manual.
+.Pp
+.It mode=MMM
+Sets the mode of the file or files within an ASL directory.
+The value MMM may be specified as a decimal value,
+a hexadecimal value (if preceded by ``0x''),
+or octal value (if preceded by ``0'').
+.Pp
+.It uid=UUU
+Specifies the file's owner.
+If more than one 
+.Dq uid=UUU
+option is given, the first will be used to set ownership,
+and subsequent user IDs will be given read access to in the files POSIX.1e ACLs.
+Note that UIDs should be defined in the local Open Directory database, since
+.Nm asld
+starts and may create the log file before network directory services are available.
+Unknown UIDs and GIDs will be ignored when setting access controls.
+.Pp
+.It gid=GGG
+Specifies the file's group.
+If more than one 
+.Dq gid=GGG
+option is given, the first will be used to set the file's group,
+and subsequent group IDs will be given read access to in the files POSIX.1e ACLs.
+As with UID=UUU options, groups should be defined in the local Open Directory database.
+.Pp
+.It coalesce=VAL
+By default, files printed using the
+.Dq bsd
+and
+.Dq std
+formats will coalesce duplicates.
+If two or more messages are logged within 30 seconds, and which differ only in time,
+then the second and subsequent messages will not be printed.
+When a different message is logged, or 30 seconds have elapsed since the initial
+message was logged, a line with the text
+.Dl --- last message repeated N times ---
+will be added to the file.
+The default is
+.Dq coalesce=1 .
+The default may be overridden by specifying
+.Dq coalesce=0 .
+The values 
+.Dq off
+and 
+.Dq false
+may be used in place of 
+.Dq 0 .
+.El
+.Pp
+The following options all deal with file rotation and life-cycle management.
+The FILE ROTATION section describes this in detail.
+.Pp
+.Bl -tag -width "rotate=NAME_STYLE" -compact -offset indent
+.Pp
+.It rotate=NAME_STYLE
+Enables log file rotation and specifies the file naming scheme for rotated files.
+This option does not apply to ASL directories.
+Four styles are supported:
+.Pp
+.Bl -tag -width "local-basic" -compact -indent
+.It sec
+Rotated file names are of the form
+.Dq example.log.T1340607600 .
+The file names include the creation time of the file in seconds since the epoch.
+.Pp
+.It utc
+Rotated file names are in ISO 8601 extended format, for example
+.Dq example.log.2012-06-24T07:00:00Z .
+The file names includes its creation time as a UTC date and time.
+.Pp
+.It utc-basic
+Rotated file names are in ISO 8601 basic format, for example
+.Dq example.log.20120624T070000Z .
+The file names includes its creation time as a UTC date and time.
+.Pp
+.It local
+Rotated file names are in ISO 8601 extended format, for example
+.Dq example.log.2012-06-24T07:00:00-7 .
+The file names includes its creation time as date and time in the local time zone.
+The local timezone offset is included as a trailing part of the name.
+.Pp
+.It local-basic
+Rotated file names are in ISO 8601 basic format, for example
+.Dq example.log.20120624T070000-07 .
+The file names includes its creation time as date and time in the local time zone.
+The local timezone offset is included as a trailing part of the name.
+.Pp
+.It seq
+Rotated file names are of the form
+.Dq example.log.N
+where N is an integer sequence number.
+Files are re-numbered on each rotation so that the 
+.Dq 0
+file is the most recent.
+.El
+.Pp
+If the option 
+.Dq rotate
+appears without a value, the naming style defaults to
+.Dq "sec" .
+.Pp
+Note that using the local timezone for timestamped files may cause odd behavior on highly-mobile systems.
+.Nm aslmanager
+will delete files after a specified time-to-live (see below).
+The age of the file is determined by the file name.
+If files are created in different timezones but saved with a non-absolute timestamp,
+the age calculation may result in some files being considered older or newer than they are in reality.
+.Pp
+Also note that sequenced files (using the
+.Dq seq
+style) will initially be checkpointed using a file name containing a timestamp in seconds.
+.Nm aslmanager
+will re-sequence the files when it scans for checkpoint files.
+.Pp
+.It ttl=DAYS
+Specifies the number of days that older versions of rotated files should be allowed to remain in the filesystem.
+Rotated files older than this limit are deleted.
+.Pp
+.It dest=PATH
+By default, rotated files are left in the same directory as the original file.
+However, in some cases it may be useful to move the rotated versions to a different
+directory for archival or other reasons.
+If this option is specified,
+.Nm aslmanager
+will move files to the directory given by PATH.
+.Pp
+.It soft
+Makes
+.Nm asld
+ignore write errors when saving messages.
+Normally,
+.Nm sld
+will stop saving to a file or ASL directory after 5 consecutive write errors.
+.Pp
+.It compress
+Enables gzip file compression for rotated log files.
+When compressed, the extension 
+.Dq .gz
+is appended to the file name.
+.Pp
+.It file_max=SIZE
+Limits the size of an active log file.
+SIZE may be an integer number of bytes, or the value may be followed by a single character 
+.Dq k , 
+.Dq m ,
+or 
+.Dq g
+(upper or lower case),
+to indicate a size limit in multiples of 1024 (kibibyte), 1048576 (mebibyte), or 1073741824 (gibibyte).
+If a file exceeds this limit, it is immediately checkpointed by
+.Nm syslogd 
+and a new file is opened.
+Note that
+.Dq file_max
+specifies a size limit before file compression is performed if the
+.Dq compress
+option is also present.
+.Pp
+.It all_max=SIZE
+Specifies a size limit for the total of all rotated versions of a file.
+.Nm aslmanager
+will delete rotated files, oldest first, to reduce the total below the limit.
+SIZE may be specified in the same format as the file_max option.
+.El
+.Ss FILE ROTATION
+.Nm asld
+and
+.Nm aslmanager
+work together to automatically provide all the features of file rotation.
+However, it is useful to understand how the process works.
+This section describes the file rotation options that may be used in /etc/asl.conf
+or an ASL Output Module configuration file,
+together with a description of how the system works to support those features.
+.Pp
+If a file is marked for rotation,
+.Nm asld
+will close the file at the start of a new day or when the file exceeds its 
+.Dq file_max
+size limit.
+At that point,
+.Nm asld
+renames the file and starts a new file to continue logging.
+The old file is renamed with the file's creation time included in its name.
+This operation is called checkpointing the file.
+.Pp
+For example,
+.Nm asld
+might close
+.Dq example.log
+and rename it
+.Dq example.log.T1340521200 ,
+1340521200 being the time that the file was created.
+It would then start a new 
+.Dq example.log
+file and use it until midnight, when the cycle would be repeated.
+.Pp
+Files are normally checkpointed at midnight.
+If the system is sleeping or powered off, then files are checkpointed when
+the the first message of a new day (local time) is received.
+Files are also checkpointed if they exceed a size limit specified by a file_max option,
+and they may be checkpointed manually through options provided by the
+.Xr aslutil 1
+and
+.Xr aslmanager 8
+utilities.
+The checkpointed file name always contains the file's creation time.
+If the options for the file include
+.Dq rotate=utc
+then the timestamp will be a UTC date and time string.
+.Dq rotate=local
+causes the timestamp to be the date and time in the current local timezone.
+Otherwise, the timestamp will be in seconds since the epoch.
+.Pp
+.Nm asld
+only performs the checkpointing operation.
+It closes old files, moves them out of the way, and starts writing new files.
+Most of the work of file rotation is done by the
+.Xr aslmanager 8
+utility.
+That includes moving files to a destination directory, compressing files,
+re-naming files according to one of the naming style options,
+deleting old files after they exceed their time-to-live,
+and checking file space usage.
+.Pp
+.Nm aslmanager
+normally runs once during system start-up, and once a day just after midnight.
+It may also be triggered occasionally by
+.Nm asld ,
+and it may be run manually.
+.Pp
+.Nm aslmanager
+scans for any checkpointed files created by
+.Nm asld
+and will rename the files (if required) to match the naming style specified by the
+.Dq rotate=NAME_STYLE
+option.
+If 
+.Dq rotate=seq
+is specified for a file, checkpointed files created by
+.Nm asld
+contain a timestamp in seconds.
+These files are renamed so that the file names
+contain a sequence number.
+The most recent version has the number 
+.Dq 0 ,
+and older versions have higher numbers.
+For example:
+.Pp
+.Dl example.log.0
+.Dl example.log.1
+.Dl example.log.2
+.Dl ...
+.Pp
+As well as renaming files,
+.Nm aslmanager
+may perform other actions.
+If the file has been given a 
+.Dq dest=PATH
+option,
+the rotated versions of the file will be moved to the specified directory.
+Files will be gzip compressed using the
+.Xr zlib 3
+library if the 
+.Dq compress
+option has been given.
+If the total size of all the rotated versions of the file exceeds a value given in an 
+.Dq all_max
+option, older versions of the rotated file will be deleted to keep the total below the specified limit.
+.Pp
+Although checkpoint and file rotation operations are normally done automatically,
+.Nm aslmanager
+supports an option that will trigger 
+.Nm asld
+to checkpoint files before
+.Nm aslmanager
+starts its scan.
+.Nm aslutil 
+also supports an option to force files to be checkpointed without running
+.Nm aslmanager .
+See the
+.Xr aslmanager 8
+and
+.Xr aslutil 1
+manuals for details.
+.Pp
+Programmatically, an
+.Xr asl 3
+message may be sent to 
+.Nm asld
+to force it to checkpoint either a single file,
+or to checkpoint all files for a particular ASL module.
+To checkpoint all files:
+.Pp
+    const char *module_name;
+.Pp
+    //TODO: set module_name
+    asl_object_t ctl = asl_new(ASL_TYPE_MSG);
+    asl_set(ctl, ASL_KEY_OPTION, "control");
+    asl_log(NULL, ctl, ASL_LEVEL_NOTICE, "@ %s checkpoint", module_name);
+    asl_release(ctl);
+.Pp
+To checkpoint just one file:
+.Pp
+    const char *module_name;
+    const char *file_name;
+.Pp
+    //TODO: set module_name
+    //TODO: set file_name
+    asl_object_t ctl = asl_new(ASL_TYPE_MSG);
+    asl_set(ctl, ASL_KEY_OPTION, "control");
+    asl_log(NULL, ctl, ASL_LEVEL_NOTICE, "@ %s checkpoint %s", module_name, file_name);
+    asl_release(ctl);
+.Pp
+.Ss ASL OUTPUT MODULES
+.Pp
+An ASL output module is created by a configuration file in the directory /etc/asl.
+The file name is used as the module's name.
+The format of the file is generally the same as
+.Nm asl.conf 
+with a few exceptions.
+Modules may not have parameter setting lines for the system parameters listed in the
+PARAMETER SETTINGS or ASLMANAGER PARAMETER SETTINGS sections,
+nor may they include
+.Dq broadcast
+query-action rules.
+.Pp
+Module configuration files are read by
+.Nm asld 
+when it starts, and whenever it gets a HUP signal.
+Messages received by
+.Nm asld
+are first processed according the the rules found in /etc/asl.conf
+(also known as the 
+.Dq com.apple.asl
+module), then the message is processed by the
+rules from each module found in /etc/asl.
+.Pp
+An exception to this is that messages that match the query in a
+.Dq claim
+action rule in any module are not processed by the rules in /etc/asl.conf.
+.Pp
+ASL output modules are enabled by default, but a module may include a parameter setting:
+.Pp
+.Dl = enable 0
+.Pp
+The module is still loaded by
+.Nm asld ,
+but the module will not save messages to files or directories, and will not post BSD notifications.
+.Pp
+Several mechanisms allow modules to be enabled or disabled dynamically.
+One mechanism allows the setting of the 
+.Dq enable
+parameter to be based on the existence of a path in the filesystem,
+or on the value associated with a dictionary key in a property list file.
+On iOS only, the value of a key in an installed configuration profile may be tested.
+.Pp
+To enable a module based on the existence of a file, the module may use:
+.Pp
+.Dl = enable [File /a/b/c]
+.Pp
+where
+.Dq /a/b/c
+may be any filesystem path.
+.Pp
+To enable a module based on the value of a dictionary key in a property list file,
+.Pp
+.Dl = enable [Plist /path/config.plist] [= SomeKey SomeValue]
+.Pp
+Any of the test operations described above in the QUERY-ACTION RULES section
+may also be used in testing key / value pairs.
+Multiple operations are also allowed, for example:
+.Pp
+.Dl = enable [Plist /path/config.plist] [N>= DebugLevel 7] [S= Othervalue xyz]
+.Pp
+If the property list file does not exist, the test will evaluate to zero.
+The file may be in binary or xml format.
+It may only contain a single dictionary object at its top level.
+Only keys and values at the top level of the dictionary may be tested.
+Values must be strings, integer values, doubles, UUIDs, dates, or booleans.  
+Boolean <true/> and <false/> values are converted to 1 and 0 respectively. 
+Values are converted into strings,
+and string comparisons are used unless unless an
+.Dq N
+modifier is specified with the test operator.
+.Pp
+On iOS, a module may test key / value pairs in a configuration profile using the
+same key / value tests that may be used for property list files.
+.Pp
+.Dl = enable [Profile name] [= Verbose 1]
+.Pp
+The profile name is the value of its DefaultsDomainName key.
+The test will evaluate to zero if the profile is not installed.
+.Pp
+A module may be also enabled or disabled using
+.Nm aslutil
+or by sending
+.Nm asld
+a special
+.Xr asl 3
+control message.
+Only the user
+.Dq root
+may enable or disable modules.
+.Pp
+A module may be enabled or disabled by sending an
+.Xr asl 3
+message as shown in this example:
+.Pp
+    int enable;
+    const char *module_name;
+.Pp
+    //TODO: set module_name
+    //TODO: set enable to 0 or 1
+    asl_object_t ctl = asl_new(ASL_TYPE_MSG);
+    asl_set(ctl, ASL_KEY_OPTION, "control");
+    asl_log(NULL, ctl, ASL_LEVEL_NOTICE, "@ %s enable %d", module_name, enable);
+    asl_release(ctl);
+.Pp
+A control message may also be sent using
+.Nm aslutil
+as the following example shows to disable a module named
+.Dq com.apple.example :
+.Pp
+.Dl sudo aslutil -module com.apple.example enable 0
+.Pp
+A module may also enable or disable itself.
+Although a module that is not enabled will not write or post notifications,
+it still will scan messages.
+The module may contain conditional parameter-setting rules like:
+.Pp
+.Dl = [= Color Green] enable 1
+.Dl = [= Color Red] enable 0
+.Pp
+This is similar to a query-action rule.
+If a message received by syslogd matches the specified query,
+in this case having a Color key with the value Green or Red,
+then the enable parameter is set as specified.
+So in this example, the module would be enabled and disabled
+whenever syslogd received a message containing the appropriate value for the 
+.Dq Color
+key.
+.Ss ASLMANAGER PARAMETER SETTINGS
+The following parameter-settings are recognized by
+.Nm aslmanager .
+.Pp
+.Bl -tag -width "aslmanager_debug" -compact -offset indent
+.It aslmanager_debug
+Enables or disables internal debugging output.
+This is probably of little interest to most users.
+The debug parameter requires a value of 
+.Dq 1
+to enable debug output, or a value of 
+.Dq 0
+to disable it.
+Debug messages are saved in an auxiliary file attached to an ASL log message.
+The file may be inspected by opening the file attachement from the Console utility.
+.Pp
+.It store_ttl
+Sets the time-to-live in days for messages in the ASL database.
+The default is 7 days.
+.Pp
+.It max_store_size
+Sets the maximum size for for the ASL database.
+The default is 150000000 bytes.
+.Pp
+.It archive
+Enables or disables archiving of the ASL database.
+The archive parameter requires a value of 
+.Dq 1
+to enable archiving, or a value of
+.Dq 0
+to disable it.
+An optional archive directory path may follow the
+.Dq 0
+or
+.Dq 1 .
+If enabled, files removed from the ASL database are moved to the archive directory.
+The default archive directory path is /var/log/asl.archive.
+.Pp
+.It store_path
+The ASL database path used by 
+.Nm aslmanager .
+The default is /var/log/asl.
+Note that this parameter is ignored by
+.Nm asld .
+.Pp
+.It archive_mode
+Files copied to the ASL database archive will be given the specified access mode.
+The default is 0400, so archive files will only be readable by root.
+.El
+.Pp
+.Sh SEE ALSO
+.Xr asl 3 ,
+.Xr notify 3 ,
+.Xr aslutil 1 ,
+.Xr aslmanager 8 ,
+.Xr asld 8 .

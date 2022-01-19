@@ -1,0 +1,44 @@
+.\" Copyright (c) 2008-2009 Apple Inc. All rights reserved.
+.Dd May 1, 2009
+.Dt dispatch_api 3
+.Os Darwin
+.Sh NAME
+.Nm dispatch_api
+.Nd Designing API using dispatch
+.Sh DESCRIPTION
+The following is a brief summary of some of the common design patterns to
+consider when designing and implementing API in terms of dispatch queues
+and blocks.
+.Pp
+A general recommendation is to allow both a callback block and target dispatch
+queue to be specified. This gives the application the greatest flexibility in
+handling asynchronous events.
+.Pp
+It's also recommended that interfaces take only a single block as the last
+parameter. This is both for consistency across projects, as well as the visual
+aesthetics of multiline blocks that are declared inline. The dispatch queue to
+which the block will be submitted should immediately precede the block argument
+(second-to-last argument). For example:
+.Pp
+.Bd -literal -offset indent
+read_async(file, callback_queue, ^{
+	printf("received callback.\\n");
+});
+.Ed
+.Pp
+When function pointer alternatives to interfaces that take blocks are provided,
+the argument order of the function signature should be identical to the block
+variant; with the exception that the block argument is replaced with a context
+pointer, and a new last parameter is added, which is the function to call.
+.Pp
+The function based callback should pass the context pointer as the first
+argument, and the subsequent arguments should be identical to the block based
+variant (albeit offset by one in order).
+.Pp
+It is also important to use consistent naming. The dispatch API, for example,
+uses the suffix "_f" for function based variants.
+.Pp
+.Sh SEE ALSO
+.Xr dispatch 3 ,
+.Xr dispatch_async 3 ,
+.Xr dispatch_queue_create 3
