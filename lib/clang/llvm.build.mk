@@ -39,7 +39,7 @@ TARGET_ABI=	-gnueabi
 .else
 TARGET_ABI=
 .endif
-VENDOR=		unknown
+VENDOR=		airyx
 OS_VERSION=	freebsd13.0
 
 LLVM_TARGET_TRIPLE?=	${TARGET_ARCH:C/amd64/x86_64/:C/[hs]f$//:S/mipsn32/mips64/}-${VENDOR}-${OS_VERSION}${TARGET_ABI}

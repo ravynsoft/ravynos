@@ -373,10 +373,31 @@ copies: .PHONY .META
 	cd ${SDESTDIR}${INCLUDEDIR}; find ${LDIRS} ${LSUBDIRS} ${LSUBSUBDIRS} crypto \
 	    machine machine/pc ${_MARCHS} -maxdepth 1 -mindepth 1 -type l \
 	    -name "*.h" -print -delete || true
+	mkdir -p ${SDESTDIR}${INCLUDEDIR}/apple/System
+	rm -f ${SDESTDIR}${INCLUDEDIR}/apple/System/sys
+	ln -s ../sys ${SDESTDIR}${INCLUDEDIR}/apple/System/sys
 .for i in ${LDIRS} ${LSUBDIRS:Ndev/agp:Ndev/acpica:Ndev/evdev:Ndev/hid:Ndev/hyperv:Ndev/pci:Ndev/veriexec} ${LSUBSUBDIRS}
+	${INSTALL} -d ${TAG_ARGS} -o ${BINOWN} -g ${BINGRP} -m 755 \
+	    ${SDESTDIR}${INCLUDEDIR}/$i
 	cd ${SRCTOP}/sys; \
 	${INSTALL} -C ${TAG_ARGS} -o ${BINOWN} -g ${BINGRP} -m 444 $i/*.h \
 	    ${SDESTDIR}${INCLUDEDIR}/$i
+.if exists(${SRCTOP}/sys/$i/*.defs)
+	${INSTALL} -C ${TAG_ARGS} -o ${BINOWN} -g ${BINGRP} -m 444 $i/*.defs \
+	    ${SDESTDIR}${INCLUDEDIR}/$i
+.endif
+.endfor
+.for i in ${ASUBDIRS}
+	${INSTALL} -d ${TAG_ARGS} -o ${BINOWN} -g ${BINGRP} -m 755 \
+	    ${SDESTDIR}${INCLUDEDIR}/$i;
+	cd ${SRCTOP}/include; \
+	${INSTALL} -C ${TAG_ARGS} -o ${BINOWN} -g ${BINGRP} -m 444 $i/*.h \
+	    ${SDESTDIR}${INCLUDEDIR}/$i
+.if exists(${SRCTOP}/$i/*.defs)
+	cd ${SRCTOP}/include; \
+	${INSTALL} -C ${TAG_ARGS} -o ${BINOWN} -g ${BINGRP} -m 444 $i/*.defs \
+	    ${SDESTDIR}${INCLUDEDIR}/$i
+.endif
 .endfor
 	cd ${SRCTOP}/sys/${MACHINE}/include; \
 	${INSTALL} -C ${TAG_ARGS} -o ${BINOWN} -g ${BINGRP} -m 444 *.h \
@@ -405,11 +426,22 @@ copies: .PHONY .META
 
 symlinks: .PHONY .META
 	@${ECHO} "Setting up symlinks to kernel source tree..."
+	mkdir -p ${SDESTDIR}${INCLUDEDIR}/apple/System
+	rm -f ${SDESTDIR}${INCLUDEDIR}/apple/System/sys
+	ln -s ../sys ${SDESTDIR}${INCLUDEDIR}/apple/System/sys
+.for i in ${ASUBDIRS}
+	${INSTALL} -d ${TAG_ARGS} -o ${BINOWN} -g ${BINGRP} -m 755 \
+	    ${SDESTDIR}${INCLUDEDIR}/$i;
+.endfor
 .for i in ${LDIRS}
+	${INSTALL} -d ${TAG_ARGS} -o ${BINOWN} -g ${BINGRP} -m 755 \
+	    ${SDESTDIR}${INCLUDEDIR}/$i
 	cd ${SRCTOP}; ${INSTALL_SYMLINK} ${TAG_ARGS:D${TAG_ARGS},dev} \
 	    $$(printf '../../../%s ' sys/$i/*.h) ${SDESTDIR}${INCLUDEDIR}/$i
 .endfor
 .for i in ${LSUBDIRS:Ndev/agp:Ndev/acpica:Ndev/evdev:Ndev/hid:Ndev/hyperv:Ndev/pci:Ndev/veriexec}
+	${INSTALL} -d ${TAG_ARGS} -o ${BINOWN} -g ${BINGRP} -m 755 \
+	    ${SDESTDIR}${INCLUDEDIR}/$i
 	cd ${SRCTOP}; ${INSTALL_SYMLINK} ${TAG_ARGS:D${TAG_ARGS},dev} \
 	    $$(printf '../../../../%s ' sys/$i/*.h) ${SDESTDIR}${INCLUDEDIR}/$i
 .endfor

@@ -80,7 +80,7 @@ _tftp-proxy=	tftp-proxy
 .endif
 
 .if !defined(NO_PIC) && !defined(NO_RTLD)
-_rtld-elf=	rtld-elf
+_rtld-elf=	dyld
 SUBDIR.${MK_LIB32}+=	rtld-elf32
 .endif
 

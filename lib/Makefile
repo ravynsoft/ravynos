@@ -30,9 +30,11 @@ SUBDIR=	${SUBDIR_BOOTSTRAP} \
 	.WAIT \
 	libsqlite3 \
 	geom \
+	libSystem \
 	lib9p \
 	libalias \
 	libarchive \
+	libasl \
 	libauditd \
 	libbegemot \
 	libblocksruntime \
@@ -48,6 +50,7 @@ SUBDIR=	${SUBDIR_BOOTSTRAP} \
 	libdevctl \
 	libdevinfo \
 	libdevstat \
+	libdispatch \
 	libdl \
 	libdwarf \
 	libedit \
@@ -120,6 +123,7 @@ SUBDIR=	${SUBDIR_BOOTSTRAP} \
 SUBDIR_DEPEND_geom=	libufs
 SUBDIR_DEPEND_googletest= libregex
 SUBDIR_DEPEND_libarchive= libz libbz2 libexpat liblzma libmd libzstd
+SUBDIR_DEPEND_libasl= libSystem libdispatch libxpc
 SUBDIR_DEPEND_libauditdm= libbsm
 SUBDIR_DEPEND_libbsnmp= ${_libnetgraph}
 SUBDIR_DEPEND_libc++:= libcxxrt

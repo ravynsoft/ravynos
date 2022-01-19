@@ -71,9 +71,12 @@ _LIBRARIES=	\
 		${_INTERNALLIBS} \
 		${LOCAL_LIBRARIES} \
 		80211 \
+		BlocksRuntime \
+		System \
 		9p \
 		alias \
 		archive \
+		asl \
 		asn1 \
 		avl \
 		be \
@@ -254,6 +257,7 @@ LIBVERIEXEC?=	${LIBVERIEXECDIR}/libveriexec.a
 _DP_80211=	sbuf bsdxml
 _DP_9p=		sbuf
 _DP_archive=	z bz2 lzma bsdxml zstd
+_DP_bsm=	System notify
 _DP_zstd=	pthread
 .if ${MK_BLACKLIST} != "no"
 _DP_blacklist+=	pthread
