@@ -425,6 +425,53 @@ MIASM =  \
 	sigfastblock.o \
 	__realpathat.o \
 	close_range.o \
+	_kernelrpc_mach_vm_allocate_trap.o \
+	_kernelrpc_mach_vm_deallocate_trap.o \
+	_kernelrpc_mach_vm_protect_trap.o \
+	_kernelrpc_mach_vm_map_trap.o \
+	_kernelrpc_mach_port_allocate_trap.o \
+	_kernelrpc_mach_port_destroy_trap.o \
+	_kernelrpc_mach_port_deallocate_trap.o \
+	_kernelrpc_mach_port_mod_refs_trap.o \
+	_kernelrpc_mach_port_move_member_trap.o \
+	_kernelrpc_mach_port_insert_right_trap.o \
+	_kernelrpc_mach_port_insert_member_trap.o \
+	_kernelrpc_mach_port_extract_member_trap.o \
+	_kernelrpc_mach_port_construct_trap.o \
+	_kernelrpc_mach_port_destruct_trap.o \
+	mach_reply_port.o \
+	thread_self_trap.o \
+	task_self_trap.o \
+	host_self_trap.o \
+	mach_msg_trap.o \
+	mach_msg_overwrite_trap.o \
+	semaphore_signal_trap.o \
+	semaphore_signal_all_trap.o \
+	semaphore_signal_thread_trap.o \
+	semaphore_wait_trap.o \
+	semaphore_wait_signal_trap.o \
+	semaphore_timedwait_trap.o \
+	semaphore_timedwait_signal_trap.o \
+	_kernelrpc_mach_port_guard_trap.o \
+	_kernelrpc_mach_port_unguard_trap.o \
+	task_name_for_pid.o \
+	task_for_pid.o \
+	pid_for_task.o \
+	macx_swapon.o \
+	macx_swapoff.o \
+	macx_triggers.o \
+	macx_backing_store_suspend.o \
+	macx_backing_store_recovery.o \
+	swtch_pri.o \
+	swtch.o \
+	thread_switch.o \
+	clock_sleep_trap.o \
+	mach_timebase_info.o \
+	mach_wait_until.o \
+	mk_timer_create.o \
+	mk_timer_destroy.o \
+	mk_timer_arm.o \
+	mk_timer_cancel.o \
 	rpctls_syscall.o \
 	__specialfd.o \
 	aio_writev.o \
