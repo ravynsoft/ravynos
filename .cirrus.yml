@@ -24,8 +24,10 @@ task:
   - mkdir -p /usr/obj/$(pwd -P)
   - chown user:user /usr/obj/$(pwd -P)
   - su user -c "make -j$(sysctl -n hw.ncpu) MK_LIB32=no buildworld buildkernel"
-  - su user -c "make -C /usr/obj/$(pwd -P)/release MK_LIB32=no NOSRC=true NOPORTS=true packagesystem
+  - su user -c "make -C /usr/obj/$(pwd -P)/release MK_LIB32=no NOSRC=true NOPORTS=true packagesystem"
   - pip install --upgrade cloudsmith-cli
   - cloudsmith push raw -k $KEY airyx/core --name base_${CIRRUS_BRANCH%/*}.txz /usr/obj/$(pwd -P)/release/base.txz
   - cloudsmith push raw -k $KEY airyx/core --name kernel_${CIRRUS_BRANCH%/*}.txz /usr/obj/$(pwd -P)/release/kernel.txz
   - ls -l /usr/obj/$(pwd -P)/release/
+  only_if: $CIRRUS_BRANCH == 'airyx/12' || $CIRRUS_BRANCH == 'airyx/13'
+
