@@ -62,7 +62,7 @@ distribution:
 	${INSTALL} -m 0444 -o root -g wheel ${.CURDIR}/$f ${DESTDIR}/etc/
 .endfor
 	${INSTALL} -m 0555 -o root -g wheel ${.CURDIR}/bootstrap ${DESTDIR}/etc/
-.for d in pkg rc.d
+.for d in pkg 
 	${INSTALL} -m 0755 -o ${BINOWN} -g ${BINGRP} ${DESTDIR}/etc/$d
 	${INSTALL} -m 0444 -o ${BINOWN} -g ${BINGRP} ${.CURDIR}/$d/* ${DESTDIR}/etc/$d/
 .endfor

@@ -30,6 +30,7 @@ CONFS=	DAEMON \
 	dhclient \
 	dmesg \
 	dumpon \
+	fdescfs \
 	fsck \
 	gbde \
 	geli \
@@ -83,6 +84,7 @@ CONFS=	DAEMON \
 	powerd \
 	ppp \
 	pppoed \
+	procfs \
 	pwcheck \
 	quota \
 	random \
