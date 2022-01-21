@@ -1,0 +1,15 @@
+#!/bin/sh
+echo -=- Bootstrap running -=-
+/sbin/zfs mount -a
+/sbin/zfs set readonly=off airyxOS/ROOT/default
+/bin/rm -f /var/run/nologin
+if [ ! -d /private ]; then
+    mkdir /private
+fi
+for d in /dev /etc /var; do
+    if [ ! -L /private$d ]; then
+        ln -sf $d /private$d
+    fi
+done
+echo -=- Bootstrap complete -=-
+

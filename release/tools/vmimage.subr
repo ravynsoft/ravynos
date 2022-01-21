@@ -1,0 +1,265 @@
+#!/bin/sh
+#
+# $FreeBSD$
+#
+#
+# Common functions for virtual machine image build scripts.
+#
+
+scriptdir=$(dirname $(realpath $0))
+. ${scriptdir}/../../tools/boot/install-boot.sh
+
+export PATH="/bin:/usr/bin:/sbin:/usr/sbin:/usr/local/bin:/usr/local/sbin"
+trap "cleanup" INT QUIT TRAP ABRT TERM
+
+# Platform-specific large-scale setup
+# Most platforms use GPT, so put that as default, then special cases
+PARTSCHEME=gpt
+ROOTLABEL="gpt"
+case "${TARGET}:${TARGET_ARCH}" in
+	powerpc:powerpc*)
+		PARTSCHEME=mbr
+		ROOTLABEL="ufs"
+		NOSWAP=yes # Can't label swap partition with MBR, so no swap
+	;;
+esac
+
+err() {
+	printf "${@}\n"
+	cleanup
+	return 1
+}
+
+cleanup() {
+	if [ -c "${DESTDIR}/dev/null" ]; then
+		umount_loop ${DESTDIR}/dev 2>/dev/null
+	fi
+
+	return 0
+}
+
+vm_create_base() {
+	# Creates the UFS root filesystem for the virtual machine disk,
+	# written to the formatted disk image with mkimg(1).
+
+	mkdir -p ${DESTDIR}
+
+	return 0
+}
+
+vm_copy_base() {
+	# Defunct
+}
+
+vm_install_base() {
+	# Installs the FreeBSD userland/kernel to the virtual machine disk.
+
+	cd ${WORLDDIR} && \
+		make DESTDIR=${DESTDIR} \
+		installworld installkernel distribution || \
+		err "\n\nCannot install the base system to ${DESTDIR}."
+
+	# Bootstrap etcupdate(8) and mergemaster(8) databases.
+	mkdir -p ${DESTDIR}/var/db/etcupdate
+	etcupdate extract -B \
+		-M "TARGET=${TARGET} TARGET_ARCH=${TARGET_ARCH}" \
+		-s ${WORLDDIR} -d ${DESTDIR}/var/db/etcupdate
+	sh ${WORLDDIR}/release/scripts/mm-mtree.sh -m ${WORLDDIR} \
+		-F "TARGET=${TARGET} TARGET_ARCH=${TARGET_ARCH}" \
+		-D ${DESTDIR}
+
+	echo '# Custom /etc/fstab for FreeBSD VM images' \
+		> ${DESTDIR}/etc/fstab
+	echo "/dev/${ROOTLABEL}/rootfs   /       ufs     rw      1       1" \
+		>> ${DESTDIR}/etc/fstab
+	if [ -z "${NOSWAP}" ]; then
+		echo '/dev/gpt/swapfs  none    swap    sw      0       0' \
+			>> ${DESTDIR}/etc/fstab
+	fi
+
+	local hostname
+	hostname="$(echo $(uname -o) | tr '[:upper:]' '[:lower:]')"
+	echo "hostname=\"${hostname}\"" >> ${DESTDIR}/etc/rc.conf
+
+	if ! [ -z "${QEMUSTATIC}" ]; then
+		export EMULATOR=/qemu
+		cp ${QEMUSTATIC} ${DESTDIR}/${EMULATOR}
+	fi
+
+	mkdir -p ${DESTDIR}/dev
+	mount -t devfs devfs ${DESTDIR}/dev
+	chroot ${DESTDIR} ${EMULATOR} /usr/bin/newaliases
+	chroot ${DESTDIR} ${EMULATOR} /bin/sh /etc/rc.d/ldconfig forcestart
+	umount_loop ${DESTDIR}/dev
+
+	cp /etc/resolv.conf ${DESTDIR}/etc/resolv.conf
+
+	return 0
+}
+
+vm_extra_install_base() {
+	# Prototype.  When overridden, runs extra post-installworld commands
+	# as needed, based on the target virtual machine image or cloud
+	# provider image target.
+
+	return 0
+}
+
+vm_extra_enable_services() {
+	if [ ! -z "${VM_RC_LIST}" ]; then
+		for _rcvar in ${VM_RC_LIST}; do
+			echo ${_rcvar}_enable="YES" >> ${DESTDIR}/etc/rc.conf
+		done
+	fi
+
+	if [ -z "${VMCONFIG}" -o -c "${VMCONFIG}" ]; then
+		echo 'ifconfig_DEFAULT="DHCP inet6 accept_rtadv"' >> \
+			${DESTDIR}/etc/rc.conf
+		# Expand the filesystem to fill the disk.
+		echo 'growfs_enable="YES"' >> ${DESTDIR}/etc/rc.conf
+		touch ${DESTDIR}/firstboot
+	fi
+
+	return 0
+}
+
+vm_extra_install_packages() {
+	if [ -z "${VM_EXTRA_PACKAGES}" ]; then
+		return 0
+	fi
+	mkdir -p ${DESTDIR}/dev
+	mount -t devfs devfs ${DESTDIR}/dev
+	chroot ${DESTDIR} ${EMULATOR} env ASSUME_ALWAYS_YES=yes \
+		/usr/sbin/pkg bootstrap -y
+	chroot ${DESTDIR} ${EMULATOR} env ASSUME_ALWAYS_YES=yes \
+		/usr/sbin/pkg install -y ${VM_EXTRA_PACKAGES}
+	umount_loop ${DESTDIR}/dev
+
+	return 0
+}
+
+vm_extra_install_ports() {
+	# Prototype.  When overridden, installs additional ports within the
+	# virtual machine environment.
+
+	return 0
+}
+
+vm_extra_pre_umount() {
+	# Prototype.  When overridden, performs additional tasks within the
+	# virtual machine environment prior to unmounting the filesystem.
+	# Note: When overriding this function, removing resolv.conf in the
+	# disk image must be included.
+
+	if ! [ -z "${QEMUSTATIC}" ]; then
+		rm -f ${DESTDIR}/${EMULATOR}
+	fi
+	rm -f ${DESTDIR}/etc/resolv.conf
+	return 0
+}
+
+vm_extra_pkg_rmcache() {
+	if [ -e ${DESTDIR}/usr/local/sbin/pkg ]; then
+		chroot ${DESTDIR} ${EMULATOR} env ASSUME_ALWAYS_YES=yes \
+			/usr/local/sbin/pkg clean -y -a
+	fi
+
+	return 0
+}
+
+umount_loop() {
+	DIR=$1
+	i=0
+	sync
+	while ! umount ${DIR}; do
+		i=$(( $i + 1 ))
+		if [ $i -ge 10 ]; then
+			# This should never happen.  But, it has happened.
+			echo "Cannot umount(8) ${DIR}"
+			echo "Something has gone horribly wrong."
+			return 1
+		fi
+		sleep 1
+	done
+
+	return 0
+}
+
+vm_create_disk() {
+	echo "Creating image...  Please wait."
+	echo
+
+	if [ -z "${NOSWAP}" ]; then
+		SWAPOPT="-p freebsd-swap/swapfs::${SWAPSIZE}"
+	fi
+
+	BOOTFILES="$(env TARGET=${TARGET} TARGET_ARCH=${TARGET_ARCH} \
+		WITH_UNIFIED_OBJDIR=yes \
+		make -C ${WORLDDIR}/stand -V .OBJDIR)"
+	BOOTFILES="$(realpath ${BOOTFILES})"
+
+	case "${TARGET}:${TARGET_ARCH}" in
+		amd64:amd64 | i386:i386)
+			ESP=yes
+			BOOTPARTS="-b ${BOOTFILES}/i386/pmbr/pmbr \
+				   -p freebsd-boot/bootfs:=${BOOTFILES}/i386/gptboot/gptboot"
+			ROOTFSPART="-p freebsd-ufs/rootfs:=${VMBASE}"
+			MAKEFSARGS="-B little"
+			;;
+		arm64:aarch64 | riscv:riscv64*)
+			ESP=yes
+			BOOTPARTS=
+			ROOTFSPART="-p freebsd-ufs/rootfs:=${VMBASE}"
+			MAKEFSARGS="-B little"
+			;;
+		powerpc:powerpc*)
+			ESP=no
+			BOOTPARTS="-p prepboot:=${BOOTFILES}/powerpc/boot1.chrp/boot1.elf -a 1"
+			ROOTFSPART="-p freebsd:=${VMBASE}"
+			if [ ${TARGET_ARCH} = powerpc64le ]; then
+				MAKEFSARGS="-B little"
+			else
+				MAKEFSARGS="-B big"
+			fi
+			;;
+		*)
+			echo "vmimage.subr: unsupported target '${TARGET}:${TARGET_ARCH}'" >&2
+			exit 1
+			;;
+	esac
+
+	if [ ${ESP} = "yes" ]; then
+		# Create an ESP
+		espfilename=$(mktemp /tmp/efiboot.XXXXXX)
+		make_esp_file ${espfilename} ${fat32min} ${BOOTFILES}/efi/loader_lua/loader_lua.efi
+		BOOTPARTS="${BOOTPARTS} -p efi/efiesp:=${espfilename}"
+
+		# Add this to fstab
+		mkdir -p ${DESTDIR}/boot/efi
+		echo "/dev/${ROOTLABEL}/efiesp	/boot/efi       msdosfs     rw      2       2" \
+			>> ${DESTDIR}/etc/fstab
+	fi
+
+	echo "Building filesystem...  Please wait."
+	makefs ${MAKEFSARGS} -o label=rootfs -o version=2 -o softupdates=1 \
+	    -s ${VMSIZE} ${VMBASE} ${DESTDIR}
+
+	echo "Building final disk image...  Please wait."
+	mkimg -s ${PARTSCHEME} -f ${VMFORMAT} \
+		${BOOTPARTS} \
+		${SWAPOPT} \
+		${ROOTFSPART} \
+		-o ${VMIMAGE}
+
+	if [ ${ESP} = "yes" ]; then
+		rm ${espfilename}
+	fi
+
+	return 0
+}
+
+vm_extra_create_disk() {
+
+	return 0
+}
+

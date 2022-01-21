@@ -1,0 +1,63 @@
+.\" Copyright (c) 2008-2010 Apple Inc. All rights reserved.
+.Dd May 1, 2009
+.Dt dispatch_after 3
+.Os Darwin
+.Sh NAME
+.Nm dispatch_after
+.Nd schedule blocks for deferred execution
+.Sh SYNOPSIS
+.Fd #include <dispatch/dispatch.h>
+.Ft void
+.Fo dispatch_after
+.Fa "dispatch_time_t when" "dispatch_queue_t queue" "void (^block)(void)"
+.Fc
+.Ft void
+.Fo dispatch_after_f
+.Fa "dispatch_time_t when" "dispatch_queue_t queue" "void *context" "void (*function)(void *)"
+.Fc
+.Sh DESCRIPTION
+The
+.Fn dispatch_after
+function submits the
+.Fa block
+to the given
+.Fa queue
+at the time specified by the
+.Fa when
+parameter.
+The
+.Fa when
+parameter is a value created by
+.Fn dispatch_time
+or
+.Fn dispatch_walltime .
+.Pp
+For a more detailed description about submitting blocks to queues, see
+.Xr dispatch_async 3 .
+.Sh CAVEATS
+.Fn dispatch_after
+retains the passed queue.
+.Pp
+Specifying
+.Vt DISPATCH_TIME_NOW
+as the
+.Fa when
+parameter
+is supported, but is not as efficient as calling
+.Fn dispatch_async .
+.Pp
+The result of passing
+.Vt DISPATCH_TIME_FOREVER
+as the
+.Fa when
+parameter is undefined.
+.Pp
+.Sh FUNDAMENTALS
+The
+.Fn dispatch_after
+function is a wrapper around
+.Fn dispatch_after_f .
+.Sh SEE ALSO
+.Xr dispatch 3 ,
+.Xr dispatch_async 3 ,
+.Xr dispatch_time 3

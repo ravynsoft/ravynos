@@ -1,0 +1,176 @@
+.\" Copyright (c) 2008-2012 Apple Inc. All rights reserved.
+.Dd March 1, 2012
+.Dt dispatch_object 3
+.Os Darwin
+.Sh NAME
+.Nm dispatch_object
+.Nd General manipulation of dispatch objects
+.Sh SYNOPSIS
+.Fd #include <dispatch/dispatch.h>
+.Ft void
+.Fo dispatch_retain
+.Fa "dispatch_object_t object"
+.Fc
+.Ft void
+.Fo dispatch_release
+.Fa "dispatch_object_t object"
+.Fc
+.Ft void
+.Fo dispatch_suspend
+.Fa "dispatch_object_t object"
+.Fc
+.Ft void
+.Fo dispatch_resume
+.Fa "dispatch_object_t object"
+.Fc
+.Ft "void *"
+.Fo dispatch_get_context
+.Fa "dispatch_object_t object"
+.Fc
+.Ft void
+.Fo dispatch_set_context
+.Fa "dispatch_object_t object"
+.Fa "void *context"
+.Fc
+.Ft void
+.Fo dispatch_set_finalizer_f
+.Fa "dispatch_object_t object"
+.Fa "dispatch_function_t finalizer"
+.Fc
+.Sh DESCRIPTION
+Dispatch objects share functions for coordinating memory management, suspension,
+cancellation and context pointers.
+.Sh MEMORY MANGEMENT
+Objects returned by creation functions in the dispatch framework may be
+uniformly retained and released with the functions
+.Fn dispatch_retain
+and
+.Fn dispatch_release
+respectively.
+.Pp
+The dispatch framework does not guarantee that any given client has the last or
+only reference to a given object. Objects may be retained internally by the
+system.
+.Ss INTEGRATION WITH OBJECTIVE-C
+.Bd -filled -offset indent
+When building with an Objective-C or Objective-C++ compiler, dispatch objects
+are declared as Objective-C types. This results in the following differences
+compared to building as plain C/C++:
+.Bl -dash
+.It
+if Objective-C Automated Reference Counting is enabled, dispatch objects are
+memory managed by the Objective-C runtime and explicit calls to the
+.Fn dispatch_retain
+and
+.Fn dispatch_release
+functions will produce build errors.
+.Pp
+.Em Note :
+when ARC is enabled, care needs to be taken with dispatch API returning an
+interior pointer that is only valid as long as an associated object has not
+been released. If that object is held in a variable with automatic storage, it
+may need to be annotated with the
+.Li objc_precise_lifetime
+attribute, or stored in a
+.Li __strong
+instance variable instead, to ensure that the object is not prematurely
+released. The functions returning interior pointers are
+.Xr dispatch_data_create_map 3
+and
+.Xr dispatch_data_apply 3 .
+.It
+the Blocks runtime automatically retains and releases dispatch objects captured
+by blocks upon
+.Fn Block_copy
+and
+.Fn Block_release ,
+e.g.\& as performed during asynchronous execution of a block via
+.Xr dispatch_async 3 .
+.Pp
+.Em Note :
+retain cycles may be encountered if dispatch source objects are captured by
+their handler blocks; these cycles can be broken by declaring the captured
+object
+.Li __weak
+or by calling
+.Xr dispatch_source_cancel 3
+to cause its handler blocks to be released explicitly.
+.It
+dispatch objects can be added directly to Cocoa collections, and their
+lifetime is tracked by the Objective-C static analyzer.
+.El
+.Pp
+Integration of dispatch objects with Objective-C requires targeting Mac\ OS\ X
+10.8 or later, and is disabled when building with Objective-C Garbage
+Collection or for the legacy Objective-C runtime. It can also be disabled
+manually by using compiler options to define the
+.Dv OS_OBJECT_USE_OBJC
+preprocessor macro to
+.Li 0 .
+.Ed
+.Pp
+.Em Important :
+When building with a plain C/C++ compiler or when integration with Objective-C
+is disabled, dispatch objects are
+.Em not
+automatically retained and released when captured by a block. Therefore, when a
+dispatch object is captured by a block that will be executed asynchronously,
+the object must be manually retained and released:
+.Pp
+.Bd -literal -offset indent
+dispatch_retain(object);
+dispatch_async(queue, ^{
+	do_something_with_object(object);
+	dispatch_release(object);
+});
+.Ed
+.Sh SUSPENSION
+The invocation of blocks on dispatch queues or dispatch sources may be suspended
+or resumed with the functions
+.Fn dispatch_suspend
+and
+.Fn dispatch_resume
+respectively. Other dispatch objects do not support suspension.
+.Pp
+The dispatch framework always checks the suspension status before executing a
+block, but such changes never affect a block during execution (non-preemptive).
+Therefore the suspension of an object is asynchronous, unless it is performed
+from the context of the target queue for the given object.
+The result of suspending or resuming an object that is not a dispatch queue or
+a dispatch source is undefined.
+.Pp
+.Em Important :
+suspension applies to all aspects of the dispatch object life cycle, including
+the finalizer function and cancellation handler. Suspending an object causes it
+to be retained and resuming an object causes it to be released. Therefore it is
+important to balance calls to
+.Fn dispatch_suspend
+and
+.Fn dispatch_resume
+such that the dispatch object is fully resumed when the last reference is
+released. The result of releasing all references to a dispatch object while in
+a suspended state is undefined.
+.Sh CONTEXT POINTERS
+Dispatch objects support supplemental context pointers. The value of the
+context pointer may be retrieved and updated with
+.Fn dispatch_get_context
+and
+.Fn dispatch_set_context
+respectively.
+The
+.Fn dispatch_set_finalizer_f
+specifies an optional per-object finalizer function that is invoked
+asynchronously if the context pointer is not NULL when the last
+reference to the object is released.
+This gives the
+application an opportunity to free the context data associated with the object.
+The finalizer will be run on the object's target queue.
+.Sh SEE ALSO
+.Xr dispatch 3 ,
+.Xr dispatch_async 3 ,
+.Xr dispatch_group_create 3 ,
+.Xr dispatch_queue_create 3 ,
+.Xr dispatch_semaphore_create 3 ,
+.Xr dispatch_set_target_queue 3 ,
+.Xr dispatch_source_cancel 3 ,
+.Xr dispatch_source_create 3

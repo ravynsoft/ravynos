@@ -1,0 +1,151 @@
+.\" Copyright (c) 2010 Apple Inc. All rights reserved.
+.Dd December 1, 2010
+.Dt dispatch_io_read 3
+.Os Darwin
+.Sh NAME
+.Nm dispatch_io_read ,
+.Nm dispatch_io_write
+.Nd submit read and write operations to dispatch I/O channels
+.Sh SYNOPSIS
+.Fd #include <dispatch/dispatch.h>
+.Ft void
+.Fo dispatch_io_read
+.Fa "dispatch_io_t channel"
+.Fa "off_t offset"
+.Fa "size_t length"
+.Fa "dispatch_queue_t queue"
+.Fa "void (^handler)(bool done, dispatch_data_t data, int error)"
+.Fc
+.Ft void
+.Fo dispatch_io_write
+.Fa "dispatch_io_t channel"
+.Fa "off_t offset"
+.Fa "dispatch_data_t dispatch"
+.Fa "dispatch_queue_t queue"
+.Fa "void (^handler)(bool done, dispatch_data_t data, int error)"
+.Fc
+.Sh DESCRIPTION
+The dispatch I/O framework is an API for asynchronous read and write I/O
+operations. It is an application of the ideas and idioms present in the
+.Xr dispatch 3
+framework to device I/O. Dispatch I/O enables an application to more easily
+avoid blocking I/O operations and allows it to more directly express its I/O
+requirements than by using the raw POSIX file API. Dispatch I/O will make a
+best effort to optimize how and when asynchronous I/O operations are performed
+based on the capabilities of the targeted device.
+.Pp
+This page provides details on how to read from and write to dispatch I/O
+channels. Creation and configuration of these channels is covered in the
+.Xr dispatch_io_create 3
+page. The dispatch I/O framework also provides the convenience functions
+.Xr dispatch_read 3
+and
+.Xr dispatch_write 3
+for uses that do not require the full functionality provided by I/O channels.
+.Pp
+.Sh FUNDAMENTALS
+The
+.Fn dispatch_io_read
+and
+.Fn dispatch_io_write
+functions are used to perform asynchronous read and write operations on
+dispatch I/O channels. They can be thought of as asynchronous versions of the
+.Xr fread 3
+and
+.Xr fwrite 3
+functions in the standard C library.
+.Sh READ OPERATIONS
+The
+.Fn dispatch_io_read
+function schedules an I/O read operation on the specified dispatch I/O
+.Va channel .
+As results from the read operation become available, the provided
+.Va handler
+block will be submitted to the specified
+.Va queue .
+The block will be passed a dispatch data object representing the data that has
+been read since the handler's previous invocation.
+.Pp
+The
+.Va offset
+parameter indicates where the read operation should begin. For a channel of
+.Dv DISPATCH_IO_RANDOM
+type it is interpreted relative to the position of the file pointer when the
+channel was created, for a channel of
+.Dv DISPATCH_IO_STREAM
+type it is ignored and the read operation will begin at the current file
+pointer position.
+.Pp
+The
+.Va length
+parameter indicates the number of bytes that should be read from the I/O
+channel. Pass
+.Dv SIZE_MAX
+to keep reading until EOF is encountered (for a channel created from a
+disk-based file this happens when reading past the end of the physical file).
+.Sh WRITE OPERATIONS
+The
+.Fn dispatch_io_write
+function schedules an I/O write operation on the specified dispatch I/O
+.Va channel .
+As the write operation progresses, the provided
+.Va handler
+block will be submitted to the specified
+.Va queue .
+The block will be passed a dispatch data object representing the data that
+remains to be written as part of this I/O operation.
+.Pp
+The
+.Va offset
+parameter indicates where the write operation should begin. It is interpreted
+as for read operations above.
+.Pp
+The
+.Va data
+parameter specifies the location and amount of data to be written, encapsulated
+as a dispatch data object. The object is retained by the system until the write
+operation is complete.
+.Sh I/O HANDLER BLOCKS
+Dispatch I/O handler blocks submitted to a channel via the
+.Fn dispatch_io_read
+or
+.Fn dispatch_io_write
+functions will be executed one or more times depending on system load and the
+channel's configuration settings (see
+.Xr dispatch_io_create 3
+for details). The handler block need not be reentrant safe,
+no new I/O handler instance is submitted until the previously enqueued handler
+block has returned.
+.Pp
+The dispatch
+.Va data
+object passed to an I/O handler block will be released by the system when the
+block returns, if access to the memory buffer it represents is needed outside
+of the handler, the handler block must retain the data object or create a new
+(e.g.\& concatenated) data object from it (see
+.Xr dispatch_data_create 3
+for details).
+.Pp
+Once an I/O handler block is invoked with the
+.Va done
+flag set, the associated I/O operation is complete and that handler block will
+not be run again. If an unrecoverable error occurs while performing the I/O
+operation, the handler block will be submitted with the
+.Va done
+flag set and the appriate POSIX error code in the
+.Va error
+parameter. An invocation of a handler block with the
+.Va done
+flag set, zero
+.Va error
+and
+.Va data
+set to
+.Vt dispatch_data_empty
+indicates that the I/O operation has encountered EOF.
+.Sh SEE ALSO
+.Xr dispatch 3 ,
+.Xr dispatch_data_create 3 ,
+.Xr dispatch_io_create 3 ,
+.Xr dispatch_read 3 ,
+.Xr fread 3
