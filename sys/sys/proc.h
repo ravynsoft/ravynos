@@ -197,9 +197,13 @@ struct td_sched;
 struct thread;
 struct trapframe;
 struct turnstile;
+struct thrworkq;
+struct threadlist;
 struct vm_map;
 struct vm_map_entry;
 struct epoch_tracker;
+
+typedef void (*mi_switchcb_t)(int, struct thread *);
 
 /*
  * XXX: Does this belong in resource.h or resourcevar.h instead?
@@ -726,6 +730,11 @@ struct proc {
 	 */
 	LIST_ENTRY(proc) p_orphan;	/* (e) List of orphan processes. */
 	LIST_HEAD(, proc) p_orphans;	/* (e) Pointer to list of orphans. */
+
+	vm_offset_t	p_thrstack;	/* ( ) next addr for thread stack */
+	struct mtx	p_twqlock;	/* (n) thread workqueue lock. */
+	struct thrworkq *p_twq;		/* (^) thread workqueue. */
+	void		*p_machdata;	/* (c) Mach state data. */
 
 	TAILQ_HEAD(, kq_timer_cb_data)	p_kqtim_stop;	/* (c) */
 };

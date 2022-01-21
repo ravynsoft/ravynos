@@ -104,6 +104,7 @@ extern const char *_notify_shm_id();
 
 #define NOTIFY_CLIENT_SELF 0
 #define SIGNAL_NONE -1
+#undef FD_NONE // this is -200 in fcntl.h
 #define FD_NONE -1
 #define SLOT_NONE -1
 

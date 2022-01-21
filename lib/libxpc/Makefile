@@ -1,7 +1,7 @@
 .include <bsd.init.mk>
 
 LIB= xpc
-NO_WERROR= yes
+MK_WERROR= no
 
 .PATH: ${.CURDIR}/xpc
 

@@ -11,7 +11,7 @@ MK_SSP=		no
 
 CONFS=		libmap.conf
 PROG?=		dyld
-ALTPROG?=	ld-elf.so.1
+#ALTPROG?=	ld-elf.so.1
 SRCS= \
 	stub_binding_helper.S \
 	dyld_stub_binder.S \
@@ -42,15 +42,16 @@ LDFLAGS+=	-nostdlib -e .rtld_start
 .endif
 
 NO_WCAST_ALIGN=	yes
-NO_WERROR= yes
+MK_WERROR= no
 WARNS?=		6
 INSTALLFLAGS=	-C -b
 PRECIOUSPROG=
-BINDIR=		/libexec
+#BINDIR=		/libexec
+BINDIR=		${LIBDIR}
 # Symlink /libexec/ld-elf.so.1
-SYMLINKS=	../..${BINDIR}/${PROG} ${BINDIR}/${ALTPROG}
+#SYMLINKS=	../..${BINDIR}/${PROG} ${BINDIR}/${ALTPROG}
 # Symlink /usr/lib/dyld
-SYMLINKS+=	../..${BINDIR}/${PROG} ${LIBDIR}/${PROG}
+#SYMLINKS+=	../..${BINDIR}/${PROG} ${LIBDIR}/${PROG}
 
 .if ${MACHINE_CPUARCH} == "sparc64"
 CFLAGS+=	-fPIC
@@ -80,7 +81,7 @@ LIBADD+=	compiler_rt
 
 
 
-.if ${MK_SYMVER} == "yes"
+#.if ${MK_SYMVER} == "yes"
 VERSION_DEF=	${LIBCSRCDIR}/Versions.def
 SYMBOL_MAPS=	${.CURDIR}/Symbol.map
 VERSION_MAP=	Version.map
@@ -89,7 +90,7 @@ LDFLAGS+=	-Wl,--version-script=${VERSION_MAP}
 .if exists(${.CURDIR}/${RTLD_ARCH}/Symbol.map)
 SYMBOL_MAPS+=	${.CURDIR}/${RTLD_ARCH}/Symbol.map
 .endif
-.endif
+#.endif
 
 .sinclude "${.CURDIR}/${RTLD_ARCH}/Makefile.inc"
 

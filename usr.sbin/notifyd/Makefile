@@ -1,6 +1,6 @@
 .include <src.opts.mk>
 PROG= notifyd
-NO_WERROR= yes
+MK_WERROR= no
 
 .PATH: .
 .PATH: ${.CURDIR}
@@ -22,7 +22,8 @@ CFLAGS+= -DHAVE_INTTYPES_H
 
 DEBUG_FLAGS+= -g -O0
 
-LDFLAGS+= -lBlocksRuntime -lbsm -lauditd
+LDFLAGS+= -lBlocksRuntime -lbsm -lprivateauditd
+LDFLAGS+= -lutil -ldispatch -lmach -llaunch -losxsupport -lxpc -lnv -lsbuf -lnotify
 LDFLAGS+= -pthread
 
 notify_ipc.h notify_ipcServer.c: ${.CURDIR}/../../lib/libnotify/notify_ipc.defs
@@ -30,7 +31,6 @@ notify_ipc.h notify_ipcServer.c: ${.CURDIR}/../../lib/libnotify/notify_ipc.defs
 
 notify_proc: notify_ipcServer.c
 
-LDFLAGS+= -lutil -lauditd -lbsm -ldispatch -lmach -lBlocksRuntime -llaunch -losxsupport -lxpc -lnv -lsbuf -lnotify
 SRCS=notify_proc.c notifyd.c service.c timer.c	notify_ipcServer.c
 
 

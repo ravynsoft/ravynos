@@ -1,6 +1,6 @@
 .include <src.opts.mk>
 PROG= asld
-NO_WERROR=yes
+MK_WERROR= no
 
 .PATH: .
 .PATH: ${.CURDIR}
@@ -27,6 +27,6 @@ asl_ipc.h asl_ipcServer.c: ${.CURDIR}/../../lib/libasl/asl_ipc.defs
 LDFLAGS+= -pthread
 
 SRCS= asl_ipcServer.c asl_action.c bsd_in.c bsd_out.c daemon.c dbserver.c klog_in.c remote.c syslogd.c udp_in.c
-LDFLAGS+= -lutil -lauditd -lbsm -ldispatch -lmach -lBlocksRuntime -llaunch -losxsupport -lxpc -lnotify -lnv -lsbuf -lasl
+LDFLAGS+= -lutil -lprivateauditd -lbsm -ldispatch -lmach -lBlocksRuntime -llaunch -losxsupport -lxpc -lnotify -lnv -lsbuf -lasl
 
 .include <bsd.prog.mk>

@@ -54,7 +54,7 @@ struct global_s
 	uint32_t log_cutoff;
 	uint32_t log_default;
 	char *log_path;
-} global;
+};
 
 struct call_statistics_s
 {
@@ -92,7 +92,7 @@ struct call_statistics_s
 	uint64_t service_path;
 	uint64_t cleanup;
 	uint64_t regenerate;
-} call_statistics;
+};
 
 extern void log_message(int priority, const char *str, ...);
 extern uint32_t daemon_post(const char *name, uint32_t u, uint32_t g);

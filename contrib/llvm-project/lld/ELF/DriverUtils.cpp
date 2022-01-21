@@ -243,7 +243,7 @@ Optional<std::string> elf::searchLibrary(StringRef name) {
   return searchLibraryBaseName(name);
 }
 
-Optional<std::string> searchFramework(StringRef name) {
+Optional<std::string> elf::searchFramework(StringRef name) {
   for (StringRef dir : config->frameworkSearchPaths) {
     if (Optional<std::string> s = findFile(dir, name + ".framework"))
       return s;

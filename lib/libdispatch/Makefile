@@ -1,7 +1,7 @@
 .include <bsd.init.mk>
 
 LIB= dispatch
-NO_WERROR= yes
+MK_WERROR= no
 
 .PATH: ${.CURDIR}
 .PATH: ${.CURDIR}/dispatch
@@ -38,8 +38,8 @@ SRCS =  protocolUser.c \
 	time.c \
 	transform.c \
 	voucher.c \
-	resolver.c \
-	object.m
+	resolver.c 
+#	object.m
 
 INCSDIR= ${INCLUDEDIR}/dispatch
 INCS=	base.h \
@@ -76,4 +76,5 @@ beforeinstall: mkincdir
 mkincdir: .PHONY
 	${INSTALL} -d -o ${BINOWN} -g ${BINGRP} -m 0755 ${DESTDIR}${INCSDIR}
 
+.include <airyx.common.mk>
 .include <bsd.lib.mk>

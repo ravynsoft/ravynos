@@ -873,7 +873,7 @@ static inline dispatch_continuation_t
 _dispatch_continuation_alloc(void)
 {
 	dispatch_continuation_t dc =
-			fastpath(_dispatch_continuation_alloc_cacheonly());
+		(dispatch_continuation_t)fastpath(_dispatch_continuation_alloc_cacheonly());
 	if(!dc) {
 		return _dispatch_continuation_alloc_from_heap();
 	}

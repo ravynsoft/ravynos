@@ -40,7 +40,9 @@
 __FBSDID("$FreeBSD$");
 
 #include "opt_ddb.h"
+#include "opt_compat.h"
 #include "opt_ktrace.h"
+#include "opt_thrworkq.h"
 
 #include <sys/param.h>
 #include <sys/systm.h>

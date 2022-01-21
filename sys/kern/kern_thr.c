@@ -66,7 +66,24 @@ __FBSDID("$FreeBSD$");
 
 #include <machine/frame.h>
 
+#include <vm/pmap.h>
+#include <vm/vm.h>
+#include <vm/vm_extern.h>
+#include <vm/vm_map.h>
+
 #include <security/audit/audit.h>
+
+/*
+ * Default stack guard size for thread.  If set to zero then no
+ * guard page.
+ */
+#define        THR_GUARD_DEFAULT       PAGE_SIZE
+
+/*
+ * XXX - These should most likely be sysctl parameters.
+ */
+static vm_size_t thr_stack_default = THR_STACK_DEFAULT;
+static vm_size_t thr_stack_initial = THR_STACK_INITIAL;
 
 static SYSCTL_NODE(_kern, OID_AUTO, threads, CTLFLAG_RW | CTLFLAG_MPSAFE, 0,
     "thread allocation");
@@ -737,7 +754,7 @@ kern_thr_stack(struct proc *p, void **addr, vm_size_t stacksz,
 
 	if (guardsz != 0) {
 		error = vm_map_protect(map, stackaddr, stackaddr + guardsz,
-		    PROT_NONE, 0);
+		    PROT_NONE, 0, 1);
 		if (error) {
 			/* unmap memory */
 			(void) vm_map_remove(map, stackaddr, stackaddr +

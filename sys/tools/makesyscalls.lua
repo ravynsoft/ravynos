@@ -1222,6 +1222,9 @@ write_line("sysarg", string.format([[/*
 
 #include <bsm/audit_kevents.h>
 
+#include <sys/mach/mach_types.h>
+#include <sys/mach/message.h>
+
 struct proc;
 
 struct thread;

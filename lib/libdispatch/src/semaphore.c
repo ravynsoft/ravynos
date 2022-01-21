@@ -473,9 +473,9 @@ _dispatch_group_wake(dispatch_semaphore_t dsema)
 	if (head) {
 		// async group notify blocks
 		do {
-			next = fastpath(head->do_next);
+			next = (dispatch_continuation_t)fastpath(head->do_next);
 			if (!next && head != tail) {
-				_dispatch_wait_until(next = fastpath(head->do_next));
+				_dispatch_wait_until(next = (dispatch_continuation_t)fastpath(head->do_next));
 			}
 			dispatch_queue_t dsn_queue = (dispatch_queue_t)head->dc_data;
 			dc = _dispatch_continuation_free_cacheonly(head);

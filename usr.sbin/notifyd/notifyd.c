@@ -87,6 +87,9 @@ typedef union
 
 extern boolean_t notify_ipc_server(mach_msg_header_t *InHeadP, mach_msg_header_t *OutHeadP);
 
+struct call_statistics_s call_statistics;
+struct global_s global;
+
 static const char *
 notify_type_name(uint32_t t)
 {

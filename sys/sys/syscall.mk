@@ -425,6 +425,10 @@ MIASM =  \
 	sigfastblock.o \
 	__realpathat.o \
 	close_range.o \
+	rpctls_syscall.o \
+	__specialfd.o \
+	aio_writev.o \
+	aio_readv.o \
 	_kernelrpc_mach_vm_allocate_trap.o \
 	_kernelrpc_mach_vm_deallocate_trap.o \
 	_kernelrpc_mach_vm_protect_trap.o \
@@ -471,8 +475,4 @@ MIASM =  \
 	mk_timer_create.o \
 	mk_timer_destroy.o \
 	mk_timer_arm.o \
-	mk_timer_cancel.o \
-	rpctls_syscall.o \
-	__specialfd.o \
-	aio_writev.o \
-	aio_readv.o
+	mk_timer_cancel.o

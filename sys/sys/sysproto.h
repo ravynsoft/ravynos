@@ -20,6 +20,7 @@
 #include <bsm/audit_kevents.h>
 
 #include <sys/mach/mach_types.h>
+#include <sys/mach/message.h>
 
 struct proc;
 
@@ -286,11 +287,11 @@ struct mincore_args {
 	char vec_l_[PADL_(char *)]; char * vec; char vec_r_[PADR_(char *)];
 };
 struct getgroups_args {
-	char gidsetsize_l_[PADL_(u_int)]; u_int gidsetsize; char gidsetsize_r_[PADR_(u_int)];
+	char gidsetsize_l_[PADL_(int)]; int gidsetsize; char gidsetsize_r_[PADR_(int)];
 	char gidset_l_[PADL_(gid_t *)]; gid_t * gidset; char gidset_r_[PADR_(gid_t *)];
 };
 struct setgroups_args {
-	char gidsetsize_l_[PADL_(u_int)]; u_int gidsetsize; char gidsetsize_r_[PADR_(u_int)];
+	char gidsetsize_l_[PADL_(int)]; int gidsetsize; char gidsetsize_r_[PADR_(int)];
 	char gidset_l_[PADL_(gid_t *)]; gid_t * gidset; char gidset_r_[PADR_(gid_t *)];
 };
 struct getpgrp_args {
@@ -1979,24 +1980,24 @@ struct host_self_trap_args {
 	register_t dummy;
 };
 struct mach_msg_trap_args {
-	char msg_l_[PADL_(mach_msg_header_t *)]; mach_msg_header_t * msg; char msg_r_[PADR_(mach_msg_header_t *)];
-	char option_l_[PADL_(mach_msg_option_t)]; mach_msg_option_t option; char option_r_[PADR_(mach_msg_option_t)];
-	char send_size_l_[PADL_(mach_msg_size_t)]; mach_msg_size_t send_size; char send_size_r_[PADR_(mach_msg_size_t)];
-	char rcv_size_l_[PADL_(mach_msg_size_t)]; mach_msg_size_t rcv_size; char rcv_size_r_[PADR_(mach_msg_size_t)];
-	char rcv_name_l_[PADL_(mach_port_name_t)]; mach_port_name_t rcv_name; char rcv_name_r_[PADR_(mach_port_name_t)];
-	char timeout_l_[PADL_(mach_msg_timeout_t)]; mach_msg_timeout_t timeout; char timeout_r_[PADR_(mach_msg_timeout_t)];
-	char notify_l_[PADL_(mach_port_name_t)]; mach_port_name_t notify; char notify_r_[PADR_(mach_port_name_t)];
+	char msg_l_[PADL_(mach_msg_header_t	*)]; mach_msg_header_t	* msg; char msg_r_[PADR_(mach_msg_header_t	*)];
+	char option_l_[PADL_(mach_msg_option_t)];  mach_msg_option_t	option; char option_r_[PADR_(mach_msg_option_t)];
+	char 	send_size_l_[PADL_(mach_msg_size_t)];  mach_msg_size_t	send_size; char 	send_size_r_[PADR_(mach_msg_size_t)];
+	char 	rcv_size_l_[PADL_(mach_msg_size_t)];  mach_msg_size_t	rcv_size; char 	rcv_size_r_[PADR_(mach_msg_size_t)];
+	char 	rcv_name_l_[PADL_(mach_port_name_t)];  mach_port_name_t	rcv_name; char rcv_name_r_[PADR_(mach_port_name_t)];
+	char 	timeout_l_[PADL_(mach_msg_timeout_t)];  mach_msg_timeout_t	timeout; char timeout_r_[PADR_(mach_msg_timeout_t)];
+	char 	notify_l_[PADL_(mach_port_name_t)];  mach_port_name_t	notify; char notify_r_[PADR_(mach_port_name_t)];
 };
 struct mach_msg_overwrite_trap_args {
-	char msg_l_[PADL_(mach_msg_header_t *)]; mach_msg_header_t * msg; char msg_r_[PADR_(mach_msg_header_t *)];
-	char option_l_[PADL_(mach_msg_option_t)]; mach_msg_option_t option; char option_r_[PADR_(mach_msg_option_t)];
-	char send_size_l_[PADL_(mach_msg_size_t)]; mach_msg_size_t send_size; char send_size_r_[PADR_(mach_msg_size_t)];
-	char rcv_size_l_[PADL_(mach_msg_size_t)]; mach_msg_size_t rcv_size; char rcv_size_r_[PADR_(mach_msg_size_t)];
-	char rcv_name_l_[PADL_(mach_port_name_t)]; mach_port_name_t rcv_name; char rcv_name_r_[PADR_(mach_port_name_t)];
-	char timeout_l_[PADL_(mach_msg_timeout_t)]; mach_msg_timeout_t timeout; char timeout_r_[PADR_(mach_msg_timeout_t)];
-	char notify_l_[PADL_(mach_port_name_t)]; mach_port_name_t notify; char notify_r_[PADR_(mach_port_name_t)];
-	char rcv_msg_l_[PADL_(mach_msg_header_t *)]; mach_msg_header_t * rcv_msg; char rcv_msg_r_[PADR_(mach_msg_header_t *)];
-	char scatter_list_size_l_[PADL_(mach_msg_size_t)]; mach_msg_size_t scatter_list_size; char scatter_list_size_r_[PADR_(mach_msg_size_t)];
+	char msg_l_[PADL_(mach_msg_header_t	*)]; mach_msg_header_t	* msg; char msg_r_[PADR_(mach_msg_header_t	*)];
+	char option_l_[PADL_(mach_msg_option_t)];  mach_msg_option_t	option; char 	option_r_[PADR_(mach_msg_option_t)];
+	char 	send_size_l_[PADL_(mach_msg_size_t)];  mach_msg_size_t	send_size; char send_size_r_[PADR_(mach_msg_size_t)];
+	char rcv_size_l_[PADL_(mach_msg_size_t)];  mach_msg_size_t	rcv_size; char rcv_size_r_[PADR_(mach_msg_size_t)];
+	char rcv_name_l_[PADL_(mach_port_name_t)];  mach_port_name_t	rcv_name; char rcv_name_r_[PADR_(mach_port_name_t)];
+	char timeout_l_[PADL_(mach_msg_timeout_t)];  mach_msg_timeout_t	timeout; char timeout_r_[PADR_(mach_msg_timeout_t)];
+	char notify_l_[PADL_(mach_port_name_t)];  mach_port_name_t	notify; char notify_r_[PADR_(mach_port_name_t)];
+	char rcv_msg_l_[PADL_(mach_msg_header_t	*)]; mach_msg_header_t	* rcv_msg; char rcv_msg_r_[PADR_(mach_msg_header_t	*)];
+	char scatter_list_size_l_[PADL_(mach_msg_size_t)];  mach_msg_size_t	scatter_list_size; char scatter_list_size_r_[PADR_(mach_msg_size_t)];
 };
 struct semaphore_signal_trap_args {
 	char signal_name_l_[PADL_(mach_port_name_t)]; mach_port_name_t signal_name; char signal_name_r_[PADR_(mach_port_name_t)];
@@ -2513,6 +2514,53 @@ int	sys_rpctls_syscall(struct thread *, struct rpctls_syscall_args *);
 int	sys___specialfd(struct thread *, struct __specialfd_args *);
 int	sys_aio_writev(struct thread *, struct aio_writev_args *);
 int	sys_aio_readv(struct thread *, struct aio_readv_args *);
+int	sys__kernelrpc_mach_vm_allocate_trap(struct thread *, struct _kernelrpc_mach_vm_allocate_trap_args *);
+int	sys__kernelrpc_mach_vm_deallocate_trap(struct thread *, struct _kernelrpc_mach_vm_deallocate_trap_args *);
+int	sys__kernelrpc_mach_vm_protect_trap(struct thread *, struct _kernelrpc_mach_vm_protect_trap_args *);
+int	sys__kernelrpc_mach_vm_map_trap(struct thread *, struct _kernelrpc_mach_vm_map_trap_args *);
+int	sys__kernelrpc_mach_port_allocate_trap(struct thread *, struct _kernelrpc_mach_port_allocate_trap_args *);
+int	sys__kernelrpc_mach_port_destroy_trap(struct thread *, struct _kernelrpc_mach_port_destroy_trap_args *);
+int	sys__kernelrpc_mach_port_deallocate_trap(struct thread *, struct _kernelrpc_mach_port_deallocate_trap_args *);
+int	sys__kernelrpc_mach_port_mod_refs_trap(struct thread *, struct _kernelrpc_mach_port_mod_refs_trap_args *);
+int	sys__kernelrpc_mach_port_move_member_trap(struct thread *, struct _kernelrpc_mach_port_move_member_trap_args *);
+int	sys__kernelrpc_mach_port_insert_right_trap(struct thread *, struct _kernelrpc_mach_port_insert_right_trap_args *);
+int	sys__kernelrpc_mach_port_insert_member_trap(struct thread *, struct _kernelrpc_mach_port_insert_member_trap_args *);
+int	sys__kernelrpc_mach_port_extract_member_trap(struct thread *, struct _kernelrpc_mach_port_extract_member_trap_args *);
+int	sys__kernelrpc_mach_port_construct_trap(struct thread *, struct _kernelrpc_mach_port_construct_trap_args *);
+int	sys__kernelrpc_mach_port_destruct_trap(struct thread *, struct _kernelrpc_mach_port_destruct_trap_args *);
+int	sys_mach_reply_port(struct thread *, struct mach_reply_port_args *);
+int	sys_thread_self_trap(struct thread *, struct thread_self_trap_args *);
+int	sys_task_self_trap(struct thread *, struct task_self_trap_args *);
+int	sys_host_self_trap(struct thread *, struct host_self_trap_args *);
+int	sys_mach_msg_trap(struct thread *, struct mach_msg_trap_args *);
+int	sys_mach_msg_overwrite_trap(struct thread *, struct mach_msg_overwrite_trap_args *);
+int	sys_semaphore_signal_trap(struct thread *, struct semaphore_signal_trap_args *);
+int	sys_semaphore_signal_all_trap(struct thread *, struct semaphore_signal_all_trap_args *);
+int	sys_semaphore_signal_thread_trap(struct thread *, struct semaphore_signal_thread_trap_args *);
+int	sys_semaphore_wait_trap(struct thread *, struct semaphore_wait_trap_args *);
+int	sys_semaphore_wait_signal_trap(struct thread *, struct semaphore_wait_signal_trap_args *);
+int	sys_semaphore_timedwait_trap(struct thread *, struct semaphore_timedwait_trap_args *);
+int	sys_semaphore_timedwait_signal_trap(struct thread *, struct semaphore_timedwait_signal_trap_args *);
+int	sys__kernelrpc_mach_port_guard_trap(struct thread *, struct _kernelrpc_mach_port_guard_trap_args *);
+int	sys__kernelrpc_mach_port_unguard_trap(struct thread *, struct _kernelrpc_mach_port_unguard_trap_args *);
+int	sys_task_name_for_pid(struct thread *, struct task_name_for_pid_args *);
+int	sys_task_for_pid(struct thread *, struct task_for_pid_args *);
+int	sys_pid_for_task(struct thread *, struct pid_for_task_args *);
+int	sys_macx_swapon(struct thread *, struct macx_swapon_args *);
+int	sys_macx_swapoff(struct thread *, struct macx_swapoff_args *);
+int	sys_macx_triggers(struct thread *, struct macx_triggers_args *);
+int	sys_macx_backing_store_suspend(struct thread *, struct macx_backing_store_suspend_args *);
+int	sys_macx_backing_store_recovery(struct thread *, struct macx_backing_store_recovery_args *);
+int	sys_swtch_pri(struct thread *, struct swtch_pri_args *);
+int	sys_swtch(struct thread *, struct swtch_args *);
+int	sys_thread_switch(struct thread *, struct thread_switch_args *);
+int	sys_clock_sleep_trap(struct thread *, struct clock_sleep_trap_args *);
+int	sys_mach_timebase_info(struct thread *, struct mach_timebase_info_args *);
+int	sys_mach_wait_until(struct thread *, struct mach_wait_until_args *);
+int	sys_mk_timer_create(struct thread *, struct mk_timer_create_args *);
+int	sys_mk_timer_destroy(struct thread *, struct mk_timer_destroy_args *);
+int	sys_mk_timer_arm(struct thread *, struct mk_timer_arm_args *);
+int	sys_mk_timer_cancel(struct thread *, struct mk_timer_cancel_args *);
 
 #ifdef COMPAT_43
 
@@ -3455,6 +3503,53 @@ int	freebsd12_closefrom(struct thread *, struct freebsd12_closefrom_args *);
 #define	SYS_AUE___specialfd	AUE_SPECIALFD
 #define	SYS_AUE_aio_writev	AUE_AIO_WRITEV
 #define	SYS_AUE_aio_readv	AUE_AIO_READV
+#define	SYS_AUE__kernelrpc_mach_vm_allocate_trap	AUE_NULL
+#define	SYS_AUE__kernelrpc_mach_vm_deallocate_trap	AUE_NULL
+#define	SYS_AUE__kernelrpc_mach_vm_protect_trap	AUE_NULL
+#define	SYS_AUE__kernelrpc_mach_vm_map_trap	AUE_MMAP
+#define	SYS_AUE__kernelrpc_mach_port_allocate_trap	AUE_NULL
+#define	SYS_AUE__kernelrpc_mach_port_destroy_trap	AUE_NULL
+#define	SYS_AUE__kernelrpc_mach_port_deallocate_trap	AUE_NULL
+#define	SYS_AUE__kernelrpc_mach_port_mod_refs_trap	AUE_NULL
+#define	SYS_AUE__kernelrpc_mach_port_move_member_trap	AUE_NULL
+#define	SYS_AUE__kernelrpc_mach_port_insert_right_trap	AUE_NULL
+#define	SYS_AUE__kernelrpc_mach_port_insert_member_trap	AUE_NULL
+#define	SYS_AUE__kernelrpc_mach_port_extract_member_trap	AUE_NULL
+#define	SYS_AUE__kernelrpc_mach_port_construct_trap	AUE_NULL
+#define	SYS_AUE__kernelrpc_mach_port_destruct_trap	AUE_NULL
+#define	SYS_AUE_mach_reply_port	AUE_NULL
+#define	SYS_AUE_thread_self_trap	AUE_NULL
+#define	SYS_AUE_task_self_trap	AUE_NULL
+#define	SYS_AUE_host_self_trap	AUE_NULL
+#define	SYS_AUE_mach_msg_trap	AUE_NULL
+#define	SYS_AUE_mach_msg_overwrite_trap	AUE_NULL
+#define	SYS_AUE_semaphore_signal_trap	AUE_NULL
+#define	SYS_AUE_semaphore_signal_all_trap	AUE_NULL
+#define	SYS_AUE_semaphore_signal_thread_trap	AUE_NULL
+#define	SYS_AUE_semaphore_wait_trap	AUE_NULL
+#define	SYS_AUE_semaphore_wait_signal_trap	AUE_NULL
+#define	SYS_AUE_semaphore_timedwait_trap	AUE_NULL
+#define	SYS_AUE_semaphore_timedwait_signal_trap	AUE_NULL
+#define	SYS_AUE__kernelrpc_mach_port_guard_trap	AUE_NULL
+#define	SYS_AUE__kernelrpc_mach_port_unguard_trap	AUE_NULL
+#define	SYS_AUE_task_name_for_pid	AUE_NULL
+#define	SYS_AUE_task_for_pid	AUE_NULL
+#define	SYS_AUE_pid_for_task	AUE_NULL
+#define	SYS_AUE_macx_swapon	AUE_NULL
+#define	SYS_AUE_macx_swapoff	AUE_NULL
+#define	SYS_AUE_macx_triggers	AUE_NULL
+#define	SYS_AUE_macx_backing_store_suspend	AUE_NULL
+#define	SYS_AUE_macx_backing_store_recovery	AUE_NULL
+#define	SYS_AUE_swtch_pri	AUE_NULL
+#define	SYS_AUE_swtch	AUE_NULL
+#define	SYS_AUE_thread_switch	AUE_NULL
+#define	SYS_AUE_clock_sleep_trap	AUE_NULL
+#define	SYS_AUE_mach_timebase_info	AUE_NULL
+#define	SYS_AUE_mach_wait_until	AUE_NULL
+#define	SYS_AUE_mk_timer_create	AUE_NULL
+#define	SYS_AUE_mk_timer_destroy	AUE_NULL
+#define	SYS_AUE_mk_timer_arm	AUE_NULL
+#define	SYS_AUE_mk_timer_cancel	AUE_NULL
 
 #undef PAD_
 #undef PADL_

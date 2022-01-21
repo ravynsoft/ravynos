@@ -761,9 +761,9 @@ _dispatch_kevent_init()
 	TAILQ_INSERT_TAIL(&_dispatch_sources[0],
 			&_dispatch_kevent_data_add, dk_list);
 	_dispatch_kevent_data_or.dk_kevent.udata =
-			(uintptr_t)&_dispatch_kevent_data_or;
+			(void *)&_dispatch_kevent_data_or;
 	_dispatch_kevent_data_add.dk_kevent.udata =
-			(uintptr_t)&_dispatch_kevent_data_add;
+			(void *)&_dispatch_kevent_data_add;
 }
 
 static inline uintptr_t
@@ -1339,7 +1339,7 @@ static struct dispatch_timer_s _dispatch_timer[] =  {
 		((sizeof(_dispatch_timer) / sizeof(_dispatch_timer[0])))
 
 #define DISPATCH_KEVENT_TIMER_UDATA(tidx) \
-	(uintptr_t)&_dispatch_kevent_timer[tidx]
+	(void *)&_dispatch_kevent_timer[tidx]
 #ifdef __LP64__
 #define DISPATCH_KEVENT_TIMER_UDATA_INITIALIZER(tidx) \
 		.udata = DISPATCH_KEVENT_TIMER_UDATA(tidx)

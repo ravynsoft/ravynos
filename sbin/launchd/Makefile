@@ -19,7 +19,7 @@ CFLAGS+= -DHAVE_INTTYPES_H
 DEBUG_FLAGS+= -g -O0
 
 LDFLAGS+= -static
-NO_WERROR=
+MK_WERROR=no
 
 helper.h launchd_helperServer.h: ${.CURDIR}/helper.defs
 	mig ${MIG_FLAGS} -user /dev/null -server /dev/null -header helper.h \

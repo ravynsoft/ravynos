@@ -1,7 +1,7 @@
 .include <bsd.init.mk>
 
 LIB=	notify
-NO_WERROR=yes
+MK_WERROR= no
 NO_WTHREAD_SAFETY=yes
 
 .PATH: .

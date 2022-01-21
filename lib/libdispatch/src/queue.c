@@ -2255,7 +2255,7 @@ _dispatch_barrier_async_f2(dispatch_queue_t dq, void *ctxt,
 {
 	dispatch_continuation_t dc;
 
-	dc = fastpath(_dispatch_continuation_alloc_cacheonly());
+	dc = (dispatch_continuation_t)fastpath(_dispatch_continuation_alloc_cacheonly());
 	if (!dc) {
 		return _dispatch_barrier_async_f_slow(dq, ctxt, func, pp, flags);
 	}
@@ -2460,7 +2460,7 @@ _dispatch_async_f(dispatch_queue_t dq, void *ctxt, dispatch_function_t func,
 		return _dispatch_barrier_async_f(dq, ctxt, func, pp, flags);
 	}
 
-	dc = fastpath(_dispatch_continuation_alloc_cacheonly());
+	dc = (dispatch_continuation_t)fastpath(_dispatch_continuation_alloc_cacheonly());
 	if (!dc) {
 		return _dispatch_async_f_slow(dq, ctxt, func, pp, flags);
 	}
@@ -3483,7 +3483,7 @@ static inline struct dispatch_object_s*
 _dispatch_queue_head(dispatch_queue_t dq)
 {
 	struct dispatch_object_s *dc;
-	_dispatch_wait_until(dc = fastpath(dq->dq_items_head));
+	_dispatch_wait_until(dc = (struct dispatch_object_s *)fastpath(dq->dq_items_head));
 	return dc;
 }
 
@@ -3492,7 +3492,7 @@ static inline struct dispatch_object_s*
 _dispatch_queue_next(dispatch_queue_t dq, struct dispatch_object_s *dc)
 {
 	struct dispatch_object_s *next_dc;
-	next_dc = fastpath(dc->do_next);
+	next_dc = (struct dispatch_object_s *)fastpath(dc->do_next);
 	dq->dq_items_head = next_dc;
 	if (!next_dc && !dispatch_atomic_cmpxchg2o(dq, dq_items_tail, dc, NULL,
 			relaxed)) {
@@ -3977,7 +3977,7 @@ start:
 
 	// Restore the head pointer to a sane value before returning.
 	// If 'next' is NULL, then this item _might_ be the last item.
-	next = fastpath(head->do_next);
+	next = (struct dispatch_object_s *)fastpath(head->do_next);
 
 	if (slowpath(!next)) {
 		dispatch_atomic_store2o(dq, dq_items_head, NULL, relaxed);
@@ -4020,7 +4020,7 @@ _dispatch_root_queue_drain(dispatch_queue_t dq)
 	_dispatch_perfmon_start();
 	struct dispatch_object_s *item;
 	bool reset = false;
-	while ((item = fastpath(_dispatch_queue_concurrent_drain_one(dq)))) {
+	while ((item = (struct dispatch_object_s *)fastpath(_dispatch_queue_concurrent_drain_one(dq)))) {
 		if (reset) _dispatch_wqthread_override_reset();
 		_dispatch_continuation_pop(item);
 		reset = _dispatch_reset_defaultpriority_override();

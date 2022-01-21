@@ -3,7 +3,7 @@
 LIB=	asl
 SHLIB_MAJOR=	1
 SHLIBDIR?= /usr/lib
-NO_WERROR=yes
+MK_WERROR=no
 
 DEFINES= -D__APPLE__ -fblocks -DLIBC_NO_LIBCRASHREPORTERCLIENT -DPRIVATE
 BASE_INCLUDE= -I${.CURDIR}/../../include/apple -I${.CURDIR}/../liblaunch/ -I${.CURDIR}/../libosxsupport/ -I${.CURDIR}/../libdispatch/ -I${.CURDIR}/../libxpc/

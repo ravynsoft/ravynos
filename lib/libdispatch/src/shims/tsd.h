@@ -137,6 +137,7 @@ _dispatch_thread_getspecific(pthread_key_t k)
 #endif
 #endif
 
+mach_port_t pthread_mach_thread_np(uintptr_t self);
 #if TARGET_OS_WIN32
 #define _dispatch_thread_port() ((mach_port_t)0)
 #else

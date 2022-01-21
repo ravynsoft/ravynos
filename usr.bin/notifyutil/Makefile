@@ -22,7 +22,7 @@ CFLAGS+= -DHAVE_INTTYPES_H
 DEBUG_FLAGS+= -g -O0
 CFLAGS+= ${DEBUG_FLAGS}
 
-LDFLAGS+= -lBlocksRuntime -lbsm -lauditd
+LDFLAGS+= -lBlocksRuntime -lbsm -lprivateauditd
 LDFLAGS+= -pthread
 
 notify_ipc.h notify_ipcServer.c: ${.CURDIR}/../../lib/libnotify/notify_ipc.defs
@@ -30,7 +30,7 @@ notify_ipc.h notify_ipcServer.c: ${.CURDIR}/../../lib/libnotify/notify_ipc.defs
 
 notify_proc: notify_ipcServer.c
 
-LDFLAGS+= -lutil -lauditd -lbsm -ldispatch -lmach -lBlocksRuntime -llaunch -losxsupport -lxpc -lnv -lsbuf -lnotify
+LDFLAGS+= -lutil -ldispatch -lmach -llaunch -losxsupport -lxpc -lnv -lsbuf -lnotify
 SRCS=notifyutil.c
 
 

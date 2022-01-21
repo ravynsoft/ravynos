@@ -564,7 +564,7 @@ _dispatch_alloc_maybe_madvise_page(dispatch_continuation_t c)
 	//		last_locked-1, BITMAPS_PER_PAGE, &page_bitmaps[0]);
 	// Scribble to expose use-after-free bugs
 	// madvise (syscall) flushes these stores
-	memset(page, DISPATCH_ALLOCATOR_SCRIBBLE, DISPATCH_ALLOCATOR_PAGE_SIZE);
+	memset(page, (int)DISPATCH_ALLOCATOR_SCRIBBLE, DISPATCH_ALLOCATOR_PAGE_SIZE);
 #endif
 	(void)dispatch_assume_zero(madvise(page, DISPATCH_ALLOCATOR_PAGE_SIZE,
 			MADV_FREE));

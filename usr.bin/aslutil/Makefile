@@ -1,6 +1,6 @@
 .include <src.opts.mk>
 PROG= aslutil
-NO_WERROR= yes
+MK_WERROR= no
 
 .PATH: .
 .PATH: ${.CURDIR}
@@ -26,6 +26,6 @@ DEBUG_FLAGS+= -g -O0
 LDFLAGS+= -pthread
 
 SRCS= syslog.c
-LDFLAGS+= -lutil -lauditd -lbsm -ldispatch -lmach -lBlocksRuntime -llaunch -losxsupport -lxpc -lnotify -lnv -lasl -lsbuf
+LDFLAGS+= -lutil -lprivateauditd -lbsm -ldispatch -lmach -lBlocksRuntime -llaunch -losxsupport -lxpc -lnotify -lnv -lasl -lsbuf
 
 .include <bsd.prog.mk>

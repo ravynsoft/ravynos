@@ -285,9 +285,7 @@ void LinkerDriver::addLibrary(StringRef name) {
 // Add all libraries within a framework found on the framework search path
 void LinkerDriver::addFramework(StringRef name) {
   if (Optional<std::string> path = searchFramework(name)) {
-    path->append(llvm::sys::path::get_separator());
-    path->append("Versions");
-    path->append(llvm::sys::path::get_separator());
+    path->append("/Versions/");
 
     std::string rpath(path.getValue());
 
@@ -304,7 +302,7 @@ void LinkerDriver::addFramework(StringRef name) {
     // handle frameworks relative to executable (in the app bundle)
     if(llvm::sys::path::is_relative(Twine(rpath))) {
       std::string opath("$ORIGIN");
-      opath.append(llvm::sys::path::get_separator());
+      opath.append("/");
       opath.append(rpath);
       rpath = opath;
     }
