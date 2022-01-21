@@ -134,10 +134,9 @@ proc_listpids(uint32_t type, uint32_t flavor, void *ubuffer, uint32_t buffersize
 		goto done;
 	}
 
-	list = &allproc;
 	sx_slock(&allproc_lock);
-scan_next:	
-	LIST_FOREACH(p, list, p_list) {
+	FOREACH_PROC_IN_SYSTEM(p) {
+		PROC_LOCK(p);
 		incr = 0;
 		switch (type) {
 		case PROC_ALL_PIDS:
@@ -171,12 +170,9 @@ scan_next:
 			*ptr++ = p->p_pid;
 			count++;
 		}
+		PROC_UNLOCK(p);
 		if (count >= numpids)
 			break;
-	}
-	if ((count < numpids) && (list == &allproc)) {
-		list = &zombproc;
-		goto scan_next;
 	}
 done:
 	sx_sunlock(&allproc_lock);
@@ -261,7 +257,7 @@ proc_pidbsdinfo(struct proc *p, struct proc_bsdinfo * pbsd, int zombie)
 	pbsd->e_tdev = NODEV;
 	if (pg != NULL) {
 		pbsd->pbi_pgid = pg->pg_id;
-		pbsd->pbi_pjobc = pg->pg_jobc;
+		pbsd->pbi_pjobc = pgrp_calc_jobc(pg);
 		if ((p->p_flag & P_CONTROLT) && (sessionp != NULL) && (tp = sessionp->s_ttyp)) {
 #ifdef notyet
 			pbsd->e_tdev = tp->t_dev;
@@ -394,7 +390,7 @@ proc_pidinfo(int pid, int flavor, uint64_t arg, void *buffer, uint32_t  buffersi
 			findzomb = 1;
 	}
 	if ((p = pfind(pid)) == NULL) {
-		if (!findzomb || ((p = zpfind(pid)) == NULL)) {
+		if (!findzomb || ((p = pfind_any(pid)) == NULL)) {
 			err = ESRCH;
 			goto done;
 		}

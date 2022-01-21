@@ -228,7 +228,7 @@ typedef natural_t ipc_hash_index_t;
  */
 
 #define	IH_LOCAL_HASH(obj, size)				\
-		((((mach_port_index_t) (obj)) >> 6) % (size))
+		((((uintptr_t) (obj)) >> 6) % (size))
 
 /*
  *	Routine:	ipc_hash_local_lookup

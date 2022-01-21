@@ -711,6 +711,7 @@ kern_return_t	vm_map_copyin(
 					 * entry contains the actual
 					 * vm_object/offset.
 					 */
+	vm_map_entry_t	next_entry;
 	vm_object_t object;
 	vm_offset_t prev_end;
 
@@ -775,7 +776,8 @@ kern_return_t	vm_map_copyin(
 	prev_end = 0;
 	while (prev_end != tmp_entry->end  && tmp_entry->end < src_end) {
 		prev_end = tmp_entry->end;
-		vm_map_simplify_entry(src_map, tmp_entry);
+		next_entry = vm_map_entry_succ(tmp_entry);
+		vm_map_try_merge_entries(src_map, tmp_entry, next_entry);
 	}
 	/* only handle single map entry for now */
 	if (tmp_entry->end < src_end) {
@@ -820,7 +822,7 @@ kern_return_t	vm_map_copyin(
 		offset = tmp_entry->offset;
 		vm_map_unlock(src_map);
 		vm_object_reference(object);
-		vm_map_protect(src_map, src_start, src_end, tmp_entry->protection & ~VM_PROT_WRITE, 0);
+		vm_map_protect(src_map, src_start, src_end, tmp_entry->protection & ~VM_PROT_WRITE, 0, VM_MAP_PROTECT_SET_PROT);
 		tmp_entry->eflags |= MAP_ENTRY_NEEDS_COPY | MAP_ENTRY_COW;
 	}
 

@@ -58,7 +58,7 @@ distribution:
 	${_+_}cd ${SRCTOP}/usr.sbin/rmt; ${MAKE} etc-rmt
 	${INSTALL_SYMLINK} -T "package=runtime" ../var/run/os-release \
 		${DESTDIR}/etc/os-release
-	${INSTALL} -m 0555 -o root -g wheel bootstrap ${DESTDIR}/etc/bootstrap
+	${INSTALL} -m 0555 -o root -g wheel ${.CURDIR}/bootstrap ${DESTDIR}/etc/bootstrap
 .if ${MK_UNBOUND} != "no"
 	if [ ! -e ${DESTDIR}/etc/unbound ]; then \
 		${INSTALL_SYMLINK} -T "package=unbound" \

@@ -1126,6 +1126,7 @@ int	p_canwait(struct thread *td, struct proc *p);
 struct	pargs *pargs_alloc(int len);
 void	pargs_drop(struct pargs *pa);
 void	pargs_hold(struct pargs *pa);
+int		pgrp_calc_jobc(struct pgrp *pgrp);
 int	proc_getargv(struct thread *td, struct proc *p, struct sbuf *sb);
 int	proc_getauxv(struct thread *td, struct proc *p, struct sbuf *sb);
 int	proc_getenvv(struct thread *td, struct proc *p, struct sbuf *sb);

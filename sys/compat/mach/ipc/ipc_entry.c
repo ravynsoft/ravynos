@@ -130,6 +130,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/stat.h>
 #include <sys/syslog.h>
 #include <sys/user.h>
+#include <sys/limits.h>
 
 #include <sys/mach/mach_types.h>
 #include <sys/mach/kern_return.h>
@@ -591,13 +592,15 @@ ipc_entry_close(
 	td = curthread;
 	fdp = td->td_proc->p_fd;
 
-	AUDIT_SYSCLOSE(td, fd);
-
 	FILEDESC_XLOCK(fdp);
 	if ((fp = fget_locked(fdp, fd)) == NULL) {
 		FILEDESC_XUNLOCK(fdp);
+		audit_sysclose(td, fd, NULL);
 		return;
 	}
+
+	audit_sysclose(td, fd, fp);
+
 	/* we deliberately skip closing the knote so that it will
 	 * have the last reference to the fp
 	 */
@@ -702,7 +705,7 @@ ipc_entry_list_close(void *arg __unused, struct proc *p)
 	 **/
 	KASSERT(fdp->fd_refcnt == 1, ("the fdtable should not be shared"));
 
-	for (i = 0; i <= fdp->fd_lastfile; i++) {
+	for (i = 0; i <= fdlastfile(fdp); i++) {
 		fde = &fdp->fd_ofiles[i];
 		fp = fde->fde_file;
 		if (fp == NULL || (fp->f_type != DTYPE_MACH_IPC))
@@ -721,7 +724,7 @@ ipc_entry_list_close(void *arg __unused, struct proc *p)
 		kern_last_close(td, fp, fdp, i);
 	}
 
-	for (i = 0; i <= fdp->fd_lastfile; i++) {
+	for (i = 0; i <= fdlastfile(fdp); i++) {
 
 		fde = &fdp->fd_ofiles[i];
 		fp = fde->fde_file;
@@ -741,7 +744,7 @@ ipc_entry_list_close(void *arg __unused, struct proc *p)
 	}
 
 #ifdef INVARIANTS
-	for (i = 0; i <= fdp->fd_lastfile; i++) {
+	for (i = 0; i <= fdlastfile(fdp); i++) {
 		fde = &fdp->fd_ofiles[i];
 		fp = fde->fde_file;
 		if (fp != NULL)
@@ -834,8 +837,6 @@ fdunused(struct filedesc *fdp, int fd)
 	fdp->fd_map[NDSLOT(fd)] &= ~NDBIT(fd);
 	if (fd < fdp->fd_freefile)
 		fdp->fd_freefile = fd;
-	if (fd == fdp->fd_lastfile)
-		fdp->fd_lastfile = fd_last_used(fdp, fd);
 }
 
 static int
@@ -867,12 +868,12 @@ kern_fdfree(struct filedesc *fdp, int fd)
 
 	fde = &fdp->fd_ofiles[fd];
 #ifdef CAPABILITIES
-	seq_write_begin(&fde->fde_seq);
+	seqc_write_begin(&fde->fde_seqc);
 #endif
 	bzero(fde, fde_change_size);
 	fdunused(fdp, fd);
 #ifdef CAPABILITIES
-	seq_write_end(&fde->fde_seq);
+	seqc_write_end(&fde->fde_seqc);
 #endif
 }
 
@@ -915,14 +916,14 @@ kern_finstall(struct thread *td, struct file *fp, int *fd, int flags,
 	}
 	fde = &fdp->fd_ofiles[*fd];
 #ifdef CAPABILITIES
-	seq_write_begin(&fde->fde_seq);
+	seqc_write_begin(&fde->fde_seqc);
 #endif
 	fde->fde_file = fp;
 	if ((flags & O_CLOEXEC) != 0)
 		fde->fde_flags |= UF_EXCLOSE;
 	filecaps_fill(&fde->fde_caps);
 #ifdef CAPABILITIES
-	seq_write_end(&fde->fde_seq);
+	seqc_write_end(&fde->fde_seqc);
 #endif
 	FILEDESC_XUNLOCK(fdp);
 	return (0);

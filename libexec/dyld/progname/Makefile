@@ -17,7 +17,7 @@ all:
 	$(CC) $(CFLAGS) ${LDFLAGS} -o ${PROG} ${.CURDIR}/${SRCS}
 
 install:
-	${INSTALL} ${INSTALLFLAGS} -o 0 -g 0 -m 0555 ${PROG} ${BINDIR}
+	${INSTALL} ${INSTALLFLAGS} -o 0 -g 0 -m 0555 ${PROG} ${DESTDIR}${BINDIR}
 
 clean:
 	rm -f ${PROG}

@@ -140,15 +140,12 @@ kn_sx_unlock(void *arg)
 }
 
 static void
-sx_assert_locked(void *arg)
+kn_sx_assert_lock(void *arg, int what)
 {
-	sx_assert((struct sx *)arg, SX_LOCKED);
-}
-
-static void
-sx_assert_unlocked(void *arg)
-{
-	sx_assert((struct sx *)arg, SX_UNLOCKED);
+	if (what == LA_LOCKED)
+			sx_assert((struct sx *)arg, SX_LOCKED);
+	else
+			sx_assert((struct sx *)arg, SX_UNLOCKED);
 }
 
 void
@@ -210,7 +207,7 @@ ipc_pset_alloc(
 	TAILQ_INIT(&pset->ips_ports);
 	sx_init(&pset->ips_note_lock, "pset knote lock");
 	knlist_init(&pset->ips_note, &pset->ips_note_lock,
-				kn_sx_lock, kn_sx_unlock, sx_assert_locked, sx_assert_unlocked);
+				kn_sx_lock, kn_sx_unlock, kn_sx_assert_lock);
 	thread_pool_init(&pset->ips_thread_pool);
 	*namep = name;
 	*psetp = pset;
