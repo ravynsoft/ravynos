@@ -149,7 +149,7 @@ ${TOPDIR}/ISO:
 
 iso:
 	cp -f ${TOPDIR}/version.txt ${TOPDIR}/ISO/overlays/ramdisk/version
-	cd ${TOPDIR}/ISO && workdir=${OBJPREFIX} AIRYX=${TOPDIR} ${SUDO} -E ./build.sh airyx Airyx_${AIRYX_VERSION}
+	cd ${TOPDIR}/ISO && workdir=${OBJPREFIX} AIRYX=${TOPDIR} ${SUDO} -E ./build.sh airyx airyxOS_${AIRYX_VERSION}
 
 release: airyx-package ${TOPDIR}/ISO iso
 
