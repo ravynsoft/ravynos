@@ -1,6 +1,6 @@
 compute_engine_instance:
   image_project: airyxos-images
-  image: airyxbuild-0-4-b2
+  image: airyxbuild-0-4-b3
   platform: freebsd
   cpu: 8
   memory: 16G
@@ -9,7 +9,7 @@ compute_engine_instance:
 environment:
   KEY: ENCRYPTED[f68765a53df76c1b9cd6d870e0054317f9cc517313bf6c56d0b094a1ad01e968a95e6328b37b53db7840d112ff165c46]
 
-clone_task:
+clone_task_template: &CLONE_TASK_TEMPLATE
   clone_script: |
     if [ -z "$CIRRUS_PR" ]; then
       git clone --recursive --branch=$CIRRUS_BRANCH https://x-access-token:${CIRRUS_REPO_CLONE_TOKEN}@github.com/${CIRRUS_REPO_FULL_NAME}.git $CIRRUS_WORKING_DIR
@@ -24,6 +24,7 @@ airyx_task:
   timeout_in: 120m
   environment:
     PKG_CONFIG_PATH: /usr/libdata/pkgconfig:/usr/local/libdata/pkgconfig
+  << : *CLONE_TASK_TEMPLATE
   script:
     - rm -fv /etc/pkg/FreeBSD.conf
     - pkg update
@@ -44,6 +45,7 @@ airyx_task:
 
 base_task:
   timeout_in: 120m
+  << : *CLONE_TASK_TEMPLATE
   script:
     - pkg install -y git py38-pip
     - pw useradd user
@@ -55,5 +57,5 @@ base_task:
     - cloudsmith push raw -k $KEY airyx/core --name kernel_${CIRRUS_BRANCH%/*}.txz /usr/obj/$(pwd -P)/release/dist/kernel.txz
     - ls -l /usr/obj/$(pwd -P)/release/
   only_if: $CIRRUS_BRANCH == 'main' || $CIRRUS_BRANCH == 'staging'
-  skip: "!changesInclude('.cirrus.yml', 'bin/*', 'cddl/*', 'contrib/*', 'crypto/*', 'etc/*', 'gnu/*', 'include/*', 'kerberos5/*', 'lib/*', 'libexec/*', 'Makefile*', 'rescue/*', 'sbin/*', 'secure/*', 'share/*', 'stand/*', 'sys/*', 'targets/*', 'tests/*', 'usr*bin/*')"
+  skip: "!changesInclude('.cirrus.yml', 'bin/**', 'cddl/**', 'contrib/**', 'crypto/**', 'etc/**', 'gnu/**', 'include/**', 'kerberos5/**', 'lib/**', 'libexec/**', 'Makefile**', 'rescue/**', 'sbin/**', 'secure/**', 'share/**', 'stand/**', 'sys/**', 'targets/**', 'tests/**', 'usr*bin/**')"
 
