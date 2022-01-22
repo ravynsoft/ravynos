@@ -54,9 +54,9 @@ base_task:
     - make -j$(sysctl -n hw.ncpu) MK_LIB32=no buildworld buildkernel
     - make -C release MK_LIB32=no NOSRC=true NOPORTS=true packagesystem
     - pip install --upgrade cloudsmith-cli
-    - cloudsmith push raw -k $KEY airyx/core --name base_${CIRRUS_BRANCH%/*}.txz /usr/obj/$(pwd -P)/release/dist/base.txz
-    - cloudsmith push raw -k $KEY airyx/core --name kernel_${CIRRUS_BRANCH%/*}.txz /usr/obj/$(pwd -P)/release/dist/kernel.txz
-    - ls -l /usr/obj/$(pwd -P)/release/
+    - cloudsmith push raw -k $KEY airyx/core --name base_${CIRRUS_BRANCH%/*}.txz /usr/obj/$(pwd -P)/$(uname -m).$(uname -m)/release/dist/base.txz
+    - cloudsmith push raw -k $KEY airyx/core --name kernel_${CIRRUS_BRANCH%/*}.txz /usr/obj/$(pwd -P)/$(uname -m).$(uname -m)/release/dist/kernel.txz
+    - ls -l /usr/obj/$(pwd -P)/$(uname -m).$(uname -m)/release/
   only_if: $CIRRUS_BRANCH == 'main' || $CIRRUS_BRANCH == 'staging'
   base_cache:
     folder: /usr/obj
