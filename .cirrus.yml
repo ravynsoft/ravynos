@@ -10,7 +10,6 @@ environment:
   KEY: ENCRYPTED[f68765a53df76c1b9cd6d870e0054317f9cc517313bf6c56d0b094a1ad01e968a95e6328b37b53db7840d112ff165c46]
 
 airyx_task:
-  name: Frameworks and services build
   timeout_in: 120m
   environment:
     PKG_CONFIG_PATH: /usr/libdata/pkgconfig:/usr/local/libdata/pkgconfig
@@ -33,7 +32,6 @@ airyx_task:
     path: dist/airyx-*.pkg
 
 base_task:
-  name: Base and kernel build
   timeout_in: 120m
   script:
     - pkg install -y git py38-pip
