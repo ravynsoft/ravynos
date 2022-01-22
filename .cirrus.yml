@@ -9,6 +9,17 @@ compute_engine_instance:
 environment:
   KEY: ENCRYPTED[f68765a53df76c1b9cd6d870e0054317f9cc517313bf6c56d0b094a1ad01e968a95e6328b37b53db7840d112ff165c46]
 
+clone_task:
+  clone_script: |
+    if [ -z "$CIRRUS_PR" ]; then
+      git clone --recursive --branch=$CIRRUS_BRANCH https://x-access-token:${CIRRUS_REPO_CLONE_TOKEN}@github.com/${CIRRUS_REPO_FULL_NAME}.git $CIRRUS_WORKING_DIR
+      git reset --hard $CIRRUS_CHANGE_IN_REPO
+    else
+      git clone --recursive https://x-access-token:${CIRRUS_REPO_CLONE_TOKEN}@github.com/${CIRRUS_REPO_FULL_NAME}.git $CIRRUS_WORKING_DIR
+      git fetch origin pull/$CIRRUS_PR/head:pull/$CIRRUS_PR
+      git reset --hard $CIRRUS_CHANGE_IN_REPO
+    fi
+
 airyx_task:
   timeout_in: 120m
   environment:
@@ -23,7 +34,7 @@ airyx_task:
     - make prep airyx
     - rm -f dist/airyx.txz
     - make airyx-package
-  only_if: $CIRRUS_BRANCH == 'main' || $CIRRUS_BRANCH == 'trunk'
+  only_if: $CIRRUS_BRANCH == 'main' || $CIRRUS_BRANCH == 'staging'
   depends_on:
     - base
   airyx_artifacts:
@@ -43,6 +54,6 @@ base_task:
     - cloudsmith push raw -k $KEY airyx/core --name base_${CIRRUS_BRANCH%/*}.txz /usr/obj/$(pwd -P)/release/dist/base.txz
     - cloudsmith push raw -k $KEY airyx/core --name kernel_${CIRRUS_BRANCH%/*}.txz /usr/obj/$(pwd -P)/release/dist/kernel.txz
     - ls -l /usr/obj/$(pwd -P)/release/
-  only_if: $CIRRUS_BRANCH == 'main' || $CIRRUS_BRANCH == 'trunk'
+  only_if: $CIRRUS_BRANCH == 'main' || $CIRRUS_BRANCH == 'staging'
   skip: "!changesInclude('.cirrus.yml', 'bin/*', 'cddl/*', 'contrib/*', 'crypto/*', 'etc/*', 'gnu/*', 'include/*', 'kerberos5/*', 'lib/*', 'libexec/*', 'Makefile*', 'rescue/*', 'sbin/*', 'secure/*', 'share/*', 'stand/*', 'sys/*', 'targets/*', 'tests/*', 'usr*bin/*')"
 
