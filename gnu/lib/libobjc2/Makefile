@@ -1,9 +1,9 @@
-OBJDIR= /usr/obj${.CURDIR}
+OBJDIR= ${MAKEOBJDIR}${.CURDIR}
 
 all: build
 
 clean: .PHONY
-	rm -rf libobjc2
+	rm -rf ${OBJDIR}
 
 build: .PHONY
 	mkdir -p ${OBJDIR}
@@ -16,3 +16,5 @@ build: .PHONY
 
 install:
 	${MAKE} -C ${OBJDIR} DESTDIR=${DESTDIR} install
+
+.include <bsd.lib.mk>

@@ -38,6 +38,8 @@ airyx_task:
   only_if: $CIRRUS_BRANCH == 'main' || $CIRRUS_BRANCH == 'staging'
   depends_on:
     - base
+  base_cache:
+    folder: /usr/obj
   airyx_artifacts:
     path: dist/airyx.txz
   package_artifacts:
@@ -48,7 +50,6 @@ base_task:
   << : *CLONE_TASK_TEMPLATE
   script:
     - pkg install -y git py38-pip
-    - pw useradd user
     - mkdir -p /usr/obj/$(pwd -P)
     - make -j$(sysctl -n hw.ncpu) MK_LIB32=no buildworld buildkernel
     - make -C release MK_LIB32=no NOSRC=true NOPORTS=true packagesystem
@@ -57,5 +58,5 @@ base_task:
     - cloudsmith push raw -k $KEY airyx/core --name kernel_${CIRRUS_BRANCH%/*}.txz /usr/obj/$(pwd -P)/release/dist/kernel.txz
     - ls -l /usr/obj/$(pwd -P)/release/
   only_if: $CIRRUS_BRANCH == 'main' || $CIRRUS_BRANCH == 'staging'
-  skip: "!changesInclude('.cirrus.yml', 'bin/**', 'cddl/**', 'contrib/**', 'crypto/**', 'etc/**', 'gnu/**', 'include/**', 'kerberos5/**', 'lib/**', 'libexec/**', 'Makefile**', 'rescue/**', 'sbin/**', 'secure/**', 'share/**', 'stand/**', 'sys/**', 'targets/**', 'tests/**', 'usr*bin/**')"
-
+  base_cache:
+    folder: /usr/obj

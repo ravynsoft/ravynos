@@ -1,4 +1,10 @@
 CIRRUS_BUILD_ID?= local
+MK_WERROR= no
+WARN?= 1
+CFLAGS+= --sysroot ${OBJDIR}${.CURDIR}/${MACHINE}.${MACHINE}/tmp \
+	-B ${OBJDIR}${.CURDIR}/${MACHINE}.${MACHINE}/usr/bin
+
+.export WARN MK_WERROR CFLAGS
 
 SUBDIR=		CoreFoundation
 SUBDIR+=	CFNetwork

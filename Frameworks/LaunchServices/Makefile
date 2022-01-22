@@ -1,4 +1,4 @@
-.include "../../mk/internal/framework.common.mk"
+.include "../framework.common.mk"
 
 FRAMEWORK=LaunchServices
 SRCS= LaunchServices.mm LSAppRecord.mm UTTypes.mm

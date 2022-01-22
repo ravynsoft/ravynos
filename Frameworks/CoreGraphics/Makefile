@@ -1,4 +1,4 @@
-.include "../../mk/internal/framework.common.mk"
+.include "../framework.common.mk"
 
 FRAMEWORK=CoreGraphics
 SRCS= \

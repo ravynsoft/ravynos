@@ -25,7 +25,6 @@ SUBDIR= cat \
 	ls \
 	mkdir \
 	mv \
-	open \
 	pax \
 	pkill \
 	ps \
