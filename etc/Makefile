@@ -4,8 +4,8 @@
 .include <src.opts.mk>
 .include <src.tools.mk>
 
-AIRYX_VERSION != head -1 ${.CURDIR}/../version.txt
-AIRYX_CODENAME != tail -1 ${.CURDIR}/../version.txt
+AIRYX_VERSION != sed -e '1q;d' ${.CURDIR}/../version.txt
+AIRYX_CODENAME != sed -e '2q;d' ${.CURDIR}/../version.txt
 FILESGROUPS=	FILES
 NLS_ALIASES=	POSIX C \
 		en_US.US_ASCII C
@@ -67,8 +67,8 @@ distribution:
 		-e "s/__CODENAME__/${AIRYX_CODENAME}/" ${DESTDIR}/etc/motd
 	rm -f ${DESTDIR}/etc/motd_
 	${INSTALL} -m 0555 -o root -g wheel ${.CURDIR}/bootstrap ${DESTDIR}/etc/
-.for d in pkg 
-	${INSTALL} -m 0755 -o ${BINOWN} -g ${BINGRP} ${DESTDIR}/etc/$d
+.for d in pkg
+	${INSTALL} -d -m 0755 -o ${BINOWN} -g ${BINGRP} ${DESTDIR}/etc/$d
 	${INSTALL} -m 0444 -o ${BINOWN} -g ${BINGRP} ${.CURDIR}/$d/* ${DESTDIR}/etc/$d/
 .endfor
 .if ${MK_UNBOUND} != "no"
