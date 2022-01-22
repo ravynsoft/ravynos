@@ -15,9 +15,10 @@ INCS= \
 RESOURCES=Info.plist
 CFLAGS+= ${FMWK_CFLAGS} -I.. -Iinclude -I../libobjc2 -I../Foundation/Headers
 
-install:
+_install-hook:
 	rm -rf ${BUILDROOT}/System/Library/Frameworks/${FRAMEWORK}.framework
 	cp -av ${.CURDIR}/${FRAMEWORK}.framework ${BUILDROOT}/System/Library/Frameworks/
-_libinstall: install
 
 .include <airyx.framework.mk>
+
+installresources: _install-hook

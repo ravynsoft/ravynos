@@ -32,9 +32,11 @@ airyx_task:
     - fetch -o /tmp/openjdk-17.jdk.txz https://github.com/mszoek/airyx/releases/download/jdk-17.0.1/openjdk-17.0.1.jdk.txz
     - mkdir -p /Library/Java/JavaVirtualMachines
     - tar -C /Library/Java/JavaVirtualMachines -xf /tmp/openjdk-17.jdk.txz
-    - make prep airyx
+    - make -f Makefile.airyx prep
+    - cp -fv share/mk/* /usr/share/mk/
+    - make -f Makefile.airyx
     - rm -f dist/airyx.txz
-    - make airyx-package
+    - make -f Makefile.airyx airyx-package
   only_if: $CIRRUS_BRANCH == 'main' || $CIRRUS_BRANCH == 'staging'
   depends_on:
     - base

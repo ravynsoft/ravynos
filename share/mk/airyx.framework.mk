@@ -29,7 +29,10 @@ installresources: .PHONY
 
 .include <airyx.common.mk>
 
-all: ${FRAMEWORK_DIR} ${SHLIB_NAME} installincludes _libinstall installresources
+all: ${FRAMEWORK_DIR} ${SHLIB_NAME} installincludes _libinstall installresources \
+	post-resources
+post-resources: .PHONY
+
 ${FRAMEWORK_DIR}:
 	@${ECHO} building ${FRAMEWORK_DIR} bundle
 	mkdir -p "${FRAMEWORK_DIR}/Versions/${FMWK_VERSION}/Headers" \

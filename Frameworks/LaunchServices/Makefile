@@ -9,9 +9,10 @@ QT5LDFLAGS!= pkg-config --libs Qt5Xdg Qt5DBus
 CFLAGS+= ${FMWK_CFLAGS} -I.. -I../libobjc2 -I../Foundation/Headers ${QT5CFLAGS}
 LDFLAGS+= -L/usr/local/lib -lsqlite3 ${QT5LDFLAGS}
 
-install:
+_install-hook:
 	rm -rf ${BUILDROOT}/System/Library/Frameworks/${FRAMEWORK}.framework
 	cp -av ${.CURDIR}/${FRAMEWORK}.framework ${BUILDROOT}/System/Library/Frameworks/
-_libinstall: install
 
 .include <airyx.framework.mk>
+
+installresources: _install-hook

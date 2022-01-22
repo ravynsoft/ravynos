@@ -20,9 +20,10 @@ LDFLAGS+=-L${BUILDROOT}/System/Library/Frameworks/CoreFoundation.framework/Versi
 	-lCoreFoundation \
 	-Wl,-R/System/Library/Frameworks/CoreFoundation.framework/Versions/A
 
-install:
+_install-hook:
 	rm -rf ${BUILDROOT}/System/Library/Frameworks/${FRAMEWORK}.framework
 	cp -av ${.CURDIR}/${FRAMEWORK}.framework ${BUILDROOT}/System/Library/Frameworks/
-_libinstall: install
 
 .include <airyx.framework.mk>
+
+installresources: _install-hook

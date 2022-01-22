@@ -1,9 +1,11 @@
 CIRRUS_BUILD_ID?= local
 MK_WERROR= no
 WARN?= 1
-CFLAGS+= --sysroot ${OBJDIR}${.CURDIR}/${MACHINE}.${MACHINE}/tmp \
-	-B ${OBJDIR}${.CURDIR}/${MACHINE}.${MACHINE}/usr/bin \
-	-I ${OBJDIR}${.CURDIR}/${MACHINE}.${MACHINE}/libobjc2
+WORLDTMP= /usr/obj/${TOPDIR}/${MACHINE}.${MACHINE}
+CFLAGS+= -isystem ${WORLDTMP}/tmp/usr/include \
+	-B ${WORLDTMP}/usr/bin
+LDFLAGS+= -B ${WORLDTMP}/usr/bin \
+	-L ${WORLDTMP}/tmp/lib -L ${WORLDTMP}/tmp/usr/lib
 
 .export WARN MK_WERROR CFLAGS
 

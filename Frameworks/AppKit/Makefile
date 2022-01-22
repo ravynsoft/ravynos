@@ -629,17 +629,15 @@ marshallheaders: .PHONY
 fmwkclean:
 	rm -rf ${.CURDIR}/Headers
 
-install:
+_install-hook:
+	mv AppKit.framework/Resources/NSKeyboardBinding/StandardKeyBindings.keyBindings \
+		AppKit.framework/Resources/
+	rmdir AppKit.framework/Resources/NSKeyboardBinding
 	rm -rf ${BUILDROOT}/System/Library/Frameworks/${FRAMEWORK}.framework
 	cp -av ${.CURDIR}/${FRAMEWORK}.framework ${BUILDROOT}/System/Library/Frameworks/
-_libinstall: install
 
 .include <airyx.framework.mk>
 
 all: marshallheaders
-	mv AppKit.framework/Resources/NSKeyboardBinding/StandardKeyBindings.keyBindings \
-		AppKit.framework/Resources/
-	rmdir AppKit.framework/Resources/NSKeyboardBinding
-
 clean: fmwkclean
-
+post-resources: _install-hook

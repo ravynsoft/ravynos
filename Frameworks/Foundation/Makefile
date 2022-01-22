@@ -692,15 +692,14 @@ marshalheaders: .PHONY
 	mkdir -p Headers/Foundation
 	find ${.CURDIR} -name \*.h -exec cp -f {} Headers/Foundation \;
 
-install:
+_install-hook:
 	rm -rf ${BUILDROOT}/System/Library/Frameworks/${FRAMEWORK}.framework
 	mv ${.CURDIR}/Foundation.framework/Resources/NSCharacterSet/*.bitmap \
 		${.CURDIR}/Foundation.framework/Resources/
 	rmdir ${.CURDIR}/Foundation.framework/Resources/NSCharacterSet
 	cp -av ${.CURDIR}/${FRAMEWORK}.framework ${BUILDROOT}/System/Library/Frameworks/
-_libinstall: install
 
 .include <airyx.framework.mk>
 
 all: marshalheaders
-
+post-resources: _install-hook
