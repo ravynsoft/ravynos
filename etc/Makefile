@@ -4,6 +4,8 @@
 .include <src.opts.mk>
 .include <src.tools.mk>
 
+AIRYX_VERSION != head -1 ${.CURDIR}/../version.txt
+AIRYX_CODENAME != tail -1 ${.CURDIR}/../version.txt
 FILESGROUPS=	FILES
 NLS_ALIASES=	POSIX C \
 		en_US.US_ASCII C
@@ -61,6 +63,9 @@ distribution:
 .for f in adduser.conf launchd_user.env motd shells
 	${INSTALL} -m 0444 -o root -g wheel ${.CURDIR}/$f ${DESTDIR}/etc/
 .endfor
+	sed -i_ -e "s/__VERSION__/${AIRYX_VERSION}/" \
+		-e "s/__CODENAME__/${AIRYX_CODENAME}/" ${DESTDIR}/etc/motd
+	rm -f ${DESTDIR}/etc/motd_
 	${INSTALL} -m 0555 -o root -g wheel ${.CURDIR}/bootstrap ${DESTDIR}/etc/
 .for d in pkg 
 	${INSTALL} -m 0755 -o ${BINOWN} -g ${BINGRP} ${DESTDIR}/etc/$d

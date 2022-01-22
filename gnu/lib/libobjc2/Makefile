@@ -1,0 +1,18 @@
+OBJDIR= /usr/obj${.CURDIR}
+
+all: build
+
+clean: .PHONY
+	rm -rf libobjc2
+
+build: .PHONY
+	mkdir -p ${OBJDIR}
+	cd ${OBJDIR}; cmake \
+		-DCMAKE_C_FLAGS="-D__AIRYX__ -DNO_SELECTOR_MISMATCH_WARNINGS" \
+		-DCMAKE_BUILD_TYPE=Release \
+		-DCMAKE_INSTALL_PREFIX=/usr \
+		-DOLDABI_COMPAT=false -DLEGACY_COMPAT=false \
+		-S ${.CURDIR}
+
+install:
+	${MAKE} -C ${OBJDIR} DESTDIR=${DESTDIR} install

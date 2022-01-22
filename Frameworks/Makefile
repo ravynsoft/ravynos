@@ -35,15 +35,7 @@ frameworks:
 	for fmwk in ${_FRAMEWORK_TARGETS}; do \
 		${MAKE} ${MKINCDIR} -C ${THISDIR} $$fmwk; done
 
-libobjc2: .PHONY
-	mkdir -p ${OBJPREFIX}/libobjc2
-	cd ${OBJPREFIX}/libobjc2; cmake \
-		-DCMAKE_C_FLAGS="-D__AIRYX__ -DNO_SELECTOR_MISMATCH_WARNINGS" \
-		-DCMAKE_BUILD_TYPE=Release \
-		-DCMAKE_INSTALL_PREFIX=/usr \
-		-DOLDABI_COMPAT=false -DLEGACY_COMPAT=false \
-		${THISDIR}/libobjc2
-	${MAKE} -C ${OBJPREFIX}/libobjc2 DESTDIR=${BUILDROOT} install
+
 
 libunwind: .PHONY
 	cd ${THISDIR}/libunwind-1.5.0 && ./configure --prefix=/usr --enable-coredump --enable-ptrace --enable-cxx-exceptions \

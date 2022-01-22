@@ -1,5 +1,3 @@
-THISDIR:= ${.CURDIR}
-
 all: clean build
 clean:
 	rm -rf ${BUILDROOT}/System/Library/Colors

@@ -1,21 +1,19 @@
-# Primary makefile for the Airyx OS
 
-TOPDIR := ${.CURDIR}
-OBJPREFIX := ${HOME}/obj.${MACHINE}
-BUILDROOT := ${OBJPREFIX}/buildroot
-PORTSROOT := ${OBJPREFIX}/portsroot
-AIRYX_VERSION != head -1 ${TOPDIR}/version.txt
-AIRYX_CODENAME != tail -1 ${TOPDIR}/version.txt
-MKINCDIR := -m/usr/share/mk -m${TOPDIR}/mk
-CORES != sysctl -n hw.ncpu
-SUDO != test "$$USER" == "root" && echo "" || echo "sudo"
+TOPDIR= ${.CURDIR}
+BUILDROOT= /usr/obj${TOPDIR}/${MACHINE}.${MACHINE}/release/dist/airyx
+PORTSROOT= /usr/obj${TOPDIR}/${MACHINE}.${MACHINE}/portsroot
+AIRYX_VERSION!= head -1 ${TOPDIR}/version.txt
+AIRYX_CODENAME!= tail -1 ${TOPDIR}/version.txt
+CORES!= sysctl -n hw.ncpu
 
-.export TOPDIR OBJPREFIX BUILDROOT PORTSROOT AIRYX_VERSION AIRYX_CODENAME MKINCDIR CORES SUDO
+SUBDIR+= Library Frameworks
+
+.export TOPDIR BUILDROOT PORTSROOT AIRYX_VERSION AIRYX_CODENAME CORES
 
 # We need the installed frameworks to correctly link CoreServices and applications
 airyx: airyxbase installairyx sysmenu coreservices bin
 
-airyxbase: mkfiles frameworks copyfiles
+airyxbase:
 	tar -C ${BUILDROOT}/usr/lib -cpf pkgconfig | tar -C ${BUILDROOT}/usr/share -xpf -
 	rm -rf ${BUILDROOT}/usr/lib/pkgconfig
 
@@ -31,9 +29,6 @@ sysmenu: .PHONY
 	echo '#define AIRYX_CODENAME "${AIRYX_CODENAME}"' >> ${TOPDIR}/sysmenu/src/version.h
 	cmake -S ${TOPDIR}/sysmenu -B ${OBJPREFIX}/sysmenu
 	make -C ${OBJPREFIX}/sysmenu DESTDIR=${BUILDROOT} install
-
-frameworks:
-	${MAKE} -C Frameworks all
 
 coreservices:
 	${MAKE} -C CoreServices all
@@ -132,23 +127,5 @@ makepackages:
 	${SUDO} umount ${PORTSROOT}/mnt
 	${SUDO} pkg repo -o /usr/ports/packages /usr/ports/packages
 
-copyfiles:
-	cp -fvR ${TOPDIR}/etc ${BUILDROOT}
-	sed -i_ -e "s/__VERSION__/${AIRYX_VERSION}/" -e "s/__CODENAME__/${AIRYX_CODENAME}/" ${BUILDROOT}/etc/motd
-	rm -f ${BUILDROOT}/etc/motd_
-	${MAKE} -C Library
-
-mkfiles:
-	mkdir -p ${BUILDROOT}/usr/share/mk
-	cp -fv ${TOPDIR}/mk/*.mk ${BUILDROOT}/usr/share/mk/
-
-
-${TOPDIR}/ISO:
-	cd ${TOPDIR} && git clone https://github.com/mszoek/ISO.git
-	cd ${TOPDIR}/ISO && git checkout airyx
-
-iso:
-	cp -f ${TOPDIR}/version.txt ${TOPDIR}/ISO/overlays/ramdisk/version
-	cd ${TOPDIR}/ISO && workdir=${OBJPREFIX} AIRYX=${TOPDIR} ${SUDO} -E ./build.sh airyx airyxOS_${AIRYX_VERSION}
-
-release: airyx-package ${TOPDIR}/ISO iso
+.include <bsd.subdir.mk>
+.include <airyx.common.mk>

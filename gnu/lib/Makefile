@@ -2,7 +2,7 @@
 
 .include <src.opts.mk>
 
-SUBDIR=
+SUBDIR=	libobjc2
 SUBDIR.${MK_DIALOG}+=	libdialog
 SUBDIR.${MK_TESTS}+=	tests
 
