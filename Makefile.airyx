@@ -1,14 +1,18 @@
-
 TOPDIR= ${.CURDIR}
 BUILDROOT= /usr/obj${TOPDIR}/${MACHINE}.${MACHINE}/release/dist/airyx
 PORTSROOT= /usr/obj${TOPDIR}/${MACHINE}.${MACHINE}/portsroot
 AIRYX_VERSION!= head -1 ${TOPDIR}/version.txt
 AIRYX_CODENAME!= tail -1 ${TOPDIR}/version.txt
 CORES!= sysctl -n hw.ncpu
-
-SUBDIR+= Library Frameworks
-
 .export TOPDIR BUILDROOT PORTSROOT AIRYX_VERSION AIRYX_CODENAME CORES
+
+SUBDIR+=	Library \
+		Frameworks
+
+SUBDIR+=	.WAIT \
+		sysmenu \
+		CoreServices \
+		bin
 
 # We need the installed frameworks to correctly link CoreServices and applications
 airyx: airyxbase installairyx sysmenu coreservices bin
@@ -17,21 +21,12 @@ airyxbase:
 	tar -C ${BUILDROOT}/usr/lib -cpf pkgconfig | tar -C ${BUILDROOT}/usr/share -xpf -
 	rm -rf ${BUILDROOT}/usr/lib/pkgconfig
 
-bin: .PHONY
-	${MAKE} -C bin all install
-
-jdk: .PHONY
-	${MAKE} -C Library/Java all
-
 sysmenu: .PHONY
 	mkdir -p ${OBJPREFIX}/sysmenu
 	echo '#define AIRYX_VERSION "${AIRYX_VERSION}"' > ${TOPDIR}/sysmenu/src/version.h
 	echo '#define AIRYX_CODENAME "${AIRYX_CODENAME}"' >> ${TOPDIR}/sysmenu/src/version.h
 	cmake -S ${TOPDIR}/sysmenu -B ${OBJPREFIX}/sysmenu
 	make -C ${OBJPREFIX}/sysmenu DESTDIR=${BUILDROOT} install
-
-coreservices:
-	${MAKE} -C CoreServices all
 
 airyx-package:
 	${SUDO} mkdir -p ${TOPDIR}/dist
@@ -40,7 +35,7 @@ airyx-package:
 installairyx: airyx-package
 	${SUDO} tar -C / -xvf ${TOPDIR}/dist/airyx.txz
 
-prep: cleanroot
+prep:
 	mkdir -p ${OBJPREFIX} ${TOPDIR}/dist ${BUILDROOT}
 	mkdir -p ${BUILDROOT}/etc ${BUILDROOT}/var/run ${BUILDROOT}/usr/sbin
 	cp -f ${TOPDIR}/make.conf ${TOPDIR}/resolv.conf ${BUILDROOT}/etc/
@@ -53,12 +48,6 @@ prep: cleanroot
 .for x in dev etc var
 	ln -sf ../$x ${BUILDROOT}/private/$x
 .endfor
-
-cleanroot:
-	if [ -d ${BUILDROOT} ]; then \
-		${SUDO} chflags -R noschg,nouchg ${BUILDROOT}; \
-		${SUDO} rm -rf ${BUILDROOT}; \
-	fi
 
 getports:
 	${SUDO} git clone https://git.freebsd.org/ports.git -b2021Q3 /usr/ports

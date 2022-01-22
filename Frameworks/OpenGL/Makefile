@@ -1,4 +1,4 @@
-.include <internal/framework.common.mk>
+.include "../../mk/internal/framework.common.mk"
 
 FRAMEWORK=OpenGL
 SRCS= OpenGL.m
@@ -14,5 +14,10 @@ INCS= \
 	include/OpenGL/wglext.h
 RESOURCES=Info.plist
 CFLAGS+= ${FMWK_CFLAGS} -I.. -Iinclude -I../libobjc2 -I../Foundation/Headers
+
+install:
+	rm -rf ${BUILDROOT}/System/Library/Frameworks/${FRAMEWORK}.framework
+	cp -av ${.CURDIR}/${FRAMEWORK}.framework ${BUILDROOT}/System/Library/Frameworks/
+_libinstall: install
 
 .include <airyx.framework.mk>

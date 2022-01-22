@@ -1,4 +1,4 @@
-.include <internal/framework.common.mk>
+.include "../../mk/internal/framework.common.mk"
 
 FRAMEWORK=Foundation
 SRCS= \
@@ -688,12 +688,19 @@ LDFLAGS+= ${FMWK_LDFLAGS} \
 	  -lCFNetwork \
 	  -lobjc -lexecinfo -lpthread
 
-build: marshallheaders all
-	mv Foundation.framework/Resources/NSCharacterSet/*.bitmap Foundation.framework/Resources/
-	rmdir Foundation.framework/Resources/NSCharacterSet
-
-marshallheaders: .PHONY
+marshalheaders: .PHONY
 	mkdir -p Headers/Foundation
 	find ${.CURDIR} -name \*.h -exec cp -f {} Headers/Foundation \;
 
+install:
+	rm -rf ${BUILDROOT}/System/Library/Frameworks/${FRAMEWORK}.framework
+	mv ${.CURDIR}/Foundation.framework/Resources/NSCharacterSet/*.bitmap \
+		${.CURDIR}/Foundation.framework/Resources/
+	rmdir ${.CURDIR}/Foundation.framework/Resources/NSCharacterSet
+	cp -av ${.CURDIR}/${FRAMEWORK}.framework ${BUILDROOT}/System/Library/Frameworks/
+_libinstall: install
+
 .include <airyx.framework.mk>
+
+all: marshalheaders
+

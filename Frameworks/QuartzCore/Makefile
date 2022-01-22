@@ -1,4 +1,4 @@
-.include <internal/framework.common.mk>
+.include "../../mk/internal/framework.common.mk"
 
 FRAMEWORK=QuartzCore
 SRCS= \
@@ -63,5 +63,11 @@ RESOURCES=Info.plist English.lproj
 CFLAGS+= ${FMWK_CFLAGS} -I.. -I../OpenGL/include -I../libobjc2 -I../Foundation/Headers
 LDFLAGS+= ${FMWK_LDFLAGS} -L${BUILDROOT}/System/Library/Frameworks/OpenGL.framework \
 	-lOpenGL -lGL -Wl,-R/System/Library/Frameworks/OpenGL.framework/Versions/A
+
+install:
+	rm -rf ${BUILDROOT}/System/Library/Frameworks/${FRAMEWORK}.framework
+	cp -av ${.CURDIR}/${FRAMEWORK}.framework ${BUILDROOT}/System/Library/Frameworks/
+_libinstall: install
+
 
 .include <airyx.framework.mk>

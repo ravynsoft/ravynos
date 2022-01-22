@@ -1,5 +1,6 @@
-.include <internal/framework.common.mk>
+.include "../../mk/internal/framework.common.mk"
 
+MK_WERROR= no
 FRAMEWORK=AppKit
 SRCS= \
 CoreData_/NSPersistentDocument.m \
@@ -621,13 +622,24 @@ LDFLAGS+= ${FMWK_LDFLAGS} -L/usr/local/lib \
 	  -lFoundation -lCoreFoundation -lCoreGraphics -lCoreText -lCoreData -lQuartzCore -lOpenGL -lOnyx2D \
 	  -lobjc -lcairo -lfreetype -lfontconfig -lGL -lX11 -lXext -lXfixes -lXdamage -lm
 
-build: marshallheaders all
-	mv AppKit.framework/Resources/NSKeyboardBinding/StandardKeyBindings.keyBindings \
-		AppKit.framework/Resources/
-	rmdir AppKit.framework/Resources/NSKeyboardBinding
-
 marshallheaders: .PHONY
 	mkdir -p Headers/AppKit
 	find ${.CURDIR} -name \*.h -exec cp -f {} Headers/AppKit \;
 
+fmwkclean:
+	rm -rf ${.CURDIR}/Headers
+
+install:
+	rm -rf ${BUILDROOT}/System/Library/Frameworks/${FRAMEWORK}.framework
+	cp -av ${.CURDIR}/${FRAMEWORK}.framework ${BUILDROOT}/System/Library/Frameworks/
+_libinstall: install
+
 .include <airyx.framework.mk>
+
+all: marshallheaders
+	mv AppKit.framework/Resources/NSKeyboardBinding/StandardKeyBindings.keyBindings \
+		AppKit.framework/Resources/
+	rmdir AppKit.framework/Resources/NSKeyboardBinding
+
+clean: fmwkclean
+

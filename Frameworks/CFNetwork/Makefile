@@ -1,4 +1,4 @@
-.include <internal/framework.common.mk>
+.include "../../mk/internal/framework.common.mk"
 
 FRAMEWORK=CFNetwork
 SRCS= \
@@ -19,5 +19,10 @@ CFLAGS+= ${FMWK_CFLAGS} -I.. -I../libobjc2 -I../Foundation/Headers \
 LDFLAGS+=-L${BUILDROOT}/System/Library/Frameworks/CoreFoundation.framework/Versions/Current \
 	-lCoreFoundation \
 	-Wl,-R/System/Library/Frameworks/CoreFoundation.framework/Versions/A
+
+install:
+	rm -rf ${BUILDROOT}/System/Library/Frameworks/${FRAMEWORK}.framework
+	cp -av ${.CURDIR}/${FRAMEWORK}.framework ${BUILDROOT}/System/Library/Frameworks/
+_libinstall: install
 
 .include <airyx.framework.mk>

@@ -1,4 +1,4 @@
-.include <internal/framework.common.mk>
+.include "../../mk/internal/framework.common.mk"
 
 FRAMEWORK=Onyx2D
 SRCS= \
@@ -194,5 +194,11 @@ INCS= \
 RESOURCES=Info.plist English.lproj
 CFLAGS+= ${FMWK_CFLAGS} -I.. -I../libobjc2 -I../Foundation/Headers
 LDFLAGS+= ${FMWK_LDFLAGS} -ljpeg -lpng -ltiff
+
+install:
+	rm -rf ${BUILDROOT}/System/Library/Frameworks/${FRAMEWORK}.framework
+	cp -av ${.CURDIR}/${FRAMEWORK}.framework ${BUILDROOT}/System/Library/Frameworks/
+_libinstall: install
+
 
 .include <airyx.framework.mk>

@@ -1,4 +1,4 @@
-.include <internal/framework.common.mk>
+.include "../../mk/internal/framework.common.mk"
 
 FRAMEWORK=CoreGraphics
 SRCS= \
@@ -69,5 +69,10 @@ LDFLAGS+= ${FMWK_LDFLAGS} -L${BUILDROOT}/System/Library/Frameworks/Onyx2D.framew
 	-L${BUILDROOT}/System/Library/Frameworks/OpenGL.framework -lOnyx2D -lOpenGL -lGL \
 	-Wl,-R/System/Library/Frameworks/Onyx2D.framework/Versions/A \
 	-Wl,-R/System/Library/Frameworks/OpenGL.framework/Versions/A
+
+install:
+	rm -rf ${BUILDROOT}/System/Library/Frameworks/${FRAMEWORK}.framework
+	cp -av ${.CURDIR}/${FRAMEWORK}.framework ${BUILDROOT}/System/Library/Frameworks/
+_libinstall: install
 
 .include <airyx.framework.mk>
