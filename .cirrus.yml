@@ -13,18 +13,18 @@ airyx_task:
     KEY: ENCRYPTED[f68765a53df76c1b9cd6d870e0054317f9cc517313bf6c56d0b094a1ad01e968a95e6328b37b53db7840d112ff165c46]
     PKG_CONFIG_PATH: /usr/libdata/pkgconfig:/usr/local/libdata/pkgconfig
   script:
-    - rm -fv /etc/pkg/FreeBSD.conf
-    - pkg update
-    - pkg install -y cmake jpeg-turbo openjpeg tiff png cairo fontconfig freetype2 libX11 libXext libXfixes libXdamage mesa-libs dbus pkgconf libqtxdg sqlite3 git-tiny qt5-buildtools qt5-qmake qt5-dbus qt5-linguisttools qt5-widgets qt5-x11extras qt5-dbus glib dbus-glib libffi libfm libfm-qt menu-cache gettext-runtime icu kf5-extra-cmake-modules lxqt-build-tools kf5-ki18n kf5-plasma-framework kf5-ktexteditor qt5-testlib gmake autoconf zip bash alsa-lib alsa-plugins
-    - fetch -o /tmp/openjdk-17.jdk.txz https://github.com/mszoek/airyx/releases/download/jdk-17.0.1/openjdk-17.0.1.jdk.txz
-    - mkdir -p /Library/Java/JavaVirtualMachines
-    - tar -C /Library/Java/JavaVirtualMachines -xf /tmp/openjdk-17.jdk.txz
-    - make prep airyx
-    - rm -f dist/airyx.txz
-    - make airyx-package
+  - rm -fv /etc/pkg/FreeBSD.conf
+  - pkg update
+  - pkg install -y cmake jpeg-turbo openjpeg tiff png cairo fontconfig freetype2 libX11 libXext libXfixes libXdamage mesa-libs dbus pkgconf libqtxdg sqlite3 git-tiny qt5-buildtools qt5-qmake qt5-dbus qt5-linguisttools qt5-widgets qt5-x11extras qt5-dbus glib dbus-glib libffi libfm libfm-qt menu-cache gettext-runtime icu kf5-extra-cmake-modules lxqt-build-tools kf5-ki18n kf5-plasma-framework kf5-ktexteditor qt5-testlib gmake autoconf zip bash alsa-lib alsa-plugins
+  - fetch -o /tmp/openjdk-17.jdk.txz https://github.com/mszoek/airyx/releases/download/jdk-17.0.1/openjdk-17.0.1.jdk.txz
+  - mkdir -p /Library/Java/JavaVirtualMachines
+  - tar -C /Library/Java/JavaVirtualMachines -xf /tmp/openjdk-17.jdk.txz
+  - make prep airyx
+  - rm -f dist/airyx.txz
+  - make airyx-package
   only_if: $CIRRUS_BRANCH == 'main'
   depends_on:
-    - base
+  - base
   airyx_artifacts:
     path: dist/airyx.txz
   package_artifacts:
