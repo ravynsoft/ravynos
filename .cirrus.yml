@@ -23,7 +23,7 @@ airyx_task:
     - make prep airyx
     - rm -f dist/airyx.txz
     - make airyx-package
-  only_if: $CIRRUS_BRANCH == 'main'
+  only_if: $CIRRUS_BRANCH == 'main' || $CIRRUS_BRANCH == 'trunk'
   depends_on:
     - base
   airyx_artifacts:
@@ -43,6 +43,6 @@ base_task:
     - cloudsmith push raw -k $KEY airyx/core --name base_${CIRRUS_BRANCH%/*}.txz /usr/obj/$(pwd -P)/release/dist/base.txz
     - cloudsmith push raw -k $KEY airyx/core --name kernel_${CIRRUS_BRANCH%/*}.txz /usr/obj/$(pwd -P)/release/dist/kernel.txz
     - ls -l /usr/obj/$(pwd -P)/release/
-  only_if: $CIRRUS_BRANCH == 'main'
+  only_if: $CIRRUS_BRANCH == 'main' || $CIRRUS_BRANCH == 'trunk'
   skip: "!changesInclude('.cirrus.yml', 'bin/*', 'cddl/*', 'contrib/*', 'crypto/*', 'etc/*', 'gnu/*', 'include/*', 'kerberos5/*', 'lib/*', 'libexec/*', 'Makefile*', 'rescue/*', 'sbin/*', 'secure/*', 'share/*', 'stand/*', 'sys/*', 'targets/*', 'tests/*', 'usr*bin/*')"
 
