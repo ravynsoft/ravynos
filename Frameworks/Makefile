@@ -37,10 +37,7 @@ frameworks:
 
 
 
-libunwind: .PHONY
-	cd ${THISDIR}/libunwind-1.5.0 && ./configure --prefix=/usr --enable-coredump --enable-ptrace --enable-cxx-exceptions \
-		--enable-block-signals --enable-debug-frame && ${MAKE} -j${CORES}
-	${MAKE} -C ${THISDIR}/libunwind-1.5.0 install prefix=${BUILDROOT}/usr
+
 
 marshallheaders:
 	${MAKE} -C ${THISDIR}/Foundation marshallheaders
