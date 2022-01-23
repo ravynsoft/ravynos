@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="76" height="66" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:xlink="http://www.w3.org/1999/xlink">
+ <metadata>
+  <rdf:RDF>
+   <cc:Work rdf:about="">
+    <dc:format>image/svg+xml</dc:format>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+    <dc:title/>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <defs>
+  <radialGradient id="radialGradient915" cx="41" cy="20" r="16" gradientUnits="userSpaceOnUse">
+   <stop offset="0"/>
+   <stop stop-opacity="0" offset="1"/>
+  </radialGradient>
+ </defs>
+ <g id="vertical-slider-handle" transform="matrix(.75 0 0 .75 -18.75 -3)" stroke-width=".91667">
+  <rect x="25" y="4" width="32" height="32" opacity="0"/>
+  <circle cx="41" cy="20" r="16" fill="url(#radialGradient915)" opacity=".05" stroke-width="1.8333"/>
+  <circle cx="41" cy="20" r="9.3333" opacity=".1" stroke-width="1.0694"/>
+  <circle cx="41" cy="20" r="8" fill="#fff"/>
+ </g>
+ <g id="vertical-slider-hover" transform="matrix(.75 0 0 .75 6.25 -3)" stroke-width=".91667">
+  <circle cx="41" cy="20" r="16" fill="url(#radialGradient915)" opacity=".15" stroke-width=".91667"/>
+  <rect x="25" y="4" width="32" height="32" opacity="0"/>
+  <circle cx="41" cy="20" r="9.3333" opacity=".15" stroke-width=".53472"/>
+  <circle cx="41" cy="20" r="8" fill="#fff"/>
+ </g>
+ <g id="vertical-slider-focus" transform="matrix(.75 0 0 .75 31.25 -3)" stroke-width=".91667">
+  <circle cx="41" cy="20" r="16" fill="url(#radialGradient915)" opacity=".2" stroke-width=".91667"/>
+  <rect x="25" y="4" width="32" height="32" opacity="0"/>
+  <circle cx="41" cy="20" r="9.3333" opacity=".15" stroke-width=".53472"/>
+  <circle cx="41" cy="20" r="8" fill="#fff"/>
+ </g>
+ <g id="groove-topleft">
+  <path d="m7-24c-3.3644 0-6 2.6356-6 6h6z" opacity=".13" stroke-width="5.9416"/>
+  <path d="m7-24c-3.3644 0-6 2.6356-6 6h1c0-2.8037 2.1963-5 5-5v-1z" opacity=".06"/>
+ </g>
+ <rect id="hint-tile-center" x="-14" y="-24" width="12" height="12" rx="0" ry="12" fill="#4e9a06" stroke-width="6"/>
+ <path id="groove-center" d="m7-18v1h3v-1z" opacity=".13" stroke-width="1.732"/>
+ <circle id="hint-handle-size" cx="51" cy="-15" r="12" fill="#ff2a2a"/>
+ <g id="groove-highlight-top">
+  <path d="m23-24v6h3v-6z" opacity="0" stroke-width="4.2426"/>
+  <path d="m23-23v5h3v-5z" fill="#fff" stroke-width="3.873"/>
+ </g>
+ <g id="groove-highlight-topleft">
+  <path d="m23-24c-3.3644 0-6 2.6356-6 6h6z" opacity="0" stroke-width="5.9416"/>
+  <path d="m23-23c-2.8037 0-5 2.1963-5 5h5z" fill="#fff" stroke-width="4.9513"/>
+ </g>
+ <path id="groove-highlight-center" d="m23-18v1h3v-1z" fill="#fff" stroke-width="1.732"/>
+ <g id="groove-highlight-left">
+  <path d="m17-18v1h6v-1z" opacity="0" stroke-width="2.4494"/>
+  <path d="m18-18v1h5v-1z" fill="#fff" stroke-width="2.236"/>
+ </g>
+ <g id="groove-top">
+  <path d="m7-24v6h3v-6z" opacity=".13" stroke-width="4.2426"/>
+  <path d="m7-24v1h3v-1z" opacity=".06" stroke-width="1.732"/>
+ </g>
+ <use id="groove-topright" transform="matrix(-1,0,0,1,17,0)" width="100%" height="100%" xlink:href="#groove-topleft"/>
+ <g id="groove-left">
+  <path d="m1-18v1h6v-1z" opacity=".13" stroke-width="2.4494"/>
+  <path d="m1-18v1h1v-1z" opacity=".06" stroke-width=".99997"/>
+ </g>
+ <use id="groove-right" transform="matrix(-1,0,0,1,17,0)" width="100%" height="100%" xlink:href="#groove-left"/>
+ <use id="groove-bottomleft" transform="matrix(1,0,0,-1,0,-35)" width="100%" height="100%" xlink:href="#groove-topleft"/>
+ <use id="groove-bottomright" transform="rotate(180,8.5,-17.5)" width="100%" height="100%" xlink:href="#groove-topleft"/>
+ <use id="groove-bottom" transform="matrix(1,0,0,-1,0,-35)" width="100%" height="100%" xlink:href="#groove-top"/>
+ <use id="groove-highlight-topright" transform="matrix(-1,0,0,1,49,0)" width="100%" height="100%" xlink:href="#groove-highlight-topleft"/>
+ <use id="groove-highlight-bottomleft" transform="matrix(1,0,0,-1,0,-35)" width="100%" height="100%" xlink:href="#groove-highlight-topleft"/>
+ <use id="groove-highlight-bottomright" transform="matrix(0,-1,-1,0,8,6)" width="100%" height="100%" xlink:href="#groove-highlight-topleft"/>
+ <use id="groove-highlight-bottom" transform="matrix(1,0,0,-1,0,-35)" width="100%" height="100%" xlink:href="#groove-highlight-top"/>
+ <use id="groove-highlight-right" transform="matrix(-1,0,0,1,49,0)" width="100%" height="100%" xlink:href="#groove-highlight-left"/>
+ <use id="horizontal-slider-handle" transform="translate(0,30)" width="100%" height="100%" xlink:href="#vertical-slider-handle"/>
+ <use id="horizontal-slider-hover" transform="translate(0,30)" width="100%" height="100%" xlink:href="#vertical-slider-hover"/>
+ <use id="horizontal-slider-focus" transform="translate(0,30)" width="100%" height="100%" xlink:href="#vertical-slider-focus"/>
+</svg>

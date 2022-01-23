@@ -1,0 +1,253 @@
+#!/bin/sh
+
+# Authors:
+# 2019-2020, Joe Maloney <jpm820@gmail.com>
+# 2020-2021, Simon Peter <probono@puredarwin.org>
+
+# Exit on errors, this is important for the graphical installer frontend
+set +e
+
+# Export our variables
+LIVEFS="/"
+FSMNT="/mnt"
+DESTPOOL=$(zpool list -H | grep /mnt | awk -F '\t' '{print $1;}')
+
+# As the first thing, only answer with
+# INSTALLER_MIB_NEEDED=1234567890
+# print output of dmidecode to /tmp/dmi.txt
+# then immediately exit
+# if INSTALLER_PRINT_MIB_NEEDED is set. This is needed for the graphical installer frontend
+if [ -n "${INSTALLER_PRINT_MIB_NEEDED}" ] ; then
+  # echo INSTALLER_MIB_NEEDED=$(df -m / | awk '{print $2}' | tail -n 1)
+  bytes=$(zpool get -Hpo value allocated furybsd)
+  mib=$(echo "${bytes}/1024/1024" | bc) # Convert bytes to MiB
+  echo "INSTALLER_MIB_NEEDED=${mib}"
+  sudo dmidecode --type 0,1,2,3 > /tmp/dmi.txt
+  exit 0
+fi
+
+env | grep "INSTALLER_"
+
+# Only run as superuser
+if [ "$(id -u)" != "0" ]; then
+  echo "This script must be run as root" 1>&2
+  exit 1
+fi
+
+# Cleanup memory devices created before reroot if they exist
+if [ -e "/dev/md3" ] ; then
+  /sbin/mdconfig -du md3
+fi
+if [ -e "/dev/md4" ] ; then
+  /sbin/mdconfig -du md4
+fi
+
+# Clean up any previous runs
+umount -f ${FSMNT}/dev >/dev/null 2>/dev/null || true
+zpool export -f "${DESTPOOL}" >/dev/null 2>/dev/null || true
+
+# Install contents of read only uzip to destination pool
+
+if [ -n "${INSTALLER_DEVICE}" ] ; then
+  export ZFSBOOT_DISKS="${INSTALLER_DEVICE}"
+  export ZFSBOOT_PARTITION_SCHEME="GPT"
+  export ZFSBOOT_POOL_NAME="zroot"
+  export ZFSBOOT_BEROOT_NAME="ROOT"
+  export ZFSBOOT_BOOTFS_NAME="default"
+  export ZFSBOOT_DATASET_NESTING="1"
+  export BOOT_BLOCKS_FROM_DISTSET="1"
+  export ZFSBOOT_VDEV_TYPE="stripe"
+  export ZFSBOOT_SWAP_SIZE="0"
+  export ZFSBOOT_CONFIRM_LAYOUT="1"
+  export nonInteractive="YES"
+  env
+  bsdinstall zfsboot
+else
+  echo "Environment variable INSTALLER_DEVICE not set, running bsdinstall zfsboot"
+  bsdinstall zfsboot
+fi
+
+if [ ! -d "/mnt/boot" ] ; then
+  exit 1
+fi
+
+# Clone the file system to disk with cpdup
+cpdup -i0 -s0 -v "${LIVEFS}" "${FSMNT}"
+
+bsdinstall config
+bsdinstall entropy
+
+# Cleanup LiveCD restore specific contents from destination pool
+chroot "${FSMNT}" pkg remove -y furybsd-live-settings
+chroot "${FSMNT}" pkg remove -y freebsd-installer
+# TODO: Move all of this to pkg scripts of the pkg manifests that have installed these things
+chroot "${FSMNT}" rm /etc/rc.conf.local
+chroot "${FSMNT}" pw userdel liveuser
+chroot "${FSMNT}" pw groupdel liveuser
+chroot "${FSMNT}" rm -rf /Users/liveuser
+chroot "${FSMNT}" rm -rf "/Applications/Utilities/Install FreeBSD.app" || true
+
+# Configure the new installation
+mount -t devfs devfs ${FSMNT}/dev
+
+# Disable direct root login; users in the wheel group can use sudo instead
+echo "Disabling direct root login; users in the wheel group can use sudo instead"
+# "Star out" the root password; unlike locking the password this allows sudo su
+chroot "${FSMNT}" env EDITOR=ed vipw <<EOF
+/^root/s/root:[^:]*:/root:*:/
+wq
+EOF
+
+# Add regular user
+# Ask for username and/or password in case the graphical installer frontend did not supply them
+echo "Creating user account"
+
+# This is here for debugging reasons, can be commented out/removed once we know it is working properly
+if [ -z ${INSTALLER_USER_PASSWORD+x} ] ; then 
+  echo "INSTALLER_USER_PASSWORD environment variable is not available"
+elif [ -z ${INSTALLER_USER_PASSWORD} ] ; then
+  echo "INSTALLER_USER_PASSWORD environment variable is available but is blank"
+else
+  echo "INSTALLER_USER_PASSWORD environment variable is available and is not blank"
+fi
+
+if [ -n "${INSTALLER_DEVICE}" ] ; then
+  username="${INSTALLER_USERNAME}"
+  password="${INSTALLER_USER_PASSWORD}"
+  echo "${username}:::::::::${password}" | chroot "${FSMNT}" adduser -f - && \
+  chroot "${FSMNT}" pw usermod "${username}" -s /usr/bin/zsh && \
+  chroot "${FSMNT}" pw groupmod wheel -m "${username}" && \
+  chroot "${FSMNT}" pw groupmod video -m "${username}" && \
+  chroot "${FSMNT}" pw groupmod webcamd -m "${username}"
+else
+  echo "Environment variable INSTALLER_DEVICE not set, asking the user for input"
+  while true; do
+    echo ""
+    echo "Add User"
+    echo "This user will be added to the video, wheel, and webcamd groups."
+      while true; do
+      echo "Username: "
+      read -r username
+      if echo "${username}" | grep -q -E "^[a-z][-a-z0-9]*$"; then
+        break;
+      else
+        echo "Username not valid"
+      fi
+    done
+    while true; do
+      echo "New Password: "; stty -echo; read -r password; stty echo; echo ""
+      echo "Retype New Password: "; stty -echo; read -r password2; stty echo; echo ""
+      if [ "${password}" = "${password2}" ]; then
+        break;
+      else
+        echo "Passwords did not match!"
+      fi
+    done
+    echo "${username}:::::::::${password}" | chroot "${FSMNT}" adduser -f - && \
+      chroot "${FSMNT}" pw usermod "${username}" -s /usr/bin/zsh && \
+      chroot "${FSMNT}" pw groupmod wheel -m "${username}" && \
+      chroot "${FSMNT}" pw groupmod video -m "${username}" && \
+      chroot "${FSMNT}" pw groupmod webcamd -m "${username}" && break
+  done
+fi
+
+if [ -n "${INSTALLER_FULLNAME}" ] ; then
+  chroot "${FSMNT}" pw usermod "${INSTALLER_USERNAME}" -c "${INSTALLER_FULLNAME}"
+fi
+
+if [ -n "${INSTALLER_DEVICE}" ] ; then
+  echo "Not setting time for now; let's handle this by ntpd and dhcp"
+else
+  echo "Environment variable INSTALLER_DEVICE not set, running bsdinstall time"
+  # FIXME: Do we still want this given that we will use ntpd and dhcp timzeones?
+  bsdinstall time
+fi
+
+# Transfer settings from running /etc/rc.conf.local to installed one
+cat /etc/rc.conf.local | xargs sysrc -f ${FSMNT}/etc/rc.conf
+
+# initgfx does not work from a read-only disk
+chroot "${FSMNT}" sysrc root_rw_mount="YES"
+
+# Enable additional services needed for desktop
+# echo "Enabling additional services needed for desktop"
+# if [ -f "/usr/local/sbin/lightdm" ] ; then
+#   chroot "${FSMNT}" sysrc lightdm_enable="YES"
+# fi
+# if [ -f "/usr/local/sbin/gdm" ] ; then
+#   chroot "${FSMNT}" sysrc gdm_enable="YES"
+# fi
+# if [ -f "/usr/local/etc/rc.d/pcdm" ] ; then
+#   chroot "${FSMNT}" sysrc pcdm_enable="YES"
+# fi
+# if [ -f "/usr/local/bin/sddm" ] ; then
+#   chroot "${FSMNT}" sysrc sddm_enable="YES"
+# fi
+# if [ -f "/usr/local/bin/slim" ] ; then
+#   chroot "${FSMNT}" sysrc slim_enable="YES"
+# fi
+
+# Copy kernel from the ISO because it may have been removed
+# from the compressed filesystem to save space
+ISO_MOUNTPOINT=$(mount | grep cd9660 | head -n 1 | cut -d " " -f 3)
+if [ -f "${ISO_MOUNTPOINT}/boot/kernel/kernel.gz" ] ; then
+  cp "${ISO_MOUNTPOINT}/boot/kernel/kernel.gz" "${FSMNT}/boot/kernel/"
+fi
+if [ -f "${ISO_MOUNTPOINT}/boot/kernel/kernel" ] ; then
+  cp "${ISO_MOUNTPOINT}/boot/kernel/kernel" "${FSMNT}/boot/kernel/"
+fi
+
+# Set the timezone on the system if it has been provided
+# by the graphical installer frontend
+if [ -n "${INSTALLER_TIMEZONE}" ] ; then
+  cp "${FSMNT}/usr/share/zoneinfo/${INSTALLER_TIMEZONE}" "${FSMNT}/etc/localtime"
+fi
+
+# Set hostname
+if [ -n "${INSTALLER_HOSTNAME}" ] ; then
+  chroot "${FSMNT}" /usr/sbin/sysrc hostname="${INSTALLER_HOSTNAME}"
+else
+  echo "Environment variable INSTALLER_HOSTNAME not set, running bsdinstall hostname"
+  bsdinstall hostname
+fi
+
+# Enable sshd if the user has requested it
+if [ "${INSTALLER_ENABLE_SSH}" = "YES" ] ; then
+  chroot "${FSMNT}" sysrc sshd_enable="YES"
+fi
+
+# Set new default_user the automatic login
+sed -i '' -e 's/^default_user/#default_user/' "${FSMNT}/etc/slim.conf"
+echo "default_user       ${INSTALLER_USERNAME}" >> "${FSMNT}/etc/slim.conf"
+# chroot ${FSMNT} sed -i '' -e 's/^auto_login/#auto_login/' /etc/slim.conf
+
+# Until we have a better solution, hardcode it here too...
+cat >> "${FSMNT}/boot/loader.conf" <<\EOF
+# TODO: Transfer settings from Live ISO /boot/loader.conf to installed one
+# https://github.com/furybsd/furybsd-livecd/issues/190
+boot_mute="YES"
+beastie_disable="YES"
+autoboot_delay="3"
+hw.psm.elantech_support="1"
+hw.psm.synaptics_support="1"
+# Unclear whether the next line is needed, https://github.com/helloSystem/ISO/issues/203
+vfs.root.mountfrom.options="rw"
+EOF
+
+# A leftover initgfx_config.id file can result in the installed system failing to start Xorg
+sudo rm "${FSMNT}/var/initgfx_config.id" || true
+
+# Cleanup
+# umount -f "${FSMNT}/dev" >/dev/null 2>/dev/null || true # Is this needed? TODO: Re-enable if yes
+# zpool export -f "${DESTPOOL}" >/dev/null 2>/dev/null || true # Is this needed? TODO: Re-enable if yes
+echo "Installation finished!"
+
+# Reboot
+if [ -n "${INSTALLER_DEVICE}" ] ; then
+  # Let the graphical installer frontend handle the reboot
+  exit 0
+else
+  echo "Press any key to reboot..."
+  read -r reboot
+  shutdown -r now
+fi

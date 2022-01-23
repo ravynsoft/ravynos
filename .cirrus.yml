@@ -13,6 +13,7 @@ airyx_task:
   environment:
     PKG_CONFIG_PATH: /usr/libdata/pkgconfig:/usr/local/libdata/pkgconfig
     KEY: ENCRYPTED[f68765a53df76c1b9cd6d870e0054317f9cc517313bf6c56d0b094a1ad01e968a95e6328b37b53db7840d112ff165c46]
+    SSHPASS: ENCRYPTED[c77c4f027217be24243c203da68e0a7428beb4e1b0a4b6e4693f19e79c7b6123accdd29fba3d8be8d939f4dcfa4e36a6]
   clone_script: |
     if [ -z "$CIRRUS_PR" ]; then
       git clone --recursive --branch=$CIRRUS_BRANCH https://x-access-token:${CIRRUS_REPO_CLONE_TOKEN}@github.com/${CIRRUS_REPO_FULL_NAME}.git $CIRRUS_WORKING_DIR
@@ -35,12 +36,20 @@ airyx_task:
     - make -C release MK_LIB32=no NOSRC=true NOPORTS=true packagesystem
     - cloudsmith push raw -k $KEY airyx/core --name base_${CIRRUS_BRANCH%/*}.txz /usr/obj/$(pwd -P)/$(uname -m).$(uname -m)/release/dist/base.txz
     - cloudsmith push raw -k $KEY airyx/core --name kernel_${CIRRUS_BRANCH%/*}.txz /usr/obj/$(pwd -P)/$(uname -m).$(uname -m)/release/dist/kernel.txz
+  upload_caches:
+    - base
   system_build_script:
     - make -f Makefile.airyx prep
     - cp -fv share/mk/* /usr/share/mk/
     - make -f Makefile.airyx
     - rm -f dist/airyx.txz
     - make -f Makefile.airyx airyx-package
+  iso_script:
+    - pkg install -y sshpass bash
+    - ln -sf /usr/local/bin/bash /bin/bash
+    - cp -fv version.txt ISO/overlays/ramdisk/version
+    - cd ISO; AIRYX=${CIRRUS_WORKING_DIR} ./build.sh airyx airyxOS_$(head -1 ../version.txt)
+    - sshpass -e scp -o StrictHostKeyChecking=no ${CIRRUS_WORKING_DIR}/artifacts/*.iso* airyxos@dl.int.airyx.org:nightly/
   only_if: $CIRRUS_BRANCH == 'main' || $CIRRUS_BRANCH == 'staging'
   base_cache:
     folder: /usr/obj

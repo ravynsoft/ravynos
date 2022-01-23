@@ -1,0 +1,170 @@
+#!/bin/bash
+
+set -e
+set -x
+
+mkdir -p /tmp/system-overlay 
+cd /tmp/system-overlay
+
+#curl -L -o "${uzip}"/usr/share/slim/themes/default/background.jpg "https://github.com/helloSystem/ISO/releases/download/assets/graphite.jpg"
+cp -f "${uzip}"/usr/share/plasma/look-and-feel/Airyx/contents/splash/images/marmoset.png "${uzip}"/usr/share/slim/themes/default/background.jpg
+
+# Use blue folder icons instead of the ones packaged in FreeBSD which have yellow folder icons
+# Don't extract directly in /tmp, as tar will modify its permissions
+icons_temp=$(mktemp -d /tmp/icons.XXXXX)
+cd $icons_temp
+fetch http://archive.ubuntu.com/ubuntu/pool/universe/x/xubuntu-artwork/xubuntu-icon-theme_16.04.2_all.deb
+tar xf xubuntu-icon-theme_16.04.2_all.deb
+tar xf data.tar.xz
+mkdir -p "${uzip}"/usr/share/icons/
+mv ./usr/share/icons/elementary-xfce "${uzip}"/usr/share/icons/elementary
+ln -sf "elementary" "${uzip}/usr/share/icons/elementary-xfce"
+mv ./usr/share/doc/xubuntu-icon-theme/copyright "${uzip}"/usr/share/icons/elementary/
+cd -
+rm -r $icons_temp
+
+# Cursor theme with HiDPi Support, sizes: 22 24 28 32 40 48 56 64 72 80 88 96
+fetch https://github.com/ful1e5/apple_cursor/releases/download/v1.0.6/macOSBigSur.tar.gz
+tar xvf macOSBigSur.tar.gz
+mv macOSBigSur "${uzip}/usr/share/icons/"
+chown -R root:wheel "${uzip}/usr/share/icons"
+find "${uzip}/usr/share/icons/macOSBigSur" -type d -exec chmod 755 {} \;
+find "${uzip}/usr/share/icons/macOSBigSur" -type f -exec chmod 644 {} \;
+( cd "${uzip}/usr/share/icons/" ; ln -s macOSBigSur default )
+rm -f macOSBigSur.tar.gz
+
+# Pull in the default JDK
+mkdir -p "${uzip}/Library/Java/JavaVirtualMachines/"
+curl -Lo - https://github.com/mszoek/airyx/releases/download/jdk-17.0.1/openjdk-17.0.1.jdk.txz | \
+    tar -xf - -C "${uzip}/Library/Java/JavaVirtualMachines/"
+
+# Install our standard app bundles
+mkdir -p "${uzip}/Applications/Utilities"
+
+declare -A apps utils
+apps=(Kate 21.08.1 Firefox 93.0)
+utils=(Terminal 0.17.0)
+
+for app in ${!apps[@]}; do
+    tag="v${apps[$app]}"
+    echo Fetching $app $tag
+    #curl -Lo - https://api.cirrus-ci.com/v1/artifact/github/airyxos/${app}_app/build/app/${app}.app.txz | \
+    curl -Lo - https://github.com/airyxos/${app}_app/releases/download/${tag}/${app}.txz | \
+        tar -xf - -C "${uzip}/Applications/"
+done
+for app in ${!utils[@]}; do
+    tag="v${utils[$app]}"
+    echo Fetching $app $tag
+    #curl -Lo - https://api.cirrus-ci.com/v1/artifact/github/airyxos/${app}_app/build/app/${app}.app.txz | \
+    curl -Lo - https://github.com/airyxos/${app}_app/releases/download/${tag}/${app}.txz | \
+        tar -xf - -C "${uzip}/Applications/Utilities/"
+done
+
+# Add applications from the helloSystem/Utilities repository
+#fetch https://github.com/helloSystem/Utilities/archive/master.zip
+#unzip -o master.zip
+#mv 'Utilities-master/Utilities/Install FreeBSD.app' "${uzip}/Applications/Utilities/"
+#rm -rf master.zip Utilities-master/
+#sed -i_ -e 's@/usr/local@/usr@g' "${uzip}/Applications/Utilities/Install FreeBSD.app/Resources/freebsd-install.py"
+#rm "${uzip}/Applications/Utilities/Install FreeBSD.app/Resources/freebsd-install.py_"
+
+# Fonts
+fetch https://github.com/ArtifexSoftware/urw-base35-fonts/archive/20200910.zip
+unzip -q 20200910.zip
+mkdir -p "${uzip}/System/Library/Fonts/TTF/"
+cp -R urw-base35-fonts-20200910/fonts/*.ttf "${uzip}/System/Library/Fonts/TTF/"
+rm -rf urw-base35-fonts-20200910/ 20200910.zip
+
+# Silence late boot messages
+cat > /tmp/rc <<\EOF
+#!/bin/sh
+
+# The following block was added by helloSystem
+# FIXME: Let us know how to do this properly
+# Silence messages if boot_mute="YES" is set
+if [ "$(kenv boot_mute)" = "YES" ] ; then
+        conscontrol delete ttyv0 >/dev/null 2>&1
+        exec 1>>/dev/null 2>&1
+fi
+#
+EOF
+cat "${uzip}/etc/rc" >> /tmp/rc
+mv /tmp/rc "${uzip}/etc/rc"
+
+# Silence shutdown messages
+cat > /tmp/rc.shutdown <<\EOF
+#!/bin/sh
+
+# The following block was added by helloSystem
+# FIXME: Let us know how to do this properly
+# Silence messages if boot_mute="YES" is set
+if [ "$(kenv boot_mute)" = "YES" ] ; then
+        exec 1>>/dev/null 2>&1
+fi
+#
+EOF
+cat "${uzip}/etc/rc.shutdown" >> /tmp/rc.shutdown
+mv /tmp/rc.shutdown "${uzip}/etc/rc.shutdown"
+
+# Prevent boot from being visually interrupted by vidcontrol related errors
+mv "${uzip}/usr/sbin/vidcontrol" "${uzip}/usr/sbin/vidcontrol.original"
+cat > "${uzip}/usr/sbin/vidcontrol" <<\EOF
+#!/bin/sh
+exit 0
+EOF
+chmod +x "${uzip}/usr/sbin/vidcontrol"
+
+# Disable most text-based consoles, especially ttyv0,
+# to prevent boot from being visually interrupted by login prompts
+mv "${uzip}/etc/ttys" "${uzip}/etc/ttys.original"
+cat > "${uzip}/etc/ttys" <<\EOF
+ttyv1   "/usr/libexec/getty Pc"         xterm   on  secure
+EOF
+
+# Prevent boot from being visually interrupted by syslog messages
+# by commenting out the line that ends in '/dev/console'
+sed -i -e 's|^\(.*/dev/console\)|# \1|g' "${uzip}/etc/syslog.conf"
+rm "${uzip}/etc/syslog.conf-e"
+
+# Workaround to get rounded corners as long as picom in FreeBSD ports
+# does not have this yet; FIXME: Remove once no longer needed
+fetch https://github.com/helloSystem/ISO/releases/download/assets/picom.tar.bz2
+tar xf picom.tar.bz2
+mv picom "${uzip}/usr/bin/picom"
+rm -f picom.tar.bz2
+
+# https://github.com/helloSystem/hello/issues/50#issuecomment-753237990
+# Workaround to allow unmounting as normal user
+# setuid root
+chmod +s "${uzip}/sbin/umount"
+
+# Brute force method to make FAT media fully accessible and executable by everyone
+# https://github.com/vermaden/automount/issues/21#issuecomment-808753031
+# https://github.com/vermaden/automount/issues/27
+# https://github.com/vermaden/automount/commit/f50118920208e49890067d00ecd6bb1a97b47ce3
+# FIXME: Use better solution
+sed -i -e 's|longnames -m 644|longnames -m 777|g' "${uzip}/usr/sbin/automount"
+sed -i -e 's|longnames -m 755|longnames -m 777|g' "${uzip}/usr/sbin/automount"
+rm "${uzip}/usr/sbin/automount-e"
+
+# Required for runappimage
+# FIXME: Replace by something written in Python that does not need to be compiled
+# and hence is cross-platform
+fetch "https://github.com/helloSystem/elfsize/releases/download/0/elfsize"
+chmod +x elfsize
+mv elfsize "${uzip}/usr/bin/"
+
+# Improve compatibility with many scripts from the Linux world,
+# including those in many AppImages
+chroot ${uzip} ln -s /usr/bin/bash /bin/bash
+
+# Remove unwanted UDisks2VolumeMonitor D-Bus service
+# TODO: Find a proper way to do this. The correct thing to do would probably to split up the FreeBSD package
+# FIXME: This is guaranteed to break as soon as the user updates/upgrades the package
+if [ -f "${uzip}/usr/share/dbus-1/services/org.gtk.vfs.UDisks2VolumeMonitor.service" ] ; then
+  rm -rf "${uzip}/usr/share/dbus-1/services/org.gtk.vfs.UDisks2VolumeMonitor.service"
+  touch "${uzip}/usr/share/dbus-1/services/org.gtk.vfs.UDisks2VolumeMonitor.service"
+  # Make the file immutable so that even root cannot overwrite it
+  chflags schg "${uzip}/usr/share/dbus-1/services/org.gtk.vfs.UDisks2VolumeMonitor.service"
+fi
+
