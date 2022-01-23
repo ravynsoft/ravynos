@@ -6,10 +6,13 @@ compute_engine_instance:
   memory: 16G
   disk: 100
 
-environment:
-  KEY: ENCRYPTED[f68765a53df76c1b9cd6d870e0054317f9cc517313bf6c56d0b094a1ad01e968a95e6328b37b53db7840d112ff165c46]
 
-clone_task_template: &CLONE_TASK_TEMPLATE
+
+airyx_task:
+  timeout_in: 120m
+  environment:
+    PKG_CONFIG_PATH: /usr/libdata/pkgconfig:/usr/local/libdata/pkgconfig
+    KEY: ENCRYPTED[f68765a53df76c1b9cd6d870e0054317f9cc517313bf6c56d0b094a1ad01e968a95e6328b37b53db7840d112ff165c46]
   clone_script: |
     if [ -z "$CIRRUS_PR" ]; then
       git clone --recursive --branch=$CIRRUS_BRANCH https://x-access-token:${CIRRUS_REPO_CLONE_TOKEN}@github.com/${CIRRUS_REPO_FULL_NAME}.git $CIRRUS_WORKING_DIR
@@ -19,50 +22,29 @@ clone_task_template: &CLONE_TASK_TEMPLATE
       git fetch origin pull/$CIRRUS_PR/head:pull/$CIRRUS_PR
       git reset --hard $CIRRUS_CHANGE_IN_REPO
     fi
-
-setup_task:
-  script:
+  setup_script:
     - rm -fv /etc/pkg/FreeBSD.conf
     - cp -fv etc/pkg/Airyx.conf /etc/pkg/
     - pkg update
     - pkg install -y cmake jpeg-turbo openjpeg tiff png cairo fontconfig freetype2 libX11 libXext libXfixes libXdamage mesa-libs dbus pkgconf libqtxdg sqlite3 git-tiny qt5-buildtools qt5-qmake qt5-dbus qt5-linguisttools qt5-widgets qt5-x11extras qt5-dbus glib dbus-glib libffi libfm libfm-qt menu-cache gettext-runtime icu kf5-extra-cmake-modules lxqt-build-tools kf5-ki18n kf5-plasma-framework kf5-ktexteditor qt5-testlib gmake autoconf zip bash alsa-lib alsa-plugins
-
-airyx_task:
-  timeout_in: 120m
-  environment:
-    PKG_CONFIG_PATH: /usr/libdata/pkgconfig:/usr/local/libdata/pkgconfig
-  << : *CLONE_TASK_TEMPLATE
-  script:
+    - pip install --upgrade cloudsmith-cli
+  base_build_script:
+    - pkg install -y git py38-pip
+    - mkdir -p /usr/obj/$(pwd -P)
+    - make -j$(sysctl -n hw.ncpu) MK_LIB32=no buildworld buildkernel
+    - make -C release MK_LIB32=no NOSRC=true NOPORTS=true packagesystem
+    - cloudsmith push raw -k $KEY airyx/core --name base_${CIRRUS_BRANCH%/*}.txz /usr/obj/$(pwd -P)/$(uname -m).$(uname -m)/release/dist/base.txz
+    - cloudsmith push raw -k $KEY airyx/core --name kernel_${CIRRUS_BRANCH%/*}.txz /usr/obj/$(pwd -P)/$(uname -m).$(uname -m)/release/dist/kernel.txz
+  system_build_script:
     - make -f Makefile.airyx prep
     - cp -fv share/mk/* /usr/share/mk/
     - make -f Makefile.airyx
     - rm -f dist/airyx.txz
     - make -f Makefile.airyx airyx-package
   only_if: $CIRRUS_BRANCH == 'main' || $CIRRUS_BRANCH == 'staging'
-  depends_on:
-    - setup
-    - base
   base_cache:
     folder: /usr/obj
   airyx_artifacts:
     path: dist/airyx.txz
   package_artifacts:
     path: dist/airyx-*.pkg
-
-base_task:
-  timeout_in: 120m
-  << : *CLONE_TASK_TEMPLATE
-  script:
-    - pkg install -y git py38-pip
-    - mkdir -p /usr/obj/$(pwd -P)
-    - make -j$(sysctl -n hw.ncpu) MK_LIB32=no buildworld buildkernel
-    - make -C release MK_LIB32=no NOSRC=true NOPORTS=true packagesystem
-    - pip install --upgrade cloudsmith-cli
-    - cloudsmith push raw -k $KEY airyx/core --name base_${CIRRUS_BRANCH%/*}.txz /usr/obj/$(pwd -P)/$(uname -m).$(uname -m)/release/dist/base.txz
-    - cloudsmith push raw -k $KEY airyx/core --name kernel_${CIRRUS_BRANCH%/*}.txz /usr/obj/$(pwd -P)/$(uname -m).$(uname -m)/release/dist/kernel.txz
-    - ls -l /usr/obj/$(pwd -P)/$(uname -m).$(uname -m)/release/
-  only_if: $CIRRUS_BRANCH == 'main' || $CIRRUS_BRANCH == 'staging'
-  depends_on:
-    - setup
-  base_cache:
-    folder: /usr/obj

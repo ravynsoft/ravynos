@@ -30,7 +30,7 @@ installairyx: airyx-package
 prep:
 	mkdir -p ${OBJPREFIX} ${TOPDIR}/dist ${BUILDROOT}
 	mkdir -p ${BUILDROOT}/etc ${BUILDROOT}/var/run ${BUILDROOT}/usr/sbin
-	cp -f ${TOPDIR}/make.conf ${TOPDIR}/resolv.conf ${BUILDROOT}/etc/
+	cp -f ${TOPDIR}/resolv.conf ${BUILDROOT}/etc/
 	for x in System System/Library/Frameworks System/Library/LaunchDaemons \
 		System/Library/LaunchAgents Library Library/LaunchDaemons \
 		Library/LaunchAgents Users Applications Volumes; \
