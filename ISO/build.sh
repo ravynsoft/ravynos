@@ -3,11 +3,9 @@
 # Exit on errors
 set -e
 
-# I don't think these are really even used anymore...
-version="12.2-RELEASE"  # branch releng/12.2
-VER="12.2"
-MAJOR="12"
-VERSIONSUFFIX="RELEASE"
+# BSD ABI
+VER="13.0"
+MAJOR="13"
 
 if [ -x /usr/sbin/pkg ]; then
   PKG=/usr/sbin/pkg
@@ -25,6 +23,7 @@ if [ -z "${AIRYX}" ]; then
   AIRYX=$(pwd)/..
 fi
 AIRYXVER=$(head -1 ${AIRYX}/version.txt)
+version=${AIRYXVER}
 
 desktop=$1
 tag=$2
@@ -146,7 +145,7 @@ cleanup()
 workspace()
 {
   mkdir -p "${livecd}" "${base}" "${iso}" "${packages}" "${uzip}" "${ramdisk_root}/dev" "${ramdisk_root}/etc" >/dev/null 2>/dev/null
-  truncate -s 3g "${livecd}/pool.img"
+  truncate -s 4g "${livecd}/pool.img"
   mdconfig -f "${livecd}/pool.img" -u 0
   gpart create -s GPT md0
   gpart add -t freebsd-zfs md0
@@ -155,7 +154,6 @@ workspace()
   sync ### Needed?
   zfs set mountpoint="${uzip}" furybsd
   # From FreeBSD 13 on, zstd can be used with zfs in base
-  #MAJOR=$(uname -r | cut -d "." -f 1)
   if [ $MAJOR -lt 13 ] ; then
     zfs set compression=gzip-6 furybsd 
   else
@@ -169,12 +167,12 @@ base()
   # TODO: Signature checking
   if [ ! -f "${base}/base.txz" ] ; then 
     cd ${base}
-    fetch -o base.txz https://dl.cloudsmith.io/public/airyx/core/raw/names/base_airyx.txz/files/base.txz
+    fetch -o base.txz https://dl.cloudsmith.io/public/airyx/13_0/raw/names/base_main.txz/files/base.txz
   fi
   
   if [ ! -f "${base}/kernel.txz" ] ; then
     cd ${base}
-    fetch -o kernel.txz https://dl.cloudsmith.io/public/airyx/core/raw/names/kernel_airyx.txz/files/kernel.txz
+    fetch -o kernel.txz https://dl.cloudsmith.io/public/airyx/13_0/raw/names/kernel_main.txz/files/kernel.txz
   fi
 
   if [ ! -f "${base}/airyx.txz" ] ; then
@@ -324,7 +322,6 @@ pkg()
 initgfx()
 {
   if [ "${arch}" != "i386" ] ; then
-    #MAJOR=$(uname -r | cut -d "." -f 1)
     if [ $MAJOR -lt 14 ] ; then
       PKGS="quarterly"
     else
