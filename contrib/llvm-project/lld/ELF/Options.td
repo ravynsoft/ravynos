@@ -55,6 +55,8 @@ def framework : Separate<["-"], "framework">,
      MetaVarName<"<name>">,
      HelpText<"Base name of framework searched for in -F directories">;
 
+def preserve_path : FF<"preserve-path">, HelpText<"Preserve full path of DSOs">;
+
 def build_id_eq: J<"build-id=">, HelpText<"Generate build ID note">,
   MetaVarName<"[fast,md5,sha1,uuid,0x<hexstring>]">;
 

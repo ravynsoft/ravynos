@@ -187,6 +187,7 @@ struct Configuration {
   bool optRemarksWithHotness;
   bool picThunk;
   bool pie;
+  bool preservePath;
   bool printGcSections;
   bool printIcfSections;
   bool relocatable;
