@@ -9,7 +9,7 @@ LDFLAGS+= -B ${WORLDTMP}/usr/bin \
 
 .export WARN MK_WERROR CFLAGS
 
-SUBDIR=		CoreFoundation
+SUBDIR+=	CoreFoundation
 SUBDIR+=	CFNetwork
 SUBDIR+=	Foundation
 SUBDIR+=	ApplicationServices

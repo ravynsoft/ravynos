@@ -62,36 +62,6 @@ __FBSDID("$FreeBSD$");
 
 
 extern vm_size_t	msg_ool_size_small;
-void _vm_map_clip_end(vm_map_t map, vm_map_entry_t entry, vm_offset_t end);
-void _vm_map_clip_start(vm_map_t map, vm_map_entry_t entry, vm_offset_t start);
-
-
-/*
- *	vm_map_clip_start:	[ internal use only ]
- *
- *	Asserts that the given entry begins at or after
- *	the specified address; if necessary,
- *	it splits the entry into two.
- */
-#define vm_map_clip_start(map, entry, startaddr) \
-{ \
-	if (startaddr > entry->start) \
-		_vm_map_clip_start(map, entry, startaddr); \
-}
-
-/*
- *	vm_map_clip_end:	[ internal use only ]
- *
- *	Asserts that the given entry ends at or before
- *	the specified address; if necessary,
- *	it splits the entry into two.
- */
-#define vm_map_clip_end(map, entry, endaddr) \
-{ \
-	if ((endaddr) < (entry->end)) \
-		_vm_map_clip_end((map), (entry), (endaddr)); \
-}
-
 
 int mach_vm_map_page_query(vm_map_t target_map, vm_offset_t offset, integer_t *disposition, integer_t *ref_count);
 int mach_vm_mapped_pages_info(vm_map_t task, page_address_array_t *pages, mach_msg_type_number_t *pagesCnt);
