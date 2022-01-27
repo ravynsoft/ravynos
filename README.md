@@ -6,7 +6,7 @@ The main design goals are:
 - Source compatibility with macOS applications (i.e. you could compile a Mac application on airyxOS and run it)
 - Similar GUI metaphors and familiar UX (file manager, application launcher, top menu bar that reflects the open application, etc)
 - Compatible with macOS folder layouts (/Library, /System, /Users, /Volumes, etc) and perhaps filesystems (HFS+, APFS) as well as fully supporting ZFS
-- Self-contained applications in [App Bundles](https://developer.apple.com/documentation/foundation/bundle), [AppDirs](https://github.com/AppImage/AppImageKit/wiki/AppDir), and [AppImage](https://github.com/AppImage) files installer-less experience for /Applications
+- Self-contained applications in [App Bundles](https://developer.apple.com/documentation/foundation/bundle), [AppDirs](https://github.com/AppImage/AppImageKit/wiki/AppDir), and [AppImage](https://github.com/AppImage) files - an installer-less experience for /Applications
 - Mostly maintain compatibility with the FreeBSD base system and X11 - a standard Unix environment under the hood
 - Compatible with Linux binaries via FreeBSD's Linux support
 - Eventual compatibility with x86-64 macOS binaries (Mach-O) and libraries
