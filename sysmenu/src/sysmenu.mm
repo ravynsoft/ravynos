@@ -149,7 +149,7 @@ QString AiryxMenu::formatAsGB(unsigned long bytes)
 {
     double gb = (double)bytes;
     gb /=  (1024.0 * 1024.0 * 1024.0);
-    return QString::asprintf("%.0f GB", gb);
+    return QString::asprintf("%.1f GB", gb);
 }
 
 QString AiryxMenu::CPUModel()
