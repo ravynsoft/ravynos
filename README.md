@@ -1,16 +1,16 @@
-# What is Airyx? ![](https://api.cirrus-ci.com/github/mszoek/airyx.svg?branch=main&task=airyx) [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
+# What is Airyx? [![Build Status](https://api.cirrus-ci.com/github/mszoek/airyx.svg?branch=main&task=airyx)](https://cirrus-ci.com/github/mszoek/airyx) [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
 
 Airyx is a new open source OS project that aims to provide a similar experience and some compatibility with macOS on x86-64 sytems. It builds on the solid foundations of FreeBSD, existing open source packages in the same space, and new code to fill the gaps.
 
 The main design goals are:
-- source compatibility with macOS applications (i.e. you could compile a Mac application on airyxOS and run it)
-- similar GUI metaphors and familiar UX (file manager, application launcher, top menu bar that reflects the open application, etc)
-- compatible with macOS folder layouts (/Library, /System, /Users, /Volumes, etc) and perhaps filesystems (HFS+, APFS) as well as fully supporting ZFS
-- self-contained applications in [folders](https://github.com/AppImage/AppImageKit/wiki/AppDir) or a [single file](https://github.com/AppImage) and a (mostly) installer-less experience for /Applications
-- mostly maintain compatibility with the FreeBSD base system and X11 - a standard Unix environment under the hood
-- compatible with Linux binaries via FreeBSD's Linux support
-- eventual compatibility with x86-64 macOS binaries (Mach-O) and libraries
-- pleasant to use, secure, stable, and performant
+- Source compatibility with macOS applications (i.e. you could compile a Mac application on airyxOS and run it)
+- Similar GUI metaphors and familiar UX (file manager, application launcher, top menu bar that reflects the open application, etc)
+- Compatible with macOS folder layouts (/Library, /System, /Users, /Volumes, etc) and perhaps filesystems (HFS+, APFS) as well as fully supporting ZFS
+- Self-contained applications in [App Bundles](https://developer.apple.com/documentation/foundation/bundle), [AppDirs](https://github.com/AppImage/AppImageKit/wiki/AppDir), and [AppImage](https://github.com/AppImage) files - an installer-less experience for /Applications
+- Mostly maintain compatibility with the FreeBSD base system and X11 - a standard Unix environment under the hood
+- Compatible with Linux binaries via FreeBSD's Linux support
+- Eventual compatibility with x86-64 macOS binaries (Mach-O) and libraries
+- Pleasant to use, secure, stable, and performant
 
 Please visit [airyx.org](https://airyx.org/) for more info: [Release Notes](https://airyx.org/releases.html) | [Screenshots](https://airyx.org/screenshots.html) | [FAQ](https://airyx.org/faq.html)
 
