@@ -14,11 +14,9 @@ INCS= \
 	CFSocketStream.h
 
 RESOURCES=Info.plist English.lproj
-CFLAGS+= ${FMWK_CFLAGS} -I.. -I../libobjc2 -I../Foundation/Headers \
+CFLAGS+= ${FMWK_CFLAGS} -I.. -I../Foundation/Headers \
 	-F${BUILDROOT}/System/Library/Frameworks -framework CoreFoundation
-LDFLAGS+=-L${BUILDROOT}/System/Library/Frameworks/CoreFoundation.framework/Versions/Current \
-	-lCoreFoundation \
-	-Wl,-R/System/Library/Frameworks/CoreFoundation.framework/Versions/A
+LDFLAGS+=-F${BUILDROOT}/System/Library/Frameworks -framework CoreFoundation
 
 _install-hook:
 	rm -rf ${BUILDROOT}/System/Library/Frameworks/${FRAMEWORK}.framework

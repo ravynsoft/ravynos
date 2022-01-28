@@ -60,7 +60,7 @@ INCS= \
 	QuartzCore.h 
 
 RESOURCES=Info.plist English.lproj
-CFLAGS+= ${FMWK_CFLAGS} -I${TOPDIR}/Frameworks -I${.CURDIR}/../OpenGL/include -I${.CURDIR}/../Foundation/Headers
+CFLAGS+= ${FMWK_CFLAGS} -I${TOPDIR}/Frameworks -I${.CURDIR}/../OpenGL/include -I${.CURDIR}/../Foundation/Headers -I${.CURDIR}/../AppKit/Headers
 LDFLAGS+= ${FMWK_LDFLAGS} -L${BUILDROOT}/System/Library/Frameworks/OpenGL.framework \
 	-lOpenGL -lGL -Wl,-R/System/Library/Frameworks/OpenGL.framework/Versions/A
 
