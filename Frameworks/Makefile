@@ -2,13 +2,14 @@ CIRRUS_BUILD_ID?= local
 MK_WERROR= no
 WARN?= 1
 WORLDTMP= /usr/obj/${TOPDIR}/${MACHINE}.${MACHINE}
-CFLAGS+= -isystem ${WORLDTMP}/tmp/usr/include \
-	-B ${WORLDTMP}/usr/bin
+#CFLAGS+= -I ${WORLDTMP}/tmp/usr/include \
+CFLAGS+=	-B ${WORLDTMP}/usr/bin
 LDFLAGS+= -B ${WORLDTMP}/usr/bin \
 	-L ${WORLDTMP}/tmp/lib -L ${WORLDTMP}/tmp/usr/lib
 
 .export WARN MK_WERROR CFLAGS
 
+SUBDIR+=	setup .WAIT
 SUBDIR+=	CoreFoundation
 SUBDIR+=	CFNetwork
 SUBDIR+=	Foundation

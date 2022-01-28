@@ -235,7 +235,7 @@ CRUNCH_PROGS_usr.sbin+=	iscsid
 
 CRUNCH_SRCDIRS+= libexec
 CRUNCH_PROGS_libexec+= launchproxy
-CRUNCH_LIBS+= -ljansson -llaunch -ldispatch -losxsupport -lBlocksRuntime -lutil
+CRUNCH_LIBS+= -ljansson -llaunch -ldispatch -losxsupport -lBlocksRuntime -lutil -lmach
 
 .include <bsd.crunchgen.mk>
 .include <bsd.prog.mk>

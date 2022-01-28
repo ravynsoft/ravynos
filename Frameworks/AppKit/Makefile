@@ -622,9 +622,6 @@ LDFLAGS+= ${FMWK_LDFLAGS} -L/usr/local/lib \
 	  -lFoundation -lCoreFoundation -lCoreGraphics -lCoreText -lCoreData -lQuartzCore -lOpenGL -lOnyx2D \
 	  -lobjc -lcairo -lfreetype -lfontconfig -lGL -lX11 -lXext -lXfixes -lXdamage -lm
 
-marshallheaders: .PHONY
-	mkdir -p Headers/AppKit
-	find ${.CURDIR} -name \*.h -exec cp -f {} Headers/AppKit \;
 
 fmwkclean:
 	rm -rf ${.CURDIR}/Headers
@@ -638,6 +635,5 @@ _install-hook:
 
 .include <airyx.framework.mk>
 
-all: marshallheaders
 clean: fmwkclean
 post-resources: _install-hook
