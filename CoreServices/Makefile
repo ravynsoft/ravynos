@@ -1,10 +1,12 @@
 THISDIR:= ${.CURDIR}
+EXTRA_CXXFLAGS= -F${BUILDROOT}/System/Library/Frameworks -I/usr/include/gio-unix-2.0
 
 all: clean build
 clean:
 	rm -rf ${BUILDROOT}/System/Library/CoreServices
 	rm -rf ${BUILDROOT}/Applications/Utilities/"Install airyxOS.app"
 	rm -rf Filer/build Filer/Filer.app Installer/"Install airyxOS.app"
+	rm -rf /usr/obj/${TOPDIR}/${MACHINE}.${MACHINE}/CoreServices/Filer
 
 DMIHelper: DMIHelper.c
 	mkdir -p ${BUILDROOT}/System/Library/CoreServices
@@ -29,7 +31,7 @@ buildFiler: ${.CURDIR}/Filer
 	${MAKE} -C Filer build
 	cmake -S ${.CURDIR}/Filer -B ${.CURDIR}/Filer/build \
 		-DCMAKE_BUILD_TYPE="Debug" \
-		-DAIRYX=1 \
+		-DAIRYX=1 -DCMAKE_CXX_FLAGS="${EXTRA_CXXFLAGS}" \
 		-DSYSTEM_FRAMEWORKS="-framework LaunchServices -framework Foundation -framework CoreFoundation -framework CFNetwork -lthr"
 	${MAKE} -C Filer/build -j${CORES}
 	${MAKE} -C Filer/build DESTDIR=${.CURDIR}/Filer/Filer.app install

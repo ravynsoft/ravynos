@@ -2,12 +2,14 @@ APP=Install_airyxOS
 SRCS=Source/main.m Source/AppDelegate.m Source/GSGeomDisk.m
 MK_DEBUG_FILES=no
 RESOURCES=MarmosetLogo.tiff header.rtf terms.rtf English.lproj Icon.png
-SLF=/System/Library/Frameworks
+SLF=${BUILDROOT}/System/Library/Frameworks
 FRAMEWORKS=${SLF}/AppKit ${SLF}/CoreGraphics ${SLF}/Onyx2D ${SLF}/OpenGL \
 	${SLF}/Foundation ${SLF}/CoreFoundation ${SLF}/DBusKit
 LDFLAGS+=-lGL
-AIRYX_VERSION!= head -1 ../../version.txt
-CFLAGS+=-g -DAIRYX_VERSION=\"${AIRYX_VERSION}\"
+AIRYX_VERSION!= head -1 ${.CURDIR}/../../version.txt
+
+do:
+	echo ${CFLAGS}
 
 clean:
 	rm -rf ${APP_DIR} "${APP_DIR:S/_/ /}"
@@ -20,3 +22,5 @@ build: clean all
 	mv -f ${APP_DIR} "${APP_DIR:S/_/ /}"
 
 .include <airyx.app.mk>
+CFLAGS:= ${CFLAGS:S/-Werror//g} -g -DAIRYX_VERSION=\"${AIRYX_VERSION}\"
+
