@@ -1,6 +1,6 @@
 compute_engine_instance:
   image_project: airyxos-images
-  image: airyxbuild-0-4-b4
+  image: airyxbuild-0-4-b5
   platform: freebsd
   cpu: 8
   memory: 16G
@@ -26,7 +26,9 @@ airyx_task:
   setup_script:
     - rm -fv /etc/pkg/FreeBSD.conf
     - cp -fv etc/pkg/Airyx.conf /etc/pkg/
-    - pkg update
+    - pkg-static install -yf pkg && pkg update
+    - pkg fetch -y -o /tmp binutils
+    - tar xvf /tmp/binutils-*.pkg -C / /usr/bin/as
     - pkg install -fy python38 python3 py38-pip py38-setuptools
     - pkg install -y cmake jpeg-turbo openjpeg tiff png cairo fontconfig freetype2 libX11 libXext libXfixes libXdamage mesa-libs dbus pkgconf libqtxdg sqlite3 git-tiny qt5-buildtools qt5-qmake qt5-dbus qt5-linguisttools qt5-widgets qt5-x11extras qt5-dbus glib dbus-glib libffi libfm libfm-qt menu-cache gettext-runtime icu kf5-extra-cmake-modules lxqt-build-tools kf5-ki18n kf5-plasma-framework kf5-ktexteditor qt5-testlib gmake autoconf zip bash alsa-lib alsa-plugins
     - pip install --upgrade cloudsmith-cli
@@ -51,7 +53,7 @@ airyx_task:
     - ln -sf /usr/local/bin/bash /bin/bash
     - cp -fv version.txt ISO/overlays/ramdisk/version
     - cd ISO; AIRYX=${CIRRUS_WORKING_DIR} ./build.sh airyx airyxOS_$(head -1 ../version.txt)
-    - sshpass -e scp -o StrictHostKeyChecking=no ${CIRRUS_WORKING_DIR}/artifacts/*.iso* airyxos@dl.int.airyx.org:nightly/
+    - sshpass -e scp -o StrictHostKeyChecking=no ${CIRRUS_WORKING_DIR}/artifacts/*.iso* airyxos@pikachu.rvn.sh:nightly/
   only_if: $CIRRUS_BRANCH == 'main' || $CIRRUS_BRANCH == 'staging'
   airyx_artifacts:
     path: dist/airyx.txz

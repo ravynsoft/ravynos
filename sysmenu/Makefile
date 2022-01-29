@@ -8,3 +8,8 @@ all: .PHONY
 	cmake -DCMAKE_CXX_FLAGS="${EXTRA_CXXFLAGS}" \
 		-S ${TOPDIR}/sysmenu -B ${MAKEOBJDIR}
 	make -C ${MAKEOBJDIR} DESTDIR=${BUILDROOT} install
+
+clean: .PHONY
+	make -C ${MAKEOBJDIR} DESTDIR=${BUILDROOT} clean
+
+
