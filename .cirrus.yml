@@ -1,6 +1,6 @@
 compute_engine_instance:
   image_project: airyxos-images
-  image: airyxbuild-0-4-b4
+  image: airyxbuild-0-4-b5
   platform: freebsd
   cpu: 8
   memory: 16G
@@ -53,7 +53,7 @@ airyx_task:
     - ln -sf /usr/local/bin/bash /bin/bash
     - cp -fv version.txt ISO/overlays/ramdisk/version
     - cd ISO; AIRYX=${CIRRUS_WORKING_DIR} ./build.sh airyx airyxOS_$(head -1 ../version.txt)
-    - sshpass -e scp -o StrictHostKeyChecking=no ${CIRRUS_WORKING_DIR}/artifacts/*.iso* airyxos@dl.int.airyx.org:nightly/
+    - sshpass -e scp -o StrictHostKeyChecking=no ${CIRRUS_WORKING_DIR}/artifacts/*.iso* airyxos@pikachu.rvn.sh:nightly/
   only_if: $CIRRUS_BRANCH == 'main' || $CIRRUS_BRANCH == 'staging'
   airyx_artifacts:
     path: dist/airyx.txz
