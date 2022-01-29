@@ -29,12 +29,11 @@ copydbus:
 	rm -f ${FRAMEWORK}.framework/Headers/*.bak
 	ln -sf /usr/lib/libdbus-1.so* ${FRAMEWORK}.framework/Versions/Current/
 
-install:
+install-hook:
 	rm -rf ${BUILDROOT}/System/Library/Frameworks/${FRAMEWORK}.framework
 	cp -av ${.CURDIR}/${FRAMEWORK}.framework ${BUILDROOT}/System/Library/Frameworks/
-_libinstall: install
 
 .include <airyx.framework.mk>
 
 all: copydbus
-
+installresources: install-hook
