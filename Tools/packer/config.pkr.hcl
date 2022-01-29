@@ -29,6 +29,7 @@ build {
           "sudo tar -C / -xf /tmp/kernel.txz",
           "echo 'mach_load=\"YES\"'|sudo tee /boot/loader.conf",
           "echo 'cryptodev_load=\"YES\"'|sudo tee /boot/loader.conf",
+          "sudo pkg update && sudo pkg install -yf git-tiny cmake bash dbus dbus-glib expat fontconfig freetype2 gdk-pixbuf2 gettext-runtime gettext-tools glib glib-networking jpeg-turbo kf5-kcoreaddons mesa-libs mesa-dri pkgconf py38-pip python3 py38-setuptools qt5-buildtools qt5-qmake libqtxdg qt5-x11extras sqlite3 tiff png kf5-plasma-framework",
           "sudo tar -C / -xf /tmp/base.txz --exclude=./etc/*passwd --exclude=./etc/*pwd.db --exclude=./boot/efi*",
           "echo Finished provisioning"
       ]
