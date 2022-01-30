@@ -52,21 +52,7 @@ mdconfig -u 1 -f /cdrom/data/system.uzip
 echo "==> Importing ZFS pool"
 zpool import furybsd -o readonly=on
 
-#if [ "$SINGLE_USER" = "true" ]; then
-#	echo -n "Enter memdisk size used for read-write access in the live system: "
-#	read MEMDISK_SIZE
-#else
-#	MEMDISK_SIZE="2048"
-#fi
-
-# FIXME this can probably just be tmpfs mnts at key spots
-#echo "==> Mount unionfs"
-#mdmfs -s "${MEMDISK_SIZE}m" md /memdisk || exit 1
-#mount -t unionfs -o noatime -o copymode=transparent /memdisk /sysroot
-
-#echo "==> Mount /sysroot/sysroot/boot" # https://github.com/helloSystem/ISO/issues/4#issuecomment-800636914
-#mkdir -p /sysroot/sysroot/boot
-#mount -t nullfs /sysroot/boot /sysroot/sysroot/boot
+echo "Setting up the live environment..." > /dev/tty
 
 echo "==> Mounting /tmp and /proc"
 mkdir /tmp /proc
@@ -91,14 +77,13 @@ tar -C /sysroot/var -cpf - . | tar -C /var -xf -
 echo "==> User directory"
 mkdir -p /Users/liveuser
 mount -t tmpfs tmpfs /Users/liveuser
+tar -C /sysroot/Users/liveuser -cpf - . | tar -C /Users/liveuser -xf -
 
 echo "==> Loading important modules"
 for mod in ums utouch firewire; do
 	echo -n "$mod "; kldload $mod
 done
 
-echo "Setting up the live environment..." > /dev/tty
-#chroot /sysroot /usr/bin/furybsd-init-helper
 /usr/bin/furybsd-init-helper
 
 if [ "$SINGLE_USER" = "true" ]; then
@@ -106,14 +91,11 @@ if [ "$SINGLE_USER" = "true" ]; then
         sh
 fi
 
-kenv init_path="/rescue/init"
+kenv init_path="/sbin/launchd"
 kenv init_shell="/rescue/sh"
 kenv init_script="/init.sh"
-#kenv init_chroot="/sysroot"
+kenv init_chroot="/"
 
-#echo "==> Set kernel module path for chroot"
-#sysctl kern.module_path=/sysroot/boot/kernel
-        
 echo "==> Exit ramdisk init.sh"
 exit 0
 
