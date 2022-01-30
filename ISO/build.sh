@@ -371,9 +371,9 @@ ramdisk()
   sync ### Needed?
   cd "${uzip}" && tar -cf - rescue | tar -xf - -C "${ramdisk_root}"
   mkdir -p "${ramdisk_root}/bin" "${ramdisk_root}/sbin" "${ramdisk_root}/usr/libexec"
-  ln -sf "../rescue/rescue" "${ramdisk_root}/bin/launchctl"
-  ln -sf "../rescue/rescue" "${ramdisk_root}/usr/libexec/launchproxy"
-  cp -vf "${uzip}/sbin/launchd" "${ramdisk_root}/sbin"
+  #ln -sf "../rescue/rescue" "${ramdisk_root}/bin/launchctl"
+  #ln -sf "../rescue/rescue" "${ramdisk_root}/usr/libexec/launchproxy"
+  #cp -vf "${uzip}/sbin/launchd" "${ramdisk_root}/sbin"
   touch "${ramdisk_root}/etc/fstab"
   cp ${uzip}/etc/login.conf ${ramdisk_root}/etc/login.conf
   makefs -b '10%' "${cdroot}/data/ramdisk.ufs" "${ramdisk_root}"
