@@ -26,6 +26,11 @@ echo "Hello. This is airyxOS ${AIRYX_VERSION} (${AIRYX_CODENAME})" > /dev/tty
 
 echo "==> Ramdisk /init.sh running"
 
+echo "==> Loading important modules"
+for mod in nullfs unionfs ums utouch firewire; do
+	echo -n "$mod "; kldload $mod
+done
+
 if [ "$SINGLE_USER" = "true" ]; then
 	echo "Starting interactive shell before doing anything ..."
 	sh
@@ -61,6 +66,7 @@ else
 	MEMDISK_SIZE="2048"
 fi
 
+# FIXME this can probably just be tmpfs mnts at key spots
 echo "==> Mount unionfs"
 mdmfs -s "${MEMDISK_SIZE}m" md /memdisk || exit 1
 mount -t unionfs -o noatime -o copymode=transparent /memdisk /sysroot

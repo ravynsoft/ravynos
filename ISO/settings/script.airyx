@@ -6,7 +6,6 @@ set -x
 mkdir -p /tmp/system-overlay 
 cd /tmp/system-overlay
 
-#curl -L -o "${uzip}"/usr/share/slim/themes/default/background.jpg "https://github.com/helloSystem/ISO/releases/download/assets/graphite.jpg"
 cp -f "${uzip}"/usr/share/plasma/look-and-feel/Airyx/contents/splash/images/marmoset.png "${uzip}"/usr/share/slim/themes/default/background.jpg
 
 # Use blue folder icons instead of the ones packaged in FreeBSD which have yellow folder icons

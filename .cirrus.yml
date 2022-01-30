@@ -50,7 +50,7 @@ airyx_task:
     - make -f Makefile.airyx airyx-package
   iso_script:
     - pkg install -y sshpass bash
-    - ln -sf /usr/local/bin/bash /bin/bash
+    - ln -sf /usr/bin/bash /bin/bash
     - cp -fv version.txt ISO/overlays/ramdisk/version
     - cd ISO; AIRYX=${CIRRUS_WORKING_DIR} ./build.sh airyx airyxOS_$(head -1 ../version.txt)
     - sshpass -e scp -o StrictHostKeyChecking=no ${CIRRUS_WORKING_DIR}/artifacts/*.iso* airyxos@pikachu.rvn.sh:nightly/
