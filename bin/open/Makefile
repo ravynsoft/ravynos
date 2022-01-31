@@ -5,7 +5,6 @@ open: open.m
 		-I${TOPDIR}/Frameworks/Foundation/Headers \
 		-I${TOPDIR}/Frameworks/LaunchServices \
 		-I${TOPDIR}/Frameworks \
-		-F${BUILDROOT}/System/Library/Frameworks \
 		-framework LaunchServices -framework Foundation
 	mkdir -p ${BUILDROOT}/usr/bin
 	${SUDO} install -m755 -o root -g wheel open ${BUILDROOT}/usr/bin

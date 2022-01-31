@@ -87,14 +87,18 @@ done
 /usr/bin/furybsd-init-helper
 
 if [ "$SINGLE_USER" = "true" ]; then
-        echo "Starting interactive shell after chroot ..."
+        echo "Starting interactive shell..."
         sh
 fi
+
+ps ax | tee /tmp/ps.txt
 
 kenv init_path="/sbin/launchd"
 kenv init_shell="/rescue/sh"
 kenv init_script="/init.sh"
 kenv init_chroot="/"
+
+exec /sbin/launchd
 
 echo "==> Exit ramdisk init.sh"
 exit 0

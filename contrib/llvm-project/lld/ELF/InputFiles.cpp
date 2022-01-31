@@ -1372,7 +1372,8 @@ template <class ELFT> void SharedFile::parse() {
       uint64_t val = dyn.getVal();
       if (val >= this->stringTable.size())
         fatal(toString(this) + ": invalid DT_SONAME entry");
-      soName = this->stringTable.data() + val;
+      if(!config->preservePath)
+          soName = this->stringTable.data() + val;
     }
   }
 

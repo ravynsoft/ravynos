@@ -1,5 +1,5 @@
 THISDIR:= ${.CURDIR}
-EXTRA_CXXFLAGS= -F${BUILDROOT}/System/Library/Frameworks -I/usr/include/gio-unix-2.0
+EXTRA_CXXFLAGS= -I/usr/include/gio-unix-2.0
 
 all: clean build
 clean:
