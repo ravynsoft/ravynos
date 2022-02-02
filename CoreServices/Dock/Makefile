@@ -2,11 +2,12 @@ APP=	Dock
 SRCS=	main.mm Dock.mm DockItem.mm WindowTracker.mm Utils.mm
 RESOURCES=	${.CURDIR}/Dock.png ${.CURDIR}/running.png ${.CURDIR}/window.png Trash.app ${.CURDIR}/folder.png \
 		Downloads.app
+MOC=	/usr/lib/qt5/bin/moc
 
 Dock.o: Dock.mm Dock.h Dock.moc
 DockItem.o: DockItem.mm DockItem.h
-Dock.moc: Dock.h
-	moc -o ${.TARGET} ${.ALLSRC}
+Dock.moc: ${.CURDIR}/Dock.h
+	${MOC} -o ${.TARGET} ${.ALLSRC}
 
 MK_WERROR=	no
 QT_CFLAGS!=	pkg-config --cflags Qt5Widgets Qt5Xdg
