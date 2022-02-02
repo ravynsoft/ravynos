@@ -1,6 +1,6 @@
 APP=	Dock
 SRCS=	main.mm Dock.mm DockItem.mm WindowTracker.mm Utils.mm
-RESOURCES=	Dock.png running.png window.png Trash.app folder.png \
+RESOURCES=	${.CURDIR}/Dock.png ${.CURDIR}/running.png ${.CURDIR}/window.png Trash.app ${.CURDIR}/folder.png \
 		Downloads.app
 
 Dock.o: Dock.mm Dock.h Dock.moc
@@ -8,20 +8,22 @@ DockItem.o: DockItem.mm DockItem.h
 Dock.moc: Dock.h
 	moc -o ${.TARGET} ${.ALLSRC}
 
+MK_WERROR=	no
 QT_CFLAGS!=	pkg-config --cflags Qt5Widgets Qt5Xdg
 QT_LDFLAGS!=	pkg-config --libs Qt5Widgets Qt5Xdg
-CXXFLAGS+=	${QT_CFLAGS} -g -fPIC -I/usr/include/KF5/KWindowSystem
+CXXFLAGS+=	${QT_CFLAGS} -g -fPIC -I/usr/include/KF5/KWindowSystem \
+		-I${MAKEOBJDIR}
 LDFLAGS+=	${QT_LDFLAGS} -lc++ -framework Foundation \
 		-framework LaunchServices -lobjc -lKF5WindowSystem -lX11
 
 Trash.app::
 	rm -rf ${.TARGET}
-	${MAKE} -C Trash
+	${MAKE} -C ${.CURDIR}/Trash
 	mv Trash/${.TARGET} .
 
 Downloads.app::
 	rm -rf ${.TARGET}
-	${MAKE} -C Downloads
+	${MAKE} -C ${.CURDIR}/Downloads
 	mv Downloads/${.TARGET} .
 
 .include <airyx.app.mk>

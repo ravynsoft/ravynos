@@ -1,9 +1,10 @@
 APP=	Downloads
 SRCS=	main.mm Downloads.mm
-RESOURCES=	Downloads.png
+RESOURCES=	${.CURDIR}/Downloads.png
 
 Downloads.o: Downloads.mm Downloads.h
 
+MK_WERROR=	no
 CXXFLAGS+=	-g -fPIC
 LDFLAGS+=	-lc++ -framework Foundation \
 		-framework LaunchServices -lobjc -lX11

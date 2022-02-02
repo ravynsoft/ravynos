@@ -1,9 +1,10 @@
 APP=	Trash
 SRCS=	main.mm Trash.mm
-RESOURCES=	Trash.png
+RESOURCES=	${.CURDIR}/Trash.png
 
 Trash.o: Trash.mm Trash.h
 
+MK_WERROR=	no
 CXXFLAGS+=	-g -fPIC
 LDFLAGS+=	-lc++ -framework Foundation \
 		-framework LaunchServices -lobjc -lX11

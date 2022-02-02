@@ -61,18 +61,63 @@ chmod 1777 /tmp
 mount -t procfs procfs /proc
 
 echo "==> Creating root symlinks"
-rmdir /bin /sbin /usr/libexec /usr
-mkdir /root /mnt /media /Volumes
-for d in bin sbin lib libexec boot usr Applications System Library; do
-	echo -n "$d "; ln -s /sysroot/$d /$d
+mkdir /root /mnt /media /Volumes /System /System/Library /boot /compat /compat/linux
+for d in bin sbin lib libexec usr Applications Library; do
+	ln -s /sysroot/$d /$d
 done
 
 echo "==> Populating etc and var"
 mkdir -p /etc /var
 mount -t tmpfs tmpfs /etc
 mount -t tmpfs tmpfs /var
+mount -t tmpfs tmpfs /boot
 tar -C /sysroot/etc -cpf - . | tar -C /etc -xf -
 tar -C /sysroot/var -cpf - . | tar -C /var -xf -
+chmod 1777 /var/tmp
+
+cat > /etc/bootstrap <<EOT
+#!/rescue/sh
+
+rm -f /var/run/nologin
+EOT
+chmod 755 /etc/bootstrap
+
+rm -f /etc/X11/xorg.conf
+
+mkdir /private
+for d in dev etc var; do
+    ln -sf /$d /private/$d
+done
+
+echo "==> Populating /System/Library"
+CWD=$(pwd)
+cd /sysroot/System/Library
+for d in *; do
+    ln -s "/sysroot/System/Library/$d" "/System/Library/$d"
+done
+rm -f /System/Library/LaunchDaemons
+mkdir -p /System/Library/LaunchDaemons
+ln -s /sysroot/System/Library/LaunchDaemons/com.apple.auditd.json /System/Library/LaunchDaemons/
+ln -s /sysroot/System/Library/LaunchDaemons/com.apple.notifyd.json /System/Library/LaunchDaemons/
+cat > /System/Library/LaunchDaemons/org.freebsd.ttyv3.json <<EOT
+{
+	"Label": "org.freebsd.getty.ttyv3",
+	"ProgramArguments": [
+		"/usr/libexec/getty",
+		"Pc",
+		"ttyv3"
+	],
+	"RunAtLoad": true,
+	"KeepAlive": true
+}
+EOT
+
+cd /sysroot/boot
+for d in *; do
+    ln -s /sysroot/boot/$d /boot/$d
+done
+rm -f /boot/entropy
+cd $CWD
 
 echo "==> User directory"
 mkdir -p /Users/liveuser
@@ -86,20 +131,5 @@ done
 
 /usr/bin/furybsd-init-helper
 
-if [ "$SINGLE_USER" = "true" ]; then
-        echo "Starting interactive shell..."
-        sh
-fi
-
-ps ax | tee /tmp/ps.txt
-
-kenv init_path="/sbin/launchd"
-kenv init_shell="/rescue/sh"
-kenv init_script="/init.sh"
-kenv init_chroot="/"
-
-exec /sbin/launchd
-
 echo "==> Exit ramdisk init.sh"
 exit 0
-
