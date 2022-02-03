@@ -31,6 +31,7 @@ all_subdir_installairyx: airyx-package
 
 prep:
 	mkdir -p ${OBJPREFIX} ${TOPDIR}/dist ${BUILDROOT}
+	mkdir -p ${BUILDROOT}/var/db/launchd/com.apple.launchd
 	mkdir -p ${BUILDROOT}/etc ${BUILDROOT}/var/run ${BUILDROOT}/usr/sbin
 	cp -f ${TOPDIR}/resolv.conf ${BUILDROOT}/etc/
 	for x in System System/Library/Frameworks System/Library/LaunchDaemons \
