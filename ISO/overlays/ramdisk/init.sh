@@ -82,8 +82,6 @@ rm -f /var/run/nologin
 EOT
 chmod 755 /etc/bootstrap
 
-rm -f /etc/X11/xorg.conf
-
 mkdir /private
 for d in dev etc var; do
     ln -sf /$d /private/$d
