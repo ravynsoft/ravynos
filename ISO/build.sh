@@ -22,8 +22,9 @@ fi
 if [ -z "${AIRYX}" ]; then
   AIRYX=$(pwd)/..
 fi
-AIRYXVER=$(head -1 ${AIRYX}/version.txt)
-version=${AIRYXVER}
+AIRYX_VERSION=$(head -1 ${AIRYX}/version.txt)
+AIRYX_CODENAME=$(tail -1 ${AIRYX}/version.txt)
+version=${AIRYX_VERSION}
 
 desktop=$1
 tag=$2
