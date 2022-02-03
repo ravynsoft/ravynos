@@ -60,12 +60,12 @@ distribution:
 	${_+_}cd ${SRCTOP}/usr.sbin/rmt; ${MAKE} etc-rmt
 	${INSTALL_SYMLINK} -T "package=runtime" ../var/run/os-release \
 		${DESTDIR}/etc/os-release
-.for f in adduser.conf launchd_user.env motd shells
+.for f in adduser.conf launchd_user.env motd.template shells
 	${INSTALL} -m 0444 -o root -g wheel ${.CURDIR}/$f ${DESTDIR}/etc/
 .endfor
 	sed -i_ -e "s/__VERSION__/${AIRYX_VERSION}/" \
-		-e "s/__CODENAME__/${AIRYX_CODENAME}/" ${DESTDIR}/etc/motd
-	rm -f ${DESTDIR}/etc/motd_
+		-e "s/__CODENAME__/${AIRYX_CODENAME}/" ${DESTDIR}/etc/motd.template
+	rm -f ${DESTDIR}/etc/motd.template_
 	${INSTALL} -m 0555 -o root -g wheel ${.CURDIR}/bootstrap ${DESTDIR}/etc/
 .for d in pkg
 	${INSTALL} -d -m 0755 -o ${BINOWN} -g ${BINGRP} ${DESTDIR}/etc/$d

@@ -41,7 +41,7 @@ curl -Lo - https://github.com/mszoek/airyx/releases/download/jdk-17.0.1/openjdk-
 mkdir -p "${uzip}/Applications/Utilities"
 
 declare -A apps utils
-apps=(Kate 21.08.1 Firefox 93.0)
+apps=(Kate 21.08.1 Firefox 97.0)
 utils=(Terminal 0.17.0)
 
 for app in ${!apps[@]}; do
