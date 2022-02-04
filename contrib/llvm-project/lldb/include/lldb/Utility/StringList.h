@@ -11,7 +11,7 @@
 
 #include "llvm/ADT/StringRef.h"
 
-#include <stddef.h>
+#include <cstddef>
 #include <string>
 #include <vector>
 
@@ -102,7 +102,7 @@ public:
 
   StringList &operator<<(const std::string &s);
 
-  StringList &operator<<(StringList strings);
+  StringList &operator<<(const StringList &strings);
 
   // Copy assignment for a vector of strings
   StringList &operator=(const std::vector<std::string> &rhs);

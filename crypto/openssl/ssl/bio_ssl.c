@@ -1,5 +1,5 @@
 /*
- * Copyright 1995-2020 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 1995-2021 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the OpenSSL license (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -76,13 +76,12 @@ static int ssl_free(BIO *a)
     if (a == NULL)
         return 0;
     bs = BIO_get_data(a);
-    if (bs->ssl != NULL)
-        SSL_shutdown(bs->ssl);
     if (BIO_get_shutdown(a)) {
+        if (bs->ssl != NULL)
+            SSL_shutdown(bs->ssl);
         if (BIO_get_init(a))
             SSL_free(bs->ssl);
-        /* Clear all flags */
-        BIO_clear_flags(a, ~0);
+        BIO_clear_flags(a, ~0); /* Clear all flags */
         BIO_set_init(a, 0);
     }
     OPENSSL_free(bs);
@@ -451,6 +450,7 @@ BIO *BIO_new_ssl_connect(SSL_CTX *ctx)
         goto err;
     return ret;
  err:
+    BIO_free(ssl);
     BIO_free(con);
 #endif
     return NULL;

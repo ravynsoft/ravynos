@@ -28,14 +28,15 @@
  *
  * $FreeBSD$
  */
-#ifndef	_LINUX_SYSFS_H_
-#define	_LINUX_SYSFS_H_
+#ifndef	_LINUXKPI_LINUX_SYSFS_H_
+#define	_LINUXKPI_LINUX_SYSFS_H_
 
 #include <sys/types.h>
 #include <sys/sysctl.h>
 #include <sys/errno.h>
 
 #include <linux/kobject.h>
+#include <linux/stringify.h>
 
 struct sysfs_ops {
 	ssize_t (*show)(struct kobject *, struct attribute *, char *);
@@ -296,4 +297,4 @@ sysfs_streq(const char *s1, const char *s2)
 
 #define sysfs_attr_init(attr) do {} while(0)
 
-#endif	/* _LINUX_SYSFS_H_ */
+#endif	/* _LINUXKPI_LINUX_SYSFS_H_ */

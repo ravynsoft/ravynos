@@ -422,6 +422,20 @@ class DQ_RD6_RS5_DQ12<bits<6> opcode, bits<3> xo, dag OOL, dag IOL,
   let Inst{29-31} = xo;
 }
 
+class DQForm_RTp5_RA17_MEM<bits<6> opcode, bits<4> xo, dag OOL, dag IOL,
+                           string asmstr, InstrItinClass itin,
+                           list<dag> pattern>
+  : I<opcode, OOL, IOL, asmstr, itin> {
+  bits<5> RTp;
+  bits<17> DQ_RA;
+  let Pattern = pattern;
+
+  let Inst{6-10} =  RTp{4-0};
+  let Inst{11-15} = DQ_RA{16-12};  // Register #
+  let Inst{16-27} = DQ_RA{11-0};   // Displacement.
+  let Inst{28-31} = xo;
+}
+
 // 1.7.6 X-Form
 class XForm_base_r3xo<bits<6> opcode, bits<10> xo, dag OOL, dag IOL, string asmstr, 
                       InstrItinClass itin, list<dag> pattern>
@@ -637,12 +651,12 @@ class XForm_17<bits<6> opcode, bits<10> xo, dag OOL, dag IOL, string asmstr,
 }
 
 class XForm_17a<bits<6> opcode, bits<10> xo, dag OOL, dag IOL, string asmstr,
-               InstrItinClass itin>
+               InstrItinClass itin, list<dag> pattern>
   : XForm_17<opcode, xo, OOL, IOL, asmstr, itin > {
   let FRA = 0;
+  let Pattern = pattern;
 }
 
-// Used for QPX
 class XForm_18<bits<6> opcode, bits<10> xo, dag OOL, dag IOL, string asmstr,
                InstrItinClass itin, list<dag> pattern>
          : I<opcode, OOL, IOL, asmstr, itin> {
@@ -1193,6 +1207,21 @@ class XX2_RD6_DCMX7_RS6<bits<6> opcode, bits<4> xo1, bits<3> xo2,
   let Inst{29}    = DCMX{5};
   let Inst{30}    = XB{5};
   let Inst{31}    = XT{5};
+}
+
+class XForm_XD6_RA5_RB5<bits<6> opcode, bits<10> xo, dag OOL, dag IOL,
+                        string asmstr, InstrItinClass itin, list<dag> pattern>
+  : I<opcode, OOL, IOL, asmstr, itin> {
+  bits<11> D_RA_XD;
+  bits<5> RB;
+
+  let Pattern = pattern;
+
+  let Inst{6-10}  = D_RA_XD{4-0};  // D
+  let Inst{11-15} = D_RA_XD{10-6}; // RA
+  let Inst{16-20} = RB;
+  let Inst{21-30} = xo;
+  let Inst{31}    = D_RA_XD{5};    // DX
 }
 
 class XX3Form<bits<6> opcode, bits<8> xo, dag OOL, dag IOL, string asmstr, 
@@ -1781,14 +1810,6 @@ class AForm_4<bits<6> opcode, bits<5> xo, dag OOL, dag IOL, string asmstr,
   let Inst{31}    = 0;
 }
 
-// Used for QPX
-class AForm_4a<bits<6> opcode, bits<5> xo, dag OOL, dag IOL, string asmstr,
-              InstrItinClass itin, list<dag> pattern>
-  : AForm_1<opcode, xo, OOL, IOL, asmstr, itin, pattern> {
-  let FRA = 0;
-  let FRC = 0;
-}
-
 // 1.7.13 M-Form
 class MForm_1<bits<6> opcode, dag OOL, dag IOL, string asmstr,
               InstrItinClass itin, list<dag> pattern>
@@ -2099,49 +2120,6 @@ class VX_RD5_RSp5_PS1_XO9<bits<9> xo, dag OOL, dag IOL, string asmstr,
   let Inst{23-31} = xo;
 }
 
-// Z23-Form (used by QPX)
-class Z23Form_1<bits<6> opcode, bits<8> xo, dag OOL, dag IOL, string asmstr, 
-              InstrItinClass itin, list<dag> pattern>
-         : I<opcode, OOL, IOL, asmstr, itin> {
-  bits<5> FRT;
-  bits<5> FRA;
-  bits<5> FRB;
-  bits<2> idx;
-
-  let Pattern = pattern;
-
-  bit RC = 0;    // set by isRecordForm
-
-  let Inst{6-10}  = FRT;
-  let Inst{11-15} = FRA;
-  let Inst{16-20} = FRB;
-  let Inst{21-22} = idx;
-  let Inst{23-30} = xo;
-  let Inst{31}    = RC;
-}
-
-class Z23Form_2<bits<6> opcode, bits<8> xo, dag OOL, dag IOL, string asmstr,
-              InstrItinClass itin, list<dag> pattern>
-  : Z23Form_1<opcode, xo, OOL, IOL, asmstr, itin, pattern> {
-  let FRB = 0;
-}
-
-class Z23Form_3<bits<6> opcode, bits<8> xo, dag OOL, dag IOL, string asmstr, 
-              InstrItinClass itin, list<dag> pattern>
-         : I<opcode, OOL, IOL, asmstr, itin> {
-  bits<5> FRT;
-  bits<12> idx;
-
-  let Pattern = pattern;
-
-  bit RC = 0;    // set by isRecordForm
-
-  let Inst{6-10}  = FRT;
-  let Inst{11-22} = idx;
-  let Inst{23-30} = xo;
-  let Inst{31}    = RC;
-}
-
 class Z23Form_8<bits<6> opcode, bits<8> xo, dag OOL, dag IOL, string asmstr,
               InstrItinClass itin, list<dag> pattern>
          : I<opcode, OOL, IOL, asmstr, itin> {
@@ -2161,6 +2139,24 @@ class Z23Form_8<bits<6> opcode, bits<8> xo, dag OOL, dag IOL, string asmstr,
   let Inst{21-22} = idx;
   let Inst{23-30} = xo;
   let Inst{31}    = RC;
+}
+
+class Z23Form_RTAB5_CY2<bits<6> opcode, bits<8> xo, dag OOL, dag IOL,
+                        string asmstr, InstrItinClass itin, list<dag> pattern>
+         : I<opcode, OOL, IOL, asmstr, itin> {
+  bits<5> RT;
+  bits<5> RA;
+  bits<5> RB;
+  bits<2> CY;
+
+  let Pattern = pattern;
+
+  let Inst{6-10}  = RT;
+  let Inst{11-15} = RA;
+  let Inst{16-20} = RB;
+  let Inst{21-22} = CY;
+  let Inst{23-30} = xo;
+  let Inst{31} = 0;
 }
 
 //===----------------------------------------------------------------------===//

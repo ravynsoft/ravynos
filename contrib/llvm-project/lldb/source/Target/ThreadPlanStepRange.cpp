@@ -264,10 +264,9 @@ InstructionList *ThreadPlanStepRange::GetInstructionsForAddress(
         // Disassemble the address range given:
         const char *plugin_name = nullptr;
         const char *flavor = nullptr;
-        const bool prefer_file_cache = true;
         m_instruction_ranges[i] = Disassembler::DisassembleRange(
             GetTarget().GetArchitecture(), plugin_name, flavor, GetTarget(),
-            m_address_ranges[i], prefer_file_cache);
+            m_address_ranges[i]);
       }
       if (!m_instruction_ranges[i])
         return nullptr;
@@ -327,13 +326,9 @@ bool ThreadPlanStepRange::SetNextBranchBreakpoint() {
   if (instructions == nullptr)
     return false;
   else {
-    Target &target = GetThread().GetProcess()->GetTarget();
     const bool ignore_calls = GetKind() == eKindStepOverRange;
-    uint32_t branch_index =
-        instructions->GetIndexOfNextBranchInstruction(pc_index, target,
-                                                      ignore_calls, 
-                                                      &m_found_calls);
-
+    uint32_t branch_index = instructions->GetIndexOfNextBranchInstruction(
+        pc_index, ignore_calls, &m_found_calls);
     Address run_to_address;
 
     // If we didn't find a branch, run to the end of the range.

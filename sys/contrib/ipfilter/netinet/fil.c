@@ -585,7 +585,7 @@ ipf_pr_ipv6hdr(fin)
 
 	/*
 	 * IPv6 fragment case 1 - see comment for ipf_pr_fragment6().
-	 * "go != 0" imples the above loop hasn't arrived at a layer 4 header.
+	 * "go != 0" implies the above loop hasn't arrived at a layer 4 header.
 	 */
 	if ((go != 0) && (fin->fin_flx & FI_FRAG) && (fin->fin_off == 0)) {
 		ipf_main_softc_t *softc = fin->fin_main_soft;
@@ -1715,7 +1715,7 @@ ipf_pr_ipv4hdr(fin)
 	fin->fin_crc += fi->fi_saddr;
 	fi->fi_daddr = ip->ip_dst.s_addr;
 	fin->fin_crc += fi->fi_daddr;
-	if (IN_CLASSD(ntohl(fi->fi_daddr)))
+	if (IN_MULTICAST(ntohl(fi->fi_daddr)))
 		fin->fin_flx |= FI_MULTICAST|FI_MBCAST;
 
 	/*
@@ -2376,7 +2376,7 @@ ipf_check_ipf(fin, fr, portcmp)
 /* If a match is found, the value of fr_flags from the rule becomes the     */
 /* return value and fin->fin_fr points to the matched rule.                 */
 /*                                                                          */
-/* This function may be called recusively upto 16 times (limit inbuilt.)    */
+/* This function may be called recursively upto 16 times (limit inbuilt.)   */
 /* When unwinding, it should finish up with fin_depth as 0.                 */
 /*                                                                          */
 /* Could be per interface, but this gets real nasty when you don't have,    */
@@ -4305,7 +4305,7 @@ ipf_getstat(softc, fiop, rev)
 	fiop->f_features = ipf_features;
 
 #ifdef IPFILTER_COMPAT
-	sprintf(fiop->f_version, "IP Filter: v%d.%d.%d",
+	snprintf(fiop->f_version, sizeof(friostat.f_version), "IP Filter: v%d.%d.%d",
 		(rev / 1000000) % 100,
 		(rev / 10000) % 100,
 		(rev / 100) % 100);
@@ -5611,11 +5611,7 @@ ipf_grpmapinit(softc, fr)
 	char name[FR_GROUPLEN];
 	iphtable_t *iph;
 
-#if defined(SNPRINTF) && defined(_KERNEL)
-	SNPRINTF(name, sizeof(name), "%d", fr->fr_arg);
-#else
-	(void) sprintf(name, "%d", fr->fr_arg);
-#endif
+	(void) snprintf(name, sizeof(name), "%d", fr->fr_arg);
 	iph = ipf_lookup_find_htable(softc, IPL_LOGIPF, name);
 	if (iph == NULL) {
 		IPFERROR(38);
@@ -6172,11 +6168,7 @@ ipf_getifname(ifp, buffer)
 	unit = ifp->if_unit;
 	space = LIFNAMSIZ - (s - buffer);
 	if ((space > 0) && (unit >= 0)) {
-#  if defined(SNPRINTF) && defined(_KERNEL)
-		SNPRINTF(temp, sizeof(temp), "%d", unit);
-#  else
-		(void) sprintf(temp, "%d", unit);
-#  endif
+		(void) snprintf(temp, sizeof(name), "%d", unit);
 		(void) strncpy(s, temp, space);
 	}
 # endif
@@ -9337,6 +9329,11 @@ ipf_main_soft_create(arg)
 	softc->ipf_minttl = 4;
 	softc->ipf_icmpminfragmtu = 68;
 	softc->ipf_flags = IPF_LOGGING;
+
+#ifdef LARGE_NAT
+	softc->ipf_large_nat = 1;
+#endif
+	ipf_fbsd_kenv_get(softc);
 
 	return softc;
 }

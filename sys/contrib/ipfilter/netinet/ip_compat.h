@@ -1221,28 +1221,23 @@ typedef	struct	tcpiphdr	tcpiphdr_t;
 # define	DPRINT(x)
 #endif
 
-#ifdef DTRACE_PROBE
-# ifdef _KERNEL
-#  define	DT(_n)			DTRACE_PROBE(_n)
-#  define	DT1(_n,_a,_b)		DTRACE_PROBE1(_n,_a,_b)
-#  define	DT2(_n,_a,_b,_c,_d)	DTRACE_PROBE2(_n,_a,_b,_c,_d)
-#  define	DT3(_n,_a,_b,_c,_d,_e,_f)	\
+#if defined(DTRACE_PROBE) && defined(_KERNEL)
+# define	DT(_n)			DTRACE_PROBE(_n)
+# define	DT1(_n,_a,_b)		DTRACE_PROBE1(_n,_a,_b)
+# define	DT2(_n,_a,_b,_c,_d)	DTRACE_PROBE2(_n,_a,_b,_c,_d)
+# define	DT3(_n,_a,_b,_c,_d,_e,_f)	\
 					DTRACE_PROBE3(_n,_a,_b,_c,_d,_e,_f)
-#  define	DT4(_n,_a,_b,_c,_d,_e,_f,_g,_h) \
+# define	DT4(_n,_a,_b,_c,_d,_e,_f,_g,_h) \
 				DTRACE_PROBE4(_n,_a,_b,_c,_d,_e,_f,_g,_h)
-# else
-#  define	DT(_n)
-#  define	DT1(_n,_a,_b)
-#  define	DT2(_n,_a,_b,_c,_d)
-#  define	DT3(_n,_a,_b,_c,_d,_e,_f)
-#  define	DT4(_n,_a,_b,_c,_d,_e,_f,_g,_h)
-# endif
+# define	DT5(_n,_a,_b,_c,_d,_e,_f,_g,_h,_i,_j) \
+				DTRACE_PROBE5(_n,_a,_b,_c,_d,_e,_f,_g,_h,_i,_j)
 #else
 # define	DT(_n)
 # define	DT1(_n,_a,_b)
 # define	DT2(_n,_a,_b,_c,_d)
 # define	DT3(_n,_a,_b,_c,_d,_e,_f)
 # define	DT4(_n,_a,_b,_c,_d,_e,_f,_g,_h)
+# define	DT5(_n,_a,_b,_c,_d,_e,_f,_g,_h,_i,_j)
 #endif
 
 struct ip6_routing {

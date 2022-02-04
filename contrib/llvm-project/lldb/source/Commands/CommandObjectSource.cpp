@@ -16,6 +16,7 @@
 #include "lldb/Host/OptionParser.h"
 #include "lldb/Interpreter/CommandReturnObject.h"
 #include "lldb/Interpreter/OptionArgParser.h"
+#include "lldb/Interpreter/OptionValueFileColonLine.h"
 #include "lldb/Interpreter/Options.h"
 #include "lldb/Symbol/CompileUnit.h"
 #include "lldb/Symbol/Function.h"
@@ -540,7 +541,6 @@ protected:
     if (argc != 0) {
       result.AppendErrorWithFormat("'%s' takes no arguments, only flags.\n",
                                    GetCommandName().str().c_str());
-      result.SetStatus(eReturnStatusFailed);
       return false;
     }
 
@@ -550,7 +550,6 @@ protected:
       if (target == nullptr) {
         result.AppendError("invalid target, create a debug target using the "
                            "'target create' command.");
-        result.SetStatus(eReturnStatusFailed);
         return false;
       }
     }
@@ -574,12 +573,10 @@ protected:
       }
       if (!m_module_list.GetSize()) {
         result.AppendError("No modules match the input.");
-        result.SetStatus(eReturnStatusFailed);
         return false;
       }
     } else if (target->GetImages().GetSize() == 0) {
       result.AppendError("The target has no associated executable images.");
-      result.SetStatus(eReturnStatusFailed);
       return false;
     }
 
@@ -667,6 +664,22 @@ class CommandObjectSourceList : public CommandObjectParsed {
       case 'r':
         reverse = true;
         break;
+      case 'y':
+      {
+        OptionValueFileColonLine value;
+        Status fcl_err = value.SetValueFromString(option_arg);
+        if (!fcl_err.Success()) {
+          error.SetErrorStringWithFormat(
+              "Invalid value for file:line specifier: %s",
+              fcl_err.AsCString());
+        } else {
+          file_name = value.GetFileSpec().GetPath();
+          start_line = value.GetLineNumber();
+          // I don't see anything useful to do with a column number, but I don't
+          // want to complain since someone may well have cut and pasted a
+          // listing from somewhere that included a column.
+        }
+      } break;
       default:
         llvm_unreachable("Unimplemented option");
       }
@@ -794,7 +807,6 @@ protected:
           result.AppendErrorWithFormat("Could not find line information for "
                                        "start of function: \"%s\".\n",
                                        source_info.function.GetCString());
-          result.SetStatus(eReturnStatusFailed);
           return 0;
         }
         sc.function->GetEndLineSourceInfo(end_file, end_line);
@@ -916,7 +928,6 @@ protected:
     if (argc != 0) {
       result.AppendErrorWithFormat("'%s' takes no arguments, only flags.\n",
                                    GetCommandName().str().c_str());
-      result.SetStatus(eReturnStatusFailed);
       return false;
     }
 
@@ -954,7 +965,6 @@ protected:
       if (num_matches == 0) {
         result.AppendErrorWithFormat("Could not find function named: \"%s\".\n",
                                      m_options.symbol_name.c_str());
-        result.SetStatus(eReturnStatusFailed);
         return false;
       }
 
@@ -1021,7 +1031,6 @@ protected:
               "no modules have source information for file address 0x%" PRIx64
               ".\n",
               m_options.address);
-          result.SetStatus(eReturnStatusFailed);
           return false;
         }
       } else {
@@ -1044,7 +1053,6 @@ protected:
                                            "is no line table information "
                                            "available for this address.\n",
                                            error_strm.GetData());
-              result.SetStatus(eReturnStatusFailed);
               return false;
             }
           }
@@ -1054,7 +1062,6 @@ protected:
           result.AppendErrorWithFormat(
               "no modules contain load address 0x%" PRIx64 ".\n",
               m_options.address);
-          result.SetStatus(eReturnStatusFailed);
           return false;
         }
       }
@@ -1174,7 +1181,6 @@ protected:
       if (num_matches == 0) {
         result.AppendErrorWithFormat("Could not find source file \"%s\".\n",
                                      m_options.file_name.c_str());
-        result.SetStatus(eReturnStatusFailed);
         return false;
       }
 
@@ -1198,7 +1204,6 @@ protected:
           result.AppendErrorWithFormat(
               "Multiple source files found matching: \"%s.\"\n",
               m_options.file_name.c_str());
-          result.SetStatus(eReturnStatusFailed);
           return false;
         }
       }
@@ -1228,7 +1233,6 @@ protected:
         } else {
           result.AppendErrorWithFormat("No comp unit found for: \"%s.\"\n",
                                        m_options.file_name.c_str());
-          result.SetStatus(eReturnStatusFailed);
           return false;
         }
       }

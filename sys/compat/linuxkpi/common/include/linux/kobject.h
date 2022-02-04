@@ -28,8 +28,8 @@
  *
  * $FreeBSD$
  */
-#ifndef	_LINUX_KOBJECT_H_
-#define	_LINUX_KOBJECT_H_
+#ifndef	_LINUXKPI_LINUX_KOBJECT_H_
+#define	_LINUXKPI_LINUX_KOBJECT_H_
 
 #include <machine/stdarg.h>
 
@@ -67,6 +67,8 @@ struct attribute {
 	struct module	*owner;
 	mode_t		mode;
 };
+
+extern const struct sysfs_ops kobj_sysfs_ops;
 
 struct kobj_attribute {
 	struct attribute attr;
@@ -165,4 +167,4 @@ kobject_uevent_env(struct kobject *kobj, int action, char *envp[])
 	 */
 }
 
-#endif /* _LINUX_KOBJECT_H_ */
+#endif /* _LINUXKPI_LINUX_KOBJECT_H_ */

@@ -436,6 +436,30 @@ socantrcvmore(struct socket *so)
 	mtx_assert(SOCKBUF_MTX(&so->so_rcv), MA_NOTOWNED);
 }
 
+void
+soroverflow_locked(struct socket *so)
+{
+
+	SOCKBUF_LOCK_ASSERT(&so->so_rcv);
+
+	if (so->so_options & SO_RERROR) {
+		so->so_rerror = ENOBUFS;
+		sorwakeup_locked(so);
+	} else
+		SOCKBUF_UNLOCK(&so->so_rcv);
+
+	mtx_assert(SOCKBUF_MTX(&so->so_rcv), MA_NOTOWNED);
+}
+
+void
+soroverflow(struct socket *so)
+{
+
+	SOCKBUF_LOCK(&so->so_rcv);
+	soroverflow_locked(so);
+	mtx_assert(SOCKBUF_MTX(&so->so_rcv), MA_NOTOWNED);
+}
+
 /*
  * Wait for data to arrive at/drain from a socket buffer.
  */
@@ -449,34 +473,6 @@ sbwait(struct sockbuf *sb)
 	return (msleep_sbt(&sb->sb_acc, SOCKBUF_MTX(sb),
 	    (sb->sb_flags & SB_NOINTR) ? PSOCK : PSOCK | PCATCH, "sbwait",
 	    sb->sb_timeo, 0, 0));
-}
-
-int
-sblock(struct sockbuf *sb, int flags)
-{
-
-	KASSERT((flags & SBL_VALID) == flags,
-	    ("sblock: flags invalid (0x%x)", flags));
-
-	if (flags & SBL_WAIT) {
-		if ((sb->sb_flags & SB_NOINTR) ||
-		    (flags & SBL_NOINTR)) {
-			sx_xlock(&sb->sb_sx);
-			return (0);
-		}
-		return (sx_xlock_sig(&sb->sb_sx));
-	} else {
-		if (sx_try_xlock(&sb->sb_sx) == 0)
-			return (EWOULDBLOCK);
-		return (0);
-	}
-}
-
-void
-sbunlock(struct sockbuf *sb)
-{
-
-	sx_xunlock(&sb->sb_sx);
 }
 
 /*
@@ -1788,7 +1784,7 @@ sbtoxsockbuf(struct sockbuf *sb, struct xsockbuf *xsb)
 static int dummy;
 SYSCTL_INT(_kern, KERN_DUMMY, dummy, CTLFLAG_RW | CTLFLAG_SKIP, &dummy, 0, "");
 SYSCTL_OID(_kern_ipc, KIPC_MAXSOCKBUF, maxsockbuf,
-    CTLTYPE_ULONG | CTLFLAG_RW | CTLFLAG_NEEDGIANT, &sb_max, 0,
+    CTLTYPE_ULONG | CTLFLAG_RW | CTLFLAG_MPSAFE, &sb_max, 0,
     sysctl_handle_sb_max, "LU",
     "Maximum socket buffer size");
 SYSCTL_ULONG(_kern_ipc, KIPC_SOCKBUF_WASTE, sockbuf_waste_factor, CTLFLAG_RW,

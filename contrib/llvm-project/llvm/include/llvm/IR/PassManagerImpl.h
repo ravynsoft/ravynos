@@ -5,7 +5,7 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
-///
+/// \file
 /// Provides implementations for PassManager and AnalysisManager template
 /// methods. These classes should be explicitly instantiated for any IR unit,
 /// and files doing the explicit instantiation should include this header.
@@ -20,9 +20,7 @@
 namespace llvm {
 
 template <typename IRUnitT, typename... ExtraArgTs>
-inline AnalysisManager<IRUnitT, ExtraArgTs...>::AnalysisManager(
-    bool DebugLogging)
-    : DebugLogging(DebugLogging) {}
+inline AnalysisManager<IRUnitT, ExtraArgTs...>::AnalysisManager() {}
 
 template <typename IRUnitT, typename... ExtraArgTs>
 inline AnalysisManager<IRUnitT, ExtraArgTs...>::AnalysisManager(
@@ -37,8 +35,8 @@ template <typename IRUnitT, typename... ExtraArgTs>
 inline void
 AnalysisManager<IRUnitT, ExtraArgTs...>::clear(IRUnitT &IR,
                                                llvm::StringRef Name) {
-  if (DebugLogging)
-    dbgs() << "Clearing all analysis results for: " << Name << "\n";
+  if (auto *PI = getCachedResult<PassInstrumentationAnalysis>(IR))
+    PI->runAnalysesCleared(Name);
 
   auto ResultsListI = AnalysisResultLists.find(&IR);
   if (ResultsListI == AnalysisResultLists.end())
@@ -64,9 +62,6 @@ AnalysisManager<IRUnitT, ExtraArgTs...>::getResultImpl(
   // run it to produce a result, which we then add to the cache.
   if (Inserted) {
     auto &P = this->lookUpPass(ID);
-    if (DebugLogging)
-      dbgs() << "Running analysis: " << P.name() << " on " << IR.getName()
-             << "\n";
 
     PassInstrumentation PI;
     if (ID != PassInstrumentationAnalysis::ID()) {
@@ -96,10 +91,6 @@ inline void AnalysisManager<IRUnitT, ExtraArgTs...>::invalidate(
   // We're done if all analyses on this IR unit are preserved.
   if (PA.allAnalysesInSetPreserved<AllAnalysesOn<IRUnitT>>())
     return;
-
-  if (DebugLogging)
-    dbgs() << "Invalidating all non-preserved analyses for: " << IR.getName()
-           << "\n";
 
   // Track whether each analysis's result is invalidated in
   // IsResultInvalidated.
@@ -140,9 +131,8 @@ inline void AnalysisManager<IRUnitT, ExtraArgTs...>::invalidate(
         continue;
       }
 
-      if (DebugLogging)
-        dbgs() << "Invalidating analysis: " << this->lookUpPass(ID).name()
-               << " on " << IR.getName() << "\n";
+      if (auto *PI = getCachedResult<PassInstrumentationAnalysis>(IR))
+        PI->runAnalysisInvalidated(this->lookUpPass(ID), IR);
 
       I = ResultsList.erase(I);
       AnalysisResults.erase({ID, &IR});

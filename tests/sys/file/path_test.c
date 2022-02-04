@@ -757,6 +757,25 @@ ATF_TC_BODY(path_lock, tc)
 	CHECKED_CLOSE(pathfd);
 }
 
+/*
+ * Verify fstatat(AT_EMPTY_PATH) on non-regular dirfd.
+ * Verify that fstatat(AT_EMPTY_PATH) on NULL path returns EFAULT.
+ */
+ATF_TC_WITHOUT_HEAD(path_pipe_fstatat);
+ATF_TC_BODY(path_pipe_fstatat, tc)
+{
+	struct stat sb;
+	int fd[2];
+
+	ATF_REQUIRE_MSG(pipe(fd) == 0, FMT_ERR("pipe"));
+	ATF_REQUIRE_MSG(fstatat(fd[0], "", &sb, AT_EMPTY_PATH) == 0,
+	    FMT_ERR("fstatat pipe"));
+	ATF_REQUIRE_ERRNO(EFAULT, fstatat(fd[0], NULL, &sb,
+	    AT_EMPTY_PATH) == -1);
+	CHECKED_CLOSE(fd[0]);
+	CHECKED_CLOSE(fd[1]);
+}
+
 /* Verify that we can send an O_PATH descriptor over a unix socket. */
 ATF_TC_WITHOUT_HEAD(path_rights);
 ATF_TC_BODY(path_rights, tc)
@@ -826,13 +845,15 @@ ATF_TC_BODY(path_rights, tc)
 	CHECKED_CLOSE(sd[1]);
 }
 
-/* Verify that a local socket can't be opened with O_PATH. */
+/* Verify that a local socket can be opened with O_PATH. */
 ATF_TC_WITHOUT_HEAD(path_unix);
 ATF_TC_BODY(path_unix, tc)
 {
-	char path[PATH_MAX];
+	char buf[BUFSIZ], path[PATH_MAX];
+	struct kevent ev;
 	struct sockaddr_un sun;
-	int pathfd, sd;
+	struct stat sb;
+	int kq, pathfd, sd;
 
 	snprintf(path, sizeof(path), "path_unix.XXXXXX");
 	ATF_REQUIRE_MSG(mktemp(path) == path, FMT_ERR("mktemp"));
@@ -846,10 +867,32 @@ ATF_TC_BODY(path_unix, tc)
 	ATF_REQUIRE_MSG(bind(sd, (struct sockaddr *)&sun, SUN_LEN(&sun)) == 0,
 	    FMT_ERR("bind"));
 
-	pathfd = open(path, O_RDONLY);
-	ATF_REQUIRE_ERRNO(EOPNOTSUPP, pathfd < 0);
+	pathfd = open(path, O_PATH);
+	ATF_REQUIRE_MSG(pathfd >= 0, FMT_ERR("open"));
+
+	ATF_REQUIRE_MSG(fstatat(pathfd, "", &sb, AT_EMPTY_PATH) == 0,
+	    FMT_ERR("fstatat"));
+	ATF_REQUIRE_MSG(sb.st_mode & S_IFSOCK, "socket mode %#x", sb.st_mode);
+	ATF_REQUIRE_MSG(sb.st_ino != 0, "socket has inode number 0");
+
+	memset(buf, 0, sizeof(buf));
+	ATF_REQUIRE_ERRNO(EBADF, write(pathfd, buf, sizeof(buf)));
+	ATF_REQUIRE_ERRNO(EBADF, read(pathfd, buf, sizeof(buf)));
+
+	/* kevent() is disallowed with sockets. */
+	kq = kqueue();
+	ATF_REQUIRE_MSG(kq >= 0, FMT_ERR("kqueue"));
+	EV_SET(&ev, pathfd, EVFILT_READ, EV_ADD | EV_ENABLE, 0, 0, 0);
+	ATF_REQUIRE_ERRNO(EBADF, kevent(kq, &ev, 1, NULL, 0, NULL) == -1);
+
+	/* Should not be able to open a socket without O_PATH. */
+	ATF_REQUIRE_ERRNO(EOPNOTSUPP, openat(pathfd, "", O_EMPTY_PATH) == -1);
+
+	ATF_REQUIRE_MSG(funlinkat(AT_FDCWD, path, pathfd, 0) == 0,
+	    FMT_ERR("funlinkat"));
 
 	CHECKED_CLOSE(sd);
+	CHECKED_CLOSE(pathfd);
 }
 
 ATF_TP_ADD_TCS(tp)
@@ -871,6 +914,7 @@ ATF_TP_ADD_TCS(tp)
 	ATF_TP_ADD_TC(tp, path_io);
 	ATF_TP_ADD_TC(tp, path_ioctl);
 	ATF_TP_ADD_TC(tp, path_lock);
+	ATF_TP_ADD_TC(tp, path_pipe_fstatat);
 	ATF_TP_ADD_TC(tp, path_rights);
 	ATF_TP_ADD_TC(tp, path_unix);
 

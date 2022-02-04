@@ -263,11 +263,10 @@ rip_append(struct inpcb *last, struct ip *ip, struct mbuf *n,
 		SOCKBUF_LOCK(&so->so_rcv);
 		if (sbappendaddr_locked(&so->so_rcv,
 		    (struct sockaddr *)ripsrc, n, opts) == 0) {
-			/* should notify about lost packet */
+			soroverflow_locked(so);
 			m_freem(n);
 			if (opts)
 				m_freem(opts);
-			SOCKBUF_UNLOCK(&so->so_rcv);
 		} else
 			sorwakeup_locked(so);
 	} else
@@ -523,8 +522,15 @@ rip_output(struct mbuf *m, struct socket *so, ...)
 	} else {
 		if (m->m_pkthdr.len > IP_MAXPACKET) {
 			m_freem(m);
-			return(EMSGSIZE);
+			return (EMSGSIZE);
 		}
+		if (m->m_pkthdr.len < sizeof(*ip)) {
+			m_freem(m);
+			return (EINVAL);
+		}
+		m = m_pullup(m, sizeof(*ip));
+		if (m == NULL)
+			return (ENOMEM);
 		ip = mtod(m, struct ip *);
 		hlen = ip->ip_hl << 2;
 		if (m->m_len < hlen) {

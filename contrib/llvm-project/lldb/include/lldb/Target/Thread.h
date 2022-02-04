@@ -19,6 +19,7 @@
 #include "lldb/Target/RegisterCheckpoint.h"
 #include "lldb/Target/StackFrameList.h"
 #include "lldb/Utility/Broadcaster.h"
+#include "lldb/Utility/CompletionRequest.h"
 #include "lldb/Utility/Event.h"
 #include "lldb/Utility/StructuredData.h"
 #include "lldb/Utility/UserID.h"
@@ -253,9 +254,9 @@ public:
 
   bool ThreadStoppedForAReason();
 
-  static const char *RunModeAsCString(lldb::RunMode mode);
+  static std::string RunModeAsString(lldb::RunMode mode);
 
-  static const char *StopReasonAsCString(lldb::StopReason reason);
+  static std::string StopReasonAsString(lldb::StopReason reason);
 
   virtual const char *GetInfo() { return nullptr; }
 
@@ -468,6 +469,24 @@ public:
     // the backing thread for all memory threads each time we stop.
   }
 
+  /// Dump \a count instructions of the thread's \a Trace starting at the \a
+  /// start_position position in reverse order.
+  ///
+  /// The instructions are indexed in reverse order, which means that the \a
+  /// start_position 0 represents the last instruction of the trace
+  /// chronologically.
+  ///
+  /// \param[in] s
+  ///   The stream object where the instructions are printed.
+  ///
+  /// \param[in] count
+  ///     The number of instructions to print.
+  ///
+  /// \param[in] start_position
+  ///     The position of the first instruction to print.
+  void DumpTraceInstructions(Stream &s, size_t count,
+                             size_t start_position = 0) const;
+
   // If stop_format is true, this will be the form used when we print stop
   // info. If false, it will be the form we use for thread list and co.
   void DumpUsingSettingsFormat(Stream &strm, uint32_t frame_idx,
@@ -596,7 +615,7 @@ public:
   /// \return
   ///     A shared pointer to the newly queued thread plan, or nullptr if the
   ///     plan could not be queued.
-  virtual lldb::ThreadPlanSP QueueFundamentalPlan(bool abort_other_plans);
+  lldb::ThreadPlanSP QueueBasePlan(bool abort_other_plans);
 
   /// Queues the plan used to step one instruction from the current PC of \a
   /// thread.
@@ -762,10 +781,10 @@ public:
   /// \param[in] stop_other_threads
   ///    \b true if we will stop other threads while we single step this one.
   ///
-  /// \param[in] stop_vote
+  /// \param[in] report_stop_vote
   ///    See standard meanings for the stop & run votes in ThreadPlan.h.
   ///
-  /// \param[in] run_vote
+  /// \param[in] report_run_vote
   ///    See standard meanings for the stop & run votes in ThreadPlan.h.
   ///
   /// \param[out] status
@@ -781,7 +800,7 @@ public:
   ///     plan could not be queued.
   virtual lldb::ThreadPlanSP QueueThreadPlanForStepOut(
       bool abort_other_plans, SymbolContext *addr_context, bool first_insn,
-      bool stop_other_threads, Vote stop_vote, Vote run_vote,
+      bool stop_other_threads, Vote report_stop_vote, Vote report_run_vote,
       uint32_t frame_idx, Status &status,
       LazyBool step_out_avoids_code_without_debug_info = eLazyBoolCalculate);
 
@@ -811,10 +830,10 @@ public:
   /// \param[in] stop_other_threads
   ///    \b true if we will stop other threads while we single step this one.
   ///
-  /// \param[in] stop_vote
+  /// \param[in] report_stop_vote
   ///    See standard meanings for the stop & run votes in ThreadPlan.h.
   ///
-  /// \param[in] run_vote
+  /// \param[in] report_run_vote
   ///    See standard meanings for the stop & run votes in ThreadPlan.h.
   ///
   /// \param[in] frame_idx
@@ -845,7 +864,7 @@ public:
   ///     plan could not be queued.
   virtual lldb::ThreadPlanSP QueueThreadPlanForStepOutNoShouldStop(
       bool abort_other_plans, SymbolContext *addr_context, bool first_insn,
-      bool stop_other_threads, Vote stop_vote, Vote run_vote,
+      bool stop_other_threads, Vote report_stop_vote, Vote report_run_vote,
       uint32_t frame_idx, Status &status, bool continue_to_next_branch = false);
 
   /// Gets the plan used to step through the code that steps from a function
@@ -910,6 +929,12 @@ public:
                                  bool stop_other_threads, Status &status);
 
   // Thread Plan accessors:
+
+  /// Format the thread plan information for auto completion.
+  ///
+  /// \param[in] request
+  ///     The reference to the completion handler.
+  void AutoCompleteThreadPlans(CompletionRequest &request) const;
 
   /// Gets the plan which will execute next on the plan stack.
   ///
@@ -1025,12 +1050,7 @@ public:
   virtual bool
   RestoreRegisterStateFromCheckpoint(ThreadStateCheckpoint &saved_state);
 
-  virtual bool
-  RestoreThreadStateFromCheckpoint(ThreadStateCheckpoint &saved_state);
-
-  void EnableTracer(bool value, bool single_step);
-
-  void SetTracer(lldb::ThreadPlanTracerSP &tracer_sp);
+  void RestoreThreadStateFromCheckpoint(ThreadStateCheckpoint &saved_state);
 
   // Get the thread index ID. The index ID that is guaranteed to not be re-used
   // by a process. They start at 1 and increase with each new thread. This

@@ -80,7 +80,7 @@ public:
 #define ABSTRACT_SVAL_WITH_KIND(Id, Parent) Id ## Kind,
 #include "clang/StaticAnalyzer/Core/PathSensitive/SVals.def"
   };
-  enum { BaseBits = 2, BaseMask = 0x3 };
+  enum { BaseBits = 2, BaseMask = 0b11 };
 
 protected:
   const void *Data = nullptr;
@@ -116,7 +116,7 @@ public:
 
   unsigned getRawKind() const { return Kind; }
   BaseKind getBaseKind() const { return (BaseKind) (Kind & BaseMask); }
-  unsigned getSubKind() const { return (Kind & ~BaseMask) >> BaseBits; }
+  unsigned getSubKind() const { return Kind >> BaseBits; }
 
   // This method is required for using SVal in a FoldingSetNode.  It
   // extracts a unique signature for this SVal object.
@@ -182,12 +182,6 @@ public:
   /// should continue to the base regions if the region is not symbolic.
   SymbolRef getAsSymbol(bool IncludeBaseRegions = false) const;
 
-  /// getAsSymbolicExpression - If this Sval wraps a symbolic expression then
-  ///  return that expression.  Otherwise return NULL.
-  const SymExpr *getAsSymbolicExpression() const;
-
-  const SymExpr *getAsSymExpr() const;
-
   const MemRegion *getAsRegion() const;
 
   /// printJson - Pretty-prints in JSON format.
@@ -207,6 +201,19 @@ public:
   SymExpr::symbol_iterator symbol_end() const {
     return SymExpr::symbol_end();
   }
+
+  /// Try to get a reasonable type for the given value.
+  ///
+  /// \returns The best approximation of the value type or Null.
+  /// In theory, all symbolic values should be typed, but this function
+  /// is still a WIP and might have a few blind spots.
+  ///
+  /// \note This function should not be used when the user has access to the
+  /// bound expression AST node as well, since AST always has exact types.
+  ///
+  /// \note Loc values are interpreted as pointer rvalues for the purposes of
+  /// this method.
+  QualType getType(const ASTContext &) const;
 };
 
 inline raw_ostream &operator<<(raw_ostream &os, clang::ento::SVal V) {
@@ -517,16 +524,17 @@ private:
 /// This value is qualified as NonLoc because neither loading nor storing
 /// operations are applied to it. Instead, the analyzer uses the L-value coming
 /// from pointer-to-member applied to an object.
-/// This SVal is represented by a DeclaratorDecl which can be a member function
-/// pointer or a member data pointer and a list of CXXBaseSpecifiers. This list
-/// is required to accumulate the pointer-to-member cast history to figure out
-/// the correct subobject field.
+/// This SVal is represented by a NamedDecl which can be a member function
+/// pointer or a member data pointer and an optional list of CXXBaseSpecifiers.
+/// This list is required to accumulate the pointer-to-member cast history to
+/// figure out the correct subobject field. In particular, implicit casts grow
+/// this list and explicit casts like static_cast shrink this list.
 class PointerToMember : public NonLoc {
   friend class ento::SValBuilder;
 
 public:
   using PTMDataType =
-      llvm::PointerUnion<const DeclaratorDecl *, const PointerToMemberData *>;
+      llvm::PointerUnion<const NamedDecl *, const PointerToMemberData *>;
 
   const PTMDataType getPTMData() const {
     return PTMDataType::getFromOpaqueValue(const_cast<void *>(Data));
@@ -534,7 +542,7 @@ public:
 
   bool isNullMemberPointer() const;
 
-  const DeclaratorDecl *getDecl() const;
+  const NamedDecl *getDecl() const;
 
   template<typename AdjustedDecl>
   const AdjustedDecl *getDeclAs() const {

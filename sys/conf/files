@@ -121,6 +121,8 @@ cam/ctl/ctl_error.c		optional ctl
 cam/ctl/ctl_util.c		optional ctl
 cam/ctl/scsi_ctl.c		optional ctl
 cam/mmc/mmc_xpt.c		optional scbus mmccam
+cam/mmc/mmc_sim.c		optional scbus mmccam
+cam/mmc/mmc_sim_if.m		optional scbus mmccam
 cam/mmc/mmc_da.c		optional scbus mmccam da
 cam/scsi/scsi_da.c		optional da
 cam/scsi/scsi_pass.c		optional pass
@@ -785,6 +787,8 @@ crypto/chacha20/chacha-sw.c	optional crypto | ipsec | ipsec_support
 crypto/des/des_ecb.c		optional netsmb
 crypto/des/des_setkey.c		optional netsmb
 crypto/openssl/ossl.c		optional ossl
+crypto/openssl/ossl_chacha20.c	optional ossl
+crypto/openssl/ossl_poly1305.c	optional ossl
 crypto/openssl/ossl_sha1.c	optional ossl
 crypto/openssl/ossl_sha256.c	optional ossl
 crypto/openssl/ossl_sha512.c	optional ossl
@@ -1567,7 +1571,7 @@ t4fw.fwo		optional cxgbe					\
 	no-implicit-rule						\
 	clean		"t4fw.fwo"
 t4fw.fw			optional cxgbe					\
-	dependency	"$S/dev/cxgbe/firmware/t4fw-1.25.0.40.bin"	\
+	dependency	"$S/dev/cxgbe/firmware/t4fw-1.26.2.0.bin"	\
 	compile-with	"${CP} ${.ALLSRC} ${.TARGET}"			\
 	no-obj no-implicit-rule						\
 	clean		"t4fw.fw"
@@ -1601,7 +1605,7 @@ t5fw.fwo		optional cxgbe					\
 	no-implicit-rule						\
 	clean		"t5fw.fwo"
 t5fw.fw			optional cxgbe					\
-	dependency	"$S/dev/cxgbe/firmware/t5fw-1.25.0.40.bin"	\
+	dependency	"$S/dev/cxgbe/firmware/t5fw-1.26.2.0.bin"	\
 	compile-with	"${CP} ${.ALLSRC} ${.TARGET}"			\
 	no-obj no-implicit-rule						\
 	clean		"t5fw.fw"
@@ -1635,7 +1639,7 @@ t6fw.fwo		optional cxgbe					\
 	no-implicit-rule						\
 	clean		"t6fw.fwo"
 t6fw.fw			optional cxgbe					\
-	dependency	"$S/dev/cxgbe/firmware/t6fw-1.25.0.40.bin"	\
+	dependency	"$S/dev/cxgbe/firmware/t6fw-1.26.2.0.bin"	\
 	compile-with	"${CP} ${.ALLSRC} ${.TARGET}"			\
 	no-obj no-implicit-rule						\
 	clean		"t6fw.fw"
@@ -1721,6 +1725,8 @@ dev/e1000/e1000_i210.c		optional em \
 	compile-with "${NORMAL_C} -I$S/dev/e1000"
 dev/e1000/e1000_api.c		optional em \
 	compile-with "${NORMAL_C} -I$S/dev/e1000"
+dev/e1000/e1000_base.c		optional em \
+	compile-with "${NORMAL_C} -I$S/dev/e1000"
 dev/e1000/e1000_mac.c		optional em \
 	compile-with "${NORMAL_C} -I$S/dev/e1000"
 dev/e1000/e1000_manage.c	optional em \
@@ -1741,6 +1747,8 @@ dev/ena/ena.c			optional ena \
 dev/ena/ena_datapath.c		optional ena \
 	compile-with "${NORMAL_C} -I$S/contrib"
 dev/ena/ena_netmap.c		optional ena \
+	compile-with "${NORMAL_C} -I$S/contrib"
+dev/ena/ena_rss.c		optional ena \
 	compile-with "${NORMAL_C} -I$S/contrib"
 dev/ena/ena_sysctl.c 		optional ena \
 	compile-with "${NORMAL_C} -I$S/contrib"
@@ -1916,13 +1924,17 @@ dev/iicbus/iicoc_fdt.c		optional iicoc ext_resources fdt
 dev/iicbus/iicoc_pci.c		optional iicoc pci
 dev/iicbus/isl12xx.c		optional isl12xx
 dev/iicbus/lm75.c		optional lm75
+dev/iicbus/max44009.c		optional max44009
 dev/iicbus/mux/pca9547.c	optional pca9547 iicmux fdt
 dev/iicbus/mux/iicmux.c		optional iicmux
 dev/iicbus/mux/iicmux_if.m	optional iicmux
 dev/iicbus/mux/iic_gpiomux.c	optional iic_gpiomux fdt
 dev/iicbus/mux/ltc430x.c	optional ltc430x
+dev/iicbus/mux/pca954x.c	optional pca954x
 dev/iicbus/nxprtc.c		optional nxprtc | pcf8563
 dev/iicbus/ofw_iicbus.c		optional fdt iicbus
+dev/iicbus/pcf8574.c		optional pcf8574
+dev/iicbus/pcf8591.c		optional pcf8591
 dev/iicbus/rtc8583.c		optional rtc8583
 dev/iicbus/rtc/rx8803.c		optional rx8803 iicbus fdt
 dev/iicbus/s35390a.c		optional s35390a
@@ -1932,6 +1944,14 @@ dev/iicbus/gpio/tca6416.c	optional tca6416 fdt
 dev/iir/iir.c			optional iir
 dev/iir/iir_ctrl.c		optional iir
 dev/iir/iir_pci.c		optional iir pci
+dev/igc/if_igc.c		optional igc iflib pci
+dev/igc/igc_api.c		optional igc iflib pci
+dev/igc/igc_base.c		optional igc iflib pci
+dev/igc/igc_i225.c		optional igc iflib pci
+dev/igc/igc_mac.c		optional igc iflib pci
+dev/igc/igc_nvm.c		optional igc iflib pci
+dev/igc/igc_phy.c		optional igc iflib pci
+dev/igc/igc_txrx.c		optional igc iflib pci
 dev/intpm/intpm.c		optional intpm pci
 # XXX Work around clang warning, until maintainer approves fix.
 dev/ips/ips.c			optional ips \
@@ -2517,7 +2537,9 @@ dev/mmc/mmc.c			optional mmc !mmccam
 dev/mmc/mmcbr_if.m		standard
 dev/mmc/mmcbus_if.m		standard
 dev/mmc/mmcsd.c			optional mmcsd !mmccam
-dev/mmc/mmc_fdt_helpers.c	optional mmc fdt | mmccam fdt
+dev/mmc/mmc_fdt_helpers.c	optional ext_resources mmc fdt | ext_resources mmccam fdt
+dev/mmc/mmc_pwrseq.c		optional ext_resources mmc fdt | ext_resources mmccam fdt
+dev/mmc/mmc_pwrseq_if.m		optional ext_resources mmc fdt | ext_resources mmccam fdt
 dev/mmcnull/mmcnull.c		optional mmcnull
 dev/mn/if_mn.c			optional mn pci
 dev/mpr/mpr.c			optional mpr
@@ -2627,6 +2649,7 @@ dev/oce/oce_mbox.c		optional oce pci
 dev/oce/oce_queue.c		optional oce pci
 dev/oce/oce_sysctl.c		optional oce pci
 dev/oce/oce_util.c		optional oce pci
+dev/ocs_fc/ocs_gendump.c	optional ocs_fc pci
 dev/ocs_fc/ocs_pci.c		optional ocs_fc pci
 dev/ocs_fc/ocs_ioctl.c		optional ocs_fc pci
 dev/ocs_fc/ocs_os.c		optional ocs_fc pci
@@ -3929,6 +3952,8 @@ kern/stack_protector.c		standard \
 	compile-with "${NORMAL_C:N-fstack-protector*}"
 kern/subr_acl_nfs4.c		optional ufs_acl | zfs
 kern/subr_acl_posix1e.c		optional ufs_acl
+kern/subr_asan.c		optional kasan \
+	compile-with "${NORMAL_C:N-fsanitize*}"
 kern/subr_autoconf.c		standard
 kern/subr_blist.c		standard
 kern/subr_boot.c		standard
@@ -4137,6 +4162,7 @@ libkern/strncat.c		standard
 libkern/strncmp.c		standard
 libkern/strncpy.c		standard
 libkern/strnlen.c		standard
+libkern/strnstr.c		standard
 libkern/strrchr.c		standard
 libkern/strsep.c		standard
 libkern/strspn.c		standard
@@ -4385,6 +4411,7 @@ netinet/accf_http.c		optional accept_filter_http inet
 netinet/if_ether.c		optional inet ether
 netinet/igmp.c			optional inet
 netinet/in.c			optional inet
+netinet/in_cksum.c		optional inet | inet6
 netinet/in_debug.c		optional inet ddb
 netinet/in_kdtrace.c		optional inet | inet6
 netinet/ip_carp.c		optional inet carp | inet6 carp
@@ -4573,6 +4600,7 @@ netpfil/pf/pf_norm.c		optional pf inet
 netpfil/pf/pf_nv.c		optional pf inet
 netpfil/pf/pf_osfp.c		optional pf inet
 netpfil/pf/pf_ruleset.c		optional pf inet
+netpfil/pf/pf_syncookies.c	optional pf inet
 netpfil/pf/pf_table.c		optional pf inet
 netpfil/pf/in4_cksum.c		optional pf inet
 netsmb/smb_conn.c		optional netsmb
@@ -4597,6 +4625,10 @@ nlm/nlm_prot_xdr.c		optional nfslockd | nfsd
 nlm/sm_inter_xdr.c		optional nfslockd | nfsd
 
 # Linux Kernel Programming Interface
+compat/linuxkpi/common/src/linux_80211.c	optional compat_linuxkpi wlan \
+	compile-with "${LINUXKPI_C}"
+compat/linuxkpi/common/src/linux_80211_macops.c	optional compat_linuxkpi wlan \
+	compile-with "${LINUXKPI_C}"
 compat/linuxkpi/common/src/linux_kmod.c		optional compat_linuxkpi \
 	compile-with "${LINUXKPI_C}"
 compat/linuxkpi/common/src/linux_acpi.c		optional compat_linuxkpi acpi \
@@ -4615,9 +4647,13 @@ compat/linuxkpi/common/src/linux_firmware.c	optional compat_linuxkpi \
 	compile-with "${LINUXKPI_C}"
 compat/linuxkpi/common/src/linux_hrtimer.c	optional compat_linuxkpi \
 	compile-with "${LINUXKPI_C}"
+compat/linuxkpi/common/src/linux_interrupt.c	optional compat_linuxkpi \
+	compile-with "${LINUXKPI_C}"
 compat/linuxkpi/common/src/linux_kthread.c	optional compat_linuxkpi \
 	compile-with "${LINUXKPI_C}"
 compat/linuxkpi/common/src/linux_lock.c		optional compat_linuxkpi \
+	compile-with "${LINUXKPI_C}"
+compat/linuxkpi/common/src/linux_netdev.c	optional compat_linuxkpi \
 	compile-with "${LINUXKPI_C}"
 compat/linuxkpi/common/src/linux_page.c		optional compat_linuxkpi \
 	compile-with "${LINUXKPI_C}"
@@ -4636,6 +4672,8 @@ compat/linuxkpi/common/src/linux_schedule.c	optional compat_linuxkpi \
 compat/linuxkpi/common/src/linux_shmemfs.c	optional compat_linuxkpi \
 	compile-with "${LINUXKPI_C}"
 compat/linuxkpi/common/src/linux_shrinker.c	optional compat_linuxkpi \
+	compile-with "${LINUXKPI_C}"
+compat/linuxkpi/common/src/linux_skbuff.c	optional compat_linuxkpi \
 	compile-with "${LINUXKPI_C}"
 compat/linuxkpi/common/src/linux_slab.c		optional compat_linuxkpi \
 	compile-with "${LINUXKPI_C}"
@@ -4975,6 +5013,8 @@ opencrypto/gfmult.c		optional crypto | ipsec | ipsec_support
 opencrypto/rmd160.c		optional crypto | ipsec | ipsec_support
 opencrypto/xform.c		optional crypto | ipsec | ipsec_support
 opencrypto/xform_cbc_mac.c	optional crypto
+opencrypto/xform_chacha20_poly1305.c	optional crypto \
+	compile-with "${NORMAL_C} -I$S/contrib/libsodium/src/libsodium/include -I$S/crypto/libsodium"
 opencrypto/xform_poly1305.c	optional crypto \
 	compile-with "${NORMAL_C} -I$S/contrib/libsodium/src/libsodium/include -I$S/crypto/libsodium"
 contrib/libsodium/src/libsodium/crypto_onetimeauth/poly1305/onetimeauth_poly1305.c \
@@ -5111,6 +5151,7 @@ security/mac_none/mac_none.c	optional mac_none
 security/mac_ntpd/mac_ntpd.c	optional mac_ntpd
 security/mac_partition/mac_partition.c optional mac_partition
 security/mac_portacl/mac_portacl.c optional mac_portacl
+security/mac_priority/mac_priority.c	optional mac_priority
 security/mac_seeotheruids/mac_seeotheruids.c optional mac_seeotheruids
 security/mac_stub/mac_stub.c	optional mac_stub
 security/mac_test/mac_test.c	optional mac_test

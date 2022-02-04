@@ -25,6 +25,7 @@ arm/arm/dump_machdep.c		standard
 arm/arm/elf_machdep.c		standard
 arm/arm/elf_note.S		standard
 arm/arm/exception.S		standard
+arm/arm/exec_machdep.c		standard
 arm/arm/fiq.c			standard
 arm/arm/fiq_subr.S		standard
 arm/arm/fusu.S			standard
@@ -33,8 +34,8 @@ arm/arm/generic_timer.c		optional	generic_timer
 arm/arm/gic.c			optional	gic
 arm/arm/gic_fdt.c		optional	gic fdt
 arm/arm/identcpu-v6.c		standard
-arm/arm/in_cksum.c		optional	inet | inet6
 arm/arm/in_cksum_arm.S		optional	inet | inet6
+arm/arm/in_cksum_machdep.c	optional	inet | inet6
 kern/subr_intr.c		standard
 arm/arm/locore.S		standard	no-obj
 arm/arm/hypervisor-stub.S	standard
@@ -123,7 +124,6 @@ libkern/fls.c			optional	!armv7 !armv6
 libkern/flsl.c			optional	!armv7 !armv6
 libkern/flsll.c			optional	!armv7 !armv6
 libkern/lshrdi3.c		standard
-libkern/memcmp.c		standard
 libkern/moddi3.c		standard
 libkern/qdivrem.c		standard
 libkern/strlen.c		standard

@@ -28,7 +28,7 @@
 .\"     from: @(#)inetd.8	8.3 (Berkeley) 4/13/94
 .\" $FreeBSD$
 .\"
-.Dd May 14, 2020
+.Dd December 6, 2021
 .Dt INETD 8
 .Os
 .Sh NAME
@@ -37,17 +37,14 @@
 .Dq super-server
 .Sh SYNOPSIS
 .Nm
-.Op Fl d
-.Op Fl l
-.Op Fl w
-.Op Fl W
-.Op Fl c Ar maximum
+.Op Fl dlWw
+.Op Fl a Ar address
 .Op Fl C Ar rate
-.Op Fl a Ar address | hostname
+.Op Fl c Ar maximum
 .Op Fl p Ar filename
 .Op Fl R Ar rate
 .Op Fl s Ar maximum
-.Op Ar configuration file
+.Op Ar configuration_file
 .Sh DESCRIPTION
 The
 .Nm
@@ -74,40 +71,7 @@ reducing load on the system.
 .Pp
 The following options are available:
 .Bl -tag -width indent
-.It Fl d
-Turn on debugging.
-.It Fl l
-Turn on logging of successful connections.
-.It Fl w
-Turn on TCP Wrapping for external services.
-See the
-.Sx "IMPLEMENTATION NOTES"
-section for more information on TCP Wrappers support.
-.It Fl W
-Turn on TCP Wrapping for internal services which are built in to
-.Nm .
-.It Fl c Ar maximum
-Specify the default maximum number of
-simultaneous invocations of each service;
-the default is unlimited.
-May be overridden on a per-service basis with the "max-child"
-parameter.
-.It Fl C Ar rate
-Specify the default maximum number of times a service can be invoked
-from a single IP address in one minute; the default is unlimited.
-May be overridden on a per-service basis with the
-"max-connections-per-ip-per-minute" parameter.
-.It Fl R Ar rate
-Specify the maximum number of times a service can be invoked
-in one minute; the default is 256.
-A rate of 0 allows an unlimited number of invocations.
-.It Fl s Ar maximum
-Specify the default maximum number of
-simultaneous invocations of each service from a single IP address;
-the default is unlimited.
-May be overridden on a per-service basis with the "max-child-per-ip"
-parameter.
-.It Fl a
+.It Fl a Ar address
 Specify one specific IP address to bind to.
 Alternatively, a hostname can be specified,
 in which case the IPv4 or IPv6 address
@@ -139,8 +103,41 @@ See the explanation of the
 .Pa /etc/inetd.conf
 .Em protocol
 field below.
+.It Fl C Ar rate
+Specify the default maximum number of times a service can be invoked
+from a single IP address in one minute; the default is unlimited.
+May be overridden on a per-service basis with the
+"max-connections-per-ip-per-minute" parameter.
+.It Fl c Ar maximum
+Specify the default maximum number of
+simultaneous invocations of each service;
+the default is unlimited.
+May be overridden on a per-service basis with the "max-child"
+parameter.
+.It Fl d
+Turn on debugging.
+.It Fl l
+Turn on logging of successful connections.
 .It Fl p
 Specify an alternate file in which to store the process ID.
+.It Fl R Ar rate
+Specify the maximum number of times a service can be invoked
+in one minute; the default is 256.
+A rate of 0 allows an unlimited number of invocations.
+.It Fl s Ar maximum
+Specify the default maximum number of
+simultaneous invocations of each service from a single IP address;
+the default is unlimited.
+May be overridden on a per-service basis with the "max-child-per-ip"
+parameter.
+.It Fl W
+Turn on TCP Wrapping for internal services which are built in to
+.Nm .
+.It Fl w
+Turn on TCP Wrapping for external services.
+See the
+.Sx "IMPLEMENTATION NOTES"
+section for more information on TCP Wrappers support.
 .El
 .Pp
 Upon execution,
@@ -170,7 +167,7 @@ server-program-arguments
 .Ed
 .Pp
 To specify an
-.Tn "ONC RPC" Ns -based
+ONC RPC-based
 service, the entry would contain these fields:
 .Pp
 .Bd -unfilled -offset indent -compact
@@ -191,7 +188,7 @@ it may be a service that implements an official Internet standard or is a
 .Bx Ns -specific
 service.
 As described in
-.Tn RFC 1078 ,
+RFC 1078,
 TCPMUX services are nonstandard services that do not have a
 well-known port assigned to them.
 They are invoked from
@@ -221,7 +218,7 @@ should
 be the official name of the service (that is, the first entry in
 .Pa /etc/services ) .
 When used to specify an
-.Tn "ONC RPC" Ns -based
+ONC RPC-based
 service, this field is a valid RPC service name listed in
 the file
 .Pa /etc/rpc .
@@ -468,33 +465,12 @@ If the real
 service is disabled,
 return this username for every request.
 This is primarily useful when running this service on a NAT machine.
-.It Fl g
-Instead of returning
-the user's name to the ident requester,
-report a
-username made up of random alphanumeric characters,
-e.g.\&
-.Dq c0c993 .
-The
-.Fl g
-flag overrides not only the user names,
-but also any fallback name,
+.It Fl F
+Same as
+.Fl f
+but without the restriction that the username in
 .Pa .fakeid
-or
-.Pa .noident
-files.
-.It Fl t Xo
-.Ar sec Ns Op . Ns Ar usec
-.Xc
-Specify a timeout for the service.
-The default timeout is 10.0 seconds.
-.It Fl r
-Offer a real
-.Dq auth
-service, as per RFC 1413.
-All the remaining flags apply only in this case.
-.It Fl i
-Return numeric user IDs instead of usernames.
+must not match an existing user.
 .It Fl f
 If the file
 .Pa .fakeid
@@ -509,12 +485,23 @@ If the
 flag is also given then the username in
 .Pa .fakeid
 is checked against existing user IDs instead.
-.It Fl F
-same as
-.Fl f
-but without the restriction that the username in
+.It Fl g
+Instead of returning
+the user's name to the ident requester,
+report a
+username made up of random alphanumeric characters,
+e.g.,
+.Dq c0c993 .
+The
+.Fl g
+flag overrides not only the user names,
+but also any fallback name,
 .Pa .fakeid
-must not match an existing user.
+or
+.Pa .noident
+files.
+.It Fl i
+Return numeric user IDs instead of usernames.
 .It Fl n
 If the file
 .Pa .noident
@@ -528,6 +515,16 @@ Use
 .Ar osname
 instead of the name of the system as reported by
 .Xr uname 3 .
+.It Fl r
+Offer a real
+.Dq auth
+service, as per RFC 1413.
+All the remaining flags apply only in this case.
+.It Fl t Xo
+.Ar sec Ns Op Cm \&. Ns Ar usec
+.Xc
+Specify a timeout for the service.
+The default timeout is 10.0 seconds.
 .El
 .Pp
 The
@@ -553,7 +550,7 @@ request specifies a reply port corresponding to any internal service.
 is logged.)
 For details of these services, consult the
 appropriate
-.Tn RFC
+RFC
 document.
 .Pp
 The TCPMUX-demultiplexing service is also implemented as an internal service.
@@ -653,7 +650,7 @@ should be used as the daemon name for
 .Dq internal
 services.
 .Ss TCPMUX
-.Tn RFC 1078
+RFC 1078
 describes the TCPMUX protocol:
 ``A TCP client connects to a foreign host on TCP port 1.
 It sends the
@@ -728,7 +725,7 @@ The specification of the socket must be
 an absolute path name,
 optionally prefixed by an owner and mode
 of the form
-.Em :user:group:mode: .
+.Em ":user:group:mode\&:" .
 The specification:
 .Pp
 .Dl ":news:daemon:220:/var/run/sock"
@@ -960,10 +957,9 @@ utility appeared in
 .Bx 4.3 .
 TCPMUX is based on code and documentation by Mark Lottor.
 Support for
-.Tn "ONC RPC"
-based services is modeled after that
+ONC RPC-based services is modeled after that
 provided by
-.Tn SunOS
+SunOS
 4.1.
 The IPsec hack was contributed by the KAME project in 1999.
 The

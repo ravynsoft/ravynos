@@ -82,8 +82,9 @@ void openbsd::Assembler::ConstructJob(Compilation &C, const JobAction &JA,
     CmdArgs.push_back(II.getFilename());
 
   const char *Exec = Args.MakeArgString(getToolChain().GetProgramPath("as"));
-  C.addCommand(std::make_unique<Command>(
-      JA, *this, ResponseFileSupport::AtFileCurCP(), Exec, CmdArgs, Inputs));
+  C.addCommand(std::make_unique<Command>(JA, *this,
+                                         ResponseFileSupport::AtFileCurCP(),
+                                         Exec, CmdArgs, Inputs, Output));
 }
 
 void openbsd::Linker::ConstructJob(Compilation &C, const JobAction &JA,
@@ -173,6 +174,11 @@ void openbsd::Linker::ConstructJob(Compilation &C, const JobAction &JA,
   AddLinkerInputs(ToolChain, Inputs, Args, CmdArgs, JA);
 
   if (!Args.hasArg(options::OPT_nostdlib, options::OPT_nodefaultlibs)) {
+    // Use the static OpenMP runtime with -static-openmp
+    bool StaticOpenMP = Args.hasArg(options::OPT_static_openmp) &&
+                        !Args.hasArg(options::OPT_static);
+    addOpenMPRuntime(CmdArgs, ToolChain, Args, StaticOpenMP);
+
     if (D.CCCIsCXX()) {
       if (ToolChain.ShouldLinkCXXStdlib(Args))
         ToolChain.AddCXXStdlibLibArgs(Args, CmdArgs);
@@ -220,9 +226,12 @@ void openbsd::Linker::ConstructJob(Compilation &C, const JobAction &JA,
     CmdArgs.push_back(Args.MakeArgString(ToolChain.GetFilePath(crtend)));
   }
 
+  ToolChain.addProfileRTLibs(Args, CmdArgs);
+
   const char *Exec = Args.MakeArgString(ToolChain.GetLinkerPath());
-  C.addCommand(std::make_unique<Command>(
-      JA, *this, ResponseFileSupport::AtFileCurCP(), Exec, CmdArgs, Inputs));
+  C.addCommand(std::make_unique<Command>(JA, *this,
+                                         ResponseFileSupport::AtFileCurCP(),
+                                         Exec, CmdArgs, Inputs, Output));
 }
 
 SanitizerMask OpenBSD::getSupportedSanitizers() const {
@@ -294,6 +303,7 @@ void OpenBSD::AddCXXStdlibLibArgs(const ArgList &Args,
 
   CmdArgs.push_back(Profiling ? "-lc++_p" : "-lc++");
   CmdArgs.push_back(Profiling ? "-lc++abi_p" : "-lc++abi");
+  CmdArgs.push_back(Profiling ? "-lpthread_p" : "-lpthread");
 }
 
 std::string OpenBSD::getCompilerRT(const ArgList &Args,

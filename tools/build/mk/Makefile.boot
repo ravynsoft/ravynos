@@ -16,20 +16,20 @@ NM:=	/usr/bin/nm
 
 # Avoid stale dependecy warnings:
 LIBC:=
-LIBZ:=
 LIBM:=
 LIBUTIL:=
 LIBCPLUSPLUS:=
 LIBARCHIVE:=
 LIBPTHREAD:=
 LIBMD:=${WORLDTMP}/legacy/usr/lib/libmd.a
-LIBNV:=${WORLDTMP}/legacy/usr/lib/libmd.a
+LIBNV:=${WORLDTMP}/legacy/usr/lib/libnv.a
 LIBSBUF:=${WORLDTMP}/legacy/usr/lib/libsbuf.a
 LIBY:=${WORLDTMP}/legacy/usr/lib/liby.a
 LIBL:=${WORLDTMP}/legacy/usr/lib/libl.a
 LIBROKEN:=${WORLDTMP}/legacy/usr/lib/libroken.a
 LIBDWARF:=${WORLDTMP}/legacy/usr/lib/libdwarf.a
 LIBELF:=${WORLDTMP}/legacy/usr/lib/libelf.a
+LIBZ:=${WORLDTMP}/legacy/usr/lib/libz.a
 
 # Add various -Werror flags to catch missing function declarations
 CFLAGS+=	-Werror=implicit-function-declaration -Werror=implicit-int \
@@ -37,7 +37,7 @@ CFLAGS+=	-Werror=implicit-function-declaration -Werror=implicit-int \
 CFLAGS+=	-DHAVE_NBTOOL_CONFIG_H=1
 CFLAGS+=	-I${SRCTOP}/tools/build/cross-build/include/common
 # This is needed for code that compiles for pre-C11 C standards
-CWARNFLAGS+=	-Wno-typedef-redefinition
+CWARNFLAGS.clang+=-Wno-typedef-redefinition
 # bsd.sys.mk explicitly turns on -Wsystem-headers, but that's extremely
 # noisy when building on Linux.
 CWARNFLAGS+=	-Wno-system-headers

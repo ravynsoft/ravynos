@@ -137,12 +137,12 @@ ipq_drop(struct ipqbucket *bucket, struct ipq *fp)
 #define	IP_MAXFRAGPACKETS	(imin(IP_MAXFRAGS, IPREASS_NHASH * 50))
 
 static int		maxfrags;
-static volatile u_int	nfrags;
+static u_int __exclusive_cache_line	nfrags;
 SYSCTL_INT(_net_inet_ip, OID_AUTO, maxfrags, CTLFLAG_RW,
     &maxfrags, 0,
     "Maximum number of IPv4 fragments allowed across all reassembly queues");
 SYSCTL_UINT(_net_inet_ip, OID_AUTO, curfrags, CTLFLAG_RD,
-    __DEVOLATILE(u_int *, &nfrags), 0,
+    &nfrags, 0,
     "Current number of IPv4 fragments across all reassembly queues");
 
 VNET_DEFINE_STATIC(uma_zone_t, ipq_zone);
@@ -593,11 +593,16 @@ ipreass_slowtimo(void)
 {
 	struct ipq *fp, *tmp;
 
+	if (atomic_load_int(&nfrags) == 0)
+		return;
+
 	for (int i = 0; i < IPREASS_NHASH; i++) {
+		if (TAILQ_EMPTY(&V_ipq[i].head))
+			continue;
 		IPQ_LOCK(i);
 		TAILQ_FOREACH_SAFE(fp, &V_ipq[i].head, ipq_list, tmp)
 		if (--fp->ipq_ttl == 0)
-				ipq_timeout(&V_ipq[i], fp);
+			ipq_timeout(&V_ipq[i], fp);
 		IPQ_UNLOCK(i);
 	}
 }

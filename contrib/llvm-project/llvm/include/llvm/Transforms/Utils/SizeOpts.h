@@ -17,18 +17,16 @@
 #include "llvm/Analysis/ProfileSummaryInfo.h"
 #include "llvm/Support/CommandLine.h"
 
-extern llvm::cl::opt<bool> EnablePGSO;
-extern llvm::cl::opt<bool> PGSOLargeWorkingSetSizeOnly;
-extern llvm::cl::opt<bool> PGSOIRPassOrTestOnly;
-extern llvm::cl::opt<bool> PGSOColdCodeOnly;
-extern llvm::cl::opt<bool> PGSOColdCodeOnlyForInstrPGO;
-extern llvm::cl::opt<bool> PGSOColdCodeOnlyForSamplePGO;
-extern llvm::cl::opt<bool> PGSOColdCodeOnlyForPartialSamplePGO;
-extern llvm::cl::opt<bool> ForcePGSO;
-extern llvm::cl::opt<int> PgsoCutoffInstrProf;
-extern llvm::cl::opt<int> PgsoCutoffSampleProf;
-
 namespace llvm {
+extern cl::opt<bool> EnablePGSO;
+extern cl::opt<bool> PGSOLargeWorkingSetSizeOnly;
+extern cl::opt<bool> PGSOColdCodeOnly;
+extern cl::opt<bool> PGSOColdCodeOnlyForInstrPGO;
+extern cl::opt<bool> PGSOColdCodeOnlyForSamplePGO;
+extern cl::opt<bool> PGSOColdCodeOnlyForPartialSamplePGO;
+extern cl::opt<bool> ForcePGSO;
+extern cl::opt<int> PgsoCutoffInstrProf;
+extern cl::opt<int> PgsoCutoffSampleProf;
 
 class BasicBlock;
 class BlockFrequencyInfo;
@@ -60,11 +58,6 @@ bool shouldFuncOptimizeForSizeImpl(const FuncT *F, ProfileSummaryInfo *PSI,
     return true;
   if (!EnablePGSO)
     return false;
-  // Temporarily enable size optimizations only for the IR pass or test query
-  // sites for gradual commit/rollout. This is to be removed later.
-  if (PGSOIRPassOrTestOnly && !(QueryType == PGSOQueryType::IRPass ||
-                                QueryType == PGSOQueryType::Test))
-    return false;
   if (isPGSOColdCodeOnly(PSI))
     return AdapterT::isFunctionColdInCallGraph(F, PSI, *BFI);
   if (PSI->hasSampleProfile())
@@ -84,11 +77,6 @@ bool shouldOptimizeForSizeImpl(BlockTOrBlockFreq BBOrBlockFreq, ProfileSummaryIn
   if (ForcePGSO)
     return true;
   if (!EnablePGSO)
-    return false;
-  // Temporarily enable size optimizations only for the IR pass or test query
-  // sites for gradual commit/rollout. This is to be removed later.
-  if (PGSOIRPassOrTestOnly && !(QueryType == PGSOQueryType::IRPass ||
-                                QueryType == PGSOQueryType::Test))
     return false;
   if (isPGSOColdCodeOnly(PSI))
     return AdapterT::isColdBlock(BBOrBlockFreq, PSI, BFI);

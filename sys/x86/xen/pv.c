@@ -134,7 +134,6 @@ struct init_ops xen_pvh_init_ops = {
 	.early_delay			= xen_delay,
 	.parse_memmap			= xen_pvh_parse_memmap,
 #ifdef SMP
-	.mp_bootaddress			= mp_bootaddress,
 	.start_all_aps			= native_start_all_aps,
 #endif
 	.msi_init			= msi_init,
@@ -335,7 +334,7 @@ hammer_time_xen(vm_paddr_t start_info_paddr)
 			HYPERVISOR_shutdown(SHUTDOWN_crash);
 		}
 		mod = (struct hvm_modlist_entry *)
-		    (vm_paddr_t)start_info->modlist_paddr + KERNBASE;
+		    (start_info->modlist_paddr + KERNBASE);
 		if (mod[0].paddr >= physfree) {
 			xc_printf("ERROR: unexpected module memory address\n");
 			HYPERVISOR_shutdown(SHUTDOWN_crash);

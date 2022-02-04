@@ -83,14 +83,16 @@ void EmitClangCommentCommandList(llvm::RecordKeeper &Records,
                                  llvm::raw_ostream &OS);
 void EmitClangOpcodes(llvm::RecordKeeper &Records, llvm::raw_ostream &OS);
 
+void EmitClangSyntaxNodeList(llvm::RecordKeeper &Records,
+                             llvm::raw_ostream &OS);
+void EmitClangSyntaxNodeClasses(llvm::RecordKeeper &Records,
+                                llvm::raw_ostream &OS);
+
 void EmitNeon(llvm::RecordKeeper &Records, llvm::raw_ostream &OS);
 void EmitFP16(llvm::RecordKeeper &Records, llvm::raw_ostream &OS);
 void EmitBF16(llvm::RecordKeeper &Records, llvm::raw_ostream &OS);
 void EmitNeonSema(llvm::RecordKeeper &Records, llvm::raw_ostream &OS);
 void EmitNeonTest(llvm::RecordKeeper &Records, llvm::raw_ostream &OS);
-void EmitNeon2(llvm::RecordKeeper &Records, llvm::raw_ostream &OS);
-void EmitNeonSema2(llvm::RecordKeeper &Records, llvm::raw_ostream &OS);
-void EmitNeonTest2(llvm::RecordKeeper &Records, llvm::raw_ostream &OS);
 
 void EmitSveHeader(llvm::RecordKeeper &Records, llvm::raw_ostream &OS);
 void EmitSveBuiltins(llvm::RecordKeeper &Records, llvm::raw_ostream &OS);
@@ -104,6 +106,10 @@ void EmitMveBuiltinSema(llvm::RecordKeeper &Records, llvm::raw_ostream &OS);
 void EmitMveBuiltinCG(llvm::RecordKeeper &Records, llvm::raw_ostream &OS);
 void EmitMveBuiltinAliases(llvm::RecordKeeper &Records, llvm::raw_ostream &OS);
 
+void EmitRVVHeader(llvm::RecordKeeper &Records, llvm::raw_ostream &OS);
+void EmitRVVBuiltins(llvm::RecordKeeper &Records, llvm::raw_ostream &OS);
+void EmitRVVBuiltinCG(llvm::RecordKeeper &Records, llvm::raw_ostream &OS);
+
 void EmitCdeHeader(llvm::RecordKeeper &Records, llvm::raw_ostream &OS);
 void EmitCdeBuiltinDef(llvm::RecordKeeper &Records, llvm::raw_ostream &OS);
 void EmitCdeBuiltinSema(llvm::RecordKeeper &Records, llvm::raw_ostream &OS);
@@ -116,6 +122,8 @@ void EmitClangOptDocs(llvm::RecordKeeper &Records, llvm::raw_ostream &OS);
 
 void EmitClangOpenCLBuiltins(llvm::RecordKeeper &Records,
                              llvm::raw_ostream &OS);
+void EmitClangOpenCLBuiltinTests(llvm::RecordKeeper &Records,
+                                 llvm::raw_ostream &OS);
 
 void EmitClangDataCollectors(llvm::RecordKeeper &Records,
                              llvm::raw_ostream &OS);

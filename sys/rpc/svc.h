@@ -212,7 +212,7 @@ typedef struct __rpc_svcxprt {
  * Interface to server-side authentication flavors.
  */
 typedef struct __rpc_svcauth {
-	struct svc_auth_ops {
+	const struct svc_auth_ops {
 #ifdef _KERNEL
 		int   (*svc_ah_wrap)(struct __rpc_svcauth *,  struct mbuf **);
 		int   (*svc_ah_unwrap)(struct __rpc_svcauth *, struct mbuf **);
@@ -669,7 +669,7 @@ __END_DECLS
  * Somebody has to wait for incoming requests and then call the correct
  * service routine.  The routine svc_run does infinite waiting; i.e.,
  * svc_run never returns.
- * Since another (co-existant) package may wish to selectively wait for
+ * Since another (co-existent) package may wish to selectively wait for
  * incoming calls or other events outside of the rpc architecture, the
  * routine svc_getreq is provided.  It must be passed readfds, the
  * "in-place" results of a select system call (see select, section 2).

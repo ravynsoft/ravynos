@@ -65,6 +65,7 @@ public:
   }
   uint64_t GetTypeHash() const { return m_type_hash; }
   dw_offset_t GetTypeOffset() const { return m_type_offset; }
+  uint64_t GetDWOId() const { return m_dwo_id; }
   bool IsTypeUnit() const {
     return m_unit_type == DW_UT_type || m_unit_type == DW_UT_split_type;
   }
@@ -72,7 +73,8 @@ public:
 
   static llvm::Expected<DWARFUnitHeader>
   extract(const lldb_private::DWARFDataExtractor &data, DIERef::Section section,
-          lldb::offset_t *offset_ptr, const llvm::DWARFUnitIndex *index);
+          lldb_private::DWARFContext &dwarf_context,
+          lldb::offset_t *offset_ptr);
 };
 
 class DWARFUnit : public lldb_private::UserID {
@@ -83,11 +85,11 @@ public:
   static llvm::Expected<DWARFUnitSP>
   extract(SymbolFileDWARF &dwarf2Data, lldb::user_id_t uid,
           const lldb_private::DWARFDataExtractor &debug_info,
-          DIERef::Section section, lldb::offset_t *offset_ptr,
-          const llvm::DWARFUnitIndex *index);
+          DIERef::Section section, lldb::offset_t *offset_ptr);
   virtual ~DWARFUnit();
 
   bool IsDWOUnit() { return m_is_dwo; }
+  uint64_t GetDWOId();
 
   void ExtractUnitDIEIfNeeded();
   void ExtractDIEsIfNeeded();
@@ -105,7 +107,6 @@ public:
   };
   ScopedExtractDIEs ExtractDIEsScoped();
 
-  DWARFDIE LookupAddress(const dw_addr_t address);
   bool Verify(lldb_private::Stream *s) const;
   virtual void Dump(lldb_private::Stream *s) const = 0;
   /// Get the data that contains the DIE information for this unit.
@@ -167,7 +168,7 @@ public:
 
   void SetBaseAddress(dw_addr_t base_addr);
 
-  DWARFBaseDIE GetUnitDIEOnly() { return DWARFDIE(this, GetUnitDIEPtrOnly()); }
+  DWARFBaseDIE GetUnitDIEOnly() { return {this, GetUnitDIEPtrOnly()}; }
 
   DWARFDIE DIE() { return DWARFDIE(this, DIEPtr()); }
 
@@ -234,19 +235,14 @@ public:
   /// Return a rangelist's offset based on an index. The index designates
   /// an entry in the rangelist table's offset array and is supplied by
   /// DW_FORM_rnglistx.
-  llvm::Optional<uint64_t> GetRnglistOffset(uint32_t Index) const {
-    if (!m_rnglist_table)
-      return llvm::None;
-    if (llvm::Optional<uint64_t> off = m_rnglist_table->getOffsetEntry(Index))
-      return *off + m_ranges_base;
-    return llvm::None;
-  }
+  llvm::Expected<uint64_t> GetRnglistOffset(uint32_t Index);
 
   llvm::Optional<uint64_t> GetLoclistOffset(uint32_t Index) {
     if (!m_loclist_table_header)
       return llvm::None;
 
-    llvm::Optional<uint64_t> Offset =  m_loclist_table_header->getOffsetEntry(Index);
+    llvm::Optional<uint64_t> Offset = m_loclist_table_header->getOffsetEntry(
+        m_dwarf.GetDWARFContext().getOrLoadLocListsData().GetAsLLVM(), Index);
     if (!Offset)
       return llvm::None;
     return *Offset + m_loclists_base;
@@ -286,6 +282,8 @@ protected:
       return NULL;
     return &m_die_array[0];
   }
+
+  const llvm::Optional<llvm::DWARFDebugRnglistTable> &GetRnglistTable();
 
   SymbolFileDWARF &m_dwarf;
   std::shared_ptr<DWARFUnit> m_dwo;
@@ -327,10 +325,13 @@ protected:
   dw_offset_t m_str_offsets_base = 0; // Value of DW_AT_str_offsets_base.
 
   llvm::Optional<llvm::DWARFDebugRnglistTable> m_rnglist_table;
+  bool m_rnglist_table_done = false;
   llvm::Optional<llvm::DWARFListTableHeader> m_loclist_table_header;
 
   const DIERef::Section m_section;
   bool m_is_dwo;
+  /// Value of DW_AT_GNU_dwo_id (v4) or dwo_id from CU header (v5).
+  uint64_t m_dwo_id;
 
 private:
   void ParseProducerInfo();

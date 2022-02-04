@@ -29,8 +29,8 @@
  *
  * $FreeBSD$
  */
-#ifndef	_LINUX_COMPILER_H_
-#define	_LINUX_COMPILER_H_
+#ifndef	_LINUXKPI_LINUX_COMPILER_H_
+#define	_LINUXKPI_LINUX_COMPILER_H_
 
 #include <sys/cdefs.h>
 
@@ -60,13 +60,13 @@
 #define	__percpu
 #define	__weak __weak_symbol
 #define	__malloc
-#define	___stringify(...)		#__VA_ARGS__
-#define	__stringify(...)		___stringify(__VA_ARGS__)
 #define	__attribute_const__		__attribute__((__const__))
 #undef __always_inline
 #define	__always_inline			inline
 #define	noinline			__noinline
 #define	____cacheline_aligned		__aligned(CACHE_LINE_SIZE)
+#define	____cacheline_aligned_in_smp	__aligned(CACHE_LINE_SIZE)
+#define	fallthrough			/* FALLTHROUGH */ do { } while(0)
 
 #define	likely(x)			__builtin_expect(!!(x), 1)
 #define	unlikely(x)			__builtin_expect(!!(x), 0)
@@ -81,11 +81,8 @@
 
 #define	barrier()			__asm__ __volatile__("": : :"memory")
 
-#if defined(LINUXKPI_VERSION) && LINUXKPI_VERSION >= 50000
-/* Moved from drm_os_freebsd.h */
 #define	lower_32_bits(n)		((u32)(n))
 #define	upper_32_bits(n)		((u32)(((n) >> 16) >> 16))
-#endif
 
 #define	___PASTE(a,b) a##b
 #define	__PASTE(a,b) ___PASTE(a,b)
@@ -114,4 +111,4 @@
 #define	__same_type(a, b)	__builtin_types_compatible_p(typeof(a), typeof(b))
 #define	__must_be_array(a)	__same_type(a, &(a)[0])
 
-#endif	/* _LINUX_COMPILER_H_ */
+#endif	/* _LINUXKPI_LINUX_COMPILER_H_ */

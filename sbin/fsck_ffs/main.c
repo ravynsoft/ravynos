@@ -295,15 +295,14 @@ checkfilesys(char *filesys)
 		 */
 		if ((fsreadfd = open(filesys, O_RDONLY)) < 0 || readsb(0) == 0)
 			exit(3);	/* Cannot read superblock */
-		if (nflag || (fswritefd = open(filesys, O_WRONLY)) < 0) {
+		if (bkgrdflag == 0 &&
+		    (nflag || (fswritefd = open(filesys, O_WRONLY)) < 0)) {
 			fswritefd = -1;
 			if (preen)
 				pfatal("NO WRITE ACCESS");
 			printf(" (NO WRITE)");
 		}
 		if ((sblock.fs_flags & FS_GJOURNAL) != 0) {
-			//printf("GJournaled file system detected on %s.\n",
-			//    filesys);
 			if (sblock.fs_clean == 1) {
 				pwarn("FILE SYSTEM CLEAN; SKIPPING CHECKS\n");
 				exit(0);
@@ -315,12 +314,12 @@ checkfilesys(char *filesys)
 					exit(0);
 				exit(4);
 			} else {
-				pfatal(
-			    "UNEXPECTED INCONSISTENCY, CANNOT RUN FAST FSCK\n");
-				close(fsreadfd);
-				close(fswritefd);
+				pfatal("UNEXPECTED INCONSISTENCY, CANNOT RUN "
+				    "FAST FSCK\n");
 			}
 		}
+		close(fsreadfd);
+		close(fswritefd);
 	}
 	/*
 	 * If we are to do a background check:
@@ -330,13 +329,14 @@ checkfilesys(char *filesys)
 	 *	if not found, clear bkgrdflag and proceed with normal fsck
 	 */
 	if (bkgrdflag) {
+		/* Get the mount point information of the file system */
 		if (mntp == NULL) {
 			bkgrdflag = 0;
 			pfatal("NOT MOUNTED, CANNOT RUN IN BACKGROUND\n");
 		} else if ((mntp->f_flags & MNT_SOFTDEP) == 0) {
 			bkgrdflag = 0;
-			pfatal(
-			  "NOT USING SOFT UPDATES, CANNOT RUN IN BACKGROUND\n");
+			pfatal("NOT USING SOFT UPDATES, CANNOT RUN IN "
+			    "BACKGROUND\n");
 		} else if ((mntp->f_flags & MNT_RDONLY) != 0) {
 			bkgrdflag = 0;
 			pfatal("MOUNTED READ-ONLY, CANNOT RUN IN BACKGROUND\n");
@@ -528,10 +528,10 @@ checkfilesys(char *filesys)
 	 */
 	if (duplist) {
 		if (preen || usedsoftdep)
-			pfatal("INTERNAL ERROR: dups with %s%s%s",
+			pfatal("INTERNAL ERROR: DUPS WITH %s%s%s",
 			    preen ? "-p" : "",
-			    (preen && usedsoftdep) ? " and " : "",
-			    usedsoftdep ? "softupdates" : "");
+			    (preen && usedsoftdep) ? " AND " : "",
+			    usedsoftdep ? "SOFTUPDATES" : "");
 		printf("** Phase 1b - Rescan For More DUPS\n");
 		pass1b();
 		IOstats("Pass1b");

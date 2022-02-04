@@ -90,7 +90,6 @@ struct u_device {
 #define	DF_QUIET	0x10		/* don't print verbose attach message */
 #define	DF_DONENOMATCH	0x20		/* don't execute DEVICE_NOMATCH again */
 #define	DF_EXTERNALSOFTC 0x40		/* softc not allocated by us */
-#define	DF_REBID	0x80		/* Can rebid after attach */
 #define	DF_SUSPENDED	0x100		/* Device is suspended. */
 #define	DF_QUIET_CHILDREN 0x200		/* Default to quiet for all my children */
 #define	DF_ATTACHED_ONCE 0x400		/* Has been attached at least once */
@@ -800,7 +799,7 @@ DECLARE_MODULE(name##_##busname, name##_##busname##_mod,		\
 static __inline type varp ## _get_ ## var(device_t dev)			\
 {									\
 	uintptr_t v;							\
-	int e;								\
+	int e __diagused;						\
 	e = BUS_READ_IVAR(device_get_parent(dev), dev,			\
 	    ivarp ## _IVAR_ ## ivar, &v);				\
 	KASSERT(e == 0, ("%s failed for %s on bus %s, error = %d",	\
@@ -812,7 +811,7 @@ static __inline type varp ## _get_ ## var(device_t dev)			\
 static __inline void varp ## _set_ ## var(device_t dev, type t)		\
 {									\
 	uintptr_t v = (uintptr_t) t;					\
-	int e;								\
+	int e __diagused;						\
 	e = BUS_WRITE_IVAR(device_get_parent(dev), dev,			\
 	    ivarp ## _IVAR_ ## ivar, v);				\
 	KASSERT(e == 0, ("%s failed for %s on bus %s, error = %d",	\

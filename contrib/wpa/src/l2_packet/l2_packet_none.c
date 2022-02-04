@@ -1,5 +1,5 @@
 /*
- * WPA Supplicant - Layer2 packet handling example with dummy functions
+ * WPA Supplicant - Layer2 packet handling example with stub functions
  * Copyright (c) 2003-2005, Jouni Malinen <j@w1.fi>
  *
  * This software may be distributed under the terms of the BSD license.
@@ -84,7 +84,7 @@ struct l2_packet_data * l2_packet_init(
 	 * TODO: open connection for receiving frames
 	 */
 	l2->fd = -1;
-	if (l2->fd >= 0)
+	if (rx_callback && l2->fd >= 0)
 		eloop_register_read_sock(l2->fd, l2_packet_receive, l2, NULL);
 
 	return l2;
@@ -112,7 +112,7 @@ void l2_packet_deinit(struct l2_packet_data *l2)
 		eloop_unregister_read_sock(l2->fd);
 		/* TODO: close connection */
 	}
-		
+
 	os_free(l2);
 }
 

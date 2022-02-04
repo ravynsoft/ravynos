@@ -6,9 +6,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include <cerrno>
+#include <cstdint>
 #include <cstring>
-#include <errno.h>
-#include <stdint.h>
 
 #include "lldb/Target/Process.h"
 #include "lldb/Target/Target.h"
@@ -39,16 +39,21 @@ bool RegisterContextPOSIX_arm64::IsFPR(unsigned reg) {
   return false;
 }
 
+bool RegisterContextPOSIX_arm64::IsSVE(unsigned reg) const {
+  return m_register_info_up->IsSVEReg(reg);
+}
+
+bool RegisterContextPOSIX_arm64::IsPAuth(unsigned reg) const {
+  return m_register_info_up->IsPAuthReg(reg);
+}
+
 RegisterContextPOSIX_arm64::RegisterContextPOSIX_arm64(
     lldb_private::Thread &thread,
     std::unique_ptr<RegisterInfoPOSIX_arm64> register_info)
     : lldb_private::RegisterContext(thread, 0),
-      m_register_info_up(std::move(register_info)) {
+      m_register_info_up(std::move(register_info)) {}
 
-  ::memset(&m_fpr, 0, sizeof m_fpr);
-}
-
-RegisterContextPOSIX_arm64::~RegisterContextPOSIX_arm64() {}
+RegisterContextPOSIX_arm64::~RegisterContextPOSIX_arm64() = default;
 
 void RegisterContextPOSIX_arm64::Invalidate() {}
 
@@ -82,8 +87,8 @@ const lldb_private::RegisterInfo *
 RegisterContextPOSIX_arm64::GetRegisterInfoAtIndex(size_t reg) {
   if (reg < GetRegisterCount())
     return &GetRegisterInfo()[reg];
-  else
-    return nullptr;
+
+  return nullptr;
 }
 
 size_t RegisterContextPOSIX_arm64::GetRegisterSetCount() {

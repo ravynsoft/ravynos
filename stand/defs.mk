@@ -10,11 +10,20 @@ __BOOT_DEFS_MK__=${MFILE}
 MK_CTF=		no
 MK_SSP=		no
 MK_PROFILE=	no
+MK_PIE=		no
 MAN=
 .if !defined(PIC)
 NO_PIC=
 INTERNALLIB=
 .endif
+# Should be NO_CPU_FLAGS, but bsd.cpu.mk is included too early in bsd.init.mk
+# via the early include of bsd.opts.mk. Moving Makefile.inc include earlier in
+# that file causes weirdness, so this is the next best thing. We need to do this
+# because the loader needs very specific flags to work right, and things like
+# CPUTYPE?=native prevent that, and introduce an endless game of whack-a-mole
+# to disable more and more features. Boot loader performance is never improved
+# enough to make that hassle worth chasing.
+_CPUCFLAGS=
 
 .include <src.opts.mk>
 .include <bsd.linker.mk>
@@ -105,10 +114,12 @@ CFLAGS+= -DLOADER_DISK_SUPPORT
 
 # Machine specific flags for all builds here
 
-# Ensure PowerPC64 and PowerPC64LE boot loaders are compiled as 32 bit
-# and in big endian.
-.if ${MACHINE_ARCH:Mpowerpc64*} != ""
+# Ensure PowerPC64 and PowerPC64LE boot loaders are compiled as 32 bit.
+# PowerPC64LE boot loaders are 32-bit little-endian.
+.if ${MACHINE_ARCH} == "powerpc64"
 CFLAGS+=	-m32 -mcpu=powerpc -mbig-endian
+.elif ${MACHINE_ARCH} == "powerpc64le"
+CFLAGS+=	-m32 -mcpu=powerpc -mlittle-endian
 .endif
 
 # For amd64, there's a bit of mixed bag. Some of the tree (i386, lib*32) is
@@ -120,8 +131,6 @@ CFLAGS+=	-m32
 LD_FLAGS+=	-m elf_i386_fbsd
 AFLAGS+=	--32
 .endif
-
-SSP_CFLAGS=
 
 # Add in the no float / no SIMD stuff and announce we're freestanding
 # aarch64 and riscv don't have -msoft-float, but all others do.

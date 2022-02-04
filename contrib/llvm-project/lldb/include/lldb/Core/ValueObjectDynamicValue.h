@@ -19,22 +19,22 @@
 #include "lldb/lldb-forward.h"
 #include "lldb/lldb-private-enumerations.h"
 
-#include <assert.h>
-#include <stddef.h>
-#include <stdint.h>
+#include <cassert>
+#include <cstddef>
+#include <cstdint>
 
 namespace lldb_private {
 class DataExtractor;
 class Declaration;
 class Status;
 
-// A ValueObject that represents memory at a given address, viewed as some
-// set lldb type.
+/// A ValueObject that represents memory at a given address, viewed as some
+/// set lldb type.
 class ValueObjectDynamicValue : public ValueObject {
 public:
   ~ValueObjectDynamicValue() override;
 
-  uint64_t GetByteSize() override;
+  llvm::Optional<uint64_t> GetByteSize() override;
 
   ConstString GetTypeName() override;
 

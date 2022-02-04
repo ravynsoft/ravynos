@@ -207,6 +207,7 @@ hrtime_t	dtrace_deadman_user = (hrtime_t)30 * NANOSEC;
 hrtime_t	dtrace_unregister_defunct_reap = (hrtime_t)60 * NANOSEC;
 #ifndef illumos
 int		dtrace_memstr_max = 4096;
+int		dtrace_bufsize_max_frac = 128;
 #endif
 
 /*
@@ -10014,6 +10015,9 @@ dtrace_difo_validate(dtrace_difo_t *dp, dtrace_vstate_t *vstate, uint_t nregs,
 			}
 
 			if (subr == DIF_SUBR_GETF) {
+#ifdef __FreeBSD__
+				err += efunc(pc, "getf() not supported");
+#else
 				/*
 				 * If we have a getf() we need to record that
 				 * in our state.  Note that our state can be
@@ -10024,6 +10028,7 @@ dtrace_difo_validate(dtrace_difo_t *dp, dtrace_vstate_t *vstate, uint_t nregs,
 				 */
 				if (vstate->dtvs_state != NULL)
 					vstate->dtvs_state->dts_getf++;
+#endif
 			}
 
 			break;
@@ -12201,7 +12206,8 @@ err:
 	 * ask to malloc, so let's place a limit here before trying
 	 * to do something that might well end in tears at bedtime.
 	 */
-	if (size > physmem * PAGE_SIZE / (128 * (mp_maxid + 1)))
+	int bufsize_percpu_frac = dtrace_bufsize_max_frac * mp_ncpus;
+	if (size > physmem * PAGE_SIZE / bufsize_percpu_frac)
 		return (ENOMEM);
 #endif
 

@@ -23,6 +23,10 @@
 
 struct pmap;
 
+#ifdef __i386__
+extern unsigned int boot_address;
+#endif
+
 /* global data in mp_x86.c */
 extern int mp_naps;
 extern int boot_cpu_id;
@@ -32,7 +36,6 @@ extern int bootAP;
 extern void *dpcpu;
 extern char *bootSTK;
 extern void *bootstacks[];
-extern unsigned int boot_address;
 extern unsigned int bootMP_size;
 extern volatile int aps_ready;
 extern struct mtx ap_boot_mtx;
@@ -84,12 +87,15 @@ inthand_t
 typedef void (*smp_invl_cb_t)(struct pmap *, vm_offset_t addr1,
     vm_offset_t addr2);
 
+#ifdef __i386__
+void	alloc_ap_trampoline(vm_paddr_t *physmap, unsigned int *physmap_idx);
+#endif
+
 /* functions in x86_mp.c */
 void	assign_cpu_ids(void);
 void	cpu_add(u_int apic_id, char boot_cpu);
 void	cpustop_handler(void);
 void	cpususpend_handler(void);
-void	alloc_ap_trampoline(vm_paddr_t *physmap, unsigned int *physmap_idx);
 void	init_secondary_tail(void);
 void	init_secondary(void);
 void	ipi_startup(int apic_id, int vector);
@@ -101,14 +107,23 @@ void	ipi_swi_handler(struct trapframe frame);
 void	ipi_selected(cpuset_t cpus, u_int ipi);
 void	ipi_self_from_nmi(u_int vector);
 void	set_interrupt_apic_ids(void);
+void	mem_range_AP_init(void);
+void	topo_probe(void);
+
+/* functions in mp_machdep.c */
 void	smp_cache_flush(smp_invl_cb_t curcpu_cb);
+#ifdef __i386__
 void	smp_masked_invlpg(cpuset_t mask, vm_offset_t addr, struct pmap *pmap,
 	    smp_invl_cb_t curcpu_cb);
 void	smp_masked_invlpg_range(cpuset_t mask, vm_offset_t startva,
 	    vm_offset_t endva, struct pmap *pmap, smp_invl_cb_t curcpu_cb);
 void	smp_masked_invltlb(cpuset_t mask, struct pmap *pmap,
 	    smp_invl_cb_t curcpu_cb);
-void	mem_range_AP_init(void);
-void	topo_probe(void);
-
+#else
+void	smp_masked_invlpg(vm_offset_t addr, struct pmap *pmap,
+	    smp_invl_cb_t curcpu_cb);
+void	smp_masked_invlpg_range(vm_offset_t startva, vm_offset_t endva,
+	    struct pmap *pmap, smp_invl_cb_t curcpu_cb);
+void	smp_masked_invltlb(struct pmap *pmap, smp_invl_cb_t curcpu_cb);
+#endif
 #endif

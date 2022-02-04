@@ -1,7 +1,7 @@
 /******************************************************************************
   SPDX-License-Identifier: BSD-3-Clause
 
-  Copyright (c) 2001-2017, Intel Corporation
+  Copyright (c) 2001-2020, Intel Corporation
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -147,10 +147,8 @@
 #define IXGBE_I2C_T_SU_STO	4
 #define IXGBE_I2C_T_BUF		5
 
-#ifndef IXGBE_SFP_DETECT_RETRIES
 #define IXGBE_SFP_DETECT_RETRIES	10
 
-#endif /* IXGBE_SFP_DETECT_RETRIES */
 #define IXGBE_TN_LASI_STATUS_REG	0x9005
 #define IXGBE_TN_LASI_STATUS_TEMP_ALARM	0x0008
 
@@ -163,6 +161,7 @@ enum ixgbe_phy_type ixgbe_get_phy_type_from_id(u32 phy_id);
 s32 ixgbe_get_phy_id(struct ixgbe_hw *hw);
 s32 ixgbe_identify_phy_generic(struct ixgbe_hw *hw);
 s32 ixgbe_reset_phy_generic(struct ixgbe_hw *hw);
+void ixgbe_restart_auto_neg(struct ixgbe_hw *hw);
 s32 ixgbe_read_phy_reg_mdi(struct ixgbe_hw *hw, u32 reg_addr, u32 device_type,
 			   u16 *phy_data);
 s32 ixgbe_write_phy_reg_mdi(struct ixgbe_hw *hw, u32 reg_addr, u32 device_type,

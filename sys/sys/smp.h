@@ -81,6 +81,8 @@ struct cpu_group {
 	struct cpu_group *cg_child;	/* Optional children groups. */
 	cpuset_t	cg_mask;	/* Mask of cpus in this group. */
 	int32_t		cg_count;	/* Count of cpus in this group. */
+	int32_t		cg_first;	/* First cpu in this group. */
+	int32_t		cg_last;	/* Last cpu in this group. */
 	int16_t		cg_children;	/* Number of children groups. */
 	int8_t		cg_level;	/* Shared cache level. */
 	int8_t		cg_flags;	/* Traversal modifiers. */
@@ -105,6 +107,7 @@ typedef struct cpu_group *cpu_group_t;
 #define	CG_FLAG_HTT	0x01		/* Schedule the alternate core last. */
 #define	CG_FLAG_SMT	0x02		/* New age htt, less crippled. */
 #define	CG_FLAG_THREAD	(CG_FLAG_HTT | CG_FLAG_SMT)	/* Any threading. */
+#define	CG_FLAG_NODE	0x04		/* NUMA node. */
 
 /*
  * Convenience routines for building and traversing topologies.

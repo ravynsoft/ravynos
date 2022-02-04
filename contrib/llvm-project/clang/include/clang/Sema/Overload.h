@@ -160,6 +160,9 @@ class Sema;
     /// Vector conversions
     ICK_Vector_Conversion,
 
+    /// Arm SVE Vector conversions
+    ICK_SVE_Vector_Conversion,
+
     /// A vector splat from an arithmetic type
     ICK_Vector_Splat,
 
@@ -757,9 +760,6 @@ class Sema;
     /// This candidate was not viable because its address could not be taken.
     ovl_fail_addr_not_available,
 
-    /// This candidate was not viable because its OpenCL extension is disabled.
-    ovl_fail_ext_disabled,
-
     /// This inherited constructor is not viable because it would slice the
     /// argument.
     ovl_fail_inhctor_slice,
@@ -1059,6 +1059,9 @@ class Sema;
     SourceLocation getLocation() const { return Loc; }
     CandidateSetKind getKind() const { return Kind; }
     OperatorRewriteInfo getRewriteInfo() const { return RewriteInfo; }
+
+    /// Whether diagnostics should be deferred.
+    bool shouldDeferDiags(Sema &S, ArrayRef<Expr *> Args, SourceLocation OpLoc);
 
     /// Determine when this overload candidate will be new to the
     /// overload set.

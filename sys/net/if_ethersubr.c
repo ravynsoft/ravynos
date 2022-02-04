@@ -235,10 +235,11 @@ ether_resolve_addr(struct ifnet *ifp, struct mbuf *m,
 #endif
 #ifdef INET6
 	case AF_INET6:
-		if ((m->m_flags & M_MCAST) == 0)
-			error = nd6_resolve(ifp, 0, m, dst, phdr, &lleflags,
-			    plle);
-		else {
+		if ((m->m_flags & M_MCAST) == 0) {
+			int af = RO_GET_FAMILY(ro, dst);
+			error = nd6_resolve(ifp, LLE_SF(af, 0), m, dst, phdr,
+			    &lleflags, plle);
+		} else {
 			const struct in6_addr *a6;
 			a6 = &(((const struct sockaddr_in6 *)dst)->sin6_addr);
 			ETHER_MAP_IPV6_MULTICAST(a6, eh->ether_dhost);
@@ -315,7 +316,7 @@ ether_output(struct ifnet *ifp, struct mbuf *m,
 					 * the entry was used
 					 * by datapath.
 					 */
-					llentry_mark_used(lle);
+					llentry_provide_feedback(lle);
 			}
 			if (lle != NULL) {
 				phdr = lle->r_linkdata;
@@ -352,7 +353,7 @@ ether_output(struct ifnet *ifp, struct mbuf *m,
 
 	if ((pflags & RT_L2_ME) != 0) {
 		update_mbuf_csumflags(m, m);
-		return (if_simloop(ifp, m, dst->sa_family, 0));
+		return (if_simloop(ifp, m, RO_GET_FAMILY(ro, dst), 0));
 	}
 	loop_copy = (pflags & RT_MAY_LOOP) != 0;
 
@@ -399,7 +400,7 @@ ether_output(struct ifnet *ifp, struct mbuf *m,
 		 */
 		if ((n = m_dup(m, M_NOWAIT)) != NULL) {
 			update_mbuf_csumflags(m, n);
-			(void)if_simloop(ifp, n, dst->sa_family, hlen);
+			(void)if_simloop(ifp, n, RO_GET_FAMILY(ro, dst), hlen);
 		} else
 			if_inc_counter(ifp, IFCOUNTER_IQDROPS, 1);
 	}
@@ -1443,6 +1444,11 @@ ether_gen_addr(struct ifnet *ifp, struct ether_addr *hwaddr)
 	char jailname[MAXHOSTNAMELEN];
 
 	getcredhostuuid(curthread->td_ucred, uuid, sizeof(uuid));
+	if (strncmp(uuid, DEFAULT_HOSTUUID, sizeof(uuid)) == 0) {
+		/* Fall back to a random mac address. */
+		goto rando;
+	}
+
 	/* If each (vnet) jail would also have a unique hostuuid this would not
 	 * be necessary. */
 	getjailname(curthread->td_ucred, jailname, sizeof(jailname));
@@ -1450,9 +1456,7 @@ ether_gen_addr(struct ifnet *ifp, struct ether_addr *hwaddr)
 	    jailname);
 	if (sz < 0) {
 		/* Fall back to a random mac address. */
-		arc4rand(hwaddr, sizeof(*hwaddr), 0);
-		hwaddr->octet[0] = 0x02;
-		return;
+		goto rando;
 	}
 
 	SHA1Init(&ctx);
@@ -1467,6 +1471,14 @@ ether_gen_addr(struct ifnet *ifp, struct ether_addr *hwaddr)
 		hwaddr->octet[i] = addr >> ((ETHER_ADDR_LEN - i - 1) * 8) &
 		    0xFF;
 	}
+
+	return;
+rando:
+	arc4rand(hwaddr, sizeof(*hwaddr), 0);
+	/* Unicast */
+	hwaddr->octet[0] &= 0xFE;
+	/* Locally administered. */
+	hwaddr->octet[0] |= 0x02;
 }
 
 DECLARE_MODULE(ether, ether_mod, SI_SUB_INIT_IF, SI_ORDER_ANY);

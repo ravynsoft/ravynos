@@ -157,7 +157,7 @@ static struct task	unp_defer_task;
 static u_long	unpst_sendspace = PIPSIZ;
 static u_long	unpst_recvspace = PIPSIZ;
 static u_long	unpdg_sendspace = 2*1024;	/* really max datagram size */
-static u_long	unpdg_recvspace = 4*1024;
+static u_long	unpdg_recvspace = 16*1024;	/* support 8KB syslog msgs */
 static u_long	unpsp_sendspace = PIPSIZ;	/* really max datagram size */
 static u_long	unpsp_recvspace = PIPSIZ;
 
@@ -1001,7 +1001,7 @@ uipc_send(struct socket *so, int flags, struct mbuf *m, struct sockaddr *nam,
 	struct unpcb *unp, *unp2;
 	struct socket *so2;
 	u_int mbcnt, sbcc;
-	int freed, error;
+	int error;
 
 	unp = sotounpcb(so);
 	KASSERT(unp != NULL, ("%s: unp == NULL", __func__));
@@ -1009,7 +1009,7 @@ uipc_send(struct socket *so, int flags, struct mbuf *m, struct sockaddr *nam,
 	    so->so_type == SOCK_SEQPACKET,
 	    ("%s: socktype %d", __func__, so->so_type));
 
-	freed = error = 0;
+	error = 0;
 	if (flags & PRUS_OOB) {
 		error = EOPNOTSUPP;
 		goto release;
@@ -1059,7 +1059,7 @@ uipc_send(struct socket *so, int flags, struct mbuf *m, struct sockaddr *nam,
 			m = NULL;
 			control = NULL;
 		} else {
-			SOCKBUF_UNLOCK(&so2->so_rcv);
+			soroverflow_locked(so2);
 			error = ENOBUFS;
 		}
 		if (nam != NULL)
@@ -1962,7 +1962,7 @@ unp_shutdown(struct unpcb *unp)
 static void
 unp_drop(struct unpcb *unp)
 {
-	struct socket *so = unp->unp_socket;
+	struct socket *so;
 	struct unpcb *unp2;
 
 	/*
@@ -1972,6 +1972,7 @@ unp_drop(struct unpcb *unp)
 	 */
 
 	UNP_PCB_LOCK(unp);
+	so = unp->unp_socket;
 	if (so)
 		so->so_error = ECONNRESET;
 	if ((unp2 = unp_pcb_lock_peer(unp)) != NULL) {

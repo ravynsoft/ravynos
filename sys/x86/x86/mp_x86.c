@@ -27,6 +27,7 @@
 #include <sys/cdefs.h>
 __FBSDID("$FreeBSD$");
 
+#include "opt_acpi.h"
 #ifdef __i386__
 #include "opt_apic.h"
 #endif
@@ -41,6 +42,7 @@ __FBSDID("$FreeBSD$");
 
 #include <sys/param.h>
 #include <sys/systm.h>
+#include <sys/asan.h>
 #include <sys/bus.h>
 #include <sys/cons.h>	/* cngetc() */
 #include <sys/cpuset.h>
@@ -81,6 +83,11 @@ __FBSDID("$FreeBSD$");
 #include <machine/specialreg.h>
 #include <machine/stack.h>
 #include <x86/ucode.h>
+
+#ifdef DEV_ACPI
+#include <contrib/dev/acpica/include/acpi.h>
+#include <dev/acpica/acpivar.h>
+#endif
 
 static MALLOC_DEFINE(M_CPUS, "cpus", "CPU items");
 
@@ -167,13 +174,9 @@ struct cache_info {
 	int	present;
 } static caches[MAX_CACHE_LEVELS];
 
-unsigned int boot_address;
-
 static bool stop_mwait = false;
 SYSCTL_BOOL(_machdep, OID_AUTO, stop_mwait, CTLFLAG_RWTUN, &stop_mwait, 0,
     "Use MONITOR/MWAIT when stopping CPU, if available");
-
-#define MiB(v)	(v ## ULL << 20)
 
 void
 mem_range_AP_init(void)
@@ -377,7 +380,7 @@ topo_probe_intel_0x4(void)
 
 /*
  * Determine topology of processing units for Intel CPUs
- * using CPUID Leaf 11, if supported.
+ * using CPUID Leaf 1Fh or 0Bh, if supported.
  * See:
  *  - Intel 64 Architecture Processor Topology Enumeration
  *  - Intel 64 and IA-32 ArchitecturesSoftware Developer’s Manual,
@@ -387,13 +390,23 @@ topo_probe_intel_0x4(void)
 static void
 topo_probe_intel_0xb(void)
 {
-	u_int p[4];
+	u_int leaf;
+	u_int p[4] = { 0 };
 	int bits;
 	int type;
 	int i;
 
-	/* Fall back if CPU leaf 11 doesn't really exist. */
-	cpuid_count(0x0b, 0, p);
+	/* Prefer leaf 1Fh (V2 Extended Topology Enumeration). */
+	if (cpu_high >= 0x1f) {
+		leaf = 0x1f;
+		cpuid_count(leaf, 0, p);
+	}
+	/* Fall back to leaf 0Bh (Extended Topology Enumeration). */
+	if (p[1] == 0) {
+		leaf = 0x0b;
+		cpuid_count(leaf, 0, p);
+	}
+	/* Fall back to leaf 04h (Deterministic Cache Parameters). */
 	if (p[1] == 0) {
 		topo_probe_intel_0x4();
 		return;
@@ -401,7 +414,7 @@ topo_probe_intel_0xb(void)
 
 	/* We only support three levels for now. */
 	for (i = 0; ; i++) {
-		cpuid_count(0x0b, i, p);
+		cpuid_count(leaf, i, p);
 
 		bits = p[0] & 0x1f;
 		type = (p[2] >> 8) & 0xff;
@@ -409,13 +422,12 @@ topo_probe_intel_0xb(void)
 		if (type == 0)
 			break;
 
-		/* TODO: check for duplicate (re-)assignment */
 		if (type == CPUID_TYPE_SMT)
 			core_id_shift = bits;
 		else if (type == CPUID_TYPE_CORE)
 			pkg_id_shift = bits;
-		else
-			printf("unknown CPU level type %d\n", type);
+		else if (bootverbose)
+			printf("Topology level type %d shift: %d\n", type, bits);
 	}
 
 	if (pkg_id_shift < core_id_shift) {
@@ -505,13 +517,16 @@ topo_probe(void)
 		int type;
 		int subtype;
 		int id_shift;
-	} topo_layers[MAX_CACHE_LEVELS + 4];
+	} topo_layers[MAX_CACHE_LEVELS + 5];
 	struct topo_node *parent;
 	struct topo_node *node;
 	int layer;
 	int nlayers;
 	int node_id;
 	int i;
+#if defined(DEV_ACPI) && MAXMEMDOM > 1
+	int d, domain;
+#endif
 
 	if (cpu_topo_probed)
 		return;
@@ -586,6 +601,31 @@ topo_probe(void)
 	topo_layers[nlayers].id_shift = 0;
 	nlayers++;
 
+#if defined(DEV_ACPI) && MAXMEMDOM > 1
+	if (vm_ndomains > 1) {
+		for (layer = 0; layer < nlayers; ++layer) {
+			for (i = 0; i <= max_apic_id; ++i) {
+				if ((i & ((1 << topo_layers[layer].id_shift) - 1)) == 0)
+					domain = -1;
+				if (!cpu_info[i].cpu_present)
+					continue;
+				d = acpi_pxm_get_cpu_locality(i);
+				if (domain >= 0 && domain != d)
+					break;
+				domain = d;
+			}
+			if (i > max_apic_id)
+				break;
+		}
+		KASSERT(layer < nlayers, ("NUMA domain smaller than PU"));
+		memmove(&topo_layers[layer+1], &topo_layers[layer],
+		    sizeof(*topo_layers) * (nlayers - layer));
+		topo_layers[layer].type = TOPO_TYPE_NODE;
+		topo_layers[layer].subtype = CG_SHARE_NONE;
+		nlayers++;
+	}
+#endif
+
 	topo_init_root(&topo_root);
 	for (i = 0; i <= max_apic_id; ++i) {
 		if (!cpu_info[i].cpu_present)
@@ -593,7 +633,12 @@ topo_probe(void)
 
 		parent = &topo_root;
 		for (layer = 0; layer < nlayers; ++layer) {
-			node_id = i >> topo_layers[layer].id_shift;
+#if defined(DEV_ACPI) && MAXMEMDOM > 1
+			if (topo_layers[layer].type == TOPO_TYPE_NODE) {
+				node_id = acpi_pxm_get_cpu_locality(i);
+			} else
+#endif
+				node_id = i >> topo_layers[layer].id_shift;
 			parent = topo_add_node_by_hwid(parent, node_id,
 			    topo_layers[layer].type,
 			    topo_layers[layer].subtype);
@@ -602,7 +647,12 @@ topo_probe(void)
 
 	parent = &topo_root;
 	for (layer = 0; layer < nlayers; ++layer) {
-		node_id = boot_cpu_id >> topo_layers[layer].id_shift;
+#if defined(DEV_ACPI) && MAXMEMDOM > 1
+		if (topo_layers[layer].type == TOPO_TYPE_NODE)
+			node_id = acpi_pxm_get_cpu_locality(boot_cpu_id);
+		else
+#endif
+			node_id = boot_cpu_id >> topo_layers[layer].id_shift;
 		node = topo_find_node_by_hwid(parent, node_id,
 		    topo_layers[layer].type,
 		    topo_layers[layer].subtype);
@@ -777,14 +827,18 @@ x86topo_add_sched_group(struct topo_node *root, struct cpu_group *cg_root)
 	int i;
 
 	KASSERT(root->type == TOPO_TYPE_SYSTEM || root->type == TOPO_TYPE_CACHE ||
-	    root->type == TOPO_TYPE_GROUP,
+	    root->type == TOPO_TYPE_NODE || root->type == TOPO_TYPE_GROUP,
 	    ("x86topo_add_sched_group: bad type: %u", root->type));
 	CPU_COPY(&root->cpuset, &cg_root->cg_mask);
 	cg_root->cg_count = root->cpu_count;
-	if (root->type == TOPO_TYPE_SYSTEM)
-		cg_root->cg_level = CG_SHARE_NONE;
-	else
+	if (root->type == TOPO_TYPE_CACHE)
 		cg_root->cg_level = root->subtype;
+	else
+		cg_root->cg_level = CG_SHARE_NONE;
+	if (root->type == TOPO_TYPE_NODE)
+		cg_root->cg_flags = CG_FLAG_NODE;
+	else
+		cg_root->cg_flags = 0;
 
 	/*
 	 * Check how many core nodes we have under the given root node.
@@ -805,7 +859,7 @@ x86topo_add_sched_group(struct topo_node *root, struct cpu_group *cg_root)
 
 	if (cg_root->cg_level != CG_SHARE_NONE &&
 	    root->cpu_count > 1 && ncores < 2)
-		cg_root->cg_flags = CG_FLAG_SMT;
+		cg_root->cg_flags |= CG_FLAG_SMT;
 
 	/*
 	 * Find out how many cache nodes we have under the given root node.
@@ -817,16 +871,30 @@ x86topo_add_sched_group(struct topo_node *root, struct cpu_group *cg_root)
 	nchildren = 0;
 	node = root;
 	while (node != NULL) {
-		if ((node->type != TOPO_TYPE_GROUP &&
-		    node->type != TOPO_TYPE_CACHE) ||
-		    (root->type != TOPO_TYPE_SYSTEM &&
-		    CPU_CMP(&node->cpuset, &root->cpuset) == 0)) {
+		if (CPU_CMP(&node->cpuset, &root->cpuset) == 0) {
+			if (node->type == TOPO_TYPE_CACHE &&
+			    cg_root->cg_level < node->subtype)
+				cg_root->cg_level = node->subtype;
+			if (node->type == TOPO_TYPE_NODE)
+				cg_root->cg_flags |= CG_FLAG_NODE;
+			node = topo_next_node(root, node);
+			continue;
+		}
+		if (node->type != TOPO_TYPE_GROUP &&
+		    node->type != TOPO_TYPE_NODE &&
+		    node->type != TOPO_TYPE_CACHE) {
 			node = topo_next_node(root, node);
 			continue;
 		}
 		nchildren++;
 		node = topo_next_nonchild_node(root, node);
 	}
+
+	/*
+	 * We are not interested in nodes including only one CPU each.
+	 */
+	if (nchildren == root->cpu_count)
+		return;
 
 	cg_root->cg_child = smp_topo_alloc(nchildren);
 	cg_root->cg_children = nchildren;
@@ -839,9 +907,9 @@ x86topo_add_sched_group(struct topo_node *root, struct cpu_group *cg_root)
 	i = 0;
 	while (node != NULL) {
 		if ((node->type != TOPO_TYPE_GROUP &&
+		    node->type != TOPO_TYPE_NODE &&
 		    node->type != TOPO_TYPE_CACHE) ||
-		    (root->type != TOPO_TYPE_SYSTEM &&
-		    CPU_CMP(&node->cpuset, &root->cpuset) == 0)) {
+		    CPU_CMP(&node->cpuset, &root->cpuset) == 0) {
 			node = topo_next_node(root, node);
 			continue;
 		}
@@ -932,56 +1000,6 @@ cpu_mp_probe(void)
 	return (mp_ncpus > 1);
 }
 
-/* Allocate memory for the AP trampoline. */
-void
-alloc_ap_trampoline(vm_paddr_t *physmap, unsigned int *physmap_idx)
-{
-	unsigned int i;
-	bool allocated;
-
-	allocated = false;
-	for (i = *physmap_idx; i <= *physmap_idx; i -= 2) {
-		/*
-		 * Find a memory region big enough and below the 1MB boundary
-		 * for the trampoline code.
-		 * NB: needs to be page aligned.
-		 */
-		if (physmap[i] >= MiB(1) ||
-		    (trunc_page(physmap[i + 1]) - round_page(physmap[i])) <
-		    round_page(bootMP_size))
-			continue;
-
-		allocated = true;
-		/*
-		 * Try to steal from the end of the region to mimic previous
-		 * behaviour, else fallback to steal from the start.
-		 */
-		if (physmap[i + 1] < MiB(1)) {
-			boot_address = trunc_page(physmap[i + 1]);
-			if ((physmap[i + 1] - boot_address) < bootMP_size)
-				boot_address -= round_page(bootMP_size);
-			physmap[i + 1] = boot_address;
-		} else {
-			boot_address = round_page(physmap[i]);
-			physmap[i] = boot_address + round_page(bootMP_size);
-		}
-		if (physmap[i] == physmap[i + 1] && *physmap_idx != 0) {
-			memmove(&physmap[i], &physmap[i + 2],
-			    sizeof(*physmap) * (*physmap_idx - i + 2));
-			*physmap_idx -= 2;
-		}
-		break;
-	}
-
-	if (!allocated) {
-		boot_address = basemem * 1024 - bootMP_size;
-		if (bootverbose)
-			printf(
-"Cannot find enough space for the boot trampoline, placing it at %#x",
-			    boot_address);
-	}
-}
-
 /*
  * AP CPU's call this to initialize themselves.
  */
@@ -1064,11 +1082,6 @@ init_secondary_tail(void)
 	}
 
 #ifdef __amd64__
-	/*
-	 * Enable global pages TLB extension
-	 * This also implicitly flushes the TLB 
-	 */
-	load_cr4(rcr4() | CR4_PGE);
 	if (pmap_pcid_enabled)
 		load_cr4(rcr4() | CR4_PCIDE);
 	load_ds(_udatasel);
@@ -1279,6 +1292,8 @@ ipi_bitmap_handler(struct trapframe frame)
 	int cpu = PCPU_GET(cpuid);
 	u_int ipi_bitmap;
 
+	kasan_mark(&frame, sizeof(frame), sizeof(frame), 0);
+
 	td = curthread;
 	ipi_bitmap = atomic_readandclear_int(&cpuid_to_pcpu[cpu]->
 	    pc_ipi_bitmap);
@@ -1340,9 +1355,7 @@ ipi_selected(cpuset_t cpus, u_int ipi)
 	if (ipi == IPI_STOP_HARD)
 		CPU_OR_ATOMIC(&ipi_stop_nmi_pending, &cpus);
 
-	while ((cpu = CPU_FFS(&cpus)) != 0) {
-		cpu--;
-		CPU_CLR(cpu, &cpus);
+	CPU_FOREACH_ISSET(cpu, &cpus) {
 		CTR3(KTR_SMP, "%s: cpu: %d ipi: %x", __func__, cpu, ipi);
 		ipi_send_cpu(cpu, ipi);
 	}

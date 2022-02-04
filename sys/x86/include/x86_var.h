@@ -103,6 +103,7 @@ struct	fpreg;
 struct  dbreg;
 struct	dumperinfo;
 struct	trapframe;
+struct	minidumpstate;
 
 /*
  * The interface type of the interrupt handler entry point cannot be
@@ -150,15 +151,28 @@ void	pagecopy(void *from, void *to);
 void	printcpuinfo(void);
 int	pti_get_default(void);
 int	user_dbreg_trap(register_t dr6);
-int	minidumpsys(struct dumperinfo *);
+int	cpu_minidumpsys(struct dumperinfo *, const struct minidumpstate *);
 struct pcb *get_pcb_td(struct thread *td);
+uint64_t rdtsc_ordered(void);
 
+/*
+ * MSR ops for x86_msr_op()
+ */
 #define	MSR_OP_ANDNOT		0x00000001
 #define	MSR_OP_OR		0x00000002
 #define	MSR_OP_WRITE		0x00000003
+#define	MSR_OP_READ		0x00000004
+
+/*
+ * Where and which execution mode
+ */
 #define	MSR_OP_LOCAL		0x10000000
-#define	MSR_OP_SCHED		0x20000000
-#define	MSR_OP_RENDEZVOUS	0x30000000
-void x86_msr_op(u_int msr, u_int op, uint64_t arg1);
+#define	MSR_OP_SCHED_ALL	0x20000000
+#define	MSR_OP_SCHED_ONE	0x30000000
+#define	MSR_OP_RENDEZVOUS_ALL	0x40000000
+#define	MSR_OP_RENDEZVOUS_ONE	0x50000000
+#define	MSR_OP_CPUID(id)	((id) << 8)
+
+void x86_msr_op(u_int msr, u_int op, uint64_t arg1, uint64_t *res);
 
 #endif

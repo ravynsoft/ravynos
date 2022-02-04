@@ -22,7 +22,6 @@
 #include "llvm/ADT/StringRef.h"
 #include "llvm/BinaryFormat/Dwarf.h"
 #include "llvm/CodeGen/DbgEntityHistoryCalculator.h"
-#include "llvm/CodeGen/DIE.h"
 #include "llvm/CodeGen/LexicalScopes.h"
 #include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/Support/Casting.h"
@@ -34,6 +33,9 @@
 namespace llvm {
 
 class AsmPrinter;
+class DIE;
+class DIELoc;
+class DIEValueList;
 class DwarfFile;
 class GlobalVariable;
 class MCExpr;
@@ -55,7 +57,7 @@ class DwarfCompileUnit final : public DwarfUnit {
   DwarfCompileUnit *Skeleton = nullptr;
 
   /// The start of the unit within its section.
-  MCSymbol *LabelBegin;
+  MCSymbol *LabelBegin = nullptr;
 
   /// The start of the unit macro info within macro section.
   MCSymbol *MacroLabelBegin;
@@ -247,16 +249,14 @@ public:
   dwarf::LocationAtom getDwarf5OrGNULocationAtom(dwarf::LocationAtom Loc) const;
 
   /// Construct a call site entry DIE describing a call within \p Scope to a
-  /// callee described by \p CalleeDIE.
-  /// \p CalleeDIE is a declaration or definition subprogram DIE for the callee.
-  /// For indirect calls \p CalleeDIE is set to nullptr.
+  /// callee described by \p CalleeSP.
   /// \p IsTail specifies whether the call is a tail call.
   /// \p PCAddr points to the PC value after the call instruction.
   /// \p CallAddr points to the PC value at the call instruction (or is null).
   /// \p CallReg is a register location for an indirect call. For direct calls
   /// the \p CallReg is set to 0.
-  DIE &constructCallSiteEntryDIE(DIE &ScopeDIE, DIE *CalleeDIE, bool IsTail,
-                                 const MCSymbol *PCAddr,
+  DIE &constructCallSiteEntryDIE(DIE &ScopeDIE, const DISubprogram *CalleeSP,
+                                 bool IsTail, const MCSymbol *PCAddr,
                                  const MCSymbol *CallAddr, unsigned CallReg);
   /// Construct call site parameter DIEs for the \p CallSiteDIE. The \p Params
   /// were collected by the \ref collectCallSiteParameters.
@@ -287,8 +287,8 @@ public:
     return DwarfUnit::getHeaderSize() + DWOIdSize;
   }
   unsigned getLength() {
-    return sizeof(uint32_t) + // Length field
-        getHeaderSize() + getUnitDie().getSize();
+    return Asm->getUnitLengthFieldByteSize() + // Length field
+           getHeaderSize() + getUnitDie().getSize();
   }
 
   void emitHeader(bool UseOffsets) override;
@@ -297,7 +297,7 @@ public:
   void addAddrTableBase();
 
   MCSymbol *getLabelBegin() const {
-    assert(getSection());
+    assert(LabelBegin && "LabelBegin is not initialized");
     return LabelBegin;
   }
 

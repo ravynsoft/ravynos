@@ -66,7 +66,7 @@ bool ABIMacOSX_arm64::PrepareTrivialCall(
 
   if (log) {
     StreamString s;
-    s.Printf("ABISysV_x86_64::PrepareTrivialCall (tid = 0x%" PRIx64
+    s.Printf("ABIMacOSX_arm64::PrepareTrivialCall (tid = 0x%" PRIx64
              ", sp = 0x%" PRIx64 ", func_addr = 0x%" PRIx64
              ", return_addr = 0x%" PRIx64,
              thread.GetID(), (uint64_t)sp, (uint64_t)func_addr,
@@ -86,7 +86,7 @@ bool ABIMacOSX_arm64::PrepareTrivialCall(
       eRegisterKindGeneric, LLDB_REGNUM_GENERIC_RA);
 
   // x0 - x7 contain first 8 simple args
-  if (args.size() > 8) // TODO handle more than 6 arguments
+  if (args.size() > 8) // TODO handle more than 8 arguments
     return false;
 
   for (size_t i = 0; i < args.size(); ++i) {
@@ -384,6 +384,7 @@ bool ABIMacOSX_arm64::CreateDefaultUnwindPlan(UnwindPlan &unwind_plan) {
 
   row->GetCFAValue().SetIsRegisterPlusOffset(fp_reg_num, 2 * ptr_size);
   row->SetOffset(0);
+  row->SetUnspecifiedRegistersAreUndefined(true);
 
   row->SetRegisterLocationToAtCFAPlusOffset(fp_reg_num, ptr_size * -2, true);
   row->SetRegisterLocationToAtCFAPlusOffset(pc_reg_num, ptr_size * -1, true);
@@ -492,7 +493,8 @@ static bool LoadValueFromConsecutiveGPRRegisters(
     uint32_t &NGRN,       // NGRN (see ABI documentation)
     uint32_t &NSRN,       // NSRN (see ABI documentation)
     DataExtractor &data) {
-  llvm::Optional<uint64_t> byte_size = value_type.GetByteSize(nullptr);
+  llvm::Optional<uint64_t> byte_size =
+      value_type.GetByteSize(exe_ctx.GetBestExecutionContextScope());
   if (!byte_size || *byte_size == 0)
     return false;
 
@@ -509,7 +511,8 @@ static bool LoadValueFromConsecutiveGPRRegisters(
     if (NSRN < 8 && (8 - NSRN) >= homogeneous_count) {
       if (!base_type)
         return false;
-      llvm::Optional<uint64_t> base_byte_size = base_type.GetByteSize(nullptr);
+      llvm::Optional<uint64_t> base_byte_size =
+          base_type.GetByteSize(exe_ctx.GetBestExecutionContextScope());
       if (!base_byte_size)
         return false;
       uint32_t data_offset = 0;
@@ -646,13 +649,13 @@ ValueObjectSP ABIMacOSX_arm64::GetReturnValueObjectImpl(
     return return_valobj_sp;
 
   llvm::Optional<uint64_t> byte_size =
-      return_compiler_type.GetByteSize(nullptr);
+      return_compiler_type.GetByteSize(&thread);
   if (!byte_size)
     return return_valobj_sp;
 
   const uint32_t type_flags = return_compiler_type.GetTypeInfo(nullptr);
   if (type_flags & eTypeIsScalar || type_flags & eTypeIsPointer) {
-    value.SetValueType(Value::eValueTypeScalar);
+    value.SetValueType(Value::ValueType::Scalar);
 
     bool success = false;
     if (type_flags & eTypeIsInteger || type_flags & eTypeIsPointer) {
@@ -810,6 +813,11 @@ ValueObjectSP ABIMacOSX_arm64::GetReturnValueObjectImpl(
     }
   }
   return return_valobj_sp;
+}
+
+lldb::addr_t ABIMacOSX_arm64::FixAddress(addr_t pc, addr_t mask) {
+  lldb::addr_t pac_sign_extension = 0x0080000000000000ULL;
+  return (pc & pac_sign_extension) ? pc | mask : pc & (~mask);
 }
 
 void ABIMacOSX_arm64::Initialize() {

@@ -146,7 +146,9 @@ public:
                              unsigned Discriminator,
                              StringRef FileName) override;
   void emitDwarfAdvanceLineAddr(int64_t LineDelta, const MCSymbol *LastLabel,
-                                const MCSymbol *Label, unsigned PointerSize);
+                                const MCSymbol *Label,
+                                unsigned PointerSize) override;
+  void emitDwarfLineEndEntry(MCSection *Section, MCSymbol *LastLabel) override;
   void emitDwarfAdvanceFrameAddr(const MCSymbol *LastLabel,
                                  const MCSymbol *Label);
   void emitCVLocDirective(unsigned FunctionId, unsigned FileNo, unsigned Line,
@@ -179,7 +181,11 @@ public:
                 SMLoc Loc = SMLoc()) override;
   void emitFill(const MCExpr &NumValues, int64_t Size, int64_t Expr,
                 SMLoc Loc = SMLoc()) override;
+  void emitNops(int64_t NumBytes, int64_t ControlledNopLength,
+                SMLoc Loc) override;
   void emitFileDirective(StringRef Filename) override;
+  void emitFileDirective(StringRef Filename, StringRef CompilerVerion,
+                         StringRef TimeStamp, StringRef Description) override;
 
   void emitAddrsig() override;
   void emitAddrsigSym(const MCSymbol *Sym) override;

@@ -567,21 +567,33 @@ efi_find_framebuffer(teken_gfx_t *gfx_state)
 	/*
 	 * Search for ConOut protocol, if not found, use first handle.
 	 */
-	gop_handle = *hlist;
+	gop_handle = NULL;
 	for (i = 0; i < nhandles; i++) {
-		void *dummy = NULL;
+		EFI_GRAPHICS_OUTPUT *tgop;
+		void *dummy;
+
+		status = OpenProtocolByHandle(hlist[i], &gop_guid, (void **)&tgop);
+		if (status != EFI_SUCCESS)
+			continue;
+
+		if (tgop->Mode->Info->PixelFormat == PixelBltOnly ||
+		    tgop->Mode->Info->PixelFormat >= PixelFormatMax)
+			continue;
 
 		status = OpenProtocolByHandle(hlist[i], &conout_guid, &dummy);
 		if (status == EFI_SUCCESS) {
 			gop_handle = hlist[i];
+			gop = tgop;
 			break;
+		} else if (gop_handle == NULL) {
+			gop_handle = hlist[i];
+			gop = tgop;
 		}
 	}
 
-	status = OpenProtocolByHandle(gop_handle, &gop_guid, (void **)&gop);
 	free(hlist);
 
-	if (status == EFI_SUCCESS) {
+	if (gop_handle != NULL) {
 		gfx_state->tg_fb_type = FB_GOP;
 		gfx_state->tg_private = gop;
 		if (edid_info == NULL)
@@ -621,6 +633,18 @@ efi_find_framebuffer(teken_gfx_t *gfx_state)
 
 	gfx_state->tg_fb.fb_bpp = fls(efifb.fb_mask_red | efifb.fb_mask_green |
 	    efifb.fb_mask_blue | efifb.fb_mask_reserved);
+
+	if (gfx_state->tg_shadow_fb != NULL)
+		BS->FreePages((EFI_PHYSICAL_ADDRESS)gfx_state->tg_shadow_fb,
+		    gfx_state->tg_shadow_sz);
+	gfx_state->tg_shadow_sz =
+	    EFI_SIZE_TO_PAGES(efifb.fb_height * efifb.fb_width *
+	    sizeof(EFI_GRAPHICS_OUTPUT_BLT_PIXEL));
+	status = BS->AllocatePages(AllocateMaxAddress, EfiLoaderData,
+	    gfx_state->tg_shadow_sz,
+	    (EFI_PHYSICAL_ADDRESS *)&gfx_state->tg_shadow_fb);
+	if (status != EFI_SUCCESS)
+		gfx_state->tg_shadow_fb = NULL;
 
 	return (0);
 }

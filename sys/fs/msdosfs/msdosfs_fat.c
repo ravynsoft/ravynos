@@ -80,8 +80,7 @@ static void	updatefats(struct msdosfsmount *pmp, struct buf *bp,
 		    u_long fatbn);
 static __inline void
 		usemap_alloc(struct msdosfsmount *pmp, u_long cn);
-static __inline void
-		usemap_free(struct msdosfsmount *pmp, u_long cn);
+static int	usemap_free(struct msdosfsmount *pmp, u_long cn);
 static int	clusteralloc1(struct msdosfsmount *pmp, u_long start,
 		    u_long count, u_long fillwith, u_long *retcluster,
 		    u_long *got);
@@ -398,7 +397,7 @@ usemap_alloc(struct msdosfsmount *pmp, u_long cn)
 	pmp->pm_flags |= MSDOSFS_FSIMOD;
 }
 
-static __inline void
+static int
 usemap_free(struct msdosfsmount *pmp, u_long cn)
 {
 
@@ -408,35 +407,37 @@ usemap_free(struct msdosfsmount *pmp, u_long cn)
 	    pmp->pm_maxcluster));
 	KASSERT((pmp->pm_flags & MSDOSFSMNT_RONLY) == 0,
 	    ("usemap_free on ro msdosfs mount"));
+	if ((pmp->pm_inusemap[cn / N_INUSEBITS] &
+	    (1U << (cn % N_INUSEBITS))) == 0) {
+		printf("%s: Freeing unused sector %ld %ld %x\n",
+		    pmp->pm_mountp->mnt_stat.f_mntonname, cn, cn % N_INUSEBITS,
+		    (unsigned)pmp->pm_inusemap[cn / N_INUSEBITS]);
+		msdosfs_integrity_error(pmp);
+		return (EINTEGRITY);
+	}
 	pmp->pm_freeclustercount++;
 	pmp->pm_flags |= MSDOSFS_FSIMOD;
-	KASSERT((pmp->pm_inusemap[cn / N_INUSEBITS] &
-	    (1U << (cn % N_INUSEBITS))) != 0,
-	    ("Freeing unused sector %ld %ld %x", cn, cn % N_INUSEBITS,
-	    (unsigned)pmp->pm_inusemap[cn / N_INUSEBITS]));
 	pmp->pm_inusemap[cn / N_INUSEBITS] &= ~(1U << (cn % N_INUSEBITS));
+	return (0);
 }
 
-int
-clusterfree(struct msdosfsmount *pmp, u_long cluster, u_long *oldcnp)
+void
+clusterfree(struct msdosfsmount *pmp, u_long cluster)
 {
 	int error;
 	u_long oldcn;
 
 	error = fatentry(FAT_GET_AND_SET, pmp, cluster, &oldcn, MSDOSFSFREE);
-	if (error)
-		return (error);
+	if (error != 0)
+		return;
 	/*
 	 * If the cluster was successfully marked free, then update
 	 * the count of free clusters, and turn off the "allocated"
 	 * bit in the "in use" cluster bit map.
 	 */
 	MSDOSFS_LOCK_MP(pmp);
-	usemap_free(pmp, cluster);
+	error = usemap_free(pmp, cluster);
 	MSDOSFS_UNLOCK_MP(pmp);
-	if (oldcnp)
-		*oldcnp = oldcn;
-	return (0);
 }
 
 /*
@@ -712,7 +713,7 @@ chainalloc(struct msdosfsmount *pmp, u_long start, u_long count,
 	error = fatchain(pmp, start, count, fillwith);
 	if (error != 0) {
 		for (cl = start, n = count; n-- > 0;)
-			usemap_free(pmp, cl++);
+			(void)usemap_free(pmp, cl++);
 		return (error);
 	}
 #ifdef MSDOSFS_DEBUG
@@ -846,7 +847,12 @@ freeclusterchain(struct msdosfsmount *pmp, u_long cluster)
 			}
 			lbn = bn;
 		}
-		usemap_free(pmp, cluster);
+		error = usemap_free(pmp, cluster);
+		if (error != 0) {
+			updatefats(pmp, bp, lbn);
+			MSDOSFS_UNLOCK_MP(pmp);
+			return (error);
+		}
 		switch (pmp->pm_fatmask) {
 		case FAT12_MASK:
 			readcn = getushort(bp->b_data + bo);
@@ -940,8 +946,13 @@ fillinusemap(struct msdosfsmount *pmp)
 #endif
 			brelse(bp);
 			return (EINVAL);
-		} else if (readcn == CLUST_FREE)
-			usemap_free(pmp, cn);
+		} else if (readcn == CLUST_FREE) {
+			error = usemap_free(pmp, cn);
+			if (error != 0) {
+				brelse(bp);
+				return (error);
+			}
+		}
 	}
 	if (bp != NULL)
 		brelse(bp);
@@ -1043,7 +1054,7 @@ extendfile(struct denode *dep, u_long count, struct buf **bpp, u_long *ncp,
 					 dep->de_fc[FC_LASTFC].fc_fsrcn,
 					 0, cn);
 			if (error) {
-				clusterfree(pmp, cn, NULL);
+				clusterfree(pmp, cn);
 				return (error);
 			}
 			frcn = dep->de_fc[FC_LASTFC].fc_frcn + 1;

@@ -130,7 +130,7 @@ typedef enum {
 	"Device Slot",					\
 	"Power Supply",					\
 	"Cooling",					\
-	"Temperature Sensors",				\
+	"Temperature Sensor",				\
 	"Door",						\
 	"Audible alarm",				\
 	"Enclosure Services Controller Electronics",	\
@@ -154,7 +154,9 @@ typedef enum {
 	"SAS Connector"					\
 }
 
+#ifdef _KERNEL
 extern const char *elm_type_names[];
+#endif
 
 typedef struct encioc_element {
 	/* Element Index */

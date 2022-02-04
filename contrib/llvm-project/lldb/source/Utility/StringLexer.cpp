@@ -9,11 +9,12 @@
 #include "lldb/Utility/StringLexer.h"
 
 #include <algorithm>
-#include <assert.h>
+#include <cassert>
+#include <utility>
 
 using namespace lldb_private;
 
-StringLexer::StringLexer(std::string s) : m_data(s), m_position(0) {}
+StringLexer::StringLexer(std::string s) : m_data(std::move(s)), m_position(0) {}
 
 StringLexer::Character StringLexer::Peek() { return m_data[m_position]; }
 

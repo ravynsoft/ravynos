@@ -212,21 +212,28 @@ divert_packet(struct mbuf *m, bool incoming)
 
 	/* Delayed checksums are currently not compatible with divert. */
 	if (m->m_pkthdr.csum_flags & CSUM_DELAY_DATA) {
-		m = mb_unmapped_to_ext(m);
-		if (m == NULL)
-			return;
 		in_delayed_cksum(m);
 		m->m_pkthdr.csum_flags &= ~CSUM_DELAY_DATA;
 	}
 #if defined(SCTP) || defined(SCTP_SUPPORT)
 	if (m->m_pkthdr.csum_flags & CSUM_SCTP) {
-		m = mb_unmapped_to_ext(m);
-		if (m == NULL)
-			return;
 		sctp_delayed_cksum(m, (uint32_t)(ip->ip_hl << 2));
 		m->m_pkthdr.csum_flags &= ~CSUM_SCTP;
 	}
 #endif
+#ifdef INET6
+	if (m->m_pkthdr.csum_flags & CSUM_DELAY_DATA_IPV6) {
+		in6_delayed_cksum(m, m->m_pkthdr.len -
+		    sizeof(struct ip6_hdr), sizeof(struct ip6_hdr));
+		m->m_pkthdr.csum_flags &= ~CSUM_DELAY_DATA_IPV6;
+	}
+#if defined(SCTP) || defined(SCTP_SUPPORT)
+	if (m->m_pkthdr.csum_flags & CSUM_SCTP_IPV6) {
+		sctp_delayed_cksum(m, sizeof(struct ip6_hdr));
+		m->m_pkthdr.csum_flags &= ~CSUM_SCTP_IPV6;
+	}
+#endif
+#endif /* INET6 */
 	bzero(&divsrc, sizeof(divsrc));
 	divsrc.sin_len = sizeof(divsrc);
 	divsrc.sin_family = AF_INET;
@@ -295,7 +302,7 @@ divert_packet(struct mbuf *m, bool incoming)
 			if (sbappendaddr_locked(&sa->so_rcv,
 			    (struct sockaddr *)&divsrc, m,
 			    (struct mbuf *)0) == 0) {
-				SOCKBUF_UNLOCK(&sa->so_rcv);
+				soroverflow_locked(sa);
 				sa = NULL;	/* force mbuf reclaim below */
 			} else
 				sorwakeup_locked(sa);

@@ -36,6 +36,9 @@ SRCS+=	\
 
 SRCS+= getdents.c lstat.c mknod.c stat.c
 
+NOASM+=  sched_getcpu.o
+PSEUDO+= _sched_getcpu.o
+
 SRCS+= fstat.c fstatat.c fstatfs.c getfsstat.c statfs.c
 NOASM+= fstat.o fstatat.o fstatfs.o getfsstat.o statfs.o
 PSEUDO+= _fstat.o _fstatat.o _fstatfs.o _getfsstat.o _statfs.o
@@ -49,6 +52,7 @@ SRCS+= closefrom.c
 SRCS+= pipe.c
 SRCS+= shm_open.c
 SRCS+= vadvise.c
+SRCS+= POSIX2x_Fork.c
 
 SRCS+=	compat-stub.c
 
@@ -68,6 +72,7 @@ INTERPOSED = \
 	nanosleep \
 	open \
 	openat \
+	pdfork \
 	poll \
 	ppoll \
 	pselect \

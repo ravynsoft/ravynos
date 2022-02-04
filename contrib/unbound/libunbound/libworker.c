@@ -241,7 +241,9 @@ libworker_setup(struct ub_ctx* ctx, int is_bg, struct ub_event_base* eb)
 		ports, numports, cfg->unwanted_threshold,
 		cfg->outgoing_tcp_mss, &libworker_alloc_cleanup, w,
 		cfg->do_udp || cfg->udp_upstream_without_downstream, w->sslctx,
-		cfg->delay_close, cfg->tls_use_sni, NULL, cfg->udp_connect);
+		cfg->delay_close, cfg->tls_use_sni, NULL, cfg->udp_connect,
+		cfg->max_reuse_tcp_queries, cfg->tcp_reuse_timeout,
+		cfg->tcp_auth_query_timeout);
 	w->env->outnet = w->back;
 	if(!w->is_bg || w->is_bg_thread) {
 		lock_basic_unlock(&ctx->cfglock);
@@ -454,8 +456,15 @@ fill_res(struct ub_result* res, struct ub_packed_rrset_key* answer,
 		if(rep->rrset_count != 0)
 			res->ttl = (int)rep->ttl;
 		res->data = (char**)calloc(1, sizeof(char*));
+		if(!res->data)
+			return 0; /* out of memory */
 		res->len = (int*)calloc(1, sizeof(int));
-		return (res->data && res->len);
+		if(!res->len) {
+			free(res->data);
+			res->data = NULL;
+			return 0; /* out of memory */
+		}
+		return 1;
 	}
 	data = (struct packed_rrset_data*)answer->entry.data;
 	if(query_dname_compare(rq->qname, answer->rk.dname) != 0) {
@@ -463,15 +472,30 @@ fill_res(struct ub_result* res, struct ub_packed_rrset_key* answer,
 			return 0; /* out of memory */
 	} else	res->canonname = NULL;
 	res->data = (char**)calloc(data->count+1, sizeof(char*));
-	res->len = (int*)calloc(data->count+1, sizeof(int));
-	if(!res->data || !res->len)
+	if(!res->data)
 		return 0; /* out of memory */
+	res->len = (int*)calloc(data->count+1, sizeof(int));
+	if(!res->len) {
+		free(res->data);
+		res->data = NULL;
+		return 0; /* out of memory */
+	}
 	for(i=0; i<data->count; i++) {
 		/* remove rdlength from rdata */
 		res->len[i] = (int)(data->rr_len[i] - 2);
 		res->data[i] = memdup(data->rr_data[i]+2, (size_t)res->len[i]);
-		if(!res->data[i])
+		if(!res->data[i]) {
+			size_t j;
+			for(j=0; j<i; j++) {
+				free(res->data[j]);
+				res->data[j] = NULL;
+			}
+			free(res->data);
+			res->data = NULL;
+			free(res->len);
+			res->len = NULL;
 			return 0; /* out of memory */
+		}
 	}
 	/* ttl for positive answers, from CNAME and answer RRs */
 	if(data->count != 0) {
@@ -576,7 +600,9 @@ setup_qinfo_edns(struct libworker* w, struct ctx_query* q,
 	edns->ext_rcode = 0;
 	edns->edns_version = 0;
 	edns->bits = EDNS_DO;
-	edns->opt_list = NULL;
+	edns->opt_list_in = NULL;
+	edns->opt_list_out = NULL;
+	edns->opt_list_inplace_cb_out = NULL;
 	edns->padding_block_size = 0;
 	if(sldns_buffer_capacity(w->back->udp_buff) < 65535)
 		edns->udp_size = (uint16_t)sldns_buffer_capacity(
@@ -857,7 +883,7 @@ void libworker_alloc_cleanup(void* arg)
 struct outbound_entry* libworker_send_query(struct query_info* qinfo,
 	uint16_t flags, int dnssec, int want_dnssec, int nocaps,
 	struct sockaddr_storage* addr, socklen_t addrlen, uint8_t* zone,
-	size_t zonelen, int ssl_upstream, char* tls_auth_name,
+	size_t zonelen, int tcp_upstream, int ssl_upstream, char* tls_auth_name,
 	struct module_qstate* q)
 {
 	struct libworker* w = (struct libworker*)q->env->worker;
@@ -867,42 +893,13 @@ struct outbound_entry* libworker_send_query(struct query_info* qinfo,
 		return NULL;
 	e->qstate = q;
 	e->qsent = outnet_serviced_query(w->back, qinfo, flags, dnssec,
-		want_dnssec, nocaps, q->env->cfg->tcp_upstream, ssl_upstream,
+		want_dnssec, nocaps, tcp_upstream, ssl_upstream,
 		tls_auth_name, addr, addrlen, zone, zonelen, q,
 		libworker_handle_service_reply, e, w->back->udp_buff, q->env);
 	if(!e->qsent) {
 		return NULL;
 	}
 	return e;
-}
-
-int 
-libworker_handle_reply(struct comm_point* c, void* arg, int error,
-        struct comm_reply* reply_info)
-{
-	struct module_qstate* q = (struct module_qstate*)arg;
-	struct libworker* lw = (struct libworker*)q->env->worker;
-	struct outbound_entry e;
-	e.qstate = q;
-	e.qsent = NULL;
-
-	if(error != 0) {
-		mesh_report_reply(lw->env->mesh, &e, reply_info, error);
-		return 0;
-	}
-	/* sanity check. */
-	if(!LDNS_QR_WIRE(sldns_buffer_begin(c->buffer))
-		|| LDNS_OPCODE_WIRE(sldns_buffer_begin(c->buffer)) !=
-			LDNS_PACKET_QUERY
-		|| LDNS_QDCOUNT(sldns_buffer_begin(c->buffer)) > 1) {
-		/* error becomes timeout for the module as if this reply
-		 * never arrived. */
-		mesh_report_reply(lw->env->mesh, &e, reply_info, 
-			NETEVENT_TIMEOUT);
-		return 0;
-	}
-	mesh_report_reply(lw->env->mesh, &e, reply_info, NETEVENT_NOERROR);
-	return 0;
 }
 
 int 
@@ -947,14 +944,6 @@ int worker_handle_request(struct comm_point* ATTR_UNUSED(c),
 	return 0;
 }
 
-int worker_handle_reply(struct comm_point* ATTR_UNUSED(c), 
-	void* ATTR_UNUSED(arg), int ATTR_UNUSED(error),
-        struct comm_reply* ATTR_UNUSED(reply_info))
-{
-	log_assert(0);
-	return 0;
-}
-
 int worker_handle_service_reply(struct comm_point* ATTR_UNUSED(c), 
 	void* ATTR_UNUSED(arg), int ATTR_UNUSED(error),
         struct comm_reply* ATTR_UNUSED(reply_info))
@@ -988,7 +977,7 @@ struct outbound_entry* worker_send_query(struct query_info* ATTR_UNUSED(qinfo),
 	uint16_t ATTR_UNUSED(flags), int ATTR_UNUSED(dnssec),
 	int ATTR_UNUSED(want_dnssec), int ATTR_UNUSED(nocaps),
 	struct sockaddr_storage* ATTR_UNUSED(addr), socklen_t ATTR_UNUSED(addrlen),
-	uint8_t* ATTR_UNUSED(zone), size_t ATTR_UNUSED(zonelen),
+	uint8_t* ATTR_UNUSED(zone), size_t ATTR_UNUSED(zonelen), int ATTR_UNUSED(tcp_upstream),
 	int ATTR_UNUSED(ssl_upstream), char* ATTR_UNUSED(tls_auth_name),
 	struct module_qstate* ATTR_UNUSED(q))
 {

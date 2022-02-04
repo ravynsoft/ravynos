@@ -1,32 +1,32 @@
 /******************************************************************************
   SPDX-License-Identifier: BSD-3-Clause
 
-  Copyright (c) 2001-2015, Intel Corporation 
+  Copyright (c) 2001-2020, Intel Corporation
   All rights reserved.
-  
-  Redistribution and use in source and binary forms, with or without 
+
+  Redistribution and use in source and binary forms, with or without
   modification, are permitted provided that the following conditions are met:
-  
-   1. Redistributions of source code must retain the above copyright notice, 
+
+   1. Redistributions of source code must retain the above copyright notice,
       this list of conditions and the following disclaimer.
-  
-   2. Redistributions in binary form must reproduce the above copyright 
-      notice, this list of conditions and the following disclaimer in the 
+
+   2. Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
       documentation and/or other materials provided with the distribution.
-  
-   3. Neither the name of the Intel Corporation nor the names of its 
-      contributors may be used to endorse or promote products derived from 
+
+   3. Neither the name of the Intel Corporation nor the names of its
+      contributors may be used to endorse or promote products derived from
       this software without specific prior written permission.
-  
+
   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
-  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
-  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
-  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
-  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
-  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
-  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
   POSSIBILITY OF SUCH DAMAGE.
 
@@ -34,6 +34,8 @@
 /*$FreeBSD$*/
 
 #include "e1000_api.h"
+#include "e1000_manage.h"
+
 /**
  *  e1000_calculate_checksum - Calculate checksum for buffer
  *  @buffer: pointer to EEPROM
@@ -106,8 +108,8 @@ s32 e1000_mng_enable_host_if_generic(struct e1000_hw *hw)
  *  e1000_check_mng_mode_generic - Generic check management mode
  *  @hw: pointer to the HW structure
  *
- *  Reads the firmware semaphore register and returns TRUE (>0) if
- *  manageability is enabled, else FALSE (0).
+ *  Reads the firmware semaphore register and returns true (>0) if
+ *  manageability is enabled, else false (0).
  **/
 bool e1000_check_mng_mode_generic(struct e1000_hw *hw)
 {
@@ -137,11 +139,11 @@ bool e1000_enable_tx_pkt_filtering_generic(struct e1000_hw *hw)
 
 	DEBUGFUNC("e1000_enable_tx_pkt_filtering_generic");
 
-	hw->mac.tx_pkt_filtering = TRUE;
+	hw->mac.tx_pkt_filtering = true;
 
 	/* No manageability, no filtering */
 	if (!hw->mac.ops.check_mng_mode(hw)) {
-		hw->mac.tx_pkt_filtering = FALSE;
+		hw->mac.tx_pkt_filtering = false;
 		return hw->mac.tx_pkt_filtering;
 	}
 
@@ -150,7 +152,7 @@ bool e1000_enable_tx_pkt_filtering_generic(struct e1000_hw *hw)
 	 */
 	ret_val = e1000_mng_enable_host_if_generic(hw);
 	if (ret_val != E1000_SUCCESS) {
-		hw->mac.tx_pkt_filtering = FALSE;
+		hw->mac.tx_pkt_filtering = false;
 		return hw->mac.tx_pkt_filtering;
 	}
 
@@ -169,13 +171,13 @@ bool e1000_enable_tx_pkt_filtering_generic(struct e1000_hw *hw)
 	 * take the safe route of assuming Tx filtering is enabled.
 	 */
 	if ((hdr_csum != csum) || (hdr->signature != E1000_IAMT_SIGNATURE)) {
-		hw->mac.tx_pkt_filtering = TRUE;
+		hw->mac.tx_pkt_filtering = true;
 		return hw->mac.tx_pkt_filtering;
 	}
 
 	/* Cookie area is valid, make the final check for filtering. */
 	if (!(hdr->status & E1000_MNG_DHCP_COOKIE_STATUS_PARSING))
-		hw->mac.tx_pkt_filtering = FALSE;
+		hw->mac.tx_pkt_filtering = false;
 
 	return hw->mac.tx_pkt_filtering;
 }
@@ -346,12 +348,12 @@ bool e1000_enable_mng_pass_thru(struct e1000_hw *hw)
 	DEBUGFUNC("e1000_enable_mng_pass_thru");
 
 	if (!hw->mac.asf_firmware_present)
-		return FALSE;
+		return false;
 
 	manc = E1000_READ_REG(hw, E1000_MANC);
 
 	if (!(manc & E1000_MANC_RCV_TCO_EN))
-		return FALSE;
+		return false;
 
 	if (hw->mac.has_fwsm) {
 		fwsm = E1000_READ_REG(hw, E1000_FWSM);
@@ -360,7 +362,7 @@ bool e1000_enable_mng_pass_thru(struct e1000_hw *hw)
 		if (!(factps & E1000_FACTPS_MNGCG) &&
 		    ((fwsm & E1000_FWSM_MODE_MASK) ==
 		     (e1000_mng_mode_pt << E1000_FWSM_MODE_SHIFT)))
-			return TRUE;
+			return true;
 	} else if ((hw->mac.type == e1000_82574) ||
 		   (hw->mac.type == e1000_82583)) {
 		u16 data;
@@ -369,18 +371,18 @@ bool e1000_enable_mng_pass_thru(struct e1000_hw *hw)
 		factps = E1000_READ_REG(hw, E1000_FACTPS);
 		ret_val = e1000_read_nvm(hw, NVM_INIT_CONTROL2_REG, 1, &data);
 		if (ret_val)
-			return FALSE;
+			return false;
 
 		if (!(factps & E1000_FACTPS_MNGCG) &&
 		    ((data & E1000_NVM_INIT_CTRL2_MNGM) ==
 		     (e1000_mng_mode_pt << 13)))
-			return TRUE;
+			return true;
 	} else if ((manc & E1000_MANC_SMBUS_EN) &&
 		   !(manc & E1000_MANC_ASF_EN)) {
-		return TRUE;
+		return true;
 	}
 
-	return FALSE;
+	return false;
 }
 
 /**
@@ -455,6 +457,7 @@ s32 e1000_host_interface_command(struct e1000_hw *hw, u8 *buffer, u32 length)
 
 	return E1000_SUCCESS;
 }
+
 /**
  *  e1000_load_firmware - Writes proxy FW code buffer to host interface
  *                        and execute.
@@ -573,5 +576,3 @@ s32 e1000_load_firmware(struct e1000_hw *hw, u8 *buffer, u32 length)
 
 	return E1000_SUCCESS;
 }
-
-

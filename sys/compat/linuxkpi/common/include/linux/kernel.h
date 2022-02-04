@@ -29,8 +29,8 @@
  *
  * $FreeBSD$
  */
-#ifndef	_LINUX_KERNEL_H_
-#define	_LINUX_KERNEL_H_
+#ifndef	_LINUXKPI_LINUX_KERNEL_H_
+#define	_LINUXKPI_LINUX_KERNEL_H_
 
 #include <sys/cdefs.h>
 #include <sys/types.h>
@@ -45,6 +45,7 @@
 
 #include <linux/bitops.h>
 #include <linux/compiler.h>
+#include <linux/stringify.h>
 #include <linux/errno.h>
 #include <linux/sched.h>
 #include <linux/types.h>
@@ -88,14 +89,27 @@
 #define	S64_C(x) x ## LL
 #define	U64_C(x) x ## ULL
 
+/*
+ * BUILD_BUG_ON() can happen inside functions where _Static_assert() does not
+ * seem to work.  Use old-schoold-ish CTASSERT from before commit
+ * a3085588a88fa58eb5b1eaae471999e1995a29cf but also make sure we do not
+ * end up with an unused typedef or variable. The compiler should optimise
+ * it away entirely.
+ */
+#define	_O_CTASSERT(x)		_O__CTASSERT(x, __LINE__)
+#define	_O__CTASSERT(x, y)	_O___CTASSERT(x, y)
+#define	_O___CTASSERT(x, y)	while (0) { \
+    typedef char __assert_line_ ## y[(x) ? 1 : -1]; \
+    __assert_line_ ## y _x; \
+    _x[0] = '\0'; \
+}
+
 #define	BUILD_BUG()			do { CTASSERT(0); } while (0)
-#define	BUILD_BUG_ON(x)			CTASSERT(!(x))
+#define	BUILD_BUG_ON(x)			_O_CTASSERT(!(x))
 #define	BUILD_BUG_ON_MSG(x, msg)	BUILD_BUG_ON(x)
 #define	BUILD_BUG_ON_NOT_POWER_OF_2(x)	BUILD_BUG_ON(!powerof2(x))
 #define	BUILD_BUG_ON_INVALID(expr)	while (0) { (void)(expr); }
-
-extern const volatile int lkpi_build_bug_on_zero;
-#define	BUILD_BUG_ON_ZERO(x)	((x) ? lkpi_build_bug_on_zero : 0)
+#define	BUILD_BUG_ON_ZERO(x)	((int)sizeof(struct { int:-((x) != 0); }))
 
 #define	BUG()			panic("BUG at %s:%d", __FILE__, __LINE__)
 #define	BUG_ON(cond)		do {				\
@@ -105,28 +119,31 @@ extern const volatile int lkpi_build_bug_on_zero;
 	}							\
 } while (0)
 
+extern int linuxkpi_warn_dump_stack;
 #define	WARN_ON(cond) ({					\
-      bool __ret = (cond);					\
-      if (__ret) {						\
+	bool __ret = (cond);					\
+	if (__ret) {						\
 		printf("WARNING %s failed at %s:%d\n",		\
 		    __stringify(cond), __FILE__, __LINE__);	\
-		linux_dump_stack();				\
-      }								\
-      unlikely(__ret);						\
+		if (linuxkpi_warn_dump_stack)				\
+			linux_dump_stack();				\
+	}								\
+	unlikely(__ret);						\
 })
 
 #define	WARN_ON_SMP(cond)	WARN_ON(cond)
 
 #define	WARN_ON_ONCE(cond) ({					\
-      static bool __warn_on_once;				\
-      bool __ret = (cond);					\
-      if (__ret && !__warn_on_once) {				\
+	static bool __warn_on_once;				\
+	bool __ret = (cond);					\
+	if (__ret && !__warn_on_once) {				\
 		__warn_on_once = 1;				\
 		printf("WARNING %s failed at %s:%d\n",		\
 		    __stringify(cond), __FILE__, __LINE__);	\
-		linux_dump_stack();				\
-      }								\
-      unlikely(__ret);						\
+		if (linuxkpi_warn_dump_stack)				\
+			linux_dump_stack();				\
+	}								\
+	unlikely(__ret);						\
 })
 
 #define	oops_in_progress	SCHEDULER_STOPPED()
@@ -378,6 +395,24 @@ kstrtouint(const char *cp, unsigned int base, unsigned int *res)
 }
 
 static inline int
+kstrtou8(const char *cp, unsigned int base, u8 *res)
+{
+	char *end;
+	unsigned long temp;
+
+	*res = temp = strtoul(cp, &end, base);
+
+	/* skip newline character, if any */
+	if (*end == '\n')
+		end++;
+	if (*cp == 0 || *end != 0)
+		return (-EINVAL);
+	if (temp != (u8)temp)
+		return (-ERANGE);
+	return (0);
+}
+
+static inline int
 kstrtou16(const char *cp, unsigned int base, u16 *res)
 {
 	char *end;
@@ -429,6 +464,12 @@ kstrtou64(const char *cp, unsigned int base, u64 *res)
 }
 
 static inline int
+kstrtoull(const char *cp, unsigned int base, unsigned long long *res)
+{
+	return (kstrtou64(cp, base, (u64 *)res));
+}
+
+static inline int
 kstrtobool(const char *s, bool *res)
 {
 	int len;
@@ -466,6 +507,21 @@ kstrtobool_from_user(const char __user *s, size_t count, bool *res)
 		return (-EFAULT);
 
 	return (kstrtobool(buf, res));
+}
+
+static inline int
+kstrtou8_from_user(const char __user *s, size_t count, unsigned int base,
+    u8 *p)
+{
+	char buf[8] = {};
+
+	if (count > (sizeof(buf) - 1))
+		count = (sizeof(buf) - 1);
+
+	if (copy_from_user(buf, s, count))
+		return (-EFAULT);
+
+	return (kstrtou8(buf, base, p));
 }
 
 #define min(x, y)	((x) < (y) ? (x) : (y))
@@ -597,6 +653,37 @@ linux_ratelimited(linux_ratelimit_t *rl)
 #define	TAINT_WARN	0
 #define	test_taint(x)	(0)
 
+static inline int
+_h2b(const char c)
+{
+
+	if (c >= '0' && c <= '9')
+		return (c - '0');
+	if (c >= 'a' && c <= 'f')
+		return (10 + c - 'a');
+	if (c >= 'A' && c <= 'F')
+		return (10 + c - 'A');
+	return (-EINVAL);
+}
+
+static inline int
+hex2bin(uint8_t *bindst, const char *hexsrc, size_t binlen)
+{
+	int hi4, lo4;
+
+	while (binlen > 0) {
+		hi4 = _h2b(*hexsrc++);
+		lo4 = _h2b(*hexsrc++);
+		if (hi4 < 0 || lo4 < 0)
+			return (-EINVAL);
+
+		*bindst++ = (hi4 << 4) | lo4;
+		binlen--;
+	}
+
+	return (0);
+}
+
 /*
  * Checking if an option is defined would be easy if we could do CPP inside CPP.
  * The defined case whether -Dxxx or -Dxxx=1 are easy to deal with.  In either
@@ -639,4 +726,4 @@ linux_ratelimited(linux_ratelimit_t *rl)
 #define	IS_REACHABLE(_x)	(IS_BUILTIN(_x) || \
 				    (IS_MODULE(_x) && IS_BUILTIN(MODULE)))
 
-#endif	/* _LINUX_KERNEL_H_ */
+#endif	/* _LINUXKPI_LINUX_KERNEL_H_ */

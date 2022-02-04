@@ -29,6 +29,8 @@
 #include <sys/cdefs.h>
 __FBSDID("$FreeBSD$");
 
+#include "opt_evdev.h"
+
 #include <sys/param.h>
 #include <sys/systm.h>
 #include <sys/kernel.h>
@@ -55,6 +57,11 @@ __FBSDID("$FreeBSD$");
 
 #define	USB_DEBUG_VAR wsp_debug
 #include <dev/usb/usb_debug.h>
+
+#ifdef EVDEV_SUPPORT
+#include <dev/evdev/input.h>
+#include <dev/evdev/evdev.h>
+#endif
 
 #include <sys/mouse.h>
 
@@ -164,7 +171,8 @@ enum tp_type {
 	TYPE1,			/* plain trackpad */
 	TYPE2,			/* button integrated in trackpad */
 	TYPE3,			/* additional header fields since June 2013 */
-	TYPE4                   /* additional header field for pressure data */
+	TYPE4,                  /* additional header field for pressure data */
+	TYPE_CNT
 };
 
 /* trackpad finger data offsets, le16-aligned */
@@ -186,6 +194,67 @@ enum tp_type {
 #define FSIZE_TYPE2             (14 * 2)
 #define FSIZE_TYPE3             (14 * 2)
 #define FSIZE_TYPE4             (15 * 2)
+
+struct wsp_tp {
+	uint8_t	caps;			/* device capability bitmask */
+	uint8_t	button;			/* offset to button data */
+	uint8_t	offset;			/* offset to trackpad finger data */
+	uint8_t fsize;			/* bytes in single finger block */
+	uint8_t delta;			/* offset from header to finger struct */
+	uint8_t iface_index;
+	uint8_t um_size;		/* usb control message length */
+	uint8_t um_req_idx;		/* usb control message index */
+	uint8_t um_switch_idx;		/* usb control message mode switch index */
+	uint8_t um_switch_on;		/* usb control message mode switch on */
+	uint8_t um_switch_off;		/* usb control message mode switch off */
+} const static wsp_tp[TYPE_CNT] = {
+	[TYPE1] = {
+		.caps = 0,
+		.button = 0,
+		.offset = FINGER_TYPE1,
+		.fsize = FSIZE_TYPE1,
+		.delta = 0,
+		.iface_index = 0,
+		.um_size = 8,
+		.um_req_idx = 0x00,
+		.um_switch_idx = 0,
+		.um_switch_on = 0x01,
+		.um_switch_off = 0x08,
+	},
+	[TYPE2] = {
+		.caps = HAS_INTEGRATED_BUTTON,
+		.button = BUTTON_TYPE2,
+		.offset = FINGER_TYPE2,
+		.fsize = FSIZE_TYPE2,
+		.delta = 0,
+		.iface_index = 0,
+		.um_size = 8,
+		.um_req_idx = 0x00,
+		.um_switch_idx = 0,
+		.um_switch_on = 0x01,
+		.um_switch_off = 0x08,
+	},
+	[TYPE3] = {
+		.caps = HAS_INTEGRATED_BUTTON,
+		.button = BUTTON_TYPE3,
+		.offset = FINGER_TYPE3,
+		.fsize = FSIZE_TYPE3,
+		.delta = 0,
+	},
+	[TYPE4] = {
+		.caps = HAS_INTEGRATED_BUTTON,
+		.button = BUTTON_TYPE4,
+		.offset = FINGER_TYPE4,
+		.fsize = FSIZE_TYPE4,
+		.delta = 2,
+		.iface_index = 2,
+		.um_size = 2,
+		.um_req_idx = 0x02,
+		.um_switch_idx = 1,
+		.um_switch_on = 0x01,
+		.um_switch_off = 0x00,
+	},
+};
 
 /* trackpad finger header - little endian */
 struct tp_header {
@@ -221,9 +290,14 @@ struct tp_finger {
 } __packed;
 
 /* trackpad finger data size, empirically at least ten fingers */
+#ifdef EVDEV_SUPPORT
+#define	MAX_FINGERS		MAX_MT_SLOTS
+#else
 #define	MAX_FINGERS		16
+#endif
 #define	SIZEOF_FINGER		sizeof(struct tp_finger)
 #define	SIZEOF_ALL_FINGERS	(MAX_FINGERS * SIZEOF_FINGER)
+#define	MAX_FINGER_ORIENTATION	16384
 
 #if (WSP_BUFFER_MAX < ((MAX_FINGERS * FSIZE_TYPE4) + FINGER_TYPE4))
 #error "WSP_BUFFER_MAX is too small"
@@ -246,217 +320,147 @@ enum {
 	WSP_FLAG_MAX,
 };
 
+/* device-specific parameters */
+struct wsp_param {
+	int snratio;			/* signal-to-noise ratio */
+	int min;			/* device minimum reading */
+	int max;			/* device maximum reading */
+	int size;			/* physical size, mm */
+};
+
 /* device-specific configuration */
 struct wsp_dev_params {
-	uint8_t	caps;			/* device capability bitmask */
-	uint8_t	tp_type;		/* type of trackpad interface */
-	uint8_t	tp_button;		/* offset to button data */
-	uint8_t	tp_offset;		/* offset to trackpad finger data */
-	uint8_t tp_fsize;		/* bytes in single finger block */
-	uint8_t tp_delta;		/* offset from header to finger struct */
-	uint8_t iface_index;
-	uint8_t um_size;		/* usb control message length */
-	uint8_t um_req_val;		/* usb control message value */
-	uint8_t um_req_idx;		/* usb control message index */
-	uint8_t um_switch_idx;		/* usb control message mode switch index */
-	uint8_t um_switch_on;		/* usb control message mode switch on */
-	uint8_t um_switch_off;		/* usb control message mode switch off */
+	const struct wsp_tp* tp;
+	struct wsp_param p;		/* finger pressure limits */
+	struct wsp_param w;		/* finger width limits */
+	struct wsp_param x;		/* horizontal limits */
+	struct wsp_param y;		/* vertical limits */
+	struct wsp_param o;		/* orientation limits */
 };
+
+/* logical signal quality */
+#define	SN_PRESSURE	45		/* pressure signal-to-noise ratio */
+#define	SN_WIDTH	25		/* width signal-to-noise ratio */
+#define	SN_COORD	250		/* coordinate signal-to-noise ratio */
+#define	SN_ORIENT	10		/* orientation signal-to-noise ratio */
 
 static const struct wsp_dev_params wsp_dev_params[WSP_FLAG_MAX] = {
 	[WSP_FLAG_WELLSPRING1] = {
-		.caps = 0,
-		.tp_type = TYPE1,
-		.tp_button = 0,
-		.tp_offset = FINGER_TYPE1,
-		.tp_fsize = FSIZE_TYPE1,
-		.tp_delta = 0,
-		.iface_index = 0,
-		.um_size = 8,
-		.um_req_val = 0x03,
-		.um_req_idx = 0x00,
-		.um_switch_idx = 0,
-		.um_switch_on = 0x01,
-		.um_switch_off = 0x08,
+		.tp = wsp_tp + TYPE1,
+		.p = { SN_PRESSURE, 0, 256, 0 },
+		.w = { SN_WIDTH, 0, 2048, 0 },
+		.x = { SN_COORD, -4824, 5342, 105 },
+		.y = { SN_COORD, -172, 5820, 75 },
+		.o = { SN_ORIENT,
+		    -MAX_FINGER_ORIENTATION, MAX_FINGER_ORIENTATION, 0 },
 	},
 	[WSP_FLAG_WELLSPRING2] = {
-		.caps = 0,
-		.tp_type = TYPE1,
-		.tp_button = 0,
-		.tp_offset = FINGER_TYPE1,
-		.tp_fsize = FSIZE_TYPE1,
-		.tp_delta = 0,
-		.iface_index = 0,
-		.um_size = 8,
-		.um_req_val = 0x03,
-		.um_req_idx = 0x00,
-		.um_switch_idx = 0,
-		.um_switch_on = 0x01,
-		.um_switch_off = 0x08,
+		.tp = wsp_tp + TYPE1,
+		.p = { SN_PRESSURE, 0, 256, 0 },
+		.w = { SN_WIDTH, 0, 2048, 0 },
+		.x = { SN_COORD, -4824, 4824, 105 },
+		.y = { SN_COORD, -172, 4290, 75 },
+		.o = { SN_ORIENT,
+		    -MAX_FINGER_ORIENTATION, MAX_FINGER_ORIENTATION, 0 },
 	},
 	[WSP_FLAG_WELLSPRING3] = {
-		.caps = HAS_INTEGRATED_BUTTON,
-		.tp_type = TYPE2,
-		.tp_button = BUTTON_TYPE2,
-		.tp_offset = FINGER_TYPE2,
-		.tp_fsize = FSIZE_TYPE2,
-		.tp_delta = 0,
-		.iface_index = 0,
-		.um_size = 8,
-		.um_req_val = 0x03,
-		.um_req_idx = 0x00,
-		.um_switch_idx = 0,
-		.um_switch_on = 0x01,
-		.um_switch_off = 0x08,
+		.tp = wsp_tp + TYPE2,
+		.p = { SN_PRESSURE, 0, 300, 0 },
+		.w = { SN_WIDTH, 0, 2048, 0 },
+		.x = { SN_COORD, -4460, 5166, 105 },
+		.y = { SN_COORD, -75, 6700, 75 },
+		.o = { SN_ORIENT,
+		    -MAX_FINGER_ORIENTATION, MAX_FINGER_ORIENTATION, 0 },
 	},
 	[WSP_FLAG_WELLSPRING4] = {
-		.caps = HAS_INTEGRATED_BUTTON,
-		.tp_type = TYPE2,
-		.tp_button = BUTTON_TYPE2,
-		.tp_offset = FINGER_TYPE2,
-		.tp_fsize = FSIZE_TYPE2,
-		.tp_delta = 0,
-		.iface_index = 0,
-		.um_size = 8,
-		.um_req_val = 0x03,
-		.um_req_idx = 0x00,
-		.um_switch_idx = 0,
-		.um_switch_on = 0x01,
-		.um_switch_off = 0x08,
+		.tp = wsp_tp + TYPE2,
+		.p = { SN_PRESSURE, 0, 300, 0 },
+		.w = { SN_WIDTH, 0, 2048, 0 },
+		.x = { SN_COORD, -4620, 5140, 105 },
+		.y = { SN_COORD, -150, 6600, 75 },
+		.o = { SN_ORIENT,
+		    -MAX_FINGER_ORIENTATION, MAX_FINGER_ORIENTATION, 0 },
 	},
 	[WSP_FLAG_WELLSPRING4A] = {
-		.caps = HAS_INTEGRATED_BUTTON,
-		.tp_type = TYPE2,
-		.tp_button = BUTTON_TYPE2,
-		.tp_offset = FINGER_TYPE2,
-		.tp_fsize = FSIZE_TYPE2,
-		.tp_delta = 0,
-		.iface_index = 0,
-		.um_size = 8,
-		.um_req_val = 0x03,
-		.um_req_idx = 0x00,
-		.um_switch_idx = 0,
-		.um_switch_on = 0x01,
-		.um_switch_off = 0x08,
+		.tp = wsp_tp + TYPE2,
+		.p = { SN_PRESSURE, 0, 300, 0 },
+		.w = { SN_WIDTH, 0, 2048, 0 },
+		.x = { SN_COORD, -4616, 5112, 105 },
+		.y = { SN_COORD, -142, 5234, 75 },
+		.o = { SN_ORIENT,
+		    -MAX_FINGER_ORIENTATION, MAX_FINGER_ORIENTATION, 0 },
 	},
 	[WSP_FLAG_WELLSPRING5] = {
-		.caps = HAS_INTEGRATED_BUTTON,
-		.tp_type = TYPE2,
-		.tp_button = BUTTON_TYPE2,
-		.tp_offset = FINGER_TYPE2,
-		.tp_fsize = FSIZE_TYPE2,
-		.tp_delta = 0,
-		.iface_index = 0,
-		.um_size = 8,
-		.um_req_val = 0x03,
-		.um_req_idx = 0x00,
-		.um_switch_idx = 0,
-		.um_switch_on = 0x01,
-		.um_switch_off = 0x08,
+		.tp = wsp_tp + TYPE2,
+		.p = { SN_PRESSURE, 0, 300, 0 },
+		.w = { SN_WIDTH, 0, 2048, 0 },
+		.x = { SN_COORD, -4415, 5050, 105 },
+		.y = { SN_COORD, -55, 6680, 75 },
+		.o = { SN_ORIENT,
+		    -MAX_FINGER_ORIENTATION, MAX_FINGER_ORIENTATION, 0 },
 	},
 	[WSP_FLAG_WELLSPRING6] = {
-		.caps = HAS_INTEGRATED_BUTTON,
-		.tp_type = TYPE2,
-		.tp_button = BUTTON_TYPE2,
-		.tp_offset = FINGER_TYPE2,
-		.tp_fsize = FSIZE_TYPE2,
-		.tp_delta = 0,
-		.iface_index = 0,
-		.um_size = 8,
-		.um_req_val = 0x03,
-		.um_req_idx = 0x00,
-		.um_switch_idx = 0,
-		.um_switch_on = 0x01,
-		.um_switch_off = 0x08,
+		.tp = wsp_tp + TYPE2,
+		.p = { SN_PRESSURE, 0, 300, 0 },
+		.w = { SN_WIDTH, 0, 2048, 0 },
+		.x = { SN_COORD, -4620, 5140, 105 },
+		.y = { SN_COORD, -150, 6600, 75 },
+		.o = { SN_ORIENT,
+		    -MAX_FINGER_ORIENTATION, MAX_FINGER_ORIENTATION, 0 },
 	},
 	[WSP_FLAG_WELLSPRING5A] = {
-		.caps = HAS_INTEGRATED_BUTTON,
-		.tp_type = TYPE2,
-		.tp_button = BUTTON_TYPE2,
-		.tp_offset = FINGER_TYPE2,
-		.tp_fsize = FSIZE_TYPE2,
-		.tp_delta = 0,
-		.iface_index = 0,
-		.um_size = 8,
-		.um_req_val = 0x03,
-		.um_req_idx = 0x00,
-		.um_switch_idx = 0,
-		.um_switch_on = 0x01,
-		.um_switch_off = 0x08,
+		.tp = wsp_tp + TYPE2,
+		.p = { SN_PRESSURE, 0, 300, 0 },
+		.w = { SN_WIDTH, 0, 2048, 0 },
+		.x = { SN_COORD, -4750, 5280, 105 },
+		.y = { SN_COORD, -150, 6730, 75 },
+		.o = { SN_ORIENT,
+		    -MAX_FINGER_ORIENTATION, MAX_FINGER_ORIENTATION, 0 },
 	},
 	[WSP_FLAG_WELLSPRING6A] = {
-		.caps = HAS_INTEGRATED_BUTTON,
-		.tp_type = TYPE2,
-		.tp_button = BUTTON_TYPE2,
-		.tp_offset = FINGER_TYPE2,
-		.tp_fsize = FSIZE_TYPE2,
-		.tp_delta = 0,
-		.um_size = 8,
-		.um_req_val = 0x03,
-		.um_req_idx = 0x00,
-		.um_switch_idx = 0,
-		.um_switch_on = 0x01,
-		.um_switch_off = 0x08,
+		.tp = wsp_tp + TYPE2,
+		.p = { SN_PRESSURE, 0, 300, 0 },
+		.w = { SN_WIDTH, 0, 2048, 0 },
+		.x = { SN_COORD, -4620, 5140, 105 },
+		.y = { SN_COORD, -150, 6600, 75 },
+		.o = { SN_ORIENT,
+		    -MAX_FINGER_ORIENTATION, MAX_FINGER_ORIENTATION, 0 },
 	},
 	[WSP_FLAG_WELLSPRING7] = {
-		.caps = HAS_INTEGRATED_BUTTON,
-		.tp_type = TYPE2,
-		.tp_button = BUTTON_TYPE2,
-		.tp_offset = FINGER_TYPE2,
-		.tp_fsize = FSIZE_TYPE2,
-		.tp_delta = 0,
-		.iface_index = 0,
-		.um_size = 8,
-		.um_req_val = 0x03,
-		.um_req_idx = 0x00,
-		.um_switch_idx = 0,
-		.um_switch_on = 0x01,
-		.um_switch_off = 0x08,
+		.tp = wsp_tp + TYPE2,
+		.p = { SN_PRESSURE, 0, 300, 0 },
+		.w = { SN_WIDTH, 0, 2048, 0 },
+		.x = { SN_COORD, -4750, 5280, 105 },
+		.y = { SN_COORD, -150, 6730, 75 },
+		.o = { SN_ORIENT,
+		    -MAX_FINGER_ORIENTATION, MAX_FINGER_ORIENTATION, 0 },
 	},
 	[WSP_FLAG_WELLSPRING7A] = {
-		.caps = HAS_INTEGRATED_BUTTON,
-		.tp_type = TYPE2,
-		.tp_button = BUTTON_TYPE2,
-		.tp_offset = FINGER_TYPE2,
-		.tp_fsize = FSIZE_TYPE2,
-		.tp_delta = 0,
-		.iface_index = 0,
-		.um_size = 8,
-		.um_req_val = 0x03,
-		.um_req_idx = 0x00,
-		.um_switch_idx = 0,
-		.um_switch_on = 0x01,
-		.um_switch_off = 0x08,
+		.tp = wsp_tp + TYPE2,
+		.p = { SN_PRESSURE, 0, 300, 0 },
+		.w = { SN_WIDTH, 0, 2048, 0 },
+		.x = { SN_COORD, -4750, 5280, 105 },
+		.y = { SN_COORD, -150, 6730, 75 },
+		.o = { SN_ORIENT,
+		    -MAX_FINGER_ORIENTATION, MAX_FINGER_ORIENTATION, 0 },
 	},
 	[WSP_FLAG_WELLSPRING8] = {
-		.caps = HAS_INTEGRATED_BUTTON,
-		.tp_type = TYPE3,
-		.tp_button = BUTTON_TYPE3,
-		.tp_offset = FINGER_TYPE3,
-		.tp_fsize = FSIZE_TYPE3,
-		.tp_delta = 0,
-		.iface_index = 0,
-		.um_size = 8,
-		.um_req_val = 0x03,
-		.um_req_idx = 0x00,
-		.um_switch_idx = 0,
-		.um_switch_on = 0x01,
-		.um_switch_off = 0x08,
+		.tp = wsp_tp + TYPE3,
+		.p = { SN_PRESSURE, 0, 300, 0 },
+		.w = { SN_WIDTH, 0, 2048, 0 },
+		.x = { SN_COORD, -4620, 5140, 105 },
+		.y = { SN_COORD, -150, 6600, 75 },
+		.o = { SN_ORIENT,
+		    -MAX_FINGER_ORIENTATION, MAX_FINGER_ORIENTATION, 0 },
 	},
 	[WSP_FLAG_WELLSPRING9] = {
-		.caps = HAS_INTEGRATED_BUTTON,
-		.tp_type = TYPE4,
-		.tp_button = BUTTON_TYPE4,
-		.tp_offset = FINGER_TYPE4,
-		.tp_fsize = FSIZE_TYPE4,
-		.tp_delta = 2,
-		.iface_index = 2,
-		.um_size = 2,
-		.um_req_val = 0x03,
-		.um_req_idx = 0x02,
-		.um_switch_idx = 1,
-		.um_switch_on = 0x01,
-		.um_switch_off = 0x00,
+		.tp = wsp_tp + TYPE4,
+		.p = { SN_PRESSURE, 0, 300, 0 },
+		.w = { SN_WIDTH, 0, 2048, 0 },
+		.x = { SN_COORD, -4828, 5345, 105 },
+		.y = { SN_COORD, -203, 6803, 75 },
+		.o = { SN_ORIENT,
+		    -MAX_FINGER_ORIENTATION, MAX_FINGER_ORIENTATION, 0 },
 	},
 };
 #define	WSP_DEV(v,p,i) { USB_VPI(USB_VENDOR_##v, USB_PRODUCT_##v##_##p, i) }
@@ -545,12 +549,17 @@ struct wsp_softc {
 
 	const struct wsp_dev_params *sc_params;	/* device configuration */
 
+#ifdef EVDEV_SUPPORT
+	struct evdev_dev *sc_evdev;
+#endif
 	mousehw_t sc_hw;
 	mousemode_t sc_mode;
 	u_int	sc_pollrate;
 	mousestatus_t sc_status;
+	int	sc_fflags;
 	u_int	sc_state;
-#define	WSP_ENABLED	       0x01
+#define	WSP_ENABLED		0x01
+#define	WSP_EVDEV_OPENED	0x02
 
 	struct tp_finger *index[MAX_FINGERS];	/* finger index data */
 	int16_t	pos_x[MAX_FINGERS];	/* position array */
@@ -591,8 +600,8 @@ struct wsp_softc {
 /*
  * function prototypes
  */
-static usb_fifo_cmd_t wsp_start_read;
-static usb_fifo_cmd_t wsp_stop_read;
+static usb_fifo_cmd_t wsp_fifo_start_read;
+static usb_fifo_cmd_t wsp_fifo_stop_read;
 static usb_fifo_open_t wsp_open;
 static usb_fifo_close_t wsp_close;
 static usb_fifo_ioctl_t wsp_ioctl;
@@ -601,10 +610,19 @@ static struct usb_fifo_methods wsp_fifo_methods = {
 	.f_open = &wsp_open,
 	.f_close = &wsp_close,
 	.f_ioctl = &wsp_ioctl,
-	.f_start_read = &wsp_start_read,
-	.f_stop_read = &wsp_stop_read,
+	.f_start_read = &wsp_fifo_start_read,
+	.f_stop_read = &wsp_fifo_stop_read,
 	.basename[0] = WSP_DRIVER_NAME,
 };
+
+#ifdef EVDEV_SUPPORT
+static evdev_open_t wsp_ev_open;
+static evdev_close_t wsp_ev_close;
+static const struct evdev_methods wsp_evdev_methods = {
+	.ev_open = &wsp_ev_open,
+	.ev_close = &wsp_ev_close,
+};
+#endif
 
 /* device initialization and shutdown */
 static int wsp_enable(struct wsp_softc *sc);
@@ -642,12 +660,12 @@ wsp_set_device_mode(struct wsp_softc *sc, uint8_t on)
 	usb_error_t err;
 
 	/* Type 3 does not require a mode switch */
-	if (params->tp_type == TYPE3)
+	if (params->tp == wsp_tp + TYPE3)
 		return 0;
 
 	err = usbd_req_get_report(sc->sc_usb_device, NULL,
-	    mode_bytes, params->um_size, params->iface_index,
-	    params->um_req_val, params->um_req_idx);
+	    mode_bytes, params->tp->um_size, params->tp->iface_index,
+	    UHID_FEATURE_REPORT, params->tp->um_req_idx);
 
 	if (err != USB_ERR_NORMAL_COMPLETION) {
 		DPRINTF("Failed to read device mode (%d)\n", err);
@@ -662,12 +680,12 @@ wsp_set_device_mode(struct wsp_softc *sc, uint8_t on)
 	 */
 	pause("WHW", hz / 4);
 
-	mode_bytes[params->um_switch_idx] = 
-	    on ? params->um_switch_on : params->um_switch_off;
+	mode_bytes[params->tp->um_switch_idx] =
+	    on ? params->tp->um_switch_on : params->tp->um_switch_off;
 
 	return (usbd_req_set_report(sc->sc_usb_device, NULL,
-	    mode_bytes, params->um_size, params->iface_index, 
-	    params->um_req_val, params->um_req_idx));
+	    mode_bytes, params->tp->um_size, params->tp->iface_index,
+	    UHID_FEATURE_REPORT, params->tp->um_req_idx));
 }
 
 static int
@@ -715,7 +733,10 @@ wsp_probe(device_t self)
 	/* check if we are attaching to the first match */
 	if (uaa->info.bIfaceIndex != i)
 		return (ENXIO);
-	return (usbd_lookup_id_by_uaa(wsp_devs, sizeof(wsp_devs), uaa));
+	if (usbd_lookup_id_by_uaa(wsp_devs, sizeof(wsp_devs), uaa) != 0)
+		return (ENXIO);
+
+	return (BUS_PROBE_DEFAULT);
 }
 
 static int
@@ -811,6 +832,56 @@ wsp_attach(device_t dev)
 	sc->sc_touch = WSP_UNTOUCH;
 	sc->scr_mode = WSP_SCR_NONE;
 
+#ifdef EVDEV_SUPPORT
+	sc->sc_evdev = evdev_alloc();
+	evdev_set_name(sc->sc_evdev, device_get_desc(dev));
+	evdev_set_phys(sc->sc_evdev, device_get_nameunit(dev));
+	evdev_set_id(sc->sc_evdev, BUS_USB, uaa->info.idVendor,
+	    uaa->info.idProduct, 0);
+	evdev_set_serial(sc->sc_evdev, usb_get_serial(uaa->device));
+	evdev_set_methods(sc->sc_evdev, sc, &wsp_evdev_methods);
+	evdev_support_prop(sc->sc_evdev, INPUT_PROP_POINTER);
+	evdev_support_event(sc->sc_evdev, EV_SYN);
+	evdev_support_event(sc->sc_evdev, EV_ABS);
+	evdev_support_event(sc->sc_evdev, EV_KEY);
+
+#define WSP_SUPPORT_ABS(evdev, code, param)				\
+	evdev_support_abs((evdev), (code), (param).min, (param).max,	\
+	((param).max - (param).min) / (param).snratio, 0,		\
+	(param).size != 0 ? ((param).max - (param).min) / (param).size : 0);
+
+	/* finger position */
+	WSP_SUPPORT_ABS(sc->sc_evdev, ABS_MT_POSITION_X, sc->sc_params->x);
+	WSP_SUPPORT_ABS(sc->sc_evdev, ABS_MT_POSITION_Y, sc->sc_params->y);
+	/* finger pressure */
+	WSP_SUPPORT_ABS(sc->sc_evdev, ABS_MT_PRESSURE, sc->sc_params->p);
+	/* finger touch area */
+	WSP_SUPPORT_ABS(sc->sc_evdev, ABS_MT_TOUCH_MAJOR, sc->sc_params->w);
+	WSP_SUPPORT_ABS(sc->sc_evdev, ABS_MT_TOUCH_MINOR, sc->sc_params->w);
+	/* finger approach area */
+	WSP_SUPPORT_ABS(sc->sc_evdev, ABS_MT_WIDTH_MAJOR, sc->sc_params->w);
+	WSP_SUPPORT_ABS(sc->sc_evdev, ABS_MT_WIDTH_MINOR, sc->sc_params->w);
+	/* finger orientation */
+	WSP_SUPPORT_ABS(sc->sc_evdev, ABS_MT_ORIENTATION, sc->sc_params->o);
+	/* button properties */
+	evdev_support_key(sc->sc_evdev, BTN_LEFT);
+	if ((sc->sc_params->tp->caps & HAS_INTEGRATED_BUTTON) != 0)
+		evdev_support_prop(sc->sc_evdev, INPUT_PROP_BUTTONPAD);
+	/* Enable automatic touch assignment for type B MT protocol */
+	evdev_support_abs(sc->sc_evdev, ABS_MT_SLOT,
+	    0, MAX_FINGERS - 1, 0, 0, 0);
+	evdev_support_abs(sc->sc_evdev, ABS_MT_TRACKING_ID,
+	    -1, MAX_FINGERS - 1, 0, 0, 0);
+	evdev_set_flag(sc->sc_evdev, EVDEV_FLAG_MT_TRACK);
+	evdev_set_flag(sc->sc_evdev, EVDEV_FLAG_MT_AUTOREL);
+	/* Synaptics compatibility events */
+	evdev_set_flag(sc->sc_evdev, EVDEV_FLAG_MT_STCOMPAT);
+
+	err = evdev_register(sc->sc_evdev);
+	if (err)
+		goto detach;
+#endif
+
 	return (0);
 
 detach:
@@ -831,6 +902,10 @@ wsp_detach(device_t dev)
 	mtx_unlock(&sc->sc_mutex);
 
 	usb_fifo_detach(&sc->sc_fifo);
+
+#ifdef EVDEV_SUPPORT
+	evdev_free(sc->sc_evdev);
+#endif
 
 	usbd_transfer_unsetup(sc->sc_xfer, WSP_N_TRANSFER);
 
@@ -858,6 +933,9 @@ wsp_intr_callback(struct usb_xfer *xfer, usb_error_t error)
 	int rdz = 0;
 	int len;
 	int i;
+#ifdef EVDEV_SUPPORT
+	int slot = 0;
+#endif
 
 	wsp_runing_rangecheck(&tun);
 
@@ -873,8 +951,8 @@ wsp_intr_callback(struct usb_xfer *xfer, usb_error_t error)
 		pc = usbd_xfer_get_frame(xfer, 0);
 		usbd_copy_out(pc, 0, sc->tp_data, len);
 
-		if ((len < params->tp_offset + params->tp_fsize) ||
-		    ((len - params->tp_offset) % params->tp_fsize) != 0) {
+		if ((len < params->tp->offset + params->tp->fsize) ||
+		    ((len - params->tp->offset) % params->tp->fsize) != 0) {
 			DPRINTFN(WSP_LLEVEL_INFO, "Invalid length: %d, %x, %x\n",
 			    len, sc->tp_data[0], sc->tp_data[1]);
 			goto tr_setup;
@@ -887,10 +965,12 @@ wsp_intr_callback(struct usb_xfer *xfer, usb_error_t error)
 
 		h = (struct tp_header *)(sc->tp_data);
 
-		if (params->tp_type >= TYPE2) {
-			ibt = sc->tp_data[params->tp_button];
-			ntouch = sc->tp_data[params->tp_button - 1];
-		}
+		if (params->tp != wsp_tp + TYPE1) {
+			ibt = sc->tp_data[params->tp->button];
+			ntouch = sc->tp_data[params->tp->button - 1];
+		} else
+			ntouch = (len - params->tp->offset) / params->tp->fsize;
+
 		/* range check */
 		if (ntouch < 0)
 			ntouch = 0;
@@ -898,7 +978,7 @@ wsp_intr_callback(struct usb_xfer *xfer, usb_error_t error)
 			ntouch = MAX_FINGERS;
 
 		for (i = 0; i != ntouch; i++) {
-			f = (struct tp_finger *)(sc->tp_data + params->tp_offset + params->tp_delta + i * params->tp_fsize);
+			f = (struct tp_finger *)(sc->tp_data + params->tp->offset + params->tp->delta + i * params->tp->fsize);
 			/* swap endianness, if any */
 			if (le16toh(0x1234) != 0x1234) {
 				f->origin = le16toh((uint16_t)f->origin);
@@ -924,17 +1004,40 @@ wsp_intr_callback(struct usb_xfer *xfer, usb_error_t error)
 			sc->pos_x[i] = f->abs_x;
 			sc->pos_y[i] = -f->abs_y;
 			sc->index[i] = f;
+#ifdef EVDEV_SUPPORT
+			if (evdev_rcpt_mask & EVDEV_RCPT_HW_MOUSE && f->touch_major != 0) {
+				union evdev_mt_slot slot_data = {
+					.id = slot,
+					.x = f->abs_x,
+					.y = params->y.min + params->y.max - f->abs_y,
+					.p = f->pressure,
+					.maj = f->touch_major << 1,
+					.min = f->touch_minor << 1,
+					.w_maj = f->tool_major << 1,
+					.w_min = f->tool_minor << 1,
+					.ori = params->o.max - f->orientation,
+				};
+				evdev_mt_push_slot(sc->sc_evdev, slot, &slot_data);
+				slot++;
+			}
+#endif
 		}
 
+#ifdef EVDEV_SUPPORT
+		if (evdev_rcpt_mask & EVDEV_RCPT_HW_MOUSE) {
+			evdev_push_key(sc->sc_evdev, BTN_LEFT, ibt);
+			evdev_sync(sc->sc_evdev);
+		}
+#endif
 		sc->sc_status.flags &= ~MOUSE_POSCHANGED;
 		sc->sc_status.flags &= ~MOUSE_STDBUTTONSCHANGED;
 		sc->sc_status.obutton = sc->sc_status.button;
 		sc->sc_status.button = 0;
 
 		if (ibt != 0) {
-			if ((params->caps & HAS_INTEGRATED_BUTTON) && ntouch == 2)
+			if ((params->tp->caps & HAS_INTEGRATED_BUTTON) && ntouch == 2)
 				sc->sc_status.button |= MOUSE_BUTTON3DOWN;
-			else if ((params->caps & HAS_INTEGRATED_BUTTON) && ntouch == 3)
+			else if ((params->tp->caps & HAS_INTEGRATED_BUTTON) && ntouch == 3)
 				sc->sc_status.button |= MOUSE_BUTTON2DOWN;
 			else 
 				sc->sc_status.button |= MOUSE_BUTTON1DOWN;
@@ -981,7 +1084,7 @@ wsp_intr_callback(struct usb_xfer *xfer, usb_error_t error)
 				 */
 				switch (sc->ntaps) {
 				case 1:
-					if (!(params->caps & HAS_INTEGRATED_BUTTON) || tun.enable_single_tap_clicks) {
+					if (!(params->tp->caps & HAS_INTEGRATED_BUTTON) || tun.enable_single_tap_clicks) {
 						wsp_add_to_queue(sc, 0, 0, 0, MOUSE_BUTTON1DOWN);
 						DPRINTFN(WSP_LLEVEL_INFO, "LEFT CLICK!\n");
 					}
@@ -1230,9 +1333,8 @@ wsp_reset_buf(struct wsp_softc *sc)
 }
 
 static void
-wsp_start_read(struct usb_fifo *fifo)
+wsp_start_read(struct wsp_softc *sc)
 {
-	struct wsp_softc *sc = usb_fifo_softc(fifo);
 	int rate;
 
 	/* Check if we should override the default polling interval */
@@ -1253,48 +1355,108 @@ wsp_start_read(struct usb_fifo *fifo)
 }
 
 static void
-wsp_stop_read(struct usb_fifo *fifo)
+wsp_stop_read(struct wsp_softc *sc)
 {
-	struct wsp_softc *sc = usb_fifo_softc(fifo);
-
 	usbd_transfer_stop(sc->sc_xfer[WSP_INTR_DT]);
 }
 
 static int
 wsp_open(struct usb_fifo *fifo, int fflags)
 {
+	struct wsp_softc *sc = usb_fifo_softc(fifo);
+	int rc = 0;
+
 	DPRINTFN(WSP_LLEVEL_INFO, "\n");
 
+	if (sc->sc_fflags & fflags)
+		return (EBUSY);
+
 	if (fflags & FREAD) {
-		struct wsp_softc *sc = usb_fifo_softc(fifo);
-		int rc;
-
-		if (sc->sc_state & WSP_ENABLED)
-			return (EBUSY);
-
 		if (usb_fifo_alloc_buffer(fifo,
 		    WSP_FIFO_BUF_SIZE, WSP_FIFO_QUEUE_MAXLEN)) {
 			return (ENOMEM);
 		}
-		rc = wsp_enable(sc);
+#ifdef EVDEV_SUPPORT
+		if ((sc->sc_state & WSP_EVDEV_OPENED) == 0)
+#endif
+			rc = wsp_enable(sc);
 		if (rc != 0) {
 			usb_fifo_free_buffer(fifo);
 			return (rc);
 		}
 	}
+	sc->sc_fflags |= fflags & (FREAD | FWRITE);
 	return (0);
 }
 
 static void
 wsp_close(struct usb_fifo *fifo, int fflags)
 {
-	if (fflags & FREAD) {
-		struct wsp_softc *sc = usb_fifo_softc(fifo);
+	struct wsp_softc *sc = usb_fifo_softc(fifo);
 
-		wsp_disable(sc);
+	if (fflags & FREAD) {
+#ifdef EVDEV_SUPPORT
+		if ((sc->sc_state & WSP_EVDEV_OPENED) == 0)
+#endif
+			wsp_disable(sc);
 		usb_fifo_free_buffer(fifo);
 	}
+
+	sc->sc_fflags &= ~(fflags & (FREAD | FWRITE));
 }
+
+static void
+wsp_fifo_start_read(struct usb_fifo *fifo)
+{
+	struct wsp_softc *sc = usb_fifo_softc(fifo);
+
+	wsp_start_read(sc);
+}
+
+static void
+wsp_fifo_stop_read(struct usb_fifo *fifo)
+{
+	struct wsp_softc *sc = usb_fifo_softc(fifo);
+
+#ifdef EVDEV_SUPPORT
+	if ((sc->sc_state & WSP_EVDEV_OPENED) == 0)
+#endif
+		wsp_stop_read(sc);
+}
+
+#ifdef EVDEV_SUPPORT
+static int
+wsp_ev_open(struct evdev_dev *evdev)
+{
+	struct wsp_softc *sc = evdev_get_softc(evdev);
+	int rc = 0;
+
+	mtx_lock(&sc->sc_mutex);
+	if (sc->sc_fflags == 0)
+		rc = wsp_enable(sc);
+	if (rc == 0) {
+		wsp_start_read(sc);
+		sc->sc_state |= WSP_EVDEV_OPENED;
+	}
+	mtx_unlock(&sc->sc_mutex);
+
+	return (rc);
+}
+
+static int
+wsp_ev_close(struct evdev_dev *evdev)
+{
+	struct wsp_softc *sc = evdev_get_softc(evdev);
+
+	mtx_lock(&sc->sc_mutex);
+	sc->sc_state &= ~WSP_EVDEV_OPENED;
+	if (sc->sc_fflags == 0)
+		wsp_stop_read(sc);
+	mtx_unlock(&sc->sc_mutex);
+
+	return (0);
+}
+#endif
 
 int
 wsp_ioctl(struct usb_fifo *fifo, u_long cmd, void *addr, int fflags)
@@ -1407,5 +1569,8 @@ static devclass_t wsp_devclass;
 DRIVER_MODULE(wsp, uhub, wsp_driver, wsp_devclass, NULL, 0);
 MODULE_DEPEND(wsp, usb, 1, 1, 1);
 MODULE_DEPEND(wsp, hid, 1, 1, 1);
+#ifdef EVDEV_SUPPORT
+MODULE_DEPEND(wsp, evdev, 1, 1, 1);
+#endif
 MODULE_VERSION(wsp, 1);
 USB_PNP_HOST_INFO(wsp_devs);

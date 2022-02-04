@@ -38,6 +38,15 @@ typedef	uint64_t	pd_entry_t;		/* page directory entry */
 typedef	uint64_t	pt_entry_t;		/* page table entry */
 #endif
 
+/* Table attributes */
+#define	TATTR_MASK		UINT64_C(0xfff8000000000000)
+#define	TATTR_AP_TABLE_MASK	(3UL << 61)
+#define	TATTR_AP_TABLE_RO	(2UL << 61)
+#define	TATTR_AP_TABLE_NO_EL0	(1UL << 61)
+#define	TATTR_UXN_TABLE		(1UL << 60)
+#define	TATTR_PXN_TABLE		(1UL << 59)
+/* Bits 58:51 are ignored */
+
 /* Block and Page attributes */
 #define	ATTR_MASK_H		UINT64_C(0xfffc000000000000)
 #define	ATTR_MASK_L		UINT64_C(0x0000000000000fff)
@@ -125,13 +134,12 @@ typedef	uint64_t	pt_entry_t;		/* page table entry */
 #define	L2_BLOCK	L1_BLOCK
 #define	L2_TABLE	L1_TABLE
 
-#define	L2_BLOCK_MASK	UINT64_C(0xffffffe00000)
+#define	L2_BLOCK_MASK	UINT64_C(0xffffffffffe00000)
 
 /* Level 3 table, 4KiB per entry */
 #define	L3_SHIFT	12
 #define	L3_SIZE 	(1 << L3_SHIFT)
 #define	L3_OFFSET 	(L3_SIZE - 1)
-#define	L3_SHIFT	12
 #define	L3_INVAL	0x0
 	/* 0x1 is reserved */
 	/* 0x2 also marks an invalid address */

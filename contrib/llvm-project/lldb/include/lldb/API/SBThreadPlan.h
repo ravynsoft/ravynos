@@ -11,13 +11,11 @@
 
 #include "lldb/API/SBDefines.h"
 
-#include <stdio.h>
+#include <cstdio>
 
 namespace lldb {
 
 class LLDB_API SBThreadPlan {
-
-  friend class lldb_private::ThreadPlan;
 
 public:
   SBThreadPlan();
@@ -60,6 +58,9 @@ public:
   /// eStopReasonSignal        1     unix signal number
   /// eStopReasonException     N     exception data
   /// eStopReasonExec          0
+  /// eStopReasonFork          1     pid of the child process
+  /// eStopReasonVFork         1     pid of the child process
+  /// eStopReasonVForkDone     0
   /// eStopReasonPlanComplete  0
   uint64_t GetStopReasonDataAtIndex(uint32_t idx);
 
@@ -76,6 +77,10 @@ public:
   bool IsPlanStale();
 
   bool IsValid();
+
+  bool GetStopOthers();
+
+  void SetStopOthers(bool stop_others);
 
   // This section allows an SBThreadPlan to push another of the common types of
   // plans...
@@ -117,10 +122,11 @@ private:
   friend class lldb_private::QueueImpl;
   friend class SBQueueItem;
 
-  lldb_private::ThreadPlan *get();
+  lldb::ThreadPlanSP GetSP() const { return m_opaque_wp.lock(); }
+  lldb_private::ThreadPlan *get() const { return GetSP().get(); }
   void SetThreadPlan(const lldb::ThreadPlanSP &lldb_object_sp);
 
-  lldb::ThreadPlanSP m_opaque_sp;
+  lldb::ThreadPlanWP m_opaque_wp;
 };
 
 } // namespace lldb

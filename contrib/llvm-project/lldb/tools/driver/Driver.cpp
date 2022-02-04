@@ -31,16 +31,17 @@
 #include <algorithm>
 #include <atomic>
 #include <bitset>
+#include <clocale>
 #include <csignal>
 #include <string>
 #include <thread>
 #include <utility>
 
+#include <climits>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <fcntl.h>
-#include <limits.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 // Includes for pipe()
 #if defined(_WIN32)
@@ -112,7 +113,10 @@ Driver::Driver()
   g_driver = this;
 }
 
-Driver::~Driver() { g_driver = nullptr; }
+Driver::~Driver() {
+  SBDebugger::Destroy(m_debugger);
+  g_driver = nullptr;
+}
 
 void Driver::OptionData::AddInitialCommand(std::string command,
                                            CommandPlacement placement,
@@ -491,9 +495,9 @@ int Driver::MainLoop() {
   SBCommandInterpreter sb_interpreter = m_debugger.GetCommandInterpreter();
 
   // Before we handle any options from the command line, we parse the
-  // .lldbinit file in the user's home directory.
+  // REPL init file or the default file in the user's home directory.
   SBCommandReturnObject result;
-  sb_interpreter.SourceInitFileInHomeDirectory(result);
+  sb_interpreter.SourceInitFileInHomeDirectory(result, m_option_data.m_repl);
   if (m_option_data.m_debug_mode) {
     result.PutError(m_debugger.GetErrorFile());
     result.PutOutput(m_debugger.GetOutputFile());
@@ -590,7 +594,7 @@ int Driver::MainLoop() {
 
     if (commands_file == nullptr) {
       // We should have already printed an error in PrepareCommandsForSourcing.
-      exit(1);
+      return 1;
     }
 
     m_debugger.SetInputFileHandle(commands_file, true);
@@ -618,7 +622,7 @@ int Driver::MainLoop() {
     // non-zero exit status.
     if (m_option_data.m_batch &&
         results.GetResult() == lldb::eCommandInterpreterResultCommandError)
-      exit(1);
+      return 1;
 
     if (m_option_data.m_batch &&
         results.GetResult() == lldb::eCommandInterpreterResultInferiorCrash &&
@@ -643,7 +647,7 @@ int Driver::MainLoop() {
         if (m_option_data.m_batch &&
             local_results.GetResult() ==
                 lldb::eCommandInterpreterResultCommandError)
-          exit(1);
+          return 1;
       }
     }
     m_debugger.SetAsync(old_async);
@@ -676,9 +680,7 @@ int Driver::MainLoop() {
   reset_stdin_termios();
   fclose(stdin);
 
-  int exit_code = sb_interpreter.GetQuitStatus();
-  SBDebugger::Destroy(m_debugger);
-  return exit_code;
+  return sb_interpreter.GetQuitStatus();
 }
 
 void Driver::ResizeWindow(unsigned short col) {
@@ -729,31 +731,17 @@ void sigcont_handler(int signo) {
   signal(signo, sigcont_handler);
 }
 
-void reproducer_handler(void *argv0) {
+void reproducer_handler(void *finalize_cmd) {
   if (SBReproducer::Generate()) {
-    auto exe = static_cast<const char *>(argv0);
-    llvm::outs() << "********************\n";
-    llvm::outs() << "Crash reproducer for ";
-    llvm::outs() << lldb::SBDebugger::GetVersionString() << '\n';
-    llvm::outs() << '\n';
-    llvm::outs() << "Reproducer written to '" << SBReproducer::GetPath()
-                 << "'\n";
-    llvm::outs() << '\n';
-    llvm::outs() << "Before attaching the reproducer to a bug report:\n";
-    llvm::outs() << " - Look at the directory to ensure you're willing to "
-                    "share its content.\n";
-    llvm::outs()
-        << " - Make sure the reproducer works by replaying the reproducer.\n";
-    llvm::outs() << '\n';
-    llvm::outs() << "Replay the reproducer with the following command:\n";
-    llvm::outs() << exe << " -replay " << SBReproducer::GetPath() << "\n";
-    llvm::outs() << "********************\n";
+    int result = std::system(static_cast<const char *>(finalize_cmd));
+    (void)result;
+    fflush(stdout);
   }
 }
 
 static void printHelp(LLDBOptTable &table, llvm::StringRef tool_name) {
   std::string usage_str = tool_name.str() + " [options]";
-  table.PrintHelp(llvm::outs(), usage_str.c_str(), "LLDB", false);
+  table.printHelp(llvm::outs(), usage_str.c_str(), "LLDB", false);
 
   std::string examples = R"___(
 EXAMPLES:
@@ -764,11 +752,11 @@ EXAMPLES:
   arguments passed to the debugged executable, arguments starting with a - must
   be passed after --.
 
-    lldb --arch x86_64 /path/to/program program argument -- --arch arvm7
+    lldb --arch x86_64 /path/to/program program argument -- --arch armv7
 
   For convenience, passing the executable after -- is also supported.
 
-    lldb --arch x86_64 -- /path/to/program program argument --arch arvm7
+    lldb --arch x86_64 -- /path/to/program program argument --arch armv7
 
   Passing one of the attach options causes lldb to immediately attach to the
   given process.
@@ -797,12 +785,39 @@ EXAMPLES:
   llvm::outs() << examples << '\n';
 }
 
-llvm::Optional<int> InitializeReproducer(llvm::StringRef argv0,
-                                         opt::InputArgList &input_args) {
+static llvm::Optional<int> InitializeReproducer(llvm::StringRef argv0,
+                                                opt::InputArgList &input_args) {
+  if (auto *finalize_path = input_args.getLastArg(OPT_reproducer_finalize)) {
+    if (const char *error = SBReproducer::Finalize(finalize_path->getValue())) {
+      WithColor::error() << "reproducer finalization failed: " << error << '\n';
+      return 1;
+    }
+
+    llvm::outs() << "********************\n";
+    llvm::outs() << "Crash reproducer for ";
+    llvm::outs() << lldb::SBDebugger::GetVersionString() << '\n';
+    llvm::outs() << '\n';
+    llvm::outs() << "Reproducer written to '" << SBReproducer::GetPath()
+                 << "'\n";
+    llvm::outs() << '\n';
+    llvm::outs() << "Before attaching the reproducer to a bug report:\n";
+    llvm::outs() << " - Look at the directory to ensure you're willing to "
+                    "share its content.\n";
+    llvm::outs()
+        << " - Make sure the reproducer works by replaying the reproducer.\n";
+    llvm::outs() << '\n';
+    llvm::outs() << "Replay the reproducer with the following command:\n";
+    llvm::outs() << argv0 << " -replay " << finalize_path->getValue() << "\n";
+    llvm::outs() << "********************\n";
+    return 0;
+  }
+
   if (auto *replay_path = input_args.getLastArg(OPT_replay)) {
-    const bool no_version_check = input_args.hasArg(OPT_no_version_check);
+    SBReplayOptions replay_options;
+    replay_options.SetCheckVersion(!input_args.hasArg(OPT_no_version_check));
+    replay_options.SetVerify(!input_args.hasArg(OPT_no_verification));
     if (const char *error =
-            SBReproducer::Replay(replay_path->getValue(), no_version_check)) {
+            SBReproducer::Replay(replay_path->getValue(), replay_options)) {
       WithColor::error() << "reproducer replay failed: " << error << '\n';
       return 1;
     }
@@ -819,12 +834,6 @@ llvm::Optional<int> InitializeReproducer(llvm::StringRef argv0,
   }
 
   if (capture || capture_path) {
-    // Register the reproducer signal handler.
-    if (!input_args.hasArg(OPT_no_generate_on_signal)) {
-      llvm::sys::AddSignalHandler(reproducer_handler,
-                                  const_cast<char *>(argv0.data()));
-    }
-
     if (capture_path) {
       if (!capture)
         WithColor::warning() << "-capture-path specified without -capture\n";
@@ -841,22 +850,39 @@ llvm::Optional<int> InitializeReproducer(llvm::StringRef argv0,
     }
     if (generate_on_exit)
       SBReproducer::SetAutoGenerate(true);
+
+    // Register the reproducer signal handler.
+    if (!input_args.hasArg(OPT_no_generate_on_signal)) {
+      if (const char *reproducer_path = SBReproducer::GetPath()) {
+        static std::string *finalize_cmd = new std::string(argv0);
+        finalize_cmd->append(" --reproducer-finalize '");
+        finalize_cmd->append(reproducer_path);
+        finalize_cmd->append("'");
+        llvm::sys::AddSignalHandler(reproducer_handler,
+                                    const_cast<char *>(finalize_cmd->c_str()));
+      }
+    }
   }
 
   return llvm::None;
 }
 
 int main(int argc, char const *argv[]) {
+  // Editline uses for example iswprint which is dependent on LC_CTYPE.
+  std::setlocale(LC_ALL, "");
+  std::setlocale(LC_CTYPE, "");
+
   // Setup LLVM signal handlers and make sure we call llvm_shutdown() on
   // destruction.
   llvm::InitLLVM IL(argc, argv, /*InstallPipeSignalExitHandler=*/false);
 
   // Parse arguments.
   LLDBOptTable T;
-  unsigned MAI;
-  unsigned MAC;
+  unsigned MissingArgIndex;
+  unsigned MissingArgCount;
   ArrayRef<const char *> arg_arr = makeArrayRef(argv + 1, argc - 1);
-  opt::InputArgList input_args = T.ParseArgs(arg_arr, MAI, MAC);
+  opt::InputArgList input_args =
+      T.ParseArgs(arg_arr, MissingArgIndex, MissingArgCount);
   llvm::StringRef argv0 = llvm::sys::path::filename(argv[0]);
 
   if (input_args.hasArg(OPT_help)) {
@@ -864,11 +890,19 @@ int main(int argc, char const *argv[]) {
     return 0;
   }
 
+  // Check for missing argument error.
+  if (MissingArgCount) {
+    WithColor::error() << "argument to '"
+                       << input_args.getArgString(MissingArgIndex)
+                       << "' is missing\n";
+  }
   // Error out on unknown options.
   if (input_args.hasArg(OPT_UNKNOWN)) {
     for (auto *arg : input_args.filtered(OPT_UNKNOWN)) {
       WithColor::error() << "unknown option: " << arg->getSpelling() << '\n';
     }
+  }
+  if (MissingArgCount || input_args.hasArg(OPT_UNKNOWN)) {
     llvm::errs() << "Use '" << argv0
                  << " --help' for a complete list of options.\n";
     return 1;

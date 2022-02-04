@@ -4,6 +4,11 @@
  * Copyright (c) 2010 Panasas, Inc.
  * Copyright (c) 2013-2019 Mellanox Technologies, Ltd.
  * All rights reserved.
+ * Copyright (c) 2020-2021 The FreeBSD Foundation
+ * Copyright (c) 2020-2021 Bjoern A. Zeeb
+ *
+ * Portions of this software were developed by Björn Zeeb
+ * under sponsorship from the FreeBSD Foundation.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -28,24 +33,34 @@
  *
  * $FreeBSD$
  */
-#ifndef	_LINUX_NETDEVICE_H_
-#define	_LINUX_NETDEVICE_H_
+#ifndef	_LINUXKPI_LINUX_NETDEVICE_H
+#define	_LINUXKPI_LINUX_NETDEVICE_H
 
 #include <linux/types.h>
+#include <linux/netdev_features.h>
 
+#include <sys/param.h>
+#include <sys/kernel.h>
+#include <sys/lock.h>
+#include <sys/mutex.h>
+#include <sys/malloc.h>
+#include <sys/queue.h>
 #include <sys/socket.h>
+#include <sys/taskqueue.h>
 
 #include <net/if_types.h>
 #include <net/if.h>
 #include <net/if_var.h>
 #include <net/if_dl.h>
 
+#include <linux/bitops.h>
 #include <linux/list.h>
-#include <linux/completion.h>
 #include <linux/device.h>
-#include <linux/workqueue.h>
 #include <linux/net.h>
+#include <linux/if_ether.h>
 #include <linux/notifier.h>
+#include <linux/random.h>
+#include <linux/rcupdate.h>
 
 #ifdef VIMAGE
 #define	init_net *vnet0
@@ -53,45 +68,109 @@
 #define	init_net *((struct vnet *)0)
 #endif
 
+struct sk_buff;
+struct net_device;
+struct wireless_dev;		/* net/cfg80211.h */
+
 #define	MAX_ADDR_LEN		20
 
-#define	net_device	ifnet
+#define	NET_NAME_UNKNOWN	0
 
-static inline struct ifnet *
-dev_get_by_index(struct vnet *vnet, int if_index)
-{
-	struct epoch_tracker et;
-	struct ifnet *retval;
+enum netdev_tx {
+	NETDEV_TX_OK		= 0,
+};
+typedef	enum netdev_tx		netdev_tx_t;
 
-	NET_EPOCH_ENTER(et);
-	CURVNET_SET(vnet);
-	retval = ifnet_byindex_ref(if_index);
-	CURVNET_RESTORE();
-	NET_EPOCH_EXIT(et);
+struct netdev_hw_addr {
+	struct list_head	addr_list;
+	uint8_t			addr[MAX_ADDR_LEN];
+};
 
-	return (retval);
-}
+struct netdev_hw_addr_list {
+	struct list_head	addr_list;
+	int			count;
+};
 
-#define	dev_hold(d)	if_ref(d)
-#define	dev_put(d)	if_rele(d)
-#define	dev_net(d)	((d)->if_vnet)
+enum net_device_reg_state {
+	NETREG_DUMMY		= 1,
+	NETREG_REGISTERED,
+};
 
-#define	net_eq(a,b)	((a) == (b))
+struct net_device_ops {
+	int (*ndo_open)(struct net_device *);
+	int (*ndo_stop)(struct net_device *);
+	int (*ndo_set_mac_address)(struct net_device *,  void *);
+	netdev_tx_t (*ndo_start_xmit)(struct sk_buff *, struct net_device *);
+	void (*ndo_set_rx_mode)(struct net_device *);
+};
 
-#define	netif_running(dev)	!!((dev)->if_drv_flags & IFF_DRV_RUNNING)
-#define	netif_oper_up(dev)	!!((dev)->if_flags & IFF_UP)
-#define	netif_carrier_ok(dev)	((dev)->if_link_state == LINK_STATE_UP)
+struct net_device {
+	/* BSD specific for compat. */
+	struct ifnet			bsdifp;
 
-static inline void *
-netdev_priv(const struct net_device *dev)
-{
-	return (dev->if_softc);
-}
+	/* net_device fields seen publicly. */
+	/* XXX can we later make some aliases to ifnet? */
+	char				name[IFNAMSIZ];
+	struct wireless_dev		*ieee80211_ptr;
+	uint8_t				dev_addr[ETH_ALEN];
+	struct netdev_hw_addr_list	mc;
+	netdev_features_t		features;
+	struct {
+		unsigned long		multicast;
+
+		unsigned long		rx_bytes;
+		unsigned long		rx_errors;
+		unsigned long		rx_packets;
+		unsigned long		tx_bytes;
+		unsigned long		tx_dropped;
+		unsigned long		tx_errors;
+		unsigned long		tx_packets;
+	} stats;
+	enum net_device_reg_state	reg_state;
+	const struct ethtool_ops	*ethtool_ops;
+	const struct net_device_ops	*netdev_ops;
+
+	bool				needs_free_netdev;
+	/* Not properly typed as-of now. */
+	int	flags, type;
+	int	name_assign_type, needed_headroom;
+
+	void (*priv_destructor)(struct net_device *);
+
+	/* net_device internal. */
+	struct device			dev;
+
+	/*
+	 * In case we delete the net_device we need to be able to clear all
+	 * NAPI consumers.
+	 */
+	struct mtx			napi_mtx;
+	TAILQ_HEAD(, napi_struct)	napi_head;
+	struct taskqueue		*napi_tq;
+
+	/* Must stay last. */
+	uint8_t				drv_priv[0] __aligned(CACHE_LINE_SIZE);
+};
+
+#define	SET_NETDEV_DEV(_ndev, _dev)	(_ndev)->dev.parent = _dev;
+
+/* -------------------------------------------------------------------------- */
+/* According to linux::ipoib_main.c. */
+struct netdev_notifier_info {
+	struct net_device	*dev;
+	struct ifnet		*ifp;
+};
 
 static inline struct net_device *
-netdev_notifier_info_to_dev(void *ifp)
+netdev_notifier_info_to_dev(struct netdev_notifier_info *ni)
 {
-	return (ifp);
+	return (ni->dev);
+}
+
+static inline struct ifnet *
+netdev_notifier_info_to_ifp(struct netdev_notifier_info *ni)
+{
+	return (ni->ifp);
 }
 
 int	register_netdevice_notifier(struct notifier_block *);
@@ -99,45 +178,133 @@ int	register_inetaddr_notifier(struct notifier_block *);
 int	unregister_netdevice_notifier(struct notifier_block *);
 int	unregister_inetaddr_notifier(struct notifier_block *);
 
-#define	rtnl_lock()
-#define	rtnl_unlock()
+/* -------------------------------------------------------------------------- */
 
-static inline int
-dev_mc_delete(struct net_device *dev, void *addr, int alen, int all)
+#define	NAPI_POLL_WEIGHT			64	/* budget */
+
+struct napi_struct {
+	TAILQ_ENTRY(napi_struct)	entry;
+
+	struct list_head	rx_list;
+	struct net_device	*dev;
+	int			(*poll)(struct napi_struct *, int);
+	int			budget;
+	int			rx_count;
+
+	/*
+	 * These flags mostly need to be checked/changed atomically
+	 * (multiple together in some cases).
+	 */
+	volatile unsigned long	_flags;
+
+	/* FreeBSD internal. */
+	/* Use task for now, so we can easily switch between direct and task. */
+	struct task		napi_task;
+};
+
+void linuxkpi_init_dummy_netdev(struct net_device *);
+void linuxkpi_netif_napi_add(struct net_device *, struct napi_struct *,
+    int(*napi_poll)(struct napi_struct *, int), int);
+void linuxkpi_netif_napi_del(struct napi_struct *);
+bool linuxkpi_napi_schedule_prep(struct napi_struct *);
+void linuxkpi___napi_schedule(struct napi_struct *);
+void linuxkpi_napi_schedule(struct napi_struct *);
+void linuxkpi_napi_reschedule(struct napi_struct *);
+bool linuxkpi_napi_complete_done(struct napi_struct *, int);
+bool linuxkpi_napi_complete(struct napi_struct *);
+void linuxkpi_napi_disable(struct napi_struct *);
+void linuxkpi_napi_enable(struct napi_struct *);
+void linuxkpi_napi_synchronize(struct napi_struct *);
+
+#define	init_dummy_netdev(_n)						\
+	linuxkpi_init_dummy_netdev(_n)
+#define	netif_napi_add(_nd, _ns, _p, _b)				\
+	linuxkpi_netif_napi_add(_nd, _ns, _p, _b)
+#define	netif_napi_del(_n)						\
+	linuxkpi_netif_napi_del(_n)
+#define	napi_schedule_prep(_n)						\
+	linuxkpi_napi_schedule_prep(_n)
+#define	__napi_schedule(_n)						\
+	linuxkpi___napi_schedule(_n)
+#define	napi_schedule(_n)						\
+	linuxkpi_napi_schedule(_n)
+#define	napi_reschedule(_n)						\
+	linuxkpi_napi_reschedule(_n)
+#define	napi_complete_done(_n, _r)					\
+	linuxkpi_napi_complete_done(_n, _r)
+#define	napi_complete(_n)						\
+	linuxkpi_napi_complete(_n)
+#define	napi_disable(_n)						\
+	linuxkpi_napi_disable(_n)
+#define	napi_enable(_n)							\
+	linuxkpi_napi_enable(_n)
+#define	napi_synchronize(_n)						\
+	linuxkpi_napi_synchronize(_n)
+
+/* -------------------------------------------------------------------------- */
+
+static inline void
+netdev_rss_key_fill(uint32_t *buf, size_t len)
 {
-	struct sockaddr_dl sdl;
 
-	if (alen > sizeof(sdl.sdl_data))
-		return (-EINVAL);
-	memset(&sdl, 0, sizeof(sdl));
-	sdl.sdl_len = sizeof(sdl);
-	sdl.sdl_family = AF_LINK;
-	sdl.sdl_alen = alen;
-	memcpy(&sdl.sdl_data, addr, alen);
-
-	return -if_delmulti(dev, (struct sockaddr *)&sdl);
+	/*
+	 * Remembering from a previous life there was discussions on what is
+	 * a good RSS hash key.  See end of rss_init() in net/rss_config.c.
+	 * iwlwifi is looking for a 10byte "secret" so stay with random for now.
+	 */
+	get_random_bytes(buf, len);
 }
 
 static inline int
-dev_mc_del(struct net_device *dev, void *addr)
+netdev_hw_addr_list_count(struct netdev_hw_addr_list *list)
 {
-	return (dev_mc_delete(dev, addr, 6, 0));
+
+	return (list->count);
 }
 
 static inline int
-dev_mc_add(struct net_device *dev, void *addr, int alen, int newonly)
+netdev_mc_count(struct net_device *ndev)
 {
-	struct sockaddr_dl sdl;
 
-	if (alen > sizeof(sdl.sdl_data))
-		return (-EINVAL);
-	memset(&sdl, 0, sizeof(sdl));
-	sdl.sdl_len = sizeof(sdl);
-	sdl.sdl_family = AF_LINK;
-	sdl.sdl_alen = alen;
-	memcpy(&sdl.sdl_data, addr, alen);
-
-	return -if_addmulti(dev, (struct sockaddr *)&sdl, NULL);
+	return (netdev_hw_addr_list_count(&ndev->mc));
 }
 
-#endif	/* _LINUX_NETDEVICE_H_ */
+#define	netdev_hw_addr_list_for_each(_addr, _list)			\
+	list_for_each_entry((_addr), &(_list)->addr_list, addr_list)
+
+#define	netdev_for_each_mc_addr(na, ndev)				\
+	netdev_hw_addr_list_for_each(na, &(ndev)->mc)
+
+static __inline void
+synchronize_net(void)
+{
+
+	/* We probably cannot do that unconditionally at some point anymore. */
+	synchronize_rcu();
+}
+
+/* -------------------------------------------------------------------------- */
+
+struct net_device *linuxkpi_alloc_netdev(size_t, const char *, uint32_t,
+    void(*)(struct net_device *));
+void linuxkpi_free_netdev(struct net_device *);
+
+#define	alloc_netdev(_l, _n, _f, _func)						\
+	linuxkpi_alloc_netdev(_l, _n, _f, _func)
+#define	free_netdev(_n)								\
+	linuxkpi_free_netdev(_n)
+
+static inline void *
+netdev_priv(const struct net_device *ndev)
+{
+
+	return (__DECONST(void *, ndev->drv_priv));
+}
+
+/* -------------------------------------------------------------------------- */
+/* This is really rtnetlink and probably belongs elsewhere. */
+
+#define	rtnl_lock()		do { } while(0)
+#define	rtnl_unlock()		do { } while(0)
+
+#endif	/* _LINUXKPI_LINUX_NETDEVICE_H */

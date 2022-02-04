@@ -237,7 +237,7 @@ SDT_PROBE_DEFINE2(vfs, namecache, removecnp, hit, "struct vnode *",
     "struct componentname *");
 SDT_PROBE_DEFINE2(vfs, namecache, removecnp, miss, "struct vnode *",
     "struct componentname *");
-SDT_PROBE_DEFINE1(vfs, namecache, purge, done, "struct vnode *");
+SDT_PROBE_DEFINE3(vfs, namecache, purge, done, "struct vnode *", "size_t", "size_t");
 SDT_PROBE_DEFINE1(vfs, namecache, purge, batch, "int");
 SDT_PROBE_DEFINE1(vfs, namecache, purge_negative, done, "struct vnode *");
 SDT_PROBE_DEFINE1(vfs, namecache, purgevfs, done, "struct mount *");
@@ -581,8 +581,6 @@ DEBUGNODE_ULONG(vnodes_cel_3_failures, cache_lock_vnodes_cel_3_failures,
     "Number of times 3-way vnode locking failed");
 
 static void cache_zap_locked(struct namecache *ncp);
-static int vn_fullpath_hardlink(struct nameidata *ndp, char **retbuf,
-    char **freebuf, size_t *buflen);
 static int vn_fullpath_any_smr(struct vnode *vp, struct vnode *rdir, char *buf,
     char **retbuf, size_t *buflen, size_t addend);
 static int vn_fullpath_any(struct vnode *vp, struct vnode *rdir, char *buf,
@@ -2582,6 +2580,30 @@ out_unlock_free:
 	return;
 }
 
+/*
+ * A variant of the above accepting flags.
+ *
+ * - VFS_CACHE_DROPOLD -- if a conflicting entry is found, drop it.
+ *
+ * TODO: this routine is a hack. It blindly removes the old entry, even if it
+ * happens to match and it is doing it in an inefficient manner. It was added
+ * to accomodate NFS which runs into a case where the target for a given name
+ * may change from under it. Note this does nothing to solve the following
+ * race: 2 callers of cache_enter_time_flags pass a different target vnode for
+ * the same [dvp, cnp]. It may be argued that code doing this is broken.
+ */
+void
+cache_enter_time_flags(struct vnode *dvp, struct vnode *vp, struct componentname *cnp,
+    struct timespec *tsp, struct timespec *dtsp, int flags)
+{
+
+	MPASS((flags & ~(VFS_CACHE_DROPOLD)) == 0);
+
+	if (flags & VFS_CACHE_DROPOLD)
+		cache_remove_cnp(dvp, cnp);
+	cache_enter_time(dvp, vp, cnp, tsp, dtsp);
+}
+
 static u_int
 cache_roundup_2(u_int val)
 {
@@ -2990,13 +3012,15 @@ void
 cache_purgevfs(struct mount *mp)
 {
 	struct vnode *vp, *mvp;
+	size_t visited, purged;
 
-	SDT_PROBE1(vfs, namecache, purgevfs, done, mp);
+	visited = purged = 0;
 	/*
 	 * Somewhat wasteful iteration over all vnodes. Would be better to
 	 * support filtering and avoid the interlock to begin with.
 	 */
 	MNT_VNODE_FOREACH_ALL(vp, mp, mvp) {
+		visited++;
 		if (!cache_has_entries(vp)) {
 			VI_UNLOCK(vp);
 			continue;
@@ -3004,8 +3028,11 @@ cache_purgevfs(struct mount *mp)
 		vholdl(vp);
 		VI_UNLOCK(vp);
 		cache_purge(vp);
+		purged++;
 		vdrop(vp);
 	}
+
+	SDT_PROBE3(vfs, namecache, purgevfs, done, mp, visited, purged);
 }
 
 /*
@@ -3105,7 +3132,8 @@ kern___realpathat(struct thread *td, int fd, const char *path, char *buf,
 	    pathseg, path, fd, &cap_fstat_rights, td);
 	if ((error = namei(&nd)) != 0)
 		return (error);
-	error = vn_fullpath_hardlink(&nd, &retbuf, &freebuf, &size);
+	error = vn_fullpath_hardlink(nd.ni_vp, nd.ni_dvp, nd.ni_cnd.cn_nameptr,
+	    nd.ni_cnd.cn_namelen, &retbuf, &freebuf, &size);
 	if (error == 0) {
 		error = copyout(retbuf, buf, size);
 		free(freebuf, M_TEMP);
@@ -3566,8 +3594,9 @@ vn_fullpath_any(struct vnode *vp, struct vnode *rdir, char *buf, char **retbuf,
 /*
  * Resolve an arbitrary vnode to a pathname (taking care of hardlinks).
  *
- * Since the namecache does not track hardlinks, the caller is expected to first
- * look up the target vnode with SAVENAME | WANTPARENT flags passed to namei.
+ * Since the namecache does not track hardlinks, the caller is
+ * expected to first look up the target vnode with SAVENAME |
+ * WANTPARENT flags passed to namei to get dvp and vp.
  *
  * Then we have 2 cases:
  * - if the found vnode is a directory, the path can be constructed just by
@@ -3575,14 +3604,13 @@ vn_fullpath_any(struct vnode *vp, struct vnode *rdir, char *buf, char **retbuf,
  * - otherwise we populate the buffer with the saved name and start resolving
  *   from the parent
  */
-static int
-vn_fullpath_hardlink(struct nameidata *ndp, char **retbuf, char **freebuf,
-    size_t *buflen)
+int
+vn_fullpath_hardlink(struct vnode *vp, struct vnode *dvp,
+    const char *hrdl_name, size_t hrdl_name_length,
+    char **retbuf, char **freebuf, size_t *buflen)
 {
 	char *buf, *tmpbuf;
 	struct pwd *pwd;
-	struct componentname *cnp;
-	struct vnode *vp;
 	size_t addend;
 	int error;
 	enum vtype type;
@@ -3595,7 +3623,7 @@ vn_fullpath_hardlink(struct nameidata *ndp, char **retbuf, char **freebuf,
 	buf = malloc(*buflen, M_TEMP, M_WAITOK);
 
 	addend = 0;
-	vp = ndp->ni_vp;
+
 	/*
 	 * Check for VBAD to work around the vp_crossmp bug in lookup().
 	 *
@@ -3621,8 +3649,7 @@ vn_fullpath_hardlink(struct nameidata *ndp, char **retbuf, char **freebuf,
 		goto out_bad;
 	}
 	if (type != VDIR) {
-		cnp = &ndp->ni_cnd;
-		addend = cnp->cn_namelen + 2;
+		addend = hrdl_name_length + 2;
 		if (*buflen < addend) {
 			error = ENOMEM;
 			goto out_bad;
@@ -3630,9 +3657,9 @@ vn_fullpath_hardlink(struct nameidata *ndp, char **retbuf, char **freebuf,
 		*buflen -= addend;
 		tmpbuf = buf + *buflen;
 		tmpbuf[0] = '/';
-		memcpy(&tmpbuf[1], cnp->cn_nameptr, cnp->cn_namelen);
+		memcpy(&tmpbuf[1], hrdl_name, hrdl_name_length);
 		tmpbuf[addend - 1] = '\0';
-		vp = ndp->ni_dvp;
+		vp = dvp;
 	}
 
 	vfs_smr_enter();

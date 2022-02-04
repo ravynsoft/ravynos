@@ -1974,13 +1974,11 @@ icmp6_rip6_input(struct mbuf **mp, int off)
 				    &last->inp_socket->so_rcv,
 				    (struct sockaddr *)&fromsa, n, opts)
 				    == 0) {
-					/* should notify about lost packet */
+					soroverflow_locked(last->inp_socket);
 					m_freem(n);
 					if (opts) {
 						m_freem(opts);
 					}
-					SOCKBUF_UNLOCK(
-					    &last->inp_socket->so_rcv);
 				} else
 					sorwakeup_locked(last->inp_socket);
 				opts = NULL;
@@ -2020,7 +2018,7 @@ icmp6_rip6_input(struct mbuf **mp, int off)
 			m_freem(m);
 			if (opts)
 				m_freem(opts);
-			SOCKBUF_UNLOCK(&last->inp_socket->so_rcv);
+			soroverflow_locked(last->inp_socket);
 		} else
 			sorwakeup_locked(last->inp_socket);
 		INP_RUNLOCK(last);
@@ -2548,7 +2546,7 @@ icmp6_redirect_output(struct mbuf *m0, struct nhop_object *nh)
 		struct nd_opt_hdr *nd_opt;
 		char *lladdr;
 
-		ln = nd6_lookup(router_ll6, 0, ifp);
+		ln = nd6_lookup(router_ll6, LLE_SF(AF_INET6,  0), ifp);
 		if (ln == NULL)
 			goto nolladdropt;
 

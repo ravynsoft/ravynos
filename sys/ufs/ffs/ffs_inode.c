@@ -132,7 +132,7 @@ ffs_update(vp, waitfor)
 	if (waitfor)
 		ip->i_flag &= ~(IN_SIZEMOD | IN_IBLKDATA);
 	fs = ITOFS(ip);
-	if (fs->fs_ronly && ITOUMP(ip)->um_fsckpid == 0)
+	if (fs->fs_ronly)
 		return (0);
 	/*
 	 * If we are updating a snapshot and another process is currently
@@ -145,17 +145,22 @@ ffs_update(vp, waitfor)
 	 * snapshot vnode to prevent it from being removed while we are
 	 * waiting for the buffer.
 	 */
+loop:
 	flags = 0;
 	if (IS_SNAPSHOT(ip))
 		flags = GB_LOCK_NOWAIT;
-loop:
 	bn = fsbtodb(fs, ino_to_fsba(fs, ip->i_number));
 	error = ffs_breadz(VFSTOUFS(vp->v_mount), ITODEVVP(ip), bn, bn,
 	     (int) fs->fs_bsize, NULL, NULL, 0, NOCRED, flags, NULL, &bp);
 	if (error != 0) {
-		if (error != EBUSY)
+		/*
+		 * If EBUSY was returned without GB_LOCK_NOWAIT (which
+		 * requests trylock for buffer lock), it is for some
+		 * other reason and we should not handle it specially.
+		 */
+		if (error != EBUSY || (flags & GB_LOCK_NOWAIT) == 0)
 			return (error);
-		KASSERT((IS_SNAPSHOT(ip)), ("EBUSY from non-snapshot"));
+
 		/*
 		 * Wait for our inode block to become available.
 		 *
@@ -176,6 +181,11 @@ loop:
 		vrele(vp);
 		if (VN_IS_DOOMED(vp))
 			return (ENOENT);
+
+		/*
+		 * Recalculate flags, because the vnode was relocked and
+		 * could no longer be a snapshot.
+		 */
 		goto loop;
 	}
 	if (DOINGSOFTDEP(vp))
@@ -234,8 +244,8 @@ ffs_truncate(vp, length, flags, cred)
 	ufs2_daddr_t bn, lbn, lastblock, lastiblock[UFS_NIADDR];
 	ufs2_daddr_t indir_lbn[UFS_NIADDR], oldblks[UFS_NDADDR + UFS_NIADDR];
 	ufs2_daddr_t newblks[UFS_NDADDR + UFS_NIADDR];
-	ufs2_daddr_t count, blocksreleased = 0, datablocks, blkno;
-	struct bufobj *bo;
+	ufs2_daddr_t count, blocksreleased = 0, blkno;
+	struct bufobj *bo __diagused;
 	struct fs *fs;
 	struct buf *bp;
 	struct ufsmount *ump;
@@ -287,10 +297,8 @@ ffs_truncate(vp, length, flags, cred)
 	if (journaltrunc == 0 && DOINGSOFTDEP(vp) && length == 0)
 		softdeptrunc = !softdep_slowdown(vp);
 	extblocks = 0;
-	datablocks = DIP(ip, i_blocks);
 	if (fs->fs_magic == FS_UFS2_MAGIC && ip->i_din2->di_extsize > 0) {
 		extblocks = btodb(fragroundup(fs, ip->i_din2->di_extsize));
-		datablocks -= extblocks;
 	}
 	if ((flags & IO_EXT) && extblocks > 0) {
 		if (length != 0)

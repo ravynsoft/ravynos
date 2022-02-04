@@ -31,7 +31,7 @@
 .\"     @(#)cmp.1	8.1 (Berkeley) 6/6/93
 .\" $FreeBSD$
 .\"
-.Dd June 20, 2020
+.Dd September 23, 2021
 .Dt CMP 1
 .Os
 .Sh NAME
@@ -40,7 +40,9 @@
 .Sh SYNOPSIS
 .Nm
 .Op Fl l | s | x
-.Op Fl hz
+.Op Fl bhz
+.Op Fl -ignore-initial Ns Cm = Ns Ar num1 Ns Op :num2
+.Op Fl -bytes Ns Cm = Ns Ar num
 .Ar file1 file2
 .Op Ar skip1 Op Ar skip2
 .Sh DESCRIPTION
@@ -57,11 +59,34 @@ Bytes and lines are numbered beginning with one.
 .Pp
 The following options are available:
 .Bl -tag -width indent
+.It Fl b , Fl -print-bytes
+Print each byte when a difference is found.
 .It Fl h
 Do not follow symbolic links.
+.It Fl i Ar num1 Ns Oo :num2 Oc , Fl -ignore-initial= Ns Ar num1 Ns Op :num2
+Skip
+.Ar num1
+bytes from
+.Ar file1 ,
+and optionally skip
+.Ar num2
+bytes from
+.Ar file2 .
+If
+.Ar num2
+is not specified, then
+.Ar num1
+is applied for both
+.Ar file1
+and
+.Ar file2 .
 .It Fl l , Fl -verbose
 Print the byte number (decimal) and the differing
 byte values (octal) for each difference.
+.It Fl n Ar num , Fl -bytes= Ns num
+Only compare up to
+.Ar num
+bytes.
 .It Fl s , Fl -silent , Fl -quiet
 Print nothing for differing files; return exit
 status only.
@@ -86,6 +111,11 @@ and
 respectively, where the comparison will begin.
 The offset is decimal by default, but may be expressed as a hexadecimal
 or octal value by preceding it with a leading ``0x'' or ``0''.
+.Pp
+.Ar skip1
+and
+.Ar skip2
+may also be specified with SI size suffixes.
 .Sh EXIT STATUS
 The
 .Nm
@@ -159,13 +189,25 @@ utility is expected to be
 .St -p1003.2
 compatible.
 The
+.Fl b ,
 .Fl h ,
+.Fl i ,
+.Fl n ,
 .Fl x ,
 and
 .Fl z
 options are extensions to the standard.
+.Ar skip1
+and
+.Ar skip2
+arguments are extensions to the standard.
 .Sh HISTORY
 A
 .Nm
 command appeared in
 .At v1 .
+.Sh BUGS
+The phrase
+.Dq SI size suffixes
+above refers to the traditional power of two convention, as described in
+.Xr expand_number 3 .

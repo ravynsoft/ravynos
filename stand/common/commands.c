@@ -484,10 +484,7 @@ command_more(int argc, char *argv[])
 	}
 	pager_close();
 
-	if (res == 0)
-		return (CMD_OK);
-	else
-		return (CMD_ERROR);
+	return (CMD_OK);
 }
 
 static int
@@ -548,3 +545,36 @@ command_lsdev(int argc, char *argv[])
 	pager_close();
 	return (CMD_OK);
 }
+
+#ifndef __mips__
+static int
+command_readtest(int argc, char *argv[])
+{
+	int fd;
+	time_t start, end;
+	char buf[512];
+	ssize_t rv, count = 0;
+
+	if (argc != 2) {
+		snprintf(command_errbuf, sizeof(command_errbuf),
+		  "Usage: readtest <filename>");
+		return (CMD_ERROR);
+	}
+
+	start = getsecs();
+	if ((fd = open(argv[1], O_RDONLY)) < 0) {
+		snprintf(command_errbuf, sizeof(command_errbuf),
+		  "can't open '%s'", argv[1]);
+		return (CMD_ERROR);
+	}
+	while ((rv = read(fd, buf, sizeof(buf))) > 0)
+		count += rv;
+	end = getsecs();
+
+	printf("Received %zd bytes during %jd seconds\n", count, (intmax_t)end - start);
+	close(fd);
+	return (CMD_OK);
+}
+
+COMMAND_SET(readtest, "readtest", "Time a file read", command_readtest);
+#endif

@@ -1439,7 +1439,8 @@ ufs_dir_dd_ino(struct vnode *vp, struct ucred *cred, ino_t *dd_ino,
  * Check if source directory is in the path of the target directory.
  */
 int
-ufs_checkpath(ino_t source_ino, ino_t parent_ino, struct inode *target, struct ucred *cred, ino_t *wait_ino)
+ufs_checkpath(ino_t source_ino, ino_t parent_ino, struct inode *target,
+    struct ucred *cred, ino_t *wait_ino)
 {
 	struct mount *mp;
 	struct vnode *tvp, *vp, *vp1;
@@ -1449,6 +1450,8 @@ ufs_checkpath(ino_t source_ino, ino_t parent_ino, struct inode *target, struct u
 	vp = tvp = ITOV(target);
 	mp = vp->v_mount;
 	*wait_ino = 0;
+	sx_assert(&VFSTOUFS(mp)->um_checkpath_lock, SA_XLOCKED);
+
 	if (target->i_number == source_ino)
 		return (EEXIST);
 	if (target->i_number == parent_ino)

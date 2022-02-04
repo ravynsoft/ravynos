@@ -30,11 +30,6 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef lint
-static const char rcsid[] =
-  "$FreeBSD$";
-#endif /* not lint */
-
 #include <sys/param.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -46,41 +41,27 @@ static const char rcsid[] =
 #include <err.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
 #include "ldconfig.h"
+#include "rtld_paths.h"
 
-#if DEBUG
-/* test */
-#undef _PATH_ELF_HINTS
-#define _PATH_ELF_HINTS		"./ld-elf.so.hints"
-#endif
-
-#define	_PATH_LD32_HINTS	"/var/run/ld32.so.hints"
-#define	_PATH_ELF32_HINTS	"/var/run/ld-elf32.so.hints"
 #define	_PATH_ELFSOFT_HINTS	"/var/run/ld-elf-soft.so.hints"
 
-#undef major
-#undef minor
-
-static int			verbose;
-static int			nostd;
-static int			justread;
-static int			merge;
-static int			rescan;
-static const char		*hints_file;
-
-static void		usage(void);
+static void usage(void);
 
 int
 main(int argc, char **argv)
 {
-	int		c;
-	int		is_32 = 0;
-	int		is_soft = 0;
+	const char *hints_file;
+	int c;
+	bool is_32, is_soft, justread, merge, rescan, verbose;
+
+	is_32 = is_soft = justread = merge = rescan = verbose = false;
 
 	while (argc > 1) {
 		if (strcmp(argv[1], "-aout") == 0) {
@@ -89,11 +70,11 @@ main(int argc, char **argv)
 			argc--;
 			argv++;
 		} else if (strcmp(argv[1], "-32") == 0) {
-			is_32 = 1;
+			is_32 = true;
 			argc--;
 			argv++;
 		} else if (strcmp(argv[1], "-soft") == 0) {
-			is_soft = 1;
+			is_soft = true;
 			argc--;
 			argv++;
 		} else {
@@ -102,35 +83,33 @@ main(int argc, char **argv)
 	}
 
 	if (is_soft)
-		hints_file = _PATH_ELFSOFT_HINTS;	/* Never will have a.out softfloat */
+		hints_file = _PATH_SOFT_ELF_HINTS;
 	else if (is_32)
 		hints_file = _PATH_ELF32_HINTS;
 	else
 		hints_file = _PATH_ELF_HINTS;
-	if (argc == 1)
-		rescan = 1;
-	else while((c = getopt(argc, argv, "Rf:imrsv")) != -1) {
+	while((c = getopt(argc, argv, "Rf:imrsv")) != -1) {
 		switch (c) {
 		case 'R':
-			rescan = 1;
+			rescan = true;
 			break;
 		case 'f':
 			hints_file = optarg;
 			break;
 		case 'i':
-			insecure = 1;
+			insecure = true;
 			break;
 		case 'm':
-			merge = 1;
+			merge = true;
 			break;
 		case 'r':
-			justread = 1;
+			justread = true;
 			break;
 		case 's':
-			nostd = 1;
+			/* was nostd */
 			break;
 		case 'v':
-			verbose = 1;
+			verbose = true;
 			break;
 		default:
 			usage();
@@ -138,18 +117,22 @@ main(int argc, char **argv)
 		}
 	}
 
-	if (justread)
+	if (justread) {
 		list_elf_hints(hints_file);
-	else
+	} else {
+		if (argc == optind)
+			rescan = true;
 		update_elf_hints(hints_file, argc - optind,
 		    argv + optind, merge || rescan);
-	return 0;
+	}
+	exit(0);
 }
 
 static void
 usage(void)
 {
 	fprintf(stderr,
-	"usage: ldconfig [-32] [-elf] [-Rimrsv] [-f hints_file] [directory | file ...]\n");
+	    "usage: ldconfig [-32] [-elf] [-Rimrv] [-f hints_file] "
+	    "[directory | file ...]\n");
 	exit(1);
 }

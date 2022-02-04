@@ -15,7 +15,6 @@
 #include "lldb/Utility/ConstString.h"
 #include "lldb/Utility/Flags.h"
 #include "lldb/Utility/Predicate.h"
-#include "lldb/Utility/Reproducer.h"
 #include "lldb/Utility/Stream.h"
 #include "lldb/Utility/StringList.h"
 #include "lldb/lldb-defines.h"
@@ -27,11 +26,14 @@
 #include <string>
 #include <vector>
 
-#include <stdint.h>
-#include <stdio.h>
+#include <cstdint>
+#include <cstdio>
 
 namespace lldb_private {
 class Debugger;
+namespace repro {
+class DataRecorder;
+}
 }
 
 namespace curses {
@@ -126,11 +128,11 @@ public:
 
   FILE *GetErrorFILE();
 
-  lldb::FileSP &GetInputFileSP();
+  lldb::FileSP GetInputFileSP();
 
-  lldb::StreamFileSP &GetOutputStreamFileSP();
+  lldb::StreamFileSP GetOutputStreamFileSP();
 
-  lldb::StreamFileSP &GetErrorStreamFileSP();
+  lldb::StreamFileSP GetErrorStreamFileSP();
 
   Debugger &GetDebugger() { return m_debugger; }
 
@@ -202,6 +204,9 @@ public:
   virtual void IOHandlerActivated(IOHandler &io_handler, bool interactive) {}
 
   virtual void IOHandlerDeactivated(IOHandler &io_handler) {}
+
+  virtual llvm::Optional<std::string> IOHandlerSuggestion(IOHandler &io_handler,
+                                                          llvm::StringRef line);
 
   virtual void IOHandlerComplete(IOHandler &io_handler,
                                  CompletionRequest &request);
@@ -414,13 +419,14 @@ public:
 
 private:
 #if LLDB_ENABLE_LIBEDIT
-  static bool IsInputCompleteCallback(Editline *editline, StringList &lines,
-                                      void *baton);
+  bool IsInputCompleteCallback(Editline *editline, StringList &lines);
 
-  static int FixIndentationCallback(Editline *editline, const StringList &lines,
-                                    int cursor_position, void *baton);
+  int FixIndentationCallback(Editline *editline, const StringList &lines,
+                             int cursor_position);
 
-  static void AutoCompleteCallback(CompletionRequest &request, void *baton);
+  llvm::Optional<std::string> SuggestionCallback(llvm::StringRef line);
+
+  void AutoCompleteCallback(CompletionRequest &request);
 #endif
 
 protected:

@@ -24,7 +24,7 @@
 .\"
 .\" $FreeBSD$
 .\"
-.Dd July 8, 2021
+.Dd November 18, 2021
 .Dt RC.CONF 5
 .Os
 .Sh NAME
@@ -1000,6 +1000,42 @@ is set to
 these flags are passed to the
 .Xr pfctl 8
 program when loading the ruleset.
+.It Va pf_fallback_rules_enable
+.Pq Vt bool
+Set to
+.Dq Li NO
+by default.
+Setting this to
+.Dq Li YES
+enables loading
+.Va pf_fallback_rules_file
+or
+.Va pf_fallback_rules
+in case of a problem when loading the ruleset in
+.Va pf_rules .
+.It Va pf_fallback_rules_file
+.Pq Vt str
+Path to a pf ruleset to load in case of failure when loading the
+ruleset in
+.Va pf_rules
+(default
+.Pa /etc/pf-fallback.conf ) .
+.It Va pf_fallback_rules
+.Pq Vt str
+A pf ruleset to load in case of failure when loading the ruleset in
+.Va pf_rules
+and
+.Va pf_fallback_rules_file
+is not found.
+Multiple rules can be set as follows:
+.Bd -literal
+pf_fallback_rules="\\
+	block drop log all\\
+	pass in quick on em0"
+.Pp
+.Ed
+The default fallback rule is
+.Dq block drop log all
 .It Va pflog_enable
 .Pq Vt bool
 Set to
@@ -2320,39 +2356,6 @@ If
 is set to
 .Dq Li YES ,
 these are the flags to pass to it.
-.It Va amd_enable
-.Pq Vt bool
-If set to
-.Dq Li YES ,
-run the
-.Xr amd 8
-daemon at boot time.
-.It Va amd_flags
-.Pq Vt str
-If
-.Va amd_enable
-is set to
-.Dq Li YES ,
-these are the flags to pass to it.
-See the
-.Xr amd 8
-manpage for more information.
-.It Va amd_map_program
-.Pq Vt str
-If set,
-the specified program is run to get the list of
-.Xr amd 8
-maps.
-For example, if the
-.Xr amd 8
-maps are stored in NIS, one can set this to
-run
-.Xr ypcat 1
-to get a list of
-.Xr amd 8
-maps from the
-.Pa amd.master
-NIS map.
 .It Va update_motd
 .Pq Vt bool
 If set to
@@ -2404,9 +2407,40 @@ is set to
 .Dq Li YES
 and
 .Va nfsv4_server_enable
-are set to
+is set to
 .Dq Li YES ,
 enable the server for NFSv4 as well as NFSv2 and NFSv3.
+.It Va nfsv4_server_only
+.Pq Vt bool
+If
+.Va nfs_server_enable
+is set to
+.Dq Li YES
+and
+.Va nfsv4_server_only
+is set to
+.Dq Li YES ,
+enable the NFS server for NFSv4 only.
+.It Va nfs_server_maxio
+.Pq Vt int
+value to set vfs.nfsd.srvmaxio to, which is the
+maximum I/O size for the NFS server.
+.It Va tlsclntd_enable
+.Pq Vt bool
+If set to
+.Dq Li YES ,
+run the
+.Xr rpc.tlsclntd 8
+daemon, which is needed for NFS-over-TLS NFS mounts.
+.It Va tlsservd_enable
+.Pq Vt bool
+If set to
+.Dq Li YES ,
+run the
+.Xr rpc.tlsservd 8
+daemon, which is needed for the
+.Xr nfsd 8
+to support NFS-over-TLS NFS mounts.
 .It Va nfsuserd_enable
 .Pq Vt bool
 If
@@ -4638,7 +4672,6 @@ it will be made permanently active.
 .Xr pf.conf 5 ,
 .Xr security 7 ,
 .Xr accton 8 ,
-.Xr amd 8 ,
 .Xr apm 8 ,
 .Xr bsdinstall 8 ,
 .Xr bthidd 8 ,
@@ -4683,6 +4716,8 @@ it will be made permanently active.
 .Xr routed 8 ,
 .Xr rpc.lockd 8 ,
 .Xr rpc.statd 8 ,
+.Xr rpc.tlsclntd 8 ,
+.Xr rpc.tlsservd 8 ,
 .Xr rpcbind 8 ,
 .Xr rwhod 8 ,
 .Xr savecore 8 ,

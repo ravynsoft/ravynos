@@ -28,8 +28,8 @@
  *
  * $FreeBSD$
  */
-#ifndef	_LINUX_DEVICE_H_
-#define	_LINUX_DEVICE_H_
+#ifndef	_LINUXKPI_LINUX_DEVICE_H_
+#define	_LINUXKPI_LINUX_DEVICE_H_
 
 #include <linux/err.h>
 #include <linux/types.h>
@@ -42,6 +42,9 @@
 #include <linux/workqueue.h>
 #include <linux/kdev_t.h>
 #include <linux/backlight.h>
+#include <linux/pm.h>
+#include <linux/idr.h>
+#include <linux/ratelimit.h>	/* via linux/dev_printk.h */
 #include <asm/atomic.h>
 
 #include <sys/bus.h>
@@ -181,6 +184,7 @@ show_class_attr_string(struct class *class,
 		_CLASS_ATTR_STRING(_name, _mode, _str)
 
 #define	dev_err(dev, fmt, ...)	device_printf((dev)->bsddev, fmt, ##__VA_ARGS__)
+#define	dev_crit(dev, fmt, ...)	device_printf((dev)->bsddev, fmt, ##__VA_ARGS__)
 #define	dev_warn(dev, fmt, ...)	device_printf((dev)->bsddev, fmt, ##__VA_ARGS__)
 #define	dev_info(dev, fmt, ...)	device_printf((dev)->bsddev, fmt, ##__VA_ARGS__)
 #define	dev_notice(dev, fmt, ...)	device_printf((dev)->bsddev, fmt, ##__VA_ARGS__)
@@ -207,6 +211,40 @@ show_class_attr_string(struct class *class,
 	if (linux_ratelimited(&__ratelimited))	\
 		dev_warn(dev, __VA_ARGS__);	\
 } while (0)
+
+/* Public and LinuxKPI internal devres functions. */
+void *lkpi_devres_alloc(void(*release)(struct device *, void *), size_t, gfp_t);
+void lkpi_devres_add(struct device *, void *);
+void lkpi_devres_free(void *);
+void *lkpi_devres_find(struct device *, void(*release)(struct device *, void *),
+    int (*match)(struct device *, void *, void *), void *);
+int lkpi_devres_destroy(struct device *, void(*release)(struct device *, void *),
+    int (*match)(struct device *, void *, void *), void *);
+#define	devres_alloc(_r, _s, _g)	lkpi_devres_alloc(_r, _s, _g)
+#define	devres_add(_d, _p)		lkpi_devres_add(_d, _p)
+#define	devres_free(_p)			lkpi_devres_free(_p)
+#define	devres_find(_d, _rfn, _mfn, _mp) \
+					lkpi_devres_find(_d, _rfn, _mfn, _mp)
+#define	devres_destroy(_d, _rfn, _mfn, _mp) \
+					lkpi_devres_destroy(_d, _rfn, _mfn, _mp)
+void lkpi_devres_release_free_list(struct device *);
+void lkpi_devres_unlink(struct device *, void *);
+void lkpi_devm_kmalloc_release(struct device *, void *);
+
+static inline const char *
+dev_driver_string(const struct device *dev)
+{
+	driver_t *drv;
+	const char *str = "";
+
+	if (dev->bsddev != NULL) {
+		drv = device_get_driver(dev->bsddev);
+		if (drv != NULL)
+			str = drv->name;
+	}
+
+	return (str);
+}
 
 static inline void *
 dev_get_drvdata(const struct device *dev)
@@ -482,6 +520,38 @@ device_destroy(struct class *class, dev_t devt)
 		device_unregister(device_get_softc(bsddev));
 }
 
+static inline void
+device_release_driver(struct device *dev)
+{
+
+#if 0
+	/* This leads to panics. Disable temporarily. Keep to rework. */
+
+	/* We also need to cleanup LinuxKPI bits. What else? */
+	lkpi_devres_release_free_list(dev);
+	dev_set_drvdata(dev, NULL);
+	/* Do not call dev->release! */
+
+	mtx_lock(&Giant);
+	if (device_is_attached(dev->bsddev))
+		device_detach(dev->bsddev);
+	mtx_unlock(&Giant);
+#endif
+}
+
+static inline int
+device_reprobe(struct device *dev)
+{
+	int error;
+
+	device_release_driver(dev);
+	mtx_lock(&Giant);
+	error = device_probe_and_attach(dev->bsddev);
+	mtx_unlock(&Giant);
+
+	return (-error);
+}
+
 #define	dev_pm_set_driver_flags(dev, flags) do { \
 } while (0)
 
@@ -565,26 +635,6 @@ char *lkpi_devm_kasprintf(struct device *, gfp_t, const char *, ...);
 #define	devm_kasprintf(_dev, _gfp, _fmt, ...)			\
     lkpi_devm_kasprintf(_dev, _gfp, _fmt, ##__VA_ARGS__)
 
-void *lkpi_devres_alloc(void(*release)(struct device *, void *), size_t, gfp_t);
-void lkpi_devres_add(struct device *, void *);
-void lkpi_devres_free(void *);
-void *lkpi_devres_find(struct device *, void(*release)(struct device *, void *),
-    int (*match)(struct device *, void *, void *), void *);
-int lkpi_devres_destroy(struct device *, void(*release)(struct device *, void *),
-    int (*match)(struct device *, void *, void *), void *);
-#define	devres_alloc(_r, _s, _g)	lkpi_devres_alloc(_r, _s, _g)
-#define	devres_add(_d, _p)		lkpi_devres_add(_d, _p)
-#define	devres_free(_p)			lkpi_devres_free(_p)
-#define	devres_find(_d, _rfn, _mfn, _mp) \
-					lkpi_devres_find(_d, _rfn, _mfn, _mp)
-#define	devres_destroy(_d, _rfn, _mfn, _mp) \
-					lkpi_devres_destroy(_d, _rfn, _mfn, _mp)
-
-/* LinuxKPI internal functions. */
-void lkpi_devres_release_free_list(struct device *);
-void lkpi_devres_unlink(struct device *, void *);
-void lkpi_devm_kmalloc_release(struct device *, void *);
-
 static __inline void *
 devm_kmalloc(struct device *dev, size_t size, gfp_t gfp)
 {
@@ -603,4 +653,4 @@ devm_kmalloc(struct device *dev, size_t size, gfp_t gfp)
 #define	devm_kcalloc(_dev, _sizen, _size, _gfp)			\
     devm_kmalloc((_dev), ((_sizen) * (_size)), (_gfp) | __GFP_ZERO)
 
-#endif	/* _LINUX_DEVICE_H_ */
+#endif	/* _LINUXKPI_LINUX_DEVICE_H_ */

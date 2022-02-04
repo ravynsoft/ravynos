@@ -562,8 +562,9 @@ tooshort:
 
 	/*
 	 * Try to forward the packet, but if we fail continue.
-	 * ip_tryforward() does not generate redirects, so fall
-	 * through to normal processing if redirects are required.
+	 * ip_tryforward() may generate redirects these days.
+	 * XXX the logic below falling through to normal processing
+	 * if redirects are required should be revisited as well.
 	 * ip_tryforward() does inbound and outbound packet firewall
 	 * processing. If firewall has decided that destination becomes
 	 * our local address, it sets M_FASTFWD_OURS flag. In this
@@ -576,6 +577,10 @@ tooshort:
 	    IPSEC_CAPS(ipv4, m, IPSEC_CAP_OPERABLE) == 0)
 #endif
 	    ) {
+		/*
+		 * ip_dooptions() was run so we can ignore the source route (or
+		 * any IP options case) case for redirects in ip_tryforward().
+		 */
 		if ((m = ip_tryforward(m)) == NULL)
 			return;
 		if (m->m_flags & M_FASTFWD_OURS) {
@@ -1058,13 +1063,16 @@ ip_forward(struct mbuf *m, int srcrt)
 
 			if (nh_ia != NULL &&
 			    (src & nh_ia->ia_subnetmask) == nh_ia->ia_subnet) {
-				if (nh->nh_flags & NHF_GATEWAY)
-					dest.s_addr = nh->gw4_sa.sin_addr.s_addr;
-				else
-					dest.s_addr = ip->ip_dst.s_addr;
 				/* Router requirements says to only send host redirects */
 				type = ICMP_REDIRECT;
 				code = ICMP_REDIRECT_HOST;
+				if (nh->nh_flags & NHF_GATEWAY) {
+				    if (nh->gw_sa.sa_family == AF_INET)
+					dest.s_addr = nh->gw4_sa.sin_addr.s_addr;
+				    else /* Do not redirect in case gw is AF_INET6 */
+					type = 0;
+				} else
+					dest.s_addr = ip->ip_dst.s_addr;
 			}
 		}
 	}

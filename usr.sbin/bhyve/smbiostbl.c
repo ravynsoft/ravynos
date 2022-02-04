@@ -43,6 +43,7 @@ __FBSDID("$FreeBSD$");
 #include <vmmapi.h>
 
 #include "bhyverun.h"
+#include "config.h"
 #include "debug.h"
 #include "smbiostbl.h"
 
@@ -198,6 +199,7 @@ struct smbios_table_type3 {
 	uint8_t			psstate;	/* power supply state */
 	uint8_t			tstate;		/* thermal state */
 	uint8_t			security;	/* security status */
+	uint32_t		oemdata;	/* OEM-specific data */
 	uint8_t			uheight;	/* height in 'u's */
 	uint8_t			cords;		/* number of power cords */
 	uint8_t			elems;		/* number of element records */
@@ -416,6 +418,7 @@ struct smbios_table_type3 smbios_type3_template = {
 	SMBIOS_CHST_SAFE,
 	SMBIOS_CHST_SAFE,
 	SMBIOS_CHSC_NONE,
+	0,		/* OEM specific data, we have none */
 	0,		/* height in 'u's (0=enclosure height unspecified) */
 	0,		/* number of power cords (0=number unspecified) */
 	0,		/* number of contained element records */
@@ -637,11 +640,13 @@ smbios_type1_initializer(struct smbios_structure *template_entry,
     uint16_t *n, uint16_t *size)
 {
 	struct smbios_table_type1 *type1;
+	const char *guest_uuid_str;
 
 	smbios_generic_initializer(template_entry, template_strings,
 	    curaddr, endaddr, n, size);
 	type1 = (struct smbios_table_type1 *)curaddr;
 
+	guest_uuid_str = get_config_value("uuid");
 	if (guest_uuid_str != NULL) {
 		uuid_t		uuid;
 		uint32_t	status;
@@ -655,6 +660,7 @@ smbios_type1_initializer(struct smbios_structure *template_entry,
 		MD5_CTX		mdctx;
 		u_char		digest[16];
 		char		hostname[MAXHOSTNAMELEN];
+		const char	*vmname;
 
 		/*
 		 * Universally unique and yet reproducible are an
@@ -665,6 +671,7 @@ smbios_type1_initializer(struct smbios_structure *template_entry,
 			return (-1);
 
 		MD5Init(&mdctx);
+		vmname = get_config_value("name");
 		MD5Update(&mdctx, vmname, strlen(vmname));
 		MD5Update(&mdctx, hostname, sizeof(hostname));
 		MD5Final(digest, &mdctx);

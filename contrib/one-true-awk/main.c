@@ -22,9 +22,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 ****************************************************************/
 
-#include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-const char	*version = "version 20210215 (FreeBSD)";
+const char	*version = "version 20210215";
 
 #define DEBUG
 #include <stdio.h>
@@ -93,9 +91,7 @@ setfs(char *p)
 	/* wart: t=>\t */
 	if (p[0] == 't' && p[1] == '\0')
 		return "\t";
-	else if (p[0] != '\0')
-		return p;
-	return NULL;
+	return p;
 }
 
 static char *
@@ -117,7 +113,6 @@ int main(int argc, char *argv[])
 	char *fn, *vn;
 
 	setlocale(LC_CTYPE, "");
-	setlocale(LC_COLLATE, "");
 	setlocale(LC_NUMERIC, "C"); /* for parsing cmdline & prog */
 	cmdname = argv[0];
 	if (argc == 1) {
@@ -172,8 +167,6 @@ int main(int argc, char *argv[])
  			break;
 		case 'F':	/* set field separator */
 			fs = setfs(getarg(&argc, &argv, "no field separator"));
-			if (fs == NULL)
-				WARNING("field separator FS is empty");
 			break;
 		case 'v':	/* -v a=1 to be done NOW.  one -v for each */
 			vn = getarg(&argc, &argv, "no variable name");

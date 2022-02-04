@@ -66,6 +66,7 @@ __FBSDID("$FreeBSD$");
 #include <machine/intr_machdep.h>
 #include <machine/ppireg.h>
 #include <machine/timerreg.h>
+#include <x86/apicvar.h>
 #include <x86/init.h>
 
 #include <isa/rtc.h>
@@ -411,6 +412,9 @@ cpu_initclocks(void)
 	int i;
 
 	td = curthread;
+
+	tsc_calibrate();
+	lapic_calibrate_timer();
 	cpu_initclocks_bsp();
 	CPU_FOREACH(i) {
 		if (i == 0)
@@ -425,6 +429,8 @@ cpu_initclocks(void)
 		sched_unbind(td);
 	thread_unlock(td);
 #else
+	tsc_calibrate();
+	lapic_calibrate_timer();
 	cpu_initclocks_bsp();
 #endif
 }
@@ -454,7 +460,7 @@ sysctl_machdep_i8254_freq(SYSCTL_HANDLER_ARGS)
 }
 
 SYSCTL_PROC(_machdep, OID_AUTO, i8254_freq,
-    CTLTYPE_INT | CTLFLAG_RW | CTLFLAG_NEEDGIANT,
+    CTLTYPE_INT | CTLFLAG_RW | CTLFLAG_MPSAFE,
     0, sizeof(u_int), sysctl_machdep_i8254_freq, "IU",
     "i8254 timer frequency");
 

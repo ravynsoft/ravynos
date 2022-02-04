@@ -55,7 +55,8 @@ public:
 
   static lldb::ProcessSP CreateInstance(lldb::TargetSP target_sp,
                                         lldb::ListenerSP listener_sp,
-                                        const FileSpec *crash_file_path);
+                                        const FileSpec *crash_file_path,
+                                        bool can_connect);
 
   static void Initialize();
 
@@ -66,6 +67,8 @@ public:
   static ConstString GetPluginNameStatic();
 
   static const char *GetPluginDescriptionStatic();
+
+  static std::chrono::seconds GetPacketTimeout();
 
   // Check if a given Process
   bool CanDebug(lldb::TargetSP target_sp,
@@ -162,20 +165,16 @@ public:
 
   Status GetWatchpointSupportInfo(uint32_t &num) override;
 
-  lldb::user_id_t StartTrace(const TraceOptions &options,
-                             Status &error) override;
+  llvm::Expected<TraceSupportedResponse> TraceSupported() override;
 
-  Status StopTrace(lldb::user_id_t uid, lldb::tid_t thread_id) override;
+  llvm::Error TraceStop(const TraceStopRequest &request) override;
 
-  Status GetData(lldb::user_id_t uid, lldb::tid_t thread_id,
-                 llvm::MutableArrayRef<uint8_t> &buffer,
-                 size_t offset = 0) override;
+  llvm::Error TraceStart(const llvm::json::Value &request) override;
 
-  Status GetMetaData(lldb::user_id_t uid, lldb::tid_t thread_id,
-                     llvm::MutableArrayRef<uint8_t> &buffer,
-                     size_t offset = 0) override;
+  llvm::Expected<std::string> TraceGetState(llvm::StringRef type) override;
 
-  Status GetTraceConfig(lldb::user_id_t uid, TraceOptions &options) override;
+  llvm::Expected<std::vector<uint8_t>>
+  TraceGetBinaryData(const TraceGetBinaryDataRequest &request) override;
 
   Status GetWatchpointSupportInfo(uint32_t &num, bool &after) override;
 
@@ -236,6 +235,8 @@ protected:
   friend class GDBRemoteCommunicationClient;
   friend class GDBRemoteRegisterContext;
 
+  bool SupportsMemoryTagging() override;
+
   /// Broadcaster event bits definitions.
   enum {
     eBroadcastBitAsyncContinue = (1 << 0),
@@ -251,7 +252,7 @@ protected:
                                                              // the last stop
                                                              // packet variable
   std::recursive_mutex m_last_stop_packet_mutex;
-  GDBRemoteDynamicRegisterInfo m_register_info;
+  GDBRemoteDynamicRegisterInfoSP m_register_info_sp;
   Broadcaster m_async_broadcaster;
   lldb::ListenerSP m_async_listener_sp;
   HostThread m_async_thread;
@@ -309,8 +310,8 @@ protected:
 
   void Clear();
 
-  bool UpdateThreadList(ThreadList &old_thread_list,
-                        ThreadList &new_thread_list) override;
+  bool DoUpdateThreadList(ThreadList &old_thread_list,
+                          ThreadList &new_thread_list) override;
 
   Status ConnectToReplayServer();
 
@@ -336,7 +337,7 @@ protected:
 
   size_t UpdateThreadPCsFromStopReplyThreadsValue(std::string &value);
 
-  size_t UpdateThreadIDsFromStopReplyThreadsValue(std::string &value);
+  size_t UpdateThreadIDsFromStopReplyThreadsValue(llvm::StringRef value);
 
   bool HandleNotifyPacket(StringExtractorGDBRemote &packet);
 
@@ -388,8 +389,8 @@ protected:
 
   bool GetGDBServerRegisterInfoXMLAndProcess(ArchSpec &arch_to_use,
                                              std::string xml_filename,
-                                             uint32_t &cur_reg_num,
-                                             uint32_t &reg_offset);
+                                             uint32_t &cur_reg_remote,
+                                             uint32_t &cur_reg_local);
 
   // Query remote GDBServer for register information
   bool GetGDBServerRegisterInfo(ArchSpec &arch);
@@ -406,6 +407,12 @@ protected:
   Status FlashDone();
 
   bool HasErased(FlashRange range);
+
+  llvm::Expected<std::vector<uint8_t>>
+  DoReadMemoryTags(lldb::addr_t addr, size_t len, int32_t type) override;
+
+  Status DoWriteMemoryTags(lldb::addr_t addr, size_t len, int32_t type,
+                           const std::vector<uint8_t> &tags) override;
 
 private:
   // For ProcessGDBRemote only

@@ -5,6 +5,8 @@ cddl/dev/fbt/riscv/fbt_isa.c				optional dtrace_fbt | dtraceall compile-with "${
 crypto/des/des_enc.c		optional	netsmb
 dev/ofw/ofw_cpu.c		optional	fdt
 dev/ofw/ofwpci.c		optional 	pci fdt
+dev/pci/pci_dw.c		optional	pci fdt
+dev/pci/pci_dw_if.m		optional	pci fdt
 dev/pci/pci_host_generic.c	optional	pci
 dev/pci/pci_host_generic_fdt.c	optional	pci fdt
 dev/uart/uart_cpu_fdt.c		optional	uart fdt
@@ -44,8 +46,9 @@ riscv/riscv/db_trace.c		optional	ddb
 riscv/riscv/dump_machdep.c	standard
 riscv/riscv/elf_machdep.c	standard
 riscv/riscv/exception.S		standard
+riscv/riscv/exec_machdep.c	standard
+riscv/riscv/gdb_machdep.c	optional	gdb
 riscv/riscv/intr_machdep.c	standard
-riscv/riscv/in_cksum.c		optional	inet | inet6
 riscv/riscv/identcpu.c		standard
 riscv/riscv/locore.S		standard	no-obj
 riscv/riscv/machdep.c		standard
@@ -56,6 +59,7 @@ riscv/riscv/nexus.c		standard
 riscv/riscv/ofw_machdep.c	optional	fdt
 riscv/riscv/plic.c		standard
 riscv/riscv/pmap.c		standard
+riscv/riscv/ptrace_machdep.c	standard
 riscv/riscv/riscv_console.c	optional	rcons
 riscv/riscv/riscv_syscon.c	optional	ext_resources syscon riscv_syscon fdt
 riscv/riscv/sbi.c		standard

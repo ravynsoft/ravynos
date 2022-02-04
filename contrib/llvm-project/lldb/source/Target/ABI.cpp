@@ -42,27 +42,22 @@ ABI::FindPlugin(lldb::ProcessSP process_sp, const ArchSpec &arch) {
 
 ABI::~ABI() = default;
 
-bool RegInfoBasedABI::GetRegisterInfoByName(ConstString name, RegisterInfo &info) {
+bool RegInfoBasedABI::GetRegisterInfoByName(llvm::StringRef name,
+                                            RegisterInfo &info) {
   uint32_t count = 0;
   const RegisterInfo *register_info_array = GetRegisterInfoArray(count);
   if (register_info_array) {
-    const char *unique_name_cstr = name.GetCString();
     uint32_t i;
     for (i = 0; i < count; ++i) {
       const char *reg_name = register_info_array[i].name;
-      assert(ConstString(reg_name).GetCString() == reg_name &&
-             "register_info_array[i].name not from a ConstString?");
-      if (reg_name == unique_name_cstr) {
+      if (reg_name == name) {
         info = register_info_array[i];
         return true;
       }
     }
     for (i = 0; i < count; ++i) {
       const char *reg_alt_name = register_info_array[i].alt_name;
-      assert((reg_alt_name == nullptr ||
-              ConstString(reg_alt_name).GetCString() == reg_alt_name) &&
-             "register_info_array[i].alt_name not from a ConstString?");
-      if (reg_alt_name == unique_name_cstr) {
+      if (reg_alt_name == name) {
         info = register_info_array[i];
         return true;
       }
@@ -125,12 +120,13 @@ ValueObjectSP ABI::GetReturnValueObject(Thread &thread, CompilerType &ast_type,
     const Value &result_value = live_valobj_sp->GetValue();
 
     switch (result_value.GetValueType()) {
-    case Value::eValueTypeHostAddress:
-    case Value::eValueTypeFileAddress:
-      // we don't do anything with these for now
+    case Value::ValueType::Invalid:
+      return {};
+    case Value::ValueType::HostAddress:
+    case Value::ValueType::FileAddress:
+      // we odon't do anything with these for now
       break;
-    case Value::eValueTypeScalar:
-    case Value::eValueTypeVector:
+    case Value::ValueType::Scalar:
       expr_variable_sp->m_flags |=
           ExpressionVariable::EVIsFreezeDried;
       expr_variable_sp->m_flags |=
@@ -138,7 +134,7 @@ ValueObjectSP ABI::GetReturnValueObject(Thread &thread, CompilerType &ast_type,
       expr_variable_sp->m_flags |=
           ExpressionVariable::EVNeedsAllocation;
       break;
-    case Value::eValueTypeLoadAddress:
+    case Value::ValueType::LoadAddress:
       expr_variable_sp->m_live_sp = live_valobj_sp;
       expr_variable_sp->m_flags |=
           ExpressionVariable::EVIsProgramReference;
@@ -224,7 +220,7 @@ void RegInfoBasedABI::AugmentRegisterInfo(RegisterInfo &info) {
     return;
 
   RegisterInfo abi_info;
-  if (!GetRegisterInfoByName(ConstString(info.name), abi_info))
+  if (!GetRegisterInfoByName(info.name, abi_info))
     return;
 
   if (info.kinds[eRegisterKindEHFrame] == LLDB_INVALID_REGNUM)

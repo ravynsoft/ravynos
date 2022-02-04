@@ -44,6 +44,7 @@ struct iscsi_outstanding {
 	TAILQ_ENTRY(iscsi_outstanding)	io_next;
 	union ccb			*io_ccb;
 	size_t				io_received;
+	uint32_t			io_datasn;
 	uint32_t			io_initiator_task_tag;
 	uint32_t			io_referenced_task_tag;
 	void				*io_icl_prv;
@@ -67,8 +68,6 @@ struct iscsi_session {
 	uint8_t				is_isid[6];
 	uint16_t			is_tsih;
 	bool				is_immediate_data;
-	int				is_max_recv_data_segment_length;
-	int				is_max_send_data_segment_length;
 	char				is_target_alias[ISCSI_ALIAS_LEN];
 
 	TAILQ_HEAD(, iscsi_outstanding)	is_outstanding;

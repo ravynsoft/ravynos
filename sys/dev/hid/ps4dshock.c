@@ -50,6 +50,7 @@ __FBSDID("$FreeBSD$");
 #include <dev/evdev/evdev.h>
 
 #define	HID_DEBUG_VAR	ps4dshock_debug
+#include <dev/hid/hgame.h>
 #include <dev/hid/hid.h>
 #include <dev/hid/hidbus.h>
 #include <dev/hid/hidquirk.h>
@@ -214,7 +215,7 @@ static const uint8_t	ps4dshock_rdesc[] = {
 	0x55, 0x0E,		/*     Unit Exponent (-2)		*/
 	0x65, 0x11,		/*     Unit (System: SI Linear, Length: Centimeter) */
 	0x35, 0x00,		/*     Physical Minimum (0)		*/
-	0x46, 0x80, 0x02,	/*     Physical Maximum (640)		*/
+	0x46, 0xB8, 0x01,	/*     Physical Maximum (440)		*/
 	0x26, 0x80, 0x07,	/*     Logical Maximum (1920)		*/
 	0x75, 0x0C,		/*     Report Size (12)			*/
 	0x81, 0x02,		/*     Input (Data,Var,Abs)		*/
@@ -243,76 +244,7 @@ static const uint8_t	ps4dshock_rdesc[] = {
 	0x55, 0x0E,		/*     Unit Exponent (-2)		*/
 	0x65, 0x11,		/*     Unit (System: SI Linear, Length: Centimeter) */
 	0x35, 0x00,		/*     Physical Minimum (0)		*/
-	0x46, 0x80, 0x02,	/*     Physical Maximum (640)		*/
-	0x26, 0x80, 0x07,	/*     Logical Maximum (1920)		*/
-	0x75, 0x0C,		/*     Report Size (12)			*/
-	0x81, 0x02,		/*     Input (Data,Var,Abs)		*/
-	0x09, 0x31,		/*     Usage (Y)			*/
-	0x46, 0xC0, 0x00,	/*     Physical Maximum (192)		*/
-	0x26, 0xAE, 0x03,	/*     Logical Maximum (942)		*/
-	0x81, 0x02,		/*     Input (Data,Var,Abs)		*/
-	0x65, 0x00,		/*     Unit (None)			*/
-	0x45, 0x00,		/*     Physical Maximum (0)		*/
-	0xC0,			/*   End Collection			*/
-	0x05, 0x0D,		/*   Usage Page (Digitizer)		*/
-	0x09, 0x56,		/*   Usage (0x56)			*/
-	0x55, 0x0C,		/*   Unit Exponent (-4)			*/
-	0x66, 0x01, 0x10,	/*   Unit (System: SI Linear, Time: Seconds) */
-	0x46, 0xCC, 0x06,	/*   Physical Maximum (1740)		*/
-	0x26, 0xFF, 0x00,	/*   Logical Maximum (255)		*/
-	0x75, 0x08,		/*   Report Size (8)			*/
-	0x95, 0x01,		/*   Report Count (1)			*/
-	0x81, 0x02,		/*   Input (Data,Var,Abs)		*/
-	0x65, 0x00,		/*   Unit (None)			*/
-	0x45, 0x00,		/*   Physical Maximum (0)		*/
-	0x05, 0x0D,		/*   Usage Page (Digitizer)		*/
-	0x09, 0x22,		/*   Usage (Finger)			*/
-	0xA1, 0x02,		/*   Collection (Logical)		*/
-	0x09, 0x51,		/*     Usage (0x51)			*/
-	0x25, 0x7F,		/*     Logical Maximum (127)		*/
-	0x75, 0x07,		/*     Report Size (7)			*/
-	0x95, 0x01,		/*     Report Count (1)			*/
-	0x81, 0x02,		/*     Input (Data,Var,Abs)		*/
-	0x09, 0x42,		/*     Usage (Tip Switch)		*/
-	0x25, 0x01,		/*     Logical Maximum (1)		*/
-	0x75, 0x01,		/*     Report Size (1)			*/
-	0x95, 0x01,		/*     Report Count (1)			*/
-	0x81, 0x02,		/*     Input (Data,Var,Abs)		*/
-	0x05, 0x01,		/*     Usage Page (Generic Desktop Ctrls) */
-	0x09, 0x30,		/*     Usage (X)			*/
-	0x55, 0x0E,		/*     Unit Exponent (-2)		*/
-	0x65, 0x11,		/*     Unit (System: SI Linear, Length: Centimeter) */
-	0x35, 0x00,		/*     Physical Minimum (0)		*/
-	0x46, 0x80, 0x02,	/*     Physical Maximum (640)		*/
-	0x26, 0x80, 0x07,	/*     Logical Maximum (1920)		*/
-	0x75, 0x0C,		/*     Report Size (12)			*/
-	0x81, 0x02,		/*     Input (Data,Var,Abs)		*/
-	0x09, 0x31,		/*     Usage (Y)			*/
-	0x46, 0xC0, 0x00,	/*     Physical Maximum (192)		*/
-	0x26, 0xAE, 0x03,	/*     Logical Maximum (942)		*/
-	0x81, 0x02,		/*     Input (Data,Var,Abs)		*/
-	0x65, 0x00,		/*     Unit (None)			*/
-	0x45, 0x00,		/*     Physical Maximum (0)		*/
-	0xC0,			/*   End Collection			*/
-	0x05, 0x0D,		/*   Usage Page (Digitizer)		*/
-	0x09, 0x22,		/*   Usage (Finger)			*/
-	0xA1, 0x02,		/*   Collection (Logical)		*/
-	0x09, 0x51,		/*     Usage (0x51)			*/
-	0x25, 0x7F,		/*     Logical Maximum (127)		*/
-	0x75, 0x07,		/*     Report Size (7)			*/
-	0x95, 0x01,		/*     Report Count (1)			*/
-	0x81, 0x02,		/*     Input (Data,Var,Abs)		*/
-	0x09, 0x42,		/*     Usage (Tip Switch)		*/
-	0x25, 0x01,		/*     Logical Maximum (1)		*/
-	0x75, 0x01,		/*     Report Size (1)			*/
-	0x95, 0x01,		/*     Report Count (1)			*/
-	0x81, 0x02,		/*     Input (Data,Var,Abs)		*/
-	0x05, 0x01,		/*     Usage Page (Generic Desktop Ctrls) */
-	0x09, 0x30,		/*     Usage (X)			*/
-	0x55, 0x0E,		/*     Unit Exponent (-2)		*/
-	0x65, 0x11,		/*     Unit (System: SI Linear, Length: Centimeter) */
-	0x35, 0x00,		/*     Physical Minimum (0)		*/
-	0x46, 0x80, 0x02,	/*     Physical Maximum (640)		*/
+	0x46, 0xB8, 0x01,	/*     Physical Maximum (440)		*/
 	0x26, 0x80, 0x07,	/*     Logical Maximum (1920)		*/
 	0x75, 0x0C,		/*     Report Size (12)			*/
 	0x81, 0x02,		/*     Input (Data,Var,Abs)		*/
@@ -352,7 +284,7 @@ static const uint8_t	ps4dshock_rdesc[] = {
 	0x55, 0x0E,		/*     Unit Exponent (-2)		*/
 	0x65, 0x11,		/*     Unit (System: SI Linear, Length: Centimeter) */
 	0x35, 0x00,		/*     Physical Minimum (0)		*/
-	0x46, 0x80, 0x02,	/*     Physical Maximum (640)		*/
+	0x46, 0xB8, 0x01,	/*     Physical Maximum (440)		*/
 	0x26, 0x80, 0x07,	/*     Logical Maximum (1920)		*/
 	0x75, 0x0C,		/*     Report Size (12)			*/
 	0x81, 0x02,		/*     Input (Data,Var,Abs)		*/
@@ -381,7 +313,76 @@ static const uint8_t	ps4dshock_rdesc[] = {
 	0x55, 0x0E,		/*     Unit Exponent (-2)		*/
 	0x65, 0x11,		/*     Unit (System: SI Linear, Length: Centimeter) */
 	0x35, 0x00,		/*     Physical Minimum (0)		*/
-	0x46, 0x80, 0x02,	/*     Physical Maximum (640)		*/
+	0x46, 0xB8, 0x01,	/*     Physical Maximum (440)		*/
+	0x26, 0x80, 0x07,	/*     Logical Maximum (1920)		*/
+	0x75, 0x0C,		/*     Report Size (12)			*/
+	0x81, 0x02,		/*     Input (Data,Var,Abs)		*/
+	0x09, 0x31,		/*     Usage (Y)			*/
+	0x46, 0xC0, 0x00,	/*     Physical Maximum (192)		*/
+	0x26, 0xAE, 0x03,	/*     Logical Maximum (942)		*/
+	0x81, 0x02,		/*     Input (Data,Var,Abs)		*/
+	0x65, 0x00,		/*     Unit (None)			*/
+	0x45, 0x00,		/*     Physical Maximum (0)		*/
+	0xC0,			/*   End Collection			*/
+	0x05, 0x0D,		/*   Usage Page (Digitizer)		*/
+	0x09, 0x56,		/*   Usage (0x56)			*/
+	0x55, 0x0C,		/*   Unit Exponent (-4)			*/
+	0x66, 0x01, 0x10,	/*   Unit (System: SI Linear, Time: Seconds) */
+	0x46, 0xCC, 0x06,	/*   Physical Maximum (1740)		*/
+	0x26, 0xFF, 0x00,	/*   Logical Maximum (255)		*/
+	0x75, 0x08,		/*   Report Size (8)			*/
+	0x95, 0x01,		/*   Report Count (1)			*/
+	0x81, 0x02,		/*   Input (Data,Var,Abs)		*/
+	0x65, 0x00,		/*   Unit (None)			*/
+	0x45, 0x00,		/*   Physical Maximum (0)		*/
+	0x05, 0x0D,		/*   Usage Page (Digitizer)		*/
+	0x09, 0x22,		/*   Usage (Finger)			*/
+	0xA1, 0x02,		/*   Collection (Logical)		*/
+	0x09, 0x51,		/*     Usage (0x51)			*/
+	0x25, 0x7F,		/*     Logical Maximum (127)		*/
+	0x75, 0x07,		/*     Report Size (7)			*/
+	0x95, 0x01,		/*     Report Count (1)			*/
+	0x81, 0x02,		/*     Input (Data,Var,Abs)		*/
+	0x09, 0x42,		/*     Usage (Tip Switch)		*/
+	0x25, 0x01,		/*     Logical Maximum (1)		*/
+	0x75, 0x01,		/*     Report Size (1)			*/
+	0x95, 0x01,		/*     Report Count (1)			*/
+	0x81, 0x02,		/*     Input (Data,Var,Abs)		*/
+	0x05, 0x01,		/*     Usage Page (Generic Desktop Ctrls) */
+	0x09, 0x30,		/*     Usage (X)			*/
+	0x55, 0x0E,		/*     Unit Exponent (-2)		*/
+	0x65, 0x11,		/*     Unit (System: SI Linear, Length: Centimeter) */
+	0x35, 0x00,		/*     Physical Minimum (0)		*/
+	0x46, 0xB8, 0x01,	/*     Physical Maximum (440)		*/
+	0x26, 0x80, 0x07,	/*     Logical Maximum (1920)		*/
+	0x75, 0x0C,		/*     Report Size (12)			*/
+	0x81, 0x02,		/*     Input (Data,Var,Abs)		*/
+	0x09, 0x31,		/*     Usage (Y)			*/
+	0x46, 0xC0, 0x00,	/*     Physical Maximum (192)		*/
+	0x26, 0xAE, 0x03,	/*     Logical Maximum (942)		*/
+	0x81, 0x02,		/*     Input (Data,Var,Abs)		*/
+	0x65, 0x00,		/*     Unit (None)			*/
+	0x45, 0x00,		/*     Physical Maximum (0)		*/
+	0xC0,			/*   End Collection			*/
+	0x05, 0x0D,		/*   Usage Page (Digitizer)		*/
+	0x09, 0x22,		/*   Usage (Finger)			*/
+	0xA1, 0x02,		/*   Collection (Logical)		*/
+	0x09, 0x51,		/*     Usage (0x51)			*/
+	0x25, 0x7F,		/*     Logical Maximum (127)		*/
+	0x75, 0x07,		/*     Report Size (7)			*/
+	0x95, 0x01,		/*     Report Count (1)			*/
+	0x81, 0x02,		/*     Input (Data,Var,Abs)		*/
+	0x09, 0x42,		/*     Usage (Tip Switch)		*/
+	0x25, 0x01,		/*     Logical Maximum (1)		*/
+	0x75, 0x01,		/*     Report Size (1)			*/
+	0x95, 0x01,		/*     Report Count (1)			*/
+	0x81, 0x02,		/*     Input (Data,Var,Abs)		*/
+	0x05, 0x01,		/*     Usage Page (Generic Desktop Ctrls) */
+	0x09, 0x30,		/*     Usage (X)			*/
+	0x55, 0x0E,		/*     Unit Exponent (-2)		*/
+	0x65, 0x11,		/*     Unit (System: SI Linear, Length: Centimeter) */
+	0x35, 0x00,		/*     Physical Minimum (0)		*/
+	0x46, 0xB8, 0x01,	/*     Physical Maximum (440)		*/
 	0x26, 0x80, 0x07,	/*     Logical Maximum (1920)		*/
 	0x75, 0x0C,		/*     Report Size (12)			*/
 	0x81, 0x02,		/*     Input (Data,Var,Abs)		*/
@@ -588,7 +589,6 @@ static const uint8_t	ps4dshock_rdesc[] = {
 #define	PS4DS_OUTPUT_REPORT5_SIZE	32
 #define	PS4DS_OUTPUT_REPORT11_SIZE	78
 
-static hidmap_cb_t	ps4dshock_hat_switch_cb;
 static hidmap_cb_t	ps4dshock_final_cb;
 static hidmap_cb_t	ps4dsacc_data_cb;
 static hidmap_cb_t	ps4dsacc_tstamp_cb;
@@ -743,7 +743,7 @@ static const struct hidmap_item ps4dshock_map[] = {
 	PS4DS_MAP_BTN(13,		BTN_MODE),
 	/* Click button is handled by touchpad driver */
 	/* PS4DS_MAP_BTN(14,	BTN_LEFT), */
-	PS4DS_MAP_GCB(HAT_SWITCH,	ps4dshock_hat_switch_cb),
+	PS4DS_MAP_GCB(HAT_SWITCH,	hgame_hat_switch_cb),
 	PS4DS_FINALCB(			ps4dshock_final_cb),
 };
 static const struct hidmap_item ps4dsacc_map[] = {
@@ -786,36 +786,6 @@ static const struct hid_device_id ps4dsmtp_devs[] = {
 	{ HID_BVP(BUS_USB, USB_VENDOR_SONY, 0x9cc),
 	  HID_TLC(HUP_DIGITIZERS, HUD_TOUCHPAD) },
 };
-
-static int
-ps4dshock_hat_switch_cb(HIDMAP_CB_ARGS)
-{
-	static const struct { int32_t x; int32_t y; } hat_switch_map[] = {
-	    {0, -1}, {1, -1}, {1, 0}, {1, 1}, {0, 1}, {-1, 1}, {-1, 0},
-	    {-1, -1},{0, 0}
-	};
-	struct evdev_dev *evdev = HIDMAP_CB_GET_EVDEV();
-	u_int idx;
-
-	switch (HIDMAP_CB_GET_STATE()) {
-	case HIDMAP_CB_IS_ATTACHING:
-		evdev_support_event(evdev, EV_ABS);
-		evdev_support_abs(evdev, ABS_HAT0X, -1, 1, 0, 0, 0);
-		evdev_support_abs(evdev, ABS_HAT0Y, -1, 1, 0, 0, 0);
-		break;
-
-	case HIDMAP_CB_IS_RUNNING:
-		idx = MIN(nitems(hat_switch_map) - 1, (u_int)ctx.data);
-		evdev_push_abs(evdev, ABS_HAT0X, hat_switch_map[idx].x);
-		evdev_push_abs(evdev, ABS_HAT0Y, hat_switch_map[idx].y);
-		break;
-
-	default:
-		break;
-	}
-
-	return (0);
-}
 
 static int
 ps4dshock_final_cb(HIDMAP_CB_ARGS)
@@ -1414,6 +1384,7 @@ DRIVER_MODULE(ps4dshock, hidbus, ps4dshock_driver, ps4dshock_devclass, NULL, 0);
 MODULE_DEPEND(ps4dshock, hid, 1, 1, 1);
 MODULE_DEPEND(ps4dshock, hidbus, 1, 1, 1);
 MODULE_DEPEND(ps4dshock, hidmap, 1, 1, 1);
+MODULE_DEPEND(ps4dshock, hgame, 1, 1, 1);
 MODULE_DEPEND(ps4dshock, evdev, 1, 1, 1);
 MODULE_VERSION(ps4dshock, 1);
 HID_PNP_INFO(ps4dshock_devs);

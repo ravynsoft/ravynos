@@ -308,6 +308,11 @@ local function drawbrand()
 
 	x = x + shift.x
 	y = y + shift.y
+	if branddef.shift ~= nil then
+		x = x +	branddef.shift.x
+		y = y + branddef.shift.y
+	end
+
 	if core.isFramebufferConsole() and
 	    loader.term_putimage ~= nil and
 	    branddef.image ~= nil then
@@ -377,7 +382,6 @@ end
 
 local function drawitem(func)
 	local console = loader.getenv("console")
-	local c
 
 	for c in string.gmatch(console, "%w+") do
 		loader.setenv("console", c)

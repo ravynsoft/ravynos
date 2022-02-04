@@ -63,6 +63,7 @@ __FBSDID("$FreeBSD$");
 #include <vm/vm_extern.h>
 
 #include <geom/geom.h>
+#include <geom/geom_vfs.h>
 
 #include <ufs/ufs/extattr.h>
 #include <ufs/ufs/quota.h>
@@ -651,6 +652,27 @@ loop:
 		vput(xvp);
 	}
 	/*
+	 * Preallocate all the direct blocks in the snapshot inode so
+	 * that we never have to write the inode itself to commit an
+	 * update to the contents of the snapshot. Note that once
+	 * created, the size of the snapshot will never change, so
+	 * there will never be a need to write the inode except to
+	 * update the non-integrity-critical time fields and
+	 * allocated-block count.
+	 */
+	for (blockno = 0; blockno < UFS_NDADDR; blockno++) {
+		if (DIP(ip, i_db[blockno]) != 0)
+			continue;
+		error = UFS_BALLOC(vp, lblktosize(fs, blockno),
+		    fs->fs_bsize, KERNCRED, BA_CLRBUF, &bp);
+		if (error)
+			goto resumefs;
+		error = readblock(vp, bp, blockno);
+		bawrite(bp);
+		if (error != 0)
+			goto resumefs;
+	}
+	/*
 	 * Acquire a lock on the snapdata structure, creating it if necessary.
 	 */
 	sn = ffs_snapdata_acquire(devvp);
@@ -690,27 +712,6 @@ loop:
 		sn->sn_blklist = snapblklist;
 		sn->sn_listsize = blkp - snapblklist;
 		VI_UNLOCK(devvp);
-	}
-	/*
-	 * Preallocate all the direct blocks in the snapshot inode so
-	 * that we never have to write the inode itself to commit an
-	 * update to the contents of the snapshot. Note that once
-	 * created, the size of the snapshot will never change, so
-	 * there will never be a need to write the inode except to
-	 * update the non-integrity-critical time fields and
-	 * allocated-block count.
-	 */
-	for (blockno = 0; blockno < UFS_NDADDR; blockno++) {
-		if (DIP(ip, i_db[blockno]) != 0)
-			continue;
-		error = UFS_BALLOC(vp, lblktosize(fs, blockno),
-		    fs->fs_bsize, KERNCRED, BA_CLRBUF, &bp);
-		if (error)
-			goto resumefs;
-		error = readblock(vp, bp, blockno);
-		bawrite(bp);
-		if (error != 0)
-			goto resumefs;
 	}
 	/*
 	 * Record snapshot inode. Since this is the newest snapshot,
@@ -2123,7 +2124,6 @@ ffs_snapshot_mount(mp)
 	}
 	VOP_UNLOCK(vp);
 	VI_LOCK(devvp);
-	ASSERT_VOP_LOCKED(devvp, "ffs_snapshot_mount");
 	sn->sn_listsize = snaplistsize;
 	sn->sn_blklist = (daddr_t *)snapblklist;
 	devvp->v_vflag |= VV_COPYONWRITE;
@@ -2171,7 +2171,6 @@ ffs_snapshot_unmount(mp)
 		sn = devvp->v_rdev->si_snapdata;
 	}
 	try_free_snapdata(devvp);
-	ASSERT_VOP_LOCKED(devvp, "ffs_snapshot_unmount");
 }
 
 /*
@@ -2554,22 +2553,16 @@ readblock(vp, bp, lbn)
 	ufs2_daddr_t lbn;
 {
 	struct inode *ip;
-	struct bio *bip;
 	struct fs *fs;
 
 	ip = VTOI(vp);
 	fs = ITOFS(ip);
 
-	bip = g_alloc_bio();
-	bip->bio_cmd = BIO_READ;
-	bip->bio_offset = dbtob(fsbtodb(fs, blkstofrags(fs, lbn)));
-	bip->bio_data = bp->b_data;
-	bip->bio_length = bp->b_bcount;
-	bip->bio_done = NULL;
-
-	g_io_request(bip, ITODEVVP(ip)->v_bufobj.bo_private);
-	bp->b_error = biowait(bip, "snaprdb");
-	g_destroy_bio(bip);
+	bp->b_iocmd = BIO_READ;
+	bp->b_iooffset = dbtob(fsbtodb(fs, blkstofrags(fs, lbn)));
+	bp->b_iodone = bdone;
+	g_vfs_strategy(&ITODEVVP(ip)->v_bufobj, bp);
+	bufwait(bp);
 	return (bp->b_error);
 }
 

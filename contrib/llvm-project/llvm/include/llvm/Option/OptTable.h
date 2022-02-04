@@ -13,6 +13,7 @@
 #include "llvm/ADT/StringRef.h"
 #include "llvm/ADT/StringSet.h"
 #include "llvm/Option/OptSpecifier.h"
+#include "llvm/Support/StringSaver.h"
 #include <cassert>
 #include <string>
 #include <vector>
@@ -20,6 +21,7 @@
 namespace llvm {
 
 class raw_ostream;
+template <typename Fn> class function_ref;
 
 namespace opt {
 
@@ -48,7 +50,7 @@ public:
     unsigned ID;
     unsigned char Kind;
     unsigned char Param;
-    unsigned short Flags;
+    unsigned int Flags;
     unsigned short GroupID;
     unsigned short AliasID;
     const char *AliasArgs;
@@ -59,6 +61,8 @@ private:
   /// The option information table.
   std::vector<Info> OptionInfos;
   bool IgnoreCase;
+  bool GroupedShortOptions = false;
+  const char *EnvVar = nullptr;
 
   unsigned TheInputOptionID = 0;
   unsigned TheUnknownOptionID = 0;
@@ -78,6 +82,8 @@ private:
     assert(id > 0 && id - 1 < getNumOptions() && "Invalid Option ID.");
     return OptionInfos[id - 1];
   }
+
+  Arg *parseOneArgGrouped(InputArgList &Args, unsigned &Index) const;
 
 protected:
   OptTable(ArrayRef<Info> OptionInfos, bool IgnoreCase = false);
@@ -120,6 +126,12 @@ public:
     return getInfo(id).MetaVar;
   }
 
+  /// Specify the environment variable where initial options should be read.
+  void setInitialOptionsFromEnvironment(const char *E) { EnvVar = E; }
+
+  /// Support grouped short options. e.g. -ab represents -a -b.
+  void setGroupedShortOptions(bool Value) { GroupedShortOptions = Value; }
+
   /// Find possible value for given flags. This is used for shell
   /// autocompletion.
   ///
@@ -140,7 +152,7 @@ public:
   ///
   /// \return The vector of flags which start with Cur.
   std::vector<std::string> findByPrefix(StringRef Cur,
-                                        unsigned short DisableFlags) const;
+                                        unsigned int DisableFlags) const;
 
   /// Find the OptTable option that most closely matches the given string.
   ///
@@ -213,6 +225,18 @@ public:
                          unsigned &MissingArgCount, unsigned FlagsToInclude = 0,
                          unsigned FlagsToExclude = 0) const;
 
+  /// A convenience helper which handles optional initial options populated from
+  /// an environment variable, expands response files recursively and parses
+  /// options.
+  ///
+  /// \param ErrorFn - Called on a formatted error message for missing arguments
+  /// or unknown options.
+  /// \return An InputArgList; on error this will contain all the options which
+  /// could be parsed.
+  InputArgList parseArgs(int Argc, char *const *Argv, OptSpecifier Unknown,
+                         StringSaver &Saver,
+                         function_ref<void(StringRef)> ErrorFn) const;
+
   /// Render the help text for an option table.
   ///
   /// \param OS - The stream to write the help text to.
@@ -225,11 +249,11 @@ public:
   ///                         that don't have help texts. By default, we display
   ///                         only options that are not hidden and have help
   ///                         texts.
-  void PrintHelp(raw_ostream &OS, const char *Usage, const char *Title,
+  void printHelp(raw_ostream &OS, const char *Usage, const char *Title,
                  unsigned FlagsToInclude, unsigned FlagsToExclude,
                  bool ShowAllAliases) const;
 
-  void PrintHelp(raw_ostream &OS, const char *Usage, const char *Title,
+  void printHelp(raw_ostream &OS, const char *Usage, const char *Title,
                  bool ShowHidden = false, bool ShowAllAliases = false) const;
 };
 

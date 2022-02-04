@@ -919,13 +919,6 @@ aio_zvol_setup(void)
 		ZVOL_SIZE " %s", zvol_name);
 	ATF_REQUIRE_EQ_MSG(0, system(cmd),
 	    "zfs create failed: %s", strerror(errno));
-	/*
-	 * XXX Due to bug 251828, we need an extra "zfs set" here
-	 * https://bugs.freebsd.org/bugzilla/show_bug.cgi?id=251828
-	 */
-	snprintf(cmd, sizeof(cmd), "zfs set volmode=dev %s", zvol_name);
-	ATF_REQUIRE_EQ_MSG(0, system(cmd),
-	    "zfs set failed: %s", strerror(errno));
 
 	snprintf(devname, sizeof(devname), "/dev/zvol/%s", zvol_name);
 	do {
@@ -1668,6 +1661,9 @@ ATF_TC_BODY(vectored_unaligned, tc)
 	ssize_t len, total_len;
 	int fd;
 
+	if (atf_tc_get_config_var_as_bool_wd(tc, "ci", false))
+		atf_tc_skip("https://bugs.freebsd.org/258766");
+
 	ATF_REQUIRE_KERNEL_MODULE("aio");
 	ATF_REQUIRE_UNSAFE_AIO();
 
@@ -1757,6 +1753,8 @@ ATF_TC_HEAD(vectored_zvol_poll, tc)
 }
 ATF_TC_BODY(vectored_zvol_poll, tc)
 {
+	if (atf_tc_get_config_var_as_bool_wd(tc, "ci", false))
+		atf_tc_skip("https://bugs.freebsd.org/258766");
 	aio_zvol_test(poll, NULL, true);
 }
 ATF_TC_CLEANUP(vectored_zvol_poll, tc)

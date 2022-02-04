@@ -28,7 +28,7 @@
 .\" ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 .\" POSSIBILITY OF SUCH DAMAGE.
 .\"
-.Dd April 19, 2021
+.Dd September 25, 2021
 .Dt PF.CONF 5
 .Os
 .Sh NAME
@@ -539,6 +539,34 @@ For example:
 .Bd -literal -offset indent
 set state-policy if-bound
 .Ed
+.It Ar set syncookies never | always | adaptive
+When
+.Cm syncookies
+are active, pf will answer each incoming TCP SYN with a syncookie SYNACK,
+without allocating any resources.
+Upon reception of the client's ACK in response to the syncookie
+SYNACK, pf will evaluate the ruleset and create state if the ruleset
+permits it, complete the three way handshake with the target host and
+continue the connection with synproxy in place.
+This allows pf to be resilient against large synflood attacks which would
+run the state table against its limits otherwise.
+Due to the blind answers to every incoming SYN syncookies share the caveats of
+synproxy, namely seemingly accepting connections that will be dropped later on.
+.Pp
+.Bl -tag -width adaptive -compact
+.It Cm never
+pf will never send syncookie SYNACKs (the default).
+.It Cm always
+pf will always send syncookie SYNACKs.
+.It Cm adaptive
+pf will enable syncookie mode when a given percentage of the state table
+is used up by half-open TCP connections, as in, those that saw the initial
+SYN but didn't finish the three way handshake.
+The thresholds for entering and leaving syncookie mode can be specified using
+.Bd -literal -offset indent
+set syncookies adaptive (start 25%, end 12%)
+.Ed
+.El
 .It Ar set state-defaults
 The
 .Ar state-defaults
@@ -1236,8 +1264,10 @@ below.
 .Xr pf 4
 has the ability to
 .Ar block
-and
+,
 .Ar pass
+and
+.Ar match
 packets based on attributes of their layer 3 (see
 .Xr ip 4
 and
@@ -1253,7 +1283,15 @@ assigned to queues for the purpose of bandwidth control.
 .Pp
 For each packet processed by the packet filter, the filter rules are
 evaluated in sequential order, from first to last.
-The last matching rule decides what action is taken.
+For
+.Ar block
+and
+.Ar pass
+, the last matching rule decides what action is taken.
+For
+.Ar match
+, rules are evaulated every time they match; the pass/block state of a packet
+remains unchanged.
 If no rule matches the packet, the default action is to pass
 the packet.
 .Pp
@@ -1301,6 +1339,21 @@ packets that match explicit rules is specify a first filter rule of:
 .Bd -literal -offset indent
 block all
 .Ed
+.It Ar match
+The packet is matched.
+This mechanism is used to provide fine grained filtering without altering the
+block/pass state of a packet.
+.Ar match
+rules differ from
+.Ar block
+and
+.Ar pass
+rules in that parameters are set every time a packet matches the rule, not only
+on the last matching rule.
+For the following parameters, this means that the parameter effectively becomes
+"sticky" until explicitly overridden:
+.Ar queue
+.
 .It Ar pass
 The packet is passed;
 state is created unless the
@@ -1814,6 +1867,9 @@ pass in inet proto tcp from any to 1.2.3.5 \e
 The macro expansion for the
 .Ar label
 directive occurs only at configuration file parse time, not during runtime.
+.It Ar ridentifier Aq Ar number
+Add an identifier (number) to the rule, which can be used to correlate the rule
+to pflog entries, even after ruleset updates.
 .It Xo Ar queue Aq Ar queue
 .No \*(Ba ( Aq Ar queue ,
 .Aq Ar queue )
@@ -2916,7 +2972,8 @@ filteropt      = user | group | flags | icmp-type | icmp6-type | "tos" tos |
                  "label" string | "tag" string | [ ! ] "tagged" string |
                  "set prio" ( number | "(" number [ [ "," ] number ] ")" ) |
                  "queue" ( string | "(" string [ [ "," ] string ] ")" ) |
-                 "rtable" number | "probability" number"%" | "prio" number
+                 "rtable" number | "probability" number"%" | "prio" number |
+                 "ridentifier" number
 
 nat-rule       = [ "no" ] "nat" [ "pass" [ "log" [ "(" logopts ")" ] ] ]
                  [ "on" ifspec ] [ af ]
@@ -2940,6 +2997,7 @@ rdr-rule       = [ "no" ] "rdr" [ "pass" [ "log" [ "(" logopts ")" ] ] ]
 
 antispoof-rule = "antispoof" [ "log" ] [ "quick" ]
                  "for" ifspec [ af ] [ "label" string ]
+                 [ "ridentifier" number ]
 
 table-rule     = "table" "\*(Lt" string "\*(Gt" [ tableopts-list ]
 tableopts-list = tableopts-list tableopts | tableopts

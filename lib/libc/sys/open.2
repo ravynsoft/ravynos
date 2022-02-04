@@ -28,7 +28,7 @@
 .\"     @(#)open.2	8.2 (Berkeley) 11/16/93
 .\" $FreeBSD$
 .\"
-.Dd May 6, 2021
+.Dd October 9, 2021
 .Dt OPEN 2
 .Os
 .Sh NAME
@@ -327,16 +327,13 @@ and others.
 The other functionality of the returned file descriptor is limited to
 the descriptor-level operations.
 It can be used for
-.Bl -tag -width SCM_RIGHTS -offset indent -compact
+.Bl -tag -width readlinkat(2) -offset indent -compact
 .It Xr fcntl 2
 but advisory locking is not allowed
 .It Xr dup 2
 .It Xr close 2
 .It Xr fstat 2
 .It Xr fexecve 2
-requires that
-.Dv O_EXEC
-was also specified at open time
 .It Dv SCM_RIGHTS
 can be passed over a
 .Xr unix 4
@@ -346,6 +343,7 @@ message
 .It Xr kqueue 2
 using for
 .Dv EVFILT_VNODE
+.It Xr readlinkat 2
 .El
 But operations like
 .Xr read 2 ,

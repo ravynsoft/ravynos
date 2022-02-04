@@ -52,6 +52,7 @@ __FBSDID("$FreeBSD$");
 #include <machine/elf.h>
 #include <machine/md_var.h>
 #include <machine/minidump.h>
+#include <machine/vmparam.h>
 
 CTASSERT(sizeof(struct kerneldumpheader) == 512);
 
@@ -60,28 +61,11 @@ static struct kerneldumpheader kdh;
 /* Handle chunked writes. */
 static size_t fragsz;
 static void *dump_va;
-static size_t counter, progress, dumpsize, wdog_next;
+static size_t progress, dumpsize, wdog_next;
 
 static int dump_retry_count = 5;
 SYSCTL_INT(_machdep, OID_AUTO, dump_retry_count, CTLFLAG_RWTUN,
     &dump_retry_count, 0, "Number of times dump has to retry before bailing out");
-
-static int
-is_dumpable(vm_paddr_t pa)
-{
-	vm_page_t m;
-	int i;
-
-	if ((m = vm_phys_paddr_to_vm_page(pa)) != NULL)
-		return ((m->flags & PG_NODUMP) == 0);
-	for (i = 0; dump_avail[i] != 0 || dump_avail[i + 1] != 0; i += 2) {
-		if (pa >= dump_avail[i] && pa < dump_avail[i + 1])
-			return (1);
-	}
-	return (0);
-}
-
-#define PG2MB(pgs) (((pgs) + (1 << 8) - 1) >> 8)
 
 static int
 blk_flush(struct dumperinfo *di)
@@ -94,41 +78,6 @@ blk_flush(struct dumperinfo *di)
 	error = dump_append(di, dump_va, 0, fragsz);
 	fragsz = 0;
 	return (error);
-}
-
-static struct {
-	int min_per;
-	int max_per;
-	int visited;
-} progress_track[10] = {
-	{  0,  10, 0},
-	{ 10,  20, 0},
-	{ 20,  30, 0},
-	{ 30,  40, 0},
-	{ 40,  50, 0},
-	{ 50,  60, 0},
-	{ 60,  70, 0},
-	{ 70,  80, 0},
-	{ 80,  90, 0},
-	{ 90, 100, 0}
-};
-
-static void
-report_progress(size_t progress, size_t dumpsize)
-{
-	int sofar, i;
-
-	sofar = 100 - ((progress * 100) / dumpsize);
-	for (i = 0; i < nitems(progress_track); i++) {
-		if (sofar < progress_track[i].min_per ||
-		    sofar > progress_track[i].max_per)
-			continue;
-		if (progress_track[i].visited)
-			return;
-		progress_track[i].visited = 1;
-		printf("..%d%%", sofar);
-		return;
-	}
 }
 
 /* Pat the watchdog approximately every 128MB of the dump. */
@@ -167,12 +116,9 @@ blk_write(struct dumperinfo *di, char *ptr, vm_paddr_t pa, size_t sz)
 		len = maxdumpsz - fragsz;
 		if (len > sz)
 			len = sz;
-		counter += len;
 		progress -= len;
-		if (counter >> 24) {
-			report_progress(progress, dumpsize);
-			counter &= (1<<24) - 1;
-		}
+
+		dumpsys_pb_progress(len);
 		if (progress <= wdog_next) {
 			wdog_kern_pat(WD_LASTVAL);
 			if (wdog_next > WDOG_DUMP_INTERVAL)
@@ -215,26 +161,34 @@ blk_write(struct dumperinfo *di, char *ptr, vm_paddr_t pa, size_t sz)
 static pd_entry_t fakepd[NPDEPG];
 
 int
-minidumpsys(struct dumperinfo *di)
+cpu_minidumpsys(struct dumperinfo *di, const struct minidumpstate *state)
 {
 	uint32_t pmapsize;
-	vm_offset_t va;
+	vm_offset_t va, kva_end;
 	int error;
 	uint64_t *pml4, *pdp, *pd, *pt, pa;
-	int i, ii, j, k, n;
+	uint64_t pdpe, pde, pte;
+	int ii, j, k, n;
 	int retry_count;
 	struct minidumphdr mdhdr;
+	struct msgbuf *mbp;
 
 	retry_count = 0;
  retry:
 	retry_count++;
-	counter = 0;
-	for (i = 0; i < nitems(progress_track); i++)
-		progress_track[i].visited = 0;
-	/* Walk page table pages, set bits in vm_page_dump */
+
+	/* Snapshot the KVA upper bound in case it grows. */
+	kva_end = MAX(KERNBASE + nkpt * NBPDR, kernel_vm_end);
+
+	/*
+	 * Walk the kernel page table pages, setting the active entries in the
+	 * dump bitmap.
+	 *
+	 * NB: for a live dump, we may be racing with updates to the page
+	 * tables, so care must be taken to read each entry only once.
+	 */
 	pmapsize = 0;
-	for (va = VM_MIN_KERNEL_ADDRESS; va < MAX(KERNBASE + nkpt * NBPDR,
-	    kernel_vm_end); ) {
+	for (va = VM_MIN_KERNEL_ADDRESS; va < kva_end; ) {
 		/*
 		 * We always write a page, even if it is zero. Each
 		 * page written corresponds to 1GB of space
@@ -243,8 +197,8 @@ minidumpsys(struct dumperinfo *di)
 		ii = pmap_pml4e_index(va);
 		pml4 = (uint64_t *)PHYS_TO_DMAP(KPML4phys) + ii;
 		pdp = (uint64_t *)PHYS_TO_DMAP(*pml4 & PG_FRAME);
-		i = pmap_pdpe_index(va);
-		if ((pdp[i] & PG_V) == 0) {
+		pdpe = atomic_load_64(&pdp[pmap_pdpe_index(va)]);
+		if ((pdpe & PG_V) == 0) {
 			va += NBPDP;
 			continue;
 		}
@@ -252,73 +206,79 @@ minidumpsys(struct dumperinfo *di)
 		/*
 		 * 1GB page is represented as 512 2MB pages in a dump.
 		 */
-		if ((pdp[i] & PG_PS) != 0) {
+		if ((pdpe & PG_PS) != 0) {
 			va += NBPDP;
-			pa = pdp[i] & PG_PS_FRAME;
+			pa = pdpe & PG_PS_FRAME;
 			for (n = 0; n < NPDEPG * NPTEPG; n++) {
-				if (is_dumpable(pa))
-					dump_add_page(pa);
+				if (vm_phys_is_dumpable(pa))
+					vm_page_dump_add(state->dump_bitset,
+					    pa);
 				pa += PAGE_SIZE;
 			}
 			continue;
 		}
 
-		pd = (uint64_t *)PHYS_TO_DMAP(pdp[i] & PG_FRAME);
+		pd = (uint64_t *)PHYS_TO_DMAP(pdpe & PG_FRAME);
 		for (n = 0; n < NPDEPG; n++, va += NBPDR) {
-			j = pmap_pde_index(va);
+			pde = atomic_load_64(&pd[pmap_pde_index(va)]);
 
-			if ((pd[j] & PG_V) == 0)
+			if ((pde & PG_V) == 0)
 				continue;
 
-			if ((pd[j] & PG_PS) != 0) {
+			if ((pde & PG_PS) != 0) {
 				/* This is an entire 2M page. */
-				pa = pd[j] & PG_PS_FRAME;
+				pa = pde & PG_PS_FRAME;
 				for (k = 0; k < NPTEPG; k++) {
-					if (is_dumpable(pa))
-						dump_add_page(pa);
+					if (vm_phys_is_dumpable(pa))
+						vm_page_dump_add(
+						    state->dump_bitset, pa);
 					pa += PAGE_SIZE;
 				}
 				continue;
 			}
 
-			pa = pd[j] & PG_FRAME;
+			pa = pde & PG_FRAME;
 			/* set bit for this PTE page */
-			if (is_dumpable(pa))
-				dump_add_page(pa);
+			if (vm_phys_is_dumpable(pa))
+				vm_page_dump_add(state->dump_bitset, pa);
 			/* and for each valid page in this 2MB block */
-			pt = (uint64_t *)PHYS_TO_DMAP(pd[j] & PG_FRAME);
+			pt = (uint64_t *)PHYS_TO_DMAP(pde & PG_FRAME);
 			for (k = 0; k < NPTEPG; k++) {
-				if ((pt[k] & PG_V) == 0)
+				pte = atomic_load_64(&pt[k]);
+				if ((pte & PG_V) == 0)
 					continue;
-				pa = pt[k] & PG_FRAME;
-				if (is_dumpable(pa))
-					dump_add_page(pa);
+				pa = pte & PG_FRAME;
+				if (PHYS_IN_DMAP(pa) && vm_phys_is_dumpable(pa))
+					vm_page_dump_add(state->dump_bitset,
+					    pa);
 			}
 		}
 	}
 
 	/* Calculate dump size. */
+	mbp = state->msgbufp;
 	dumpsize = pmapsize;
-	dumpsize += round_page(msgbufp->msg_size);
+	dumpsize += round_page(mbp->msg_size);
 	dumpsize += round_page(sizeof(dump_avail));
 	dumpsize += round_page(BITSET_SIZE(vm_page_dump_pages));
-	VM_PAGE_DUMP_FOREACH(pa) {
+	VM_PAGE_DUMP_FOREACH(state->dump_bitset, pa) {
 		/* Clear out undumpable pages now if needed */
-		if (is_dumpable(pa)) {
+		if (PHYS_IN_DMAP(pa) && vm_phys_is_dumpable(pa)) {
 			dumpsize += PAGE_SIZE;
 		} else {
-			dump_drop_page(pa);
+			vm_page_dump_drop(state->dump_bitset, pa);
 		}
 	}
 	dumpsize += PAGE_SIZE;
 
 	wdog_next = progress = dumpsize;
+	dumpsys_pb_init(dumpsize);
 
 	/* Initialize mdhdr */
 	bzero(&mdhdr, sizeof(mdhdr));
 	strcpy(mdhdr.magic, MINIDUMP_MAGIC);
 	mdhdr.version = MINIDUMP_VERSION;
-	mdhdr.msgbufsize = msgbufp->msg_size;
+	mdhdr.msgbufsize = mbp->msg_size;
 	mdhdr.bitmapsize = round_page(BITSET_SIZE(vm_page_dump_pages));
 	mdhdr.pmapsize = pmapsize;
 	mdhdr.kernbase = VM_MIN_KERNEL_ADDRESS;
@@ -344,7 +304,7 @@ minidumpsys(struct dumperinfo *di)
 		goto fail;
 
 	/* Dump msgbuf up front */
-	error = blk_write(di, (char *)msgbufp->msg_ptr, 0, round_page(msgbufp->msg_size));
+	error = blk_write(di, mbp->msg_ptr, 0, round_page(mbp->msg_size));
 	if (error)
 		goto fail;
 
@@ -358,22 +318,21 @@ minidumpsys(struct dumperinfo *di)
 		goto fail;
 
 	/* Dump bitmap */
-	error = blk_write(di, (char *)vm_page_dump, 0,
+	error = blk_write(di, (char *)state->dump_bitset, 0,
 	    round_page(BITSET_SIZE(vm_page_dump_pages)));
 	if (error)
 		goto fail;
 
 	/* Dump kernel page directory pages */
 	bzero(fakepd, sizeof(fakepd));
-	for (va = VM_MIN_KERNEL_ADDRESS; va < MAX(KERNBASE + nkpt * NBPDR,
-	    kernel_vm_end); va += NBPDP) {
+	for (va = VM_MIN_KERNEL_ADDRESS; va < kva_end; va += NBPDP) {
 		ii = pmap_pml4e_index(va);
 		pml4 = (uint64_t *)PHYS_TO_DMAP(KPML4phys) + ii;
 		pdp = (uint64_t *)PHYS_TO_DMAP(*pml4 & PG_FRAME);
-		i = pmap_pdpe_index(va);
+		pdpe = atomic_load_64(&pdp[pmap_pdpe_index(va)]);
 
 		/* We always write a page, even if it is zero */
-		if ((pdp[i] & PG_V) == 0) {
+		if ((pdpe & PG_V) == 0) {
 			error = blk_write(di, (char *)&fakepd, 0, PAGE_SIZE);
 			if (error)
 				goto fail;
@@ -385,9 +344,9 @@ minidumpsys(struct dumperinfo *di)
 		}
 
 		/* 1GB page is represented as 512 2MB pages in a dump */
-		if ((pdp[i] & PG_PS) != 0) {
+		if ((pdpe & PG_PS) != 0) {
 			/* PDPE and PDP have identical layout in this case */
-			fakepd[0] = pdp[i];
+			fakepd[0] = pdpe;
 			for (j = 1; j < NPDEPG; j++)
 				fakepd[j] = fakepd[j - 1] + NBPDR;
 			error = blk_write(di, (char *)&fakepd, 0, PAGE_SIZE);
@@ -401,8 +360,14 @@ minidumpsys(struct dumperinfo *di)
 			continue;
 		}
 
-		pd = (uint64_t *)PHYS_TO_DMAP(pdp[i] & PG_FRAME);
-		error = blk_write(di, (char *)pd, 0, PAGE_SIZE);
+		pa = pdpe & PG_FRAME;
+		if (PHYS_IN_DMAP(pa) && vm_phys_is_dumpable(pa)) {
+			pd = (uint64_t *)PHYS_TO_DMAP(pa);
+			error = blk_write(di, (char *)pd, 0, PAGE_SIZE);
+		} else {
+			/* Malformed pa, write the zeroed fakepd. */
+			error = blk_write(di, (char *)&fakepd, 0, PAGE_SIZE);
+		}
 		if (error)
 			goto fail;
 		error = blk_flush(di);
@@ -411,7 +376,7 @@ minidumpsys(struct dumperinfo *di)
 	}
 
 	/* Dump memory chunks */
-	VM_PAGE_DUMP_FOREACH(pa) {
+	VM_PAGE_DUMP_FOREACH(state->dump_bitset, pa) {
 		error = blk_write(di, 0, pa, PAGE_SIZE);
 		if (error)
 			goto fail;

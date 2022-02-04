@@ -29,6 +29,7 @@
 __FBSDID("$FreeBSD$");
 
 #include <sys/types.h>
+#include <sys/param.h>
 #include <sys/sbuf.h>
 #include <sys/module.h>
 #include <sys/systm.h>
@@ -351,11 +352,9 @@ intel_hwpstate_identify(driver_t *driver, device_t parent)
 	if ((cpu_power_eax & CPUTPM1_HWP) == 0)
 		return;
 
-	if (BUS_ADD_CHILD(parent, 10, "hwpstate_intel", -1) == NULL)
-		return;
-
-	if (bootverbose)
-		device_printf(parent, "hwpstate registered\n");
+	if (BUS_ADD_CHILD(parent, 10, "hwpstate_intel", device_get_unit(parent))
+	    == NULL)
+		device_printf(parent, "hwpstate_intel: add child failed\n");
 }
 
 static int
@@ -507,12 +506,12 @@ intel_hwpstate_attach(device_t dev)
 
 	SYSCTL_ADD_PROC(device_get_sysctl_ctx(dev),
 	    SYSCTL_STATIC_CHILDREN(_debug), OID_AUTO, device_get_nameunit(dev),
-	    CTLTYPE_STRING | CTLFLAG_RD | CTLFLAG_SKIP | CTLFLAG_NEEDGIANT,
+	    CTLTYPE_STRING | CTLFLAG_RD | CTLFLAG_SKIP | CTLFLAG_MPSAFE,
 	    sc, 0, intel_hwp_dump_sysctl_handler, "A", "");
 
 	SYSCTL_ADD_PROC(device_get_sysctl_ctx(dev),
 	    SYSCTL_CHILDREN(device_get_sysctl_tree(dev)), OID_AUTO,
-	    "epp", CTLTYPE_INT | CTLFLAG_RWTUN | CTLFLAG_NEEDGIANT, dev, 0,
+	    "epp", CTLTYPE_INT | CTLFLAG_RWTUN | CTLFLAG_MPSAFE, dev, 0,
 	    sysctl_epp_select, "I",
 	    "Efficiency/Performance Preference "
 	    "(range from 0, most performant, through 100, most efficient)");

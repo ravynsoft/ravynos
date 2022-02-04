@@ -1,32 +1,32 @@
 /******************************************************************************
   SPDX-License-Identifier: BSD-3-Clause
 
-  Copyright (c) 2001-2015, Intel Corporation 
+  Copyright (c) 2001-2020, Intel Corporation
   All rights reserved.
-  
-  Redistribution and use in source and binary forms, with or without 
+
+  Redistribution and use in source and binary forms, with or without
   modification, are permitted provided that the following conditions are met:
-  
-   1. Redistributions of source code must retain the above copyright notice, 
+
+   1. Redistributions of source code must retain the above copyright notice,
       this list of conditions and the following disclaimer.
-  
-   2. Redistributions in binary form must reproduce the above copyright 
-      notice, this list of conditions and the following disclaimer in the 
+
+   2. Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
       documentation and/or other materials provided with the distribution.
-  
-   3. Neither the name of the Intel Corporation nor the names of its 
-      contributors may be used to endorse or promote products derived from 
+
+   3. Neither the name of the Intel Corporation nor the names of its
+      contributors may be used to endorse or promote products derived from
       this software without specific prior written permission.
-  
+
   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
-  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
-  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
-  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
-  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
-  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
-  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
   POSSIBILITY OF SUCH DAMAGE.
 
@@ -104,6 +104,7 @@ void e1000_init_phy_ops_generic(struct e1000_hw *hw)
 /**
  *  e1000_null_set_page - No-op function, return 0
  *  @hw: pointer to the HW structure
+ *  @data: dummy variable
  **/
 s32 e1000_null_set_page(struct e1000_hw E1000_UNUSEDARG *hw,
 			u16 E1000_UNUSEDARG data)
@@ -115,6 +116,8 @@ s32 e1000_null_set_page(struct e1000_hw E1000_UNUSEDARG *hw,
 /**
  *  e1000_null_read_reg - No-op function, return 0
  *  @hw: pointer to the HW structure
+ *  @offset: dummy variable
+ *  @data: dummy variable
  **/
 s32 e1000_null_read_reg(struct e1000_hw E1000_UNUSEDARG *hw,
 			u32 E1000_UNUSEDARG offset, u16 E1000_UNUSEDARG *data)
@@ -136,6 +139,7 @@ void e1000_null_phy_generic(struct e1000_hw E1000_UNUSEDARG *hw)
 /**
  *  e1000_null_lplu_state - No-op function, return 0
  *  @hw: pointer to the HW structure
+ *  @active: dummy variable
  **/
 s32 e1000_null_lplu_state(struct e1000_hw E1000_UNUSEDARG *hw,
 			  bool E1000_UNUSEDARG active)
@@ -147,6 +151,8 @@ s32 e1000_null_lplu_state(struct e1000_hw E1000_UNUSEDARG *hw,
 /**
  *  e1000_null_write_reg - No-op function, return 0
  *  @hw: pointer to the HW structure
+ *  @offset: dummy variable
+ *  @data: dummy variable
  **/
 s32 e1000_null_write_reg(struct e1000_hw E1000_UNUSEDARG *hw,
 			 u32 E1000_UNUSEDARG offset, u16 E1000_UNUSEDARG data)
@@ -468,7 +474,7 @@ s32 e1000_write_phy_reg_i2c(struct e1000_hw *hw, u32 offset, u16 data)
 
 	DEBUGFUNC("e1000_write_phy_reg_i2c");
 
-	/* Prevent overwritting SFP I2C EEPROM which is at A0 address.*/
+	/* Prevent overwriting SFP I2C EEPROM which is at A0 address.*/
 	if ((hw->phy.addr == 0) || (hw->phy.addr > 7)) {
 		DEBUGOUT1("PHY I2C Address %d is out of range.\n",
 			  hw->phy.addr);
@@ -615,7 +621,7 @@ s32 e1000_write_sfp_data_byte(struct e1000_hw *hw, u16 offset, u8 data)
 				 * lane and update whole word
 				 */
 				data_local = i2ccmd & 0xFF00;
-				data_local |= data;
+				data_local |= (u32)data;
 				i2ccmd = ((offset <<
 					E1000_I2CCMD_REG_ADDR_SHIFT) |
 					E1000_I2CCMD_OPCODE_WRITE | data_local);
@@ -770,7 +776,7 @@ static s32 __e1000_read_phy_reg_igp(struct e1000_hw *hw, u32 offset, u16 *data,
  **/
 s32 e1000_read_phy_reg_igp(struct e1000_hw *hw, u32 offset, u16 *data)
 {
-	return __e1000_read_phy_reg_igp(hw, offset, data, FALSE);
+	return __e1000_read_phy_reg_igp(hw, offset, data, false);
 }
 
 /**
@@ -784,7 +790,7 @@ s32 e1000_read_phy_reg_igp(struct e1000_hw *hw, u32 offset, u16 *data)
  **/
 s32 e1000_read_phy_reg_igp_locked(struct e1000_hw *hw, u32 offset, u16 *data)
 {
-	return __e1000_read_phy_reg_igp(hw, offset, data, TRUE);
+	return __e1000_read_phy_reg_igp(hw, offset, data, true);
 }
 
 /**
@@ -838,7 +844,7 @@ static s32 __e1000_write_phy_reg_igp(struct e1000_hw *hw, u32 offset, u16 data,
  **/
 s32 e1000_write_phy_reg_igp(struct e1000_hw *hw, u32 offset, u16 data)
 {
-	return __e1000_write_phy_reg_igp(hw, offset, data, FALSE);
+	return __e1000_write_phy_reg_igp(hw, offset, data, false);
 }
 
 /**
@@ -852,7 +858,7 @@ s32 e1000_write_phy_reg_igp(struct e1000_hw *hw, u32 offset, u16 data)
  **/
 s32 e1000_write_phy_reg_igp_locked(struct e1000_hw *hw, u32 offset, u16 data)
 {
-	return __e1000_write_phy_reg_igp(hw, offset, data, TRUE);
+	return __e1000_write_phy_reg_igp(hw, offset, data, true);
 }
 
 /**
@@ -912,7 +918,7 @@ static s32 __e1000_read_kmrn_reg(struct e1000_hw *hw, u32 offset, u16 *data,
  **/
 s32 e1000_read_kmrn_reg_generic(struct e1000_hw *hw, u32 offset, u16 *data)
 {
-	return __e1000_read_kmrn_reg(hw, offset, data, FALSE);
+	return __e1000_read_kmrn_reg(hw, offset, data, false);
 }
 
 /**
@@ -927,7 +933,7 @@ s32 e1000_read_kmrn_reg_generic(struct e1000_hw *hw, u32 offset, u16 *data)
  **/
 s32 e1000_read_kmrn_reg_locked(struct e1000_hw *hw, u32 offset, u16 *data)
 {
-	return __e1000_read_kmrn_reg(hw, offset, data, TRUE);
+	return __e1000_read_kmrn_reg(hw, offset, data, true);
 }
 
 /**
@@ -983,7 +989,7 @@ static s32 __e1000_write_kmrn_reg(struct e1000_hw *hw, u32 offset, u16 data,
  **/
 s32 e1000_write_kmrn_reg_generic(struct e1000_hw *hw, u32 offset, u16 data)
 {
-	return __e1000_write_kmrn_reg(hw, offset, data, FALSE);
+	return __e1000_write_kmrn_reg(hw, offset, data, false);
 }
 
 /**
@@ -997,7 +1003,7 @@ s32 e1000_write_kmrn_reg_generic(struct e1000_hw *hw, u32 offset, u16 data)
  **/
 s32 e1000_write_kmrn_reg_locked(struct e1000_hw *hw, u32 offset, u16 data)
 {
-	return __e1000_write_kmrn_reg(hw, offset, data, TRUE);
+	return __e1000_write_kmrn_reg(hw, offset, data, true);
 }
 
 /**
@@ -1032,7 +1038,7 @@ static s32 e1000_set_master_slave_mode(struct e1000_hw *hw)
 		break;
 	case e1000_ms_auto:
 		phy_data &= ~CR_1000T_MS_ENABLE;
-		/* fall-through */
+		/* FALLTHROUGH */
 	default:
 		break;
 	}
@@ -1092,6 +1098,7 @@ s32 e1000_copper_link_setup_82577(struct e1000_hw *hw)
 		phy_data |= I82577_PHY_CTRL2_MANUAL_MDIX;
 		break;
 	case 0:
+		/* FALLTHROUGH */
 	default:
 		phy_data |= I82577_PHY_CTRL2_AUTO_MDI_MDIX;
 		break;
@@ -1148,6 +1155,7 @@ s32 e1000_copper_link_setup_m88(struct e1000_hw *hw)
 		phy_data |= M88E1000_PSCR_AUTO_X_1000T;
 		break;
 	case 0:
+		/* FALLTHROUGH */
 	default:
 		phy_data |= M88E1000_PSCR_AUTO_X_MODE;
 		break;
@@ -1300,6 +1308,7 @@ s32 e1000_copper_link_setup_m88_gen2(struct e1000_hw *hw)
 		}
 		/* FALLTHROUGH */
 	case 0:
+		/* FALLTHROUGH */
 	default:
 		phy_data |= M88E1000_PSCR_AUTO_X_MODE;
 		break;
@@ -1384,7 +1393,7 @@ s32 e1000_copper_link_setup_igp(struct e1000_hw *hw)
 	 */
 	if (phy->type == e1000_phy_igp) {
 		/* disable lplu d3 during driver init */
-		ret_val = hw->phy.ops.set_d3_lplu_state(hw, FALSE);
+		ret_val = hw->phy.ops.set_d3_lplu_state(hw, false);
 		if (ret_val) {
 			DEBUGOUT("Error Disabling LPLU D3\n");
 			return ret_val;
@@ -1393,7 +1402,7 @@ s32 e1000_copper_link_setup_igp(struct e1000_hw *hw)
 
 	/* disable lplu d0 during driver init */
 	if (hw->phy.ops.set_d0_lplu_state) {
-		ret_val = hw->phy.ops.set_d0_lplu_state(hw, FALSE);
+		ret_val = hw->phy.ops.set_d0_lplu_state(hw, false);
 		if (ret_val) {
 			DEBUGOUT("Error Disabling LPLU D0\n");
 			return ret_val;
@@ -1414,6 +1423,7 @@ s32 e1000_copper_link_setup_igp(struct e1000_hw *hw)
 		data |= IGP01E1000_PSCR_FORCE_MDI_MDIX;
 		break;
 	case 0:
+		/* FALLTHROUGH */
 	default:
 		data |= IGP01E1000_PSCR_AUTO_MDIX;
 		break;
@@ -1672,7 +1682,7 @@ s32 e1000_copper_link_autoneg(struct e1000_hw *hw)
 		}
 	}
 
-	hw->mac.get_link_status = TRUE;
+	hw->mac.get_link_status = true;
 
 	return ret_val;
 }
@@ -1689,7 +1699,7 @@ s32 e1000_copper_link_autoneg(struct e1000_hw *hw)
 s32 e1000_setup_copper_link_generic(struct e1000_hw *hw)
 {
 	s32 ret_val;
-	bool link;
+	bool link = true;
 
 	DEBUGFUNC("e1000_setup_copper_link_generic");
 
@@ -1857,7 +1867,7 @@ s32 e1000_phy_force_speed_duplex_m88(struct e1000_hw *hw)
 			return ret_val;
 
 		if (!link) {
-			bool reset_dsp = TRUE;
+			bool reset_dsp = true;
 
 			switch (hw->phy.id) {
 			case I347AT4_E_PHY_ID:
@@ -1866,11 +1876,11 @@ s32 e1000_phy_force_speed_duplex_m88(struct e1000_hw *hw)
 			case M88E1543_E_PHY_ID:
 			case M88E1512_E_PHY_ID:
 			case I210_I_PHY_ID:
-				reset_dsp = FALSE;
+				reset_dsp = false;
 				break;
 			default:
 				if (hw->phy.type != e1000_phy_m88)
-					reset_dsp = FALSE;
+					reset_dsp = false;
 				break;
 			}
 
@@ -2069,7 +2079,7 @@ void e1000_phy_force_speed_duplex_setup(struct e1000_hw *hw, u16 *phy_ctrl)
  *  Success returns 0, Failure returns 1
  *
  *  The low power link up (lplu) state is set to the power management level D3
- *  and SmartSpeed is disabled when active is TRUE, else clear lplu for D3
+ *  and SmartSpeed is disabled when active is true, else clear lplu for D3
  *  and enable Smartspeed.  LPLU and Smartspeed are mutually exclusive.  LPLU
  *  is used during Dx states where the power conservation is most important.
  *  During driver activity, SmartSpeed should be enabled so performance is
@@ -2184,7 +2194,7 @@ s32 e1000_check_downshift_generic(struct e1000_hw *hw)
 		break;
 	default:
 		/* speed downshift not supported */
-		phy->speed_downgraded = FALSE;
+		phy->speed_downgraded = false;
 		return E1000_SUCCESS;
 	}
 
@@ -2717,7 +2727,7 @@ s32 e1000_get_phy_info_igp(struct e1000_hw *hw)
 		return -E1000_ERR_CONFIG;
 	}
 
-	phy->polarity_correction = TRUE;
+	phy->polarity_correction = true;
 
 	ret_val = e1000_check_polarity_igp(hw);
 	if (ret_val)
@@ -3088,6 +3098,7 @@ s32 e1000_determine_phy_address(struct e1000_hw *hw)
 /**
  *  e1000_get_phy_addr_for_bm_page - Retrieve PHY page address
  *  @page: page to access
+ *  @reg: register to access
  *
  *  Returns the phy address for the page requested.
  **/
@@ -3124,7 +3135,7 @@ s32 e1000_write_phy_reg_bm(struct e1000_hw *hw, u32 offset, u16 data)
 	/* Page 800 works differently than the rest so it has its own func */
 	if (page == BM_WUC_PAGE) {
 		ret_val = e1000_access_phy_wakeup_reg_bm(hw, offset, &data,
-							 FALSE, false);
+							 false, false);
 		goto release;
 	}
 
@@ -3184,7 +3195,7 @@ s32 e1000_read_phy_reg_bm(struct e1000_hw *hw, u32 offset, u16 *data)
 	/* Page 800 works differently than the rest so it has its own func */
 	if (page == BM_WUC_PAGE) {
 		ret_val = e1000_access_phy_wakeup_reg_bm(hw, offset, data,
-							 TRUE, FALSE);
+							 true, false);
 		goto release;
 	}
 
@@ -3243,7 +3254,7 @@ s32 e1000_read_phy_reg_bm2(struct e1000_hw *hw, u32 offset, u16 *data)
 	/* Page 800 works differently than the rest so it has its own func */
 	if (page == BM_WUC_PAGE) {
 		ret_val = e1000_access_phy_wakeup_reg_bm(hw, offset, data,
-							 TRUE, FALSE);
+							 true, false);
 		goto release;
 	}
 
@@ -3288,7 +3299,7 @@ s32 e1000_write_phy_reg_bm2(struct e1000_hw *hw, u32 offset, u16 data)
 	/* Page 800 works differently than the rest so it has its own func */
 	if (page == BM_WUC_PAGE) {
 		ret_val = e1000_access_phy_wakeup_reg_bm(hw, offset, &data,
-							 FALSE, false);
+							 false, false);
 		goto release;
 	}
 
@@ -3423,7 +3434,7 @@ s32 e1000_disable_phy_wakeup_reg_access_bm(struct e1000_hw *hw, u16 *phy_reg)
  *  Steps 1 and 2 are done by e1000_enable_phy_wakeup_reg_access_bm() and
  *  step 5 is done by e1000_disable_phy_wakeup_reg_access_bm().
  *
- *  Assumes semaphore is already acquired.  When page_set==TRUE, assumes
+ *  Assumes semaphore is already acquired.  When page_set==true, assumes
  *  the PHY page is set to BM_WUC_PAGE (i.e. a function in the call stack
  *  is responsible for calls to e1000_[enable|disable]_phy_wakeup_reg_bm()).
  **/
@@ -3525,6 +3536,7 @@ void e1000_power_down_phy_copper(struct e1000_hw *hw)
  *  @offset: register offset to be read
  *  @data: pointer to the read data
  *  @locked: semaphore has already been acquired or not
+ *  @page_set: BM_WUC_PAGE already set and access enabled
  *
  *  Acquires semaphore, if necessary, then reads the PHY register at offset
  *  and stores the retrieved information in data.  Release any acquired
@@ -3548,13 +3560,13 @@ static s32 __e1000_read_phy_reg_hv(struct e1000_hw *hw, u32 offset, u16 *data,
 	/* Page 800 works differently than the rest so it has its own func */
 	if (page == BM_WUC_PAGE) {
 		ret_val = e1000_access_phy_wakeup_reg_bm(hw, offset, data,
-							 TRUE, page_set);
+							 true, page_set);
 		goto out;
 	}
 
 	if (page > 0 && page < HV_INTC_FC_PAGE_START) {
 		ret_val = e1000_access_phy_debug_regs_hv(hw, offset,
-							 data, TRUE);
+							 data, true);
 		goto out;
 	}
 
@@ -3598,7 +3610,7 @@ out:
  **/
 s32 e1000_read_phy_reg_hv(struct e1000_hw *hw, u32 offset, u16 *data)
 {
-	return __e1000_read_phy_reg_hv(hw, offset, data, FALSE, false);
+	return __e1000_read_phy_reg_hv(hw, offset, data, false, false);
 }
 
 /**
@@ -3612,7 +3624,7 @@ s32 e1000_read_phy_reg_hv(struct e1000_hw *hw, u32 offset, u16 *data)
  **/
 s32 e1000_read_phy_reg_hv_locked(struct e1000_hw *hw, u32 offset, u16 *data)
 {
-	return __e1000_read_phy_reg_hv(hw, offset, data, TRUE, FALSE);
+	return __e1000_read_phy_reg_hv(hw, offset, data, true, false);
 }
 
 /**
@@ -3626,7 +3638,7 @@ s32 e1000_read_phy_reg_hv_locked(struct e1000_hw *hw, u32 offset, u16 *data)
  **/
 s32 e1000_read_phy_reg_page_hv(struct e1000_hw *hw, u32 offset, u16 *data)
 {
-	return __e1000_read_phy_reg_hv(hw, offset, data, TRUE, true);
+	return __e1000_read_phy_reg_hv(hw, offset, data, true, true);
 }
 
 /**
@@ -3635,6 +3647,7 @@ s32 e1000_read_phy_reg_page_hv(struct e1000_hw *hw, u32 offset, u16 *data)
  *  @offset: register offset to write to
  *  @data: data to write at register offset
  *  @locked: semaphore has already been acquired or not
+ *  @page_set: BM_WUC_PAGE already set and access enabled
  *
  *  Acquires semaphore, if necessary, then writes the data to PHY register
  *  at the offset.  Release any acquired semaphores before exiting.
@@ -3657,13 +3670,13 @@ static s32 __e1000_write_phy_reg_hv(struct e1000_hw *hw, u32 offset, u16 data,
 	/* Page 800 works differently than the rest so it has its own func */
 	if (page == BM_WUC_PAGE) {
 		ret_val = e1000_access_phy_wakeup_reg_bm(hw, offset, &data,
-							 FALSE, page_set);
+							 false, page_set);
 		goto out;
 	}
 
 	if (page > 0 && page < HV_INTC_FC_PAGE_START) {
 		ret_val = e1000_access_phy_debug_regs_hv(hw, offset,
-							 &data, FALSE);
+							 &data, false);
 		goto out;
 	}
 
@@ -3682,7 +3695,7 @@ static s32 __e1000_write_phy_reg_hv(struct e1000_hw *hw, u32 offset, u16 data,
 			u16 data2 = 0x7EFF;
 			ret_val = e1000_access_phy_debug_regs_hv(hw,
 								 (1 << 6) | 0x3,
-								 &data2, FALSE);
+								 &data2, false);
 			if (ret_val)
 				goto out;
 		}
@@ -3723,7 +3736,7 @@ out:
  **/
 s32 e1000_write_phy_reg_hv(struct e1000_hw *hw, u32 offset, u16 data)
 {
-	return __e1000_write_phy_reg_hv(hw, offset, data, FALSE, false);
+	return __e1000_write_phy_reg_hv(hw, offset, data, false, false);
 }
 
 /**
@@ -3737,7 +3750,7 @@ s32 e1000_write_phy_reg_hv(struct e1000_hw *hw, u32 offset, u16 data)
  **/
 s32 e1000_write_phy_reg_hv_locked(struct e1000_hw *hw, u32 offset, u16 data)
 {
-	return __e1000_write_phy_reg_hv(hw, offset, data, TRUE, FALSE);
+	return __e1000_write_phy_reg_hv(hw, offset, data, true, false);
 }
 
 /**
@@ -3751,7 +3764,7 @@ s32 e1000_write_phy_reg_hv_locked(struct e1000_hw *hw, u32 offset, u16 data)
  **/
 s32 e1000_write_phy_reg_page_hv(struct e1000_hw *hw, u32 offset, u16 data)
 {
-	return __e1000_write_phy_reg_hv(hw, offset, data, TRUE, true);
+	return __e1000_write_phy_reg_hv(hw, offset, data, true, true);
 }
 
 /**
@@ -3966,7 +3979,7 @@ s32 e1000_get_phy_info_82577(struct e1000_hw *hw)
 		return -E1000_ERR_CONFIG;
 	}
 
-	phy->polarity_correction = TRUE;
+	phy->polarity_correction = true;
 
 	ret_val = e1000_check_polarity_82577(hw);
 	if (ret_val)
@@ -4109,7 +4122,7 @@ release:
 s32 e1000_read_phy_reg_mphy(struct e1000_hw *hw, u32 address, u32 *data)
 {
 	u32 mphy_ctrl = 0;
-	bool locked = FALSE;
+	bool locked = false;
 	bool ready;
 
 	DEBUGFUNC("e1000_read_phy_reg_mphy");
@@ -4122,7 +4135,7 @@ s32 e1000_read_phy_reg_mphy(struct e1000_hw *hw, u32 address, u32 *data)
 	/* Check if mPHY access is disabled and enable it if so */
 	mphy_ctrl = E1000_READ_REG(hw, E1000_MPHY_ADDR_CTRL);
 	if (mphy_ctrl & E1000_MPHY_DIS_ACCESS) {
-		locked = TRUE;
+		locked = true;
 		ready = e1000_is_mphy_ready(hw);
 		if (!ready)
 			return -E1000_ERR_PHY;
@@ -4171,7 +4184,7 @@ s32 e1000_write_phy_reg_mphy(struct e1000_hw *hw, u32 address, u32 data,
 			     bool line_override)
 {
 	u32 mphy_ctrl = 0;
-	bool locked = FALSE;
+	bool locked = false;
 	bool ready;
 
 	DEBUGFUNC("e1000_write_phy_reg_mphy");
@@ -4184,7 +4197,7 @@ s32 e1000_write_phy_reg_mphy(struct e1000_hw *hw, u32 address, u32 data,
 	/* Check if mPHY access is disabled and enable it if so */
 	mphy_ctrl = E1000_READ_REG(hw, E1000_MPHY_ADDR_CTRL);
 	if (mphy_ctrl & E1000_MPHY_DIS_ACCESS) {
-		locked = TRUE;
+		locked = true;
 		ready = e1000_is_mphy_ready(hw);
 		if (!ready)
 			return -E1000_ERR_PHY;
@@ -4233,7 +4246,7 @@ bool e1000_is_mphy_ready(struct e1000_hw *hw)
 {
 	u16 retry_count = 0;
 	u32 mphy_ctrl = 0;
-	bool ready = FALSE;
+	bool ready = false;
 
 	while (retry_count < 2) {
 		mphy_ctrl = E1000_READ_REG(hw, E1000_MPHY_ADDR_CTRL);
@@ -4242,7 +4255,7 @@ bool e1000_is_mphy_ready(struct e1000_hw *hw)
 			retry_count++;
 			continue;
 		}
-		ready = TRUE;
+		ready = true;
 		break;
 	}
 
@@ -4250,4 +4263,76 @@ bool e1000_is_mphy_ready(struct e1000_hw *hw)
 		DEBUGOUT("ERROR READING mPHY control register, phy is busy.\n");
 
 	return ready;
+}
+
+/**
+ *  __e1000_access_xmdio_reg - Read/write XMDIO register
+ *  @hw: pointer to the HW structure
+ *  @address: XMDIO address to program
+ *  @dev_addr: device address to program
+ *  @data: pointer to value to read/write from/to the XMDIO address
+ *  @read: boolean flag to indicate read or write
+ **/
+static s32 __e1000_access_xmdio_reg(struct e1000_hw *hw, u16 address,
+				    u8 dev_addr, u16 *data, bool read)
+{
+	s32 ret_val;
+
+	DEBUGFUNC("__e1000_access_xmdio_reg");
+
+	ret_val = hw->phy.ops.write_reg(hw, E1000_MMDAC, dev_addr);
+	if (ret_val)
+		return ret_val;
+
+	ret_val = hw->phy.ops.write_reg(hw, E1000_MMDAAD, address);
+	if (ret_val)
+		return ret_val;
+
+	ret_val = hw->phy.ops.write_reg(hw, E1000_MMDAC, E1000_MMDAC_FUNC_DATA |
+					dev_addr);
+	if (ret_val)
+		return ret_val;
+
+	if (read)
+		ret_val = hw->phy.ops.read_reg(hw, E1000_MMDAAD, data);
+	else
+		ret_val = hw->phy.ops.write_reg(hw, E1000_MMDAAD, *data);
+	if (ret_val)
+		return ret_val;
+
+	/* Recalibrate the device back to 0 */
+	ret_val = hw->phy.ops.write_reg(hw, E1000_MMDAC, 0);
+	if (ret_val)
+		return ret_val;
+
+	return ret_val;
+}
+
+/**
+ *  e1000_read_xmdio_reg - Read XMDIO register
+ *  @hw: pointer to the HW structure
+ *  @addr: XMDIO address to program
+ *  @dev_addr: device address to program
+ *  @data: value to be read from the EMI address
+ **/
+s32 e1000_read_xmdio_reg(struct e1000_hw *hw, u16 addr, u8 dev_addr, u16 *data)
+{
+	DEBUGFUNC("e1000_read_xmdio_reg");
+
+		return __e1000_access_xmdio_reg(hw, addr, dev_addr, data, true);
+}
+
+/**
+ *  e1000_write_xmdio_reg - Write XMDIO register
+ *  @hw: pointer to the HW structure
+ *  @addr: XMDIO address to program
+ *  @dev_addr: device address to program
+ *  @data: value to be written to the XMDIO address
+ **/
+s32 e1000_write_xmdio_reg(struct e1000_hw *hw, u16 addr, u8 dev_addr, u16 data)
+{
+	DEBUGFUNC("e1000_write_xmdio_reg");
+
+		return __e1000_access_xmdio_reg(hw, addr, dev_addr, &data,
+						false);
 }

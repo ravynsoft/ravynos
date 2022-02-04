@@ -198,7 +198,7 @@ linux_copyout_auxargs(struct image_params *imgp, uintptr_t base)
 
 	p = imgp->proc;
 	issetugid = imgp->proc->p_flag & P_SUGID ? 1 : 0;
-	arginfo = (struct ps_strings *)p->p_sysent->sv_psstrings;
+	arginfo = (struct ps_strings *)PROC_PS_STRINGS(p);
 	uplatform = (Elf32_Addr *)((caddr_t)arginfo - linux_szplatform);
 	args = (Elf32_Auxargs *)imgp->auxargs;
 	argarray = pos = malloc(LINUX_AT_COUNT * sizeof(*pos), M_TEMP,
@@ -277,13 +277,8 @@ linux_copyout_strings(struct image_params *imgp, uintptr_t *stack_base)
 	size_t execpath_len;
 	struct proc *p;
 
-	/* Calculate string base and vector table pointers. */
 	p = imgp->proc;
-	if (imgp->execpath != NULL && imgp->auxargs != NULL)
-		execpath_len = strlen(imgp->execpath) + 1;
-	else
-		execpath_len = 0;
-	arginfo = (struct ps_strings *)p->p_sysent->sv_psstrings;
+	arginfo = (struct ps_strings *)PROC_PS_STRINGS(p);
 	destp = (uintptr_t)arginfo;
 
 	/* Install LINUX_PLATFORM. */
@@ -293,7 +288,8 @@ linux_copyout_strings(struct image_params *imgp, uintptr_t *stack_base)
 	if (error != 0)
 		return (error);
 
-	if (execpath_len != 0) {
+	if (imgp->execpath != NULL && imgp->auxargs != NULL) {
+		execpath_len = strlen(imgp->execpath) + 1;
 		destp -= execpath_len;
 		destp = rounddown2(destp, sizeof(void *));
 		imgp->execpathp = (void *)destp;
@@ -854,6 +850,7 @@ struct sysentvec linux_sysvec = {
 	.sv_maxuser	= VM_MAXUSER_ADDRESS,
 	.sv_usrstack	= LINUX_USRSTACK,
 	.sv_psstrings	= PS_STRINGS,
+	.sv_psstringssz	= sizeof(struct ps_strings),
 	.sv_stackprot	= VM_PROT_ALL,
 	.sv_copyout_strings = exec_copyout_strings,
 	.sv_setregs	= linux_exec_setregs,
@@ -892,6 +889,7 @@ struct sysentvec elf_linux_sysvec = {
 	.sv_maxuser	= VM_MAXUSER_ADDRESS,
 	.sv_usrstack	= LINUX_USRSTACK,
 	.sv_psstrings	= LINUX_PS_STRINGS,
+	.sv_psstringssz	= sizeof(struct ps_strings),
 	.sv_stackprot	= VM_PROT_ALL,
 	.sv_copyout_auxargs = linux_copyout_auxargs,
 	.sv_copyout_strings = linux_copyout_strings,

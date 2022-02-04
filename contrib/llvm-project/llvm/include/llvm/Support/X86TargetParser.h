@@ -10,10 +10,11 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef LLVM_SUPPORT_X86TARGETPARSERCOMMON_H
-#define LLVM_SUPPORT_X86TARGETPARSERCOMMON_H
+#ifndef LLVM_SUPPORT_X86TARGETPARSER_H
+#define LLVM_SUPPORT_X86TARGETPARSER_H
 
 #include "llvm/ADT/SmallVector.h"
+#include "llvm/ADT/StringMap.h"
 
 namespace llvm {
 class StringRef;
@@ -97,8 +98,11 @@ enum CPUKind {
   CK_Cooperlake,
   CK_Cannonlake,
   CK_IcelakeClient,
+  CK_Rocketlake,
   CK_IcelakeServer,
   CK_Tigerlake,
+  CK_SapphireRapids,
+  CK_Alderlake,
   CK_KNL,
   CK_KNM,
   CK_Lakemont,
@@ -118,18 +122,26 @@ enum CPUKind {
   CK_BDVER4,
   CK_ZNVER1,
   CK_ZNVER2,
+  CK_ZNVER3,
   CK_x86_64,
+  CK_x86_64_v2,
+  CK_x86_64_v3,
+  CK_x86_64_v4,
   CK_Geode,
 };
 
 /// Parse \p CPU string into a CPUKind. Will only accept 64-bit capable CPUs if
 /// \p Only64Bit is true.
 CPUKind parseArchX86(StringRef CPU, bool Only64Bit = false);
+CPUKind parseTuneCPU(StringRef CPU, bool Only64Bit = false);
 
 /// Provide a list of valid CPU names. If \p Only64Bit is true, the list will
 /// only contain 64-bit capable CPUs.
 void fillValidCPUArchList(SmallVectorImpl<StringRef> &Values,
-                          bool ArchIs32Bit);
+                          bool Only64Bit = false);
+/// Provide a list of valid -mtune names.
+void fillValidTuneCPUList(SmallVectorImpl<StringRef> &Values,
+                          bool Only64Bit = false);
 
 /// Get the key feature prioritizing target multiversioning.
 ProcessorFeatures getKeyFeature(CPUKind Kind);
@@ -137,10 +149,10 @@ ProcessorFeatures getKeyFeature(CPUKind Kind);
 /// Fill in the features that \p CPU supports into \p Features.
 void getFeaturesForCPU(StringRef CPU, SmallVectorImpl<StringRef> &Features);
 
-/// Fill \p Features with the features that are implied to be enabled/disabled
+/// Set or clear entries in \p Features that are implied to be enabled/disabled
 /// by the provided \p Feature.
-void getImpliedFeatures(StringRef Feature, bool Enabled,
-                        SmallVectorImpl<StringRef> &Features);
+void updateImpliedFeatures(StringRef Feature, bool Enabled,
+                           StringMap<bool> &Features);
 
 } // namespace X86
 } // namespace llvm

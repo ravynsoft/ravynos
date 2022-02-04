@@ -68,7 +68,6 @@ typedef struct {
     round(8, align)
 #define calculate_tls_offset(prev_offset, prev_size, size, align, offset) \
     round(prev_offset + prev_size, align)
-#define calculate_tls_end(off, size)    ((off) + (size))
 #define calculate_tls_post_size(align) \
     round(TLS_TCB_SIZE, align) - TLS_TCB_SIZE
 	
@@ -81,11 +80,11 @@ extern void arm_abi_variant_hook(Elf_Auxinfo **);
 
 #ifdef __ARM_FP
 #define md_abi_variant_hook(x)		arm_abi_variant_hook(x)
-#define RTLD_VARIANT_ENV_NAMES
 #else
 #define md_abi_variant_hook(x)
 #endif
 
+#define	TLS_VARIANT_I	1
 #define	TLS_DTV_OFFSET	0
 
 #endif

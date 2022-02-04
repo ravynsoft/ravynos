@@ -338,8 +338,7 @@ void APInt::flipAllBitsSlowCase() {
 /// Toggles a given bit to its opposite value.
 void APInt::flipBit(unsigned bitPosition) {
   assert(bitPosition < BitWidth && "Out of the bit-width range!");
-  if ((*this)[bitPosition]) clearBit(bitPosition);
-  else setBit(bitPosition);
+  setBitVal(bitPosition, !(*this)[bitPosition]);
 }
 
 void APInt::insertBits(const APInt &subBits, unsigned bitPosition) {
@@ -393,12 +392,8 @@ void APInt::insertBits(const APInt &subBits, unsigned bitPosition) {
   // General case - set/clear individual bits in dst based on src.
   // TODO - there is scope for optimization here, but at the moment this code
   // path is barely used so prefer readability over performance.
-  for (unsigned i = 0; i != subBitWidth; ++i) {
-    if (subBits[i])
-      setBit(bitPosition + i);
-    else
-      clearBit(bitPosition + i);
-  }
+  for (unsigned i = 0; i != subBitWidth; ++i)
+    setBitVal(bitPosition + i, subBits[i]);
 }
 
 void APInt::insertBits(uint64_t subBits, unsigned bitPosition, unsigned numBits) {
@@ -553,6 +548,10 @@ hash_code llvm::hash_value(const APInt &Arg) {
   return hash_combine(
       Arg.BitWidth,
       hash_combine_range(Arg.U.pVal, Arg.U.pVal + Arg.getNumWords()));
+}
+
+unsigned DenseMapInfo<APInt>::getHashValue(const APInt &Key) {
+  return static_cast<unsigned>(hash_value(Key));
 }
 
 bool APInt::isSplat(unsigned SplatSizeInBits) const {
@@ -961,6 +960,12 @@ APInt APInt::zextOrTrunc(unsigned width) const {
 APInt APInt::sextOrTrunc(unsigned width) const {
   if (BitWidth < width)
     return sext(width);
+  if (BitWidth > width)
+    return trunc(width);
+  return *this;
+}
+
+APInt APInt::truncOrSelf(unsigned width) const {
   if (BitWidth > width)
     return trunc(width);
   return *this;
@@ -2274,14 +2279,6 @@ void APInt::toString(SmallVectorImpl<char> &Str, unsigned Radix,
 
   // Reverse the digits before returning.
   std::reverse(Str.begin()+StartDig, Str.end());
-}
-
-/// Returns the APInt as a std::string. Note that this is an inefficient method.
-/// It is better to pass in a SmallVector/SmallString to the methods above.
-std::string APInt::toString(unsigned Radix = 10, bool Signed = true) const {
-  SmallString<40> S;
-  toString(S, Radix, Signed, /* formatAsCLiteral = */false);
-  return std::string(S.str());
 }
 
 #if !defined(NDEBUG) || defined(LLVM_ENABLE_DUMP)

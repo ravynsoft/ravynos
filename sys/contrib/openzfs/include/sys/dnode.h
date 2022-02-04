@@ -425,6 +425,7 @@ boolean_t dnode_add_ref(dnode_t *dn, void *ref);
 void dnode_rele(dnode_t *dn, void *ref);
 void dnode_rele_and_unlock(dnode_t *dn, void *tag, boolean_t evicting);
 int dnode_try_claim(objset_t *os, uint64_t object, int slots);
+boolean_t dnode_is_dirty(dnode_t *dn);
 void dnode_setdirty(dnode_t *dn, dmu_tx_t *tx);
 void dnode_set_dirtyctx(dnode_t *dn, dmu_tx_t *tx, void *tag);
 void dnode_sync(dnode_t *dn, dmu_tx_t *tx);
@@ -600,7 +601,7 @@ extern dnode_stats_t dnode_stats;
 	char __db_buf[32]; \
 	uint64_t __db_obj = (dn)->dn_object; \
 	if (__db_obj == DMU_META_DNODE_OBJECT) \
-		(void) strcpy(__db_buf, "mdn"); \
+		(void) strlcpy(__db_buf, "mdn", sizeof (__db_buf));	\
 	else \
 		(void) snprintf(__db_buf, sizeof (__db_buf), "%lld", \
 		    (u_longlong_t)__db_obj);\

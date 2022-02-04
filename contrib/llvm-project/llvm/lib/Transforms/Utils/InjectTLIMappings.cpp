@@ -16,6 +16,7 @@
 #include "llvm/Analysis/DemandedBits.h"
 #include "llvm/Analysis/GlobalsModRef.h"
 #include "llvm/Analysis/OptimizationRemarkEmitter.h"
+#include "llvm/Analysis/TargetLibraryInfo.h"
 #include "llvm/Analysis/VectorUtils.h"
 #include "llvm/IR/InstIterator.h"
 #include "llvm/IR/IntrinsicInst.h"
@@ -39,7 +40,7 @@ STATISTIC(NumCompUsedAdded,
 /// lanes. The TLI assumes that all parameters and the return type of
 /// CI (other than void) need to be widened to a VectorType of VF
 /// lanes.
-static void addVariantDeclaration(CallInst &CI, const unsigned VF,
+static void addVariantDeclaration(CallInst &CI, const ElementCount &VF,
                                   const StringRef VFName) {
   Module *M = CI.getModule();
 
@@ -77,7 +78,8 @@ static void addMappingsFromTLI(const TargetLibraryInfo &TLI, CallInst &CI) {
   if (CI.isNoBuiltin() || !CI.getCalledFunction())
     return;
 
-  const std::string ScalarName = std::string(CI.getCalledFunction()->getName());
+  StringRef ScalarName = CI.getCalledFunction()->getName();
+
   // Nothing to be done if the TLI thinks the function is not
   // vectorizable.
   if (!TLI.isFunctionVectorizable(ScalarName))
@@ -87,9 +89,8 @@ static void addMappingsFromTLI(const TargetLibraryInfo &TLI, CallInst &CI) {
   Module *M = CI.getModule();
   const SetVector<StringRef> OriginalSetOfMappings(Mappings.begin(),
                                                    Mappings.end());
-  //  All VFs in the TLI are powers of 2.
-  for (unsigned VF = 2, WidestVF = TLI.getWidestVF(ScalarName); VF <= WidestVF;
-       VF *= 2) {
+
+  auto AddVariantDecl = [&](const ElementCount &VF) {
     const std::string TLIName =
         std::string(TLI.getVectorizedFunction(ScalarName, VF));
     if (!TLIName.empty()) {
@@ -103,7 +104,19 @@ static void addMappingsFromTLI(const TargetLibraryInfo &TLI, CallInst &CI) {
       if (!VariantF)
         addVariantDeclaration(CI, VF, TLIName);
     }
-  }
+  };
+
+  //  All VFs in the TLI are powers of 2.
+  ElementCount WidestFixedVF, WidestScalableVF;
+  TLI.getWidestVF(ScalarName, WidestFixedVF, WidestScalableVF);
+
+  for (ElementCount VF = ElementCount::getFixed(2);
+       ElementCount::isKnownLE(VF, WidestFixedVF); VF *= 2)
+    AddVariantDecl(VF);
+
+  // TODO: Add scalable variants once we're able to test them.
+  assert(WidestScalableVF.isZero() &&
+         "Scalable vector mappings not yet supported");
 
   VFABI::setVectorVariantNames(&CI, Mappings);
 }

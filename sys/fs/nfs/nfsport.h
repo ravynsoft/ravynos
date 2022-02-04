@@ -415,10 +415,19 @@
 /* BindConnectionToSession, done by the krpc for a new connection. */
 #define	NFSPROC_BINDCONNTOSESS	65
 
+/* Do a Lookup+Open for "oneopenown". */
+#define	NFSPROC_LOOKUPOPEN	66
+
+/* Do an NFSv4.2 Deallocate. */
+#define	NFSPROC_DEALLOCATE	67
+
+/* Do an NFSv4.2 LayoutError. */
+#define	NFSPROC_LAYOUTERROR	68
+
 /*
  * Must be defined as one higher than the last NFSv4.2 Proc# above.
  */
-#define	NFSV42_NPROCS		66
+#define	NFSV42_NPROCS		69
 
 #endif	/* NFS_V3NPROCS */
 
@@ -447,11 +456,11 @@ struct nfsstatsv1 {
 	uint64_t	readlink_bios;
 	uint64_t	biocache_readdirs;
 	uint64_t	readdir_bios;
-	uint64_t	rpccnt[NFSV42_NPROCS + 14];
+	uint64_t	rpccnt[NFSV42_NPROCS + 11];
 	uint64_t	rpcretries;
 	uint64_t	srvrpccnt[NFSV42_NOPS + NFSV4OP_FAKENOPS + 15];
-	uint64_t	reserved_0;
-	uint64_t	reserved_1;
+	uint64_t	srvlayouts;
+	uint64_t	cllayouts;
 	uint64_t	rpcrequests;
 	uint64_t	rpctimeouts;
 	uint64_t	rpcunexpected;
@@ -512,7 +521,7 @@ struct nfsstatsov1 {
 	uint64_t	readlink_bios;
 	uint64_t	biocache_readdirs;
 	uint64_t	readdir_bios;
-	uint64_t	rpccnt[NFSV42_NPROCS + 3];
+	uint64_t	rpccnt[NFSV42_NPROCS];
 	uint64_t	rpcretries;
 	uint64_t	srvrpccnt[NFSV42_PURENOPS + NFSV4OP_FAKENOPS];
 	uint64_t	reserved_0;
@@ -766,12 +775,6 @@ void nfsrvd_rcv(struct socket *, void *, int);
 #define	NFSCNHASHZERO(c)
 #define	NFSCNHASH(c, v)
 #define	NCHNAMLEN	9999999
-
-/*
- * These macros are defined to initialize and set the timer routine.
- */
-#define	NFS_TIMERINIT \
-	newnfs_timer(NULL)
 
 /*
  * Handle SMP stuff:

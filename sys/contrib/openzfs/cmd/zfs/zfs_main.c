@@ -317,7 +317,7 @@ get_usage(zfs_help_t idx)
 	case HELP_SEND:
 		return (gettext("\tsend [-DnPpRvLecwhb] [-[i|I] snapshot] "
 		    "<snapshot>\n"
-		    "\tsend [-nvPLecw] [-i snapshot|bookmark] "
+		    "\tsend [-DnvPLecw] [-i snapshot|bookmark] "
 		    "<filesystem|volume|snapshot>\n"
 		    "\tsend [-DnPpvLec] [-i bookmark|snapshot] "
 		    "--redact <bookmark> <snapshot>\n"
@@ -7475,6 +7475,7 @@ unshare_unmount(int op, int argc, char **argv)
 				if (zfs_prop_get_int(zhp, ZFS_PROP_CANMOUNT) ==
 				    ZFS_CANMOUNT_NOAUTO)
 					continue;
+				break;
 			default:
 				break;
 			}

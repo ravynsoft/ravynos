@@ -27,6 +27,7 @@
 #include "llvm/CodeGen/MachineFunctionPass.h"
 #include "llvm/CodeGen/MachineInstr.h"
 #include "llvm/CodeGen/MachineLoopInfo.h"
+#include "llvm/CodeGen/MachineOptimizationRemarkEmitter.h"
 #include "llvm/CodeGen/MachineRegisterInfo.h"
 #include "llvm/CodeGen/MachineTraceMetrics.h"
 #include "llvm/CodeGen/Passes.h"
@@ -264,7 +265,8 @@ bool SSAIfConv::InstrDependenciesAllowIfConv(MachineInstr *I) {
 
     // Remember clobbered regunits.
     if (MO.isDef() && Register::isPhysicalRegister(Reg))
-      for (MCRegUnitIterator Units(Reg, TRI); Units.isValid(); ++Units)
+      for (MCRegUnitIterator Units(Reg.asMCReg(), TRI); Units.isValid();
+           ++Units)
         ClobberedRegUnits.set(*Units);
 
     if (!MO.readsReg() || !Register::isVirtualRegister(Reg))
@@ -363,7 +365,7 @@ bool SSAIfConv::findInsertionPoint() {
   // Keep track of live regunits before the current position.
   // Only track RegUnits that are also in ClobberedRegUnits.
   LiveRegUnits.clear();
-  SmallVector<unsigned, 8> Reads;
+  SmallVector<MCRegister, 8> Reads;
   MachineBasicBlock::iterator FirstTerm = Head->getFirstTerminator();
   MachineBasicBlock::iterator I = Head->end();
   MachineBasicBlock::iterator B = Head->begin();
@@ -385,11 +387,12 @@ bool SSAIfConv::findInsertionPoint() {
         continue;
       // I clobbers Reg, so it isn't live before I.
       if (MO.isDef())
-        for (MCRegUnitIterator Units(Reg, TRI); Units.isValid(); ++Units)
+        for (MCRegUnitIterator Units(Reg.asMCReg(), TRI); Units.isValid();
+             ++Units)
           LiveRegUnits.erase(*Units);
       // Unless I reads Reg.
       if (MO.readsReg())
-        Reads.push_back(Reg);
+        Reads.push_back(Reg.asMCReg());
     }
     // Anything read by I is live before I.
     while (!Reads.empty())
@@ -407,9 +410,8 @@ bool SSAIfConv::findInsertionPoint() {
     if (!LiveRegUnits.empty()) {
       LLVM_DEBUG({
         dbgs() << "Would clobber";
-        for (SparseSet<unsigned>::const_iterator
-             i = LiveRegUnits.begin(), e = LiveRegUnits.end(); i != e; ++i)
-          dbgs() << ' ' << printRegUnit(*i, TRI);
+        for (unsigned LRU : LiveRegUnits)
+          dbgs() << ' ' << printRegUnit(LRU, TRI);
         dbgs() << " live before " << *I;
       });
       continue;
@@ -555,6 +557,52 @@ bool SSAIfConv::canConvertIf(MachineBasicBlock *MBB, bool Predicate) {
   return true;
 }
 
+/// \return true iff the two registers are known to have the same value.
+static bool hasSameValue(const MachineRegisterInfo &MRI,
+                         const TargetInstrInfo *TII, Register TReg,
+                         Register FReg) {
+  if (TReg == FReg)
+    return true;
+
+  if (!TReg.isVirtual() || !FReg.isVirtual())
+    return false;
+
+  const MachineInstr *TDef = MRI.getUniqueVRegDef(TReg);
+  const MachineInstr *FDef = MRI.getUniqueVRegDef(FReg);
+  if (!TDef || !FDef)
+    return false;
+
+  // If there are side-effects, all bets are off.
+  if (TDef->hasUnmodeledSideEffects())
+    return false;
+
+  // If the instruction could modify memory, or there may be some intervening
+  // store between the two, we can't consider them to be equal.
+  if (TDef->mayLoadOrStore() && !TDef->isDereferenceableInvariantLoad(nullptr))
+    return false;
+
+  // We also can't guarantee that they are the same if, for example, the
+  // instructions are both a copy from a physical reg, because some other
+  // instruction may have modified the value in that reg between the two
+  // defining insts.
+  if (any_of(TDef->uses(), [](const MachineOperand &MO) {
+        return MO.isReg() && MO.getReg().isPhysical();
+      }))
+    return false;
+
+  // Check whether the two defining instructions produce the same value(s).
+  if (!TII->produceSameValue(*TDef, *FDef, &MRI))
+    return false;
+
+  // Further, check that the two defs come from corresponding operands.
+  int TIdx = TDef->findRegisterDefOperandIdx(TReg);
+  int FIdx = FDef->findRegisterDefOperandIdx(FReg);
+  if (TIdx == -1 || FIdx == -1)
+    return false;
+
+  return TIdx == FIdx;
+}
+
 /// replacePHIInstrs - Completely replace PHI instructions with selects.
 /// This is possible when the only Tail predecessors are the if-converted
 /// blocks.
@@ -569,7 +617,15 @@ void SSAIfConv::replacePHIInstrs() {
     PHIInfo &PI = PHIs[i];
     LLVM_DEBUG(dbgs() << "If-converting " << *PI.PHI);
     Register DstReg = PI.PHI->getOperand(0).getReg();
-    TII->insertSelect(*Head, FirstTerm, HeadDL, DstReg, Cond, PI.TReg, PI.FReg);
+    if (hasSameValue(*MRI, TII, PI.TReg, PI.FReg)) {
+      // We do not need the select instruction if both incoming values are
+      // equal, but we do need a COPY.
+      BuildMI(*Head, FirstTerm, HeadDL, TII->get(TargetOpcode::COPY), DstReg)
+          .addReg(PI.TReg);
+    } else {
+      TII->insertSelect(*Head, FirstTerm, HeadDL, DstReg, Cond, PI.TReg,
+                        PI.FReg);
+    }
     LLVM_DEBUG(dbgs() << "          --> " << *std::prev(FirstTerm));
     PI.PHI->eraseFromParent();
     PI.PHI = nullptr;
@@ -590,7 +646,7 @@ void SSAIfConv::rewritePHIOperands() {
     unsigned DstReg = 0;
 
     LLVM_DEBUG(dbgs() << "If-converting " << *PI.PHI);
-    if (PI.TReg == PI.FReg) {
+    if (hasSameValue(*MRI, TII, PI.TReg, PI.FReg)) {
       // We do not need the select instruction if both incoming values are
       // equal.
       DstReg = PI.TReg;
@@ -794,6 +850,17 @@ static unsigned adjCycles(unsigned Cyc, int Delta) {
   return Cyc + Delta;
 }
 
+namespace {
+/// Helper class to simplify emission of cycle counts into optimization remarks.
+struct Cycles {
+  const char *Key;
+  unsigned Value;
+};
+template <typename Remark> Remark &operator<<(Remark &R, Cycles C) {
+  return R << ore::NV(C.Key, C.Value) << (C.Value == 1 ? " cycle" : " cycles");
+}
+} // anonymous namespace
+
 /// Apply cost model and heuristics to the if-conversion in IfConv.
 /// Return true if the conversion is a good idea.
 ///
@@ -814,6 +881,9 @@ bool EarlyIfConverter::shouldConvertIf() {
   // Set a somewhat arbitrary limit on the critical path extension we accept.
   unsigned CritLimit = SchedModel.MispredictPenalty/2;
 
+  MachineBasicBlock &MBB = *IfConv.Head;
+  MachineOptimizationRemarkEmitter MORE(*MBB.getParent(), nullptr);
+
   // If-conversion only makes sense when there is unexploited ILP. Compute the
   // maximum-ILP resource length of the trace after if-conversion. Compare it
   // to the shortest critical path.
@@ -825,6 +895,17 @@ bool EarlyIfConverter::shouldConvertIf() {
                     << ", minimal critical path " << MinCrit << '\n');
   if (ResLength > MinCrit + CritLimit) {
     LLVM_DEBUG(dbgs() << "Not enough available ILP.\n");
+    MORE.emit([&]() {
+      MachineOptimizationRemarkMissed R(DEBUG_TYPE, "IfConversion",
+                                        MBB.findDebugLoc(MBB.back()), &MBB);
+      R << "did not if-convert branch: the resulting critical path ("
+        << Cycles{"ResLength", ResLength}
+        << ") would extend the shorter leg's critical path ("
+        << Cycles{"MinCrit", MinCrit} << ") by more than the threshold of "
+        << Cycles{"CritLimit", CritLimit}
+        << ", which cannot be hidden by available ILP.";
+      return R;
+    });
     return false;
   }
 
@@ -839,6 +920,14 @@ bool EarlyIfConverter::shouldConvertIf() {
   // Look at all the tail phis, and compute the critical path extension caused
   // by inserting select instructions.
   MachineTraceMetrics::Trace TailTrace = MinInstr->getTrace(IfConv.Tail);
+  struct CriticalPathInfo {
+    unsigned Extra; // Count of extra cycles that the component adds.
+    unsigned Depth; // Absolute depth of the component in cycles.
+  };
+  CriticalPathInfo Cond{};
+  CriticalPathInfo TBlock{};
+  CriticalPathInfo FBlock{};
+  bool ShouldConvert = true;
   for (unsigned i = 0, e = IfConv.PHIs.size(); i != e; ++i) {
     SSAIfConv::PHIInfo &PI = IfConv.PHIs[i];
     unsigned Slack = TailTrace.getInstrSlack(*PI.PHI);
@@ -850,9 +939,11 @@ bool EarlyIfConverter::shouldConvertIf() {
     if (CondDepth > MaxDepth) {
       unsigned Extra = CondDepth - MaxDepth;
       LLVM_DEBUG(dbgs() << "Condition adds " << Extra << " cycles.\n");
+      if (Extra > Cond.Extra)
+        Cond = {Extra, CondDepth};
       if (Extra > CritLimit) {
         LLVM_DEBUG(dbgs() << "Exceeds limit of " << CritLimit << '\n');
-        return false;
+        ShouldConvert = false;
       }
     }
 
@@ -861,9 +952,11 @@ bool EarlyIfConverter::shouldConvertIf() {
     if (TDepth > MaxDepth) {
       unsigned Extra = TDepth - MaxDepth;
       LLVM_DEBUG(dbgs() << "TBB data adds " << Extra << " cycles.\n");
+      if (Extra > TBlock.Extra)
+        TBlock = {Extra, TDepth};
       if (Extra > CritLimit) {
         LLVM_DEBUG(dbgs() << "Exceeds limit of " << CritLimit << '\n');
-        return false;
+        ShouldConvert = false;
       }
     }
 
@@ -872,13 +965,63 @@ bool EarlyIfConverter::shouldConvertIf() {
     if (FDepth > MaxDepth) {
       unsigned Extra = FDepth - MaxDepth;
       LLVM_DEBUG(dbgs() << "FBB data adds " << Extra << " cycles.\n");
+      if (Extra > FBlock.Extra)
+        FBlock = {Extra, FDepth};
       if (Extra > CritLimit) {
         LLVM_DEBUG(dbgs() << "Exceeds limit of " << CritLimit << '\n');
-        return false;
+        ShouldConvert = false;
       }
     }
   }
-  return true;
+
+  // Organize by "short" and "long" legs, since the diagnostics get confusing
+  // when referring to the "true" and "false" sides of the branch, given that
+  // those don't always correlate with what the user wrote in source-terms.
+  const CriticalPathInfo Short = TBlock.Extra > FBlock.Extra ? FBlock : TBlock;
+  const CriticalPathInfo Long = TBlock.Extra > FBlock.Extra ? TBlock : FBlock;
+
+  if (ShouldConvert) {
+    MORE.emit([&]() {
+      MachineOptimizationRemark R(DEBUG_TYPE, "IfConversion",
+                                  MBB.back().getDebugLoc(), &MBB);
+      R << "performing if-conversion on branch: the condition adds "
+        << Cycles{"CondCycles", Cond.Extra} << " to the critical path";
+      if (Short.Extra > 0)
+        R << ", and the short leg adds another "
+          << Cycles{"ShortCycles", Short.Extra};
+      if (Long.Extra > 0)
+        R << ", and the long leg adds another "
+          << Cycles{"LongCycles", Long.Extra};
+      R << ", each staying under the threshold of "
+        << Cycles{"CritLimit", CritLimit} << ".";
+      return R;
+    });
+  } else {
+    MORE.emit([&]() {
+      MachineOptimizationRemarkMissed R(DEBUG_TYPE, "IfConversion",
+                                        MBB.back().getDebugLoc(), &MBB);
+      R << "did not if-convert branch: the condition would add "
+        << Cycles{"CondCycles", Cond.Extra} << " to the critical path";
+      if (Cond.Extra > CritLimit)
+        R << " exceeding the limit of " << Cycles{"CritLimit", CritLimit};
+      if (Short.Extra > 0) {
+        R << ", and the short leg would add another "
+          << Cycles{"ShortCycles", Short.Extra};
+        if (Short.Extra > CritLimit)
+          R << " exceeding the limit of " << Cycles{"CritLimit", CritLimit};
+      }
+      if (Long.Extra > 0) {
+        R << ", and the long leg would add another "
+          << Cycles{"LongCycles", Long.Extra};
+        if (Long.Extra > CritLimit)
+          R << " exceeding the limit of " << Cycles{"CritLimit", CritLimit};
+      }
+      R << ".";
+      return R;
+    });
+  }
+
+  return ShouldConvert;
 }
 
 /// Attempt repeated if-conversion on MBB, return true if successful.

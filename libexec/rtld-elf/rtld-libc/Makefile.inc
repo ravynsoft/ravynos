@@ -27,7 +27,7 @@ SRCS+=	rtld_libc.c
 
 # Now build the remaining files from libc:
 .PATH: ${LIBC_SRCTOP}/stdlib
-SRCS+=	reallocf.c realpath.c getenv.c merge.c reallocarray.c
+SRCS+=	reallocf.c realpath.c merge.c reallocarray.c
 # TODO: fix merge.c to build with WARNS=6
 .if ${COMPILER_TYPE} == "clang"
 CFLAGS.merge.c+=-Wno-error=null-pointer-arithmetic
@@ -41,8 +41,8 @@ CFLAGS.errlst.c+=-I${LIBC_SRCTOP}/include
 # Use the string and memory .o files from libc instead of rebuilding them (they
 # might be using optimized assembly and duplicating that logic here is awkward).
 _libc_string_objects=	bcmp bcopy bzero memset memchr memcmp memcpy memmove \
-    stpncpy strcat strchr strcmp stpcpy strcpy strcspn strdup strlcat strlcpy \
-    strlen strncmp strncpy strrchr strsep strspn strstr strtok
+    stpncpy strcat strchr strchrnul strcmp stpcpy strcpy strcspn strdup \
+    strlcat strlcpy strlen strncmp strncpy strrchr strsep strspn strstr strtok
 # Also use all the syscall .o files from libc_nossp_pic:
 _libc_other_objects= sigsetjmp lstat stat fstat fstatat fstatfs syscall \
     cerror geteuid getegid sigfastblock munmap mprotect \

@@ -7,6 +7,8 @@
 //===----------------------------------------------------------------------===//
 
 #include "CommandObjectProcess.h"
+#include "CommandObjectTrace.h"
+#include "CommandOptionsProcessLaunch.h"
 #include "lldb/Breakpoint/Breakpoint.h"
 #include "lldb/Breakpoint/BreakpointLocation.h"
 #include "lldb/Breakpoint/BreakpointSite.h"
@@ -16,6 +18,7 @@
 #include "lldb/Interpreter/CommandInterpreter.h"
 #include "lldb/Interpreter/CommandReturnObject.h"
 #include "lldb/Interpreter/OptionArgParser.h"
+#include "lldb/Interpreter/OptionGroupPythonClassWithDict.h"
 #include "lldb/Interpreter/Options.h"
 #include "lldb/Target/Platform.h"
 #include "lldb/Target/Process.h"
@@ -25,6 +28,8 @@
 #include "lldb/Target/UnixSignals.h"
 #include "lldb/Utility/Args.h"
 #include "lldb/Utility/State.h"
+
+#include <bitset>
 
 using namespace lldb;
 using namespace lldb_private;
@@ -48,19 +53,19 @@ protected:
       state = process->GetState();
 
       if (process->IsAlive() && state != eStateConnected) {
-        char message[1024];
+        std::string message;
         if (process->GetState() == eStateAttaching)
-          ::snprintf(message, sizeof(message),
-                     "There is a pending attach, abort it and %s?",
-                     m_new_process_action.c_str());
+          message =
+              llvm::formatv("There is a pending attach, abort it and {0}?",
+                            m_new_process_action);
         else if (process->GetShouldDetach())
-          ::snprintf(message, sizeof(message),
-                     "There is a running process, detach from it and %s?",
-                     m_new_process_action.c_str());
+          message = llvm::formatv(
+              "There is a running process, detach from it and {0}?",
+              m_new_process_action);
         else
-          ::snprintf(message, sizeof(message),
-                     "There is a running process, kill it and %s?",
-                     m_new_process_action.c_str());
+          message =
+              llvm::formatv("There is a running process, kill it and {0}?",
+                            m_new_process_action);
 
         if (!m_interpreter.Confirm(message, true)) {
           result.SetStatus(eReturnStatusFailed);
@@ -76,7 +81,6 @@ protected:
               result.AppendErrorWithFormat(
                   "Failed to detach from process: %s\n",
                   detach_error.AsCString());
-              result.SetStatus(eReturnStatusFailed);
             }
           } else {
             Status destroy_error(process->Destroy(false));
@@ -86,7 +90,6 @@ protected:
             } else {
               result.AppendErrorWithFormat("Failed to kill process: %s\n",
                                            destroy_error.AsCString());
-              result.SetStatus(eReturnStatusFailed);
             }
           }
         }
@@ -107,7 +110,14 @@ public:
             interpreter, "process launch",
             "Launch the executable in the debugger.", nullptr,
             eCommandRequiresTarget, "restart"),
-        m_options() {
+        m_options(),
+        m_class_options("scripted process", true, 'C', 'k', 'v', 0),
+        m_all_options() {
+    m_all_options.Append(&m_options);
+    m_all_options.Append(&m_class_options, LLDB_OPT_SET_1 | LLDB_OPT_SET_2,
+                         LLDB_OPT_SET_ALL);
+    m_all_options.Finalize();
+
     CommandArgumentEntry arg;
     CommandArgumentData run_args_arg;
 
@@ -134,7 +144,7 @@ public:
         request, nullptr);
   }
 
-  Options *GetOptions() override { return &m_options; }
+  Options *GetOptions() override { return &m_all_options; }
 
   const char *GetRepeatCommand(Args &current_command_args,
                                uint32_t index) override {
@@ -152,7 +162,6 @@ protected:
     if (exe_module_sp == nullptr) {
       result.AppendError("no file in target, create a debug target using the "
                          "'target create' command");
-      result.SetStatus(eReturnStatusFailed);
       return false;
     }
 
@@ -179,10 +188,22 @@ protected:
       disable_aslr = target->GetDisableASLR();
     }
 
+    if (!m_class_options.GetName().empty()) {
+      m_options.launch_info.SetProcessPluginName("ScriptedProcess");
+      m_options.launch_info.SetScriptedProcessClassName(
+          m_class_options.GetName());
+      m_options.launch_info.SetScriptedProcessDictionarySP(
+          m_class_options.GetStructuredData());
+      target->SetProcessLaunchInfo(m_options.launch_info);
+    }
+
     if (disable_aslr)
       m_options.launch_info.GetFlags().Set(eLaunchFlagDisableASLR);
     else
       m_options.launch_info.GetFlags().Clear(eLaunchFlagDisableASLR);
+
+    if (target->GetInheritTCC())
+      m_options.launch_info.GetFlags().Set(eLaunchFlagInheritTCCFromParent);
 
     if (target->GetDetachOnError())
       m_options.launch_info.GetFlags().Set(eLaunchFlagDetachOnError);
@@ -239,16 +260,16 @@ protected:
       } else {
         result.AppendError(
             "no error returned from Target::Launch, and target has no process");
-        result.SetStatus(eReturnStatusFailed);
       }
     } else {
       result.AppendError(error.AsCString());
-      result.SetStatus(eReturnStatusFailed);
     }
     return result.Succeeded();
   }
 
-  ProcessLaunchCommandOptions m_options;
+  CommandOptionsProcessLaunch m_options;
+  OptionGroupPythonClassWithDict m_class_options;
+  OptionGroupOptions m_all_options;
 };
 
 #define LLDB_OPTIONS_process_attach
@@ -317,49 +338,6 @@ public:
       return llvm::makeArrayRef(g_process_attach_options);
     }
 
-    void HandleOptionArgumentCompletion(
-        CompletionRequest &request, OptionElementVector &opt_element_vector,
-        int opt_element_index, CommandInterpreter &interpreter) override {
-      int opt_arg_pos = opt_element_vector[opt_element_index].opt_arg_pos;
-      int opt_defs_index = opt_element_vector[opt_element_index].opt_defs_index;
-
-      switch (GetDefinitions()[opt_defs_index].short_option) {
-      case 'n': {
-        // Look to see if there is a -P argument provided, and if so use that
-        // plugin, otherwise use the default plugin.
-
-        const char *partial_name = nullptr;
-        partial_name = request.GetParsedLine().GetArgumentAtIndex(opt_arg_pos);
-
-        PlatformSP platform_sp(interpreter.GetPlatform(true));
-        if (!platform_sp)
-          return;
-        ProcessInstanceInfoList process_infos;
-        ProcessInstanceInfoMatch match_info;
-        if (partial_name) {
-          match_info.GetProcessInfo().GetExecutableFile().SetFile(
-              partial_name, FileSpec::Style::native);
-          match_info.SetNameMatchType(NameMatch::StartsWith);
-        }
-        platform_sp->FindProcesses(match_info, process_infos);
-        const size_t num_matches = process_infos.size();
-        if (num_matches == 0)
-          return;
-        for (size_t i = 0; i < num_matches; ++i) {
-          request.AddCompletion(process_infos[i].GetNameAsStringRef());
-        }
-      } break;
-
-      case 'P':
-        CommandCompletions::InvokeCommonCompletionCallbacks(
-            interpreter, CommandCompletions::eProcessPluginCompletion, request,
-            nullptr);
-        break;
-      }
-    }
-
-    // Instance variables to hold the values for command options.
-
     ProcessAttachInfo attach_info;
   };
 
@@ -404,7 +382,6 @@ protected:
         result.AppendError(error.AsCString("Error creating target"));
         return false;
       }
-      GetDebugger().GetTargetList().SetSelectedTarget(target);
     }
 
     // Record the old executable module, we want to issue a warning if the
@@ -417,11 +394,9 @@ protected:
     if (command.GetArgumentCount()) {
       result.AppendErrorWithFormat("Invalid arguments for '%s'.\nUsage: %s\n",
                                    m_cmd_name.c_str(), m_cmd_syntax.c_str());
-      result.SetStatus(eReturnStatusFailed);
       return false;
     }
 
-    m_interpreter.UpdateExecutionContext(nullptr);
     StreamString stream;
     const auto error = target->Attach(m_options.attach_info, &stream);
     if (error.Success()) {
@@ -433,11 +408,9 @@ protected:
       } else {
         result.AppendError(
             "no error returned from Target::Attach, and target has no process");
-        result.SetStatus(eReturnStatusFailed);
       }
     } else {
       result.AppendErrorWithFormat("attach failed: %s\n", error.AsCString());
-      result.SetStatus(eReturnStatusFailed);
     }
 
     if (!result.Succeeded())
@@ -557,7 +530,6 @@ protected:
         result.AppendErrorWithFormat(
             "The '%s' command does not take any arguments.\n",
             m_cmd_name.c_str());
-        result.SetStatus(eReturnStatusFailed);
         return false;
       }
 
@@ -629,13 +601,11 @@ protected:
       } else {
         result.AppendErrorWithFormat("Failed to resume process: %s.\n",
                                      error.AsCString());
-        result.SetStatus(eReturnStatusFailed);
       }
     } else {
       result.AppendErrorWithFormat(
           "Process cannot be continued from its current state (%s).\n",
           StateAsCString(state));
-      result.SetStatus(eReturnStatusFailed);
     }
     return result.Succeeded();
   }
@@ -727,7 +697,6 @@ protected:
       result.SetStatus(eReturnStatusSuccessFinishResult);
     } else {
       result.AppendErrorWithFormat("Detach failed: %s\n", error.AsCString());
-      result.SetStatus(eReturnStatusFailed);
       return false;
     }
     return result.Succeeded();
@@ -799,7 +768,6 @@ protected:
       result.AppendErrorWithFormat(
           "'%s' takes exactly one argument:\nUsage: %s\n", m_cmd_name.c_str(),
           m_cmd_syntax.c_str());
-      result.SetStatus(eReturnStatusFailed);
       return false;
     }
 
@@ -809,7 +777,6 @@ protected:
           "Process %" PRIu64
           " is currently being debugged, kill the process before connecting.\n",
           process->GetID());
-      result.SetStatus(eReturnStatusFailed);
       return false;
     }
 
@@ -831,7 +798,6 @@ protected:
                   error);
     if (error.Fail() || process_sp == nullptr) {
       result.AppendError(error.AsCString("Error connecting to the process"));
-      result.SetStatus(eReturnStatusFailed);
       return false;
     }
     return true;
@@ -920,6 +886,17 @@ public:
 
   ~CommandObjectProcessLoad() override = default;
 
+  void
+  HandleArgumentCompletion(CompletionRequest &request,
+                           OptionElementVector &opt_element_vector) override {
+    if (!m_exe_ctx.HasProcessScope())
+      return;
+
+    CommandCompletions::InvokeCommonCompletionCallbacks(
+        GetCommandInterpreter(), CommandCompletions::eDiskFileCompletion,
+        request, nullptr);
+  }
+
   Options *GetOptions() override { return &m_options; }
 
 protected:
@@ -960,7 +937,6 @@ protected:
         result.AppendErrorWithFormat("failed to load '%s': %s",
                                      image_path.str().c_str(),
                                      error.AsCString());
-        result.SetStatus(eReturnStatusFailed);
       }
     }
     return result.Succeeded();
@@ -985,6 +961,24 @@ public:
 
   ~CommandObjectProcessUnload() override = default;
 
+  void
+  HandleArgumentCompletion(CompletionRequest &request,
+                           OptionElementVector &opt_element_vector) override {
+
+    if (request.GetCursorIndex() || !m_exe_ctx.HasProcessScope())
+      return;
+
+    Process *process = m_exe_ctx.GetProcessPtr();
+
+    const std::vector<lldb::addr_t> &tokens = process->GetImageTokens();
+    const size_t token_num = tokens.size();
+    for (size_t i = 0; i < token_num; ++i) {
+      if (tokens[i] == LLDB_INVALID_IMAGE_TOKEN)
+        continue;
+      request.TryCompleteCurrentArg(std::to_string(i));
+    }
+  }
+
 protected:
   bool DoExecute(Args &command, CommandReturnObject &result) override {
     Process *process = m_exe_ctx.GetProcessPtr();
@@ -994,7 +988,6 @@ protected:
       if (entry.ref().getAsInteger(0, image_token)) {
         result.AppendErrorWithFormat("invalid image index argument '%s'",
                                      entry.ref().str().c_str());
-        result.SetStatus(eReturnStatusFailed);
         break;
       } else {
         Status error(process->GetTarget().GetPlatform()->UnloadImage(
@@ -1006,7 +999,6 @@ protected:
         } else {
           result.AppendErrorWithFormat("failed to unload image: %s",
                                        error.AsCString());
-          result.SetStatus(eReturnStatusFailed);
           break;
         }
       }
@@ -1051,7 +1043,7 @@ public:
     UnixSignalsSP signals = m_exe_ctx.GetProcessPtr()->GetUnixSignals();
     int signo = signals->GetFirstSignalNumber();
     while (signo != LLDB_INVALID_SIGNAL_NUMBER) {
-      request.AddCompletion(signals->GetSignalAsCString(signo), "");
+      request.TryCompleteCurrentArg(signals->GetSignalAsCString(signo));
       signo = signals->GetNextSignalNumber(signo);
     }
   }
@@ -1073,7 +1065,6 @@ protected:
       if (signo == LLDB_INVALID_SIGNAL_NUMBER) {
         result.AppendErrorWithFormat("Invalid signal argument '%s'.\n",
                                      command.GetArgumentAtIndex(0));
-        result.SetStatus(eReturnStatusFailed);
       } else {
         Status error(process->Signal(signo));
         if (error.Success()) {
@@ -1081,14 +1072,12 @@ protected:
         } else {
           result.AppendErrorWithFormat("Failed to send signal %i: %s\n", signo,
                                        error.AsCString());
-          result.SetStatus(eReturnStatusFailed);
         }
       }
     } else {
       result.AppendErrorWithFormat(
           "'%s' takes exactly one signal number argument:\nUsage: %s\n",
           m_cmd_name.c_str(), m_cmd_syntax.c_str());
-      result.SetStatus(eReturnStatusFailed);
     }
     return result.Succeeded();
   }
@@ -1113,7 +1102,6 @@ protected:
     Process *process = m_exe_ctx.GetProcessPtr();
     if (process == nullptr) {
       result.AppendError("no process to halt");
-      result.SetStatus(eReturnStatusFailed);
       return false;
     }
 
@@ -1125,12 +1113,10 @@ protected:
       } else {
         result.AppendErrorWithFormat("Failed to halt process: %s\n",
                                      error.AsCString());
-        result.SetStatus(eReturnStatusFailed);
       }
     } else {
       result.AppendErrorWithFormat("'%s' takes no arguments:\nUsage: %s\n",
                                    m_cmd_name.c_str(), m_cmd_syntax.c_str());
-      result.SetStatus(eReturnStatusFailed);
     }
     return result.Succeeded();
   }
@@ -1155,7 +1141,6 @@ protected:
     Process *process = m_exe_ctx.GetProcessPtr();
     if (process == nullptr) {
       result.AppendError("no process to kill");
-      result.SetStatus(eReturnStatusFailed);
       return false;
     }
 
@@ -1166,12 +1151,10 @@ protected:
       } else {
         result.AppendErrorWithFormat("Failed to kill process: %s\n",
                                      error.AsCString());
-        result.SetStatus(eReturnStatusFailed);
       }
     } else {
       result.AppendErrorWithFormat("'%s' takes no arguments:\nUsage: %s\n",
                                    m_cmd_name.c_str(), m_cmd_syntax.c_str());
-      result.SetStatus(eReturnStatusFailed);
     }
     return result.Succeeded();
   }
@@ -1180,17 +1163,69 @@ protected:
 // CommandObjectProcessSaveCore
 #pragma mark CommandObjectProcessSaveCore
 
+static constexpr OptionEnumValueElement g_corefile_save_style[] = {
+    {eSaveCoreFull, "full", "Create a core file with all memory saved"},
+    {eSaveCoreDirtyOnly, "modified-memory",
+     "Create a corefile with only modified memory saved"}};
+
+static constexpr OptionEnumValues SaveCoreStyles() {
+  return OptionEnumValues(g_corefile_save_style);
+}
+
+#define LLDB_OPTIONS_process_save_core
+#include "CommandOptions.inc"
+
 class CommandObjectProcessSaveCore : public CommandObjectParsed {
 public:
   CommandObjectProcessSaveCore(CommandInterpreter &interpreter)
       : CommandObjectParsed(interpreter, "process save-core",
                             "Save the current process as a core file using an "
                             "appropriate file type.",
-                            "process save-core FILE",
+                            "process save-core [-s corefile-style] FILE",
                             eCommandRequiresProcess | eCommandTryTargetAPILock |
                                 eCommandProcessMustBeLaunched) {}
 
   ~CommandObjectProcessSaveCore() override = default;
+
+  Options *GetOptions() override { return &m_options; }
+
+  class CommandOptions : public Options {
+  public:
+    CommandOptions()
+        : Options(), m_requested_save_core_style(eSaveCoreUnspecified) {}
+
+    ~CommandOptions() override = default;
+
+    llvm::ArrayRef<OptionDefinition> GetDefinitions() override {
+      return llvm::makeArrayRef(g_process_save_core_options);
+    }
+
+    Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
+                          ExecutionContext *execution_context) override {
+      const int short_option = m_getopt_table[option_idx].val;
+      Status error;
+
+      switch (short_option) {
+      case 's':
+        m_requested_save_core_style =
+            (lldb::SaveCoreStyle)OptionArgParser::ToOptionEnum(
+                option_arg, GetDefinitions()[option_idx].enum_values,
+                eSaveCoreUnspecified, error);
+        break;
+      default:
+        llvm_unreachable("Unimplemented option");
+      }
+
+      return {};
+    }
+
+    void OptionParsingStarting(ExecutionContext *execution_context) override {
+      m_requested_save_core_style = eSaveCoreUnspecified;
+    }
+
+    // Instance variables to hold the values for command options.
+    SaveCoreStyle m_requested_save_core_style;
+  };
 
 protected:
   bool DoExecute(Args &command, CommandReturnObject &result) override {
@@ -1198,27 +1233,39 @@ protected:
     if (process_sp) {
       if (command.GetArgumentCount() == 1) {
         FileSpec output_file(command.GetArgumentAtIndex(0));
-        Status error = PluginManager::SaveCore(process_sp, output_file);
+        SaveCoreStyle corefile_style = m_options.m_requested_save_core_style;
+        Status error =
+            PluginManager::SaveCore(process_sp, output_file, corefile_style);
         if (error.Success()) {
+          if (corefile_style == SaveCoreStyle::eSaveCoreDirtyOnly) {
+            result.AppendMessageWithFormat(
+                "\nModified-memory only corefile "
+                "created.  This corefile may not show \n"
+                "library/framework/app binaries "
+                "on a different system, or when \n"
+                "those binaries have "
+                "been updated/modified. Copies are not included\n"
+                "in this corefile.  Use --style full to include all "
+                "process memory.\n");
+          }
           result.SetStatus(eReturnStatusSuccessFinishResult);
         } else {
           result.AppendErrorWithFormat(
               "Failed to save core file for process: %s\n", error.AsCString());
-          result.SetStatus(eReturnStatusFailed);
         }
       } else {
         result.AppendErrorWithFormat("'%s' takes one arguments:\nUsage: %s\n",
                                      m_cmd_name.c_str(), m_cmd_syntax.c_str());
-        result.SetStatus(eReturnStatusFailed);
       }
     } else {
       result.AppendError("invalid process");
-      result.SetStatus(eReturnStatusFailed);
       return false;
     }
 
     return result.Succeeded();
   }
+
+  CommandOptions m_options;
 };
 
 // CommandObjectProcessStatus
@@ -1242,7 +1289,7 @@ public:
 
   class CommandOptions : public Options {
   public:
-    CommandOptions() : Options(), m_verbose(false) {}
+    CommandOptions() : Options() {}
 
     ~CommandOptions() override = default;
 
@@ -1270,7 +1317,7 @@ public:
     }
 
     // Instance variables to hold the values for command options.
-    bool m_verbose;
+    bool m_verbose = false;
   };
 
 protected:
@@ -1280,7 +1327,6 @@ protected:
 
     if (command.GetArgumentCount()) {
       result.AppendError("'process status' takes no arguments");
-      result.SetStatus(eReturnStatusFailed);
       return result.Succeeded();
     }
 
@@ -1297,10 +1343,21 @@ protected:
                              num_frames, num_frames_with_source, stop_format);
 
     if (m_options.m_verbose) {
+      addr_t code_mask = process->GetCodeAddressMask();
+      addr_t data_mask = process->GetDataAddressMask();
+      if (code_mask != 0) {
+        int bits = std::bitset<64>(~code_mask).count();
+        result.AppendMessageWithFormat(
+            "Addressable code address mask: 0x%" PRIx64 "\n", code_mask);
+        result.AppendMessageWithFormat(
+            "Addressable data address mask: 0x%" PRIx64 "\n", data_mask);
+        result.AppendMessageWithFormat(
+            "Number of bits used in addressing (code): %d\n", bits);
+      }
+
       PlatformSP platform_sp = process->GetTarget().GetPlatform();
       if (!platform_sp) {
         result.AppendError("Couldn'retrieve the target's platform");
-        result.SetStatus(eReturnStatusFailed);
         return result.Succeeded();
       }
 
@@ -1309,7 +1366,6 @@ protected:
 
       if (!expected_crash_info) {
         result.AppendError(llvm::toString(expected_crash_info.takeError()));
-        result.SetStatus(eReturnStatusFailed);
         return result.Succeeded();
       }
 
@@ -1478,7 +1534,6 @@ protected:
     if (!process_sp) {
       result.AppendError("No current process; cannot handle signals until you "
                          "have a valid process.\n");
-      result.SetStatus(eReturnStatusFailed);
       return false;
     }
 
@@ -1490,7 +1545,6 @@ protected:
         !VerifyCommandOptionValue(m_options.stop, stop_action)) {
       result.AppendError("Invalid argument for command option --stop; must be "
                          "true or false.\n");
-      result.SetStatus(eReturnStatusFailed);
       return false;
     }
 
@@ -1498,7 +1552,6 @@ protected:
         !VerifyCommandOptionValue(m_options.notify, notify_action)) {
       result.AppendError("Invalid argument for command option --notify; must "
                          "be true or false.\n");
-      result.SetStatus(eReturnStatusFailed);
       return false;
     }
 
@@ -1506,7 +1559,6 @@ protected:
         !VerifyCommandOptionValue(m_options.pass, pass_action)) {
       result.AppendError("Invalid argument for command option --pass; must be "
                          "true or false.\n");
-      result.SetStatus(eReturnStatusFailed);
       return false;
     }
 
@@ -1570,6 +1622,71 @@ protected:
   CommandOptions m_options;
 };
 
+// Next are the subcommands of CommandObjectMultiwordProcessTrace
+
+// CommandObjectProcessTraceStart
+class CommandObjectProcessTraceStart : public CommandObjectTraceProxy {
+public:
+  CommandObjectProcessTraceStart(CommandInterpreter &interpreter)
+      : CommandObjectTraceProxy(
+            /*live_debug_session_only*/ true, interpreter,
+            "process trace start",
+            "Start tracing this process with the corresponding trace "
+            "plug-in.",
+            "process trace start [<trace-options>]") {}
+
+protected:
+  lldb::CommandObjectSP GetDelegateCommand(Trace &trace) override {
+    return trace.GetProcessTraceStartCommand(m_interpreter);
+  }
+};
+
+// CommandObjectProcessTraceStop
+class CommandObjectProcessTraceStop : public CommandObjectParsed {
+public:
+  CommandObjectProcessTraceStop(CommandInterpreter &interpreter)
+      : CommandObjectParsed(interpreter, "process trace stop",
+                            "Stop tracing this process. This does not affect "
+                            "traces started with the "
+                            "\"thread trace start\" command.",
+                            "process trace stop",
+                            eCommandRequiresProcess | eCommandTryTargetAPILock |
+                                eCommandProcessMustBeLaunched |
+                                eCommandProcessMustBePaused |
+                                eCommandProcessMustBeTraced) {}
+
+  ~CommandObjectProcessTraceStop() override = default;
+
+  bool DoExecute(Args &command, CommandReturnObject &result) override {
+    ProcessSP process_sp = m_exe_ctx.GetProcessSP();
+
+    TraceSP trace_sp = process_sp->GetTarget().GetTrace();
+
+    if (llvm::Error err = trace_sp->Stop())
+      result.AppendError(toString(std::move(err)));
+    else
+      result.SetStatus(eReturnStatusSuccessFinishResult);
+
+    return result.Succeeded();
+  }
+};
+
+// CommandObjectMultiwordProcessTrace
+class CommandObjectMultiwordProcessTrace : public CommandObjectMultiword {
+public:
+  CommandObjectMultiwordProcessTrace(CommandInterpreter &interpreter)
+      : CommandObjectMultiword(
+            interpreter, "trace", "Commands for tracing the current process.",
+            "process trace <subcommand> [<subcommand objects>]") {
+    LoadSubCommand("start", CommandObjectSP(new CommandObjectProcessTraceStart(
+                                interpreter)));
+    LoadSubCommand("stop", CommandObjectSP(
+                               new CommandObjectProcessTraceStop(interpreter)));
+  }
+
+  ~CommandObjectMultiwordProcessTrace() override = default;
+};
+
 // CommandObjectMultiwordProcess
 
 CommandObjectMultiwordProcess::CommandObjectMultiwordProcess(
@@ -1606,6 +1723,9 @@ CommandObjectMultiwordProcess::CommandObjectMultiwordProcess(
                  CommandObjectSP(new CommandObjectProcessPlugin(interpreter)));
   LoadSubCommand("save-core", CommandObjectSP(new CommandObjectProcessSaveCore(
                                   interpreter)));
+  LoadSubCommand(
+      "trace",
+      CommandObjectSP(new CommandObjectMultiwordProcessTrace(interpreter)));
 }
 
 CommandObjectMultiwordProcess::~CommandObjectMultiwordProcess() = default;

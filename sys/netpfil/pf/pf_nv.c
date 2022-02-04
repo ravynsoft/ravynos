@@ -100,6 +100,17 @@ __FBSDID("$FreeBSD$");
 	}
 
 int
+pf_nvbool(const nvlist_t *nvl, const char *name, bool *val)
+{
+	if (! nvlist_exists_bool(nvl, name))
+		return (EINVAL);
+
+	*val = nvlist_get_bool(nvl, name);
+
+	return (0);
+}
+
+int
 pf_nvbinary(const nvlist_t *nvl, const char *name, void *data,
     size_t expected_size)
 {
@@ -316,6 +327,8 @@ pf_addr_wrap_to_nvaddr_wrap(const struct pf_addr_wrap *addr)
 {
 	nvlist_t *nvl;
 	nvlist_t *tmp;
+	uint64_t num;
+	struct pfr_ktable *kt;
 
 	nvl = nvlist_create(0);
 	if (nvl == NULL)
@@ -323,10 +336,25 @@ pf_addr_wrap_to_nvaddr_wrap(const struct pf_addr_wrap *addr)
 
 	nvlist_add_number(nvl, "type", addr->type);
 	nvlist_add_number(nvl, "iflags", addr->iflags);
-	if (addr->type == PF_ADDR_DYNIFTL)
+	if (addr->type == PF_ADDR_DYNIFTL) {
 		nvlist_add_string(nvl, "ifname", addr->v.ifname);
-	if (addr->type == PF_ADDR_TABLE)
+		num = 0;
+		if (addr->p.dyn != NULL)
+			num = addr->p.dyn->pfid_acnt4 +
+			    addr->p.dyn->pfid_acnt6;
+		nvlist_add_number(nvl, "dyncnt", num);
+	}
+	if (addr->type == PF_ADDR_TABLE) {
 		nvlist_add_string(nvl, "tblname", addr->v.tblname);
+		num = -1;
+		kt = addr->p.tbl;
+		if ((kt->pfrkt_flags & PFR_TFLAG_ACTIVE) &&
+		    kt->pfrkt_root != NULL)
+			kt = kt->pfrkt_root;
+		if (kt->pfrkt_flags & PFR_TFLAG_ACTIVE)
+			num = kt->pfrkt_cnt;
+		nvlist_add_number(nvl, "tblcnt", num);
+	}
 
 	tmp = pf_addr_to_nvaddr(&addr->v.a.addr);
 	if (tmp == NULL)
@@ -520,6 +548,7 @@ pf_nvrule_to_krule(const nvlist_t *nvl, struct pf_krule *rule)
 		}
 	}
 
+	PFNV_CHK(pf_nvuint32_opt(nvl, "ridentifier", &rule->ridentifier, 0));
 	PFNV_CHK(pf_nvstring(nvl, "ifname", rule->ifname,
 	    sizeof(rule->ifname)));
 	PFNV_CHK(pf_nvstring(nvl, "qname", rule->qname, sizeof(rule->qname)));
@@ -592,8 +621,6 @@ pf_nvrule_to_krule(const nvlist_t *nvl, struct pf_krule *rule)
 	PFNV_CHK(pf_nvuint8(nvl, "return_ttl", &rule->return_ttl));
 	PFNV_CHK(pf_nvuint8(nvl, "tos", &rule->tos));
 	PFNV_CHK(pf_nvuint8(nvl, "set_tos", &rule->set_tos));
-	PFNV_CHK(pf_nvuint8(nvl, "anchor_relative", &rule->anchor_relative));
-	PFNV_CHK(pf_nvuint8(nvl, "anchor_wildcard", &rule->anchor_wildcard));
 
 	PFNV_CHK(pf_nvuint8(nvl, "flush", &rule->flush));
 	PFNV_CHK(pf_nvuint8(nvl, "prio", &rule->prio));
@@ -655,7 +682,7 @@ error:
 }
 
 nvlist_t *
-pf_krule_to_nvrule(const struct pf_krule *rule)
+pf_krule_to_nvrule(struct pf_krule *rule)
 {
 	nvlist_t *nvl, *tmp;
 
@@ -684,6 +711,7 @@ pf_krule_to_nvrule(const struct pf_krule *rule)
 		nvlist_append_string_array(nvl, "labels", rule->label[i]);
 	}
 	nvlist_add_string(nvl, "label", rule->label[0]);
+	nvlist_add_number(nvl, "ridentifier", rule->ridentifier);
 	nvlist_add_string(nvl, "ifname", rule->ifname);
 	nvlist_add_string(nvl, "qname", rule->qname);
 	nvlist_add_string(nvl, "pqname", rule->pqname);
@@ -698,12 +726,12 @@ pf_krule_to_nvrule(const struct pf_krule *rule)
 	nvlist_destroy(tmp);
 
 	nvlist_add_number(nvl, "evaluations",
-	    counter_u64_fetch(rule->evaluations));
+	    pf_counter_u64_fetch(&rule->evaluations));
 	for (int i = 0; i < 2; i++) {
 		nvlist_append_number_array(nvl, "packets",
-		    counter_u64_fetch(rule->packets[i]));
+		    pf_counter_u64_fetch(&rule->packets[i]));
 		nvlist_append_number_array(nvl, "bytes",
-		    counter_u64_fetch(rule->bytes[i]));
+		    pf_counter_u64_fetch(&rule->bytes[i]));
 	}
 
 	nvlist_add_number(nvl, "os_fingerprint", rule->os_fingerprint);
@@ -840,8 +868,7 @@ pf_nvstate_kill_to_kstate_kill(const nvlist_t *nvl,
 	    sizeof(kill->psk_ifname)));
 	PFNV_CHK(pf_nvstring(nvl, "label", kill->psk_label,
 	    sizeof(kill->psk_label)));
-	if (nvlist_exists_bool(nvl, "kill_match"))
-		kill->psk_kill_match = nvlist_get_bool(nvl, "kill_match");
+	PFNV_CHK(pf_nvbool(nvl, "kill_match", &kill->psk_kill_match));
 
 errout:
 	return (error);

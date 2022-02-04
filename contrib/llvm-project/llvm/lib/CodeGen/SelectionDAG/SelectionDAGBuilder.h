@@ -18,7 +18,6 @@
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/MapVector.h"
 #include "llvm/ADT/SmallVector.h"
-#include "llvm/Analysis/AliasAnalysis.h"
 #include "llvm/CodeGen/ISDOpcodes.h"
 #include "llvm/CodeGen/SelectionDAGNodes.h"
 #include "llvm/CodeGen/SwitchLoweringUtils.h"
@@ -26,7 +25,6 @@
 #include "llvm/CodeGen/ValueTypes.h"
 #include "llvm/IR/DebugLoc.h"
 #include "llvm/IR/Instruction.h"
-#include "llvm/IR/Statepoint.h"
 #include "llvm/Support/BranchProbability.h"
 #include "llvm/Support/CodeGen.h"
 #include "llvm/Support/ErrorHandling.h"
@@ -39,6 +37,7 @@
 
 namespace llvm {
 
+class AAResults;
 class AllocaInst;
 class AtomicCmpXchgInst;
 class AtomicRMWInst;
@@ -63,6 +62,7 @@ class FunctionLoweringInfo;
 class GCFunctionInfo;
 class GCRelocateInst;
 class GCResultInst;
+class GCStatepointInst;
 class IndirectBrInst;
 class InvokeInst;
 class LandingPadInst;
@@ -388,7 +388,7 @@ public:
 
   SelectionDAG &DAG;
   const DataLayout *DL = nullptr;
-  AliasAnalysis *AA = nullptr;
+  AAResults *AA = nullptr;
   const TargetLibraryInfo *LibInfo;
 
   class SDAGSwitchLowering : public SwitchCG::SwitchLowering {
@@ -442,7 +442,7 @@ public:
         SL(std::make_unique<SDAGSwitchLowering>(this, funcinfo)), FuncInfo(funcinfo),
         SwiftError(swifterror) {}
 
-  void init(GCFunctionInfo *gfi, AliasAnalysis *AA,
+  void init(GCFunctionInfo *gfi, AAResults *AA,
             const TargetLibraryInfo *li);
 
   /// Clear out the current SelectionDAG and the associated state and prepare
@@ -492,6 +492,10 @@ public:
   /// of the specified type Ty. Return empty SDValue() otherwise.
   SDValue getCopyFromRegs(const Value *V, Type *Ty);
 
+  /// Register a dbg_value which relies on a Value which we have not yet seen.
+  void addDanglingDebugInfo(const DbgValueInst *DI, DebugLoc DL,
+                            unsigned Order);
+
   /// If we have dangling debug info that describes \p Variable, or an
   /// overlapping part of variable considering the \p Expr, then this method
   /// will drop that debug info as it isn't valid any longer.
@@ -507,23 +511,16 @@ public:
   /// this cannot be done, produce an Undef debug value record.
   void salvageUnresolvedDbgValue(DanglingDebugInfo &DDI);
 
-  /// For a given Value, attempt to create and record a SDDbgValue in the
-  /// SelectionDAG.
-  bool handleDebugValue(const Value *V, DILocalVariable *Var,
-                        DIExpression *Expr, DebugLoc CurDL,
-                        DebugLoc InstDL, unsigned Order);
+  /// For a given list of Values, attempt to create and record a SDDbgValue in
+  /// the SelectionDAG.
+  bool handleDebugValue(ArrayRef<const Value *> Values, DILocalVariable *Var,
+                        DIExpression *Expr, DebugLoc CurDL, DebugLoc InstDL,
+                        unsigned Order, bool IsVariadic);
 
   /// Evict any dangling debug information, attempting to salvage it first.
   void resolveOrClearDbgInfo();
 
   SDValue getValue(const Value *V);
-
-  /// Return the SDNode for the specified IR value if it exists.
-  SDNode *getNodeForIRValue(const Value *V) {
-    if (NodeMap.find(V) == NodeMap.end())
-      return nullptr;
-    return NodeMap[V].getNode();
-  }
 
   SDValue getNonRegisterValue(const Value *V);
   SDValue getValueImpl(const Value *V);
@@ -556,7 +553,7 @@ public:
   void CopyToExportRegsIfNeeded(const Value *V);
   void ExportFromCurrentBlock(const Value *V);
   void LowerCallTo(const CallBase &CB, SDValue Callee, bool IsTailCall,
-                   const BasicBlock *EHPadBB = nullptr);
+                   bool IsMustTailCall, const BasicBlock *EHPadBB = nullptr);
 
   // Lower range metadata from 0 to N to assert zext to an integer of nearest
   // floor power of two.
@@ -692,7 +689,7 @@ private:
   void visitAdd(const User &I)  { visitBinary(I, ISD::ADD); }
   void visitFAdd(const User &I) { visitBinary(I, ISD::FADD); }
   void visitSub(const User &I)  { visitBinary(I, ISD::SUB); }
-  void visitFSub(const User &I);
+  void visitFSub(const User &I) { visitBinary(I, ISD::FSUB); }
   void visitMul(const User &I)  { visitBinary(I, ISD::MUL); }
   void visitFMul(const User &I) { visitBinary(I, ISD::FMUL); }
   void visitURem(const User &I) { visitBinary(I, ISD::UREM); }
@@ -747,7 +744,7 @@ private:
   void visitFence(const FenceInst &I);
   void visitPHI(const PHINode &I);
   void visitCall(const CallInst &I);
-  bool visitMemCmpCall(const CallInst &I);
+  bool visitMemCmpBCmpCall(const CallInst &I);
   bool visitMemPCpyCall(const CallInst &I);
   bool visitMemChrCall(const CallInst &I);
   bool visitStrCpyCall(const CallInst &I, bool isStpcpy);
@@ -762,10 +759,12 @@ private:
   void visitStoreToSwiftError(const StoreInst &I);
   void visitFreeze(const FreezeInst &I);
 
-  void visitInlineAsm(const CallBase &Call);
+  void visitInlineAsm(const CallBase &Call,
+                      const BasicBlock *EHPadBB = nullptr);
   void visitIntrinsicCall(const CallInst &I, unsigned Intrinsic);
   void visitTargetIntrinsic(const CallInst &I, unsigned Intrinsic);
   void visitConstrainedFPIntrinsic(const ConstrainedFPIntrinsic &FPI);
+  void visitVectorPredicationIntrinsic(const VPIntrinsic &VPIntrin);
 
   void visitVAStart(const CallInst &I);
   void visitVAArg(const VAArgInst &I);
@@ -779,6 +778,9 @@ private:
   void visitGCResult(const GCResultInst &I);
 
   void visitVectorReduce(const CallInst &I, unsigned Intrinsic);
+  void visitVectorReverse(const CallInst &I);
+  void visitVectorSplice(const CallInst &I);
+  void visitStepVector(const CallInst &I);
 
   void visitUserOp1(const Instruction &I) {
     llvm_unreachable("UserOp1 should not exist at instruction selection time!");
@@ -815,6 +817,11 @@ private:
 
   /// Lowers CallInst to an external symbol.
   void lowerCallToExternalSymbol(const CallInst &I, const char *FunctionName);
+
+  SDValue lowerStartEH(SDValue Chain, const BasicBlock *EHPadBB,
+                       MCSymbol *&BeginLabel);
+  SDValue lowerEndEH(SDValue Chain, const InvokeInst *II,
+                     const BasicBlock *EHPadBB, MCSymbol *BeginLabel);
 };
 
 /// This struct represents the registers (physical or virtual)
@@ -902,7 +909,7 @@ struct RegsForValue {
   }
 
   /// Return a list of registers and their sizes.
-  SmallVector<std::pair<unsigned, unsigned>, 4> getRegsAndSizes() const;
+  SmallVector<std::pair<unsigned, TypeSize>, 4> getRegsAndSizes() const;
 };
 
 } // end namespace llvm

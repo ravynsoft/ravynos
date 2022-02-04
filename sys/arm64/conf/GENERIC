@@ -81,6 +81,7 @@ options 	RACCT_DEFAULT_TO_DISABLED # Set kern.racct.enable=0 by default
 options 	RCTL			# Resource limits
 options 	INTRNG
 options 	LINUX_BOOT_ABI		# Boot using booti command from U-Boot
+options 	PERTHREAD_SSP		# Per-thread SSP canary
 
 # Debugging support.  Always need this:
 options 	KDB			# Enable kernel debugger support.
@@ -120,6 +121,8 @@ options		SOC_NXP_LS
 options 	SOC_ROCKCHIP_RK3328
 options 	SOC_ROCKCHIP_RK3399
 options 	SOC_XILINX_ZYNQ
+
+options 	PPS_SYNC
 
 # Timer drivers
 device		a10_timer
@@ -199,6 +202,7 @@ device		aw_ccu		# Allwinner clock controller
 
 # Interrupt controllers
 device		aw_nmi		# Allwinner NMI support
+device		aw_r_intc	# Allwinner RINTC support
 device		mv_cp110_icu	# Marvell CP110 ICU
 device		mv_ap806_gicp	# Marvell AP806 GICP
 device		mv_ap806_sei	# Marvell AP806 SEI
@@ -360,11 +364,12 @@ device		rk_dwmmc
 device		rk_emmcphy
 
 # VirtIO support
-device		virtio
-device		virtio_pci
-device		virtio_mmio
-device		virtio_blk
-device		vtnet
+device		virtio			# Generic VirtIO bus (required)
+device		virtio_pci		# VirtIO PCI device
+device		virtio_mmio		# VirtIO Memory Mapped IO device
+device		virtio_blk		# VirtIO Block device
+device		virtio_scsi		# VirtIO SCSI device
+device		vtnet			# VirtIO Ethernet device
 
 # Chip-specific errata
 options 	THUNDERX_PASS_1_1_ERRATA

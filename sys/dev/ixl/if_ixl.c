@@ -49,7 +49,7 @@
  *********************************************************************/
 #define IXL_DRIVER_VERSION_MAJOR	2
 #define IXL_DRIVER_VERSION_MINOR	3
-#define IXL_DRIVER_VERSION_BUILD	0
+#define IXL_DRIVER_VERSION_BUILD	1
 
 #define IXL_DRIVER_VERSION_STRING			\
     __XSTRING(IXL_DRIVER_VERSION_MAJOR) "."		\
@@ -235,7 +235,7 @@ TUNABLE_INT("hw.ixl.debug_recovery_mode",
     &ixl_debug_recovery_mode);
 SYSCTL_INT(_hw_ixl, OID_AUTO, debug_recovery_mode, CTLFLAG_RDTUN,
     &ixl_debug_recovery_mode, 0,
-    "Act like when FW entered recovery mode (for debuging)");
+    "Act like when FW entered recovery mode (for debugging)");
 #endif
 
 static int ixl_i2c_access_method = 0;
@@ -303,6 +303,10 @@ static int ixl_tx_itr = IXL_ITR_4K;
 TUNABLE_INT("hw.ixl.tx_itr", &ixl_tx_itr);
 SYSCTL_INT(_hw_ixl, OID_AUTO, tx_itr, CTLFLAG_RDTUN,
     &ixl_tx_itr, 0, "TX Interrupt Rate");
+
+static int ixl_flow_control = -1;
+SYSCTL_INT(_hw_ixl, OID_AUTO, flow_control, CTLFLAG_RDTUN,
+    &ixl_flow_control, 0, "Initial Flow Control setting");
 
 #ifdef IXL_IW
 int ixl_enable_iwarp = 0;
@@ -1510,11 +1514,11 @@ ixl_if_media_status(if_ctx_t ctx, struct ifmediareq *ifmr)
 			ifmr->ifm_active |= IFM_1000_T;
 			break;
 		/* 2.5 G */
-		case I40E_PHY_TYPE_2_5GBASE_T:
+		case I40E_PHY_TYPE_2_5GBASE_T_LINK_STATUS:
 			ifmr->ifm_active |= IFM_2500_T;
 			break;
 		/* 5 G */
-		case I40E_PHY_TYPE_5GBASE_T:
+		case I40E_PHY_TYPE_5GBASE_T_LINK_STATUS:
 			ifmr->ifm_active |= IFM_5000_T;
 			break;
 		/* 10 G */
@@ -1892,5 +1896,20 @@ ixl_save_pf_tunables(struct ixl_pf *pf)
 		pf->rx_itr = IXL_ITR_8K;
 	} else
 		pf->rx_itr = ixl_rx_itr;
+
+	pf->fc = -1;
+	if (ixl_flow_control != -1) {
+		if (ixl_flow_control < 0 || ixl_flow_control > 3) {
+			device_printf(dev,
+			    "Invalid flow_control value of %d set!\n",
+			    ixl_flow_control);
+			device_printf(dev,
+			    "flow_control must be between %d and %d, "
+			    "inclusive\n", 0, 3);
+			device_printf(dev,
+			    "Using default configuration instead\n");
+		} else
+			pf->fc = ixl_flow_control;
+	}
 }
 

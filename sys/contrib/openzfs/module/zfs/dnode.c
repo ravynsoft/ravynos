@@ -129,6 +129,7 @@ dnode_cons(void *arg, void *unused, int kmflag)
 	zfs_refcount_create(&dn->dn_tx_holds);
 	list_link_init(&dn->dn_link);
 
+	bzero(&dn->dn_next_type[0], sizeof (dn->dn_next_type));
 	bzero(&dn->dn_next_nblkptr[0], sizeof (dn->dn_next_nblkptr));
 	bzero(&dn->dn_next_nlevels[0], sizeof (dn->dn_next_nlevels));
 	bzero(&dn->dn_next_indblkshift[0], sizeof (dn->dn_next_indblkshift));
@@ -1645,6 +1646,26 @@ dnode_try_claim(objset_t *os, uint64_t object, int slots)
 {
 	return (dnode_hold_impl(os, object, DNODE_MUST_BE_FREE | DNODE_DRY_RUN,
 	    slots, NULL, NULL));
+}
+
+/*
+ * Checks if the dnode contains any uncommitted dirty records.
+ */
+boolean_t
+dnode_is_dirty(dnode_t *dn)
+{
+	mutex_enter(&dn->dn_mtx);
+
+	for (int i = 0; i < TXG_SIZE; i++) {
+		if (multilist_link_active(&dn->dn_dirty_link[i])) {
+			mutex_exit(&dn->dn_mtx);
+			return (B_TRUE);
+		}
+	}
+
+	mutex_exit(&dn->dn_mtx);
+
+	return (B_FALSE);
 }
 
 void

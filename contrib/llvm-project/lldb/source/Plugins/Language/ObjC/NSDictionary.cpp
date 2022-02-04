@@ -66,7 +66,8 @@ NSDictionary_Additionals::GetAdditionalSynthetics() {
 static CompilerType GetLLDBNSPairType(TargetSP target_sp) {
   CompilerType compiler_type;
 
-  TypeSystemClang *target_ast_context = TypeSystemClang::GetScratch(*target_sp);
+  TypeSystemClang *target_ast_context =
+      ScratchTypeSystemClang::GetForTarget(*target_sp);
 
   if (target_ast_context) {
     ConstString g___lldb_autogen_nspair("__lldb_autogen_nspair");
@@ -388,7 +389,7 @@ bool lldb_private::formatters::NSDictionarySummaryProvider(
     return false;
 
   ObjCLanguageRuntime::ClassDescriptorSP descriptor(
-      runtime->GetClassDescriptor(valobj));
+      runtime->GetNonKVOClassDescriptor(valobj));
 
   if (!descriptor || !descriptor->IsValid())
     return false;
@@ -409,6 +410,7 @@ bool lldb_private::formatters::NSDictionarySummaryProvider(
   static const ConstString g_DictionaryM("__NSDictionaryM");
   static const ConstString g_DictionaryMLegacy("__NSDictionaryM_Legacy");
   static const ConstString g_DictionaryMImmutable("__NSDictionaryM_Immutable");
+  static const ConstString g_DictionaryMFrozen("__NSFrozenDictionaryM");
   static const ConstString g_Dictionary1("__NSSingleEntryDictionaryI");
   static const ConstString g_Dictionary0("__NSDictionary0");
   static const ConstString g_DictionaryCF("__CFDictionary");
@@ -426,7 +428,8 @@ bool lldb_private::formatters::NSDictionarySummaryProvider(
       return false;
 
     value &= (is_64bit ? ~0xFC00000000000000UL : ~0xFC000000U);
-  } else if (class_name == g_DictionaryM || class_name == g_DictionaryMLegacy) {
+  } else if (class_name == g_DictionaryM || class_name == g_DictionaryMLegacy 
+             || class_name == g_DictionaryMFrozen) {
     AppleObjCRuntime *apple_runtime =
     llvm::dyn_cast_or_null<AppleObjCRuntime>(runtime);
     Status error;
@@ -508,6 +511,7 @@ lldb_private::formatters::NSDictionarySyntheticFrontEndCreator(
   static const ConstString g_DictionaryM("__NSDictionaryM");
   static const ConstString g_Dictionary1("__NSSingleEntryDictionaryI");
   static const ConstString g_DictionaryImmutable("__NSDictionaryM_Immutable");
+  static const ConstString g_DictionaryMFrozen("__NSFrozenDictionaryM");
   static const ConstString g_DictionaryMLegacy("__NSDictionaryM_Legacy");
   static const ConstString g_Dictionary0("__NSDictionary0");
   static const ConstString g_DictionaryCF("__CFDictionary");
@@ -519,7 +523,7 @@ lldb_private::formatters::NSDictionarySyntheticFrontEndCreator(
 
   if (class_name == g_DictionaryI) {
     return (new NSDictionaryISyntheticFrontEnd(valobj_sp));
-  } else if (class_name == g_DictionaryM) {
+  } else if (class_name == g_DictionaryM || class_name == g_DictionaryMFrozen) {
     if (runtime->GetFoundationVersion() >= 1437) {
       return (new Foundation1437::NSDictionaryMSyntheticFrontEnd(valobj_sp));
     } else if (runtime->GetFoundationVersion() >= 1428) {

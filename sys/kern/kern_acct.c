@@ -187,7 +187,7 @@ sysctl_acct_chkfreq(SYSCTL_HANDLER_ARGS)
 	return (0);
 }
 SYSCTL_PROC(_kern, OID_AUTO, acct_chkfreq,
-    CTLTYPE_INT | CTLFLAG_RW | CTLFLAG_NEEDGIANT, &acctchkfreq, 0,
+    CTLTYPE_INT | CTLFLAG_RW | CTLFLAG_MPSAFE, &acctchkfreq, 0,
     sysctl_acct_chkfreq, "I",
     "frequency for checking the free space");
 
@@ -348,6 +348,8 @@ acct_process(struct thread *td)
 	 */
 	if (acct_vp == NULL || acct_suspended)
 		return (0);
+
+	memset(&acct, 0, sizeof(acct));
 
 	sx_slock(&acct_sx);
 

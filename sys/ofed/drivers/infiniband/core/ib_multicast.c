@@ -723,7 +723,7 @@ EXPORT_SYMBOL(ib_sa_get_mcmember_rec);
 
 int ib_init_ah_from_mcmember(struct ib_device *device, u8 port_num,
 			     struct ib_sa_mcmember_rec *rec,
-			     struct net_device *ndev,
+			     struct ifnet *ndev,
 			     enum ib_gid_type gid_type,
 			     struct ib_ah_attr *ah_attr)
 {
@@ -800,7 +800,6 @@ static void mcast_event_handler(struct ib_event_handler *handler,
 	switch (event->event) {
 	case IB_EVENT_PORT_ERR:
 	case IB_EVENT_LID_CHANGE:
-	case IB_EVENT_SM_CHANGE:
 	case IB_EVENT_CLIENT_REREGISTER:
 		mcast_groups_event(&dev->port[index], MCAST_GROUP_ERROR);
 		break;

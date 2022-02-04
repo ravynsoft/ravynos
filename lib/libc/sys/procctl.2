@@ -29,7 +29,7 @@
 .\"
 .\" $FreeBSD$
 .\"
-.Dd June 13, 2020
+.Dd September 2, 2021
 .Dt PROCCTL 2
 .Os
 .Sh NAME
@@ -62,6 +62,8 @@ The following identifier types are supported:
 .It Dv P_PID
 Control the process with the process ID
 .Fa id .
+.Fa id
+zero is a shortcut for the calling process ID.
 .It Dv P_PGID
 Control processes belonging to the process group with the ID
 .Fa id .
@@ -70,6 +72,14 @@ Control processes belonging to the process group with the ID
 The control request to perform is specified by the
 .Fa cmd
 argument.
+.Pp
+All status changing requests
+.Dv *_CTL
+require the caller to have the right to debug the target.
+All status query requests
+.DV *_STATUS
+require the caller to have the right to observe the target.
+.Pp
 The following commands are supported:
 .Bl -tag -width PROC_TRAPCAP_STATUS
 .It Dv PROC_ASLR_CTL
@@ -564,6 +574,87 @@ Stack gaps are enabled in the process after
 Stack gaps are disabled in the process after
 .Xr execve 2 .
 .El
+.It Dv PROC_NO_NEW_PRIVS_CTL
+Allows one to ignore the SUID and SGID bits on the program
+images activated by
+.Xr execve 2
+in the specified process and its future descendants.
+The
+.Fa data
+parameter must point to the integer variable holding the following
+value:
+.Bl -tag -width PROC_NO_NEW_PRIVS_ENABLE
+.It Dv PROC_NO_NEW_PRIVS_ENABLE
+Request SUID and SGID bits to be ignored.
+.El
+.Pp
+It is not possible to disable it once it has been enabled.
+.It Dv PROC_NO_NEW_PRIVS_STATUS
+Returns the current status of SUID/SGID enablement for the target process.
+The
+.Fa data
+parameter must point to the integer variable, where one of the
+following values is written:
+.Bl -tag -width PROC_NO_NEW_PRIVS_DISABLE
+.It Dv PROC_NO_NEW_PRIVS_ENABLE
+.It Dv PROC_NO_NEW_PRIVS_DISABLE
+.El
+.It Dv PROC_WXMAP_CTL
+Controls the 'write exclusive against execution' permissions for the
+mappings in the process address space.
+It overrides the global settings established by the
+.Dv kern.elf{32/64}.allow_wx
+sysctl,
+and the corresponding bit in the ELF control note, see
+.Xr elfctl 1 .
+.Pp
+The
+.Fa data
+parameter must point to the integer variable holding one of the
+following values:
+.Bl -tag -width PROC_WX_MAPPINGS_DISALLOW_EXEC
+.It Dv PROC_WX_MAPPINGS_PERMIT
+Enable creation of mappings that have both write and execute
+protection attributes, in the specified process' address space.
+.It Dv PROC_WX_MAPPINGS_DISALLOW_EXEC
+In the new address space created by
+.Xr execve 2 ,
+disallow creation of mappings that have both write and execute
+permissions.
+.El
+.Pp
+Once creation of writeable and executable mappings is allowed,
+it is impossible (and pointless) to disallow it.
+The only way to ensure the absence of such mappings after they
+were enabled in a given process, is to set the
+.Dv PROC_WX_MAPPINGS_DISALLOW_EXEC
+flag and
+.Xr execve 2
+an image.
+.It Dv PROC_WXMAP_STATUS
+Returns the current status of the 'write exclusive against execution'
+enforcement for the specified process.
+The
+.Dv data
+parameter must point to the integer variable, where one of the
+following values is written:
+.Bl -tag -width PROC_WX_MAPPINGS_DISALLOW_EXEC
+.It Dv PROC_WX_MAPPINGS_PERMIT
+Creation of simultaneously writable and executable mapping is permitted,
+otherwise the process cannot create such mappings.
+.It Dv PROC_WX_MAPPINGS_DISALLOW_EXEC
+After
+.Xr execve 2 ,
+the new address space should disallow creation of simultaneously
+writable and executable mappings.
+.El
+.Pp
+Additionally, if the address space of the process disallows
+creation of simultaneously writable and executable mappings and
+it is guaranteed that no such mapping was created since address space
+creation, the
+.Dv PROC_WXORX_ENFORCE
+flag is set in the returned value.
 .El
 .Sh x86 MACHINE-SPECIFIC REQUESTS
 .Bl -tag -width PROC_KPTI_STATUS
@@ -613,6 +704,12 @@ feature, as it is bypassable both by the kernel and privileged processes,
 and via other system mechanisms.
 As such, it should not be utilized to reliably protect cryptographic
 keying material or other confidential data.
+.Pp
+Note that processes can trivially bypass the 'no simultaneously
+writable and executable mappings' policy by first marking some mapping
+as writeable and write code to it, then removing write and adding
+execute permission.
+This may be legitimately required by some programs, such as JIT compilers.
 .Sh RETURN VALUES
 If an error occurs, a value of -1 is returned and
 .Va errno

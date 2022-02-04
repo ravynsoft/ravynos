@@ -11,16 +11,16 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef LLVM_REMARKS_BITSTREAM_REMARK_PARSER_H
-#define LLVM_REMARKS_BITSTREAM_REMARK_PARSER_H
+#ifndef LLVM_REMARKS_BITSTREAMREMARKPARSER_H
+#define LLVM_REMARKS_BITSTREAMREMARKPARSER_H
 
+#include "llvm/ADT/ArrayRef.h"
+#include "llvm/ADT/Optional.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Bitstream/BitstreamReader.h"
-#include "llvm/Remarks/BitstreamRemarkContainer.h"
-#include "llvm/Remarks/Remark.h"
-#include "llvm/Remarks/RemarkParser.h"
 #include "llvm/Support/Error.h"
 #include <array>
+#include <cstdint>
 
 namespace llvm {
 namespace remarks {
@@ -113,4 +113,4 @@ struct BitstreamParserHelper {
 } // end namespace remarks
 } // end namespace llvm
 
-#endif /* LLVM_REMARKS_BITSTREAM_REMARK_PARSER_H */
+#endif // LLVM_REMARKS_BITSTREAMREMARKPARSER_H

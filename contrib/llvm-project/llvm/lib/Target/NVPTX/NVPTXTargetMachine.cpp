@@ -13,6 +13,7 @@
 #include "NVPTXTargetMachine.h"
 #include "NVPTX.h"
 #include "NVPTXAllocaHoisting.h"
+#include "NVPTXAtomicLower.h"
 #include "NVPTXLowerAggrCopies.h"
 #include "NVPTXTargetObjectFile.h"
 #include "NVPTXTargetTransformInfo.h"
@@ -24,6 +25,7 @@
 #include "llvm/CodeGen/TargetPassConfig.h"
 #include "llvm/IR/LegacyPassManager.h"
 #include "llvm/Pass.h"
+#include "llvm/Passes/PassBuilder.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/TargetRegistry.h"
 #include "llvm/Target/TargetMachine.h"
@@ -64,6 +66,7 @@ void initializeNVVMIntrRangePass(PassRegistry&);
 void initializeNVVMReflectPass(PassRegistry&);
 void initializeGenericToNVVMPass(PassRegistry&);
 void initializeNVPTXAllocaHoistingPass(PassRegistry &);
+void initializeNVPTXAtomicLowerPass(PassRegistry &);
 void initializeNVPTXAssignValidGlobalNamesPass(PassRegistry&);
 void initializeNVPTXLowerAggrCopiesPass(PassRegistry &);
 void initializeNVPTXLowerArgsPass(PassRegistry &);
@@ -85,6 +88,7 @@ extern "C" LLVM_EXTERNAL_VISIBILITY void LLVMInitializeNVPTXTarget() {
   initializeGenericToNVVMPass(PR);
   initializeNVPTXAllocaHoistingPass(PR);
   initializeNVPTXAssignValidGlobalNamesPass(PR);
+  initializeNVPTXAtomicLowerPass(PR);
   initializeNVPTXLowerArgsPass(PR);
   initializeNVPTXLowerAllocaPass(PR);
   initializeNVPTXLowerAggrCopiesPass(PR);
@@ -170,11 +174,11 @@ public:
   void addFastRegAlloc() override;
   void addOptimizedRegAlloc() override;
 
-  bool addRegAssignmentFast() override {
+  bool addRegAssignAndRewriteFast() override {
     llvm_unreachable("should not be used");
   }
 
-  bool addRegAssignmentOptimized() override {
+  bool addRegAssignAndRewriteOptimized() override {
     llvm_unreachable("should not be used");
   }
 
@@ -205,6 +209,32 @@ void NVPTXTargetMachine::adjustPassManager(PassManagerBuilder &Builder) {
     });
 }
 
+void NVPTXTargetMachine::registerPassBuilderCallbacks(PassBuilder &PB) {
+  PB.registerPipelineParsingCallback(
+      [](StringRef PassName, FunctionPassManager &PM,
+         ArrayRef<PassBuilder::PipelineElement>) {
+        if (PassName == "nvvm-reflect") {
+          PM.addPass(NVVMReflectPass());
+          return true;
+        }
+        if (PassName == "nvvm-intr-range") {
+          PM.addPass(NVVMIntrRangePass());
+          return true;
+        }
+        return false;
+      });
+
+  PB.registerPipelineStartEPCallback(
+      [this](ModulePassManager &PM, PassBuilder::OptimizationLevel Level) {
+        FunctionPassManager FPM;
+        FPM.addPass(NVVMReflectPass(Subtarget.getSmVersion()));
+        // FIXME: NVVMIntrRangePass is causing numerical discrepancies,
+        // investigate and re-enable.
+        // FPM.addPass(NVVMIntrRangePass(Subtarget.getSmVersion()));
+        PM.addPass(createModuleToFunctionPassAdaptor(std::move(FPM)));
+      });
+}
+
 TargetTransformInfo
 NVPTXTargetMachine::getTargetTransformInfo(const Function &F) {
   return TargetTransformInfo(NVPTXTTIImpl(this, F));
@@ -223,6 +253,7 @@ void NVPTXPassConfig::addAddressSpaceInferencePasses() {
   addPass(createSROAPass());
   addPass(createNVPTXLowerAllocaPass());
   addPass(createInferAddressSpacesPass());
+  addPass(createNVPTXAtomicLowerPass());
 }
 
 void NVPTXPassConfig::addStraightLineScalarOptimizationPasses() {

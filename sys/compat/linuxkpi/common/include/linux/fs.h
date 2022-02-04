@@ -28,8 +28,8 @@
  *
  * $FreeBSD$
  */
-#ifndef	_LINUX_FS_H_
-#define	_LINUX_FS_H_
+#ifndef	_LINUXKPI_LINUX_FS_H_
+#define	_LINUXKPI_LINUX_FS_H_
 
 #include <sys/cdefs.h>
 #include <sys/param.h>
@@ -43,6 +43,8 @@
 #include <linux/semaphore.h>
 #include <linux/spinlock.h>
 #include <linux/dcache.h>
+#include <linux/capability.h>
+#include <linux/wait_bit.h>
 
 struct module;
 struct kiocb;
@@ -108,6 +110,8 @@ struct linux_file {
 
 	/* pointer to associated character device, if any */
 	struct linux_cdev *f_cdev;
+
+	struct rcu_head	rcu;
 };
 
 #define	file		linux_file
@@ -243,6 +247,12 @@ nonseekable_open(struct inode *inode, struct file *filp)
 	return 0;
 }
 
+static inline int
+simple_open(struct inode *inode, struct file *filp)
+{
+	return 0;
+}
+
 extern unsigned int linux_iminor(struct inode *);
 #define	iminor(...) linux_iminor(__VA_ARGS__)
 
@@ -252,6 +262,13 @@ get_file(struct linux_file *f)
 
 	refcount_acquire(f->_file == NULL ? &f->f_count : &f->_file->f_count);
 	return (f);
+}
+
+static inline bool
+get_file_rcu(struct linux_file *f)
+{
+	return (refcount_acquire_if_not_zero(
+	    f->_file == NULL ? &f->f_count : &f->_file->f_count));
 }
 
 static inline struct inode *
@@ -301,4 +318,4 @@ call_mmap(struct linux_file *file, struct vm_area_struct *vma)
 	return (file->f_op->mmap(file, vma));
 }
 
-#endif /* _LINUX_FS_H_ */
+#endif /* _LINUXKPI_LINUX_FS_H_ */

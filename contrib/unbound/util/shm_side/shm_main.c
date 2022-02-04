@@ -130,6 +130,7 @@ int shm_main_init(struct daemon* daemon)
 
 		/* Just release memory unused */
 		free(daemon->shm_info);
+		daemon->shm_info = NULL;
 
 		return 0;
 	}
@@ -143,6 +144,7 @@ int shm_main_init(struct daemon* daemon)
 
 		/* Just release memory unused */
 		free(daemon->shm_info);
+		daemon->shm_info = NULL;
 
 		return 0;
 	}
@@ -156,6 +158,7 @@ int shm_main_init(struct daemon* daemon)
 
 		/* Just release memory unused */
 		free(daemon->shm_info);
+		daemon->shm_info = NULL;
 
 		return 0;
 	}
@@ -170,6 +173,7 @@ int shm_main_init(struct daemon* daemon)
 
 		/* Just release memory unused */
 		free(daemon->shm_info);
+		daemon->shm_info = NULL;
 
 		return 0;
 	}
@@ -210,6 +214,8 @@ void shm_main_shutdown(struct daemon* daemon)
 	if (daemon->shm_info->ptr_arr)
 		shmdt(daemon->shm_info->ptr_arr);
 
+	free(daemon->shm_info);
+	daemon->shm_info = NULL;
 #else
 	(void)daemon;
 #endif /* HAVE_SHMGET */
@@ -275,7 +281,7 @@ void shm_main_run(struct worker *worker)
 		shm_stat->mem.subnet = 0;
 #ifdef CLIENT_SUBNET
 		shm_stat->mem.subnet = (long long)mod_get_mem(&worker->env,
-			"subnet");
+			"subnetcache");
 #endif
 		/* ipsecmod mem value is available in shm, also when not enabled,
 		 * to make the struct easier to memmap by other applications,

@@ -10,7 +10,9 @@
 #define LLD_ELF_CONFIG_H
 
 #include "lld/Common/ErrorHandler.h"
+#include "llvm/ADT/CachedHashString.h"
 #include "llvm/ADT/MapVector.h"
+#include "llvm/ADT/SetVector.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/ADT/StringSet.h"
 #include "llvm/BinaryFormat/ELF.h"
@@ -18,6 +20,7 @@
 #include "llvm/Support/CodeGen.h"
 #include "llvm/Support/Endian.h"
 #include "llvm/Support/GlobPattern.h"
+#include "llvm/Support/PrettyStackTrace.h"
 #include <atomic>
 #include <vector>
 
@@ -34,6 +37,10 @@ enum ELFKind {
   ELF64LEKind,
   ELF64BEKind
 };
+
+// For -Bno-symbolic, -Bsymbolic-non-weak-functions, -Bsymbolic-functions,
+// -Bsymbolic.
+enum class BsymbolicKind { None, NonWeakFunctions, Functions, All };
 
 // For --build-id.
 enum class BuildIdKind { None, Fast, Md5, Sha1, Hexstring, Uuid };
@@ -79,7 +86,8 @@ struct SymbolVersion {
 struct VersionDefinition {
   llvm::StringRef name;
   uint16_t id;
-  std::vector<SymbolVersion> patterns;
+  std::vector<SymbolVersion> nonLocalPatterns;
+  std::vector<SymbolVersion> localPatterns;
 };
 
 // This struct contains the global configuration for the linker.
@@ -90,11 +98,13 @@ struct Configuration {
   uint8_t osabi = 0;
   uint32_t andFeatures = 0;
   llvm::CachePruningPolicy thinLTOCachePolicy;
+  llvm::SetVector<llvm::CachedHashString> dependencyFiles; // for --dependency-file
   llvm::StringMap<uint64_t> sectionStartMap;
   llvm::StringRef bfdname;
   llvm::StringRef chroot;
-  llvm::StringRef dynamicLinker;
+  llvm::StringRef dependencyFile;
   llvm::StringRef dwoDir;
+  llvm::StringRef dynamicLinker;
   llvm::StringRef entry;
   llvm::StringRef emulation;
   llvm::StringRef fini;
@@ -107,6 +117,7 @@ struct Configuration {
   llvm::StringRef mapFile;
   llvm::StringRef outputFile;
   llvm::StringRef optRemarksFilename;
+  llvm::Optional<uint64_t> optRemarksHotnessThreshold = 0;
   llvm::StringRef optRemarksPasses;
   llvm::StringRef optRemarksFormat;
   llvm::StringRef progName;
@@ -135,16 +146,15 @@ struct Configuration {
                   uint64_t>
       callGraphProfile;
   bool allowMultipleDefinition;
-  bool allowShlibUndefined;
   bool androidPackDynRelocs;
   bool armHasBlx = false;
   bool armHasMovtMovw = false;
   bool armJ1J2BranchEncoding = false;
   bool asNeeded = false;
-  bool bsymbolic;
-  bool bsymbolicFunctions;
+  BsymbolicKind bsymbolic = BsymbolicKind::None;
   bool callGraphProfileSort;
   bool checkSections;
+  bool checkDynamicRelocs;
   bool compressDebugSections;
   bool cref;
   std::vector<std::pair<llvm::GlobPattern, uint64_t>> deadRelocInNonAlloc;
@@ -161,6 +171,7 @@ struct Configuration {
   bool fixCortexA53Errata843419;
   bool fixCortexA8;
   bool formatBinary = false;
+  bool fortranCommon;
   bool gcSections;
   bool gdbIndex;
   bool gnuHash = false;
@@ -172,6 +183,7 @@ struct Configuration {
   bool ltoDebugPassManager;
   bool ltoEmitAsm;
   bool ltoNewPassManager;
+  bool ltoPseudoProbeForProfiling;
   bool ltoUniqueBasicBlockSectionNames;
   bool ltoWholeProgramVisibility;
   bool mergeArmExidx;
@@ -183,6 +195,8 @@ struct Configuration {
   bool nostdlib;
   bool oFormatBinary;
   bool omagic;
+  bool optEB = false;
+  bool optEL = false;
   bool optimizeBBJumps;
   bool optRemarksWithHotness;
   bool picThunk;
@@ -193,7 +207,7 @@ struct Configuration {
   bool relocatable;
   bool relrPackDynRelocs;
   bool saveTemps;
-  llvm::Optional<uint32_t> shuffleSectionSeed;
+  std::vector<std::pair<llvm::GlobPattern, uint32_t>> shuffleSections;
   bool singleRoRx;
   bool shared;
   bool symbolic;
@@ -205,13 +219,13 @@ struct Configuration {
   bool thinLTOIndexOnly;
   bool timeTraceEnabled;
   bool tocOptimize;
+  bool pcRelOptimize;
   bool undefinedVersion;
   bool unique;
   bool useAndroidRelrTags = false;
   bool warnBackrefs;
   std::vector<llvm::GlobPattern> warnBackrefsExclude;
   bool warnCommon;
-  bool warnIfuncTextrel;
   bool warnMissingEntry;
   bool warnSymbolOrdering;
   bool writeAddends;
@@ -234,6 +248,7 @@ struct Configuration {
   bool zRelro;
   bool zRodynamic;
   bool zShstk;
+  bool zStartStopGC;
   uint8_t zStartStopVisibility;
   bool zText;
   bool zRetpolineplt;
@@ -245,7 +260,9 @@ struct Configuration {
   SortSectionPolicy sortSection;
   StripPolicy strip;
   UnresolvedPolicy unresolvedSymbols;
+  UnresolvedPolicy unresolvedSymbolsInShlib;
   Target2Policy target2;
+  bool Power10Stub;
   ARMVFPArgKind armVFPArgs = ARMVFPArgKind::Default;
   BuildIdKind buildId = BuildIdKind::None;
   SeparateSegmentKind zSeparate;
@@ -348,6 +365,12 @@ static inline void errorOrWarn(const Twine &msg) {
   else
     warn(msg);
 }
+
+static inline void internalLinkerError(StringRef loc, const Twine &msg) {
+  errorOrWarn(loc + "internal linker error: " + msg + "\n" +
+              llvm::getBugReportMsg());
+}
+
 } // namespace elf
 } // namespace lld
 

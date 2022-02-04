@@ -24,7 +24,6 @@
 # kernel-toolchain    - Builds the subset of world necessary to build a kernel
 # kernel-toolchains   - Build kernel-toolchain for all universe targets.
 # doxygen             - Build API documentation of the kernel, needs doxygen.
-# update              - Convenient way to update your source tree(s).
 # checkworld          - Run test suite on installed world.
 # check-old           - List obsolete directories/files/libraries.
 # check-old-dirs      - List obsolete directories.
@@ -155,7 +154,7 @@ TGTS=	all all-man buildenv buildenvvars buildkernel buildworld \
 	installkernel.debug packagekernel packageworld \
 	reinstallkernel reinstallkernel.debug \
 	installworld kernel-toolchain libraries maninstall \
-	obj objlink showconfig tags toolchain update \
+	obj objlink showconfig tags toolchain \
 	makeman sysent \
 	_worldtmp _legacy _bootstrap-tools _cleanobj _obj \
 	_build-tools _build-metadata _cross-tools _includes _libraries \
@@ -219,7 +218,7 @@ _MAKEOBJDIRPREFIX!= /usr/bin/env -i PATH=${PATH} ${MAKE} MK_AUTO_OBJ=no \
     ${.MAKEFLAGS:MMAKEOBJDIRPREFIX=*} __MAKE_CONF=${__MAKE_CONF} \
     SRCCONF=${SRCCONF} SRC_ENV_CONF= \
     -f /dev/null -V MAKEOBJDIRPREFIX dummy
-.if !empty(_MAKEOBJDIRPREFIX)
+.if !empty(_MAKEOBJDIRPREFIX) || !empty(.MAKEOVERRIDES:MMAKEOBJDIRPREFIX)
 .error MAKEOBJDIRPREFIX can only be set in environment or src-env.conf(5),\
     not as a global (in make.conf(5) or src.conf(5)) or command-line variable.
 .endif
@@ -458,7 +457,7 @@ MMAKE=		${MMAKEENV} ${MAKE} \
 		OBJTOP=${MYMAKE:H}/obj \
 		OBJROOT='$${OBJTOP}/' \
 		MAKEOBJDIRPREFIX= \
-		MAN= -DNO_SHARED \
+		MK_MAN=no -DNO_SHARED \
 		-DNO_CPU_CFLAGS MK_WERROR=no \
 		-DNO_SUBDIR \
 		DESTDIR= PROGNAME=${MYMAKE:T}

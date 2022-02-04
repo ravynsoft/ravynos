@@ -233,6 +233,7 @@ static pci_vendor_info_t igb_vendor_info_array[] =
 	PVID(0x8086, E1000_DEV_ID_I210_COPPER_OEM1, "Intel(R) I210 (OEM)"),
 	PVID(0x8086, E1000_DEV_ID_I210_COPPER_FLASHLESS, "Intel(R) I210 Flashless (Copper)"),
 	PVID(0x8086, E1000_DEV_ID_I210_SERDES_FLASHLESS, "Intel(R) I210 Flashless (SERDES)"),
+	PVID(0x8086, E1000_DEV_ID_I210_SGMII_FLASHLESS, "Intel(R) I210 Flashless (SGMII)"),
 	PVID(0x8086, E1000_DEV_ID_I210_FIBER, "Intel(R) I210 (Fiber)"),
 	PVID(0x8086, E1000_DEV_ID_I210_SERDES, "Intel(R) I210 (SERDES)"),
 	PVID(0x8086, E1000_DEV_ID_I210_SGMII, "Intel(R) I210 (SGMII)"),
@@ -247,92 +248,101 @@ static pci_vendor_info_t igb_vendor_info_array[] =
 /*********************************************************************
  *  Function prototypes
  *********************************************************************/
-static void	*em_register(device_t dev);
-static void	*igb_register(device_t dev);
-static int	em_if_attach_pre(if_ctx_t ctx);
-static int	em_if_attach_post(if_ctx_t ctx);
-static int	em_if_detach(if_ctx_t ctx);
-static int	em_if_shutdown(if_ctx_t ctx);
-static int	em_if_suspend(if_ctx_t ctx);
-static int	em_if_resume(if_ctx_t ctx);
+static void	*em_register(device_t);
+static void	*igb_register(device_t);
+static int	em_if_attach_pre(if_ctx_t);
+static int	em_if_attach_post(if_ctx_t);
+static int	em_if_detach(if_ctx_t);
+static int	em_if_shutdown(if_ctx_t);
+static int	em_if_suspend(if_ctx_t);
+static int	em_if_resume(if_ctx_t);
 
-static int	em_if_tx_queues_alloc(if_ctx_t ctx, caddr_t *vaddrs, uint64_t *paddrs, int ntxqs, int ntxqsets);
-static int	em_if_rx_queues_alloc(if_ctx_t ctx, caddr_t *vaddrs, uint64_t *paddrs, int nrxqs, int nrxqsets);
-static void	em_if_queues_free(if_ctx_t ctx);
+static int	em_if_tx_queues_alloc(if_ctx_t, caddr_t *, uint64_t *, int, int);
+static int	em_if_rx_queues_alloc(if_ctx_t, caddr_t *, uint64_t *, int, int);
+static void	em_if_queues_free(if_ctx_t);
 
 static uint64_t	em_if_get_counter(if_ctx_t, ift_counter);
-static void	em_if_init(if_ctx_t ctx);
-static void	em_if_stop(if_ctx_t ctx);
+static void	em_if_init(if_ctx_t);
+static void	em_if_stop(if_ctx_t);
 static void	em_if_media_status(if_ctx_t, struct ifmediareq *);
-static int	em_if_media_change(if_ctx_t ctx);
-static int	em_if_mtu_set(if_ctx_t ctx, uint32_t mtu);
-static void	em_if_timer(if_ctx_t ctx, uint16_t qid);
-static void	em_if_vlan_register(if_ctx_t ctx, u16 vtag);
-static void	em_if_vlan_unregister(if_ctx_t ctx, u16 vtag);
-static void	em_if_watchdog_reset(if_ctx_t ctx);
-static bool	em_if_needs_restart(if_ctx_t ctx, enum iflib_restart_event event);
+static int	em_if_media_change(if_ctx_t);
+static int	em_if_mtu_set(if_ctx_t, uint32_t);
+static void	em_if_timer(if_ctx_t, uint16_t);
+static void	em_if_vlan_register(if_ctx_t, u16);
+static void	em_if_vlan_unregister(if_ctx_t, u16);
+static void	em_if_watchdog_reset(if_ctx_t);
+static bool	em_if_needs_restart(if_ctx_t, enum iflib_restart_event);
 
-static void	em_identify_hardware(if_ctx_t ctx);
-static int	em_allocate_pci_resources(if_ctx_t ctx);
-static void	em_free_pci_resources(if_ctx_t ctx);
-static void	em_reset(if_ctx_t ctx);
-static int	em_setup_interface(if_ctx_t ctx);
-static int	em_setup_msix(if_ctx_t ctx);
+static void	em_identify_hardware(if_ctx_t);
+static int	em_allocate_pci_resources(if_ctx_t);
+static void	em_free_pci_resources(if_ctx_t);
+static void	em_reset(if_ctx_t);
+static int	em_setup_interface(if_ctx_t);
+static int	em_setup_msix(if_ctx_t);
 
-static void	em_initialize_transmit_unit(if_ctx_t ctx);
-static void	em_initialize_receive_unit(if_ctx_t ctx);
+static void	em_initialize_transmit_unit(if_ctx_t);
+static void	em_initialize_receive_unit(if_ctx_t);
 
-static void	em_if_intr_enable(if_ctx_t ctx);
-static void	em_if_intr_disable(if_ctx_t ctx);
-static void	igb_if_intr_enable(if_ctx_t ctx);
-static void	igb_if_intr_disable(if_ctx_t ctx);
-static int	em_if_rx_queue_intr_enable(if_ctx_t ctx, uint16_t rxqid);
-static int	em_if_tx_queue_intr_enable(if_ctx_t ctx, uint16_t txqid);
-static int	igb_if_rx_queue_intr_enable(if_ctx_t ctx, uint16_t rxqid);
-static int	igb_if_tx_queue_intr_enable(if_ctx_t ctx, uint16_t txqid);
-static void	em_if_multi_set(if_ctx_t ctx);
-static void	em_if_update_admin_status(if_ctx_t ctx);
-static void	em_if_debug(if_ctx_t ctx);
-static void	em_update_stats_counters(struct adapter *);
-static void	em_add_hw_stats(struct adapter *adapter);
-static int	em_if_set_promisc(if_ctx_t ctx, int flags);
-static void	em_setup_vlan_hw_support(struct adapter *);
+static void	em_if_intr_enable(if_ctx_t);
+static void	em_if_intr_disable(if_ctx_t);
+static void	igb_if_intr_enable(if_ctx_t);
+static void	igb_if_intr_disable(if_ctx_t);
+static int	em_if_rx_queue_intr_enable(if_ctx_t, uint16_t);
+static int	em_if_tx_queue_intr_enable(if_ctx_t, uint16_t);
+static int	igb_if_rx_queue_intr_enable(if_ctx_t, uint16_t);
+static int	igb_if_tx_queue_intr_enable(if_ctx_t, uint16_t);
+static void	em_if_multi_set(if_ctx_t);
+static void	em_if_update_admin_status(if_ctx_t);
+static void	em_if_debug(if_ctx_t);
+static void	em_update_stats_counters(struct e1000_softc *);
+static void	em_add_hw_stats(struct e1000_softc *);
+static int	em_if_set_promisc(if_ctx_t, int);
+static bool	em_if_vlan_filter_capable(if_ctx_t);
+static bool	em_if_vlan_filter_used(if_ctx_t);
+static void	em_if_vlan_filter_enable(struct e1000_softc *);
+static void	em_if_vlan_filter_disable(struct e1000_softc *);
+static void	em_if_vlan_filter_write(struct e1000_softc *);
+static void	em_setup_vlan_hw_support(if_ctx_t ctx);
 static int	em_sysctl_nvm_info(SYSCTL_HANDLER_ARGS);
-static void	em_print_nvm_info(struct adapter *);
+static void	em_print_nvm_info(struct e1000_softc *);
+static void	em_fw_version_locked(if_ctx_t);
+static void	em_sbuf_fw_version(struct e1000_fw_version *, struct sbuf *);
+static void	em_print_fw_version(struct e1000_softc *);
+static int	em_sysctl_print_fw_version(SYSCTL_HANDLER_ARGS);
 static int	em_sysctl_debug_info(SYSCTL_HANDLER_ARGS);
 static int	em_get_rs(SYSCTL_HANDLER_ARGS);
-static void	em_print_debug_info(struct adapter *);
+static void	em_print_debug_info(struct e1000_softc *);
 static int 	em_is_valid_ether_addr(u8 *);
 static int	em_sysctl_int_delay(SYSCTL_HANDLER_ARGS);
-static void	em_add_int_delay_sysctl(struct adapter *, const char *,
+static void	em_add_int_delay_sysctl(struct e1000_softc *, const char *,
 		    const char *, struct em_int_delay_info *, int, int);
 /* Management and WOL Support */
-static void	em_init_manageability(struct adapter *);
-static void	em_release_manageability(struct adapter *);
-static void	em_get_hw_control(struct adapter *);
-static void	em_release_hw_control(struct adapter *);
-static void	em_get_wakeup(if_ctx_t ctx);
-static void	em_enable_wakeup(if_ctx_t ctx);
-static int	em_enable_phy_wakeup(struct adapter *);
-static void	em_disable_aspm(struct adapter *);
+static void	em_init_manageability(struct e1000_softc *);
+static void	em_release_manageability(struct e1000_softc *);
+static void	em_get_hw_control(struct e1000_softc *);
+static void	em_release_hw_control(struct e1000_softc *);
+static void	em_get_wakeup(if_ctx_t);
+static void	em_enable_wakeup(if_ctx_t);
+static int	em_enable_phy_wakeup(struct e1000_softc *);
+static void	em_disable_aspm(struct e1000_softc *);
 
-int		em_intr(void *arg);
+int		em_intr(void *);
 
 /* MSI-X handlers */
 static int	em_if_msix_intr_assign(if_ctx_t, int);
 static int	em_msix_link(void *);
-static void	em_handle_link(void *context);
+static void	em_handle_link(void *);
 
 static void	em_enable_vectors_82574(if_ctx_t);
 
 static int	em_set_flowcntl(SYSCTL_HANDLER_ARGS);
 static int	em_sysctl_eee(SYSCTL_HANDLER_ARGS);
-static void	em_if_led_func(if_ctx_t ctx, int onoff);
+static void	em_if_led_func(if_ctx_t, int);
 
 static int	em_get_regs(SYSCTL_HANDLER_ARGS);
 
-static void	lem_smartspeed(struct adapter *adapter);
-static void	igb_configure_queues(struct adapter *adapter);
+static void	lem_smartspeed(struct e1000_softc *);
+static void	igb_configure_queues(struct e1000_softc *);
 
 
 /*********************************************************************
@@ -364,7 +374,7 @@ static device_method_t igb_methods[] = {
 
 
 static driver_t em_driver = {
-	"em", em_methods, sizeof(struct adapter),
+	"em", em_methods, sizeof(struct e1000_softc),
 };
 
 static devclass_t em_devclass;
@@ -377,7 +387,7 @@ MODULE_DEPEND(em, iflib, 1, 1, 1);
 IFLIB_PNP_INFO(pci, em, em_vendor_info_array);
 
 static driver_t igb_driver = {
-	"igb", igb_methods, sizeof(struct adapter),
+	"igb", igb_methods, sizeof(struct e1000_softc),
 };
 
 static devclass_t igb_devclass;
@@ -424,7 +434,7 @@ static device_method_t em_if_methods[] = {
 };
 
 static driver_t em_if_driver = {
-	"em_if", em_if_methods, sizeof(struct adapter)
+	"em_if", em_if_methods, sizeof(struct e1000_softc)
 };
 
 static device_method_t igb_if_methods[] = {
@@ -462,7 +472,7 @@ static device_method_t igb_if_methods[] = {
 };
 
 static driver_t igb_if_driver = {
-	"igb_if", igb_if_methods, sizeof(struct adapter)
+	"igb_if", igb_if_methods, sizeof(struct e1000_softc)
 };
 
 /*********************************************************************
@@ -503,12 +513,12 @@ SYSCTL_INT(_hw_em, OID_AUTO, rx_abs_int_delay, CTLFLAG_RDTUN,
     &em_rx_abs_int_delay_dflt, 0,
     "Default receive interrupt delay limit in usecs");
 
-static int em_smart_pwr_down = FALSE;
+static int em_smart_pwr_down = false;
 SYSCTL_INT(_hw_em, OID_AUTO, smart_pwr_down, CTLFLAG_RDTUN, &em_smart_pwr_down,
     0, "Set to true to leave smart power down enabled on newer adapters");
 
 /* Controls whether promiscuous also shows bad packets */
-static int em_debug_sbp = FALSE;
+static int em_debug_sbp = false;
 SYSCTL_INT(_hw_em, OID_AUTO, sbp, CTLFLAG_RDTUN, &em_debug_sbp, 0,
     "Show bad packets in promiscuous mode");
 
@@ -603,8 +613,8 @@ static struct if_shared_ctx igb_sctx_init = {
 
 static int em_get_regs(SYSCTL_HANDLER_ARGS)
 {
-	struct adapter *adapter = (struct adapter *)arg1;
-	struct e1000_hw *hw = &adapter->hw;
+	struct e1000_softc *sc = (struct e1000_softc *)arg1;
+	struct e1000_hw *hw = &sc->hw;
 	struct sbuf *sb;
 	u32 *regs_buff;
 	int rc;
@@ -684,7 +694,7 @@ static int em_get_regs(SYSCTL_HANDLER_ARGS)
 
 #ifdef DUMP_DESCS
 	{
-		if_softc_ctx_t scctx = adapter->shared;
+		if_softc_ctx_t scctx = sc->shared;
 		struct rx_ring *rxr = &rx_que->rxr;
 		struct tx_ring *txr = &tx_que->txr;
 		int ntxd = scctx->isc_ntxd[0];
@@ -728,11 +738,11 @@ igb_register(device_t dev)
 static int
 em_set_num_queues(if_ctx_t ctx)
 {
-	struct adapter *adapter = iflib_get_softc(ctx);
+	struct e1000_softc *sc = iflib_get_softc(ctx);
 	int maxqueues;
 
 	/* Sanity check based on HW */
-	switch (adapter->hw.mac.type) {
+	switch (sc->hw.mac.type) {
 	case e1000_82576:
 	case e1000_82580:
 	case e1000_i350:
@@ -782,54 +792,57 @@ em_set_num_queues(if_ctx_t ctx)
 static int
 em_if_attach_pre(if_ctx_t ctx)
 {
-	struct adapter *adapter;
+	struct e1000_softc *sc;
 	if_softc_ctx_t scctx;
 	device_t dev;
 	struct e1000_hw *hw;
+	struct sysctl_oid_list *child;
+	struct sysctl_ctx_list *ctx_list;
 	int error = 0;
 
 	INIT_DEBUGOUT("em_if_attach_pre: begin");
 	dev = iflib_get_dev(ctx);
-	adapter = iflib_get_softc(ctx);
+	sc = iflib_get_softc(ctx);
 
-	adapter->ctx = adapter->osdep.ctx = ctx;
-	adapter->dev = adapter->osdep.dev = dev;
-	scctx = adapter->shared = iflib_get_softc_ctx(ctx);
-	adapter->media = iflib_get_media(ctx);
-	hw = &adapter->hw;
+	sc->ctx = sc->osdep.ctx = ctx;
+	sc->dev = sc->osdep.dev = dev;
+	scctx = sc->shared = iflib_get_softc_ctx(ctx);
+	sc->media = iflib_get_media(ctx);
+	hw = &sc->hw;
 
-	adapter->tx_process_limit = scctx->isc_ntxd[0];
-
-	/* SYSCTL stuff */
-	SYSCTL_ADD_PROC(device_get_sysctl_ctx(dev),
-	    SYSCTL_CHILDREN(device_get_sysctl_tree(dev)),
-	    OID_AUTO, "nvm", CTLTYPE_INT | CTLFLAG_RW | CTLFLAG_NEEDGIANT,
-	    adapter, 0, em_sysctl_nvm_info, "I", "NVM Information");
-
-	SYSCTL_ADD_PROC(device_get_sysctl_ctx(dev),
-	    SYSCTL_CHILDREN(device_get_sysctl_tree(dev)),
-	    OID_AUTO, "debug", CTLTYPE_INT | CTLFLAG_RW | CTLFLAG_NEEDGIANT,
-	    adapter, 0, em_sysctl_debug_info, "I", "Debug Information");
-
-	SYSCTL_ADD_PROC(device_get_sysctl_ctx(dev),
-	    SYSCTL_CHILDREN(device_get_sysctl_tree(dev)),
-	    OID_AUTO, "fc", CTLTYPE_INT | CTLFLAG_RW | CTLFLAG_NEEDGIANT,
-	    adapter, 0, em_set_flowcntl, "I", "Flow Control");
-
-	SYSCTL_ADD_PROC(device_get_sysctl_ctx(dev),
-	    SYSCTL_CHILDREN(device_get_sysctl_tree(dev)),
-	    OID_AUTO, "reg_dump",
-	    CTLTYPE_STRING | CTLFLAG_RD | CTLFLAG_NEEDGIANT, adapter, 0,
-	    em_get_regs, "A", "Dump Registers");
-
-	SYSCTL_ADD_PROC(device_get_sysctl_ctx(dev),
-	    SYSCTL_CHILDREN(device_get_sysctl_tree(dev)),
-	    OID_AUTO, "rs_dump",
-	    CTLTYPE_INT | CTLFLAG_RW | CTLFLAG_NEEDGIANT, adapter, 0,
-	    em_get_rs, "I", "Dump RS indexes");
+	sc->tx_process_limit = scctx->isc_ntxd[0];
 
 	/* Determine hardware and mac info */
 	em_identify_hardware(ctx);
+
+	/* SYSCTL stuff */
+	ctx_list = device_get_sysctl_ctx(dev);
+	child = SYSCTL_CHILDREN(device_get_sysctl_tree(dev));
+
+	SYSCTL_ADD_PROC(ctx_list, child, OID_AUTO, "nvm",
+	    CTLTYPE_INT | CTLFLAG_RW | CTLFLAG_NEEDGIANT, sc, 0,
+	    em_sysctl_nvm_info, "I", "NVM Information");
+
+	SYSCTL_ADD_PROC(ctx_list, child, OID_AUTO, "fw_version",
+	    CTLTYPE_STRING | CTLFLAG_RD | CTLFLAG_NEEDGIANT, sc, 0,
+	    em_sysctl_print_fw_version, "A",
+	    "Prints FW/NVM Versions");
+
+	SYSCTL_ADD_PROC(ctx_list, child, OID_AUTO, "debug",
+	    CTLTYPE_INT | CTLFLAG_RW | CTLFLAG_NEEDGIANT, sc, 0,
+	    em_sysctl_debug_info, "I", "Debug Information");
+
+	SYSCTL_ADD_PROC(ctx_list, child, OID_AUTO, "fc",
+	    CTLTYPE_INT | CTLFLAG_RW | CTLFLAG_NEEDGIANT, sc, 0,
+	    em_set_flowcntl, "I", "Flow Control");
+
+	SYSCTL_ADD_PROC(ctx_list, child, OID_AUTO, "reg_dump",
+	    CTLTYPE_STRING | CTLFLAG_RD | CTLFLAG_NEEDGIANT, sc, 0,
+	    em_get_regs, "A", "Dump Registers");
+
+	SYSCTL_ADD_PROC(ctx_list, child, OID_AUTO, "rs_dump",
+	    CTLTYPE_INT | CTLFLAG_RW | CTLFLAG_NEEDGIANT, sc, 0,
+	    em_get_rs, "I", "Dump RS indexes");
 
 	scctx->isc_tx_nsegments = EM_MAX_SCATTER;
 	scctx->isc_nrxqsets_max = scctx->isc_ntxqsets_max = em_set_num_queues(ctx);
@@ -837,7 +850,7 @@ em_if_attach_pre(if_ctx_t ctx)
 		device_printf(dev, "attach_pre capping queues at %d\n",
 		    scctx->isc_ntxqsets_max);
 
-	if (adapter->hw.mac.type >= igb_mac_min) {
+	if (hw->mac.type >= igb_mac_min) {
 		scctx->isc_txqsizes[0] = roundup2(scctx->isc_ntxd[0] * sizeof(union e1000_adv_tx_desc), EM_DBA_ALIGN);
 		scctx->isc_rxqsizes[0] = roundup2(scctx->isc_nrxd[0] * sizeof(union e1000_adv_rx_desc), EM_DBA_ALIGN);
 		scctx->isc_txd_size[0] = sizeof(union e1000_adv_tx_desc);
@@ -849,7 +862,7 @@ em_if_attach_pre(if_ctx_t ctx)
 		scctx->isc_capabilities = scctx->isc_capenable = IGB_CAPS;
 		scctx->isc_tx_csum_flags = CSUM_TCP | CSUM_UDP | CSUM_TSO |
 		     CSUM_IP6_TCP | CSUM_IP6_UDP;
-		if (adapter->hw.mac.type != e1000_82575)
+		if (hw->mac.type != e1000_82575)
 			scctx->isc_tx_csum_flags |= CSUM_SCTP | CSUM_IP6_SCTP;
 		/*
 		** Some new devices, as with ixgbe, now may
@@ -857,7 +870,7 @@ em_if_attach_pre(if_ctx_t ctx)
 		** track of which is used.
 		*/
 		scctx->isc_msix_bar = pci_msix_table_bar(dev);
-	} else if (adapter->hw.mac.type >= em_mac_min) {
+	} else if (hw->mac.type >= em_mac_min) {
 		scctx->isc_txqsizes[0] = roundup2(scctx->isc_ntxd[0]* sizeof(struct e1000_tx_desc), EM_DBA_ALIGN);
 		scctx->isc_rxqsizes[0] = roundup2(scctx->isc_nrxd[0] * sizeof(union e1000_rx_desc_extended), EM_DBA_ALIGN);
 		scctx->isc_txd_size[0] = sizeof(struct e1000_tx_desc);
@@ -889,7 +902,7 @@ em_if_attach_pre(if_ctx_t ctx)
 		 * We support MSI-X with 82574 only, but indicate to iflib(4)
 		 * that it shall give MSI at least a try with other devices.
 		 */
-		if (adapter->hw.mac.type == e1000_82574) {
+		if (hw->mac.type == e1000_82574) {
 			scctx->isc_msix_bar = pci_msix_table_bar(dev);;
 		} else {
 			scctx->isc_msix_bar = -1;
@@ -902,11 +915,15 @@ em_if_attach_pre(if_ctx_t ctx)
 		scctx->isc_rxd_size[0] = sizeof(struct e1000_rx_desc);
 		scctx->isc_tx_csum_flags = CSUM_TCP | CSUM_UDP;
 		scctx->isc_txrx = &lem_txrx;
-		scctx->isc_capabilities = scctx->isc_capenable = LEM_CAPS;
-		if (adapter->hw.mac.type < e1000_82543)
-			scctx->isc_capenable &= ~(IFCAP_HWCSUM|IFCAP_VLAN_HWCSUM);
+		scctx->isc_capabilities = LEM_CAPS;
+		if (hw->mac.type < e1000_82543)
+			scctx->isc_capabilities &= ~(IFCAP_HWCSUM|IFCAP_VLAN_HWCSUM);
+		/* 82541ER doesn't do HW tagging */
+		if (hw->device_id == E1000_DEV_ID_82541ER || hw->device_id == E1000_DEV_ID_82541ER_LOM)
+			scctx->isc_capabilities &= ~IFCAP_VLAN_HWTAGGING;
 		/* INTx only */
 		scctx->isc_msix_bar = 0;
+		scctx->isc_capenable = scctx->isc_capabilities;
 	}
 
 	/* Setup PCI resources */
@@ -929,19 +946,19 @@ em_if_attach_pre(if_ctx_t ctx)
 	    (hw->mac.type == e1000_pch2lan) ||
 	    (hw->mac.type == e1000_pch_lpt)) {
 		int rid = EM_BAR_TYPE_FLASH;
-		adapter->flash = bus_alloc_resource_any(dev,
+		sc->flash = bus_alloc_resource_any(dev,
 		    SYS_RES_MEMORY, &rid, RF_ACTIVE);
-		if (adapter->flash == NULL) {
+		if (sc->flash == NULL) {
 			device_printf(dev, "Mapping of Flash failed\n");
 			error = ENXIO;
 			goto err_pci;
 		}
 		/* This is used in the shared code */
-		hw->flash_address = (u8 *)adapter->flash;
-		adapter->osdep.flash_bus_space_tag =
-		    rman_get_bustag(adapter->flash);
-		adapter->osdep.flash_bus_space_handle =
-		    rman_get_bushandle(adapter->flash);
+		hw->flash_address = (u8 *)sc->flash;
+		sc->osdep.flash_bus_space_tag =
+		    rman_get_bustag(sc->flash);
+		sc->osdep.flash_bus_space_handle =
+		    rman_get_bushandle(sc->flash);
 	}
 	/*
 	** In the new SPT device flash is not  a
@@ -950,15 +967,15 @@ em_if_attach_pre(if_ctx_t ctx)
 	** FLASH read/write macros in the shared code.
 	*/
 	else if (hw->mac.type >= e1000_pch_spt) {
-		adapter->osdep.flash_bus_space_tag =
-		    adapter->osdep.mem_bus_space_tag;
-		adapter->osdep.flash_bus_space_handle =
-		    adapter->osdep.mem_bus_space_handle
+		sc->osdep.flash_bus_space_tag =
+		    sc->osdep.mem_bus_space_tag;
+		sc->osdep.flash_bus_space_handle =
+		    sc->osdep.mem_bus_space_handle
 		    + E1000_FLASH_BASE_ADDR;
 	}
 
 	/* Do Shared Code initialization */
-	error = e1000_setup_init_funcs(hw, TRUE);
+	error = e1000_setup_init_funcs(hw, true);
 	if (error) {
 		device_printf(dev, "Setup of Shared code failed, error %d\n",
 		    error);
@@ -970,40 +987,40 @@ em_if_attach_pre(if_ctx_t ctx)
 	e1000_get_bus_info(hw);
 
 	/* Set up some sysctls for the tunable interrupt delays */
-	em_add_int_delay_sysctl(adapter, "rx_int_delay",
-	    "receive interrupt delay in usecs", &adapter->rx_int_delay,
+	em_add_int_delay_sysctl(sc, "rx_int_delay",
+	    "receive interrupt delay in usecs", &sc->rx_int_delay,
 	    E1000_REGISTER(hw, E1000_RDTR), em_rx_int_delay_dflt);
-	em_add_int_delay_sysctl(adapter, "tx_int_delay",
-	    "transmit interrupt delay in usecs", &adapter->tx_int_delay,
+	em_add_int_delay_sysctl(sc, "tx_int_delay",
+	    "transmit interrupt delay in usecs", &sc->tx_int_delay,
 	    E1000_REGISTER(hw, E1000_TIDV), em_tx_int_delay_dflt);
-	em_add_int_delay_sysctl(adapter, "rx_abs_int_delay",
+	em_add_int_delay_sysctl(sc, "rx_abs_int_delay",
 	    "receive interrupt delay limit in usecs",
-	    &adapter->rx_abs_int_delay,
+	    &sc->rx_abs_int_delay,
 	    E1000_REGISTER(hw, E1000_RADV),
 	    em_rx_abs_int_delay_dflt);
-	em_add_int_delay_sysctl(adapter, "tx_abs_int_delay",
+	em_add_int_delay_sysctl(sc, "tx_abs_int_delay",
 	    "transmit interrupt delay limit in usecs",
-	    &adapter->tx_abs_int_delay,
+	    &sc->tx_abs_int_delay,
 	    E1000_REGISTER(hw, E1000_TADV),
 	    em_tx_abs_int_delay_dflt);
-	em_add_int_delay_sysctl(adapter, "itr",
+	em_add_int_delay_sysctl(sc, "itr",
 	    "interrupt delay limit in usecs/4",
-	    &adapter->tx_itr,
+	    &sc->tx_itr,
 	    E1000_REGISTER(hw, E1000_ITR),
 	    DEFAULT_ITR);
 
 	hw->mac.autoneg = DO_AUTO_NEG;
-	hw->phy.autoneg_wait_to_complete = FALSE;
+	hw->phy.autoneg_wait_to_complete = false;
 	hw->phy.autoneg_advertised = AUTONEG_ADV_DEFAULT;
 
-	if (adapter->hw.mac.type < em_mac_min) {
-		e1000_init_script_state_82541(&adapter->hw, TRUE);
-		e1000_set_tbi_compatibility_82543(&adapter->hw, TRUE);
+	if (hw->mac.type < em_mac_min) {
+		e1000_init_script_state_82541(hw, true);
+		e1000_set_tbi_compatibility_82543(hw, true);
 	}
 	/* Copper options */
 	if (hw->phy.media_type == e1000_media_type_copper) {
 		hw->phy.mdix = AUTO_ALL_MODES;
-		hw->phy.disable_polarity_correction = FALSE;
+		hw->phy.disable_polarity_correction = false;
 		hw->phy.ms_type = EM_MASTER_SLAVE;
 	}
 
@@ -1011,7 +1028,7 @@ em_if_attach_pre(if_ctx_t ctx)
 	 * Set the frame limits assuming
 	 * standard ethernet sized frames.
 	 */
-	scctx->isc_max_frame_size = adapter->hw.mac.max_frame_size =
+	scctx->isc_max_frame_size = hw->mac.max_frame_size =
 	    ETHERMTU + ETHER_HDR_LEN + ETHERNET_FCS_SIZE;
 
 	/*
@@ -1021,9 +1038,9 @@ em_if_attach_pre(if_ctx_t ctx)
 	hw->mac.report_tx_early = 1;
 
 	/* Allocate multicast array memory. */
-	adapter->mta = malloc(sizeof(u8) * ETHER_ADDR_LEN *
+	sc->mta = malloc(sizeof(u8) * ETHER_ADDR_LEN *
 	    MAX_NUM_MULTICAST_ADDRESSES, M_DEVBUF, M_NOWAIT);
-	if (adapter->mta == NULL) {
+	if (sc->mta == NULL) {
 		device_printf(dev, "Can not allocate multicast setup array\n");
 		error = ENOMEM;
 		goto err_late;
@@ -1036,12 +1053,9 @@ em_if_attach_pre(if_ctx_t ctx)
 
 	/* Sysctl for setting Energy Efficient Ethernet */
 	hw->dev_spec.ich8lan.eee_disable = eee_setting;
-	SYSCTL_ADD_PROC(device_get_sysctl_ctx(dev),
-	    SYSCTL_CHILDREN(device_get_sysctl_tree(dev)),
-	    OID_AUTO, "eee_control",
-	    CTLTYPE_INT | CTLFLAG_RW | CTLFLAG_NEEDGIANT,
-	    adapter, 0, em_sysctl_eee, "I",
-	    "Disable Energy Efficient Ethernet");
+	SYSCTL_ADD_PROC(ctx_list, child, OID_AUTO, "eee_control",
+	    CTLTYPE_INT | CTLFLAG_RW | CTLFLAG_NEEDGIANT, sc, 0,
+	    em_sysctl_eee, "I", "Disable Energy Efficient Ethernet");
 
 	/*
 	** Start from a known state, this is
@@ -1074,12 +1088,9 @@ em_if_attach_pre(if_ctx_t ctx)
 	}
 
 	if (!em_is_valid_ether_addr(hw->mac.addr)) {
-		if (adapter->vf_ifp) {
-			u8 addr[ETHER_ADDR_LEN];
-			arc4rand(&addr, sizeof(addr), 0);
-			addr[0] &= 0xFE;
-			addr[0] |= 0x02;
-			bcopy(addr, hw->mac.addr, sizeof(addr));
+		if (sc->vf_ifp) {
+			ether_gen_addr(iflib_get_ifp(ctx),
+			    (struct ether_addr *)hw->mac.addr);
 		} else {
 			device_printf(dev, "Invalid MAC address\n");
 			error = EIO;
@@ -1087,8 +1098,13 @@ em_if_attach_pre(if_ctx_t ctx)
 		}
 	}
 
+	/* Save the EEPROM/NVM versions, must be done under IFLIB_CTX_LOCK */
+	em_fw_version_locked(ctx);
+
+	em_print_fw_version(sc);
+
 	/* Disable ULP support */
-	e1000_disable_ulp_lpt_lp(hw, TRUE);
+	e1000_disable_ulp_lpt_lp(hw, true);
 
 	/*
 	 * Get Wake-on-Lan and Management info for later use
@@ -1097,7 +1113,7 @@ em_if_attach_pre(if_ctx_t ctx)
 
 	/* Enable only WOL MAGIC by default */
 	scctx->isc_capenable &= ~IFCAP_WOL;
-	if (adapter->wol != 0)
+	if (sc->wol != 0)
 		scctx->isc_capenable |= IFCAP_WOL_MAGIC;
 
 	iflib_set_mac(ctx, hw->mac.addr);
@@ -1105,10 +1121,10 @@ em_if_attach_pre(if_ctx_t ctx)
 	return (0);
 
 err_late:
-	em_release_hw_control(adapter);
+	em_release_hw_control(sc);
 err_pci:
 	em_free_pci_resources(ctx);
-	free(adapter->mta, M_DEVBUF);
+	free(sc->mta, M_DEVBUF);
 
 	return (error);
 }
@@ -1116,28 +1132,28 @@ err_pci:
 static int
 em_if_attach_post(if_ctx_t ctx)
 {
-	struct adapter *adapter = iflib_get_softc(ctx);
-	struct e1000_hw *hw = &adapter->hw;
+	struct e1000_softc *sc = iflib_get_softc(ctx);
+	struct e1000_hw *hw = &sc->hw;
 	int error = 0;
 
 	/* Setup OS specific network interface */
 	error = em_setup_interface(ctx);
 	if (error != 0) {
-		device_printf(adapter->dev, "Interface setup failed: %d\n", error);
+		device_printf(sc->dev, "Interface setup failed: %d\n", error);
 		goto err_late;
 	}
 
 	em_reset(ctx);
 
 	/* Initialize statistics */
-	em_update_stats_counters(adapter);
+	em_update_stats_counters(sc);
 	hw->mac.get_link_status = 1;
 	em_if_update_admin_status(ctx);
-	em_add_hw_stats(adapter);
+	em_add_hw_stats(sc);
 
 	/* Non-AMT based hardware can now take control from firmware */
-	if (adapter->has_manage && !adapter->has_amt)
-		em_get_hw_control(adapter);
+	if (sc->has_manage && !sc->has_amt)
+		em_get_hw_control(sc);
 
 	INIT_DEBUGOUT("em_if_attach_post: end");
 
@@ -1160,17 +1176,17 @@ err_late:
 static int
 em_if_detach(if_ctx_t ctx)
 {
-	struct adapter	*adapter = iflib_get_softc(ctx);
+	struct e1000_softc	*sc = iflib_get_softc(ctx);
 
 	INIT_DEBUGOUT("em_if_detach: begin");
 
-	e1000_phy_hw_reset(&adapter->hw);
+	e1000_phy_hw_reset(&sc->hw);
 
-	em_release_manageability(adapter);
-	em_release_hw_control(adapter);
+	em_release_manageability(sc);
+	em_release_hw_control(sc);
 	em_free_pci_resources(ctx);
-	free(adapter->mta, M_DEVBUF);
-	adapter->mta = NULL;
+	free(sc->mta, M_DEVBUF);
+	sc->mta = NULL;
 
 	return (0);
 }
@@ -1193,10 +1209,10 @@ em_if_shutdown(if_ctx_t ctx)
 static int
 em_if_suspend(if_ctx_t ctx)
 {
-	struct adapter *adapter = iflib_get_softc(ctx);
+	struct e1000_softc *sc = iflib_get_softc(ctx);
 
-	em_release_manageability(adapter);
-	em_release_hw_control(adapter);
+	em_release_manageability(sc);
+	em_release_hw_control(sc);
 	em_enable_wakeup(ctx);
 	return (0);
 }
@@ -1204,12 +1220,12 @@ em_if_suspend(if_ctx_t ctx)
 static int
 em_if_resume(if_ctx_t ctx)
 {
-	struct adapter *adapter = iflib_get_softc(ctx);
+	struct e1000_softc *sc = iflib_get_softc(ctx);
 
-	if (adapter->hw.mac.type == e1000_pch2lan)
-		e1000_resume_workarounds_pchlan(&adapter->hw);
+	if (sc->hw.mac.type == e1000_pch2lan)
+		e1000_resume_workarounds_pchlan(&sc->hw);
 	em_if_init(ctx);
-	em_init_manageability(adapter);
+	em_init_manageability(sc);
 
 	return(0);
 }
@@ -1218,12 +1234,12 @@ static int
 em_if_mtu_set(if_ctx_t ctx, uint32_t mtu)
 {
 	int max_frame_size;
-	struct adapter *adapter = iflib_get_softc(ctx);
+	struct e1000_softc *sc = iflib_get_softc(ctx);
 	if_softc_ctx_t scctx = iflib_get_softc_ctx(ctx);
 
-	 IOCTL_DEBUGOUT("ioctl rcv'd: SIOCSIFMTU (Set Interface MTU)");
+	IOCTL_DEBUGOUT("ioctl rcv'd: SIOCSIFMTU (Set Interface MTU)");
 
-	switch (adapter->hw.mac.type) {
+	switch (sc->hw.mac.type) {
 	case e1000_82571:
 	case e1000_82572:
 	case e1000_ich9lan:
@@ -1250,7 +1266,7 @@ em_if_mtu_set(if_ctx_t ctx, uint32_t mtu)
 		max_frame_size = ETHER_MAX_LEN;
 		break;
 	default:
-		if (adapter->hw.mac.type >= igb_mac_min)
+		if (sc->hw.mac.type >= igb_mac_min)
 			max_frame_size = 9234;
 		else /* lem */
 			max_frame_size = MAX_JUMBO_FRAME_SIZE;
@@ -1259,7 +1275,7 @@ em_if_mtu_set(if_ctx_t ctx, uint32_t mtu)
 		return (EINVAL);
 	}
 
-	scctx->isc_max_frame_size = adapter->hw.mac.max_frame_size =
+	scctx->isc_max_frame_size = sc->hw.mac.max_frame_size =
 	    mtu + ETHER_HDR_LEN + ETHER_CRC_LEN;
 	return (0);
 }
@@ -1276,8 +1292,8 @@ em_if_mtu_set(if_ctx_t ctx, uint32_t mtu)
 static void
 em_if_init(if_ctx_t ctx)
 {
-	struct adapter *adapter = iflib_get_softc(ctx);
-	if_softc_ctx_t scctx = adapter->shared;
+	struct e1000_softc *sc = iflib_get_softc(ctx);
+	if_softc_ctx_t scctx = sc->shared;
 	struct ifnet *ifp = iflib_get_ifp(ctx);
 	struct em_tx_queue *tx_que;
 	int i;
@@ -1285,11 +1301,11 @@ em_if_init(if_ctx_t ctx)
 	INIT_DEBUGOUT("em_if_init: begin");
 
 	/* Get the latest mac address, User can use a LAA */
-	bcopy(if_getlladdr(ifp), adapter->hw.mac.addr,
+	bcopy(if_getlladdr(ifp), sc->hw.mac.addr,
 	    ETHER_ADDR_LEN);
 
 	/* Put the address into the Receive Address Array */
-	e1000_rar_set(&adapter->hw, adapter->hw.mac.addr, 0);
+	e1000_rar_set(&sc->hw, sc->hw.mac.addr, 0);
 
 	/*
 	 * With the 82571 adapter, RAR[0] may be overwritten
@@ -1297,9 +1313,9 @@ em_if_init(if_ctx_t ctx)
 	 * in RAR[14] for that eventuality, this assures
 	 * the interface continues to function.
 	 */
-	if (adapter->hw.mac.type == e1000_82571) {
-		e1000_set_laa_state_82571(&adapter->hw, TRUE);
-		e1000_rar_set(&adapter->hw, adapter->hw.mac.addr,
+	if (sc->hw.mac.type == e1000_82571) {
+		e1000_set_laa_state_82571(&sc->hw, true);
+		e1000_rar_set(&sc->hw, sc->hw.mac.addr,
 		    E1000_RAR_ENTRIES - 1);
 	}
 
@@ -1308,7 +1324,7 @@ em_if_init(if_ctx_t ctx)
 	em_reset(ctx);
 	em_if_update_admin_status(ctx);
 
-	for (i = 0, tx_que = adapter->tx_queues; i < adapter->tx_num_queues; i++, tx_que++) {
+	for (i = 0, tx_que = sc->tx_queues; i < sc->tx_num_queues; i++, tx_que++) {
 		struct tx_ring *txr = &tx_que->txr;
 
 		txr->tx_rs_cidx = txr->tx_rs_pidx;
@@ -1322,14 +1338,14 @@ em_if_init(if_ctx_t ctx)
 	}
 
 	/* Setup VLAN support, basic and offload if available */
-	E1000_WRITE_REG(&adapter->hw, E1000_VET, ETHERTYPE_VLAN);
+	E1000_WRITE_REG(&sc->hw, E1000_VET, ETHERTYPE_VLAN);
 
 	/* Clear bad data from Rx FIFOs */
-	if (adapter->hw.mac.type >= igb_mac_min)
-		e1000_rx_fifo_flush_82575(&adapter->hw);
+	if (sc->hw.mac.type >= igb_mac_min)
+		e1000_rx_fifo_flush_base(&sc->hw);
 
 	/* Configure for OS presence */
-	em_init_manageability(adapter);
+	em_init_manageability(sc);
 
 	/* Prepare transmit descriptors and buffers */
 	em_initialize_transmit_unit(ctx);
@@ -1337,57 +1353,42 @@ em_if_init(if_ctx_t ctx)
 	/* Setup Multicast table */
 	em_if_multi_set(ctx);
 
-	adapter->rx_mbuf_sz = iflib_get_rx_mbuf_sz(ctx);
+	sc->rx_mbuf_sz = iflib_get_rx_mbuf_sz(ctx);
 	em_initialize_receive_unit(ctx);
 
-	/* Use real VLAN Filter support? */
-	if (if_getcapenable(ifp) & IFCAP_VLAN_HWTAGGING) {
-		if (if_getcapenable(ifp) & IFCAP_VLAN_HWFILTER)
-			/* Use real VLAN Filter support */
-			em_setup_vlan_hw_support(adapter);
-		else {
-			u32 ctrl;
-			ctrl = E1000_READ_REG(&adapter->hw, E1000_CTRL);
-			ctrl |= E1000_CTRL_VME;
-			E1000_WRITE_REG(&adapter->hw, E1000_CTRL, ctrl);
-		}
-	} else {
-		u32 ctrl;
-		ctrl = E1000_READ_REG(&adapter->hw, E1000_CTRL);
-		ctrl &= ~E1000_CTRL_VME;
-		E1000_WRITE_REG(&adapter->hw, E1000_CTRL, ctrl);
-	}
+	/* Set up VLAN support and filter */
+	em_setup_vlan_hw_support(ctx);
 
 	/* Don't lose promiscuous settings */
 	em_if_set_promisc(ctx, if_getflags(ifp));
-	e1000_clear_hw_cntrs_base_generic(&adapter->hw);
+	e1000_clear_hw_cntrs_base_generic(&sc->hw);
 
 	/* MSI-X configuration for 82574 */
-	if (adapter->hw.mac.type == e1000_82574) {
-		int tmp = E1000_READ_REG(&adapter->hw, E1000_CTRL_EXT);
+	if (sc->hw.mac.type == e1000_82574) {
+		int tmp = E1000_READ_REG(&sc->hw, E1000_CTRL_EXT);
 
 		tmp |= E1000_CTRL_EXT_PBA_CLR;
-		E1000_WRITE_REG(&adapter->hw, E1000_CTRL_EXT, tmp);
+		E1000_WRITE_REG(&sc->hw, E1000_CTRL_EXT, tmp);
 		/* Set the IVAR - interrupt vector routing. */
-		E1000_WRITE_REG(&adapter->hw, E1000_IVAR, adapter->ivars);
-	} else if (adapter->intr_type == IFLIB_INTR_MSIX) /* Set up queue routing */
-		igb_configure_queues(adapter);
+		E1000_WRITE_REG(&sc->hw, E1000_IVAR, sc->ivars);
+	} else if (sc->intr_type == IFLIB_INTR_MSIX) /* Set up queue routing */
+		igb_configure_queues(sc);
 
 	/* this clears any pending interrupts */
-	E1000_READ_REG(&adapter->hw, E1000_ICR);
-	E1000_WRITE_REG(&adapter->hw, E1000_ICS, E1000_ICS_LSC);
+	E1000_READ_REG(&sc->hw, E1000_ICR);
+	E1000_WRITE_REG(&sc->hw, E1000_ICS, E1000_ICS_LSC);
 
 	/* AMT based hardware can now take control from firmware */
-	if (adapter->has_manage && adapter->has_amt)
-		em_get_hw_control(adapter);
+	if (sc->has_manage && sc->has_amt)
+		em_get_hw_control(sc);
 
 	/* Set Energy Efficient Ethernet */
-	if (adapter->hw.mac.type >= igb_mac_min &&
-	    adapter->hw.phy.media_type == e1000_media_type_copper) {
-		if (adapter->hw.mac.type == e1000_i354)
-			e1000_set_eee_i354(&adapter->hw, TRUE, TRUE);
+	if (sc->hw.mac.type >= igb_mac_min &&
+	    sc->hw.phy.media_type == e1000_media_type_copper) {
+		if (sc->hw.mac.type == e1000_i354)
+			e1000_set_eee_i354(&sc->hw, true, true);
 		else
-			e1000_set_eee_i350(&adapter->hw, TRUE, TRUE);
+			e1000_set_eee_i350(&sc->hw, true, true);
 	}
 }
 
@@ -1399,11 +1400,11 @@ em_if_init(if_ctx_t ctx)
 int
 em_intr(void *arg)
 {
-	struct adapter *adapter = arg;
-	if_ctx_t ctx = adapter->ctx;
+	struct e1000_softc *sc = arg;
+	if_ctx_t ctx = sc->ctx;
 	u32 reg_icr;
 
-	reg_icr = E1000_READ_REG(&adapter->hw, E1000_ICR);
+	reg_icr = E1000_READ_REG(&sc->hw, E1000_ICR);
 
 	/* Hot eject? */
 	if (reg_icr == 0xffffffff)
@@ -1417,7 +1418,7 @@ em_intr(void *arg)
 	 * Starting with the 82571 chip, bit 31 should be used to
 	 * determine whether the interrupt belongs to us.
 	 */
-	if (adapter->hw.mac.type >= e1000_82571 &&
+	if (sc->hw.mac.type >= e1000_82571 &&
 	    (reg_icr & E1000_ICR_INT_ASSERTED) == 0)
 		return FILTER_STRAY;
 
@@ -1434,7 +1435,7 @@ em_intr(void *arg)
 		em_handle_link(ctx);
 
 	if (reg_icr & E1000_ICR_RXO)
-		adapter->rx_overruns++;
+		sc->rx_overruns++;
 
 	return (FILTER_SCHEDULE_THREAD);
 }
@@ -1442,40 +1443,40 @@ em_intr(void *arg)
 static int
 em_if_rx_queue_intr_enable(if_ctx_t ctx, uint16_t rxqid)
 {
-	struct adapter *adapter = iflib_get_softc(ctx);
-	struct em_rx_queue *rxq = &adapter->rx_queues[rxqid];
+	struct e1000_softc *sc = iflib_get_softc(ctx);
+	struct em_rx_queue *rxq = &sc->rx_queues[rxqid];
 
-	E1000_WRITE_REG(&adapter->hw, E1000_IMS, rxq->eims);
+	E1000_WRITE_REG(&sc->hw, E1000_IMS, rxq->eims);
 	return (0);
 }
 
 static int
 em_if_tx_queue_intr_enable(if_ctx_t ctx, uint16_t txqid)
 {
-	struct adapter *adapter = iflib_get_softc(ctx);
-	struct em_tx_queue *txq = &adapter->tx_queues[txqid];
+	struct e1000_softc *sc = iflib_get_softc(ctx);
+	struct em_tx_queue *txq = &sc->tx_queues[txqid];
 
-	E1000_WRITE_REG(&adapter->hw, E1000_IMS, txq->eims);
+	E1000_WRITE_REG(&sc->hw, E1000_IMS, txq->eims);
 	return (0);
 }
 
 static int
 igb_if_rx_queue_intr_enable(if_ctx_t ctx, uint16_t rxqid)
 {
-	struct adapter *adapter = iflib_get_softc(ctx);
-	struct em_rx_queue *rxq = &adapter->rx_queues[rxqid];
+	struct e1000_softc *sc = iflib_get_softc(ctx);
+	struct em_rx_queue *rxq = &sc->rx_queues[rxqid];
 
-	E1000_WRITE_REG(&adapter->hw, E1000_EIMS, rxq->eims);
+	E1000_WRITE_REG(&sc->hw, E1000_EIMS, rxq->eims);
 	return (0);
 }
 
 static int
 igb_if_tx_queue_intr_enable(if_ctx_t ctx, uint16_t txqid)
 {
-	struct adapter *adapter = iflib_get_softc(ctx);
-	struct em_tx_queue *txq = &adapter->tx_queues[txqid];
+	struct e1000_softc *sc = iflib_get_softc(ctx);
+	struct em_tx_queue *txq = &sc->tx_queues[txqid];
 
-	E1000_WRITE_REG(&adapter->hw, E1000_EIMS, txq->eims);
+	E1000_WRITE_REG(&sc->hw, E1000_EIMS, txq->eims);
 	return (0);
 }
 
@@ -1502,38 +1503,35 @@ em_msix_que(void *arg)
 static int
 em_msix_link(void *arg)
 {
-	struct adapter *adapter = arg;
+	struct e1000_softc *sc = arg;
 	u32 reg_icr;
-	bool notlink = false;
 
-	++adapter->link_irq;
-	MPASS(adapter->hw.back != NULL);
-	reg_icr = E1000_READ_REG(&adapter->hw, E1000_ICR);
+	++sc->link_irq;
+	MPASS(sc->hw.back != NULL);
+	reg_icr = E1000_READ_REG(&sc->hw, E1000_ICR);
 
 	if (reg_icr & E1000_ICR_RXO)
-		adapter->rx_overruns++;
+		sc->rx_overruns++;
 
 	if (reg_icr & (E1000_ICR_RXSEQ | E1000_ICR_LSC))
-		em_handle_link(adapter->ctx);
-	else
-		notlink = true;
+		em_handle_link(sc->ctx);
 
-	/* Re-arm for other/spurious interrupts */
-	if (notlink && adapter->hw.mac.type >= igb_mac_min) {
-		E1000_WRITE_REG(&adapter->hw, E1000_IMS, E1000_IMS_LSC);
-		E1000_WRITE_REG(&adapter->hw, E1000_EIMS, adapter->link_mask);
-	} else if (adapter->hw.mac.type == e1000_82574) {
-		if (notlink)
-			E1000_WRITE_REG(&adapter->hw, E1000_IMS, E1000_IMS_LSC |
-			    E1000_IMS_OTHER);
+	/* Re-arm unconditionally */
+	if (sc->hw.mac.type >= igb_mac_min) {
+		E1000_WRITE_REG(&sc->hw, E1000_IMS, E1000_IMS_LSC);
+		E1000_WRITE_REG(&sc->hw, E1000_EIMS, sc->link_mask);
+	} else if (sc->hw.mac.type == e1000_82574) {
+		E1000_WRITE_REG(&sc->hw, E1000_IMS, E1000_IMS_LSC |
+		    E1000_IMS_OTHER);
 		/*
 		 * Because we must read the ICR for this interrupt it may
 		 * clear other causes using autoclear, for this reason we
 		 * simply create a soft interrupt for all these vectors.
 		 */
 		if (reg_icr)
-			E1000_WRITE_REG(&adapter->hw, E1000_ICS, adapter->ims);
-	}
+			E1000_WRITE_REG(&sc->hw, E1000_ICS, sc->ims);
+	} else
+		E1000_WRITE_REG(&sc->hw, E1000_IMS, E1000_IMS_LSC);
 
 	return (FILTER_HANDLED);
 }
@@ -1542,9 +1540,9 @@ static void
 em_handle_link(void *context)
 {
 	if_ctx_t ctx = context;
-	struct adapter *adapter = iflib_get_softc(ctx);
+	struct e1000_softc *sc = iflib_get_softc(ctx);
 
-	adapter->hw.mac.get_link_status = 1;
+	sc->hw.mac.get_link_status = 1;
 	iflib_admin_intr_deferred(ctx);
 }
 
@@ -1559,7 +1557,7 @@ em_handle_link(void *context)
 static void
 em_if_media_status(if_ctx_t ctx, struct ifmediareq *ifmr)
 {
-	struct adapter *adapter = iflib_get_softc(ctx);
+	struct e1000_softc *sc = iflib_get_softc(ctx);
 	u_char fiber_type = IFM_1000_SX;
 
 	INIT_DEBUGOUT("em_if_media_status: begin");
@@ -1569,19 +1567,19 @@ em_if_media_status(if_ctx_t ctx, struct ifmediareq *ifmr)
 	ifmr->ifm_status = IFM_AVALID;
 	ifmr->ifm_active = IFM_ETHER;
 
-	if (!adapter->link_active) {
+	if (!sc->link_active) {
 		return;
 	}
 
 	ifmr->ifm_status |= IFM_ACTIVE;
 
-	if ((adapter->hw.phy.media_type == e1000_media_type_fiber) ||
-	    (adapter->hw.phy.media_type == e1000_media_type_internal_serdes)) {
-		if (adapter->hw.mac.type == e1000_82545)
+	if ((sc->hw.phy.media_type == e1000_media_type_fiber) ||
+	    (sc->hw.phy.media_type == e1000_media_type_internal_serdes)) {
+		if (sc->hw.mac.type == e1000_82545)
 			fiber_type = IFM_1000_LX;
 		ifmr->ifm_active |= fiber_type | IFM_FDX;
 	} else {
-		switch (adapter->link_speed) {
+		switch (sc->link_speed) {
 		case 10:
 			ifmr->ifm_active |= IFM_10_T;
 			break;
@@ -1592,7 +1590,7 @@ em_if_media_status(if_ctx_t ctx, struct ifmediareq *ifmr)
 			ifmr->ifm_active |= IFM_1000_T;
 			break;
 		}
-		if (adapter->link_duplex == FULL_DUPLEX)
+		if (sc->link_duplex == FULL_DUPLEX)
 			ifmr->ifm_active |= IFM_FDX;
 		else
 			ifmr->ifm_active |= IFM_HDX;
@@ -1610,7 +1608,7 @@ em_if_media_status(if_ctx_t ctx, struct ifmediareq *ifmr)
 static int
 em_if_media_change(if_ctx_t ctx)
 {
-	struct adapter *adapter = iflib_get_softc(ctx);
+	struct e1000_softc *sc = iflib_get_softc(ctx);
 	struct ifmedia *ifm = iflib_get_media(ctx);
 
 	INIT_DEBUGOUT("em_if_media_change: begin");
@@ -1620,33 +1618,33 @@ em_if_media_change(if_ctx_t ctx)
 
 	switch (IFM_SUBTYPE(ifm->ifm_media)) {
 	case IFM_AUTO:
-		adapter->hw.mac.autoneg = DO_AUTO_NEG;
-		adapter->hw.phy.autoneg_advertised = AUTONEG_ADV_DEFAULT;
+		sc->hw.mac.autoneg = DO_AUTO_NEG;
+		sc->hw.phy.autoneg_advertised = AUTONEG_ADV_DEFAULT;
 		break;
 	case IFM_1000_LX:
 	case IFM_1000_SX:
 	case IFM_1000_T:
-		adapter->hw.mac.autoneg = DO_AUTO_NEG;
-		adapter->hw.phy.autoneg_advertised = ADVERTISE_1000_FULL;
+		sc->hw.mac.autoneg = DO_AUTO_NEG;
+		sc->hw.phy.autoneg_advertised = ADVERTISE_1000_FULL;
 		break;
 	case IFM_100_TX:
-		adapter->hw.mac.autoneg = FALSE;
-		adapter->hw.phy.autoneg_advertised = 0;
+		sc->hw.mac.autoneg = false;
+		sc->hw.phy.autoneg_advertised = 0;
 		if ((ifm->ifm_media & IFM_GMASK) == IFM_FDX)
-			adapter->hw.mac.forced_speed_duplex = ADVERTISE_100_FULL;
+			sc->hw.mac.forced_speed_duplex = ADVERTISE_100_FULL;
 		else
-			adapter->hw.mac.forced_speed_duplex = ADVERTISE_100_HALF;
+			sc->hw.mac.forced_speed_duplex = ADVERTISE_100_HALF;
 		break;
 	case IFM_10_T:
-		adapter->hw.mac.autoneg = FALSE;
-		adapter->hw.phy.autoneg_advertised = 0;
+		sc->hw.mac.autoneg = false;
+		sc->hw.phy.autoneg_advertised = 0;
 		if ((ifm->ifm_media & IFM_GMASK) == IFM_FDX)
-			adapter->hw.mac.forced_speed_duplex = ADVERTISE_10_FULL;
+			sc->hw.mac.forced_speed_duplex = ADVERTISE_10_FULL;
 		else
-			adapter->hw.mac.forced_speed_duplex = ADVERTISE_10_HALF;
+			sc->hw.mac.forced_speed_duplex = ADVERTISE_10_HALF;
 		break;
 	default:
-		device_printf(adapter->dev, "Unsupported media type\n");
+		device_printf(sc->dev, "Unsupported media type\n");
 	}
 
 	em_if_init(ctx);
@@ -1657,12 +1655,12 @@ em_if_media_change(if_ctx_t ctx)
 static int
 em_if_set_promisc(if_ctx_t ctx, int flags)
 {
-	struct adapter *adapter = iflib_get_softc(ctx);
+	struct e1000_softc *sc = iflib_get_softc(ctx);
 	struct ifnet *ifp = iflib_get_ifp(ctx);
 	u32 reg_rctl;
 	int mcnt = 0;
 
-	reg_rctl = E1000_READ_REG(&adapter->hw, E1000_RCTL);
+	reg_rctl = E1000_READ_REG(&sc->hw, E1000_RCTL);
 	reg_rctl &= ~(E1000_RCTL_SBP | E1000_RCTL_UPE);
 	if (flags & IFF_ALLMULTI)
 		mcnt = MAX_NUM_MULTICAST_ADDRESSES;
@@ -1671,18 +1669,23 @@ em_if_set_promisc(if_ctx_t ctx, int flags)
 
 	if (mcnt < MAX_NUM_MULTICAST_ADDRESSES)
 		reg_rctl &= (~E1000_RCTL_MPE);
-	E1000_WRITE_REG(&adapter->hw, E1000_RCTL, reg_rctl);
+	E1000_WRITE_REG(&sc->hw, E1000_RCTL, reg_rctl);
 
 	if (flags & IFF_PROMISC) {
 		reg_rctl |= (E1000_RCTL_UPE | E1000_RCTL_MPE);
+		em_if_vlan_filter_disable(sc);
 		/* Turn this on if you want to see bad packets */
 		if (em_debug_sbp)
 			reg_rctl |= E1000_RCTL_SBP;
-		E1000_WRITE_REG(&adapter->hw, E1000_RCTL, reg_rctl);
-	} else if (flags & IFF_ALLMULTI) {
-		reg_rctl |= E1000_RCTL_MPE;
-		reg_rctl &= ~E1000_RCTL_UPE;
-		E1000_WRITE_REG(&adapter->hw, E1000_RCTL, reg_rctl);
+		E1000_WRITE_REG(&sc->hw, E1000_RCTL, reg_rctl);
+	} else {
+		if (flags & IFF_ALLMULTI) {
+			reg_rctl |= E1000_RCTL_MPE;
+			reg_rctl &= ~E1000_RCTL_UPE;
+			E1000_WRITE_REG(&sc->hw, E1000_RCTL, reg_rctl);
+		}
+		if (em_if_vlan_filter_used(ctx))
+			em_if_vlan_filter_enable(sc);
 	}
 	return (0);
 }
@@ -1709,7 +1712,7 @@ em_copy_maddr(void *arg, struct sockaddr_dl *sdl, u_int idx)
 static void
 em_if_multi_set(if_ctx_t ctx)
 {
-	struct adapter *adapter = iflib_get_softc(ctx);
+	struct e1000_softc *sc = iflib_get_softc(ctx);
 	struct ifnet *ifp = iflib_get_ifp(ctx);
 	u8  *mta; /* Multicast array memory */
 	u32 reg_rctl = 0;
@@ -1717,22 +1720,22 @@ em_if_multi_set(if_ctx_t ctx)
 
 	IOCTL_DEBUGOUT("em_set_multi: begin");
 
-	mta = adapter->mta;
+	mta = sc->mta;
 	bzero(mta, sizeof(u8) * ETHER_ADDR_LEN * MAX_NUM_MULTICAST_ADDRESSES);
 
-	if (adapter->hw.mac.type == e1000_82542 &&
-	    adapter->hw.revision_id == E1000_REVISION_2) {
-		reg_rctl = E1000_READ_REG(&adapter->hw, E1000_RCTL);
-		if (adapter->hw.bus.pci_cmd_word & CMD_MEM_WRT_INVALIDATE)
-			e1000_pci_clear_mwi(&adapter->hw);
+	if (sc->hw.mac.type == e1000_82542 &&
+	    sc->hw.revision_id == E1000_REVISION_2) {
+		reg_rctl = E1000_READ_REG(&sc->hw, E1000_RCTL);
+		if (sc->hw.bus.pci_cmd_word & CMD_MEM_WRT_INVALIDATE)
+			e1000_pci_clear_mwi(&sc->hw);
 		reg_rctl |= E1000_RCTL_RST;
-		E1000_WRITE_REG(&adapter->hw, E1000_RCTL, reg_rctl);
+		E1000_WRITE_REG(&sc->hw, E1000_RCTL, reg_rctl);
 		msec_delay(5);
 	}
 
 	mcnt = if_foreach_llmaddr(ifp, em_copy_maddr, mta);
 
-	reg_rctl = E1000_READ_REG(&adapter->hw, E1000_RCTL);
+	reg_rctl = E1000_READ_REG(&sc->hw, E1000_RCTL);
 
 	if (if_getflags(ifp) & IFF_PROMISC)
 		reg_rctl |= (E1000_RCTL_UPE | E1000_RCTL_MPE);
@@ -1743,19 +1746,19 @@ em_if_multi_set(if_ctx_t ctx)
 	} else
 		reg_rctl &= ~(E1000_RCTL_UPE | E1000_RCTL_MPE);
 
-	E1000_WRITE_REG(&adapter->hw, E1000_RCTL, reg_rctl);
+	E1000_WRITE_REG(&sc->hw, E1000_RCTL, reg_rctl);
 
 	if (mcnt < MAX_NUM_MULTICAST_ADDRESSES)
-		e1000_update_mc_addr_list(&adapter->hw, mta, mcnt);
+		e1000_update_mc_addr_list(&sc->hw, mta, mcnt);
 
-	if (adapter->hw.mac.type == e1000_82542 &&
-	    adapter->hw.revision_id == E1000_REVISION_2) {
-		reg_rctl = E1000_READ_REG(&adapter->hw, E1000_RCTL);
+	if (sc->hw.mac.type == e1000_82542 &&
+	    sc->hw.revision_id == E1000_REVISION_2) {
+		reg_rctl = E1000_READ_REG(&sc->hw, E1000_RCTL);
 		reg_rctl &= ~E1000_RCTL_RST;
-		E1000_WRITE_REG(&adapter->hw, E1000_RCTL, reg_rctl);
+		E1000_WRITE_REG(&sc->hw, E1000_RCTL, reg_rctl);
 		msec_delay(5);
-		if (adapter->hw.bus.pci_cmd_word & CMD_MEM_WRT_INVALIDATE)
-			e1000_pci_set_mwi(&adapter->hw);
+		if (sc->hw.bus.pci_cmd_word & CMD_MEM_WRT_INVALIDATE)
+			e1000_pci_set_mwi(&sc->hw);
 	}
 }
 
@@ -1780,8 +1783,8 @@ em_if_timer(if_ctx_t ctx, uint16_t qid)
 static void
 em_if_update_admin_status(if_ctx_t ctx)
 {
-	struct adapter *adapter = iflib_get_softc(ctx);
-	struct e1000_hw *hw = &adapter->hw;
+	struct e1000_softc *sc = iflib_get_softc(ctx);
+	struct e1000_hw *hw = &sc->hw;
 	device_t dev = iflib_get_dev(ctx);
 	u32 link_check, thstat, ctrl;
 
@@ -1798,7 +1801,7 @@ em_if_update_admin_status(if_ctx_t ctx)
 			if (link_check) /* ESB2 fix */
 				e1000_cfg_on_link_up(hw);
 		} else {
-			link_check = TRUE;
+			link_check = true;
 		}
 		break;
 	case e1000_media_type_fiber:
@@ -1808,7 +1811,7 @@ em_if_update_admin_status(if_ctx_t ctx)
 		break;
 	case e1000_media_type_internal_serdes:
 		e1000_check_for_link(hw);
-		link_check = adapter->hw.mac.serdes_has_link;
+		link_check = hw->mac.serdes_has_link;
 		break;
 	/* VF device is type_unknown */
 	case e1000_media_type_unknown:
@@ -1826,11 +1829,11 @@ em_if_update_admin_status(if_ctx_t ctx)
 	}
 
 	/* Now check for a transition */
-	if (link_check && (adapter->link_active == 0)) {
-		e1000_get_speed_and_duplex(hw, &adapter->link_speed,
-		    &adapter->link_duplex);
+	if (link_check && (sc->link_active == 0)) {
+		e1000_get_speed_and_duplex(hw, &sc->link_speed,
+		    &sc->link_duplex);
 		/* Check if we must disable SPEED_MODE bit on PCI-E */
-		if ((adapter->link_speed != SPEED_1000) &&
+		if ((sc->link_speed != SPEED_1000) &&
 		    ((hw->mac.type == e1000_82571) ||
 		    (hw->mac.type == e1000_82572))) {
 			int tarc0;
@@ -1840,11 +1843,11 @@ em_if_update_admin_status(if_ctx_t ctx)
 		}
 		if (bootverbose)
 			device_printf(dev, "Link is up %d Mbps %s\n",
-			    adapter->link_speed,
-			    ((adapter->link_duplex == FULL_DUPLEX) ?
+			    sc->link_speed,
+			    ((sc->link_duplex == FULL_DUPLEX) ?
 			    "Full Duplex" : "Half Duplex"));
-		adapter->link_active = 1;
-		adapter->smartspeed = 0;
+		sc->link_active = 1;
+		sc->smartspeed = 0;
 		if ((ctrl & E1000_CTRL_EXT_LINK_MODE_MASK) ==
 		    E1000_CTRL_EXT_LINK_MODE_GMII &&
 		    (thstat & E1000_THSTAT_LINK_THROTTLE))
@@ -1855,47 +1858,40 @@ em_if_update_admin_status(if_ctx_t ctx)
 		    (hw->phy.id == I210_I_PHY_ID))
 			msec_delay(I210_LINK_DELAY);
 		/* Reset if the media type changed. */
-		if ((hw->dev_spec._82575.media_changed) &&
-			(adapter->hw.mac.type >= igb_mac_min)) {
+		if (hw->dev_spec._82575.media_changed &&
+		    hw->mac.type >= igb_mac_min) {
 			hw->dev_spec._82575.media_changed = false;
-			adapter->flags |= IGB_MEDIA_RESET;
+			sc->flags |= IGB_MEDIA_RESET;
 			em_reset(ctx);
 		}
 		iflib_link_state_change(ctx, LINK_STATE_UP,
-		    IF_Mbps(adapter->link_speed));
-	} else if (!link_check && (adapter->link_active == 1)) {
-		adapter->link_speed = 0;
-		adapter->link_duplex = 0;
-		adapter->link_active = 0;
+		    IF_Mbps(sc->link_speed));
+	} else if (!link_check && (sc->link_active == 1)) {
+		sc->link_speed = 0;
+		sc->link_duplex = 0;
+		sc->link_active = 0;
 		iflib_link_state_change(ctx, LINK_STATE_DOWN, 0);
 	}
-	em_update_stats_counters(adapter);
+	em_update_stats_counters(sc);
 
 	/* Reset LAA into RAR[0] on 82571 */
 	if (hw->mac.type == e1000_82571 && e1000_get_laa_state_82571(hw))
 		e1000_rar_set(hw, hw->mac.addr, 0);
 
 	if (hw->mac.type < em_mac_min)
-		lem_smartspeed(adapter);
-	else if (hw->mac.type >= igb_mac_min &&
-	    adapter->intr_type == IFLIB_INTR_MSIX) {
-		E1000_WRITE_REG(&adapter->hw, E1000_IMS, E1000_IMS_LSC);
-		E1000_WRITE_REG(&adapter->hw, E1000_EIMS, adapter->link_mask);
-	} else if (hw->mac.type == e1000_82574 &&
-	    adapter->intr_type == IFLIB_INTR_MSIX)
-		E1000_WRITE_REG(hw, E1000_IMS, E1000_IMS_LSC | E1000_IMS_OTHER);
+		lem_smartspeed(sc);
 }
 
 static void
 em_if_watchdog_reset(if_ctx_t ctx)
 {
-	struct adapter *adapter = iflib_get_softc(ctx);
+	struct e1000_softc *sc = iflib_get_softc(ctx);
 
 	/*
 	 * Just count the event; iflib(4) will already trigger a
 	 * sufficient reset of the controller.
 	 */
-	adapter->watchdog_events++;
+	sc->watchdog_events++;
 }
 
 /*********************************************************************
@@ -1907,16 +1903,16 @@ em_if_watchdog_reset(if_ctx_t ctx)
 static void
 em_if_stop(if_ctx_t ctx)
 {
-	struct adapter *adapter = iflib_get_softc(ctx);
+	struct e1000_softc *sc = iflib_get_softc(ctx);
 
 	INIT_DEBUGOUT("em_if_stop: begin");
 
-	e1000_reset_hw(&adapter->hw);
-	if (adapter->hw.mac.type >= e1000_82544)
-		E1000_WRITE_REG(&adapter->hw, E1000_WUFC, 0);
+	e1000_reset_hw(&sc->hw);
+	if (sc->hw.mac.type >= e1000_82544)
+		E1000_WRITE_REG(&sc->hw, E1000_WUFC, 0);
 
-	e1000_led_off(&adapter->hw);
-	e1000_cleanup_led(&adapter->hw);
+	e1000_led_off(&sc->hw);
+	e1000_cleanup_led(&sc->hw);
 }
 
 /*********************************************************************
@@ -1928,56 +1924,56 @@ static void
 em_identify_hardware(if_ctx_t ctx)
 {
 	device_t dev = iflib_get_dev(ctx);
-	struct adapter *adapter = iflib_get_softc(ctx);
+	struct e1000_softc *sc = iflib_get_softc(ctx);
 
 	/* Make sure our PCI config space has the necessary stuff set */
-	adapter->hw.bus.pci_cmd_word = pci_read_config(dev, PCIR_COMMAND, 2);
+	sc->hw.bus.pci_cmd_word = pci_read_config(dev, PCIR_COMMAND, 2);
 
 	/* Save off the information about this board */
-	adapter->hw.vendor_id = pci_get_vendor(dev);
-	adapter->hw.device_id = pci_get_device(dev);
-	adapter->hw.revision_id = pci_read_config(dev, PCIR_REVID, 1);
-	adapter->hw.subsystem_vendor_id =
+	sc->hw.vendor_id = pci_get_vendor(dev);
+	sc->hw.device_id = pci_get_device(dev);
+	sc->hw.revision_id = pci_read_config(dev, PCIR_REVID, 1);
+	sc->hw.subsystem_vendor_id =
 	    pci_read_config(dev, PCIR_SUBVEND_0, 2);
-	adapter->hw.subsystem_device_id =
+	sc->hw.subsystem_device_id =
 	    pci_read_config(dev, PCIR_SUBDEV_0, 2);
 
 	/* Do Shared Code Init and Setup */
-	if (e1000_set_mac_type(&adapter->hw)) {
+	if (e1000_set_mac_type(&sc->hw)) {
 		device_printf(dev, "Setup init failure\n");
 		return;
 	}
 
 	/* Are we a VF device? */
-	if ((adapter->hw.mac.type == e1000_vfadapt) ||
-	    (adapter->hw.mac.type == e1000_vfadapt_i350))
-		adapter->vf_ifp = 1;
+	if ((sc->hw.mac.type == e1000_vfadapt) ||
+	    (sc->hw.mac.type == e1000_vfadapt_i350))
+		sc->vf_ifp = 1;
 	else
-		adapter->vf_ifp = 0;
+		sc->vf_ifp = 0;
 }
 
 static int
 em_allocate_pci_resources(if_ctx_t ctx)
 {
-	struct adapter *adapter = iflib_get_softc(ctx);
+	struct e1000_softc *sc = iflib_get_softc(ctx);
 	device_t dev = iflib_get_dev(ctx);
 	int rid, val;
 
 	rid = PCIR_BAR(0);
-	adapter->memory = bus_alloc_resource_any(dev, SYS_RES_MEMORY,
+	sc->memory = bus_alloc_resource_any(dev, SYS_RES_MEMORY,
 	    &rid, RF_ACTIVE);
-	if (adapter->memory == NULL) {
+	if (sc->memory == NULL) {
 		device_printf(dev, "Unable to allocate bus resource: memory\n");
 		return (ENXIO);
 	}
-	adapter->osdep.mem_bus_space_tag = rman_get_bustag(adapter->memory);
-	adapter->osdep.mem_bus_space_handle =
-	    rman_get_bushandle(adapter->memory);
-	adapter->hw.hw_addr = (u8 *)&adapter->osdep.mem_bus_space_handle;
+	sc->osdep.mem_bus_space_tag = rman_get_bustag(sc->memory);
+	sc->osdep.mem_bus_space_handle =
+	    rman_get_bushandle(sc->memory);
+	sc->hw.hw_addr = (u8 *)&sc->osdep.mem_bus_space_handle;
 
 	/* Only older adapters use IO mapping */
-	if (adapter->hw.mac.type < em_mac_min &&
-	    adapter->hw.mac.type > e1000_82543) {
+	if (sc->hw.mac.type < em_mac_min &&
+	    sc->hw.mac.type > e1000_82543) {
 		/* Figure our where our IO BAR is ? */
 		for (rid = PCIR_BAR(0); rid < PCIR_CIS;) {
 			val = pci_read_config(dev, rid, 4);
@@ -1993,21 +1989,21 @@ em_allocate_pci_resources(if_ctx_t ctx)
 			device_printf(dev, "Unable to locate IO BAR\n");
 			return (ENXIO);
 		}
-		adapter->ioport = bus_alloc_resource_any(dev, SYS_RES_IOPORT,
+		sc->ioport = bus_alloc_resource_any(dev, SYS_RES_IOPORT,
 		    &rid, RF_ACTIVE);
-		if (adapter->ioport == NULL) {
+		if (sc->ioport == NULL) {
 			device_printf(dev, "Unable to allocate bus resource: "
 			    "ioport\n");
 			return (ENXIO);
 		}
-		adapter->hw.io_base = 0;
-		adapter->osdep.io_bus_space_tag =
-		    rman_get_bustag(adapter->ioport);
-		adapter->osdep.io_bus_space_handle =
-		    rman_get_bushandle(adapter->ioport);
+		sc->hw.io_base = 0;
+		sc->osdep.io_bus_space_tag =
+		    rman_get_bustag(sc->ioport);
+		sc->osdep.io_bus_space_handle =
+		    rman_get_bushandle(sc->ioport);
 	}
 
-	adapter->hw.back = &adapter->osdep;
+	sc->hw.back = &sc->osdep;
 
 	return (0);
 }
@@ -2020,20 +2016,20 @@ em_allocate_pci_resources(if_ctx_t ctx)
 static int
 em_if_msix_intr_assign(if_ctx_t ctx, int msix)
 {
-	struct adapter *adapter = iflib_get_softc(ctx);
-	struct em_rx_queue *rx_que = adapter->rx_queues;
-	struct em_tx_queue *tx_que = adapter->tx_queues;
+	struct e1000_softc *sc = iflib_get_softc(ctx);
+	struct em_rx_queue *rx_que = sc->rx_queues;
+	struct em_tx_queue *tx_que = sc->tx_queues;
 	int error, rid, i, vector = 0, rx_vectors;
 	char buf[16];
 
 	/* First set up ring resources */
-	for (i = 0; i < adapter->rx_num_queues; i++, rx_que++, vector++) {
+	for (i = 0; i < sc->rx_num_queues; i++, rx_que++, vector++) {
 		rid = vector + 1;
 		snprintf(buf, sizeof(buf), "rxq%d", i);
 		error = iflib_irq_alloc_generic(ctx, &rx_que->que_irq, rid, IFLIB_INTR_RXTX, em_msix_que, rx_que, rx_que->me, buf);
 		if (error) {
 			device_printf(iflib_get_dev(ctx), "Failed to allocate que int %d err: %d", i, error);
-			adapter->rx_num_queues = i + 1;
+			sc->rx_num_queues = i + 1;
 			goto fail;
 		}
 
@@ -2045,11 +2041,11 @@ em_if_msix_intr_assign(if_ctx_t ctx, int msix)
 		 * are for RX0 and RX1, note this has
 		 * NOTHING to do with the MSI-X vector
 		 */
-		if (adapter->hw.mac.type == e1000_82574) {
+		if (sc->hw.mac.type == e1000_82574) {
 			rx_que->eims = 1 << (20 + i);
-			adapter->ims |= rx_que->eims;
-			adapter->ivars |= (8 | rx_que->msix) << (i * 4);
-		} else if (adapter->hw.mac.type == e1000_82575)
+			sc->ims |= rx_que->eims;
+			sc->ivars |= (8 | rx_que->msix) << (i * 4);
+		} else if (sc->hw.mac.type == e1000_82575)
 			rx_que->eims = E1000_EICR_TX_QUEUE0 << vector;
 		else
 			rx_que->eims = 1 << vector;
@@ -2057,14 +2053,14 @@ em_if_msix_intr_assign(if_ctx_t ctx, int msix)
 	rx_vectors = vector;
 
 	vector = 0;
-	for (i = 0; i < adapter->tx_num_queues; i++, tx_que++, vector++) {
+	for (i = 0; i < sc->tx_num_queues; i++, tx_que++, vector++) {
 		snprintf(buf, sizeof(buf), "txq%d", i);
-		tx_que = &adapter->tx_queues[i];
+		tx_que = &sc->tx_queues[i];
 		iflib_softirq_alloc_generic(ctx,
-		    &adapter->rx_queues[i % adapter->rx_num_queues].que_irq,
+		    &sc->rx_queues[i % sc->rx_num_queues].que_irq,
 		    IFLIB_INTR_TX, tx_que, tx_que->me, buf);
 
-		tx_que->msix = (vector % adapter->rx_num_queues);
+		tx_que->msix = (vector % sc->rx_num_queues);
 
 		/*
 		 * Set the bit to enable interrupt
@@ -2072,11 +2068,11 @@ em_if_msix_intr_assign(if_ctx_t ctx, int msix)
 		 * are for TX0 and TX1, note this has
 		 * NOTHING to do with the MSI-X vector
 		 */
-		if (adapter->hw.mac.type == e1000_82574) {
+		if (sc->hw.mac.type == e1000_82574) {
 			tx_que->eims = 1 << (22 + i);
-			adapter->ims |= tx_que->eims;
-			adapter->ivars |= (8 | tx_que->msix) << (8 + (i * 4));
-		} else if (adapter->hw.mac.type == e1000_82575) {
+			sc->ims |= tx_que->eims;
+			sc->ivars |= (8 | tx_que->msix) << (8 + (i * 4));
+		} else if (sc->hw.mac.type == e1000_82575) {
 			tx_que->eims = E1000_EICR_TX_QUEUE0 << i;
 		} else {
 			tx_que->eims = 1 << i;
@@ -2085,45 +2081,45 @@ em_if_msix_intr_assign(if_ctx_t ctx, int msix)
 
 	/* Link interrupt */
 	rid = rx_vectors + 1;
-	error = iflib_irq_alloc_generic(ctx, &adapter->irq, rid, IFLIB_INTR_ADMIN, em_msix_link, adapter, 0, "aq");
+	error = iflib_irq_alloc_generic(ctx, &sc->irq, rid, IFLIB_INTR_ADMIN, em_msix_link, sc, 0, "aq");
 
 	if (error) {
 		device_printf(iflib_get_dev(ctx), "Failed to register admin handler");
 		goto fail;
 	}
-	adapter->linkvec = rx_vectors;
-	if (adapter->hw.mac.type < igb_mac_min) {
-		adapter->ivars |=  (8 | rx_vectors) << 16;
-		adapter->ivars |= 0x80000000;
+	sc->linkvec = rx_vectors;
+	if (sc->hw.mac.type < igb_mac_min) {
+		sc->ivars |=  (8 | rx_vectors) << 16;
+		sc->ivars |= 0x80000000;
 		/* Enable the "Other" interrupt type for link status change */
-		adapter->ims |= E1000_IMS_OTHER;
+		sc->ims |= E1000_IMS_OTHER;
 	}
 
 	return (0);
 fail:
-	iflib_irq_free(ctx, &adapter->irq);
-	rx_que = adapter->rx_queues;
-	for (int i = 0; i < adapter->rx_num_queues; i++, rx_que++)
+	iflib_irq_free(ctx, &sc->irq);
+	rx_que = sc->rx_queues;
+	for (int i = 0; i < sc->rx_num_queues; i++, rx_que++)
 		iflib_irq_free(ctx, &rx_que->que_irq);
 	return (error);
 }
 
 static void
-igb_configure_queues(struct adapter *adapter)
+igb_configure_queues(struct e1000_softc *sc)
 {
-	struct e1000_hw *hw = &adapter->hw;
+	struct e1000_hw *hw = &sc->hw;
 	struct em_rx_queue *rx_que;
 	struct em_tx_queue *tx_que;
 	u32 tmp, ivar = 0, newitr = 0;
 
 	/* First turn on RSS capability */
-	if (adapter->hw.mac.type != e1000_82575)
+	if (hw->mac.type != e1000_82575)
 		E1000_WRITE_REG(hw, E1000_GPIE,
 		    E1000_GPIE_MSIX_MODE | E1000_GPIE_EIAME |
 		    E1000_GPIE_PBA | E1000_GPIE_NSICR);
 
 	/* Turn on MSI-X */
-	switch (adapter->hw.mac.type) {
+	switch (hw->mac.type) {
 	case e1000_82580:
 	case e1000_i350:
 	case e1000_i354:
@@ -2132,10 +2128,10 @@ igb_configure_queues(struct adapter *adapter)
 	case e1000_vfadapt:
 	case e1000_vfadapt_i350:
 		/* RX entries */
-		for (int i = 0; i < adapter->rx_num_queues; i++) {
+		for (int i = 0; i < sc->rx_num_queues; i++) {
 			u32 index = i >> 1;
 			ivar = E1000_READ_REG_ARRAY(hw, E1000_IVAR0, index);
-			rx_que = &adapter->rx_queues[i];
+			rx_que = &sc->rx_queues[i];
 			if (i & 1) {
 				ivar &= 0xFF00FFFF;
 				ivar |= (rx_que->msix | E1000_IVAR_VALID) << 16;
@@ -2146,10 +2142,10 @@ igb_configure_queues(struct adapter *adapter)
 			E1000_WRITE_REG_ARRAY(hw, E1000_IVAR0, index, ivar);
 		}
 		/* TX entries */
-		for (int i = 0; i < adapter->tx_num_queues; i++) {
+		for (int i = 0; i < sc->tx_num_queues; i++) {
 			u32 index = i >> 1;
 			ivar = E1000_READ_REG_ARRAY(hw, E1000_IVAR0, index);
-			tx_que = &adapter->tx_queues[i];
+			tx_que = &sc->tx_queues[i];
 			if (i & 1) {
 				ivar &= 0x00FFFFFF;
 				ivar |= (tx_que->msix | E1000_IVAR_VALID) << 24;
@@ -2158,20 +2154,20 @@ igb_configure_queues(struct adapter *adapter)
 				ivar |= (tx_que->msix | E1000_IVAR_VALID) << 8;
 			}
 			E1000_WRITE_REG_ARRAY(hw, E1000_IVAR0, index, ivar);
-			adapter->que_mask |= tx_que->eims;
+			sc->que_mask |= tx_que->eims;
 		}
 
 		/* And for the link interrupt */
-		ivar = (adapter->linkvec | E1000_IVAR_VALID) << 8;
-		adapter->link_mask = 1 << adapter->linkvec;
+		ivar = (sc->linkvec | E1000_IVAR_VALID) << 8;
+		sc->link_mask = 1 << sc->linkvec;
 		E1000_WRITE_REG(hw, E1000_IVAR_MISC, ivar);
 		break;
 	case e1000_82576:
 		/* RX entries */
-		for (int i = 0; i < adapter->rx_num_queues; i++) {
+		for (int i = 0; i < sc->rx_num_queues; i++) {
 			u32 index = i & 0x7; /* Each IVAR has two entries */
 			ivar = E1000_READ_REG_ARRAY(hw, E1000_IVAR0, index);
-			rx_que = &adapter->rx_queues[i];
+			rx_que = &sc->rx_queues[i];
 			if (i < 8) {
 				ivar &= 0xFFFFFF00;
 				ivar |= rx_que->msix | E1000_IVAR_VALID;
@@ -2180,13 +2176,13 @@ igb_configure_queues(struct adapter *adapter)
 				ivar |= (rx_que->msix | E1000_IVAR_VALID) << 16;
 			}
 			E1000_WRITE_REG_ARRAY(hw, E1000_IVAR0, index, ivar);
-			adapter->que_mask |= rx_que->eims;
+			sc->que_mask |= rx_que->eims;
 		}
 		/* TX entries */
-		for (int i = 0; i < adapter->tx_num_queues; i++) {
+		for (int i = 0; i < sc->tx_num_queues; i++) {
 			u32 index = i & 0x7; /* Each IVAR has two entries */
 			ivar = E1000_READ_REG_ARRAY(hw, E1000_IVAR0, index);
-			tx_que = &adapter->tx_queues[i];
+			tx_que = &sc->tx_queues[i];
 			if (i < 8) {
 				ivar &= 0xFFFF00FF;
 				ivar |= (tx_que->msix | E1000_IVAR_VALID) << 8;
@@ -2195,12 +2191,12 @@ igb_configure_queues(struct adapter *adapter)
 				ivar |= (tx_que->msix | E1000_IVAR_VALID) << 24;
 			}
 			E1000_WRITE_REG_ARRAY(hw, E1000_IVAR0, index, ivar);
-			adapter->que_mask |= tx_que->eims;
+			sc->que_mask |= tx_que->eims;
 		}
 
 		/* And for the link interrupt */
-		ivar = (adapter->linkvec | E1000_IVAR_VALID) << 8;
-		adapter->link_mask = 1 << adapter->linkvec;
+		ivar = (sc->linkvec | E1000_IVAR_VALID) << 8;
+		sc->link_mask = 1 << sc->linkvec;
 		E1000_WRITE_REG(hw, E1000_IVAR_MISC, ivar);
 		break;
 
@@ -2214,20 +2210,20 @@ igb_configure_queues(struct adapter *adapter)
 		E1000_WRITE_REG(hw, E1000_CTRL_EXT, tmp);
 
 		/* Queues */
-		for (int i = 0; i < adapter->rx_num_queues; i++) {
-			rx_que = &adapter->rx_queues[i];
+		for (int i = 0; i < sc->rx_num_queues; i++) {
+			rx_que = &sc->rx_queues[i];
 			tmp = E1000_EICR_RX_QUEUE0 << i;
 			tmp |= E1000_EICR_TX_QUEUE0 << i;
 			rx_que->eims = tmp;
 			E1000_WRITE_REG_ARRAY(hw, E1000_MSIXBM(0),
 			    i, rx_que->eims);
-			adapter->que_mask |= rx_que->eims;
+			sc->que_mask |= rx_que->eims;
 		}
 
 		/* Link */
-		E1000_WRITE_REG(hw, E1000_MSIXBM(adapter->linkvec),
+		E1000_WRITE_REG(hw, E1000_MSIXBM(sc->linkvec),
 		    E1000_EIMS_OTHER);
-		adapter->link_mask |= E1000_EIMS_OTHER;
+		sc->link_mask |= E1000_EIMS_OTHER;
 	default:
 		break;
 	}
@@ -2241,8 +2237,8 @@ igb_configure_queues(struct adapter *adapter)
 	else
 		newitr |= E1000_EITR_CNT_IGNR;
 
-	for (int i = 0; i < adapter->rx_num_queues; i++) {
-		rx_que = &adapter->rx_queues[i];
+	for (int i = 0; i < sc->rx_num_queues; i++) {
+		rx_que = &sc->rx_queues[i];
 		E1000_WRITE_REG(hw, E1000_EITR(rx_que->msix), newitr);
 	}
 
@@ -2252,36 +2248,36 @@ igb_configure_queues(struct adapter *adapter)
 static void
 em_free_pci_resources(if_ctx_t ctx)
 {
-	struct adapter *adapter = iflib_get_softc(ctx);
-	struct em_rx_queue *que = adapter->rx_queues;
+	struct e1000_softc *sc = iflib_get_softc(ctx);
+	struct em_rx_queue *que = sc->rx_queues;
 	device_t dev = iflib_get_dev(ctx);
 
 	/* Release all MSI-X queue resources */
-	if (adapter->intr_type == IFLIB_INTR_MSIX)
-		iflib_irq_free(ctx, &adapter->irq);
+	if (sc->intr_type == IFLIB_INTR_MSIX)
+		iflib_irq_free(ctx, &sc->irq);
 
 	if (que != NULL) {
-		for (int i = 0; i < adapter->rx_num_queues; i++, que++) {
+		for (int i = 0; i < sc->rx_num_queues; i++, que++) {
 			iflib_irq_free(ctx, &que->que_irq);
 		}
 	}
 
-	if (adapter->memory != NULL) {
+	if (sc->memory != NULL) {
 		bus_release_resource(dev, SYS_RES_MEMORY,
-		    rman_get_rid(adapter->memory), adapter->memory);
-		adapter->memory = NULL;
+		    rman_get_rid(sc->memory), sc->memory);
+		sc->memory = NULL;
 	}
 
-	if (adapter->flash != NULL) {
+	if (sc->flash != NULL) {
 		bus_release_resource(dev, SYS_RES_MEMORY,
-		    rman_get_rid(adapter->flash), adapter->flash);
-		adapter->flash = NULL;
+		    rman_get_rid(sc->flash), sc->flash);
+		sc->flash = NULL;
 	}
 
-	if (adapter->ioport != NULL) {
+	if (sc->ioport != NULL) {
 		bus_release_resource(dev, SYS_RES_IOPORT,
-		    rman_get_rid(adapter->ioport), adapter->ioport);
-		adapter->ioport = NULL;
+		    rman_get_rid(sc->ioport), sc->ioport);
+		sc->ioport = NULL;
 	}
 }
 
@@ -2289,9 +2285,9 @@ em_free_pci_resources(if_ctx_t ctx)
 static int
 em_setup_msix(if_ctx_t ctx)
 {
-	struct adapter *adapter = iflib_get_softc(ctx);
+	struct e1000_softc *sc = iflib_get_softc(ctx);
 
-	if (adapter->hw.mac.type == e1000_82574) {
+	if (sc->hw.mac.type == e1000_82574) {
 		em_enable_vectors_82574(ctx);
 	}
 	return (0);
@@ -2303,58 +2299,58 @@ em_setup_msix(if_ctx_t ctx)
  *
  **********************************************************************/
 static void
-lem_smartspeed(struct adapter *adapter)
+lem_smartspeed(struct e1000_softc *sc)
 {
 	u16 phy_tmp;
 
-	if (adapter->link_active || (adapter->hw.phy.type != e1000_phy_igp) ||
-	    adapter->hw.mac.autoneg == 0 ||
-	    (adapter->hw.phy.autoneg_advertised & ADVERTISE_1000_FULL) == 0)
+	if (sc->link_active || (sc->hw.phy.type != e1000_phy_igp) ||
+	    sc->hw.mac.autoneg == 0 ||
+	    (sc->hw.phy.autoneg_advertised & ADVERTISE_1000_FULL) == 0)
 		return;
 
-	if (adapter->smartspeed == 0) {
+	if (sc->smartspeed == 0) {
 		/* If Master/Slave config fault is asserted twice,
 		 * we assume back-to-back */
-		e1000_read_phy_reg(&adapter->hw, PHY_1000T_STATUS, &phy_tmp);
+		e1000_read_phy_reg(&sc->hw, PHY_1000T_STATUS, &phy_tmp);
 		if (!(phy_tmp & SR_1000T_MS_CONFIG_FAULT))
 			return;
-		e1000_read_phy_reg(&adapter->hw, PHY_1000T_STATUS, &phy_tmp);
+		e1000_read_phy_reg(&sc->hw, PHY_1000T_STATUS, &phy_tmp);
 		if (phy_tmp & SR_1000T_MS_CONFIG_FAULT) {
-			e1000_read_phy_reg(&adapter->hw,
+			e1000_read_phy_reg(&sc->hw,
 			    PHY_1000T_CTRL, &phy_tmp);
 			if(phy_tmp & CR_1000T_MS_ENABLE) {
 				phy_tmp &= ~CR_1000T_MS_ENABLE;
-				e1000_write_phy_reg(&adapter->hw,
+				e1000_write_phy_reg(&sc->hw,
 				    PHY_1000T_CTRL, phy_tmp);
-				adapter->smartspeed++;
-				if(adapter->hw.mac.autoneg &&
-				   !e1000_copper_link_autoneg(&adapter->hw) &&
-				   !e1000_read_phy_reg(&adapter->hw,
+				sc->smartspeed++;
+				if(sc->hw.mac.autoneg &&
+				   !e1000_copper_link_autoneg(&sc->hw) &&
+				   !e1000_read_phy_reg(&sc->hw,
 				    PHY_CONTROL, &phy_tmp)) {
 					phy_tmp |= (MII_CR_AUTO_NEG_EN |
 						    MII_CR_RESTART_AUTO_NEG);
-					e1000_write_phy_reg(&adapter->hw,
+					e1000_write_phy_reg(&sc->hw,
 					    PHY_CONTROL, phy_tmp);
 				}
 			}
 		}
 		return;
-	} else if(adapter->smartspeed == EM_SMARTSPEED_DOWNSHIFT) {
+	} else if(sc->smartspeed == EM_SMARTSPEED_DOWNSHIFT) {
 		/* If still no link, perhaps using 2/3 pair cable */
-		e1000_read_phy_reg(&adapter->hw, PHY_1000T_CTRL, &phy_tmp);
+		e1000_read_phy_reg(&sc->hw, PHY_1000T_CTRL, &phy_tmp);
 		phy_tmp |= CR_1000T_MS_ENABLE;
-		e1000_write_phy_reg(&adapter->hw, PHY_1000T_CTRL, phy_tmp);
-		if(adapter->hw.mac.autoneg &&
-		   !e1000_copper_link_autoneg(&adapter->hw) &&
-		   !e1000_read_phy_reg(&adapter->hw, PHY_CONTROL, &phy_tmp)) {
+		e1000_write_phy_reg(&sc->hw, PHY_1000T_CTRL, phy_tmp);
+		if(sc->hw.mac.autoneg &&
+		   !e1000_copper_link_autoneg(&sc->hw) &&
+		   !e1000_read_phy_reg(&sc->hw, PHY_CONTROL, &phy_tmp)) {
 			phy_tmp |= (MII_CR_AUTO_NEG_EN |
 				    MII_CR_RESTART_AUTO_NEG);
-			e1000_write_phy_reg(&adapter->hw, PHY_CONTROL, phy_tmp);
+			e1000_write_phy_reg(&sc->hw, PHY_CONTROL, phy_tmp);
 		}
 	}
 	/* Restart process after EM_SMARTSPEED_MAX iterations */
-	if(adapter->smartspeed++ == EM_SMARTSPEED_MAX)
-		adapter->smartspeed = 0;
+	if(sc->smartspeed++ == EM_SMARTSPEED_MAX)
+		sc->smartspeed = 0;
 }
 
 /*********************************************************************
@@ -2363,10 +2359,10 @@ lem_smartspeed(struct adapter *adapter)
  *
  **********************************************************************/
 static void
-igb_init_dmac(struct adapter *adapter, u32 pba)
+igb_init_dmac(struct e1000_softc *sc, u32 pba)
 {
-	device_t	dev = adapter->dev;
-	struct e1000_hw *hw = &adapter->hw;
+	device_t	dev = sc->dev;
+	struct e1000_hw *hw = &sc->hw;
 	u32 		dmac, reg = ~E1000_DMACR_DMAC_EN;
 	u16		hwm;
 	u16		max_frame_size;
@@ -2374,10 +2370,10 @@ igb_init_dmac(struct adapter *adapter, u32 pba)
 	if (hw->mac.type == e1000_i211)
 		return;
 
-	max_frame_size = adapter->shared->isc_max_frame_size;
+	max_frame_size = sc->shared->isc_max_frame_size;
 	if (hw->mac.type > e1000_82580) {
 
-		if (adapter->dmac == 0) { /* Disabling it */
+		if (sc->dmac == 0) { /* Disabling it */
 			E1000_WRITE_REG(hw, E1000_DMACR, reg);
 			return;
 		} else
@@ -2417,11 +2413,11 @@ igb_init_dmac(struct adapter *adapter, u32 pba)
 			int status = E1000_READ_REG(hw, E1000_STATUS);
 			if ((status & E1000_STATUS_2P5_SKU) &&
 			    (!(status & E1000_STATUS_2P5_SKU_OVER)))
-				reg |= ((adapter->dmac * 5) >> 6);
+				reg |= ((sc->dmac * 5) >> 6);
 			else
-				reg |= (adapter->dmac >> 5);
+				reg |= (sc->dmac >> 5);
 		} else {
-			reg |= (adapter->dmac >> 5);
+			reg |= (sc->dmac >> 5);
 		}
 
 		E1000_WRITE_REG(hw, E1000_DMACR, reg);
@@ -2469,22 +2465,22 @@ igb_init_dmac(struct adapter *adapter, u32 pba)
 /*********************************************************************
  *
  *  Initialize the hardware to a configuration as specified by the
- *  adapter structure.
+ *  sc structure.
  *
  **********************************************************************/
 static void
 em_reset(if_ctx_t ctx)
 {
 	device_t dev = iflib_get_dev(ctx);
-	struct adapter *adapter = iflib_get_softc(ctx);
+	struct e1000_softc *sc = iflib_get_softc(ctx);
 	struct ifnet *ifp = iflib_get_ifp(ctx);
-	struct e1000_hw *hw = &adapter->hw;
+	struct e1000_hw *hw = &sc->hw;
 	u16 rx_buffer_size;
 	u32 pba;
 
 	INIT_DEBUGOUT("em_reset: begin");
 	/* Let the firmware know the OS is in control */
-	em_get_hw_control(adapter);
+	em_get_hw_control(sc);
 
 	/* Set up smart power down as default off on newer adapters. */
 	if (!em_smart_pwr_down && (hw->mac.type == e1000_82571 ||
@@ -2531,7 +2527,7 @@ em_reset(if_ctx_t ctx)
 	case e1000_ich9lan:
 	case e1000_ich10lan:
 		/* Boost Receive side for jumbo frames */
-		if (adapter->hw.mac.max_frame_size > 4096)
+		if (hw->mac.max_frame_size > 4096)
 			pba = E1000_PBA_14K;
 		else
 			pba = E1000_PBA_10K;
@@ -2579,11 +2575,11 @@ em_reset(if_ctx_t ctx)
 		pba = E1000_READ_REG(hw, E1000_PBA);
 		tx_space = pba >> 16;
 		pba &= 0xffff;
-		min_tx = (adapter->hw.mac.max_frame_size +
+		min_tx = (hw->mac.max_frame_size +
 		    sizeof(struct e1000_tx_desc) - ETHERNET_FCS_SIZE) * 2;
 		min_tx = roundup2(min_tx, 1024);
 		min_tx >>= 10;
-		min_rx = adapter->hw.mac.max_frame_size;
+		min_rx = hw->mac.max_frame_size;
 		min_rx = roundup2(min_rx, 1024);
 		min_rx >>= 10;
 		if (tx_space < min_tx &&
@@ -2600,7 +2596,7 @@ em_reset(if_ctx_t ctx)
 	}
 
 	if (hw->mac.type < igb_mac_min)
-		E1000_WRITE_REG(&adapter->hw, E1000_PBA, pba);
+		E1000_WRITE_REG(hw, E1000_PBA, pba);
 
 	INIT_DEBUGOUT1("em_reset: pba=%dK",pba);
 
@@ -2620,11 +2616,11 @@ em_reset(if_ctx_t ctx)
 	 */
 	rx_buffer_size = (pba & 0xffff) << 10;
 	hw->fc.high_water = rx_buffer_size -
-	    roundup2(adapter->hw.mac.max_frame_size, 1024);
+	    roundup2(hw->mac.max_frame_size, 1024);
 	hw->fc.low_water = hw->fc.high_water - 1500;
 
-	if (adapter->fc) /* locally set flow control value? */
-		hw->fc.requested_mode = adapter->fc;
+	if (sc->fc) /* locally set flow control value? */
+		hw->fc.requested_mode = sc->fc;
 	else
 		hw->fc.requested_mode = e1000_fc_full;
 
@@ -2633,7 +2629,7 @@ em_reset(if_ctx_t ctx)
 	else
 		hw->fc.pause_time = EM_FC_PAUSE_TIME;
 
-	hw->fc.send_xon = TRUE;
+	hw->fc.send_xon = true;
 
 	/* Device specific overrides/settings */
 	switch (hw->mac.type) {
@@ -2698,24 +2694,24 @@ em_reset(if_ctx_t ctx)
 
 	/* Issue a global reset */
 	e1000_reset_hw(hw);
-	if (adapter->hw.mac.type >= igb_mac_min) {
+	if (hw->mac.type >= igb_mac_min) {
 		E1000_WRITE_REG(hw, E1000_WUC, 0);
 	} else {
 		E1000_WRITE_REG(hw, E1000_WUFC, 0);
-		em_disable_aspm(adapter);
+		em_disable_aspm(sc);
 	}
-	if (adapter->flags & IGB_MEDIA_RESET) {
-		e1000_setup_init_funcs(hw, TRUE);
+	if (sc->flags & IGB_MEDIA_RESET) {
+		e1000_setup_init_funcs(hw, true);
 		e1000_get_bus_info(hw);
-		adapter->flags &= ~IGB_MEDIA_RESET;
+		sc->flags &= ~IGB_MEDIA_RESET;
 	}
 	/* and a re-init */
 	if (e1000_init_hw(hw) < 0) {
 		device_printf(dev, "Hardware Initialization Failed\n");
 		return;
 	}
-	if (adapter->hw.mac.type >= igb_mac_min)
-		igb_init_dmac(adapter, pba);
+	if (hw->mac.type >= igb_mac_min)
+		igb_init_dmac(sc, pba);
 
 	E1000_WRITE_REG(hw, E1000_VET, ETHERTYPE_VLAN);
 	e1000_get_phy_info(hw);
@@ -2729,11 +2725,11 @@ em_reset(if_ctx_t ctx)
 
 #define RSSKEYLEN 10
 static void
-em_initialize_rss_mapping(struct adapter *adapter)
+em_initialize_rss_mapping(struct e1000_softc *sc)
 {
 	uint8_t  rss_key[4 * RSSKEYLEN];
 	uint32_t reta = 0;
-	struct e1000_hw	*hw = &adapter->hw;
+	struct e1000_hw	*hw = &sc->hw;
 	int i;
 
 	/*
@@ -2754,7 +2750,7 @@ em_initialize_rss_mapping(struct adapter *adapter)
 	for (i = 0; i < sizeof(reta); ++i) {
 		uint32_t q;
 
-		q = (i % adapter->rx_num_queues) << 7;
+		q = (i % sc->rx_num_queues) << 7;
 		reta |= q << (8 * i);
 	}
 
@@ -2770,16 +2766,16 @@ em_initialize_rss_mapping(struct adapter *adapter)
 }
 
 static void
-igb_initialize_rss_mapping(struct adapter *adapter)
+igb_initialize_rss_mapping(struct e1000_softc *sc)
 {
-	struct e1000_hw *hw = &adapter->hw;
+	struct e1000_hw *hw = &sc->hw;
 	int i;
 	int queue_id;
 	u32 reta;
 	u32 rss_key[10], mrqc, shift = 0;
 
 	/* XXX? */
-	if (adapter->hw.mac.type == e1000_82575)
+	if (hw->mac.type == e1000_82575)
 		shift = 6;
 
 	/*
@@ -2813,9 +2809,9 @@ igb_initialize_rss_mapping(struct adapter *adapter)
 		 * the case so we don't go out of bounds
 		 * indexing arrays and such.
 		 */
-		queue_id = queue_id % adapter->rx_num_queues;
+		queue_id = queue_id % sc->rx_num_queues;
 #else
-		queue_id = (i % adapter->rx_num_queues);
+		queue_id = (i % sc->rx_num_queues);
 #endif
 		/* Adjust if required */
 		queue_id = queue_id << shift;
@@ -2838,7 +2834,7 @@ igb_initialize_rss_mapping(struct adapter *adapter)
 	 * MRQC: Multiple Receive Queues Command
 	 * Set queuing to RSS control, number depends on the device.
 	 */
-	mrqc = E1000_MRQC_ENABLE_RSS_8Q;
+	mrqc = E1000_MRQC_ENABLE_RSS_MQ;
 
 #ifdef RSS
 	/* XXX ew typecasting */
@@ -2873,13 +2869,13 @@ static int
 em_setup_interface(if_ctx_t ctx)
 {
 	struct ifnet *ifp = iflib_get_ifp(ctx);
-	struct adapter *adapter = iflib_get_softc(ctx);
-	if_softc_ctx_t scctx = adapter->shared;
+	struct e1000_softc *sc = iflib_get_softc(ctx);
+	if_softc_ctx_t scctx = sc->shared;
 
 	INIT_DEBUGOUT("em_setup_interface: begin");
 
 	/* Single Queue */
-	if (adapter->tx_num_queues == 1) {
+	if (sc->tx_num_queues == 1) {
 		if_setsendqlen(ifp, scctx->isc_ntxd[0] - 1);
 		if_setsendqready(ifp);
 	}
@@ -2888,54 +2884,54 @@ em_setup_interface(if_ctx_t ctx)
 	 * Specify the media types supported by this adapter and register
 	 * callbacks to update media and link information
 	 */
-	if ((adapter->hw.phy.media_type == e1000_media_type_fiber) ||
-	    (adapter->hw.phy.media_type == e1000_media_type_internal_serdes)) {
+	if (sc->hw.phy.media_type == e1000_media_type_fiber ||
+	    sc->hw.phy.media_type == e1000_media_type_internal_serdes) {
 		u_char fiber_type = IFM_1000_SX;	/* default type */
 
-		if (adapter->hw.mac.type == e1000_82545)
+		if (sc->hw.mac.type == e1000_82545)
 			fiber_type = IFM_1000_LX;
-		ifmedia_add(adapter->media, IFM_ETHER | fiber_type | IFM_FDX, 0, NULL);
-		ifmedia_add(adapter->media, IFM_ETHER | fiber_type, 0, NULL);
+		ifmedia_add(sc->media, IFM_ETHER | fiber_type | IFM_FDX, 0, NULL);
+		ifmedia_add(sc->media, IFM_ETHER | fiber_type, 0, NULL);
 	} else {
-		ifmedia_add(adapter->media, IFM_ETHER | IFM_10_T, 0, NULL);
-		ifmedia_add(adapter->media, IFM_ETHER | IFM_10_T | IFM_FDX, 0, NULL);
-		ifmedia_add(adapter->media, IFM_ETHER | IFM_100_TX, 0, NULL);
-		ifmedia_add(adapter->media, IFM_ETHER | IFM_100_TX | IFM_FDX, 0, NULL);
-		if (adapter->hw.phy.type != e1000_phy_ife) {
-			ifmedia_add(adapter->media, IFM_ETHER | IFM_1000_T | IFM_FDX, 0, NULL);
-			ifmedia_add(adapter->media, IFM_ETHER | IFM_1000_T, 0, NULL);
+		ifmedia_add(sc->media, IFM_ETHER | IFM_10_T, 0, NULL);
+		ifmedia_add(sc->media, IFM_ETHER | IFM_10_T | IFM_FDX, 0, NULL);
+		ifmedia_add(sc->media, IFM_ETHER | IFM_100_TX, 0, NULL);
+		ifmedia_add(sc->media, IFM_ETHER | IFM_100_TX | IFM_FDX, 0, NULL);
+		if (sc->hw.phy.type != e1000_phy_ife) {
+			ifmedia_add(sc->media, IFM_ETHER | IFM_1000_T | IFM_FDX, 0, NULL);
+			ifmedia_add(sc->media, IFM_ETHER | IFM_1000_T, 0, NULL);
 		}
 	}
-	ifmedia_add(adapter->media, IFM_ETHER | IFM_AUTO, 0, NULL);
-	ifmedia_set(adapter->media, IFM_ETHER | IFM_AUTO);
+	ifmedia_add(sc->media, IFM_ETHER | IFM_AUTO, 0, NULL);
+	ifmedia_set(sc->media, IFM_ETHER | IFM_AUTO);
 	return (0);
 }
 
 static int
 em_if_tx_queues_alloc(if_ctx_t ctx, caddr_t *vaddrs, uint64_t *paddrs, int ntxqs, int ntxqsets)
 {
-	struct adapter *adapter = iflib_get_softc(ctx);
-	if_softc_ctx_t scctx = adapter->shared;
+	struct e1000_softc *sc = iflib_get_softc(ctx);
+	if_softc_ctx_t scctx = sc->shared;
 	int error = E1000_SUCCESS;
 	struct em_tx_queue *que;
 	int i, j;
 
-	MPASS(adapter->tx_num_queues > 0);
-	MPASS(adapter->tx_num_queues == ntxqsets);
+	MPASS(sc->tx_num_queues > 0);
+	MPASS(sc->tx_num_queues == ntxqsets);
 
 	/* First allocate the top level queue structs */
-	if (!(adapter->tx_queues =
+	if (!(sc->tx_queues =
 	    (struct em_tx_queue *) malloc(sizeof(struct em_tx_queue) *
-	    adapter->tx_num_queues, M_DEVBUF, M_NOWAIT | M_ZERO))) {
+	    sc->tx_num_queues, M_DEVBUF, M_NOWAIT | M_ZERO))) {
 		device_printf(iflib_get_dev(ctx), "Unable to allocate queue memory\n");
 		return(ENOMEM);
 	}
 
-	for (i = 0, que = adapter->tx_queues; i < adapter->tx_num_queues; i++, que++) {
+	for (i = 0, que = sc->tx_queues; i < sc->tx_num_queues; i++, que++) {
 		/* Set up some basics */
 
 		struct tx_ring *txr = &que->txr;
-		txr->adapter = que->adapter = adapter;
+		txr->sc = que->sc = sc;
 		que->me = txr->me =  i;
 
 		/* Allocate report status array */
@@ -2953,7 +2949,7 @@ em_if_tx_queues_alloc(if_ctx_t ctx, caddr_t *vaddrs, uint64_t *paddrs, int ntxqs
 
 	if (bootverbose)
 		device_printf(iflib_get_dev(ctx),
-		    "allocated for %d tx_queues\n", adapter->tx_num_queues);
+		    "allocated for %d tx_queues\n", sc->tx_num_queues);
 	return (0);
 fail:
 	em_if_queues_free(ctx);
@@ -2963,27 +2959,27 @@ fail:
 static int
 em_if_rx_queues_alloc(if_ctx_t ctx, caddr_t *vaddrs, uint64_t *paddrs, int nrxqs, int nrxqsets)
 {
-	struct adapter *adapter = iflib_get_softc(ctx);
+	struct e1000_softc *sc = iflib_get_softc(ctx);
 	int error = E1000_SUCCESS;
 	struct em_rx_queue *que;
 	int i;
 
-	MPASS(adapter->rx_num_queues > 0);
-	MPASS(adapter->rx_num_queues == nrxqsets);
+	MPASS(sc->rx_num_queues > 0);
+	MPASS(sc->rx_num_queues == nrxqsets);
 
 	/* First allocate the top level queue structs */
-	if (!(adapter->rx_queues =
+	if (!(sc->rx_queues =
 	    (struct em_rx_queue *) malloc(sizeof(struct em_rx_queue) *
-	    adapter->rx_num_queues, M_DEVBUF, M_NOWAIT | M_ZERO))) {
+	    sc->rx_num_queues, M_DEVBUF, M_NOWAIT | M_ZERO))) {
 		device_printf(iflib_get_dev(ctx), "Unable to allocate queue memory\n");
 		error = ENOMEM;
 		goto fail;
 	}
 
-	for (i = 0, que = adapter->rx_queues; i < nrxqsets; i++, que++) {
+	for (i = 0, que = sc->rx_queues; i < nrxqsets; i++, que++) {
 		/* Set up some basics */
 		struct rx_ring *rxr = &que->rxr;
-		rxr->adapter = que->adapter = adapter;
+		rxr->sc = que->sc = sc;
 		rxr->que = que;
 		que->me = rxr->me =  i;
 
@@ -2994,7 +2990,7 @@ em_if_rx_queues_alloc(if_ctx_t ctx, caddr_t *vaddrs, uint64_t *paddrs, int nrxqs
  
 	if (bootverbose)
 		device_printf(iflib_get_dev(ctx),
-		    "allocated for %d rx_queues\n", adapter->rx_num_queues);
+		    "allocated for %d rx_queues\n", sc->rx_num_queues);
 
 	return (0);
 fail:
@@ -3005,12 +3001,12 @@ fail:
 static void
 em_if_queues_free(if_ctx_t ctx)
 {
-	struct adapter *adapter = iflib_get_softc(ctx);
-	struct em_tx_queue *tx_que = adapter->tx_queues;
-	struct em_rx_queue *rx_que = adapter->rx_queues;
+	struct e1000_softc *sc = iflib_get_softc(ctx);
+	struct em_tx_queue *tx_que = sc->tx_queues;
+	struct em_rx_queue *rx_que = sc->rx_queues;
 
 	if (tx_que != NULL) {
-		for (int i = 0; i < adapter->tx_num_queues; i++, tx_que++) {
+		for (int i = 0; i < sc->tx_num_queues; i++, tx_que++) {
 			struct tx_ring *txr = &tx_que->txr;
 			if (txr->tx_rsq == NULL)
 				break;
@@ -3018,13 +3014,13 @@ em_if_queues_free(if_ctx_t ctx)
 			free(txr->tx_rsq, M_DEVBUF);
 			txr->tx_rsq = NULL;
 		}
-		free(adapter->tx_queues, M_DEVBUF);
-		adapter->tx_queues = NULL;
+		free(sc->tx_queues, M_DEVBUF);
+		sc->tx_queues = NULL;
 	}
 
 	if (rx_que != NULL) {
-		free(adapter->rx_queues, M_DEVBUF);
-		adapter->rx_queues = NULL;
+		free(sc->rx_queues, M_DEVBUF);
+		sc->rx_queues = NULL;
 	}
 }
 
@@ -3036,20 +3032,20 @@ em_if_queues_free(if_ctx_t ctx)
 static void
 em_initialize_transmit_unit(if_ctx_t ctx)
 {
-	struct adapter *adapter = iflib_get_softc(ctx);
-	if_softc_ctx_t scctx = adapter->shared;
+	struct e1000_softc *sc = iflib_get_softc(ctx);
+	if_softc_ctx_t scctx = sc->shared;
 	struct em_tx_queue *que;
 	struct tx_ring	*txr;
-	struct e1000_hw	*hw = &adapter->hw;
+	struct e1000_hw	*hw = &sc->hw;
 	u32 tctl, txdctl = 0, tarc, tipg = 0;
 
 	INIT_DEBUGOUT("em_initialize_transmit_unit: begin");
 
-	for (int i = 0; i < adapter->tx_num_queues; i++, txr++) {
+	for (int i = 0; i < sc->tx_num_queues; i++, txr++) {
 		u64 bus_addr;
 		caddr_t offp, endp;
 
-		que = &adapter->tx_queues[i];
+		que = &sc->tx_queues[i];
 		txr = &que->txr;
 		bus_addr = txr->tx_paddr;
 
@@ -3070,8 +3066,8 @@ em_initialize_transmit_unit(if_ctx_t ctx)
 		E1000_WRITE_REG(hw, E1000_TDH(i), 0);
 
 		HW_DEBUGOUT2("Base = %x, Length = %x\n",
-		    E1000_READ_REG(&adapter->hw, E1000_TDBAL(i)),
-		    E1000_READ_REG(&adapter->hw, E1000_TDLEN(i)));
+		    E1000_READ_REG(hw, E1000_TDBAL(i)),
+		    E1000_READ_REG(hw, E1000_TDLEN(i)));
 
 		txdctl = 0; /* clear txdctl */
 		txdctl |= 0x1f; /* PTHRESH */
@@ -3085,7 +3081,7 @@ em_initialize_transmit_unit(if_ctx_t ctx)
 	}
 
 	/* Set the default values for the Tx Inter Packet Gap timer */
-	switch (adapter->hw.mac.type) {
+	switch (hw->mac.type) {
 	case e1000_80003es2lan:
 		tipg = DEFAULT_82543_TIPG_IPGR1;
 		tipg |= DEFAULT_80003ES2LAN_TIPG_IPGR2 <<
@@ -3097,9 +3093,8 @@ em_initialize_transmit_unit(if_ctx_t ctx)
 		tipg |= DEFAULT_82542_TIPG_IPGR2 << E1000_TIPG_IPGR2_SHIFT;
 		break;
 	default:
-		if ((adapter->hw.phy.media_type == e1000_media_type_fiber) ||
-		    (adapter->hw.phy.media_type ==
-		    e1000_media_type_internal_serdes))
+		if (hw->phy.media_type == e1000_media_type_fiber ||
+		    hw->phy.media_type == e1000_media_type_internal_serdes)
 			tipg = DEFAULT_82543_TIPG_IPGT_FIBER;
 		else
 			tipg = DEFAULT_82543_TIPG_IPGT_COPPER;
@@ -3107,51 +3102,50 @@ em_initialize_transmit_unit(if_ctx_t ctx)
 		tipg |= DEFAULT_82543_TIPG_IPGR2 << E1000_TIPG_IPGR2_SHIFT;
 	}
 
-	E1000_WRITE_REG(&adapter->hw, E1000_TIPG, tipg);
-	E1000_WRITE_REG(&adapter->hw, E1000_TIDV, adapter->tx_int_delay.value);
+	E1000_WRITE_REG(hw, E1000_TIPG, tipg);
+	E1000_WRITE_REG(hw, E1000_TIDV, sc->tx_int_delay.value);
 
-	if(adapter->hw.mac.type >= e1000_82540)
-		E1000_WRITE_REG(&adapter->hw, E1000_TADV,
-		    adapter->tx_abs_int_delay.value);
+	if(hw->mac.type >= e1000_82540)
+		E1000_WRITE_REG(hw, E1000_TADV,
+		    sc->tx_abs_int_delay.value);
 
-	if ((adapter->hw.mac.type == e1000_82571) ||
-	    (adapter->hw.mac.type == e1000_82572)) {
-		tarc = E1000_READ_REG(&adapter->hw, E1000_TARC(0));
+	if (hw->mac.type == e1000_82571 || hw->mac.type == e1000_82572) {
+		tarc = E1000_READ_REG(hw, E1000_TARC(0));
 		tarc |= TARC_SPEED_MODE_BIT;
-		E1000_WRITE_REG(&adapter->hw, E1000_TARC(0), tarc);
-	} else if (adapter->hw.mac.type == e1000_80003es2lan) {
+		E1000_WRITE_REG(hw, E1000_TARC(0), tarc);
+	} else if (hw->mac.type == e1000_80003es2lan) {
 		/* errata: program both queues to unweighted RR */
-		tarc = E1000_READ_REG(&adapter->hw, E1000_TARC(0));
+		tarc = E1000_READ_REG(hw, E1000_TARC(0));
 		tarc |= 1;
-		E1000_WRITE_REG(&adapter->hw, E1000_TARC(0), tarc);
-		tarc = E1000_READ_REG(&adapter->hw, E1000_TARC(1));
+		E1000_WRITE_REG(hw, E1000_TARC(0), tarc);
+		tarc = E1000_READ_REG(hw, E1000_TARC(1));
 		tarc |= 1;
-		E1000_WRITE_REG(&adapter->hw, E1000_TARC(1), tarc);
-	} else if (adapter->hw.mac.type == e1000_82574) {
-		tarc = E1000_READ_REG(&adapter->hw, E1000_TARC(0));
+		E1000_WRITE_REG(hw, E1000_TARC(1), tarc);
+	} else if (hw->mac.type == e1000_82574) {
+		tarc = E1000_READ_REG(hw, E1000_TARC(0));
 		tarc |= TARC_ERRATA_BIT;
-		if ( adapter->tx_num_queues > 1) {
+		if ( sc->tx_num_queues > 1) {
 			tarc |= (TARC_COMPENSATION_MODE | TARC_MQ_FIX);
-			E1000_WRITE_REG(&adapter->hw, E1000_TARC(0), tarc);
-			E1000_WRITE_REG(&adapter->hw, E1000_TARC(1), tarc);
+			E1000_WRITE_REG(hw, E1000_TARC(0), tarc);
+			E1000_WRITE_REG(hw, E1000_TARC(1), tarc);
 		} else
-			E1000_WRITE_REG(&adapter->hw, E1000_TARC(0), tarc);
+			E1000_WRITE_REG(hw, E1000_TARC(0), tarc);
 	}
 
-	if (adapter->tx_int_delay.value > 0)
-		adapter->txd_cmd |= E1000_TXD_CMD_IDE;
+	if (sc->tx_int_delay.value > 0)
+		sc->txd_cmd |= E1000_TXD_CMD_IDE;
 
 	/* Program the Transmit Control Register */
-	tctl = E1000_READ_REG(&adapter->hw, E1000_TCTL);
+	tctl = E1000_READ_REG(hw, E1000_TCTL);
 	tctl &= ~E1000_TCTL_CT;
 	tctl |= (E1000_TCTL_PSP | E1000_TCTL_RTLC | E1000_TCTL_EN |
 		   (E1000_COLLISION_THRESHOLD << E1000_CT_SHIFT));
 
-	if (adapter->hw.mac.type >= e1000_82571)
+	if (hw->mac.type >= e1000_82571)
 		tctl |= E1000_TCTL_MULR;
 
 	/* This write will effectively turn on the transmit unit. */
-	E1000_WRITE_REG(&adapter->hw, E1000_TCTL, tctl);
+	E1000_WRITE_REG(hw, E1000_TCTL, tctl);
 
 	/* SPT and KBL errata workarounds */
 	if (hw->mac.type == e1000_pch_spt) {
@@ -3172,17 +3166,18 @@ em_initialize_transmit_unit(if_ctx_t ctx)
  *  Enable receive unit.
  *
  **********************************************************************/
+#define BSIZEPKT_ROUNDUP ((1<<E1000_SRRCTL_BSIZEPKT_SHIFT)-1)
 
 static void
 em_initialize_receive_unit(if_ctx_t ctx)
 {
-	struct adapter *adapter = iflib_get_softc(ctx);
-	if_softc_ctx_t scctx = adapter->shared;
+	struct e1000_softc *sc = iflib_get_softc(ctx);
+	if_softc_ctx_t scctx = sc->shared;
 	struct ifnet *ifp = iflib_get_ifp(ctx);
-	struct e1000_hw	*hw = &adapter->hw;
+	struct e1000_hw	*hw = &sc->hw;
 	struct em_rx_queue *que;
 	int i;
-	u32 rctl, rxcsum, rfctl;
+	uint32_t rctl, rxcsum;
 
 	INIT_DEBUGOUT("em_initialize_receive_units: begin");
 
@@ -3214,9 +3209,9 @@ em_initialize_receive_unit(if_ctx_t ctx)
 	if (!em_disable_crc_stripping)
 		rctl |= E1000_RCTL_SECRC;
 
-	if (adapter->hw.mac.type >= e1000_82540) {
-		E1000_WRITE_REG(&adapter->hw, E1000_RADV,
-			    adapter->rx_abs_int_delay.value);
+	if (hw->mac.type >= e1000_82540) {
+		E1000_WRITE_REG(hw, E1000_RADV,
+		    sc->rx_abs_int_delay.value);
 
 		/*
 		 * Set the interrupt throttling rate. Value is calculated
@@ -3224,56 +3219,55 @@ em_initialize_receive_unit(if_ctx_t ctx)
 		 */
 		E1000_WRITE_REG(hw, E1000_ITR, DEFAULT_ITR);
 	}
-	E1000_WRITE_REG(&adapter->hw, E1000_RDTR,
-	    adapter->rx_int_delay.value);
+	E1000_WRITE_REG(hw, E1000_RDTR, sc->rx_int_delay.value);
 
-	/* Use extended rx descriptor formats */
-	rfctl = E1000_READ_REG(hw, E1000_RFCTL);
-	rfctl |= E1000_RFCTL_EXTEN;
-	/*
-	 * When using MSI-X interrupts we need to throttle
-	 * using the EITR register (82574 only)
-	 */
-	if (hw->mac.type == e1000_82574) {
-		for (int i = 0; i < 4; i++)
-			E1000_WRITE_REG(hw, E1000_EITR_82574(i),
-			    DEFAULT_ITR);
-		/* Disable accelerated acknowledge */
-		rfctl |= E1000_RFCTL_ACK_DIS;
-	}
-	E1000_WRITE_REG(hw, E1000_RFCTL, rfctl);
+	if (hw->mac.type >= em_mac_min) {
+		uint32_t rfctl;
+		/* Use extended rx descriptor formats */
+		rfctl = E1000_READ_REG(hw, E1000_RFCTL);
+		rfctl |= E1000_RFCTL_EXTEN;
 
-	rxcsum = E1000_READ_REG(hw, E1000_RXCSUM);
-	if (if_getcapenable(ifp) & IFCAP_RXCSUM &&
-	    adapter->hw.mac.type >= e1000_82543) {
-		if (adapter->tx_num_queues > 1) {
-			if (adapter->hw.mac.type >= igb_mac_min) {
-				rxcsum |= E1000_RXCSUM_PCSD;
-				if (hw->mac.type != e1000_82575)
-					rxcsum |= E1000_RXCSUM_CRCOFL;
-			} else
-				rxcsum |= E1000_RXCSUM_TUOFL |
-					E1000_RXCSUM_IPOFL |
-					E1000_RXCSUM_PCSD;
-		} else {
-			if (adapter->hw.mac.type >= igb_mac_min)
-				rxcsum |= E1000_RXCSUM_IPPCSE;
-			else
-				rxcsum |= E1000_RXCSUM_TUOFL | E1000_RXCSUM_IPOFL;
-			if (adapter->hw.mac.type > e1000_82575)
-				rxcsum |= E1000_RXCSUM_CRCOFL;
+		/*
+		 * When using MSI-X interrupts we need to throttle
+		 * using the EITR register (82574 only)
+		 */
+		if (hw->mac.type == e1000_82574) {
+			for (int i = 0; i < 4; i++)
+				E1000_WRITE_REG(hw, E1000_EITR_82574(i),
+				    DEFAULT_ITR);
+			/* Disable accelerated acknowledge */
+			rfctl |= E1000_RFCTL_ACK_DIS;
 		}
-	} else
-		rxcsum &= ~E1000_RXCSUM_TUOFL;
-
-	E1000_WRITE_REG(hw, E1000_RXCSUM, rxcsum);
-
-	if (adapter->rx_num_queues > 1) {
-		if (adapter->hw.mac.type >= igb_mac_min)
-			igb_initialize_rss_mapping(adapter);
-		else
-			em_initialize_rss_mapping(adapter);
+		E1000_WRITE_REG(hw, E1000_RFCTL, rfctl);
 	}
+
+	/* Set up L3 and L4 csum Rx descriptor offloads */
+	rxcsum = E1000_READ_REG(hw, E1000_RXCSUM);
+	if (if_getcapenable(ifp) & IFCAP_RXCSUM) {
+		rxcsum |= E1000_RXCSUM_TUOFL | E1000_RXCSUM_IPOFL;
+		if (hw->mac.type > e1000_82575)
+			rxcsum |= E1000_RXCSUM_CRCOFL;
+		else if (hw->mac.type < em_mac_min &&
+		    if_getcapenable(ifp) & IFCAP_HWCSUM_IPV6)
+			rxcsum |= E1000_RXCSUM_IPV6OFL;
+	} else {
+		rxcsum &= ~(E1000_RXCSUM_IPOFL | E1000_RXCSUM_TUOFL);
+		if (hw->mac.type > e1000_82575)
+			rxcsum &= ~E1000_RXCSUM_CRCOFL;
+		else if (hw->mac.type < em_mac_min)
+			rxcsum &= ~E1000_RXCSUM_IPV6OFL;
+	}
+
+	if (sc->rx_num_queues > 1) {
+		/* RSS hash needed in the Rx descriptor */
+		rxcsum |= E1000_RXCSUM_PCSD;
+
+		if (hw->mac.type >= igb_mac_min)
+			igb_initialize_rss_mapping(sc);
+		else
+			em_initialize_rss_mapping(sc);
+	}
+	E1000_WRITE_REG(hw, E1000_RXCSUM, rxcsum);
 
 	/*
 	 * XXX TEMPORARY WORKAROUND: on some systems with 82573
@@ -3285,12 +3279,12 @@ em_initialize_receive_unit(if_ctx_t ctx)
 	if (hw->mac.type == e1000_82573)
 		E1000_WRITE_REG(hw, E1000_RDTR, 0x20);
 
-	for (i = 0, que = adapter->rx_queues; i < adapter->rx_num_queues; i++, que++) {
+	for (i = 0, que = sc->rx_queues; i < sc->rx_num_queues; i++, que++) {
 		struct rx_ring *rxr = &que->rxr;
 		/* Setup the Base and Length of the Rx Descriptor Ring */
 		u64 bus_addr = rxr->rx_paddr;
 #if 0
-		u32 rdt = adapter->rx_num_queues -1;  /* default */
+		u32 rdt = sc->rx_num_queues -1;  /* default */
 #endif
 
 		E1000_WRITE_REG(hw, E1000_RDLEN(i),
@@ -3309,15 +3303,12 @@ em_initialize_receive_unit(if_ctx_t ctx)
 	 * Only write to RXDCTL(1) if there is a need for different
 	 * settings.
 	 */
-
-	if (((adapter->hw.mac.type == e1000_ich9lan) ||
-	    (adapter->hw.mac.type == e1000_pch2lan) ||
-	    (adapter->hw.mac.type == e1000_ich10lan)) &&
-	    (if_getmtu(ifp) > ETHERMTU)) {
+	if ((hw->mac.type == e1000_ich9lan || hw->mac.type == e1000_pch2lan ||
+	    hw->mac.type == e1000_ich10lan) && if_getmtu(ifp) > ETHERMTU) {
 		u32 rxdctl = E1000_READ_REG(hw, E1000_RXDCTL(0));
 		E1000_WRITE_REG(hw, E1000_RXDCTL(0), rxdctl | 3);
-	} else if (adapter->hw.mac.type == e1000_82574) {
-		for (int i = 0; i < adapter->rx_num_queues; i++) {
+	} else if (hw->mac.type == e1000_82574) {
+		for (int i = 0; i < sc->rx_num_queues; i++) {
 			u32 rxdctl = E1000_READ_REG(hw, E1000_RXDCTL(i));
 			rxdctl |= 0x20; /* PTHRESH */
 			rxdctl |= 4 << 8; /* HTHRESH */
@@ -3325,27 +3316,24 @@ em_initialize_receive_unit(if_ctx_t ctx)
 			rxdctl |= 1 << 24; /* Switch to granularity */
 			E1000_WRITE_REG(hw, E1000_RXDCTL(i), rxdctl);
 		}
-	} else if (adapter->hw.mac.type >= igb_mac_min) {
+	} else if (hw->mac.type >= igb_mac_min) {
 		u32 psize, srrctl = 0;
 
 		if (if_getmtu(ifp) > ETHERMTU) {
-			/* Set maximum packet len */
-			if (adapter->rx_mbuf_sz <= 4096) {
-				srrctl |= 4096 >> E1000_SRRCTL_BSIZEPKT_SHIFT;
-				rctl |= E1000_RCTL_SZ_4096 | E1000_RCTL_BSEX;
-			} else if (adapter->rx_mbuf_sz > 4096) {
-				srrctl |= 8192 >> E1000_SRRCTL_BSIZEPKT_SHIFT;
-				rctl |= E1000_RCTL_SZ_8192 | E1000_RCTL_BSEX;
-			}
 			psize = scctx->isc_max_frame_size;
 			/* are we on a vlan? */
 			if (ifp->if_vlantrunk != NULL)
 				psize += VLAN_TAG_SIZE;
-			E1000_WRITE_REG(&adapter->hw, E1000_RLPML, psize);
-		} else {
-			srrctl |= 2048 >> E1000_SRRCTL_BSIZEPKT_SHIFT;
-			rctl |= E1000_RCTL_SZ_2048;
+
+			if (sc->vf_ifp)
+				e1000_rlpml_set_vf(hw, psize);
+			else
+				E1000_WRITE_REG(hw, E1000_RLPML, psize);
 		}
+
+		/* Set maximum packet buffer len */
+		srrctl |= (sc->rx_mbuf_sz + BSIZEPKT_ROUNDUP) >>
+		    E1000_SRRCTL_BSIZEPKT_SHIFT;
 
 		/*
 		 * If TX flow control is disabled and there's >1 queue defined,
@@ -3353,13 +3341,13 @@ em_initialize_receive_unit(if_ctx_t ctx)
 		 *
 		 * This drops frames rather than hanging the RX MAC for all queues.
 		 */
-		if ((adapter->rx_num_queues > 1) &&
-		    (adapter->fc == e1000_fc_none ||
-		     adapter->fc == e1000_fc_rx_pause)) {
+		if ((sc->rx_num_queues > 1) &&
+		    (sc->fc == e1000_fc_none ||
+		     sc->fc == e1000_fc_rx_pause)) {
 			srrctl |= E1000_SRRCTL_DROP_EN;
 		}
 			/* Setup the Base and Length of the Rx Descriptor Rings */
-		for (i = 0, que = adapter->rx_queues; i < adapter->rx_num_queues; i++, que++) {
+		for (i = 0, que = sc->rx_queues; i < sc->rx_num_queues; i++, que++) {
 			struct rx_ring *rxr = &que->rxr;
 			u64 bus_addr = rxr->rx_paddr;
 			u32 rxdctl;
@@ -3387,27 +3375,39 @@ em_initialize_receive_unit(if_ctx_t ctx)
 			rxdctl |= IGB_RX_WTHRESH << 16;
 			E1000_WRITE_REG(hw, E1000_RXDCTL(i), rxdctl);
 		}		
-	} else if (adapter->hw.mac.type >= e1000_pch2lan) {
+	} else if (hw->mac.type >= e1000_pch2lan) {
 		if (if_getmtu(ifp) > ETHERMTU)
-			e1000_lv_jumbo_workaround_ich8lan(hw, TRUE);
+			e1000_lv_jumbo_workaround_ich8lan(hw, true);
 		else
-			e1000_lv_jumbo_workaround_ich8lan(hw, FALSE);
+			e1000_lv_jumbo_workaround_ich8lan(hw, false);
 	}
 
 	/* Make sure VLAN Filters are off */
 	rctl &= ~E1000_RCTL_VFE;
 
-	if (adapter->hw.mac.type < igb_mac_min) {
-		if (adapter->rx_mbuf_sz == MCLBYTES)
-			rctl |= E1000_RCTL_SZ_2048;
-		else if (adapter->rx_mbuf_sz == MJUMPAGESIZE)
+	/* Set up packet buffer size, overridden by per queue srrctl on igb */
+	if (hw->mac.type < igb_mac_min) {
+		if (sc->rx_mbuf_sz > 2048 && sc->rx_mbuf_sz <= 4096)
 			rctl |= E1000_RCTL_SZ_4096 | E1000_RCTL_BSEX;
-		else if (adapter->rx_mbuf_sz > MJUMPAGESIZE)
+		else if (sc->rx_mbuf_sz > 4096 && sc->rx_mbuf_sz <= 8192)
 			rctl |= E1000_RCTL_SZ_8192 | E1000_RCTL_BSEX;
+		else if (sc->rx_mbuf_sz > 8192)
+			rctl |= E1000_RCTL_SZ_16384 | E1000_RCTL_BSEX;
+		else {
+			rctl |= E1000_RCTL_SZ_2048;
+			rctl &= ~E1000_RCTL_BSEX;
+		}
+	} else
+		rctl |= E1000_RCTL_SZ_2048;
 
-		/* ensure we clear use DTYPE of 00 here */
-		rctl &= ~0x00000C00;
-	}
+	/*
+	 * rctl bits 11:10 are as follows
+	 * lem: reserved
+	 * em: DTYPE
+	 * igb: reserved
+	 * and should be 00 on all of the above
+	 */
+	rctl &= ~0x00000C00;
 
 	/* Write out the settings */
 	E1000_WRITE_REG(hw, E1000_RCTL, rctl);
@@ -3418,56 +3418,62 @@ em_initialize_receive_unit(if_ctx_t ctx)
 static void
 em_if_vlan_register(if_ctx_t ctx, u16 vtag)
 {
-	struct adapter *adapter = iflib_get_softc(ctx);
+	struct e1000_softc *sc = iflib_get_softc(ctx);
 	u32 index, bit;
 
 	index = (vtag >> 5) & 0x7F;
 	bit = vtag & 0x1F;
-	adapter->shadow_vfta[index] |= (1 << bit);
-	++adapter->num_vlans;
+	sc->shadow_vfta[index] |= (1 << bit);
+	++sc->num_vlans;
+	em_if_vlan_filter_write(sc);
 }
 
 static void
 em_if_vlan_unregister(if_ctx_t ctx, u16 vtag)
 {
-	struct adapter *adapter = iflib_get_softc(ctx);
+	struct e1000_softc *sc = iflib_get_softc(ctx);
 	u32 index, bit;
 
 	index = (vtag >> 5) & 0x7F;
 	bit = vtag & 0x1F;
-	adapter->shadow_vfta[index] &= ~(1 << bit);
-	--adapter->num_vlans;
+	sc->shadow_vfta[index] &= ~(1 << bit);
+	--sc->num_vlans;
+	em_if_vlan_filter_write(sc);
+}
+
+static bool
+em_if_vlan_filter_capable(if_ctx_t ctx)
+{
+	if_t ifp = iflib_get_ifp(ctx);
+
+	if ((if_getcapenable(ifp) & IFCAP_VLAN_HWFILTER) &&
+	    !em_disable_crc_stripping)
+		return (true);
+
+	return (false);
+}
+
+static bool
+em_if_vlan_filter_used(if_ctx_t ctx)
+{
+	struct e1000_softc *sc = iflib_get_softc(ctx);
+
+	if (!em_if_vlan_filter_capable(ctx))
+		return (false);
+
+	for (int i = 0; i < EM_VFTA_SIZE; i++)
+		if (sc->shadow_vfta[i] != 0)
+			return (true);
+
+	return (false);
 }
 
 static void
-em_setup_vlan_hw_support(struct adapter *adapter)
+em_if_vlan_filter_enable(struct e1000_softc *sc)
 {
-	struct e1000_hw *hw = &adapter->hw;
+	struct e1000_hw *hw = &sc->hw;
 	u32 reg;
 
-	/*
-	 * We get here thru init_locked, meaning
-	 * a soft reset, this has already cleared
-	 * the VFTA and other state, so if there
-	 * have been no vlan's registered do nothing.
-	 */
-	if (adapter->num_vlans == 0)
-		return;
-
-	/*
-	 * A soft reset zero's out the VFTA, so
-	 * we need to repopulate it now.
-	 */
-	for (int i = 0; i < EM_VFTA_SIZE; i++)
-		if (adapter->shadow_vfta[i] != 0)
-			E1000_WRITE_REG_ARRAY(hw, E1000_VFTA,
-			    i, adapter->shadow_vfta[i]);
-
-	reg = E1000_READ_REG(hw, E1000_CTRL);
-	reg |= E1000_CTRL_VME;
-	E1000_WRITE_REG(hw, E1000_CTRL, reg);
-
-	/* Enable the Filter Table */
 	reg = E1000_READ_REG(hw, E1000_RCTL);
 	reg &= ~E1000_RCTL_CFIEN;
 	reg |= E1000_RCTL_VFE;
@@ -3475,39 +3481,119 @@ em_setup_vlan_hw_support(struct adapter *adapter)
 }
 
 static void
+em_if_vlan_filter_disable(struct e1000_softc *sc)
+{
+	struct e1000_hw *hw = &sc->hw;
+	u32 reg;
+
+	reg = E1000_READ_REG(hw, E1000_RCTL);
+	reg &= ~(E1000_RCTL_VFE | E1000_RCTL_CFIEN);
+	E1000_WRITE_REG(hw, E1000_RCTL, reg);
+}
+
+static void
+em_if_vlan_filter_write(struct e1000_softc *sc)
+{
+	struct e1000_hw *hw = &sc->hw;
+
+	if (sc->vf_ifp)
+		return;
+
+	/* Disable interrupts for lem-class devices during the filter change */
+	if (hw->mac.type < em_mac_min)
+		em_if_intr_disable(sc->ctx);
+
+	for (int i = 0; i < EM_VFTA_SIZE; i++)
+		if (sc->shadow_vfta[i] != 0) {
+			/* XXXKB: incomplete VF support, we return early above */
+			if (sc->vf_ifp)
+				e1000_vfta_set_vf(hw, sc->shadow_vfta[i], true);
+			else
+				e1000_write_vfta(hw, i, sc->shadow_vfta[i]);
+		}
+
+	/* Re-enable interrupts for lem-class devices */
+	if (hw->mac.type < em_mac_min)
+		em_if_intr_enable(sc->ctx);
+}
+
+static void
+em_setup_vlan_hw_support(if_ctx_t ctx)
+{
+	struct e1000_softc *sc = iflib_get_softc(ctx);
+	struct e1000_hw *hw = &sc->hw;
+	struct ifnet *ifp = iflib_get_ifp(ctx);
+	u32 reg;
+
+	/* XXXKB: Return early if we are a VF until VF decap and filter management
+	 * is ready and tested.
+	 */
+	if (sc->vf_ifp)
+		return;
+
+	if (if_getcapenable(ifp) & IFCAP_VLAN_HWTAGGING &&
+	    !em_disable_crc_stripping) {
+		reg = E1000_READ_REG(hw, E1000_CTRL);
+		reg |= E1000_CTRL_VME;
+		E1000_WRITE_REG(hw, E1000_CTRL, reg);
+	} else {
+		reg = E1000_READ_REG(hw, E1000_CTRL);
+		reg &= ~E1000_CTRL_VME;
+		E1000_WRITE_REG(hw, E1000_CTRL, reg);
+	}
+
+	/* If we aren't doing HW filtering, we're done */
+	if (!em_if_vlan_filter_capable(ctx))  {
+		em_if_vlan_filter_disable(sc);
+		return;
+	}
+
+	/*
+	 * A soft reset zero's out the VFTA, so
+	 * we need to repopulate it now.
+	 */
+	em_if_vlan_filter_write(sc);
+
+	/* Enable the Filter Table */
+	em_if_vlan_filter_enable(sc);
+}
+
+static void
 em_if_intr_enable(if_ctx_t ctx)
 {
-	struct adapter *adapter = iflib_get_softc(ctx);
-	struct e1000_hw *hw = &adapter->hw;
+	struct e1000_softc *sc = iflib_get_softc(ctx);
+	struct e1000_hw *hw = &sc->hw;
 	u32 ims_mask = IMS_ENABLE_MASK;
 
-	if (adapter->intr_type == IFLIB_INTR_MSIX) {
-		E1000_WRITE_REG(hw, EM_EIAC, adapter->ims);
-		ims_mask |= adapter->ims;
+	if (sc->intr_type == IFLIB_INTR_MSIX) {
+		E1000_WRITE_REG(hw, EM_EIAC, sc->ims);
+		ims_mask |= sc->ims;
 	}
 	E1000_WRITE_REG(hw, E1000_IMS, ims_mask);
+	E1000_WRITE_FLUSH(hw);
 }
 
 static void
 em_if_intr_disable(if_ctx_t ctx)
 {
-	struct adapter *adapter = iflib_get_softc(ctx);
-	struct e1000_hw *hw = &adapter->hw;
+	struct e1000_softc *sc = iflib_get_softc(ctx);
+	struct e1000_hw *hw = &sc->hw;
 
-	if (adapter->intr_type == IFLIB_INTR_MSIX)
+	if (sc->intr_type == IFLIB_INTR_MSIX)
 		E1000_WRITE_REG(hw, EM_EIAC, 0);
 	E1000_WRITE_REG(hw, E1000_IMC, 0xffffffff);
+	E1000_WRITE_FLUSH(hw);
 }
 
 static void
 igb_if_intr_enable(if_ctx_t ctx)
 {
-	struct adapter *adapter = iflib_get_softc(ctx);
-	struct e1000_hw *hw = &adapter->hw;
+	struct e1000_softc *sc = iflib_get_softc(ctx);
+	struct e1000_hw *hw = &sc->hw;
 	u32 mask;
 
-	if (__predict_true(adapter->intr_type == IFLIB_INTR_MSIX)) {
-		mask = (adapter->que_mask | adapter->link_mask);
+	if (__predict_true(sc->intr_type == IFLIB_INTR_MSIX)) {
+		mask = (sc->que_mask | sc->link_mask);
 		E1000_WRITE_REG(hw, E1000_EIAC, mask);
 		E1000_WRITE_REG(hw, E1000_EIAM, mask);
 		E1000_WRITE_REG(hw, E1000_EIMS, mask);
@@ -3520,10 +3606,10 @@ igb_if_intr_enable(if_ctx_t ctx)
 static void
 igb_if_intr_disable(if_ctx_t ctx)
 {
-	struct adapter *adapter = iflib_get_softc(ctx);
-	struct e1000_hw *hw = &adapter->hw;
+	struct e1000_softc *sc = iflib_get_softc(ctx);
+	struct e1000_hw *hw = &sc->hw;
 
-	if (__predict_true(adapter->intr_type == IFLIB_INTR_MSIX)) {
+	if (__predict_true(sc->intr_type == IFLIB_INTR_MSIX)) {
 		E1000_WRITE_REG(hw, E1000_EIMC, 0xffffffff);
 		E1000_WRITE_REG(hw, E1000_EIAC, 0);
 	}
@@ -3537,13 +3623,13 @@ igb_if_intr_disable(if_ctx_t ctx)
  * to disable special hardware management features
  */
 static void
-em_init_manageability(struct adapter *adapter)
+em_init_manageability(struct e1000_softc *sc)
 {
 	/* A shared code workaround */
 #define E1000_82542_MANC2H E1000_MANC2H
-	if (adapter->has_manage) {
-		int manc2h = E1000_READ_REG(&adapter->hw, E1000_MANC2H);
-		int manc = E1000_READ_REG(&adapter->hw, E1000_MANC);
+	if (sc->has_manage) {
+		int manc2h = E1000_READ_REG(&sc->hw, E1000_MANC2H);
+		int manc = E1000_READ_REG(&sc->hw, E1000_MANC);
 
 		/* disable hardware interception of ARP */
 		manc &= ~(E1000_MANC_ARP_EN);
@@ -3554,8 +3640,8 @@ em_init_manageability(struct adapter *adapter)
 #define E1000_MNG2HOST_PORT_664 (1 << 6)
 		manc2h |= E1000_MNG2HOST_PORT_623;
 		manc2h |= E1000_MNG2HOST_PORT_664;
-		E1000_WRITE_REG(&adapter->hw, E1000_MANC2H, manc2h);
-		E1000_WRITE_REG(&adapter->hw, E1000_MANC, manc);
+		E1000_WRITE_REG(&sc->hw, E1000_MANC2H, manc2h);
+		E1000_WRITE_REG(&sc->hw, E1000_MANC, manc);
 	}
 }
 
@@ -3564,16 +3650,16 @@ em_init_manageability(struct adapter *adapter)
  * controller if there is one.
  */
 static void
-em_release_manageability(struct adapter *adapter)
+em_release_manageability(struct e1000_softc *sc)
 {
-	if (adapter->has_manage) {
-		int manc = E1000_READ_REG(&adapter->hw, E1000_MANC);
+	if (sc->has_manage) {
+		int manc = E1000_READ_REG(&sc->hw, E1000_MANC);
 
 		/* re-enable hardware interception of ARP */
 		manc |= E1000_MANC_ARP_EN;
 		manc &= ~E1000_MANC_EN_MNG2HOST;
 
-		E1000_WRITE_REG(&adapter->hw, E1000_MANC, manc);
+		E1000_WRITE_REG(&sc->hw, E1000_MANC, manc);
 	}
 }
 
@@ -3584,22 +3670,22 @@ em_release_manageability(struct adapter *adapter)
  * this means that the network i/f is open.
  */
 static void
-em_get_hw_control(struct adapter *adapter)
+em_get_hw_control(struct e1000_softc *sc)
 {
 	u32 ctrl_ext, swsm;
 
-	if (adapter->vf_ifp)
+	if (sc->vf_ifp)
 		return;
 
-	if (adapter->hw.mac.type == e1000_82573) {
-		swsm = E1000_READ_REG(&adapter->hw, E1000_SWSM);
-		E1000_WRITE_REG(&adapter->hw, E1000_SWSM,
+	if (sc->hw.mac.type == e1000_82573) {
+		swsm = E1000_READ_REG(&sc->hw, E1000_SWSM);
+		E1000_WRITE_REG(&sc->hw, E1000_SWSM,
 		    swsm | E1000_SWSM_DRV_LOAD);
 		return;
 	}
 	/* else */
-	ctrl_ext = E1000_READ_REG(&adapter->hw, E1000_CTRL_EXT);
-	E1000_WRITE_REG(&adapter->hw, E1000_CTRL_EXT,
+	ctrl_ext = E1000_READ_REG(&sc->hw, E1000_CTRL_EXT);
+	E1000_WRITE_REG(&sc->hw, E1000_CTRL_EXT,
 	    ctrl_ext | E1000_CTRL_EXT_DRV_LOAD);
 }
 
@@ -3610,22 +3696,22 @@ em_get_hw_control(struct adapter *adapter)
  * f/w this means that the network i/f is closed.
  */
 static void
-em_release_hw_control(struct adapter *adapter)
+em_release_hw_control(struct e1000_softc *sc)
 {
 	u32 ctrl_ext, swsm;
 
-	if (!adapter->has_manage)
+	if (!sc->has_manage)
 		return;
 
-	if (adapter->hw.mac.type == e1000_82573) {
-		swsm = E1000_READ_REG(&adapter->hw, E1000_SWSM);
-		E1000_WRITE_REG(&adapter->hw, E1000_SWSM,
+	if (sc->hw.mac.type == e1000_82573) {
+		swsm = E1000_READ_REG(&sc->hw, E1000_SWSM);
+		E1000_WRITE_REG(&sc->hw, E1000_SWSM,
 		    swsm & ~E1000_SWSM_DRV_LOAD);
 		return;
 	}
 	/* else */
-	ctrl_ext = E1000_READ_REG(&adapter->hw, E1000_CTRL_EXT);
-	E1000_WRITE_REG(&adapter->hw, E1000_CTRL_EXT,
+	ctrl_ext = E1000_READ_REG(&sc->hw, E1000_CTRL_EXT);
+	E1000_WRITE_REG(&sc->hw, E1000_CTRL_EXT,
 	    ctrl_ext & ~E1000_CTRL_EXT_DRV_LOAD);
 	return;
 }
@@ -3636,10 +3722,10 @@ em_is_valid_ether_addr(u8 *addr)
 	char zero_addr[6] = { 0, 0, 0, 0, 0, 0 };
 
 	if ((addr[0] & 1) || (!bcmp(addr, zero_addr, ETHER_ADDR_LEN))) {
-		return (FALSE);
+		return (false);
 	}
 
-	return (TRUE);
+	return (true);
 }
 
 /*
@@ -3650,45 +3736,45 @@ em_is_valid_ether_addr(u8 *addr)
 static void
 em_get_wakeup(if_ctx_t ctx)
 {
-	struct adapter *adapter = iflib_get_softc(ctx);
+	struct e1000_softc *sc = iflib_get_softc(ctx);
 	device_t dev = iflib_get_dev(ctx);
 	u16 eeprom_data = 0, device_id, apme_mask;
 
-	adapter->has_manage = e1000_enable_mng_pass_thru(&adapter->hw);
+	sc->has_manage = e1000_enable_mng_pass_thru(&sc->hw);
 	apme_mask = EM_EEPROM_APME;
 
-	switch (adapter->hw.mac.type) {
+	switch (sc->hw.mac.type) {
 	case e1000_82542:
 	case e1000_82543:
 		break;
 	case e1000_82544:
-		e1000_read_nvm(&adapter->hw,
+		e1000_read_nvm(&sc->hw,
 		    NVM_INIT_CONTROL2_REG, 1, &eeprom_data);
 		apme_mask = EM_82544_APME;
 		break;
 	case e1000_82546:
 	case e1000_82546_rev_3:
-		if (adapter->hw.bus.func == 1) {
-			e1000_read_nvm(&adapter->hw,
+		if (sc->hw.bus.func == 1) {
+			e1000_read_nvm(&sc->hw,
 			    NVM_INIT_CONTROL3_PORT_B, 1, &eeprom_data);
 			break;
 		} else
-			e1000_read_nvm(&adapter->hw,
+			e1000_read_nvm(&sc->hw,
 			    NVM_INIT_CONTROL3_PORT_A, 1, &eeprom_data);
 		break;
 	case e1000_82573:
 	case e1000_82583:
-		adapter->has_amt = TRUE;
+		sc->has_amt = true;
 		/* FALLTHROUGH */
 	case e1000_82571:
 	case e1000_82572:
 	case e1000_80003es2lan:
-		if (adapter->hw.bus.func == 1) {
-			e1000_read_nvm(&adapter->hw,
+		if (sc->hw.bus.func == 1) {
+			e1000_read_nvm(&sc->hw,
 			    NVM_INIT_CONTROL3_PORT_B, 1, &eeprom_data);
 			break;
 		} else
-			e1000_read_nvm(&adapter->hw,
+			e1000_read_nvm(&sc->hw,
 			    NVM_INIT_CONTROL3_PORT_A, 1, &eeprom_data);
 		break;
 	case e1000_ich8lan:
@@ -3708,16 +3794,16 @@ em_get_wakeup(if_ctx_t ctx)
 	case e1000_vfadapt:
 	case e1000_vfadapt_i350:
 		apme_mask = E1000_WUC_APME;
-		adapter->has_amt = TRUE;
-		eeprom_data = E1000_READ_REG(&adapter->hw, E1000_WUC);
+		sc->has_amt = true;
+		eeprom_data = E1000_READ_REG(&sc->hw, E1000_WUC);
 		break;
 	default:
-		e1000_read_nvm(&adapter->hw,
+		e1000_read_nvm(&sc->hw,
 		    NVM_INIT_CONTROL3_PORT_A, 1, &eeprom_data);
 		break;
 	}
 	if (eeprom_data & apme_mask)
-		adapter->wol = (E1000_WUFC_MAG | E1000_WUFC_MC);
+		sc->wol = (E1000_WUFC_MAG | E1000_WUFC_MC);
 	/*
 	 * We have the eeprom settings, now apply the special cases
 	 * where the eeprom may be wrong or the board won't support
@@ -3726,20 +3812,20 @@ em_get_wakeup(if_ctx_t ctx)
 	device_id = pci_get_device(dev);
 	switch (device_id) {
 	case E1000_DEV_ID_82546GB_PCIE:
-		adapter->wol = 0;
+		sc->wol = 0;
 		break;
 	case E1000_DEV_ID_82546EB_FIBER:
 	case E1000_DEV_ID_82546GB_FIBER:
 		/* Wake events only supported on port A for dual fiber
 		 * regardless of eeprom setting */
-		if (E1000_READ_REG(&adapter->hw, E1000_STATUS) &
+		if (E1000_READ_REG(&sc->hw, E1000_STATUS) &
 		    E1000_STATUS_FUNC_1)
-			adapter->wol = 0;
+			sc->wol = 0;
 		break;
 	case E1000_DEV_ID_82546GB_QUAD_COPPER_KSP3:
 		/* if quad port adapter, disable WoL on all but port A */
 		if (global_quad_port_a != 0)
-			adapter->wol = 0;
+			sc->wol = 0;
 		/* Reset for multiple quad port adapters */
 		if (++global_quad_port_a == 4)
 			global_quad_port_a = 0;
@@ -3747,16 +3833,16 @@ em_get_wakeup(if_ctx_t ctx)
 	case E1000_DEV_ID_82571EB_FIBER:
 		/* Wake events only supported on port A for dual fiber
 		 * regardless of eeprom setting */
-		if (E1000_READ_REG(&adapter->hw, E1000_STATUS) &
+		if (E1000_READ_REG(&sc->hw, E1000_STATUS) &
 		    E1000_STATUS_FUNC_1)
-			adapter->wol = 0;
+			sc->wol = 0;
 		break;
 	case E1000_DEV_ID_82571EB_QUAD_COPPER:
 	case E1000_DEV_ID_82571EB_QUAD_FIBER:
 	case E1000_DEV_ID_82571EB_QUAD_COPPER_LP:
 		/* if quad port adapter, disable WoL on all but port A */
 		if (global_quad_port_a != 0)
-			adapter->wol = 0;
+			sc->wol = 0;
 		/* Reset for multiple quad port adapters */
 		if (++global_quad_port_a == 4)
 			global_quad_port_a = 0;
@@ -3772,7 +3858,7 @@ em_get_wakeup(if_ctx_t ctx)
 static void
 em_enable_wakeup(if_ctx_t ctx)
 {
-	struct adapter *adapter = iflib_get_softc(ctx);
+	struct e1000_softc *sc = iflib_get_softc(ctx);
 	device_t dev = iflib_get_dev(ctx);
 	if_t ifp = iflib_get_ifp(ctx);
 	int error = 0;
@@ -3787,53 +3873,53 @@ em_enable_wakeup(if_ctx_t ctx)
 	 * is set with all bits on by default.
 	 */
 	if ((if_getcapenable(ifp) & IFCAP_WOL_MAGIC) == 0)
-		adapter->wol &= ~E1000_WUFC_MAG;
+		sc->wol &= ~E1000_WUFC_MAG;
 
 	if ((if_getcapenable(ifp) & IFCAP_WOL_UCAST) == 0)
-		adapter->wol &= ~E1000_WUFC_EX;
+		sc->wol &= ~E1000_WUFC_EX;
 
 	if ((if_getcapenable(ifp) & IFCAP_WOL_MCAST) == 0)
-		adapter->wol &= ~E1000_WUFC_MC;
+		sc->wol &= ~E1000_WUFC_MC;
 	else {
-		rctl = E1000_READ_REG(&adapter->hw, E1000_RCTL);
+		rctl = E1000_READ_REG(&sc->hw, E1000_RCTL);
 		rctl |= E1000_RCTL_MPE;
-		E1000_WRITE_REG(&adapter->hw, E1000_RCTL, rctl);
+		E1000_WRITE_REG(&sc->hw, E1000_RCTL, rctl);
 	}
 
-	if (!(adapter->wol & (E1000_WUFC_EX | E1000_WUFC_MAG | E1000_WUFC_MC)))
+	if (!(sc->wol & (E1000_WUFC_EX | E1000_WUFC_MAG | E1000_WUFC_MC)))
 		goto pme;
 
 	/* Advertise the wakeup capability */
-	ctrl = E1000_READ_REG(&adapter->hw, E1000_CTRL);
+	ctrl = E1000_READ_REG(&sc->hw, E1000_CTRL);
 	ctrl |= (E1000_CTRL_SWDPIN2 | E1000_CTRL_SWDPIN3);
-	E1000_WRITE_REG(&adapter->hw, E1000_CTRL, ctrl);
+	E1000_WRITE_REG(&sc->hw, E1000_CTRL, ctrl);
 
 	/* Keep the laser running on Fiber adapters */
-	if (adapter->hw.phy.media_type == e1000_media_type_fiber ||
-	    adapter->hw.phy.media_type == e1000_media_type_internal_serdes) {
-		ctrl_ext = E1000_READ_REG(&adapter->hw, E1000_CTRL_EXT);
+	if (sc->hw.phy.media_type == e1000_media_type_fiber ||
+	    sc->hw.phy.media_type == e1000_media_type_internal_serdes) {
+		ctrl_ext = E1000_READ_REG(&sc->hw, E1000_CTRL_EXT);
 		ctrl_ext |= E1000_CTRL_EXT_SDP3_DATA;
-		E1000_WRITE_REG(&adapter->hw, E1000_CTRL_EXT, ctrl_ext);
+		E1000_WRITE_REG(&sc->hw, E1000_CTRL_EXT, ctrl_ext);
 	}
 
-	if ((adapter->hw.mac.type == e1000_ich8lan) ||
-	    (adapter->hw.mac.type == e1000_pchlan) ||
-	    (adapter->hw.mac.type == e1000_ich9lan) ||
-	    (adapter->hw.mac.type == e1000_ich10lan))
-		e1000_suspend_workarounds_ich8lan(&adapter->hw);
+	if ((sc->hw.mac.type == e1000_ich8lan) ||
+	    (sc->hw.mac.type == e1000_pchlan) ||
+	    (sc->hw.mac.type == e1000_ich9lan) ||
+	    (sc->hw.mac.type == e1000_ich10lan))
+		e1000_suspend_workarounds_ich8lan(&sc->hw);
 
-	if ( adapter->hw.mac.type >= e1000_pchlan) {
-		error = em_enable_phy_wakeup(adapter);
+	if ( sc->hw.mac.type >= e1000_pchlan) {
+		error = em_enable_phy_wakeup(sc);
 		if (error)
 			goto pme;
 	} else {
 		/* Enable wakeup by the MAC */
-		E1000_WRITE_REG(&adapter->hw, E1000_WUC, E1000_WUC_PME_EN);
-		E1000_WRITE_REG(&adapter->hw, E1000_WUFC, adapter->wol);
+		E1000_WRITE_REG(&sc->hw, E1000_WUC, E1000_WUC_PME_EN);
+		E1000_WRITE_REG(&sc->hw, E1000_WUFC, sc->wol);
 	}
 
-	if (adapter->hw.phy.type == e1000_phy_igp_3)
-		e1000_igp3_phy_powerdown_workaround_ich8lan(&adapter->hw);
+	if (sc->hw.phy.type == e1000_phy_igp_3)
+		e1000_igp3_phy_powerdown_workaround_ich8lan(&sc->hw);
 
 pme:
 	status = pci_read_config(dev, pmc + PCIR_POWER_STATUS, 2);
@@ -3850,9 +3936,9 @@ pme:
  * require thing to be copied into the phy
  */
 static int
-em_enable_phy_wakeup(struct adapter *adapter)
+em_enable_phy_wakeup(struct e1000_softc *sc)
 {
-	struct e1000_hw *hw = &adapter->hw;
+	struct e1000_hw *hw = &sc->hw;
 	u32 mreg, ret = 0;
 	u16 preg;
 
@@ -3860,7 +3946,7 @@ em_enable_phy_wakeup(struct adapter *adapter)
 	e1000_copy_rx_addrs_to_phy_ich8lan(hw);
 
 	/* copy MAC MTA to PHY MTA */
-	for (int i = 0; i < adapter->hw.mac.mta_reg_count; i++) {
+	for (int i = 0; i < hw->mac.mta_reg_count; i++) {
 		mreg = E1000_READ_REG_ARRAY(hw, E1000_MTA, i);
 		e1000_write_phy_reg(hw, BM_MTA(i), (u16)(mreg & 0xFFFF));
 		e1000_write_phy_reg(hw, BM_MTA(i) + 1,
@@ -3868,7 +3954,7 @@ em_enable_phy_wakeup(struct adapter *adapter)
 	}
 
 	/* configure PHY Rx Control register */
-	e1000_read_phy_reg(&adapter->hw, BM_RCTL, &preg);
+	e1000_read_phy_reg(hw, BM_RCTL, &preg);
 	mreg = E1000_READ_REG(hw, E1000_RCTL);
 	if (mreg & E1000_RCTL_UPE)
 		preg |= BM_RCTL_UPE;
@@ -3885,16 +3971,16 @@ em_enable_phy_wakeup(struct adapter *adapter)
 	mreg = E1000_READ_REG(hw, E1000_CTRL);
 	if (mreg & E1000_CTRL_RFCE)
 		preg |= BM_RCTL_RFCE;
-	e1000_write_phy_reg(&adapter->hw, BM_RCTL, preg);
+	e1000_write_phy_reg(hw, BM_RCTL, preg);
 
 	/* enable PHY wakeup in MAC register */
 	E1000_WRITE_REG(hw, E1000_WUC,
 	    E1000_WUC_PHY_WAKE | E1000_WUC_PME_EN | E1000_WUC_APME);
-	E1000_WRITE_REG(hw, E1000_WUFC, adapter->wol);
+	E1000_WRITE_REG(hw, E1000_WUFC, sc->wol);
 
 	/* configure and enable PHY wakeup in PHY registers */
-	e1000_write_phy_reg(&adapter->hw, BM_WUFC, adapter->wol);
-	e1000_write_phy_reg(&adapter->hw, BM_WUC, E1000_WUC_PME_EN);
+	e1000_write_phy_reg(hw, BM_WUFC, sc->wol);
+	e1000_write_phy_reg(hw, BM_WUC, E1000_WUC_PME_EN);
 
 	/* activate PHY wakeup */
 	ret = hw->phy.ops.acquire(hw);
@@ -3922,14 +4008,14 @@ out:
 static void
 em_if_led_func(if_ctx_t ctx, int onoff)
 {
-	struct adapter *adapter = iflib_get_softc(ctx);
+	struct e1000_softc *sc = iflib_get_softc(ctx);
 
 	if (onoff) {
-		e1000_setup_led(&adapter->hw);
-		e1000_led_on(&adapter->hw);
+		e1000_setup_led(&sc->hw);
+		e1000_led_on(&sc->hw);
 	} else {
-		e1000_led_off(&adapter->hw);
-		e1000_cleanup_led(&adapter->hw);
+		e1000_led_off(&sc->hw);
+		e1000_cleanup_led(&sc->hw);
 	}
 }
 
@@ -3937,13 +4023,13 @@ em_if_led_func(if_ctx_t ctx, int onoff)
  * Disable the L0S and L1 LINK states
  */
 static void
-em_disable_aspm(struct adapter *adapter)
+em_disable_aspm(struct e1000_softc *sc)
 {
 	int base, reg;
 	u16 link_cap,link_ctrl;
-	device_t dev = adapter->dev;
+	device_t dev = sc->dev;
 
-	switch (adapter->hw.mac.type) {
+	switch (sc->hw.mac.type) {
 	case e1000_82573:
 	case e1000_82574:
 	case e1000_82583:
@@ -3970,120 +4056,120 @@ em_disable_aspm(struct adapter *adapter)
  *
  **********************************************************************/
 static void
-em_update_stats_counters(struct adapter *adapter)
+em_update_stats_counters(struct e1000_softc *sc)
 {
-	u64 prev_xoffrxc = adapter->stats.xoffrxc;
+	u64 prev_xoffrxc = sc->stats.xoffrxc;
 
-	if(adapter->hw.phy.media_type == e1000_media_type_copper ||
-	   (E1000_READ_REG(&adapter->hw, E1000_STATUS) & E1000_STATUS_LU)) {
-		adapter->stats.symerrs += E1000_READ_REG(&adapter->hw, E1000_SYMERRS);
-		adapter->stats.sec += E1000_READ_REG(&adapter->hw, E1000_SEC);
+	if(sc->hw.phy.media_type == e1000_media_type_copper ||
+	   (E1000_READ_REG(&sc->hw, E1000_STATUS) & E1000_STATUS_LU)) {
+		sc->stats.symerrs += E1000_READ_REG(&sc->hw, E1000_SYMERRS);
+		sc->stats.sec += E1000_READ_REG(&sc->hw, E1000_SEC);
 	}
-	adapter->stats.crcerrs += E1000_READ_REG(&adapter->hw, E1000_CRCERRS);
-	adapter->stats.mpc += E1000_READ_REG(&adapter->hw, E1000_MPC);
-	adapter->stats.scc += E1000_READ_REG(&adapter->hw, E1000_SCC);
-	adapter->stats.ecol += E1000_READ_REG(&adapter->hw, E1000_ECOL);
+	sc->stats.crcerrs += E1000_READ_REG(&sc->hw, E1000_CRCERRS);
+	sc->stats.mpc += E1000_READ_REG(&sc->hw, E1000_MPC);
+	sc->stats.scc += E1000_READ_REG(&sc->hw, E1000_SCC);
+	sc->stats.ecol += E1000_READ_REG(&sc->hw, E1000_ECOL);
 
-	adapter->stats.mcc += E1000_READ_REG(&adapter->hw, E1000_MCC);
-	adapter->stats.latecol += E1000_READ_REG(&adapter->hw, E1000_LATECOL);
-	adapter->stats.colc += E1000_READ_REG(&adapter->hw, E1000_COLC);
-	adapter->stats.dc += E1000_READ_REG(&adapter->hw, E1000_DC);
-	adapter->stats.rlec += E1000_READ_REG(&adapter->hw, E1000_RLEC);
-	adapter->stats.xonrxc += E1000_READ_REG(&adapter->hw, E1000_XONRXC);
-	adapter->stats.xontxc += E1000_READ_REG(&adapter->hw, E1000_XONTXC);
-	adapter->stats.xoffrxc += E1000_READ_REG(&adapter->hw, E1000_XOFFRXC);
+	sc->stats.mcc += E1000_READ_REG(&sc->hw, E1000_MCC);
+	sc->stats.latecol += E1000_READ_REG(&sc->hw, E1000_LATECOL);
+	sc->stats.colc += E1000_READ_REG(&sc->hw, E1000_COLC);
+	sc->stats.dc += E1000_READ_REG(&sc->hw, E1000_DC);
+	sc->stats.rlec += E1000_READ_REG(&sc->hw, E1000_RLEC);
+	sc->stats.xonrxc += E1000_READ_REG(&sc->hw, E1000_XONRXC);
+	sc->stats.xontxc += E1000_READ_REG(&sc->hw, E1000_XONTXC);
+	sc->stats.xoffrxc += E1000_READ_REG(&sc->hw, E1000_XOFFRXC);
 	/*
 	 ** For watchdog management we need to know if we have been
 	 ** paused during the last interval, so capture that here.
 	*/
-	if (adapter->stats.xoffrxc != prev_xoffrxc)
-		adapter->shared->isc_pause_frames = 1;
-	adapter->stats.xofftxc += E1000_READ_REG(&adapter->hw, E1000_XOFFTXC);
-	adapter->stats.fcruc += E1000_READ_REG(&adapter->hw, E1000_FCRUC);
-	adapter->stats.prc64 += E1000_READ_REG(&adapter->hw, E1000_PRC64);
-	adapter->stats.prc127 += E1000_READ_REG(&adapter->hw, E1000_PRC127);
-	adapter->stats.prc255 += E1000_READ_REG(&adapter->hw, E1000_PRC255);
-	adapter->stats.prc511 += E1000_READ_REG(&adapter->hw, E1000_PRC511);
-	adapter->stats.prc1023 += E1000_READ_REG(&adapter->hw, E1000_PRC1023);
-	adapter->stats.prc1522 += E1000_READ_REG(&adapter->hw, E1000_PRC1522);
-	adapter->stats.gprc += E1000_READ_REG(&adapter->hw, E1000_GPRC);
-	adapter->stats.bprc += E1000_READ_REG(&adapter->hw, E1000_BPRC);
-	adapter->stats.mprc += E1000_READ_REG(&adapter->hw, E1000_MPRC);
-	adapter->stats.gptc += E1000_READ_REG(&adapter->hw, E1000_GPTC);
+	if (sc->stats.xoffrxc != prev_xoffrxc)
+		sc->shared->isc_pause_frames = 1;
+	sc->stats.xofftxc += E1000_READ_REG(&sc->hw, E1000_XOFFTXC);
+	sc->stats.fcruc += E1000_READ_REG(&sc->hw, E1000_FCRUC);
+	sc->stats.prc64 += E1000_READ_REG(&sc->hw, E1000_PRC64);
+	sc->stats.prc127 += E1000_READ_REG(&sc->hw, E1000_PRC127);
+	sc->stats.prc255 += E1000_READ_REG(&sc->hw, E1000_PRC255);
+	sc->stats.prc511 += E1000_READ_REG(&sc->hw, E1000_PRC511);
+	sc->stats.prc1023 += E1000_READ_REG(&sc->hw, E1000_PRC1023);
+	sc->stats.prc1522 += E1000_READ_REG(&sc->hw, E1000_PRC1522);
+	sc->stats.gprc += E1000_READ_REG(&sc->hw, E1000_GPRC);
+	sc->stats.bprc += E1000_READ_REG(&sc->hw, E1000_BPRC);
+	sc->stats.mprc += E1000_READ_REG(&sc->hw, E1000_MPRC);
+	sc->stats.gptc += E1000_READ_REG(&sc->hw, E1000_GPTC);
 
 	/* For the 64-bit byte counters the low dword must be read first. */
 	/* Both registers clear on the read of the high dword */
 
-	adapter->stats.gorc += E1000_READ_REG(&adapter->hw, E1000_GORCL) +
-	    ((u64)E1000_READ_REG(&adapter->hw, E1000_GORCH) << 32);
-	adapter->stats.gotc += E1000_READ_REG(&adapter->hw, E1000_GOTCL) +
-	    ((u64)E1000_READ_REG(&adapter->hw, E1000_GOTCH) << 32);
+	sc->stats.gorc += E1000_READ_REG(&sc->hw, E1000_GORCL) +
+	    ((u64)E1000_READ_REG(&sc->hw, E1000_GORCH) << 32);
+	sc->stats.gotc += E1000_READ_REG(&sc->hw, E1000_GOTCL) +
+	    ((u64)E1000_READ_REG(&sc->hw, E1000_GOTCH) << 32);
 
-	adapter->stats.rnbc += E1000_READ_REG(&adapter->hw, E1000_RNBC);
-	adapter->stats.ruc += E1000_READ_REG(&adapter->hw, E1000_RUC);
-	adapter->stats.rfc += E1000_READ_REG(&adapter->hw, E1000_RFC);
-	adapter->stats.roc += E1000_READ_REG(&adapter->hw, E1000_ROC);
-	adapter->stats.rjc += E1000_READ_REG(&adapter->hw, E1000_RJC);
+	sc->stats.rnbc += E1000_READ_REG(&sc->hw, E1000_RNBC);
+	sc->stats.ruc += E1000_READ_REG(&sc->hw, E1000_RUC);
+	sc->stats.rfc += E1000_READ_REG(&sc->hw, E1000_RFC);
+	sc->stats.roc += E1000_READ_REG(&sc->hw, E1000_ROC);
+	sc->stats.rjc += E1000_READ_REG(&sc->hw, E1000_RJC);
 
-	adapter->stats.tor += E1000_READ_REG(&adapter->hw, E1000_TORH);
-	adapter->stats.tot += E1000_READ_REG(&adapter->hw, E1000_TOTH);
+	sc->stats.tor += E1000_READ_REG(&sc->hw, E1000_TORH);
+	sc->stats.tot += E1000_READ_REG(&sc->hw, E1000_TOTH);
 
-	adapter->stats.tpr += E1000_READ_REG(&adapter->hw, E1000_TPR);
-	adapter->stats.tpt += E1000_READ_REG(&adapter->hw, E1000_TPT);
-	adapter->stats.ptc64 += E1000_READ_REG(&adapter->hw, E1000_PTC64);
-	adapter->stats.ptc127 += E1000_READ_REG(&adapter->hw, E1000_PTC127);
-	adapter->stats.ptc255 += E1000_READ_REG(&adapter->hw, E1000_PTC255);
-	adapter->stats.ptc511 += E1000_READ_REG(&adapter->hw, E1000_PTC511);
-	adapter->stats.ptc1023 += E1000_READ_REG(&adapter->hw, E1000_PTC1023);
-	adapter->stats.ptc1522 += E1000_READ_REG(&adapter->hw, E1000_PTC1522);
-	adapter->stats.mptc += E1000_READ_REG(&adapter->hw, E1000_MPTC);
-	adapter->stats.bptc += E1000_READ_REG(&adapter->hw, E1000_BPTC);
+	sc->stats.tpr += E1000_READ_REG(&sc->hw, E1000_TPR);
+	sc->stats.tpt += E1000_READ_REG(&sc->hw, E1000_TPT);
+	sc->stats.ptc64 += E1000_READ_REG(&sc->hw, E1000_PTC64);
+	sc->stats.ptc127 += E1000_READ_REG(&sc->hw, E1000_PTC127);
+	sc->stats.ptc255 += E1000_READ_REG(&sc->hw, E1000_PTC255);
+	sc->stats.ptc511 += E1000_READ_REG(&sc->hw, E1000_PTC511);
+	sc->stats.ptc1023 += E1000_READ_REG(&sc->hw, E1000_PTC1023);
+	sc->stats.ptc1522 += E1000_READ_REG(&sc->hw, E1000_PTC1522);
+	sc->stats.mptc += E1000_READ_REG(&sc->hw, E1000_MPTC);
+	sc->stats.bptc += E1000_READ_REG(&sc->hw, E1000_BPTC);
 
 	/* Interrupt Counts */
 
-	adapter->stats.iac += E1000_READ_REG(&adapter->hw, E1000_IAC);
-	adapter->stats.icrxptc += E1000_READ_REG(&adapter->hw, E1000_ICRXPTC);
-	adapter->stats.icrxatc += E1000_READ_REG(&adapter->hw, E1000_ICRXATC);
-	adapter->stats.ictxptc += E1000_READ_REG(&adapter->hw, E1000_ICTXPTC);
-	adapter->stats.ictxatc += E1000_READ_REG(&adapter->hw, E1000_ICTXATC);
-	adapter->stats.ictxqec += E1000_READ_REG(&adapter->hw, E1000_ICTXQEC);
-	adapter->stats.ictxqmtc += E1000_READ_REG(&adapter->hw, E1000_ICTXQMTC);
-	adapter->stats.icrxdmtc += E1000_READ_REG(&adapter->hw, E1000_ICRXDMTC);
-	adapter->stats.icrxoc += E1000_READ_REG(&adapter->hw, E1000_ICRXOC);
+	sc->stats.iac += E1000_READ_REG(&sc->hw, E1000_IAC);
+	sc->stats.icrxptc += E1000_READ_REG(&sc->hw, E1000_ICRXPTC);
+	sc->stats.icrxatc += E1000_READ_REG(&sc->hw, E1000_ICRXATC);
+	sc->stats.ictxptc += E1000_READ_REG(&sc->hw, E1000_ICTXPTC);
+	sc->stats.ictxatc += E1000_READ_REG(&sc->hw, E1000_ICTXATC);
+	sc->stats.ictxqec += E1000_READ_REG(&sc->hw, E1000_ICTXQEC);
+	sc->stats.ictxqmtc += E1000_READ_REG(&sc->hw, E1000_ICTXQMTC);
+	sc->stats.icrxdmtc += E1000_READ_REG(&sc->hw, E1000_ICRXDMTC);
+	sc->stats.icrxoc += E1000_READ_REG(&sc->hw, E1000_ICRXOC);
 
-	if (adapter->hw.mac.type >= e1000_82543) {
-		adapter->stats.algnerrc +=
-		E1000_READ_REG(&adapter->hw, E1000_ALGNERRC);
-		adapter->stats.rxerrc +=
-		E1000_READ_REG(&adapter->hw, E1000_RXERRC);
-		adapter->stats.tncrs +=
-		E1000_READ_REG(&adapter->hw, E1000_TNCRS);
-		adapter->stats.cexterr +=
-		E1000_READ_REG(&adapter->hw, E1000_CEXTERR);
-		adapter->stats.tsctc +=
-		E1000_READ_REG(&adapter->hw, E1000_TSCTC);
-		adapter->stats.tsctfc +=
-		E1000_READ_REG(&adapter->hw, E1000_TSCTFC);
+	if (sc->hw.mac.type >= e1000_82543) {
+		sc->stats.algnerrc +=
+		E1000_READ_REG(&sc->hw, E1000_ALGNERRC);
+		sc->stats.rxerrc +=
+		E1000_READ_REG(&sc->hw, E1000_RXERRC);
+		sc->stats.tncrs +=
+		E1000_READ_REG(&sc->hw, E1000_TNCRS);
+		sc->stats.cexterr +=
+		E1000_READ_REG(&sc->hw, E1000_CEXTERR);
+		sc->stats.tsctc +=
+		E1000_READ_REG(&sc->hw, E1000_TSCTC);
+		sc->stats.tsctfc +=
+		E1000_READ_REG(&sc->hw, E1000_TSCTFC);
 	}
 }
 
 static uint64_t
 em_if_get_counter(if_ctx_t ctx, ift_counter cnt)
 {
-	struct adapter *adapter = iflib_get_softc(ctx);
+	struct e1000_softc *sc = iflib_get_softc(ctx);
 	struct ifnet *ifp = iflib_get_ifp(ctx);
 
 	switch (cnt) {
 	case IFCOUNTER_COLLISIONS:
-		return (adapter->stats.colc);
+		return (sc->stats.colc);
 	case IFCOUNTER_IERRORS:
-		return (adapter->dropped_pkts + adapter->stats.rxerrc +
-		    adapter->stats.crcerrs + adapter->stats.algnerrc +
-		    adapter->stats.ruc + adapter->stats.roc +
-		    adapter->stats.mpc + adapter->stats.cexterr);
+		return (sc->dropped_pkts + sc->stats.rxerrc +
+		    sc->stats.crcerrs + sc->stats.algnerrc +
+		    sc->stats.ruc + sc->stats.roc +
+		    sc->stats.mpc + sc->stats.cexterr);
 	case IFCOUNTER_OERRORS:
-		return (adapter->stats.ecol + adapter->stats.latecol +
-		    adapter->watchdog_events);
+		return (sc->stats.ecol + sc->stats.latecol +
+		    sc->watchdog_events);
 	default:
 		return (if_get_counter_default(ifp, cnt));
 	}
@@ -4102,6 +4188,7 @@ em_if_needs_restart(if_ctx_t ctx __unused, enum iflib_restart_event event)
 {
 	switch (event) {
 	case IFLIB_RESTART_VLAN_CONFIG:
+		return (false);
 	default:
 		return (true);
 	}
@@ -4111,11 +4198,11 @@ em_if_needs_restart(if_ctx_t ctx __unused, enum iflib_restart_event event)
 static int
 em_sysctl_reg_handler(SYSCTL_HANDLER_ARGS)
 {
-	struct adapter *adapter;
+	struct e1000_softc *sc;
 	u_int val;
 
-	adapter = oidp->oid_arg1;
-	val = E1000_READ_REG(&adapter->hw, oidp->oid_arg2);
+	sc = oidp->oid_arg1;
+	val = E1000_READ_REG(&sc->hw, oidp->oid_arg2);
 	return (sysctl_handle_int(oidp, &val, 0, req));
 }
 
@@ -4123,16 +4210,16 @@ em_sysctl_reg_handler(SYSCTL_HANDLER_ARGS)
  * Add sysctl variables, one per statistic, to the system.
  */
 static void
-em_add_hw_stats(struct adapter *adapter)
+em_add_hw_stats(struct e1000_softc *sc)
 {
-	device_t dev = iflib_get_dev(adapter->ctx);
-	struct em_tx_queue *tx_que = adapter->tx_queues;
-	struct em_rx_queue *rx_que = adapter->rx_queues;
+	device_t dev = iflib_get_dev(sc->ctx);
+	struct em_tx_queue *tx_que = sc->tx_queues;
+	struct em_rx_queue *rx_que = sc->rx_queues;
 
 	struct sysctl_ctx_list *ctx = device_get_sysctl_ctx(dev);
 	struct sysctl_oid *tree = device_get_sysctl_tree(dev);
 	struct sysctl_oid_list *child = SYSCTL_CHILDREN(tree);
-	struct e1000_hw_stats *stats = &adapter->stats;
+	struct e1000_hw_stats *stats = &sc->stats;
 
 	struct sysctl_oid *stat_node, *queue_node, *int_node;
 	struct sysctl_oid_list *stat_list, *queue_list, *int_list;
@@ -4142,33 +4229,33 @@ em_add_hw_stats(struct adapter *adapter)
 
 	/* Driver Statistics */
 	SYSCTL_ADD_ULONG(ctx, child, OID_AUTO, "dropped",
-			CTLFLAG_RD, &adapter->dropped_pkts,
+			CTLFLAG_RD, &sc->dropped_pkts,
 			"Driver dropped packets");
 	SYSCTL_ADD_ULONG(ctx, child, OID_AUTO, "link_irq",
-			CTLFLAG_RD, &adapter->link_irq,
+			CTLFLAG_RD, &sc->link_irq,
 			"Link MSI-X IRQ Handled");
 	SYSCTL_ADD_ULONG(ctx, child, OID_AUTO, "rx_overruns",
-			CTLFLAG_RD, &adapter->rx_overruns,
+			CTLFLAG_RD, &sc->rx_overruns,
 			"RX overruns");
 	SYSCTL_ADD_ULONG(ctx, child, OID_AUTO, "watchdog_timeouts",
-			CTLFLAG_RD, &adapter->watchdog_events,
+			CTLFLAG_RD, &sc->watchdog_events,
 			"Watchdog timeouts");
 	SYSCTL_ADD_PROC(ctx, child, OID_AUTO, "device_control",
 	    CTLTYPE_UINT | CTLFLAG_RD | CTLFLAG_NEEDGIANT,
-	    adapter, E1000_CTRL, em_sysctl_reg_handler, "IU",
+	    sc, E1000_CTRL, em_sysctl_reg_handler, "IU",
 	    "Device Control Register");
 	SYSCTL_ADD_PROC(ctx, child, OID_AUTO, "rx_control",
 	    CTLTYPE_UINT | CTLFLAG_RD | CTLFLAG_NEEDGIANT,
-	    adapter, E1000_RCTL, em_sysctl_reg_handler, "IU",
+	    sc, E1000_RCTL, em_sysctl_reg_handler, "IU",
 	    "Receiver Control Register");
 	SYSCTL_ADD_UINT(ctx, child, OID_AUTO, "fc_high_water",
-			CTLFLAG_RD, &adapter->hw.fc.high_water, 0,
+			CTLFLAG_RD, &sc->hw.fc.high_water, 0,
 			"Flow Control High Watermark");
 	SYSCTL_ADD_UINT(ctx, child, OID_AUTO, "fc_low_water",
-			CTLFLAG_RD, &adapter->hw.fc.low_water, 0,
+			CTLFLAG_RD, &sc->hw.fc.low_water, 0,
 			"Flow Control Low Watermark");
 
-	for (int i = 0; i < adapter->tx_num_queues; i++, tx_que++) {
+	for (int i = 0; i < sc->tx_num_queues; i++, tx_que++) {
 		struct tx_ring *txr = &tx_que->txr;
 		snprintf(namebuf, QUEUE_NAME_LEN, "queue_tx_%d", i);
 		queue_node = SYSCTL_ADD_NODE(ctx, child, OID_AUTO, namebuf,
@@ -4176,11 +4263,11 @@ em_add_hw_stats(struct adapter *adapter)
 		queue_list = SYSCTL_CHILDREN(queue_node);
 
 		SYSCTL_ADD_PROC(ctx, queue_list, OID_AUTO, "txd_head",
-		    CTLTYPE_UINT | CTLFLAG_RD | CTLFLAG_NEEDGIANT, adapter,
+		    CTLTYPE_UINT | CTLFLAG_RD | CTLFLAG_NEEDGIANT, sc,
 		    E1000_TDH(txr->me), em_sysctl_reg_handler, "IU",
 		    "Transmit Descriptor Head");
 		SYSCTL_ADD_PROC(ctx, queue_list, OID_AUTO, "txd_tail",
-		    CTLTYPE_UINT | CTLFLAG_RD | CTLFLAG_NEEDGIANT, adapter,
+		    CTLTYPE_UINT | CTLFLAG_RD | CTLFLAG_NEEDGIANT, sc,
 		    E1000_TDT(txr->me), em_sysctl_reg_handler, "IU",
 		    "Transmit Descriptor Tail");
 		SYSCTL_ADD_ULONG(ctx, queue_list, OID_AUTO, "tx_irq",
@@ -4188,7 +4275,7 @@ em_add_hw_stats(struct adapter *adapter)
 				"Queue MSI-X Transmit Interrupts");
 	}
 
-	for (int j = 0; j < adapter->rx_num_queues; j++, rx_que++) {
+	for (int j = 0; j < sc->rx_num_queues; j++, rx_que++) {
 		struct rx_ring *rxr = &rx_que->rxr;
 		snprintf(namebuf, QUEUE_NAME_LEN, "queue_rx_%d", j);
 		queue_node = SYSCTL_ADD_NODE(ctx, child, OID_AUTO, namebuf,
@@ -4196,11 +4283,11 @@ em_add_hw_stats(struct adapter *adapter)
 		queue_list = SYSCTL_CHILDREN(queue_node);
 
 		SYSCTL_ADD_PROC(ctx, queue_list, OID_AUTO, "rxd_head",
-		    CTLTYPE_UINT | CTLFLAG_RD | CTLFLAG_NEEDGIANT, adapter,
+		    CTLTYPE_UINT | CTLFLAG_RD | CTLFLAG_NEEDGIANT, sc,
 		    E1000_RDH(rxr->me), em_sysctl_reg_handler, "IU",
 		    "Receive Descriptor Head");
 		SYSCTL_ADD_PROC(ctx, queue_list, OID_AUTO, "rxd_tail",
-		    CTLTYPE_UINT | CTLFLAG_RD | CTLFLAG_NEEDGIANT, adapter,
+		    CTLTYPE_UINT | CTLFLAG_RD | CTLFLAG_NEEDGIANT, sc,
 		    E1000_RDT(rxr->me), em_sysctl_reg_handler, "IU",
 		    "Receive Descriptor Tail");
 		SYSCTL_ADD_ULONG(ctx, queue_list, OID_AUTO, "rx_irq",
@@ -4230,132 +4317,132 @@ em_add_hw_stats(struct adapter *adapter)
 			CTLFLAG_RD, &stats->colc,
 			"Collision Count");
 	SYSCTL_ADD_UQUAD(ctx, stat_list, OID_AUTO, "symbol_errors",
-			CTLFLAG_RD, &adapter->stats.symerrs,
+			CTLFLAG_RD, &sc->stats.symerrs,
 			"Symbol Errors");
 	SYSCTL_ADD_UQUAD(ctx, stat_list, OID_AUTO, "sequence_errors",
-			CTLFLAG_RD, &adapter->stats.sec,
+			CTLFLAG_RD, &sc->stats.sec,
 			"Sequence Errors");
 	SYSCTL_ADD_UQUAD(ctx, stat_list, OID_AUTO, "defer_count",
-			CTLFLAG_RD, &adapter->stats.dc,
+			CTLFLAG_RD, &sc->stats.dc,
 			"Defer Count");
 	SYSCTL_ADD_UQUAD(ctx, stat_list, OID_AUTO, "missed_packets",
-			CTLFLAG_RD, &adapter->stats.mpc,
+			CTLFLAG_RD, &sc->stats.mpc,
 			"Missed Packets");
 	SYSCTL_ADD_UQUAD(ctx, stat_list, OID_AUTO, "recv_no_buff",
-			CTLFLAG_RD, &adapter->stats.rnbc,
+			CTLFLAG_RD, &sc->stats.rnbc,
 			"Receive No Buffers");
 	SYSCTL_ADD_UQUAD(ctx, stat_list, OID_AUTO, "recv_undersize",
-			CTLFLAG_RD, &adapter->stats.ruc,
+			CTLFLAG_RD, &sc->stats.ruc,
 			"Receive Undersize");
 	SYSCTL_ADD_UQUAD(ctx, stat_list, OID_AUTO, "recv_fragmented",
-			CTLFLAG_RD, &adapter->stats.rfc,
+			CTLFLAG_RD, &sc->stats.rfc,
 			"Fragmented Packets Received ");
 	SYSCTL_ADD_UQUAD(ctx, stat_list, OID_AUTO, "recv_oversize",
-			CTLFLAG_RD, &adapter->stats.roc,
+			CTLFLAG_RD, &sc->stats.roc,
 			"Oversized Packets Received");
 	SYSCTL_ADD_UQUAD(ctx, stat_list, OID_AUTO, "recv_jabber",
-			CTLFLAG_RD, &adapter->stats.rjc,
+			CTLFLAG_RD, &sc->stats.rjc,
 			"Recevied Jabber");
 	SYSCTL_ADD_UQUAD(ctx, stat_list, OID_AUTO, "recv_errs",
-			CTLFLAG_RD, &adapter->stats.rxerrc,
+			CTLFLAG_RD, &sc->stats.rxerrc,
 			"Receive Errors");
 	SYSCTL_ADD_UQUAD(ctx, stat_list, OID_AUTO, "crc_errs",
-			CTLFLAG_RD, &adapter->stats.crcerrs,
+			CTLFLAG_RD, &sc->stats.crcerrs,
 			"CRC errors");
 	SYSCTL_ADD_UQUAD(ctx, stat_list, OID_AUTO, "alignment_errs",
-			CTLFLAG_RD, &adapter->stats.algnerrc,
+			CTLFLAG_RD, &sc->stats.algnerrc,
 			"Alignment Errors");
 	/* On 82575 these are collision counts */
 	SYSCTL_ADD_UQUAD(ctx, stat_list, OID_AUTO, "coll_ext_errs",
-			CTLFLAG_RD, &adapter->stats.cexterr,
+			CTLFLAG_RD, &sc->stats.cexterr,
 			"Collision/Carrier extension errors");
 	SYSCTL_ADD_UQUAD(ctx, stat_list, OID_AUTO, "xon_recvd",
-			CTLFLAG_RD, &adapter->stats.xonrxc,
+			CTLFLAG_RD, &sc->stats.xonrxc,
 			"XON Received");
 	SYSCTL_ADD_UQUAD(ctx, stat_list, OID_AUTO, "xon_txd",
-			CTLFLAG_RD, &adapter->stats.xontxc,
+			CTLFLAG_RD, &sc->stats.xontxc,
 			"XON Transmitted");
 	SYSCTL_ADD_UQUAD(ctx, stat_list, OID_AUTO, "xoff_recvd",
-			CTLFLAG_RD, &adapter->stats.xoffrxc,
+			CTLFLAG_RD, &sc->stats.xoffrxc,
 			"XOFF Received");
 	SYSCTL_ADD_UQUAD(ctx, stat_list, OID_AUTO, "xoff_txd",
-			CTLFLAG_RD, &adapter->stats.xofftxc,
+			CTLFLAG_RD, &sc->stats.xofftxc,
 			"XOFF Transmitted");
 
 	/* Packet Reception Stats */
 	SYSCTL_ADD_UQUAD(ctx, stat_list, OID_AUTO, "total_pkts_recvd",
-			CTLFLAG_RD, &adapter->stats.tpr,
+			CTLFLAG_RD, &sc->stats.tpr,
 			"Total Packets Received ");
 	SYSCTL_ADD_UQUAD(ctx, stat_list, OID_AUTO, "good_pkts_recvd",
-			CTLFLAG_RD, &adapter->stats.gprc,
+			CTLFLAG_RD, &sc->stats.gprc,
 			"Good Packets Received");
 	SYSCTL_ADD_UQUAD(ctx, stat_list, OID_AUTO, "bcast_pkts_recvd",
-			CTLFLAG_RD, &adapter->stats.bprc,
+			CTLFLAG_RD, &sc->stats.bprc,
 			"Broadcast Packets Received");
 	SYSCTL_ADD_UQUAD(ctx, stat_list, OID_AUTO, "mcast_pkts_recvd",
-			CTLFLAG_RD, &adapter->stats.mprc,
+			CTLFLAG_RD, &sc->stats.mprc,
 			"Multicast Packets Received");
 	SYSCTL_ADD_UQUAD(ctx, stat_list, OID_AUTO, "rx_frames_64",
-			CTLFLAG_RD, &adapter->stats.prc64,
+			CTLFLAG_RD, &sc->stats.prc64,
 			"64 byte frames received ");
 	SYSCTL_ADD_UQUAD(ctx, stat_list, OID_AUTO, "rx_frames_65_127",
-			CTLFLAG_RD, &adapter->stats.prc127,
+			CTLFLAG_RD, &sc->stats.prc127,
 			"65-127 byte frames received");
 	SYSCTL_ADD_UQUAD(ctx, stat_list, OID_AUTO, "rx_frames_128_255",
-			CTLFLAG_RD, &adapter->stats.prc255,
+			CTLFLAG_RD, &sc->stats.prc255,
 			"128-255 byte frames received");
 	SYSCTL_ADD_UQUAD(ctx, stat_list, OID_AUTO, "rx_frames_256_511",
-			CTLFLAG_RD, &adapter->stats.prc511,
+			CTLFLAG_RD, &sc->stats.prc511,
 			"256-511 byte frames received");
 	SYSCTL_ADD_UQUAD(ctx, stat_list, OID_AUTO, "rx_frames_512_1023",
-			CTLFLAG_RD, &adapter->stats.prc1023,
+			CTLFLAG_RD, &sc->stats.prc1023,
 			"512-1023 byte frames received");
 	SYSCTL_ADD_UQUAD(ctx, stat_list, OID_AUTO, "rx_frames_1024_1522",
-			CTLFLAG_RD, &adapter->stats.prc1522,
+			CTLFLAG_RD, &sc->stats.prc1522,
 			"1023-1522 byte frames received");
 	SYSCTL_ADD_UQUAD(ctx, stat_list, OID_AUTO, "good_octets_recvd",
-			CTLFLAG_RD, &adapter->stats.gorc,
+			CTLFLAG_RD, &sc->stats.gorc,
 			"Good Octets Received");
 
 	/* Packet Transmission Stats */
 	SYSCTL_ADD_UQUAD(ctx, stat_list, OID_AUTO, "good_octets_txd",
-			CTLFLAG_RD, &adapter->stats.gotc,
+			CTLFLAG_RD, &sc->stats.gotc,
 			"Good Octets Transmitted");
 	SYSCTL_ADD_UQUAD(ctx, stat_list, OID_AUTO, "total_pkts_txd",
-			CTLFLAG_RD, &adapter->stats.tpt,
+			CTLFLAG_RD, &sc->stats.tpt,
 			"Total Packets Transmitted");
 	SYSCTL_ADD_UQUAD(ctx, stat_list, OID_AUTO, "good_pkts_txd",
-			CTLFLAG_RD, &adapter->stats.gptc,
+			CTLFLAG_RD, &sc->stats.gptc,
 			"Good Packets Transmitted");
 	SYSCTL_ADD_UQUAD(ctx, stat_list, OID_AUTO, "bcast_pkts_txd",
-			CTLFLAG_RD, &adapter->stats.bptc,
+			CTLFLAG_RD, &sc->stats.bptc,
 			"Broadcast Packets Transmitted");
 	SYSCTL_ADD_UQUAD(ctx, stat_list, OID_AUTO, "mcast_pkts_txd",
-			CTLFLAG_RD, &adapter->stats.mptc,
+			CTLFLAG_RD, &sc->stats.mptc,
 			"Multicast Packets Transmitted");
 	SYSCTL_ADD_UQUAD(ctx, stat_list, OID_AUTO, "tx_frames_64",
-			CTLFLAG_RD, &adapter->stats.ptc64,
+			CTLFLAG_RD, &sc->stats.ptc64,
 			"64 byte frames transmitted ");
 	SYSCTL_ADD_UQUAD(ctx, stat_list, OID_AUTO, "tx_frames_65_127",
-			CTLFLAG_RD, &adapter->stats.ptc127,
+			CTLFLAG_RD, &sc->stats.ptc127,
 			"65-127 byte frames transmitted");
 	SYSCTL_ADD_UQUAD(ctx, stat_list, OID_AUTO, "tx_frames_128_255",
-			CTLFLAG_RD, &adapter->stats.ptc255,
+			CTLFLAG_RD, &sc->stats.ptc255,
 			"128-255 byte frames transmitted");
 	SYSCTL_ADD_UQUAD(ctx, stat_list, OID_AUTO, "tx_frames_256_511",
-			CTLFLAG_RD, &adapter->stats.ptc511,
+			CTLFLAG_RD, &sc->stats.ptc511,
 			"256-511 byte frames transmitted");
 	SYSCTL_ADD_UQUAD(ctx, stat_list, OID_AUTO, "tx_frames_512_1023",
-			CTLFLAG_RD, &adapter->stats.ptc1023,
+			CTLFLAG_RD, &sc->stats.ptc1023,
 			"512-1023 byte frames transmitted");
 	SYSCTL_ADD_UQUAD(ctx, stat_list, OID_AUTO, "tx_frames_1024_1522",
-			CTLFLAG_RD, &adapter->stats.ptc1522,
+			CTLFLAG_RD, &sc->stats.ptc1522,
 			"1024-1522 byte frames transmitted");
 	SYSCTL_ADD_UQUAD(ctx, stat_list, OID_AUTO, "tso_txd",
-			CTLFLAG_RD, &adapter->stats.tsctc,
+			CTLFLAG_RD, &sc->stats.tsctc,
 			"TSO Contexts Transmitted");
 	SYSCTL_ADD_UQUAD(ctx, stat_list, OID_AUTO, "tso_ctx_fail",
-			CTLFLAG_RD, &adapter->stats.tsctfc,
+			CTLFLAG_RD, &sc->stats.tsctfc,
 			"TSO Contexts Failed");
 
 
@@ -4366,40 +4453,156 @@ em_add_hw_stats(struct adapter *adapter)
 	int_list = SYSCTL_CHILDREN(int_node);
 
 	SYSCTL_ADD_UQUAD(ctx, int_list, OID_AUTO, "asserts",
-			CTLFLAG_RD, &adapter->stats.iac,
+			CTLFLAG_RD, &sc->stats.iac,
 			"Interrupt Assertion Count");
 
 	SYSCTL_ADD_UQUAD(ctx, int_list, OID_AUTO, "rx_pkt_timer",
-			CTLFLAG_RD, &adapter->stats.icrxptc,
+			CTLFLAG_RD, &sc->stats.icrxptc,
 			"Interrupt Cause Rx Pkt Timer Expire Count");
 
 	SYSCTL_ADD_UQUAD(ctx, int_list, OID_AUTO, "rx_abs_timer",
-			CTLFLAG_RD, &adapter->stats.icrxatc,
+			CTLFLAG_RD, &sc->stats.icrxatc,
 			"Interrupt Cause Rx Abs Timer Expire Count");
 
 	SYSCTL_ADD_UQUAD(ctx, int_list, OID_AUTO, "tx_pkt_timer",
-			CTLFLAG_RD, &adapter->stats.ictxptc,
+			CTLFLAG_RD, &sc->stats.ictxptc,
 			"Interrupt Cause Tx Pkt Timer Expire Count");
 
 	SYSCTL_ADD_UQUAD(ctx, int_list, OID_AUTO, "tx_abs_timer",
-			CTLFLAG_RD, &adapter->stats.ictxatc,
+			CTLFLAG_RD, &sc->stats.ictxatc,
 			"Interrupt Cause Tx Abs Timer Expire Count");
 
 	SYSCTL_ADD_UQUAD(ctx, int_list, OID_AUTO, "tx_queue_empty",
-			CTLFLAG_RD, &adapter->stats.ictxqec,
+			CTLFLAG_RD, &sc->stats.ictxqec,
 			"Interrupt Cause Tx Queue Empty Count");
 
 	SYSCTL_ADD_UQUAD(ctx, int_list, OID_AUTO, "tx_queue_min_thresh",
-			CTLFLAG_RD, &adapter->stats.ictxqmtc,
+			CTLFLAG_RD, &sc->stats.ictxqmtc,
 			"Interrupt Cause Tx Queue Min Thresh Count");
 
 	SYSCTL_ADD_UQUAD(ctx, int_list, OID_AUTO, "rx_desc_min_thresh",
-			CTLFLAG_RD, &adapter->stats.icrxdmtc,
+			CTLFLAG_RD, &sc->stats.icrxdmtc,
 			"Interrupt Cause Rx Desc Min Thresh Count");
 
 	SYSCTL_ADD_UQUAD(ctx, int_list, OID_AUTO, "rx_overrun",
-			CTLFLAG_RD, &adapter->stats.icrxoc,
+			CTLFLAG_RD, &sc->stats.icrxoc,
 			"Interrupt Cause Receiver Overrun Count");
+}
+
+static void
+em_fw_version_locked(if_ctx_t ctx)
+{
+	struct e1000_softc *sc = iflib_get_softc(ctx);
+	struct e1000_hw *hw = &sc->hw;
+	struct e1000_fw_version *fw_ver = &sc->fw_ver;
+	uint16_t eep = 0;
+
+	/*
+	 * em_fw_version_locked() must run under the IFLIB_CTX_LOCK to meet the
+	 * NVM locking model, so we do it in em_if_attach_pre() and store the
+	 * info in the softc
+	 */
+	ASSERT_CTX_LOCK_HELD(hw);
+
+	*fw_ver = (struct e1000_fw_version){0};
+
+	if (hw->mac.type >= igb_mac_min) {
+		/*
+		 * Use the Shared Code for igb(4)
+		 */
+		e1000_get_fw_version(hw, fw_ver);
+	} else {
+		/*
+		 * Otherwise, EEPROM version should be present on (almost?) all
+		 * devices here
+		 */
+		if(e1000_read_nvm(hw, NVM_VERSION, 1, &eep)) {
+			INIT_DEBUGOUT("can't get EEPROM version");
+			return;
+		}
+
+		fw_ver->eep_major = (eep & NVM_MAJOR_MASK) >> NVM_MAJOR_SHIFT;
+		fw_ver->eep_minor = (eep & NVM_MINOR_MASK) >> NVM_MINOR_SHIFT;
+		fw_ver->eep_build = (eep & NVM_IMAGE_ID_MASK);
+	}
+}
+
+static void
+em_sbuf_fw_version(struct e1000_fw_version *fw_ver, struct sbuf *buf)
+{
+	const char *space = "";
+
+	if (fw_ver->eep_major || fw_ver->eep_minor || fw_ver->eep_build) {
+		sbuf_printf(buf, "EEPROM V%d.%d-%d", fw_ver->eep_major,
+			    fw_ver->eep_minor, fw_ver->eep_build);
+		space = " ";
+	}
+
+	if (fw_ver->invm_major || fw_ver->invm_minor || fw_ver->invm_img_type) {
+		sbuf_printf(buf, "%sNVM V%d.%d imgtype%d",
+			    space, fw_ver->invm_major, fw_ver->invm_minor,
+			    fw_ver->invm_img_type);
+		space = " ";
+	}
+
+	if (fw_ver->or_valid) {
+		sbuf_printf(buf, "%sOption ROM V%d-b%d-p%d",
+			    space, fw_ver->or_major, fw_ver->or_build,
+			    fw_ver->or_patch);
+		space = " ";
+	}
+
+	if (fw_ver->etrack_id)
+		sbuf_printf(buf, "%seTrack 0x%08x", space, fw_ver->etrack_id);
+}
+
+static void
+em_print_fw_version(struct e1000_softc *sc )
+{
+	device_t dev = sc->dev;
+	struct sbuf *buf;
+	int error = 0;
+
+	buf = sbuf_new_auto();
+	if (!buf) {
+		device_printf(dev, "Could not allocate sbuf for output.\n");
+		return;
+	}
+
+	em_sbuf_fw_version(&sc->fw_ver, buf);
+
+	error = sbuf_finish(buf);
+	if (error)
+		device_printf(dev, "Error finishing sbuf: %d\n", error);
+	else if (sbuf_len(buf))
+		device_printf(dev, "%s\n", sbuf_data(buf));
+
+	sbuf_delete(buf);
+}
+
+static int
+em_sysctl_print_fw_version(SYSCTL_HANDLER_ARGS)
+{
+	struct e1000_softc *sc = (struct e1000_softc *)arg1;
+	device_t dev = sc->dev;
+	struct sbuf *buf;
+	int error = 0;
+
+	buf = sbuf_new_for_sysctl(NULL, NULL, 128, req);
+	if (!buf) {
+		device_printf(dev, "Could not allocate sbuf for output.\n");
+		return (ENOMEM);
+	}
+
+	em_sbuf_fw_version(&sc->fw_ver, buf);
+
+	error = sbuf_finish(buf);
+	if (error)
+		device_printf(dev, "Error finishing sbuf: %d\n", error);
+
+	sbuf_delete(buf);
+
+	return (0);
 }
 
 /**********************************************************************
@@ -4412,7 +4615,7 @@ em_add_hw_stats(struct adapter *adapter)
 static int
 em_sysctl_nvm_info(SYSCTL_HANDLER_ARGS)
 {
-	struct adapter *adapter = (struct adapter *)arg1;
+	struct e1000_softc *sc = (struct e1000_softc *)arg1;
 	int error;
 	int result;
 
@@ -4428,28 +4631,35 @@ em_sysctl_nvm_info(SYSCTL_HANDLER_ARGS)
 	 * the screen.
 	 */
 	if (result == 1)
-		em_print_nvm_info(adapter);
+		em_print_nvm_info(sc);
 
 	return (error);
 }
 
 static void
-em_print_nvm_info(struct adapter *adapter)
+em_print_nvm_info(struct e1000_softc *sc)
 {
+	struct e1000_hw *hw = &sc->hw;
+	struct sx *iflib_ctx_lock = iflib_ctx_lock_get(sc->ctx);
 	u16 eeprom_data;
 	int i, j, row = 0;
 
 	/* Its a bit crude, but it gets the job done */
 	printf("\nInterface EEPROM Dump:\n");
 	printf("Offset\n0x0000  ");
+
+	/* We rely on the IFLIB_CTX_LOCK as part of NVM locking model */
+	sx_xlock(iflib_ctx_lock);
+	ASSERT_CTX_LOCK_HELD(hw);
 	for (i = 0, j = 0; i < 32; i++, j++) {
 		if (j == 8) { /* Make the offset block */
 			j = 0; ++row;
 			printf("\n0x00%x0  ",row);
 		}
-		e1000_read_nvm(&adapter->hw, i, 1, &eeprom_data);
+		e1000_read_nvm(hw, i, 1, &eeprom_data);
 		printf("%04x ", eeprom_data);
 	}
+	sx_xunlock(iflib_ctx_lock);
 	printf("\n");
 }
 
@@ -4457,7 +4667,7 @@ static int
 em_sysctl_int_delay(SYSCTL_HANDLER_ARGS)
 {
 	struct em_int_delay_info *info;
-	struct adapter *adapter;
+	struct e1000_softc *sc;
 	u32 regval;
 	int error, usecs, ticks;
 
@@ -4473,9 +4683,9 @@ em_sysctl_int_delay(SYSCTL_HANDLER_ARGS)
 	if (info->offset == E1000_ITR)	/* units are 256ns here */
 		ticks *= 4;
 
-	adapter = info->adapter;
+	sc = info->sc;
 
-	regval = E1000_READ_OFFSET(&adapter->hw, info->offset);
+	regval = E1000_READ_OFFSET(&sc->hw, info->offset);
 	regval = (regval & ~0xffff) | (ticks & 0xffff);
 	/* Handle a few special cases. */
 	switch (info->offset) {
@@ -4483,27 +4693,27 @@ em_sysctl_int_delay(SYSCTL_HANDLER_ARGS)
 		break;
 	case E1000_TIDV:
 		if (ticks == 0) {
-			adapter->txd_cmd &= ~E1000_TXD_CMD_IDE;
+			sc->txd_cmd &= ~E1000_TXD_CMD_IDE;
 			/* Don't write 0 into the TIDV register. */
 			regval++;
 		} else
-			adapter->txd_cmd |= E1000_TXD_CMD_IDE;
+			sc->txd_cmd |= E1000_TXD_CMD_IDE;
 		break;
 	}
-	E1000_WRITE_OFFSET(&adapter->hw, info->offset, regval);
+	E1000_WRITE_OFFSET(&sc->hw, info->offset, regval);
 	return (0);
 }
 
 static void
-em_add_int_delay_sysctl(struct adapter *adapter, const char *name,
+em_add_int_delay_sysctl(struct e1000_softc *sc, const char *name,
 	const char *description, struct em_int_delay_info *info,
 	int offset, int value)
 {
-	info->adapter = adapter;
+	info->sc = sc;
 	info->offset = offset;
 	info->value = value;
-	SYSCTL_ADD_PROC(device_get_sysctl_ctx(adapter->dev),
-	    SYSCTL_CHILDREN(device_get_sysctl_tree(adapter->dev)),
+	SYSCTL_ADD_PROC(device_get_sysctl_ctx(sc->dev),
+	    SYSCTL_CHILDREN(device_get_sysctl_tree(sc->dev)),
 	    OID_AUTO, name, CTLTYPE_INT | CTLFLAG_RW | CTLFLAG_NEEDGIANT,
 	    info, 0, em_sysctl_int_delay, "I", description);
 }
@@ -4521,14 +4731,14 @@ em_set_flowcntl(SYSCTL_HANDLER_ARGS)
 {
 	int error;
 	static int input = 3; /* default is full */
-	struct adapter	*adapter = (struct adapter *) arg1;
+	struct e1000_softc	*sc = (struct e1000_softc *) arg1;
 
 	error = sysctl_handle_int(oidp, &input, 0, req);
 
 	if ((error) || (req->newptr == NULL))
 		return (error);
 
-	if (input == adapter->fc) /* no change? */
+	if (input == sc->fc) /* no change? */
 		return (error);
 
 	switch (input) {
@@ -4536,16 +4746,16 @@ em_set_flowcntl(SYSCTL_HANDLER_ARGS)
 	case e1000_fc_tx_pause:
 	case e1000_fc_full:
 	case e1000_fc_none:
-		adapter->hw.fc.requested_mode = input;
-		adapter->fc = input;
+		sc->hw.fc.requested_mode = input;
+		sc->fc = input;
 		break;
 	default:
 		/* Do nothing */
 		return (error);
 	}
 
-	adapter->hw.fc.current_mode = adapter->hw.fc.requested_mode;
-	e1000_force_mac_fc(&adapter->hw);
+	sc->hw.fc.current_mode = sc->hw.fc.requested_mode;
+	e1000_force_mac_fc(&sc->hw);
 	return (error);
 }
 
@@ -4557,15 +4767,15 @@ em_set_flowcntl(SYSCTL_HANDLER_ARGS)
 static int
 em_sysctl_eee(SYSCTL_HANDLER_ARGS)
 {
-	struct adapter *adapter = (struct adapter *) arg1;
+	struct e1000_softc *sc = (struct e1000_softc *) arg1;
 	int error, value;
 
-	value = adapter->hw.dev_spec.ich8lan.eee_disable;
+	value = sc->hw.dev_spec.ich8lan.eee_disable;
 	error = sysctl_handle_int(oidp, &value, 0, req);
 	if (error || req->newptr == NULL)
 		return (error);
-	adapter->hw.dev_spec.ich8lan.eee_disable = (value != 0);
-	em_if_init(adapter->ctx);
+	sc->hw.dev_spec.ich8lan.eee_disable = (value != 0);
+	em_if_init(sc->ctx);
 
 	return (0);
 }
@@ -4573,7 +4783,7 @@ em_sysctl_eee(SYSCTL_HANDLER_ARGS)
 static int
 em_sysctl_debug_info(SYSCTL_HANDLER_ARGS)
 {
-	struct adapter *adapter;
+	struct e1000_softc *sc;
 	int error;
 	int result;
 
@@ -4584,8 +4794,8 @@ em_sysctl_debug_info(SYSCTL_HANDLER_ARGS)
 		return (error);
 
 	if (result == 1) {
-		adapter = (struct adapter *) arg1;
-		em_print_debug_info(adapter);
+		sc = (struct e1000_softc *) arg1;
+		em_print_debug_info(sc);
 	}
 
 	return (error);
@@ -4594,7 +4804,7 @@ em_sysctl_debug_info(SYSCTL_HANDLER_ARGS)
 static int
 em_get_rs(SYSCTL_HANDLER_ARGS)
 {
-	struct adapter *adapter = (struct adapter *) arg1;
+	struct e1000_softc *sc = (struct e1000_softc *) arg1;
 	int error;
 	int result;
 
@@ -4603,7 +4813,7 @@ em_get_rs(SYSCTL_HANDLER_ARGS)
 
 	if (error || !req->newptr || result != 1)
 		return (error);
-	em_dump_rs(adapter);
+	em_dump_rs(sc);
 
 	return (error);
 }
@@ -4619,12 +4829,12 @@ em_if_debug(if_ctx_t ctx)
  * needed for debugging a problem.  -jfv
  */
 static void
-em_print_debug_info(struct adapter *adapter)
+em_print_debug_info(struct e1000_softc *sc)
 {
-	device_t dev = iflib_get_dev(adapter->ctx);
-	struct ifnet *ifp = iflib_get_ifp(adapter->ctx);
-	struct tx_ring *txr = &adapter->tx_queues->txr;
-	struct rx_ring *rxr = &adapter->rx_queues->rxr;
+	device_t dev = iflib_get_dev(sc->ctx);
+	struct ifnet *ifp = iflib_get_ifp(sc->ctx);
+	struct tx_ring *txr = &sc->tx_queues->txr;
+	struct rx_ring *rxr = &sc->rx_queues->rxr;
 
 	if (if_getdrvflags(ifp) & IFF_DRV_RUNNING)
 		printf("Interface is RUNNING ");
@@ -4636,18 +4846,18 @@ em_print_debug_info(struct adapter *adapter)
 	else
 		printf("and ACTIVE\n");
 
-	for (int i = 0; i < adapter->tx_num_queues; i++, txr++) {
+	for (int i = 0; i < sc->tx_num_queues; i++, txr++) {
 		device_printf(dev, "TX Queue %d ------\n", i);
 		device_printf(dev, "hw tdh = %d, hw tdt = %d\n",
-			E1000_READ_REG(&adapter->hw, E1000_TDH(i)),
-			E1000_READ_REG(&adapter->hw, E1000_TDT(i)));
+			E1000_READ_REG(&sc->hw, E1000_TDH(i)),
+			E1000_READ_REG(&sc->hw, E1000_TDT(i)));
 
 	}
-	for (int j=0; j < adapter->rx_num_queues; j++, rxr++) {
+	for (int j=0; j < sc->rx_num_queues; j++, rxr++) {
 		device_printf(dev, "RX Queue %d ------\n", j);
 		device_printf(dev, "hw rdh = %d, hw rdt = %d\n",
-			E1000_READ_REG(&adapter->hw, E1000_RDH(j)),
-			E1000_READ_REG(&adapter->hw, E1000_RDT(j)));
+			E1000_READ_REG(&sc->hw, E1000_RDH(j)),
+			E1000_READ_REG(&sc->hw, E1000_RDT(j)));
 	}
 }
 
@@ -4659,8 +4869,8 @@ em_print_debug_info(struct adapter *adapter)
 static void
 em_enable_vectors_82574(if_ctx_t ctx)
 {
-	struct adapter *adapter = iflib_get_softc(ctx);
-	struct e1000_hw *hw = &adapter->hw;
+	struct e1000_softc *sc = iflib_get_softc(ctx);
+	struct e1000_hw *hw = &sc->hw;
 	device_t dev = iflib_get_dev(ctx);
 	u16 edata;
 

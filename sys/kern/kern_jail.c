@@ -76,7 +76,6 @@ __FBSDID("$FreeBSD$");
 
 #include <security/mac/mac_framework.h>
 
-#define	DEFAULT_HOSTUUID	"00000000-0000-0000-0000-000000000000"
 #define	PRISON0_HOSTUUID_MODULE	"hostuuid"
 
 MALLOC_DEFINE(M_PRISON, "prison", "Prison structures");
@@ -240,6 +239,8 @@ prison0_init(void)
 {
 	uint8_t *file, *data;
 	size_t size;
+	char buf[sizeof(prison0.pr_hostuuid)];
+	bool valid;
 
 	prison0.pr_cpuset = cpuset_ref(thread0.td_cpuset);
 	prison0.pr_osreldate = osreldate;
@@ -259,10 +260,31 @@ prison0_init(void)
 			while (size > 0 && data[size - 1] <= 0x20) {
 				size--;
 			}
-			if (validate_uuid(data, size, NULL, 0) == 0) {
-				(void)strlcpy(prison0.pr_hostuuid, data,
-				    size + 1);
-			} else if (bootverbose) {
+
+			valid = false;
+
+			/*
+			 * Not NUL-terminated when passed from loader, but
+			 * validate_uuid requires that due to using sscanf (as
+			 * does the subsequent strlcpy, since it still reads
+			 * past the given size to return the true length);
+			 * bounce to a temporary buffer to fix.
+			 */
+			if (size >= sizeof(buf))
+				goto done;
+
+			memcpy(buf, data, size);
+			buf[size] = '\0';
+
+			if (validate_uuid(buf, size, NULL, 0) != 0)
+				goto done;
+
+			valid = true;
+			(void)strlcpy(prison0.pr_hostuuid, buf,
+			    sizeof(prison0.pr_hostuuid));
+
+done:
+			if (bootverbose && !valid) {
 				printf("hostuuid: preload data malformed: '%.*s'\n",
 				    (int)size, data);
 			}
@@ -1305,7 +1327,7 @@ kern_jail_set(struct thread *td, struct uio *optuio, int flags)
 #endif
 		/*
 		 * Allocate a dedicated cpuset for each jail.
-		 * Unlike other initial settings, this may return an erorr.
+		 * Unlike other initial settings, this may return an error.
 		 */
 		error = cpuset_create_root(ppr, &pr->pr_cpuset);
 		if (error)
@@ -3619,7 +3641,7 @@ prison_priv_check(struct ucred *cred, int priv)
 
 		/*
 		 * As in the non-jail case, non-root users are expected to be
-		 * able to read kernel/phyiscal memory (provided /dev/[k]mem
+		 * able to read kernel/physical memory (provided /dev/[k]mem
 		 * exists in the jail and they have permission to access it).
 		 */
 	case PRIV_KMEM_READ:

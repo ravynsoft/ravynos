@@ -19,11 +19,11 @@
 #include "llvm/Support/Program.h"
 #include "llvm/Support/Threading.h"
 
-#include <errno.h>
+#include <cerrno>
+#include <climits>
+#include <cstdarg>
+#include <cstdio>
 #include <fcntl.h>
-#include <limits.h>
-#include <stdarg.h>
-#include <stdio.h>
 
 #ifdef _WIN32
 #include "lldb/Host/windows/windows.h"
@@ -49,7 +49,7 @@ void FileSystem::Initialize() {
   InstanceImpl().emplace();
 }
 
-void FileSystem::Initialize(std::shared_ptr<FileCollector> collector) {
+void FileSystem::Initialize(std::shared_ptr<FileCollectorBase> collector) {
   lldbassert(!InstanceImpl() && "Already initialized.");
   InstanceImpl().emplace(collector);
 }
@@ -307,7 +307,7 @@ FileSystem::CreateDataBuffer(const llvm::Twine &path, uint64_t size,
   std::unique_ptr<llvm::WritableMemoryBuffer> buffer;
   if (size == 0) {
     auto buffer_or_error =
-        llvm::WritableMemoryBuffer::getFile(*external_path, -1, is_volatile);
+        llvm::WritableMemoryBuffer::getFile(*external_path, is_volatile);
     if (!buffer_or_error)
       return nullptr;
     buffer = std::move(*buffer_or_error);
@@ -357,6 +357,22 @@ bool FileSystem::ResolveExecutableLocation(FileSpec &file_spec) {
     return false;
 
   file_spec = result;
+  return true;
+}
+
+bool FileSystem::GetHomeDirectory(SmallVectorImpl<char> &path) const {
+  if (!m_home_directory.empty()) {
+    path.assign(m_home_directory.begin(), m_home_directory.end());
+    return true;
+  }
+  return llvm::sys::path::home_directory(path);
+}
+
+bool FileSystem::GetHomeDirectory(FileSpec &file_spec) const {
+  SmallString<128> home_dir;
+  if (!GetHomeDirectory(home_dir))
+    return false;
+  file_spec.SetPath(home_dir);
   return true;
 }
 
@@ -462,20 +478,18 @@ ErrorOr<std::string> FileSystem::GetExternalPath(const llvm::Twine &path) {
     return path.str();
 
   // If VFS mapped we know the underlying FS is a RedirectingFileSystem.
-  ErrorOr<vfs::RedirectingFileSystem::Entry *> E =
-      static_cast<vfs::RedirectingFileSystem &>(*m_fs).lookupPath(path);
-  if (!E) {
-    if (E.getError() == llvm::errc::no_such_file_or_directory) {
+  ErrorOr<vfs::RedirectingFileSystem::LookupResult> Result =
+      static_cast<vfs::RedirectingFileSystem &>(*m_fs).lookupPath(path.str());
+  if (!Result) {
+    if (Result.getError() == llvm::errc::no_such_file_or_directory) {
       return path.str();
     }
-    return E.getError();
+    return Result.getError();
   }
 
-  auto *F = dyn_cast<vfs::RedirectingFileSystem::RedirectingFileEntry>(*E);
-  if (!F)
-    return make_error_code(llvm::errc::not_supported);
-
-  return F->getExternalContentsPath().str();
+  if (Optional<StringRef> ExtRedirect = Result->getExternalRedirect())
+    return std::string(*ExtRedirect);
+  return make_error_code(llvm::errc::not_supported);
 }
 
 ErrorOr<std::string> FileSystem::GetExternalPath(const FileSpec &file_spec) {
@@ -494,4 +508,8 @@ void FileSystem::Collect(const llvm::Twine &file) {
     m_collector->addDirectory(file);
   else
     m_collector->addFile(file);
+}
+
+void FileSystem::SetHomeDirectory(std::string home_directory) {
+  m_home_directory = std::move(home_directory);
 }

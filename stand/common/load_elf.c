@@ -207,6 +207,18 @@ static int elf_section_header_convert(const Elf_Ehdr *ehdr, Elf_Shdr *shdr)
 #undef CONVERT_SWITCH
 #undef CONVERT_FIELD
 
+
+#ifdef __amd64__
+static bool
+is_kernphys_relocatable(elf_file_t ef)
+{
+	Elf_Sym sym;
+
+	return (__elfN(lookup_symbol)(ef, "kernphys", &sym, STT_OBJECT) == 0 &&
+	    sym.st_size == 8);
+}
+#endif
+
 static int
 __elfN(load_elf_header)(char *filename, elf_file_t ef)
 {
@@ -226,6 +238,7 @@ __elfN(load_elf_header)(char *filename, elf_file_t ef)
 		close(ef->fd);
 		return (ENOMEM);
 	}
+	preload(ef->fd);
 #ifdef LOADER_VERIEXEC_VECTX
 	{
 		int verror;
@@ -434,6 +447,9 @@ __elfN(loadfile_raw)(char *filename, uint64_t dest,
 	/* Load OK, return module pointer */
 	*result = (struct preloaded_file *)fp;
 	err = 0;
+#ifdef __amd64__
+	fp->f_kernphys_relocatable = multiboot || is_kernphys_relocatable(&ef);
+#endif
 	goto out;
 
 ioerr:
@@ -735,13 +751,6 @@ __elfN(loadimage)(struct preloaded_file *fp, elf_file_t ef, uint64_t off)
 		}
 #endif
 		size = shdr[i].sh_size;
-#if defined(__powerpc__)
-  #if __ELF_WORD_SIZE == 64
-		size = htobe64(size);
-  #else
-		size = htobe32(size);
-  #endif
-#endif
 
 		archsw.arch_copyin(&size, lastaddr, sizeof(size));
 		lastaddr += sizeof(size);
@@ -785,17 +794,6 @@ __elfN(loadimage)(struct preloaded_file *fp, elf_file_t ef, uint64_t off)
 	esym = lastaddr;
 #ifndef ELF_VERBOSE
 	printf("]");
-#endif
-
-#if defined(__powerpc__)
-  /* On PowerPC we always need to provide BE data to the kernel */
-  #if __ELF_WORD_SIZE == 64
-	ssym = htobe64((uint64_t)ssym);
-	esym = htobe64((uint64_t)esym);
-  #else
-	ssym = htobe32((uint32_t)ssym);
-	esym = htobe32((uint32_t)esym);
-  #endif
 #endif
 
 	file_addmetadata(fp, MODINFOMD_SSYM, sizeof(ssym), &ssym);
@@ -1237,6 +1235,11 @@ __elfN(lookup_symbol)(elf_file_t ef, const char* name, Elf_Sym *symp,
 	Elf_Sym sym;
 	char *strp;
 	unsigned long hash;
+
+	if (ef->nbuckets == 0) {
+		printf(__elfN(bad_symtable));
+		return ENOENT;
+	}
 
 	hash = elf_hash(name);
 	COPYOUT(&ef->buckets[hash % ef->nbuckets], &symnum, sizeof(symnum));

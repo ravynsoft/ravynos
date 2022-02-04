@@ -69,66 +69,16 @@ SYSCTL_INT(_machdep, OID_AUTO, dump_retry_count, CTLFLAG_RWTUN,
 static struct kerneldumpheader kdh;
 static char pgbuf[PAGE_SIZE];
 
-static struct {
-	int min_per;
-	int max_per;
-	int visited;
-} progress_track[10] = {
-	{  0,  10, 0},
-	{ 10,  20, 0},
-	{ 20,  30, 0},
-	{ 30,  40, 0},
-	{ 40,  50, 0},
-	{ 50,  60, 0},
-	{ 60,  70, 0},
-	{ 70,  80, 0},
-	{ 80,  90, 0},
-	{ 90, 100, 0}
-};
-
-static size_t counter, dumpsize, progress;
+static size_t dumpsize;
 
 /* Handle chunked writes. */
 static size_t fragsz;
-
-int
-is_dumpable(vm_paddr_t pa)
-{
-	vm_page_t m;
-	int i;
-
-	if ((m = vm_phys_paddr_to_vm_page(pa)) != NULL)
-		return ((m->flags & PG_NODUMP) == 0);
-	for (i = 0; dump_avail[i] != 0 || dump_avail[i + 1] != 0; i += 2) {
-		if (pa >= dump_avail[i] && pa < dump_avail[i + 1])
-			return (1);
-	}
-	return (0);
-}
 
 static void
 pmap_kenter_temporary(vm_offset_t va, vm_paddr_t pa)
 {
 	pmap_kremove(va);
 	pmap_kenter(va, pa);
-}
-
-static void
-report_progress(void)
-{
-	int sofar, i;
-
-	sofar = 100 - ((progress * 100) / dumpsize);
-	for (i = 0; i < nitems(progress_track); i++) {
-		if (sofar < progress_track[i].min_per ||
-		    sofar > progress_track[i].max_per)
-			continue;
-		if (progress_track[i].visited)
-			return;
-		progress_track[i].visited = 1;
-		printf("..%d%%", sofar);
-		return;
-	}
 }
 
 static int
@@ -180,12 +130,8 @@ blk_write(struct dumperinfo *di, char *ptr, vm_paddr_t pa, size_t sz)
 		len = maxdumpsz - fragsz;
 		if (len > sz)
 			len = sz;
-		counter += len;
-		progress -= len;
-		if (counter >> 20) {
-			report_progress();
-			counter &= (1<<20) - 1;
-		}
+
+		dumpsys_pb_progress(len);
 
 		if (ptr) {
 			error = dump_append(di, ptr, 0, len);
@@ -243,12 +189,13 @@ dump_pmap(struct dumperinfo *di)
 }
 
 int
-minidumpsys(struct dumperinfo *di)
+cpu_minidumpsys(struct dumperinfo *di, const struct minidumpstate *state)
 {
 	vm_paddr_t pa;
-	int error, i, retry_count;
+	int error, retry_count;
 	uint32_t pmapsize;
 	struct minidumphdr mdhdr;
+	struct msgbuf *mbp;
 
 	retry_count = 0;
 retry:
@@ -256,39 +203,35 @@ retry:
 	fragsz = 0;
 	DBG(total = dumptotal = 0;)
 
-	/* Reset progress */
-	counter = 0;
-	for (i = 0; i < nitems(progress_track); i++)
-		progress_track[i].visited = 0;
-
 	/* Build set of dumpable pages from kernel pmap */
-	pmapsize = dumpsys_scan_pmap();
+	pmapsize = dumpsys_scan_pmap(state->dump_bitset);
 	if (pmapsize % PAGE_SIZE != 0) {
 		printf("pmapsize not page aligned: 0x%x\n", pmapsize);
 		return (EINVAL);
 	}
 
 	/* Calculate dump size */
+	mbp = state->msgbufp;
 	dumpsize = PAGE_SIZE;				/* header */
-	dumpsize += round_page(msgbufp->msg_size);
+	dumpsize += round_page(mbp->msg_size);
 	dumpsize += round_page(sizeof(dump_avail));
 	dumpsize += round_page(BITSET_SIZE(vm_page_dump_pages));
 	dumpsize += pmapsize;
-	VM_PAGE_DUMP_FOREACH(pa) {
+	VM_PAGE_DUMP_FOREACH(state->dump_bitset, pa) {
 		/* Clear out undumpable pages now if needed */
-		if (is_dumpable(pa))
+		if (vm_phys_is_dumpable(pa))
 			dumpsize += PAGE_SIZE;
 		else
-			dump_drop_page(pa);
+			vm_page_dump_drop(state->dump_bitset, pa);
 	}
-	progress = dumpsize;
+	dumpsys_pb_init(dumpsize);
 
 	/* Initialize mdhdr */
 	bzero(&mdhdr, sizeof(mdhdr));
 	strcpy(mdhdr.magic, MINIDUMP_MAGIC);
 	strncpy(mdhdr.mmu_name, pmap_mmu_name(), sizeof(mdhdr.mmu_name) - 1);
 	mdhdr.version = MINIDUMP_VERSION;
-	mdhdr.msgbufsize = msgbufp->msg_size;
+	mdhdr.msgbufsize = mbp->msg_size;
 	mdhdr.bitmapsize = round_page(BITSET_SIZE(vm_page_dump_pages));
 	mdhdr.pmapsize = pmapsize;
 	mdhdr.kernbase = VM_MIN_KERNEL_ADDRESS;
@@ -319,9 +262,8 @@ retry:
 	dump_total("header", PAGE_SIZE);
 
 	/* Dump msgbuf up front */
-	error = blk_write(di, (char *)msgbufp->msg_ptr, 0,
-	    round_page(msgbufp->msg_size));
-	dump_total("msgbuf", round_page(msgbufp->msg_size));
+	error = blk_write(di, mbp->msg_ptr, 0, round_page(mbp->msg_size));
+	dump_total("msgbuf", round_page(mbp->msg_size));
 
 	/* Dump dump_avail */
 	_Static_assert(sizeof(dump_avail) <= sizeof(pgbuf),
@@ -347,7 +289,7 @@ retry:
 	dump_total("pmap", pmapsize);
 
 	/* Dump memory chunks */
-	VM_PAGE_DUMP_FOREACH(pa) {
+	VM_PAGE_DUMP_FOREACH(state->dump_bitset, pa) {
 		error = blk_write(di, 0, pa, PAGE_SIZE);
 		if (error)
 			goto fail;

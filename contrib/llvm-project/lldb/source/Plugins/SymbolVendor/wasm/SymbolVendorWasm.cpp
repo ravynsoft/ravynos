@@ -8,7 +8,7 @@
 
 #include "SymbolVendorWasm.h"
 
-#include <string.h>
+#include <cstring>
 
 #include "Plugins/ObjectFile/wasm/ObjectFileWasm.h"
 #include "lldb/Core/Module.h"
@@ -72,8 +72,7 @@ SymbolVendorWasm::CreateInstance(const lldb::ModuleSP &module_sp,
           lldb::eSectionTypeDWARFDebugInfo, true))
     return nullptr;
 
-  static Timer::Category func_cat(LLVM_PRETTY_FUNCTION);
-  Timer scoped_timer(func_cat, "SymbolVendorWasm::CreateInstance (module = %s)",
+  LLDB_SCOPED_TIMERF("SymbolVendorWasm::CreateInstance (module = %s)",
                      module_sp->GetFileSpec().GetPath().c_str());
 
   ModuleSpec module_spec;

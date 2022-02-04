@@ -664,7 +664,7 @@ int ib_query_port(struct ib_device *device,
 	union ib_gid gid;
 	int err;
 
-	if (port_num < rdma_start_port(device) || port_num > rdma_end_port(device))
+	if (!rdma_is_port_valid(device, port_num))
 		return -EINVAL;
 
 	memset(port_attr, 0, sizeof(*port_attr));
@@ -732,7 +732,7 @@ void ib_enum_roce_netdev(struct ib_device *ib_dev,
 	for (port = rdma_start_port(ib_dev); port <= rdma_end_port(ib_dev);
 	     port++)
 		if (rdma_protocol_roce(ib_dev, port)) {
-			struct net_device *idev = NULL;
+			struct ifnet *idev = NULL;
 
 			if (ib_dev->get_netdev)
 				idev = ib_dev->get_netdev(ib_dev, port);
@@ -779,7 +779,7 @@ void ib_enum_all_roce_netdevs(roce_netdev_filter filter,
  *
  * @ndev: Pointer to netdevice
  */
-void ib_cache_gid_del_all_by_netdev(struct net_device *ndev)
+void ib_cache_gid_del_all_by_netdev(struct ifnet *ndev)
 {
 	struct ib_device *ib_dev;
 	u8 port;
@@ -809,6 +809,9 @@ void ib_cache_gid_del_all_by_netdev(struct net_device *ndev)
 int ib_query_pkey(struct ib_device *device,
 		  u8 port_num, u16 index, u16 *pkey)
 {
+	if (!rdma_is_port_valid(device, port_num))
+		return -EINVAL;
+
 	return device->query_pkey(device, port_num, index, pkey);
 }
 EXPORT_SYMBOL(ib_query_pkey);
@@ -852,7 +855,7 @@ int ib_modify_port(struct ib_device *device,
 	if (!device->modify_port)
 		return -ENOSYS;
 
-	if (port_num < rdma_start_port(device) || port_num > rdma_end_port(device))
+	if (!rdma_is_port_valid(device, port_num))
 		return -EINVAL;
 
 	return device->modify_port(device, port_num, port_modify_mask,
@@ -872,7 +875,7 @@ EXPORT_SYMBOL(ib_modify_port);
  *   parameter may be NULL.
  */
 int ib_find_gid(struct ib_device *device, union ib_gid *gid,
-		enum ib_gid_type gid_type, struct net_device *ndev,
+		enum ib_gid_type gid_type, struct ifnet *ndev,
 		u8 *port_num, u16 *index)
 {
 	union ib_gid tmp_gid;
@@ -956,13 +959,13 @@ EXPORT_SYMBOL(ib_find_pkey);
  * @addr:	Contains the IP address that the request specified as its
  *		destination.
  */
-struct net_device *ib_get_net_dev_by_params(struct ib_device *dev,
+struct ifnet *ib_get_net_dev_by_params(struct ib_device *dev,
 					    u8 port,
 					    u16 pkey,
 					    const union ib_gid *gid,
 					    const struct sockaddr *addr)
 {
-	struct net_device *net_dev = NULL;
+	struct ifnet *net_dev = NULL;
 	struct ib_client_data *context;
 
 	if (!rdma_protocol_ib(dev, port))

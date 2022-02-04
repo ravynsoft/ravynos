@@ -622,6 +622,8 @@ void ib_sa_cancel_query(int id, struct ib_sa_query *query)
 	agent = query->port->agent;
 	mad_buf = query->mad_buf;
 	spin_unlock_irqrestore(&idr_lock, flags);
+
+	ib_cancel_mad(agent, mad_buf);
 }
 EXPORT_SYMBOL(ib_sa_cancel_query);
 
@@ -650,7 +652,7 @@ int ib_init_ah_from_path(struct ib_device *device, u8 port_num,
 	int ret;
 	u16 gid_index;
 	int use_roce;
-	struct net_device *ndev = NULL;
+	struct ifnet *ndev = NULL;
 
 	memset(ah_attr, 0, sizeof *ah_attr);
 	ah_attr->dlid = be16_to_cpu(rec->dlid);
@@ -663,8 +665,8 @@ int ib_init_ah_from_path(struct ib_device *device, u8 port_num,
 	use_roce = rdma_cap_eth_ah(device, port_num);
 
 	if (use_roce) {
-		struct net_device *idev;
-		struct net_device *resolved_dev;
+		struct ifnet *idev;
+		struct ifnet *resolved_dev;
 		struct rdma_dev_addr dev_addr = {.bound_dev_if = rec->ifindex,
 						 .net = rec->net ? rec->net :
 							 &init_net};

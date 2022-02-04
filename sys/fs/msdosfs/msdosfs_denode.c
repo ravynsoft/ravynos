@@ -92,11 +92,12 @@ de_vncmpf(struct vnode *vp, void *arg)
  *	       diroffset is relative to the beginning of the root directory,
  *	       otherwise it is cluster relative.
  * diroffset - offset past begin of cluster of denode we want
+ * lkflags   - locking flags (LK_NOWAIT)
  * depp	     - returns the address of the gotten denode.
  */
 int
 deget(struct msdosfsmount *pmp, u_long dirclust, u_long diroffset,
-    struct denode **depp)
+    int lkflags, struct denode **depp)
 {
 	int error;
 	uint64_t inode;
@@ -107,9 +108,11 @@ deget(struct msdosfsmount *pmp, u_long dirclust, u_long diroffset,
 	struct buf *bp;
 
 #ifdef MSDOSFS_DEBUG
-	printf("deget(pmp %p, dirclust %lu, diroffset %lx, depp %p)\n",
-	    pmp, dirclust, diroffset, depp);
+	printf("deget(pmp %p, dirclust %lu, diroffset %lx, flags %#x, "
+	    "depp %p)\n",
+	    pmp, dirclust, diroffset, flags, depp);
 #endif
+	MPASS((lkflags & LK_TYPE_MASK) == LK_EXCLUSIVE);
 
 	/*
 	 * On FAT32 filesystems, root is a (more or less) normal
@@ -133,15 +136,30 @@ deget(struct msdosfsmount *pmp, u_long dirclust, u_long diroffset,
 	 */
 	inode = (uint64_t)pmp->pm_bpcluster * dirclust + diroffset;
 
-	error = vfs_hash_get(mntp, inode, LK_EXCLUSIVE, curthread, &nvp,
+	error = vfs_hash_get(mntp, inode, lkflags, curthread, &nvp,
 	    de_vncmpf, &inode);
 	if (error)
 		return (error);
 	if (nvp != NULL) {
 		*depp = VTODE(nvp);
-		KASSERT((*depp)->de_dirclust == dirclust, ("wrong dirclust"));
-		KASSERT((*depp)->de_diroffset == diroffset, ("wrong diroffset"));
+		if ((*depp)->de_dirclust != dirclust) {
+			printf("%s: wrong dir cluster %lu %lu\n",
+			    pmp->pm_mountp->mnt_stat.f_mntonname,
+			    (*depp)->de_dirclust, dirclust);
+			goto badoff;
+		}
+		if ((*depp)->de_diroffset != diroffset) {
+			printf("%s: wrong dir offset %lu %lu\n",
+			    pmp->pm_mountp->mnt_stat.f_mntonname,
+			    (*depp)->de_diroffset,  diroffset);
+			goto badoff;
+		}
 		return (0);
+badoff:
+		vgone(nvp);
+		vput(nvp);
+		msdosfs_integrity_error(pmp);
+		return (EBADF);
 	}
 	ldep = malloc(sizeof(struct denode), M_MSDOSFSNODE, M_WAITOK | M_ZERO);
 
@@ -163,6 +181,7 @@ deget(struct msdosfsmount *pmp, u_long dirclust, u_long diroffset,
 	ldep->de_diroffset = diroffset;
 	ldep->de_inode = inode;
 	lockmgr(nvp->v_vnlock, LK_EXCLUSIVE, NULL);
+	VN_LOCK_AREC(nvp);	/* for doscheckpath */
 	fc_purge(ldep, 0);	/* init the FAT cache for this denode */
 	error = insmntque(nvp, mntp);
 	if (error != 0) {
@@ -170,7 +189,7 @@ deget(struct msdosfsmount *pmp, u_long dirclust, u_long diroffset,
 		*depp = NULL;
 		return (error);
 	}
-	error = vfs_hash_insert(nvp, inode, LK_EXCLUSIVE, curthread, &xvp,
+	error = vfs_hash_insert(nvp, inode, lkflags, curthread, &xvp,
 	    de_vncmpf, &inode);
 	if (error) {
 		*depp = NULL;
@@ -186,9 +205,9 @@ deget(struct msdosfsmount *pmp, u_long dirclust, u_long diroffset,
 	/*
 	 * Copy the directory entry into the denode area of the vnode.
 	 */
-	if ((dirclust == MSDOSFSROOT
-	     || (FAT32(pmp) && dirclust == pmp->pm_rootdirblk))
-	    && diroffset == MSDOSFSROOT_OFS) {
+	if ((dirclust == MSDOSFSROOT ||
+	    (FAT32(pmp) && dirclust == pmp->pm_rootdirblk)) &&
+	    diroffset == MSDOSFSROOT_OFS) {
 		/*
 		 * Directory entry for the root directory. There isn't one,
 		 * so we manufacture one. We should probably rummage
@@ -367,7 +386,7 @@ detrunc(struct denode *dep, u_long length, int flags, struct ucred *cred)
 
 	if (dep->de_FileSize < length) {
 		vnode_pager_setsize(DETOV(dep), length);
-		return deextend(dep, length, cred);
+		return (deextend(dep, length, cred));
 	}
 
 	/*
@@ -457,7 +476,7 @@ detrunc(struct denode *dep, u_long length, int flags, struct ucred *cred)
 			return (error);
 		}
 		fc_setcache(dep, FC_LASTFC, de_cluster(pmp, length - 1),
-			    eofentry);
+		    eofentry);
 	}
 
 	/*

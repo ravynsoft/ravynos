@@ -243,11 +243,16 @@ DIMacroFile *DIBuilder::createTempMacroFile(DIMacroFile *Parent,
   return MF;
 }
 
-DIEnumerator *DIBuilder::createEnumerator(StringRef Name, int64_t Val,
+DIEnumerator *DIBuilder::createEnumerator(StringRef Name, uint64_t Val,
                                           bool IsUnsigned) {
   assert(!Name.empty() && "Unable to create enumerator without name");
   return DIEnumerator::get(VMContext, APInt(64, Val, !IsUnsigned), IsUnsigned,
                            Name);
+}
+
+DIEnumerator *DIBuilder::createEnumerator(StringRef Name, APSInt Value) {
+  assert(!Name.empty() && "Unable to create enumerator without name");
+  return DIEnumerator::get(VMContext, APInt(Value), Value.isUnsigned(), Name);
 }
 
 DIBasicType *DIBuilder::createUnspecifiedType(StringRef Name) {
@@ -265,6 +270,12 @@ DIBasicType *DIBuilder::createBasicType(StringRef Name, uint64_t SizeInBits,
   assert(!Name.empty() && "Unable to create type without name");
   return DIBasicType::get(VMContext, dwarf::DW_TAG_base_type, Name, SizeInBits,
                           0, Encoding, Flags);
+}
+
+DIStringType *DIBuilder::createStringType(StringRef Name, uint64_t SizeInBits) {
+  assert(!Name.empty() && "Unable to create type without name");
+  return DIStringType::get(VMContext, dwarf::DW_TAG_string_type, Name,
+                           SizeInBits, 0);
 }
 
 DIDerivedType *DIBuilder::createQualifiedType(unsigned Tag, DIType *FromTy) {
@@ -519,12 +530,36 @@ DICompositeType *DIBuilder::createEnumerationType(
   return CTy;
 }
 
-DICompositeType *DIBuilder::createArrayType(uint64_t Size,
-                                            uint32_t AlignInBits, DIType *Ty,
-                                            DINodeArray Subscripts) {
-  auto *R = DICompositeType::get(VMContext, dwarf::DW_TAG_array_type, "",
-                                 nullptr, 0, nullptr, Ty, Size, AlignInBits, 0,
-                                 DINode::FlagZero, Subscripts, 0, nullptr);
+DIDerivedType *DIBuilder::createSetType(DIScope *Scope, StringRef Name,
+                                        DIFile *File, unsigned LineNo,
+                                        uint64_t SizeInBits,
+                                        uint32_t AlignInBits, DIType *Ty) {
+  auto *R =
+      DIDerivedType::get(VMContext, dwarf::DW_TAG_set_type, Name, File, LineNo,
+                         getNonCompileUnitScope(Scope), Ty, SizeInBits,
+                         AlignInBits, 0, None, DINode::FlagZero);
+  trackIfUnresolved(R);
+  return R;
+}
+
+DICompositeType *DIBuilder::createArrayType(
+    uint64_t Size, uint32_t AlignInBits, DIType *Ty, DINodeArray Subscripts,
+    PointerUnion<DIExpression *, DIVariable *> DL,
+    PointerUnion<DIExpression *, DIVariable *> AS,
+    PointerUnion<DIExpression *, DIVariable *> AL,
+    PointerUnion<DIExpression *, DIVariable *> RK) {
+  auto *R = DICompositeType::get(
+      VMContext, dwarf::DW_TAG_array_type, "", nullptr, 0,
+      nullptr, Ty, Size, AlignInBits, 0, DINode::FlagZero,
+      Subscripts, 0, nullptr, nullptr, "", nullptr,
+      DL.is<DIExpression *>() ? (Metadata *)DL.get<DIExpression *>()
+                              : (Metadata *)DL.get<DIVariable *>(),
+      AS.is<DIExpression *>() ? (Metadata *)AS.get<DIExpression *>()
+                              : (Metadata *)AS.get<DIVariable *>(),
+      AL.is<DIExpression *>() ? (Metadata *)AL.get<DIExpression *>()
+                              : (Metadata *)AL.get<DIVariable *>(),
+      RK.is<DIExpression *>() ? (Metadata *)RK.get<DIExpression *>()
+                              : (Metadata *)RK.get<DIVariable *>());
   trackIfUnresolved(R);
   return R;
 }
@@ -641,6 +676,18 @@ DISubrange *DIBuilder::getOrCreateSubrange(int64_t Lo, Metadata *CountNode) {
 DISubrange *DIBuilder::getOrCreateSubrange(Metadata *CountNode, Metadata *LB,
                                            Metadata *UB, Metadata *Stride) {
   return DISubrange::get(VMContext, CountNode, LB, UB, Stride);
+}
+
+DIGenericSubrange *DIBuilder::getOrCreateGenericSubrange(
+    DIGenericSubrange::BoundType CountNode, DIGenericSubrange::BoundType LB,
+    DIGenericSubrange::BoundType UB, DIGenericSubrange::BoundType Stride) {
+  auto ConvToMetadata = [&](DIGenericSubrange::BoundType Bound) -> Metadata * {
+    return Bound.is<DIExpression *>() ? (Metadata *)Bound.get<DIExpression *>()
+                                      : (Metadata *)Bound.get<DIVariable *>();
+  };
+  return DIGenericSubrange::get(VMContext, ConvToMetadata(CountNode),
+                                ConvToMetadata(LB), ConvToMetadata(UB),
+                                ConvToMetadata(Stride));
 }
 
 static void checkGlobalVariableScope(DIScope *Context) {
@@ -844,9 +891,10 @@ DINamespace *DIBuilder::createNameSpace(DIScope *Scope, StringRef Name,
 DIModule *DIBuilder::createModule(DIScope *Scope, StringRef Name,
                                   StringRef ConfigurationMacros,
                                   StringRef IncludePath, StringRef APINotesFile,
-                                  DIFile *File, unsigned LineNo) {
+                                  DIFile *File, unsigned LineNo, bool IsDecl) {
   return DIModule::get(VMContext, File, getNonCompileUnitScope(Scope), Name,
-                       ConfigurationMacros, IncludePath, APINotesFile, LineNo);
+                       ConfigurationMacros, IncludePath, APINotesFile, LineNo,
+                       IsDecl);
 }
 
 DILexicalBlockFile *DIBuilder::createLexicalBlockFile(DIScope *Scope,

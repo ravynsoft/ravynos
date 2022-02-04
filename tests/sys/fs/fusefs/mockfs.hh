@@ -159,6 +159,7 @@ union fuse_payloads_in {
 	];
 	fuse_copy_file_range_in	copy_file_range;
 	fuse_create_in	create;
+	fuse_fallocate_in fallocate;
 	fuse_flush_in	flush;
 	fuse_fsync_in	fsync;
 	fuse_fsync_in	fsyncdir;
@@ -284,7 +285,7 @@ class MockFS {
 	pthread_t m_daemon_id;
 
 	/* file descriptor of /dev/fuse control device */
-	int m_fuse_fd;
+	volatile int m_fuse_fd;
 	
 	/* The minor version of the kernel API that this mock daemon targets */
 	uint32_t m_kernel_minor_version;
@@ -356,7 +357,8 @@ class MockFS {
 		bool default_permissions, bool push_symlinks_in, bool ro,
 		enum poll_method pm, uint32_t flags,
 		uint32_t kernel_minor_version, uint32_t max_write, bool async,
-		bool no_clusterr, unsigned time_gran, bool nointr);
+		bool no_clusterr, unsigned time_gran, bool nointr,
+		bool noatime);
 
 	virtual ~MockFS();
 

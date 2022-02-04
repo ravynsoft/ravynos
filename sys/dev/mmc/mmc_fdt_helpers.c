@@ -45,6 +45,8 @@ __FBSDID("$FreeBSD$");
 #include <dev/extres/regulator/regulator.h>
 #endif
 
+#include "mmc_pwrseq_if.h"
+
 static inline void
 mmc_fdt_parse_sd_speed(phandle_t node, struct mmc_host *host)
 {
@@ -54,7 +56,7 @@ mmc_fdt_parse_sd_speed(phandle_t node, struct mmc_host *host)
 	 * Parse SD supported modes 
 	 * All UHS-I modes requires 1.8V signaling.
 	 */
-	if (OF_hasprop(node, "no1-8-v"))
+	if (OF_hasprop(node, "no-1-8-v"))
 		no_18v = true;
 	if (OF_hasprop(node, "cap-sd-highspeed"))
 		host->caps |= MMC_CAP_HSPEED;
@@ -100,6 +102,7 @@ mmc_fdt_parse(device_t dev, phandle_t node, struct mmc_fdt_helper *helper,
     struct mmc_host *host)
 {
 	uint32_t bus_width;
+	phandle_t pwrseq_xref;
 
 	if (node <= 0)
 		node = ofw_bus_get_node(dev);
@@ -181,6 +184,13 @@ mmc_fdt_parse(device_t dev, phandle_t node, struct mmc_fdt_helper *helper,
 		host->caps |= MMC_CAP_SIGNALING_330;
 #endif
 
+	if (OF_hasprop(node, "mmc-pwrseq")) {
+		if (OF_getencprop(node, "mmc-pwrseq", &pwrseq_xref, sizeof(pwrseq_xref)) == -1) {
+			device_printf(dev, "Cannot get the pwrseq_xref property\n");
+			return (ENXIO);
+		}
+		helper->mmc_pwrseq = OF_device_from_xref(pwrseq_xref);
+	}
 	return (0);
 }
 
@@ -414,4 +424,44 @@ mmc_fdt_gpio_get_readonly(struct mmc_fdt_helper *helper)
 	gpio_pin_is_active(helper->wp_pin, &pinstate);
 
 	return (pinstate ^ (helper->props & MMC_PROP_WP_INVERTED));
+}
+
+void
+mmc_fdt_set_power(struct mmc_fdt_helper *helper, enum mmc_power_mode power_mode)
+{
+	int reg_status;
+	int rv;
+
+	switch (power_mode) {
+	case power_on:
+		break;
+	case power_off:
+		if (helper->vmmc_supply) {
+			rv = regulator_status(helper->vmmc_supply, &reg_status);
+			if (rv == 0 && reg_status == REGULATOR_STATUS_ENABLED)
+				regulator_disable(helper->vmmc_supply);
+		}
+		if (helper->vqmmc_supply) {
+			rv = regulator_status(helper->vqmmc_supply, &reg_status);
+			if (rv == 0 && reg_status == REGULATOR_STATUS_ENABLED)
+				regulator_disable(helper->vqmmc_supply);
+		}
+		if (helper->mmc_pwrseq)
+			MMC_PWRSEQ_SET_POWER(helper->mmc_pwrseq, false);
+		break;
+	case power_up:
+		if (helper->vmmc_supply) {
+			rv = regulator_status(helper->vmmc_supply, &reg_status);
+			if (rv == 0 && reg_status != REGULATOR_STATUS_ENABLED)
+				regulator_enable(helper->vmmc_supply);
+		}
+		if (helper->vqmmc_supply) {
+			rv = regulator_status(helper->vqmmc_supply, &reg_status);
+			if (rv == 0 && reg_status != REGULATOR_STATUS_ENABLED)
+				regulator_enable(helper->vqmmc_supply);
+		}
+		if (helper->mmc_pwrseq)
+			MMC_PWRSEQ_SET_POWER(helper->mmc_pwrseq, true);
+		break;
+	}
 }

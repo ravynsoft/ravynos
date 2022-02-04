@@ -242,8 +242,10 @@ vmci_detach(device_t dev)
 
 	vmci_components_cleanup();
 
-	taskqueue_drain(taskqueue_thread, &sc->vmci_delayed_work_task);
-	mtx_destroy(&sc->vmci_delayed_work_lock);
+	if mtx_initialized(&sc->vmci_spinlock) {
+		taskqueue_drain(taskqueue_thread, &sc->vmci_delayed_work_task);
+		mtx_destroy(&sc->vmci_delayed_work_lock);
+	}
 
 	if (sc->vmci_res0 != NULL)
 		bus_space_write_4(sc->vmci_iot0, sc->vmci_ioh0,
@@ -254,7 +256,8 @@ vmci_detach(device_t dev)
 
 	vmci_unmap_bars(sc);
 
-	mtx_destroy(&sc->vmci_spinlock);
+	if mtx_initialized(&sc->vmci_spinlock)
+		mtx_destroy(&sc->vmci_spinlock);
 
 	pci_disable_busmaster(dev);
 
@@ -845,17 +848,17 @@ vmci_setup_interrupts(struct vmci_softc *sc)
 	    vmci_interrupt, NULL, &intr->vmci_handler);
 	if (error)
 		return (error);
-	bus_describe_intr(sc->vmci_dev, intr->vmci_irq, intr->vmci_handler,
-	    "vmci_interrupt");
 
 	if (sc->vmci_num_intr == 2) {
+		bus_describe_intr(sc->vmci_dev, intr->vmci_irq,
+		    intr->vmci_handler, "dg");
 		intr = &sc->vmci_intrs[1];
 		error = bus_setup_intr(sc->vmci_dev, intr->vmci_irq, flags,
 		    NULL, vmci_interrupt_bm, NULL, &intr->vmci_handler);
 		if (error)
 			return (error);
 		bus_describe_intr(sc->vmci_dev, intr->vmci_irq,
-		    intr->vmci_handler, "vmci_interrupt_bm");
+		    intr->vmci_handler, "bm");
 	}
 
 	return (0);

@@ -361,6 +361,57 @@ tmpfs_pages_check_avail(struct tmpfs_mount *tmp, size_t req_pages)
 	return (1);
 }
 
+static int
+tmpfs_partial_page_invalidate(vm_object_t object, vm_pindex_t idx, int base,
+    int end, boolean_t ignerr)
+{
+	vm_page_t m;
+	int rv, error;
+
+	VM_OBJECT_ASSERT_WLOCKED(object);
+	KASSERT(base >= 0, ("%s: base %d", __func__, base));
+	KASSERT(end - base <= PAGE_SIZE, ("%s: base %d end %d", __func__, base,
+	    end));
+	error = 0;
+
+retry:
+	m = vm_page_grab(object, idx, VM_ALLOC_NOCREAT);
+	if (m != NULL) {
+		MPASS(vm_page_all_valid(m));
+	} else if (vm_pager_has_page(object, idx, NULL, NULL)) {
+		m = vm_page_alloc(object, idx, VM_ALLOC_NORMAL |
+		    VM_ALLOC_WAITFAIL);
+		if (m == NULL)
+			goto retry;
+		vm_object_pip_add(object, 1);
+		VM_OBJECT_WUNLOCK(object);
+		rv = vm_pager_get_pages(object, &m, 1, NULL, NULL);
+		VM_OBJECT_WLOCK(object);
+		vm_object_pip_wakeup(object);
+		if (rv == VM_PAGER_OK) {
+			/*
+			 * Since the page was not resident, and therefore not
+			 * recently accessed, immediately enqueue it for
+			 * asynchronous laundering.  The current operation is
+			 * not regarded as an access.
+			 */
+			vm_page_launder(m);
+		} else {
+			vm_page_free(m);
+			m = NULL;
+			if (!ignerr)
+				error = EIO;
+		}
+	}
+	if (m != NULL) {
+		pmap_zero_page_area(m, base, end - base);
+		vm_page_set_dirty(m);
+		vm_page_xunbusy(m);
+	}
+
+	return (error);
+}
+
 void
 tmpfs_ref_node(struct tmpfs_node *node)
 {
@@ -403,7 +454,6 @@ tmpfs_alloc_node(struct mount *mp, struct tmpfs_mount *tmp, enum vtype type,
     const char *target, dev_t rdev, struct tmpfs_node **node)
 {
 	struct tmpfs_node *nnode;
-	vm_object_t obj;
 	char *symlink;
 	char symlink_smr;
 
@@ -515,7 +565,7 @@ tmpfs_alloc_node(struct mount *mp, struct tmpfs_mount *tmp, enum vtype type,
 		break;
 
 	case VREG:
-		obj = nnode->tn_reg.tn_aobj =
+		nnode->tn_reg.tn_aobj =
 		    vm_pager_allocate(tmpfs_pager_type, NULL, 0,
 			VM_PROT_DEFAULT, 0,
 			NULL /* XXXKIB - tmpfs needs swap reservation */);
@@ -714,7 +764,7 @@ tmpfs_alloc_dirent(struct tmpfs_mount *tmp, struct tmpfs_node *node,
 
 	*de = nde;
 
-	return 0;
+	return (0);
 }
 
 /*
@@ -1662,10 +1712,9 @@ tmpfs_reg_resize(struct vnode *vp, off_t newsize, boolean_t ignerr)
 	struct tmpfs_mount *tmp;
 	struct tmpfs_node *node;
 	vm_object_t uobj;
-	vm_page_t m;
 	vm_pindex_t idx, newpages, oldpages;
 	off_t oldsize;
-	int base, rv;
+	int base, error;
 
 	MPASS(vp->v_type == VREG);
 	MPASS(newsize >= 0);
@@ -1702,45 +1751,11 @@ tmpfs_reg_resize(struct vnode *vp, off_t newsize, boolean_t ignerr)
 		base = newsize & PAGE_MASK;
 		if (base != 0) {
 			idx = OFF_TO_IDX(newsize);
-retry:
-			m = vm_page_grab(uobj, idx, VM_ALLOC_NOCREAT);
-			if (m != NULL) {
-				MPASS(vm_page_all_valid(m));
-			} else if (vm_pager_has_page(uobj, idx, NULL, NULL)) {
-				m = vm_page_alloc(uobj, idx, VM_ALLOC_NORMAL |
-				    VM_ALLOC_WAITFAIL);
-				if (m == NULL)
-					goto retry;
-				vm_object_pip_add(uobj, 1);
+			error = tmpfs_partial_page_invalidate(uobj, idx, base,
+			    PAGE_SIZE, ignerr);
+			if (error != 0) {
 				VM_OBJECT_WUNLOCK(uobj);
-				rv = vm_pager_get_pages(uobj, &m, 1, NULL,
-				    NULL);
-				VM_OBJECT_WLOCK(uobj);
-				vm_object_pip_wakeup(uobj);
-				if (rv == VM_PAGER_OK) {
-					/*
-					 * Since the page was not resident,
-					 * and therefore not recently
-					 * accessed, immediately enqueue it
-					 * for asynchronous laundering.  The
-					 * current operation is not regarded
-					 * as an access.
-					 */
-					vm_page_launder(m);
-				} else {
-					vm_page_free(m);
-					if (ignerr)
-						m = NULL;
-					else {
-						VM_OBJECT_WUNLOCK(uobj);
-						return (EIO);
-					}
-				}
-			}
-			if (m != NULL) {
-				pmap_zero_page_area(m, base, PAGE_SIZE - base);
-				vm_page_set_dirty(m);
-				vm_page_xunbusy(m);
+				return (error);
 			}
 		}
 
@@ -1861,11 +1876,11 @@ tmpfs_chmod(struct vnode *vp, mode_t mode, struct ucred *cred, struct thread *p)
 
 	/* Disallow this operation if the file system is mounted read-only. */
 	if (vp->v_mount->mnt_flag & MNT_RDONLY)
-		return EROFS;
+		return (EROFS);
 
 	/* Immutable or append-only files cannot be modified, either. */
 	if (node->tn_flags & (IMMUTABLE | APPEND))
-		return EPERM;
+		return (EPERM);
 
 	/*
 	 * To modify the permissions on a file, must possess VADMIN

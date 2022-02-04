@@ -28,7 +28,6 @@
 #include "lld/Common/Strings.h"
 #include "lld/Common/Version.h"
 #include "llvm/ADT/SetOperations.h"
-#include "llvm/ADT/SetVector.h"
 #include "llvm/ADT/StringExtras.h"
 #include "llvm/BinaryFormat/Dwarf.h"
 #include "llvm/DebugInfo/DWARF/DWARFDebugPubTable.h"
@@ -371,10 +370,10 @@ CieRecord *EhFrameSection::addCie(EhSectionPiece &cie, ArrayRef<RelTy> rels) {
   return rec;
 }
 
-// There is one FDE per function. Returns true if a given FDE
-// points to a live function.
+// There is one FDE per function. Returns a non-null pointer to the function
+// symbol if the given FDE points to a live function.
 template <class ELFT, class RelTy>
-bool EhFrameSection::isFdeLive(EhSectionPiece &fde, ArrayRef<RelTy> rels) {
+Defined *EhFrameSection::isFdeLive(EhSectionPiece &fde, ArrayRef<RelTy> rels) {
   auto *sec = cast<EhInputSection>(fde.sec);
   unsigned firstRelI = fde.firstRelocation;
 
@@ -384,7 +383,7 @@ bool EhFrameSection::isFdeLive(EhSectionPiece &fde, ArrayRef<RelTy> rels) {
   // corresponding FDEs, which results in creating bad .eh_frame sections.
   // To deal with that, we ignore such FDEs.
   if (firstRelI == (unsigned)-1)
-    return false;
+    return nullptr;
 
   const RelTy &rel = rels[firstRelI];
   Symbol &b = sec->template getFile<ELFT>()->getRelocTargetSym(rel);
@@ -392,9 +391,9 @@ bool EhFrameSection::isFdeLive(EhSectionPiece &fde, ArrayRef<RelTy> rels) {
   // FDEs for garbage-collected or merged-by-ICF sections, or sections in
   // another partition, are dead.
   if (auto *d = dyn_cast<Defined>(&b))
-    if (SectionBase *sec = d->section)
-      return sec->partition == partition;
-  return false;
+    if (d->section && d->section->partition == partition)
+      return d;
+  return nullptr;
 }
 
 // .eh_frame is a sequence of CIE or FDE records. In general, there
@@ -446,6 +445,51 @@ void EhFrameSection::addSection(EhInputSection *sec) {
 
   for (auto *ds : sec->dependentSections)
     dependentSections.push_back(ds);
+}
+
+// Used by ICF<ELFT>::handleLSDA(). This function is very similar to
+// EhFrameSection::addRecords().
+template <class ELFT, class RelTy>
+void EhFrameSection::iterateFDEWithLSDAAux(
+    EhInputSection &sec, ArrayRef<RelTy> rels, DenseSet<size_t> &ciesWithLSDA,
+    llvm::function_ref<void(InputSection &)> fn) {
+  for (EhSectionPiece &piece : sec.pieces) {
+    // Skip ZERO terminator.
+    if (piece.size == 4)
+      continue;
+
+    size_t offset = piece.inputOff;
+    uint32_t id =
+        endian::read32<ELFT::TargetEndianness>(piece.data().data() + 4);
+    if (id == 0) {
+      if (hasLSDA(piece))
+        ciesWithLSDA.insert(offset);
+      continue;
+    }
+    uint32_t cieOffset = offset + 4 - id;
+    if (ciesWithLSDA.count(cieOffset) == 0)
+      continue;
+
+    // The CIE has a LSDA argument. Call fn with d's section.
+    if (Defined *d = isFdeLive<ELFT>(piece, rels))
+      if (auto *s = dyn_cast_or_null<InputSection>(d->section))
+        fn(*s);
+  }
+}
+
+template <class ELFT>
+void EhFrameSection::iterateFDEWithLSDA(
+    llvm::function_ref<void(InputSection &)> fn) {
+  DenseSet<size_t> ciesWithLSDA;
+  for (EhInputSection *sec : sections) {
+    ciesWithLSDA.clear();
+    if (sec->areRelocsRela)
+      iterateFDEWithLSDAAux<ELFT>(*sec, sec->template relas<ELFT>(),
+                                  ciesWithLSDA, fn);
+    else
+      iterateFDEWithLSDAAux<ELFT>(*sec, sec->template rels<ELFT>(),
+                                  ciesWithLSDA, fn);
+  }
 }
 
 static void writeCieFde(uint8_t *buf, ArrayRef<uint8_t> d) {
@@ -600,13 +644,9 @@ void EhFrameSection::writeTo(uint8_t *buf) {
 }
 
 GotSection::GotSection()
-    : SyntheticSection(SHF_ALLOC | SHF_WRITE, SHT_PROGBITS, config->wordsize,
-                       ".got") {
-  // If ElfSym::globalOffsetTable is relative to .got and is referenced,
-  // increase numEntries by the number of entries used to emit
-  // ElfSym::globalOffsetTable.
-  if (ElfSym::globalOffsetTable && !target->gotBaseSymInGotPlt)
-    numEntries += target->gotHeaderEntriesNum;
+    : SyntheticSection(SHF_ALLOC | SHF_WRITE, SHT_PROGBITS,
+                       target->gotEntrySize, ".got") {
+  numEntries = target->gotHeaderEntriesNum;
 }
 
 void GotSection::addEntry(Symbol &sym) {
@@ -642,21 +682,22 @@ uint64_t GotSection::getGlobalDynOffset(const Symbol &b) const {
 }
 
 void GotSection::finalizeContents() {
-  size = numEntries * config->wordsize;
+  if (config->emachine == EM_PPC64 &&
+      numEntries <= target->gotHeaderEntriesNum && !ElfSym::globalOffsetTable)
+    size = 0;
+  else
+    size = numEntries * config->wordsize;
 }
 
 bool GotSection::isNeeded() const {
-  // We need to emit a GOT even if it's empty if there's a relocation that is
-  // relative to GOT(such as GOTOFFREL).
-  return numEntries || hasGotOffRel;
+  // Needed if the GOT symbol is used or the number of entries is more than just
+  // the header. A GOT with just the header may not be needed.
+  return hasGotOffRel || numEntries > target->gotHeaderEntriesNum;
 }
 
 void GotSection::writeTo(uint8_t *buf) {
-  // Buf points to the start of this section's buffer,
-  // whereas InputSectionBase::relocateAlloc() expects its argument
-  // to point to the start of the output section.
   target->writeGotHeader(buf);
-  relocateAlloc(buf - outSecOff, buf - outSecOff + size);
+  relocateAlloc(buf, buf + size);
 }
 
 static uint64_t getMipsPageAddr(uint64_t addr) {
@@ -944,30 +985,37 @@ void MipsGotSection::build() {
     for (std::pair<Symbol *, size_t> &p : got.tls) {
       Symbol *s = p.first;
       uint64_t offset = p.second * config->wordsize;
-      if (s->isPreemptible)
-        mainPart->relaDyn->addReloc(target->tlsGotRel, this, offset, s);
+      // When building a shared library we still need a dynamic relocation
+      // for the TP-relative offset as we don't know how much other data will
+      // be allocated before us in the static TLS block.
+      if (s->isPreemptible || config->shared)
+        mainPart->relaDyn->addReloc({target->tlsGotRel, this, offset,
+                                     DynamicReloc::AgainstSymbolWithTargetVA,
+                                     *s, 0, R_ABS});
     }
     for (std::pair<Symbol *, size_t> &p : got.dynTlsSymbols) {
       Symbol *s = p.first;
       uint64_t offset = p.second * config->wordsize;
       if (s == nullptr) {
-        if (!config->isPic)
+        if (!config->shared)
           continue;
-        mainPart->relaDyn->addReloc(target->tlsModuleIndexRel, this, offset, s);
+        mainPart->relaDyn->addReloc({target->tlsModuleIndexRel, this, offset});
       } else {
         // When building a shared library we still need a dynamic relocation
         // for the module index. Therefore only checking for
         // S->isPreemptible is not sufficient (this happens e.g. for
         // thread-locals that have been marked as local through a linker script)
-        if (!s->isPreemptible && !config->isPic)
+        if (!s->isPreemptible && !config->shared)
           continue;
-        mainPart->relaDyn->addReloc(target->tlsModuleIndexRel, this, offset, s);
+        mainPart->relaDyn->addSymbolReloc(target->tlsModuleIndexRel, this,
+                                          offset, *s);
         // However, we can skip writing the TLS offset reloc for non-preemptible
         // symbols since it is known even in shared libraries
         if (!s->isPreemptible)
           continue;
         offset += config->wordsize;
-        mainPart->relaDyn->addReloc(target->tlsOffsetRel, this, offset, s);
+        mainPart->relaDyn->addSymbolReloc(target->tlsOffsetRel, this, offset,
+                                          *s);
       }
     }
 
@@ -979,7 +1027,8 @@ void MipsGotSection::build() {
     // Dynamic relocations for "global" entries.
     for (const std::pair<Symbol *, size_t> &p : got.global) {
       uint64_t offset = p.second * config->wordsize;
-      mainPart->relaDyn->addReloc(target->relativeRel, this, offset, p.first);
+      mainPart->relaDyn->addSymbolReloc(target->relativeRel, this, offset,
+                                        *p.first);
     }
     if (!config->isPic)
       continue;
@@ -990,13 +1039,14 @@ void MipsGotSection::build() {
       for (size_t pi = 0; pi < pageCount; ++pi) {
         uint64_t offset = (l.second.firstIndex + pi) * config->wordsize;
         mainPart->relaDyn->addReloc({target->relativeRel, this, offset, l.first,
-                                 int64_t(pi * 0x10000)});
+                                     int64_t(pi * 0x10000)});
       }
     }
     for (const std::pair<GotEntry, size_t> &p : got.local16) {
       uint64_t offset = p.second * config->wordsize;
-      mainPart->relaDyn->addReloc({target->relativeRel, this, offset, true,
-                               p.first.first, p.first.second});
+      mainPart->relaDyn->addReloc({target->relativeRel, this, offset,
+                                   DynamicReloc::AddendOnlyWithTargetVA,
+                                   *p.first.first, p.first.second, R_ABS});
     }
   }
 }
@@ -1052,7 +1102,7 @@ void MipsGotSection::writeTo(uint8_t *buf) {
     // If TLS entry has a corresponding dynamic relocations, leave it
     // initialized by zero. Write down adjusted TLS symbol's values otherwise.
     // To calculate the adjustments use offsets for thread-local storage.
-    // https://www.linux-mips.org/wiki/NPTL
+    // http://web.archive.org/web/20190324223224/https://www.linux-mips.org/wiki/NPTL
     for (const std::pair<GotEntry, size_t> &p : g.local16)
       write(p.second, p.first.first, p.first.second);
     // Write VA to the primary GOT only. For secondary GOTs that
@@ -1063,15 +1113,16 @@ void MipsGotSection::writeTo(uint8_t *buf) {
     for (const std::pair<Symbol *, size_t> &p : g.relocs)
       write(p.second, p.first, 0);
     for (const std::pair<Symbol *, size_t> &p : g.tls)
-      write(p.second, p.first, p.first->isPreemptible ? 0 : -0x7000);
+      write(p.second, p.first,
+            p.first->isPreemptible || config->shared ? 0 : -0x7000);
     for (const std::pair<Symbol *, size_t> &p : g.dynTlsSymbols) {
-      if (p.first == nullptr && !config->isPic)
+      if (p.first == nullptr && !config->shared)
         write(p.second, nullptr, 1);
       else if (p.first && !p.first->isPreemptible) {
-        // If we are emitting PIC code with relocations we mustn't write
+        // If we are emitting a shared libary with relocations we mustn't write
         // anything to the GOT here. When using Elf_Rel relocations the value
         // one will be treated as an addend and will cause crashes at runtime
-        if (!config->isPic)
+        if (!config->shared)
           write(p.second, nullptr, 1);
         write(p.second + 1, p.first, -0x8000);
       }
@@ -1100,15 +1151,16 @@ void GotPltSection::addEntry(Symbol &sym) {
 }
 
 size_t GotPltSection::getSize() const {
-  return (target->gotPltHeaderEntriesNum + entries.size()) * config->wordsize;
+  return (target->gotPltHeaderEntriesNum + entries.size()) *
+         target->gotEntrySize;
 }
 
 void GotPltSection::writeTo(uint8_t *buf) {
   target->writeGotPltHeader(buf);
-  buf += target->gotPltHeaderEntriesNum * config->wordsize;
+  buf += target->gotPltHeaderEntriesNum * target->gotEntrySize;
   for (const Symbol *b : entries) {
     target->writeGotPlt(buf, *b);
-    buf += config->wordsize;
+    buf += target->gotEntrySize;
   }
 }
 
@@ -1136,7 +1188,7 @@ static StringRef getIgotPltName() {
 IgotPltSection::IgotPltSection()
     : SyntheticSection(SHF_ALLOC | SHF_WRITE,
                        config->emachine == EM_PPC64 ? SHT_NOBITS : SHT_PROGBITS,
-                       config->wordsize, getIgotPltName()) {}
+                       target->gotEntrySize, getIgotPltName()) {}
 
 void IgotPltSection::addEntry(Symbol &sym) {
   assert(sym.pltIndex == entries.size());
@@ -1144,13 +1196,13 @@ void IgotPltSection::addEntry(Symbol &sym) {
 }
 
 size_t IgotPltSection::getSize() const {
-  return entries.size() * config->wordsize;
+  return entries.size() * target->gotEntrySize;
 }
 
 void IgotPltSection::writeTo(uint8_t *buf) {
   for (const Symbol *b : entries) {
     target->writeIgotPlt(buf, *b);
-    buf += config->wordsize;
+    buf += target->gotEntrySize;
   }
 }
 
@@ -1312,7 +1364,7 @@ template <class ELFT> void DynamicSection<ELFT>::finalizeContents() {
   // Set DT_FLAGS and DT_FLAGS_1.
   uint32_t dtFlags = 0;
   uint32_t dtFlags1 = 0;
-  if (config->bsymbolic)
+  if (config->bsymbolic == BsymbolicKind::All)
     dtFlags |= DF_SYMBOLIC;
   if (config->zGlobal)
     dtFlags1 |= DF_1_GLOBAL;
@@ -1403,6 +1455,13 @@ template <class ELFT> void DynamicSection<ELFT>::finalizeContents() {
     case EM_SPARCV9:
       addInSec(DT_PLTGOT, in.plt);
       break;
+    case EM_AARCH64:
+      if (llvm::find_if(in.relaPlt->relocs, [](const DynamicReloc &r) {
+           return r.type == target->pltRel &&
+                  r.sym->stOther & STO_AARCH64_VARIANT_PCS;
+          }) != in.relaPlt->relocs.end())
+        addInt(DT_AARCH64_VARIANT_PCS, 0);
+      LLVM_FALLTHROUGH;
     default:
       addInSec(DT_PLTGOT, in.gotPlt);
       break;
@@ -1523,16 +1582,26 @@ uint64_t DynamicReloc::getOffset() const {
 }
 
 int64_t DynamicReloc::computeAddend() const {
-  if (useSymVA)
-    return sym->getVA(addend);
-  if (!outputSec)
+  switch (kind) {
+  case AddendOnly:
+    assert(sym == nullptr);
     return addend;
-  // See the comment in the DynamicReloc ctor.
-  return getMipsPageAddr(outputSec->addr) + addend;
+  case AgainstSymbol:
+    assert(sym != nullptr);
+    return addend;
+  case AddendOnlyWithTargetVA:
+  case AgainstSymbolWithTargetVA:
+    return InputSection::getRelocTargetVA(inputSec->file, type, addend,
+                                          getOffset(), *sym, expr);
+  case MipsMultiGotPage:
+    assert(sym == nullptr);
+    return getMipsPageAddr(outputSec->addr) + addend;
+  }
+  llvm_unreachable("Unknown DynamicReloc::Kind enum");
 }
 
 uint32_t DynamicReloc::getSymIndex(SymbolTableBaseSection *symTab) const {
-  if (sym && !useSymVA)
+  if (needsDynSymIndex())
     return symTab->getSymbolIndex(sym);
   return 0;
 }
@@ -1543,21 +1612,51 @@ RelocationBaseSection::RelocationBaseSection(StringRef name, uint32_t type,
     : SyntheticSection(SHF_ALLOC, type, config->wordsize, name),
       dynamicTag(dynamicTag), sizeDynamicTag(sizeDynamicTag) {}
 
-void RelocationBaseSection::addReloc(RelType dynType, InputSectionBase *isec,
-                                     uint64_t offsetInSec, Symbol *sym) {
-  addReloc({dynType, isec, offsetInSec, false, sym, 0});
+void RelocationBaseSection::addSymbolReloc(RelType dynType,
+                                           InputSectionBase *isec,
+                                           uint64_t offsetInSec, Symbol &sym,
+                                           int64_t addend,
+                                           Optional<RelType> addendRelType) {
+  addReloc(DynamicReloc::AgainstSymbol, dynType, isec, offsetInSec, sym, addend,
+           R_ADDEND, addendRelType ? *addendRelType : target->noneRel);
 }
 
-void RelocationBaseSection::addReloc(RelType dynType,
+void RelocationBaseSection::addRelativeReloc(
+    RelType dynType, InputSectionBase *inputSec, uint64_t offsetInSec,
+    Symbol &sym, int64_t addend, RelType addendRelType, RelExpr expr) {
+  // This function should only be called for non-preemptible symbols or
+  // RelExpr values that refer to an address inside the output file (e.g. the
+  // address of the GOT entry for a potentially preemptible symbol).
+  assert((!sym.isPreemptible || expr == R_GOT) &&
+         "cannot add relative relocation against preemptible symbol");
+  assert(expr != R_ADDEND && "expected non-addend relocation expression");
+  addReloc(DynamicReloc::AddendOnlyWithTargetVA, dynType, inputSec, offsetInSec,
+           sym, addend, expr, addendRelType);
+}
+
+void RelocationBaseSection::addAddendOnlyRelocIfNonPreemptible(
+    RelType dynType, InputSectionBase *isec, uint64_t offsetInSec, Symbol &sym,
+    RelType addendRelType) {
+  // No need to write an addend to the section for preemptible symbols.
+  if (sym.isPreemptible)
+    addReloc({dynType, isec, offsetInSec, DynamicReloc::AgainstSymbol, sym, 0,
+              R_ABS});
+  else
+    addReloc(DynamicReloc::AddendOnlyWithTargetVA, dynType, isec, offsetInSec,
+             sym, 0, R_ABS, addendRelType);
+}
+
+void RelocationBaseSection::addReloc(DynamicReloc::Kind kind, RelType dynType,
                                      InputSectionBase *inputSec,
-                                     uint64_t offsetInSec, Symbol *sym,
+                                     uint64_t offsetInSec, Symbol &sym,
                                      int64_t addend, RelExpr expr,
-                                     RelType type) {
+                                     RelType addendRelType) {
   // Write the addends to the relocated address if required. We skip
   // it if the written value would be zero.
   if (config->writeAddends && (expr != R_ADDEND || addend != 0))
-    inputSec->relocations.push_back({expr, type, offsetInSec, addend, sym});
-  addReloc({dynType, inputSec, offsetInSec, expr != R_ADDEND, sym, addend});
+    inputSec->relocations.push_back(
+        {expr, addendRelType, offsetInSec, addend, &sym});
+  addReloc({dynType, inputSec, offsetInSec, kind, sym, addend, expr});
 }
 
 void RelocationBaseSection::addReloc(const DynamicReloc &reloc) {
@@ -1577,10 +1676,14 @@ void RelocationBaseSection::finalizeContents() {
   else
     getParent()->link = 0;
 
-  if (in.relaPlt == this)
+  if (in.relaPlt == this) {
+    getParent()->flags |= ELF::SHF_INFO_LINK;
     getParent()->info = in.gotPlt->getParent()->sectionIndex;
-  if (in.relaIplt == this)
+  }
+  if (in.relaIplt == this) {
+    getParent()->flags |= ELF::SHF_INFO_LINK;
     getParent()->info = in.igotPlt->getParent()->sectionIndex;
+  }
 }
 
 RelrBaseSection::RelrBaseSection()
@@ -2144,6 +2247,10 @@ template <class ELFT> void SymbolTableSection<ELFT>::writeTo(uint8_t *buf) {
     // See getPPC64GlobalEntryToLocalEntryOffset() for more details.
     if (config->emachine == EM_PPC64)
       eSym->st_other |= sym->stOther & 0xe0;
+    // The most significant bit of st_other is used by AArch64 ABI for the
+    // variant PCS.
+    else if (config->emachine == EM_AARCH64)
+      eSym->st_other |= sym->stOther & STO_AARCH64_VARIANT_PCS;
 
     eSym->st_name = ent.strTabOffset;
     if (isDefinedHere)
@@ -2161,9 +2268,8 @@ template <class ELFT> void SymbolTableSection<ELFT>::writeTo(uint8_t *buf) {
     else
       eSym->st_size = sym->getSize();
 
-    // st_value is usually an address of a symbol, but that has a
-    // special meaning for uninstantiated common symbols (this can
-    // occur if -r is given).
+    // st_value is usually an address of a symbol, but that has a special
+    // meaning for uninstantiated common symbols (--no-define-common).
     if (BssSection *commonSec = getCommonSec(ent.sym))
       eSym->st_value = commonSec->alignment;
     else if (isDefinedHere)
@@ -2832,6 +2938,13 @@ template <class ELFT> GdbIndexSection *GdbIndexSection::create() {
     else if (isec->name == ".debug_info")
       files.insert(isec->file);
   }
+  // Drop .rel[a].debug_gnu_pub{names,types} for --emit-relocs.
+  llvm::erase_if(inputSections, [](InputSectionBase *s) {
+    if (auto *isec = dyn_cast<InputSection>(s))
+      if (InputSectionBase *rel = isec->getRelocatedSection())
+        return !rel->isLive();
+    return !s->isLive();
+  });
 
   std::vector<GdbChunk> chunks(files.size());
   std::vector<std::vector<NameAttrEntry>> nameAttrs(files.size());
@@ -2881,7 +2994,8 @@ void GdbIndexSection::writeTo(uint8_t *buf) {
   uint32_t cuOff = 0;
   for (GdbChunk &chunk : chunks) {
     for (AddressEntry &e : chunk.addressAreas) {
-      uint64_t baseAddr = e.section->getVA(0);
+      // In the case of ICF there may be duplicate address range entries.
+      const uint64_t baseAddr = e.section->repl->getVA(0);
       write64le(buf, baseAddr + e.lowAddress);
       write64le(buf + 8, baseAddr + e.highAddress);
       write32le(buf + 16, e.cuIndex + cuOff);
@@ -3055,7 +3169,10 @@ size_t VersionTableSection::getSize() const {
 void VersionTableSection::writeTo(uint8_t *buf) {
   buf += 2;
   for (const SymbolTableEntry &s : getPartition().dynSymTab->getSymbols()) {
-    write16(buf, s.sym->versionId);
+    // Use the original versionId for an unfetched lazy symbol (undefined weak),
+    // which must be VER_NDX_GLOBAL (an undefined versioned symbol is an error).
+    write16(buf, s.sym->isLazy() ? static_cast<uint16_t>(VER_NDX_GLOBAL)
+                                 : s.sym->versionId);
     buf += 2;
   }
 }
@@ -3462,7 +3579,7 @@ void ARMExidxSyntheticSection::writeTo(uint8_t *buf) {
     assert(isec->getParent() != nullptr);
     if (InputSection *d = findExidxSection(isec)) {
       memcpy(buf + offset, d->data().data(), d->data().size());
-      d->relocateAlloc(buf, buf + d->getSize());
+      d->relocateAlloc(buf + d->outSecOff, buf + d->outSecOff + d->getSize());
       offset += d->getSize();
     } else {
       // A Linker generated CANTUNWIND section.
@@ -3492,8 +3609,8 @@ bool ARMExidxSyntheticSection::classof(const SectionBase *d) {
 }
 
 ThunkSection::ThunkSection(OutputSection *os, uint64_t off)
-    : SyntheticSection(SHF_ALLOC | SHF_EXECINSTR, SHT_PROGBITS, 4,
-                       ".text.thunk") {
+    : SyntheticSection(SHF_ALLOC | SHF_EXECINSTR, SHT_PROGBITS,
+                       config->emachine == EM_PPC64 ? 16 : 4, ".text.thunk") {
   this->parent = os;
   this->outSecOff = off;
 }
@@ -3768,6 +3885,15 @@ template class elf::MipsOptionsSection<ELF32LE>;
 template class elf::MipsOptionsSection<ELF32BE>;
 template class elf::MipsOptionsSection<ELF64LE>;
 template class elf::MipsOptionsSection<ELF64BE>;
+
+template void EhFrameSection::iterateFDEWithLSDA<ELF32LE>(
+    function_ref<void(InputSection &)>);
+template void EhFrameSection::iterateFDEWithLSDA<ELF32BE>(
+    function_ref<void(InputSection &)>);
+template void EhFrameSection::iterateFDEWithLSDA<ELF64LE>(
+    function_ref<void(InputSection &)>);
+template void EhFrameSection::iterateFDEWithLSDA<ELF64BE>(
+    function_ref<void(InputSection &)>);
 
 template class elf::MipsReginfoSection<ELF32LE>;
 template class elf::MipsReginfoSection<ELF32BE>;

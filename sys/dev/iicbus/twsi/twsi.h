@@ -64,8 +64,8 @@ struct twsi_softc {
 	uint16_t		recv_bytes;
 	int			transfer;
 	int			error;
+	int			debug;
 	uint32_t		control_val;
-	bool			need_ack;
 	bool			iflag_w1c;
 
 	bus_size_t	reg_data;

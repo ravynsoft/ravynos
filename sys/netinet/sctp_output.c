@@ -4220,7 +4220,7 @@ sctp_lowlevel_chunk_output(struct sctp_inpcb *inp,
 #endif
 			/* send it out.  table id is taken from stcb */
 			SCTP_PROBE5(send, NULL, stcb, ip, stcb, sctphdr);
-			SCTP_IP_OUTPUT(ret, o_pak, ro, stcb, vrf_id);
+			SCTP_IP_OUTPUT(ret, o_pak, ro, inp, vrf_id);
 			if (port) {
 				UDPSTAT_INC(udps_opackets);
 			}
@@ -4544,7 +4544,7 @@ sctp_lowlevel_chunk_output(struct sctp_inpcb *inp,
 				sctp_packet_log(o_pak);
 #endif
 			SCTP_PROBE5(send, NULL, stcb, ip6h, stcb, sctphdr);
-			SCTP_IP6_OUTPUT(ret, o_pak, (struct route_in6 *)ro, &ifp, stcb, vrf_id);
+			SCTP_IP6_OUTPUT(ret, o_pak, (struct route_in6 *)ro, &ifp, inp, vrf_id);
 			if (net) {
 				/* for link local this must be done */
 				sin6->sin6_scope_id = prev_scope;
@@ -6770,7 +6770,9 @@ sctp_sendall_completes(void *ptr, uint32_t val SCTP_UNUSED)
 	/* now free everything */
 	if (ca->inp) {
 		/* Lets clear the flag to allow others to run. */
+		SCTP_INP_WLOCK(ca->inp);
 		ca->inp->sctp_flags &= ~SCTP_PCB_FLAGS_SND_ITERATOR_UP;
+		SCTP_INP_WUNLOCK(ca->inp);
 	}
 	sctp_m_freem(ca->m);
 	SCTP_FREE(ca, SCTP_M_COPYAL);
@@ -6825,10 +6827,6 @@ sctp_sendall(struct sctp_inpcb *inp, struct uio *uio, struct mbuf *m,
 	int ret;
 	struct sctp_copy_all *ca;
 
-	if (inp->sctp_flags & SCTP_PCB_FLAGS_SND_ITERATOR_UP) {
-		/* There is another. */
-		return (EBUSY);
-	}
 	if (uio->uio_resid > (ssize_t)SCTP_BASE_SYSCTL(sctp_sendall_limit)) {
 		/* You must not be larger than the limit! */
 		return (EMSGSIZE);
@@ -6846,6 +6844,18 @@ sctp_sendall(struct sctp_inpcb *inp, struct uio *uio, struct mbuf *m,
 	if (srcv) {
 		memcpy(&ca->sndrcv, srcv, sizeof(struct sctp_nonpad_sndrcvinfo));
 	}
+
+	/* Serialize. */
+	SCTP_INP_WLOCK(inp);
+	if ((inp->sctp_flags & SCTP_PCB_FLAGS_SND_ITERATOR_UP) != 0) {
+		SCTP_INP_WUNLOCK(inp);
+		sctp_m_freem(m);
+		SCTP_FREE(ca, SCTP_M_COPYAL);
+		return (EBUSY);
+	}
+	inp->sctp_flags |= SCTP_PCB_FLAGS_SND_ITERATOR_UP;
+	SCTP_INP_WUNLOCK(inp);
+
 	/*
 	 * take off the sendall flag, it would be bad if we failed to do
 	 * this :-0
@@ -6857,6 +6867,10 @@ sctp_sendall(struct sctp_inpcb *inp, struct uio *uio, struct mbuf *m,
 		ca->m = sctp_copy_out_all(uio, ca->sndlen);
 		if (ca->m == NULL) {
 			SCTP_FREE(ca, SCTP_M_COPYAL);
+			sctp_m_freem(m);
+			SCTP_INP_WLOCK(inp);
+			inp->sctp_flags &= ~SCTP_PCB_FLAGS_SND_ITERATOR_UP;
+			SCTP_INP_WUNLOCK(inp);
 			SCTP_LTRACE_ERR_RET(inp, NULL, NULL, SCTP_FROM_SCTP_OUTPUT, ENOMEM);
 			return (ENOMEM);
 		}
@@ -6869,14 +6883,15 @@ sctp_sendall(struct sctp_inpcb *inp, struct uio *uio, struct mbuf *m,
 			ca->sndlen += SCTP_BUF_LEN(mat);
 		}
 	}
-	inp->sctp_flags |= SCTP_PCB_FLAGS_SND_ITERATOR_UP;
 	ret = sctp_initiate_iterator(NULL, sctp_sendall_iterator, NULL,
 	    SCTP_PCB_ANY_FLAGS, SCTP_PCB_ANY_FEATURES,
 	    SCTP_ASOC_ANY_STATE,
 	    (void *)ca, 0,
 	    sctp_sendall_completes, inp, 1);
 	if (ret) {
+		SCTP_INP_WLOCK(inp);
 		inp->sctp_flags &= ~SCTP_PCB_FLAGS_SND_ITERATOR_UP;
+		SCTP_INP_WUNLOCK(inp);
 		SCTP_FREE(ca, SCTP_M_COPYAL);
 		SCTP_LTRACE_ERR_RET_PKT(m, inp, NULL, NULL, SCTP_FROM_SCTP_OUTPUT, EFAULT);
 		return (EFAULT);
@@ -7476,7 +7491,7 @@ dont_do_it:
 	if (chk->data == NULL) {
 		/* HELP, TSNH since we assured it would not above? */
 #ifdef INVARIANTS
-		panic("prepend failes HELP?");
+		panic("prepend fails HELP?");
 #else
 		SCTP_PRINTF("prepend fails HELP?\n");
 		sctp_free_a_chunk(stcb, chk, so_locked);
@@ -10406,7 +10421,7 @@ sctp_fill_in_rest:
 	/*-
 	 * Now populate the strseq list. This is done blindly
 	 * without pulling out duplicate stream info. This is
-	 * inefficent but won't harm the process since the peer will
+	 * inefficient but won't harm the process since the peer will
 	 * look at these in sequence and will thus release anything.
 	 * It could mean we exceed the PMTU and chop off some that
 	 * we could have included.. but this is unlikely (aka 1432/4
@@ -12689,8 +12704,8 @@ sctp_lower_sosend(struct socket *so,
 			if ((sinfo_flags & SCTP_ABORT) ||
 			    ((sinfo_flags & SCTP_EOF) && (sndlen == 0))) {
 				/*-
-				 * User asks to abort a non-existant assoc,
-				 * or EOF a non-existant assoc with no data
+				 * User asks to abort a non-existent assoc,
+				 * or EOF a non-existent assoc with no data
 				 */
 				SCTP_LTRACE_ERR_RET(inp, stcb, net, SCTP_FROM_SCTP_OUTPUT, ENOENT);
 				error = ENOENT;

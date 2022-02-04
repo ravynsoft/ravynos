@@ -121,8 +121,20 @@ xhci_pci_match(device_t self)
 	case 0x11421b21:
 		return ("ASMedia ASM1042A USB 3.0 controller");
 
+	case 0x0b278086:
+		return ("Intel Goshen Ridge Thunderbolt 4 USB controller");
 	case 0x0f358086:
 		return ("Intel BayTrail USB 3.0 controller");
+	case 0x11388086:
+		return ("Intel Maple Ridge Thunderbolt 4 USB controller");
+	case 0x15c18086:
+	case 0x15d48086:
+	case 0x15db8086:
+		return ("Intel Alpine Ridge Thunderbolt 3 USB controller");
+	case 0x15e98086:
+	case 0x15ec8086:
+	case 0x15f08086:
+		return ("Intel Titan Ridge Thunderbolt 3 USB controller");
 	case 0x19d08086:
 		return ("Intel Denverton USB 3.0 controller");
 	case 0x9c318086:
@@ -132,18 +144,36 @@ xhci_pci_match(device_t self)
 		return ("Intel Braswell USB 3.0 controller");
 	case 0x31a88086:
 		return ("Intel Gemini Lake USB 3.0 controller");
+	case 0x34ed8086:
+		return ("Intel Ice Lake-LP USB 3.1 controller");
+	case 0x43ed8086:
+		return ("Intel Tiger Lake-H USB 3.2 controller");
+	case 0x461e8086:
+		return ("Intel Alder Lake-P Thunderbolt 4 USB controller");
+	case 0x51ed8086:
+		return ("Intel Alder Lake USB 3.2 controller");
 	case 0x5aa88086:
 		return ("Intel Apollo Lake USB 3.0 controller");
+	case 0x7ae08086:
+		return ("Intel Alder Lake USB 3.2 controller");
+	case 0x8a138086:
+		return ("Intel Ice Lake Thunderbolt 3 USB controller");
 	case 0x8c318086:
 		return ("Intel Lynx Point USB 3.0 controller");
 	case 0x8cb18086:
 		return ("Intel Wildcat Point USB 3.0 controller");
 	case 0x8d318086:
 		return ("Intel Wellsburg USB 3.0 controller");
+	case 0x9a138086:
+		return ("Intel Tiger Lake-LP Thunderbolt 4 USB controller");
+	case 0x9a178086:
+		return ("Intel Tiger Lake-H Thunderbolt 4 USB controller");
 	case 0x9cb18086:
 		return ("Broadwell Integrated PCH-LP chipset USB 3.0 controller");
 	case 0x9d2f8086:
 		return ("Intel Sunrise Point-LP USB 3.0 controller");
+	case 0xa0ed8086:
+		return ("Intel Tiger Lake-LP USB 3.2 controller");
 	case 0xa12f8086:
 		return ("Intel Sunrise Point USB 3.0 controller");
 	case 0xa1af8086:

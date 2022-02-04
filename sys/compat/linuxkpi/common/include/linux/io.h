@@ -28,8 +28,8 @@
  *
  * $FreeBSD$
  */
-#ifndef	_LINUX_IO_H_
-#define	_LINUX_IO_H_
+#ifndef	_LINUXKPI_LINUX_IO_H_
+#define	_LINUXKPI_LINUX_IO_H_
 
 #include <sys/endian.h>
 #include <sys/types.h>
@@ -390,7 +390,7 @@ _outb(u_char data, u_int port)
 }
 #endif
 
-#if defined(__i386__) || defined(__amd64__) || defined(__powerpc__) || defined(__aarch64__)
+#if defined(__i386__) || defined(__amd64__) || defined(__powerpc__) || defined(__aarch64__) || defined(__riscv)
 void *_ioremap_attr(vm_paddr_t phys_addr, unsigned long size, int attr);
 #else
 #define	_ioremap_attr(...) NULL
@@ -411,8 +411,12 @@ void *_ioremap_attr(vm_paddr_t phys_addr, unsigned long size, int attr);
 #define	ioremap(addr, size)						\
     _ioremap_attr((addr), (size), VM_MEMATTR_UNCACHEABLE)
 #endif
+#ifdef VM_MEMATTR_WRITE_COMBINING
 #define	ioremap_wc(addr, size)						\
     _ioremap_attr((addr), (size), VM_MEMATTR_WRITE_COMBINING)
+#else
+#define	ioremap_wc(addr, size)	ioremap_nocache(addr, size)
+#endif
 #define	ioremap_wb(addr, size)						\
     _ioremap_attr((addr), (size), VM_MEMATTR_WRITE_BACK)
 void iounmap(void *addr);
@@ -478,4 +482,12 @@ memunmap(void *addr)
 	iounmap(addr);
 }
 
-#endif	/* _LINUX_IO_H_ */
+#define	__MTRR_ID_BASE	1
+int lkpi_arch_phys_wc_add(unsigned long, unsigned long);
+void lkpi_arch_phys_wc_del(int);
+#define	arch_phys_wc_add(...)	lkpi_arch_phys_wc_add(__VA_ARGS__)
+#define	arch_phys_wc_del(...)	lkpi_arch_phys_wc_del(__VA_ARGS__)
+#define	arch_phys_wc_index(x)	\
+	(((x) < __MTRR_ID_BASE) ? -1 : ((x) - __MTRR_ID_BASE))
+
+#endif	/* _LINUXKPI_LINUX_IO_H_ */

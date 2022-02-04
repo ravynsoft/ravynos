@@ -83,6 +83,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/taskqueue.h>
 #include <sys/buf_ring.h>
 #include <sys/eventhandler.h>
+#include <sys/epoch.h>
 
 #include <machine/atomic.h>
 #include <machine/in_cksum.h>
@@ -456,11 +457,11 @@ static void			hn_start_txeof_taskfunc(void *, int);
 SYSCTL_NODE(_hw, OID_AUTO, hn, CTLFLAG_RD | CTLFLAG_MPSAFE, NULL,
     "Hyper-V network interface");
 
-/* Trust tcp segements verification on host side. */
+/* Trust tcp segment verification on host side. */
 static int			hn_trust_hosttcp = 1;
 SYSCTL_INT(_hw_hn, OID_AUTO, trust_hosttcp, CTLFLAG_RDTUN,
     &hn_trust_hosttcp, 0,
-    "Trust tcp segement verification on host side, "
+    "Trust tcp segment verification on host side, "
     "when csum info is missing (global setting)");
 
 /* Trust udp datagrams verification on host side. */
@@ -2883,7 +2884,11 @@ static void
 hn_chan_rollup(struct hn_rx_ring *rxr, struct hn_tx_ring *txr)
 {
 #if defined(INET) || defined(INET6)
+	struct epoch_tracker et;
+
+	NET_EPOCH_ENTER(et);
 	tcp_lro_flush_all(&rxr->hn_lro);
+	NET_EPOCH_EXIT(et);
 #endif
 
 	/*
@@ -5111,7 +5116,7 @@ hn_create_rx_data(struct hn_softc *sc, int ring_cnt)
 	SYSCTL_ADD_PROC(ctx, child, OID_AUTO, "trust_hosttcp",
 	    CTLTYPE_INT | CTLFLAG_RW | CTLFLAG_MPSAFE, sc, HN_TRUST_HCSUM_TCP,
 	    hn_trust_hcsum_sysctl, "I",
-	    "Trust tcp segement verification on host side, "
+	    "Trust tcp segment verification on host side, "
 	    "when csum info is missing");
 	SYSCTL_ADD_PROC(ctx, child, OID_AUTO, "trust_hostudp",
 	    CTLTYPE_INT | CTLFLAG_RW | CTLFLAG_MPSAFE, sc, HN_TRUST_HCSUM_UDP,
@@ -7459,6 +7464,7 @@ static void
 hn_nvs_handle_rxbuf(struct hn_rx_ring *rxr, struct vmbus_channel *chan,
     const struct vmbus_chanpkt_hdr *pkthdr)
 {
+	struct epoch_tracker et;
 	const struct vmbus_chanpkt_rxbuf *pkt;
 	const struct hn_nvs_hdr *nvs_hdr;
 	int count, i, hlen;
@@ -7496,6 +7502,7 @@ hn_nvs_handle_rxbuf(struct hn_rx_ring *rxr, struct vmbus_channel *chan,
 		return;
 	}
 
+	NET_EPOCH_ENTER(et);
 	/* Each range represents 1 RNDIS pkt that contains 1 Ethernet frame */
 	for (i = 0; i < count; ++i) {
 		int ofs, len;
@@ -7511,6 +7518,7 @@ hn_nvs_handle_rxbuf(struct hn_rx_ring *rxr, struct vmbus_channel *chan,
 		rxr->rsc.is_last = (i == (count - 1));
 		hn_rndis_rxpkt(rxr, rxr->hn_rxbuf + ofs, len);
 	}
+	NET_EPOCH_EXIT(et);
 
 	/*
 	 * Ack the consumed RXBUF associated w/ this channel packet,

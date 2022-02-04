@@ -196,8 +196,6 @@ int
 fptr_whitelist_pending_udp(comm_point_callback_type *fptr)
 {
 	if(fptr == &serviced_udp_callback) return 1;
-	else if(fptr == &worker_handle_reply) return 1;
-	else if(fptr == &libworker_handle_reply) return 1;
 	return 0;
 }
 
@@ -205,8 +203,6 @@ int
 fptr_whitelist_pending_tcp(comm_point_callback_type *fptr)
 {
 	if(fptr == &serviced_tcp_callback) return 1;
-	else if(fptr == &worker_handle_reply) return 1;
-	else if(fptr == &libworker_handle_reply) return 1;
 	return 0;
 }
 
@@ -339,7 +335,7 @@ int
 fptr_whitelist_modenv_send_query(struct outbound_entry* (*fptr)(
 	struct query_info* qinfo, uint16_t flags, int dnssec, int want_dnssec,
 	int nocaps, struct sockaddr_storage* addr, socklen_t addrlen,
-	uint8_t* zone, size_t zonelen, int ssl_upstream, char* tls_auth_name,
+	uint8_t* zone, size_t zonelen, int tcp_upstream, int ssl_upstream, char* tls_auth_name,
 	struct module_qstate* q))
 {
 	if(fptr == &worker_send_query) return 1;
@@ -583,6 +579,7 @@ int fptr_whitelist_mesh_cb(mesh_cb_func_type fptr)
 	else if(fptr == &probe_answer_cb) return 1;
 	else if(fptr == &auth_xfer_probe_lookup_callback) return 1;
 	else if(fptr == &auth_xfer_transfer_lookup_callback) return 1;
+	else if(fptr == &auth_zonemd_dnskey_lookup_callback) return 1;
 	return 0;
 }
 

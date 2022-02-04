@@ -1588,7 +1588,7 @@ uaudio20_check_rate(struct usb_device *udev, uint8_t iface_no,
 {
 	struct usb_device_request req;
 	usb_error_t error;
-#define	UAUDIO20_MAX_RATES 32	/* we support at maxium 32 rates */
+#define	UAUDIO20_MAX_RATES 32	/* we support at maximum 32 rates */
 	uint8_t data[2 + UAUDIO20_MAX_RATES * 12];
 	uint16_t actlen;
 	uint16_t rates;
@@ -3648,17 +3648,17 @@ uaudio_mixer_add_feature(struct uaudio_softc *sc,
 		cmask |= uaudio_mixer_feature_get_bmaControls(d, chan);
 	}
 
-	if (nchan > MIX_MAX_CHAN)
-		nchan = MIX_MAX_CHAN;
-
 	MIX(sc).wIndex = MAKE_WORD(d->bUnitId, sc->sc_mixer_iface_no);
 
-	i = d->bmaControls[d->bControlSize];
+	i = d->bmaControls[nchan * d->bControlSize];
 	if (i == 0 ||
 	    usbd_req_get_string_any(sc->sc_udev, NULL,
 	    MIX(sc).desc, sizeof(MIX(sc).desc), i) != 0) {
 		MIX(sc).desc[0] = 0;
 	}
+
+	if (nchan > MIX_MAX_CHAN)
+		nchan = MIX_MAX_CHAN;
 
 	for (ctl = 1; ctl <= LOUDNESS_CONTROL; ctl++) {
 		fumask = FU_MASK(ctl);
@@ -3782,9 +3782,6 @@ uaudio20_mixer_add_feature(struct uaudio_softc *sc,
 	for (chan = 1; chan < nchan; chan++)
 		cmask |= UGETDW(d->bmaControls[chan]);
 
-	if (nchan > MIX_MAX_CHAN)
-		nchan = MIX_MAX_CHAN;
-
 	MIX(sc).wIndex = MAKE_WORD(d->bUnitId, sc->sc_mixer_iface_no);
 
 	i = d->bmaControls[nchan][0];
@@ -3793,6 +3790,9 @@ uaudio20_mixer_add_feature(struct uaudio_softc *sc,
 	    MIX(sc).desc, sizeof(MIX(sc).desc), i) != 0) {
 		MIX(sc).desc[0] = 0;
 	}
+
+	if (nchan > MIX_MAX_CHAN)
+		nchan = MIX_MAX_CHAN;
 
 	for (ctl = 3; ctl != 0; ctl <<= 2) {
 		mixernumber = uaudio20_mixer_determine_class(&iot[id]);
@@ -6021,7 +6021,7 @@ umidi_probe(device_t dev)
 		error = usb_fifo_attach(sc->sc_udev, chan, &chan->mtx,
 		    &umidi_fifo_methods, &sub->fifo, unit, n,
 		    chan->iface_index,
-		    UID_ROOT, GID_OPERATOR, 0644);
+		    UID_ROOT, GID_OPERATOR, 0666);
 		if (error) {
 			goto detach;
 		}

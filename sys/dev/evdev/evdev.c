@@ -93,15 +93,6 @@ static void evdev_start_repeat(struct evdev_dev *, uint16_t);
 static void evdev_stop_repeat(struct evdev_dev *);
 static int evdev_check_event(struct evdev_dev *, uint16_t, uint16_t, int32_t);
 
-static inline void
-bit_change(bitstr_t *bitstr, int bit, int value)
-{
-	if (value)
-		bit_set(bitstr, bit);
-	else
-		bit_clear(bitstr, bit);
-}
-
 struct evdev_dev *
 evdev_alloc(void)
 {
@@ -315,9 +306,9 @@ evdev_register_common(struct evdev_dev *evdev)
 		}
 	}
 
-	/* Initialize multitouch protocol type B states */
-	if (bit_test(evdev->ev_abs_flags, ABS_MT_SLOT) &&
-	    evdev->ev_absinfo != NULL && MAXIMAL_MT_SLOT(evdev) > 0)
+	/* Initialize multitouch protocol type B states or A to B converter */
+	if (bit_test(evdev->ev_abs_flags, ABS_MT_SLOT) ||
+	    bit_test(evdev->ev_flags, EVDEV_FLAG_MT_TRACK))
 		evdev_mt_init(evdev);
 
 	/* Estimate maximum report size */
@@ -711,15 +702,23 @@ evdev_modify_event(struct evdev_dev *evdev, uint16_t type, uint16_t code,
 		break;
 
 	case EV_ABS:
-		fuzz = evdev->ev_absinfo[code].fuzz;
-		if (fuzz == 0 || code == ABS_MT_SLOT)
+		if (code == ABS_MT_SLOT)
 			break;
 		else if (!ABS_IS_MT(code))
 			old_value = evdev->ev_absinfo[code].value;
-		else if (bit_test(evdev->ev_abs_flags, ABS_MT_SLOT))
-			old_value = evdev_get_mt_value(evdev,
-			    evdev_get_last_mt_slot(evdev), code);
-		else	/* Pass MT protocol type A events as is */
+		else if (!bit_test(evdev->ev_abs_flags, ABS_MT_SLOT))
+			/* Pass MT protocol type A events as is */
+			break;
+		else if (code == ABS_MT_TRACKING_ID) {
+			*value = evdev_mt_reassign_id(evdev,
+			    evdev_mt_get_last_slot(evdev), *value);
+			break;
+		} else
+			old_value = evdev_mt_get_value(evdev,
+			    evdev_mt_get_last_slot(evdev), code);
+
+		fuzz = evdev->ev_absinfo[code].fuzz;
+		if (fuzz == 0)
 			break;
 
 		abs_change = abs(*value - old_value);
@@ -798,7 +797,7 @@ evdev_sparse_event(struct evdev_dev *evdev, uint16_t type, uint16_t code,
 		switch (code) {
 		case ABS_MT_SLOT:
 			/* Postpone ABS_MT_SLOT till next event */
-			evdev_set_last_mt_slot(evdev, value);
+			evdev_mt_set_last_slot(evdev, value);
 			return (EV_SKIP_EVENT);
 
 		case ABS_MT_FIRST ... ABS_MT_LAST:
@@ -806,11 +805,11 @@ evdev_sparse_event(struct evdev_dev *evdev, uint16_t type, uint16_t code,
 			if (!bit_test(evdev->ev_abs_flags, ABS_MT_SLOT))
 				break;
 			/* Don`t repeat MT protocol type B events */
-			last_mt_slot = evdev_get_last_mt_slot(evdev);
-			if (evdev_get_mt_value(evdev, last_mt_slot, code)
+			last_mt_slot = evdev_mt_get_last_slot(evdev);
+			if (evdev_mt_get_value(evdev, last_mt_slot, code)
 			     == value)
 				return (EV_SKIP_EVENT);
-			evdev_set_mt_value(evdev, last_mt_slot, code, value);
+			evdev_mt_set_value(evdev, last_mt_slot, code, value);
 			if (last_mt_slot != CURRENT_MT_SLOT(evdev)) {
 				CURRENT_MT_SLOT(evdev) = last_mt_slot;
 				evdev->ev_report_opened = true;
@@ -886,6 +885,7 @@ evdev_send_event(struct evdev_dev *evdev, uint16_t type, uint16_t code,
 
 	EVDEV_LOCK_ASSERT(evdev);
 
+	evdev_modify_event(evdev, type, code, &value);
 	sparse =  evdev_sparse_event(evdev, type, code, value);
 	switch (sparse) {
 	case EV_REPORT_MT_SLOT:
@@ -909,20 +909,16 @@ evdev_restore_after_kdb(struct evdev_dev *evdev)
 	EVDEV_LOCK_ASSERT(evdev);
 
 	/* Report postponed leds */
-	for (code = 0; code < LED_CNT; code++)
-		if (bit_test(evdev->ev_kdb_led_states, code))
-			evdev_send_event(evdev, EV_LED, code,
-			    !bit_test(evdev->ev_led_states, code));
+	bit_foreach(evdev->ev_kdb_led_states, LED_CNT, code)
+		evdev_send_event(evdev, EV_LED, code,
+		    !bit_test(evdev->ev_led_states, code));
 	bit_nclear(evdev->ev_kdb_led_states, 0, LED_MAX);
 
 	/* Release stuck keys (CTRL + ALT + ESC) */
 	evdev_stop_repeat(evdev);
-	for (code = 0; code < KEY_CNT; code++) {
-		if (bit_test(evdev->ev_key_states, code)) {
-			evdev_send_event(evdev, EV_KEY, code, KEY_EVENT_UP);
-			evdev_send_event(evdev, EV_SYN, SYN_REPORT, 1);
-		}
-	}
+	bit_foreach(evdev->ev_key_states, KEY_CNT, code)
+		evdev_send_event(evdev, EV_KEY, code, KEY_EVENT_UP);
+	evdev_send_event(evdev, EV_SYN, SYN_REPORT, 1);
 }
 
 int
@@ -953,15 +949,16 @@ evdev_push_event(struct evdev_dev *evdev, uint16_t type, uint16_t code,
 		evdev_restore_after_kdb(evdev);
 	}
 
-	evdev_modify_event(evdev, type, code, &value);
 	if (type == EV_SYN && code == SYN_REPORT &&
-	     bit_test(evdev->ev_flags, EVDEV_FLAG_MT_AUTOREL))
-		evdev_send_mt_autorel(evdev);
-	if (type == EV_SYN && code == SYN_REPORT && evdev->ev_report_opened &&
-	    bit_test(evdev->ev_flags, EVDEV_FLAG_MT_STCOMPAT))
-		evdev_send_mt_compat(evdev);
-	evdev_send_event(evdev, type, code, value);
+	    bit_test(evdev->ev_abs_flags, ABS_MT_SLOT))
+		evdev_mt_sync_frame(evdev);
+	else
+		if (bit_test(evdev->ev_flags, EVDEV_FLAG_MT_TRACK) &&
+		    evdev_mt_record_event(evdev, type, code, value))
+			goto exit;
 
+	evdev_send_event(evdev, type, code, value);
+exit:
 	EVDEV_EXIT(evdev);
 
 	return (0);

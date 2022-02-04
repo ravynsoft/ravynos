@@ -30,7 +30,9 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <err.h>
+#include <sysexits.h>
 #include <string.h>
+#include <unistd.h>
 #include <pwd.h>
 #include <grp.h>
 #include <errno.h>
@@ -64,7 +66,6 @@ struct options {
 	uint8_t	got_list:1;
 	uint8_t	got_bus:1;
 	uint8_t	got_addr:1;
-	uint8_t	got_iface:1;
 	uint8_t	got_set_config:1;
 	uint8_t	got_set_alt:1;
 	uint8_t	got_set_template:1;
@@ -100,10 +101,6 @@ struct token {
 };
 
 enum {
-	T_UNIT,
-	T_ADDR,
-	T_UGEN,
-	T_IFACE,
 	T_SET_CONFIG,
 	T_SET_ALT,
 	T_SET_TEMPLATE,
@@ -136,10 +133,6 @@ enum {
 static struct options options;
 
 static const struct token token[] = {
-	{"-u", T_UNIT, 1},
-	{"-a", T_ADDR, 1},
-	{"-d", T_UGEN, 1},
-	{"-i", T_IFACE, 1},
 	{"set_config", T_SET_CONFIG, 1},
 	{"set_alt", T_SET_ALT, 1},
 	{"set_template", T_SET_TEMPLATE, 1},
@@ -275,12 +268,12 @@ duplicate_option(const char *ptr)
 }
 
 static void
-usage(void)
+usage(int exitcode)
 {
 	fprintf(stderr, ""
 	    "usbconfig - configure the USB subsystem" "\n"
-	    "usage: usbconfig -u <busnum> -a <devaddr> -i <ifaceindex> [cmds...]" "\n"
-	    "usage: usbconfig -d [ugen]<busnum>.<devaddr> -i <ifaceindex> [cmds...]" "\n"
+	    "usage: usbconfig [-u <busnum>] [-a <devaddr>] [-i <ifaceindex>] [-v] [cmds...]" "\n"
+	    "usage: usbconfig -d [ugen]<busnum>.<devaddr> [-i <ifaceindex>] [-v] [cmds...]" "\n"
 	    "commands:" "\n"
 	    "  set_config <cfg_index>" "\n"
 	    "  set_alt <alt_index>" "\n"
@@ -310,7 +303,7 @@ usage(void)
 	    "  list" "\n"
 	    "  do_request <bmReqTyp> <bReq> <wVal> <wIdx> <wLen> <data...>" "\n"
 	);
-	exit(1);
+	exit(exitcode);
 }
 
 static void
@@ -563,15 +556,72 @@ main(int argc, char **argv)
 	int addr;
 	int n;
 	int t;
+	int ch;
 
 	if (argc < 1) {
-		usage();
+		usage(EX_USAGE);
 	}
 	pbe = libusb20_be_alloc_default();
 	if (pbe == NULL)
 		err(1, "could not access USB backend\n");
 
-	for (n = 1; n != argc; n++) {
+	while ((ch = getopt(argc, argv, "a:d:hi:u:v")) != -1) {
+		switch (ch) {
+		case 'a':
+			opt->addr = num_id(optarg, "addr");
+			opt->got_addr = 1;
+			break;
+
+		case 'd':
+			if (strncmp(optarg, "ugen", strlen("ugen")) == 0) {
+				ptr = optarg + strlen("ugen");
+			} else if (strncmp(optarg, "/dev/ugen",
+			   strlen("/dev/ugen")) == 0) {
+				ptr = optarg + strlen("/dev/ugen");
+			} else {
+				ptr = optarg;
+			}
+			if ((sscanf(ptr, "%d.%d",
+			    &unit, &addr) != 2) ||
+			    (unit < 0) || (unit > 65535) ||
+			    (addr < 0) || (addr > 65535)) {
+				errx(1, "cannot "
+				    "parse '%s'", optarg);
+			}
+			opt->bus = unit;
+			opt->addr = addr;
+			opt->got_bus = 1;
+			opt->got_addr = 1;
+			break;
+
+		case 'h':
+			usage(EX_OK);
+			break;
+
+		case 'i':
+			opt->iface = num_id(optarg, "iface");
+			break;
+
+		case 'u':
+			opt->bus = num_id(optarg, "busnum");
+			opt->got_bus = 1;
+			break;
+
+		case 'v':
+			opt->got_dump_device_desc = 1;
+			opt->got_dump_curr_config = 1;
+			opt->got_show_iface_driver = 1;
+			opt->got_any += 2; /* only the dump options count */
+			break;
+
+		default:
+			usage(EX_USAGE);
+		}
+	}
+	argc -= optind;
+	argv += optind;
+
+	for (n = 0; n != argc; n++) {
 
 		/* get number of additional options */
 		t = (argc - n - 1);
@@ -654,52 +704,6 @@ main(int argc, char **argv)
 			opt->got_show_iface_driver = 1;
 			break;
 
-		case T_UGEN:
-			if (opt->got_any) {
-				/* allow multiple commands on the same line */
-				flush_command(pbe, opt);
-			}
-			ptr = argv[n + 1];
-
-			if ((ptr[0] == 'u') &&
-			    (ptr[1] == 'g') &&
-			    (ptr[2] == 'e') &&
-			    (ptr[3] == 'n'))
-				ptr += 4;
-
-			if ((sscanf(ptr, "%d.%d",
-			    &unit, &addr) != 2) ||
-			    (unit < 0) || (unit > 65535) ||
-			    (addr < 0) || (addr > 65535)) {
-				errx(1, "cannot "
-				    "parse '%s'", argv[n + 1]);
-			}
-			opt->bus = unit;
-			opt->addr = addr;
-			opt->got_bus = 1;
-			opt->got_addr = 1;
-			n++;
-			break;
-
-		case T_UNIT:
-			if (opt->got_any) {
-				/* allow multiple commands on the same line */
-				flush_command(pbe, opt);
-			}
-			opt->bus = num_id(argv[n + 1], "busnum");
-			opt->got_bus = 1;
-			n++;
-			break;
-		case T_ADDR:
-			opt->addr = num_id(argv[n + 1], "addr");
-			opt->got_addr = 1;
-			n++;
-			break;
-		case T_IFACE:
-			opt->iface = num_id(argv[n + 1], "iface");
-			opt->got_iface = 1;
-			n++;
-			break;
 		case T_SET_CONFIG:
 			if (opt->got_set_config)
 				duplicate_option(argv[n]);
@@ -864,7 +868,7 @@ main(int argc, char **argv)
 				    &unit, &addr) != 2) ||
 				    (unit < 0) || (unit > 65535) ||
 				    (addr < 0) || (addr > 65535)) {
-					usage();
+					usage(EX_USAGE);
 					break;
 				}
 
@@ -874,7 +878,7 @@ main(int argc, char **argv)
 				opt->got_addr = 1;
 				break;
 			}
-			usage();
+			usage(EX_USAGE);
 			break;
 		}
 	}

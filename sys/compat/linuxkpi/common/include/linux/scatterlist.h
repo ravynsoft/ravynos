@@ -4,6 +4,7 @@
  * Copyright (c) 2010 Panasas, Inc.
  * Copyright (c) 2013-2017 Mellanox Technologies, Ltd.
  * Copyright (c) 2015 Matthew Dillon <dillon@backplane.com>
+ * Copyright (c) 2016 Matthew Macy
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,8 +30,8 @@
  *
  * $FreeBSD$
  */
-#ifndef	_LINUX_SCATTERLIST_H_
-#define	_LINUX_SCATTERLIST_H_
+#ifndef	_LINUXKPI_LINUX_SCATTERLIST_H_
+#define	_LINUXKPI_LINUX_SCATTERLIST_H_
 
 #include <sys/types.h>
 #include <sys/sf_buf.h>
@@ -520,12 +521,13 @@ sg_pcopy_from_buffer(struct scatterlist *sgl, unsigned int nents,
 		memcpy(p, b, len);
 		sf_buf_free(sf);
 
+		/* We copied so nothing more to skip. */
+		skip = 0;
 		copied += len;
 		/* Either we exactly filled the page, or we are done. */
 		buflen -= len;
 		if (buflen == 0)
 			break;
-		skip -= len;
 		b += len;
 	}
 	sched_unpin();
@@ -533,4 +535,61 @@ sg_pcopy_from_buffer(struct scatterlist *sgl, unsigned int nents,
 	return (copied);
 }
 
-#endif					/* _LINUX_SCATTERLIST_H_ */
+static inline size_t
+sg_copy_from_buffer(struct scatterlist *sgl, unsigned int nents,
+    const void *buf, size_t buflen)
+{
+	return (sg_pcopy_from_buffer(sgl, nents, buf, buflen, 0));
+}
+
+static inline size_t
+sg_pcopy_to_buffer(struct scatterlist *sgl, unsigned int nents,
+    void *buf, size_t buflen, off_t offset)
+{
+	struct sg_page_iter iter;
+	struct scatterlist *sg;
+	struct page *page;
+	struct sf_buf *sf;
+	char *vaddr;
+	size_t total = 0;
+	size_t len;
+
+	if (!PMAP_HAS_DMAP)
+		sched_pin();
+	for_each_sg_page(sgl, &iter, nents, 0) {
+		sg = iter.sg;
+
+		if (offset >= sg->length) {
+			offset -= sg->length;
+			continue;
+		}
+		len = ulmin(buflen, sg->length - offset);
+		if (len == 0)
+			break;
+
+		page = sg_page_iter_page(&iter);
+		if (!PMAP_HAS_DMAP) {
+			sf = sf_buf_alloc(page, SFB_CPUPRIVATE | SFB_NOWAIT);
+			if (sf == NULL)
+				break;
+			vaddr = (char *)sf_buf_kva(sf);
+		} else
+			vaddr = (char *)PHYS_TO_DMAP(VM_PAGE_TO_PHYS(page));
+		memcpy(buf, vaddr + sg->offset + offset, len);
+		if (!PMAP_HAS_DMAP)
+			sf_buf_free(sf);
+
+		/* start at beginning of next page */
+		offset = 0;
+
+		/* advance buffer */
+		buf = (char *)buf + len;
+		buflen -= len;
+		total += len;
+	}
+	if (!PMAP_HAS_DMAP)
+		sched_unpin();
+	return (total);
+}
+
+#endif					/* _LINUXKPI_LINUX_SCATTERLIST_H_ */

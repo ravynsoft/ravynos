@@ -78,21 +78,25 @@ newDriver(DiagnosticsEngine *Diagnostics, const char *BinaryName,
           IntrusiveRefCntPtr<llvm::vfs::FileSystem> VFS) {
   driver::Driver *CompilerDriver =
       new driver::Driver(BinaryName, llvm::sys::getDefaultTargetTriple(),
-                         *Diagnostics, std::move(VFS));
+                         *Diagnostics, "clang LLVM compiler", std::move(VFS));
   CompilerDriver->setTitle("clang_based_tool");
   return CompilerDriver;
 }
 
-/// Retrieves the clang CC1 specific flags out of the compilation's jobs.
-///
-/// Returns nullptr on error.
-static const llvm::opt::ArgStringList *getCC1Arguments(
-    DiagnosticsEngine *Diagnostics, driver::Compilation *Compilation) {
-  // We expect to get back exactly one Command job, if we didn't something
-  // failed. Extract that job from the Compilation.
+/// Decide whether extra compiler frontend commands can be ignored.
+static bool ignoreExtraCC1Commands(const driver::Compilation *Compilation) {
   const driver::JobList &Jobs = Compilation->getJobs();
   const driver::ActionList &Actions = Compilation->getActions();
+
   bool OffloadCompilation = false;
+
+  // Jobs and Actions look very different depending on whether the Clang tool
+  // injected -fsyntax-only or not. Try to handle both cases here.
+
+  for (const auto &Job : Jobs)
+    if (StringRef(Job.getExecutable()) == "clang-offload-bundler")
+      OffloadCompilation = true;
+
   if (Jobs.size() > 1) {
     for (auto A : Actions){
       // On MacOSX real actions may end up being wrapped in BindArchAction
@@ -117,8 +121,33 @@ static const llvm::opt::ArgStringList *getCC1Arguments(
       }
     }
   }
-  if (Jobs.size() == 0 || !isa<driver::Command>(*Jobs.begin()) ||
-      (Jobs.size() > 1 && !OffloadCompilation)) {
+
+  return OffloadCompilation;
+}
+
+namespace clang {
+namespace tooling {
+
+const llvm::opt::ArgStringList *
+getCC1Arguments(DiagnosticsEngine *Diagnostics,
+                driver::Compilation *Compilation) {
+  const driver::JobList &Jobs = Compilation->getJobs();
+
+  auto IsCC1Command = [](const driver::Command &Cmd) {
+    return StringRef(Cmd.getCreator().getName()) == "clang";
+  };
+
+  auto IsSrcFile = [](const driver::InputInfo &II) {
+    return isSrcFile(II.getType());
+  };
+
+  llvm::SmallVector<const driver::Command *, 1> CC1Jobs;
+  for (const driver::Command &Job : Jobs)
+    if (IsCC1Command(Job) && llvm::all_of(Job.getInputInfos(), IsSrcFile))
+      CC1Jobs.push_back(&Job);
+
+  if (CC1Jobs.empty() ||
+      (CC1Jobs.size() > 1 && !ignoreExtraCC1Commands(Compilation))) {
     SmallString<256> error_msg;
     llvm::raw_svector_ostream error_stream(error_msg);
     Jobs.Print(error_stream, "; ", true);
@@ -127,18 +156,8 @@ static const llvm::opt::ArgStringList *getCC1Arguments(
     return nullptr;
   }
 
-  // The one job we find should be to invoke clang again.
-  const auto &Cmd = cast<driver::Command>(*Jobs.begin());
-  if (StringRef(Cmd.getCreator().getName()) != "clang") {
-    Diagnostics->Report(diag::err_fe_expected_clang_command);
-    return nullptr;
-  }
-
-  return &Cmd.getArguments();
+  return &CC1Jobs[0]->getArguments();
 }
-
-namespace clang {
-namespace tooling {
 
 /// Returns a clang build invocation initialized from the CC1 flags.
 CompilerInvocation *newInvocation(DiagnosticsEngine *Diagnostics,
@@ -245,27 +264,38 @@ std::string getAbsolutePath(StringRef File) {
 
 void addTargetAndModeForProgramName(std::vector<std::string> &CommandLine,
                                     StringRef InvokedAs) {
-  if (!CommandLine.empty() && !InvokedAs.empty()) {
-    bool AlreadyHasTarget = false;
-    bool AlreadyHasMode = false;
-    // Skip CommandLine[0].
-    for (auto Token = ++CommandLine.begin(); Token != CommandLine.end();
-         ++Token) {
-      StringRef TokenRef(*Token);
-      AlreadyHasTarget |=
-          (TokenRef == "-target" || TokenRef.startswith("-target="));
-      AlreadyHasMode |= (TokenRef == "--driver-mode" ||
-                         TokenRef.startswith("--driver-mode="));
-    }
-    auto TargetMode =
-        driver::ToolChain::getTargetAndModeFromProgramName(InvokedAs);
-    if (!AlreadyHasMode && TargetMode.DriverMode) {
-      CommandLine.insert(++CommandLine.begin(), TargetMode.DriverMode);
-    }
-    if (!AlreadyHasTarget && TargetMode.TargetIsValid) {
-      CommandLine.insert(++CommandLine.begin(), {"-target",
-                                                 TargetMode.TargetPrefix});
-    }
+  if (CommandLine.empty() || InvokedAs.empty())
+    return;
+  const auto &Table = driver::getDriverOptTable();
+  // --target=X
+  const std::string TargetOPT =
+      Table.getOption(driver::options::OPT_target).getPrefixedName();
+  // -target X
+  const std::string TargetOPTLegacy =
+      Table.getOption(driver::options::OPT_target_legacy_spelling)
+          .getPrefixedName();
+  // --driver-mode=X
+  const std::string DriverModeOPT =
+      Table.getOption(driver::options::OPT_driver_mode).getPrefixedName();
+  auto TargetMode =
+      driver::ToolChain::getTargetAndModeFromProgramName(InvokedAs);
+  // No need to search for target args if we don't have a target/mode to insert.
+  bool ShouldAddTarget = TargetMode.TargetIsValid;
+  bool ShouldAddMode = TargetMode.DriverMode != nullptr;
+  // Skip CommandLine[0].
+  for (auto Token = ++CommandLine.begin(); Token != CommandLine.end();
+       ++Token) {
+    StringRef TokenRef(*Token);
+    ShouldAddTarget = ShouldAddTarget && !TokenRef.startswith(TargetOPT) &&
+                      !TokenRef.equals(TargetOPTLegacy);
+    ShouldAddMode = ShouldAddMode && !TokenRef.startswith(DriverModeOPT);
+  }
+  if (ShouldAddMode) {
+    CommandLine.insert(++CommandLine.begin(), TargetMode.DriverMode);
+  }
+  if (ShouldAddTarget) {
+    CommandLine.insert(++CommandLine.begin(),
+                       TargetOPT + TargetMode.TargetPrefix);
   }
 }
 
@@ -308,12 +338,6 @@ ToolInvocation::~ToolInvocation() {
     delete Action;
 }
 
-void ToolInvocation::mapVirtualFile(StringRef FilePath, StringRef Content) {
-  SmallString<1024> PathStorage;
-  llvm::sys::path::native(FilePath, PathStorage);
-  MappedFileContents[PathStorage] = Content;
-}
-
 bool ToolInvocation::run() {
   std::vector<const char*> Argv;
   for (const std::string &Str : CommandLine)
@@ -329,6 +353,10 @@ bool ToolInvocation::run() {
   DiagnosticsEngine Diagnostics(
       IntrusiveRefCntPtr<DiagnosticIDs>(new DiagnosticIDs()), &*DiagOpts,
       DiagConsumer ? DiagConsumer : &DiagnosticPrinter, false);
+  // Although `Diagnostics` are used only for command-line parsing, the custom
+  // `DiagConsumer` might expect a `SourceManager` to be present.
+  SourceManager SrcMgr(Diagnostics, *Files);
+  Diagnostics.setSourceManager(&SrcMgr);
 
   const std::unique_ptr<driver::Driver> Driver(
       newDriver(&Diagnostics, BinaryName, &Files->getVirtualFileSystem()));
@@ -348,14 +376,6 @@ bool ToolInvocation::run() {
     return false;
   std::unique_ptr<CompilerInvocation> Invocation(
       newInvocation(&Diagnostics, *CC1Args, BinaryName));
-  // FIXME: remove this when all users have migrated!
-  for (const auto &It : MappedFileContents) {
-    // Inject the code as the given file name into the preprocessor options.
-    std::unique_ptr<llvm::MemoryBuffer> Input =
-        llvm::MemoryBuffer::getMemBuffer(It.getValue());
-    Invocation->getPreprocessorOpts().addRemappedFile(It.getKey(),
-                                                      Input.release());
-  }
   return runInvocation(BinaryName, Compilation.get(), std::move(Invocation),
                        std::move(PCHContainerOps));
 }
@@ -443,8 +463,9 @@ static void injectResourceDir(CommandLineArguments &Args, const char *Argv0,
       return;
 
   // If there's no override in place add our resource dir.
-  Args.push_back("-resource-dir=" +
-                 CompilerInvocation::GetResourcesPath(Argv0, MainAddr));
+  Args = getInsertArgumentAdjuster(
+      ("-resource-dir=" + CompilerInvocation::GetResourcesPath(Argv0, MainAddr))
+          .c_str())(Args, "");
 }
 
 int ClangTool::run(ToolAction *Action) {
@@ -648,7 +669,7 @@ std::unique_ptr<ASTUnit> buildASTFromCodeWithArgs(
 
   if (!Invocation.run())
     return nullptr;
-
+ 
   assert(ASTs.size() == 1);
   return std::move(ASTs[0]);
 }

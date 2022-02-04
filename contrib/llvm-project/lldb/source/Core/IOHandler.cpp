@@ -18,6 +18,7 @@
 #include "lldb/Host/Config.h"
 #include "lldb/Host/File.h"
 #include "lldb/Utility/Predicate.h"
+#include "lldb/Utility/ReproducerProvider.h"
 #include "lldb/Utility/Status.h"
 #include "lldb/Utility/StreamString.h"
 #include "lldb/Utility/StringList.h"
@@ -37,13 +38,13 @@
 #include <memory>
 #include <mutex>
 
-#include <assert.h>
-#include <ctype.h>
-#include <errno.h>
-#include <locale.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <string.h>
+#include <cassert>
+#include <cctype>
+#include <cerrno>
+#include <clocale>
+#include <cstdint>
+#include <cstdio>
+#include <cstring>
 #include <type_traits>
 
 using namespace lldb;
@@ -102,11 +103,11 @@ FILE *IOHandler::GetErrorFILE() {
   return (m_error_sp ? m_error_sp->GetFile().GetStream() : nullptr);
 }
 
-FileSP &IOHandler::GetInputFileSP() { return m_input_sp; }
+FileSP IOHandler::GetInputFileSP() { return m_input_sp; }
 
-StreamFileSP &IOHandler::GetOutputStreamFileSP() { return m_output_sp; }
+StreamFileSP IOHandler::GetOutputStreamFileSP() { return m_output_sp; }
 
-StreamFileSP &IOHandler::GetErrorStreamFileSP() { return m_error_sp; }
+StreamFileSP IOHandler::GetErrorStreamFileSP() { return m_error_sp; }
 
 bool IOHandler::GetIsInteractive() {
   return GetInputFileSP() ? GetInputFileSP()->GetIsInteractive() : false;
@@ -195,6 +196,14 @@ void IOHandlerConfirm::IOHandlerInputComplete(IOHandler &io_handler,
   }
 }
 
+llvm::Optional<std::string>
+IOHandlerDelegate::IOHandlerSuggestion(IOHandler &io_handler,
+                                       llvm::StringRef line) {
+  return io_handler.GetDebugger()
+      .GetCommandInterpreter()
+      .GetAutoSuggestionForCommand(line);
+}
+
 void IOHandlerDelegate::IOHandlerComplete(IOHandler &io_handler,
                                           CompletionRequest &request) {
   switch (m_completion) {
@@ -256,15 +265,31 @@ IOHandlerEditline::IOHandlerEditline(
     m_editline_up = std::make_unique<Editline>(editline_name, GetInputFILE(),
                                                GetOutputFILE(), GetErrorFILE(),
                                                m_color_prompts);
-    m_editline_up->SetIsInputCompleteCallback(IsInputCompleteCallback, this);
-    m_editline_up->SetAutoCompleteCallback(AutoCompleteCallback, this);
+    m_editline_up->SetIsInputCompleteCallback(
+        [this](Editline *editline, StringList &lines) {
+          return this->IsInputCompleteCallback(editline, lines);
+        });
+
+    m_editline_up->SetAutoCompleteCallback([this](CompletionRequest &request) {
+      this->AutoCompleteCallback(request);
+    });
+
+    if (debugger.GetUseAutosuggestion() && debugger.GetUseColor()) {
+      m_editline_up->SetSuggestionCallback([this](llvm::StringRef line) {
+        return this->SuggestionCallback(line);
+      });
+    }
     // See if the delegate supports fixing indentation
     const char *indent_chars = delegate.IOHandlerGetFixIndentationCharacters();
     if (indent_chars) {
       // The delegate does support indentation, hook it up so when any
       // indentation character is typed, the delegate gets a chance to fix it
-      m_editline_up->SetFixIndentationCallback(FixIndentationCallback, this,
-                                               indent_chars);
+      FixIndentationCallbackType f = [this](Editline *editline,
+                                            const StringList &lines,
+                                            int cursor_position) {
+        return this->FixIndentationCallback(editline, lines, cursor_position);
+      };
+      m_editline_up->SetFixIndentationCallback(std::move(f), indent_chars);
     }
   }
 #endif
@@ -414,27 +439,23 @@ bool IOHandlerEditline::GetLine(std::string &line, bool &interrupted) {
 
 #if LLDB_ENABLE_LIBEDIT
 bool IOHandlerEditline::IsInputCompleteCallback(Editline *editline,
-                                                StringList &lines,
-                                                void *baton) {
-  IOHandlerEditline *editline_reader = (IOHandlerEditline *)baton;
-  return editline_reader->m_delegate.IOHandlerIsInputComplete(*editline_reader,
-                                                              lines);
+                                                StringList &lines) {
+  return m_delegate.IOHandlerIsInputComplete(*this, lines);
 }
 
 int IOHandlerEditline::FixIndentationCallback(Editline *editline,
                                               const StringList &lines,
-                                              int cursor_position,
-                                              void *baton) {
-  IOHandlerEditline *editline_reader = (IOHandlerEditline *)baton;
-  return editline_reader->m_delegate.IOHandlerFixIndentation(
-      *editline_reader, lines, cursor_position);
+                                              int cursor_position) {
+  return m_delegate.IOHandlerFixIndentation(*this, lines, cursor_position);
 }
 
-void IOHandlerEditline::AutoCompleteCallback(CompletionRequest &request,
-                                             void *baton) {
-  IOHandlerEditline *editline_reader = (IOHandlerEditline *)baton;
-  if (editline_reader)
-    editline_reader->m_delegate.IOHandlerComplete(*editline_reader, request);
+llvm::Optional<std::string>
+IOHandlerEditline::SuggestionCallback(llvm::StringRef line) {
+  return m_delegate.IOHandlerSuggestion(*this, line);
+}
+
+void IOHandlerEditline::AutoCompleteCallback(CompletionRequest &request) {
+  m_delegate.IOHandlerComplete(*this, request);
 }
 #endif
 

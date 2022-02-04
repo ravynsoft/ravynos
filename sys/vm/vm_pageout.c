@@ -148,41 +148,43 @@ SDT_PROBE_DEFINE(vm, , , vm__lowmem_scan);
 #define	VM_LAUNDER_RATE		10
 #define	VM_INACT_SCAN_RATE	10
 
-static int vm_pageout_oom_seq = 12;
-
-static int vm_pageout_update_period;
-static int disable_swap_pageouts;
-static int lowmem_period = 10;
 static int swapdev_enabled;
+int vm_pageout_page_count = 32;
 
 static int vm_panic_on_oom = 0;
-
 SYSCTL_INT(_vm, OID_AUTO, panic_on_oom,
-	CTLFLAG_RWTUN, &vm_panic_on_oom, 0,
-	"Panic on the given number of out-of-memory errors instead of killing the largest process");
+    CTLFLAG_RWTUN, &vm_panic_on_oom, 0,
+    "Panic on the given number of out-of-memory errors instead of "
+    "killing the largest process");
 
+static int vm_pageout_update_period;
 SYSCTL_INT(_vm, OID_AUTO, pageout_update_period,
-	CTLFLAG_RWTUN, &vm_pageout_update_period, 0,
-	"Maximum active LRU update period");
+    CTLFLAG_RWTUN, &vm_pageout_update_period, 0,
+    "Maximum active LRU update period");
 
 static int pageout_cpus_per_thread = 16;
 SYSCTL_INT(_vm, OID_AUTO, pageout_cpus_per_thread, CTLFLAG_RDTUN,
     &pageout_cpus_per_thread, 0,
     "Number of CPUs per pagedaemon worker thread");
   
+static int lowmem_period = 10;
 SYSCTL_INT(_vm, OID_AUTO, lowmem_period, CTLFLAG_RWTUN, &lowmem_period, 0,
-	"Low memory callback period");
+    "Low memory callback period");
 
+static int disable_swap_pageouts;
 SYSCTL_INT(_vm, OID_AUTO, disable_swapspace_pageouts,
-	CTLFLAG_RWTUN, &disable_swap_pageouts, 0, "Disallow swapout of dirty pages");
+    CTLFLAG_RWTUN, &disable_swap_pageouts, 0,
+    "Disallow swapout of dirty pages");
 
 static int pageout_lock_miss;
 SYSCTL_INT(_vm, OID_AUTO, pageout_lock_miss,
-	CTLFLAG_RD, &pageout_lock_miss, 0, "vget() lock misses during pageout");
+    CTLFLAG_RD, &pageout_lock_miss, 0,
+    "vget() lock misses during pageout");
 
+static int vm_pageout_oom_seq = 12;
 SYSCTL_INT(_vm, OID_AUTO, pageout_oom_seq,
-	CTLFLAG_RWTUN, &vm_pageout_oom_seq, 0,
-	"back-to-back calls to oom detector to start OOM");
+    CTLFLAG_RWTUN, &vm_pageout_oom_seq, 0,
+    "back-to-back calls to oom detector to start OOM");
 
 static int act_scan_laundry_weight = 3;
 SYSCTL_INT(_vm, OID_AUTO, act_scan_laundry_weight, CTLFLAG_RWTUN,
@@ -196,9 +198,8 @@ SYSCTL_UINT(_vm, OID_AUTO, background_launder_rate, CTLFLAG_RWTUN,
 
 static u_int vm_background_launder_max = 20 * 1024;
 SYSCTL_UINT(_vm, OID_AUTO, background_launder_max, CTLFLAG_RWTUN,
-    &vm_background_launder_max, 0, "background laundering cap, in kilobytes");
-
-int vm_pageout_page_count = 32;
+    &vm_background_launder_max, 0,
+    "background laundering cap, in kilobytes");
 
 u_long vm_page_max_user_wired;
 SYSCTL_ULONG(_vm, OID_AUTO, max_user_wired, CTLFLAG_RW,
@@ -539,7 +540,7 @@ vm_pageout_flush(vm_page_t *mc, int count, int flags, int mreq, int *prunlen,
 			 * the PQ_UNSWAPPABLE holding queue.  This is an
 			 * optimization that prevents the page daemon from
 			 * wasting CPU cycles on pages that cannot be reclaimed
-			 * becase no swap device is configured.
+			 * because no swap device is configured.
 			 *
 			 * Otherwise, reactivate the page so that it doesn't
 			 * clog the laundry and inactive queues.  (We will try
@@ -606,7 +607,7 @@ vm_pageout_clean(vm_page_t m, int *numpagedout)
 	struct mount *mp;
 	vm_object_t object;
 	vm_pindex_t pindex;
-	int error, lockmode;
+	int error;
 
 	object = m->object;
 	VM_OBJECT_ASSERT_WLOCKED(object);
@@ -640,9 +641,7 @@ vm_pageout_clean(vm_page_t m, int *numpagedout)
 		vm_object_reference_locked(object);
 		pindex = m->pindex;
 		VM_OBJECT_WUNLOCK(object);
-		lockmode = MNT_SHARED_WRITES(vp->v_mount) ?
-		    LK_SHARED : LK_EXCLUSIVE;
-		if (vget(vp, lockmode | LK_TIMELOCK)) {
+		if (vget(vp, vn_lktype_write(NULL, vp) | LK_TIMELOCK) != 0) {
 			vp = NULL;
 			error = EDEADLK;
 			goto unlock_mp;
@@ -711,6 +710,38 @@ unlock_mp:
 	}
 
 	return (error);
+}
+
+/*
+ * Check if the object is active.  Non-anonymous swap objects are
+ * always referenced by the owner, for them require ref_count > 1 in
+ * order to ignore the ownership ref.
+ *
+ * Perform an unsynchronized object ref count check.  While
+ * the page lock ensures that the page is not reallocated to
+ * another object, in particular, one with unmanaged mappings
+ * that cannot support pmap_ts_referenced(), two races are,
+ * nonetheless, possible:
+ * 1) The count was transitioning to zero, but we saw a non-
+ *    zero value.  pmap_ts_referenced() will return zero
+ *    because the page is not mapped.
+ * 2) The count was transitioning to one, but we saw zero.
+ *    This race delays the detection of a new reference.  At
+ *    worst, we will deactivate and reactivate the page.
+ */
+static bool
+vm_pageout_object_act(vm_object_t object)
+{
+	return (object->ref_count >
+	    ((object->flags & (OBJ_SWAP | OBJ_ANON)) == OBJ_SWAP ? 1 : 0));
+}
+
+static int
+vm_pageout_page_ts_referenced(vm_object_t object, vm_page_t m)
+{
+	if (!vm_pageout_object_act(object))
+		return (0);
+	return (pmap_ts_referenced(m));
 }
 
 /*
@@ -807,7 +838,7 @@ scan:
 		if (vm_page_none_valid(m))
 			goto free_page;
 
-		refs = object->ref_count != 0 ? pmap_ts_referenced(m) : 0;
+		refs = vm_pageout_page_ts_referenced(object, m);
 
 		for (old = vm_page_astate_load(m);;) {
 			/*
@@ -827,7 +858,7 @@ scan:
 			}
 			if (act_delta == 0) {
 				;
-			} else if (object->ref_count != 0) {
+			} else if (vm_pageout_object_act(object)) {
 				/*
 				 * Increase the activation count if the page was
 				 * referenced while in the laundry queue.  This
@@ -1264,20 +1295,8 @@ act_scan:
 		 * Test PGA_REFERENCED after calling pmap_ts_referenced() so
 		 * that a reference from a concurrently destroyed mapping is
 		 * observed here and now.
-		 *
-		 * Perform an unsynchronized object ref count check.  While
-		 * the page lock ensures that the page is not reallocated to
-		 * another object, in particular, one with unmanaged mappings
-		 * that cannot support pmap_ts_referenced(), two races are,
-		 * nonetheless, possible:
-		 * 1) The count was transitioning to zero, but we saw a non-
-		 *    zero value.  pmap_ts_referenced() will return zero
-		 *    because the page is not mapped.
-		 * 2) The count was transitioning to one, but we saw zero.
-		 *    This race delays the detection of a new reference.  At
-		 *    worst, we will deactivate and reactivate the page.
 		 */
-		refs = object->ref_count != 0 ? pmap_ts_referenced(m) : 0;
+		refs = vm_pageout_page_ts_referenced(object, m);
 
 		old = vm_page_astate_load(m);
 		do {
@@ -1527,7 +1546,7 @@ vm_pageout_scan_inactive(struct vm_domain *vmd, int page_shortage)
 		if (vm_page_none_valid(m))
 			goto free_page;
 
-		refs = object->ref_count != 0 ? pmap_ts_referenced(m) : 0;
+		refs = vm_pageout_page_ts_referenced(object, m);
 
 		for (old = vm_page_astate_load(m);;) {
 			/*
@@ -1547,7 +1566,7 @@ vm_pageout_scan_inactive(struct vm_domain *vmd, int page_shortage)
 			}
 			if (act_delta == 0) {
 				;
-			} else if (object->ref_count != 0) {
+			} else if (vm_pageout_object_act(object)) {
 				/*
 				 * Increase the activation count if the
 				 * page was referenced while in the
@@ -1585,7 +1604,7 @@ vm_pageout_scan_inactive(struct vm_domain *vmd, int page_shortage)
 		 * mappings allow write access, then the page may still be
 		 * modified until the last of those mappings are removed.
 		 */
-		if (object->ref_count != 0) {
+		if (vm_pageout_object_act(object)) {
 			vm_page_test_dirty(m);
 			if (m->dirty == 0 && !vm_page_try_remove_all(m))
 				goto skip_page;

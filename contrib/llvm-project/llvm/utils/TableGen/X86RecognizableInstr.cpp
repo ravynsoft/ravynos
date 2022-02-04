@@ -54,7 +54,7 @@ static uint8_t byteFromBitsInit(BitsInit &init) {
 /// @param rec  - The record from which to extract the value.
 /// @param name - The name of the field in the record.
 /// @return     - The field, as translated by byteFromBitsInit().
-static uint8_t byteFromRec(const Record* rec, const std::string &name) {
+static uint8_t byteFromRec(const Record* rec, StringRef name) {
   BitsInit* bits = rec->getValueAsBitsInit(name);
   return byteFromBitsInit(*bits);
 }
@@ -125,13 +125,7 @@ RecognizableInstr::RecognizableInstr(DisassemblerTables &tables,
     return;
   }
 
-  // Special case since there is no attribute class for 64-bit and VEX
-  if (Name == "VMASKMOVDQU64") {
-    ShouldBeEmitted = false;
-    return;
-  }
-
-  ShouldBeEmitted  = true;
+  ShouldBeEmitted = true;
 }
 
 void RecognizableInstr::processInstr(DisassemblerTables &tables,
@@ -267,6 +261,11 @@ InstructionContext RecognizableInstr::insnContext() const {
       insnContext = IC_VEX_L_OPSIZE;
     else if (OpPrefix == X86Local::PD && HasVEX_W)
       insnContext = IC_VEX_W_OPSIZE;
+    else if (OpPrefix == X86Local::PD && Is64Bit &&
+             AdSize == X86Local::AdSize32)
+      insnContext = IC_64BIT_VEX_OPSIZE_ADSIZE;
+    else if (OpPrefix == X86Local::PD && Is64Bit)
+      insnContext = IC_64BIT_VEX_OPSIZE;
     else if (OpPrefix == X86Local::PD)
       insnContext = IC_VEX_OPSIZE;
     else if (HasVEX_LPrefix && OpPrefix == X86Local::XS)

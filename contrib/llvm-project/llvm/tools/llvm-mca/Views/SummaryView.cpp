@@ -1,4 +1,4 @@
-//===--------------------- SummaryView.cpp -------------------*- C++ -*-===//
+//===--------------------- SummaryView.cpp ----------------------*- C++ -*-===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
@@ -24,9 +24,8 @@ namespace mca {
 
 SummaryView::SummaryView(const MCSchedModel &Model, ArrayRef<MCInst> S,
                          unsigned Width)
-    : SM(Model), Source(S), DispatchWidth(Width?Width: Model.IssueWidth),
-      LastInstructionIdx(0),
-      TotalCycles(0), NumMicroOps(0),
+    : SM(Model), Source(S), DispatchWidth(Width ? Width : Model.IssueWidth),
+      LastInstructionIdx(0), TotalCycles(0), NumMicroOps(0),
       ProcResourceUsage(Model.getNumProcResourceKinds(), 0),
       ProcResourceMasks(Model.getNumProcResourceKinds()),
       ResIdx2ProcResID(Model.getNumProcResourceKinds(), 0) {
@@ -63,32 +62,52 @@ void SummaryView::onEvent(const HWInstructionEvent &Event) {
 }
 
 void SummaryView::printView(raw_ostream &OS) const {
-  unsigned Instructions = Source.size();
-  unsigned Iterations = (LastInstructionIdx / Instructions) + 1;
-  unsigned TotalInstructions = Instructions * Iterations;
-  unsigned TotalUOps = NumMicroOps * Iterations;
-  double IPC = (double)TotalInstructions / TotalCycles;
-  double UOpsPerCycle = (double)TotalUOps / TotalCycles;
-  double BlockRThroughput = computeBlockRThroughput(
-      SM, DispatchWidth, NumMicroOps, ProcResourceUsage);
-
   std::string Buffer;
   raw_string_ostream TempStream(Buffer);
-  TempStream << "Iterations:        " << Iterations;
-  TempStream << "\nInstructions:      " << TotalInstructions;
-  TempStream << "\nTotal Cycles:      " << TotalCycles;
-  TempStream << "\nTotal uOps:        " << TotalUOps << '\n';
-  TempStream << "\nDispatch Width:    " << DispatchWidth;
+  DisplayValues DV;
+
+  collectData(DV);
+  TempStream << "Iterations:        " << DV.Iterations;
+  TempStream << "\nInstructions:      " << DV.TotalInstructions;
+  TempStream << "\nTotal Cycles:      " << DV.TotalCycles;
+  TempStream << "\nTotal uOps:        " << DV.TotalUOps << '\n';
+  TempStream << "\nDispatch Width:    " << DV.DispatchWidth;
   TempStream << "\nuOps Per Cycle:    "
-             << format("%.2f", floor((UOpsPerCycle * 100) + 0.5) / 100);
+             << format("%.2f", floor((DV.UOpsPerCycle * 100) + 0.5) / 100);
   TempStream << "\nIPC:               "
-             << format("%.2f", floor((IPC * 100) + 0.5) / 100);
+             << format("%.2f", floor((DV.IPC * 100) + 0.5) / 100);
   TempStream << "\nBlock RThroughput: "
-             << format("%.1f", floor((BlockRThroughput * 10) + 0.5) / 10)
+             << format("%.1f", floor((DV.BlockRThroughput * 10) + 0.5) / 10)
              << '\n';
   TempStream.flush();
   OS << Buffer;
 }
 
+void SummaryView::collectData(DisplayValues &DV) const {
+  DV.Instructions = Source.size();
+  DV.Iterations = (LastInstructionIdx / DV.Instructions) + 1;
+  DV.TotalInstructions = DV.Instructions * DV.Iterations;
+  DV.TotalCycles = TotalCycles;
+  DV.DispatchWidth = DispatchWidth;
+  DV.TotalUOps = NumMicroOps * DV.Iterations;
+  DV.UOpsPerCycle = (double)DV.TotalUOps / TotalCycles;
+  DV.IPC = (double)DV.TotalInstructions / TotalCycles;
+  DV.BlockRThroughput = computeBlockRThroughput(SM, DispatchWidth, NumMicroOps,
+                                                ProcResourceUsage);
+}
+
+json::Value SummaryView::toJSON() const {
+  DisplayValues DV;
+  collectData(DV);
+  json::Object JO({{"Iterations", DV.Iterations},
+                   {"Instructions", DV.TotalInstructions},
+                   {"TotalCycles", DV.TotalCycles},
+                   {"TotaluOps", DV.TotalUOps},
+                   {"DispatchWidth", DV.DispatchWidth},
+                   {"uOpsPerCycle", DV.UOpsPerCycle},
+                   {"IPC", DV.IPC},
+                   {"BlockRThroughput", DV.BlockRThroughput}});
+  return JO;
+}
 } // namespace mca.
 } // namespace llvm

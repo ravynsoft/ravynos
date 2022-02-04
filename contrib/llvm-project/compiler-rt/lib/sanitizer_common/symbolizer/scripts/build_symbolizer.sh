@@ -98,7 +98,7 @@ make -j${J} libz.a
 if [[ ! -d ${LIBCXX_BUILD} ]]; then
   mkdir -p ${LIBCXX_BUILD}
   cd ${LIBCXX_BUILD}
-  LIBCXX_FLAGS="${FLAGS} -Wno-macro-redefined -I${LIBCXX_SRC}/include"
+  LIBCXX_FLAGS="${FLAGS} -Wno-macro-redefined"
   PROJECTS=
   if [[ ! -d $LLVM_SRC/projects/libcxxabi ]] ; then
     PROJECTS="-DLLVM_ENABLE_PROJECTS='libcxx;libcxxabi'"
@@ -123,7 +123,7 @@ cd ${LIBCXX_BUILD}
 ninja cxx cxxabi
 
 FLAGS="${FLAGS} -fno-rtti -fno-exceptions"
-LLVM_FLAGS="${FLAGS} -nostdinc++ -I${ZLIB_BUILD} -I${LIBCXX_BUILD}/include/c++/v1"
+LLVM_FLAGS="${FLAGS} -nostdinc++ -I${ZLIB_BUILD} -I${LIBCXX_BUILD}/include/c++/v1 -Wno-error=global-constructors"
 
 # Build LLVM.
 if [[ ! -d ${LLVM_BUILD} ]]; then

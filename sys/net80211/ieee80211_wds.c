@@ -594,7 +594,7 @@ wds_input(struct ieee80211_node *ni, struct mbuf *m,
 		 * Next up, any fragmentation.
 		 */
 		if (!IEEE80211_IS_MULTICAST(wh->i_addr1)) {
-			m = ieee80211_defrag(ni, m, hdrspace);
+			m = ieee80211_defrag(ni, m, hdrspace, has_decrypted);
 			if (m == NULL) {
 				/* Fragment dropped or frame not complete yet */
 				goto out;
@@ -621,7 +621,7 @@ wds_input(struct ieee80211_node *ni, struct mbuf *m,
 		/*
 		 * Finally, strip the 802.11 header.
 		 */
-		m = ieee80211_decap(vap, m, hdrspace);
+		m = ieee80211_decap(vap, m, hdrspace, qos);
 		if (m == NULL) {
 			/* XXX mask bit to check for both */
 			/* don't count Null data frames as errors */
@@ -634,7 +634,10 @@ wds_input(struct ieee80211_node *ni, struct mbuf *m,
 			IEEE80211_NODE_STAT(ni, rx_decap);
 			goto err;
 		}
-		eh = mtod(m, struct ether_header *);
+		if (!(qos & IEEE80211_QOS_AMSDU))
+			eh = mtod(m, struct ether_header *);
+		else
+			eh = NULL;
 		if (!ieee80211_node_is_authorized(ni)) {
 			/*
 			 * Deny any non-PAE frames received prior to
@@ -644,11 +647,13 @@ wds_input(struct ieee80211_node *ni, struct mbuf *m,
 			 * the port is not marked authorized by the
 			 * authenticator until the handshake has completed.
 			 */
-			if (eh->ether_type != htons(ETHERTYPE_PAE)) {
+			if (eh == NULL ||
+			    eh->ether_type != htons(ETHERTYPE_PAE)) {
 				IEEE80211_DISCARD_MAC(vap, IEEE80211_MSG_INPUT,
-				    eh->ether_shost, "data",
-				    "unauthorized port: ether type 0x%x len %u",
-				    eh->ether_type, m->m_pkthdr.len);
+				    ni->ni_macaddr, "data", "unauthorized or "
+				    "unknown port: ether type 0x%x len %u",
+				    eh == NULL ? -1 : eh->ether_type,
+				    m->m_pkthdr.len);
 				vap->iv_stats.is_rx_unauth++;
 				IEEE80211_NODE_STAT(ni, rx_unauth);
 				goto err;
@@ -661,7 +666,8 @@ wds_input(struct ieee80211_node *ni, struct mbuf *m,
 			if ((vap->iv_flags & IEEE80211_F_DROPUNENC) &&
 			    ((has_decrypted == 0) && (m->m_flags & M_WEP) == 0) &&
 			    (is_hw_decrypted == 0) &&
-			    eh->ether_type != htons(ETHERTYPE_PAE)) {
+			    (eh == NULL ||
+			     eh->ether_type != htons(ETHERTYPE_PAE))) {
 				/*
 				 * Drop unencrypted frames.
 				 */

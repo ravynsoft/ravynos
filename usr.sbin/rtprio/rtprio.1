@@ -30,7 +30,7 @@
 .\"
 .\" $FreeBSD$
 .\"
-.Dd September 29, 2012
+.Dd December 8, 2021
 .Dt RTPRIO 1
 .Os
 .Sh NAME
@@ -113,12 +113,18 @@ highest priority
 of 0 means "the current process".
 .Pp
 Only root is allowed to set realtime or idle priority for a process.
-A user may modify the idle priority of their own processes if the
+Exceptional privileges can be granted through the
+.Xr mac_priority 4
+policy and the realtime and idletime user groups.
+The
 .Xr sysctl 8
 variable
 .Va security.bsd.unprivileged_idprio
-is set to non-zero.
-Note that this increases the chance that a deadlock can occur
+is deprecated.
+If set to non-zero, it lets any user modify the idle priority of processes
+they own.
+.Pp
+Note that idle priority increases the chance that a deadlock can occur
 if a process locks a required resource and then does
 not get to run.
 .Sh EXIT STATUS
@@ -162,6 +168,7 @@ To make depend while not disturbing other machine usage:
 .Xr rtprio 2 ,
 .Xr setpriority 2 ,
 .Xr nice 3 ,
+.Xr mac_priority 4 ,
 .Xr renice 8
 .Sh HISTORY
 The

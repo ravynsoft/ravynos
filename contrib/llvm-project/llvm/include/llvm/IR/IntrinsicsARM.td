@@ -791,14 +791,17 @@ def int_arm_neon_vcvtbfp2bf
     : Intrinsic<[llvm_bfloat_ty], [llvm_float_ty], [IntrNoMem]>;
 
 def int_arm_neon_bfdot : Neon_Dot_Intrinsic;
-def int_arm_neon_bfmmla : Neon_MatMul_Intrinsic;
+def int_arm_neon_bfmmla
+    : Intrinsic<[llvm_v4f32_ty],
+                [llvm_v4f32_ty, llvm_v8bf16_ty, llvm_v8bf16_ty],
+                [IntrNoMem]>;
 
-class Neon_FML_Intrinsic
-  : Intrinsic<[llvm_anyvector_ty],
-              [LLVMMatchType<0>, llvm_anyvector_ty, LLVMMatchType<1>],
-              [IntrNoMem]>;
-def int_arm_neon_bfmlalb : Neon_FML_Intrinsic;
-def int_arm_neon_bfmlalt : Neon_FML_Intrinsic;
+class Neon_BF16FML_Intrinsic
+    : Intrinsic<[llvm_v4f32_ty],
+                [llvm_v4f32_ty, llvm_v8bf16_ty, llvm_v8bf16_ty],
+                [IntrNoMem]>;
+def int_arm_neon_bfmlalb : Neon_BF16FML_Intrinsic;
+def int_arm_neon_bfmlalt : Neon_BF16FML_Intrinsic;
 
 def int_arm_cls: Intrinsic<[llvm_i32_ty], [llvm_i32_ty], [IntrNoMem]>;
 def int_arm_cls64: Intrinsic<[llvm_i32_ty], [llvm_i64_ty], [IntrNoMem]>;
@@ -814,9 +817,7 @@ def int_arm_neon_vcadd_rot90  : Neon_2Arg_Intrinsic;
 def int_arm_neon_vcadd_rot270 : Neon_2Arg_Intrinsic;
 
 // GNU eabi mcount
-def int_arm_gnu_eabi_mcount : Intrinsic<[],
-                                    [],
-                                    [IntrReadMem, IntrWriteMem]>;
+def int_arm_gnu_eabi_mcount : Intrinsic<[], [], []>;
 
 def int_arm_mve_pred_i2v : Intrinsic<
   [llvm_anyvector_ty], [llvm_i32_ty], [IntrNoMem]>;
@@ -912,16 +913,17 @@ def int_arm_mve_vmaxnma_predicated: Intrinsic<[llvm_anyvector_ty],
 
 multiclass MVEPredicated<list<LLVMType> rets, list<LLVMType> params,
                          LLVMType pred = llvm_anyvector_ty,
-                         list<IntrinsicProperty> props = [IntrNoMem]> {
-  def "": Intrinsic<rets, params, props>;
-  def _predicated: Intrinsic<rets, params # [pred], props>;
+                         list<IntrinsicProperty> props = [IntrNoMem],
+                         list<SDNodeProperty> sdprops = []> {
+  def "": Intrinsic<rets, params, props, "", sdprops>;
+  def _predicated: Intrinsic<rets, params # [pred], props, "", sdprops>;
 }
 multiclass MVEPredicatedM<list<LLVMType> rets, list<LLVMType> params,
                           LLVMType pred = llvm_anyvector_ty,
                           list<IntrinsicProperty> props = [IntrNoMem]> {
   def "": Intrinsic<rets, params, props>;
   def _predicated: Intrinsic<rets, params # [pred,
-      !if(!eq(!cast<string>(rets[0]), "llvm_anyvector_ty"),
+      !if(!eq(rets[0], llvm_anyvector_ty),
           LLVMMatchType<0>, rets[0])], props>;
 }
 
@@ -962,16 +964,17 @@ defm int_arm_mve_vcvt_widen: MVEMXPredicated<[llvm_v4f32_ty], [],
 
 defm int_arm_mve_vldr_gather_base: MVEPredicated<
    [llvm_anyvector_ty], [llvm_anyvector_ty, llvm_i32_ty],
-   llvm_anyvector_ty, [IntrReadMem]>;
+   llvm_anyvector_ty, [IntrReadMem], [SDNPMemOperand]>;
 defm int_arm_mve_vldr_gather_base_wb: MVEPredicated<
    [llvm_anyvector_ty, llvm_anyvector_ty],
-   [LLVMMatchType<1>, llvm_i32_ty], llvm_anyvector_ty, [IntrReadMem]>;
+   [LLVMMatchType<1>, llvm_i32_ty], llvm_anyvector_ty, [IntrReadMem],
+   [SDNPMemOperand]>;
 defm int_arm_mve_vstr_scatter_base: MVEPredicated<
    [], [llvm_anyvector_ty, llvm_i32_ty, llvm_anyvector_ty],
-   llvm_anyvector_ty, [IntrWriteMem]>;
+   llvm_anyvector_ty, [IntrWriteMem], [SDNPMemOperand]>;
 defm int_arm_mve_vstr_scatter_base_wb: MVEPredicated<
    [llvm_anyvector_ty], [LLVMMatchType<0>, llvm_i32_ty, llvm_anyvector_ty],
-   llvm_anyvector_ty, [IntrWriteMem]>;
+   llvm_anyvector_ty, [IntrWriteMem], [SDNPMemOperand]>;
 
 // gather_offset takes three i32 parameters. The first is the size of
 // memory element loaded, in bits. The second is a left bit shift to
@@ -984,10 +987,12 @@ defm int_arm_mve_vstr_scatter_base_wb: MVEPredicated<
 // narrows rather than widening, it doesn't have the last one.
 defm int_arm_mve_vldr_gather_offset: MVEPredicated<
    [llvm_anyvector_ty], [llvm_anyptr_ty, llvm_anyvector_ty,
-   llvm_i32_ty, llvm_i32_ty, llvm_i32_ty], llvm_anyvector_ty, [IntrReadMem]>;
+   llvm_i32_ty, llvm_i32_ty, llvm_i32_ty], llvm_anyvector_ty, [IntrReadMem],
+   [SDNPMemOperand]>;
 defm int_arm_mve_vstr_scatter_offset: MVEPredicated<
    [], [llvm_anyptr_ty, llvm_anyvector_ty, llvm_anyvector_ty,
-   llvm_i32_ty, llvm_i32_ty], llvm_anyvector_ty, [IntrWriteMem]>;
+   llvm_i32_ty, llvm_i32_ty], llvm_anyvector_ty, [IntrWriteMem],
+   [SDNPMemOperand]>;
 
 def int_arm_mve_shl_imm_predicated: Intrinsic<[llvm_anyvector_ty],
    [LLVMMatchType<0>, llvm_i32_ty, llvm_anyvector_ty, LLVMMatchType<0>],
@@ -1131,11 +1136,15 @@ defm int_arm_mve_vcmlaq : MVEPredicated<
   [llvm_i32_ty, LLVMMatchType<0>, LLVMMatchType<0>, LLVMMatchType<0>],
    llvm_anyvector_ty>;
 
-def int_arm_mve_vld2q: Intrinsic<[llvm_anyvector_ty, LLVMMatchType<0>], [llvm_anyptr_ty], [IntrReadMem, IntrArgMemOnly]>;
-def int_arm_mve_vld4q: Intrinsic<[llvm_anyvector_ty, LLVMMatchType<0>, LLVMMatchType<0>, LLVMMatchType<0>], [llvm_anyptr_ty], [IntrReadMem, IntrArgMemOnly]>;
+def int_arm_mve_vld2q: Intrinsic<[llvm_anyvector_ty, LLVMMatchType<0>], [llvm_anyptr_ty],
+                                 [IntrReadMem, IntrArgMemOnly]>;
+def int_arm_mve_vld4q: Intrinsic<[llvm_anyvector_ty, LLVMMatchType<0>, LLVMMatchType<0>, LLVMMatchType<0>], [llvm_anyptr_ty],
+                                 [IntrReadMem, IntrArgMemOnly]>;
 
-def int_arm_mve_vst2q: Intrinsic<[], [llvm_anyptr_ty, llvm_anyvector_ty, LLVMMatchType<1>, llvm_i32_ty], [IntrWriteMem, IntrArgMemOnly]>;
-def int_arm_mve_vst4q: Intrinsic<[], [llvm_anyptr_ty, llvm_anyvector_ty, LLVMMatchType<1>, LLVMMatchType<1>, LLVMMatchType<1>, llvm_i32_ty], [IntrWriteMem, IntrArgMemOnly]>;
+def int_arm_mve_vst2q: Intrinsic<[], [llvm_anyptr_ty, llvm_anyvector_ty, LLVMMatchType<1>, llvm_i32_ty],
+                                 [IntrWriteMem, IntrArgMemOnly], "", [SDNPMemOperand]>;
+def int_arm_mve_vst4q: Intrinsic<[], [llvm_anyptr_ty, llvm_anyvector_ty, LLVMMatchType<1>, LLVMMatchType<1>, LLVMMatchType<1>, llvm_i32_ty],
+                                 [IntrWriteMem, IntrArgMemOnly], "", [SDNPMemOperand]>;
 
 // MVE vector absolute difference and accumulate across vector
 // The first operand is an 'unsigned' flag. The remaining operands are:

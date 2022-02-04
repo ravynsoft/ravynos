@@ -30,8 +30,8 @@
  * $FreeBSD$
  */
 
-#ifndef	_LINUX_UACCESS_H_
-#define	_LINUX_UACCESS_H_
+#ifndef	_LINUXKPI_LINUX_UACCESS_H_
+#define	_LINUXKPI_LINUX_UACCESS_H_
 
 #include <sys/param.h>
 #include <sys/lock.h>
@@ -61,11 +61,7 @@
 #define	put_user(_x, _p)	__put_user(_x, _p)
 #define	clear_user(...)		linux_clear_user(__VA_ARGS__)
 
-#if defined(LINUXKPI_VERSION) && LINUXKPI_VERSION >= 50000
 #define	access_ok(a,b)		linux_access_ok(a,b)
-#else
-#define	access_ok(a,b,c)	linux_access_ok(b,c)
-#endif
 
 extern int linux_copyin(const void *uaddr, void *kaddr, size_t len);
 extern int linux_copyout(const void *kaddr, void *uaddr, size_t len);
@@ -93,4 +89,4 @@ pagefault_disabled(void)
 	return ((curthread->td_pflags & TDP_NOFAULTING) != 0);
 }
 
-#endif					/* _LINUX_UACCESS_H_ */
+#endif					/* _LINUXKPI_LINUX_UACCESS_H_ */

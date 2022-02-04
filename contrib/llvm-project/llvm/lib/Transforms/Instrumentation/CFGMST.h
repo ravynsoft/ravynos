@@ -20,7 +20,6 @@
 #include "llvm/Analysis/BranchProbabilityInfo.h"
 #include "llvm/Analysis/CFG.h"
 #include "llvm/Support/BranchProbability.h"
-#include "llvm/Support/CommandLine.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Transforms/Utils/BasicBlockUtils.h"
@@ -30,9 +29,6 @@
 #define DEBUG_TYPE "cfgmst"
 
 using namespace llvm;
-static cl::opt<bool> PGOInstrumentEntry(
-    "pgo-instrument-entry", cl::init(false), cl::Hidden,
-    cl::desc("Force to instrument function entry basicblock."));
 
 namespace llvm {
 
@@ -107,7 +103,7 @@ public:
     const BasicBlock *Entry = &(F.getEntryBlock());
     uint64_t EntryWeight = (BFI != nullptr ? BFI->getEntryFreq() : 2);
     // If we want to instrument the entry count, lower the weight to 0.
-    if (PGOInstrumentEntry)
+    if (InstrumentFuncEntry)
       EntryWeight = 0;
     Edge *EntryIncoming = nullptr, *EntryOutgoing = nullptr,
          *ExitOutgoing = nullptr, *ExitIncoming = nullptr;
@@ -126,10 +122,10 @@ public:
 
     static const uint32_t CriticalEdgeMultiplier = 1000;
 
-    for (Function::iterator BB = F.begin(), E = F.end(); BB != E; ++BB) {
-      Instruction *TI = BB->getTerminator();
+    for (BasicBlock &BB : F) {
+      Instruction *TI = BB.getTerminator();
       uint64_t BBWeight =
-          (BFI != nullptr ? BFI->getBlockFreq(&*BB).getFrequency() : 2);
+          (BFI != nullptr ? BFI->getBlockFreq(&BB).getFrequency() : 2);
       uint64_t Weight = 2;
       if (int successors = TI->getNumSuccessors()) {
         for (int i = 0; i != successors; ++i) {
@@ -143,16 +139,16 @@ public:
               scaleFactor = UINT64_MAX;
           }
           if (BPI != nullptr)
-            Weight = BPI->getEdgeProbability(&*BB, TargetBB).scale(scaleFactor);
+            Weight = BPI->getEdgeProbability(&BB, TargetBB).scale(scaleFactor);
           if (Weight == 0)
             Weight++;
-          auto *E = &addEdge(&*BB, TargetBB, Weight);
+          auto *E = &addEdge(&BB, TargetBB, Weight);
           E->IsCritical = Critical;
-          LLVM_DEBUG(dbgs() << "  Edge: from " << BB->getName() << " to "
+          LLVM_DEBUG(dbgs() << "  Edge: from " << BB.getName() << " to "
                             << TargetBB->getName() << "  w=" << Weight << "\n");
 
           // Keep track of entry/exit edges:
-          if (&*BB == Entry) {
+          if (&BB == Entry) {
             if (Weight > MaxEntryOutWeight) {
               MaxEntryOutWeight = Weight;
               EntryOutgoing = E;
@@ -169,12 +165,12 @@ public:
         }
       } else {
         ExitBlockFound = true;
-        Edge *ExitO = &addEdge(&*BB, nullptr, BBWeight);
+        Edge *ExitO = &addEdge(&BB, nullptr, BBWeight);
         if (BBWeight > MaxExitOutWeight) {
           MaxExitOutWeight = BBWeight;
           ExitOutgoing = ExitO;
         }
-        LLVM_DEBUG(dbgs() << "  Edge: from " << BB->getName() << " to fake exit"
+        LLVM_DEBUG(dbgs() << "  Edge: from " << BB.getName() << " to fake exit"
                           << " w = " << BBWeight << "\n");
       }
     }
@@ -282,14 +278,19 @@ public:
   BranchProbabilityInfo *BPI;
   BlockFrequencyInfo *BFI;
 
+  // If function entry will be always instrumented.
+  bool InstrumentFuncEntry;
+
 public:
-  CFGMST(Function &Func, BranchProbabilityInfo *BPI_ = nullptr,
+  CFGMST(Function &Func, bool InstrumentFuncEntry_,
+         BranchProbabilityInfo *BPI_ = nullptr,
          BlockFrequencyInfo *BFI_ = nullptr)
-      : F(Func), BPI(BPI_), BFI(BFI_) {
+      : F(Func), BPI(BPI_), BFI(BFI_),
+        InstrumentFuncEntry(InstrumentFuncEntry_) {
     buildEdges();
     sortEdgesByWeight();
     computeMinimumSpanningTree();
-    if (PGOInstrumentEntry && (AllEdges.size() > 1))
+    if (AllEdges.size() > 1 && InstrumentFuncEntry)
       std::iter_swap(std::move(AllEdges.begin()),
                      std::move(AllEdges.begin() + AllEdges.size() - 1));
   }

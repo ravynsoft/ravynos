@@ -58,61 +58,11 @@ CTASSERT(sizeof(struct kerneldumpheader) == 512);
 static struct kerneldumpheader kdh;
 
 /* Handle chunked writes. */
-static uint64_t counter, progress, dumpsize;
+static uint64_t dumpsize;
 /* Just auxiliary bufffer */
 static char tmpbuffer[PAGE_SIZE] __aligned(sizeof(uint64_t));
 
 extern pd_entry_t *kernel_segmap;
-
-static int
-is_dumpable(vm_paddr_t pa)
-{
-	vm_page_t m;
-	int i;
-
-	if ((m = vm_phys_paddr_to_vm_page(pa)) != NULL)
-		return ((m->flags & PG_NODUMP) == 0);
-	for (i = 0; dump_avail[i] != 0 || dump_avail[i + 1] != 0; i += 2) {
-		if (pa >= dump_avail[i] && pa < dump_avail[i + 1])
-			return (1);
-	}
-	return (0);
-}
-
-static struct {
-	int min_per;
-	int max_per;
-	int visited;
-} progress_track[10] = {
-	{  0,  10, 0},
-	{ 10,  20, 0},
-	{ 20,  30, 0},
-	{ 30,  40, 0},
-	{ 40,  50, 0},
-	{ 50,  60, 0},
-	{ 60,  70, 0},
-	{ 70,  80, 0},
-	{ 80,  90, 0},
-	{ 90, 100, 0}
-};
-
-static void
-report_progress(uint64_t progress, uint64_t dumpsize)
-{
-	int sofar, i;
-
-	sofar = 100 - ((progress * 100) / dumpsize);
-	for (i = 0; i < nitems(progress_track); i++) {
-		if (sofar < progress_track[i].min_per ||
-		    sofar > progress_track[i].max_per)
-			continue;
-		if (progress_track[i].visited)
-			return;
-		progress_track[i].visited = 1;
-		printf("..%d%%", sofar);
-		return;
-	}
-}
 
 static int
 write_buffer(struct dumperinfo *di, char *ptr, size_t sz)
@@ -130,14 +80,8 @@ write_buffer(struct dumperinfo *di, char *ptr, size_t sz)
 
 	while (sz) {
 		len = min(maxdumpsz, sz);
-		counter += len;
-		progress -= len;
 
-		if (counter >> 22) {
-			report_progress(progress, dumpsize);
-			counter &= (1<<22) - 1;
-		}
-
+		dumpsys_pb_progress(len);
 		wdog_kern_pat(WD_LASTVAL);
 
 		if (ptr) {
@@ -162,9 +106,10 @@ write_buffer(struct dumperinfo *di, char *ptr, size_t sz)
 }
 
 int
-minidumpsys(struct dumperinfo *di)
+cpu_minidumpsys(struct dumperinfo *di, const struct minidumpstate *state)
 {
 	struct minidumphdr mdhdr;
+	struct msgbuf *mbp;
 	uint64_t *dump_avail_buf;
 	uint32_t ptesize;
 	vm_paddr_t pa;
@@ -175,10 +120,13 @@ minidumpsys(struct dumperinfo *di)
 	int i, error;
 	void *dump_va;
 
+	/* Live dumps are untested. */
+	if (!dumping)
+		return (EOPNOTSUPP);
+
 	/* Flush cache */
 	mips_dcache_wbinv_all();
 
-	counter = 0;
 	/* Walk page table pages, set bits in vm_page_dump */
 	ptesize = 0;
 
@@ -189,8 +137,9 @@ minidumpsys(struct dumperinfo *di)
 		for (i = 0; i < NPTEPG; i++) {
 			if (pte_test(&pte[i], PTE_V)) {
 				pa = TLBLO_PTE_TO_PA(pte[i]);
-				if (is_dumpable(pa))
-					dump_add_page(pa);
+				if (vm_phys_is_dumpable(pa))
+					vm_page_dump_add(state->dump_bitset,
+					    pa);
 			}
 		}
 	}
@@ -200,31 +149,32 @@ minidumpsys(struct dumperinfo *di)
 	 * and pages allocated by pmap_steal reside
 	 */
 	for (pa = 0; pa < phys_avail[0]; pa += PAGE_SIZE) {
-		if (is_dumpable(pa))
-			dump_add_page(pa);
+		if (vm_phys_is_dumpable(pa))
+			vm_page_dump_add(state->dump_bitset, pa);
 	}
 
 	/* Calculate dump size. */
+	mbp = state->msgbufp;
 	dumpsize = ptesize;
-	dumpsize += round_page(msgbufp->msg_size);
+	dumpsize += round_page(mbp->msg_size);
 	dumpsize += round_page(nitems(dump_avail) * sizeof(uint64_t));
 	dumpsize += round_page(BITSET_SIZE(vm_page_dump_pages));
-	VM_PAGE_DUMP_FOREACH(pa) {
+	VM_PAGE_DUMP_FOREACH(state->dump_bitset, pa) {
 		/* Clear out undumpable pages now if needed */
-		if (is_dumpable(pa))
+		if (vm_phys_is_dumpable(pa))
 			dumpsize += PAGE_SIZE;
 		else
-			dump_drop_page(pa);
+			vm_page_dump_drop(state->dump_bitset, pa);
 	}
 	dumpsize += PAGE_SIZE;
 
-	progress = dumpsize;
+	dumpsys_pb_init(dumpsize);
 
 	/* Initialize mdhdr */
 	bzero(&mdhdr, sizeof(mdhdr));
 	strcpy(mdhdr.magic, MINIDUMP_MAGIC);
 	mdhdr.version = MINIDUMP_VERSION;
-	mdhdr.msgbufsize = msgbufp->msg_size;
+	mdhdr.msgbufsize = mbp->msg_size;
 	mdhdr.bitmapsize = round_page(BITSET_SIZE(vm_page_dump_pages));
 	mdhdr.ptesize = ptesize;
 	mdhdr.kernbase = VM_MIN_KERNEL_ADDRESS;
@@ -248,8 +198,7 @@ minidumpsys(struct dumperinfo *di)
 		goto fail;
 
 	/* Dump msgbuf up front */
-	error = write_buffer(di, (char *)msgbufp->msg_ptr, 
-	    round_page(msgbufp->msg_size));
+	error = write_buffer(di, mbp->msg_ptr, round_page(mbp->msg_size));
 	if (error)
 		goto fail;
 
@@ -305,8 +254,8 @@ minidumpsys(struct dumperinfo *di)
 		prev_pte = 0;
 	}
 
-	/* Dump memory chunks  page by page*/
-	VM_PAGE_DUMP_FOREACH(pa) {
+	/* Dump memory chunks page by page */
+	VM_PAGE_DUMP_FOREACH(state->dump_bitset, pa) {
 		dump_va = pmap_kenter_temporary(pa, 0);
 		error = write_buffer(di, dump_va, PAGE_SIZE);
 		if (error)

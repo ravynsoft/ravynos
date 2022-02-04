@@ -250,8 +250,8 @@ StringRef getSubArch(ArchKind AK);
 StringRef getArchExtName(uint64_t ArchExtKind);
 StringRef getArchExtFeature(StringRef ArchExt);
 bool appendArchExtFeatures(StringRef CPU, ARM::ArchKind AK, StringRef ArchExt,
-                           std::vector<StringRef> &Features);
-StringRef getHWDivName(uint64_t HWDivKind);
+                           std::vector<StringRef> &Features,
+                           unsigned &ArgFPUKind);
 
 // Information by Name
 unsigned getDefaultFPU(StringRef CPU, ArchKind AK);

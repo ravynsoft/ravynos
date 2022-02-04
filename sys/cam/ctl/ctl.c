@@ -1978,7 +1978,7 @@ ctl_init(void)
 
 	SYSCTL_ADD_PROC(&softc->sysctl_ctx,SYSCTL_CHILDREN(softc->sysctl_tree),
 	    OID_AUTO, "ha_role",
-	    CTLTYPE_INT | CTLFLAG_RWTUN | CTLFLAG_NEEDGIANT,
+	    CTLTYPE_INT | CTLFLAG_RWTUN | CTLFLAG_MPSAFE,
 	    softc, 0, ctl_ha_role_sysctl, "I", "HA role for this head");
 
 	if (softc->is_single == 0) {
@@ -5903,7 +5903,8 @@ ctl_ie_timer(void *arg)
 		t = scsi_4btoul(lun->MODE_IE.interval_timer);
 		if (t == 0 || t == UINT32_MAX)
 			t = 3000;  /* 5 min */
-		callout_schedule(&lun->ie_callout, t * hz / 10);
+		callout_schedule_sbt(&lun->ie_callout, SBT_1S / 10 * t,
+		    SBT_1S / 10, 0);
 	}
 }
 
@@ -5935,8 +5936,8 @@ ctl_ie_page_handler(struct ctl_scsiio *ctsio,
 			t = scsi_4btoul(pg->interval_timer);
 			if (t == 0 || t == UINT32_MAX)
 				t = 3000;  /* 5 min */
-			callout_reset(&lun->ie_callout, t * hz / 10,
-			    ctl_ie_timer, lun);
+			callout_reset_sbt(&lun->ie_callout, SBT_1S / 10 * t,
+			    SBT_1S / 10, ctl_ie_timer, lun, 0);
 		}
 	} else {
 		lun->ie_asc = 0;
@@ -8552,7 +8553,7 @@ done:
 /*
  * This routine is for handling a message from the other SC pertaining to
  * persistent reserve out. All the error checking will have been done
- * so only perorming the action need be done here to keep the two
+ * so only performing the action need be done here to keep the two
  * in sync.
  */
 static void

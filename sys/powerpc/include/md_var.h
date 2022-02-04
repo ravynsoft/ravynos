@@ -43,8 +43,8 @@ extern	char	sigcode64[], sigcode64_elfv2[];
 extern	int	szsigcode64, szsigcode64_elfv2;
 
 struct	dumperinfo;
-int	minidumpsys(struct dumperinfo *);
-int	is_dumpable(vm_paddr_t);
+struct	minidumpstate;
+int	cpu_minidumpsys(struct dumperinfo *, const struct minidumpstate *);
 #endif
 
 extern	long	Maxmem;

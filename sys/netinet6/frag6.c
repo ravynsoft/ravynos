@@ -116,7 +116,7 @@ VNET_DEFINE_STATIC(bool,		frag6_on);
 
 /* System wide (global) maximum and count of packets in reassembly queues. */
 static int ip6_maxfrags;
-static volatile u_int frag6_nfrags = 0;
+static u_int __exclusive_cache_line frag6_nfrags;
 
 /* Maximum and current packets in per-VNET reassembly queue. */
 VNET_DEFINE_STATIC(int,			ip6_maxfragpackets);
@@ -164,7 +164,7 @@ VNET_DEFINE_STATIC(uint32_t,		ip6qb_hashseed);
 SYSCTL_DECL(_net_inet6_ip6);
 
 SYSCTL_UINT(_net_inet6_ip6, OID_AUTO, frag6_nfrags,
-	CTLFLAG_RD, __DEVOLATILE(u_int *, &frag6_nfrags), 0,
+	CTLFLAG_RD, &frag6_nfrags, 0,
 	"Global number of IPv6 fragments across all reassembly queues.");
 
 static void
@@ -179,7 +179,7 @@ frag6_set_bucketsize(void)
 SYSCTL_INT(_net_inet6_ip6, IPV6CTL_MAXFRAGS, maxfrags,
 	CTLFLAG_RW, &ip6_maxfrags, 0,
 	"Maximum allowed number of outstanding IPv6 packet fragments. "
-	"A value of 0 means no fragmented packets will be accepted, while a "
+	"A value of 0 means no fragmented packets will be accepted, while "
 	"a value of -1 means no limit");
 
 static int
@@ -891,10 +891,15 @@ frag6_slowtimo(void)
 	struct ip6q *q6, *q6tmp;
 	uint32_t bucket;
 
+	if (atomic_load_int(&frag6_nfrags) == 0)
+		return;
+
 	VNET_LIST_RLOCK_NOSLEEP();
 	VNET_FOREACH(vnet_iter) {
 		CURVNET_SET(vnet_iter);
 		for (bucket = 0; bucket < IP6REASS_NHASH; bucket++) {
+			if (V_ip6qb[bucket].count == 0)
+				continue;
 			IP6QB_LOCK(bucket);
 			head = IP6QB_HEAD(bucket);
 			TAILQ_FOREACH_SAFE(q6, head, ip6q_tq, q6tmp)

@@ -1,7 +1,7 @@
 /******************************************************************************
   SPDX-License-Identifier: BSD-3-Clause
 
-  Copyright (c) 2001-2017, Intel Corporation
+  Copyright (c) 2001-2020, Intel Corporation
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -68,7 +68,7 @@
 
 
 /* If it's a IXGBE_VF_* msg then it originates in the VF and is sent to the
- * PF.  The reverse is TRUE if it is IXGBE_PF_*.
+ * PF.  The reverse is true if it is IXGBE_PF_*.
  * Message ACK's are the value or'd with 0xF0000000
  */
 #define IXGBE_VT_MSGTYPE_ACK	0x80000000 /* Messages below or'd with
@@ -153,6 +153,13 @@ enum ixgbevf_xcast_modes {
 #define IXGBE_VF_MBX_INIT_TIMEOUT	2000 /* number of retries on mailbox */
 #define IXGBE_VF_MBX_INIT_DELAY		500  /* microseconds between retries */
 
+s32 ixgbe_read_mbx(struct ixgbe_hw *, u32 *, u16, u16);
+s32 ixgbe_write_mbx(struct ixgbe_hw *, u32 *, u16, u16);
+s32 ixgbe_read_posted_mbx(struct ixgbe_hw *, u32 *, u16, u16);
+s32 ixgbe_write_posted_mbx(struct ixgbe_hw *, u32 *, u16, u16);
+s32 ixgbe_check_for_msg(struct ixgbe_hw *, u16);
+s32 ixgbe_check_for_ack(struct ixgbe_hw *, u16);
+s32 ixgbe_check_for_rst(struct ixgbe_hw *, u16);
 void ixgbe_init_mbx_ops_generic(struct ixgbe_hw *hw);
 void ixgbe_init_mbx_params_vf(struct ixgbe_hw *);
 void ixgbe_init_mbx_params_pf(struct ixgbe_hw *);

@@ -18,8 +18,8 @@
 #include "lldb/lldb-forward.h"
 #include "lldb/lldb-private-types.h"
 
-#include <stddef.h>
-#include <stdint.h>
+#include <cstddef>
+#include <cstdint>
 
 namespace lldb_private {
 class DataExtractor;
@@ -36,7 +36,7 @@ public:
                                     lldb::RegisterContextSP &reg_ctx_sp,
                                     uint32_t set_idx);
 
-  uint64_t GetByteSize() override;
+  llvm::Optional<uint64_t> GetByteSize() override;
 
   lldb::ValueType GetValueType() const override {
     return lldb::eValueTypeRegisterSet;
@@ -86,7 +86,7 @@ public:
                                     lldb::RegisterContextSP &reg_ctx_sp,
                                     uint32_t reg_num);
 
-  uint64_t GetByteSize() override;
+  llvm::Optional<uint64_t> GetByteSize() override;
 
   lldb::ValueType GetValueType() const override {
     return lldb::eValueTypeRegister;

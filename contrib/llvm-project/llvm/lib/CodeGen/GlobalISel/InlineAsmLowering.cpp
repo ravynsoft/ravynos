@@ -325,7 +325,8 @@ bool InlineAsmLowering::lowerInlineAsm(
         return false;
       }
 
-      OpInfo.ConstraintVT = TLI->getValueType(DL, OpTy, true).getSimpleVT();
+      OpInfo.ConstraintVT =
+          TLI->getAsmOperandValueType(DL, OpTy, true).getSimpleVT();
 
     } else if (OpInfo.Type == InlineAsm::isOutput && !OpInfo.isIndirect) {
       assert(!Call.getType()->isVoidTy() && "Bad inline asm!");
@@ -334,12 +335,16 @@ bool InlineAsmLowering::lowerInlineAsm(
             TLI->getSimpleValueType(DL, STy->getElementType(ResNo));
       } else {
         assert(ResNo == 0 && "Asm only has one result!");
-        OpInfo.ConstraintVT = TLI->getSimpleValueType(DL, Call.getType());
+        OpInfo.ConstraintVT =
+            TLI->getAsmOperandValueType(DL, Call.getType()).getSimpleVT();
       }
       ++ResNo;
     } else {
       OpInfo.ConstraintVT = MVT::Other;
     }
+
+    if (OpInfo.ConstraintVT == MVT::i64x8)
+      return false;
 
     // Compute the constraint code and ConstraintType to use.
     computeConstraintToUse(TLI, OpInfo);
@@ -562,6 +567,11 @@ bool InlineAsmLowering::lowerInlineAsm(
       }
 
       unsigned Flag = InlineAsm::getFlagWord(InlineAsm::Kind_RegUse, NumRegs);
+      if (OpInfo.Regs.front().isVirtual()) {
+        // Put the register class of the virtual registers in the flag word.
+        const TargetRegisterClass *RC = MRI->getRegClass(OpInfo.Regs.front());
+        Flag = InlineAsm::getFlagWordForRegClass(Flag, RC->getID());
+      }
       Inst.addImm(Flag);
       if (!buildAnyextOrCopy(OpInfo.Regs[0], SourceRegs[0], MIRBuilder))
         return false;
@@ -657,6 +667,7 @@ bool InlineAsmLowering::lowerAsmOperandForConstraint(
   default:
     return false;
   case 'i': // Simple Integer or Relocatable Constant
+  case 'n': // immediate integer with a known value.
     if (ConstantInt *CI = dyn_cast<ConstantInt>(Val)) {
       assert(CI->getBitWidth() <= 64 &&
              "expected immediate to fit into 64-bits");

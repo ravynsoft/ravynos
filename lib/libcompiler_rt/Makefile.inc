@@ -33,6 +33,7 @@ SRCF+=		divdc3
 SRCF+=		divdi3
 SRCF+=		divmoddi4
 SRCF+=		divmodsi4
+SRCF+=		divmodti4
 SRCF+=		divsc3
 SRCF+=		divsi3
 SRCF+=		divtc3
@@ -146,8 +147,9 @@ SRCF+=		floatundisf
 SRCF+=		floatundixf
 .endif
 
-# __cpu_model support, only used on x86
-.if ${MACHINE_CPUARCH} == "amd64" || ${MACHINE_CPUARCH} == "i386"
+# __cpu_model support, only used on aarch64 and x86
+.if ${MACHINE_CPUARCH} == "aarch64" || ${MACHINE_CPUARCH} == "amd64" || \
+    ${MACHINE_CPUARCH} == "i386"
 SRCF+=		cpu_model
 .endif
 
@@ -168,6 +170,7 @@ SRCF+=		addtf3
 SRCF+=		comparetf2
 SRCF+=		divtf3
 SRCF+=		extenddftf2
+SRCF+=		extendhftf2
 SRCF+=		extendsftf2
 SRCF+=		fixtfdi
 SRCF+=		fixtfsi
@@ -182,6 +185,7 @@ SRCF+=		floatuntitf
 SRCF+=		multf3
 SRCF+=		subtf3
 SRCF+=		trunctfdf2
+SRCF+=		trunctfhf2
 SRCF+=		trunctfsf2
 .endif
 

@@ -173,7 +173,7 @@ struct sysctl_oid *rack_sysctl_root;
  *
  * To implement RACK the original TCP stack was first decomposed
  * into a functional state machine with individual states
- * for each of the possible TCP connection states. The do_segement
+ * for each of the possible TCP connection states. The do_segment
  * functions role in life is to mandate the connection supports SACK
  * initially and then assure that the RACK state matches the conenction
  * state before calling the states do_segment function. Each
@@ -1313,7 +1313,7 @@ rack_init_sysctls(void)
 	    SYSCTL_CHILDREN(rack_timers),
 	    OID_AUTO, "maxrto", CTLFLAG_RW,
 	    &rack_rto_max, 4000000,
-	    "Maxiumum RTO in microseconds -- should be at least as large as min_rto");
+	    "Maximum RTO in microseconds -- should be at least as large as min_rto");
 	SYSCTL_ADD_S32(&rack_sysctl_ctx,
 	    SYSCTL_CHILDREN(rack_timers),
 	    OID_AUTO, "minto", CTLFLAG_RW,
@@ -1875,12 +1875,12 @@ rack_init_sysctls(void)
 	SYSCTL_ADD_COUNTER_U64(&rack_sysctl_ctx,
 	    SYSCTL_CHILDREN(rack_counters),
 	    OID_AUTO, "sndptr_wrong", CTLFLAG_RD,
-	    &rack_sbsndptr_wrong, "Total number of times the saved sbsndptr was incorret");
+	    &rack_sbsndptr_wrong, "Total number of times the saved sbsndptr was incorrect");
 	rack_sbsndptr_right = counter_u64_alloc(M_WAITOK);
 	SYSCTL_ADD_COUNTER_U64(&rack_sysctl_ctx,
 	    SYSCTL_CHILDREN(rack_counters),
 	    OID_AUTO, "sndptr_right", CTLFLAG_RD,
-	    &rack_sbsndptr_right, "Total number of times the saved sbsndptr was corret");
+	    &rack_sbsndptr_right, "Total number of times the saved sbsndptr was correct");
 
 	COUNTER_ARRAY_ALLOC(rack_out_size, TCP_MSS_ACCT_SIZE, M_WAITOK);
 	SYSCTL_ADD_COUNTER_U64_ARRAY(&rack_sysctl_ctx, SYSCTL_CHILDREN(rack_sysctl_root),
@@ -4357,7 +4357,7 @@ rack_do_goodput_measurement(struct tcpcb *tp, struct tcp_rack *rack,
 	}
 	/* We store gp for b/w in bytes per second */
 	if (rack->rc_gp_filled == 0) {
-		/* Initial measurment */
+		/* Initial measurement */
 		if (bytes_ps) {
 			rack->r_ctl.gp_bw = bytes_ps;
 			rack->rc_gp_filled = 1;
@@ -4480,7 +4480,7 @@ rack_do_goodput_measurement(struct tcpcb *tp, struct tcp_rack *rack,
 				/*
 				 * The scaled measurement was long
 				 * enough so lets just add in the
-				 * portion of the measurment i.e. 1/rack_wma_divisor
+				 * portion of the measurement i.e. 1/rack_wma_divisor
 				 */
 				subpart = rack->r_ctl.gp_bw / rack_wma_divisor;
 				addpart = bytes_ps / rack_wma_divisor;

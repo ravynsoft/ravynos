@@ -465,7 +465,7 @@ lz_find_create_node(struct local_zone* z, uint8_t* nm, size_t nmlen,
 
 /* Mark the SOA record for the zone. This only marks the SOA rrset; the data
  * for the RR is entered later on local_zone_enter_rr() as with the other
- * records. An artifical soa_negative record with a modified TTL (minimum of
+ * records. An artificial soa_negative record with a modified TTL (minimum of
  * the TTL and the SOA.MINIMUM) is also created and marked for usage with
  * negative answers and to avoid allocations during those answers. */
 static int
@@ -745,9 +745,15 @@ static int
 lz_enter_zones(struct local_zones* zones, struct config_file* cfg)
 {
 	struct config_str2list* p;
+#ifndef THREADS_DISABLED
 	struct local_zone* z;
+#endif
 	for(p = cfg->local_zones; p; p = p->next) {
-		if(!(z=lz_enter_zone(zones, p->str, p->str2, 
+		if(!(
+#ifndef THREADS_DISABLED
+			z=
+#endif
+			lz_enter_zone(zones, p->str, p->str2,
 			LDNS_RR_CLASS_IN)))
 			return 0;
 		lock_rw_unlock(&z->lock);
@@ -892,6 +898,11 @@ int local_zone_enter_defaults(struct local_zones* zones, struct config_file* cfg
 		}
 		lock_rw_unlock(&z->lock);
 	}
+	/* home.arpa. zone (RFC 8375) */
+	if(!add_empty_default(zones, cfg, "home.arpa.")) {
+		log_err("out of memory adding default zone");
+		return 0;
+	}
 	/* onion. zone (RFC 7686) */
 	if(!add_empty_default(zones, cfg, "onion.")) {
 		log_err("out of memory adding default zone");
@@ -1027,7 +1038,9 @@ lz_setup_implicit(struct local_zones* zones, struct config_file* cfg)
 	}
 	if(have_name) {
 		uint8_t* n2;
+#ifndef THREADS_DISABLED
 		struct local_zone* z;
+#endif
 		/* allocate zone of smallest shared topdomain to contain em */
 		n2 = nm;
 		dname_remove_labels(&n2, &nmlen, nmlabs - match);
@@ -1039,7 +1052,11 @@ lz_setup_implicit(struct local_zones* zones, struct config_file* cfg)
 		}
 		log_nametypeclass(VERB_ALGO, "implicit transparent local-zone", 
 			n2, 0, dclass);
-		if(!(z=lz_enter_zone_dname(zones, n2, nmlen, match, 
+		if(!(
+#ifndef THREADS_DISABLED
+			z=
+#endif
+			lz_enter_zone_dname(zones, n2, nmlen, match,
 			local_zone_transparent, dclass))) {
 			return 0;
 		}
@@ -1282,7 +1299,7 @@ local_error_encode(struct query_info* qinfo, struct module_env* env,
 
 	if(!inplace_cb_reply_local_call(env, qinfo, NULL, NULL,
 		rcode, edns, repinfo, temp, env->now_tv))
-		edns->opt_list = NULL;
+		edns->opt_list_inplace_cb_out = NULL;
 	error_encode(buf, r, qinfo, *(uint16_t*)sldns_buffer_begin(buf),
 		sldns_buffer_read_u16_at(buf, 2), edns);
 }
@@ -1509,7 +1526,7 @@ local_data_answer(struct local_zone* z, struct module_env* env,
 			/* write qname */
 			memmove(d->rr_data[0] + sizeof(uint16_t), qinfo->qname,
 				qinfo->qname_len - 1);
-			/* write cname target wilcard wildcard label */
+			/* write cname target wildcard label */
 			memmove(d->rr_data[0] + sizeof(uint16_t) +
 				qinfo->qname_len - 1, ctarget + 2,
 				ctargetlen - 2);
@@ -1558,6 +1575,15 @@ local_zone_does_not_cover(struct local_zone* z, struct query_info* qinfo,
 	return (lr == NULL);
 }
 
+static inline int
+local_zone_is_udp_query(struct comm_reply* repinfo) {
+	return repinfo != NULL
+			? (repinfo->c != NULL
+				? repinfo->c->type == comm_udp
+				: 0)
+			: 0;
+}
+
 int
 local_zones_zone_answer(struct local_zone* z, struct module_env* env,
 	struct query_info* qinfo, struct edns_data* edns,
@@ -1580,7 +1606,9 @@ local_zones_zone_answer(struct local_zone* z, struct module_env* env,
 		lz_type == local_zone_redirect ||
 		lz_type == local_zone_inform_redirect ||
 		lz_type == local_zone_always_nxdomain ||
-		lz_type == local_zone_always_nodata) {
+		lz_type == local_zone_always_nodata ||
+		(lz_type == local_zone_truncate
+			&& local_zone_is_udp_query(repinfo))) {
 		/* for static, reply nodata or nxdomain
 		 * for redirect, reply nodata */
 		/* no additional section processing,
@@ -1590,9 +1618,11 @@ local_zones_zone_answer(struct local_zone* z, struct module_env* env,
 		 */
 		int rcode = (ld || lz_type == local_zone_redirect ||
 			lz_type == local_zone_inform_redirect ||
-			lz_type == local_zone_always_nodata)?
+			lz_type == local_zone_always_nodata ||
+			lz_type == local_zone_truncate)?
 			LDNS_RCODE_NOERROR:LDNS_RCODE_NXDOMAIN;
-		if(z->soa && z->soa_negative)
+		rcode = (lz_type == local_zone_truncate ? (rcode|BIT_TC) : rcode);
+		if(z != NULL && z->soa && z->soa_negative)
 			return local_encode(qinfo, env, edns, repinfo, buf, temp,
 				z->soa_negative, 0, rcode);
 		local_error_encode(qinfo, env, edns, repinfo, buf, temp, rcode,
@@ -1649,7 +1679,7 @@ local_zones_zone_answer(struct local_zone* z, struct module_env* env,
 	 * does not, then we should make this noerror/nodata */
 	if(ld && ld->rrsets) {
 		int rcode = LDNS_RCODE_NOERROR;
-		if(z->soa && z->soa_negative)
+		if(z != NULL && z->soa && z->soa_negative)
 			return local_encode(qinfo, env, edns, repinfo, buf, temp,
 				z->soa_negative, 0, rcode);
 		local_error_encode(qinfo, env, edns, repinfo, buf, temp, rcode,
@@ -1848,6 +1878,7 @@ const char* local_zone_type2str(enum localzone_type t)
 		case local_zone_always_deny: return "always_deny";
 		case local_zone_always_null: return "always_null";
 		case local_zone_noview: return "noview";
+		case local_zone_truncate: return "truncate";
 		case local_zone_invalid: return "invalid";
 	}
 	return "badtyped"; 
@@ -1887,6 +1918,8 @@ int local_zone_str2type(const char* type, enum localzone_type* t)
 		*t = local_zone_always_null;
 	else if(strcmp(type, "noview") == 0)
 		*t = local_zone_noview;
+	else if(strcmp(type, "truncate") == 0)
+		*t = local_zone_truncate;
 	else if(strcmp(type, "nodefault") == 0)
 		*t = local_zone_nodefault;
 	else return 0;

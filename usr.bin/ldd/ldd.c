@@ -46,6 +46,7 @@ __FBSDID("$FreeBSD$");
 #include <fcntl.h>
 #include <gelf.h>
 #include <libelf.h>
+#include <rtld_paths.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -83,7 +84,7 @@ static void	usage(void);
 #define	_PATH_LDD32	"/usr/bin/ldd32"
 
 static int
-execldd32(char *file, char *fmt1, char *fmt2, int aflag, int vflag)
+execldd32(char *file, char *fmt1, char *fmt2, int aflag)
 {
 	char *argv[9];
 	int i, rval, status;
@@ -94,8 +95,6 @@ execldd32(char *file, char *fmt1, char *fmt2, int aflag, int vflag)
 	argv[i++] = strdup(_PATH_LDD32);
 	if (aflag)
 		argv[i++] = strdup("-a");
-	if (vflag)
-		argv[i++] = strdup("-v");
 	if (fmt1 != NULL) {
 		argv[i++] = strdup("-f");
 		argv[i++] = strdup(fmt1);
@@ -136,12 +135,13 @@ int
 main(int argc, char *argv[])
 {
 	char *fmt1, *fmt2;
-	int rval, c, aflag, vflag;
+	const char *rtld;
+	int aflag, c, fd, rval, status, is_shlib, rv, type;
 
-	aflag = vflag = 0;
+	aflag = 0;
 	fmt1 = fmt2 = NULL;
 
-	while ((c = getopt(argc, argv, "af:v")) != -1) {
+	while ((c = getopt(argc, argv, "af:")) != -1) {
 		switch (c) {
 		case 'a':
 			aflag++;
@@ -154,9 +154,6 @@ main(int argc, char *argv[])
 			} else
 				fmt1 = optarg;
 			break;
-		case 'v':
-			vflag++;
-			break;
 		default:
 			usage();
 			/* NOTREACHED */
@@ -165,9 +162,6 @@ main(int argc, char *argv[])
 	argc -= optind;
 	argv += optind;
 
-	if (vflag && fmt1 != NULL)
-		errx(1, "-v may not be used with -f");
-
 	if (argc <= 0) {
 		usage();
 		/* NOTREACHED */
@@ -175,8 +169,6 @@ main(int argc, char *argv[])
 
 	rval = 0;
 	for (; argc > 0; argc--, argv++) {
-		int fd, status, is_shlib, rv, type;
-
 		if ((fd = open(*argv, O_RDONLY, 0)) < 0) {
 			warn("%s", *argv);
 			rval |= 1;
@@ -194,7 +186,7 @@ main(int argc, char *argv[])
 			break;
 #if __ELF_WORD_SIZE > 32 && defined(ELF32_SUPPORTED)
 		case TYPE_ELF32:
-			rval |= execldd32(*argv, fmt1, fmt2, aflag, vflag);
+			rval |= execldd32(*argv, fmt1, fmt2, aflag);
 			continue;
 #endif
 		case TYPE_UNKNOWN:
@@ -244,22 +236,30 @@ main(int argc, char *argv[])
 			if (is_shlib == 0) {
 				execl(*argv, *argv, (char *)NULL);
 				warn("%s", *argv);
-			} else {
+			} else if (fmt1 == NULL && fmt2 == NULL && !aflag) {
 				dlopen(*argv, RTLD_TRACE);
 				warnx("%s: %s", *argv, dlerror());
+			} else {
+				rtld = _PATH_RTLD;
+#if __ELF_WORD_SIZE > 32 && defined(ELF32_SUPPORTED)
+				if (type == TYPE_ELF32)
+					rtld = _COMPAT32_PATH_RTLD;
+#endif
+				execl(rtld, rtld, "-d", "--",
+				    *argv, (char *)NULL);
 			}
 			_exit(1);
 		}
 	}
 
-	return rval;
+	return (rval);
 }
 
 static void
 usage(void)
 {
 
-	fprintf(stderr, "usage: ldd [-a] [-v] [-f format] program ...\n");
+	fprintf(stderr, "usage: ldd [-a] [-f format] program ...\n");
 	exit(1);
 }
 

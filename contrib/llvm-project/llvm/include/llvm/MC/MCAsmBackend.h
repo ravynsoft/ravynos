@@ -129,10 +129,6 @@ public:
                           uint64_t Value, bool IsResolved,
                           const MCSubtargetInfo *STI) const = 0;
 
-  /// Check whether the given target requires emitting differences of two
-  /// symbols as a set of relocations.
-  virtual bool requiresDiffExpressionRelocations() const { return false; }
-
   /// @}
 
   /// \name Target Relaxation Interfaces
@@ -144,7 +140,9 @@ public:
   /// \param STI - The MCSubtargetInfo in effect when the instruction was
   /// encoded.
   virtual bool mayNeedRelaxation(const MCInst &Inst,
-                                 const MCSubtargetInfo &STI) const = 0;
+                                 const MCSubtargetInfo &STI) const {
+    return false;
+  }
 
   /// Target specific predicate for whether a given fixup requires the
   /// associated instruction to be relaxed.
@@ -167,6 +165,16 @@ public:
   virtual void relaxInstruction(MCInst &Inst,
                                 const MCSubtargetInfo &STI) const {};
 
+  virtual bool relaxDwarfLineAddr(MCDwarfLineAddrFragment &DF,
+                                  MCAsmLayout &Layout, bool &WasRelaxed) const {
+    return false;
+  }
+
+  virtual bool relaxDwarfCFA(MCDwarfCallFrameFragment &DF, MCAsmLayout &Layout,
+                             bool &WasRelaxed) const {
+    return false;
+  }
+
   /// @}
 
   /// Returns the minimum size of a nop in bytes on this target. The assembler
@@ -174,6 +182,10 @@ public:
   /// required for simple alignment would be less than the minimum nop size.
   ///
   virtual unsigned getMinimumNopSize() const { return 1; }
+
+  /// Returns the maximum size of a nop in bytes on this target.
+  ///
+  virtual unsigned getMaximumNopSize() const { return 0; }
 
   /// Write an (optimal) nop sequence of Count bytes to the given output. If the
   /// target cannot generate such a sequence, it should return an error.

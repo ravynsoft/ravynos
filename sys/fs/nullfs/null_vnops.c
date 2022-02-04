@@ -223,13 +223,12 @@ int
 null_bypass(struct vop_generic_args *ap)
 {
 	struct vnode **this_vp_p;
-	int error;
 	struct vnode *old_vps[VDESC_MAX_VPS];
 	struct vnode **vps_p[VDESC_MAX_VPS];
 	struct vnode ***vppp;
 	struct vnode *lvp;
 	struct vnodeop_desc *descp = ap->a_desc;
-	int reles, i;
+	int error, i, reles;
 
 	if (null_bug_bypass)
 		printf ("null_bypass: %s\n", descp->vdesc_name);
@@ -252,26 +251,39 @@ null_bypass(struct vop_generic_args *ap)
 	for (i = 0; i < VDESC_MAX_VPS; reles >>= 1, i++) {
 		if (descp->vdesc_vp_offsets[i] == VDESC_NO_OFFSET)
 			break;   /* bail out at end of list */
-		vps_p[i] = this_vp_p =
-			VOPARG_OFFSETTO(struct vnode**,descp->vdesc_vp_offsets[i],ap);
+		vps_p[i] = this_vp_p = VOPARG_OFFSETTO(struct vnode **,
+		    descp->vdesc_vp_offsets[i], ap);
+
 		/*
 		 * We're not guaranteed that any but the first vnode
 		 * are of our type.  Check for and don't map any
 		 * that aren't.  (We must always map first vp or vclean fails.)
 		 */
-		if (i && (*this_vp_p == NULLVP ||
+		if (i != 0 && (*this_vp_p == NULLVP ||
 		    (*this_vp_p)->v_op != &null_vnodeops)) {
 			old_vps[i] = NULLVP;
 		} else {
 			old_vps[i] = *this_vp_p;
 			*(vps_p[i]) = NULLVPTOLOWERVP(*this_vp_p);
+
+			/*
+			 * The upper vnode reference to the lower
+			 * vnode is the only reference that keeps our
+			 * pointer to the lower vnode alive.  If lower
+			 * vnode is relocked during the VOP call,
+			 * upper vnode might become unlocked and
+			 * reclaimed, which invalidates our reference.
+			 * Add a transient hold around VOP call.
+			 */
+			vhold(*this_vp_p);
+
 			/*
 			 * XXX - Several operations have the side effect
 			 * of vrele'ing their vp's.  We must account for
 			 * that.  (This should go away in the future.)
 			 */
 			if (reles & VDESC_VP0_WILLRELE)
-				VREF(*this_vp_p);
+				vref(*this_vp_p);
 		}
 	}
 
@@ -279,9 +291,9 @@ null_bypass(struct vop_generic_args *ap)
 	 * Call the operation on the lower layer
 	 * with the modified argument structure.
 	 */
-	if (vps_p[0] && *vps_p[0])
+	if (vps_p[0] != NULL && *vps_p[0] != NULL) {
 		error = VCALL(ap);
-	else {
+	} else {
 		printf("null_bypass: no map for %s\n", descp->vdesc_name);
 		error = EINVAL;
 	}
@@ -295,10 +307,11 @@ null_bypass(struct vop_generic_args *ap)
 	for (i = 0; i < VDESC_MAX_VPS; reles >>= 1, i++) {
 		if (descp->vdesc_vp_offsets[i] == VDESC_NO_OFFSET)
 			break;   /* bail out at end of list */
-		if (old_vps[i]) {
+		if (old_vps[i] != NULL) {
 			lvp = *(vps_p[i]);
 
 			/*
+			 * Get rid of the transient hold on lvp.
 			 * If lowervp was unlocked during VOP
 			 * operation, nullfs upper vnode could have
 			 * been reclaimed, which changes its v_vnlock
@@ -306,11 +319,14 @@ null_bypass(struct vop_generic_args *ap)
 			 * must move lock ownership from lower to
 			 * upper (reclaimed) vnode.
 			 */
-			if (lvp != NULLVP &&
-			    VOP_ISLOCKED(lvp) == LK_EXCLUSIVE &&
-			    old_vps[i]->v_vnlock != lvp->v_vnlock) {
-				VOP_UNLOCK(lvp);
-				VOP_LOCK(old_vps[i], LK_EXCLUSIVE | LK_RETRY);
+			if (lvp != NULLVP) {
+				if (VOP_ISLOCKED(lvp) == LK_EXCLUSIVE &&
+				    old_vps[i]->v_vnlock != lvp->v_vnlock) {
+					VOP_UNLOCK(lvp);
+					VOP_LOCK(old_vps[i], LK_EXCLUSIVE |
+					    LK_RETRY);
+				}
+				vdrop(lvp);
 			}
 
 			*(vps_p[i]) = old_vps[i];
@@ -328,17 +344,18 @@ null_bypass(struct vop_generic_args *ap)
 	 * (Assumes that the lower layer always returns
 	 * a VREF'ed vpp unless it gets an error.)
 	 */
-	if (descp->vdesc_vpp_offset != VDESC_NO_OFFSET && !error) {
+	if (descp->vdesc_vpp_offset != VDESC_NO_OFFSET && error == 0) {
 		/*
 		 * XXX - even though some ops have vpp returned vp's,
 		 * several ops actually vrele this before returning.
 		 * We must avoid these ops.
 		 * (This should go away when these ops are regularized.)
 		 */
-		vppp = VOPARG_OFFSETTO(struct vnode***,
-				 descp->vdesc_vpp_offset,ap);
-		if (*vppp)
-			error = null_nodeget(old_vps[0]->v_mount, **vppp, *vppp);
+		vppp = VOPARG_OFFSETTO(struct vnode ***,
+		    descp->vdesc_vpp_offset, ap);
+		if (*vppp != NULL)
+			error = null_nodeget(old_vps[0]->v_mount, **vppp,
+			    *vppp);
 	}
 
 	return (error);
@@ -419,11 +436,12 @@ null_lookup(struct vop_lookup_args *ap)
 	 * dvp to be reclaimed due to shared v_vnlock.  Check for the
 	 * doomed state and return error.
 	 */
-	if ((error == 0 || error == EJUSTRETURN) &&
-	    VN_IS_DOOMED(dvp)) {
-		error = ENOENT;
-		if (lvp != NULL)
-			vput(lvp);
+	if (VN_IS_DOOMED(dvp)) {
+		if (error == 0 || error == EJUSTRETURN) {
+			if (lvp != NULL)
+				vput(lvp);
+			error = ENOENT;
+		}
 
 		/*
 		 * If vgone() did reclaimed dvp before curthread
@@ -637,31 +655,79 @@ null_remove(struct vop_remove_args *ap)
 static int
 null_rename(struct vop_rename_args *ap)
 {
-	struct vnode *tdvp = ap->a_tdvp;
-	struct vnode *fvp = ap->a_fvp;
-	struct vnode *fdvp = ap->a_fdvp;
-	struct vnode *tvp = ap->a_tvp;
-	struct null_node *tnn;
+	struct vnode *fdvp, *fvp, *tdvp, *tvp;
+	struct vnode *lfdvp, *lfvp, *ltdvp, *ltvp;
+	struct null_node *fdnn, *fnn, *tdnn, *tnn;
+	int error;
+
+	tdvp = ap->a_tdvp;
+	fvp = ap->a_fvp;
+	fdvp = ap->a_fdvp;
+	tvp = ap->a_tvp;
+	lfdvp = NULL;
 
 	/* Check for cross-device rename. */
 	if ((fvp->v_mount != tdvp->v_mount) ||
-	    (tvp && (fvp->v_mount != tvp->v_mount))) {
-		if (tdvp == tvp)
-			vrele(tdvp);
-		else
-			vput(tdvp);
-		if (tvp)
-			vput(tvp);
-		vrele(fdvp);
-		vrele(fvp);
-		return (EXDEV);
+	    (tvp != NULL && fvp->v_mount != tvp->v_mount)) {
+		error = EXDEV;
+		goto upper_err;
 	}
+
+	VI_LOCK(fdvp);
+	fdnn = VTONULL(fdvp);
+	if (fdnn == NULL) {	/* fdvp is not locked, can be doomed */
+		VI_UNLOCK(fdvp);
+		error = ENOENT;
+		goto upper_err;
+	}
+	lfdvp = fdnn->null_lowervp;
+	vref(lfdvp);
+	VI_UNLOCK(fdvp);
+
+	VI_LOCK(fvp);
+	fnn = VTONULL(fvp);
+	if (fnn == NULL) {
+		VI_UNLOCK(fvp);
+		error = ENOENT;
+		goto upper_err;
+	}
+	lfvp = fnn->null_lowervp;
+	vref(lfvp);
+	VI_UNLOCK(fvp);
+
+	tdnn = VTONULL(tdvp);
+	ltdvp = tdnn->null_lowervp;
+	vref(ltdvp);
 
 	if (tvp != NULL) {
 		tnn = VTONULL(tvp);
+		ltvp = tnn->null_lowervp;
+		vref(ltvp);
 		tnn->null_flags |= NULLV_DROP;
+	} else {
+		ltvp = NULL;
 	}
-	return (null_bypass((struct vop_generic_args *)ap));
+
+	error = VOP_RENAME(lfdvp, lfvp, ap->a_fcnp, ltdvp, ltvp, ap->a_tcnp);
+	vrele(fdvp);
+	vrele(fvp);
+	vrele(tdvp);
+	if (tvp != NULL)
+		vrele(tvp);
+	return (error);
+
+upper_err:
+	if (tdvp == tvp)
+		vrele(tdvp);
+	else
+		vput(tdvp);
+	if (tvp)
+		vput(tvp);
+	if (lfdvp != NULL)
+		vrele(lfdvp);
+	vrele(fdvp);
+	vrele(fvp);
+	return (error);
 }
 
 static int
@@ -978,6 +1044,28 @@ null_read_pgcache(struct vop_read_pgcache_args *ap)
 	return (error);
 }
 
+static int
+null_advlock(struct vop_advlock_args *ap)
+{
+	struct vnode *lvp, *vp;
+	struct null_node *xp;
+	int error;
+
+	vp = ap->a_vp;
+	VI_LOCK(vp);
+	xp = VTONULL(vp);
+	if (xp == NULL) {
+		VI_UNLOCK(vp);
+		return (EBADF);
+	}
+	lvp = xp->null_lowervp;
+	vref(lvp);
+	VI_UNLOCK(vp);
+	error = VOP_ADVLOCK(lvp, ap->a_id, ap->a_op, ap->a_fl, ap->a_flags);
+	vrele(lvp);
+	return (error);
+}
+
 /*
  * Avoid standard bypass, since lower dvp and vp could be no longer
  * valid after vput().
@@ -996,33 +1084,50 @@ null_vput_pair(struct vop_vput_pair_args *ap)
 	vpp = ap->a_vpp;
 	vp = NULL;
 	lvp = NULL;
-	if (vpp != NULL) {
+	mp = NULL;
+	if (vpp != NULL)
 		vp = *vpp;
-		if (vp != NULL) {
+	if (vp != NULL) {
+		lvp = NULLVPTOLOWERVP(vp);
+		vref(lvp);
+		if (!ap->a_unlock_vp) {
 			vhold(vp);
+			vhold(lvp);
 			mp = vp->v_mount;
-			lvp = NULLVPTOLOWERVP(vp);
-			if (ap->a_unlock_vp)
-				vref(lvp);
+			vfs_ref(mp);
 		}
 	}
 
-	res = VOP_VPUT_PAIR(ldvp, &lvp, ap->a_unlock_vp);
+	res = VOP_VPUT_PAIR(ldvp, lvp != NULL ? &lvp : NULL, true);
+	if (vp != NULL && ap->a_unlock_vp)
+		vrele(vp);
+	vrele(dvp);
 
-	/* lvp might have been unlocked and vp reclaimed */
-	if (vp != NULL) {
-		if (!ap->a_unlock_vp && vp->v_vnlock != lvp->v_vnlock) {
+	if (vp == NULL || ap->a_unlock_vp)
+		return (res);
+
+	/* lvp has been unlocked and vp might be reclaimed */
+	VOP_LOCK(vp, LK_EXCLUSIVE | LK_RETRY);
+	if (vp->v_data == NULL && vfs_busy(mp, MBF_NOWAIT) == 0) {
+		vput(vp);
+		vget(lvp, LK_EXCLUSIVE | LK_RETRY);
+		if (VN_IS_DOOMED(lvp)) {
+			vput(lvp);
+			vget(vp, LK_EXCLUSIVE | LK_RETRY);
+		} else {
 			error = null_nodeget(mp, lvp, &vp1);
 			if (error == 0) {
-				vput(vp);
 				*vpp = vp1;
+			} else {
+				vget(vp, LK_EXCLUSIVE | LK_RETRY);
 			}
 		}
-		if (ap->a_unlock_vp)
-			vrele(vp);
-		vdrop(vp);
+		vfs_unbusy(mp);
 	}
-	vrele(dvp);
+	vdrop(lvp);
+	vdrop(vp);
+	vfs_rel(mp);
+
 	return (res);
 }
 
@@ -1033,6 +1138,7 @@ struct vop_vector null_vnodeops = {
 	.vop_bypass =		null_bypass,
 	.vop_access =		null_access,
 	.vop_accessx =		null_accessx,
+	.vop_advlock =		null_advlock,
 	.vop_advlockpurge =	vop_stdadvlockpurge,
 	.vop_bmap =		VOP_EOPNOTSUPP,
 	.vop_stat =		null_stat,

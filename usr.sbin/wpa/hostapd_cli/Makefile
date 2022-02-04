@@ -2,17 +2,15 @@
 
 .include "../Makefile.inc"
 
+.include "../Makefile.crypto"
+
 .PATH.c:${HOSTAPD_DISTDIR}
 
 PACKAGE=	hostapd
 PROG=	hostapd_cli
-SRCS=	cli.c common.c edit.c eloop.c hostapd_cli.c os_unix.c \
-	wpa_ctrl.c wpa_debug.c
+SRCS=	hostapd_cli.c
 
-CFLAGS+= -DCONFIG_CTRL_IFACE
-CFLAGS+= -DCONFIG_CTRL_IFACE_UNIX
-
-LIBADD+=	util
+LIBADD+=	util wpacommon wpautils
 
 MAN=	hostapd_cli.8
 

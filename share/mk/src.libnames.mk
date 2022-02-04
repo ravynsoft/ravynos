@@ -41,12 +41,6 @@ _INTERNALLIBS=	\
 		fifolog \
 		ifconfig \
 		ipf \
-		kyua_cli \
-		kyua_drivers \
-		kyua_engine \
-		kyua_model \
-		kyua_store \
-		kyua_utils \
 		lpr \
 		lua \
 		lutok \
@@ -64,7 +58,22 @@ _INTERNALLIBS=	\
 		smdb \
 		smutil \
 		telnet \
-		vers
+		vers \
+		wpaap \
+		wpacommon \
+		wpacrypto \
+		wpadrivers \
+		wpaeap_common \
+		wpaeap_peer \
+		wpaeap_server \
+		wpaeapol_auth \
+		wpaeapol_supp \
+		wpal2_packet \
+		wparadius \
+		wparsn_supp \
+		wpatls \
+		wpautils \
+		wpawps
 
 _LIBRARIES=	\
 		${_PRIVATELIBS} \
@@ -256,17 +265,25 @@ LIBVERIEXEC?=	${LIBVERIEXECDIR}/libveriexec.a
 # 2nd+ order consumers.  Auto-generating this would be better.
 _DP_80211=	sbuf bsdxml
 _DP_9p=		sbuf
+# XXX: Not bootstrapped so uses host version on non-FreeBSD, so don't use a
+# FreeBSD-specific dependency list
+.if ${.MAKE.OS} == "FreeBSD" || !defined(BOOTSTRAPPING)
 _DP_archive=	z bz2 lzma bsdxml zstd
+.endif
 _DP_bsm=	System notify
+_DP_avl=	spl
 _DP_zstd=	pthread
 .if ${MK_BLACKLIST} != "no"
 _DP_blacklist+=	pthread
 .endif
 _DP_crypto=	pthread
+# See comment by _DP_archive above
+.if ${.MAKE.OS} == "FreeBSD" || !defined(BOOTSTRAPPING)
 .if ${MK_OPENSSL} != "no"
 _DP_archive+=	crypto
 .else
 _DP_archive+=	md
+.endif
 .endif
 _DP_sqlite3=	pthread
 _DP_ssl=	crypto
@@ -281,12 +298,6 @@ _DP_bsnmp=	crypto
 _DP_geom=	bsdxml sbuf
 _DP_cam=	sbuf
 _DP_kvm=	elf
-_DP_kyua_cli=		kyua_drivers kyua_engine kyua_model kyua_store kyua_utils
-_DP_kyua_drivers=	kyua_model kyua_engine kyua_store
-_DP_kyua_engine=	lutok kyua_utils
-_DP_kyua_model=		lutok
-_DP_kyua_utils=		lutok
-_DP_kyua_store=		kyua_model kyua_utils sqlite3
 _DP_casper=	nv
 _DP_cap_dns=	nv
 _DP_cap_fileargs=	nv
@@ -333,7 +344,7 @@ _DP_fetch=	ssl crypto
 _DP_fetch=	md
 .endif
 _DP_execinfo=	elf
-_DP_dwarf=	elf
+_DP_dwarf=	elf z
 _DP_dpv=	dialog figpar util ncursesw
 _DP_dialog=	ncursesw m
 _DP_cuse=	pthread
@@ -386,6 +397,7 @@ _DP_c+=		ssp_nonshared
 _DP_stats=	sbuf pthread
 _DP_stdthreads=	pthread
 _DP_tacplus=	md
+_DP_nvpair=	spl
 _DP_panelw=	ncursesw
 _DP_rpcsec_gss=	gssapi
 _DP_smb=	kiconv
@@ -397,9 +409,9 @@ _DP_uutil=	avl spl
 _DP_zfs=	md pthread umem util uutil m avl bsdxml crypto geom nvpair \
 	z zfs_core zutil
 _DP_zfsbootenv= zfs nvpair
-_DP_zfs_core=	nvpair
+_DP_zfs_core=	nvpair spl zutil
 _DP_zpool=	md pthread z icp spl nvpair avl umem
-_DP_zutil=	avl tpool
+_DP_zutil=	avl geom m tpool
 _DP_be=		zfs spl nvpair zfsbootenv
 _DP_netmap=
 _DP_ifconfig=	m
@@ -458,8 +470,12 @@ LDADD_${_l}?=	${LDADD_${_l}_L} -l${_l:S/${PIE_SUFFIX}//}${PIE_SUFFIX}
 LDADD_${_l}?=	${LDADD_${_l}_L} -l${_l}
 .endif
 # Add in all dependencies for static linkage.
+# Bootstrapping from non-FreeBSD needs special handling, since it overrides
+# NO_SHARED back to yes despite only building static versions of bootstrap
+# libraries (see tools/build/mk/Makefile.boot.pre).
 .if defined(_DP_${_l}) && (${_INTERNALLIBS:M${_l}} || \
-    (defined(NO_SHARED) && ${NO_SHARED:tl} != "no"))
+    (defined(NO_SHARED) && ${NO_SHARED:tl} != "no") || \
+    (defined(BOOTSTRAPPING) && ${.MAKE.OS} != "FreeBSD"))
 .for _d in ${_DP_${_l}}
 DPADD_${_l}+=	${DPADD_${_d}}
 LDADD_${_l}+=	${LDADD_${_d}}
@@ -508,24 +524,6 @@ _LIB_OBJTOP?=	${OBJTOP}
 # INTERNALLIB definitions.
 LIBELFTCDIR=	${_LIB_OBJTOP}/lib/libelftc
 LIBELFTC?=	${LIBELFTCDIR}/libelftc${PIE_SUFFIX}.a
-
-LIBKYUA_CLIDIR=	${_LIB_OBJTOP}/lib/kyua/cli
-LIBKYUA_CLI?=	${LIBKYUA_CLIDIR}/libkyua_cli${PIE_SUFFIX}.a
-
-LIBKYUA_DRIVERSDIR=	${_LIB_OBJTOP}/lib/kyua/drivers
-LIBKYUA_DRIVERS?=	${LIBKYUA_DRIVERSDIR}/libkyua_drivers${PIE_SUFFIX}.a
-
-LIBKYUA_ENGINEDIR=	${_LIB_OBJTOP}/lib/kyua/engine
-LIBKYUA_ENGINE?=	${LIBKYUA_ENGINEDIR}/libkyua_engine${PIE_SUFFIX}.a
-
-LIBKYUA_MODELDIR=	${_LIB_OBJTOP}/lib/kyua/model
-LIBKYUA_MODEL?=		${LIBKYUA_MODELDIR}/libkyua_model${PIE_SUFFIX}.a
-
-LIBKYUA_STOREDIR=	${_LIB_OBJTOP}/lib/kyua/store
-LIBKYUA_STORE?=		${LIBKYUA_STOREDIR}/libkyua_store${PIE_SUFFIX}.a
-
-LIBKYUA_UTILSDIR=	${_LIB_OBJTOP}/lib/kyua/utils
-LIBKYUA_UTILS?=		${LIBKYUA_UTILSDIR}/libkyua_utils${PIE_SUFFIX}.a
 
 LIBLUADIR=	${_LIB_OBJTOP}/lib/liblua
 LIBLUA?=	${LIBLUADIR}/liblua${PIE_SUFFIX}.a
@@ -600,6 +598,51 @@ LIBBE?=		${LIBBEDIR}/libbe${PIE_SUFFIX}.a
 
 LIBPMCSTATDIR=	${_LIB_OBJTOP}/lib/libpmcstat
 LIBPMCSTAT?=	${LIBPMCSTATDIR}/libpmcstat${PIE_SUFFIX}.a
+
+LIBWPAAPDIR=	${_LIB_OBJTOP}/usr.sbin/wpa/src/ap
+LIBWPAAP?=	${LIBWPAAPDIR}/libwpaap${PIE_SUFFIX}.a
+
+LIBWPACOMMONDIR=	${_LIB_OBJTOP}/usr.sbin/wpa/src/common
+LIBWPACOMMON?=	${LIBWPACOMMONDIR}/libwpacommon${PIE_SUFFIX}.a
+
+LIBWPACRYPTODIR=	${_LIB_OBJTOP}/usr.sbin/wpa/src/crypto
+LIBWPACRYPTO?=	${LIBWPACRYPTODIR}/libwpacrypto${PIE_SUFFIX}.a
+
+LIBWPADRIVERSDIR=	${_LIB_OBJTOP}/usr.sbin/wpa/src/drivers
+LIBWPADRIVERS?=	${LIBWPADRIVERSDIR}/libwpadrivers${PIE_SUFFIX}.a
+
+LIBWPAEAP_COMMONDIR=	${_LIB_OBJTOP}/usr.sbin/wpa/src/eap_common
+LIBWPAEAP_COMMON?=	${LIBWPAEAP_COMMONDIR}/libwpaeap_common${PIE_SUFFIX}.a
+
+LIBWPAEAP_PEERDIR=	${_LIB_OBJTOP}/usr.sbin/wpa/src/eap_peer
+LIBWPAEAP_PEER?=	${LIBWPAEAP_PEERDIR}/libwpaeap_peer${PIE_SUFFIX}.a
+
+LIBWPAEAP_SERVERDIR=	${_LIB_OBJTOP}/usr.sbin/wpa/src/eap_server
+LIBWPAEAP_SERVER?=	${LIBWPAEAP_SERVERDIR}/libwpaeap_server${PIE_SUFFIX}.a
+
+LIBWPAEAPOL_AUTHDIR=	${_LIB_OBJTOP}/usr.sbin/wpa/src/eapol_auth
+LIBWPAEAPOL_AUTH?=	${LIBWPAEAPOL_AUTHDIR}/libwpaeapol_auth${PIE_SUFFIX}.a
+
+LIBWPAEAPOL_SUPPDIR=	${_LIB_OBJTOP}/usr.sbin/wpa/src/eapol_supp
+LIBWPAEAPOL_SUPP?=	${LIBWPAEAPOL_SUPPDIR}/libwpaeapol_supp${PIE_SUFFIX}.a
+
+LIBWPAL2_PACKETDIR=	${_LIB_OBJTOP}/usr.sbin/wpa/src/l2_packet
+LIBWPAL2_PACKET?=	${LIBWPAL2_PACKETDIR}/libwpal2_packet${PIE_SUFFIX}.a
+
+LIBWPARADIUSDIR=	${_LIB_OBJTOP}/usr.sbin/wpa/src/radius
+LIBWPARADIUS?=	${LIBWPARADIUSDIR}/libwparadius${PIE_SUFFIX}.a
+
+LIBWPARSN_SUPPDIR=	${_LIB_OBJTOP}/usr.sbin/wpa/src/rsn_supp
+LIBWPARSN_SUPP?=	${LIBWPARSN_SUPPDIR}/libwparsn_supp${PIE_SUFFIX}.a
+
+LIBWPATLSDIR=	${_LIB_OBJTOP}/usr.sbin/wpa/src/tls
+LIBWPATLS?=	${LIBWPATLSDIR}/libwpatls${PIE_SUFFIX}.a
+
+LIBWPAUTILSDIR=	${_LIB_OBJTOP}/usr.sbin/wpa/src/utils
+LIBWPAUTILS?=	${LIBWPAUTILSDIR}/libwpautils${PIE_SUFFIX}.a
+
+LIBWPAWPSDIR=	${_LIB_OBJTOP}/usr.sbin/wpa/src/wps
+LIBWPAWPS?=	${LIBWPAWPSDIR}/libwpawps${PIE_SUFFIX}.a
 
 LIBC_NOSSP_PICDIR=	${_LIB_OBJTOP}/lib/libc
 LIBC_NOSSP_PIC?=	${LIBC_NOSSP_PICDIR}/libc_nossp_pic.a

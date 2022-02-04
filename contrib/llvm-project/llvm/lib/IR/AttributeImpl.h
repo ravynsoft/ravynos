@@ -64,6 +64,7 @@ public:
 
   Attribute::AttrKind getKindAsEnum() const;
   uint64_t getValueAsInt() const;
+  bool getValueAsBool() const;
 
   StringRef getKindAsString() const;
   StringRef getValueAsString() const;
@@ -121,7 +122,10 @@ protected:
 
 public:
   EnumAttributeImpl(Attribute::AttrKind Kind)
-      : AttributeImpl(EnumAttrEntry), Kind(Kind) {}
+      : AttributeImpl(EnumAttrEntry), Kind(Kind) {
+    assert(Kind != Attribute::AttrKind::None &&
+           "Can't create a None attribute!");
+  }
 
   Attribute::AttrKind getEnumKind() const { return Kind; }
 };
@@ -132,7 +136,7 @@ class IntAttributeImpl : public EnumAttributeImpl {
 public:
   IntAttributeImpl(Attribute::AttrKind Kind, uint64_t Val)
       : EnumAttributeImpl(IntAttrEntry, Kind), Val(Val) {
-    assert(Attribute::doesAttrKindHaveArgument(Kind) &&
+    assert(Attribute::isIntAttrKind(Kind) &&
            "Wrong kind for int attribute!");
   }
 
@@ -249,9 +253,9 @@ public:
   uint64_t getDereferenceableBytes() const;
   uint64_t getDereferenceableOrNullBytes() const;
   std::pair<unsigned, Optional<unsigned>> getAllocSizeArgs() const;
+  std::pair<unsigned, unsigned> getVScaleRangeArgs() const;
   std::string getAsString(bool InAttrGrp) const;
-  Type *getByValType() const;
-  Type *getPreallocatedType() const;
+  Type *getAttributeType(Attribute::AttrKind Kind) const;
 
   using iterator = const Attribute *;
 

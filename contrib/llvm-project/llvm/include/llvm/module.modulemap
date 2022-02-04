@@ -30,6 +30,7 @@ module LLVM_Backend {
 
     // These are intended for (repeated) textual inclusion.
     textual header "CodeGen/DIEValue.def"
+    textual header "CodeGen/MachinePassRegistry.def"
   }
 }
 
@@ -65,9 +66,11 @@ module LLVM_BinaryFormat {
     textual header "BinaryFormat/ELFRelocs/ARC.def"
     textual header "BinaryFormat/ELFRelocs/AVR.def"
     textual header "BinaryFormat/ELFRelocs/BPF.def"
+    textual header "BinaryFormat/ELFRelocs/CSKY.def"
     textual header "BinaryFormat/ELFRelocs/Hexagon.def"
     textual header "BinaryFormat/ELFRelocs/i386.def"
     textual header "BinaryFormat/ELFRelocs/Lanai.def"
+    textual header "BinaryFormat/ELFRelocs/M68k.def"
     textual header "BinaryFormat/ELFRelocs/Mips.def"
     textual header "BinaryFormat/ELFRelocs/MSP430.def"
     textual header "BinaryFormat/ELFRelocs/PowerPC64.def"
@@ -188,11 +191,27 @@ module LLVM_ExecutionEngine {
   exclude header "ExecutionEngine/Orc/RemoteObjectLayer.h"
 
   // Exclude headers from LLVM_OrcSupport.
-  exclude header "ExecutionEngine/Orc/OrcError.h"
+  exclude header "ExecutionEngine/Orc/Shared/OrcError.h"
   exclude header "ExecutionEngine/Orc/RPC/RPCUtils.h"
   exclude header "ExecutionEngine/Orc/RPC/RPCSerialization.h"
   exclude header "ExecutionEngine/Orc/RPC/RawByteChannel.h"
 
+}
+
+module LLVM_FileCheck {
+  requires cplusplus
+
+  umbrella "FileCheck"
+  module * { export * }
+}
+
+module LLVM_Frontend_OpenMP {
+  requires cplusplus
+
+  umbrella "Frontend/OpenMP"
+  module * { export * }
+
+  exclude header "Frontend/OpenMP/OMPKinds.def"
 }
 
 // Orc utilities that don't depend only on Support (not ExecutionEngine or
@@ -201,10 +220,10 @@ module LLVM_ExecutionEngine {
 module LLVM_OrcSupport {
   requires cplusplus
 
-  header "ExecutionEngine/Orc/OrcError.h"
-  header "ExecutionEngine/Orc/RPC/RPCUtils.h"
-  header "ExecutionEngine/Orc/RPC/RPCSerialization.h"
-  header "ExecutionEngine/Orc/RPC/RawByteChannel.h"
+  header "ExecutionEngine/Orc/Shared/OrcError.h"
+  header "ExecutionEngine/Orc/Shared/RPCUtils.h"
+  header "ExecutionEngine/Orc/Shared/Serialization.h"
+  header "ExecutionEngine/Orc/Shared/RawByteChannel.h"
 
   export *
 }
@@ -253,6 +272,7 @@ module LLVM_intrinsic_gen {
   module IR_CFG { header "IR/CFG.h" export * }
   module IR_ConstantRange { header "IR/ConstantRange.h" export * }
   module IR_Dominators { header "IR/Dominators.h" export * }
+  module IR_FixedPointBuilder { header "IR/FixedPointBuilder.h" export * }
   module Analysis_PostDominators { header "Analysis/PostDominators.h" export * }
   module Analysis_DomTreeUpdater { header "Analysis/DomTreeUpdater.h" export * }
   module IR_IRBuilder { header "IR/IRBuilder.h" export * }

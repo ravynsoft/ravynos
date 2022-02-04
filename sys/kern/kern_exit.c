@@ -200,6 +200,13 @@ proc_clear_orphan(struct proc *p)
 	p->p_treeflag &= ~P_TREE_ORPHANED;
 }
 
+void
+exit_onexit(struct proc *p)
+{
+	MPASS(p->p_numthreads == 1);
+	umtx_thread_exit(FIRST_THREAD_IN_PROC(p));
+}
+
 /*
  * exit -- death of process.
  */
@@ -226,6 +233,7 @@ exit1(struct thread *td, int rval, int signo)
 
 	mtx_assert(&Giant, MA_NOTOWNED);
 	KASSERT(rval == 0 || signo == 0, ("exit1 rv %d sig %d", rval, signo));
+	TSPROCEXIT(td->td_proc->p_pid);
 
 	p = td->td_proc;
 	/*
@@ -352,9 +360,6 @@ exit1(struct thread *td, int rval, int signo)
 
 	itimers_exit(p);
 
-	if (p->p_sysent->sv_onexit != NULL)
-		p->p_sysent->sv_onexit(p);
-
 	/*
 	 * Check if any loadable modules need anything done at process exit.
 	 * E.g. SYSV IPC stuff.
@@ -385,7 +390,8 @@ exit1(struct thread *td, int rval, int signo)
 
 	PROC_UNLOCK(p);
 
-	umtx_thread_exit(td);
+	if (p->p_sysent->sv_onexit != NULL)
+		p->p_sysent->sv_onexit(p);
 	seltdfini(td);
 
 	/*
@@ -423,6 +429,7 @@ exit1(struct thread *td, int rval, int signo)
 		mtx_unlock(&ppeers_lock);
 	}
 
+	exec_free_abi_mappings(p);
 	vmspace_exit(td);
 	(void)acct_process(td);
 
@@ -430,11 +437,19 @@ exit1(struct thread *td, int rval, int signo)
 	ktrprocexit(td);
 #endif
 	/*
-	 * Release reference to text vnode
+	 * Release reference to text vnode etc
 	 */
 	if (p->p_textvp != NULL) {
 		vrele(p->p_textvp);
 		p->p_textvp = NULL;
+	}
+	if (p->p_textdvp != NULL) {
+		vrele(p->p_textdvp);
+		p->p_textdvp = NULL;
+	}
+	if (p->p_binname != NULL) {
+		free(p->p_binname, M_PARGS);
+		p->p_binname = NULL;
 	}
 
 	/*

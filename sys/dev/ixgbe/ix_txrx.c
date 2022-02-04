@@ -32,7 +32,6 @@
 ******************************************************************************/
 /*$FreeBSD$*/
 
-
 #ifndef IXGBE_STANDALONE_BUILD
 #include "opt_inet.h"
 #include "opt_inet6.h"
@@ -41,25 +40,24 @@
 
 #include "ixgbe.h"
 
-
 /************************************************************************
  * Local Function prototypes
  ************************************************************************/
-static int ixgbe_isc_txd_encap(void *arg, if_pkt_info_t pi);
-static void ixgbe_isc_txd_flush(void *arg, uint16_t txqid, qidx_t pidx);
-static int ixgbe_isc_txd_credits_update(void *arg, uint16_t txqid, bool clear);
+static int ixgbe_isc_txd_encap(void *, if_pkt_info_t);
+static void ixgbe_isc_txd_flush(void *, uint16_t, qidx_t);
+static int ixgbe_isc_txd_credits_update(void *, uint16_t, bool);
 
-static void ixgbe_isc_rxd_refill(void *arg, if_rxd_update_t iru);
-static void ixgbe_isc_rxd_flush(void *arg, uint16_t qsidx, uint8_t flidx __unused, qidx_t pidx);
-static int ixgbe_isc_rxd_available(void *arg, uint16_t qsidx, qidx_t pidx,
-				   qidx_t budget);
-static int ixgbe_isc_rxd_pkt_get(void *arg, if_rxd_info_t ri);
+static void ixgbe_isc_rxd_refill(void *, if_rxd_update_t);
+static void ixgbe_isc_rxd_flush(void *, uint16_t, uint8_t, qidx_t);
+static int ixgbe_isc_rxd_available(void *, uint16_t, qidx_t, qidx_t);
+static int ixgbe_isc_rxd_pkt_get(void *, if_rxd_info_t);
 
-static void ixgbe_rx_checksum(u32 staterr, if_rxd_info_t ri, u32 ptype);
-static int ixgbe_tx_ctx_setup(struct ixgbe_adv_tx_context_desc *, if_pkt_info_t);
+static void ixgbe_rx_checksum(uint32_t, if_rxd_info_t, uint32_t);
+static int ixgbe_tx_ctx_setup(struct ixgbe_adv_tx_context_desc *,
+    if_pkt_info_t);
 
 extern void ixgbe_if_enable_intr(if_ctx_t ctx);
-static int ixgbe_determine_rsstype(u16 pkt_info);
+static int ixgbe_determine_rsstype(uint16_t pkt_info);
 
 struct if_txrx ixgbe_txrx  = {
 	.ift_txd_encap = ixgbe_isc_txd_encap,
@@ -81,11 +79,11 @@ struct if_txrx ixgbe_txrx  = {
 static int
 ixgbe_tx_ctx_setup(struct ixgbe_adv_tx_context_desc *TXD, if_pkt_info_t pi)
 {
-	u32 vlan_macip_lens, type_tucmd_mlhl;
-	u32 olinfo_status, mss_l4len_idx, pktlen, offload;
+	uint32_t vlan_macip_lens, type_tucmd_mlhl;
+	uint32_t olinfo_status, mss_l4len_idx, pktlen, offload;
 	u8  ehdrlen;
 
-	offload = TRUE;
+	offload = true;
 	olinfo_status = mss_l4len_idx = vlan_macip_lens = type_tucmd_mlhl = 0;
 	/* VLAN MACLEN IPLEN */
 	vlan_macip_lens |= (htole16(pi->ipi_vtag) << IXGBE_ADVTXD_VLAN_SHIFT);
@@ -123,7 +121,7 @@ ixgbe_tx_ctx_setup(struct ixgbe_adv_tx_context_desc *TXD, if_pkt_info_t pi)
 	} else if (pi->ipi_flags & IPI_TX_IPV6)
 		type_tucmd_mlhl |= IXGBE_ADVTXD_TUCMD_IPV6;
 	else
-		offload = FALSE;
+		offload = false;
 
 	vlan_macip_lens |= pi->ipi_ip_hlen;
 
@@ -132,25 +130,25 @@ ixgbe_tx_ctx_setup(struct ixgbe_adv_tx_context_desc *TXD, if_pkt_info_t pi)
 		if (pi->ipi_csum_flags & (CSUM_IP_TCP | CSUM_IP6_TCP | CSUM_TSO))
 			type_tucmd_mlhl |= IXGBE_ADVTXD_TUCMD_L4T_TCP;
 		else
-			offload = FALSE;
+			offload = false;
 		break;
 	case IPPROTO_UDP:
 		if (pi->ipi_csum_flags & (CSUM_IP_UDP | CSUM_IP6_UDP))
 			type_tucmd_mlhl |= IXGBE_ADVTXD_TUCMD_L4T_UDP;
 		else
-			offload = FALSE;
+			offload = false;
 		break;
 	case IPPROTO_SCTP:
 		if (pi->ipi_csum_flags & (CSUM_IP_SCTP | CSUM_IP6_SCTP))
 			type_tucmd_mlhl |= IXGBE_ADVTXD_TUCMD_L4T_SCTP;
 		else
-			offload = FALSE;
+			offload = false;
 		break;
 	default:
-		offload = FALSE;
+		offload = false;
 		break;
 	}
-/* Insert L4 checksum into data descriptors */
+	/* Insert L4 checksum into data descriptors */
 	if (offload)
 		olinfo_status |= IXGBE_TXD_POPTS_TXSM << 8;
 
@@ -171,7 +169,7 @@ ixgbe_tx_ctx_setup(struct ixgbe_adv_tx_context_desc *TXD, if_pkt_info_t pi)
 static int
 ixgbe_isc_txd_encap(void *arg, if_pkt_info_t pi)
 {
-	struct adapter                   *sc = arg;
+	struct ixgbe_softc               *sc = arg;
 	if_softc_ctx_t                   scctx = sc->shared;
 	struct ix_tx_queue               *que = &sc->tx_queues[pi->ipi_qsidx];
 	struct tx_ring                   *txr = &que->txr;
@@ -180,7 +178,7 @@ ixgbe_isc_txd_encap(void *arg, if_pkt_info_t pi)
 	union ixgbe_adv_tx_desc          *txd = NULL;
 	struct ixgbe_adv_tx_context_desc *TXD;
 	int                              i, j, first, pidx_last;
-	u32                              olinfo_status, cmd, flags;
+	uint32_t                         olinfo_status, cmd, flags;
 	qidx_t                           ntxd;
 
 	cmd =  (IXGBE_ADVTXD_DTYP_DATA |
@@ -252,7 +250,7 @@ ixgbe_isc_txd_encap(void *arg, if_pkt_info_t pi)
 static void
 ixgbe_isc_txd_flush(void *arg, uint16_t txqid, qidx_t pidx)
 {
-	struct adapter     *sc = arg;
+	struct ixgbe_softc     *sc = arg;
 	struct ix_tx_queue *que = &sc->tx_queues[txqid];
 	struct tx_ring     *txr = &que->txr;
 
@@ -265,7 +263,7 @@ ixgbe_isc_txd_flush(void *arg, uint16_t txqid, qidx_t pidx)
 static int
 ixgbe_isc_txd_credits_update(void *arg, uint16_t txqid, bool clear)
 {
-	struct adapter     *sc = arg;
+	struct ixgbe_softc *sc = arg;
 	if_softc_ctx_t     scctx = sc->shared;
 	struct ix_tx_queue *que = &sc->tx_queues[txqid];
 	struct tx_ring     *txr = &que->txr;
@@ -322,7 +320,7 @@ ixgbe_isc_txd_credits_update(void *arg, uint16_t txqid, bool clear)
 static void
 ixgbe_isc_rxd_refill(void *arg, if_rxd_update_t iru)
 {
-	struct adapter *sc       = arg;
+	struct ixgbe_softc *sc   = arg;
 	struct ix_rx_queue *que  = &sc->rx_queues[iru->iru_qsidx];
 	struct rx_ring *rxr      = &que->rxr;
 	uint64_t *paddrs;
@@ -347,7 +345,7 @@ ixgbe_isc_rxd_refill(void *arg, if_rxd_update_t iru)
 static void
 ixgbe_isc_rxd_flush(void *arg, uint16_t qsidx, uint8_t flidx __unused, qidx_t pidx)
 {
-	struct adapter     *sc  = arg;
+	struct ixgbe_softc *sc  = arg;
 	struct ix_rx_queue *que = &sc->rx_queues[qsidx];
 	struct rx_ring     *rxr = &que->rxr;
 
@@ -360,11 +358,11 @@ ixgbe_isc_rxd_flush(void *arg, uint16_t qsidx, uint8_t flidx __unused, qidx_t pi
 static int
 ixgbe_isc_rxd_available(void *arg, uint16_t qsidx, qidx_t pidx, qidx_t budget)
 {
-	struct adapter          *sc = arg;
+	struct ixgbe_softc      *sc = arg;
 	struct ix_rx_queue      *que = &sc->rx_queues[qsidx];
 	struct rx_ring          *rxr = &que->rxr;
 	union ixgbe_adv_rx_desc *rxd;
-	u32                      staterr;
+	uint32_t                 staterr;
 	int                      cnt, i, nrxd;
 
 	nrxd = sc->shared->isc_nrxd[0];
@@ -394,17 +392,16 @@ ixgbe_isc_rxd_available(void *arg, uint16_t qsidx, qidx_t pidx, qidx_t budget)
 static int
 ixgbe_isc_rxd_pkt_get(void *arg, if_rxd_info_t ri)
 {
-	struct adapter           *adapter = arg;
-	struct ix_rx_queue       *que = &adapter->rx_queues[ri->iri_qsidx];
+	struct ixgbe_softc       *sc = arg;
+	if_softc_ctx_t		 scctx = sc->shared;
+	struct ix_rx_queue       *que = &sc->rx_queues[ri->iri_qsidx];
 	struct rx_ring           *rxr = &que->rxr;
-	struct ifnet             *ifp = iflib_get_ifp(adapter->ctx);
 	union ixgbe_adv_rx_desc  *rxd;
 
-	u16                      pkt_info, len, cidx, i;
-	u16                      vtag = 0;
-	u32                      ptype;
-	u32                      staterr = 0;
-	bool                     eop;
+	uint16_t                  pkt_info, len, cidx, i;
+	uint32_t                  ptype;
+	uint32_t                  staterr = 0;
+	bool                      eop;
 
 	i = 0;
 	cidx = ri->iri_cidx;
@@ -426,19 +423,10 @@ ixgbe_isc_rxd_pkt_get(void *arg, if_rxd_info_t ri)
 		rxd->wb.upper.status_error = 0;
 		eop = ((staterr & IXGBE_RXD_STAT_EOP) != 0);
 
-		if ( (rxr->vtag_strip) && (staterr & IXGBE_RXD_STAT_VP) ) {
-			vtag = le16toh(rxd->wb.upper.vlan);
-		} else {
-			vtag = 0;
-		}
-
 		/* Make sure bad packets are discarded */
 		if (eop && (staterr & IXGBE_RXDADV_ERR_FRAME_ERR_MASK) != 0) {
-
-#if __FreeBSD_version >= 1100036
-			if (adapter->feat_en & IXGBE_FEATURE_VF)
-				if_inc_counter(ifp, IFCOUNTER_IERRORS, 1);
-#endif
+			if (sc->feat_en & IXGBE_FEATURE_VF)
+				if_inc_counter(ri->iri_ifp, IFCOUNTER_IERRORS, 1);
 
 			rxr->rx_discarded++;
 			return (EBADMSG);
@@ -446,7 +434,7 @@ ixgbe_isc_rxd_pkt_get(void *arg, if_rxd_info_t ri)
 		ri->iri_frags[i].irf_flid = 0;
 		ri->iri_frags[i].irf_idx = cidx;
 		ri->iri_frags[i].irf_len = len;
-		if (++cidx == adapter->shared->isc_nrxd[0])
+		if (++cidx == sc->shared->isc_nrxd[0])
 			cidx = 0;
 		i++;
 		/* even a 16K packet shouldn't consume more than 8 clusters */
@@ -457,21 +445,23 @@ ixgbe_isc_rxd_pkt_get(void *arg, if_rxd_info_t ri)
 	rxr->packets++;
 	rxr->rx_bytes += ri->iri_len;
 
-	if ((ifp->if_capenable & IFCAP_RXCSUM) != 0)
+	if ((scctx->isc_capenable & IFCAP_RXCSUM) != 0)
 		ixgbe_rx_checksum(staterr, ri,  ptype);
 
 	ri->iri_flowid = le32toh(rxd->wb.lower.hi_dword.rss);
 	ri->iri_rsstype = ixgbe_determine_rsstype(pkt_info);
-	if ((adapter->feat_en & IXGBE_FEATURE_RSS) == 0) {
+	if ((sc->feat_en & IXGBE_FEATURE_RSS) == 0) {
 		if (ri->iri_rsstype == M_HASHTYPE_OPAQUE)
 			ri->iri_rsstype = M_HASHTYPE_NONE;
 		else
 			ri->iri_rsstype = M_HASHTYPE_OPAQUE_HASH;
 	}
-	ri->iri_vtag = vtag;
-	ri->iri_nfrags = i;
-	if (vtag)
+	if ((rxr->vtag_strip) && (staterr & IXGBE_RXD_STAT_VP)) {
+		ri->iri_vtag = le16toh(rxd->wb.upper.vlan);
 		ri->iri_flags |= M_VLANTAG;
+	}
+
+	ri->iri_nfrags = i;
 	return (0);
 } /* ixgbe_isc_rxd_pkt_get */
 
@@ -483,35 +473,28 @@ ixgbe_isc_rxd_pkt_get(void *arg, if_rxd_info_t ri)
  *   doesn't spend time verifying the checksum.
  ************************************************************************/
 static void
-ixgbe_rx_checksum(u32 staterr, if_rxd_info_t ri, u32 ptype)
+ixgbe_rx_checksum(uint32_t staterr, if_rxd_info_t ri, uint32_t ptype)
 {
-	u16  status = (u16)staterr;
-	u8   errors = (u8)(staterr >> 24);
-	bool sctp = false;
+	uint16_t status = (uint16_t)staterr;
+	uint8_t errors = (uint8_t)(staterr >> 24);
 
-	if ((ptype & IXGBE_RXDADV_PKTTYPE_ETQF) == 0 &&
-	    (ptype & IXGBE_RXDADV_PKTTYPE_SCTP) != 0)
-		sctp = TRUE;
+	/* If there is a layer 3 or 4 error we are done */
+	if (__predict_false(errors & (IXGBE_RXD_ERR_IPE | IXGBE_RXD_ERR_TCPE)))
+		return;
 
-	/* IPv4 checksum */
-	if (status & IXGBE_RXD_STAT_IPCS) {
-		if (!(errors & IXGBE_RXD_ERR_IPE)) {
-			/* IP Checksum Good */
-			ri->iri_csum_flags = CSUM_IP_CHECKED | CSUM_IP_VALID;
-		} else
-			ri->iri_csum_flags = 0;
-	}
-	/* TCP/UDP/SCTP checksum */
-	if (status & IXGBE_RXD_STAT_L4CS) {
-		u64 type = (CSUM_DATA_VALID | CSUM_PSEUDO_HDR);
-#if __FreeBSD_version >= 800000
-		if (sctp)
-			type = CSUM_SCTP_VALID;
-#endif
-		if (!(errors & IXGBE_RXD_ERR_TCPE)) {
-			ri->iri_csum_flags |= type;
-			if (!sctp)
-				ri->iri_csum_data = htons(0xffff);
+	/* IP Checksum Good */
+	if (status & IXGBE_RXD_STAT_IPCS)
+		ri->iri_csum_flags = (CSUM_IP_CHECKED | CSUM_IP_VALID);
+
+	/* Valid L4E checksum */
+	if (__predict_true(status & IXGBE_RXD_STAT_L4CS)) {
+		/* SCTP header present. */
+		if (__predict_false((ptype & IXGBE_RXDADV_PKTTYPE_ETQF) == 0 &&
+		    (ptype & IXGBE_RXDADV_PKTTYPE_SCTP) != 0)) {
+			ri->iri_csum_flags |= CSUM_SCTP_VALID;
+		} else {
+			ri->iri_csum_flags |= CSUM_DATA_VALID | CSUM_PSEUDO_HDR;
+			ri->iri_csum_data = htons(0xffff);
 		}
 	}
 } /* ixgbe_rx_checksum */
@@ -522,7 +505,7 @@ ixgbe_rx_checksum(u32 staterr, if_rxd_info_t ri, u32 ptype)
  *   Parse the packet type to determine the appropriate hash
  ************************************************************************/
 static int
-ixgbe_determine_rsstype(u16 pkt_info)
+ixgbe_determine_rsstype(uint16_t pkt_info)
 {
 	switch (pkt_info & IXGBE_RXDADV_RSSTYPE_MASK) {
 	case IXGBE_RXDADV_RSSTYPE_IPV4_TCP:

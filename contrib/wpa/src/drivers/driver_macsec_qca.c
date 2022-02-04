@@ -70,11 +70,11 @@ struct macsec_qca_data {
 	u32 secy_id;
 
 	/* shadow */
-	Boolean always_include_sci;
-	Boolean use_es;
-	Boolean use_scb;
-	Boolean protect_frames;
-	Boolean replay_protect;
+	bool always_include_sci;
+	bool use_es;
+	bool use_scb;
+	bool protect_frames;
+	bool replay_protect;
 	u32 replay_window;
 
 	struct channel_map receive_channel_map[MAXSC];
@@ -91,7 +91,7 @@ static void __macsec_drv_init(struct macsec_qca_data *drv)
 	wpa_printf(MSG_INFO, "%s: secy_id=%d", __func__, drv->secy_id);
 
 	/* Enable Secy and Let EAPoL bypass */
-	ret = nss_macsec_secy_en_set(drv->secy_id, TRUE);
+	ret = nss_macsec_secy_en_set(drv->secy_id, true);
 	if (ret)
 		wpa_printf(MSG_ERROR, "nss_macsec_secy_en_set: FAIL");
 
@@ -123,7 +123,7 @@ static void __macsec_drv_init(struct macsec_qca_data *drv)
 
 static void __macsec_drv_deinit(struct macsec_qca_data *drv)
 {
-	nss_macsec_secy_en_set(drv->secy_id, FALSE);
+	nss_macsec_secy_en_set(drv->secy_id, false);
 	nss_macsec_secy_rx_sc_del_all(drv->secy_id);
 	nss_macsec_secy_tx_sc_del_all(drv->secy_id);
 }
@@ -257,6 +257,33 @@ static int macsec_qca_init_sockets(struct macsec_qca_data *drv, u8 *own_addr)
 }
 
 
+static int macsec_qca_secy_id_get(const char *ifname, u32 *secy_id)
+{
+#ifdef NSS_MACSEC_SECY_ID_GET_FUNC
+	/* Get secy id from nss macsec driver */
+	return nss_macsec_secy_id_get((u8 *) ifname, secy_id);
+#else /* NSS_MACSEC_SECY_ID_GET_FUNC */
+	/* Board specific settings */
+	if (os_strcmp(ifname, "eth2") == 0) {
+		*secy_id = 1;
+	} else if (os_strcmp(ifname, "eth3") == 0) {
+		*secy_id = 2;
+	} else if (os_strcmp(ifname, "eth4") == 0 ||
+		   os_strcmp(ifname, "eth0") == 0) {
+		*secy_id = 0;
+	} else if (os_strcmp(ifname, "eth5") == 0 ||
+		   os_strcmp(ifname, "eth1") == 0) {
+		*secy_id = 1;
+	} else {
+		*secy_id = -1;
+		return -1;
+	}
+
+	return 0;
+#endif /* NSS_MACSEC_SECY_ID_GET_FUNC */
+}
+
+
 static void * macsec_qca_init(void *ctx, const char *ifname)
 {
 	struct macsec_qca_data *drv;
@@ -265,13 +292,12 @@ static void * macsec_qca_init(void *ctx, const char *ifname)
 	if (drv == NULL)
 		return NULL;
 
-	/* Board specific settings */
-	if (os_memcmp("eth2", ifname, 4) == 0)
-		drv->secy_id = 1;
-	else if (os_memcmp("eth3", ifname, 4) == 0)
-		drv->secy_id = 2;
-	else
-		drv->secy_id = -1;
+	if (macsec_qca_secy_id_get(ifname, &drv->secy_id)) {
+		wpa_printf(MSG_ERROR,
+			   "macsec_qca: Failed to get secy_id for %s", ifname);
+		os_free(drv);
+		return NULL;
+	}
 
 	if (driver_wired_init_common(&drv->common, ifname, ctx) < 0) {
 		os_free(drv);
@@ -303,17 +329,13 @@ static void * macsec_qca_hapd_init(struct hostapd_data *hapd,
 		return NULL;
 	}
 
-	/* Board specific settings */
-	if (os_memcmp("eth2", params->ifname, 4) == 0)
-		drv->secy_id = 1;
-	else if (os_memcmp("eth3", params->ifname, 4) == 0)
-		drv->secy_id = 2;
-	else if (os_memcmp("eth4", params->ifname, 4) == 0)
-		drv->secy_id = 0;
-	else if (os_memcmp("eth5", params->ifname, 4) == 0)
-		drv->secy_id = 1;
-	else
-		drv->secy_id = -1;
+	if (macsec_qca_secy_id_get(params->ifname, &drv->secy_id)) {
+		wpa_printf(MSG_ERROR,
+			   "macsec_qca: Failed to get secy_id for %s",
+			   params->ifname);
+		os_free(drv);
+		return NULL;
+	}
 
 	drv->common.ctx = hapd;
 	os_strlcpy(drv->common.ifname, params->ifname,
@@ -422,7 +444,7 @@ static int macsec_qca_get_capability(void *priv, enum macsec_cap *cap)
 }
 
 
-static int macsec_qca_enable_protect_frames(void *priv, Boolean enabled)
+static int macsec_qca_enable_protect_frames(void *priv, bool enabled)
 {
 	struct macsec_qca_data *drv = priv;
 	int ret = 0;
@@ -435,7 +457,7 @@ static int macsec_qca_enable_protect_frames(void *priv, Boolean enabled)
 }
 
 
-static int macsec_qca_set_replay_protect(void *priv, Boolean enabled,
+static int macsec_qca_set_replay_protect(void *priv, bool enabled,
 					 unsigned int window)
 {
 	struct macsec_qca_data *drv = priv;
@@ -480,7 +502,7 @@ static int macsec_qca_set_current_cipher_suite(void *priv, u64 cs)
 }
 
 
-static int macsec_qca_enable_controlled_port(void *priv, Boolean enabled)
+static int macsec_qca_enable_controlled_port(void *priv, bool enabled)
 {
 	struct macsec_qca_data *drv = priv;
 	int ret = 0;
@@ -560,7 +582,7 @@ static int macsec_qca_get_receive_lowest_pn(void *priv, struct receive_sa *sa)
 	struct macsec_qca_data *drv = priv;
 	int ret = 0;
 	u32 next_pn = 0;
-	bool enabled = FALSE;
+	bool enabled = false;
 	u32 win;
 	u32 channel;
 
@@ -629,7 +651,7 @@ static int macsec_qca_get_available_receive_sc(void *priv, u32 *channel)
 	struct macsec_qca_data *drv = priv;
 	int ret = 0;
 	u32 sc_ch = 0;
-	bool in_use = FALSE;
+	bool in_use = false;
 
 	for (sc_ch = 0; sc_ch < MAXSC; sc_ch++) {
 		ret = nss_macsec_secy_rx_sc_in_used_get(drv->secy_id, sc_ch,
@@ -794,7 +816,7 @@ static int macsec_qca_enable_receive_sa(void *priv, struct receive_sa *sa)
 		   sa->an);
 
 	ret += nss_macsec_secy_rx_sa_en_set(drv->secy_id, channel, sa->an,
-					    TRUE);
+					    true);
 
 	return ret;
 }
@@ -814,7 +836,7 @@ static int macsec_qca_disable_receive_sa(void *priv, struct receive_sa *sa)
 		   sa->an);
 
 	ret += nss_macsec_secy_rx_sa_en_set(drv->secy_id, channel, sa->an,
-					    FALSE);
+					    false);
 
 	return ret;
 }
@@ -824,7 +846,7 @@ static int macsec_qca_get_available_transmit_sc(void *priv, u32 *channel)
 {
 	struct macsec_qca_data *drv = priv;
 	u32 sc_ch = 0;
-	bool in_use = FALSE;
+	bool in_use = false;
 
 	for (sc_ch = 0; sc_ch < MAXSC; sc_ch++) {
 		if (nss_macsec_secy_tx_sc_in_used_get(drv->secy_id, sc_ch,
@@ -988,7 +1010,7 @@ static int macsec_qca_enable_transmit_sa(void *priv, struct transmit_sa *sa)
 		   sa->an);
 
 	ret += nss_macsec_secy_tx_sa_en_set(drv->secy_id, channel, sa->an,
-					    TRUE);
+					    true);
 
 	return ret;
 }
@@ -1008,7 +1030,7 @@ static int macsec_qca_disable_transmit_sa(void *priv, struct transmit_sa *sa)
 		   sa->an);
 
 	ret += nss_macsec_secy_tx_sa_en_set(drv->secy_id, channel, sa->an,
-					    FALSE);
+					    false);
 
 	return ret;
 }

@@ -125,6 +125,11 @@
 #define HAVE_NEWLOCALE 1
 #endif
 
+/* Define to 1 if you have the `pipe2' function. */
+#ifndef __APPLE__ /* Cross building tools on macOS */
+#define HAVE_PIPE2 1
+#endif
+
 /* Define to 1 if you have the `pread' function. */
 #define HAVE_PREAD 1
 
@@ -280,7 +285,7 @@
 #define PACKAGE_NAME "file"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "file 5.39"
+#define PACKAGE_STRING "file 5.41"
 
 /* Define to the one symbol short name of this package. */
 #define PACKAGE_TARNAME "file"
@@ -289,7 +294,7 @@
 #define PACKAGE_URL ""
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "5.39"
+#define PACKAGE_VERSION "5.41"
 
 /* Define to 1 if you have the ANSI C header files. */
 #define STDC_HEADERS 1
@@ -320,7 +325,7 @@
 
 
 /* Version number of package */
-#define VERSION "5.39"
+#define VERSION "5.41"
 
 /* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
    significant byte first (like Motorola and SPARC, unlike Intel). */

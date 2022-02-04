@@ -341,7 +341,6 @@ public:
   /// ClaimAllArgs - Claim all arguments.
   ///
   void ClaimAllArgs() const;
-
   /// @}
   /// @name Arg Synthesis
   /// @{
@@ -410,6 +409,10 @@ public:
 
   const char *getArgString(unsigned Index) const override {
     return ArgStrings[Index];
+  }
+
+  void replaceArgString(unsigned Index, const Twine &S) {
+    ArgStrings[Index] = MakeArgString(S);
   }
 
   unsigned getNumInputArgStrings() const override {

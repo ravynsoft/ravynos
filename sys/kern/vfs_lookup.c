@@ -489,6 +489,7 @@ namei_emptypath(struct nameidata *ndp)
 	MPASS((cnp->cn_flags & EMPTYPATH) != 0);
 	MPASS((cnp->cn_flags & (LOCKPARENT | WANTPARENT)) == 0);
 
+	ndp->ni_resflags |= NIRES_EMPTYPATH;
 	error = namei_setup(ndp, &dp, &pwd);
 	if (error != 0) {
 		namei_cleanup_cnp(cnp);
@@ -501,7 +502,6 @@ namei_emptypath(struct nameidata *ndp)
 	ndp->ni_vp = dp;
 	namei_cleanup_cnp(cnp);
 	pwd_drop(pwd);
-	ndp->ni_resflags |= NIRES_EMPTYPATH;
 	NDVALIDATE(ndp);
 	if ((cnp->cn_flags & LOCKLEAF) != 0) {
 		VOP_LOCK(dp, (cnp->cn_flags & LOCKSHARED) != 0 ?
@@ -556,6 +556,8 @@ namei(struct nameidata *ndp)
 	cnp = &ndp->ni_cnd;
 	td = cnp->cn_thread;
 #ifdef INVARIANTS
+	KASSERT(cnp->cn_thread == curthread,
+	    ("namei not using curthread"));
 	KASSERT((ndp->ni_debugflags & NAMEI_DBG_CALLED) == 0,
 	    ("%s: repeated call to namei without NDREINIT", __func__));
 	KASSERT(ndp->ni_debugflags == NAMEI_DBG_INITED,
@@ -610,11 +612,10 @@ namei(struct nameidata *ndp)
 
 #ifdef KTRACE
 	if (KTRPOINT(td, KTR_NAMEI)) {
-		KASSERT(cnp->cn_thread == curthread,
-		    ("namei not using curthread"));
 		ktrnamei(cnp->cn_pnbuf);
 	}
 #endif
+	TSNAMEI(curthread->td_proc->p_pid, cnp->cn_pnbuf);
 
 	/*
 	 * First try looking up the target without locking any vnodes.

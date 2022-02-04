@@ -1,32 +1,32 @@
 /******************************************************************************
   SPDX-License-Identifier: BSD-3-Clause
 
-  Copyright (c) 2001-2015, Intel Corporation 
+  Copyright (c) 2001-2020, Intel Corporation
   All rights reserved.
-  
-  Redistribution and use in source and binary forms, with or without 
+
+  Redistribution and use in source and binary forms, with or without
   modification, are permitted provided that the following conditions are met:
-  
-   1. Redistributions of source code must retain the above copyright notice, 
+
+   1. Redistributions of source code must retain the above copyright notice,
       this list of conditions and the following disclaimer.
-  
-   2. Redistributions in binary form must reproduce the above copyright 
-      notice, this list of conditions and the following disclaimer in the 
+
+   2. Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
       documentation and/or other materials provided with the distribution.
-  
-   3. Neither the name of the Intel Corporation nor the names of its 
-      contributors may be used to endorse or promote products derived from 
+
+   3. Neither the name of the Intel Corporation nor the names of its
+      contributors may be used to endorse or promote products derived from
       this software without specific prior written permission.
-  
+
   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
-  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
-  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
-  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
-  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
-  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
-  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
   POSSIBILITY OF SUCH DAMAGE.
 
@@ -48,8 +48,6 @@
 
 static s32  e1000_init_phy_params_82575(struct e1000_hw *hw);
 static s32  e1000_init_mac_params_82575(struct e1000_hw *hw);
-static s32  e1000_acquire_phy_82575(struct e1000_hw *hw);
-static void e1000_release_phy_82575(struct e1000_hw *hw);
 static s32  e1000_acquire_nvm_82575(struct e1000_hw *hw);
 static void e1000_release_nvm_82575(struct e1000_hw *hw);
 static s32  e1000_check_for_link_82575(struct e1000_hw *hw);
@@ -61,6 +59,7 @@ static s32  e1000_phy_hw_reset_sgmii_82575(struct e1000_hw *hw);
 static s32  e1000_read_phy_reg_sgmii_82575(struct e1000_hw *hw, u32 offset,
 					   u16 *data);
 static s32  e1000_reset_hw_82575(struct e1000_hw *hw);
+static s32  e1000_init_hw_82575(struct e1000_hw *hw);
 static s32  e1000_reset_hw_82580(struct e1000_hw *hw);
 static s32  e1000_read_phy_reg_82580(struct e1000_hw *hw,
 				     u32 offset, u16 *data);
@@ -84,10 +83,8 @@ static s32  e1000_get_pcs_speed_and_duplex_82575(struct e1000_hw *hw,
 						 u16 *speed, u16 *duplex);
 static s32  e1000_get_phy_id_82575(struct e1000_hw *hw);
 static bool e1000_sgmii_active_82575(struct e1000_hw *hw);
-static s32  e1000_reset_init_script_82575(struct e1000_hw *hw);
 static s32  e1000_read_mac_addr_82575(struct e1000_hw *hw);
 static void e1000_config_collision_dist_82575(struct e1000_hw *hw);
-static void e1000_power_down_phy_copper_82575(struct e1000_hw *hw);
 static void e1000_shutdown_serdes_link_82575(struct e1000_hw *hw);
 static void e1000_power_up_serdes_link_82575(struct e1000_hw *hw);
 static s32 e1000_set_pcie_completion_timeout(struct e1000_hw *hw);
@@ -104,10 +101,10 @@ static void e1000_clear_vfta_i350(struct e1000_hw *hw);
 
 static void e1000_i2c_start(struct e1000_hw *hw);
 static void e1000_i2c_stop(struct e1000_hw *hw);
-static s32 e1000_clock_in_i2c_byte(struct e1000_hw *hw, u8 *data);
+static void e1000_clock_in_i2c_byte(struct e1000_hw *hw, u8 *data);
 static s32 e1000_clock_out_i2c_byte(struct e1000_hw *hw, u8 data);
 static s32 e1000_get_i2c_ack(struct e1000_hw *hw);
-static s32 e1000_clock_in_i2c_bit(struct e1000_hw *hw, bool *data);
+static void e1000_clock_in_i2c_bit(struct e1000_hw *hw, bool *data);
 static s32 e1000_clock_out_i2c_bit(struct e1000_hw *hw, bool data);
 static void e1000_raise_i2c_clk(struct e1000_hw *hw, u32 *i2cctl);
 static void e1000_lower_i2c_clk(struct e1000_hw *hw, u32 *i2cctl);
@@ -131,7 +128,7 @@ static const u16 e1000_82580_rxpbs_table[] = {
 static bool e1000_sgmii_uses_mdio_82575(struct e1000_hw *hw)
 {
 	u32 reg = 0;
-	bool ext_mdio = FALSE;
+	bool ext_mdio = false;
 
 	DEBUGFUNC("e1000_sgmii_uses_mdio_82575");
 
@@ -156,8 +153,8 @@ static bool e1000_sgmii_uses_mdio_82575(struct e1000_hw *hw)
 }
 
 /**
- *  e1000_init_phy_params_82575 - Init PHY func ptrs.
- *  @hw: pointer to the HW structure
+ * e1000_init_phy_params_82575 - Initialize PHY function ptrs
+ * @hw: pointer to the HW structure
  **/
 static s32 e1000_init_phy_params_82575(struct e1000_hw *hw)
 {
@@ -175,17 +172,17 @@ static s32 e1000_init_phy_params_82575(struct e1000_hw *hw)
 		goto out;
 	}
 
-	phy->ops.power_up   = e1000_power_up_phy_copper;
-	phy->ops.power_down = e1000_power_down_phy_copper_82575;
+	phy->ops.power_up	= e1000_power_up_phy_copper;
+	phy->ops.power_down	= e1000_power_down_phy_copper_base;
 
 	phy->autoneg_mask	= AUTONEG_ADVERTISE_SPEED_DEFAULT;
 	phy->reset_delay_us	= 100;
 
-	phy->ops.acquire	= e1000_acquire_phy_82575;
+	phy->ops.acquire	= e1000_acquire_phy_base;
 	phy->ops.check_reset_block = e1000_check_reset_block_generic;
 	phy->ops.commit		= e1000_phy_sw_reset_generic;
 	phy->ops.get_cfg_done	= e1000_get_cfg_done_82575;
-	phy->ops.release	= e1000_release_phy_82575;
+	phy->ops.release	= e1000_release_phy_base;
 
 	ctrl_ext = E1000_READ_REG(hw, E1000_CTRL_EXT);
 
@@ -232,76 +229,39 @@ static s32 e1000_init_phy_params_82575(struct e1000_hw *hw)
 	case I347AT4_E_PHY_ID:
 	case M88E1112_E_PHY_ID:
 	case M88E1340M_E_PHY_ID:
+		phy->type		= e1000_phy_m88;
+		phy->ops.check_polarity	= e1000_check_polarity_m88;
+		phy->ops.get_info	= e1000_get_phy_info_m88;
+		phy->ops.get_cable_length = e1000_get_cable_length_m88_gen2;
+		phy->ops.force_speed_duplex = e1000_phy_force_speed_duplex_m88;
+		break;
 	case M88E1111_I_PHY_ID:
 		phy->type		= e1000_phy_m88;
 		phy->ops.check_polarity	= e1000_check_polarity_m88;
 		phy->ops.get_info	= e1000_get_phy_info_m88;
-		if (phy->id == I347AT4_E_PHY_ID ||
-		    phy->id == M88E1112_E_PHY_ID ||
-		    phy->id == M88E1340M_E_PHY_ID)
-			phy->ops.get_cable_length =
-					 e1000_get_cable_length_m88_gen2;
-		else if (phy->id == M88E1543_E_PHY_ID ||
-			 phy->id == M88E1512_E_PHY_ID)
-			phy->ops.get_cable_length =
-					 e1000_get_cable_length_m88_gen2;
-		else
-			phy->ops.get_cable_length = e1000_get_cable_length_m88;
+		phy->ops.get_cable_length = e1000_get_cable_length_m88;
 		phy->ops.force_speed_duplex = e1000_phy_force_speed_duplex_m88;
-		/* Check if this PHY is confgured for media swap. */
-		if (phy->id == M88E1112_E_PHY_ID) {
-			u16 data;
-
-			ret_val = phy->ops.write_reg(hw,
-						     E1000_M88E1112_PAGE_ADDR,
-						     2);
-			if (ret_val)
-				goto out;
-
-			ret_val = phy->ops.read_reg(hw,
-						    E1000_M88E1112_MAC_CTRL_1,
-						    &data);
-			if (ret_val)
-				goto out;
-
-			data = (data & E1000_M88E1112_MAC_CTRL_1_MODE_MASK) >>
-			       E1000_M88E1112_MAC_CTRL_1_MODE_SHIFT;
-			if (data == E1000_M88E1112_AUTO_COPPER_SGMII ||
-			    data == E1000_M88E1112_AUTO_COPPER_BASEX)
-				hw->mac.ops.check_for_link =
-						e1000_check_for_link_media_swap;
-		}
-		if (phy->id == M88E1512_E_PHY_ID) {
-			ret_val = e1000_initialize_M88E1512_phy(hw);
-			if (ret_val)
-				goto out;
-		}
-		if (phy->id == M88E1543_E_PHY_ID) {
-			ret_val = e1000_initialize_M88E1543_phy(hw);
-			if (ret_val)
-				goto out;
-		}
 		break;
 	case IGP03E1000_E_PHY_ID:
 	case IGP04E1000_E_PHY_ID:
-		phy->type = e1000_phy_igp_3;
-		phy->ops.check_polarity = e1000_check_polarity_igp;
-		phy->ops.get_info = e1000_get_phy_info_igp;
+		phy->type		= e1000_phy_igp_3;
+		phy->ops.check_polarity	= e1000_check_polarity_igp;
+		phy->ops.get_info	= e1000_get_phy_info_igp;
 		phy->ops.get_cable_length = e1000_get_cable_length_igp_2;
-		phy->ops.force_speed_duplex = e1000_phy_force_speed_duplex_igp;
 		phy->ops.set_d0_lplu_state = e1000_set_d0_lplu_state_82575;
 		phy->ops.set_d3_lplu_state = e1000_set_d3_lplu_state_generic;
+		phy->ops.force_speed_duplex = e1000_phy_force_speed_duplex_igp;
 		break;
 	case I82580_I_PHY_ID:
 	case I350_I_PHY_ID:
-		phy->type = e1000_phy_82580;
-		phy->ops.check_polarity = e1000_check_polarity_82577;
-		phy->ops.force_speed_duplex =
-					 e1000_phy_force_speed_duplex_82577;
+		phy->type		= e1000_phy_82580;
+		phy->ops.check_polarity	= e1000_check_polarity_82577;
+		phy->ops.get_info	= e1000_get_phy_info_82577;
 		phy->ops.get_cable_length = e1000_get_cable_length_82577;
-		phy->ops.get_info = e1000_get_phy_info_82577;
 		phy->ops.set_d0_lplu_state = e1000_set_d0_lplu_state_82580;
 		phy->ops.set_d3_lplu_state = e1000_set_d3_lplu_state_82580;
+		phy->ops.force_speed_duplex =
+				e1000_phy_force_speed_duplex_82577;
 		break;
 	case I210_I_PHY_ID:
 		phy->type		= e1000_phy_i210;
@@ -317,13 +277,166 @@ static s32 e1000_init_phy_params_82575(struct e1000_hw *hw)
 		goto out;
 	}
 
+	/* Check if this PHY is configured for media swap. */
+	switch (phy->id) {
+	case M88E1112_E_PHY_ID:
+	{
+		u16 data;
+
+		ret_val = phy->ops.write_reg(hw, E1000_M88E1112_PAGE_ADDR, 2);
+		if (ret_val)
+			goto out;
+		ret_val = phy->ops.read_reg(hw, E1000_M88E1112_MAC_CTRL_1,
+					    &data);
+		if (ret_val)
+			goto out;
+
+		data = (data & E1000_M88E1112_MAC_CTRL_1_MODE_MASK) >>
+			E1000_M88E1112_MAC_CTRL_1_MODE_SHIFT;
+		if (data == E1000_M88E1112_AUTO_COPPER_SGMII ||
+		    data == E1000_M88E1112_AUTO_COPPER_BASEX)
+			hw->mac.ops.check_for_link =
+						e1000_check_for_link_media_swap;
+		break;
+	}
+	case M88E1512_E_PHY_ID:
+	{
+		ret_val = e1000_initialize_M88E1512_phy(hw);
+		break;
+	}
+	case M88E1543_E_PHY_ID:
+	{
+		ret_val = e1000_initialize_M88E1543_phy(hw);
+		break;
+	}
+	default:
+		goto out;
+	}
+
 out:
 	return ret_val;
 }
 
 /**
- *  e1000_init_nvm_params_82575 - Init NVM func ptrs.
- *  @hw: pointer to the HW structure
+ * e1000_init_mac_params_82575 - Init MAC func ptrs.
+ * @hw: pointer to the HW structure
+ **/
+static s32 e1000_init_mac_params_82575(struct e1000_hw *hw)
+{
+	struct e1000_mac_info *mac = &hw->mac;
+	struct e1000_dev_spec_82575 *dev_spec = &hw->dev_spec._82575;
+
+	DEBUGFUNC("e1000_init_mac_params_82575");
+
+	/* Initialize function pointer */
+	e1000_init_mac_ops_generic(hw);
+
+	/* Derives media type */
+	e1000_get_media_type_82575(hw);
+	/* Set MTA register count */
+	mac->mta_reg_count = 128;
+	/* Set UTA register count */
+	mac->uta_reg_count = (hw->mac.type == e1000_82575) ? 0 : 128;
+	/* Set RAR entry count */
+	mac->rar_entry_count = E1000_RAR_ENTRIES_82575;
+	if (mac->type == e1000_82576)
+		mac->rar_entry_count = E1000_RAR_ENTRIES_82576;
+	if (mac->type == e1000_82580)
+		mac->rar_entry_count = E1000_RAR_ENTRIES_82580;
+	if (mac->type == e1000_i350 || mac->type == e1000_i354)
+		mac->rar_entry_count = E1000_RAR_ENTRIES_I350;
+
+	/* Enable EEE default settings for EEE supported devices */
+	if (mac->type >= e1000_i350)
+		dev_spec->eee_disable = false;
+
+	/* Allow a single clear of the SW semaphore on I210 and newer */
+	if (mac->type >= e1000_i210)
+		dev_spec->clear_semaphore_once = true;
+
+	/* Set if part includes ASF firmware */
+	mac->asf_firmware_present = true;
+	/* FWSM register */
+	mac->has_fwsm = true;
+	/* ARC supported; valid only if manageability features are enabled. */
+	mac->arc_subsystem_valid =
+		!!(E1000_READ_REG(hw, E1000_FWSM) & E1000_FWSM_MODE_MASK);
+
+	/* Function pointers */
+
+	/* bus type/speed/width */
+	mac->ops.get_bus_info = e1000_get_bus_info_pcie_generic;
+	/* reset */
+	if (mac->type >= e1000_82580)
+		mac->ops.reset_hw = e1000_reset_hw_82580;
+	else
+		mac->ops.reset_hw = e1000_reset_hw_82575;
+	/* HW initialization */
+	if ((mac->type == e1000_i210) || (mac->type == e1000_i211))
+		mac->ops.init_hw = e1000_init_hw_i210;
+	else
+		mac->ops.init_hw = e1000_init_hw_82575;
+	/* link setup */
+	mac->ops.setup_link = e1000_setup_link_generic;
+	/* physical interface link setup */
+	mac->ops.setup_physical_interface =
+		(hw->phy.media_type == e1000_media_type_copper)
+		? e1000_setup_copper_link_82575 : e1000_setup_serdes_link_82575;
+	/* physical interface shutdown */
+	mac->ops.shutdown_serdes = e1000_shutdown_serdes_link_82575;
+	/* physical interface power up */
+	mac->ops.power_up_serdes = e1000_power_up_serdes_link_82575;
+	/* check for link */
+	mac->ops.check_for_link = e1000_check_for_link_82575;
+	/* read mac address */
+	mac->ops.read_mac_addr = e1000_read_mac_addr_82575;
+	/* configure collision distance */
+	mac->ops.config_collision_dist = e1000_config_collision_dist_82575;
+	/* multicast address update */
+	mac->ops.update_mc_addr_list = e1000_update_mc_addr_list_generic;
+	if (hw->mac.type == e1000_i350 || mac->type == e1000_i354) {
+		/* writing VFTA */
+		mac->ops.write_vfta = e1000_write_vfta_i350;
+		/* clearing VFTA */
+		mac->ops.clear_vfta = e1000_clear_vfta_i350;
+	} else {
+		/* writing VFTA */
+		mac->ops.write_vfta = e1000_write_vfta_generic;
+		/* clearing VFTA */
+		mac->ops.clear_vfta = e1000_clear_vfta_generic;
+	}
+	if (hw->mac.type >= e1000_82580)
+		mac->ops.validate_mdi_setting =
+			e1000_validate_mdi_setting_crossover_generic;
+	/* ID LED init */
+	mac->ops.id_led_init = e1000_id_led_init_generic;
+	/* blink LED */
+	mac->ops.blink_led = e1000_blink_led_generic;
+	/* setup LED */
+	mac->ops.setup_led = e1000_setup_led_generic;
+	/* cleanup LED */
+	mac->ops.cleanup_led = e1000_cleanup_led_generic;
+	/* turn on/off LED */
+	mac->ops.led_on = e1000_led_on_generic;
+	mac->ops.led_off = e1000_led_off_generic;
+	/* clear hardware counters */
+	mac->ops.clear_hw_cntrs = e1000_clear_hw_cntrs_82575;
+	/* link info */
+	mac->ops.get_link_up_info = e1000_get_link_up_info_82575;
+	/* acquire SW_FW sync */
+	mac->ops.acquire_swfw_sync = e1000_acquire_swfw_sync;
+	/* release SW_FW sync */
+	mac->ops.release_swfw_sync = e1000_release_swfw_sync;
+
+	/* set lan id for port to determine which phy lock to use */
+	hw->mac.ops.set_lan_id(hw);
+
+	return E1000_SUCCESS;
+}
+
+/**
+ * e1000_init_nvm_params_82575 - Initialize NVM function ptrs
+ * @hw: pointer to the HW structure
  **/
 s32 e1000_init_nvm_params_82575(struct e1000_hw *hw)
 {
@@ -335,8 +448,7 @@ s32 e1000_init_nvm_params_82575(struct e1000_hw *hw)
 
 	size = (u16)((eecd & E1000_EECD_SIZE_EX_MASK) >>
 		     E1000_EECD_SIZE_EX_SHIFT);
-	/*
-	 * Added to a constant, "size" becomes the left-shift value
+	/* Added to a constant, "size" becomes the left-shift value
 	 * for setting word_size.
 	 */
 	size += NVM_WORD_SIZE_BASE_SHIFT;
@@ -395,126 +507,12 @@ s32 e1000_init_nvm_params_82575(struct e1000_hw *hw)
 		nvm->ops.update = e1000_update_nvm_checksum_82580;
 		break;
 	case e1000_i350:
-	case e1000_i354:
 		nvm->ops.validate = e1000_validate_nvm_checksum_i350;
 		nvm->ops.update = e1000_update_nvm_checksum_i350;
 		break;
 	default:
 		break;
 	}
-
-	return E1000_SUCCESS;
-}
-
-/**
- *  e1000_init_mac_params_82575 - Init MAC func ptrs.
- *  @hw: pointer to the HW structure
- **/
-static s32 e1000_init_mac_params_82575(struct e1000_hw *hw)
-{
-	struct e1000_mac_info *mac = &hw->mac;
-	struct e1000_dev_spec_82575 *dev_spec = &hw->dev_spec._82575;
-
-	DEBUGFUNC("e1000_init_mac_params_82575");
-
-	/* Derives media type */
-	e1000_get_media_type_82575(hw);
-	/* Set mta register count */
-	mac->mta_reg_count = 128;
-	/* Set uta register count */
-	mac->uta_reg_count = (hw->mac.type == e1000_82575) ? 0 : 128;
-	/* Set rar entry count */
-	mac->rar_entry_count = E1000_RAR_ENTRIES_82575;
-	if (mac->type == e1000_82576)
-		mac->rar_entry_count = E1000_RAR_ENTRIES_82576;
-	if (mac->type == e1000_82580)
-		mac->rar_entry_count = E1000_RAR_ENTRIES_82580;
-	if (mac->type == e1000_i350 || mac->type == e1000_i354)
-		mac->rar_entry_count = E1000_RAR_ENTRIES_I350;
-
-	/* Enable EEE default settings for EEE supported devices */
-	if (mac->type >= e1000_i350)
-		dev_spec->eee_disable = FALSE;
-
-	/* Allow a single clear of the SW semaphore on I210 and newer */
-	if (mac->type >= e1000_i210)
-		dev_spec->clear_semaphore_once = TRUE;
-
-	/* Set if part includes ASF firmware */
-	mac->asf_firmware_present = TRUE;
-	/* FWSM register */
-	mac->has_fwsm = TRUE;
-	/* ARC supported; valid only if manageability features are enabled. */
-	mac->arc_subsystem_valid =
-		!!(E1000_READ_REG(hw, E1000_FWSM) & E1000_FWSM_MODE_MASK);
-
-	/* Function pointers */
-
-	/* bus type/speed/width */
-	mac->ops.get_bus_info = e1000_get_bus_info_pcie_generic;
-	/* reset */
-	if (mac->type >= e1000_82580)
-		mac->ops.reset_hw = e1000_reset_hw_82580;
-	else
-	mac->ops.reset_hw = e1000_reset_hw_82575;
-	/* hw initialization */
-	if ((mac->type == e1000_i210) || (mac->type == e1000_i211))
-		mac->ops.init_hw = e1000_init_hw_i210;
-	else
-	mac->ops.init_hw = e1000_init_hw_82575;
-	/* link setup */
-	mac->ops.setup_link = e1000_setup_link_generic;
-	/* physical interface link setup */
-	mac->ops.setup_physical_interface =
-		(hw->phy.media_type == e1000_media_type_copper)
-		? e1000_setup_copper_link_82575 : e1000_setup_serdes_link_82575;
-	/* physical interface shutdown */
-	mac->ops.shutdown_serdes = e1000_shutdown_serdes_link_82575;
-	/* physical interface power up */
-	mac->ops.power_up_serdes = e1000_power_up_serdes_link_82575;
-	/* check for link */
-	mac->ops.check_for_link = e1000_check_for_link_82575;
-	/* read mac address */
-	mac->ops.read_mac_addr = e1000_read_mac_addr_82575;
-	/* configure collision distance */
-	mac->ops.config_collision_dist = e1000_config_collision_dist_82575;
-	/* multicast address update */
-	mac->ops.update_mc_addr_list = e1000_update_mc_addr_list_generic;
-	if (hw->mac.type == e1000_i350 || mac->type == e1000_i354) {
-		/* writing VFTA */
-		mac->ops.write_vfta = e1000_write_vfta_i350;
-		/* clearing VFTA */
-		mac->ops.clear_vfta = e1000_clear_vfta_i350;
-	} else {
-		/* writing VFTA */
-		mac->ops.write_vfta = e1000_write_vfta_generic;
-		/* clearing VFTA */
-		mac->ops.clear_vfta = e1000_clear_vfta_generic;
-	}
-	if (hw->mac.type >= e1000_82580)
-		mac->ops.validate_mdi_setting =
-				e1000_validate_mdi_setting_crossover_generic;
-	/* ID LED init */
-	mac->ops.id_led_init = e1000_id_led_init_generic;
-	/* blink LED */
-	mac->ops.blink_led = e1000_blink_led_generic;
-	/* setup LED */
-	mac->ops.setup_led = e1000_setup_led_generic;
-	/* cleanup LED */
-	mac->ops.cleanup_led = e1000_cleanup_led_generic;
-	/* turn on/off LED */
-	mac->ops.led_on = e1000_led_on_generic;
-	mac->ops.led_off = e1000_led_off_generic;
-	/* clear hardware counters */
-	mac->ops.clear_hw_cntrs = e1000_clear_hw_cntrs_82575;
-	/* link info */
-	mac->ops.get_link_up_info = e1000_get_link_up_info_82575;
-	/* acquire SW_FW sync */
-	mac->ops.acquire_swfw_sync = e1000_acquire_swfw_sync;
-	mac->ops.release_swfw_sync = e1000_release_swfw_sync;
-
-	/* set lan id for port to determine which phy lock to use */
-	hw->mac.ops.set_lan_id(hw);
 
 	return E1000_SUCCESS;
 }
@@ -533,50 +531,6 @@ void e1000_init_function_pointers_82575(struct e1000_hw *hw)
 	hw->nvm.ops.init_params = e1000_init_nvm_params_82575;
 	hw->phy.ops.init_params = e1000_init_phy_params_82575;
 	hw->mbx.ops.init_params = e1000_init_mbx_params_pf;
-}
-
-/**
- *  e1000_acquire_phy_82575 - Acquire rights to access PHY
- *  @hw: pointer to the HW structure
- *
- *  Acquire access rights to the correct PHY.
- **/
-static s32 e1000_acquire_phy_82575(struct e1000_hw *hw)
-{
-	u16 mask = E1000_SWFW_PHY0_SM;
-
-	DEBUGFUNC("e1000_acquire_phy_82575");
-
-	if (hw->bus.func == E1000_FUNC_1)
-		mask = E1000_SWFW_PHY1_SM;
-	else if (hw->bus.func == E1000_FUNC_2)
-		mask = E1000_SWFW_PHY2_SM;
-	else if (hw->bus.func == E1000_FUNC_3)
-		mask = E1000_SWFW_PHY3_SM;
-
-	return hw->mac.ops.acquire_swfw_sync(hw, mask);
-}
-
-/**
- *  e1000_release_phy_82575 - Release rights to access PHY
- *  @hw: pointer to the HW structure
- *
- *  A wrapper to release access rights to the correct PHY.
- **/
-static void e1000_release_phy_82575(struct e1000_hw *hw)
-{
-	u16 mask = E1000_SWFW_PHY0_SM;
-
-	DEBUGFUNC("e1000_release_phy_82575");
-
-	if (hw->bus.func == E1000_FUNC_1)
-		mask = E1000_SWFW_PHY1_SM;
-	else if (hw->bus.func == E1000_FUNC_2)
-		mask = E1000_SWFW_PHY2_SM;
-	else if (hw->bus.func == E1000_FUNC_3)
-		mask = E1000_SWFW_PHY3_SM;
-
-	hw->mac.ops.release_swfw_sync(hw, mask);
 }
 
 /**
@@ -762,7 +716,7 @@ static s32 e1000_phy_hw_reset_sgmii_82575(struct e1000_hw *hw)
 	DEBUGFUNC("e1000_phy_hw_reset_sgmii_82575");
 
 	/*
-	 * This isn't a TRUE "hard" reset, but is the only reset
+	 * This isn't a true "hard" reset, but is the only reset
 	 * available to us at this time.
 	 */
 
@@ -792,7 +746,7 @@ out:
 /**
  *  e1000_set_d0_lplu_state_82575 - Set Low Power Linkup D0 state
  *  @hw: pointer to the HW structure
- *  @active: TRUE to enable LPLU, FALSE to disable
+ *  @active: true to enable LPLU, false to disable
  *
  *  Sets the LPLU D0 state according to the active flag.  When
  *  activating LPLU this function also disables smart speed
@@ -878,7 +832,7 @@ out:
 /**
  *  e1000_set_d0_lplu_state_82580 - Set Low Power Linkup D0 state
  *  @hw: pointer to the HW structure
- *  @active: TRUE to enable LPLU, FALSE to disable
+ *  @active: true to enable LPLU, false to disable
  *
  *  Sets the LPLU D0 state according to the active flag.  When
  *  activating LPLU this function also disables smart speed
@@ -929,7 +883,7 @@ static s32 e1000_set_d0_lplu_state_82580(struct e1000_hw *hw, bool active)
  *  Success returns 0, Failure returns 1
  *
  *  The low power link up (lplu) state is set to the power management level D3
- *  and SmartSpeed is disabled when active is TRUE, else clear lplu for D3
+ *  and SmartSpeed is disabled when active is true, else clear lplu for D3
  *  and enable Smartspeed.  LPLU and Smartspeed are mutually exclusive.  LPLU
  *  is used during Dx states where the power conservation is most important.
  *  During driver activity, SmartSpeed should be enabled so performance is
@@ -1185,7 +1139,7 @@ static s32 e1000_check_for_link_media_swap(struct e1000_hw *hw)
 	/* Determine if a swap needs to happen. */
 	if (port && (hw->dev_spec._82575.media_port != port)) {
 		hw->dev_spec._82575.media_port = port;
-		hw->dev_spec._82575.media_changed = TRUE;
+		hw->dev_spec._82575.media_changed = true;
 	}
 
 	if (port == E1000_MEDIA_PORT_COPPER) {
@@ -1263,7 +1217,7 @@ static s32 e1000_get_pcs_speed_and_duplex_82575(struct e1000_hw *hw,
 	 * The link up bit determines when link is up on autoneg.
 	 */
 	if (pcs & E1000_PCS_LSTS_LINK_OK) {
-		mac->serdes_has_link = TRUE;
+		mac->serdes_has_link = true;
 
 		/* Detect and store PCS speed */
 		if (pcs & E1000_PCS_LSTS_SPEED_1000)
@@ -1292,7 +1246,7 @@ static s32 e1000_get_pcs_speed_and_duplex_82575(struct e1000_hw *hw,
 		}
 
 	} else {
-		mac->serdes_has_link = FALSE;
+		mac->serdes_has_link = false;
 		*speed = 0;
 		*duplex = 0;
 	}
@@ -1401,16 +1355,15 @@ static s32 e1000_reset_hw_82575(struct e1000_hw *hw)
 }
 
 /**
- *  e1000_init_hw_82575 - Initialize hardware
- *  @hw: pointer to the HW structure
+ * e1000_init_hw_82575 - Initialize hardware
+ * @hw: pointer to the HW structure
  *
- *  This inits the hardware readying it for operation.
+ * This inits the hardware readying it for operation.
  **/
-s32 e1000_init_hw_82575(struct e1000_hw *hw)
+static s32 e1000_init_hw_82575(struct e1000_hw *hw)
 {
 	struct e1000_mac_info *mac = &hw->mac;
 	s32 ret_val;
-	u16 i, rar_count = mac->rar_entry_count;
 
 	DEBUGFUNC("e1000_init_hw_82575");
 
@@ -1425,27 +1378,12 @@ s32 e1000_init_hw_82575(struct e1000_hw *hw)
 	DEBUGOUT("Initializing the IEEE VLAN\n");
 	mac->ops.clear_vfta(hw);
 
-	/* Setup the receive address */
-	e1000_init_rx_addrs_generic(hw, rar_count);
-
-	/* Zero out the Multicast HASH table */
-	DEBUGOUT("Zeroing the MTA\n");
-	for (i = 0; i < mac->mta_reg_count; i++)
-		E1000_WRITE_REG_ARRAY(hw, E1000_MTA, i, 0);
-
-	/* Zero out the Unicast HASH table */
-	DEBUGOUT("Zeroing the UTA\n");
-	for (i = 0; i < mac->uta_reg_count; i++)
-		E1000_WRITE_REG_ARRAY(hw, E1000_UTA, i, 0);
-
-	/* Setup link and flow control */
-	ret_val = mac->ops.setup_link(hw);
+	ret_val = e1000_init_hw_base(hw);
 
 	/* Set the default MTU size */
 	hw->dev_spec._82575.mtu = 1500;
 
-	/*
-	 * Clear all of the statistics registers (clear on read).  It is
+	/* Clear all of the statistics registers (clear on read).  It is
 	 * important that we do this after we have tried to establish link
 	 * because the symbol error count will increment wildly if there
 	 * is no link.
@@ -1454,7 +1392,6 @@ s32 e1000_init_hw_82575(struct e1000_hw *hw)
 
 	return ret_val;
 }
-
 /**
  *  e1000_setup_copper_link_82575 - Configure copper link settings
  *  @hw: pointer to the HW structure
@@ -1465,9 +1402,9 @@ s32 e1000_init_hw_82575(struct e1000_hw *hw)
  **/
 static s32 e1000_setup_copper_link_82575(struct e1000_hw *hw)
 {
+	u32 phpm_reg;
 	u32 ctrl;
 	s32 ret_val;
-	u32 phpm_reg;
 
 	DEBUGFUNC("e1000_setup_copper_link_82575");
 
@@ -1506,13 +1443,19 @@ static s32 e1000_setup_copper_link_82575(struct e1000_hw *hw)
 	}
 	switch (hw->phy.type) {
 	case e1000_phy_i210:
+		/* FALLTHROUGH */
 	case e1000_phy_m88:
 		switch (hw->phy.id) {
 		case I347AT4_E_PHY_ID:
+			/* FALLTHROUGH */
 		case M88E1112_E_PHY_ID:
+			/* FALLTHROUGH */
 		case M88E1340M_E_PHY_ID:
+			/* FALLTHROUGH */
 		case M88E1543_E_PHY_ID:
+			/* FALLTHROUGH */
 		case M88E1512_E_PHY_ID:
+			/* FALLTHROUGH */
 		case I210_I_PHY_ID:
 			ret_val = e1000_copper_link_setup_m88_gen2(hw);
 			break;
@@ -1590,13 +1533,13 @@ static s32 e1000_setup_serdes_link_82575(struct e1000_hw *hw)
 	switch (ctrl_ext & E1000_CTRL_EXT_LINK_MODE_MASK) {
 	case E1000_CTRL_EXT_LINK_MODE_SGMII:
 		/* sgmii mode lets the phy handle forcing speed/duplex */
-		pcs_autoneg = TRUE;
+		pcs_autoneg = true;
 		/* autoneg time out should be disabled for SGMII mode */
 		reg &= ~(E1000_PCS_LCTL_AN_TIMEOUT);
 		break;
 	case E1000_CTRL_EXT_LINK_MODE_1000BASE_KX:
 		/* disable PCS autoneg and support parallel detect only */
-		pcs_autoneg = FALSE;
+		pcs_autoneg = false;
 		/* FALLTHROUGH */
 	default:
 		if (hw->mac.type == e1000_82575 ||
@@ -1608,7 +1551,7 @@ static s32 e1000_setup_serdes_link_82575(struct e1000_hw *hw)
 			}
 
 			if (data & E1000_EEPROM_PCS_AUTONEG_DISABLE_BIT)
-				pcs_autoneg = FALSE;
+				pcs_autoneg = false;
 		}
 
 		/*
@@ -1700,8 +1643,8 @@ static s32 e1000_get_media_type_82575(struct e1000_hw *hw)
 	u32 link_mode = 0;
 
 	/* Set internal phy as default */
-	dev_spec->sgmii_active = FALSE;
-	dev_spec->module_plugged = FALSE;
+	dev_spec->sgmii_active = false;
+	dev_spec->module_plugged = false;
 
 	/* Get CSR setting */
 	ctrl_ext = E1000_READ_REG(hw, E1000_CTRL_EXT);
@@ -1720,7 +1663,7 @@ static s32 e1000_get_media_type_82575(struct e1000_hw *hw)
 		/* Get phy control interface type set (MDIO vs. I2C)*/
 		if (e1000_sgmii_uses_mdio_82575(hw)) {
 			hw->phy.media_type = e1000_media_type_copper;
-			dev_spec->sgmii_active = TRUE;
+			dev_spec->sgmii_active = true;
 			break;
 		}
 		/* fall through for I2C based SGMII */
@@ -1738,7 +1681,7 @@ static s32 e1000_get_media_type_82575(struct e1000_hw *hw)
 
 			if (link_mode == E1000_CTRL_EXT_LINK_MODE_SGMII) {
 				hw->phy.media_type = e1000_media_type_copper;
-				dev_spec->sgmii_active = TRUE;
+				dev_spec->sgmii_active = true;
 			}
 
 			break;
@@ -1809,14 +1752,14 @@ static s32 e1000_set_sfp_media_type_82575(struct e1000_hw *hw)
 	/* Check if there is some SFP module plugged and powered */
 	if ((tranceiver_type == E1000_SFF_IDENTIFIER_SFP) ||
 	    (tranceiver_type == E1000_SFF_IDENTIFIER_SFF)) {
-		dev_spec->module_plugged = TRUE;
+		dev_spec->module_plugged = true;
 		if (eth_flags->e1000_base_lx || eth_flags->e1000_base_sx) {
 			hw->phy.media_type = e1000_media_type_internal_serdes;
 		} else if (eth_flags->e100_base_fx) {
-			dev_spec->sgmii_active = TRUE;
+			dev_spec->sgmii_active = true;
 			hw->phy.media_type = e1000_media_type_internal_serdes;
 		} else if (eth_flags->e1000_base_t) {
-			dev_spec->sgmii_active = TRUE;
+			dev_spec->sgmii_active = true;
 			hw->phy.media_type = e1000_media_type_copper;
 		} else {
 			hw->phy.media_type = e1000_media_type_unknown;
@@ -1889,7 +1832,7 @@ static bool e1000_sgmii_active_82575(struct e1000_hw *hw)
  *  Inits recommended HW defaults after a reset when there is no EEPROM
  *  detected. This is only for the 82575.
  **/
-static s32 e1000_reset_init_script_82575(struct e1000_hw *hw)
+s32 e1000_reset_init_script_82575(struct e1000_hw *hw)
 {
 	DEBUGFUNC("e1000_reset_init_script_82575");
 
@@ -1968,27 +1911,6 @@ static void e1000_config_collision_dist_82575(struct e1000_hw *hw)
 }
 
 /**
- * e1000_power_down_phy_copper_82575 - Remove link during PHY power down
- * @hw: pointer to the HW structure
- *
- * In the case of a PHY power down to save power, or to turn off link during a
- * driver unload, or wake on lan is not enabled, remove the link.
- **/
-static void e1000_power_down_phy_copper_82575(struct e1000_hw *hw)
-{
-	struct e1000_phy_info *phy = &hw->phy;
-
-	if (!(phy->ops.check_reset_block))
-		return;
-
-	/* If the management interface is not enabled, then power down */
-	if (!(e1000_enable_mng_pass_thru(hw) || phy->ops.check_reset_block(hw)))
-		e1000_power_down_phy_copper(hw);
-
-	return;
-}
-
-/**
  *  e1000_clear_hw_cntrs_82575 - Clear device specific hardware counters
  *  @hw: pointer to the HW structure
  *
@@ -2051,85 +1973,6 @@ static void e1000_clear_hw_cntrs_82575(struct e1000_hw *hw)
 	if ((hw->phy.media_type == e1000_media_type_internal_serdes) ||
 	    e1000_sgmii_active_82575(hw))
 		E1000_READ_REG(hw, E1000_SCVPC);
-}
-
-/**
- *  e1000_rx_fifo_flush_82575 - Clean rx fifo after Rx enable
- *  @hw: pointer to the HW structure
- *
- *  After Rx enable, if manageability is enabled then there is likely some
- *  bad data at the start of the fifo and possibly in the DMA fifo.  This
- *  function clears the fifos and flushes any packets that came in as rx was
- *  being enabled.
- **/
-void e1000_rx_fifo_flush_82575(struct e1000_hw *hw)
-{
-	u32 rctl, rlpml, rxdctl[4], rfctl, temp_rctl, rx_enabled;
-	int i, ms_wait;
-
-	DEBUGFUNC("e1000_rx_fifo_flush_82575");
-
-	/* disable IPv6 options as per hardware errata */
-	rfctl = E1000_READ_REG(hw, E1000_RFCTL);
-	rfctl |= E1000_RFCTL_IPV6_EX_DIS;
-	E1000_WRITE_REG(hw, E1000_RFCTL, rfctl);
-
-	if (hw->mac.type != e1000_82575 ||
-	    !(E1000_READ_REG(hw, E1000_MANC) & E1000_MANC_RCV_TCO_EN))
-		return;
-
-	/* Disable all Rx queues */
-	for (i = 0; i < 4; i++) {
-		rxdctl[i] = E1000_READ_REG(hw, E1000_RXDCTL(i));
-		E1000_WRITE_REG(hw, E1000_RXDCTL(i),
-				rxdctl[i] & ~E1000_RXDCTL_QUEUE_ENABLE);
-	}
-	/* Poll all queues to verify they have shut down */
-	for (ms_wait = 0; ms_wait < 10; ms_wait++) {
-		msec_delay(1);
-		rx_enabled = 0;
-		for (i = 0; i < 4; i++)
-			rx_enabled |= E1000_READ_REG(hw, E1000_RXDCTL(i));
-		if (!(rx_enabled & E1000_RXDCTL_QUEUE_ENABLE))
-			break;
-	}
-
-	if (ms_wait == 10)
-		DEBUGOUT("Queue disable timed out after 10ms\n");
-
-	/* Clear RLPML, RCTL.SBP, RFCTL.LEF, and set RCTL.LPE so that all
-	 * incoming packets are rejected.  Set enable and wait 2ms so that
-	 * any packet that was coming in as RCTL.EN was set is flushed
-	 */
-	E1000_WRITE_REG(hw, E1000_RFCTL, rfctl & ~E1000_RFCTL_LEF);
-
-	rlpml = E1000_READ_REG(hw, E1000_RLPML);
-	E1000_WRITE_REG(hw, E1000_RLPML, 0);
-
-	rctl = E1000_READ_REG(hw, E1000_RCTL);
-	temp_rctl = rctl & ~(E1000_RCTL_EN | E1000_RCTL_SBP);
-	temp_rctl |= E1000_RCTL_LPE;
-
-	E1000_WRITE_REG(hw, E1000_RCTL, temp_rctl);
-	E1000_WRITE_REG(hw, E1000_RCTL, temp_rctl | E1000_RCTL_EN);
-	E1000_WRITE_FLUSH(hw);
-	msec_delay(2);
-
-	/* Enable Rx queues that were previously enabled and restore our
-	 * previous state
-	 */
-	for (i = 0; i < 4; i++)
-		E1000_WRITE_REG(hw, E1000_RXDCTL(i), rxdctl[i]);
-	E1000_WRITE_REG(hw, E1000_RCTL, rctl);
-	E1000_WRITE_FLUSH(hw);
-
-	E1000_WRITE_REG(hw, E1000_RLPML, rlpml);
-	E1000_WRITE_REG(hw, E1000_RFCTL, rfctl);
-
-	/* Flush receive errors generated by workaround */
-	E1000_READ_REG(hw, E1000_ROC);
-	E1000_READ_REG(hw, E1000_RNBC);
-	E1000_READ_REG(hw, E1000_MPC);
 }
 
 /**
@@ -2387,11 +2230,11 @@ static s32 e1000_reset_hw_82580(struct e1000_hw *hw)
 
 	DEBUGFUNC("e1000_reset_hw_82580");
 
-	hw->dev_spec._82575.global_device_reset = FALSE;
+	hw->dev_spec._82575.global_device_reset = false;
 
 	/* 82580 does not reliably do global_device_reset due to hw errata */
 	if (hw->mac.type == e1000_82580)
-		global_device_reset = FALSE;
+		global_device_reset = false;
 
 	/* Get current control state. */
 	ctrl = E1000_READ_REG(hw, E1000_CTRL);
@@ -2415,7 +2258,7 @@ static s32 e1000_reset_hw_82580(struct e1000_hw *hw)
 	/* Determine whether or not a global dev reset is requested */
 	if (global_device_reset && hw->mac.ops.acquire_swfw_sync(hw,
 	    swmbsw_mask))
-			global_device_reset = FALSE;
+			global_device_reset = false;
 
 	if (global_device_reset && !(E1000_READ_REG(hw, E1000_STATUS) &
 	    E1000_STAT_DEV_RST_SET))
@@ -2702,7 +2545,7 @@ out:
 /**
  *  __e1000_access_emi_reg - Read/write EMI register
  *  @hw: pointer to the HW structure
- *  @addr: EMI address to program
+ *  @address: EMI address to program
  *  @data: pointer to value to read/write from/to the EMI address
  *  @read: boolean flag to indicate read or write
  **/
@@ -2735,7 +2578,7 @@ s32 e1000_read_emi_reg(struct e1000_hw *hw, u16 addr, u16 *data)
 {
 	DEBUGFUNC("e1000_read_emi_reg");
 
-	return __e1000_access_emi_reg(hw, addr, data, TRUE);
+	return __e1000_access_emi_reg(hw, addr, data, true);
 }
 
 /**
@@ -2929,8 +2772,8 @@ out:
 /**
  *  e1000_set_eee_i350 - Enable/disable EEE support
  *  @hw: pointer to the HW structure
- *  @adv1g: boolean flag enabling 1G EEE advertisement
- *  @adv100m: boolean flag enabling 100M EEE advertisement
+ *  @adv1G: boolean flag enabling 1G EEE advertisement
+ *  @adv100M: boolean flag enabling 100M EEE advertisement
  *
  *  Enable/disable EEE based on setting in dev_spec structure.
  *
@@ -2984,8 +2827,8 @@ out:
 /**
  *  e1000_set_eee_i354 - Enable/disable EEE support
  *  @hw: pointer to the HW structure
- *  @adv1g: boolean flag enabling 1G EEE advertisement
- *  @adv100m: boolean flag enabling 100M EEE advertisement
+ *  @adv1G: boolean flag enabling 1G EEE advertisement
+ *  @adv100M: boolean flag enabling 100M EEE advertisement
  *
  *  Enable/disable EEE legacy mode based on setting in dev_spec structure.
  *
@@ -3093,7 +2936,7 @@ s32 e1000_get_eee_status_i354(struct e1000_hw *hw, bool *status)
 		goto out;
 
 	*status = phy_data & (E1000_PCS_STATUS_TX_LPI_RCVD |
-			      E1000_PCS_STATUS_RX_LPI_RCVD) ? TRUE : FALSE;
+			      E1000_PCS_STATUS_RX_LPI_RCVD) ? true : false;
 
 out:
 	return ret_val;
@@ -3195,7 +3038,7 @@ s32 e1000_read_i2c_byte_generic(struct e1000_hw *hw, u8 byte_offset,
 	u32 retry = 1;
 	u16 swfw_mask = 0;
 
-	bool nack = TRUE;
+	bool nack = true;
 
 	DEBUGFUNC("e1000_read_i2c_byte_generic");
 
@@ -3238,9 +3081,7 @@ s32 e1000_read_i2c_byte_generic(struct e1000_hw *hw, u8 byte_offset,
 		if (status != E1000_SUCCESS)
 			goto fail;
 
-		status = e1000_clock_in_i2c_byte(hw, data);
-		if (status != E1000_SUCCESS)
-			goto fail;
+		e1000_clock_in_i2c_byte(hw, data);
 
 		status = e1000_clock_out_i2c_bit(hw, nack);
 		if (status != E1000_SUCCESS)
@@ -3404,7 +3245,7 @@ static void e1000_i2c_stop(struct e1000_hw *hw)
  *
  *  Clocks in one byte data via I2C data/clock
  **/
-static s32 e1000_clock_in_i2c_byte(struct e1000_hw *hw, u8 *data)
+static void e1000_clock_in_i2c_byte(struct e1000_hw *hw, u8 *data)
 {
 	s32 i;
 	bool bit = 0;
@@ -3416,8 +3257,6 @@ static s32 e1000_clock_in_i2c_byte(struct e1000_hw *hw, u8 *data)
 		e1000_clock_in_i2c_bit(hw, &bit);
 		*data |= bit << i;
 	}
-
-	return E1000_SUCCESS;
 }
 
 /**
@@ -3466,7 +3305,7 @@ static s32 e1000_get_i2c_ack(struct e1000_hw *hw)
 	u32 i = 0;
 	u32 i2cctl = E1000_READ_REG(hw, E1000_I2CPARAMS);
 	u32 timeout = 10;
-	bool ack = TRUE;
+	bool ack = true;
 
 	DEBUGFUNC("e1000_get_i2c_ack");
 
@@ -3506,7 +3345,7 @@ static s32 e1000_get_i2c_ack(struct e1000_hw *hw)
  *
  *  Clocks in one bit via I2C data/clock
  **/
-static s32 e1000_clock_in_i2c_bit(struct e1000_hw *hw, bool *data)
+static void e1000_clock_in_i2c_bit(struct e1000_hw *hw, bool *data)
 {
 	u32 i2cctl = E1000_READ_REG(hw, E1000_I2CPARAMS);
 
@@ -3524,8 +3363,6 @@ static s32 e1000_clock_in_i2c_bit(struct e1000_hw *hw, bool *data)
 
 	/* Minimum low period of clock is 4.7 us */
 	usec_delay(E1000_I2C_T_LOW);
-
-	return E1000_SUCCESS;
 }
 
 /**
@@ -3641,7 +3478,6 @@ static s32 e1000_set_i2c_data(struct e1000_hw *hw, u32 *i2cctl, bool data)
 
 /**
  *  e1000_get_i2c_data - Reads the I2C SDA data bit
- *  @hw: pointer to hardware structure
  *  @i2cctl: Current value of I2CCTL register
  *
  *  Returns the I2C data bit value

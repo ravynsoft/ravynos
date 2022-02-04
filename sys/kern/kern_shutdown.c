@@ -421,7 +421,8 @@ doadump(boolean_t textdump)
 }
 
 /*
- * Shutdown the system cleanly to prepare for reboot, halt, or power off.
+ * kern_reboot(9): Shut down the system cleanly to prepare for reboot, halt, or
+ * power off.
  */
 void
 kern_reboot(int howto)
@@ -450,7 +451,7 @@ kern_reboot(int howto)
 		sched_bind(curthread, CPU_FIRST());
 		thread_unlock(curthread);
 		KASSERT(PCPU_GET(cpuid) == CPU_FIRST(),
-		    ("boot: not running on cpu 0"));
+		    ("%s: not running on cpu 0", __func__));
 	}
 #endif
 	/* We're in the process of rebooting. */
@@ -740,7 +741,7 @@ SYSCTL_INT(_debug_kassert, OID_AUTO, suppress_in_panic, KASSERT_RWTUN,
 static int kassert_sysctl_kassert(SYSCTL_HANDLER_ARGS);
 
 SYSCTL_PROC(_debug_kassert, OID_AUTO, kassert,
-    CTLTYPE_INT | CTLFLAG_RW | CTLFLAG_SECURE | CTLFLAG_NEEDGIANT, NULL, 0,
+    CTLTYPE_INT | CTLFLAG_RW | CTLFLAG_SECURE | CTLFLAG_MPSAFE, NULL, 0,
     kassert_sysctl_kassert, "I",
     "set to trigger a test kassert");
 
@@ -1021,7 +1022,7 @@ dumpdevname_sysctl_handler(SYSCTL_HANDLER_ARGS)
 	return (error);
 }
 SYSCTL_PROC(_kern_shutdown, OID_AUTO, dumpdevname,
-    CTLTYPE_STRING | CTLFLAG_RD | CTLFLAG_NEEDGIANT, &dumper_configs, 0,
+    CTLTYPE_STRING | CTLFLAG_RD | CTLFLAG_MPSAFE, &dumper_configs, 0,
     dumpdevname_sysctl_handler, "A",
     "Device(s) for kernel dumps");
 

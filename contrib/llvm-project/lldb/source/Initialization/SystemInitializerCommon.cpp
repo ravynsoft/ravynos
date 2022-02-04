@@ -11,10 +11,9 @@
 #include "Plugins/Process/gdb-remote/ProcessGDBRemoteLog.h"
 #include "lldb/Host/FileSystem.h"
 #include "lldb/Host/Host.h"
-#include "lldb/Host/HostInfo.h"
 #include "lldb/Host/Socket.h"
 #include "lldb/Utility/Log.h"
-#include "lldb/Utility/Reproducer.h"
+#include "lldb/Utility/ReproducerProvider.h"
 #include "lldb/Utility/Timer.h"
 #include "lldb/lldb-private.h"
 
@@ -35,15 +34,69 @@
 using namespace lldb_private;
 using namespace lldb_private::repro;
 
-SystemInitializerCommon::SystemInitializerCommon() {}
+SystemInitializerCommon::SystemInitializerCommon(
+    HostInfo::SharedLibraryDirectoryHelper *helper)
+    : m_shlib_dir_helper(helper) {}
 
-SystemInitializerCommon::~SystemInitializerCommon() {}
+SystemInitializerCommon::~SystemInitializerCommon() = default;
+
+/// Initialize the FileSystem based on the current reproducer mode.
+static llvm::Error InitializeFileSystem() {
+  auto &r = repro::Reproducer::Instance();
+  if (repro::Loader *loader = r.GetLoader()) {
+    FileSpec vfs_mapping = loader->GetFile<FileProvider::Info>();
+    if (vfs_mapping) {
+      if (llvm::Error e = FileSystem::Initialize(vfs_mapping))
+        return e;
+    } else {
+      FileSystem::Initialize();
+    }
+
+    // Set the current working directory form the reproducer.
+    llvm::Expected<std::string> working_dir =
+        repro::GetDirectoryFrom<WorkingDirectoryProvider>(loader);
+    if (!working_dir)
+      return working_dir.takeError();
+    if (std::error_code ec = FileSystem::Instance()
+                                 .GetVirtualFileSystem()
+                                 ->setCurrentWorkingDirectory(*working_dir)) {
+      return llvm::errorCodeToError(ec);
+    }
+
+    // Set the home directory from the reproducer.
+    llvm::Expected<std::string> home_dir =
+        repro::GetDirectoryFrom<HomeDirectoryProvider>(loader);
+    if (!home_dir)
+      return home_dir.takeError();
+    FileSystem::Instance().SetHomeDirectory(*home_dir);
+
+    return llvm::Error::success();
+  }
+
+  if (repro::Generator *g = r.GetGenerator()) {
+    repro::VersionProvider &vp = g->GetOrCreate<repro::VersionProvider>();
+    vp.SetVersion(lldb_private::GetVersion());
+
+    repro::FileProvider &fp = g->GetOrCreate<repro::FileProvider>();
+    FileSystem::Initialize(fp.GetFileCollector());
+
+    fp.RecordInterestingDirectory(
+        g->GetOrCreate<repro::WorkingDirectoryProvider>().GetDirectory());
+    fp.RecordInterestingDirectory(
+        g->GetOrCreate<repro::HomeDirectoryProvider>().GetDirectory());
+
+    return llvm::Error::success();
+  }
+
+  FileSystem::Initialize();
+  return llvm::Error::success();
+}
 
 llvm::Error SystemInitializerCommon::Initialize() {
 #if defined(_WIN32)
   const char *disable_crash_dialog_var = getenv("LLDB_DISABLE_CRASH_DIALOG");
   if (disable_crash_dialog_var &&
-      llvm::StringRef(disable_crash_dialog_var).equals_lower("true")) {
+      llvm::StringRef(disable_crash_dialog_var).equals_insensitive("true")) {
     // This will prevent Windows from displaying a dialog box requiring user
     // interaction when
     // LLDB crashes.  This is mostly useful when automating LLDB, for example
@@ -69,44 +122,17 @@ llvm::Error SystemInitializerCommon::Initialize() {
       return e;
   }
 
-  auto &r = repro::Reproducer::Instance();
-  if (repro::Loader *loader = r.GetLoader()) {
-    FileSpec vfs_mapping = loader->GetFile<FileProvider::Info>();
-    if (vfs_mapping) {
-      if (llvm::Error e = FileSystem::Initialize(vfs_mapping))
-        return e;
-    } else {
-      FileSystem::Initialize();
-    }
-    if (llvm::Expected<std::string> cwd =
-            loader->LoadBuffer<WorkingDirectoryProvider>()) {
-      llvm::StringRef working_dir = llvm::StringRef(*cwd).rtrim();
-      if (std::error_code ec = FileSystem::Instance()
-                                   .GetVirtualFileSystem()
-                                   ->setCurrentWorkingDirectory(working_dir)) {
-        return llvm::errorCodeToError(ec);
-      }
-    } else {
-      return cwd.takeError();
-    }
-  } else if (repro::Generator *g = r.GetGenerator()) {
-    repro::VersionProvider &vp = g->GetOrCreate<repro::VersionProvider>();
-    vp.SetVersion(lldb_private::GetVersion());
-    repro::FileProvider &fp = g->GetOrCreate<repro::FileProvider>();
-    FileSystem::Initialize(fp.GetFileCollector());
-  } else {
-    FileSystem::Initialize();
-  }
+  if (auto e = InitializeFileSystem())
+    return e;
 
   Log::Initialize();
-  HostInfo::Initialize();
+  HostInfo::Initialize(m_shlib_dir_helper);
 
   llvm::Error error = Socket::Initialize();
   if (error)
     return error;
 
-  static Timer::Category func_cat(LLVM_PRETTY_FUNCTION);
-  Timer scoped_timer(func_cat, LLVM_PRETTY_FUNCTION);
+  LLDB_SCOPED_TIMER();
 
   process_gdb_remote::ProcessGDBRemoteLog::Initialize();
 
@@ -121,8 +147,7 @@ llvm::Error SystemInitializerCommon::Initialize() {
 }
 
 void SystemInitializerCommon::Terminate() {
-  static Timer::Category func_cat(LLVM_PRETTY_FUNCTION);
-  Timer scoped_timer(func_cat, LLVM_PRETTY_FUNCTION);
+  LLDB_SCOPED_TIMER();
 
 #if defined(_WIN32)
   ProcessWindowsLog::Terminate();

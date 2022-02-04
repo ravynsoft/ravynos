@@ -1040,7 +1040,8 @@ sleepq_timeout(void *arg)
 	    (void *)td, (long)td->td_proc->p_pid, (void *)td->td_name);
 
 	thread_lock(td);
-	if (td->td_sleeptimo == 0 || td->td_sleeptimo > sbinuptime()) {
+	if (td->td_sleeptimo == 0 ||
+	    td->td_sleeptimo > td->td_slpcallout.c_time) {
 		/*
 		 * The thread does not want a timeout (yet).
 		 */
@@ -1125,7 +1126,8 @@ sleepq_abort(struct thread *td, int intrval)
 	THREAD_LOCK_ASSERT(td, MA_OWNED);
 	MPASS(TD_ON_SLEEPQ(td));
 	MPASS(td->td_flags & TDF_SINTR);
-	MPASS(intrval == EINTR || intrval == ERESTART);
+	MPASS((intrval == 0 && (td->td_flags & TDF_SIGWAIT) != 0) ||
+	    intrval == EINTR || intrval == ERESTART);
 
 	/*
 	 * If the TDF_TIMEOUT flag is set, just leave. A

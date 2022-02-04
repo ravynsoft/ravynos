@@ -41,7 +41,7 @@ private:
   void writeSectionContent(raw_ostream &OS, WasmYAML::FunctionSection &Section);
   void writeSectionContent(raw_ostream &OS, WasmYAML::TableSection &Section);
   void writeSectionContent(raw_ostream &OS, WasmYAML::MemorySection &Section);
-  void writeSectionContent(raw_ostream &OS, WasmYAML::EventSection &Section);
+  void writeSectionContent(raw_ostream &OS, WasmYAML::TagSection &Section);
   void writeSectionContent(raw_ostream &OS, WasmYAML::GlobalSection &Section);
   void writeSectionContent(raw_ostream &OS, WasmYAML::ExportSection &Section);
   void writeSectionContent(raw_ostream &OS, WasmYAML::StartSection &Section);
@@ -60,7 +60,8 @@ private:
   WasmYAML::Object &Obj;
   uint32_t NumImportedFunctions = 0;
   uint32_t NumImportedGlobals = 0;
-  uint32_t NumImportedEvents = 0;
+  uint32_t NumImportedTables = 0;
+  uint32_t NumImportedTags = 0;
 
   bool HasError = false;
   yaml::ErrorHandler ErrHandler;
@@ -116,7 +117,7 @@ static int writeStringRef(const StringRef &Str, raw_ostream &OS) {
 
 static int writeLimits(const WasmYAML::Limits &Lim, raw_ostream &OS) {
   writeUint8(OS, Lim.Flags);
-  encodeULEB128(Lim.Initial, OS);
+  encodeULEB128(Lim.Minimum, OS);
   if (Lim.Flags & wasm::WASM_LIMITS_FLAG_HAS_MAX)
     encodeULEB128(Lim.Maximum, OS);
   return 0;
@@ -187,7 +188,8 @@ void WasmWriter::writeSectionContent(raw_ostream &OS,
       switch (Info.Kind) {
       case wasm::WASM_SYMBOL_TYPE_FUNCTION:
       case wasm::WASM_SYMBOL_TYPE_GLOBAL:
-      case wasm::WASM_SYMBOL_TYPE_EVENT:
+      case wasm::WASM_SYMBOL_TYPE_TABLE:
+      case wasm::WASM_SYMBOL_TYPE_TAG:
         encodeULEB128(Info.ElementIndex, SubSection.getStream());
         if ((Info.Flags & wasm::WASM_SYMBOL_UNDEFINED) == 0 ||
             (Info.Flags & wasm::WASM_SYMBOL_EXPLICIT_NAME) != 0)
@@ -262,6 +264,32 @@ void WasmWriter::writeSectionContent(raw_ostream &OS,
 
     encodeULEB128(Section.FunctionNames.size(), SubSection.getStream());
     for (const WasmYAML::NameEntry &NameEntry : Section.FunctionNames) {
+      encodeULEB128(NameEntry.Index, SubSection.getStream());
+      writeStringRef(NameEntry.Name, SubSection.getStream());
+    }
+
+    SubSection.done();
+  }
+  if (Section.GlobalNames.size()) {
+    writeUint8(OS, wasm::WASM_NAMES_GLOBAL);
+
+    SubSectionWriter SubSection(OS);
+
+    encodeULEB128(Section.GlobalNames.size(), SubSection.getStream());
+    for (const WasmYAML::NameEntry &NameEntry : Section.GlobalNames) {
+      encodeULEB128(NameEntry.Index, SubSection.getStream());
+      writeStringRef(NameEntry.Name, SubSection.getStream());
+    }
+
+    SubSection.done();
+  }
+  if (Section.DataSegmentNames.size()) {
+    writeUint8(OS, wasm::WASM_NAMES_DATA_SEGMENT);
+
+    SubSectionWriter SubSection(OS);
+
+    encodeULEB128(Section.DataSegmentNames.size(), SubSection.getStream());
+    for (const WasmYAML::NameEntry &NameEntry : Section.DataSegmentNames) {
       encodeULEB128(NameEntry.Index, SubSection.getStream());
       writeStringRef(NameEntry.Name, SubSection.getStream());
     }
@@ -357,10 +385,10 @@ void WasmWriter::writeSectionContent(raw_ostream &OS,
       writeUint8(OS, Import.GlobalImport.Mutable);
       NumImportedGlobals++;
       break;
-    case wasm::WASM_EXTERNAL_EVENT:
-      writeUint32(OS, Import.EventImport.Attribute);
-      writeUint32(OS, Import.EventImport.SigIndex);
-      NumImportedGlobals++;
+    case wasm::WASM_EXTERNAL_TAG:
+      writeUint32(OS, Import.TagImport.Attribute);
+      writeUint32(OS, Import.TagImport.SigIndex);
+      NumImportedTags++;
       break;
     case wasm::WASM_EXTERNAL_MEMORY:
       writeLimits(Import.Memory, OS);
@@ -368,6 +396,7 @@ void WasmWriter::writeSectionContent(raw_ostream &OS,
     case wasm::WASM_EXTERNAL_TABLE:
       writeUint8(OS, Import.TableImport.ElemType);
       writeLimits(Import.TableImport.TableLimits, OS);
+      NumImportedTables++;
       break;
     default:
       reportError("unknown import type: " +Twine(Import.Kind));
@@ -401,7 +430,13 @@ void WasmWriter::writeSectionContent(raw_ostream &OS,
 void WasmWriter::writeSectionContent(raw_ostream &OS,
                                      WasmYAML::TableSection &Section) {
   encodeULEB128(Section.Tables.size(), OS);
+  uint32_t ExpectedIndex = NumImportedTables;
   for (auto &Table : Section.Tables) {
+    if (Table.Index != ExpectedIndex) {
+      reportError("unexpected table index: " + Twine(Table.Index));
+      return;
+    }
+    ++ExpectedIndex;
     writeUint8(OS, Table.ElemType);
     writeLimits(Table.TableLimits, OS);
   }
@@ -415,17 +450,17 @@ void WasmWriter::writeSectionContent(raw_ostream &OS,
 }
 
 void WasmWriter::writeSectionContent(raw_ostream &OS,
-                                     WasmYAML::EventSection &Section) {
-  encodeULEB128(Section.Events.size(), OS);
-  uint32_t ExpectedIndex = NumImportedEvents;
-  for (auto &Event : Section.Events) {
-    if (Event.Index != ExpectedIndex) {
-      reportError("unexpected event index: " + Twine(Event.Index));
+                                     WasmYAML::TagSection &Section) {
+  encodeULEB128(Section.Tags.size(), OS);
+  uint32_t ExpectedIndex = NumImportedTags;
+  for (auto &Tag : Section.Tags) {
+    if (Tag.Index != ExpectedIndex) {
+      reportError("unexpected tag index: " + Twine(Tag.Index));
       return;
     }
     ++ExpectedIndex;
-    encodeULEB128(Event.Attribute, OS);
-    encodeULEB128(Event.SigIndex, OS);
+    encodeULEB128(Tag.Attribute, OS);
+    encodeULEB128(Tag.SigIndex, OS);
   }
 }
 
@@ -449,8 +484,23 @@ void WasmWriter::writeSectionContent(raw_ostream &OS,
                                      WasmYAML::ElemSection &Section) {
   encodeULEB128(Section.Segments.size(), OS);
   for (auto &Segment : Section.Segments) {
-    encodeULEB128(Segment.TableIndex, OS);
+    encodeULEB128(Segment.Flags, OS);
+    if (Segment.Flags & wasm::WASM_ELEM_SEGMENT_HAS_TABLE_NUMBER)
+      encodeULEB128(Segment.TableNumber, OS);
+
     writeInitExpr(OS, Segment.Offset);
+
+    if (Segment.Flags & wasm::WASM_ELEM_SEGMENT_MASK_HAS_ELEM_KIND) {
+      // We only support active function table initializers, for which the elem
+      // kind is specified to be written as 0x00 and interpreted to mean
+      // "funcref".
+      if (Segment.ElemKind != uint32_t(wasm::ValType::FUNCREF)) {
+        reportError("unexpected elemkind: " + Twine(Segment.ElemKind));
+        return;
+      }
+      const uint8_t ElemKind = 0;
+      writeUint8(OS, ElemKind);
+    }
 
     encodeULEB128(Segment.Functions.size(), OS);
     for (auto &Function : Segment.Functions)
@@ -491,9 +541,9 @@ void WasmWriter::writeSectionContent(raw_ostream &OS,
   encodeULEB128(Section.Segments.size(), OS);
   for (auto &Segment : Section.Segments) {
     encodeULEB128(Segment.InitFlags, OS);
-    if (Segment.InitFlags & wasm::WASM_SEGMENT_HAS_MEMINDEX)
+    if (Segment.InitFlags & wasm::WASM_DATA_SEGMENT_HAS_MEMINDEX)
       encodeULEB128(Segment.MemoryIndex, OS);
-    if ((Segment.InitFlags & wasm::WASM_SEGMENT_IS_PASSIVE) == 0)
+    if ((Segment.InitFlags & wasm::WASM_DATA_SEGMENT_IS_PASSIVE) == 0)
       writeInitExpr(OS, Segment.Offset);
     encodeULEB128(Segment.Content.binary_size(), OS);
     Segment.Content.writeAsBinary(OS);
@@ -538,8 +588,10 @@ void WasmWriter::writeRelocSection(raw_ostream &OS, WasmYAML::Section &Sec,
     case wasm::R_WASM_MEMORY_ADDR_I32:
     case wasm::R_WASM_MEMORY_ADDR_I64:
     case wasm::R_WASM_FUNCTION_OFFSET_I32:
+    case wasm::R_WASM_FUNCTION_OFFSET_I64:
     case wasm::R_WASM_SECTION_OFFSET_I32:
-      encodeULEB128(Reloc.Addend, OS);
+      encodeSLEB128(Reloc.Addend, OS);
+      break;
     }
   }
 }
@@ -574,7 +626,7 @@ bool WasmWriter::writeWasm(raw_ostream &OS) {
       writeSectionContent(StringStream, *S);
     else if (auto S = dyn_cast<WasmYAML::MemorySection>(Sec.get()))
       writeSectionContent(StringStream, *S);
-    else if (auto S = dyn_cast<WasmYAML::EventSection>(Sec.get()))
+    else if (auto S = dyn_cast<WasmYAML::TagSection>(Sec.get()))
       writeSectionContent(StringStream, *S);
     else if (auto S = dyn_cast<WasmYAML::GlobalSection>(Sec.get()))
       writeSectionContent(StringStream, *S);

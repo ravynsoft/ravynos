@@ -196,7 +196,7 @@ bool ItaniumABILanguageRuntime::GetDynamicTypeAndAddress(
   //
 
   class_type_or_name.Clear();
-  value_type = Value::ValueType::eValueTypeScalar;
+  value_type = Value::ValueType::Scalar;
 
   // Only a pointer or reference type can have a different dynamic and static
   // type:
@@ -536,7 +536,7 @@ ValueObjectSP ItaniumABILanguageRuntime::GetExceptionObjectForThread(
     return {};
 
   TypeSystemClang *clang_ast_context =
-      TypeSystemClang::GetScratch(m_process->GetTarget());
+      ScratchTypeSystemClang::GetForTarget(m_process->GetTarget());
   if (!clang_ast_context)
     return {};
 

@@ -20,17 +20,20 @@
 #undef PPC
 
 namespace llvm {
-  class PPCTargetMachine;
-  class PassRegistry;
-  class FunctionPass;
-  class MachineInstr;
-  class MachineOperand;
-  class AsmPrinter;
-  class MCInst;
-  class MCOperand;
-  class ModulePass;
-  
-  FunctionPass *createPPCCTRLoops();
+class PPCRegisterBankInfo;
+class PPCSubtarget;
+class PPCTargetMachine;
+class PassRegistry;
+class FunctionPass;
+class InstructionSelector;
+class MachineInstr;
+class MachineOperand;
+class AsmPrinter;
+class MCInst;
+class MCOperand;
+class ModulePass;
+
+FunctionPass *createPPCCTRLoops();
 #ifndef NDEBUG
   FunctionPass *createPPCCTRLoopsVerify();
 #endif
@@ -44,12 +47,12 @@ namespace llvm {
   FunctionPass *createPPCMIPeepholePass();
   FunctionPass *createPPCBranchSelectionPass();
   FunctionPass *createPPCBranchCoalescingPass();
-  FunctionPass *createPPCQPXLoadSplatPass();
   FunctionPass *createPPCISelDag(PPCTargetMachine &TM, CodeGenOpt::Level OL);
   FunctionPass *createPPCTLSDynamicCallPass();
   FunctionPass *createPPCBoolRetToIntPass();
   FunctionPass *createPPCExpandISELPass();
   FunctionPass *createPPCPreEmitPeepholePass();
+  FunctionPass *createPPCExpandAtomicPseudoPass();
   void LowerPPCMachineInstrToMCInst(const MachineInstr *MI, MCInst &OutMI,
                                     AsmPrinter &AP);
   bool LowerPPCMachineOperandToMCOperand(const MachineOperand &MO,
@@ -68,19 +71,22 @@ namespace llvm {
   void initializePPCReduceCRLogicalsPass(PassRegistry&);
   void initializePPCBSelPass(PassRegistry&);
   void initializePPCBranchCoalescingPass(PassRegistry&);
-  void initializePPCQPXLoadSplatPass(PassRegistry&);
   void initializePPCBoolRetToIntPass(PassRegistry&);
   void initializePPCExpandISELPass(PassRegistry &);
   void initializePPCPreEmitPeepholePass(PassRegistry &);
   void initializePPCTLSDynamicCallPass(PassRegistry &);
   void initializePPCMIPeepholePass(PassRegistry&);
+  void initializePPCExpandAtomicPseudoPass(PassRegistry &);
 
   extern char &PPCVSXFMAMutateID;
 
   ModulePass *createPPCLowerMASSVEntriesPass();
   void initializePPCLowerMASSVEntriesPass(PassRegistry &);
   extern char &PPCLowerMASSVEntriesID;
-  
+
+  InstructionSelector *
+  createPPCInstructionSelector(const PPCTargetMachine &, const PPCSubtarget &,
+                               const PPCRegisterBankInfo &);
   namespace PPCII {
 
   /// Target Operand Flag enum.
@@ -106,6 +112,42 @@ namespace llvm {
     /// via the GOT. For example when combined with the MO_PCREL_FLAG it should
     /// produce the relocation @got@pcrel. Fixup is VK_PPC_GOT_PCREL.
     MO_GOT_FLAG = 8,
+
+    // MO_PCREL_OPT_FLAG - If this bit is set the operand is part of a
+    // PC Relative linker optimization.
+    MO_PCREL_OPT_FLAG = 16,
+
+    /// MO_TLSGD_FLAG - If this bit is set the symbol reference is relative to
+    /// TLS General Dynamic model for Linux and the variable offset of TLS
+    /// General Dynamic model for AIX.
+    MO_TLSGD_FLAG = 32,
+
+    /// MO_TPREL_FLAG - If this bit is set the symbol reference is relative to
+    /// TLS Initial Exec model.
+    MO_TPREL_FLAG = 64,
+
+    /// MO_TLSLD_FLAG - If this bit is set the symbol reference is relative to
+    /// TLS Local Dynamic model.
+    MO_TLSLD_FLAG = 128,
+
+    /// MO_TLSGDM_FLAG - If this bit is set the symbol reference is relative
+    /// to the region handle of TLS General Dynamic model for AIX.
+    MO_TLSGDM_FLAG = 256,
+
+    /// MO_GOT_TLSGD_PCREL_FLAG - A combintaion of flags, if these bits are set
+    /// they should produce the relocation @got@tlsgd@pcrel.
+    /// Fix up is VK_PPC_GOT_TLSGD_PCREL
+    MO_GOT_TLSGD_PCREL_FLAG = MO_PCREL_FLAG | MO_GOT_FLAG | MO_TLSGD_FLAG,
+
+    /// MO_GOT_TLSLD_PCREL_FLAG - A combintaion of flags, if these bits are set
+    /// they should produce the relocation @got@tlsld@pcrel.
+    /// Fix up is VK_PPC_GOT_TLSLD_PCREL
+    MO_GOT_TLSLD_PCREL_FLAG = MO_PCREL_FLAG | MO_GOT_FLAG | MO_TLSLD_FLAG,
+
+    /// MO_GOT_TPREL_PCREL_FLAG - A combintaion of flags, if these bits are set
+    /// they should produce the relocation @got@tprel@pcrel.
+    /// Fix up is VK_PPC_GOT_TPREL_PCREL
+    MO_GOT_TPREL_PCREL_FLAG = MO_GOT_FLAG | MO_TPREL_FLAG | MO_PCREL_FLAG,
 
     /// The next are not flags but distinct values.
     MO_ACCESS_MASK = 0xf00,

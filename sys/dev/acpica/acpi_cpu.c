@@ -140,12 +140,6 @@ struct acpi_cpu_device {
 
 #define	CPUDEV_DEVICE_ID	"ACPI0007"
 
-/* Allow users to ignore processor orders in MADT. */
-static int cpu_unordered;
-SYSCTL_INT(_debug_acpi, OID_AUTO, cpu_unordered, CTLFLAG_RDTUN,
-    &cpu_unordered, 0,
-    "Do not use the MADT to match ACPI Processor objects to CPUs.");
-
 /* Knob to disable acpi_cpu devices */
 bool acpi_cpu_disabled = false;
 
@@ -160,8 +154,6 @@ static struct sysctl_oid *cpu_sysctl_tree;
 static int		 cpu_cx_generic;
 static int		 cpu_cx_lowest_lim;
 
-static device_t		*cpu_devices;
-static int		 cpu_ndevices;
 static struct acpi_cpu_softc **cpu_softc;
 ACPI_SERIAL_DECL(cpu, "ACPI CPU");
 
@@ -169,8 +161,8 @@ static int	acpi_cpu_probe(device_t dev);
 static int	acpi_cpu_attach(device_t dev);
 static int	acpi_cpu_suspend(device_t dev);
 static int	acpi_cpu_resume(device_t dev);
-static int	acpi_pcpu_get_id(device_t dev, uint32_t *acpi_id,
-		    uint32_t *cpu_id);
+static int	acpi_pcpu_get_id(device_t dev, uint32_t acpi_id,
+		    u_int *cpu_id);
 static struct resource_list *acpi_cpu_get_rlist(device_t dev, device_t child);
 static device_t	acpi_cpu_add_child(device_t dev, u_int order, const char *name,
 		    int unit);
@@ -291,19 +283,16 @@ acpi_cpu_probe(device_t dev)
 	    return (ENXIO);
 	}
     }
-    if (acpi_pcpu_get_id(dev, &acpi_id, &cpu_id) != 0)
+    if (acpi_pcpu_get_id(dev, acpi_id, &cpu_id) != 0) {
+	if (bootverbose && (type != ACPI_TYPE_PROCESSOR || acpi_id != 255))
+	    printf("ACPI: Processor %s (ACPI ID %u) ignored\n",
+		acpi_name(acpi_get_handle(dev)), acpi_id);
+	return (ENXIO);
+    }
+
+    if (device_set_unit(dev, cpu_id) != 0)
 	return (ENXIO);
 
-    /*
-     * Check if we already probed this processor.  We scan the bus twice
-     * so it's possible we've already seen this one.
-     */
-    if (cpu_softc[cpu_id] != NULL)
-	return (ENXIO);
-
-    /* Mark this processor as in-use and save our derived id for attach. */
-    cpu_softc[cpu_id] = (void *)1;
-    acpi_set_private(dev, (void*)(intptr_t)cpu_id);
     device_set_desc(dev, "ACPI CPU");
 
     if (!bootverbose && device_get_unit(dev) != 0) {
@@ -339,7 +328,7 @@ acpi_cpu_attach(device_t dev)
     sc = device_get_softc(dev);
     sc->cpu_dev = dev;
     sc->cpu_handle = acpi_get_handle(dev);
-    cpu_id = (int)(intptr_t)acpi_get_private(dev);
+    cpu_id = device_get_unit(dev);
     cpu_softc[cpu_id] = sc;
     pcpu_data = pcpu_find(cpu_id);
     pcpu_data->pc_device = dev;
@@ -452,26 +441,24 @@ acpi_cpu_attach(device_t dev)
 static void
 acpi_cpu_postattach(void *unused __unused)
 {
-    device_t *devices;
-    int err;
-    int i, n;
-    int attached;
+    struct acpi_cpu_softc *sc;
+    int attached = 0, i;
 
-    err = devclass_get_devices(acpi_cpu_devclass, &devices, &n);
-    if (err != 0) {
-	printf("devclass_get_devices(acpi_cpu_devclass) failed\n");
+    if (cpu_softc == NULL)
 	return;
+
+    mtx_lock(&Giant);
+    CPU_FOREACH(i) {
+	if ((sc = cpu_softc[i]) != NULL)
+		bus_generic_probe(sc->cpu_dev);
     }
-    attached = 0;
-    for (i = 0; i < n; i++)
-	if (device_is_attached(devices[i]) &&
-	    device_get_driver(devices[i]) == &acpi_cpu_driver)
-	    attached = 1;
-    for (i = 0; i < n; i++)
-	bus_generic_probe(devices[i]);
-    for (i = 0; i < n; i++)
-	bus_generic_attach(devices[i]);
-    free(devices, M_TEMP);
+    CPU_FOREACH(i) {
+	if ((sc = cpu_softc[i]) != NULL) {
+		bus_generic_attach(sc->cpu_dev);
+		attached = 1;
+	}
+    }
+    mtx_unlock(&Giant);
 
     if (attached) {
 #ifdef EARLY_AP_STARTUP
@@ -546,65 +533,33 @@ acpi_cpu_resume(device_t dev)
 }
 
 /*
- * Find the processor associated with a given ACPI ID.  By default,
- * use the MADT to map ACPI IDs to APIC IDs and use that to locate a
- * processor.  Some systems have inconsistent ASL and MADT however.
- * For these systems the cpu_unordered tunable can be set in which
- * case we assume that Processor objects are listed in the same order
- * in both the MADT and ASL.
+ * Find the processor associated with a given ACPI ID.
  */
 static int
-acpi_pcpu_get_id(device_t dev, uint32_t *acpi_id, uint32_t *cpu_id)
+acpi_pcpu_get_id(device_t dev, uint32_t acpi_id, u_int *cpu_id)
 {
     struct pcpu	*pc;
-    uint32_t	 i, idx;
+    u_int	 i;
 
-    KASSERT(acpi_id != NULL, ("Null acpi_id"));
-    KASSERT(cpu_id != NULL, ("Null cpu_id"));
-    idx = device_get_unit(dev);
+    CPU_FOREACH(i) {
+	pc = pcpu_find(i);
+	if (pc->pc_acpi_id == acpi_id) {
+	    *cpu_id = pc->pc_cpuid;
+	    return (0);
+	}
+    }
 
     /*
      * If pc_acpi_id for CPU 0 is not initialized (e.g. a non-APIC
      * UP box) use the ACPI ID from the first processor we find.
      */
-    if (idx == 0 && mp_ncpus == 1) {
+    if (mp_ncpus == 1) {
 	pc = pcpu_find(0);
 	if (pc->pc_acpi_id == 0xffffffff)
-	    pc->pc_acpi_id = *acpi_id;
+	    pc->pc_acpi_id = acpi_id;
 	*cpu_id = 0;
 	return (0);
     }
-
-    CPU_FOREACH(i) {
-	pc = pcpu_find(i);
-	KASSERT(pc != NULL, ("no pcpu data for %d", i));
-	if (cpu_unordered) {
-	    if (idx-- == 0) {
-		/*
-		 * If pc_acpi_id doesn't match the ACPI ID from the
-		 * ASL, prefer the MADT-derived value.
-		 */
-		if (pc->pc_acpi_id != *acpi_id)
-		    *acpi_id = pc->pc_acpi_id;
-		*cpu_id = pc->pc_cpuid;
-		return (0);
-	    }
-	} else {
-	    if (pc->pc_acpi_id == *acpi_id) {
-		if (bootverbose)
-		    device_printf(dev,
-			"Processor %s (ACPI ID %u) -> APIC ID %d\n",
-			acpi_name(acpi_get_handle(dev)), *acpi_id,
-			pc->pc_cpuid);
-		*cpu_id = pc->pc_cpuid;
-		return (0);
-	    }
-	}
-    }
-
-    if (bootverbose)
-	printf("ACPI: Processor %s (ACPI ID %u) ignored\n",
-	    acpi_name(acpi_get_handle(dev)), *acpi_id);
 
     return (ESRCH);
 }
@@ -978,9 +933,6 @@ acpi_cpu_startup(void *arg)
     struct acpi_cpu_softc *sc;
     int i;
 
-    /* Get set of CPU devices */
-    devclass_get_devices(acpi_cpu_devclass, &cpu_devices, &cpu_ndevices);
-
     /*
      * Setup any quirks that might necessary now that we have probed
      * all the CPUs
@@ -992,9 +944,9 @@ acpi_cpu_startup(void *arg)
 	 * We are using generic Cx mode, probe for available Cx states
 	 * for all processors.
 	 */
-	for (i = 0; i < cpu_ndevices; i++) {
-	    sc = device_get_softc(cpu_devices[i]);
-	    acpi_cpu_generic_cx_probe(sc);
+	CPU_FOREACH(i) {
+	    if ((sc = cpu_softc[i]) != NULL)
+		acpi_cpu_generic_cx_probe(sc);
 	}
     } else {
 	/*
@@ -1002,8 +954,9 @@ acpi_cpu_startup(void *arg)
 	 * As we now know for sure that we will be using _CST mode
 	 * install our notify handler.
 	 */
-	for (i = 0; i < cpu_ndevices; i++) {
-	    sc = device_get_softc(cpu_devices[i]);
+	CPU_FOREACH(i) {
+	    if ((sc = cpu_softc[i]) == NULL)
+		continue;
 	    if (cpu_quirks & CPU_QUIRK_NO_C3) {
 		sc->cpu_cx_count = min(sc->cpu_cx_count, sc->cpu_non_c3 + 1);
 	    }
@@ -1013,22 +966,22 @@ acpi_cpu_startup(void *arg)
     }
 
     /* Perform Cx final initialization. */
-    for (i = 0; i < cpu_ndevices; i++) {
-	sc = device_get_softc(cpu_devices[i]);
-	acpi_cpu_startup_cx(sc);
+    CPU_FOREACH(i) {
+	if ((sc = cpu_softc[i]) != NULL)
+	    acpi_cpu_startup_cx(sc);
     }
 
     /* Add a sysctl handler to handle global Cx lowest setting */
     SYSCTL_ADD_PROC(&cpu_sysctl_ctx, SYSCTL_CHILDREN(cpu_sysctl_tree),
-	OID_AUTO, "cx_lowest", CTLTYPE_STRING | CTLFLAG_RW | CTLFLAG_NEEDGIANT,
+	OID_AUTO, "cx_lowest", CTLTYPE_STRING | CTLFLAG_RW | CTLFLAG_MPSAFE,
 	NULL, 0, acpi_cpu_global_cx_lowest_sysctl, "A",
 	"Global lowest Cx sleep state to use");
 
     /* Take over idling from cpu_idle_default(). */
     cpu_cx_lowest_lim = 0;
-    for (i = 0; i < cpu_ndevices; i++) {
-	sc = device_get_softc(cpu_devices[i]);
-	enable_idle(sc);
+    CPU_FOREACH(i) {
+	if ((sc = cpu_softc[i]) != NULL)
+	    enable_idle(sc);
     }
 #if defined(__i386__) || defined(__amd64__)
     cpu_idle_hook = acpi_cpu_idle;
@@ -1065,23 +1018,23 @@ acpi_cpu_startup_cx(struct acpi_cpu_softc *sc)
 		      "Cx/microsecond values for supported Cx states");
     SYSCTL_ADD_PROC(&sc->cpu_sysctl_ctx,
         SYSCTL_CHILDREN(device_get_sysctl_tree(sc->cpu_dev)), OID_AUTO,
-	"cx_lowest", CTLTYPE_STRING | CTLFLAG_RW | CTLFLAG_NEEDGIANT,
+	"cx_lowest", CTLTYPE_STRING | CTLFLAG_RW | CTLFLAG_MPSAFE,
 	(void *)sc, 0, acpi_cpu_cx_lowest_sysctl, "A",
 	"lowest Cx sleep state to use");
     SYSCTL_ADD_PROC(&sc->cpu_sysctl_ctx,
         SYSCTL_CHILDREN(device_get_sysctl_tree(sc->cpu_dev)), OID_AUTO,
-	"cx_usage", CTLTYPE_STRING | CTLFLAG_RD | CTLFLAG_NEEDGIANT,
+	"cx_usage", CTLTYPE_STRING | CTLFLAG_RD | CTLFLAG_MPSAFE,
 	(void *)sc, 0, acpi_cpu_usage_sysctl, "A",
 	"percent usage for each Cx state");
     SYSCTL_ADD_PROC(&sc->cpu_sysctl_ctx,
         SYSCTL_CHILDREN(device_get_sysctl_tree(sc->cpu_dev)), OID_AUTO,
-	"cx_usage_counters", CTLTYPE_STRING | CTLFLAG_RD | CTLFLAG_NEEDGIANT,
+	"cx_usage_counters", CTLTYPE_STRING | CTLFLAG_RD | CTLFLAG_MPSAFE,
 	(void *)sc, 0, acpi_cpu_usage_counters_sysctl, "A",
 	"Cx sleep state counters");
 #if defined(__i386__) || defined(__amd64__)
     SYSCTL_ADD_PROC(&sc->cpu_sysctl_ctx,
         SYSCTL_CHILDREN(device_get_sysctl_tree(sc->cpu_dev)), OID_AUTO,
-	"cx_method", CTLTYPE_STRING | CTLFLAG_RD | CTLFLAG_NEEDGIANT,
+	"cx_method", CTLTYPE_STRING | CTLFLAG_RD | CTLFLAG_MPSAFE,
 	(void *)sc, 0, acpi_cpu_method_sysctl, "A", "Cx entrance methods");
 #endif
 
@@ -1386,33 +1339,29 @@ acpi_cpu_quirks_piix4(void)
 static int
 acpi_cpu_usage_sysctl(SYSCTL_HANDLER_ARGS)
 {
-    struct acpi_cpu_softc *sc;
-    struct sbuf	 sb;
-    char	 buf[128];
-    int		 i;
-    uintmax_t	 fract, sum, whole;
+	struct acpi_cpu_softc *sc = (struct acpi_cpu_softc *)arg1;
+	struct sbuf	 sb;
+	char		 buf[128];
+	int		 error, i;
+	uintmax_t	 fract, sum, whole;
 
-    sc = (struct acpi_cpu_softc *) arg1;
-    sum = 0;
-    for (i = 0; i < sc->cpu_cx_count; i++)
-	sum += sc->cpu_cx_stats[i];
-    sbuf_new(&sb, buf, sizeof(buf), SBUF_FIXEDLEN);
-    for (i = 0; i < sc->cpu_cx_count; i++) {
-	if (sum > 0) {
-	    whole = (uintmax_t)sc->cpu_cx_stats[i] * 100;
-	    fract = (whole % sum) * 100;
-	    sbuf_printf(&sb, "%u.%02u%% ", (u_int)(whole / sum),
-		(u_int)(fract / sum));
-	} else
-	    sbuf_printf(&sb, "0.00%% ");
-    }
-    sbuf_printf(&sb, "last %dus", sc->cpu_prev_sleep);
-    sbuf_trim(&sb);
-    sbuf_finish(&sb);
-    sysctl_handle_string(oidp, sbuf_data(&sb), sbuf_len(&sb), req);
-    sbuf_delete(&sb);
-
-    return (0);
+	sbuf_new_for_sysctl(&sb, buf, sizeof(buf), req);
+	sum = 0;
+	for (i = 0; i < sc->cpu_cx_count; i++)
+		sum += sc->cpu_cx_stats[i];
+	for (i = 0; i < sc->cpu_cx_count; i++) {
+		if (sum > 0) {
+			whole = (uintmax_t)sc->cpu_cx_stats[i] * 100;
+			fract = (whole % sum) * 100;
+			sbuf_printf(&sb, "%u.%02u%% ", (u_int)(whole / sum),
+			    (u_int)(fract / sum));
+		} else
+			sbuf_printf(&sb, "0.00%% ");
+	}
+	sbuf_printf(&sb, "last %dus", sc->cpu_prev_sleep);
+	error = sbuf_finish(&sb);
+	sbuf_delete(&sb);
+	return (error);
 }
 
 /*
@@ -1422,42 +1371,37 @@ acpi_cpu_usage_sysctl(SYSCTL_HANDLER_ARGS)
 static int
 acpi_cpu_usage_counters_sysctl(SYSCTL_HANDLER_ARGS)
 {
-    struct acpi_cpu_softc *sc;
-    struct sbuf	 sb;
-    char	 buf[128];
-    int		 i;
+	struct acpi_cpu_softc *sc = (struct acpi_cpu_softc *)arg1;
+	struct sbuf	 sb;
+	char		 buf[128];
+	int		 error, i;
 
-    sc = (struct acpi_cpu_softc *) arg1;
-
-    /* Print out the raw counters */
-    sbuf_new(&sb, buf, sizeof(buf), SBUF_FIXEDLEN);
-
-    for (i = 0; i < sc->cpu_cx_count; i++) {
-        sbuf_printf(&sb, "%u ", sc->cpu_cx_stats[i]);
-    }
-
-    sbuf_trim(&sb);
-    sbuf_finish(&sb);
-    sysctl_handle_string(oidp, sbuf_data(&sb), sbuf_len(&sb), req);
-    sbuf_delete(&sb);
-
-    return (0);
+	sbuf_new_for_sysctl(&sb, buf, sizeof(buf), req);
+	for (i = 0; i < sc->cpu_cx_count; i++) {
+		if (i > 0)
+			sbuf_putc(&sb, ' ');
+		sbuf_printf(&sb, "%u", sc->cpu_cx_stats[i]);
+	}
+	error = sbuf_finish(&sb);
+	sbuf_delete(&sb);
+	return (error);
 }
 
 #if defined(__i386__) || defined(__amd64__)
 static int
 acpi_cpu_method_sysctl(SYSCTL_HANDLER_ARGS)
 {
-	struct acpi_cpu_softc *sc;
+	struct acpi_cpu_softc *sc = (struct acpi_cpu_softc *)arg1;
 	struct acpi_cx *cx;
 	struct sbuf sb;
 	char buf[128];
-	int i;
+	int error, i;
 
-	sc = (struct acpi_cpu_softc *)arg1;
-	sbuf_new(&sb, buf, sizeof(buf), SBUF_FIXEDLEN);
+	sbuf_new_for_sysctl(&sb, buf, sizeof(buf), req);
 	for (i = 0; i < sc->cpu_cx_count; i++) {
 		cx = &sc->cpu_cx_states[i];
+		if (i > 0)
+			sbuf_putc(&sb, ' ');
 		sbuf_printf(&sb, "C%d/", i + 1);
 		if (cx->do_mwait) {
 			sbuf_cat(&sb, "mwait");
@@ -1472,13 +1416,10 @@ acpi_cpu_method_sysctl(SYSCTL_HANDLER_ARGS)
 		}
 		if (cx->type == ACPI_STATE_C1 && cx->p_lvlx != NULL)
 			sbuf_cat(&sb, "/iohlt");
-		sbuf_putc(&sb, ' ');
 	}
-	sbuf_trim(&sb);
-	sbuf_finish(&sb);
-	sysctl_handle_string(oidp, sbuf_data(&sb), sbuf_len(&sb), req);
+	error = sbuf_finish(&sb);
 	sbuf_delete(&sb);
-	return (0);
+	return (error);
 }
 #endif
 
@@ -1558,8 +1499,9 @@ acpi_cpu_global_cx_lowest_sysctl(SYSCTL_HANDLER_ARGS)
     /* Update the new lowest useable Cx state for all CPUs. */
     ACPI_SERIAL_BEGIN(cpu);
     cpu_cx_lowest_lim = val - 1;
-    for (i = 0; i < cpu_ndevices; i++) {
-	sc = device_get_softc(cpu_devices[i]);
+    CPU_FOREACH(i) {
+	if ((sc = cpu_softc[i]) == NULL)
+	    continue;
 	sc->cpu_cx_lowest_lim = cpu_cx_lowest_lim;
 	acpi_cpu_set_cx_lowest(sc);
     }

@@ -359,7 +359,8 @@ ifnet_byindex_ref(u_short idx)
 	ifp = ifnet_byindex(idx);
 	if (ifp == NULL || (ifp->if_flags & IFF_DYING))
 		return (NULL);
-	if_ref(ifp);
+	if (!if_try_ref(ifp))
+		return (NULL);
 	return (ifp);
 }
 
@@ -738,9 +739,18 @@ if_free(struct ifnet *ifp)
 void
 if_ref(struct ifnet *ifp)
 {
+	u_int old;
 
 	/* We don't assert the ifnet list lock here, but arguably should. */
-	refcount_acquire(&ifp->if_refcount);
+	old = refcount_acquire(&ifp->if_refcount);
+	KASSERT(old > 0, ("%s: ifp %p has 0 refs", __func__, ifp));
+}
+
+bool
+if_try_ref(struct ifnet *ifp)
+{
+	NET_EPOCH_ASSERT();
+	return (refcount_acquire_if_not_zero(&ifp->if_refcount));
 }
 
 void
@@ -2205,14 +2215,17 @@ static void
 if_unroute(struct ifnet *ifp, int flag, int fam)
 {
 	struct ifaddr *ifa;
+	struct epoch_tracker et;
 
 	KASSERT(flag == IFF_UP, ("if_unroute: flag != IFF_UP"));
 
 	ifp->if_flags &= ~flag;
 	getmicrotime(&ifp->if_lastchange);
+	NET_EPOCH_ENTER(et);
 	CK_STAILQ_FOREACH(ifa, &ifp->if_addrhead, ifa_link)
 		if (fam == PF_UNSPEC || (fam == ifa->ifa_addr->sa_family))
 			pfctlinput(PRC_IFDOWN, ifa->ifa_addr);
+	NET_EPOCH_EXIT(et);
 	ifp->if_qflush(ifp);
 
 	if (ifp->if_carp)
@@ -2228,14 +2241,17 @@ static void
 if_route(struct ifnet *ifp, int flag, int fam)
 {
 	struct ifaddr *ifa;
+	struct epoch_tracker et;
 
 	KASSERT(flag == IFF_UP, ("if_route: flag != IFF_UP"));
 
 	ifp->if_flags |= flag;
 	getmicrotime(&ifp->if_lastchange);
+	NET_EPOCH_ENTER(et);
 	CK_STAILQ_FOREACH(ifa, &ifp->if_addrhead, ifa_link)
 		if (fam == PF_UNSPEC || (fam == ifa->ifa_addr->sa_family))
 			pfctlinput(PRC_IFUP, ifa->ifa_addr);
+	NET_EPOCH_EXIT(et);
 	if (ifp->if_carp)
 		(*carp_linkstate_p)(ifp);
 	rt_ifmsg(ifp);

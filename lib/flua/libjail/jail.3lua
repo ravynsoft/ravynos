@@ -30,10 +30,13 @@
 .Dt JAIL 3lua
 .Os
 .Sh NAME
+.Nm attach ,
 .Nm getid ,
 .Nm getname ,
+.Nm list ,
 .Nm allparams ,
 .Nm getparams ,
+.Nm remove ,
 .Nm setparams ,
 .Nm CREATE ,
 .Nm UPDATE ,
@@ -47,10 +50,13 @@ local jail = require('jail')
 .Ed
 .Pp
 .Bl -tag -width XXXX -compact
+.It Dv ok, err = jail.attach(jid|name)
 .It Dv jid, err = jail.getid(name)
 .It Dv name, err = jail.getname(jid)
 .It Dv params, err = jail.allparams()
+.It Dv iter, jail_obj = jail.list([params])
 .It Dv jid, res = jail.getparams(jid|name, params [, flags ] )
+.It Dv ok, err = jail.remove(jid|name)
 .It Dv jid, err = jail.setparams(jid|name, params, flags )
 .It Dv jail.CREATE
 .It Dv jail.UPDATE
@@ -69,6 +75,11 @@ and
 .Xr jail_set 2
 system calls.
 .Bl -tag -width XXXX
+.It Dv ok, err = jail.attach(jid|name)
+Attach to the given jail, identified by an integer
+.Fa jid
+or the
+.Fa name .
 .It Dv jid, err = jail.getid(name)
 Get the jail identifier
 .Pq jid
@@ -79,6 +90,21 @@ is the name of a jail or a jid in the form of a string.
 Get the name of a jail as a string for the given
 .Fa jid
 .Pq an integer .
+.It Dv iter, jail_obj = jail.list([params])
+Returns an iterator over running jails on the system.
+.Dv params
+is a list of parameters to fetch for each jail as we iterate.
+.Dv jid
+and
+.Dv name
+will always be returned, and may be omitted from
+.Dv params .
+Additionally,
+.Dv params
+may be omitted or an empty table, but not nil.
+.Pp
+See
+.Sx EXAMPLES .
 .It Dv params, err = jail.allparams()
 Get a list of all supported parameter names
 .Pq as strings .
@@ -97,6 +123,11 @@ See the list of flags below.
 Only the
 .Dv DYING
 flag is valid to set.
+.It Dv ok, err = jail.remove(jid|name)
+Remove the given jail, identified by an integer
+.Fa jid
+or the
+.Fa name .
 .It Dv jid, err = jail.setparams(jid|name, params [, flags ] )
 Set parameters for a given jail.
 This is used to create, update, attach to, or destroy a jail.
@@ -167,6 +198,18 @@ function returns a jail identifier integer and a table of jail parameters
 with parameter name strings as keys and strings for values on success, or
 .Dv nil
 and an error message string if an error occurred.
+.Pp
+The
+.Fn list
+function returns an iterator over the list of running jails.
+.Pp
+The
+.Fn attach
+and
+.Fn remove
+functions return true on success, or
+.Dv nil
+and an error message string if an error occurred.
 .Sh EXAMPLES
 Set the hostname of jail
 .Dq foo
@@ -192,6 +235,32 @@ if not jid then
     error(res)
 end
 print(res["host.hostname"])
+.Ed
+.Pp
+Iterate over jails on the system:
+.Bd -literal -offset indent
+local jail = require('jail')
+
+-- Recommended: just loop over it
+for jparams in jail.list() do
+    print(jparams["jid"] .. " = " .. jparams["name"])
+end
+
+-- Request path and hostname, too
+for jparams in jail.list({"path", "host.hostname"}) do
+    print(jparams["host.hostname"] .. " mounted at " .. jparams["path"])
+end
+
+-- Raw iteration protocol
+local iter, jail_obj = jail.list()
+
+-- Request the first params
+local jparams = jail_obj:next()
+while jparams do
+    print(jparams["jid"] .. " = " .. jparams["name"])
+    -- Subsequent calls may return nil
+    jparams = jail_obj:next()
+end
 .Ed
 .Sh SEE ALSO
 .Xr jail 2 ,

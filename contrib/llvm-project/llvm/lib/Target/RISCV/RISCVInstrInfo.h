@@ -15,6 +15,7 @@
 
 #include "RISCVRegisterInfo.h"
 #include "llvm/CodeGen/TargetInstrInfo.h"
+#include "llvm/IR/DiagnosticInfo.h"
 
 #define GET_INSTRINFO_HEADER
 #include "RISCVGenInstrInfo.inc"
@@ -27,6 +28,8 @@ class RISCVInstrInfo : public RISCVGenInstrInfo {
 
 public:
   explicit RISCVInstrInfo(RISCVSubtarget &STI);
+
+  MCInst getNop() const override;
 
   unsigned isLoadFromStackSlot(const MachineInstr &MI,
                                int &FrameIndex) const override;
@@ -83,6 +86,9 @@ public:
 
   bool isAsCheapAsAMove(const MachineInstr &MI) const override;
 
+  Optional<DestSourcePair>
+  isCopyInstrImpl(const MachineInstr &MI) const override;
+
   bool verifyInstruction(const MachineInstr &MI,
                          StringRef &ErrInfo) const override;
 
@@ -130,27 +136,45 @@ public:
   insertOutlinedCall(Module &M, MachineBasicBlock &MBB,
                      MachineBasicBlock::iterator &It, MachineFunction &MF,
                      const outliner::Candidate &C) const override;
+
+  bool findCommutedOpIndices(const MachineInstr &MI, unsigned &SrcOpIdx1,
+                             unsigned &SrcOpIdx2) const override;
+  MachineInstr *commuteInstructionImpl(MachineInstr &MI, bool NewMI,
+                                       unsigned OpIdx1,
+                                       unsigned OpIdx2) const override;
+
+  MachineInstr *convertToThreeAddress(MachineFunction::iterator &MBB,
+                                      MachineInstr &MI,
+                                      LiveVariables *LV) const override;
+
+  Register getVLENFactoredAmount(
+      MachineFunction &MF, MachineBasicBlock &MBB,
+      MachineBasicBlock::iterator II, const DebugLoc &DL, int64_t Amount,
+      MachineInstr::MIFlag Flag = MachineInstr::NoFlags) const;
+
+  // Returns true if the given MI is an RVV instruction opcode for which we may
+  // expect to see a FrameIndex operand. When CheckFIs is true, the instruction
+  // must contain at least one FrameIndex operand.
+  bool isRVVSpill(const MachineInstr &MI, bool CheckFIs) const;
+
+  Optional<std::pair<unsigned, unsigned>>
+  isRVVSpillForZvlsseg(unsigned Opcode) const;
+
 protected:
   const RISCVSubtarget &STI;
 };
 
-namespace RISCV {
-// Match with the definitions in RISCVInstrFormatsV.td
-enum RVVConstraintType {
-  NoConstraint = 0,
-  WidenV = 1,
-  WidenW = 2,
-  WidenCvt = 3,
-  Narrow = 4,
-  Iota = 5,
-  SlideUp = 6,
-  Vrgather = 7,
-  Vcompress = 8,
+namespace RISCVVPseudosTable {
 
-  ConstraintOffset = 5,
-  ConstraintMask = 0b1111
+struct PseudoInfo {
+  uint16_t Pseudo;
+  uint16_t BaseInstr;
 };
-} // end namespace RISCV
+
+#define GET_RISCVVPseudosTable_DECL
+#include "RISCVGenSearchableTables.inc"
+
+} // end namespace RISCVVPseudosTable
 
 } // end namespace llvm
 #endif

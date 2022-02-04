@@ -247,6 +247,9 @@ typedef enum {
 	XPT_REPROBE_LUN		= 0x38 | XPT_FC_QUEUED | XPT_FC_USER_CCB,
 				/* Query device capacity and notify GEOM */
 
+	XPT_MMC_SET_TRAN_SETTINGS = 0x40 | XPT_FC_DEV_QUEUED,
+	XPT_MMC_GET_TRAN_SETTINGS = 0x41 | XPT_FC_DEV_QUEUED,
+
 /* Vendor Unique codes: 0x80->0x8F */
 	XPT_VUNIQUE		= 0x80
 } xpt_opcode;
@@ -407,13 +410,12 @@ struct ccb_getdevlist {
 };
 
 typedef enum {
-	PERIPH_MATCH_NONE	= 0x000,
+	PERIPH_MATCH_ANY	= 0x000,
 	PERIPH_MATCH_PATH	= 0x001,
 	PERIPH_MATCH_TARGET	= 0x002,
 	PERIPH_MATCH_LUN	= 0x004,
 	PERIPH_MATCH_NAME	= 0x008,
 	PERIPH_MATCH_UNIT	= 0x010,
-	PERIPH_MATCH_ANY	= 0x01f
 } periph_pattern_flags;
 
 struct periph_match_pattern {
@@ -426,13 +428,12 @@ struct periph_match_pattern {
 };
 
 typedef enum {
-	DEV_MATCH_NONE		= 0x000,
+	DEV_MATCH_ANY		= 0x000,
 	DEV_MATCH_PATH		= 0x001,
 	DEV_MATCH_TARGET	= 0x002,
 	DEV_MATCH_LUN		= 0x004,
 	DEV_MATCH_INQUIRY	= 0x008,
 	DEV_MATCH_DEVID		= 0x010,
-	DEV_MATCH_ANY		= 0x00f
 } dev_pattern_flags;
 
 struct device_id_match_pattern {
@@ -452,12 +453,11 @@ struct device_match_pattern {
 };
 
 typedef enum {
-	BUS_MATCH_NONE		= 0x000,
+	BUS_MATCH_ANY		= 0x000,
 	BUS_MATCH_PATH		= 0x001,
 	BUS_MATCH_NAME		= 0x002,
 	BUS_MATCH_UNIT		= 0x004,
 	BUS_MATCH_BUS_ID	= 0x008,
-	BUS_MATCH_ANY		= 0x00f
 } bus_pattern_flags;
 
 struct bus_match_pattern {
@@ -579,7 +579,7 @@ struct ccb_dev_match {
 /*
  * Definitions for the path inquiry CCB fields.
  */
-#define CAM_VERSION	0x19	/* Hex value for current version */
+#define CAM_VERSION	0x1a	/* Hex value for current version */
 
 typedef enum {
 	PI_MDP_ABLE	= 0x80,	/* Supports MDP message */

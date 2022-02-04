@@ -552,7 +552,7 @@ feeder_matrix_setup(struct pcm_feeder *f, struct pcmchan_matrix *m_in,
 
 /*
  * feeder_matrix_default_id(): For a given number of channels, return
- *                             default prefered id (example: both 5.1 and
+ *                             default preferred id (example: both 5.1 and
  *                             6.0 are simply 6 channels, but 5.1 is more
  *                             preferable).
  */
@@ -699,7 +699,7 @@ feeder_matrix_compare(struct pcmchan_matrix *m_in, struct pcmchan_matrix *m_out)
 }
 
 /*
- * XXX 4front intepretation of "surround" is ambigous and sort of
+ * XXX 4front interpretation of "surround" is ambigous and sort of
  *     conflicting with "rear"/"back". Map it to "side". Well.. 
  *     who cares?
  */

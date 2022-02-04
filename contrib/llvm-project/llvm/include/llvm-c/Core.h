@@ -162,7 +162,8 @@ typedef enum {
   LLVMX86_MMXTypeKind,   /**< X86 MMX */
   LLVMTokenTypeKind,     /**< Tokens */
   LLVMScalableVectorTypeKind, /**< Scalable SIMD vector type */
-  LLVMBFloatTypeKind     /**< 16 bit brain floating point type */
+  LLVMBFloatTypeKind,    /**< 16 bit brain floating point type */
+  LLVMX86_AMXTypeKind    /**< X86 AMX */
 } LLVMTypeKind;
 
 typedef enum {
@@ -281,6 +282,7 @@ typedef enum {
   LLVMInlineAsmValueKind,
 
   LLVMInstructionValueKind,
+  LLVMPoisonValueValueKind
 } LLVMValueKind;
 
 typedef enum {
@@ -603,6 +605,17 @@ unsigned LLVMGetEnumAttributeKind(LLVMAttributeRef A);
 uint64_t LLVMGetEnumAttributeValue(LLVMAttributeRef A);
 
 /**
+ * Create a type attribute
+ */
+LLVMAttributeRef LLVMCreateTypeAttribute(LLVMContextRef C, unsigned KindID,
+                                         LLVMTypeRef type_ref);
+
+/**
+ * Get the type attribute's value.
+ */
+LLVMTypeRef LLVMGetTypeAttributeValue(LLVMAttributeRef A);
+
+/**
  * Create a string attribute.
  */
 LLVMAttributeRef LLVMCreateStringAttribute(LLVMContextRef C,
@@ -624,6 +637,12 @@ const char *LLVMGetStringAttributeValue(LLVMAttributeRef A, unsigned *Length);
  */
 LLVMBool LLVMIsEnumAttribute(LLVMAttributeRef A);
 LLVMBool LLVMIsStringAttribute(LLVMAttributeRef A);
+LLVMBool LLVMIsTypeAttribute(LLVMAttributeRef A);
+
+/**
+ * Obtain a Type from a context by its registered name.
+ */
+LLVMTypeRef LLVMGetTypeByName2(LLVMContextRef C, const char *Name);
 
 /**
  * @}
@@ -853,11 +872,11 @@ void LLVMAppendModuleInlineAsm(LLVMModuleRef M, const char *Asm, size_t Len);
  *
  * @see InlineAsm::get()
  */
-LLVMValueRef LLVMGetInlineAsm(LLVMTypeRef Ty,
-                              char *AsmString, size_t AsmStringSize,
-                              char *Constraints, size_t ConstraintsSize,
-                              LLVMBool HasSideEffects, LLVMBool IsAlignStack,
-                              LLVMInlineAsmDialect Dialect);
+LLVMValueRef LLVMGetInlineAsm(LLVMTypeRef Ty, char *AsmString,
+                              size_t AsmStringSize, char *Constraints,
+                              size_t ConstraintsSize, LLVMBool HasSideEffects,
+                              LLVMBool IsAlignStack,
+                              LLVMInlineAsmDialect Dialect, LLVMBool CanThrow);
 
 /**
  * Obtain the context to which this module is associated.
@@ -866,9 +885,7 @@ LLVMValueRef LLVMGetInlineAsm(LLVMTypeRef Ty,
  */
 LLVMContextRef LLVMGetModuleContext(LLVMModuleRef M);
 
-/**
- * Obtain a Type from a module by its registered name.
- */
+/** Deprecated: Use LLVMGetTypeByName2 instead. */
 LLVMTypeRef LLVMGetTypeByName(LLVMModuleRef M, const char *Name);
 
 /**
@@ -1444,9 +1461,21 @@ unsigned LLVMGetPointerAddressSpace(LLVMTypeRef PointerTy);
 LLVMTypeRef LLVMVectorType(LLVMTypeRef ElementType, unsigned ElementCount);
 
 /**
- * Obtain the number of elements in a vector type.
+ * Create a vector type that contains a defined type and has a scalable
+ * number of elements.
  *
- * This only works on types that represent vectors.
+ * The created type will exist in the context thats its element type
+ * exists in.
+ *
+ * @see llvm::ScalableVectorType::get()
+ */
+LLVMTypeRef LLVMScalableVectorType(LLVMTypeRef ElementType,
+                                   unsigned ElementCount);
+
+/**
+ * Obtain the (possibly scalable) number of elements in a vector type.
+ *
+ * This only works on types that represent vectors (fixed or scalable).
  *
  * @see llvm::VectorType::getNumElements()
  */
@@ -1478,6 +1507,11 @@ LLVMTypeRef LLVMLabelTypeInContext(LLVMContextRef C);
 LLVMTypeRef LLVMX86MMXTypeInContext(LLVMContextRef C);
 
 /**
+ * Create a X86 AMX type in a context.
+ */
+LLVMTypeRef LLVMX86AMXTypeInContext(LLVMContextRef C);
+
+/**
  * Create a token type in a context.
  */
 LLVMTypeRef LLVMTokenTypeInContext(LLVMContextRef C);
@@ -1494,6 +1528,7 @@ LLVMTypeRef LLVMMetadataTypeInContext(LLVMContextRef C);
 LLVMTypeRef LLVMVoidType(void);
 LLVMTypeRef LLVMLabelType(void);
 LLVMTypeRef LLVMX86MMXType(void);
+LLVMTypeRef LLVMX86AMXType(void);
 
 /**
  * @}
@@ -1550,6 +1585,7 @@ LLVMTypeRef LLVMX86MMXType(void);
           macro(Function)                   \
           macro(GlobalVariable)             \
       macro(UndefValue)                     \
+      macro(PoisonValue)                    \
     macro(Instruction)                      \
       macro(UnaryOperator)                  \
       macro(BinaryOperator)                 \
@@ -1682,6 +1718,11 @@ LLVMBool LLVMIsConstant(LLVMValueRef Val);
  * Determine whether a value instance is undefined.
  */
 LLVMBool LLVMIsUndef(LLVMValueRef Val);
+
+/**
+ * Determine whether a value instance is poisonous.
+ */
+LLVMBool LLVMIsPoison(LLVMValueRef Val);
 
 /**
  * Convert value instances between types.
@@ -1840,6 +1881,13 @@ LLVMValueRef LLVMConstAllOnes(LLVMTypeRef Ty);
  * @see llvm::UndefValue::get()
  */
 LLVMValueRef LLVMGetUndef(LLVMTypeRef Ty);
+
+/**
+ * Obtain a constant value referring to a poison value of a type.
+ *
+ * @see llvm::PoisonValue::get()
+ */
+LLVMValueRef LLVMGetPoison(LLVMTypeRef Ty);
 
 /**
  * Determine whether a value instance is null.
@@ -2213,6 +2261,8 @@ void LLVMSetUnnamedAddr(LLVMValueRef Global, LLVMBool HasUnnamedAddr);
  * @see llvm::AllocaInst::getAlignment()
  * @see llvm::LoadInst::getAlignment()
  * @see llvm::StoreInst::getAlignment()
+ * @see llvm::AtomicRMWInst::setAlignment()
+ * @see llvm::AtomicCmpXchgInst::setAlignment()
  * @see llvm::GlobalValue::getAlignment()
  */
 unsigned LLVMGetAlignment(LLVMValueRef V);
@@ -2222,6 +2272,8 @@ unsigned LLVMGetAlignment(LLVMValueRef V);
  * @see llvm::AllocaInst::setAlignment()
  * @see llvm::LoadInst::setAlignment()
  * @see llvm::StoreInst::setAlignment()
+ * @see llvm::AtomicRMWInst::setAlignment()
+ * @see llvm::AtomicCmpXchgInst::setAlignment()
  * @see llvm::GlobalValue::setAlignment()
  */
 void LLVMSetAlignment(LLVMValueRef V, unsigned Bytes);
@@ -2462,6 +2514,12 @@ LLVMTypeRef LLVMIntrinsicGetType(LLVMContextRef Ctx, unsigned ID,
  */
 const char *LLVMIntrinsicGetName(unsigned ID, size_t *NameLength);
 
+/** Deprecated: Use LLVMIntrinsicCopyOverloadedName2 instead. */
+const char *LLVMIntrinsicCopyOverloadedName(unsigned ID,
+                                            LLVMTypeRef *ParamTypes,
+                                            size_t ParamCount,
+                                            size_t *NameLength);
+
 /**
  * Copies the name of an overloaded intrinsic identified by a given list of
  * parameter types.
@@ -2469,12 +2527,14 @@ const char *LLVMIntrinsicGetName(unsigned ID, size_t *NameLength);
  * Unlike LLVMIntrinsicGetName, the caller is responsible for freeing the
  * returned string.
  *
+ * This version also supports unnamed types.
+ *
  * @see llvm::Intrinsic::getName()
  */
-const char *LLVMIntrinsicCopyOverloadedName(unsigned ID,
-                                            LLVMTypeRef *ParamTypes,
-                                            size_t ParamCount,
-                                            size_t *NameLength);
+const char *LLVMIntrinsicCopyOverloadedName2(LLVMModuleRef Mod, unsigned ID,
+                                             LLVMTypeRef *ParamTypes,
+                                             size_t ParamCount,
+                                             size_t *NameLength);
 
 /**
  * Obtain if the intrinsic identified by the given ID is overloaded.

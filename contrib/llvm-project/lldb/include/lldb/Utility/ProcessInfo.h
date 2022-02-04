@@ -14,7 +14,6 @@
 #include "lldb/Utility/Environment.h"
 #include "lldb/Utility/FileSpec.h"
 #include "lldb/Utility/NameMatches.h"
-#include "lldb/Utility/Reproducer.h"
 #include "llvm/Support/YAMLTraits.h"
 #include <vector>
 
@@ -96,10 +95,10 @@ protected:
   // the resolved platform executable (which is in m_executable)
   Args m_arguments; // All program arguments except argv[0]
   Environment m_environment;
-  uint32_t m_uid;
-  uint32_t m_gid;
+  uint32_t m_uid = UINT32_MAX;
+  uint32_t m_gid = UINT32_MAX;
   ArchSpec m_arch;
-  lldb::pid_t m_pid;
+  lldb::pid_t m_pid = LLDB_INVALID_PROCESS_ID;
 };
 
 // ProcessInstanceInfo
@@ -108,9 +107,7 @@ protected:
 // to that process.
 class ProcessInstanceInfo : public ProcessInfo {
 public:
-  ProcessInstanceInfo()
-      : ProcessInfo(), m_euid(UINT32_MAX), m_egid(UINT32_MAX),
-        m_parent_pid(LLDB_INVALID_PROCESS_ID) {}
+  ProcessInstanceInfo() : ProcessInfo() {}
 
   ProcessInstanceInfo(const char *name, const ArchSpec &arch, lldb::pid_t pid)
       : ProcessInfo(name, arch, pid), m_euid(UINT32_MAX), m_egid(UINT32_MAX),
@@ -152,9 +149,9 @@ public:
 
 protected:
   friend struct llvm::yaml::MappingTraits<ProcessInstanceInfo>;
-  uint32_t m_euid;
-  uint32_t m_egid;
-  lldb::pid_t m_parent_pid;
+  uint32_t m_euid = UINT32_MAX;
+  uint32_t m_egid = UINT32_MAX;
+  lldb::pid_t m_parent_pid = LLDB_INVALID_PROCESS_ID;
 };
 
 typedef std::vector<ProcessInstanceInfo> ProcessInstanceInfoList;
@@ -165,9 +162,7 @@ typedef std::vector<ProcessInstanceInfo> ProcessInstanceInfoList;
 
 class ProcessInstanceInfoMatch {
 public:
-  ProcessInstanceInfoMatch()
-      : m_match_info(), m_name_match_type(NameMatch::Ignore),
-        m_match_all_users(false) {}
+  ProcessInstanceInfoMatch() : m_match_info() {}
 
   ProcessInstanceInfoMatch(const char *process_name,
                            NameMatch process_name_match_type)
@@ -212,45 +207,12 @@ public:
 
 protected:
   ProcessInstanceInfo m_match_info;
-  NameMatch m_name_match_type;
-  bool m_match_all_users;
+  NameMatch m_name_match_type = NameMatch::Ignore;
+  bool m_match_all_users = false;
 };
 
 namespace repro {
-class ProcessInfoRecorder : public AbstractRecorder {
-public:
-  ProcessInfoRecorder(const FileSpec &filename, std::error_code &ec)
-      : AbstractRecorder(filename, ec) {}
-
-  static llvm::Expected<std::unique_ptr<ProcessInfoRecorder>>
-  Create(const FileSpec &filename);
-
-  void Record(const ProcessInstanceInfoList &process_infos);
-};
-
-class ProcessInfoProvider : public repro::Provider<ProcessInfoProvider> {
-public:
-  struct Info {
-    static const char *name;
-    static const char *file;
-  };
-
-  ProcessInfoProvider(const FileSpec &directory) : Provider(directory) {}
-
-  ProcessInfoRecorder *GetNewProcessInfoRecorder();
-
-  void Keep() override;
-  void Discard() override;
-
-  static char ID;
-
-private:
-  std::unique_ptr<llvm::raw_fd_ostream> m_stream_up;
-  std::vector<std::unique_ptr<ProcessInfoRecorder>> m_process_info_recorders;
-};
-
 llvm::Optional<ProcessInstanceInfoList> GetReplayProcessInstanceInfoList();
-
 } // namespace repro
 } // namespace lldb_private
 

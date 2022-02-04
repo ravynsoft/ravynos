@@ -179,11 +179,11 @@ options 	VESA			# Add support for VESA BIOS Extensions (VBE)
 
 device		splash			# Splash screen and screen saver support
 
-# syscons is the default console driver, resembling an SCO console
+# syscons is the legacy console driver, resembling an SCO console
 device		sc
 options 	SC_PIXEL_MODE		# add support for the raster text mode
 
-# vt is the new video console driver
+# vt is the default video console driver
 device		vt
 device		vt_vga
 device		vt_vbefb
@@ -210,6 +210,7 @@ device		puc			# Multi I/O cards and multi-channel UARTs
 
 # PCI/PCI-X/PCIe Ethernet NICs that use iflib infrastructure
 device		iflib
+device		igc			# Intel I225 2.5G Ethernet
 device		em			# Intel PRO/1000 Gigabit Ethernet Family
 device		vmx			# VMware VMXNET3 Ethernet
 
@@ -326,6 +327,9 @@ device		vtnet			# VirtIO Ethernet device
 device		virtio_blk		# VirtIO Block device
 device		virtio_scsi		# VirtIO SCSI device
 device		virtio_balloon		# VirtIO Memory Balloon device
+
+# Linux KVM paravirtualization support
+device		kvm_clock		# KVM paravirtual clock driver
 
 # HyperV drivers and enhancement support
 # NOTE: HYPERV depends on hyperv.  They must be added or removed together.

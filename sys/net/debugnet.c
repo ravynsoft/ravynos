@@ -39,6 +39,9 @@ __FBSDID("$FreeBSD$");
 #include <sys/endian.h>
 #include <sys/errno.h>
 #include <sys/eventhandler.h>
+#include <sys/kernel.h>
+#include <sys/lock.h>
+#include <sys/mutex.h>
 #include <sys/socket.h>
 #include <sys/sysctl.h>
 
@@ -53,6 +56,7 @@ __FBSDID("$FreeBSD$");
 #include <net/if_dl.h>
 #include <net/if_types.h>
 #include <net/if_var.h>
+#include <net/vnet.h>
 #include <net/route.h>
 #include <net/route/nhop.h>
 
@@ -673,6 +677,7 @@ debugnet_connect(const struct debugnet_conn_params *dcp,
 			goto cleanup;
 		}
 
+		/* TODO support AF_INET6 */
 		if (nh->gw_sa.sa_family == AF_INET)
 			gw_sin = &nh->gw4_sa;
 		else {

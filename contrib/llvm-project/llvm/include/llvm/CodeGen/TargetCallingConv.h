@@ -31,6 +31,7 @@ namespace ISD {
     unsigned IsInReg : 1;    ///< Passed in register
     unsigned IsSRet : 1;     ///< Hidden struct-ret ptr
     unsigned IsByVal : 1;    ///< Struct passed by value
+    unsigned IsByRef : 1;    ///< Passed in memory
     unsigned IsNest : 1;     ///< Nested fn static chain
     unsigned IsReturned : 1; ///< Always returned
     unsigned IsSplit : 1;
@@ -38,30 +39,33 @@ namespace ISD {
     unsigned IsPreallocated : 1; ///< ByVal without the copy
     unsigned IsSplitEnd : 1;   ///< Last part of a split
     unsigned IsSwiftSelf : 1;  ///< Swift self parameter
+    unsigned IsSwiftAsync : 1;  ///< Swift async context parameter
     unsigned IsSwiftError : 1; ///< Swift error parameter
     unsigned IsCFGuardTarget : 1; ///< Control Flow Guard target
     unsigned IsHva : 1;        ///< HVA field for
     unsigned IsHvaStart : 1;   ///< HVA structure start
     unsigned IsSecArgPass : 1; ///< Second argument
-    unsigned ByValAlign : 4;   ///< Log 2 of byval alignment
+    unsigned MemAlign : 4;     ///< Log 2 of alignment when arg is passed in memory
+                               ///< (including byval/byref)
     unsigned OrigAlign : 5;    ///< Log 2 of original alignment
     unsigned IsInConsecutiveRegsLast : 1;
     unsigned IsInConsecutiveRegs : 1;
     unsigned IsCopyElisionCandidate : 1; ///< Argument copy elision candidate
     unsigned IsPointer : 1;
 
-    unsigned ByValSize; ///< Byval struct size
+    unsigned ByValOrByRefSize; ///< Byval or byref struct size
 
     unsigned PointerAddrSpace; ///< Address space of pointer argument
 
   public:
     ArgFlagsTy()
-        : IsZExt(0), IsSExt(0), IsInReg(0), IsSRet(0), IsByVal(0), IsNest(0),
-          IsReturned(0), IsSplit(0), IsInAlloca(0), IsPreallocated(0),
-          IsSplitEnd(0), IsSwiftSelf(0), IsSwiftError(0), IsCFGuardTarget(0),
-          IsHva(0), IsHvaStart(0), IsSecArgPass(0), ByValAlign(0), OrigAlign(0),
+        : IsZExt(0), IsSExt(0), IsInReg(0), IsSRet(0), IsByVal(0), IsByRef(0),
+          IsNest(0), IsReturned(0), IsSplit(0), IsInAlloca(0),
+          IsPreallocated(0), IsSplitEnd(0), IsSwiftSelf(0), IsSwiftAsync(0),
+          IsSwiftError(0), IsCFGuardTarget(0), IsHva(0), IsHvaStart(0),
+          IsSecArgPass(0), MemAlign(0), OrigAlign(0),
           IsInConsecutiveRegsLast(0), IsInConsecutiveRegs(0),
-          IsCopyElisionCandidate(0), IsPointer(0), ByValSize(0),
+          IsCopyElisionCandidate(0), IsPointer(0), ByValOrByRefSize(0),
           PointerAddrSpace(0) {
       static_assert(sizeof(*this) == 3 * sizeof(unsigned), "flags are too big");
     }
@@ -81,6 +85,9 @@ namespace ISD {
     bool isByVal() const { return IsByVal; }
     void setByVal() { IsByVal = 1; }
 
+    bool isByRef() const { return IsByRef; }
+    void setByRef() { IsByRef = 1; }
+
     bool isInAlloca() const { return IsInAlloca; }
     void setInAlloca() { IsInAlloca = 1; }
 
@@ -89,6 +96,9 @@ namespace ISD {
 
     bool isSwiftSelf() const { return IsSwiftSelf; }
     void setSwiftSelf() { IsSwiftSelf = 1; }
+
+    bool isSwiftAsync() const { return IsSwiftAsync; }
+    void setSwiftAsync() { IsSwiftAsync = 1; }
 
     bool isSwiftError() const { return IsSwiftError; }
     void setSwiftError() { IsSwiftError = 1; }
@@ -109,13 +119,15 @@ namespace ISD {
     void setNest() { IsNest = 1; }
 
     bool isReturned() const { return IsReturned; }
-    void setReturned() { IsReturned = 1; }
+    void setReturned(bool V = true) { IsReturned = V; }
 
     bool isInConsecutiveRegs()  const { return IsInConsecutiveRegs; }
-    void setInConsecutiveRegs() { IsInConsecutiveRegs = 1; }
+    void setInConsecutiveRegs(bool Flag = true) { IsInConsecutiveRegs = Flag; }
 
     bool isInConsecutiveRegsLast() const { return IsInConsecutiveRegsLast; }
-    void setInConsecutiveRegsLast() { IsInConsecutiveRegsLast = 1; }
+    void setInConsecutiveRegsLast(bool Flag = true) {
+      IsInConsecutiveRegsLast = Flag;
+    }
 
     bool isSplit()   const { return IsSplit; }
     void setSplit()  { IsSplit = 1; }
@@ -129,36 +141,48 @@ namespace ISD {
     bool isPointer()  const { return IsPointer; }
     void setPointer() { IsPointer = 1; }
 
-    LLVM_ATTRIBUTE_DEPRECATED(unsigned getByValAlign() const,
-                              "Use getNonZeroByValAlign() instead") {
-      MaybeAlign A = decodeMaybeAlign(ByValAlign);
-      return A ? A->value() : 0;
+    Align getNonZeroMemAlign() const {
+      return decodeMaybeAlign(MemAlign).valueOrOne();
     }
+
+    void setMemAlign(Align A) {
+      MemAlign = encode(A);
+      assert(getNonZeroMemAlign() == A && "bitfield overflow");
+    }
+
     Align getNonZeroByValAlign() const {
-      MaybeAlign A = decodeMaybeAlign(ByValAlign);
+      assert(isByVal());
+      MaybeAlign A = decodeMaybeAlign(MemAlign);
       assert(A && "ByValAlign must be defined");
       return *A;
     }
-    void setByValAlign(Align A) {
-      ByValAlign = encode(A);
-      assert(getNonZeroByValAlign() == A && "bitfield overflow");
-    }
 
-    LLVM_ATTRIBUTE_DEPRECATED(unsigned getOrigAlign() const,
-                              "Use getNonZeroOrigAlign() instead") {
-      MaybeAlign A = decodeMaybeAlign(OrigAlign);
-      return A ? A->value() : 0;
-    }
     Align getNonZeroOrigAlign() const {
       return decodeMaybeAlign(OrigAlign).valueOrOne();
     }
+
     void setOrigAlign(Align A) {
       OrigAlign = encode(A);
       assert(getNonZeroOrigAlign() == A && "bitfield overflow");
     }
 
-    unsigned getByValSize() const { return ByValSize; }
-    void setByValSize(unsigned S) { ByValSize = S; }
+    unsigned getByValSize() const {
+      assert(isByVal() && !isByRef());
+      return ByValOrByRefSize;
+    }
+    void setByValSize(unsigned S) {
+      assert(isByVal() && !isByRef());
+      ByValOrByRefSize = S;
+    }
+
+    unsigned getByRefSize() const {
+      assert(!isByVal() && isByRef());
+      return ByValOrByRefSize;
+    }
+    void setByRefSize(unsigned S) {
+      assert(!isByVal() && isByRef());
+      ByValOrByRefSize = S;
+    }
 
     unsigned getPointerAddrSpace() const { return PointerAddrSpace; }
     void setPointerAddrSpace(unsigned AS) { PointerAddrSpace = AS; }

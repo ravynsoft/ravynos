@@ -20,6 +20,10 @@ let Definition = "target" in {
   def ExprPrefix: Property<"expr-prefix", "FileSpec">,
     DefaultStringValue<"">,
     Desc<"Path to a file containing expressions to be prepended to all expressions.">;
+  def ExprErrorLimit: Property<"expr-error-limit", "UInt64">,
+    DefaultUnsignedValue<5>,
+    Desc<"The maximum amount of errors to emit while parsing an expression. "
+         "A value of 0 means to always continue parsing if possible.">;
   def PreferDynamic: Property<"prefer-dynamic-value", "Enum">,
     DefaultEnumValue<"eDynamicDontRunTarget">,
     EnumValues<"OptionEnumValues(g_dynamic_value_types)">,
@@ -32,7 +36,7 @@ let Definition = "target" in {
     Desc<"Skip function prologues when setting breakpoints by name.">;
   def SourceMap: Property<"source-map", "PathMap">,
     DefaultStringValue<"">,
-    Desc<"Source path remappings are used to track the change of location between a source file when built, and where it exists on the current system.  It consists of an array of duples, the first element of each duple is some part (starting at the root) of the path to the file when it was built, and the second is where the remainder of the original build hierarchy is rooted on the local system.  Each element of the array is checked in order and the first one that results in a match wins.">;
+    Desc<"Source path remappings apply substitutions to the paths of source files, typically needed to debug from a different host than the one that built the target.  The source-map property consists of an array of pairs, the first element is a path prefix, and the second is its replacement.  The syntax is `prefix1 replacement1 prefix2 replacement2...`.  The pairs are checked in order, the first prefix that matches is used, and that prefix is substituted with the replacement.  A common pattern is to use source-map in conjunction with the clang -fdebug-prefix-map flag.  In the build, use `-fdebug-prefix-map=/path/to/build_dir=.` to rewrite the host specific build directory to `.`.  Then for debugging, use `settings set target.source-map . /path/to/local_dir` to convert `.` to a valid local path.">;
   def ExecutableSearchPaths: Property<"exec-search-paths", "FileSpecList">,
     DefaultStringValue<"">,
     Desc<"Executable search paths to use when locating executable files whose paths don't match the local file system.">;
@@ -45,9 +49,11 @@ let Definition = "target" in {
   def AutoImportClangModules: Property<"auto-import-clang-modules", "Boolean">,
     DefaultTrue,
     Desc<"Automatically load Clang modules referred to by the program.">;
-  def ImportStdModule: Property<"import-std-module", "Boolean">,
-    DefaultFalse,
-    Desc<"Import the C++ std module to improve debugging STL containers.">;
+  def ImportStdModule: Property<"import-std-module", "Enum">,
+    DefaultEnumValue<"eImportStdModuleFalse">,
+    EnumValues<"OptionEnumValues(g_import_std_module_value_types)">,
+    Desc<"Import the 'std' C++ module to improve expression parsing involving "
+         " C++ standard library types.">;
   def AutoApplyFixIts: Property<"auto-apply-fixits", "Boolean">,
     DefaultTrue,
     Desc<"Automatically apply fix-it hints to expressions.">;
@@ -111,6 +117,9 @@ let Definition = "target" in {
   def DisableSTDIO: Property<"disable-stdio", "Boolean">,
     DefaultFalse,
     Desc<"Disable stdin/stdout for process (e.g. for a GUI application)">;
+  def InheritTCC: Property<"inherit-tcc", "Boolean">,
+    DefaultFalse,
+    Desc<"Inherit the TCC permissions from the inferior's parent instead of making the process itself responsible.">;
   def InlineStrategy: Property<"inline-breakpoint-strategy", "Enum">,
     DefaultEnumValue<"eInlineBreakpointsAlways">,
     EnumValues<"OptionEnumValues(g_inline_breakpoint_enums)">,
@@ -163,6 +172,9 @@ let Definition = "target" in {
   def AutoInstallMainExecutable: Property<"auto-install-main-executable", "Boolean">,
     DefaultTrue,
     Desc<"Always install the main executable when connected to a remote platform.">;
+  def DebugUtilityExpression: Property<"debug-utility-expression", "Boolean">,
+    DefaultFalse,
+    Desc<"Enable debugging of LLDB-internal utility expressions.">;
 }
 
 let Definition = "process_experimental" in {
@@ -194,6 +206,10 @@ let Definition = "process" in {
     Global,
     DefaultFalse,
     Desc<"If true, stop when a shared library is loaded or unloaded.">;
+  def DisableLangRuntimeUnwindPlans: Property<"disable-language-runtime-unwindplans", "Boolean">,
+    Global,
+    DefaultFalse,
+    Desc<"If true, LanguageRuntime plugins' UnwindPlans will not be used when backtracing.">;
   def DetachKeepsStopped: Property<"detach-keeps-stopped", "Boolean">,
     Global,
     DefaultFalse,
@@ -214,6 +230,15 @@ let Definition = "process" in {
   def UtilityExpressionTimeout: Property<"utility-expression-timeout", "UInt64">,
     DefaultUnsignedValue<15>,
     Desc<"The time in seconds to wait for LLDB-internal utility expressions.">;
+  def InterruptTimeout: Property<"interrupt-timeout", "UInt64">,
+    DefaultUnsignedValue<20>,
+    Desc<"The time in seconds to wait for an interrupt succeed in stopping the target.">;
+  def SteppingRunsAllThreads: Property<"run-all-threads", "Boolean">,
+    DefaultFalse,
+    Desc<"If true, stepping operations will run all threads.  This is equivalent to setting the run-mode option to 'all-threads'.">;
+  def VirtualAddressableBits: Property<"virtual-addressable-bits", "UInt64">,
+    DefaultUnsignedValue<0>,
+    Desc<"The number of bits used for addressing. If the value is 39, then bits 0..38 are used for addressing. The default value of 0 means unspecified.">;
 }
 
 let Definition = "platform" in {

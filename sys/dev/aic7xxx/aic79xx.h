@@ -288,7 +288,7 @@ typedef enum {
 	 */
 	AHD_NONPACKFIFO_BUG	= 0x4000,
 	/*
-	 * Writing to a DFF SCBPTR register may fail if concurent with
+	 * Writing to a DFF SCBPTR register may fail if concurrent with
 	 * a hardware write to the other DFF SCBPTR register.  This is
 	 * not currently a concern in our sequencer since all chips with
 	 * this bug have the AHD_NONPACKFIFO_BUG and all writes of concern
@@ -696,7 +696,7 @@ struct scb_data {
 /************************ Target Mode Definitions *****************************/
 
 /*
- * Connection desciptor for select-in requests in target mode.
+ * Connection descriptor for select-in requests in target mode.
  */
 struct target_cmd {
 	uint8_t scsiid;		/* Our ID and the initiator's ID */

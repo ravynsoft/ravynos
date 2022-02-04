@@ -1,5 +1,7 @@
 # $FreeBSD$
 
+PACKAGE=	pkg-bootstrap
+
 _BRANCH!=	${MAKE} -C ${SRCTOP}/release -V BRANCH
 BRANCH?=	${_BRANCH}
 .if ${BRANCH:MCURRENT} != ""
@@ -15,8 +17,9 @@ PKGCONFBRANCH?=	latest
 .  endif
 . endif
 .endif
-CONFS=		FreeBSD.conf.${PKGCONFBRANCH}
-CONFSNAME=	FreeBSD.conf
+PKGCONF?=	FreeBSD.conf.${PKGCONFBRANCH}
+CONFS=		${PKGCONF}
+CONFSNAME_${PKGCONF}=	${PKGCONF:C/\.conf.+$/.conf/}
 CONFSDIR=	/etc/pkg
 CONFSMODE=	644
 PROG=	pkg

@@ -53,8 +53,10 @@ cons_probe(void)
 	int	active;
 	char	*prefconsole;
 
+	TSENTER();
+
 	/* We want a callback to install the new value when this var changes. */
-	env_setenv("twiddle_divisor", EV_VOLATILE, "1", twiddle_set,
+	env_setenv("twiddle_divisor", EV_VOLATILE, "16", twiddle_set,
 	    env_nounset);
 
 	/* Do all console probes */
@@ -98,6 +100,8 @@ cons_probe(void)
 		    env_nounset);
 		free(prefconsole);
 	}
+
+	TSEXIT();
 }
 
 int

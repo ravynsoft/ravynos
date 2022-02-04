@@ -153,8 +153,6 @@ public:
   /// Retrieve the module that corresponds to the given module ID.
   Module *getModule(unsigned ID) override;
 
-  bool DeclIsFromPCHWithObjectFile(const Decl *D) override;
-
   /// Perform layout on the given record.
   ///
   /// This routine allows the external AST source to provide an specific
@@ -339,7 +337,7 @@ public:
   /// may be invoked multiple times; the external source should take care not to
   /// introduce the same declarations repeatedly.
   void ReadDeclsToCheckForDeferredDiags(
-      llvm::SmallVector<Decl *, 4> &Decls) override;
+      llvm::SmallSetVector<Decl *, 4> &Decls) override;
 
   /// \copydoc ExternalSemaSource::CorrectTypo
   /// \note Returns the first nonempty correction.

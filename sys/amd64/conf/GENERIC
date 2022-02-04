@@ -127,6 +127,12 @@ options		PCI_IOV			# PCI SR-IOV support
 
 options 	COMPAT_LINUXKPI
 
+# Enable support for the kernel PLL to use an external PPS signal,
+# under supervision of [x]ntpd(8)
+# More info in ntpd documentation: http://www.eecis.udel.edu/~ntp
+
+options 	PPS_SYNC
+
 # Floppy drives
 device		fdc
 
@@ -190,8 +196,7 @@ device		nvme			# base NVMe driver
 device		nvd			# expose NVMe namespaces as disks, depends on nvme
 
 # Intel Volume Management Device (VMD) support
-device		vmd			# base VMD device
-device		vmd_bus			# bus for VMD children
+device		vmd
 
 # atkbdc0 controls both the keyboard and the PS/2 mouse
 device		atkbdc			# AT keyboard controller
@@ -205,11 +210,11 @@ options 	VESA			# Add support for VESA BIOS Extensions (VBE)
 
 device		splash			# Splash screen and screen saver support
 
-# syscons is the default console driver, resembling an SCO console
+# syscons is the legacy console driver, resembling an SCO console
 device		sc
 options 	SC_PIXEL_MODE		# add support for the raster text mode
 
-# vt is the new video console driver
+# vt is the default video console driver
 device		vt
 device		vt_vga
 device		vt_efifb
@@ -238,6 +243,7 @@ device		puc			# Multi I/O cards and multi-channel UARTs
 # PCI/PCI-X/PCIe Ethernet NICs that use iflib infrastructure
 device		iflib
 device		em			# Intel PRO/1000 Gigabit Ethernet Family
+device		igc			# Intel I225 2.5G Ethernet
 device		ix			# Intel PRO/10GbE PCIE PF Ethernet
 device		ixv			# Intel PRO/10GbE PCIE VF Ethernet
 device		ixl			# Intel 700 Series Physical Function
@@ -365,6 +371,9 @@ device		vtnet			# VirtIO Ethernet device
 device		virtio_blk		# VirtIO Block device
 device		virtio_scsi		# VirtIO SCSI device
 device		virtio_balloon		# VirtIO Memory Balloon device
+
+# Linux KVM paravirtualization support
+device		kvm_clock		# KVM paravirtual clock driver
 
 # HyperV drivers and enhancement support
 device		hyperv			# HyperV drivers 

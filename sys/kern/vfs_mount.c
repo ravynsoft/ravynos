@@ -946,14 +946,6 @@ vfs_domount_first(
 	ASSERT_VOP_ELOCKED(vp, __func__);
 	KASSERT((fsflags & MNT_UPDATE) == 0, ("MNT_UPDATE shouldn't be here"));
 
-	if ((fsflags & MNT_EMPTYDIR) != 0) {
-		error = vfs_emptydir(vp);
-		if (error != 0) {
-			vput(vp);
-			return (error);
-		}
-	}
-
 	/*
 	 * If the jail of the calling thread lacks permission for this type of
 	 * file system, or is trying to cover its own root, deny immediately.
@@ -975,6 +967,8 @@ vfs_domount_first(
 		error = vinvalbuf(vp, V_SAVE, 0, 0);
 	if (error == 0 && vp->v_type != VDIR)
 		error = ENOTDIR;
+	if (error == 0 && (fsflags & MNT_EMPTYDIR) != 0)
+		error = vfs_emptydir(vp);
 	if (error == 0) {
 		VI_LOCK(vp);
 		if ((vp->v_iflag & VI_MOUNT) == 0 && vp->v_mountedhere == NULL)
@@ -2516,27 +2510,6 @@ static struct mntoptnames optnames[] = {
 	MNTOPT_NAMES
 };
 
-static void
-mount_devctl_event_mntopt(struct sbuf *sb, const char *what, struct vfsoptlist *opts)
-{
-	struct vfsopt *opt;
-
-	if (opts == NULL || TAILQ_EMPTY(opts))
-		return;
-	sbuf_printf(sb, " %s=\"", what);
-	TAILQ_FOREACH(opt, opts, link) {
-		if (opt->name[0] == '\0' || (opt->len > 0 && *(char *)opt->value == '\0'))
-			continue;
-		devctl_safe_quote_sb(sb, opt->name);
-		if (opt->len > 0) {
-			sbuf_putc(sb, '=');
-			devctl_safe_quote_sb(sb, opt->value);
-		}
-		sbuf_putc(sb, ';');
-	}
-	sbuf_putc(sb, '"');
-}
-
 #define DEVCTL_LEN 1024
 static void
 mount_devctl_event(const char *type, struct mount *mp, bool donew)
@@ -2569,15 +2542,108 @@ mount_devctl_event(const char *type, struct mount *mp, bool donew)
 		}
 	}
 	sbuf_putc(&sb, '"');
-	mount_devctl_event_mntopt(&sb, "opt", mp->mnt_opt);
-	if (donew)
-		mount_devctl_event_mntopt(&sb, "optnew", mp->mnt_optnew);
 	sbuf_finish(&sb);
+
+	/*
+	 * Options are not published because the form of the options depends on
+	 * the file system and may include binary data. In addition, they don't
+	 * necessarily provide enough useful information to be actionable when
+	 * devd processes them.
+	 */
 
 	if (sbuf_error(&sb) == 0)
 		devctl_notify("VFS", "FS", type, sbuf_data(&sb));
 	sbuf_delete(&sb);
 	free(buf, M_MOUNT);
+}
+
+/*
+ * Force remount specified mount point to read-only.  The argument
+ * must be busied to avoid parallel unmount attempts.
+ *
+ * Intended use is to prevent further writes if some metadata
+ * inconsistency is detected.  Note that the function still flushes
+ * all cached metadata and data for the mount point, which might be
+ * not always suitable.
+ */
+int
+vfs_remount_ro(struct mount *mp)
+{
+	struct vfsoptlist *opts;
+	struct vfsopt *opt;
+	struct vnode *vp_covered, *rootvp;
+	int error;
+
+	KASSERT(mp->mnt_lockref > 0,
+	    ("vfs_remount_ro: mp %p is not busied", mp));
+	KASSERT((mp->mnt_kern_flag & MNTK_UNMOUNT) == 0,
+	    ("vfs_remount_ro: mp %p is being unmounted (and busy?)", mp));
+
+	rootvp = NULL;
+	vp_covered = mp->mnt_vnodecovered;
+	error = vget(vp_covered, LK_EXCLUSIVE | LK_NOWAIT);
+	if (error != 0)
+		return (error);
+	VI_LOCK(vp_covered);
+	if ((vp_covered->v_iflag & VI_MOUNT) != 0) {
+		VI_UNLOCK(vp_covered);
+		vput(vp_covered);
+		return (EBUSY);
+	}
+	vp_covered->v_iflag |= VI_MOUNT;
+	VI_UNLOCK(vp_covered);
+	vfs_op_enter(mp);
+	vn_seqc_write_begin(vp_covered);
+
+	MNT_ILOCK(mp);
+	if ((mp->mnt_flag & MNT_RDONLY) != 0) {
+		MNT_IUNLOCK(mp);
+		error = EBUSY;
+		goto out;
+	}
+	mp->mnt_flag |= MNT_UPDATE | MNT_FORCE | MNT_RDONLY;
+	rootvp = vfs_cache_root_clear(mp);
+	MNT_IUNLOCK(mp);
+
+	opts = malloc(sizeof(struct vfsoptlist), M_MOUNT, M_WAITOK | M_ZERO);
+	TAILQ_INIT(opts);
+	opt = malloc(sizeof(struct vfsopt), M_MOUNT, M_WAITOK | M_ZERO);
+	opt->name = strdup("ro", M_MOUNT);
+	opt->value = NULL;
+	TAILQ_INSERT_TAIL(opts, opt, link);
+	vfs_mergeopts(opts, mp->mnt_opt);
+	mp->mnt_optnew = opts;
+
+	error = VFS_MOUNT(mp);
+
+	if (error == 0) {
+		MNT_ILOCK(mp);
+		mp->mnt_flag &= ~(MNT_UPDATE | MNT_FORCE);
+		MNT_IUNLOCK(mp);
+		vfs_deallocate_syncvnode(mp);
+		if (mp->mnt_opt != NULL)
+			vfs_freeopts(mp->mnt_opt);
+		mp->mnt_opt = mp->mnt_optnew;
+	} else {
+		MNT_ILOCK(mp);
+		mp->mnt_flag &= ~(MNT_UPDATE | MNT_FORCE | MNT_RDONLY);
+		MNT_IUNLOCK(mp);
+		vfs_freeopts(mp->mnt_optnew);
+	}
+	mp->mnt_optnew = NULL;
+
+out:
+	vfs_op_exit(mp);
+	VI_LOCK(vp_covered);
+	vp_covered->v_iflag &= ~VI_MOUNT;
+	VI_UNLOCK(vp_covered);
+	vput(vp_covered);
+	vn_seqc_write_end(vp_covered);
+	if (rootvp != NULL) {
+		vn_seqc_write_end(rootvp);
+		vrele(rootvp);
+	}
+	return (error);
 }
 
 /*

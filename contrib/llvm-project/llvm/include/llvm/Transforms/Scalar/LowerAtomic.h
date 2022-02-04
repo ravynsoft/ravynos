@@ -22,7 +22,14 @@ namespace llvm {
 class LowerAtomicPass : public PassInfoMixin<LowerAtomicPass> {
 public:
   PreservedAnalyses run(Function &F, FunctionAnalysisManager &);
+  static bool isRequired() { return true; }
 };
+
+class AtomicRMWInst;
+/// Convert the given RMWI into primitive load and stores,
+/// assuming that doing so is legal. Return true if the lowering
+/// succeeds.
+bool lowerAtomicRMWInst(AtomicRMWInst *RMWI);
 }
 
 #endif // LLVM_TRANSFORMS_SCALAR_LOWERATOMIC_H

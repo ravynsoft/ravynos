@@ -321,11 +321,19 @@ ipf_nat_soft_create(softc)
 
 	softn->ipf_nat_list_tail = &softn->ipf_nat_list;
 
-	softn->ipf_nat_table_max = NAT_TABLE_MAX;
-	softn->ipf_nat_table_sz = NAT_TABLE_SZ;
-	softn->ipf_nat_maprules_sz = NAT_SIZE;
-	softn->ipf_nat_rdrrules_sz = RDR_SIZE;
-	softn->ipf_nat_hostmap_sz = HOSTMAP_SIZE;
+	if (softc->ipf_large_nat) {
+	softn->ipf_nat_table_max = NAT_TABLE_MAX_LARGE;
+	softn->ipf_nat_table_sz = NAT_TABLE_SZ_LARGE;
+	softn->ipf_nat_maprules_sz = NAT_SIZE_LARGE;
+	softn->ipf_nat_rdrrules_sz = RDR_SIZE_LARGE;
+	softn->ipf_nat_hostmap_sz = HOSTMAP_SIZE_LARGE;
+	} else {
+	softn->ipf_nat_table_max = NAT_TABLE_MAX_NORMAL;
+	softn->ipf_nat_table_sz = NAT_TABLE_SZ_NORMAL;
+	softn->ipf_nat_maprules_sz = NAT_SIZE_NORMAL;
+	softn->ipf_nat_rdrrules_sz = RDR_SIZE_NORMAL;
+	softn->ipf_nat_hostmap_sz = HOSTMAP_SIZE_NORMAL;
+	}
 	softn->ipf_nat_doflush = 0;
 #ifdef  IPFILTER_LOG
 	softn->ipf_nat_logging = 1;
@@ -492,10 +500,8 @@ ipf_nat_soft_init(softc, arg)
 	for (i = 0, tq = softn->ipf_nat_tcptq; i < IPF_TCP_NSTATES; i++, tq++) {
 		if (tq->ifq_ttl < softn->ipf_nat_deficmpage)
 			tq->ifq_ttl = softn->ipf_nat_deficmpage;
-#ifdef LARGE_NAT
-		else if (tq->ifq_ttl > softn->ipf_nat_defage)
+		else if (tq->ifq_ttl > softn->ipf_nat_defage && softc->ipf_large_nat)
 			tq->ifq_ttl = softn->ipf_nat_defage;
-#endif
 	}
 
 	/*
@@ -865,9 +871,10 @@ ipf_nat_hostmapdel(softc, hmp)
 /* ------------------------------------------------------------------------ */
 /* Function:    ipf_fix_outcksum                                            */
 /* Returns:     Nil                                                         */
-/* Parameters:  fin(I) - pointer to packet information                      */
+/* Parameters:  cksum(I) - ipf_cksum_t, value of fin_cksum                  */
 /*              sp(I)  - location of 16bit checksum to update               */
-/*              n((I)  - amount to adjust checksum by                       */
+/*              n(I)  - amount to adjust checksum by                        */
+/*		partial(I) - partial checksum				    */
 /*                                                                          */
 /* Adjusts the 16bit checksum by "n" for packets going out.                 */
 /* ------------------------------------------------------------------------ */
@@ -906,9 +913,10 @@ ipf_fix_outcksum(cksum, sp, n, partial)
 /* ------------------------------------------------------------------------ */
 /* Function:    ipf_fix_incksum                                             */
 /* Returns:     Nil                                                         */
-/* Parameters:  fin(I) - pointer to packet information                      */
+/* Parameters:  cksum(I) - ipf_cksum_t, value of fin_cksum                  */
 /*              sp(I)  - location of 16bit checksum to update               */
-/*              n((I)  - amount to adjust checksum by                       */
+/*              n(I)  - amount to adjust checksum by                        */
+/*		partial(I) - partial checksum				    */
 /*                                                                          */
 /* Adjusts the 16bit checksum by "n" for packets going in.                  */
 /* ------------------------------------------------------------------------ */
@@ -949,7 +957,7 @@ ipf_fix_incksum(cksum, sp, n, partial)
 /* Function:    ipf_fix_datacksum                                           */
 /* Returns:     Nil                                                         */
 /* Parameters:  sp(I)  - location of 16bit checksum to update               */
-/*              n((I)  - amount to adjust checksum by                       */
+/*              n(I)  - amount to adjust checksum by                        */
 /*                                                                          */
 /* Fix_datacksum is used *only* for the adjustments of checksums in the     */
 /* data section of an IP packet.                                            */
@@ -1426,7 +1434,7 @@ done:
 /*              n(I)       - pointer to new NAT rule                        */
 /*              np(I)      - pointer to where to insert new NAT rule        */
 /*              getlock(I) - flag indicating if lock on  is held            */
-/* Mutex Locks: ipf_nat_io                                                   */
+/* Mutex Locks: ipf_nat_io                                                  */
 /*                                                                          */
 /* Handle SIOCADNAT.  Resolve and calculate details inside the NAT rule     */
 /* from information passed to the kernel, then add it  to the appropriate   */
@@ -5120,10 +5128,8 @@ ipf_nat_out(fin, nat, natadd, nflags)
     defined(BRIDGE_IPF) || defined(__FreeBSD__)
 	else {
 		/*
-		 * Strictly speaking, this isn't necessary on BSD
-		 * kernels because they do checksum calculation after
-		 * this code has run BUT if ipfilter is being used
-		 * to do NAT as a bridge, that code doesn't exist.
+		 * We always do this on FreeBSD because this code doesn't
+		 * exist in fastforward.
 		 */
 		switch (nat->nat_dir)
 		{
@@ -5515,6 +5521,7 @@ retry_roundrobin:
 inmatchfail:
 	RWLOCK_EXIT(&softc->ipf_nat);
 
+	DT2(frb_natv4in, fr_info_t *, fin, int, rval);
 	switch (rval)
 	{
 	case -3 :
@@ -5526,7 +5533,6 @@ inmatchfail:
 	case -1 :
 		/* proxy failure detected by ipf_nat_in() */
 		if (passp != NULL) {
-			DT2(frb_natv4in, fr_info_t *, fin, int, rval);
 			NBUMPSIDED(0, ns_drop);
 			*passp = FR_BLOCK;
 			fin->fin_reason = FRB_NATV4;
@@ -6139,10 +6145,8 @@ ipf_nat_log(softc, softn, nat, action)
 	u_int action;
 {
 #ifdef	IPFILTER_LOG
-# ifndef LARGE_NAT
 	struct ipnat *np;
 	int rulen;
-# endif
 	struct natlog natl;
 	void *items[1];
 	size_t sizes[1];
@@ -6178,8 +6182,7 @@ ipf_nat_log(softc, softn, nat, action)
 	bcopy(nat->nat_ifnames[1], natl.nl_ifnames[1],
 	      sizeof(nat->nat_ifnames[1]));
 
-# ifndef LARGE_NAT
-	if (nat->nat_ptr != NULL) {
+	if (softc->ipf_large_nat && nat->nat_ptr != NULL) {
 		for (rulen = 0, np = softn->ipf_nat_list; np != NULL;
 		     np = np->in_next, rulen++)
 			if (np == nat->nat_ptr) {
@@ -6187,7 +6190,6 @@ ipf_nat_log(softc, softn, nat, action)
 				break;
 			}
 	}
-# endif
 	items[0] = &natl;
 	sizes[0] = sizeof(natl);
 	types[0] = 0;

@@ -62,6 +62,8 @@ typedef int hidmap_cb_t(HIDMAP_CB_ARGS);
 /* These helpers can be used at any stage of any callbacks */
 #define	HIDMAP_CB_GET_STATE(...)					\
 	((hm == NULL) ? HIDMAP_CB_IS_PROBING : hm->cb_state)
+#define	HIDMAP_CB_GET_DEV(...)						\
+	(hm == NULL ? NULL : hm->dev)
 #define	HIDMAP_CB_GET_SOFTC(...)					\
 	(hm == NULL ? NULL : device_get_softc(hm->dev))
 #define	HIDMAP_CB_GET_EVDEV(...)					\
@@ -98,7 +100,8 @@ struct hidmap_item {
 	bool			has_cb:1;
 	bool			final_cb:1;
 	bool			invert_value:1;
-	u_int			reserved:10;
+	bool			forbidden:1;	/* Forbidden by driver */
+	u_int			reserved:9;
 };
 
 #define	HIDMAP_ANY(_page, _usage, _type, _code)				\

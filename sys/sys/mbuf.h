@@ -495,6 +495,12 @@ m_epg_pagelen(const struct mbuf *m, int pidx, int pgoff)
      M_TSTMP_HPREC|M_TSTMP_LRO|M_PROTOFLAGS)
 
 /*
+ * Flags preserved during demote.
+ */
+#define	M_DEMOTEFLAGS \
+    (M_EXT | M_RDONLY | M_NOFREE | M_EXTPG)
+
+/*
  * Mbuf flag description for use with printf(9) %b identifier.
  */
 #define	M_FLAG_BITS \
@@ -834,7 +840,6 @@ struct mbuf	*m_getm2(struct mbuf *, int, int, short, int);
 struct mbuf	*m_getptr(struct mbuf *, int, int *);
 u_int		 m_length(struct mbuf *, struct mbuf **);
 int		 m_mbuftouio(struct uio *, const struct mbuf *, int);
-int		 m_unmappedtouio(const struct mbuf *, int, struct uio *, int);
 void		 m_move_pkthdr(struct mbuf *, struct mbuf *);
 int		 m_pkthdr_init(struct mbuf *, int);
 struct mbuf	*m_prepend(struct mbuf *, int, int);
@@ -844,6 +849,8 @@ struct mbuf	*m_pullup(struct mbuf *, int);
 int		 m_sanity(struct mbuf *, int);
 struct mbuf	*m_split(struct mbuf *, int, int);
 struct mbuf	*m_uiotombuf(struct uio *, int, int, int, int);
+int		 m_unmapped_uiomove(const struct mbuf *, int, struct uio *,
+		    int);
 struct mbuf	*m_unshare(struct mbuf *, int);
 int		 m_snd_tag_alloc(struct ifnet *,
 		    union if_snd_tag_alloc_params *, struct m_snd_tag **);
@@ -1320,7 +1327,7 @@ extern bool		mb_use_ext_pgs;	/* Use ext_pgs for sendfile */
 #define	PACKET_TAG_DIVERT			17 /* divert info */
 #define	PACKET_TAG_IPFORWARD			18 /* ipforward info */
 #define	PACKET_TAG_MACLABEL	(19 | MTAG_PERSISTENT) /* MAC label */
-#define	PACKET_TAG_PF		(21 | MTAG_PERSISTENT) /* PF/ALTQ information */
+#define	PACKET_TAG_PF				21 /* PF/ALTQ information */
 #define	PACKET_TAG_RTSOCKFAM			25 /* rtsock sa family */
 #define	PACKET_TAG_IPOPTIONS			27 /* Saved IP options */
 #define	PACKET_TAG_CARP				28 /* CARP info */

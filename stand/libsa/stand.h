@@ -65,6 +65,7 @@
 #include <sys/cdefs.h>
 #include <sys/stat.h>
 #include <sys/dirent.h>
+#include <sys/queue.h>
 
 /* this header intentionally exports NULL from <string.h> */
 #include <string.h>
@@ -110,6 +111,9 @@ struct fs_ops {
     off_t	(*fo_seek)(struct open_file *f, off_t offset, int where);
     int		(*fo_stat)(struct open_file *f, struct stat *sb);
     int		(*fo_readdir)(struct open_file *f, struct dirent *d);
+    int		(*fo_preload)(struct open_file *f);
+    int		(*fo_mount)(const char *, const char *, void **);
+    int		(*fo_unmount)(const char *, void *);
 };
 
 /*
@@ -182,11 +186,14 @@ struct open_file {
     char		*f_rabuf;	/* readahead buffer pointer */
     size_t		f_ralen;	/* valid data in readahead buffer */
     off_t		f_raoffset;	/* consumer offset in readahead buffer */
+    int			f_id;		/* file number */
+    TAILQ_ENTRY(open_file) f_link;	/* next entry */
 #define SOPEN_RASIZE	512
 };
 
-#define	SOPEN_MAX	64
-extern struct open_file files[];
+typedef TAILQ_HEAD(file_list, open_file) file_list_t;
+extern file_list_t files;
+extern struct open_file *fd2open_file(int);
 
 /* f_flags values */
 #define	F_READ		0x0001	/* file opened for reading */
@@ -279,6 +286,8 @@ extern void	ngets(char *, int);
 #define gets(x)	ngets((x), 0)
 extern int	fgetstr(char *buf, int size, int fd);
 
+extern int	mount(const char *dev, const char *path, int flags, void *data);
+extern int	unmount(const char *dev, int flags);
 extern int	open(const char *, int);
 #define	O_RDONLY	0x0
 #define O_WRONLY	0x1
@@ -292,6 +301,7 @@ extern void	closeall(void);
 extern ssize_t	read(int, void *, size_t);
 extern ssize_t	write(int, const void *, size_t);
 extern struct	dirent *readdirfd(int);
+extern void	preload(int);
 
 extern void	srandom(unsigned int);
 extern long	random(void);
@@ -472,5 +482,15 @@ caddr_t ptov(uintptr_t);
 
 /* hexdump.c */
 void	hexdump(caddr_t region, size_t len);
+
+/* tslog.c */
+#define TSRAW(a, b, c) tslog(a, b, c)
+#define TSENTER() TSRAW("ENTER", __func__, NULL)
+#define TSENTER2(x) TSRAW("ENTER", __func__, x)
+#define TSEXIT() TSRAW("EXIT", __func__, NULL)
+#define TSLINE() TSRAW("EVENT", __FILE__, __XSTRING(__LINE__))
+void tslog(const char *, const char *, const char *);
+void tslog_setbuf(void * buf, size_t len);
+void tslog_getbuf(void ** buf, size_t * len);
 
 #endif	/* STAND_H */

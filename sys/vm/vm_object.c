@@ -1397,7 +1397,8 @@ next_page:
 				 */
 				vm_page_aflag_set(tm, PGA_REFERENCED);
 			}
-			vm_page_busy_sleep(tm, "madvpo", false);
+			if (!vm_page_busy_sleep(tm, "madvpo", 0))
+				VM_OBJECT_WUNLOCK(tobject);
   			goto relookup;
 		}
 		vm_page_advise(tm, advice);
@@ -1581,7 +1582,8 @@ retry:
 		 */
 		if (vm_page_tryxbusy(m) == 0) {
 			VM_OBJECT_WUNLOCK(new_object);
-			vm_page_sleep_if_busy(m, "spltwt");
+			if (vm_page_busy_sleep(m, "spltwt", 0))
+				VM_OBJECT_WLOCK(orig_object);
 			VM_OBJECT_WLOCK(new_object);
 			goto retry;
 		}
@@ -1667,14 +1669,17 @@ vm_object_collapse_scan_wait(vm_object_t object, vm_page_t p)
 		VM_OBJECT_WUNLOCK(object);
 		VM_OBJECT_WUNLOCK(backing_object);
 		vm_radix_wait();
+		VM_OBJECT_WLOCK(object);
+	} else if (p->object == object) {
+		VM_OBJECT_WUNLOCK(backing_object);
+		if (vm_page_busy_sleep(p, "vmocol", 0))
+			VM_OBJECT_WLOCK(object);
 	} else {
-		if (p->object == object)
+		VM_OBJECT_WUNLOCK(object);
+		if (!vm_page_busy_sleep(p, "vmocol", 0))
 			VM_OBJECT_WUNLOCK(backing_object);
-		else
-			VM_OBJECT_WUNLOCK(object);
-		vm_page_busy_sleep(p, "vmocol", false);
+		VM_OBJECT_WLOCK(object);
 	}
-	VM_OBJECT_WLOCK(object);
 	VM_OBJECT_WLOCK(backing_object);
 	return (TAILQ_FIRST(&backing_object->memq));
 }
@@ -2095,6 +2100,21 @@ again:
 		next = TAILQ_NEXT(p, listq);
 
 		/*
+		 * Skip invalid pages if asked to do so.  Try to avoid acquiring
+		 * the busy lock, as some consumers rely on this to avoid
+		 * deadlocks.
+		 *
+		 * A thread may concurrently transition the page from invalid to
+		 * valid using only the busy lock, so the result of this check
+		 * is immediately stale.  It is up to consumers to handle this,
+		 * for instance by ensuring that all invalid->valid transitions
+		 * happen with a mutex held, as may be possible for a
+		 * filesystem.
+		 */
+		if ((options & OBJPR_VALIDONLY) != 0 && vm_page_none_valid(p))
+			continue;
+
+		/*
 		 * If the page is wired for any reason besides the existence
 		 * of managed, wired mappings, then it cannot be freed.  For
 		 * example, fictitious pages, which represent device memory,
@@ -2103,8 +2123,13 @@ again:
 		 * not specified.
 		 */
 		if (vm_page_tryxbusy(p) == 0) {
-			vm_page_sleep_if_busy(p, "vmopar");
+			if (vm_page_busy_sleep(p, "vmopar", 0))
+				VM_OBJECT_WLOCK(object);
 			goto again;
+		}
+		if ((options & OBJPR_VALIDONLY) != 0 && vm_page_none_valid(p)) {
+			vm_page_xunbusy(p);
+			continue;
 		}
 		if (vm_page_wired(p)) {
 wired:
@@ -2407,7 +2432,10 @@ again:
 					VM_OBJECT_RUNLOCK(tobject);
 				tobject = t1object;
 			}
-			vm_page_busy_sleep(tm, "unwbo", true);
+			tobject = tm->object;
+			if (!vm_page_busy_sleep(tm, "unwbo",
+			    VM_ALLOC_IGN_SBUSY))
+				VM_OBJECT_RUNLOCK(tobject);
 			goto again;
 		}
 		vm_page_unwire(tm, queue);
@@ -2471,7 +2499,7 @@ vm_object_busy_wait(vm_object_t obj, const char *wmesg)
 }
 
 static int
-sysctl_vm_object_list(SYSCTL_HANDLER_ARGS)
+vm_object_list_handler(struct sysctl_req *req, bool swap_only)
 {
 	struct kinfo_vmobject *kvo;
 	char *fullpath, *freepath;
@@ -2509,10 +2537,12 @@ sysctl_vm_object_list(SYSCTL_HANDLER_ARGS)
 	 */
 	mtx_lock(&vm_object_list_mtx);
 	TAILQ_FOREACH(obj, &vm_object_list, object_list) {
-		if (obj->type == OBJT_DEAD)
+		if (obj->type == OBJT_DEAD ||
+		    (swap_only && (obj->flags & (OBJ_ANON | OBJ_SWAP)) == 0))
 			continue;
 		VM_OBJECT_RLOCK(obj);
-		if (obj->type == OBJT_DEAD) {
+		if (obj->type == OBJT_DEAD ||
+		    (swap_only && (obj->flags & (OBJ_ANON | OBJ_SWAP)) == 0)) {
 			VM_OBJECT_RUNLOCK(obj);
 			continue;
 		}
@@ -2524,20 +2554,22 @@ sysctl_vm_object_list(SYSCTL_HANDLER_ARGS)
 		kvo->kvo_memattr = obj->memattr;
 		kvo->kvo_active = 0;
 		kvo->kvo_inactive = 0;
-		TAILQ_FOREACH(m, &obj->memq, listq) {
-			/*
-			 * A page may belong to the object but be
-			 * dequeued and set to PQ_NONE while the
-			 * object lock is not held.  This makes the
-			 * reads of m->queue below racy, and we do not
-			 * count pages set to PQ_NONE.  However, this
-			 * sysctl is only meant to give an
-			 * approximation of the system anyway.
-			 */
-			if (m->a.queue == PQ_ACTIVE)
-				kvo->kvo_active++;
-			else if (m->a.queue == PQ_INACTIVE)
-				kvo->kvo_inactive++;
+		if (!swap_only) {
+			TAILQ_FOREACH(m, &obj->memq, listq) {
+				/*
+				 * A page may belong to the object but be
+				 * dequeued and set to PQ_NONE while the
+				 * object lock is not held.  This makes the
+				 * reads of m->queue below racy, and we do not
+				 * count pages set to PQ_NONE.  However, this
+				 * sysctl is only meant to give an
+				 * approximation of the system anyway.
+				 */
+				if (m->a.queue == PQ_ACTIVE)
+					kvo->kvo_active++;
+				else if (m->a.queue == PQ_INACTIVE)
+					kvo->kvo_inactive++;
+			}
 		}
 
 		kvo->kvo_vn_fileid = 0;
@@ -2545,7 +2577,8 @@ sysctl_vm_object_list(SYSCTL_HANDLER_ARGS)
 		kvo->kvo_vn_fsid_freebsd11 = 0;
 		freepath = NULL;
 		fullpath = "";
-		kvo->kvo_type = vm_object_kvme_type(obj, &vp);
+		vp = NULL;
+		kvo->kvo_type = vm_object_kvme_type(obj, swap_only ? NULL : &vp);
 		if (vp != NULL) {
 			vref(vp);
 		} else if ((obj->flags & OBJ_ANON) != 0) {
@@ -2580,6 +2613,7 @@ sysctl_vm_object_list(SYSCTL_HANDLER_ARGS)
 		kvo->kvo_structsize = roundup(kvo->kvo_structsize,
 		    sizeof(uint64_t));
 		error = SYSCTL_OUT(req, kvo, kvo->kvo_structsize);
+		maybe_yield();
 		mtx_lock(&vm_object_list_mtx);
 		if (error)
 			break;
@@ -2588,9 +2622,34 @@ sysctl_vm_object_list(SYSCTL_HANDLER_ARGS)
 	free(kvo, M_TEMP);
 	return (error);
 }
+
+static int
+sysctl_vm_object_list(SYSCTL_HANDLER_ARGS)
+{
+	return (vm_object_list_handler(req, false));
+}
+
 SYSCTL_PROC(_vm, OID_AUTO, objects, CTLTYPE_STRUCT | CTLFLAG_RW | CTLFLAG_SKIP |
     CTLFLAG_MPSAFE, NULL, 0, sysctl_vm_object_list, "S,kinfo_vmobject",
     "List of VM objects");
+
+static int
+sysctl_vm_object_list_swap(SYSCTL_HANDLER_ARGS)
+{
+	return (vm_object_list_handler(req, true));
+}
+
+/*
+ * This sysctl returns list of the anonymous or swap objects. Intent
+ * is to provide stripped optimized list useful to analyze swap use.
+ * Since technically non-swap (default) objects participate in the
+ * shadow chains, and are converted to swap type as needed by swap
+ * pager, we must report them.
+ */
+SYSCTL_PROC(_vm, OID_AUTO, swap_objects,
+    CTLTYPE_STRUCT | CTLFLAG_RW | CTLFLAG_SKIP | CTLFLAG_MPSAFE, NULL, 0,
+    sysctl_vm_object_list_swap, "S,kinfo_vmobject",
+    "List of swap VM objects");
 
 #include "opt_ddb.h"
 #ifdef DDB
@@ -2756,18 +2815,13 @@ DB_SHOW_COMMAND(vmopag, vm_object_print_pages)
 	vm_pindex_t fidx;
 	vm_paddr_t pa;
 	vm_page_t m, prev_m;
-	int rcount, nl, c;
+	int rcount;
 
-	nl = 0;
 	TAILQ_FOREACH(object, &vm_object_list, object_list) {
 		db_printf("new object: %p\n", (void *)object);
-		if (nl > 18) {
-			c = cngetc();
-			if (c != ' ')
-				return;
-			nl = 0;
-		}
-		nl++;
+		if (db_pager_quit)
+			return;
+
 		rcount = 0;
 		fidx = 0;
 		pa = -1;
@@ -2779,13 +2833,8 @@ DB_SHOW_COMMAND(vmopag, vm_object_print_pages)
 				if (rcount) {
 					db_printf(" index(%ld)run(%d)pa(0x%lx)\n",
 						(long)fidx, rcount, (long)pa);
-					if (nl > 18) {
-						c = cngetc();
-						if (c != ' ')
-							return;
-						nl = 0;
-					}
-					nl++;
+					if (db_pager_quit)
+						return;
 					rcount = 0;
 				}
 			}				
@@ -2797,13 +2846,8 @@ DB_SHOW_COMMAND(vmopag, vm_object_print_pages)
 			if (rcount) {
 				db_printf(" index(%ld)run(%d)pa(0x%lx)\n",
 					(long)fidx, rcount, (long)pa);
-				if (nl > 18) {
-					c = cngetc();
-					if (c != ' ')
-						return;
-					nl = 0;
-				}
-				nl++;
+				if (db_pager_quit)
+					return;
 			}
 			fidx = m->pindex;
 			pa = VM_PAGE_TO_PHYS(m);
@@ -2812,13 +2856,8 @@ DB_SHOW_COMMAND(vmopag, vm_object_print_pages)
 		if (rcount) {
 			db_printf(" index(%ld)run(%d)pa(0x%lx)\n",
 				(long)fidx, rcount, (long)pa);
-			if (nl > 18) {
-				c = cngetc();
-				if (c != ' ')
-					return;
-				nl = 0;
-			}
-			nl++;
+			if (db_pager_quit)
+				return;
 		}
 	}
 }

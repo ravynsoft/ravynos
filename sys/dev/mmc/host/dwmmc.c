@@ -38,12 +38,14 @@ __FBSDID("$FreeBSD$");
 
 #include <sys/param.h>
 #include <sys/systm.h>
+#include <sys/conf.h>
 #include <sys/bus.h>
 #include <sys/kernel.h>
 #include <sys/lock.h>
 #include <sys/module.h>
 #include <sys/malloc.h>
 #include <sys/mutex.h>
+#include <sys/proc.h>
 #include <sys/rman.h>
 #include <sys/queue.h>
 #include <sys/taskqueue.h>
@@ -76,6 +78,8 @@ __FBSDID("$FreeBSD$");
 #include <cam/cam_debug.h>
 #include <cam/cam_sim.h>
 #include <cam/cam_xpt_sim.h>
+
+#include "mmc_sim_if.h"
 #endif
 
 #include "mmcbr_if.h"
@@ -143,6 +147,11 @@ struct idmac_desc {
  * second half of page
  */
 #define	IDMAC_MAX_SIZE	2048
+/*
+ * Busdma may bounce buffers, so we must reserve 2 descriptors
+ * (on start and on end) for bounced fragments.
+ */
+#define DWMMC_MAX_DATA	(IDMAC_MAX_SIZE * (IDMAC_DESC_SEGS - 2)) / MMC_SECTOR_SIZE
 
 static void dwmmc_next_operation(struct dwmmc_softc *);
 static int dwmmc_setup_bus(struct dwmmc_softc *, int);
@@ -151,14 +160,6 @@ static int dma_stop(struct dwmmc_softc *);
 static void pio_read(struct dwmmc_softc *, struct mmc_command *);
 static void pio_write(struct dwmmc_softc *, struct mmc_command *);
 static void dwmmc_handle_card_present(struct dwmmc_softc *sc, bool is_present);
-#ifdef MMCCAM
-static int dwmmc_switch_vccq(device_t, device_t);
-static void dwmmc_cam_action(struct cam_sim *, union ccb *);
-static void dwmmc_cam_poll(struct cam_sim *);
-static int dwmmc_cam_settran_settings(struct dwmmc_softc *, union ccb *);
-static int dwmmc_cam_request(struct dwmmc_softc *, union ccb *);
-static void dwmmc_cam_handle_mmcio(struct cam_sim *, union ccb *);
-#endif
 
 static struct resource_spec dwmmc_spec[] = {
 	{ SYS_RES_MEMORY,	0,	RF_ACTIVE },
@@ -460,6 +461,9 @@ dwmmc_handle_card_present(struct dwmmc_softc *sc, bool is_present)
 {
 	bool was_present;
 
+	if (dumping || SCHEDULER_STOPPED())
+		return;
+
 	was_present = sc->child != NULL;
 
 	if (!was_present && is_present) {
@@ -476,7 +480,7 @@ dwmmc_card_task(void *arg, int pending __unused)
 	struct dwmmc_softc *sc = arg;
 
 #ifdef MMCCAM
-	mmccam_start_discovery(sc->sim);
+	mmc_cam_sim_discover(&sc->mmc_sim);
 #else
 	DWMMC_LOCK(sc);
 
@@ -770,32 +774,11 @@ dwmmc_attach(device_t dev)
 
 #ifdef MMCCAM
 	sc->ccb = NULL;
-	if ((sc->devq = cam_simq_alloc(1)) == NULL) {
-		goto fail;
+	if (mmc_cam_sim_alloc(dev, "dw_mmc", &sc->mmc_sim) != 0) {
+		device_printf(dev, "cannot alloc cam sim\n");
+		dwmmc_detach(dev);
+		return (ENXIO);
 	}
-
-	mtx_init(&sc->sim_mtx, "dwmmcsim", NULL, MTX_DEF);
-	sc->sim = cam_sim_alloc_dev(dwmmc_cam_action, dwmmc_cam_poll,
-	    "dw_mmc_sim", sc, dev,
-	    &sc->sim_mtx, 1, 1, sc->devq);
-
-	if (sc->sim == NULL) {
-                cam_simq_free(sc->devq);
-                device_printf(dev, "cannot allocate CAM SIM\n");
-                goto fail;
-        }
-
-	mtx_lock(&sc->sim_mtx);
-        if (xpt_bus_register(sc->sim, sc->dev, 0) != 0) {
-                device_printf(sc->dev, "cannot register SCSI pass-through bus\n");
-                cam_sim_free(sc->sim, FALSE);
-                cam_simq_free(sc->devq);
-                mtx_unlock(&sc->sim_mtx);
-                goto fail;
-        }
-
-fail:
-        mtx_unlock(&sc->sim_mtx);
 #endif
 	/*
 	 * Schedule a card detection as we won't get an interrupt
@@ -843,6 +826,10 @@ dwmmc_detach(device_t dev)
 		device_printf(sc->dev, "Cannot disable vqmmc regulator\n");
 #endif
 
+#ifdef MMCCAM
+	mmc_cam_sim_free(&sc->mmc_sim);
+#endif
+
 	return (0);
 }
 
@@ -880,7 +867,7 @@ dwmmc_setup_bus(struct dwmmc_softc *sc, int freq)
 	tout = 1000;
 	do {
 		if (tout-- < 0) {
-			device_printf(sc->dev, "Failed to update clk");
+			device_printf(sc->dev, "Failed to update clk\n");
 			return (1);
 		}
 	} while (READ4(sc, SDMMC_CMD) & SDMMC_CMD_START);
@@ -913,6 +900,8 @@ dwmmc_update_ios(device_t brdev, device_t reqdev)
 
 	dprintf("Setting up clk %u bus_width %d, timming: %d\n",
 		ios->clock, ios->bus_width, ios->timing);
+
+	mmc_fdt_set_power(&sc->mmc_helper, ios->power_mode);
 
 	if (ios->bus_width == bus_width_8)
 		WRITE4(sc, SDMMC_CTYPE, SDMMC_CTYPE_8BIT);
@@ -1281,6 +1270,7 @@ dwmmc_request(device_t brdev, device_t reqdev, struct mmc_request *req)
 	return (0);
 }
 
+#ifndef MMCCAM
 static int
 dwmmc_get_ro(device_t brdev, device_t reqdev)
 {
@@ -1318,6 +1308,7 @@ dwmmc_release_host(device_t brdev, device_t reqdev)
 	DWMMC_UNLOCK(sc);
 	return (0);
 }
+#endif	/* !MMCCAM */
 
 static int
 dwmmc_read_ivar(device_t bus, device_t child, int which, uintptr_t *result)
@@ -1369,13 +1360,7 @@ dwmmc_read_ivar(device_t bus, device_t child, int which, uintptr_t *result)
 		*(int *)result = sc->host.caps;
 		break;
 	case MMCBR_IVAR_MAX_DATA:
-		/*
-		 * Busdma may bounce buffers, so we must reserve 2 descriptors
-		 * (on start and on end) for bounced fragments.
-		 *
-		 */
-		*(int *)result = (IDMAC_MAX_SIZE * IDMAC_DESC_SEGS) /
-		    MMC_SECTOR_SIZE - 3;
+		*(int *)result = DWMMC_MAX_DATA;
 		break;
 	case MMCBR_IVAR_TIMING:
 		*(int *)result = sc->host.ios.timing;
@@ -1444,133 +1429,34 @@ dwmmc_switch_vccq(device_t dev, device_t child)
 	return EINVAL;
 }
 
-static void
-dwmmc_cam_handle_mmcio(struct cam_sim *sim, union ccb *ccb)
+static int
+dwmmc_get_tran_settings(device_t dev, struct ccb_trans_settings_mmc *cts)
 {
 	struct dwmmc_softc *sc;
 
-	sc = cam_sim_softc(sim);
+	sc = device_get_softc(dev);
 
-	dwmmc_cam_request(sc, ccb);
-}
+	cts->host_ocr = sc->host.host_ocr;
+	cts->host_f_min = sc->host.f_min;
+	cts->host_f_max = sc->host.f_max;
+	cts->host_caps = sc->host.caps;
+	cts->host_max_data = DWMMC_MAX_DATA;
+	memcpy(&cts->ios, &sc->host.ios, sizeof(struct mmc_ios));
 
-static void
-dwmmc_cam_action(struct cam_sim *sim, union ccb *ccb)
-{
-	struct dwmmc_softc *sc;
-
-	sc = cam_sim_softc(sim);
-	if (sc == NULL) {
-		ccb->ccb_h.status = CAM_SEL_TIMEOUT;
-		xpt_done(ccb);
-		return;
-	}
-
-	mtx_assert(&sc->sim_mtx, MA_OWNED);
-
-	switch (ccb->ccb_h.func_code) {
-	case XPT_PATH_INQ:
-		/* XXX: correctly calculate maxio here */
-		mmc_path_inq(&ccb->cpi, "Deglitch Networks", sim, MMC_SECTOR_SIZE);
-		break;
-
-	case XPT_GET_TRAN_SETTINGS:
-	{
-		struct ccb_trans_settings *cts = &ccb->cts;
-
-		cts->protocol = PROTO_MMCSD;
-		cts->protocol_version = 1;
-		cts->transport = XPORT_MMCSD;
-		cts->transport_version = 1;
-		cts->xport_specific.valid = 0;
-		cts->proto_specific.mmc.host_ocr = sc->host.host_ocr;
-		cts->proto_specific.mmc.host_f_min = sc->host.f_min;
-		cts->proto_specific.mmc.host_f_max = sc->host.f_max;
-		cts->proto_specific.mmc.host_caps = sc->host.caps;
-		/* XXX: correctly calculate host_max_data */
-		cts->proto_specific.mmc.host_max_data = 1;
-		memcpy(&cts->proto_specific.mmc.ios, &sc->host.ios, sizeof(struct mmc_ios));
-		ccb->ccb_h.status = CAM_REQ_CMP;
-		break;
-	}
-	case XPT_SET_TRAN_SETTINGS:
-	{
-		dwmmc_cam_settran_settings(sc, ccb);
-		ccb->ccb_h.status = CAM_REQ_CMP;
-		break;
-	}
-	case XPT_RESET_BUS: {
-		struct ccb_trans_settings_mmc *cts;
-
-		cts = &ccb->cts.proto_specific.mmc;
-		cts->ios_valid = MMC_PM;
-		cts->ios.power_mode = power_off;
-		/* Power off the MMC bus */
-		if (dwmmc_cam_settran_settings(sc, ccb) != 0) {
-			device_printf(sc->dev,"cannot power down the MMC bus\n");
-			ccb->ccb_h.status = CAM_REQ_CMP_ERR;
-			break;
-		}
-
-		/* Soft Reset controller and run initialization again */
-		if (dwmmc_ctrl_reset(sc, (SDMMC_CTRL_RESET |
-				  SDMMC_CTRL_FIFO_RESET |
-				  SDMMC_CTRL_DMA_RESET)) != 0) {
-			device_printf(sc->dev, "cannot reset the controller\n");
-			ccb->ccb_h.status = CAM_REQ_CMP_ERR;
-			break;
-		}
-
-		cts->ios_valid = MMC_PM;
-		cts->ios.power_mode = power_on;
-		/* Power off the MMC bus */
-		if (dwmmc_cam_settran_settings(sc, ccb) != 0) {
-			device_printf(sc->dev, "cannot power on the MMC bus\n");
-			ccb->ccb_h.status = CAM_REQ_CMP_ERR;
-			break;
-		}
-
-		ccb->ccb_h.status = CAM_REQ_CMP;
-		break;
-	}
-	case XPT_MMC_IO:
-		/*
-		 * Here is the HW-dependent part of
-		 * sending the command to the underlying h/w
-		 * At some point in the future an interrupt comes.
-		 * Then the request will be marked as completed.
-		 */
-		ccb->ccb_h.status = CAM_REQ_INPROG;
-
-		dwmmc_cam_handle_mmcio(sim, ccb);
-		return;
-		/* NOTREACHED */
-		break;
-	default:
-		ccb->ccb_h.status = CAM_REQ_INVALID;
-		break;
-	}
-	xpt_done(ccb);
-	return;
-}
-
-static void
-dwmmc_cam_poll(struct cam_sim *sim)
-{
-	return;
+	return (0);
 }
 
 static int
-dwmmc_cam_settran_settings(struct dwmmc_softc *sc, union ccb *ccb)
+dwmmc_set_tran_settings(device_t dev, struct ccb_trans_settings_mmc *cts)
 {
+	struct dwmmc_softc *sc;
 	struct mmc_ios *ios;
 	struct mmc_ios *new_ios;
-	struct ccb_trans_settings_mmc *cts;
 	int res;
 
+	sc = device_get_softc(dev);
 	ios = &sc->host.ios;
 
-	cts = &ccb->cts.proto_specific.mmc;
 	new_ios = &cts->ios;
 
 	/* Update only requested fields */
@@ -1621,10 +1507,12 @@ dwmmc_cam_settran_settings(struct dwmmc_softc *sc, union ccb *ccb)
 }
 
 static int
-dwmmc_cam_request(struct dwmmc_softc *sc, union ccb *ccb)
+dwmmc_cam_request(device_t dev, union ccb *ccb)
 {
+	struct dwmmc_softc *sc;
 	struct ccb_mmcio *mmcio;
 
+	sc = device_get_softc(dev);
 	mmcio = &ccb->mmcio;
 
 	DWMMC_LOCK(sc);
@@ -1652,19 +1540,40 @@ dwmmc_cam_request(struct dwmmc_softc *sc, union ccb *ccb)
 
 	return (0);
 }
-#endif
+
+static void
+dwmmc_cam_poll(device_t dev)
+{
+	struct dwmmc_softc *sc;
+
+	sc = device_get_softc(dev);
+	dwmmc_intr(sc);
+}
+#endif /* MMCCAM */
 
 static device_method_t dwmmc_methods[] = {
 	/* Bus interface */
 	DEVMETHOD(bus_read_ivar,	dwmmc_read_ivar),
 	DEVMETHOD(bus_write_ivar,	dwmmc_write_ivar),
 
+#ifndef MMCCAM
 	/* mmcbr_if */
 	DEVMETHOD(mmcbr_update_ios,	dwmmc_update_ios),
 	DEVMETHOD(mmcbr_request,	dwmmc_request),
 	DEVMETHOD(mmcbr_get_ro,		dwmmc_get_ro),
 	DEVMETHOD(mmcbr_acquire_host,	dwmmc_acquire_host),
 	DEVMETHOD(mmcbr_release_host,	dwmmc_release_host),
+#endif
+
+#ifdef MMCCAM
+	/* MMCCAM interface */
+	DEVMETHOD(mmc_sim_get_tran_settings,	dwmmc_get_tran_settings),
+	DEVMETHOD(mmc_sim_set_tran_settings,	dwmmc_set_tran_settings),
+	DEVMETHOD(mmc_sim_cam_request,		dwmmc_cam_request),
+	DEVMETHOD(mmc_sim_cam_poll,		dwmmc_cam_poll),
+
+	DEVMETHOD(bus_add_child,		bus_generic_add_child),
+#endif
 
 	DEVMETHOD_END
 };

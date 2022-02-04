@@ -64,6 +64,7 @@ class FuseTest : public ::testing::Test {
 	bool m_default_permissions;
 	uint32_t m_kernel_minor_version;
 	enum poll_method m_pm;
+	bool m_noatime;
 	bool m_push_symlinks_in;
 	bool m_ro;
 	bool m_async;
@@ -72,6 +73,7 @@ class FuseTest : public ::testing::Test {
 	unsigned m_time_gran;
 	MockFS *m_mock = NULL;
 	const static uint64_t FH = 0xdeadbeef1a7ebabe;
+	const char *reclaim_mib = "debug.try_reclaim_vnode";
 
 	public:
 	int m_maxbcachebuf;
@@ -85,6 +87,7 @@ class FuseTest : public ::testing::Test {
 		m_default_permissions(false),
 		m_kernel_minor_version(FUSE_KERNEL_MINOR_VERSION),
 		m_pm(BLOCKING),
+		m_noatime(false),
 		m_push_symlinks_in(false),
 		m_ro(false),
 		m_async(false),
@@ -110,6 +113,14 @@ class FuseTest : public ::testing::Test {
 
 	/* Expect FUSE_DESTROY and shutdown the daemon */
 	void expect_destroy(int error);
+
+	/*
+	 * Create an expectation that FUSE_FALLOCATE will be called with the
+	 * given inode, offset, length, and mode, exactly times times and
+	 * returning error
+	 */
+	void expect_fallocate(uint64_t ino, uint64_t offset, uint64_t length,
+		uint32_t mode, int error, int times=1);
 
 	/*
 	 * Create an expectation that FUSE_FLUSH will be called times times for
@@ -173,7 +184,8 @@ class FuseTest : public ::testing::Test {
 	 * nothing currently validates the size of the fuse_read_in struct.
 	 */
 	void expect_read(uint64_t ino, uint64_t offset, uint64_t isize,
-		uint64_t osize, const void *contents, int flags = -1);
+		uint64_t osize, const void *contents, int flags = -1,
+		uint64_t fh = FH);
 
 	/*
 	 * Create an expectation that FUSE_READIR will be called any number of
@@ -253,4 +265,7 @@ class FuseTest : public ::testing::Test {
 	 * See comments for FuseTest::leak
 	 */
 	static void leakdir(DIR* dirp __unused) {}
+
+	/* Manually reclaim a vnode.  Requires root privileges. */
+	void reclaim_vnode(const char *fullpath);
 };

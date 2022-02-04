@@ -338,9 +338,9 @@ void mlx4_en_set_num_rx_rings(struct mlx4_en_dev *mdev)
 	}
 }
 
-void mlx4_en_calc_rx_buf(struct net_device *dev)
+void mlx4_en_calc_rx_buf(struct ifnet *dev)
 {
-	struct mlx4_en_priv *priv = netdev_priv(dev);
+	struct mlx4_en_priv *priv = mlx4_netdev_priv(dev);
 	int eff_mtu = dev->if_mtu + ETH_HLEN + VLAN_HLEN + ETH_FCS_LEN +
 	    MLX4_NET_IP_ALIGN;
 
@@ -735,9 +735,9 @@ mlx4_en_rss_hash(__be16 status, int udp_rss)
  * The following calc ensures that when factor==1, it means we are aligned to 64B
  * and we get the real cqe data*/
 #define CQE_FACTOR_INDEX(index, factor) (((index) << (factor)) + (factor))
-int mlx4_en_process_rx_cq(struct net_device *dev, struct mlx4_en_cq *cq, int budget)
+int mlx4_en_process_rx_cq(struct ifnet *dev, struct mlx4_en_cq *cq, int budget)
 {
-	struct mlx4_en_priv *priv = netdev_priv(dev);
+	struct mlx4_en_priv *priv = mlx4_netdev_priv(dev);
 	struct mlx4_cqe *cqe;
 	struct mlx4_en_rx_ring *ring = priv->rx_ring[cq->ring];
 	struct mlx4_en_rx_mbuf *mb_list;
@@ -857,7 +857,7 @@ out:
 	mlx4_cq_set_ci(mcq);
 	wmb(); /* ensure HW sees CQ consumer before we post new buffers */
 	ring->cons = mcq->cons_index;
-	ring->prod += polled; /* Polled descriptors were realocated in place */
+	ring->prod += polled; /* Polled descriptors were reallocated in place */
 	mlx4_en_update_rx_prod_db(ring);
 	return polled;
 
@@ -866,7 +866,7 @@ out:
 /* Rx CQ polling - called by NAPI */
 static int mlx4_en_poll_rx_cq(struct mlx4_en_cq *cq, int budget)
 {
-	struct net_device *dev = cq->dev;
+	struct ifnet *dev = cq->dev;
 	struct epoch_tracker et;
 	int done;
 
@@ -880,7 +880,7 @@ static int mlx4_en_poll_rx_cq(struct mlx4_en_cq *cq, int budget)
 void mlx4_en_rx_irq(struct mlx4_cq *mcq)
 {
 	struct mlx4_en_cq *cq = container_of(mcq, struct mlx4_en_cq, mcq);
-	struct mlx4_en_priv *priv = netdev_priv(cq->dev);
+	struct mlx4_en_priv *priv = mlx4_netdev_priv(cq->dev);
         int done;
 
         // Shoot one within the irq context 

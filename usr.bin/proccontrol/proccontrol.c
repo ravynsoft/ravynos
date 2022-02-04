@@ -45,6 +45,8 @@ enum {
 	MODE_TRAPCAP,
 	MODE_PROTMAX,
 	MODE_STACKGAP,
+	MODE_NO_NEW_PRIVS,
+	MODE_WXMAP,
 #ifdef PROC_KPTI_CTL
 	MODE_KPTI,
 #endif
@@ -84,7 +86,7 @@ usage(void)
 {
 
 	fprintf(stderr, "Usage: proccontrol -m (aslr|protmax|trace|trapcap|"
-	    "stackgap"KPTI_USAGE LA_USAGE") [-q] "
+	    "stackgap|nonewprivs|wxmap"KPTI_USAGE LA_USAGE") [-q] "
 	    "[-s (enable|disable)] [-p pid | command]\n");
 	exit(1);
 }
@@ -113,6 +115,10 @@ main(int argc, char *argv[])
 				mode = MODE_TRAPCAP;
 			else if (strcmp(optarg, "stackgap") == 0)
 				mode = MODE_STACKGAP;
+			else if (strcmp(optarg, "nonewprivs") == 0)
+				mode = MODE_NO_NEW_PRIVS;
+			else if (strcmp(optarg, "wxmap") == 0)
+				mode = MODE_WXMAP;
 #ifdef PROC_KPTI_CTL
 			else if (strcmp(optarg, "kpti") == 0)
 				mode = MODE_KPTI;
@@ -173,6 +179,13 @@ main(int argc, char *argv[])
 			break;
 		case MODE_STACKGAP:
 			error = procctl(P_PID, pid, PROC_STACKGAP_STATUS, &arg);
+			break;
+		case MODE_NO_NEW_PRIVS:
+			error = procctl(P_PID, pid, PROC_NO_NEW_PRIVS_STATUS,
+			    &arg);
+			break;
+		case MODE_WXMAP:
+			error = procctl(P_PID, pid, PROC_WXMAP_STATUS, &arg);
 			break;
 #ifdef PROC_KPTI_CTL
 		case MODE_KPTI:
@@ -264,6 +277,27 @@ main(int argc, char *argv[])
 				break;
 			}
 			break;
+		case MODE_NO_NEW_PRIVS:
+			switch (arg) {
+			case PROC_NO_NEW_PRIVS_ENABLE:
+				printf("enabled\n");
+				break;
+			case PROC_NO_NEW_PRIVS_DISABLE:
+				printf("disabled\n");
+				break;
+			}
+			break;
+		case MODE_WXMAP:
+			if ((arg & PROC_WX_MAPPINGS_PERMIT) != 0)
+				printf("enabled");
+			else
+				printf("disabled");
+			if ((arg & PROC_WX_MAPPINGS_DISALLOW_EXEC) != 0)
+				printf(", disabled on exec");
+			if ((arg & PROC_WXORX_ENFORCE) != 0)
+				printf(", wxorx enforced");
+			printf("\n");
+			break;
 #ifdef PROC_KPTI_CTL
 		case MODE_KPTI:
 			switch (arg & ~PROC_KPTI_STATUS_ACTIVE) {
@@ -329,6 +363,17 @@ main(int argc, char *argv[])
 			    (PROC_STACKGAP_DISABLE |
 			    PROC_STACKGAP_DISABLE_EXEC);
 			error = procctl(P_PID, pid, PROC_STACKGAP_CTL, &arg);
+			break;
+		case MODE_NO_NEW_PRIVS:
+			arg = enable ? PROC_NO_NEW_PRIVS_ENABLE :
+			    PROC_NO_NEW_PRIVS_DISABLE;
+			error = procctl(P_PID, pid, PROC_NO_NEW_PRIVS_CTL,
+			    &arg);
+			break;
+		case MODE_WXMAP:
+			arg = enable ? PROC_WX_MAPPINGS_PERMIT :
+			    PROC_WX_MAPPINGS_DISALLOW_EXEC;
+			error = procctl(P_PID, pid, PROC_WXMAP_CTL, &arg);
 			break;
 #ifdef PROC_KPTI_CTL
 		case MODE_KPTI:

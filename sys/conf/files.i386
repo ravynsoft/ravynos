@@ -47,7 +47,6 @@ linux_vdso.so			optional	compat_linux		\
 	no-implicit-rule						\
 	clean		"linux_vdso.so"
 #
-cddl/contrib/opensolaris/common/atomic/i386/opensolaris_atomic.S	optional zfs | dtrace compile-with "${ZFS_S}"
 cddl/dev/dtrace/i386/dtrace_asm.S			optional dtrace compile-with "${DTRACE_S}"
 cddl/dev/dtrace/i386/dtrace_subr.c			optional dtrace compile-with "${DTRACE_C}"
 compat/linprocfs/linprocfs.c	optional linprocfs
@@ -78,6 +77,8 @@ compat/linux/linux.c		optional compat_linux
 compat/ndis/winx32_wrap.S	optional ndisapi pci
 crypto/aesni/aeskeys_i386.S	optional aesni
 crypto/des/arch/i386/des_enc.S	optional netsmb
+crypto/openssl/i386/chacha-x86.S	optional ossl
+crypto/openssl/i386/poly1305-x86.S	optional ossl
 crypto/openssl/i386/sha1-586.S	optional ossl
 crypto/openssl/i386/sha256-586.S	optional ossl
 crypto/openssl/i386/sha512-586.S	optional ossl
@@ -129,9 +130,11 @@ dev/tpm/tpm_acpi.c		optional tpm acpi
 dev/tpm/tpm_isa.c		optional tpm isa
 dev/uart/uart_cpu_x86.c		optional uart
 dev/viawd/viawd.c		optional viawd
+dev/vmd/vmd.c			optional vmd
 dev/acpi_support/acpi_wmi_if.m	standard
 dev/wbwd/wbwd.c			optional wbwd
 i386/acpica/acpi_machdep.c	optional acpi
+i386/acpica/acpi_wakeup.c	optional acpi
 acpi_wakecode.o			optional acpi				\
 	dependency	"$S/i386/acpica/acpi_wakecode.S assym.inc"	\
 	compile-with	"${NORMAL_S}"					\
@@ -164,12 +167,13 @@ i386/i386/copyout.c		standard
 i386/i386/db_disasm.c		optional ddb
 i386/i386/db_interface.c	optional ddb
 i386/i386/db_trace.c		optional ddb
+i386/i386/exec_machdep.c	standard
 i386/i386/elan-mmcr.c		optional cpu_elan | cpu_soekris
 i386/i386/elf_machdep.c		standard
 i386/i386/exception.s		standard
 i386/i386/gdb_machdep.c		optional gdb
 i386/i386/geode.c		optional cpu_geode
-i386/i386/in_cksum.c		optional inet | inet6
+i386/i386/in_cksum_machdep.c	optional inet | inet6
 i386/i386/initcpu.c		standard
 i386/i386/io.c			optional io
 i386/i386/k6_mem.c		optional mem

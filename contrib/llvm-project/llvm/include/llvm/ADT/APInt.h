@@ -20,7 +20,7 @@
 #include <cassert>
 #include <climits>
 #include <cstring>
-#include <string>
+#include <utility>
 
 namespace llvm {
 class FoldingSetNodeID;
@@ -31,6 +31,7 @@ class raw_ostream;
 template <typename T> class SmallVectorImpl;
 template <typename T> class ArrayRef;
 template <typename T> class Optional;
+template <typename T> struct DenseMapInfo;
 
 class APInt;
 
@@ -96,7 +97,7 @@ private:
 
   unsigned BitWidth; ///< The number of bits in this APInt.
 
-  friend struct DenseMapAPIntKeyInfo;
+  friend struct DenseMapInfo<APInt>;
 
   friend class APSInt;
 
@@ -107,11 +108,6 @@ private:
   APInt(uint64_t *val, unsigned bits) : BitWidth(bits) {
     U.pVal = val;
   }
-
-  /// Determine if this APInt just has one word to store value.
-  ///
-  /// \returns true if the number of bits <= 64, false otherwise.
-  bool isSingleWord() const { return BitWidth <= APINT_BITS_PER_WORD; }
 
   /// Determine which word a bit is in.
   ///
@@ -354,6 +350,11 @@ public:
   /// @}
   /// \name Value Tests
   /// @{
+
+  /// Determine if this APInt just has one word to store value.
+  ///
+  /// \returns true if the number of bits <= 64, false otherwise.
+  bool isSingleWord() const { return BitWidth <= APINT_BITS_PER_WORD; }
 
   /// Determine sign of this APInt.
   ///
@@ -764,8 +765,8 @@ public:
 
   /// Move assignment operator.
   APInt &operator=(APInt &&that) {
-#ifdef _MSC_VER
-    // The MSVC std::shuffle implementation still does self-assignment.
+#ifdef EXPENSIVE_CHECKS
+    // Some std::shuffle implementations still do self-assignment.
     if (this == &that)
       return *this;
 #endif
@@ -793,11 +794,10 @@ public:
   APInt &operator=(uint64_t RHS) {
     if (isSingleWord()) {
       U.VAL = RHS;
-      clearUnusedBits();
-    } else {
-      U.pVal[0] = RHS;
-      memset(U.pVal+1, 0, (getNumWords() - 1) * APINT_WORD_SIZE);
+      return clearUnusedBits();
     }
+    U.pVal[0] = RHS;
+    memset(U.pVal + 1, 0, (getNumWords() - 1) * APINT_WORD_SIZE);
     return *this;
   }
 
@@ -854,10 +854,9 @@ public:
   APInt &operator|=(uint64_t RHS) {
     if (isSingleWord()) {
       U.VAL |= RHS;
-      clearUnusedBits();
-    } else {
-      U.pVal[0] |= RHS;
+      return clearUnusedBits();
     }
+    U.pVal[0] |= RHS;
     return *this;
   }
 
@@ -884,10 +883,9 @@ public:
   APInt &operator^=(uint64_t RHS) {
     if (isSingleWord()) {
       U.VAL ^= RHS;
-      clearUnusedBits();
-    } else {
-      U.pVal[0] ^= RHS;
+      return clearUnusedBits();
     }
+    U.pVal[0] ^= RHS;
     return *this;
   }
 
@@ -1405,6 +1403,12 @@ public:
   /// extended, truncated, or left alone to make it that width.
   APInt zextOrTrunc(unsigned width) const;
 
+  /// Truncate to width
+  ///
+  /// Make this APInt have the bit width given by \p width. The value is
+  /// truncated or left alone to make it that width.
+  APInt truncOrSelf(unsigned width) const;
+
   /// Sign extend or truncate to width
   ///
   /// Make this APInt have the bit width given by \p width. The value is sign
@@ -1447,6 +1451,14 @@ public:
   /// Set the sign bit to 1.
   void setSignBit() {
     setBit(BitWidth - 1);
+  }
+
+  /// Set a given bit to a given value.
+  void setBitVal(unsigned BitPosition, bool BitValue) {
+    if (BitValue)
+      setBit(BitPosition);
+    else
+      clearBit(BitPosition);
   }
 
   /// Set the bits from loBit (inclusive) to hiBit (exclusive) to 1.
@@ -1609,11 +1621,7 @@ public:
   /// returns the smallest bit width that will retain the negative value. For
   /// example, -1 can be written as 0b1 or 0xFFFFFFFFFF. 0b1 is shorter and so
   /// for -1, this function will always return 1.
-  unsigned getMinSignedBits() const {
-    if (isNegative())
-      return BitWidth - countLeadingOnes() + 1;
-    return getActiveBits() + 1;
-  }
+  unsigned getMinSignedBits() const { return BitWidth - getNumSignBits() + 1; }
 
   /// Get zero extended value
   ///
@@ -1690,8 +1698,10 @@ public:
   /// \returns BitWidth if the value is zero, otherwise returns the number of
   /// zeros from the least significant bit to the first one bit.
   unsigned countTrailingZeros() const {
-    if (isSingleWord())
-      return std::min(unsigned(llvm::countTrailingZeros(U.VAL)), BitWidth);
+    if (isSingleWord()) {
+      unsigned TrailingZeros = llvm::countTrailingZeros(U.VAL);
+      return (TrailingZeros > BitWidth ? BitWidth : TrailingZeros);
+    }
     return countTrailingZerosSlowCase();
   }
 
@@ -1742,13 +1752,6 @@ public:
   void toStringSigned(SmallVectorImpl<char> &Str, unsigned Radix = 10) const {
     toString(Str, Radix, true, false);
   }
-
-  /// Return the APInt as a std::string.
-  ///
-  /// Note that this is an inefficient method.  It is better to pass in a
-  /// SmallVector/SmallString to the methods above to avoid thrashing the heap
-  /// for the string.
-  std::string toString(unsigned Radix, bool Signed) const;
 
   /// \returns a byte-swapped representation of this APInt Value.
   APInt byteSwap() const;
@@ -2171,7 +2174,7 @@ inline const APInt &smax(const APInt &A, const APInt &B) {
   return A.sgt(B) ? A : B;
 }
 
-/// Determine the smaller of two APInts considered to be signed.
+/// Determine the smaller of two APInts considered to be unsigned.
 inline const APInt &umin(const APInt &A, const APInt &B) {
   return A.ult(B) ? A : B;
 }
@@ -2203,7 +2206,7 @@ inline double RoundSignedAPIntToDouble(const APInt &APIVal) {
   return APIVal.signedRoundToDouble();
 }
 
-/// Converts the given APInt to a float vlalue.
+/// Converts the given APInt to a float value.
 inline float RoundAPIntToFloat(const APInt &APIVal) {
   return float(RoundAPIntToDouble(APIVal));
 }
@@ -2287,6 +2290,27 @@ void StoreIntToMemory(const APInt &IntVal, uint8_t *Dst, unsigned StoreBytes);
 /// LoadIntFromMemory - Loads the integer stored in the LoadBytes bytes starting
 /// from Src into IntVal, which is assumed to be wide enough and to hold zero.
 void LoadIntFromMemory(APInt &IntVal, const uint8_t *Src, unsigned LoadBytes);
+
+/// Provide DenseMapInfo for APInt.
+template <> struct DenseMapInfo<APInt> {
+  static inline APInt getEmptyKey() {
+    APInt V(nullptr, 0);
+    V.U.VAL = 0;
+    return V;
+  }
+
+  static inline APInt getTombstoneKey() {
+    APInt V(nullptr, 0);
+    V.U.VAL = 1;
+    return V;
+  }
+
+  static unsigned getHashValue(const APInt &Key);
+
+  static bool isEqual(const APInt &LHS, const APInt &RHS) {
+    return LHS.getBitWidth() == RHS.getBitWidth() && LHS == RHS;
+  }
+};
 
 } // namespace llvm
 

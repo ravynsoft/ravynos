@@ -18,7 +18,7 @@
 #include "lldb/lldb-types.h"
 #include "llvm/Support/ErrorHandling.h"
 
-#include <assert.h>
+#include <cassert>
 #include <memory>
 
 namespace lldb_private {
@@ -57,20 +57,20 @@ ValueObjectMemory::ValueObjectMemory(ExecutionContextScope *exe_scope,
   // Do not attempt to construct one of these objects with no variable!
   assert(m_type_sp.get() != nullptr);
   SetName(ConstString(name));
-  m_value.SetContext(Value::eContextTypeLLDBType, m_type_sp.get());
+  m_value.SetContext(Value::ContextType::LLDBType, m_type_sp.get());
   TargetSP target_sp(GetTargetSP());
   lldb::addr_t load_address = m_address.GetLoadAddress(target_sp.get());
   if (load_address != LLDB_INVALID_ADDRESS) {
-    m_value.SetValueType(Value::eValueTypeLoadAddress);
+    m_value.SetValueType(Value::ValueType::LoadAddress);
     m_value.GetScalar() = load_address;
   } else {
     lldb::addr_t file_address = m_address.GetFileAddress();
     if (file_address != LLDB_INVALID_ADDRESS) {
-      m_value.SetValueType(Value::eValueTypeFileAddress);
+      m_value.SetValueType(Value::ValueType::FileAddress);
       m_value.GetScalar() = file_address;
     } else {
       m_value.GetScalar() = m_address.GetOffset();
-      m_value.SetValueType(Value::eValueTypeScalar);
+      m_value.SetValueType(Value::ValueType::Scalar);
     }
   }
 }
@@ -92,21 +92,21 @@ ValueObjectMemory::ValueObjectMemory(ExecutionContextScope *exe_scope,
   m_value.SetCompilerType(m_compiler_type);
   lldb::addr_t load_address = m_address.GetLoadAddress(target_sp.get());
   if (load_address != LLDB_INVALID_ADDRESS) {
-    m_value.SetValueType(Value::eValueTypeLoadAddress);
+    m_value.SetValueType(Value::ValueType::LoadAddress);
     m_value.GetScalar() = load_address;
   } else {
     lldb::addr_t file_address = m_address.GetFileAddress();
     if (file_address != LLDB_INVALID_ADDRESS) {
-      m_value.SetValueType(Value::eValueTypeFileAddress);
+      m_value.SetValueType(Value::ValueType::FileAddress);
       m_value.GetScalar() = file_address;
     } else {
       m_value.GetScalar() = m_address.GetOffset();
-      m_value.SetValueType(Value::eValueTypeScalar);
+      m_value.SetValueType(Value::ValueType::Scalar);
     }
   }
 }
 
-ValueObjectMemory::~ValueObjectMemory() {}
+ValueObjectMemory::~ValueObjectMemory() = default;
 
 CompilerType ValueObjectMemory::GetCompilerTypeImpl() {
   if (m_type_sp)
@@ -139,10 +139,11 @@ size_t ValueObjectMemory::CalculateNumChildren(uint32_t max) {
   return child_count <= max ? child_count : max;
 }
 
-uint64_t ValueObjectMemory::GetByteSize() {
+llvm::Optional<uint64_t> ValueObjectMemory::GetByteSize() {
+  ExecutionContext exe_ctx(GetExecutionContextRef());
   if (m_type_sp)
-    return m_type_sp->GetByteSize().getValueOr(0);
-  return m_compiler_type.GetByteSize(nullptr).getValueOr(0);
+    return m_type_sp->GetByteSize(exe_ctx.GetBestExecutionContextScope());
+  return m_compiler_type.GetByteSize(exe_ctx.GetBestExecutionContextScope());
 }
 
 lldb::ValueType ValueObjectMemory::GetValueType() const {
@@ -167,18 +168,18 @@ bool ValueObjectMemory::UpdateValue() {
     Value::ValueType value_type = m_value.GetValueType();
 
     switch (value_type) {
-    default:
-      llvm_unreachable("Unhandled expression result value kind...");
-
-    case Value::eValueTypeScalar:
+    case Value::ValueType::Invalid:
+      m_error.SetErrorString("Invalid value");
+      return false;
+    case Value::ValueType::Scalar:
       // The variable value is in the Scalar value inside the m_value. We can
       // point our m_data right to it.
       m_error = m_value.GetValueAsData(&exe_ctx, m_data, GetModule().get());
       break;
 
-    case Value::eValueTypeFileAddress:
-    case Value::eValueTypeLoadAddress:
-    case Value::eValueTypeHostAddress:
+    case Value::ValueType::FileAddress:
+    case Value::ValueType::LoadAddress:
+    case Value::ValueType::HostAddress:
       // The DWARF expression result was an address in the inferior process. If
       // this variable is an aggregate type, we just need the address as the
       // main value as all child variable objects will rely upon this location
@@ -187,11 +188,11 @@ bool ValueObjectMemory::UpdateValue() {
       // sure this type has a value before we try and read it
 
       // If we have a file address, convert it to a load address if we can.
-      if (value_type == Value::eValueTypeFileAddress &&
+      if (value_type == Value::ValueType::FileAddress &&
           exe_ctx.GetProcessPtr()) {
         lldb::addr_t load_addr = m_address.GetLoadAddress(target);
         if (load_addr != LLDB_INVALID_ADDRESS) {
-          m_value.SetValueType(Value::eValueTypeLoadAddress);
+          m_value.SetValueType(Value::ValueType::LoadAddress);
           m_value.GetScalar() = load_addr;
         }
       }
@@ -207,7 +208,7 @@ bool ValueObjectMemory::UpdateValue() {
         // extract read its value into m_data appropriately
         Value value(m_value);
         if (m_type_sp)
-          value.SetContext(Value::eContextTypeLLDBType, m_type_sp.get());
+          value.SetContext(Value::ContextType::LLDBType, m_type_sp.get());
         else {
           value.SetCompilerType(m_compiler_type);
         }

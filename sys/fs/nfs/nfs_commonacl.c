@@ -42,7 +42,7 @@ static int nfsrv_acemasktoperm(u_int32_t acetype, u_int32_t mask, int owner,
  */
 int
 nfsrv_dissectace(struct nfsrv_descript *nd, struct acl_entry *acep,
-    int *aceerrp, int *acesizep, NFSPROC_T *p)
+    bool server, int *aceerrp, int *acesizep, NFSPROC_T *p)
 {
 	u_int32_t *tl;
 	int len, gotid = 0, owner = 0, error = 0, aceerr = 0;
@@ -58,7 +58,11 @@ nfsrv_dissectace(struct nfsrv_descript *nd, struct acl_entry *acep,
 	flag = fxdr_unsigned(u_int32_t, *tl++);
 	mask = fxdr_unsigned(u_int32_t, *tl++);
 	len = fxdr_unsigned(int, *tl);
-	if (len < 0) {
+	/*
+	 * The RFCs do not specify a limit to the length of the "who", but
+	 * NFSV4_OPAQUELIMIT (1024) should be sufficient.
+	 */
+	if (len < 0 || len > NFSV4_OPAQUELIMIT) {
 		error = NFSERR_BADXDR;
 		goto nfsmout;
 	} else if (len == 0) {
@@ -150,9 +154,9 @@ nfsrv_dissectace(struct nfsrv_descript *nd, struct acl_entry *acep,
 			acep->ae_entry_type = ACL_ENTRY_TYPE_ALLOW;
 		else if (acetype == NFSV4ACE_DENIEDTYPE)
 			acep->ae_entry_type = ACL_ENTRY_TYPE_DENY;
-		else if (acetype == NFSV4ACE_AUDITTYPE)
+		else if (!server && acetype == NFSV4ACE_AUDITTYPE)
 			acep->ae_entry_type = ACL_ENTRY_TYPE_AUDIT;
-		else if (acetype == NFSV4ACE_ALARMTYPE)
+		else if (!server && acetype == NFSV4ACE_ALARMTYPE)
 			acep->ae_entry_type = ACL_ENTRY_TYPE_ALARM;
 		else
 			aceerr = NFSERR_ATTRNOTSUPP;

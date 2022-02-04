@@ -9,7 +9,7 @@
 #include "PlatformOpenBSD.h"
 #include "lldb/Host/Config.h"
 
-#include <stdio.h>
+#include <cstdio>
 #if LLDB_ENABLE_POSIX
 #include <sys/utsname.h>
 #endif
@@ -122,8 +122,6 @@ void PlatformOpenBSD::Terminate() {
 PlatformOpenBSD::PlatformOpenBSD(bool is_host)
     : PlatformPOSIX(is_host) // This is the local host platform
 {}
-
-PlatformOpenBSD::~PlatformOpenBSD() = default;
 
 bool PlatformOpenBSD::GetSupportedArchitectureAtIndex(uint32_t idx,
                                                       ArchSpec &arch) {

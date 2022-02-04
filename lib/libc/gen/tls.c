@@ -81,20 +81,6 @@ void __libc_free_tls(void *tls, size_t tcbsize, size_t tcbalign);
 #error TLS_TCB_ALIGN undefined for target architecture
 #endif
 
-#if defined(__aarch64__) || defined(__arm__) || defined(__mips__) || \
-    defined(__powerpc__) || defined(__riscv)
-#define TLS_VARIANT_I
-#endif
-#if defined(__i386__) || defined(__amd64__)
-#define TLS_VARIANT_II
-#endif
-
-#if defined(__mips__) || defined(__powerpc__) || defined(__riscv)
-#define DTV_OFFSET 0x8000
-#else
-#define DTV_OFFSET 0
-#endif
-
 #ifndef PIC
 
 static size_t libc_tls_static_space;
@@ -249,9 +235,9 @@ __libc_free_tls(void *tcb, size_t tcbsize, size_t tcbalign __unused)
  *
  * where:
  *  extra_size is tcbsize - TLS_TCB_SIZE
- *  post_size is used to adjust TCB to TLS aligment for first version of TLS
+ *  post_size is used to adjust TCB to TLS alignment for first version of TLS
  *            layout and is always 0 for second version.
- *  pre_size  is used to adjust TCB aligment for first version and to adjust
+ *  pre_size  is used to adjust TCB alignment for first version and to adjust
  *            TLS alignment for second version.
  *
  */
@@ -297,7 +283,7 @@ __libc_allocate_tls(void *oldtcb, size_t tcbsize, size_t tcbalign)
 
 		/* Adjust the DTV. */
 		dtv = tcb[0];
-		dtv[2] = (Elf_Addr)(tls + DTV_OFFSET);
+		dtv[2] = (Elf_Addr)(tls + TLS_DTV_OFFSET);
 	} else {
 		dtv = __je_bootstrap_malloc(3 * sizeof(Elf_Addr));
 		if (dtv == NULL) {
@@ -308,7 +294,7 @@ __libc_allocate_tls(void *oldtcb, size_t tcbsize, size_t tcbalign)
 		tcb[0] = dtv;
 		dtv[0] = 1;		/* Generation. */
 		dtv[1] = 1;		/* Segments count. */
-		dtv[2] = (Elf_Addr)(tls + DTV_OFFSET);
+		dtv[2] = (Elf_Addr)(tls + TLS_DTV_OFFSET);
 
 		if (libc_tls_init_size > 0)
 			memcpy(tls, libc_tls_init, libc_tls_init_size);

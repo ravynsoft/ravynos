@@ -466,6 +466,7 @@ struct psm_softc {		/* Driver status information */
 	int		muxtpbuttons;	/* Touchpad button state */
 	int		muxmsbuttons;	/* Mouse (trackpoint) button state */
 	struct timeval	muxmidtimeout;	/* middle button supression timeout */
+	int		muxsinglesyna;	/* Probe result of single Synaptics */
 #ifdef EVDEV_SUPPORT
 	struct evdev_dev *evdev_a;	/* Absolute reporting device */
 	struct evdev_dev *evdev_r;	/* Relative reporting device */
@@ -666,6 +667,7 @@ static probefunc_t	enable_4dplus;
 static probefunc_t	enable_mmanplus;
 static probefunc_t	enable_synaptics;
 static probefunc_t	enable_synaptics_mux;
+static probefunc_t	enable_single_synaptics_mux;
 static probefunc_t	enable_trackpoint;
 static probefunc_t	enable_versapad;
 static probefunc_t	enable_elantech;
@@ -686,8 +688,10 @@ static struct {
 	 * WARNING: the order of probe is very important.  Don't mess it
 	 * unless you know what you are doing.
 	 */
-	{ MOUSE_MODEL_SYNAPTICS,	/* Synaptics Touchpad on Active Mux */
+	{ MOUSE_MODEL_SYNAPTICS,	/* Synaptics + mouse on Active Mux */
 	  0x00, MOUSE_PS2_PACKETSIZE, enable_synaptics_mux },
+	{ MOUSE_MODEL_SYNAPTICS,	/* Single Synaptics on Active Mux */
+	  0xc0, MOUSE_SYNAPTICS_PACKETSIZE, enable_single_synaptics_mux },
 	{ MOUSE_MODEL_NET,		/* Genius NetMouse */
 	  0x08, MOUSE_PS2INTELLI_PACKETSIZE, enable_gmouse },
 	{ MOUSE_MODEL_NETSCROLL,	/* Genius NetScroll */
@@ -1726,14 +1730,6 @@ psm_push_st_finger(struct psm_softc *sc, const finger_t *f)
 		evdev_push_abs(sc->evdev_a, ABS_TOOL_WIDTH, f->w);
 }
 
-static void
-psm_release_mt_slot(struct evdev_dev *evdev, int32_t slot)
-{
-
-	evdev_push_abs(evdev, ABS_MT_SLOT, slot);
-	evdev_push_abs(evdev, ABS_MT_TRACKING_ID, -1);
-}
-
 static int
 psm_register(device_t dev, int model_code)
 {
@@ -1841,6 +1837,10 @@ psm_register_synaptics(device_t dev)
 	evdev_set_id(evdev_a, BUS_I8042, PS2_MOUSE_VENDOR,
 	    PS2_MOUSE_SYNAPTICS_PRODUCT, 0);
 	evdev_set_methods(evdev_a, sc, &psm_ev_methods_a);
+	if (sc->synhw.capAdvancedGestures || sc->synhw.capReportsV)
+		evdev_set_flag(evdev_a, EVDEV_FLAG_MT_AUTOREL);
+	if (sc->synhw.capReportsV)
+		evdev_set_flag(evdev_a, EVDEV_FLAG_MT_TRACK);
 
 	evdev_support_event(evdev_a, EV_SYN);
 	evdev_support_event(evdev_a, EV_KEY);
@@ -1917,6 +1917,7 @@ psm_register_elantech(device_t dev)
 	evdev_set_id(evdev_a, BUS_I8042, PS2_MOUSE_VENDOR,
 	    PS2_MOUSE_ELANTECH_PRODUCT, 0);
 	evdev_set_methods(evdev_a, sc, &psm_ev_methods_a);
+	evdev_set_flag(evdev_a, EVDEV_FLAG_MT_AUTOREL);
 
 	evdev_support_event(evdev_a, EV_SYN);
 	evdev_support_event(evdev_a, EV_KEY);
@@ -3133,8 +3134,12 @@ next:
 		/*
 		 * If we've filled the queue then call the softintr ourselves,
 		 * otherwise schedule the interrupt for later.
+		 * Do not postpone interrupts for absolute devices as it
+		 * affects tap detection timings.
 		 */
-		if (!timeelapsed(&sc->lastsoftintr, psmsecs, psmusecs, &now) ||
+		if (sc->hw.model == MOUSE_MODEL_SYNAPTICS ||
+		    sc->hw.model == MOUSE_MODEL_ELANTECH ||
+		    !timeelapsed(&sc->lastsoftintr, psmsecs, psmusecs, &now) ||
 		    (sc->pqueue_end == sc->pqueue_start)) {
 			if ((sc->state & PSM_SOFTARMED) != 0) {
 				sc->state &= ~PSM_SOFTARMED;
@@ -3591,12 +3596,9 @@ proc_synaptics(struct psm_softc *sc, packetbuf_t *pb, mousestatus_t *ms,
 
 #ifdef EVDEV_SUPPORT
 	if (evdev_rcpt_mask & EVDEV_RCPT_HW_MOUSE) {
-		for (id = 0; id < PSM_FINGERS; id++) {
+		for (id = 0; id < PSM_FINGERS; id++)
 			if (PSM_FINGER_IS_SET(f[id]))
 				psm_push_mt_finger(sc, id, &f[id]);
-			else
-				psm_release_mt_slot(sc->evdev_a, id);
-		}
 		evdev_push_key(sc->evdev_a, BTN_TOUCH, nfingers > 0);
 		evdev_push_nfingers(sc->evdev_a, nfingers);
 		if (nfingers > 0)
@@ -4766,9 +4768,6 @@ proc_elantech(struct psm_softc *sc, packetbuf_t *pb, mousestatus_t *ms,
 				evdev_push_abs(sc->evdev_a, ABS_MT_TOUCH_MAJOR,
 				    f[id].w * sc->elanhw.dptracex);
 			}
-			if (sc->elanaction.mask & (1 << id) &&
-			    !(mask & (1 << id)))
-				psm_release_mt_slot(sc->evdev_a, id);
 		}
 		evdev_push_key(sc->evdev_a, BTN_TOUCH, nfingers > 0);
 		evdev_push_nfingers(sc->evdev_a, nfingers);
@@ -6292,6 +6291,8 @@ enable_synaptics_mux(struct psm_softc *sc, enum probearg arg)
 	int active_ports_count = 0;
 	int active_ports_mask = 0;
 
+	sc->muxsinglesyna = FALSE;
+
 	if (mux_disabled == 1 || (mux_disabled == -1 &&
 	    (kbdc->quirks & KBDC_QUIRK_DISABLE_MUX_PROBE) != 0))
 		return (FALSE);
@@ -6315,18 +6316,16 @@ enable_synaptics_mux(struct psm_softc *sc, enum probearg arg)
 		    active_ports_count);
 
 	/* psm has a special support for GenMouse + SynTouchpad combination */
-	if (active_ports_count >= 2) {
-		for (port = 0; port < KBDC_AUX_MUX_NUM_PORTS; port++) {
-			if ((active_ports_mask & 1 << port) == 0)
-				continue;
-			VLOG(3, (LOG_DEBUG, "aux_mux: probe port %d\n", port));
-			set_active_aux_mux_port(kbdc, port);
-			probe = enable_synaptics(sc, arg);
-			if (probe) {
-				if (arg == PROBE)
-					sc->muxport = port;
-				break;
-			}
+	for (port = 0; port < KBDC_AUX_MUX_NUM_PORTS; port++) {
+		if ((active_ports_mask & 1 << port) == 0)
+			continue;
+		VLOG(3, (LOG_DEBUG, "aux_mux: probe port %d\n", port));
+		set_active_aux_mux_port(kbdc, port);
+		probe = enable_synaptics(sc, arg);
+		if (probe) {
+			if (arg == PROBE)
+				sc->muxport = port;
+			break;
 		}
 	}
 
@@ -6348,7 +6347,17 @@ enable_synaptics_mux(struct psm_softc *sc, enum probearg arg)
 	}
 	empty_both_buffers(kbdc, 10);	/* remove stray data if any */
 
-	return (probe);
+	/* Don't disable syncbit checks if Synaptics is only device on MUX */
+	if (active_ports_count == 1)
+		sc->muxsinglesyna = probe;
+	return (active_ports_count != 1 ? probe : FALSE);
+}
+
+static int
+enable_single_synaptics_mux(struct psm_softc *sc, enum probearg arg)
+{
+	/* Synaptics device is already initialized in enable_synaptics_mux */
+	return (sc->muxsinglesyna);
 }
 
 static int

@@ -1,7 +1,7 @@
 #
 # Example configuration file.
 #
-# See unbound.conf(5) man page, version 1.13.1.
+# See unbound.conf(5) man page, version 1.14.0rc1.
 #
 # this is a comment.
 
@@ -163,6 +163,9 @@ server:
 
 	# perform connect for UDP sockets to mitigate ICMP side channel.
 	# udp-connect: yes
+
+	# The number of retries when a non-positive response is received.
+	# outbound-msg-retry: 5
 
 	# msec for waiting for an unknown server to reply.  Increase if you
 	# are behind a slow satellite link, to eg. 1128.
@@ -371,6 +374,9 @@ server:
 	# enable to not answer trustanchor.unbound queries.
 	# hide-trustanchor: no
 
+	# enable to not set the User-Agent HTTP header.
+	# hide-http-user-agent: no
+
 	# the identity to report. Leave "" or default to return hostname.
 	# identity: ""
 
@@ -379,6 +385,10 @@ server:
 
 	# NSID identity (hex string, or "ascii_somestring"). default disabled.
 	# nsid: "aabbccdd"
+
+	# User-Agent HTTP header to use. Leave "" or default to use package name
+	# and version.
+	# http-user-agent: ""
 
 	# the target fetch policy.
 	# series of integers describing the policy per dependency depth.
@@ -507,7 +517,8 @@ server:
 	# Use several entries, one per domain name, to track multiple zones.
 	#
 	# If you want to perform DNSSEC validation, run unbound-anchor before
-	# you start unbound (i.e. in the system boot scripts).  And enable:
+	# you start unbound (i.e. in the system boot scripts).
+	# And then enable the auto-trust-anchor-file config item.
 	# Please note usage of unbound-anchor root anchor is at your own risk
 	# and under the terms of our LICENSE (see that file in the source).
 	# auto-trust-anchor-file: "@UNBOUND_ROOTKEY_FILE@"
@@ -555,6 +566,10 @@ server:
 	# This leeway is capped with a minimum and a maximum.  In seconds.
 	# val-sig-skew-min: 3600
 	# val-sig-skew-max: 86400
+
+	# The maximum number the validator should restart validation with
+	# another authority in case of failed validation.
+	# val-max-restart: 5
 
 	# Should additional section of secure message also be kept clean of
 	# unsecure data. Useful to shield the users of this validator from
@@ -613,7 +628,10 @@ server:
 	# keysize. Keep this table very short, as linear search is done.
 	# A message with an NSEC3 with larger count is marked insecure.
 	# List in ascending order the keysize and count values.
-	# val-nsec3-keysize-iterations: "1024 150 2048 500 4096 2500"
+	# val-nsec3-keysize-iterations: "1024 150 2048 150 4096 150"
+
+	# if enabled, ZONEMD verification failures do not block the zone.
+	# zonemd-permissive-mode: no
 
 	# instruct the auto-trust-anchor-file probing to add anchors after ttl.
 	# add-holddown: 2592000 # 30 days
@@ -651,6 +669,7 @@ server:
 	# local-zone: "localhost." nodefault
 	# local-zone: "127.in-addr.arpa." nodefault
 	# local-zone: "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.ip6.arpa." nodefault
+	# local-zone: "home.arpa." nodefault
 	# local-zone: "onion." nodefault
 	# local-zone: "test." nodefault
 	# local-zone: "invalid." nodefault
@@ -898,6 +917,13 @@ server:
 	# ipsecmod-allow: "example.com"
 	# ipsecmod-allow: "nlnetlabs.nl"
 
+	# Timeout for REUSE entries in milliseconds.
+	# tcp-reuse-timeout: 60000
+	# Max number of queries on a reuse connection.
+	# max-reuse-tcp-queries: 200
+	# Timeout in milliseconds for TCP queries to auth servers.
+	# tcp-auth-query-timeout: 3000
+
 
 # Python config section. To enable:
 # o use --with-pythonmodule to configure before compiling.
@@ -965,6 +991,7 @@ remote-control:
 #	stub-addr: 192.0.2.68
 #	stub-prime: no
 #	stub-first: no
+#	stub-tcp-upstream: no
 #	stub-tls-upstream: no
 #	stub-no-cache: no
 # stub-zone:
@@ -982,6 +1009,7 @@ remote-control:
 # 	forward-addr: 192.0.2.68
 # 	forward-addr: 192.0.2.73@5355  # forward to port 5355.
 # 	forward-first: no
+# 	forward-tcp-upstream: no
 # 	forward-tls-upstream: no
 #	forward-no-cache: no
 # forward-zone:
@@ -1022,6 +1050,8 @@ remote-control:
 #	name: "example.org"
 #	for-downstream: yes
 #	for-upstream: yes
+#	zonemd-check: no
+#	zonemd-reject-absence: no
 #	zonefile: "example.org.zone"
 
 # Views
@@ -1126,10 +1156,11 @@ remote-control:
 # 	dnstap-log-forwarder-response-messages: no
 
 # Response Policy Zones
-# RPZ policies. Applied in order of configuration. QNAME and Response IP
-# Address trigger are the only supported triggers. Supported actions are:
-# NXDOMAIN, NODATA, PASSTHRU, DROP and Local Data. Policies can be loaded from
-# file, using zone transfer, or using HTTP. The respip module needs to be added
+# RPZ policies. Applied in order of configuration. QNAME, Response IP
+# Address, nsdname, nsip and clientip triggers are supported. Supported
+# actions are: NXDOMAIN, NODATA, PASSTHRU, DROP, Local Data, tcp-only
+# and drop.  Policies can be loaded from a file, or using zone
+# transfer, or using HTTP. The respip module needs to be added
 # to the module-config, e.g.: module-config: "respip validator iterator".
 # rpz:
 #     name: "rpz.example.com"

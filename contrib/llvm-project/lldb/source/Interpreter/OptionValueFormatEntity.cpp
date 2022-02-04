@@ -15,9 +15,7 @@
 using namespace lldb;
 using namespace lldb_private;
 
-OptionValueFormatEntity::OptionValueFormatEntity(const char *default_format)
-    : OptionValue(), m_current_format(), m_default_format(), m_current_entry(),
-      m_default_entry() {
+OptionValueFormatEntity::OptionValueFormatEntity(const char *default_format) {
   if (default_format && default_format[0]) {
     llvm::StringRef default_format_str(default_format);
     Status error = FormatEntity::Parse(default_format_str, m_default_entry);
@@ -29,11 +27,10 @@ OptionValueFormatEntity::OptionValueFormatEntity(const char *default_format)
   }
 }
 
-bool OptionValueFormatEntity::Clear() {
+void OptionValueFormatEntity::Clear() {
   m_current_entry = m_default_entry;
   m_current_format = m_default_format;
   m_value_was_set = false;
-  return true;
 }
 
 static void EscapeBackticks(llvm::StringRef str, std::string &dst) {
@@ -85,7 +82,7 @@ Status OptionValueFormatEntity::SetValueFromString(llvm::StringRef value_str,
       if (first_char == '"' || first_char == '\'') {
         const size_t trimmed_len = trimmed_value_str.size();
         if (trimmed_len == 1 || value_str[trimmed_len - 1] != first_char) {
-          error.SetErrorStringWithFormat("mismatched quotes");
+          error.SetErrorString("mismatched quotes");
           return error;
         }
         value_str = trimmed_value_str.substr(1, trimmed_len - 2);
@@ -110,10 +107,6 @@ Status OptionValueFormatEntity::SetValueFromString(llvm::StringRef value_str,
     break;
   }
   return error;
-}
-
-lldb::OptionValueSP OptionValueFormatEntity::DeepCopy() const {
-  return OptionValueSP(new OptionValueFormatEntity(*this));
 }
 
 void OptionValueFormatEntity::AutoComplete(CommandInterpreter &interpreter,

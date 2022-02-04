@@ -393,13 +393,13 @@ vn_open_vnode(struct vnode *vp, int fmode, struct ucred *cred,
 		if ((fmode & O_PATH) == 0 || (fmode & FEXEC) != 0)
 			return (EMLINK);
 	}
-	if (vp->v_type == VSOCK)
-		return (EOPNOTSUPP);
 	if (vp->v_type != VDIR && fmode & O_DIRECTORY)
 		return (ENOTDIR);
 
 	accmode = 0;
 	if ((fmode & O_PATH) == 0) {
+		if (vp->v_type == VSOCK)
+			return (EOPNOTSUPP);
 		if ((fmode & (FWRITE | O_TRUNC)) != 0) {
 			if (vp->v_type == VDIR)
 				return (EISDIR);
@@ -431,11 +431,8 @@ vn_open_vnode(struct vnode *vp, int fmode, struct ucred *cred,
 			return (error);
 	}
 	if ((fmode & O_PATH) != 0) {
-		if (vp->v_type == VFIFO)
-			error = EPIPE;
-		else
-			error = VOP_ACCESS(vp, VREAD, cred, td);
-		if (error == 0)
+		if (vp->v_type != VFIFO && vp->v_type != VSOCK &&
+		    VOP_ACCESS(vp, VREAD, cred, td) == 0)
 			fp->f_flag |= FKQALLOWED;
 		return (0);
 	}
@@ -653,11 +650,7 @@ vn_rdwr(enum uio_rw rw, struct vnode *vp, void *base, int len, off_t offset,
 			    (error = vn_start_write(vp, &mp, V_WAIT | PCATCH))
 			    != 0)
 				goto out;
-			if (MNT_SHARED_WRITES(mp) ||
-			    ((mp == NULL) && MNT_SHARED_WRITES(vp->v_mount)))
-				lock_flags = LK_SHARED;
-			else
-				lock_flags = LK_EXCLUSIVE;
+			lock_flags = vn_lktype_write(mp, vp);
 		} else
 			lock_flags = LK_SHARED;
 		vn_lock(vp, lock_flags | LK_RETRY);
@@ -918,6 +911,35 @@ get_advice(struct file *fp, struct uio *uio)
 	return (ret);
 }
 
+static int
+get_write_ioflag(struct file *fp)
+{
+	int ioflag;
+	struct mount *mp;
+	struct vnode *vp;
+
+	ioflag = 0;
+	vp = fp->f_vnode;
+	mp = atomic_load_ptr(&vp->v_mount);
+
+	if ((fp->f_flag & O_DIRECT) != 0)
+		ioflag |= IO_DIRECT;
+
+	if ((fp->f_flag & O_FSYNC) != 0 ||
+	    (mp != NULL && (mp->mnt_flag & MNT_SYNCHRONOUS) != 0))
+		ioflag |= IO_SYNC;
+
+	/*
+	 * For O_DSYNC we set both IO_SYNC and IO_DATASYNC, so that VOP_WRITE()
+	 * or VOP_DEALLOCATE() implementations that don't understand IO_DATASYNC
+	 * fall back to full O_SYNC behavior.
+	 */
+	if ((fp->f_flag & O_DSYNC) != 0)
+		ioflag |= IO_SYNC | IO_DATASYNC;
+
+	return (ioflag);
+}
+
 int
 vn_read_from_obj(struct vnode *vp, struct uio *uio)
 {
@@ -1106,7 +1128,7 @@ vn_write(struct file *fp, struct uio *uio, struct ucred *active_cred, int flags,
 	struct vnode *vp;
 	struct mount *mp;
 	off_t orig_offset;
-	int error, ioflag, lock_flags;
+	int error, ioflag;
 	int advice;
 	bool need_finished_write;
 
@@ -1117,25 +1139,12 @@ vn_write(struct file *fp, struct uio *uio, struct ucred *active_cred, int flags,
 	if (vp->v_type == VREG)
 		bwillwrite();
 	ioflag = IO_UNIT;
-	if (vp->v_type == VREG && (fp->f_flag & O_APPEND))
+	if (vp->v_type == VREG && (fp->f_flag & O_APPEND) != 0)
 		ioflag |= IO_APPEND;
-	if (fp->f_flag & FNONBLOCK)
+	if ((fp->f_flag & FNONBLOCK) != 0)
 		ioflag |= IO_NDELAY;
-	if (fp->f_flag & O_DIRECT)
-		ioflag |= IO_DIRECT;
+	ioflag |= get_write_ioflag(fp);
 
-	mp = atomic_load_ptr(&vp->v_mount);
-	if ((fp->f_flag & O_FSYNC) ||
-	    (mp != NULL && (mp->mnt_flag & MNT_SYNCHRONOUS)))
-		ioflag |= IO_SYNC;
-
-	/*
-	 * For O_DSYNC we set both IO_SYNC and IO_DATASYNC, so that VOP_WRITE()
-	 * implementations that don't understand IO_DATASYNC fall back to full
-	 * O_SYNC behavior.
-	 */
-	if (fp->f_flag & O_DSYNC)
-		ioflag |= IO_SYNC | IO_DATASYNC;
 	mp = NULL;
 	need_finished_write = false;
 	if (vp->v_type != VCHR) {
@@ -1147,14 +1156,7 @@ vn_write(struct file *fp, struct uio *uio, struct ucred *active_cred, int flags,
 
 	advice = get_advice(fp, uio);
 
-	if (MNT_SHARED_WRITES(mp) ||
-	    (mp == NULL && MNT_SHARED_WRITES(vp->v_mount))) {
-		lock_flags = LK_SHARED;
-	} else {
-		lock_flags = LK_EXCLUSIVE;
-	}
-
-	vn_lock(vp, lock_flags | LK_RETRY);
+	vn_lock(vp, vn_lktype_write(mp, vp) | LK_RETRY);
 	switch (advice) {
 	case POSIX_FADV_NORMAL:
 	case POSIX_FADV_SEQUENTIAL:
@@ -1821,7 +1823,7 @@ vn_closefile(struct file *fp, struct thread *td)
 
 	vp = fp->f_vnode;
 	fp->f_ops = &badfileops;
-	ref = (fp->f_flag & FHASLOCK) != 0 && fp->f_type == DTYPE_VNODE;
+	ref = (fp->f_flag & FHASLOCK) != 0;
 
 	error = vn_close1(vp, fp->f_flag, fp->f_cred, td, ref);
 
@@ -2423,6 +2425,10 @@ vn_chown(struct file *fp, uid_t uid, gid_t gid, struct ucred *active_cred,
 	return (setfown(td, active_cred, vp, uid, gid));
 }
 
+/*
+ * Remove pages in the range ["start", "end") from the vnode's VM object.  If
+ * "end" is 0, then the range extends to the end of the object.
+ */
 void
 vn_pages_remove(struct vnode *vp, vm_pindex_t start, vm_pindex_t end)
 {
@@ -2432,6 +2438,24 @@ vn_pages_remove(struct vnode *vp, vm_pindex_t start, vm_pindex_t end)
 		return;
 	VM_OBJECT_WLOCK(object);
 	vm_object_page_remove(object, start, end, 0);
+	VM_OBJECT_WUNLOCK(object);
+}
+
+/*
+ * Like vn_pages_remove(), but skips invalid pages, which by definition are not
+ * mapped into any process' address space.  Filesystems may use this in
+ * preference to vn_pages_remove() to avoid blocking on pages busied in
+ * preparation for a VOP_GETPAGES.
+ */
+void
+vn_pages_remove_valid(struct vnode *vp, vm_pindex_t start, vm_pindex_t end)
+{
+	vm_object_t object;
+
+	if ((object = vp->v_object) == NULL)
+		return;
+	VM_OBJECT_WLOCK(object);
+	vm_object_page_remove(object, start, end, OBJPR_VALIDONLY);
 	VM_OBJECT_WUNLOCK(object);
 }
 
@@ -3060,7 +3084,7 @@ vn_write_outvp(struct vnode *outvp, char *dat, off_t outoff, off_t xfer,
 {
 	struct mount *mp;
 	off_t dataoff, holeoff, xfer2;
-	int error, lckf;
+	int error;
 
 	/*
 	 * Loop around doing writes of blksize until write has been completed.
@@ -3099,11 +3123,7 @@ vn_write_outvp(struct vnode *outvp, char *dat, off_t outoff, off_t xfer,
 				VOP_UNLOCK(outvp);
 			}
 		} else {
-			if (MNT_SHARED_WRITES(mp))
-				lckf = LK_SHARED;
-			else
-				lckf = LK_EXCLUSIVE;
-			error = vn_lock(outvp, lckf);
+			error = vn_lock(outvp, vn_lktype_write(mp, outvp));
 			if (error == 0) {
 				error = vn_rdwr(UIO_WRITE, outvp, dat, xfer2,
 				    outoff, UIO_SYSSPACE, IO_NODELOCKED,
@@ -3141,6 +3161,7 @@ vn_generic_copy_file_range(struct vnode *invp, off_t *inoffp,
 	size_t copylen, len, rem, savlen;
 	char *dat;
 	long holein, holeout;
+	struct timespec curts, endts;
 
 	holein = holeout = 0;
 	savlen = len = *lenp;
@@ -3237,7 +3258,15 @@ vn_generic_copy_file_range(struct vnode *invp, off_t *inoffp,
 	 * in the inner loop where the data copying is done.
 	 * Note that some file systems such as NFSv3, NFSv4.0 and NFSv4.1 may
 	 * support holes on the server, but do not support FIOSEEKHOLE.
+	 * The kernel flag COPY_FILE_RANGE_TIMEO1SEC is used to indicate
+	 * that this function should return after 1second with a partial
+	 * completion.
 	 */
+	if ((flags & COPY_FILE_RANGE_TIMEO1SEC) != 0) {
+		getnanouptime(&endts);
+		endts.tv_sec++;
+	} else
+		timespecclear(&endts);
 	holetoeof = eof = false;
 	while (len > 0 && error == 0 && !eof && interrupted == 0) {
 		endoff = 0;			/* To shut up compilers. */
@@ -3306,8 +3335,17 @@ vn_generic_copy_file_range(struct vnode *invp, off_t *inoffp,
 					*inoffp += xfer;
 					*outoffp += xfer;
 					len -= xfer;
-					if (len < savlen)
+					if (len < savlen) {
 						interrupted = sig_intr();
+						if (timespecisset(&endts) &&
+						    interrupted == 0) {
+							getnanouptime(&curts);
+							if (timespeccmp(&curts,
+							    &endts, >=))
+								interrupted =
+								    EINTR;
+						}
+					}
 				}
 			}
 			copylen = MIN(len, endoff - startoff);
@@ -3370,8 +3408,17 @@ vn_generic_copy_file_range(struct vnode *invp, off_t *inoffp,
 					*outoffp += xfer;
 					copylen -= xfer;
 					len -= xfer;
-					if (len < savlen)
+					if (len < savlen) {
 						interrupted = sig_intr();
+						if (timespecisset(&endts) &&
+						    interrupted == 0) {
+							getnanouptime(&curts);
+							if (timespeccmp(&curts,
+							    &endts, >=))
+								interrupted =
+								    EINTR;
+						}
+					}
 				}
 			}
 			xfer = blksize;
@@ -3423,7 +3470,8 @@ vn_fallocate(struct file *fp, off_t offset, off_t len, struct thread *td)
 		error = mac_vnode_check_write(td->td_ucred, fp->f_cred, vp);
 		if (error == 0)
 #endif
-			error = VOP_ALLOCATE(vp, &offset, &len);
+			error = VOP_ALLOCATE(vp, &offset, &len, 0,
+			    td->td_ucred);
 		VOP_UNLOCK(vp);
 		vn_finished_write(mp);
 
@@ -3531,4 +3579,13 @@ vn_lock_pair(struct vnode *vp1, bool vp1_locked, struct vnode *vp2,
 		ASSERT_VOP_ELOCKED(vp1, "vp1 ret");
 	if (vp2 != NULL)
 		ASSERT_VOP_ELOCKED(vp2, "vp2 ret");
+}
+
+int
+vn_lktype_write(struct mount *mp, struct vnode *vp)
+{
+	if (MNT_SHARED_WRITES(mp) ||
+	    (mp == NULL && MNT_SHARED_WRITES(vp->v_mount)))
+		return (LK_SHARED);
+	return (LK_EXCLUSIVE);
 }

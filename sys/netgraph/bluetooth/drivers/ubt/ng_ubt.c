@@ -152,6 +152,11 @@ static ng_disconnect_t	ng_ubt_disconnect;
 static ng_rcvmsg_t	ng_ubt_rcvmsg;
 static ng_rcvdata_t	ng_ubt_rcvdata;
 
+static int ng_usb_isoc_enable = 1;
+
+SYSCTL_INT(_net_bluetooth, OID_AUTO, usb_isoc_enable, CTLFLAG_RWTUN | CTLFLAG_MPSAFE,
+    &ng_usb_isoc_enable, 0, "enable isochronous transfers");
+
 /* Queue length */
 static const struct ng_parse_struct_field	ng_ubt_node_qlen_type_fields[] =
 {
@@ -432,6 +437,13 @@ static const STRUCT_USB_HOST_ID ubt_ignore_devs[] =
 	{ USB_VPI(USB_VENDOR_INTEL2, 0x0025, 0) },
 	{ USB_VPI(USB_VENDOR_INTEL2, 0x0026, 0) },
 	{ USB_VPI(USB_VENDOR_INTEL2, 0x0029, 0) },
+
+	/*
+	 * Some Intel controllers are not yet supported by ng_ubt_intel and
+	 * should be ignored.
+	 */
+	{ USB_VPI(USB_VENDOR_INTEL2, 0x0032, 0) },
+	{ USB_VPI(USB_VENDOR_INTEL2, 0x0033, 0) },
 };
 
 /* List of supported bluetooth devices */
@@ -735,8 +747,9 @@ ubt_attach(device_t dev)
 	}
 
 	/* Setup transfers for both interfaces */
-	if (usbd_transfer_setup(uaa->device, iface_index, sc->sc_xfer,
-			ubt_config, UBT_N_TRANSFER, sc, &sc->sc_if_mtx)) {
+	if (usbd_transfer_setup(uaa->device, iface_index, sc->sc_xfer, ubt_config,
+			ng_usb_isoc_enable ? UBT_N_TRANSFER : UBT_IF_1_ISOC_DT_RD1,
+			sc, &sc->sc_if_mtx)) {
 		UBT_ALERT(sc, "could not allocate transfers\n");
 		goto detach;
 	}
@@ -2000,5 +2013,6 @@ DRIVER_MODULE(ng_ubt, uhub, ubt_driver, ubt_devclass, ubt_modevent, 0);
 MODULE_VERSION(ng_ubt, NG_BLUETOOTH_VERSION);
 MODULE_DEPEND(ng_ubt, netgraph, NG_ABI_VERSION, NG_ABI_VERSION, NG_ABI_VERSION);
 MODULE_DEPEND(ng_ubt, ng_hci, NG_BLUETOOTH_VERSION, NG_BLUETOOTH_VERSION, NG_BLUETOOTH_VERSION);
+MODULE_DEPEND(ng_ubt, ng_bluetooth, NG_BLUETOOTH_VERSION, NG_BLUETOOTH_VERSION, NG_BLUETOOTH_VERSION);
 MODULE_DEPEND(ng_ubt, usb, 1, 1, 1);
 USB_PNP_HOST_INFO(ubt_devs);

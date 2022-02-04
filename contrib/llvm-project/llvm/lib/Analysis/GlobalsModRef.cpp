@@ -44,7 +44,7 @@ STATISTIC(NumIndirectGlobalVars, "Number of indirect global objects");
 // An option to enable unsafe alias results from the GlobalsModRef analysis.
 // When enabled, GlobalsModRef will provide no-alias results which in extremely
 // rare cases may not be conservatively correct. In particular, in the face of
-// transforms which cause assymetry between how effective GetUnderlyingObject
+// transforms which cause asymmetry between how effective getUnderlyingObject
 // is for two pointers, it may produce incorrect results.
 //
 // These unsafe results have been returned by GMR for many years without
@@ -367,7 +367,8 @@ bool GlobalsAAResult::AnalyzeUsesOfPointer(Value *V,
     } else if (Operator::getOpcode(I) == Instruction::GetElementPtr) {
       if (AnalyzeUsesOfPointer(I, Readers, Writers))
         return true;
-    } else if (Operator::getOpcode(I) == Instruction::BitCast) {
+    } else if (Operator::getOpcode(I) == Instruction::BitCast ||
+               Operator::getOpcode(I) == Instruction::AddrSpaceCast) {
       if (AnalyzeUsesOfPointer(I, Readers, Writers, OkayStoreDest))
         return true;
     } else if (auto *Call = dyn_cast<CallBase>(I)) {
@@ -435,8 +436,7 @@ bool GlobalsAAResult::AnalyzeIndirectGlobalMemory(GlobalVariable *GV) {
         continue;
 
       // Check the value being stored.
-      Value *Ptr = GetUnderlyingObject(SI->getOperand(0),
-                                       GV->getParent()->getDataLayout());
+      Value *Ptr = getUnderlyingObject(SI->getOperand(0));
 
       if (!isAllocLikeFn(Ptr, &GetTLI(*SI->getFunction())))
         return false; // Too hard to analyze.
@@ -661,12 +661,12 @@ static bool isNonEscapingGlobalNoAliasWithLoad(const GlobalValue *GV,
       return false;
 
     if (auto *LI = dyn_cast<LoadInst>(Input)) {
-      Inputs.push_back(GetUnderlyingObject(LI->getPointerOperand(), DL));
+      Inputs.push_back(getUnderlyingObject(LI->getPointerOperand()));
       continue;
     }
     if (auto *SI = dyn_cast<SelectInst>(Input)) {
-      const Value *LHS = GetUnderlyingObject(SI->getTrueValue(), DL);
-      const Value *RHS = GetUnderlyingObject(SI->getFalseValue(), DL);
+      const Value *LHS = getUnderlyingObject(SI->getTrueValue());
+      const Value *RHS = getUnderlyingObject(SI->getFalseValue());
       if (Visited.insert(LHS).second)
         Inputs.push_back(LHS);
       if (Visited.insert(RHS).second)
@@ -675,7 +675,7 @@ static bool isNonEscapingGlobalNoAliasWithLoad(const GlobalValue *GV,
     }
     if (auto *PN = dyn_cast<PHINode>(Input)) {
       for (const Value *Op : PN->incoming_values()) {
-        Op = GetUnderlyingObject(Op, DL);
+        Op = getUnderlyingObject(Op);
         if (Visited.insert(Op).second)
           Inputs.push_back(Op);
       }
@@ -774,7 +774,7 @@ bool GlobalsAAResult::isNonEscapingGlobalNoAlias(const GlobalValue *GV,
     if (auto *LI = dyn_cast<LoadInst>(Input)) {
       // A pointer loaded from a global would have been captured, and we know
       // that the global is non-escaping, so no alias.
-      const Value *Ptr = GetUnderlyingObject(LI->getPointerOperand(), DL);
+      const Value *Ptr = getUnderlyingObject(LI->getPointerOperand());
       if (isNonEscapingGlobalNoAliasWithLoad(GV, Ptr, Depth, DL))
         // The load does not alias with GV.
         continue;
@@ -782,8 +782,8 @@ bool GlobalsAAResult::isNonEscapingGlobalNoAlias(const GlobalValue *GV,
       return false;
     }
     if (auto *SI = dyn_cast<SelectInst>(Input)) {
-      const Value *LHS = GetUnderlyingObject(SI->getTrueValue(), DL);
-      const Value *RHS = GetUnderlyingObject(SI->getFalseValue(), DL);
+      const Value *LHS = getUnderlyingObject(SI->getTrueValue());
+      const Value *RHS = getUnderlyingObject(SI->getFalseValue());
       if (Visited.insert(LHS).second)
         Inputs.push_back(LHS);
       if (Visited.insert(RHS).second)
@@ -792,7 +792,7 @@ bool GlobalsAAResult::isNonEscapingGlobalNoAlias(const GlobalValue *GV,
     }
     if (auto *PN = dyn_cast<PHINode>(Input)) {
       for (const Value *Op : PN->incoming_values()) {
-        Op = GetUnderlyingObject(Op, DL);
+        Op = getUnderlyingObject(Op);
         if (Visited.insert(Op).second)
           Inputs.push_back(Op);
       }
@@ -827,8 +827,10 @@ AliasResult GlobalsAAResult::alias(const MemoryLocation &LocA,
                                    const MemoryLocation &LocB,
                                    AAQueryInfo &AAQI) {
   // Get the base object these pointers point to.
-  const Value *UV1 = GetUnderlyingObject(LocA.Ptr, DL);
-  const Value *UV2 = GetUnderlyingObject(LocB.Ptr, DL);
+  const Value *UV1 =
+      getUnderlyingObject(LocA.Ptr->stripPointerCastsForAliasAnalysis());
+  const Value *UV2 =
+      getUnderlyingObject(LocB.Ptr->stripPointerCastsForAliasAnalysis());
 
   // If either of the underlying values is a global, they may be non-addr-taken
   // globals, which we can answer queries about.
@@ -845,14 +847,14 @@ AliasResult GlobalsAAResult::alias(const MemoryLocation &LocA,
     // If the two pointers are derived from two different non-addr-taken
     // globals we know these can't alias.
     if (GV1 && GV2 && GV1 != GV2)
-      return NoAlias;
+      return AliasResult::NoAlias;
 
     // If one is and the other isn't, it isn't strictly safe but we can fake
     // this result if necessary for performance. This does not appear to be
     // a common problem in practice.
     if (EnableUnsafeGlobalsModRefAliasResults)
       if ((GV1 || GV2) && GV1 != GV2)
-        return NoAlias;
+        return AliasResult::NoAlias;
 
     // Check for a special case where a non-escaping global can be used to
     // conclude no-alias.
@@ -860,7 +862,7 @@ AliasResult GlobalsAAResult::alias(const MemoryLocation &LocA,
       const GlobalValue *GV = GV1 ? GV1 : GV2;
       const Value *UV = GV1 ? UV2 : UV1;
       if (isNonEscapingGlobalNoAlias(GV, UV))
-        return NoAlias;
+        return AliasResult::NoAlias;
     }
 
     // Otherwise if they are both derived from the same addr-taken global, we
@@ -891,14 +893,14 @@ AliasResult GlobalsAAResult::alias(const MemoryLocation &LocA,
   // use this to disambiguate the pointers. If the pointers are based on
   // different indirect globals they cannot alias.
   if (GV1 && GV2 && GV1 != GV2)
-    return NoAlias;
+    return AliasResult::NoAlias;
 
   // If one is based on an indirect global and the other isn't, it isn't
   // strictly safe but we can fake this result if necessary for performance.
   // This does not appear to be a common problem in practice.
   if (EnableUnsafeGlobalsModRefAliasResults)
     if ((GV1 || GV2) && GV1 != GV2)
-      return NoAlias;
+      return AliasResult::NoAlias;
 
   return AAResultBase::alias(LocA, LocB, AAQI);
 }
@@ -915,14 +917,15 @@ ModRefInfo GlobalsAAResult::getModRefInfoForArgument(const CallBase *Call,
   // is based on GV, return the conservative result.
   for (auto &A : Call->args()) {
     SmallVector<const Value*, 4> Objects;
-    GetUnderlyingObjects(A, Objects, DL);
+    getUnderlyingObjects(A, Objects);
 
     // All objects must be identified.
     if (!all_of(Objects, isIdentifiedObject) &&
         // Try ::alias to see if all objects are known not to alias GV.
         !all_of(Objects, [&](const Value *V) {
-          return this->alias(MemoryLocation(V), MemoryLocation(GV), AAQI) ==
-                 NoAlias;
+          return this->alias(MemoryLocation::getBeforeOrAfter(V),
+                             MemoryLocation::getBeforeOrAfter(GV),
+                             AAQI) == AliasResult::NoAlias;
         }))
       return ConservativeResult;
 
@@ -942,7 +945,7 @@ ModRefInfo GlobalsAAResult::getModRefInfo(const CallBase *Call,
   // If we are asking for mod/ref info of a direct call with a pointer to a
   // global we are tracking, return information if we have it.
   if (const GlobalValue *GV =
-          dyn_cast<GlobalValue>(GetUnderlyingObject(Loc.Ptr, DL)))
+          dyn_cast<GlobalValue>(getUnderlyingObject(Loc.Ptr)))
     // If GV is internal to this IR and there is no function with local linkage
     // that has had their address taken, keep looking for a tighter ModRefInfo.
     if (GV->hasLocalLinkage() && !UnknownFunctionsWithLocalLinkage)

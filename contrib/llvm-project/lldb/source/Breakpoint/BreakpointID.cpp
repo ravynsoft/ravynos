@@ -6,7 +6,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "lldb/Breakpoint/Breakpoint.h"
 #include "lldb/Breakpoint/BreakpointID.h"
@@ -96,7 +96,7 @@ bool BreakpointID::StringIsBreakpointName(llvm::StringRef str, Status &error) {
   error.Clear();
   if (str.empty())
   {
-    error.SetErrorStringWithFormat("Empty breakpoint names are not allowed");
+    error.SetErrorString("Empty breakpoint names are not allowed");
     return false;
   }
 

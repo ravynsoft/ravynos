@@ -4,6 +4,8 @@
 .include <src.opts.mk>
 .include <src.tools.mk>
 
+PACKAGE=	runtime
+
 #CONFS=	fbtab login.conf motd.template login.access
 CONFS=	fbtab login.conf login.access
 PROG=	login

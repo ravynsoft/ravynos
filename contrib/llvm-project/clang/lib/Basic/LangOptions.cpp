@@ -11,10 +11,12 @@
 //===----------------------------------------------------------------------===//
 
 #include "clang/Basic/LangOptions.h"
+#include "llvm/ADT/SmallString.h"
+#include "llvm/Support/Path.h"
 
 using namespace clang;
 
-LangOptions::LangOptions() {
+LangOptions::LangOptions() : LangStd(LangStandard::lang_unspecified) {
 #define LANGOPT(Name, Bits, Default, Description) Name = Default;
 #define ENUM_LANGOPT(Name, Type, Bits, Default, Description) set##Name(Default);
 #include "clang/Basic/LangOptions.def"
@@ -28,7 +30,7 @@ void LangOptions::resetNonModularOptions() {
 #include "clang/Basic/LangOptions.def"
 
   // These options do not affect AST generation.
-  SanitizerBlacklistFiles.clear();
+  NoSanitizeFiles.clear();
   XRayAlwaysInstrumentFiles.clear();
   XRayNeverInstrumentFiles.clear();
 
@@ -46,6 +48,12 @@ bool LangOptions::isNoBuiltinFunc(StringRef FuncName) const {
 VersionTuple LangOptions::getOpenCLVersionTuple() const {
   const int Ver = OpenCLCPlusPlus ? OpenCLCPlusPlusVersion : OpenCLVersion;
   return VersionTuple(Ver / 100, (Ver % 100) / 10);
+}
+
+void LangOptions::remapPathPrefix(SmallString<256> &Path) const {
+  for (const auto &Entry : MacroPrefixMap)
+    if (llvm::sys::path::replace_path_prefix(Path, Entry.first, Entry.second))
+      break;
 }
 
 FPOptions FPOptions::defaultWithoutTrailingStorage(const LangOptions &LO) {

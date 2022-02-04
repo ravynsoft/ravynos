@@ -36,6 +36,7 @@
 
 #include <sys/_cpuset.h>
 
+#include <sys/_bitset.h>
 #include <sys/bitset.h>
 
 #define	_NCPUBITS	_BITSET_BITS
@@ -43,31 +44,54 @@
 
 #define	CPUSETBUFSIZ	((2 + sizeof(long) * 2) * _NCPUWORDS)
 
-#define	CPU_CLR(n, p)			BIT_CLR(CPU_SETSIZE, n, p)
-#define	CPU_COPY(f, t)			BIT_COPY(CPU_SETSIZE, f, t)
-#define	CPU_ISSET(n, p)			BIT_ISSET(CPU_SETSIZE, n, p)
-#define	CPU_SET(n, p)			BIT_SET(CPU_SETSIZE, n, p)
-#define	CPU_ZERO(p) 			BIT_ZERO(CPU_SETSIZE, p)
-#define	CPU_FILL(p) 			BIT_FILL(CPU_SETSIZE, p)
-#define	CPU_SETOF(n, p)			BIT_SETOF(CPU_SETSIZE, n, p)
-#define	CPU_EMPTY(p)			BIT_EMPTY(CPU_SETSIZE, p)
-#define	CPU_ISFULLSET(p)		BIT_ISFULLSET(CPU_SETSIZE, p)
-#define	CPU_SUBSET(p, c)		BIT_SUBSET(CPU_SETSIZE, p, c)
-#define	CPU_OVERLAP(p, c)		BIT_OVERLAP(CPU_SETSIZE, p, c)
-#define	CPU_CMP(p, c)			BIT_CMP(CPU_SETSIZE, p, c)
-#define	CPU_OR(d, s)			BIT_OR(CPU_SETSIZE, d, s)
-#define	CPU_AND(d, s)			BIT_AND(CPU_SETSIZE, d, s)
-#define	CPU_ANDNOT(d, s)		BIT_ANDNOT(CPU_SETSIZE, d, s)
-#define	CPU_CLR_ATOMIC(n, p)		BIT_CLR_ATOMIC(CPU_SETSIZE, n, p)
-#define	CPU_SET_ATOMIC(n, p)		BIT_SET_ATOMIC(CPU_SETSIZE, n, p)
-#define	CPU_SET_ATOMIC_ACQ(n, p)	BIT_SET_ATOMIC_ACQ(CPU_SETSIZE, n, p)
-#define	CPU_AND_ATOMIC(n, p)		BIT_AND_ATOMIC(CPU_SETSIZE, n, p)
-#define	CPU_OR_ATOMIC(d, s)		BIT_OR_ATOMIC(CPU_SETSIZE, d, s)
-#define	CPU_COPY_STORE_REL(f, t)	BIT_COPY_STORE_REL(CPU_SETSIZE, f, t)
-#define	CPU_FFS(p)			BIT_FFS(CPU_SETSIZE, p)
-#define	CPU_COUNT(p)			((int)BIT_COUNT(CPU_SETSIZE, p))
-#define	CPUSET_FSET			BITSET_FSET(_NCPUWORDS)
-#define	CPUSET_T_INITIALIZER		BITSET_T_INITIALIZER
+#define	CPU_CLR(n, p)			__BIT_CLR(CPU_SETSIZE, n, p)
+#define	CPU_COPY(f, t)			__BIT_COPY(CPU_SETSIZE, f, t)
+#define	CPU_ISSET(n, p)			__BIT_ISSET(CPU_SETSIZE, n, p)
+#define	CPU_SET(n, p)			__BIT_SET(CPU_SETSIZE, n, p)
+#define	CPU_ZERO(p) 			__BIT_ZERO(CPU_SETSIZE, p)
+#define	CPU_FILL(p) 			__BIT_FILL(CPU_SETSIZE, p)
+#define	CPU_SETOF(n, p)			__BIT_SETOF(CPU_SETSIZE, n, p)
+#define	CPU_EQUAL(p, c)			(__BIT_CMP(CPU_SETSIZE, p, c) == 0)
+#define	CPU_EMPTY(p)			__BIT_EMPTY(CPU_SETSIZE, p)
+#define	CPU_ISFULLSET(p)		__BIT_ISFULLSET(CPU_SETSIZE, p)
+#define	CPU_SUBSET(p, c)		__BIT_SUBSET(CPU_SETSIZE, p, c)
+#define	CPU_OVERLAP(p, c)		__BIT_OVERLAP(CPU_SETSIZE, p, c)
+#define	CPU_CMP(p, c)			__BIT_CMP(CPU_SETSIZE, p, c)
+#define	CPU_OR(d, s1, s2)		__BIT_OR2(CPU_SETSIZE, d, s1, s2)
+#define	CPU_AND(d, s1, s2)		__BIT_AND2(CPU_SETSIZE, d, s1, s2)
+#define	CPU_ANDNOT(d, s1, s2)		__BIT_ANDNOT2(CPU_SETSIZE, d, s1, s2)
+#define	CPU_XOR(d, s1, s2)		__BIT_XOR2(CPU_SETSIZE, d, s1, s2)
+#define	CPU_CLR_ATOMIC(n, p)		__BIT_CLR_ATOMIC(CPU_SETSIZE, n, p)
+#define	CPU_SET_ATOMIC(n, p)		__BIT_SET_ATOMIC(CPU_SETSIZE, n, p)
+#define	CPU_SET_ATOMIC_ACQ(n, p)	__BIT_SET_ATOMIC_ACQ(CPU_SETSIZE, n, p)
+#define	CPU_AND_ATOMIC(n, p)		__BIT_AND_ATOMIC(CPU_SETSIZE, n, p)
+#define	CPU_OR_ATOMIC(d, s)		__BIT_OR_ATOMIC(CPU_SETSIZE, d, s)
+#define	CPU_COPY_STORE_REL(f, t)	__BIT_COPY_STORE_REL(CPU_SETSIZE, f, t)
+#define	CPU_FFS(p)			__BIT_FFS(CPU_SETSIZE, p)
+#define	CPU_FLS(p)			__BIT_FLS(CPU_SETSIZE, p)
+#define	CPU_FOREACH_ISSET(i, p)		__BIT_FOREACH_ISSET(CPU_SETSIZE, i, p)
+#define	CPU_FOREACH_ISCLR(i, p)		__BIT_FOREACH_ISCLR(CPU_SETSIZE, i, p)
+#define	CPU_COUNT(p)			((int)__BIT_COUNT(CPU_SETSIZE, p))
+#define	CPUSET_FSET			__BITSET_FSET(_NCPUWORDS)
+#define	CPUSET_T_INITIALIZER(x)		__BITSET_T_INITIALIZER(x)
+
+#if !defined(_KERNEL)
+#define CPU_ALLOC_SIZE(_s)		__BITSET_SIZE(_s)
+#define CPU_ALLOC(_s)			__cpuset_alloc(_s)
+#define CPU_FREE(p)			__cpuset_free(p)
+
+#define CPU_ISSET_S(n, _s, p)		__BIT_ISSET(_s, n, p)
+#define CPU_SET_S(n, _s, p)		__BIT_SET(_s, n, p)
+#define CPU_CLR_S(n, _s, p)		__BIT_CLR(_s, n, p)
+#define CPU_ZERO_S(_s, p)		__BIT_ZERO(_s, p)
+
+#define	CPU_OR_S(_s, d, s1, s2)		__BIT_OR2(_s, d, s1, s2)
+#define	CPU_AND_S(_s, d, s1, s2)	__BIT_AND2(_s, d, s1, s2)
+#define	CPU_XOR_S(_s, d, s1, s2)	__BIT_XOR2(_s, d, s1, s2)
+
+#define	CPU_COUNT_S(_s, p)		((int)__BIT_COUNT(_s, p))
+#define	CPU_EQUAL_S(_s, p, c)		(__BIT_CMP(_s, p, c) == 0)
+#endif
 
 /*
  * Valid cpulevel_t values.

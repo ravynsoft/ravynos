@@ -6,6 +6,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+#ifndef LLDB_PLUGINS_SCRIPTINTERPRETER_PYTHON_SCRIPTINTERPRETERPYTHONIMPL_H
+#define LLDB_PLUGINS_SCRIPTINTERPRETER_PYTHON_SCRIPTINTERPRETERPYTHONIMPL_H
+
 #include "lldb/Host/Config.h"
 
 #if LLDB_ENABLE_PYTHON
@@ -104,6 +107,14 @@ public:
 
   lldb::SearchDepth ScriptedBreakpointResolverSearchDepth(
       StructuredData::GenericSP implementor_sp) override;
+
+  StructuredData::GenericSP
+  CreateScriptedStopHook(lldb::TargetSP target_sp, const char *class_name,
+                         StructuredDataImpl *args_data, Status &error) override;
+
+  bool ScriptedStopHookHandleStop(StructuredData::GenericSP implementor_sp,
+                                  ExecutionContext &exc_ctx,
+                                  lldb::StreamSP stream_sp) override;
 
   StructuredData::GenericSP
   CreateFrameRecognizer(const char *class_name) override;
@@ -223,17 +234,18 @@ public:
   bool RunScriptFormatKeyword(const char *impl_function, ValueObject *value,
                               std::string &output, Status &error) override;
 
-  bool
-  LoadScriptingModule(const char *filename, bool init_session,
-                      lldb_private::Status &error,
-                      StructuredData::ObjectSP *module_sp = nullptr) override;
+  bool LoadScriptingModule(const char *filename,
+                           const LoadScriptOptions &options,
+                           lldb_private::Status &error,
+                           StructuredData::ObjectSP *module_sp = nullptr,
+                           FileSpec extra_search_dir = {}) override;
 
   bool IsReservedWord(const char *word) override;
 
   std::unique_ptr<ScriptInterpreterLocker> AcquireInterpreterLock() override;
 
   void CollectDataForBreakpointCommandCallback(
-      std::vector<BreakpointOptions *> &bp_options_vec,
+      std::vector<std::reference_wrapper<BreakpointOptions>> &bp_options_vec,
       CommandReturnObject &result) override;
 
   void
@@ -241,20 +253,19 @@ public:
                                           CommandReturnObject &result) override;
 
   /// Set the callback body text into the callback for the breakpoint.
-  Status SetBreakpointCommandCallback(BreakpointOptions *bp_options,
+  Status SetBreakpointCommandCallback(BreakpointOptions &bp_options,
                                       const char *callback_body) override;
 
   Status SetBreakpointCommandCallbackFunction(
-      BreakpointOptions *bp_options,
-      const char *function_name,
+      BreakpointOptions &bp_options, const char *function_name,
       StructuredData::ObjectSP extra_args_sp) override;
 
   /// This one is for deserialization:
   Status SetBreakpointCommandCallback(
-      BreakpointOptions *bp_options,
+      BreakpointOptions &bp_options,
       std::unique_ptr<BreakpointOptions::CommandData> &data_up) override;
 
-  Status SetBreakpointCommandCallback(BreakpointOptions *bp_options,
+  Status SetBreakpointCommandCallback(BreakpointOptions &bp_options,
                                       const char *command_body_text,
                                       StructuredData::ObjectSP extra_args_sp,
                                       bool uses_extra_args);
@@ -408,7 +419,7 @@ public:
       : IOHandler(debugger, IOHandler::Type::PythonInterpreter),
         m_python(python) {}
 
-  ~IOHandlerPythonInterpreter() override {}
+  ~IOHandlerPythonInterpreter() override = default;
 
   ConstString GetControlSequence(char ch) override {
     if (ch == 'd')
@@ -475,4 +486,5 @@ protected:
 
 } // namespace lldb_private
 
-#endif
+#endif // LLDB_ENABLE_PYTHON
+#endif // LLDB_PLUGINS_SCRIPTINTERPRETER_PYTHON_SCRIPTINTERPRETERPYTHONIMPL_H

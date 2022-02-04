@@ -46,6 +46,7 @@ static uint64_t adjustFixupValue(unsigned Kind, uint64_t Value) {
   case PPC::fixup_ppc_half16ds:
     return Value & 0xfffc;
   case PPC::fixup_ppc_pcrel34:
+  case PPC::fixup_ppc_imm34:
     return Value & 0x3ffffffff;
   }
 }
@@ -68,6 +69,7 @@ static unsigned getFixupKindNumBytes(unsigned Kind) {
   case PPC::fixup_ppc_br24_notoc:
     return 4;
   case PPC::fixup_ppc_pcrel34:
+  case PPC::fixup_ppc_imm34:
   case FK_Data_8:
     return 8;
   case PPC::fixup_ppc_nofixup:
@@ -100,6 +102,7 @@ public:
       { "fixup_ppc_half16",       0,     16,   0 },
       { "fixup_ppc_half16ds",     0,     14,   0 },
       { "fixup_ppc_pcrel34",     0,      34,   MCFixupKindInfo::FKF_IsPCRel },
+      { "fixup_ppc_imm34",       0,      34,   0 },
       { "fixup_ppc_nofixup",      0,      0,   0 }
     };
     const static MCFixupKindInfo InfosLE[PPC::NumTargetFixupKinds] = {
@@ -112,6 +115,7 @@ public:
       { "fixup_ppc_half16",      0,      16,   0 },
       { "fixup_ppc_half16ds",    2,      14,   0 },
       { "fixup_ppc_pcrel34",     0,      34,   MCFixupKindInfo::FKF_IsPCRel },
+      { "fixup_ppc_imm34",       0,      34,   0 },
       { "fixup_ppc_nofixup",     0,       0,   0 }
     };
 
@@ -176,12 +180,6 @@ public:
       }
       return false;
     }
-  }
-
-  bool mayNeedRelaxation(const MCInst &Inst,
-                         const MCSubtargetInfo &STI) const override {
-    // FIXME.
-    return false;
   }
 
   bool fixupNeedsRelaxation(const MCFixup &Fixup,
@@ -249,12 +247,19 @@ Optional<MCFixupKind> ELFPPCAsmBackend::getFixupKind(StringRef Name) const {
 #define ELF_RELOC(X, Y) .Case(#X, Y)
 #include "llvm/BinaryFormat/ELFRelocs/PowerPC64.def"
 #undef ELF_RELOC
+                 .Case("BFD_RELOC_NONE", ELF::R_PPC64_NONE)
+                 .Case("BFD_RELOC_16", ELF::R_PPC64_ADDR16)
+                 .Case("BFD_RELOC_32", ELF::R_PPC64_ADDR32)
+                 .Case("BFD_RELOC_64", ELF::R_PPC64_ADDR64)
                  .Default(-1u);
     } else {
       Type = llvm::StringSwitch<unsigned>(Name)
 #define ELF_RELOC(X, Y) .Case(#X, Y)
 #include "llvm/BinaryFormat/ELFRelocs/PowerPC.def"
 #undef ELF_RELOC
+                 .Case("BFD_RELOC_NONE", ELF::R_PPC_NONE)
+                 .Case("BFD_RELOC_16", ELF::R_PPC_ADDR16)
+                 .Case("BFD_RELOC_32", ELF::R_PPC_ADDR32)
                  .Default(-1u);
     }
     if (Type != -1u)

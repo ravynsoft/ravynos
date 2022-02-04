@@ -392,6 +392,12 @@ zfs_write_simple(znode_t *zp, const void *data, size_t len,
 	return (error);
 }
 
+static void
+zfs_rele_async_task(void *arg)
+{
+	iput(arg);
+}
+
 void
 zfs_zrele_async(znode_t *zp)
 {
@@ -411,7 +417,7 @@ zfs_zrele_async(znode_t *zp)
 	 */
 	if (!atomic_add_unless(&ip->i_count, -1, 1)) {
 		VERIFY(taskq_dispatch(dsl_pool_zrele_taskq(dmu_objset_pool(os)),
-		    (task_func_t *)iput, ip, TQ_SLEEP) != TASKQID_INVALID);
+		    zfs_rele_async_task, ip, TQ_SLEEP) != TASKQID_INVALID);
 	}
 }
 
@@ -3550,7 +3556,11 @@ zfs_putpage(struct inode *ip, struct page *pp, struct writeback_control *wbc)
 
 		if (wbc->sync_mode != WB_SYNC_NONE) {
 			if (PageWriteback(pp))
+#ifdef HAVE_PAGEMAP_FOLIO_WAIT_BIT
+				folio_wait_bit(page_folio(pp), PG_writeback);
+#else
 				wait_on_page_bit(pp, PG_writeback);
+#endif
 		}
 
 		ZFS_EXIT(zfsvfs);

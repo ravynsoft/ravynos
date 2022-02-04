@@ -39,13 +39,14 @@
 __FBSDID("$FreeBSD$");
 
 #include <linux/mutex.h>
-#include <linux/inetdevice.h>
 #include <linux/slab.h>
 #include <linux/workqueue.h>
 #include <linux/module.h>
+#include <net/if_llatbl.h>
 #include <net/route.h>
 #include <net/route/nhop.h>
 #include <net/netevent.h>
+#include <net/if_llatbl.h>
 #include <rdma/ib_addr.h>
 #include <rdma/ib.h>
 
@@ -140,7 +141,7 @@ rdma_copy_addr_sub(u8 *dst, const u8 *src, unsigned min, unsigned max)
 	memset(dst + min, 0, max - min);
 }
 
-int rdma_copy_addr(struct rdma_dev_addr *dev_addr, struct net_device *dev,
+int rdma_copy_addr(struct rdma_dev_addr *dev_addr, struct ifnet *dev,
 		     const unsigned char *dst_dev_addr)
 {
 	/* check for loopback device */
@@ -173,7 +174,7 @@ EXPORT_SYMBOL(rdma_copy_addr);
 int rdma_translate_ip(const struct sockaddr *addr,
 		      struct rdma_dev_addr *dev_addr)
 {
-	struct net_device *dev;
+	struct ifnet *dev;
 	int ret;
 
 	if (dev_addr->bound_dev_if) {
@@ -181,13 +182,13 @@ int rdma_translate_ip(const struct sockaddr *addr,
 	} else switch (addr->sa_family) {
 #ifdef INET
 	case AF_INET:
-		dev = ip_dev_find(dev_addr->net,
+		dev = ip_ifp_find(dev_addr->net,
 			((const struct sockaddr_in *)addr)->sin_addr.s_addr);
 		break;
 #endif
 #ifdef INET6
 	case AF_INET6:
-		dev = ip6_dev_find(dev_addr->net,
+		dev = ip6_ifp_find(dev_addr->net,
 			((const struct sockaddr_in6 *)addr)->sin6_addr, 0);
 		break;
 #endif
@@ -325,7 +326,7 @@ static int addr4_resolve(struct sockaddr_in *src_in,
 		if (addr->bound_dev_if != 0) {
 			ifp = dev_get_by_index(addr->net, addr->bound_dev_if);
 		} else {
-			ifp = ip_dev_find(addr->net, src_in->sin_addr.s_addr);
+			ifp = ip_ifp_find(addr->net, src_in->sin_addr.s_addr);
 		}
 
 		/* check source interface */
@@ -397,9 +398,16 @@ static int addr4_resolve(struct sockaddr_in *src_in,
 	} else {
 		bool is_gw = (nh->nh_flags & NHF_GATEWAY) != 0;
 		memset(edst, 0, MAX_ADDR_LEN);
-		error = arpresolve(ifp, is_gw, NULL, is_gw ?
-		    &nh->gw_sa : (const struct sockaddr *)&dst_tmp,
-		    edst, NULL, NULL);
+#ifdef INET6
+		if (is_gw && nh->gw_sa.sa_family == AF_INET6)
+			error = nd6_resolve(ifp, LLE_SF(AF_INET, is_gw), NULL,
+			    &nh->gw_sa, edst, NULL, NULL);
+		else
+#endif
+			error = arpresolve(ifp, is_gw, NULL, is_gw ?
+			    &nh->gw_sa : (const struct sockaddr *)&dst_tmp,
+			    edst, NULL, NULL);
+
 		if (error != 0)
 			goto error_put_ifp;
 		else if (is_gw)
@@ -516,7 +524,7 @@ static int addr6_resolve(struct sockaddr_in6 *src_in,
 		if (addr->bound_dev_if != 0) {
 			ifp = dev_get_by_index(addr->net, addr->bound_dev_if);
 		} else {
-			ifp = ip6_dev_find(addr->net, src_in->sin6_addr, 0);
+			ifp = ip6_ifp_find(addr->net, src_in->sin6_addr, 0);
 		}
 
 		/* check source interface */
@@ -585,8 +593,8 @@ static int addr6_resolve(struct sockaddr_in6 *src_in,
 	} else {
 		bool is_gw = (nh->nh_flags & NHF_GATEWAY) != 0;
 		memset(edst, 0, MAX_ADDR_LEN);
-		error = nd6_resolve(ifp, is_gw, NULL, is_gw ?
-		    &nh->gw_sa : (const struct sockaddr *)&dst_tmp,
+		error = nd6_resolve(ifp, LLE_SF(AF_INET6, is_gw), NULL,
+		    is_gw ? &nh->gw_sa : (const struct sockaddr *)&dst_tmp,
 		    edst, NULL, NULL);
 		if (error != 0)
 			goto error_put_ifp;
@@ -663,7 +671,7 @@ static int addr_resolve(struct sockaddr *src_in,
 			struct rdma_dev_addr *addr)
 {
 	struct epoch_tracker et;
-	struct net_device *ndev = NULL;
+	struct ifnet *ndev = NULL;
 	u8 edst[MAX_ADDR_LEN];
 	int ret;
 
@@ -853,7 +861,7 @@ static void resolve_cb(int status, struct sockaddr *src_addr,
 
 int rdma_addr_find_l2_eth_by_grh(const union ib_gid *sgid,
 				 const union ib_gid *dgid,
-				 u8 *dmac, struct net_device *dev,
+				 u8 *dmac, struct ifnet *dev,
 				 int *hoplimit)
 {
 	int ret = 0;

@@ -12,6 +12,70 @@ Items affecting the ports and packages system can be found in
 /usr/ports/UPDATING.  Please read that file before updating system packages
 and/or ports.
 
+20220123:
+	For 64-bit architectures the base system is now built with Position
+	Independent Executable (PIE) support enabled by default.  It may be
+	disabled using the WITHOUT_PIE knob.  A clean build is required.
+
+20220114:
+	The macros provided for the manipulation of CPU sets (e.g. CPU_AND)
+	have been modified to take 2 source arguments instead of only 1.
+	Externally maintained sources that use these macros will have to
+	be adapted. The FreeBSD version has been bumped to 1300524 to
+	reflect this change.
+
+20211218:
+	Commit 18f5b477ee66 adds two arguments to VOP_ALLOCATE().
+	Normally changes to VOP calls are not MFC'd, but a
+	discussion on freebsd-current@ seemed to agree that
+	it was acceptable in this case, to fix the NFSv4.2 server.
+	Any out of source tree file system with a custom
+	VOP_ALLOCATE() call will need to be modified.
+	Bump __FreeBSD_version to 1300523 since the NFS modules need
+	to be rebuilt from sources.
+
+20211124:
+	Commit 6e8e261f0d4e changed the internal KAPI between the NFS
+	modules.  As such, all the modules must be rebuilt from sources.
+	__FreeBSD_version has been bumped to 1300522.
+
+20211119:
+	Bump __FreeBSD_version to 1300521 after merging LinuxKPI and
+	net80211 changes in order to support building various wireless
+	drivers.  This is to help other external consumers of LinuxKPI
+	and net80211 to deal accordingly.
+
+20211003:
+	Commit a599f9f7620b deleted the variable called nfs_maxcopyrange
+	from nfscommon.ko, since it no longer needs to be global.  As such,
+	the other nfs modules must be rebuilt from up to date sources.
+	Bump __FreeBSD_version to 1300516 for this.
+
+20210823:
+	As of commit 622809b0868f OpenSSL no longer enables kernel TLS
+	by default.  Users can enable kernel TLS via the "KTLS" SSL
+	option.  This can be enabled globally by using a custom
+	OpenSSL config file via OPENSSL_CONF or via an
+	application-specific configuration option for applications
+	which permit setting SSL options via SSL_CONF_cmd(3).
+
+20210803:
+	Commits 9fb6e613373c and 9ec7dbf46b0a both changed the internal
+	KAPI between the NFS modules.  Bump __FreeBSD_version to 1300514.
+	All NFS modules must be rebuilt from sources.
+
+20210730:
+	Commit b69019c14cd8 removes pf's DIOCGETSTATESNV ioctl.
+	As of be70c7a50d32 it is no longer used by userspace, but it does mean
+	users may not be able to enumerate pf states if they update the kernel
+	past c021ff986e2b without first updating userspace past be70c7a50d32.
+
+20210718:
+	Bump __FreeBSD_version to 1300512 after merging LinuxKPI, OFED,
+	net80211, and driver changes in order to support building
+	Intel wireless iwlwifi drivers.  This is especially needed for
+	drm-kmod which needs updates after this.
+
 20210715:
 	The 20210707 awk update brought in a change in behavior. This has
 	been corrected as of d4d252c49976. Between these dates, if you

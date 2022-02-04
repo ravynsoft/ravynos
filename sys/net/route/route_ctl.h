@@ -117,6 +117,7 @@ void rt_get_inet_prefix_plen(const struct rtentry *rt, struct in_addr *paddr,
     int *plen, uint32_t *pscopeid);
 void rt_get_inet_prefix_pmask(const struct rtentry *rt, struct in_addr *paddr,
     struct in_addr *pmask, uint32_t *pscopeid);
+struct rtentry *rt_get_inet_parent(uint32_t fibnum, struct in_addr addr, int plen);
 #endif
 #ifdef INET6
 struct in6_addr;
@@ -124,6 +125,8 @@ void rt_get_inet6_prefix_plen(const struct rtentry *rt, struct in6_addr *paddr,
     int *plen, uint32_t *pscopeid);
 void rt_get_inet6_prefix_pmask(const struct rtentry *rt, struct in6_addr *paddr,
     struct in6_addr *pmask, uint32_t *pscopeid);
+struct rtentry *rt_get_inet6_parent(uint32_t fibnum, const struct in6_addr *paddr,
+    int plen);
 #endif
 
 /* Nexthops */
@@ -154,7 +157,7 @@ struct rib_subscription *rib_subscribe_internal(struct rib_head *rnh,
     bool waitok);
 struct rib_subscription *rib_subscribe_locked(struct rib_head *rnh,
     rib_subscription_cb_t *f, void *arg, enum rib_subscription_type type);
-void rib_unsibscribe(struct rib_subscription *rs);
-void rib_unsibscribe_locked(struct rib_subscription *rs);
+void rib_unsubscribe(struct rib_subscription *rs);
+void rib_unsubscribe_locked(struct rib_subscription *rs);
 
 #endif

@@ -1,6 +1,10 @@
 /*-
  * Copyright (c) 2015-2016 Mellanox Technologies, Ltd.
  * All rights reserved.
+ * Copyright (c) 2020-2021 The FreeBSD Foundation
+ *
+ * Portions of this software were developed by Björn Zeeb
+ * under sponsorship from the FreeBSD Foundation.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -106,35 +110,14 @@ static device_method_t pci_methods[] = {
 
 struct linux_dma_priv {
 	uint64_t	dma_mask;
-	struct mtx	lock;
 	bus_dma_tag_t	dmat;
+	uint64_t	dma_coherent_mask;
+	bus_dma_tag_t	dmat_coherent;
+	struct mtx	lock;
 	struct pctrie	ptree;
 };
 #define	DMA_PRIV_LOCK(priv) mtx_lock(&(priv)->lock)
 #define	DMA_PRIV_UNLOCK(priv) mtx_unlock(&(priv)->lock)
-
-static int
-linux_pdev_dma_init(struct pci_dev *pdev)
-{
-	struct linux_dma_priv *priv;
-	int error;
-
-	priv = malloc(sizeof(*priv), M_DEVBUF, M_WAITOK | M_ZERO);
-	pdev->dev.dma_priv = priv;
-
-	mtx_init(&priv->lock, "lkpi-priv-dma", NULL, MTX_DEF);
-
-	pctrie_init(&priv->ptree);
-
-	/* create a default DMA tag */
-	error = linux_dma_tag_init(&pdev->dev, DMA_BIT_MASK(64));
-	if (error) {
-		mtx_destroy(&priv->lock);
-		free(priv, M_DEVBUF);
-		pdev->dev.dma_priv = NULL;
-	}
-	return (error);
-}
 
 static int
 linux_pdev_dma_uninit(struct pci_dev *pdev)
@@ -144,10 +127,41 @@ linux_pdev_dma_uninit(struct pci_dev *pdev)
 	priv = pdev->dev.dma_priv;
 	if (priv->dmat)
 		bus_dma_tag_destroy(priv->dmat);
+	if (priv->dmat_coherent)
+		bus_dma_tag_destroy(priv->dmat_coherent);
 	mtx_destroy(&priv->lock);
-	free(priv, M_DEVBUF);
 	pdev->dev.dma_priv = NULL;
+	free(priv, M_DEVBUF);
 	return (0);
+}
+
+static int
+linux_pdev_dma_init(struct pci_dev *pdev)
+{
+	struct linux_dma_priv *priv;
+	int error;
+
+	priv = malloc(sizeof(*priv), M_DEVBUF, M_WAITOK | M_ZERO);
+
+	mtx_init(&priv->lock, "lkpi-priv-dma", NULL, MTX_DEF);
+	pctrie_init(&priv->ptree);
+
+	pdev->dev.dma_priv = priv;
+
+	/* Create a default DMA tags. */
+	error = linux_dma_tag_init(&pdev->dev, DMA_BIT_MASK(64));
+	if (error != 0)
+		goto err;
+	/* Coherent is lower 32bit only by default in Linux. */
+	error = linux_dma_tag_init_coherent(&pdev->dev, DMA_BIT_MASK(32));
+	if (error != 0)
+		goto err;
+
+	return (error);
+
+err:
+	linux_pdev_dma_uninit(pdev);
+	return (error);
 }
 
 int
@@ -181,6 +195,37 @@ linux_dma_tag_init(struct device *dev, u64 dma_mask)
 	return (-error);
 }
 
+int
+linux_dma_tag_init_coherent(struct device *dev, u64 dma_mask)
+{
+	struct linux_dma_priv *priv;
+	int error;
+
+	priv = dev->dma_priv;
+
+	if (priv->dmat_coherent) {
+		if (priv->dma_coherent_mask == dma_mask)
+			return (0);
+
+		bus_dma_tag_destroy(priv->dmat_coherent);
+	}
+
+	priv->dma_coherent_mask = dma_mask;
+
+	error = bus_dma_tag_create(bus_get_dma_tag(dev->bsddev),
+	    1, 0,			/* alignment, boundary */
+	    dma_mask,			/* lowaddr */
+	    BUS_SPACE_MAXADDR,		/* highaddr */
+	    NULL, NULL,			/* filtfunc, filtfuncarg */
+	    BUS_SPACE_MAXSIZE,		/* maxsize */
+	    1,				/* nsegments */
+	    BUS_SPACE_MAXSIZE,		/* maxsegsz */
+	    0,				/* flags */
+	    NULL, NULL,			/* lockfunc, lockfuncarg */
+	    &priv->dmat_coherent);
+	return (-error);
+}
+
 static struct pci_driver *
 linux_pci_find(device_t dev, const struct pci_device_id **idp)
 {
@@ -197,7 +242,7 @@ linux_pci_find(device_t dev, const struct pci_device_id **idp)
 	subdevice = pci_get_subdevice(dev);
 
 	spin_lock(&pci_lock);
-	list_for_each_entry(pdrv, &pci_drivers, links) {
+	list_for_each_entry(pdrv, &pci_drivers, node) {
 		for (id = pdrv->id_table; id->vendor != 0; id++) {
 			if (vendor == id->vendor &&
 			    (PCI_ANY_ID == id->device || device == id->device) &&
@@ -211,6 +256,14 @@ linux_pci_find(device_t dev, const struct pci_device_id **idp)
 	}
 	spin_unlock(&pci_lock);
 	return (NULL);
+}
+
+static void
+lkpi_pci_dev_release(struct device *dev)
+{
+
+	lkpi_devres_release_free_list(dev);
+	spin_lock_destroy(&dev->devres_lock);
 }
 
 static void
@@ -230,11 +283,14 @@ lkpifill_pci_dev(device_t dev, struct pci_dev *pdev)
 	pdev->bus->domain = pci_get_domain(dev);
 	pdev->dev.bsddev = dev;
 	pdev->dev.parent = &linux_root_device;
+	pdev->dev.release = lkpi_pci_dev_release;
 	INIT_LIST_HEAD(&pdev->dev.irqents);
 	kobject_init(&pdev->dev.kobj, &linux_dev_ktype);
 	kobject_set_name(&pdev->dev.kobj, device_get_nameunit(dev));
 	kobject_add(&pdev->dev.kobj, &linux_root_device.kobj,
 	    kobject_name(&pdev->dev.kobj));
+	spin_lock_init(&pdev->dev.devres_lock);
+	INIT_LIST_HEAD(&pdev->dev.devres_head);
 }
 
 static void
@@ -243,11 +299,13 @@ lkpinew_pci_dev_release(struct device *dev)
 	struct pci_dev *pdev;
 
 	pdev = to_pci_dev(dev);
+	if (pdev->root != NULL)
+		pci_dev_put(pdev->root);
 	free(pdev->bus, M_DEVBUF);
 	free(pdev, M_DEVBUF);
 }
 
-static struct pci_dev *
+struct pci_dev *
 lkpinew_pci_dev(device_t dev)
 {
 	struct pci_dev *pdev;
@@ -351,7 +409,7 @@ linux_pci_attach_device(device_t dev, struct pci_driver *pdrv,
 		PCI_GET_ID(parent, dev, PCI_ID_RID, &rid);
 	pdev->devfn = rid;
 	pdev->pdrv = pdrv;
-	rle = linux_pci_get_rle(pdev, SYS_RES_IRQ, 0);
+	rle = linux_pci_get_rle(pdev, SYS_RES_IRQ, 0, false);
 	if (rle != NULL)
 		pdev->dev.irq = rle->start;
 	else
@@ -408,6 +466,8 @@ linux_pci_detach_device(struct pci_dev *pdev)
 	if (pdev->pdrv != NULL)
 		pdev->pdrv->remove(pdev);
 
+	if (pdev->root != NULL)
+		pci_dev_put(pdev->root);
 	free(pdev->bus, M_DEVBUF);
 	linux_pdev_dma_uninit(pdev);
 
@@ -417,6 +477,61 @@ linux_pci_detach_device(struct pci_dev *pdev)
 	put_device(&pdev->dev);
 
 	return (0);
+}
+
+static int
+lkpi_pci_disable_dev(struct device *dev)
+{
+
+	(void) pci_disable_io(dev->bsddev, SYS_RES_MEMORY);
+	(void) pci_disable_io(dev->bsddev, SYS_RES_IOPORT);
+	return (0);
+}
+
+void
+lkpi_pci_devres_release(struct device *dev, void *p)
+{
+	struct pci_devres *dr;
+	struct pci_dev *pdev;
+	int bar;
+
+	pdev = to_pci_dev(dev);
+	dr = p;
+
+	if (pdev->msix_enabled)
+		lkpi_pci_disable_msix(pdev);
+        if (pdev->msi_enabled)
+		lkpi_pci_disable_msi(pdev);
+
+	if (dr->enable_io && lkpi_pci_disable_dev(dev) == 0)
+		dr->enable_io = false;
+
+	if (dr->region_mask == 0)
+		return;
+	for (bar = PCIR_MAX_BAR_0; bar >= 0; bar--) {
+
+		if ((dr->region_mask & (1 << bar)) == 0)
+			continue;
+		pci_release_region(pdev, bar);
+	}
+}
+
+void
+lkpi_pcim_iomap_table_release(struct device *dev, void *p)
+{
+	struct pcim_iomap_devres *dr;
+	struct pci_dev *pdev;
+	int bar;
+
+	dr = p;
+	pdev = to_pci_dev(dev);
+	for (bar = PCIR_MAX_BAR_0; bar >= 0; bar--) {
+
+		if (dr->mmio_table[bar] == NULL)
+			continue;
+
+		pci_iounmap(pdev, dr->mmio_table[bar]);
+	}
 }
 
 static int
@@ -525,7 +640,7 @@ _linux_pci_register_driver(struct pci_driver *pdrv, devclass_t dc)
 
 	linux_set_current(curthread);
 	spin_lock(&pci_lock);
-	list_add(&pdrv->links, &pci_drivers);
+	list_add(&pdrv->node, &pci_drivers);
 	spin_unlock(&pci_lock);
 	pdrv->bsddriver.name = pdrv->name;
 	pdrv->bsddriver.methods = pci_methods;
@@ -550,6 +665,25 @@ linux_pci_register_driver(struct pci_driver *pdrv)
 	return (_linux_pci_register_driver(pdrv, dc));
 }
 
+struct resource_list_entry *
+linux_pci_reserve_bar(struct pci_dev *pdev, struct resource_list *rl,
+    int type, int rid)
+{
+	device_t dev;
+	struct resource *res;
+
+	KASSERT(type == SYS_RES_IOPORT || type == SYS_RES_MEMORY,
+	    ("trying to reserve non-BAR type %d", type));
+
+	dev = pdev->pdrv != NULL && pdev->pdrv->isdrm ?
+	    device_get_parent(pdev->dev.bsddev) : pdev->dev.bsddev;
+	res = pci_reserve_map(device_get_parent(dev), dev, type, &rid, 0, ~0,
+	    1, 1, 0);
+	if (res == NULL)
+		return (NULL);
+	return (resource_list_find(rl, type, rid));
+}
+
 unsigned long
 pci_resource_start(struct pci_dev *pdev, int bar)
 {
@@ -557,7 +691,7 @@ pci_resource_start(struct pci_dev *pdev, int bar)
 	rman_res_t newstart;
 	device_t dev;
 
-	if ((rle = linux_pci_get_bar(pdev, bar)) == NULL)
+	if ((rle = linux_pci_get_bar(pdev, bar, true)) == NULL)
 		return (0);
 	dev = pdev->pdrv != NULL && pdev->pdrv->isdrm ?
 	    device_get_parent(pdev->dev.bsddev) : pdev->dev.bsddev;
@@ -574,7 +708,7 @@ pci_resource_len(struct pci_dev *pdev, int bar)
 {
 	struct resource_list_entry *rle;
 
-	if ((rle = linux_pci_get_bar(pdev, bar)) == NULL)
+	if ((rle = linux_pci_get_bar(pdev, bar, true)) == NULL)
 		return (0);
 	return (rle->count);
 }
@@ -600,7 +734,7 @@ linux_pci_unregister_driver(struct pci_driver *pdrv)
 	bus = devclass_find("pci");
 
 	spin_lock(&pci_lock);
-	list_del(&pdrv->links);
+	list_del(&pdrv->node);
 	spin_unlock(&pci_lock);
 	mtx_lock(&Giant);
 	if (bus != NULL)
@@ -616,7 +750,7 @@ linux_pci_unregister_drm_driver(struct pci_driver *pdrv)
 	bus = devclass_find("vgapci");
 
 	spin_lock(&pci_lock);
-	list_del(&pdrv->links);
+	list_del(&pdrv->node);
 	spin_unlock(&pci_lock);
 	mtx_lock(&Giant);
 	if (bus != NULL)
@@ -630,6 +764,7 @@ struct linux_dma_obj {
 	void		*vaddr;
 	uint64_t	dma_addr;
 	bus_dmamap_t	dmamap;
+	bus_dma_tag_t	dmat;
 };
 
 static uma_zone_t linux_dma_trie_zone;
@@ -675,44 +810,10 @@ linux_dma_trie_free(struct pctrie *ptree, void *node)
 PCTRIE_DEFINE(LINUX_DMA, linux_dma_obj, dma_addr, linux_dma_trie_alloc,
     linux_dma_trie_free);
 
-void *
-linux_dma_alloc_coherent(struct device *dev, size_t size,
-    dma_addr_t *dma_handle, gfp_t flag)
-{
-	struct linux_dma_priv *priv;
-	vm_paddr_t high;
-	size_t align;
-	void *mem;
-
-	if (dev == NULL || dev->dma_priv == NULL) {
-		*dma_handle = 0;
-		return (NULL);
-	}
-	priv = dev->dma_priv;
-	if (priv->dma_mask)
-		high = priv->dma_mask;
-	else if (flag & GFP_DMA32)
-		high = BUS_SPACE_MAXADDR_32BIT;
-	else
-		high = BUS_SPACE_MAXADDR;
-	align = PAGE_SIZE << get_order(size);
-	mem = (void *)kmem_alloc_contig(size, flag & GFP_NATIVE_MASK, 0, high,
-	    align, 0, VM_MEMATTR_DEFAULT);
-	if (mem != NULL) {
-		*dma_handle = linux_dma_map_phys(dev, vtophys(mem), size);
-		if (*dma_handle == 0) {
-			kmem_free((vm_offset_t)mem, size);
-			mem = NULL;
-		}
-	} else {
-		*dma_handle = 0;
-	}
-	return (mem);
-}
-
 #if defined(__i386__) || defined(__amd64__) || defined(__aarch64__)
-dma_addr_t
-linux_dma_map_phys(struct device *dev, vm_paddr_t phys, size_t len)
+static dma_addr_t
+linux_dma_map_phys_common(struct device *dev, vm_paddr_t phys, size_t len,
+    bus_dma_tag_t dmat)
 {
 	struct linux_dma_priv *priv;
 	struct linux_dma_obj *obj;
@@ -727,25 +828,26 @@ linux_dma_map_phys(struct device *dev, vm_paddr_t phys, size_t len)
 	 * bus_dma API.  This avoids tracking collisions in the pctrie
 	 * with the additional benefit of reducing overhead.
 	 */
-	if (bus_dma_id_mapped(priv->dmat, phys, len))
+	if (bus_dma_id_mapped(dmat, phys, len))
 		return (phys);
 
 	obj = uma_zalloc(linux_dma_obj_zone, M_NOWAIT);
 	if (obj == NULL) {
 		return (0);
 	}
+	obj->dmat = dmat;
 
 	DMA_PRIV_LOCK(priv);
-	if (bus_dmamap_create(priv->dmat, 0, &obj->dmamap) != 0) {
+	if (bus_dmamap_create(obj->dmat, 0, &obj->dmamap) != 0) {
 		DMA_PRIV_UNLOCK(priv);
 		uma_zfree(linux_dma_obj_zone, obj);
 		return (0);
 	}
 
 	nseg = -1;
-	if (_bus_dmamap_load_phys(priv->dmat, obj->dmamap, phys, len,
+	if (_bus_dmamap_load_phys(obj->dmat, obj->dmamap, phys, len,
 	    BUS_DMA_NOWAIT, &seg, &nseg) != 0) {
-		bus_dmamap_destroy(priv->dmat, obj->dmamap);
+		bus_dmamap_destroy(obj->dmat, obj->dmamap);
 		DMA_PRIV_UNLOCK(priv);
 		uma_zfree(linux_dma_obj_zone, obj);
 		return (0);
@@ -756,8 +858,8 @@ linux_dma_map_phys(struct device *dev, vm_paddr_t phys, size_t len)
 
 	error = LINUX_DMA_PCTRIE_INSERT(&priv->ptree, obj);
 	if (error != 0) {
-		bus_dmamap_unload(priv->dmat, obj->dmamap);
-		bus_dmamap_destroy(priv->dmat, obj->dmamap);
+		bus_dmamap_unload(obj->dmat, obj->dmamap);
+		bus_dmamap_destroy(obj->dmat, obj->dmamap);
 		DMA_PRIV_UNLOCK(priv);
 		uma_zfree(linux_dma_obj_zone, obj);
 		return (0);
@@ -766,12 +868,22 @@ linux_dma_map_phys(struct device *dev, vm_paddr_t phys, size_t len)
 	return (obj->dma_addr);
 }
 #else
-dma_addr_t
-linux_dma_map_phys(struct device *dev, vm_paddr_t phys, size_t len)
+static dma_addr_t
+linux_dma_map_phys_common(struct device *dev __unused, vm_paddr_t phys,
+    size_t len __unused, bus_dma_tag_t dmat __unused)
 {
 	return (phys);
 }
 #endif
+
+dma_addr_t
+linux_dma_map_phys(struct device *dev, vm_paddr_t phys, size_t len)
+{
+	struct linux_dma_priv *priv;
+
+	priv = dev->dma_priv;
+	return (linux_dma_map_phys_common(dev, phys, len, priv->dmat));
+}
 
 #if defined(__i386__) || defined(__amd64__) || defined(__aarch64__)
 void
@@ -792,8 +904,8 @@ linux_dma_unmap(struct device *dev, dma_addr_t dma_addr, size_t len)
 		return;
 	}
 	LINUX_DMA_PCTRIE_REMOVE(&priv->ptree, dma_addr);
-	bus_dmamap_unload(priv->dmat, obj->dmamap);
-	bus_dmamap_destroy(priv->dmat, obj->dmamap);
+	bus_dmamap_unload(obj->dmat, obj->dmamap);
+	bus_dmamap_destroy(obj->dmat, obj->dmamap);
 	DMA_PRIV_UNLOCK(priv);
 
 	uma_zfree(linux_dma_obj_zone, obj);
@@ -805,9 +917,46 @@ linux_dma_unmap(struct device *dev, dma_addr_t dma_addr, size_t len)
 }
 #endif
 
+void *
+linux_dma_alloc_coherent(struct device *dev, size_t size,
+    dma_addr_t *dma_handle, gfp_t flag)
+{
+	struct linux_dma_priv *priv;
+	vm_paddr_t high;
+	size_t align;
+	void *mem;
+
+	if (dev == NULL || dev->dma_priv == NULL) {
+		*dma_handle = 0;
+		return (NULL);
+	}
+	priv = dev->dma_priv;
+	if (priv->dma_coherent_mask)
+		high = priv->dma_coherent_mask;
+	else
+		/* Coherent is lower 32bit only by default in Linux. */
+		high = BUS_SPACE_MAXADDR_32BIT;
+	align = PAGE_SIZE << get_order(size);
+	/* Always zero the allocation. */
+	flag |= M_ZERO;
+	mem = (void *)kmem_alloc_contig(size, flag & GFP_NATIVE_MASK, 0, high,
+	    align, 0, VM_MEMATTR_DEFAULT);
+	if (mem != NULL) {
+		*dma_handle = linux_dma_map_phys_common(dev, vtophys(mem), size,
+		    priv->dmat_coherent);
+		if (*dma_handle == 0) {
+			kmem_free((vm_offset_t)mem, size);
+			mem = NULL;
+		}
+	} else {
+		*dma_handle = 0;
+	}
+	return (mem);
+}
+
 int
 linux_dma_map_sg_attrs(struct device *dev, struct scatterlist *sgl, int nents,
-    enum dma_data_direction dir, struct dma_attrs *attrs)
+    enum dma_data_direction dir __unused, unsigned long attrs __unused)
 {
 	struct linux_dma_priv *priv;
 	struct scatterlist *sg;
@@ -847,7 +996,8 @@ linux_dma_map_sg_attrs(struct device *dev, struct scatterlist *sgl, int nents,
 
 void
 linux_dma_unmap_sg_attrs(struct device *dev, struct scatterlist *sgl,
-    int nents, enum dma_data_direction dir, struct dma_attrs *attrs)
+    int nents __unused, enum dma_data_direction dir __unused,
+    unsigned long attrs __unused)
 {
 	struct linux_dma_priv *priv;
 
@@ -910,11 +1060,9 @@ dma_pool_obj_import(void *arg, void **store, int count, int domain __unused,
     int flags)
 {
 	struct dma_pool *pool = arg;
-	struct linux_dma_priv *priv;
 	struct linux_dma_obj *obj;
 	int error, i;
 
-	priv = pool->pool_device->dma_priv;
 	for (i = 0; i < count; i++) {
 		obj = uma_zalloc(linux_dma_obj_zone, flags);
 		if (obj == NULL)
@@ -937,11 +1085,9 @@ static void
 dma_pool_obj_release(void *arg, void **store, int count)
 {
 	struct dma_pool *pool = arg;
-	struct linux_dma_priv *priv;
 	struct linux_dma_obj *obj;
 	int i;
 
-	priv = pool->pool_device->dma_priv;
 	for (i = 0; i < count; i++) {
 		obj = store[i];
 		bus_dmamem_free(pool->pool_dmat, obj->vaddr, obj->dmamap);
@@ -995,6 +1141,16 @@ linux_dma_pool_destroy(struct dma_pool *pool)
 	bus_dma_tag_destroy(pool->pool_dmat);
 	mtx_destroy(&pool->pool_lock);
 	kfree(pool);
+}
+
+void
+lkpi_dmam_pool_destroy(struct device *dev, void *p)
+{
+	struct dma_pool *pool;
+
+	pool = *(struct dma_pool **)p;
+	LINUX_DMA_PCTRIE_RECLAIM(&pool->pool_ptree);
+	linux_dma_pool_destroy(pool);
 }
 
 void *
@@ -1074,6 +1230,8 @@ linux_backlight_update_status(device_t dev, struct backlight_props *props)
 
 	pdev->dev.bd->props.brightness = pdev->dev.bd->props.max_brightness *
 		props->brightness / 100;
+	pdev->dev.bd->props.power = props->brightness == 0 ?
+		4/* FB_BLANK_POWERDOWN */ : 0/* FB_BLANK_UNBLANK */;
 	return (pdev->dev.bd->ops->update_status(pdev->dev.bd));
 }
 

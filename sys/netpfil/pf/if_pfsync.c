@@ -316,6 +316,7 @@ static struct pfsync_bucket	*pfsync_get_bucket(struct pfsync_softc *,
 		    struct pf_kstate *);
 
 #define PFSYNC_MAX_BULKTRIES	12
+#define PFSYNC_DEFER_TIMEOUT	((20 * hz) / 1000)
 
 VNET_DEFINE(struct if_clone *, pfsync_cloner);
 #define	V_pfsync_cloner	VNET(pfsync_cloner)
@@ -1398,7 +1399,7 @@ pfsyncioctl(struct ifnet *ifp, u_long cmd, caddr_t data)
 			    pfsyncr.pfsyncr_syncpeer.s_addr;
 
 		sc->sc_maxupdates = pfsyncr.pfsyncr_maxupdates;
-		if (pfsyncr.pfsyncr_defer) {
+		if (pfsyncr.pfsyncr_defer & PFSYNCF_DEFER) {
 			sc->sc_flags |= PFSYNCF_DEFER;
 			V_pfsync_defer_ptr = pfsync_defer;
 		} else {
@@ -1739,20 +1740,28 @@ pfsync_defer(struct pf_kstate *st, struct mbuf *m)
 	if (m->m_flags & (M_BCAST|M_MCAST))
 		return (0);
 
+	if (sc == NULL)
+		return (0);
+
 	PFSYNC_LOCK(sc);
 
-	if (sc == NULL || !(sc->sc_ifp->if_flags & IFF_DRV_RUNNING) ||
+	if (!(sc->sc_ifp->if_drv_flags & IFF_DRV_RUNNING) ||
 	    !(sc->sc_flags & PFSYNCF_DEFER)) {
 		PFSYNC_UNLOCK(sc);
 		return (0);
 	}
 
+	PFSYNC_BUCKET_LOCK(b);
+	PFSYNC_UNLOCK(sc);
+
 	if (b->b_deferred >= 128)
 		pfsync_undefer(TAILQ_FIRST(&b->b_deferrals), 0);
 
 	pd = malloc(sizeof(*pd), M_PFSYNC, M_NOWAIT);
-	if (pd == NULL)
+	if (pd == NULL) {
+		PFSYNC_BUCKET_UNLOCK(b);
 		return (0);
+	}
 	b->b_deferred++;
 
 	m->m_flags |= M_SKIP_FIREWALL;
@@ -1766,9 +1775,10 @@ pfsync_defer(struct pf_kstate *st, struct mbuf *m)
 
 	TAILQ_INSERT_TAIL(&b->b_deferrals, pd, pd_entry);
 	callout_init_mtx(&pd->pd_tmo, &b->b_mtx, CALLOUT_RETURNUNLOCKED);
-	callout_reset(&pd->pd_tmo, 10, pfsync_defer_tmo, pd);
+	callout_reset(&pd->pd_tmo, PFSYNC_DEFER_TIMEOUT, pfsync_defer_tmo, pd);
 
 	pfsync_push(b);
+	PFSYNC_BUCKET_UNLOCK(b);
 
 	return (1);
 }
@@ -1817,7 +1827,7 @@ pfsync_defer_tmo(void *arg)
 	pd->pd_st->state_flags &= ~PFSTATE_ACK;	/* XXX: locking! */
 	if (pd->pd_refs == 0)
 		free(pd, M_PFSYNC);
-	PFSYNC_UNLOCK(sc);
+	PFSYNC_BUCKET_UNLOCK(b);
 
 	ip_output(m, NULL, NULL, 0, NULL, NULL);
 

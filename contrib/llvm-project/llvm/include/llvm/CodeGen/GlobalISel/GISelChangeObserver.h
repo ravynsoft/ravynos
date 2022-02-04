@@ -5,11 +5,12 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
-//
+/// \file
 /// This contains common code to allow clients to notify changes to machine
 /// instr.
-//
+///
 //===----------------------------------------------------------------------===//
+
 #ifndef LLVM_CODEGEN_GLOBALISEL_GISELCHANGEOBSERVER_H
 #define LLVM_CODEGEN_GLOBALISEL_GISELCHANGEOBSERVER_H
 
@@ -51,7 +52,7 @@ public:
   /// For convenience, finishedChangingAllUsesOfReg() will report the completion
   /// of the changes. The use list may change between this call and
   /// finishedChangingAllUsesOfReg().
-  void changingAllUsesOfReg(const MachineRegisterInfo &MRI, unsigned Reg);
+  void changingAllUsesOfReg(const MachineRegisterInfo &MRI, Register Reg);
   /// All instructions reported as changing by changingAllUsesOfReg() have
   /// finished being changed.
   void finishedChangingAllUsesOfReg();

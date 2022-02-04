@@ -119,7 +119,7 @@ static void	nfs_decode_args(struct mount *mp, struct nfsmount *nmp,
 static int	mountnfs(struct nfs_args *, struct mount *,
 		    struct sockaddr *, char *, u_char *, int, u_char *, int,
 		    u_char *, int, struct vnode **, struct ucred *,
-		    struct thread *, int, int, int, uint32_t, char *);
+		    struct thread *, int, int, int, uint32_t, char *, int);
 static void	nfs_getnlminfo(struct vnode *, uint8_t *, size_t *,
 		    struct sockaddr_storage *, int *, off_t *,
 		    struct timeval *);
@@ -546,7 +546,7 @@ nfs_mountdiskless(char *path,
 	nam = sodupsockaddr((struct sockaddr *)sin, M_WAITOK);
 	if ((error = mountnfs(args, mp, nam, path, NULL, 0, dirpath, dirlen,
 	    NULL, 0, vpp, td->td_ucred, td, NFS_DEFAULT_NAMETIMEO, 
-	    NFS_DEFAULT_NEGNAMETIMEO, 0, 0, NULL)) != 0) {
+	    NFS_DEFAULT_NEGNAMETIMEO, 0, 0, NULL, 0)) != 0) {
 		printf("nfs_mountroot: mount %s on /: %d\n", path, error);
 		return (error);
 	}
@@ -713,14 +713,14 @@ nfs_decode_args(struct mount *mp, struct nfsmount *nmp, struct nfs_args *argp,
 				haslock = 1;
 		}
 		if (!error) {
-		    newnfs_disconnect(&nmp->nm_sockreq);
+		    newnfs_disconnect(nmp, &nmp->nm_sockreq);
 		    if (haslock)
 			newnfs_sndunlock(&nmp->nm_sockreq.nr_lock);
 		    nmp->nm_sotype = argp->sotype;
 		    nmp->nm_soproto = argp->proto;
 		    if (nmp->nm_sotype == SOCK_DGRAM)
 			while (newnfs_connect(nmp, &nmp->nm_sockreq,
-			    cred, td, 0, false)) {
+			    cred, td, 0, false, &nmp->nm_sockreq.nr_client)) {
 				printf("newnfs_args: retrying connect\n");
 				(void) nfs_catnap(PSOCK, 0, "nfscon");
 			}
@@ -748,7 +748,7 @@ static const char *nfs_opts[] = { "from", "nfs_args",
     "resvport", "readahead", "hostname", "timeo", "timeout", "addr", "fh",
     "nfsv3", "sec", "principal", "nfsv4", "gssname", "allgssname", "dirpath",
     "minorversion", "nametimeo", "negnametimeo", "nocto", "noncontigwr",
-    "pnfs", "wcommitsize", "oneopenown", "tls", "tlscertname",
+    "pnfs", "wcommitsize", "oneopenown", "tls", "tlscertname", "nconnect",
     NULL };
 
 /*
@@ -900,6 +900,7 @@ nfs_mount(struct mount *mp)
 	    krbnamelen, srvkrbnamelen;
 	size_t hstlen;
 	uint32_t newflag;
+	int aconn = 0;
 
 	has_nfs_args_opt = 0;
 	has_nfs_from_opt = 0;
@@ -1190,6 +1191,20 @@ nfs_mount(struct mount *mp)
 			goto out;
 		}
 	}
+	if (vfs_getopt(mp->mnt_optnew, "nconnect", (void **)&opt, NULL) ==
+	    0) {
+		ret = sscanf(opt, "%d", &aconn);
+		if (ret != 1 || aconn < 1 || aconn > NFS_MAXNCONN) {
+			vfs_mount_error(mp, "illegal nconnect: %s", opt);
+			error = EINVAL;
+			goto out;
+		}
+		/*
+		 * Setting nconnect=1 is a no-op, allowed so that
+		 * the option can be used in a Linux compatible way.
+		 */
+		aconn--;
+	}
 	if (vfs_getopt(mp->mnt_optnew, "sec",
 		(void **) &secname, NULL) == 0)
 		nfs_sec_name(secname, &args.flags);
@@ -1357,10 +1372,25 @@ nfs_mount(struct mount *mp)
 		}
 	}
 
+	if (aconn > 0 && (args.sotype != SOCK_STREAM ||
+	    (args.flags & NFSMNT_NFSV4) == 0 || minvers == 0)) {
+		/*
+		 * RFC 5661 requires that an NFSv4.1/4.2 server
+		 * send an RPC reply on the same TCP connection
+		 * as the one it received the request on.
+		 * This property in required for "nconnect" and
+		 * might not be the case for NFSv3 or NFSv4.0 servers.
+		 */
+		vfs_mount_error(mp, "nconnect should only be used "
+		    "for NFSv4.1/4.2 mounts");
+		error = EINVAL;
+		goto out;
+	}
+
 	args.fh = nfh;
 	error = mountnfs(&args, mp, nam, hst, krbname, krbnamelen, dirpath,
 	    dirlen, srvkrbname, srvkrbnamelen, &vp, td->td_ucred, td,
-	    nametimeo, negnametimeo, minvers, newflag, tlscertname);
+	    nametimeo, negnametimeo, minvers, newflag, tlscertname, aconn);
 out:
 	if (!error) {
 		MNT_ILOCK(mp);
@@ -1408,7 +1438,7 @@ mountnfs(struct nfs_args *argp, struct mount *mp, struct sockaddr *nam,
     char *hst, u_char *krbname, int krbnamelen, u_char *dirpath, int dirlen,
     u_char *srvkrbname, int srvkrbnamelen, struct vnode **vpp,
     struct ucred *cred, struct thread *td, int nametimeo, int negnametimeo,
-    int minvers, uint32_t newflag, char *tlscertname)
+    int minvers, uint32_t newflag, char *tlscertname, int aconn)
 {
 	struct nfsmount *nmp;
 	struct nfsnode *np;
@@ -1562,7 +1592,7 @@ mountnfs(struct nfs_args *argp, struct mount *mp, struct sockaddr *nam,
 	nmp->nm_fhsize = argp->fhsize;
 	if (nmp->nm_fhsize > 0)
 		bcopy((caddr_t)argp->fh, (caddr_t)nmp->nm_fh, argp->fhsize);
-	bcopy(hst, mp->mnt_stat.f_mntfromname, MNAMELEN);
+	strlcpy(mp->mnt_stat.f_mntfromname, hst, MNAMELEN);
 	nmp->nm_nam = nam;
 	/* Set up the sockets and per-host congestion */
 	nmp->nm_sotype = argp->sotype;
@@ -1575,15 +1605,22 @@ mountnfs(struct nfs_args *argp, struct mount *mp, struct sockaddr *nam,
 	else
 		nmp->nm_sockreq.nr_vers = NFS_VER2;
 
-	if ((error = newnfs_connect(nmp, &nmp->nm_sockreq, cred, td, 0, false)))
+	if ((error = newnfs_connect(nmp, &nmp->nm_sockreq, cred, td, 0, false,
+	    &nmp->nm_sockreq.nr_client)))
 		goto bad;
 	/* For NFSv4, get the clientid now. */
 	if ((argp->flags & NFSMNT_NFSV4) != 0) {
 		NFSCL_DEBUG(3, "at getcl\n");
-		error = nfscl_getcl(mp, cred, td, tryminvers, &clp);
+		error = nfscl_getcl(mp, cred, td, tryminvers, true, &clp);
 		NFSCL_DEBUG(3, "aft getcl=%d\n", error);
 		if (error != 0)
 			goto bad;
+		if (aconn > 0 && nmp->nm_minorvers == 0) {
+			vfs_mount_error(mp, "nconnect should only be used "
+			    "for NFSv4.1/4.2 mounts");
+			error = EINVAL;
+			goto bad;
+		}
 	}
 
 	if (nmp->nm_fhsize == 0 && (nmp->nm_flag & NFSMNT_NFSV4) &&
@@ -1678,6 +1715,10 @@ mountnfs(struct nfs_args *argp, struct mount *mp, struct sockaddr *nam,
 			MNT_IUNLOCK(mp);
 		}
 
+		/* Can now allow additional connections. */
+		if (aconn > 0)
+			nmp->nm_aconnect = aconn;
+
 		/*
 		 * Lose the lock but keep the ref.
 		 */
@@ -1690,7 +1731,7 @@ mountnfs(struct nfs_args *argp, struct mount *mp, struct sockaddr *nam,
 bad:
 	if (clp != NULL)
 		nfscl_clientrelease(clp);
-	newnfs_disconnect(&nmp->nm_sockreq);
+	newnfs_disconnect(NULL, &nmp->nm_sockreq);
 	crfree(nmp->nm_sockreq.nr_cred);
 	if (nmp->nm_sockreq.nr_auth != NULL)
 		AUTH_DESTROY(nmp->nm_sockreq.nr_auth);
@@ -1705,7 +1746,7 @@ bad:
 	TAILQ_FOREACH_SAFE(dsp, &nmp->nm_sess, nfsclds_list, tdsp) {
 		if (dsp != TAILQ_FIRST(&nmp->nm_sess) &&
 		    dsp->nfsclds_sockp != NULL)
-			newnfs_disconnect(dsp->nfsclds_sockp);
+			newnfs_disconnect(NULL, dsp->nfsclds_sockp);
 		nfscl_freenfsclds(dsp);
 	}
 	free(nmp->nm_tlscertname, M_NEWNFSMNT);
@@ -1724,8 +1765,11 @@ nfs_unmount(struct mount *mp, int mntflags)
 	struct nfsmount *nmp;
 	int error, flags = 0, i, trycnt = 0;
 	struct nfsclds *dsp, *tdsp;
+	struct nfscldeleg *dp, *ndp;
+	struct nfscldeleghead dh;
 
 	td = curthread;
+	TAILQ_INIT(&dh);
 
 	if (mntflags & MNT_FORCE)
 		flags |= FORCECLOSE;
@@ -1749,7 +1793,7 @@ nfs_unmount(struct mount *mp, int mntflags)
 		if (error)
 			goto out;
 		/* For a forced close, get rid of the renew thread now */
-		nfscl_umount(nmp, td);
+		nfscl_umount(nmp, td, &dh);
 	}
 	/* We hold 1 extra ref on the root vnode; see comment in mountnfs(). */
 	do {
@@ -1764,7 +1808,7 @@ nfs_unmount(struct mount *mp, int mntflags)
 	 * We are now committed to the unmount.
 	 */
 	if ((mntflags & MNT_FORCE) == 0)
-		nfscl_umount(nmp, td);
+		nfscl_umount(nmp, td, NULL);
 	else {
 		mtx_lock(&nmp->nm_mtx);
 		nmp->nm_privflag |= NFSMNTP_FORCEDISM;
@@ -1791,7 +1835,7 @@ nfs_unmount(struct mount *mp, int mntflags)
 		msleep(nmp, &nmp->nm_mtx, PVFS, "nfsfdism", 0);
 	mtx_unlock(&nmp->nm_mtx);
 
-	newnfs_disconnect(&nmp->nm_sockreq);
+	newnfs_disconnect(nmp, &nmp->nm_sockreq);
 	crfree(nmp->nm_sockreq.nr_cred);
 	free(nmp->nm_nam, M_SONAME);
 	if (nmp->nm_sockreq.nr_auth != NULL)
@@ -1801,11 +1845,17 @@ nfs_unmount(struct mount *mp, int mntflags)
 	TAILQ_FOREACH_SAFE(dsp, &nmp->nm_sess, nfsclds_list, tdsp) {
 		if (dsp != TAILQ_FIRST(&nmp->nm_sess) &&
 		    dsp->nfsclds_sockp != NULL)
-			newnfs_disconnect(dsp->nfsclds_sockp);
+			newnfs_disconnect(NULL, dsp->nfsclds_sockp);
 		nfscl_freenfsclds(dsp);
 	}
 	free(nmp->nm_tlscertname, M_NEWNFSMNT);
 	free(nmp, M_NEWNFSMNT);
+
+	/* Free up the delegation structures for forced dismounts. */
+	TAILQ_FOREACH_SAFE(dp, &dh, nfsdl_list, ndp) {
+		TAILQ_REMOVE(&dh, dp, nfsdl_list);
+		free(dp, M_NFSCLDELEG);
+	}
 out:
 	return (error);
 }
@@ -2065,6 +2115,7 @@ void nfscl_retopts(struct nfsmount *nmp, char *buffer, size_t buflen)
 	    &blen);
 	nfscl_printopt(nmp, (nmp->nm_flag & NFSMNT_NOCONN) != 0, ",noconn",
 	    &buf, &blen);
+	nfscl_printoptval(nmp, nmp->nm_aconnect + 1, ",nconnect", &buf, &blen);
 	nfscl_printopt(nmp, (nmp->nm_flag & NFSMNT_SOFT) == 0, ",hard", &buf,
 	    &blen);
 	nfscl_printopt(nmp, (nmp->nm_flag & NFSMNT_SOFT) != 0, ",soft", &buf,

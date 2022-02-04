@@ -47,6 +47,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/elf.h>
 #include <sys/eventhandler.h>
 #include <sys/exec.h>
+#include <sys/fcntl.h>
 #include <sys/jail.h>
 #include <sys/kernel.h>
 #include <sys/limits.h>
@@ -56,6 +57,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/mman.h>
 #include <sys/mount.h>
 #include <sys/mutex.h>
+#include <sys/namei.h>
 #include <sys/proc.h>
 #include <sys/ptrace.h>
 #include <sys/refcount.h>
@@ -124,13 +126,13 @@ static void pargs_free(struct pargs *pa);
 /*
  * Other process lists
  */
-struct pidhashhead *pidhashtbl;
+struct pidhashhead *pidhashtbl = NULL;
 struct sx *pidhashtbl_lock;
 u_long pidhash;
 u_long pidhashlock;
 struct pgrphashhead *pgrphashtbl;
 u_long pgrphash;
-struct proclist allproc;
+struct proclist allproc = LIST_HEAD_INITIALIZER(allproc);
 struct sx __exclusive_cache_line allproc_lock;
 struct sx __exclusive_cache_line proctree_lock;
 struct mtx __exclusive_cache_line ppeers_lock;
@@ -187,7 +189,6 @@ procinit(void)
 	sx_init(&proctree_lock, "proctree");
 	mtx_init(&ppeers_lock, "p_peers", NULL, MTX_DEF);
 	mtx_init(&procid_lock, "procid", NULL, MTX_DEF);
-	LIST_INIT(&allproc);
 	pidhashtbl = hashinit(maxproc / 4, M_PROC, &pidhash);
 	pidhashlock = (pidhash + 1) / 64;
 	if (pidhashlock > 0)
@@ -1844,8 +1845,8 @@ get_proc_vector32(struct thread *td, struct proc *p, char ***proc_vectorp,
 	int i, error;
 
 	error = 0;
-	if (proc_readmem(td, p, (vm_offset_t)p->p_sysent->sv_psstrings, &pss,
-	    sizeof(pss)) != sizeof(pss))
+	if (proc_readmem(td, p, PROC_PS_STRINGS(p), &pss, sizeof(pss)) !=
+	    sizeof(pss))
 		return (ENOMEM);
 	switch (type) {
 	case PROC_ARG:
@@ -1920,8 +1921,8 @@ get_proc_vector(struct thread *td, struct proc *p, char ***proc_vectorp,
 	if (SV_PROC_FLAG(p, SV_ILP32) != 0)
 		return (get_proc_vector32(td, p, proc_vectorp, vsizep, type));
 #endif
-	if (proc_readmem(td, p, (vm_offset_t)p->p_sysent->sv_psstrings, &pss,
-	    sizeof(pss)) != sizeof(pss))
+	if (proc_readmem(td, p, PROC_PS_STRINGS(p), &pss, sizeof(pss)) !=
+	    sizeof(pss))
 		return (ENOMEM);
 	switch (type) {
 	case PROC_ARG:
@@ -2232,6 +2233,78 @@ sysctl_kern_proc_auxv(SYSCTL_HANDLER_ARGS)
 }
 
 /*
+ * Look up the canonical executable path running in the specified process.
+ * It tries to return the same hardlink name as was used for execve(2).
+ * This allows the programs that modify their behavior based on their progname,
+ * to operate correctly.
+ *
+ * Result is returned in retbuf, it must not be freed, similar to vn_fullpath()
+ *   calling conventions.
+ * binname is a pointer to temporary string buffer of length MAXPATHLEN,
+ *   allocated and freed by caller.
+ * freebuf should be freed by caller, from the M_TEMP malloc type.
+ */
+int
+proc_get_binpath(struct proc *p, char *binname, char **retbuf,
+    char **freebuf)
+{
+	struct nameidata nd;
+	struct vnode *vp, *dvp;
+	size_t freepath_size;
+	int error;
+	bool do_fullpath;
+
+	PROC_LOCK_ASSERT(p, MA_OWNED);
+
+	vp = p->p_textvp;
+	if (vp == NULL) {
+		PROC_UNLOCK(p);
+		*retbuf = "";
+		*freebuf = NULL;
+		return (0);
+	}
+	vref(vp);
+	dvp = p->p_textdvp;
+	if (dvp != NULL)
+		vref(dvp);
+	if (p->p_binname != NULL)
+		strlcpy(binname, p->p_binname, MAXPATHLEN);
+	PROC_UNLOCK(p);
+
+	do_fullpath = true;
+	*freebuf = NULL;
+	if (dvp != NULL && binname[0] != '\0') {
+		freepath_size = MAXPATHLEN;
+		if (vn_fullpath_hardlink(vp, dvp, binname, strlen(binname),
+		    retbuf, freebuf, &freepath_size) == 0) {
+			/*
+			 * Recheck the looked up path.  The binary
+			 * might have been renamed or replaced, in
+			 * which case we should not report old name.
+			 */
+			NDINIT(&nd, LOOKUP, FOLLOW, UIO_SYSSPACE, *retbuf,
+			    curthread);
+			error = namei(&nd);
+			if (error == 0) {
+				if (nd.ni_vp == vp)
+					do_fullpath = false;
+				vrele(nd.ni_vp);
+				NDFREE(&nd, NDF_ONLY_PNBUF);
+			}
+		}
+	}
+	if (do_fullpath) {
+		free(*freebuf, M_TEMP);
+		*freebuf = NULL;
+		error = vn_fullpath(vp, retbuf, freebuf);
+	}
+	vrele(vp);
+	if (dvp != NULL)
+		vrele(dvp);
+	return (error);
+}
+
+/*
  * This sysctl allows a process to retrieve the path of the executable for
  * itself or another process.
  */
@@ -2241,32 +2314,25 @@ sysctl_kern_proc_pathname(SYSCTL_HANDLER_ARGS)
 	pid_t *pidp = (pid_t *)arg1;
 	unsigned int arglen = arg2;
 	struct proc *p;
-	struct vnode *vp;
-	char *retbuf, *freebuf;
+	char *retbuf, *freebuf, *binname;
 	int error;
 
 	if (arglen != 1)
 		return (EINVAL);
+	binname = malloc(MAXPATHLEN, M_TEMP, M_WAITOK);
+	binname[0] = '\0';
 	if (*pidp == -1) {	/* -1 means this process */
+		error = 0;
 		p = req->td->td_proc;
+		PROC_LOCK(p);
 	} else {
 		error = pget(*pidp, PGET_CANSEE, &p);
-		if (error != 0)
-			return (error);
 	}
 
-	vp = p->p_textvp;
-	if (vp == NULL) {
-		if (*pidp != -1)
-			PROC_UNLOCK(p);
-		return (0);
-	}
-	vref(vp);
-	if (*pidp != -1)
-		PROC_UNLOCK(p);
-	error = vn_fullpath(vp, &retbuf, &freebuf);
-	vrele(vp);
-	if (error)
+	if (error == 0)
+		error = proc_get_binpath(p, binname, &retbuf, &freebuf);
+	free(binname, M_TEMP);
+	if (error != 0)
 		return (error);
 	error = SYSCTL_OUT(req, retbuf, strlen(retbuf) + 1);
 	free(freebuf, M_TEMP);
@@ -2304,7 +2370,7 @@ static int
 sysctl_kern_proc_ovmmap(SYSCTL_HANDLER_ARGS)
 {
 	vm_map_entry_t entry, tmp_entry;
-	unsigned int last_timestamp;
+	unsigned int last_timestamp, namelen;
 	char *fullpath, *freepath;
 	struct kinfo_ovmentry *kve;
 	struct vattr va;
@@ -2314,6 +2380,10 @@ sysctl_kern_proc_ovmmap(SYSCTL_HANDLER_ARGS)
 	struct proc *p;
 	vm_map_t map;
 	struct vmspace *vm;
+
+	namelen = arg2;
+	if (namelen != 1)
+		return (EINVAL);
 
 	name = (int *)arg1;
 	error = pget((pid_t)name[0], PGET_WANTREAD, &p);
@@ -2685,7 +2755,12 @@ sysctl_kern_proc_vmmap(SYSCTL_HANDLER_ARGS)
 {
 	struct proc *p;
 	struct sbuf sb;
+	u_int namelen;
 	int error, error2, *name;
+
+	namelen = arg2;
+	if (namelen != 1)
+		return (EINVAL);
 
 	name = (int *)arg1;
 	sbuf_new_for_sysctl(&sb, NULL, sizeof(struct kinfo_vmentry), req);
@@ -2712,6 +2787,11 @@ sysctl_kern_proc_kstack(SYSCTL_HANDLER_ARGS)
 	struct stack *st;
 	struct sbuf sb;
 	struct proc *p;
+	u_int namelen;
+
+	namelen = arg2;
+	if (namelen != 1)
+		return (EINVAL);
 
 	name = (int *)arg1;
 	error = pget((pid_t)name[0], PGET_NOTINEXEC | PGET_WANTREAD, &p);
@@ -2908,13 +2988,13 @@ sysctl_kern_proc_ps_strings(SYSCTL_HANDLER_ARGS)
 		 * process.
 		 */
 		ps_strings32 = SV_PROC_FLAG(p, SV_ILP32) != 0 ?
-		    PTROUT(p->p_sysent->sv_psstrings) : 0;
+		    PTROUT(PROC_PS_STRINGS(p)) : 0;
 		PROC_UNLOCK(p);
 		error = SYSCTL_OUT(req, &ps_strings32, sizeof(ps_strings32));
 		return (error);
 	}
 #endif
-	ps_strings = p->p_sysent->sv_psstrings;
+	ps_strings = PROC_PS_STRINGS(p);
 	PROC_UNLOCK(p);
 	error = SYSCTL_OUT(req, &ps_strings, sizeof(ps_strings));
 	return (error);
@@ -3027,11 +3107,13 @@ sysctl_kern_proc_sigtramp(SYSCTL_HANDLER_ARGS)
 			if (sv->sv_sigcode_base != 0) {
 				kst32.ksigtramp_start = sv->sv_sigcode_base;
 				kst32.ksigtramp_end = sv->sv_sigcode_base +
-				    *sv->sv_szsigcode;
+				    ((sv->sv_flags & SV_DSO_SIG) == 0 ?
+				    *sv->sv_szsigcode :
+				    (uintptr_t)sv->sv_szsigcode);
 			} else {
-				kst32.ksigtramp_start = sv->sv_psstrings -
+				kst32.ksigtramp_start = PROC_PS_STRINGS(p) -
 				    *sv->sv_szsigcode;
-				kst32.ksigtramp_end = sv->sv_psstrings;
+				kst32.ksigtramp_end = PROC_PS_STRINGS(p);
 			}
 		}
 		PROC_UNLOCK(p);
@@ -3043,11 +3125,12 @@ sysctl_kern_proc_sigtramp(SYSCTL_HANDLER_ARGS)
 	if (sv->sv_sigcode_base != 0) {
 		kst.ksigtramp_start = (char *)sv->sv_sigcode_base;
 		kst.ksigtramp_end = (char *)sv->sv_sigcode_base +
-		    *sv->sv_szsigcode;
+		    ((sv->sv_flags & SV_DSO_SIG) == 0 ? *sv->sv_szsigcode :
+		    (uintptr_t)sv->sv_szsigcode);
 	} else {
-		kst.ksigtramp_start = (char *)sv->sv_psstrings -
+		kst.ksigtramp_start = (char *)PROC_PS_STRINGS(p) -
 		    *sv->sv_szsigcode;
-		kst.ksigtramp_end = (char *)sv->sv_psstrings;
+		kst.ksigtramp_end = (char *)PROC_PS_STRINGS(p);
 	}
 	PROC_UNLOCK(p);
 	error = SYSCTL_OUT(req, &kst, sizeof(kst));

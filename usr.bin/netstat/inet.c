@@ -296,14 +296,14 @@ protopr(u_long off, const char *name, int af1, int proto)
 		    (
 		     (istcp && tp->t_state == TCPS_LISTEN)
 		     || (af1 == AF_INET &&
-		      inet_lnaof(inp->inp_laddr) == INADDR_ANY)
+		      inp->inp_laddr.s_addr == INADDR_ANY)
 #ifdef INET6
 		     || (af1 == AF_INET6 &&
 			 IN6_IS_ADDR_UNSPECIFIED(&inp->in6p_laddr))
 #endif /* INET6 */
 		     || (af1 == AF_UNSPEC &&
 			 (((inp->inp_vflag & INP_IPV4) != 0 &&
-			   inet_lnaof(inp->inp_laddr) == INADDR_ANY)
+			   inp->inp_laddr.s_addr == INADDR_ANY)
 #ifdef INET6
 			  || ((inp->inp_vflag & INP_IPV6) != 0 &&
 			      IN6_IS_ADDR_UNSPECIFIED(&inp->in6p_laddr))
@@ -849,13 +849,23 @@ tcp_stats(u_long off, const char *name, int af1 __unused, int proto __unused)
 	    "{N:/Path MTU discovery black hole detection min MSS activation%s}\n");
 	p(tcps_pmtud_blackhole_failed, "\t{:pmtud-failed/%ju} "
 	    "{N:/Path MTU discovery black hole detection failure%s}\n");
+
+	xo_close_container("pmtud");
+	xo_open_container("tw");
+
+	p(tcps_tw_responds, "\t{:tw_responds/%ju} "
+	    "{N:/time%s connection in TIME-WAIT responded with ACK}\n");
+	p(tcps_tw_recycles, "\t{:tw_recycles/%ju} "
+	    "{N:/time%s connection in TIME-WAIT was actively recycled}\n");
+	p(tcps_tw_resets, "\t{:tw_resets/%ju} "
+	    "{N:/time%s connection in TIME-WAIT responded with RST}\n");
+
+	xo_close_container("tw");
  #undef p
  #undef p1a
  #undef p2
  #undef p2a
  #undef p3
-	xo_close_container("pmtud");
-
 
 	xo_open_container("TCP connection count by state");
 	xo_emit("{T:/TCP connection count by state}:\n");
@@ -1471,24 +1481,13 @@ inetname(struct in_addr *inp)
 	char *cp;
 	static char line[MAXHOSTNAMELEN];
 	struct hostent *hp;
-	struct netent *np;
 
 	cp = 0;
 	if (!numeric_addr && inp->s_addr != INADDR_ANY) {
-		int net = inet_netof(*inp);
-		int lna = inet_lnaof(*inp);
-
-		if (lna == INADDR_ANY) {
-			np = getnetbyaddr(net, AF_INET);
-			if (np)
-				cp = np->n_name;
-		}
-		if (cp == NULL) {
-			hp = gethostbyaddr((char *)inp, sizeof (*inp), AF_INET);
-			if (hp) {
-				cp = hp->h_name;
-				trimdomain(cp, strlen(cp));
-			}
+		hp = gethostbyaddr((char *)inp, sizeof (*inp), AF_INET);
+		if (hp) {
+			cp = hp->h_name;
+			trimdomain(cp, strlen(cp));
 		}
 	}
 	if (inp->s_addr == INADDR_ANY)

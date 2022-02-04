@@ -26,6 +26,7 @@ device		rcons
 # EXT_RESOURCES pseudo devices
 options 	EXT_RESOURCES
 device		clk
+device		hwreset
 device		phy
 device		regulator
 device		syscon
@@ -42,6 +43,11 @@ device		vtnet			# VirtIO Ethernet device
 device		virtio_blk		# VirtIO Block device
 device		virtio_mmio		# VirtIO MMIO bus
 device		virtio_random		# VirtIO Entropy device
+
+# NVM Express (NVMe) support
+device		nvme		# base NVMe driver
+options 	NVME_USE_NVD=0	# prefer the cam(4) based nda(4) driver
+device		nvd		# expose NVMe namespaces as disks, depends on nvme
 
 # NOTE: dtrace introduces CDDL-licensed components into the kernel
 device		dtrace			# dtrace core
@@ -64,9 +70,11 @@ device		axidma		# Xilinx AXI DMA Controller
 # SPI
 device		xilinx_spi	# Xilinx AXI Quad-SPI Controller
 
-# SOC-specific
+# SiFive device drivers
 device		fe310aon
-device		fu540spi
+device		fu740_pci_dw
+device		sifive_gpio
+device		sifive_spi
 files		"../sifive/files.sifive"
 
 # Flattened Device Tree
@@ -81,9 +89,6 @@ nooptions 	COMPAT_FREEBSD7
 nooptions 	COMPAT_FREEBSD9
 nooptions 	COMPAT_FREEBSD10
 nooptions 	COMPAT_FREEBSD11
-
-# No support for remote GDB
-nooptions 	GDB
 
 # riscv doesn't support inb/outb, so disable chipset probing which needs it
 nooptions 	PPC_PROBE_CHIPSET

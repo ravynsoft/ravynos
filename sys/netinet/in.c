@@ -35,6 +35,8 @@
 #include <sys/cdefs.h>
 __FBSDID("$FreeBSD$");
 
+#define IN_HISTORICAL_NETS		/* include class masks */
+
 #include <sys/param.h>
 #include <sys/eventhandler.h>
 #include <sys/systm.h>
@@ -64,6 +66,7 @@ __FBSDID("$FreeBSD$");
 
 #include <netinet/if_ether.h>
 #include <netinet/in.h>
+#include <netinet/in_fib.h>
 #include <netinet/in_var.h>
 #include <netinet/in_pcb.h>
 #include <netinet/ip_var.h>
@@ -86,6 +89,12 @@ VNET_DEFINE_STATIC(int, nosameprefix);
 SYSCTL_INT(_net_inet_ip, OID_AUTO, no_same_prefix, CTLFLAG_VNET | CTLFLAG_RW,
 	&VNET_NAME(nosameprefix), 0,
 	"Refuse to create same prefixes on different interfaces");
+
+VNET_DEFINE_STATIC(bool, broadcast_lowest);
+#define	V_broadcast_lowest		VNET(broadcast_lowest)
+SYSCTL_BOOL(_net_inet_ip, OID_AUTO, broadcast_lowest, CTLFLAG_VNET | CTLFLAG_RW,
+	&VNET_NAME(broadcast_lowest), 0,
+	"Treat lowest address on a subnet (host 0) as broadcast");
 
 VNET_DECLARE(struct inpcbinfo, ripcbinfo);
 #define	V_ripcbinfo			VNET(ripcbinfo)
@@ -185,6 +194,40 @@ in_localip_more(struct in_ifaddr *original_ia)
 	IN_IFADDR_RUNLOCK(&in_ifa_tracker);
 
 	return (NULL);
+}
+
+/*
+ * Tries to find first IPv4 address in the provided fib.
+ * Prefers non-loopback addresses and return loopback IFF
+ * @loopback_ok is set.
+ *
+ * Returns ifa or NULL.
+ */
+struct in_ifaddr *
+in_findlocal(uint32_t fibnum, bool loopback_ok)
+{
+	struct rm_priotracker in_ifa_tracker;
+	struct in_ifaddr *ia = NULL, *ia_lo = NULL;
+
+	NET_EPOCH_ASSERT();
+
+	IN_IFADDR_RLOCK(&in_ifa_tracker);
+	CK_STAILQ_FOREACH(ia, &V_in_ifaddrhead, ia_link) {
+		uint32_t ia_fib = ia->ia_ifa.ifa_ifp->if_fib;
+		if (!V_rt_add_addr_allfibs && (fibnum != ia_fib))
+			continue;
+
+		if (!IN_LOOPBACK(ntohl(IA_SIN(ia)->sin_addr.s_addr)))
+			break;
+		if (loopback_ok)
+			ia_lo = ia;
+	}
+	IN_IFADDR_RUNLOCK(&in_ifa_tracker);
+
+	if (ia == NULL)
+		ia = ia_lo;
+
+	return (ia);
 }
 
 /*
@@ -376,7 +419,7 @@ in_aifaddr_ioctl(u_long cmd, caddr_t data, struct ifnet *ifp, struct thread *td)
 	    (dstaddr->sin_len != sizeof(struct sockaddr_in) ||
 	     dstaddr->sin_addr.s_addr == INADDR_ANY))
 		return (EDESTADDRREQ);
-	if (vhid > 0 && carp_attach_p == NULL)
+	if (vhid != 0 && carp_attach_p == NULL)
 		return (EPROTONOSUPPORT);
 
 	/*
@@ -420,9 +463,15 @@ in_aifaddr_ioctl(u_long cmd, caddr_t data, struct ifnet *ifp, struct thread *td)
 		in_addr_t i = ntohl(addr->sin_addr.s_addr);
 
 		/*
-	 	 * Be compatible with network classes, if netmask isn't
-		 * supplied, guess it based on classes.
+	 	 * If netmask isn't supplied, use historical default.
+		 * This is deprecated for interfaces other than loopback
+		 * or point-to-point; warn in other cases.  In the future
+		 * we should return an error rather than warning.
 	 	 */
+		if ((ifp->if_flags & (IFF_POINTOPOINT | IFF_LOOPBACK)) == 0)
+			printf("%s: set address: WARNING: network mask "
+			     "should be specified; using historical default\n",
+			     ifp->if_xname);
 		if (IN_CLASSA(i))
 			ia->ia_subnetmask = IN_CLASSA_NET;
 		else if (IN_CLASSB(i))
@@ -1135,10 +1184,10 @@ in_ifaddr_broadcast(struct in_addr in, struct in_ifaddr *ia)
 
 	return ((in.s_addr == ia->ia_broadaddr.sin_addr.s_addr ||
 	     /*
-	      * Check for old-style (host 0) broadcast, but
+	      * Optionally check for old-style (host 0) broadcast, but
 	      * taking into account that RFC 3021 obsoletes it.
 	      */
-	    (ia->ia_subnetmask != IN_RFC3021_MASK &&
+	    (V_broadcast_lowest && ia->ia_subnetmask != IN_RFC3021_MASK &&
 	    ntohl(in.s_addr) == ia->ia_subnet)) &&
 	     /*
 	      * Check for an all one subnetmask. These
@@ -1265,19 +1314,6 @@ in_lltable_destroy_lle_unlocked(epoch_context_t ctx)
 }
 
 /*
- * Called by the datapath to indicate that
- * the entry was used.
- */
-static void
-in_lltable_mark_used(struct llentry *lle)
-{
-
-	LLE_REQ_LOCK(lle);
-	lle->r_skip_req = 0;
-	LLE_REQ_UNLOCK(lle);
-}
-
-/*
  * Called by LLE_FREE_LOCKED when number of references
  * drops to zero.
  */
@@ -1371,30 +1407,17 @@ in_lltable_free_entry(struct lltable *llt, struct llentry *lle)
 static int
 in_lltable_rtcheck(struct ifnet *ifp, u_int flags, const struct sockaddr *l3addr)
 {
-	struct rt_addrinfo info;
-	struct sockaddr_in rt_key, rt_mask;
-	struct sockaddr rt_gateway;
-	int rt_flags;
+	struct nhop_object *nh;
+	struct in_addr addr;
 
 	KASSERT(l3addr->sa_family == AF_INET,
 	    ("sin_family %d", l3addr->sa_family));
 
-	bzero(&rt_key, sizeof(rt_key));
-	rt_key.sin_len = sizeof(rt_key);
-	bzero(&rt_mask, sizeof(rt_mask));
-	rt_mask.sin_len = sizeof(rt_mask);
-	bzero(&rt_gateway, sizeof(rt_gateway));
-	rt_gateway.sa_len = sizeof(rt_gateway);
+	addr = ((const struct sockaddr_in *)l3addr)->sin_addr;
 
-	bzero(&info, sizeof(info));
-	info.rti_info[RTAX_DST] = (struct sockaddr *)&rt_key;
-	info.rti_info[RTAX_NETMASK] = (struct sockaddr *)&rt_mask;
-	info.rti_info[RTAX_GATEWAY] = (struct sockaddr *)&rt_gateway;
-
-	if (rib_lookup_info(ifp->if_fib, l3addr, NHR_REF, 0, &info) != 0)
+	nh = fib4_lookup(ifp->if_fib, addr, 0, NHR_NONE, 0);
+	if (nh == NULL)
 		return (EINVAL);
-
-	rt_flags = info.rti_flags;
 
 	/*
 	 * If the gateway for an existing host route matches the target L3
@@ -1402,17 +1425,14 @@ in_lltable_rtcheck(struct ifnet *ifp, u_int flags, const struct sockaddr *l3addr
 	 * such as MANET, and the interface is of the correct type, then
 	 * allow for ARP to proceed.
 	 */
-	if (rt_flags & RTF_GATEWAY) {
-		if (!(rt_flags & RTF_HOST) || !info.rti_ifp ||
-		    info.rti_ifp->if_type != IFT_ETHER ||
-		    (info.rti_ifp->if_flags & (IFF_NOARP | IFF_STATICARP)) != 0 ||
-		    memcmp(rt_gateway.sa_data, l3addr->sa_data,
+	if (nh->nh_flags & NHF_GATEWAY) {
+		if (!(nh->nh_flags & NHF_HOST) || nh->nh_ifp->if_type != IFT_ETHER ||
+		    (nh->nh_ifp->if_flags & (IFF_NOARP | IFF_STATICARP)) != 0 ||
+		    memcmp(nh->gw_sa.sa_data, l3addr->sa_data,
 		    sizeof(in_addr_t)) != 0) {
-			rib_free_info(&info);
 			return (EINVAL);
 		}
 	}
-	rib_free_info(&info);
 
 	/*
 	 * Make sure that at least the destination address is covered
@@ -1421,35 +1441,23 @@ in_lltable_rtcheck(struct ifnet *ifp, u_int flags, const struct sockaddr *l3addr
 	 * on one interface and the corresponding outgoing packet leaves
 	 * another interface.
 	 */
-	if (!(rt_flags & RTF_HOST) && info.rti_ifp != ifp) {
-		const char *sa, *mask, *addr, *lim;
-		const struct sockaddr_in *l3sin;
+	if ((nh->nh_ifp != ifp) && (nh->nh_flags & NHF_HOST) == 0) {
+		struct in_ifaddr *ia = (struct in_ifaddr *)ifaof_ifpforaddr(l3addr, ifp);
+		struct in_addr dst_addr, mask_addr;
 
-		mask = (const char *)&rt_mask;
-		/*
-		 * Just being extra cautious to avoid some custom
-		 * code getting into trouble.
-		 */
-		if ((info.rti_addrs & RTA_NETMASK) == 0)
+		if (ia == NULL)
 			return (EINVAL);
 
-		sa = (const char *)&rt_key;
-		addr = (const char *)l3addr;
-		l3sin = (const struct sockaddr_in *)l3addr;
-		lim = addr + l3sin->sin_len;
+		/*
+		 * ifaof_ifpforaddr() returns _best matching_ IFA.
+		 * It is possible that ifa prefix does not cover our address.
+		 * Explicitly verify and fail if that's the case.
+		 */
+		dst_addr = IA_SIN(ia)->sin_addr;
+		mask_addr.s_addr = htonl(ia->ia_subnetmask);
 
-		for ( ; addr < lim; sa++, mask++, addr++) {
-			if ((*sa ^ *addr) & *mask) {
-#ifdef DIAGNOSTIC
-				char addrbuf[INET_ADDRSTRLEN];
-
-				log(LOG_INFO, "IPv4 address: \"%s\" "
-				    "is not on the network\n",
-				    inet_ntoa_r(l3sin->sin_addr, addrbuf));
-#endif
-				return (EINVAL);
-			}
-		}
+		if (!IN_ARE_MASKED_ADDR_EQUAL(dst_addr, addr, mask_addr))
+			return (EINVAL);
 	}
 
 	return (0);
@@ -1681,7 +1689,7 @@ in_lltattach(struct ifnet *ifp)
 	llt->llt_fill_sa_entry = in_lltable_fill_sa_entry;
 	llt->llt_free_entry = in_lltable_free_entry;
 	llt->llt_match_prefix = in_lltable_match_prefix;
-	llt->llt_mark_used = in_lltable_mark_used;
+	llt->llt_mark_used = llentry_mark_used;
  	lltable_link(llt);
 
 	return (llt);

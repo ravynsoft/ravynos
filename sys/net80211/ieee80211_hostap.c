@@ -719,7 +719,7 @@ hostap_input(struct ieee80211_node *ni, struct mbuf *m,
 		 * Next up, any fragmentation.
 		 */
 		if (!IEEE80211_IS_MULTICAST(wh->i_addr1)) {
-			m = ieee80211_defrag(ni, m, hdrspace);
+			m = ieee80211_defrag(ni, m, hdrspace, has_decrypted);
 			if (m == NULL) {
 				/* Fragment dropped or frame not complete yet */
 				goto out;
@@ -744,7 +744,7 @@ hostap_input(struct ieee80211_node *ni, struct mbuf *m,
 		/*
 		 * Finally, strip the 802.11 header.
 		 */
-		m = ieee80211_decap(vap, m, hdrspace);
+		m = ieee80211_decap(vap, m, hdrspace, qos);
 		if (m == NULL) {
 			/* XXX mask bit to check for both */
 			/* don't count Null data frames as errors */
@@ -757,7 +757,10 @@ hostap_input(struct ieee80211_node *ni, struct mbuf *m,
 			IEEE80211_NODE_STAT(ni, rx_decap);
 			goto err;
 		}
-		eh = mtod(m, struct ether_header *);
+		if (!(qos & IEEE80211_QOS_AMSDU))
+			eh = mtod(m, struct ether_header *);
+		else
+			eh = NULL;
 		if (!ieee80211_node_is_authorized(ni)) {
 			/*
 			 * Deny any non-PAE frames received prior to
@@ -767,11 +770,13 @@ hostap_input(struct ieee80211_node *ni, struct mbuf *m,
 			 * the port is not marked authorized by the
 			 * authenticator until the handshake has completed.
 			 */
-			if (eh->ether_type != htons(ETHERTYPE_PAE)) {
+			if (eh == NULL ||
+			    eh->ether_type != htons(ETHERTYPE_PAE)) {
 				IEEE80211_DISCARD_MAC(vap, IEEE80211_MSG_INPUT,
-				    eh->ether_shost, "data",
-				    "unauthorized port: ether type 0x%x len %u",
-				    eh->ether_type, m->m_pkthdr.len);
+				    ni->ni_macaddr, "data", "unauthorized or "
+				    "unknown port: ether type 0x%x len %u",
+				    eh == NULL ? -1 : eh->ether_type,
+				    m->m_pkthdr.len);
 				vap->iv_stats.is_rx_unauth++;
 				IEEE80211_NODE_STAT(ni, rx_unauth);
 				goto err;
@@ -784,7 +789,8 @@ hostap_input(struct ieee80211_node *ni, struct mbuf *m,
 			if ((vap->iv_flags & IEEE80211_F_DROPUNENC) &&
 			    ((has_decrypted == 0) && (m->m_flags & M_WEP) == 0) &&
 			    (is_hw_decrypted == 0) &&
-			    eh->ether_type != htons(ETHERTYPE_PAE)) {
+			    (eh == NULL ||
+			     eh->ether_type != htons(ETHERTYPE_PAE))) {
 				/*
 				 * Drop unencrypted frames.
 				 */
@@ -991,7 +997,7 @@ hostap_auth_shared(struct ieee80211_node *ni, struct ieee80211_frame *wh,
 {
 	struct ieee80211vap *vap = ni->ni_vap;
 	uint8_t *challenge;
-	int allocbs, estatus;
+	int estatus;
 
 	KASSERT(vap->iv_state == IEEE80211_S_RUN, ("state %d", vap->iv_state));
 
@@ -1064,17 +1070,26 @@ hostap_auth_shared(struct ieee80211_node *ni, struct ieee80211_frame *wh,
 	}
 	switch (seq) {
 	case IEEE80211_AUTH_SHARED_REQUEST:
+	{
+#ifdef IEEE80211_DEBUG
+		bool allocbs;
+#endif
+
 		if (ni == vap->iv_bss) {
 			ni = ieee80211_dup_bss(vap, wh->i_addr2);
 			if (ni == NULL) {
 				/* NB: no way to return an error */
 				return;
 			}
+#ifdef IEEE80211_DEBUG
 			allocbs = 1;
+#endif
 		} else {
 			if ((ni->ni_flags & IEEE80211_NODE_AREF) == 0)
 				(void) ieee80211_ref_node(ni);
+#ifdef IEEE80211_DEBUG
 			allocbs = 0;
+#endif
 		}
 		/*
 		 * Mark the node as referenced to reflect that it's
@@ -1093,7 +1108,7 @@ hostap_auth_shared(struct ieee80211_node *ni, struct ieee80211_frame *wh,
 			/* NB: don't return error so they rexmit */
 			return;
 		}
-		get_random_bytes(ni->ni_challenge,
+		net80211_get_random_bytes(ni->ni_challenge,
 			IEEE80211_CHALLENGE_LEN);
 		IEEE80211_NOTE(vap, IEEE80211_MSG_DEBUG | IEEE80211_MSG_AUTH,
 		    ni, "shared key %sauth request", allocbs ? "" : "re");
@@ -1114,6 +1129,7 @@ hostap_auth_shared(struct ieee80211_node *ni, struct ieee80211_frame *wh,
 			return;
 		}
 		break;
+	}
 	case IEEE80211_AUTH_SHARED_RESPONSE:
 		if (ni == vap->iv_bss) {
 			IEEE80211_DISCARD_MAC(vap, IEEE80211_MSG_AUTH,
@@ -2293,7 +2309,9 @@ hostap_recv_mgmt(struct ieee80211_node *ni, struct mbuf *m0,
 
 	case IEEE80211_FC0_SUBTYPE_DEAUTH:
 	case IEEE80211_FC0_SUBTYPE_DISASSOC: {
+#ifdef IEEE80211_DEBUG
 		uint16_t reason;
+#endif
 
 		if (vap->iv_state != IEEE80211_S_RUN ||
 		    /* NB: can happen when in promiscuous mode */
@@ -2306,7 +2324,9 @@ hostap_recv_mgmt(struct ieee80211_node *ni, struct mbuf *m0,
 		 *	[2] reason
 		 */
 		IEEE80211_VERIFY_LENGTH(efrm - frm, 2, return);
+#ifdef IEEE80211_DEBUG
 		reason = le16toh(*(uint16_t *)frm);
+#endif
 		if (subtype == IEEE80211_FC0_SUBTYPE_DEAUTH) {
 			vap->iv_stats.is_rx_deauth++;
 			IEEE80211_NODE_STAT(ni, rx_deauth);

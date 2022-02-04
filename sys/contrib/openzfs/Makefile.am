@@ -129,10 +129,21 @@ SHELLCHECKDIRS = cmd contrib etc scripts tests
 SHELLCHECKSCRIPTS = autogen.sh
 
 PHONY += checkabi storeabi
-checkabi: lib
+
+checklibabiversion:
+	libabiversion=`abidw -v | $(SED) 's/[^0-9]//g'`; \
+	if test $$libabiversion -lt "200"; then \
+        /bin/echo -e "\n" \
+        "*** Please use libabigail 2.0.0 version or newer;\n" \
+        "*** otherwise results are not consistent!\n" \
+        "(or see https://github.com/openzfs/libabigail-docker )\n"; \
+        exit 1; \
+    fi;
+
+checkabi: checklibabiversion lib
 	$(MAKE) -C lib checkabi
 
-storeabi: lib
+storeabi: checklibabiversion lib
 	$(MAKE) -C lib storeabi
 
 PHONY += mancheck

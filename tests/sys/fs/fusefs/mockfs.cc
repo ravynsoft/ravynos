@@ -207,6 +207,14 @@ void MockFS::debug_request(const mockfs_buf_in &in, ssize_t buflen)
 			printf(" flags=%#x name=%s",
 				in.body.open.flags, name);
 			break;
+		case FUSE_FALLOCATE:
+			printf(" fh=%#" PRIx64 " offset=%" PRIu64
+				" length=%" PRIx64 " mode=%#x",
+				in.body.fallocate.fh,
+				in.body.fallocate.offset,
+				in.body.fallocate.length,
+				in.body.fallocate.mode);
+			break;
 		case FUSE_FLUSH:
 			printf(" fh=%#" PRIx64 " lock_owner=%" PRIu64,
 				in.body.flush.fh,
@@ -289,6 +297,15 @@ void MockFS::debug_request(const mockfs_buf_in &in, ssize_t buflen)
 				in.body.release.fh,
 				in.body.release.flags,
 				in.body.release.lock_owner);
+			break;
+		case FUSE_RENAME:
+			{
+				const char *src = (const char*)in.body.bytes +
+					sizeof(fuse_rename_in);
+				const char *dst = src + strlen(src) + 1;
+				printf(" src=%s newdir=%" PRIu64 " dst=%s",
+					src, in.body.rename.newdir, dst);
+			}
 			break;
 		case FUSE_SETATTR:
 			if (verbosity <= 1) {
@@ -392,7 +409,7 @@ void MockFS::debug_response(const mockfs_buf_out &out) {
 MockFS::MockFS(int max_readahead, bool allow_other, bool default_permissions,
 	bool push_symlinks_in, bool ro, enum poll_method pm, uint32_t flags,
 	uint32_t kernel_minor_version, uint32_t max_write, bool async,
-	bool noclusterr, unsigned time_gran, bool nointr)
+	bool noclusterr, unsigned time_gran, bool nointr, bool noatime)
 {
 	struct sigaction sa;
 	struct iovec *iov = NULL;
@@ -466,6 +483,10 @@ MockFS::MockFS(int max_readahead, bool allow_other, bool default_permissions,
 	if (async) {
 		build_iovec(&iov, &iovlen, "async", __DECONST(void*, &trueval),
 			sizeof(bool));
+	}
+	if (noatime) {
+		build_iovec(&iov, &iovlen, "noatime",
+			__DECONST(void*, &trueval), sizeof(bool));
 	}
 	if (noclusterr) {
 		build_iovec(&iov, &iovlen, "noclusterr",
@@ -671,6 +692,10 @@ void MockFS::audit_request(const mockfs_buf_in &in, ssize_t buflen) {
 		EXPECT_EQ(inlen, fih + sizeof(in.body.interrupt));
 		EXPECT_EQ((size_t)buflen, inlen);
 		break;
+	case FUSE_FALLOCATE:
+		EXPECT_EQ(inlen, fih + sizeof(in.body.fallocate));
+		EXPECT_EQ((size_t)buflen, inlen);
+		break;
 	case FUSE_BMAP:
 		EXPECT_EQ(inlen, fih + sizeof(in.body.bmap));
 		EXPECT_EQ((size_t)buflen, inlen);
@@ -686,7 +711,6 @@ void MockFS::audit_request(const mockfs_buf_in &in, ssize_t buflen) {
 		break;
 	case FUSE_NOTIFY_REPLY:
 	case FUSE_BATCH_FORGET:
-	case FUSE_FALLOCATE:
 	case FUSE_IOCTL:
 	case FUSE_POLL:
 	case FUSE_READDIRPLUS:
@@ -870,6 +894,7 @@ void MockFS::read_request(mockfs_buf_in &in, ssize_t &res) {
 	struct timeval timeout_tv;
 	const int timeout_ms = 999;
 	int timeout_int, nfds;
+	int fuse_fd;
 
 	switch (m_pm) {
 	case BLOCKING:
@@ -906,19 +931,22 @@ void MockFS::read_request(mockfs_buf_in &in, ssize_t &res) {
 		ASSERT_TRUE(fds[0].revents & POLLIN);
 		break;
 	case SELECT:
+		fuse_fd = m_fuse_fd;
+		if (fuse_fd < 0)
+			break;
 		timeout_tv.tv_sec = 0;
 		timeout_tv.tv_usec = timeout_ms * 1'000;
-		nfds = m_fuse_fd + 1;
+		nfds = fuse_fd + 1;
 		while (nready == 0) {
 			FD_ZERO(&readfds);
-			FD_SET(m_fuse_fd, &readfds);
+			FD_SET(fuse_fd, &readfds);
 			nready = select(nfds, &readfds, NULL, NULL,
 				&timeout_tv);
 			if (m_quit)
 				return;
 		}
 		ASSERT_LE(0, nready) << strerror(errno);
-		ASSERT_TRUE(FD_ISSET(m_fuse_fd, &readfds));
+		ASSERT_TRUE(FD_ISSET(fuse_fd, &readfds));
 		break;
 	default:
 		FAIL() << "not yet implemented";

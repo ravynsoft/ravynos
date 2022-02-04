@@ -64,7 +64,7 @@ LValue CGObjCRuntime::EmitValueForIvarAtOffset(CodeGen::CodeGenFunction &CGF,
       Ivar->getUsageType(ObjectPtrTy).withCVRQualifiers(CVRQualifiers);
   llvm::Type *LTy = CGF.CGM.getTypes().ConvertTypeForMem(IvarTy);
   llvm::Value *V = CGF.Builder.CreateBitCast(BaseValue, CGF.Int8PtrTy);
-  V = CGF.Builder.CreateInBoundsGEP(V, Offset, "add.ptr");
+  V = CGF.Builder.CreateInBoundsGEP(CGF.Int8Ty, V, Offset, "add.ptr");
 
   if (!Ivar->isBitField()) {
     V = CGF.Builder.CreateBitCast(V, llvm::PointerType::getUnqual(LTy));
@@ -389,4 +389,14 @@ llvm::Constant *
 clang::CodeGen::emitObjCProtocolObject(CodeGenModule &CGM,
                                        const ObjCProtocolDecl *protocol) {
   return CGM.getObjCRuntime().GetOrEmitProtocol(protocol);
+}
+
+std::string CGObjCRuntime::getSymbolNameForMethod(const ObjCMethodDecl *OMD,
+                                                  bool includeCategoryName) {
+  std::string buffer;
+  llvm::raw_string_ostream out(buffer);
+  CGM.getCXXABI().getMangleContext().mangleObjCMethodName(OMD, out,
+                                       /*includePrefixByte=*/true,
+                                       includeCategoryName);
+  return buffer;
 }

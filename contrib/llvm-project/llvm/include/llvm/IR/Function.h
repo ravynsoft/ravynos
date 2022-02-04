@@ -58,7 +58,8 @@ class User;
 class BranchProbabilityInfo;
 class BlockFrequencyInfo;
 
-class Function : public GlobalObject, public ilist_node<Function> {
+class LLVM_EXTERNAL_VISIBILITY Function : public GlobalObject,
+                                          public ilist_node<Function> {
 public:
   using BasicBlockListType = SymbolTableList<BasicBlock>;
 
@@ -153,6 +154,16 @@ public:
   static Function *Create(FunctionType *Ty, LinkageTypes Linkage,
                           const Twine &N, Module &M);
 
+  /// Creates a function with some attributes recorded in llvm.module.flags
+  /// applied.
+  ///
+  /// Use this when synthesizing new functions that need attributes that would
+  /// have been set by command line options.
+  static Function *createWithDefaultAttr(FunctionType *Ty, LinkageTypes Linkage,
+                                         unsigned AddrSpace,
+                                         const Twine &N = "",
+                                         Module *M = nullptr);
+
   // Provide fast operand accessors.
   DECLARE_TRANSPARENT_OPERAND_ACCESSORS(Value);
 
@@ -198,6 +209,15 @@ public:
   /// It's possible for this function to return true while getIntrinsicID()
   /// returns Intrinsic::not_intrinsic!
   bool isIntrinsic() const { return HasLLVMReservedName; }
+
+  /// isTargetIntrinsic - Returns true if IID is an intrinsic specific to a
+  /// certain target. If it is a generic intrinsic false is returned.
+  static bool isTargetIntrinsic(Intrinsic::ID IID);
+
+  /// isTargetIntrinsic - Returns true if this function is an intrinsic and the
+  /// intrinsic is specific to a certain target. If this is not an intrinsic
+  /// or a generic intrinsic, false is returned.
+  bool isTargetIntrinsic() const;
 
   /// Returns true if the function is one of the "Constrained Floating-Point
   /// Intrinsics". Returns false if not, and returns false when
@@ -257,6 +277,12 @@ public:
   void removeFnAttr(StringRef Kind) {
     setAttributes(getAttributes().removeAttribute(
         getContext(), AttributeList::FunctionIndex, Kind));
+  }
+
+  /// A function will have the "coroutine.presplit" attribute if it's
+  /// a coroutine and has not gone through full CoroSplit pass.
+  bool isPresplitCoroutine() const {
+    return hasFnAttribute("coroutine.presplit");
   }
 
   enum ProfileCountType { PCT_Invalid, PCT_Real, PCT_Synthetic };
@@ -372,6 +398,9 @@ public:
   void setGC(std::string Str);
   void clearGC();
 
+  /// Returns true if the function has ssp, sspstrong, or sspreq fn attrs.
+  bool hasStackProtectorFnAttr() const;
+
   /// adds the attribute to the list of attributes.
   void addAttribute(unsigned i, Attribute::AttrKind Kind);
 
@@ -407,6 +436,10 @@ public:
 
   /// removes the attribute from the list of attributes.
   void removeParamAttrs(unsigned ArgNo, const AttrBuilder &Attrs);
+
+  /// removes noundef and other attributes that imply undefined behavior if a
+  /// `undef` or `poison` value is passed from the list of attributes.
+  void removeParamUndefImplyingAttrs(unsigned ArgNo);
 
   /// check if an attributes is in the list of attributes.
   bool hasAttribute(unsigned i, Attribute::AttrKind Kind) const {
@@ -461,10 +494,28 @@ public:
     return AttributeSets.getParamAlignment(ArgNo);
   }
 
+  MaybeAlign getParamStackAlign(unsigned ArgNo) const {
+    return AttributeSets.getParamStackAlignment(ArgNo);
+  }
+
   /// Extract the byval type for a parameter.
   Type *getParamByValType(unsigned ArgNo) const {
-    Type *Ty = AttributeSets.getParamByValType(ArgNo);
-    return Ty ? Ty : (arg_begin() + ArgNo)->getType()->getPointerElementType();
+    return AttributeSets.getParamByValType(ArgNo);
+  }
+
+  /// Extract the sret type for a parameter.
+  Type *getParamStructRetType(unsigned ArgNo) const {
+    return AttributeSets.getParamStructRetType(ArgNo);
+  }
+
+  /// Extract the inalloca type for a parameter.
+  Type *getParamInAllocaType(unsigned ArgNo) const {
+    return AttributeSets.getParamInAllocaType(ArgNo);
+  }
+
+  /// Extract the byref type for a parameter.
+  Type *getParamByRefType(unsigned ArgNo) const {
+    return AttributeSets.getParamByRefType(ArgNo);
   }
 
   /// Extract the number of dereferenceable bytes for a call or
@@ -597,6 +648,14 @@ public:
     addFnAttr(Attribute::NoFree);
   }
 
+  /// Determine if the call can synchroize with other threads
+  bool hasNoSync() const {
+    return hasFnAttribute(Attribute::NoSync);
+  }
+  void setNoSync() {
+    addFnAttr(Attribute::NoSync);
+  }
+
   /// Determine if the function is known not to recurse, directly or
   /// indirectly.
   bool doesNotRecurse() const {
@@ -605,6 +664,17 @@ public:
   void setDoesNotRecurse() {
     addFnAttr(Attribute::NoRecurse);
   }
+
+  /// Determine if the function is required to make forward progress.
+  bool mustProgress() const {
+    return hasFnAttribute(Attribute::MustProgress) ||
+           hasFnAttribute(Attribute::WillReturn);
+  }
+  void setMustProgress() { addFnAttr(Attribute::MustProgress); }
+
+  /// Determine if the function will return.
+  bool willReturn() const { return hasFnAttribute(Attribute::WillReturn); }
+  void setWillReturn() { addFnAttr(Attribute::WillReturn); }
 
   /// True if the ABI mandates (or the user requested) that this
   /// function be in a unwind table.
@@ -647,6 +717,10 @@ public:
   bool hasOptSize() const {
     return hasFnAttribute(Attribute::OptimizeForSize) || hasMinSize();
   }
+
+  /// Returns the denormal handling type for the default rounding mode of the
+  /// function.
+  DenormalMode getDenormalMode(const fltSemantics &FPType) const;
 
   /// copyAttributesFrom - copy all additional attributes (those not needed to
   /// create a Function) from the Function Src to this one.
@@ -830,11 +904,14 @@ public:
 
   /// hasAddressTaken - returns true if there are any uses of this function
   /// other than direct calls or invokes to it, or blockaddress expressions.
-  /// Optionally passes back an offending user for diagnostic purposes and
-  /// ignores callback uses.
+  /// Optionally passes back an offending user for diagnostic purposes,
+  /// ignores callback uses, assume like pointer annotation calls, and
+  /// references in llvm.used and llvm.compiler.used variables.
   ///
   bool hasAddressTaken(const User ** = nullptr,
-                       bool IgnoreCallbackUses = false) const;
+                       bool IgnoreCallbackUses = false,
+                       bool IgnoreAssumeLikeCalls = true,
+                       bool IngoreLLVMUsed = false) const;
 
   /// isDefTriviallyDead - Return true if it is trivially safe to remove
   /// this function definition from the module (because it isn't externally

@@ -19,7 +19,6 @@ void gas_query_deinit(struct gas_query *gas);
 int gas_query_rx(struct gas_query *gas, const u8 *da, const u8 *sa,
 		 const u8 *bssid, u8 categ, const u8 *data, size_t len,
 		 int freq);
-int pmf_in_use(struct wpa_supplicant *wpa_s, const u8 *addr);
 
 /**
  * enum gas_query_result - GAS query result
@@ -35,7 +34,7 @@ enum gas_query_result {
 };
 
 int gas_query_req(struct gas_query *gas, const u8 *dst, int freq,
-		  int wildcard_bssid, struct wpabuf *req,
+		  int wildcard_bssid, int maintain_addr, struct wpabuf *req,
 		  void (*cb)(void *ctx, const u8 *dst, u8 dialog_token,
 			     enum gas_query_result result,
 			     const struct wpabuf *adv_proto,

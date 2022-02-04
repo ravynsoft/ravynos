@@ -102,6 +102,8 @@ void MCSectionELF::PrintSwitchToSection(const MCAsmInfo &MAI, const Triple &T,
     OS << 'T';
   if (Flags & ELF::SHF_LINK_ORDER)
     OS << 'o';
+  if (Flags & ELF::SHF_GNU_RETAIN)
+    OS << 'R';
 
   // If there are target-specific flags, print them.
   Triple::ArchType Arch = T.getArch();
@@ -156,6 +158,8 @@ void MCSectionELF::PrintSwitchToSection(const MCAsmInfo &MAI, const Triple &T,
     OS << "llvm_dependent_libraries";
   else if (Type == ELF::SHT_LLVM_SYMPART)
     OS << "llvm_sympart";
+  else if (Type == ELF::SHT_LLVM_BB_ADDR_MAP)
+    OS << "llvm_bb_addr_map";
   else
     report_fatal_error("unsupported type 0x" + Twine::utohexstr(Type) +
                        " for section " + getName());
@@ -167,14 +171,17 @@ void MCSectionELF::PrintSwitchToSection(const MCAsmInfo &MAI, const Triple &T,
 
   if (Flags & ELF::SHF_GROUP) {
     OS << ",";
-    printName(OS, Group->getName());
-    OS << ",comdat";
+    printName(OS, Group.getPointer()->getName());
+    if (isComdat())
+      OS << ",comdat";
   }
 
   if (Flags & ELF::SHF_LINK_ORDER) {
-    assert(LinkedToSym);
     OS << ",";
-    printName(OS, LinkedToSym->getName());
+    if (LinkedToSym)
+      printName(OS, LinkedToSym->getName());
+    else
+      OS << '0';
   }
 
   if (isUnique())

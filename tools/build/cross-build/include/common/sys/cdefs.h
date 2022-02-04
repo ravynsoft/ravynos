@@ -109,6 +109,9 @@
 #define __predict_false(exp) __builtin_expect((exp), 0)
 #endif
 
+#ifndef __weak_symbol
+#define __weak_symbol __attribute__((__weak__))
+#endif
 #ifndef __weak_reference
 #ifdef __ELF__
 #define __weak_reference(sym, alias) \
@@ -255,3 +258,22 @@
 #define	__BSD_VISIBLE		1
 #define	__ISO_C_VISIBLE		2011
 #define	__EXT1_VISIBLE		1
+
+/* Alignment builtins for better type checking and improved code generation. */
+/* Provide fallback versions for other compilers (GCC/Clang < 10): */
+#if !__has_builtin(__builtin_is_aligned)
+#define __builtin_is_aligned(x, align)	\
+	(((__uintptr_t)x & ((align) - 1)) == 0)
+#endif
+#if !__has_builtin(__builtin_align_up)
+#define __builtin_align_up(x, align)	\
+	((__typeof__(x))(((__uintptr_t)(x)+((align)-1))&(~((align)-1))))
+#endif
+#if !__has_builtin(__builtin_align_down)
+#define __builtin_align_down(x, align)	\
+	((__typeof__(x))((x)&(~((align)-1))))
+#endif
+
+#define __align_up(x, y) __builtin_align_up(x, y)
+#define __align_down(x, y) __builtin_align_down(x, y)
+#define __is_aligned(x, y) __builtin_is_aligned(x, y)

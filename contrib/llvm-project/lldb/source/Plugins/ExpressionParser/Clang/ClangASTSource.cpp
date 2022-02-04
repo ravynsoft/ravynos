@@ -71,20 +71,22 @@ ClangASTSource::~ClangASTSource() {
 
   if (!m_target)
     return;
-  // We are in the process of destruction, don't create clang ast context on
-  // demand by passing false to
-  // Target::GetScratchTypeSystemClang(create_on_demand).
-  TypeSystemClang *scratch_clang_ast_context =
-      TypeSystemClang::GetScratch(*m_target, false);
 
-  if (!scratch_clang_ast_context)
+  // Unregister the current ASTContext as a source for all scratch
+  // ASTContexts in the ClangASTImporter. Without this the scratch AST might
+  // query the deleted ASTContext for additional type information.
+  // We unregister from *all* scratch ASTContexts in case a type got exported
+  // to a scratch AST that isn't the best fitting scratch ASTContext.
+  TypeSystemClang *scratch_ast = ScratchTypeSystemClang::GetForTarget(
+      *m_target, ScratchTypeSystemClang::DefaultAST, false);
+
+  if (!scratch_ast)
     return;
 
-  clang::ASTContext &scratch_ast_context =
-      scratch_clang_ast_context->getASTContext();
-
-  if (m_ast_context != &scratch_ast_context && m_ast_importer_sp)
-    m_ast_importer_sp->ForgetSource(&scratch_ast_context, m_ast_context);
+  ScratchTypeSystemClang *default_scratch_ast =
+      llvm::cast<ScratchTypeSystemClang>(scratch_ast);
+  // Unregister from the default scratch AST (and all sub-ASTs).
+  default_scratch_ast->ForgetSource(m_ast_context, *m_ast_importer_sp);
 }
 
 void ClangASTSource::StartTranslationUnit(ASTConsumer *Consumer) {
@@ -477,16 +479,16 @@ void ClangASTSource::FindExternalLexicalDecls(
                    decl->getDeclKindName(), ast_dump);
       }
 
-      Decl *copied_decl = CopyDecl(decl);
+      CopyDecl(decl);
 
-      if (!copied_decl)
-        continue;
-
-      if (FieldDecl *copied_field = dyn_cast<FieldDecl>(copied_decl)) {
-        QualType copied_field_type = copied_field->getType();
-
-        m_ast_importer_sp->RequireCompleteType(copied_field_type);
-      }
+      // FIXME: We should add the copied decl to the 'decls' list. This would
+      // add the copied Decl into the DeclContext and make sure that we
+      // correctly propagate that we added some Decls back to Clang.
+      // By leaving 'decls' empty we incorrectly return false from
+      // DeclContext::LoadLexicalDeclsFromExternalStorage which might cause
+      // lookup issues later on.
+      // We can't just add them for now as the ASTImporter already added the
+      // decl into the DeclContext and this would add it twice.
     } else {
       SkippedDecls = true;
     }
@@ -679,12 +681,7 @@ void ClangASTSource::FillNamespaceMap(
     return;
   }
 
-  const ModuleList &target_images = m_target->GetImages();
-  std::lock_guard<std::recursive_mutex> guard(target_images.GetMutex());
-
-  for (size_t i = 0, e = target_images.GetSize(); i < e; ++i) {
-    lldb::ModuleSP image = target_images.GetModuleAtIndexUnlocked(i);
-
+  for (lldb::ModuleSP image : m_target->GetImages().Modules()) {
     if (!image)
       continue;
 
@@ -844,8 +841,8 @@ void ClangASTSource::FindDeclInModules(NameSearchContext &context,
                                        ConstString name) {
   Log *log(lldb_private::GetLogIfAllCategoriesSet(LIBLLDB_LOG_EXPRESSIONS));
 
-  ClangModulesDeclVendor *modules_decl_vendor =
-      m_target->GetClangModulesDeclVendor();
+  std::shared_ptr<ClangModulesDeclVendor> modules_decl_vendor =
+      GetClangModulesDeclVendor();
   if (!modules_decl_vendor)
     return;
 
@@ -1137,8 +1134,8 @@ void ClangASTSource::FindObjCMethodDecls(NameSearchContext &context) {
     // Check the modules only if the debug information didn't have a complete
     // interface.
 
-    if (ClangModulesDeclVendor *modules_decl_vendor =
-            m_target->GetClangModulesDeclVendor()) {
+    if (std::shared_ptr<ClangModulesDeclVendor> modules_decl_vendor =
+            GetClangModulesDeclVendor()) {
       ConstString interface_name(interface_decl->getNameAsString().c_str());
       bool append = false;
       uint32_t max_matches = 1;
@@ -1307,8 +1304,8 @@ void ClangASTSource::FindObjCPropertyAndIvarDecls(NameSearchContext &context) {
     // Check the modules only if the debug information didn't have a complete
     // interface.
 
-    ClangModulesDeclVendor *modules_decl_vendor =
-        m_target->GetClangModulesDeclVendor();
+    std::shared_ptr<ClangModulesDeclVendor> modules_decl_vendor =
+        GetClangModulesDeclVendor();
 
     if (!modules_decl_vendor)
       break;
@@ -1564,10 +1561,10 @@ bool ClangASTSource::layoutRecordType(const RecordDecl *record, uint64_t &size,
 
   if (log) {
     LLDB_LOG(log, "LRT returned:");
-    LLDB_LOG(log, "LRT   Original = (RecordDecl*)%p",
+    LLDB_LOG(log, "LRT   Original = (RecordDecl*){0}",
              static_cast<const void *>(origin_record.decl));
-    LLDB_LOG(log, "LRT   Size = %" PRId64, size);
-    LLDB_LOG(log, "LRT   Alignment = %" PRId64, alignment);
+    LLDB_LOG(log, "LRT   Size = {0}", size);
+    LLDB_LOG(log, "LRT   Alignment = {0}", alignment);
     LLDB_LOG(log, "LRT   Fields:");
     for (RecordDecl::field_iterator fi = record->field_begin(),
                                     fe = record->field_end();
@@ -1656,14 +1653,8 @@ void ClangASTSource::CompleteNamespaceMap(
                module_sp->GetFileSpec().GetFilename());
     }
   } else {
-    const ModuleList &target_images = m_target->GetImages();
-    std::lock_guard<std::recursive_mutex> guard(target_images.GetMutex());
-
     CompilerDeclContext null_namespace_decl;
-
-    for (size_t i = 0, e = target_images.GetSize(); i < e; ++i) {
-      lldb::ModuleSP image = target_images.GetModuleAtIndexUnlocked(i);
-
+    for (lldb::ModuleSP image : m_target->GetImages().Modules()) {
       if (!image)
         continue;
 
@@ -1749,4 +1740,11 @@ CompilerType ClangASTSource::GuardedCopyType(const CompilerType &src_type) {
     return CompilerType();
 
   return m_clang_ast_context->GetType(copied_qual_type);
+}
+
+std::shared_ptr<ClangModulesDeclVendor>
+ClangASTSource::GetClangModulesDeclVendor() {
+  auto persistent_vars = llvm::cast<ClangPersistentVariables>(
+      m_target->GetPersistentExpressionStateForLanguage(lldb::eLanguageTypeC));
+  return persistent_vars->GetClangModulesDeclVendor();
 }

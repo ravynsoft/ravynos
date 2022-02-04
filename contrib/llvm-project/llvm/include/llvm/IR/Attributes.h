@@ -18,6 +18,7 @@
 #include "llvm-c/Types.h"
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/Optional.h"
+#include "llvm/ADT/SmallString.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/ADT/iterator_range.h"
 #include "llvm/Config/llvm-config.h"
@@ -70,13 +71,28 @@ public:
   enum AttrKind {
     // IR-Level Attributes
     None,                  ///< No attributes have been set
-    #define GET_ATTR_NAMES
-    #define ATTRIBUTE_ENUM(ENUM_NAME, OTHER) ENUM_NAME,
+    #define GET_ATTR_ENUM
     #include "llvm/IR/Attributes.inc"
     EndAttrKinds,          ///< Sentinal value useful for loops
     EmptyKey,              ///< Use as Empty key for DenseMap of AttrKind
     TombstoneKey,          ///< Use as Tombstone key for DenseMap of AttrKind
   };
+
+  static const unsigned NumTypeAttrKinds = LastTypeAttr - FirstTypeAttr + 1;
+
+  static bool isEnumAttrKind(AttrKind Kind) {
+    return Kind >= FirstEnumAttr && Kind <= LastEnumAttr;
+  }
+  static bool isIntAttrKind(AttrKind Kind) {
+    return Kind >= FirstIntAttr && Kind <= LastIntAttr;
+  }
+  static bool isTypeAttrKind(AttrKind Kind) {
+    return Kind >= FirstTypeAttr && Kind <= LastTypeAttr;
+  }
+
+  static bool canUseAsFnAttr(AttrKind Kind);
+  static bool canUseAsParamAttr(AttrKind Kind);
+  static bool canUseAsRetAttr(AttrKind Kind);
 
 private:
   AttributeImpl *pImpl = nullptr;
@@ -107,15 +123,24 @@ public:
   static Attribute getWithAllocSizeArgs(LLVMContext &Context,
                                         unsigned ElemSizeArg,
                                         const Optional<unsigned> &NumElemsArg);
+  static Attribute getWithVScaleRangeArgs(LLVMContext &Context,
+                                          unsigned MinValue, unsigned MaxValue);
   static Attribute getWithByValType(LLVMContext &Context, Type *Ty);
+  static Attribute getWithStructRetType(LLVMContext &Context, Type *Ty);
+  static Attribute getWithByRefType(LLVMContext &Context, Type *Ty);
   static Attribute getWithPreallocatedType(LLVMContext &Context, Type *Ty);
+  static Attribute getWithInAllocaType(LLVMContext &Context, Type *Ty);
+
+  /// For a typed attribute, return the equivalent attribute with the type
+  /// changed to \p ReplacementTy.
+  Attribute getWithNewType(LLVMContext &Context, Type *ReplacementTy) {
+    assert(isTypeAttribute() && "this requires a typed attribute");
+    return get(Context, getKindAsEnum(), ReplacementTy);
+  }
 
   static Attribute::AttrKind getAttrKindFromName(StringRef AttrName);
 
   static StringRef getNameFromAttrKind(Attribute::AttrKind AttrKind);
-
-  /// Return true if and only if the attribute has an Argument.
-  static bool doesAttrKindHaveArgument(Attribute::AttrKind AttrKind);
 
   /// Return true if the provided string matches the IR name of an attribute.
   /// example: "noalias" return true but not "NoAlias"
@@ -138,6 +163,9 @@ public:
   /// Return true if the attribute is a type attribute.
   bool isTypeAttribute() const;
 
+  /// Return true if the attribute is any kind of attribute.
+  bool isValid() const { return pImpl; }
+
   /// Return true if the attribute is present.
   bool hasAttribute(AttrKind Val) const;
 
@@ -145,12 +173,16 @@ public:
   bool hasAttribute(StringRef Val) const;
 
   /// Return the attribute's kind as an enum (Attribute::AttrKind). This
-  /// requires the attribute to be an enum or integer attribute.
+  /// requires the attribute to be an enum, integer, or type attribute.
   Attribute::AttrKind getKindAsEnum() const;
 
   /// Return the attribute's value as an integer. This requires that the
   /// attribute be an integer attribute.
   uint64_t getValueAsInt() const;
+
+  /// Return the attribute's value as a boolean. This requires that the
+  /// attribute be a string attribute.
+  bool getValueAsBool() const;
 
   /// Return the attribute's kind as a string. This requires the
   /// attribute to be a string attribute.
@@ -184,9 +216,16 @@ public:
   /// if not known).
   std::pair<unsigned, Optional<unsigned>> getAllocSizeArgs() const;
 
+  /// Returns the argument numbers for the vscale_range attribute (or pair(0, 0)
+  /// if not known).
+  std::pair<unsigned, unsigned> getVScaleRangeArgs() const;
+
   /// The Attribute is converted to a string of equivalent mnemonic. This
   /// is, presumably, for writing out the mnemonics for the assembly writer.
   std::string getAsString(bool InAttrGrp = false) const;
+
+  /// Return true if this attribute belongs to the LLVMContext.
+  bool hasParentContext(LLVMContext &C) const;
 
   /// Equality and non-equality operators.
   bool operator==(Attribute A) const { return pImpl == A.pImpl; }
@@ -303,9 +342,17 @@ public:
   uint64_t getDereferenceableBytes() const;
   uint64_t getDereferenceableOrNullBytes() const;
   Type *getByValType() const;
+  Type *getStructRetType() const;
+  Type *getByRefType() const;
   Type *getPreallocatedType() const;
+  Type *getInAllocaType() const;
+  Type *getElementType() const;
   std::pair<unsigned, Optional<unsigned>> getAllocSizeArgs() const;
+  std::pair<unsigned, unsigned> getVScaleRangeArgs() const;
   std::string getAsString(bool InAttrGrp = false) const;
+
+  /// Return true if this attribute set belongs to the LLVMContext.
+  bool hasParentContext(LLVMContext &C) const;
 
   using iterator = const Attribute *;
 
@@ -384,6 +431,9 @@ private:
   explicit AttributeList(AttributeListImpl *LI) : pImpl(LI) {}
 
   static AttributeList getImpl(LLVMContext &C, ArrayRef<AttributeSet> AttrSets);
+
+  AttributeList setAttributes(LLVMContext &C, unsigned Index,
+                              AttributeSet Attrs) const;
 
 public:
   AttributeList() = default;
@@ -503,6 +553,17 @@ public:
     return removeAttributes(C, ArgNo + FirstArgIndex);
   }
 
+  /// Replace the type contained by attribute \p AttrKind at index \p ArgNo wih
+  /// \p ReplacementTy, preserving all other attributes.
+  LLVM_NODISCARD AttributeList replaceAttributeType(LLVMContext &C,
+                                                    unsigned ArgNo,
+                                                    Attribute::AttrKind Kind,
+                                                    Type *ReplacementTy) const {
+    Attribute Attr = getAttribute(ArgNo, Kind);
+    auto Attrs = removeAttribute(C, ArgNo, Kind);
+    return Attrs.addAttribute(C, ArgNo, Attr.getWithNewType(C, ReplacementTy));
+  }
+
   /// \brief Add the dereferenceable attribute to the attribute set at the given
   /// index. Returns a new list because attribute lists are immutable.
   LLVM_NODISCARD AttributeList addDereferenceableAttr(LLVMContext &C,
@@ -542,6 +603,13 @@ public:
                         const Optional<unsigned> &NumElemsArg) {
     return addAllocSizeAttr(C, ArgNo + FirstArgIndex, ElemSizeArg, NumElemsArg);
   }
+
+  /// Add the vscale_range attribute to the attribute set at the given index.
+  /// Returns a new list because attribute lists are immutable.
+  LLVM_NODISCARD AttributeList addVScaleRangeAttr(LLVMContext &C,
+                                                  unsigned Index,
+                                                  unsigned MinValue,
+                                                  unsigned MaxValue);
 
   //===--------------------------------------------------------------------===//
   // AttributeList Accessors
@@ -623,11 +691,26 @@ public:
   /// Return the alignment for the specified function parameter.
   MaybeAlign getParamAlignment(unsigned ArgNo) const;
 
+  /// Return the stack alignment for the specified function parameter.
+  MaybeAlign getParamStackAlignment(unsigned ArgNo) const;
+
   /// Return the byval type for the specified function parameter.
   Type *getParamByValType(unsigned ArgNo) const;
 
+  /// Return the sret type for the specified function parameter.
+  Type *getParamStructRetType(unsigned ArgNo) const;
+
+  /// Return the byref type for the specified function parameter.
+  Type *getParamByRefType(unsigned ArgNo) const;
+
   /// Return the preallocated type for the specified function parameter.
   Type *getParamPreallocatedType(unsigned ArgNo) const;
+
+  /// Return the inalloca type for the specified function parameter.
+  Type *getParamInAllocaType(unsigned ArgNo) const;
+
+  /// Return the elementtype type for the specified function parameter.
+  Type *getParamElementType(unsigned ArgNo) const;
 
   /// Get the stack alignment.
   MaybeAlign getStackAlignment(unsigned Index) const;
@@ -655,8 +738,14 @@ public:
   std::pair<unsigned, Optional<unsigned>>
   getAllocSizeArgs(unsigned Index) const;
 
+  /// Get the vscale_range argument numbers (or pair(0, 0) if unknown).
+  std::pair<unsigned, unsigned> getVScaleRangeArgs(unsigned Index) const;
+
   /// Return the attributes at the index as a string.
   std::string getAsString(unsigned Index, bool InAttrGrp = false) const;
+
+  /// Return true if this attribute list belongs to the LLVMContext.
+  bool hasParentContext(LLVMContext &C) const;
 
   //===--------------------------------------------------------------------===//
   // AttributeList Introspection
@@ -684,6 +773,8 @@ public:
 
   /// Return true if there are no attributes.
   bool isEmpty() const { return pImpl == nullptr; }
+
+  void print(raw_ostream &O) const;
 
   void dump() const;
 };
@@ -722,14 +813,16 @@ template <> struct DenseMapInfo<AttributeList> {
 /// equality, presence of attributes, etc.
 class AttrBuilder {
   std::bitset<Attribute::EndAttrKinds> Attrs;
-  std::map<std::string, std::string, std::less<>> TargetDepAttrs;
+  std::map<SmallString<32>, SmallString<32>, std::less<>> TargetDepAttrs;
   MaybeAlign Alignment;
   MaybeAlign StackAlignment;
   uint64_t DerefBytes = 0;
   uint64_t DerefOrNullBytes = 0;
   uint64_t AllocSizeArgs = 0;
-  Type *ByValType = nullptr;
-  Type *PreallocatedType = nullptr;
+  uint64_t VScaleRangeArgs = 0;
+  std::array<Type *, Attribute::NumTypeAttrKinds> TypeAttrs = {};
+
+  Optional<unsigned> kindToTypeIndex(Attribute::AttrKind Kind) const;
 
 public:
   AttrBuilder() = default;
@@ -744,7 +837,14 @@ public:
   void clear();
 
   /// Add an attribute to the builder.
-  AttrBuilder &addAttribute(Attribute::AttrKind Val);
+  AttrBuilder &addAttribute(Attribute::AttrKind Val) {
+    assert((unsigned)Val < Attribute::EndAttrKinds &&
+           "Attribute out of range!");
+    assert(Attribute::isEnumAttrKind(Val) &&
+           "Adding integer/type attribute without an argument!");
+    Attrs[Val] = true;
+    return *this;
+  }
 
   /// Add the Attribute object to the builder.
   AttrBuilder &addAttribute(Attribute A);
@@ -805,15 +905,33 @@ public:
   /// dereferenceable_or_null attribute exists (zero is returned otherwise).
   uint64_t getDereferenceableOrNullBytes() const { return DerefOrNullBytes; }
 
+  /// Retrieve type for the given type attribute.
+  Type *getTypeAttr(Attribute::AttrKind Kind) const;
+
   /// Retrieve the byval type.
-  Type *getByValType() const { return ByValType; }
+  Type *getByValType() const { return getTypeAttr(Attribute::ByVal); }
+
+  /// Retrieve the sret type.
+  Type *getStructRetType() const { return getTypeAttr(Attribute::StructRet); }
+
+  /// Retrieve the byref type.
+  Type *getByRefType() const { return getTypeAttr(Attribute::ByRef); }
 
   /// Retrieve the preallocated type.
-  Type *getPreallocatedType() const { return PreallocatedType; }
+  Type *getPreallocatedType() const {
+    return getTypeAttr(Attribute::Preallocated);
+  }
+
+  /// Retrieve the inalloca type.
+  Type *getInAllocaType() const { return getTypeAttr(Attribute::InAlloca); }
 
   /// Retrieve the allocsize args, if the allocsize attribute exists.  If it
   /// doesn't exist, pair(0, 0) is returned.
   std::pair<unsigned, Optional<unsigned>> getAllocSizeArgs() const;
+
+  /// Retrieve the vscale_range args, if the vscale_range attribute exists.  If
+  /// it doesn't exist, pair(0, 0) is returned.
+  std::pair<unsigned, unsigned> getVScaleRangeArgs() const;
 
   /// This turns an alignment into the form used internally in Attribute.
   /// This call has no effect if Align is not set.
@@ -851,22 +969,41 @@ public:
   AttrBuilder &addAllocSizeAttr(unsigned ElemSizeArg,
                                 const Optional<unsigned> &NumElemsArg);
 
+  /// This turns two ints into the form used internally in Attribute.
+  AttrBuilder &addVScaleRangeAttr(unsigned MinValue, unsigned MaxValue);
+
+  /// Add a type attribute with the given type.
+  AttrBuilder &addTypeAttr(Attribute::AttrKind Kind, Type *Ty);
+
   /// This turns a byval type into the form used internally in Attribute.
   AttrBuilder &addByValAttr(Type *Ty);
+
+  /// This turns a sret type into the form used internally in Attribute.
+  AttrBuilder &addStructRetAttr(Type *Ty);
+
+  /// This turns a byref type into the form used internally in Attribute.
+  AttrBuilder &addByRefAttr(Type *Ty);
 
   /// This turns a preallocated type into the form used internally in Attribute.
   AttrBuilder &addPreallocatedAttr(Type *Ty);
 
+  /// This turns an inalloca type into the form used internally in Attribute.
+  AttrBuilder &addInAllocaAttr(Type *Ty);
+
   /// Add an allocsize attribute, using the representation returned by
   /// Attribute.getIntValue().
   AttrBuilder &addAllocSizeAttrFromRawRepr(uint64_t RawAllocSizeRepr);
+
+  /// Add a vscale_range attribute, using the representation returned by
+  /// Attribute.getIntValue().
+  AttrBuilder &addVScaleRangeAttrFromRawRepr(uint64_t RawVScaleRangeRepr);
 
   /// Return true if the builder contains no target-independent
   /// attributes.
   bool empty() const { return Attrs.none(); }
 
   // Iterators for target-dependent attributes.
-  using td_type = std::pair<std::string, std::string>;
+  using td_type = decltype(TargetDepAttrs)::value_type;
   using td_iterator = decltype(TargetDepAttrs)::iterator;
   using td_const_iterator = decltype(TargetDepAttrs)::const_iterator;
   using td_range = iterator_range<td_iterator>;
@@ -886,10 +1023,8 @@ public:
 
   bool td_empty() const { return TargetDepAttrs.empty(); }
 
-  bool operator==(const AttrBuilder &B);
-  bool operator!=(const AttrBuilder &B) {
-    return !(*this == B);
-  }
+  bool operator==(const AttrBuilder &B) const;
+  bool operator!=(const AttrBuilder &B) const { return !(*this == B); }
 };
 
 namespace AttributeFuncs {
@@ -897,12 +1032,34 @@ namespace AttributeFuncs {
 /// Which attributes cannot be applied to a type.
 AttrBuilder typeIncompatible(Type *Ty);
 
+/// Get param/return attributes which imply immediate undefined behavior if an
+/// invalid value is passed. For example, this includes noundef (where undef
+/// implies UB), but not nonnull (where null implies poison). It also does not
+/// include attributes like nocapture, which constrain the function
+/// implementation rather than the passed value.
+AttrBuilder getUBImplyingAttributes();
+
 /// \returns Return true if the two functions have compatible target-independent
 /// attributes for inlining purposes.
 bool areInlineCompatible(const Function &Caller, const Function &Callee);
 
+
+/// Checks  if there are any incompatible function attributes between
+/// \p A and \p B.
+///
+/// \param [in] A - The first function to be compared with.
+/// \param [in] B - The second function to be compared with.
+/// \returns true if the functions have compatible attributes.
+bool areOutlineCompatible(const Function &A, const Function &B);
+
 /// Merge caller's and callee's attributes.
 void mergeAttributesForInlining(Function &Caller, const Function &Callee);
+
+/// Merges the functions attributes from \p ToMerge into function \p Base.
+///
+/// \param [in,out] Base - The function being merged into.
+/// \param [in] ToMerge - The function to merge attributes from.
+void mergeAttributesForOutlining(Function &Base, const Function &ToMerge);
 
 } // end namespace AttributeFuncs
 

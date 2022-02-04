@@ -36,7 +36,7 @@ using namespace lldb_private;
 
 LLDB_PLUGIN_DEFINE(ABISysV_arm)
 
-static RegisterInfo g_register_infos[] = {
+static const RegisterInfo g_register_infos[] = {
     //  NAME       ALT       SZ OFF ENCODING         FORMAT          EH_FRAME
     //  DWARF               GENERIC                     PROCESS PLUGIN
     //  LLDB NATIVE            VALUE REGS    INVALIDATE REGS
@@ -1295,24 +1295,9 @@ static RegisterInfo g_register_infos[] = {
 
 static const uint32_t k_num_register_infos =
     llvm::array_lengthof(g_register_infos);
-static bool g_register_info_names_constified = false;
 
 const lldb_private::RegisterInfo *
 ABISysV_arm::GetRegisterInfoArray(uint32_t &count) {
-  // Make the C-string names and alt_names for the register infos into const
-  // C-string values by having the ConstString unique the names in the global
-  // constant C-string pool.
-  if (!g_register_info_names_constified) {
-    g_register_info_names_constified = true;
-    for (uint32_t i = 0; i < k_num_register_infos; ++i) {
-      if (g_register_infos[i].name)
-        g_register_infos[i].name =
-            ConstString(g_register_infos[i].name).GetCString();
-      if (g_register_infos[i].alt_name)
-        g_register_infos[i].alt_name =
-            ConstString(g_register_infos[i].alt_name).GetCString();
-    }
-  }
   count = k_num_register_infos;
   return g_register_infos;
 }
@@ -1632,7 +1617,7 @@ ValueObjectSP ABISysV_arm::GetReturnValueObjectImpl(
         thread.GetRegisterContext()->ReadRegisterAsUnsigned(r0_reg_info, 0) &
         UINT32_MAX;
     value.GetScalar() = ptr;
-  } else if (compiler_type.IsVectorType(nullptr, nullptr)) {
+  } else if (compiler_type.IsVectorType()) {
     if (IsArmHardFloat(thread) && (*byte_size == 8 || *byte_size == 16)) {
       is_vfp_candidate = true;
       vfp_byte_size = 8;
@@ -1718,8 +1703,8 @@ ValueObjectSP ABISysV_arm::GetReturnValueObjectImpl(
 
       if (homogeneous_count > 0 && homogeneous_count <= 4) {
         llvm::Optional<uint64_t> base_byte_size =
-            base_type.GetByteSize(nullptr);
-        if (base_type.IsVectorType(nullptr, nullptr)) {
+            base_type.GetByteSize(&thread);
+        if (base_type.IsVectorType()) {
           if (base_byte_size &&
               (*base_byte_size == 8 || *base_byte_size == 16)) {
             is_vfp_candidate = true;
@@ -1747,7 +1732,7 @@ ValueObjectSP ABISysV_arm::GetReturnValueObjectImpl(
 
             if (base_type.IsFloatingPointType(float_count, is_complex)) {
               llvm::Optional<uint64_t> base_byte_size =
-                  base_type.GetByteSize(nullptr);
+                  base_type.GetByteSize(&thread);
               if (float_count == 2 && is_complex) {
                 if (index != 0 && base_byte_size &&
                     vfp_byte_size != *base_byte_size)
@@ -1955,6 +1940,7 @@ bool ABISysV_arm::CreateDefaultUnwindPlan(UnwindPlan &unwind_plan) {
 
   row->GetCFAValue().SetIsRegisterPlusOffset(fp_reg_num, 2 * ptr_size);
   row->SetOffset(0);
+  row->SetUnspecifiedRegistersAreUndefined(true);
 
   row->SetRegisterLocationToAtCFAPlusOffset(fp_reg_num, ptr_size * -2, true);
   row->SetRegisterLocationToAtCFAPlusOffset(pc_reg_num, ptr_size * -1, true);

@@ -130,7 +130,6 @@ static vop_strategy_t	ufs_strategy;
 static vop_symlink_t	ufs_symlink;
 static vop_whiteout_t	ufs_whiteout;
 static vop_close_t	ufsfifo_close;
-static vop_kqfilter_t	ufsfifo_kqfilter;
 
 SYSCTL_NODE(_vfs, OID_AUTO, ufs, CTLFLAG_RD | CTLFLAG_MPSAFE, 0,
     "UFS filesystem");
@@ -1249,9 +1248,9 @@ ufs_rename(ap)
 	struct mount *mp;
 	ino_t ino;
 	seqc_t fdvp_s, fvp_s, tdvp_s, tvp_s;
-	bool want_seqc_end;
+	bool checkpath_locked, want_seqc_end;
 
-	want_seqc_end = false;
+	checkpath_locked = want_seqc_end = false;
 
 #ifdef INVARIANTS
 	if ((tcnp->cn_flags & HASBUF) == 0 ||
@@ -1453,6 +1452,9 @@ relock:
 		error = VOP_ACCESS(fvp, VWRITE, tcnp->cn_cred, tcnp->cn_thread);
 		if (error)
 			goto unlockout;
+
+		sx_xlock(&VFSTOUFS(mp)->um_checkpath_lock);
+		checkpath_locked = true;
 		error = ufs_checkpath(ino, fdp->i_number, tdp, tcnp->cn_cred,
 		    &ino);
 		/*
@@ -1460,6 +1462,8 @@ relock:
 		 * everything else and VGET before restarting.
 		 */
 		if (ino) {
+			sx_xunlock(&VFSTOUFS(mp)->um_checkpath_lock);
+			checkpath_locked = false;
 			VOP_UNLOCK(fdvp);
 			VOP_UNLOCK(fvp);
 			VOP_UNLOCK(tdvp);
@@ -1689,6 +1693,9 @@ unlockout:
 		vn_seqc_write_end(fvp);
 		vn_seqc_write_end(fdvp);
 	}
+
+	if (checkpath_locked)
+		sx_xunlock(&VFSTOUFS(mp)->um_checkpath_lock);
 
 	vput(fdvp);
 	vput(fvp);
@@ -2571,23 +2578,6 @@ ufsfifo_close(ap)
 }
 
 /*
- * Kqfilter wrapper for fifos.
- *
- * Fall through to ufs kqfilter routines if needed 
- */
-static int
-ufsfifo_kqfilter(ap)
-	struct vop_kqfilter_args *ap;
-{
-	int error;
-
-	error = fifo_specops.vop_kqfilter(ap);
-	if (error)
-		error = vfs_kqfilter(ap);
-	return (error);
-}
-
-/*
  * Return POSIX pathconf information applicable to ufs filesystems.
  */
 static int
@@ -3005,7 +2995,6 @@ struct vop_vector ufs_fifoops = {
 	.vop_close =		ufsfifo_close,
 	.vop_getattr =		ufs_getattr,
 	.vop_inactive =		ufs_inactive,
-	.vop_kqfilter =		ufsfifo_kqfilter,
 	.vop_pathconf = 	ufs_pathconf,
 	.vop_print =		ufs_print,
 	.vop_read =		VOP_PANIC,

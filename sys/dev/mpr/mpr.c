@@ -1141,7 +1141,8 @@ mpr_enqueue_request(struct mpr_softc *sc, struct mpr_command *cm)
 	if (++sc->io_cmds_active > sc->io_cmds_highwater)
 		sc->io_cmds_highwater++;
 
-	KASSERT(cm->cm_state == MPR_CM_STATE_BUSY, ("command not busy\n"));
+	KASSERT(cm->cm_state == MPR_CM_STATE_BUSY,
+	    ("command not busy, state = %u\n", cm->cm_state));
 	cm->cm_state = MPR_CM_STATE_INQUEUE;
 
 	if (sc->atomic_desc_capable) {
@@ -1914,8 +1915,13 @@ mpr_setup_sysctl(struct mpr_softc *sc)
 
 	SYSCTL_ADD_PROC(sysctl_ctx, SYSCTL_CHILDREN(sysctl_tree),
 	    OID_AUTO, "dump_reqs",
-	    CTLTYPE_OPAQUE | CTLFLAG_RD | CTLFLAG_SKIP | CTLFLAG_NEEDGIANT,
+	    CTLTYPE_OPAQUE | CTLFLAG_RD | CTLFLAG_SKIP | CTLFLAG_MPSAFE,
 	    sc, 0, mpr_dump_reqs, "I", "Dump Active Requests");
+
+	SYSCTL_ADD_INT(sysctl_ctx, SYSCTL_CHILDREN(sysctl_tree),
+	    OID_AUTO, "dump_reqs_alltypes", CTLFLAG_RW,
+	    &sc->dump_reqs_alltypes, 0,
+	    "dump all request types not just inqueue");
 
 	SYSCTL_ADD_INT(sysctl_ctx, SYSCTL_CHILDREN(sysctl_tree),
 	    OID_AUTO, "use_phy_num", CTLFLAG_RD, &sc->use_phynum, 0,
@@ -2101,7 +2107,7 @@ mpr_dump_reqs(SYSCTL_HANDLER_ARGS)
 	/* Best effort, no locking */
 	for (i = smid; i < numreqs; i++) {
 		cm = &sc->commands[i];
-		if (cm->cm_state != state)
+		if ((sc->dump_reqs_alltypes == 0) && (cm->cm_state != state))
 			continue;
 		hdr.smid = i;
 		hdr.state = cm->cm_state;
@@ -2244,7 +2250,8 @@ mpr_periodic(void *arg)
 		mpr_reinit(sc);
 	}
 
-	callout_reset(&sc->periodic, MPR_PERIODIC_DELAY * hz, mpr_periodic, sc);
+	callout_reset_sbt(&sc->periodic, MPR_PERIODIC_DELAY * SBT_1S, 0,
+	    mpr_periodic, sc, C_PREL(1));
 }
 
 static void
@@ -2365,6 +2372,8 @@ mpr_complete_command(struct mpr_softc *sc, struct mpr_command *cm)
 		return;
 	}
 
+	KASSERT(cm->cm_state == MPR_CM_STATE_INQUEUE,
+	    ("command not inqueue, state = %u\n", cm->cm_state));
 	cm->cm_state = MPR_CM_STATE_BUSY;
 	if (cm->cm_flags & MPR_CM_FLAGS_POLLED)
 		cm->cm_flags |= MPR_CM_FLAGS_COMPLETE;
@@ -2544,9 +2553,6 @@ mpr_intr_locked(void *data)
 		case MPI25_RPY_DESCRIPT_FLAGS_FAST_PATH_SCSI_IO_SUCCESS:
 		case MPI26_RPY_DESCRIPT_FLAGS_PCIE_ENCAPSULATED_SUCCESS:
 			cm = &sc->commands[le16toh(desc->SCSIIOSuccess.SMID)];
-			KASSERT(cm->cm_state == MPR_CM_STATE_INQUEUE,
-			    ("command not inqueue\n"));
-			cm->cm_state = MPR_CM_STATE_BUSY;
 			cm->cm_reply = NULL;
 			break;
 		case MPI2_RPY_DESCRIPT_FLAGS_ADDRESS_REPLY:
@@ -3397,7 +3403,7 @@ mpr_add_chain(struct mpr_command *cm, int segsleft)
 	rem_segs = 0;
 	if (cm->cm_sglsize < (sgc_size * segsleft)) {
 		/*
-		 * rem_segs is the number of segements remaining after the
+		 * rem_segs is the number of segment remaining after the
 		 * segments that will go into the current frame.  Since it is
 		 * known that at least one more frame is required, account for
 		 * the chain element.  To know if more than one more frame is
@@ -3698,6 +3704,7 @@ mpr_data_cb(void *arg, bus_dma_segment_t *segs, int nsegs, int error)
 				mpr_dprint(sc, MPR_INFO, "Out of chain frames, "
 				    "consider increasing hw.mpr.max_chains.\n");
 			cm->cm_flags |= MPR_CM_FLAGS_CHAIN_FAILED;
+			cm->cm_state = MPR_CM_STATE_INQUEUE;
 			mpr_complete_command(sc, cm);
 			return;
 		}

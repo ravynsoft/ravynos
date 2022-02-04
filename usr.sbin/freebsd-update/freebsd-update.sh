@@ -36,7 +36,7 @@
 # --no-stats	-- don't show progress statistics while fetching files
 usage () {
 	cat <<EOF
-usage: `basename $0` [options] command ... [path]
+usage: `basename $0` [options] command ...
 
 Options:
   -b basedir   -- Operate on a system mounted at basedir
@@ -47,6 +47,7 @@ Options:
                   (default: /etc/freebsd-update.conf)
   -F           -- Force a fetch operation to proceed in the
                   case of an unfinished upgrade
+  -j jail      -- Operate on the given jail specified by jid or name
   -k KEY       -- Trust an RSA key with SHA256 hash of KEY
   -r release   -- Target for upgrade (e.g., 11.1-RELEASE)
   -s server    -- Server from which to fetch updates
@@ -324,6 +325,19 @@ config_SourceRelease () {
 	export UNAME_r
 }
 
+# Get the Jail's path and the version of its installed userland
+config_TargetJail () {
+	JAIL=$1
+	UNAME_r=$(freebsd-version -j ${JAIL})
+	BASEDIR=$(jls -j ${JAIL} -h path | awk 'NR == 2 {print}')
+	if [ -z ${BASEDIR} ] || [ -z ${UNAME_r} ]; then
+		echo "The specified jail either doesn't exist or" \
+		      "does not have freebsd-version."
+		exit 1
+	fi
+	export UNAME_r
+}
+
 # Define what happens to output of utilities
 config_VerboseLevel () {
 	if [ -z ${VERBOSELEVEL} ]; then
@@ -410,6 +424,23 @@ config_BackupKernelSymbolFiles () {
 	fi
 }
 
+config_CreateBootEnv () {
+	if [ -z ${BOOTENV} ]; then
+		case $1 in
+		[Yy][Ee][Ss])
+			BOOTENV=yes
+			;;
+		[Nn][Oo])
+			BOOTENV=no
+			;;
+		*)
+			return 1
+			;;
+		esac
+	else
+		return 1
+	fi
+}
 # Handle one line of configuration
 configline () {
 	if [ $# -eq 0 ]; then
@@ -474,6 +505,10 @@ parse_cmdline () {
 		-d)
 			if [ $# -eq 1 ]; then usage; fi; shift
 			config_WorkDir $1 || usage
+			;;
+		-j)
+			if [ $# -eq 1 ]; then usage; fi; shift
+			config_TargetJail $1 || usage
 			;;
 		-k)
 			if [ $# -eq 1 ]; then usage; fi; shift
@@ -586,6 +621,7 @@ default_params () {
 	config_BackupKernel yes
 	config_BackupKernelDir /boot/kernel.old
 	config_BackupKernelSymbolFiles no
+	config_CreateBootEnv yes
 
 	# Merge these defaults into the earlier-configured settings
 	mergeconfig
@@ -850,6 +886,44 @@ install_check_params () {
 	fi
 }
 
+# Creates a new boot environment
+install_create_be () {
+	# Figure out if we're running in a jail and return if we are
+	if [ `sysctl -n security.jail.jailed` = 1 ]; then
+	    return 1
+	fi
+	# Create a boot environment if enabled
+	if [ ${BOOTENV} = yes ]; then
+		bectl check 2>/dev/null
+		case $? in
+			0)
+				# Boot environment are supported
+				CREATEBE=yes
+				;;
+			255)
+				# Boot environments are not supported
+				CREATEBE=no
+				;;
+			*)
+				# If bectl returns an unexpected exit code, don't create a BE
+				CREATEBE=no
+				;;
+		esac
+		if [ ${CREATEBE} = yes ]; then
+			echo -n "Creating snapshot of existing boot environment... "
+			VERSION=`freebsd-version -k`
+			TIMESTAMP=`date +"%Y-%m-%d_%H%M%S"`
+			bectl create ${VERSION}_${TIMESTAMP}
+			if [ $? -eq 0 ]; then
+				echo "done.";
+			else
+				echo "failed."
+				exit 1
+			fi
+		fi
+	fi
+}
+
 # Perform sanity checks and set some final parameters in
 # preparation for UNinstalling updates.
 rollback_check_params () {
@@ -1041,7 +1115,7 @@ fetch_pick_server () {
 			This may be because upgrading from this platform (${ARCH})
 			or release (${RELNUM}) is unsupported by `basename $0`. Only
 			platforms with Tier 1 support can be upgraded by `basename $0`.
-			See https://www.freebsd.org/platforms/index.html for more info.
+			See https://www.freebsd.org/platforms/ for more info.
 
 			If unsupported, FreeBSD must be upgraded by source.
 		EOF
@@ -3366,6 +3440,7 @@ cmd_updatesready () {
 cmd_install () {
 	finalize_components_config ${COMPONENTS}
 	install_check_params
+	install_create_be
 	install_run || exit 1
 }
 

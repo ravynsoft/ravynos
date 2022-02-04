@@ -103,94 +103,16 @@ char *doublefault_stack;
 char *mce_stack;
 char *nmi_stack;
 char *dbg_stack;
+void *bootpcpu;
 
 extern u_int mptramp_la57;
+extern u_int mptramp_nx;
 
 /*
  * Local data and functions.
  */
 
-static int	start_ap(int apic_id);
-
-static bool
-is_kernel_paddr(vm_paddr_t pa)
-{
-
-	return (pa >= trunc_2mpage(btext - KERNBASE) &&
-	   pa < round_page(_end - KERNBASE));
-}
-
-static bool
-is_mpboot_good(vm_paddr_t start, vm_paddr_t end)
-{
-
-	return (start + AP_BOOTPT_SZ <= GiB(4) && atop(end) < Maxmem);
-}
-
-/*
- * Calculate usable address in base memory for AP trampoline code.
- */
-void
-mp_bootaddress(vm_paddr_t *physmap, unsigned int *physmap_idx)
-{
-	vm_paddr_t start, end;
-	unsigned int i;
-	bool allocated;
-
-	alloc_ap_trampoline(physmap, physmap_idx);
-
-	/*
-	 * Find a memory region big enough below the 4GB boundary to
-	 * store the initial page tables.  Region must be mapped by
-	 * the direct map.
-	 *
-	 * Note that it needs to be aligned to a page boundary.
-	 */
-	allocated = false;
-	for (i = *physmap_idx; i <= *physmap_idx; i -= 2) {
-		/*
-		 * First, try to chomp at the start of the physmap region.
-		 * Kernel binary might claim it already.
-		 */
-		start = round_page(physmap[i]);
-		end = start + AP_BOOTPT_SZ;
-		if (start < end && end <= physmap[i + 1] &&
-		    is_mpboot_good(start, end) &&
-		    !is_kernel_paddr(start) && !is_kernel_paddr(end - 1)) {
-			allocated = true;
-			physmap[i] = end;
-			break;
-		}
-
-		/*
-		 * Second, try to chomp at the end.  Again, check
-		 * against kernel.
-		 */
-		end = trunc_page(physmap[i + 1]);
-		start = end - AP_BOOTPT_SZ;
-		if (start < end && start >= physmap[i] &&
-		    is_mpboot_good(start, end) &&
-		    !is_kernel_paddr(start) && !is_kernel_paddr(end - 1)) {
-			allocated = true;
-			physmap[i + 1] = start;
-			break;
-		}
-	}
-	if (allocated) {
-		mptramp_pagetables = start;
-		if (physmap[i] == physmap[i + 1] && *physmap_idx != 0) {
-			memmove(&physmap[i], &physmap[i + 2],
-			    sizeof(*physmap) * (*physmap_idx - i + 2));
-			*physmap_idx -= 2;
-		}
-	} else {
-		mptramp_pagetables = trunc_page(boot_address) - AP_BOOTPT_SZ;
-		if (bootverbose)
-			printf(
-"Cannot find enough space for the initial AP page tables, placing them at %#x",
-			    mptramp_pagetables);
-	}
-}
+static int start_ap(int apic_id, vm_paddr_t boot_address);
 
 /*
  * Initialize the IPI handlers and start up the AP's.
@@ -243,6 +165,9 @@ cpu_mp_start(void)
 	assign_cpu_ids();
 
 	mptramp_la57 = la57;
+	mptramp_nx = pg_nx != 0;
+	MPASS(kernel_pmap->pm_cr3 < (1UL << 32));
+	mptramp_pagetables = kernel_pmap->pm_cr3;
 
 	/* Start each Application Processor */
 	init_ops.start_all_aps();
@@ -273,10 +198,8 @@ init_secondary(void)
 	/* Update microcode before doing anything else. */
 	ucode_load_ap(cpu);
 
-	/* Get per-cpu data and save  */
-	pc = &__pcpu[cpu];
-
-	/* prime data page for it to use */
+	/* Initialize the PCPU area. */
+	pc = bootpcpu;
 	pcpu_init(pc, cpu, sizeof(struct pcpu));
 	dpcpu_init(dpcpu, cpu);
 	pc->pc_apic_id = cpu_apic_ids[cpu];
@@ -338,8 +261,8 @@ init_secondary(void)
 	lgdt(&ap_gdt);			/* does magic intra-segment return */
 
 	wrmsr(MSR_FSBASE, 0);		/* User value */
-	wrmsr(MSR_GSBASE, (u_int64_t)pc);
-	wrmsr(MSR_KGSBASE, (u_int64_t)pc);	/* XXX User value while we're in the kernel */
+	wrmsr(MSR_GSBASE, (uint64_t)pc);
+	wrmsr(MSR_KGSBASE, 0);		/* User value */
 	fix_cpuid();
 
 	lidt(&r_idt);
@@ -382,8 +305,7 @@ mp_realloc_pcpu(int cpuid, int domain)
 	oa = (vm_offset_t)&__pcpu[cpuid];
 	if (vm_phys_domain(pmap_kextract(oa)) == domain)
 		return;
-	m = vm_page_alloc_domain(NULL, 0, domain,
-	    VM_ALLOC_NORMAL | VM_ALLOC_NOOBJ);
+	m = vm_page_alloc_noobj_domain(domain, 0);
 	if (m == NULL)
 		return;
 	na = PHYS_TO_DMAP(VM_PAGE_TO_PHYS(m));
@@ -399,64 +321,86 @@ mp_realloc_pcpu(int cpuid, int domain)
 int
 native_start_all_aps(void)
 {
-	u_int64_t *pt5, *pt4, *pt3, *pt2;
+	vm_page_t m_boottramp, m_pml4, m_pdp, m_pd[4];
+	pml5_entry_t old_pml45;
+	pml4_entry_t *v_pml4;
+	pdp_entry_t *v_pdp;
+	pd_entry_t *v_pd;
+	vm_paddr_t boot_address;
 	u_int32_t mpbioswarmvec;
-	int apic_id, cpu, domain, i, xo;
+	int apic_id, cpu, domain, i;
 	u_char mpbiosreason;
 
 	mtx_init(&ap_boot_mtx, "ap boot", NULL, MTX_SPIN);
 
+	MPASS(bootMP_size <= PAGE_SIZE);
+	m_boottramp = vm_page_alloc_noobj_contig(0, 1, 0,
+	    (1ULL << 20), /* Trampoline should be below 1M for real mode */
+	    PAGE_SIZE, 0, VM_MEMATTR_DEFAULT);
+	boot_address = VM_PAGE_TO_PHYS(m_boottramp);
+
+	/* Create a transient 1:1 mapping of low 4G */
+	if (la57) {
+		m_pml4 = pmap_page_alloc_below_4g(true);
+		v_pml4 = (pml4_entry_t *)PHYS_TO_DMAP(VM_PAGE_TO_PHYS(m_pml4));
+	} else {
+		v_pml4 = &kernel_pmap->pm_pmltop[0];
+	}
+	m_pdp = pmap_page_alloc_below_4g(true);
+	v_pdp = (pdp_entry_t *)PHYS_TO_DMAP(VM_PAGE_TO_PHYS(m_pdp));
+	m_pd[0] = pmap_page_alloc_below_4g(false);
+	v_pd = (pd_entry_t *)PHYS_TO_DMAP(VM_PAGE_TO_PHYS(m_pd[0]));
+	for (i = 0; i < NPDEPG; i++)
+		v_pd[i] = (i << PDRSHIFT) | X86_PG_V | X86_PG_RW | X86_PG_A |
+		    X86_PG_M | PG_PS;
+	m_pd[1] = pmap_page_alloc_below_4g(false);
+	v_pd = (pd_entry_t *)PHYS_TO_DMAP(VM_PAGE_TO_PHYS(m_pd[1]));
+	for (i = 0; i < NPDEPG; i++)
+		v_pd[i] = (NBPDP + (i << PDRSHIFT)) | X86_PG_V | X86_PG_RW |
+		    X86_PG_A | X86_PG_M | PG_PS;
+	m_pd[2] = pmap_page_alloc_below_4g(false);
+	v_pd = (pd_entry_t *)PHYS_TO_DMAP(VM_PAGE_TO_PHYS(m_pd[2]));
+	for (i = 0; i < NPDEPG; i++)
+		v_pd[i] = (2UL * NBPDP + (i << PDRSHIFT)) | X86_PG_V |
+		    X86_PG_RW | X86_PG_A | X86_PG_M | PG_PS;
+	m_pd[3] = pmap_page_alloc_below_4g(false);
+	v_pd = (pd_entry_t *)PHYS_TO_DMAP(VM_PAGE_TO_PHYS(m_pd[3]));
+	for (i = 0; i < NPDEPG; i++)
+		v_pd[i] = (3UL * NBPDP + (i << PDRSHIFT)) | X86_PG_V |
+		    X86_PG_RW | X86_PG_A | X86_PG_M | PG_PS;
+	v_pdp[0] = VM_PAGE_TO_PHYS(m_pd[0]) | X86_PG_V |
+	    X86_PG_RW | X86_PG_A | X86_PG_M;
+	v_pdp[1] = VM_PAGE_TO_PHYS(m_pd[1]) | X86_PG_V |
+	    X86_PG_RW | X86_PG_A | X86_PG_M;
+	v_pdp[2] = VM_PAGE_TO_PHYS(m_pd[2]) | X86_PG_V |
+	    X86_PG_RW | X86_PG_A | X86_PG_M;
+	v_pdp[3] = VM_PAGE_TO_PHYS(m_pd[3]) | X86_PG_V |
+	    X86_PG_RW | X86_PG_A | X86_PG_M;
+	old_pml45 = kernel_pmap->pm_pmltop[0];
+	if (la57) {
+		kernel_pmap->pm_pmltop[0] = VM_PAGE_TO_PHYS(m_pml4) |
+		    X86_PG_V | X86_PG_RW | X86_PG_A | X86_PG_M;
+	}
+	v_pml4[0] = VM_PAGE_TO_PHYS(m_pdp) | X86_PG_V |
+	    X86_PG_RW | X86_PG_A | X86_PG_M;
+	pmap_invalidate_all(kernel_pmap);
+
 	/* copy the AP 1st level boot code */
 	bcopy(mptramp_start, (void *)PHYS_TO_DMAP(boot_address), bootMP_size);
-
-	/* Locate the page tables, they'll be below the trampoline */
-	if (la57) {
-		pt5 = (uint64_t *)PHYS_TO_DMAP(mptramp_pagetables);
-		xo = 1;
-	} else {
-		xo = 0;
-	}
-	pt4 = (uint64_t *)PHYS_TO_DMAP(mptramp_pagetables + xo * PAGE_SIZE);
-	pt3 = pt4 + (PAGE_SIZE) / sizeof(u_int64_t);
-	pt2 = pt3 + (PAGE_SIZE) / sizeof(u_int64_t);
-
-	/* Create the initial 1GB replicated page tables */
-	for (i = 0; i < 512; i++) {
-		if (la57) {
-			pt5[i] = (u_int64_t)(uintptr_t)(mptramp_pagetables +
-			    PAGE_SIZE);
-			pt5[i] |= PG_V | PG_RW | PG_U;
-		}
-
-		/*
-		 * Each slot of the level 4 pages points to the same
-		 * level 3 page.
-		 */
-		pt4[i] = (u_int64_t)(uintptr_t)(mptramp_pagetables +
-		    (xo + 1) * PAGE_SIZE);
-		pt4[i] |= PG_V | PG_RW | PG_U;
-
-		/*
-		 * Each slot of the level 3 pages points to the same
-		 * level 2 page.
-		 */
-		pt3[i] = (u_int64_t)(uintptr_t)(mptramp_pagetables +
-		    ((xo + 2) * PAGE_SIZE));
-		pt3[i] |= PG_V | PG_RW | PG_U;
-
-		/* The level 2 page slots are mapped with 2MB pages for 1GB. */
-		pt2[i] = i * (2 * 1024 * 1024);
-		pt2[i] |= PG_V | PG_RW | PG_PS | PG_U;
-	}
+	if (bootverbose)
+		printf("AP boot address %#lx\n", boot_address);
 
 	/* save the current value of the warm-start vector */
-	mpbioswarmvec = *((u_int32_t *) WARMBOOT_OFF);
+	if (!efi_boot)
+		mpbioswarmvec = *((u_int32_t *) WARMBOOT_OFF);
 	outb(CMOS_REG, BIOS_RESET);
 	mpbiosreason = inb(CMOS_DATA);
 
 	/* setup a vector to our boot code */
-	*((volatile u_short *) WARMBOOT_OFF) = WARMBOOT_TARGET;
-	*((volatile u_short *) WARMBOOT_SEG) = (boot_address >> 4);
+	if (!efi_boot) {
+		*((volatile u_short *)WARMBOOT_OFF) = WARMBOOT_TARGET;
+		*((volatile u_short *)WARMBOOT_SEG) = (boot_address >> 4);
+	}
 	outb(CMOS_REG, BIOS_RESET);
 	outb(CMOS_DATA, BIOS_WARM);	/* 'warm-start' */
 
@@ -492,14 +436,16 @@ native_start_all_aps(void)
 		dpcpu = (void *)kmem_malloc_domainset(DOMAINSET_PREF(domain),
 		    DPCPU_SIZE, M_WAITOK | M_ZERO);
 
+		bootpcpu = &__pcpu[cpu];
 		bootSTK = (char *)bootstacks[cpu] +
 		    kstack_pages * PAGE_SIZE - 8;
 		bootAP = cpu;
 
 		/* attempt to start the Application Processor */
-		if (!start_ap(apic_id)) {
+		if (!start_ap(apic_id, boot_address)) {
 			/* restore the warmstart vector */
-			*(u_int32_t *) WARMBOOT_OFF = mpbioswarmvec;
+			if (!efi_boot)
+				*(u_int32_t *)WARMBOOT_OFF = mpbioswarmvec;
 			panic("AP #%d (PHY# %d) failed!", cpu, apic_id);
 		}
 
@@ -507,10 +453,23 @@ native_start_all_aps(void)
 	}
 
 	/* restore the warmstart vector */
-	*(u_int32_t *) WARMBOOT_OFF = mpbioswarmvec;
+	if (!efi_boot)
+		*(u_int32_t *)WARMBOOT_OFF = mpbioswarmvec;
 
 	outb(CMOS_REG, BIOS_RESET);
 	outb(CMOS_DATA, mpbiosreason);
+
+	/* Destroy transient 1:1 mapping */
+	kernel_pmap->pm_pmltop[0] = old_pml45;
+	invlpg(0);
+	if (la57)
+		vm_page_free(m_pml4);
+	vm_page_free(m_pd[3]);
+	vm_page_free(m_pd[2]);
+	vm_page_free(m_pd[1]);
+	vm_page_free(m_pd[0]);
+	vm_page_free(m_pdp);
+	vm_page_free(m_boottramp);
 
 	/* number of APs actually started */
 	return (mp_naps);
@@ -524,7 +483,7 @@ native_start_all_aps(void)
  * but it seems to work.
  */
 static int
-start_ap(int apic_id)
+start_ap(int apic_id, vm_paddr_t boot_address)
 {
 	int vector, ms;
 	int cpus;
@@ -654,10 +613,10 @@ invl_scoreboard_slot(u_int cpu)
  * completion.
  */
 static void
-smp_targeted_tlb_shootdown(cpuset_t mask, pmap_t pmap, vm_offset_t addr1,
-    vm_offset_t addr2, smp_invl_cb_t curcpu_cb, enum invl_op_codes op)
+smp_targeted_tlb_shootdown(pmap_t pmap, vm_offset_t addr1, vm_offset_t addr2,
+    smp_invl_cb_t curcpu_cb, enum invl_op_codes op)
 {
-	cpuset_t other_cpus, mask1;
+	cpuset_t mask;
 	uint32_t generation, *p_cpudone;
 	int cpu;
 	bool is_all;
@@ -666,16 +625,18 @@ smp_targeted_tlb_shootdown(cpuset_t mask, pmap_t pmap, vm_offset_t addr1,
 	 * It is not necessary to signal other CPUs while booting or
 	 * when in the debugger.
 	 */
-	if (kdb_active || KERNEL_PANICKED() || !smp_started)
+	if (__predict_false(kdb_active || KERNEL_PANICKED() || !smp_started))
 		goto local_cb;
 
 	KASSERT(curthread->td_pinned > 0, ("curthread not pinned"));
 
 	/*
-	 * Check for other cpus.  Return if none.
+	 * Make a stable copy of the set of CPUs on which the pmap is active.
+	 * See if we have to interrupt other CPUs.
 	 */
-	is_all = !CPU_CMP(&mask, &all_cpus);
-	CPU_CLR(PCPU_GET(cpuid), &mask);
+	CPU_COPY(pmap_invalidate_cpu_mask(pmap), &mask);
+	is_all = CPU_CMP(&mask, &all_cpus) == 0;
+	CPU_CLR(curcpu, &mask);
 	if (CPU_EMPTY(&mask))
 		goto local_cb;
 
@@ -701,13 +662,10 @@ smp_targeted_tlb_shootdown(cpuset_t mask, pmap_t pmap, vm_offset_t addr1,
 	/* Fence between filling smp_tlb fields and clearing scoreboard. */
 	atomic_thread_fence_rel();
 
-	mask1 = mask;
-	while ((cpu = CPU_FFS(&mask1)) != 0) {
-		cpu--;
-		CPU_CLR(cpu, &mask1);
+	CPU_FOREACH_ISSET(cpu, &mask) {
 		KASSERT(*invl_scoreboard_slot(cpu) != 0,
 		    ("IPI scoreboard is zero, initiator %d target %d",
-		    PCPU_GET(cpuid), cpu));
+		    curcpu, cpu));
 		*invl_scoreboard_slot(cpu) = 0;
 	}
 
@@ -718,16 +676,11 @@ smp_targeted_tlb_shootdown(cpuset_t mask, pmap_t pmap, vm_offset_t addr1,
 	 */
 	if (is_all) {
 		ipi_all_but_self(IPI_INVLOP);
-		other_cpus = all_cpus;
-		CPU_CLR(PCPU_GET(cpuid), &other_cpus);
 	} else {
-		other_cpus = mask;
 		ipi_selected(mask, IPI_INVLOP);
 	}
 	curcpu_cb(pmap, addr1, addr2);
-	while ((cpu = CPU_FFS(&other_cpus)) != 0) {
-		cpu--;
-		CPU_CLR(cpu, &other_cpus);
+	CPU_FOREACH_ISSET(cpu, &mask) {
 		p_cpudone = invl_scoreboard_slot(cpu);
 		while (atomic_load_int(p_cpudone) != generation)
 			ia32_pause();
@@ -751,29 +704,28 @@ local_cb:
 }
 
 void
-smp_masked_invltlb(cpuset_t mask, pmap_t pmap, smp_invl_cb_t curcpu_cb)
+smp_masked_invltlb(pmap_t pmap, smp_invl_cb_t curcpu_cb)
 {
-	smp_targeted_tlb_shootdown(mask, pmap, 0, 0, curcpu_cb, invl_op_tlb);
+	smp_targeted_tlb_shootdown(pmap, 0, 0, curcpu_cb, invl_op_tlb);
 #ifdef COUNT_XINVLTLB_HITS
 	ipi_global++;
 #endif
 }
 
 void
-smp_masked_invlpg(cpuset_t mask, vm_offset_t addr, pmap_t pmap,
-    smp_invl_cb_t curcpu_cb)
+smp_masked_invlpg(vm_offset_t addr, pmap_t pmap, smp_invl_cb_t curcpu_cb)
 {
-	smp_targeted_tlb_shootdown(mask, pmap, addr, 0, curcpu_cb, invl_op_pg);
+	smp_targeted_tlb_shootdown(pmap, addr, 0, curcpu_cb, invl_op_pg);
 #ifdef COUNT_XINVLTLB_HITS
 	ipi_page++;
 #endif
 }
 
 void
-smp_masked_invlpg_range(cpuset_t mask, vm_offset_t addr1, vm_offset_t addr2,
-    pmap_t pmap, smp_invl_cb_t curcpu_cb)
+smp_masked_invlpg_range(vm_offset_t addr1, vm_offset_t addr2, pmap_t pmap,
+    smp_invl_cb_t curcpu_cb)
 {
-	smp_targeted_tlb_shootdown(mask, pmap, addr1, addr2, curcpu_cb,
+	smp_targeted_tlb_shootdown(pmap, addr1, addr2, curcpu_cb,
 	    invl_op_pgrng);
 #ifdef COUNT_XINVLTLB_HITS
 	ipi_range++;
@@ -784,8 +736,7 @@ smp_masked_invlpg_range(cpuset_t mask, vm_offset_t addr1, vm_offset_t addr2,
 void
 smp_cache_flush(smp_invl_cb_t curcpu_cb)
 {
-	smp_targeted_tlb_shootdown(all_cpus, NULL, 0, 0, curcpu_cb,
-	    INVL_OP_CACHE);
+	smp_targeted_tlb_shootdown(kernel_pmap, 0, 0, curcpu_cb, INVL_OP_CACHE);
 }
 
 /*

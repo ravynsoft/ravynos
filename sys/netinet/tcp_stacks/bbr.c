@@ -191,7 +191,7 @@ static int32_t bbr_hptsi_max_div = 2;	/* time, 0 means turned off. We need this
 static int32_t bbr_policer_call_from_rack_to = 0;
 static int32_t bbr_policer_detection_enabled = 1;
 static int32_t bbr_min_measurements_req = 1;	/* We need at least 2
-						 * measurments before we are
+						 * measurements before we are
 						 * "good" note that 2 == 1.
 						 * This is because we use a >
 						 * comparison. This means if
@@ -309,7 +309,7 @@ int32_t bbr_sends_full_iwnd = 1;
  *
  * To implement BBR and RACK the original TCP stack was first decomposed
  * into a functional state machine with individual states
- * for each of the possible TCP connection states. The do_segement
+ * for each of the possible TCP connection states. The do_segment
  * functions role in life is to mandate the connection supports SACK
  * initially and then assure that the RACK state matches the conenction
  * state before calling the states do_segment function. Data processing
@@ -1402,7 +1402,7 @@ bbr_init_sysctls(void)
 	    SYSCTL_CHILDREN(bbr_measure),
 	    OID_AUTO, "min_measure_good_bw", CTLFLAG_RW,
 	    &bbr_min_measurements_req, 1,
-	    "What is the minimum measurment count we need before we switch to our b/w estimate");
+	    "What is the minimum measurement count we need before we switch to our b/w estimate");
 	SYSCTL_ADD_S32(&bbr_sysctl_ctx,
 	    SYSCTL_CHILDREN(bbr_measure),
 	    OID_AUTO, "min_measure_before_pace", CTLFLAG_RW,
@@ -1558,7 +1558,7 @@ bbr_init_sysctls(void)
 	    SYSCTL_CHILDREN(bbr_cwnd),
 	    OID_AUTO, "tar_rtt", CTLFLAG_RW,
 	    &bbr_cwndtarget_rtt_touse, 0,
-	    "Target cwnd rtt measurment to use (0=rtt_prop, 1=rtt_rack, 2=pkt_rtt, 3=srtt)?");
+	    "Target cwnd rtt measurement to use (0=rtt_prop, 1=rtt_rack, 2=pkt_rtt, 3=srtt)?");
 	SYSCTL_ADD_S32(&bbr_sysctl_ctx,
 	    SYSCTL_CHILDREN(bbr_cwnd),
 	    OID_AUTO, "may_shrink", CTLFLAG_RW,
@@ -1666,7 +1666,7 @@ bbr_init_sysctls(void)
 	    SYSCTL_CHILDREN(bbr_timeout),
 	    OID_AUTO, "maxrto", CTLFLAG_RW,
 	    &bbr_rto_max_sec, 4,
-	    "Maxiumum RTO in seconds -- should be at least as large as min_rto");
+	    "Maximum RTO in seconds -- should be at least as large as min_rto");
 	SYSCTL_ADD_S32(&bbr_sysctl_ctx,
 	    SYSCTL_CHILDREN(bbr_timeout),
 	    OID_AUTO, "tlp_retry", CTLFLAG_RW,
@@ -2972,7 +2972,7 @@ use_initial_window:
 		rtt = (uint64_t)get_filter_value_small(&bbr->r_ctl.rc_rttprop);
 		if (rtt && (rtt < 0xffffffff)) {
 			/*
-			 * We have an RTT measurment. Use that in
+			 * We have an RTT measurement. Use that in
 			 * combination with our initial window to calculate
 			 * a b/w.
 			 */
@@ -6462,7 +6462,7 @@ tcp_bbr_commit_bw(struct tcp_bbr *bbr, uint32_t cts)
 	uint64_t orig_bw;
 
 	if (bbr->r_ctl.rc_bbr_cur_del_rate == 0) {
-		/* We never apply a zero measurment */
+		/* We never apply a zero measurement */
 		bbr_log_type_bbrupd(bbr, 20, cts, 0, 0,
 				    0, 0, 0, 0, 0, 0);
 		return;
@@ -11059,7 +11059,7 @@ bbr_state_startup(struct tcp_bbr *bbr, uint32_t cts, int32_t epoch, int32_t pkt_
 	    (bbr->r_ctl.rc_lost_at_startup == bbr->r_ctl.rc_lost) &&
 	    (!IN_RECOVERY(bbr->rc_tp->t_flags))) {
 		/*
-		 * We only assess if we have a new measurment when
+		 * We only assess if we have a new measurement when
 		 * we have no loss and are not in recovery.
 		 * Drag up by one our last_startup epoch so we will hold
 		 * the number of non-gain we have already accumulated.

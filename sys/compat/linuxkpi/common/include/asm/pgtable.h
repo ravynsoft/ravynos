@@ -28,8 +28,8 @@
  *
  * $FreeBSD$
  */
-#ifndef _ASM_PGTABLE_H_
-#define	_ASM_PGTABLE_H_
+#ifndef _LINUXKPI_ASM_PGTABLE_H_
+#define	_LINUXKPI_ASM_PGTABLE_H_
 
 #include <linux/page.h>
 
@@ -40,4 +40,6 @@ typedef unsigned long	pgdval_t;
 typedef unsigned long	pgprotval_t;
 typedef struct page *pgtable_t;
 
-#endif	/* _ASM_PGTABLE_H_ */
+#define	pgprot_decrypted(prot)	(prot)
+
+#endif	/* _LINUXKPI_ASM_PGTABLE_H_ */

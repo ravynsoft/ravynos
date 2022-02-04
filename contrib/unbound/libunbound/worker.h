@@ -62,22 +62,19 @@ struct query_info;
  * @param addrlen: length of addr.
  * @param zone: delegation point name.
  * @param zonelen: length of zone name wireformat dname.
+ * @param tcp_upstream: use TCP for upstream queries.
  * @param ssl_upstream: use SSL for upstream queries.
  * @param tls_auth_name: if ssl_upstream, use this name with TLS
  * 	authentication.
- * @param q: wich query state to reactivate upon return.
+ * @param q: which query state to reactivate upon return.
  * @return: false on failure (memory or socket related). no query was
  *      sent.
  */
 struct outbound_entry* libworker_send_query(struct query_info* qinfo,
 	uint16_t flags, int dnssec, int want_dnssec, int nocaps,
 	struct sockaddr_storage* addr, socklen_t addrlen, uint8_t* zone,
-	size_t zonelen, int ssl_upstream, char* tls_auth_name,
+	size_t zonelen, int tcp_upstream, int ssl_upstream, char* tls_auth_name,
 	struct module_qstate* q);
-
-/** process incoming replies from the network */
-int libworker_handle_reply(struct comm_point* c, void* arg, int error,
-        struct comm_reply* reply_info);
 
 /** process incoming serviced query replies from the network */
 int libworker_handle_service_reply(struct comm_point* c, void* arg, int error,
@@ -117,17 +114,18 @@ void worker_sighandler(int sig, void* arg);
  * @param addrlen: length of addr.
  * @param zone: wireformat dname of the zone.
  * @param zonelen: length of zone name.
+ * @param tcp_upstream: use TCP for upstream queries.
  * @param ssl_upstream: use SSL for upstream queries.
  * @param tls_auth_name: if ssl_upstream, use this name with TLS
  * 	authentication.
- * @param q: wich query state to reactivate upon return.
+ * @param q: which query state to reactivate upon return.
  * @return: false on failure (memory or socket related). no query was
  *      sent.
  */
 struct outbound_entry* worker_send_query(struct query_info* qinfo,
 	uint16_t flags, int dnssec, int want_dnssec, int nocaps,
 	struct sockaddr_storage* addr, socklen_t addrlen, uint8_t* zone,
-	size_t zonelen, int ssl_upstream, char* tls_auth_name,
+	size_t zonelen, int tcp_upstream, int ssl_upstream, char* tls_auth_name,
 	struct module_qstate* q);
 
 /** 
@@ -145,10 +143,6 @@ void worker_handle_control_cmd(struct tube* tube, uint8_t* msg, size_t len,
 /** handles callbacks from listening event interface */
 int worker_handle_request(struct comm_point* c, void* arg, int error,
 	struct comm_reply* repinfo);
-
-/** process incoming replies from the network */
-int worker_handle_reply(struct comm_point* c, void* arg, int error, 
-	struct comm_reply* reply_info);
 
 /** process incoming serviced query replies from the network */
 int worker_handle_service_reply(struct comm_point* c, void* arg, int error, 

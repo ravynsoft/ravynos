@@ -1,5 +1,9 @@
 /*-
  * Copyright (c) 2002-2006 Sam Leffler.  All rights reserved.
+ * Copyright (c) 2021 The FreeBSD Foundation
+ *
+ * Portions of this software were developed by Ararat River
+ * Consulting, LLC under sponsorship of the FreeBSD Foundation.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -177,7 +181,7 @@ struct crypto_ret_worker {
 	uint32_t reorder_ops;		/* total ordered sym jobs received */
 	uint32_t reorder_cur_seq;	/* current sym job dispatched */
 
-	struct proc *cryptoretproc;
+	struct thread *td;
 };
 static struct crypto_ret_worker *crypto_ret_workers = NULL;
 
@@ -214,20 +218,20 @@ SYSCTL_INT(_kern, OID_AUTO, userasymcrypto, CTLFLAG_RW,
 #endif
 
 int	crypto_devallowsoft = 0;
-SYSCTL_INT(_kern_crypto, OID_AUTO, allow_soft, CTLFLAG_RW,
+SYSCTL_INT(_kern_crypto, OID_AUTO, allow_soft, CTLFLAG_RWTUN,
 	   &crypto_devallowsoft, 0,
 	   "Enable use of software crypto by /dev/crypto");
 #ifdef COMPAT_FREEBSD12
-SYSCTL_INT(_kern, OID_AUTO, cryptodevallowsoft, CTLFLAG_RW,
+SYSCTL_INT(_kern, OID_AUTO, cryptodevallowsoft, CTLFLAG_RWTUN,
 	   &crypto_devallowsoft, 0,
 	   "Enable/disable use of software crypto by /dev/crypto");
 #endif
 
 MALLOC_DEFINE(M_CRYPTO_DATA, "crypto", "crypto session records");
 
-static	void crypto_proc(void);
-static	struct proc *cryptoproc;
-static	void crypto_ret_proc(struct crypto_ret_worker *ret_worker);
+static	void crypto_dispatch_thread(void *arg);
+static	struct thread *cryptotd;
+static	void crypto_ret_thread(void *arg);
 static	void crypto_destroy(void);
 static	int crypto_invoke(struct cryptocap *cap, struct cryptop *crp, int hint);
 static	int crypto_kinvoke(struct cryptkop *krp);
@@ -320,14 +324,14 @@ static int
 crypto_init(void)
 {
 	struct crypto_ret_worker *ret_worker;
+	struct proc *p;
 	int error;
 
-	mtx_init(&crypto_drivers_mtx, "crypto", "crypto driver table",
-		MTX_DEF|MTX_QUIET);
+	mtx_init(&crypto_drivers_mtx, "crypto driver table", NULL, MTX_DEF);
 
 	TAILQ_INIT(&crp_q);
 	TAILQ_INIT(&crp_kq);
-	mtx_init(&crypto_q_mtx, "crypto", "crypto op queues", MTX_DEF);
+	mtx_init(&crypto_q_mtx, "crypto op queues", NULL, MTX_DEF);
 
 	cryptop_zone = uma_zcreate("cryptop",
 	    sizeof(struct cryptop), NULL, NULL, NULL, NULL,
@@ -346,8 +350,9 @@ crypto_init(void)
 	taskqueue_start_threads(&crypto_tq, crypto_workers_num, PRI_MIN_KERN,
 	    "crypto");
 
-	error = kproc_create((void (*)(void *)) crypto_proc, NULL,
-		    &cryptoproc, 0, 0, "crypto");
+	p = NULL;
+	error = kproc_kthread_add(crypto_dispatch_thread, NULL, &p, &cryptotd,
+	    0, 0, "crypto", "crypto");
 	if (error) {
 		printf("crypto_init: cannot start crypto thread; error %d",
 			error);
@@ -365,10 +370,12 @@ crypto_init(void)
 		ret_worker->reorder_ops = 0;
 		ret_worker->reorder_cur_seq = 0;
 
-		mtx_init(&ret_worker->crypto_ret_mtx, "crypto", "crypto return queues", MTX_DEF);
+		mtx_init(&ret_worker->crypto_ret_mtx, "crypto return queues",
+		    NULL, MTX_DEF);
 
-		error = kproc_create((void (*)(void *)) crypto_ret_proc, ret_worker,
-				&ret_worker->cryptoretproc, 0, 0, "crypto returns %td", CRYPTO_RETW_ID(ret_worker));
+		error = kthread_add(crypto_ret_thread, ret_worker, p,
+		    &ret_worker->td, 0, 0, "crypto returns %td",
+		    CRYPTO_RETW_ID(ret_worker));
 		if (error) {
 			printf("crypto_init: cannot start cryptoret thread; error %d",
 				error);
@@ -392,20 +399,16 @@ bad:
  * for the other half of this song-and-dance.
  */
 static void
-crypto_terminate(struct proc **pp, void *q)
+crypto_terminate(struct thread **tdp, void *q)
 {
-	struct proc *p;
+	struct thread *td;
 
 	mtx_assert(&crypto_drivers_mtx, MA_OWNED);
-	p = *pp;
-	*pp = NULL;
-	if (p) {
+	td = *tdp;
+	*tdp = NULL;
+	if (td != NULL) {
 		wakeup_one(q);
-		PROC_LOCK(p);		/* NB: insure we don't miss wakeup */
-		CRYPTO_DRIVER_UNLOCK();	/* let crypto_finis progress */
-		msleep(p, &p->p_mtx, PWAIT, "crypto_destroy", 0);
-		PROC_UNLOCK(p);
-		CRYPTO_DRIVER_LOCK();
+		mtx_sleep(td, &crypto_drivers_mtx, PWAIT, "crypto_destroy", 0);
 	}
 }
 
@@ -468,9 +471,9 @@ crypto_destroy(void)
 	if (crypto_tq != NULL)
 		taskqueue_drain_all(crypto_tq);
 	CRYPTO_DRIVER_LOCK();
-	crypto_terminate(&cryptoproc, &crp_q);
+	crypto_terminate(&cryptotd, &crp_q);
 	FOREACH_CRYPTO_RETW(ret_worker)
-		crypto_terminate(&ret_worker->cryptoretproc, &ret_worker->crp_ret_q);
+		crypto_terminate(&ret_worker->td, &ret_worker->crp_ret_q);
 	CRYPTO_DRIVER_UNLOCK();
 
 	/* XXX flush queues??? */
@@ -602,6 +605,8 @@ crypto_cipher(const struct crypto_session_params *csp)
 		return (&enc_xform_chacha20);
 	case CRYPTO_AES_CCM_16:
 		return (&enc_xform_ccm);
+	case CRYPTO_CHACHA20_POLY1305:
+		return (&enc_xform_chacha20_poly1305);
 	default:
 		return (NULL);
 	}
@@ -693,6 +698,7 @@ static enum alg_type {
 	[CRYPTO_POLY1305] = ALG_KEYED_DIGEST,
 	[CRYPTO_AES_CCM_CBC_MAC] = ALG_KEYED_DIGEST,
 	[CRYPTO_AES_CCM_16] = ALG_AEAD,
+	[CRYPTO_CHACHA20_POLY1305] = ALG_AEAD,
 };
 
 static enum alg_type
@@ -738,6 +744,24 @@ alg_is_aead(int alg)
 {
 
 	return (alg_type(alg) == ALG_AEAD);
+}
+
+static bool
+ccm_tag_length_valid(int len)
+{
+	/* RFC 3610 */
+	switch (len) {
+	case 4:
+	case 6:
+	case 8:
+	case 10:
+	case 12:
+	case 14:
+	case 16:
+		return (true);
+	default:
+		return (false);
+	}
 }
 
 #define SUPPORTED_SES (CSP_F_SEPARATE_OUTPUT | CSP_F_SEPARATE_AAD | CSP_F_ESN)
@@ -797,8 +821,21 @@ check_csp(const struct crypto_session_params *csp)
 			return (false);
 
 		/* IV is optional for digests (e.g. GMAC). */
-		if (csp->csp_ivlen >= EALG_MAX_BLOCK_LEN)
-			return (false);
+		switch (csp->csp_auth_alg) {
+		case CRYPTO_AES_CCM_CBC_MAC:
+			if (csp->csp_ivlen < 7 || csp->csp_ivlen > 13)
+				return (false);
+			break;
+		case CRYPTO_AES_NIST_GMAC:
+			if (csp->csp_ivlen != AES_GCM_IV_LEN)
+				return (false);
+			break;
+		default:
+			if (csp->csp_ivlen != 0)
+				return (false);
+			break;
+		}
+
 		if (!alg_is_digest(csp->csp_auth_alg))
 			return (false);
 
@@ -817,6 +854,10 @@ check_csp(const struct crypto_session_params *csp)
 			axf = crypto_auth_hash(csp);
 			if (axf == NULL || csp->csp_auth_mlen > axf->hashsize)
 				return (false);
+
+			if (csp->csp_auth_alg == CRYPTO_AES_CCM_CBC_MAC &&
+			    !ccm_tag_length_valid(csp->csp_auth_mlen))
+				return (false);
 		}
 		break;
 	case CSP_MODE_AEAD:
@@ -830,14 +871,23 @@ check_csp(const struct crypto_session_params *csp)
 		if (csp->csp_auth_alg != 0 || csp->csp_auth_klen != 0)
 			return (false);
 
-		/*
-		 * XXX: Would be nice to have a better way to get this
-		 * value.
-		 */
 		switch (csp->csp_cipher_alg) {
-		case CRYPTO_AES_NIST_GCM_16:
 		case CRYPTO_AES_CCM_16:
+			if (csp->csp_auth_mlen != 0 &&
+			    !ccm_tag_length_valid(csp->csp_auth_mlen))
+				return (false);
+
+			if (csp->csp_ivlen < 7 || csp->csp_ivlen > 13)
+				return (false);
+			break;
+		case CRYPTO_AES_NIST_GCM_16:
 			if (csp->csp_auth_mlen > 16)
+				return (false);
+			break;
+		case CRYPTO_CHACHA20_POLY1305:
+			if (csp->csp_ivlen != 8 && csp->csp_ivlen != 12)
+				return (false);
+			if (csp->csp_auth_mlen > POLY1305_HASH_LEN)
 				return (false);
 			break;
 		}
@@ -1220,6 +1270,8 @@ crypto_buffer_len(struct crypto_buffer *cb)
 		if (cb->cb_mbuf->m_flags & M_PKTHDR)
 			return (cb->cb_mbuf->m_pkthdr.len);
 		return (m_length(cb->cb_mbuf, NULL));
+	case CRYPTO_BUF_SINGLE_MBUF:
+		return (cb->cb_mbuf->m_len);
 	case CRYPTO_BUF_VMPAGE:
 		return (cb->cb_vm_page_len);
 	case CRYPTO_BUF_UIO:
@@ -1310,12 +1362,8 @@ crp_sanity(struct cryptop *crp)
 		    crp->crp_op ==
 		    (CRYPTO_OP_DECRYPT | CRYPTO_OP_VERIFY_DIGEST),
 		    ("invalid AEAD op %x", crp->crp_op));
-		if (csp->csp_cipher_alg == CRYPTO_AES_NIST_GCM_16)
-			KASSERT(crp->crp_flags & CRYPTO_F_IV_SEPARATE,
-			    ("GCM without a separate IV"));
-		if (csp->csp_cipher_alg == CRYPTO_AES_CCM_16)
-			KASSERT(crp->crp_flags & CRYPTO_F_IV_SEPARATE,
-			    ("CCM without a separate IV"));
+		KASSERT(crp->crp_flags & CRYPTO_F_IV_SEPARATE,
+		    ("AEAD without a separate IV"));
 		break;
 	case CSP_MODE_ETA:
 		KASSERT(crp->crp_op ==
@@ -1938,14 +1986,14 @@ crypto_finis(void *chan)
 	CRYPTO_DRIVER_LOCK();
 	wakeup_one(chan);
 	CRYPTO_DRIVER_UNLOCK();
-	kproc_exit(0);
+	kthread_exit();
 }
 
 /*
  * Crypto thread, dispatches crypto requests.
  */
 static void
-crypto_proc(void)
+crypto_dispatch_thread(void *arg __unused)
 {
 	struct cryptop *crp, *submit;
 	struct cryptkop *krp;
@@ -2077,7 +2125,7 @@ crypto_proc(void)
 			crp_sleep = 1;
 			msleep(&crp_q, &crypto_q_mtx, PWAIT, "crypto_wait", 0);
 			crp_sleep = 0;
-			if (cryptoproc == NULL)
+			if (cryptotd == NULL)
 				break;
 			CRYPTOSTAT_INC(cs_intrs);
 		}
@@ -2093,8 +2141,9 @@ crypto_proc(void)
  * callbacks typically are expensive and would slow interrupt handling.
  */
 static void
-crypto_ret_proc(struct crypto_ret_worker *ret_worker)
+crypto_ret_thread(void *arg)
 {
+	struct crypto_ret_worker *ret_worker = arg;
 	struct cryptop *crpt;
 	struct cryptkop *krpt;
 
@@ -2138,7 +2187,7 @@ crypto_ret_proc(struct crypto_ret_worker *ret_worker)
 			 */
 			msleep(&ret_worker->crp_ret_q, &ret_worker->crypto_ret_mtx, PWAIT,
 				"crypto_ret_wait", 0);
-			if (ret_worker->cryptoretproc == NULL)
+			if (ret_worker->td == NULL)
 				break;
 			CRYPTOSTAT_INC(cs_rets);
 		}

@@ -10,6 +10,7 @@
 #define LLDB_INTERPRETER_OPTIONVALUE_H
 
 #include "lldb/Core/FormatEntity.h"
+#include "lldb/Utility/Cloneable.h"
 #include "lldb/Utility/CompletionRequest.h"
 #include "lldb/Utility/ConstString.h"
 #include "lldb/Utility/Status.h"
@@ -31,6 +32,7 @@ public:
     eTypeChar,
     eTypeDictionary,
     eTypeEnum,
+    eTypeFileLineColumn,
     eTypeFileSpec,
     eTypeFileSpecList,
     eTypeFormat,
@@ -58,7 +60,7 @@ public:
     eDumpGroupExport = (eDumpOptionCommand | eDumpOptionName | eDumpOptionValue)
   };
 
-  OptionValue() : m_value_was_set(false) {}
+  OptionValue() = default;
 
   virtual ~OptionValue() = default;
 
@@ -84,9 +86,10 @@ public:
   SetValueFromString(llvm::StringRef value,
                      VarSetOperationType op = eVarSetOperationAssign);
 
-  virtual bool Clear() = 0;
+  virtual void Clear() = 0;
 
-  virtual lldb::OptionValueSP DeepCopy() const = 0;
+  virtual lldb::OptionValueSP
+  DeepCopy(const lldb::OptionValueSP &new_parent) const;
 
   virtual void AutoComplete(CommandInterpreter &interpreter,
                             CompletionRequest &request);
@@ -135,6 +138,8 @@ public:
       return eTypeDictionary;
     case 1u << eTypeEnum:
       return eTypeEnum;
+    case 1u << eTypeFileLineColumn:
+      return eTypeFileLineColumn;
     case 1u << eTypeFileSpec:
       return eTypeFileSpec;
     case 1u << eTypeFileSpecList:
@@ -303,6 +308,8 @@ public:
     m_parent_wp = parent_sp;
   }
 
+  lldb::OptionValueSP GetParent() const { return m_parent_wp.lock(); }
+
   void SetValueChangedCallback(std::function<void()> callback) {
     assert(!m_callback);
     m_callback = std::move(callback);
@@ -314,14 +321,20 @@ public:
   }
 
 protected:
+  using TopmostBase = OptionValue;
+
+  // Must be overriden by a derived class for correct downcasting the result of
+  // DeepCopy to it. Inherit from Cloneable to avoid doing this manually.
+  virtual lldb::OptionValueSP Clone() const = 0;
+
   lldb::OptionValueWP m_parent_wp;
   std::function<void()> m_callback;
-  bool m_value_was_set; // This can be used to see if a value has been set
-                        // by a call to SetValueFromCString(). It is often
-                        // handy to know if an option value was set from the
-                        // command line or as a setting, versus if we just have
-                        // the default value that was already populated in the
-                        // option value.
+  bool m_value_was_set = false; // This can be used to see if a value has been
+                                // set by a call to SetValueFromCString(). It is
+                                // often handy to know if an option value was
+                                // set from the command line or as a setting,
+                                // versus if we just have the default value that
+                                // was already populated in the option value.
 };
 
 } // namespace lldb_private

@@ -1483,7 +1483,7 @@ adasysctlinit(void *context, int pending)
 
 	SYSCTL_ADD_PROC(&softc->sysctl_ctx, SYSCTL_CHILDREN(softc->sysctl_tree),
 		OID_AUTO, "delete_method",
-		CTLTYPE_STRING | CTLFLAG_RW | CTLFLAG_NEEDGIANT,
+		CTLTYPE_STRING | CTLFLAG_RW | CTLFLAG_MPSAFE,
 		softc, 0, adadeletemethodsysctl, "A",
 		"BIO_DELETE execution method");
 	SYSCTL_ADD_UQUAD(&softc->sysctl_ctx,
@@ -1506,12 +1506,12 @@ adasysctlinit(void *context, int pending)
 		&softc->write_cache, 0, "Enable disk write cache.");
 	SYSCTL_ADD_PROC(&softc->sysctl_ctx, SYSCTL_CHILDREN(softc->sysctl_tree),
 		OID_AUTO, "zone_mode",
-		CTLTYPE_STRING | CTLFLAG_RD | CTLFLAG_NEEDGIANT,
+		CTLTYPE_STRING | CTLFLAG_RD | CTLFLAG_MPSAFE,
 		softc, 0, adazonemodesysctl, "A",
 		"Zone Mode");
 	SYSCTL_ADD_PROC(&softc->sysctl_ctx, SYSCTL_CHILDREN(softc->sysctl_tree),
 		OID_AUTO, "zone_support",
-		CTLTYPE_STRING | CTLFLAG_RD | CTLFLAG_NEEDGIANT,
+		CTLTYPE_STRING | CTLFLAG_RD | CTLFLAG_MPSAFE,
 		softc, 0, adazonesupsysctl, "A",
 		"Zone Support");
 	SYSCTL_ADD_UQUAD(&softc->sysctl_ctx,
@@ -1937,9 +1937,9 @@ adaregister(struct cam_periph *periph, void *arg)
 	 * ordered tag to a device.
 	 */
 	callout_init_mtx(&softc->sendordered_c, cam_periph_mtx(periph), 0);
-	callout_reset(&softc->sendordered_c,
-	    (ada_default_timeout * hz) / ADA_ORDEREDTAG_INTERVAL,
-	    adasendorderedtag, softc);
+	callout_reset_sbt(&softc->sendordered_c,
+	    SBT_1S / ADA_ORDEREDTAG_INTERVAL * ada_default_timeout, 0,
+	    adasendorderedtag, softc, C_PREL(1));
 
 	if (ADA_RA >= 0 && softc->flags & ADA_FLAG_CAN_RAHEAD) {
 		softc->state = ADA_STATE_RAHEAD;
@@ -3505,10 +3505,11 @@ adasendorderedtag(void *arg)
 			softc->flags &= ~ADA_FLAG_WAS_OTAG;
 		}
 	}
+
 	/* Queue us up again */
-	callout_reset(&softc->sendordered_c,
-	    (ada_default_timeout * hz) / ADA_ORDEREDTAG_INTERVAL,
-	    adasendorderedtag, softc);
+	callout_schedule_sbt(&softc->sendordered_c,
+	    SBT_1S / ADA_ORDEREDTAG_INTERVAL * ada_default_timeout, 0,
+	    C_PREL(1));
 }
 
 /*
@@ -3575,6 +3576,7 @@ adaspindown(uint8_t cmd, int flags)
 	struct ada_softc *softc;
 	struct ccb_ataio local_ccb;
 	int error;
+	int mode;
 
 	CAM_PERIPH_FOREACH(periph, &adadriver) {
 		/* If we paniced with lock held - not recurse here. */
@@ -3588,6 +3590,52 @@ adaspindown(uint8_t cmd, int flags)
 		if ((softc->flags & ADA_FLAG_CAN_POWERMGT) == 0) {
 			cam_periph_unlock(periph);
 			continue;
+		}
+
+		/*
+		 * Additionally check if we would spin up the drive instead of
+		 * spinning it down.
+		 */
+		if (cmd == ATA_IDLE_IMMEDIATE) {
+			memset(&local_ccb, 0, sizeof(local_ccb));
+			xpt_setup_ccb(&local_ccb.ccb_h, periph->path,
+			    CAM_PRIORITY_NORMAL);
+			local_ccb.ccb_h.ccb_state = ADA_CCB_DUMP;
+
+			cam_fill_ataio(&local_ccb, 0, NULL, CAM_DIR_NONE,
+			    0, NULL, 0, ada_default_timeout * 1000);
+			ata_28bit_cmd(&local_ccb, ATA_CHECK_POWER_MODE,
+			    0, 0, 0);
+			local_ccb.cmd.flags |= CAM_ATAIO_NEEDRESULT;
+
+			error = cam_periph_runccb((union ccb *)&local_ccb,
+			    adaerror, /*cam_flags*/0,
+			    /*sense_flags*/ SF_NO_RECOVERY | SF_NO_RETRY,
+			    softc->disk->d_devstat);
+			if (error != 0) {
+				xpt_print(periph->path,
+				    "Failed to read current power mode\n");
+			} else {
+				mode = local_ccb.res.sector_count;
+#ifdef DIAGNOSTIC
+				if (bootverbose) {
+					xpt_print(periph->path,
+					    "disk power mode 0x%02x\n", mode);
+				}
+#endif
+				switch (mode) {
+				case ATA_PM_STANDBY:
+				case ATA_PM_STANDBY_Y:
+					if (bootverbose) {
+						xpt_print(periph->path,
+						    "already spun down\n");
+					}
+					cam_periph_unlock(periph);
+					continue;
+				default:
+					break;
+				}
+			}
 		}
 
 		if (bootverbose)

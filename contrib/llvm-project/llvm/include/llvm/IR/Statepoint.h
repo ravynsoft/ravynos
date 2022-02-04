@@ -52,6 +52,8 @@ enum class StatepointFlags {
   MaskAll = 3 ///< A bitmask that includes all valid flags.
 };
 
+// These two are defined in IntrinsicInst since they're part of the
+// IntrinsicInst class hierarchy.
 class GCRelocateInst;
 class GCResultInst;
 
@@ -136,7 +138,7 @@ public:
   /// Return an end iterator of the arguments to the underlying call
   const_op_iterator actual_arg_end() const {
     auto I = actual_arg_begin() + actual_arg_size();
-    assert((arg_end() - I) >= 0);
+    assert((arg_end() - I) == 2);
     return I;
   }
   /// range adapter for actual call arguments
@@ -147,16 +149,12 @@ public:
   const_op_iterator gc_transition_args_begin() const {
     if (auto Opt = getOperandBundle(LLVMContext::OB_gc_transition))
       return Opt->Inputs.begin();
-    auto I = actual_arg_end() + 1;
-    assert((arg_end() - I) >= 0);
-    return I;
+    return arg_end();
   }
   const_op_iterator gc_transition_args_end() const {
     if (auto Opt = getOperandBundle(LLVMContext::OB_gc_transition))
       return Opt->Inputs.end();
-    auto I = gc_transition_args_begin() + getNumDeoptArgs();
-    assert((arg_end() - I) >= 0);
-    return I;
+    return arg_end();
   }
 
   /// range adapter for GC transition arguments
@@ -167,19 +165,12 @@ public:
   const_op_iterator deopt_begin() const {
     if (auto Opt = getOperandBundle(LLVMContext::OB_deopt))
       return Opt->Inputs.begin();
-    // The current format has two length prefix bundles between call args and
-    // start of gc args.  This will be removed in the near future.
-    uint64_t NumTrans = getNumGCTransitionArgs();
-    const_op_iterator I = actual_arg_end() + 2 + NumTrans;
-    assert((arg_end() - I) >= 0);
-    return I;
+    return arg_end();
   }
   const_op_iterator deopt_end() const {
     if (auto Opt = getOperandBundle(LLVMContext::OB_deopt))
       return Opt->Inputs.end();
-    auto I = deopt_begin() + getNumDeoptArgs();
-    assert((arg_end() - I) >= 0);
-    return I;
+    return arg_end();
   }
 
   /// range adapter for vm state arguments
@@ -192,28 +183,14 @@ public:
   const_op_iterator gc_args_begin() const {
     if (auto Opt = getOperandBundle(LLVMContext::OB_gc_live))
       return Opt->Inputs.begin();
-
-    // The current format has two length prefix bundles between call args and
-    // start of gc args.  This will be removed in the near future.
-    uint64_t NumTrans = getNumGCTransitionArgs();
-    uint64_t NumDeopt = getNumDeoptArgs();
-    auto I = actual_arg_end() + 2 + NumTrans + NumDeopt;
-    assert((arg_end() - I) >= 0);
-    return I;
+    return arg_end();
   }
 
   /// Return an end iterator for the gc argument range
   const_op_iterator gc_args_end() const {
     if (auto Opt = getOperandBundle(LLVMContext::OB_gc_live))
       return Opt->Inputs.end();
-
     return arg_end();
-  }
-
-  /// Return the operand index at which the gc args begin
-  unsigned gcArgsStartIdx() const {
-    assert(!getOperandBundle(LLVMContext::OB_gc_live));
-    return gc_args_begin() - op_begin();
   }
 
   /// range adapter for gc arguments
@@ -228,118 +205,10 @@ public:
   /// path of invoke.
   inline std::vector<const GCRelocateInst *> getGCRelocates() const;
 
-  /// Get the experimental_gc_result call tied to this statepoint if there is
-  /// one, otherwise return nullptr.
-  const GCResultInst *getGCResult() const {
-    for (auto *U : users())
-      if (auto *GRI = dyn_cast<GCResultInst>(U))
-        return GRI;
-    return nullptr;
-  }
-
-private:
-  int getNumGCTransitionArgs() const {
-    const Value *NumGCTransitionArgs = *actual_arg_end();
-    return cast<ConstantInt>(NumGCTransitionArgs)->getZExtValue();
-  }
-
-  int getNumDeoptArgs() const {
-    uint64_t NumTrans = getNumGCTransitionArgs();
-    const_op_iterator trans_end = actual_arg_end() + 1 + NumTrans;
-    const Value *NumDeoptArgs = *trans_end;
-    return cast<ConstantInt>(NumDeoptArgs)->getZExtValue();
-  }
-};
-
-/// Common base class for representing values projected from a statepoint.
-/// Currently, the only projections available are gc.result and gc.relocate.
-class GCProjectionInst : public IntrinsicInst {
-public:
-  static bool classof(const IntrinsicInst *I) {
-    return I->getIntrinsicID() == Intrinsic::experimental_gc_relocate ||
-      I->getIntrinsicID() == Intrinsic::experimental_gc_result;
-  }
-
-  static bool classof(const Value *V) {
-    return isa<IntrinsicInst>(V) && classof(cast<IntrinsicInst>(V));
-  }
-
-  /// Return true if this relocate is tied to the invoke statepoint.
-  /// This includes relocates which are on the unwinding path.
-  bool isTiedToInvoke() const {
-    const Value *Token = getArgOperand(0);
-
-    return isa<LandingPadInst>(Token) || isa<InvokeInst>(Token);
-  }
-
-  /// The statepoint with which this gc.relocate is associated.
-  const GCStatepointInst *getStatepoint() const {
-    const Value *Token = getArgOperand(0);
-
-    // This takes care both of relocates for call statepoints and relocates
-    // on normal path of invoke statepoint.
-    if (!isa<LandingPadInst>(Token))
-      return cast<GCStatepointInst>(Token);
-
-    // This relocate is on exceptional path of an invoke statepoint
-    const BasicBlock *InvokeBB =
-        cast<Instruction>(Token)->getParent()->getUniquePredecessor();
-
-    assert(InvokeBB && "safepoints should have unique landingpads");
-    assert(InvokeBB->getTerminator() &&
-           "safepoint block should be well formed");
-
-    return cast<GCStatepointInst>(InvokeBB->getTerminator());
-  }
-};
-
-/// Represents calls to the gc.relocate intrinsic.
-class GCRelocateInst : public GCProjectionInst {
-public:
-  static bool classof(const IntrinsicInst *I) {
-    return I->getIntrinsicID() == Intrinsic::experimental_gc_relocate;
-  }
-
-  static bool classof(const Value *V) {
-    return isa<IntrinsicInst>(V) && classof(cast<IntrinsicInst>(V));
-  }
-
-  /// The index into the associate statepoint's argument list
-  /// which contains the base pointer of the pointer whose
-  /// relocation this gc.relocate describes.
-  unsigned getBasePtrIndex() const {
-    return cast<ConstantInt>(getArgOperand(1))->getZExtValue();
-  }
-
-  /// The index into the associate statepoint's argument list which
-  /// contains the pointer whose relocation this gc.relocate describes.
-  unsigned getDerivedPtrIndex() const {
-    return cast<ConstantInt>(getArgOperand(2))->getZExtValue();
-  }
-
-  Value *getBasePtr() const {
-    if (auto Opt = getStatepoint()->getOperandBundle(LLVMContext::OB_gc_live))
-      return *(Opt->Inputs.begin() + getBasePtrIndex());
-    return *(getStatepoint()->arg_begin() + getBasePtrIndex());
-  }
-
-  Value *getDerivedPtr() const {
-    if (auto Opt = getStatepoint()->getOperandBundle(LLVMContext::OB_gc_live))
-      return *(Opt->Inputs.begin() + getDerivedPtrIndex());
-    return *(getStatepoint()->arg_begin() + getDerivedPtrIndex());
-  }
-};
-
-/// Represents calls to the gc.result intrinsic.
-class GCResultInst : public GCProjectionInst {
-public:
-  static bool classof(const IntrinsicInst *I) {
-    return I->getIntrinsicID() == Intrinsic::experimental_gc_result;
-  }
-
-  static bool classof(const Value *V) {
-    return isa<IntrinsicInst>(V) && classof(cast<IntrinsicInst>(V));
-  }
+  /// Returns pair of boolean flags. The first one is true is there is
+  /// a gc.result intrinsic in the same block as statepoint. The second flag
+  /// is true if there is an intrinsic outside of the block with statepoint.
+  inline std::pair<bool, bool> getGCResultLocality() const;
 };
 
 std::vector<const GCRelocateInst *> GCStatepointInst::getGCRelocates() const {
@@ -365,6 +234,18 @@ std::vector<const GCRelocateInst *> GCStatepointInst::getGCRelocates() const {
       Result.push_back(Relocate);
   }
   return Result;
+}
+
+std::pair<bool, bool> GCStatepointInst::getGCResultLocality() const {
+  std::pair<bool, bool> Res(false, false);
+  for (auto *U : users())
+    if (auto *GRI = dyn_cast<GCResultInst>(U)) {
+      if (GRI->getParent() == this->getParent())
+        Res.first = true;
+      else
+        Res.second = true;
+    }
+  return Res;
 }
 
 /// Call sites that get wrapped by a gc.statepoint (currently only in

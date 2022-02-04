@@ -8,6 +8,12 @@
 
 #include "CommandObjectThread.h"
 
+#include <memory>
+#include <sstream>
+
+#include "CommandObjectThreadUtil.h"
+#include "CommandObjectTrace.h"
+#include "lldb/Core/PluginManager.h"
 #include "lldb/Core/ValueObject.h"
 #include "lldb/Host/OptionParser.h"
 #include "lldb/Interpreter/CommandInterpreter.h"
@@ -26,206 +32,12 @@
 #include "lldb/Target/Thread.h"
 #include "lldb/Target/ThreadPlan.h"
 #include "lldb/Target/ThreadPlanStepInRange.h"
+#include "lldb/Target/Trace.h"
+#include "lldb/Target/TraceInstructionDumper.h"
 #include "lldb/Utility/State.h"
 
 using namespace lldb;
 using namespace lldb_private;
-
-// CommandObjectIterateOverThreads
-
-class CommandObjectIterateOverThreads : public CommandObjectParsed {
-
-  class UniqueStack {
-
-  public:
-    UniqueStack(std::stack<lldb::addr_t> stack_frames, uint32_t thread_index_id)
-        : m_stack_frames(stack_frames) {
-      m_thread_index_ids.push_back(thread_index_id);
-    }
-
-    void AddThread(uint32_t thread_index_id) const {
-      m_thread_index_ids.push_back(thread_index_id);
-    }
-
-    const std::vector<uint32_t> &GetUniqueThreadIndexIDs() const {
-      return m_thread_index_ids;
-    }
-
-    lldb::tid_t GetRepresentativeThread() const {
-      return m_thread_index_ids.front();
-    }
-
-    friend bool inline operator<(const UniqueStack &lhs,
-                                 const UniqueStack &rhs) {
-      return lhs.m_stack_frames < rhs.m_stack_frames;
-    }
-
-  protected:
-    // Mark the thread index as mutable, as we don't care about it from a const
-    // perspective, we only care about m_stack_frames so we keep our std::set
-    // sorted.
-    mutable std::vector<uint32_t> m_thread_index_ids;
-    std::stack<lldb::addr_t> m_stack_frames;
-  };
-
-public:
-  CommandObjectIterateOverThreads(CommandInterpreter &interpreter,
-                                  const char *name, const char *help,
-                                  const char *syntax, uint32_t flags)
-      : CommandObjectParsed(interpreter, name, help, syntax, flags) {}
-
-  ~CommandObjectIterateOverThreads() override = default;
-
-  bool DoExecute(Args &command, CommandReturnObject &result) override {
-    result.SetStatus(m_success_return);
-
-    bool all_threads = false;
-    if (command.GetArgumentCount() == 0) {
-      Thread *thread = m_exe_ctx.GetThreadPtr();
-      if (!thread || !HandleOneThread(thread->GetID(), result))
-        return false;
-      return result.Succeeded();
-    } else if (command.GetArgumentCount() == 1) {
-      all_threads = ::strcmp(command.GetArgumentAtIndex(0), "all") == 0;
-      m_unique_stacks = ::strcmp(command.GetArgumentAtIndex(0), "unique") == 0;
-    }
-
-    // Use tids instead of ThreadSPs to prevent deadlocking problems which
-    // result from JIT-ing code while iterating over the (locked) ThreadSP
-    // list.
-    std::vector<lldb::tid_t> tids;
-
-    if (all_threads || m_unique_stacks) {
-      Process *process = m_exe_ctx.GetProcessPtr();
-
-      for (ThreadSP thread_sp : process->Threads())
-        tids.push_back(thread_sp->GetID());
-    } else {
-      const size_t num_args = command.GetArgumentCount();
-      Process *process = m_exe_ctx.GetProcessPtr();
-
-      std::lock_guard<std::recursive_mutex> guard(
-          process->GetThreadList().GetMutex());
-
-      for (size_t i = 0; i < num_args; i++) {
-        uint32_t thread_idx;
-        if (!llvm::to_integer(command.GetArgumentAtIndex(i), thread_idx)) {
-          result.AppendErrorWithFormat("invalid thread specification: \"%s\"\n",
-                                       command.GetArgumentAtIndex(i));
-          result.SetStatus(eReturnStatusFailed);
-          return false;
-        }
-
-        ThreadSP thread =
-            process->GetThreadList().FindThreadByIndexID(thread_idx);
-
-        if (!thread) {
-          result.AppendErrorWithFormat("no thread with index: \"%s\"\n",
-                                       command.GetArgumentAtIndex(i));
-          result.SetStatus(eReturnStatusFailed);
-          return false;
-        }
-
-        tids.push_back(thread->GetID());
-      }
-    }
-
-    if (m_unique_stacks) {
-      // Iterate over threads, finding unique stack buckets.
-      std::set<UniqueStack> unique_stacks;
-      for (const lldb::tid_t &tid : tids) {
-        if (!BucketThread(tid, unique_stacks, result)) {
-          return false;
-        }
-      }
-
-      // Write the thread id's and unique call stacks to the output stream
-      Stream &strm = result.GetOutputStream();
-      Process *process = m_exe_ctx.GetProcessPtr();
-      for (const UniqueStack &stack : unique_stacks) {
-        // List the common thread ID's
-        const std::vector<uint32_t> &thread_index_ids =
-            stack.GetUniqueThreadIndexIDs();
-        strm.Format("{0} thread(s) ", thread_index_ids.size());
-        for (const uint32_t &thread_index_id : thread_index_ids) {
-          strm.Format("#{0} ", thread_index_id);
-        }
-        strm.EOL();
-
-        // List the shared call stack for this set of threads
-        uint32_t representative_thread_id = stack.GetRepresentativeThread();
-        ThreadSP thread = process->GetThreadList().FindThreadByIndexID(
-            representative_thread_id);
-        if (!HandleOneThread(thread->GetID(), result)) {
-          return false;
-        }
-      }
-    } else {
-      uint32_t idx = 0;
-      for (const lldb::tid_t &tid : tids) {
-        if (idx != 0 && m_add_return)
-          result.AppendMessage("");
-
-        if (!HandleOneThread(tid, result))
-          return false;
-
-        ++idx;
-      }
-    }
-    return result.Succeeded();
-  }
-
-protected:
-  // Override this to do whatever you need to do for one thread.
-  //
-  // If you return false, the iteration will stop, otherwise it will proceed.
-  // The result is set to m_success_return (defaults to
-  // eReturnStatusSuccessFinishResult) before the iteration, so you only need
-  // to set the return status in HandleOneThread if you want to indicate an
-  // error. If m_add_return is true, a blank line will be inserted between each
-  // of the listings (except the last one.)
-
-  virtual bool HandleOneThread(lldb::tid_t, CommandReturnObject &result) = 0;
-
-  bool BucketThread(lldb::tid_t tid, std::set<UniqueStack> &unique_stacks,
-                    CommandReturnObject &result) {
-    // Grab the corresponding thread for the given thread id.
-    Process *process = m_exe_ctx.GetProcessPtr();
-    Thread *thread = process->GetThreadList().FindThreadByID(tid).get();
-    if (thread == nullptr) {
-      result.AppendErrorWithFormatv("Failed to process thread #{0}.\n", tid);
-      result.SetStatus(eReturnStatusFailed);
-      return false;
-    }
-
-    // Collect the each frame's address for this call-stack
-    std::stack<lldb::addr_t> stack_frames;
-    const uint32_t frame_count = thread->GetStackFrameCount();
-    for (uint32_t frame_index = 0; frame_index < frame_count; frame_index++) {
-      const lldb::StackFrameSP frame_sp =
-          thread->GetStackFrameAtIndex(frame_index);
-      const lldb::addr_t pc = frame_sp->GetStackID().GetPC();
-      stack_frames.push(pc);
-    }
-
-    uint32_t thread_index_id = thread->GetIndexID();
-    UniqueStack new_unique_stack(stack_frames, thread_index_id);
-
-    // Try to match the threads stack to and existing entry.
-    std::set<UniqueStack>::iterator matching_stack =
-        unique_stacks.find(new_unique_stack);
-    if (matching_stack != unique_stacks.end()) {
-      matching_stack->AddThread(thread_index_id);
-    } else {
-      unique_stacks.insert(new_unique_stack);
-    }
-    return true;
-  }
-
-  ReturnStatus m_success_return = eReturnStatusSuccessFinishResult;
-  bool m_unique_stacks = false;
-  bool m_add_return = true;
-};
 
 // CommandObjectThreadBacktrace
 #define LLDB_OPTIONS_thread_backtrace
@@ -344,7 +156,6 @@ protected:
       result.AppendErrorWithFormat(
           "thread disappeared while computing backtraces: 0x%" PRIx64 "\n",
           tid);
-      result.SetStatus(eReturnStatusFailed);
       return false;
     }
 
@@ -363,7 +174,6 @@ protected:
       result.AppendErrorWithFormat(
           "error displaying backtrace for thread: \"0x%4.4x\"\n",
           thread->GetIndexID());
-      result.SetStatus(eReturnStatusFailed);
       return false;
     }
     if (m_options.m_extended_backtrace) {
@@ -482,8 +292,16 @@ public:
     // Check if we are in Non-Stop mode
     TargetSP target_sp =
         execution_context ? execution_context->GetTargetSP() : TargetSP();
-    if (target_sp && target_sp->GetNonStopModeEnabled())
+    if (target_sp && target_sp->GetNonStopModeEnabled()) {
+      // NonStopMode runs all threads by definition, so when it is on we don't
+      // need to check the process setting for runs all threads.
       m_run_mode = eOnlyThisThread;
+    } else {
+      ProcessSP process_sp =
+          execution_context ? execution_context->GetProcessSP() : ProcessSP();
+      if (process_sp && process_sp->GetSteppingRunsAllThreads())
+        m_run_mode = eAllThreads;
+    }
 
     m_avoid_regexp.clear();
     m_step_in_target.clear();
@@ -541,6 +359,17 @@ public:
 
   ~CommandObjectThreadStepWithTypeAndScope() override = default;
 
+  void
+  HandleArgumentCompletion(CompletionRequest &request,
+                           OptionElementVector &opt_element_vector) override {
+    if (request.GetCursorIndex())
+      return;
+
+    CommandCompletions::InvokeCommonCompletionCallbacks(
+        GetCommandInterpreter(), CommandCompletions::eThreadIndexCompletion,
+        request, nullptr);
+  }
+
   Options *GetOptions() override { return &m_all_options; }
 
 protected:
@@ -556,7 +385,6 @@ protected:
 
       if (thread == nullptr) {
         result.AppendError("no selected thread in process");
-        result.SetStatus(eReturnStatusFailed);
         return false;
       }
     } else {
@@ -566,7 +394,6 @@ protected:
       if (!llvm::to_integer(thread_idx_cstr, step_thread_idx)) {
         result.AppendErrorWithFormat("invalid thread index '%s'.\n",
                                      thread_idx_cstr);
-        result.SetStatus(eReturnStatusFailed);
         return false;
       }
       thread =
@@ -575,7 +402,6 @@ protected:
         result.AppendErrorWithFormat(
             "Thread index %u is out of range (valid values are 0 - %u).\n",
             step_thread_idx, num_threads);
-        result.SetStatus(eReturnStatusFailed);
         return false;
       }
     }
@@ -583,14 +409,12 @@ protected:
     if (m_step_type == eStepTypeScripted) {
       if (m_class_options.GetName().empty()) {
         result.AppendErrorWithFormat("empty class name for scripted step.");
-        result.SetStatus(eReturnStatusFailed);
         return false;
       } else if (!GetDebugger().GetScriptInterpreter()->CheckObjectExists(
                      m_class_options.GetName().c_str())) {
         result.AppendErrorWithFormat(
             "class for scripted step: \"%s\" does not exist.",
             m_class_options.GetName().c_str());
-        result.SetStatus(eReturnStatusFailed);
         return false;
       }
     }
@@ -599,7 +423,6 @@ protected:
         m_step_type != eStepTypeInto) {
       result.AppendErrorWithFormat(
           "end line option is only valid for step into");
-      result.SetStatus(eReturnStatusFailed);
       return false;
     }
 
@@ -612,8 +435,7 @@ protected:
     if (m_options.m_run_mode == eAllThreads)
       bool_stop_other_threads = false;
     else if (m_options.m_run_mode == eOnlyDuringStepping)
-      bool_stop_other_threads =
-          (m_step_type != eStepTypeOut && m_step_type != eStepTypeScripted);
+      bool_stop_other_threads = (m_step_type != eStepTypeOut);
     else
       bool_stop_other_threads = true;
 
@@ -633,7 +455,6 @@ protected:
                                                    error)) {
             result.AppendErrorWithFormat("invalid end-line option: %s.",
                                          error.AsCString());
-            result.SetStatus(eReturnStatusFailed);
             return false;
           }
         } else if (m_options.m_end_line_is_block_end) {
@@ -641,7 +462,6 @@ protected:
           Block *block = frame->GetSymbolContext(eSymbolContextBlock).block;
           if (!block) {
             result.AppendErrorWithFormat("Could not find the current block.");
-            result.SetStatus(eReturnStatusFailed);
             return false;
           }
 
@@ -651,7 +471,6 @@ protected:
           if (!block_range.GetBaseAddress().IsValid()) {
             result.AppendErrorWithFormat(
                 "Could not find the current block address.");
-            result.SetStatus(eReturnStatusFailed);
             return false;
           }
           lldb::addr_t pc_offset_in_block =
@@ -710,7 +529,6 @@ protected:
           new_plan_status);
     } else {
       result.AppendError("step type is not supported");
-      result.SetStatus(eReturnStatusFailed);
       return false;
     }
 
@@ -742,7 +560,6 @@ protected:
 
       if (!error.Success()) {
         result.AppendMessage(error.AsCString());
-        result.SetStatus(eReturnStatusFailed);
         return false;
       }
 
@@ -766,7 +583,6 @@ protected:
       }
     } else {
       result.SetError(new_plan_status);
-      result.SetStatus(eReturnStatusFailed);
     }
     return result.Succeeded();
   }
@@ -808,13 +624,20 @@ public:
 
   ~CommandObjectThreadContinue() override = default;
 
+  void
+  HandleArgumentCompletion(CompletionRequest &request,
+                           OptionElementVector &opt_element_vector) override {
+    CommandCompletions::InvokeCommonCompletionCallbacks(
+        GetCommandInterpreter(), CommandCompletions::eThreadIndexCompletion,
+        request, nullptr);
+  }
+
   bool DoExecute(Args &command, CommandReturnObject &result) override {
     bool synchronous_execution = m_interpreter.GetSynchronous();
 
     Process *process = m_exe_ctx.GetProcessPtr();
     if (process == nullptr) {
       result.AppendError("no process exists. Cannot continue");
-      result.SetStatus(eReturnStatusFailed);
       return false;
     }
 
@@ -835,7 +658,6 @@ public:
           if (entry.ref().getAsInteger(0, thread_idx)) {
             result.AppendErrorWithFormat(
                 "invalid thread index argument: \"%s\".\n", entry.c_str());
-            result.SetStatus(eReturnStatusFailed);
             return false;
           }
           Thread *thread =
@@ -846,14 +668,12 @@ public:
           } else {
             result.AppendErrorWithFormat("invalid thread index %u.\n",
                                          thread_idx);
-            result.SetStatus(eReturnStatusFailed);
             return false;
           }
         }
 
         if (resume_threads.empty()) {
           result.AppendError("no valid thread indexes were specified");
-          result.SetStatus(eReturnStatusFailed);
           return false;
         } else {
           if (resume_threads.size() == 1)
@@ -893,7 +713,6 @@ public:
         Thread *current_thread = GetDefaultThread();
         if (current_thread == nullptr) {
           result.AppendError("the process doesn't have a current thread");
-          result.SetStatus(eReturnStatusFailed);
           return false;
         }
         // Set the actions that the threads should each take when resuming
@@ -936,13 +755,11 @@ public:
       } else {
         result.AppendErrorWithFormat("Failed to resume process: %s\n",
                                      error.AsCString());
-        result.SetStatus(eReturnStatusFailed);
       }
     } else {
       result.AppendErrorWithFormat(
           "Process cannot be continued from its current state (%s).\n",
           StateAsCString(state));
-      result.SetStatus(eReturnStatusFailed);
     }
 
     return result.Succeeded();
@@ -966,12 +783,10 @@ class CommandObjectThreadUntil : public CommandObjectParsed {
 public:
   class CommandOptions : public Options {
   public:
-    uint32_t m_thread_idx;
-    uint32_t m_frame_idx;
+    uint32_t m_thread_idx = LLDB_INVALID_THREAD_ID;
+    uint32_t m_frame_idx = LLDB_INVALID_FRAME_ID;
 
-    CommandOptions()
-        : Options(), m_thread_idx(LLDB_INVALID_THREAD_ID),
-          m_frame_idx(LLDB_INVALID_FRAME_ID) {
+    CommandOptions() : Options() {
       // Keep default values of all options in one place: OptionParsingStarting
       // ()
       OptionParsingStarting(nullptr);
@@ -1082,7 +897,6 @@ protected:
     Process *process = m_exe_ctx.GetProcessPtr();
     if (process == nullptr) {
       result.AppendError("need a valid process to step");
-      result.SetStatus(eReturnStatusFailed);
     } else {
       Thread *thread = nullptr;
       std::vector<uint32_t> line_numbers;
@@ -1094,7 +908,6 @@ protected:
           if (!llvm::to_integer(command.GetArgumentAtIndex(i), line_number)) {
             result.AppendErrorWithFormat("invalid line number: '%s'.\n",
                                          command.GetArgumentAtIndex(i));
-            result.SetStatus(eReturnStatusFailed);
             return false;
           } else
             line_numbers.push_back(line_number);
@@ -1102,7 +915,6 @@ protected:
       } else if (m_options.m_until_addrs.empty()) {
         result.AppendErrorWithFormat("No line number or address provided:\n%s",
                                      GetSyntax().str().c_str());
-        result.SetStatus(eReturnStatusFailed);
         return false;
       }
 
@@ -1119,7 +931,6 @@ protected:
         result.AppendErrorWithFormat(
             "Thread index %u is out of range (valid values are 0 - %u).\n",
             m_options.m_thread_idx, num_threads);
-        result.SetStatus(eReturnStatusFailed);
         return false;
       }
 
@@ -1131,7 +942,6 @@ protected:
         result.AppendErrorWithFormat(
             "Frame index %u is out of range for thread %u.\n",
             m_options.m_frame_idx, m_options.m_thread_idx);
-        result.SetStatus(eReturnStatusFailed);
         return false;
       }
 
@@ -1151,7 +961,6 @@ protected:
                                        "frame %u of thread index %u.\n",
                                        m_options.m_frame_idx,
                                        m_options.m_thread_idx);
-          result.SetStatus(eReturnStatusFailed);
           return false;
         }
 
@@ -1211,7 +1020,6 @@ protected:
             result.AppendErrorWithFormat(
                 "Until target outside of the current function.\n");
 
-          result.SetStatus(eReturnStatusFailed);
           return false;
         }
 
@@ -1227,14 +1035,12 @@ protected:
           new_plan_sp->SetOkayToDiscard(false);
         } else {
           result.SetError(new_plan_status);
-          result.SetStatus(eReturnStatusFailed);
           return false;
         }
       } else {
         result.AppendErrorWithFormat(
             "Frame index %u of thread %u has no debug information.\n",
             m_options.m_frame_idx, m_options.m_thread_idx);
-        result.SetStatus(eReturnStatusFailed);
         return false;
       }
 
@@ -1264,7 +1070,6 @@ protected:
       } else {
         result.AppendErrorWithFormat("Failed to resume process: %s.\n",
                                      error.AsCString());
-        result.SetStatus(eReturnStatusFailed);
       }
     }
     return result.Succeeded();
@@ -1300,18 +1105,27 @@ public:
 
   ~CommandObjectThreadSelect() override = default;
 
+  void
+  HandleArgumentCompletion(CompletionRequest &request,
+                           OptionElementVector &opt_element_vector) override {
+    if (request.GetCursorIndex())
+      return;
+
+    CommandCompletions::InvokeCommonCompletionCallbacks(
+        GetCommandInterpreter(), CommandCompletions::eThreadIndexCompletion,
+        request, nullptr);
+  }
+
 protected:
   bool DoExecute(Args &command, CommandReturnObject &result) override {
     Process *process = m_exe_ctx.GetProcessPtr();
     if (process == nullptr) {
       result.AppendError("no process");
-      result.SetStatus(eReturnStatusFailed);
       return false;
     } else if (command.GetArgumentCount() != 1) {
       result.AppendErrorWithFormat(
           "'%s' takes exactly one thread index argument:\nUsage: %s\n",
           m_cmd_name.c_str(), m_cmd_syntax.c_str());
-      result.SetStatus(eReturnStatusFailed);
       return false;
     }
 
@@ -1319,7 +1133,6 @@ protected:
     if (!llvm::to_integer(command.GetArgumentAtIndex(0), index_id)) {
       result.AppendErrorWithFormat("Invalid thread index '%s'",
                                    command.GetArgumentAtIndex(0));
-      result.SetStatus(eReturnStatusFailed);
       return false;
     }
 
@@ -1328,7 +1141,6 @@ protected:
     if (new_thread == nullptr) {
       result.AppendErrorWithFormat("invalid thread #%s.\n",
                                    command.GetArgumentAtIndex(0));
-      result.SetStatus(eReturnStatusFailed);
       return false;
     }
 
@@ -1431,6 +1243,14 @@ public:
 
   ~CommandObjectThreadInfo() override = default;
 
+  void
+  HandleArgumentCompletion(CompletionRequest &request,
+                           OptionElementVector &opt_element_vector) override {
+    CommandCompletions::InvokeCommonCompletionCallbacks(
+        GetCommandInterpreter(), CommandCompletions::eThreadIndexCompletion,
+        request, nullptr);
+  }
+
   Options *GetOptions() override { return &m_options; }
 
   bool HandleOneThread(lldb::tid_t tid, CommandReturnObject &result) override {
@@ -1439,7 +1259,6 @@ public:
     if (!thread_sp) {
       result.AppendErrorWithFormat("thread no longer exists: 0x%" PRIx64 "\n",
                                    tid);
-      result.SetStatus(eReturnStatusFailed);
       return false;
     }
 
@@ -1451,7 +1270,6 @@ public:
                                 m_options.m_json_stopinfo)) {
       result.AppendErrorWithFormat("error displaying info for thread: \"%d\"\n",
                                    thread->GetIndexID());
-      result.SetStatus(eReturnStatusFailed);
       return false;
     }
     return true;
@@ -1475,13 +1293,20 @@ public:
 
   ~CommandObjectThreadException() override = default;
 
+  void
+  HandleArgumentCompletion(CompletionRequest &request,
+                           OptionElementVector &opt_element_vector) override {
+    CommandCompletions::InvokeCommonCompletionCallbacks(
+        GetCommandInterpreter(), CommandCompletions::eThreadIndexCompletion,
+        request, nullptr);
+  }
+
   bool HandleOneThread(lldb::tid_t tid, CommandReturnObject &result) override {
     ThreadSP thread_sp =
         m_exe_ctx.GetProcessPtr()->GetThreadList().FindThreadByID(tid);
     if (!thread_sp) {
       result.AppendErrorWithFormat("thread no longer exists: 0x%" PRIx64 "\n",
                                    tid);
-      result.SetStatus(eReturnStatusFailed);
       return false;
     }
 
@@ -1511,7 +1336,7 @@ class CommandObjectThreadReturn : public CommandObjectRaw {
 public:
   class CommandOptions : public Options {
   public:
-    CommandOptions() : Options(), m_from_expression(false) {
+    CommandOptions() : Options() {
       // Keep default values of all options in one place: OptionParsingStarting
       // ()
       OptionParsingStarting(nullptr);
@@ -1551,7 +1376,7 @@ public:
       return llvm::makeArrayRef(g_thread_return_options);
     }
 
-    bool m_from_expression;
+    bool m_from_expression = false;
 
     // Instance variables to hold the values for command options.
   };
@@ -1604,7 +1429,6 @@ protected:
       if (!error.Success()) {
         result.AppendErrorWithFormat("Unwinding expression failed - %s.",
                                      error.AsCString());
-        result.SetStatus(eReturnStatusFailed);
       } else {
         bool success =
             thread->SetSelectedFrameByIndexNoisily(0, result.GetOutputStream());
@@ -1614,7 +1438,6 @@ protected:
         } else {
           result.AppendErrorWithFormat(
               "Could not select 0th frame after unwinding expression.");
-          result.SetStatus(eReturnStatusFailed);
         }
       }
       return result.Succeeded();
@@ -1627,7 +1450,6 @@ protected:
 
     if (frame_sp->IsInlined()) {
       result.AppendError("Don't know how to return from inlined frames.");
-      result.SetStatus(eReturnStatusFailed);
       return false;
     }
 
@@ -1649,7 +1471,6 @@ protected:
         else
           result.AppendErrorWithFormat(
               "Unknown error evaluating result expression.");
-        result.SetStatus(eReturnStatusFailed);
         return false;
       }
     }
@@ -1662,7 +1483,6 @@ protected:
       result.AppendErrorWithFormat(
           "Error returning from frame %d of thread %d: %s.", frame_idx,
           thread_sp->GetIndexID(), error.AsCString());
-      result.SetStatus(eReturnStatusFailed);
       return false;
     }
 
@@ -1764,14 +1584,12 @@ protected:
       lldb::addr_t callAddr = dest.GetCallableLoadAddress(target);
       if (callAddr == LLDB_INVALID_ADDRESS) {
         result.AppendErrorWithFormat("Invalid destination address.");
-        result.SetStatus(eReturnStatusFailed);
         return false;
       }
 
       if (!reg_ctx->SetPC(callAddr)) {
         result.AppendErrorWithFormat("Error changing PC value for thread %d.",
                                      thread->GetIndexID());
-        result.SetStatus(eReturnStatusFailed);
         return false;
       }
     } else {
@@ -1788,7 +1606,6 @@ protected:
       if (!file) {
         result.AppendErrorWithFormat(
             "No source file available for the current location.");
-        result.SetStatus(eReturnStatusFailed);
         return false;
       }
 
@@ -1913,9 +1730,8 @@ public:
               true /* condense_trivial */, m_options.m_unreported);
           // If we didn't find a TID, stop here and return an error.
           if (!success) {
-            result.SetError("Error dumping plans:");
+            result.AppendError("Error dumping plans:");
             result.AppendError(tmp_strm.GetString());
-            result.SetStatus(eReturnStatusFailed);
             return false;
           }
           // Otherwise, add our data to the output:
@@ -1929,8 +1745,7 @@ public:
 protected:
   bool HandleOneThread(lldb::tid_t tid, CommandReturnObject &result) override {
     // If we have already handled this from a -t option, skip it here.
-    if (std::find(m_options.m_tids.begin(), m_options.m_tids.end(), tid) !=
-        m_options.m_tids.end())
+    if (llvm::is_contained(m_options.m_tids, tid))
       return true;
 
     Process *process = m_exe_ctx.GetProcessPtr();
@@ -1978,13 +1793,21 @@ public:
 
   ~CommandObjectThreadPlanDiscard() override = default;
 
+  void
+  HandleArgumentCompletion(CompletionRequest &request,
+                           OptionElementVector &opt_element_vector) override {
+    if (!m_exe_ctx.HasThreadScope() || request.GetCursorIndex())
+      return;
+
+    m_exe_ctx.GetThreadPtr()->AutoCompleteThreadPlans(request);
+  }
+
   bool DoExecute(Args &args, CommandReturnObject &result) override {
     Thread *thread = m_exe_ctx.GetThreadPtr();
     if (args.GetArgumentCount() != 1) {
       result.AppendErrorWithFormat("Too many arguments, expected one - the "
                                    "thread plan index - but got %zu.",
                                    args.GetArgumentCount());
-      result.SetStatus(eReturnStatusFailed);
       return false;
     }
 
@@ -1993,14 +1816,12 @@ public:
       result.AppendErrorWithFormat(
           "Invalid thread index: \"%s\" - should be unsigned int.",
           args.GetArgumentAtIndex(0));
-      result.SetStatus(eReturnStatusFailed);
       return false;
     }
 
     if (thread_plan_idx == 0) {
       result.AppendErrorWithFormat(
           "You wouldn't really want me to discard the base thread plan.");
-      result.SetStatus(eReturnStatusFailed);
       return false;
     }
 
@@ -2011,7 +1832,6 @@ public:
       result.AppendErrorWithFormat(
           "Could not find User thread plan with index %s.",
           args.GetArgumentAtIndex(0));
-      result.SetStatus(eReturnStatusFailed);
       return false;
     }
   }
@@ -2050,11 +1870,11 @@ public:
 
   bool DoExecute(Args &args, CommandReturnObject &result) override {
     Process *process = m_exe_ctx.GetProcessPtr();
-    
+
     if (args.GetArgumentCount() == 0) {
       process->PruneThreadPlans();
       result.SetStatus(eReturnStatusSuccessFinishNoResult);
-      return true;  
+      return true;
     }
 
     const size_t num_args = args.GetArgumentCount();
@@ -2067,13 +1887,11 @@ public:
       if (!llvm::to_integer(args.GetArgumentAtIndex(i), tid)) {
         result.AppendErrorWithFormat("invalid thread specification: \"%s\"\n",
                                      args.GetArgumentAtIndex(i));
-        result.SetStatus(eReturnStatusFailed);
         return false;
       }
       if (!process->PruneThreadPlansForTID(tid)) {
         result.AppendErrorWithFormat("Could not find unreported tid: \"%s\"\n",
                                      args.GetArgumentAtIndex(i));
-        result.SetStatus(eReturnStatusFailed);
         return false;
       }
     }
@@ -2102,6 +1920,364 @@ public:
   }
 
   ~CommandObjectMultiwordThreadPlan() override = default;
+};
+
+// Next are the subcommands of CommandObjectMultiwordTrace
+
+// CommandObjectTraceExport
+
+class CommandObjectTraceExport : public CommandObjectMultiword {
+public:
+  CommandObjectTraceExport(CommandInterpreter &interpreter)
+      : CommandObjectMultiword(
+            interpreter, "trace thread export",
+            "Commands for exporting traces of the threads in the current "
+            "process to different formats.",
+            "thread trace export <export-plugin> [<subcommand objects>]") {
+
+    for (uint32_t i = 0; true; i++) {
+      if (const char *plugin_name =
+              PluginManager::GetTraceExporterPluginNameAtIndex(i)) {
+        if (ThreadTraceExportCommandCreator command_creator =
+                PluginManager::GetThreadTraceExportCommandCreatorAtIndex(i)) {
+          LoadSubCommand(plugin_name, command_creator(interpreter));
+        }
+      } else {
+        break;
+      }
+    }
+  }
+};
+
+// CommandObjectTraceStart
+
+class CommandObjectTraceStart : public CommandObjectTraceProxy {
+public:
+  CommandObjectTraceStart(CommandInterpreter &interpreter)
+      : CommandObjectTraceProxy(
+            /*live_debug_session_only=*/true, interpreter, "thread trace start",
+            "Start tracing threads with the corresponding trace "
+            "plug-in for the current process.",
+            "thread trace start [<trace-options>]") {}
+
+protected:
+  lldb::CommandObjectSP GetDelegateCommand(Trace &trace) override {
+    return trace.GetThreadTraceStartCommand(m_interpreter);
+  }
+};
+
+// CommandObjectTraceStop
+
+class CommandObjectTraceStop : public CommandObjectMultipleThreads {
+public:
+  CommandObjectTraceStop(CommandInterpreter &interpreter)
+      : CommandObjectMultipleThreads(
+            interpreter, "thread trace stop",
+            "Stop tracing threads, including the ones traced with the "
+            "\"process trace start\" command."
+            "Defaults to the current thread. Thread indices can be "
+            "specified as arguments.\n Use the thread-index \"all\" to stop "
+            "tracing "
+            "for all existing threads.",
+            "thread trace stop [<thread-index> <thread-index> ...]",
+            eCommandRequiresProcess | eCommandTryTargetAPILock |
+                eCommandProcessMustBeLaunched | eCommandProcessMustBePaused |
+                eCommandProcessMustBeTraced) {}
+
+  ~CommandObjectTraceStop() override = default;
+
+  bool DoExecuteOnThreads(Args &command, CommandReturnObject &result,
+                          llvm::ArrayRef<lldb::tid_t> tids) override {
+    ProcessSP process_sp = m_exe_ctx.GetProcessSP();
+
+    TraceSP trace_sp = process_sp->GetTarget().GetTrace();
+
+    if (llvm::Error err = trace_sp->Stop(tids))
+      result.AppendError(toString(std::move(err)));
+    else
+      result.SetStatus(eReturnStatusSuccessFinishResult);
+
+    return result.Succeeded();
+  }
+};
+
+// CommandObjectTraceDumpInstructions
+#define LLDB_OPTIONS_thread_trace_dump_instructions
+#include "CommandOptions.inc"
+
+class CommandObjectTraceDumpInstructions
+    : public CommandObjectIterateOverThreads {
+public:
+  class CommandOptions : public Options {
+  public:
+    CommandOptions() : Options() { OptionParsingStarting(nullptr); }
+
+    ~CommandOptions() override = default;
+
+    Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
+                          ExecutionContext *execution_context) override {
+      Status error;
+      const int short_option = m_getopt_table[option_idx].val;
+
+      switch (short_option) {
+      case 'c': {
+        int32_t count;
+        if (option_arg.empty() || option_arg.getAsInteger(0, count) ||
+            count < 0)
+          error.SetErrorStringWithFormat(
+              "invalid integer value for option '%s'",
+              option_arg.str().c_str());
+        else
+          m_count = count;
+        break;
+      }
+      case 's': {
+        int32_t skip;
+        if (option_arg.empty() || option_arg.getAsInteger(0, skip) || skip < 0)
+          error.SetErrorStringWithFormat(
+              "invalid integer value for option '%s'",
+              option_arg.str().c_str());
+        else
+          m_skip = skip;
+        break;
+      }
+      case 'r': {
+        m_raw = true;
+        break;
+      }
+      case 'f': {
+        m_forwards = true;
+        break;
+      }
+      case 't': {
+        m_show_tsc = true;
+        break;
+      }
+      default:
+        llvm_unreachable("Unimplemented option");
+      }
+      return error;
+    }
+
+    void OptionParsingStarting(ExecutionContext *execution_context) override {
+      m_count = kDefaultCount;
+      m_skip = 0;
+      m_raw = false;
+      m_forwards = false;
+      m_show_tsc = false;
+    }
+
+    llvm::ArrayRef<OptionDefinition> GetDefinitions() override {
+      return llvm::makeArrayRef(g_thread_trace_dump_instructions_options);
+    }
+
+    static const size_t kDefaultCount = 20;
+
+    // Instance variables to hold the values for command options.
+    size_t m_count;
+    size_t m_skip;
+    bool m_raw;
+    bool m_forwards;
+    bool m_show_tsc;
+  };
+
+  CommandObjectTraceDumpInstructions(CommandInterpreter &interpreter)
+      : CommandObjectIterateOverThreads(
+            interpreter, "thread trace dump instructions",
+            "Dump the traced instructions for one or more threads. If no "
+            "threads are specified, show the current thread.  Use the "
+            "thread-index \"all\" to see all threads.",
+            nullptr,
+            eCommandRequiresProcess | eCommandTryTargetAPILock |
+                eCommandProcessMustBeLaunched | eCommandProcessMustBePaused |
+                eCommandProcessMustBeTraced),
+        m_options(), m_create_repeat_command_just_invoked(false) {}
+
+  ~CommandObjectTraceDumpInstructions() override = default;
+
+  Options *GetOptions() override { return &m_options; }
+
+  const char *GetRepeatCommand(Args &current_command_args,
+                               uint32_t index) override {
+    current_command_args.GetCommandString(m_repeat_command);
+    m_create_repeat_command_just_invoked = true;
+    return m_repeat_command.c_str();
+  }
+
+protected:
+  bool DoExecute(Args &args, CommandReturnObject &result) override {
+    if (!IsRepeatCommand())
+      m_dumpers.clear();
+
+    bool status = CommandObjectIterateOverThreads::DoExecute(args, result);
+
+    m_create_repeat_command_just_invoked = false;
+    return status;
+  }
+
+  bool IsRepeatCommand() {
+    return !m_repeat_command.empty() && !m_create_repeat_command_just_invoked;
+  }
+
+  bool HandleOneThread(lldb::tid_t tid, CommandReturnObject &result) override {
+    Stream &s = result.GetOutputStream();
+
+    const TraceSP &trace_sp = m_exe_ctx.GetTargetSP()->GetTrace();
+    ThreadSP thread_sp =
+        m_exe_ctx.GetProcessPtr()->GetThreadList().FindThreadByID(tid);
+
+    if (!m_dumpers.count(thread_sp->GetID())) {
+      lldb::TraceCursorUP cursor_up = trace_sp->GetCursor(*thread_sp);
+      // Set up the cursor and return the presentation index of the first
+      // instruction to dump after skipping instructions.
+      auto setUpCursor = [&]() {
+        cursor_up->SetForwards(m_options.m_forwards);
+        if (m_options.m_forwards)
+          return cursor_up->Seek(m_options.m_skip, TraceCursor::SeekType::Set);
+        return -cursor_up->Seek(-m_options.m_skip, TraceCursor::SeekType::End);
+      };
+
+      int initial_index = setUpCursor();
+
+      auto dumper = std::make_unique<TraceInstructionDumper>(
+          std::move(cursor_up), initial_index, m_options.m_raw,
+          m_options.m_show_tsc);
+
+      // This happens when the seek value was more than the number of available
+      // instructions.
+      if (std::abs(initial_index) < (int)m_options.m_skip)
+        dumper->SetNoMoreData();
+
+      m_dumpers[thread_sp->GetID()] = std::move(dumper);
+    }
+
+    m_dumpers[thread_sp->GetID()]->DumpInstructions(s, m_options.m_count);
+    return true;
+  }
+
+  CommandOptions m_options;
+
+  // Repeat command helpers
+  std::string m_repeat_command;
+  bool m_create_repeat_command_just_invoked;
+  std::map<lldb::tid_t, std::unique_ptr<TraceInstructionDumper>> m_dumpers;
+};
+
+// CommandObjectTraceDumpInfo
+#define LLDB_OPTIONS_thread_trace_dump_info
+#include "CommandOptions.inc"
+
+class CommandObjectTraceDumpInfo : public CommandObjectIterateOverThreads {
+public:
+  class CommandOptions : public Options {
+  public:
+    CommandOptions() : Options() { OptionParsingStarting(nullptr); }
+
+    ~CommandOptions() override = default;
+
+    Status SetOptionValue(uint32_t option_idx, llvm::StringRef option_arg,
+                          ExecutionContext *execution_context) override {
+      Status error;
+      const int short_option = m_getopt_table[option_idx].val;
+
+      switch (short_option) {
+      case 'v': {
+        m_verbose = true;
+        break;
+      }
+      default:
+        llvm_unreachable("Unimplemented option");
+      }
+      return error;
+    }
+
+    void OptionParsingStarting(ExecutionContext *execution_context) override {
+      m_verbose = false;
+    }
+
+    llvm::ArrayRef<OptionDefinition> GetDefinitions() override {
+      return llvm::makeArrayRef(g_thread_trace_dump_info_options);
+    }
+
+    // Instance variables to hold the values for command options.
+    bool m_verbose;
+  };
+
+  bool DoExecute(Args &command, CommandReturnObject &result) override {
+    Target &target = m_exe_ctx.GetTargetRef();
+    result.GetOutputStream().Printf(
+        "Trace technology: %s\n",
+        target.GetTrace()->GetPluginName().AsCString());
+    return CommandObjectIterateOverThreads::DoExecute(command, result);
+  }
+
+  CommandObjectTraceDumpInfo(CommandInterpreter &interpreter)
+      : CommandObjectIterateOverThreads(
+            interpreter, "thread trace dump info",
+            "Dump the traced information for one or more threads.  If no "
+            "threads are specified, show the current thread.  Use the "
+            "thread-index \"all\" to see all threads.",
+            nullptr,
+            eCommandRequiresProcess | eCommandTryTargetAPILock |
+                eCommandProcessMustBeLaunched | eCommandProcessMustBePaused |
+                eCommandProcessMustBeTraced),
+        m_options() {}
+
+  ~CommandObjectTraceDumpInfo() override = default;
+
+  Options *GetOptions() override { return &m_options; }
+
+protected:
+  bool HandleOneThread(lldb::tid_t tid, CommandReturnObject &result) override {
+    const TraceSP &trace_sp = m_exe_ctx.GetTargetSP()->GetTrace();
+    ThreadSP thread_sp =
+        m_exe_ctx.GetProcessPtr()->GetThreadList().FindThreadByID(tid);
+    trace_sp->DumpTraceInfo(*thread_sp, result.GetOutputStream(),
+                            m_options.m_verbose);
+    return true;
+  }
+
+  CommandOptions m_options;
+};
+
+// CommandObjectMultiwordTraceDump
+class CommandObjectMultiwordTraceDump : public CommandObjectMultiword {
+public:
+  CommandObjectMultiwordTraceDump(CommandInterpreter &interpreter)
+      : CommandObjectMultiword(
+            interpreter, "dump",
+            "Commands for displaying trace information of the threads "
+            "in the current process.",
+            "thread trace dump <subcommand> [<subcommand objects>]") {
+    LoadSubCommand(
+        "instructions",
+        CommandObjectSP(new CommandObjectTraceDumpInstructions(interpreter)));
+    LoadSubCommand(
+        "info", CommandObjectSP(new CommandObjectTraceDumpInfo(interpreter)));
+  }
+  ~CommandObjectMultiwordTraceDump() override = default;
+};
+
+// CommandObjectMultiwordTrace
+class CommandObjectMultiwordTrace : public CommandObjectMultiword {
+public:
+  CommandObjectMultiwordTrace(CommandInterpreter &interpreter)
+      : CommandObjectMultiword(
+            interpreter, "trace",
+            "Commands for operating on traces of the threads in the current "
+            "process.",
+            "thread trace <subcommand> [<subcommand objects>]") {
+    LoadSubCommand("dump", CommandObjectSP(new CommandObjectMultiwordTraceDump(
+                               interpreter)));
+    LoadSubCommand("start",
+                   CommandObjectSP(new CommandObjectTraceStart(interpreter)));
+    LoadSubCommand("stop",
+                   CommandObjectSP(new CommandObjectTraceStop(interpreter)));
+    LoadSubCommand("export",
+                   CommandObjectSP(new CommandObjectTraceExport(interpreter)));
+  }
+
+  ~CommandObjectMultiwordTrace() override = default;
 };
 
 // CommandObjectMultiwordThread
@@ -2179,6 +2355,8 @@ CommandObjectMultiwordThread::CommandObjectMultiwordThread(
 
   LoadSubCommand("plan", CommandObjectSP(new CommandObjectMultiwordThreadPlan(
                              interpreter)));
+  LoadSubCommand("trace",
+                 CommandObjectSP(new CommandObjectMultiwordTrace(interpreter)));
 }
 
 CommandObjectMultiwordThread::~CommandObjectMultiwordThread() = default;

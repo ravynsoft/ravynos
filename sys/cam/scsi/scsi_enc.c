@@ -345,11 +345,6 @@ enc_close(struct cdev *dev, int flag, int fmt, struct thread *td)
 int
 enc_error(union ccb *ccb, uint32_t cflags, uint32_t sflags)
 {
-	struct enc_softc *softc;
-	struct cam_periph *periph;
-
-	periph = xpt_path_periph(ccb->ccb_h.path);
-	softc = (struct enc_softc *)periph->softc;
 
 	return (cam_periph_error(ccb, cflags, sflags));
 }
@@ -849,8 +844,8 @@ enc_daemon(void *arg)
 			 */
 			root_mount_rel(&enc->enc_rootmount);
 
-			callout_reset(&enc->status_updater, 60*hz,
-				      enc_status_updater, enc);
+			callout_reset_sbt(&enc->status_updater, 60 * SBT_1S, 0,
+			    enc_status_updater, enc, C_PREL(1));
 
 			cam_periph_sleep(enc->periph, enc->enc_daemon,
 					 PUSER, "idle", 0);

@@ -152,7 +152,7 @@ static MCAsmInfo *createSystemZMCAsmInfo(const MCRegisterInfo &MRI,
   MCAsmInfo *MAI = new SystemZMCAsmInfo(TT);
   MCCFIInstruction Inst = MCCFIInstruction::cfiDefCfa(
       nullptr, MRI.getDwarfRegNum(SystemZ::R15D, true),
-      SystemZMC::CFAOffsetFromInitialSP);
+      SystemZMC::ELFCFAOffsetFromInitialSP);
   MAI->addInitialFrameState(Inst);
   return MAI;
 }
@@ -171,7 +171,7 @@ static MCRegisterInfo *createSystemZMCRegisterInfo(const Triple &TT) {
 
 static MCSubtargetInfo *
 createSystemZMCSubtargetInfo(const Triple &TT, StringRef CPU, StringRef FS) {
-  return createSystemZMCSubtargetInfoImpl(TT, CPU, FS);
+  return createSystemZMCSubtargetInfoImpl(TT, CPU, /*TuneCPU*/ CPU, FS);
 }
 
 static MCInstPrinter *createSystemZMCInstPrinter(const Triple &T,

@@ -559,7 +559,6 @@ g_io_request(struct bio *bp, struct g_consumer *cp)
 	atomic_add_int(&cp->nstart, 1);
 #endif
 
-#ifdef GET_STACK_USAGE
 	direct = (cp->flags & G_CF_DIRECT_SEND) != 0 &&
 	    (pp->flags & G_PF_DIRECT_RECEIVE) != 0 &&
 	    !g_is_geom_thread(curthread) &&
@@ -573,9 +572,6 @@ g_io_request(struct bio *bp, struct g_consumer *cp)
 		if (su * 2 > st)
 			direct = 0;
 	}
-#else
-	direct = 0;
-#endif
 
 	if (direct) {
 		error = g_io_check(bp);
@@ -655,7 +651,6 @@ g_io_deliver(struct bio *bp, int error)
 	bp->bio_bcount = bp->bio_length;
 	bp->bio_resid = bp->bio_bcount - bp->bio_completed;
 
-#ifdef GET_STACK_USAGE
 	direct = (pp->flags & G_PF_DIRECT_SEND) &&
 		 (cp->flags & G_CF_DIRECT_RECEIVE) &&
 		 !g_is_geom_thread(curthread);
@@ -666,9 +661,6 @@ g_io_deliver(struct bio *bp, int error)
 		if (su * 2 > st)
 			direct = 0;
 	}
-#else
-	direct = 0;
-#endif
 
 	/*
 	 * The statistics collection is lockless, as such, but we
@@ -678,7 +670,7 @@ g_io_deliver(struct bio *bp, int error)
 	if ((g_collectstats & G_STATS_CONSUMERS) != 0 ||
 	    ((g_collectstats & G_STATS_PROVIDERS) != 0 && pp->stat != NULL))
 		binuptime(&now);
-	mtxp = mtx_pool_find(mtxpool_sleep, cp);
+	mtxp = mtx_pool_find(mtxpool_sleep, pp);
 	mtx_lock(mtxp);
 	if (g_collectstats & G_STATS_PROVIDERS)
 		devstat_end_transaction_bio_bt(pp->stat, bp, &now);
@@ -894,6 +886,8 @@ g_read_data(struct g_consumer *cp, off_t offset, off_t length, int *error)
 	bp->bio_data = ptr;
 	g_io_request(bp, cp);
 	errorc = biowait(bp, "gread");
+	if (errorc == 0 && bp->bio_completed != length)
+		errorc = EIO;
 	if (error != NULL)
 		*error = errorc;
 	g_destroy_bio(bp);
@@ -948,6 +942,8 @@ g_write_data(struct g_consumer *cp, off_t offset, void *ptr, off_t length)
 	bp->bio_data = ptr;
 	g_io_request(bp, cp);
 	error = biowait(bp, "gwrite");
+	if (error == 0 && bp->bio_completed != length)
+		error = EIO;
 	g_destroy_bio(bp);
 	return (error);
 }
@@ -979,6 +975,8 @@ g_delete_data(struct g_consumer *cp, off_t offset, off_t length)
 	bp->bio_data = NULL;
 	g_io_request(bp, cp);
 	error = biowait(bp, "gdelete");
+	if (error == 0 && bp->bio_completed != length)
+		error = EIO;
 	g_destroy_bio(bp);
 	return (error);
 }

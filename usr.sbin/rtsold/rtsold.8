@@ -29,7 +29,7 @@
 .\"
 .\" $FreeBSD$
 .\"
-.Dd August 19, 2020
+.Dd November 12, 2021
 .Dt RTSOLD 8
 .Os
 .\"
@@ -39,27 +39,27 @@
 .\"
 .Sh SYNOPSIS
 .Nm
-.Op Fl dDfFmu1
+.Op Fl dDfFimu1
 .Op Fl M Ar script-name
 .Op Fl O Ar script-name
 .Op Fl p Ar pidfile
 .Op Fl R Ar script-name
 .Ar interface ...
 .Nm
-.Op Fl dDfFmu1
+.Op Fl dDfFimu1
 .Op Fl M Ar script-name
 .Op Fl O Ar script-name
 .Op Fl p Ar pidfile
 .Op Fl R Ar script-name
 .Fl a
 .Nm rtsol
-.Op Fl dDu
+.Op Fl dDiu
 .Op Fl M Ar script-name
 .Op Fl O Ar script-name
 .Op Fl R Ar script-name
 .Ar interface ...
 .Nm rtsol
-.Op Fl dDu
+.Op Fl dDiu
 .Op Fl M Ar script-name
 .Op Fl O Ar script-name
 .Op Fl R Ar script-name
@@ -167,7 +167,7 @@ The options are as follows:
 .It Fl a
 Autoprobe outgoing interfaces.
 .Nm
-will try to find any non-loopback, non-point-to-point, IPv6-capable interfaces
+will try to find any non-loopback, IPv6-capable interfaces
 and send router solicitation messages on all of them.
 .It Fl d
 Enable debugging.
@@ -194,6 +194,12 @@ The settings may be changed manually with
 .Xr sysctl 8
 and
 .Xr ifconfig 8 .
+.It Fl i
+Transmit Router Solicitation packets immediately, without waiting the
+normal random (between 0 and 1 second) delay.
+This option should not be used on networks where it might result in
+congestion due to many hosts simultaneously (re)connecting and
+sending such packets.
 .It Fl m
 Enable mobility support.
 If this option is specified,
@@ -219,7 +225,8 @@ When the flag changes from FALSE to TRUE,
 .Nm
 will invoke
 .Ar script-name
-with a single argument of the receiving interface name,
+with a first argument of the receiving interface name
+and a second argument of the sending router address,
 expecting the script will then start a protocol for the managed
 configuration.
 .Ar script-name
@@ -233,7 +240,8 @@ When the flag changes from FALSE to TRUE,
 .Nm
 will invoke
 .Ar script-name
-with a single argument of the receiving interface name,
+with a first argument of the receiving interface name
+and a second argument of the sending router address,
 expecting the script will then start a protocol for the other
 configuration.
 The script will not be run if the Managed Configuration flag in the

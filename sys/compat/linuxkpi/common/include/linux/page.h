@@ -28,8 +28,8 @@
  *
  * $FreeBSD$
  */
-#ifndef	_LINUX_PAGE_H_
-#define _LINUX_PAGE_H_
+#ifndef	_LINUXKPI_LINUX_PAGE_H_
+#define _LINUXKPI_LINUX_PAGE_H_
 
 #include <linux/types.h>
 
@@ -40,6 +40,10 @@
 #include <vm/vm.h>
 #include <vm/vm_page.h>
 #include <vm/pmap.h>
+
+#if defined(__i386__) || defined(__amd64__)
+#include <machine/md_var.h>
+#endif
 
 typedef unsigned long linux_pte_t;
 typedef unsigned long linux_pmd_t;
@@ -52,6 +56,8 @@ typedef unsigned long pgprot_t;
 #define	LINUXKPI_CACHE_MODE_SHIFT 4
 
 CTASSERT((VM_PROT_ALL & -LINUXKPI_PROT_VALID) == 0);
+
+#define	PAGE_KERNEL_IO	0x0000
 
 static inline pgprot_t
 cachemode2protval(vm_memattr_t attr)
@@ -72,12 +78,17 @@ pgprot2cachemode(pgprot_t prot)
 #define	page_to_pfn(pp)		(VM_PAGE_TO_PHYS(pp) >> PAGE_SHIFT)
 #define	pfn_to_page(pfn)	(PHYS_TO_VM_PAGE((pfn) << PAGE_SHIFT))
 #define	nth_page(page,n)	pfn_to_page(page_to_pfn(page) + (n))
+#define	page_to_phys(page)	VM_PAGE_TO_PHYS(page)
 
 #define	clear_page(page)		memset(page, 0, PAGE_SIZE)
 #define	pgprot_noncached(prot)		\
 	(((prot) & VM_PROT_ALL) | cachemode2protval(VM_MEMATTR_UNCACHEABLE))
+#ifdef VM_MEMATTR_WRITE_COMBINING
 #define	pgprot_writecombine(prot)	\
 	(((prot) & VM_PROT_ALL) | cachemode2protval(VM_MEMATTR_WRITE_COMBINING))
+#else
+#define	pgprot_writecombine(prot)	pgprot_noncached(prot)
+#endif
 
 #undef	PAGE_MASK
 #define	PAGE_MASK	(~(PAGE_SIZE-1))
@@ -93,4 +104,28 @@ pgprot2cachemode(pgprot_t prot)
 #undef	trunc_page
 #define	trunc_page(x)	((uintptr_t)(x) & ~(PAGE_SIZE - 1))
 
-#endif	/* _LINUX_PAGE_H_ */
+#if defined(__i386__) || defined(__amd64__)
+#undef clflush
+#undef clflushopt
+static inline void
+lkpi_clflushopt(unsigned long addr)
+{
+	if (cpu_stdext_feature & CPUID_STDEXT_CLFLUSHOPT)
+		clflushopt(addr);
+	else if (cpu_feature & CPUID_CLFSH)
+		clflush(addr);
+	else
+		pmap_invalidate_cache();
+}
+#define	clflush(x)	clflush((unsigned long)(x))
+#define	clflushopt(x)	lkpi_clflushopt((unsigned long)(x))
+
+static inline void
+clflush_cache_range(void *addr, unsigned int size)
+{
+	pmap_force_invalidate_cache_range((vm_offset_t)addr,
+	    (vm_offset_t)addr + size);
+}
+#endif
+
+#endif	/* _LINUXKPI_LINUX_PAGE_H_ */

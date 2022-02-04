@@ -12,9 +12,7 @@
 
 #include "TableGenBackends.h" // Declares all backends.
 #include "llvm/Support/CommandLine.h"
-#include "llvm/Support/ManagedStatic.h"
-#include "llvm/Support/PrettyStackTrace.h"
-#include "llvm/Support/Signals.h"
+#include "llvm/Support/InitLLVM.h"
 #include "llvm/TableGen/Main.h"
 #include "llvm/TableGen/Record.h"
 #include "llvm/TableGen/SetTheory.h"
@@ -23,8 +21,11 @@ using namespace llvm;
 
 enum ActionType {
   PrintRecords,
+  PrintDetailedRecords,
+  NullBackend,
   DumpJSON,
   GenEmitter,
+  GenCodeBeads,
   GenRegisterInfo,
   GenInstrInfo,
   GenInstrDocs,
@@ -56,13 +57,9 @@ enum ActionType {
   GenAutomata,
   GenDirectivesEnumDecl,
   GenDirectivesEnumImpl,
-  GenDirectivesEnumGen,
 };
 
 namespace llvm {
-/// Storage for TimeRegionsOpt as a global so that backends aren't required to
-/// include CommandLine.h
-bool TimeRegions = false;
 cl::opt<bool> EmitLongStrLiterals(
     "long-string-literals",
     cl::desc("when emitting large string tables, prefer string literals over "
@@ -77,9 +74,15 @@ cl::opt<ActionType> Action(
     cl::values(
         clEnumValN(PrintRecords, "print-records",
                    "Print all records to stdout (default)"),
+        clEnumValN(PrintDetailedRecords, "print-detailed-records",
+                   "Print full details of all records to stdout"),
+        clEnumValN(NullBackend, "null-backend",
+                   "Do nothing after parsing (useful for timing)"),
         clEnumValN(DumpJSON, "dump-json",
                    "Dump all records as machine-readable JSON"),
         clEnumValN(GenEmitter, "gen-emitter", "Generate machine code emitter"),
+        clEnumValN(GenCodeBeads, "gen-code-beads",
+                   "Generate machine code beads"),
         clEnumValN(GenRegisterInfo, "gen-register-info",
                    "Generate registers and register classes info"),
         clEnumValN(GenInstrInfo, "gen-instr-info",
@@ -135,30 +138,31 @@ cl::opt<ActionType> Action(
         clEnumValN(GenDirectivesEnumDecl, "gen-directive-decl",
                    "Generate directive related declaration code (header file)"),
         clEnumValN(GenDirectivesEnumImpl, "gen-directive-impl",
-                   "Generate directive related implementation code"),
-        clEnumValN(GenDirectivesEnumGen, "gen-directive-gen",
-                   "Generate directive related implementation code part")));
+                   "Generate directive related implementation code")));
 
 cl::OptionCategory PrintEnumsCat("Options for -print-enums");
 cl::opt<std::string> Class("class", cl::desc("Print Enum list for this class"),
                            cl::value_desc("class name"),
                            cl::cat(PrintEnumsCat));
 
-cl::opt<bool, true>
-    TimeRegionsOpt("time-regions",
-                   cl::desc("Time regions of tablegens execution"),
-                   cl::location(TimeRegions));
-
 bool LLVMTableGenMain(raw_ostream &OS, RecordKeeper &Records) {
   switch (Action) {
   case PrintRecords:
-    OS << Records;           // No argument, dump all contents
+    OS << Records;              // No argument, dump all contents
+    break;
+  case PrintDetailedRecords:
+    EmitDetailedRecords(Records, OS);
+    break;
+  case NullBackend:             // No backend at all.
     break;
   case DumpJSON:
     EmitJSON(Records, OS);
     break;
   case GenEmitter:
     EmitCodeEmitter(Records, OS);
+    break;
+  case GenCodeBeads:
+    EmitCodeBeads(Records, OS);
     break;
   case GenRegisterInfo:
     EmitRegisterInfo(Records, OS);
@@ -268,9 +272,6 @@ bool LLVMTableGenMain(raw_ostream &OS, RecordKeeper &Records) {
   case GenDirectivesEnumImpl:
     EmitDirectivesImpl(Records, OS);
     break;
-  case GenDirectivesEnumGen:
-    EmitDirectivesGen(Records, OS);
-    break;
   }
 
   return false;
@@ -278,11 +279,8 @@ bool LLVMTableGenMain(raw_ostream &OS, RecordKeeper &Records) {
 }
 
 int main(int argc, char **argv) {
-  sys::PrintStackTraceOnErrorSignal(argv[0]);
-  PrettyStackTraceProgram X(argc, argv);
+  InitLLVM X(argc, argv);
   cl::ParseCommandLineOptions(argc, argv);
-
-  llvm_shutdown_obj Y;
 
   return TableGenMain(argv[0], &LLVMTableGenMain);
 }

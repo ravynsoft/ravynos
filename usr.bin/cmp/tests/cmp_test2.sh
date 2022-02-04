@@ -71,8 +71,67 @@ pr252542_body()
 {
 	echo -n '1234567890' > a
 	echo -n 'abc567890' > b
+	echo -n 'xbc567890' > c
 	atf_check -s exit:0 cmp -s a b 4 3
+	atf_check -s exit:0 cmp -i 4:3 -s a b
+	atf_check -s exit:0 cmp -i 1 -s b c
 	atf_check -s exit:1 -o ignore cmp -z a b 4 3
+	atf_check -s exit:1 -o ignore cmp -i 4:3 -z a b
+	atf_check -s exit:1 -o ignore cmp -i 1 -z a b
+}
+
+atf_test_case skipsuff
+skipsuff_head()
+{
+	atf_set "descr" "Test cmp(1) accepting SI suffixes on skips"
+}
+skipsuff_body()
+{
+
+	jot -nb a -s '' 1028 > a
+	jot -nb b -s '' 1024 > b
+	jot -nb a -s '' 4 >> b
+
+	atf_check -s exit:1 -o ignore cmp -s a b
+	atf_check -s exit:0 cmp -s a b 1k 1k
+}
+
+atf_test_case limit
+limit_head()
+{
+	atf_set "descr" "Test cmp(1) -n (limit)"
+}
+limit_body()
+{
+	echo -n "aaaabbbb" > a
+	echo -n "aaaaxxxx" > b
+
+	atf_check -s exit:1 -o ignore cmp -s a b
+	atf_check -s exit:0 cmp -sn 4 a b
+	atf_check -s exit:0 cmp -sn 3 a b
+	atf_check -s exit:1 -o ignore cmp -sn 5 a b
+
+	# Test special, too.  The implementation for link is effectively
+	# identical.
+	atf_check -s exit:0 -e empty -x "cat a | cmp -sn 4 b -"
+	atf_check -s exit:0 -e empty -x "cat a | cmp -sn 3 b -"
+	atf_check -s exit:1 -o ignore -x "cat a | cmp -sn 5 b -"
+}
+
+atf_test_case bflag
+bflag_head()
+{
+	atf_set "descr" "Test cmp(1) -b (print bytes)"
+}
+bflag_body()
+{
+	echo -n "abcd" > a
+	echo -n "abdd" > b
+
+	atf_check -s exit:1 -o file:$(atf_get_srcdir)/b_flag.out \
+	    cmp -b a b
+	atf_check -s exit:1 -o file:$(atf_get_srcdir)/bl_flag.out \
+	    cmp -bl a b
 }
 
 atf_init_test_cases()
@@ -80,4 +139,7 @@ atf_init_test_cases()
 	atf_add_test_case special
 	atf_add_test_case symlink
 	atf_add_test_case pr252542
+	atf_add_test_case skipsuff
+	atf_add_test_case limit
+	atf_add_test_case bflag
 }

@@ -28,7 +28,6 @@
 
 namespace llvm {
 
-template<class GraphType> struct GraphTraits;
 class IntegerType;
 class LLVMContext;
 class PointerType;
@@ -65,6 +64,7 @@ public:
     LabelTyID,     ///< Labels
     MetadataTyID,  ///< Metadata
     X86_MMXTyID,   ///< MMX vectors (64 bits, X86 specific)
+    X86_AMXTyID,   ///< AMX vectors (8192 bits, X86 specific)
     TokenTyID,     ///< Tokens
 
     // Derived types... see DerivedTypes.h file.
@@ -182,6 +182,9 @@ public:
   /// Return true if this is X86 MMX.
   bool isX86_MMXTy() const { return getTypeID() == X86_MMXTyID; }
 
+  /// Return true if this is X86 AMX.
+  bool isX86_AMXTy() const { return getTypeID() == X86_AMXTyID; }
+
   /// Return true if this is a FP type or a vector of FP.
   bool isFPOrFPVectorTy() const { return getScalarType()->isFloatingPointTy(); }
 
@@ -224,6 +227,9 @@ public:
   /// True if this is an instance of PointerType.
   bool isPointerTy() const { return getTypeID() == PointerTyID; }
 
+  /// True if this is an instance of an opaque PointerType.
+  bool isOpaquePointerTy() const;
+
   /// Return true if this is a pointer type or a vector of pointer types.
   bool isPtrOrPtrVectorTy() const { return getScalarType()->isPointerTy(); }
 
@@ -252,7 +258,7 @@ public:
   /// includes all first-class types except struct and array types.
   bool isSingleValueType() const {
     return isFloatingPointTy() || isX86_MMXTy() || isIntegerTy() ||
-           isPointerTy() || isVectorTy();
+           isPointerTy() || isVectorTy() || isX86_AMXTy();
   }
 
   /// Return true if the type is an aggregate type. This means it is valid as
@@ -268,8 +274,8 @@ public:
   bool isSized(SmallPtrSetImpl<Type*> *Visited = nullptr) const {
     // If it's a primitive, it is always sized.
     if (getTypeID() == IntegerTyID || isFloatingPointTy() ||
-        getTypeID() == PointerTyID ||
-        getTypeID() == X86_MMXTyID)
+        getTypeID() == PointerTyID || getTypeID() == X86_MMXTyID ||
+        getTypeID() == X86_AMXTyID)
       return true;
     // If it is not something that can have a size (e.g. a function or label),
     // it doesn't have a size.
@@ -303,6 +309,10 @@ public:
   /// floating-point types. If the FP type does not have a stable mantissa (e.g.
   /// ppc long double), this method returns -1.
   int getFPMantissaWidth() const;
+
+  /// Return whether the type is IEEE compatible, as defined by the eponymous
+  /// method in APFloat.
+  bool isIEEE() const { return APFloat::getZero(getFltSemantics()).isIEEE(); }
 
   /// If this is a vector type, return the element type, otherwise return
   /// 'this'.
@@ -372,6 +382,11 @@ public:
     return ContainedTys[0];
   }
 
+  /// Given vector type, change the element type,
+  /// whilst keeping the old number of elements.
+  /// For non-vectors simply returns \p EltTy.
+  inline Type *getWithNewType(Type *EltTy) const;
+
   /// Given an integer or vector type, change the lane bitwidth to NewBitwidth,
   /// whilst keeping the old number of lanes.
   inline Type *getWithNewBitWidth(unsigned NewBitWidth) const;
@@ -405,6 +420,7 @@ public:
   static Type *getFP128Ty(LLVMContext &C);
   static Type *getPPC_FP128Ty(LLVMContext &C);
   static Type *getX86_MMXTy(LLVMContext &C);
+  static Type *getX86_AMXTy(LLVMContext &C);
   static Type *getTokenTy(LLVMContext &C);
   static IntegerType *getIntNTy(LLVMContext &C, unsigned N);
   static IntegerType *getInt1Ty(LLVMContext &C);
@@ -427,6 +443,26 @@ public:
     }
     llvm_unreachable("Unsupported type in Type::getScalarTy");
   }
+  static Type *getFloatingPointTy(LLVMContext &C, const fltSemantics &S) {
+    Type *Ty;
+    if (&S == &APFloat::IEEEhalf())
+      Ty = Type::getHalfTy(C);
+    else if (&S == &APFloat::BFloat())
+      Ty = Type::getBFloatTy(C);
+    else if (&S == &APFloat::IEEEsingle())
+      Ty = Type::getFloatTy(C);
+    else if (&S == &APFloat::IEEEdouble())
+      Ty = Type::getDoubleTy(C);
+    else if (&S == &APFloat::x87DoubleExtended())
+      Ty = Type::getX86_FP80Ty(C);
+    else if (&S == &APFloat::IEEEquad())
+      Ty = Type::getFP128Ty(C);
+    else {
+      assert(&S == &APFloat::PPCDoubleDouble() && "Unknown FP format");
+      Ty = Type::getPPC_FP128Ty(C);
+    }
+    return Ty;
+  }
 
   //===--------------------------------------------------------------------===//
   // Convenience methods for getting pointer types with one of the above builtin
@@ -440,6 +476,7 @@ public:
   static PointerType *getFP128PtrTy(LLVMContext &C, unsigned AS = 0);
   static PointerType *getPPC_FP128PtrTy(LLVMContext &C, unsigned AS = 0);
   static PointerType *getX86_MMXPtrTy(LLVMContext &C, unsigned AS = 0);
+  static PointerType *getX86_AMXPtrTy(LLVMContext &C, unsigned AS = 0);
   static PointerType *getIntNPtrTy(LLVMContext &C, unsigned N, unsigned AS = 0);
   static PointerType *getInt1PtrTy(LLVMContext &C, unsigned AS = 0);
   static PointerType *getInt8PtrTy(LLVMContext &C, unsigned AS = 0);
@@ -449,6 +486,7 @@ public:
 
   /// Return a pointer to the current type. This is equivalent to
   /// PointerType::get(Foo, AddrSpace).
+  /// TODO: Remove this after opaque pointer transition is complete.
   PointerType *getPointerTo(unsigned AddrSpace = 0) const;
 
 private:

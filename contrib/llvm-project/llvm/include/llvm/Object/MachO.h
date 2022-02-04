@@ -309,7 +309,7 @@ public:
   bool isSectionBSS(DataRefImpl Sec) const override;
   bool isSectionVirtual(DataRefImpl Sec) const override;
   bool isSectionBitcode(DataRefImpl Sec) const override;
-  bool isDebugSection(StringRef SectionName) const override;
+  bool isDebugSection(DataRefImpl Sec) const override;
 
   /// When dsymutil generates the companion file, it strips all unnecessary
   /// sections (e.g. everything in the _TEXT segment) by omitting their body
@@ -615,6 +615,7 @@ public:
     case MachO::PLATFORM_IOSSIMULATOR: return "iossimulator";
     case MachO::PLATFORM_TVOSSIMULATOR: return "tvossimulator";
     case MachO::PLATFORM_WATCHOSSIMULATOR: return "watchossimulator";
+    case MachO::PLATFORM_DRIVERKIT: return "driverkit";
     default:
       std::string ret;
       raw_string_ostream ss(ret);

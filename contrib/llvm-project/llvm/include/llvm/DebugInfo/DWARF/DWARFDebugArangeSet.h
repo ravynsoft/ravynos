@@ -6,8 +6,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef LLVM_DEBUGINFO_DWARFDEBUGARANGESET_H
-#define LLVM_DEBUGINFO_DWARFDEBUGARANGESET_H
+#ifndef LLVM_DEBUGINFO_DWARF_DWARFDEBUGARANGESET_H
+#define LLVM_DEBUGINFO_DWARF_DWARFDEBUGARANGESET_H
 
 #include "llvm/ADT/iterator_range.h"
 #include "llvm/DebugInfo/DWARF/DWARFDataExtractor.h"
@@ -60,7 +60,8 @@ public:
   DWARFDebugArangeSet() { clear(); }
 
   void clear();
-  Error extract(DWARFDataExtractor data, uint64_t *offset_ptr);
+  Error extract(DWARFDataExtractor data, uint64_t *offset_ptr,
+                function_ref<void(Error)> WarningHandler);
   void dump(raw_ostream &OS) const;
 
   uint64_t getCompileUnitDIEOffset() const { return HeaderData.CuOffset; }
@@ -75,4 +76,4 @@ public:
 
 } // end namespace llvm
 
-#endif // LLVM_DEBUGINFO_DWARFDEBUGARANGESET_H
+#endif // LLVM_DEBUGINFO_DWARF_DWARFDEBUGARANGESET_H

@@ -11,8 +11,8 @@
 // legacy HWAddressSanitizer pass to use the new PassManager infrastructure.
 //
 //===----------------------------------------------------------------------===//
-#ifndef LLVM_TRANSFORMS_INSTRUMENTATION_HWADDRESSSANITIZERPASS_H
-#define LLVM_TRANSFORMS_INSTRUMENTATION_HWADDRESSSANITIZERPASS_H
+#ifndef LLVM_TRANSFORMS_INSTRUMENTATION_HWADDRESSSANITIZER_H
+#define LLVM_TRANSFORMS_INSTRUMENTATION_HWADDRESSSANITIZER_H
 
 #include "llvm/IR/Function.h"
 #include "llvm/IR/PassManager.h"
@@ -25,16 +25,39 @@ namespace llvm {
 class HWAddressSanitizerPass : public PassInfoMixin<HWAddressSanitizerPass> {
 public:
   explicit HWAddressSanitizerPass(bool CompileKernel = false,
-                                  bool Recover = false);
+                                  bool Recover = false,
+                                  bool DisableOptimization = false);
   PreservedAnalyses run(Module &M, ModuleAnalysisManager &MAM);
+  static bool isRequired() { return true; }
 
 private:
   bool CompileKernel;
   bool Recover;
+  bool DisableOptimization;
 };
 
-FunctionPass *createHWAddressSanitizerLegacyPassPass(bool CompileKernel = false,
-                                                     bool Recover = false);
+FunctionPass *
+createHWAddressSanitizerLegacyPassPass(bool CompileKernel = false,
+                                       bool Recover = false,
+                                       bool DisableOptimization = false);
+
+namespace HWASanAccessInfo {
+
+// Bit field positions for the accessinfo parameter to
+// llvm.hwasan.check.memaccess. Shared between the pass and the backend. Bits
+// 0-15 are also used by the runtime.
+enum {
+  AccessSizeShift = 0, // 4 bits
+  IsWriteShift = 4,
+  RecoverShift = 5,
+  MatchAllShift = 16, // 8 bits
+  HasMatchAllShift = 24,
+  CompileKernelShift = 25,
+};
+
+enum { RuntimeMask = 0xffff };
+
+} // namespace HWASanAccessInfo
 
 } // namespace llvm
 

@@ -9,6 +9,7 @@ atf_test_case group_format
 atf_test_case side_by_side
 atf_test_case brief_format
 atf_test_case b230049
+atf_test_case stripcr_o
 atf_test_case b252515
 atf_test_case Bflag
 atf_test_case Nflag
@@ -17,6 +18,7 @@ atf_test_case conflicting_format
 atf_test_case label
 atf_test_case report_identical
 atf_test_case non_regular_file
+atf_test_case binary
 
 simple_body()
 {
@@ -66,6 +68,14 @@ b230049_body()
 	atf_check -o empty -s eq:0 \
 		diff -up --strip-trailing-cr -L b230049_a.in -L b230049_b.in \
 		    b230049_a.in b230049_b.in
+}
+
+stripcr_o_body()
+{
+	printf 'a\nX\nc\n' > stripcr_o_X.in
+	printf 'a\r\nY\r\nc\r\n' > stripcr_o_Y.in
+	atf_check -o "file:$(atf_get_srcdir)/strip_o.out" -s eq:1 \
+		diff -L1 -L2 -u --strip-trailing-cr stripcr_o_X.in stripcr_o_Y.in
 }
 
 b252515_body()
@@ -228,13 +238,18 @@ label_body()
 		-s exit:1 diff --label hello --label world `which diff` `which ls`
 }
 
+report_identical_head()
+{
+	atf_set "require.config" unprivileged_user
+}
 report_identical_body()
 {
+	UNPRIVILEGED_USER=$(atf_config_get unprivileged_user)
 	printf "\tA\n" > A
 	printf "\tB\n" > B
 	chmod -r B
 	atf_check -s exit:2 -e inline:"diff: B: Permission denied\n" \
-		-o empty diff -s A B
+		-o empty su -m "$UNPRIVILEGED_USER" -c 'diff -s A B'
 }
 
 non_regular_file_body()
@@ -250,6 +265,18 @@ non_regular_file_body()
 		diff --label A --label B -u A B
 }
 
+binary_body()
+{
+	# the NUL byte has to be after at least BUFSIZ bytes to trick asciifile()
+	yes 012345678901234567890123456789012345678901234567890 | head -n 174 > A
+	cp A B
+	printf '\n\0\n' >> A
+	printf '\nx\n' >> B
+
+	atf_check -o inline:"Binary files A and B differ\n" -s exit:1 diff A B
+	atf_check -o inline:"176c\nx\n.\n" -s exit:1 diff -ae A B
+}
+
 atf_init_test_cases()
 {
 	atf_add_test_case simple
@@ -261,6 +288,7 @@ atf_init_test_cases()
 	atf_add_test_case side_by_side
 	atf_add_test_case brief_format
 	atf_add_test_case b230049
+	atf_add_test_case stripcr_o
 	atf_add_test_case b252515
 	atf_add_test_case Bflag
 	atf_add_test_case Nflag
@@ -269,4 +297,5 @@ atf_init_test_cases()
 	atf_add_test_case label
 	atf_add_test_case report_identical
 	atf_add_test_case non_regular_file
+	atf_add_test_case binary
 }

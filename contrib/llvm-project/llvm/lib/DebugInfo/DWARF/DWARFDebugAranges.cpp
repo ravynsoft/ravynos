@@ -15,7 +15,6 @@
 #include <cassert>
 #include <cstdint>
 #include <set>
-#include <vector>
 
 using namespace llvm;
 
@@ -28,7 +27,8 @@ void DWARFDebugAranges::extract(
   DWARFDebugArangeSet Set;
 
   while (DebugArangesData.isValidOffset(Offset)) {
-    if (Error E = Set.extract(DebugArangesData, &Offset)) {
+    if (Error E =
+            Set.extract(DebugArangesData, &Offset, RecoverableErrorHandler)) {
       RecoverableErrorHandler(std::move(E));
       return;
     }

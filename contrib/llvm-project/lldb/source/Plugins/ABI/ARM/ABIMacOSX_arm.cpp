@@ -34,7 +34,7 @@
 using namespace lldb;
 using namespace lldb_private;
 
-static RegisterInfo g_register_infos[] = {
+static const RegisterInfo g_register_infos[] = {
     //  NAME       ALT       SZ OFF ENCODING         FORMAT          EH_FRAME
     //  DWARF               GENERIC                     PROCESS PLUGIN
     //  LLDB NATIVE
@@ -1292,24 +1292,9 @@ static RegisterInfo g_register_infos[] = {
 
 static const uint32_t k_num_register_infos =
     llvm::array_lengthof(g_register_infos);
-static bool g_register_info_names_constified = false;
 
 const lldb_private::RegisterInfo *
 ABIMacOSX_arm::GetRegisterInfoArray(uint32_t &count) {
-  // Make the C-string names and alt_names for the register infos into const
-  // C-string values by having the ConstString unique the names in the global
-  // constant C-string pool.
-  if (!g_register_info_names_constified) {
-    g_register_info_names_constified = true;
-    for (uint32_t i = 0; i < k_num_register_infos; ++i) {
-      if (g_register_infos[i].name)
-        g_register_infos[i].name =
-            ConstString(g_register_infos[i].name).GetCString();
-      if (g_register_infos[i].alt_name)
-        g_register_infos[i].alt_name =
-            ConstString(g_register_infos[i].alt_name).GetCString();
-    }
-  }
   count = k_num_register_infos;
   return g_register_infos;
 }
@@ -1839,6 +1824,7 @@ bool ABIMacOSX_arm::CreateDefaultUnwindPlan(UnwindPlan &unwind_plan) {
 
   row->GetCFAValue().SetIsRegisterPlusOffset(fp_reg_num, 2 * ptr_size);
   row->SetOffset(0);
+  row->SetUnspecifiedRegistersAreUndefined(true);
 
   row->SetRegisterLocationToAtCFAPlusOffset(fp_reg_num, ptr_size * -2, true);
   row->SetRegisterLocationToAtCFAPlusOffset(pc_reg_num, ptr_size * -1, true);

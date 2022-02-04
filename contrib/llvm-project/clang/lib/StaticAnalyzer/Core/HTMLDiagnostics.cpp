@@ -10,10 +10,12 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "clang/Analysis/PathDiagnostic.h"
 #include "clang/AST/Decl.h"
 #include "clang/AST/DeclBase.h"
 #include "clang/AST/Stmt.h"
+#include "clang/Analysis/IssueHash.h"
+#include "clang/Analysis/MacroExpansionContext.h"
+#include "clang/Analysis/PathDiagnostic.h"
 #include "clang/Basic/FileManager.h"
 #include "clang/Basic/LLVM.h"
 #include "clang/Basic/SourceLocation.h"
@@ -23,8 +25,6 @@
 #include "clang/Lex/Token.h"
 #include "clang/Rewrite/Core/HTMLRewrite.h"
 #include "clang/Rewrite/Core/Rewriter.h"
-#include "clang/StaticAnalyzer/Core/AnalyzerOptions.h"
-#include "clang/StaticAnalyzer/Core/IssueHash.h"
 #include "clang/StaticAnalyzer/Core/PathDiagnosticConsumers.h"
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/SmallString.h"
@@ -58,17 +58,18 @@ using namespace ento;
 namespace {
 
 class HTMLDiagnostics : public PathDiagnosticConsumer {
+  PathDiagnosticConsumerOptions DiagOpts;
   std::string Directory;
   bool createdDir = false;
   bool noDir = false;
   const Preprocessor &PP;
-  AnalyzerOptions &AnalyzerOpts;
   const bool SupportsCrossFileDiagnostics;
 
 public:
-  HTMLDiagnostics(AnalyzerOptions &AnalyzerOpts, const std::string &OutputDir,
-                  const Preprocessor &pp, bool supportsMultipleFiles)
-      : Directory(OutputDir), PP(pp), AnalyzerOpts(AnalyzerOpts),
+  HTMLDiagnostics(PathDiagnosticConsumerOptions DiagOpts,
+                  const std::string &OutputDir, const Preprocessor &pp,
+                  bool supportsMultipleFiles)
+      : DiagOpts(std::move(DiagOpts)), Directory(OutputDir), PP(pp),
         SupportsCrossFileDiagnostics(supportsMultipleFiles) {}
 
   ~HTMLDiagnostics() override { FlushDiagnostics(nullptr); }
@@ -133,46 +134,67 @@ private:
 } // namespace
 
 void ento::createHTMLDiagnosticConsumer(
-    AnalyzerOptions &AnalyzerOpts, PathDiagnosticConsumers &C,
+    PathDiagnosticConsumerOptions DiagOpts, PathDiagnosticConsumers &C,
     const std::string &OutputDir, const Preprocessor &PP,
-    const cross_tu::CrossTranslationUnitContext &CTU) {
+    const cross_tu::CrossTranslationUnitContext &CTU,
+    const MacroExpansionContext &MacroExpansions) {
 
   // FIXME: HTML is currently our default output type, but if the output
   // directory isn't specified, it acts like if it was in the minimal text
   // output mode. This doesn't make much sense, we should have the minimal text
   // as our default. In the case of backward compatibility concerns, this could
   // be preserved with -analyzer-config-compatibility-mode=true.
-  createTextMinimalPathDiagnosticConsumer(AnalyzerOpts, C, OutputDir, PP, CTU);
+  createTextMinimalPathDiagnosticConsumer(DiagOpts, C, OutputDir, PP, CTU,
+                                          MacroExpansions);
 
   // TODO: Emit an error here.
   if (OutputDir.empty())
     return;
 
-  C.push_back(new HTMLDiagnostics(AnalyzerOpts, OutputDir, PP, true));
+  C.push_back(new HTMLDiagnostics(std::move(DiagOpts), OutputDir, PP, true));
 }
 
 void ento::createHTMLSingleFileDiagnosticConsumer(
-    AnalyzerOptions &AnalyzerOpts, PathDiagnosticConsumers &C,
+    PathDiagnosticConsumerOptions DiagOpts, PathDiagnosticConsumers &C,
     const std::string &OutputDir, const Preprocessor &PP,
-    const cross_tu::CrossTranslationUnitContext &CTU) {
+    const cross_tu::CrossTranslationUnitContext &CTU,
+    const clang::MacroExpansionContext &MacroExpansions) {
+  createTextMinimalPathDiagnosticConsumer(DiagOpts, C, OutputDir, PP, CTU,
+                                          MacroExpansions);
 
   // TODO: Emit an error here.
   if (OutputDir.empty())
     return;
 
-  C.push_back(new HTMLDiagnostics(AnalyzerOpts, OutputDir, PP, false));
-  createTextMinimalPathDiagnosticConsumer(AnalyzerOpts, C, OutputDir, PP, CTU);
+  C.push_back(new HTMLDiagnostics(std::move(DiagOpts), OutputDir, PP, false));
 }
 
 void ento::createPlistHTMLDiagnosticConsumer(
-    AnalyzerOptions &AnalyzerOpts, PathDiagnosticConsumers &C,
+    PathDiagnosticConsumerOptions DiagOpts, PathDiagnosticConsumers &C,
     const std::string &prefix, const Preprocessor &PP,
-    const cross_tu::CrossTranslationUnitContext &CTU) {
+    const cross_tu::CrossTranslationUnitContext &CTU,
+    const MacroExpansionContext &MacroExpansions) {
   createHTMLDiagnosticConsumer(
-      AnalyzerOpts, C, std::string(llvm::sys::path::parent_path(prefix)), PP,
-      CTU);
-  createPlistMultiFileDiagnosticConsumer(AnalyzerOpts, C, prefix, PP, CTU);
-  createTextMinimalPathDiagnosticConsumer(AnalyzerOpts, C, prefix, PP, CTU);
+      DiagOpts, C, std::string(llvm::sys::path::parent_path(prefix)), PP, CTU,
+      MacroExpansions);
+  createPlistMultiFileDiagnosticConsumer(DiagOpts, C, prefix, PP, CTU,
+                                         MacroExpansions);
+  createTextMinimalPathDiagnosticConsumer(std::move(DiagOpts), C, prefix, PP,
+                                          CTU, MacroExpansions);
+}
+
+void ento::createSarifHTMLDiagnosticConsumer(
+    PathDiagnosticConsumerOptions DiagOpts, PathDiagnosticConsumers &C,
+    const std::string &sarif_file, const Preprocessor &PP,
+    const cross_tu::CrossTranslationUnitContext &CTU,
+    const MacroExpansionContext &MacroExpansions) {
+  createHTMLDiagnosticConsumer(
+      DiagOpts, C, std::string(llvm::sys::path::parent_path(sarif_file)), PP,
+      CTU, MacroExpansions);
+  createSarifDiagnosticConsumer(DiagOpts, C, sarif_file, PP, CTU,
+                                MacroExpansions);
+  createTextMinimalPathDiagnosticConsumer(std::move(DiagOpts), C, sarif_file,
+                                          PP, CTU, MacroExpansions);
 }
 
 //===----------------------------------------------------------------------===//
@@ -245,7 +267,7 @@ void HTMLDiagnostics::ReportDiag(const PathDiagnostic& D,
   int FD;
   SmallString<128> Model, ResultPath;
 
-  if (!AnalyzerOpts.ShouldWriteStableReportFilename) {
+  if (!DiagOpts.ShouldWriteStableReportFilename) {
       llvm::sys::path::append(Model, Directory, "report-%%%%%%.html");
       if (std::error_code EC =
           llvm::sys::fs::make_absolute(Model)) {
@@ -253,11 +275,11 @@ void HTMLDiagnostics::ReportDiag(const PathDiagnostic& D,
                        << "' absolute: " << EC.message() << '\n';
         return;
       }
-      if (std::error_code EC =
-          llvm::sys::fs::createUniqueFile(Model, FD, ResultPath)) {
-          llvm::errs() << "warning: could not create file in '" << Directory
-                       << "': " << EC.message() << '\n';
-          return;
+      if (std::error_code EC = llvm::sys::fs::createUniqueFile(
+              Model, FD, ResultPath, llvm::sys::fs::OF_Text)) {
+        llvm::errs() << "warning: could not create file in '" << Directory
+                     << "': " << EC.message() << '\n';
+        return;
       }
   } else {
       int i = 1;
@@ -535,7 +557,7 @@ void HTMLDiagnostics::FinalizeHTML(const PathDiagnostic& D, Rewriter &R,
 <input type="checkbox" class="spoilerhider" id="showinvocation" />
 <label for="showinvocation" >Show analyzer invocation</label>
 <div class="spoiler">clang -cc1 )<<<";
-    os << html::EscapeText(AnalyzerOpts.FullCompilerInvocation);
+    os << html::EscapeText(DiagOpts.ToolInvocation);
     os << R"<<<(
 </div>
 <div id='tooltiphint' hidden="true">
@@ -582,8 +604,8 @@ void HTMLDiagnostics::FinalizeHTML(const PathDiagnostic& D, Rewriter &R,
     os  << "\n<!-- FUNCTIONNAME " <<  declName << " -->\n";
 
     os << "\n<!-- ISSUEHASHCONTENTOFLINEINCONTEXT "
-       << GetIssueHash(SMgr, L, D.getCheckerName(), D.getBugType(),
-                       DeclWithIssue, PP.getLangOpts())
+       << getIssueHash(L, D.getCheckerName(), D.getBugType(), DeclWithIssue,
+                       PP.getLangOpts())
        << " -->\n";
 
     os << "\n<!-- BUGLINE "
@@ -786,8 +808,8 @@ void HTMLDiagnostics::HandlePiece(Rewriter &R, FileID BugFileID,
   if (LPosInfo.first != BugFileID)
     return;
 
-  const llvm::MemoryBuffer *Buf = SM.getBuffer(LPosInfo.first);
-  const char* FileStart = Buf->getBufferStart();
+  llvm::MemoryBufferRef Buf = SM.getBufferOrFake(LPosInfo.first);
+  const char *FileStart = Buf.getBufferStart();
 
   // Compute the column number.  Rewind from the current position to the start
   // of the line.
@@ -797,7 +819,7 @@ void HTMLDiagnostics::HandlePiece(Rewriter &R, FileID BugFileID,
 
   // Compute LineEnd.
   const char *LineEnd = TokInstantiationPtr;
-  const char* FileEnd = Buf->getBufferEnd();
+  const char *FileEnd = Buf.getBufferEnd();
   while (*LineEnd != '\n' && LineEnd != FileEnd)
     ++LineEnd;
 

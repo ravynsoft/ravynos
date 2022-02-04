@@ -434,7 +434,7 @@ ext2_cg_validate(struct m_ext2fs *fs)
 		}
 		if (i_tables <= last_cg_block) {
 			SDT_PROBE2(ext2fs, , vfsops, ext2_cg_validate_error,
-			    "inode talbes overlaps gds", i);
+			    "inode tables overlaps gds", i);
 			return (EINVAL);
 		}
 		if (i_tables < first_block ||
@@ -464,6 +464,13 @@ ext2_compute_sb_data(struct vnode *devvp, struct ext2fs *es,
 	int i, j;
 	int g_count = 0;
 	int error;
+
+	/* Check if first dblock is valid */
+	if (fs->e2fs->e2fs_bcount >= 1024 && fs->e2fs->e2fs_first_dblock) {
+		SDT_PROBE1(ext2fs, , vfsops, ext2_compute_sb_data_error,
+		    "first dblock is invalid");
+		return (EINVAL);
+	}
 
 	/* Check checksum features */
 	if (EXT2_HAS_RO_COMPAT_FEATURE(fs, EXT2F_ROCOMPAT_GDT_CSUM) &&
@@ -611,7 +618,8 @@ ext2_compute_sb_data(struct vnode *devvp, struct ext2fs *es,
 		return (EINVAL);
 	}
 
-	if (le32toh(es->e2fs_first_dblock) >= fs->e2fs_bcount) {
+	if (le32toh(es->e2fs_first_dblock) != (fs->e2fs_bsize > 1024 ? 0 : 1) ||
+	    le32toh(es->e2fs_first_dblock) >= fs->e2fs_bcount) {
 		SDT_PROBE1(ext2fs, , vfsops, ext2_compute_sb_data_error,
 		    "first data block out of range");
 		return (EINVAL);

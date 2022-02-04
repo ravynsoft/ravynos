@@ -66,6 +66,14 @@ namespace tooling {
 
 class CompilationDatabase;
 
+/// Retrieves the flags of the `-cc1` job in `Compilation` that has only source
+/// files as its inputs.
+/// Returns nullptr if there are no such jobs or multiple of them. Note that
+/// offloading jobs are ignored.
+const llvm::opt::ArgStringList *
+getCC1Arguments(DiagnosticsEngine *Diagnostics,
+                driver::Compilation *Compilation);
+
 /// Interface to process a clang::CompilerInvocation.
 ///
 /// If your tool is based on FrontendAction, you should be deriving from
@@ -265,21 +273,12 @@ public:
     this->DiagConsumer = DiagConsumer;
   }
 
-  /// Map a virtual file to be used while running the tool.
-  ///
-  /// \param FilePath The path at which the content will be mapped.
-  /// \param Content A null terminated buffer of the file's content.
-  // FIXME: remove this when all users have migrated!
-  void mapVirtualFile(StringRef FilePath, StringRef Content);
-
   /// Run the clang invocation.
   ///
   /// \returns True if there were no errors during execution.
   bool run();
 
  private:
-  void addFileMappingsTo(SourceManager &SourceManager);
-
   bool runInvocation(const char *BinaryName,
                      driver::Compilation *Compilation,
                      std::shared_ptr<CompilerInvocation> Invocation,
@@ -290,8 +289,6 @@ public:
   bool OwnsAction;
   FileManager *Files;
   std::shared_ptr<PCHContainerOperations> PCHContainerOps;
-  // Maps <file name> -> <file content>.
-  llvm::StringMap<StringRef> MappedFileContents;
   DiagnosticConsumer *DiagConsumer = nullptr;
 };
 

@@ -7,6 +7,8 @@
 //===----------------------------------------------------------------------===//
 #include "lldb/Utility/Timer.h"
 #include "lldb/Utility/Stream.h"
+#include "llvm/Support/ManagedStatic.h"
+#include "llvm/Support/Signposts.h"
 
 #include <algorithm>
 #include <map>
@@ -14,10 +16,10 @@
 #include <utility>
 #include <vector>
 
-#include <assert.h>
-#include <inttypes.h>
-#include <stdarg.h>
-#include <stdio.h>
+#include <cassert>
+#include <cinttypes>
+#include <cstdarg>
+#include <cstdio>
 
 using namespace lldb_private;
 
@@ -27,6 +29,11 @@ namespace {
 typedef std::vector<Timer *> TimerStack;
 static std::atomic<Timer::Category *> g_categories;
 } // end of anonymous namespace
+
+/// Allows llvm::Timer to emit signposts when supported.
+static llvm::ManagedStatic<llvm::SignpostEmitter> Signposts;
+
+llvm::SignpostEmitter &lldb_private::GetSignposts() { return *Signposts; }
 
 std::atomic<bool> Timer::g_quiet(true);
 std::atomic<unsigned> Timer::g_display_depth(0);

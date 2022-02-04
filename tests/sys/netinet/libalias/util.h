@@ -48,7 +48,7 @@ void		hexdump(void *p, size_t len);
 struct ip *	ip_packet(u_char protocol, size_t len);
 struct udphdr * set_udp(struct ip *p, u_short sport, u_short dport);
 
-inline int
+static inline int
 addr_eq(struct in_addr a, struct in_addr b)
 {
 	return a.s_addr == b.s_addr;
@@ -56,7 +56,7 @@ addr_eq(struct in_addr a, struct in_addr b)
 
 #define a2h(a)	ntohl(a.s_addr)
 
-inline int
+static inline int
 rand_range(int min, int max)
 {
 	return min + rand()%(max - min);
@@ -80,7 +80,7 @@ rand_range(int min, int max)
 	pip->ip_src = src;			\
 	pip->ip_dst = dst;			\
 	res = LibAliasOut(la, pip, len);	\
-	ATF_CHECK_MSG(res != PKT_ALIAS_OK),	\
+	ATF_CHECK_MSG(res != PKT_ALIAS_OK,	\
 	    ">%d< not met !PKT_ALIAS_OK", res);	\
 	ATF_CHECK(addr_eq(src, pip->ip_src));	\
 	ATF_CHECK(addr_eq(dst, pip->ip_dst));	\
@@ -118,7 +118,7 @@ rand_range(int min, int max)
 
 #define UDP_NAT_FAIL(p, u, si, sp, di, dp)	do {	\
 	u = set_udp(p, (sp), (dp));			\
-	NAT_FAIL(p, (si), (mi));			\
+	NAT_FAIL(p, (si), (di));			\
 } while(0)
 
 #define UDP_UNNAT_CHECK(p, u, si, sp, mi, mp, di, dp)	\

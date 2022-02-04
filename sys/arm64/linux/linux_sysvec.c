@@ -231,17 +231,12 @@ linux_copyout_strings(struct image_params *imgp, uintptr_t *stack_base)
 	struct proc *p;
 	int argc, envc, error;
 
-	/* Calculate string base and vector table pointers. */
-	if (imgp->execpath != NULL && imgp->auxargs != NULL)
-		execpath_len = strlen(imgp->execpath) + 1;
-	else
-		execpath_len = 0;
-
 	p = imgp->proc;
-	arginfo = (struct ps_strings *)p->p_sysent->sv_psstrings;
+	arginfo = (struct ps_strings *)PROC_PS_STRINGS(p);
 	destp = (uintptr_t)arginfo;
 
-	if (execpath_len != 0) {
+	if (imgp->execpath != NULL && imgp->auxargs != NULL) {
+		execpath_len = strlen(imgp->execpath) + 1;
 		destp -= execpath_len;
 		destp = rounddown2(destp, sizeof(void *));
 		imgp->execpathp = (void *)destp;
@@ -423,6 +418,7 @@ struct sysentvec elf_linux_sysvec = {
 	.sv_maxuser	= VM_MAXUSER_ADDRESS,
 	.sv_usrstack	= USRSTACK,
 	.sv_psstrings	= PS_STRINGS, /* XXX */
+	.sv_psstringssz	= sizeof(struct ps_strings),
 	.sv_stackprot	= VM_PROT_READ | VM_PROT_WRITE,
 	.sv_copyout_auxargs = linux_copyout_auxargs,
 	.sv_copyout_strings = linux_copyout_strings,

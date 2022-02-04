@@ -10,7 +10,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "Error.h"
 #include "ObjDumper.h"
 #include "llvm-readobj.h"
 #include "llvm/Object/Wasm.h"
@@ -24,8 +23,8 @@ namespace {
 static const EnumEntry<unsigned> WasmSymbolTypes[] = {
 #define ENUM_ENTRY(X)                                                          \
   { #X, wasm::WASM_SYMBOL_TYPE_##X }
-    ENUM_ENTRY(FUNCTION), ENUM_ENTRY(DATA),  ENUM_ENTRY(GLOBAL),
-    ENUM_ENTRY(SECTION),  ENUM_ENTRY(EVENT),
+    ENUM_ENTRY(FUNCTION), ENUM_ENTRY(DATA), ENUM_ENTRY(GLOBAL),
+    ENUM_ENTRY(SECTION),  ENUM_ENTRY(TAG),  ENUM_ENTRY(TABLE),
 #undef ENUM_ENTRY
 };
 
@@ -34,7 +33,7 @@ static const EnumEntry<uint32_t> WasmSectionTypes[] = {
   { #X, wasm::WASM_SEC_##X }
     ENUM_ENTRY(CUSTOM),   ENUM_ENTRY(TYPE),      ENUM_ENTRY(IMPORT),
     ENUM_ENTRY(FUNCTION), ENUM_ENTRY(TABLE),     ENUM_ENTRY(MEMORY),
-    ENUM_ENTRY(GLOBAL),   ENUM_ENTRY(EVENT),     ENUM_ENTRY(EXPORT),
+    ENUM_ENTRY(GLOBAL),   ENUM_ENTRY(TAG),       ENUM_ENTRY(EXPORT),
     ENUM_ENTRY(START),    ENUM_ENTRY(ELEM),      ENUM_ENTRY(CODE),
     ENUM_ENTRY(DATA),     ENUM_ENTRY(DATACOUNT),
 #undef ENUM_ENTRY
@@ -58,7 +57,7 @@ static const EnumEntry<unsigned> WasmSymbolFlags[] = {
 class WasmDumper : public ObjDumper {
 public:
   WasmDumper(const WasmObjectFile *Obj, ScopedPrinter &Writer)
-      : ObjDumper(Writer), Obj(Obj) {}
+      : ObjDumper(Writer, Obj->getFileName()), Obj(Obj) {}
 
   void printFileHeaders() override;
   void printSectionHeaders() override;
@@ -193,7 +192,7 @@ void WasmDumper::printSectionHeaders() {
       ListScope Group(W, "Memories");
       for (const wasm::WasmLimits &Memory : Obj->memories()) {
         DictScope Group(W, "Memory");
-        W.printNumber("InitialPages", Memory.Initial);
+        W.printNumber("MinPages", Memory.Minimum);
         if (Memory.Flags & wasm::WASM_LIMITS_FLAG_HAS_MAX) {
           W.printNumber("MaxPages", WasmSec.Offset);
         }
@@ -241,14 +240,9 @@ void WasmDumper::printSymbol(const SymbolRef &Sym) {
 
 namespace llvm {
 
-std::error_code createWasmDumper(const object::ObjectFile *Obj,
-                                 ScopedPrinter &Writer,
-                                 std::unique_ptr<ObjDumper> &Result) {
-  const auto *WasmObj = dyn_cast<WasmObjectFile>(Obj);
-  assert(WasmObj && "createWasmDumper called with non-wasm object");
-
-  Result.reset(new WasmDumper(WasmObj, Writer));
-  return readobj_error::success;
+std::unique_ptr<ObjDumper> createWasmDumper(const object::WasmObjectFile &Obj,
+                                            ScopedPrinter &Writer) {
+  return std::make_unique<WasmDumper>(&Obj, Writer);
 }
 
 } // namespace llvm

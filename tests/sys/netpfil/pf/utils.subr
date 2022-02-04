@@ -46,6 +46,13 @@ pfsynct_init()
 	fi
 }
 
+pflog_init()
+{
+	if ! kldstat -q -m pflog; then
+		atf_skip "This test requires pflog"
+	fi
+}
+
 pft_set_rules()
 {
 	jname=$1
@@ -76,6 +83,30 @@ pft_cleanup()
 }
 
 pfsynct_cleanup()
+{
+	pft_cleanup
+}
+
+is_altq_supported()
+{
+	sysctl -q kern.features.altq >/dev/null || \
+	    atf_skip "Test requires ALTQ"
+
+	while [ -n "$1" ]
+	do
+		sysctl -q kern.features.altq.${1} >/dev/null || \
+		    atf_skip "Test required ALTQ_${1}"
+		shift
+	done
+}
+
+altq_init()
+{
+	pft_init
+	is_altq_supported
+}
+
+altq_cleanup()
 {
 	pft_cleanup
 }

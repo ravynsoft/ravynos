@@ -356,11 +356,34 @@ rdtsc(void)
 }
 
 static __inline uint64_t
+rdtsc_ordered_lfence(void)
+{
+	lfence();
+	return (rdtsc());
+}
+
+static __inline uint64_t
+rdtsc_ordered_mfence(void)
+{
+	mfence();
+	return (rdtsc());
+}
+
+static __inline uint64_t
 rdtscp(void)
 {
 	uint32_t low, high;
 
 	__asm __volatile("rdtscp" : "=a" (low), "=d" (high) : : "ecx");
+	return (low | ((uint64_t)high << 32));
+}
+
+static __inline uint64_t
+rdtscp_aux(uint32_t *aux)
+{
+	uint32_t low, high;
+
+	__asm __volatile("rdtscp" : "=a" (low), "=d" (high), "=c" (*aux));
 	return (low | ((uint64_t)high << 32));
 }
 

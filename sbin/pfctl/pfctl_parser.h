@@ -82,7 +82,6 @@ struct pfctl {
 	int loadopt;
 	int asd;			/* anchor stack depth */
 	int bn;				/* brace number */
-	int brace;
 	int tdirty;			/* kernel dirty */
 #define PFCTL_ANCHOR_STACK_DEPTH 64
 	struct pfctl_anchor *astack[PFCTL_ANCHOR_STACK_DEPTH];
@@ -100,6 +99,9 @@ struct pfctl {
 	u_int32_t	 hostid;
 	char		*ifname;
 	bool		 keep_counters;
+	u_int8_t	 syncookies;
+	u_int8_t	 syncookieswat[2];	/* lowat, highwat, in % */
+	u_int8_t	 syncookieswat_set;
 
 	u_int8_t	 timeout_set[PFTM_MAX];
 	u_int8_t	 limit_set[PF_LIMIT_MAX];
@@ -182,7 +184,7 @@ struct node_queue_opt {
 };
 
 #define QPRI_BITSET_SIZE	256
-BITSET_DEFINE(qpri_bitset, QPRI_BITSET_SIZE);
+__BITSET_DEFINE(qpri_bitset, QPRI_BITSET_SIZE);
 LIST_HEAD(gen_sc, segment);
 
 struct pfctl_altq {
@@ -197,6 +199,11 @@ struct pfctl_altq {
 		struct gen_sc			lssc;
 		struct gen_sc			rtsc;
 	} meta;
+};
+
+struct pfctl_watermarks {
+	uint32_t	hi;
+	uint32_t	lo;
 };
 
 #ifdef __FreeBSD__
@@ -269,6 +276,7 @@ int	pfctl_set_logif(struct pfctl *, char *);
 int	pfctl_set_hostid(struct pfctl *, u_int32_t);
 int	pfctl_set_debug(struct pfctl *, char *);
 int	pfctl_set_interface_flags(struct pfctl *, char *, int, int);
+int	pfctl_cfg_syncookies(struct pfctl *, uint8_t, struct pfctl_watermarks *);
 
 int	parse_config(char *, struct pfctl *);
 int	parse_flags(char *);
@@ -278,8 +286,8 @@ void	print_pool(struct pfctl_pool *, u_int16_t, u_int16_t, sa_family_t, int);
 void	print_src_node(struct pf_src_node *, int);
 void	print_rule(struct pfctl_rule *, const char *, int, int);
 void	print_tabledef(const char *, int, int, struct node_tinithead *);
-void	print_status(struct pf_status *, int);
-void	print_running(struct pf_status *);
+void	print_status(struct pfctl_status *, struct pfctl_syncookies *, int);
+void	print_running(struct pfctl_status *);
 
 int	eval_pfaltq(struct pfctl *, struct pf_altq *, struct node_queue_bw *,
 	    struct node_queue_opt *);

@@ -219,6 +219,10 @@ public:
 
   bool MatchesOperand(StackFrame &frame, const Instruction::Operand &op);
 
+  llvm::Optional<DataExtractor>
+  GetLocationExpression(lldb::addr_t load_function_start,
+                        lldb::addr_t addr) const;
+
 private:
   /// Pretty-prints the location expression to a stream
   ///
@@ -237,10 +241,6 @@ private:
   void DumpLocation(Stream *s, const DataExtractor &data,
                     lldb::DescriptionLevel level, ABI *abi) const;
 
-  llvm::Optional<DataExtractor>
-  GetLocationExpression(lldb::addr_t load_function_start,
-                        lldb::addr_t addr) const;
-
   /// Module which defined this expression.
   lldb::ModuleWP m_module_wp;
 
@@ -250,10 +250,10 @@ private:
   /// The DWARF compile unit this expression belongs to. It is used to evaluate
   /// values indexing into the .debug_addr section (e.g. DW_OP_GNU_addr_index,
   /// DW_OP_GNU_const_index)
-  const DWARFUnit *m_dwarf_cu;
+  const DWARFUnit *m_dwarf_cu = nullptr;
 
   /// One of the defines that starts with LLDB_REGKIND_
-  lldb::RegisterKind m_reg_kind;
+  lldb::RegisterKind m_reg_kind = lldb::eRegisterKindDWARF;
 
   struct LoclistAddresses {
     lldb::addr_t cu_file_addr;

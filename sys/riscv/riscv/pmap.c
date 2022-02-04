@@ -310,6 +310,8 @@ static void _pmap_unwire_ptp(pmap_t pmap, vm_offset_t va, vm_page_t m,
     struct spglist *free);
 static int pmap_unuse_pt(pmap_t, vm_offset_t, pd_entry_t, struct spglist *);
 
+static int pmap_change_attr_locked(vm_offset_t va, vm_size_t size, int mode);
+
 #define	pmap_clear(pte)			pmap_store(pte, 0)
 #define	pmap_clear_bits(pte, bits)	atomic_clear_64(pte, bits)
 #define	pmap_load_store(pte, entry)	atomic_swap_64(pte, entry)
@@ -349,6 +351,8 @@ static __inline pd_entry_t *
 pmap_l1(pmap_t pmap, vm_offset_t va)
 {
 
+	KASSERT(VIRT_IS_VALID(va),
+	    ("%s: malformed virtual address %#lx", __func__, va));
 	return (&pmap->pm_l1[pmap_l1_index(va)]);
 }
 
@@ -872,7 +876,7 @@ pmap_extract_and_hold(pmap_t pmap, vm_offset_t va, vm_prot_t prot)
 vm_paddr_t
 pmap_kextract(vm_offset_t va)
 {
-	pd_entry_t *l2;
+	pd_entry_t *l2, l2e;
 	pt_entry_t *l3;
 	vm_paddr_t pa;
 
@@ -882,14 +886,23 @@ pmap_kextract(vm_offset_t va)
 		l2 = pmap_l2(kernel_pmap, va);
 		if (l2 == NULL)
 			panic("pmap_kextract: No l2");
-		if ((pmap_load(l2) & PTE_RX) != 0) {
+		l2e = pmap_load(l2);
+		/*
+		 * Beware of concurrent promotion and demotion! We must
+		 * use l2e rather than loading from l2 multiple times to
+		 * ensure we see a consistent state, including the
+		 * implicit load in pmap_l2_to_l3.  It is, however, safe
+		 * to use an old l2e because the L3 page is preserved by
+		 * promotion.
+		 */
+		if ((l2e & PTE_RX) != 0) {
 			/* superpages */
-			pa = L2PTE_TO_PHYS(pmap_load(l2));
+			pa = L2PTE_TO_PHYS(l2e);
 			pa |= (va & L2_OFFSET);
 			return (pa);
 		}
 
-		l3 = pmap_l2_to_l3(l2, va);
+		l3 = pmap_l2_to_l3(&l2e, va);
 		if (l3 == NULL)
 			panic("pmap_kextract: No l3...");
 		pa = PTE_TO_PHYS(pmap_load(l3));
@@ -903,7 +916,7 @@ pmap_kextract(vm_offset_t va)
  ***************************************************/
 
 void
-pmap_kenter_device(vm_offset_t sva, vm_size_t size, vm_paddr_t pa)
+pmap_kenter(vm_offset_t sva, vm_size_t size, vm_paddr_t pa, int mode __unused)
 {
 	pt_entry_t entry;
 	pt_entry_t *l3;
@@ -932,6 +945,12 @@ pmap_kenter_device(vm_offset_t sva, vm_size_t size, vm_paddr_t pa)
 		size -= PAGE_SIZE;
 	}
 	pmap_invalidate_range(kernel_pmap, sva, va);
+}
+
+void
+pmap_kenter_device(vm_offset_t sva, vm_size_t size, vm_paddr_t pa)
+{
+	pmap_kenter(sva, size, pa, VM_MEMATTR_DEVICE);
 }
 
 /*
@@ -1132,7 +1151,7 @@ _pmap_unwire_ptp(pmap_t pmap, vm_offset_t va, vm_page_t m, struct spglist *free)
 	vm_paddr_t phys;
 
 	PMAP_LOCK_ASSERT(pmap, MA_OWNED);
-	if (m->pindex >= NUL1E) {
+	if (m->pindex >= NUL2E) {
 		pd_entry_t *l1;
 		l1 = pmap_l1(pmap, va);
 		pmap_clear(l1);
@@ -1143,7 +1162,7 @@ _pmap_unwire_ptp(pmap_t pmap, vm_offset_t va, vm_page_t m, struct spglist *free)
 		pmap_clear(l2);
 	}
 	pmap_resident_count_dec(pmap, 1);
-	if (m->pindex < NUL1E) {
+	if (m->pindex < NUL2E) {
 		pd_entry_t *l1;
 		vm_page_t pdpg;
 
@@ -1201,16 +1220,12 @@ pmap_pinit(pmap_t pmap)
 	/*
 	 * allocate the l1 page
 	 */
-	while ((l1pt = vm_page_alloc(NULL, 0xdeadbeef, VM_ALLOC_NORMAL |
-	    VM_ALLOC_NOOBJ | VM_ALLOC_WIRED | VM_ALLOC_ZERO)) == NULL)
-		vm_wait(NULL);
+	l1pt = vm_page_alloc_noobj(VM_ALLOC_WIRED | VM_ALLOC_ZERO |
+	    VM_ALLOC_WAITOK);
 
 	l1phys = VM_PAGE_TO_PHYS(l1pt);
 	pmap->pm_l1 = (pd_entry_t *)PHYS_TO_DMAP(l1phys);
 	pmap->pm_satp = SATP_MODE_SV39 | (l1phys >> PAGE_SHIFT);
-
-	if ((l1pt->flags & PG_ZERO) == 0)
-		pagezero(pmap->pm_l1);
 
 	bzero(&pmap->pm_stats, sizeof(pmap->pm_stats));
 
@@ -1253,8 +1268,8 @@ _pmap_alloc_l3(pmap_t pmap, vm_pindex_t ptepindex, struct rwlock **lockp)
 	/*
 	 * Allocate a page table page.
 	 */
-	if ((m = vm_page_alloc(NULL, ptepindex, VM_ALLOC_NOOBJ |
-	    VM_ALLOC_WIRED | VM_ALLOC_ZERO)) == NULL) {
+	m = vm_page_alloc_noobj(VM_ALLOC_WIRED | VM_ALLOC_ZERO);
+	if (m == NULL) {
 		if (lockp != NULL) {
 			RELEASE_PV_LIST_LOCK(lockp);
 			PMAP_UNLOCK(pmap);
@@ -1270,21 +1285,21 @@ _pmap_alloc_l3(pmap_t pmap, vm_pindex_t ptepindex, struct rwlock **lockp)
 		 */
 		return (NULL);
 	}
-
-	if ((m->flags & PG_ZERO) == 0)
-		pmap_zero_page(m);
+	m->pindex = ptepindex;
 
 	/*
 	 * Map the pagetable page into the process address space, if
 	 * it isn't already there.
 	 */
 
-	if (ptepindex >= NUL1E) {
+	if (ptepindex >= NUL2E) {
 		pd_entry_t *l1;
 		vm_pindex_t l1index;
 
-		l1index = ptepindex - NUL1E;
+		l1index = ptepindex - NUL2E;
 		l1 = &pmap->pm_l1[l1index];
+		KASSERT((pmap_load(l1) & PTE_V) == 0,
+		    ("%s: L1 entry %#lx is valid", __func__, pmap_load(l1)));
 
 		pn = (VM_PAGE_TO_PHYS(m) / PAGE_SIZE);
 		entry = (PTE_V);
@@ -1299,7 +1314,7 @@ _pmap_alloc_l3(pmap_t pmap, vm_pindex_t ptepindex, struct rwlock **lockp)
 		l1 = &pmap->pm_l1[l1index];
 		if (pmap_load(l1) == 0) {
 			/* recurse for allocating page dir */
-			if (_pmap_alloc_l3(pmap, NUL1E + l1index,
+			if (_pmap_alloc_l3(pmap, NUL2E + l1index,
 			    lockp) == NULL) {
 				vm_page_unwire_noq(m);
 				vm_page_free_zero(m);
@@ -1314,6 +1329,8 @@ _pmap_alloc_l3(pmap_t pmap, vm_pindex_t ptepindex, struct rwlock **lockp)
 		phys = PTE_TO_PHYS(pmap_load(l1));
 		l2 = (pd_entry_t *)PHYS_TO_DMAP(phys);
 		l2 = &l2[ptepindex & Ln_ADDR_MASK];
+		KASSERT((pmap_load(l2) & PTE_V) == 0,
+		    ("%s: L2 entry %#lx is valid", __func__, pmap_load(l2)));
 
 		pn = (VM_PAGE_TO_PHYS(m) / PAGE_SIZE);
 		entry = (PTE_V);
@@ -1335,7 +1352,10 @@ pmap_alloc_l2(pmap_t pmap, vm_offset_t va, struct rwlock **lockp)
 
 retry:
 	l1 = pmap_l1(pmap, va);
-	if (l1 != NULL && (pmap_load(l1) & PTE_RWX) == 0) {
+	if (l1 != NULL && (pmap_load(l1) & PTE_V) != 0) {
+		KASSERT((pmap_load(l1) & PTE_RWX) == 0,
+		    ("%s: L1 entry %#lx for VA %#lx is a leaf", __func__,
+		    pmap_load(l1), va));
 		/* Add a reference to the L2 page. */
 		l2pg = PHYS_TO_VM_PAGE(PTE_TO_PHYS(pmap_load(l1)));
 		l2pg->ref_count++;
@@ -1459,13 +1479,11 @@ pmap_growkernel(vm_offset_t addr)
 		l1 = pmap_l1(kernel_pmap, kernel_vm_end);
 		if (pmap_load(l1) == 0) {
 			/* We need a new PDP entry */
-			nkpg = vm_page_alloc(NULL, kernel_vm_end >> L1_SHIFT,
-			    VM_ALLOC_INTERRUPT | VM_ALLOC_NOOBJ |
+			nkpg = vm_page_alloc_noobj(VM_ALLOC_INTERRUPT |
 			    VM_ALLOC_WIRED | VM_ALLOC_ZERO);
 			if (nkpg == NULL)
 				panic("pmap_growkernel: no memory to grow kernel");
-			if ((nkpg->flags & PG_ZERO) == 0)
-				pmap_zero_page(nkpg);
+			nkpg->pindex = kernel_vm_end >> L1_SHIFT;
 			paddr = VM_PAGE_TO_PHYS(nkpg);
 
 			pn = (paddr / PAGE_SIZE);
@@ -1487,14 +1505,11 @@ pmap_growkernel(vm_offset_t addr)
 			continue;
 		}
 
-		nkpg = vm_page_alloc(NULL, kernel_vm_end >> L2_SHIFT,
-		    VM_ALLOC_INTERRUPT | VM_ALLOC_NOOBJ | VM_ALLOC_WIRED |
+		nkpg = vm_page_alloc_noobj(VM_ALLOC_INTERRUPT | VM_ALLOC_WIRED |
 		    VM_ALLOC_ZERO);
 		if (nkpg == NULL)
 			panic("pmap_growkernel: no memory to grow kernel");
-		if ((nkpg->flags & PG_ZERO) == 0) {
-			pmap_zero_page(nkpg);
-		}
+		nkpg->pindex = kernel_vm_end >> L2_SHIFT;
 		paddr = VM_PAGE_TO_PHYS(nkpg);
 
 		pn = (paddr / PAGE_SIZE);
@@ -1674,8 +1689,7 @@ retry:
 		}
 	}
 	/* No free items, allocate another chunk */
-	m = vm_page_alloc(NULL, 0, VM_ALLOC_NORMAL | VM_ALLOC_NOOBJ |
-	    VM_ALLOC_WIRED);
+	m = vm_page_alloc_noobj(VM_ALLOC_WIRED);
 	if (m == NULL) {
 		if (lockp == NULL) {
 			PV_STAT(pc_chunk_tryfail++);
@@ -1741,8 +1755,7 @@ retry:
 			break;
 	}
 	for (reclaimed = false; avail < needed; avail += _NPCPV) {
-		m = vm_page_alloc(NULL, 0, VM_ALLOC_NORMAL | VM_ALLOC_NOOBJ |
-		    VM_ALLOC_WIRED);
+		m = vm_page_alloc_noobj(VM_ALLOC_WIRED);
 		if (m == NULL) {
 			m = reclaim_pv_chunk(pmap, lockp);
 			if (m == NULL)
@@ -2461,10 +2474,9 @@ pmap_demote_l2_locked(pmap_t pmap, pd_entry_t *l2, vm_offset_t va,
 	    ("pmap_demote_l2_locked: oldl2 is not a leaf entry"));
 	if ((oldl2 & PTE_A) == 0 || (mpte = pmap_remove_pt_page(pmap, va)) ==
 	    NULL) {
-		if ((oldl2 & PTE_A) == 0 || (mpte = vm_page_alloc(NULL,
-		    pmap_l2_pindex(va), (VIRT_IN_DMAP(va) ? VM_ALLOC_INTERRUPT :
-		    VM_ALLOC_NORMAL) | VM_ALLOC_NOOBJ | VM_ALLOC_WIRED)) ==
-		    NULL) {
+		if ((oldl2 & PTE_A) == 0 || (mpte = vm_page_alloc_noobj(
+		    (VIRT_IN_DMAP(va) ? VM_ALLOC_INTERRUPT : 0) |
+		    VM_ALLOC_WIRED)) == NULL) {
 			SLIST_INIT(&free);
 			(void)pmap_remove_l2(pmap, l2, va & ~L2_OFFSET,
 			    pmap_load(pmap_l1(pmap, va)), &free, lockp);
@@ -2473,6 +2485,7 @@ pmap_demote_l2_locked(pmap_t pmap, pd_entry_t *l2, vm_offset_t va,
 			    "failure for va %#lx in pmap %p", va, pmap);
 			return (false);
 		}
+		mpte->pindex = pmap_l2_pindex(va);
 		if (va < VM_MAXUSER_ADDRESS) {
 			mpte->ref_count = Ln_ENTRIES;
 			pmap_resident_count_inc(pmap, 1);
@@ -2724,13 +2737,10 @@ pmap_enter(pmap_t pmap, vm_offset_t va, vm_page_t m, vm_prot_t prot,
 		/* TODO: This is not optimal, but should mostly work */
 		if (l3 == NULL) {
 			if (l2 == NULL) {
-				l2_m = vm_page_alloc(NULL, 0, VM_ALLOC_NORMAL |
-				    VM_ALLOC_NOOBJ | VM_ALLOC_WIRED |
+				l2_m = vm_page_alloc_noobj(VM_ALLOC_WIRED |
 				    VM_ALLOC_ZERO);
 				if (l2_m == NULL)
 					panic("pmap_enter: l2 pte_m == NULL");
-				if ((l2_m->flags & PG_ZERO) == 0)
-					pmap_zero_page(l2_m);
 
 				l2_pa = VM_PAGE_TO_PHYS(l2_m);
 				l2_pn = (l2_pa / PAGE_SIZE);
@@ -2743,12 +2753,10 @@ pmap_enter(pmap_t pmap, vm_offset_t va, vm_page_t m, vm_prot_t prot,
 				l2 = pmap_l1_to_l2(l1, va);
 			}
 
-			l3_m = vm_page_alloc(NULL, 0, VM_ALLOC_NORMAL |
-			    VM_ALLOC_NOOBJ | VM_ALLOC_WIRED | VM_ALLOC_ZERO);
+			l3_m = vm_page_alloc_noobj(VM_ALLOC_WIRED |
+			    VM_ALLOC_ZERO);
 			if (l3_m == NULL)
 				panic("pmap_enter: l3 pte_m == NULL");
-			if ((l3_m->flags & PG_ZERO) == 0)
-				pmap_zero_page(l3_m);
 
 			l3_pa = VM_PAGE_TO_PHYS(l3_m);
 			l3_pn = (l3_pa / PAGE_SIZE);
@@ -4236,6 +4244,98 @@ pmap_page_set_memattr(vm_page_t m, vm_memattr_t ma)
 {
 
 	m->md.pv_memattr = ma;
+
+	/*
+	 * If "m" is a normal page, update its direct mapping.  This update
+	 * can be relied upon to perform any cache operations that are
+	 * required for data coherence.
+	 */
+	if ((m->flags & PG_FICTITIOUS) == 0 &&
+	    pmap_change_attr(PHYS_TO_DMAP(VM_PAGE_TO_PHYS(m)), PAGE_SIZE,
+	    m->md.pv_memattr) != 0)
+		panic("memory attribute change on the direct map failed");
+}
+
+/*
+ * Changes the specified virtual address range's memory type to that given by
+ * the parameter "mode".  The specified virtual address range must be
+ * completely contained within either the direct map or the kernel map.
+ *
+ * Returns zero if the change completed successfully, and either EINVAL or
+ * ENOMEM if the change failed.  Specifically, EINVAL is returned if some part
+ * of the virtual address range was not mapped, and ENOMEM is returned if
+ * there was insufficient memory available to complete the change.  In the
+ * latter case, the memory type may have been changed on some part of the
+ * virtual address range.
+ */
+int
+pmap_change_attr(vm_offset_t va, vm_size_t size, int mode)
+{
+	int error;
+
+	PMAP_LOCK(kernel_pmap);
+	error = pmap_change_attr_locked(va, size, mode);
+	PMAP_UNLOCK(kernel_pmap);
+	return (error);
+}
+
+static int
+pmap_change_attr_locked(vm_offset_t va, vm_size_t size, int mode)
+{
+	vm_offset_t base, offset, tmpva;
+	pd_entry_t *l1, l1e;
+	pd_entry_t *l2, l2e;
+	pt_entry_t *l3, l3e;
+
+	PMAP_LOCK_ASSERT(kernel_pmap, MA_OWNED);
+	base = trunc_page(va);
+	offset = va & PAGE_MASK;
+	size = round_page(offset + size);
+
+	if (!VIRT_IN_DMAP(base) &&
+	    !(base >= VM_MIN_KERNEL_ADDRESS && base < VM_MAX_KERNEL_ADDRESS))
+		return (EINVAL);
+
+	for (tmpva = base; tmpva < base + size; ) {
+		l1 = pmap_l1(kernel_pmap, tmpva);
+		if (l1 == NULL || ((l1e = pmap_load(l1)) & PTE_V) == 0)
+			return (EINVAL);
+		if ((l1e & PTE_RWX) != 0) {
+			/*
+			 * TODO: Demote if attributes don't match and there
+			 * isn't an L1 page left in the range, and update the
+			 * L1 entry if the attributes don't match but there is
+			 * an L1 page left in the range, once we support the
+			 * upcoming Svpbmt extension.
+			 */
+			tmpva = (tmpva & ~L1_OFFSET) + L1_SIZE;
+			continue;
+		}
+		l2 = pmap_l1_to_l2(l1, tmpva);
+		if (l2 == NULL || ((l2e = pmap_load(l2)) & PTE_V) == 0)
+			return (EINVAL);
+		if ((l2e & PTE_RWX) != 0) {
+			/*
+			 * TODO: Demote if attributes don't match and there
+			 * isn't an L2 page left in the range, and update the
+			 * L2 entry if the attributes don't match but there is
+			 * an L2 page left in the range, once we support the
+			 * upcoming Svpbmt extension.
+			 */
+			tmpva = (tmpva & ~L2_OFFSET) + L2_SIZE;
+			continue;
+		}
+		l3 = pmap_l2_to_l3(l2, tmpva);
+		if (l3 == NULL || ((l3e = pmap_load(l3)) & PTE_V) == 0)
+			return (EINVAL);
+		/*
+		 * TODO: Update the L3 entry if the attributes don't match once
+		 * we support the upcoming Svpbmt extension.
+		 */
+		tmpva += PAGE_SIZE;
+	}
+
+	return (0);
 }
 
 /*

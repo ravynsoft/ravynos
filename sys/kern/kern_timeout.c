@@ -190,14 +190,14 @@ struct callout_cpu {
 #define	cc_migration_time(cc, dir)	cc->cc_exec_entity[dir].ce_migration_time
 #define	cc_migration_prec(cc, dir)	cc->cc_exec_entity[dir].ce_migration_prec
 
-struct callout_cpu cc_cpu[MAXCPU];
+static struct callout_cpu cc_cpu[MAXCPU];
 #define	CPUBLOCK	MAXCPU
 #define	CC_CPU(cpu)	(&cc_cpu[(cpu)])
 #define	CC_SELF()	CC_CPU(PCPU_GET(cpuid))
 #else
-struct callout_cpu cc_cpu;
-#define	CC_CPU(cpu)	&cc_cpu
-#define	CC_SELF()	&cc_cpu
+static struct callout_cpu cc_cpu;
+#define	CC_CPU(cpu)	(&cc_cpu)
+#define	CC_SELF()	(&cc_cpu)
 #endif
 #define	CC_LOCK(cc)	mtx_lock_spin(&(cc)->cc_lock)
 #define	CC_UNLOCK(cc)	mtx_unlock_spin(&(cc)->cc_lock)
@@ -418,8 +418,7 @@ callout_process(sbintime_t now)
 	struct callout *tmp, *tmpn;
 	struct callout_cpu *cc;
 	struct callout_list *sc;
-	sbintime_t first, last, max, tmp_max;
-	uint32_t lookahead;
+	sbintime_t first, last, lookahead, max, tmp_max;
 	u_int firstb, lastb, nowb;
 #ifdef CALLOUT_PROFILING
 	int depth_dir = 0, mpcalls_dir = 0, lockcalls_dir = 0;
@@ -439,7 +438,7 @@ callout_process(sbintime_t now)
 	else if (nowb - firstb == 1)
 		lookahead = (SBT_1S / 8);
 	else
-		lookahead = (SBT_1S / 2);
+		lookahead = SBT_1S;
 	first = last = now;
 	first += (lookahead / 2);
 	last += lookahead;
@@ -919,8 +918,9 @@ callout_reset_sbt_on(struct callout *c, sbintime_t sbt, sbintime_t prec,
 	} else {
 		direct = 0;
 	}
-	KASSERT(!direct || c->c_lock == NULL,
-	    ("%s: direct callout %p has lock", __func__, c));
+	KASSERT(!direct || c->c_lock == NULL ||
+	    (LOCK_CLASS(c->c_lock)->lc_flags & LC_SPINLOCK),
+	    ("%s: direct callout %p has non-spin lock", __func__, c));
 	cc = callout_lock(c);
 	/*
 	 * Don't allow migration if the user does not care.
@@ -1332,9 +1332,8 @@ _callout_init_lock(struct callout *c, struct lock_object *lock, int flags)
 	    ("callout_init_lock: bad flags %d", flags));
 	KASSERT(lock != NULL || (flags & CALLOUT_RETURNUNLOCKED) == 0,
 	    ("callout_init_lock: CALLOUT_RETURNUNLOCKED with no lock"));
-	KASSERT(lock == NULL || !(LOCK_CLASS(lock)->lc_flags &
-	    (LC_SPINLOCK | LC_SLEEPABLE)), ("%s: invalid lock class",
-	    __func__));
+	KASSERT(lock == NULL || !(LOCK_CLASS(lock)->lc_flags & LC_SLEEPABLE),
+	    ("%s: callout %p has sleepable lock", __func__, c));
 	c->c_iflags = flags & (CALLOUT_RETURNUNLOCKED | CALLOUT_SHAREDLOCK);
 	c->c_cpu = cc_default_cpu;
 }

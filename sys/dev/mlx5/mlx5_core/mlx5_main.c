@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2013-2020, Mellanox Technologies, Ltd.  All rights reserved.
+ * Copyright (c) 2013-2021, Mellanox Technologies, Ltd.  All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -55,8 +55,7 @@
 
 static const char mlx5_version[] = "Mellanox Core driver "
 	DRIVER_VERSION " (" DRIVER_RELDATE ")";
-MODULE_AUTHOR("Eli Cohen <eli@mellanox.com>");
-MODULE_DESCRIPTION("Mellanox Connect-IB, ConnectX-4 core driver");
+MODULE_DESCRIPTION("Mellanox ConnectX-4 and onwards core driver");
 MODULE_LICENSE("Dual BSD/GPL");
 MODULE_DEPEND(mlx5, linuxkpi, 1, 1, 1);
 MODULE_DEPEND(mlx5, mlxfw, 1, 1, 1);
@@ -81,8 +80,6 @@ static int mlx5_fast_unload_enabled = 1;
 SYSCTL_INT(_hw_mlx5, OID_AUTO, fast_unload_enabled, CTLFLAG_RWTUN,
     &mlx5_fast_unload_enabled, 0,
     "Set to enable fast unload. Clear to disable.");
-
-#define NUMA_NO_NODE       -1
 
 static LIST_HEAD(intf_list);
 static LIST_HEAD(dev_list);
@@ -653,7 +650,7 @@ static int alloc_comp_eqs(struct mlx5_core_dev *dev)
 	ncomp_vec = table->num_comp_vectors;
 	nent = MLX5_COMP_EQ_SIZE;
 	for (i = 0; i < ncomp_vec; i++) {
-		eq = kzalloc(sizeof(*eq), GFP_KERNEL);
+		eq = kzalloc_node(sizeof(*eq), GFP_KERNEL, dev->priv.numa_node);
 
 		err = mlx5_create_map_eq(dev, eq,
 					 i + MLX5_EQ_VEC_COMP_BASE, nent, 0);
@@ -715,7 +712,7 @@ static void mlx5_add_device(struct mlx5_interface *intf, struct mlx5_priv *priv)
 	struct mlx5_device_context *dev_ctx;
 	struct mlx5_core_dev *dev = container_of(priv, struct mlx5_core_dev, priv);
 
-	dev_ctx = kzalloc(sizeof(*dev_ctx), GFP_KERNEL);
+	dev_ctx = kzalloc_node(sizeof(*dev_ctx), GFP_KERNEL, priv->numa_node);
 	if (!dev_ctx)
 		return;
 
@@ -868,8 +865,6 @@ static int mlx5_pci_init(struct mlx5_core_dev *dev, struct mlx5_priv *priv)
 	mutex_init(&priv->pgdir_mutex);
 	INIT_LIST_HEAD(&priv->pgdir_list);
 	spin_lock_init(&priv->mkey_lock);
-
-	priv->numa_node = NUMA_NO_NODE;
 
 	err = mlx5_pci_enable_device(dev);
 	if (err) {
@@ -1101,7 +1096,7 @@ static int mlx5_load_one(struct mlx5_core_dev *dev, struct mlx5_priv *priv,
 
 	mlx5_start_health_poll(dev);
 
-	if (boot && mlx5_init_once(dev, priv)) {
+	if (boot && (err = mlx5_init_once(dev, priv))) {
 		mlx5_core_err(dev, "sw objs init failed\n");
 		goto err_stop_poll;
 	}
@@ -1314,14 +1309,22 @@ static int init_one(struct pci_dev *pdev,
 	int num_vfs, sriov_pos;
 #endif
 	int i,err;
+	int numa_node;
 	struct sysctl_oid *pme_sysctl_node;
 	struct sysctl_oid *pme_err_sysctl_node;
 	struct sysctl_oid *cap_sysctl_node;
 	struct sysctl_oid *current_cap_sysctl_node;
 	struct sysctl_oid *max_cap_sysctl_node;
 
-	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+	printk_once("mlx5: %s", mlx5_version);
+
+	numa_node = dev_to_node(&pdev->dev);
+
+	dev = kzalloc_node(sizeof(*dev), GFP_KERNEL, numa_node);
+
 	priv = &dev->priv;
+	priv->numa_node = numa_node;
+
 	if (id)
 		priv->pci_dev_data = id->driver_data;
 

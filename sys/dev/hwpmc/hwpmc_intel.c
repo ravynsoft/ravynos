@@ -149,7 +149,7 @@ pmc_intel_initialize(void)
 			break;
 		case 0x2A:	/* Per Intel document 253669-039US 05/2011. */
 			cputype = PMC_CPU_INTEL_SANDYBRIDGE;
-			nclasses = 5;
+			nclasses = 3;
 			break;
 		case 0x2D:	/* Per Intel document 253669-044US 08/2012. */
 			cputype = PMC_CPU_INTEL_SANDYBRIDGE_XEON;
@@ -169,11 +169,30 @@ pmc_intel_initialize(void)
 			/* Kabylake */
 		case 0x8E:	/* Per Intel document 325462-063US July 2017. */
 		case 0x9E:	/* Per Intel document 325462-063US July 2017. */
+			/* Cometlake */
+		case 0xA5:
+		case 0xA6:
 			cputype = PMC_CPU_INTEL_SKYLAKE;
 			nclasses = 3;
 			break;
 		case 0x55:	/* SDM rev 63 */
 			cputype = PMC_CPU_INTEL_SKYLAKE_XEON;
+			nclasses = 3;
+			break;
+			/* Icelake */
+		case 0x7D:
+		case 0x7E:
+			/* Tigerlake */
+		case 0x8C:
+		case 0x8D:
+			/* Rocketlake */
+		case 0xA7:
+			cputype = PMC_CPU_INTEL_ICELAKE;
+			nclasses = 3;
+			break;
+		case 0x6A:
+		case 0x6C:
+			cputype = PMC_CPU_INTEL_ICELAKE_XEON;
 			nclasses = 3;
 			break;
 		case 0x3D:
@@ -195,7 +214,7 @@ pmc_intel_initialize(void)
 		case 0x3C:	/* Per Intel document 325462-045US 01/2013. */
 		case 0x45:	/* Per Intel document 325462-045US 09/2014. */
 			cputype = PMC_CPU_INTEL_HASWELL;
-			nclasses = 5;
+			nclasses = 3;
 			break;
 		case 0x37:
 		case 0x4A:
@@ -242,6 +261,8 @@ pmc_intel_initialize(void)
 	case PMC_CPU_INTEL_BROADWELL_XEON:
 	case PMC_CPU_INTEL_SKYLAKE_XEON:
 	case PMC_CPU_INTEL_SKYLAKE:
+	case PMC_CPU_INTEL_ICELAKE:
+	case PMC_CPU_INTEL_ICELAKE_XEON:
 	case PMC_CPU_INTEL_CORE:
 	case PMC_CPU_INTEL_CORE2:
 	case PMC_CPU_INTEL_CORE2EXTREME:
@@ -275,10 +296,27 @@ pmc_intel_initialize(void)
 		 * Intel Corei7 and Westmere processors.
 		 */
 	case PMC_CPU_INTEL_COREI7:
-	case PMC_CPU_INTEL_HASWELL:
-	case PMC_CPU_INTEL_SANDYBRIDGE:
 	case PMC_CPU_INTEL_WESTMERE:
+#ifdef notyet
+	/*
+	 * TODO: re-enable uncore class on these processors.
+	 *
+	 * The uncore unit was reworked beginning with Sandy Bridge, including
+	 * the MSRs required to program it. In particular, we need to:
+	 *  - Parse the MSR_UNC_CBO_CONFIG MSR for number of C-box units in the
+	 *    system
+	 *  - Support reading and writing to ARB and C-box units, depending on
+	 *    the requested event
+	 *  - Create some kind of mapping between C-box <--> CPU
+	 *
+	 * Also TODO: support other later changes to these interfaces, to
+	 * enable the uncore class on generations newer than Broadwell.
+	 * Skylake+ appears to use newer addresses for the uncore MSRs.
+	 */
+	case PMC_CPU_INTEL_HASWELL:
 	case PMC_CPU_INTEL_BROADWELL:
+	case PMC_CPU_INTEL_SANDYBRIDGE:
+#endif
 		error = pmc_uncore_initialize(pmc_mdep, ncpus);
 		break;
 	default:
@@ -306,6 +344,8 @@ pmc_intel_finalize(struct pmc_mdep *md)
 	case PMC_CPU_INTEL_BROADWELL_XEON:
 	case PMC_CPU_INTEL_SKYLAKE_XEON:
 	case PMC_CPU_INTEL_SKYLAKE:
+	case PMC_CPU_INTEL_ICELAKE:
+	case PMC_CPU_INTEL_ICELAKE_XEON:
 	case PMC_CPU_INTEL_CORE:
 	case PMC_CPU_INTEL_CORE2:
 	case PMC_CPU_INTEL_CORE2EXTREME:
@@ -329,11 +369,13 @@ pmc_intel_finalize(struct pmc_mdep *md)
 	 * Uncore.
 	 */
 	switch (md->pmd_cputype) {
-	case PMC_CPU_INTEL_BROADWELL:
 	case PMC_CPU_INTEL_COREI7:
-	case PMC_CPU_INTEL_HASWELL:
-	case PMC_CPU_INTEL_SANDYBRIDGE:
 	case PMC_CPU_INTEL_WESTMERE:
+#ifdef notyet
+	case PMC_CPU_INTEL_HASWELL:
+	case PMC_CPU_INTEL_BROADWELL:
+	case PMC_CPU_INTEL_SANDYBRIDGE:
+#endif
 		pmc_uncore_finalize(md);
 		break;
 	default:

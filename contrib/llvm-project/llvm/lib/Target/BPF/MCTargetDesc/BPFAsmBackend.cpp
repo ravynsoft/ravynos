@@ -43,11 +43,6 @@ public:
 
   unsigned getNumFixupKinds() const override { return 1; }
 
-  bool mayNeedRelaxation(const MCInst &Inst,
-                         const MCSubtargetInfo &STI) const override {
-    return false;
-  }
-
   bool writeNopData(raw_ostream &OS, uint64_t Count) const override;
 };
 
@@ -68,7 +63,7 @@ void BPFAsmBackend::applyFixup(const MCAssembler &Asm, const MCFixup &Fixup,
                                MutableArrayRef<char> Data, uint64_t Value,
                                bool IsResolved,
                                const MCSubtargetInfo *STI) const {
-  if (Fixup.getKind() == FK_SecRel_4 || Fixup.getKind() == FK_SecRel_8) {
+  if (Fixup.getKind() == FK_SecRel_8) {
     // The Value is 0 for global variables, and the in-section offset
     // for static variables. Write to the immediate field of the inst.
     assert(Value <= UINT32_MAX);

@@ -28,8 +28,8 @@
  *
  * $FreeBSD$
  */
-#ifndef _LINUX_DMAPOOL_H_
-#define	_LINUX_DMAPOOL_H_
+#ifndef _LINUXKPI_LINUX_DMAPOOL_H_
+#define	_LINUXKPI_LINUX_DMAPOOL_H_
 
 #include <linux/types.h>
 #include <linux/io.h>
@@ -41,6 +41,7 @@ struct dma_pool;
 struct dma_pool *linux_dma_pool_create(char *name, struct device *dev,
     size_t size, size_t align, size_t boundary);
 void linux_dma_pool_destroy(struct dma_pool *pool);
+void lkpi_dmam_pool_destroy(struct device *, void *);
 void *linux_dma_pool_alloc(struct dma_pool *pool, gfp_t mem_flags,
     dma_addr_t *handle);
 void linux_dma_pool_free(struct dma_pool *pool, void *vaddr,
@@ -52,6 +53,25 @@ dma_pool_create(char *name, struct device *dev, size_t size,
 {
 
 	return (linux_dma_pool_create(name, dev, size, align, boundary));
+}
+
+static inline struct dma_pool *
+dmam_pool_create(/* const */ char *name, struct device *dev, size_t size,
+    size_t align, size_t boundary)
+{
+	struct dma_pool **pp;
+
+	pp = devres_alloc(lkpi_dmam_pool_destroy, sizeof(*pp), GFP_KERNEL);
+	if (pp == NULL)
+		return (NULL);
+	*pp = linux_dma_pool_create(name, dev, size, align, boundary);
+	if (*pp == NULL) {
+		devres_free(pp);
+		return (NULL);
+	}
+
+	devres_add(dev, pp);
+	return (*pp);
 }
 
 static inline void
@@ -82,4 +102,4 @@ dma_pool_free(struct dma_pool *pool, void *vaddr, dma_addr_t dma_addr)
 	linux_dma_pool_free(pool, vaddr, dma_addr);
 }
 
-#endif /* _LINUX_DMAPOOL_H_ */
+#endif /* _LINUXKPI_LINUX_DMAPOOL_H_ */

@@ -165,8 +165,9 @@ public:
 
 } // end namespace llvm
 
-InstrProfWriter::InstrProfWriter(bool Sparse)
-    : Sparse(Sparse), InfoObj(new InstrProfRecordWriterTrait()) {}
+InstrProfWriter::InstrProfWriter(bool Sparse, bool InstrEntryBBEnabled)
+    : Sparse(Sparse), InstrEntryBBEnabled(InstrEntryBBEnabled),
+      InfoObj(new InstrProfRecordWriterTrait()) {}
 
 InstrProfWriter::~InstrProfWriter() { delete InfoObj; }
 
@@ -240,7 +241,7 @@ void InstrProfWriter::addRecord(StringRef Name, uint64_t Hash,
     // We've never seen a function with this name and hash, add it.
     Dest = std::move(I);
     if (Weight > 1)
-      Dest.scale(Weight, MapWarn);
+      Dest.scale(Weight, 1, MapWarn);
   } else {
     // We're updating a function we've seen before.
     Dest.merge(I, Weight, MapWarn);
@@ -284,7 +285,7 @@ static void setSummary(IndexedInstrProf::Summary *TheSummary,
     TheSummary->setEntry(I, Res[I]);
 }
 
-void InstrProfWriter::writeImpl(ProfOStream &OS) {
+Error InstrProfWriter::writeImpl(ProfOStream &OS) {
   using namespace IndexedInstrProf;
 
   OnDiskChainedHashTableGenerator<InstrProfRecordWriterTrait> Generator;
@@ -308,6 +309,9 @@ void InstrProfWriter::writeImpl(ProfOStream &OS) {
     Header.Version |= VARIANT_MASK_IR_PROF;
     Header.Version |= VARIANT_MASK_CSIR_PROF;
   }
+  if (InstrEntryBBEnabled)
+    Header.Version |= VARIANT_MASK_INSTR_ENTRY;
+
   Header.Unused = 0;
   Header.HashType = static_cast<uint64_t>(IndexedInstrProf::HashType);
   Header.HashOffset = 0;
@@ -372,12 +376,19 @@ void InstrProfWriter::writeImpl(ProfOStream &OS) {
        (int)CSSummarySize}};
 
   OS.patch(PatchItems, sizeof(PatchItems) / sizeof(*PatchItems));
+
+  for (const auto &I : FunctionData)
+    for (const auto &F : I.getValue())
+      if (Error E = validateRecord(F.second))
+        return E;
+
+  return Error::success();
 }
 
-void InstrProfWriter::write(raw_fd_ostream &OS) {
+Error InstrProfWriter::write(raw_fd_ostream &OS) {
   // Write the hash table.
   ProfOStream POS(OS);
-  writeImpl(POS);
+  return writeImpl(POS);
 }
 
 std::unique_ptr<MemoryBuffer> InstrProfWriter::writeBuffer() {
@@ -385,7 +396,8 @@ std::unique_ptr<MemoryBuffer> InstrProfWriter::writeBuffer() {
   raw_string_ostream OS(Data);
   ProfOStream POS(OS);
   // Write the hash table.
-  writeImpl(POS);
+  if (Error E = writeImpl(POS))
+    return nullptr;
   // Return this in an aligned memory buffer.
   return MemoryBuffer::getMemBufferCopy(Data);
 }
@@ -394,6 +406,27 @@ static const char *ValueProfKindStr[] = {
 #define VALUE_PROF_KIND(Enumerator, Value, Descr) #Enumerator,
 #include "llvm/ProfileData/InstrProfData.inc"
 };
+
+Error InstrProfWriter::validateRecord(const InstrProfRecord &Func) {
+  for (uint32_t VK = 0; VK <= IPVK_Last; VK++) {
+    uint32_t NS = Func.getNumValueSites(VK);
+    if (!NS)
+      continue;
+    for (uint32_t S = 0; S < NS; S++) {
+      uint32_t ND = Func.getNumValueDataForSite(VK, S);
+      std::unique_ptr<InstrProfValueData[]> VD = Func.getValueForSite(VK, S);
+      bool WasZero = false;
+      for (uint32_t I = 0; I < ND; I++)
+        if ((VK != IPVK_IndirectCallTarget) && (VD[I].Value == 0)) {
+          if (WasZero)
+            return make_error<InstrProfError>(instrprof_error::invalid_prof);
+          WasZero = true;
+        }
+    }
+  }
+
+  return Error::success();
+}
 
 void InstrProfWriter::writeRecordInText(StringRef Name, uint64_t Hash,
                                         const InstrProfRecord &Func,
@@ -441,6 +474,8 @@ Error InstrProfWriter::writeText(raw_fd_ostream &OS) {
     OS << "# IR level Instrumentation Flag\n:ir\n";
   else if (ProfileKind == PF_IRLevelWithCS)
     OS << "# CSIR level Instrumentation Flag\n:csir\n";
+  if (InstrEntryBBEnabled)
+    OS << "# Always instrument the function entry block\n:entry_first\n";
   InstrProfSymtab Symtab;
 
   using FuncPair = detail::DenseMapPair<uint64_t, InstrProfRecord>;
@@ -465,6 +500,12 @@ Error InstrProfWriter::writeText(raw_fd_ostream &OS) {
     const StringRef &Name = record.first;
     const FuncPair &Func = record.second;
     writeRecordInText(Name, Func.first, Func.second, Symtab, OS);
+  }
+
+  for (const auto &record : OrderedFuncData) {
+    const FuncPair &Func = record.second;
+    if (Error E = validateRecord(Func.second))
+      return E;
   }
 
   return Error::success();

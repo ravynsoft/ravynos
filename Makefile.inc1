@@ -11,9 +11,7 @@
 #	-DNO_KERNELCONFIG do not run config in ${MAKE} buildkernel
 #	-DNO_KERNELCLEAN do not run ${MAKE} clean in ${MAKE} buildkernel
 #	-DNO_KERNELOBJ do not run ${MAKE} obj in ${MAKE} buildkernel
-#	-DNO_PORTSUPDATE do not update ports in ${MAKE} update
 #	-DNO_ROOT install without using root privilege
-#	-DNO_DOCUPDATE do not update doc in ${MAKE} update
 #	-DWITHOUT_CTF do not run the DTrace CTF conversion tools on built objects
 #	LOCAL_DIRS="list of dirs" to add additional dirs to the SUBDIR list
 #	LOCAL_ITOOLS="list of tools" to add additional tools to the ITOOLS list
@@ -45,7 +43,6 @@
 # installworld- install everything built by "buildworld"
 # checkworld  - run test suite on installed world
 # doxygen     - build API documentation of the kernel
-# update      - convenient way to update your source tree (eg: svn/svnup)
 #
 # Standard targets (not defined here) are documented in the makefiles in
 # /usr/share/mk.  These include:
@@ -94,6 +91,9 @@ X${COMPILER}?=	${${COMPILER}}
 # a cross compiler.
 .if ${XCC:N${CCACHE_BIN}:M/*}
 MK_CLANG_BOOTSTRAP=	no
+# Make sure sub-makes see the option as disabled so the hack in bsd.sys.mk to
+# work around incompatible headers in Clang's resource directory is enabled.
+.MAKEOVERRIDES+=	MK_CLANG_BOOTSTRAP
 .endif
 
 # Pull in compiler metadata from buildworld/toolchain if possible to avoid
@@ -199,7 +199,7 @@ MK_SYSTEM_LINKER=	no
 .if defined(CROSS_TOOLCHAIN_PREFIX)
 CROSS_BINUTILS_PREFIX?=${CROSS_TOOLCHAIN_PREFIX}
 .endif
-XBINUTILS=	AS AR LD NM OBJCOPY RANLIB SIZE STRINGS STRIPBIN
+XBINUTILS=	AS AR ELFCTL LD NM OBJCOPY RANLIB SIZE STRINGS STRIPBIN
 .for BINUTIL in ${XBINUTILS}
 .if defined(CROSS_BINUTILS_PREFIX) && \
     exists(${CROSS_BINUTILS_PREFIX}/${${BINUTIL}})
@@ -491,17 +491,6 @@ BUILDENV_SHELL?=/bin/sh
 .endif
 
 .if !defined(_MKSHOWCONFIG)
-.if !defined(SVN_CMD) || empty(SVN_CMD)
-. for _P in /usr/bin /usr/local/bin
-.  for _S in svn svnlite
-.   if exists(${_P}/${_S})
-SVN_CMD=   ${_P}/${_S}
-.   endif
-.  endfor
-. endfor
-.export SVN_CMD
-.endif
-SVNFLAGS?=	-r HEAD
 .if !defined(VCS_REVISION) || empty(VCS_REVISION)
 .if !defined(SVNVERSION_CMD) || empty(SVNVERSION_CMD)
 . for _D in ${PATH:S,:, ,g}
@@ -513,11 +502,13 @@ SVNVERSION_CMD?=${_D}/svnliteversion
 .  endif
 . endfor
 .endif
+.if defined(SVNVERSION_CMD) && !empty(SVNVERSION_CMD)
 _VCS_REVISION?=	$$(eval ${SVNVERSION_CMD} ${SRCDIR})
 . if !empty(_VCS_REVISION)
 VCS_REVISION=	$$(echo r${_VCS_REVISION})
-. endif
 .export VCS_REVISION
+. endif
+.endif
 .endif
 
 .if !defined(GIT_CMD) || empty(GIT_CMD)
@@ -726,13 +717,23 @@ BSARGS= 	DESTDIR= \
 		MAKEOBJDIRPREFIX= \
 		BOOTSTRAPPING=${BOOTSTRAPPING_OSRELDATE} \
 		BWPHASE=${.TARGET:C,^_,,} \
-		SSP_CFLAGS= \
-		MK_HTML=no NO_LINT=yes MK_MAN=no MK_MAN_UTILS=yes \
-		-DNO_PIC MK_PROFILE=no -DNO_SHARED \
-		-DNO_CPU_CFLAGS MK_WERROR=no MK_CTF=no \
-		MK_CLANG_EXTRAS=no MK_CLANG_FORMAT=no MK_CLANG_FULL=no \
-		MK_LLDB=no MK_RETPOLINE=no MK_TESTS=no \
-		MK_INCLUDES=yes
+		-DNO_CPU_CFLAGS \
+		-DNO_LINT \
+		-DNO_PIC \
+		-DNO_SHARED \
+		MK_CTF=no \
+		MK_CLANG_EXTRAS=no \
+		MK_CLANG_FORMAT=no \
+		MK_CLANG_FULL=no \
+		MK_HTML=no \
+		MK_MAN=no \
+		MK_PROFILE=no \
+		MK_RETPOLINE=no \
+		MK_SSP=no \
+		MK_TESTS=no \
+		MK_WERROR=no \
+		MK_INCLUDES=yes \
+		MK_MAN_UTILS=yes
 
 BMAKE=		\
 		${BMAKEENV} ${MAKE} ${WORLD_FLAGS} -f Makefile.inc1 \
@@ -748,17 +749,25 @@ TMAKE=		\
 		DESTDIR= \
 		BOOTSTRAPPING=${BOOTSTRAPPING_OSRELDATE} \
 		BWPHASE=${.TARGET:C,^_,,} \
-		SSP_CFLAGS= \
+		-DNO_CPU_CFLAGS \
 		-DNO_LINT \
-		-DNO_CPU_CFLAGS MK_WERROR=no MK_CTF=no \
-		MK_CLANG_EXTRAS=no MK_CLANG_FORMAT=no MK_CLANG_FULL=no \
-		MK_LLDB=no MK_RETPOLINE=no MK_TESTS=no
+		MK_CTF=no \
+		MK_CLANG_EXTRAS=no \
+		MK_CLANG_FORMAT=no \
+		MK_CLANG_FULL=no \
+		MK_LLDB=no \
+		MK_RETPOLINE=no \
+		MK_SSP=no \
+		MK_TESTS=no \
+		MK_WERROR=no
 
 # cross-tools stage
 # TOOLS_PREFIX set in BMAKE
 XMAKE=		${BMAKE} \
 		TARGET=${TARGET} TARGET_ARCH=${TARGET_ARCH} \
 		MK_CLANG_IS_CC=${MK_CLANG_BOOTSTRAP} \
+		MK_LLDB=no \
+		MK_LLVM_BINUTILS=no \
 		MK_TESTS=no
 
 # kernel-tools stage
@@ -775,10 +784,17 @@ KTMAKE=		\
 		OBJROOT='$${OBJTOP}/' \
 		MAKEOBJDIRPREFIX= \
 		BOOTSTRAPPING=${BOOTSTRAPPING_OSRELDATE} \
-		SSP_CFLAGS= \
-		MK_HTML=no -DNO_LINT MK_MAN=no \
-		-DNO_PIC MK_PROFILE=no -DNO_SHARED \
-		-DNO_CPU_CFLAGS MK_RETPOLINE=no MK_WERROR=no MK_CTF=no
+		-DNO_CPU_CFLAGS \
+		-DNO_LINT \
+		-DNO_PIC \
+		-DNO_SHARED \
+		MK_CTF=no \
+		MK_HTML=no \
+		MK_MAN=no \
+		MK_PROFILE=no \
+		MK_SSP=no \
+		MK_RETPOLINE=no \
+		MK_WERROR=no
 
 # world stage
 WMAKEENV=	${CROSSENV} \
@@ -794,8 +810,8 @@ HMAKE+=		PATH=${TMPPATH} METALOG=${METALOG} -DNO_ROOT
 
 CROSSENV+=	CC="${XCC} ${XCFLAGS}" CXX="${XCXX} ${XCXXFLAGS} ${XCFLAGS}" \
 		CPP="${XCPP} ${XCFLAGS}" \
-		AS="${XAS}" AR="${XAR}" LD="${XLD}" LLVM_LINK="${XLLVM_LINK}" \
-		NM=${XNM} OBJCOPY="${XOBJCOPY}" \
+		AS="${XAS}" AR="${XAR}" ELFCTL="${XELFCTL}" LD="${XLD}" \
+		LLVM_LINK="${XLLVM_LINK}" NM=${XNM} OBJCOPY="${XOBJCOPY}" \
 		RANLIB=${XRANLIB} STRINGS=${XSTRINGS} \
 		SIZE="${XSIZE}" STRIPBIN="${XSTRIPBIN}"
 
@@ -1169,6 +1185,10 @@ _ncpu_cmd=sysctl -n hw.ncpu 2>/dev/null || nproc 2>/dev/null || echo unknown
 buildworld_prologue: .PHONY
 	@echo "--------------------------------------------------------------"
 	@echo ">>> World build started on `LC_ALL=C date`"
+.if ${TARGET:Mmips}
+	@echo "--------------------------------------------------------------"
+	@echo "WARNING: MIPS architecture is gone in FreeBSD 14.0"
+.endif
 	@echo "--------------------------------------------------------------"
 
 buildworld_epilogue: .PHONY
@@ -1178,6 +1198,10 @@ buildworld_epilogue: .PHONY
 	@seconds=$$(($$(date '+%s') - ${_BUILDWORLD_START})); \
 	  echo -n ">>> World built in $$seconds seconds, "; \
 	  echo "ncpu: $$(${_ncpu_cmd})${.MAKE.JOBS:S/^/, make -j/}"
+.if ${TARGET:Mmips}
+	@echo "--------------------------------------------------------------"
+	@echo "WARNING: MIPS architecture is gone in FreeBSD 14.0"
+.endif
 	@echo "--------------------------------------------------------------"
 
 #
@@ -1912,14 +1936,14 @@ real-update-packages: stage-packages .PHONY
 	@echo "==> Checking for new packages (comparing ${PKG_VERSION} to ${PKG_VERSION_FROM})"
 	@for pkg in ${PKG_VERSION_FROM_DIR}/${PKG_NAME_PREFIX}-*; do \
 	  pkgname=$$(pkg query -F $${pkg} '%n' | sed 's/${PKG_NAME_PREFIX}-\(.*\)/\1/') ; \
-	  newpkgname=${PKG_NAME_PREFIX}-$${pkgname}-${PKG_VERSION}.${PKG_FORMAT} ; \
+	  newpkgname=${PKG_NAME_PREFIX}-$${pkgname}-${PKG_VERSION}.pkg ; \
 	  oldsum=$$(pkg query -F $${pkg} '%X') ; \
 	  if [ ! -f ${REPODIR}/${PKG_ABI}/${PKG_VERSION}/$${newpkgname} ]; then \
 	    continue; \
 	  fi ; \
 	  newsum=$$(pkg query -F ${REPODIR}/${PKG_ABI}/${PKG_VERSION}/$${newpkgname} '%X') ; \
 	  if [ "$${oldsum}" == "$${newsum}" ]; then \
-	   echo "==> Keeping old ${PKG_NAME_PREFIX}-$${pkgname}-${PKG_VERSION_FROM}.${PKG_FORMAT}" ; \
+	   echo "==> Keeping old ${PKG_NAME_PREFIX}-$${pkgname}-${PKG_VERSION_FROM}.pkg" ; \
 	   rm ${REPODIR}/${PKG_ABI}/${PKG_VERSION}/$${newpkgname} ; \
 	   cp $${pkg} ${REPODIR}/${PKG_ABI}/${PKG_VERSION} ; \
 	  else \
@@ -2076,7 +2100,7 @@ create-kernel-packages-extra-flavor${flavor:C,^""$,${_default_flavor},}-${_kerne
 .endif
 
 sign-packages:	_pkgbootstrap .PHONY
-	printf "version = 2;\npacking_format = \"${PKG_FORMAT}\";\n" > ${WSTAGEDIR}/meta
+	printf "version = 2;\n" > ${WSTAGEDIR}/meta
 	@[ -L "${REPODIR}/$$(${PKG_CMD} -o ABI_FILE=${WSTAGEDIR}/usr/bin/uname config ABI)/latest" ] && \
 		unlink ${REPODIR}/$$(${PKG_CMD} -o ABI_FILE=${WSTAGEDIR}/usr/bin/uname config ABI)/latest ; \
 	${PKG_CMD} -o ABI_FILE=${WSTAGEDIR}/usr/bin/uname repo \
@@ -2112,20 +2136,6 @@ doxygen: .PHONY
 		exit 1; \
 	fi
 	${_+_}cd ${.CURDIR}/tools/kerneldoc/subsys; ${MAKE} obj all
-
-#
-# update
-#
-# Update the source tree(s), by running svn/svnup to update to the
-# latest copy.
-#
-update: .PHONY
-.if defined(SVN_UPDATE)
-	@echo "--------------------------------------------------------------"
-	@echo ">>> Updating ${.CURDIR} using Subversion"
-	@echo "--------------------------------------------------------------"
-	@(cd ${.CURDIR}; ${SVN_CMD} update ${SVNFLAGS})
-.endif
 
 #
 # ------------------------------------------------------------------------
@@ -2324,15 +2334,20 @@ _gensnmptree=	usr.sbin/bsnmpd/gensnmptree
 
 # We need to build tblgen when we're building clang or lld, either as
 # bootstrap tools, or as the part of the normal build.
+# llvm-tblgen is also needed for various llvm binutils (e.g. objcopy).
 .if ${MK_CLANG_BOOTSTRAP} != "no" || ${MK_CLANG} != "no" || \
-    ${MK_LLD_BOOTSTRAP} != "no" || ${MK_LLD} != "no"
+    ${MK_LLD_BOOTSTRAP} != "no" || ${MK_LLD} != "no" || \
+    ${MK_LLDB} != "no" || ${MK_LLVM_BINUTILS} != "no"
 _clang_tblgen= \
 	lib/clang/libllvmminimal \
-	usr.bin/clang/llvm-tblgen \
-	usr.bin/clang/clang-tblgen \
-	usr.bin/clang/lldb-tblgen
-# XXX: lldb-tblgen is not needed, if top-level MK_LLDB=no
-
+	usr.bin/clang/llvm-tblgen
+.if ${MK_CLANG_BOOTSTRAP} != "no" || ${MK_CLANG} != "no" || \
+    ${MK_LLDB} != "no"
+_clang_tblgen+=	usr.bin/clang/clang-tblgen
+.endif
+.if ${MK_LLDB} != "no"
+_clang_tblgen+=	usr.bin/clang/lldb-tblgen
+.endif
 ${_bt}-usr.bin/clang/clang-tblgen: ${_bt}-lib/clang/libllvmminimal
 ${_bt}-usr.bin/clang/llvm-tblgen: ${_bt}-lib/clang/libllvmminimal
 ${_bt}-usr.bin/clang/lldb-tblgen: ${_bt}-lib/clang/libllvmminimal
@@ -2341,6 +2356,13 @@ ${_bt}-usr.bin/clang/lldb-tblgen: ${_bt}-lib/clang/libllvmminimal
 .if ${MK_LOCALES} != "no"
 _localedef=	usr.bin/localedef
 ${_bt}-usr.bin/localedef: ${_bt}-usr.bin/yacc ${_bt_lex_depend}
+.endif
+
+.if ${MK_ICONV} != "no"
+_mkesdb=	usr.bin/mkesdb
+_mkcsmapper=	usr.bin/mkcsmapper
+${_bt}-usr.bin/mkesdb: ${_bt}-usr.bin/yacc ${_bt_lex_depend}
+${_bt}-usr.bin/mkcsmapper: ${_bt}-usr.bin/yacc ${_bt_lex_depend}
 .endif
 
 .if ${MK_KERBEROS} != "no"
@@ -2437,6 +2459,14 @@ _other_bootstrap_tools+=usr.bin/bmake
 # Avoid dependency on host bz2 headers:
 _other_bootstrap_tools+=lib/libbz2
 ${_bt}-usr.bin/grep: ${_bt}-lib/libbz2
+
+# libdwarf depends on libz
+_other_bootstrap_tools+=lib/libz
+${_bt}-lib/libdwarf: ${_bt}-lib/libz
+
+# libroken depends on libcrypt
+_other_bootstrap_tools+=lib/libcrypt
+${_bt}-lib/libroken: ${_bt}-lib/libcrypt
 .else
 # All tools in _basic_bootstrap_tools have the same name as the subdirectory
 # so we can use :T to get the name of the symlinks that we need to create.
@@ -2494,6 +2524,8 @@ bootstrap-tools: ${_bt}-links .PHONY
     ${_nmtree} \
     ${_vtfontcvt} \
     ${_localedef} \
+    ${_mkcsmapper} \
+    ${_mkesdb} \
     ${LOCAL_BSTOOL_DIRS}
 ${_bt}-${_tool}: ${_bt}-links .PHONY .MAKE
 	${_+_}@${ECHODIR} "===> ${_tool} (obj,all,install)"; \
@@ -2535,9 +2567,7 @@ _tcsh=bin/csh
 _libmagic=lib/libmagic
 .endif
 
-.if ${MK_PMC} != "no" && \
-    (${TARGET_ARCH} == "aarch64" || ${TARGET_ARCH} == "amd64" || \
-    ${TARGET_ARCH} == "i386")
+.if ${MK_PMC} != "no"
 _jevents=lib/libpmc/pmu-events
 .endif
 
@@ -2557,8 +2587,6 @@ _bt_clean=	${CLEANDIR}
     ${_share} \
     usr.bin/awk \
     ${_libmagic} \
-    usr.bin/mkesdb_static \
-    usr.bin/mkcsmapper_static \
     usr.bin/vi/catalog
 build-tools_${_tool}: .PHONY
 	${_+_}@${ECHODIR} "===> ${_tool} (${_bt_clean:D${_bt_clean},}obj,build-tools)"; \
@@ -2600,6 +2628,8 @@ _dtrace_tools= cddl/lib/libctf cddl/lib/libspl cddl/usr.bin/ctfconvert \
 .if ${MK_ELFTOOLCHAIN_BOOTSTRAP} != "no"
 _elftctools=	lib/libelftc \
 		lib/libpe \
+		usr.bin/elfctl \
+		usr.bin/elfdump \
 		usr.bin/objcopy \
 		usr.bin/nm \
 		usr.bin/size \
@@ -2613,6 +2643,8 @@ _elftctools+=	usr.bin/addr2line
 # the target (for at least crunchide).
 _elftctools=	lib/libelftc \
 		lib/libpe \
+		usr.bin/elfctl \
+		usr.bin/elfdump \
 		usr.bin/objcopy
 .endif
 
@@ -2746,11 +2778,9 @@ SUBDIR=	${SUBDIR_OVERRIDE}
 NXBMAKEARGS+= \
 	OBJTOP=${NXBOBJTOP:Q} \
 	OBJROOT=${NXBOBJROOT:Q} \
-	MAKEOBJDIRPREFIX= \
 	-DNO_SHARED \
 	-DNO_CPU_CFLAGS \
 	-DNO_PIC \
-	SSP_CFLAGS= \
 	MK_CASPER=no \
 	MK_CLANG_EXTRAS=no \
 	MK_CLANG_FORMAT=no \
@@ -2767,9 +2797,13 @@ NXBMAKEARGS+= \
 	MK_RETPOLINE=no \
 	MK_SENDMAIL=no \
 	MK_SVNLITE=no \
+	MK_SSP=no \
 	MK_TESTS=no \
 	MK_WERROR=no \
 	MK_ZFS=no
+
+NXBMAKEENV+= \
+	MAKEOBJDIRPREFIX=
 
 .if make(native-xtools*) && \
     (!defined(NXB_TARGET) || !defined(NXB_TARGET_ARCH))
@@ -2978,6 +3012,8 @@ _cddl_lib_libavl= cddl/lib/libavl
 _cddl_lib_libuutil= cddl/lib/libuutil
 _cddl_lib_libspl= cddl/lib/libspl
 
+cddl/lib/libavl__L: cddl/lib/libspl__L
+cddl/lib/libnvpair__L: cddl/lib/libspl__L
 cddl/lib/libuutil__L: cddl/lib/libavl__L cddl/lib/libspl__L
 
 .if ${MK_ZFS} != "no"
@@ -2991,9 +3027,9 @@ _cddl_lib_libzfsbootenv= cddl/lib/libzfsbootenv
 
 cddl/lib/libtpool__L: cddl/lib/libspl__L
 
-cddl/lib/libzutil__L: cddl/lib/libavl__L cddl/lib/libtpool__L
+cddl/lib/libzutil__L: cddl/lib/libavl__L lib/libgeom__L lib/msun__L cddl/lib/libtpool__L
 
-cddl/lib/libzfs_core__L: cddl/lib/libnvpair__L
+cddl/lib/libzfs_core__L: cddl/lib/libnvpair__L cddl/lib/libspl__L cddl/lib/libzutil__L
 
 cddl/lib/libzfs__L: cddl/lib/libzfs_core__L lib/msun__L lib/libutil__L
 cddl/lib/libzfs__L: lib/libthr__L lib/libmd__L lib/libz__L cddl/lib/libumem__L

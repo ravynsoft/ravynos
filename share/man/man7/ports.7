@@ -25,7 +25,7 @@
 .\"
 .\" $FreeBSD$
 .\"
-.Dd April 17, 2021
+.Dd July 22, 2021
 .Dt PORTS 7
 .Os
 .Sh NAME
@@ -115,7 +115,7 @@ in
 .No \&:
 .Sm on
 .Pp
-.Lk https://www.FreeBSD.org/doc/en/books/handbook/ports.html
+.Lk https://docs.FreeBSD.org/en/books/handbook/ports/
 .Pp
 For information about creating new ports, see
 .Sm off
@@ -123,7 +123,7 @@ For information about creating new ports, see
 .No \&:
 .Sm on
 .Pp
-.Lk https://www.FreeBSD.org/doc/en/books/porters-handbook/
+.Lk https://docs.FreeBSD.org/en/books/porters-handbook/
 .Sh TARGETS
 Some of the
 .Xr make 1
@@ -284,7 +284,7 @@ from the system.
 Make a binary package for the port.
 The port will be installed if it has not already been.
 The package is a
-.Pa .tbz
+.Pa .pkg
 file that you can use to
 install the port on other machines with
 .Xr pkg-add 8 .
@@ -558,6 +558,13 @@ If set, debugging symbols are installed for ports binaries.
 .It Va WITH_DEBUG_PORTS
 A list of origins for which to set
 .Va WITH_DEBUG .
+.It Va DEBUG_FLAGS
+.Pq Default: Ql -g
+Additional
+.Va CFLAGS
+to set when
+.Va WITH_DEBUG
+is set.
 .It Va WITH_CCACHE_BUILD
 .Pq Vt bool
 If set, enables the use of
@@ -643,6 +650,58 @@ DISABLE_MAKE_JOBS=	yes
 TRYBROKEN=		yes
 \&.endif
 .Ed
+.It Sy Example 6\&: No Debugging Ports
+By default ports are built and packaged without debugging support (e.g.,
+debugging symbols are stripped from binaries, optimization flags are used for
+compiling, verbose logging is disabled).
+Whether ports are built with debugging symbols can be controlled by the
+settings in
+.Xr make.conf 5 ,
+e.g.,
+.Bd -literal -offset 2n
+# Enable debugging for all ports.
+WITH_DEBUG=		yes
+# Enable debugging for selected ports.
+WITH_DEBUG_PORTS=	mail/dovecot security/krb5
+.Ed
+.Pp
+It is also possible to use the debug variables on the command line:
+.Bd -literal -offset 2n
+.Li # Ic make -DWITH_DEBUG DEBUG_FLAGS="-g -O0" build
+.Ed
+.Pp
+See the
+.Sx MAKE VARIABLES
+section to learn more about the debug variables.
+.Pp
+To understand the details of what happens when the debug variables are set it
+is best to consult the files located at
+.Pa ${PORTSDIR}/Mk/*
+.Po Pa bsd.port.mk
+in particular
+.Pc .
+.Pp
+If debugging is enabled for a specific port, the ports framework will:
+.Bl -bullet
+.It
+Add
+.Va DEBUG_FLAGS
+(defaults to
+.Ql -g )
+to
+.Va CFLAGS .
+.It
+Try to prevent the binaries from being stripped (including checking the install
+target to replace
+.Ql install-strip
+with
+.Ql install ) .
+Whether a binary has been stripped can be checked with
+.Xr file 1 .
+.It
+Try to enable other debugging features like debug build type or verbose logging.
+However, this is port-specific and the ports framework might not be aware of
+each supported debugging feature a given piece of software has to offer).
 .El
 .Sh SEE ALSO
 .Xr make 1 ,

@@ -367,10 +367,13 @@ vfs_mountroot_shuffle(struct thread *td, struct mount *mpdevfs)
 				error = vinvalbuf(vp, V_SAVE, 0, 0);
 			if (!error) {
 				cache_purge(vp);
+				VI_LOCK(vp);
 				mporoot->mnt_vnodecovered = vp;
+				vn_irflag_set_locked(vp, VIRF_MOUNTPOINT);
 				vp->v_mountedhere = mporoot;
 				strlcpy(mporoot->mnt_stat.f_mntonname,
 				    fspath, MNAMELEN);
+				VI_UNLOCK(vp);
 				VOP_UNLOCK(vp);
 			} else
 				vput(vp);
@@ -580,6 +583,7 @@ parse_dir_md(char **conf)
 	int error, fd, len;
 
 	td = curthread;
+	fd = -1;
 
 	error = parse_token(conf, &tok);
 	if (error)
@@ -635,9 +639,9 @@ parse_dir_md(char **conf)
 	root_mount_mddev = mdio->md_unit;
 	printf(MD_NAME "%u attached to %s\n", root_mount_mddev, mdio->md_file);
 
-	error = kern_close(td, fd);
-
  out:
+	if (fd >= 0)
+		(void)kern_close(td, fd);
 	free(mdio, M_TEMP);
 	return (error);
 }
@@ -982,6 +986,8 @@ vfs_mountroot_wait(void)
 	TSENTER();
 
 	curfail = 0;
+	lastfail.tv_sec = 0;
+	ppsratecheck(&lastfail, &curfail, 1);
 	while (1) {
 		g_waitidle();
 		mtx_lock(&root_holds_mtx);
@@ -1000,6 +1006,7 @@ vfs_mountroot_wait(void)
 		    hz);
 		TSUNWAIT("root mount");
 	}
+	g_waitidle();
 
 	TSEXIT();
 }
@@ -1034,6 +1041,8 @@ vfs_mountroot_wait_if_neccessary(const char *fs, const char *dev)
 	 * to behave exactly as it used to work before.
 	 */
 	vfs_mountroot_wait();
+	if (parse_mount_dev_present(dev))
+		return (0);
 	printf("mountroot: waiting for device %s...\n", dev);
 	delay = hz / 10;
 	timeout = root_mount_timeout * hz;

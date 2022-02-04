@@ -51,6 +51,7 @@ __FBSDID("$FreeBSD$");
 #include <vm/vm_dumpset.h>
 #include <vm/pmap.h>
 
+#include <machine/atomic.h>
 #include <machine/md_var.h>
 #include <machine/pte.h>
 #include <machine/minidump.h>
@@ -62,24 +63,9 @@ static struct kerneldumpheader kdh;
 /* Handle chunked writes. */
 static size_t fragsz;
 static void *dump_va;
-static size_t counter, progress, dumpsize;
+static size_t dumpsize;
 
 static uint64_t tmpbuffer[Ln_ENTRIES];
-
-static int
-is_dumpable(vm_paddr_t pa)
-{
-	vm_page_t m;
-	int i;
-
-	if ((m = vm_phys_paddr_to_vm_page(pa)) != NULL)
-		return ((m->flags & PG_NODUMP) == 0);
-	for (i = 0; dump_avail[i] != 0 || dump_avail[i + 1] != 0; i += 2) {
-		if (pa >= dump_avail[i] && pa < dump_avail[i + 1])
-			return (1);
-	}
-	return (0);
-}
 
 static int
 blk_flush(struct dumperinfo *di)
@@ -92,41 +78,6 @@ blk_flush(struct dumperinfo *di)
 	error = dump_append(di, dump_va, 0, fragsz);
 	fragsz = 0;
 	return (error);
-}
-
-static struct {
-	int min_per;
-	int max_per;
-	int visited;
-} progress_track[10] = {
-	{  0,  10, 0},
-	{ 10,  20, 0},
-	{ 20,  30, 0},
-	{ 30,  40, 0},
-	{ 40,  50, 0},
-	{ 50,  60, 0},
-	{ 60,  70, 0},
-	{ 70,  80, 0},
-	{ 80,  90, 0},
-	{ 90, 100, 0}
-};
-
-static void
-report_progress(size_t progress, size_t dumpsize)
-{
-	int sofar, i;
-
-	sofar = 100 - ((progress * 100) / dumpsize);
-	for (i = 0; i < nitems(progress_track); i++) {
-		if (sofar < progress_track[i].min_per ||
-		    sofar > progress_track[i].max_per)
-			continue;
-		if (progress_track[i].visited)
-			return;
-		progress_track[i].visited = 1;
-		printf("..%d%%", sofar);
-		return;
-	}
 }
 
 static int
@@ -165,13 +116,8 @@ blk_write(struct dumperinfo *di, char *ptr, vm_paddr_t pa, size_t sz)
 		len = maxdumpsz - fragsz;
 		if (len > sz)
 			len = sz;
-		counter += len;
-		progress -= len;
-		if (counter >> 22) {
-			report_progress(progress, dumpsize);
-			counter &= (1 << 22) - 1;
-		}
 
+		dumpsys_pb_progress(len);
 		wdog_kern_pat(WD_LASTVAL);
 
 		if (ptr) {
@@ -202,12 +148,13 @@ blk_write(struct dumperinfo *di, char *ptr, vm_paddr_t pa, size_t sz)
 }
 
 int
-minidumpsys(struct dumperinfo *di)
+cpu_minidumpsys(struct dumperinfo *di, const struct minidumpstate *state)
 {
 	struct minidumphdr mdhdr;
-	pd_entry_t *l0, *l1, *l2;
-	pt_entry_t *l3;
-	vm_offset_t va;
+	struct msgbuf *mbp;
+	pd_entry_t *l0, *l1, l1e, *l2, l2e;
+	pt_entry_t *l3, l3e;
+	vm_offset_t va, kva_end;
 	vm_paddr_t pa;
 	uint32_t pmapsize;
 	int error, i, j, retry_count;
@@ -217,56 +164,74 @@ minidumpsys(struct dumperinfo *di)
 	retry_count++;
 	error = 0;
 	pmapsize = 0;
-	for (va = VM_MIN_KERNEL_ADDRESS; va < kernel_vm_end; va += L2_SIZE) {
+
+	/* Snapshot the KVA upper bound in case it grows. */
+	kva_end = kernel_vm_end;
+
+	/*
+	 * Walk the kernel page table pages, setting the active entries in the
+	 * dump bitmap.
+	 *
+	 * NB: for a live dump, we may be racing with updates to the page
+	 * tables, so care must be taken to read each entry only once.
+	 */
+	for (va = VM_MIN_KERNEL_ADDRESS; va < kva_end; va += L2_SIZE) {
 		pmapsize += PAGE_SIZE;
 		if (!pmap_get_tables(pmap_kernel(), va, &l0, &l1, &l2, &l3))
 			continue;
 
-		if ((*l1 & ATTR_DESCR_MASK) == L1_BLOCK) {
-			pa = *l1 & ~ATTR_MASK;
+		l1e = atomic_load_64(l1);
+		l2e = atomic_load_64(l2);
+		if ((l1e & ATTR_DESCR_MASK) == L1_BLOCK) {
+			pa = l1e & ~ATTR_MASK;
 			for (i = 0; i < Ln_ENTRIES * Ln_ENTRIES;
 			    i++, pa += PAGE_SIZE)
-				if (is_dumpable(pa))
-					dump_add_page(pa);
+				if (vm_phys_is_dumpable(pa))
+					vm_page_dump_add(state->dump_bitset,
+					    pa);
 			pmapsize += (Ln_ENTRIES - 1) * PAGE_SIZE;
 			va += L1_SIZE - L2_SIZE;
-		} else if ((*l2 & ATTR_DESCR_MASK) == L2_BLOCK) {
-			pa = *l2 & ~ATTR_MASK;
+		} else if ((l2e & ATTR_DESCR_MASK) == L2_BLOCK) {
+			pa = l2e & ~ATTR_MASK;
 			for (i = 0; i < Ln_ENTRIES; i++, pa += PAGE_SIZE) {
-				if (is_dumpable(pa))
-					dump_add_page(pa);
+				if (vm_phys_is_dumpable(pa))
+					vm_page_dump_add(state->dump_bitset,
+					    pa);
 			}
-		} else if ((*l2 & ATTR_DESCR_MASK) == L2_TABLE) {
+		} else if ((l2e & ATTR_DESCR_MASK) == L2_TABLE) {
 			for (i = 0; i < Ln_ENTRIES; i++) {
-				if ((l3[i] & ATTR_DESCR_MASK) != L3_PAGE)
+				l3e = atomic_load_64(&l3[i]);
+				if ((l3e & ATTR_DESCR_MASK) != L3_PAGE)
 					continue;
-				pa = l3[i] & ~ATTR_MASK;
-				if (is_dumpable(pa))
-					dump_add_page(pa);
+				pa = l3e & ~ATTR_MASK;
+				if (PHYS_IN_DMAP(pa) && vm_phys_is_dumpable(pa))
+					vm_page_dump_add(state->dump_bitset,
+					    pa);
 			}
 		}
 	}
 
 	/* Calculate dump size. */
+	mbp = state->msgbufp;
 	dumpsize = pmapsize;
-	dumpsize += round_page(msgbufp->msg_size);
+	dumpsize += round_page(mbp->msg_size);
 	dumpsize += round_page(sizeof(dump_avail));
 	dumpsize += round_page(BITSET_SIZE(vm_page_dump_pages));
-	VM_PAGE_DUMP_FOREACH(pa) {
-		if (is_dumpable(pa))
+	VM_PAGE_DUMP_FOREACH(state->dump_bitset, pa) {
+		if (PHYS_IN_DMAP(pa) && vm_phys_is_dumpable(pa))
 			dumpsize += PAGE_SIZE;
 		else
-			dump_drop_page(pa);
+			vm_page_dump_drop(state->dump_bitset, pa);
 	}
 	dumpsize += PAGE_SIZE;
 
-	progress = dumpsize;
+	dumpsys_pb_init(dumpsize);
 
 	/* Initialize mdhdr */
 	bzero(&mdhdr, sizeof(mdhdr));
 	strcpy(mdhdr.magic, MINIDUMP_MAGIC);
 	mdhdr.version = MINIDUMP_VERSION;
-	mdhdr.msgbufsize = msgbufp->msg_size;
+	mdhdr.msgbufsize = mbp->msg_size;
 	mdhdr.bitmapsize = round_page(BITSET_SIZE(vm_page_dump_pages));
 	mdhdr.pmapsize = pmapsize;
 	mdhdr.kernbase = VM_MIN_KERNEL_ADDRESS;
@@ -293,8 +258,7 @@ minidumpsys(struct dumperinfo *di)
 		goto fail;
 
 	/* Dump msgbuf up front */
-	error = blk_write(di, (char *)msgbufp->msg_ptr, 0,
-	    round_page(msgbufp->msg_size));
+	error = blk_write(di, mbp->msg_ptr, 0, round_page(mbp->msg_size));
 	if (error)
 		goto fail;
 
@@ -308,14 +272,14 @@ minidumpsys(struct dumperinfo *di)
 		goto fail;
 
 	/* Dump bitmap */
-	error = blk_write(di, (char *)vm_page_dump, 0,
+	error = blk_write(di, (char *)state->dump_bitset, 0,
 	    round_page(BITSET_SIZE(vm_page_dump_pages)));
 	if (error)
 		goto fail;
 
 	/* Dump kernel page directory pages */
 	bzero(&tmpbuffer, sizeof(tmpbuffer));
-	for (va = VM_MIN_KERNEL_ADDRESS; va < kernel_vm_end; va += L2_SIZE) {
+	for (va = VM_MIN_KERNEL_ADDRESS; va < kva_end; va += L2_SIZE) {
 		if (!pmap_get_tables(pmap_kernel(), va, &l0, &l1, &l2, &l3)) {
 			/* We always write a page, even if it is zero */
 			error = blk_write(di, (char *)&tmpbuffer, 0, PAGE_SIZE);
@@ -325,17 +289,22 @@ minidumpsys(struct dumperinfo *di)
 			error = blk_flush(di);
 			if (error)
 				goto fail;
-		} else if ((*l1 & ATTR_DESCR_MASK) == L1_BLOCK) {
+			continue;
+		}
+
+		l1e = atomic_load_64(l1);
+		l2e = atomic_load_64(l2);
+		if ((l1e & ATTR_DESCR_MASK) == L1_BLOCK) {
 			/*
 			 * Handle a 1GB block mapping: write out 512 fake L2
 			 * pages.
 			 */
-			pa = (*l1 & ~ATTR_MASK) | (va & L1_OFFSET);
+			pa = (l1e & ~ATTR_MASK) | (va & L1_OFFSET);
 
 			for (i = 0; i < Ln_ENTRIES; i++) {
 				for (j = 0; j < Ln_ENTRIES; j++) {
-					tmpbuffer[j] = pa + i * L2_SIZE +
-					    j * PAGE_SIZE | ATTR_DEFAULT |
+					tmpbuffer[j] = (pa + i * L2_SIZE +
+					    j * PAGE_SIZE) | ATTR_DEFAULT |
 					    L3_PAGE;
 				}
 				error = blk_write(di, (char *)&tmpbuffer, 0,
@@ -349,12 +318,12 @@ minidumpsys(struct dumperinfo *di)
 				goto fail;
 			bzero(&tmpbuffer, sizeof(tmpbuffer));
 			va += L1_SIZE - L2_SIZE;
-		} else if ((*l2 & ATTR_DESCR_MASK) == L2_BLOCK) {
-			pa = (*l2 & ~ATTR_MASK) | (va & L2_OFFSET);
+		} else if ((l2e & ATTR_DESCR_MASK) == L2_BLOCK) {
+			pa = (l2e & ~ATTR_MASK) | (va & L2_OFFSET);
 
 			/* Generate fake l3 entries based upon the l1 entry */
 			for (i = 0; i < Ln_ENTRIES; i++) {
-				tmpbuffer[i] = pa + (i * PAGE_SIZE) |
+				tmpbuffer[i] = (pa + i * PAGE_SIZE) |
 				    ATTR_DEFAULT | L3_PAGE;
 			}
 			error = blk_write(di, (char *)&tmpbuffer, 0, PAGE_SIZE);
@@ -367,16 +336,24 @@ minidumpsys(struct dumperinfo *di)
 			bzero(&tmpbuffer, sizeof(tmpbuffer));
 			continue;
 		} else {
-			pa = *l2 & ~ATTR_MASK;
+			pa = l2e & ~ATTR_MASK;
 
-			error = blk_write(di, NULL, pa, PAGE_SIZE);
+			/*
+			 * We always write a page, even if it is zero. If pa
+			 * is malformed, write the zeroed tmpbuffer.
+			 */
+			if (PHYS_IN_DMAP(pa) && vm_phys_is_dumpable(pa))
+				error = blk_write(di, NULL, pa, PAGE_SIZE);
+			else
+				error = blk_write(di, (char *)&tmpbuffer, 0,
+				    PAGE_SIZE);
 			if (error)
 				goto fail;
 		}
 	}
 
 	/* Dump memory chunks */
-	VM_PAGE_DUMP_FOREACH(pa) {
+	VM_PAGE_DUMP_FOREACH(state->dump_bitset, pa) {
 		error = blk_write(di, 0, pa, PAGE_SIZE);
 		if (error)
 			goto fail;

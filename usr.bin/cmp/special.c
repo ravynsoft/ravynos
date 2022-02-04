@@ -49,7 +49,7 @@ __FBSDID("$FreeBSD$");
 
 void
 c_special(int fd1, const char *file1, off_t skip1,
-    int fd2, const char *file2, off_t skip2)
+    int fd2, const char *file2, off_t skip2, off_t limit)
 {
 	int ch1, ch2;
 	off_t byte, line;
@@ -76,7 +76,7 @@ c_special(int fd1, const char *file1, off_t skip1,
 		if (getc(fp2) == EOF)
 			goto eof;
 
-	for (byte = line = 1;; ++byte) {
+	for (byte = line = 1; limit == 0 || byte <= limit; ++byte) {
 		ch1 = getc(fp1);
 		ch2 = getc(fp2);
 		if (ch1 == EOF || ch2 == EOF)
@@ -88,10 +88,15 @@ c_special(int fd1, const char *file1, off_t skip1,
 				    (long long)byte - 1, ch1, ch2);
 			} else if (lflag) {
 				dfound = 1;
-				(void)printf("%6lld %3o %3o\n",
-				    (long long)byte, ch1, ch2);
+				if (bflag)
+					(void)printf("%6lld %3o %c %3o %c\n",
+					    (long long)byte, ch1, ch1, ch2,
+					    ch2);
+				else
+					(void)printf("%6lld %3o %3o\n",
+					    (long long)byte, ch1, ch2);
 			} else {
-				diffmsg(file1, file2, byte, line);
+				diffmsg(file1, file2, byte, line, ch1, ch2);
 				/* NOTREACHED */
 			}
 		}

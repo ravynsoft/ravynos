@@ -1,7 +1,7 @@
 /******************************************************************************
   SPDX-License-Identifier: BSD-3-Clause
 
-  Copyright (c) 2001-2017, Intel Corporation
+  Copyright (c) 2001-2020, Intel Corporation
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -67,14 +67,6 @@ s32 ixgbe_dcb_get_tc_stats_82598(struct ixgbe_hw *hw,
 		stats->qprc[tc] += IXGBE_READ_REG(hw, IXGBE_QPRC(tc));
 		/* Received Bytes */
 		stats->qbrc[tc] += IXGBE_READ_REG(hw, IXGBE_QBRC(tc));
-
-#if 0
-		/* Can we get rid of these??  Consequently, getting rid
-		 * of the tc_stats structure.
-		 */
-		tc_stats_array[up]->in_overflow_discards = 0;
-		tc_stats_array[up]->out_overflow_discards = 0;
-#endif
 	}
 
 	return IXGBE_SUCCESS;
@@ -198,7 +190,7 @@ s32 ixgbe_dcb_config_tx_desc_arbiter_82598(struct ixgbe_hw *hw,
 	for (i = 0; i < IXGBE_DCB_MAX_TRAFFIC_CLASS; i++) {
 		max_credits = max[i];
 		reg = max_credits << IXGBE_TDTQ2TCCR_MCL_SHIFT;
-		reg |= refill[i];
+		reg |= (u32)(refill[i]);
 		reg |= (u32)(bwg_id[i]) << IXGBE_TDTQ2TCCR_BWG_SHIFT;
 
 		if (tsa[i] == ixgbe_dcb_tsa_group_strict_cee)

@@ -52,6 +52,10 @@ public:
   void onEvent(const HWInstructionEvent &Event) override;
   void onCycleEnd() override;
   void printView(llvm::raw_ostream &OS) const override;
+  StringRef getNameAsString() const override {
+    return "RetireControlUnitStatistics";
+  }
+  bool isSerializable() const override { return false; }
 };
 
 } // namespace mca

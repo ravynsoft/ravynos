@@ -425,7 +425,7 @@ void simpleSimplifyCfg(Function &F, SmallVectorImpl<BasicBlock *> &BBs) {
 }
 /// ReduceCrashingBlocks reducer - This works by setting the terminators of
 /// all terminators except the specified basic blocks to a 'ret' instruction,
-/// then running the simplify-cfg pass.  This has the effect of chopping up
+/// then running the simplifycfg pass.  This has the effect of chopping up
 /// the CFG really fast which can reduce large functions quickly.
 ///
 class ReduceCrashingBlocks : public ListReducer<const BasicBlock *> {
@@ -1229,7 +1229,7 @@ static Error DebugACrash(BugDriver &BD, BugTester TestFn) {
       unsigned NewSize = 0;
       for (std::string &Name : FunctionNames) {
         Function *Fn = BD.getProgram().getFunction(Name);
-        assert(Fn && "Could not find funcion?");
+        assert(Fn && "Could not find function?");
 
         std::vector<Attribute> Attrs;
         for (Attribute A : Fn->getAttributes().getFnAttributes())

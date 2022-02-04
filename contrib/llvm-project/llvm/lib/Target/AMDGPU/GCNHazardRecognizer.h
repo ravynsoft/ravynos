@@ -32,7 +32,7 @@ class GCNSubtarget;
 
 class GCNHazardRecognizer final : public ScheduleHazardRecognizer {
 public:
-  typedef function_ref<bool(MachineInstr *)> IsHazardFn;
+  typedef function_ref<bool(const MachineInstr &)> IsHazardFn;
 
 private:
   // Distinguish if we are called from scheduler or hazard recognizer
@@ -48,6 +48,7 @@ private:
   const SIInstrInfo &TII;
   const SIRegisterInfo &TRI;
   TargetSchedModel TSchedModel;
+  bool RunLdsBranchVmemWARHazardFixup;
 
   /// RegUnits of uses in the current soft memory clause.
   BitVector ClauseUses;
@@ -83,7 +84,6 @@ private:
   int checkRWLaneHazards(MachineInstr *RWLane);
   int checkRFEHazards(MachineInstr *RFE);
   int checkInlineAsmHazards(MachineInstr *IA);
-  int checkAnyInstHazards(MachineInstr *MI);
   int checkReadM0Hazards(MachineInstr *SMovRel);
   int checkNSAtoVMEMHazard(MachineInstr *MI);
   int checkFPAtomicToDenormModeHazard(MachineInstr *MI);
@@ -95,6 +95,9 @@ private:
   bool fixLdsBranchVmemWARHazard(MachineInstr *MI);
 
   int checkMAIHazards(MachineInstr *MI);
+  int checkMAIHazards908(MachineInstr *MI);
+  int checkMAIHazards90A(MachineInstr *MI);
+  int checkMAIVALUHazards(MachineInstr *MI);
   int checkMAILdStHazards(MachineInstr *MI);
 
 public:
@@ -109,6 +112,8 @@ public:
   unsigned PreEmitNoopsCommon(MachineInstr *);
   void AdvanceCycle() override;
   void RecedeCycle() override;
+  bool ShouldPreferAnother(SUnit *SU) override;
+  void Reset() override;
 };
 
 } // end namespace llvm

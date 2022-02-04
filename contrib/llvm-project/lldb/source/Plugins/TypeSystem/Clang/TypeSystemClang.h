@@ -9,7 +9,7 @@
 #ifndef LLDB_SOURCE_PLUGINS_TYPESYSTEM_CLANG_TYPESYSTEMCLANG_H
 #define LLDB_SOURCE_PLUGINS_TYPESYSTEM_CLANG_TYPESYSTEMCLANG_H
 
-#include <stdint.h>
+#include <cstdint>
 
 #include <functional>
 #include <initializer_list>
@@ -156,18 +156,6 @@ public:
 
   static TypeSystemClang *GetASTContext(clang::ASTContext *ast_ctx);
 
-  static TypeSystemClang *GetScratch(Target &target,
-                                     bool create_on_demand = true) {
-    auto type_system_or_err = target.GetScratchTypeSystemForLanguage(
-        lldb::eLanguageTypeC, create_on_demand);
-    if (auto err = type_system_or_err.takeError()) {
-      LLDB_LOG_ERROR(lldb_private::GetLogIfAnyCategoriesSet(LIBLLDB_LOG_TARGET),
-                     std::move(err), "Couldn't get scratch TypeSystemClang");
-      return nullptr;
-    }
-    return llvm::dyn_cast<TypeSystemClang>(&type_system_or_err.get());
-  }
-
   /// Returns the display name of this TypeSystemClang that indicates what
   /// purpose it serves in LLDB. Used for example in logs.
   llvm::StringRef getDisplayName() const { return m_display_name; }
@@ -277,7 +265,7 @@ public:
       clang::DeclContext::lookup_result result = decl_context->lookup(myName);
 
       if (!result.empty()) {
-        clang::NamedDecl *named_decl = result[0];
+        clang::NamedDecl *named_decl = *result.begin();
         if (const RecordDeclType *record_decl =
                 llvm::dyn_cast<RecordDeclType>(named_decl))
           compiler_type.SetCompilerType(
@@ -332,12 +320,15 @@ public:
   class TemplateParameterInfos {
   public:
     bool IsValid() const {
-      if (args.empty())
+      // Having a pack name but no packed args doesn't make sense, so mark
+      // these template parameters as invalid.
+      if (pack_name && !packed_args)
         return false;
       return args.size() == names.size() &&
-        ((bool)pack_name == (bool)packed_args) &&
         (!packed_args || !packed_args->packed_args);
     }
+
+    bool hasParameterPack() const { return static_cast<bool>(packed_args); }
 
     llvm::SmallVector<const char *, 2> names;
     llvm::SmallVector<clang::TemplateArgument, 2> args;
@@ -346,11 +337,9 @@ public:
     std::unique_ptr<TemplateParameterInfos> packed_args;
   };
 
-  clang::FunctionTemplateDecl *
-  CreateFunctionTemplateDecl(clang::DeclContext *decl_ctx,
-                             OptionalClangModuleID owning_module,
-                             clang::FunctionDecl *func_decl, const char *name,
-                             const TemplateParameterInfos &infos);
+  clang::FunctionTemplateDecl *CreateFunctionTemplateDecl(
+      clang::DeclContext *decl_ctx, OptionalClangModuleID owning_module,
+      clang::FunctionDecl *func_decl, const TemplateParameterInfos &infos);
 
   void CreateFunctionTemplateSpecializationInfo(
       clang::FunctionDecl *func_decl, clang::FunctionTemplateDecl *Template,
@@ -391,13 +380,6 @@ public:
                                bool isForwardDecl, bool isInternal,
                                ClangASTMetadata *metadata = nullptr);
 
-  bool SetTagTypeKind(clang::QualType type, int kind) const;
-
-  bool SetDefaultAccessForRecordFields(clang::RecordDecl *record_decl,
-                                       int default_accessibility,
-                                       int *assigned_accessibilities,
-                                       size_t num_assigned_accessibilities);
-
   // Returns a mask containing bits from the TypeSystemClang::eTypeXXX
   // enumerations
 
@@ -410,11 +392,10 @@ public:
 
   // Function Types
 
-  clang::FunctionDecl *
-  CreateFunctionDeclaration(clang::DeclContext *decl_ctx,
-                            OptionalClangModuleID owning_module,
-                            const char *name, const CompilerType &function_Type,
-                            int storage, bool is_inline);
+  clang::FunctionDecl *CreateFunctionDeclaration(
+      clang::DeclContext *decl_ctx, OptionalClangModuleID owning_module,
+      llvm::StringRef name, const CompilerType &function_Type,
+      clang::StorageClass storage, bool is_inline);
 
   CompilerType CreateFunctionType(const CompilerType &result_type,
                                   const CompilerType *args, unsigned num_args,
@@ -435,7 +416,7 @@ public:
                              int storage, bool add_decl = false);
 
   void SetFunctionParameters(clang::FunctionDecl *function_decl,
-                             clang::ParmVarDecl **params, unsigned num_params);
+                             llvm::ArrayRef<clang::ParmVarDecl *> params);
 
   CompilerType CreateBlockPointerType(const CompilerType &function_type);
 
@@ -594,8 +575,7 @@ public:
   bool IsFloatingPointType(lldb::opaque_compiler_type_t type, uint32_t &count,
                            bool &is_complex) override;
 
-  bool IsFunctionType(lldb::opaque_compiler_type_t type,
-                      bool *is_variadic_ptr) override;
+  bool IsFunctionType(lldb::opaque_compiler_type_t type) override;
 
   uint32_t IsHomogeneousAggregate(lldb::opaque_compiler_type_t type,
                                   CompilerType *base_type_ptr) override;
@@ -616,6 +596,8 @@ public:
 
   bool IsEnumerationType(lldb::opaque_compiler_type_t type,
                          bool &is_signed) override;
+
+  bool IsScopedEnumerationType(lldb::opaque_compiler_type_t type) override;
 
   static bool IsObjCClassType(const CompilerType &type);
 
@@ -682,16 +664,8 @@ public:
 
   // Creating related types
 
-  /// Using the current type, create a new typedef to that type using
-  /// "typedef_name" as the name and "decl_ctx" as the decl context.
-  /// \param payload is an opaque TypePayloadClang.
-  static CompilerType
-  CreateTypedefType(const CompilerType &type, const char *typedef_name,
-                    const CompilerDeclContext &compiler_decl_ctx,
-                    uint32_t opaque_payload);
-
   CompilerType GetArrayElementType(lldb::opaque_compiler_type_t type,
-                                   uint64_t *stride) override;
+                                   ExecutionContextScope *exe_scope) override;
 
   CompilerType GetArrayType(lldb::opaque_compiler_type_t type,
                             uint64_t size) override;
@@ -700,6 +674,9 @@ public:
 
   CompilerType
   GetFullyUnqualifiedType(lldb::opaque_compiler_type_t type) override;
+
+  CompilerType
+  GetEnumerationIntegerType(lldb::opaque_compiler_type_t type) override;
 
   // Returns -1 if this isn't a function of if the function doesn't have a
   // prototype Returns a value >= 0 if there is a prototype.
@@ -737,6 +714,9 @@ public:
 
   CompilerType AddRestrictModifier(lldb::opaque_compiler_type_t type) override;
 
+  /// Using the current type, create a new typedef to that type using
+  /// "typedef_name" as the name and "decl_ctx" as the decl context.
+  /// \param opaque_payload is an opaque TypePayloadClang.
   CompilerType CreateTypedef(lldb::opaque_compiler_type_t type,
                              const char *name,
                              const CompilerDeclContext &decl_ctx,
@@ -1057,7 +1037,8 @@ public:
   }
 
   clang::DeclarationName
-  GetDeclarationName(const char *name, const CompilerType &function_clang_type);
+  GetDeclarationName(llvm::StringRef name,
+                     const CompilerType &function_clang_type);
 
   clang::LangOptions *GetLangOpts() const {
     return m_language_options_up.get();
@@ -1067,6 +1048,13 @@ public:
   }
 
 private:
+  /// Returns the PrintingPolicy used when generating the internal type names.
+  /// These type names are mostly used for the formatter selection.
+  clang::PrintingPolicy GetTypePrintingPolicy();
+  /// Returns the internal type name for the given NamedDecl using the
+  /// type printing policy.
+  std::string GetTypeNameForDecl(const clang::NamedDecl *named_decl);
+
   const clang::ClassTemplateSpecializationDecl *
   GetAsTemplateSpecialization(lldb::opaque_compiler_type_t type);
 
@@ -1120,13 +1108,70 @@ private:
 
 /// The TypeSystemClang instance used for the scratch ASTContext in a
 /// lldb::Target.
-class TypeSystemClangForExpressions : public TypeSystemClang {
-public:
-  TypeSystemClangForExpressions(Target &target, llvm::Triple triple);
+class ScratchTypeSystemClang : public TypeSystemClang {
+  /// LLVM RTTI support
+  static char ID;
 
-  ~TypeSystemClangForExpressions() override = default;
+public:
+  ScratchTypeSystemClang(Target &target, llvm::Triple triple);
+
+  ~ScratchTypeSystemClang() override = default;
 
   void Finalize() override;
+
+  /// The different kinds of isolated ASTs within the scratch TypeSystem.
+  ///
+  /// These ASTs are isolated from the main scratch AST and are each
+  /// dedicated to a special language option/feature that makes the contained
+  /// AST nodes incompatible with other AST nodes.
+  enum IsolatedASTKind {
+    /// The isolated AST for declarations/types from expressions that imported
+    /// type information from a C++ module. The templates from a C++ module
+    /// often conflict with the templates we generate from debug information,
+    /// so we put these types in their own AST.
+    CppModules
+  };
+
+  /// Alias for requesting the default scratch TypeSystemClang in GetForTarget.
+  // This isn't constexpr as gtest/llvm::Optional comparison logic is trying
+  // to get the address of this for pretty-printing.
+  static const llvm::NoneType DefaultAST;
+
+  /// Infers the appropriate sub-AST from Clang's LangOptions.
+  static llvm::Optional<IsolatedASTKind>
+  InferIsolatedASTKindFromLangOpts(const clang::LangOptions &l) {
+    // If modules are activated we want the dedicated C++ module AST.
+    // See IsolatedASTKind::CppModules for more info.
+    if (l.Modules)
+      return IsolatedASTKind::CppModules;
+    return DefaultAST;
+  }
+
+  /// Returns the scratch TypeSystemClang for the given target.
+  /// \param target The Target which scratch TypeSystemClang should be returned.
+  /// \param ast_kind Allows requesting a specific sub-AST instead of the
+  ///                 default scratch AST. See also `IsolatedASTKind`.
+  /// \param create_on_demand If the scratch TypeSystemClang instance can be
+  /// created by this call if it doesn't exist yet. If it doesn't exist yet and
+  /// this parameter is false, this function returns a nullptr.
+  /// \return The scratch type system of the target or a nullptr in case an
+  ///         error occurred.
+  static TypeSystemClang *
+  GetForTarget(Target &target,
+               llvm::Optional<IsolatedASTKind> ast_kind = DefaultAST,
+               bool create_on_demand = true);
+
+  /// Returns the scratch TypeSystemClang for the given target. The returned
+  /// TypeSystemClang will be the scratch AST or a sub-AST, depending on which
+  /// fits best to the passed LangOptions.
+  /// \param target The Target which scratch TypeSystemClang should be returned.
+  /// \param lang_opts The LangOptions of a clang ASTContext that the caller
+  ///                  wants to export type information from. This is used to
+  ///                  find the best matching sub-AST that will be returned.
+  static TypeSystemClang *GetForTarget(Target &target,
+                                       const clang::LangOptions &lang_opts) {
+    return GetForTarget(target, InferIsolatedASTKindFromLangOpts(lang_opts));
+  }
 
   UserExpression *
   GetUserExpression(llvm::StringRef expr, llvm::StringRef prefix,
@@ -1140,16 +1185,48 @@ public:
                                     const ValueList &arg_value_list,
                                     const char *name) override;
 
-  UtilityFunction *GetUtilityFunction(const char *text,
-                                      const char *name) override;
+  std::unique_ptr<UtilityFunction>
+  CreateUtilityFunction(std::string text, std::string name) override;
 
   PersistentExpressionState *GetPersistentExpressionState() override;
+
+  /// Unregisters the given ASTContext as a source from the scratch AST (and
+  /// all sub-ASTs).
+  /// \see ClangASTImporter::ForgetSource
+  void ForgetSource(clang::ASTContext *src_ctx, ClangASTImporter &importer);
+
+  // llvm casting support
+  bool isA(const void *ClassID) const override {
+    return ClassID == &ID || TypeSystemClang::isA(ClassID);
+  }
+  static bool classof(const TypeSystem *ts) { return ts->isA(&ID); }
+
 private:
+  std::unique_ptr<ClangASTSource> CreateASTSource();
+  /// Returns the requested sub-AST.
+  /// Will lazily create the sub-AST if it hasn't been created before.
+  TypeSystemClang &GetIsolatedAST(IsolatedASTKind feature);
+
+  /// The target triple.
+  /// This was potentially adjusted and might not be identical to the triple
+  /// of `m_target_wp`.
+  llvm::Triple m_triple;
   lldb::TargetWP m_target_wp;
-  std::unique_ptr<ClangPersistentVariables>
-      m_persistent_variables; // These are the persistent variables associated
-                              // with this process for the expression parser
+  /// The persistent variables associated with this process for the expression
+  /// parser.
+  std::unique_ptr<ClangPersistentVariables> m_persistent_variables;
+  /// The ExternalASTSource that performs lookups and completes minimally
+  /// imported types.
   std::unique_ptr<ClangASTSource> m_scratch_ast_source_up;
+
+  // FIXME: GCC 5.x doesn't support enum as map keys.
+  typedef int IsolatedASTKey;
+
+  /// Map from IsolatedASTKind to their actual TypeSystemClang instance.
+  /// This map is lazily filled with sub-ASTs and should be accessed via
+  /// `GetSubAST` (which lazily fills this map).
+  std::unordered_map<IsolatedASTKey, std::unique_ptr<TypeSystemClang>>
+      m_isolated_asts;
 };
 
 } // namespace lldb_private

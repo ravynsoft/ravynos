@@ -140,6 +140,7 @@ MALLOC_DECLARE(M_PRISON);
 #include <sys/osd.h>
 
 #define	HOSTUUIDLEN	64
+#define	DEFAULT_HOSTUUID	"00000000-0000-0000-0000-000000000000"
 #define	OSRELEASELEN	32
 
 struct racct;
@@ -148,7 +149,7 @@ struct prison_racct;
 /*
  * This structure describes a prison.  It is pointed to by all struct
  * ucreds's of the inmates.  pr_ref keeps track of them and is used to
- * delete the struture when the last inmate is dead.
+ * delete the structure when the last inmate is dead.
  *
  * Lock key:
  *   (a) allprison_lock

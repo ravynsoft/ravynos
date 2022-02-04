@@ -202,26 +202,19 @@ protected:
 
 LanguageRuntime *LanguageRuntime::FindPlugin(Process *process,
                                              lldb::LanguageType language) {
-  std::unique_ptr<LanguageRuntime> language_runtime_up;
   LanguageRuntimeCreateInstance create_callback;
-
   for (uint32_t idx = 0;
        (create_callback =
             PluginManager::GetLanguageRuntimeCreateCallbackAtIndex(idx)) !=
        nullptr;
        ++idx) {
-    language_runtime_up.reset(create_callback(process, language));
-
-    if (language_runtime_up)
-      return language_runtime_up.release();
+    if (LanguageRuntime *runtime = create_callback(process, language))
+      return runtime;
   }
-
   return nullptr;
 }
 
-LanguageRuntime::LanguageRuntime(Process *process) : m_process(process) {}
-
-LanguageRuntime::~LanguageRuntime() = default;
+LanguageRuntime::LanguageRuntime(Process *process) : Runtime(process) {}
 
 BreakpointPreconditionSP
 LanguageRuntime::GetExceptionPrecondition(LanguageType language,
@@ -264,6 +257,25 @@ BreakpointSP LanguageRuntime::CreateExceptionBreakpoint(
   }
 
   return exc_breakpt_sp;
+}
+
+UnwindPlanSP
+LanguageRuntime::GetRuntimeUnwindPlan(Thread &thread, RegisterContext *regctx,
+                                      bool &behaves_like_zeroth_frame) {
+  ProcessSP process_sp = thread.GetProcess();
+  if (!process_sp.get())
+    return UnwindPlanSP();
+  if (process_sp->GetDisableLangRuntimeUnwindPlans() == true)
+    return UnwindPlanSP();
+  for (const lldb::LanguageType lang_type : Language::GetSupportedLanguages()) {
+    if (LanguageRuntime *runtime = process_sp->GetLanguageRuntime(lang_type)) {
+      UnwindPlanSP plan_sp = runtime->GetRuntimeUnwindPlan(
+          process_sp, regctx, behaves_like_zeroth_frame);
+      if (plan_sp.get())
+        return plan_sp;
+    }
+  }
+  return UnwindPlanSP();
 }
 
 void LanguageRuntime::InitializeCommands(CommandObject *parent) {

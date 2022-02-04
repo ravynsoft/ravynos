@@ -399,14 +399,14 @@ ValueObjectSP ABISysV_x86_64::GetReturnValueObjectSimple(
 
   const uint32_t type_flags = return_compiler_type.GetTypeInfo();
   if (type_flags & eTypeIsScalar) {
-    value.SetValueType(Value::eValueTypeScalar);
+    value.SetValueType(Value::ValueType::Scalar);
 
     bool success = false;
     if (type_flags & eTypeIsInteger) {
       // Extract the register context so we can read arguments from registers
 
       llvm::Optional<uint64_t> byte_size =
-          return_compiler_type.GetByteSize(nullptr);
+          return_compiler_type.GetByteSize(&thread);
       if (!byte_size)
         return return_valobj_sp;
       uint64_t raw_value = thread.GetRegisterContext()->ReadRegisterAsUnsigned(
@@ -453,7 +453,7 @@ ValueObjectSP ABISysV_x86_64::GetReturnValueObjectSimple(
         // Don't handle complex yet.
       } else {
         llvm::Optional<uint64_t> byte_size =
-            return_compiler_type.GetByteSize(nullptr);
+            return_compiler_type.GetByteSize(&thread);
         if (byte_size && *byte_size <= sizeof(long double)) {
           const RegisterInfo *xmm0_info =
               reg_ctx->GetRegisterInfoByName("xmm0", 0);
@@ -487,12 +487,12 @@ ValueObjectSP ABISysV_x86_64::GetReturnValueObjectSimple(
     value.GetScalar() =
         (uint64_t)thread.GetRegisterContext()->ReadRegisterAsUnsigned(rax_id,
                                                                       0);
-    value.SetValueType(Value::eValueTypeScalar);
+    value.SetValueType(Value::ValueType::Scalar);
     return_valobj_sp = ValueObjectConstResult::Create(
         thread.GetStackFrameAtIndex(0).get(), value, ConstString(""));
   } else if (type_flags & eTypeIsVector) {
     llvm::Optional<uint64_t> byte_size =
-        return_compiler_type.GetByteSize(nullptr);
+        return_compiler_type.GetByteSize(&thread);
     if (byte_size && *byte_size > 0) {
       const RegisterInfo *altivec_reg =
           reg_ctx->GetRegisterInfoByName("xmm0", 0);
@@ -887,6 +887,7 @@ bool ABISysV_x86_64::CreateDefaultUnwindPlan(UnwindPlan &unwind_plan) {
   const int32_t ptr_size = 8;
   row->GetCFAValue().SetIsRegisterPlusOffset(dwarf_rbp, 2 * ptr_size);
   row->SetOffset(0);
+  row->SetUnspecifiedRegistersAreUndefined(true);
 
   row->SetRegisterLocationToAtCFAPlusOffset(fp_reg_num, ptr_size * -2, true);
   row->SetRegisterLocationToAtCFAPlusOffset(pc_reg_num, ptr_size * -1, true);

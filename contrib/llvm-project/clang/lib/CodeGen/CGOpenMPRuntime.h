@@ -73,7 +73,6 @@ class RegionCodeGenTy final {
   CodeGenTy Callback;
   mutable PrePostActionTy *PrePostAction;
   RegionCodeGenTy() = delete;
-  RegionCodeGenTy &operator=(const RegionCodeGenTy &) = delete;
   template <typename Callable>
   static void CallbackFn(intptr_t CodeGen, CodeGenFunction &CGF,
                          PrePostActionTy &Action) {
@@ -105,6 +104,7 @@ struct OMPTaskDataTy final {
   SmallVector<const Expr *, 4> ReductionOrigs;
   SmallVector<const Expr *, 4> ReductionCopies;
   SmallVector<const Expr *, 4> ReductionOps;
+  SmallVector<CanonicalDeclPtr<const VarDecl>, 4> PrivateLocals;
   struct DependData {
     OpenMPDependClauseKind DepKind = OMPC_DEPEND_unknown;
     const Expr *IteratorExpr = nullptr;
@@ -245,6 +245,19 @@ public:
     ~NontemporalDeclsRAII();
   };
 
+  /// Manages list of nontemporal decls for the specified directive.
+  class UntiedTaskLocalDeclsRAII {
+    CodeGenModule &CGM;
+    const bool NeedToPush;
+
+  public:
+    UntiedTaskLocalDeclsRAII(
+        CodeGenFunction &CGF,
+        const llvm::MapVector<CanonicalDeclPtr<const VarDecl>,
+                              std::pair<Address, Address>> &LocalVars);
+    ~UntiedTaskLocalDeclsRAII();
+  };
+
   /// Maps the expression for the lastprivate variable to the global copy used
   /// to store new value because original variables are not mapped in inner
   /// parallel regions. Only private copies are captured but we need also to
@@ -292,6 +305,9 @@ protected:
   CodeGenModule &CGM;
   StringRef FirstSeparator, Separator;
 
+  /// An OpenMP-IR-Builder instance.
+  llvm::OpenMPIRBuilder OMPBuilder;
+
   /// Constructor allowing to redefine the name separator for the variables.
   explicit CGOpenMPRuntime(CodeGenModule &CGM, StringRef FirstSeparator,
                            StringRef Separator);
@@ -323,6 +339,35 @@ protected:
   ///
   llvm::Value *emitUpdateLocation(CodeGenFunction &CGF, SourceLocation Loc,
                                   unsigned Flags = 0);
+
+  /// Emit the number of teams for a target directive.  Inspect the num_teams
+  /// clause associated with a teams construct combined or closely nested
+  /// with the target directive.
+  ///
+  /// Emit a team of size one for directives such as 'target parallel' that
+  /// have no associated teams construct.
+  ///
+  /// Otherwise, return nullptr.
+  const Expr *getNumTeamsExprForTargetDirective(CodeGenFunction &CGF,
+                                                const OMPExecutableDirective &D,
+                                                int32_t &DefaultVal);
+  llvm::Value *emitNumTeamsForTargetDirective(CodeGenFunction &CGF,
+                                              const OMPExecutableDirective &D);
+  /// Emit the number of threads for a target directive.  Inspect the
+  /// thread_limit clause associated with a teams construct combined or closely
+  /// nested with the target directive.
+  ///
+  /// Emit the num_threads clause for directives such as 'target parallel' that
+  /// have no associated teams construct.
+  ///
+  /// Otherwise, return nullptr.
+  const Expr *
+  getNumThreadsExprForTargetDirective(CodeGenFunction &CGF,
+                                      const OMPExecutableDirective &D,
+                                      int32_t &DefaultVal);
+  llvm::Value *
+  emitNumThreadsForTargetDirective(CodeGenFunction &CGF,
+                                   const OMPExecutableDirective &D);
 
   /// Returns pointer to ident_t type.
   llvm::Type *getIdentTyPointerTy();
@@ -372,11 +417,9 @@ protected:
   llvm::Value *getCriticalRegionLock(StringRef CriticalName);
 
 private:
-  /// An OpenMP-IR-Builder instance.
-  llvm::OpenMPIRBuilder OMPBuilder;
 
   /// Map for SourceLocation and OpenMP runtime library debug locations.
-  typedef llvm::DenseMap<unsigned, llvm::Value *> OpenMPDebugLocMapTy;
+  typedef llvm::DenseMap<SourceLocation, llvm::Value *> OpenMPDebugLocMapTy;
   OpenMPDebugLocMapTy OpenMPDebugLocMap;
   /// The type for a microtask which gets passed to __kmpc_fork_call().
   /// Original representation is:
@@ -418,6 +461,8 @@ private:
                                 std::tuple<QualType, const FieldDecl *,
                                            const FieldDecl *, LValue>>>
       LastprivateConditionalToTypes;
+  /// Maps function to the position of the untied task locals stack.
+  llvm::DenseMap<llvm::Function *, unsigned> FunctionToUntiedTaskStackMap;
   /// Type kmp_critical_name, originally defined as typedef kmp_int32
   /// kmp_critical_name[8];
   llvm::ArrayType *KmpCriticalNameTy;
@@ -596,7 +641,8 @@ private:
     /// Return true if a target region entry with the provided information
     /// exists.
     bool hasTargetRegionEntryInfo(unsigned DeviceID, unsigned FileID,
-                                  StringRef ParentName, unsigned LineNum) const;
+                                  StringRef ParentName, unsigned LineNum,
+                                  bool IgnoreAddressId = false) const;
     /// brief Applies action \a Action on all registered entries.
     typedef llvm::function_ref<void(unsigned, unsigned, StringRef, unsigned,
                                     const OffloadEntryInfoTargetRegion &)>
@@ -705,6 +751,11 @@ private:
   /// The set is the union of all current stack elements.
   llvm::SmallVector<NontemporalDeclsSet, 4> NontemporalDeclsStack;
 
+  using UntiedLocalVarsAddressesMap =
+      llvm::MapVector<CanonicalDeclPtr<const VarDecl>,
+                      std::pair<Address, Address>>;
+  llvm::SmallVector<UntiedLocalVarsAddressesMap, 4> UntiedLocalVarsStack;
+
   /// Stack for list of addresses of declarations in current context marked as
   /// lastprivate conditional. The set is the union of all current stack
   /// elements.
@@ -801,7 +852,8 @@ private:
   void emitUDMapperArrayInitOrDel(CodeGenFunction &MapperCGF,
                                   llvm::Value *Handle, llvm::Value *BasePtr,
                                   llvm::Value *Ptr, llvm::Value *Size,
-                                  llvm::Value *MapType, CharUnits ElementSize,
+                                  llvm::Value *MapType, llvm::Value *MapName,
+                                  CharUnits ElementSize,
                                   llvm::BasicBlock *ExitBB, bool IsInit);
 
   struct TaskResultTy {
@@ -838,10 +890,6 @@ private:
                             const OMPExecutableDirective &D,
                             llvm::Function *TaskFunction, QualType SharedsTy,
                             Address Shareds, const OMPTaskDataTy &Data);
-
-  /// Returns default address space for the constant firstprivates, 0 by
-  /// default.
-  virtual unsigned getDefaultFirstprivateAddressSpace() const { return 0; }
 
   /// Emit code that pushes the trip count of loops associated with constructs
   /// 'target teams distribute' and 'teams distribute parallel for'.
@@ -902,6 +950,10 @@ public:
   /// Emit the function for the user defined mapper construct.
   void emitUserDefinedMapper(const OMPDeclareMapperDecl *D,
                              CodeGenFunction *CGF = nullptr);
+  /// Get the function for the specified user-defined mapper. If it does not
+  /// exist, create one.
+  llvm::Function *
+  getOrCreateUserDefinedMapperFunc(const OMPDeclareMapperDecl *D);
 
   /// Emits outlined function for the specified OpenMP parallel directive
   /// \a D. This outlined function has type void(*)(kmp_int32 *ThreadID,
@@ -983,6 +1035,14 @@ public:
   virtual void emitMasterRegion(CodeGenFunction &CGF,
                                 const RegionCodeGenTy &MasterOpGen,
                                 SourceLocation Loc);
+
+  /// Emits a masked region.
+  /// \param MaskedOpGen Generator for the statement associated with the given
+  /// masked region.
+  virtual void emitMaskedRegion(CodeGenFunction &CGF,
+                                const RegionCodeGenTy &MaskedOpGen,
+                                SourceLocation Loc,
+                                const Expr *Filter = nullptr);
 
   /// Emits code for a taskyield directive.
   virtual void emitTaskyieldCall(CodeGenFunction &CGF, SourceLocation Loc);
@@ -1556,11 +1616,6 @@ public:
   virtual void registerTargetGlobalVariable(const VarDecl *VD,
                                             llvm::Constant *Addr);
 
-  /// Registers provided target firstprivate variable as global on the
-  /// target.
-  llvm::Constant *registerTargetFirstprivateCopy(CodeGenFunction &CGF,
-                                                 const VarDecl *VD);
-
   /// Emit the global \a GD if it is meaningful for the target. Returns
   /// if it was emitted successfully.
   /// \param GD Global to scan.
@@ -1600,6 +1655,9 @@ public:
   class TargetDataInfo {
     /// Set to true if device pointer information have to be obtained.
     bool RequiresDevicePointerInfo = false;
+    /// Set to true if Clang emits separate runtime calls for the beginning and
+    /// end of the region.  These calls might have separate map type arrays.
+    bool SeparateBeginEndCalls = false;
 
   public:
     /// The array of base pointer passed to the runtime library.
@@ -1608,8 +1666,21 @@ public:
     llvm::Value *PointersArray = nullptr;
     /// The array of sizes passed to the runtime library.
     llvm::Value *SizesArray = nullptr;
-    /// The array of map types passed to the runtime library.
+    /// The array of map types passed to the runtime library for the beginning
+    /// of the region or for the entire region if there are no separate map
+    /// types for the region end.
     llvm::Value *MapTypesArray = nullptr;
+    /// The array of map types passed to the runtime library for the end of the
+    /// region, or nullptr if there are no separate map types for the region
+    /// end.
+    llvm::Value *MapTypesArrayEnd = nullptr;
+    /// The array of user-defined mappers passed to the runtime library.
+    llvm::Value *MappersArray = nullptr;
+    /// The array of original declaration names of mapped pointers sent to the
+    /// runtime library for debugging
+    llvm::Value *MapNamesArray = nullptr;
+    /// Indicate whether any user-defined mapper exists.
+    bool HasMapper = false;
     /// The total number of pointers passed to the runtime library.
     unsigned NumberOfPtrs = 0u;
     /// Map between the a declaration of a capture and the corresponding base
@@ -1617,22 +1688,29 @@ public:
     llvm::DenseMap<const ValueDecl *, Address> CaptureDeviceAddrMap;
 
     explicit TargetDataInfo() {}
-    explicit TargetDataInfo(bool RequiresDevicePointerInfo)
-        : RequiresDevicePointerInfo(RequiresDevicePointerInfo) {}
+    explicit TargetDataInfo(bool RequiresDevicePointerInfo,
+                            bool SeparateBeginEndCalls)
+        : RequiresDevicePointerInfo(RequiresDevicePointerInfo),
+          SeparateBeginEndCalls(SeparateBeginEndCalls) {}
     /// Clear information about the data arrays.
     void clearArrayInfo() {
       BasePointersArray = nullptr;
       PointersArray = nullptr;
       SizesArray = nullptr;
       MapTypesArray = nullptr;
+      MapTypesArrayEnd = nullptr;
+      MapNamesArray = nullptr;
+      MappersArray = nullptr;
+      HasMapper = false;
       NumberOfPtrs = 0u;
     }
     /// Return true if the current target data information has valid arrays.
     bool isValid() {
       return BasePointersArray && PointersArray && SizesArray &&
-             MapTypesArray && NumberOfPtrs;
+             MapTypesArray && (!HasMapper || MappersArray) && NumberOfPtrs;
     }
     bool requiresDevicePointerInfo() { return RequiresDevicePointerInfo; }
+    bool separateBeginEndCalls() { return SeparateBeginEndCalls; }
   };
 
   /// Emit the target data mapping code associated with \a D.
@@ -1841,6 +1919,9 @@ public:
 
   /// Destroys user defined allocators specified in the uses_allocators clause.
   void emitUsesAllocatorsFini(CodeGenFunction &CGF, const Expr *Allocator);
+
+  /// Returns true if the variable is a local variable in untied task.
+  bool isLocalVarInUntiedTask(CodeGenFunction &CGF, const VarDecl *VD) const;
 };
 
 /// Class supports emissionof SIMD-only code.
@@ -1929,6 +2010,17 @@ public:
   void emitMasterRegion(CodeGenFunction &CGF,
                         const RegionCodeGenTy &MasterOpGen,
                         SourceLocation Loc) override;
+
+  /// Emits a masked region.
+  /// \param MaskedOpGen Generator for the statement associated with the given
+  /// masked region.
+  void emitMaskedRegion(CodeGenFunction &CGF,
+                        const RegionCodeGenTy &MaskedOpGen, SourceLocation Loc,
+                        const Expr *Filter = nullptr) override;
+
+  /// Emits a masked region.
+  /// \param MaskedOpGen Generator for the statement associated with the given
+  /// masked region.
 
   /// Emits code for a taskyield directive.
   void emitTaskyieldCall(CodeGenFunction &CGF, SourceLocation Loc) override;

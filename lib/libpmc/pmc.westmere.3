@@ -1168,8 +1168,8 @@ microcode assist is occurring.
 .It Li UOPS_DECODED.ESP_FOLDING
 .Pq Event D1H , Umask 04H
 Counts number of stack pointer (ESP) instructions decoded: push , pop , call
-, ret, etc. ESP instructions do not generate a Uop to increment or decrement
-ESP.
+, ret, etc.
+ESP instructions do not generate a Uop to increment or decrement ESP.
 Instead, they update an ESP_Offset register that keeps track of the
 delta to the current value of the ESP register.
 .It Li UOPS_DECODED.ESP_SYNC
@@ -1376,9 +1376,6 @@ Counts number of SID integer 64 bit shift or move operations.
 .Xr pmc.iaf 3 ,
 .Xr pmc.k7 3 ,
 .Xr pmc.k8 3 ,
-.Xr pmc.p4 3 ,
-.Xr pmc.p5 3 ,
-.Xr pmc.p6 3 ,
 .Xr pmc.soft 3 ,
 .Xr pmc.tsc 3 ,
 .Xr pmc.ucf 3 ,

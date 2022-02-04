@@ -85,27 +85,28 @@ typedef struct prog {
 
 /* global state */
 
-strlst_t *buildopts = NULL;
-strlst_t *srcdirs   = NULL;
-strlst_t *libs      = NULL;
-strlst_t *libs_so   = NULL;
-prog_t   *progs     = NULL;
+static strlst_t *buildopts = NULL;
+static strlst_t *srcdirs   = NULL;
+static strlst_t *libs      = NULL;
+static strlst_t *libs_so   = NULL;
+static prog_t   *progs     = NULL;
 
-char confname[MAXPATHLEN], infilename[MAXPATHLEN];
-char outmkname[MAXPATHLEN], outcfname[MAXPATHLEN], execfname[MAXPATHLEN];
-char tempfname[MAXPATHLEN], cachename[MAXPATHLEN], curfilename[MAXPATHLEN];
-bool tempfname_initialized = false;
-char outhdrname[MAXPATHLEN] ;	/* user-supplied header for *.mk */
-char *objprefix;		/* where are the objects ? */
-char *path_make;
-int linenum = -1;
-int goterror = 0;
+static char confname[MAXPATHLEN], infilename[MAXPATHLEN];
+static char outmkname[MAXPATHLEN], outcfname[MAXPATHLEN], execfname[MAXPATHLEN];
+static char tempfname[MAXPATHLEN], cachename[MAXPATHLEN];
+static char curfilename[MAXPATHLEN];
+static bool tempfname_initialized = false;
+static char outhdrname[MAXPATHLEN] ;	/* user-supplied header for *.mk */
+static const char *objprefix;		/* where are the objects ? */
+static const char *path_make;
+static int linenum = -1;
+static int goterror = 0;
 
-int verbose, readcache;		/* options */
-int reading_cache;
-int makeobj = 0;		/* add 'make obj' rules to the makefile */
+static int verbose, readcache;	/* options */
+static int reading_cache;
+static int makeobj = 0;		/* add 'make obj' rules to the makefile */
 
-int list_mode;
+static int list_mode;
 
 /* general library routines */
 
@@ -123,7 +124,7 @@ void usage(void);
 void parse_conf_file(void);
 void gen_outputs(void);
 
-extern char *crunched_skel[];
+extern const char *crunched_skel[];
 
 
 int
@@ -721,7 +722,7 @@ fillin_program_objs(prog_t *p, char *path)
 	char *obj, *cp;
 	int fd, rc;
 	FILE *f;
-	char *objvar="OBJS";
+	const char *objvar="OBJS";
 	strlst_t *s;
 	char line[MAXLINELEN];
 
@@ -912,7 +913,7 @@ gen_output_makefile(void)
 void
 gen_output_cfile(void)
 {
-	char **cp;
+	const char **cp;
 	FILE *outcf;
 	prog_t *p;
 	strlst_t *s;

@@ -45,6 +45,8 @@
 
 namespace llvm {
 
+template <class GraphType> struct GraphTraits;
+
 namespace yaml {
 
 template <typename T> struct MappingTraits;
@@ -223,7 +225,14 @@ struct ValueInfo {
     return RefAndFlags.getPointer();
   }
 
-  bool isDSOLocal() const;
+  /// Returns the most constraining visibility among summaries. The
+  /// visibilities, ordered from least to most constraining, are: default,
+  /// protected and hidden.
+  GlobalValue::VisibilityTypes getELFVisibility() const;
+
+  /// Checks if all summaries are DSO local (have the flag set). When DSOLocal
+  /// propagation has been done, set the parameter to enable fast check.
+  bool isDSOLocal(bool WithDSOLocalPropagation = false) const;
 
   /// Checks if all copies are eligible for auto-hiding (have flag set).
   bool canAutoHide() const;
@@ -294,6 +303,9 @@ public:
     /// types based on global summary-based analysis.
     unsigned Linkage : 4;
 
+    /// Indicates the visibility.
+    unsigned Visibility : 2;
+
     /// Indicate if the global value cannot be imported (e.g. it cannot
     /// be renamed or references something that can't be renamed).
     unsigned NotEligibleToImport : 1;
@@ -322,10 +334,12 @@ public:
 
     /// Convenience Constructors
     explicit GVFlags(GlobalValue::LinkageTypes Linkage,
+                     GlobalValue::VisibilityTypes Visibility,
                      bool NotEligibleToImport, bool Live, bool IsLocal,
                      bool CanAutoHide)
-        : Linkage(Linkage), NotEligibleToImport(NotEligibleToImport),
-          Live(Live), DSOLocal(IsLocal), CanAutoHide(CanAutoHide) {}
+        : Linkage(Linkage), Visibility(Visibility),
+          NotEligibleToImport(NotEligibleToImport), Live(Live),
+          DSOLocal(IsLocal), CanAutoHide(CanAutoHide) {}
   };
 
 private:
@@ -409,6 +423,13 @@ public:
   void setCanAutoHide(bool CanAutoHide) { Flags.CanAutoHide = CanAutoHide; }
 
   bool canAutoHide() const { return Flags.CanAutoHide; }
+
+  GlobalValue::VisibilityTypes getVisibility() const {
+    return (GlobalValue::VisibilityTypes)Flags.Visibility;
+  }
+  void setVisibility(GlobalValue::VisibilityTypes Vis) {
+    Flags.Visibility = (unsigned)Vis;
+  }
 
   /// Flag that this global value cannot be imported.
   void setNotEligibleToImport() { Flags.NotEligibleToImport = true; }
@@ -562,12 +583,11 @@ public:
     /// offsets from the beginning of the value that are passed.
     struct Call {
       uint64_t ParamNo = 0;
-      GlobalValue::GUID Callee = 0;
+      ValueInfo Callee;
       ConstantRange Offsets{/*BitWidth=*/RangeWidth, /*isFullSet=*/true};
 
       Call() = default;
-      Call(uint64_t ParamNo, GlobalValue::GUID Callee,
-           const ConstantRange &Offsets)
+      Call(uint64_t ParamNo, ValueInfo Callee, const ConstantRange &Offsets)
           : ParamNo(ParamNo), Callee(Callee), Offsets(Offsets) {}
     };
 
@@ -595,9 +615,10 @@ public:
     return FunctionSummary(
         FunctionSummary::GVFlags(
             GlobalValue::LinkageTypes::AvailableExternallyLinkage,
+            GlobalValue::DefaultVisibility,
             /*NotEligibleToImport=*/true, /*Live=*/true, /*IsLocal=*/false,
             /*CanAutoHide=*/false),
-        /*InsCount=*/0, FunctionSummary::FFlags{}, /*EntryCount=*/0,
+        /*NumInsts=*/0, FunctionSummary::FFlags{}, /*EntryCount=*/0,
         std::vector<ValueInfo>(), std::move(Edges),
         std::vector<GlobalValue::GUID>(),
         std::vector<FunctionSummary::VFuncId>(),
@@ -1038,6 +1059,10 @@ private:
   /// read/write only.
   bool WithAttributePropagation = false;
 
+  /// Indicates that summary-based DSOLocal propagation has run and the flag in
+  /// every summary of a GV is synchronized.
+  bool WithDSOLocalPropagation = false;
+
   /// Indicates that summary-based synthetic entry count propagation has run
   bool HasSyntheticEntryCounts = false;
 
@@ -1060,6 +1085,9 @@ private:
   // True if some of the modules were compiled with -fsplit-lto-unit and
   // some were not. Set when the combined index is created during the thin link.
   bool PartiallySplitLTOUnits = false;
+
+  /// True if some of the FunctionSummary contains a ParamAccess.
+  bool HasParamAccess = false;
 
   std::set<std::string> CfiFunctionDefs;
   std::set<std::string> CfiFunctionDecls;
@@ -1190,6 +1218,9 @@ public:
     WithAttributePropagation = true;
   }
 
+  bool withDSOLocalPropagation() const { return WithDSOLocalPropagation; }
+  void setWithDSOLocalPropagation() { WithDSOLocalPropagation = true; }
+
   bool isReadOnly(const GlobalVarSummary *GVS) const {
     return WithAttributePropagation && GVS->maybeReadOnly();
   }
@@ -1212,6 +1243,8 @@ public:
 
   bool partiallySplitLTOUnits() const { return PartiallySplitLTOUnits; }
   void setPartiallySplitLTOUnits() { PartiallySplitLTOUnits = true; }
+
+  bool hasParamAccess() const { return HasParamAccess; }
 
   bool isGlobalValueLive(const GlobalValueSummary *GVS) const {
     return !WithGlobalValueDeadStripping || GVS->isLive();
@@ -1284,6 +1317,8 @@ public:
   /// Add a global value summary for the given ValueInfo.
   void addGlobalValueSummary(ValueInfo VI,
                              std::unique_ptr<GlobalValueSummary> Summary) {
+    if (const FunctionSummary *FS = dyn_cast<FunctionSummary>(Summary.get()))
+      HasParamAccess |= !FS->paramAccesses().empty();
     addOriginalName(VI.getGUID(), Summary->getOriginalName());
     // Here we have a notionally const VI, but the value it points to is owned
     // by the non-const *this.
@@ -1489,7 +1524,7 @@ public:
   /// Print out strongly connected components for debugging.
   void dumpSCCs(raw_ostream &OS);
 
-  /// Analyze index and detect unmodified globals
+  /// Do the access attribute and DSOLocal propagation in combined index.
   void propagateAttributes(const DenseSet<GlobalValue::GUID> &PreservedSymbols);
 
   /// Checks if we can import global variable from another module.

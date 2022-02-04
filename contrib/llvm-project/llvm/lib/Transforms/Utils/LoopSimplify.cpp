@@ -127,9 +127,7 @@ BasicBlock *llvm::InsertPreheaderForLoop(Loop *L, DominatorTree *DT,
 
   // Compute the set of predecessors of the loop that are not in the loop.
   SmallVector<BasicBlock*, 8> OutsideBlocks;
-  for (pred_iterator PI = pred_begin(Header), PE = pred_end(Header);
-       PI != PE; ++PI) {
-    BasicBlock *P = *PI;
+  for (BasicBlock *P : predecessors(Header)) {
     if (!L->contains(P)) {         // Coming in from outside the loop?
       // If the loop is branched to from an indirect terminator, we won't
       // be able to fully transform the loop, because it prohibits
@@ -163,7 +161,7 @@ BasicBlock *llvm::InsertPreheaderForLoop(Loop *L, DominatorTree *DT,
 /// if it's not already in there.  Stop predecessor traversal when we reach
 /// StopBlock.
 static void addBlockAndPredsToSet(BasicBlock *InputBB, BasicBlock *StopBlock,
-                                  std::set<BasicBlock*> &Blocks) {
+                                  SmallPtrSetImpl<BasicBlock *> &Blocks) {
   SmallVector<BasicBlock *, 8> Worklist;
   Worklist.push_back(InputBB);
   do {
@@ -171,10 +169,7 @@ static void addBlockAndPredsToSet(BasicBlock *InputBB, BasicBlock *StopBlock,
     if (Blocks.insert(BB).second && BB != StopBlock)
       // If BB is not already processed and it is not a stop block then
       // insert its predecessor in the work list
-      for (pred_iterator I = pred_begin(BB), E = pred_end(BB); I != E; ++I) {
-        BasicBlock *WBB = *I;
-        Worklist.push_back(WBB);
-      }
+      append_range(Worklist, predecessors(BB));
   } while (!Worklist.empty());
 }
 
@@ -308,9 +303,8 @@ static Loop *separateNestedLoop(Loop *L, BasicBlock *Preheader,
 
   // Determine which blocks should stay in L and which should be moved out to
   // the Outer loop now.
-  std::set<BasicBlock*> BlocksInL;
-  for (pred_iterator PI=pred_begin(Header), E = pred_end(Header); PI!=E; ++PI) {
-    BasicBlock *P = *PI;
+  SmallPtrSet<BasicBlock *, 4> BlocksInL;
+  for (BasicBlock *P : predecessors(Header)) {
     if (DT->dominates(Header, P))
       addBlockAndPredsToSet(P, Header, BlocksInL);
   }
@@ -385,9 +379,7 @@ static BasicBlock *insertUniqueBackedgeBlock(Loop *L, BasicBlock *Preheader,
 
   // Figure out which basic blocks contain back-edges to the loop header.
   std::vector<BasicBlock*> BackedgeBlocks;
-  for (pred_iterator I = pred_begin(Header), E = pred_end(Header); I != E; ++I){
-    BasicBlock *P = *I;
-
+  for (BasicBlock *P : predecessors(Header)) {
     // Indirect edges cannot be split, so we must fail if we find one.
     if (P->getTerminator()->isIndirectTerminator())
       return nullptr;
@@ -509,12 +501,9 @@ ReprocessLoop:
     if (*BB == L->getHeader()) continue;
 
     SmallPtrSet<BasicBlock*, 4> BadPreds;
-    for (pred_iterator PI = pred_begin(*BB),
-         PE = pred_end(*BB); PI != PE; ++PI) {
-      BasicBlock *P = *PI;
+    for (BasicBlock *P : predecessors(*BB))
       if (!L->contains(P))
         BadPreds.insert(P);
-    }
 
     // Delete each unique out-of-loop (and thus dead) predecessor.
     for (BasicBlock *P : BadPreds) {
@@ -524,7 +513,7 @@ ReprocessLoop:
 
       // Zap the dead pred's terminator and replace it with unreachable.
       Instruction *TI = P->getTerminator();
-      changeToUnreachable(TI, /*UseLLVMTrap=*/false, PreserveLCSSA,
+      changeToUnreachable(TI, PreserveLCSSA,
                           /*DTU=*/nullptr, MSSAU);
       Changed = true;
     }
@@ -683,7 +672,7 @@ ReprocessLoop:
       // The block has now been cleared of all instructions except for
       // a comparison and a conditional branch. SimplifyCFG may be able
       // to fold it now.
-      if (!FoldBranchToCommonDest(BI, MSSAU))
+      if (!FoldBranchToCommonDest(BI, /*DTU=*/nullptr, MSSAU))
         continue;
 
       // Success. The block is now dead, so remove it from the loop,
@@ -691,7 +680,7 @@ ReprocessLoop:
       LLVM_DEBUG(dbgs() << "LoopSimplify: Eliminating exiting block "
                         << ExitingBlock->getName() << "\n");
 
-      assert(pred_begin(ExitingBlock) == pred_end(ExitingBlock));
+      assert(pred_empty(ExitingBlock));
       Changed = true;
       LI->removeBlock(ExitingBlock);
 
@@ -836,8 +825,8 @@ bool LoopSimplify::runOnFunction(Function &F) {
   bool PreserveLCSSA = mustPreserveAnalysisID(LCSSAID);
 
   // Simplify each loop nest in the function.
-  for (LoopInfo::iterator I = LI->begin(), E = LI->end(); I != E; ++I)
-    Changed |= simplifyLoop(*I, DT, LI, SE, AC, MSSAU.get(), PreserveLCSSA);
+  for (auto *L : *LI)
+    Changed |= simplifyLoop(L, DT, LI, SE, AC, MSSAU.get(), PreserveLCSSA);
 
 #ifndef NDEBUG
   if (PreserveLCSSA) {
@@ -866,9 +855,9 @@ PreservedAnalyses LoopSimplifyPass::run(Function &F,
 
   // Note that we don't preserve LCSSA in the new PM, if you need it run LCSSA
   // after simplifying the loops. MemorySSA is preserved if it exists.
-  for (LoopInfo::iterator I = LI->begin(), E = LI->end(); I != E; ++I)
+  for (auto *L : *LI)
     Changed |=
-        simplifyLoop(*I, DT, LI, SE, AC, MSSAU.get(), /*PreserveLCSSA*/ false);
+        simplifyLoop(L, DT, LI, SE, AC, MSSAU.get(), /*PreserveLCSSA*/ false);
 
   if (!Changed)
     return PreservedAnalyses::all();
@@ -876,9 +865,6 @@ PreservedAnalyses LoopSimplifyPass::run(Function &F,
   PreservedAnalyses PA;
   PA.preserve<DominatorTreeAnalysis>();
   PA.preserve<LoopAnalysis>();
-  PA.preserve<BasicAA>();
-  PA.preserve<GlobalsAA>();
-  PA.preserve<SCEVAA>();
   PA.preserve<ScalarEvolutionAnalysis>();
   PA.preserve<DependenceAnalysis>();
   if (MSSAAnalysis)
@@ -908,9 +894,8 @@ static void verifyLoop(Loop *L) {
   // Indirectbr can interfere with preheader and unique backedge insertion.
   if (!L->getLoopPreheader() || !L->getLoopLatch()) {
     bool HasIndBrPred = false;
-    for (pred_iterator PI = pred_begin(L->getHeader()),
-         PE = pred_end(L->getHeader()); PI != PE; ++PI)
-      if (isa<IndirectBrInst>((*PI)->getTerminator())) {
+    for (BasicBlock *Pred : predecessors(L->getHeader()))
+      if (isa<IndirectBrInst>(Pred->getTerminator())) {
         HasIndBrPred = true;
         break;
       }

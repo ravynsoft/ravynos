@@ -207,7 +207,6 @@ arptimer(void *arg)
 {
 	struct llentry *lle = (struct llentry *)arg;
 	struct ifnet *ifp;
-	int r_skip_req;
 
 	if (lle->la_flags & LLE_STATIC) {
 		return;
@@ -240,27 +239,17 @@ arptimer(void *arg)
 
 		/*
 		 * Expiration time is approaching.
-		 * Let's try to refresh entry if it is still
-		 * in use.
-		 *
-		 * Set r_skip_req to get feedback from
-		 * fast path. Change state and re-schedule
-		 * ourselves.
+		 * Request usage feedback from the datapath.
+		 * Change state and re-schedule ourselves.
 		 */
-		LLE_REQ_LOCK(lle);
-		lle->r_skip_req = 1;
-		LLE_REQ_UNLOCK(lle);
+		llentry_request_feedback(lle);
 		lle->ln_state = ARP_LLINFO_VERIFY;
 		callout_schedule(&lle->lle_timer, hz * V_arpt_rexmit);
 		LLE_WUNLOCK(lle);
 		CURVNET_RESTORE();
 		return;
 	case ARP_LLINFO_VERIFY:
-		LLE_REQ_LOCK(lle);
-		r_skip_req = lle->r_skip_req;
-		LLE_REQ_UNLOCK(lle);
-
-		if (r_skip_req == 0 && lle->la_preempt > 0) {
+		if (llentry_get_hittime(lle) > 0 && lle->la_preempt > 0) {
 			/* Entry was used, issue refresh request */
 			struct epoch_tracker et;
 			struct in_addr dst;
@@ -429,6 +418,7 @@ arprequest_internal(struct ifnet *ifp, const struct in_addr *sip,
 	linkhdrsize = sizeof(linkhdr);
 	error = arp_fillheader(ifp, ah, 1, linkhdr, &linkhdrsize);
 	if (error != 0 && error != EAFNOSUPPORT) {
+		m_freem(m);
 		ARP_LOG(LOG_ERR, "Failed to calculate ARP header on %s: %d\n",
 		    if_name(ifp), error);
 		return (error);
@@ -532,7 +522,7 @@ arpresolve_full(struct ifnet *ifp, int is_gw, int flags, struct mbuf *m,
 		bcopy(lladdr, desten, ll_len);
 
 		/* Notify LLE code that the entry was used by datapath */
-		llentry_mark_used(la);
+		llentry_provide_feedback(la);
 		if (pflags != NULL)
 			*pflags = la->la_flags & (LLE_VALID|LLE_IFADDR);
 		if (plle) {
@@ -656,7 +646,7 @@ arpresolve(struct ifnet *ifp, int is_gw, struct mbuf *m,
 		if (pflags != NULL)
 			*pflags = LLE_VALID | (la->r_flags & RLLE_IFADDR);
 		/* Notify the LLE handling code that the entry was used. */
-		llentry_mark_used(la);
+		llentry_provide_feedback(la);
 		if (plle) {
 			LLE_ADDREF(la);
 			*plle = la;
@@ -1139,7 +1129,7 @@ reply:
 	if (error != 0 && error != EAFNOSUPPORT) {
 		ARP_LOG(LOG_ERR, "Failed to calculate ARP header on %s: %d\n",
 		    if_name(ifp), error);
-		return;
+		goto drop;
 	}
 
 	ro.ro_prepend = linkhdr;
@@ -1156,6 +1146,44 @@ drop:
 }
 #endif
 
+static struct mbuf *
+arp_grab_holdchain(struct llentry *la)
+{
+	struct mbuf *chain;
+
+	LLE_WLOCK_ASSERT(la);
+
+	chain = la->la_hold;
+	la->la_hold = NULL;
+	la->la_numheld = 0;
+
+	return (chain);
+}
+
+static void
+arp_flush_holdchain(struct ifnet *ifp, struct llentry *la, struct mbuf *chain)
+{
+	struct mbuf *m_hold, *m_hold_next;
+	struct sockaddr_in sin;
+
+	NET_EPOCH_ASSERT();
+
+	struct route ro = {
+		.ro_prepend = la->r_linkdata,
+		.ro_plen = la->r_hdrlen,
+	};
+
+	lltable_fill_sa_entry(la, (struct sockaddr *)&sin);
+
+	for (m_hold = chain; m_hold != NULL; m_hold = m_hold_next) {
+		m_hold_next = m_hold->m_nextpkt;
+		m_hold->m_nextpkt = NULL;
+		/* Avoid confusing lower layers. */
+		m_clrprotoflags(m_hold);
+		(*ifp->if_output)(ifp, m_hold, (struct sockaddr *)&sin, &ro);
+	}
+}
+
 /*
  * Checks received arp data against existing @la.
  * Updates lle state/performs notification if necessary.
@@ -1164,8 +1192,6 @@ static void
 arp_check_update_lle(struct arphdr *ah, struct in_addr isaddr, struct ifnet *ifp,
     int bridged, struct llentry *la)
 {
-	struct sockaddr sa;
-	struct mbuf *m_hold, *m_hold_next;
 	uint8_t linkhdr[LLE_MAX_LINKHDR];
 	size_t linkhdrsize;
 	int lladdr_off;
@@ -1225,7 +1251,7 @@ arp_check_update_lle(struct arphdr *ah, struct in_addr isaddr, struct ifnet *ifp
 			return;
 
 		/* Clear fast path feedback request if set */
-		la->r_skip_req = 0;
+		llentry_mark_used(la);
 	}
 
 	arp_mark_lle_reachable(la);
@@ -1238,18 +1264,11 @@ arp_check_update_lle(struct arphdr *ah, struct in_addr isaddr, struct ifnet *ifp
 	 * output routine.
 	 */
 	if (la->la_hold != NULL) {
-		m_hold = la->la_hold;
-		la->la_hold = NULL;
-		la->la_numheld = 0;
-		lltable_fill_sa_entry(la, &sa);
+		struct mbuf *chain;
+
+		chain = arp_grab_holdchain(la);
 		LLE_WUNLOCK(la);
-		for (; m_hold != NULL; m_hold = m_hold_next) {
-			m_hold_next = m_hold->m_nextpkt;
-			m_hold->m_nextpkt = NULL;
-			/* Avoid confusing lower layers. */
-			m_clrprotoflags(m_hold);
-			(*ifp->if_output)(ifp, m_hold, &sa, NULL);
-		}
+		arp_flush_holdchain(ifp, la, chain);
 	} else
 		LLE_WUNLOCK(la);
 }

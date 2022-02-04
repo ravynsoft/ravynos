@@ -78,14 +78,15 @@ struct sysentvec elf64_freebsd_sysvec = {
 	.sv_maxuser	= VM_MAXUSER_ADDRESS,
 	.sv_usrstack	= USRSTACK,
 	.sv_psstrings	= PS_STRINGS,
+	.sv_psstringssz	= sizeof(struct ps_strings),
 	.sv_stackprot	= VM_PROT_READ | VM_PROT_WRITE,
 	.sv_copyout_auxargs = __elfN(freebsd_copyout_auxargs),
 	.sv_copyout_strings	= exec_copyout_strings,
 	.sv_setregs	= exec_setregs,
 	.sv_fixlimit	= NULL,
 	.sv_maxssiz	= NULL,
-	.sv_flags	= SV_ABI_FREEBSD | SV_LP64 | SV_SHP | SV_ASLR |
-	    SV_RNG_SEED_VER,
+	.sv_flags	= SV_ABI_FREEBSD | SV_LP64 | SV_SHP | SV_TIMEKEEP |
+	    SV_ASLR | SV_RNG_SEED_VER,
 	.sv_set_syscall_retval = cpu_set_syscall_retval,
 	.sv_fetch_syscall_args = cpu_fetch_syscall_args,
 	.sv_syscallnames = syscallnames,
@@ -96,6 +97,8 @@ struct sysentvec elf64_freebsd_sysvec = {
 	.sv_trap	= NULL,
 	.sv_hwcap	= &elf_hwcap,
 	.sv_machine_arch = riscv_machine_arch,
+	.sv_onexec_old	= exec_onexec_old,
+	.sv_onexit	= exit_onexit,
 };
 INIT_SYSENTVEC(elf64_sysvec, &elf64_freebsd_sysvec);
 

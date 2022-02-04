@@ -37,7 +37,7 @@ static StringRef getCPU(StringRef CPU) {
 }
 
 static Reloc::Model getEffectiveRelocModel(Optional<Reloc::Model> RM) {
-  return RM.hasValue() ? *RM : Reloc::Static;
+  return RM.getValueOr(Reloc::Static);
 }
 
 AVRTargetMachine::AVRTargetMachine(const Target &T, const Triple &TT,
@@ -65,6 +65,7 @@ public:
     return getTM<AVRTargetMachine>();
   }
 
+  void addIRPasses() override;
   bool addInstSelector() override;
   void addPreSched2() override;
   void addPreEmitPass() override;
@@ -76,6 +77,15 @@ TargetPassConfig *AVRTargetMachine::createPassConfig(PassManagerBase &PM) {
   return new AVRPassConfig(*this, PM);
 }
 
+void AVRPassConfig::addIRPasses() {
+  // Expand instructions like
+  //   %result = shl i32 %n, %amount
+  // to a loop so that library calls are avoided.
+  addPass(createAVRShiftExpandPass());
+
+  TargetPassConfig::addIRPasses();
+}
+
 extern "C" LLVM_EXTERNAL_VISIBILITY void LLVMInitializeAVRTarget() {
   // Register the target.
   RegisterTargetMachine<AVRTargetMachine> X(getTheAVRTarget());
@@ -83,6 +93,7 @@ extern "C" LLVM_EXTERNAL_VISIBILITY void LLVMInitializeAVRTarget() {
   auto &PR = *PassRegistry::getPassRegistry();
   initializeAVRExpandPseudoPass(PR);
   initializeAVRRelaxMemPass(PR);
+  initializeAVRShiftExpandPass(PR);
 }
 
 const AVRSubtarget *AVRTargetMachine::getSubtargetImpl() const {

@@ -95,26 +95,30 @@ local files = {}
 
 local function cleanup()
 	for _, v in pairs(files) do
-		v:close()
+		assert(v:close())
 	end
 	if cleantmp then
 		if lfs.dir(tmpspace) then
 			for fname in lfs.dir(tmpspace) do
-				os.remove(tmpspace .. "/" .. fname)
+				if fname ~= "." and fname ~= ".." then
+					assert(os.remove(tmpspace .. "/" ..
+					    fname))
+				end
 			end
 		end
 
 		if lfs.attributes(tmpspace) and not lfs.rmdir(tmpspace) then
-			io.stderr:write("Failed to clean up tmpdir: " ..
-			    tmpspace .. "\n")
+			assert(io.stderr:write("Failed to clean up tmpdir: " ..
+			    tmpspace .. "\n"))
 		end
 	else
-		io.stderr:write("Temp files left in " .. tmpspace .. "\n")
+		assert(io.stderr:write("Temp files left in " .. tmpspace ..
+		    "\n"))
 	end
 end
 
 local function abort(status, msg)
-	io.stderr:write(msg .. "\n")
+	assert(io.stderr:write(msg .. "\n"))
 	cleanup()
 	os.exit(status)
 end
@@ -144,12 +148,14 @@ local known_abi_flags = {
 local known_flags = {
 	STD		= 0x00000001,
 	OBSOL		= 0x00000002,
-	UNIMPL		= 0x00000004,
-	NODEF		= 0x00000008,
-	NOARGS		= 0x00000010,
-	NOPROTO		= 0x00000020,
-	NOSTD		= 0x00000040,
-	NOTSTATIC	= 0x00000080,
+	RESERVED	= 0x00000004,
+	UNIMPL		= 0x00000008,
+	NODEF		= 0x00000010,
+	NOARGS		= 0x00000020,
+	NOPROTO		= 0x00000040,
+	NOSTD		= 0x00000080,
+	NOTSTATIC	= 0x00000100,
+	CAPENABLED	= 0x00000200,
 
 	-- Compat flags start from here.  We have plenty of space.
 }
@@ -217,14 +223,11 @@ local function process_config(file)
 	-- would need to sanitize the line for potentially special characters.
 	local line_expr = "^([%w%p]+%s*)=(%s*[`\"]?[^\"`]+[`\"]?)"
 
-	if file == nil then
+	if not file then
 		return nil, "No file given"
 	end
 
-	local fh = io.open(file)
-	if fh == nil then
-		return nil, "Could not open file"
-	end
+	local fh = assert(io.open(file))
 
 	for nextline in fh:lines() do
 		-- Strip any whole-line comments
@@ -289,7 +292,7 @@ local function process_config(file)
 		end
 	end
 
-	io.close(fh)
+	assert(io.close(fh))
 	return cfg
 end
 
@@ -318,7 +321,7 @@ local function grab_capenabled(file, open_fail_ok)
 		end
 	end
 
-	io.close(fh)
+	assert(io.close(fh))
 	return capentries
 end
 
@@ -396,8 +399,8 @@ local function read_file(tmpfile)
 	end
 
 	local fh = files[tmpfile]
-	fh:seek("set")
-	return fh:read("a")
+	assert(fh:seek("set"))
+	return assert(fh:read("a"))
 end
 
 local function write_line(tmpfile, line)
@@ -405,13 +408,13 @@ local function write_line(tmpfile, line)
 		print("Not found: " .. tmpfile)
 		return
 	end
-	files[tmpfile]:write(line)
+	assert(files[tmpfile]:write(line))
 end
 
 local function write_line_pfile(tmppat, line)
 	for k in pairs(files) do
 		if k:match(tmppat) ~= nil then
-			files[k]:write(line)
+			assert(files[k]:write(line))
 		end
 	end
 end
@@ -532,7 +535,7 @@ local function process_sysfile(file)
 		process_syscall_def(prevline)
 	end
 
-	io.close(fh)
+	assert(io.close(fh))
 	return capentries
 end
 
@@ -905,6 +908,10 @@ local function handle_unimpl(sysnum, sysstart, sysend, comment)
 	end
 end
 
+local function handle_reserved(sysnum, sysstart, sysend, comment)
+	handle_unimpl(sysnum, sysstart, sysend, "reserved for local use")
+end
+
 process_syscall_def = function(line)
 	local sysstart, sysend, flags, funcname, sysflags
 	local thr_flag, syscallret
@@ -949,8 +956,8 @@ process_syscall_def = function(line)
 		flags = flags | known_flags[flag]
 	end
 
-	if (flags & known_flags["UNIMPL"]) == 0 and sysnum == nil then
-		abort(1, "Range only allowed with UNIMPL: " .. line)
+	if (flags & get_mask({"RESERVED", "UNIMPL"})) == 0 and sysnum == nil then
+		abort(1, "Range only allowed with RESERVED and UNIMPL: " .. line)
 	end
 
 	if (flags & known_flags["NOTSTATIC"]) ~= 0 then
@@ -1054,7 +1061,8 @@ process_syscall_def = function(line)
 	-- If applicable; strip the ABI prefix from the name
 	local stripped_name = strip_abi_prefix(funcname)
 
-	if config["capenabled"][funcname] ~= nil or
+	if flags & known_flags['CAPENABLED'] ~= 0 or
+	    config["capenabled"][funcname] ~= nil or
 	    config["capenabled"][stripped_name] ~= nil then
 		sysflags = "SYF_CAPENABLED"
 	end
@@ -1114,6 +1122,8 @@ process_syscall_def = function(line)
 		    argalias)
 	elseif flags & known_flags["OBSOL"] ~= 0 then
 		handle_obsol(sysnum, funcname, funcomment)
+	elseif flags & known_flags["RESERVED"] ~= 0 then
+		handle_reserved(sysnum, sysstart, sysend)
 	elseif flags & known_flags["UNIMPL"] ~= 0 then
 		handle_unimpl(sysnum, sysstart, sysend, funcomment)
 	else
@@ -1130,7 +1140,7 @@ end
 -- Entry point
 
 if #arg < 1 or #arg > 2 then
-	abort(1, "usage: " .. arg[0] .. " input-file <config-file>")
+	error("usage: " .. arg[0] .. " input-file <config-file>")
 end
 
 local sysfile, configfile = arg[1], arg[2]
@@ -1138,13 +1148,7 @@ local sysfile, configfile = arg[1], arg[2]
 -- process_config either returns nil and a message, or a
 -- table that we should merge into the global config
 if configfile ~= nil then
-	local res, msg = process_config(configfile)
-
-	if res == nil then
-		-- Error... handle?
-		print(msg)
-		os.exit(1)
-	end
+	local res = assert(process_config(configfile))
 
 	for k, v in pairs(res) do
 		if v ~= config[k] then
@@ -1172,17 +1176,28 @@ process_compat()
 process_abi_flags()
 
 if not lfs.mkdir(tmpspace) then
-	abort(1, "Failed to create tempdir " .. tmpspace)
+	error("Failed to create tempdir " .. tmpspace)
 end
 
+-- XXX Revisit the error handling here, we should probably move the rest of this
+-- into a function that we pcall() so we can catch the errors and clean up
+-- gracefully.
 for _, v in ipairs(temp_files) do
 	local tmpname = tmpspace .. v
 	files[v] = io.open(tmpname, "w+")
+	-- XXX Revisit these with a pcall() + error handler
+	if not files[v] then
+		abort(1, "Failed to open temp file: " .. tmpname)
+	end
 end
 
 for _, v in ipairs(output_files) do
 	local tmpname = tmpspace .. v
 	files[v] = io.open(tmpname, "w+")
+	-- XXX Revisit these with a pcall() + error handler
+	if not files[v] then
+		abort(1, "Failed to open temp output file: " .. tmpname)
+	end
 end
 
 -- Write out all of the preamble bits
@@ -1383,12 +1398,12 @@ write_line("systrace", read_file("systraceret"))
 for _, v in ipairs(output_files) do
 	local target = config[v]
 	if target ~= "/dev/null" then
-		local fh = io.open(target, "w+")
+		local fh = assert(io.open(target, "w+"))
 		if fh == nil then
 			abort(1, "Failed to open '" .. target .. "'")
 		end
-		fh:write(read_file(v))
-		fh:close()
+		assert(fh:write(read_file(v)))
+		assert(fh:close())
 	end
 end
 

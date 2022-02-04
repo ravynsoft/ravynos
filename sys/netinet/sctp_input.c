@@ -512,7 +512,7 @@ sctp_process_init_ack(struct mbuf *m, int iphlen, int offset,
 
 	/*
 	 * Cancel the INIT timer, We do this first before queueing the
-	 * cookie. We always cancel at the primary to assue that we are
+	 * cookie. We always cancel at the primary to assume that we are
 	 * canceling the timer started by the INIT which always goes to the
 	 * primary.
 	 */
@@ -2686,7 +2686,6 @@ sctp_handle_cookie_echo(struct mbuf *m, int iphlen, int offset,
 			inp->sctp_context = (*inp_p)->sctp_context;
 			inp->local_strreset_support = (*inp_p)->local_strreset_support;
 			inp->fibnum = (*inp_p)->fibnum;
-			inp->inp_starting_point_for_iterator = NULL;
 			/*
 			 * copy in the authentication parameters from the
 			 * original endpoint

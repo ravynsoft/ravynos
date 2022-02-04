@@ -91,7 +91,9 @@
 #define	FBTYPE_TCXCOLOR		29	/* SUNW,tcx */
 #define	FBTYPE_CREATOR		30
 
-#define	FBTYPE_LASTPLUSONE	31	/* max number of fbs (change as add) */
+#define	FBTYPE_EFIFB		31	/* EFI Graphical Output Protocol (GOP) */
+
+#define	FBTYPE_LASTPLUSONE	32	/* max number of fbs (change as add) */
 
 /*
  * Frame buffer descriptor as returned by FBIOGTYPE.
@@ -171,22 +173,6 @@ unregister_framebuffer(struct fb_info *info)
 }
 #endif
 
-#ifdef notdef
-/*
- * General purpose structure for passing info in and out of frame buffers
- * (used for gp1) -- unsupported.
- */
-struct fbinfo {
-	int	fb_physaddr;	/* physical frame buffer address */
-	int	fb_hwwidth;	/* fb board width */
-	int	fb_hwheight;	/* fb board height */
-	int	fb_addrdelta;	/* phys addr diff between boards */
-	u_char	*fb_ropaddr;	/* fb virtual addr */
-	int	fb_unit;	/* minor devnum of fb */
-};
-#define	FBIOGINFO	_IOR('F', 2, struct fbinfo)
-#endif
-
 /*
  * Color map I/O.
  */
@@ -199,135 +185,6 @@ struct fbcmap {
 };
 #define	FBIOPUTCMAP	_IOW('F', 3, struct fbcmap)
 #define	FBIOGETCMAP	_IOW('F', 4, struct fbcmap)
-
-/*
- * Set/get attributes.
- */
-#define	FB_ATTR_NDEVSPECIFIC	8	/* no. of device specific values */
-#define	FB_ATTR_NEMUTYPES	4	/* no. of emulation types */
-
-struct fbsattr {
-	int	flags;			/* flags; see below */
-	int	emu_type;		/* emulation type (-1 if unused) */
-	int	dev_specific[FB_ATTR_NDEVSPECIFIC];	/* catchall */
-};
-#define	FB_ATTR_AUTOINIT	1	/* emulation auto init flag */
-#define	FB_ATTR_DEVSPECIFIC	2	/* dev. specific stuff valid flag */
-
-struct fbgattr {
-	int	real_type;		/* real device type */
-	int	owner;			/* PID of owner, 0 if myself */
-	struct	fbtype fbtype;		/* fbtype info for real device */
-	struct	fbsattr sattr;		/* see above */
-	int	emu_types[FB_ATTR_NEMUTYPES];	/* possible emulations */
-						/* (-1 if unused) */
-};
-#define	FBIOSATTR	_IOW('F', 5, struct fbsattr)
-#define	FBIOGATTR	_IOR('F', 6, struct fbgattr)
-
-/*
- * Video control.
- */
-#define	FBVIDEO_OFF		0
-#define	FBVIDEO_ON		1
-
-#define	FBIOSVIDEO	_IOW('F', 7, int)
-#define	FBIOGVIDEO	_IOR('F', 8, int)
-
-/* vertical retrace */
-#define	FBIOVERTICAL	_IO('F', 9)
-
-/*
- * Hardware cursor control (for, e.g., CG6).  A rather complex and icky
- * interface that smells like VMS, but there it is....
- */
-struct fbcurpos {
-	short	x;
-	short	y;
-};
-
-struct fbcursor {
-	short	set;		/* flags; see below */
-	short	enable;		/* nonzero => cursor on, 0 => cursor off */
-	struct	fbcurpos pos;	/* position on display */
-	struct	fbcurpos hot;	/* hot-spot within cursor */
-	struct	fbcmap cmap;	/* cursor color map */
-	struct	fbcurpos size;	/* number of valid bits in image & mask */
-	caddr_t	image;		/* cursor image bits */
-	caddr_t	mask;		/* cursor mask bits */
-};
-#define	FB_CUR_SETCUR	0x01	/* set on/off (i.e., obey fbcursor.enable) */
-#define	FB_CUR_SETPOS	0x02	/* set position */
-#define	FB_CUR_SETHOT	0x04	/* set hot-spot */
-#define	FB_CUR_SETCMAP	0x08	/* set cursor color map */
-#define	FB_CUR_SETSHAPE	0x10	/* set size & bits */
-#define	FB_CUR_SETALL	(FB_CUR_SETCUR | FB_CUR_SETPOS | FB_CUR_SETHOT | \
-			 FB_CUR_SETCMAP | FB_CUR_SETSHAPE)
-
-/* controls for cursor attributes & shape (including position) */
-#define	FBIOSCURSOR	_IOW('F', 24, struct fbcursor)
-#define	FBIOGCURSOR	_IOWR('F', 25, struct fbcursor)
-
-/* controls for cursor position only */
-#define	FBIOSCURPOS	_IOW('F', 26, struct fbcurpos)
-#define	FBIOGCURPOS	_IOW('F', 27, struct fbcurpos)
-
-/* get maximum cursor size */
-#define	FBIOGCURMAX	_IOR('F', 28, struct fbcurpos)
-
-/*
- * Video board information
- */
-struct brd_info {
-	u_short		accessible_width; /* accessible bytes in scanline */
-	u_short		accessible_height; /* number of accessible scanlines */
-	u_short		line_bytes;	/* number of bytes/scanline */
-	u_short		hdb_capable;	/* can this thing hardware db? */
-	u_short		vmsize;		/* video memory size */
-	u_char		boardrev;	/* board revision # */
-	u_char		pad0;
-	u_long		pad1;
-};
-#define	FBIOGXINFO	_IOR('F', 39, struct brd_info)
-
-/*
- * Monitor information
- */
-struct mon_info {
-	u_long		mon_type;	/* bit array */
-#define MON_TYPE_STEREO		0x8	/* stereo display */
-#define MON_TYPE_0_OFFSET	0x4	/* black level 0 ire instead of 7.5 */
-#define MON_TYPE_OVERSCAN	0x2	/* overscan */
-#define MON_TYPE_GRAY		0x1	/* greyscale monitor */
-	u_long		pixfreq;	/* pixel frequency in Hz */
-	u_long		hfreq;		/* horizontal freq in Hz */
-	u_long		vfreq;		/* vertical freq in Hz */
-	u_long		vsync;		/* vertical sync in scanlines */
-	u_long		hsync;		/* horizontal sync in pixels */
-	/* these are in pixel units */
-	u_short		hfporch;	/* horizontal front porch */
-	u_short		hbporch;	/* horizontal back porch */
-	u_short		vfporch;	/* vertical front porch */
-	u_short		vbporch;	/* vertical back porch */
-};
-#define	FBIOMONINFO	_IOR('F', 40, struct mon_info)
-
-/*
- * Color map I/O.
- */
-struct fbcmap_i {
-	unsigned int	flags;
-#define	FB_CMAP_BLOCK	(1 << 0)	/* wait for vertical refresh */
-#define	FB_CMAP_KERNEL	(1 << 1)	/* called within kernel */
-	int		id;		/* color map id */
-	int		index;		/* first element (0 origin) */
-	int		count;		/* number of elements */
-	u_char		*red;		/* red color map elements */
-	u_char		*green;		/* green color map elements */
-	u_char		*blue;		/* blue color map elements */
-};
-#define	FBIOPUTCMAPI	_IOW('F', 41, struct fbcmap_i)
-#define	FBIOGETCMAPI	_IOW('F', 42, struct fbcmap_i)
 
 /* The new style frame buffer ioctls. */
 

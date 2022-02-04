@@ -580,6 +580,7 @@ struct ieee80211_mimo_info {
 #define	IEEE80211_RX_FW_20MHZ		1
 #define	IEEE80211_RX_FW_40MHZ		2
 #define	IEEE80211_RX_FW_80MHZ		3
+#define	IEEE80211_RX_FW_160MHZ		4
 
 /* PHY type */
 #define	IEEE80211_RX_FP_11B		1
@@ -611,6 +612,9 @@ struct ieee80211_rx_stats {
 	uint8_t c_ieee;			/* Channel */
 	uint8_t c_width;		/* channel width, FW flags above */
 
+	/* 32 bits */
+	uint32_t c_band;		/* Band; XXX we do not have a real band. */
+
 	/* Force alignment to DWORD */
 	union {
 		uint8_t evm[IEEE80211_MAX_CHAINS][IEEE80211_MAX_EVM_PILOTS];
@@ -619,7 +623,7 @@ struct ieee80211_rx_stats {
 	} evm;
 
 	/* 32 bits */
-	uint8_t c_phytype;		/* PHY type, FP flags above */
+	uint8_t c_phytype;		/* PHY type, FW flags above */
 	uint8_t c_vhtnss;		/* VHT - number of spatial streams */
 	uint8_t c_pad2[2];
 };

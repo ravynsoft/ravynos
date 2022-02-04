@@ -28,8 +28,8 @@
  *
  * $FreeBSD$
  */
-#ifndef	_LINUX_NET_H_
-#define	_LINUX_NET_H_
+#ifndef	_LINUXKPI_LINUX_NET_H_
+#define	_LINUXKPI_LINUX_NET_H_
 
 #include <sys/types.h>
 #include <sys/malloc.h>
@@ -76,4 +76,14 @@ sock_release(struct socket *so)
 	soclose(so);
 }
 
-#endif	/* _LINUX_NET_H_ */
+
+int linuxkpi_net_ratelimit(void);
+
+static inline int
+net_ratelimit(void)
+{
+
+	return (linuxkpi_net_ratelimit());
+}
+
+#endif	/* _LINUXKPI_LINUX_NET_H_ */

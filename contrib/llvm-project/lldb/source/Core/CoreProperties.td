@@ -51,6 +51,10 @@ let Definition = "debugger" in {
     DefaultEnumValue<"Debugger::eStopDisassemblyTypeNoDebugInfo">,
     EnumValues<"OptionEnumValues(g_show_disassembly_enum_values)">,
     Desc<"Control when to display disassembly when displaying a stopped context.">;
+  def StopDisassemblyMaxSize: Property<"stop-disassembly-max-size", "UInt64">,
+    Global,
+    DefaultUnsignedValue<32000>,
+    Desc<"The size limit to use when disassembling large functions (default: 32KB).">;
   def StopLineCountAfter: Property<"stop-line-count-after", "SInt64">,
     Global,
     DefaultUnsignedValue<3>,
@@ -131,4 +135,8 @@ let Definition = "debugger" in {
     Global,
     DefaultStringValue<"frame #${frame.index}: ${ansi.fg.yellow}${frame.pc}${ansi.normal}{ ${module.file.basename}{`${function.name-without-args}{${frame.no-debug}${function.pc-offset}}}}{ at ${ansi.fg.cyan}${line.file.basename}${ansi.normal}:${ansi.fg.yellow}${line.number}${ansi.normal}{:${ansi.fg.yellow}${line.column}${ansi.normal}}}{${function.is-optimized} [opt]}{${frame.is-artificial} [artificial]}\\\\n">,
     Desc<"The default frame format string to use when displaying stack frameinformation for threads from thread backtrace unique.">;
+  def ShowAutosuggestion: Property<"show-autosuggestion", "Boolean">,
+    Global,
+    DefaultFalse,
+    Desc<"If true, LLDB will show suggestions to complete the command the user typed. Suggestions may be accepted using Ctrl-F.">;
 }

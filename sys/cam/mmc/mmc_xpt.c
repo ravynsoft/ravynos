@@ -90,14 +90,20 @@ static void mmc_proto_debug_out(union ccb *ccb);
 typedef enum {
 	PROBE_RESET,
 	PROBE_IDENTIFY,
-        PROBE_SDIO_RESET,
+	PROBE_POWER_OFF,
+	PROBE_GET_HOST_OCR,
+	PROBE_RESET_BUS,
+	PROBE_SET_ID_FREQ,
+	PROBE_SET_CS,
+	PROBE_GO_IDLE_STATE,
+	PROBE_SDIO_RESET,
 	PROBE_SEND_IF_COND,
-        PROBE_SDIO_INIT,
-        PROBE_MMC_INIT,
+	PROBE_SDIO_INIT,
+	PROBE_MMC_INIT,
 	PROBE_SEND_APP_OP_COND,
-        PROBE_GET_CID,
-        PROBE_GET_CSD,
-        PROBE_SEND_RELATIVE_ADDR,
+	PROBE_GET_CID,
+	PROBE_GET_CSD,
+	PROBE_SEND_RELATIVE_ADDR,
 	PROBE_MMC_SET_RELATIVE_ADDR,
 	PROBE_SELECT_CARD,
 	PROBE_DONE,
@@ -107,16 +113,22 @@ typedef enum {
 static char *probe_action_text[] = {
 	"PROBE_RESET",
 	"PROBE_IDENTIFY",
-        "PROBE_SDIO_RESET",
+	"PROBE_POWER_OFF",
+	"PROBE_GET_HOST_OCR",
+	"PROBE_RESET_BUS",
+	"PROBE_SET_ID_FREQ",
+	"PROBE_SET_CS",
+	"PROBE_GO_IDLE_STATE",
+	"PROBE_SDIO_RESET",
 	"PROBE_SEND_IF_COND",
-        "PROBE_SDIO_INIT",
-        "PROBE_MMC_INIT",
+	"PROBE_SDIO_INIT",
+	"PROBE_MMC_INIT",
 	"PROBE_SEND_APP_OP_COND",
-        "PROBE_GET_CID",
-        "PROBE_GET_CSD",
-        "PROBE_SEND_RELATIVE_ADDR",
+	"PROBE_GET_CID",
+	"PROBE_GET_CSD",
+	"PROBE_SEND_RELATIVE_ADDR",
 	"PROBE_MMC_SET_RELATIVE_ADDR",
-        "PROBE_SELECT_CARD",
+	"PROBE_SELECT_CARD",
 	"PROBE_DONE",
 	"PROBE_INVALID"
 };
@@ -165,6 +177,7 @@ typedef struct {
 	probe_action	action;
 	int             restart;
 	union ccb	saved_ccb;
+	uint32_t	host_ocr;
 	uint32_t	flags;
 #define PROBE_FLAG_ACMD_SENT	0x1 /* CMD55 is sent, card expects ACMD */
 #define PROBE_FLAG_HOST_CAN_DO_18V   0x2 /* Host can do 1.8V signaling */
@@ -583,7 +596,6 @@ mmcprobe_start(struct cam_periph *periph, union ccb *start_ccb)
 	mmcprobe_softc *softc;
 	struct cam_path *path;
 	struct ccb_mmcio *mmcio;
-	struct mtx *p_mtx = cam_periph_mtx(periph);
 	struct ccb_trans_settings_mmc *cts;
 
 	CAM_DEBUG(start_ccb->ccb_h.path, CAM_DEBUG_PROBE, ("mmcprobe_start\n"));
@@ -611,25 +623,29 @@ mmcprobe_start(struct cam_periph *periph, union ccb *start_ccb)
 	case PROBE_IDENTIFY:
 		xpt_path_inq(&start_ccb->cpi, periph->path);
 		CAM_DEBUG(start_ccb->ccb_h.path, CAM_DEBUG_PROBE, ("Start with PROBE_IDENTIFY\n"));
-		init_standard_ccb(start_ccb, XPT_GET_TRAN_SETTINGS);
-		xpt_action(start_ccb);
-		if (cts->ios.power_mode != power_off) {
-			init_standard_ccb(start_ccb, XPT_SET_TRAN_SETTINGS);
-			cts->ios.power_mode = power_off;
-			cts->ios_valid = MMC_PM;
-			xpt_action(start_ccb);
-			mtx_sleep(periph, p_mtx, 0, "mmcios", 100);
-		}
-		/* mmc_power_up */
-		/* Get the host OCR */
-		init_standard_ccb(start_ccb, XPT_GET_TRAN_SETTINGS);
-		xpt_action(start_ccb);
+		init_standard_ccb(start_ccb, XPT_MMC_GET_TRAN_SETTINGS);
+		break;
 
+	case PROBE_POWER_OFF:
+		CAM_DEBUG(start_ccb->ccb_h.path, CAM_DEBUG_PROBE, ("power off the card\n"));
+		init_standard_ccb(start_ccb, XPT_MMC_SET_TRAN_SETTINGS);
+		cts->ios.power_mode = power_off;
+		cts->ios_valid = MMC_PM;
+		break;
+
+	case PROBE_GET_HOST_OCR:
+		CAM_DEBUG(start_ccb->ccb_h.path, CAM_DEBUG_PROBE, ("get the host ocr\n"));
+		init_standard_ccb(start_ccb, XPT_MMC_GET_TRAN_SETTINGS);
+		break;
+
+	case PROBE_RESET_BUS:
+	{
 		uint32_t host_caps = cts->host_caps;
 		if (host_caps & MMC_CAP_SIGNALING_180)
 			softc->flags |= PROBE_FLAG_HOST_CAN_DO_18V;
-		uint32_t hv = mmc_highest_voltage(cts->host_ocr);
-		init_standard_ccb(start_ccb, XPT_SET_TRAN_SETTINGS);
+		uint32_t hv = mmc_highest_voltage(softc->host_ocr);
+		CAM_DEBUG(start_ccb->ccb_h.path, CAM_DEBUG_PROBE, ("reseting the bus\n"));
+		init_standard_ccb(start_ccb, XPT_MMC_SET_TRAN_SETTINGS);
 		cts->ios.vdd = hv;
 		cts->ios.bus_mode = opendrain;
 		cts->ios.chip_select = cs_dontcare;
@@ -638,25 +654,26 @@ mmcprobe_start(struct cam_periph *periph, union ccb *start_ccb)
 		cts->ios.clock = 0;
 		cts->ios_valid = MMC_VDD | MMC_PM | MMC_BM |
 			MMC_CS | MMC_BW | MMC_CLK;
-		xpt_action(start_ccb);
-		mtx_sleep(periph, p_mtx, 0, "mmcios", 100);
+		break;
+	}
 
-		init_standard_ccb(start_ccb, XPT_SET_TRAN_SETTINGS);
+	case PROBE_SET_ID_FREQ:
+		CAM_DEBUG(start_ccb->ccb_h.path, CAM_DEBUG_PROBE, ("setting the ID freq\n"));
+		init_standard_ccb(start_ccb, XPT_MMC_SET_TRAN_SETTINGS);
 		cts->ios.power_mode = power_on;
 		cts->ios.clock = CARD_ID_FREQUENCY;
 		cts->ios.timing = bus_timing_normal;
 		cts->ios_valid = MMC_PM | MMC_CLK | MMC_BT;
-		xpt_action(start_ccb);
-		mtx_sleep(periph, p_mtx, 0, "mmcios", 100);
-		/* End for mmc_power_on */
+		break;
 
+	case PROBE_SET_CS:
 		/* Begin mmc_idle_cards() */
-		init_standard_ccb(start_ccb, XPT_SET_TRAN_SETTINGS);
+		init_standard_ccb(start_ccb, XPT_MMC_SET_TRAN_SETTINGS);
 		cts->ios.chip_select = cs_high;
 		cts->ios_valid = MMC_CS;
-		xpt_action(start_ccb);
-		mtx_sleep(periph, p_mtx, 0, "mmcios", 1);
+		break;
 
+	case PROBE_GO_IDLE_STATE:
 		CAM_DEBUG(start_ccb->ccb_h.path, CAM_DEBUG_PROBE, ("Send first XPT_MMC_IO\n"));
 		init_standard_ccb(start_ccb, XPT_MMC_IO);
 		mmcio->cmd.opcode = MMC_GO_IDLE_STATE; /* CMD 0 */
@@ -667,6 +684,7 @@ mmcprobe_start(struct cam_periph *periph, union ccb *start_ccb)
 
 		/* XXX Reset I/O portion as well */
 		break;
+
 	case PROBE_SDIO_RESET:
 		CAM_DEBUG(start_ccb->ccb_h.path, CAM_DEBUG_PROBE,
 			  ("Start with PROBE_SDIO_RESET\n"));
@@ -804,7 +822,7 @@ mmcprobe_done(struct cam_periph *periph, union ccb *done_ccb)
 	struct ccb_mmcio *mmcio;
 	u_int32_t  priority;
 
-	CAM_DEBUG(done_ccb->ccb_h.path, CAM_DEBUG_TRACE, ("mmcprobe_done\n"));
+	CAM_DEBUG(done_ccb->ccb_h.path, CAM_DEBUG_PROBE, ("mmcprobe_done\n"));
 	softc = (mmcprobe_softc *)periph->softc;
 	path = done_ccb->ccb_h.path;
 	priority = done_ccb->ccb_h.pinfo.priority;
@@ -815,6 +833,45 @@ mmcprobe_done(struct cam_periph *periph, union ccb *done_ccb)
 	case PROBE_IDENTIFY:
 	{
 		CAM_DEBUG(done_ccb->ccb_h.path, CAM_DEBUG_PROBE, ("done with PROBE_RESET\n"));
+		PROBE_SET_ACTION(softc, PROBE_POWER_OFF);
+		break;
+	}
+	case PROBE_POWER_OFF:
+	{
+		CAM_DEBUG(done_ccb->ccb_h.path, CAM_DEBUG_PROBE, ("done with PROBE_POWER_OFF\n"));
+		PROBE_SET_ACTION(softc, PROBE_GET_HOST_OCR);
+		break;
+	}
+	case PROBE_GET_HOST_OCR:
+	{
+		struct ccb_trans_settings_mmc *cts;
+		cts = &done_ccb->cts.proto_specific.mmc;
+		softc->host_ocr = cts->host_ocr;
+		CAM_DEBUG(done_ccb->ccb_h.path, CAM_DEBUG_PROBE, ("done with PROBE_GET_HOST_OCR (Got OCR=%x\n", softc->host_ocr));
+		PROBE_SET_ACTION(softc, PROBE_RESET_BUS);
+		break;
+	}
+	case PROBE_RESET_BUS:
+	{
+		CAM_DEBUG(done_ccb->ccb_h.path, CAM_DEBUG_PROBE, ("done with PROBE_RESET_BUS\n"));
+		PROBE_SET_ACTION(softc, PROBE_SET_ID_FREQ);
+		break;
+	}
+	case PROBE_SET_ID_FREQ:
+	{
+		CAM_DEBUG(done_ccb->ccb_h.path, CAM_DEBUG_PROBE, ("done with PROBE_SET_ID_FREQ\n"));
+		PROBE_SET_ACTION(softc, PROBE_SET_CS);
+		break;
+	}
+	case PROBE_SET_CS:
+	{
+		CAM_DEBUG(done_ccb->ccb_h.path, CAM_DEBUG_PROBE, ("done with PROBE_SET_CS\n"));
+		PROBE_SET_ACTION(softc, PROBE_GO_IDLE_STATE);
+		break;
+	}
+	case PROBE_GO_IDLE_STATE:
+	{
+		CAM_DEBUG(done_ccb->ccb_h.path, CAM_DEBUG_PROBE, ("done with PROBE_GO_IDLE_STATE\n"));
 		mmcio = &done_ccb->mmcio;
 		err = mmcio->cmd.error;
 
@@ -855,101 +912,101 @@ mmcprobe_done(struct cam_periph *periph, union ccb *done_ccb)
                 PROBE_SET_ACTION(softc, PROBE_SDIO_RESET);
 		break;
 	}
-        case PROBE_SDIO_RESET:
-        {
+	case PROBE_SDIO_RESET:
+	{
 		mmcio = &done_ccb->mmcio;
 		err = mmcio->cmd.error;
 
-                CAM_DEBUG(done_ccb->ccb_h.path, CAM_DEBUG_PROBE,
-                          ("SDIO_RESET: error %d, CCCR CTL register: %08x\n",
-                           err, mmcio->cmd.resp[0]));
-                PROBE_SET_ACTION(softc, PROBE_SDIO_INIT);
-                break;
-        }
-        case PROBE_SDIO_INIT:
-        {
+		CAM_DEBUG(done_ccb->ccb_h.path, CAM_DEBUG_PROBE,
+		    ("SDIO_RESET: error %d, CCCR CTL register: %08x\n",
+		    err, mmcio->cmd.resp[0]));
+		PROBE_SET_ACTION(softc, PROBE_SDIO_INIT);
+		break;
+	}
+	case PROBE_SDIO_INIT:
+	{
 		mmcio = &done_ccb->mmcio;
 		err = mmcio->cmd.error;
-                struct mmc_params *mmcp = &path->device->mmc_ident_data;
+		struct mmc_params *mmcp = &path->device->mmc_ident_data;
 
-                CAM_DEBUG(done_ccb->ccb_h.path, CAM_DEBUG_PROBE,
-                          ("SDIO_INIT: error %d, %08x %08x %08x %08x\n",
-                           err, mmcio->cmd.resp[0],
-                           mmcio->cmd.resp[1],
-                           mmcio->cmd.resp[2],
-                           mmcio->cmd.resp[3]));
+		CAM_DEBUG(done_ccb->ccb_h.path, CAM_DEBUG_PROBE,
+		    ("SDIO_INIT: error %d, %08x %08x %08x %08x\n",
+		    err, mmcio->cmd.resp[0],
+		    mmcio->cmd.resp[1],
+		    mmcio->cmd.resp[2],
+		    mmcio->cmd.resp[3]));
 
-                /*
-                 * Error here means that this card is not SDIO,
-                 * so proceed with memory init as if nothing has happened
-                 */
+		/*
+		 * Error here means that this card is not SDIO,
+		 * so proceed with memory init as if nothing has happened
+		 */
 		if (err != MMC_ERR_NONE) {
-                        PROBE_SET_ACTION(softc, PROBE_SEND_APP_OP_COND);
-                        break;
+			PROBE_SET_ACTION(softc, PROBE_SEND_APP_OP_COND);
+			break;
 		}
-                mmcp->card_features |= CARD_FEATURE_SDIO;
-                uint32_t ioifcond = mmcio->cmd.resp[0];
-                uint32_t io_ocr = ioifcond & R4_IO_OCR_MASK;
+		mmcp->card_features |= CARD_FEATURE_SDIO;
+		uint32_t ioifcond = mmcio->cmd.resp[0];
+		uint32_t io_ocr = ioifcond & R4_IO_OCR_MASK;
 
-                mmcp->sdio_func_count = R4_IO_NUM_FUNCTIONS(ioifcond);
-                CAM_DEBUG(done_ccb->ccb_h.path, CAM_DEBUG_PROBE,
-                          ("SDIO card: %d functions\n", mmcp->sdio_func_count));
-                if (io_ocr == 0) {
-                    CAM_DEBUG(done_ccb->ccb_h.path, CAM_DEBUG_PROBE,
-                              ("SDIO OCR invalid, retrying\n"));
-                    break; /* Retry */
-                }
+		mmcp->sdio_func_count = R4_IO_NUM_FUNCTIONS(ioifcond);
+		CAM_DEBUG(done_ccb->ccb_h.path, CAM_DEBUG_PROBE,
+		    ("SDIO card: %d functions\n", mmcp->sdio_func_count));
+		if (io_ocr == 0) {
+			CAM_DEBUG(done_ccb->ccb_h.path, CAM_DEBUG_PROBE,
+			  ("SDIO OCR invalid, retrying\n"));
+			break; /* Retry */
+		}
 
-                if (io_ocr != 0 && mmcp->io_ocr == 0) {
-                        mmcp->io_ocr = io_ocr;
-                        break; /* Retry, this time with non-0 OCR */
-                }
-                CAM_DEBUG(done_ccb->ccb_h.path, CAM_DEBUG_PROBE,
-                          ("SDIO OCR: %08x\n", mmcp->io_ocr));
+		if (io_ocr != 0 && mmcp->io_ocr == 0) {
+			mmcp->io_ocr = io_ocr;
+			break; /* Retry, this time with non-0 OCR */
+		}
+		CAM_DEBUG(done_ccb->ccb_h.path, CAM_DEBUG_PROBE,
+		    ("SDIO OCR: %08x\n", mmcp->io_ocr));
 
-                if (ioifcond & R4_IO_MEM_PRESENT) {
-                        /* Combo card -- proceed to memory initialization */
-                        PROBE_SET_ACTION(softc, PROBE_SEND_APP_OP_COND);
-                } else {
-                        /* No memory portion -- get RCA and select card */
-                        PROBE_SET_ACTION(softc, PROBE_SEND_RELATIVE_ADDR);
-                }
-                break;
-        }
-        case PROBE_MMC_INIT:
-        {
+		if (ioifcond & R4_IO_MEM_PRESENT) {
+			/* Combo card -- proceed to memory initialization */
+			PROBE_SET_ACTION(softc, PROBE_SEND_APP_OP_COND);
+		} else {
+			/* No memory portion -- get RCA and select card */
+			PROBE_SET_ACTION(softc, PROBE_SEND_RELATIVE_ADDR);
+		}
+		break;
+	}
+	case PROBE_MMC_INIT:
+	{
 		mmcio = &done_ccb->mmcio;
 		err = mmcio->cmd.error;
-                struct mmc_params *mmcp = &path->device->mmc_ident_data;
+		struct mmc_params *mmcp = &path->device->mmc_ident_data;
 
 		if (err != MMC_ERR_NONE) {
 			CAM_DEBUG(done_ccb->ccb_h.path, CAM_DEBUG_PROBE,
 				  ("MMC_INIT: error %d, resp %08x\n",
 				   err, mmcio->cmd.resp[0]));
 			PROBE_SET_ACTION(softc, PROBE_INVALID);
-                        break;
-                }
-                CAM_DEBUG(done_ccb->ccb_h.path, CAM_DEBUG_PROBE,
-                          ("MMC card, OCR %08x\n", mmcio->cmd.resp[0]));
+			break;
+		}
+		CAM_DEBUG(done_ccb->ccb_h.path, CAM_DEBUG_PROBE,
+		    ("MMC card, OCR %08x\n", mmcio->cmd.resp[0]));
 
-                if (mmcp->card_ocr == 0) {
-                        /* We haven't sent the OCR to the card yet -- do it */
-                        mmcp->card_ocr = mmcio->cmd.resp[0];
-                        CAM_DEBUG(done_ccb->ccb_h.path, CAM_DEBUG_PROBE,
-                                  ("-> sending OCR to card\n"));
-                        break;
-                }
+		if (mmcp->card_ocr == 0) {
+			/* We haven't sent the OCR to the card yet -- do it */
+			mmcp->card_ocr = mmcio->cmd.resp[0];
+			CAM_DEBUG(done_ccb->ccb_h.path, CAM_DEBUG_PROBE,
+			    ("-> sending OCR to card\n"));
+			break;
+		}
 
-                if (!(mmcio->cmd.resp[0] & MMC_OCR_CARD_BUSY)) {
-                        CAM_DEBUG(done_ccb->ccb_h.path, CAM_DEBUG_PROBE,
-                                  ("Card is still powering up\n"));
-                        break;
-                }
+		if (!(mmcio->cmd.resp[0] & MMC_OCR_CARD_BUSY)) {
+			CAM_DEBUG(done_ccb->ccb_h.path, CAM_DEBUG_PROBE,
+			    ("Card is still powering up\n"));
+			break;
+		}
 
-                mmcp->card_features |= CARD_FEATURE_MMC | CARD_FEATURE_MEMORY;
-                PROBE_SET_ACTION(softc, PROBE_GET_CID);
-                break;
-        }
+		mmcp->card_features |= CARD_FEATURE_MMC | CARD_FEATURE_MEMORY;
+		PROBE_SET_ACTION(softc, PROBE_GET_CID);
+		break;
+	}
 	case PROBE_SEND_APP_OP_COND:
 	{
 		mmcio = &done_ccb->mmcio;
@@ -960,41 +1017,41 @@ mmcprobe_done(struct cam_periph *periph, union ccb *done_ccb)
 				  ("APP_OP_COND: error %d, resp %08x\n",
 				   err, mmcio->cmd.resp[0]));
 			PROBE_SET_ACTION(softc, PROBE_MMC_INIT);
-                        break;
-                }
+			break;
+		}
 
-                if (!(softc->flags & PROBE_FLAG_ACMD_SENT)) {
-                        /* Don't change the state */
-                        softc->flags |= PROBE_FLAG_ACMD_SENT;
-                        break;
-                }
+		if (!(softc->flags & PROBE_FLAG_ACMD_SENT)) {
+			/* Don't change the state */
+			softc->flags |= PROBE_FLAG_ACMD_SENT;
+			break;
+		}
 
-                softc->flags &= ~PROBE_FLAG_ACMD_SENT;
-                if ((mmcio->cmd.resp[0] & MMC_OCR_CARD_BUSY) ||
-                    (mmcio->cmd.arg & MMC_OCR_VOLTAGE) == 0) {
-                        struct mmc_params *mmcp = &path->device->mmc_ident_data;
-                        CAM_DEBUG(done_ccb->ccb_h.path, CAM_DEBUG_PROBE,
-                                  ("Card OCR: %08x\n",  mmcio->cmd.resp[0]));
-                        if (mmcp->card_ocr == 0) {
-                                mmcp->card_ocr = mmcio->cmd.resp[0];
-                                /* Now when we know OCR that we want -- send it to card */
-                                CAM_DEBUG(done_ccb->ccb_h.path, CAM_DEBUG_PROBE,
-                                          ("-> sending OCR to card\n"));
-                        } else {
-                                /* We already know the OCR and despite of that we
-                                 * are processing the answer to ACMD41 -> move on
-                                 */
-                                PROBE_SET_ACTION(softc, PROBE_GET_CID);
-                        }
-                        /* Getting an answer to ACMD41 means the card has memory */
-                        mmcp->card_features |= CARD_FEATURE_MEMORY;
+		softc->flags &= ~PROBE_FLAG_ACMD_SENT;
+		if ((mmcio->cmd.resp[0] & MMC_OCR_CARD_BUSY) ||
+		    (mmcio->cmd.arg & MMC_OCR_VOLTAGE) == 0) {
+			struct mmc_params *mmcp = &path->device->mmc_ident_data;
+			CAM_DEBUG(done_ccb->ccb_h.path, CAM_DEBUG_PROBE,
+			    ("Card OCR: %08x\n",  mmcio->cmd.resp[0]));
+			if (mmcp->card_ocr == 0) {
+				mmcp->card_ocr = mmcio->cmd.resp[0];
+				/* Now when we know OCR that we want -- send it to card */
+				CAM_DEBUG(done_ccb->ccb_h.path, CAM_DEBUG_PROBE,
+				    ("-> sending OCR to card\n"));
+			} else {
+				/* We already know the OCR and despite of that we
+				 * are processing the answer to ACMD41 -> move on
+				 */
+				PROBE_SET_ACTION(softc, PROBE_GET_CID);
+			}
+			/* Getting an answer to ACMD41 means the card has memory */
+			mmcp->card_features |= CARD_FEATURE_MEMORY;
 
-                        /* Standard capacity vs High Capacity memory card */
-                        if (mmcio->cmd.resp[0] & MMC_OCR_CCS) {
-                                CAM_DEBUG(done_ccb->ccb_h.path, CAM_DEBUG_PROBE,
-                                          ("Card is SDHC\n"));
-                                mmcp->card_features |= CARD_FEATURE_SDHC;
-                        }
+			/* Standard capacity vs High Capacity memory card */
+			if (mmcio->cmd.resp[0] & MMC_OCR_CCS) {
+				CAM_DEBUG(done_ccb->ccb_h.path, CAM_DEBUG_PROBE,
+				    ("Card is SDHC\n"));
+				mmcp->card_features |= CARD_FEATURE_SDHC;
+			}
 
 			/* Whether the card supports 1.8V signaling */
 			if (mmcio->cmd.resp[0] & MMC_OCR_S18A) {
@@ -1021,10 +1078,10 @@ mmcprobe_done(struct cam_periph *periph, union ccb *done_ccb)
 			PROBE_SET_ACTION(softc, PROBE_SEND_APP_OP_COND);
 		}
 
-                break;
+		break;
 	}
-        case PROBE_GET_CID: /* XXX move to mmc_da */
-        {
+	case PROBE_GET_CID: /* XXX move to mmc_da */
+	{
 		mmcio = &done_ccb->mmcio;
 		err = mmcio->cmd.error;
 
@@ -1032,45 +1089,45 @@ mmcprobe_done(struct cam_periph *periph, union ccb *done_ccb)
 			CAM_DEBUG(done_ccb->ccb_h.path, CAM_DEBUG_PROBE,
 				  ("PROBE_GET_CID: error %d\n", err));
 			PROBE_SET_ACTION(softc, PROBE_INVALID);
-                        break;
-                }
+			break;
+		}
 
-                struct mmc_params *mmcp = &path->device->mmc_ident_data;
-                memcpy(mmcp->card_cid, mmcio->cmd.resp, 4 * sizeof(uint32_t));
-                CAM_DEBUG(done_ccb->ccb_h.path, CAM_DEBUG_PROBE,
-                          ("CID %08x%08x%08x%08x\n",
-                           mmcp->card_cid[0],
-                           mmcp->card_cid[1],
-                           mmcp->card_cid[2],
-                           mmcp->card_cid[3]));
+		struct mmc_params *mmcp = &path->device->mmc_ident_data;
+		memcpy(mmcp->card_cid, mmcio->cmd.resp, 4 * sizeof(uint32_t));
+		CAM_DEBUG(done_ccb->ccb_h.path, CAM_DEBUG_PROBE,
+		    ("CID %08x%08x%08x%08x\n",
+		      mmcp->card_cid[0],
+		      mmcp->card_cid[1],
+		      mmcp->card_cid[2],
+		      mmcp->card_cid[3]));
 		if (mmcp->card_features & CARD_FEATURE_MMC)
 			PROBE_SET_ACTION(softc, PROBE_MMC_SET_RELATIVE_ADDR);
 		else
 			PROBE_SET_ACTION(softc, PROBE_SEND_RELATIVE_ADDR);
-                break;
-        }
-        case PROBE_SEND_RELATIVE_ADDR: {
+		break;
+	}
+	case PROBE_SEND_RELATIVE_ADDR: {
 		mmcio = &done_ccb->mmcio;
 		err = mmcio->cmd.error;
-                struct mmc_params *mmcp = &path->device->mmc_ident_data;
-                uint16_t rca = mmcio->cmd.resp[0] >> 16;
-                CAM_DEBUG(done_ccb->ccb_h.path, CAM_DEBUG_PROBE,
-                          ("Card published RCA: %u\n", rca));
-                path->device->mmc_ident_data.card_rca = rca;
+		struct mmc_params *mmcp = &path->device->mmc_ident_data;
+		uint16_t rca = mmcio->cmd.resp[0] >> 16;
+		CAM_DEBUG(done_ccb->ccb_h.path, CAM_DEBUG_PROBE,
+		    ("Card published RCA: %u\n", rca));
+		path->device->mmc_ident_data.card_rca = rca;
 		if (err != MMC_ERR_NONE) {
 			CAM_DEBUG(done_ccb->ccb_h.path, CAM_DEBUG_PROBE,
 				  ("PROBE_SEND_RELATIVE_ADDR: error %d\n", err));
 			PROBE_SET_ACTION(softc, PROBE_INVALID);
-                        break;
-                }
+			break;
+		}
 
-                /* If memory is present, get CSD, otherwise select card */
-                if (mmcp->card_features & CARD_FEATURE_MEMORY)
-                        PROBE_SET_ACTION(softc, PROBE_GET_CSD);
-                else
-                        PROBE_SET_ACTION(softc, PROBE_SELECT_CARD);
+		/* If memory is present, get CSD, otherwise select card */
+		if (mmcp->card_features & CARD_FEATURE_MEMORY)
+			PROBE_SET_ACTION(softc, PROBE_GET_CSD);
+		else
+			PROBE_SET_ACTION(softc, PROBE_SELECT_CARD);
 		break;
-        }
+	}
 	case PROBE_MMC_SET_RELATIVE_ADDR:
 		mmcio = &done_ccb->mmcio;
 		err = mmcio->cmd.error;
@@ -1083,7 +1140,7 @@ mmcprobe_done(struct cam_periph *periph, union ccb *done_ccb)
 		path->device->mmc_ident_data.card_rca = MMC_PROPOSED_RCA;
 		PROBE_SET_ACTION(softc, PROBE_GET_CSD);
 		break;
-        case PROBE_GET_CSD: {
+	case PROBE_GET_CSD: {
 		mmcio = &done_ccb->mmcio;
 		err = mmcio->cmd.error;
 
@@ -1091,33 +1148,33 @@ mmcprobe_done(struct cam_periph *periph, union ccb *done_ccb)
 			CAM_DEBUG(done_ccb->ccb_h.path, CAM_DEBUG_PROBE,
 				  ("PROBE_GET_CSD: error %d\n", err));
 			PROBE_SET_ACTION(softc, PROBE_INVALID);
-                        break;
-                }
+			break;
+		}
 
-                struct mmc_params *mmcp = &path->device->mmc_ident_data;
-                memcpy(mmcp->card_csd, mmcio->cmd.resp, 4 * sizeof(uint32_t));
-                CAM_DEBUG(done_ccb->ccb_h.path, CAM_DEBUG_PROBE,
-                          ("CSD %08x%08x%08x%08x\n",
-                           mmcp->card_csd[0],
-                           mmcp->card_csd[1],
-                           mmcp->card_csd[2],
-                           mmcp->card_csd[3]));
-                PROBE_SET_ACTION(softc, PROBE_SELECT_CARD);
-                break;
-        }
-        case PROBE_SELECT_CARD: {
+		struct mmc_params *mmcp = &path->device->mmc_ident_data;
+		memcpy(mmcp->card_csd, mmcio->cmd.resp, 4 * sizeof(uint32_t));
+		CAM_DEBUG(done_ccb->ccb_h.path, CAM_DEBUG_PROBE,
+		    ("CSD %08x%08x%08x%08x\n",
+		      mmcp->card_csd[0],
+		      mmcp->card_csd[1],
+		      mmcp->card_csd[2],
+		      mmcp->card_csd[3]));
+		PROBE_SET_ACTION(softc, PROBE_SELECT_CARD);
+		break;
+	}
+	case PROBE_SELECT_CARD: {
 		mmcio = &done_ccb->mmcio;
 		err = mmcio->cmd.error;
 		if (err != MMC_ERR_NONE) {
 			CAM_DEBUG(done_ccb->ccb_h.path, CAM_DEBUG_PROBE,
 				  ("PROBE_SEND_RELATIVE_ADDR: error %d\n", err));
 			PROBE_SET_ACTION(softc, PROBE_INVALID);
-                        break;
-                }
+			break;
+		}
 
 		PROBE_SET_ACTION(softc, PROBE_DONE);
-                break;
-        }
+		break;
+	}
 	default:
 		CAM_DEBUG(done_ccb->ccb_h.path, CAM_DEBUG_PROBE,
 			  ("mmcprobe_done: invalid action state 0x%x\n", softc->action));

@@ -18,9 +18,6 @@
 #include "llvm/ADT/SmallPtrSet.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/Analysis/AliasAnalysis.h"
-#include "llvm/Analysis/AssumptionCache.h"
-#include "llvm/Analysis/MemoryLocation.h"
-#include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/PassManager.h"
 #include "llvm/Pass.h"
 #include <algorithm>
@@ -38,7 +35,6 @@ class DataLayout;
 class DominatorTree;
 class Function;
 class GEPOperator;
-class LoopInfo;
 class PHINode;
 class SelectInst;
 class TargetLibraryInfo;
@@ -59,23 +55,20 @@ class BasicAAResult : public AAResultBase<BasicAAResult> {
   const TargetLibraryInfo &TLI;
   AssumptionCache &AC;
   DominatorTree *DT;
-  LoopInfo *LI;
   PhiValues *PV;
 
 public:
   BasicAAResult(const DataLayout &DL, const Function &F,
                 const TargetLibraryInfo &TLI, AssumptionCache &AC,
-                DominatorTree *DT = nullptr, LoopInfo *LI = nullptr,
-                PhiValues *PV = nullptr)
-      : AAResultBase(), DL(DL), F(F), TLI(TLI), AC(AC), DT(DT), LI(LI), PV(PV)
-        {}
+                DominatorTree *DT = nullptr, PhiValues *PV = nullptr)
+      : AAResultBase(), DL(DL), F(F), TLI(TLI), AC(AC), DT(DT), PV(PV) {}
 
   BasicAAResult(const BasicAAResult &Arg)
       : AAResultBase(Arg), DL(Arg.DL), F(Arg.F), TLI(Arg.TLI), AC(Arg.AC),
-        DT(Arg.DT),  LI(Arg.LI), PV(Arg.PV) {}
+        DT(Arg.DT), PV(Arg.PV) {}
   BasicAAResult(BasicAAResult &&Arg)
       : AAResultBase(std::move(Arg)), DL(Arg.DL), F(Arg.F), TLI(Arg.TLI),
-        AC(Arg.AC), DT(Arg.DT), LI(Arg.LI), PV(Arg.PV) {}
+        AC(Arg.AC), DT(Arg.DT), PV(Arg.PV) {}
 
   /// Handle invalidation events in the new pass manager.
   bool invalidate(Function &Fn, const PreservedAnalyses &PA,
@@ -120,13 +113,21 @@ private:
 
     APInt Scale;
 
-    bool operator==(const VariableGEPIndex &Other) const {
-      return V == Other.V && ZExtBits == Other.ZExtBits &&
-             SExtBits == Other.SExtBits && Scale == Other.Scale;
-    }
+    // Context instruction to use when querying information about this index.
+    const Instruction *CxtI;
 
-    bool operator!=(const VariableGEPIndex &Other) const {
-      return !operator==(Other);
+    /// True if all operations in this expression are NSW.
+    bool IsNSW;
+
+    void dump() const {
+      print(dbgs());
+      dbgs() << "\n";
+    }
+    void print(raw_ostream &OS) const {
+      OS << "(V=" << V->getName()
+	 << ", zextbits=" << ZExtBits
+	 << ", sextbits=" << SExtBits
+	 << ", scale=" << Scale << ")";
     }
   };
 
@@ -135,15 +136,32 @@ private:
   struct DecomposedGEP {
     // Base pointer of the GEP
     const Value *Base;
-    // Total constant offset w.r.t the base from indexing into structs
-    APInt StructOffset;
-    // Total constant offset w.r.t the base from indexing through
-    // pointers/arrays/vectors
-    APInt OtherOffset;
+    // Total constant offset from base.
+    APInt Offset;
     // Scaled variable (non-constant) indices.
     SmallVector<VariableGEPIndex, 4> VarIndices;
     // Is GEP index scale compile-time constant.
     bool HasCompileTimeConstantScale;
+    // Are all operations inbounds GEPs or non-indexing operations?
+    // (None iff expression doesn't involve any geps)
+    Optional<bool> InBounds;
+
+    void dump() const {
+      print(dbgs());
+      dbgs() << "\n";
+    }
+    void print(raw_ostream &OS) const {
+      OS << "(DecomposedGEP Base=" << Base->getName()
+         << ", Offset=" << Offset
+         << ", VarIndices=[";
+      for (size_t i = 0; i < VarIndices.size(); i++) {
+        if (i != 0)
+          OS << ", ";
+        VarIndices[i].print(OS);
+      }
+      OS << "], HasCompileTimeConstantScale=" << HasCompileTimeConstantScale
+         << ")";
+    }
   };
 
   /// Tracks phi nodes we have visited.
@@ -165,14 +183,9 @@ private:
   /// Tracks instructions visited by pointsToConstantMemory.
   SmallPtrSet<const Value *, 16> Visited;
 
-  static const Value *
-  GetLinearExpression(const Value *V, APInt &Scale, APInt &Offset,
-                      unsigned &ZExtBits, unsigned &SExtBits,
-                      const DataLayout &DL, unsigned Depth, AssumptionCache *AC,
-                      DominatorTree *DT, bool &NSW, bool &NUW);
-
-  static bool DecomposeGEPExpression(const Value *V, DecomposedGEP &Decomposed,
-      const DataLayout &DL, AssumptionCache *AC, DominatorTree *DT);
+  static DecomposedGEP
+  DecomposeGEPExpression(const Value *V, const DataLayout &DL,
+                         AssumptionCache *AC, DominatorTree *DT);
 
   static bool isGEPBaseAtNegativeOffset(const GEPOperator *GEPOp,
       const DecomposedGEP &DecompGEP, const DecomposedGEP &DecompObject,
@@ -198,26 +211,25 @@ private:
                           const SmallVectorImpl<VariableGEPIndex> &Src);
 
   AliasResult aliasGEP(const GEPOperator *V1, LocationSize V1Size,
-                       const AAMDNodes &V1AAInfo, const Value *V2,
-                       LocationSize V2Size, const AAMDNodes &V2AAInfo,
+                       const Value *V2, LocationSize V2Size,
                        const Value *UnderlyingV1, const Value *UnderlyingV2,
                        AAQueryInfo &AAQI);
 
   AliasResult aliasPHI(const PHINode *PN, LocationSize PNSize,
-                       const AAMDNodes &PNAAInfo, const Value *V2,
-                       LocationSize V2Size, const AAMDNodes &V2AAInfo,
-                       const Value *UnderV2, AAQueryInfo &AAQI);
+                       const Value *V2, LocationSize V2Size, AAQueryInfo &AAQI);
 
   AliasResult aliasSelect(const SelectInst *SI, LocationSize SISize,
-                          const AAMDNodes &SIAAInfo, const Value *V2,
-                          LocationSize V2Size, const AAMDNodes &V2AAInfo,
-                          const Value *UnderV2, AAQueryInfo &AAQI);
+                          const Value *V2, LocationSize V2Size,
+                          AAQueryInfo &AAQI);
 
   AliasResult aliasCheck(const Value *V1, LocationSize V1Size,
-                         AAMDNodes V1AATag, const Value *V2,
-                         LocationSize V2Size, AAMDNodes V2AATag,
-                         AAQueryInfo &AAQI, const Value *O1 = nullptr,
-                         const Value *O2 = nullptr);
+                         const Value *V2, LocationSize V2Size,
+                         AAQueryInfo &AAQI);
+
+  AliasResult aliasCheckRecursive(const Value *V1, LocationSize V1Size,
+                                  const Value *V2, LocationSize V2Size,
+                                  AAQueryInfo &AAQI, const Value *O1,
+                                  const Value *O2);
 };
 
 /// Analysis pass providing a never-invalidated alias analysis result.

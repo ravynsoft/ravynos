@@ -9,6 +9,7 @@
 #ifndef LLD_COFF_CONFIG_H
 #define LLD_COFF_CONFIG_H
 
+#include "llvm/ADT/MapVector.h"
 #include "llvm/ADT/StringMap.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/Object/COFF.h"
@@ -29,6 +30,7 @@ class DefinedRelative;
 class StringChunk;
 class Symbol;
 class InputFile;
+class SectionChunk;
 
 // Short aliases.
 static const auto AMD64 = llvm::COFF::IMAGE_FILE_MACHINE_AMD64;
@@ -72,10 +74,19 @@ enum class DebugType {
   Fixup = 0x4,  /// Relocation Table
 };
 
-enum class GuardCFLevel {
-  Off,
-  NoLongJmp, // Emit gfids but no longjmp tables
-  Full,      // Enable all protections.
+enum GuardCFLevel {
+  Off     = 0x0,
+  CF      = 0x1, /// Emit gfids tables
+  LongJmp = 0x2, /// Emit longjmp tables
+  EHCont  = 0x4, /// Emit ehcont tables
+  All     = 0x7  /// Enable all protections
+};
+
+enum class ICFLevel {
+  None,
+  Safe, // Safe ICF for all sections.
+  All,  // Aggressive ICF for code, but safe ICF for data, similar to MSVC's
+        // behavior.
 };
 
 // Global configuration.
@@ -93,7 +104,7 @@ struct Configuration {
   std::string importName;
   bool demangle = true;
   bool doGC = true;
-  bool doICF = true;
+  ICFLevel doICF = ICFLevel::None;
   bool tailMerge;
   bool relocatable = true;
   bool forceMultiple = false;
@@ -134,7 +145,7 @@ struct Configuration {
   bool saveTemps = false;
 
   // /guard:cf
-  GuardCFLevel guardCF = GuardCFLevel::Off;
+  int guardCF = GuardCFLevel::Off;
 
   // Used for SafeSEH.
   bool safeSEH = false;
@@ -154,6 +165,11 @@ struct Configuration {
   StringRef ltoCache;
   // Used for /opt:lldltocachepolicy=policy
   llvm::CachePruningPolicy ltoCachePolicy;
+
+  // Used for /opt:[no]ltonewpassmanager
+  bool ltoNewPassManager = false;
+  // Used for /opt:[no]ltodebugpassmanager
+  bool ltoDebugPassManager = false;
 
   // Used for /merge:from=to (e.g. /merge:.rdata=.text)
   std::map<StringRef, StringRef> merge;
@@ -201,6 +217,21 @@ struct Configuration {
   // Used for /lto-obj-path:
   llvm::StringRef ltoObjPath;
 
+  // Used for /lto-cs-profile-generate:
+  bool ltoCSProfileGenerate = false;
+
+  // Used for /lto-cs-profile-path
+  llvm::StringRef ltoCSProfileFile;
+
+  // Used for /call-graph-ordering-file:
+  llvm::MapVector<std::pair<const SectionChunk *, const SectionChunk *>,
+                  uint64_t>
+      callGraphProfile;
+  bool callGraphProfileSort = false;
+
+  // Used for /print-symbol-order:
+  StringRef printSymbolOrder;
+
   uint64_t align = 4096;
   uint64_t imageBase = -1;
   uint64_t fileAlign = 512;
@@ -210,8 +241,12 @@ struct Configuration {
   uint64_t heapCommit = 4096;
   uint32_t majorImageVersion = 0;
   uint32_t minorImageVersion = 0;
+  // If changing the default os/subsys version here, update the default in
+  // the MinGW driver accordingly.
   uint32_t majorOSVersion = 6;
   uint32_t minorOSVersion = 0;
+  uint32_t majorSubsystemVersion = 6;
+  uint32_t minorSubsystemVersion = 0;
   uint32_t timestamp = 0;
   uint32_t functionPadMin = 0;
   bool dynamicBase = true;
@@ -228,6 +263,7 @@ struct Configuration {
   bool warnLocallyDefinedImported = true;
   bool warnDebugInfoUnusable = true;
   bool warnLongSectionNames = true;
+  bool warnStdcallFixup = true;
   bool incremental = true;
   bool integrityCheck = false;
   bool killAt = false;
@@ -238,6 +274,7 @@ struct Configuration {
   bool thinLTOIndexOnly;
   bool autoImport = false;
   bool pseudoRelocs = false;
+  bool stdcallFixup = false;
 };
 
 extern Configuration *config;

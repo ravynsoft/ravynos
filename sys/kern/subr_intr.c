@@ -401,15 +401,14 @@ intr_isrc_dispatch(struct intr_irqsrc *isrc, struct trapframe *tf)
 static inline int
 isrc_alloc_irq(struct intr_irqsrc *isrc)
 {
-	u_int maxirqs, irq;
+	u_int irq;
 
 	mtx_assert(&isrc_table_lock, MA_OWNED);
 
-	maxirqs = intr_nirq;
-	if (irq_next_free >= maxirqs)
+	if (irq_next_free >= intr_nirq)
 		return (ENOSPC);
 
-	for (irq = irq_next_free; irq < maxirqs; irq++) {
+	for (irq = irq_next_free; irq < intr_nirq; irq++) {
 		if (irq_sources[irq] == NULL)
 			goto found;
 	}
@@ -418,7 +417,7 @@ isrc_alloc_irq(struct intr_irqsrc *isrc)
 			goto found;
 	}
 
-	irq_next_free = maxirqs;
+	irq_next_free = intr_nirq;
 	return (ENOSPC);
 
 found:
@@ -426,7 +425,7 @@ found:
 	irq_sources[irq] = isrc;
 
 	irq_next_free = irq + 1;
-	if (irq_next_free >= maxirqs)
+	if (irq_next_free >= intr_nirq)
 		irq_next_free = 0;
 	return (0);
 }
@@ -447,6 +446,16 @@ isrc_free_irq(struct intr_irqsrc *isrc)
 
 	irq_sources[isrc->isrc_irq] = NULL;
 	isrc->isrc_irq = INTR_IRQ_INVALID;	/* just to be safe */
+
+	/*
+	 * If we are recovering from the state irq_sources table is full,
+	 * then the following allocation should check the entire table. This
+	 * will ensure maximum separation of allocation order from release
+	 * order.
+	 */
+	if (irq_next_free >= intr_nirq)
+		irq_next_free = 0;
+
 	return (0);
 }
 
@@ -889,7 +898,7 @@ intr_pic_claim_root(device_t dev, intptr_t xref, intr_irq_filter_t *filter,
 /*
  * Add a handler to manage a sub range of a parents interrupts.
  */
-struct intr_pic *
+int
 intr_pic_add_handler(device_t parent, struct intr_pic *pic,
     intr_child_irq_filter_t *filter, void *arg, uintptr_t start,
     uintptr_t length)
@@ -903,7 +912,7 @@ intr_pic_add_handler(device_t parent, struct intr_pic *pic,
 	/* Find the parent PIC */
 	parent_pic = pic_lookup(parent, 0, FLAG_PIC);
 	if (parent_pic == NULL)
-		return (NULL);
+		return (ENXIO);
 
 	newchild = malloc(sizeof(*newchild), M_INTRNG, M_WAITOK | M_ZERO);
 	newchild->pc_pic = pic;
@@ -922,7 +931,7 @@ intr_pic_add_handler(device_t parent, struct intr_pic *pic,
 	SLIST_INSERT_HEAD(&parent_pic->pic_children, newchild, pc_next);
 	mtx_unlock_spin(&parent_pic->pic_child_lock);
 
-	return (pic);
+	return (0);
 }
 
 static int

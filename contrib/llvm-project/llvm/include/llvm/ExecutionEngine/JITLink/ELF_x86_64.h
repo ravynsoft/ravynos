@@ -26,6 +26,7 @@ enum ELFX86RelocationKind : Edge::Kind {
   Pointer64,
   Pointer64Anon,
   PCRel32,
+  PCRel64,
   PCRel32Minus1,
   PCRel32Minus2,
   PCRel32Minus4,
@@ -35,6 +36,9 @@ enum ELFX86RelocationKind : Edge::Kind {
   PCRel32Minus4Anon,
   PCRel32GOTLoad,
   PCRel32GOT,
+  PCRel64GOT,
+  GOTOFF64,
+  GOT64,
   PCRel32TLV,
   Delta32,
   Delta64,
@@ -44,8 +48,20 @@ enum ELFX86RelocationKind : Edge::Kind {
 
 } // end namespace ELF_x86_64_Edges
 
+/// Create a LinkGraph from an ELF/x86-64 relocatable object.
+///
+/// Note: The graph does not take ownership of the underlying buffer, nor copy
+/// its contents. The caller is responsible for ensuring that the object buffer
+/// outlives the graph.
+Expected<std::unique_ptr<LinkGraph>>
+createLinkGraphFromELFObject_x86_64(MemoryBufferRef ObjectBuffer);
+
 /// jit-link the given object buffer, which must be a ELF x86-64 object file.
-void jitLink_ELF_x86_64(std::unique_ptr<JITLinkContext> Ctx);
+void link_ELF_x86_64(std::unique_ptr<LinkGraph> G,
+                     std::unique_ptr<JITLinkContext> Ctx);
+
+/// Return the string name of the given ELF x86-64 edge kind.
+const char *getELFX86RelocationKindName(Edge::Kind R);
 } // end namespace jitlink
 } // end namespace llvm
 

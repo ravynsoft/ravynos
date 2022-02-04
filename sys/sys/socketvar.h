@@ -100,6 +100,7 @@ struct socket {
 	struct	protosw *so_proto;	/* (a) protocol handle */
 	short	so_timeo;		/* (g) connection timeout */
 	u_short	so_error;		/* (f) error affecting connection */
+	u_short so_rerror;		/* (f) error affecting connection */
 	struct	sigio *so_sigio;	/* [sg] information for async I/O or
 					   out of band data (SIGURG) */
 	struct	ucred *so_cred;		/* (a) user credentials */
@@ -248,11 +249,23 @@ struct socket {
  */
 
 /*
- * Flags to sblock().
+ * Flags to soiolock().
  */
 #define	SBL_WAIT	0x00000001	/* Wait if not immediately available. */
 #define	SBL_NOINTR	0x00000002	/* Force non-interruptible sleep. */
 #define	SBL_VALID	(SBL_WAIT | SBL_NOINTR)
+
+
+#define	SBLOCKWAIT(f)	(((f) & MSG_DONTWAIT) ? 0 : SBL_WAIT)
+
+#define	SOCK_IO_SEND_LOCK(so, flags)					\
+	soiolock((so), &(so)->so_snd.sb_sx, (flags))
+#define	SOCK_IO_SEND_UNLOCK(so)						\
+	soiounlock(&(so)->so_snd.sb_sx)
+#define	SOCK_IO_RECV_LOCK(so, flags)					\
+	soiolock((so), &(so)->so_rcv.sb_sx, (flags))
+#define	SOCK_IO_RECV_UNLOCK(so)						\
+	soiounlock(&(so)->so_rcv.sb_sx)
 
 /*
  * Do we need to notify the other side when I/O is possible?
@@ -266,7 +279,8 @@ struct socket {
 
 /* can we read something from so? */
 #define	soreadabledata(so) \
-	(sbavail(&(so)->so_rcv) >= (so)->so_rcv.sb_lowat ||  (so)->so_error)
+	(sbavail(&(so)->so_rcv) >= (so)->so_rcv.sb_lowat || \
+	(so)->so_error || (so)->so_rerror)
 #define	soreadable(so) \
 	(soreadabledata(so) || ((so)->so_rcv.sb_state & SBS_CANTRCVMORE))
 
@@ -480,6 +494,10 @@ void	socantrcvmore(struct socket *so);
 void	socantrcvmore_locked(struct socket *so);
 void	socantsendmore(struct socket *so);
 void	socantsendmore_locked(struct socket *so);
+void	soroverflow(struct socket *so);
+void	soroverflow_locked(struct socket *so);
+int	soiolock(struct socket *so, struct sx *sx, int flags);
+void	soiounlock(struct sx *sx);
 
 /*
  * Accept filter functions (duh).

@@ -25,7 +25,7 @@
 
 #include "llvm/ADT/StringRef.h"
 
-#include <assert.h>
+#include <cassert>
 #include <memory>
 
 namespace lldb_private {
@@ -60,7 +60,7 @@ ValueObjectRegisterSet::ValueObjectRegisterSet(ExecutionContextScope *exe_scope,
   }
 }
 
-ValueObjectRegisterSet::~ValueObjectRegisterSet() {}
+ValueObjectRegisterSet::~ValueObjectRegisterSet() = default;
 
 CompilerType ValueObjectRegisterSet::GetCompilerTypeImpl() {
   return CompilerType();
@@ -81,7 +81,7 @@ size_t ValueObjectRegisterSet::CalculateNumChildren(uint32_t max) {
   return 0;
 }
 
-uint64_t ValueObjectRegisterSet::GetByteSize() { return 0; }
+llvm::Optional<uint64_t> ValueObjectRegisterSet::GetByteSize() { return 0; }
 
 bool ValueObjectRegisterSet::UpdateValue() {
   m_error.Clear();
@@ -193,7 +193,7 @@ ValueObjectRegister::ValueObjectRegister(ExecutionContextScope *exe_scope,
   ConstructObject(reg_num);
 }
 
-ValueObjectRegister::~ValueObjectRegister() {}
+ValueObjectRegister::~ValueObjectRegister() = default;
 
 CompilerType ValueObjectRegister::GetCompilerTypeImpl() {
   if (!m_compiler_type.IsValid()) {
@@ -229,7 +229,9 @@ size_t ValueObjectRegister::CalculateNumChildren(uint32_t max) {
   return children_count <= max ? children_count : max;
 }
 
-uint64_t ValueObjectRegister::GetByteSize() { return m_reg_info.byte_size; }
+llvm::Optional<uint64_t> ValueObjectRegister::GetByteSize() {
+  return m_reg_info.byte_size;
+}
 
 bool ValueObjectRegister::UpdateValue() {
   m_error.Clear();
@@ -247,9 +249,9 @@ bool ValueObjectRegister::UpdateValue() {
         Process *process = exe_ctx.GetProcessPtr();
         if (process)
           m_data.SetAddressByteSize(process->GetAddressByteSize());
-        m_value.SetContext(Value::eContextTypeRegisterInfo,
+        m_value.SetContext(Value::ContextType::RegisterInfo,
                            (void *)&m_reg_info);
-        m_value.SetValueType(Value::eValueTypeHostAddress);
+        m_value.SetValueType(Value::ValueType::HostAddress);
         m_value.GetScalar() = (uintptr_t)m_data.GetDataStart();
         SetValueIsValid(true);
         SetValueDidChange(!(m_old_reg_value == m_reg_value));

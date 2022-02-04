@@ -2163,15 +2163,21 @@ xeon_gen3_setup_b2b_mw(struct ntb_softc *ntb)
 	intel_ntb_reg_write(8, XEON_GEN3_REG_IMBAR2XBASE, 0);
 
 	/*
-	 * If the value in EMBAR1LIMIT is set equal to the value in EMBAR1,
-	 * the memory window for EMBAR1 is disabled.
-	 * Note: It is needed to avoid malacious access.
+	 * If the value in IMBAR1XLIMIT is set equal to the value in IMBAR1XBASE,
+	 * the local memory window exposure from EMBAR1 is disabled.
+	 * Note: It is needed to avoid malicious access.
 	 */
-	reg = pci_read_config(ntb->device, XEON_GEN3_EXT_REG_BAR1BASE, 8);
-	intel_ntb_reg_write(8, XEON_GEN3_REG_IMBAR1XLIMIT, reg);
+	intel_ntb_reg_write(8, XEON_GEN3_REG_IMBAR1XLIMIT, 0);
+	intel_ntb_reg_write(8, XEON_GEN3_REG_IMBAR2XLIMIT, 0);
 
-	reg = pci_read_config(ntb->device, XEON_GEN3_EXT_REG_BAR2BASE, 8);
-	intel_ntb_reg_write(8, XEON_GEN3_REG_IMBAR2XLIMIT, reg);
+	/* Config outgoing translation limits (whole bar size windows) */
+	reg = intel_ntb_reg_read(8, XEON_GEN3_REG_EMBAR1XBASE);
+	reg += ntb->bar_info[NTB_B2B_BAR_1].size;
+	intel_ntb_reg_write(8, XEON_GEN3_REG_EMBAR1XLIMIT, reg);
+
+	reg = intel_ntb_reg_read(8, XEON_GEN3_REG_EMBAR2XBASE);
+	reg += ntb->bar_info[NTB_B2B_BAR_2].size;
+	intel_ntb_reg_write(8, XEON_GEN3_REG_EMBAR2XLIMIT, reg);
 
 	return (0);
 }
@@ -2521,15 +2527,15 @@ intel_ntb_sysctl_init(struct ntb_softc *ntb)
 	globals = SYSCTL_CHILDREN(device_get_sysctl_tree(ntb->device));
 
 	SYSCTL_ADD_PROC(ctx, globals, OID_AUTO, "link_status",
-	    CTLFLAG_RD | CTLTYPE_STRING | CTLFLAG_NEEDGIANT, ntb, 0,
+	    CTLFLAG_RD | CTLTYPE_STRING | CTLFLAG_MPSAFE, ntb, 0,
 	    sysctl_handle_link_status_human, "A",
 	    "Link status (human readable)");
 	SYSCTL_ADD_PROC(ctx, globals, OID_AUTO, "active",
-	    CTLFLAG_RD | CTLTYPE_UINT | CTLFLAG_NEEDGIANT, ntb, 0,
+	    CTLFLAG_RD | CTLTYPE_UINT | CTLFLAG_MPSAFE, ntb, 0,
 	    sysctl_handle_link_status, "IU",
 	    "Link status (1=active, 0=inactive)");
 	SYSCTL_ADD_PROC(ctx, globals, OID_AUTO, "admin_up",
-	    CTLFLAG_RW | CTLTYPE_UINT | CTLFLAG_NEEDGIANT, ntb, 0,
+	    CTLFLAG_RW | CTLTYPE_UINT | CTLFLAG_MPSAFE, ntb, 0,
 	    sysctl_handle_link_admin, "IU",
 	    "Set/get interface status (1=UP, 0=DOWN)");
 
@@ -2555,7 +2561,7 @@ intel_ntb_sysctl_init(struct ntb_softc *ntb)
 	}
 
 	SYSCTL_ADD_PROC(ctx, tree_par, OID_AUTO, "features",
-	    CTLFLAG_RD | CTLTYPE_STRING | CTLFLAG_NEEDGIANT, ntb, 0,
+	    CTLFLAG_RD | CTLTYPE_STRING | CTLFLAG_MPSAFE, ntb, 0,
 	    sysctl_handle_features, "A", "Features/errata of this NTB device");
 
 	SYSCTL_ADD_UINT(ctx, tree_par, OID_AUTO, "ntb_ctl", CTLFLAG_RD,
@@ -2589,63 +2595,63 @@ intel_ntb_sysctl_init(struct ntb_softc *ntb)
 	regpar = SYSCTL_CHILDREN(tmptree);
 
 	SYSCTL_ADD_PROC(ctx, regpar, OID_AUTO, "ntbcntl",
-	    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_NEEDGIANT, ntb,
+	    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_MPSAFE, ntb,
 	    NTB_REG_32 | ntb->reg->ntb_ctl, sysctl_handle_register, "IU",
 	    "NTB Control register");
 	SYSCTL_ADD_PROC(ctx, regpar, OID_AUTO, "lnkcap",
-	    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_NEEDGIANT, ntb,
+	    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_MPSAFE, ntb,
 	    NTB_REG_32 | 0x19c, sysctl_handle_register, "IU",
 	    "NTB Link Capabilities");
 	SYSCTL_ADD_PROC(ctx, regpar, OID_AUTO, "lnkcon",
-	    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_NEEDGIANT, ntb,
+	    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_MPSAFE, ntb,
 	    NTB_REG_32 | 0x1a0, sysctl_handle_register, "IU",
 	    "NTB Link Control register");
 
 	SYSCTL_ADD_PROC(ctx, regpar, OID_AUTO, "db_mask",
-	    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_NEEDGIANT, ntb,
+	    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_MPSAFE, ntb,
 	    NTB_REG_64 | NTB_DB_READ | ntb->self_reg->db_mask,
 	    sysctl_handle_register, "QU", "Doorbell mask register");
 	SYSCTL_ADD_PROC(ctx, regpar, OID_AUTO, "db_bell",
-	    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_NEEDGIANT, ntb,
+	    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_MPSAFE, ntb,
 	    NTB_REG_64 | NTB_DB_READ | ntb->self_reg->db_bell,
 	    sysctl_handle_register, "QU", "Doorbell register");
 
 	SYSCTL_ADD_PROC(ctx, regpar, OID_AUTO, "incoming_xlat23",
-	    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_NEEDGIANT, ntb,
+	    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_MPSAFE, ntb,
 	    NTB_REG_64 | ntb->xlat_reg->bar2_xlat,
 	    sysctl_handle_register, "QU", "Incoming XLAT23 register");
 	if (HAS_FEATURE(ntb, NTB_SPLIT_BAR)) {
 		SYSCTL_ADD_PROC(ctx, regpar, OID_AUTO, "incoming_xlat4",
-		    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_NEEDGIANT, ntb,
+		    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_MPSAFE, ntb,
 		    NTB_REG_32 | ntb->xlat_reg->bar4_xlat,
 		    sysctl_handle_register, "IU", "Incoming XLAT4 register");
 		SYSCTL_ADD_PROC(ctx, regpar, OID_AUTO, "incoming_xlat5",
-		    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_NEEDGIANT, ntb,
+		    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_MPSAFE, ntb,
 		    NTB_REG_32 | ntb->xlat_reg->bar5_xlat,
 		    sysctl_handle_register, "IU", "Incoming XLAT5 register");
 	} else {
 		SYSCTL_ADD_PROC(ctx, regpar, OID_AUTO, "incoming_xlat45",
-		    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_NEEDGIANT, ntb,
+		    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_MPSAFE, ntb,
 		    NTB_REG_64 | ntb->xlat_reg->bar4_xlat,
 		    sysctl_handle_register, "QU", "Incoming XLAT45 register");
 	}
 
 	SYSCTL_ADD_PROC(ctx, regpar, OID_AUTO, "incoming_lmt23",
-	    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_NEEDGIANT, ntb,
+	    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_MPSAFE, ntb,
 	    NTB_REG_64 | ntb->xlat_reg->bar2_limit,
 	    sysctl_handle_register, "QU", "Incoming LMT23 register");
 	if (HAS_FEATURE(ntb, NTB_SPLIT_BAR)) {
 		SYSCTL_ADD_PROC(ctx, regpar, OID_AUTO, "incoming_lmt4",
-		    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_NEEDGIANT, ntb,
+		    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_MPSAFE, ntb,
 		    NTB_REG_32 | ntb->xlat_reg->bar4_limit,
 		    sysctl_handle_register, "IU", "Incoming LMT4 register");
 		SYSCTL_ADD_PROC(ctx, regpar, OID_AUTO, "incoming_lmt5",
-		    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_NEEDGIANT, ntb,
+		    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_MPSAFE, ntb,
 		    NTB_REG_32 | ntb->xlat_reg->bar5_limit,
 		    sysctl_handle_register, "IU", "Incoming LMT5 register");
 	} else {
 		SYSCTL_ADD_PROC(ctx, regpar, OID_AUTO, "incoming_lmt45",
-		    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_NEEDGIANT, ntb,
+		    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_MPSAFE, ntb,
 		    NTB_REG_64 | ntb->xlat_reg->bar4_limit,
 		    sysctl_handle_register, "QU", "Incoming LMT45 register");
 	}
@@ -2657,7 +2663,7 @@ intel_ntb_sysctl_init(struct ntb_softc *ntb)
 	    CTLFLAG_RD | CTLFLAG_MPSAFE, NULL, "Xeon HW statistics");
 	statpar = SYSCTL_CHILDREN(tmptree);
 	SYSCTL_ADD_PROC(ctx, statpar, OID_AUTO, "upstream_mem_miss",
-	    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_NEEDGIANT, ntb,
+	    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_MPSAFE, ntb,
 	    NTB_REG_16 | XEON_USMEMMISS_OFFSET,
 	    sysctl_handle_register, "SU", "Upstream Memory Miss");
 
@@ -2666,55 +2672,55 @@ intel_ntb_sysctl_init(struct ntb_softc *ntb)
 	errpar = SYSCTL_CHILDREN(tmptree);
 
 	SYSCTL_ADD_PROC(ctx, regpar, OID_AUTO, "ppd",
-	    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_NEEDGIANT, ntb,
+	    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_MPSAFE, ntb,
 	    NTB_REG_8 | NTB_PCI_REG | NTB_PPD_OFFSET,
 	    sysctl_handle_register, "CU", "PPD");
 
 	SYSCTL_ADD_PROC(ctx, regpar, OID_AUTO, "pbar23_sz",
-	    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_NEEDGIANT, ntb,
+	    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_MPSAFE, ntb,
 	    NTB_REG_8 | NTB_PCI_REG | XEON_PBAR23SZ_OFFSET,
 	    sysctl_handle_register, "CU", "PBAR23 SZ (log2)");
 	SYSCTL_ADD_PROC(ctx, regpar, OID_AUTO, "pbar4_sz",
-	    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_NEEDGIANT, ntb,
+	    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_MPSAFE, ntb,
 	    NTB_REG_8 | NTB_PCI_REG | XEON_PBAR4SZ_OFFSET,
 	    sysctl_handle_register, "CU", "PBAR4 SZ (log2)");
 	SYSCTL_ADD_PROC(ctx, regpar, OID_AUTO, "pbar5_sz",
-	    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_NEEDGIANT, ntb,
+	    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_MPSAFE, ntb,
 	    NTB_REG_8 | NTB_PCI_REG | XEON_PBAR5SZ_OFFSET,
 	    sysctl_handle_register, "CU", "PBAR5 SZ (log2)");
 
 	SYSCTL_ADD_PROC(ctx, regpar, OID_AUTO, "sbar23_sz",
-	    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_NEEDGIANT, ntb,
+	    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_MPSAFE, ntb,
 	    NTB_REG_8 | NTB_PCI_REG | XEON_SBAR23SZ_OFFSET,
 	    sysctl_handle_register, "CU", "SBAR23 SZ (log2)");
 	SYSCTL_ADD_PROC(ctx, regpar, OID_AUTO, "sbar4_sz",
-	    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_NEEDGIANT, ntb,
+	    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_MPSAFE, ntb,
 	    NTB_REG_8 | NTB_PCI_REG | XEON_SBAR4SZ_OFFSET,
 	    sysctl_handle_register, "CU", "SBAR4 SZ (log2)");
 	SYSCTL_ADD_PROC(ctx, regpar, OID_AUTO, "sbar5_sz",
-	    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_NEEDGIANT, ntb,
+	    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_MPSAFE, ntb,
 	    NTB_REG_8 | NTB_PCI_REG | XEON_SBAR5SZ_OFFSET,
 	    sysctl_handle_register, "CU", "SBAR5 SZ (log2)");
 
 	SYSCTL_ADD_PROC(ctx, regpar, OID_AUTO, "devsts",
-	    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_NEEDGIANT, ntb,
+	    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_MPSAFE, ntb,
 	    NTB_REG_16 | NTB_PCI_REG | XEON_DEVSTS_OFFSET,
 	    sysctl_handle_register, "SU", "DEVSTS");
 	SYSCTL_ADD_PROC(ctx, regpar, OID_AUTO, "lnksts",
-	    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_NEEDGIANT, ntb,
+	    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_MPSAFE, ntb,
 	    NTB_REG_16 | NTB_PCI_REG | XEON_LINK_STATUS_OFFSET,
 	    sysctl_handle_register, "SU", "LNKSTS");
 	SYSCTL_ADD_PROC(ctx, regpar, OID_AUTO, "slnksts",
-	    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_NEEDGIANT, ntb,
+	    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_MPSAFE, ntb,
 	    NTB_REG_16 | NTB_PCI_REG | XEON_SLINK_STATUS_OFFSET,
 	    sysctl_handle_register, "SU", "SLNKSTS");
 
 	SYSCTL_ADD_PROC(ctx, errpar, OID_AUTO, "uncerrsts",
-	    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_NEEDGIANT, ntb,
+	    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_MPSAFE, ntb,
 	    NTB_REG_32 | NTB_PCI_REG | XEON_UNCERRSTS_OFFSET,
 	    sysctl_handle_register, "IU", "UNCERRSTS");
 	SYSCTL_ADD_PROC(ctx, errpar, OID_AUTO, "corerrsts",
-	    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_NEEDGIANT, ntb,
+	    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_MPSAFE, ntb,
 	    NTB_REG_32 | NTB_PCI_REG | XEON_CORERRSTS_OFFSET,
 	    sysctl_handle_register, "IU", "CORERRSTS");
 
@@ -2722,75 +2728,75 @@ intel_ntb_sysctl_init(struct ntb_softc *ntb)
 		return;
 
 	SYSCTL_ADD_PROC(ctx, regpar, OID_AUTO, "outgoing_xlat01l",
-	    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_NEEDGIANT, ntb,
+	    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_MPSAFE, ntb,
 	    NTB_REG_32 | XEON_B2B_XLAT_OFFSETL,
 	    sysctl_handle_register, "IU", "Outgoing XLAT0L register");
 	SYSCTL_ADD_PROC(ctx, regpar, OID_AUTO, "outgoing_xlat01u",
-	    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_NEEDGIANT, ntb,
+	    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_MPSAFE, ntb,
 	    NTB_REG_32 | XEON_B2B_XLAT_OFFSETU,
 	    sysctl_handle_register, "IU", "Outgoing XLAT0U register");
 	SYSCTL_ADD_PROC(ctx, regpar, OID_AUTO, "outgoing_xlat23",
-	    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_NEEDGIANT, ntb,
+	    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_MPSAFE, ntb,
 	    NTB_REG_64 | ntb->bar_info[NTB_B2B_BAR_1].pbarxlat_off,
 	    sysctl_handle_register, "QU", "Outgoing XLAT23 register");
 	if (HAS_FEATURE(ntb, NTB_SPLIT_BAR)) {
 		SYSCTL_ADD_PROC(ctx, regpar, OID_AUTO, "outgoing_xlat4",
-		    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_NEEDGIANT, ntb,
+		    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_MPSAFE, ntb,
 		    NTB_REG_32 | ntb->bar_info[NTB_B2B_BAR_2].pbarxlat_off,
 		    sysctl_handle_register, "IU", "Outgoing XLAT4 register");
 		SYSCTL_ADD_PROC(ctx, regpar, OID_AUTO, "outgoing_xlat5",
-		    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_NEEDGIANT, ntb,
+		    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_MPSAFE, ntb,
 		    NTB_REG_32 | ntb->bar_info[NTB_B2B_BAR_3].pbarxlat_off,
 		    sysctl_handle_register, "IU", "Outgoing XLAT5 register");
 	} else {
 		SYSCTL_ADD_PROC(ctx, regpar, OID_AUTO, "outgoing_xlat45",
-		    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_NEEDGIANT, ntb,
+		    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_MPSAFE, ntb,
 		    NTB_REG_64 | ntb->bar_info[NTB_B2B_BAR_2].pbarxlat_off,
 		    sysctl_handle_register, "QU", "Outgoing XLAT45 register");
 	}
 
 	SYSCTL_ADD_PROC(ctx, regpar, OID_AUTO, "outgoing_lmt23",
-	    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_NEEDGIANT, ntb,
+	    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_MPSAFE, ntb,
 	    NTB_REG_64 | XEON_PBAR2LMT_OFFSET,
 	    sysctl_handle_register, "QU", "Outgoing LMT23 register");
 	if (HAS_FEATURE(ntb, NTB_SPLIT_BAR)) {
 		SYSCTL_ADD_PROC(ctx, regpar, OID_AUTO, "outgoing_lmt4",
-		    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_NEEDGIANT, ntb,
+		    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_MPSAFE, ntb,
 		    NTB_REG_32 | XEON_PBAR4LMT_OFFSET,
 		    sysctl_handle_register, "IU", "Outgoing LMT4 register");
 		SYSCTL_ADD_PROC(ctx, regpar, OID_AUTO, "outgoing_lmt5",
-		    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_NEEDGIANT, ntb,
+		    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_MPSAFE, ntb,
 		    NTB_REG_32 | XEON_PBAR5LMT_OFFSET,
 		    sysctl_handle_register, "IU", "Outgoing LMT5 register");
 	} else {
 		SYSCTL_ADD_PROC(ctx, regpar, OID_AUTO, "outgoing_lmt45",
-		    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_NEEDGIANT, ntb,
+		    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_MPSAFE, ntb,
 		    NTB_REG_64 | XEON_PBAR4LMT_OFFSET,
 		    sysctl_handle_register, "QU", "Outgoing LMT45 register");
 	}
 
 	SYSCTL_ADD_PROC(ctx, regpar, OID_AUTO, "sbar01_base",
-	    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_NEEDGIANT, ntb,
+	    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_MPSAFE, ntb,
 	    NTB_REG_64 | ntb->xlat_reg->bar0_base,
 	    sysctl_handle_register, "QU", "Secondary BAR01 base register");
 	SYSCTL_ADD_PROC(ctx, regpar, OID_AUTO, "sbar23_base",
-	    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_NEEDGIANT, ntb,
+	    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_MPSAFE, ntb,
 	    NTB_REG_64 | ntb->xlat_reg->bar2_base,
 	    sysctl_handle_register, "QU", "Secondary BAR23 base register");
 	if (HAS_FEATURE(ntb, NTB_SPLIT_BAR)) {
 		SYSCTL_ADD_PROC(ctx, regpar, OID_AUTO, "sbar4_base",
-		    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_NEEDGIANT, ntb,
+		    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_MPSAFE, ntb,
 		    NTB_REG_32 | ntb->xlat_reg->bar4_base,
 		    sysctl_handle_register, "IU",
 		    "Secondary BAR4 base register");
 		SYSCTL_ADD_PROC(ctx, regpar, OID_AUTO, "sbar5_base",
-		    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_NEEDGIANT, ntb,
+		    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_MPSAFE, ntb,
 		    NTB_REG_32 | ntb->xlat_reg->bar5_base,
 		    sysctl_handle_register, "IU",
 		    "Secondary BAR5 base register");
 	} else {
 		SYSCTL_ADD_PROC(ctx, regpar, OID_AUTO, "sbar45_base",
-		    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_NEEDGIANT, ntb,
+		    CTLFLAG_RD | CTLTYPE_OPAQUE | CTLFLAG_MPSAFE, ntb,
 		    NTB_REG_64 | ntb->xlat_reg->bar4_base,
 		    sysctl_handle_register, "QU",
 		    "Secondary BAR45 base register");
@@ -3226,7 +3232,10 @@ intel_ntb_mw_set_trans(device_t dev, unsigned idx, bus_addr_t addr, size_t size)
 
 	limit = 0;
 	if (bar_is_64bit(ntb, bar_num)) {
-		base = intel_ntb_reg_read(8, base_reg) & BAR_HIGH_MASK;
+		if (ntb->type == NTB_XEON_GEN3)
+			base = addr;
+		else
+			base = intel_ntb_reg_read(8, base_reg) & BAR_HIGH_MASK;
 
 		if (limit_reg != 0 && size != mw_size)
 			limit = base + size;
@@ -3248,18 +3257,6 @@ intel_ntb_mw_set_trans(device_t dev, unsigned idx, bus_addr_t addr, size_t size)
 			intel_ntb_reg_write(8, limit_reg, base);
 			intel_ntb_reg_write(8, xlat_reg, 0);
 			return (EIO);
-		}
-
-		if (ntb->type == NTB_XEON_GEN3) {
-			limit = base + size;
-
-			/* set EMBAR1/2XLIMIT */
-			if (!idx)
-				intel_ntb_reg_write(8,
-				    XEON_GEN3_REG_EMBAR1XLIMIT, limit);
-			else
-				intel_ntb_reg_write(8,
-				    XEON_GEN3_REG_EMBAR2XLIMIT, limit);
 		}
 	} else {
 		/* Configure 32-bit (split) BAR MW */

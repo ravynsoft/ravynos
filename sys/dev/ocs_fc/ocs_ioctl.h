@@ -303,18 +303,22 @@ typedef struct {
 
 typedef struct {
 	uint8_t		*name;			/*<< Input: name of property to retrieve */
+	uint16_t	name_len;               /*<< Input: Length of name */
 	uint8_t		*value;			/*<< Output: user space buffer in which to place the response */
 	uint32_t	value_length;		/*<< Input: size of the user space buffer */
+	int		status;			/*<< Output: command execution status */
 } ocs_ioctl_cmd_get_t;
 
 typedef struct {
 	uint8_t		*name;			/*<< Input: name of property to set */
+	uint16_t	name_len;               /*<< Input: Length of name */
 	uint8_t		*value;			/*<< Input: user space buffer which contains the new value */
 	int32_t		result;			/*<< Output: result */
 } ocs_ioctl_cmd_set_t;
 
 typedef struct {
 	uint8_t		*name;			/*<< Input: name of action to execute */
+	uint16_t	name_len;               /*<< Input: Length of name */
 	void		*arg_in;		/*<< Input: pointer to argument in user space */
 	uint32_t	arg_in_length;		/*<< Input: size of arg_in in bytes */
 	void		*arg_out;		/*<< Output: pointer to argument from kernel to user */
@@ -330,6 +334,11 @@ typedef struct {
 	uint8_t		sof;			/*<< SOF value */
 	uint8_t		eof;			/*<< EOF Value */
 } ocs_ioctl_send_frame_t;
+
+/*
+ * boardtemp (DUMP_TYPE4_WKI_TAG_SAT_TEM) response buffer length.
+ */
+#define OCS_DUMP_TYPE4_WKI_TAG_SAT_TEM_RESP_LEN (6 * 4)
 
 /**
  * @brief linkcfg strings
@@ -362,6 +371,4 @@ typedef struct {
 #define OCS_IOCTL_CMD_UNLOAD		_IO(OCS_IOCTL_CMD_BASE, 18)
 #define OCS_IOCTL_CMD_SEND_FRAME	_IOWR(OCS_IOCTL_CMD_BASE, 19, ocs_ioctl_send_frame_t)
 
-extern void ocs_info_get_xport_address(ocs_t *ocs, ocs_ioctl_driver_info_t *info);
-extern int32_t ocs_device_ioctl_xport(ocs_t *ocs, unsigned int cmd, unsigned long arg);
 #endif 

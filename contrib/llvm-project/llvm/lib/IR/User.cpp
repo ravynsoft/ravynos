@@ -29,8 +29,12 @@ void User::replaceUsesOfWith(Value *From, Value *To) {
       // The side effects of this setOperand call include linking to
       // "To", adding "this" to the uses list of To, and
       // most importantly, removing "this" from the use list of "From".
-      setOperand(i, To); // Fix it now...
+      setOperand(i, To);
     }
+  if (auto DVI = dyn_cast_or_null<DbgVariableIntrinsic>(this)) {
+    if (is_contained(DVI->location_ops(), From))
+      DVI->replaceVariableLocationOp(From, To);
+  }
 }
 
 //===----------------------------------------------------------------------===//
@@ -103,9 +107,7 @@ MutableArrayRef<uint8_t> User::getDescriptor() {
 }
 
 bool User::isDroppable() const {
-  if (const auto *Intr = dyn_cast<IntrinsicInst>(this))
-    return Intr->getIntrinsicID() == Intrinsic::assume;
-  return false;
+  return isa<AssumeInst>(this);
 }
 
 //===----------------------------------------------------------------------===//

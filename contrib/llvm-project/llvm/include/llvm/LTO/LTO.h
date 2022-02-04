@@ -43,7 +43,7 @@ class ToolOutputFile;
 /// This is done for correctness (if value exported, ensure we always
 /// emit a copy), and compile-time optimization (allow drop of duplicates).
 void thinLTOResolvePrevailingInIndex(
-    ModuleSummaryIndex &Index,
+    const lto::Config &C, ModuleSummaryIndex &Index,
     function_ref<bool(GlobalValue::GUID, const GlobalValueSummary *)>
         isPrevailing,
     function_ref<void(StringRef, GlobalValue::GUID, GlobalValue::LinkageTypes)>
@@ -82,14 +82,18 @@ std::string getThinLTOOutputFile(const std::string &Path,
                                  const std::string &NewPrefix);
 
 /// Setup optimization remarks.
-Expected<std::unique_ptr<ToolOutputFile>>
-setupLLVMOptimizationRemarks(LLVMContext &Context, StringRef RemarksFilename,
-                             StringRef RemarksPasses, StringRef RemarksFormat,
-                             bool RemarksWithHotness, int Count = -1);
+Expected<std::unique_ptr<ToolOutputFile>> setupLLVMOptimizationRemarks(
+    LLVMContext &Context, StringRef RemarksFilename, StringRef RemarksPasses,
+    StringRef RemarksFormat, bool RemarksWithHotness,
+    Optional<uint64_t> RemarksHotnessThreshold = 0, int Count = -1);
 
 /// Setups the output file for saving statistics.
 Expected<std::unique_ptr<ToolOutputFile>>
 setupStatsFile(StringRef StatsFilename);
+
+/// Produces a container ordering for optimal multi-threaded processing. Returns
+/// ordered indices to elements in the input array.
+std::vector<int> generateModulesOrdering(ArrayRef<BitcodeModule *> R);
 
 class LTO;
 struct SymbolResolution;
@@ -115,7 +119,7 @@ private:
 
   StringRef TargetTriple, SourceFileName, COFFLinkerOpts;
   std::vector<StringRef> DependentLibraries;
-  std::vector<StringRef> ComdatTable;
+  std::vector<std::pair<StringRef, Comdat::SelectionKind>> ComdatTable;
 
 public:
   ~InputFile();
@@ -168,7 +172,9 @@ public:
   StringRef getSourceFileName() const { return SourceFileName; }
 
   // Returns a table with all the comdats used by this file.
-  ArrayRef<StringRef> getComdatTable() const { return ComdatTable; }
+  ArrayRef<std::pair<StringRef, Comdat::SelectionKind>> getComdatTable() const {
+    return ComdatTable;
+  }
 
   // Returns the only BitcodeModule from InputFile.
   BitcodeModule &getSingleBitcodeModule();
@@ -360,6 +366,10 @@ private:
     /// summary).
     bool VisibleOutsideSummary = false;
 
+    /// The symbol was exported dynamically, and therefore could be referenced
+    /// by a shared library not visible to the linker.
+    bool ExportDynamic = false;
+
     bool UnnamedAddr = true;
 
     /// True if module contains the prevailing definition.
@@ -430,6 +440,10 @@ private:
 
   // Use Optional to distinguish false from not yet initialized.
   Optional<bool> EnableSplitLTOUnit;
+
+  // Identify symbols exported dynamically, and that therefore could be
+  // referenced by a shared library not visible to the linker.
+  DenseSet<GlobalValue::GUID> DynamicExportSymbols;
 };
 
 /// The resolution for a symbol. The linker must provide a SymbolResolution for
@@ -437,7 +451,7 @@ private:
 struct SymbolResolution {
   SymbolResolution()
       : Prevailing(0), FinalDefinitionInLinkageUnit(0), VisibleToRegularObj(0),
-        LinkerRedefined(0) {}
+        ExportDynamic(0), LinkerRedefined(0) {}
 
   /// The linker has chosen this definition of the symbol.
   unsigned Prevailing : 1;
@@ -448,6 +462,10 @@ struct SymbolResolution {
 
   /// The definition of this symbol is visible outside of the LTO unit.
   unsigned VisibleToRegularObj : 1;
+
+  /// The symbol was exported dynamically, and therefore could be referenced
+  /// by a shared library not visible to the linker.
+  unsigned ExportDynamic : 1;
 
   /// Linker redefined version of the symbol which appeared in -wrap or -defsym
   /// linker option.

@@ -40,6 +40,8 @@ extern "C" {
 #include <aio.h>
 #include <fcntl.h>
 #include <semaphore.h>
+#include <setjmp.h>
+#include <signal.h>
 #include <unistd.h>
 }
 
@@ -101,6 +103,48 @@ class ReadAhead: public Read,
 		m_noclusterr = get<0>(GetParam());
 		Read::SetUp();
 	}
+};
+
+class ReadNoatime: public Read {
+	virtual void SetUp() {
+		m_noatime = true;
+		Read::SetUp();
+	}
+};
+
+class ReadSigbus: public Read
+{
+public:
+static jmp_buf s_jmpbuf;
+static void *s_si_addr;
+
+void TearDown() {
+	struct sigaction sa;
+
+	bzero(&sa, sizeof(sa));
+	sa.sa_handler = SIG_DFL;
+	sigaction(SIGBUS, &sa, NULL);
+
+	FuseTest::TearDown();
+}
+
+};
+
+static void
+handle_sigbus(int signo __unused, siginfo_t *info, void *uap __unused) {
+	ReadSigbus::s_si_addr = info->si_addr;
+	longjmp(ReadSigbus::s_jmpbuf, 1);
+}
+
+jmp_buf ReadSigbus::s_jmpbuf;
+void *ReadSigbus::s_si_addr;
+
+class TimeGran: public Read, public WithParamInterface<unsigned> {
+public:
+virtual void SetUp() {
+	m_time_gran = 1 << GetParam();
+	Read::SetUp();
+}
 };
 
 /* AIO reads need to set the header's pid field correctly */
@@ -294,6 +338,172 @@ TEST_F(AsyncRead, async_read)
 	leak(fd);
 }
 
+/* The kernel should update the cached atime attribute during a read */
+TEST_F(Read, atime)
+{
+	const char FULLPATH[] = "mountpoint/some_file.txt";
+	const char RELPATH[] = "some_file.txt";
+	const char *CONTENTS = "abcdefgh";
+	struct stat sb1, sb2;
+	uint64_t ino = 42;
+	int fd;
+	ssize_t bufsize = strlen(CONTENTS);
+	uint8_t buf[bufsize];
+
+	expect_lookup(RELPATH, ino, bufsize);
+	expect_open(ino, 0, 1);
+	expect_read(ino, 0, bufsize, bufsize, CONTENTS);
+
+	fd = open(FULLPATH, O_RDONLY);
+	ASSERT_LE(0, fd) << strerror(errno);
+	ASSERT_EQ(0, fstat(fd, &sb1));
+
+	/* Ensure atime will be different than it was during lookup */
+	nap();
+
+	ASSERT_EQ(bufsize, read(fd, buf, bufsize)) << strerror(errno);
+	ASSERT_EQ(0, fstat(fd, &sb2));
+
+	/* The kernel should automatically update atime during read */
+	EXPECT_TRUE(timespeccmp(&sb1.st_atim, &sb2.st_atim, <));
+	EXPECT_TRUE(timespeccmp(&sb1.st_ctim, &sb2.st_ctim, ==));
+	EXPECT_TRUE(timespeccmp(&sb1.st_mtim, &sb2.st_mtim, ==));
+
+	leak(fd);
+}
+
+/* The kernel should update the cached atime attribute during a cached read */
+TEST_F(Read, atime_cached)
+{
+	const char FULLPATH[] = "mountpoint/some_file.txt";
+	const char RELPATH[] = "some_file.txt";
+	const char *CONTENTS = "abcdefgh";
+	struct stat sb1, sb2;
+	uint64_t ino = 42;
+	int fd;
+	ssize_t bufsize = strlen(CONTENTS);
+	uint8_t buf[bufsize];
+
+	expect_lookup(RELPATH, ino, bufsize);
+	expect_open(ino, 0, 1);
+	expect_read(ino, 0, bufsize, bufsize, CONTENTS);
+
+	fd = open(FULLPATH, O_RDONLY);
+	ASSERT_LE(0, fd) << strerror(errno);
+
+	ASSERT_EQ(bufsize, pread(fd, buf, bufsize, 0)) << strerror(errno);
+	ASSERT_EQ(0, fstat(fd, &sb1));
+
+	/* Ensure atime will be different than it was during the first read */
+	nap();
+
+	ASSERT_EQ(bufsize, pread(fd, buf, bufsize, 0)) << strerror(errno);
+	ASSERT_EQ(0, fstat(fd, &sb2));
+
+	/* The kernel should automatically update atime during read */
+	EXPECT_TRUE(timespeccmp(&sb1.st_atim, &sb2.st_atim, <));
+	EXPECT_TRUE(timespeccmp(&sb1.st_ctim, &sb2.st_ctim, ==));
+	EXPECT_TRUE(timespeccmp(&sb1.st_mtim, &sb2.st_mtim, ==));
+
+	leak(fd);
+}
+
+/* dirty atime values should be flushed during close */
+TEST_F(Read, atime_during_close)
+{
+	const char FULLPATH[] = "mountpoint/some_file.txt";
+	const char RELPATH[] = "some_file.txt";
+	const char *CONTENTS = "abcdefgh";
+	struct stat sb;
+	uint64_t ino = 42;
+	const mode_t newmode = 0755;
+	int fd;
+	ssize_t bufsize = strlen(CONTENTS);
+	uint8_t buf[bufsize];
+
+	expect_lookup(RELPATH, ino, bufsize);
+	expect_open(ino, 0, 1);
+	expect_read(ino, 0, bufsize, bufsize, CONTENTS);
+	EXPECT_CALL(*m_mock, process(
+		ResultOf([&](auto in) {
+			uint32_t valid = FATTR_ATIME;
+			return (in.header.opcode == FUSE_SETATTR &&
+				in.header.nodeid == ino &&
+				in.body.setattr.valid == valid &&
+				(time_t)in.body.setattr.atime ==
+					sb.st_atim.tv_sec &&
+				(long)in.body.setattr.atimensec ==
+					sb.st_atim.tv_nsec);
+		}, Eq(true)),
+		_)
+	).WillOnce(Invoke(ReturnImmediate([=](auto in __unused, auto& out) {
+		SET_OUT_HEADER_LEN(out, attr);
+		out.body.attr.attr.ino = ino;
+		out.body.attr.attr.mode = S_IFREG | newmode;
+	})));
+	expect_flush(ino, 1, ReturnErrno(0));
+	expect_release(ino, FuseTest::FH);
+
+	fd = open(FULLPATH, O_RDONLY);
+	ASSERT_LE(0, fd) << strerror(errno);
+
+	/* Ensure atime will be different than during lookup */
+	nap();
+
+	ASSERT_EQ(bufsize, read(fd, buf, bufsize)) << strerror(errno);
+	ASSERT_EQ(0, fstat(fd, &sb));
+
+	close(fd);
+}
+
+/* A cached atime should be flushed during FUSE_SETATTR */
+TEST_F(Read, atime_during_setattr)
+{
+	const char FULLPATH[] = "mountpoint/some_file.txt";
+	const char RELPATH[] = "some_file.txt";
+	const char *CONTENTS = "abcdefgh";
+	struct stat sb;
+	uint64_t ino = 42;
+	const mode_t newmode = 0755;
+	int fd;
+	ssize_t bufsize = strlen(CONTENTS);
+	uint8_t buf[bufsize];
+
+	expect_lookup(RELPATH, ino, bufsize);
+	expect_open(ino, 0, 1);
+	expect_read(ino, 0, bufsize, bufsize, CONTENTS);
+	EXPECT_CALL(*m_mock, process(
+		ResultOf([&](auto in) {
+			uint32_t valid = FATTR_MODE | FATTR_ATIME;
+			return (in.header.opcode == FUSE_SETATTR &&
+				in.header.nodeid == ino &&
+				in.body.setattr.valid == valid &&
+				(time_t)in.body.setattr.atime ==
+					sb.st_atim.tv_sec &&
+				(long)in.body.setattr.atimensec ==
+					sb.st_atim.tv_nsec);
+		}, Eq(true)),
+		_)
+	).WillOnce(Invoke(ReturnImmediate([=](auto in __unused, auto& out) {
+		SET_OUT_HEADER_LEN(out, attr);
+		out.body.attr.attr.ino = ino;
+		out.body.attr.attr.mode = S_IFREG | newmode;
+	})));
+
+	fd = open(FULLPATH, O_RDONLY);
+	ASSERT_LE(0, fd) << strerror(errno);
+
+	/* Ensure atime will be different than during lookup */
+	nap();
+
+	ASSERT_EQ(bufsize, read(fd, buf, bufsize)) << strerror(errno);
+	ASSERT_EQ(0, fstat(fd, &sb));
+	ASSERT_EQ(0, fchmod(fd, newmode)) << strerror(errno);
+
+	leak(fd);
+}
+
+/* The kernel should flush dirty atime values during close */
 /* 0-length reads shouldn't cause any confusion */
 TEST_F(Read, direct_io_read_nothing)
 {
@@ -584,6 +794,130 @@ TEST_F(Read, mmap)
 	leak(fd);
 }
 
+/*
+ * The kernel should not update the cached atime attribute during a read, if
+ * MNT_NOATIME is used.
+ */
+TEST_F(ReadNoatime, atime)
+{
+	const char FULLPATH[] = "mountpoint/some_file.txt";
+	const char RELPATH[] = "some_file.txt";
+	const char *CONTENTS = "abcdefgh";
+	struct stat sb1, sb2;
+	uint64_t ino = 42;
+	int fd;
+	ssize_t bufsize = strlen(CONTENTS);
+	uint8_t buf[bufsize];
+
+	expect_lookup(RELPATH, ino, bufsize);
+	expect_open(ino, 0, 1);
+	expect_read(ino, 0, bufsize, bufsize, CONTENTS);
+
+	fd = open(FULLPATH, O_RDONLY);
+	ASSERT_LE(0, fd) << strerror(errno);
+	ASSERT_EQ(0, fstat(fd, &sb1));
+
+	nap();
+
+	ASSERT_EQ(bufsize, read(fd, buf, bufsize)) << strerror(errno);
+	ASSERT_EQ(0, fstat(fd, &sb2));
+
+	/* The kernel should not update atime during read */
+	EXPECT_TRUE(timespeccmp(&sb1.st_atim, &sb2.st_atim, ==));
+	EXPECT_TRUE(timespeccmp(&sb1.st_ctim, &sb2.st_ctim, ==));
+	EXPECT_TRUE(timespeccmp(&sb1.st_mtim, &sb2.st_mtim, ==));
+
+	leak(fd);
+}
+
+/*
+ * The kernel should not update the cached atime attribute during a cached
+ * read, if MNT_NOATIME is used.
+ */
+TEST_F(ReadNoatime, atime_cached)
+{
+	const char FULLPATH[] = "mountpoint/some_file.txt";
+	const char RELPATH[] = "some_file.txt";
+	const char *CONTENTS = "abcdefgh";
+	struct stat sb1, sb2;
+	uint64_t ino = 42;
+	int fd;
+	ssize_t bufsize = strlen(CONTENTS);
+	uint8_t buf[bufsize];
+
+	expect_lookup(RELPATH, ino, bufsize);
+	expect_open(ino, 0, 1);
+	expect_read(ino, 0, bufsize, bufsize, CONTENTS);
+
+	fd = open(FULLPATH, O_RDONLY);
+	ASSERT_LE(0, fd) << strerror(errno);
+
+	ASSERT_EQ(bufsize, pread(fd, buf, bufsize, 0)) << strerror(errno);
+	ASSERT_EQ(0, fstat(fd, &sb1));
+
+	nap();
+
+	ASSERT_EQ(bufsize, pread(fd, buf, bufsize, 0)) << strerror(errno);
+	ASSERT_EQ(0, fstat(fd, &sb2));
+
+	/* The kernel should automatically update atime during read */
+	EXPECT_TRUE(timespeccmp(&sb1.st_atim, &sb2.st_atim, ==));
+	EXPECT_TRUE(timespeccmp(&sb1.st_ctim, &sb2.st_ctim, ==));
+	EXPECT_TRUE(timespeccmp(&sb1.st_mtim, &sb2.st_mtim, ==));
+
+	leak(fd);
+}
+
+/* Read of an mmap()ed file fails */
+TEST_F(ReadSigbus, mmap_eio)
+{
+	const char FULLPATH[] = "mountpoint/some_file.txt";
+	const char RELPATH[] = "some_file.txt";
+	const char *CONTENTS = "abcdefgh";
+	struct sigaction sa;
+	uint64_t ino = 42;
+	int fd;
+	ssize_t len;
+	size_t bufsize = strlen(CONTENTS);
+	void *p;
+
+	len = getpagesize();
+
+	expect_lookup(RELPATH, ino, bufsize);
+	expect_open(ino, 0, 1);
+	EXPECT_CALL(*m_mock, process(
+		ResultOf([=](auto in) {
+			return (in.header.opcode == FUSE_READ &&
+				in.header.nodeid == ino &&
+				in.body.read.fh == Read::FH);
+		}, Eq(true)),
+		_)
+	).WillRepeatedly(Invoke(ReturnErrno(EIO)));
+
+	fd = open(FULLPATH, O_RDONLY);
+	ASSERT_LE(0, fd) << strerror(errno);
+
+	p = mmap(NULL, len, PROT_READ, MAP_SHARED, fd, 0);
+	ASSERT_NE(MAP_FAILED, p) << strerror(errno);
+
+	/* Accessing the mapped page should return SIGBUS.  */
+
+	bzero(&sa, sizeof(sa));
+	sa.sa_handler = SIG_DFL;
+	sa.sa_sigaction = handle_sigbus;
+	sa.sa_flags = SA_RESETHAND | SA_SIGINFO;
+	ASSERT_EQ(0, sigaction(SIGBUS, &sa, NULL)) << strerror(errno);
+	if (setjmp(ReadSigbus::s_jmpbuf) == 0) {
+		atomic_signal_fence(std::memory_order::memory_order_seq_cst);
+		volatile char x __unused = *(volatile char*)p;
+		FAIL() << "shouldn't get here";
+	}
+
+	ASSERT_EQ(p, ReadSigbus::s_si_addr);
+	ASSERT_EQ(0, munmap(p, len)) << strerror(errno);
+	leak(fd);
+}
+
 /* 
  * A read via mmap comes up short, indicating that the file was truncated
  * server-side.
@@ -630,6 +964,83 @@ TEST_F(Read, mmap_eof)
 	ASSERT_EQ(0, fstat(fd, &sb)) << strerror(errno);
 	EXPECT_EQ((off_t)bufsize, sb.st_size);
 
+	ASSERT_EQ(0, munmap(p, len)) << strerror(errno);
+	leak(fd);
+}
+
+/*
+ * During VOP_GETPAGES, the FUSE server fails a FUSE_GETATTR operation.  This
+ * almost certainly indicates a buggy FUSE server, and our goal should be not
+ * to panic.  Instead, generate SIGBUS.
+ */
+TEST_F(ReadSigbus, mmap_getblksz_fail)
+{
+	const char FULLPATH[] = "mountpoint/some_file.txt";
+	const char RELPATH[] = "some_file.txt";
+	const char *CONTENTS = "abcdefgh";
+	struct sigaction sa;
+	Sequence seq;
+	uint64_t ino = 42;
+	int fd;
+	ssize_t len;
+	size_t bufsize = strlen(CONTENTS);
+	mode_t mode = S_IFREG | 0644;
+	void *p;
+
+	len = getpagesize();
+
+	FuseTest::expect_lookup(RELPATH, ino, mode, bufsize, 1, 0);
+	/* Expect two GETATTR calls that succeed, followed by one that fail. */
+	EXPECT_CALL(*m_mock, process(
+		ResultOf([=](auto in) {
+			return (in.header.opcode == FUSE_GETATTR &&
+				in.header.nodeid == ino);
+		}, Eq(true)),
+		_)
+	).Times(2)
+	.InSequence(seq)
+	.WillRepeatedly(Invoke(ReturnImmediate([=](auto i __unused, auto& out) {
+		SET_OUT_HEADER_LEN(out, attr);
+		out.body.attr.attr.ino = ino;
+		out.body.attr.attr.mode = mode;
+		out.body.attr.attr.size = bufsize;
+		out.body.attr.attr_valid = 0;
+	})));
+	EXPECT_CALL(*m_mock, process(
+		ResultOf([=](auto in) {
+			return (in.header.opcode == FUSE_GETATTR &&
+				in.header.nodeid == ino);
+		}, Eq(true)),
+		_)
+	).InSequence(seq)
+	.WillRepeatedly(Invoke(ReturnErrno(EIO)));
+	expect_open(ino, 0, 1);
+	EXPECT_CALL(*m_mock, process(
+		ResultOf([=](auto in) {
+			return (in.header.opcode == FUSE_READ);
+		}, Eq(true)),
+		_)
+	).Times(0);
+
+	fd = open(FULLPATH, O_RDONLY);
+	ASSERT_LE(0, fd) << strerror(errno);
+
+	p = mmap(NULL, len, PROT_READ, MAP_SHARED, fd, 0);
+	ASSERT_NE(MAP_FAILED, p) << strerror(errno);
+
+	/* Accessing the mapped page should return SIGBUS.  */
+	bzero(&sa, sizeof(sa));
+	sa.sa_handler = SIG_DFL;
+	sa.sa_sigaction = handle_sigbus;
+	sa.sa_flags = SA_RESETHAND | SA_SIGINFO;
+	ASSERT_EQ(0, sigaction(SIGBUS, &sa, NULL)) << strerror(errno);
+	if (setjmp(ReadSigbus::s_jmpbuf) == 0) {
+		atomic_signal_fence(std::memory_order::memory_order_seq_cst);
+		volatile char x __unused = *(volatile char*)p;
+		FAIL() << "shouldn't get here";
+	}
+
+	ASSERT_EQ(p, ReadSigbus::s_si_addr);
 	ASSERT_EQ(0, munmap(p, len)) << strerror(errno);
 	leak(fd);
 }
@@ -912,3 +1323,44 @@ INSTANTIATE_TEST_CASE_P(RA, ReadAhead,
 	       tuple<bool, int>(true, 0),
 	       tuple<bool, int>(true, 1),
 	       tuple<bool, int>(true, 2)));
+
+/* fuse_init_out.time_gran controls the granularity of timestamps */
+TEST_P(TimeGran, atime_during_setattr)
+{
+	const char FULLPATH[] = "mountpoint/some_file.txt";
+	const char RELPATH[] = "some_file.txt";
+	const char *CONTENTS = "abcdefgh";
+	ssize_t bufsize = strlen(CONTENTS);
+	uint8_t buf[bufsize];
+	uint64_t ino = 42;
+	const mode_t newmode = 0755;
+	int fd;
+
+	expect_lookup(RELPATH, ino, bufsize);
+	expect_open(ino, 0, 1);
+	expect_read(ino, 0, bufsize, bufsize, CONTENTS);
+	EXPECT_CALL(*m_mock, process(
+		ResultOf([=](auto in) {
+			uint32_t valid = FATTR_MODE | FATTR_ATIME;
+			return (in.header.opcode == FUSE_SETATTR &&
+				in.header.nodeid == ino &&
+				in.body.setattr.valid == valid &&
+				in.body.setattr.atimensec % m_time_gran == 0);
+		}, Eq(true)),
+		_)
+	).WillOnce(Invoke(ReturnImmediate([=](auto in __unused, auto& out) {
+		SET_OUT_HEADER_LEN(out, attr);
+		out.body.attr.attr.ino = ino;
+		out.body.attr.attr.mode = S_IFREG | newmode;
+	})));
+
+	fd = open(FULLPATH, O_RDWR);
+	ASSERT_LE(0, fd) << strerror(errno);
+
+	ASSERT_EQ(bufsize, read(fd, buf, bufsize)) << strerror(errno);
+	ASSERT_EQ(0, fchmod(fd, newmode)) << strerror(errno);
+
+	leak(fd);
+}
+
+INSTANTIATE_TEST_CASE_P(TG, TimeGran, Range(0u, 10u));

@@ -32,20 +32,42 @@ __FBSDID("$FreeBSD$");
 #include <sys/param.h>
 
 #include <machine/armreg.h>
+#include <machine/atomic.h>
 
 #include <stand.h>
 #include <efi.h>
 
+#include "bootstrap.h"
 #include "cache.h"
 
-static unsigned int
-get_dcache_line_size(void)
-{
-	uint64_t ctr;
-	unsigned int dcl_size;
+static long cache_flags;
+#define	CACHE_FLAG_DIC_OFF	(1<<0)
+#define	CACHE_FLAG_IDC_OFF	(1<<1)
 
-	/* Accessible from all security levels */
-	ctr = READ_SPECIALREG(ctr_el0);
+static bool
+get_cache_dic(uint64_t ctr)
+{
+	if ((cache_flags & CACHE_FLAG_DIC_OFF) != 0) {
+		return (false);
+	}
+
+	return (CTR_DIC_VAL(ctr) != 0);
+}
+
+static bool
+get_cache_idc(uint64_t ctr)
+{
+	if ((cache_flags & CACHE_FLAG_IDC_OFF) != 0) {
+		return (false);
+	}
+
+	return (CTR_IDC_VAL(ctr) != 0);
+}
+
+static unsigned int
+get_dcache_line_size(uint64_t ctr)
+{
+	unsigned int dcl_size;
 
 	/*
 	 * Relevant field [19:16] is LOG2
@@ -60,36 +82,71 @@ get_dcache_line_size(void)
 void
 cpu_flush_dcache(const void *ptr, size_t len)
 {
-
-	uint64_t cl_size;
+	uint64_t cl_size, ctr;
 	vm_offset_t addr, end;
 
-	cl_size = get_dcache_line_size();
+	/* Accessible from all security levels */
+	ctr = READ_SPECIALREG(ctr_el0);
 
-	/* Calculate end address to clean */
-	end = (vm_offset_t)ptr + (vm_offset_t)len;
-	/* Align start address to cache line */
-	addr = (vm_offset_t)ptr;
-	addr = rounddown2(addr, cl_size);
+	if (get_cache_idc(ctr)) {
+		dsb(ishst);
+	} else {
+		cl_size = get_dcache_line_size(ctr);
 
-	for (; addr < end; addr += cl_size)
-		__asm __volatile("dc	civac, %0" : : "r" (addr) : "memory");
-	/* Full system DSB */
-	__asm __volatile("dsb	sy" : : : "memory");
+		/* Calculate end address to clean */
+		end = (vm_offset_t)ptr + (vm_offset_t)len;
+		/* Align start address to cache line */
+		addr = (vm_offset_t)ptr;
+		addr = rounddown2(addr, cl_size);
+
+		for (; addr < end; addr += cl_size)
+			__asm __volatile("dc	civac, %0" : : "r" (addr) :
+			    "memory");
+		/* Full system DSB */
+		dsb(ish);
+	}
 }
 
 void
-cpu_inval_icache(const void *ptr, size_t len)
+cpu_inval_icache(void)
 {
+	uint64_t ctr;
 
-	/* NULL ptr or 0 len means all */
-	if (ptr == NULL || len == 0) {
+	/* Accessible from all security levels */
+	ctr = READ_SPECIALREG(ctr_el0);
+
+	if (get_cache_dic(ctr)) {
+		isb();
+	} else {
 		__asm __volatile(
 		    "ic		ialluis	\n"
 		    "dsb	ish	\n"
+		    "isb		\n"
 		    : : : "memory");
-		return;
+	}
+}
+
+static int
+command_cache_flags(int argc, char *argv[])
+{
+	char *cp;
+	long new_flags;
+
+	if (argc == 3) {
+		if (strcmp(argv[1], "set") == 0) {
+			new_flags = strtol(argv[2], &cp, 0);
+			if (cp[0] != '\0') {
+				printf("Invalid flags\n");
+			} else {
+				printf("Setting cache flags to %#lx\n",
+				    new_flags);
+				cache_flags = new_flags;
+				return (CMD_OK);
+			}
+		}
 	}
 
-	/* TODO: Other cache ranges if necessary */
+	printf("usage: cache_flags set <value>\n");
+	return (CMD_ERROR);
 }
+COMMAND_SET(cache_flags, "cache_flags", "Set cache flags", command_cache_flags);

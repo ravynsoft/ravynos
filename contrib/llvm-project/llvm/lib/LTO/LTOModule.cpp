@@ -46,6 +46,7 @@ using namespace llvm::object;
 LTOModule::LTOModule(std::unique_ptr<Module> M, MemoryBufferRef MBRef,
                      llvm::TargetMachine *TM)
     : Mod(std::move(M)), MBRef(MBRef), _target(TM) {
+  assert(_target && "target machine is null");
   SymTab.addModule(Mod.get());
 }
 
@@ -221,6 +222,8 @@ LTOModule::makeLTOModule(MemoryBufferRef Buffer, const TargetOptions &options,
       CPU = "core2";
     else if (Triple.getArch() == llvm::Triple::x86)
       CPU = "yonah";
+    else if (Triple.isArm64e())
+      CPU = "apple-a12";
     else if (Triple.getArch() == llvm::Triple::aarch64 ||
              Triple.getArch() == llvm::Triple::aarch64_32)
       CPU = "cyclone";
@@ -542,7 +545,8 @@ void LTOModule::addPotentialUndefinedSymbol(ModuleSymbolTable::Symbol Sym,
     name.c_str();
   }
 
-  auto IterBool = _undefines.insert(std::make_pair(name, NameAndAttributes()));
+  auto IterBool =
+      _undefines.insert(std::make_pair(name.str(), NameAndAttributes()));
 
   // we already have the symbol
   if (!IterBool.second)
@@ -579,7 +583,7 @@ void LTOModule::parseSymbols() {
         SymTab.printSymbolName(OS, Sym);
         Buffer.c_str();
       }
-      StringRef Name(Buffer);
+      StringRef Name = Buffer;
 
       if (IsUndefined)
         addAsmGlobalSymbolUndef(Name);

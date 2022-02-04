@@ -1,32 +1,32 @@
 /******************************************************************************
   SPDX-License-Identifier: BSD-3-Clause
 
-  Copyright (c) 2001-2015, Intel Corporation 
+  Copyright (c) 2001-2020, Intel Corporation
   All rights reserved.
-  
-  Redistribution and use in source and binary forms, with or without 
+
+  Redistribution and use in source and binary forms, with or without
   modification, are permitted provided that the following conditions are met:
-  
-   1. Redistributions of source code must retain the above copyright notice, 
+
+   1. Redistributions of source code must retain the above copyright notice,
       this list of conditions and the following disclaimer.
-  
-   2. Redistributions in binary form must reproduce the above copyright 
-      notice, this list of conditions and the following disclaimer in the 
+
+   2. Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
       documentation and/or other materials provided with the distribution.
-  
-   3. Neither the name of the Intel Corporation nor the names of its 
-      contributors may be used to endorse or promote products derived from 
+
+   3. Neither the name of the Intel Corporation nor the names of its
+      contributors may be used to endorse or promote products derived from
       this software without specific prior written permission.
-  
+
   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
-  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
-  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
-  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
-  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
-  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
-  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
   POSSIBILITY OF SUCH DAMAGE.
 
@@ -64,11 +64,15 @@
 #define E1000_FEXTNVM	0x00028  /* Future Extended NVM - RW */
 #define E1000_FEXTNVM3	0x0003C  /* Future Extended NVM 3 - RW */
 #define E1000_FEXTNVM4	0x00024  /* Future Extended NVM 4 - RW */
+#define E1000_FEXTNVM5	0x00014  /* Future Extended NVM 5 - RW */
 #define E1000_FEXTNVM6	0x00010  /* Future Extended NVM 6 - RW */
 #define E1000_FEXTNVM7	0x000E4  /* Future Extended NVM 7 - RW */
+#define E1000_FEXTNVM8	0x5BB0  /* Future Extended NVM 8 - RW */
 #define E1000_FEXTNVM9	0x5BB4  /* Future Extended NVM 9 - RW */
 #define E1000_FEXTNVM11	0x5BBC  /* Future Extended NVM 11 - RW */
+#define E1000_FEXTNVM12	0x5BC0  /* Future Extended NVM 12 - RW */
 #define E1000_PCIEANACFG	0x00F18 /* PCIE Analog Config */
+#define E1000_DPGFR	0x00FAC	/* Dynamic Power Gate Force Control Register */
 #define E1000_FCT	0x00030  /* Flow Control Type - RW */
 #define E1000_CONNSW	0x00034  /* Copper/Fiber switch control - RW */
 #define E1000_VET	0x00038  /* VLAN Ether Type - RW */
@@ -167,7 +171,10 @@
 #define E1000_RADV	0x0282C  /* Rx Interrupt Absolute Delay Timer - RW */
 #define E1000_EMIADD	0x10     /* Extended Memory Indirect Address */
 #define E1000_EMIDATA	0x11     /* Extended Memory Indirect Data */
-#define E1000_SRWR		0x12018  /* Shadow Ram Write Register - RW */
+/* Shadow Ram Write Register - RW */
+#define E1000_SRWR		0x12018
+#define E1000_EEC_REG		0x12010
+
 #define E1000_I210_FLMNGCTL	0x12038
 #define E1000_I210_FLMNGDATA	0x1203C
 #define E1000_I210_FLMNGCNT	0x12040
@@ -177,6 +184,9 @@
 #define E1000_I210_FLSWCNT	0x12050
 
 #define E1000_I210_FLA		0x1201C
+
+#define E1000_SHADOWINF		0x12068
+#define E1000_FLFWUPDATE	0x12108
 
 #define E1000_INVM_DATA_REG(_n)	(0x12120 + 4*(_n))
 #define E1000_INVM_SIZE		64 /* Number of INVM Data Registers */
@@ -312,6 +322,7 @@
 #define E1000_TIDV	0x03820  /* Tx Interrupt Delay Value - RW */
 #define E1000_TADV	0x0382C  /* Tx Interrupt Absolute Delay Val - RW */
 #define E1000_TSPMT	0x03830  /* TCP Segmentation PAD & Min Threshold - RW */
+/* Statistics Register Descriptions */
 #define E1000_CRCERRS	0x04000  /* CRC Error Count - R/clr */
 #define E1000_ALGNERRC	0x04004  /* Alignment Error Count - R/clr */
 #define E1000_SYMERRS	0x04008  /* Symbol Error Count - R/clr */
@@ -371,6 +382,7 @@
 #define E1000_TSCTC	0x040F8  /* TCP Segmentation Context Tx - R/clr */
 #define E1000_TSCTFC	0x040FC  /* TCP Segmentation Context Tx Fail - R/clr */
 #define E1000_IAC	0x04100  /* Interrupt Assertion Count */
+/* Interrupt Cause */
 #define E1000_ICRXPTC	0x04104  /* Interrupt Cause Rx Pkt Timer Expire Count */
 #define E1000_ICRXATC	0x04108  /* Interrupt Cause Rx Abs Timer Expire Count */
 #define E1000_ICTXPTC	0x0410C  /* Interrupt Cause Tx Pkt Timer Expire Count */
@@ -493,12 +505,14 @@
 #define E1000_WUC	0x05800  /* Wakeup Control - RW */
 #define E1000_WUFC	0x05808  /* Wakeup Filter Control - RW */
 #define E1000_WUS	0x05810  /* Wakeup Status - RO */
+/* Management registers */
 #define E1000_MANC	0x05820  /* Management Control - RW */
 #define E1000_IPAV	0x05838  /* IP Address Valid - RW */
 #define E1000_IP4AT	0x05840  /* IPv4 Address Table - RW Array */
 #define E1000_IP6AT	0x05880  /* IPv6 Address Table - RW Array */
 #define E1000_WUPL	0x05900  /* Wakeup Packet Length - RW */
 #define E1000_WUPM	0x05A00  /* Wakeup Packet Memory - RO A */
+/* MSI-X Table Register Descriptions */
 #define E1000_PBACL	0x05B68  /* MSIx PBA Clear - Read/Write 1's to clear */
 #define E1000_FFLT	0x05F00  /* Flexible Filter Length Table - RW Array */
 #define E1000_HOST_IF	0x08800  /* Host Interface */
@@ -513,17 +527,20 @@
 #define E1000_MANC2H		0x05860 /* Management Control To Host - RW */
 /* Management Decision Filters */
 #define E1000_MDEF(_n)		(0x05890 + (4 * (_n)))
+/* Semaphore registers */
 #define E1000_SW_FW_SYNC	0x05B5C /* SW-FW Synchronization - RW */
 #define E1000_CCMCTL	0x05B48 /* CCM Control Register */
 #define E1000_GIOCTL	0x05B44 /* GIO Analog Control Register */
 #define E1000_SCCTL	0x05B4C /* PCIc PLL Configuration Register */
+/* PCIe Register Description */
 #define E1000_GCR	0x05B00 /* PCI-Ex Control */
 #define E1000_GCR2	0x05B64 /* PCI-Ex Control #2 */
 #define E1000_GSCL_1	0x05B10 /* PCI-Ex Statistic Control #1 */
 #define E1000_GSCL_2	0x05B14 /* PCI-Ex Statistic Control #2 */
 #define E1000_GSCL_3	0x05B18 /* PCI-Ex Statistic Control #3 */
 #define E1000_GSCL_4	0x05B1C /* PCI-Ex Statistic Control #4 */
-#define E1000_FACTPS	0x05B30 /* Function Active and Power State to MNG */
+/* Function Active and Power State to MNG */
+#define E1000_FACTPS	0x05B30
 #define E1000_SWSM	0x05B50 /* SW Semaphore */
 #define E1000_FWSM	0x05B54 /* FW Semaphore */
 /* Driver-only SW semaphore (not used by BOOT agents) */
@@ -542,8 +559,10 @@
 #define E1000_IMIREXT(_i)	(0x05AA0 + ((_i) * 4)) /* Immediate INTR Ext*/
 #define E1000_IMIRVP		0x05AC0 /* Immediate INT Rx VLAN Priority -RW */
 #define E1000_MSIXBM(_i)	(0x01600 + ((_i) * 4)) /* MSI-X Alloc Reg -RW */
-#define E1000_RETA(_i)	(0x05C00 + ((_i) * 4)) /* Redirection Table - RW */
-#define E1000_RSSRK(_i)	(0x05C80 + ((_i) * 4)) /* RSS Random Key - RW */
+/* Redirection Table - RW Array */
+#define E1000_RETA(_i)	(0x05C00 + ((_i) * 4))
+/* RSS Random Key - RW Array */
+#define E1000_RSSRK(_i)	(0x05C80 + ((_i) * 4))
 #define E1000_RSSIM	0x05864 /* RSS Interrupt Mask */
 #define E1000_RSSIR	0x05868 /* RSS Interrupt Request */
 /* VT Registers */
@@ -612,6 +631,14 @@
 #define E1000_TTQF(_n)	(0x059E0 + (4 * (_n))) /* 2-tuple Queue Fltr */
 #define E1000_SYNQF(_n)	(0x055FC + (4 * (_n))) /* SYN Packet Queue Fltr */
 #define E1000_ETQF(_n)	(0x05CB0 + (4 * (_n))) /* EType Queue Fltr */
+
+/* ETQF register bit definitions */
+#define E1000_ETQF_FILTER_ENABLE	(1 << 26)
+#define E1000_ETQF_IMM_INT		(1 << 29)
+#define E1000_ETQF_QUEUE_ENABLE		(1U << 31)
+#define E1000_ETQF_QUEUE_SHIFT		16
+#define E1000_ETQF_QUEUE_MASK		0x00070000
+#define E1000_ETQF_ETYPE_MASK		0x0000FFFF
 
 #define E1000_RTTDCS	0x3600 /* Reedtown Tx Desc plane control and status */
 #define E1000_RTTPCS	0x3474 /* Reedtown Tx Packet Plane control and status */

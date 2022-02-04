@@ -64,6 +64,7 @@
 __FBSDID("$FreeBSD$");
 
 #include <sys/types.h>
+#include <sys/param.h>
 #include <sys/module.h>
 #include <sys/systm.h>
 #include <sys/errno.h>
@@ -119,183 +120,11 @@ SDT_PROVIDER_DECLARE(fusefs);
  */
 SDT_PROBE_DEFINE2(fusefs, , io, trace, "int", "char*");
 
-static int
-fuse_inval_buf_range(struct vnode *vp, off_t filesize, off_t start, off_t end);
-static int 
-fuse_read_directbackend(struct vnode *vp, struct uio *uio,
-    struct ucred *cred, struct fuse_filehandle *fufh);
-static int 
-fuse_read_biobackend(struct vnode *vp, struct uio *uio, int ioflag,
-    struct ucred *cred, struct fuse_filehandle *fufh, pid_t pid);
-static int 
-fuse_write_directbackend(struct vnode *vp, struct uio *uio,
-    struct ucred *cred, struct fuse_filehandle *fufh, off_t filesize,
-    int ioflag, bool pages);
-static int 
-fuse_write_biobackend(struct vnode *vp, struct uio *uio,
-    struct ucred *cred, struct fuse_filehandle *fufh, int ioflag, pid_t pid);
-
-/* Invalidate a range of cached data, whether dirty of not */
-static int
-fuse_inval_buf_range(struct vnode *vp, off_t filesize, off_t start, off_t end)
-{
-	struct buf *bp;
-	daddr_t left_lbn, end_lbn, right_lbn;
-	off_t new_filesize;
-	int iosize, left_on, right_on, right_blksize;
-
-	iosize = fuse_iosize(vp);
-	left_lbn = start / iosize;
-	end_lbn = howmany(end, iosize);
-	left_on = start & (iosize - 1);
-	if (left_on != 0) {
-		bp = getblk(vp, left_lbn, iosize, PCATCH, 0, 0);
-		if ((bp->b_flags & B_CACHE) != 0 && bp->b_dirtyend >= left_on) {
-			/* 
-			 * Flush the dirty buffer, because we don't have a
-			 * byte-granular way to record which parts of the
-			 * buffer are valid.
-			 */
-			bwrite(bp);
-			if (bp->b_error)
-				return (bp->b_error);
-		} else {
-			brelse(bp);
-		}
-	}
-	right_on = end & (iosize - 1);
-	if (right_on != 0) {
-		right_lbn = end / iosize;
-		new_filesize = MAX(filesize, end);
-		right_blksize = MIN(iosize, new_filesize - iosize * right_lbn);
-		bp = getblk(vp, right_lbn, right_blksize, PCATCH, 0, 0);
-		if ((bp->b_flags & B_CACHE) != 0 && bp->b_dirtyoff < right_on) {
-			/* 
-			 * Flush the dirty buffer, because we don't have a
-			 * byte-granular way to record which parts of the
-			 * buffer are valid.
-			 */
-			bwrite(bp);
-			if (bp->b_error)
-				return (bp->b_error);
-		} else {
-			brelse(bp);
-		}
-	}
-
-	v_inval_buf_range(vp, left_lbn, end_lbn, iosize);
-	return (0);
-}
-
-SDT_PROBE_DEFINE5(fusefs, , io, io_dispatch, "struct vnode*", "struct uio*",
-		"int", "struct ucred*", "struct fuse_filehandle*");
-SDT_PROBE_DEFINE4(fusefs, , io, io_dispatch_filehandles_closed, "struct vnode*",
-    "struct uio*", "int", "struct ucred*");
-int
-fuse_io_dispatch(struct vnode *vp, struct uio *uio, int ioflag,
-    struct ucred *cred, pid_t pid)
-{
-	struct fuse_filehandle *fufh;
-	int err, directio;
-	int fflag;
-	bool closefufh = false;
-
-	MPASS(vp->v_type == VREG || vp->v_type == VDIR);
-
-	fflag = (uio->uio_rw == UIO_READ) ? FREAD : FWRITE;
-	err = fuse_filehandle_getrw(vp, fflag, &fufh, cred, pid);
-	if (err == EBADF && vnode_mount(vp)->mnt_flag & MNT_EXPORTED) {
-		/* 
-		 * nfsd will do I/O without first doing VOP_OPEN.  We
-		 * must implicitly open the file here
-		 */
-		err = fuse_filehandle_open(vp, fflag, &fufh, curthread, cred);
-		closefufh = true;
-	}
-	else if (err) {
-		SDT_PROBE4(fusefs, , io, io_dispatch_filehandles_closed,
-			vp, uio, ioflag, cred);
-		printf("FUSE: io dispatch: filehandles are closed\n");
-		return err;
-	}
-	if (err)
-		goto out;
-	SDT_PROBE5(fusefs, , io, io_dispatch, vp, uio, ioflag, cred, fufh);
-
-	/*
-         * Ideally, when the daemon asks for direct io at open time, the
-         * standard file flag should be set according to this, so that would
-         * just change the default mode, which later on could be changed via
-         * fcntl(2).
-         * But this doesn't work, the O_DIRECT flag gets cleared at some point
-         * (don't know where). So to make any use of the Fuse direct_io option,
-         * we hardwire it into the file's private data (similarly to Linux,
-         * btw.).
-         */
-	directio = (ioflag & IO_DIRECT) || !fsess_opt_datacache(vnode_mount(vp));
-
-	switch (uio->uio_rw) {
-	case UIO_READ:
-		if (directio) {
-			SDT_PROBE2(fusefs, , io, trace, 1,
-				"direct read of vnode");
-			err = fuse_read_directbackend(vp, uio, cred, fufh);
-		} else {
-			SDT_PROBE2(fusefs, , io, trace, 1,
-				"buffered read of vnode");
-			err = fuse_read_biobackend(vp, uio, ioflag, cred, fufh,
-				pid);
-		}
-		break;
-	case UIO_WRITE:
-		fuse_vnode_update(vp, FN_MTIMECHANGE | FN_CTIMECHANGE);
-		if (directio) {
-			off_t start, end, filesize;
-			bool pages = (ioflag & IO_VMIO) != 0;
-
-			SDT_PROBE2(fusefs, , io, trace, 1,
-				"direct write of vnode");
-
-			err = fuse_vnode_size(vp, &filesize, cred, curthread);
-			if (err)
-				goto out;
-
-			start = uio->uio_offset;
-			end = start + uio->uio_resid;
-			if (!pages) {
-				err = fuse_inval_buf_range(vp, filesize, start,
-				    end);
-				if (err)
-					return (err);
-			}
-			err = fuse_write_directbackend(vp, uio, cred, fufh,
-				filesize, ioflag, pages);
-		} else {
-			SDT_PROBE2(fusefs, , io, trace, 1,
-				"buffered write of vnode");
-			if (!fsess_opt_writeback(vnode_mount(vp)))
-				ioflag |= IO_SYNC;
-			err = fuse_write_biobackend(vp, uio, cred, fufh, ioflag,
-				pid);
-		}
-		fuse_internal_clear_suid_on_write(vp, cred, uio->uio_td);
-		break;
-	default:
-		panic("uninterpreted mode passed to fuse_io_dispatch");
-	}
-
-out:
-	if (closefufh)
-		fuse_filehandle_close(vp, fufh, curthread, cred);
-
-	return (err);
-}
-
 SDT_PROBE_DEFINE4(fusefs, , io, read_bio_backend_start, "int", "int", "int", "int");
 SDT_PROBE_DEFINE2(fusefs, , io, read_bio_backend_feed, "int", "struct buf*");
 SDT_PROBE_DEFINE4(fusefs, , io, read_bio_backend_end, "int", "ssize_t", "int",
 		"struct buf*");
-static int
+int
 fuse_read_biobackend(struct vnode *vp, struct uio *uio, int ioflag,
     struct ucred *cred, struct fuse_filehandle *fufh, pid_t pid)
 {
@@ -401,7 +230,7 @@ SDT_PROBE_DEFINE1(fusefs, , io, read_directbackend_start,
 SDT_PROBE_DEFINE3(fusefs, , io, read_directbackend_complete,
 	"struct fuse_dispatcher*", "struct fuse_read_in*", "struct uio*");
 
-static int
+int
 fuse_read_directbackend(struct vnode *vp, struct uio *uio,
     struct ucred *cred, struct fuse_filehandle *fufh)
 {
@@ -463,7 +292,7 @@ out:
 	return (err);
 }
 
-static int
+int
 fuse_write_directbackend(struct vnode *vp, struct uio *uio,
     struct ucred *cred, struct fuse_filehandle *fufh, off_t filesize,
     int ioflag, bool pages)
@@ -570,8 +399,10 @@ retry:
 		diff = fwi->size - fwo->size;
 		as_written_offset = uio->uio_offset - diff;
 
-		if (as_written_offset - diff > filesize)
-			fuse_vnode_setsize(vp, as_written_offset);
+		if (as_written_offset - diff > filesize) {
+			fuse_vnode_setsize(vp, as_written_offset, false);
+			getnanouptime(&fvdat->last_local_modify);
+		}
 		if (as_written_offset - diff >= filesize)
 			fvdat->flag &= ~FN_SIZECHANGE;
 
@@ -616,7 +447,7 @@ retry:
 	fdisp_destroy(&fdi);
 
 	if (wrote_anything)
-		fuse_vnode_undirty_cached_timestamps(vp);
+		fuse_vnode_undirty_cached_timestamps(vp, false);
 
 	return (err);
 }
@@ -626,7 +457,7 @@ SDT_PROBE_DEFINE6(fusefs, , io, write_biobackend_start, "int64_t", "int", "int",
 SDT_PROBE_DEFINE2(fusefs, , io, write_biobackend_append_race, "long", "int");
 SDT_PROBE_DEFINE2(fusefs, , io, write_biobackend_issue, "int", "struct buf*");
 
-static int
+int
 fuse_write_biobackend(struct vnode *vp, struct uio *uio,
     struct ucred *cred, struct fuse_filehandle *fufh, int ioflag, pid_t pid)
 {
@@ -636,7 +467,6 @@ fuse_write_biobackend(struct vnode *vp, struct uio *uio,
 	off_t filesize;
 	int bcount;
 	int n, on, seqcount, err = 0;
-	bool last_page;
 
 	const int biosize = fuse_iosize(vp);
 
@@ -687,11 +517,6 @@ again:
 			extending = true;
 			bcount = on + n;
 		}
-		if (howmany(((off_t)lbn * biosize + on + n - 1), PAGE_SIZE) >=
-		    howmany(filesize, PAGE_SIZE))
-			last_page = true;
-		else
-			last_page = false;
 		if (direct_append) {
 			/* 
 			 * Take care to preserve the buffer's B_CACHE state so
@@ -715,8 +540,9 @@ again:
 			 * Extend file _after_ locking buffer so we won't race
 			 * with other readers
 			 */
-			err = fuse_vnode_setsize(vp, uio->uio_offset + n);
+			err = fuse_vnode_setsize(vp, uio->uio_offset + n, false);
 			filesize = uio->uio_offset + n;
+			getnanouptime(&fvdat->last_local_modify);
 			fvdat->flag |= FN_SIZECHANGE;
 			if (err) {
 				brelse(bp);
@@ -1006,13 +832,18 @@ fuse_io_strategy(struct vnode *vp, struct buf *bp)
 		/*
 	         * Setup for actual write
 	         */
-		error = fuse_vnode_size(vp, &filesize, cred, curthread);
-		if (error) {
-			bp->b_ioflags |= BIO_ERROR;
-			bp->b_error = error;
-			bufdone(bp);
-			return (error);
-		}
+		/*
+		 * If the file's size is cached, use that value, even if the
+		 * cache is expired.  At this point we're already committed to
+		 * writing something.  If the FUSE server has changed the
+		 * file's size behind our back, it's too late for us to do
+		 * anything about it.  In particular, we can't invalidate any
+		 * part of the file's buffers because VOP_STRATEGY is called
+		 * with them already locked.
+		 */
+		filesize = fvdat->cached_attrs.va_size;
+		/* filesize must've been cached by fuse_vnop_open.  */
+		KASSERT(filesize != VNOVAL, ("filesize should've been cached"));
 
 		if ((off_t)bp->b_lblkno * biosize + bp->b_dirtyend > filesize)
 			bp->b_dirtyend = filesize - 

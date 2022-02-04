@@ -10,6 +10,49 @@ newline.  Entries should be separated by a newline.
 
 Changes to this file should not be MFCed.
 
+0a6760a1de32, 3f3676a71266, 580c04df4db6:
+	Add WiFi 6 support.
+
+various:
+	Add support for the HiFive Unmatched RISC-V board.
+
+9fb6e613373c:
+	Add a sysctl called vfs.nfsd.srvmaxio that can be used to
+	increase the NFS server's maximum I/O size from 128Kbytes
+	to any power of 2 up to 1Mbyte.  It can only be set when
+	the nfsd threads are not running and will normally require
+	an increase in kern.ipc.maxsockbuf to at least the value
+	recommended by the console log message generated when
+	setting vfs.nfsd.srvmaxio is first attempted.
+
+9ec7dbf46b0a:
+	Add a new NFSv4.1/4.2 mount option "nconnect" that can
+	be used to specify the number of TCP connections that
+	will be used for the mount, up to a maximum of 16.
+	The first (default) TCP connection will be used for
+	all RPCs that consist of small RPC messages.
+	The RPCs that can consist of large RPC messages
+	(Read/Readdir/ReaddirPlus/Write) will be sent on the
+	additional TCP connections in a round robin fashion.
+	If either the NFS client or NFS server have multiple
+	network interfaces aggregated together or a network
+	interface that uses multiple queues, this can increase
+	NFS performance for the mount.
+
+various:
+	One True Awk has been updated to the latest from upstream
+	(20210215). All the FreeBSD patches, but one, have now been
+	either up streamed or discarded.  Notable changes include:
+		o Locale is no longer used for ranges
+		o Various bugs fixed
+		o Better compatibility with gawk and mawk
+
+	The one FreeBSD change, likely to be removed in FreeBSD 14, is that
+	we still allow hex numbers, prefixed with 0x, to be parsed and
+	interpreted as hex numbers while all other awks (including one
+	true awk now) interpret them as 0 in line with awk's historic
+	behavior.
+
 8a04edfdcbd2:
 	Change the default minor version used for an NFSv4 mount
 	to the highest minor version supported by the NFSv4 server.

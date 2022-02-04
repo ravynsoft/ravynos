@@ -2,21 +2,26 @@
 
 .include <src.opts.mk>
 
+.if ${MK_CLANG} != "no"
 SUBDIR+=	clang
-SUBDIR+=	clang-tblgen
-SUBDIR+=	llvm-tblgen
-
-.if ${MK_LLDB} != "no"
-SUBDIR+=	lldb-tblgen
 .endif
 
 .if !defined(TOOLS_PREFIX)
+# LLVM binutils are needed to support features such as LTO, so we build them
+# by default if clang is enabled. If MK_LLVM_BINUTILS is set, we also use them
+# as the default binutils (ar,nm,addr2line, etc.).
+.if ${MK_CLANG} != "no" || ${MK_LLVM_BINUTILS} != "no"
 SUBDIR+=	llvm-ar
 SUBDIR+=	llvm-nm
+SUBDIR+=	llvm-objcopy
 SUBDIR+=	llvm-objdump
+SUBDIR+=	llvm-readobj
+SUBDIR+=	llvm-size
+SUBDIR+=	llvm-strings
 SUBDIR+=	llvm-symbolizer
+.endif
 
-.if ${MK_CLANG_EXTRAS} != "no" || ${MK_LLVM_CXXFILT} != "no"
+.if ${MK_LLVM_BINUTILS} != "no" || ${MK_LLVM_CXXFILT} != "no"
 SUBDIR+=	llvm-cxxfilt
 .endif
 
@@ -38,11 +43,8 @@ SUBDIR+=	llvm-lto2
 SUBDIR+=	llvm-mc
 SUBDIR+=	llvm-mca
 SUBDIR+=	llvm-modextract
-SUBDIR+=	llvm-objcopy
 SUBDIR+=	llvm-pdbutil
 SUBDIR+=	llvm-rtdyld
-SUBDIR+=	llvm-size
-SUBDIR+=	llvm-strings
 SUBDIR+=	llvm-xray
 SUBDIR+=	opt
 .endif
@@ -56,6 +58,7 @@ SUBDIR+=	lld
 .endif
 .if ${MK_LLDB} != "no"
 SUBDIR+=	lldb
+SUBDIR+=	lldb-server
 .endif
 .if ${MK_LLVM_COV} != "no"
 SUBDIR+=	llvm-cov

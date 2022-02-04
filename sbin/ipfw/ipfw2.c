@@ -411,6 +411,12 @@ static void object_sort_ctlv(ipfw_obj_ctlv *ctlv);
 static char *object_search_ctlv(ipfw_obj_ctlv *ctlv, uint16_t idx,
     uint16_t type);
 
+int
+is_ipfw(void)
+{
+	return (g_co.prog == cmdline_prog_ipfw);
+}
+
 /*
  * Simple string buffer API.
  * Used to simplify buffer passing between function and for
@@ -4127,7 +4133,7 @@ chkarg:
 		        action->arg1 = strtoul(*av, NULL, 10);
 			if (sysctlbyname("net.fibs", &numfibs, &intsize,
 			    NULL, 0) == -1)
-				errx(EX_DATAERR, "fibs not suported.\n");
+				errx(EX_DATAERR, "fibs not supported.\n");
 			if (action->arg1 >= numfibs)  /* Temporary */
 				errx(EX_DATAERR, "fib too large.\n");
 			/* Add high-order bit to fib to make room for tablearg*/

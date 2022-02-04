@@ -12,28 +12,18 @@
 //===----------------------------------------------------------------------===//
 
 #include "SplitKit.h"
-#include "llvm/ADT/ArrayRef.h"
-#include "llvm/ADT/DenseSet.h"
 #include "llvm/ADT/None.h"
 #include "llvm/ADT/STLExtras.h"
-#include "llvm/ADT/SmallPtrSet.h"
-#include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/Statistic.h"
 #include "llvm/Analysis/AliasAnalysis.h"
-#include "llvm/CodeGen/LiveInterval.h"
-#include "llvm/CodeGen/LiveIntervalCalc.h"
-#include "llvm/CodeGen/LiveIntervals.h"
 #include "llvm/CodeGen/LiveRangeEdit.h"
-#include "llvm/CodeGen/MachineBasicBlock.h"
 #include "llvm/CodeGen/MachineBlockFrequencyInfo.h"
 #include "llvm/CodeGen/MachineDominators.h"
-#include "llvm/CodeGen/MachineFunction.h"
 #include "llvm/CodeGen/MachineInstr.h"
 #include "llvm/CodeGen/MachineInstrBuilder.h"
 #include "llvm/CodeGen/MachineLoopInfo.h"
 #include "llvm/CodeGen/MachineOperand.h"
 #include "llvm/CodeGen/MachineRegisterInfo.h"
-#include "llvm/CodeGen/SlotIndexes.h"
 #include "llvm/CodeGen/TargetInstrInfo.h"
 #include "llvm/CodeGen/TargetOpcodes.h"
 #include "llvm/CodeGen/TargetRegisterInfo.h"
@@ -41,10 +31,8 @@
 #include "llvm/CodeGen/VirtRegMap.h"
 #include "llvm/Config/llvm-config.h"
 #include "llvm/IR/DebugLoc.h"
-#include "llvm/MC/LaneBitmask.h"
 #include "llvm/Support/Allocator.h"
 #include "llvm/Support/BlockFrequency.h"
-#include "llvm/Support/Compiler.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/raw_ostream.h"
@@ -53,7 +41,6 @@
 #include <iterator>
 #include <limits>
 #include <tuple>
-#include <utility>
 
 using namespace llvm;
 
@@ -107,10 +94,10 @@ InsertPointAnalysis::computeLastInsertPoint(const LiveInterval &CurLI,
     // instructions in the block.
     if (ExceptionalSuccessors.empty())
       return LIP.first;
-    for (auto I = MBB.rbegin(), E = MBB.rend(); I != E; ++I) {
-      if ((EHPadSuccessor && I->isCall()) ||
-          I->getOpcode() == TargetOpcode::INLINEASM_BR) {
-        LIP.second = LIS.getInstructionIndex(*I);
+    for (const MachineInstr &MI : llvm::reverse(MBB)) {
+      if ((EHPadSuccessor && MI.isCall()) ||
+          MI.getOpcode() == TargetOpcode::INLINEASM_BR) {
+        LIP.second = LIS.getInstructionIndex(MI);
         break;
       }
     }
@@ -130,6 +117,13 @@ InsertPointAnalysis::computeLastInsertPoint(const LiveInterval &CurLI,
   const VNInfo *VNI = CurLI.getVNInfoBefore(MBBEnd);
   if (!VNI)
     return LIP.first;
+
+  // The def of statepoint instruction is a gc relocation and it should be alive
+  // in landing pad. So we cannot split interval after statepoint instruction.
+  if (SlotIndex::isSameInstr(VNI->def, LIP.second))
+    if (auto *I = LIS.getInstructionFromIndex(LIP.second))
+      if (I->getOpcode() == TargetOpcode::STATEPOINT)
+        return LIP.second;
 
   // If the value leaving MBB was defined after the call in MBB, it can't
   // really be live-in to the landing pad.  This can happen if the landing pad
@@ -181,7 +175,7 @@ void SplitAnalysis::analyzeUses() {
 
   // Get use slots form the use-def chain.
   const MachineRegisterInfo &MRI = MF.getRegInfo();
-  for (MachineOperand &MO : MRI.use_nodbg_operands(CurLI->reg))
+  for (MachineOperand &MO : MRI.use_nodbg_operands(CurLI->reg()))
     if (!MO.isUndef())
       UseSlots.push_back(LIS.getInstructionIndex(*MO.getParent()).getRegSlot());
 
@@ -346,7 +340,7 @@ unsigned SplitAnalysis::countLiveBlocks(const LiveInterval *cli) const {
 }
 
 bool SplitAnalysis::isOriginalEndpoint(SlotIndex Idx) const {
-  unsigned OrigReg = VRM.getOriginal(CurLI->reg);
+  unsigned OrigReg = VRM.getOriginal(CurLI->reg());
   const LiveInterval &Orig = LIS.getInterval(OrigReg);
   assert(!Orig.empty() && "Splitting empty interval?");
   LiveInterval::const_iterator I = Orig.find(Idx);
@@ -370,15 +364,15 @@ void SplitAnalysis::analyze(const LiveInterval *li) {
 //===----------------------------------------------------------------------===//
 
 /// Create a new SplitEditor for editing the LiveInterval analyzed by SA.
-SplitEditor::SplitEditor(SplitAnalysis &sa, AliasAnalysis &aa,
-                         LiveIntervals &lis, VirtRegMap &vrm,
-                         MachineDominatorTree &mdt,
-                         MachineBlockFrequencyInfo &mbfi)
-    : SA(sa), AA(aa), LIS(lis), VRM(vrm),
-      MRI(vrm.getMachineFunction().getRegInfo()), MDT(mdt),
-      TII(*vrm.getMachineFunction().getSubtarget().getInstrInfo()),
-      TRI(*vrm.getMachineFunction().getSubtarget().getRegisterInfo()),
-      MBFI(mbfi), RegAssign(Allocator) {}
+SplitEditor::SplitEditor(SplitAnalysis &SA, AliasAnalysis &AA,
+                         LiveIntervals &LIS, VirtRegMap &VRM,
+                         MachineDominatorTree &MDT,
+                         MachineBlockFrequencyInfo &MBFI, VirtRegAuxInfo &VRAI)
+    : SA(SA), AA(AA), LIS(LIS), VRM(VRM),
+      MRI(VRM.getMachineFunction().getRegInfo()), MDT(MDT),
+      TII(*VRM.getMachineFunction().getSubtarget().getInstrInfo()),
+      TRI(*VRM.getMachineFunction().getSubtarget().getRegisterInfo()),
+      MBFI(MBFI), VRAI(VRAI), RegAssign(Allocator) {}
 
 void SplitEditor::reset(LiveRangeEdit &LRE, ComplementSpillMode SM) {
   Edit = &LRE;
@@ -412,10 +406,18 @@ LLVM_DUMP_METHOD void SplitEditor::dump() const {
 }
 #endif
 
+LiveInterval::SubRange &SplitEditor::getSubRangeForMaskExact(LaneBitmask LM,
+                                                             LiveInterval &LI) {
+  for (LiveInterval::SubRange &S : LI.subranges())
+    if (S.LaneMask == LM)
+      return S;
+  llvm_unreachable("SubRange for this mask not found");
+}
+
 LiveInterval::SubRange &SplitEditor::getSubRangeForMask(LaneBitmask LM,
                                                         LiveInterval &LI) {
   for (LiveInterval::SubRange &S : LI.subranges())
-    if (S.LaneMask == LM)
+    if ((S.LaneMask & LM) == LM)
       return S;
   llvm_unreachable("SubRange for this mask not found");
 }
@@ -446,7 +448,7 @@ void SplitEditor::addDeadDef(LiveInterval &LI, VNInfo *VNI, bool Original) {
     LaneBitmask LM;
     for (const MachineOperand &DefOp : DefMI->defs()) {
       Register R = DefOp.getReg();
-      if (R != LI.reg)
+      if (R != LI.reg())
         continue;
       if (unsigned SR = DefOp.getSubReg())
         LM |= TRI.getSubRegIndexLaneMask(SR);
@@ -517,7 +519,7 @@ void SplitEditor::forceRecompute(unsigned RegIdx, const VNInfo &ParentVNI) {
   VFP = ValueForcePair(nullptr, true);
 }
 
-SlotIndex SplitEditor::buildSingleSubRegCopy(unsigned FromReg, unsigned ToReg,
+SlotIndex SplitEditor::buildSingleSubRegCopy(Register FromReg, Register ToReg,
     MachineBasicBlock &MBB, MachineBasicBlock::iterator InsertBefore,
     unsigned SubIdx, LiveInterval &DestLI, bool Late, SlotIndex Def) {
   const MCInstrDesc &Desc = TII.get(TargetOpcode::COPY);
@@ -543,7 +545,7 @@ SlotIndex SplitEditor::buildSingleSubRegCopy(unsigned FromReg, unsigned ToReg,
   return Def;
 }
 
-SlotIndex SplitEditor::buildCopy(unsigned FromReg, unsigned ToReg,
+SlotIndex SplitEditor::buildCopy(Register FromReg, Register ToReg,
     LaneBitmask LaneMask, MachineBasicBlock &MBB,
     MachineBasicBlock::iterator InsertBefore, bool Late, unsigned RegIdx) {
   const MCInstrDesc &Desc = TII.get(TargetOpcode::COPY);
@@ -562,71 +564,19 @@ SlotIndex SplitEditor::buildCopy(unsigned FromReg, unsigned ToReg,
 
   // First pass: Try to find a perfectly matching subregister index. If none
   // exists find the one covering the most lanemask bits.
-  SmallVector<unsigned, 8> PossibleIndexes;
-  unsigned BestIdx = 0;
-  unsigned BestCover = 0;
   const TargetRegisterClass *RC = MRI.getRegClass(FromReg);
   assert(RC == MRI.getRegClass(ToReg) && "Should have same reg class");
-  for (unsigned Idx = 1, E = TRI.getNumSubRegIndices(); Idx < E; ++Idx) {
-    // Is this index even compatible with the given class?
-    if (TRI.getSubClassWithSubReg(RC, Idx) != RC)
-      continue;
-    LaneBitmask SubRegMask = TRI.getSubRegIndexLaneMask(Idx);
-    // Early exit if we found a perfect match.
-    if (SubRegMask == LaneMask) {
-      BestIdx = Idx;
-      break;
-    }
 
-    // The index must not cover any lanes outside \p LaneMask.
-    if ((SubRegMask & ~LaneMask).any())
-      continue;
-
-    unsigned PopCount = SubRegMask.getNumLanes();
-    PossibleIndexes.push_back(Idx);
-    if (PopCount > BestCover) {
-      BestCover = PopCount;
-      BestIdx = Idx;
-    }
-  }
+  SmallVector<unsigned, 8> Indexes;
 
   // Abort if we cannot possibly implement the COPY with the given indexes.
-  if (BestIdx == 0)
+  if (!TRI.getCoveringSubRegIndexes(MRI, RC, LaneMask, Indexes))
     report_fatal_error("Impossible to implement partial COPY");
 
-  SlotIndex Def = buildSingleSubRegCopy(FromReg, ToReg, MBB, InsertBefore,
-                                        BestIdx, DestLI, Late, SlotIndex());
-
-  // Greedy heuristic: Keep iterating keeping the best covering subreg index
-  // each time.
-  LaneBitmask LanesLeft = LaneMask & ~(TRI.getSubRegIndexLaneMask(BestIdx));
-  while (LanesLeft.any()) {
-    unsigned BestIdx = 0;
-    int BestCover = std::numeric_limits<int>::min();
-    for (unsigned Idx : PossibleIndexes) {
-      LaneBitmask SubRegMask = TRI.getSubRegIndexLaneMask(Idx);
-      // Early exit if we found a perfect match.
-      if (SubRegMask == LanesLeft) {
-        BestIdx = Idx;
-        break;
-      }
-
-      // Try to cover as much of the remaining lanes as possible but
-      // as few of the already covered lanes as possible.
-      int Cover = (SubRegMask & LanesLeft).getNumLanes()
-                - (SubRegMask & ~LanesLeft).getNumLanes();
-      if (Cover > BestCover) {
-        BestCover = Cover;
-        BestIdx = Idx;
-      }
-    }
-
-    if (BestIdx == 0)
-      report_fatal_error("Impossible to implement partial COPY");
-
-    buildSingleSubRegCopy(FromReg, ToReg, MBB, InsertBefore, BestIdx,
-                          DestLI, Late, Def);
-    LanesLeft &= ~TRI.getSubRegIndexLaneMask(BestIdx);
+  SlotIndex Def;
+  for (unsigned BestIdx : Indexes) {
+    Def = buildSingleSubRegCopy(FromReg, ToReg, MBB, InsertBefore, BestIdx,
+                                DestLI, Late, Def);
   }
 
   return Def;
@@ -649,7 +599,7 @@ VNInfo *SplitEditor::defFromParent(unsigned RegIdx,
   LiveInterval &OrigLI = LIS.getInterval(Original);
   VNInfo *OrigVNI = OrigLI.getVNInfoAt(UseIdx);
 
-  unsigned Reg = LI->reg;
+  Register Reg = LI->reg();
   bool DidRemat = false;
   if (OrigVNI) {
     LiveRangeEdit::Remat RM(ParentVNI);
@@ -662,16 +612,25 @@ VNInfo *SplitEditor::defFromParent(unsigned RegIdx,
   }
   if (!DidRemat) {
     LaneBitmask LaneMask;
-    if (LI->hasSubRanges()) {
+    if (OrigLI.hasSubRanges()) {
       LaneMask = LaneBitmask::getNone();
-      for (LiveInterval::SubRange &S : LI->subranges())
-        LaneMask |= S.LaneMask;
+      for (LiveInterval::SubRange &S : OrigLI.subranges()) {
+        if (S.liveAt(UseIdx))
+          LaneMask |= S.LaneMask;
+      }
     } else {
       LaneMask = LaneBitmask::getAll();
     }
 
-    ++NumCopies;
-    Def = buildCopy(Edit->getReg(), Reg, LaneMask, MBB, I, Late, RegIdx);
+    if (LaneMask.none()) {
+      const MCInstrDesc &Desc = TII.get(TargetOpcode::IMPLICIT_DEF);
+      MachineInstr *ImplicitDef = BuildMI(MBB, I, DebugLoc(), Desc, Reg);
+      SlotIndexes &Indexes = *LIS.getSlotIndexes();
+      Def = Indexes.insertMachineInstrInMaps(*ImplicitDef, Late).getRegSlot();
+    } else {
+      ++NumCopies;
+      Def = buildCopy(Edit->getReg(), Reg, LaneMask, MBB, I, Late, RegIdx);
+    }
   }
 
   // Define the value in Reg.
@@ -743,6 +702,23 @@ SlotIndex SplitEditor::enterIntvAtEnd(MachineBasicBlock &MBB) {
     LLVM_DEBUG(dbgs() << ": not live\n");
     return End;
   }
+  SlotIndex LSP = SA.getLastSplitPoint(&MBB);
+  if (LSP < Last) {
+    // It could be that the use after LSP is a def, and thus the ParentVNI
+    // just selected starts at that def.  For this case to exist, the def
+    // must be part of a tied def/use pair (as otherwise we'd have split
+    // distinct live ranges into individual live intervals), and thus we
+    // can insert the def into the VNI of the use and the tied def/use
+    // pair can live in the resulting interval.
+    Last = LSP;
+    ParentVNI = Edit->getParent().getVNInfoAt(Last);
+    if (!ParentVNI) {
+      // undef use --> undef tied def
+      LLVM_DEBUG(dbgs() << ": tied use not live\n");
+      return End;
+    }
+  }
+
   LLVM_DEBUG(dbgs() << ": valno " << ParentVNI->id);
   VNInfo *VNI = defFromParent(OpenIdx, ParentVNI, Last, MBB,
                               SA.getLastSplitPointIter(&MBB));
@@ -832,6 +808,12 @@ SlotIndex SplitEditor::leaveIntvAtTop(MachineBasicBlock &MBB) {
   return VNI->def;
 }
 
+static bool hasTiedUseOf(MachineInstr &MI, unsigned Reg) {
+  return any_of(MI.defs(), [Reg](const MachineOperand &MO) {
+    return MO.isReg() && MO.isTied() && MO.getReg() == Reg;
+  });
+}
+
 void SplitEditor::overlapIntv(SlotIndex Start, SlotIndex End) {
   assert(OpenIdx && "openIntv not called before overlapIntv");
   const VNInfo *ParentVNI = Edit->getParent().getVNInfoAt(Start);
@@ -843,6 +825,16 @@ void SplitEditor::overlapIntv(SlotIndex Start, SlotIndex End) {
   // The complement interval will be extended as needed by LICalc.extend().
   if (ParentVNI)
     forceRecompute(0, *ParentVNI);
+
+  // If the last use is tied to a def, we can't mark it as live for the
+  // interval which includes only the use.  That would cause the tied pair
+  // to end up in two different intervals.
+  if (auto *MI = LIS.getInstructionFromIndex(End))
+    if (hasTiedUseOf(*MI, Edit->getReg())) {
+      LLVM_DEBUG(dbgs() << "skip overlap due to tied def at end\n");
+      return;
+    }
+
   LLVM_DEBUG(dbgs() << "    overlapIntv [" << Start << ';' << End << "):");
   RegAssign.insert(Start, End, OpenIdx);
   LLVM_DEBUG(dump());
@@ -858,8 +850,8 @@ void SplitEditor::removeBackCopies(SmallVectorImpl<VNInfo*> &Copies) {
   RegAssignMap::iterator AssignI;
   AssignI.setMap(RegAssign);
 
-  for (unsigned i = 0, e = Copies.size(); i != e; ++i) {
-    SlotIndex Def = Copies[i]->def;
+  for (const VNInfo *C : Copies) {
+    SlotIndex Def = C->def;
     MachineInstr *MI = LIS.getInstructionFromIndex(Def);
     assert(MI && "No instruction for back-copy");
 
@@ -867,7 +859,7 @@ void SplitEditor::removeBackCopies(SmallVectorImpl<VNInfo*> &Copies) {
     MachineBasicBlock::iterator MBBI(MI);
     bool AtBegin;
     do AtBegin = MBBI == MBB->begin();
-    while (!AtBegin && (--MBBI)->isDebugInstr());
+    while (!AtBegin && (--MBBI)->isDebugOrPseudoInstr());
 
     LLVM_DEBUG(dbgs() << "Removing " << Def << '\t' << *MI);
     LIS.removeVRegDefAt(*LI, Def);
@@ -883,12 +875,18 @@ void SplitEditor::removeBackCopies(SmallVectorImpl<VNInfo*> &Copies) {
     if (AssignI.stop() != Def)
       continue;
     unsigned RegIdx = AssignI.value();
-    if (AtBegin || !MBBI->readsVirtualRegister(Edit->getReg())) {
+    // We could hoist back-copy right after another back-copy. As a result
+    // MMBI points to copy instruction which is actually dead now.
+    // We cannot set its stop to MBBI which will be the same as start and
+    // interval does not support that.
+    SlotIndex Kill =
+        AtBegin ? SlotIndex() : LIS.getInstructionIndex(*MBBI).getRegSlot();
+    if (AtBegin || !MBBI->readsVirtualRegister(Edit->getReg()) ||
+        Kill <= AssignI.start()) {
       LLVM_DEBUG(dbgs() << "  cannot find simple kill of RegIdx " << RegIdx
                         << '\n');
       forceRecompute(RegIdx, *Edit->getParent().getVNInfoAt(Def));
     } else {
-      SlotIndex Kill = LIS.getInstructionIndex(*MBBI).getRegSlot();
       LLVM_DEBUG(dbgs() << "  move kill to " << Kill << '\t' << *MBBI);
       AssignI.setStop(Kill);
     }
@@ -994,9 +992,7 @@ void SplitEditor::computeRedundantBackCopies(
     }
     if (!DominatedVNIs.empty()) {
       forceRecompute(0, *ParentVNI);
-      for (auto VNI : DominatedVNIs) {
-        BackCopies.push_back(VNI);
-      }
+      append_range(BackCopies, DominatedVNIs);
       DominatedVNIs.clear();
     }
   }
@@ -1096,10 +1092,13 @@ void SplitEditor::hoistCopies() {
       NotToHoistSet.insert(ParentVNI->id);
       continue;
     }
-    SlotIndex Last = LIS.getMBBEndIdx(Dom.first).getPrevSlot();
-    Dom.second =
-      defFromParent(0, ParentVNI, Last, *Dom.first,
-                    SA.getLastSplitPointIter(Dom.first))->def;
+    SlotIndex LSP = SA.getLastSplitPoint(Dom.first);
+    if (LSP <= ParentVNI->def) {
+      NotToHoistSet.insert(ParentVNI->id);
+      continue;
+    }
+    Dom.second = defFromParent(0, ParentVNI, LSP, *Dom.first,
+                               SA.getLastSplitPointIter(Dom.first))->def;
   }
 
   // Remove redundant back-copies that are now known to be dominated by another
@@ -1257,8 +1256,8 @@ void SplitEditor::extendPHIRange(MachineBasicBlock &B, LiveIntervalCalc &LIC,
     LiveInterval &PLI = Edit->getParent();
     // Need the cast because the inputs to ?: would otherwise be deemed
     // "incompatible": SubRange vs LiveInterval.
-    LiveRange &PSR = !LM.all() ? getSubRangeForMask(LM, PLI)
-                               : static_cast<LiveRange&>(PLI);
+    LiveRange &PSR = !LM.all() ? getSubRangeForMaskExact(LM, PLI)
+                               : static_cast<LiveRange &>(PLI);
     if (PSR.liveAt(LastUse))
       LIC.extend(LR, End, /*PhysReg=*/0, Undefs);
   }
@@ -1293,7 +1292,7 @@ void SplitEditor::extendPHIKillRanges() {
         continue;
       unsigned RegIdx = RegAssign.lookup(V->def);
       LiveInterval &LI = LIS.getInterval(Edit->get(RegIdx));
-      LiveInterval::SubRange &S = getSubRangeForMask(PS.LaneMask, LI);
+      LiveInterval::SubRange &S = getSubRangeForMaskExact(PS.LaneMask, LI);
       if (removeDeadSegment(V->def, S))
         continue;
 
@@ -1320,11 +1319,9 @@ void SplitEditor::rewriteAssigned(bool ExtendRanges) {
 
   SmallVector<ExtPoint,4> ExtPoints;
 
-  for (MachineRegisterInfo::reg_iterator RI = MRI.reg_begin(Edit->getReg()),
-       RE = MRI.reg_end(); RI != RE;) {
-    MachineOperand &MO = *RI;
+  for (MachineOperand &MO :
+       llvm::make_early_inc_range(MRI.reg_operands(Edit->getReg()))) {
     MachineInstr *MI = MO.getParent();
-    ++RI;
     // LiveDebugVariables should have handled all DBG_VALUE instructions.
     if (MI->isDebugValue()) {
       LLVM_DEBUG(dbgs() << "Zapping " << *MI);
@@ -1342,7 +1339,7 @@ void SplitEditor::rewriteAssigned(bool ExtendRanges) {
     // Rewrite to the mapped register at Idx.
     unsigned RegIdx = RegAssign.lookup(Idx);
     LiveInterval &LI = LIS.getInterval(Edit->get(RegIdx));
-    MO.setReg(LI.reg);
+    MO.setReg(LI.reg());
     LLVM_DEBUG(dbgs() << "  rewr " << printMBBReference(*MI->getParent())
                       << '\t' << Idx << ':' << RegIdx << '\t' << *MI);
 
@@ -1402,7 +1399,7 @@ void SplitEditor::rewriteAssigned(bool ExtendRanges) {
     }
   }
 
-  for (unsigned R : *Edit) {
+  for (Register R : *Edit) {
     LiveInterval &LI = LIS.getInterval(R);
     if (!LI.hasSubRanges())
       continue;
@@ -1414,8 +1411,8 @@ void SplitEditor::rewriteAssigned(bool ExtendRanges) {
 
 void SplitEditor::deleteRematVictims() {
   SmallVector<MachineInstr*, 8> Dead;
-  for (LiveRangeEdit::iterator I = Edit->begin(), E = Edit->end(); I != E; ++I){
-    LiveInterval *LI = &LIS.getInterval(*I);
+  for (const Register &R : *Edit) {
+    LiveInterval *LI = &LIS.getInterval(R);
     for (const LiveRange::Segment &S : LI->segments) {
       // Dead defs end at the dead slot.
       if (S.end != S.valno->def.getDeadSlot())
@@ -1424,7 +1421,7 @@ void SplitEditor::deleteRematVictims() {
         continue;
       MachineInstr *MI = LIS.getInstructionFromIndex(S.valno->def);
       assert(MI && "Missing instruction for dead def");
-      MI->addRegisterDead(LI->reg, &TRI);
+      MI->addRegisterDead(LI->reg(), &TRI);
 
       if (!MI->allDefsAreDead())
         continue;
@@ -1521,7 +1518,7 @@ void SplitEditor::finish(SmallVectorImpl<unsigned> *LRMap) {
     deleteRematVictims();
 
   // Get rid of unused values and set phi-kill flags.
-  for (unsigned Reg : *Edit) {
+  for (Register Reg : *Edit) {
     LiveInterval &LI = LIS.getInterval(Reg);
     LI.removeEmptySubRanges();
     LI.RenumberValues();
@@ -1538,13 +1535,13 @@ void SplitEditor::finish(SmallVectorImpl<unsigned> *LRMap) {
   ConnectedVNInfoEqClasses ConEQ(LIS);
   for (unsigned i = 0, e = Edit->size(); i != e; ++i) {
     // Don't use iterators, they are invalidated by create() below.
-    unsigned VReg = Edit->get(i);
+    Register VReg = Edit->get(i);
     LiveInterval &LI = LIS.getInterval(VReg);
     SmallVector<LiveInterval*, 8> SplitLIs;
     LIS.splitSeparateComponents(LI, SplitLIs);
-    unsigned Original = VRM.getOriginal(VReg);
+    Register Original = VRM.getOriginal(VReg);
     for (LiveInterval *SplitLI : SplitLIs)
-      VRM.setIsSplitFromReg(SplitLI->reg, Original);
+      VRM.setIsSplitFromReg(SplitLI->reg(), Original);
 
     // The new intervals all map back to i.
     if (LRMap)
@@ -1552,7 +1549,7 @@ void SplitEditor::finish(SmallVectorImpl<unsigned> *LRMap) {
   }
 
   // Calculate spill weight and allocation hints for new intervals.
-  Edit->calculateRegClassAndHint(VRM.getMachineFunction(), SA.Loops, MBFI);
+  Edit->calculateRegClassAndHint(VRM.getMachineFunction(), VRAI);
 
   assert(!LRMap || LRMap->size() == Edit->size());
 }
@@ -1581,7 +1578,7 @@ bool SplitAnalysis::shouldSplitSingleBlock(const BlockInfo &BI,
 
 void SplitEditor::splitSingleBlock(const SplitAnalysis::BlockInfo &BI) {
   openIntv();
-  SlotIndex LastSplitPoint = SA.getLastSplitPoint(BI.MBB->getNumber());
+  SlotIndex LastSplitPoint = SA.getLastSplitPoint(BI.MBB);
   SlotIndex SegStart = enterIntvBefore(std::min(BI.FirstInstr,
     LastSplitPoint));
   if (!BI.LiveOut || BI.LastInstr < LastSplitPoint) {
@@ -1735,7 +1732,7 @@ void SplitEditor::splitRegInBlock(const SplitAnalysis::BlockInfo &BI,
     return;
   }
 
-  SlotIndex LSP = SA.getLastSplitPoint(BI.MBB->getNumber());
+  SlotIndex LSP = SA.getLastSplitPoint(BI.MBB);
 
   if (!LeaveBefore || LeaveBefore > BI.LastInstr.getBoundaryIndex()) {
     //
@@ -1812,7 +1809,7 @@ void SplitEditor::splitRegOutBlock(const SplitAnalysis::BlockInfo &BI,
                     << ", enter after " << EnterAfter
                     << (BI.LiveIn ? ", stack-in" : ", defined in block"));
 
-  SlotIndex LSP = SA.getLastSplitPoint(BI.MBB->getNumber());
+  SlotIndex LSP = SA.getLastSplitPoint(BI.MBB);
 
   assert(IntvOut && "Must have register out");
   assert(BI.LiveOut && "Must be live-out");
@@ -1861,4 +1858,17 @@ void SplitEditor::splitRegOutBlock(const SplitAnalysis::BlockInfo &BI,
   openIntv();
   SlotIndex From = enterIntvBefore(std::min(Idx, BI.FirstInstr));
   useIntv(From, Idx);
+}
+
+void SplitAnalysis::BlockInfo::print(raw_ostream &OS) const {
+  OS << "{" << printMBBReference(*MBB) << ", "
+     << "uses " << FirstInstr << " to " << LastInstr << ", "
+     << "1st def " << FirstDef << ", "
+     << (LiveIn ? "live in" : "dead in") << ", "
+     << (LiveOut ? "live out" : "dead out") << "}";
+}
+
+void SplitAnalysis::BlockInfo::dump() const {
+  print(dbgs());
+  dbgs() << "\n";
 }

@@ -5,21 +5,20 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
-//
+/// \file
 /// Provides analysis for querying information about KnownBits during GISel
 /// passes.
-//
+///
 //===----------------------------------------------------------------------===//
-#ifndef LLVM_CODEGEN_GLOBALISEL_KNOWNBITSINFO_H
-#define LLVM_CODEGEN_GLOBALISEL_KNOWNBITSINFO_H
 
-#include "llvm/ADT/DenseSet.h"
+#ifndef LLVM_CODEGEN_GLOBALISEL_GISELKNOWNBITS_H
+#define LLVM_CODEGEN_GLOBALISEL_GISELKNOWNBITS_H
+
+#include "llvm/ADT/DenseMap.h"
 #include "llvm/CodeGen/GlobalISel/GISelChangeObserver.h"
 #include "llvm/CodeGen/MachineFunctionPass.h"
 #include "llvm/CodeGen/Register.h"
-#include "llvm/IR/PassManager.h"
 #include "llvm/InitializePasses.h"
-#include "llvm/Pass.h"
 #include "llvm/Support/KnownBits.h"
 
 namespace llvm {
@@ -36,10 +35,16 @@ class GISelKnownBits : public GISelChangeObserver {
   /// Cache maintained during a computeKnownBits request.
   SmallDenseMap<Register, KnownBits, 16> ComputeKnownBitsCache;
 
+  void computeKnownBitsMin(Register Src0, Register Src1, KnownBits &Known,
+                           const APInt &DemandedElts,
+                           unsigned Depth = 0);
+
+  unsigned computeNumSignBitsMin(Register Src0, Register Src1,
+                                 const APInt &DemandedElts, unsigned Depth = 0);
+
 public:
   GISelKnownBits(MachineFunction &MF, unsigned MaxDepth = 6);
   virtual ~GISelKnownBits() = default;
-  void setMF(MachineFunction &MF);
 
   const MachineFunction &getMachineFunction() const {
     return MF;
@@ -124,4 +129,4 @@ public:
 };
 } // namespace llvm
 
-#endif // ifdef
+#endif // LLVM_CODEGEN_GLOBALISEL_GISELKNOWNBITS_H

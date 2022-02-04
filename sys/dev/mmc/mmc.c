@@ -271,6 +271,7 @@ mmc_detach(device_t dev)
 	struct mmc_softc *sc = device_get_softc(dev);
 	int err;
 
+	config_intrhook_drain(&sc->config_intrhook);
 	err = mmc_delete_cards(sc, true);
 	if (err != 0)
 		return (err);
@@ -1925,7 +1926,7 @@ child_common:
 			if (child != NULL) {
 				device_set_ivars(child, ivar);
 				sc->child_list = realloc(sc->child_list,
-				    sizeof(device_t) * sc->child_count + 1,
+				    sizeof(device_t) * (sc->child_count + 1),
 				    M_DEVBUF, M_WAITOK);
 				sc->child_list[sc->child_count++] = child;
 			} else

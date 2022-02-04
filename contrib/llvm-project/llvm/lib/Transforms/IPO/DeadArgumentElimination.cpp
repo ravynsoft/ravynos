@@ -287,14 +287,16 @@ bool DeadArgumentEliminationPass::RemoveDeadArgumentsFromCallers(Function &Fn) {
   SmallVector<unsigned, 8> UnusedArgs;
   bool Changed = false;
 
+  AttrBuilder UBImplyingAttributes = AttributeFuncs::getUBImplyingAttributes();
   for (Argument &Arg : Fn.args()) {
     if (!Arg.hasSwiftErrorAttr() && Arg.use_empty() &&
-        !Arg.hasPassPointeeByValueAttr()) {
+        !Arg.hasPassPointeeByValueCopyAttr()) {
       if (Arg.isUsedByMetadata()) {
         Arg.replaceAllUsesWith(UndefValue::get(Arg.getType()));
         Changed = true;
       }
       UnusedArgs.push_back(Arg.getArgNo());
+      Fn.removeParamAttrs(Arg.getArgNo(), UBImplyingAttributes);
     }
   }
 
@@ -312,6 +314,8 @@ bool DeadArgumentEliminationPass::RemoveDeadArgumentsFromCallers(Function &Fn) {
 
       Value *Arg = CB->getArgOperand(ArgNo);
       CB->setArgOperand(ArgNo, UndefValue::get(Arg->getType()));
+      CB->removeParamAttrs(ArgNo, UBImplyingAttributes);
+
       ++NumArgumentsReplacedWithUndef;
       Changed = true;
     }

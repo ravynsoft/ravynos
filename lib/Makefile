@@ -169,7 +169,10 @@ SUBDIR.${MK_BLUETOOTH}+=libbluetooth libsdp
 SUBDIR.${MK_BSNMP}+=	libbsnmp
 
 .if !defined(COMPAT_32BIT) && !defined(COMPAT_SOFTFP)
-SUBDIR.${MK_CLANG}+=	clang
+.if ${MK_CLANG} != "no" || ${MK_LLD} != "no" || \
+    ${MK_LLDB} != "no" || ${MK_LLVM_BINUTILS} != "no"
+SUBDIR+=	clang
+.endif
 .endif
 
 SUBDIR.${MK_CUSE}+= 	libcuse
@@ -184,10 +187,9 @@ SUBDIR.${MK_KERBEROS_SUPPORT}+=	libcom_err
 SUBDIR.${MK_LDNS}+=	libldns
 SUBDIR.${MK_STATS}+=	libstats
 
-# The libraries under libclang_rt can only be built by clang, and only make
-# sense to build when clang is enabled at all.  Furthermore, they can only be
-# built for certain architectures.
-.if ${COMPILER_TYPE} == "clang" && \
+# The libraries under libclang_rt can only be built by clang and when we enable
+# C++ support.  Furthermore, they can only be built for certain architectures.
+.if ${COMPILER_TYPE} == "clang" && ${MK_CXX} != "no" && \
     (${MACHINE_CPUARCH} == "aarch64" || ${MACHINE_CPUARCH} == "amd64" || \
     ${MACHINE_CPUARCH} == "arm" || ${MACHINE_CPUARCH} == "i386" || \
     ${MACHINE_CPUARCH} == "powerpc")
@@ -228,7 +230,6 @@ SUBDIR.${MK_RADIUS_SUPPORT}+=	libradius
 SUBDIR.${MK_SENDMAIL}+=	libmilter libsm libsmdb libsmutil
 SUBDIR.${MK_TELNET}+=	libtelnet
 SUBDIR.${MK_TESTS_SUPPORT}+=	atf
-SUBDIR.${MK_TESTS_SUPPORT}.${MK_CXX}+=	kyua
 SUBDIR.${MK_TESTS_SUPPORT}.${MK_CXX}+=	liblutok
 SUBDIR.${MK_TESTS}+=	tests
 SUBDIR.${MK_UNBOUND}+=	libunbound

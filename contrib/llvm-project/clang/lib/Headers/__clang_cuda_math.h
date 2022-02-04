@@ -166,6 +166,8 @@ __DEVICE__ long long llrint(double __a) { return __nv_llrint(__a); }
 __DEVICE__ long long llrintf(float __a) { return __nv_llrintf(__a); }
 __DEVICE__ long long llround(double __a) { return __nv_llround(__a); }
 __DEVICE__ long long llroundf(float __a) { return __nv_llroundf(__a); }
+__DEVICE__ double round(double __a) { return __nv_round(__a); }
+__DEVICE__ float roundf(float __a) { return __nv_roundf(__a); }
 __DEVICE__ double log(double __a) { return __nv_log(__a); }
 __DEVICE__ double log10(double __a) { return __nv_log10(__a); }
 __DEVICE__ float log10f(float __a) { return __nv_log10f(__a); }
@@ -195,8 +197,8 @@ __DEVICE__ int max(int __a, int __b) { return __nv_max(__a, __b); }
 __DEVICE__ int min(int __a, int __b) { return __nv_min(__a, __b); }
 __DEVICE__ double modf(double __a, double *__b) { return __nv_modf(__a, __b); }
 __DEVICE__ float modff(float __a, float *__b) { return __nv_modff(__a, __b); }
-__DEVICE__ double nearbyint(double __a) { return __nv_nearbyint(__a); }
-__DEVICE__ float nearbyintf(float __a) { return __nv_nearbyintf(__a); }
+__DEVICE__ double nearbyint(double __a) { return __builtin_nearbyint(__a); }
+__DEVICE__ float nearbyintf(float __a) { return __builtin_nearbyintf(__a); }
 __DEVICE__ double nextafter(double __a, double __b) {
   return __nv_nextafter(__a, __b);
 }
@@ -249,8 +251,9 @@ __DEVICE__ double rhypot(double __a, double __b) {
 __DEVICE__ float rhypotf(float __a, float __b) {
   return __nv_rhypotf(__a, __b);
 }
-__DEVICE__ double rint(double __a) { return __nv_rint(__a); }
-__DEVICE__ float rintf(float __a) { return __nv_rintf(__a); }
+// __nv_rint* in libdevice is buggy and produces incorrect results.
+__DEVICE__ double rint(double __a) { return __builtin_rint(__a); }
+__DEVICE__ float rintf(float __a) { return __builtin_rintf(__a); }
 __DEVICE__ double rnorm(int __a, const double *__b) {
   return __nv_rnorm(__a, __b);
 }
@@ -269,8 +272,6 @@ __DEVICE__ float rnorm4df(float __a, float __b, float __c, float __d) {
 __DEVICE__ float rnormf(int __dim, const float *__t) {
   return __nv_rnormf(__dim, __t);
 }
-__DEVICE__ double round(double __a) { return __nv_round(__a); }
-__DEVICE__ float roundf(float __a) { return __nv_roundf(__a); }
 __DEVICE__ double rsqrt(double __a) { return __nv_rsqrt(__a); }
 __DEVICE__ float rsqrtf(float __a) { return __nv_rsqrtf(__a); }
 __DEVICE__ double scalbn(double __a, int __b) { return __nv_scalbn(__a, __b); }

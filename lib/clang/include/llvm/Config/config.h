@@ -29,7 +29,11 @@
 /* #undef HAVE_CRASHREPORTERCLIENT_H */
 
 /* can use __crashreporter_info__ */
+#if defined(__APPLE__)
+#define HAVE_CRASHREPORTER_INFO 1
+#else
 #define HAVE_CRASHREPORTER_INFO 0
+#endif
 
 /* Define to 1 if you have the declaration of `arc4random', and to 0 if you
    don't. */
@@ -58,6 +62,14 @@
 
 /* Define if dladdr() is available on this platform. */
 #define HAVE_DLADDR 1
+
+#if !defined(__arm__) || defined(__USING_SJLJ_EXCEPTIONS__) || defined(__ARM_DWARF_EH__)
+/* Define to 1 if we can register EH frames on this platform. */
+#define HAVE_REGISTER_FRAME 1
+
+/* Define to 1 if we can deregister EH frames on this platform. */
+#define HAVE_DEREGISTER_FRAME 1
+#endif // !arm || USING_SJLJ_EXCEPTIONS || ARM_DWARF_EH_
 
 /* Define to 1 if you have the <errno.h> header file. */
 #define HAVE_ERRNO_H 1
@@ -101,6 +113,9 @@
 /* Define to 1 if you have the `pfm' library (-lpfm). */
 /* #undef HAVE_LIBPFM */
 
+/* Define to 1 if the `perf_branch_entry' struct has field cycles. */
+/* #undef LIBPFM_HAS_FIELD_CYCLES */
+
 /* Define to 1 if you have the `psapi' library (-lpsapi). */
 /* #undef HAVE_LIBPSAPI */
 
@@ -113,32 +128,50 @@
 /* Define to 1 if you have the `pthread_setname_np' function. */
 #define HAVE_PTHREAD_SETNAME_NP 1
 
-/* Define to 1 if you have the `z' library (-lz). */
-#define HAVE_LIBZ 1
-
 /* Define to 1 if you have the <link.h> header file. */
+#if __has_include(<link.h>)
 #define HAVE_LINK_H 1
+#else
+#define HAVE_LINK_H 0
+#endif
 
 /* Define to 1 if you have the `lseek64' function. */
-/* #undef HAVE_LSEEK64 */
+#if defined(__linux__)
+#define HAVE_LSEEK64 1
+#endif
 
 /* Define to 1 if you have the <mach/mach.h> header file. */
-/* #undef HAVE_MACH_MACH_H */
+#if __has_include(<mach/mach.h>)
+#define HAVE_MACH_MACH_H 1
+#endif
 
 /* Define to 1 if you have the `mallctl' function. */
+#if defined(__FreeBSD__)
 #define HAVE_MALLCTL 1
+#endif
 
 /* Define to 1 if you have the `mallinfo' function. */
-/* #undef HAVE_MALLINFO */
+#if defined(__linux__)
+#define HAVE_MALLINFO 1
+#endif
+
+/* Define to 1 if you have the `mallinfo2' function. */
+/* #undef HAVE_MALLINFO2 */
 
 /* Define to 1 if you have the <malloc/malloc.h> header file. */
-/* #undef HAVE_MALLOC_MALLOC_H */
+#if __has_include(<malloc/malloc.h>)
+#define HAVE_MALLOC_MALLOC_H 1
+#endif
 
 /* Define to 1 if you have the `malloc_zone_statistics' function. */
-/* #undef HAVE_MALLOC_ZONE_STATISTICS */
+#if defined(__APPLE__)
+#define HAVE_MALLOC_ZONE_STATISTICS 1
+#endif
 
 /* Define to 1 if you have the `posix_fallocate' function. */
+#if !defined(__APPLE__)
 #define HAVE_POSIX_FALLOCATE 1
+#endif
 
 /* Define to 1 if you have the `posix_spawn' function. */
 #define HAVE_POSIX_SPAWN 1
@@ -201,19 +234,26 @@
 #define HAVE_SYS_TIME_H 1
 
 /* Define to 1 if stat struct has st_mtimespec member .*/
+#if !defined(__linux__)
 #define HAVE_STRUCT_STAT_ST_MTIMESPEC_TV_NSEC 1
+#endif
 
 /* Define to 1 if stat struct has st_mtim member. */
+#if !defined(__APPLE__)
 #define HAVE_STRUCT_STAT_ST_MTIM_TV_NSEC 1
+#endif
 
 /* Define to 1 if you have the <sys/types.h> header file. */
 #define HAVE_SYS_TYPES_H 1
 
 /* Define if the setupterm() function is supported this platform. */
-#define HAVE_TERMINFO 1
-
-/* Define if the xar_open() function is supported this platform. */
-/* #undef HAVE_LIBXAR */
+#if defined(__FreeBSD__)
+/*
+ * This is only needed for terminalHasColors(). When disabled LLVM falls back
+ * to checking a list of TERM prefixes which is sufficient for a bootstrap tool.
+ */
+#define LLVM_ENABLE_TERMINFO 1
+#endif
 
 /* Define to 1 if you have the <termios.h> header file. */
 #define HAVE_TERMIOS_H 1
@@ -224,9 +264,6 @@
 /* Define to 1 if you have the <valgrind/valgrind.h> header file. */
 /* #undef HAVE_VALGRIND_VALGRIND_H */
 
-/* Define to 1 if you have the <zlib.h> header file. */
-#define HAVE_ZLIB_H 1
-
 /* Have host's _alloca */
 /* #undef HAVE__ALLOCA */
 
@@ -234,7 +271,9 @@
 /* #undef HAVE__CHSIZE_S */
 
 /* Define to 1 if you have the `_Unwind_Backtrace' function. */
-/* #undef HAVE__UNWIND_BACKTRACE */
+#if !defined(__FreeBSD__)
+#define HAVE__UNWIND_BACKTRACE 1
+#endif
 
 /* Have host's __alloca */
 /* #undef HAVE___ALLOCA */
@@ -307,10 +346,21 @@
 #define LLVM_VERSION_PRINTER_SHOW_HOST_TARGET_INFO 1
 
 /* Define if libxml2 is supported on this platform. */
-/* #undef LLVM_LIBXML2_ENABLED */
+/* #undef LLVM_ENABLE_LIBXML2 */
 
 /* Define to the extension used for shared libraries, say, ".so". */
+#if defined(__APPLE__)
+#define LTDL_SHLIB_EXT ".dylib"
+#else
 #define LTDL_SHLIB_EXT ".so"
+#endif
+
+/* Define to the extension used for plugin libraries, say, ".so". */
+#if defined(__APPLE__)
+#define LLVM_PLUGIN_EXT ".dylib"
+#else
+#define LLVM_PLUGIN_EXT ".so"
+#endif
 
 /* Define to the address where bug reports for this package should be sent. */
 #define PACKAGE_BUGREPORT "https://bugs.freebsd.org/submit/"
@@ -319,10 +369,10 @@
 #define PACKAGE_NAME "LLVM"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "LLVM 11.0.1"
+#define PACKAGE_STRING "LLVM 13.0.0"
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "11.0.1"
+#define PACKAGE_VERSION "13.0.0"
 
 /* Define to the vendor of this package. */
 /* #undef PACKAGE_VENDOR */
@@ -345,7 +395,6 @@
 /* Define to the default GlobalISel coverage file prefix */
 /* #undef LLVM_GISEL_COV_PREFIX */
 
-/* Whether Timers signpost passes in Xcode Instruments */
-#define LLVM_SUPPORT_XCODE_SIGNPOSTS 0
+/* #undef HAVE_PROC_PID_RUSAGE */
 
 #endif

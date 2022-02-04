@@ -609,7 +609,7 @@ void crypto_cipher_deinit(struct crypto_cipher *ctx)
 #endif
 
 
-#ifdef CONFIG_WPS_NFC
+#ifdef CONFIG_WPS
 
 static const unsigned char RFC3526_PRIME_1536[] = {
 	0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xC9, 0x0F, 0xDA, 0xA2,
@@ -695,6 +695,8 @@ done:
 }
 
 
+#ifdef CONFIG_WPS_NFC
+
 void * dh5_init_fixed(const struct wpabuf *priv, const struct wpabuf *publ)
 {
 	DhKey *ret = NULL;
@@ -736,6 +738,8 @@ done:
 	return ret;
 }
 
+#endif /* CONFIG_WPS_NFC */
+
 
 struct wpabuf * dh5_derive_shared(void *ctx, const struct wpabuf *peer_public,
 				  const struct wpabuf *own_private)
@@ -772,7 +776,7 @@ void dh5_free(void *ctx)
 	XFREE(ctx, NULL, DYNAMIC_TYPE_TMP_BUFFER);
 }
 
-#endif /* CONFIG_WPS_NFC */
+#endif /* CONFIG_WPS */
 
 
 int crypto_dh_init(u8 generator, const u8 *prime, size_t prime_len, u8 *privkey,
@@ -1042,6 +1046,26 @@ struct crypto_bignum * crypto_bignum_init_set(const u8 *buf, size_t len)
 }
 
 
+struct crypto_bignum * crypto_bignum_init_uint(unsigned int val)
+{
+	mp_int *a;
+
+	if (TEST_FAIL())
+		return NULL;
+
+	a = (mp_int *) crypto_bignum_init();
+	if (!a)
+		return NULL;
+
+	if (mp_set_int(a, val) != MP_OKAY) {
+		os_free(a);
+		a = NULL;
+	}
+
+	return (struct crypto_bignum *) a;
+}
+
+
 void crypto_bignum_deinit(struct crypto_bignum *n, int clear)
 {
 	if (!n)
@@ -1084,19 +1108,21 @@ int crypto_bignum_rand(struct crypto_bignum *r, const struct crypto_bignum *m)
 {
 	int ret = 0;
 	WC_RNG rng;
+	size_t len;
+	u8 *buf;
 
 	if (TEST_FAIL())
 		return -1;
 	if (wc_InitRng(&rng) != 0)
 		return -1;
-	if (mp_rand_prime((mp_int *) r,
-			  (mp_count_bits((mp_int *) m) + 7) / 8 * 2,
-			  &rng, NULL) != 0)
-		ret = -1;
-	if (ret == 0 &&
+	len = (mp_count_bits((mp_int *) m) + 7) / 8;
+	buf = os_malloc(len);
+	if (!buf || wc_RNG_GenerateBlock(&rng, buf, len) != 0 ||
+	    mp_read_unsigned_bin((mp_int *) r, buf, len) != MP_OKAY ||
 	    mp_mod((mp_int *) r, (mp_int *) m, (mp_int *) r) != 0)
 		ret = -1;
 	wc_FreeRng(&rng);
+	bin_clear_free(buf, len);
 	return ret;
 }
 
@@ -1151,7 +1177,7 @@ int crypto_bignum_sub(const struct crypto_bignum *a,
 	if (TEST_FAIL())
 		return -1;
 
-	return mp_add((mp_int *) a, (mp_int *) b,
+	return mp_sub((mp_int *) a, (mp_int *) b,
 		      (mp_int *) r) == MP_OKAY ? 0 : -1;
 }
 
@@ -1168,6 +1194,19 @@ int crypto_bignum_div(const struct crypto_bignum *a,
 }
 
 
+int crypto_bignum_addmod(const struct crypto_bignum *a,
+			 const struct crypto_bignum *b,
+			 const struct crypto_bignum *c,
+			 struct crypto_bignum *d)
+{
+	if (TEST_FAIL())
+		return -1;
+
+	return mp_addmod((mp_int *) a, (mp_int *) b, (mp_int *) c,
+			 (mp_int *) d) == MP_OKAY ?  0 : -1;
+}
+
+
 int crypto_bignum_mulmod(const struct crypto_bignum *a,
 			 const struct crypto_bignum *b,
 			 const struct crypto_bignum *m,
@@ -1178,6 +1217,18 @@ int crypto_bignum_mulmod(const struct crypto_bignum *a,
 
 	return mp_mulmod((mp_int *) a, (mp_int *) b, (mp_int *) m,
 			 (mp_int *) d) == MP_OKAY ?  0 : -1;
+}
+
+
+int crypto_bignum_sqrmod(const struct crypto_bignum *a,
+			 const struct crypto_bignum *b,
+			 struct crypto_bignum *c)
+{
+	if (TEST_FAIL())
+		return -1;
+
+	return mp_sqrmod((mp_int *) a, (mp_int *) b,
+			 (mp_int *) c) == MP_OKAY ?  0 : -1;
 }
 
 
@@ -1383,6 +1434,18 @@ const struct crypto_bignum * crypto_ec_get_prime(struct crypto_ec *e)
 const struct crypto_bignum * crypto_ec_get_order(struct crypto_ec *e)
 {
 	return (const struct crypto_bignum *) &e->order;
+}
+
+
+const struct crypto_bignum * crypto_ec_get_a(struct crypto_ec *e)
+{
+	return (const struct crypto_bignum *) &e->a;
+}
+
+
+const struct crypto_bignum * crypto_ec_get_b(struct crypto_ec *e)
+{
+	return (const struct crypto_bignum *) &e->b;
 }
 
 
@@ -1775,6 +1838,12 @@ fail:
 	wpabuf_free(secret);
 	secret = NULL;
 	goto done;
+}
+
+
+size_t crypto_ecdh_prime_len(struct crypto_ecdh *ecdh)
+{
+	return crypto_ec_prime_len(ecdh->ec);
 }
 
 #endif /* CONFIG_ECC */

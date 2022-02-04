@@ -708,6 +708,19 @@ class BinOpRM<bits<8> opcode, string mnemonic, X86TypeInfo typeinfo,
         mnemonic, "{$src2, $src1|$src1, $src2}", pattern>,
     Sched<[sched.Folded, sched.ReadAfterFold]>;
 
+// BinOpRM - Instructions like "adc reg, reg, [mem]".
+// There is an implicit register read at the end of the operand sequence.
+class BinOpRM_ImplicitUse<bits<8> opcode, string mnemonic, X86TypeInfo typeinfo,
+              dag outlist, X86FoldableSchedWrite sched, list<dag> pattern>
+  : ITy<opcode, MRMSrcMem, typeinfo, outlist,
+        (ins typeinfo.RegClass:$src1, typeinfo.MemOperand:$src2),
+        mnemonic, "{$src2, $src1|$src1, $src2}", pattern>,
+    Sched<[sched.Folded, sched.ReadAfterFold,
+           // base, scale, index, offset, segment.
+           ReadDefault, ReadDefault, ReadDefault, ReadDefault, ReadDefault,
+           // implicit register read.
+           sched.ReadAfterFold]>;
+
 // BinOpRM_F - Instructions like "cmp reg, [mem]".
 class BinOpRM_F<bits<8> opcode, string mnemonic, X86TypeInfo typeinfo,
                 SDNode opnode>
@@ -725,7 +738,7 @@ class BinOpRM_RF<bits<8> opcode, string mnemonic, X86TypeInfo typeinfo,
 // BinOpRM_RFF - Instructions like "adc reg, reg, [mem]".
 class BinOpRM_RFF<bits<8> opcode, string mnemonic, X86TypeInfo typeinfo,
                  SDNode opnode>
-  : BinOpRM<opcode, mnemonic, typeinfo, (outs typeinfo.RegClass:$dst), WriteADC,
+  : BinOpRM_ImplicitUse<opcode, mnemonic, typeinfo, (outs typeinfo.RegClass:$dst), WriteADC,
             [(set typeinfo.RegClass:$dst, EFLAGS,
             (opnode typeinfo.RegClass:$src1, (typeinfo.LoadNode addr:$src2),
                     EFLAGS))]>;
@@ -805,7 +818,11 @@ class BinOpMR_RMW<bits<8> opcode, string mnemonic, X86TypeInfo typeinfo,
                   SDNode opnode>
   : BinOpMR<opcode, mnemonic, typeinfo,
           [(store (opnode (load addr:$dst), typeinfo.RegClass:$src), addr:$dst),
-           (implicit EFLAGS)]>, Sched<[WriteALURMW]>;
+           (implicit EFLAGS)]>, Sched<[WriteALURMW,
+                                       // base, scale, index, offset, segment
+                                       ReadDefault, ReadDefault, ReadDefault,
+                                       ReadDefault, ReadDefault,
+                                       WriteALU.ReadAfterFold]>;  // reg
 
 // BinOpMR_RMW_FF - Instructions like "adc [mem], reg".
 class BinOpMR_RMW_FF<bits<8> opcode, string mnemonic, X86TypeInfo typeinfo,
@@ -813,7 +830,12 @@ class BinOpMR_RMW_FF<bits<8> opcode, string mnemonic, X86TypeInfo typeinfo,
   : BinOpMR<opcode, mnemonic, typeinfo,
             [(store (opnode (load addr:$dst), typeinfo.RegClass:$src, EFLAGS),
                     addr:$dst),
-             (implicit EFLAGS)]>, Sched<[WriteADCRMW]>;
+             (implicit EFLAGS)]>, Sched<[WriteADCRMW,
+                                         // base, scale, index, offset, segment
+                                         ReadDefault, ReadDefault, ReadDefault,
+                                         ReadDefault, ReadDefault,
+                                         WriteALU.ReadAfterFold,    // reg
+                                         WriteALU.ReadAfterFold]>;  // EFLAGS
 
 // BinOpMR_F - Instructions like "cmp [mem], reg".
 class BinOpMR_F<bits<8> opcode, string mnemonic, X86TypeInfo typeinfo,
@@ -1181,6 +1203,15 @@ let isCompare = 1 in {
 defm SUB : ArithBinOp_RF<0x28, 0x2A, 0x2C, "sub", MRM5r, MRM5m,
                          X86sub_flag, sub, 0, 1, 0>;
 }
+
+// Version of XOR8rr_NOREX that use GR8_NOREX. This is used by the handling of
+// __builtin_parity where the last step xors an h-register with an l-register.
+let isCodeGenOnly = 1, hasSideEffects = 0, Constraints = "$src1 = $dst",
+    Defs = [EFLAGS], isCommutable = 1 in
+def XOR8rr_NOREX : I<0x30, MRMDestReg, (outs GR8_NOREX:$dst),
+                     (ins GR8_NOREX:$src1, GR8_NOREX:$src2),
+                     "xor{b}\t{$src2, $dst|$dst, $src2}", []>,
+                     Sched<[WriteALU]>;
 
 // Arithmetic.
 defm ADC : ArithBinOp_RFF<0x10, 0x12, 0x14, "adc", MRM2r, MRM2m, X86adc_flag,

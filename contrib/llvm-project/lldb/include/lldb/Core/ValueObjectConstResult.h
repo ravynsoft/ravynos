@@ -21,15 +21,15 @@
 #include "lldb/lldb-private-enumerations.h"
 #include "lldb/lldb-types.h"
 
-#include <stddef.h>
-#include <stdint.h>
+#include <cstddef>
+#include <cstdint>
 
 namespace lldb_private {
 class DataExtractor;
 class ExecutionContextScope;
 class Module;
 
-// A frozen ValueObject copied into host memory
+/// A frozen ValueObject copied into host memory.
 class ValueObjectConstResult : public ValueObject {
 public:
   ~ValueObjectConstResult() override;
@@ -62,7 +62,7 @@ public:
   static lldb::ValueObjectSP Create(ExecutionContextScope *exe_scope,
                                     const Status &error);
 
-  uint64_t GetByteSize() override;
+  llvm::Optional<uint64_t> GetByteSize() override;
 
   lldb::ValueType GetValueType() const override;
 
@@ -113,7 +113,7 @@ protected:
   CompilerType GetCompilerTypeImpl() override;
 
   ConstString m_type_name;
-  uint64_t m_byte_size;
+  llvm::Optional<uint64_t> m_byte_size;
 
   ValueObjectConstResultImpl m_impl;
 

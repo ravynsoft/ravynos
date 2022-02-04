@@ -170,7 +170,8 @@ static int stf_ioctl(struct ifnet *, u_long, caddr_t);
 static int stf_clone_match(struct if_clone *, const char *);
 static int stf_clone_create(struct if_clone *, char *, size_t, caddr_t);
 static int stf_clone_destroy(struct if_clone *, struct ifnet *);
-static struct if_clone *stf_cloner;
+VNET_DEFINE_STATIC(struct if_clone *, stf_cloner);
+#define V_stf_cloner	VNET(stf_cloner)
 
 static const struct encap_config ipv4_encap_cfg = {
 	.proto = IPPROTO_IPV6,
@@ -282,17 +283,33 @@ stf_clone_destroy(struct if_clone *ifc, struct ifnet *ifp)
 	return (0);
 }
 
+static void
+vnet_stf_init(const void *unused __unused)
+{
+	V_stf_cloner = if_clone_advanced(stfname, 0, stf_clone_match,
+	    stf_clone_create, stf_clone_destroy);
+}
+VNET_SYSINIT(vnet_stf_init, SI_SUB_PSEUDO, SI_ORDER_ANY, vnet_stf_init, NULL);
+
+static void
+vnet_stf_uninit(const void *unused __unused)
+{
+	if_clone_detach(V_stf_cloner);
+	V_stf_cloner = NULL;
+}
+VNET_SYSUNINIT(vnet_stf_uninit, SI_SUB_PSEUDO, SI_ORDER_ANY, vnet_stf_uninit,
+    NULL);
+
 static int
 stfmodevent(module_t mod, int type, void *data)
 {
 
 	switch (type) {
 	case MOD_LOAD:
-		stf_cloner = if_clone_advanced(stfname, 0, stf_clone_match,
-		    stf_clone_create, stf_clone_destroy);
+		/* Done in vnet_stf_init() */
 		break;
 	case MOD_UNLOAD:
-		if_clone_detach(stf_cloner);
+		/* Done in vnet_stf_uninit() */
 		break;
 	default:
 		return (EOPNOTSUPP);
@@ -319,22 +336,22 @@ stf_encapcheck(const struct mbuf *m, int off, int proto, void *arg)
 
 	sc = (struct stf_softc *)arg;
 	if (sc == NULL)
-		return 0;
+		return (0);
 
 	if ((STF2IFP(sc)->if_flags & IFF_UP) == 0)
-		return 0;
+		return (0);
 
 	/* IFF_LINK0 means "no decapsulation" */
 	if ((STF2IFP(sc)->if_flags & IFF_LINK0) != 0)
-		return 0;
+		return (0);
 
 	if (proto != IPPROTO_IPV6)
-		return 0;
+		return (0);
 
 	m_copydata(m, 0, sizeof(ip), (caddr_t)&ip);
 
 	if (ip.ip_v != 4)
-		return 0;
+		return (0);
 
 	if (stf_getsrcifa6(STF2IFP(sc), &addr6, &mask6) != 0)
 		return (0);
@@ -345,7 +362,7 @@ stf_encapcheck(const struct mbuf *m, int off, int proto, void *arg)
 	 * success on: dst = 10.1.1.1, ia6->ia_addr = 2002:0a01:0101:...
 	 */
 	if (bcmp(GET_V4(&addr6), &ip.ip_dst, sizeof(ip.ip_dst)) != 0)
-		return 0;
+		return (0);
 
 	/*
 	 * check if IPv4 src matches the IPv4 address derived from the
@@ -360,10 +377,10 @@ stf_encapcheck(const struct mbuf *m, int off, int proto, void *arg)
 	b = ip.ip_src;
 	b.s_addr &= mask.s_addr;
 	if (a.s_addr != b.s_addr)
-		return 0;
+		return (0);
 
 	/* stf interface makes single side match only */
-	return 32;
+	return (32);
 }
 
 static int
@@ -433,7 +450,7 @@ stf_output(struct ifnet *ifp, struct mbuf *m, const struct sockaddr *dst,
 	if ((ifp->if_flags & IFF_UP) == 0) {
 		m_freem(m);
 		if_inc_counter(ifp, IFCOUNTER_OERRORS, 1);
-		return ENETDOWN;
+		return (ENETDOWN);
 	}
 
 	/*
@@ -444,14 +461,14 @@ stf_output(struct ifnet *ifp, struct mbuf *m, const struct sockaddr *dst,
 	if (stf_getsrcifa6(ifp, &addr6, &mask6) != 0) {
 		m_freem(m);
 		if_inc_counter(ifp, IFCOUNTER_OERRORS, 1);
-		return ENETDOWN;
+		return (ENETDOWN);
 	}
 
 	if (m->m_len < sizeof(*ip6)) {
 		m = m_pullup(m, sizeof(*ip6));
 		if (!m) {
 			if_inc_counter(ifp, IFCOUNTER_OERRORS, 1);
-			return ENOBUFS;
+			return (ENOBUFS);
 		}
 	}
 	ip6 = mtod(m, struct ip6_hdr *);
@@ -469,7 +486,7 @@ stf_output(struct ifnet *ifp, struct mbuf *m, const struct sockaddr *dst,
 	else {
 		m_freem(m);
 		if_inc_counter(ifp, IFCOUNTER_OERRORS, 1);
-		return ENETUNREACH;
+		return (ENETUNREACH);
 	}
 	bcopy(ptr, &in4, sizeof(in4));
 
@@ -488,7 +505,7 @@ stf_output(struct ifnet *ifp, struct mbuf *m, const struct sockaddr *dst,
 	M_PREPEND(m, sizeof(struct ip), M_NOWAIT);
 	if (m == NULL) {
 		if_inc_counter(ifp, IFCOUNTER_OERRORS, 1);
-		return ENOBUFS;
+		return (ENOBUFS);
 	}
 	ip = mtod(m, struct ip *);
 
@@ -508,7 +525,7 @@ stf_output(struct ifnet *ifp, struct mbuf *m, const struct sockaddr *dst,
 	if_inc_counter(ifp, IFCOUNTER_OPACKETS, 1);
 	error = ip_output(m, NULL, NULL, 0, NULL, NULL);
 
-	return error;
+	return (error);
 }
 
 static int
@@ -522,9 +539,9 @@ isrfc1918addr(struct in_addr *in)
 	    (ntohl(in->s_addr) & 0xff000000) >> 24 == 10 ||
 	    (ntohl(in->s_addr) & 0xfff00000) >> 16 == 172 * 256 + 16 ||
 	    (ntohl(in->s_addr) & 0xffff0000) >> 16 == 192 * 256 + 168))
-		return 1;
+		return (1);
 
-	return 0;
+	return (0);
 }
 
 static int
@@ -538,10 +555,10 @@ stf_checkaddr4(struct stf_softc *sc, struct in_addr *in, struct ifnet *inifp)
 	 * 224.0.0.0/4 0.0.0.0/8 127.0.0.0/8 255.0.0.0/8
 	 */
 	if (IN_MULTICAST(ntohl(in->s_addr)))
-		return -1;
+		return (-1);
 	switch ((ntohl(in->s_addr) & 0xff000000) >> 24) {
 	case 0: case 127: case 255:
-		return -1;
+		return (-1);
 	}
 
 	/*
@@ -549,7 +566,7 @@ stf_checkaddr4(struct stf_softc *sc, struct in_addr *in, struct ifnet *inifp)
 	 * (requirement from RFC3056 section 2 1st paragraph)
 	 */
 	if (isrfc1918addr(in))
-		return -1;
+		return (-1);
 
 	/*
 	 * reject packets with broadcast
@@ -560,7 +577,7 @@ stf_checkaddr4(struct stf_softc *sc, struct in_addr *in, struct ifnet *inifp)
 			continue;
 		if (in->s_addr == ia4->ia_broadaddr.sin_addr.s_addr) {
 			IN_IFADDR_RUNLOCK(&in_ifa_tracker);
-			return -1;
+			return (-1);
 		}
 	}
 	IN_IFADDR_RUNLOCK(&in_ifa_tracker);
@@ -580,7 +597,7 @@ stf_checkaddr4(struct stf_softc *sc, struct in_addr *in, struct ifnet *inifp)
 			return (-1);
 	}
 
-	return 0;
+	return (0);
 }
 
 static int
@@ -592,7 +609,7 @@ stf_checkaddr6(struct stf_softc *sc, struct in6_addr *in6, struct ifnet *inifp)
 	if (IN6_IS_ADDR_6TO4(in6)) {
 		struct in_addr in4;
 		bcopy(GET_V4(in6), &in4, sizeof(in4));
-		return stf_checkaddr4(sc, &in4, inifp);
+		return (stf_checkaddr4(sc, &in4, inifp));
 	}
 
 	/*
@@ -602,9 +619,9 @@ stf_checkaddr6(struct stf_softc *sc, struct in6_addr *in6, struct ifnet *inifp)
 	 * (2) to be safe against future ip6_input change.
 	 */
 	if (IN6_IS_ADDR_V4COMPAT(in6) || IN6_IS_ADDR_V4MAPPED(in6))
-		return -1;
+		return (-1);
 
-	return 0;
+	return (0);
 }
 
 static int
@@ -758,5 +775,5 @@ stf_ioctl(struct ifnet *ifp, u_long cmd, caddr_t data)
 		break;
 	}
 
-	return error;
+	return (error);
 }

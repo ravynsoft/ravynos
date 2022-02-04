@@ -236,6 +236,9 @@ tcp-upstream{COLON}		{ YDVAR(1, VAR_TCP_UPSTREAM) }
 tcp-mss{COLON}			{ YDVAR(1, VAR_TCP_MSS) }
 outgoing-tcp-mss{COLON}		{ YDVAR(1, VAR_OUTGOING_TCP_MSS) }
 tcp-idle-timeout{COLON}		{ YDVAR(1, VAR_TCP_IDLE_TIMEOUT) }
+max-reuse-tcp-queries{COLON}	{ YDVAR(1, VAR_MAX_REUSE_TCP_QUERIES) }
+tcp-reuse-timeout{COLON}	{ YDVAR(1, VAR_TCP_REUSE_TIMEOUT) }
+tcp-auth-query-timeout{COLON}	{ YDVAR(1, VAR_TCP_AUTH_QUERY_TIMEOUT) }
 edns-tcp-keepalive{COLON}	{ YDVAR(1, VAR_EDNS_TCP_KEEPALIVE) }
 edns-tcp-keepalive-timeout{COLON} { YDVAR(1, VAR_EDNS_TCP_KEEPALIVE_TIMEOUT) }
 ssl-upstream{COLON}		{ YDVAR(1, VAR_SSL_UPSTREAM) }
@@ -329,6 +332,7 @@ stub-first{COLON}		{ YDVAR(1, VAR_STUB_FIRST) }
 stub-no-cache{COLON}		{ YDVAR(1, VAR_STUB_NO_CACHE) }
 stub-ssl-upstream{COLON}	{ YDVAR(1, VAR_STUB_SSL_UPSTREAM) }
 stub-tls-upstream{COLON}	{ YDVAR(1, VAR_STUB_SSL_UPSTREAM) }
+stub-tcp-upstream{COLON}	{ YDVAR(1, VAR_STUB_TCP_UPSTREAM) }
 forward-zone{COLON}		{ YDVAR(0, VAR_FORWARD_ZONE) }
 forward-addr{COLON}		{ YDVAR(1, VAR_FORWARD_ADDR) }
 forward-host{COLON}		{ YDVAR(1, VAR_FORWARD_HOST) }
@@ -336,6 +340,7 @@ forward-first{COLON}		{ YDVAR(1, VAR_FORWARD_FIRST) }
 forward-no-cache{COLON}		{ YDVAR(1, VAR_FORWARD_NO_CACHE) }
 forward-ssl-upstream{COLON}	{ YDVAR(1, VAR_FORWARD_SSL_UPSTREAM) }
 forward-tls-upstream{COLON}	{ YDVAR(1, VAR_FORWARD_SSL_UPSTREAM) }
+forward-tcp-upstream{COLON}	{ YDVAR(1, VAR_FORWARD_TCP_UPSTREAM) }
 auth-zone{COLON}		{ YDVAR(0, VAR_AUTH_ZONE) }
 rpz{COLON}			{ YDVAR(0, VAR_RPZ) }
 tags{COLON}			{ YDVAR(1, VAR_TAGS) }
@@ -369,8 +374,10 @@ max-ecs-tree-size-ipv6{COLON}	{ YDVAR(1, VAR_MAX_ECS_TREE_SIZE_IPV6) }
 hide-identity{COLON}		{ YDVAR(1, VAR_HIDE_IDENTITY) }
 hide-version{COLON}		{ YDVAR(1, VAR_HIDE_VERSION) }
 hide-trustanchor{COLON}		{ YDVAR(1, VAR_HIDE_TRUSTANCHOR) }
+hide-http-user-agent{COLON}		{ YDVAR(1, VAR_HIDE_HTTP_USER_AGENT) }
 identity{COLON}			{ YDVAR(1, VAR_IDENTITY) }
 version{COLON}			{ YDVAR(1, VAR_VERSION) }
+http-user-agent{COLON}			{ YDVAR(1, VAR_HTTP_USER_AGENT) }
 module-config{COLON}     	{ YDVAR(1, VAR_MODULE_CONF) }
 dlv-anchor{COLON}		{ YDVAR(1, VAR_DLV_ANCHOR) }
 dlv-anchor-file{COLON}		{ YDVAR(1, VAR_DLV_ANCHOR_FILE) }
@@ -383,6 +390,7 @@ root-key-sentinel{COLON}	{ YDVAR(1, VAR_ROOT_KEY_SENTINEL) }
 val-override-date{COLON}	{ YDVAR(1, VAR_VAL_OVERRIDE_DATE) }
 val-sig-skew-min{COLON}		{ YDVAR(1, VAR_VAL_SIG_SKEW_MIN) }
 val-sig-skew-max{COLON}		{ YDVAR(1, VAR_VAL_SIG_SKEW_MAX) }
+val-max-restart{COLON}		{ YDVAR(1, VAR_VAL_MAX_RESTART) }
 val-bogus-ttl{COLON}		{ YDVAR(1, VAR_BOGUS_TTL) }
 val-clean-additional{COLON}	{ YDVAR(1, VAR_VAL_CLEAN_ADDITIONAL) }
 val-permissive-mode{COLON}	{ YDVAR(1, VAR_VAL_PERMISSIVE_MODE) }
@@ -402,6 +410,9 @@ key-cache-slabs{COLON}		{ YDVAR(1, VAR_KEY_CACHE_SLABS) }
 neg-cache-size{COLON}		{ YDVAR(1, VAR_NEG_CACHE_SIZE) }
 val-nsec3-keysize-iterations{COLON}	{ 
 				  YDVAR(1, VAR_VAL_NSEC3_KEYSIZE_ITERATIONS) }
+zonemd-permissive-mode{COLON}	{ YDVAR(1, VAR_ZONEMD_PERMISSIVE_MODE) }
+zonemd-check{COLON}		{ YDVAR(1, VAR_ZONEMD_CHECK) }
+zonemd-reject-absence{COLON}	{ YDVAR(1, VAR_ZONEMD_REJECT_ABSENCE) }
 add-holddown{COLON}		{ YDVAR(1, VAR_ADD_HOLDDOWN) }
 del-holddown{COLON}		{ YDVAR(1, VAR_DEL_HOLDDOWN) }
 keep-missing{COLON}		{ YDVAR(1, VAR_KEEP_MISSING) }
@@ -491,6 +502,7 @@ ratelimit-for-domain{COLON}	{ YDVAR(2, VAR_RATELIMIT_FOR_DOMAIN) }
 ratelimit-below-domain{COLON}	{ YDVAR(2, VAR_RATELIMIT_BELOW_DOMAIN) }
 ip-ratelimit-factor{COLON}		{ YDVAR(1, VAR_IP_RATELIMIT_FACTOR) }
 ratelimit-factor{COLON}		{ YDVAR(1, VAR_RATELIMIT_FACTOR) }
+outbound-msg-retry{COLON}		{ YDVAR(1, VAR_OUTBOUND_MSG_RETRY) }
 low-rtt{COLON}			{ YDVAR(1, VAR_LOW_RTT) }
 fast-server-num{COLON}		{ YDVAR(1, VAR_FAST_SERVER_NUM) }
 low-rtt-pct{COLON}		{ YDVAR(1, VAR_FAST_SERVER_PERMIL) }

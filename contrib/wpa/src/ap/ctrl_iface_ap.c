@@ -50,9 +50,35 @@ static size_t hostapd_write_ht_mcs_bitmask(char *buf, size_t buflen,
 }
 
 
-static int hostapd_get_sta_tx_rx(struct hostapd_data *hapd,
-				 struct sta_info *sta,
-				 char *buf, size_t buflen)
+static int hostapd_get_sta_conn_time(struct sta_info *sta,
+				     struct hostap_sta_driver_data *data,
+				     char *buf, size_t buflen)
+{
+	struct os_reltime age;
+	unsigned long secs;
+	int ret;
+
+	if (sta->connected_time.sec) {
+		/* Locally maintained time in AP mode */
+		os_reltime_age(&sta->connected_time, &age);
+		secs = (unsigned long) age.sec;
+	} else if (data->flags & STA_DRV_DATA_CONN_TIME) {
+		/* Time from the driver in mesh mode */
+		secs = data->connected_sec;
+	} else {
+		return 0;
+	}
+
+	ret = os_snprintf(buf, buflen, "connected_time=%lu\n", secs);
+	if (os_snprintf_error(buflen, ret))
+		return 0;
+	return ret;
+}
+
+
+static int hostapd_get_sta_info(struct hostapd_data *hapd,
+				struct sta_info *sta,
+				char *buf, size_t buflen)
 {
 	struct hostap_sta_driver_data data;
 	int ret;
@@ -160,26 +186,9 @@ static int hostapd_get_sta_tx_rx(struct hostapd_data *hapd,
 			len += ret;
 	}
 
+	len += hostapd_get_sta_conn_time(sta, &data, buf + len, buflen - len);
+
 	return len;
-}
-
-
-static int hostapd_get_sta_conn_time(struct sta_info *sta,
-				     char *buf, size_t buflen)
-{
-	struct os_reltime age;
-	int ret;
-
-	if (!sta->connected_time.sec)
-		return 0;
-
-	os_reltime_age(&sta->connected_time, &age);
-
-	ret = os_snprintf(buf, buflen, "connected_time=%u\n",
-			  (unsigned int) age.sec);
-	if (os_snprintf_error(buflen, ret))
-		return 0;
-	return ret;
 }
 
 
@@ -263,13 +272,42 @@ static int hostapd_ctrl_iface_sta_mib(struct hostapd_data *hapd,
 	if (res >= 0)
 		len += res;
 
-	len += hostapd_get_sta_tx_rx(hapd, sta, buf + len, buflen - len);
-	len += hostapd_get_sta_conn_time(sta, buf + len, buflen - len);
+	len += hostapd_get_sta_info(hapd, sta, buf + len, buflen - len);
 
 #ifdef CONFIG_SAE
 	if (sta->sae && sta->sae->state == SAE_ACCEPTED) {
 		res = os_snprintf(buf + len, buflen - len, "sae_group=%d\n",
 				  sta->sae->group);
+		if (!os_snprintf_error(buflen - len, res))
+			len += res;
+	}
+
+	if (sta->sae && sta->sae->tmp) {
+		const u8 *pos;
+		unsigned int j, count;
+		struct wpabuf *groups = sta->sae->tmp->peer_rejected_groups;
+
+		res = os_snprintf(buf + len, buflen - len,
+				  "sae_rejected_groups=");
+		if (!os_snprintf_error(buflen - len, res))
+			len += res;
+
+		if (groups) {
+			pos = wpabuf_head(groups);
+			count = wpabuf_len(groups) / 2;
+		} else {
+			pos = NULL;
+			count = 0;
+		}
+		for (j = 0; pos && j < count; j++) {
+			res = os_snprintf(buf + len, buflen - len, "%s%d",
+					  j == 0 ? "" : " ", WPA_GET_LE16(pos));
+			if (!os_snprintf_error(buflen - len, res))
+				len += res;
+			pos += 2;
+		}
+
+		res = os_snprintf(buf + len, buflen - len, "\n");
 		if (!os_snprintf_error(buflen - len, res))
 			len += res;
 	}
@@ -315,7 +353,6 @@ static int hostapd_ctrl_iface_sta_mib(struct hostapd_data *hapd,
 	}
 #endif /* CONFIG_IEEE80211AC */
 
-#ifdef CONFIG_IEEE80211N
 	if ((sta->flags & WLAN_STA_HT) && sta->ht_capabilities) {
 		res = os_snprintf(buf + len, buflen - len,
 				  "ht_caps_info=0x%04x\n",
@@ -324,7 +361,6 @@ static int hostapd_ctrl_iface_sta_mib(struct hostapd_data *hapd,
 		if (!os_snprintf_error(buflen - len, res))
 			len += res;
 	}
-#endif /* CONFIG_IEEE80211N */
 
 	if (sta->ext_capability &&
 	    buflen - len > (unsigned) (11 + 2 * sta->ext_capability[0])) {
@@ -432,9 +468,6 @@ static int p2p_manager_disconnect(struct hostapd_data *hapd, u16 stype,
 	int ret;
 	u8 *pos;
 
-	if (!hapd->drv_priv || !hapd->driver->send_frame)
-		return -1;
-
 	mgmt = os_zalloc(sizeof(*mgmt) + 100);
 	if (mgmt == NULL)
 		return -1;
@@ -468,8 +501,8 @@ static int p2p_manager_disconnect(struct hostapd_data *hapd, u16 stype,
 	pos += 2;
 	*pos++ = minor_reason_code;
 
-	ret = hapd->driver->send_frame(hapd->drv_priv, (u8 *) mgmt,
-				       pos - (u8 *) mgmt, 1);
+	ret = hostapd_drv_send_mlme(hapd, mgmt, pos - (u8 *) mgmt, 0, NULL, 0,
+				    0);
 	os_free(mgmt);
 
 	return ret < 0 ? -1 : 0;
@@ -499,8 +532,7 @@ int hostapd_ctrl_iface_deauthenticate(struct hostapd_data *hapd,
 	if (pos) {
 		struct ieee80211_mgmt mgmt;
 		int encrypt;
-		if (!hapd->drv_priv || !hapd->driver->send_frame)
-			return -1;
+
 		pos += 6;
 		encrypt = atoi(pos);
 		os_memset(&mgmt, 0, sizeof(mgmt));
@@ -510,10 +542,10 @@ int hostapd_ctrl_iface_deauthenticate(struct hostapd_data *hapd,
 		os_memcpy(mgmt.sa, hapd->own_addr, ETH_ALEN);
 		os_memcpy(mgmt.bssid, hapd->own_addr, ETH_ALEN);
 		mgmt.u.deauth.reason_code = host_to_le16(reason);
-		if (hapd->driver->send_frame(hapd->drv_priv, (u8 *) &mgmt,
-					     IEEE80211_HDRLEN +
-					     sizeof(mgmt.u.deauth),
-					     encrypt) < 0)
+		if (hostapd_drv_send_mlme(hapd, (u8 *) &mgmt,
+					  IEEE80211_HDRLEN +
+					  sizeof(mgmt.u.deauth),
+					  0, NULL, 0, !encrypt) < 0)
 			return -1;
 		return 0;
 	}
@@ -562,8 +594,7 @@ int hostapd_ctrl_iface_disassociate(struct hostapd_data *hapd,
 	if (pos) {
 		struct ieee80211_mgmt mgmt;
 		int encrypt;
-		if (!hapd->drv_priv || !hapd->driver->send_frame)
-			return -1;
+
 		pos += 6;
 		encrypt = atoi(pos);
 		os_memset(&mgmt, 0, sizeof(mgmt));
@@ -573,10 +604,10 @@ int hostapd_ctrl_iface_disassociate(struct hostapd_data *hapd,
 		os_memcpy(mgmt.sa, hapd->own_addr, ETH_ALEN);
 		os_memcpy(mgmt.bssid, hapd->own_addr, ETH_ALEN);
 		mgmt.u.disassoc.reason_code = host_to_le16(reason);
-		if (hapd->driver->send_frame(hapd->drv_priv, (u8 *) &mgmt,
-					     IEEE80211_HDRLEN +
-					     sizeof(mgmt.u.deauth),
-					     encrypt) < 0)
+		if (hostapd_drv_send_mlme(hapd, (u8 *) &mgmt,
+					  IEEE80211_HDRLEN +
+					  sizeof(mgmt.u.deauth),
+					  0, NULL, 0, !encrypt) < 0)
 			return -1;
 		return 0;
 	}
@@ -709,6 +740,8 @@ int hostapd_ctrl_iface_status(struct hostapd_data *hapd, char *buf,
 
 	ret = os_snprintf(buf + len, buflen - len,
 			  "channel=%u\n"
+			  "edmg_enable=%d\n"
+			  "edmg_channel=%d\n"
 			  "secondary_channel=%d\n"
 			  "ieee80211n=%d\n"
 			  "ieee80211ac=%d\n"
@@ -716,17 +749,36 @@ int hostapd_ctrl_iface_status(struct hostapd_data *hapd, char *buf,
 			  "beacon_int=%u\n"
 			  "dtim_period=%d\n",
 			  iface->conf->channel,
+			  iface->conf->enable_edmg,
+			  iface->conf->edmg_channel,
 			  iface->conf->ieee80211n && !hapd->conf->disable_11n ?
 			  iface->conf->secondary_channel : 0,
 			  iface->conf->ieee80211n && !hapd->conf->disable_11n,
 			  iface->conf->ieee80211ac &&
 			  !hapd->conf->disable_11ac,
-			  iface->conf->ieee80211ax,
+			  iface->conf->ieee80211ax &&
+			  !hapd->conf->disable_11ax,
 			  iface->conf->beacon_int,
 			  hapd->conf->dtim_period);
 	if (os_snprintf_error(buflen - len, ret))
 		return len;
 	len += ret;
+
+#ifdef CONFIG_IEEE80211AX
+	if (iface->conf->ieee80211ax && !hapd->conf->disable_11ax) {
+		ret = os_snprintf(buf + len, buflen - len,
+				  "he_oper_chwidth=%d\n"
+				  "he_oper_centr_freq_seg0_idx=%d\n"
+				  "he_oper_centr_freq_seg1_idx=%d\n",
+				  iface->conf->he_oper_chwidth,
+				  iface->conf->he_oper_centr_freq_seg0_idx,
+				  iface->conf->he_oper_centr_freq_seg1_idx);
+		if (os_snprintf_error(buflen - len, ret))
+			return len;
+		len += ret;
+	}
+#endif /* CONFIG_IEEE80211AX */
+
 	if (iface->conf->ieee80211ac && !hapd->conf->disable_11ac) {
 		ret = os_snprintf(buf + len, buflen - len,
 				  "vht_oper_chwidth=%d\n"
@@ -865,6 +917,7 @@ int hostapd_parse_csa_settings(const char *pos,
 	SET_CSA_SETTING(sec_channel_offset);
 	settings->freq_params.ht_enabled = !!os_strstr(pos, " ht");
 	settings->freq_params.vht_enabled = !!os_strstr(pos, " vht");
+	settings->freq_params.he_enabled = !!os_strstr(pos, " he");
 	settings->block_tx = !!os_strstr(pos, " blocktx");
 #undef SET_CSA_SETTING
 

@@ -76,6 +76,7 @@ read_client_conf(void)
 	memset(&top_level_config, 0, sizeof(top_level_config));
 
 	/* Set some defaults... */
+	top_level_config.vlan_pcp = 0;
 	top_level_config.timeout = 60;
 	top_level_config.select_interval = 0;
 	top_level_config.reboot_timeout = 10;
@@ -198,9 +199,9 @@ void
 parse_client_statement(FILE *cfile, struct interface_info *ip,
     struct client_config *config)
 {
-	int		 token;
 	char		*val;
 	struct option	*option;
+	time_t		 tmp;
 
 	switch (next_token(&val, cfile)) {
 	case SEND:
@@ -260,6 +261,10 @@ parse_client_statement(FILE *cfile, struct interface_info *ip,
 	case REBOOT:
 		parse_lease_time(cfile, &config->reboot_timeout);
 		return;
+	case VLAN_PCP:
+		parse_lease_time(cfile, &tmp);
+		config->vlan_pcp = (u_int)tmp;
+		return;
 	case BACKOFF_CUTOFF:
 		parse_lease_time(cfile, &config->backoff_cutoff);
 		return;
@@ -284,15 +289,11 @@ parse_client_statement(FILE *cfile, struct interface_info *ip,
 		parse_reject_statement(cfile, config);
 		return;
 	default:
-		parse_warn("expecting a statement.");
-		skip_to_semi(cfile);
 		break;
 	}
-	token = next_token(&val, cfile);
-	if (token != SEMI) {
-		parse_warn("semicolon expected.");
-		skip_to_semi(cfile);
-	}
+
+	parse_warn("expecting a statement.");
+	skip_to_semi(cfile);
 }
 
 unsigned
@@ -631,7 +632,7 @@ parse_client_lease_declaration(FILE *cfile, struct client_lease *lease,
 		if (token != STRING) {
 			parse_warn("expecting interface name (in quotes).");
 			skip_to_semi(cfile);
-			break;
+			return;
 		}
 		ip = interface_or_dummy(val);
 		*ipp = ip;
@@ -668,7 +669,7 @@ parse_client_lease_declaration(FILE *cfile, struct client_lease *lease,
 	default:
 		parse_warn("expecting lease declaration.");
 		skip_to_semi(cfile);
-		break;
+		return;
 	}
 	token = next_token(&val, cfile);
 	if (token != SEMI) {

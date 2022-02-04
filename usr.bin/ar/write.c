@@ -67,52 +67,52 @@ static void	insert_obj(struct bsdar *bsdar, struct ar_obj *obj,
 static void	prefault_buffer(const char *buf, size_t s);
 static void	read_objs(struct bsdar *bsdar, const char *archive,
 		    int checkargv);
-static void	write_archive(struct bsdar *bsdar, char mode);
+static int	write_archive(struct bsdar *bsdar, char mode);
 static void	write_cleanup(struct bsdar *bsdar);
 static void	write_data(struct bsdar *bsdar, struct archive *a,
 		    const void *buf, size_t s);
 static void	write_objs(struct bsdar *bsdar);
 
-void
+int
 ar_mode_d(struct bsdar *bsdar)
 {
 
-	write_archive(bsdar, 'd');
+	return (write_archive(bsdar, 'd'));
 }
 
-void
+int
 ar_mode_m(struct bsdar *bsdar)
 {
 
-	write_archive(bsdar, 'm');
+	return (write_archive(bsdar, 'm'));
 }
 
-void
+int
 ar_mode_q(struct bsdar *bsdar)
 {
 
-	write_archive(bsdar, 'q');
+	return (write_archive(bsdar, 'q'));
 }
 
-void
+int
 ar_mode_r(struct bsdar *bsdar)
 {
 
-	write_archive(bsdar, 'r');
+	return (write_archive(bsdar, 'r'));
 }
 
-void
+int
 ar_mode_s(struct bsdar *bsdar)
 {
 
-	write_archive(bsdar, 's');
+	return (write_archive(bsdar, 's'));
 }
 
-void
+int
 ar_mode_A(struct bsdar *bsdar)
 {
 
-	write_archive(bsdar, 'A');
+	return (write_archive(bsdar, 'A'));
 }
 
 /*
@@ -378,16 +378,17 @@ read_objs(struct bsdar *bsdar, const char *archive, int checkargv)
 /*
  * Determine the constitution of resulting archive.
  */
-static void
+static int
 write_archive(struct bsdar *bsdar, char mode)
 {
 	struct ar_obj		 *nobj, *obj, *obj_temp, *pos;
 	struct stat		  sb;
 	const char		 *bname;
 	char			**av;
-	int			  i;
+	int			  exitcode, i;
 
 	TAILQ_INIT(&bsdar->v_obj);
+	exitcode = EXIT_SUCCESS;
 	nobj = NULL;
 	pos = NULL;
 	memset(&sb, 0, sizeof(sb));
@@ -400,14 +401,14 @@ write_archive(struct bsdar *bsdar, char mode)
 		if (errno != ENOENT) {
 			bsdar_warnc(bsdar, 0, "stat %s failed",
 			    bsdar->filename);
-			return;
+			return (EXIT_FAILURE);
 		}
 
 		/* We do not create archive in mode 'd', 'm' and 's'.  */
 		if (mode != 'r' && mode != 'q') {
 			bsdar_warnc(bsdar, 0, "%s: no such file",
 			    bsdar->filename);
-			return;
+			return (EXIT_FAILURE);
 		}
 
 		/* Issue a warning if -c is not specified when creating. */
@@ -491,8 +492,10 @@ write_archive(struct bsdar *bsdar, char mode)
 				 */
 				nobj = create_obj_from_file(bsdar, *av,
 				    obj->mtime);
-				if (nobj == NULL)
+				if (nobj == NULL) {
+					exitcode = EXIT_FAILURE;
 					goto skip_obj;
+				}
 			}
 
 			if (bsdar->options & AR_V)
@@ -526,8 +529,12 @@ new_archive:
 		av = &bsdar->argv[i];
 		if (*av != NULL && (mode == 'r' || mode == 'q')) {
 			nobj = create_obj_from_file(bsdar, *av, 0);
-			if (nobj != NULL)
-				insert_obj(bsdar, nobj, pos);
+			if (nobj == NULL) {
+				exitcode = EXIT_FAILURE;
+				*av = NULL;
+				continue;
+			}
+			insert_obj(bsdar, nobj, pos);
 			if (bsdar->options & AR_V && nobj != NULL)
 				(void)fprintf(stdout, "a - %s\n", *av);
 			*av = NULL;
@@ -537,6 +544,8 @@ new_archive:
 write_objs:
 	write_objs(bsdar);
 	write_cleanup(bsdar);
+
+	return (exitcode);
 }
 
 /*
@@ -787,7 +796,7 @@ create_symtab_entry(struct bsdar *bsdar, void *maddr, size_t size)
 		return;
 	}
 	if (elf_getshstrndx(e, &shstrndx) == 0) {
-		bsdar_warnc(bsdar, EX_SOFTWARE, 0, "elf_getshstrndx failed: %s",
+		bsdar_warnc(bsdar, 0, "elf_getshstrndx failed: %s",
 		     elf_errmsg(-1));
 		elf_end(e);
 		return;
@@ -824,8 +833,8 @@ create_symtab_entry(struct bsdar *bsdar, void *maddr, size_t size)
 	scn = NULL;
 	while ((scn = elf_nextscn(e, scn)) != NULL) {
 		if (gelf_getshdr(scn, &shdr) != &shdr) {
-			bsdar_warnc(bsdar, EX_SOFTWARE, 0,
-			    "elf_getshdr failed: %s", elf_errmsg(-1));
+			bsdar_warnc(bsdar, 0, "elf_getshdr failed: %s",
+			    elf_errmsg(-1));
 			continue;
 		}
 		if (shdr.sh_type != SHT_SYMTAB)
@@ -838,7 +847,7 @@ create_symtab_entry(struct bsdar *bsdar, void *maddr, size_t size)
 			len = data->d_size / shdr.sh_entsize;
 			for (i = 0; i < len; i++) {
 				if (gelf_getsym(data, i, &sym) != &sym) {
-					bsdar_warnc(bsdar, EX_SOFTWARE, 0,
+					bsdar_warnc(bsdar, 0,
 					    "gelf_getsym failed: %s",
 					     elf_errmsg(-1));
 					continue;
@@ -855,7 +864,7 @@ create_symtab_entry(struct bsdar *bsdar, void *maddr, size_t size)
 
 				if ((name = elf_strptr(e, tabndx,
 				    sym.st_name)) == NULL) {
-					bsdar_warnc(bsdar, EX_SOFTWARE, 0,
+					bsdar_warnc(bsdar, 0,
 					    "elf_strptr failed: %s",
 					     elf_errmsg(-1));
 					continue;
@@ -867,7 +876,7 @@ create_symtab_entry(struct bsdar *bsdar, void *maddr, size_t size)
 	}
 	elferr = elf_errno();
 	if (elferr != 0)
-		bsdar_warnc(bsdar, EX_SOFTWARE, 0, "elf_nextscn failed: %s",
+		bsdar_warnc(bsdar, 0, "elf_nextscn failed: %s",
 		     elf_errmsg(elferr));
 
 	elf_end(e);

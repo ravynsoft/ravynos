@@ -36,8 +36,14 @@ enum NodeType {
   /// TargetExternalSymbol, and TargetGlobalAddress.
   WRAPPER,
   LSL,     ///< Logical shift left.
+  LSLBN,   ///< Byte logical shift left N bits.
+  LSLWN,   ///< Word logical shift left N bits.
   LSR,     ///< Logical shift right.
+  LSRBN,   ///< Byte logical shift right N bits.
+  LSRWN,   ///< Word logical shift right N bits.
   ASR,     ///< Arithmetic shift right.
+  ASRBN,   ///< Byte arithmetic shift right N bits.
+  ASRWN,   ///< Word arithmetic shift right N bits.
   ROR,     ///< Bit rotate right.
   ROL,     ///< Bit rotate left.
   LSLLOOP, ///< A loop of single logical shift left instructions.
@@ -56,6 +62,8 @@ enum NodeType {
   CMPC,
   /// Test for zero or minus instruction.
   TST,
+  /// Swap Rd[7:4] <-> Rd[3:0].
+  SWAP,
   /// Operand 0 and operand 1 are selection variable, operand 2
   /// is condition code and operand 3 is flag operand.
   SELECT_CC
@@ -136,6 +144,8 @@ public:
 private:
   SDValue getAVRCmp(SDValue LHS, SDValue RHS, ISD::CondCode CC, SDValue &AVRcc,
                     SelectionDAG &DAG, SDLoc dl) const;
+  SDValue getAVRCmp(SDValue LHS, SDValue RHS, SelectionDAG &DAG,
+                    SDLoc dl) const;
   SDValue LowerShifts(SDValue Op, SelectionDAG &DAG) const;
   SDValue LowerDivRem(SDValue Op, SelectionDAG &DAG) const;
   SDValue LowerGlobalAddress(SDValue Op, SelectionDAG &DAG) const;

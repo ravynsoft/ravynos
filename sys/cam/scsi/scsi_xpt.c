@@ -79,11 +79,8 @@ struct scsi_quirk_entry {
 #define SCSI_QUIRK(dev)	((struct scsi_quirk_entry *)((dev)->quirk))
 
 static int cam_srch_hi = 0;
-static int sysctl_cam_search_luns(SYSCTL_HANDLER_ARGS);
-SYSCTL_PROC(_kern_cam, OID_AUTO, cam_srch_hi,
-    CTLTYPE_INT | CTLFLAG_RWTUN | CTLFLAG_NEEDGIANT, 0, 0,
-    sysctl_cam_search_luns, "I",
-    "allow search above LUN 7 for SCSI3 and greater devices");
+SYSCTL_INT(_kern_cam, OID_AUTO, cam_srch_hi, CTLFLAG_RWTUN,
+    &cam_srch_hi, 0, "Search above LUN 7 for SCSI3 and greater devices");
 
 #define	CAM_SCSI2_MAXLUN	8
 #define	CAM_CAN_GET_SIMPLE_LUN(x, i)				\
@@ -181,7 +178,6 @@ do {									\
 
 typedef enum {
 	PROBE_INQUIRY_CKSUM	= 0x01,
-	PROBE_SERIAL_CKSUM	= 0x02,
 	PROBE_NO_ANNOUNCE	= 0x04,
 	PROBE_EXTLUN		= 0x08
 } probe_flags;
@@ -779,8 +775,6 @@ again:
 	}
 	case PROBE_INQUIRY:
 	case PROBE_FULL_INQUIRY:
-	case PROBE_INQUIRY_BASIC_DV1:
-	case PROBE_INQUIRY_BASIC_DV2:
 	{
 		u_int inquiry_len;
 		struct scsi_inquiry_data *inq_buf;
@@ -795,19 +789,19 @@ again:
 		 * serial number check finish, we attempt to figure out
 		 * whether we still have the same device.
 		 */
-		if (((periph->path->device->flags & CAM_DEV_UNCONFIGURED) == 0)
-		 && ((softc->flags & PROBE_INQUIRY_CKSUM) == 0)) {
+		if (periph->path->device->flags & CAM_DEV_UNCONFIGURED) {
+			softc->flags &= ~PROBE_INQUIRY_CKSUM;
+		} else if ((softc->flags & PROBE_INQUIRY_CKSUM) == 0) {
 			MD5Init(&softc->context);
 			MD5Update(&softc->context, (unsigned char *)inq_buf,
 				  sizeof(struct scsi_inquiry_data));
-			softc->flags |= PROBE_INQUIRY_CKSUM;
 			if (periph->path->device->serial_num_len > 0) {
 				MD5Update(&softc->context,
 					  periph->path->device->serial_num,
 					  periph->path->device->serial_num_len);
-				softc->flags |= PROBE_SERIAL_CKSUM;
 			}
 			MD5Final(softc->digest, &softc->context);
+			softc->flags |= PROBE_INQUIRY_CKSUM;
 		}
 
 		if (softc->action == PROBE_INQUIRY)
@@ -823,22 +817,6 @@ again:
 		 */
 		inquiry_len = roundup2(inquiry_len, 2);
 
-		if (softc->action == PROBE_INQUIRY_BASIC_DV1
-		 || softc->action == PROBE_INQUIRY_BASIC_DV2) {
-			inq_buf = malloc(inquiry_len, M_CAMXPT, M_NOWAIT);
-		}
-		if (inq_buf == NULL) {
-			xpt_print(periph->path, "malloc failure- skipping Basic"
-			    "Domain Validation\n");
-			PROBE_SET_ACTION(softc, PROBE_DV_EXIT);
-			scsi_test_unit_ready(csio,
-					     /*retries*/4,
-					     probedone,
-					     MSG_SIMPLE_Q_TAG,
-					     SSD_FULL_SIZE,
-					     /*timeout*/60000);
-			break;
-		}
 		scsi_inquiry(csio,
 			     /*retries*/4,
 			     probedone,
@@ -1022,6 +1000,40 @@ done:
 			break;
 		}
 		goto done;
+	}
+	case PROBE_INQUIRY_BASIC_DV1:
+	case PROBE_INQUIRY_BASIC_DV2:
+	{
+		u_int inquiry_len;
+		struct scsi_inquiry_data *inq_buf;
+
+		inq_buf = &periph->path->device->inq_data;
+		inquiry_len = roundup2(SID_ADDITIONAL_LENGTH(inq_buf), 2);
+		inq_buf = malloc(inquiry_len, M_CAMXPT, M_NOWAIT);
+		if (inq_buf == NULL) {
+			xpt_print(periph->path, "malloc failure- skipping Basic"
+			    "Domain Validation\n");
+			PROBE_SET_ACTION(softc, PROBE_DV_EXIT);
+			scsi_test_unit_ready(csio,
+					     /*retries*/4,
+					     probedone,
+					     MSG_SIMPLE_Q_TAG,
+					     SSD_FULL_SIZE,
+					     /*timeout*/60000);
+			break;
+		}
+
+		scsi_inquiry(csio,
+			     /*retries*/4,
+			     probedone,
+			     MSG_SIMPLE_Q_TAG,
+			     (u_int8_t *)inq_buf,
+			     inquiry_len,
+			     /*evpd*/FALSE,
+			     /*page_code*/0,
+			     SSD_MIN_SIZE,
+			     /*timeout*/60 * 1000);
+		break;
 	}
 	default:
 		panic("probestart: invalid action state 0x%x\n", softc->action);
@@ -1901,23 +1913,6 @@ scsi_find_quirk(struct cam_ed *device)
 	device->quirk = quirk;
 	device->mintags = quirk->mintags;
 	device->maxtags = quirk->maxtags;
-}
-
-static int
-sysctl_cam_search_luns(SYSCTL_HANDLER_ARGS)
-{
-	int error, val;
-
-	val = cam_srch_hi;
-	error = sysctl_handle_int(oidp, &val, 0, req);
-	if (error != 0 || req->newptr == NULL)
-		return (error);
-	if (val == 0 || val == 1) {
-		cam_srch_hi = val;
-		return (0);
-	} else {
-		return (EINVAL);
-	}
 }
 
 typedef struct {

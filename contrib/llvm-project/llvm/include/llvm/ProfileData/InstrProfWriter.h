@@ -40,12 +40,15 @@ private:
   bool Sparse;
   StringMap<ProfilingData> FunctionData;
   ProfKind ProfileKind = PF_Unknown;
+  bool InstrEntryBBEnabled;
   // Use raw pointer here for the incomplete type object.
   InstrProfRecordWriterTrait *InfoObj;
 
 public:
-  InstrProfWriter(bool Sparse = false);
+  InstrProfWriter(bool Sparse = false, bool InstrEntryBBEnabled = false);
   ~InstrProfWriter();
+
+  StringMap<ProfilingData> &getProfileData() { return FunctionData; }
 
   /// Add function counts for the given function. If there are already counts
   /// for this function and the hash and number of counts match, each counter is
@@ -61,10 +64,12 @@ public:
                               function_ref<void(Error)> Warn);
 
   /// Write the profile to \c OS
-  void write(raw_fd_ostream &OS);
+  Error write(raw_fd_ostream &OS);
 
   /// Write the profile in text format to \c OS
   Error writeText(raw_fd_ostream &OS);
+
+  Error validateRecord(const InstrProfRecord &Func);
 
   /// Write \c Record in text format to \c OS
   static void writeRecordInText(StringRef Name, uint64_t Hash,
@@ -97,6 +102,7 @@ public:
     return Error::success();
   }
 
+  void setInstrEntryBBEnabled(bool Enabled) { InstrEntryBBEnabled = Enabled; }
   // Internal interface for testing purpose only.
   void setValueProfDataEndianness(support::endianness Endianness);
   void setOutputSparse(bool Sparse);
@@ -110,7 +116,8 @@ private:
   void addRecord(StringRef Name, uint64_t Hash, InstrProfRecord &&I,
                  uint64_t Weight, function_ref<void(Error)> Warn);
   bool shouldEncodeData(const ProfilingData &PD);
-  void writeImpl(ProfOStream &OS);
+
+  Error writeImpl(ProfOStream &OS);
 };
 
 } // end namespace llvm

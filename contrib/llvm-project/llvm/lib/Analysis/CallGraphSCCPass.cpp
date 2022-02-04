@@ -21,13 +21,14 @@
 #include "llvm/Analysis/CallGraph.h"
 #include "llvm/IR/AbstractCallSite.h"
 #include "llvm/IR/Function.h"
-#include "llvm/IR/IRPrintingPasses.h"
 #include "llvm/IR/Intrinsics.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/LegacyPassManagers.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/OptBisect.h"
 #include "llvm/IR/PassTimingInfo.h"
+#include "llvm/IR/PrintPasses.h"
+#include "llvm/IR/StructuralHash.h"
 #include "llvm/Pass.h"
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/Debug.h"
@@ -42,8 +43,10 @@ using namespace llvm;
 
 #define DEBUG_TYPE "cgscc-passmgr"
 
-static cl::opt<unsigned>
-MaxIterations("max-cg-scc-iterations", cl::ReallyHidden, cl::init(4));
+namespace llvm {
+cl::opt<unsigned> MaxDevirtIterations("max-devirt-iterations", cl::ReallyHidden,
+                                      cl::init(4));
+}
 
 STATISTIC(MaxSCCIterations, "Maximum CGSCCPassMgr iterations on one SCC");
 
@@ -453,10 +456,10 @@ bool CGPassManager::RunAllPassesOnSCC(CallGraphSCC &CurSCC, CallGraph &CG,
       std::string Functions;
   #ifndef NDEBUG
       raw_string_ostream OS(Functions);
-      for (CallGraphSCC::iterator I = CurSCC.begin(), E = CurSCC.end();
-           I != E; ++I) {
-        if (I != CurSCC.begin()) OS << ", ";
-        (*I)->print(OS);
+      ListSeparator LS;
+      for (const CallGraphNode *CGN : CurSCC) {
+        OS << LS;
+        CGN->print(OS);
       }
       OS.flush();
   #endif
@@ -466,16 +469,30 @@ bool CGPassManager::RunAllPassesOnSCC(CallGraphSCC &CurSCC, CallGraph &CG,
 
     initializeAnalysisImpl(P);
 
-    // Actually run this pass on the current SCC.
-    Changed |= RunPassOnSCC(P, CurSCC, CG,
-                            CallGraphUpToDate, DevirtualizedCall);
+#ifdef EXPENSIVE_CHECKS
+    uint64_t RefHash = StructuralHash(CG.getModule());
+#endif
 
-    if (Changed)
+    // Actually run this pass on the current SCC.
+    bool LocalChanged =
+        RunPassOnSCC(P, CurSCC, CG, CallGraphUpToDate, DevirtualizedCall);
+
+    Changed |= LocalChanged;
+
+#ifdef EXPENSIVE_CHECKS
+    if (!LocalChanged && (RefHash != StructuralHash(CG.getModule()))) {
+      llvm::errs() << "Pass modifies its input and doesn't report it: "
+                   << P->getPassName() << "\n";
+      llvm_unreachable("Pass modifies its input and doesn't report it");
+    }
+#endif
+    if (LocalChanged)
       dumpPassInfo(P, MODIFICATION_MSG, ON_CG_MSG, "");
     dumpPreservedSet(P);
 
     verifyPreservedAnalysis(P);
-    removeNotPreservedAnalysis(P);
+    if (LocalChanged)
+      removeNotPreservedAnalysis(P);
     recordAvailableAnalysis(P);
     removeDeadPasses(P, "", ON_CG_MSG);
   }
@@ -524,12 +541,12 @@ bool CGPassManager::runOnModule(Module &M) {
                  << '\n');
       DevirtualizedCall = false;
       Changed |= RunAllPassesOnSCC(CurSCC, CG, DevirtualizedCall);
-    } while (Iteration++ < MaxIterations && DevirtualizedCall);
+    } while (Iteration++ < MaxDevirtIterations && DevirtualizedCall);
 
     if (DevirtualizedCall)
       LLVM_DEBUG(dbgs() << "  CGSCCPASSMGR: Stopped iteration after "
                         << Iteration
-                        << " times, due to -max-cg-scc-iterations\n");
+                        << " times, due to -max-devirt-iterations\n");
 
     MaxSCCIterations.updateMax(Iteration);
   }
@@ -719,12 +736,9 @@ Pass *CallGraphSCCPass::createPrinterPass(raw_ostream &OS,
 
 static std::string getDescription(const CallGraphSCC &SCC) {
   std::string Desc = "SCC (";
-  bool First = true;
+  ListSeparator LS;
   for (CallGraphNode *CGN : SCC) {
-    if (First)
-      First = false;
-    else
-      Desc += ", ";
+    Desc += LS;
     Function *F = CGN->getFunction();
     if (F)
       Desc += F->getName();

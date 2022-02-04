@@ -12,29 +12,15 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "AMDGPU.h"
 #include "MCTargetDesc/AMDGPUFixupKinds.h"
 #include "MCTargetDesc/AMDGPUMCCodeEmitter.h"
 #include "MCTargetDesc/AMDGPUMCTargetDesc.h"
 #include "SIDefines.h"
 #include "Utils/AMDGPUBaseInfo.h"
-#include "llvm/MC/MCCodeEmitter.h"
 #include "llvm/MC/MCContext.h"
 #include "llvm/MC/MCExpr.h"
-#include "llvm/MC/MCFixup.h"
-#include "llvm/MC/MCInst.h"
-#include "llvm/MC/MCInstrDesc.h"
 #include "llvm/MC/MCInstrInfo.h"
 #include "llvm/MC/MCRegisterInfo.h"
-#include "llvm/MC/MCSubtargetInfo.h"
-#include "llvm/MC/MCSymbol.h"
-#include "llvm/Support/Casting.h"
-#include "llvm/Support/ErrorHandling.h"
-#include "llvm/Support/MathExtras.h"
-#include "llvm/Support/raw_ostream.h"
-#include <cassert>
-#include <cstdint>
-#include <cstdlib>
 
 using namespace llvm;
 
@@ -85,6 +71,9 @@ public:
   unsigned getAVOperandEncoding(const MCInst &MI, unsigned OpNo,
                                 SmallVectorImpl<MCFixup> &Fixups,
                                 const MCSubtargetInfo &STI) const override;
+
+private:
+  uint64_t getImplicitOpSelHiEncoding(int Opcode) const;
 };
 
 } // end anonymous namespace
@@ -233,7 +222,7 @@ uint32_t SIMCCodeEmitter::getLitEncoding(const MCOperand &MO,
     Imm = C->getValue();
   } else {
 
-    assert(!MO.isFPImm());
+    assert(!MO.isDFPImm());
 
     if (!MO.isImm())
       return ~0;
@@ -248,12 +237,17 @@ uint32_t SIMCCodeEmitter::getLitEncoding(const MCOperand &MO,
   case AMDGPU::OPERAND_REG_INLINE_C_FP32:
   case AMDGPU::OPERAND_REG_INLINE_AC_INT32:
   case AMDGPU::OPERAND_REG_INLINE_AC_FP32:
+  case AMDGPU::OPERAND_REG_IMM_V2INT32:
+  case AMDGPU::OPERAND_REG_IMM_V2FP32:
+  case AMDGPU::OPERAND_REG_INLINE_C_V2INT32:
+  case AMDGPU::OPERAND_REG_INLINE_C_V2FP32:
     return getLit32Encoding(static_cast<uint32_t>(Imm), STI);
 
   case AMDGPU::OPERAND_REG_IMM_INT64:
   case AMDGPU::OPERAND_REG_IMM_FP64:
   case AMDGPU::OPERAND_REG_INLINE_C_INT64:
   case AMDGPU::OPERAND_REG_INLINE_C_FP64:
+  case AMDGPU::OPERAND_REG_INLINE_AC_FP64:
     return getLit64Encoding(static_cast<uint64_t>(Imm), STI);
 
   case AMDGPU::OPERAND_REG_IMM_INT16:
@@ -288,22 +282,46 @@ uint32_t SIMCCodeEmitter::getLitEncoding(const MCOperand &MO,
   }
 }
 
+uint64_t SIMCCodeEmitter::getImplicitOpSelHiEncoding(int Opcode) const {
+  using namespace AMDGPU::VOP3PEncoding;
+  using namespace AMDGPU::OpName;
+
+  if (AMDGPU::getNamedOperandIdx(Opcode, op_sel_hi) != -1) {
+    if (AMDGPU::getNamedOperandIdx(Opcode, src2) != -1)
+      return 0;
+    if (AMDGPU::getNamedOperandIdx(Opcode, src1) != -1)
+      return OP_SEL_HI_2;
+    if (AMDGPU::getNamedOperandIdx(Opcode, src0) != -1)
+      return OP_SEL_HI_1 | OP_SEL_HI_2;
+  }
+  return OP_SEL_HI_0 | OP_SEL_HI_1 | OP_SEL_HI_2;
+}
+
 void SIMCCodeEmitter::encodeInstruction(const MCInst &MI, raw_ostream &OS,
                                        SmallVectorImpl<MCFixup> &Fixups,
                                        const MCSubtargetInfo &STI) const {
   verifyInstructionPredicates(MI,
                               computeAvailableFeatures(STI.getFeatureBits()));
 
+  int Opcode = MI.getOpcode();
   uint64_t Encoding = getBinaryCodeForInstr(MI, Fixups, STI);
-  const MCInstrDesc &Desc = MCII.get(MI.getOpcode());
+  const MCInstrDesc &Desc = MCII.get(Opcode);
   unsigned bytes = Desc.getSize();
+
+  // Set unused op_sel_hi bits to 1 for VOP3P and MAI instructions.
+  // Note that accvgpr_read/write are MAI, have src0, but do not use op_sel.
+  if ((Desc.TSFlags & SIInstrFlags::VOP3P) ||
+      Opcode == AMDGPU::V_ACCVGPR_READ_B32_vi ||
+      Opcode == AMDGPU::V_ACCVGPR_WRITE_B32_vi) {
+    Encoding |= getImplicitOpSelHiEncoding(Opcode);
+  }
 
   for (unsigned i = 0; i < bytes; i++) {
     OS.write((uint8_t) ((Encoding >> (8 * i)) & 0xff));
   }
 
   // NSA encoding.
-  if (AMDGPU::isGFX10(STI) && Desc.TSFlags & SIInstrFlags::MIMG) {
+  if (AMDGPU::isGFX10Plus(STI) && Desc.TSFlags & SIInstrFlags::MIMG) {
     int vaddr0 = AMDGPU::getNamedOperandIdx(MI.getOpcode(),
                                             AMDGPU::OpName::vaddr0);
     int srsrc = AMDGPU::getNamedOperandIdx(MI.getOpcode(),
@@ -445,6 +463,7 @@ SIMCCodeEmitter::getAVOperandEncoding(const MCInst &MI, unsigned OpNo,
       MRI.getRegClass(AMDGPU::AReg_128RegClassID).contains(Reg) ||
       MRI.getRegClass(AMDGPU::AReg_160RegClassID).contains(Reg) ||
       MRI.getRegClass(AMDGPU::AReg_192RegClassID).contains(Reg) ||
+      MRI.getRegClass(AMDGPU::AReg_224RegClassID).contains(Reg) ||
       MRI.getRegClass(AMDGPU::AReg_256RegClassID).contains(Reg) ||
       MRI.getRegClass(AMDGPU::AGPR_LO16RegClassID).contains(Reg))
     Enc |= 512;

@@ -106,10 +106,8 @@ typedef enum {
 
 typedef struct {
 	zvol_async_op_t op;
-	char pool[MAXNAMELEN];
 	char name1[MAXNAMELEN];
 	char name2[MAXNAMELEN];
-	zprop_source_t source;
 	uint64_t value;
 } zvol_task_t;
 
@@ -911,54 +909,26 @@ int
 zvol_first_open(zvol_state_t *zv, boolean_t readonly)
 {
 	objset_t *os;
-	int error, locked = 0;
-	boolean_t ro;
+	int error;
 
 	ASSERT(RW_READ_HELD(&zv->zv_suspend_lock));
 	ASSERT(MUTEX_HELD(&zv->zv_state_lock));
+	ASSERT(mutex_owned(&spa_namespace_lock));
 
-	/*
-	 * In all other cases the spa_namespace_lock is taken before the
-	 * bdev->bd_mutex lock.	 But in this case the Linux __blkdev_get()
-	 * function calls fops->open() with the bdev->bd_mutex lock held.
-	 * This deadlock can be easily observed with zvols used as vdevs.
-	 *
-	 * To avoid a potential lock inversion deadlock we preemptively
-	 * try to take the spa_namespace_lock().  Normally it will not
-	 * be contended and this is safe because spa_open_common() handles
-	 * the case where the caller already holds the spa_namespace_lock.
-	 *
-	 * When it is contended we risk a lock inversion if we were to
-	 * block waiting for the lock.	Luckily, the __blkdev_get()
-	 * function allows us to return -ERESTARTSYS which will result in
-	 * bdev->bd_mutex being dropped, reacquired, and fops->open() being
-	 * called again.  This process can be repeated safely until both
-	 * locks are acquired.
-	 */
-	if (!mutex_owned(&spa_namespace_lock)) {
-		locked = mutex_tryenter(&spa_namespace_lock);
-		if (!locked)
-			return (SET_ERROR(EINTR));
-	}
-
-	ro = (readonly || (strchr(zv->zv_name, '@') != NULL));
+	boolean_t ro = (readonly || (strchr(zv->zv_name, '@') != NULL));
 	error = dmu_objset_own(zv->zv_name, DMU_OST_ZVOL, ro, B_TRUE, zv, &os);
 	if (error)
-		goto out_mutex;
+		return (SET_ERROR(error));
 
 	zv->zv_objset = os;
 
 	error = zvol_setup_zv(zv);
-
 	if (error) {
 		dmu_objset_disown(os, 1, zv);
 		zv->zv_objset = NULL;
 	}
 
-out_mutex:
-	if (locked)
-		mutex_exit(&spa_namespace_lock);
-	return (SET_ERROR(error));
+	return (error);
 }
 
 void
@@ -1040,6 +1010,68 @@ zvol_create_snap_minor_cb(const char *dsname, void *arg)
 }
 
 /*
+ * If spa_keystore_load_wkey() is called for an encrypted zvol,
+ * we need to look for any clones also using the key. This function
+ * is "best effort" - so we just skip over it if there are failures.
+ */
+static void
+zvol_add_clones(const char *dsname, list_t *minors_list)
+{
+	/* Also check if it has clones */
+	dsl_dir_t *dd = NULL;
+	dsl_pool_t *dp = NULL;
+
+	if (dsl_pool_hold(dsname, FTAG, &dp) != 0)
+		return;
+
+	if (!spa_feature_is_enabled(dp->dp_spa,
+	    SPA_FEATURE_ENCRYPTION))
+		goto out;
+
+	if (dsl_dir_hold(dp, dsname, FTAG, &dd, NULL) != 0)
+		goto out;
+
+	if (dsl_dir_phys(dd)->dd_clones == 0)
+		goto out;
+
+	zap_cursor_t *zc = kmem_alloc(sizeof (zap_cursor_t), KM_SLEEP);
+	zap_attribute_t *za = kmem_alloc(sizeof (zap_attribute_t), KM_SLEEP);
+	objset_t *mos = dd->dd_pool->dp_meta_objset;
+
+	for (zap_cursor_init(zc, mos, dsl_dir_phys(dd)->dd_clones);
+	    zap_cursor_retrieve(zc, za) == 0;
+	    zap_cursor_advance(zc)) {
+		dsl_dataset_t *clone;
+		minors_job_t *job;
+
+		if (dsl_dataset_hold_obj(dd->dd_pool,
+		    za->za_first_integer, FTAG, &clone) == 0) {
+
+			char name[ZFS_MAX_DATASET_NAME_LEN];
+			dsl_dataset_name(clone, name);
+
+			char *n = kmem_strdup(name);
+			job = kmem_alloc(sizeof (minors_job_t), KM_SLEEP);
+			job->name = n;
+			job->list = minors_list;
+			job->error = 0;
+			list_insert_tail(minors_list, job);
+
+			dsl_dataset_rele(clone, FTAG);
+		}
+	}
+	zap_cursor_fini(zc);
+	kmem_free(za, sizeof (zap_attribute_t));
+	kmem_free(zc, sizeof (zap_cursor_t));
+
+out:
+	if (dd != NULL)
+		dsl_dir_rele(dd, FTAG);
+	if (dp != NULL)
+		dsl_pool_rele(dp, FTAG);
+}
+
+/*
  * Mask errors to continue dmu_objset_find() traversal
  */
 static int
@@ -1076,6 +1108,8 @@ zvol_create_minors_cb(const char *dsname, void *arg)
 		/* don't care if dispatch fails, because job->error is 0 */
 		taskq_dispatch(system_taskq, zvol_prefetch_minors_impl, job,
 		    TQ_SLEEP);
+
+		zvol_add_clones(dsname, minors_list);
 
 		if (snapdev == ZFS_SNAPDEV_VISIBLE) {
 			/*
@@ -1197,6 +1231,12 @@ zvol_create_minor(const char *name)
  * Remove minors for specified dataset including children and snapshots.
  */
 
+static void
+zvol_free_task(void *arg)
+{
+	ops->zv_free(arg);
+}
+
 void
 zvol_remove_minors_impl(const char *name)
 {
@@ -1245,8 +1285,8 @@ zvol_remove_minors_impl(const char *name)
 			mutex_exit(&zv->zv_state_lock);
 
 			/* Try parallel zv_free, if failed do it in place */
-			t = taskq_dispatch(system_taskq,
-			    (task_func_t *)ops->zv_free, zv, TQ_SLEEP);
+			t = taskq_dispatch(system_taskq, zvol_free_task, zv,
+			    TQ_SLEEP);
 			if (t == TASKQID_INVALID)
 				list_insert_head(&free_list, zv);
 		} else {
@@ -1439,7 +1479,6 @@ zvol_task_alloc(zvol_async_op_t op, const char *name1, const char *name2,
     uint64_t value)
 {
 	zvol_task_t *task;
-	char *delim;
 
 	/* Never allow tasks on hidden names. */
 	if (name1[0] == '$')
@@ -1448,8 +1487,6 @@ zvol_task_alloc(zvol_async_op_t op, const char *name1, const char *name2,
 	task = kmem_zalloc(sizeof (zvol_task_t), KM_SLEEP);
 	task->op = op;
 	task->value = value;
-	delim = strchr(name1, '/');
-	strlcpy(task->pool, name1, delim ? (delim - name1 + 1) : MAXNAMELEN);
 
 	strlcpy(task->name1, name1, MAXNAMELEN);
 	if (name2 != NULL)

@@ -47,6 +47,7 @@ __FBSDID("$FreeBSD$");
 
 #include "bhyvegc.h"
 #include "bhyverun.h"
+#include "config.h"
 #include "debug.h"
 #include "console.h"
 #include "inout.h"
@@ -114,15 +115,6 @@ struct pci_fbuf_softc {
 static struct pci_fbuf_softc *fbuf_sc;
 
 #define	PCI_FBUF_MSI_MSGS	 4
-
-static void
-pci_fbuf_usage(char *opt)
-{
-
-	EPRINTLN("Invalid fbuf emulation option \"%s\"", opt);
-	EPRINTLN("fbuf: {wait,}{vga=on|io|off,}rfb=<ip>:port"
-	    "{,w=width}{,h=height}");
-}
 
 static void
 pci_fbuf_write(struct vmctx *ctx, int vcpu, struct pci_devinst *pi,
@@ -235,11 +227,11 @@ pci_fbuf_baraddr(struct vmctx *ctx, struct pci_devinst *pi, int baridx,
 		return;
 
 	sc = pi->pi_arg;
-	if (!enabled && sc->fbaddr != 0) {
+	if (!enabled) {
 		if (vm_munmap_memseg(ctx, sc->fbaddr, FB_SIZE) != 0)
 			EPRINTLN("pci_fbuf: munmap_memseg failed");
 		sc->fbaddr = 0;
-	} else if (sc->fb_base != NULL && sc->fbaddr == 0) {
+	} else {
 		prot = PROT_READ | PROT_WRITE;
 		if (vm_mmap_memseg(ctx, address, VM_FRAMEBUFFER, 0, FB_SIZE, prot) != 0)
 			EPRINTLN("pci_fbuf: mmap_memseg failed");
@@ -249,102 +241,108 @@ pci_fbuf_baraddr(struct vmctx *ctx, struct pci_devinst *pi, int baridx,
 
 
 static int
-pci_fbuf_parse_opts(struct pci_fbuf_softc *sc, char *opts)
+pci_fbuf_parse_config(struct pci_fbuf_softc *sc, nvlist_t *nvl)
 {
-	char	*uopts, *uoptsbak, *xopts, *config;
-	char	*tmpstr;
-	int	ret;
+	const char *value;
+	char *cp;
 
-	ret = 0;
-	uoptsbak = uopts = strdup(opts);
-	while ((xopts = strsep(&uopts, ",")) != NULL) {
-		if (strcmp(xopts, "wait") == 0) {
-			sc->rfb_wait = 1;
-			continue;
-		}
+	sc->rfb_wait = get_config_bool_node_default(nvl, "wait", false);
 
-		if ((config = strchr(xopts, '=')) == NULL) {
-			pci_fbuf_usage(xopts);
-			ret = -1;
-			goto done;
-		}
-
-		*config++ = '\0';
-
-		DPRINTF(DEBUG_VERBOSE, ("pci_fbuf option %s = %s",
-		   xopts, config));
-
-		if (!strcmp(xopts, "tcp") || !strcmp(xopts, "rfb")) {
-			/*
-			 * IPv4 -- host-ip:port
-			 * IPv6 -- [host-ip%zone]:port
-			 * XXX for now port is mandatory.
-			 */
-			tmpstr = strsep(&config, "]");
-			if (config) {
-				if (tmpstr[0] == '[')
-					tmpstr++;
-				sc->rfb_host = strdup(tmpstr);
-				if (config[0] == ':')
-					config++;
-				else {
-					pci_fbuf_usage(xopts);
-					ret = -1;
-					goto done;
-				}
-				sc->rfb_port = atoi(config);
-			} else {
-				config = tmpstr;
-				tmpstr = strsep(&config, ":");
-				if (!config)
-					sc->rfb_port = atoi(tmpstr);
-				else {
-					sc->rfb_port = atoi(config);
-					sc->rfb_host = strdup(tmpstr);
-				}
+	/* Prefer "rfb" to "tcp". */
+	value = get_config_value_node(nvl, "rfb");
+	if (value == NULL)
+		value = get_config_value_node(nvl, "tcp");
+	if (value != NULL) {
+		/*
+		 * IPv4 -- host-ip:port
+		 * IPv6 -- [host-ip%zone]:port
+		 * XXX for now port is mandatory for IPv4.
+		 */
+		if (value[0] == '[') {
+			cp = strchr(value + 1, ']');
+			if (cp == NULL || cp == value + 1) {
+				EPRINTLN("fbuf: Invalid IPv6 address: \"%s\"",
+				    value);
+				return (-1);
 			}
-	        } else if (!strcmp(xopts, "vga")) {
-			if (!strcmp(config, "off")) {
-				sc->vga_enabled = 0;
-			} else if (!strcmp(config, "io")) {
-				sc->vga_enabled = 1;
-				sc->vga_full = 0;
-			} else if (!strcmp(config, "on")) {
-				sc->vga_enabled = 1;
-				sc->vga_full = 1;
-			} else {
-				pci_fbuf_usage(xopts);
-				ret = -1;
-				goto done;
+			sc->rfb_host = strndup(value + 1, cp - (value + 1));
+			cp++;
+			if (*cp == ':') {
+				cp++;
+				if (*cp == '\0') {
+					EPRINTLN(
+					    "fbuf: Missing port number: \"%s\"",
+					    value);
+					return (-1);
+				}
+				sc->rfb_port = atoi(cp);
+			} else if (*cp != '\0') {
+				EPRINTLN("fbuf: Invalid IPv6 address: \"%s\"",
+				    value);
+				return (-1);
 			}
-	        } else if (!strcmp(xopts, "w")) {
-		        sc->memregs.width = atoi(config);
-			if (sc->memregs.width > COLS_MAX) {
-				pci_fbuf_usage(xopts);
-				ret = -1;
-				goto done;
-			} else if (sc->memregs.width == 0)
-				sc->memregs.width = 1920;
-		} else if (!strcmp(xopts, "h")) {
-			sc->memregs.height = atoi(config);
-			if (sc->memregs.height > ROWS_MAX) {
-				pci_fbuf_usage(xopts);
-				ret = -1;
-				goto done;
-			} else if (sc->memregs.height == 0)
-				sc->memregs.height = 1080;
-		} else if (!strcmp(xopts, "password")) {
-			sc->rfb_password = strdup(config);
 		} else {
-			pci_fbuf_usage(xopts);
-			ret = -1;
-			goto done;
+			cp = strchr(value, ':');
+			if (cp == NULL) {
+				sc->rfb_port = atoi(value);
+			} else {
+				sc->rfb_host = strndup(value, cp - value);
+				cp++;
+				if (*cp == '\0') {
+					EPRINTLN(
+					    "fbuf: Missing port number: \"%s\"",
+					    value);
+					return (-1);
+				}
+				sc->rfb_port = atoi(cp);
+			}
 		}
 	}
 
-done:
-	free(uoptsbak);
-	return (ret);
+	value = get_config_value_node(nvl, "vga");
+	if (value != NULL) {
+		if (strcmp(value, "off") == 0) {
+			sc->vga_enabled = 0;
+		} else if (strcmp(value, "io") == 0) {
+			sc->vga_enabled = 1;
+			sc->vga_full = 0;
+		} else if (strcmp(value, "on") == 0) {
+			sc->vga_enabled = 1;
+			sc->vga_full = 1;
+		} else {
+			EPRINTLN("fbuf: Invalid vga setting: \"%s\"", value);
+			return (-1);
+		}
+	}
+
+	value = get_config_value_node(nvl, "w");
+	if (value != NULL) {
+		sc->memregs.width = atoi(value);
+		if (sc->memregs.width > COLS_MAX) {
+			EPRINTLN("fbuf: width %d too large", sc->memregs.width);
+			return (-1);
+		}
+		if (sc->memregs.width == 0)
+			sc->memregs.width = 1920;
+	}
+
+	value = get_config_value_node(nvl, "h");
+	if (value != NULL) {
+		sc->memregs.height = atoi(value);
+		if (sc->memregs.height > ROWS_MAX) {
+			EPRINTLN("fbuf: height %d too large",
+			    sc->memregs.height);
+			return (-1);
+		}
+		if (sc->memregs.height == 0)
+			sc->memregs.height = 1080;
+	}
+
+	value = get_config_value_node(nvl, "password");
+	if (value != NULL)
+		sc->rfb_password = strdup(value);
+
+	return (0);
 }
 
 
@@ -375,9 +373,9 @@ pci_fbuf_render(struct bhyvegc *gc, void *arg)
 }
 
 static int
-pci_fbuf_init(struct vmctx *ctx, struct pci_devinst *pi, char *opts)
+pci_fbuf_init(struct vmctx *ctx, struct pci_devinst *pi, nvlist_t *nvl)
 {
-	int error, prot;
+	int error;
 	struct pci_fbuf_softc *sc;
 	
 	if (fbuf_sc != NULL) {
@@ -395,6 +393,13 @@ pci_fbuf_init(struct vmctx *ctx, struct pci_devinst *pi, char *opts)
 	pci_set_cfgdata8(pi, PCIR_CLASS, PCIC_DISPLAY);
 	pci_set_cfgdata8(pi, PCIR_SUBCLASS, PCIS_DISPLAY_VGA);
 
+	sc->fb_base = vm_create_devmem(
+	    ctx, VM_FRAMEBUFFER, "framebuffer", FB_SIZE);
+	if (sc->fb_base == MAP_FAILED) {
+		error = -1;
+		goto done;
+	}
+
 	error = pci_emul_alloc_bar(pi, 0, PCIBAR_MEM32, DMEMSZ);
 	assert(error == 0);
 
@@ -404,7 +409,6 @@ pci_fbuf_init(struct vmctx *ctx, struct pci_devinst *pi, char *opts)
 	error = pci_emul_add_msicap(pi, PCI_FBUF_MSI_MSGS);
 	assert(error == 0);
 
-	sc->fbaddr = pi->pi_bar[1].addr;
 	sc->memregs.fbsize = FB_SIZE;
 	sc->memregs.width  = COLS_DEFAULT;
 	sc->memregs.height = ROWS_DEFAULT;
@@ -415,7 +419,7 @@ pci_fbuf_init(struct vmctx *ctx, struct pci_devinst *pi, char *opts)
 
 	sc->fsc_pi = pi;
 
-	error = pci_fbuf_parse_opts(sc, opts);
+	error = pci_fbuf_parse_config(sc, nvl);
 	if (error != 0)
 		goto done;
 
@@ -425,26 +429,8 @@ pci_fbuf_init(struct vmctx *ctx, struct pci_devinst *pi, char *opts)
 		goto done;
 	}
 
-	sc->fb_base = vm_create_devmem(ctx, VM_FRAMEBUFFER, "framebuffer", FB_SIZE);
-	if (sc->fb_base == MAP_FAILED) {
-		error = -1;
-		goto done;
-	}
 	DPRINTF(DEBUG_INFO, ("fbuf frame buffer base: %p [sz %lu]",
 	        sc->fb_base, FB_SIZE));
-
-	/*
-	 * Map the framebuffer into the guest address space.
-	 * XXX This may fail if the BAR is different than a prior
-	 * run. In this case flag the error. This will be fixed
-	 * when a change_memseg api is available.
-	 */
-	prot = PROT_READ | PROT_WRITE;
-	if (vm_mmap_memseg(ctx, sc->fbaddr, VM_FRAMEBUFFER, 0, FB_SIZE, prot) != 0) {
-		EPRINTLN("pci_fbuf: mapseg failed - try deleting VM and restarting");
-		error = -1;
-		goto done;
-	}
 
 	console_init(sc->memregs.width, sc->memregs.height, sc->fb_base);
 	console_fb_register(pci_fbuf_render, sc);

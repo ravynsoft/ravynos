@@ -552,6 +552,35 @@ sta_input(struct ieee80211_node *ni, struct mbuf *m,
 	int is_hw_decrypted = 0;
 	int has_decrypted = 0;
 
+	KASSERT(ni != NULL, ("%s: null node, mbuf %p", __func__, m));
+
+	/* Early init in case of early error case. */
+	type = -1;
+
+	/*
+	 * Bit of a cheat here, we use a pointer for a 3-address
+	 * frame format but don't reference fields past outside
+	 * ieee80211_frame_min (or other shorter frames) w/o first
+	 * validating the data is present.
+	 */
+	wh = mtod(m, struct ieee80211_frame *);
+
+	if (m->m_pkthdr.len < 2 || m->m_pkthdr.len < ieee80211_anyhdrsize(wh)) {
+		IEEE80211_DISCARD_MAC(vap, IEEE80211_MSG_ANY,
+		    ni->ni_macaddr, NULL,
+		    "too short (1): len %u", m->m_pkthdr.len);
+		vap->iv_stats.is_rx_tooshort++;
+		goto err;
+	}
+	if ((wh->i_fc[0] & IEEE80211_FC0_VERSION_MASK) !=
+	    IEEE80211_FC0_VERSION_0) {
+		IEEE80211_DISCARD_MAC(vap, IEEE80211_MSG_ANY,
+		    ni->ni_macaddr, NULL, "wrong version, fc %02x:%02x",
+		    wh->i_fc[0], wh->i_fc[1]);
+		vap->iv_stats.is_rx_badversion++;
+		goto err;
+	}
+
 	/*
 	 * Some devices do hardware decryption all the way through
 	 * to pretending the frame wasn't encrypted in the first place.
@@ -569,7 +598,6 @@ sta_input(struct ieee80211_node *ni, struct mbuf *m,
 		 * with the M_AMPDU_MPDU flag and we can bypass most of
 		 * the normal processing.
 		 */
-		wh = mtod(m, struct ieee80211_frame *);
 		type = IEEE80211_FC0_TYPE_DATA;
 		dir = wh->i_fc[1] & IEEE80211_FC1_DIR_MASK;
 		subtype = IEEE80211_FC0_SUBTYPE_QOS;
@@ -577,39 +605,19 @@ sta_input(struct ieee80211_node *ni, struct mbuf *m,
 		goto resubmit_ampdu;
 	}
 
-	KASSERT(ni != NULL, ("null node"));
 	ni->ni_inact = ni->ni_inact_reload;
-
-	type = -1;			/* undefined */
-
-	if (m->m_pkthdr.len < sizeof(struct ieee80211_frame_min)) {
-		IEEE80211_DISCARD_MAC(vap, IEEE80211_MSG_ANY,
-		    ni->ni_macaddr, NULL,
-		    "too short (1): len %u", m->m_pkthdr.len);
-		vap->iv_stats.is_rx_tooshort++;
-		goto out;
-	}
-	/*
-	 * Bit of a cheat here, we use a pointer for a 3-address
-	 * frame format but don't reference fields past outside
-	 * ieee80211_frame_min w/o first validating the data is
-	 * present.
-	 */
-	wh = mtod(m, struct ieee80211_frame *);
-
-	if ((wh->i_fc[0] & IEEE80211_FC0_VERSION_MASK) !=
-	    IEEE80211_FC0_VERSION_0) {
-		IEEE80211_DISCARD_MAC(vap, IEEE80211_MSG_ANY,
-		    ni->ni_macaddr, NULL, "wrong version, fc %02x:%02x",
-		    wh->i_fc[0], wh->i_fc[1]);
-		vap->iv_stats.is_rx_badversion++;
-		goto err;
-	}
 
 	dir = wh->i_fc[1] & IEEE80211_FC1_DIR_MASK;
 	type = wh->i_fc[0] & IEEE80211_FC0_TYPE_MASK;
 	subtype = wh->i_fc[0] & IEEE80211_FC0_SUBTYPE_MASK;
-	if ((ic->ic_flags & IEEE80211_F_SCAN) == 0) {
+	/*
+	 * Control frames are not folowing the header scheme of data and mgmt
+	 * frames so we do not apply extra checks here.
+	 * We probably should do checks on RA (+TA) where available for those
+	 * too, but for now do not drop them.
+	 */
+	if (type != IEEE80211_FC0_TYPE_CTL &&
+	    (ic->ic_flags & IEEE80211_F_SCAN) == 0) {
 		bssid = wh->i_addr2;
 		if (!IEEE80211_ADDR_EQ(bssid, ni->ni_bssid)) {
 			/* not interested in */
@@ -795,7 +803,7 @@ sta_input(struct ieee80211_node *ni, struct mbuf *m,
 		 * Next up, any fragmentation.
 		 */
 		if (!IEEE80211_IS_MULTICAST(wh->i_addr1)) {
-			m = ieee80211_defrag(ni, m, hdrspace);
+			m = ieee80211_defrag(ni, m, hdrspace, has_decrypted);
 			if (m == NULL) {
 				/* Fragment dropped or frame not complete yet */
 				goto out;
@@ -827,7 +835,7 @@ sta_input(struct ieee80211_node *ni, struct mbuf *m,
 		/*
 		 * Finally, strip the 802.11 header.
 		 */
-		m = ieee80211_decap(vap, m, hdrspace);
+		m = ieee80211_decap(vap, m, hdrspace, qos);
 		if (m == NULL) {
 			/* XXX mask bit to check for both */
 			/* don't count Null data frames as errors */
@@ -840,7 +848,10 @@ sta_input(struct ieee80211_node *ni, struct mbuf *m,
 			IEEE80211_NODE_STAT(ni, rx_decap);
 			goto err;
 		}
-		eh = mtod(m, struct ether_header *);
+		if (!(qos & IEEE80211_QOS_AMSDU))
+			eh = mtod(m, struct ether_header *);
+		else
+			eh = NULL;
 		if (!ieee80211_node_is_authorized(ni)) {
 			/*
 			 * Deny any non-PAE frames received prior to
@@ -850,11 +861,13 @@ sta_input(struct ieee80211_node *ni, struct mbuf *m,
 			 * the port is not marked authorized by the
 			 * authenticator until the handshake has completed.
 			 */
-			if (eh->ether_type != htons(ETHERTYPE_PAE)) {
+			if (eh == NULL ||
+			    eh->ether_type != htons(ETHERTYPE_PAE)) {
 				IEEE80211_DISCARD_MAC(vap, IEEE80211_MSG_INPUT,
-				    eh->ether_shost, "data",
-				    "unauthorized port: ether type 0x%x len %u",
-				    eh->ether_type, m->m_pkthdr.len);
+				    ni->ni_macaddr, "data", "unauthorized or "
+				    "unknown port: ether type 0x%x len %u",
+				    eh == NULL ? -1 : eh->ether_type,
+				    m->m_pkthdr.len);
 				vap->iv_stats.is_rx_unauth++;
 				IEEE80211_NODE_STAT(ni, rx_unauth);
 				goto err;
@@ -867,7 +880,8 @@ sta_input(struct ieee80211_node *ni, struct mbuf *m,
 			if ((vap->iv_flags & IEEE80211_F_DROPUNENC) &&
 			    ((has_decrypted == 0) && (m->m_flags & M_WEP) == 0) &&
 			    (is_hw_decrypted == 0) &&
-			    eh->ether_type != htons(ETHERTYPE_PAE)) {
+			    (eh == NULL ||
+			     eh->ether_type != htons(ETHERTYPE_PAE))) {
 				/*
 				 * Drop unencrypted frames.
 				 */
@@ -1555,7 +1569,10 @@ sta_recv_mgmt(struct ieee80211_node *ni, struct mbuf *m0, int subtype,
 				int ix = aid / NBBY;
 				int min = tim->tim_bitctl &~ 1;
 				int max = tim->tim_len + min - 4;
-				int tim_ucast = 0, tim_mcast = 0;
+				int tim_ucast = 0;
+#ifdef __notyet__
+				int tim_mcast = 0;
+#endif
 
 				/*
 				 * Only do this for unicast traffic in the TIM
@@ -1568,6 +1585,7 @@ sta_recv_mgmt(struct ieee80211_node *ni, struct mbuf *m0, int subtype,
 					tim_ucast = 1;
 				}
 
+#ifdef __notyet__
 				/*
 				 * Do a separate notification
 				 * for the multicast bit being set.
@@ -1575,6 +1593,7 @@ sta_recv_mgmt(struct ieee80211_node *ni, struct mbuf *m0, int subtype,
 				if (tim->tim_bitctl & 1) {
 					tim_mcast = 1;
 				}
+#endif
 
 				/*
 				 * If the TIM indicates there's traffic for

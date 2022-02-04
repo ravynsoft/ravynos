@@ -161,7 +161,7 @@ void FuseTest::SetUp() {
 			m_default_permissions, m_push_symlinks_in, m_ro,
 			m_pm, m_init_flags, m_kernel_minor_version,
 			m_maxwrite, m_async, m_noclusterr, m_time_gran,
-			m_nointr);
+			m_nointr, m_noatime);
 		/* 
 		 * FUSE_ACCESS is called almost universally.  Expecting it in
 		 * each test case would be super-annoying.  Instead, set a
@@ -223,6 +223,23 @@ FuseTest::expect_destroy(int error)
 		out.header.unique = in.header.unique;
 		out.header.error = -error;
 	})));
+}
+
+void
+FuseTest::expect_fallocate(uint64_t ino, uint64_t offset, uint64_t length,
+	uint32_t mode, int error, int times)
+{
+	EXPECT_CALL(*m_mock, process(
+		ResultOf([=](auto in) {
+			return (in.header.opcode == FUSE_FALLOCATE &&
+				in.header.nodeid == ino &&
+				in.body.fallocate.offset == offset &&
+				in.body.fallocate.length == length &&
+				in.body.fallocate.mode == mode);
+		}, Eq(true)),
+		_)
+	).Times(times)
+	.WillRepeatedly(Invoke(ReturnErrno(error)));
 }
 
 void
@@ -367,13 +384,13 @@ void FuseTest::expect_opendir(uint64_t ino)
 }
 
 void FuseTest::expect_read(uint64_t ino, uint64_t offset, uint64_t isize,
-	uint64_t osize, const void *contents, int flags)
+	uint64_t osize, const void *contents, int flags, uint64_t fh)
 {
 	EXPECT_CALL(*m_mock, process(
 		ResultOf([=](auto in) {
 			return (in.header.opcode == FUSE_READ &&
 				in.header.nodeid == ino &&
-				in.body.read.fh == FH &&
+				in.body.read.fh == fh &&
 				in.body.read.offset == offset &&
 				in.body.read.size == isize &&
 				(flags == -1 ?
@@ -621,6 +638,15 @@ out:
 	}
 	munmap(sem, sizeof(*sem));
 	return;
+}
+
+void
+FuseTest::reclaim_vnode(const char *path)
+{
+	int err;
+
+	err = sysctlbyname(reclaim_mib, NULL, 0, path, strlen(path) + 1);
+	ASSERT_EQ(0, err) << strerror(errno);
 }
 
 static void usage(char* progname) {

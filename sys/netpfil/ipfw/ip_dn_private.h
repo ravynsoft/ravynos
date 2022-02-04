@@ -77,15 +77,7 @@ MALLOC_DECLARE(M_DUMMYNET);
 #define DN_BH_WUNLOCK()		mtx_unlock(&V_dn_cfg.uh_mtx)
 #define DN_BH_LOCK_ASSERT()	mtx_assert(&V_dn_cfg.uh_mtx, MA_OWNED)
 
-SLIST_HEAD(dn_schk_head, dn_schk);
-SLIST_HEAD(dn_sch_inst_head, dn_sch_inst);
 SLIST_HEAD(dn_fsk_head, dn_fsk);
-SLIST_HEAD(dn_queue_head, dn_queue);
-SLIST_HEAD(dn_alg_head, dn_alg);
-
-#ifdef NEW_AQM
-SLIST_HEAD(dn_aqm_head, dn_aqm); /* for new AQMs */
-#endif
 
 struct mq {	/* a basic queue of packets*/
         struct mbuf *head, *tail;
@@ -445,7 +437,7 @@ int dn_compat_copy_queue(struct copy_args *a, void *_o);
 int dn_compat_copy_pipe(struct copy_args *a, void *_o);
 int copy_data_helper_compat(void *_o, void *_arg);
 int dn_compat_calc_size(void);
-int do_config(void *p, int l);
+int do_config(void *p, size_t l);
 
 /* function to drain idle object */
 void dn_drain_scheduler(void);

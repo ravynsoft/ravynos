@@ -7,6 +7,7 @@
 //===----------------------------------------------------------------------===//
 
 #include "Writer.h"
+#include "CallGraphSort.h"
 #include "Config.h"
 #include "DLL.h"
 #include "InputFiles.h"
@@ -86,6 +87,8 @@ static std::vector<OutputSection *> outputSections;
 OutputSection *Chunk::getOutputSection() const {
   return osidx == 0 ? nullptr : outputSections[osidx - 1];
 }
+
+void OutputSection::clear() { outputSections.clear(); }
 
 namespace {
 
@@ -224,16 +227,21 @@ private:
   void markSymbolsForRVATable(ObjFile *file,
                               ArrayRef<SectionChunk *> symIdxChunks,
                               SymbolRVASet &tableSymbols);
+  void getSymbolsFromSections(ObjFile *file,
+                              ArrayRef<SectionChunk *> symIdxChunks,
+                              std::vector<Symbol *> &symbols);
   void maybeAddRVATable(SymbolRVASet tableSymbols, StringRef tableSym,
-                        StringRef countSym);
+                        StringRef countSym, bool hasFlag=false);
   void setSectionPermissions();
   void writeSections();
   void writeBuildId();
+  void sortSections();
   void sortExceptionTable();
   void sortCRTSectionChunks(std::vector<Chunk *> &chunks);
   void addSyntheticIdata();
   void fixPartialSectionChars(StringRef name, uint32_t chars);
   bool fixGnuImportChunks();
+  void fixTlsAlignment();
   PartialSection *createPartialSection(StringRef name, uint32_t outChars);
   PartialSection *findPartialSection(StringRef name, uint32_t outChars);
 
@@ -260,6 +268,7 @@ private:
   DelayLoadContents delayIdata;
   EdataContents edata;
   bool setNoSEHCharacteristic = false;
+  uint32_t tlsAlignment = 0;
 
   DebugDirectoryChunk *debugDirectory = nullptr;
   std::vector<std::pair<COFF::DebugType, Chunk *>> debugRecords;
@@ -586,6 +595,7 @@ void Writer::finalizeAddresses() {
     // If the verification above thought we needed thunks, we should have
     // added some.
     assert(addressesChanged);
+    (void)addressesChanged;
 
     // Recalculate the layout for the whole image (and verify the ranges at
     // the start of the next round).
@@ -599,13 +609,11 @@ void Writer::finalizeAddresses() {
 void Writer::run() {
   ScopedTimer t1(codeLayoutTimer);
 
-  // First, clear the output sections from previous runs
-  outputSections.clear();
-
   createImportTables();
   createSections();
-  createMiscChunks();
   appendImportThunks();
+  // Import thunks must be added before the Control Flow Guard tables are added.
+  createMiscChunks();
   createExportTable();
   mergeSections();
   removeUnusedSections();
@@ -627,6 +635,11 @@ void Writer::run() {
   }
   writeSections();
   sortExceptionTable();
+
+  // Fix up the alignment in the TLS Directory's characteristic field,
+  // if a specific alignment value is needed
+  if (tlsAlignment)
+    fixTlsAlignment();
 
   t1.stop();
 
@@ -801,6 +814,19 @@ static bool shouldStripSectionSuffix(SectionChunk *sc, StringRef name) {
          name.startswith(".xdata$") || name.startswith(".eh_frame$");
 }
 
+void Writer::sortSections() {
+  if (!config->callGraphProfile.empty()) {
+    DenseMap<const SectionChunk *, int> order = computeCallGraphProfileOrder();
+    for (auto it : order) {
+      if (DefinedRegular *sym = it.first->sym)
+        config->order[sym->getName()] = it.second;
+    }
+  }
+  if (!config->order.empty())
+    for (auto it : partialSections)
+      sortBySectionOrder(it.second->chunks);
+}
+
 // Create output section objects and add them to OutputSections.
 void Writer::createSections() {
   // First, create the builtin sections.
@@ -848,6 +874,10 @@ void Writer::createSections() {
     StringRef name = c->getSectionName();
     if (shouldStripSectionSuffix(sc, name))
       name = name.split('$').first;
+
+    if (name.startswith(".tls"))
+      tlsAlignment = std::max(tlsAlignment, c->getAlignment());
+
     PartialSection *pSec = createPartialSection(name,
                                                 c->getOutputCharacteristics());
     pSec->chunks.push_back(c);
@@ -864,10 +894,7 @@ void Writer::createSections() {
   if (hasIdata)
     addSyntheticIdata();
 
-  // Process an /order option.
-  if (!config->order.empty())
-    for (auto it : partialSections)
-      sortBySectionOrder(it.second->chunks);
+  sortSections();
 
   if (hasIdata)
     locateImportTables();
@@ -952,16 +979,15 @@ void Writer::createMiscChunks() {
   }
 
   if (config->cetCompat) {
-    ExtendedDllCharacteristicsChunk *extendedDllChars =
-        make<ExtendedDllCharacteristicsChunk>(
-            IMAGE_DLL_CHARACTERISTICS_EX_CET_COMPAT);
-    debugRecords.push_back(
-        {COFF::IMAGE_DEBUG_TYPE_EX_DLLCHARACTERISTICS, extendedDllChars});
+    debugRecords.push_back({COFF::IMAGE_DEBUG_TYPE_EX_DLLCHARACTERISTICS,
+                            make<ExtendedDllCharacteristicsChunk>(
+                                IMAGE_DLL_CHARACTERISTICS_EX_CET_COMPAT)});
   }
 
-  if (debugRecords.size() > 0) {
-    for (std::pair<COFF::DebugType, Chunk *> r : debugRecords)
-      debugInfoSec->addChunk(r.second);
+  // Align and add each chunk referenced by the debug data directory.
+  for (std::pair<COFF::DebugType, Chunk *> r : debugRecords) {
+    r.second->setAlignment(4);
+    debugInfoSec->addChunk(r.second);
   }
 
   // Create SEH table. x86-only.
@@ -1053,6 +1079,10 @@ void Writer::createExportTable() {
     edataStart = edataSec->chunks.front();
     edataEnd = edataSec->chunks.back();
   }
+  // Warn on exported deleting destructor.
+  for (auto e : config->exports)
+    if (e.sym && e.sym->getName().startswith("??_G"))
+      warn("export of deleting dtor: " + toString(*e.sym));
 }
 
 void Writer::removeUnusedSections() {
@@ -1362,8 +1392,8 @@ template <typename PEHeaderTy> void Writer::writeHeader() {
   pe->MinorImageVersion = config->minorImageVersion;
   pe->MajorOperatingSystemVersion = config->majorOSVersion;
   pe->MinorOperatingSystemVersion = config->minorOSVersion;
-  pe->MajorSubsystemVersion = config->majorOSVersion;
-  pe->MinorSubsystemVersion = config->minorOSVersion;
+  pe->MajorSubsystemVersion = config->majorSubsystemVersion;
+  pe->MinorSubsystemVersion = config->minorSubsystemVersion;
   pe->Subsystem = config->subsystem;
   pe->SizeOfImage = sizeOfImage;
   pe->SizeOfHeaders = sizeOfHeaders;
@@ -1553,6 +1583,7 @@ static void maybeAddAddressTakenFunction(SymbolRVASet &addressTakenSyms,
     break;
   case Symbol::LazyArchiveKind:
   case Symbol::LazyObjectKind:
+  case Symbol::LazyDLLSymbolKind:
   case Symbol::UndefinedKind:
     // Undefined symbols resolve to zero, so they don't have an RVA. Lazy
     // symbols shouldn't have relocations.
@@ -1607,16 +1638,23 @@ static void markSymbolsWithRelocations(ObjFile *file,
 // table.
 void Writer::createGuardCFTables() {
   SymbolRVASet addressTakenSyms;
+  SymbolRVASet giatsRVASet;
+  std::vector<Symbol *> giatsSymbols;
   SymbolRVASet longJmpTargets;
+  SymbolRVASet ehContTargets;
   for (ObjFile *file : ObjFile::instances) {
     // If the object was compiled with /guard:cf, the address taken symbols
-    // are in .gfids$y sections, and the longjmp targets are in .gljmp$y
-    // sections. If the object was not compiled with /guard:cf, we assume there
-    // were no setjmp targets, and that all code symbols with relocations are
-    // possibly address-taken.
+    // are in .gfids$y sections, the longjmp targets are in .gljmp$y sections,
+    // and ehcont targets are in .gehcont$y sections. If the object was not
+    // compiled with /guard:cf, we assume there were no setjmp and ehcont
+    // targets, and that all code symbols with relocations are possibly
+    // address-taken.
     if (file->hasGuardCF()) {
       markSymbolsForRVATable(file, file->getGuardFidChunks(), addressTakenSyms);
+      markSymbolsForRVATable(file, file->getGuardIATChunks(), giatsRVASet);
+      getSymbolsFromSections(file, file->getGuardIATChunks(), giatsSymbols);
       markSymbolsForRVATable(file, file->getGuardLJmpChunks(), longJmpTargets);
+      markSymbolsForRVATable(file, file->getGuardEHContChunks(), ehContTargets);
     } else {
       markSymbolsWithRelocations(file, addressTakenSyms);
     }
@@ -1630,6 +1668,16 @@ void Writer::createGuardCFTables() {
   for (Export &e : config->exports)
     maybeAddAddressTakenFunction(addressTakenSyms, e.sym);
 
+  // For each entry in the .giats table, check if it has a corresponding load
+  // thunk (e.g. because the DLL that defines it will be delay-loaded) and, if
+  // so, add the load thunk to the address taken (.gfids) table.
+  for (Symbol *s : giatsSymbols) {
+    if (auto *di = dyn_cast<DefinedImportData>(s)) {
+      if (di->loadThunkSym)
+        addSymbolToRVASet(addressTakenSyms, di->loadThunkSym);
+    }
+  }
+
   // Ensure sections referenced in the gfid table are 16-byte aligned.
   for (const ChunkAndOffset &c : addressTakenSyms)
     if (c.inputChunk->getAlignment() < 16)
@@ -1638,27 +1686,38 @@ void Writer::createGuardCFTables() {
   maybeAddRVATable(std::move(addressTakenSyms), "__guard_fids_table",
                    "__guard_fids_count");
 
+  // Add the Guard Address Taken IAT Entry Table (.giats).
+  maybeAddRVATable(std::move(giatsRVASet), "__guard_iat_table",
+                   "__guard_iat_count");
+
   // Add the longjmp target table unless the user told us not to.
-  if (config->guardCF == GuardCFLevel::Full)
+  if (config->guardCF & GuardCFLevel::LongJmp)
     maybeAddRVATable(std::move(longJmpTargets), "__guard_longjmp_table",
                      "__guard_longjmp_count");
+
+  // Add the ehcont target table unless the user told us not to.
+  if (config->guardCF & GuardCFLevel::EHCont)
+    maybeAddRVATable(std::move(ehContTargets), "__guard_eh_cont_table",
+                     "__guard_eh_cont_count", true);
 
   // Set __guard_flags, which will be used in the load config to indicate that
   // /guard:cf was enabled.
   uint32_t guardFlags = uint32_t(coff_guard_flags::CFInstrumented) |
                         uint32_t(coff_guard_flags::HasFidTable);
-  if (config->guardCF == GuardCFLevel::Full)
+  if (config->guardCF & GuardCFLevel::LongJmp)
     guardFlags |= uint32_t(coff_guard_flags::HasLongJmpTable);
+  if (config->guardCF & GuardCFLevel::EHCont)
+    guardFlags |= uint32_t(coff_guard_flags::HasEHContTable);
   Symbol *flagSym = symtab->findUnderscore("__guard_flags");
   cast<DefinedAbsolute>(flagSym)->setVA(guardFlags);
 }
 
 // Take a list of input sections containing symbol table indices and add those
-// symbols to an RVA table. The challenge is that symbol RVAs are not known and
+// symbols to a vector. The challenge is that symbol RVAs are not known and
 // depend on the table size, so we can't directly build a set of integers.
-void Writer::markSymbolsForRVATable(ObjFile *file,
+void Writer::getSymbolsFromSections(ObjFile *file,
                                     ArrayRef<SectionChunk *> symIdxChunks,
-                                    SymbolRVASet &tableSymbols) {
+                                    std::vector<Symbol *> &symbols) {
   for (SectionChunk *c : symIdxChunks) {
     // Skip sections discarded by linker GC. This comes up when a .gfids section
     // is associated with something like a vtable and the vtable is discarded.
@@ -1676,7 +1735,7 @@ void Writer::markSymbolsForRVATable(ObjFile *file,
     }
 
     // Read each symbol table index and check if that symbol was included in the
-    // final link. If so, add it to the table symbol set.
+    // final link. If so, add it to the vector of symbols.
     ArrayRef<ulittle32_t> symIndices(
         reinterpret_cast<const ulittle32_t *>(data.data()), data.size() / 4);
     ArrayRef<Symbol *> objSymbols = file->getSymbols();
@@ -1688,27 +1747,43 @@ void Writer::markSymbolsForRVATable(ObjFile *file,
       }
       if (Symbol *s = objSymbols[symIndex]) {
         if (s->isLive())
-          addSymbolToRVASet(tableSymbols, cast<Defined>(s));
+          symbols.push_back(cast<Symbol>(s));
       }
     }
   }
+}
+
+// Take a list of input sections containing symbol table indices and add those
+// symbols to an RVA table.
+void Writer::markSymbolsForRVATable(ObjFile *file,
+                                    ArrayRef<SectionChunk *> symIdxChunks,
+                                    SymbolRVASet &tableSymbols) {
+  std::vector<Symbol *> syms;
+  getSymbolsFromSections(file, symIdxChunks, syms);
+
+  for (Symbol *s : syms)
+    addSymbolToRVASet(tableSymbols, cast<Defined>(s));
 }
 
 // Replace the absolute table symbol with a synthetic symbol pointing to
 // tableChunk so that we can emit base relocations for it and resolve section
 // relative relocations.
 void Writer::maybeAddRVATable(SymbolRVASet tableSymbols, StringRef tableSym,
-                              StringRef countSym) {
+                              StringRef countSym, bool hasFlag) {
   if (tableSymbols.empty())
     return;
 
-  RVATableChunk *tableChunk = make<RVATableChunk>(std::move(tableSymbols));
+  NonSectionChunk *tableChunk;
+  if (hasFlag)
+    tableChunk = make<RVAFlagTableChunk>(std::move(tableSymbols));
+  else
+    tableChunk = make<RVATableChunk>(std::move(tableSymbols));
   rdataSec->addChunk(tableChunk);
 
   Symbol *t = symtab->findUnderscore(tableSym);
   Symbol *c = symtab->findUnderscore(countSym);
   replaceSymbol<DefinedSynthetic>(t, t->getName(), tableChunk);
-  cast<DefinedAbsolute>(c)->setVA(tableChunk->getSize() / 4);
+  cast<DefinedAbsolute>(c)->setVA(tableChunk->getSize() / (hasFlag ? 5 : 4));
 }
 
 // MinGW specific. Gather all relocations that are imported from a DLL even
@@ -1992,4 +2067,34 @@ PartialSection *Writer::findPartialSection(StringRef name, uint32_t outChars) {
   if (it != partialSections.end())
     return it->second;
   return nullptr;
+}
+
+void Writer::fixTlsAlignment() {
+  Defined *tlsSym =
+      dyn_cast_or_null<Defined>(symtab->findUnderscore("_tls_used"));
+  if (!tlsSym)
+    return;
+
+  OutputSection *sec = tlsSym->getChunk()->getOutputSection();
+  assert(sec && tlsSym->getRVA() >= sec->getRVA() &&
+         "no output section for _tls_used");
+
+  uint8_t *secBuf = buffer->getBufferStart() + sec->getFileOff();
+  uint64_t tlsOffset = tlsSym->getRVA() - sec->getRVA();
+  uint64_t directorySize = config->is64()
+                               ? sizeof(object::coff_tls_directory64)
+                               : sizeof(object::coff_tls_directory32);
+
+  if (tlsOffset + directorySize > sec->getRawSize())
+    fatal("_tls_used sym is malformed");
+
+  if (config->is64()) {
+    object::coff_tls_directory64 *tlsDir =
+        reinterpret_cast<object::coff_tls_directory64 *>(&secBuf[tlsOffset]);
+    tlsDir->setAlignment(tlsAlignment);
+  } else {
+    object::coff_tls_directory32 *tlsDir =
+        reinterpret_cast<object::coff_tls_directory32 *>(&secBuf[tlsOffset]);
+    tlsDir->setAlignment(tlsAlignment);
+  }
 }

@@ -184,13 +184,30 @@ public:
 
   virtual const char *GetLanguageSpecificTypeLookupHelp();
 
+  class MethodNameVariant {
+    ConstString m_name;
+    lldb::FunctionNameType m_type;
+
+  public:
+    MethodNameVariant(ConstString name, lldb::FunctionNameType type)
+        : m_name(name), m_type(type) {}
+    ConstString GetName() const { return m_name; }
+    lldb::FunctionNameType GetType() const { return m_type; }
+  };
   // If a language can have more than one possible name for a method, this
   // function can be used to enumerate them. This is useful when doing name
   // lookups.
-  virtual std::vector<ConstString>
+  virtual std::vector<Language::MethodNameVariant>
   GetMethodNameVariants(ConstString method_name) const {
-    return std::vector<ConstString>();
+    return std::vector<Language::MethodNameVariant>();
   };
+
+  /// Returns true iff the given symbol name is compatible with the mangling
+  /// scheme of this language.
+  ///
+  /// This function should only return true if there is a high confidence
+  /// that the name actually belongs to this language.
+  virtual bool SymbolNameFitsToLanguage(Mangled name) const { return false; }
 
   // if an individual data formatter can apply to several types and cross a
   // language boundary it makes sense for individual languages to want to
@@ -210,6 +227,10 @@ public:
   // for a ValueObject of some "reference type", if the value points to the
   // nil/null object, this method returns true
   virtual bool IsNilReference(ValueObject &valobj);
+
+  /// Returns the summary string for ValueObjects for which IsNilReference() is
+  /// true.
+  virtual llvm::StringRef GetNilReferenceSummaryString() { return {}; }
 
   // for a ValueObject of some "reference type", if the language provides a
   // technique to decide whether the reference has ever been assigned to some

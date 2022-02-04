@@ -69,7 +69,7 @@ sysctl_hw_snd_latency(SYSCTL_HANDLER_ARGS)
 	return err;
 }
 SYSCTL_PROC(_hw_snd, OID_AUTO, latency,
-    CTLTYPE_INT | CTLFLAG_RWTUN | CTLFLAG_NEEDGIANT, 0, sizeof(int),
+    CTLTYPE_INT | CTLFLAG_RWTUN | CTLFLAG_MPSAFE, 0, sizeof(int),
     sysctl_hw_snd_latency, "I",
     "buffering latency (0=low ... 10=high)");
 
@@ -92,7 +92,7 @@ sysctl_hw_snd_latency_profile(SYSCTL_HANDLER_ARGS)
 	return err;
 }
 SYSCTL_PROC(_hw_snd, OID_AUTO, latency_profile,
-    CTLTYPE_INT | CTLFLAG_RWTUN | CTLFLAG_NEEDGIANT, 0, sizeof(int),
+    CTLTYPE_INT | CTLFLAG_RWTUN | CTLFLAG_MPSAFE, 0, sizeof(int),
     sysctl_hw_snd_latency_profile, "I",
     "buffering latency profile (0=aggressive 1=safe)");
 
@@ -115,7 +115,7 @@ sysctl_hw_snd_timeout(SYSCTL_HANDLER_ARGS)
 	return err;
 }
 SYSCTL_PROC(_hw_snd, OID_AUTO, timeout,
-    CTLTYPE_INT | CTLFLAG_RWTUN | CTLFLAG_NEEDGIANT, 0, sizeof(int),
+    CTLTYPE_INT | CTLFLAG_RWTUN | CTLFLAG_MPSAFE, 0, sizeof(int),
     sysctl_hw_snd_timeout, "I",
     "interrupt timeout (1 - 10) seconds");
 
@@ -1223,6 +1223,8 @@ chn_init(struct pcm_channel *c, void *devinfo, int dir, int direction)
 	c->volume[SND_VOL_C_MASTER][SND_CHN_T_VOL_0DB] = SND_VOL_0DB_MASTER;
 	c->volume[SND_VOL_C_PCM][SND_CHN_T_VOL_0DB] = chn_vol_0db_pcm;
 
+	memset(c->muted, 0, sizeof(c->muted));
+
 	chn_vpc_reset(c, SND_VOL_C_PCM, 1);
 
 	ret = ENODEV;
@@ -1392,6 +1394,75 @@ chn_getvolume_matrix(struct pcm_channel *c, int vc, int vt)
 	CHN_LOCKASSERT(c);
 
 	return (c->volume[vc][vt]);
+}
+
+int
+chn_setmute_multi(struct pcm_channel *c, int vc, int mute)
+{
+	int i, ret;
+
+	ret = 0;
+
+	for (i = 0; i < SND_CHN_T_MAX; i++) {
+		if ((1 << i) & SND_CHN_LEFT_MASK)
+			ret |= chn_setmute_matrix(c, vc, i, mute);
+		else if ((1 << i) & SND_CHN_RIGHT_MASK)
+			ret |= chn_setmute_matrix(c, vc, i, mute) << 8;
+		else
+			ret |= chn_setmute_matrix(c, vc, i, mute) << 16;
+	}
+	return (ret);
+}
+
+int
+chn_setmute_matrix(struct pcm_channel *c, int vc, int vt, int mute)
+{
+	int i;
+
+	KASSERT(c != NULL && vc >= SND_VOL_C_MASTER && vc < SND_VOL_C_MAX &&
+	    (vc == SND_VOL_C_MASTER || (vc & 1)) &&
+	    (vt == SND_CHN_T_VOL_0DB || (vt >= SND_CHN_T_BEGIN && vt <= SND_CHN_T_END)),
+	    ("%s(): invalid mute matrix c=%p vc=%d vt=%d mute=%d",
+	    __func__, c, vc, vt, mute));
+
+	CHN_LOCKASSERT(c);
+
+	mute = (mute != 0);
+
+	c->muted[vc][vt] = mute;
+
+	/*
+	 * Do relative calculation here and store it into class + 1
+	 * to ease the job of feeder_volume.
+	 */
+	if (vc == SND_VOL_C_MASTER) {
+		for (vc = SND_VOL_C_BEGIN; vc <= SND_VOL_C_END;
+		    vc += SND_VOL_C_STEP)
+			c->muted[SND_VOL_C_VAL(vc)][vt] = mute;
+	} else if (vc & 1) {
+		if (vt == SND_CHN_T_VOL_0DB) {
+			for (i = SND_CHN_T_BEGIN; i <= SND_CHN_T_END;
+			    i += SND_CHN_T_STEP) {
+				c->muted[SND_VOL_C_VAL(vc)][i] = mute;
+			}
+		} else {
+			c->muted[SND_VOL_C_VAL(vc)][vt] = mute;
+		}
+	}
+	return (mute);
+}
+
+int
+chn_getmute_matrix(struct pcm_channel *c, int vc, int vt)
+{
+	KASSERT(c != NULL && vc >= SND_VOL_C_MASTER && vc < SND_VOL_C_MAX &&
+	    (vt == SND_CHN_T_VOL_0DB ||
+	    (vt >= SND_CHN_T_BEGIN && vt <= SND_CHN_T_END)),
+	    ("%s(): invalid mute matrix c=%p vc=%d vt=%d",
+	    __func__, c, vc, vt));
+	CHN_LOCKASSERT(c);
+
+	return (c->muted[vc][vt]);
 }
 
 struct pcmchan_matrix *
@@ -1632,7 +1703,7 @@ round_blksz(u_int32_t v, int round)
  * balanced performance for typical workload. Anything below 5 will
  * eat up CPU to keep up with increasing context switches because of
  * shorter buffer space and usually require the application to handle it
- * aggresively through possibly real time programming technique.
+ * aggressively through possibly real time programming technique.
  *
  */
 #define CHN_LATENCY_PBLKCNT_REF				\

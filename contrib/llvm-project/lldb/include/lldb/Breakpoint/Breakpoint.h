@@ -20,6 +20,7 @@
 #include "lldb/Breakpoint/BreakpointName.h"
 #include "lldb/Breakpoint/BreakpointOptions.h"
 #include "lldb/Breakpoint/Stoppoint.h"
+#include "lldb/Breakpoint/StoppointHitCounter.h"
 #include "lldb/Core/SearchFilter.h"
 #include "lldb/Utility/Event.h"
 #include "lldb/Utility/StringList.h"
@@ -480,16 +481,16 @@ public:
   /// Meant to be used by the BreakpointLocation class.
   ///
   /// \return
-  ///     A pointer to this breakpoint's BreakpointOptions.
-  BreakpointOptions *GetOptions();
+  ///     A reference to this breakpoint's BreakpointOptions.
+  BreakpointOptions &GetOptions();
 
   /// Returns the BreakpointOptions structure set at the breakpoint level.
   ///
   /// Meant to be used by the BreakpointLocation class.
   ///
   /// \return
-  ///     A pointer to this breakpoint's BreakpointOptions.
-  const BreakpointOptions *GetOptions() const;
+  ///     A reference to this breakpoint's BreakpointOptions.
+  const BreakpointOptions &GetOptions() const;
 
   /// Invoke the callback action when the breakpoint is hit.
   ///
@@ -544,7 +545,7 @@ public:
   /// if the condition says to stop and false otherwise.
   ///
   void SetPrecondition(lldb::BreakpointPreconditionSP precondition_sp) {
-    m_precondition_sp = precondition_sp;
+    m_precondition_sp = std::move(precondition_sp);
   }
 
   bool EvaluatePrecondition(StoppointCallbackContext &context);
@@ -616,21 +617,6 @@ protected:
 
   void DecrementIgnoreCount();
 
-  // BreakpointLocation::IgnoreCountShouldStop &
-  // Breakpoint::IgnoreCountShouldStop can only be called once per stop, and
-  // BreakpointLocation::IgnoreCountShouldStop should be tested first, and if
-  // it returns false we should continue, otherwise we should test
-  // Breakpoint::IgnoreCountShouldStop.
-
-  bool IgnoreCountShouldStop();
-
-  void IncrementHitCount() { m_hit_count++; }
-
-  void DecrementHitCount() {
-    assert(m_hit_count > 0);
-    m_hit_count--;
-  }
-
 private:
   // To call from CopyFromBreakpoint.
   Breakpoint(Target &new_target, const Breakpoint &bp_to_copy_from);
@@ -654,16 +640,17 @@ private:
   // to skip certain breakpoint hits.  For instance, exception breakpoints use
   // this to limit the stop to certain exception classes, while leaving the
   // condition & callback free for user specification.
-  std::unique_ptr<BreakpointOptions>
-      m_options_up; // Settable breakpoint options
+  BreakpointOptions m_options; // Settable breakpoint options
   BreakpointLocationList
       m_locations; // The list of locations currently found for this breakpoint.
   std::string m_kind_description;
   bool m_resolve_indirect_symbols;
-  uint32_t m_hit_count; // Number of times this breakpoint/watchpoint has been
-                        // hit.  This is kept
-  // separately from the locations hit counts, since locations can go away when
-  // their backing library gets unloaded, and we would lose hit counts.
+
+  /// Number of times this breakpoint has been hit. This is kept separately
+  /// from the locations hit counts, since locations can go away when their
+  /// backing library gets unloaded, and we would lose hit counts.
+  StoppointHitCounter m_hit_counter;
+
   BreakpointName::Permissions m_permissions;
 
   void SendBreakpointChangedEvent(lldb::BreakpointEventType eventKind);

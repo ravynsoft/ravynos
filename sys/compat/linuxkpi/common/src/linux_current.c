@@ -271,10 +271,6 @@ SYSCTL_INT(_compat_linuxkpi, OID_AUTO, task_struct_reserve,
 static void
 linux_current_init(void *arg __unused)
 {
-	lkpi_alloc_current = linux_alloc_current;
-	linuxkpi_thread_dtor_tag = EVENTHANDLER_REGISTER(thread_dtor,
-	    linuxkpi_thread_dtor, NULL, EVENTHANDLER_PRI_ANY);
-
 	TUNABLE_INT_FETCH("compat.linuxkpi.task_struct_reserve",
 	    &lkpi_task_resrv);
 	if (lkpi_task_resrv == 0) {
@@ -298,6 +294,12 @@ linux_current_init(void *arg __unused)
 	    UMA_ALIGN_PTR, 0);
 	uma_zone_reserve(linux_mm_zone, lkpi_task_resrv);
 	uma_prealloc(linux_mm_zone, lkpi_task_resrv);
+
+	atomic_thread_fence_seq_cst();
+
+	linuxkpi_thread_dtor_tag = EVENTHANDLER_REGISTER(thread_dtor,
+	    linuxkpi_thread_dtor, NULL, EVENTHANDLER_PRI_ANY);
+	lkpi_alloc_current = linux_alloc_current;
 }
 SYSINIT(linux_current, SI_SUB_EVENTHANDLER, SI_ORDER_SECOND,
     linux_current_init, NULL);
@@ -308,6 +310,10 @@ linux_current_uninit(void *arg __unused)
 	struct proc *p;
 	struct task_struct *ts;
 	struct thread *td;
+
+	lkpi_alloc_current = linux_alloc_current_noop;
+
+	atomic_thread_fence_seq_cst();
 
 	sx_slock(&allproc_lock);
 	FOREACH_PROC_IN_SYSTEM(p) {
@@ -321,8 +327,11 @@ linux_current_uninit(void *arg __unused)
 		PROC_UNLOCK(p);
 	}
 	sx_sunlock(&allproc_lock);
+
+	thread_reap_barrier();
+
 	EVENTHANDLER_DEREGISTER(thread_dtor, linuxkpi_thread_dtor_tag);
-	lkpi_alloc_current = linux_alloc_current_noop;
+
 	uma_zdestroy(linux_current_zone);
 	uma_zdestroy(linux_mm_zone);
 }

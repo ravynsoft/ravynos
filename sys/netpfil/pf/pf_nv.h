@@ -70,6 +70,7 @@ PF_NV_DEF_UINT(uint16, uint16_t, UINT16_MAX);
 PF_NV_DEF_UINT(uint32, uint32_t, UINT32_MAX);
 PF_NV_DEF_UINT(uint64, uint64_t, UINT64_MAX);
 
+int	pf_nvbool(const nvlist_t *, const char *, bool *);
 int	pf_nvbinary(const nvlist_t *, const char *, void *, size_t);
 int	pf_nvint(const nvlist_t *, const char *, int *);
 int	pf_nvstring(const nvlist_t *, const char *, char *, size_t);
@@ -78,7 +79,7 @@ int	pf_nvstring(const nvlist_t *, const char *, char *, size_t);
 
 int		 pf_check_rule_addr(const struct pf_rule_addr *);
 
-nvlist_t	*pf_krule_to_nvrule(const struct pf_krule *);
+nvlist_t	*pf_krule_to_nvrule(struct pf_krule *);
 int		 pf_nvrule_to_krule(const nvlist_t *, struct pf_krule *);
 int		 pf_nvstate_kill_to_kstate_kill(const nvlist_t *,
 		    struct pf_kstate_kill *);

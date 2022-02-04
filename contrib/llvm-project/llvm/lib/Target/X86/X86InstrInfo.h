@@ -284,6 +284,10 @@ public:
   bool findCommutedOpIndices(const MachineInstr &MI, unsigned &SrcOpIdx1,
                              unsigned &SrcOpIdx2) const override;
 
+  /// Returns true if we have preference on the operands order in MI, the
+  /// commute decision is returned in Commute.
+  bool hasCommutePreference(MachineInstr &MI, bool &Commute) const override;
+
   /// Returns an adjusted FMA opcode that must be used in FMA instruction that
   /// performs the same computations as the given \p MI but which has the
   /// operands \p SrcOpIdx1 and \p SrcOpIdx2 commuted.
@@ -316,6 +320,17 @@ public:
                      MachineBasicBlock *&FBB,
                      SmallVectorImpl<MachineOperand> &Cond,
                      bool AllowModify) const override;
+
+  Optional<ExtAddrMode>
+  getAddrModeFromMemoryOp(const MachineInstr &MemI,
+                          const TargetRegisterInfo *TRI) const override;
+
+  bool getConstValDefinedInReg(const MachineInstr &MI, const Register Reg,
+                               int64_t &ImmVal) const override;
+
+  bool preservesZeroValueInReg(const MachineInstr *MI,
+                               const Register NullValueReg,
+                               const TargetRegisterInfo *TRI) const override;
 
   bool getMemOperandsWithOffsetWidth(
       const MachineInstr &LdSt,
@@ -409,6 +424,13 @@ public:
   bool areLoadsFromSameBasePtr(SDNode *Load1, SDNode *Load2, int64_t &Offset1,
                                int64_t &Offset2) const override;
 
+  /// isSchedulingBoundary - Overrides the isSchedulingBoundary from
+  ///	Codegen/TargetInstrInfo.cpp to make it capable of identifying ENDBR
+  /// intructions and prevent it from being re-scheduled.
+  bool isSchedulingBoundary(const MachineInstr &MI,
+                            const MachineBasicBlock *MBB,
+                            const MachineFunction &MF) const override;
+
   /// shouldScheduleLoadsNear - This is a used by the pre-regalloc scheduler to
   /// determine (in conjunction with areLoadsFromSameBasePtr) if two loads
   /// should be scheduled togther. On some targets if two loads are loading from
@@ -421,7 +443,7 @@ public:
                                int64_t Offset2,
                                unsigned NumLoads) const override;
 
-  void getNoop(MCInst &NopInst) const override;
+  MCInst getNop() const override;
 
   bool
   reverseBranchCondition(SmallVectorImpl<MachineOperand> &Cond) const override;
@@ -429,16 +451,6 @@ public:
   /// isSafeToMoveRegClassDefs - Return true if it's safe to move a machine
   /// instruction that defines the specified register class.
   bool isSafeToMoveRegClassDefs(const TargetRegisterClass *RC) const override;
-
-  /// isSafeToClobberEFLAGS - Return true if it's safe insert an instruction tha
-  /// would clobber the EFLAGS condition register. Note the result may be
-  /// conservative. If it cannot definitely determine the safety after visiting
-  /// a few instructions in each direction it assumes it's not safe.
-  bool isSafeToClobberEFLAGS(MachineBasicBlock &MBB,
-                             MachineBasicBlock::iterator I) const {
-    return MBB.computeRegisterLiveness(&RI, X86::EFLAGS, I, 4) ==
-           MachineBasicBlock::LQR_Dead;
-  }
 
   /// True if MI has a condition code def, e.g. EFLAGS, that is
   /// not marked dead.
@@ -462,7 +474,7 @@ public:
   unsigned
   getPartialRegUpdateClearance(const MachineInstr &MI, unsigned OpNum,
                                const TargetRegisterInfo *TRI) const override;
-  unsigned getUndefRegClearance(const MachineInstr &MI, unsigned &OpNum,
+  unsigned getUndefRegClearance(const MachineInstr &MI, unsigned OpNum,
                                 const TargetRegisterInfo *TRI) const override;
   void breakPartialRegDependency(MachineInstr &MI, unsigned OpNum,
                                  const TargetRegisterInfo *TRI) const override;
@@ -517,7 +529,7 @@ public:
   /// the machine instruction generated due to folding.
   MachineInstr *optimizeLoadInstr(MachineInstr &MI,
                                   const MachineRegisterInfo *MRI,
-                                  unsigned &FoldAsLoadDefReg,
+                                  Register &FoldAsLoadDefReg,
                                   MachineInstr *&DefMI) const override;
 
   std::pair<unsigned, unsigned>

@@ -2,7 +2,15 @@
 # Copyright 2009, Wouter Wijngaards, NLnet Labs.   
 # BSD licensed.
 #
-# Version 37
+# Version 43
+# 2021-08-17 fix sed script in ssldir split handling.
+# 2021-08-17 fix for openssl to detect split version, with ssldir_include
+# 	     and ssldir_lib output directories.
+# 2021-07-30 fix for openssl use of lib64 directory.
+# 2021-06-14 fix nonblocking test to use host instead of target for mingw test.
+# 2021-05-17 fix nonblocking socket test from grep on mingw32 to mingw for
+# 	     64bit compatibility.
+# 2021-03-24 fix ACX_FUNC_DEPRECATED to use CPPFLAGS and CFLAGS.
 # 2021-01-05 fix defun for aclocal
 # 2021-01-05 autoconf 2.70 autoupdate and fixes, no AC_TRY_COMPILE
 # 2020-08-24 Use EVP_sha256 instead of HMAC_Update (for openssl-3.0.0).
@@ -642,6 +650,30 @@ AC_DEFUN([ACX_SSL_CHECKS], [
     withval=$1
     if test x_$withval != x_no; then
         AC_MSG_CHECKING(for SSL)
+	if test -n "$withval"; then
+		dnl look for openssl install with different version, eg.
+		dnl in /usr/include/openssl11/openssl/ssl.h
+		dnl and /usr/lib64/openssl11/libssl.so
+		dnl with the --with-ssl=/usr/include/openssl11
+		if test ! -f "$withval/include/openssl/ssl.h" -a -f "$withval/openssl/ssl.h"; then
+			ssldir="$withval"
+			found_ssl="yes"
+			withval=""
+			ssldir_include="$ssldir"
+			dnl find the libdir
+			ssldir_lib=`echo $ssldir | sed -e 's/include/lib/'`
+			if test -f "$ssldir_lib/libssl.a" -o -f "$ssldir_lib/libssl.so"; then
+				: # found here
+			else
+				ssldir_lib=`echo $ssldir | sed -e 's/include/lib64/'`
+				if test -f "$ssldir_lib/libssl.a" -o -f "$ssldir_lib/libssl.so"; then
+					: # found here
+				else
+					AC_MSG_ERROR([Could not find openssl lib file, $ssldir_lib/libssl.[so,a], pass like "/usr/local" or "/usr/include/openssl11"])
+				fi
+			fi
+		fi
+	fi
         if test x_$withval = x_ -o x_$withval = x_yes; then
             withval="/usr/local/ssl /usr/lib/ssl /usr/ssl /usr/pkg /usr/local /opt/local /usr/sfw /usr"
         fi
@@ -649,12 +681,12 @@ AC_DEFUN([ACX_SSL_CHECKS], [
             ssldir="$dir"
             if test -f "$dir/include/openssl/ssl.h"; then
                 found_ssl="yes"
-                AC_DEFINE_UNQUOTED([HAVE_SSL], [], [Define if you have the SSL libraries installed.])
-                dnl assume /usr/include is already in the include-path.
-                if test "$ssldir" != "/usr"; then
-                        CPPFLAGS="$CPPFLAGS -I$ssldir/include"
-                        LIBSSL_CPPFLAGS="$LIBSSL_CPPFLAGS -I$ssldir/include"
-                fi
+		ssldir_include="$ssldir/include"
+		if test ! -d "$ssldir/lib" -a -d "$ssldir/lib64"; then
+			ssldir_lib="$ssldir/lib64"
+		else
+			ssldir_lib="$ssldir/lib"
+		fi
                 break;
             fi
         done
@@ -662,13 +694,16 @@ AC_DEFUN([ACX_SSL_CHECKS], [
             AC_MSG_ERROR(Cannot find the SSL libraries in $withval)
         else
             AC_MSG_RESULT(found in $ssldir)
+            AC_DEFINE_UNQUOTED([HAVE_SSL], [], [Define if you have the SSL libraries installed.])
             HAVE_SSL=yes
-            dnl assume /usr is already in the lib and dynlib paths.
-            if test "$ssldir" != "/usr" -a "$ssldir" != ""; then
-                LDFLAGS="$LDFLAGS -L$ssldir/lib"
-                LIBSSL_LDFLAGS="$LIBSSL_LDFLAGS -L$ssldir/lib"
-                ACX_RUNTIME_PATH_ADD([$ssldir/lib])
-            fi
+	    dnl assume /usr is already in the include, lib and dynlib paths.
+            if test "$ssldir" != "/usr"; then
+		    CPPFLAGS="$CPPFLAGS -I$ssldir_include"
+		    LIBSSL_CPPFLAGS="$LIBSSL_CPPFLAGS -I$ssldir_include"
+		    LDFLAGS="$LDFLAGS -L$ssldir_lib"
+		    LIBSSL_LDFLAGS="$LIBSSL_LDFLAGS -L$ssldir_lib"
+	    	    ACX_RUNTIME_PATH_ADD([$ssldir_lib])
+	    fi
         
             AC_MSG_CHECKING([for EVP_sha256 in -lcrypto])
             LIBS="$LIBS -lcrypto"
@@ -747,7 +782,7 @@ dnl
 AC_DEFUN([ACX_WITH_SSL],
 [
 AC_ARG_WITH(ssl, AS_HELP_STRING([--with-ssl=pathname],[enable SSL (will check /usr/local/ssl
-                            /usr/lib/ssl /usr/ssl /usr/pkg /usr/local /opt/local /usr/sfw /usr)]),[
+                            /usr/lib/ssl /usr/ssl /usr/pkg /usr/local /opt/local /usr/sfw /usr or specify like /usr/include/openssl11)]),[
         ],[
             withval="yes"
         ])
@@ -765,7 +800,7 @@ dnl
 AC_DEFUN([ACX_WITH_SSL_OPTIONAL],
 [
 AC_ARG_WITH(ssl, AS_HELP_STRING([--with-ssl=pathname],[enable SSL (will check /usr/local/ssl
-                                /usr/lib/ssl /usr/ssl /usr/pkg /usr/local /opt/local /usr/sfw /usr)]),[
+                                /usr/lib/ssl /usr/ssl /usr/pkg /usr/local /opt/local /usr/sfw /usr or specify like /usr/include/openssl11)]),[
         ],[
             withval="yes"
         ])
@@ -888,7 +923,7 @@ AC_CACHE_VAL(cv_cc_deprecated_$cache,
 [
 echo '$3' >conftest.c
 echo 'void f(){ $2 }' >>conftest.c
-if test -z "`$CC -c conftest.c 2>&1 | grep deprecated`"; then
+if test -z "`$CC $CPPFLAGS $CFLAGS -c conftest.c 2>&1 | grep -e deprecated -e unavailable`"; then
 eval "cv_cc_deprecated_$cache=no"
 else
 eval "cv_cc_deprecated_$cache=yes"
@@ -914,7 +949,7 @@ dnl a nonblocking socket do not work, a new call to select is necessary.
 AC_DEFUN([ACX_CHECK_NONBLOCKING_BROKEN],
 [
 AC_MSG_CHECKING([if nonblocking sockets work])
-if echo $target | grep mingw32 >/dev/null; then 
+if echo $host | grep mingw >/dev/null; then
 	AC_MSG_RESULT([no (windows)])
 	AC_DEFINE([NONBLOCKING_IS_BROKEN], 1, [Define if the network stack does not fully support nonblocking io (causes lower performance).])
 else

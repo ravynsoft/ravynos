@@ -103,8 +103,9 @@ void netbsd::Assembler::ConstructJob(Compilation &C, const JobAction &JA,
     CmdArgs.push_back(II.getFilename());
 
   const char *Exec = Args.MakeArgString((getToolChain().GetProgramPath("as")));
-  C.addCommand(std::make_unique<Command>(
-      JA, *this, ResponseFileSupport::AtFileCurCP(), Exec, CmdArgs, Inputs));
+  C.addCommand(std::make_unique<Command>(JA, *this,
+                                         ResponseFileSupport::AtFileCurCP(),
+                                         Exec, CmdArgs, Inputs, Output));
 }
 
 void netbsd::Linker::ConstructJob(Compilation &C, const JobAction &JA,
@@ -338,8 +339,9 @@ void netbsd::Linker::ConstructJob(Compilation &C, const JobAction &JA,
   ToolChain.addProfileRTLibs(Args, CmdArgs);
 
   const char *Exec = Args.MakeArgString(ToolChain.GetLinkerPath());
-  C.addCommand(std::make_unique<Command>(
-      JA, *this, ResponseFileSupport::AtFileCurCP(), Exec, CmdArgs, Inputs));
+  C.addCommand(std::make_unique<Command>(JA, *this,
+                                         ResponseFileSupport::AtFileCurCP(),
+                                         Exec, CmdArgs, Inputs, Output));
 }
 
 /// NetBSD - NetBSD tool chain which can call as(1) and ld(1) directly.
@@ -450,8 +452,8 @@ void NetBSD::addLibCxxIncludePaths(const llvm::opt::ArgList &DriverArgs,
 
 void NetBSD::addLibStdCxxIncludePaths(const llvm::opt::ArgList &DriverArgs,
                                       llvm::opt::ArgStringList &CC1Args) const {
-  addLibStdCXXIncludePaths(getDriver().SysRoot, "/usr/include/g++", "", "", "",
-                           "", DriverArgs, CC1Args);
+  addLibStdCXXIncludePaths(getDriver().SysRoot + "/usr/include/g++", "", "",
+                           DriverArgs, CC1Args);
 }
 
 llvm::ExceptionHandling NetBSD::GetExceptionModel(const ArgList &Args) const {

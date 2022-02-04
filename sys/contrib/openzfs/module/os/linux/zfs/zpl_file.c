@@ -33,6 +33,9 @@
 #include <sys/zfs_vfsops.h>
 #include <sys/zfs_vnops.h>
 #include <sys/zfs_project.h>
+#ifdef HAVE_VFS_SET_PAGE_DIRTY_NOBUFFERS
+#include <linux/pagemap.h>
+#endif
 
 /*
  * When using fallocate(2) to preallocate space, inflate the requested
@@ -248,9 +251,15 @@ zpl_uio_init(zfs_uio_t *uio, struct kiocb *kiocb, struct iov_iter *to,
 #if defined(HAVE_VFS_IOV_ITER)
 	zfs_uio_iov_iter_init(uio, to, pos, count, skip);
 #else
+#ifdef HAVE_IOV_ITER_TYPE
+	zfs_uio_iovec_init(uio, to->iov, to->nr_segs, pos,
+	    iov_iter_type(to) & ITER_KVEC ? UIO_SYSSPACE : UIO_USERSPACE,
+	    count, skip);
+#else
 	zfs_uio_iovec_init(uio, to->iov, to->nr_segs, pos,
 	    to->type & ITER_KVEC ? UIO_SYSSPACE : UIO_USERSPACE,
 	    count, skip);
+#endif
 #endif
 }
 
@@ -591,8 +600,8 @@ zpl_mmap(struct file *filp, struct vm_area_struct *vma)
  * only used to support mmap(2).  There will be an identical copy of the
  * data in the ARC which is kept up to date via .write() and .writepage().
  */
-static int
-zpl_readpage(struct file *filp, struct page *pp)
+static inline int
+zpl_readpage_common(struct page *pp)
 {
 	struct inode *ip;
 	struct page *pl[1];
@@ -620,6 +629,18 @@ zpl_readpage(struct file *filp, struct page *pp)
 	return (error);
 }
 
+static int
+zpl_readpage(struct file *filp, struct page *pp)
+{
+	return (zpl_readpage_common(pp));
+}
+
+static int
+zpl_readpage_filler(void *data, struct page *pp)
+{
+	return (zpl_readpage_common(pp));
+}
+
 /*
  * Populate a set of pages with data for the Linux page cache.  This
  * function will only be called for read ahead and never for demand
@@ -630,8 +651,7 @@ static int
 zpl_readpages(struct file *filp, struct address_space *mapping,
     struct list_head *pages, unsigned nr_pages)
 {
-	return (read_cache_pages(mapping, pages,
-	    (filler_t *)zpl_readpage, filp));
+	return (read_cache_pages(mapping, pages, zpl_readpage_filler, NULL));
 }
 
 static int
@@ -1007,6 +1027,9 @@ const struct address_space_operations zpl_address_space_operations = {
 	.writepage	= zpl_writepage,
 	.writepages	= zpl_writepages,
 	.direct_IO	= zpl_direct_IO,
+#ifdef HAVE_VFS_SET_PAGE_DIRTY_NOBUFFERS
+	.set_page_dirty = __set_page_dirty_nobuffers,
+#endif
 };
 
 const struct file_operations zpl_file_operations = {

@@ -735,10 +735,8 @@ mvneta_attach(device_t self)
 		    mvneta_mediastatus, BMSR_DEFCAPMASK, sc->phy_addr,
 		    MII_OFFSET_ANY, 0);
 		if (error != 0) {
-			if (bootverbose) {
-				device_printf(self,
-				    "MII attach failed, error: %d\n", error);
-			}
+			device_printf(self, "MII attach failed, error: %d\n",
+			    error);
 			ether_ifdetach(sc->ifp);
 			mvneta_detach(self);
 			return (error);
@@ -2168,29 +2166,28 @@ mvneta_ioctl(struct ifnet *ifp, u_long cmd, caddr_t data)
 				ifp->if_hwassist = CSUM_IP | CSUM_TCP |
 					CSUM_UDP;
 			}
-
-			if (ifp->if_drv_flags & IFF_DRV_RUNNING) {
-				/* Stop hardware */
+			/*
+			 * Reinitialize RX queues.
+			 * We need to update RX descriptor size.
+			 */
+			if (ifp->if_drv_flags & IFF_DRV_RUNNING)
 				mvneta_stop_locked(sc);
-				/*
-				 * Reinitialize RX queues.
-				 * We need to update RX descriptor size.
-				 */
-				for (q = 0; q < MVNETA_RX_QNUM_MAX; q++) {
-					mvneta_rx_lockq(sc, q);
-					if (mvneta_rx_queue_init(ifp, q) != 0) {
-						device_printf(sc->dev,
-						    "initialization failed:"
-						    " cannot initialize queue\n");
-						mvneta_rx_unlockq(sc, q);
-						error = ENOBUFS;
-						break;
-					}
+
+			for (q = 0; q < MVNETA_RX_QNUM_MAX; q++) {
+				mvneta_rx_lockq(sc, q);
+				if (mvneta_rx_queue_init(ifp, q) != 0) {
+					device_printf(sc->dev,
+					    "initialization failed:"
+					    " cannot initialize queue\n");
 					mvneta_rx_unlockq(sc, q);
+					error = ENOBUFS;
+					break;
 				}
-				/* Trigger reinitialization */
-				mvneta_init_locked(sc);
+				mvneta_rx_unlockq(sc, q);
 			}
+			if (ifp->if_drv_flags & IFF_DRV_RUNNING)
+				mvneta_init_locked(sc);
+
 			mvneta_sc_unlock(sc);
                 }
                 break;

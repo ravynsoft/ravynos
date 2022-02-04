@@ -69,6 +69,15 @@ void TargetInstrInfo::insertNoop(MachineBasicBlock &MBB,
   llvm_unreachable("Target didn't implement insertNoop!");
 }
 
+/// insertNoops - Insert noops into the instruction stream at the specified
+/// point.
+void TargetInstrInfo::insertNoops(MachineBasicBlock &MBB,
+                                  MachineBasicBlock::iterator MI,
+                                  unsigned Quantity) const {
+  for (unsigned i = 0; i < Quantity; ++i)
+    insertNoop(MBB, MI);
+}
+
 static bool isAsmComment(const char *Str, const MCAsmInfo &MAI) {
   return strncmp(Str, MAI.getCommentString().data(),
                  MAI.getCommentString().size()) == 0;
@@ -463,39 +472,46 @@ static const TargetRegisterClass *canFoldCopy(const MachineInstr &MI,
   return nullptr;
 }
 
-void TargetInstrInfo::getNoop(MCInst &NopInst) const {
-  llvm_unreachable("Not implemented");
+MCInst TargetInstrInfo::getNop() const { llvm_unreachable("Not implemented"); }
+
+std::pair<unsigned, unsigned>
+TargetInstrInfo::getPatchpointUnfoldableRange(const MachineInstr &MI) const {
+  switch (MI.getOpcode()) {
+  case TargetOpcode::STACKMAP:
+    // StackMapLiveValues are foldable
+    return std::make_pair(0, StackMapOpers(&MI).getVarIdx());
+  case TargetOpcode::PATCHPOINT:
+    // For PatchPoint, the call args are not foldable (even if reported in the
+    // stackmap e.g. via anyregcc).
+    return std::make_pair(0, PatchPointOpers(&MI).getVarIdx());
+  case TargetOpcode::STATEPOINT:
+    // For statepoints, fold deopt and gc arguments, but not call arguments.
+    return std::make_pair(MI.getNumDefs(), StatepointOpers(&MI).getVarIdx());
+  default:
+    llvm_unreachable("unexpected stackmap opcode");
+  }
 }
 
 static MachineInstr *foldPatchpoint(MachineFunction &MF, MachineInstr &MI,
                                     ArrayRef<unsigned> Ops, int FrameIndex,
                                     const TargetInstrInfo &TII) {
   unsigned StartIdx = 0;
-  switch (MI.getOpcode()) {
-  case TargetOpcode::STACKMAP: {
-    // StackMapLiveValues are foldable
-    StartIdx = StackMapOpers(&MI).getVarIdx();
-    break;
-  }
-  case TargetOpcode::PATCHPOINT: {
-    // For PatchPoint, the call args are not foldable (even if reported in the
-    // stackmap e.g. via anyregcc).
-    StartIdx = PatchPointOpers(&MI).getVarIdx();
-    break;
-  }
-  case TargetOpcode::STATEPOINT: {
-    // For statepoints, fold deopt and gc arguments, but not call arguments.
-    StartIdx = StatepointOpers(&MI).getVarIdx();
-    break;
-  }
-  default:
-    llvm_unreachable("unexpected stackmap opcode");
-  }
+  unsigned NumDefs = 0;
+  // getPatchpointUnfoldableRange throws guarantee if MI is not a patchpoint.
+  std::tie(NumDefs, StartIdx) = TII.getPatchpointUnfoldableRange(MI);
+
+  unsigned DefToFoldIdx = MI.getNumOperands();
 
   // Return false if any operands requested for folding are not foldable (not
   // part of the stackmap's live values).
   for (unsigned Op : Ops) {
-    if (Op < StartIdx)
+    if (Op < NumDefs) {
+      assert(DefToFoldIdx == MI.getNumOperands() && "Folding multiple defs");
+      DefToFoldIdx = Op;
+    } else if (Op < StartIdx) {
+      return nullptr;
+    }
+    if (MI.getOperand(Op).isTied())
       return nullptr;
   }
 
@@ -505,11 +521,16 @@ static MachineInstr *foldPatchpoint(MachineFunction &MF, MachineInstr &MI,
 
   // No need to fold return, the meta data, and function arguments
   for (unsigned i = 0; i < StartIdx; ++i)
-    MIB.add(MI.getOperand(i));
+    if (i != DefToFoldIdx)
+      MIB.add(MI.getOperand(i));
 
-  for (unsigned i = StartIdx; i < MI.getNumOperands(); ++i) {
+  for (unsigned i = StartIdx, e = MI.getNumOperands(); i < e; ++i) {
     MachineOperand &MO = MI.getOperand(i);
+    unsigned TiedTo = e;
+    (void)MI.isRegTiedToDefOperand(i, &TiedTo);
+
     if (is_contained(Ops, i)) {
+      assert(TiedTo == e && "Cannot fold tied operands");
       unsigned SpillSize;
       unsigned SpillOffset;
       // Compute the spill slot size and offset.
@@ -523,9 +544,15 @@ static MachineInstr *foldPatchpoint(MachineFunction &MF, MachineInstr &MI,
       MIB.addImm(SpillSize);
       MIB.addFrameIndex(FrameIndex);
       MIB.addImm(SpillOffset);
-    }
-    else
+    } else {
       MIB.add(MO);
+      if (TiedTo < e) {
+        assert(TiedTo < NumDefs && "Bad tied operand");
+        if (TiedTo > DefToFoldIdx)
+          --TiedTo;
+        NewMI->tieOperands(TiedTo, NewMI->getNumOperands() - 1);
+      }
+    }
   }
   return NewMI;
 }
@@ -748,8 +775,8 @@ bool TargetInstrInfo::isReassociationCandidate(const MachineInstr &Inst,
 //    instruction is known to not increase the critical path, then don't match
 //    that pattern.
 bool TargetInstrInfo::getMachineCombinerPatterns(
-    MachineInstr &Root,
-    SmallVectorImpl<MachineCombinerPattern> &Patterns) const {
+    MachineInstr &Root, SmallVectorImpl<MachineCombinerPattern> &Patterns,
+    bool DoRegPressureReduce) const {
   bool Commute;
   if (isReassociationCandidate(Root, Commute)) {
     // We found a sequence of instructions that may be suitable for a

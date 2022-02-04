@@ -174,8 +174,8 @@ char	*strchr(const char *, int);
 char	*strchrnul(const char *, int);
 int	 strcmp(const char *, const char *);
 char	*strcpy(char * __restrict, const char * __restrict);
-size_t	 strcspn(const char * __restrict, const char * __restrict) __pure;
 char	*strdup_flags(const char *__restrict, struct malloc_type *, int);
+size_t	 strcspn(const char *, const char *) __pure;
 char	*strdup(const char *__restrict, struct malloc_type *);
 char	*strncat(char *, const char *, size_t);
 char	*strndup(const char *__restrict, size_t, struct malloc_type *);
@@ -186,24 +186,27 @@ int	 strncasecmp(const char *, const char *, size_t);
 int	 strncmp(const char *, const char *, size_t);
 char	*strncpy(char * __restrict, const char * __restrict, size_t);
 size_t	 strnlen(const char *, size_t);
+char	*strnstr(const char *, const char *, size_t);
 char	*strrchr(const char *, int);
 char	*strsep(char **, const char *delim);
 size_t	 strspn(const char *, const char *);
 char	*strstr(const char *, const char *);
 int	 strvalid(const char *, size_t);
 
-#ifdef KCSAN
-char	*kcsan_strcpy(char *, const char *);
-int	kcsan_strcmp(const char *, const char *);
-size_t	kcsan_strlen(const char *);
-#define	strcpy(d, s) kcsan_strcpy((d), (s))
-#define	strcmp(s1, s2) kcsan_strcmp((s1), (s2))
-#define	strlen(s) kcsan_strlen((s))
+#ifdef SAN_PREFIX
+char	*SAN_INTERCEPTOR(strcpy)(char *, const char *);
+int	SAN_INTERCEPTOR(strcmp)(const char *, const char *);
+size_t	SAN_INTERCEPTOR(strlen)(const char *);
+#ifndef SAN_RUNTIME
+#define	strcpy(d, s)	SAN_INTERCEPTOR(strcpy)((d), (s))
+#define	strcmp(s1, s2)	SAN_INTERCEPTOR(strcmp)((s1), (s2))
+#define	strlen(s)	SAN_INTERCEPTOR(strlen)(s)
+#endif /* !SAN_RUNTIME */
 #else
 #define strcpy(d, s) __builtin_strcpy((d), (s))
 #define strcmp(s1, s2) __builtin_strcmp((s1), (s2))
 #define strlen(s) __builtin_strlen((s))
-#endif
+#endif /* SAN_PREFIX */
 
 static __inline char *
 index(const char *p, int ch)

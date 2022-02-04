@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2020 The OpenSSL Project Authors. All Rights Reserved.
+ * Copyright 2002-2021 The OpenSSL Project Authors. All Rights Reserved.
  *
  * Licensed under the OpenSSL license (the "License").  You may not use
  * this file except in compliance with the License.  You can obtain a copy
@@ -548,7 +548,7 @@ ECPKPARAMETERS *EC_GROUP_get_ecpkparameters(const EC_GROUP *group,
             ECPARAMETERS_free(ret->value.parameters);
     }
 
-    if (EC_GROUP_get_asn1_flag(group)) {
+    if (EC_GROUP_get_asn1_flag(group) == OPENSSL_EC_NAMED_CURVE) {
         /*
          * use the asn1 OID to describe the elliptic curve parameters
          */
@@ -761,7 +761,10 @@ EC_GROUP *EC_GROUP_new_from_ecparameters(const ECPARAMETERS *params)
         ret->seed_len = params->curve->seed->length;
     }
 
-    if (!params->order || !params->base || !params->base->data) {
+    if (params->order == NULL
+            || params->base == NULL
+            || params->base->data == NULL
+            || params->base->length == 0) {
         ECerr(EC_F_EC_GROUP_NEW_FROM_ECPARAMETERS, EC_R_ASN1_ERROR);
         goto err;
     }

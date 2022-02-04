@@ -10,8 +10,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef DEMANGLE_UTILITY_H
-#define DEMANGLE_UTILITY_H
+#ifndef LLVM_DEMANGLE_UTILITY_H
+#define LLVM_DEMANGLE_UTILITY_H
 
 #include "StringView.h"
 #include <cstdint>
@@ -52,7 +52,7 @@ class OutputStream {
     char *TempPtr = std::end(Temp);
 
     while (N) {
-      *--TempPtr = '0' + char(N % 10);
+      *--TempPtr = char('0' + N % 10);
       N /= 10;
     }
 

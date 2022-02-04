@@ -54,6 +54,7 @@
  */
 #define	M_NOWAIT	0x0001		/* do not block */
 #define	M_WAITOK	0x0002		/* ok to block */
+#define	M_NORECLAIM	0x0080		/* do not reclaim after failure */
 #define	M_ZERO		0x0100		/* bzero the allocation */
 #define	M_NOVM		0x0200		/* don't ask VM for pages */
 #define	M_USE_RESERVE	0x0400		/* can alloc out of reserve memory */
@@ -264,6 +265,8 @@ void	*realloc(void *addr, size_t size, struct malloc_type *type, int flags)
 	    __result_use_check __alloc_size(2);
 void	*reallocf(void *addr, size_t size, struct malloc_type *type, int flags)
 	    __result_use_check __alloc_size(2);
+void	*malloc_aligned(size_t size, size_t align, struct malloc_type *type,
+	    int flags) __malloc_like __result_use_check __alloc_size(1);
 void	*malloc_domainset_aligned(size_t size, size_t align,
 	    struct malloc_type *mtp, struct domainset *ds, int flags)
 	    __malloc_like __result_use_check __alloc_size(1);

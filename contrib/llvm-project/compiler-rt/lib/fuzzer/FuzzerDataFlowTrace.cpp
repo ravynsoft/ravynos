@@ -60,6 +60,7 @@ bool BlockCoverage::AppendCoverage(std::istream &IN) {
       CoveredBlocks.push_back(BB);
     }
     if (CoveredBlocks.empty()) return false;
+    // Ensures no CoverageVector is longer than UINT32_MAX.
     uint32_t NumBlocks = CoveredBlocks.back();
     CoveredBlocks.pop_back();
     for (auto BB : CoveredBlocks)
@@ -200,7 +201,8 @@ bool DataFlowTrace::Init(const std::string &DirPath, std::string *FocusFunction,
     Printf("INFO: AUTOFOCUS: %zd %s\n", FocusFuncIdx,
            FunctionNames[FocusFuncIdx].c_str());
     for (size_t i = 0; i < NumFunctions; i++) {
-      if (!Weights[i]) continue;
+      if (Weights[i] == 0.0)
+        continue;
       Printf("  [%zd] W %g\tBB-tot %u\tBB-cov %u\tEntryFreq %u:\t%s\n", i,
              Weights[i], Coverage.GetNumberOfBlocks(i),
              Coverage.GetNumberOfCoveredBlocks(i), Coverage.GetCounter(i, 0),
@@ -253,7 +255,7 @@ int CollectDataFlow(const std::string &DFTBinary, const std::string &DirPath,
     return 1;
   }
 
-  static char DFSanEnv[] = "DFSAN_OPTIONS=fast16labels=1:warn_unimplemented=0";
+  static char DFSanEnv[] = "DFSAN_OPTIONS=warn_unimplemented=0";
   putenv(DFSanEnv);
   MkDir(DirPath);
   for (auto &F : CorporaFiles) {

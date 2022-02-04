@@ -1,7 +1,7 @@
 /******************************************************************************
   SPDX-License-Identifier: BSD-3-Clause
 
-  Copyright (c) 2001-2017, Intel Corporation
+  Copyright (c) 2001-2020, Intel Corporation
   All rights reserved.
 
   Redistribution and use in source and binary forms, with or without
@@ -197,7 +197,7 @@ s32 ixgbe_dcb_config_tx_desc_arbiter_82599(struct ixgbe_hw *hw, u16 *refill,
 	for (i = 0; i < IXGBE_DCB_MAX_TRAFFIC_CLASS; i++) {
 		max_credits = max[i];
 		reg = max_credits << IXGBE_RTTDT2C_MCL_SHIFT;
-		reg |= refill[i];
+		reg |= (u32)(refill[i]);
 		reg |= (u32)(bwg_id[i]) << IXGBE_RTTDT2C_BWG_SHIFT;
 
 		if (tsa[i] == ixgbe_dcb_tsa_group_strict_cee)
@@ -385,17 +385,17 @@ s32 ixgbe_dcb_config_tc_stats_82599(struct ixgbe_hw *hw,
 	u32 reg = 0;
 	u8  i   = 0;
 	u8 tc_count = 8;
-	bool vt_mode = FALSE;
+	bool vt_mode = false;
 
 	if (dcb_config != NULL) {
 		tc_count = dcb_config->num_tcs.pg_tcs;
 		vt_mode = dcb_config->vt_mode;
 	}
 
-	if (!((tc_count == 8 && vt_mode == FALSE) || tc_count == 4))
+	if (!((tc_count == 8 && vt_mode == false) || tc_count == 4))
 		return IXGBE_ERR_PARAM;
 
-	if (tc_count == 8 && vt_mode == FALSE) {
+	if (tc_count == 8 && vt_mode == false) {
 		/*
 		 * Receive Queues stats setting
 		 * 32 RQSMR registers, each configuring 4 queues.
@@ -435,7 +435,7 @@ s32 ixgbe_dcb_config_tc_stats_82599(struct ixgbe_hw *hw,
 				reg = 0x07070707;
 			IXGBE_WRITE_REG(hw, IXGBE_TQSM(i), reg);
 		}
-	} else if (tc_count == 4 && vt_mode == FALSE) {
+	} else if (tc_count == 4 && vt_mode == false) {
 		/*
 		 * Receive Queues stats setting
 		 * 32 RQSMR registers, each configuring 4 queues.
@@ -472,7 +472,7 @@ s32 ixgbe_dcb_config_tc_stats_82599(struct ixgbe_hw *hw,
 				reg = 0x03030303;
 			IXGBE_WRITE_REG(hw, IXGBE_TQSM(i), reg);
 		}
-	} else if (tc_count == 4 && vt_mode == TRUE) {
+	} else if (tc_count == 4 && vt_mode == true) {
 		/*
 		 * Receive Queues stats setting
 		 * 32 RQSMR registers, each configuring 4 queues.

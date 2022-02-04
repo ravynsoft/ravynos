@@ -39,7 +39,6 @@
 #include <linux/spinlock.h>
 #include <linux/idr.h>
 #include <linux/completion.h>
-#include <linux/netdevice.h>
 #include <linux/sched.h>
 #include <linux/pci.h>
 #include <linux/dma-mapping.h>
@@ -56,8 +55,6 @@
 
 #include <rdma/ib_verbs.h>
 #include <rdma/iw_cm.h>
-
-#undef prefetch
 
 #include "common/common.h"
 #include "common/t4_msg.h"
@@ -179,6 +176,14 @@ static inline int c4iw_fatal_error(struct c4iw_rdev *rdev)
 static inline int c4iw_num_stags(struct c4iw_rdev *rdev)
 {
 	return (int)(rdev->adap->vres.stag.size >> 5);
+}
+
+static inline int t4_max_fr_depth(struct c4iw_rdev *rdev, bool use_dsgl)
+{
+	if (rdev->adap->params.ulptx_memwrite_dsgl && use_dsgl)
+		return rdev->adap->params.dev_512sgl_mr ? T4_MAX_FR_FW_DSGL_DEPTH : T4_MAX_FR_DSGL_DEPTH;
+	else
+		return T4_MAX_FR_IMMD_DEPTH;
 }
 
 #define C4IW_WR_TO (60*HZ)
@@ -921,10 +926,10 @@ void c4iw_release_dev_ucontext(struct c4iw_rdev *rdev,
 void c4iw_init_dev_ucontext(struct c4iw_rdev *rdev,
 			    struct c4iw_dev_ucontext *uctx);
 int c4iw_poll_cq(struct ib_cq *ibcq, int num_entries, struct ib_wc *wc);
-int c4iw_post_send(struct ib_qp *ibqp, struct ib_send_wr *wr,
-		      struct ib_send_wr **bad_wr);
-int c4iw_post_receive(struct ib_qp *ibqp, struct ib_recv_wr *wr,
-		      struct ib_recv_wr **bad_wr);
+int c4iw_post_send(struct ib_qp *ibqp, const struct ib_send_wr *wr,
+		      const struct ib_send_wr **bad_wr);
+int c4iw_post_receive(struct ib_qp *ibqp, const struct ib_recv_wr *wr,
+		      const struct ib_recv_wr **bad_wr);
 int c4iw_connect(struct iw_cm_id *cm_id, struct iw_cm_conn_param *conn_param);
 int c4iw_create_listen(struct iw_cm_id *cm_id, int backlog);
 int c4iw_destroy_listen(struct iw_cm_id *cm_id);

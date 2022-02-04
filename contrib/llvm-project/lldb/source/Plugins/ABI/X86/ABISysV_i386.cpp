@@ -378,16 +378,16 @@ ValueObjectSP ABISysV_i386::GetReturnValueObjectSimple(
     uint32_t ptr =
         thread.GetRegisterContext()->ReadRegisterAsUnsigned(eax_id, 0) &
         0xffffffff;
-    value.SetValueType(Value::eValueTypeScalar);
+    value.SetValueType(Value::ValueType::Scalar);
     value.GetScalar() = ptr;
     return_valobj_sp = ValueObjectConstResult::Create(
         thread.GetStackFrameAtIndex(0).get(), value, ConstString(""));
   } else if ((type_flags & eTypeIsScalar) ||
              (type_flags & eTypeIsEnumeration)) //'Integral' + 'Floating Point'
   {
-    value.SetValueType(Value::eValueTypeScalar);
+    value.SetValueType(Value::ValueType::Scalar);
     llvm::Optional<uint64_t> byte_size =
-        return_compiler_type.GetByteSize(nullptr);
+        return_compiler_type.GetByteSize(&thread);
     if (!byte_size)
       return return_valobj_sp;
     bool success = false;
@@ -453,7 +453,7 @@ ValueObjectSP ABISysV_i386::GetReturnValueObjectSimple(
       uint32_t enm =
           thread.GetRegisterContext()->ReadRegisterAsUnsigned(eax_id, 0) &
           0xffffffff;
-      value.SetValueType(Value::eValueTypeScalar);
+      value.SetValueType(Value::ValueType::Scalar);
       value.GetScalar() = enm;
       return_valobj_sp = ValueObjectConstResult::Create(
           thread.GetStackFrameAtIndex(0).get(), value, ConstString(""));
@@ -512,7 +512,7 @@ ValueObjectSP ABISysV_i386::GetReturnValueObjectSimple(
   } else if (type_flags & eTypeIsVector) // 'Packed'
   {
     llvm::Optional<uint64_t> byte_size =
-        return_compiler_type.GetByteSize(nullptr);
+        return_compiler_type.GetByteSize(&thread);
     if (byte_size && *byte_size > 0) {
       const RegisterInfo *vec_reg = reg_ctx->GetRegisterInfoByName("xmm0", 0);
       if (vec_reg == nullptr)
@@ -652,6 +652,7 @@ bool ABISysV_i386::CreateDefaultUnwindPlan(UnwindPlan &unwind_plan) {
 
   row->GetCFAValue().SetIsRegisterPlusOffset(fp_reg_num, 2 * ptr_size);
   row->SetOffset(0);
+  row->SetUnspecifiedRegistersAreUndefined(true);
 
   row->SetRegisterLocationToAtCFAPlusOffset(fp_reg_num, ptr_size * -2, true);
   row->SetRegisterLocationToAtCFAPlusOffset(pc_reg_num, ptr_size * -1, true);

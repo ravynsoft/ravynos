@@ -6,6 +6,9 @@
 |*
 \*===----------------------------------------------------------------------===*/
 
+// Note: This is linked into the Darwin kernel, and must remain compatible
+// with freestanding compilation. See `darwin_add_builtin_libraries`.
+
 #if !defined(__Fuchsia__)
 
 #include "InstrProfilingInternal.h"
@@ -18,16 +21,6 @@ COMPILER_RT_VISIBILITY unsigned lprofProfileDumped() {
 
 COMPILER_RT_VISIBILITY void lprofSetProfileDumped(unsigned Value) {
   ProfileDumped = Value;
-}
-
-static unsigned RuntimeCounterRelocation = 0;
-
-COMPILER_RT_VISIBILITY unsigned lprofRuntimeCounterRelocation(void) {
-  return RuntimeCounterRelocation;
-}
-
-COMPILER_RT_VISIBILITY void lprofSetRuntimeCounterRelocation(unsigned Value) {
-  RuntimeCounterRelocation = Value;
 }
 
 #endif

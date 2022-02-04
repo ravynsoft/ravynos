@@ -305,30 +305,61 @@ void
 exec_sysvec_init(void *param)
 {
 	struct sysentvec *sv;
+	vm_offset_t sb;
 #ifdef RANDOM_FENESTRASX
 	ptrdiff_t base;
 #endif
+	u_int flags;
+	int res;
 
-	sv = (struct sysentvec *)param;
-	if ((sv->sv_flags & SV_SHP) == 0)
+	sv = param;
+	flags = sv->sv_flags;
+	if ((flags & SV_SHP) == 0)
 		return;
+	MPASS(sv->sv_shared_page_obj == NULL);
+	MPASS(sv->sv_shared_page_base != 0);
+
 	sv->sv_shared_page_obj = shared_page_obj;
-	sv->sv_sigcode_base = sv->sv_shared_page_base +
-	    shared_page_fill(*(sv->sv_szsigcode), 16, sv->sv_sigcode);
-	if ((sv->sv_flags & SV_ABI_MASK) != SV_ABI_FREEBSD)
-		return;
-	if ((sv->sv_flags & SV_TIMEKEEP) != 0) {
+	if ((flags & SV_ABI_MASK) == SV_ABI_FREEBSD) {
+		if ((flags & SV_DSO_SIG) != 0) {
+			sb = sv->sv_shared_page_base;
+			res = shared_page_fill((uintptr_t)sv->sv_szsigcode,
+			    16, sv->sv_sigcode);
+			if (res == -1)
+				panic("copying sigtramp to shared page");
+			sb += res;
+			sv->sv_vdso_base = sb;
+			sb += sv->sv_sigcodeoff;
+			sv->sv_sigcode_base = sb;
+		} else {
+			sv->sv_sigcode_base = sv->sv_shared_page_base +
+			    shared_page_fill(*(sv->sv_szsigcode), 16,
+			    sv->sv_sigcode);
+		}
+	}
+	if ((flags & SV_TIMEKEEP) != 0) {
 #ifdef COMPAT_FREEBSD32
-		if ((sv->sv_flags & SV_ILP32) != 0) {
-			KASSERT(compat32_svtk == NULL,
-			    ("Compat32 already registered"));
-			compat32_svtk = alloc_sv_tk_compat32();
+		if ((flags & SV_ILP32) != 0) {
+			if ((flags & SV_ABI_MASK) == SV_ABI_FREEBSD) {
+				KASSERT(compat32_svtk == NULL,
+				    ("Compat32 already registered"));
+				compat32_svtk = alloc_sv_tk_compat32();
+			} else {
+				KASSERT(compat32_svtk != NULL,
+				    ("Compat32 not registered"));
+			}
 			sv->sv_timekeep_base = sv->sv_shared_page_base +
 			    compat32_svtk->sv_timekeep_off;
 		} else {
 #endif
-			KASSERT(host_svtk == NULL, ("Host already registered"));
-			host_svtk = alloc_sv_tk();
+			if ((flags & SV_ABI_MASK) == SV_ABI_FREEBSD) {
+				KASSERT(host_svtk == NULL,
+				    ("Host already registered"));
+				host_svtk = alloc_sv_tk();
+			} else {
+				KASSERT(host_svtk != NULL,
+				    ("Host not registered"));
+			}
 			sv->sv_timekeep_base = sv->sv_shared_page_base +
 			    host_svtk->sv_timekeep_off;
 #ifdef COMPAT_FREEBSD32
@@ -336,7 +367,8 @@ exec_sysvec_init(void *param)
 #endif
 	}
 #ifdef RANDOM_FENESTRASX
-	if ((sv->sv_flags & SV_RNG_SEED_VER) != 0) {
+	if ((flags & (SV_ABI_MASK | SV_RNG_SEED_VER)) ==
+	    (SV_ABI_FREEBSD | SV_RNG_SEED_VER)) {
 		/*
 		 * Only allocate a single VDSO entry for multiple sysentvecs,
 		 * i.e., native and COMPAT32.
@@ -355,12 +387,17 @@ exec_sysvec_init_secondary(struct sysentvec *sv, struct sysentvec *sv2)
 	MPASS((sv2->sv_flags & SV_ABI_MASK) == (sv->sv_flags & SV_ABI_MASK));
 	MPASS((sv2->sv_flags & SV_TIMEKEEP) == (sv->sv_flags & SV_TIMEKEEP));
 	MPASS((sv2->sv_flags & SV_SHP) != 0 && (sv->sv_flags & SV_SHP) != 0);
+	MPASS((sv2->sv_flags & SV_DSO_SIG) == (sv->sv_flags & SV_DSO_SIG));
 	MPASS((sv2->sv_flags & SV_RNG_SEED_VER) ==
 	    (sv->sv_flags & SV_RNG_SEED_VER));
 
 	sv2->sv_shared_page_obj = sv->sv_shared_page_obj;
 	sv2->sv_sigcode_base = sv2->sv_shared_page_base +
 	    (sv->sv_sigcode_base - sv->sv_shared_page_base);
+	if ((sv2->sv_flags & SV_DSO_SIG) != 0) {
+		sv2->sv_vdso_base = sv2->sv_shared_page_base +
+		    (sv->sv_vdso_base - sv->sv_shared_page_base);
+	}
 	if ((sv2->sv_flags & SV_ABI_MASK) != SV_ABI_FREEBSD)
 		return;
 	if ((sv2->sv_flags & SV_TIMEKEEP) != 0) {

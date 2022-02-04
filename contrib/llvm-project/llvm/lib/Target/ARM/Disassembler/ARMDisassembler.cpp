@@ -860,7 +860,8 @@ ARMDisassembler::AddThumbPredicate(MCInst &MI) const {
         VCCPos + 2, MCOI::TIED_TO);
       assert(TiedOp >= 0 &&
              "Inactive register in vpred_r is not tied to an output!");
-      MI.insert(VCCI, MI.getOperand(TiedOp));
+      // Copy the operand to ensure it's not invalidated when MI grows.
+      MI.insert(VCCI, MCOperand(MI.getOperand(TiedOp)));
     }
   } else if (VCC != ARMVCC::None) {
     Check(S, SoftFail);
@@ -2675,8 +2676,12 @@ DecodeBranchImmInstruction(MCInst &Inst, unsigned Insn,
   if (!tryAddingSymbolicOperand(Address, Address + SignExtend32<26>(imm) + 8,
                                 true, 4, Inst, Decoder))
     Inst.addOperand(MCOperand::createImm(SignExtend32<26>(imm)));
-  if (!Check(S, DecodePredicateOperand(Inst, pred, Address, Decoder)))
-    return MCDisassembler::Fail;
+
+  // We already have BL_pred for BL w/ predicate, no need to add addition
+  // predicate opreands for BL
+  if (Inst.getOpcode() != ARM::BL)
+    if (!Check(S, DecodePredicateOperand(Inst, pred, Address, Decoder)))
+      return MCDisassembler::Fail;
 
   return S;
 }
@@ -4529,12 +4534,14 @@ static DecodeStatus DecodeCoprocessor(MCInst &Inst, unsigned Val,
 static DecodeStatus
 DecodeThumbTableBranch(MCInst &Inst, unsigned Insn,
                        uint64_t Address, const void *Decoder) {
+  const FeatureBitset &FeatureBits =
+    ((const MCDisassembler*)Decoder)->getSubtargetInfo().getFeatureBits();
   DecodeStatus S = MCDisassembler::Success;
 
   unsigned Rn = fieldFromInstruction(Insn, 16, 4);
   unsigned Rm = fieldFromInstruction(Insn, 0, 4);
 
-  if (Rn == ARM::SP) S = MCDisassembler::SoftFail;
+  if (Rn == 13 && !FeatureBits[ARM::HasV8Ops]) S = MCDisassembler::SoftFail;
   if (!Check(S, DecodeGPRRegisterClass(Inst, Rn, Address, Decoder)))
     return MCDisassembler::Fail;
   if (!Check(S, DecoderGPRRegisterClass(Inst, Rm, Address, Decoder)))
@@ -6667,17 +6674,14 @@ static DecodeStatus DecodeT2AddSubSPImm(MCInst &Inst, unsigned Insn,
     return MCDisassembler::Fail;
   if (TypeT3) {
     Inst.setOpcode(sign1 ? ARM::t2SUBspImm12 : ARM::t2ADDspImm12);
-    S = 0;
     Inst.addOperand(MCOperand::createImm(Imm12)); // zext imm12
   } else {
     Inst.setOpcode(sign1 ? ARM::t2SUBspImm : ARM::t2ADDspImm);
     if (!Check(DS, DecodeT2SOImm(Inst, Imm12, Address, Decoder))) // imm12
       return MCDisassembler::Fail;
+    if (!Check(DS, DecodeCCOutOperand(Inst, S, Address, Decoder))) // cc_out
+      return MCDisassembler::Fail;
   }
-  if (!Check(DS, DecodeCCOutOperand(Inst, S, Address, Decoder))) // cc_out
-    return MCDisassembler::Fail;
-
-  Inst.addOperand(MCOperand::createReg(0)); // pred
 
   return DS;
 }

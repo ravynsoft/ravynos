@@ -8,15 +8,15 @@ INCS=	pmc.h pmclog.h pmcformat.h
 CFLAGS+= -I${SRCTOP}/${RELDIR:H}/libpmcstat
 LDADD+=	-lc++
 
-.if ${MACHINE_CPUARCH} == "aarch64" || ${MACHINE_ARCH} == "amd64" || \
-    ${MACHINE_ARCH} == "i386"
-
 .if ${MACHINE_CPUARCH} == "aarch64"
 EVENT_ARCH="arm64"
-.elif ${MACHINE_ARCH} == "amd64" || ${MACHINE_ARCH} == "i386"
+.elif ${MACHINE_CPUARCH} == "amd64" || ${MACHINE_CPUARCH} == "i386"
 EVENT_ARCH="x86"
-.elif ${MACHINE_ARCH} == "powerpc"
+.elif ${MACHINE_CPUARCH} == "powerpc" && ${MACHINE_ARCH:Mpowerpc64*} != ""
 EVENT_ARCH="powerpc"
+.else
+# This will generate an empty events table
+EVENT_ARCH="none"
 .endif
 
 .if ${MK_DIRDEPS_BUILD} == "yes"
@@ -40,7 +40,6 @@ libpmc_events.c: ${JEVENTS} .META
 	fi
 CLEANFILES+=	libpmc_events.c libpmc_events.c.tmp
 SRCS+=	libpmc_events.c
-.endif
 
 WARNS?=	3
 
@@ -84,9 +83,6 @@ MAN+=	pmc.k7.3
 MAN+=	pmc.k8.3
 MAN+=	pmc.mips24k.3
 MAN+=	pmc.octeon.3
-MAN+=	pmc.p4.3
-MAN+=	pmc.p5.3
-MAN+=	pmc.p6.3
 MAN+=	pmc.sandybridge.3
 MAN+=	pmc.sandybridgeuc.3
 MAN+=	pmc.sandybridgexeon.3

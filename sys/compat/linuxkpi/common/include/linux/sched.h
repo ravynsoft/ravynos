@@ -28,8 +28,8 @@
  *
  * $FreeBSD$
  */
-#ifndef	_LINUX_SCHED_H_
-#define	_LINUX_SCHED_H_
+#ifndef	_LINUXKPI_LINUX_SCHED_H_
+#define	_LINUXKPI_LINUX_SCHED_H_
 
 #include <sys/param.h>
 #include <sys/systm.h>
@@ -161,8 +161,12 @@ linux_schedule_get_interrupt_value(struct task_struct *task)
 	return (value);
 }
 
-#define	schedule()					\
-	(void)linux_schedule_timeout(MAX_SCHEDULE_TIMEOUT)
+static inline void
+schedule(void)
+{
+	(void)linux_schedule_timeout(MAX_SCHEDULE_TIMEOUT);
+}
+
 #define	schedule_timeout(timeout)			\
 	linux_schedule_timeout(timeout)
 #define	schedule_timeout_killable(timeout)		\
@@ -196,4 +200,4 @@ get_task_comm(char *buf, struct task_struct *task)
 	return (task->comm);
 }
 
-#endif	/* _LINUX_SCHED_H_ */
+#endif	/* _LINUXKPI_LINUX_SCHED_H_ */

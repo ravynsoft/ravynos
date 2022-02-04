@@ -336,6 +336,9 @@ def RetCC_X86_64_C : CallingConv<[
   // MMX vector types are always returned in XMM0.
   CCIfType<[x86mmx], CCAssignToReg<[XMM0, XMM1]>>,
 
+  // Pointers are always returned in full 64-bit registers.
+  CCIfPtr<CCCustom<"CC_X86_64_Pointer">>,
+
   CCIfSwiftError<CCIfType<[i64], CCAssignToReg<[R12]>>>,
 
   CCDelegateTo<RetCC_X86Common>
@@ -459,6 +462,7 @@ def RetCC_X86_64 : CallingConv<[
 
   // Handle Swift calls.
   CCIfCC<"CallingConv::Swift", CCDelegateTo<RetCC_X86_64_Swift>>,
+  CCIfCC<"CallingConv::SwiftTail", CCDelegateTo<RetCC_X86_64_Swift>>,
 
   // Handle explicit CC selection
   CCIfCC<"CallingConv::Win64", CCDelegateTo<RetCC_X86_Win64_C>>,
@@ -514,9 +518,18 @@ def CC_X86_64_C : CallingConv<[
   // A SwiftError is passed in R12.
   CCIfSwiftError<CCIfType<[i64], CCAssignToReg<[R12]>>>,
 
-  // For Swift Calling Convention, pass sret in %rax.
+  // Pass SwiftAsync in an otherwise callee saved register so that calls to
+  // normal functions don't need to save it somewhere.
+  CCIfSwiftAsync<CCIfType<[i64], CCAssignToReg<[R14]>>>,
+
+  // For Swift Calling Conventions, pass sret in %rax.
   CCIfCC<"CallingConv::Swift",
     CCIfSRet<CCIfType<[i64], CCAssignToReg<[RAX]>>>>,
+  CCIfCC<"CallingConv::SwiftTail",
+    CCIfSRet<CCIfType<[i64], CCAssignToReg<[RAX]>>>>,
+
+  // Pointers are always passed in full 64-bit registers.
+  CCIfPtr<CCCustom<"CC_X86_64_Pointer">>,
 
   // The first 6 integer arguments are passed in integer registers.
   CCIfType<[i32], CCAssignToReg<[EDI, ESI, EDX, ECX, R8D, R9D]>>,
@@ -610,6 +623,13 @@ def CC_X86_Win64_C : CallingConv<[
 
   // A SwiftError is passed in R12.
   CCIfSwiftError<CCIfType<[i64], CCAssignToReg<[R12]>>>,
+
+  // Pass SwiftSelf in a callee saved register.
+  CCIfSwiftSelf<CCIfType<[i64], CCAssignToReg<[R13]>>>,
+
+  // Pass SwiftAsync in an otherwise callee saved register so that calls to
+  // normal functions don't need to save it somewhere.
+  CCIfSwiftAsync<CCIfType<[i64], CCAssignToReg<[R14]>>>,
 
   // The 'CFGuardTarget' parameter, if any, is passed in RAX.
   CCIfCFGuardTarget<CCAssignToReg<[RAX]>>,
@@ -842,6 +862,10 @@ def CC_X86_32_C : CallingConv<[
   // The 'nest' parameter, if any, is passed in ECX.
   CCIfNest<CCAssignToReg<[ECX]>>,
 
+  // On swifttailcc pass swiftself in ECX.
+  CCIfCC<"CallingConv::SwiftTail",
+         CCIfSwiftSelf<CCIfType<[i32], CCAssignToReg<[ECX]>>>>,
+
   // The first 3 integer arguments, if marked 'inreg' and if the call is not
   // a vararg call, are passed in integer registers.
   CCIfNotVarArg<CCIfInReg<CCIfType<[i32], CCAssignToReg<[EAX, EDX, ECX]>>>>,
@@ -1071,6 +1095,7 @@ def CSR_32 : CalleeSavedRegs<(add ESI, EDI, EBX, EBP)>;
 def CSR_64 : CalleeSavedRegs<(add RBX, R12, R13, R14, R15, RBP)>;
 
 def CSR_64_SwiftError : CalleeSavedRegs<(sub CSR_64, R12)>;
+def CSR_64_SwiftTail : CalleeSavedRegs<(sub CSR_64, R13, R14)>;
 
 def CSR_32EHRet : CalleeSavedRegs<(add EAX, EDX, CSR_32)>;
 def CSR_64EHRet : CalleeSavedRegs<(add RAX, RDX, CSR_64)>;
@@ -1081,6 +1106,7 @@ def CSR_Win64 : CalleeSavedRegs<(add CSR_Win64_NoSSE,
                                      (sequence "XMM%u", 6, 15))>;
 
 def CSR_Win64_SwiftError : CalleeSavedRegs<(sub CSR_Win64, R12)>;
+def CSR_Win64_SwiftTail : CalleeSavedRegs<(sub CSR_Win64, R13, R14)>;
 
 // The function used by Darwin to obtain the address of a thread-local variable
 // uses rdi to pass a single parameter and rax for the return value. All other
@@ -1096,7 +1122,7 @@ def CSR_64_CXX_TLS_Darwin_ViaCopy : CalleeSavedRegs<(sub CSR_64_TLS_Darwin, RBP)
 
 // All GPRs - except r11
 def CSR_64_RT_MostRegs : CalleeSavedRegs<(add CSR_64, RAX, RCX, RDX, RSI, RDI,
-                                              R8, R9, R10, RSP)>;
+                                              R8, R9, R10)>;
 
 // All registers - except r11
 def CSR_64_RT_AllRegs     : CalleeSavedRegs<(add CSR_64_RT_MostRegs,
@@ -1154,17 +1180,16 @@ def CSR_64_Intel_OCL_BI_AVX512 : CalleeSavedRegs<(add RBX, RSI, R14, R15,
 def CSR_64_HHVM : CalleeSavedRegs<(add R12)>;
 
 // Register calling convention preserves few GPR and XMM8-15
-def CSR_32_RegCall_NoSSE : CalleeSavedRegs<(add ESI, EDI, EBX, EBP, ESP)>;
+def CSR_32_RegCall_NoSSE : CalleeSavedRegs<(add ESI, EDI, EBX, EBP)>;
 def CSR_32_RegCall       : CalleeSavedRegs<(add CSR_32_RegCall_NoSSE,
                                            (sequence "XMM%u", 4, 7))>;
 def CSR_Win32_CFGuard_Check_NoSSE : CalleeSavedRegs<(add CSR_32_RegCall_NoSSE, ECX)>;
 def CSR_Win32_CFGuard_Check       : CalleeSavedRegs<(add CSR_32_RegCall, ECX)>;
-def CSR_Win64_RegCall_NoSSE : CalleeSavedRegs<(add RBX, RBP, RSP,
+def CSR_Win64_RegCall_NoSSE : CalleeSavedRegs<(add RBX, RBP,
                                               (sequence "R%u", 10, 15))>;
 def CSR_Win64_RegCall       : CalleeSavedRegs<(add CSR_Win64_RegCall_NoSSE,                                  
                                               (sequence "XMM%u", 8, 15))>;
-def CSR_SysV64_RegCall_NoSSE : CalleeSavedRegs<(add RBX, RBP, RSP,
+def CSR_SysV64_RegCall_NoSSE : CalleeSavedRegs<(add RBX, RBP,
                                                (sequence "R%u", 12, 15))>;
 def CSR_SysV64_RegCall       : CalleeSavedRegs<(add CSR_SysV64_RegCall_NoSSE,               
                                                (sequence "XMM%u", 8, 15))>;
-                                               

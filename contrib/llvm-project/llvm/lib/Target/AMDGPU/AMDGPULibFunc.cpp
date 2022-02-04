@@ -12,19 +12,22 @@
 
 #include "AMDGPULibFunc.h"
 #include "AMDGPU.h"
-#include "llvm/ADT/SmallString.h"
-#include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/StringExtras.h"
+#include "llvm/ADT/StringMap.h"
 #include "llvm/ADT/StringSwitch.h"
-#include "llvm/IR/Attributes.h"
 #include "llvm/IR/DerivedTypes.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/Module.h"
 #include "llvm/IR/ValueSymbolTable.h"
+#include "llvm/Support/CommandLine.h"
 #include "llvm/Support/raw_ostream.h"
-#include <string>
 
 using namespace llvm;
+
+static cl::opt<bool> EnableOCLManglingMismatchWA(
+    "amdgpu-enable-ocl-mangling-mismatch-workaround", cl::init(true),
+    cl::ReallyHidden,
+    cl::desc("Enable the workaround for OCL name mangling mismatch."));
 
 namespace {
 
@@ -829,7 +832,8 @@ public:
       unsigned AS = UseAddrSpace
                         ? AMDGPULibFuncBase::getAddrSpaceFromEPtrKind(p.PtrKind)
                         : 0;
-      if (AS != 0) os << "U3AS" << AS;
+      if (EnableOCLManglingMismatchWA || AS != 0)
+        os << "U3AS" << AS;
       Ptr = p;
       p.PtrKind = 0;
     }

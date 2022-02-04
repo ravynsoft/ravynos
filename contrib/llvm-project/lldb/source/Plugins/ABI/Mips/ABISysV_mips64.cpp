@@ -753,7 +753,7 @@ ValueObjectSP ABISysV_mips64::GetReturnValueObjectImpl(
   const ArchSpec target_arch = target->GetArchitecture();
   ByteOrder target_byte_order = target_arch.GetByteOrder();
   llvm::Optional<uint64_t> byte_size =
-      return_compiler_type.GetByteSize(nullptr);
+      return_compiler_type.GetByteSize(&thread);
   if (!byte_size)
     return return_valobj_sp;
   const uint32_t type_flags = return_compiler_type.GetTypeInfo(nullptr);
@@ -764,7 +764,7 @@ ValueObjectSP ABISysV_mips64::GetReturnValueObjectImpl(
   const RegisterInfo *r3_info = reg_ctx->GetRegisterInfoByName("r3", 0);
 
   if (type_flags & eTypeIsScalar || type_flags & eTypeIsPointer) {
-    value.SetValueType(Value::eValueTypeScalar);
+    value.SetValueType(Value::ValueType::Scalar);
 
     bool success = false;
     if (type_flags & eTypeIsInteger || type_flags & eTypeIsPointer) {
@@ -962,7 +962,7 @@ ValueObjectSP ABISysV_mips64::GetReturnValueObjectImpl(
                 return_compiler_type.GetFieldAtIndex(
                     idx, name, &field_bit_offset, nullptr, nullptr);
             llvm::Optional<uint64_t> field_byte_width =
-                field_compiler_type.GetByteSize(nullptr);
+                field_compiler_type.GetByteSize(&thread);
             if (!field_byte_width)
               return return_valobj_sp;
 
@@ -1034,7 +1034,7 @@ ValueObjectSP ABISysV_mips64::GetReturnValueObjectImpl(
         CompilerType field_compiler_type = return_compiler_type.GetFieldAtIndex(
             idx, name, &field_bit_offset, nullptr, nullptr);
         llvm::Optional<uint64_t> field_byte_width =
-            field_compiler_type.GetByteSize(nullptr);
+            field_compiler_type.GetByteSize(&thread);
 
         // if we don't know the size of the field (e.g. invalid type), just
         // bail out
@@ -1156,6 +1156,7 @@ bool ABISysV_mips64::CreateDefaultUnwindPlan(UnwindPlan &unwind_plan) {
 
   UnwindPlan::RowSP row(new UnwindPlan::Row);
 
+  row->SetUnspecifiedRegistersAreUndefined(true);
   row->GetCFAValue().SetIsRegisterPlusOffset(dwarf_r29, 0);
 
   row->SetRegisterLocationToRegister(dwarf_pc, dwarf_r31, true);

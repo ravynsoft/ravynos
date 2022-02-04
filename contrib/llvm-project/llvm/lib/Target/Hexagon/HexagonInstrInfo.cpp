@@ -1022,7 +1022,7 @@ bool HexagonInstrInfo::expandPostRAPseudo(MachineInstr &MI) const {
     return true;
   };
 
-  auto UseAligned = [&] (const MachineInstr &MI, unsigned NeedAlign) {
+  auto UseAligned = [&](const MachineInstr &MI, Align NeedAlign) {
     if (MI.memoperands().empty())
       return false;
     return all_of(MI.memoperands(), [NeedAlign](const MachineMemOperand *MMO) {
@@ -1086,7 +1086,7 @@ bool HexagonInstrInfo::expandPostRAPseudo(MachineInstr &MI) const {
       const MachineOperand &BaseOp = MI.getOperand(1);
       assert(BaseOp.getSubReg() == 0);
       int Offset = MI.getOperand(2).getImm();
-      unsigned NeedAlign = HRI.getSpillAlignment(Hexagon::HvxVRRegClass);
+      Align NeedAlign = HRI.getSpillAlign(Hexagon::HvxVRRegClass);
       unsigned NewOpc = UseAligned(MI, NeedAlign) ? Hexagon::V6_vL32b_ai
                                                   : Hexagon::V6_vL32Ub_ai;
       BuildMI(MBB, MI, DL, get(NewOpc), DstReg)
@@ -1102,7 +1102,7 @@ bool HexagonInstrInfo::expandPostRAPseudo(MachineInstr &MI) const {
       assert(BaseOp.getSubReg() == 0);
       int Offset = MI.getOperand(2).getImm();
       unsigned VecOffset = HRI.getSpillSize(Hexagon::HvxVRRegClass);
-      unsigned NeedAlign = HRI.getSpillAlignment(Hexagon::HvxVRRegClass);
+      Align NeedAlign = HRI.getSpillAlign(Hexagon::HvxVRRegClass);
       unsigned NewOpc = UseAligned(MI, NeedAlign) ? Hexagon::V6_vL32b_ai
                                                   : Hexagon::V6_vL32Ub_ai;
       BuildMI(MBB, MI, DL, get(NewOpc),
@@ -1124,7 +1124,7 @@ bool HexagonInstrInfo::expandPostRAPseudo(MachineInstr &MI) const {
       const MachineOperand &BaseOp = MI.getOperand(0);
       assert(BaseOp.getSubReg() == 0);
       int Offset = MI.getOperand(1).getImm();
-      unsigned NeedAlign = HRI.getSpillAlignment(Hexagon::HvxVRRegClass);
+      Align NeedAlign = HRI.getSpillAlign(Hexagon::HvxVRRegClass);
       unsigned NewOpc = UseAligned(MI, NeedAlign) ? Hexagon::V6_vS32b_ai
                                                   : Hexagon::V6_vS32Ub_ai;
       BuildMI(MBB, MI, DL, get(NewOpc))
@@ -1141,7 +1141,7 @@ bool HexagonInstrInfo::expandPostRAPseudo(MachineInstr &MI) const {
       assert(BaseOp.getSubReg() == 0);
       int Offset = MI.getOperand(1).getImm();
       unsigned VecOffset = HRI.getSpillSize(Hexagon::HvxVRRegClass);
-      unsigned NeedAlign = HRI.getSpillAlignment(Hexagon::HvxVRRegClass);
+      Align NeedAlign = HRI.getSpillAlign(Hexagon::HvxVRRegClass);
       unsigned NewOpc = UseAligned(MI, NeedAlign) ? Hexagon::V6_vS32b_ai
                                                   : Hexagon::V6_vS32Ub_ai;
       BuildMI(MBB, MI, DL, get(NewOpc))
@@ -1639,8 +1639,9 @@ bool HexagonInstrInfo::SubsumesPredicate(ArrayRef<MachineOperand> Pred1,
   return false;
 }
 
-bool HexagonInstrInfo::DefinesPredicate(MachineInstr &MI,
-      std::vector<MachineOperand> &Pred) const {
+bool HexagonInstrInfo::ClobbersPredicate(MachineInstr &MI,
+                                         std::vector<MachineOperand> &Pred,
+                                         bool SkipDead) const {
   const HexagonRegisterInfo &HRI = *Subtarget.getRegisterInfo();
 
   for (unsigned oper = 0; oper < MI.getNumOperands(); ++oper) {
@@ -2721,6 +2722,8 @@ bool HexagonInstrInfo::isValidOffset(unsigned Opcode, int Offset,
   case Hexagon::PS_vloadrw_nt_ai:
   case Hexagon::V6_vL32b_ai:
   case Hexagon::V6_vS32b_ai:
+  case Hexagon::V6_vS32b_qpred_ai:
+  case Hexagon::V6_vS32b_nqpred_ai:
   case Hexagon::V6_vL32b_nt_ai:
   case Hexagon::V6_vS32b_nt_ai:
   case Hexagon::V6_vL32Ub_ai:

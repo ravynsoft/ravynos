@@ -3064,7 +3064,10 @@ isp_intr_respq(ispsoftc_t *isp)
 	isphdr_t *hp;
 	uint8_t *resp, *snsp, etype;
 	uint16_t scsi_status;
-	uint32_t iptr, cont = 0, cptr, optr, rlen, slen, sptr, totslen;
+	uint32_t iptr, cont = 0, cptr, optr, rlen, slen, totslen;
+#ifdef	ISP_TARGET_MODE
+	uint32_t sptr;
+#endif
 
 	/*
 	 * We can't be getting this now.
@@ -3077,7 +3080,10 @@ isp_intr_respq(ispsoftc_t *isp)
 	iptr = ISP_READ(isp, BIU2400_RSPINP);
 	optr = isp->isp_resodx;
 	while (optr != iptr) {
-		sptr = cptr = optr;
+		cptr = optr;
+#ifdef	ISP_TARGET_MODE
+		sptr = optr;
+#endif
 		hp = (isphdr_t *) ISP_QUEUE_ENTRY(isp->isp_result, cptr);
 		optr = ISP_NXT_QENTRY(optr, RESULT_QUEUE_LEN(isp));
 
@@ -4327,12 +4333,7 @@ isp_read_nvram_2400(ispsoftc_t *isp)
 	uint32_t addr, csum, lwrds, *dptr;
 	uint8_t nvram_data[ISP2400_NVRAM_SIZE];
 
-	if (isp->isp_port) {
-		addr = ISP2400_NVRAM_PORT1_ADDR;
-	} else {
-		addr = ISP2400_NVRAM_PORT0_ADDR;
-	}
-
+	addr = ISP2400_NVRAM_PORT_ADDR(isp->isp_port);
 	dptr = (uint32_t *) nvram_data;
 	for (lwrds = 0; lwrds < ISP2400_NVRAM_SIZE >> 2; lwrds++) {
 		isp_rd_2400_nvram(isp, addr++, dptr++);

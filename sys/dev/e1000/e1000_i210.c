@@ -1,32 +1,32 @@
 /******************************************************************************
   SPDX-License-Identifier: BSD-3-Clause
 
-  Copyright (c) 2001-2015, Intel Corporation 
+  Copyright (c) 2001-2020, Intel Corporation
   All rights reserved.
-  
-  Redistribution and use in source and binary forms, with or without 
+
+  Redistribution and use in source and binary forms, with or without
   modification, are permitted provided that the following conditions are met:
-  
-   1. Redistributions of source code must retain the above copyright notice, 
+
+   1. Redistributions of source code must retain the above copyright notice,
       this list of conditions and the following disclaimer.
-  
-   2. Redistributions in binary form must reproduce the above copyright 
-      notice, this list of conditions and the following disclaimer in the 
+
+   2. Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
       documentation and/or other materials provided with the distribution.
-  
-   3. Neither the name of the Intel Corporation nor the names of its 
-      contributors may be used to endorse or promote products derived from 
+
+   3. Neither the name of the Intel Corporation nor the names of its
+      contributors may be used to endorse or promote products derived from
       this software without specific prior written permission.
-  
+
   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
-  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
-  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
-  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
-  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
-  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
-  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
   POSSIBILITY OF SUCH DAMAGE.
 
@@ -195,7 +195,9 @@ static s32 e1000_write_nvm_srwr(struct e1000_hw *hw, u16 offset, u16 words,
 	}
 
 	for (i = 0; i < words; i++) {
-		eewr = ((offset+i) << E1000_NVM_RW_ADDR_SHIFT) |
+		ret_val = -E1000_ERR_NVM;
+
+		eewr = ((offset + i) << E1000_NVM_RW_ADDR_SHIFT) |
 			(data[i] << E1000_NVM_RW_REG_DATA) |
 			E1000_NVM_RW_REG_START;
 
@@ -281,9 +283,9 @@ static s32 e1000_read_invm_i210(struct e1000_hw *hw, u16 offset,
 	switch (offset) {
 	case NVM_MAC_ADDR:
 		ret_val = e1000_read_invm_word_i210(hw, (u8)offset, &data[0]);
-		ret_val |= e1000_read_invm_word_i210(hw, (u8)offset+1,
+		ret_val |= e1000_read_invm_word_i210(hw, (u8)offset + 1,
 						     &data[1]);
-		ret_val |= e1000_read_invm_word_i210(hw, (u8)offset+2,
+		ret_val |= e1000_read_invm_word_i210(hw, (u8)offset + 2,
 						     &data[2]);
 		if (ret_val != E1000_SUCCESS)
 			DEBUGOUT("MAC Addr not found in iNVM\n");
@@ -341,6 +343,105 @@ static s32 e1000_read_invm_i210(struct e1000_hw *hw, u16 offset,
 		break;
 	}
 	return ret_val;
+}
+
+/**
+ *  e1000_read_invm_version - Reads iNVM version and image type
+ *  @hw: pointer to the HW structure
+ *  @invm_ver: version structure for the version read
+ *
+ *  Reads iNVM version and image type.
+ **/
+s32 e1000_read_invm_version(struct e1000_hw *hw,
+			    struct e1000_fw_version *invm_ver)
+{
+	u32 *record = NULL;
+	u32 *next_record = NULL;
+	u32 i = 0;
+	u32 invm_dword = 0;
+	u32 invm_blocks = E1000_INVM_SIZE - (E1000_INVM_ULT_BYTES_SIZE /
+					     E1000_INVM_RECORD_SIZE_IN_BYTES);
+	u32 buffer[E1000_INVM_SIZE];
+	s32 status = -E1000_ERR_INVM_VALUE_NOT_FOUND;
+	u16 version = 0;
+
+	DEBUGFUNC("e1000_read_invm_version");
+
+	/* Read iNVM memory */
+	for (i = 0; i < E1000_INVM_SIZE; i++) {
+		invm_dword = E1000_READ_REG(hw, E1000_INVM_DATA_REG(i));
+		buffer[i] = invm_dword;
+	}
+
+	/* Read version number */
+	for (i = 1; i < invm_blocks; i++) {
+		record = &buffer[invm_blocks - i];
+		next_record = &buffer[invm_blocks - i + 1];
+
+		/* Check if we have first version location used */
+		if ((i == 1) && ((*record & E1000_INVM_VER_FIELD_ONE) == 0)) {
+			version = 0;
+			status = E1000_SUCCESS;
+			break;
+		}
+		/* Check if we have second version location used */
+		else if ((i == 1) &&
+			 ((*record & E1000_INVM_VER_FIELD_TWO) == 0)) {
+			version = (*record & E1000_INVM_VER_FIELD_ONE) >> 3;
+			status = E1000_SUCCESS;
+			break;
+		}
+		/*
+		 * Check if we have odd version location
+		 * used and it is the last one used
+		 */
+		else if ((((*record & E1000_INVM_VER_FIELD_ONE) == 0) &&
+			 ((*record & 0x3) == 0)) || (((*record & 0x3) != 0) &&
+			 (i != 1))) {
+			version = (*next_record & E1000_INVM_VER_FIELD_TWO)
+				  >> 13;
+			status = E1000_SUCCESS;
+			break;
+		}
+		/*
+		 * Check if we have even version location
+		 * used and it is the last one used
+		 */
+		else if (((*record & E1000_INVM_VER_FIELD_TWO) == 0) &&
+			 ((*record & 0x3) == 0)) {
+			version = (*record & E1000_INVM_VER_FIELD_ONE) >> 3;
+			status = E1000_SUCCESS;
+			break;
+		}
+	}
+
+	if (status == E1000_SUCCESS) {
+		invm_ver->invm_major = (version & E1000_INVM_MAJOR_MASK)
+					>> E1000_INVM_MAJOR_SHIFT;
+		invm_ver->invm_minor = version & E1000_INVM_MINOR_MASK;
+	}
+	/* Read Image Type */
+	for (i = 1; i < invm_blocks; i++) {
+		record = &buffer[invm_blocks - i];
+		next_record = &buffer[invm_blocks - i + 1];
+
+		/* Check if we have image type in first location used */
+		if ((i == 1) && ((*record & E1000_INVM_IMGTYPE_FIELD) == 0)) {
+			invm_ver->invm_img_type = 0;
+			status = E1000_SUCCESS;
+			break;
+		}
+		/* Check if we have image type in first location used */
+		else if ((((*record & 0x3) == 0) &&
+			 ((*record & E1000_INVM_IMGTYPE_FIELD) == 0)) ||
+			 ((((*record & 0x3) != 0) && (i != 1)))) {
+			invm_ver->invm_img_type =
+				(*next_record & E1000_INVM_IMGTYPE_FIELD) >> 23;
+			status = E1000_SUCCESS;
+			break;
+		}
+	}
+	return status;
 }
 
 /**
@@ -451,14 +552,14 @@ out:
 bool e1000_get_flash_presence_i210(struct e1000_hw *hw)
 {
 	u32 eec = 0;
-	bool ret_val = FALSE;
+	bool ret_val = false;
 
 	DEBUGFUNC("e1000_get_flash_presence_i210");
 
 	eec = E1000_READ_REG(hw, E1000_EECD);
 
 	if (eec & E1000_EECD_FLASH_DETECTED_I210)
-		ret_val = TRUE;
+		ret_val = true;
 
 	return ret_val;
 }
@@ -561,8 +662,6 @@ void e1000_init_function_pointers_i210(struct e1000_hw *hw)
 {
 	e1000_init_function_pointers_82575(hw);
 	hw->nvm.ops.init_params = e1000_init_nvm_params_i210;
-
-	return;
 }
 
 /**
@@ -601,77 +700,6 @@ out:
 }
 
 /**
- *  __e1000_access_xmdio_reg - Read/write XMDIO register
- *  @hw: pointer to the HW structure
- *  @address: XMDIO address to program
- *  @dev_addr: device address to program
- *  @data: pointer to value to read/write from/to the XMDIO address
- *  @read: boolean flag to indicate read or write
- **/
-static s32 __e1000_access_xmdio_reg(struct e1000_hw *hw, u16 address,
-				    u8 dev_addr, u16 *data, bool read)
-{
-	s32 ret_val;
-
-	DEBUGFUNC("__e1000_access_xmdio_reg");
-
-	ret_val = hw->phy.ops.write_reg(hw, E1000_MMDAC, dev_addr);
-	if (ret_val)
-		return ret_val;
-
-	ret_val = hw->phy.ops.write_reg(hw, E1000_MMDAAD, address);
-	if (ret_val)
-		return ret_val;
-
-	ret_val = hw->phy.ops.write_reg(hw, E1000_MMDAC, E1000_MMDAC_FUNC_DATA |
-							 dev_addr);
-	if (ret_val)
-		return ret_val;
-
-	if (read)
-		ret_val = hw->phy.ops.read_reg(hw, E1000_MMDAAD, data);
-	else
-		ret_val = hw->phy.ops.write_reg(hw, E1000_MMDAAD, *data);
-	if (ret_val)
-		return ret_val;
-
-	/* Recalibrate the device back to 0 */
-	ret_val = hw->phy.ops.write_reg(hw, E1000_MMDAC, 0);
-	if (ret_val)
-		return ret_val;
-
-	return ret_val;
-}
-
-/**
- *  e1000_read_xmdio_reg - Read XMDIO register
- *  @hw: pointer to the HW structure
- *  @addr: XMDIO address to program
- *  @dev_addr: device address to program
- *  @data: value to be read from the EMI address
- **/
-s32 e1000_read_xmdio_reg(struct e1000_hw *hw, u16 addr, u8 dev_addr, u16 *data)
-{
-	DEBUGFUNC("e1000_read_xmdio_reg");
-
-	return __e1000_access_xmdio_reg(hw, addr, dev_addr, data, TRUE);
-}
-
-/**
- *  e1000_write_xmdio_reg - Write XMDIO register
- *  @hw: pointer to the HW structure
- *  @addr: XMDIO address to program
- *  @dev_addr: device address to program
- *  @data: value to be written to the XMDIO address
- **/
-s32 e1000_write_xmdio_reg(struct e1000_hw *hw, u16 addr, u8 dev_addr, u16 data)
-{
-	DEBUGFUNC("e1000_read_xmdio_reg");
-
-	return __e1000_access_xmdio_reg(hw, addr, dev_addr, &data, FALSE);
-}
-
-/**
  * e1000_pll_workaround_i210
  * @hw: pointer to the HW structure
  *
@@ -685,6 +713,8 @@ static s32 e1000_pll_workaround_i210(struct e1000_hw *hw)
 	u16 nvm_word, phy_word, pci_word, tmp_nvm;
 	int i;
 
+	/* Get PHY semaphore */
+	hw->phy.ops.acquire(hw);
 	/* Get and set needed register values */
 	wuc = E1000_READ_REG(hw, E1000_WUC);
 	mdicnfg = E1000_READ_REG(hw, E1000_MDICNFG);
@@ -697,10 +727,14 @@ static s32 e1000_pll_workaround_i210(struct e1000_hw *hw)
 	if (ret_val != E1000_SUCCESS)
 		nvm_word = E1000_INVM_DEFAULT_AL;
 	tmp_nvm = nvm_word | E1000_INVM_PLL_WO_VAL;
+	phy_word = E1000_PHY_PLL_UNCONF;
 	for (i = 0; i < E1000_MAX_PLL_TRIES; i++) {
 		/* check current state directly from internal PHY */
-		e1000_read_phy_reg_gs40g(hw, (E1000_PHY_PLL_FREQ_PAGE |
-					 E1000_PHY_PLL_FREQ_REG), &phy_word);
+		e1000_write_phy_reg_mdic(hw, GS40G_PAGE_SELECT, 0xFC);
+		usec_delay(20);
+		e1000_read_phy_reg_mdic(hw, E1000_PHY_PLL_FREQ_REG, &phy_word);
+		usec_delay(20);
+		e1000_write_phy_reg_mdic(hw, GS40G_PAGE_SELECT, 0);
 		if ((phy_word & E1000_PHY_PLL_UNCONF)
 		    != E1000_PHY_PLL_UNCONF) {
 			ret_val = E1000_SUCCESS;
@@ -734,6 +768,8 @@ static s32 e1000_pll_workaround_i210(struct e1000_hw *hw)
 	}
 	/* restore MDICNFG setting */
 	E1000_WRITE_REG(hw, E1000_MDICNFG, mdicnfg);
+	/* Release PHY semaphore */
+	hw->phy.ops.release(hw);
 	return ret_val;
 }
 
@@ -789,6 +825,6 @@ s32 e1000_init_hw_i210(struct e1000_hw *hw)
 	/* Initialize identification LED */
 	mac->ops.id_led_init(hw);
 
-	ret_val = e1000_init_hw_82575(hw);
+	ret_val = e1000_init_hw_base(hw);
 	return ret_val;
 }

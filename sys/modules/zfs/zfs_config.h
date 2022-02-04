@@ -85,6 +85,9 @@
 /* bdev_check_media_change() exists */
 /* #undef HAVE_BDEV_CHECK_MEDIA_CHANGE */
 
+/* block_device_operations->submit_bio() returns void */
+/* #undef HAVE_BDEV_SUBMIT_BIO_RETURNS_VOID */
+
 /* bdev_whole() is available */
 /* #undef HAVE_BDEV_WHOLE */
 
@@ -112,8 +115,14 @@
 /* bio_set_dev() GPL-only */
 /* #undef HAVE_BIO_SET_DEV_GPL_ONLY */
 
+/* bio_set_dev() is a macro */
+/* #undef HAVE_BIO_SET_DEV_MACRO */
+
 /* bio_set_op_attrs is available */
 /* #undef HAVE_BIO_SET_OP_ATTRS */
+
+/* blkdev_get_by_path() handles ERESTARTSYS */
+/* #undef HAVE_BLKDEV_GET_ERESTARTSYS */
 
 /* blkdev_reread_part() exists */
 /* #undef HAVE_BLKDEV_REREAD_PART */
@@ -123,6 +132,9 @@
 
 /* blkg_tryget() GPL-only */
 /* #undef HAVE_BLKG_TRYGET_GPL_ONLY */
+
+/* blk_alloc_disk() exists */
+/* #undef HAVE_BLK_ALLOC_DISK */
 
 /* blk_alloc_queue() expects request function */
 /* #undef HAVE_BLK_ALLOC_QUEUE_REQUEST_FN */
@@ -150,6 +162,9 @@
 
 /* blk_queue_secure_erase() is available */
 /* #undef HAVE_BLK_QUEUE_SECURE_ERASE */
+
+/* blk_queue_update_readahead() exists */
+/* #undef HAVE_BLK_QUEUE_UPDATE_READAHEAD */
 
 /* blk_queue_write_cache() exists */
 /* #undef HAVE_BLK_QUEUE_WRITE_CACHE */
@@ -208,6 +223,9 @@
 
 /* disk_*_io_acct() available */
 /* #undef HAVE_DISK_IO_ACCT */
+
+/* disk_update_readahead() exists */
+/* #undef HAVE_DISK_UPDATE_READAHEAD */
 
 /* Define to 1 if you have the <dlfcn.h> header file. */
 #define HAVE_DLFCN_H 1
@@ -268,6 +286,12 @@
 
 /* Define if the GNU gettext() function is already present or preinstalled. */
 /* #undef HAVE_GETTEXT */
+
+/* iops->get_acl() exists */
+/* #undef HAVE_GET_ACL */
+
+/* iops->get_acl() takes rcu */
+/* #undef HAVE_GET_ACL_RCU */
 
 /* iops->get_link() cookie */
 /* #undef HAVE_GET_LINK_COOKIE */
@@ -335,14 +359,11 @@
 /* iov_iter_fault_in_readable() is available */
 /* #undef HAVE_IOV_ITER_FAULT_IN_READABLE */
 
-/* iov_iter_init() is available */
-/* #undef HAVE_IOV_ITER_INIT */
-
-/* iov_iter_init() is available */
-/* #undef HAVE_IOV_ITER_INIT_LEGACY */
-
 /* iov_iter_revert() is available */
 /* #undef HAVE_IOV_ITER_REVERT */
+
+/* iov_iter_type() is available */
+/* #undef HAVE_IOV_ITER_TYPE */
 
 /* iov_iter types are available */
 /* #undef HAVE_IOV_ITER_TYPES */
@@ -361,6 +382,9 @@
 
 /* kernel fpu internal */
 /* #undef HAVE_KERNEL_FPU_INTERNAL */
+
+/* kernel has asm/fpu/xcr.h */
+/* #undef HAVE_KERNEL_FPU_XCR_HEADER */
 
 /* uncached_acl_sentinel() exists */
 /* #undef HAVE_KERNEL_GET_ACL_HANDLE_CACHE */
@@ -401,9 +425,6 @@
 /* kvmalloc exists */
 /* #undef HAVE_KVMALLOC */
 
-/* kernel has large stacks */
-/* #undef HAVE_LARGE_STACKS */
-
 /* Define if you have [aio] */
 /* #undef HAVE_LIBAIO */
 
@@ -421,6 +442,9 @@
 
 /* Define if you have [uuid] */
 /* #undef HAVE_LIBUUID */
+
+/* linux/blk-cgroup.h exists */
+/* #undef HAVE_LINUX_BLK_CGROUP_HEADER */
 
 /* lseek_execute() is available */
 /* #undef HAVE_LSEEK_EXECUTE */
@@ -454,6 +478,9 @@
 
 /* new_sync_read()/new_sync_write() are available */
 /* #undef HAVE_NEW_SYNC_READ */
+
+/* folio_wait_bit() exists */
+/* #undef HAVE_PAGEMAP_FOLIO_WAIT_BIT */
 
 /* iops->getattr() takes a path */
 /* #undef HAVE_PATH_IOPS_GETATTR */
@@ -595,6 +622,9 @@
 /* STACK_FRAME_NON_STANDARD is defined */
 /* #undef HAVE_STACK_FRAME_NON_STANDARD */
 
+/* standalone <linux/stdarg.h> exists */
+/* #undef HAVE_STANDALONE_LINUX_STDARG */
+
 /* Define to 1 if you have the <stdint.h> header file. */
 #define HAVE_STDINT_H 1
 
@@ -682,6 +712,9 @@
 /* fops->read/write_iter() are available */
 /* #undef HAVE_VFS_RW_ITERATE */
 
+/* __set_page_dirty_nobuffers exists */
+/* #undef HAVE_VFS_SET_PAGE_DIRTY_NOBUFFERS */
+
 /* __vmalloc page flags exists */
 /* #undef HAVE_VMALLOC_PAGE_KERNEL */
 
@@ -735,21 +768,6 @@
 
 /* kernel exports FPU functions */
 /* #undef KERNEL_EXPORTS_X86_FPU */
-
-/* TBD: fetch(3) support */
-#if 0
-/* whether the chosen libfetch is to be loaded at run-time */
-#define LIBFETCH_DYNAMIC 1
-
-/* libfetch is fetch(3) */
-#define LIBFETCH_IS_FETCH 1
-
-/* libfetch is libcurl */
-#define LIBFETCH_IS_LIBCURL 0
-
-/* soname of chosen libfetch */
-#define LIBFETCH_SONAME "libfetch.so.6"
-#endif
 
 /* Define to the sub-directory where libtool stores uninstalled libraries. */
 #define LT_OBJDIR ".libs/"
@@ -812,7 +830,7 @@
 /* #undef ZFS_IS_GPL_COMPATIBLE */
 
 /* Define the project alias string. */
-#define ZFS_META_ALIAS "zfs-2.1.0-FreeBSD_g4f92fe0f5"
+#define ZFS_META_ALIAS "zfs-2.1.2-FreeBSD_gaf88d47f1"
 
 /* Define the project author. */
 #define ZFS_META_AUTHOR "OpenZFS"
@@ -821,7 +839,7 @@
 /* #undef ZFS_META_DATA */
 
 /* Define the maximum compatible kernel version. */
-#define ZFS_META_KVER_MAX "5.13"
+#define ZFS_META_KVER_MAX "5.15"
 
 /* Define the minimum compatible kernel version. */
 #define ZFS_META_KVER_MIN "3.10"
@@ -842,10 +860,10 @@
 #define ZFS_META_NAME "zfs"
 
 /* Define the project release. */
-#define ZFS_META_RELEASE "FreeBSD_g4f92fe0f5"
+#define ZFS_META_RELEASE "FreeBSD_gaf88d47f1"
 
 /* Define the project version. */
-#define ZFS_META_VERSION "2.1.0"
+#define ZFS_META_VERSION "2.1.2"
 
 /* count is located in percpu_ref.data */
 /* #undef ZFS_PERCPU_REF_COUNT_IN_DATA */

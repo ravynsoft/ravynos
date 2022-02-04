@@ -42,7 +42,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/module.h>
 #include <sys/mutex.h>
 #include <sys/proc.h>	/* for curthread */
-#include <sys/sched.h>
+#include <sys/smp.h>
 #include <sys/sysctl.h>
 #include <sys/systm.h>
 
@@ -133,7 +133,7 @@ coretemp_identify(driver_t *driver, device_t parent)
 	 * We add a child for each CPU since settings must be performed
 	 * on each CPU in the SMP case.
 	 */
-	child = device_add_child(parent, "coretemp", -1);
+	child = device_add_child(parent, "coretemp", device_get_unit(parent));
 	if (child == NULL)
 		device_printf(parent, "add coretemp child failed\n");
 }
@@ -310,46 +310,36 @@ coretemp_detach(device_t dev)
 	return (0);
 }
 
+struct coretemp_args {
+	u_int		msr;
+	uint64_t	val;
+};
+
+/*
+ * The digital temperature reading is located at bit 16
+ * of MSR_THERM_STATUS.
+ *
+ * There is a bit on that MSR that indicates whether the
+ * temperature is valid or not.
+ *
+ * The temperature is computed by subtracting the temperature
+ * reading by Tj(max).
+ */
 static uint64_t
 coretemp_get_thermal_msr(int cpu)
 {
-	uint64_t msr;
+	uint64_t res;
 
-	thread_lock(curthread);
-	sched_bind(curthread, cpu);
-	thread_unlock(curthread);
-
-	/*
-	 * The digital temperature reading is located at bit 16
-	 * of MSR_THERM_STATUS.
-	 *
-	 * There is a bit on that MSR that indicates whether the
-	 * temperature is valid or not.
-	 *
-	 * The temperature is computed by subtracting the temperature
-	 * reading by Tj(max).
-	 */
-	msr = rdmsr(MSR_THERM_STATUS);
-
-	thread_lock(curthread);
-	sched_unbind(curthread);
-	thread_unlock(curthread);
-
-	return (msr);
+	x86_msr_op(MSR_THERM_STATUS, MSR_OP_RENDEZVOUS_ONE | MSR_OP_READ |
+	    MSR_OP_CPUID(cpu), 0, &res);
+	return (res);
 }
 
 static void
 coretemp_clear_thermal_msr(int cpu)
 {
-	thread_lock(curthread);
-	sched_bind(curthread, cpu);
-	thread_unlock(curthread);
-
-	wrmsr(MSR_THERM_STATUS, 0);
-
-	thread_lock(curthread);
-	sched_unbind(curthread);
-	thread_unlock(curthread);
+	x86_msr_op(MSR_THERM_STATUS, MSR_OP_RENDEZVOUS_ONE | MSR_OP_WRITE |
+	    MSR_OP_CPUID(cpu), 0, NULL);
 }
 
 static int

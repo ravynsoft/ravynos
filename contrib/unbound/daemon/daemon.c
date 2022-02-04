@@ -210,7 +210,6 @@ daemon_init(void)
 	}
 #endif /* USE_WINSOCK */
 	signal_handling_record();
-	checklock_start();
 #ifdef HAVE_SSL
 #  ifdef HAVE_ERR_LOAD_CRYPTO_STRINGS
 	ERR_load_crypto_strings();
@@ -280,6 +279,7 @@ daemon_init(void)
 		free(daemon);
 		return NULL;
 	}
+	listen_setup_locks();
 	if(gettimeofday(&daemon->time_boot, NULL) < 0)
 		log_err("gettimeofday: %s", strerror(errno));
 	daemon->time_last_stat = daemon->time_boot;
@@ -320,7 +320,8 @@ daemon_open_shared_ports(struct daemon* daemon)
 			free(daemon->ports);
 			daemon->ports = NULL;
 		}
-		if(!resolve_interface_names(daemon->cfg, &resif, &num_resif))
+		if(!resolve_interface_names(daemon->cfg->ifs,
+			daemon->cfg->num_ifs, NULL, &resif, &num_resif))
 			return 0;
 		/* see if we want to reuseport */
 #ifdef SO_REUSEPORT
@@ -632,18 +633,18 @@ daemon_fork(struct daemon* daemon)
 		fatal_exit("Could not set up per-view response IP sets");
 	daemon->use_response_ip = !respip_set_is_empty(daemon->respip_set) ||
 		have_view_respip_cfg;
-	
+
+	/* setup modules */
+	daemon_setup_modules(daemon);
+
 	/* read auth zonefiles */
 	if(!auth_zones_apply_cfg(daemon->env->auth_zones, daemon->cfg, 1,
-		&daemon->use_rpz))
+		&daemon->use_rpz, daemon->env, &daemon->mods))
 		fatal_exit("auth_zones could not be setup");
 
 	/* Set-up EDNS strings */
 	if(!edns_strings_apply_cfg(daemon->env->edns_strings, daemon->cfg))
 		fatal_exit("Could not set up EDNS strings");
-
-	/* setup modules */
-	daemon_setup_modules(daemon);
 
 	/* response-ip-xxx options don't work as expected without the respip
 	 * module.  To avoid run-time operational surprise we reject such
@@ -780,6 +781,7 @@ daemon_delete(struct daemon* daemon)
 	alloc_clear(&daemon->superalloc);
 	acl_list_delete(daemon->acl);
 	tcl_list_delete(daemon->tcl);
+	listen_desetup_locks();
 	free(daemon->chroot);
 	free(daemon->pidfile);
 	free(daemon->env);

@@ -531,7 +531,7 @@ abd_get_offset_impl(abd_t *abd, abd_t *sabd, size_t off, size_t size)
 		}
 		ASSERT3U(left, ==, 0);
 	} else {
-		abd = abd_get_offset_scatter(abd, sabd, off);
+		abd = abd_get_offset_scatter(abd, sabd, off, size);
 	}
 
 	ASSERT3P(abd, !=, NULL);
@@ -1066,10 +1066,10 @@ abd_raidz_gen_iterate(abd_t **cabds, abd_t *dabd,
 		switch (parity) {
 			case 3:
 				len = MIN(caiters[2].iter_mapsize, len);
-				/* falls through */
+				fallthrough;
 			case 2:
 				len = MIN(caiters[1].iter_mapsize, len);
-				/* falls through */
+				fallthrough;
 			case 1:
 				len = MIN(caiters[0].iter_mapsize, len);
 		}
@@ -1179,11 +1179,11 @@ abd_raidz_rec_iterate(abd_t **cabds, abd_t **tabds,
 			case 3:
 				len = MIN(xiters[2].iter_mapsize, len);
 				len = MIN(citers[2].iter_mapsize, len);
-				/* falls through */
+				fallthrough;
 			case 2:
 				len = MIN(xiters[1].iter_mapsize, len);
 				len = MIN(citers[1].iter_mapsize, len);
-				/* falls through */
+				fallthrough;
 			case 1:
 				len = MIN(xiters[0].iter_mapsize, len);
 				len = MIN(citers[0].iter_mapsize, len);

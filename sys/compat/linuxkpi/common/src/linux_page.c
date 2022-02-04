@@ -39,6 +39,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/rwlock.h>
 #include <sys/proc.h>
 #include <sys/sched.h>
+#include <sys/memrange.h>
 
 #include <machine/bus.h>
 
@@ -63,6 +64,15 @@ __FBSDID("$FreeBSD$");
 #include <linux/preempt.h>
 #include <linux/fs.h>
 #include <linux/shmem_fs.h>
+#include <linux/kernel.h>
+#include <linux/idr.h>
+#include <linux/io.h>
+
+#ifdef __i386__
+DEFINE_IDR(mtrr_idr);
+static MALLOC_DEFINE(M_LKMTRR, "idr", "Linux MTRR compat");
+extern int pat_works;
+#endif
 
 void
 si_meminfo(struct sysinfo *si)
@@ -92,21 +102,20 @@ linux_alloc_pages(gfp_t flags, unsigned int order)
 
 	if (PMAP_HAS_DMAP) {
 		unsigned long npages = 1UL << order;
-		int req = VM_ALLOC_NOOBJ | VM_ALLOC_WIRED | VM_ALLOC_NORMAL;
+		int req = VM_ALLOC_WIRED;
 
 		if ((flags & M_ZERO) != 0)
 			req |= VM_ALLOC_ZERO;
 		if (order == 0 && (flags & GFP_DMA32) == 0) {
-			page = vm_page_alloc(NULL, 0, req);
+			page = vm_page_alloc_noobj(req);
 			if (page == NULL)
 				return (NULL);
 		} else {
 			vm_paddr_t pmax = (flags & GFP_DMA32) ?
 			    BUS_SPACE_MAXADDR_32BIT : BUS_SPACE_MAXADDR;
 		retry:
-			page = vm_page_alloc_contig(NULL, 0, req,
-			    npages, 0, pmax, PAGE_SIZE, 0, VM_MEMATTR_DEFAULT);
-
+			page = vm_page_alloc_noobj_contig(req, npages, 0, pmax,
+			    PAGE_SIZE, 0, VM_MEMATTR_DEFAULT);
 			if (page == NULL) {
 				if (flags & M_WAITOK) {
 					if (!vm_page_reclaim_contig(req,
@@ -117,16 +126,6 @@ linux_alloc_pages(gfp_t flags, unsigned int order)
 					goto retry;
 				}
 				return (NULL);
-			}
-		}
-		if (flags & M_ZERO) {
-			unsigned long x;
-
-			for (x = 0; x != npages; x++) {
-				vm_page_t pgo = page + x;
-
-				if ((pgo->flags & PG_ZERO) == 0)
-					pmap_zero_page(pgo);
 			}
 		}
 	} else {
@@ -274,4 +273,159 @@ int
 is_vmalloc_addr(const void *addr)
 {
 	return (vtoslab((vm_offset_t)addr & ~UMA_SLAB_MASK) != NULL);
+}
+
+vm_fault_t
+lkpi_vmf_insert_pfn_prot_locked(struct vm_area_struct *vma, unsigned long addr,
+    unsigned long pfn, pgprot_t prot)
+{
+	vm_object_t vm_obj = vma->vm_obj;
+	vm_object_t tmp_obj;
+	vm_page_t page;
+	vm_pindex_t pindex;
+
+	VM_OBJECT_ASSERT_WLOCKED(vm_obj);
+	pindex = OFF_TO_IDX(addr - vma->vm_start);
+	if (vma->vm_pfn_count == 0)
+		vma->vm_pfn_first = pindex;
+	MPASS(pindex <= OFF_TO_IDX(vma->vm_end));
+
+retry:
+	page = vm_page_grab(vm_obj, pindex, VM_ALLOC_NOCREAT);
+	if (page == NULL) {
+		page = PHYS_TO_VM_PAGE(IDX_TO_OFF(pfn));
+		if (!vm_page_busy_acquire(page, VM_ALLOC_WAITFAIL))
+			goto retry;
+		if (page->object != NULL) {
+			tmp_obj = page->object;
+			vm_page_xunbusy(page);
+			VM_OBJECT_WUNLOCK(vm_obj);
+			VM_OBJECT_WLOCK(tmp_obj);
+			if (page->object == tmp_obj &&
+			    vm_page_busy_acquire(page, VM_ALLOC_WAITFAIL)) {
+				KASSERT(page->object == tmp_obj,
+				    ("page has changed identity"));
+				KASSERT((page->oflags & VPO_UNMANAGED) == 0,
+				    ("page does not belong to shmem"));
+				vm_pager_page_unswapped(page);
+				if (pmap_page_is_mapped(page)) {
+					vm_page_xunbusy(page);
+					VM_OBJECT_WUNLOCK(tmp_obj);
+					printf("%s: page rename failed: page "
+					    "is mapped\n", __func__);
+					VM_OBJECT_WLOCK(vm_obj);
+					return (VM_FAULT_NOPAGE);
+				}
+				vm_page_remove(page);
+			}
+			VM_OBJECT_WUNLOCK(tmp_obj);
+			VM_OBJECT_WLOCK(vm_obj);
+			goto retry;
+		}
+		if (vm_page_insert(page, vm_obj, pindex)) {
+			vm_page_xunbusy(page);
+			return (VM_FAULT_OOM);
+		}
+		vm_page_valid(page);
+	}
+	pmap_page_set_memattr(page, pgprot2cachemode(prot));
+	vma->vm_pfn_count++;
+
+	return (VM_FAULT_NOPAGE);
+}
+
+/*
+ * Although FreeBSD version of unmap_mapping_range has semantics and types of
+ * parameters compatible with Linux version, the values passed in are different
+ * @obj should match to vm_private_data field of vm_area_struct returned by
+ *      mmap file operation handler, see linux_file_mmap_single() sources
+ * @holelen should match to size of area to be munmapped.
+ */
+void
+lkpi_unmap_mapping_range(void *obj, loff_t const holebegin __unused,
+    loff_t const holelen, int even_cows __unused)
+{
+	vm_object_t devobj;
+	vm_page_t page;
+	int i, page_count;
+
+	devobj = cdev_pager_lookup(obj);
+	if (devobj != NULL) {
+		page_count = OFF_TO_IDX(holelen);
+
+		VM_OBJECT_WLOCK(devobj);
+retry:
+		for (i = 0; i < page_count; i++) {
+			page = vm_page_lookup(devobj, i);
+			if (page == NULL)
+				continue;
+			if (!vm_page_busy_acquire(page, VM_ALLOC_WAITFAIL))
+				goto retry;
+			cdev_pager_free_page(devobj, page);
+		}
+		VM_OBJECT_WUNLOCK(devobj);
+		vm_object_deallocate(devobj);
+	}
+}
+
+int
+lkpi_arch_phys_wc_add(unsigned long base, unsigned long size)
+{
+#ifdef __i386__
+	struct mem_range_desc *mrdesc;
+	int error, id, act;
+
+	/* If PAT is available, do nothing */
+	if (pat_works)
+		return (0);
+
+	mrdesc = malloc(sizeof(*mrdesc), M_LKMTRR, M_WAITOK);
+	mrdesc->mr_base = base;
+	mrdesc->mr_len = size;
+	mrdesc->mr_flags = MDF_WRITECOMBINE;
+	strlcpy(mrdesc->mr_owner, "drm", sizeof(mrdesc->mr_owner));
+	act = MEMRANGE_SET_UPDATE;
+	error = mem_range_attr_set(mrdesc, &act);
+	if (error == 0) {
+		error = idr_get_new(&mtrr_idr, mrdesc, &id);
+		MPASS(idr_find(&mtrr_idr, id) == mrdesc);
+		if (error != 0) {
+			act = MEMRANGE_SET_REMOVE;
+			mem_range_attr_set(mrdesc, &act);
+		}
+	}
+	if (error != 0) {
+		free(mrdesc, M_LKMTRR);
+		pr_warn(
+		    "Failed to add WC MTRR for [%p-%p]: %d; "
+		    "performance may suffer\n",
+		    (void *)base, (void *)(base + size - 1), error);
+	} else
+		pr_warn("Successfully added WC MTRR for [%p-%p]\n",
+		    (void *)base, (void *)(base + size - 1));
+
+	return (error != 0 ? -error : id + __MTRR_ID_BASE);
+#else
+	return (0);
+#endif
+}
+
+void
+lkpi_arch_phys_wc_del(int reg)
+{
+#ifdef __i386__
+	struct mem_range_desc *mrdesc;
+	int act;
+
+	/* Check if arch_phys_wc_add() failed. */
+	if (reg < __MTRR_ID_BASE)
+		return;
+
+	mrdesc = idr_find(&mtrr_idr, reg - __MTRR_ID_BASE);
+	MPASS(mrdesc != NULL);
+	idr_remove(&mtrr_idr, reg - __MTRR_ID_BASE);
+	act = MEMRANGE_SET_REMOVE;
+	mem_range_attr_set(mrdesc, &act);
+	free(mrdesc, M_LKMTRR);
+#endif
 }

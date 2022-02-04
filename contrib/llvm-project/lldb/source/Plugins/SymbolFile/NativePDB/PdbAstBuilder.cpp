@@ -881,8 +881,8 @@ PdbAstBuilder::GetOrCreateTypedefDecl(PdbGlobalSymId id) {
 
   std::string uname = std::string(DropNameScope(udt.Name));
 
-  CompilerType ct = m_clang.CreateTypedefType(ToCompilerType(qt), uname.c_str(),
-                                              ToCompilerDeclContext(*scope), 0);
+  CompilerType ct = ToCompilerType(qt).CreateTypedef(
+      uname.c_str(), ToCompilerDeclContext(*scope), 0);
   clang::TypedefNameDecl *tnd = m_clang.GetAsTypedefDecl(ct);
   DeclStatus status;
   status.resolved = true;
@@ -1015,8 +1015,7 @@ PdbAstBuilder::GetOrCreateFunctionDecl(PdbCompilandSymId func_id) {
   proc_name.consume_front("::");
 
   clang::FunctionDecl *function_decl = m_clang.CreateFunctionDeclaration(
-      parent, OptionalClangModuleID(), proc_name.str().c_str(), func_ct,
-      storage, false);
+      parent, OptionalClangModuleID(), proc_name, func_ct, storage, false);
 
   lldbassert(m_uid_to_decl.count(toOpaqueUid(func_id)) == 0);
   m_uid_to_decl[toOpaqueUid(func_id)] = function_decl;
@@ -1094,7 +1093,7 @@ void PdbAstBuilder::CreateFunctionParameters(PdbCompilandSymId func_id,
   }
 
   if (!params.empty())
-    m_clang.SetFunctionParameters(&function_decl, params.data(), params.size());
+    m_clang.SetFunctionParameters(&function_decl, params);
 }
 
 clang::QualType PdbAstBuilder::CreateEnumType(PdbTypeSymId id,

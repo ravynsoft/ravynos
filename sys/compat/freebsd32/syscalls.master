@@ -774,7 +774,7 @@
 423	AUE_NULL	STD	{ int freebsd32_swapcontext( \
 				    struct freebsd32_ucontext *oucp, \
 				    const struct freebsd32_ucontext *ucp); }
-424	AUE_SWAPOFF	UNIMPL	swapoff
+424	AUE_SWAPOFF	UNIMPL	freebsd13_swapoff
 425	AUE_ACL_GET_LINK	NOPROTO	{ int __acl_get_link(const char *path, \
 				    acl_type_t type, struct acl *aclp); }
 426	AUE_ACL_SET_LINK	NOPROTO	{ int __acl_set_link(const char *path, \
@@ -789,8 +789,10 @@
 431	AUE_THR_EXIT	NOPROTO	{ void thr_exit(long *state); }
 432	AUE_NULL	NOPROTO	{ int thr_self(long *id); }
 433	AUE_THR_KILL	NOPROTO	{ int thr_kill(long id, int sig); }
-434	AUE_NULL	UNIMPL	nosys
-435	AUE_NULL	UNIMPL	nosys
+434	AUE_NULL	COMPAT10 { int freebsd32_umtx_lock( \
+				    struct umtx *umtx); }
+435	AUE_NULL	COMPAT10 { int freebsd32_umtx_unlock( \
+				    struct umtx *umtx); }
 436	AUE_JAIL_ATTACH	NOPROTO	{ int jail_attach(int jid); }
 437	AUE_EXTATTR_LIST_FD	NOPROTO	{ ssize_t extattr_list_fd(int fd, \
 				    int attrnamespace, void *data, \
@@ -1174,5 +1176,7 @@
 				    struct aiocb32 *aiocbp); }
 579	AUE_AIO_READV	STD	{ int freebsd32_aio_readv( \
 				    struct aiocb32 *aiocbp); }
-
+580	AUE_NULL	UNIMPL	fspacectl
+581	AUE_NULL	NOPROTO	{ int sched_getcpu(void); }
+582	AUE_NULL	UNIMPL	swapoff
 ; vim: syntax=off

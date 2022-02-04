@@ -13,6 +13,7 @@
 #include "ABISysV_arm64.h"
 #include "Utility/ARM64_DWARF_Registers.h"
 #include "lldb/Core/PluginManager.h"
+#include "lldb/Target/Process.h"
 
 LLDB_PLUGIN_DEFINE(ABIAArch64)
 
@@ -30,6 +31,18 @@ void ABIAArch64::Terminate() {
 #endif // LLDB_ENABLE_ALL
 }
 
+lldb::addr_t ABIAArch64::FixCodeAddress(lldb::addr_t pc) {
+  if (lldb::ProcessSP process_sp = GetProcessSP())
+    return FixAddress(pc, process_sp->GetCodeAddressMask());
+  return pc;
+}
+
+lldb::addr_t ABIAArch64::FixDataAddress(lldb::addr_t pc) {
+  if (lldb::ProcessSP process_sp = GetProcessSP())
+    return FixAddress(pc, process_sp->GetDataAddressMask());
+  return pc;
+}
+
 std::pair<uint32_t, uint32_t>
 ABIAArch64::GetEHAndDWARFNums(llvm::StringRef name) {
   if (name == "pc")
@@ -39,6 +52,12 @@ ABIAArch64::GetEHAndDWARFNums(llvm::StringRef name) {
   return MCBasedABI::GetEHAndDWARFNums(name);
 }
 
+std::string ABIAArch64::GetMCName(std::string reg) {
+  MapRegisterName(reg, "v", "q");
+  MapRegisterName(reg, "x29", "fp");
+  MapRegisterName(reg, "x30", "lr");
+  return reg;
+}
 uint32_t ABIAArch64::GetGenericNum(llvm::StringRef name) {
   return llvm::StringSwitch<uint32_t>(name)
       .Case("pc", LLDB_REGNUM_GENERIC_PC)

@@ -104,10 +104,10 @@ def warn_cxx98_compat_raw_string_literal : Warning<
   "raw string literals are incompatible with C++98">,
   InGroup<CXX98Compat>, DefaultIgnore;
 
-def ext_multichar_character_literal : ExtWarn<
+def warn_multichar_character_literal : Warning<
   "multi-character character constant">, InGroup<MultiChar>;
-def ext_four_char_character_literal : Extension<
-  "multi-character character constant">, InGroup<FourByteMultiChar>;
+def warn_four_char_character_literal : Warning<
+  "multi-character character constant">, InGroup<FourByteMultiChar>, DefaultIgnore;
 
 
 // Unicode and UCNs
@@ -179,6 +179,9 @@ def err_invalid_suffix_constant : Error<
 def warn_cxx11_compat_digit_separator : Warning<
   "digit separators are incompatible with C++ standards before C++14">,
   InGroup<CXXPre14Compat>, DefaultIgnore;
+def warn_c2x_compat_digit_separator : Warning<
+  "digit separators are incompatible with C standards before C2x">,
+  InGroup<CPre2xCompat>, DefaultIgnore;
 def err_digit_separator_not_between_digits : Error<
   "digit separator cannot appear at %select{start|end}0 of digit sequence">;
 def warn_extraneous_char_constant : Warning<
@@ -297,6 +300,13 @@ def pp_pragma_once_in_main_file : Warning<"#pragma once in main file">,
 def pp_pragma_sysheader_in_main_file : Warning<
   "#pragma system_header ignored in main file">,
   InGroup<DiagGroup<"pragma-system-header-outside-header">>;
+
+def err_pragma_include_instead_not_sysheader : Error<
+  "'#pragma clang include_instead' cannot be used outside of system headers">;
+def err_pragma_include_instead_system_reserved : Error<
+  "header '%0' is an implementation detail; #include %select{'%2'|either '%2' "
+  "or '%3'|one of %2}1 instead">;
+
 def pp_poisoning_existing_macro : Warning<"poisoning existing macro">;
 def pp_out_of_date_dependency : Warning<
   "current file is older than dependency %0">;
@@ -452,9 +462,11 @@ def err_pp_malformed_ident : Error<"invalid #ident directive">;
 def err_pp_unterminated_conditional : Error<
   "unterminated conditional directive">;
 def pp_err_else_after_else : Error<"#else after #else">;
-def pp_err_elif_after_else : Error<"#elif after #else">;
+def pp_err_elif_after_else : Error<
+  "%select{#elif|#elifdef|#elifndef}0 after #else">;
 def pp_err_else_without_if : Error<"#else without #if">;
-def pp_err_elif_without_if : Error<"#elif without #if">;
+def pp_err_elif_without_if : Error<
+  "%select{#elif|#elifdef|#elifndef}0 without #if">;
 def err_pp_endif_without_if : Error<"#endif without #if">;
 def err_pp_expected_value_in_expr : Error<"expected value in expression">;
 def err_pp_expected_rparen : Error<"expected ')' in preprocessor expression">;
@@ -695,6 +707,9 @@ def err_mmap_missing_module_unqualified : Error<
   "no module named '%0' visible from '%1'">;
 def err_mmap_missing_module_qualified : Error<
   "no module named '%0' in '%1'">;
+def err_mmap_missing_parent_module: Error<
+  "no module named '%0' %select{found|in '%2'}1, "
+  "parent module must be defined before the submodule">;
 def err_mmap_top_level_inferred_submodule : Error<
   "only submodules and framework modules may be inferred with wildcard syntax">;
 def err_mmap_inferred_no_umbrella : Error<

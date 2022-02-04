@@ -6,9 +6,11 @@ ATF_TESTS_SH=	diff3_test
 
 ${PACKAGE}FILES+=	\
 	1.txt \
+	1cr.txt \
 	2.txt \
 	3.txt \
 	1.out \
+	1t.out \
 	2.out \
 	3.out \
 	4.out \

@@ -172,7 +172,6 @@ struct denode {
 #define	DE_CREATE	0x0008	/* Creation time update */
 #define	DE_ACCESS	0x0010	/* Access time update */
 #define	DE_MODIFIED	0x0020	/* Denode has been modified */
-#define	DE_RENAME	0x0040	/* Denode is in the process of being renamed */
 
 /* Maximum size of a file on a FAT filesystem */
 #define MSDOSFS_FILESIZE_MAX	0xFFFFFFFFLL
@@ -266,12 +265,14 @@ extern struct vop_vector msdosfs_vnodeops;
 int msdosfs_lookup(struct vop_cachedlookup_args *);
 int msdosfs_inactive(struct vop_inactive_args *);
 int msdosfs_reclaim(struct vop_reclaim_args *);
+int msdosfs_lookup_ino(struct vnode *vdp, struct vnode **vpp,
+    struct componentname *cnp, daddr_t *scnp, u_long *blkoffp);
 #endif
 
 /*
  * Internal service routine prototypes.
  */
-int deget(struct msdosfsmount *, u_long, u_long, struct denode **);
+int deget(struct msdosfsmount *, u_long, u_long, int, struct denode **);
 int uniqdosname(struct denode *, struct componentname *, u_char *);
 
 int readep(struct msdosfsmount *pmp, u_long dirclu, u_long dirofs,  struct buf **bpp, struct direntry **epp);
@@ -284,6 +285,7 @@ int createde(struct denode *dep, struct denode *ddep, struct denode **depp, stru
 int deupdat(struct denode *dep, int waitfor);
 int removede(struct denode *pdep, struct denode *dep);
 int detrunc(struct denode *dep, u_long length, int flags, struct ucred *cred);
-int doscheckpath( struct denode *source, struct denode *target);
+int doscheckpath( struct denode *source, struct denode *target,
+    daddr_t *wait_scn);
 #endif	/* _KERNEL || MAKEFS */
 #endif	/* !_FS_MSDOSFS_DENODE_H_ */

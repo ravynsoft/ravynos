@@ -297,7 +297,7 @@ create_diskimage_mbr ( ) (
 		# and p5 is alt-root (after resize)
 		mkimg -a 2 ${fmtarg} ${bootmbr} -s gpt \
 			-p efi:=${NANO_WORLDDIR}/boot/efiboot.img \
-			-p freebsd-boot:=${NAANO_WORLDDIR}/boot/gptboot \
+			-p freebsd-boot:=${NANO_WORLDDIR}/boot/gptboot \
 			-p ${p3}:=${NANO_LOG}/_.p3 \
 			-p ${p4}:=${NANO_LOG}/_.p4 \
 			-o ${out}
@@ -574,7 +574,7 @@ eval std_${NANO_ARCH}
 # Slice 4: FreeBSD partition (empty)
 # on first boot, we resize slice 3 & 4 to be 1/2 of what's
 # left over on the SD card after slice 1 and 2 are taken
-# off the top. We also resize the 'a' partion on first boot
+# off the top. We also resize the 'a' partition on first boot
 # to the size of the partition for the ping/pong upgrade.
 # This feature needs support in the rc.d bootup script.
 #

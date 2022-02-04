@@ -318,6 +318,35 @@ lltable_set_entry_addr(struct ifnet *ifp, struct llentry *lle,
 }
 
 /*
+ * Acquires lltable write lock.
+ *
+ * Returns true on success, with both lltable and lle lock held.
+ * On failure, false is returned and lle wlock is still held.
+ */
+bool
+lltable_acquire_wlock(struct ifnet *ifp, struct llentry *lle)
+{
+	NET_EPOCH_ASSERT();
+
+	/* Perform real LLE update */
+	/* use afdata WLOCK to update fields */
+	LLE_WUNLOCK(lle);
+	IF_AFDATA_WLOCK(ifp);
+	LLE_WLOCK(lle);
+
+	/*
+	 * Since we droppped LLE lock, other thread might have deleted
+	 * this lle. Check and return
+	 */
+	if ((lle->la_flags & LLE_DELETED) != 0) {
+		IF_AFDATA_WUNLOCK(ifp);
+		return (false);
+	}
+
+	return (true);
+}
+
+/*
  * Tries to update @lle link-level address.
  * Since update requires AFDATA WLOCK, function
  * drops @lle lock, acquires AFDATA lock and then acquires
@@ -330,30 +359,13 @@ lltable_try_set_entry_addr(struct ifnet *ifp, struct llentry *lle,
     const char *linkhdr, size_t linkhdrsize, int lladdr_off)
 {
 
-	/* Perform real LLE update */
-	/* use afdata WLOCK to update fields */
-	LLE_WLOCK_ASSERT(lle);
-	LLE_ADDREF(lle);
-	LLE_WUNLOCK(lle);
-	IF_AFDATA_WLOCK(ifp);
-	LLE_WLOCK(lle);
-
-	/*
-	 * Since we droppped LLE lock, other thread might have deleted
-	 * this lle. Check and return
-	 */
-	if ((lle->la_flags & LLE_DELETED) != 0) {
-		IF_AFDATA_WUNLOCK(ifp);
-		LLE_FREE_LOCKED(lle);
+	if (!lltable_acquire_wlock(ifp, lle))
 		return (0);
-	}
 
 	/* Update data */
 	lltable_set_entry_addr(ifp, lle, linkhdr, linkhdrsize, lladdr_off);
 
 	IF_AFDATA_WUNLOCK(ifp);
-
-	LLE_REMREF(lle);
 
 	return (1);
 }
@@ -384,6 +396,97 @@ lltable_calc_llheader(struct ifnet *ifp, int family, char *lladdr,
 	}
 
 	return (error);
+}
+
+/*
+ * Searches for the child entry matching @family inside @lle.
+ * Returns the entry or NULL.
+ */
+struct llentry *
+llentry_lookup_family(struct llentry *lle, int family)
+{
+	struct llentry *child_lle;
+
+	if (lle == NULL)
+		return (NULL);
+
+	CK_SLIST_FOREACH(child_lle, &lle->lle_children, lle_child_next) {
+		if (child_lle->r_family == family)
+			return (child_lle);
+	}
+
+	return (NULL);
+}
+
+/*
+ * Requests feedback from the datapath.
+ * First packet using @lle should result in
+ * setting r_skip_req back to 0 and updating
+ * lle_hittime to the current time_uptime.
+ */
+void
+llentry_request_feedback(struct llentry *lle)
+{
+	struct llentry *child_lle;
+
+	LLE_REQ_LOCK(lle);
+	lle->r_skip_req = 1;
+	LLE_REQ_UNLOCK(lle);
+
+	CK_SLIST_FOREACH(child_lle, &lle->lle_children, lle_child_next) {
+		LLE_REQ_LOCK(child_lle);
+		child_lle->r_skip_req = 1;
+		LLE_REQ_UNLOCK(child_lle);
+	}
+}
+
+/*
+ * Updates the lle state to mark it has been used
+ * and record the time.
+ * Used by the llentry_provide_feedback() wrapper.
+ */
+void
+llentry_mark_used(struct llentry *lle)
+{
+	LLE_REQ_LOCK(lle);
+	lle->r_skip_req = 0;
+	lle->lle_hittime = time_uptime;
+	LLE_REQ_UNLOCK(lle);
+}
+
+/*
+ * Fetches the time when lle was used.
+ * Return 0 if the entry was not used, relevant time_uptime
+ *  otherwise.
+ */
+static time_t
+llentry_get_hittime_raw(struct llentry *lle)
+{
+	time_t lle_hittime = 0;
+
+	LLE_REQ_LOCK(lle);
+	if ((lle->r_skip_req == 0) && (lle_hittime < lle->lle_hittime))
+		lle_hittime = lle->lle_hittime;
+	LLE_REQ_UNLOCK(lle);
+
+	return (lle_hittime);
+}
+
+time_t
+llentry_get_hittime(struct llentry *lle)
+{
+	time_t lle_hittime = 0;
+	struct llentry *child_lle;
+
+	lle_hittime = llentry_get_hittime_raw(lle);
+
+	CK_SLIST_FOREACH(child_lle, &lle->lle_children, lle_child_next) {
+		time_t hittime = llentry_get_hittime_raw(child_lle);
+		if (hittime > lle_hittime)
+			lle_hittime = hittime;
+	}
+
+	return (lle_hittime);
 }
 
 /*
@@ -527,7 +630,7 @@ lltable_delete_addr(struct lltable *llt, u_int flags,
 
 	ifp = llt->llt_ifp;
 	IF_AFDATA_WLOCK(ifp);
-	lle = lla_lookup(llt, LLE_EXCLUSIVE, l3addr);
+	lle = lla_lookup(llt, LLE_SF(l3addr->sa_family, LLE_EXCLUSIVE), l3addr);
 
 	if (lle == NULL) {
 		IF_AFDATA_WUNLOCK(ifp);
@@ -640,6 +743,25 @@ lltable_link_entry(struct lltable *llt, struct llentry *lle)
 {
 
 	return (llt->llt_link_entry(llt, lle));
+}
+
+void
+lltable_link_child_entry(struct llentry *lle, struct llentry *child_lle)
+{
+	child_lle->lle_parent = lle;
+	child_lle->lle_tbl = lle->lle_tbl;
+	child_lle->la_flags |= LLE_LINKED;
+	CK_SLIST_INSERT_HEAD(&lle->lle_children, child_lle, lle_child_next);
+}
+
+void
+lltable_unlink_child_entry(struct llentry *child_lle)
+{
+	struct llentry *lle = child_lle->lle_parent;
+
+	child_lle->la_flags &= ~LLE_LINKED;
+	child_lle->lle_parent = NULL;
+	CK_SLIST_REMOVE(&lle->lle_children, child_lle, llentry, lle_child_next);
 }
 
 int

@@ -28,7 +28,7 @@
 .\"
 .\" $FreeBSD$
 .\"
-.Dd June 2, 2021
+.Dd November 13, 2021
 .Dt RTLD 1
 .Os
 .Sh NAME
@@ -143,6 +143,24 @@ If set,
 .Nm
 will print a table containing all relocations before symbol
 binding and relocation.
+.It Ev LD_DYNAMIC_WEAK
+If set, use the ELF standard-compliant symbol lookup behavior:
+resolve to the first found symbol definition.
+.Pp
+By default,
+.Fx
+provides the non-standard symbol lookup behavior:
+when a weak symbol definition is found, remember the definition and
+keep searching in the remaining shared objects for a non-weak definition.
+If found, the non-weak definition is preferred, otherwise the remembered
+weak definition is returned.
+.Pp
+Symbols exported by dynamic linker itself (see
+.Xr dlfcn 3 )
+are always resolved using
+.Fx
+rules regardless of the presence of the variable.
+This variable is unset for set-user-ID and set-group-ID programs.
 .It Ev LD_LIBMAP
 A library replacement list in the same format as
 .Xr libmap.conf 5 .
@@ -190,6 +208,14 @@ to be linked in before any
 other shared libraries.
 If the directory is not specified then
 the directories specified by
+.It Ev LD_PRELOAD_FDS
+A colon separated list of file descriptor numbers for libraries.
+This is intended for preloading libraries in which we already have a file
+descriptor.
+This may optimize the process of loading libraries because we do not have to
+look for them in directories.
+It may also be useful in a capability base system where we do not have access to
+global namespaces such as the filesystem.
 .Ev LD_LIBRARY_PATH
 will be searched first
 followed by the set of built-in standard directories.
@@ -283,6 +309,11 @@ will process the filtee dependencies of the loaded objects immediately,
 instead of postponing it until required.
 Normally, the filtees are opened at the time of the first symbol resolution
 from the filter object.
+.It Ev LD_SHOW_AUXV
+If set, causes
+.Nm
+to dump content of the aux vector to standard output, before passing
+control to any user code.
 .El
 .Sh DIRECT EXECUTION MODE
 .Nm
@@ -304,6 +335,7 @@ The syntax of the direct invocation is
 .Bd -ragged -offset indent
 .Pa /libexec/ld-elf.so.1
 .Op Fl b Ar exe
+.Op Fl d
 .Op Fl f Ar fd
 .Op Fl p
 .Op Fl u
@@ -326,6 +358,8 @@ If this option is specified,
 is only used to provide the
 .Va argv[0]
 value to the program.
+.It Fl d
+Turn off the emulation of the binary execute permission.
 .It Fl f Ar fd
 File descriptor
 .Ar fd
@@ -377,6 +411,9 @@ ignores
 and is naturally prone to race conditions.
 Environments which rely on such restrictions are weak
 and breakable on their own.
+It can be turned off with the
+.Fl d
+option.
 .Sh VERSIONING
 Newer
 .Nm

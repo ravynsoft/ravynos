@@ -67,9 +67,6 @@ FunctionPass *createX86OptimizeLEAs();
 /// Return a pass that transforms setcc + movzx pairs into xor + setcc.
 FunctionPass *createX86FixupSetCC();
 
-/// Return a pass that folds conditional branch jumps.
-FunctionPass *createX86CondBrFolding();
-
 /// Return a pass that avoids creating store forward block issues in the hardware.
 FunctionPass *createX86AvoidStoreForwardingBlocks();
 
@@ -78,6 +75,18 @@ FunctionPass *createX86FlagsCopyLoweringPass();
 
 /// Return a pass that expands WinAlloca pseudo-instructions.
 FunctionPass *createX86WinAllocaExpander();
+
+/// Return a pass that config the tile registers.
+FunctionPass *createX86TileConfigPass();
+
+/// Return a pass that config the tile registers after fast reg allocation.
+FunctionPass *createX86FastTileConfigPass();
+
+/// Return a pass that insert pseudo tile config instruction.
+FunctionPass *createX86PreTileConfigPass();
+
+/// Return a pass that lower the tile copy instruction.
+FunctionPass *createX86LowerTileCopyPass();
 
 /// Return a pass that inserts int3 at the end of the function if it ends with a
 /// CALL instruction. The pass does the same for each funclet as well. This
@@ -154,7 +163,6 @@ void initializeX86AvoidSFBPassPass(PassRegistry &);
 void initializeX86AvoidTrailingCallPassPass(PassRegistry &);
 void initializeX86CallFrameOptimizationPass(PassRegistry &);
 void initializeX86CmovConverterPassPass(PassRegistry &);
-void initializeX86CondBrFoldingPassPass(PassRegistry &);
 void initializeX86DomainReassignmentPass(PassRegistry &);
 void initializeX86ExecutionDomainFixPass(PassRegistry &);
 void initializeX86ExpandPseudoPass(PassRegistry &);
@@ -166,6 +174,13 @@ void initializeX86OptimizeLEAPassPass(PassRegistry &);
 void initializeX86PartialReductionPass(PassRegistry &);
 void initializeX86SpeculativeLoadHardeningPassPass(PassRegistry &);
 void initializeX86SpeculativeExecutionSideEffectSuppressionPass(PassRegistry &);
+void initializeX86PreTileConfigPass(PassRegistry &);
+void initializeX86FastTileConfigPass(PassRegistry &);
+void initializeX86TileConfigPass(PassRegistry &);
+void initializeX86LowerAMXTypeLegacyPassPass(PassRegistry &);
+void initializeX86PreAMXConfigPassPass(PassRegistry &);
+void initializeX86LowerTileCopyPass(PassRegistry &);
+void initializeX86LowerAMXIntrinsicsLegacyPassPass(PassRegistry &);
 
 namespace X86AS {
 enum : unsigned {

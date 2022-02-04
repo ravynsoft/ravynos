@@ -398,7 +398,11 @@ TAILQ_HEAD(tcp_funchead, tcp_function);
 #define	TF_NEEDSYN	0x00000400	/* send SYN (implicit state) */
 #define	TF_NEEDFIN	0x00000800	/* send FIN (implicit state) */
 #define	TF_NOPUSH	0x00001000	/* don't push */
-#define	TF_PREVVALID	0x00002000	/* saved values for bad rxmit valid */
+#define	TF_PREVVALID	0x00002000	/* saved values for bad rxmit valid
+					 * Note: accessing and restoring from
+					 * these may only be done in the 1st
+					 * RTO recovery round (t_rxtshift == 1)
+					 */
 #define	TF_WAKESOR	0x00004000	/* wake up receive socket */
 #define	TF_GPUTINPROG	0x00008000	/* Goodput measurement in progress */
 #define	TF_MORETOCOME	0x00010000	/* More data to be appended to sock */
@@ -700,7 +704,12 @@ struct	tcpstat {
 	uint64_t tcps_tunneled_pkts;	/* Packets encap's in UDP received */
 	uint64_t tcps_tunneled_errs;	/* Packets that had errors that were UDP encaped */
 
-	uint64_t _pad[10];		/* 6 UTO, 6 TBD */
+	/* TCPS_TIME_WAIT usage stats */
+	uint64_t tcps_tw_recycles;	/* Times time-wait was recycled. */
+	uint64_t tcps_tw_resets;	/* Times time-wait sent a reset. */
+	uint64_t tcps_tw_responds;	/* Times time-wait sent a valid ack. */
+
+	uint64_t _pad[7];
 };
 
 #define	tcps_rcvmemdrop	tcps_rcvreassfull	/* compat */

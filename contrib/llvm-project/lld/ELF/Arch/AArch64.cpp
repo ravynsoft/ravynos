@@ -34,6 +34,7 @@ public:
   RelExpr getRelExpr(RelType type, const Symbol &s,
                      const uint8_t *loc) const override;
   RelType getDynRel(RelType type) const override;
+  int64_t getImplicitAddend(const uint8_t *buf, RelType type) const override;
   void writeGotPlt(uint8_t *buf, const Symbol &s) const override;
   void writePltHeader(uint8_t *buf) const override;
   void writePlt(uint8_t *buf, const Symbol &sym,
@@ -46,8 +47,7 @@ public:
   bool usesOnlyLowPageBits(RelType type) const override;
   void relocate(uint8_t *loc, const Relocation &rel,
                 uint64_t val) const override;
-  RelExpr adjustRelaxExpr(RelType type, const uint8_t *data,
-                          RelExpr expr) const override;
+  RelExpr adjustTlsExpr(RelType type, RelExpr expr) const override;
   void relaxTlsGdToLe(uint8_t *loc, const Relocation &rel,
                       uint64_t val) const override;
   void relaxTlsGdToIe(uint8_t *loc, const Relocation &rel,
@@ -71,6 +71,7 @@ AArch64::AArch64() {
   pltEntrySize = 16;
   ipltEntrySize = 16;
   defaultMaxPageSize = 65536;
+  gotBaseSymInGotPlt = false;
 
   // Align to the 2 MiB page size (known as a superpage or huge page).
   // FreeBSD automatically promotes 2 MiB-aligned allocations.
@@ -121,7 +122,7 @@ RelExpr AArch64::getRelExpr(RelType type, const Symbol &s,
   case R_AARCH64_TLSLE_MOVW_TPREL_G1:
   case R_AARCH64_TLSLE_MOVW_TPREL_G1_NC:
   case R_AARCH64_TLSLE_MOVW_TPREL_G2:
-    return R_TLS;
+    return R_TPREL;
   case R_AARCH64_CALL26:
   case R_AARCH64_CONDBR19:
   case R_AARCH64_JUMP26:
@@ -147,6 +148,8 @@ RelExpr AArch64::getRelExpr(RelType type, const Symbol &s,
   case R_AARCH64_LD64_GOT_LO12_NC:
   case R_AARCH64_TLSIE_LD64_GOTTPREL_LO12_NC:
     return R_GOT;
+  case R_AARCH64_LD64_GOTPAGE_LO15:
+    return R_AARCH64_GOT_PAGE;
   case R_AARCH64_ADR_GOT_PAGE:
   case R_AARCH64_TLSIE_ADR_GOTTPREL_PAGE21:
     return R_AARCH64_GOT_PAGE_PC;
@@ -159,8 +162,7 @@ RelExpr AArch64::getRelExpr(RelType type, const Symbol &s,
   }
 }
 
-RelExpr AArch64::adjustRelaxExpr(RelType type, const uint8_t *data,
-                                 RelExpr expr) const {
+RelExpr AArch64::adjustTlsExpr(RelType type, RelExpr expr) const {
   if (expr == R_RELAX_TLS_GD_TO_IE) {
     if (type == R_AARCH64_TLSDESC_ADR_PAGE21)
       return R_AARCH64_RELAX_TLS_GD_TO_IE_PAGE_PC;
@@ -193,8 +195,19 @@ RelType AArch64::getDynRel(RelType type) const {
   return R_AARCH64_NONE;
 }
 
+int64_t AArch64::getImplicitAddend(const uint8_t *buf, RelType type) const {
+  switch (type) {
+  case R_AARCH64_TLSDESC:
+    return read64(buf + 8);
+  default:
+    internalLinkerError(getErrorLocation(buf),
+                        "cannot read addend for relocation " + toString(type));
+    return 0;
+  }
+}
+
 void AArch64::writeGotPlt(uint8_t *buf, const Symbol &) const {
-  write64le(buf, in.plt->getVA());
+  write64(buf, in.plt->getVA());
 }
 
 void AArch64::writePltHeader(uint8_t *buf) const {
@@ -322,20 +335,20 @@ void AArch64::relocate(uint8_t *loc, const Relocation &rel,
   case R_AARCH64_ABS16:
   case R_AARCH64_PREL16:
     checkIntUInt(loc, val, 16, rel);
-    write16le(loc, val);
+    write16(loc, val);
     break;
   case R_AARCH64_ABS32:
   case R_AARCH64_PREL32:
     checkIntUInt(loc, val, 32, rel);
-    write32le(loc, val);
+    write32(loc, val);
     break;
   case R_AARCH64_PLT32:
     checkInt(loc, val, 32, rel);
-    write32le(loc, val);
+    write32(loc, val);
     break;
   case R_AARCH64_ABS64:
   case R_AARCH64_PREL64:
-    write64le(loc, val);
+    write64(loc, val);
     break;
   case R_AARCH64_ADD_ABS_LO12_NC:
     or32AArch64Imm(loc, val);
@@ -400,6 +413,10 @@ void AArch64::relocate(uint8_t *loc, const Relocation &rel,
     checkAlignment(loc, val, 16, rel);
     or32AArch64Imm(loc, getBits(val, 4, 11));
     break;
+  case R_AARCH64_LD64_GOTPAGE_LO15:
+    checkAlignment(loc, val, 8, rel);
+    or32AArch64Imm(loc, getBits(val, 3, 14));
+    break;
   case R_AARCH64_MOVW_UABS_G0:
     checkUInt(loc, val, 16, rel);
     LLVM_FALLTHROUGH;
@@ -461,6 +478,10 @@ void AArch64::relocate(uint8_t *loc, const Relocation &rel,
   case R_AARCH64_TLSLE_ADD_TPREL_LO12_NC:
   case R_AARCH64_TLSDESC_ADD_LO12:
     or32AArch64Imm(loc, val);
+    break;
+  case R_AARCH64_TLSDESC:
+    // For R_AARCH64_TLSDESC the addend is stored in the second 64-bit word.
+    write64(loc + 8, val);
     break;
   default:
     llvm_unreachable("unknown relocation");

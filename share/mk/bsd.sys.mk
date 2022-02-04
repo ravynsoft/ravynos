@@ -80,6 +80,9 @@ CWARNFLAGS+=	-Wno-pointer-sign
 .if ${WARNS} <= 6
 CWARNFLAGS.clang+=	-Wno-empty-body -Wno-string-plus-int
 CWARNFLAGS.clang+=	-Wno-unused-const-variable
+.if ${COMPILER_TYPE} == "clang" && ${COMPILER_VERSION} >= 130000
+CWARNFLAGS.clang+=	-Wno-error=unused-but-set-variable
+.endif
 .endif # WARNS <= 6
 .if ${WARNS} <= 3
 CWARNFLAGS.clang+=	-Wno-tautological-compare -Wno-unused-value\
@@ -228,8 +231,10 @@ CFLAGS+=-nobuiltininc -idirafter ${COMPILER_RESOURCE_DIR}/include
 .endif
 .endif
 
-CLANG_OPT_SMALL= -mstack-alignment=8 -mllvm -inline-threshold=3\
-		 -mllvm -simplifycfg-dup-ret
+CLANG_OPT_SMALL= -mstack-alignment=8 -mllvm -inline-threshold=3
+.if ${COMPILER_VERSION} < 130000
+CLANG_OPT_SMALL+= -mllvm -simplifycfg-dup-ret
+.endif
 CLANG_OPT_SMALL+= -mllvm -enable-load-pre=false
 CFLAGS.clang+=	 -Qunused-arguments
 # The libc++ headers use c++11 extensions.  These are normally silenced because
@@ -239,12 +244,11 @@ CFLAGS.clang+=	 -Qunused-arguments
 # but not yet.
 CXXFLAGS.clang+=	 -Wno-c++11-extensions
 
-.if ${MK_SSP} != "no" && \
-    ${MACHINE_CPUARCH} != "arm" && ${MACHINE_CPUARCH} != "mips"
+.if ${MK_SSP} != "no"
 # Don't use -Wstack-protector as it breaks world with -Werror.
 SSP_CFLAGS?=	-fstack-protector-strong
 CFLAGS+=	${SSP_CFLAGS}
-.endif # SSP && !ARM && !MIPS
+.endif # SSP
 
 # Additional flags passed in CFLAGS and CXXFLAGS when MK_DEBUG_FILES is
 # enabled.
@@ -274,7 +278,14 @@ LDFLAGS+=	${LDFLAGS.${LINKER_TYPE}}
 # Only allow .TARGET when not using PROGS as it has the same syntax
 # per PROG which is ambiguous with this syntax. This is only needed
 # for PROG_VARS vars.
-.if !defined(_RECURSING_PROGS)
+#
+# Some directories (currently just clang) also need to disable this since
+# CFLAGS.${COMPILER_TYPE}, CFLAGS.${.IMPSRC:T} and CFLAGS.${.TARGET:T} all live
+# in the same namespace, meaning that, for example, GCC builds of clang pick up
+# CFLAGS.clang via CFLAGS.${.TARGET:T} and thus try to pass Clang-specific
+# flags. Ideally the different sources of CFLAGS would be namespaced to avoid
+# collisions.
+.if !defined(_RECURSING_PROGS) && !defined(NO_TARGET_FLAGS)
 .if ${MK_WARNS} != "no"
 CFLAGS+=	${CWARNFLAGS.${.TARGET:T}}
 .endif

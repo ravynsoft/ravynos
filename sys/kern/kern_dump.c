@@ -31,16 +31,21 @@ __FBSDID("$FreeBSD$");
 #include <sys/systm.h>
 #include <sys/conf.h>
 #include <sys/cons.h>
+#include <sys/kdb.h>
 #include <sys/kernel.h>
-#include <sys/proc.h>
 #include <sys/kerneldump.h>
+#include <sys/malloc.h>
+#include <sys/msgbuf.h>
+#include <sys/proc.h>
 #include <sys/watchdog.h>
+
 #include <vm/vm.h>
 #include <vm/vm_param.h>
 #include <vm/vm_page.h>
 #include <vm/vm_phys.h>
 #include <vm/vm_dumpset.h>
 #include <vm/pmap.h>
+
 #include <machine/dump.h>
 #include <machine/elf.h>
 #include <machine/md_var.h>
@@ -292,7 +297,7 @@ dumpsys_generic(struct dumperinfo *di)
 
 #if MINIDUMP_PAGE_TRACKING == 1
 	if (do_minidump)
-		return (minidumpsys(di));
+		return (minidumpsys(di, false));
 #endif
 
 	bzero(&ehdr, sizeof(ehdr));
@@ -385,3 +390,146 @@ dumpsys_generic(struct dumperinfo *di)
 		printf("\n** DUMP FAILED (ERROR %d) **\n", error);
 	return (error);
 }
+
+#if MINIDUMP_PAGE_TRACKING == 1
+
+/* Minidump progress bar */
+static struct {
+	const int min_per;
+	const int max_per;
+	bool visited;
+} progress_track[10] = {
+	{  0,  10, false},
+	{ 10,  20, false},
+	{ 20,  30, false},
+	{ 30,  40, false},
+	{ 40,  50, false},
+	{ 50,  60, false},
+	{ 60,  70, false},
+	{ 70,  80, false},
+	{ 80,  90, false},
+	{ 90, 100, false}
+};
+
+static uint64_t dumpsys_pb_size;
+static uint64_t dumpsys_pb_remaining;
+static uint64_t dumpsys_pb_check;
+
+/* Reset the progress bar for a dump of dumpsize. */
+void
+dumpsys_pb_init(uint64_t dumpsize)
+{
+	int i;
+
+	dumpsys_pb_size = dumpsys_pb_remaining = dumpsize;
+	dumpsys_pb_check = 0;
+
+	for (i = 0; i < nitems(progress_track); i++)
+		progress_track[i].visited = false;
+}
+
+/*
+ * Update the progress according to the delta bytes that were written out.
+ * Check and print the progress percentage.
+ */
+void
+dumpsys_pb_progress(size_t delta)
+{
+	int sofar, i;
+
+	dumpsys_pb_remaining -= delta;
+	dumpsys_pb_check += delta;
+
+	/*
+	 * To save time while dumping, only loop through progress_track
+	 * occasionally.
+	 */
+	if ((dumpsys_pb_check >> DUMPSYS_PB_CHECK_BITS) == 0)
+		return;
+	else
+		dumpsys_pb_check &= (1 << DUMPSYS_PB_CHECK_BITS) - 1;
+
+	sofar = 100 - ((dumpsys_pb_remaining * 100) / dumpsys_pb_size);
+	for (i = 0; i < nitems(progress_track); i++) {
+		if (sofar < progress_track[i].min_per ||
+		    sofar > progress_track[i].max_per)
+			continue;
+		if (!progress_track[i].visited) {
+			progress_track[i].visited = true;
+			printf("..%d%%", sofar);
+		}
+		break;
+	}
+}
+
+int
+minidumpsys(struct dumperinfo *di, bool livedump)
+{
+	struct minidumpstate state;
+	struct msgbuf mb_copy;
+	char *msg_ptr;
+	size_t sz;
+	int error;
+
+	if (livedump) {
+		KASSERT(!dumping, ("live dump invoked from incorrect context"));
+
+		/*
+		 * Before invoking cpu_minidumpsys() on the live system, we
+		 * must snapshot some required global state: the message
+		 * buffer, and the page dump bitset. They may be modified at
+		 * any moment, so for the sake of the live dump it is best to
+		 * have an unchanging snapshot to work with. Both are included
+		 * as part of the dump and consumed by userspace tools.
+		 *
+		 * Other global state important to the minidump code is the
+		 * dump_avail array and the kernel's page tables, but snapshots
+		 * are not taken of these. For one, dump_avail[] is expected
+		 * not to change after boot. Snapshotting the kernel page
+		 * tables would involve an additional walk, so this is avoided
+		 * too.
+		 *
+		 * This means live dumps are best effort, and the result may or
+		 * may not be usable; there are no guarantees about the
+		 * consistency of the dump's contents. Any of the following
+		 * (and likely more) may affect the live dump:
+		 *
+		 *  - Data may be modified, freed, or remapped during the
+		 *    course of the dump, such that the contents written out
+		 *    are partially or entirely unrecognizable. This means
+		 *    valid references may point to destroyed/mangled objects,
+		 *    and vice versa.
+		 *
+		 *  - The dumped context of any threads that ran during the
+		 *    dump process may be unreliable.
+		 *
+		 *  - The set of kernel page tables included in the dump likely
+		 *    won't correspond exactly to the copy of the dump bitset.
+		 *    This means some pages will be dumped without any way to
+		 *    locate them, and some pages may not have been dumped
+		 *    despite appearing as if they should.
+		 */
+		msg_ptr = malloc(msgbufsize, M_TEMP, M_WAITOK);
+		msgbuf_duplicate(msgbufp, &mb_copy, msg_ptr);
+		state.msgbufp = &mb_copy;
+
+		sz = BITSET_SIZE(vm_page_dump_pages);
+		state.dump_bitset = malloc(sz, M_TEMP, M_WAITOK);
+		BIT_COPY_STORE_REL(sz, vm_page_dump, state.dump_bitset);
+	} else {
+		KASSERT(dumping, ("minidump invoked outside of doadump()"));
+
+		/* Use the globals. */
+		state.msgbufp = msgbufp;
+		state.dump_bitset = vm_page_dump;
+	}
+
+	error = cpu_minidumpsys(di, &state);
+	if (livedump) {
+		free(msg_ptr, M_TEMP);
+		free(state.dump_bitset, M_TEMP);
+	}
+
+	return (error);
+}
+#endif /* MINIDUMP_PAGE_TRACKING == 1 */

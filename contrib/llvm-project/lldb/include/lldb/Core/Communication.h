@@ -22,8 +22,8 @@
 #include <ratio>
 #include <string>
 
-#include <stddef.h>
-#include <stdint.h>
+#include <cstddef>
+#include <cstdint>
 
 namespace lldb_private {
 class Connection;
@@ -285,7 +285,7 @@ public:
   ///
   void SynchronizeWithReadThread();
 
-  static const char *ConnectionStatusAsCString(lldb::ConnectionStatus status);
+  static std::string ConnectionStatusAsString(lldb::ConnectionStatus status);
 
   bool GetCloseOnEOF() const { return m_close_on_eof; }
 

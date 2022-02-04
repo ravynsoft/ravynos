@@ -60,24 +60,6 @@ static struct kerneldumpheader kdh;
 /* Handle chunked writes. */
 static size_t fragsz;
 static void *dump_va;
-static uint64_t counter, progress;
-
-static int
-is_dumpable(vm_paddr_t pa)
-{
-	vm_page_t m;
-	int i;
-
-	if ((m = vm_phys_paddr_to_vm_page(pa)) != NULL)
-		return ((m->flags & PG_NODUMP) == 0);
-	for (i = 0; dump_avail[i] != 0 || dump_avail[i + 1] != 0; i += 2) {
-		if (pa >= dump_avail[i] && pa < dump_avail[i + 1])
-			return (1);
-	}
-	return (0);
-}
-
-#define PG2MB(pgs) (((pgs) + (1 << 8) - 1) >> 8)
 
 static int
 blk_flush(struct dumperinfo *di)
@@ -125,13 +107,8 @@ blk_write(struct dumperinfo *di, char *ptr, vm_paddr_t pa, size_t sz)
 		len = maxdumpsz - fragsz;
 		if (len > sz)
 			len = sz;
-		counter += len;
-		progress -= len;
-		if (counter >> 24) {
-			printf(" %lld", PG2MB(progress >> PAGE_SHIFT));
-			counter &= (1<<24) - 1;
-		}
 
+		dumpsys_pb_progress(len);
 		wdog_kern_pat(WD_LASTVAL);
 
 		if (ptr) {
@@ -168,55 +145,67 @@ blk_write(struct dumperinfo *di, char *ptr, vm_paddr_t pa, size_t sz)
 static pt_entry_t fakept[NPTEPG];
 
 #ifdef PMAP_PAE_COMP
-#define	minidumpsys	minidumpsys_pae
-#define	IdlePTD		IdlePTD_pae
+#define	cpu_minidumpsys		cpu_minidumpsys_pae
+#define	IdlePTD			IdlePTD_pae
 #else
-#define	minidumpsys	minidumpsys_nopae
-#define	IdlePTD		IdlePTD_nopae
+#define	cpu_minidumpsys		cpu_minidumpsys_nopae
+#define	IdlePTD			IdlePTD_nopae
 #endif
 
 int
-minidumpsys(struct dumperinfo *di)
+cpu_minidumpsys(struct dumperinfo *di, const struct minidumpstate *state)
 {
 	uint64_t dumpsize;
 	uint32_t ptesize;
-	vm_offset_t va;
+	vm_offset_t va, kva_end;
 	int error;
 	uint64_t pa;
-	pd_entry_t *pd;
-	pt_entry_t *pt;
-	int j, k;
+	pd_entry_t *pd, pde;
+	pt_entry_t *pt, pte;
+	int k;
 	struct minidumphdr mdhdr;
+	struct msgbuf *mbp;
 
-	counter = 0;
-	/* Walk page table pages, set bits in vm_page_dump */
+	/* Snapshot the KVA upper bound in case it grows. */
+	kva_end = kernel_vm_end;
+
+	/*
+	 * Walk the kernel page table pages, setting the active entries in the
+	 * dump bitmap.
+	 *
+	 * NB: for a live dump, we may be racing with updates to the page
+	 * tables, so care must be taken to read each entry only once.
+	 */
 	ptesize = 0;
-	for (va = KERNBASE; va < kernel_vm_end; va += NBPDR) {
+	for (va = KERNBASE; va < kva_end; va += NBPDR) {
 		/*
 		 * We always write a page, even if it is zero. Each
 		 * page written corresponds to 2MB of space
 		 */
 		ptesize += PAGE_SIZE;
 		pd = IdlePTD;	/* always mapped! */
-		j = va >> PDRSHIFT;
-		if ((pd[j] & (PG_PS | PG_V)) == (PG_PS | PG_V))  {
+		pde = pte_load(&pd[va >> PDRSHIFT]);
+		if ((pde & (PG_PS | PG_V)) == (PG_PS | PG_V))  {
 			/* This is an entire 2M page. */
-			pa = pd[j] & PG_PS_FRAME;
+			pa = pde & PG_PS_FRAME;
 			for (k = 0; k < NPTEPG; k++) {
-				if (is_dumpable(pa))
-					dump_add_page(pa);
+				if (vm_phys_is_dumpable(pa))
+					vm_page_dump_add(state->dump_bitset,
+					    pa);
 				pa += PAGE_SIZE;
 			}
 			continue;
 		}
-		if ((pd[j] & PG_V) == PG_V) {
+		if ((pde & PG_V) == PG_V) {
 			/* set bit for each valid page in this 2MB block */
-			pt = pmap_kenter_temporary(pd[j] & PG_FRAME, 0);
+			pt = pmap_kenter_temporary(pde & PG_FRAME, 0);
 			for (k = 0; k < NPTEPG; k++) {
-				if ((pt[k] & PG_V) == PG_V) {
-					pa = pt[k] & PG_FRAME;
-					if (is_dumpable(pa))
-						dump_add_page(pa);
+				pte = pte_load(&pt[k]);
+				if ((pte & PG_V) == PG_V) {
+					pa = pte & PG_FRAME;
+					if (vm_phys_is_dumpable(pa))
+						vm_page_dump_add(
+						    state->dump_bitset, pa);
 				}
 			}
 		} else {
@@ -225,27 +214,28 @@ minidumpsys(struct dumperinfo *di)
 	}
 
 	/* Calculate dump size. */
+	mbp = state->msgbufp;
 	dumpsize = ptesize;
-	dumpsize += round_page(msgbufp->msg_size);
+	dumpsize += round_page(mbp->msg_size);
 	dumpsize += round_page(sizeof(dump_avail));
 	dumpsize += round_page(BITSET_SIZE(vm_page_dump_pages));
-	VM_PAGE_DUMP_FOREACH(pa) {
+	VM_PAGE_DUMP_FOREACH(state->dump_bitset, pa) {
 		/* Clear out undumpable pages now if needed */
-		if (is_dumpable(pa)) {
+		if (vm_phys_is_dumpable(pa)) {
 			dumpsize += PAGE_SIZE;
 		} else {
-			dump_drop_page(pa);
+			vm_page_dump_drop(state->dump_bitset, pa);
 		}
 	}
 	dumpsize += PAGE_SIZE;
 
-	progress = dumpsize;
+	dumpsys_pb_init(dumpsize);
 
 	/* Initialize mdhdr */
 	bzero(&mdhdr, sizeof(mdhdr));
 	strcpy(mdhdr.magic, MINIDUMP_MAGIC);
 	mdhdr.version = MINIDUMP_VERSION;
-	mdhdr.msgbufsize = msgbufp->msg_size;
+	mdhdr.msgbufsize = mbp->msg_size;
 	mdhdr.bitmapsize = round_page(BITSET_SIZE(vm_page_dump_pages));
 	mdhdr.ptesize = ptesize;
 	mdhdr.kernbase = KERNBASE;
@@ -270,7 +260,8 @@ minidumpsys(struct dumperinfo *di)
 		goto fail;
 
 	/* Dump msgbuf up front */
-	error = blk_write(di, (char *)msgbufp->msg_ptr, 0, round_page(msgbufp->msg_size));
+	error = blk_write(di, (char *)mbp->msg_ptr, 0,
+	    round_page(mbp->msg_size));
 	if (error)
 		goto fail;
 
@@ -290,13 +281,13 @@ minidumpsys(struct dumperinfo *di)
 		goto fail;
 
 	/* Dump kernel page table pages */
-	for (va = KERNBASE; va < kernel_vm_end; va += NBPDR) {
+	for (va = KERNBASE; va < kva_end; va += NBPDR) {
 		/* We always write a page, even if it is zero */
 		pd = IdlePTD;	/* always mapped! */
-		j = va >> PDRSHIFT;
-		if ((pd[j] & (PG_PS | PG_V)) == (PG_PS | PG_V))  {
+		pde = pte_load(&pd[va >> PDRSHIFT]);
+		if ((pde & (PG_PS | PG_V)) == (PG_PS | PG_V))  {
 			/* This is a single 2M block. Generate a fake PTP */
-			pa = pd[j] & PG_PS_FRAME;
+			pa = pde & PG_PS_FRAME;
 			for (k = 0; k < NPTEPG; k++) {
 				fakept[k] = (pa + (k * PAGE_SIZE)) | PG_V | PG_RW | PG_A | PG_M;
 			}
@@ -309,8 +300,8 @@ minidumpsys(struct dumperinfo *di)
 				goto fail;
 			continue;
 		}
-		if ((pd[j] & PG_V) == PG_V) {
-			pa = pd[j] & PG_FRAME;
+		if ((pde & PG_V) == PG_V) {
+			pa = pde & PG_FRAME;
 			error = blk_write(di, 0, pa, PAGE_SIZE);
 			if (error)
 				goto fail;
@@ -327,7 +318,7 @@ minidumpsys(struct dumperinfo *di)
 	}
 
 	/* Dump memory chunks */
-	VM_PAGE_DUMP_FOREACH(pa) {
+	VM_PAGE_DUMP_FOREACH(state->dump_bitset, pa) {
 		error = blk_write(di, 0, pa, PAGE_SIZE);
 		if (error)
 			goto fail;

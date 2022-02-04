@@ -314,7 +314,7 @@ zpool_get_prop(zpool_handle_t *zhp, zpool_prop_t prop, char *buf,
 				    len);
 				break;
 			}
-			/* FALLTHROUGH */
+			fallthrough;
 		default:
 			(void) strlcpy(buf, "-", len);
 			break;
@@ -405,7 +405,7 @@ zpool_get_prop(zpool_handle_t *zhp, zpool_prop_t prop, char *buf,
 				(void) snprintf(buf, len, "-");
 				break;
 			}
-			/* FALLTHROUGH */
+			fallthrough;
 		default:
 			(void) snprintf(buf, len, "%llu", (u_longlong_t)intval);
 		}
@@ -4871,7 +4871,9 @@ zpool_load_compat(const char *compat, boolean_t *features, char *report,
 		    line != NULL;
 		    line = strtok_r(NULL, "\n", &ls)) {
 			/* discard comments */
-			*(strchrnul(line, '#')) = '\0';
+			char *r = strchr(line, '#');
+			if (r != NULL)
+				*r = '\0';
 
 			for (word = strtok_r(line, ", \t", &ws);
 			    word != NULL;

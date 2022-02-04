@@ -62,9 +62,17 @@ static DecodeStatus DecodeGPR64commonRegisterClass(MCInst &Inst, unsigned RegNo,
 static DecodeStatus DecodeGPR64RegisterClass(MCInst &Inst, unsigned RegNo,
                                              uint64_t Address,
                                              const void *Decoder);
+static DecodeStatus DecodeGPR64x8ClassRegisterClass(MCInst &Inst,
+                                                    unsigned RegNo,
+                                                    uint64_t Address,
+                                                    const void *Decoder);
 static DecodeStatus DecodeGPR64spRegisterClass(MCInst &Inst,
                                                unsigned RegNo, uint64_t Address,
                                                const void *Decoder);
+static DecodeStatus DecodeMatrixIndexGPR32_12_15RegisterClass(MCInst &Inst,
+                                                              unsigned RegNo,
+                                                              uint64_t Address,
+                                                              const void *Decoder);
 static DecodeStatus DecodeGPR32RegisterClass(MCInst &Inst, unsigned RegNo,
                                              uint64_t Address,
                                              const void *Decoder);
@@ -107,6 +115,13 @@ static DecodeStatus DecodeZPR3RegisterClass(MCInst &Inst, unsigned RegNo,
 static DecodeStatus DecodeZPR4RegisterClass(MCInst &Inst, unsigned RegNo,
                                             uint64_t Address,
                                             const void *Decoder);
+template <unsigned NumBitsForTile>
+static DecodeStatus DecodeMatrixTile(MCInst &Inst, unsigned RegNo,
+                                     uint64_t Address, const void *Decoder);
+static DecodeStatus DecodeMatrixTileListRegisterClass(MCInst &Inst,
+                                                      unsigned RegMask,
+                                                      uint64_t Address,
+                                                      const void *Decoder);
 static DecodeStatus DecodePPRRegisterClass(MCInst &Inst, unsigned RegNo,
                                            uint64_t Address,
                                            const void *Decoder);
@@ -222,6 +237,8 @@ static DecodeStatus DecodeImm8OptLsl(MCInst &Inst, unsigned Imm,
                                      uint64_t Addr, const void *Decoder);
 static DecodeStatus DecodeSVEIncDecImm(MCInst &Inst, unsigned Imm,
                                        uint64_t Addr, const void *Decoder);
+static DecodeStatus DecodeSVCROp(MCInst &Inst, unsigned Imm, uint64_t Address,
+                                 const void *Decoder);
 
 static bool Check(DecodeStatus &Out, DecodeStatus In) {
   switch (In) {
@@ -267,8 +284,53 @@ DecodeStatus AArch64Disassembler::getInstruction(MCInst &MI, uint64_t &Size,
   uint32_t Insn =
       (Bytes[3] << 24) | (Bytes[2] << 16) | (Bytes[1] << 8) | (Bytes[0] << 0);
 
-  // Calling the auto-generated decoder function.
-  return decodeInstruction(DecoderTable32, MI, Insn, Address, this, STI);
+  const uint8_t *Tables[] = {DecoderTable32, DecoderTableFallback32};
+
+  for (auto Table : Tables) {
+    DecodeStatus Result =
+        decodeInstruction(Table, MI, Insn, Address, this, STI);
+
+    switch (MI.getOpcode()) {
+    default:
+      break;
+    // For Scalable Matrix Extension (SME) instructions that have an implicit
+    // operand for the accumulator (ZA) which isn't encoded, manually insert
+    // operand.
+    case AArch64::LDR_ZA:
+    case AArch64::STR_ZA: {
+      MI.insert(MI.begin(), MCOperand::createReg(AArch64::ZA));
+      // Spill and fill instructions have a single immediate used for both the
+      // vector select offset and optional memory offset. Replicate the decoded
+      // immediate.
+      const MCOperand &Imm4Op = MI.getOperand(2);
+      assert(Imm4Op.isImm() && "Unexpected operand type!");
+      MI.addOperand(Imm4Op);
+      break;
+    }
+    case AArch64::LD1_MXIPXX_H_B:
+    case AArch64::LD1_MXIPXX_V_B:
+    case AArch64::ST1_MXIPXX_H_B:
+    case AArch64::ST1_MXIPXX_V_B:
+    case AArch64::INSERT_MXIPZ_H_B:
+    case AArch64::INSERT_MXIPZ_V_B:
+      // e.g.
+      // MOVA ZA0<HV>.B[<Ws>, <imm>], <Pg>/M, <Zn>.B
+      //      ^ insert implicit 8-bit element tile
+      MI.insert(MI.begin(), MCOperand::createReg(AArch64::ZAB0));
+      break;
+    case AArch64::EXTRACT_ZPMXI_H_B:
+    case AArch64::EXTRACT_ZPMXI_V_B:
+      // MOVA <Zd>.B, <Pg>/M, ZA0<HV>.B[<Ws>, <imm>]
+      //                      ^ insert implicit 8-bit element tile
+      MI.insert(MI.begin()+2, MCOperand::createReg(AArch64::ZAB0));
+      break;
+    }
+
+    if (Result != MCDisassembler::Fail)
+      return Result;
+  }
+
+  return MCDisassembler::Fail;
 }
 
 static MCSymbolizer *
@@ -449,6 +511,35 @@ static DecodeStatus DecodeGPR64RegisterClass(MCInst &Inst, unsigned RegNo,
   return Success;
 }
 
+static const unsigned GPR64x8DecoderTable[] = {
+  AArch64::X0_X1_X2_X3_X4_X5_X6_X7,
+  AArch64::X2_X3_X4_X5_X6_X7_X8_X9,
+  AArch64::X4_X5_X6_X7_X8_X9_X10_X11,
+  AArch64::X6_X7_X8_X9_X10_X11_X12_X13,
+  AArch64::X8_X9_X10_X11_X12_X13_X14_X15,
+  AArch64::X10_X11_X12_X13_X14_X15_X16_X17,
+  AArch64::X12_X13_X14_X15_X16_X17_X18_X19,
+  AArch64::X14_X15_X16_X17_X18_X19_X20_X21,
+  AArch64::X16_X17_X18_X19_X20_X21_X22_X23,
+  AArch64::X18_X19_X20_X21_X22_X23_X24_X25,
+  AArch64::X20_X21_X22_X23_X24_X25_X26_X27,
+  AArch64::X22_X23_X24_X25_X26_X27_X28_FP,
+};
+
+static DecodeStatus DecodeGPR64x8ClassRegisterClass(MCInst &Inst,
+                                                    unsigned RegNo,
+                                                    uint64_t Address,
+                                                    const void *Decoder) {
+  if (RegNo > 22)
+    return Fail;
+  if (RegNo & 1)
+    return Fail;
+
+  unsigned Register = GPR64x8DecoderTable[RegNo >> 1];
+  Inst.addOperand(MCOperand::createReg(Register));
+  return Success;
+}
+
 static DecodeStatus DecodeGPR64spRegisterClass(MCInst &Inst, unsigned RegNo,
                                                uint64_t Addr,
                                                const void *Decoder) {
@@ -457,6 +548,22 @@ static DecodeStatus DecodeGPR64spRegisterClass(MCInst &Inst, unsigned RegNo,
   unsigned Register = GPR64DecoderTable[RegNo];
   if (Register == AArch64::XZR)
     Register = AArch64::SP;
+  Inst.addOperand(MCOperand::createReg(Register));
+  return Success;
+}
+
+static const unsigned MatrixIndexGPR32_12_15DecoderTable[] = {
+    AArch64::W12, AArch64::W13, AArch64::W14, AArch64::W15
+};
+
+static DecodeStatus DecodeMatrixIndexGPR32_12_15RegisterClass(MCInst &Inst,
+                                                              unsigned RegNo,
+                                                              uint64_t Addr,
+                                                              const void *Decoder) {
+  if (RegNo > 3)
+    return Fail;
+
+  unsigned Register = MatrixIndexGPR32_12_15DecoderTable[RegNo];
   Inst.addOperand(MCOperand::createReg(Register));
   return Success;
 }
@@ -598,6 +705,39 @@ static DecodeStatus DecodeZPR4RegisterClass(MCInst &Inst, unsigned RegNo,
     return Fail;
   unsigned Register = ZZZZDecoderTable[RegNo];
   Inst.addOperand(MCOperand::createReg(Register));
+  return Success;
+}
+
+static DecodeStatus DecodeMatrixTileListRegisterClass(MCInst &Inst,
+                                                      unsigned RegMask,
+                                                      uint64_t Address,
+                                                      const void *Decoder) {
+  if (RegMask > 0xFF)
+    return Fail;
+  Inst.addOperand(MCOperand::createImm(RegMask));
+  return Success;
+}
+
+static const SmallVector<SmallVector<unsigned, 16>, 5>
+    MatrixZATileDecoderTable = {
+        {AArch64::ZAB0},
+        {AArch64::ZAH0, AArch64::ZAH1},
+        {AArch64::ZAS0, AArch64::ZAS1, AArch64::ZAS2, AArch64::ZAS3},
+        {AArch64::ZAD0, AArch64::ZAD1, AArch64::ZAD2, AArch64::ZAD3,
+         AArch64::ZAD4, AArch64::ZAD5, AArch64::ZAD6, AArch64::ZAD7},
+        {AArch64::ZAQ0, AArch64::ZAQ1, AArch64::ZAQ2, AArch64::ZAQ3,
+         AArch64::ZAQ4, AArch64::ZAQ5, AArch64::ZAQ6, AArch64::ZAQ7,
+         AArch64::ZAQ8, AArch64::ZAQ9, AArch64::ZAQ10, AArch64::ZAQ11,
+         AArch64::ZAQ12, AArch64::ZAQ13, AArch64::ZAQ14, AArch64::ZAQ15}};
+
+template <unsigned NumBitsForTile>
+static DecodeStatus DecodeMatrixTile(MCInst &Inst, unsigned RegNo,
+                                     uint64_t Address, const void *Decoder) {
+  unsigned LastReg = (1 << NumBitsForTile) - 1;
+  if (RegNo > LastReg)
+    return Fail;
+  Inst.addOperand(
+      MCOperand::createReg(MatrixZATileDecoderTable[NumBitsForTile][RegNo]));
   return Success;
 }
 
@@ -1889,4 +2029,13 @@ static DecodeStatus DecodeSVEIncDecImm(MCInst &Inst, unsigned Imm,
                                        uint64_t Addr, const void *Decoder) {
   Inst.addOperand(MCOperand::createImm(Imm + 1));
   return Success;
+}
+
+static DecodeStatus DecodeSVCROp(MCInst &Inst, unsigned Imm, uint64_t Address,
+                                 const void *Decoder) {
+  if (AArch64SVCR::lookupSVCRByEncoding(Imm)) {
+    Inst.addOperand(MCOperand::createImm(Imm));
+    return Success;
+  }
+  return Fail;
 }

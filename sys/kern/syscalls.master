@@ -11,10 +11,11 @@
 ;		there is no audit event for the call at this time. For the
 ;		case where the event exists, but we don't want auditing, the
 ;		event should be #defined to AUE_NULL in audit_kevents.h.
-;	type	one of STD, OBSOL, UNIMPL, COMPAT, COMPAT4, COMPAT6,
+;	type	one of STD, OBSOL, RESERVED, UNIMPL, COMPAT, COMPAT4, COMPAT6,
 ;		COMPAT7, COMPAT11, COMPAT12, NODEF, NOARGS, NOPROTO, NOSTD
 ;		The COMPAT* options may be combined with one or more NO*
 ;		options separated by '|' with no spaces (e.g. COMPAT|NOARGS)
+;		The CAPENABLED option may be ORed into a type.
 ;	name	pseudo-prototype of syscall routine
 ;		If one of the following alts is different, then all appear:
 ;	altname	name of system call if different
@@ -32,6 +33,7 @@
 ;	COMPAT11 included on COMPAT_FREEBSD11 #ifdef (FreeBSD 11 compat)
 ;	COMPAT12 included on COMPAT_FREEBSD12 #ifdef (FreeBSD 12 compat)
 ;	OBSOL	obsolete, not included in system, only specifies name
+;	RESERVED reserved for local or vendor use
 ;	UNIMPL	not implemented, placeholder only
 ;	NOSTD	implemented but as a lkm that can be statically
 ;		compiled in; sysent entry will be filled with lkmressys
@@ -44,6 +46,7 @@
 ;		function prototype in sys/sysproto.h.  Does add a
 ;		definition to syscall.h besides adding a sysent.
 ;	NOTSTATIC syscall is loadable
+;	CAPENABLED syscall is allowed in capability mode
 
 ; annotations:
 ;	SAL 2.0 annotations are used to specify how system calls treat
@@ -2247,7 +2250,7 @@
 		);
 	}
 424	AUE_SWAPOFF	STD {
-		int swapoff(
+		int freebsd13_swapoff(
 		    _In_z_ const char *name
 		);
 	}
@@ -2307,7 +2310,19 @@
 		    int sig
 		);
 	}
-434-435	AUE_NULL	UNIMPL	nosys
+
+434	AUE_NULL	COMPAT10 {
+		int _umtx_lock(
+		    _Inout_ struct umtx *umtx
+		);
+	}
+
+435	AUE_NULL	COMPAT10 {
+		int _umtx_unlock(
+		    _Inout_ struct umtx *umtx
+		);
+	}
+
 436	AUE_JAIL_ATTACH	STD {
 		int jail_attach(
 		    int jid
@@ -3280,7 +3295,17 @@
 		    _Inout_ struct aiocb *aiocbp
 		);
 	}
-580-599	AUE_NULL	UNIMPL	nosys
+580	AUE_NULL	UNIMPL	fspacectl
+581	AUE_NULL	STD|CAPENABLED {
+		int sched_getcpu(void);
+	}
+582	AUE_SWAPOFF	STD {
+		int swapoff(
+		    _In_z_ const char *name,
+		    u_int flags,
+		);
+	}
+583-599	AUE_NULL	UNIMPL	nosys
 ; The mach syscall number space is negative on OS X
 ; here we have reserved this for OS X mach calls where the offset is: 600 + -(OSX mach index)
 600-609	AUE_NULL	UNIMPL	nosys

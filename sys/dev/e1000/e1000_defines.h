@@ -1,32 +1,32 @@
 /******************************************************************************
   SPDX-License-Identifier: BSD-3-Clause
 
-  Copyright (c) 2001-2015, Intel Corporation 
+  Copyright (c) 2001-2020, Intel Corporation
   All rights reserved.
-  
-  Redistribution and use in source and binary forms, with or without 
+
+  Redistribution and use in source and binary forms, with or without
   modification, are permitted provided that the following conditions are met:
-  
-   1. Redistributions of source code must retain the above copyright notice, 
+
+   1. Redistributions of source code must retain the above copyright notice,
       this list of conditions and the following disclaimer.
-  
-   2. Redistributions in binary form must reproduce the above copyright 
-      notice, this list of conditions and the following disclaimer in the 
+
+   2. Redistributions in binary form must reproduce the above copyright
+      notice, this list of conditions and the following disclaimer in the
       documentation and/or other materials provided with the distribution.
-  
-   3. Neither the name of the Intel Corporation nor the names of its 
-      contributors may be used to endorse or promote products derived from 
+
+   3. Neither the name of the Intel Corporation nor the names of its
+      contributors may be used to endorse or promote products derived from
       this software without specific prior written permission.
-  
+
   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
-  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
-  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
-  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
-  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
-  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
-  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
-  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+  AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+  IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+  ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+  LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+  SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+  INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
   ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
   POSSIBILITY OF SUCH DAMAGE.
 
@@ -281,6 +281,7 @@
 #define E1000_CTRL_SWDPIO0	0x00400000 /* SWDPIN 0 Input or output */
 #define E1000_CTRL_SWDPIO2	0x01000000 /* SWDPIN 2 input or output */
 #define E1000_CTRL_SWDPIO3	0x02000000 /* SWDPIN 3 input or output */
+#define E1000_CTRL_DEV_RST	0x20000000 /* Device reset */
 #define E1000_CTRL_RST		0x04000000 /* Global reset */
 #define E1000_CTRL_RFCE		0x08000000 /* Receive Flow Control enable */
 #define E1000_CTRL_TFCE		0x10000000 /* Transmit flow control enable */
@@ -345,6 +346,7 @@
 #define E1000_STATUS_PCIX_SPEED_66	0x00000000 /* PCI-X bus spd 50-66MHz */
 #define E1000_STATUS_PCIX_SPEED_100	0x00004000 /* PCI-X bus spd 66-100MHz */
 #define E1000_STATUS_PCIX_SPEED_133	0x00008000 /* PCI-X bus spd 100-133MHz*/
+#define E1000_STATUS_PCIM_STATE		0x40000000 /* PCIm function state */
 
 #define SPEED_10	10
 #define SPEED_100	100
@@ -428,11 +430,12 @@
 #define E1000_SCTL_ENABLE_SERDES_LOOPBACK	0x0410
 
 /* Receive Checksum Control */
-#define E1000_RXCSUM_IPOFL	0x00000100 /* IPv4 checksum offload */
-#define E1000_RXCSUM_TUOFL	0x00000200 /* TCP / UDP checksum offload */
-#define E1000_RXCSUM_CRCOFL	0x00000800 /* CRC32 offload enable */
-#define E1000_RXCSUM_IPPCSE	0x00001000 /* IP payload checksum enable */
-#define E1000_RXCSUM_PCSD	0x00002000 /* packet checksum disabled */
+#define E1000_RXCSUM_IPOFL		0x00000100 /* IPv4 checksum offload */
+#define E1000_RXCSUM_TUOFL		0x00000200 /* TCP / UDP checksum offload */
+#define E1000_RXCSUM_IPV6OFL	0x00000400  /* lem(4) IPv6 checksum offload */
+#define E1000_RXCSUM_CRCOFL		0x00000800 /* CRC32 offload enable */
+#define E1000_RXCSUM_IPPCSE		0x00001000 /* IP payload checksum enable */
+#define E1000_RXCSUM_PCSD		0x00002000 /* packet checksum disabled */
 
 /* Header split receive */
 #define E1000_RFCTL_NFSW_DIS		0x00000040
@@ -444,8 +447,8 @@
 #define E1000_RFCTL_LEF			0x00040000
 
 /* Collision related configuration parameters */
-#define E1000_COLLISION_THRESHOLD	15
 #define E1000_CT_SHIFT			4
+#define E1000_COLLISION_THRESHOLD	15
 #define E1000_COLLISION_DISTANCE	63
 #define E1000_COLD_SHIFT		12
 
@@ -803,6 +806,17 @@
 #define E1000_TIMINCA_INCPERIOD_SHIFT	24
 #define E1000_TIMINCA_INCVALUE_MASK	0x00FFFFFF
 
+/* ETQF register bit definitions */
+#define E1000_ETQF_1588			(1 << 30)
+#define E1000_FTQF_VF_BP		0x00008000
+#define E1000_FTQF_1588_TIME_STAMP	0x08000000
+#define E1000_FTQF_MASK			0xF0000000
+#define E1000_FTQF_MASK_PROTO_BP	0x10000000
+/* Immediate Interrupt Rx (A.K.A. Low Latency Interrupt) */
+#define E1000_IMIREXT_CTRL_BP	0x00080000  /* Bypass check of ctrl bits */
+#define E1000_IMIREXT_SIZE_BP	0x00001000  /* Packet size bypass */
+
+#define E1000_RXDADV_STAT_TSIP		0x08000 /* timestamp in packet */
 #define E1000_TSICR_TXTS		0x00000002
 #define E1000_TSIM_TXTS			0x00000002
 /* TUPLE Filtering Configuration */
@@ -1069,11 +1083,44 @@
 /* NVM Word Offsets */
 #define NVM_COMPAT			0x0003
 #define NVM_ID_LED_SETTINGS		0x0004
+#define NVM_VERSION			0x0005
 #define NVM_SERDES_AMPLITUDE		0x0006 /* SERDES output amplitude */
 #define NVM_PHY_CLASS_WORD		0x0007
 #define E1000_I210_NVM_FW_MODULE_PTR	0x0010
 #define E1000_I350_NVM_FW_MODULE_PTR	0x0051
 #define NVM_FUTURE_INIT_WORD1		0x0019
+#define NVM_ETRACK_WORD			0x0042
+#define NVM_ETRACK_HIWORD		0x0043
+#define NVM_COMB_VER_OFF		0x0083
+#define NVM_COMB_VER_PTR		0x003d
+
+/* NVM version defines */
+#define NVM_MAJOR_MASK			0xF000
+#define NVM_MINOR_MASK			0x0FF0
+#define NVM_IMAGE_ID_MASK		0x000F
+#define NVM_COMB_VER_MASK		0x00FF
+#define NVM_MAJOR_SHIFT			12
+#define NVM_MINOR_SHIFT			4
+#define NVM_COMB_VER_SHFT		8
+#define NVM_VER_INVALID			0xFFFF
+#define NVM_ETRACK_SHIFT		16
+#define NVM_ETRACK_VALID		0x8000
+#define NVM_NEW_DEC_MASK		0x0F00
+#define NVM_HEX_CONV			16
+#define NVM_HEX_TENS			10
+
+/* FW version defines */
+/* Offset of "Loader patch ptr" in Firmware Header */
+#define E1000_I350_NVM_FW_LOADER_PATCH_PTR_OFFSET	0x01
+/* Patch generation hour & minutes */
+#define E1000_I350_NVM_FW_VER_WORD1_OFFSET		0x04
+/* Patch generation month & day */
+#define E1000_I350_NVM_FW_VER_WORD2_OFFSET		0x05
+/* Patch generation year */
+#define E1000_I350_NVM_FW_VER_WORD3_OFFSET		0x06
+/* Patch major & minor numbers */
+#define E1000_I350_NVM_FW_VER_WORD4_OFFSET		0x07
+
 #define NVM_MAC_ADDR			0x0000
 #define NVM_SUB_DEV_ID			0x000B
 #define NVM_SUB_VEN_ID			0x000C
@@ -1372,6 +1419,7 @@
 #define E1000_MDIC_ERROR	0x40000000
 #define E1000_MDIC_DEST		0x80000000
 
+#define E1000_VFTA_BLOCK_SIZE	8
 /* SerDes Control */
 #define E1000_GEN_CTL_READY		0x80000000
 #define E1000_GEN_CTL_ADDRESS_SHIFT	8

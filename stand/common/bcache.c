@@ -66,6 +66,8 @@ struct bcache {
     caddr_t		bcache_data;
     size_t		bcache_nblks;
     size_t		ra;
+    daddr_t		bcache_nextblkno;
+    size_t		ralen;
 };
 
 static u_int bcache_total_nblks;	/* set by bcache_init */
@@ -84,8 +86,9 @@ static u_int bcache_rablks;
 #define	BHASH(bc, blkno)	((blkno) & ((bc)->bcache_nblks - 1))
 #define	BCACHE_LOOKUP(bc, blkno)	\
 	((bc)->bcache_ctl[BHASH((bc), (blkno))].bc_blkno != (blkno))
-#define	BCACHE_READAHEAD	256
+#define	BCACHE_READAHEAD	512
 #define	BCACHE_MINREADAHEAD	32
+#define	BCACHE_MAXIOWRA		512
 
 static void	bcache_invalidate(struct bcache *bc, daddr_t blkno);
 static void	bcache_insert(struct bcache *bc, daddr_t blkno);
@@ -163,6 +166,7 @@ bcache_allocate(void)
     }
     bcache_units++;
     bc->ra = BCACHE_READAHEAD;	/* optimistic read ahead */
+    bc->bcache_nextblkno = -1;
     return (bc);
 }
 
@@ -236,20 +240,39 @@ read_strategy(void *devdata, int rw, daddr_t blk, size_t size,
 	if (BCACHE_LOOKUP(bc, (daddr_t)(blk + i))) {
 	    bcache_misses += (nblk - i);
 	    complete = 0;
-	    if (nblk - i > BCACHE_MINREADAHEAD && bc->ra > BCACHE_MINREADAHEAD)
-		bc->ra >>= 1;	/* reduce read ahead */
 	    break;
 	} else {
 	    bcache_hits++;
 	}
     }
 
-   if (complete) {	/* whole set was in cache, return it */
+    /*
+     * Adjust read-ahead size if appropriate.  Subject to the requirement
+     * that bc->ra must stay in between MINREADAHEAD and READAHEAD, we
+     * increase it when we notice that readahead was useful and decrease
+     * it when we notice that readahead was not useful.
+     */
+    if (complete || (i == bc->ralen && bc->ralen > 0)) {
 	if (bc->ra < BCACHE_READAHEAD)
-		bc->ra <<= 1;	/* increase read ahead */
+	    bc->ra <<= 1;	/* increase read ahead */
+    } else {
+	if (nblk - i > BCACHE_MINREADAHEAD && bc->ralen > 0 &&
+	  bc->ra > BCACHE_MINREADAHEAD)
+	    bc->ra >>= 1;	/* reduce read ahead */
+    }
+
+    /* Adjust our "unconsumed readahead" value. */
+    if (blk == bc->bcache_nextblkno) {
+	if (nblk > bc->ralen)
+	    bc->ralen = 0;
+	else
+	    bc->ralen -= nblk;
+    }
+
+    if (complete) {	/* whole set was in cache, return it */
 	bcopy(bc->bcache_data + (bcache_blksize * BHASH(bc, blk)), buf, size);
 	goto done;
-   }
+    }
 
     /*
      * Fill in any misses. From check we have i pointing to first missing
@@ -291,10 +314,23 @@ read_strategy(void *devdata, int rw, daddr_t blk, size_t size,
     else
 	ra = bc->bcache_nblks - BHASH(bc, p_blk + p_size);
 
+    /*
+     * Only trigger read-ahead if we detect two blocks being read
+     * sequentially.
+     */
+    if ((bc->bcache_nextblkno != blk) && ra != 0) {
+        ra = 0;
+    }
+
     if (ra != 0 && ra != bc->bcache_nblks) { /* do we have RA space? */
 	ra = MIN(bc->ra, ra - 1);
 	ra = rounddown(ra, 16);		/* multiple of 16 blocks */
+	if (ra + p_size > BCACHE_MAXIOWRA)
+	    ra = BCACHE_MAXIOWRA - p_size;
+	bc->ralen = ra;
 	p_size += ra;
+    } else {
+	bc->ralen = 0;
     }
 
     /* invalidate bcache */
@@ -341,9 +377,12 @@ read_strategy(void *devdata, int rw, daddr_t blk, size_t size,
 	result = 0;
     }
 
- done:
-    if ((result == 0) && (rsize != NULL))
-	*rsize = size;
+done:
+    if (result == 0) {
+        if (rsize != NULL)
+	    *rsize = size;
+        bc->bcache_nextblkno = blk + (size / DEV_BSIZE);
+    }
     return(result);
 }
 
@@ -369,7 +408,7 @@ bcache_strategy(void *devdata, int rw, daddr_t blk, size_t size,
     /* bypass large requests, or when the cache is inactive */
     if (bc == NULL ||
 	((size * 2 / bcache_blksize) > bcache_nblks)) {
-	DPRINTF("bypass %zu from %qu", size / bcache_blksize, blk);
+	DPRINTF("bypass %zu from %jd", size / bcache_blksize, blk);
 	bcache_bypasses++;
 	rw &= F_MASK;
 	return (dd->dv_strategy(dd->dv_devdata, rw, blk, size, buf, rsize));
@@ -442,7 +481,7 @@ bcache_insert(struct bcache *bc, daddr_t blkno)
     
     cand = BHASH(bc, blkno);
 
-    DPRINTF("insert blk %llu -> %u # %d", blkno, cand, bcache_bcount);
+    DPRINTF("insert blk %jd -> %u # %d", blkno, cand, bcache_bcount);
     bc->bcache_ctl[cand].bc_blkno = blkno;
     bc->bcache_ctl[cand].bc_count = bcache_bcount++;
 }
@@ -459,7 +498,7 @@ bcache_invalidate(struct bcache *bc, daddr_t blkno)
     if (bc->bcache_ctl[i].bc_blkno == blkno) {
 	bc->bcache_ctl[i].bc_count = -1;
 	bc->bcache_ctl[i].bc_blkno = -1;
-	DPRINTF("invalidate blk %llu", blkno);
+	DPRINTF("invalidate blk %ju", blkno);
     }
 }
 

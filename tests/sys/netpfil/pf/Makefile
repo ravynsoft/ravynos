@@ -5,7 +5,8 @@ PACKAGE=	tests
 TESTSDIR=       ${TESTSBASE}/sys/netpfil/pf
 TESTS_SUBDIRS+=	ioctl
 
-ATF_TESTS_SH+=	anchor \
+ATF_TESTS_SH+=	altq \
+		anchor \
 		checksum \
 		dup \
 		forward \
@@ -13,6 +14,7 @@ ATF_TESTS_SH+=	anchor \
 		get_state \
 		icmp \
 		killstate \
+		macro \
 		map_e \
 		names \
 		nat \
@@ -20,11 +22,13 @@ ATF_TESTS_SH+=	anchor \
 		pfsync	\
 		proxy \
 		rdr \
+		ridentifier \
 		route_to \
 		rules_counter \
 		set_skip \
 		set_tos \
 		src_track \
+		syncookie \
 		synproxy \
 		table \
 		tos
@@ -36,6 +40,7 @@ ${PACKAGE}FILES+=	CVE-2019-5597.py \
 			frag-overindex.py \
 			frag-overlimit.py \
 			frag-overreplace.py \
+			pfsync_defer.py \
 			utils.subr
 
 ${PACKAGE}FILESMODE_CVE-2019-5597.py=	0555
@@ -44,5 +49,6 @@ ${PACKAGE}FILESMODE_fragcommon.py=	0555
 ${PACKAGE}FILESMODE_frag-overindex.py=	0555
 ${PACKAGE}FILESMODE_frag-overlimit.py=	0555
 ${PACKAGE}FILESMODE_frag-overreplace.py=	0555
+${PACKAGE}FILESMODE_pfsync_defer.py=	0555
 
 .include <bsd.test.mk>

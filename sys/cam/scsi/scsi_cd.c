@@ -136,9 +136,13 @@ typedef enum {
 #define ccb_state ppriv_field0
 #define ccb_bp ppriv_ptr1
 
+/*
+ * According to the MMC-6 spec, 6.25.3.2.11, the lead-out is reported by
+ * READ_TOC as logical track 170, so at most 169 tracks may be reported.
+ */
 struct cd_tocdata {
 	struct ioc_toc_header header;
-	struct cd_toc_entry entries[100];
+	struct cd_toc_entry entries[170];
 };
 
 struct cd_toc_single {
@@ -372,6 +376,7 @@ cdoninvalidate(struct cam_periph *periph)
 {
 	struct cd_softc *softc;
 
+	cam_periph_assert(periph, MA_OWNED);
 	softc = (struct cd_softc *)periph->softc;
 
 	/*
@@ -452,7 +457,7 @@ cdasync(void *callback_arg, u_int32_t code,
 			printf("cdasync: Unable to attach new device "
 			       "due to status 0x%x\n", status);
 
-		break;
+		return;
 	}
 	case AC_UNIT_ATTENTION:
 	{
@@ -472,10 +477,10 @@ cdasync(void *callback_arg, u_int32_t code,
 			if (asc == 0x28 && ascq == 0x00)
 				disk_media_changed(softc->disk, M_NOWAIT);
 		}
-		cam_periph_async(periph, code, path, arg);
 		break;
 	}
 	case AC_SCSI_AEN:
+		cam_periph_assert(periph, MA_OWNED);
 		softc = (struct cd_softc *)periph->softc;
 		if (softc->state == CD_STATE_NORMAL && !softc->tur) {
 			if (cam_periph_acquire(periph) == 0) {
@@ -489,6 +494,7 @@ cdasync(void *callback_arg, u_int32_t code,
 	{
 		struct ccb_hdr *ccbh;
 
+		cam_periph_assert(periph, MA_OWNED);
 		softc = (struct cd_softc *)periph->softc;
 		/*
 		 * Don't fail on the expected unit attention
@@ -497,12 +503,13 @@ cdasync(void *callback_arg, u_int32_t code,
 		softc->flags |= CD_FLAG_RETRY_UA;
 		LIST_FOREACH(ccbh, &softc->pending_ccbs, periph_links.le)
 			ccbh->ccb_state |= CD_CCB_RETRY_UA;
-		/* FALLTHROUGH */
-	}
-	default:
-		cam_periph_async(periph, code, path, arg);
 		break;
 	}
+	default:
+		break;
+	}
+
+	cam_periph_async(periph, code, path, arg);
 }
 
 static void
@@ -521,7 +528,9 @@ cdsysctlinit(void *context, int pending)
 	snprintf(tmpstr2, sizeof(tmpstr2), "%d", periph->unit_number);
 
 	sysctl_ctx_init(&softc->sysctl_ctx);
+	cam_periph_lock(periph);
 	softc->flags |= CD_FLAG_SCTX_INIT;
+	cam_periph_unlock(periph);
 	softc->sysctl_tree = SYSCTL_ADD_NODE_WITH_LABEL(&softc->sysctl_ctx,
 		SYSCTL_STATIC_CHILDREN(_kern_cam_cd), OID_AUTO,
 		tmpstr2, CTLFLAG_RD | CTLFLAG_MPSAFE, 0, tmpstr,
@@ -539,7 +548,7 @@ cdsysctlinit(void *context, int pending)
 	 */
 	SYSCTL_ADD_PROC(&softc->sysctl_ctx,SYSCTL_CHILDREN(softc->sysctl_tree),
 		OID_AUTO, "minimum_cmd_size",
-		CTLTYPE_INT | CTLFLAG_RW | CTLFLAG_NEEDGIANT,
+		CTLTYPE_INT | CTLFLAG_RW | CTLFLAG_MPSAFE,
 		&softc->minimum_command_size, 0, cdcmdsizesysctl, "I",
 		"Minimum CDB size");
 
@@ -736,9 +745,10 @@ cdregister(struct cam_periph *periph, void *arg)
 	callout_init_mtx(&softc->mediapoll_c, cam_periph_mtx(periph), 0);
 	if ((softc->flags & CD_FLAG_DISC_REMOVABLE) &&
 	    (cgd->inq_flags & SID_AEN) == 0 &&
-	    cd_poll_period != 0)
-		callout_reset(&softc->mediapoll_c, cd_poll_period * hz,
-		    cdmediapoll, periph);
+	    cd_poll_period != 0) {
+		callout_reset_sbt(&softc->mediapoll_c, cd_poll_period * SBT_1S,
+		    0, cdmediapoll, periph, C_PREL(1));
+	}
 
 	xpt_schedule(periph, CAM_PRIORITY_DEV);
 	return(CAM_REQ_CMP);
@@ -900,6 +910,7 @@ cdstart(struct cam_periph *periph, union ccb *start_ccb)
 	struct bio *bp;
 	struct ccb_scsiio *csio;
 
+	cam_periph_assert(periph, MA_OWNED);
 	softc = (struct cd_softc *)periph->softc;
 
 	CAM_DEBUG(periph->path, CAM_DEBUG_TRACE, ("entering cdstart\n"));
@@ -1144,6 +1155,7 @@ cddone(struct cam_periph *periph, union ccb *done_ccb)
 
 	CAM_DEBUG(periph->path, CAM_DEBUG_TRACE, ("entering cddone\n"));
 
+	cam_periph_assert(periph, MA_OWNED);
 	softc = (struct cd_softc *)periph->softc;
 	csio = &done_ccb->csio;
 
@@ -1589,12 +1601,13 @@ cddone(struct cam_periph *periph, union ccb *done_ccb)
 		}
 
 		/* Number of TOC entries, plus leadout */
-		num_entries = (toch->ending_track - toch->starting_track) + 2;
-		cdindex = toch->starting_track + num_entries -1;
+		num_entries = toch->ending_track - toch->starting_track + 2;
+		cdindex = toch->starting_track + num_entries - 1;
 
 		if ((done_ccb->ccb_h.ccb_state & CD_CCB_TYPE_MASK) ==
 		     CD_CCB_MEDIA_TOC_HDR) {
-			if (num_entries <= 0) {
+			if (num_entries <= 0 ||
+			    num_entries > nitems(softc->toc.entries)) {
 				softc->flags &= ~CD_FLAG_VALID_TOC;
 				bzero(&softc->toc, sizeof(softc->toc));
 				/*
@@ -1831,23 +1844,19 @@ cdioctl(struct disk *dp, u_long cmd, void *addr, int flag, struct thread *td)
 			 */
 			if (softc->flags & CD_FLAG_VALID_TOC) {
 				union msf_lba *sentry, *eentry;
+				struct ioc_toc_header *th;
 				int st, et;
 
-				if (args->end_track <
-				    softc->toc.header.ending_track + 1)
+				th = &softc->toc.header;
+				if (args->end_track < th->ending_track + 1)
 					args->end_track++;
-				if (args->end_track >
-				    softc->toc.header.ending_track + 1)
-					args->end_track =
-					    softc->toc.header.ending_track + 1;
-				st = args->start_track -
-					softc->toc.header.starting_track;
-				et = args->end_track -
-					softc->toc.header.starting_track;
-				if ((st < 0)
-				 || (et < 0)
-				 || (st > (softc->toc.header.ending_track -
-				     softc->toc.header.starting_track))) {
+				if (args->end_track > th->ending_track + 1)
+					args->end_track = th->ending_track + 1;
+				st = args->start_track - th->starting_track;
+				et = args->end_track - th->starting_track;
+				if (st < 0 || et < 0 ||
+				    st > th->ending_track - th->starting_track ||
+				    et > th->ending_track - th->starting_track) {
 					error = EINVAL;
 					cam_periph_unlock(periph);
 					break;
@@ -2624,6 +2633,7 @@ cdprevent(struct cam_periph *periph, int action)
 
 	CAM_DEBUG(periph->path, CAM_DEBUG_TRACE, ("entering cdprevent\n"));
 
+	cam_periph_assert(periph, MA_OWNED);
 	softc = (struct cd_softc *)periph->softc;
 
 	if (((action == PR_ALLOW)
@@ -2661,6 +2671,7 @@ cdmediaprobedone(struct cam_periph *periph)
 {
 	struct cd_softc *softc;
 
+	cam_periph_assert(periph, MA_OWNED);
 	softc = (struct cd_softc *)periph->softc;
 
 	softc->flags &= ~CD_FLAG_MEDIA_SCAN_ACT;
@@ -2682,6 +2693,7 @@ cdcheckmedia(struct cam_periph *periph, int do_wait)
 	struct cd_softc *softc;
 	int error;
 
+	cam_periph_assert(periph, MA_OWNED);
 	softc = (struct cd_softc *)periph->softc;
 	error = 0;
 
@@ -3071,13 +3083,14 @@ cderror(union ccb *ccb, u_int32_t cam_flags, u_int32_t sense_flags)
 	periph = xpt_path_periph(ccb->ccb_h.path);
 	softc = (struct cd_softc *)periph->softc;
 
-	error = 0;
+	cam_periph_assert(periph, MA_OWNED);
 
 	/*
 	 * We use a status of CAM_REQ_INVALID as shorthand -- if a 6 byte
 	 * CDB comes back with this particular error, try transforming it
 	 * into the 10 byte version.
 	 */
+	error = 0;
 	if ((ccb->ccb_h.status & CAM_STATUS_MASK) == CAM_REQ_INVALID) {
 		error = cd6byteworkaround(ccb);
 	} else if (scsi_extract_sense_ccb(ccb,
@@ -3122,9 +3135,12 @@ cdmediapoll(void *arg)
 			xpt_schedule(periph, CAM_PRIORITY_NORMAL);
 		}
 	}
+
 	/* Queue us up again */
-	if (cd_poll_period != 0)
-		callout_schedule(&softc->mediapoll_c, cd_poll_period * hz);
+	if (cd_poll_period != 0) {
+		callout_schedule_sbt(&softc->mediapoll_c,
+		    cd_poll_period * SBT_1S, 0, C_PREL(1));
+	}
 }
 
 /*
@@ -3134,12 +3150,10 @@ static int
 cdreadtoc(struct cam_periph *periph, u_int32_t mode, u_int32_t start,
 	  u_int8_t *data, u_int32_t len, u_int32_t sense_flags)
 {
-	u_int32_t ntoc;
         struct ccb_scsiio *csio;
 	union ccb *ccb;
 	int error;
 
-	ntoc = len;
 	error = 0;
 
 	ccb = cam_periph_getccb(periph, CAM_PRIORITY_NORMAL);

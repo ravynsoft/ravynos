@@ -42,23 +42,30 @@ __FBSDID("$FreeBSD$");
 
 /* Extra functions from NetBSD standalone printf.c */
 
-static u_int globaldiv;
+static u_int globaldiv = 16;
 
 void
 twiddle(u_int callerdiv)
 {
 	static u_int callercnt, globalcnt, pos;
 
+	TSENTER();
+
 	callercnt++;
-	if (callerdiv > 1 && (callercnt % callerdiv) != 0)
+	if (callerdiv > 1 && (callercnt % callerdiv) != 0) {
+		TSEXIT();
 		return;
+	}
 
 	globalcnt++;
-	if (globaldiv > 1 && (globalcnt % globaldiv) != 0)
+	if (globaldiv > 1 && (globalcnt % globaldiv) != 0) {
+		TSEXIT();
 		return;
+	}
 
 	putchar("|/-\\"[pos++ & 3]);
 	putchar('\b');
+	TSEXIT();
 }
 
 void

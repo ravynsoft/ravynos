@@ -801,13 +801,13 @@ filt_timervalidate(struct knote *kn, sbintime_t *to)
 		return (EINVAL);
 
 	*to = timer2sbintime(kn->kn_sdata, kn->kn_sfflags);
+	if (*to < 0)
+		return (EINVAL);
 	if ((kn->kn_sfflags & NOTE_ABSTIME) != 0) {
 		getboottimebin(&bt);
 		sbt = bttosbt(bt);
-		*to -= sbt;
+		*to = MAX(0, *to - sbt);
 	}
-	if (*to < 0)
-		return (EINVAL);
 	return (0);
 }
 
@@ -818,9 +818,15 @@ filt_timerattach(struct knote *kn)
 	sbintime_t to;
 	int error;
 
+	to = -1;
 	error = filt_timervalidate(kn, &to);
 	if (error != 0)
 		return (error);
+	KASSERT(to > 0 || (kn->kn_flags & EV_ONESHOT) != 0 ||
+	    (kn->kn_sfflags & NOTE_ABSTIME) != 0,
+	    ("%s: periodic timer has a calculated zero timeout", __func__));
+	KASSERT(to >= 0,
+	    ("%s: timer has a calculated negative timeout", __func__));
 
 	if (atomic_fetchadd_int(&kq_ncallouts, 1) + 1 > kq_calloutmax) {
 		atomic_subtract_int(&kq_ncallouts, 1);
@@ -862,14 +868,24 @@ filt_timerdetach(struct knote *kn)
 {
 	struct kq_timer_cb_data *kc;
 	unsigned int old __unused;
+	bool pending;
 
 	kc = kn->kn_ptr.p_v;
-	callout_drain(&kc->c);
-	if ((kc->flags & KQ_TIMER_CB_ENQUEUED) != 0) {
+	do {
+		callout_drain(&kc->c);
+
+		/*
+		 * kqtimer_proc_continue() might have rescheduled this callout.
+		 * Double-check, using the process mutex as an interlock.
+		 */
 		PROC_LOCK(kc->p);
-		TAILQ_REMOVE(&kc->p->p_kqtim_stop, kc, link);
+		if ((kc->flags & KQ_TIMER_CB_ENQUEUED) != 0) {
+			kc->flags &= ~KQ_TIMER_CB_ENQUEUED;
+			TAILQ_REMOVE(&kc->p->p_kqtim_stop, kc, link);
+		}
+		pending = callout_pending(&kc->c);
 		PROC_UNLOCK(kc->p);
-	}
+	} while (pending);
 	free(kc, M_KQUEUE);
 	old = atomic_fetchadd_int(&kq_ncallouts, -1);
 	KASSERT(old > 0, ("Number of callouts cannot become negative"));
@@ -1325,6 +1341,9 @@ kqueue_kevent(struct kqueue *kq, struct thread *td, int nchanges, int nevents,
 	struct kevent *kevp, *changes;
 	int i, n, nerrors, error;
 
+	if (nchanges < 0)
+		return (EINVAL);
+
 	nerrors = 0;
 	while (nchanges > 0) {
 		n = nchanges > KQ_NEVENTS ? KQ_NEVENTS : nchanges;
@@ -1779,9 +1798,16 @@ kqueue_release(struct kqueue *kq, int locked)
 		KQ_UNLOCK(kq);
 }
 
+void
+kqueue_drain_schedtask(void)
+{
+	taskqueue_quiesce(taskqueue_kqueue_ctx);
+}
+
 static void
 kqueue_schedtask(struct kqueue *kq)
 {
+	struct thread *td;
 
 	KQ_OWNED(kq);
 	KASSERT(((kq->kq_state & KQ_TASKDRAIN) != KQ_TASKDRAIN),
@@ -1790,6 +1816,10 @@ kqueue_schedtask(struct kqueue *kq)
 	if ((kq->kq_state & KQ_TASKSCHED) != KQ_TASKSCHED) {
 		taskqueue_enqueue(taskqueue_kqueue_ctx, &kq->kq_task);
 		kq->kq_state |= KQ_TASKSCHED;
+		td = curthread;
+		thread_lock(td);
+		td->td_flags |= TDF_ASTPENDING | TDF_KQTICKLED;
+		thread_unlock(td);
 	}
 }
 
@@ -1909,6 +1939,10 @@ kqueue_scan(struct kqueue *kq, int maxevents, struct kevent_copyops *k_ops,
 
 	if (maxevents == 0)
 		goto done_nl;
+	if (maxevents < 0) {
+		error = EINVAL;
+		goto done_nl;
+	}
 
 	rsbt = 0;
 	if (tsp != NULL) {
