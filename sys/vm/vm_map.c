@@ -1013,7 +1013,7 @@ vm_map_entry_max_free_right(vm_map_entry_t root, vm_map_entry_t right_ancestor)
  *	in the appropriate direction and backtracking as much as necessary.
  *	vm_map_entry_succ is defined in vm_map.h.
  */
-static inline vm_map_entry_t
+vm_map_entry_t
 vm_map_entry_pred(vm_map_entry_t entry)
 {
 	vm_map_entry_t prior;

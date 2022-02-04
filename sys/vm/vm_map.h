@@ -498,6 +498,8 @@ vm_map_entry_first(vm_map_t map)
 	return (map->header.right);
 }
 
+vm_map_entry_t vm_map_entry_pred(vm_map_entry_t entry);
+
 static inline vm_map_entry_t
 vm_map_entry_succ(vm_map_entry_t entry)
 {

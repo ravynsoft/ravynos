@@ -1,5 +1,6 @@
 /*-
  * Copyright (c) 2014-2015, Matthew Macy <mmacy@nextbsd.org>
+ * Copyright (c) 2021-2022 Zoe Knox <zoe@pixin.net>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -681,7 +682,7 @@ kern_return_t	vm_map_copyin(
 					 * entry contains the actual
 					 * vm_object/offset.
 					 */
-	vm_map_entry_t	next_entry;
+	vm_map_entry_t	prev_entry, next_entry;
 	vm_object_t object;
 	vm_offset_t prev_end;
 
@@ -746,7 +747,9 @@ kern_return_t	vm_map_copyin(
 	prev_end = 0;
 	while (prev_end != tmp_entry->end  && tmp_entry->end < src_end) {
 		prev_end = tmp_entry->end;
+        prev_entry = vm_map_entry_pred(tmp_entry);
 		next_entry = vm_map_entry_succ(tmp_entry);
+        vm_map_try_merge_entries(src_map, prev_entry, tmp_entry);
 		vm_map_try_merge_entries(src_map, tmp_entry, next_entry);
 	}
 	/* only handle single map entry for now */
