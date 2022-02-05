@@ -2,11 +2,9 @@
 
 LIB=	mach
 
-
 A= ${.CURDIR}/${MACHINE_CPUARCH}
 H= ${.CURDIR}/../../include/mach
 DEFS=${.CURDIR}/../../sys/compat/mach/defs
-
 
 .PATH: ${.CURDIR}/mach
 .PATH: ${A}
@@ -24,6 +22,7 @@ SYSDIR=	${_dir}
 CFLAGS+= -I${.CURDIR}/../../include -I. -I${A} -I${.CURDIR} -I./include
 CFLAGS+= -I${SYSDIR} -I${.CURDIR}/../../apsl/include -I${MACHINE_INCLUDES}
 CFLAGS+= -fPIC -DPRIVATE -D__MigTypeCheck=1 -DLIBSYSCALL_INTERFACE=1
+
 DEBUG_FLAGS= -g -O0
 mach_port.h mach_portUser.c: ${DEFS}/mach_port.defs
 	mig ${CFLAGS} -server /dev/null ${DEFS}/mach_port.defs
