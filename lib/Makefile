@@ -8,6 +8,11 @@
 # and the main list to avoid needing a SUBDIR_DEPEND line on every library
 # naming just these few items.
 
+.if "${WORLDTMP}" == ""
+WORLDTMP= ${MAKEOBJDIR}/..
+.export WORLDTMP
+.endif
+
 SUBDIR_BOOTSTRAP= \
 	csu \
 	.WAIT \
