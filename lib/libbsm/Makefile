@@ -32,7 +32,7 @@ SRCS=	bsm_audit.c							\
 #
 # Must use BSM include files from within the contrib area, not the system.
 #
-CFLAGS+=	-I${OPENBSMDIR} -I${_LIBBSMDIR} -I${SRCTOP}/include/apple -D__APPLE__
+CFLAGS+=	-fPIC -I${OPENBSMDIR} -I${_LIBBSMDIR} -I${SRCTOP}/include/apple -D__APPLE__
 
 WARNS?=		1
 

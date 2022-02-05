@@ -15,7 +15,7 @@ SRCS=	auditd_lib.c
 #
 # Must use BSM include files from within the contrib area, not the system.
 #
-CFLAGS+=	-I${OPENBSMDIR} -I${_LIBBSMDIR}
+CFLAGS+=	-fPIC -I${OPENBSMDIR} -I${_LIBBSMDIR}
 
 WARNS?=		3
 PRIVATELIB=	true

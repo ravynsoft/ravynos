@@ -11,7 +11,7 @@ MK_WERROR= no
 
 CFLAGS+=	-I${.CURDIR}/../../include/apple -I${.CURDIR}/os -I${.CURDIR}/private
 CFLAGS+=	-I${.CURDIR} -I${MACHINE_INCLUDES} -I${.CURDIR}/../../include -I${.CURDIR}/../../sys 
-CFLAGS+=	-I. -I${.CURDIR}/include -fblocks
+CFLAGS+=	-I. -I${.CURDIR}/include -fblocks -fPIC
 CFLAGS+=	-D__APPLE__ -DDISPATCH_USE_DTRACE=0
 CFLAGS+=	-DDISPATCH_USE_SIMPLE_ASL=0 -DUSE_OBJC=0 -D__BLOCKS__=1
 CFLAGS+=	-DDISPATCH_DEBUG=1

@@ -1895,6 +1895,7 @@ struct sched_getcpu_args {
 struct swapoff_args {
 	char name_l_[PADL_(const char *)]; const char * name; char name_r_[PADR_(const char *)];
 	char flags_l_[PADL_(u_int)]; u_int flags; char flags_r_[PADR_(u_int)];
+};
 struct _kernelrpc_mach_vm_allocate_trap_args {
 	char target_l_[PADL_(mach_port_name_t)]; mach_port_name_t target; char target_r_[PADR_(mach_port_name_t)];
 	char address_l_[PADL_(mach_vm_offset_t *)]; mach_vm_offset_t * address; char address_r_[PADR_(mach_vm_offset_t *)];
@@ -1988,16 +1989,16 @@ struct host_self_trap_args {
 struct mach_msg_trap_args {
 	char msg_l_[PADL_(mach_msg_header_t	*)]; mach_msg_header_t	* msg; char msg_r_[PADR_(mach_msg_header_t	*)];
 	char option_l_[PADL_(mach_msg_option_t)];  mach_msg_option_t	option; char option_r_[PADR_(mach_msg_option_t)];
-	char 	send_size_l_[PADL_(mach_msg_size_t)];  mach_msg_size_t	send_size; char 	send_size_r_[PADR_(mach_msg_size_t)];
-	char 	rcv_size_l_[PADL_(mach_msg_size_t)];  mach_msg_size_t	rcv_size; char 	rcv_size_r_[PADR_(mach_msg_size_t)];
-	char 	rcv_name_l_[PADL_(mach_port_name_t)];  mach_port_name_t	rcv_name; char rcv_name_r_[PADR_(mach_port_name_t)];
-	char 	timeout_l_[PADL_(mach_msg_timeout_t)];  mach_msg_timeout_t	timeout; char timeout_r_[PADR_(mach_msg_timeout_t)];
-	char 	notify_l_[PADL_(mach_port_name_t)];  mach_port_name_t	notify; char notify_r_[PADR_(mach_port_name_t)];
+	char send_size_l_[PADL_(mach_msg_size_t)];  mach_msg_size_t	send_size; char send_size_r_[PADR_(mach_msg_size_t)];
+	char rcv_size_l_[PADL_(mach_msg_size_t)];  mach_msg_size_t	rcv_size; char rcv_size_r_[PADR_(mach_msg_size_t)];
+	char rcv_name_l_[PADL_(mach_port_name_t)];  mach_port_name_t	rcv_name; char rcv_name_r_[PADR_(mach_port_name_t)];
+	char timeout_l_[PADL_(mach_msg_timeout_t)];  mach_msg_timeout_t	timeout; char timeout_r_[PADR_(mach_msg_timeout_t)];
+	char notify_l_[PADL_(mach_port_name_t)];  mach_port_name_t	notify; char notify_r_[PADR_(mach_port_name_t)];
 };
 struct mach_msg_overwrite_trap_args {
 	char msg_l_[PADL_(mach_msg_header_t	*)]; mach_msg_header_t	* msg; char msg_r_[PADR_(mach_msg_header_t	*)];
-	char option_l_[PADL_(mach_msg_option_t)];  mach_msg_option_t	option; char 	option_r_[PADR_(mach_msg_option_t)];
-	char 	send_size_l_[PADL_(mach_msg_size_t)];  mach_msg_size_t	send_size; char send_size_r_[PADR_(mach_msg_size_t)];
+	char option_l_[PADL_(mach_msg_option_t)];  mach_msg_option_t	option; char option_r_[PADR_(mach_msg_option_t)];
+	char send_size_l_[PADL_(mach_msg_size_t)];  mach_msg_size_t	send_size; char send_size_r_[PADR_(mach_msg_size_t)];
 	char rcv_size_l_[PADL_(mach_msg_size_t)];  mach_msg_size_t	rcv_size; char rcv_size_r_[PADR_(mach_msg_size_t)];
 	char rcv_name_l_[PADL_(mach_port_name_t)];  mach_port_name_t	rcv_name; char rcv_name_r_[PADR_(mach_port_name_t)];
 	char timeout_l_[PADL_(mach_msg_timeout_t)];  mach_msg_timeout_t	timeout; char timeout_r_[PADR_(mach_msg_timeout_t)];
@@ -2520,7 +2521,8 @@ int	sys_rpctls_syscall(struct thread *, struct rpctls_syscall_args *);
 int	sys___specialfd(struct thread *, struct __specialfd_args *);
 int	sys_aio_writev(struct thread *, struct aio_writev_args *);
 int	sys_aio_readv(struct thread *, struct aio_readv_args *);
-<<<<<<< HEAD
+int	sys_sched_getcpu(struct thread *, struct sched_getcpu_args *);
+int	sys_swapoff(struct thread *, struct swapoff_args *);
 int	sys__kernelrpc_mach_vm_allocate_trap(struct thread *, struct _kernelrpc_mach_vm_allocate_trap_args *);
 int	sys__kernelrpc_mach_vm_deallocate_trap(struct thread *, struct _kernelrpc_mach_vm_deallocate_trap_args *);
 int	sys__kernelrpc_mach_vm_protect_trap(struct thread *, struct _kernelrpc_mach_vm_protect_trap_args *);
@@ -2568,10 +2570,6 @@ int	sys_mk_timer_create(struct thread *, struct mk_timer_create_args *);
 int	sys_mk_timer_destroy(struct thread *, struct mk_timer_destroy_args *);
 int	sys_mk_timer_arm(struct thread *, struct mk_timer_arm_args *);
 int	sys_mk_timer_cancel(struct thread *, struct mk_timer_cancel_args *);
-=======
-int	sys_sched_getcpu(struct thread *, struct sched_getcpu_args *);
-int	sys_swapoff(struct thread *, struct swapoff_args *);
->>>>>>> freebsd/stable/13
 
 #ifdef COMPAT_43
 
@@ -3524,7 +3522,8 @@ int	freebsd12_closefrom(struct thread *, struct freebsd12_closefrom_args *);
 #define	SYS_AUE___specialfd	AUE_SPECIALFD
 #define	SYS_AUE_aio_writev	AUE_AIO_WRITEV
 #define	SYS_AUE_aio_readv	AUE_AIO_READV
-<<<<<<< HEAD
+#define	SYS_AUE_sched_getcpu	AUE_NULL
+#define	SYS_AUE_swapoff	AUE_SWAPOFF
 #define	SYS_AUE__kernelrpc_mach_vm_allocate_trap	AUE_NULL
 #define	SYS_AUE__kernelrpc_mach_vm_deallocate_trap	AUE_NULL
 #define	SYS_AUE__kernelrpc_mach_vm_protect_trap	AUE_NULL
@@ -3572,10 +3571,6 @@ int	freebsd12_closefrom(struct thread *, struct freebsd12_closefrom_args *);
 #define	SYS_AUE_mk_timer_destroy	AUE_NULL
 #define	SYS_AUE_mk_timer_arm	AUE_NULL
 #define	SYS_AUE_mk_timer_cancel	AUE_NULL
-=======
-#define	SYS_AUE_sched_getcpu	AUE_NULL
-#define	SYS_AUE_swapoff	AUE_SWAPOFF
->>>>>>> freebsd/stable/13
 
 #undef PAD_
 #undef PADL_

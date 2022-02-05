@@ -1,6 +1,7 @@
 APP=	Dock
 SRCS=	main.mm Dock.mm DockItem.mm WindowTracker.mm Utils.mm
-RESOURCES=	${.CURDIR}/Dock.png ${.CURDIR}/running.png ${.CURDIR}/window.png Trash.app ${.CURDIR}/folder.png \
+RESOURCES=	${.CURDIR}/Dock.png ${.CURDIR}/running.png \
+		${.CURDIR}/window.png Trash.app \
 		Downloads.app
 MOC=	/usr/lib/qt5/bin/moc
 

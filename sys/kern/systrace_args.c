@@ -3478,6 +3478,9 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		struct swapoff_args *p = params;
 		uarg[0] = (intptr_t)p->name; /* const char * */
 		uarg[1] = p->flags; /* u_int */
+		*n_args = 2;
+		break;
+	}
 	/* _kernelrpc_mach_vm_allocate_trap */
 	case 610: {
 		struct _kernelrpc_mach_vm_allocate_trap_args *p = params;
@@ -3650,7 +3653,7 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		struct mach_msg_overwrite_trap_args *p = params;
 		uarg[0] = (intptr_t)p->msg; /* mach_msg_header_t	* */
 		iarg[1] = p->option; /* mach_msg_option_t	 */
-		iarg[2] = p->send_size; /*mach_msg_size_t	  */
+		iarg[2] = p->send_size; /* mach_msg_size_t	 */
 		iarg[3] = p->rcv_size; /* mach_msg_size_t	 */
 		iarg[4] = p->rcv_name; /* mach_port_name_t	 */
 		iarg[5] = p->timeout; /* mach_msg_timeout_t	 */
@@ -9684,7 +9687,22 @@ systrace_entry_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
-<<<<<<< HEAD
+	/* sched_getcpu */
+	case 581:
+		break;
+	/* swapoff */
+	case 582:
+		switch (ndx) {
+		case 0:
+			p = "userland const char *";
+			break;
+		case 1:
+			p = "u_int";
+			break;
+		default:
+			break;
+		};
+		break;
 	/* _kernelrpc_mach_vm_allocate_trap */
 	case 610:
 		switch (ndx) {
@@ -10354,19 +10372,6 @@ systrace_entry_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		case 1:
 			p = "userland mach_absolute_time_t *";
-=======
-	/* sched_getcpu */
-	case 581:
-		break;
-	/* swapoff */
-	case 582:
-		switch (ndx) {
-		case 0:
-			p = "userland const char *";
-			break;
-		case 1:
-			p = "u_int";
->>>>>>> freebsd/stable/13
 			break;
 		default:
 			break;
@@ -12355,7 +12360,13 @@ systrace_return_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 		if (ndx == 0 || ndx == 1)
 			p = "int";
 		break;
-<<<<<<< HEAD
+	/* sched_getcpu */
+	case 581:
+	/* swapoff */
+	case 582:
+		if (ndx == 0 || ndx == 1)
+			p = "int";
+		break;
 	/* _kernelrpc_mach_vm_allocate_trap */
 	case 610:
 		if (ndx == 0 || ndx == 1)
@@ -12570,12 +12581,6 @@ systrace_return_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 		break;
 	/* mk_timer_cancel */
 	case 694:
-=======
-	/* sched_getcpu */
-	case 581:
-	/* swapoff */
-	case 582:
->>>>>>> freebsd/stable/13
 		if (ndx == 0 || ndx == 1)
 			p = "int";
 		break;

@@ -14,7 +14,7 @@ MIG_FLAGS= ${BASE_INCLUDE} 	${DEFINES}
 #override default CFLAGS
 CFLAGS= ${MIG_FLAGS}  -D__MigTypeCheck
 CFLAGS+= -I${.CURDIR}/../../contrib/openbsm -I${.CURDIR}/../../lib/liblaunch
-CFLAGS+= -DHAVE_INTTYPES_H
+CFLAGS+= -fPIC -DHAVE_INTTYPES_H
 
 DEBUG_FLAGS+= -g -O0
 
