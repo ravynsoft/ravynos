@@ -6,7 +6,7 @@ PROG= launchd
 .PATH: ${.CURDIR}/uuid
 .PATH: ${.CURDIR}/init
 
-
+MK_PIE= no
 BASE_INCLUDE=  -I. -I${.CURDIR} -I${.CURDIR}/init -I${.CURDIR}/../../include/apple
 BASE_INCLUDE+= -I${.CURDIR}/../../include -I${.CURDIR}/../../sys -I${MACHINE_INCLUDES}
 DEFINES= -D__APPLE__ -fblocks -DLIBC_NO_LIBCRASHREPORTERCLIENT -DPRIVATE
