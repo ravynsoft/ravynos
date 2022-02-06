@@ -38,6 +38,10 @@
 #include <QMimeDatabase>
 #include <QMimeType>
 
+#import <launch.h>
+#import <stdlib.h>
+#import <limits.h>
+
 #ifndef _XOPEN_SOURCE
 #define _XOPEN_SOURCE 500
 #endif
@@ -444,6 +448,12 @@ void LSRevealInFiler(CFArrayRef inItemURLs)
 
 static void _LSCheckAndHandleLaunchFlags(NSTask *task, LSLaunchFlags launchFlags)
 {
+    int _launchd = 0;
+
+    // Can I play with madness?
+    if(getenv("__LAUNCHD_FD") != NULL)
+        _launchd = strtoul(getenv("__LAUNCHD_FD"), NULL, 10);
+
     if(launchFlags & kLSLaunchNewInstance) {
         // FIXME: launch new instance of app
     }
@@ -457,10 +467,32 @@ static void _LSCheckAndHandleLaunchFlags(NSTask *task, LSLaunchFlags launchFlags
     }
 
     // we may have already dup()'d other descriptors to 0,1,2 in `open`.
-    [task setStandardInput:[[NSFileHandle alloc] initWithFileDescriptor:0]];
-    [task setStandardOutput:[[NSFileHandle alloc] initWithFileDescriptor:1]];
-    [task setStandardError:[[NSFileHandle alloc] initWithFileDescriptor:2]];
-    [task launch];
+    if(_launchd) {
+        launch_data_t job = launch_data_alloc(LAUNCH_DATA_DICTIONARY);
+        launch_data_t args = launch_data_alloc(LAUNCH_DATA_ARRAY);
+        launch_data_array_set_index(args, launch_data_new_string([[task launchPath]
+            UTF8String]), 0);
+        NSArray *ta = [task arguments];
+        for(int x = 0; x < [ta count]; ++x) {
+            launch_data_array_set_index(args, launch_data_new_string([[ta objectAtIndex:x]
+                UTF8String]), 1+x);
+        }
+        launch_data_dict_insert(job, args, LAUNCH_JOBKEY_PROGRAMARGUMENTS);
+        launch_data_dict_insert(job, launch_data_new_bool(true), LAUNCH_JOBKEY_RUNATLOAD);
+        launch_data_dict_insert(job, launch_data_new_bool(true), LAUNCH_JOBKEY_ABANDONPROCESSGROUP);
+
+        NSString *label = [NSString stringWithFormat:@"task.%lx.%@", task,
+            [[task launchPath] lastPathComponent]];
+        launch_data_dict_insert(job, launch_data_new_string([label UTF8String]), LAUNCH_JOBKEY_LABEL);
+        launch_data_t request = launch_data_alloc(LAUNCH_DATA_DICTIONARY);
+        launch_data_dict_insert(request, job, LAUNCH_KEY_SUBMITJOB);
+        launch_data_t response = launch_msg(request);
+    } else {
+        [task setStandardInput:[[NSFileHandle alloc] initWithFileDescriptor:0]];
+        [task setStandardOutput:[[NSFileHandle alloc] initWithFileDescriptor:1]];
+        [task setStandardError:[[NSFileHandle alloc] initWithFileDescriptor:2]];
+        [task launch];
+    }
 
     int times = 100000;
     if(display) {
