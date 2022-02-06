@@ -479,7 +479,7 @@ static void _LSCheckAndHandleLaunchFlags(NSTask *task, LSLaunchFlags launchFlags
         }
         launch_data_dict_insert(job, args, LAUNCH_JOBKEY_PROGRAMARGUMENTS);
         launch_data_dict_insert(job, launch_data_new_bool(true), LAUNCH_JOBKEY_RUNATLOAD);
-        launch_data_dict_insert(job, launch_data_new_bool(true), LAUNCH_JOBKEY_ABANDONPROCESSGROUP);
+//        launch_data_dict_insert(job, launch_data_new_bool(true), LAUNCH_JOBKEY_ABANDONPROCESSGROUP);
 
         NSString *label = [NSString stringWithFormat:@"task.%lx.%@", task,
             [[task launchPath] lastPathComponent]];

@@ -52,7 +52,6 @@ id objectWithLaunchData(launch_data_t data) {
         {
             NSMutableDictionary *dict = [NSMutableDictionary new];
             launch_data_dict_iterate(data, dictIterator, dict);
-            NSLog(@"returning %@",dict);
             return dict;
         }
         case LAUNCH_DATA_FD:
