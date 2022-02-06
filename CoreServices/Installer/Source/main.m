@@ -28,6 +28,6 @@
 int main(int argc, const char *argv[])
 {
     if(getuid() != 0)
-        execl("/usr/bin/sudo", "-E", "-A", argv[0], NULL);
+        execl("/usr/bin/sudo", "sudo", "-E", "-A", argv[0], NULL);
     return NSApplicationMain(argc, argv);
 }

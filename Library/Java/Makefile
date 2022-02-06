@@ -1,7 +1,8 @@
 JAVA_VER= 17
-SRCDIR= ${.CURDIR}/jdk${JAVA_VER}u
-INSTDIR= /Library/Java/JavaVirtualMachines/openjdk-${JAVA_VER}.jdk
+SRCDIR= ${MAKEOBJDIR}/jdk${JAVA_VER}u
+INSTDIR= /Library/Java/JavaVirtualMachines/openjdk-${JAVA_VER}.0.1.jdk
 BUNDLEDIR= ${BUILDROOT}${INSTDIR}
+TAG= jdk-17.0.2+8-1
 
 all: build install
 
@@ -9,9 +10,10 @@ ${SRCDIR}:
 	git clone https://github.com/battleblow/jdk17u.git
 
 build: ${SRCDIR}
+	#cd ${SRCDIR} && git checkout ${TAG}
 	cd ${SRCDIR} && bash configure --with-boot-jdk=${INSTDIR}/Contents/Home \
-	  --with-toolchain-type=clang --with-source-date="2021-10-30" \
-	  --with-version-opt="airyx" --with-version-pre="" --with-version-build=12
+	  --with-toolchain-type=clang --enable-jvm-feature-dtrace=no \
+	  --with-version-opt="airyx" --with-version-pre="" --with-version-build=8
 	gmake -C ${SRCDIR}
 
 install:
