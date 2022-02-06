@@ -8,14 +8,14 @@ packer {
 }
 
 source "googlecompute" "airyxbuild" {
-  disk_size               = "40"
+  disk_size               = "80"
   project_id              = "airyxos-images"
   source_image_family            = "freebsd-13-0"
   source_image_project_id       = ["freebsd-org-cloud-dev"]
   #source_image            = "airyxbuild-0-4-b1"
   ssh_username            = "packer"
   zone                    = "us-central1-a"
-  image_name = "airyxbuild-0-4-b5"
+  image_name = "airyxbuild-0-4-b6"
 }
 
 build {
@@ -32,6 +32,7 @@ build {
           "sudo tar -C / -xf /tmp/base.txz ./etc/pkg/Airyx.conf",
           "sudo rm -f /etc/pkg/FreeBSD.conf",
           "sudo pkg update && sudo pkg install -yf git-tiny cmake bash dbus dbus-glib expat fontconfig freetype2 gdk-pixbuf2 gettext-runtime gettext-tools glib glib-networking jpeg-turbo kf5-kcoreaddons mesa-libs mesa-dri pkgconf py38-pip python3 py38-setuptools qt5-buildtools qt5-qmake libqtxdg qt5-x11extras sqlite3 tiff png kf5-plasma-framework",
+          "sudo rm -f /tmp/kernel.txz /var/cache/pkg/*",
           "sudo tar -C / -xf /tmp/base.txz --exclude=./etc/*passwd --exclude=./etc/*pwd.db --exclude=./boot/efi*",
           "echo Finished provisioning"
       ]
