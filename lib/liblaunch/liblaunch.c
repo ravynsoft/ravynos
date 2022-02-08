@@ -878,7 +878,7 @@ launch_msg_internal(launch_data_t d)
 	mach_msg_type_number_t replyCnt;
 	mach_port_array_t reply_fds;
 	mach_msg_type_number_t reply_fdsCnt;
-	launch_data_t ldreply;
+	launch_data_t ldreply = 0;
 	size_t i;
 	size_t nfds = 0;
 	kern_return_t kr;
@@ -935,12 +935,12 @@ launch_msg_internal(launch_data_t d)
 		0);
 
 	if (kr != KERN_SUCCESS)
-		return NULL;
+		goto out_bad;
 
 	nfds = reply_fdsCnt / sizeof((reply_fds)[0]);
 	if (nfds > 128) {
 		fprintf(stderr, "Too many incoming descriptors: %zu", nfds);
-		return NULL;
+		goto out_bad;
 	}
 
 	int in_fds[128];
