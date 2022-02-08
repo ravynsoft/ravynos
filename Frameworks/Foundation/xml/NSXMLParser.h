@@ -68,10 +68,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     NSMutableDictionary *_currentAttributes;
 }
 
-- initWithData:(NSData *)data;
-- initWithContentsofURL:(NSURL *)url;
+- (NSXMLParser *)initWithData:(NSData *)data;
+- (NSXMLParser *)initWithContentsofURL:(NSURL *)url;
 
-- delegate;
+- (id)delegate;
 - (BOOL)shouldProcessNamespaces;
 - (BOOL)shouldReportNamespacePrefixes;
 - (BOOL)shouldResolveExternalEntities;
