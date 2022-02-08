@@ -32,6 +32,7 @@ FOUNDATION_EXPORT NSString *const NSLoadedClasses;
 + (NSBundle *)bundleForClass:(Class)aClass;
 + (NSBundle *)bundleWithIdentifier:(NSString *)identifier;
 + (NSBundle *)bundleWithPath:(NSString *)path;
++ (NSBundle *)bundleWithModulePath:(NSString *)path;
 
 + (NSString *)pathForResource:(NSString *)name ofType:(NSString *)type inDirectory:(NSString *)path;
 + (NSArray *)pathsForResourcesOfType:(NSString *)type inDirectory:(NSString *)path;
