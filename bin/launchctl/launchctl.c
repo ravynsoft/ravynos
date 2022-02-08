@@ -775,6 +775,7 @@ cmd_list(int argc, char * const argv[])
 {
 	json_t *msg, *result, *job;
 	const char *key;
+    char *pidstr;
 
 	(void)argc;
 	(void)argv;
@@ -785,8 +786,14 @@ cmd_list(int argc, char * const argv[])
 	if (result == NULL)
 		err(EX_OSERR, "Error getting job list");
 
+    printf("%-8s %-8s %s\n", "PID", "Status", "Label");
 	json_object_foreach(result, key, job) {
-		printf("%s\n", key);
+        pid_t pid = json_integer_value(json_object_get(job, "PID"));
+        asprintf(&pidstr, "%u", pid);
+		printf("%-8s %-8ld %s\n", pid == 0 ? "-" : pidstr,
+                json_integer_value(
+                json_object_get(job, "LastExitStatus")), key);
+        free(pidstr);
 	}
 
 	return (0);
