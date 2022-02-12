@@ -44,13 +44,15 @@ airyx_task:
     - rm -f dist/airyx.txz
     - make -f Makefile.airyx airyx-package
   iso_script:
-    - pkg install -y sshpass bash
+    - pkg install -y sshpass bash megacmd
     - ln -sf /usr/bin/bash /bin/bash
     - cp -fv version.txt ISO/overlays/ramdisk/version
     - mkdir -p /usr/local/furybsd/$(uname -m)/cache/$(head -1 version.txt)/base
     - cp -fv /usr/obj/$(pwd -P)/$(uname -m).$(uname -m)/release/base.txz /usr/obj/$(pwd -P)/$(uname -m).$(uname -m)/release/kernel.txz ${CIRRUS_WORKING_DIR}/dist/airyx.txz /usr/local/furybsd/$(uname -m)/cache/$(head -1 version.txt)/base/
     - cd ISO; AIRYX=${CIRRUS_WORKING_DIR} ./build.sh airyx airyxOS_$(head -1 ../version.txt)
-    - sshpass -e scp -o StrictHostKeyChecking=no ${CIRRUS_WORKING_DIR}/artifacts/*.iso* airyxos@pikachu.rvn.sh:nightly/
+    - #sshpass -e scp -o StrictHostKeyChecking=no ${CIRRUS_WORKING_DIR}/artifacts/*.iso* airyxos@pikachu.rvn.sh:nightly/
+    - mega-login "$MEGAUSER" "$MEGAPASS"
+    - mega-put ${CIRRUS_WORKING_DIR}/artifacts/*.iso* /nightly/
   only_if: $CIRRUS_BRANCH == 'main' || $CIRRUS_BRANCH == 'staging'
   airyx_artifacts:
     path: dist/airyx.txz
