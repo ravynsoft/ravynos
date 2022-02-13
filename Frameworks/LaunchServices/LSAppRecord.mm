@@ -1,7 +1,7 @@
 /*
  * Airyx LaunchServices
  *
- * Copyright (C) 2021 Zoe Knox <zoe@pixin.net>
+ * Copyright (C) 2021-2022 Zoe Knox <zoe@pixin.net>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -47,10 +47,10 @@
     _lastModified = [[attributes fileModificationDate] timeIntervalSince1970];
 
     if([attributes fileType] == NSFileTypeDirectory)
-        [self initWithBundle:[NSBundle bundleWithPath:appPath]];
+        return [self initWithBundle:[NSBundle bundleWithPath:appPath]];
     
     if([[appURL pathExtension] isEqualToString:@"desktop"])
-        [self initWithDesktopFile:appPath];
+        return [self initWithDesktopFile:appPath];
 
     if(!_name)
         _name = [appURL lastPathComponent];
@@ -84,7 +84,7 @@
 
     execPath = [components firstObject];
     [components removeObjectAtIndex:0];
-    _arguments = [components retain];
+    _arguments = components;
 
     NSFileManager *fm = [NSFileManager defaultManager];
     if([execPath hasPrefix:@"/"] == NO) {
@@ -99,7 +99,7 @@
 	    }
 	}
     }
-    _URL = [[NSURL fileURLWithPath:execPath] retain];
+    _URL = [NSURL fileURLWithPath:execPath];
 
     // Now we have the executable and args. Determine what this app can
     // accept and store them in _documentTypes. We do this by extracting
@@ -114,15 +114,13 @@
 
 	if(uti != NULL) {
 	    NSMutableDictionary *aType = [NSMutableDictionary dictionaryWithCapacity:5];
-	    [aType setObject:(NSString*)tag forKey:@"CFBundleTypeName"];
+	    [aType setObject:(__bridge_transfer NSString*)tag forKey:@"CFBundleTypeName"];
 	    [aType setObject:@"Editor" forKey:@"CFBundleTypeRole"]; // FIXME: should it be Viewer?
 	    [aType setObject:@"Alternate" forKey:@"LSHandlerRank"];
-	    NSArray *types = [NSArray arrayWithObjects:(NSString*)uti,nil];
+	    NSArray *types = [NSArray arrayWithObjects:(__bridge_transfer NSString*)uti,nil];
 	    [aType setObject:types forKey:@"LSItemContentTypes"];
 	    [documentTypes addObject:aType];
 	}
-
-	CFRelease(tag);
     }
 
     if([documentTypes count])

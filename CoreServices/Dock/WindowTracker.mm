@@ -80,7 +80,7 @@ void WindowTracker::windowWasRemoved(WId window)
 
     DockItem *winDI = g_dock->findDockItemForMinimizedWindow(window);
     if(winDI != nil)
-        g_dock->clearRunningLabel(winDI);
+        g_dock->clearRunningLabel((__bridge void *)winDI);
 }
 
 /*
@@ -126,7 +126,7 @@ void WindowTracker::windowWasChanged(WId window, NET::Properties props,
                 [di addPID:info.pid()];
                 created = true;
             } else {
-                [di release];
+//                 [di release];
                 di = [DockItem dockItemWithWindow:window path:path];
                 [di addPID:info.pid()];
                 created = true;
@@ -174,6 +174,6 @@ void WindowTracker::windowWasChanged(WId window, NET::Properties props,
     } else { // not minimized so remove any DIT_WINDOWs for it
         DockItem *winDI = g_dock->findDockItemForMinimizedWindow(window);
         if(winDI != nil)
-            g_dock->clearRunningLabel(winDI);
+            g_dock->clearRunningLabel((__bridge void *)winDI);
     }
 }

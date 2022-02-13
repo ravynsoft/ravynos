@@ -196,7 +196,7 @@ BOOL LSFindRecordInDatabase(const NSURL *appURL, LSAppRecord **appRecord)
 
     int rc = sqlite3_step(stmt);
     if(rc == SQLITE_ROW) {
-        NSData *blob = [[NSData alloc] 
+        NSData *blob = [[NSData alloc]
             initWithBytes:sqlite3_column_blob(stmt, 3)
             length:sqlite3_column_bytes(stmt, 3)];
         *appRecord = [NSKeyedUnarchiver unarchiveObjectWithData:blob];
@@ -234,7 +234,7 @@ BOOL LSFindRecordInDatabaseByBundleID(const NSString *bundleID, LSAppRecord **ap
 
     int rc = sqlite3_step(stmt);
     if(rc == SQLITE_ROW) {
-        NSData *blob = [[NSData alloc] 
+        NSData *blob = [[NSData alloc]
             initWithBytes:sqlite3_column_blob(stmt, 3)
             length:sqlite3_column_bytes(stmt, 3)];
         *appRecord = [NSKeyedUnarchiver unarchiveObjectWithData:blob];
@@ -363,15 +363,15 @@ static BOOL _LSAddRecordToDatabase(const LSAppRecord *appRecord, BOOL isUpdate) 
 	else if([nsrank isEqualToString:@"Owner"])
 	    rank = kLSRankOwner;
 
-	NSMutableArray *things = [docType objectForKey:(NSString *)kLSItemContentTypesKey];
+	NSMutableArray *things = [docType objectForKey:(__bridge NSString *)kLSItemContentTypesKey];
 	if([things count] == 0) {
 	    // do the old keys exist?
-	    NSArray *extensions = [docType objectForKey:(NSString *)kCFBundleTypeExtensionsKey];
+	    NSArray *extensions = [docType objectForKey:(__bridge NSString *)kCFBundleTypeExtensionsKey];
 	    for(int x = 0; x < [extensions count]; ++x) {
 		CFStringRef uti = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension,
-		    (CFStringRef)[extensions objectAtIndex:x], NULL);
+		    (__bridge CFStringRef)[extensions objectAtIndex:x], NULL);
 		if(uti)
-		    [things addObject:(id)uti];
+		    [things addObject:(__bridge_transfer id)uti];
 	    }
 	    // FIXME: also check for MIME Types key
 	}
@@ -382,7 +382,7 @@ static BOOL _LSAddRecordToDatabase(const LSAppRecord *appRecord, BOOL isUpdate) 
 		return false;
 	    }
 
-	    NSString *uti = [things objectAtIndex:x];	
+	    NSString *uti = [things objectAtIndex:x];
 	
 	    if(sqlite3_bind_text(stmt, 1, [uti UTF8String], [uti length], SQLITE_STATIC) != SQLITE_OK
 		|| sqlite3_bind_text(stmt, 2, [[[appRecord URL] absoluteString] UTF8String], [[[appRecord URL] absoluteString] length], SQLITE_STATIC) != SQLITE_OK
@@ -432,7 +432,7 @@ void LSRevealInFiler(CFArrayRef inItemURLs)
         // we need to convert the CFArray into a QList in order to call DBus
         // this sucks. FIXME: maybe use DBusKit instead?
         QStringList uriList;
-        NSArray *urls = (NSArray *)inItemURLs;
+        NSArray *urls = (__bridge NSArray *)inItemURLs;
         for(int x=0; x<[urls count]; ++x) {
             NSURL *u = [urls objectAtIndex:x];
             if(![u isFileURL])
@@ -446,9 +446,23 @@ void LSRevealInFiler(CFArrayRef inItemURLs)
     }
 }
 
+/* from xpc_type.c */
+static size_t
+xpc_data_hash(const uint8_t *data, size_t length)
+{
+    size_t hash = 5381;
+
+    while (length--)
+        hash = ((hash << 5) + hash) + data[length];
+
+    return (hash);
+}
+
 static void _LSCheckAndHandleLaunchFlags(NSTask *task, LSLaunchFlags launchFlags)
 {
     int _launchd = 0;
+    int err = 0;
+    size_t hash = 0;
 
     // Can I play with madness?
     if(getenv("__LAUNCHD_FD") != NULL)
@@ -458,7 +472,7 @@ static void _LSCheckAndHandleLaunchFlags(NSTask *task, LSLaunchFlags launchFlags
         // FIXME: launch new instance of app
     }
 
-    Display *display = XOpenDisplay(":0");
+    Display *display = XOpenDisplay("unix:0.0");
     int oldRevert, newRevert;
     Window oldWindow = None, newWindow = None;
 
@@ -470,23 +484,47 @@ static void _LSCheckAndHandleLaunchFlags(NSTask *task, LSLaunchFlags launchFlags
     if(_launchd) {
         launch_data_t job = launch_data_alloc(LAUNCH_DATA_DICTIONARY);
         launch_data_t args = launch_data_alloc(LAUNCH_DATA_ARRAY);
-        launch_data_array_set_index(args, launch_data_new_string([[task launchPath]
-            UTF8String]), 0);
+
+        // FIXME: handle IO redirection
+
+        const char *p = [[task launchPath] UTF8String];
+        launch_data_t s = launch_data_new_string(p);
+        launch_data_array_set_index(args, s, 0);
+        hash = xpc_data_hash((const uint8_t *)p, [[task launchPath] length]);
         NSArray *ta = [task arguments];
-        for(int x = 0; x < [ta count]; ++x) {
-            launch_data_array_set_index(args, launch_data_new_string([[ta objectAtIndex:x]
-                UTF8String]), 1+x);
+        if([ta count]) {
+            for(int x = 0; x < [ta count]; ++x) {
+                p = [[[ta objectAtIndex:x] absoluteString] UTF8String];
+                launch_data_t s = launch_data_new_string(p);
+                launch_data_array_set_index(args, s, 1+x);
+                hash += xpc_data_hash((const uint8_t *)p, [[[ta objectAtIndex:x] absoluteString] length]);
+            }
         }
         launch_data_dict_insert(job, args, LAUNCH_JOBKEY_PROGRAMARGUMENTS);
         launch_data_dict_insert(job, launch_data_new_bool(true), LAUNCH_JOBKEY_RUNATLOAD);
-//        launch_data_dict_insert(job, launch_data_new_bool(true), LAUNCH_JOBKEY_ABANDONPROCESSGROUP);
 
-        NSString *label = [NSString stringWithFormat:@"task.%lx.%@", task,
-            [[task launchPath] lastPathComponent]];
-        launch_data_dict_insert(job, launch_data_new_string([label UTF8String]), LAUNCH_JOBKEY_LABEL);
+        char *label = 0;
+        asprintf(&label, "task.%lx.%s", hash, [[[task launchPath] lastPathComponent] UTF8String]);
+        launch_data_dict_insert(job, launch_data_new_string(label), LAUNCH_JOBKEY_LABEL);
+
         launch_data_t request = launch_data_alloc(LAUNCH_DATA_DICTIONARY);
         launch_data_dict_insert(request, job, LAUNCH_KEY_SUBMITJOB);
         launch_data_t response = launch_msg(request);
+
+        launch_data_free(request);
+        err = launch_data_get_errno(response);
+
+        switch(err) {
+            case EEXIST:	/* identical job exists - start it */
+                request = launch_data_alloc(LAUNCH_DATA_DICTIONARY);
+                launch_data_dict_insert(request, launch_data_new_string(label),
+                    LAUNCH_KEY_STARTJOB);
+                launch_msg(request);
+                launch_data_free(request);
+                break;
+            default: break;
+        }
+        free(label);
     } else {
         [task setStandardInput:[[NSFileHandle alloc] initWithFileDescriptor:0]];
         [task setStandardOutput:[[NSFileHandle alloc] initWithFileDescriptor:1]];
@@ -497,8 +535,8 @@ static void _LSCheckAndHandleLaunchFlags(NSTask *task, LSLaunchFlags launchFlags
     int times = 100000;
     if(display) {
         newWindow = oldWindow;
-        while(newWindow == oldWindow && times-- > 0)
-            XGetInputFocus(display, &newWindow, &newRevert);
+        while(newWindow == oldWindow && times-- > 0) ;
+//            XGetInputFocus(display, &newWindow, &newRevert);
     }
 
     long pid = 0;
@@ -517,6 +555,7 @@ static void _LSCheckAndHandleLaunchFlags(NSTask *task, LSLaunchFlags launchFlags
         {
             pid = property[1] * 256;
             pid = pid + property[0];
+            free(property);
         }
 
         if(pid == [task processIdentifier]) {
@@ -542,7 +581,7 @@ static void _LSCheckAndHandleLaunchFlags(NSTask *task, LSLaunchFlags launchFlags
         XCloseDisplay(display);
 
     if(launchFlags & kLSLaunchAndWaitForExit)
-        [task waitUntilExit];
+        [task waitUntilExit]; // FIXME: handle this for launchd tasks too
 }
 
 // Some apps can't handle a local file URL with 'localhost', so remove it
@@ -557,12 +596,12 @@ NSArray *_LSCleanFileURLs(NSArray *inItemURLs)
                 path:[@"//" stringByAppendingString:[url path]]];
         [outItemURLs addObject:url];
     }
-    return [outItemURLs autorelease];
+    return outItemURLs;
 }
 
 static OSStatus _LSOpenAllWithSpecifiedApp(const LSLaunchURLSpec *inLaunchSpec, CFURLRef _Nullable *outLaunchedURL)
 {
-    const NSURL *appURL = (NSURL *)inLaunchSpec->appURL;
+    const NSURL *appURL = (__bridge NSURL *)inLaunchSpec->appURL;
     if([appURL isFileURL] == NO)
         return kLSDataErr;
 
@@ -582,16 +621,16 @@ static OSStatus _LSOpenAllWithSpecifiedApp(const LSLaunchURLSpec *inLaunchSpec, 
             return kLSNoExecutableErr;
 
         if(outLaunchedURL != NULL)
-            *outLaunchedURL = (CFURLRef)[NSURL fileURLWithPath:[app executablePath]];
+            *outLaunchedURL = (__bridge_retained CFURLRef)[NSURL fileURLWithPath:[app executablePath]];
 
         NSMutableArray *args = [NSMutableArray new];
         if(inLaunchSpec->taskArgs)
-            [args addObjectsFromArray:(NSArray *)inLaunchSpec->taskArgs];
+            [args addObjectsFromArray:(__bridge NSArray *)inLaunchSpec->taskArgs];
         else
             [args addObjectsFromArray:[[app infoDictionary] objectForKey:@"ProgramArguments"]];
-        [args addObjectsFromArray:_LSCleanFileURLs((NSArray *)inLaunchSpec->itemURLs)];
-        NSTask *task = [[NSTask new] autorelease];
-        [task setEnvironment:(NSDictionary *)inLaunchSpec->taskEnv];
+        [args addObjectsFromArray:_LSCleanFileURLs((__bridge NSArray *)inLaunchSpec->itemURLs)];
+        NSTask *task = [NSTask new];
+        [task setEnvironment:(__bridge NSDictionary *)inLaunchSpec->taskEnv];
         [task setArguments:args];
         [task setLaunchPath:[app executablePath]];
         _LSCheckAndHandleLaunchFlags(task, inLaunchSpec->launchFlags);
@@ -601,12 +640,12 @@ static OSStatus _LSOpenAllWithSpecifiedApp(const LSLaunchURLSpec *inLaunchSpec, 
             return kLSNoExecutableErr;
 
         if(outLaunchedURL != NULL)
-            *outLaunchedURL = (CFURLRef)[NSURL fileURLWithPath:appPath];
+            *outLaunchedURL = (__bridge_retained CFURLRef)[NSURL fileURLWithPath:appPath];
 
         // Check if we have any stored arguments in the database
         NSMutableArray *args = [NSMutableArray new];
         if(inLaunchSpec->taskArgs)
-            [args addObjectsFromArray:(NSArray *)inLaunchSpec->taskArgs];
+            [args addObjectsFromArray:(__bridge NSArray *)inLaunchSpec->taskArgs];
 
         LSAppRecord *appRecord;
         if(LSFindRecordInDatabase(appURL, &appRecord) == YES) {
@@ -615,30 +654,27 @@ static OSStatus _LSOpenAllWithSpecifiedApp(const LSLaunchURLSpec *inLaunchSpec, 
 
         // Just open the app unless there are itemURLs
         // Otherwise, launch the app with each one
-        if([(NSArray *)inLaunchSpec->itemURLs count] == 0) {
-            [args retain];
+        if([(__bridge NSArray *)inLaunchSpec->itemURLs count] == 0) {
             for(int i=0; i<[args count]; ++i) {
                 if([[args objectAtIndex:i] caseInsensitiveCompare:@"%U"] == NSOrderedSame ||
                     [[args objectAtIndex:i] caseInsensitiveCompare:@"%F"] == NSOrderedSame) {
                     [args removeObjectAtIndex:i];
                 }
             }
-            NSTask *task = [[NSTask new] autorelease];
-            [task setEnvironment:(NSDictionary*)inLaunchSpec->taskEnv];
+            NSTask *task = [NSTask new];
+            [task setEnvironment:(__bridge NSDictionary*)inLaunchSpec->taskEnv];
             [task setArguments:args];
             [task setLaunchPath:appPath];
 
             _LSCheckAndHandleLaunchFlags(task, inLaunchSpec->launchFlags);
-
-            [args release];
             return 0;
         }
 
-        NSEnumerator *items = [_LSCleanFileURLs((NSArray *)inLaunchSpec->itemURLs) objectEnumerator];
-            BOOL found = NO;
+        NSEnumerator *items = [_LSCleanFileURLs((__bridge NSArray *)inLaunchSpec->itemURLs) objectEnumerator];
+        BOOL found = NO;
 
         while(NSURL *item = [items nextObject]) {
-            NSMutableArray *copyargs = args;
+            NSMutableArray *copyargs = [args copy];
             for(int i=0; i<[copyargs count]; ++i) {
                 if([[copyargs objectAtIndex:i] caseInsensitiveCompare:@"%U"] == NSOrderedSame) {
                     [copyargs replaceObjectAtIndex:i withObject:[item absoluteString]];
@@ -652,19 +688,14 @@ static OSStatus _LSOpenAllWithSpecifiedApp(const LSLaunchURLSpec *inLaunchSpec, 
 
             if(found == NO)
                 [copyargs addObject:[item path]];
-            [copyargs retain];
 
-            NSTask *task = [[NSTask new] autorelease];
-            [task setEnvironment:(NSDictionary *)inLaunchSpec->taskEnv];
+            NSTask *task = [NSTask new];
+            [task setEnvironment:(__bridge NSDictionary *)inLaunchSpec->taskEnv];
             [task setArguments:copyargs];
             [task setLaunchPath:appPath];
 
             _LSCheckAndHandleLaunchFlags(task, inLaunchSpec->launchFlags);
-
-            [args release];
-            [copyargs release];
         }
-        [args release];
     }
     return 0;
 }
@@ -693,7 +724,7 @@ static BOOL _acceptsRole(NSString *role, LSRolesMask rolesMask)
 
 Boolean LSIsNSBundle(CFURLRef cfurl)
 {
-    NSURL *url = (NSURL *)cfurl;
+    NSURL *url = (__bridge NSURL *)cfurl;
     if([[url scheme] isEqualToString:@"file"] &&
        [[url pathExtension] isEqualToString:@"app"]) {
        return YES;
@@ -703,7 +734,7 @@ Boolean LSIsNSBundle(CFURLRef cfurl)
 
 Boolean LSIsAppDir(CFURLRef cfurl)
 {
-    NSURL *url = (NSURL *)cfurl;
+    NSURL *url = (__bridge NSURL *)cfurl;
     if([[url scheme] isEqualToString:@"file"] &&
        [[url pathExtension] caseInsensitiveCompare:@"appdir"] == NSOrderedSame) {
         NSFileManager *fm = [NSFileManager defaultManager];
@@ -734,10 +765,12 @@ OSStatus LSOpenFromURLSpec(const LSLaunchURLSpec *inLaunchSpec, CFURLRef _Nullab
     _LSInitializeDatabase();
 
     CFArrayRef taskArgs = NULL;
-    CFDictionaryRef taskEnv = (CFDictionaryRef)[[NSPlatform currentPlatform] environment];
+    CFDictionaryRef taskEnv;
 
     if(inLaunchSpec->launchFlags & kLSALaunchTaskEnvIsValid)
         taskEnv = inLaunchSpec->taskEnv;
+    else
+        taskEnv = (__bridge_retained CFDictionaryRef)[[NSPlatform currentPlatform] environment];
 
     if(inLaunchSpec->launchFlags & kLSALaunchTaskArgsIsValid)
         taskArgs = inLaunchSpec->taskArgs;
@@ -752,7 +785,10 @@ OSStatus LSOpenFromURLSpec(const LSLaunchURLSpec *inLaunchSpec, CFURLRef _Nullab
         spec.launchFlags = inLaunchSpec->launchFlags;
         spec.taskArgs = taskArgs;
         spec.taskEnv = taskEnv;
-        return _LSOpenAllWithSpecifiedApp(&spec, outLaunchedURL);
+        OSStatus rc = _LSOpenAllWithSpecifiedApp(&spec, outLaunchedURL);
+        if(!(inLaunchSpec->launchFlags & kLSALaunchTaskEnvIsValid))
+            CFRelease(taskEnv);
+        return rc;
     }
 
     // We are opening one or more files or URLs with their preferred apps
@@ -761,33 +797,35 @@ OSStatus LSOpenFromURLSpec(const LSLaunchURLSpec *inLaunchSpec, CFURLRef _Nullab
     // because file permissions are not reliable. e.g. Samba shares often have
     // execute permission on non-executable files.
 
-    NSEnumerator *items = [(id)(inLaunchSpec->itemURLs) objectEnumerator];
+    NSEnumerator *items = [(__bridge id)(inLaunchSpec->itemURLs) objectEnumerator];
     NSURL *item;
 
     while(item = [items nextObject]) {
-        if(LSIsNSBundle((CFURLRef)item)) {
+        if(LSIsNSBundle((__bridge CFURLRef)item)) {
             LSLaunchURLSpec spec;
             memset(&spec, 0, sizeof(spec));
-            spec.appURL = (CFURLRef)item;
+            spec.appURL = (__bridge_retained CFURLRef)item;
             spec.itemURLs = NULL;
             spec.launchFlags = inLaunchSpec->launchFlags;
             spec.taskArgs = taskArgs;
             spec.taskEnv = taskEnv;
             _LSOpenAllWithSpecifiedApp(&spec, NULL);
-        } else if(LSIsAppDir((CFURLRef)item)) {
+            CFRelease(spec.appURL);
+        } else if(LSIsAppDir((__bridge CFURLRef)item)) {
             LSLaunchURLSpec spec;
             memset(&spec, 0, sizeof(spec));
-            spec.appURL = (CFURLRef)([item URLByAppendingPathComponent:@"AppRun"]);
+            spec.appURL = (__bridge_retained CFURLRef)([item URLByAppendingPathComponent:@"AppRun"]);
             spec.itemURLs = NULL;
             spec.launchFlags = inLaunchSpec->launchFlags;
             spec.taskArgs = taskArgs;
             spec.taskEnv = taskEnv;
             _LSOpenAllWithSpecifiedApp(&spec, NULL);
+            CFRelease(spec.appURL);
         } else {
             NSString *uti = nil;
             if([[item pathExtension] isEqualToString:@""] == NO)
-                uti = (NSString *)UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension,
-                    (CFStringRef)[item pathExtension], NULL);
+                uti = (__bridge_transfer NSString *)UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension,
+                    (__bridge CFStringRef)[item pathExtension], NULL);
 
             if(uti == nil) {
                 // We don't have a recognized extension. Try to identify by mime type.
@@ -798,15 +836,18 @@ OSStatus LSOpenFromURLSpec(const LSLaunchURLSpec *inLaunchSpec, CFURLRef _Nullab
 
                 for(QString s : parents) {
                     NSString *mimestring = [NSString stringWithCString:s.toUtf8()];
-                    uti = (NSString *)UTTypeCreatePreferredIdentifierForTag(kUTTagClassMIMEType,
-                        (CFStringRef)mimestring, NULL);
+                    uti = (__bridge_transfer NSString *)UTTypeCreatePreferredIdentifierForTag(kUTTagClassMIMEType,
+                        (__bridge CFStringRef)mimestring, NULL);
                     if(uti)
                         break;
                 }
             }
 
-            if(uti == nil)
+            if(uti == nil) {
+                if(!(inLaunchSpec->launchFlags & kLSALaunchTaskEnvIsValid))
+                    CFRelease(taskEnv);
                 return kLSApplicationNotFoundErr;
+            }
 
             NSMutableArray *appCandidates = [NSMutableArray arrayWithCapacity:6];
             NSMutableArray *conforms = [NSMutableArray arrayWithCapacity:20];
@@ -814,7 +855,7 @@ OSStatus LSOpenFromURLSpec(const LSLaunchURLSpec *inLaunchSpec, CFURLRef _Nullab
             [conforms addObject:uti];
             for(int x=0; x<[conforms count]; ++x) {
                 NSString *uti = [conforms objectAtIndex:x];
-                [conforms addObjectsFromArray:(NSArray*)UTTypeCopyConformsTo((CFStringRef)uti)];
+                [conforms addObjectsFromArray:(__bridge_transfer NSArray*)UTTypeCopyConformsTo((__bridge CFStringRef)uti)];
             }
 
             int rc = -1;
@@ -823,16 +864,20 @@ OSStatus LSOpenFromURLSpec(const LSLaunchURLSpec *inLaunchSpec, CFURLRef _Nullab
             if(rc == 0) {
                 LSLaunchURLSpec spec;
                 memset(&spec, 0, sizeof(spec));
-                spec.appURL = (CFURLRef)[[appCandidates firstObject] copy];
-                spec.itemURLs = (CFArrayRef)[NSArray arrayWithObject:item];
+                spec.appURL = (__bridge_retained CFURLRef)[[appCandidates firstObject] copy];
+                spec.itemURLs = (__bridge_retained CFArrayRef)[NSArray arrayWithObject:item];
                 spec.launchFlags = inLaunchSpec->launchFlags;
                 spec.taskArgs = taskArgs;
                 spec.taskEnv = taskEnv;
                 _LSOpenAllWithSpecifiedApp(&spec, NULL);
+                CFRelease(spec.appURL);
+                CFRelease(spec.itemURLs);
             }
         }    
     }
 
+    if(!(inLaunchSpec->launchFlags & kLSALaunchTaskEnvIsValid))
+        CFRelease(taskEnv);
     return 0;
 }
 
@@ -843,7 +888,7 @@ OSStatus LSRegisterURL(CFURLRef inURL, Boolean inUpdate)
     // a special case.
     _LSInitializeDatabase();
 
-    NSURL *appURL = (NSURL *)inURL;
+    NSURL *appURL = (__bridge NSURL *)inURL;
     if([appURL isFileURL] == NO)
         return kLSDataErr;
 
@@ -888,7 +933,7 @@ OSStatus LSCanURLAcceptURL(CFURLRef inItemURL, CFURLRef inTargetURL, LSRolesMask
     *outAcceptsItem = NO;
     _LSInitializeDatabase();
 
-    NSURL *appURL = (NSURL *)inTargetURL;
+    NSURL *appURL = (__bridge NSURL *)inTargetURL;
     if([appURL isFileURL] == NO)
         return kLSDataErr;
 
@@ -896,36 +941,37 @@ OSStatus LSCanURLAcceptURL(CFURLRef inItemURL, CFURLRef inTargetURL, LSRolesMask
     if(LSFindRecordInDatabase(appURL, &appRecord) == NO)
         return kLSApplicationNotFoundErr;
 
-    if([[(NSURL *)inItemURL scheme] isEqualToString:@"file"]) {
-        NSString *ext = [(NSURL *)inItemURL pathExtension];
+    if([[(__bridge NSURL *)inItemURL scheme] isEqualToString:@"file"]) {
+        NSString *ext = [(__bridge NSURL *)inItemURL pathExtension];
         CFStringRef uti = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension,
-		(CFStringRef)ext, NULL);
+		(__bridge CFStringRef)ext, NULL);
 
         NSEnumerator *docTypes = [[appRecord documentTypes] objectEnumerator];
         NSDictionary *docType;
 
         while(docType = [docTypes nextObject]) {
-            NSArray *things = [docType objectForKey:(NSString *)kLSItemContentTypesKey];
+            NSArray *things = [docType objectForKey:(__bridge NSString *)kLSItemContentTypesKey];
             if([things count]) {
-                if(_acceptsThing(things, (NSString*)uti) && _acceptsRole([docType objectForKey:(NSString *)kCFBundleTypeRoleKey], inRoleMask)) {
+                if(_acceptsThing(things, (__bridge NSString*)uti) && _acceptsRole([docType objectForKey:(__bridge NSString *)kCFBundleTypeRoleKey], inRoleMask)) {
                     *outAcceptsItem = YES;
                     break;
                 }
             } else {
-                things = [docType objectForKey:(NSString *)kCFBundleTypeExtensionsKey];
-                if(_acceptsThing(things, ext) && _acceptsRole([docType objectForKey:(NSString *)kCFBundleTypeRoleKey], inRoleMask)) {
+                things = [docType objectForKey:(__bridge NSString *)kCFBundleTypeExtensionsKey];
+                if(_acceptsThing(things, ext) && _acceptsRole([docType objectForKey:(__bridge NSString *)kCFBundleTypeRoleKey], inRoleMask)) {
                     *outAcceptsItem = YES;
                     break;
                 }
             }
         }
+        CFRelease(uti);
     } else {
-        NSString *itemScheme = [(NSURL *)inItemURL scheme];
+        NSString *itemScheme = [(__bridge NSURL *)inItemURL scheme];
         NSEnumerator *appSchemes = [[appRecord URLSchemes] objectEnumerator];
         NSDictionary *appScheme;
 
         while(appScheme = [appSchemes nextObject]) {
-            if(_acceptsThing([appScheme objectForKey:(NSString *)kCFBundleURLSchemesKey], itemScheme) && _acceptsRole([appScheme objectForKey:(NSString *)kCFBundleTypeRoleKey], inRoleMask)) {
+            if(_acceptsThing([appScheme objectForKey:(__bridge NSString *)kCFBundleURLSchemesKey], itemScheme) && _acceptsRole([appScheme objectForKey:(__bridge NSString *)kCFBundleTypeRoleKey], inRoleMask)) {
                 *outAcceptsItem = YES;
                 break;
             }

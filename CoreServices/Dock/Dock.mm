@@ -37,16 +37,20 @@
 #include <QPixmap>
 #include <QPainter>
 #include <QMouseEvent>
+#include <QMutex>
+#include <QMutexLocker>
 
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
+
+QMutex mutex;
 
 Dock::Dock()
     :QWidget(nullptr, Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint |
             Qt::WindowOverridesSystemGestures | Qt::WindowDoesNotAcceptFocus)
     ,m_currentSize(900,64)
 {
-    m_prefs = [[NSUserDefaults standardUserDefaults] retain];
+    m_prefs = [NSUserDefaults standardUserDefaults];
     m_items = m_itemsPinned = m_itemsSpecial = nil;
     m_emptyItem = [DockItem new];
 
@@ -123,8 +127,8 @@ Dock::Dock()
 
     // Track process launches from Dock and per-user launchd
     struct kevent e[3];
-    EV_SET(&e[0], getpid(), EVFILT_PROC, EV_ADD, NOTE_FORK|NOTE_EXEC|NOTE_TRACK, 0, nil);
-    EV_SET(&e[1], getppid(), EVFILT_PROC, EV_ADD, NOTE_FORK|NOTE_EXEC|NOTE_TRACK, 0, nil);
+    EV_SET(&e[0], getpid(), EVFILT_PROC, EV_ADD, NOTE_FORK|NOTE_EXEC|NOTE_TRACK, 0, (__bridge void *)nil);
+    EV_SET(&e[1], getppid(), EVFILT_PROC, EV_ADD, NOTE_FORK|NOTE_EXEC|NOTE_TRACK, 0, (__bridge void *)nil);
 
     // Wake up kq when this descriptor has data to read
     EV_SET(&e[2], piper(0), EVFILT_READ, EV_ADD, 0, 0, NULL);
@@ -136,8 +140,8 @@ Dock::~Dock()
 {
     delete m_cells;
     delete m_iconRun;
-    [m_prefs release];
-    [m_items release];
+//     [m_prefs release];
+//     [m_items release];
 }
 
 // Helpers to emit signals which is needed because our kq loop
@@ -154,36 +158,52 @@ void Dock::emitStopped(void *di)
 
 void Dock::emitAddNonResident(unsigned int pid, const char *path)
 {
-    emit dockShouldAddNonResident(pid, path);
+    char *copyPath = strdup(path);
+    emit dockShouldAddNonResident(pid, copyPath);
 }
 
 void Dock::addNonResident(unsigned int pid, const char *path)
 {
+
+    NSLog(@"addNonRes %u %s",pid,path);
+
+    if(!path)
+        return;
+
+    NSString *nsPath = [NSString stringWithUTF8String:path];
+    free((void *)path);
+
     // We can be invoked multiple times by the kq thread due to fork/exec
     // The first time should create the item and the rest should only
     // add PIDs.
-    DockItem *di = findDockItemForPath((char *)path);
+    DockItem *di = findDockItemForPath((char *)[nsPath UTF8String]);
     if(di != nil) {
         [di addPID:pid];
         NSDebugLog(@"addNonResident: adding PID %u to %@", pid, [di label]);
         return;
     }
 
+    QMutexLocker locker(&mutex);
     // not found so it must truly be a new item
-    di = [DockItem dockItemWithPath:[NSString stringWithUTF8String:path]];
+    NSLog(@"making new di\n");
+    di = [DockItem dockItemWithPath:nsPath];
     if([di type] == DIT_INVALID) {
         // Not a bundle or AppDir so handle as Window
-        NSDebugLog(@"addNonResident: %lu %s is not bundle or AppDir",
-            pid, path);
+        NSDebugLog(@"addNonResident: %lu %@ is not bundle or AppDir",
+            pid, nsPath);
         return;
     }
 
+    fprintf(stderr, "checking bundle id\n");
     // never show icons for my own services, which can happen because
     // of weird fork() scenarios like fail to exec()
     if([[di bundleIdentifier] isEqualToString:@"org.airyx.Dock"] ||
-       [[di bundleIdentifier] hasPrefix:@"org.airyx.Dock."])
+       [[di bundleIdentifier] hasPrefix:@"org.airyx.Dock."]) {
+       fprintf(stderr, "early return for Dock component\n");
         return;
+    }
 
+    fprintf(stderr, "adding as non-res item di=%p\n", di);
     _addNonResident(di);
 }
 
@@ -204,7 +224,7 @@ void Dock::_addNonResident(DockItem *di)
     else
         m_cells->addWidget([di widget],m_cells->count(),0,Qt::AlignCenter);
 
-    setRunningLabel(di);
+    setRunningLabel((__bridge void *)di);
 }
 
 
@@ -355,6 +375,8 @@ DockItem *Dock::findDockItemForPath(char *path)
 {
     NSString *s = [NSString stringWithUTF8String:path];
 
+    QMutexLocker locker(&mutex);
+
     // Check pinned items
     for(int i = 0; i < [m_itemsPinned count]; ++i) {
         DockItem *di = [m_itemsPinned objectAtIndex:i];
@@ -374,6 +396,8 @@ DockItem *Dock::findDockItemForPath(char *path)
 
 DockItem *Dock::findDockItemForMinimizedWindow(unsigned int window)
 {
+    QMutexLocker locker(&mutex);
+
     // No need to check Pinned items; window icons are always non-resident
     for(int i = 0; i < [m_items count]; ++i) {
         DockItem *di = [m_items objectAtIndex:i];
@@ -462,27 +486,27 @@ void Dock::loadProcessTable()
             for(int j = 0; j < [pids count]; ++j)
                 [di addPID:[[pids objectAtIndex:j] intValue]];
 
-        [di isRunning] ? setRunningLabel(di) : clearRunningLabel(di);
+        [di isRunning] ? setRunningLabel((__bridge void *)di) : clearRunningLabel((__bridge void *)di);
     }
 }
 
+// FIXME: refactor into DockItem
 void Dock::setRunningLabel(void *di)
 {
-    if([(DockItem *)di _getRunMarker] != NULL ||
-        [(DockItem *)di type] == DIT_WINDOW)
+    DockItem *odi = (__bridge DockItem *)di;
+    if([odi _getRunMarker] != NULL || [odi type] == DIT_WINDOW)
         return;
 
     QLabel *l = new QLabel;
     l->setPixmap(*m_iconRun);
-    [(DockItem *)di setRunningMarker:l]; // save this so we can delete later
+    [odi setRunningMarker:l]; // save this so we can delete later
 
     int i;
-    QGridLayout *cells = ([(DockItem *)di isResident]
-        ? m_cellsPinned : m_cells);
+    QGridLayout *cells = ([odi isResident] ? m_cellsPinned : m_cells);
 
     for(i = 0; i < cells->count(); ++i) {
         QLayoutItem *layout = cells->itemAt(i);
-        if(layout && layout->widget() == [di widget]) {
+        if(layout && layout->widget() == [odi widget]) {
             switch(m_location) {
                 case LOCATION_RIGHT:
                 case LOCATION_LEFT:
@@ -500,13 +524,13 @@ void Dock::setRunningLabel(void *di)
     }
 
     if(i > cells->count())
-        NSLog(@"setRunningLabel: item %@ not found in layout",
-            [(DockItem *)di label]);
+        NSLog(@"setRunningLabel: item %@ not found in layout", [odi label]);
 }
 
+// FIXME: refactor into DockItem
 void Dock::clearRunningLabel(void *item)
 {
-    DockItem *di = (DockItem *)item;
+    DockItem *di = (__bridge DockItem *)item;
     QLabel *marker = [di _getRunMarker];
     m_cells->removeWidget(marker);
     [di setRunningMarker:NULL];
@@ -518,7 +542,7 @@ void Dock::clearRunningLabel(void *item)
         w->deleteLater();
 
         [m_items removeObjectIdenticalTo:di];
-        [di release];
+//         [di release];
         adjustSize();
     }
 }

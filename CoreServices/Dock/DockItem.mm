@@ -63,46 +63,46 @@ void DIWidget::mousePressEvent(QMouseEvent *e)
 
 void DIWidget::mouseReleaseEvent(QMouseEvent *e)
 {
+    DockItem *owner = (DockItem *)_owner;
     switch(e->button()) {
         case Qt::LeftButton: // logical left, the primary action
         {
-            if([(DockItem*)_owner type] == DIT_WINDOW) { // unminimizing?
-                unsigned int window = [(DockItem*)_owner window];
+            if([owner type] == DIT_WINDOW) { // unminimizing?
+                unsigned int window = [owner window];
                 WindowTracker::activateWindow(window);
-                g_dock->clearRunningLabel(_owner);
+                g_dock->clearRunningLabel((__bridge void *)owner);
                 e->accept();
                 break;
             }
-            if([(DockItem*)_owner isRunning]) { // clicked a running app?
-                unsigned int window = [(DockItem*)_owner window];
+            if([owner isRunning]) { // clicked a running app?
+                unsigned int window = [owner window];
                 if(window) {
                     WindowTracker::activateWindow(window);
                     DockItem *di =
                         g_dock->findDockItemForMinimizedWindow(window);
                     if(di)
-                        g_dock->clearRunningLabel(di);
+                        g_dock->clearRunningLabel((__bridge void *)di);
                 }
 
                 // If Filer with no windows, fall through & launch folder
-                if(![[(DockItem*)_owner bundleIdentifier]
-                    isEqualToString:@"org.airyx.Filer"] ||
-                    [[(DockItem*)_owner windows] count] > 1) {
+                if(![[owner bundleIdentifier] isEqualToString:@"org.airyx.Filer"] ||
+                    [[owner windows] count] > 1) {
                     e->accept();
                     break;
                 }
             }
             LSLaunchURLSpec spec = { 0 };
-            spec.appURL = (CFURLRef)[NSURL fileURLWithPath:
-                [(DockItem*)_owner path]];
-            if([[(DockItem*)_owner bundleIdentifier]
+            spec.appURL = (__bridge CFURLRef)[NSURL fileURLWithPath:
+                [owner path]];
+            if([[owner bundleIdentifier]
                 isEqualToString:@"org.airyx.Filer"]) // Filer is special
-                spec.itemURLs = (CFArrayRef)[NSArray arrayWithObject:
+                spec.itemURLs = (__bridge CFArrayRef)[NSArray arrayWithObject:
                     [NSURL fileURLWithPath:
                     [[[NSUserDefaults standardUserDefaults]
                     stringForKey:INFOKEY_FILER_DEF_FOLDER]
                     stringByStandardizingPath]]];
             LSOpenFromURLSpec(&spec, NULL);
-            [(DockItem*)_owner setNeedsAttention:YES]; // bouncy bouncy
+            [owner setNeedsAttention:YES]; // bouncy bouncy
             e->accept();
             break;
         }
@@ -126,15 +126,15 @@ void DIWidget::mouseMoveEvent(QMouseEvent *e)
 @implementation DockItem
 
 +dockItemWithPath:(NSString *)path {
-    return [[self alloc] initWithPath:path];
+    return [[DockItem alloc] initWithPath:path];
 }
 
 +dockItemWithWindow:(unsigned int)window path:(const char *)path {
-    return [[self alloc] initWithWindow:window path:path];
+    return [[DockItem alloc] initWithWindow:window path:path];
 }
 
 +dockItemWithMinimizedWindow:(unsigned int)window {
-    return [[self alloc] initWithMinimizedWindow:window];
+    return [[DockItem alloc] initWithMinimizedWindow:window];
 }
 
 /* We can't rely on g_dock->iconSize because DockItems are constructed
@@ -170,7 +170,7 @@ void DIWidget::mouseMoveEvent(QMouseEvent *e)
     }
 
     NSURL *url = [NSURL fileURLWithPath:path];
-    if(LSIsNSBundle((CFURLRef)url)) {
+    if(LSIsNSBundle((__bridge CFURLRef)url)) {
         _type = DIT_APP_BUNDLE;
         NSBundle *b = [NSBundle bundleWithPath:path];
         _label = [b objectForInfoDictionaryKey:@"CFBundleDisplayName"];
@@ -185,9 +185,11 @@ void DIWidget::mouseMoveEvent(QMouseEvent *e)
         QString iconPath(QString::fromUtf8(
             [[NSString stringWithFormat:@"%@/Resources/%@",path,iconFile]
             UTF8String]));
+        NSLog(@"initWithPath %@ iconPath %s",_path, iconPath.toLocal8Bit().data());
         _icon = new QIcon(iconPath);
+        NSLog(@"_icon created at %p", _icon);
         _bundleID = [b objectForInfoDictionaryKey:@"CFBundleIdentifier"];
-    } else if(LSIsAppDir((CFURLRef)url)) {
+    } else if(LSIsAppDir((__bridge CFURLRef)url)) {
         _type = DIT_APP_APPDIR;
         _execPath = [_path stringByAppendingPathComponent:@"AppRun"];
         _label = [[path lastPathComponent] stringByDeletingPathExtension];
@@ -219,6 +221,7 @@ void DIWidget::mouseMoveEvent(QMouseEvent *e)
     _windows = [NSMutableArray new];
     _widget = new DIWidget(self);
     int size = [DockItem iconSize];
+    NSLog(@"size is %d",size);
     _widget->setPixmap(_icon->pixmap(size, size));
     _widget->setToolTip(QString::fromUtf8([_label UTF8String]));
     return self;
@@ -275,7 +278,7 @@ void DIWidget::mouseMoveEvent(QMouseEvent *e)
         _runMarker->deleteLater();
     if(_widget)
         _widget->deleteLater();
-    [super dealloc];
+//     [super dealloc];
 }
 
 -(NSString *)path {
@@ -403,7 +406,7 @@ void DIWidget::mouseMoveEvent(QMouseEvent *e)
                 return; // already have this PID
         }
         [_pids addObject:[NSNumber numberWithInteger:pid]];
-        EV_SET(e, pid, EVFILT_PROC, EV_ADD, NOTE_FORK|NOTE_EXEC|NOTE_TRACK|NOTE_EXIT, 0, self);
+        EV_SET(e, pid, EVFILT_PROC, EV_ADD, NOTE_FORK|NOTE_EXEC|NOTE_TRACK|NOTE_EXIT, 0, (__bridge void *)self);
 
         // wake up kqueue to insert the event
         write(piper(1), e, sizeof(struct kevent));
@@ -419,7 +422,7 @@ void DIWidget::mouseMoveEvent(QMouseEvent *e)
         for(int i = 0; i < [_pids count]; ++i) {
             if([[_pids objectAtIndex:i] intValue] == pid) {
                 [_pids removeObjectAtIndex:i];
-                EV_SET(e, pid, EVFILT_PROC, EV_DELETE, 0, 0, self);
+                EV_SET(e, pid, EVFILT_PROC, EV_DELETE, 0, 0, (__bridge void *)self);
 
                 // wake up kqueue to insert the event
                 write(piper(1), e, sizeof(struct kevent));

@@ -1,7 +1,7 @@
 /*
  * Airyx LaunchServices - unified types functions
  *
- * Copyright (C) 2021 Zoe Knox <zoe@pixin.net>
+ * Copyright (C) 2021-2022 Zoe Knox <zoe@pixin.net>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -106,7 +106,7 @@ CFArrayRef UTTypeCopyConformsTo(CFStringRef inUTI)
     int rc = sqlite3_step(stmt);
     CFArrayRef result = CFArrayCreateMutable(NULL, 5, NULL);
     while(rc == SQLITE_ROW) {
-        CFArrayRef conforms = (CFArrayRef)[[NSString
+        CFArrayRef conforms = (__bridge_retained CFArrayRef)[[NSString
 	    stringWithCString:(const char *)sqlite3_column_text(stmt, 0)]
 	    componentsSeparatedByString:@","];
 	CFArrayAppendArray(result, conforms, CFRangeMake(0, CFArrayGetCount(conforms)));
@@ -115,7 +115,8 @@ CFArrayRef UTTypeCopyConformsTo(CFStringRef inUTI)
 
     sqlite3_finalize(stmt);
     sqlite3_close(pDB);
-    return (CFArrayRef)CFRetain(result);
+    CFRetain(result);
+    return result;
 }
 
 Boolean UTTypeConformsTo(CFStringRef inUTI1, CFStringRef inUTI2)
@@ -232,12 +233,13 @@ CFArrayRef UTTypeCreateAllIdentifiersForTag(CFStringRef inTagClass,
     CFArrayRef result = CFArrayCreateMutable(NULL, 5, NULL);
     while(rc == SQLITE_ROW) {
     	uti = [NSString stringWithCString:(const char *)sqlite3_column_text(stmt, 0)];
-        CFArrayAppendValue(result, [uti copy]);
+        CFArrayAppendValue(result, (__bridge_retained void *)uti);
 	rc = sqlite3_step(stmt);
     }
 
     sqlite3_finalize(stmt);
     sqlite3_close(pDB);
+    CFRetain(result);
     return result;
 }
 
@@ -288,12 +290,12 @@ CFArrayRef UTTypeCopyAllTagsWithClass(CFStringRef inUTI,
     if(rc == SQLITE_ROW) {
     	NSString *tagString = [NSString stringWithCString:(const char *)sqlite3_column_text(stmt, 0)];
 	NSArray *tags = [tagString componentsSeparatedByString:@","];
-	result = (CFArrayRef)tags;
+	result = (__bridge_retained CFArrayRef)tags;
     }
 
     sqlite3_finalize(stmt);
     sqlite3_close(pDB);
-    return (CFArrayRef)CFRetain(result);
+    return result;
 
 }
 

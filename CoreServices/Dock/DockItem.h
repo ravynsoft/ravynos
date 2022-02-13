@@ -75,13 +75,13 @@ private:
     DIWidget *_widget;
 }
 
-+dockItemWithPath:(NSString *)path;
-+dockItemWithWindow:(unsigned int)window path:(const char *)path;
-+dockItemWithMinimizedWindow:(unsigned int)window;
++(DockItem *)dockItemWithPath:(NSString *)path;
++(DockItem *)dockItemWithWindow:(unsigned int)window path:(const char *)path;
++(DockItem *)dockItemWithMinimizedWindow:(unsigned int)window;
 
--initWithPath:(NSString *)path;
--initWithWindow:(unsigned int)window path:(const char *)path;
--initWithMinimizedWindow:(unsigned int)window;
+-(DockItem *)initWithPath:(NSString *)path;
+-(DockItem *)initWithWindow:(unsigned int)window path:(const char *)path;
+-(DockItem *)initWithMinimizedWindow:(unsigned int)window;
 
 -(NSString *)path;
 -(NSString *)execPath;

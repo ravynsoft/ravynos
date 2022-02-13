@@ -14,19 +14,19 @@ MK_WERROR=	no
 QT_CFLAGS!=	pkg-config --cflags Qt5Widgets Qt5Xdg
 QT_LDFLAGS!=	pkg-config --libs Qt5Widgets Qt5Xdg
 CXXFLAGS+=	${QT_CFLAGS} -g -fPIC -I/usr/include/KF5/KWindowSystem \
-		-I${MAKEOBJDIR}
-LDFLAGS+=	${QT_LDFLAGS} -lc++ -framework Foundation \
+		-I${MAKEOBJDIR} -fobjc-arc
+LDFLAGS+=	${QT_LDFLAGS} -lc++ -framework Foundation -framework CoreFoundation \
 		-framework LaunchServices -lobjc -lKF5WindowSystem -lX11
 
 Trash.app::
 	rm -rf ${.TARGET}
 	${MAKE} -C ${.CURDIR}/Trash
-	mv Trash/${.TARGET} .
+	mv Trash/Trash.app .
 
 Downloads.app::
 	rm -rf ${.TARGET}
 	${MAKE} -C ${.CURDIR}/Downloads
-	mv Downloads/${.TARGET} .
+	mv Downloads/Downloads.app .
 
 .include <airyx.app.mk>
 

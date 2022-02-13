@@ -34,6 +34,8 @@ void pidMonitorLoop(void) {
     char buf[PATH_MAX];
     int inCount = 0;
 
+    pid_t myPID = getpid();
+
     while(1) {
         int count = kevent(kqPIDs, in, inCount, out, 128, NULL);
         inCount = 0;
@@ -45,8 +47,12 @@ void pidMonitorLoop(void) {
                         / sizeof(struct kevent);
                     break;
                 case EVFILT_PROC:
-                    if((out[i].fflags & NOTE_FORK|NOTE_EXEC|NOTE_CHILD)
+                    // ignore FORK notices for this PID - we only care about children
+                    if(myPID == out[i].ident)
+                        break;
+                    if((out[i].fflags & (NOTE_FORK|NOTE_EXEC|NOTE_CHILD))
                         && ((out[i].fflags & NOTE_EXIT) == 0)) {
+
                         NSString *path = [NSString
                             stringWithFormat:@"/proc/%lu/file", out[i].ident];
                         int len = readlink([path UTF8String], buf, PATH_MAX-1);
@@ -66,16 +72,16 @@ void pidMonitorLoop(void) {
                         [item addPID:out[i].ident];
                         if(!wasRunning) {
                             NSDebugLog(@"Item Started: %@", [item label]);
-                            g_dock->emitStarted((void *)item);
+                            g_dock->emitStarted((__bridge void *)item);
                         }
                     }
                     if((out[i].fflags & NOTE_EXIT)) {
                         NSDebugLog(@"PID %lu exited", out[i].ident);
-                        DockItem *item = (DockItem *)(out[i].udata);
+                        DockItem *item = (__bridge DockItem *)(out[i].udata);
                         [item removePID:out[i].ident];
                         if(![item isRunning]) {
                             NSDebugLog(@"Item Stopped: %@", [item label]);
-                            g_dock->emitStopped((void *)item);
+                            g_dock->emitStopped((__bridge void *)item);
                         }
                     }
                     break;
@@ -86,9 +92,8 @@ void pidMonitorLoop(void) {
     }
 }
 
-int main(int argc, const char *argv[]) {
-    __NSInitializeProcess(argc, argv);
-    QApplication app(argc, (char **)argv);
+int main(int argc, char **argv) {
+    QApplication app(argc, argv);
 
     kqPIDs = kqueue();
     g_dock = new Dock();

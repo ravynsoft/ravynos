@@ -26,7 +26,7 @@
 
 static void dictIterator(const launch_data_t lval, const char *key, void *ctx)
 {
-    NSMutableDictionary *dict = (NSMutableDictionary *)ctx;
+    NSMutableDictionary *dict = (__bridge NSMutableDictionary *)ctx;
     [dict setObject:objectWithLaunchData(lval)
         forKey:[NSString stringWithUTF8String:key]];
 }
@@ -51,7 +51,7 @@ id objectWithLaunchData(launch_data_t data) {
         case LAUNCH_DATA_DICTIONARY:
         {
             NSMutableDictionary *dict = [NSMutableDictionary new];
-            launch_data_dict_iterate(data, dictIterator, dict);
+            launch_data_dict_iterate(data, dictIterator, (__bridge void *)dict);
             return dict;
         }
         case LAUNCH_DATA_FD:

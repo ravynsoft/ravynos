@@ -134,3 +134,6 @@ private:
     QFrame *m_divider2;
     QPixmap *m_iconRun;
 };
+
+extern Dock *g_dock;
+

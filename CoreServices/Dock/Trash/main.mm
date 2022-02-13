@@ -27,6 +27,8 @@
 int main(int argc, const char *argv[]) {
     __NSInitializeProcess(argc, argv);
 
-    Trash *trash = [Trash new];
-    return [trash run];
+    @autoreleasepool {
+        Trash *trash = [Trash new];
+        return [trash run];
+    }
 }
