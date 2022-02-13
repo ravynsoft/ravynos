@@ -44,7 +44,7 @@ airyx_task:
     - rm -f dist/airyx.txz
     - make -f Makefile.airyx airyx-package
   iso_script:
-    - pkg install -y sshpass bash megacmd
+    - pkg install -y sshpass bash megacmd openssl
     - ln -sf /usr/bin/bash /bin/bash
     - cp -fv version.txt ISO/overlays/ramdisk/version
     - mkdir -p /usr/local/furybsd/$(uname -m)/cache/$(head -1 version.txt)/base
