@@ -17,6 +17,7 @@ Please visit [airyx.org](https://airyx.org/) for more info: [Release Notes](http
 
 ### Join us!
 
+* Can you help build the dream? See the current projects/needs in [CONTRIBUTING.md](CONTRIBUTING.md)!
 * Our [Discord](https://discord.com/invite/8caJbAGNwY) server.
 * `#airyx:matrix.org` - join via [Element.io](https://app.element.io/#/room/#airyx:matrix.org)
 * `#airyx` on [Libera IRC](https://web.libera.chat/?channel=#airyx)
