@@ -1,0 +1,509 @@
+/*
+ * Copyright (c) 2008 Johannes Fortmann
+ * Copyright (C) 2021 Zoe Knox <zoe@pixin.net>
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+#import <Foundation/NSException.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/mman.h>
+#import "WLWindow.h"
+#import "O2Context_builtin_FT.h"
+#import <Onyx2D/O2Surface.h>
+#import <Onyx2D/O2ImageSource_PNG.h>
+#import <Onyx2D/O2Image.h>
+#import <QuartzCore/CAWindowOpenGLContext.h>
+
+extern int ready; // FIXME: move this into class
+
+CGL_EXPORT CGLError CGLCreateContextForWindow(CGLPixelFormatObj pixelFormat,
+    CGLContextObj share, CGLContextObj *resultp, unsigned long window);
+
+void CGNativeBorderFrameWidthsForStyle(unsigned styleMask,CGFloat *top,CGFloat *left,
+                                       CGFloat *bottom,CGFloat *right)
+{
+   *top=0;
+   *left=0;
+   *bottom=0;
+   *right=0;
+}
+
+static int allocate_shm_file(size_t size)
+{
+    int fd = shm_open(SHM_ANON, O_RDWR | O_CREAT | O_EXCL, 0600);
+
+    if (fd < 0)
+        return -1;
+    int ret;
+    do {
+        ret = ftruncate(fd, size);
+    } while (ret < 0 && errno == EINTR);
+    if (ret < 0) {
+        close(fd);
+        return -1;
+    }
+    return fd;
+}
+
+
+static void wl_buffer_release(void *data, struct wl_buffer *wl_buffer)
+{
+    /* Sent by the compositor when it's no longer using this buffer */
+    wl_buffer_destroy(wl_buffer);
+}
+
+static const struct wl_buffer_listener wl_buffer_listener = {
+    .release = wl_buffer_release,
+};
+
+
+static void xdg_surface_handle_configure(void *data,
+		struct xdg_surface *xdg_surface, uint32_t serial) {
+    WLWindow *win = (__bridge WLWindow *)data;
+    NSRect frame = [win frame];
+    xdg_surface_ack_configure(xdg_surface, serial);
+
+    // FIXME: handle resize of surface
+
+    [win flushBuffer];
+    ready = 1;
+}
+
+static const struct xdg_surface_listener xdg_surface_listener = {
+    .configure = xdg_surface_handle_configure,
+};
+
+static void xdg_toplevel_handle_configure(void *data,
+		struct xdg_toplevel *xdg_toplevel, int32_t w, int32_t h,
+		struct wl_array *states) {
+    if(w > 0 && h > 0) {
+        WLWindow *win = (__bridge WLWindow *)data;
+        NSRect frame = [win frame];
+        frame.size.width = w;
+        frame.size.height = h;
+        [win setFrame:frame];
+    }
+}
+
+static const struct xdg_toplevel_listener xdg_toplevel_listener = {
+    .configure = xdg_toplevel_handle_configure,
+};
+
+static void
+xdg_wm_base_ping(void *data, struct xdg_wm_base *xdg_wm_base, uint32_t serial)
+{
+    xdg_wm_base_pong(xdg_wm_base, serial);
+}
+
+static const struct xdg_wm_base_listener xdg_wm_base_listener = {
+    .ping = xdg_wm_base_ping,
+};
+
+static void handle_global(void *data, struct wl_registry *registry,
+		uint32_t name, const char *interface, uint32_t version) {
+    WLWindow *win = (__bridge WLWindow *)data;
+
+    if (strcmp(interface, wl_compositor_interface.name) == 0) {
+        [win set_compositor:wl_registry_bind(registry, name, &wl_compositor_interface, 1)];
+    } else if (strcmp(interface, xdg_wm_base_interface.name) == 0) {
+        [win set_wm_base:wl_registry_bind(registry, name, &xdg_wm_base_interface, 1)];
+    } else if (strcmp(interface, wl_shm_interface.name) == 0) {
+        [win set_wl_shm: wl_registry_bind(registry, name, &wl_shm_interface, 1)];
+    //} else if (strcmp(interface, wl_seat_interface.name) == 0) {
+    //    struct wl_seat *seat =
+    //            wl_registry_bind(registry, name, &wl_seat_interface, 1);
+    //    wl_seat_add_listener(seat, &seat_listener, NULL);
+    }
+}
+
+static void handle_global_remove(void *data, struct wl_registry *registry,
+		uint32_t name) {
+	// Who cares?
+}
+
+static const struct wl_registry_listener registry_listener = {
+	.global = handle_global,
+	.global_remove = handle_global_remove,
+};
+
+@implementation WLWindow
+
+- initWithFrame:(O2Rect)frame styleMask:(unsigned)styleMask isPanel:(BOOL)isPanel
+    backingType:(NSUInteger)backingType
+{
+    _level = kCGNormalWindowLevel;
+    _backingType = backingType;
+    _deviceDictionary = [NSMutableDictionary new];
+    _frame = frame;
+    _context = nil;
+
+    if(display == NULL) {
+        NSLog(@"WLWindow: Failed to connect to display");
+        return nil;
+    }
+
+    struct wl_registry *registry = wl_display_get_registry(display);
+    wl_registry_add_listener(registry, &registry_listener, (__bridge void *)self);
+    wl_display_roundtrip(display);
+
+    if(compositor == NULL) {
+        NSLog(@"WLWindow: compositor not available");
+        return nil;
+    }
+    if(wm_base == NULL) {
+        NSLog(@"WLWindow: xdg-shell not available");
+        return nil;
+    }
+
+    wl_surface = wl_compositor_create_surface(compositor);
+    xdg_surface = xdg_wm_base_get_xdg_surface(wm_base, wl_surface);
+    xdg_toplevel = xdg_surface_get_toplevel(xdg_surface);
+
+    wl_display_roundtrip(display);
+
+    xdg_surface_add_listener(xdg_surface, &xdg_surface_listener, (__bridge void *)self);
+    xdg_toplevel_add_listener(xdg_toplevel, &xdg_toplevel_listener, (__bridge void *)self);
+
+    wl_surface_commit(wl_surface);
+
+#ifdef notyet
+    if(isPanel && (styleMask & NSDocModalWindowMask))
+        styleMask=NSBorderlessWindowMask;
+      
+    // [(X11Display*)[NSDisplay currentDisplay] setWindow:self forID:_window];
+      
+    if(styleMask != NSBorderlessWindowMask) {
+        // draw decorations
+    }
+#endif
+    return self;
+}
+
+-(struct wl_surface *)wl_surface
+{
+    return wl_surface;
+}
+
+-(void) set_wm_base:(struct xdg_wm_base *)base
+{
+    wm_base = base;
+}
+
+-(void) set_wl_shm:(struct wl_shm *)shm
+{
+    wl_shm = shm;
+}
+
+-(void) set_compositor:(struct wl_compositor *)comp
+{
+    compositor = comp;
+}
+
+-(void) setDelegate:delegate
+{
+    _delegate=delegate;
+}
+
+- delegate
+{
+    return _delegate;
+}
+
+-(void) invalidate
+{
+    [_delegate platformWindowDidInvalidateCGContext:self];
+    _delegate=nil;
+    _context=nil;
+
+    // [(X11Display*)[NSDisplay currentDisplay] setWindow:nil forID:_window];
+}
+
+
+-(void)createCGLContextObjIfNeeded {
+   if(_cglContext==NULL){
+    CGLError error;
+    
+    if((error=CGLCreateContextForWindow(NULL,NULL,&_cglContext,(uintptr_t)self))!=kCGLNoError)
+     NSLog(@"CGLCreateContextForWindow failed at %s %d with error %d",__FILE__,__LINE__,error);
+   }
+   if(_cglContext!=NULL && _caContext==NULL){
+    _caContext=[[CAWindowOpenGLContext alloc] initWithCGLContext:_cglContext];
+   }
+}
+
+-(O2Context *) createCGContextIfNeeded
+{
+    if(_context == nil) {
+        O2ColorSpaceRef colorSpace = O2ColorSpaceCreateDeviceRGB();
+        O2Surface *surface = [[O2Surface alloc] initWithBytes:NULL
+            width:_frame.size.width height:_frame.size.height
+            bitsPerComponent:8 bytesPerRow:0 colorSpace:colorSpace
+            bitmapInfo:kO2ImageAlphaPremultipliedFirst|kO2BitmapByteOrder32Little];
+        O2ColorSpaceRelease(colorSpace);
+        _context = [[O2Context_builtin_FT alloc] initWithSurface:surface flipped:NO];
+    }
+    return _context;
+}
+
+-(O2Context *) createBackingCGContextIfNeeded
+{
+    return nil;
+}
+
+-(O2Context *) cgContext
+{
+    return [self createCGContextIfNeeded];
+}
+
+-(void) invalidateContextsWithNewSize:(NSSize)size forceRebuild:(BOOL)forceRebuild
+{
+    if(!NSEqualSizes(_frame.size,size) || forceRebuild) {
+        NSSize oldSize = _frame.size;
+        _frame.size = size;
+
+        O2Context *currentContext = _context;
+        O2ColorSpaceRef colorSpace = O2ColorSpaceCreateDeviceRGB();
+        O2Surface *surface = [[O2Surface alloc] initWithBytes:NULL
+            width:_frame.size.width height:_frame.size.height
+            bitsPerComponent:8 bytesPerRow:0 colorSpace:colorSpace
+            bitmapInfo:kO2ImageAlphaPremultipliedFirst|kO2BitmapByteOrder32Little];
+        O2ColorSpaceRelease(colorSpace);
+        _context = [[O2Context_builtin_FT alloc] initWithSurface:surface flipped:NO];
+        [_context drawImage:[currentContext surface]
+            inRect:NSMakeRect(0,0,oldSize.width,oldSize.height)];
+        [_delegate platformWindowDidInvalidateCGContext:self];
+        currentContext = nil;
+    }
+}
+
+-(void) invalidateContextsWithNewSize:(NSSize)size
+{
+    [self invalidateContextsWithNewSize:size forceRebuild:NO];
+}
+
+-(void) setTitle:(NSString *)title
+{
+    xdg_toplevel_set_title(xdg_toplevel, [title UTF8String]);
+}
+
+-(BOOL) setProperty:(NSString *)property toValue:(NSString *)value
+{
+    return YES;
+}
+
+-(void) setFrame:(O2Rect)frame
+{
+    _frame = frame;
+    // move window
+    [self invalidateContextsWithNewSize:frame.size];
+}
+
+-(void) setLevel:(int)value
+{
+    _level = value;
+}
+
+-(void) showWindowForAppActivation:(O2Rect)frame
+{
+    NSUnimplementedMethod();
+}
+
+-(void) hideWindowForAppDeactivation:(O2Rect)frame
+{
+    NSUnimplementedMethod();
+}
+
+-(void) hideWindow
+{
+    _mapped=NO;
+}
+
+-(void) placeAboveWindow:(int)otherNumber
+{
+    // map and stack order
+}
+
+-(void) placeBelowWindow:(int)otherNumber
+{
+    // map and stack order
+}
+
+-(void) makeKey
+{
+    // map and stack order
+}
+
+-(void) makeMain
+{
+    // map and stack order
+}
+
+-(void) captureEvents
+{
+    // FIXME: find out what this is supposed to do
+}
+
+-(void) miniaturize
+{
+    NSUnimplementedMethod();
+}
+
+-(void) deminiaturize
+{
+    NSUnimplementedMethod();
+}
+
+-(BOOL) isMiniaturized
+{
+    return NO;
+}
+
+-(void) openGLFlushBuffer
+{
+    CGLError error;
+    CGLContextObj prevContext = CGLGetCurrentContext();
+   
+    [self createCGLContextObjIfNeeded];
+    if(_caContext == NULL)
+        return;
+
+    O2Surface *surface = [_context surface];
+    size_t width = O2ImageGetWidth(surface);
+    size_t height = O2ImageGetHeight(surface);
+    size_t stride = O2ImageGetBytesPerRow(surface);
+    size_t size = stride * height;
+
+    // FIXME: what is the impact of not having a usable caContext?
+    //[_caContext prepareViewportWidth:width height:height];
+    //[_caContext renderSurface:surface];
+
+    const char *bytes = [surface pixelBytes];
+
+    int fd = allocate_shm_file(size);
+    if (fd == -1) 
+        return;
+
+    uint32_t *data = mmap(NULL, size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
+    if (data == MAP_FAILED) {
+        close(fd);
+        return;
+    }
+
+    struct wl_shm_pool *pool = wl_shm_create_pool(wl_shm, fd, size);
+    _buffer = wl_shm_pool_create_buffer(pool, 0, width, height, stride, WL_SHM_FORMAT_XRGB8888);
+    wl_shm_pool_destroy(pool);
+    close(fd);
+
+    memcpy(data, bytes, size);
+    munmap(data, size);
+    [self _attachBufferWithWidth:width height:height];
+
+    CGLSetCurrentContext(prevContext);
+}
+
+-(void) flushBuffer
+{
+    O2ContextFlush(_context);
+    [self openGLFlushBuffer];
+}
+
+-(void) _attachBufferWithWidth:(size_t)w height:(size_t)h
+{
+    wl_surface_attach(wl_surface, _buffer, 0, 0);
+    wl_surface_damage(wl_surface, 0, 0, w, h); // FIXME: use dirty rectangle here
+    wl_buffer_add_listener(_buffer, &wl_buffer_listener, NULL);
+    wl_surface_commit(wl_surface);
+}
+
+// This seems wrong but it's exactly what was done in the Win32 version
+-(NSPoint) mouseLocationOutsideOfEventStream
+{
+#if notyet
+    Window window;
+    int rootX, rootY, winX, winY;
+    unsigned int mask;
+
+    BOOL result = XQueryPointer(_display, DefaultRootWindow(_display),
+        &window, &window, &rootX, &rootY, &winX, &winY, &mask);
+    if(result == YES) {
+        return [self transformPoint:NSMakePoint(rootX, rootY)];
+    }
+#endif
+    NSLog(@"-[WLWindow mouseLocationOutsideOfEventStream] unable to locate mouse pointer");
+    return NSMakePoint(0,0);
+}
+
+
+-(O2Rect) frame
+{
+   return _frame;
+}
+
+-(void) addEntriesToDeviceDictionary:(NSDictionary *)entries
+{
+    [_deviceDictionary addEntriesFromDictionary:entries];
+}
+
+- (NSPoint)transformPoint:(NSPoint)pos
+{
+    return pos;
+}
+
+- (O2Rect)transformFrame:(O2Rect)frame
+{
+    return frame;
+}
+
+- (void)frameChanged
+{
+}
+
+@end
+
+CGRect CGInsetRectForNativeWindowBorder(CGRect frame,unsigned styleMask)
+{
+    CGFloat top,left,bottom,right;
+    
+    CGNativeBorderFrameWidthsForStyle(styleMask,&top,&left,&bottom,&right);
+    
+    frame.origin.x+=left;
+    frame.origin.y+=bottom;
+    frame.size.width-=left+right;
+    frame.size.height-=top+bottom;
+    
+    return frame;
+}
+
+CGRect CGOutsetRectForNativeWindowBorder(CGRect frame,unsigned styleMask)
+{
+    CGFloat top,left,bottom,right;
+    
+    CGNativeBorderFrameWidthsForStyle(styleMask,&top,&left,&bottom,&right);
+    
+    frame.origin.x-=left;
+    frame.origin.y-=bottom;
+    frame.size.width+=left+right;
+    frame.size.height+=top+bottom;
+    
+    return frame;
+}

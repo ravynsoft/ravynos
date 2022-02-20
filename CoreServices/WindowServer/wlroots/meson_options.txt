@@ -1,0 +1,6 @@
+option('xcb-errors', type: 'feature', value: 'auto', description: 'Use xcb-errors util library')
+option('xwayland', type: 'feature', value: 'auto', yield: true, description: 'Enable support for X11 applications')
+option('examples', type: 'boolean', value: true, description: 'Build example applications')
+option('icon_directory', description: 'Location used to look for cursors (default: ${datadir}/icons)', type: 'string', value: '')
+option('renderers', type: 'array', choices: ['auto', 'gles2', 'vulkan'], value: ['auto'], description: 'Select built-in renderers')
+option('backends', type: 'array', choices: ['auto', 'drm', 'libinput', 'x11'], value: ['auto'], description: 'Select built-in backends')

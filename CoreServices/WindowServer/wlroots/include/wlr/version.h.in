@@ -1,0 +1,12 @@
+#ifndef WLR_VERSION_H
+#define WLR_VERSION_H
+
+#mesondefine WLR_VERSION_STR
+
+#mesondefine WLR_VERSION_MAJOR
+#mesondefine WLR_VERSION_MINOR
+#mesondefine WLR_VERSION_MICRO
+
+#define WLR_VERSION_NUM ((WLR_VERSION_MAJOR << 16) | (WLR_VERSION_MINOR << 8) | WLR_VERSION_MICRO)
+
+#endif

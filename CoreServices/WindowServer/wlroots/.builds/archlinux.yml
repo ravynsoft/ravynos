@@ -1,0 +1,45 @@
+image: archlinux
+packages:
+  - clang
+  - ffmpeg
+  - libinput
+  - libxkbcommon
+  - mesa
+  - meson
+  - pixman
+  - wayland
+  - wayland-protocols
+  - xcb-util-errors
+  - xcb-util-image
+  - xcb-util-renderutil
+  - xcb-util-wm
+  - xorg-xwayland
+  - seatd
+  - vulkan-icd-loader
+  - vulkan-headers
+  - glslang
+sources:
+  - https://gitlab.freedesktop.org/wlroots/wlroots.git
+tasks:
+  - setup: |
+      cd wlroots
+      CC=gcc meson build-gcc --fatal-meson-warnings --default-library=both -Dauto_features=enabled --prefix /usr -Db_sanitize=address,undefined
+      CC=clang meson build-clang --fatal-meson-warnings -Dauto_features=enabled
+  - gcc: |
+      cd wlroots/build-gcc
+      ninja
+      sudo ninja install
+      cd ../tinywl
+      CFLAGS="-fsanitize=address,undefined -fno-omit-frame-pointer" make
+  - clang: |
+      cd wlroots/build-clang
+      ninja
+  - smoke-test: |
+      cd wlroots/tinywl
+      sudo modprobe vkms
+      udevadm settle
+      export WLR_BACKENDS=drm
+      export WLR_RENDERER=pixman
+      export WLR_DRM_DEVICES=/dev/dri/by-path/platform-vkms-card
+      sudo chmod ugo+rw /dev/dri/by-path/platform-vkms-card
+      sudo -E seatd-launch -- ./tinywl -s 'kill $PPID' || [ $? = 143 ]

@@ -1,0 +1,14 @@
+#ifndef WLR_CONFIG_H
+#define WLR_CONFIG_H
+
+#mesondefine WLR_HAS_DRM_BACKEND
+#mesondefine WLR_HAS_LIBINPUT_BACKEND
+#mesondefine WLR_HAS_X11_BACKEND
+
+#mesondefine WLR_HAS_GLES2_RENDERER
+
+#mesondefine WLR_HAS_VULKAN_RENDERER
+
+#mesondefine WLR_HAS_XWAYLAND
+
+#endif

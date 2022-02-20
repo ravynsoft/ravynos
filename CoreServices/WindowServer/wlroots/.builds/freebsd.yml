@@ -1,0 +1,38 @@
+image: freebsd/latest
+packages:
+  - devel/evdev-proto
+  - devel/libepoll-shim
+  - devel/libudev-devd
+  - devel/meson # implies ninja
+  - devel/pkgconf
+  - graphics/glslang
+  - graphics/libdrm
+  - graphics/mesa-libs
+  - graphics/png
+  - graphics/vulkan-headers
+  - graphics/vulkan-loader
+  - graphics/wayland
+  - graphics/wayland-protocols
+  - multimedia/ffmpeg
+  - x11/libX11
+  - x11/libinput
+  - x11/libxcb
+  - x11/libxkbcommon
+  - x11/pixman
+  - x11/xcb-util-errors
+  - x11/xcb-util-renderutil
+  - x11/xcb-util-wm
+  - x11-servers/xwayland
+  - sysutils/seatd
+  - gmake
+sources:
+  - https://gitlab.freedesktop.org/wlroots/wlroots.git
+tasks:
+  - wlroots: |
+      cd wlroots
+      meson build --fatal-meson-warnings -Dauto_features=enabled
+      ninja -C build
+      sudo ninja -C build install
+  - tinywl: |
+      cd wlroots/tinywl
+      gmake
