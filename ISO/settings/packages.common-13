@@ -1,46 +1,46 @@
 pkg
 sudo
-xorg-server
-xf86-input-evdev
-xf86-input-keyboard
-xf86-input-libinput
-xf86-input-mouse
-#xf86-input-vmmouse
-#xf86-video-ati
-#xf86-video-cirrus
-xf86-video-intel
-xf86-video-scfb
-xf86-video-vesa
-xf86-video-vmware
-xf86-video-qxl # !i386
+#xorg-server
+#xf86-input-evdev
+#xf86-input-keyboard
+#xf86-input-libinput
+#xf86-input-mouse
+##xf86-input-vmmouse
+##xf86-video-ati
+##xf86-video-cirrus
+#xf86-video-intel
+#xf86-video-scfb
+#xf86-video-vesa
+#xf86-video-vmware
+#xf86-video-qxl # !i386
 drm-kmod
 libva-intel-driver
 mesa-libs
 mesa-gallium-xa
 mesa-dri
 gpu-firmware-kmod
-open-vm-tools
+#open-vm-tools
 #virtualbox-ose-additions
-xauth
-xinit
-setxkbmap
+#xauth
+#xinit
+#setxkbmap
 xdg-user-dirs
 xdg-utils
 #git-lite
 zsh
 usbids
-wpa_supplicant_gui
-webcamd
+#wpa_supplicant_gui
+#webcamd
 # webcamoid # Draws in jackit, which draws in db5, which is huge
-utouch-kmod
+#utouch-kmod
 pv
 cpdup
 # iichid # iichid is not available in 13 because it is in base there; adding it here breaks the 13 build
 avahi-app
 nss_mdns
 #openntpd
-py38-qt5-widgets
-freedesktop-sound-theme
+#py38-qt5-widgets
+#freedesktop-sound-theme
 # Library to access the Xorg/XFree86 Synaptics TouchPad Driver
 #libsynaptics
 # Hardware detecting, device driver loading daemon

@@ -14,6 +14,7 @@ INCS= \
 	include/OpenGL/wglext.h
 RESOURCES=Info.plist
 CFLAGS+= ${FMWK_CFLAGS} -I.. -Iinclude -I../libobjc2 -I../Foundation/Headers
+LDFLAGS+= -lGL
 
 _install-hook:
 	rm -rf ${BUILDROOT}/System/Library/Frameworks/${FRAMEWORK}.framework

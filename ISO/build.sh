@@ -279,7 +279,7 @@ user()
   chroot ${uzip} chown -R 1000:1000 /Users/liveuser
   chroot ${uzip} pw groupmod wheel -m liveuser
   chroot ${uzip} pw groupmod video -m liveuser
-  chroot ${uzip} pw groupmod webcamd -m liveuser
+  #chroot ${uzip} pw groupmod webcamd -m liveuser
 }
 
 dm()

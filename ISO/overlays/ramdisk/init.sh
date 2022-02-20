@@ -97,18 +97,20 @@ rm -f /System/Library/LaunchDaemons
 mkdir -p /System/Library/LaunchDaemons
 ln -s /sysroot/System/Library/LaunchDaemons/com.apple.auditd.json /System/Library/LaunchDaemons/
 ln -s /sysroot/System/Library/LaunchDaemons/com.apple.notifyd.json /System/Library/LaunchDaemons/
-cat > /System/Library/LaunchDaemons/org.freebsd.ttyv3.json <<EOT
+for tty in 0 1 2 3; do
+    cat > /System/Library/LaunchDaemons/org.freebsd.ttyv${tty}.json <<EOT
 {
-	"Label": "org.freebsd.getty.ttyv3",
+	"Label": "org.freebsd.getty.ttyv${tty}",
 	"ProgramArguments": [
 		"/usr/libexec/getty",
 		"Pc",
-		"ttyv3"
+		"ttyv${tty}"
 	],
 	"RunAtLoad": true,
 	"KeepAlive": true
 }
 EOT
+done
 
 cd /sysroot/boot
 for d in *; do

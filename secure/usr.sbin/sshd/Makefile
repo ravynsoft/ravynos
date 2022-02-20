@@ -39,10 +39,11 @@ CFLAGS+=	-DHAVE_LDNS=1
 #LDADD+=	-lldns
 .endif
 
-.if ${MK_AUDIT} != "no"
-CFLAGS+= -DUSE_BSM_AUDIT=1 -DHAVE_GETAUDIT_ADDR=1
-LIBADD+=	bsm System notify
-.endif
+# Temporarily removed due to auditd/asld instability (2022-2-15 mszoek)
+#.if ${MK_AUDIT} != "no"
+#CFLAGS+= -DUSE_BSM_AUDIT=1 -DHAVE_GETAUDIT_ADDR=1
+#LIBADD+=	bsm System notify
+#.endif
 
 .if ${MK_BLACKLIST_SUPPORT} != "no"
 CFLAGS+= -DUSE_BLACKLIST=1 -I${SRCTOP}/contrib/blacklist/include
@@ -64,9 +65,9 @@ LIBADD+=	wrap
 
 LIBADD+=	crypto
 
-.if defined(LOCALBASE)
-CFLAGS+= -DXAUTH_PATH=\"${LOCALBASE}/bin/xauth\"
-.endif
+#.if defined(LOCALBASE)
+#CFLAGS+= -DXAUTH_PATH=\"${LOCALBASE}/bin/xauth\"
+#.endif
 
 .include <bsd.prog.mk>
 

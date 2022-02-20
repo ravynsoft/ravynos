@@ -1,7 +1,12 @@
-#!/bin/bash
+#!/usr/bin/bash
 
 set -e
 set -x
+
+tar -C "${uzip}" -xvf /usr/ports/packages/drm-fbsd13-kmod-5.4.144.g20220128.pkg
+tar -C "${uzip}" -xvf /usr/ports/packages/drm-kmod-g20190710_1.pkg
+tar -C "${uzip}" -xvf /usr/ports/packages/gpu-firmware-kmod-g20210330.pkg
+exit 0
 
 mkdir -p /tmp/system-overlay 
 cd /tmp/system-overlay
