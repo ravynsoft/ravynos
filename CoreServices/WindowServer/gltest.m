@@ -31,11 +31,15 @@
 #include "WLWindow.h"
 #include "xdg-shell-client-protocol.h"
 
+#import <CoreGraphics/CoreGraphics.h>
 #import <Onyx2D/O2Surface.h>
+#import <Onyx2D/O2ImageSource_PNG.h>
+#import <Onyx2D/O2ImageSource.h>
 
 struct wl_display *display;
 WLWindow *win;
 int ready = 0;
+CGImageRef icon;
 
 static void draw(void *data, struct wl_callback *cb, uint32_t time);
 static const struct wl_callback_listener frame_listener = {
@@ -51,17 +55,29 @@ static void draw(void *data, struct wl_callback *cb, uint32_t time) {
     cb = wl_surface_frame([win wl_surface]);
     wl_callback_add_listener(cb, &frame_listener, NULL);
 
-    O2Context *ctx = [win cgContext];
-    O2Surface *surf = [ctx surface];
+    CGContextRef ctx = (__bridge CGContextRef)[win cgContext];
+    O2Surface *surf = [[win cgContext] surface];
     static float color[3] = {0.3, 0.8, 0.8};
-    static float inc = 1;
+    static float inc = 1, inc2 = 1, inc3 = 1;
+    static CGRect imgrect = {
+        .origin.x = 100, .origin.y = 100,
+        .size.width = 128, .size.height = 128,
+    };
 
     int width = O2ImageGetWidth(surf);
     int height = O2ImageGetHeight(surf);
-    O2ContextSetRGBFillColor(ctx, color[0], 0, color[2], 1);
-    O2ContextFillRect(ctx, NSMakeRect(0,0,width,height));
-    O2ContextSetRGBFillColor(ctx, color[1], color[1], color[1], 1);
-    O2ContextFillRect(ctx, NSMakeRect(100, 100, width - 200, height - 200));
+    CGContextSetRGBFillColor(ctx, color[0], 0.3, color[2], 1);
+    CGContextFillRect(ctx, NSMakeRect(0,0,width,height));
+    CGContextSetRGBFillColor(ctx, 0.1, color[1], color[1], 1);
+    CGContextFillRect(ctx, NSMakeRect(100, 100, width - 200, height - 200));
+    CGContextDrawImage(ctx, imgrect, icon);
+    imgrect.origin.x += (inc2 * 5);
+    imgrect.origin.y += (inc3 * 3);
+    if(imgrect.origin.x > (width - 100 - imgrect.size.width) || imgrect.origin.x < 100)
+        inc2 = (-1)*inc2;
+    if(imgrect.origin.y > (height - 100 - imgrect.size.height) || imgrect.origin.y < 100)
+        inc3 = (-1)*inc3;
+
     color[0] += (inc * 0.01);
     color[1] -= (inc * 0.01);
     color[2] -= (inc * 0.01);
@@ -94,7 +110,6 @@ int main(int argc, char *argv[]) {
             free(buf);
         }
 
-
     display = wl_display_connect(NULL);
 
     win = [[WLWindow alloc] initWithFrame:NSMakeRect(0,0,1280,720)
@@ -103,6 +118,9 @@ int main(int argc, char *argv[]) {
     while(!ready)
         wl_display_roundtrip(display);
 
+    CFDataRef data = (__bridge CFDataRef)[NSData dataWithContentsOfFile:@"Icon.png"];
+    O2ImageSource_PNG *imgsrc = [O2ImageSource_PNG newImageSourceWithData:data options:nil];
+    icon = (__bridge CGImageRef)[imgsrc createImageAtIndex:0 options:nil];
     fprintf(stderr, "\n\n");
     draw(NULL, NULL, 0);
 
