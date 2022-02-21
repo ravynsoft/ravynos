@@ -23,6 +23,7 @@
 #import <Foundation/NSRaise.h>
 #import <CoreGraphics/CGWindow.h>
 #import <Onyx2D/O2Geometry.h>
+#import <Onyx2D/O2Path.h>
 #include <wayland-client.h>
 #include "xdg-shell-client-protocol.h"
 
@@ -36,6 +37,7 @@ extern struct wl_display *display;
     CAWindowOpenGLContext *_caContext;
 
     struct wl_compositor *compositor;
+    struct wl_registry *registry;
     struct xdg_wm_base *wm_base;
     struct wl_surface *wl_surface;
     struct wl_buffer *_buffer;
@@ -49,6 +51,7 @@ extern struct wl_display *display;
 
     NSMutableDictionary *_deviceDictionary;
     O2Rect _frame;
+    unsigned _styleMask;
     BOOL _mapped;
 }
 
@@ -66,6 +69,7 @@ extern struct wl_display *display;
 - (void) set_compositor:(struct wl_compositor *)comp;
 
 
+- (void) decorateWindow;
 - (void) _attachBufferWithWidth:(size_t)w height:(size_t)h;
 
 @end

@@ -42,7 +42,7 @@ CGL_EXPORT CGLError CGLCreateContextForWindow(CGLPixelFormatObj pixelFormat,
 void CGNativeBorderFrameWidthsForStyle(unsigned styleMask,CGFloat *top,CGFloat *left,
                                        CGFloat *bottom,CGFloat *right)
 {
-   *top=0;
+   *top=48;
    *left=0;
    *bottom=0;
    *right=0;
@@ -156,13 +156,14 @@ static const struct wl_registry_listener registry_listener = {
     _deviceDictionary = [NSMutableDictionary new];
     _frame = frame;
     _context = nil;
+    _styleMask = styleMask;
 
     if(display == NULL) {
         NSLog(@"WLWindow: Failed to connect to display");
         return nil;
     }
 
-    struct wl_registry *registry = wl_display_get_registry(display);
+    registry = wl_display_get_registry(display);
     wl_registry_add_listener(registry, &registry_listener, (__bridge void *)self);
     wl_display_roundtrip(display);
 
@@ -197,6 +198,16 @@ static const struct wl_registry_listener registry_listener = {
     }
 #endif
     return self;
+}
+
+-(void)dealloc
+{
+    if(wl_shm)
+        wl_shm_destroy(wl_shm);
+    if(wl_surface)
+        wl_surface_destroy(wl_surface);
+    if(registry)
+        wl_registry_destroy(registry);
 }
 
 -(struct wl_surface *)wl_surface
@@ -261,6 +272,8 @@ static const struct wl_registry_listener registry_listener = {
             bitmapInfo:kO2ImageAlphaPremultipliedFirst|kO2BitmapByteOrder32Little];
         O2ColorSpaceRelease(colorSpace);
         _context = [[O2Context_builtin_FT alloc] initWithSurface:surface flipped:NO];
+
+        [self decorateWindow];
     }
     return _context;
 }
@@ -291,6 +304,7 @@ static const struct wl_registry_listener registry_listener = {
         _context = [[O2Context_builtin_FT alloc] initWithSurface:surface flipped:NO];
         [_context drawImage:[currentContext surface]
             inRect:NSMakeRect(0,0,oldSize.width,oldSize.height)];
+        [self decorateWindow];
         [_delegate platformWindowDidInvalidateCGContext:self];
         currentContext = nil;
     }
@@ -378,6 +392,52 @@ static const struct wl_registry_listener registry_listener = {
     return NO;
 }
 
+
+-(void) decorateWindow
+{
+    O2Surface *surface = [_context surface];
+    CGRect inset = CGInsetRectForNativeWindowBorder(_frame,_styleMask);
+
+    O2ContextSetGrayStrokeColor(_context, 0.999, 1);
+    O2ContextSetGrayFillColor(_context, 0.999, 1);
+
+    // let's round these corners
+    float radius = 12;
+    O2ContextBeginPath(_context);
+    O2ContextMoveToPoint(_context, _frame.origin.x+radius, NSMaxY(_frame));
+    O2ContextAddArc(_context, _frame.origin.x + _frame.size.width - radius,
+        _frame.origin.y + _frame.size.height - radius, radius, 1.5708 /*radians*/,
+        0 /*radians*/, YES);
+    O2ContextAddLineToPoint(_context, _frame.origin.x + _frame.size.width,
+        _frame.origin.y);
+    O2ContextAddArc(_context, _frame.origin.x + _frame.size.width - radius,
+        _frame.origin.y + radius, radius, 6.28319 /*radians*/, 4.71239 /*radians*/,
+        YES);
+    O2ContextAddLineToPoint(_context, _frame.origin.x, _frame.origin.y);
+    O2ContextAddArc(_context, _frame.origin.x + radius, _frame.origin.y + radius,
+        radius, 4.71239, 3.14159, YES);
+    O2ContextAddLineToPoint(_context, _frame.origin.x,
+        _frame.origin.y + _frame.size.height);
+    O2ContextAddArc(_context, _frame.origin.x + radius, _frame.origin.y +
+        _frame.size.height - radius, radius, 3.14159, 1.5708, YES);
+    O2ContextAddLineToPoint(_context, _frame.origin.x, NSMaxY(_frame));
+    O2ContextClosePath(_context);
+    O2ContextFillPath(_context);
+
+    // window controls
+    CGRect button = NSMakeRect(12, _frame.size.height - 26, 16, 16);
+    O2ContextSetRGBFillColor(_context, 1, 0, 0, 1);
+    O2ContextFillEllipseInRect(_context, button);
+    O2ContextSetRGBFillColor(_context, 1, 0.9, 0, 1);
+    button.origin.x += 26;
+    O2ContextFillEllipseInRect(_context, button);
+    O2ContextSetRGBFillColor(_context, 0, 1, 0, 1);
+    button.origin.x += 26;
+    O2ContextFillEllipseInRect(_context, button);
+
+    // FIXME: title
+}
+
 -(void) openGLFlushBuffer
 {
     CGLError error;
@@ -388,8 +448,8 @@ static const struct wl_registry_listener registry_listener = {
         return;
 
     O2Surface *surface = [_context surface];
-    size_t width = O2ImageGetWidth(surface);
-    size_t height = O2ImageGetHeight(surface);
+    size_t width = _frame.size.width;
+    size_t height = _frame.size.height;
     size_t stride = O2ImageGetBytesPerRow(surface);
     size_t size = stride * height;
 
@@ -456,7 +516,7 @@ static const struct wl_registry_listener registry_listener = {
 
 -(O2Rect) frame
 {
-   return _frame;
+    return CGInsetRectForNativeWindowBorder(_frame,_styleMask);
 }
 
 -(void) addEntriesToDeviceDictionary:(NSDictionary *)entries

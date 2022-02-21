@@ -56,33 +56,29 @@ static void draw(void *data, struct wl_callback *cb, uint32_t time) {
     wl_callback_add_listener(cb, &frame_listener, NULL);
 
     CGContextRef ctx = (__bridge CGContextRef)[win cgContext];
-    O2Surface *surf = [[win cgContext] surface];
-    static float color[3] = {0.3, 0.8, 0.8};
+    static float color[3] = {0.3, 0.8, 1};
     static float inc = 1, inc2 = 1, inc3 = 1;
     static CGRect imgrect = {
         .origin.x = 100, .origin.y = 100,
         .size.width = 128, .size.height = 128,
     };
 
-    int width = O2ImageGetWidth(surf);
-    int height = O2ImageGetHeight(surf);
-    CGContextSetRGBFillColor(ctx, color[0], 0.3, color[2], 1);
-    CGContextFillRect(ctx, NSMakeRect(0,0,width,height));
-    CGContextSetRGBFillColor(ctx, 0.1, color[1], color[1], 1);
-    CGContextFillRect(ctx, NSMakeRect(100, 100, width - 200, height - 200));
+    CGRect rect = [win frame]; // this is the content frame inside decorations
+    CGContextSetGrayFillColor(ctx, 0.666, 1);
+    CGContextFillRect(ctx, NSMakeRect(rect.origin.x,rect.origin.y,
+        rect.size.width,rect.size.height));
+    CGContextSetGrayStrokeColor(ctx, 0, 1);
+    CGContextStrokeRect(ctx, NSMakeRect(rect.origin.x + 100, rect.origin.y + 100,
+        rect.size.width - 200, rect.size.height - 200));
     CGContextDrawImage(ctx, imgrect, icon);
     imgrect.origin.x += (inc2 * 5);
     imgrect.origin.y += (inc3 * 3);
-    if(imgrect.origin.x > (width - 100 - imgrect.size.width) || imgrect.origin.x < 100)
+    if(imgrect.origin.x > (rect.size.width - 100 - imgrect.size.width)
+        || imgrect.origin.x < (rect.origin.x + 100))
         inc2 = (-1)*inc2;
-    if(imgrect.origin.y > (height - 100 - imgrect.size.height) || imgrect.origin.y < 100)
+    if(imgrect.origin.y > (rect.size.height - 100 - imgrect.size.height)
+        || imgrect.origin.y < (rect.origin.y + 100))
         inc3 = (-1)*inc3;
-
-    color[0] += (inc * 0.01);
-    color[1] -= (inc * 0.01);
-    color[2] -= (inc * 0.01);
-    if(color[0] < 0.3 || color[0] > 0.8)
-        inc = (-1)*inc;
     [win flushBuffer];
     
     struct timespec now;
@@ -91,8 +87,8 @@ static void draw(void *data, struct wl_callback *cb, uint32_t time) {
                    - ( (last.tv_sec * 1000) + (last.tv_nsec / 1000000) );
     last.tv_sec = now.tv_sec;
     last.tv_nsec = now.tv_nsec;
-    fprintf(stderr, "frame %d %ux%u RGBA (%d fps) ctx %p color %.2f %.2f %.02f       \r",
-        fn++, width, height, 1000/delta, ctx, color[0], color[1], color[2]);
+    fprintf(stderr, "frame %d %.0fx%.0f RGBA (%d fps) ctx %p     \r",
+        fn++, rect.size.width, rect.size.height, 1000/delta, ctx);
 }
 
 
