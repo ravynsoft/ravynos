@@ -42,7 +42,7 @@ CGL_EXPORT CGLError CGLCreateContextForWindow(CGLPixelFormatObj pixelFormat,
 void CGNativeBorderFrameWidthsForStyle(unsigned styleMask,CGFloat *top,CGFloat *left,
                                        CGFloat *bottom,CGFloat *right)
 {
-   *top=48;
+   *top=44;
    *left=0;
    *bottom=0;
    *right=0;
@@ -80,13 +80,13 @@ static const struct wl_buffer_listener wl_buffer_listener = {
 static void xdg_surface_handle_configure(void *data,
 		struct xdg_surface *xdg_surface, uint32_t serial) {
     WLWindow *win = (__bridge WLWindow *)data;
-    NSRect frame = [win frame];
-    xdg_surface_ack_configure(xdg_surface, serial);
-
-    // FIXME: handle resize of surface
-
-    [win flushBuffer];
-    ready = 1;
+    @synchronized(win) {
+        CGRect frame = CGOutsetRectForNativeWindowBorder([win frame],[win styleMask]);
+        xdg_surface_ack_configure(xdg_surface, serial);
+        [win setFrame:frame];
+        [win flushBuffer];
+        ready = 1;
+    }
 }
 
 static const struct xdg_surface_listener xdg_surface_listener = {
@@ -98,10 +98,12 @@ static void xdg_toplevel_handle_configure(void *data,
 		struct wl_array *states) {
     if(w > 0 && h > 0) {
         WLWindow *win = (__bridge WLWindow *)data;
-        NSRect frame = [win frame];
-        frame.size.width = w;
-        frame.size.height = h;
-        [win setFrame:frame];
+        @synchronized(win) {
+            NSRect frame = [win frame];
+            frame.size.width = w;
+            frame.size.height = h;
+            [win setFrame:frame];
+        }
     }
 }
 
@@ -230,6 +232,11 @@ static const struct wl_registry_listener registry_listener = {
     compositor = comp;
 }
 
+-(unsigned) styleMask
+{
+    return _styleMask;
+}
+
 -(void) setDelegate:delegate
 {
     _delegate=delegate;
@@ -327,9 +334,9 @@ static const struct wl_registry_listener registry_listener = {
 
 -(void) setFrame:(O2Rect)frame
 {
-    _frame = frame;
-    // move window
     [self invalidateContextsWithNewSize:frame.size];
+    // move window
+    _frame = frame;
 }
 
 -(void) setLevel:(int)value
@@ -395,9 +402,6 @@ static const struct wl_registry_listener registry_listener = {
 
 -(void) decorateWindow
 {
-    O2Surface *surface = [_context surface];
-    CGRect inset = CGInsetRectForNativeWindowBorder(_frame,_styleMask);
-
     O2ContextSetGrayStrokeColor(_context, 0.999, 1);
     O2ContextSetGrayFillColor(_context, 0.999, 1);
 
@@ -516,7 +520,8 @@ static const struct wl_registry_listener registry_listener = {
 
 -(O2Rect) frame
 {
-    return CGInsetRectForNativeWindowBorder(_frame,_styleMask);
+    CGRect rect = CGInsetRectForNativeWindowBorder(_frame,_styleMask);
+    return rect;
 }
 
 -(void) addEntriesToDeviceDictionary:(NSDictionary *)entries
