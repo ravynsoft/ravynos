@@ -29,7 +29,6 @@
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include "WLWindow.h"
-#include "xdg-shell-client-protocol.h"
 
 #import <CoreGraphics/CoreGraphics.h>
 #import <Onyx2D/O2Surface.h>
@@ -121,6 +120,6 @@ int main(int argc, char *argv[]) {
     draw(NULL, NULL, 0);
 
     do {
-    } while(wl_display_dispatch(display)); 
+    } while(wl_display_dispatch(display) != -1); 
 }
 

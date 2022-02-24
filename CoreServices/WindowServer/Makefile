@@ -18,17 +18,19 @@ LDFLAGS+=	-framework Foundation -framework OpenGL \
                 -framework Onyx2D -framework CoreGraphics -framework CoreFoundation \
                 -L${MAKEOBJDIR}/wlroots -lwlroots -Wl,-R'$$ORIGIN/../Resources' \
                 -lGL ${PKGCONFIG_LIBS} -lfontconfig -lobjc -lmach -lwayland-server
+WLPROTOS=       ${.CURDIR}/wlroots/wayland-protocols
 
 xdg-shell-protocol.h:
 	wayland-scanner server-header \
-                /usr/share/wayland-protocols/stable/xdg-shell/xdg-shell.xml ${.TARGET}
+                ${WLPROTOS}/stable/xdg-shell/xdg-shell.xml ${.TARGET}
 
 xdg-shell.c:
 	wayland-scanner private-code \
-                /usr/share/wayland-protocols/stable/xdg-shell/xdg-shell.xml ${.TARGET}
+                ${WLPROTOS}/stable/xdg-shell/xdg-shell.xml ${.TARGET}
 
 build-wlroots:
-	cd ${.CURDIR}/wlroots && meson -Dexamples=false -Dbackends=drm,libinput ${MAKEOBJDIR}/wlroots/
+	cd ${.CURDIR}/wlroots && PKG_CONFIG_PATH=. meson -Dexamples=false \
+                -Dbackends=drm,libinput ${MAKEOBJDIR}/wlroots/
 	ninja -C ${MAKEOBJDIR}/wlroots
 
 clean-wlroots:

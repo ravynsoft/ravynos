@@ -18,14 +18,15 @@ CFLAGS+=	-g -fPIC -fobjc-arc ${PKGCONFIG_CFLAGS} -I/usr/include/fontconfig \
 LDFLAGS+=	-framework Foundation -framework QuartzCore -framework OpenGL \
                 -framework Onyx2D -framework CoreGraphics -framework CoreFoundation \
                 ${PKGCONFIG_LIBS} -lfontconfig -lobjc -lmach -lwayland-client -lGL
+WLPROTOS=       ${.CURDIR}/wlroots/wayland-protocols
 
 xdg-shell-client-protocol.h:
 	wayland-scanner client-header \
-                /usr/share/wayland-protocols/stable/xdg-shell/xdg-shell.xml ${.TARGET}
+                ${WLPROTOS}/stable/xdg-shell/xdg-shell.xml ${.TARGET}
 
 xdg-shell.c:
 	wayland-scanner private-code \
-                /usr/share/wayland-protocols/stable/xdg-shell/xdg-shell.xml ${.TARGET}
+                ${WLPROTOS}/stable/xdg-shell/xdg-shell.xml ${.TARGET}
 
 clean-deps:
 	rm -f .depend.*
