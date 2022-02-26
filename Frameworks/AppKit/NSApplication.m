@@ -133,6 +133,7 @@ id NSApp=nil;
     
    _lock=NSZoneMalloc(NULL,sizeof(pthread_mutex_t));
 
+#if DBUS_KIT
    dbusConnection = [[DKConnection new] retain];
    if([dbusConnection isConnected] == YES) {
       dbusMenu = [[[DKMenu alloc] initWithConnection:dbusConnection] retain];
@@ -141,6 +142,7 @@ id NSApp=nil;
       dbusConnection = nil;
       dbusMenu = nil;
    }
+#endif
 
    pthread_mutex_init(_lock,NULL);
    
@@ -149,6 +151,7 @@ id NSApp=nil;
    return NSApp;
 }
 
+#if DBUS_KIT
 -(DKMenu *)dbusMenu {
     return [dbusMenu retain];
 }
@@ -156,6 +159,7 @@ id NSApp=nil;
 -(DKConnection *)dbusConnection {
     return [dbusConnection retain];
 }
+#endif
 
 -(NSGraphicsContext *)context {
    NSUnimplementedMethod();
@@ -387,7 +391,9 @@ id NSApp=nil;
 -(void)setWindowsMenu:(NSMenu *)menu {
    [_windowsMenu autorelease];
    _windowsMenu=[menu retain];
+#if DBUS_KIT
    [dbusMenu setMenu:_mainMenu];
+#endif
 }
 
 
@@ -404,7 +410,9 @@ id NSApp=nil;
     [item setTarget:window];
 
     [[self windowsMenu] addItem:item];
+#if DBUS_KIT
     [dbusMenu setMenu:_mainMenu]; // update layout
+#endif
 }
 
 -(void)changeWindowsItem:(NSWindow *)window title:(NSString *)title filename:(BOOL)isFilename {
@@ -427,7 +435,9 @@ id NSApp=nil;
 		else
 			[self addWindowsItem:window title:title filename:isFilename];
 	}
+#if DBUS_KIT
     [dbusMenu setMenu:_mainMenu]; // update layout
+#endif
 }
 
 -(void)removeWindowsItem:(NSWindow *)window {
@@ -440,7 +450,9 @@ id NSApp=nil;
             [[self windowsMenu] removeItem:[[[self windowsMenu] itemArray] lastObject]];
           }
     }
+#if DBUS_KIT
     [dbusMenu setMenu:_mainMenu]; // update layout
+#endif
 }
 
 -(void)updateWindowsItem:(NSWindow *)window {
@@ -454,7 +466,9 @@ id NSApp=nil;
     NSMenuItem *item=[menu itemAtIndex:itemIndex];
     
    }
+#if DBUS_KIT
    [dbusMenu setMenu:_mainMenu]; // update layout
+#endif
 #endif
 }
 
@@ -573,7 +587,9 @@ id NSApp=nil;
             [self _setMainWindow:nil];
         }
 
+#if DBUS_KIT
      [dbusMenu unregisterWindow:[check windowNumber]]; 
+#endif
      [_windows removeObjectAtIndex:count];
    }
 }
@@ -613,7 +629,9 @@ id NSApp=nil;
     [self finishLaunching];
   }
 
+#if DBUS_KIT
   [dbusConnection performSelectorInBackground:@selector(run) withObject:nil];
+#endif
    
    do {
     // There is another pool inside nextEventMatchingMask. Do we really need this one?
@@ -634,9 +652,11 @@ id NSApp=nil;
 
     //[pool release];
    }while(_isRunning);
+#if DBUS_KIT
    [dbusConnection stop];
    [dbusMenu release];
    [dbusConnection release];
+#endif
 }
 
 -(BOOL)_performKeyEquivalent:(NSEvent *)event {
@@ -1148,10 +1168,12 @@ id NSApp=nil;
   [[NSDocumentController sharedDocumentController] closeAllDocumentsWithDelegate:self 
                                                              didCloseAllSelector:@selector(_documentController:didCloseAll:contextInfo:)
                                                                      contextInfo:NULL];
+#if DBUS_KIT
    if(dbusConnection != nil) {
       [dbusMenu release];
       [dbusConnection release];
    }
+#endif
 }
 
 -(void)_documentController:(NSDocumentController *)docController didCloseAll:(BOOL)didCloseAll contextInfo:(void *)info

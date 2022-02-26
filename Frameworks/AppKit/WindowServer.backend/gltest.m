@@ -20,6 +20,8 @@
  * THE SOFTWARE.
  */
 
+#import <AppKit/AppKit.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
@@ -28,18 +30,16 @@
 #include <sys/types.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
-#include "WLWindow.h"
 
 #import <CoreGraphics/CoreGraphics.h>
 #import <Onyx2D/O2Surface.h>
 #import <Onyx2D/O2ImageSource_PNG.h>
 #import <Onyx2D/O2ImageSource.h>
 
-struct wl_display *display;
-WLWindow *win;
 int ready = 0;
 CGImageRef icon;
 
+#if 0
 static void draw(void *data, struct wl_callback *cb, uint32_t time);
 static const struct wl_callback_listener frame_listener = {
     .done = draw,
@@ -89,37 +89,18 @@ static void draw(void *data, struct wl_callback *cb, uint32_t time) {
     fprintf(stderr, "frame %d %.0fx%.0f RGBA (%d fps) ctx %p     \r",
         fn++, rect.size.width, rect.size.height, 1000/delta, ctx);
 }
-
+#endif
 
 int main(int argc, char *argv[]) {
-        if(getenv("XDG_RUNTIME_DIR") == NULL) {
-            char *buf = 0;
-            asprintf(&buf, "/tmp/runtime.%u", getuid());
-            setenv("XDG_RUNTIME_DIR", buf, 0);
-            if(access(buf, R_OK|W_OK|X_OK) != 0) {
-                switch(errno) {
-                    case ENOENT: mkdir(buf, 0700); break;
-                    default: perror("WindowServer"); exit(-1);
-                }
-            }
-            free(buf);
-        }
-
-    display = wl_display_connect(NULL);
-
-    win = [[WLWindow alloc] initWithFrame:NSMakeRect(0,0,1280,720)
+    NSWindow *win = [[NSWindow alloc] initWithFrame:NSMakeRect(0,0,1280,720)
         styleMask:0 isPanel:NO backingType:0];
-
-    while(!ready)
-        wl_display_roundtrip(display);
 
     CFDataRef data = (__bridge CFDataRef)[NSData dataWithContentsOfFile:@"Icon.png"];
     O2ImageSource_PNG *imgsrc = [O2ImageSource_PNG newImageSourceWithData:data options:nil];
     icon = (__bridge CGImageRef)[imgsrc createImageAtIndex:0 options:nil];
-    fprintf(stderr, "\n\n");
-    draw(NULL, NULL, 0);
+    //fprintf(stderr, "\n\n");
+    //draw(NULL, NULL, 0);
 
-    do {
-    } while(wl_display_dispatch(display) != -1); 
+    return NSApplicationMain(argc, argv);
 }
 

@@ -22,6 +22,8 @@
  */
 
 #import <Foundation/NSException.h>
+#import <AppKit/NSDisplay.h>
+#import "WLDisplay.h"
 #include <fcntl.h>
 #include <errno.h>
 #include <unistd.h>
@@ -160,6 +162,7 @@ static const struct wl_registry_listener registry_listener = {
     _context = nil;
     _styleMask = styleMask;
 
+    struct wl_display *display = [(WLDisplay *)[NSDisplay currentDisplay] display];
     if(display == NULL) {
         NSLog(@"WLWindow: Failed to connect to display");
         return nil;

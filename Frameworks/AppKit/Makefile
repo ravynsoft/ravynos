@@ -265,12 +265,13 @@ WindowServer.backend/CGLContext.m \
 WindowServer.backend/O2Context_builtin_FT.m \
 WindowServer.backend/O2Font_FT.m \
 WindowServer.backend/WLWindow.m \
+WindowServer.backend/WLDisplay.m \
+xdg-shell.c \
 #X11.subproj/NSOpenGLDrawable_X11.m \
 X11.subproj/KTFont_FT.m \
 X11.subproj/O2Context_cairo.m \
 X11.subproj/O2FontState_cairo.m \
 X11.subproj/O2Surface_cairo.m \
-X11.subproj/X11Display.m \
 X11.subproj/X11Event.m 
 
 
@@ -551,12 +552,11 @@ nib.subproj/NSWindowTemplate.h \
 WindowServer.backend/O2Context_builtin_FT.h \
 WindowServer.backend/O2Font_FT.h \
 WindowServer.backend/WLWindow.h \
-xdg-shell.c \
+WindowServer.backend/WLDisplay.h \
 #X11.subproj/NSOpenGLDrawable_X11.h \
 X11.subproj/O2Context_cairo.h \
 X11.subproj/O2FontState_cairo.h \
 X11.subproj/O2Surface_cairo.h \
-X11.subproj/X11Display.h \
 X11.subproj/KTFont_FT.h \
 X11.subproj/X11Event.h 
 
