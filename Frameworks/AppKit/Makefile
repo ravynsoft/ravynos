@@ -2,6 +2,7 @@
 
 MK_WERROR= no
 FRAMEWORK=AppKit
+WLPROTOS=${.CURDIR}/../../CoreServices/WindowServer/wlroots/wayland-protocols
 SRCS= \
 CoreData_/NSPersistentDocument.m \
 CoreData_/_NSManagedProxy.m \
@@ -260,17 +261,17 @@ nib.subproj/NSNibHelpConnector.m \
 nib.subproj/NSNibLoading.m \
 nib.subproj/NSNibOutletConnector.m \
 nib.subproj/NSWindowTemplate.m \
-X11.subproj/CGLContext.m \
+WindowServer.backend/CGLContext.m \
+WindowServer.backend/O2Context_builtin_FT.m \
+WindowServer.backend/O2Font_FT.m \
+WindowServer.backend/WLWindow.m \
+#X11.subproj/NSOpenGLDrawable_X11.m \
 X11.subproj/KTFont_FT.m \
-X11.subproj/NSOpenGLDrawable_X11.m \
-X11.subproj/O2Context_builtin_FT.m \
 X11.subproj/O2Context_cairo.m \
 X11.subproj/O2FontState_cairo.m \
-X11.subproj/O2Font_FT.m \
 X11.subproj/O2Surface_cairo.m \
 X11.subproj/X11Display.m \
-X11.subproj/X11Event.m \
-X11.subproj/X11Window.m 
+X11.subproj/X11Event.m 
 
 
 INCS= \
@@ -547,16 +548,17 @@ nib.subproj/NSNibHelpConnector.h \
 nib.subproj/NSNibLoading.h \
 nib.subproj/NSNibOutletConnector.h \
 nib.subproj/NSWindowTemplate.h \
-X11.subproj/KTFont_FT.h \
-X11.subproj/NSOpenGLDrawable_X11.h \
-X11.subproj/O2Context_builtin_FT.h \
+WindowServer.backend/O2Context_builtin_FT.h \
+WindowServer.backend/O2Font_FT.h \
+WindowServer.backend/WLWindow.h \
+xdg-shell.c \
+#X11.subproj/NSOpenGLDrawable_X11.h \
 X11.subproj/O2Context_cairo.h \
 X11.subproj/O2FontState_cairo.h \
-X11.subproj/O2Font_FT.h \
 X11.subproj/O2Surface_cairo.h \
 X11.subproj/X11Display.h \
-X11.subproj/X11Event.h \
-X11.subproj/X11Window.h 
+X11.subproj/KTFont_FT.h \
+X11.subproj/X11Event.h 
 
 
 RESOURCES=Info.plist en.lproj de.lproj fr.lproj \
@@ -601,6 +603,7 @@ RESOURCES=Info.plist en.lproj de.lproj fr.lproj \
 CFLAGS+= ${FMWK_CFLAGS} -I${.CURDIR}/.. -I${BUILDROOT}/usr/include -I/usr/local/include \
 	 -I../OpenGL/include -I${.CURDIR}/Headers -I../Foundation/Headers \
 	 -I/usr/include/dbus-1.0 -I/usr/lib/dbus-1.0/include \
+         -I${.CURDIR} -I${MAKEOBJDIR} \
 	 -D_BuildingFramework -DFREETYPE_PRESENT 
 LDFLAGS+= ${FMWK_LDFLAGS} -L/usr/local/lib \
 	  -Wl,-R/System/Library/Frameworks/Foundation.framework/Versions/A \
@@ -620,7 +623,7 @@ LDFLAGS+= ${FMWK_LDFLAGS} -L/usr/local/lib \
 	  -L${BUILDROOT}/System/Library/Frameworks/OpenGL.framework/Versions/Current \
 	  -L${BUILDROOT}/System/Library/Frameworks/Onyx2D.framework/Versions/Current \
 	  -lFoundation -lCoreFoundation -lCoreGraphics -lCoreText -lCoreData -lQuartzCore -lOpenGL -lOnyx2D \
-	  -lobjc -lcairo -lfreetype -lfontconfig -lGL -lX11 -lXext -lXfixes -lXdamage -lm
+	  -lwayland-client -lobjc -lcairo -lfreetype -lfontconfig -lGL -lm
 
 
 fmwkclean:
@@ -633,7 +636,24 @@ _install-hook:
 	rm -rf ${BUILDROOT}/System/Library/Frameworks/${FRAMEWORK}.framework
 	cp -av ${.CURDIR}/${FRAMEWORK}.framework ${BUILDROOT}/System/Library/Frameworks/
 
+xdg-shell-client-protocol.h:
+	wayland-scanner client-header \
+                ${WLPROTOS}/stable/xdg-shell/xdg-shell.xml ${.TARGET}
+
+xdg-shell.c:
+	wayland-scanner private-code \
+                ${WLPROTOS}/stable/xdg-shell/xdg-shell.xml ${.TARGET}
+
+clean-deps:
+	rm -f .depend.*
+
+clean-gen-files:
+	rm -f xdg-shell-client-protocol.h xdg-shell.c
+
 .include <airyx.framework.mk>
 
 clean: fmwkclean
 post-resources: _install-hook
+${SOBJS}: xdg-shell-client-protocol.h xdg-shell.c
+clean: clean-deps clean-gen-files
+
