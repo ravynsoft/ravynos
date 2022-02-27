@@ -74,7 +74,6 @@ static int errorHandler(struct wl_display *display,void *errorEvent) {
         }
 
         _display = wl_display_connect(NULL);
-
         if(_display == NULL) {
             [self dealloc];
             return nil;

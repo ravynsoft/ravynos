@@ -26,8 +26,7 @@
 #import <Onyx2D/O2Path.h>
 #include <wayland-client.h>
 #include "xdg-shell-client-protocol.h"
-
-extern struct wl_display *display;
+#import "WLDisplay.h"
 
 @class CAWindowOpenGLContext;
 
@@ -35,6 +34,7 @@ extern struct wl_display *display;
     int _level;
     CGLContextObj _cglContext;
     CAWindowOpenGLContext *_caContext;
+    WLDisplay *_display;
 
     struct wl_compositor *compositor;
     struct wl_registry *registry;
@@ -53,6 +53,7 @@ extern struct wl_display *display;
     O2Rect _frame;
     unsigned _styleMask;
     BOOL _mapped;
+    BOOL _ready;
 }
 
 - initWithFrame:(NSRect)frame styleMask:(unsigned)styleMask
@@ -67,7 +68,8 @@ extern struct wl_display *display;
 - (void) set_wm_base:(struct xdg_wm_base *)base;
 - (void) set_wl_shm:(struct wl_shm *)shm;
 - (void) set_compositor:(struct wl_compositor *)comp;
-
+- (void) setReady:(BOOL)ready;
+- (BOOL) isReady;
 
 - (void) decorateWindow;
 - (void) _attachBufferWithWidth:(size_t)w height:(size_t)h;

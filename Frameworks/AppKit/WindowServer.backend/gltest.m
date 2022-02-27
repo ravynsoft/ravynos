@@ -30,30 +30,24 @@
 #include <sys/types.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
+#include <pthread.h>
 
 #import <CoreGraphics/CoreGraphics.h>
 #import <Onyx2D/O2Surface.h>
 #import <Onyx2D/O2ImageSource_PNG.h>
 #import <Onyx2D/O2ImageSource.h>
 
-int ready = 0;
 CGImageRef icon;
 
-#if 0
-static void draw(void *data, struct wl_callback *cb, uint32_t time);
-static const struct wl_callback_listener frame_listener = {
-    .done = draw,
-};
-
-static void draw(void *data, struct wl_callback *cb, uint32_t time) {
+static void draw(void *data) {
     static int fn = 0;
     static struct timespec last;
 
-    if(cb != NULL)
-        wl_callback_destroy(cb);
-    cb = wl_surface_frame([win wl_surface]);
-    wl_callback_add_listener(cb, &frame_listener, NULL);
-
+    NSWindow *win = (__bridge void *)data;
+    while(! [[win platformWindow] isReady]) {
+        NSLog(@"waiting for window");
+        sleep(1);
+    }
     CGContextRef ctx = (__bridge CGContextRef)[win cgContext];
     static float color[3] = {0.3, 0.8, 1};
     static float inc = 1, inc2 = 1, inc3 = 1;
@@ -62,45 +56,55 @@ static void draw(void *data, struct wl_callback *cb, uint32_t time) {
         .size.width = 128, .size.height = 128,
     };
 
-    CGRect rect = [win frame]; // this is the content frame inside decorations
-    CGContextSetGrayFillColor(ctx, 0.666, 1);
-    CGContextFillRect(ctx, NSMakeRect(rect.origin.x,rect.origin.y,
-        rect.size.width,rect.size.height));
-    CGContextSetGrayStrokeColor(ctx, 0, 1);
-    CGContextStrokeRect(ctx, NSMakeRect(rect.origin.x + 100, rect.origin.y + 100,
-        rect.size.width - 200, rect.size.height - 200));
-    CGContextDrawImage(ctx, imgrect, icon);
-    imgrect.origin.x += (inc2 * 5);
-    imgrect.origin.y += (inc3 * 3);
-    if(imgrect.origin.x > (rect.size.width - 100 - imgrect.size.width)
-        || imgrect.origin.x < (rect.origin.x + 100))
-        inc2 = (-1)*inc2;
-    if(imgrect.origin.y > (rect.size.height - 100 - imgrect.size.height)
-        || imgrect.origin.y < (rect.origin.y + 100))
-        inc3 = (-1)*inc3;
-    [win flushBuffer];
-    
-    struct timespec now;
-    clock_gettime(CLOCK_MONOTONIC, &now);
-    unsigned delta = ( (now.tv_sec * 1000) + (now.tv_nsec / 1000000) )
-                   - ( (last.tv_sec * 1000) + (last.tv_nsec / 1000000) );
-    last.tv_sec = now.tv_sec;
-    last.tv_nsec = now.tv_nsec;
-    fprintf(stderr, "frame %d %.0fx%.0f RGBA (%d fps) ctx %p     \r",
-        fn++, rect.size.width, rect.size.height, 1000/delta, ctx);
+    while(1) {
+        CGRect rect = [win frame]; // this is the content frame inside decorations
+        CGContextSetGrayFillColor(ctx, 0.666, 1);
+        CGContextFillRect(ctx, NSMakeRect(rect.origin.x,rect.origin.y,
+            rect.size.width,rect.size.height));
+        CGContextSetGrayStrokeColor(ctx, 0, 1);
+        CGContextStrokeRect(ctx, NSMakeRect(rect.origin.x + 100, rect.origin.y + 100,
+            rect.size.width - 200, rect.size.height - 200));
+        CGContextDrawImage(ctx, imgrect, icon);
+        imgrect.origin.x += (inc2 * 5);
+        imgrect.origin.y += (inc3 * 3);
+        if(imgrect.origin.x > (rect.size.width - 100 - imgrect.size.width)
+            || imgrect.origin.x < (rect.origin.x + 100))
+            inc2 = (-1)*inc2;
+        if(imgrect.origin.y > (rect.size.height - 100 - imgrect.size.height)
+            || imgrect.origin.y < (rect.origin.y + 100))
+            inc3 = (-1)*inc3;
+        
+        struct timespec now;
+        clock_gettime(CLOCK_MONOTONIC, &now);
+        unsigned delta = ( (now.tv_sec * 1000) + (now.tv_nsec / 1000000) )
+                       - ( (last.tv_sec * 1000) + (last.tv_nsec / 1000000) );
+        last.tv_sec = now.tv_sec;
+        last.tv_nsec = now.tv_nsec;
+        fprintf(stderr, "frame %d %.0fx%.0f RGBA (%d fps) ctx %p     \n",
+            fn++, rect.size.width, rect.size.height, 1000/delta, ctx);
+    }
 }
-#endif
 
 int main(int argc, char *argv[]) {
-    NSWindow *win = [[NSWindow alloc] initWithFrame:NSMakeRect(0,0,1280,720)
-        styleMask:0 isPanel:NO backingType:0];
+    __NSInitializeProcess(argc, argv);
+
+    [NSApplication sharedApplication];
+    NSWindow *win = [[NSWindow alloc] initWithContentRect:NSMakeRect(0,0,1280,720)
+        styleMask:NSTitledWindowMask backing:NSBackingStoreBuffered defer:NO];
 
     CFDataRef data = (__bridge CFDataRef)[NSData dataWithContentsOfFile:@"Icon.png"];
     O2ImageSource_PNG *imgsrc = [O2ImageSource_PNG newImageSourceWithData:data options:nil];
     icon = (__bridge CGImageRef)[imgsrc createImageAtIndex:0 options:nil];
-    //fprintf(stderr, "\n\n");
-    //draw(NULL, NULL, 0);
 
-    return NSApplicationMain(argc, argv);
+    pthread_t thread;
+
+    [win cascadeTopLeftFromPoint:NSMakePoint(10,10)];
+    [win makeKeyAndOrderFront:nil];
+    [win display];
+
+    pthread_create(&thread, NULL, draw, win);
+
+    [NSApp run];
+    return 0;
 }
 

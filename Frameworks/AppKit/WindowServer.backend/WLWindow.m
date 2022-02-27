@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2008 Johannes Fortmann
- * Copyright (C) 2021 Zoe Knox <zoe@pixin.net>
+ * Copyright (C) 2022 Zoe Knox <zoe@pixin.net>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,7 +23,8 @@
 
 #import <Foundation/NSException.h>
 #import <AppKit/NSDisplay.h>
-#import "WLDisplay.h"
+#import <AppKit/NSWindow.h>
+#import <AppKit/NSPanel.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <unistd.h>
@@ -36,7 +37,6 @@
 #import <Onyx2D/O2Image.h>
 #import <QuartzCore/CAWindowOpenGLContext.h>
 
-extern int ready; // FIXME: move this into class
 
 CGL_EXPORT CGLError CGLCreateContextForWindow(CGLPixelFormatObj pixelFormat,
     CGLContextObj share, CGLContextObj *resultp, unsigned long window);
@@ -78,6 +78,33 @@ static const struct wl_buffer_listener wl_buffer_listener = {
     .release = wl_buffer_release,
 };
 
+static void handle_global(void *data, struct wl_registry *registry,
+		uint32_t name, const char *interface, uint32_t version) {
+    WLWindow *win = (__bridge WLWindow *)data;
+
+    if (strcmp(interface, wl_compositor_interface.name) == 0) {
+        [win set_compositor:wl_registry_bind(registry, name, &wl_compositor_interface, 1)];
+    } else if (strcmp(interface, xdg_wm_base_interface.name) == 0) {
+        [win set_wm_base:wl_registry_bind(registry, name, &xdg_wm_base_interface, 1)];
+    } else if (strcmp(interface, wl_shm_interface.name) == 0) {
+        [win set_wl_shm: wl_registry_bind(registry, name, &wl_shm_interface, 1)];
+    //} else if (strcmp(interface, wl_seat_interface.name) == 0) {
+    //    struct wl_seat *seat =
+    //            wl_registry_bind(registry, name, &wl_seat_interface, 1);
+    //    wl_seat_add_listener(seat, &seat_listener, NULL);
+    }
+}
+
+static void handle_global_remove(void *data, struct wl_registry *registry,
+		uint32_t name) {
+	// Who cares?
+}
+
+static const struct wl_registry_listener registry_listener = {
+	.global = handle_global,
+	.global_remove = handle_global_remove,
+};
+
 
 static void xdg_surface_handle_configure(void *data,
 		struct xdg_surface *xdg_surface, uint32_t serial) {
@@ -87,7 +114,7 @@ static void xdg_surface_handle_configure(void *data,
         xdg_surface_ack_configure(xdg_surface, serial);
         [win setFrame:frame];
         [win flushBuffer];
-        ready = 1;
+        [win setReady:YES];
     }
 }
 
@@ -123,32 +150,21 @@ static const struct xdg_wm_base_listener xdg_wm_base_listener = {
     .ping = xdg_wm_base_ping,
 };
 
-static void handle_global(void *data, struct wl_registry *registry,
-		uint32_t name, const char *interface, uint32_t version) {
-    WLWindow *win = (__bridge WLWindow *)data;
-
-    if (strcmp(interface, wl_compositor_interface.name) == 0) {
-        [win set_compositor:wl_registry_bind(registry, name, &wl_compositor_interface, 1)];
-    } else if (strcmp(interface, xdg_wm_base_interface.name) == 0) {
-        [win set_wm_base:wl_registry_bind(registry, name, &xdg_wm_base_interface, 1)];
-    } else if (strcmp(interface, wl_shm_interface.name) == 0) {
-        [win set_wl_shm: wl_registry_bind(registry, name, &wl_shm_interface, 1)];
-    //} else if (strcmp(interface, wl_seat_interface.name) == 0) {
-    //    struct wl_seat *seat =
-    //            wl_registry_bind(registry, name, &wl_seat_interface, 1);
-    //    wl_seat_add_listener(seat, &seat_listener, NULL);
-    }
-}
-
-static void handle_global_remove(void *data, struct wl_registry *registry,
-		uint32_t name) {
-	// Who cares?
-}
-
-static const struct wl_registry_listener registry_listener = {
-	.global = handle_global,
-	.global_remove = handle_global_remove,
+static void renderCallback(void *data, struct wl_callback *cb, uint32_t time);
+static const struct wl_callback_listener frame_listener = {
+    .done = renderCallback,
 };
+
+static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
+    if(cb != NULL)
+        wl_callback_destroy(cb);
+
+    WLWindow *win = (__bridge WLWindow *)data;
+    cb = wl_surface_frame([win wl_surface]);
+    wl_callback_add_listener(cb, &frame_listener, (__bridge void *)win);
+
+    [win flushBuffer];
+}
 
 @implementation WLWindow
 
@@ -161,8 +177,10 @@ static const struct wl_registry_listener registry_listener = {
     _frame = frame;
     _context = nil;
     _styleMask = styleMask;
+    _ready = NO;
 
-    struct wl_display *display = [(WLDisplay *)[NSDisplay currentDisplay] display];
+    _display = (WLDisplay *)[NSDisplay currentDisplay];
+    struct wl_display *display = [_display display];
     if(display == NULL) {
         NSLog(@"WLWindow: Failed to connect to display");
         return nil;
@@ -192,16 +210,14 @@ static const struct wl_registry_listener registry_listener = {
 
     wl_surface_commit(wl_surface);
 
-#ifdef notyet
     if(isPanel && (styleMask & NSDocModalWindowMask))
         styleMask=NSBorderlessWindowMask;
       
-    // [(X11Display*)[NSDisplay currentDisplay] setWindow:self forID:_window];
+    [_display setWindow:self forID:(uintptr_t)wl_surface];
       
     if(styleMask != NSBorderlessWindowMask) {
         // draw decorations
     }
-#endif
     return self;
 }
 
@@ -213,6 +229,7 @@ static const struct wl_registry_listener registry_listener = {
         wl_surface_destroy(wl_surface);
     if(registry)
         wl_registry_destroy(registry);
+    [super dealloc];
 }
 
 -(struct wl_surface *)wl_surface
@@ -256,7 +273,7 @@ static const struct wl_registry_listener registry_listener = {
     _delegate=nil;
     _context=nil;
 
-    // [(X11Display*)[NSDisplay currentDisplay] setWindow:nil forID:_window];
+    [_display setWindow:nil forID:(uintptr_t)wl_surface];
 }
 
 
@@ -447,6 +464,9 @@ static const struct wl_registry_listener registry_listener = {
 
 -(void) openGLFlushBuffer
 {
+    if(! _ready)
+        return;
+
     CGLError error;
     CGLContextObj prevContext = CGLGetCurrentContext();
    
@@ -544,6 +564,17 @@ static const struct wl_registry_listener registry_listener = {
 
 - (void)frameChanged
 {
+}
+
+- (void)setReady:(BOOL)ready
+{
+    struct wl_callback *cb = wl_surface_frame(wl_surface);
+    wl_callback_add_listener(cb, &frame_listener, (__bridge void *)self);
+}
+
+- (BOOL)isReady
+{
+    return _ready;
 }
 
 @end
