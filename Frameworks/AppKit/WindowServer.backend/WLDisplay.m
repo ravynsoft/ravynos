@@ -79,8 +79,8 @@ static int errorHandler(struct wl_display *display,void *errorEvent) {
             return nil;
         }
         
-        _fileDescriptor = wl_display_get_fd(_display);
-        _inputSource = [[NSSelectInputSource socketInputSourceWithSocket:[NSSocket_bsd socketWithDescriptor:_fileDescriptor]] retain];
+        _fileDescriptor = -1;
+        _inputSource = nil; //[[NSSelectInputSource socketInputSourceWithSocket:[NSSocket_bsd socketWithDescriptor:_fileDescriptor]] retain];
         [_inputSource setDelegate:self];
         [_inputSource setSelectEventMask:NSSelectReadEvent];
       
@@ -344,11 +344,36 @@ static int errorHandler(struct wl_display *display,void *errorEvent) {
 -(NSEvent *)nextEventMatchingMask:(unsigned)mask untilDate:(NSDate *)untilDate inMode:(NSString *)mode dequeue:(BOOL)dequeue {
    NSEvent *result;
 
-   [[NSRunLoop currentRunLoop] addInputSource:_inputSource forMode:mode];
-   result=[super nextEventMatchingMask:mask untilDate:untilDate inMode:mode dequeue:dequeue];
-   [[NSRunLoop currentRunLoop] removeInputSource:_inputSource forMode:mode];
+    while(wl_display_prepare_read(_display) != 0)
+        wl_display_dispatch_pending(_display);
+    wl_display_flush(_display);
+
+    struct pollfd pfd;
+    pfd.fd = wl_display_get_fd(_display);
+    pfd.events = POLLIN;
+    pfd.revents = POLLIN;
+
+    if(poll(&pfd, 1, 0) > 0) {
+        wl_display_read_events(_display);
+    } else {
+        wl_display_cancel_read(_display);
+    }
+
+    wl_display_dispatch_pending(_display);
+
+    // wake up the main event loop so we don't block
+    NSEvent *event = [NSEvent mouseEventWithType:NSMouseMoved
+                                 location:NSMakePoint(0,0)
+                            modifierFlags:0
+                                   window:nil
+                               clickCount:1 deltaX:0.0 deltaY:0.0];
+    [self postEvent:event atStart:NO];
+
+    [[NSRunLoop currentRunLoop] addInputSource:_inputSource forMode:mode];
+    result=[super nextEventMatchingMask:mask untilDate:untilDate inMode:mode dequeue:dequeue];
+    [[NSRunLoop currentRunLoop] removeInputSource:_inputSource forMode:mode];
    
-   return result;
+    return result;
 }
 
 -(unsigned int)modifierFlagsForState:(unsigned int)state {
@@ -684,25 +709,8 @@ NSArray *CGSOrderedWindowNumbers() {
 #endif
 
 -(void)selectInputSource:(NSSelectInputSource *)inputSource selectEvent:(NSUInteger)selectEvent {
-    while(wl_display_prepare_read(_display) != 0)
-        wl_display_dispatch_pending(_display);
-    wl_display_flush(_display);
+    NSLog(@"selectInputSource");
 
-    struct pollfd pfd;
-    pfd.fd = _fileDescriptor;
-    pfd.events = POLLIN;
-    pfd.revents = POLLIN;
-
-    int ret = 0;
-    do {
-        ret = poll(&pfd, 1, 0);
-        if(ret < 0) {
-            wl_display_cancel_read(_display);
-            break;
-        }
-        wl_display_read_events(_display);
-    } while(ret > 0);
-    wl_display_dispatch_pending(_display);
     //[self postXEvent:&e];
 }
 

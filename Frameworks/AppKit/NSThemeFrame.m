@@ -14,6 +14,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <AppKit/NSMenuView.h>
 #import <AppKit/NSToolbarView.h>
 #import <AppKit/NSMainMenuView.h>
+#import <Onyx2D/O2Context.h>
 
 @interface NSWindow(private)
 -(BOOL)hasMainMenu;
@@ -62,6 +63,46 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     
    if([[self window] isSheet])
     bounds.size.height += cheatSheet;
+
+    O2Context *_context = [[self window] cgContext];
+    O2ContextSetGrayStrokeColor(_context, 0.999, 1);
+    O2ContextSetGrayFillColor(_context, 0.999, 1);
+
+    // let's round these corners
+    float radius = 12;
+    O2ContextBeginPath(_context);
+    O2ContextMoveToPoint(_context, _frame.origin.x+radius, NSMaxY(_frame));
+    O2ContextAddArc(_context, _frame.origin.x + _frame.size.width - radius,
+        _frame.origin.y + _frame.size.height - radius, radius, 1.5708 /*radians*/,
+        0 /*radians*/, YES);
+    O2ContextAddLineToPoint(_context, _frame.origin.x + _frame.size.width,
+        _frame.origin.y);
+    O2ContextAddArc(_context, _frame.origin.x + _frame.size.width - radius,
+        _frame.origin.y + radius, radius, 6.28319 /*radians*/, 4.71239 /*radians*/,
+        YES);
+    O2ContextAddLineToPoint(_context, _frame.origin.x, _frame.origin.y);
+    O2ContextAddArc(_context, _frame.origin.x + radius, _frame.origin.y + radius,
+        radius, 4.71239, 3.14159, YES);
+    O2ContextAddLineToPoint(_context, _frame.origin.x,
+        _frame.origin.y + _frame.size.height);
+    O2ContextAddArc(_context, _frame.origin.x + radius, _frame.origin.y +
+        _frame.size.height - radius, radius, 3.14159, 1.5708, YES);
+    O2ContextAddLineToPoint(_context, _frame.origin.x, NSMaxY(_frame));
+    O2ContextClosePath(_context);
+    O2ContextFillPath(_context);
+
+    // window controls
+    CGRect button = NSMakeRect(12, _frame.size.height - 26, 16, 16);
+    O2ContextSetRGBFillColor(_context, 1, 0, 0, 1);
+    O2ContextFillEllipseInRect(_context, button);
+    O2ContextSetRGBFillColor(_context, 1, 0.9, 0, 1);
+    button.origin.x += 26;
+    O2ContextFillEllipseInRect(_context, button);
+    O2ContextSetRGBFillColor(_context, 0, 1, 0, 1);
+    button.origin.x += 26;
+    O2ContextFillEllipseInRect(_context, button);
+
+    // FIXME: title
 
    [[[self window] backgroundColor] setFill];
    NSRectFill([[[self window] contentView] frame]);

@@ -113,8 +113,11 @@ static void xdg_surface_handle_configure(void *data,
         CGRect frame = CGOutsetRectForNativeWindowBorder([win frame],[win styleMask]);
         xdg_surface_ack_configure(xdg_surface, serial);
         [win setFrame:frame];
-        [win flushBuffer];
         [win setReady:YES];
+        [win flushBuffer];
+
+        [win frameChanged];
+        [[win delegate] platformWindow:win frameChanged:frame didSize:YES];
     }
 }
 
@@ -160,10 +163,9 @@ static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
         wl_callback_destroy(cb);
 
     WLWindow *win = (__bridge WLWindow *)data;
+    [win flushBuffer];
     cb = wl_surface_frame([win wl_surface]);
     wl_callback_add_listener(cb, &frame_listener, (__bridge void *)win);
-
-    [win flushBuffer];
 }
 
 @implementation WLWindow
@@ -174,7 +176,11 @@ static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
     _level = kCGNormalWindowLevel;
     _backingType = backingType;
     _deviceDictionary = [NSMutableDictionary new];
-    _frame = frame;
+
+    /* FIXME: this is because wayland doesn't give us position info */
+    _frame.origin = NSMakePoint(0,0);
+    _frame.size = frame.size;
+
     _context = nil;
     _styleMask = styleMask;
     _ready = NO;
@@ -211,13 +217,9 @@ static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
     wl_surface_commit(wl_surface);
 
     if(isPanel && (styleMask & NSDocModalWindowMask))
-        styleMask=NSBorderlessWindowMask;
+        _styleMask=NSBorderlessWindowMask;
       
     [_display setWindow:self forID:(uintptr_t)wl_surface];
-      
-    if(styleMask != NSBorderlessWindowMask) {
-        // draw decorations
-    }
     return self;
 }
 
@@ -300,7 +302,7 @@ static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
         O2ColorSpaceRelease(colorSpace);
         _context = [[O2Context_builtin_FT alloc] initWithSurface:surface flipped:NO];
 
-        [self decorateWindow];
+        //[self decorateWindow];
     }
     return _context;
 }
@@ -331,7 +333,7 @@ static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
         _context = [[O2Context_builtin_FT alloc] initWithSurface:surface flipped:NO];
         [_context drawImage:[currentContext surface]
             inRect:NSMakeRect(0,0,oldSize.width,oldSize.height)];
-        [self decorateWindow];
+        //[self decorateWindow];
         [_delegate platformWindowDidInvalidateCGContext:self];
         currentContext = nil;
     }
@@ -419,48 +421,6 @@ static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
     return NO;
 }
 
-
--(void) decorateWindow
-{
-    O2ContextSetGrayStrokeColor(_context, 0.999, 1);
-    O2ContextSetGrayFillColor(_context, 0.999, 1);
-
-    // let's round these corners
-    float radius = 12;
-    O2ContextBeginPath(_context);
-    O2ContextMoveToPoint(_context, _frame.origin.x+radius, NSMaxY(_frame));
-    O2ContextAddArc(_context, _frame.origin.x + _frame.size.width - radius,
-        _frame.origin.y + _frame.size.height - radius, radius, 1.5708 /*radians*/,
-        0 /*radians*/, YES);
-    O2ContextAddLineToPoint(_context, _frame.origin.x + _frame.size.width,
-        _frame.origin.y);
-    O2ContextAddArc(_context, _frame.origin.x + _frame.size.width - radius,
-        _frame.origin.y + radius, radius, 6.28319 /*radians*/, 4.71239 /*radians*/,
-        YES);
-    O2ContextAddLineToPoint(_context, _frame.origin.x, _frame.origin.y);
-    O2ContextAddArc(_context, _frame.origin.x + radius, _frame.origin.y + radius,
-        radius, 4.71239, 3.14159, YES);
-    O2ContextAddLineToPoint(_context, _frame.origin.x,
-        _frame.origin.y + _frame.size.height);
-    O2ContextAddArc(_context, _frame.origin.x + radius, _frame.origin.y +
-        _frame.size.height - radius, radius, 3.14159, 1.5708, YES);
-    O2ContextAddLineToPoint(_context, _frame.origin.x, NSMaxY(_frame));
-    O2ContextClosePath(_context);
-    O2ContextFillPath(_context);
-
-    // window controls
-    CGRect button = NSMakeRect(12, _frame.size.height - 26, 16, 16);
-    O2ContextSetRGBFillColor(_context, 1, 0, 0, 1);
-    O2ContextFillEllipseInRect(_context, button);
-    O2ContextSetRGBFillColor(_context, 1, 0.9, 0, 1);
-    button.origin.x += 26;
-    O2ContextFillEllipseInRect(_context, button);
-    O2ContextSetRGBFillColor(_context, 0, 1, 0, 1);
-    button.origin.x += 26;
-    O2ContextFillEllipseInRect(_context, button);
-
-    // FIXME: title
-}
 
 -(void) openGLFlushBuffer
 {
@@ -564,12 +524,16 @@ static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
 
 - (void)frameChanged
 {
+    [self invalidateContextsWithNewSize:_frame.size];
 }
 
 - (void)setReady:(BOOL)ready
 {
-    struct wl_callback *cb = wl_surface_frame(wl_surface);
-    wl_callback_add_listener(cb, &frame_listener, (__bridge void *)self);
+    _ready = ready;
+    if(_ready) {
+        struct wl_callback *cb = wl_surface_frame(wl_surface);
+        wl_callback_add_listener(cb, &frame_listener, (__bridge void *)self);
+    }
 }
 
 - (BOOL)isReady

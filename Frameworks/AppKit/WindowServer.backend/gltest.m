@@ -39,15 +39,11 @@
 
 CGImageRef icon;
 
-static void draw(void *data) {
+void *draw(void *data) {
     static int fn = 0;
     static struct timespec last;
 
     NSWindow *win = (__bridge void *)data;
-    while(! [[win platformWindow] isReady]) {
-        NSLog(@"waiting for window");
-        sleep(1);
-    }
     CGContextRef ctx = (__bridge CGContextRef)[win cgContext];
     static float color[3] = {0.3, 0.8, 1};
     static float inc = 1, inc2 = 1, inc3 = 1;
@@ -56,7 +52,7 @@ static void draw(void *data) {
         .size.width = 128, .size.height = 128,
     };
 
-    while(1) {
+    //while(1) {
         CGRect rect = [win frame]; // this is the content frame inside decorations
         CGContextSetGrayFillColor(ctx, 0.666, 1);
         CGContextFillRect(ctx, NSMakeRect(rect.origin.x,rect.origin.y,
@@ -80,9 +76,9 @@ static void draw(void *data) {
                        - ( (last.tv_sec * 1000) + (last.tv_nsec / 1000000) );
         last.tv_sec = now.tv_sec;
         last.tv_nsec = now.tv_nsec;
-        fprintf(stderr, "frame %d %.0fx%.0f RGBA (%d fps) ctx %p     \n",
+        fprintf(stderr, "frame %d %.0fx%.0f RGBA (%d fps) ctx %p     \r",
             fn++, rect.size.width, rect.size.height, 1000/delta, ctx);
-    }
+    //}
 }
 
 int main(int argc, char *argv[]) {
@@ -96,13 +92,13 @@ int main(int argc, char *argv[]) {
     O2ImageSource_PNG *imgsrc = [O2ImageSource_PNG newImageSourceWithData:data options:nil];
     icon = (__bridge CGImageRef)[imgsrc createImageAtIndex:0 options:nil];
 
-    pthread_t thread;
+    //pthread_t thread;
 
-    [win cascadeTopLeftFromPoint:NSMakePoint(10,10)];
     [win makeKeyAndOrderFront:nil];
+    [win setBackgroundColor:[NSColor purpleColor]];
     [win display];
 
-    pthread_create(&thread, NULL, draw, win);
+    //pthread_create(&thread, NULL, draw, win);
 
     [NSApp run];
     return 0;
