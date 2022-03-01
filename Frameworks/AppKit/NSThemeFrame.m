@@ -14,6 +14,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <AppKit/NSMenuView.h>
 #import <AppKit/NSToolbarView.h>
 #import <AppKit/NSMainMenuView.h>
+#import <AppKit/NSAttributedString.h>
 #import <Onyx2D/O2Context.h>
 
 @interface NSWindow(private)
@@ -37,11 +38,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 }
 
 -(void)drawRect:(NSRect)rect {
-   NSRect bounds=[self bounds];
-   float cheatSheet = 0;
+    NSRect bounds = [NSWindow contentRectForFrameRect:[self bounds]
+        styleMask:[[self window] styleMask]];
+    float cheatSheet = 0;
 
-   [[[self window] backgroundColor] setFill];
-   NSRectFill(bounds);
+    [[[self window] backgroundColor] setFill];
+    NSRectFill(bounds);
    
     switch(_borderType){
         case NSNoBorder:
@@ -59,10 +61,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
             bounds = NSInsetRect(bounds, 2, 2);
             cheatSheet = 2;
             break;
-   }
+    }
     
-   if([[self window] isSheet])
-    bounds.size.height += cheatSheet;
+    if([[self window] isSheet])
+        bounds.size.height += cheatSheet;
 
     O2Context *_context = [[self window] cgContext];
     O2ContextSetGrayStrokeColor(_context, 0.999, 1);
@@ -102,7 +104,22 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     button.origin.x += 26;
     O2ContextFillEllipseInRect(_context, button);
 
-    // FIXME: title
+    // title
+    NSString *t = [[self window] title];
+    NSDictionary *attrs = @{
+        NSFontAttributeName : [NSFont titleBarFontOfSize:18.0],
+        NSForegroundColorAttributeName : [NSColor darkGrayColor]
+    };
+    NSAttributedString *title = [[NSAttributedString alloc] initWithString:t attributes:attrs];
+    [t release];
+    NSSize size = [title size];
+    NSRect titleRect = NSMakeRect(
+        _frame.size.width / 2 - size.width / 2,
+        _frame.size.height - 40 + size.height / 2,
+        _frame.size.width / 2 + size.width / 2,
+        _frame.size.height - 4);
+    [title drawInRect:titleRect];
+    [title release];
 
    [[[self window] backgroundColor] setFill];
    NSRectFill([[[self window] contentView] frame]);
