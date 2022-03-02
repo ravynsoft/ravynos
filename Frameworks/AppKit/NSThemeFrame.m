@@ -106,20 +106,20 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
     // title
     NSString *t = [[self window] title];
-    NSDictionary *attrs = @{
-        NSFontAttributeName : [NSFont titleBarFontOfSize:18.0],
-        NSForegroundColorAttributeName : [NSColor darkGrayColor]
-    };
-    NSAttributedString *title = [[NSAttributedString alloc] initWithString:t attributes:attrs];
-    [t release];
-    NSSize size = [title size];
-    NSRect titleRect = NSMakeRect(
-        _frame.size.width / 2 - size.width / 2,
-        _frame.size.height - 40 + size.height / 2,
-        _frame.size.width / 2 + size.width / 2,
-        _frame.size.height - 4);
-    [title drawInRect:titleRect];
-    [title release];
+    if(t) {
+        NSDictionary *attrs = @{
+            NSFontAttributeName : [NSFont titleBarFontOfSize:18.0],
+            NSForegroundColorAttributeName : [NSColor darkGrayColor]
+        };
+        NSAttributedString *title = [[NSAttributedString alloc] initWithString:t attributes:attrs];
+        NSSize size = [title size];
+        NSRect titleRect = NSMakeRect(
+            _frame.size.width / 2 - size.width / 2,
+            _frame.size.height - 40 + size.height / 2,
+            _frame.size.width / 2 + size.width / 2,
+            _frame.size.height - 4);
+        [title drawInRect:titleRect];
+    }
 
    [[[self window] backgroundColor] setFill];
    NSRectFill([[[self window] contentView] frame]);

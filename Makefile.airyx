@@ -10,7 +10,7 @@ SUBDIR+=	Frameworks
 SUBDIR+=	.WAIT installairyx 
 #SUBDIR+=	sysmenu
 #SUBDIR+=	CoreServices 
-SUBDIR+=	bin/open
+#SUBDIR+=	bin/open
 
 # We need the installed frameworks to correctly link CoreServices and applications
 airyx: airyxbase installairyx sysmenu coreservices bin
