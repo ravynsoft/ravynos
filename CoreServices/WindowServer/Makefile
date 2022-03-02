@@ -1,6 +1,7 @@
 APP=	WindowServer
 SRCS=           main.c \
                 xdg-shell.c \
+                wlr-screencopy-unstable-v1.c \
                 WindowServer.c
 
 RESOURCES=      ${MAKEOBJDIR}/wlroots/libwlroots.so.11
@@ -28,6 +29,14 @@ xdg-shell.c:
 	wayland-scanner private-code \
                 ${WLPROTOS}/stable/xdg-shell/xdg-shell.xml ${.TARGET}
 
+wlr-screencopy-unstable-v1.h:
+	wayland-scanner server-header \
+                ${.CURDIR}/wlroots/protocol/wlr-screencopy-unstable-v1.xml ${.TARGET}
+
+wlr-screencopy-unstable-v1.c:
+	wayland-scanner private-code \
+                ${.CURDIR}/wlroots/protocol/wlr-screencopy-unstable-v1.xml ${.TARGET}
+
 build-wlroots:
 	cd ${.CURDIR}/wlroots && PKG_CONFIG_PATH=. meson -Dexamples=false \
                 -Dbackends=drm,libinput ${MAKEOBJDIR}/wlroots/
@@ -44,6 +53,7 @@ clean-gen-files:
 
 .include <airyx.app.mk>
 
-${OBJS}: build-wlroots xdg-shell-protocol.h xdg-shell.c
+${OBJS}: build-wlroots xdg-shell-protocol.h xdg-shell.c \
+        wlr-screencopy-unstable-v1.c wlr-screencopy-unstable-v1.h
 clean: clean-wlroots clean-deps clean-gen-files
 

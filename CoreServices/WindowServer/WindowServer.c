@@ -31,6 +31,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <unistd.h>
+#include "wlr-screencopy-unstable-v1.h"
 #include "WindowServer.h"
 
 static void focus_view(struct WSView *view, struct wlr_surface *surface) {

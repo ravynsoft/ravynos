@@ -97,6 +97,7 @@ int main(int argc, char *argv[]) {
 	wlr_compositor_create(server.wl_display, server.renderer);
 	wlr_subcompositor_create(server.wl_display);
 	wlr_data_device_manager_create(server.wl_display);
+        wlr_screencopy_manager_v1_create(server.wl_display);
 
 	/* Creates an output layout, which a wlroots utility for working with an
 	 * arrangement of screens in a physical layout. */
