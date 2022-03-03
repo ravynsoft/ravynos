@@ -44,7 +44,8 @@
 #import <sys/stat.h>
 #import <fontconfig.h>
 #import <dev/evdev/input-event-codes.h>
-#import <X11/keysym.h>
+#import <xkbcommon/xkbcommon.h>
+//#import <X11/keysym.h>
 
 @implementation NSDisplay(WL)
 
@@ -119,9 +120,9 @@ static void handlePointerButton(void *data, struct wl_pointer *ptr,
 {
     NSEventType type;
     switch(button) {
-        case BTN_LEFT: type = (state & WL_POINTER_BUTTON_STATE_RELEASED) ?
+        case BTN_LEFT: type = (state == WL_POINTER_BUTTON_STATE_RELEASED) ?
                 NSLeftMouseUp : NSLeftMouseDown; break;
-        case BTN_RIGHT: type = (state & WL_POINTER_BUTTON_STATE_RELEASED) ?
+        case BTN_RIGHT: type = (state == WL_POINTER_BUTTON_STATE_RELEASED) ?
                 NSRightMouseUp : NSRightMouseDown; break;
         default: NSLog(@"ignored button %d event", button); return;
     }
@@ -193,9 +194,89 @@ static const struct wl_pointer_listener wl_pointer_listener = {
     .axis_discrete = handlePointerAxisDiscrete,
 };
 
+static void handleKeyboardMap(void *data, struct wl_keyboard *kbd,
+    uint32_t format, int32_t fd, uint32_t size) {
+    WLDisplay *display = (WLDisplay *)data;
+    if(format != WL_KEYBOARD_KEYMAP_FORMAT_XKB_V1) {
+        NSLog(@"ERROR: unsupported keymap format from WindowServer");
+        return;
+    }
+
+    [display setKeymapWithFD:fd size:size];
+    close(fd);
+}
+
+- (void)setKeymapWithFD:(int32_t)fd size:(uint32_t)size
+{
+    char *map = mmap(NULL, size, PROT_READ, MAP_SHARED, fd, 0);
+    struct xkb_keymap *xkb_keymap = xkb_keymap_new_from_string(xkb_context,
+        map, XKB_KEYMAP_FORMAT_TEXT_V1, XKB_KEYMAP_COMPILE_NO_FLAGS);
+    munmap(map, size);
+
+    struct xkb_state *state = xkb_state_new(xkb_keymap);
+    xkb_keymap_unref(xkb_keymap);
+    xkb_state_unref(xkb_state);
+    xkb_keymap = keymap;
+    xkb_state = state;
+}
+
+- (struct xkb_state *)xkb_state
+{
+    return xkb_state;
+}
+
+static void handleKeyboardEnter(void *data, struct wl_keyboard *kbd,
+    uint32_t serial, struct wl_surface *surface, struct wl_array *keys) {
+    WLDisplay *display = (WLDisplay *)data;
+    WLWindow *window = [self windowForID:(unsigned long)surface];
+    id delegate = [window delegate];
+
+    uint32_t *key;
+    wl_array_for_each(key, keys) {
+        char buf[128];
+        xkb_keysym_t sym = xkb_state_key_get_one_sym([display xkb_state], *key+8);
+        xkb_state_key_get_utf8([display xkb_state], *key+8, buf, sizeof(buf));
+
+        NSEvent *event = [NSEvent keyEventWithType:NSKeyDown
+                                  location:pointerPosition
+                             modifierFlags:0 // FIXME: these are keyboard modifier key states
+                                 timestamp:0.0
+                              windowNumber:(NSInteger)[delegate windowNumber]
+                                   context:nil
+                                characters:buf
+               charactersIgnoringModifiers:buf
+                                 isARepeat:NO
+                                   keyCode:sym]; // not used?
+
+        [display postEvent:event atStart:NO];
+
+        NSEvent *event = [NSEvent keyEventWithType:NSKeyUp
+                                  location:pointerPosition
+                             modifierFlags:0 // FIXME: these are keyboard modifier key states
+                                 timestamp:0.0
+                              windowNumber:(NSInteger)[delegate windowNumber]
+                                   context:nil
+                                characters:buf
+               charactersIgnoringModifiers:buf
+                                 isARepeat:NO
+                                   keyCode:sym]; // not used?
+        [display postEvent:event atStart:NO];
+    }
+}
+
+static const struct wl_keyboard_listener wl_keyboard_listener = {
+    .keymap = handleKeyboardMap,
+    .enter = handleKeyboardEnter,
+    .leave = handleKeyboardLeave,
+    .key = handleKeyboardInput,
+    .modifiers = handleKeyboardModifiers,
+    .repeat_info = handleKeyboardRepeat,
+};
+
 static void handle_seat_capabilities(void *data, struct wl_seat *seat, uint32_t caps) {
     WLDisplay *display = (WLDisplay *)data;
     [display seatHasPointer:(caps & WL_SEAT_CAPABILITY_POINTER) ? YES: NO];
+    [display seatHasKeyboard:(caps & WL_SEAT_CAPABILITY_KEYBOARD) ? YES : NO];
 }
 
 static void handle_seat_name(void *data, struct wl_seat *seat, const char *name) {
@@ -227,6 +308,7 @@ static const struct wl_seat_listener wl_seat_listener = {
         }
         _seat = NULL;
         _pointer = NULL;
+        xkb_context = xkb_context_new(XKB_CONTEXT_NO_FLAGS);
         
         _fileDescriptor = -1;
         _inputSource = nil; //[[NSSelectInputSource socketInputSourceWithSocket:[NSSocket_bsd socketWithDescriptor:_fileDescriptor]] retain];
@@ -496,10 +578,24 @@ static const struct wl_seat_listener wl_seat_listener = {
 {
     if(_pointer)
         wl_pointer_release(_pointer);
+
     if(hasPointer) {
         _pointer = wl_seat_get_pointer(_seat);
         wl_pointer_add_listener(_pointer, &wl_pointer_listener, (void *)self);
-    }
+    } else
+        _pointer = NULL;
+}
+
+- (void)setHasKeyboard:(BOOL)hasKeyboard
+{
+    if(_keyboard)
+        wl_keyboard_release(_keyboard);
+
+    if(hasKeyboard) {
+        _keyboard = wl_seat_get_keyboard(_seat);
+        wl_keyboard_add_listener(_keyboard, &wl_keyboard_listener, (void *)self);
+    } else
+        _keyboard = NULL;
 }
 
 - (void)enterSurface:(struct wl_surface *)surface

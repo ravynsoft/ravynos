@@ -31,6 +31,7 @@ typedef enum {
     struct wl_display *_display;
     struct wl_seat *_seat;
     struct wl_pointer *_pointer;
+    struct wl_keyboard *_keyboard;
     int _fileDescriptor;
     NSSelectInputSource *_inputSource;
     NSMutableDictionary *_windowsByID;
@@ -42,6 +43,10 @@ typedef enum {
     WLModifierKeyMask modifierKeyState;
     NSTimeInterval _lastClickTimeStamp;
     int clickCount;
+
+    struct xkb_state *xkb_state;
+    struct xkb_context *xkb_context;
+    struct xkb_keymap *xkb_keymap;
 }
 
 - (struct wl_display *)display;
@@ -49,6 +54,7 @@ typedef enum {
 - (void)setWindow:(id)window forID:(unsigned long)i;
 - (void)setSeat:(struct wl_seat *)seat;
 - (void)seatHasPointer:(BOOL)hasPointer;
+- (void)setHasKeyboard:(BOOL)hasKeyboard;
 - (void)enterSurface:(struct wl_surface *)surface;
 - (void)leaveSurface:(struct wl_surface *)surface;
 - (struct wl_surface *)pointerActiveSurface;
