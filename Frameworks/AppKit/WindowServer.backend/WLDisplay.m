@@ -43,6 +43,7 @@
 #import <sys/mman.h>
 #import <sys/stat.h>
 #import <fontconfig.h>
+#import <dev/evdev/input-event-codes.h>
 #import <X11/keysym.h>
 
 @implementation NSDisplay(WL)
@@ -58,6 +59,152 @@
 static int errorHandler(struct wl_display *display,void *errorEvent) {
    return [(WLDisplay*)[WLDisplay currentDisplay] handleError:errorEvent];
 }
+
+static void handlePointerEnter(void *data, struct wl_pointer *ptr,
+    uint32_t serial, struct wl_surface *surface, wl_fixed_t sx, wl_fixed_t sy) {
+    WLDisplay *display = (WLDisplay *)data;
+    [display enterSurface:surface];
+}
+
+static void handlePointerLeave(void *data, struct wl_pointer *ptr,
+    uint32_t serial, struct wl_surface *surface) {
+    WLDisplay *display = (WLDisplay *)data;
+    [display leaveSurface:surface];
+}
+
+static void handlePointerMotion(void *data, struct wl_pointer *ptr,
+    uint32_t time, wl_fixed_t sx, wl_fixed_t sy) {
+    WLDisplay *display = (WLDisplay *)data;
+    [display pointerMotion:time at:NSMakePoint(wl_fixed_to_double(sx), wl_fixed_to_double(sy))];
+}
+
+- (void) pointerMotion:(uint32_t)time at:(NSPoint)point
+{
+    if(_pointerActiveSurface == NULL) {
+        NSLog(@"ERROR - motion event without active surface");
+        return;
+    }
+    WLWindow *window = [self windowForID:(unsigned long)_pointerActiveSurface];
+    id delegate = [window delegate];
+
+    NSRect bounds = CGOutsetRectForNativeWindowBorder([window frame], [window styleMask]);
+    pointerPosition = NSMakePoint(point.x, bounds.size.height - point.y);
+    NSPoint pos = [window transformPoint:pointerPosition];
+    NSEventType type = NSMouseMoved;
+         
+    if([self pointerButtonState:WLPointerPrimaryButton] == YES)
+        type = NSLeftMouseDragged;
+    else if([self pointerButtonState:WLPointerSecondaryButton] == YES)
+        type = NSRightMouseDragged;
+         
+    if(type == NSMouseMoved && ![delegate acceptsMouseMovedEvents])
+       return; 
+
+    NSEvent *event = [NSEvent mouseEventWithType:type
+                                  location:pos
+                             modifierFlags:0 // FIXME: these are keyboard modifier key states
+                                    window:delegate
+                                clickCount:1 deltaX:0.0 deltaY:0.0];
+    [self postEvent:event atStart:NO];
+    [self discardEventsMatchingMask:NSLeftMouseDraggedMask beforeEvent:event];
+}
+
+static void handlePointerButton(void *data, struct wl_pointer *ptr,
+    uint32_t serial, uint32_t time, uint32_t button, uint32_t state) {
+    WLDisplay *display = (WLDisplay *)data;
+    [display pointerButton:button time:time state:state];
+}
+
+- (void) pointerButton:(uint32_t)button time:(uint32_t)time state:(uint32_t)state
+{
+    NSEventType type;
+    switch(button) {
+        case BTN_LEFT: type = (state & WL_POINTER_BUTTON_STATE_RELEASED) ?
+                NSLeftMouseUp : NSLeftMouseDown; break;
+        case BTN_RIGHT: type = (state & WL_POINTER_BUTTON_STATE_RELEASED) ?
+                NSRightMouseUp : NSRightMouseDown; break;
+        default: NSLog(@"ignored button %d event", button); return;
+    }
+    
+    NSTimeInterval now = [[NSDate date] timeIntervalSinceReferenceDate];
+    if(now - _lastClickTimeStamp < [self doubleClickInterval])
+        clickCount++;
+    else
+        clickCount = 1;
+    _lastClickTimeStamp = now;
+
+    // see if we are clicking a surface (window) or on the background
+    NSPoint pos = pointerPosition;
+    id delegate = nil;
+    if(_pointerActiveSurface) {
+        WLWindow *window = [self windowForID:(unsigned long)_pointerActiveSurface];
+        pos = [window transformPoint:pointerPosition];
+        delegate = [window delegate];
+    }
+
+    switch(type) {
+        case NSLeftMouseUp:
+            pointerButtonState &= ~WLPointerPrimaryButton;
+            break;
+        case NSLeftMouseDown:
+            pointerButtonState |= WLPointerPrimaryButton;
+            break;
+        case NSRightMouseUp:
+            pointerButtonState &= ~WLPointerSecondaryButton;
+            break;
+        case NSRightMouseDown:
+            pointerButtonState |= WLPointerSecondaryButton;
+            break;
+    }
+
+    NSEvent *event = [NSEvent mouseEventWithType:type
+                                  location:pos
+                             modifierFlags:0 // FIXME: these are keyboard modifier key states
+                                    window:delegate
+                                clickCount:clickCount deltaX:0.0 deltaY:0.0];
+    [self postEvent:event atStart:NO];
+}
+
+static void handlePointerAxis(void *data, struct wl_pointer *ptr, uint32_t time,
+    uint32_t axis, wl_fixed_t value) {
+}
+
+static void handlePointerAxisSource(void *data, struct wl_pointer *ptr, uint32_t source) {
+}
+
+static void handlePointerAxisStop(void *data, struct wl_pointer *ptr, uint32_t time, uint32_t axis) {
+}
+
+static void handlePointerAxisDiscrete(void *data, struct wl_pointer *ptr, uint32_t axis, int32_t discrete) {
+}
+
+static void handlePointerFrame(void *data, struct wl_pointer *ptr) {
+}
+
+static const struct wl_pointer_listener wl_pointer_listener = {
+    .enter = handlePointerEnter,
+    .leave = handlePointerLeave,
+    .motion = handlePointerMotion,
+    .button = handlePointerButton,
+    .axis = handlePointerAxis,
+    .frame = handlePointerFrame,
+    .axis_source = handlePointerAxisSource,
+    .axis_stop = handlePointerAxisStop,
+    .axis_discrete = handlePointerAxisDiscrete,
+};
+
+static void handle_seat_capabilities(void *data, struct wl_seat *seat, uint32_t caps) {
+    WLDisplay *display = (WLDisplay *)data;
+    [display seatHasPointer:(caps & WL_SEAT_CAPABILITY_POINTER) ? YES: NO];
+}
+
+static void handle_seat_name(void *data, struct wl_seat *seat, const char *name) {
+}
+
+static const struct wl_seat_listener wl_seat_listener = {
+    .capabilities = handle_seat_capabilities,
+    .name = handle_seat_name,
+};
 
 -init {
     if(self = [super init]) {
@@ -78,6 +225,8 @@ static int errorHandler(struct wl_display *display,void *errorEvent) {
             [self dealloc];
             return nil;
         }
+        _seat = NULL;
+        _pointer = NULL;
         
         _fileDescriptor = -1;
         _inputSource = nil; //[[NSSelectInputSource socketInputSourceWithSocket:[NSSocket_bsd socketWithDescriptor:_fileDescriptor]] retain];
@@ -86,9 +235,10 @@ static int errorHandler(struct wl_display *display,void *errorEvent) {
       
         _windowsByID = [NSMutableDictionary new];
 
-        lastFocusedWindow=nil;
-        lastClickTimeStamp=0.0;
-        clickCount=0;
+        lastFocusedWindow = nil;
+        _pointerActiveSurface = NULL;
+        _lastClickTimeStamp = 0.0;
+        clickCount = 0;
     }
     return self;
 }
@@ -336,6 +486,55 @@ static int errorHandler(struct wl_display *display,void *errorEvent) {
       [_windowsByID removeObjectForKey:[NSNumber numberWithUnsignedLong:(unsigned long)i]];
 }
 
+- (void)setSeat:(struct wl_seat *)seat
+{
+    _seat = seat;
+    wl_seat_add_listener(seat, &wl_seat_listener, (void *)self);
+}
+
+- (void)seatHasPointer:(BOOL)hasPointer
+{
+    if(_pointer)
+        wl_pointer_release(_pointer);
+    if(hasPointer) {
+        _pointer = wl_seat_get_pointer(_seat);
+        wl_pointer_add_listener(_pointer, &wl_pointer_listener, (void *)self);
+    }
+}
+
+- (void)enterSurface:(struct wl_surface *)surface
+{
+    _pointerActiveSurface = surface;
+}
+
+- (void)leaveSurface:(struct wl_surface *)surface
+{
+    if(_pointerActiveSurface == surface)
+        _pointerActiveSurface = NULL;
+}
+
+- (struct wl_surface *)pointerActiveSurface
+{
+    return _pointerActiveSurface;
+}
+
+- (NSTimeInterval)lastClickTimeStamp
+{
+    return _lastClickTimeStamp;
+}
+
+- (void)setLastClickTimeStamp:(NSTimeInterval)now
+{
+    _lastClickTimeStamp = now;
+}
+
+- (BOOL)pointerButtonState:(WLPointerButtonMask)mask
+{
+    if((pointerButtonState & mask) == mask)
+        return YES;
+    return NO;
+}
+
 -(id)windowForID:(unsigned long)i
 {
    return [_windowsByID objectForKey:[NSNumber numberWithUnsignedLong:i]];
@@ -362,6 +561,7 @@ static int errorHandler(struct wl_display *display,void *errorEvent) {
     wl_display_dispatch_pending(_display);
 
     // wake up the main event loop so we don't block
+    // FIXME: there must be a more optimal way to do this
     NSEvent *event = [NSEvent mouseEventWithType:NSMouseMoved
                                  location:NSMakePoint(0,0)
                             modifierFlags:0
@@ -509,68 +709,6 @@ NSArray *CGSOrderedWindowNumbers() {
      [str release];
      break;
 
-    case ButtonPress:;
-     NSTimeInterval now=[[NSDate date] timeIntervalSinceReferenceDate];
-     
-     if(now-lastClickTimeStamp<[self doubleClickInterval]) {
-      clickCount++;
-     }
-     else {
-      clickCount=1;  
-     }
-     lastClickTimeStamp=now;
-
-     pos=[window transformPoint:NSMakePoint(ev->xbutton.x, ev->xbutton.y)];
-
-     event=[NSEvent mouseEventWithType:NSLeftMouseDown
-                                  location:pos
-                             modifierFlags:[self modifierFlagsForState:ev->xbutton.state]
-                                    window:delegate
-                                clickCount:clickCount deltaX:0.0 deltaY:0.0];
-     [self postEvent:event atStart:NO];
-     break;
-
-    case ButtonRelease:;
-     pos=[window transformPoint:NSMakePoint(ev->xbutton.x, ev->xbutton.y)];
-
-     event=[NSEvent mouseEventWithType:NSLeftMouseUp
-                                  location:pos
-                             modifierFlags:[self modifierFlagsForState:ev->xbutton.state]
-                                    window:delegate
-                                clickCount:clickCount deltaX:0.0 deltaY:0.0];
-     [self postEvent:event atStart:NO];
-     break;
-
-    case MotionNotify:;
-     pos=[window transformPoint:NSMakePoint(ev->xmotion.x, ev->xmotion.y)];
-     type=NSMouseMoved;
-         
-     if(ev->xmotion.state&Button1Mask) {
-      type=NSLeftMouseDragged;
-     }
-     else if (ev->xmotion.state&Button2Mask) {
-      type=NSRightMouseDragged;
-     }
-         
-     if(type==NSMouseMoved && ![delegate acceptsMouseMovedEvents])
-      break;
-         
-     event=[NSEvent mouseEventWithType:type
-                                  location:pos
-                             modifierFlags:[self modifierFlagsForState:ev->xmotion.state]
-                                    window:delegate
-                                clickCount:1 deltaX:0.0 deltaY:0.0];
-      [self postEvent:event atStart:NO];
-      [self discardEventsMatchingMask:NSLeftMouseDraggedMask beforeEvent:event];
-      break;
-
-    case EnterNotify:
-     NSLog(@"EnterNotify");
-     break;
-     
-    case LeaveNotify:
-     NSLog(@"LeaveNotify");
-     break;
 
     case FocusIn:
      if([delegate attachedSheet]) {
@@ -604,42 +742,11 @@ NSArray *CGSOrderedWindowNumbers() {
       [window flushBuffer];
      break;
 
-    case GraphicsExpose:
-     NSLog(@"GraphicsExpose");
-     break;
-     
-    case NoExpose:
-     NSLog(@"NoExpose");
-     break;
-     
-    case VisibilityNotify:
-//      NSLog(@"VisibilityNotify");
-     break;
-
-    case CreateNotify:
-     NSLog(@"CreateNotify");
-     break;
 
     case DestroyNotify:;
      // we should never get this message before the WM_DELETE_WINDOW ClientNotify
      // so normally, window should be nil here.
      [window invalidate];
-     break;
-
-    case UnmapNotify:
-     NSLog(@"UnmapNotify");
-     break;
-
-    case MapNotify:
-     NSLog(@"MapNotify");
-     break;
-
-    case MapRequest:
-     NSLog(@"MapRequest");
-     break;
-
-    case ReparentNotify:
-     NSLog(@"ReparentNotify");
      break;
 
     case ConfigureNotify:
@@ -709,8 +816,6 @@ NSArray *CGSOrderedWindowNumbers() {
 #endif
 
 -(void)selectInputSource:(NSSelectInputSource *)inputSource selectEvent:(NSUInteger)selectEvent {
-    NSLog(@"selectInputSource");
-
     //[self postXEvent:&e];
 }
 

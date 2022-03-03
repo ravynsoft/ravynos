@@ -10,21 +10,52 @@
 #import <AppKit/NSDisplay.h>
 #import <wayland-client.h>
 
+typedef enum {
+    WLPointerPrimaryButton = 0x1,
+    WLPointerMiddleButton = 0x2,
+    WLPointerSecondaryButton = 0x4
+} WLPointerButtonMask;
+
+typedef enum {
+    WLLeftShiftKeyMask = 0x1,
+    WLLeftControlKeyMask = 0x2,
+    WLLeftAltKeyMask = 0x4,
+    WLLeftCommandKeyMask = 0x8,
+    WLRightShiftKeyMask = 0x10,
+    WLRightControlKeyMask = 0x20,
+    WLRightAltKeyMask = 0x40,
+    WLRightCommandKeyMask = 0x80
+} WLModifierKeyMask;
+
 @interface WLDisplay : NSDisplay {
     struct wl_display *_display;
+    struct wl_seat *_seat;
+    struct wl_pointer *_pointer;
     int _fileDescriptor;
     NSSelectInputSource *_inputSource;
     NSMutableDictionary *_windowsByID;
 
     id lastFocusedWindow;
-    NSTimeInterval lastClickTimeStamp;
+    struct wl_surface *_pointerActiveSurface;
+    NSPoint pointerPosition;
+    WLPointerButtonMask pointerButtonState;
+    WLModifierKeyMask modifierKeyState;
+    NSTimeInterval _lastClickTimeStamp;
     int clickCount;
 }
 
 - (struct wl_display *)display;
 
 - (void)setWindow:(id)window forID:(unsigned long)i;
+- (void)setSeat:(struct wl_seat *)seat;
+- (void)seatHasPointer:(BOOL)hasPointer;
+- (void)enterSurface:(struct wl_surface *)surface;
+- (void)leaveSurface:(struct wl_surface *)surface;
+- (struct wl_surface *)pointerActiveSurface;
+- (BOOL)pointerButtonState:(WLPointerButtonMask)mask;
 
+- (NSTimeInterval)lastClickTimeStamp;
+- (void)setLastClickTimeStamp:(NSTimeInterval)now;
 - (float)doubleClickInterval;
 - (int)handleError:(void *)errorEvent;
 @end

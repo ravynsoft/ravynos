@@ -78,20 +78,23 @@ static const struct wl_buffer_listener wl_buffer_listener = {
     .release = wl_buffer_release,
 };
 
+
 static void handle_global(void *data, struct wl_registry *registry,
 		uint32_t name, const char *interface, uint32_t version) {
     WLWindow *win = (__bridge WLWindow *)data;
 
+    // FIXME: most of this should be part of WLDisplay, not WLWindow
+    // FIXME: use EGL instead of wl_shm
     if (strcmp(interface, wl_compositor_interface.name) == 0) {
         [win set_compositor:wl_registry_bind(registry, name, &wl_compositor_interface, 1)];
     } else if (strcmp(interface, xdg_wm_base_interface.name) == 0) {
         [win set_wm_base:wl_registry_bind(registry, name, &xdg_wm_base_interface, 1)];
     } else if (strcmp(interface, wl_shm_interface.name) == 0) {
         [win set_wl_shm: wl_registry_bind(registry, name, &wl_shm_interface, 1)];
-    //} else if (strcmp(interface, wl_seat_interface.name) == 0) {
-    //    struct wl_seat *seat =
-    //            wl_registry_bind(registry, name, &wl_seat_interface, 1);
-    //    wl_seat_add_listener(seat, &seat_listener, NULL);
+    } else if (strcmp(interface, wl_seat_interface.name) == 0) {
+        struct wl_seat *seat = wl_registry_bind(registry, name, &wl_seat_interface, 7);
+        WLDisplay *display = [NSDisplay currentDisplay];
+        [display setSeat:seat];
     }
 }
 
