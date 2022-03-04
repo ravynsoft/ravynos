@@ -27,6 +27,12 @@ typedef enum {
     WLRightCommandKeyMask = 0x80
 } WLModifierKeyMask;
 
+typedef enum {
+    WLPointerDevice,
+    WLKeyboardDevice,
+    WLTouchDevice
+} WLInputDevice;
+
 @interface WLDisplay : NSDisplay {
     struct wl_display *_display;
     struct wl_seat *_seat;
@@ -38,6 +44,7 @@ typedef enum {
 
     id lastFocusedWindow;
     struct wl_surface *_pointerActiveSurface;
+    struct wl_surface *_keyboardActiveSurface;
     NSPoint pointerPosition;
     WLPointerButtonMask pointerButtonState;
     WLModifierKeyMask modifierKeyState;
@@ -45,6 +52,7 @@ typedef enum {
     int clickCount;
 
     struct xkb_state *xkb_state;
+    struct xkb_state *xkb_state_unmodified;
     struct xkb_context *xkb_context;
     struct xkb_keymap *xkb_keymap;
 }
@@ -55,9 +63,10 @@ typedef enum {
 - (void)setSeat:(struct wl_seat *)seat;
 - (void)seatHasPointer:(BOOL)hasPointer;
 - (void)setHasKeyboard:(BOOL)hasKeyboard;
-- (void)enterSurface:(struct wl_surface *)surface;
-- (void)leaveSurface:(struct wl_surface *)surface;
+- (void)enterSurface:(struct wl_surface *)surface device:(WLInputDevice)device;
+- (void)leaveSurface:(struct wl_surface *)surface device:(WLInputDevice)device;
 - (struct wl_surface *)pointerActiveSurface;
+- (struct wl_surface *)keyboardActiveSurface;
 - (BOOL)pointerButtonState:(WLPointerButtonMask)mask;
 
 - (NSTimeInterval)lastClickTimeStamp;

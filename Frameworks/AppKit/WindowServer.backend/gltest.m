@@ -103,16 +103,10 @@ int main(int argc, char *argv[]) {
     pthread_t thread;
 
     [win setTitle:@"An AppKit Window"];
-    NSButton *but = [NSButton new];
-    NSMutableParagraphStyle *para = [NSMutableParagraphStyle new];
-    [para setAlignment:NSCenterTextAlignment];
-    NSDictionary *attrs = @{
-        NSFontAttributeName: [NSFont labelFontOfSize:16],
-        NSParagraphStyleAttributeName: para
-    };
-    [but setAttributedTitle:[[NSAttributedString alloc] initWithString:
-        @"Hello Wayland!" attributes:attrs]];
-    [win setContentView:but];
+    NSTextField *tf = [[NSTextField alloc] initWithFrame:NSMakeRect(20, 100, 600, 140)];
+    [tf setEditable:YES];
+    [tf setFont:[NSFont systemFontOfSize:16]];
+    [win setContentView:tf];
     [win makeKeyAndOrderFront:nil];
 
     //pthread_create(&thread, NULL, draw, win);

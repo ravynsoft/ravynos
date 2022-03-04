@@ -45,7 +45,7 @@
 #import <fontconfig.h>
 #import <dev/evdev/input-event-codes.h>
 #import <xkbcommon/xkbcommon.h>
-//#import <X11/keysym.h>
+#import <X11/keysym.h>
 
 @implementation NSDisplay(WL)
 
@@ -64,13 +64,13 @@ static int errorHandler(struct wl_display *display,void *errorEvent) {
 static void handlePointerEnter(void *data, struct wl_pointer *ptr,
     uint32_t serial, struct wl_surface *surface, wl_fixed_t sx, wl_fixed_t sy) {
     WLDisplay *display = (WLDisplay *)data;
-    [display enterSurface:surface];
+    [display enterSurface:surface device:WLPointerDevice];
 }
 
 static void handlePointerLeave(void *data, struct wl_pointer *ptr,
     uint32_t serial, struct wl_surface *surface) {
     WLDisplay *display = (WLDisplay *)data;
-    [display leaveSurface:surface];
+    [display leaveSurface:surface device:WLPointerDevice];
 }
 
 static void handlePointerMotion(void *data, struct wl_pointer *ptr,
@@ -82,7 +82,7 @@ static void handlePointerMotion(void *data, struct wl_pointer *ptr,
 - (void) pointerMotion:(uint32_t)time at:(NSPoint)point
 {
     if(_pointerActiveSurface == NULL) {
-        NSLog(@"ERROR - motion event without active surface");
+        NSLog(@"ERROR: motion event without active surface");
         return;
     }
     WLWindow *window = [self windowForID:(unsigned long)_pointerActiveSurface];
@@ -103,7 +103,7 @@ static void handlePointerMotion(void *data, struct wl_pointer *ptr,
 
     NSEvent *event = [NSEvent mouseEventWithType:type
                                   location:pos
-                             modifierFlags:0 // FIXME: these are keyboard modifier key states
+                             modifierFlags:[self modifierFlagsForState:xkb_state]
                                     window:delegate
                                 clickCount:1 deltaX:0.0 deltaY:0.0];
     [self postEvent:event atStart:NO];
@@ -135,13 +135,9 @@ static void handlePointerButton(void *data, struct wl_pointer *ptr,
     _lastClickTimeStamp = now;
 
     // see if we are clicking a surface (window) or on the background
-    NSPoint pos = pointerPosition;
-    id delegate = nil;
-    if(_pointerActiveSurface) {
-        WLWindow *window = [self windowForID:(unsigned long)_pointerActiveSurface];
-        pos = [window transformPoint:pointerPosition];
-        delegate = [window delegate];
-    }
+    WLWindow *window = [self windowForID:(unsigned long)_pointerActiveSurface];
+    NSPoint pos = [window transformPoint:pointerPosition];
+    id delegate = [window delegate];
 
     switch(type) {
         case NSLeftMouseUp:
@@ -160,7 +156,7 @@ static void handlePointerButton(void *data, struct wl_pointer *ptr,
 
     NSEvent *event = [NSEvent mouseEventWithType:type
                                   location:pos
-                             modifierFlags:0 // FIXME: these are keyboard modifier key states
+                             modifierFlags:[self modifierFlagsForState:xkb_state]
                                     window:delegate
                                 clickCount:clickCount deltaX:0.0 deltaY:0.0];
     [self postEvent:event atStart:NO];
@@ -214,10 +210,14 @@ static void handleKeyboardMap(void *data, struct wl_keyboard *kbd,
     munmap(map, size);
 
     struct xkb_state *state = xkb_state_new(xkb_keymap);
+    struct xkb_state *unmodified = xkb_state_new(xkb_keymap);
     xkb_keymap_unref(xkb_keymap);
-    xkb_state_unref(xkb_state);
-    xkb_keymap = keymap;
+    if(xkb_state_unmodified)
+        xkb_state_unref(xkb_state_unmodified);
+    if(xkb_state)
+        xkb_state_unref(xkb_state);
     xkb_state = state;
+    xkb_state_unmodified = unmodified;
 }
 
 - (struct xkb_state *)xkb_state
@@ -225,44 +225,157 @@ static void handleKeyboardMap(void *data, struct wl_keyboard *kbd,
     return xkb_state;
 }
 
+static unichar translateKeySym(xkb_keysym_t keysym)
+{
+     switch(keysym) {
+        case XK_Home:
+        case XK_KP_Home: return NSHomeFunctionKey;
+        case XK_Left:
+        case XK_KP_Left: return NSLeftArrowFunctionKey;
+        case XK_Up:
+        case XK_KP_Up: return NSUpArrowFunctionKey;
+        case XK_Right:
+        case XK_KP_Right: return NSRightArrowFunctionKey;
+        case XK_Down:
+        case XK_KP_Down: return NSDownArrowFunctionKey;
+        case XK_Page_Up:
+        case XK_KP_Page_Up: return NSPageUpFunctionKey;
+        case XK_Page_Down:
+        case XK_KP_Page_Down: return NSPageDownFunctionKey;
+        case XK_End:
+        case XK_KP_End: return NSEndFunctionKey;
+        case XK_Begin:
+        case XK_KP_Begin: return NSHomeFunctionKey;
+        case XK_Delete:
+        case XK_KP_Delete: return NSDeleteFunctionKey;
+        case XK_Insert:
+        case XK_KP_Insert: return NSInsertFunctionKey;
+        case XK_F1: return NSF1FunctionKey;
+        case XK_F2: return NSF2FunctionKey;
+        case XK_F3: return NSF3FunctionKey;
+        case XK_F4: return NSF4FunctionKey;
+        case XK_F5: return NSF5FunctionKey;
+        case XK_F6: return NSF6FunctionKey;
+        case XK_F7: return NSF7FunctionKey;
+        case XK_F8: return NSF8FunctionKey;
+        case XK_F9: return NSF9FunctionKey;
+        case XK_F10: return NSF10FunctionKey;
+        case XK_F11: return NSF11FunctionKey;
+        case XK_F12: return NSF12FunctionKey;
+        case XK_F13: return NSF13FunctionKey;
+        case XK_F14: return NSF14FunctionKey;
+        case XK_F15: return NSF15FunctionKey;
+        case XK_F16: return NSF16FunctionKey;
+        case XK_F17: return NSF17FunctionKey;
+        case XK_F18: return NSF18FunctionKey;
+        case XK_F19: return NSF19FunctionKey;
+        case XK_F20: return NSF20FunctionKey;
+        case XK_F21: return NSF21FunctionKey;
+        case XK_F22: return NSF22FunctionKey;
+        case XK_F23: return NSF23FunctionKey;
+        case XK_F24: return NSF24FunctionKey;
+        case XK_F25: return NSF25FunctionKey;
+        case XK_F26: return NSF26FunctionKey;
+        case XK_F27: return NSF27FunctionKey;
+        case XK_F28: return NSF28FunctionKey;
+        case XK_F29: return NSF29FunctionKey;
+        case XK_F30: return NSF30FunctionKey;
+        case XK_F31: return NSF31FunctionKey;
+        case XK_F32: return NSF32FunctionKey;
+        case XK_F33: return NSF33FunctionKey;
+        case XK_F34: return NSF34FunctionKey;
+        case XK_F35: return NSF35FunctionKey;
+        default: return keysym;
+    }
+}
+
+- (void)keyboardInput:(uint32_t)keycode eventType:(NSEventType)type autoUp:(BOOL)autoUp
+{
+    xkb_keysym_t sym = xkb_state_key_get_one_sym(xkb_state, keycode);
+    if(sym == XKB_KEY_NoSymbol)
+        return;
+
+    unichar nskey = translateKeySym(sym);
+    NSString *strChars, *strCharsIg;
+
+    if(nskey == sym) { // we did not translate, look up the utf8
+        char buf[128];
+        xkb_state_key_get_utf8(xkb_state, keycode, buf, sizeof(buf));
+        strChars = [NSString stringWithUTF8String:buf];
+        xkb_state_key_get_utf8(xkb_state_unmodified, keycode, buf, sizeof(buf));
+        strCharsIg = [NSString stringWithUTF8String:buf];
+    } else {
+        strChars = [NSString stringWithCharacters:&nskey length:1];
+        strCharsIg = strChars;
+    }
+
+    WLWindow *window = [self windowForID:(unsigned long)_keyboardActiveSurface];
+    id delegate = [window delegate];
+    
+    NSEvent *event = [NSEvent keyEventWithType:type
+                                      location:pointerPosition
+                                 modifierFlags:[self modifierFlagsForState:xkb_state]
+                                     timestamp:0.0
+                                  windowNumber:(NSInteger)[delegate windowNumber]
+                                       context:nil
+                                    characters:strChars
+                   charactersIgnoringModifiers:strCharsIg
+                                     isARepeat:NO
+                                       keyCode:keycode];
+    [self postEvent:event atStart:NO];
+
+    if(autoUp == YES && type == NSKeyDown) {
+        NSEvent *event = [NSEvent keyEventWithType:NSKeyUp
+                                      location:pointerPosition
+                                 modifierFlags:[self modifierFlagsForState:xkb_state]
+                                     timestamp:0.0
+                                  windowNumber:(NSInteger)[delegate windowNumber]
+                                       context:nil
+                                    characters:strChars
+                   charactersIgnoringModifiers:strCharsIg
+                                     isARepeat:NO
+                                       keyCode:keycode];
+        [self postEvent:event atStart:NO];
+    }
+}
+
 static void handleKeyboardEnter(void *data, struct wl_keyboard *kbd,
     uint32_t serial, struct wl_surface *surface, struct wl_array *keys) {
     WLDisplay *display = (WLDisplay *)data;
-    WLWindow *window = [self windowForID:(unsigned long)surface];
-    id delegate = [window delegate];
+    [display enterSurface:surface device:WLKeyboardDevice];
 
     uint32_t *key;
     wl_array_for_each(key, keys) {
-        char buf[128];
-        xkb_keysym_t sym = xkb_state_key_get_one_sym([display xkb_state], *key+8);
-        xkb_state_key_get_utf8([display xkb_state], *key+8, buf, sizeof(buf));
-
-        NSEvent *event = [NSEvent keyEventWithType:NSKeyDown
-                                  location:pointerPosition
-                             modifierFlags:0 // FIXME: these are keyboard modifier key states
-                                 timestamp:0.0
-                              windowNumber:(NSInteger)[delegate windowNumber]
-                                   context:nil
-                                characters:buf
-               charactersIgnoringModifiers:buf
-                                 isARepeat:NO
-                                   keyCode:sym]; // not used?
-
-        [display postEvent:event atStart:NO];
-
-        NSEvent *event = [NSEvent keyEventWithType:NSKeyUp
-                                  location:pointerPosition
-                             modifierFlags:0 // FIXME: these are keyboard modifier key states
-                                 timestamp:0.0
-                              windowNumber:(NSInteger)[delegate windowNumber]
-                                   context:nil
-                                characters:buf
-               charactersIgnoringModifiers:buf
-                                 isARepeat:NO
-                                   keyCode:sym]; // not used?
-        [display postEvent:event atStart:NO];
+        [display keyboardInput:*key+8 eventType:NSKeyDown autoUp:YES];
     }
 }
+
+static void handleKeyboardLeave(void *data, struct wl_keyboard *kbd,
+    uint32_t serial, struct wl_surface *surface) {
+    WLDisplay *display = (WLDisplay *)data;
+    [display leaveSurface:surface device:WLKeyboardDevice];
+}
+
+static void handleKeyboardInput(void *data, struct wl_keyboard *kbd,
+    uint32_t serial, uint32_t time, uint32_t key, uint32_t state) {
+    WLDisplay *display = (WLDisplay *)data;
+    NSEventType type = (state == WL_KEYBOARD_KEY_STATE_PRESSED) ? NSKeyDown : NSKeyUp;
+    [display keyboardInput:key+8 eventType:type autoUp:NO];
+}
+
+static void handleKeyboardModifiers(void *data, struct wl_keyboard *kbd,
+    uint32_t serial, uint32_t modsDown, uint32_t modsLatched, uint32_t modsLocked,
+    uint32_t group) {
+    WLDisplay *display = (WLDisplay *)data;
+    xkb_state_update_mask([display xkb_state], 
+        modsDown, modsLatched, modsLocked, 0, 0, group);
+}
+
+static void handleKeyboardRepeat(void *data, struct wl_keyboard *kbd, int32_t rate,
+    int32_t delay) {
+    NSLog(@"FIXME: repeat rate: %d delay:%d", rate, delay);
+}
+
 
 static const struct wl_keyboard_listener wl_keyboard_listener = {
     .keymap = handleKeyboardMap,
@@ -309,6 +422,14 @@ static const struct wl_seat_listener wl_seat_listener = {
         _seat = NULL;
         _pointer = NULL;
         xkb_context = xkb_context_new(XKB_CONTEXT_NO_FLAGS);
+
+        // make sure we have a default keymap in case compositor doesn't send one
+        // FIXME: read this from system prefs
+        struct xkb_keymap *xkb_keymap = xkb_keymap_new_from_names(xkb_context,
+            NULL, XKB_KEYMAP_COMPILE_NO_FLAGS);
+        xkb_state = xkb_state_new(xkb_keymap);
+        xkb_state_unmodified = xkb_state_new(xkb_keymap);
+        xkb_keymap_unref(xkb_keymap);
         
         _fileDescriptor = -1;
         _inputSource = nil; //[[NSSelectInputSource socketInputSourceWithSocket:[NSSocket_bsd socketWithDescriptor:_fileDescriptor]] retain];
@@ -319,6 +440,7 @@ static const struct wl_seat_listener wl_seat_listener = {
 
         lastFocusedWindow = nil;
         _pointerActiveSurface = NULL;
+        _keyboardActiveSurface = NULL;
         _lastClickTimeStamp = 0.0;
         clickCount = 0;
     }
@@ -586,7 +708,7 @@ static const struct wl_seat_listener wl_seat_listener = {
         _pointer = NULL;
 }
 
-- (void)setHasKeyboard:(BOOL)hasKeyboard
+- (void)seatHasKeyboard:(BOOL)hasKeyboard
 {
     if(_keyboard)
         wl_keyboard_release(_keyboard);
@@ -598,15 +720,36 @@ static const struct wl_seat_listener wl_seat_listener = {
         _keyboard = NULL;
 }
 
-- (void)enterSurface:(struct wl_surface *)surface
+- (void)enterSurface:(struct wl_surface *)surface device:(WLInputDevice)device
 {
-    _pointerActiveSurface = surface;
+    switch(device) {
+        case WLPointerDevice:
+            _pointerActiveSurface = surface;
+            break;
+        case WLKeyboardDevice:
+            _keyboardActiveSurface = surface;
+            break;
+        case WLTouchDevice:
+            NSLog(@"FIXME: touch devices are not supported yet");
+            break;
+    }
 }
 
-- (void)leaveSurface:(struct wl_surface *)surface
+- (void)leaveSurface:(struct wl_surface *)surface device:(WLInputDevice)device
 {
-    if(_pointerActiveSurface == surface)
-        _pointerActiveSurface = NULL;
+    switch(device) {
+        case WLPointerDevice:
+            if(_pointerActiveSurface == surface)
+                _pointerActiveSurface = NULL;
+            break;
+        case WLKeyboardDevice:
+            if(_keyboardActiveSurface == surface)
+                _keyboardActiveSurface = NULL;
+            break;
+        case WLTouchDevice:
+            NSLog(@"FIXME: touch devices are not supported yet");
+            break;
+    }
 }
 
 - (struct wl_surface *)pointerActiveSurface
@@ -637,7 +780,11 @@ static const struct wl_seat_listener wl_seat_listener = {
 }
 
 -(NSEvent *)nextEventMatchingMask:(unsigned)mask untilDate:(NSDate *)untilDate inMode:(NSString *)mode dequeue:(BOOL)dequeue {
-   NSEvent *result;
+    NSEvent *result;
+    static NSEvent *event = nil;
+    if(event == nil)
+        event = [[NSEvent alloc] initWithType:NSAppKitSystem
+        location:NSMakePoint(0,0) modifierFlags:0 window:nil];
 
     while(wl_display_prepare_read(_display) != 0)
         wl_display_dispatch_pending(_display);
@@ -658,32 +805,26 @@ static const struct wl_seat_listener wl_seat_listener = {
 
     // wake up the main event loop so we don't block
     // FIXME: there must be a more optimal way to do this
-    NSEvent *event = [NSEvent mouseEventWithType:NSMouseMoved
-                                 location:NSMakePoint(0,0)
-                            modifierFlags:0
-                                   window:nil
-                               clickCount:1 deltaX:0.0 deltaY:0.0];
     [self postEvent:event atStart:NO];
 
     [[NSRunLoop currentRunLoop] addInputSource:_inputSource forMode:mode];
-    result=[super nextEventMatchingMask:mask untilDate:untilDate inMode:mode dequeue:dequeue];
+    result = [super nextEventMatchingMask:mask untilDate:untilDate inMode:mode dequeue:dequeue];
     [[NSRunLoop currentRunLoop] removeInputSource:_inputSource forMode:mode];
    
     return result;
 }
 
--(unsigned int)modifierFlagsForState:(unsigned int)state {
-   unsigned int ret=0;
-#if 0 // FIXME: should be in compositor?
-   if(state & ShiftMask)
-      ret|=NSShiftKeyMask;
-   if(state & ControlMask)
-      ret|=NSControlKeyMask;
-   if(state & Mod2Mask)
-      ret|=NSCommandKeyMask;
-   // TODO: alt doesn't work; might want to track key presses/releases instead
-#endif
-   return ret;
+-(unsigned int)modifierFlagsForState:(struct xkb_state *)state {
+    unsigned int ret=0;
+    if(xkb_state_mod_name_is_active(state, XKB_MOD_NAME_SHIFT, XKB_STATE_MODS_EFFECTIVE))
+        ret |= NSShiftKeyMask;
+    if(xkb_state_mod_name_is_active(state, XKB_MOD_NAME_CTRL, XKB_STATE_MODS_EFFECTIVE))
+        ret |= NSControlKeyMask;
+    if(xkb_state_mod_name_is_active(state, XKB_MOD_NAME_LOGO, XKB_STATE_MODS_EFFECTIVE))
+        ret |= NSCommandKeyMask;
+    if(xkb_state_mod_name_is_active(state, XKB_MOD_NAME_ALT, XKB_STATE_MODS_EFFECTIVE))
+        ret |= NSAlternateKeyMask;
+    return ret;
 }
 
 NSArray *CGSOrderedWindowNumbers() {
@@ -698,113 +839,11 @@ NSArray *CGSOrderedWindowNumbers() {
 
 #if 0 // FIXME: this belongs in compositor?
 -(void)postXEvent:(XEvent *)ev {
-   id event=nil;
-   NSEventType type;
-   id window=[self windowForID:ev->xany.window];
-   if(window == nil) { // guard against unknown IDs
-      //NSLog(@"postXEvent: unknown window ID %d",ev->xany.window);
-      return;
-   }
-   id delegate=[window delegate];
-   
-   switch(ev->type) {
     case KeyPress:
     case KeyRelease:;
      unsigned int modifierFlags=[self modifierFlagsForState:ev->xkey.state];
-     unichar keys[32]={0};
-     size_t buflen = 0;
-     char buf[4];
-     
-     KeySym ks;
-     XLookupString((XKeyEvent*)ev, buf, 4, &ks, NULL);
 
-     // translate special characters
-     switch(ks) {
-        case XK_Home:
-        case XK_KP_Home: keys[buflen++] = NSHomeFunctionKey; break;
-        case XK_Left:
-        case XK_KP_Left: keys[buflen++] = NSLeftArrowFunctionKey; break;
-        case XK_Up:
-        case XK_KP_Up: keys[buflen++] = NSUpArrowFunctionKey; break;
-        case XK_Right:
-        case XK_KP_Right: keys[buflen++] = NSRightArrowFunctionKey; break;
-        case XK_Down:
-        case XK_KP_Down: keys[buflen++] = NSDownArrowFunctionKey; break;
-        case XK_Page_Up:
-        case XK_KP_Page_Up: keys[buflen++] = NSPageUpFunctionKey; break;
-        case XK_Page_Down:
-        case XK_KP_Page_Down: keys[buflen++] = NSPageDownFunctionKey; break;
-        case XK_End:
-        case XK_KP_End: keys[buflen++] = NSEndFunctionKey; break;
-        case XK_Begin:
-        case XK_KP_Begin: keys[buflen++] = NSHomeFunctionKey; break;
-        case XK_Delete:
-        case XK_KP_Delete: keys[buflen++] = NSDeleteFunctionKey; break;
-        case XK_Insert:
-        case XK_KP_Insert: keys[buflen++] = NSInsertFunctionKey; break;
-        case XK_F1: keys[buflen++] = NSF1FunctionKey; break;
-        case XK_F2: keys[buflen++] = NSF2FunctionKey; break;
-        case XK_F3: keys[buflen++] = NSF3FunctionKey; break;
-        case XK_F4: keys[buflen++] = NSF4FunctionKey; break;
-        case XK_F5: keys[buflen++] = NSF5FunctionKey; break;
-        case XK_F6: keys[buflen++] = NSF6FunctionKey; break;
-        case XK_F7: keys[buflen++] = NSF7FunctionKey; break;
-        case XK_F8: keys[buflen++] = NSF8FunctionKey; break;
-        case XK_F9: keys[buflen++] = NSF9FunctionKey; break;
-        case XK_F10: keys[buflen++] = NSF10FunctionKey; break;
-        case XK_F11: keys[buflen++] = NSF11FunctionKey; break;
-        case XK_F12: keys[buflen++] = NSF12FunctionKey; break;
-        case XK_F13: keys[buflen++] = NSF13FunctionKey; break;
-        case XK_F14: keys[buflen++] = NSF14FunctionKey; break;
-        case XK_F15: keys[buflen++] = NSF15FunctionKey; break;
-        case XK_F16: keys[buflen++] = NSF16FunctionKey; break;
-        case XK_F17: keys[buflen++] = NSF17FunctionKey; break;
-        case XK_F18: keys[buflen++] = NSF18FunctionKey; break;
-        case XK_F19: keys[buflen++] = NSF19FunctionKey; break;
-        case XK_F20: keys[buflen++] = NSF20FunctionKey; break;
-        case XK_F21: keys[buflen++] = NSF21FunctionKey; break;
-        case XK_F22: keys[buflen++] = NSF22FunctionKey; break;
-        case XK_F23: keys[buflen++] = NSF23FunctionKey; break;
-        case XK_F24: keys[buflen++] = NSF24FunctionKey; break;
-        case XK_F25: keys[buflen++] = NSF25FunctionKey; break;
-        case XK_F26: keys[buflen++] = NSF26FunctionKey; break;
-        case XK_F27: keys[buflen++] = NSF27FunctionKey; break;
-        case XK_F28: keys[buflen++] = NSF28FunctionKey; break;
-        case XK_F29: keys[buflen++] = NSF29FunctionKey; break;
-        case XK_F30: keys[buflen++] = NSF30FunctionKey; break;
-        case XK_F31: keys[buflen++] = NSF31FunctionKey; break;
-        case XK_F32: keys[buflen++] = NSF32FunctionKey; break;
-        case XK_F33: keys[buflen++] = NSF33FunctionKey; break;
-        case XK_F34: keys[buflen++] = NSF34FunctionKey; break;
-        case XK_F35: keys[buflen++] = NSF35FunctionKey; break;
-        default: keys[buflen++] = buf[0];
      }
-
-     id str=[[NSString alloc] initWithCharacters:keys length:buflen];
-     NSPoint pos=[window transformPoint:NSMakePoint(ev->xkey.x, ev->xkey.y)];
-
-     id strIg=[str lowercaseString];
-     if(ev->xkey.state) {
-      ev->xkey.state=0;
-      XLookupString((XKeyEvent*)ev, buf, 4, NULL, NULL);
-      strIg=[[NSString alloc] initWithCharacters:buf length:1];
-     }
-      
-     id event=[NSEvent keyEventWithType:ev->type == KeyPress ? NSKeyDown : NSKeyUp location:pos
-                              modifierFlags:modifierFlags
-                                  timestamp:0.0 
-                               windowNumber:(NSInteger)[delegate windowNumber]
-                                    context:nil
-                                 characters:str 
-                charactersIgnoringModifiers:strIg
-                                  isARepeat:NO
-                                    keyCode:ev->xkey.keycode]; // FIXME: translate these to Apple keycodes?
-         
-     [self postEvent:event atStart:NO];
-         
-     [str release];
-     break;
-
 
     case FocusIn:
      if([delegate attachedSheet]) {
@@ -824,10 +863,6 @@ NSArray *CGSOrderedWindowNumbers() {
      lastFocusedWindow=nil;
      break;
          
-    case KeymapNotify:
-     NSLog(@"KeymapNotify");
-     break;
-
     case Expose:;
      O2Rect rect=NSMakeRect(ev->xexpose.x, ev->xexpose.y, ev->xexpose.width, ev->xexpose.height);
      
@@ -850,65 +885,11 @@ NSArray *CGSOrderedWindowNumbers() {
      [delegate platformWindow:window frameChanged:[window transformFrame:[window frame]] didSize:YES];
      break;
 
-    case ConfigureRequest:
-     NSLog(@"ConfigureRequest");
-     break;
-
-    case GravityNotify:
-     NSLog(@"GravityNotify");
-     break;
-
-    case ResizeRequest:
-     NSLog(@"ResizeRequest");
-     break;
-
-    case CirculateNotify:
-     NSLog(@"CirculateNotify");
-     break;
-
-    case CirculateRequest:
-     NSLog(@"CirculateRequest");
-     break;
-
-    case PropertyNotify:
-     NSLog(@"PropertyNotify");
-     break;
-
-    case SelectionClear:
-     NSLog(@"SelectionClear");
-     break;
-
-    case SelectionRequest:
-     NSLog(@"SelectionRequest");
-     break;
-
-    case SelectionNotify:
-     NSLog(@"SelectionNotify");
-     break;
-
-    case ColormapNotify:
-     NSLog(@"ColormapNotify");
-     break;
 
     case ClientMessage:
      if(ev->xclient.format=32 && ev->xclient.data.l[0]==XInternAtom(_display, "WM_DELETE_WINDOW", False))
       [delegate platformWindowWillClose:window];
      break;
-
-    case MappingNotify:
-     NSLog(@"MappingNotify");
-     break;
-
-    case GenericEvent:
-     NSLog(@"GenericEvent");
-     break;
-
-    default:
-     NSLog(@"Unknown WL event type %i", ev->type);
-     break;
-   }
-
-}
 #endif
 
 -(void)selectInputSource:(NSSelectInputSource *)inputSource selectEvent:(NSUInteger)selectEvent {
