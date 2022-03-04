@@ -55,6 +55,9 @@ typedef enum {
     struct xkb_state *xkb_state_unmodified;
     struct xkb_context *xkb_context;
     struct xkb_keymap *xkb_keymap;
+    int repeatRate;
+    int repeatDelay;
+    pthread_t repeatThread;
 }
 
 - (struct wl_display *)display;
@@ -74,3 +77,11 @@ typedef enum {
 - (float)doubleClickInterval;
 - (int)handleError:(void *)errorEvent;
 @end
+
+struct RepeatArgs {
+    NSEvent *event;
+    int rate;
+    int delay;
+    WLDisplay *display;
+};
+

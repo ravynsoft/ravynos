@@ -289,6 +289,49 @@ static unichar translateKeySym(xkb_keysym_t keysym)
     }
 }
 
+// repeatedly post keydown events until canceled
+static void repeatKeyInput(struct RepeatArgs *repeatKey) {
+    int charDelay = ((float)1.0/repeatKey->rate)*1000000;
+    int delay = repeatKey->delay * 1000;
+    NSEvent *orig = repeatKey->event;
+    NSEvent *eventDown = [NSEvent keyEventWithType:NSKeyDown
+                                      location:[orig locationInWindow]
+                                 modifierFlags:[orig modifierFlags]
+                                     timestamp:0.0
+                                  windowNumber:[orig windowNumber]
+                                       context:nil
+                                    characters:[orig characters]
+                   charactersIgnoringModifiers:[orig charactersIgnoringModifiers]
+                                     isARepeat:YES
+                                       keyCode:[orig keyCode]];
+
+    WLDisplay *display = repeatKey->display;
+    free(repeatKey);
+
+    usleep(delay);
+
+    for(;;) {
+        [display performSelectorOnMainThread:@selector(postKeyDown:) withObject:eventDown waitUntilDone:NO];
+        usleep(charDelay);
+    }
+}
+
+- (void)postKeyDown:(NSEvent*)eventDown
+{
+    [self postEvent:eventDown atStart:NO];
+    NSEvent *eventUp = [NSEvent keyEventWithType:NSKeyUp
+                                      location:[eventDown locationInWindow]
+                                 modifierFlags:[eventDown modifierFlags]
+                                     timestamp:0.0
+                                  windowNumber:[eventDown windowNumber]
+                                       context:nil
+                                    characters:[eventDown characters]
+                   charactersIgnoringModifiers:[eventDown charactersIgnoringModifiers]
+                                     isARepeat:YES
+                                       keyCode:[eventDown keyCode]];
+    [self postEvent:eventUp atStart:NO];
+}
+
 - (void)keyboardInput:(uint32_t)keycode eventType:(NSEventType)type autoUp:(BOOL)autoUp
 {
     xkb_keysym_t sym = xkb_state_key_get_one_sym(xkb_state, keycode);
@@ -323,9 +366,11 @@ static unichar translateKeySym(xkb_keysym_t keysym)
                                      isARepeat:NO
                                        keyCode:keycode];
     [self postEvent:event atStart:NO];
+    pthread_cancel(repeatThread);
 
-    if(autoUp == YES && type == NSKeyDown) {
-        NSEvent *event = [NSEvent keyEventWithType:NSKeyUp
+    if(type == NSKeyDown) {
+        if(autoUp == YES) {
+            event = [NSEvent keyEventWithType:NSKeyUp
                                       location:pointerPosition
                                  modifierFlags:[self modifierFlagsForState:xkb_state]
                                      timestamp:0.0
@@ -335,7 +380,18 @@ static unichar translateKeySym(xkb_keysym_t keysym)
                    charactersIgnoringModifiers:strCharsIg
                                      isARepeat:NO
                                        keyCode:keycode];
-        [self postEvent:event atStart:NO];
+            [self postEvent:event atStart:NO];
+        } else {
+            // set auto-repeat delay timer
+            // FIXME: do not repeat modifier keys like Shift without a non-mod key
+            pthread_cancel(repeatThread);
+            struct RepeatArgs *repeatKey = malloc(sizeof(struct RepeatArgs));
+            repeatKey->event = event;
+            repeatKey->delay = repeatDelay;
+            repeatKey->rate = repeatRate;
+            repeatKey->display = self;
+            pthread_create(&repeatThread, NULL, repeatKeyInput, repeatKey);
+        }
     }
 }
 
@@ -371,9 +427,16 @@ static void handleKeyboardModifiers(void *data, struct wl_keyboard *kbd,
         modsDown, modsLatched, modsLocked, 0, 0, group);
 }
 
+- (void)setKeyboardRepeatRate:(int)rate withDelay:(int)delay
+{
+    repeatRate = rate;
+    repeatDelay = delay;
+}
+
 static void handleKeyboardRepeat(void *data, struct wl_keyboard *kbd, int32_t rate,
     int32_t delay) {
-    NSLog(@"FIXME: repeat rate: %d delay:%d", rate, delay);
+    WLDisplay *display = (WLDisplay *)data;
+    [display setKeyboardRepeatRate:rate withDelay:delay];
 }
 
 
