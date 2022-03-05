@@ -18,7 +18,7 @@ CFLAGS+=	-g -fPIC -fobjc-arc ${PKGCONFIG_CFLAGS} -I/usr/include/fontconfig \
 LDFLAGS+=	-framework Foundation -framework OpenGL \
                 -framework Onyx2D -framework CoreGraphics -framework CoreFoundation \
                 -L${MAKEOBJDIR}/wlroots -lwlroots -Wl,-R'$$ORIGIN/../Resources' \
-                -lGL ${PKGCONFIG_LIBS} -lfontconfig -lobjc -lmach -lwayland-server
+                -lEGL -lEGL_mesa -lGLESv2 ${PKGCONFIG_LIBS} -lfontconfig -lobjc -lmach -lwayland-server
 WLPROTOS=       ${.CURDIR}/wlroots/wayland-protocols
 
 xdg-shell-protocol.h:

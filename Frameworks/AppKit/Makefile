@@ -623,7 +623,7 @@ LDFLAGS+= ${FMWK_LDFLAGS} -L/usr/local/lib \
 	  -L${BUILDROOT}/System/Library/Frameworks/OpenGL.framework/Versions/Current \
 	  -L${BUILDROOT}/System/Library/Frameworks/Onyx2D.framework/Versions/Current \
 	  -lFoundation -lCoreFoundation -lCoreGraphics -lCoreText -lCoreData -lQuartzCore -lOpenGL -lOnyx2D \
-	  -lwayland-client -lobjc -lfreetype -lfontconfig -lxkbcommon -lGL -lm
+	  -lwayland-client -lobjc -lfreetype -lfontconfig -lxkbcommon -lEGL -lGLESv2 -lEGL_mesa -lwayland-egl -lm
 
 
 fmwkclean:

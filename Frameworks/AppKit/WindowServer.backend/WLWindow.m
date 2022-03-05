@@ -209,6 +209,7 @@ static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
     }
 
     wl_surface = wl_compositor_create_surface(compositor);
+    region = wl_compositor_create_region(compositor);
     xdg_surface = xdg_wm_base_get_xdg_surface(wm_base, wl_surface);
     xdg_toplevel = xdg_surface_get_toplevel(xdg_surface);
 
@@ -228,6 +229,12 @@ static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
 
 -(void)dealloc
 {
+    if(region)
+        wl_region_destroy(region);
+    if(xdg_toplevel)
+        xdg_toplevel_destroy(xdg_toplevel);
+    if(xdg_surface)
+        xdg_surface_destroy(xdg_surface);
     if(wl_shm)
         wl_shm_destroy(wl_shm);
     if(wl_surface)
@@ -338,6 +345,9 @@ static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
             inRect:NSMakeRect(0,0,oldSize.width,oldSize.height)];
         //[self decorateWindow];
         [_delegate platformWindowDidInvalidateCGContext:self];
+        CGLSurfaceResize(_cglContext, size.width, size.height);
+        wl_region_add(region, 0, 0, size.width, size.height);
+        wl_surface_set_opaque_region(wl_surface, region);
         currentContext = nil;
     }
 }
@@ -443,10 +453,12 @@ static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
     size_t stride = O2ImageGetBytesPerRow(surface);
     size_t size = stride * height;
 
+#if 1
     // FIXME: what is the impact of not having a usable caContext?
-    //[_caContext prepareViewportWidth:width height:height];
-    //[_caContext renderSurface:surface];
-
+    [_caContext prepareViewportWidth:width height:height];
+    [_caContext renderSurface:surface];
+    CGLFlushDrawable(_cglContext);
+#else
     const char *bytes = [surface pixelBytes];
 
     int fd = allocate_shm_file(size);
@@ -467,6 +479,7 @@ static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
     memcpy(data, bytes, size);
     munmap(data, size);
     [self _attachBufferWithWidth:width height:height];
+#endif
 
     CGLSetCurrentContext(prevContext);
 }

@@ -1,5 +1,7 @@
 #import <QuartzCore/CAWindowOpenGLContext.h>
-#import <OpenGL/OpenGL.h>
+#import <EGL/egl.h>
+#import <GLES2/gl2.h>
+#import <GLES2/gl2ext.h>
 #import <Onyx2D/O2Surface.h>
 
 @implementation CAWindowOpenGLContext
@@ -21,12 +23,12 @@
    if((error=CGLSetCurrentContext(_cglContext))!=kCGLNoError)
     NSLog(@"CGLSetCurrentContext failed with %d in %s %d",error,__FILE__,__LINE__);
 
-   glEnable(GL_DEPTH_TEST);
-   glShadeModel(GL_SMOOTH);
+   //glEnable(GL_DEPTH_TEST);
+   //glShadeModel(GL_SMOOTH);
 
 // reshape
    glViewport(0,0,width,height);
-   glMatrixMode(GL_PROJECTION);                      
+   //glMatrixMode(GL_PROJECTION);                      
    glLoadIdentity();
    glOrtho (0, width, 0, height, -1, 1);
 }
@@ -37,26 +39,29 @@
 
 
 // prepare
-   glEnable(GL_DEPTH_TEST);
-   glShadeModel(GL_SMOOTH);
+   //glEnable(GL_DEPTH_TEST);
+   //glShadeModel(GL_SMOOTH);
 
 // reshape
    glViewport(0,0,width,height);
-   glMatrixMode(GL_PROJECTION);                      
+   //glMatrixMode(GL_PROJECTION);                      
    glLoadIdentity();
    glOrtho (0, width, 0, height, -1, 1);
 
 
 // render
-   glMatrixMode(GL_MODELVIEW);                                           
-   glLoadIdentity();
+   //glMatrixMode(GL_MODELVIEW);                                           
+   //glLoadIdentity();
 
-   glClearColor(0, 0, 0, 0);
+   glClearColor(0, 1, 0, 1);
    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+   glFlush();
+   NSLog(@"render early");
+   return;
    
    glEnable( GL_TEXTURE_2D );
-   glEnableClientState(GL_VERTEX_ARRAY);
-   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+   //glEnableClientState(GL_VERTEX_ARRAY);
+   //glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
    glEnable (GL_BLEND);
    glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
@@ -64,9 +69,9 @@
    width=O2ImageGetWidth(surface);
    height=O2ImageGetHeight(surface);
 
-   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV, [surface pixelBytes]);
+   glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, [surface pixelBytes]);
 
-   glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+   //glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -103,6 +108,7 @@
    glPopMatrix();
    
    glFlush();
+   NSLog(@"rendered");
 }
 
 @end

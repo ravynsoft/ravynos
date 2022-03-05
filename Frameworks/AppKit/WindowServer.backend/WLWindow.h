@@ -44,6 +44,7 @@
     struct wl_shm *wl_shm;
     struct xdg_toplevel *xdg_toplevel;
     struct xdg_surface *xdg_surface; 
+    struct wl_region *region;
 
     id _delegate;
     CGSBackingStoreType _backingType;

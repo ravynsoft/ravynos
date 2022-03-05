@@ -1,13 +1,12 @@
+#import <EGL/egl.h>
+#import <EGL/eglext.h>
 #import <OpenGL/gl.h>
-#ifdef WINDOWS
 #import <OpenGL/glext.h>
-#import <OpenGL/glweak.h>
-#endif
+#import <OpenGL/glplatform.h>
 
 #import <OpenGL/CGLCurrent.h>
 #import <OpenGL/CGLTypes.h>
 
-#include <OpenGL/gltypes.h>
 
 CGL_EXPORT CGLError CGLCreateContext(CGLPixelFormatObj pixelFormat, CGLContextObj share, CGLContextObj *result);
 
