@@ -27,6 +27,8 @@
 #import <wayland-egl.h>
 #import <pthread.h>
 #import <sys/stat.h>
+#import <sys/mman.h>
+#import <fcntl.h>
 
 #import "WLWindow.h"
 
@@ -51,37 +53,19 @@ struct _CGLContextObj {
     GLint program;
 };
 
-const char *vShaderSrc = 
-    "#version 100\n"
-    "attribute vec3 vposition;\n"
-    "attribute vec3 color;\n"
-    "attribute vec2 texture;\n"
-    "varying vec3 fragColor;\n"
-    "varying vec2 texCoord;\n"
-    "void main()\n"
-    "{\n"
-    "  gl_Position = vec4(vposition, 1.0);\n"
-    "  fragColor = color;\n"
-    "  texCoord = texture;\n"
-    "}\n";
-
-const char *fShaderSrc =
-    "#version 100\n"
-    "precision mediump float;\n"
-    "varying vec3 fragColor;\n"
-    "varying vec2 texCoord;\n"
-    "uniform sampler2D aTexture;\n"
-    "void main()\n"
-    "{\n"
-    "  gl_FragColor = texture2D(aTexture, texCoord);\n"
-    "}\n";
-
-static GLint loadShader(const char *src, GLenum type)
+static GLint loadShader(NSString *path, GLenum type)
 {
     GLint result;
     GLint shader = glCreateShader(type);
     if(!shader)
         return 0;
+
+    struct stat st;
+    int fd = open([path UTF8String], O_RDONLY);
+    if(fd < 0)
+        return 0;
+    fstat(fd, &st);
+    const char *src = mmap(NULL, st.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
 
     glShaderSource(shader, 1, &src, NULL);
     glCompileShader(shader);
@@ -96,8 +80,10 @@ static GLint loadShader(const char *src, GLenum type)
             free(log);
         }
         glDeleteShader(shader);
-        return 0;
+        shader = 0;
     }
+    munmap(src, st.st_size);
+    close(fd);
     return shader;
 }
 
@@ -129,7 +115,6 @@ CGLContextObj CGLGetCurrentContext(void) {
 CGLError CGLSetCurrentContext(CGLContextObj context) {
     pthread_setspecific(cglThreadKey(), context);
       
-    NSLog(@"set context %p",context);
     if(context==NULL)
        eglMakeCurrent(EGL_NO_DISPLAY, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT); 
     else    
@@ -319,8 +304,12 @@ CGLError CGLCreateContextForWindow(CGLPixelFormatObj pixelFormat,CGLContextObj s
             context->egl_surface, context->egl_context);
 
         // Load vertex and fragment shaders. GLES 2.0 won't render without them
-        GLint vShader = loadShader(vShaderSrc, GL_VERTEX_SHADER);
-        GLint fShader = loadShader(fShaderSrc, GL_FRAGMENT_SHADER);
+        NSString *path = [[NSBundle bundleForClass:[WLWindow class]]
+            pathForResource:@"vertShader" ofType:@"glsl" inDirectory:@"WindowServer.backend"];
+        GLint vShader = loadShader(path, GL_VERTEX_SHADER);
+        path = [[NSBundle bundleForClass:[WLWindow  class]]
+            pathForResource:@"fragShader" ofType:@"glsl" inDirectory:@"WindowServer.backend"];
+        GLint fShader = loadShader(path, GL_FRAGMENT_SHADER);
         context->program = glCreateProgram();
         if(context->program == 0) {
             NSLog(@"failed to create shader program");
@@ -328,7 +317,6 @@ CGLError CGLCreateContextForWindow(CGLPixelFormatObj pixelFormat,CGLContextObj s
         }
         glAttachShader(context->program, vShader);
         glAttachShader(context->program, fShader);
-        glBindAttribLocation(context->program, 0, "vposition");
         glLinkProgram(context->program);
     
         GLint result;
@@ -493,10 +481,8 @@ CGLError CGLGetParameter(CGLContextObj context,CGLContextParameter parameter,GLi
 }
 
 CGLError CGLFlushDrawable(CGLContextObj context) {
-    NSLog(@"flushing drawable");
-    //eglSwapInterval(context->egl_display, 0); // don't block
+    eglSwapInterval(context->egl_display, 0); // don't block
     eglSwapBuffers(context->egl_display, context->egl_surface);
-    NSLog(@"buffers swapped!");
     return kCGLNoError;
 }
 
@@ -605,7 +591,6 @@ void CGLBufferSubData(GLenum target,GLintptr offset,GLsizeiptr size,const GLvoid
 }
 
 void CGLSurfaceResize(CGLContextObj context, int width, int height) {
-    NSLog(@"egl resize %u %u",width,height);
     if(context->egl_window)
         wl_egl_window_resize(context->egl_window, width, height, 0, 0);
 }

@@ -44,53 +44,31 @@ CGL_EXPORT CGLError CGLCreateContextForWindow(CGLPixelFormatObj pixelFormat,
 void CGNativeBorderFrameWidthsForStyle(unsigned styleMask,CGFloat *top,CGFloat *left,
                                        CGFloat *bottom,CGFloat *right)
 {
-   *top=44;
-   *left=0;
-   *bottom=0;
-   *right=0;
-}
-
-static int allocate_shm_file(size_t size)
-{
-    int fd = shm_open(SHM_ANON, O_RDWR | O_CREAT | O_EXCL, 0600);
-
-    if (fd < 0)
-        return -1;
-    int ret;
-    do {
-        ret = ftruncate(fd, size);
-    } while (ret < 0 && errno == EINTR);
-    if (ret < 0) {
-        close(fd);
-        return -1;
+    switch(styleMask) {
+        case NSBorderlessWindowMask:
+            *top=0;
+            *left=0;
+            *bottom=0;
+            *right=0;
+            break;
+        // FIXME: tool window style?
+        default:
+            *top=44;
+            *left=0;
+            *bottom=0;
+            *right=0;
     }
-    return fd;
 }
-
-
-static void wl_buffer_release(void *data, struct wl_buffer *wl_buffer)
-{
-    /* Sent by the compositor when it's no longer using this buffer */
-    wl_buffer_destroy(wl_buffer);
-}
-
-static const struct wl_buffer_listener wl_buffer_listener = {
-    .release = wl_buffer_release,
-};
-
 
 static void handle_global(void *data, struct wl_registry *registry,
 		uint32_t name, const char *interface, uint32_t version) {
     WLWindow *win = (__bridge WLWindow *)data;
 
     // FIXME: most of this should be part of WLDisplay, not WLWindow
-    // FIXME: use EGL instead of wl_shm
     if (strcmp(interface, wl_compositor_interface.name) == 0) {
         [win set_compositor:wl_registry_bind(registry, name, &wl_compositor_interface, 1)];
     } else if (strcmp(interface, xdg_wm_base_interface.name) == 0) {
         [win set_wm_base:wl_registry_bind(registry, name, &xdg_wm_base_interface, 1)];
-    } else if (strcmp(interface, wl_shm_interface.name) == 0) {
-        [win set_wl_shm: wl_registry_bind(registry, name, &wl_shm_interface, 1)];
     } else if (strcmp(interface, wl_seat_interface.name) == 0) {
         struct wl_seat *seat = wl_registry_bind(registry, name, &wl_seat_interface, 7);
         WLDisplay *display = [NSDisplay currentDisplay];
@@ -209,7 +187,6 @@ static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
     }
 
     wl_surface = wl_compositor_create_surface(compositor);
-    region = wl_compositor_create_region(compositor);
     xdg_surface = xdg_wm_base_get_xdg_surface(wm_base, wl_surface);
     xdg_toplevel = xdg_surface_get_toplevel(xdg_surface);
 
@@ -229,14 +206,10 @@ static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
 
 -(void)dealloc
 {
-    if(region)
-        wl_region_destroy(region);
     if(xdg_toplevel)
         xdg_toplevel_destroy(xdg_toplevel);
     if(xdg_surface)
         xdg_surface_destroy(xdg_surface);
-    if(wl_shm)
-        wl_shm_destroy(wl_shm);
     if(wl_surface)
         wl_surface_destroy(wl_surface);
     if(registry)
@@ -252,11 +225,6 @@ static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
 -(void) set_wm_base:(struct xdg_wm_base *)base
 {
     wm_base = base;
-}
-
--(void) set_wl_shm:(struct wl_shm *)shm
-{
-    wl_shm = shm;
 }
 
 -(void) set_compositor:(struct wl_compositor *)comp
@@ -311,8 +279,6 @@ static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
             bitmapInfo:kO2ImageAlphaPremultipliedFirst|kO2BitmapByteOrder32Little];
         O2ColorSpaceRelease(colorSpace);
         _context = [[O2Context_builtin_FT alloc] initWithSurface:surface flipped:NO];
-
-        //[self decorateWindow];
     }
     return _context;
 }
@@ -346,8 +312,6 @@ static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
         //[self decorateWindow];
         [_delegate platformWindowDidInvalidateCGContext:self];
         CGLSurfaceResize(_cglContext, size.width, size.height);
-        wl_region_add(region, 0, 0, size.width, size.height);
-        wl_surface_set_opaque_region(wl_surface, region);
         currentContext = nil;
     }
 }
@@ -453,33 +417,9 @@ static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
     size_t stride = O2ImageGetBytesPerRow(surface);
     size_t size = stride * height;
 
-#if 1
-    // FIXME: what is the impact of not having a usable caContext?
     [_caContext prepareViewportWidth:width height:height];
     [_caContext renderSurface:surface];
     CGLFlushDrawable(_cglContext);
-#else
-    const char *bytes = [surface pixelBytes];
-
-    int fd = allocate_shm_file(size);
-    if (fd == -1) 
-        return;
-
-    uint32_t *data = mmap(NULL, size, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
-    if (data == MAP_FAILED) {
-        close(fd);
-        return;
-    }
-
-    struct wl_shm_pool *pool = wl_shm_create_pool(wl_shm, fd, size);
-    _buffer = wl_shm_pool_create_buffer(pool, 0, width, height, stride, WL_SHM_FORMAT_XRGB8888);
-    wl_shm_pool_destroy(pool);
-    close(fd);
-
-    memcpy(data, bytes, size);
-    munmap(data, size);
-    [self _attachBufferWithWidth:width height:height];
-#endif
 
     CGLSetCurrentContext(prevContext);
 }
@@ -488,14 +428,6 @@ static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
 {
     O2ContextFlush(_context);
     [self openGLFlushBuffer];
-}
-
--(void) _attachBufferWithWidth:(size_t)w height:(size_t)h
-{
-    wl_surface_attach(wl_surface, _buffer, 0, 0);
-    wl_surface_damage(wl_surface, 0, 0, w, h); // FIXME: use dirty rectangle here
-    wl_buffer_add_listener(_buffer, &wl_buffer_listener, NULL);
-    wl_surface_commit(wl_surface);
 }
 
 // This seems wrong but it's exactly what was done in the Win32 version

@@ -40,11 +40,8 @@
     struct wl_registry *registry;
     struct xdg_wm_base *wm_base;
     struct wl_surface *wl_surface;
-    struct wl_buffer *_buffer;
-    struct wl_shm *wl_shm;
     struct xdg_toplevel *xdg_toplevel;
     struct xdg_surface *xdg_surface; 
-    struct wl_region *region;
 
     id _delegate;
     CGSBackingStoreType _backingType;
@@ -67,13 +64,11 @@
 - (void) frameChanged;
 - (struct wl_surface *)wl_surface;
 - (void) set_wm_base:(struct xdg_wm_base *)base;
-- (void) set_wl_shm:(struct wl_shm *)shm;
 - (void) set_compositor:(struct wl_compositor *)comp;
 - (void) setReady:(BOOL)ready;
 - (BOOL) isReady;
 
 - (void) decorateWindow;
-- (void) _attachBufferWithWidth:(size_t)w height:(size_t)h;
 
 @end
 

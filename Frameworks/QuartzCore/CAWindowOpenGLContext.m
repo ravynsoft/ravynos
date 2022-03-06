@@ -5,10 +5,21 @@
 @implementation CAWindowOpenGLContext
 
 -initWithCGLContext:(CGLContextObj)cglContext {
-   _cglContext=CGLRetainContext(cglContext);
-   glGenBuffers(1, &vbo);
-   glGenVertexArrays(1, &vao);
-   return self;
+    _cglContext=CGLRetainContext(cglContext);
+    glGenBuffers(1, &vbo);
+    glGenVertexArrays(1, &vao);
+
+    GLfloat vertices[] = {
+    // positions     colors     texture
+     -1, -1, 0,    1, 1, 1, 0,   0, 1,
+      1, -1, 0,    1, 1, 1, 0,   1, 1,
+     -1,  1, 0,    1, 1, 1, 0,   0, 0,
+      1,  1, 0,    1, 1, 1, 0,   1, 0,
+    };
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    return self;
 }
 
 -(void)dealloc {
@@ -44,7 +55,7 @@
     CGLUseShaders(_cglContext);
 
 // reshape
-    glViewport(0,0,width,height);
+    glViewport(0, 0, width, height);
     glMatrixMode(GL_PATH_PROJECTION_NV);                      
     glLoadIdentity();
     glOrtho(0, width, 0, height, -1, 1);
@@ -61,7 +72,7 @@
     glEnable(GL_BLEND);
     glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, [surface pixelBytes]);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_BGRA_EXT, GL_UNSIGNED_BYTE, [surface pixelBytes]);
 
     //glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
@@ -69,22 +80,12 @@
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-    GLfloat vertices[] = {
-    // positions   colors     texture
-     -1, -1, 0,    1, 0, 0,   0, 0,
-      1, -1, 0,    0, 1, 0,   1, 0,
-     -1,  1, 0,    0, 0, 1,   0, 1,
-      1,  1, 0,    1, 1, 0,   1, 1,
-    };
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
     glPushMatrix();
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8*sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 9*sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8*sizeof(float), (void*)(3*sizeof(float)));
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 9*sizeof(float), (void*)(3*sizeof(float)));
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8*sizeof(float), (void*)(6*sizeof(float)));
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 9*sizeof(float), (void*)(7*sizeof(float)));
     glEnableVertexAttribArray(2);
 
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
