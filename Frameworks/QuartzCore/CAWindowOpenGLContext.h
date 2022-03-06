@@ -2,6 +2,8 @@
 
 @interface CAWindowOpenGLContext : NSObject {
     CGLContextObj _cglContext;
+    unsigned int vbo;
+    unsigned int vao;
 }
 
 - initWithCGLContext:(CGLContextObj)cglContext;

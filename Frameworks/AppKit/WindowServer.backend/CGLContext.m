@@ -52,17 +52,28 @@ struct _CGLContextObj {
 };
 
 const char *vShaderSrc = 
-    "attribute vec4 vposition;\n"
+    "#version 100\n"
+    "attribute vec3 vposition;\n"
+    "attribute vec3 color;\n"
+    "attribute vec2 texture;\n"
+    "varying vec3 fragColor;\n"
+    "varying vec2 texCoord;\n"
     "void main()\n"
     "{\n"
-    "  gl_Position = vposition;\n"
+    "  gl_Position = vec4(vposition, 1.0);\n"
+    "  fragColor = color;\n"
+    "  texCoord = texture;\n"
     "}\n";
 
 const char *fShaderSrc =
+    "#version 100\n"
     "precision mediump float;\n"
+    "varying vec3 fragColor;\n"
+    "varying vec2 texCoord;\n"
+    "uniform sampler2D aTexture;\n"
     "void main()\n"
     "{\n"
-    "  gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);\n"
+    "  gl_FragColor = texture2D(aTexture, texCoord);\n"
     "}\n";
 
 static GLint loadShader(const char *src, GLenum type)
