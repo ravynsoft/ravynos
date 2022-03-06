@@ -599,8 +599,8 @@ RESOURCES=Info.plist en.lproj de.lproj fr.lproj \
 	NSSplitViewVDimple.tiff \
 	NSSwitch.tiff \
 	NSKeyboardBinding/StandardKeyBindings.keyBindings \
-        WindowServer.backend/vertShader.glsl \
-        WindowServer.backend/fragShader.glsl
+	WindowServer.backend/vertShader.glsl \
+	WindowServer.backend/fragShader.glsl
 
 CFLAGS+= ${FMWK_CFLAGS} -I${.CURDIR}/.. -I${BUILDROOT}/usr/include -I/usr/local/include \
 	 -I../OpenGL/include -I${.CURDIR}/Headers -I../Foundation/Headers \

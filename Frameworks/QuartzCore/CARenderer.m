@@ -209,7 +209,7 @@ void CATexImage2DCGImage(CGImageRef image){
     const uint8_t    *pixelBytes=CFDataGetBytePtr(data);
    
    
-    GLenum glFormat=GL_RGBA;
+    GLenum glFormat=GL_BGRA_EXT;
     GLenum glType=GL_UNSIGNED_BYTE;
    
     CGImageAlphaInfo alphaInfo=bitmapInfo&kCGBitmapAlphaInfoMask;
@@ -229,7 +229,7 @@ void CATexImage2DCGImage(CGImageRef image){
 
         case kCGImageAlphaPremultipliedFirst: // ARGB
             if(byteOrder==kCGBitmapByteOrder32Little){
-                glFormat=GL_RGBA;
+                glFormat=GL_BGRA_EXT;
                 glType=GL_UNSIGNED_BYTE;
             }
             break;

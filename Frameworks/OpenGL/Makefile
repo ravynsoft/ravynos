@@ -7,7 +7,7 @@ INCS= \
 	include/OpenGL/CGLTypes.h \
 	include/OpenGL/gl.h \
 	include/OpenGL/glext.h \
-        include/OpenGL/glplatform.h \
+	include/OpenGL/glplatform.h \
 	include/OpenGL/OpenGL.h 
 RESOURCES=Info.plist
 CFLAGS+= ${FMWK_CFLAGS} -I.. -Iinclude -I../libobjc2 -I../Foundation/Headers

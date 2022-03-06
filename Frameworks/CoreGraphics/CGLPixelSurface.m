@@ -94,12 +94,12 @@
    }
 }
 
-#define RGBA_NOT_BGRA 1
+//#define RGBA_NOT_BGRA 1
 
 #ifdef RGBA_NOT_BGRA
 #define PIXEL_FORMAT GL_RGBA
 #else
-#define PIXEL_FORMAT GL_BGRA
+#define PIXEL_FORMAT GL_BGRA_EXT
 #endif
 
 static inline uint32_t setAlpha255(uint32_t value){
