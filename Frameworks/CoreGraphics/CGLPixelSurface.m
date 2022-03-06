@@ -1,6 +1,8 @@
 #import <CoreGraphics/CGLPixelSurface.h>
 #import <CoreGraphics/CGWindow.h>
 #import <Onyx2D/O2Image.h>
+#import <GLES2/gl2.h>
+#import <GLES2/gl2ext.h>
 #if defined(__AIRYX__)
 #import <Onyx2D/O2Surface.h>
 #else
@@ -83,9 +85,9 @@
     }
     else {
      _readPixels[i]=NULL;
-     CGLBindBuffer(GL_PIXEL_PACK_BUFFER_ARB, _bufferObjects[i]);
-     CGLBufferData(GL_PIXEL_PACK_BUFFER_ARB, _width*_rowsPerBuffer*4, NULL,GL_STREAM_READ);
-     CGLBindBuffer(GL_PIXEL_PACK_BUFFER_ARB, 0);
+     CGLBindBuffer(GL_ARRAY_BUFFER, _bufferObjects[i]);
+     CGLBufferData(GL_ARRAY_BUFFER, _width*_rowsPerBuffer*4, NULL,GL_STREAM_DRAW);
+     CGLBindBuffer(GL_ARRAY_BUFFER, 0);
     }
     
     row+=_rowsPerBuffer;
@@ -97,7 +99,7 @@
 #ifdef RGBA_NOT_BGRA
 #define PIXEL_FORMAT GL_RGBA
 #else
-#define PIXEL_FORMAT GL_BGRA
+#define PIXEL_FORMAT GL_BGRA_EXT
 #endif
 
 static inline uint32_t setAlpha255(uint32_t value){
@@ -169,10 +171,10 @@ static inline uint32_t premultiplyPixel(uint32_t value){
     if(_bufferObjects[i]==0)
      glReadPixels(0,row,_width,rowCount,PIXEL_FORMAT, GL_UNSIGNED_BYTE,_readPixels[i]);
     else {
-     CGLBindBuffer(GL_PIXEL_PACK_BUFFER,_bufferObjects[i]);
+     CGLBindBuffer(GL_ARRAY_BUFFER,_bufferObjects[i]);
      unbind=YES;
      
-     glReadPixels(0,row,_width,rowCount,PIXEL_FORMAT, GL_UNSIGNED_BYTE, 0);
+     glReadPixels(0,row,_width,rowCount,PIXEL_FORMAT, GL_UNSIGNED_BYTE, _readPixels[i]);
     }
     
     GLenum error=glGetError();
@@ -183,7 +185,7 @@ static inline uint32_t premultiplyPixel(uint32_t value){
    }
    
    if(unbind)
-    CGLBindBuffer(GL_PIXEL_PACK_BUFFER,0);          
+    CGLBindBuffer(GL_ARRAY_BUFFER,0);          
 
    row=0;
    unbind=NO;
@@ -193,13 +195,13 @@ static inline uint32_t premultiplyPixel(uint32_t value){
     unsigned char *inputRow;
     unsigned char *outputRow=_staticPixels[i];
     
-    if(_bufferObjects[i]==0)
+    //if(_bufferObjects[i]==0)
      inputRow=_readPixels[i];
-    else {
-     unbind=YES;
-     CGLBindBuffer(GL_PIXEL_PACK_BUFFER,_bufferObjects[i]);          
-     inputRow=(GLubyte*)CGLMapBuffer(GL_PIXEL_PACK_BUFFER,GL_READ_ONLY);
-    }
+    //else {
+    // unbind=YES;
+    // CGLBindBuffer(GL_ARRAY_BUFFER,_bufferObjects[i]); 
+    // inputRow=(GLubyte*)CGLMapBuffer(GL_ARRAY_BUFFER,GL_READ_ONLY);
+    //}
     
     if(_isOpaque){
      // Opaque contexts ignore alpha so we set it to 0xFF to get proper results when blending
@@ -234,21 +236,21 @@ static inline uint32_t premultiplyPixel(uint32_t value){
      }
     }
     
-    if(_bufferObjects[i]!=0){
-     CGLUnmapBuffer(GL_PIXEL_PACK_BUFFER);
-    }
+    //if(_bufferObjects[i]!=0){
+    // CGLUnmapBuffer(GL_ARRAY_BUFFER);
+    //}
     
     row+=rowCount;
    }
    
    if(unbind)
-    CGLBindBuffer(GL_PIXEL_PACK_BUFFER,0);          
+    CGLBindBuffer(GL_ARRAY_BUFFER,0);          
       
 #if 0    
    if(_usePixelBuffer){
-    CGLBindBuffer(GL_PIXEL_PACK_BUFFER,0);
+    CGLBindBuffer(GL_ARRAY_BUFFER,0);
     if(inputBytes!=NULL){
-     CGLUnmapBuffer(GL_PIXEL_PACK_BUFFER);
+     CGLUnmapBuffer(GL_ARRAY_BUFFER);
 }
    }
 #endif

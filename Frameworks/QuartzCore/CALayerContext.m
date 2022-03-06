@@ -91,13 +91,13 @@
    CGLSetCurrentContext(_glContext);
 
    glEnable(GL_DEPTH_TEST);
-   glShadeModel(GL_SMOOTH);
+   //glShadeModel(GL_SMOOTH);
 
    GLint width=_frame.size.width;
    GLint height=_frame.size.height;
    
    glViewport(0,0,width,height);
-   glMatrixMode(GL_PROJECTION);                      
+   //glMatrixMode(GL_PROJECTION);                      
    glLoadIdentity();
    glOrtho (0, width, 0, height, -1, 1);
    

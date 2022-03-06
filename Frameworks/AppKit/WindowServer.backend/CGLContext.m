@@ -20,30 +20,72 @@
  * THE SOFTWARE.
  */
 
-#import <OpenGL/OpenGL.h>
 #import <Foundation/NSString.h>
 #import <Foundation/NSRaise.h>
 
-#import <GL/gl.h>
-#import <GL/glx.h>
-#import <GL/glext.h>
+#import <OpenGL/OpenGL.h>
+#import <wayland-egl.h>
 #import <pthread.h>
 #import <sys/stat.h>
+#import <sys/mman.h>
+#import <fcntl.h>
 
 #import "WLWindow.h"
 
-/* FIXME: This class doesn't do anything for WLWindows yet. It's for
- *        supporting EGL eventually
- */
+PFNEGLGETPLATFORMDISPLAYEXTPROC eglGetPlatformDisplayEXT;
+PFNEGLCREATEPLATFORMWINDOWSURFACEEXTPROC eglCreatePlatformWindowSurfaceEXT;
 
 struct _CGLContextObj {
-   GLuint           retainCount;
-   pthread_mutex_t lock;
-   int          x,y,w,h;
-   GLint        opacity;
-   unsigned long window; // address of WLWindow
-   int          windowNumber;
+    GLuint retainCount;
+    pthread_mutex_t lock;
+    int x,y,w,h;
+    GLint opacity;
+    unsigned long window; // address of WLWindow
+    unsigned long windowNumber; // same
+
+    EGLNativeDisplayType display;
+    EGLDisplay egl_display;
+    EGLContext egl_context;
+    EGLNativeWindowType egl_window;
+    EGLSurface egl_surface;
+    EGLConfig egl_config;
+
+    GLint program;
 };
+
+static GLint loadShader(NSString *path, GLenum type)
+{
+    GLint result;
+    GLint shader = glCreateShader(type);
+    if(!shader)
+        return 0;
+
+    struct stat st;
+    int fd = open([path UTF8String], O_RDONLY);
+    if(fd < 0)
+        return 0;
+    fstat(fd, &st);
+    const char *src = mmap(NULL, st.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+
+    glShaderSource(shader, 1, &src, NULL);
+    glCompileShader(shader);
+    glGetShaderiv(shader, GL_COMPILE_STATUS, &result);
+    if(!result) {
+        GLint infolen = 0;
+        glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &infolen);
+        if(infolen) {
+            char *log = malloc(infolen * sizeof(char));
+            glGetShaderInfoLog(shader, infolen, NULL, log);
+            NSLog(@"ERROR: shader compile failed: %s", log);
+            free(log);
+        }
+        glDeleteShader(shader);
+        shader = 0;
+    }
+    munmap(src, st.st_size);
+    close(fd);
+    return shader;
+}
 
 struct _CGLPixelFormatObj {
    GLuint retainCount;
@@ -71,14 +113,14 @@ CGLContextObj CGLGetCurrentContext(void) {
 }
 
 CGLError CGLSetCurrentContext(CGLContextObj context) {
-   pthread_setspecific(cglThreadKey(), context);
+    pthread_setspecific(cglThreadKey(), context);
       
-   //if(context==NULL)
-    //eglMakeCurrent(egl_display, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT); 
-   //else    
-    //eglMakeCurrent(egl_display, context->egl_surface, context->egl_surface, context->egl_context);
+    if(context==NULL)
+       eglMakeCurrent(EGL_NO_DISPLAY, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT); 
+    else    
+       eglMakeCurrent(context->egl_display, context->egl_surface, context->egl_surface, context->egl_context);
    
-   return kCGLNoError;
+    return kCGLNoError;
 }
 
 static inline bool attributeHasArgument(CGLPixelFormatAttribute attribute){
@@ -115,7 +157,7 @@ static GLint *attributesFromPixelFormat(CGLPixelFormatObj pixelFormat){
    GLint *result=malloc(resultCapacity*sizeof(GLint));
    int  i,virtualScreen=0;
 
-   result=addAttribute(result,&resultCapacity,&resultCount,GLX_RGBA);
+   result=addAttribute(result,&resultCapacity,&resultCount,GL_RGBA);
 
    for(i=0;pixelFormat->attributes[i]!=0;i++){
     CGLPixelFormatAttribute attribute=pixelFormat->attributes[i];
@@ -126,48 +168,49 @@ static GLint *attributesFromPixelFormat(CGLPixelFormatObj pixelFormat){
     switch(attribute){
     
      case kCGLPFAColorSize:
-      result=addAttribute(result,&resultCapacity,&resultCount,GLX_RED_SIZE);
+      result=addAttribute(result,&resultCapacity,&resultCount,EGL_RED_SIZE);
       result=addAttribute(result,&resultCapacity,&resultCount,pixelFormat->attributes[i]/3);
-      result=addAttribute(result,&resultCapacity,&resultCount,GLX_GREEN_SIZE);
+      result=addAttribute(result,&resultCapacity,&resultCount,EGL_GREEN_SIZE);
       result=addAttribute(result,&resultCapacity,&resultCount,pixelFormat->attributes[i]/3);
-      result=addAttribute(result,&resultCapacity,&resultCount,GLX_BLUE_SIZE);
+      result=addAttribute(result,&resultCapacity,&resultCount,EGL_BLUE_SIZE);
       result=addAttribute(result,&resultCapacity,&resultCount,pixelFormat->attributes[i]/3);
       break;
       
      case kCGLPFAAlphaSize:
-      result=addAttribute(result,&resultCapacity,&resultCount,GLX_ALPHA_SIZE);
+      result=addAttribute(result,&resultCapacity,&resultCount,EGL_ALPHA_SIZE);
       result=addAttribute(result,&resultCapacity,&resultCount,pixelFormat->attributes[i]);
       break;
       
      case kCGLPFAAccumSize:
-      result=addAttribute(result,&resultCapacity,&resultCount,GLX_ACCUM_RED_SIZE);
+      result=addAttribute(result,&resultCapacity,&resultCount,EGL_RED_SIZE);
       result=addAttribute(result,&resultCapacity,&resultCount,pixelFormat->attributes[i]/4);
-      result=addAttribute(result,&resultCapacity,&resultCount,GLX_ACCUM_GREEN_SIZE);
+      result=addAttribute(result,&resultCapacity,&resultCount,EGL_GREEN_SIZE);
       result=addAttribute(result,&resultCapacity,&resultCount,pixelFormat->attributes[i]/4);
-      result=addAttribute(result,&resultCapacity,&resultCount,GLX_ACCUM_BLUE_SIZE);
+      result=addAttribute(result,&resultCapacity,&resultCount,EGL_BLUE_SIZE);
       result=addAttribute(result,&resultCapacity,&resultCount,pixelFormat->attributes[i]/4);
-      result=addAttribute(result,&resultCapacity,&resultCount,GLX_ACCUM_ALPHA_SIZE);
+      result=addAttribute(result,&resultCapacity,&resultCount,EGL_ALPHA_SIZE);
       result=addAttribute(result,&resultCapacity,&resultCount,pixelFormat->attributes[i]/4);
       break;
       
      case kCGLPFADepthSize:
-      result=addAttribute(result,&resultCapacity,&resultCount,GLX_DEPTH_SIZE);
+      result=addAttribute(result,&resultCapacity,&resultCount,EGL_DEPTH_SIZE);
       result=addAttribute(result,&resultCapacity,&resultCount,pixelFormat->attributes[i]);
       break;
       
      case kCGLPFAStencilSize:
-      result=addAttribute(result,&resultCapacity,&resultCount,GLX_STENCIL_SIZE);
+      result=addAttribute(result,&resultCapacity,&resultCount,EGL_STENCIL_SIZE);
       result=addAttribute(result,&resultCapacity,&resultCount,pixelFormat->attributes[i]);
       break;
       
      case kCGLPFAAuxBuffers:
-      result=addAttribute(result,&resultCapacity,&resultCount,GLX_AUX_BUFFERS);
-      result=addAttribute(result,&resultCapacity,&resultCount,pixelFormat->attributes[i]);
+      //result=addAttribute(result,&resultCapacity,&resultCount,EGL_AUX_BUFFERS);
+      //result=addAttribute(result,&resultCapacity,&resultCount,pixelFormat->attributes[i]);
+      NSLog(@"ERROR: unsupported pixel format kCGLPFAAuxBuffers");
       break;
     }
     
    }
-   result=addAttribute(result,&resultCapacity,&resultCount,None);
+   result=addAttribute(result,&resultCapacity,&resultCount,0L);
    
    return result;
 }
@@ -178,10 +221,19 @@ CGLError CGLCreateContextForWindow(CGLPixelFormatObj pixelFormat,CGLContextObj s
     WLWindow *glw = (__bridge WLWindow *)((void *)window);
     NSRect frame = [glw frame];
 
+    EGLint attrs[] = {
+        EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
+        EGL_RED_SIZE, 1,
+        EGL_GREEN_SIZE, 1,
+        EGL_BLUE_SIZE, 1,
+        EGL_ALPHA_SIZE, 1,
+        EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
+        EGL_NONE
+    };
+
     context->retainCount=1;
     pthread_mutex_init(&(context->lock),NULL);
-    //context->display=display;
-    //context->visualInfo=visualInfo;
+    context->display=[(WLDisplay *)[NSDisplay currentDisplay] display];
     context->window = window;
     context->x=0;
     context->y=0;
@@ -189,24 +241,109 @@ CGLError CGLCreateContextForWindow(CGLPixelFormatObj pixelFormat,CGLContextObj s
     context->h=frame.size.height;
     context->opacity=1;
     context->windowNumber=0;
+
+    eglGetPlatformDisplayEXT = eglGetProcAddress("eglGetPlatformDisplayEXT");
+    if(eglGetPlatformDisplayEXT  == NULL)
+        context->egl_display = eglGetDisplay(context->display);
+    else
+        context->egl_display = eglGetPlatformDisplayEXT(
+                EGL_PLATFORM_WAYLAND_EXT, context->display, NULL);
+
+    eglCreatePlatformWindowSurfaceEXT = eglGetProcAddress("eglCreatePlatformWindowSurfaceEXT");
+
+    if(context->egl_display == EGL_NO_DISPLAY) {
+        NSLog(@"failed to create EGL display");
+        return kCGLBadDisplay;
+    }
+    
+    EGLint major, minor;
+    if(!eglInitialize(context->egl_display, &major, &minor)) {
+        NSLog(@"error initializing EGL display");
+        return kCGLBadDisplay;
+    }
+
+    EGLint matched = 0;
+    if (!eglChooseConfig(context->egl_display, attrs, &context->egl_config, 1, &matched)) {
+        NSLog(@"ERROR: eglChooseConfig failed");
+        return kCGLBadMatch;
+    }
+    if (matched == 0) {
+        NSLog(@"Failed to match an EGL config");
+        return kCGLBadMatch;
+    }
+
+    EGLint ctxattrs[] = {
+        EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE
+    };
+
+    context->egl_context = eglCreateContext(context->egl_display, context->egl_config,
+        EGL_NO_CONTEXT, ctxattrs);
+    if (context->egl_context == EGL_NO_CONTEXT) {
+        NSLog(@"Failed to create EGL context");
+        return kCGLBadMatch;
+    }
+
+    if(window) {
+        WLWindow *w = (WLWindow *)context->window;
+        NSRect frame = CGOutsetRectForNativeWindowBorder([w frame], [w styleMask]);
+        context->egl_window = wl_egl_window_create([w wl_surface], frame.size.width,
+            frame.size.height);
+
+        context->egl_surface = eglCreatePlatformWindowSurfaceEXT(context->egl_display,
+            context->egl_config, (EGLNativeWindowType)context->egl_window, NULL);
+        if(context->egl_surface == EGL_BAD_PARAMETER) {
+            NSLog(@"ERROR: bad EGL parameter");
+            return kCGLBadMatch;
+        }
+        if(context->egl_surface == EGL_NO_DISPLAY) {
+            NSLog(@"ERROR: no suitable display");
+            return kCGLBadDisplay;
+        }
+
+        eglMakeCurrent(context->egl_display, context->egl_surface,
+            context->egl_surface, context->egl_context);
+
+        // Load vertex and fragment shaders. GLES 2.0 won't render without them
+        NSString *path = [[NSBundle bundleForClass:[WLWindow class]]
+            pathForResource:@"vertShader" ofType:@"glsl" inDirectory:@"WindowServer.backend"];
+        GLint vShader = loadShader(path, GL_VERTEX_SHADER);
+        path = [[NSBundle bundleForClass:[WLWindow  class]]
+            pathForResource:@"fragShader" ofType:@"glsl" inDirectory:@"WindowServer.backend"];
+        GLint fShader = loadShader(path, GL_FRAGMENT_SHADER);
+        context->program = glCreateProgram();
+        if(context->program == 0) {
+            NSLog(@"failed to create shader program");
+            return kCGLBadDisplay;
+        }
+        glAttachShader(context->program, vShader);
+        glAttachShader(context->program, fShader);
+        glLinkProgram(context->program);
+    
+        GLint result;
+        glGetProgramiv(context->program, GL_LINK_STATUS, &result);
+        if(!result) {
+            GLint infolen = 0;
+            glGetProgramiv(context->program, GL_INFO_LOG_LENGTH, &infolen);
+            if(infolen) {
+                char *log = malloc(infolen * sizeof(char));
+                glGetProgramInfoLog(context->program, infolen, NULL, log);
+                NSLog(@"ERROR: shader link failed: %s", log);
+                free(log);
+            }
+            glDeleteProgram(context->program);
+            return kCGLBadDisplay;
+        }
+
+        wl_surface_commit([w wl_surface]);
+        wl_display_roundtrip(context->display);
+    }
    
     *resultp=context;
-   
     return kCGLNoError;
 }
 
 CGLError CGLCreateContext(CGLPixelFormatObj pixelFormat,CGLContextObj share,CGLContextObj *resultp) {
    GLint      *attribList=attributesFromPixelFormat(pixelFormat);
-//    GLint       attribList[] = {GLX_RGBA, GLX_DOUBLEBUFFER, GLX_RED_SIZE, 4, GLX_GREEN_SIZE, 4,
-//                                GLX_BLUE_SIZE, 4, GLX_DEPTH_SIZE, 4, None};
-      
-   //window = XCreateWindow(display,parent, 0, 0, 1,1, 0, visualInfo->depth, InputOutput, visualInfo->visual, CWBorderPixel | CWColormap | CWEventMask, &xattr);
-      
-   //XSetWindowBackgroundPixmap(display, window, None);
-   //[X11Window removeDecorationForWindow:window onDisplay:display];
-   
-   //XMapWindow(display, window);
-
    return CGLCreateContextForWindow(pixelFormat,share,resultp,0);
 }
 
@@ -228,11 +365,13 @@ void CGLReleaseContext(CGLContextObj context) {
     if(CGLGetCurrentContext()==context)
      CGLSetCurrentContext(NULL);
     
-   //if(context->window)
-      //XDestroyWindow(context->display, context->window);
+    if(context->egl_surface)
+       eglDestroySurface(context->egl_display, context->egl_surface);
+    if(context->egl_window)
+        wl_egl_window_destroy(context->egl_window);
 
     pthread_mutex_destroy(&(context->lock));
-    //glXDestroyContext(context->display, context->glc);
+    eglDestroyContext(context->egl_display, context->egl_context);
     free(context);
    }
    
@@ -342,7 +481,8 @@ CGLError CGLGetParameter(CGLContextObj context,CGLContextParameter parameter,GLi
 }
 
 CGLError CGLFlushDrawable(CGLContextObj context) {
-//   glXSwapBuffers(context->display,context->window);
+    eglSwapInterval(context->egl_display, 0); // don't block
+    eglSwapBuffers(context->egl_display, context->egl_surface);
     return kCGLNoError;
 }
 
@@ -448,4 +588,13 @@ CGL_EXPORT GLboolean CGLUnmapBuffer(GLenum target) {
 
 void CGLBufferSubData(GLenum target,GLintptr offset,GLsizeiptr size,const GLvoid *data) {
     glBufferSubData(target,offset,size,data);
+}
+
+void CGLSurfaceResize(CGLContextObj context, int width, int height) {
+    if(context->egl_window)
+        wl_egl_window_resize(context->egl_window, width, height, 0, 0);
+}
+
+void CGLUseShaders(CGLContextObj context) {
+    glUseProgram(context->program);
 }

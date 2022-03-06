@@ -209,8 +209,8 @@ void CATexImage2DCGImage(CGImageRef image){
     const uint8_t    *pixelBytes=CFDataGetBytePtr(data);
    
    
-    GLenum glFormat=GL_BGRA;
-    GLenum glType=GL_UNSIGNED_INT_8_8_8_8_REV;
+    GLenum glFormat=GL_BGRA_EXT;
+    GLenum glType=GL_UNSIGNED_BYTE;
    
     CGImageAlphaInfo alphaInfo=bitmapInfo&kCGBitmapAlphaInfoMask;
     CGBitmapInfo     byteOrder=bitmapInfo&kCGBitmapByteOrderMask;
@@ -223,14 +223,14 @@ void CATexImage2DCGImage(CGImageRef image){
         case kCGImageAlphaPremultipliedLast:
             if(byteOrder==kO2BitmapByteOrder32Big){
                 glFormat=GL_RGBA;
-                glType=GL_UNSIGNED_INT_8_8_8_8_REV;
+                glType=GL_UNSIGNED_BYTE;
             }
             break;
 
         case kCGImageAlphaPremultipliedFirst: // ARGB
             if(byteOrder==kCGBitmapByteOrder32Little){
-                glFormat=GL_BGRA;
-                glType=GL_UNSIGNED_INT_8_8_8_8_REV;
+                glFormat=GL_BGRA_EXT;
+                glType=GL_UNSIGNED_BYTE;
             }
             break;
 
@@ -250,7 +250,7 @@ void CATexImage2DCGImage(CGImageRef image){
             break;
     }
 
-    glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA8,imageWidth,imageHeight,0,glFormat,glType,pixelBytes);
+    glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,imageWidth,imageHeight,0,glFormat,glType,pixelBytes);
 }
 
 
@@ -341,7 +341,7 @@ void CATexImage2DCGImage(CGImageRef image){
 }
 
 -(void)render {
-   glMatrixMode(GL_MODELVIEW);                                           
+   //glMatrixMode(GL_MODELVIEW);                                           
    glLoadIdentity();
 
    glClearColor(0, 0, 0, 1);
@@ -351,14 +351,14 @@ void CATexImage2DCGImage(CGImageRef image){
    glDepthFunc(GL_LEQUAL);					
 
    glEnable( GL_TEXTURE_2D );
-   glEnableClientState(GL_VERTEX_ARRAY);
-   glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+   //glEnableClientState(GL_VERTEX_ARRAY);
+   //glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
    glEnable (GL_BLEND);
    glBlendFunc(GL_ONE,GL_ONE_MINUS_SRC_ALPHA);
    
    glAlphaFunc ( GL_GREATER, 0 ) ;
-   glEnable ( GL_ALPHA_TEST ) ;
+   //glEnable ( GL_ALPHA_TEST ) ;
   
    [self _renderLayer:_rootLayer z:0 currentTime:CACurrentMediaTime()];
 

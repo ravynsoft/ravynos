@@ -3,6 +3,7 @@
 #import <ApplicationServices/ApplicationServices.h>
 #import <QuartzCore/CATransform3D.h>
 #import <QuartzCore/CAAction.h>
+#import <OpenGL/OpenGL.h>
 
 @class CAAnimation, CALayerContext;
 

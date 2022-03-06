@@ -1,6 +1,6 @@
 #import <Foundation/NSObject.h>
-#import <OpenGL/OpenGL.h>
 #import <CoreGraphics/CGGeometry.h>
+#import <OpenGL/OpenGL.h>
 
 @class CARenderer, CALayer, CGLPixelSurface, NSTimer, NSMutableArray, NSNumber;
 

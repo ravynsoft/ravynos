@@ -28,6 +28,8 @@
 #include <errno.h>
 #include <unistd.h>
 #include <wlr/util/log.h>
+#include <EGL/egl.h>
+#include <EGL/eglext.h>
 #include "WindowServer.h"
 
 int main(int argc, char *argv[]) {
