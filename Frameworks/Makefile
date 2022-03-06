@@ -9,23 +9,23 @@ LDFLAGS+= -B ${WORLDTMP}/usr/bin \
 
 .export WARN MK_WERROR CFLAGS
 
-SUBDIR+=	setup .WAIT
-SUBDIR+=	CoreFoundation
-SUBDIR+=	CFNetwork
-SUBDIR+=	Foundation
-SUBDIR+=	ApplicationServices
-SUBDIR+=	CoreServices
-SUBDIR+=	CoreData
-SUBDIR+=	Onyx2D
-SUBDIR+=	OpenGL
-SUBDIR+=	CoreGraphics
-SUBDIR+=	CoreText
-SUBDIR+=	CoreVideo
+#SUBDIR+=	setup .WAIT
+#SUBDIR+=	CoreFoundation
+#SUBDIR+=	CFNetwork
+#SUBDIR+=	Foundation
+#SUBDIR+=	ApplicationServices
+#SUBDIR+=	CoreServices
+#SUBDIR+=	CoreData
+#SUBDIR+=	Onyx2D
+#SUBDIR+=	OpenGL
+#SUBDIR+=	CoreGraphics
+#SUBDIR+=	CoreText
+#SUBDIR+=	CoreVideo
 SUBDIR+=	QuartzCore
 SUBDIR+=	AppKit
-SUBDIR+=	DBusKit
-SUBDIR+=	Cocoa
-SUBDIR+=	LaunchServices
+#SUBDIR+=	DBusKit
+#SUBDIR+=	Cocoa
+#SUBDIR+=	LaunchServices
 
 .include <bsd.subdir.mk>
 

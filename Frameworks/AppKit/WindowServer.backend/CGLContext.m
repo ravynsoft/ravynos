@@ -30,40 +30,40 @@
 
 #import "WLWindow.h"
 
+PFNEGLGETPLATFORMDISPLAYEXTPROC eglGetPlatformDisplayEXT;
+PFNEGLCREATEPLATFORMWINDOWSURFACEEXTPROC eglCreatePlatformWindowSurfaceEXT;
+
 struct _CGLContextObj {
     GLuint retainCount;
     pthread_mutex_t lock;
     int x,y,w,h;
     GLint opacity;
     unsigned long window; // address of WLWindow
-    unsigned long windowNumber;
+    unsigned long windowNumber; // same
 
     EGLNativeDisplayType display;
     EGLDisplay egl_display;
     EGLContext egl_context;
     EGLNativeWindowType egl_window;
     EGLSurface egl_surface;
-    EGLConfig *configs;
     EGLConfig egl_config;
 
-    GLint vShader;
-    GLint fShader;
     GLint program;
 };
 
 const char *vShaderSrc = 
-"attribute vec4 vposition;\n"
-"void main()\n"
-"{\n"
-"  glPosition = vposition;\n"
-"}\n";
+    "attribute vec4 vposition;\n"
+    "void main()\n"
+    "{\n"
+    "  gl_Position = vposition;\n"
+    "}\n";
 
 const char *fShaderSrc =
-"precision mediump float;\n"
-"void main()\n"
-"{\n"
-"  gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);\n"
-"}\n";
+    "precision mediump float;\n"
+    "void main()\n"
+    "{\n"
+    "  gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);\n"
+    "}\n";
 
 static GLint loadShader(const char *src, GLenum type)
 {
@@ -227,9 +227,10 @@ CGLError CGLCreateContextForWindow(CGLPixelFormatObj pixelFormat,CGLContextObj s
 
     EGLint attrs[] = {
         EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
-        EGL_RED_SIZE, 8,
-        EGL_GREEN_SIZE, 8,
-        EGL_BLUE_SIZE, 8,
+        EGL_RED_SIZE, 1,
+        EGL_GREEN_SIZE, 1,
+        EGL_BLUE_SIZE, 1,
+        EGL_ALPHA_SIZE, 1,
         EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
         EGL_NONE
     };
@@ -245,14 +246,14 @@ CGLError CGLCreateContextForWindow(CGLPixelFormatObj pixelFormat,CGLContextObj s
     context->opacity=1;
     context->windowNumber=0;
 
-    typedef EGLDisplay (*fnptr_t)(int,void *,int *);
-    fnptr_t proc = eglGetProcAddress("eglGetPlatformDisplayEXT");
-    if(proc == NULL) {
-        NSLog(@"failed to find eglGetPlatformDisplayEXT");
+    eglGetPlatformDisplayEXT = eglGetProcAddress("eglGetPlatformDisplayEXT");
+    if(eglGetPlatformDisplayEXT  == NULL)
         context->egl_display = eglGetDisplay(context->display);
-    } else {
-        context->egl_display = proc(EGL_PLATFORM_WAYLAND_EXT, context->display, NULL);
-    }
+    else
+        context->egl_display = eglGetPlatformDisplayEXT(
+                EGL_PLATFORM_WAYLAND_EXT, context->display, NULL);
+
+    eglCreatePlatformWindowSurfaceEXT = eglGetProcAddress("eglCreatePlatformWindowSurfaceEXT");
 
     if(context->egl_display == EGL_NO_DISPLAY) {
         NSLog(@"failed to create EGL display");
@@ -265,42 +266,25 @@ CGLError CGLCreateContextForWindow(CGLPixelFormatObj pixelFormat,CGLContextObj s
         return kCGLBadDisplay;
     }
 
-    EGLint count;
-    eglGetConfigs(context->egl_display, NULL, 0, &count);
-    EGLint n = 0;
-    context->configs = calloc(count, sizeof(EGLConfig));
-    eglChooseConfig(context->egl_display, attrs, context->configs, count, &n);
-    if(n == 0) {
-        NSLog(@"failed to choose EGL config");
+    EGLint matched = 0;
+    if (!eglChooseConfig(context->egl_display, attrs, &context->egl_config, 1, &matched)) {
+        NSLog(@"ERROR: eglChooseConfig failed");
         return kCGLBadMatch;
     }
-    context->egl_config = context->configs[0];
+    if (matched == 0) {
+        NSLog(@"Failed to match an EGL config");
+        return kCGLBadMatch;
+    }
 
     EGLint ctxattrs[] = {
         EGL_CONTEXT_CLIENT_VERSION, 2, EGL_NONE
     };
 
-    // Load vertex and fragment shaders. GLES 2.0 won't render without them
-    context->vShader = loadShader(vShaderSrc, GL_VERTEX_SHADER);
-    context->fShader = loadShader(fShaderSrc, GL_FRAGMENT_SHADER);
-    context->program = glCreateProgram();
-    glAttachShader(context->program, context->vShader);
-    glAttachShader(context->program, context->fShader);
-    glBindAttribLocation(context->program, 0, "vposition");
-    glLinkProgram(context->program);
-    
-    GLint result;
-    glGetProgramiv(context->program, GL_LINK_STATUS, &result);
-    if(!result) {
-        GLint infolen = 0;
-        glGetProgramiv(context->program, GL_INFO_LOG_LENGTH, &infolen);
-        if(infolen) {
-            char *log = malloc(infolen * sizeof(char));
-            glGetProgramInfoLog(context->program, infolen, NULL, log);
-            NSLog(@"ERROR: shader link failed: %s", log);
-            free(log);
-        }
-        glDeleteProgram(context->program);
+    context->egl_context = eglCreateContext(context->egl_display, context->egl_config,
+        EGL_NO_CONTEXT, ctxattrs);
+    if (context->egl_context == EGL_NO_CONTEXT) {
+        NSLog(@"Failed to create EGL context");
+        return kCGLBadMatch;
     }
 
     if(window) {
@@ -309,10 +293,7 @@ CGLError CGLCreateContextForWindow(CGLPixelFormatObj pixelFormat,CGLContextObj s
         context->egl_window = wl_egl_window_create([w wl_surface], frame.size.width,
             frame.size.height);
 
-        typedef EGLSurface (*fnptr_t)(EGLDisplay,EGLConfig,EGLNativeWindowType,void *);
-        fnptr_t proc = eglGetProcAddress("eglCreatePlatformWindowSurfaceEXT");
-
-        context->egl_surface = proc(context->egl_display,
+        context->egl_surface = eglCreatePlatformWindowSurfaceEXT(context->egl_display,
             context->egl_config, (EGLNativeWindowType)context->egl_window, NULL);
         if(context->egl_surface == EGL_BAD_PARAMETER) {
             NSLog(@"ERROR: bad EGL parameter");
@@ -320,6 +301,37 @@ CGLError CGLCreateContextForWindow(CGLPixelFormatObj pixelFormat,CGLContextObj s
         }
         if(context->egl_surface == EGL_NO_DISPLAY) {
             NSLog(@"ERROR: no suitable display");
+            return kCGLBadDisplay;
+        }
+
+        eglMakeCurrent(context->egl_display, context->egl_surface,
+            context->egl_surface, context->egl_context);
+
+        // Load vertex and fragment shaders. GLES 2.0 won't render without them
+        GLint vShader = loadShader(vShaderSrc, GL_VERTEX_SHADER);
+        GLint fShader = loadShader(fShaderSrc, GL_FRAGMENT_SHADER);
+        context->program = glCreateProgram();
+        if(context->program == 0) {
+            NSLog(@"failed to create shader program");
+            return kCGLBadDisplay;
+        }
+        glAttachShader(context->program, vShader);
+        glAttachShader(context->program, fShader);
+        glBindAttribLocation(context->program, 0, "vposition");
+        glLinkProgram(context->program);
+    
+        GLint result;
+        glGetProgramiv(context->program, GL_LINK_STATUS, &result);
+        if(!result) {
+            GLint infolen = 0;
+            glGetProgramiv(context->program, GL_INFO_LOG_LENGTH, &infolen);
+            if(infolen) {
+                char *log = malloc(infolen * sizeof(char));
+                glGetProgramInfoLog(context->program, infolen, NULL, log);
+                NSLog(@"ERROR: shader link failed: %s", log);
+                free(log);
+            }
+            glDeleteProgram(context->program);
             return kCGLBadDisplay;
         }
 
@@ -361,7 +373,6 @@ void CGLReleaseContext(CGLContextObj context) {
 
     pthread_mutex_destroy(&(context->lock));
     eglDestroyContext(context->egl_display, context->egl_context);
-    free(context->configs);
     free(context);
    }
    
@@ -588,3 +599,6 @@ void CGLSurfaceResize(CGLContextObj context, int width, int height) {
         wl_egl_window_resize(context->egl_window, width, height, 0, 0);
 }
 
+void CGLUseShaders(CGLContextObj context) {
+    glUseProgram(context->program);
+}

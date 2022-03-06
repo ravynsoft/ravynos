@@ -1,7 +1,5 @@
 #import <QuartzCore/CAWindowOpenGLContext.h>
-#import <EGL/egl.h>
-#import <GLES2/gl2.h>
-#import <GLES2/gl2ext.h>
+#import <OpenGL/OpenGL.h>
 #import <Onyx2D/O2Surface.h>
 
 @implementation CAWindowOpenGLContext
@@ -41,12 +39,28 @@
 // prepare
    //glEnable(GL_DEPTH_TEST);
    //glShadeModel(GL_SMOOTH);
+    CGLUseShaders(_cglContext);
 
 // reshape
    glViewport(0,0,width,height);
    //glMatrixMode(GL_PROJECTION);                      
    glLoadIdentity();
    glOrtho (0, width, 0, height, -1, 1);
+
+    GLfloat vertex[] = {
+        0.0, 0.5, 0.0,
+        -0.5, -0.5, 0.0,
+        0.5, -0.5, 0.0
+    };
+
+    glClearColor(0, 1, 0, 1);
+    glClear(GL_COLOR_BUFFER_BIT);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, vertex);
+    glEnableVertexAttribArray(0);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
+   glFlush();
+   NSLog(@"render early");
+   return;
 
 
 // render
@@ -55,9 +69,6 @@
 
    glClearColor(0, 1, 0, 1);
    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-   glFlush();
-   NSLog(@"render early");
-   return;
    
    glEnable( GL_TEXTURE_2D );
    //glEnableClientState(GL_VERTEX_ARRAY);
