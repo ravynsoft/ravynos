@@ -309,7 +309,6 @@ static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
         _context = [[O2Context_builtin_FT alloc] initWithSurface:surface flipped:NO];
         [_context drawImage:[currentContext surface]
             inRect:NSMakeRect(0,0,oldSize.width,oldSize.height)];
-        //[self decorateWindow];
         [_delegate platformWindowDidInvalidateCGContext:self];
         CGLSurfaceResize(_cglContext, size.width, size.height);
         currentContext = nil;

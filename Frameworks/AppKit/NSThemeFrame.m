@@ -66,6 +66,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     if([[self window] isSheet])
         bounds.size.height += cheatSheet;
 
+    // FIXME: let's draw these to a separate "decorContext" to avoid conflicting with application drawing loops
+    // overlay it as a layer during rendering
     O2Context *_context = [[self window] cgContext];
     O2ContextSetGrayStrokeColor(_context, 0.999, 1);
     O2ContextSetGrayFillColor(_context, 0.999, 1);

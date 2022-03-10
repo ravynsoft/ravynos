@@ -26,7 +26,22 @@ typedef enum {
     NSCompositeXOR,
     NSCompositePlusDarker,
     NSCompositeHighlight,
-    NSCompositePlusLighter
+    NSCompositePlusLighter,
+
+    NSCompositingOperationClear = NSCompositeClear,
+    NSCompositingOperationCopy = NSCompositeCopy,
+    NSCompositingOperationSourceOver = NSCompositeSourceOver,
+    NSCompositingOperationSourceIn = NSCompositeSourceIn,
+    NSCompositingOperationSourceOut = NSCompositeSourceOut,
+    NSCompositingOperationSourceAtop = NSCompositeSourceAtop,
+    NSCompositingOperationDestinationOver = NSCompositeDestinationOver,
+    NSCompositingOperationDestinationIn = NSCompositeDestinationIn,
+    NSCompositingOperationDestinationOut = NSCompositeDestinationOut,
+    NSCompositingOperationDestinationAtop = NSCompositeDestinationAtop,
+    NSCompositingOperationXOR = NSCompositeXOR,
+    NSCompositingOperationPlusDarker = NSCompositePlusDarker,
+    NSCompositingOperationHighlight = NSCompositeHighlight,
+    NSCompositingOperationPlusLighter = NSCompositePlusLighter
 } NSCompositingOperation;
 
 typedef enum {
