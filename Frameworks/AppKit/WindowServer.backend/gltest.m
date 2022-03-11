@@ -38,15 +38,19 @@
 #include <pthread.h>
 
 NSImage *icon;
+NSWindow *win;
+
+@interface GLApplication: NSApplication
+@end
 
 void *draw(void *data) {
     static int fn = 0;
     static struct timespec last;
 
-    NSWindow *win = (__bridge void *)data;
+    //NSWindow *win = (__bridge void *)data;
     NSView *view = [win contentView];
 
-    while(1) {
+    //while(1) {
         static float inc2 = 1, inc3 = 1;
         static NSRect imgrect = {
             .origin.x = 100, .origin.y = 100,
@@ -54,10 +58,11 @@ void *draw(void *data) {
         };
         NSRect rect = [view bounds];
 
+        [[win backgroundColor] setFill];
+        NSRectFill(rect);
         [view lockFocus];
         [icon drawInRect:imgrect fromRect:NSZeroRect operation:NSCompositeCopy fraction:1.0];
         [view unlockFocus];
-        [view setNeedsDisplay:YES];
 
         imgrect.origin.x += (inc2 * 5);
         imgrect.origin.y += (inc3 * 3);
@@ -73,36 +78,72 @@ void *draw(void *data) {
         unsigned delta = ( (now.tv_sec * 1000) + (now.tv_nsec / 1000000) )
                        - ( (last.tv_sec * 1000) + (last.tv_nsec / 1000000) );
         unsigned fps = (delta ? (1000/delta) : 0);
-        if(!delta || fps > 30)
-            usleep(5000);
+        if(!delta)
+            usleep(500);
         last.tv_sec = now.tv_sec;
         last.tv_nsec = now.tv_nsec;
         fprintf(stderr, "frame %d RGBA (%d fps)      \r", fn++, fps);
-    }
+    //}
 }
+
+@implementation GLApplication
+-(void)timerFired:(NSTimer *)timer {
+    draw(win);
+    [win flushWindow];
+}
+
+-(void)run {
+  static BOOL didlaunch = NO;
+  NSAutoreleasePool *pool;
+
+    win = [[NSWindow alloc] initWithContentRect:NSMakeRect(0,0,1280,720)
+        styleMask:NSTitledWindowMask backing:NSBackingStoreBuffered defer:NO];
+
+    icon = [[NSImage alloc] initWithContentsOfFile:@"MarmosetLogo.tiff"];
+
+    [win setTitle:@"An AppKit Window"];
+    //NSTextField *tf = [[NSTextField alloc] initWithFrame:NSMakeRect(20, 100, 600, 140)];
+    //[tf setEditable:YES];
+    //[tf setFont:[NSFont systemFontOfSize:16]];
+    //[win setContentView:tf];
+    [win makeKeyAndOrderFront:nil];
+
+
+  _isRunning=YES;
+
+  if (!didlaunch) {
+    didlaunch = YES;
+    [self finishLaunching];
+  }
+
+   NSTimer *timer = [NSTimer scheduledTimerWithTimeInterval:0.01 target:self 
+        selector:@selector(timerFired:) userInfo:nil repeats:YES];
+   do {
+    NSEvent           *event;
+
+    event=[self nextEventMatchingMask:NSAnyEventMask untilDate:[NSDate distantFuture] inMode:NSDefaultRunLoopMode dequeue:YES];
+
+    NS_DURING
+     [self sendEvent:event];
+
+    NS_HANDLER
+     [self reportException:localException];
+    NS_ENDHANDLER
+
+    [self _checkForReleasedWindows];
+    [self _checkForTerminate];
+
+   }while(_isRunning);
+   [timer invalidate];
+}
+@end
 
 int main(int argc, const char *argv[]) {
     __NSInitializeProcess(argc, argv);
 
-    [NSApplication sharedApplication];
-    NSWindow *win = [[NSWindow alloc] initWithContentRect:NSMakeRect(0,0,1280,720)
-        styleMask:NSTitledWindowMask backing:NSBackingStoreBuffered defer:NO];
-
-    icon = [[NSImage alloc] initWithContentsOfFile:@"Icon.jpg"];
-    NSLog(@"image %@",icon);
-
-    pthread_t thread;
-
-    [win setTitle:@"An AppKit Window"];
-    NSTextField *tf = [[NSTextField alloc] initWithFrame:NSMakeRect(20, 100, 600, 140)];
-    [tf setEditable:YES];
-    [tf setFont:[NSFont systemFontOfSize:16]];
-    //[win setContentView:tf];
-    [win makeKeyAndOrderFront:nil];
-
-    pthread_create(&thread, NULL, draw, win);
-
-    [NSApp run];
+    GLApplication *app = [GLApplication new];
+    NSApp = app;
+    [app run];
     return 0;
 }
 
