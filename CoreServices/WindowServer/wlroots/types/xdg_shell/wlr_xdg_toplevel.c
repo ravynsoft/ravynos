@@ -493,6 +493,11 @@ void unmap_xdg_toplevel(struct wlr_xdg_toplevel *toplevel) {
 	toplevel->requested.minimized = false;
 }
 
+void destroy_xdg_toplevel(struct wlr_xdg_toplevel *toplevel) {
+	wl_resource_set_user_data(toplevel->resource, NULL);
+	free(toplevel);
+}
+
 void wlr_xdg_toplevel_send_close(struct wlr_xdg_toplevel *toplevel) {
 	xdg_toplevel_send_close(toplevel->resource);
 }

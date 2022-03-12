@@ -186,8 +186,8 @@ static void xdg_surface_handle_get_popup(struct wl_client *client,
 	if (xdg_surface == NULL) {
 		return; // TODO: create an inert xdg_popup
 	}
-	struct wlr_xdg_positioner_resource *positioner =
-		get_xdg_positioner_from_resource(positioner_resource);
+	struct wlr_xdg_positioner *positioner =
+		wlr_xdg_positioner_from_resource(positioner_resource);
 	create_xdg_popup(xdg_surface, parent, positioner, id);
 }
 
@@ -411,15 +411,11 @@ void reset_xdg_surface(struct wlr_xdg_surface *surface) {
 
 	switch (surface->role) {
 	case WLR_XDG_SURFACE_ROLE_TOPLEVEL:
-		wl_resource_set_user_data(surface->toplevel->resource, NULL);
-		free(surface->toplevel);
+		destroy_xdg_toplevel(surface->toplevel);
 		surface->toplevel = NULL;
 		break;
 	case WLR_XDG_SURFACE_ROLE_POPUP:
-		wl_list_remove(&surface->popup->link);
-
-		wl_resource_set_user_data(surface->popup->resource, NULL);
-		free(surface->popup);
+		destroy_xdg_popup(surface->popup);
 		surface->popup = NULL;
 		break;
 	case WLR_XDG_SURFACE_ROLE_NONE:

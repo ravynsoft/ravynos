@@ -3165,5 +3165,14 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
 {
     [[self platformWindow] dirtyRect:rect];
 }
+
+-(void)requestMove:(NSEvent *)event {
+    [[self platformWindow] requestMove:event];
+}
+
+-(void)requestResize:(NSEvent *)event {
+    [[self platformWindow] requestResize:event];
+}
+
 @end
 

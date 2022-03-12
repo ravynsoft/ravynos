@@ -1,0 +1,22 @@
+# A SourceHut build manifest. See https://man.sr.ht/builds.sr.ht/manifest.md
+# for more information.
+#
+image: archlinux
+packages:
+  - meson
+  - wayland
+  - wayland-protocols
+  - libinput
+  - libxkbcommon
+  - libxml2
+  - wlroots
+  - xorg-server-xwayland
+sources:
+  - https://github.com/wizbright/waybox
+tasks:
+  - setup: |
+      cd waybox
+      meson build
+  - build: |
+      cd waybox
+      ninja -C build

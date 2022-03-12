@@ -1,0 +1,46 @@
+#
+# Set environment variables here for Waybox
+# Copy to $XDG_CONFIG_HOME/waybox/environment to customize
+#
+
+# To set your language for displaying messages and time/date formats, use the following:
+#LANG=en_CA.UTF8
+
+# To set your keyboard layout, use something like (see `man xkeyboard-config`
+# for more information):
+#export XKB_DEFAULT_LAYOUT=us
+#export XKB_DEFAULT_MODEL=pc105
+#export XKB_DEFAULT_OPTIONS=ctrl:swapcaps,esperanto:dvorak,lv3:ralt_switch_multikey
+#export XKB_DEFAULT_RULES=evdev
+#export XKB_DEFAULT_VARIANT=dvorak
+#
+# UIM for typing non-English characters
+#export XMODIFIERS=@im=uim
+#export GTK_IM_MODULE=uim
+#export QT_IM_MODULE=uim
+#export ECORE_IMF_MODULE=uim
+
+# Current compositor.  Needed for Wayland security negotiation.
+export XDG_CURRENT_DESKTOP=Waybox
+export XDG_SESSION_TYPE=wayland
+
+# Make sure to run the X initialization if started through a display manager 
+# It must go here instead of in autostart so that the environment variables will get set
+if test -n "$DISPLAY" && test -d /etc/X11/xinit/xinitrc.d;
+then
+    for f in /etc/X11/xinit/xinitrc.d/*.sh;
+    do
+        test -f "$f" && . "$f"
+    done
+fi
+
+# Get the preferred terminal from GNOME (if you use mostly GTK apps)
+TERMINAL=$(gsettings get org.gnome.desktop.default-applications.terminal exec | tr -d \')
+# Get the preferred terminal from KDE (if you use mostly Qt apps)
+#TERMINAL=$(kreadconfig5 --file kdeglobals --group General --key TerminalApplication --default "konsole")
+# Or just set it hard:
+#TERMINAL=kitty
+export TERMINAL
+
+# Use autostart scripts for these environments
+export WB_AUTOSTART_ENVIRONMENT=GNOME:KDE

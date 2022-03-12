@@ -49,7 +49,7 @@ struct wlr_xdg_client {
 	struct wl_event_source *ping_timer;
 };
 
-struct wlr_xdg_positioner {
+struct wlr_xdg_positioner_rules {
 	struct wlr_box anchor_rect;
 	enum xdg_positioner_anchor anchor;
 	enum xdg_positioner_gravity gravity;
@@ -62,6 +62,11 @@ struct wlr_xdg_positioner {
 	struct {
 		int32_t x, y;
 	} offset;
+};
+
+struct wlr_xdg_positioner {
+	struct wl_resource *resource;
+	struct wlr_xdg_positioner_rules rules;
 };
 
 struct wlr_xdg_popup {
@@ -77,7 +82,7 @@ struct wlr_xdg_popup {
 	// geometry of the parent surface
 	struct wlr_box geometry;
 
-	struct wlr_xdg_positioner positioner;
+	struct wlr_xdg_positioner_rules positioner_rules;
 
 	struct wl_list grab_link; // wlr_xdg_popup_grab::popups
 };
@@ -276,6 +281,13 @@ struct wlr_xdg_popup *wlr_xdg_popup_from_resource(
 struct wlr_xdg_toplevel *wlr_xdg_toplevel_from_resource(
 		struct wl_resource *resource);
 
+/** Get the corresponding wlr_xdg_positioner from a resource.
+ *
+ * Aborts if the resource doesn't have the correct type.
+ */
+struct wlr_xdg_positioner *wlr_xdg_positioner_from_resource(
+		struct wl_resource *resource);
+
 /**
  * Send a ping to the surface. If the surface does not respond in a reasonable
  * amount of time, the ping_timeout event will be emitted.
@@ -346,18 +358,19 @@ void wlr_xdg_popup_destroy(struct wlr_xdg_popup *popup);
  */
 void wlr_xdg_popup_get_position(struct wlr_xdg_popup *popup,
 		double *popup_sx, double *popup_sy);
-/**
- * Get the geometry for this positioner based on the anchor rect, gravity, and
- * size of this positioner.
- */
-struct wlr_box wlr_xdg_positioner_get_geometry(
-		struct wlr_xdg_positioner *positioner);
 
 /**
- * Get the anchor point for this popup in the toplevel parent's coordinate system.
+ * Get the geometry based on positioner rules.
  */
-void wlr_xdg_popup_get_anchor_point(struct wlr_xdg_popup *popup,
-		int *toplevel_sx, int *toplevel_sy);
+void wlr_xdg_positioner_rules_get_geometry(
+		const struct wlr_xdg_positioner_rules *rules, struct wlr_box *box);
+
+/**
+ * Unconstrain the box from the constraint area according to positioner rules.
+ */
+void wlr_xdg_positioner_rules_unconstrain_box(
+		const struct wlr_xdg_positioner_rules *rules,
+		const struct wlr_box *constraint, struct wlr_box *box);
 
 /**
  * Convert the given coordinates in the popup coordinate system to the toplevel
@@ -372,19 +385,7 @@ void wlr_xdg_popup_get_toplevel_coords(struct wlr_xdg_popup *popup,
  * surface coordinate system.
  */
 void wlr_xdg_popup_unconstrain_from_box(struct wlr_xdg_popup *popup,
-		const struct wlr_box *toplevel_sx_box);
-
-/**
-  Invert the right/left anchor and gravity for this positioner. This can be
-  used to "flip" the positioner around the anchor rect in the x direction.
- */
-void wlr_positioner_invert_x(struct wlr_xdg_positioner *positioner);
-
-/**
-  Invert the top/bottom anchor and gravity for this positioner. This can be
-  used to "flip" the positioner around the anchor rect in the y direction.
- */
-void wlr_positioner_invert_y(struct wlr_xdg_positioner *positioner);
+		const struct wlr_box *toplevel_space_box);
 
 /**
  * Find a surface within this xdg-surface tree at the given surface-local

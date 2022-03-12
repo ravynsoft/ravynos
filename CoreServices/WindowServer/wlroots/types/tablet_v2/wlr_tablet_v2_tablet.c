@@ -108,9 +108,9 @@ void add_tablet_client(struct wlr_tablet_seat_client_v2 *seat,
 	zwp_tablet_seat_v2_send_tablet_added(seat->resource, client->resource);
 
 	// Send the expected events
-	if (tablet->wlr_tablet->name) {
+	if (tablet->wlr_tablet->base.name) {
 		zwp_tablet_v2_send_name(client->resource,
-			tablet->wlr_tablet->name);
+			tablet->wlr_tablet->base.name);
 	}
 	zwp_tablet_v2_send_id(client->resource,
 		tablet->wlr_device->vendor, tablet->wlr_device->product);

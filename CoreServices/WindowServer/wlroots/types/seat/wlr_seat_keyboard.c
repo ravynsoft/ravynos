@@ -5,7 +5,6 @@
 #include <wayland-server-core.h>
 #include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_data_device.h>
-#include <wlr/types/wlr_input_device.h>
 #include <wlr/util/log.h>
 #include "types/wlr_data_device.h"
 #include "types/wlr_seat.h"

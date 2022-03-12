@@ -40,6 +40,7 @@
     struct wl_registry *registry;
     struct xdg_wm_base *wm_base;
     struct wl_surface *wl_surface;
+    struct wl_seat *wl_seat;
     struct xdg_toplevel *xdg_toplevel;
     struct xdg_surface *xdg_surface; 
 
@@ -67,8 +68,6 @@
 - (void) set_compositor:(struct wl_compositor *)comp;
 - (void) setReady:(BOOL)ready;
 - (BOOL) isReady;
-
-- (void) decorateWindow;
 
 @end
 

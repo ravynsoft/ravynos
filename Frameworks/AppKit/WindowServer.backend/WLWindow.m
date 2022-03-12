@@ -488,6 +488,15 @@ static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
     return _ready;
 }
 
+- (void)requestMove:(NSEvent *)event
+{
+    xdg_toplevel_move(xdg_toplevel, [_display seat], [event serialNumber]);
+}
+
+- (void)requestResize:(NSEvent *)event
+{
+}
+
 @end
 
 CGRect CGInsetRectForNativeWindowBorder(CGRect frame,unsigned styleMask)

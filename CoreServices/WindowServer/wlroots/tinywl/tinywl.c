@@ -95,6 +95,7 @@ struct tinywl_keyboard {
 
 	struct wl_listener modifiers;
 	struct wl_listener key;
+	struct wl_listener destroy;
 };
 
 static void focus_view(struct tinywl_view *view, struct wlr_surface *surface) {
@@ -216,6 +217,20 @@ static void keyboard_handle_key(
 	}
 }
 
+static void keyboard_handle_destroy(struct wl_listener *listener, void *data) {
+	/* This event is raised by the keyboard base wlr_input_device to signal
+	 * the destruction of the wlr_keyboard. It will no longer receive events
+	 * and should be destroyed.
+	 */
+	struct tinywl_keyboard *keyboard =
+		wl_container_of(listener, keyboard, destroy);
+	wl_list_remove(&keyboard->modifiers.link);
+	wl_list_remove(&keyboard->key.link);
+	wl_list_remove(&keyboard->destroy.link);
+	wl_list_remove(&keyboard->link);
+	free(keyboard);
+}
+
 static void server_new_keyboard(struct tinywl_server *server,
 		struct wlr_input_device *device) {
 	struct tinywl_keyboard *keyboard =
@@ -239,6 +254,8 @@ static void server_new_keyboard(struct tinywl_server *server,
 	wl_signal_add(&device->keyboard->events.modifiers, &keyboard->modifiers);
 	keyboard->key.notify = keyboard_handle_key;
 	wl_signal_add(&device->keyboard->events.key, &keyboard->key);
+	keyboard->destroy.notify = keyboard_handle_destroy;
+	wl_signal_add(&device->events.destroy, &keyboard->destroy);
 
 	wlr_seat_set_keyboard(server->seat, device);
 

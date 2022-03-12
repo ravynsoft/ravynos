@@ -410,7 +410,7 @@ void wlr_input_method_keyboard_grab_v2_set_keyboard(
 			&keyboard_grab->keyboard_repeat_info);
 		keyboard_grab->keyboard_destroy.notify =
 			handle_keyboard_destroy;
-		wl_signal_add(&keyboard->events.destroy,
+		wl_signal_add(&keyboard->base.events.destroy,
 			&keyboard_grab->keyboard_destroy);
 
 		wlr_input_method_keyboard_grab_v2_send_modifiers(keyboard_grab,

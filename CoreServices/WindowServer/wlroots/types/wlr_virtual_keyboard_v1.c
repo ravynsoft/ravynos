@@ -3,34 +3,16 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/mman.h>
+#include <wlr/interfaces/wlr_keyboard.h>
 #include <wlr/types/wlr_seat.h>
 #include <wlr/types/wlr_virtual_keyboard_v1.h>
 #include <wlr/util/log.h>
 #include <xkbcommon/xkbcommon.h>
 #include "util/signal.h"
-#include "util/time.h"
 #include "virtual-keyboard-unstable-v1-protocol.h"
 
-
-static void keyboard_led_update(struct wlr_keyboard *wlr_kb, uint32_t leds) {
-	// unsupported by virtual keyboard protocol
-}
-
-static void keyboard_destroy(struct wlr_keyboard *wlr_kb) {
-	// safe to ignore - keyboard will be destroyed only iff associated virtual
-	// keyboard is torn down, no need to tear down the keyboard separately
-}
-
 static const struct wlr_keyboard_impl keyboard_impl = {
-	.destroy = keyboard_destroy,
-	.led_update = keyboard_led_update
-};
-
-static void input_device_destroy(struct wlr_input_device *dev) {
-}
-
-static const struct wlr_input_device_impl input_device_impl = {
-	.destroy = input_device_destroy
+	.name = "virtual-keyboard",
 };
 
 static const struct zwp_virtual_keyboard_v1_interface virtual_keyboard_impl;
@@ -44,10 +26,11 @@ static struct wlr_virtual_keyboard_v1 *virtual_keyboard_from_resource(
 
 struct wlr_virtual_keyboard_v1 *wlr_input_device_get_virtual_keyboard(
 		struct wlr_input_device *wlr_dev) {
-	if (wlr_dev->impl != &input_device_impl) {
+	if (wlr_dev->type != WLR_INPUT_DEVICE_KEYBOARD
+			|| wlr_dev->keyboard->impl != &keyboard_impl) {
 		return NULL;
 	}
-	return (struct wlr_virtual_keyboard_v1 *)wlr_dev;
+	return (struct wlr_virtual_keyboard_v1 *)wlr_dev->keyboard;
 }
 
 static void virtual_keyboard_keymap(struct wl_client *client,
@@ -70,7 +53,7 @@ static void virtual_keyboard_keymap(struct wl_client *client,
 	if (!keymap) {
 		goto keymap_fail;
 	}
-	wlr_keyboard_set_keymap(keyboard->input_device.keyboard, keymap);
+	wlr_keyboard_set_keymap(&keyboard->keyboard, keymap);
 	keyboard->has_keymap = true;
 	xkb_keymap_unref(keymap);
 	xkb_context_unref(context);
@@ -101,7 +84,7 @@ static void virtual_keyboard_key(struct wl_client *client,
 		.update_state = false,
 		.state = state,
 	};
-	wlr_keyboard_notify_key(keyboard->input_device.keyboard, &event);
+	wlr_keyboard_notify_key(&keyboard->keyboard, &event);
 }
 
 static void virtual_keyboard_modifiers(struct wl_client *client,
@@ -115,38 +98,21 @@ static void virtual_keyboard_modifiers(struct wl_client *client,
 			"Cannot send a modifier state before defining a keymap");
 		return;
 	}
-	wlr_keyboard_notify_modifiers(keyboard->input_device.keyboard,
+	wlr_keyboard_notify_modifiers(&keyboard->keyboard,
 		mods_depressed, mods_latched, mods_locked, group);
-}
-
-/**
- * Send release event for each pressed key to bring the keyboard back to
- * neutral state.
- *
- * This may be needed for virtual keyboards. For physical devices, kernel
- * or libinput will deal with the removal of devices.
- */
-static void keyboard_release_pressed_keys(struct wlr_keyboard *keyboard) {
-	size_t orig_num_keycodes = keyboard->num_keycodes;
-	for (size_t i = 0; i < orig_num_keycodes; ++i) {
-		assert(keyboard->num_keycodes == orig_num_keycodes - i);
-		struct wlr_event_keyboard_key event = {
-			.time_msec = get_current_time_msec(),
-			.keycode = keyboard->keycodes[orig_num_keycodes - i - 1],
-			.update_state = false,
-			.state = WL_KEYBOARD_KEY_STATE_RELEASED,
-		};
-		wlr_keyboard_notify_key(keyboard, &event);  // updates num_keycodes
-	}
 }
 
 static void virtual_keyboard_destroy_resource(struct wl_resource *resource) {
 	struct wlr_virtual_keyboard_v1 *keyboard =
 		virtual_keyboard_from_resource(resource);
-	keyboard_release_pressed_keys(keyboard->input_device.keyboard);
-	wlr_signal_emit_safe(&keyboard->events.destroy, keyboard);
+	if (keyboard == NULL) {
+		return;
+	}
+
+	wlr_keyboard_finish(&keyboard->keyboard);
+
+	wl_resource_set_user_data(keyboard->resource, NULL);
 	wl_list_remove(&keyboard->link);
-	wlr_input_device_destroy(&keyboard->input_device);
 	free(keyboard);
 }
 
@@ -184,20 +150,13 @@ static void virtual_keyboard_manager_create_virtual_keyboard(
 		return;
 	}
 
-	struct wlr_keyboard* keyboard = calloc(1, sizeof(struct wlr_keyboard));
-	if (!keyboard) {
-		wlr_log(WLR_ERROR, "Cannot allocate wlr_keyboard");
-		free(virtual_keyboard);
-		wl_client_post_no_memory(client);
-		return;
-	}
-	wlr_keyboard_init(keyboard, &keyboard_impl);
+	wlr_keyboard_init(&virtual_keyboard->keyboard, &keyboard_impl,
+		"wlr_virtual_keyboard_v1");
 
 	struct wl_resource *keyboard_resource = wl_resource_create(client,
 		&zwp_virtual_keyboard_v1_interface, wl_resource_get_version(resource),
 		id);
 	if (!keyboard_resource) {
-		free(keyboard);
 		free(virtual_keyboard);
 		wl_client_post_no_memory(client);
 		return;
@@ -206,16 +165,10 @@ static void virtual_keyboard_manager_create_virtual_keyboard(
 	wl_resource_set_implementation(keyboard_resource, &virtual_keyboard_impl,
 		virtual_keyboard, virtual_keyboard_destroy_resource);
 
-	wlr_input_device_init(&virtual_keyboard->input_device,
-		WLR_INPUT_DEVICE_KEYBOARD, &input_device_impl, "virtual keyboard",
-		0x0, 0x0);
-
 	struct wlr_seat_client *seat_client = wlr_seat_client_from_resource(seat);
 
-	virtual_keyboard->input_device.keyboard = keyboard;
 	virtual_keyboard->resource = keyboard_resource;
 	virtual_keyboard->seat = seat_client->seat;
-	wl_signal_init(&virtual_keyboard->events.destroy);
 
 	wl_list_insert(&manager->virtual_keyboards, &virtual_keyboard->link);
 

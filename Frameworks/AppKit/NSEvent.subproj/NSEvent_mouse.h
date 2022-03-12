@@ -14,6 +14,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     float _deltaX;
     float _deltaY;
     NSInteger _trackingNumber;
+    NSInteger _serial;
     void *_userData;
 }
 

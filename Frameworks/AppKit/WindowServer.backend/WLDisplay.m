@@ -113,10 +113,11 @@ static void handlePointerMotion(void *data, struct wl_pointer *ptr,
 static void handlePointerButton(void *data, struct wl_pointer *ptr,
     uint32_t serial, uint32_t time, uint32_t button, uint32_t state) {
     WLDisplay *display = (WLDisplay *)data;
-    [display pointerButton:button time:time state:state];
+    [display pointerButton:button time:time state:state serial:serial];
 }
 
 - (void) pointerButton:(uint32_t)button time:(uint32_t)time state:(uint32_t)state
+    serial:(uint32_t)serial
 {
     NSEventType type;
     switch(button) {
@@ -159,6 +160,7 @@ static void handlePointerButton(void *data, struct wl_pointer *ptr,
                              modifierFlags:[self modifierFlagsForState:xkb_state]
                                     window:delegate
                                 clickCount:clickCount deltaX:0.0 deltaY:0.0];
+    [event setSerialNumber:serial];
     [self postEvent:event atStart:NO];
 }
 
@@ -781,6 +783,11 @@ static const struct wl_seat_listener wl_seat_listener = {
         wl_keyboard_add_listener(_keyboard, &wl_keyboard_listener, (void *)self);
     } else
         _keyboard = NULL;
+}
+
+- (struct wl_seat *)seat
+{
+    return _seat;
 }
 
 - (void)enterSurface:(struct wl_surface *)surface device:(WLInputDevice)device

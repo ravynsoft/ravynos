@@ -1,0 +1,26 @@
+root = true
+
+[{*.c,*.h}]
+# Standard
+charset = utf-8
+end_of_line = lf
+indent_style = tab
+insert_final_newline = true
+tab_width = 8
+trim_trailing_whitespace = true
+# Non-standard editor extensions
+line_comment = /*
+block_comment_start = /*
+block_comment_end = */
+
+curly_bracket_next_line = false
+max_line_length = 80
+spaces_around_brackets = outside
+spaces_around_operators = true
+
+[meson.build]
+charset = utf-8
+end_of_line = lf
+indent_size = 2
+indent_style = space
+trim_trailing_whitespace = true

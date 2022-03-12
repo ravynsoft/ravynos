@@ -622,18 +622,43 @@ XcursorFileLoadImages (FILE *file, int size)
 #define XCURSORPATH "~/.local/share/icons:~/.icons:/usr/share/icons:/usr/share/pixmaps:~/.cursors:/usr/share/cursors/xorg-x11:"ICONDIR
 #endif
 
-static const char *
+#define XDG_DATA_HOME_FALLBACK "~/.local/share"
+#define CURSORDIR "/icons"
+
+/** Get search path for cursor themes
+ *
+ * This function builds the list of directories to look for cursor
+ * themes in.  The format is PATH-like: directories are separated by
+ * colons.
+ *
+ * The memory block returned by this function is allocated on the heap
+ * and must be freed by the caller.
+ */
+static char *
 XcursorLibraryPath (void)
 {
-    static const char	*path;
+	const char	*env_var;
+	char		*path = NULL;
+	int		pathlen = 0;
 
-    if (!path)
-    {
-	path = getenv ("XCURSOR_PATH");
-	if (!path)
-	    path = XCURSORPATH;
-    }
-    return path;
+	env_var = getenv("XCURSOR_PATH");
+	if (env_var) {
+		path = strdup(env_var);
+	}
+	else {
+		env_var = getenv("XDG_DATA_HOME");
+		if (env_var) {
+			pathlen = strlen(env_var) +
+				strlen(CURSORDIR ":" XCURSORPATH) + 1;
+			path = malloc(pathlen);
+			snprintf(path, pathlen, "%s%s", env_var,
+					CURSORDIR ":" XCURSORPATH);
+		}
+		else {
+			path = strdup(XDG_DATA_HOME_FALLBACK ":" XCURSORPATH);
+		}
+	}
+	return path;
 }
 
 static  void
@@ -866,14 +891,13 @@ xcursor_load_theme(const char *theme, int size,
 {
 	char *full, *dir;
 	char *inherits = NULL;
+	char *xcursor_path = NULL;
 	const char *path, *i;
 
 	if (!theme)
 		theme = "default";
-
-	for (path = XcursorLibraryPath();
-	     path;
-	     path = _XcursorNextPath(path)) {
+	xcursor_path = XcursorLibraryPath();
+	for (path = xcursor_path; path; path = _XcursorNextPath(path)) {
 		dir = _XcursorBuildThemeDir(path, theme);
 		if (!dir)
 			continue;
@@ -902,4 +926,5 @@ xcursor_load_theme(const char *theme, int size,
 
 	if (inherits)
 		free(inherits);
+	free(xcursor_path);
 }

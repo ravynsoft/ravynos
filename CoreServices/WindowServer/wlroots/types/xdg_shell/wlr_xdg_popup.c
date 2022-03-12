@@ -304,9 +304,9 @@ const struct wlr_surface_role xdg_popup_surface_role = {
 
 void create_xdg_popup(struct wlr_xdg_surface *surface,
 		struct wlr_xdg_surface *parent,
-		struct wlr_xdg_positioner_resource *positioner, uint32_t id) {
-	if (positioner->attrs.size.width == 0 ||
-			positioner->attrs.anchor_rect.width == 0) {
+		struct wlr_xdg_positioner *positioner, uint32_t id) {
+	if (positioner->rules.size.width == 0 ||
+			positioner->rules.anchor_rect.width == 0) {
 		wl_resource_post_error(surface->client->resource,
 			XDG_WM_BASE_ERROR_INVALID_POSITIONER,
 			"positioner object is not complete");
@@ -348,11 +348,10 @@ void create_xdg_popup(struct wlr_xdg_surface *surface,
 
 	surface->role = WLR_XDG_SURFACE_ROLE_POPUP;
 
-	// positioner properties
-	memcpy(&surface->popup->positioner, &positioner->attrs,
-		sizeof(struct wlr_xdg_positioner));
-	surface->popup->geometry =
-		wlr_xdg_positioner_get_geometry(&positioner->attrs);
+	memcpy(&surface->popup->positioner_rules,
+		&positioner->rules, sizeof(positioner->rules));
+	wlr_xdg_positioner_rules_get_geometry(
+		&positioner->rules, &surface->popup->geometry);
 
 	if (parent) {
 		surface->popup->parent = parent->surface;
@@ -389,6 +388,12 @@ void unmap_xdg_popup(struct wlr_xdg_popup *popup) {
 	}
 }
 
+void destroy_xdg_popup(struct wlr_xdg_popup *popup) {
+	wl_list_remove(&popup->link);
+	wl_resource_set_user_data(popup->resource, NULL);
+	free(popup);
+}
+
 void wlr_xdg_popup_destroy(struct wlr_xdg_popup *popup) {
 	if (popup == NULL) {
 		return;
@@ -402,45 +407,6 @@ void wlr_xdg_popup_destroy(struct wlr_xdg_popup *popup) {
 	xdg_popup_send_popup_done(popup->resource);
 	wl_resource_set_user_data(popup->resource, NULL);
 	reset_xdg_surface(popup->base);
-}
-
-void wlr_xdg_popup_get_anchor_point(struct wlr_xdg_popup *popup,
-		int *root_sx, int *root_sy) {
-	struct wlr_box rect = popup->positioner.anchor_rect;
-	enum xdg_positioner_anchor anchor = popup->positioner.anchor;
-	int sx = 0, sy = 0;
-
-	if (anchor == XDG_POSITIONER_ANCHOR_NONE) {
-		sx = (rect.x + rect.width) / 2;
-		sy = (rect.y + rect.height) / 2;
-	} else if (anchor == XDG_POSITIONER_ANCHOR_TOP) {
-		sx = (rect.x + rect.width) / 2;
-		sy = rect.y;
-	} else if (anchor == XDG_POSITIONER_ANCHOR_BOTTOM) {
-		sx = (rect.x + rect.width) / 2;
-		sy = rect.y + rect.height;
-	} else if (anchor == XDG_POSITIONER_ANCHOR_LEFT) {
-		sx = rect.x;
-		sy = (rect.y + rect.height) / 2;
-	} else if (anchor == XDG_POSITIONER_ANCHOR_RIGHT) {
-		sx = rect.x + rect.width;
-		sy = (rect.y + rect.height) / 2;
-	} else if (anchor == XDG_POSITIONER_ANCHOR_TOP_LEFT) {
-		sx = rect.x;
-		sy = rect.y;
-	} else if (anchor == XDG_POSITIONER_ANCHOR_TOP_RIGHT) {
-		sx = rect.x + rect.width;
-		sy = rect.y;
-	} else if (anchor == XDG_POSITIONER_ANCHOR_BOTTOM_LEFT) {
-		sx = rect.x;
-		sy = rect.y + rect.height;
-	} else if (anchor == XDG_POSITIONER_ANCHOR_BOTTOM_RIGHT) {
-		sx = rect.x + rect.width;
-		sy = rect.y + rect.height;
-	}
-
-	*root_sx = sx;
-	*root_sy = sy;
 }
 
 void wlr_xdg_popup_get_toplevel_coords(struct wlr_xdg_popup *popup,
@@ -466,167 +432,17 @@ void wlr_xdg_popup_get_toplevel_coords(struct wlr_xdg_popup *popup,
 	*toplevel_sy = popup_sy;
 }
 
-static void xdg_popup_box_constraints(struct wlr_xdg_popup *popup,
-		const struct wlr_box *toplevel_sx_box, int *offset_x, int *offset_y) {
-	int popup_width = popup->geometry.width;
-	int popup_height = popup->geometry.height;
-	int anchor_sx = 0, anchor_sy = 0;
-	wlr_xdg_popup_get_anchor_point(popup, &anchor_sx, &anchor_sy);
-	int popup_sx = 0, popup_sy = 0;
-	wlr_xdg_popup_get_toplevel_coords(popup, popup->geometry.x,
-		popup->geometry.y, &popup_sx, &popup_sy);
-	*offset_x = 0, *offset_y = 0;
-
-	if (popup_sx < toplevel_sx_box->x) {
-		*offset_x = toplevel_sx_box->x - popup_sx;
-	} else if (popup_sx + popup_width >
-			toplevel_sx_box->x + toplevel_sx_box->width) {
-		*offset_x = toplevel_sx_box->x + toplevel_sx_box->width -
-			(popup_sx + popup_width);
-	}
-
-	if (popup_sy < toplevel_sx_box->y) {
-		*offset_y = toplevel_sx_box->y - popup_sy;
-	} else if (popup_sy + popup_height >
-			toplevel_sx_box->y + toplevel_sx_box->height) {
-		*offset_y = toplevel_sx_box->y + toplevel_sx_box->height -
-			(popup_sy + popup_height);
-	}
-}
-
-static bool xdg_popup_unconstrain_flip(struct wlr_xdg_popup *popup,
-		const struct wlr_box *toplevel_sx_box) {
-	int offset_x = 0, offset_y = 0;
-	xdg_popup_box_constraints(popup, toplevel_sx_box,
-		&offset_x, &offset_y);
-
-	if (!offset_x && !offset_y) {
-		return true;
-	}
-
-	bool flip_x = offset_x &&
-		(popup->positioner.constraint_adjustment &
-		 XDG_POSITIONER_CONSTRAINT_ADJUSTMENT_FLIP_X);
-
-	bool flip_y = offset_y &&
-		(popup->positioner.constraint_adjustment &
-		 XDG_POSITIONER_CONSTRAINT_ADJUSTMENT_FLIP_Y);
-
-	if (flip_x) {
-		wlr_positioner_invert_x(&popup->positioner);
-	}
-	if (flip_y) {
-		wlr_positioner_invert_y(&popup->positioner);
-	}
-
-	popup->geometry =
-		wlr_xdg_positioner_get_geometry(&popup->positioner);
-
-	xdg_popup_box_constraints(popup, toplevel_sx_box,
-		&offset_x, &offset_y);
-
-	if (!offset_x && !offset_y) {
-		// no longer constrained
-		return true;
-	}
-
-	// revert the positioner back if it didn't fix it and go to the next part
-	if (offset_x && flip_x) {
-		wlr_positioner_invert_x(&popup->positioner);
-	}
-	if (offset_y && flip_y) {
-		wlr_positioner_invert_y(&popup->positioner);
-	}
-
-	popup->geometry =
-		wlr_xdg_positioner_get_geometry(&popup->positioner);
-
-	return false;
-}
-
-static bool xdg_popup_unconstrain_slide(struct wlr_xdg_popup *popup,
-		const struct wlr_box *toplevel_sx_box) {
-	int offset_x = 0, offset_y = 0;
-	xdg_popup_box_constraints(popup, toplevel_sx_box,
-		&offset_x, &offset_y);
-
-	if (!offset_x && !offset_y) {
-		return true;
-	}
-
-	bool slide_x = offset_x &&
-		(popup->positioner.constraint_adjustment &
-		 XDG_POSITIONER_CONSTRAINT_ADJUSTMENT_SLIDE_X);
-
-	bool slide_y = offset_y &&
-		(popup->positioner.constraint_adjustment &
-		 XDG_POSITIONER_CONSTRAINT_ADJUSTMENT_SLIDE_Y);
-
-	if (slide_x) {
-		popup->geometry.x += offset_x;
-	}
-
-	if (slide_y) {
-		popup->geometry.y += offset_y;
-	}
-
-	int toplevel_x = 0, toplevel_y = 0;
-	wlr_xdg_popup_get_toplevel_coords(popup, popup->geometry.x,
-		popup->geometry.y, &toplevel_x, &toplevel_y);
-
-	if (slide_x && toplevel_x < toplevel_sx_box->x) {
-		popup->geometry.x += toplevel_sx_box->x - toplevel_x;
-	}
-	if (slide_y && toplevel_y < toplevel_sx_box->y) {
-		popup->geometry.y += toplevel_sx_box->y - toplevel_y;
-	}
-
-	xdg_popup_box_constraints(popup, toplevel_sx_box,
-		&offset_x, &offset_y);
-
-	return !offset_x && !offset_y;
-}
-
-static bool xdg_popup_unconstrain_resize(struct wlr_xdg_popup *popup,
-		const struct wlr_box *toplevel_sx_box) {
-	int offset_x, offset_y;
-	xdg_popup_box_constraints(popup, toplevel_sx_box,
-		&offset_x, &offset_y);
-
-	if (!offset_x && !offset_y) {
-		return true;
-	}
-
-	bool resize_x = offset_x &&
-		(popup->positioner.constraint_adjustment &
-		 XDG_POSITIONER_CONSTRAINT_ADJUSTMENT_RESIZE_X);
-
-	bool resize_y = offset_y &&
-		(popup->positioner.constraint_adjustment &
-		 XDG_POSITIONER_CONSTRAINT_ADJUSTMENT_RESIZE_Y);
-
-	if (resize_x) {
-		popup->geometry.width -= offset_x;
-	}
-	if (resize_y) {
-		popup->geometry.height -= offset_y;
-	}
-
-	xdg_popup_box_constraints(popup, toplevel_sx_box,
-		&offset_x, &offset_y);
-
-	return !offset_x && !offset_y;
-}
-
 void wlr_xdg_popup_unconstrain_from_box(struct wlr_xdg_popup *popup,
-		const struct wlr_box *toplevel_sx_box) {
-	if (xdg_popup_unconstrain_flip(popup, toplevel_sx_box)) {
-		return;
-	}
-	if (xdg_popup_unconstrain_slide(popup, toplevel_sx_box)) {
-		return;
-	}
-	if (xdg_popup_unconstrain_resize(popup, toplevel_sx_box)) {
-		return;
-	}
+		const struct wlr_box *toplevel_space_box) {
+	int toplevel_sx, toplevel_sy;
+	wlr_xdg_popup_get_toplevel_coords(popup,
+		0, 0, &toplevel_sx, &toplevel_sy);
+	struct wlr_box popup_constraint = {
+		.x = toplevel_space_box->x - toplevel_sx,
+		.y = toplevel_space_box->y - toplevel_sy,
+		.width = toplevel_space_box->width,
+		.height = toplevel_space_box->height,
+	};
+	wlr_xdg_positioner_rules_unconstrain_box(&popup->positioner_rules,
+		&popup_constraint, &popup->geometry);
 }

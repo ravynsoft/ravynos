@@ -1,0 +1,37 @@
+#
+# These things are run when a Waybox Wayland session is started.
+# Copy to $XDG_CONFIG_HOME/waybox/autostart to customize.
+#
+
+#
+# Change from Openbox: the desktop environment's config tools should begin
+# through autostart elements (e.g. /etc/xdg/autostart); there's no need to
+# specify them here.
+#
+
+
+# Update the DBus environment
+dbus-update-activation-environment --systemd WAYLAND_DISPLAY XDG_CURRENT_DESKTOP XDG_SESSION_TYPE
+
+# Start a dock
+cairo-dock &
+
+# Start a panel
+(waybar || yambar) &
+
+# Start a notification daemon
+mako &
+
+# Load a random wallpaper
+oldifs=$IFS
+IFS=:
+data_dirs=${XDG_DATA_DIRS:-${datadir:-/usr/share}}:${XDG_DATA_HOME:-~/.local/share}
+for data_dir in $data_dirs;
+do
+    wpdir="$data_dir/wallpapers"
+    test -d "$wpdir" && \
+        find $wpdir -name '*.jpg' -o -name '*.png' -o -name '*.svg'
+done | (shuf -n 1 || tail -n 1) | xargs swaybg -m fill -i &
+IFS=$oldifs
+
+# vim: ft=sh

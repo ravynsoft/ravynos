@@ -87,4 +87,13 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
    return _userData;
 }
 
+-(void)setSerialNumber:(NSInteger)serial {
+    _serial = serial;
+}
+
+-(NSInteger)serialNumber {
+    return _serial;
+}
+
+
 @end

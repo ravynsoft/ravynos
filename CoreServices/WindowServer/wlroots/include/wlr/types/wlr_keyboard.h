@@ -13,6 +13,7 @@
 #include <stdint.h>
 #include <wayland-server-core.h>
 #include <wayland-server-protocol.h>
+#include <wlr/types/wlr_input_device.h>
 #include <xkbcommon/xkbcommon.h>
 
 #define WLR_LED_COUNT 3
@@ -48,6 +49,8 @@ struct wlr_keyboard_modifiers {
 };
 
 struct wlr_keyboard {
+	struct wlr_input_device base;
+
 	const struct wlr_keyboard_impl *impl;
 	struct wlr_keyboard_group *group;
 
@@ -86,7 +89,6 @@ struct wlr_keyboard {
 		struct wl_signal modifiers;
 		struct wl_signal keymap;
 		struct wl_signal repeat_info;
-		struct wl_signal destroy;
 	} events;
 
 	void *data;

@@ -639,6 +639,9 @@ static bool output_basic_test(struct wlr_output *output) {
 }
 
 bool wlr_output_test(struct wlr_output *output) {
+	bool had_buffer = output->pending.committed & WLR_OUTPUT_STATE_BUFFER;
+	bool success;
+
 	if (!output_basic_test(output)) {
 		return false;
 	}
@@ -648,7 +651,13 @@ bool wlr_output_test(struct wlr_output *output) {
 	if (!output->impl->test) {
 		return true;
 	}
-	return output->impl->test(output);
+
+	success = output->impl->test(output);
+
+	if (!had_buffer) {
+		output_clear_back_buffer(output);
+	}
+	return success;
 }
 
 bool wlr_output_commit(struct wlr_output *output) {
