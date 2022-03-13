@@ -12,6 +12,7 @@ project(
 )
 
 add_project_arguments(
+  '-g', '-O0',
   '-Wno-unused-parameter',
   '-D_DEFAULT_SOURCE',
   '-D_POSIX_C_SOURCE=200112L',

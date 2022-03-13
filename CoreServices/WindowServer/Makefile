@@ -7,6 +7,7 @@ WARNS=	        1
 CFLAGS+=	-g -fobjc-arc -I${.CURDIR} -I${MAKEOBJDIR} -framework Foundation
 LDFLAGS+=	-framework Foundation -Wl,-R'$$ORIGIN/../Resources' -lobjc -lmach
 WLPROTOS=       ${.CURDIR}/wayland-protocols
+WLR_VER!=       grep version: ${.CURDIR}/wlroots/meson.build|sed -e '1s/[^0-9.]*//g;q'
 
 build-wayland-protos:
 	cd ${WLPROTOS} && meson ${MAKEOBJDIR}/wayland-protocols
@@ -16,8 +17,8 @@ build-wlroots: build-wayland-protos
 	cd ${.CURDIR}/wlroots && PKG_CONFIG_PATH=${MAKEOBJDIR}/wayland-protocols meson -Dexamples=false \
                 ${MAKEOBJDIR}/wlroots/
 	ninja -C ${MAKEOBJDIR}/wlroots
-	sed -e 's,@CURDIR@,${.CURDIR},g' -e 's,@MAKEOBJDIR@,${MAKEOBJDIR},g' < ${.CURDIR}/wlroots.pc.in \
-                > ${MAKEOBJDIR}/wlroots/wlroots.pc
+	sed -e 's,@CURDIR@,${.CURDIR},g' -e 's,@MAKEOBJDIR@,${MAKEOBJDIR},g' -e 's,@VERSION@,${WLR_VER},g' \
+                < ${.CURDIR}/wlroots.pc.in > ${MAKEOBJDIR}/wlroots/wlroots.pc
 	cp -afv ${MAKEOBJDIR}/wlroots/libwlroots.so* ${MAKEOBJDIR}/${APP_DIR}/Contents/Resources/
 
 build-waybox:

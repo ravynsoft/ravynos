@@ -79,7 +79,8 @@ struct wlr_output *get_active_output(struct wb_view *view) {
 			view->current_position.x + view->current_position.width / 2,
 			view->current_position.y + view->current_position.height / 2,
 			&closest_x, &closest_y);
-	return wlr_output_layout_output_at(view->server->output_layout, closest_x, closest_y);
+        output = wlr_output_layout_output_at(view->server->output_layout, closest_x, closest_y);
+        return output;
 }
 
 static struct wlr_box get_usable_area(struct wb_view *view) {

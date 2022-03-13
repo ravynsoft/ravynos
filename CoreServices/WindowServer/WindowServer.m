@@ -48,7 +48,8 @@ int main(int argc, const char *argv[]) {
     }
 
     NSString *exePath = [[NSBundle mainBundle] pathForResource:@"waybox" ofType:@""];
-    NSArray *args = @[@"WindowServer", @"--config-file", @"ws.conf"];
+    NSString *confPath = [[exePath stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"ws.conf"];
+    NSArray *args = @[@"WindowServer", @"--config-file", confPath];
     char **_argv = malloc((1 + [args count]) * sizeof(char *));
     int i;
     for(i = 0; i < [args count]; ++i)

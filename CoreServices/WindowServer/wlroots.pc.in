@@ -4,6 +4,6 @@ includedir=${prefix}/include
 
 Name: wlroots
 Description: wlroots library
-Version: 0.15.1
+Version: @VERSION@
 Libs: -L${libdir} -lwlroots
 Cflags: -I${includedir} -I@MAKEOBJDIR@/wlroots/include
