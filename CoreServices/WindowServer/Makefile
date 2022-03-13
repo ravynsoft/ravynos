@@ -1,12 +1,11 @@
 APP=	        WindowServer
 SRCS=           WindowServer.m
-RESOURCES=      ${MAKEOBJDIR}/wlroots/libwlroots.so.11
-RESOURCES+=	${.CURDIR}/Icon.png
+RESOURCES=	${.CURDIR}/Icon.png ${.CURDIR}/ws.conf
 
 MK_WERROR=	no
-CFLAGS+=	-g -fPIC -fobjc-arc -I${.CURDIR} -I${MAKEOBJDIR}
-LDFLAGS+=	-framework Foundation -framework CoreFoundation \
-                -Wl,-R'$$ORIGIN/../Resources' -lmach
+WARNS=	        1
+CFLAGS+=	-g -fobjc-arc -I${.CURDIR} -I${MAKEOBJDIR} -framework Foundation
+LDFLAGS+=	-framework Foundation -Wl,-R'$$ORIGIN/../Resources' -lobjc -lmach
 WLPROTOS=       ${.CURDIR}/wayland-protocols
 
 build-wayland-protos:
@@ -19,11 +18,13 @@ build-wlroots: build-wayland-protos
 	ninja -C ${MAKEOBJDIR}/wlroots
 	sed -e 's,@CURDIR@,${.CURDIR},g' -e 's,@MAKEOBJDIR@,${MAKEOBJDIR},g' < ${.CURDIR}/wlroots.pc.in \
                 > ${MAKEOBJDIR}/wlroots/wlroots.pc
+	cp -afv ${MAKEOBJDIR}/wlroots/libwlroots.so* ${MAKEOBJDIR}/${APP_DIR}/Contents/Resources/
 
 build-waybox:
 	cd ${.CURDIR}/waybox && PKG_CONFIG_PATH=${MAKEOBJDIR}/wayland-protocols:${MAKEOBJDIR}/wlroots \
                 meson ${MAKEOBJDIR}/waybox
 	ninja -C ${MAKEOBJDIR}/waybox
+	cp -fv ${MAKEOBJDIR}/waybox/waybox/waybox ${MAKEOBJDIR}/${APP_DIR}/Contents/Resources/
 
 clean-wlroots:
 	rm -rf ${MAKEOBJDIR}/wlroots

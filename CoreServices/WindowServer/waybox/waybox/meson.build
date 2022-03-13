@@ -24,4 +24,5 @@ executable(
   dependencies: [wb_dep, wlr_protos],
   install: true,
   install_dir: get_option('prefix') / get_option('libexecdir'),
+  link_args: ['-lintl', '-Wl,-R$ORIGIN/../Resources']
   )
