@@ -11,6 +11,12 @@ airyx_task:
   timeout_in: 120m
   environment:
     PKG_CONFIG_PATH: /usr/libdata/pkgconfig:/usr/local/libdata/pkgconfig
+  id_rsa_priv_file:
+    path: /root/.ssh/id_rsa
+    variable_name: MIRROR2_SSH_PRIVKEY
+  id_rsa_pub_file:
+    path: /root/.ssh/id_rsa.pub
+    variable_name: MIRROR2_SSH_PUBKEY
   clone_script: |
     if [ -z "$CIRRUS_PR" ]; then
       git clone --recursive --branch=$CIRRUS_BRANCH https://x-access-token:${CIRRUS_REPO_CLONE_TOKEN}@github.com/${CIRRUS_REPO_FULL_NAME}.git $CIRRUS_WORKING_DIR
@@ -49,6 +55,7 @@ airyx_task:
     - cp -fv /usr/obj/$(pwd -P)/$(uname -m).$(uname -m)/release/base.txz /usr/obj/$(pwd -P)/$(uname -m).$(uname -m)/release/kernel.txz ${CIRRUS_WORKING_DIR}/dist/airyx.txz /usr/local/furybsd/$(uname -m)/cache/$(head -1 version.txt)/base/
     - cd ISO; AIRYX=${CIRRUS_WORKING_DIR} ./build.sh airyx airyxOS_$(head -1 ../version.txt)
     - SSHPASS="${MIRROR1_PASS}" sshpass -e scp -o StrictHostKeyChecking=no ${CIRRUS_WORKING_DIR}/artifacts/*.iso* ${MIRROR1_USER}@${MIRROR1_HOST}:nightly/
+    - scp -o StrictHostKeyChecking=no ${CIRRUS_WORKING_DIR}/artifacts/*.iso* ${MIRROR1_USER}@${MIRROR2_HOST}:nightly/
     - mega-login "$MEGAUSER" "$MEGAPASS"
     - mega-put ${CIRRUS_WORKING_DIR}/artifacts/*.iso* /nightly/
   only_if: $CIRRUS_BRANCH == 'main' || $CIRRUS_BRANCH == 'staging'

@@ -2,7 +2,7 @@
 
 MK_WERROR= no
 FRAMEWORK=AppKit
-WLPROTOS=${.CURDIR}/../../CoreServices/WindowServer/wlroots/wayland-protocols
+WLPROTOS=${.CURDIR}/../../CoreServices/WindowServer/wayland-protocols
 SRCS= \
 CoreData_/NSPersistentDocument.m \
 CoreData_/_NSManagedProxy.m \
