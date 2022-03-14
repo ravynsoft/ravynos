@@ -3,15 +3,23 @@
 FRAMEWORK=OpenGL
 SRCS= OpenGL.m
 INCS= \
-	include/OpenGL/CGLCurrent.h \
-	include/OpenGL/CGLTypes.h \
-	include/OpenGL/gl.h \
-	include/OpenGL/glext.h \
-	include/OpenGL/glplatform.h \
-	include/OpenGL/OpenGL.h 
+	include/CGLCurrent.h \
+	include/CGLTypes.h \
+	include/gl.h \
+	include/glext.h \
+	include/glplatform.h \
+	include/OpenGL.h \
+        include/egl.h \
+        include/eglext.h \
+        include/eglextchromium.h \
+        include/eglexternalplatform.h \
+        include/eglexternalplatformversion.h \
+        include/eglmesaext.h \
+        include/eglplatform.h \
+        include/khrplatform.h
 RESOURCES=Info.plist
 CFLAGS+= ${FMWK_CFLAGS} -I.. -Iinclude -I../libobjc2 -I../Foundation/Headers
-LDFLAGS+= -lGL
+LDFLAGS+= -lGLESv2 -lEGL -Wl,--no-as-needed
 
 _install-hook:
 	rm -rf ${BUILDROOT}/System/Library/Frameworks/${FRAMEWORK}.framework

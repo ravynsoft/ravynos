@@ -3,6 +3,7 @@
 MK_WERROR= no
 FRAMEWORK=AppKit
 WLPROTOS=${.CURDIR}/../../CoreServices/WindowServer/wayland-protocols
+WLRPROTOS=${.CURDIR}/../../CoreServices/WindowServer/wlroots/protocol
 SRCS= \
 CoreData_/NSPersistentDocument.m \
 CoreData_/_NSManagedProxy.m \
@@ -646,16 +647,26 @@ xdg-shell.c:
 	wayland-scanner private-code \
                 ${WLPROTOS}/stable/xdg-shell/xdg-shell.xml ${.TARGET}
 
+wlr-layer-shell-unstable-v1-client-protocol.h:
+	wayland-scanner client-header \
+                ${WLRPROTOS}/wlr-layer-shell-unstable-v1.xml ${.TARGET}
+
+layer-shell-v1.c:
+	wayland-scanner private-code \
+                ${WLRPROTOS}/wlr-layer-shell-unstable-v1.xml ${.TARGET}
+
 clean-deps:
 	rm -f .depend.*
 
 clean-gen-files:
-	rm -f xdg-shell-client-protocol.h xdg-shell.c
+	rm -f xdg-shell-client-protocol.h xdg-shell.c \
+                wlr-layer-shell-unstable-v1-client-protocol.h layer-shell-v1.c
 
 .include <airyx.framework.mk>
 
 clean: fmwkclean
 post-resources: _install-hook
-${SOBJS}: xdg-shell-client-protocol.h xdg-shell.c
+${SOBJS}: xdg-shell-client-protocol.h xdg-shell.c \
+        wlr-layer-shell-unstable-v1-client-protocol.h layer-shell-v1.c
 clean: clean-deps clean-gen-files
 

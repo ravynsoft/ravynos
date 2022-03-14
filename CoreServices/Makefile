@@ -8,6 +8,7 @@ clean:
 	rm -rf Filer/build Filer/Filer.app Installer/"Install airyxOS.app"
 	rm -rf /usr/obj/${TOPDIR}/${MACHINE}.${MACHINE}/CoreServices/Dock
 	rm -rf /usr/obj/${TOPDIR}/${MACHINE}.${MACHINE}/CoreServices/Filer
+	rm -rf /usr/obj/${TOPDIR}/${MACHINE}.${MACHINE}/CoreServices/WindowServer
 
 DMIHelper: ${.CURDIR}/DMIHelper.c
 	mkdir -p ${BUILDROOT}/System/Library/CoreServices
@@ -15,7 +16,7 @@ DMIHelper: ${.CURDIR}/DMIHelper.c
 	${SUDO} chown 0:0 ${BUILDROOT}/System/Library/CoreServices/DMIHelper
 	${SUDO} chmod 4755 ${BUILDROOT}/System/Library/CoreServices/DMIHelper
 
-build: buildDock buildFiler DMIHelper buildInstaller
+build: buildWindowServer DMIHelper buildInstaller #buildDock buildFiler 
 	mkdir -p ${BUILDROOT}/System/Library/CoreServices/
 	mkdir -p ${BUILDROOT}/Applications/Utilities/
 	cp -av ${.CURDIR}/Dock/Dock.app ${BUILDROOT}/System/Library/CoreServices
@@ -27,10 +28,13 @@ build: buildDock buildFiler DMIHelper buildInstaller
 .endfor
 
 buildDock:
-	${MAKE} -C ${.CURDIR}/Dock
+	#${MAKE} -C ${.CURDIR}/Dock
 
 buildInstaller:
 	${MAKE} -C ${.CURDIR}/Installer build
+
+buildWindowServer:
+	${MAKE} -C ${.CURDIR}/WindowServer
 
 ${.CURDIR}/Filer:
 	git clone https://github.com/mszoek/Filer.git ${.CURDIR}/Filer

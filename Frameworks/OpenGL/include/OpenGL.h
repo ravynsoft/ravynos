@@ -1,5 +1,5 @@
-#import <EGL/egl.h>
-#import <EGL/eglext.h>
+#import <OpenGL/egl.h>
+#import <OpenGL/eglext.h>
 #import <OpenGL/gl.h>
 #import <OpenGL/glext.h>
 #import <OpenGL/glplatform.h>

@@ -60,7 +60,8 @@ INCS= \
 	QuartzCore.h 
 
 RESOURCES=Info.plist English.lproj
-CFLAGS+= ${FMWK_CFLAGS} -I${TOPDIR}/Frameworks -I${.CURDIR}/../Foundation/Headers -I${.CURDIR}/../AppKit/Headers
+CFLAGS+= ${FMWK_CFLAGS} -I${TOPDIR}/Frameworks -I${.CURDIR}/../Foundation/Headers \
+        -I${.CURDIR}/../AppKit/Headers -I${TOPDIR}/Frameworks/OpenGL/include
 LDFLAGS+= ${FMWK_LDFLAGS} -lEGL -lGLESv2 
 
 _install-hook:

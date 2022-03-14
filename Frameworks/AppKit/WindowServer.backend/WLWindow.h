@@ -26,9 +26,28 @@
 #import <Onyx2D/O2Path.h>
 #include <wayland-client.h>
 #include "xdg-shell-client-protocol.h"
+#include "wlr-layer-shell-unstable-v1-client-protocol.h"
 #import "WLDisplay.h"
 
 @class CAWindowOpenGLContext;
+
+enum {
+    WLWindowLayerShellMask = 0x8000000,
+    WLWindowLayerAnchorMask = 0x0F,
+    WLWindowLayerAnchorTop = 0x8000001,
+    WLWindowLayerAnchorBottom = 0x8000002,
+    WLWindowLayerAnchorLeft = 0x80000004,
+    WLWindowLayerAnchorRight = 0x80000008,
+    WLWindowLayerKeyboardMask = 0xF0,
+    WLWindowLayerKeyboardNone = 0x80000000,
+    WLWindowLayerKeyboardExclusive = 0x80000010,
+    WLWindowLayerKeyboardOnDemand = 0x80000020,
+    WLWindowLayerMask = 0xF00,
+    WLWindowLayerBackground = 0x80000000,
+    WLWindowLayerBottom = 0x80000100,
+    WLWindowLayerTop = 0x80000200,
+    WLWindowLayerOverlay = 0x80000300
+};
 
 @interface WLWindow : CGWindow {
     int _level;
@@ -43,6 +62,15 @@
     struct wl_seat *wl_seat;
     struct xdg_toplevel *xdg_toplevel;
     struct xdg_surface *xdg_surface; 
+
+    // wlroots layer shell support
+    struct zwlr_layer_shell_v1 *layer_shell;
+    struct zwlr_layer_surface_v1 *layer_surface;
+    uint32_t layerType;
+    uint32_t anchorType;
+    NSRect margins;
+    uint32_t exclusiveZone;
+    double layerAlpha;
 
     id _delegate;
     CGSBackingStoreType _backingType;

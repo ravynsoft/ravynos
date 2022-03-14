@@ -19,13 +19,13 @@ build-wlroots: build-wayland-protos
 	ninja -C ${MAKEOBJDIR}/wlroots
 	sed -e 's,@CURDIR@,${.CURDIR},g' -e 's,@MAKEOBJDIR@,${MAKEOBJDIR},g' -e 's,@VERSION@,${WLR_VER},g' \
                 < ${.CURDIR}/wlroots.pc.in > ${MAKEOBJDIR}/wlroots/wlroots.pc
-	cp -afv ${MAKEOBJDIR}/wlroots/libwlroots.so* ${MAKEOBJDIR}/${APP_DIR}/Contents/Resources/
+	cp -afv ${MAKEOBJDIR}/wlroots/libwlroots.so* ${.CURDIR}/${APP_DIR}/Contents/Resources/
 
 build-waybox:
 	cd ${.CURDIR}/waybox && PKG_CONFIG_PATH=${MAKEOBJDIR}/wayland-protocols:${MAKEOBJDIR}/wlroots \
                 meson ${MAKEOBJDIR}/waybox
 	ninja -C ${MAKEOBJDIR}/waybox
-	cp -fv ${MAKEOBJDIR}/waybox/waybox/waybox ${MAKEOBJDIR}/${APP_DIR}/Contents/Resources/
+	cp -fv ${MAKEOBJDIR}/waybox/waybox/waybox ${.CURDIR}/${APP_DIR}/Contents/Resources/
 
 clean-wlroots:
 	rm -rf ${MAKEOBJDIR}/wlroots
