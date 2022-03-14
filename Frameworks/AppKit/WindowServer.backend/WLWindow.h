@@ -31,24 +31,6 @@
 
 @class CAWindowOpenGLContext;
 
-enum {
-    WLWindowLayerShellMask = 0x8000000,
-    WLWindowLayerAnchorMask = 0x0F,
-    WLWindowLayerAnchorTop = 0x8000001,
-    WLWindowLayerAnchorBottom = 0x8000002,
-    WLWindowLayerAnchorLeft = 0x80000004,
-    WLWindowLayerAnchorRight = 0x80000008,
-    WLWindowLayerKeyboardMask = 0xF0,
-    WLWindowLayerKeyboardNone = 0x80000000,
-    WLWindowLayerKeyboardExclusive = 0x80000010,
-    WLWindowLayerKeyboardOnDemand = 0x80000020,
-    WLWindowLayerMask = 0xF00,
-    WLWindowLayerBackground = 0x80000000,
-    WLWindowLayerBottom = 0x80000100,
-    WLWindowLayerTop = 0x80000200,
-    WLWindowLayerOverlay = 0x80000300
-};
-
 @interface WLWindow : CGWindow {
     int _level;
     CGLContextObj _cglContext;

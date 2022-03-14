@@ -119,14 +119,14 @@ typedef NSInteger NSComparisonResult;
 
 #ifndef MIN
 #define MIN(a, b) ({__typeof__(a) _a = (a); __typeof__(b) _b = (b); (_a < _b) ? _a : _b; })
-#else
-#warning MIN is already defined, MIN(a, b) may not behave as expected.
+//#else
+//#warning MIN is already defined, MIN(a, b) may not behave as expected.
 #endif
 
 #ifndef MAX
 #define MAX(a, b) ({__typeof__(a) _a = (a); __typeof__(b) _b = (b); (_a > _b) ? _a : _b; })
-#else
-#warning MAX is already defined, MAX(a, b) may not not behave as expected.
+//#else
+//#warning MAX is already defined, MAX(a, b) may not not behave as expected.
 #endif
 
 #ifndef ABS

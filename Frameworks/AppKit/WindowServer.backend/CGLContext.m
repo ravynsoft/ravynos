@@ -591,8 +591,7 @@ void CGLBufferSubData(GLenum target,GLintptr offset,GLsizeiptr size,const GLvoid
 }
 
 void CGLSurfaceResize(CGLContextObj context, int width, int height) {
-    if(context->egl_window)
-        wl_egl_window_resize(context->egl_window, width, height, 0, 0);
+    wl_egl_window_resize(context->egl_window, width, height, 0, 0);
 }
 
 void CGLUseShaders(CGLContextObj context) {

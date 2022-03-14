@@ -62,6 +62,9 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
             cheatSheet = 2;
             break;
     }
+
+    if(([[self window] styleMask]  & 0x0FFF) == NSBorderlessWindowMask)
+        return;
     
     if([[self window] isSheet])
         bounds.size.height += cheatSheet;
@@ -171,25 +174,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 }
 
 -(void)mouseDown:(NSEvent *)event {
-    NSLog(@"MUTHAFUCKIN MOUSE IN THA HOUSE");
+    // FIXME: only if on titlebar or movable by background
     [[self window] requestMove:event];
 
    if(![[self window] isMovableByWindowBackground])
     return;
-   
-   NSPoint origin=[[self window] frame].origin;
-   NSPoint firstLocation=[[self window] convertBaseToScreen:[event locationInWindow]];
-   do {
-    event=[[self window] nextEventMatchingMask:NSLeftMouseUpMask|NSLeftMouseDraggedMask];
-    
-    NSPoint delta=[[self window] convertBaseToScreen:[event locationInWindow]];
-    
-    delta.x-=firstLocation.x;
-    delta.y-=firstLocation.y;
-    
-    [[self window] setFrameOrigin:NSMakePoint(origin.x+delta.x,origin.y+delta.y)];
-    
-   }while([event type]!=NSLeftMouseUp);   
 }
 
 @end

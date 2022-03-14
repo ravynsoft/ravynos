@@ -269,6 +269,7 @@ WindowServer.backend/O2Font_FT.m \
 WindowServer.backend/WLWindow.m \
 WindowServer.backend/WLDisplay.m \
 xdg-shell.c \
+layer-shell-v1.c
 #X11.subproj/NSOpenGLDrawable_X11.m \
 X11.subproj/O2Context_cairo.m \
 X11.subproj/O2FontState_cairo.m \

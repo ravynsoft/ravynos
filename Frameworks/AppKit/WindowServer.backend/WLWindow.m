@@ -44,7 +44,7 @@ CGL_EXPORT CGLError CGLCreateContextForWindow(CGLPixelFormatObj pixelFormat,
 void CGNativeBorderFrameWidthsForStyle(unsigned styleMask,CGFloat *top,CGFloat *left,
                                        CGFloat *bottom,CGFloat *right)
 {
-    switch(styleMask) {
+    switch(styleMask & 0x0FFF) {
         case NSBorderlessWindowMask:
             *top=0;
             *left=0;
@@ -89,8 +89,7 @@ static const struct wl_registry_listener registry_listener = {
 };
 
 static void layer_surface_configure(void *data,
-    struct zwlr_layer_surface_v1 *surface,
-    uint32_t serial, uint32_t w, uint32_t h) {
+    struct zwlr_layer_surface_v1 *surface, uint32_t serial, uint32_t w, uint32_t h) {
     WLWindow *win = (__bridge WLWindow *)data;
     @synchronized(win) {
         NSRect frame = [win frame];
@@ -98,9 +97,11 @@ static void layer_surface_configure(void *data,
         frame.size.height = h;
         CGRect _frame = CGOutsetRectForNativeWindowBorder(frame, [win styleMask]);
         zwlr_layer_surface_v1_ack_configure(surface, serial);
+        wl_display_roundtrip([(WLDisplay *)[NSDisplay currentDisplay] display]);
+        [win createCGContextIfNeeded];
+        [win createCGLContextObjIfNeeded];
         [win setFrame:_frame];
         [win setReady:YES];
-        [win flushBuffer];
 
         [win frameChanged];
         [[win delegate] platformWindow:win frameChanged:frame didSize:YES];
@@ -220,8 +221,8 @@ static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
     wl_surface = wl_compositor_create_surface(compositor);
 
     if(styleMask & WLWindowLayerShellMask) {
-        layerType = (styleMask & WLWindowLayerMask) >> 8;
-        anchorType = (styleMask & WLWindowLayerAnchorMask);
+        layerType = (styleMask & WLWindowLayerMask) >> 24;
+        anchorType = (styleMask & WLWindowLayerAnchorMask) >> 16;
 
         // FIXME: NULL below should be a wl_output to display the surface on
 	layer_surface = zwlr_layer_shell_v1_get_layer_surface(layer_shell,
@@ -237,8 +238,8 @@ static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
         xdg_toplevel_add_listener(xdg_toplevel, &xdg_toplevel_listener, (__bridge void *)self);
     }
 
-    wl_display_roundtrip(display);
     wl_surface_commit(wl_surface);
+    wl_display_roundtrip(display);
 
     if(isPanel && (styleMask & NSDocModalWindowMask))
         _styleMask=NSBorderlessWindowMask;
@@ -264,13 +265,13 @@ static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
 
 -(void)setLayer:(uint32_t)layer
 {
-    layerType = (layer & WLWindowLayerMask) >> 8;
+    layerType = (layer & WLWindowLayerMask) >> 24;
     zwlr_layer_surface_v1_set_layer(layer_surface, layerType);
 }
 
 -(void)setKeyboardInteractivity:(uint32_t)keyboardStyle
 {
-    uint32_t keyboard_interactive = (keyboardStyle & WLWindowLayerKeyboardMask) >> 4;
+    uint32_t keyboard_interactive = (keyboardStyle & WLWindowLayerKeyboardMask) >> 20;
     zwlr_layer_surface_v1_set_keyboard_interactivity(layer_surface, keyboard_interactive);
 }
 
@@ -285,7 +286,7 @@ static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
 
 -(void)setAnchor:(uint32_t)anchor
 {
-    anchorType = (anchor & WLWindowLayerAnchorMask);
+    anchorType = (anchor & WLWindowLayerAnchorMask) >> 16;
     zwlr_layer_surface_v1_set_anchor(layer_surface, anchorType);
 }
 
@@ -393,12 +394,10 @@ static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
         [_context drawImage:[currentContext surface]
             inRect:NSMakeRect(0,0,oldSize.width,oldSize.height)];
         [_delegate platformWindowDidInvalidateCGContext:self];
-        CGLSurfaceResize(_cglContext, size.width, size.height);
-        currentContext = nil;
-
         if(layer_surface)
             zwlr_layer_surface_v1_set_size(layer_surface, _frame.size.width, _frame.size.height);
-
+        CGLSurfaceResize(_cglContext, size.width, size.height);
+        currentContext = nil;
     }
 }
 
@@ -409,7 +408,8 @@ static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
 
 -(void) setTitle:(NSString *)title
 {
-    xdg_toplevel_set_title(xdg_toplevel, [title UTF8String]);
+    if(xdg_toplevel)
+        xdg_toplevel_set_title(xdg_toplevel, [title UTF8String]);
 }
 
 -(BOOL) setProperty:(NSString *)property toValue:(NSString *)value
@@ -514,8 +514,6 @@ static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
 {
     O2ContextFlush(_context);
     [self openGLFlushBuffer];
-    if(layer_surface)
-        wl_surface_commit(layer_surface);
 }
 
 // This seems wrong but it's exactly what was done in the Win32 version
@@ -579,11 +577,13 @@ static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
 
 - (void)requestMove:(NSEvent *)event
 {
-    xdg_toplevel_move(xdg_toplevel, [_display seat], [event serialNumber]);
+    if(xdg_toplevel)
+        xdg_toplevel_move(xdg_toplevel, [_display seat], [event serialNumber]);
 }
 
 - (void)requestResize:(NSEvent *)event
 {
+    NSLog(@"resize not implemented");
 }
 
 @end
