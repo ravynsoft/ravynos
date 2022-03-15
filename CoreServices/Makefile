@@ -20,8 +20,8 @@ build: buildWindowServer DMIHelper buildInstaller #buildDock buildFiler
 	mkdir -p ${BUILDROOT}/System/Library/CoreServices/
 	mkdir -p ${BUILDROOT}/Applications/Utilities/
 	cp -av ${.CURDIR}/WindowServer/WindowServer.app ${BUILDROOT}/System/Library/CoreServices
-	cp -av ${.CURDIR}/Dock/Dock.app ${BUILDROOT}/System/Library/CoreServices
-	cp -av ${.CURDIR}/Filer/Filer.app ${BUILDROOT}/System/Library/CoreServices
+	#cp -av ${.CURDIR}/Dock/Dock.app ${BUILDROOT}/System/Library/CoreServices
+	#cp -av ${.CURDIR}/Filer/Filer.app ${BUILDROOT}/System/Library/CoreServices
 	cp -av ${.CURDIR}/Installer/"Install airyxOS.app" ${BUILDROOT}/Applications/Utilities/
 .for f in ${.CURDIR}/askpass ${.CURDIR}/enable_tapping ${.CURDIR}/tpquirk ${.CURDIR}/startDesktop
 		cp -fv ${f} ${BUILDROOT}/System/Library/CoreServices/
