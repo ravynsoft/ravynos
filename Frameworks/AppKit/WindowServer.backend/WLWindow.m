@@ -175,9 +175,7 @@ static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
         wl_callback_destroy(cb);
 
     WLWindow *win = (__bridge WLWindow *)data;
-    [win flushBuffer];
-    cb = wl_surface_frame([win wl_surface]);
-    wl_callback_add_listener(cb, &frame_listener, (__bridge void *)win);
+    [win openGLFlushBuffer];
 }
 
 @implementation WLWindow
@@ -512,8 +510,11 @@ static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
 
 -(void) flushBuffer
 {
+    /* flush pending changes to our O2Surface & tell compositor we're ready */
     O2ContextFlush(_context);
     [self openGLFlushBuffer];
+    struct wl_callback *cb = wl_surface_frame(wl_surface);
+    wl_callback_add_listener(cb, &frame_listener, (__bridge void *)self);
 }
 
 // This seems wrong but it's exactly what was done in the Win32 version

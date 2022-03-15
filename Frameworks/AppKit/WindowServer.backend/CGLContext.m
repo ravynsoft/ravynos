@@ -481,6 +481,8 @@ CGLError CGLGetParameter(CGLContextObj context,CGLContextParameter parameter,GLi
 }
 
 CGLError CGLFlushDrawable(CGLContextObj context) {
+    if(!context)
+        return kCGLNoError;
     eglSwapInterval(context->egl_display, 0); // don't block
     eglSwapBuffers(context->egl_display, context->egl_surface);
     return kCGLNoError;

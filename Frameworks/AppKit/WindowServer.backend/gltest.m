@@ -61,7 +61,7 @@ void *draw(void *data) {
         [[win backgroundColor] setFill];
         NSRectFill(rect);
         [view lockFocus];
-        [icon drawInRect:imgrect fromRect:NSZeroRect operation:NSCompositeCopy fraction:1.0];
+        [icon drawInRect:imgrect fromRect:NSZeroRect operation:NSCompositeSourceOver fraction:1.0];
         [view unlockFocus];
 
         imgrect.origin.x += (inc2 * 5);
@@ -116,7 +116,7 @@ void *draw(void *data) {
     [self finishLaunching];
   }
 
-   NSTimer *timer = [NSTimer scheduledTimerWithTimeInterval:0.01 target:self 
+   NSTimer *timer = [NSTimer scheduledTimerWithTimeInterval:0.03 target:self 
         selector:@selector(timerFired:) userInfo:nil repeats:YES];
    do {
     NSEvent           *event;
