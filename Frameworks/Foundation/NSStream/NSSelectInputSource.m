@@ -59,13 +59,13 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 }
 
 -(NSUInteger)processImmediateEvents:(NSUInteger)selectEvent {
+    if((selectEvent&=_eventMask)==0)
+        return 0;
 
-   if((selectEvent&=_eventMask)==0)
-    return 0;
-
-   [_delegate selectInputSource:self selectEvent:selectEvent];
+    if(_delegate != nil)
+        [_delegate selectInputSource:self selectEvent:selectEvent];
    
-   return selectEvent;
+    return selectEvent;
 }
 
 @end

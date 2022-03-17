@@ -116,7 +116,7 @@ void *draw(void *data) {
     [self finishLaunching];
   }
 
-   NSTimer *timer = [NSTimer scheduledTimerWithTimeInterval:0.03 target:self 
+   NSTimer *timer = [NSTimer scheduledTimerWithTimeInterval:0.02 target:self 
         selector:@selector(timerFired:) userInfo:nil repeats:YES];
    do {
     NSEvent           *event;

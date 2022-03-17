@@ -587,6 +587,10 @@ static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
     NSLog(@"resize not implemented");
 }
 
+- (int)windowNumber {
+    return (int)wl_surface;
+}
+
 @end
 
 CGRect CGInsetRectForNativeWindowBorder(CGRect frame,unsigned styleMask)

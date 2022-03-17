@@ -57,6 +57,8 @@
 
 @implementation WLDisplay
 
+WLDisplay *__WLDisplay = nil;
+
 static int errorHandler(struct wl_display *display,void *errorEvent) {
    return [(WLDisplay*)[WLDisplay currentDisplay] handleError:errorEvent];
 }
@@ -291,47 +293,8 @@ static unichar translateKeySym(xkb_keysym_t keysym)
     }
 }
 
-// repeatedly post keydown events until canceled
-static void repeatKeyInput(struct RepeatArgs *repeatKey) {
-    int charDelay = ((float)1.0/repeatKey->rate)*1000000;
-    int delay = repeatKey->delay * 1000;
-    NSEvent *orig = repeatKey->event;
-    NSEvent *eventDown = [NSEvent keyEventWithType:NSKeyDown
-                                      location:[orig locationInWindow]
-                                 modifierFlags:[orig modifierFlags]
-                                     timestamp:0.0
-                                  windowNumber:[orig windowNumber]
-                                       context:nil
-                                    characters:[orig characters]
-                   charactersIgnoringModifiers:[orig charactersIgnoringModifiers]
-                                     isARepeat:YES
-                                       keyCode:[orig keyCode]];
-
-    WLDisplay *display = repeatKey->display;
-    free(repeatKey);
-
-    usleep(delay);
-
-    for(;;) {
-        [display performSelectorOnMainThread:@selector(postKeyDown:) withObject:eventDown waitUntilDone:NO];
-        usleep(charDelay);
-    }
-}
-
-- (void)postKeyDown:(NSEvent*)eventDown
-{
-    [self postEvent:eventDown atStart:NO];
-    NSEvent *eventUp = [NSEvent keyEventWithType:NSKeyUp
-                                      location:[eventDown locationInWindow]
-                                 modifierFlags:[eventDown modifierFlags]
-                                     timestamp:0.0
-                                  windowNumber:[eventDown windowNumber]
-                                       context:nil
-                                    characters:[eventDown characters]
-                   charactersIgnoringModifiers:[eventDown charactersIgnoringModifiers]
-                                     isARepeat:YES
-                                       keyCode:[eventDown keyCode]];
-    [self postEvent:eventUp atStart:NO];
+-(void)startKeyRepeat:(NSTimer *)timer {
+    [self postEvent:repeatEvent atStart:NO];
 }
 
 - (void)keyboardInput:(uint32_t)keycode eventType:(NSEventType)type autoUp:(BOOL)autoUp
@@ -357,6 +320,10 @@ static void repeatKeyInput(struct RepeatArgs *repeatKey) {
     WLWindow *window = [self windowForID:(unsigned long)_keyboardActiveSurface];
     id delegate = [window delegate];
     
+    if(repeatEvent != nil) {
+        [repeatEvent release];
+        repeatEvent = nil;
+    }
     NSEvent *event = [NSEvent keyEventWithType:type
                                       location:pointerPosition
                                  modifierFlags:[self modifierFlagsForState:xkb_state]
@@ -368,7 +335,6 @@ static void repeatKeyInput(struct RepeatArgs *repeatKey) {
                                      isARepeat:NO
                                        keyCode:keycode];
     [self postEvent:event atStart:NO];
-    pthread_cancel(repeatThread);
 
     if(type == NSKeyDown) {
         if(autoUp == YES) {
@@ -386,13 +352,18 @@ static void repeatKeyInput(struct RepeatArgs *repeatKey) {
         } else {
             // set auto-repeat delay timer
             // FIXME: do not repeat modifier keys like Shift without a non-mod key
-            pthread_cancel(repeatThread);
-            struct RepeatArgs *repeatKey = malloc(sizeof(struct RepeatArgs));
-            repeatKey->event = event;
-            repeatKey->delay = repeatDelay;
-            repeatKey->rate = repeatRate;
-            repeatKey->display = self;
-            pthread_create(&repeatThread, NULL, repeatKeyInput, repeatKey);
+            repeatEvent = [[NSEvent keyEventWithType:NSKeyDown
+                                      location:[event locationInWindow]
+                                 modifierFlags:[event modifierFlags]
+                                     timestamp:0.0
+                                  windowNumber:[event windowNumber]
+                                       context:nil
+                                    characters:[event characters]
+                   charactersIgnoringModifiers:[event charactersIgnoringModifiers]
+                                     isARepeat:YES
+                                       keyCode:[event keyCode]] retain];
+            [NSTimer scheduledTimerWithInterval:(float)repeatDelay/1000 target:self
+                selector:@selector(startKeyRepeat:) userInfo:nil repeats:NO];
         }
     }
 }
@@ -466,7 +437,11 @@ static const struct wl_seat_listener wl_seat_listener = {
 };
 
 -init {
+    if(__WLDisplay != nil)
+        return __WLDisplay;
+
     if(self = [super init]) {
+        __WLDisplay = [self retain];
 
         if(getenv("XDG_RUNTIME_DIR") == NULL) {
             char *buf = 0;
@@ -482,6 +457,7 @@ static const struct wl_seat_listener wl_seat_listener = {
         _display = wl_display_connect(NULL);
         if(_display == NULL) {
             [self dealloc];
+            __WLDisplay = nil;
             return nil;
         }
         _seat = NULL;
@@ -496,8 +472,9 @@ static const struct wl_seat_listener wl_seat_listener = {
         xkb_state_unmodified = xkb_state_new(xkb_keymap);
         xkb_keymap_unref(xkb_keymap);
         
-        _fileDescriptor = -1;
-        _inputSource = nil; //[[NSSelectInputSource socketInputSourceWithSocket:[NSSocket_bsd socketWithDescriptor:_fileDescriptor]] retain];
+        _fileDescriptor = wl_display_get_fd(_display);
+        _inputSource = [[NSSelectInputSource socketInputSourceWithSocket:
+            [NSSocket_bsd socketWithDescriptor:_fileDescriptor]] retain];
         [_inputSource setDelegate:self];
         [_inputSource setSelectEventMask:NSSelectReadEvent];
       
@@ -508,6 +485,7 @@ static const struct wl_seat_listener wl_seat_listener = {
         _keyboardActiveSurface = NULL;
         _lastClickTimeStamp = 0.0;
         clickCount = 0;
+        repeatEvent = nil;
     }
     return self;
 }
@@ -851,36 +829,17 @@ static const struct wl_seat_listener wl_seat_listener = {
 
 -(NSEvent *)nextEventMatchingMask:(unsigned)mask untilDate:(NSDate *)untilDate inMode:(NSString *)mode dequeue:(BOOL)dequeue {
     NSEvent *result;
-    static NSEvent *event = nil;
-    if(event == nil)
-        event = [[NSEvent alloc] initWithType:NSAppKitSystem
-        location:NSMakePoint(0,0) modifierFlags:0 window:nil];
+    NSRunLoop *loop = [NSRunLoop currentRunLoop];
 
-    while(wl_display_prepare_read(_display) != 0)
-        wl_display_dispatch_pending(_display);
-    wl_display_flush(_display);
+    if(repeatEvent != nil) {
+        int charDelay = ((float)1.0/repeatRate) * 1000000;
+        [self postEvent:repeatEvent atStart:NO];
+        usleep(charDelay);
+    } 
 
-    struct pollfd pfd;
-    pfd.fd = wl_display_get_fd(_display);
-    pfd.events = POLLIN;
-    pfd.revents = POLLIN;
-
-    if(poll(&pfd, 1, 0) > 0) {
-        wl_display_read_events(_display);
-    } else {
-        wl_display_cancel_read(_display);
-    }
-
-    wl_display_dispatch_pending(_display);
-
-    // wake up the main event loop so we don't block
-    // FIXME: there must be a more optimal way to do this
-    [self postEvent:event atStart:NO];
-
-    [[NSRunLoop currentRunLoop] addInputSource:_inputSource forMode:mode];
+    [loop addInputSource:_inputSource forMode:mode];
     result = [super nextEventMatchingMask:mask untilDate:untilDate inMode:mode dequeue:dequeue];
-    [[NSRunLoop currentRunLoop] removeInputSource:_inputSource forMode:mode];
-   
+    [loop removeInputSource:_inputSource forMode:mode]; 
     return result;
 }
 
@@ -909,12 +868,6 @@ NSArray *CGSOrderedWindowNumbers() {
 
 #if 0 // FIXME: this belongs in compositor?
 -(void)postXEvent:(XEvent *)ev {
-    case KeyPress:
-    case KeyRelease:;
-     unsigned int modifierFlags=[self modifierFlagsForState:ev->xkey.state];
-
-     }
-
     case FocusIn:
      if([delegate attachedSheet]) {
       [[delegate attachedSheet] makeKeyAndOrderFront:delegate];
@@ -963,6 +916,11 @@ NSArray *CGSOrderedWindowNumbers() {
 #endif
 
 -(void)selectInputSource:(NSSelectInputSource *)inputSource selectEvent:(NSUInteger)selectEvent {
+    while(wl_display_prepare_read(_display) != 0)
+        wl_display_dispatch_pending(_display);
+    wl_display_flush(_display);
+    wl_display_read_events(_display);
+    wl_display_dispatch_pending(_display);
     //[self postXEvent:&e];
 }
 

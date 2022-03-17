@@ -57,7 +57,7 @@ typedef enum {
     struct xkb_keymap *xkb_keymap;
     int repeatRate;
     int repeatDelay;
-    pthread_t repeatThread;
+    NSEvent *repeatEvent;
 }
 
 - (struct wl_display *)display;
