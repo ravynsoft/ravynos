@@ -61,7 +61,7 @@ INCS= \
 
 RESOURCES=Info.plist English.lproj
 CFLAGS+= ${FMWK_CFLAGS} -I${TOPDIR}/Frameworks -I${.CURDIR}/../Foundation/Headers \
-        -I${.CURDIR}/../AppKit/Headers -I${TOPDIR}/Frameworks/OpenGL/include
+        -I${.CURDIR}/../AppKit/Headers -F${.CURDIR}/../OpenGL -framework OpenGL
 LDFLAGS+= ${FMWK_LDFLAGS} -lEGL -lGLESv2 
 
 _install-hook:

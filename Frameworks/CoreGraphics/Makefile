@@ -64,7 +64,7 @@ INCS= \
 	CoreText.h 
 
 RESOURCES=Info.plist 
-CFLAGS+= ${FMWK_CFLAGS} -I${.CURDIR}/../OpenGL/include -I.. -I../libobjc2 -I../Foundation/Headers
+CFLAGS+= ${FMWK_CFLAGS} -F${.CURDIR}/../OpenGL -framework OpenGL -I.. -I../Foundation/Headers
 LDFLAGS+= ${FMWK_LDFLAGS} -L${BUILDROOT}/System/Library/Frameworks/Onyx2D.framework \
 	-L${BUILDROOT}/System/Library/Frameworks/OpenGL.framework -lOnyx2D -lOpenGL -lGL -lm \
 	-Wl,-R/System/Library/Frameworks/Onyx2D.framework/Versions/A \
