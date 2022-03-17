@@ -12,14 +12,6 @@ SUBDIR=		Library Frameworks .WAIT installairyx \
 #		sysmenu CoreServices bin/open
 
 # We need the installed frameworks to correctly link CoreServices and applications
-airyx: airyxbase installairyx sysmenu coreservices bin
-
-airyxbase:
-	tar -C ${BUILDROOT}/usr/lib -cpf pkgconfig | tar -C ${BUILDROOT}/usr/share -xpf -
-	rm -rf ${BUILDROOT}/usr/lib/pkgconfig
-
-airyx-package:
-	${MAKE} -C installairyx airyx-package
 
 prep:
 	mkdir -p ${OBJPREFIX} ${TOPDIR}/dist ${BUILDROOT}

@@ -46,7 +46,7 @@ airyx_task:
     - cp -fv share/mk/* /usr/share/mk/
     - make -f Makefile.airyx
     - rm -f dist/airyx.txz
-    - make -f Makefile.airyx airyx-package
+    - tar cvJ -C /usr/obj/$(pwd -P)/$(uname -m).$(uname -m)/release/dist/airyx --gid 0 --uid 0 -f $(pwd)/dist/airyx.txz .
   iso_script:
     - pkg install -y sshpass bash megacmd openssl
     - ln -sf /usr/bin/bash /bin/bash
