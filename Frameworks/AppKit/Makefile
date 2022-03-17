@@ -604,8 +604,8 @@ RESOURCES=Info.plist en.lproj de.lproj fr.lproj \
 	WindowServer.backend/vertShader.glsl \
 	WindowServer.backend/fragShader.glsl
 
-CFLAGS+= ${FMWK_CFLAGS} -I${.CURDIR}/.. -I${BUILDROOT}/usr/include -I/usr/local/include \
-	 -I../OpenGL/include -I${.CURDIR}/Headers -I../Foundation/Headers \
+CFLAGS+= -I${.CURDIR}/.. -I${BUILDROOT}/usr/include -I/usr/local/include \
+	 -F${.CURDIR}/../OpenGL -framework OpenGL -I${.CURDIR}/Headers -I../Foundation/Headers \
 	 -I/usr/include/dbus-1.0 -I/usr/lib/dbus-1.0/include \
          -I${.CURDIR} -I${MAKEOBJDIR} \
 	 -D_BuildingFramework -DFREETYPE_PRESENT 
@@ -670,4 +670,4 @@ post-resources: _install-hook
 ${SOBJS}: xdg-shell-client-protocol.h xdg-shell.c \
         wlr-layer-shell-unstable-v1-client-protocol.h layer-shell-v1.c
 clean: clean-deps clean-gen-files
-
+CFLAGS+= ${FMWK_CFLAGS}
