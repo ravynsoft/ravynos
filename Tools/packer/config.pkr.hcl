@@ -7,19 +7,19 @@ packer {
     }
 }
 
-source "googlecompute" "airyxbuild" {
+source "googlecompute" "ravynbuild" {
   disk_size               = "80"
-  project_id              = "airyxos-images"
+  project_id              = "ravyn-images"
   source_image_family            = "freebsd-13-0"
   source_image_project_id       = ["freebsd-org-cloud-dev"]
-  #source_image            = "airyxbuild-0-4-b1"
+  #source_image            = "ravynbuild-0-4-b2"
   ssh_username            = "packer"
   zone                    = "us-central1-a"
-  image_name = "airyxbuild-0-4-b6"
+  image_name = "ravynbuild-0-4-b7"
 }
 
 build {
-  sources = ["source.googlecompute.airyxbuild"]
+  sources = ["source.googlecompute.ravynbuild"]
   provisioner "shell" {
       inline = [
           "echo Installing latest kernel and base artifacts",
@@ -31,8 +31,8 @@ build {
           "echo 'cryptodev_load=\"YES\"'|sudo tee /boot/loader.conf",
           "sudo tar -C / -xf /tmp/base.txz ./etc/pkg/Airyx.conf",
           "sudo rm -f /etc/pkg/FreeBSD.conf",
-          "sudo pkg update && sudo pkg install -yf git-tiny cmake bash dbus dbus-glib expat fontconfig freetype2 gdk-pixbuf2 gettext-runtime gettext-tools glib glib-networking jpeg-turbo kf5-kcoreaddons mesa-libs mesa-dri pkgconf py38-pip python3 py38-setuptools qt5-buildtools qt5-qmake libqtxdg qt5-x11extras sqlite3 tiff png kf5-plasma-framework",
-          "sudo rm -f /tmp/kernel.txz /var/cache/pkg/*",
+          #"sudo -E IGNORE_OSVERSION=yes pkg update && sudo -E IGNORE_OSVERSION=yes pkg install -yf openssl git-tiny cmake bash dbus dbus-glib expat fontconfig freetype2 gdk-pixbuf2 gettext-runtime gettext-tools glib jpeg-turbo mesa-libs mesa-dri pkgconf py38-pip python3 py38-setuptools qt5-buildtools qt5-qmake libqtxdg sqlite3 tiff png",
+          #"sudo rm -f /tmp/kernel.txz /var/cache/pkg/*",
           "sudo tar -C / -xf /tmp/base.txz --exclude=./etc/*passwd --exclude=./etc/*pwd.db --exclude=./boot/efi*",
           "echo Finished provisioning"
       ]
