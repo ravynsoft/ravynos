@@ -25,7 +25,11 @@ CFLAGS+= -fPIC -DPRIVATE -D__MigTypeCheck=1 -DLIBSYSCALL_INTERFACE=1
 CFLAGS+= -isysroot=${WORLDTMP} -I${WORLDTMP}/tmp/usr/include
 
 DEBUG_FLAGS= -g -O0
+.if exists(${WORLDTMP}/tmp/usr/bin/cc)
 USRBIN= ${WORLDTMP}/tmp/usr/bin
+.else
+USRBIN=/usr/bin
+.endif
 mach_port.h mach_portUser.c: ${DEFS}/mach_port.defs
 	mig -cc ${USRBIN}/cc ${CFLAGS} -server /dev/null ${DEFS}/mach_port.defs
 	cp mach_port.h ${H}/mach_port.h
