@@ -23,8 +23,8 @@ build {
   provisioner "shell" {
       inline = [
           "echo Installing latest kernel and base artifacts",
-          "sudo fetch -o /tmp/kernel.txz https://dl.cloudsmith.io/public/airyx/13_0/raw/names/kernel_main.txz/files/kernel.txz",
-          "sudo fetch -o /tmp/base.txz https://dl.cloudsmith.io/public/airyx/13_0/raw/names/base_main.txz/files/base.txz",
+          "sudo fetch -o /tmp/kernel.txz https://dl.cloudsmith.io/public/airyx/core/raw/names/kernel_main.txz/files/kernel.txz",
+          "sudo fetch -o /tmp/base.txz https://dl.cloudsmith.io/public/airyx/core/raw/names/base_main.txz/files/base.txz",
           "sudo chflags -R 0 /",
           "sudo tar -C / -xf /tmp/kernel.txz",
           "echo 'mach_load=\"YES\"'|sudo tee /boot/loader.conf",
