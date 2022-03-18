@@ -31,7 +31,7 @@ airyx_task:
   setup_script:
     - rm -fv /etc/pkg/FreeBSD.conf
     - cp -fv etc/pkg/Airyx.conf /etc/pkg/
-    - pkg-static install -fy openssl libarchive 
+    - pkg install -fy openssl libarchive 
     - pkg update && pkg fetch -y -o /tmp binutils
     - tar xvf /tmp/binutils-*.pkg -C / /usr/bin/as
     - pkg install -fy python38 python3 py38-pip py38-setuptools
