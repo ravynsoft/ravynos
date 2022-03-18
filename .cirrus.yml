@@ -1,6 +1,6 @@
 compute_engine_instance:
-  image_project: airyxos-images
-  image: airyxbuild-0-4-b6
+  image_project: ravyn-images
+  image: ravynbuild-0-4-b7
   platform: freebsd
   cpu: 8
   memory: 16G
@@ -29,11 +29,11 @@ airyx_task:
   setup_script:
     - rm -fv /etc/pkg/FreeBSD.conf
     - cp -fv etc/pkg/Airyx.conf /etc/pkg/
-    - pkg-static install -yf pkg && pkg update
+    - pkg-static install -yf openssl pkg && pkg update
     - pkg fetch -y -o /tmp binutils
     - tar xvf /tmp/binutils-*.pkg -C / /usr/bin/as
     - pkg install -fy python38 python3 py38-pip py38-setuptools
-    - pkg install -y cmake jpeg-turbo openjpeg tiff png cairo fontconfig freetype2 libX11 libXext libXfixes libXdamage mesa-libs dbus pkgconf libqtxdg sqlite3 git-tiny qt5-buildtools qt5-qmake qt5-dbus qt5-linguisttools qt5-widgets qt5-x11extras qt5-dbus glib dbus-glib libffi libfm libfm-qt menu-cache gettext-runtime icu kf5-extra-cmake-modules lxqt-build-tools kf5-ki18n kf5-plasma-framework kf5-ktexteditor qt5-testlib gmake autoconf zip bash alsa-lib alsa-plugins
+    - pkg install -y cmake jpeg-turbo tiff png cairo fontconfig freetype2 libX11 libXext libXfixes libXdamage mesa-libs dbus pkgconf libqtxdg sqlite3 git-tiny qt5-buildtools qt5-qmake qt5-dbus qt5-linguisttools qt5-widgets qt5-x11extras qt5-dbus glib dbus-glib libffi gettext-runtime icu lxqt-build-tools kf5-ki18n gmake autoconf zip bash alsa-lib alsa-plugins mesa-dri expat gdk-pixbuf2 gettext-tools
     - pip install --upgrade cloudsmith-cli
   base_build_script:
     - mkdir -p /usr/obj/$(pwd -P)
