@@ -56,7 +56,7 @@ airyx_task:
     - mkdir -p /usr/local/furybsd/$(uname -m)/cache/$(head -1 version.txt)/base
     - cp -fv /usr/obj/$(pwd -P)/$(uname -m).$(uname -m)/release/base.txz /usr/obj/$(pwd -P)/$(uname -m).$(uname -m)/release/kernel.txz ${CIRRUS_WORKING_DIR}/dist/airyx.txz /usr/local/furybsd/$(uname -m)/cache/$(head -1 version.txt)/base/
     - cd ISO; IGNORE_OSVERSION=yes AIRYX=${CIRRUS_WORKING_DIR} ./build.sh airyx airyxOS_$(head -1 ../version.txt)
-    - SSHPASS="${MIRROR1_PASS}" sshpass -e scp -o StrictHostKeyChecking=no ${CIRRUS_WORKING_DIR}/artifacts/*.iso* ${MIRROR1_USER}@${MIRROR1_HOST}:nightly/
+    - SSHPASS="${MIRROR1_PASS}" sshpass -e scp -o StrictHostKeyChecking=no ${CIRRUS_WORKING_DIR}/artifacts/*.iso* ${MIRROR1_USER}@${MIRROR1_HOST}:www/nightly/
     - scp -P2200 -o StrictHostKeyChecking=no ${CIRRUS_WORKING_DIR}/artifacts/*.iso* ${MIRROR1_USER}@${MIRROR2_HOST}:nightly/
   only_if: $CIRRUS_BRANCH == 'main' || $CIRRUS_BRANCH == 'staging'
   airyx_artifacts:
