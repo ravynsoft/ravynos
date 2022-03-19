@@ -50,6 +50,7 @@ airyx_task:
     - rm -f dist/airyx.txz
     - tar cvJ -C /usr/obj/$(pwd -P)/$(uname -m).$(uname -m)/release/dist/airyx --gid 0 --uid 0 -f $(pwd)/dist/airyx.txz .
   iso_script:
+    - chmod 600 /root/.ssh/id_rsa
     - pkg install -y sshpass
     - ln -sf /usr/bin/bash /bin/bash
     - cp -fv version.txt ISO/overlays/ramdisk/version
