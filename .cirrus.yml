@@ -50,16 +50,14 @@ airyx_task:
     - rm -f dist/airyx.txz
     - tar cvJ -C /usr/obj/$(pwd -P)/$(uname -m).$(uname -m)/release/dist/airyx --gid 0 --uid 0 -f $(pwd)/dist/airyx.txz .
   iso_script:
-    - pkg install -y sshpass bash megacmd openssl
+    - pkg install -y sshpass
     - ln -sf /usr/bin/bash /bin/bash
     - cp -fv version.txt ISO/overlays/ramdisk/version
     - mkdir -p /usr/local/furybsd/$(uname -m)/cache/$(head -1 version.txt)/base
     - cp -fv /usr/obj/$(pwd -P)/$(uname -m).$(uname -m)/release/base.txz /usr/obj/$(pwd -P)/$(uname -m).$(uname -m)/release/kernel.txz ${CIRRUS_WORKING_DIR}/dist/airyx.txz /usr/local/furybsd/$(uname -m)/cache/$(head -1 version.txt)/base/
-    - cd ISO; AIRYX=${CIRRUS_WORKING_DIR} ./build.sh airyx airyxOS_$(head -1 ../version.txt)
+    - cd ISO; IGNORE_OSVERSION=yes AIRYX=${CIRRUS_WORKING_DIR} ./build.sh airyx airyxOS_$(head -1 ../version.txt)
     - SSHPASS="${MIRROR1_PASS}" sshpass -e scp -o StrictHostKeyChecking=no ${CIRRUS_WORKING_DIR}/artifacts/*.iso* ${MIRROR1_USER}@${MIRROR1_HOST}:nightly/
-    - scp -o StrictHostKeyChecking=no ${CIRRUS_WORKING_DIR}/artifacts/*.iso* ${MIRROR1_USER}@${MIRROR2_HOST}:nightly/
-    - mega-login "$MEGAUSER" "$MEGAPASS"
-    - mega-put ${CIRRUS_WORKING_DIR}/artifacts/*.iso* /nightly/
+    - scp -P2200 -o StrictHostKeyChecking=no ${CIRRUS_WORKING_DIR}/artifacts/*.iso* ${MIRROR1_USER}@${MIRROR2_HOST}:nightly/
   only_if: $CIRRUS_BRANCH == 'main' || $CIRRUS_BRANCH == 'staging'
   airyx_artifacts:
     path: dist/airyx.txz
