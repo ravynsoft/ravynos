@@ -3,15 +3,8 @@
 set -e
 set -x
 
-tar -C "${uzip}" -xvf /usr/ports/packages/drm-fbsd13-kmod-5.4.144.g20220128.pkg
-tar -C "${uzip}" -xvf /usr/ports/packages/drm-kmod-g20190710_1.pkg
-tar -C "${uzip}" -xvf /usr/ports/packages/gpu-firmware-kmod-g20210330.pkg
-exit 0
-
 mkdir -p /tmp/system-overlay 
 cd /tmp/system-overlay
-
-cp -f "${uzip}"/usr/share/plasma/look-and-feel/Airyx/contents/splash/images/marmoset.png "${uzip}"/usr/share/slim/themes/default/background.jpg
 
 # Use blue folder icons instead of the ones packaged in FreeBSD which have yellow folder icons
 # Don't extract directly in /tmp, as tar will modify its permissions
@@ -49,32 +42,24 @@ curl -Lo - https://github.com/mszoek/airyx/releases/download/jdk-17.0.1/openjdk-
 # Install our standard app bundles
 mkdir -p "${uzip}/Applications/Utilities"
 
-declare -A apps utils
-apps=(Kate 21.08.1 Firefox 97.0)
-utils=(Terminal 0.17.0)
+#declare -A apps utils
+#apps=(Kate 21.08.1 Firefox 97.0)
+#utils=(Terminal 0.17.0)
 
-for app in ${!apps[@]}; do
-    tag="v${apps[$app]}"
-    echo Fetching $app $tag
-    #curl -Lo - https://api.cirrus-ci.com/v1/artifact/github/airyxos/${app}_app/build/app/${app}.app.txz | \
-    curl -Lo - https://github.com/airyxos/${app}_app/releases/download/${tag}/${app}.txz | \
-        tar -xf - -C "${uzip}/Applications/"
-done
-for app in ${!utils[@]}; do
-    tag="v${utils[$app]}"
-    echo Fetching $app $tag
-    #curl -Lo - https://api.cirrus-ci.com/v1/artifact/github/airyxos/${app}_app/build/app/${app}.app.txz | \
-    curl -Lo - https://github.com/airyxos/${app}_app/releases/download/${tag}/${app}.txz | \
-        tar -xf - -C "${uzip}/Applications/Utilities/"
-done
-
-# Add applications from the helloSystem/Utilities repository
-#fetch https://github.com/helloSystem/Utilities/archive/master.zip
-#unzip -o master.zip
-#mv 'Utilities-master/Utilities/Install FreeBSD.app' "${uzip}/Applications/Utilities/"
-#rm -rf master.zip Utilities-master/
-#sed -i_ -e 's@/usr/local@/usr@g' "${uzip}/Applications/Utilities/Install FreeBSD.app/Resources/freebsd-install.py"
-#rm "${uzip}/Applications/Utilities/Install FreeBSD.app/Resources/freebsd-install.py_"
+#for app in ${!apps[@]}; do
+#    tag="v${apps[$app]}"
+#    echo Fetching $app $tag
+#    #curl -Lo - https://api.cirrus-ci.com/v1/artifact/github/airyxos/${app}_app/build/app/${app}.app.txz | \
+#    curl -Lo - https://github.com/airyxos/${app}_app/releases/download/${tag}/${app}.txz | \
+#        tar -xf - -C "${uzip}/Applications/"
+#done
+#for app in ${!utils[@]}; do
+#    tag="v${utils[$app]}"
+#    echo Fetching $app $tag
+#    #curl -Lo - https://api.cirrus-ci.com/v1/artifact/github/airyxos/${app}_app/build/app/${app}.app.txz | \
+#    curl -Lo - https://github.com/airyxos/${app}_app/releases/download/${tag}/${app}.txz | \
+#        tar -xf - -C "${uzip}/Applications/Utilities/"
+#done
 
 # Fonts
 fetch https://github.com/ArtifexSoftware/urw-base35-fonts/archive/20200910.zip
@@ -134,13 +119,6 @@ EOF
 sed -i -e 's|^\(.*/dev/console\)|# \1|g' "${uzip}/etc/syslog.conf"
 rm "${uzip}/etc/syslog.conf-e"
 
-# Workaround to get rounded corners as long as picom in FreeBSD ports
-# does not have this yet; FIXME: Remove once no longer needed
-fetch https://github.com/helloSystem/ISO/releases/download/assets/picom.tar.bz2
-tar xf picom.tar.bz2
-mv picom "${uzip}/usr/bin/picom"
-rm -f picom.tar.bz2
-
 # https://github.com/helloSystem/hello/issues/50#issuecomment-753237990
 # Workaround to allow unmounting as normal user
 # setuid root
@@ -156,8 +134,6 @@ sed -i -e 's|longnames -m 755|longnames -m 777|g' "${uzip}/usr/sbin/automount"
 rm "${uzip}/usr/sbin/automount-e"
 
 # Required for runappimage
-# FIXME: Replace by something written in Python that does not need to be compiled
-# and hence is cross-platform
 fetch "https://github.com/helloSystem/elfsize/releases/download/0/elfsize"
 chmod +x elfsize
 mv elfsize "${uzip}/usr/bin/"

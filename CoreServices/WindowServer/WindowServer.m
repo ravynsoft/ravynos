@@ -22,6 +22,13 @@
 
 #import <Foundation/Foundation.h>
 
+#import <AppKit/NSApplication.h>
+#import <AppKit/NSFont.h>
+#import <AppKit/NSWindow.h>
+#import <AppKit/NSImage.h>
+#import <AppKit/NSImageView.h>
+#import <AppKit/NSView.h>
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
@@ -50,14 +57,33 @@ int main(int argc, const char *argv[]) {
     NSString *exePath = [[NSBundle mainBundle] pathForResource:@"waybox" ofType:@""];
     NSString *confPath = [[exePath stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"ws.conf"];
     NSArray *args = @[@"WindowServer", @"--config-file", confPath];
-    char **_argv = malloc((1 + [args count]) * sizeof(char *));
-    int i;
-    for(i = 0; i < [args count]; ++i)
-        _argv[i] = strdup([[args objectAtIndex:i] cString]);
-    _argv[i] = NULL;
 
-    execv([exePath cString], _argv);
-    perror("execv");
-    return -1;
+    NSTask *compositor = [NSTask launchedTaskWithLaunchPath:exePath arguments:args];
+    time_t now = time(NULL);
+    NSLog(@"Waiting for compositor start-up");
+    while([compositor isRunning] == NO && (time(NULL) < now+15))
+        ;
+
+    if([compositor isRunning] == NO) {
+        NSLog(@"Startup failed!");
+        return -1;
+    }
+
+    [NSApplication sharedApplication];
+
+    NSWindow *win = [[NSWindow alloc] initWithContentRect:NSMakeRect(0,0,0,0) // let compositor config
+        styleMask:NSBorderlessWindowMask|WLWindowLayerAnchorTop|WLWindowLayerAnchorBottom
+        |WLWindowLayerAnchorLeft|WLWindowLayerAnchorRight backing:NSBackingStoreBuffered defer:NO];
+
+    NSImage *image = [[NSImage alloc] initWithContentsOfFile:@"/System/Library/Desktop Pictures/Country Road.jpg"];
+
+    NSImageView *v = [NSImageView new];
+    [v setImageScaling:NSImageScaleAxesIndependently];
+    [v setImageAlignment:NSImageAlignCenter];
+    [v setImage:image];
+    [win setContentView:v];
+    [v setNeedsDisplay:YES];
+    [win makeKeyAndOrderFront:nil];
+    [NSApp run];
+    return 0;
 }
-
