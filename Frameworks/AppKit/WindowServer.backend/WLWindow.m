@@ -64,17 +64,12 @@ static void handle_global(void *data, struct wl_registry *registry,
 		uint32_t name, const char *interface, uint32_t version) {
     WLWindow *win = (__bridge WLWindow *)data;
 
-    // FIXME: most of this should be part of WLDisplay, not WLWindow
     if (strcmp(interface, wl_compositor_interface.name) == 0) {
         [win set_compositor:wl_registry_bind(registry, name, &wl_compositor_interface, 1)];
     } else if (strcmp(interface, xdg_wm_base_interface.name) == 0) {
         [win set_wm_base:wl_registry_bind(registry, name, &xdg_wm_base_interface, 1)];
     } else if (strcmp(interface, zwlr_layer_shell_v1_interface.name) == 0) {
         [win set_layer_shell:wl_registry_bind(registry, name, &zwlr_layer_shell_v1_interface, 4)];
-    } else if (strcmp(interface, wl_seat_interface.name) == 0) {
-        struct wl_seat *seat = wl_registry_bind(registry, name, &wl_seat_interface, 7);
-        WLDisplay *display = [NSDisplay currentDisplay];
-        [display setSeat:seat];
     }
 }
 
@@ -219,15 +214,15 @@ static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
     wl_surface = wl_compositor_create_surface(compositor);
 
     if(styleMask & WLWindowLayerShellMask) {
-        layerType = (styleMask & WLWindowLayerMask) >> 24;
-        anchorType = (styleMask & WLWindowLayerAnchorMask) >> 16;
+        layerType = (styleMask & WLWindowLayerMask) >> 20;
+        anchorType = (styleMask & WLWindowLayerAnchorMask) >> 12;
 
         // FIXME: NULL below should be a wl_output to display the surface on
 	layer_surface = zwlr_layer_shell_v1_get_layer_surface(layer_shell,
             wl_surface, NULL, layerType, "AppKit");
 	assert(layer_surface);
-	zwlr_layer_surface_v1_set_size(layer_surface, frame.size.width, frame.size.height);
 	zwlr_layer_surface_v1_set_anchor(layer_surface, anchorType);
+	zwlr_layer_surface_v1_set_size(layer_surface, frame.size.width, frame.size.height);
 	zwlr_layer_surface_v1_add_listener(layer_surface, &layer_surface_listener, (__bridge void *)self);
     } else {
         xdg_surface = xdg_wm_base_get_xdg_surface(wm_base, wl_surface);
@@ -248,6 +243,7 @@ static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
 
 -(void)dealloc
 {
+    [[NSNotificationCenter defaultCenter] removeObserver:self];
     if(xdg_toplevel)
         xdg_toplevel_destroy(xdg_toplevel);
     if(xdg_surface)
@@ -263,13 +259,13 @@ static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
 
 -(void)setLayer:(uint32_t)layer
 {
-    layerType = (layer & WLWindowLayerMask) >> 24;
+    layerType = (layer & WLWindowLayerMask) >> 20;
     zwlr_layer_surface_v1_set_layer(layer_surface, layerType);
 }
 
 -(void)setKeyboardInteractivity:(uint32_t)keyboardStyle
 {
-    uint32_t keyboard_interactive = (keyboardStyle & WLWindowLayerKeyboardMask) >> 20;
+    uint32_t keyboard_interactive = (keyboardStyle & WLWindowLayerKeyboardMask) >> 16;
     zwlr_layer_surface_v1_set_keyboard_interactivity(layer_surface, keyboard_interactive);
 }
 
@@ -284,7 +280,7 @@ static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
 
 -(void)setAnchor:(uint32_t)anchor
 {
-    anchorType = (anchor & WLWindowLayerAnchorMask) >> 16;
+    anchorType = (anchor & WLWindowLayerAnchorMask) >> 12;
     zwlr_layer_surface_v1_set_anchor(layer_surface, anchorType);
 }
 

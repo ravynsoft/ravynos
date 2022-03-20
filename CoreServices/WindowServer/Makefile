@@ -7,7 +7,7 @@ WARNS=	        1
 CFLAGS+=	-g -fobjc-arc -I${.CURDIR} -I${MAKEOBJDIR} -framework Foundation \
                 -framework AppKit
 LDFLAGS+=	-framework Foundation -framework AppKit -Wl,-R'$$ORIGIN/../Resources' \
-                -lobjc -lmach
+                -lobjc -lmach -lwayland-client
 WLPROTOS=       ${.CURDIR}/wayland-protocols
 WLR_VER!=       grep version: ${.CURDIR}/wlroots/meson.build|sed -e '1s/[^0-9.]*//g;q'
 

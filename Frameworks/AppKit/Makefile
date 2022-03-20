@@ -269,7 +269,8 @@ WindowServer.backend/O2Font_FT.m \
 WindowServer.backend/WLWindow.m \
 WindowServer.backend/WLDisplay.m \
 xdg-shell.c \
-layer-shell-v1.c
+layer-shell-v1.c \
+output-management-v1.c
 #X11.subproj/NSOpenGLDrawable_X11.m \
 X11.subproj/O2Context_cairo.m \
 X11.subproj/O2FontState_cairo.m \
@@ -656,18 +657,29 @@ layer-shell-v1.c:
 	wayland-scanner private-code \
                 ${WLRPROTOS}/wlr-layer-shell-unstable-v1.xml ${.TARGET}
 
+xdg-output-management-unstable-v1-client-protocol.h:
+	wayland-scanner client-header \
+                ${WLPROTOS}/unstable/xdg-output/xdg-output-unstable-v1.xml ${.TARGET}
+
+output-management-v1.c:
+	wayland-scanner private-code \
+                ${WLPROTOS}/unstable/xdg-output/xdg-output-unstable-v1.xml ${.TARGET}
+
 clean-deps:
 	rm -f .depend.*
 
 clean-gen-files:
 	rm -f xdg-shell-client-protocol.h xdg-shell.c \
-                wlr-layer-shell-unstable-v1-client-protocol.h layer-shell-v1.c
+                wlr-layer-shell-unstable-v1-client-protocol.h layer-shell-v1.c \
+                xdg-output-management-unstable-v1-client-protocol.h \
+                output-management-v1.c
 
 .include <airyx.framework.mk>
 
 clean: fmwkclean
 post-resources: _install-hook
 ${SOBJS}: xdg-shell-client-protocol.h xdg-shell.c \
-        wlr-layer-shell-unstable-v1-client-protocol.h layer-shell-v1.c
+        wlr-layer-shell-unstable-v1-client-protocol.h layer-shell-v1.c \
+        xdg-output-management-unstable-v1-client-protocol.h output-management-v1.c
 clean: clean-deps clean-gen-files
 CFLAGS+= ${FMWK_CFLAGS}

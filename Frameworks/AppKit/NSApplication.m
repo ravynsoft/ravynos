@@ -510,6 +510,11 @@ id NSApp=nil;
    NSAutoreleasePool *pool=[NSAutoreleasePool new];
    BOOL               needsUntitled=YES;
 
+    // UGLY HACK: this dummy window triggers wayland to tell us about wl_outputs.
+    NSWindow *w = [[NSWindow alloc] initWithContentRect:NSMakeRect(0,0,1,1)
+        styleMask:NSBorderlessWindowMask backing:NSBackingStoreBuffered defer:NO];
+    [w makeKeyAndOrderFront:nil];
+
    NS_DURING
     [[NSNotificationCenter defaultCenter] postNotificationName: NSApplicationWillFinishLaunchingNotification object:self];
    NS_HANDLER

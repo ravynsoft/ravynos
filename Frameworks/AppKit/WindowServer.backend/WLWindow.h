@@ -27,6 +27,7 @@
 #include <wayland-client.h>
 #include "xdg-shell-client-protocol.h"
 #include "wlr-layer-shell-unstable-v1-client-protocol.h"
+#include "xdg-output-management-unstable-v1-client-protocol.h"
 #import "WLDisplay.h"
 
 @class CAWindowOpenGLContext;
