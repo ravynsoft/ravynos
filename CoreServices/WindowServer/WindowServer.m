@@ -32,6 +32,7 @@
 #include <sys/stat.h>
 
 int main(int argc, const char *argv[]) {
+    BOOL shell = YES;
     __NSInitializeProcess(argc, argv);
 
     if(getenv("XDG_RUNTIME_DIR") == NULL) {
@@ -54,17 +55,20 @@ int main(int argc, const char *argv[]) {
     while(getopt(argc, argv, "Lx") != -1) {
         switch(optopt) {
             case 'L':
+                shell = NO;
                 [args addObject:@"-s"];
                 [args addObject:[[confPath stringByDeletingLastPathComponent]
                     stringByAppendingPathComponent:@"LoginServer"]];
                 break;
             case 'x':
+                shell = NO;
                 break;
-            default:
-                [args addObject:@"-s"];
-                [args addObject:[[confPath stringByDeletingLastPathComponent]
-                    stringByAppendingPathComponent:@"desktop"]];
         }
+    }
+
+    if(shell) {
+        [args addObject:@"-s"];
+        [args addObject:[[confPath stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"desktop"]];
     }
 
     char **_argv = (char **)malloc(sizeof(char *)*([args count]+1));

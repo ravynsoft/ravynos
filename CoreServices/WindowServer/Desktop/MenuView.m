@@ -30,14 +30,14 @@
     self = [super initWithFrame:NSMakeRect(0, 0, frame.size.width/2, menuBarHeight)];
     NSString *ravyn = [[NSBundle mainBundle] pathForResource:@"ravynos-mark-64" ofType:@"png"];
     NSImage *logo = [[NSImage alloc] initWithContentsOfFile:ravyn];
-    logoView = [[NSImageView alloc] initWithFrame:NSMakeRect(menuBarHPad,menuBarVPad,20,20)];
+    logoView = [[NSImageView alloc] initWithFrame:NSMakeRect(menuBarHPad,menuBarVPad,16,16)];
     [logoView setImage:logo];
     [self addSubview:logoView];
 
     NSRect bounds = [self bounds];
     NSFontManager *fontmgr = [NSFontManager sharedFontManager];
     NSDictionary *attributes = [NSDictionary dictionaryWithObject:[fontmgr convertFont:
-        [NSFont systemFontOfSize:16] toHaveTrait:NSBoldFontMask] forKey:NSFontAttributeName];
+        [NSFont systemFontOfSize:14] toHaveTrait:NSBoldFontMask] forKey:NSFontAttributeName];
 
     NSAttributedString *title = [[NSAttributedString alloc] initWithString:@"Application" attributes:attributes];
     NSSize size = [title size];

@@ -27,13 +27,14 @@
 - init {
     NSRect frame = [[NSScreen mainScreen] visibleFrame];
     dateFormatter = [NSDateFormatter new];
-    dateFormat = @"%Y/%m/%d__%H:%M";
+    dateFormat = @"%a_%b_%d__%I:%M_%p"; // FIXME: default for en_* and read from prefs
+    //dateFormat = @"%c"; // FIXME: default for everything not en_*
     [dateFormatter setDateFormat:dateFormat];
 
     self = [super initWithFrame:NSMakeRect(frame.size.width - 300, menuBarVPad, 300, menuBarHPad)];
     [self setDrawsBackground:NO];
     [self setEditable:NO];
-    NSFont *font = [NSFont systemFontOfSize:18];
+    NSFont *font = [NSFont systemFontOfSize:15];
     attributes = [NSDictionary dictionaryWithObject:font forKey:NSFontAttributeName];
 
     [self update:nil];

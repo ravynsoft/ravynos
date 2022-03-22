@@ -1,6 +1,6 @@
 APP=	        WindowServer
 SRCS=           WindowServer.m
-RESOURCES=	${.CURDIR}/Icon.png ${.CURDIR}/ws.conf desktop ravynos-mark-64.png
+RESOURCES=	${.CURDIR}/Icon.png ${.CURDIR}/ws.conf ravynos-mark-64.png
 
 MK_WERROR=	no
 WARNS=	        1
@@ -50,10 +50,11 @@ clean-desktop:
 	rm -f desktop
 
 desktop: ${DESKTOP_SRC}
-	${CC} -o ${.TARGET} ${DESKTOP_SRC} -framework AppKit
+	${CC} -o ${MAKEOBJDIR}/${.TARGET} ${DESKTOP_SRC} -framework AppKit
+	cp -fv ${MAKEOBJDIR}/desktop ${.CURDIR}/${APP_DIR}/Contents/Resources/
 
 .include <airyx.app.mk>
 
-${OBJS}: build-wlroots build-waybox
+${OBJS}: build-wlroots build-waybox desktop
 clean: clean-wlroots clean-waybox clean-deps clean-desktop
 

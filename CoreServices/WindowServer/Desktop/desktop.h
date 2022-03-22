@@ -22,9 +22,9 @@
 
 #pragma once
 
-#define menuBarHeight 24
+#define menuBarHeight 22
 #define menuBarVPad 2
-#define menuBarHPad 20
+#define menuBarHPad 16
 
 // the clock
 @interface ClockView: NSTextView {
