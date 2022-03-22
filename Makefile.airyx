@@ -7,8 +7,9 @@ CORES!= sysctl -n hw.ncpu
 
 MK_WERROR=      no
 WARNS=          1
-SUBDIR=		Library Frameworks .WAIT installairyx \
-		CoreServices bin/open
+#SUBDIR=		Library Frameworks .WAIT installairyx \
+
+SUBDIR=CoreServices bin/open
 #		sysmenu CoreServices bin/open
 
 # We need the installed frameworks to correctly link CoreServices and applications

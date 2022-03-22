@@ -49,7 +49,23 @@ int main(int argc, const char *argv[]) {
 
     NSString *exePath = [[NSBundle mainBundle] pathForResource:@"waybox" ofType:@""];
     NSString *confPath = [[exePath stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"ws.conf"];
-    NSArray *args = @[@"WindowServer", @"--config-file", confPath];
+    NSMutableArray *args = [NSMutableArray arrayWithArray:@[@"WindowServer", @"--config-file", confPath]];
+
+    while(getopt(argc, argv, "Lx") != -1) {
+        switch(optopt) {
+            case 'L':
+                [args addObject:@"-s"];
+                [args addObject:[[confPath stringByDeletingLastPathComponent]
+                    stringByAppendingPathComponent:@"LoginServer"]];
+                break;
+            case 'x':
+                break;
+            default:
+                [args addObject:@"-s"];
+                [args addObject:[[confPath stringByDeletingLastPathComponent]
+                    stringByAppendingPathComponent:@"desktop"]];
+        }
+    }
 
     char **_argv = (char **)malloc(sizeof(char *)*([args count]+1));
     int i;

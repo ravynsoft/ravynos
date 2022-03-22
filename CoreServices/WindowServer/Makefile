@@ -1,6 +1,6 @@
 APP=	        WindowServer
 SRCS=           WindowServer.m
-RESOURCES=	${.CURDIR}/Icon.png ${.CURDIR}/ws.conf
+RESOURCES=	${.CURDIR}/Icon.png ${.CURDIR}/ws.conf desktop ravynos-mark-64.png
 
 MK_WERROR=	no
 WARNS=	        1
@@ -10,6 +10,14 @@ LDFLAGS+=	-framework Foundation -framework AppKit -Wl,-R'$$ORIGIN/../Resources' 
                 -lobjc -lmach -lwayland-client
 WLPROTOS=       ${.CURDIR}/wayland-protocols
 WLR_VER!=       grep version: ${.CURDIR}/wlroots/meson.build|sed -e '1s/[^0-9.]*//g;q'
+
+DESKTOP_SRC=    Desktop/desktop.m \
+                Desktop/AppDelegate.m \
+                Desktop/ClockView.m \
+                Desktop/MenuView.m \
+                Desktop/ExtrasView.m \
+                Desktop/DesktopWindow.m \
+                Desktop/MenuBarWindow.m
 
 build-wayland-protos:
 	cd ${WLPROTOS} && meson ${MAKEOBJDIR}/wayland-protocols
@@ -38,8 +46,14 @@ clean-waybox:
 clean-deps:
 	rm -f .depend.*
 
+clean-desktop:
+	rm -f desktop
+
+desktop: ${DESKTOP_SRC}
+	${CC} -o ${.TARGET} ${DESKTOP_SRC} -framework AppKit
+
 .include <airyx.app.mk>
 
 ${OBJS}: build-wlroots build-waybox
-clean: clean-wlroots clean-waybox clean-deps
+clean: clean-wlroots clean-waybox clean-deps clean-desktop
 

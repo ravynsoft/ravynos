@@ -686,7 +686,7 @@ unsigned char *stbi_png_load_from_memory(const unsigned char *buffer, int len, i
    return 1;
 }
 
--(O2Image *)createImageAtIndex:(unsigned)index options:(NSDictionary *)options {
+-(O2Image *)createImageAtIndex:(unsigned)index options:(CFDictionaryRef)options {
    int            width,height;
    int            comp;
    unsigned char *pixels=stbi_png_load_from_memory([_png bytes],[_png length],&width,&height,&comp,STBI_rgb_alpha);
