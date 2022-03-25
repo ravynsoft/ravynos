@@ -68,7 +68,7 @@ int main(int argc, const char *argv[]) {
 
     if(shell) {
         [args addObject:@"-s"];
-        [args addObject:[[confPath stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"desktop"]];
+        [args addObject:[[confPath stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"desktopd"]];
     }
 
     char **_argv = (char **)malloc(sizeof(char *)*([args count]+1));

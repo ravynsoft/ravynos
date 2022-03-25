@@ -23,6 +23,8 @@
 #import <AppKit/AppKit.h>
 #import "desktop.h"
 
+const NSString *PrefsWallpaperPathKey = @"WallpaperPath";
+
 @implementation DesktopWindow
 - init {
     NSRect frame = [[NSScreen mainScreen] visibleFrame];
@@ -31,20 +33,24 @@
         styleMask:NSBorderlessWindowMask|WLWindowLayerAnchorTop|WLWindowLayerAnchorBottom
         |WLWindowLayerAnchorLeft|WLWindowLayerAnchorRight backing:NSBackingStoreBuffered defer:NO];
     
-    NSString *wallpaper = [[NSUserDefaults standardUserDefaults] stringForKey:@"path"];
-    if(wallpaper == nil || [wallpaper length] == 0)
-        wallpaper = @"/System/Library/Desktop Pictures/Mountain.jpg";
-
-    NSImage *image = [[NSImage alloc] initWithContentsOfFile:wallpaper];
-
     view = [NSImageView new];
     [view setImageScaling:NSImageScaleAxesIndependently];
     [view setImageAlignment:NSImageAlignCenter];
-    [view setImage:image];
     [self setContentView:view];
+    [self updateBackground];
     [view setNeedsDisplay:YES];
 
     return self;
 }
+
+- (void)updateBackground {
+    NSString *wallpaper = [[NSUserDefaults standardUserDefaults] stringForKey:PrefsWallpaperPathKey];
+    if(wallpaper == nil || [wallpaper length] == 0)
+        wallpaper = @"/System/Library/Desktop Pictures/Mountain.jpg";
+
+    NSImage *image = [[NSImage alloc] initWithContentsOfFile:wallpaper];
+    [[self contentView] setImage:image];
+}
+
 @end
 

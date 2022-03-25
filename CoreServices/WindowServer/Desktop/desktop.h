@@ -26,6 +26,9 @@
 #define menuBarVPad 2
 #define menuBarHPad 16
 
+extern const NSString *PrefsWallpaperPathKey;
+extern const NSString *PrefsDateFormatStringKey;
+
 // the clock
 @interface ClockView: NSTextView {
     NSDateFormatter *dateFormatter;
@@ -58,6 +61,7 @@
 }
 
 - (DesktopWindow *)init;
+- (void)updateBackground;
 @end
 
 // the global top bar
@@ -76,7 +80,8 @@
     DesktopWindow *background;
 }
 
--(void)screenDidResize:(NSNotification *)note;
+- (void)screenDidResize:(NSNotification *)note;
+- (void)updateBackground;
 @end
 
 

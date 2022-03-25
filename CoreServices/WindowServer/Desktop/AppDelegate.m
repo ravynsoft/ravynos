@@ -35,5 +35,10 @@
     [menuBar setDelegate:self];
     [menuBar makeKeyAndOrderFront:nil];
 }
+
+- (void)updateBackground {
+    [background updateBackground];
+}
+
 @end
 

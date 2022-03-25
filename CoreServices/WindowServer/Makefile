@@ -46,15 +46,15 @@ clean-waybox:
 clean-deps:
 	rm -f .depend.*
 
-clean-desktop:
-	rm -f desktop
+clean-desktopd:
+	rm -f desktopd
 
-desktop: ${DESKTOP_SRC}
-	${CC} -o ${MAKEOBJDIR}/${.TARGET} ${DESKTOP_SRC} -framework AppKit
-	cp -fv ${MAKEOBJDIR}/desktop ${.CURDIR}/${APP_DIR}/Contents/Resources/
+desktopd: ${DESKTOP_SRC}
+	${CC} -g -o ${MAKEOBJDIR}/${.TARGET} ${DESKTOP_SRC} -framework AppKit
+	cp -fv ${MAKEOBJDIR}/desktopd ${.CURDIR}/${APP_DIR}/Contents/Resources/
 
 .include <airyx.app.mk>
 
-${OBJS}: build-wlroots build-waybox desktop
-clean: clean-wlroots clean-waybox clean-deps clean-desktop
+${OBJS}: build-wlroots build-waybox desktopd
+clean: clean-wlroots clean-waybox clean-deps clean-desktopd
 

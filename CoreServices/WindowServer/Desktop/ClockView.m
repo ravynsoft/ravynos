@@ -23,13 +23,28 @@
 #import <AppKit/AppKit.h>
 #import "desktop.h"
 
+const NSString *PrefsDateFormatStringKey = @"DateFormatString";
+const NSString *PrefsDateFormatLocaleKey = @"DateFormatLocale";
+const NSString *defaultFormatEN = @"%a_%b_%d__%I:%M_%p";
+const NSString *defaultFormat = @"%c";
+
 @implementation ClockView
 - init {
     NSRect frame = [[NSScreen mainScreen] visibleFrame];
-    dateFormatter = [NSDateFormatter new];
-    dateFormat = @"%a_%b_%d__%I:%M_%p"; // FIXME: default for en_* and read from prefs
-    //dateFormat = @"%c"; // FIXME: default for everything not en_*
-    [dateFormatter setDateFormat:dateFormat];
+
+    NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
+    dateFormat = [prefs stringForKey:PrefsDateFormatStringKey];
+    if(dateFormat == nil || [dateFormat length] == 0) {
+        NSString *locale = [prefs stringForKey:PrefsDateFormatLocaleKey];
+        if(locale == nil || [locale length] == 0)
+            locale = [NSString stringWithCString:getenv("LANG")];
+        if(locale == nil || [locale hasPrefix:@"en"])
+            dateFormat = defaultFormatEN;
+        else
+            dateFormat = defaultFormat;
+    }
+    dateFormatter = [[NSDateFormatter alloc] initWithDateFormat:dateFormat 
+        allowNaturalLanguage:YES];
 
     self = [super initWithFrame:NSMakeRect(frame.size.width - 300, menuBarVPad, 300, menuBarHPad)];
     [self setDrawsBackground:NO];

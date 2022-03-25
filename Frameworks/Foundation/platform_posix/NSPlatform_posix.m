@@ -42,10 +42,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <sys/socket.h>
 #include <errno.h>
 
-BOOL NSCurrentLocaleIsMetric(){
-   return NO;
-}
-
 @implementation NSPlatform_posix
 
 -(Class)taskClass {
