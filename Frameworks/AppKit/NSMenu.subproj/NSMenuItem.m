@@ -20,14 +20,15 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 }
 
 -(void)encodeWithCoder:(NSCoder *)coder {
-   [coder encodeObject:_title forKey:@"NSMenuItem title"];
-   [coder encodeObject:_keyEquivalent forKey:@"NSMenuItem keyEquivalent"];
-   [coder encodeInt:_keyEquivalentModifierMask forKey:@"NSMenuItem keyEquivalentModifierMask"];
-   [coder encodeObject:_submenu forKey:@"NSMenuItem submenu"];
-   [coder encodeInt:_tag forKey:@"NSMenuItem tag"];
+   [coder encodeObject:_title forKey:@"NSTitle"];
+   [coder encodeObject:_keyEquivalent forKey:@"NSKeyEquiv"];
+   [coder encodeInt:_keyEquivalentModifierMask forKey:@"NSKeyEquivModMask"];
+   [coder encodeObject:_submenu forKey:@"NSSubmenu"];
+   [coder encodeInt:_tag forKey:@"NSTag"];
    [coder encodeObject: NSStringFromSelector(_action) forKey: @"NSAction"];
    [coder encodeObject: _target forKey: @"NSTarget"];
-
+   [coder encodeObject:_image forKey: @"NSImage"];
+   [coder encodeBool:_hidden forKey: @"NSIsHidden"];
 }
 
 -initWithCoder:(NSCoder *)coder {
