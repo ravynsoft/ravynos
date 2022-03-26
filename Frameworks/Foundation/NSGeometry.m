@@ -1,4 +1,5 @@
 /* Copyright (c) 2006-2007 Christopher J. W. Lloyd
+   Copyright (c) 2022 Zoe Knox <zoe@pixin.net>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -12,6 +13,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <Foundation/NSRaise.h>
 #include <math.h>
 #include <stdio.h>
+#include <locale.h>
 
 const NSPoint NSZeroPoint={0,0};
 
@@ -20,7 +22,8 @@ BOOL NSEqualPoints(NSPoint point0,NSPoint point1) {
 }
 
 NSString *NSStringFromPoint(NSPoint point) {
-    return [NSString stringWithFormat:@"{%g, %g}", point.x, point.y];
+    struct lconv *lconv = localeconv();
+    return [NSString stringWithFormat:@"{%g%s %g}", point.x, lconv->thousands_sep, point.y];
 }
 
 
@@ -29,7 +32,11 @@ NSPoint NSPointFromString(NSString *string)
     NSPoint result = NSZeroPoint;
     
     if (string != nil) {
-        sscanf([string UTF8String], "{" CGFLOAT_SCAN ", " CGFLOAT_SCAN "}", &result.x, &result.y);
+        struct lconv *lconv = localeconv();
+        NSString *fmt = [NSString stringWithFormat:@"{%s%s %s}",
+            CGFLOAT_SCAN, lconv->thousands_sep, CGFLOAT_SCAN];
+        sscanf([string UTF8String], [fmt UTF8String], &result.x, &result.y);
+        [fmt release];
     }
     return result;
 }
@@ -43,7 +50,8 @@ BOOL NSEqualSizes(NSSize size0,NSSize size1) {
 }
 
 NSString *NSStringFromSize(NSSize size) {
-   return [NSString stringWithFormat:@"{%g, %g}", size.width, size.height];
+    struct lconv *lconv = localeconv();
+    return [NSString stringWithFormat:@"{%g%s %g}", size.width, lconv->thousands_sep, size.height];
 }
 
 
@@ -52,7 +60,11 @@ NSSize NSSizeFromString(NSString *string)
     NSSize result = NSZeroSize;
     
     if (string != nil) {
-        sscanf([string UTF8String], "{" CGFLOAT_SCAN ", " CGFLOAT_SCAN "}", &result.width, &result.height);
+        struct lconv *lconv = localeconv();
+        NSString *fmt = [NSString stringWithFormat:@"{%s%s %s}",
+            CGFLOAT_SCAN, lconv->thousands_sep, CGFLOAT_SCAN];
+        sscanf([string UTF8String], [fmt UTF8String], &result.width, &result.height);
+        [fmt release];
     }
     return result;
 }
@@ -183,7 +195,8 @@ BOOL NSIntersectsRect(NSRect rect0,NSRect rect1) {
 
 
 NSString *NSStringFromRect(NSRect rect) {
-    return [NSString stringWithFormat:@"{{%g, %g}, {%g, %g}}", rect.origin.x, rect.origin.y, rect.size.width, rect.size.height];
+    struct lconv *lconv = localeconv();
+    return [NSString stringWithFormat:@"{{%g%s %g}%s {%g%s %g}}", rect.origin.x, lconv->thousands_sep, rect.origin.y, lconv->thousands_sep, rect.size.width, lconv->thousands_sep, rect.size.height];
 }
 
 
@@ -192,7 +205,12 @@ NSRect NSRectFromString(NSString *string)
     NSRect result = NSZeroRect;
     
     if (string != nil) {
-        sscanf([string UTF8String], "{{" CGFLOAT_SCAN ", " CGFLOAT_SCAN "}, {" CGFLOAT_SCAN ", " CGFLOAT_SCAN "}}", &result.origin.x, &result.origin.y, &result.size.width, &result.size.height);
+        struct lconv *lconv = localeconv();
+        NSString *fmt = [NSString stringWithFormat:@"{{%s%s %s}%s {%s%s %s}}",
+            CGFLOAT_SCAN, lconv->thousands_sep, CGFLOAT_SCAN, lconv->thousands_sep,
+            CGFLOAT_SCAN, lconv->thousands_sep, CGFLOAT_SCAN];
+        sscanf([string UTF8String], [fmt UTF8String], &result.origin.x, &result.origin.y, &result.size.width, &result.size.height);
+        [fmt release];
     }
     return result;
 }
