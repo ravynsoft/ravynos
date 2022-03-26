@@ -150,13 +150,14 @@ static NSLocale *_sharedCurrentLocale = nil;
 	} else {
 		// Else use setlocale & localeconv to try to get some locale info
 		char *currentLocale = setlocale(LC_ALL, NULL);
-		if (setlocale(LC_ALL, [identifier UTF8String]) == NULL) {
+		if (setlocale(LC_ALL, [[identifier UTF8String]
+                    stringByAppendingString:@".UTF-8"]) == NULL) {
 			identifier = @"en_US";
 		}
 		struct lconv *conv = localeconv();
 		
 		// FIXME: This is wrong in that it is using the current locales value, not the identified one
-		NSNumber *usesMetric=[NSNumber numberWithBool:NSCurrentLocaleIsMetric()];
+		NSNumber *usesMetric=[NSNumber numberWithBool:NSCurrentLocaleIsMetric(identifier)];
 		
 		[localeInfo setObject:[NSString stringWithUTF8String:conv->decimal_point] forKey: NSLocaleDecimalSeparator];
 		[localeInfo setObject:[NSString stringWithUTF8String:conv->currency_symbol] forKey: NSLocaleCurrencySymbol];

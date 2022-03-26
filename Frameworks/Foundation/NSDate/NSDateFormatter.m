@@ -413,6 +413,7 @@ NSString *NSStringWithDateFormatLocale(NSTimeInterval interval,NSString *format,
                 switch(unicode){
 
                     case '.': suppressZero=YES; break;
+                    case '_': fillChar=' '; break;
                     case ' ': fillChar=' '; break;
 
                     default:
@@ -460,6 +461,9 @@ NSString *NSStringWithDateFormatLocale(NSTimeInterval interval,NSString *format,
                     }
                         break;
 
+                    case 'D':
+                        [result appendFormat:@"%@", NSStringWithDateFormatLocale(interval,@"%m/%d/%y",locale,timeZone)];
+                        break;
                     case 'e':{
                         id fmt=@"%d";
                         [result appendFormat:fmt,NSDayOfMonthFromTimeInterval(interval)];
@@ -512,12 +516,21 @@ NSString *NSStringWithDateFormatLocale(NSTimeInterval interval,NSString *format,
                         [result __appendLocale:locale key:NSAMPMDesignation
                                        index:NSAMPMFromTimeInterval(interval)];
                         break;
+                    case 'r':
+                        [result appendFormat:@"%@", NSStringWithDateFormatLocale(interval,@"%I:%M:%S %p",locale,timeZone)];
+                        break;
+                    case 'R':
+                        [result appendFormat:@"%@", NSStringWithDateFormatLocale(interval,@"%H:%M",locale,timeZone)];
+                        break;
 
                     case 'S':{
                         id fmt=(suppressZero)?@"%d":((fillChar==' ')?@"%2d":@"%02d");
 
                         [result appendFormat:fmt,NSSecondFromTimeInterval(interval)];
                     }
+                        break;
+                    case 'T':
+                        [result appendFormat:@"%@", NSStringWithDateFormatLocale(interval,@"%H:%M:%S",locale,timeZone)];
                         break;
 
                     case 'w':{

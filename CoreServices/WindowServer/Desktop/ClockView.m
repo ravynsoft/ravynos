@@ -24,9 +24,7 @@
 #import "desktop.h"
 
 const NSString *PrefsDateFormatStringKey = @"DateFormatString";
-const NSString *PrefsDateFormatLocaleKey = @"DateFormatLocale";
 const NSString *defaultFormatEN = @"%a_%b_%d__%I:%M_%p";
-const NSString *defaultFormat = @"%c";
 
 @implementation ClockView
 - init {
@@ -35,16 +33,14 @@ const NSString *defaultFormat = @"%c";
     NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
     dateFormat = [prefs stringForKey:PrefsDateFormatStringKey];
     if(dateFormat == nil || [dateFormat length] == 0) {
-        NSString *locale = [prefs stringForKey:PrefsDateFormatLocaleKey];
-        if(locale == nil || [locale length] == 0)
-            locale = [NSString stringWithCString:getenv("LANG")];
-        if(locale == nil || [locale hasPrefix:@"en"])
+        NSString *locale = [[NSLocale currentLocale] localeIdentifier];
+        if([locale hasPrefix:@"en"])
             dateFormat = defaultFormatEN;
         else
-            dateFormat = defaultFormat;
+            dateFormat = [prefs objectForKey:NSTimeDateFormatString];
     }
     dateFormatter = [[NSDateFormatter alloc] initWithDateFormat:dateFormat 
-        allowNaturalLanguage:YES];
+        allowNaturalLanguage:NO locale:[NSLocale currentLocale]];
 
     self = [super initWithFrame:NSMakeRect(frame.size.width - 300, menuBarVPad, 300, menuBarHPad)];
     [self setDrawsBackground:NO];
@@ -71,7 +67,7 @@ const NSString *defaultFormat = @"%c";
 
 - (void)update:(NSTimer *)timer {
     [[self textStorage] setAttributedString:[[NSAttributedString alloc]
-        initWithString:[[dateFormatter stringFromDate:[NSDate date]]
+        initWithString:[[dateFormatter stringForObjectValue:[NSDate date]]
         stringByReplacingOccurrencesOfString:@"_" withString:@" "] attributes:attributes]];
     [self setNeedsDisplay:YES];
 }
