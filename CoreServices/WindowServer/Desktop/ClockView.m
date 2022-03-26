@@ -24,7 +24,7 @@
 #import "desktop.h"
 
 const NSString *PrefsDateFormatStringKey = @"DateFormatString";
-const NSString *defaultFormatEN = @"%a_%b_%d__%I:%M_%p";
+const NSString *defaultFormatEN = @"%a %b %d  %I:%M %p";
 
 @implementation ClockView
 - init {
@@ -40,7 +40,7 @@ const NSString *defaultFormatEN = @"%a_%b_%d__%I:%M_%p";
             dateFormat = [prefs objectForKey:NSTimeDateFormatString];
     }
     dateFormatter = [[NSDateFormatter alloc] initWithDateFormat:dateFormat 
-        allowNaturalLanguage:NO locale:[NSLocale currentLocale]];
+        allowNaturalLanguage:YES locale:[NSLocale currentLocale]];
 
     self = [super initWithFrame:NSMakeRect(frame.size.width - 300, menuBarVPad, 300, menuBarHPad)];
     [self setDrawsBackground:NO];
@@ -55,7 +55,7 @@ const NSString *defaultFormatEN = @"%a_%b_%d__%I:%M_%p";
     [self setFrame:f];
     [self setNeedsDisplay:YES];
 
-    updateTimer = [NSTimer scheduledTimerWithTimeInterval:1 target:self 
+    updateTimer = [NSTimer scheduledTimerWithTimeInterval:0.5 target:self 
         selector:@selector(update:) userInfo:nil repeats:YES];
     return self;
 }
@@ -67,8 +67,8 @@ const NSString *defaultFormatEN = @"%a_%b_%d__%I:%M_%p";
 
 - (void)update:(NSTimer *)timer {
     [[self textStorage] setAttributedString:[[NSAttributedString alloc]
-        initWithString:[[dateFormatter stringForObjectValue:[NSDate date]]
-        stringByReplacingOccurrencesOfString:@"_" withString:@" "] attributes:attributes]];
+        initWithString:[dateFormatter stringForObjectValue:[NSDate date]]
+        attributes:attributes]];
     [self setNeedsDisplay:YES];
 }
 

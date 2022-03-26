@@ -39,10 +39,10 @@
     NSDictionary *attributes = [NSDictionary dictionaryWithObject:[fontmgr convertFont:
         [NSFont systemFontOfSize:14] toHaveTrait:NSBoldFontMask] forKey:NSFontAttributeName];
 
-    NSAttributedString *title = [[NSAttributedString alloc] initWithString:@"Application" attributes:attributes];
+    NSAttributedString *title = [[NSAttributedString alloc] initWithString:@"アプリケーション" attributes:attributes];
     NSSize size = [title size];
-    NSPopUpButton *b = [[NSPopUpButton alloc] initWithFrame:NSMakeRect(menuBarHPad*3, 0, 
-        size.width + menuBarHPad, menuBarHeight) pullsDown:YES];
+    NSPopUpButton *b = [[NSPopUpButton alloc] initWithFrame:NSMakeRect(menuBarHPad*3,
+        menuBarVPad, size.width + menuBarHPad, menuBarHeight - menuBarVPad) pullsDown:YES];
     NSMenu *appmenu = [[NSMenu alloc] initWithTitle:[title string]];
     [b setMenu:appmenu];
     [b addItemWithTitle:[appmenu title]];
