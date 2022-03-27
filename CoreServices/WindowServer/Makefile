@@ -50,7 +50,7 @@ clean-desktopd:
 	rm -f desktopd
 
 desktopd: ${DESKTOP_SRC}
-	${CC} -g -o ${MAKEOBJDIR}/${.TARGET} ${DESKTOP_SRC} -framework AppKit
+	${CC} -g -o ${MAKEOBJDIR}/${.TARGET} ${DESKTOP_SRC} -framework AppKit -lthr
 	cp -fv ${MAKEOBJDIR}/desktopd ${.CURDIR}/${APP_DIR}/Contents/Resources/
 
 .include <airyx.app.mk>

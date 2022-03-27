@@ -23,8 +23,17 @@
 #import <AppKit/AppKit.h>
 #import "desktop.h"
 
+void dump(NSMenu *menu) {
+    for(int i = 0; i < [[menu itemArray] count]; ++i) {
+        NSMenuItem *item = [[menu itemArray] objectAtIndex:i];
+        NSLog(@"%@", item);
+        if([item hasSubmenu])
+            dump([item submenu]);
+    }
+}
+
 @implementation AppDelegate
--(void)screenDidResize:(NSNotification *)note {
+- (void)screenDidResize:(NSNotification *)note {
     NSRect frame = [[NSScreen mainScreen] visibleFrame];
 
     background = [DesktopWindow new];
@@ -38,6 +47,11 @@
 
 - (void)updateBackground {
     [background updateBackground];
+}
+
+- (void)menuDidUpdate:(NSNotification *)note {
+    NSMenu *menu = (NSMenu *)[note userInfo];
+    dump(menu);
 }
 
 @end

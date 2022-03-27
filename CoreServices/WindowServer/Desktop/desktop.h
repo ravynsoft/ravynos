@@ -28,6 +28,8 @@
 
 extern const NSString *PrefsWallpaperPathKey;
 extern const NSString *PrefsDateFormatStringKey;
+extern const NSString *WLOutputDidResizeNotification;
+extern const NSString *WLMenuDidUpdateNotification;
 
 // the clock
 @interface ClockView: NSTextView {
