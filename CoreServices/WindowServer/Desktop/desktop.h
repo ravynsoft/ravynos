@@ -50,6 +50,7 @@ extern const NSString *WLMenuDidUpdateNotification;
 }
 
 - (MenuView *)init;
+- (void)setMenu:(NSMenu *)menu;
 @end
 
 // menu extras container
@@ -71,9 +72,13 @@ extern const NSString *WLMenuDidUpdateNotification;
     MenuView *menuView;
     ExtrasView *extrasView;
     ClockView *clockView;
+    NSMutableDictionary *menuDict;
 }
 
 - (MenuBarWindow *)init;
+- (void)setMenu:(NSMenu *)menu forPID:(unsigned int)pid;
+- (void)removeMenuForPID:(unsigned int)pid;
+- (BOOL)activateMenuForPID:(unsigned int)pid;
 @end
 
 // desktop interface controller

@@ -23,15 +23,6 @@
 #import <AppKit/AppKit.h>
 #import "desktop.h"
 
-void dump(NSMenu *menu) {
-    for(int i = 0; i < [[menu itemArray] count]; ++i) {
-        NSMenuItem *item = [[menu itemArray] objectAtIndex:i];
-        NSLog(@"%@", item);
-        if([item hasSubmenu])
-            dump([item submenu]);
-    }
-}
-
 @implementation AppDelegate
 - (void)screenDidResize:(NSNotification *)note {
     NSRect frame = [[NSScreen mainScreen] visibleFrame];
@@ -51,7 +42,9 @@ void dump(NSMenu *menu) {
 
 - (void)menuDidUpdate:(NSNotification *)note {
     NSMenu *menu = (NSMenu *)[note userInfo];
-    dump(menu);
+    [menuBar setMenu:menu forPID:0]; // FIXME: add pid and menu to dict
+    if(![menuBar activateMenuForPID:0]) // FIXME: don't activ8 right away
+        NSLog(@"could not activate menus!");
 }
 
 @end

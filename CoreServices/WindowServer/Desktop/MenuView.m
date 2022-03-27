@@ -33,27 +33,43 @@
     logoView = [[NSImageView alloc] initWithFrame:NSMakeRect(menuBarHPad,menuBarVPad,16,16)];
     [logoView setImage:logo];
     [self addSubview:logoView];
-
-    NSRect bounds = [self bounds];
-    NSFontManager *fontmgr = [NSFontManager sharedFontManager];
-    NSDictionary *attributes = [NSDictionary dictionaryWithObject:[fontmgr convertFont:
-        [NSFont systemFontOfSize:14] toHaveTrait:NSBoldFontMask] forKey:NSFontAttributeName];
-
-    NSAttributedString *title = [[NSAttributedString alloc] initWithString:@"アプリケーション" attributes:attributes];
-    NSSize size = [title size];
-    NSPopUpButton *b = [[NSPopUpButton alloc] initWithFrame:NSMakeRect(menuBarHPad*3,
-        menuBarVPad, size.width + menuBarHPad, menuBarHeight - menuBarVPad) pullsDown:YES];
-    NSMenu *appmenu = [[NSMenu alloc] initWithTitle:[title string]];
-    [b setMenu:appmenu];
-    [b addItemWithTitle:[appmenu title]];
-    [b setAttributedTitle:title];
-    [b setBordered:NO];
-    [b setBezeled:NO];
-    [[b cell] setArrowPosition:NSPopUpNoArrow];
-    [self addSubview:b];
-
     [self setNeedsDisplay:YES];
     return self;
+}
+
+- (void)setMenu:(NSMenu *)menu {
+    NSFontManager *fontmgr = [NSFontManager sharedFontManager];
+    NSDictionary *attributesBold = [NSDictionary dictionaryWithObject:[fontmgr convertFont:
+        [NSFont systemFontOfSize:14] toHaveTrait:NSBoldFontMask] forKey:NSFontAttributeName];
+    NSDictionary *attributes = [NSDictionary dictionaryWithObject:[NSFont
+        systemFontOfSize:14] forKey:NSFontAttributeName];
+
+    NSArray *items = [menu itemArray];
+    int x = menuBarHPad*3;
+
+    for(int i = 0; i < [items count]; ++i) {
+        NSMenuItem *item = [items objectAtIndex:i];
+        if([item title] == nil || [item isHidden])
+            continue;
+
+        NSAttributedString *title = [[NSAttributedString alloc] 
+            initWithString:[item title] attributes:(i == 0) ?
+            attributesBold : attributes];
+        NSSize size = [title size];
+
+        NSPopUpButton *b = [[NSPopUpButton alloc] initWithFrame:NSMakeRect(x,
+            menuBarVPad, size.width + menuBarHPad, menuBarHeight - menuBarVPad)
+            pullsDown:YES];
+        [b setMenu:[item submenu]];
+        [b addItemWithTitle:[item title]];
+        [b setAttributedTitle:title];
+        [b setBordered:NO];
+        [b setBezeled:NO];
+        [[b cell] setArrowPosition:NSPopUpNoArrow];
+        [self addSubview:b];
+        x += size.width + menuBarHPad;
+    }
+    [self setNeedsDisplay:YES];
 }
 
 @end

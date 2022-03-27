@@ -33,6 +33,7 @@
     clockView = [ClockView new];
     menuView = [MenuView new];
     extrasView = [ExtrasView new];
+    menuDict = [NSMutableDictionary new];
 
     [[self contentView] addSubview:menuView];
     [[self contentView] addSubview:extrasView];
@@ -40,5 +41,23 @@
 
     return self;
 }
+
+- (void)setMenu:(NSMenu *)menu forPID:(unsigned int)pid {
+    [menuDict setObject:menu forKey:[NSNumber numberWithInt:pid]];
+}
+
+- (void)removeMenuForPID:(unsigned int)pid {
+    [menuDict removeObjectForKey:[NSNumber numberWithInt:pid]];
+}
+
+- (BOOL)activateMenuForPID:(unsigned int)pid {
+    NSMenu *menu = [menuDict objectForKey:[NSNumber numberWithInt:pid]];
+    if(menu) {
+        [menuView setMenu:menu];
+        return YES;
+    }
+    return NO;
+}
+
 @end
 
