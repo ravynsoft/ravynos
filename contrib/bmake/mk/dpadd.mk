@@ -1,4 +1,4 @@
-# $Id: dpadd.mk,v 1.28 2020/08/19 17:51:53 sjg Exp $
+# $Id: dpadd.mk,v 1.30 2021/12/08 05:56:50 sjg Exp $
 #
 #	@(#) Copyright (c) 2004, Simon J. Gerraty
 #
@@ -77,7 +77,7 @@
 #
 
 .if !target(__${.PARSEFILE}__)
-__${.PARSEFILE}__:
+__${.PARSEFILE}__: .NOTMAIN
 
 # sometimes we play games with .CURDIR etc
 # _* hold the original values of .*
@@ -211,8 +211,9 @@ OBJ_${__lib:T:R} ?= ${__lib:H:S,${OBJTOP},${RELOBJTOP},}
 # If INCLUDES_libfoo is not set, then we'll use ${SRC_libfoo}/h if it exists,
 # else just ${SRC_libfoo}.
 #
-INCLUDES_${__lib:T:R}?= -I${exists(${SRC_${__lib:T:R}}/h):?${SRC_${__lib:T:R}}/h:${SRC_${__lib:T:R}}}
-
+.if !empty(SRC_${__lib:T:R})
+INCLUDES_${__lib:T:R} ?= -I${exists(${SRC_${__lib:T:R}}/h):?${SRC_${__lib:T:R}}/h:${SRC_${__lib:T:R}}}
+.endif
 .endfor
 
 # even for staged libs we sometimes

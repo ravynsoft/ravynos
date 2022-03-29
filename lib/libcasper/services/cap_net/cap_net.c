@@ -326,8 +326,10 @@ cap_getaddrinfo(cap_channel_t *chan, const char *hostname, const char *servname,
 			break;
 		nvlai = nvlist_get_nvlist(nvl, nvlname);
 		curai = addrinfo_unpack(nvlai);
-		if (curai == NULL)
+		if (curai == NULL) {
+			nvlist_destroy(nvl);
 			return (EAI_MEMORY);
+		}
 		if (prevai != NULL)
 			prevai->ai_next = curai;
 		else
@@ -896,8 +898,10 @@ net_getnameinfo(const nvlist_t *limits, const nvlist_t *nvlin, nvlist_t *nvlout)
 		error = EAI_FAIL;
 		goto out;
 	}
-	if (!net_allowed_bsaddr(funclimit, sabin, sabinsize))
-		return (ENOTCAPABLE);
+	if (!net_allowed_bsaddr(funclimit, sabin, sabinsize)) {
+		error = ENOTCAPABLE;
+		goto out;
+	}
 
 	memcpy(&sast, sabin, sabinsize);
 	salen = (socklen_t)sabinsize;
@@ -1378,7 +1382,7 @@ net_limit(const nvlist_t *oldlimits, const nvlist_t *newlimits)
 	 */
 	if (oldlimits == NULL)
 		return (0);
-	if (!hasconnect && nvlist_exists(oldlimits, LIMIT_NV_BIND))
+	if (!hasbind && nvlist_exists(oldlimits, LIMIT_NV_BIND))
 		return (ENOTCAPABLE);
 	if (!hasconnect && nvlist_exists(oldlimits, LIMIT_NV_CONNECT))
 		return (ENOTCAPABLE);

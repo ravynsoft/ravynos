@@ -23,8 +23,9 @@ char    sccsid[] = "@(#) workarounds.c 1.6 96/03/19 16:22:25";
 #include <stdio.h>
 #include <syslog.h>
 #include <string.h>
-
-extern int errno;
+#ifdef USE_GETDOMAIN
+#include <unistd.h>
+#endif
 
 #include "tcpd.h"
 

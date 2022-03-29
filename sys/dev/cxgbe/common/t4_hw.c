@@ -196,7 +196,7 @@ u32 t4_hw_pci_read_cfg4(adapter_t *adap, int reg)
  * If the firmware has indicated an error, print out the reason for
  * the firmware error.
  */
-static void t4_report_fw_error(struct adapter *adap)
+void t4_report_fw_error(struct adapter *adap)
 {
 	static const char *const reason[] = {
 		"Crash",			/* PCIE_FW_EVAL_CRASH */
@@ -212,11 +212,8 @@ static void t4_report_fw_error(struct adapter *adap)
 
 	pcie_fw = t4_read_reg(adap, A_PCIE_FW);
 	if (pcie_fw & F_PCIE_FW_ERR) {
-		adap->flags &= ~FW_OK;
 		CH_ERR(adap, "firmware reports adapter error: %s (0x%08x)\n",
 		    reason[G_PCIE_FW_EVAL(pcie_fw)], pcie_fw);
-		if (pcie_fw != 0xffffffff)
-			t4_os_dump_devlog(adap);
 	}
 }
 
@@ -374,6 +371,12 @@ int t4_wr_mbox_meat_timeout(struct adapter *adap, int mbox, const void *cmd,
 	/*
 	 * Attempt to gain access to the mailbox.
 	 */
+	pcie_fw = 0;
+	if (!(adap->flags & IS_VF)) {
+		pcie_fw = t4_read_reg(adap, A_PCIE_FW);
+		if (pcie_fw & F_PCIE_FW_ERR)
+			goto failed;
+	}
 	for (i = 0; i < 4; i++) {
 		ctl = t4_read_reg(adap, ctl_reg);
 		v = G_MBOWNER(ctl);
@@ -385,7 +388,11 @@ int t4_wr_mbox_meat_timeout(struct adapter *adap, int mbox, const void *cmd,
 	 * If we were unable to gain access, report the error to our caller.
 	 */
 	if (v != X_MBOWNER_PL) {
-		t4_report_fw_error(adap);
+		if (!(adap->flags & IS_VF)) {
+			pcie_fw = t4_read_reg(adap, A_PCIE_FW);
+			if (pcie_fw & F_PCIE_FW_ERR)
+				goto failed;
+		}
 		ret = (v == X_MBOWNER_FW) ? -EBUSY : -ETIMEDOUT;
 		return ret;
 	}
@@ -436,7 +443,6 @@ int t4_wr_mbox_meat_timeout(struct adapter *adap, int mbox, const void *cmd,
 	 * Loop waiting for the reply; bail out if we time out or the firmware
 	 * reports an error.
 	 */
-	pcie_fw = 0;
 	for (i = 0; i < timeout; i += ms) {
 		if (!(adap->flags & IS_VF)) {
 			pcie_fw = t4_read_reg(adap, A_PCIE_FW);
@@ -494,15 +500,9 @@ int t4_wr_mbox_meat_timeout(struct adapter *adap, int mbox, const void *cmd,
 	    *(const u8 *)cmd, mbox, pcie_fw);
 	CH_DUMP_MBOX(adap, mbox, 0, "cmdsent", cmd_rpl, true);
 	CH_DUMP_MBOX(adap, mbox, data_reg, "current", NULL, true);
-
-	if (pcie_fw & F_PCIE_FW_ERR) {
-		ret = -ENXIO;
-		t4_report_fw_error(adap);
-	} else {
-		ret = -ETIMEDOUT;
-		t4_os_dump_devlog(adap);
-	}
-
+failed:
+	adap->flags &= ~FW_OK;
+	ret = pcie_fw & F_PCIE_FW_ERR ? -ENXIO : -ETIMEDOUT;
 	t4_fatal_err(adap, true);
 	return ret;
 }
@@ -3827,15 +3827,6 @@ static uint16_t fwcaps32_to_caps16(uint32_t caps32)
 	return caps16;
 }
 
-static bool
-is_bt(struct port_info *pi)
-{
-
-	return (pi->port_type == FW_PORT_TYPE_BT_SGMII ||
-	    pi->port_type == FW_PORT_TYPE_BT_XFI ||
-	    pi->port_type == FW_PORT_TYPE_BT_XAUI);
-}
-
 static int8_t fwcap_to_fec(uint32_t caps, bool unset_means_none)
 {
 	int8_t fec = 0;
@@ -3917,11 +3908,24 @@ int t4_link_l1cfg(struct adapter *adap, unsigned int mbox, unsigned int port,
 		speed = fwcap_top_speed(lc->pcaps);
 
 	fec = 0;
+#ifdef INVARIANTS
+	if (lc->force_fec != 0)
+		MPASS(lc->pcaps & FW_PORT_CAP32_FORCE_FEC);
+#endif
 	if (fec_supported(speed)) {
 		if (lc->requested_fec == FEC_AUTO) {
-			if (lc->pcaps & FW_PORT_CAP32_FORCE_FEC) {
+			if (lc->force_fec > 0) {
+				/*
+				 * Must use FORCE_FEC even though requested FEC
+				 * is AUTO. Set all the FEC bits valid for the
+				 * speed and let the firmware pick one.
+				 */
+				fec |= FW_PORT_CAP32_FORCE_FEC;
 				if (speed & FW_PORT_CAP32_SPEED_100G) {
 					fec |= FW_PORT_CAP32_FEC_RS;
+					fec |= FW_PORT_CAP32_FEC_NO_FEC;
+				} else if (speed & FW_PORT_CAP32_SPEED_50G) {
+					fec |= FW_PORT_CAP32_FEC_BASER_RS;
 					fec |= FW_PORT_CAP32_FEC_NO_FEC;
 				} else {
 					fec |= FW_PORT_CAP32_FEC_RS;
@@ -3929,24 +3933,52 @@ int t4_link_l1cfg(struct adapter *adap, unsigned int mbox, unsigned int port,
 					fec |= FW_PORT_CAP32_FEC_NO_FEC;
 				}
 			} else {
-				/* Set only 1b with old firmwares. */
+				/*
+				 * Set only 1b. Old firmwares can't deal with
+				 * multiple bits and new firmwares are free to
+				 * ignore this and try whatever FECs they want
+				 * because we aren't setting FORCE_FEC here.
+				 */
 				fec |= fec_to_fwcap(lc->fec_hint);
+				MPASS(powerof2(fec));
+
+				/*
+				 * Override the hint if the FEC is not valid for
+				 * the potential top speed.  Request the best
+				 * FEC at that speed instead.
+				 */
+				if (speed & FW_PORT_CAP32_SPEED_100G) {
+					if (fec == FW_PORT_CAP32_FEC_BASER_RS)
+						fec = FW_PORT_CAP32_FEC_RS;
+				} else if (speed & FW_PORT_CAP32_SPEED_50G) {
+					if (fec == FW_PORT_CAP32_FEC_RS)
+						fec = FW_PORT_CAP32_FEC_BASER_RS;
+				}
 			}
 		} else {
+			/*
+			 * User has explicitly requested some FEC(s). Set
+			 * FORCE_FEC unless prohibited from using it.
+			 */
+			if (lc->force_fec != 0)
+				fec |= FW_PORT_CAP32_FORCE_FEC;
 			fec |= fec_to_fwcap(lc->requested_fec &
 			    M_FW_PORT_CAP32_FEC);
 			if (lc->requested_fec & FEC_MODULE)
 				fec |= fec_to_fwcap(lc->fec_hint);
 		}
 
-		if (lc->pcaps & FW_PORT_CAP32_FORCE_FEC)
-			fec |= FW_PORT_CAP32_FORCE_FEC;
-		else if (fec == FW_PORT_CAP32_FEC_NO_FEC)
+		/*
+		 * This is for compatibility with old firmwares. The original
+		 * way to request NO_FEC was to not set any of the FEC bits. New
+		 * firmwares understand this too.
+		 */
+		if (fec == FW_PORT_CAP32_FEC_NO_FEC)
 			fec = 0;
 	}
 
 	/* Force AN on for BT cards. */
-	if (is_bt(adap->port[adap->chan_map[port]]))
+	if (isset(&adap->bt_map, port))
 		aneg = lc->pcaps & FW_PORT_CAP32_ANEG;
 
 	rcap = aneg | speed | fc | fec;
@@ -3975,6 +4007,7 @@ int t4_link_l1cfg(struct adapter *adap, unsigned int mbox, unsigned int port,
 		c.u.l1cfg.rcap = cpu_to_be32(fwcaps32_to_caps16(rcap));
 	}
 
+	lc->requested_caps = rcap;
 	return t4_wr_mbox_ns(adap, mbox, &c, sizeof(c), NULL);
 }
 
@@ -4431,10 +4464,6 @@ static bool sge_intr_handler(struct adapter *adap, int arg, bool verbose)
  */
 static bool cim_intr_handler(struct adapter *adap, int arg, bool verbose)
 {
-	static const struct intr_action cim_host_intr_actions[] = {
-		{ F_TIMER0INT, 0, t4_os_dump_cimla },
-		{ 0 },
-	};
 	static const struct intr_details cim_host_intr_details[] = {
 		/* T6+ */
 		{ F_PCIE2CIMINTFPARERR, "CIM IBQ PCIe interface parity error" },
@@ -4480,7 +4509,7 @@ static bool cim_intr_handler(struct adapter *adap, int arg, bool verbose)
 		.fatal = 0x007fffe6,
 		.flags = NONFATAL_IF_DISABLED,
 		.details = cim_host_intr_details,
-		.actions = cim_host_intr_actions,
+		.actions = NULL,
 	};
 	static const struct intr_details cim_host_upacc_intr_details[] = {
 		{ F_EEPROMWRINT, "CIM EEPROM came out of busy state" },
@@ -4545,10 +4574,6 @@ static bool cim_intr_handler(struct adapter *adap, int arg, bool verbose)
 	u32 val, fw_err;
 	bool fatal;
 
-	fw_err = t4_read_reg(adap, A_PCIE_FW);
-	if (fw_err & F_PCIE_FW_ERR)
-		t4_report_fw_error(adap);
-
 	/*
 	 * When the Firmware detects an internal error which normally wouldn't
 	 * raise a Host Interrupt, it forces a CIM Timer0 interrupt in order
@@ -4556,16 +4581,19 @@ static bool cim_intr_handler(struct adapter *adap, int arg, bool verbose)
 	 * Timer0 interrupt and don't see a Firmware Crash, ignore the Timer0
 	 * interrupt.
 	 */
+	fw_err = t4_read_reg(adap, A_PCIE_FW);
 	val = t4_read_reg(adap, A_CIM_HOST_INT_CAUSE);
 	if (val & F_TIMER0INT && (!(fw_err & F_PCIE_FW_ERR) ||
 	    G_PCIE_FW_EVAL(fw_err) != PCIE_FW_EVAL_CRASH)) {
 		t4_write_reg(adap, A_CIM_HOST_INT_CAUSE, F_TIMER0INT);
 	}
 
-	fatal = false;
+	fatal = (fw_err & F_PCIE_FW_ERR) != 0;
 	fatal |= t4_handle_intr(adap, &cim_host_intr_info, 0, verbose);
 	fatal |= t4_handle_intr(adap, &cim_host_upacc_intr_info, 0, verbose);
 	fatal |= t4_handle_intr(adap, &cim_pf_host_intr_info, 0, verbose);
+	if (fatal)
+		t4_os_cim_err(adap);
 
 	return (fatal);
 }
@@ -5264,7 +5292,7 @@ static bool plpl_intr_handler(struct adapter *adap, int arg, bool verbose)
  *	The designation 'slow' is because it involves register reads, while
  *	data interrupts typically don't involve any MMIOs.
  */
-int t4_slow_intr_handler(struct adapter *adap, bool verbose)
+bool t4_slow_intr_handler(struct adapter *adap, bool verbose)
 {
 	static const struct intr_details pl_intr_details[] = {
 		{ F_MC1, "MC1" },
@@ -5343,7 +5371,6 @@ int t4_slow_intr_handler(struct adapter *adap, bool verbose)
 		.details = pl_intr_details,
 		.actions = pl_intr_action,
 	};
-	bool fatal;
 	u32 perr;
 
 	perr = t4_read_reg(adap, pl_perr_cause.cause_reg);
@@ -5354,11 +5381,8 @@ int t4_slow_intr_handler(struct adapter *adap, bool verbose)
 		if (verbose)
 			perr |= t4_read_reg(adap, pl_intr_info.enable_reg);
 	}
-	fatal = t4_handle_intr(adap, &pl_intr_info, perr, verbose);
-	if (fatal)
-		t4_fatal_err(adap, false);
 
-	return (0);
+	return (t4_handle_intr(adap, &pl_intr_info, perr, verbose));
 }
 
 #define PF_INTR_MASK (F_PFSW | F_PFCIM)
@@ -6616,7 +6640,6 @@ int t4_set_trace_filter(struct adapter *adap, const struct trace_params *tp,
 {
 	int i, ofst = idx * 4;
 	u32 data_reg, mask_reg, cfg;
-	u32 multitrc = F_TRCMULTIFILTER;
 	u32 en = is_t4(adap) ? F_TFEN : F_T5_TFEN;
 
 	if (idx < 0 || idx >= NTRACE)
@@ -6651,7 +6674,6 @@ int t4_set_trace_filter(struct adapter *adap, const struct trace_params *tp,
 		 * maximum packet capture size of 9600 bytes is recommended.
 		 * Also in this mode, only trace0 can be enabled and running.
 		 */
-		multitrc = 0;
 		if (tp->snap_len > 9600 || idx)
 			return -EINVAL;
 	}
@@ -6911,8 +6933,8 @@ void t4_get_port_stats(struct adapter *adap, int idx, struct port_stats *p)
 
 #define GET_STAT(name) \
 	t4_read_reg64(adap, \
-	(is_t4(adap) ? PORT_REG(idx, A_MPS_PORT_STAT_##name##_L) : \
-	T5_PORT_REG(idx, A_MPS_PORT_STAT_##name##_L)))
+	(is_t4(adap) ? PORT_REG(pi->tx_chan, A_MPS_PORT_STAT_##name##_L) : \
+	T5_PORT_REG(pi->tx_chan, A_MPS_PORT_STAT_##name##_L)))
 #define GET_STAT_COM(name) t4_read_reg64(adap, A_MPS_STAT_##name##_L)
 
 	p->tx_pause		= GET_STAT(TX_PORT_PAUSE);
@@ -7490,8 +7512,6 @@ retry:
 	if (ret != FW_SUCCESS) {
 		if ((ret == -EBUSY || ret == -ETIMEDOUT) && retries-- > 0)
 			goto retry;
-		if (t4_read_reg(adap, A_PCIE_FW) & F_PCIE_FW_ERR)
-			t4_report_fw_error(adap);
 		return ret;
 	}
 
@@ -9044,7 +9064,6 @@ int t4_handle_fw_rpl(struct adapter *adap, const __be64 *rpl)
 		int i;
 		int chan = G_FW_PORT_CMD_PORTID(be32_to_cpu(p->op_to_portid));
 		struct port_info *pi = NULL;
-		struct link_config *lc;
 
 		for_each_port(adap, i) {
 			pi = adap2pinfo(adap, i);
@@ -9052,7 +9071,6 @@ int t4_handle_fw_rpl(struct adapter *adap, const __be64 *rpl)
 				break;
 		}
 
-		lc = &pi->link_cfg;
 		PORT_LOCK(pi);
 		handle_port_info(pi, p, action, &mod_changed, &link_changed);
 		PORT_UNLOCK(pi);
@@ -9389,9 +9407,11 @@ int t4_prep_adapter(struct adapter *adapter, u32 *buf)
 int t4_shutdown_adapter(struct adapter *adapter)
 {
 	int port;
+	const bool bt = adapter->bt_map != 0;
 
 	t4_intr_disable(adapter);
-	t4_write_reg(adapter, A_DBG_GPIO_EN, 0);
+	if (bt)
+		t4_write_reg(adapter, A_DBG_GPIO_EN, 0xffff0000);
 	for_each_port(adapter, port) {
 		u32 a_port_cfg = is_t4(adapter) ?
 				 PORT_REG(port, A_XGMAC_PORT_CFG) :
@@ -9400,6 +9420,15 @@ int t4_shutdown_adapter(struct adapter *adapter)
 		t4_write_reg(adapter, a_port_cfg,
 			     t4_read_reg(adapter, a_port_cfg)
 			     & ~V_SIGNAL_DET(1));
+		if (!bt) {
+			u32 hss_cfg0 = is_t4(adapter) ?
+					 PORT_REG(port, A_XGMAC_PORT_HSS_CFG0) :
+					 T5_PORT_REG(port, A_MAC_PORT_HSS_CFG0);
+			t4_set_reg_field(adapter, hss_cfg0, F_HSSPDWNPLLB |
+			    F_HSSPDWNPLLA | F_HSSPLLBYPB | F_HSSPLLBYPA,
+			    F_HSSPDWNPLLB | F_HSSPDWNPLLA | F_HSSPLLBYPB |
+			    F_HSSPLLBYPA);
+		}
 	}
 	t4_set_reg_field(adapter, A_SGE_CONTROL, F_GLOBALENABLE, 0);
 

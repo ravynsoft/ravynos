@@ -49,6 +49,7 @@
 #include <net/if_dl.h>
 #include <sys/firmware.h>
 #include <sys/priv.h>
+#include <sys/limits.h>
 
 /**
  * @var M_ICE
@@ -105,6 +106,15 @@ static uint64_t ice_phy_types_to_max_rate(struct ice_port_info *pi);
 static void ice_add_sysctls_sw_stats(struct ice_vsi *vsi,
 				     struct sysctl_ctx_list *ctx,
 				     struct sysctl_oid *parent);
+static void
+ice_add_sysctls_mac_pfc_one_stat(struct sysctl_ctx_list *ctx,
+				 struct sysctl_oid_list *parent_list,
+				 u64* pfc_stat_location,
+				 const char *node_name,
+				 const char *descr);
+static void ice_add_sysctls_mac_pfc_stats(struct sysctl_ctx_list *ctx,
+					  struct sysctl_oid *parent,
+					  struct ice_hw_port_stats *stats);
 static void ice_setup_vsi_common(struct ice_softc *sc, struct ice_vsi *vsi,
 				 enum ice_vsi_type type, int idx,
 				 bool dynamic);
@@ -119,20 +129,18 @@ static int ice_add_ethertype_to_list(struct ice_vsi *vsi,
 				     enum ice_sw_fwd_act_type action);
 static void ice_add_rx_lldp_filter(struct ice_softc *sc);
 static void ice_del_rx_lldp_filter(struct ice_softc *sc);
-static u16 ice_aq_phy_types_to_sysctl_speeds(u64 phy_type_low,
-					     u64 phy_type_high);
-static void
-ice_apply_saved_phy_req_to_cfg(struct ice_port_info *pi,
-			       struct ice_aqc_get_phy_caps_data *pcaps,
+static u16 ice_aq_phy_types_to_link_speeds(u64 phy_type_low,
+					   u64 phy_type_high);
+struct ice_phy_data;
+static int
+ice_intersect_phy_types_and_speeds(struct ice_softc *sc,
+				   struct ice_phy_data *phy_data);
+static int
+ice_apply_saved_phy_req_to_cfg(struct ice_softc *sc,
 			       struct ice_aqc_set_phy_cfg_data *cfg);
-static void
-ice_apply_saved_fec_req_to_cfg(struct ice_port_info *pi,
-			       struct ice_aqc_get_phy_caps_data *pcaps,
+static int
+ice_apply_saved_fec_req_to_cfg(struct ice_softc *sc,
 			       struct ice_aqc_set_phy_cfg_data *cfg);
-static void
-ice_apply_saved_user_req_to_cfg(struct ice_port_info *pi,
-				struct ice_aqc_get_phy_caps_data *pcaps,
-				struct ice_aqc_set_phy_cfg_data *cfg);
 static void
 ice_apply_saved_fc_req_to_cfg(struct ice_port_info *pi,
 			      struct ice_aqc_set_phy_cfg_data *cfg);
@@ -142,16 +150,31 @@ ice_print_ldo_tlv(struct ice_softc *sc,
 static void
 ice_sysctl_speeds_to_aq_phy_types(u16 sysctl_speeds, u64 *phy_type_low,
 				  u64 *phy_type_high);
-static int
-ice_intersect_media_types_with_caps(struct ice_softc *sc, u16 sysctl_speeds,
-				    u64 *phy_type_low, u64 *phy_type_high);
-static int
-ice_get_auto_speeds(struct ice_softc *sc, u64 *phy_type_low,
-		    u64 *phy_type_high);
+static u16 ice_apply_supported_speed_filter(u16 report_speeds, u8 mod_type);
 static void
-ice_apply_supported_speed_filter(u64 *phy_type_low, u64 *phy_type_high);
-static enum ice_status
-ice_get_phy_types(struct ice_softc *sc, u64 *phy_type_low, u64 *phy_type_high);
+ice_handle_health_status_event(struct ice_softc *sc,
+			       struct ice_rq_event_info *event);
+static void
+ice_print_health_status_string(device_t dev,
+			       struct ice_aqc_health_status_elem *elem);
+static void
+ice_debug_print_mib_change_event(struct ice_softc *sc,
+				 struct ice_rq_event_info *event);
+static bool ice_check_ets_bw(u8 *table);
+static bool
+ice_dcb_needs_reconfig(struct ice_softc *sc, struct ice_dcbx_cfg *old_cfg,
+		       struct ice_dcbx_cfg *new_cfg);
+static void ice_dcb_recfg(struct ice_softc *sc);
+static u8 ice_dcb_num_tc(u8 tc_map);
+static int ice_ets_str_to_tbl(const char *str, u8 *table, u8 limit);
+static int ice_pf_vsi_cfg_tc(struct ice_softc *sc, u8 tc_map);
+static void ice_sbuf_print_ets_cfg(struct sbuf *sbuf, const char *name,
+				   struct ice_dcb_ets_cfg *ets);
+static void ice_stop_pf_vsi(struct ice_softc *sc);
+static void ice_vsi_setup_q_map(struct ice_vsi *vsi, struct ice_vsi_ctx *ctxt);
+static void ice_do_dcb_reconfig(struct ice_softc *sc);
+static int ice_config_pfc(struct ice_softc *sc, u8 new_mode);
+static u8 ice_dcb_get_tc_map(const struct ice_dcbx_cfg *dcbcfg);
 
 static int ice_module_init(void);
 static int ice_module_exit(void);
@@ -198,6 +221,13 @@ static int ice_sysctl_read_i2c_diag_data(SYSCTL_HANDLER_ARGS);
 static int ice_sysctl_tx_cso_stat(SYSCTL_HANDLER_ARGS);
 static int ice_sysctl_rx_cso_stat(SYSCTL_HANDLER_ARGS);
 static int ice_sysctl_pba_number(SYSCTL_HANDLER_ARGS);
+static int ice_sysctl_rx_errors_stat(SYSCTL_HANDLER_ARGS);
+static int ice_sysctl_dump_dcbx_cfg(SYSCTL_HANDLER_ARGS);
+static int ice_sysctl_dump_vsi_cfg(SYSCTL_HANDLER_ARGS);
+static int ice_sysctl_ets_min_rate(SYSCTL_HANDLER_ARGS);
+static int ice_sysctl_up2tc_map(SYSCTL_HANDLER_ARGS);
+static int ice_sysctl_pfc_config(SYSCTL_HANDLER_ARGS);
+static int ice_sysctl_query_port_ets(SYSCTL_HANDLER_ARGS);
 
 /**
  * ice_map_bar - Map PCIe BAR memory
@@ -465,13 +495,13 @@ ice_set_default_vsi_ctx(struct ice_vsi_ctx *ctx)
 	/* Traffic from VSI can be sent to LAN */
 	ctx->info.sw_flags2 = ICE_AQ_VSI_SW_FLAG_LAN_ENA;
 	/* Allow all packets untagged/tagged */
-	ctx->info.vlan_flags = ((ICE_AQ_VSI_VLAN_MODE_ALL &
-				 ICE_AQ_VSI_VLAN_MODE_M) >>
-				ICE_AQ_VSI_VLAN_MODE_S);
+	ctx->info.inner_vlan_flags = ((ICE_AQ_VSI_INNER_VLAN_TX_MODE_ALL &
+				       ICE_AQ_VSI_INNER_VLAN_TX_MODE_M) >>
+				       ICE_AQ_VSI_INNER_VLAN_TX_MODE_S);
 	/* Show VLAN/UP from packets in Rx descriptors */
-	ctx->info.vlan_flags |= ((ICE_AQ_VSI_VLAN_EMOD_STR_BOTH &
-				  ICE_AQ_VSI_VLAN_EMOD_M) >>
-				 ICE_AQ_VSI_VLAN_EMOD_S);
+	ctx->info.inner_vlan_flags |= ((ICE_AQ_VSI_INNER_VLAN_EMODE_STR_BOTH &
+					ICE_AQ_VSI_INNER_VLAN_EMODE_M) >>
+					ICE_AQ_VSI_INNER_VLAN_EMODE_S);
 	/* Have 1:1 UP mapping for both ingress/egress tables */
 	table |= ICE_UP_TABLE_TRANSLATE(0, 0);
 	table |= ICE_UP_TABLE_TRANSLATE(1, 1);
@@ -485,7 +515,7 @@ ice_set_default_vsi_ctx(struct ice_vsi_ctx *ctx)
 	ctx->info.egress_table = CPU_TO_LE32(table);
 	/* Have 1:1 UP mapping for outer to inner UP table */
 	ctx->info.outer_up_table = CPU_TO_LE32(table);
-	/* No Outer tag support, so outer_tag_flags remains zero */
+	/* No Outer tag support, so outer_vlan_flags remains zero */
 }
 
 /**
@@ -610,7 +640,7 @@ ice_initialize_vsi(struct ice_vsi *vsi)
 	}
 	vsi->info = ctx.info;
 
-	/* TODO: DCB traffic class support? */
+	/* Initialize VSI with just 1 TC to start */
 	max_txqs[0] = vsi->num_tx_queues;
 
 	status = ice_cfg_vsi_lan(hw->port_info, vsi->idx,
@@ -694,7 +724,12 @@ ice_release_vsi(struct ice_vsi *vsi)
 
 	ice_del_vsi_sysctl_ctx(vsi);
 
-	ice_deinit_vsi(vsi);
+	/*
+	 * If we unload the driver after a reset fails, we do not need to do
+	 * this step.
+	 */
+	if (!ice_test_state(&sc->state, ICE_STATE_RESET_FAILED))
+		ice_deinit_vsi(vsi);
 
 	ice_free_vsi_qmaps(vsi);
 
@@ -959,8 +994,8 @@ ice_get_phy_type_high(uint64_t phy_type_high)
  * ice_phy_types_to_max_rate - Returns port's max supported baudrate
  * @pi: port info struct
  *
- * ice_aq_get_phy_caps() w/ ICE_AQC_REPORT_TOPO_CAP parameter needs to have
- * been called before this function for it to work.
+ * ice_aq_get_phy_caps() w/ ICE_AQC_REPORT_TOPO_CAP_MEDIA parameter needs
+ * to have been called before this function for it to work.
  */
 static uint64_t
 ice_phy_types_to_max_rate(struct ice_port_info *pi)
@@ -1081,6 +1116,8 @@ ice_phy_types_to_max_rate(struct ice_port_info *pi)
 enum ice_status
 ice_add_media_types(struct ice_softc *sc, struct ifmedia *media)
 {
+	struct ice_aqc_get_phy_caps_data pcaps = { 0 };
+	struct ice_port_info *pi = sc->hw.port_info;
 	enum ice_status status;
 	uint64_t phy_low, phy_high;
 	int bit;
@@ -1096,13 +1133,17 @@ ice_add_media_types(struct ice_softc *sc, struct ifmedia *media)
 	/* Remove all previous media types */
 	ifmedia_removeall(media);
 
-	status = ice_get_phy_types(sc, &phy_low, &phy_high);
+	status = ice_aq_get_phy_caps(pi, false, ICE_AQC_REPORT_ACTIVE_CFG,
+				     &pcaps, NULL);
 	if (status != ICE_SUCCESS) {
-		/* Function already prints appropriate error
-		 * message
-		 */
+		device_printf(sc->dev,
+		    "%s: ice_aq_get_phy_caps (ACTIVE) failed; status %s, aq_err %s\n",
+		    __func__, ice_status_str(status),
+		    ice_aq_str(sc->hw.adminq.sq_last_status));
 		return (status);
 	}
+	phy_low = le64toh(pcaps.phy_type_low);
+	phy_high = le64toh(pcaps.phy_type_high);
 
 	/* make sure the added bitmap is zero'd */
 	memset(already_added, 0, sizeof(already_added));
@@ -1417,12 +1458,14 @@ ice_cfg_vsi_for_tx(struct ice_vsi *vsi)
 		ice_set_ctx(hw, (u8 *)&tlan_ctx, qg->txqs[0].txq_ctx,
 			    ice_tlan_ctx_info);
 
-		status = ice_ena_vsi_txq(hw->port_info, vsi->idx, 0,
-					 i, 1, qg, qg_size, NULL);
+		status = ice_ena_vsi_txq(hw->port_info, vsi->idx, txq->tc,
+					 txq->q_handle, 1, qg, qg_size, NULL);
 		if (status) {
 			device_printf(dev,
-				      "Failed to set LAN Tx queue context, err %s aq_err %s\n",
-				      ice_status_str(status), ice_aq_str(hw->adminq.sq_last_status));
+				      "Failed to set LAN Tx queue %d (TC %d, handle %d) context, err %s aq_err %s\n",
+				      i, txq->tc, txq->q_handle,
+				      ice_status_str(status),
+				      ice_aq_str(hw->adminq.sq_last_status));
 			err = ENODEV;
 			goto free_txqg;
 		}
@@ -1930,10 +1973,17 @@ ice_process_link_event(struct ice_softc *sc,
 		    "Possible mis-configuration of the Ethernet port detected; please use the Intel (R) Ethernet Port Configuration Tool utility to address the issue.\n");
 
 	if ((pi->phy.link_info.link_info & ICE_AQ_MEDIA_AVAILABLE) &&
-	    !(pi->phy.link_info.link_info & ICE_AQ_LINK_UP) &&
-	    !(pi->phy.link_info.an_info & ICE_AQ_QUALIFIED_MODULE))
-		device_printf(dev,
-		    "Link is disabled on this device because an unsupported module type was detected! Refer to the Intel (R) Ethernet Adapters and Devices User Guide for a list of supported modules.\n");
+	    !(pi->phy.link_info.link_info & ICE_AQ_LINK_UP)) {
+		if (!(pi->phy.link_info.an_info & ICE_AQ_QUALIFIED_MODULE))
+			device_printf(dev,
+			    "Link is disabled on this device because an unsupported module type was detected! Refer to the Intel (R) Ethernet Adapters and Devices User Guide for a list of supported modules.\n");
+		if (pi->phy.link_info.link_cfg_err & ICE_AQ_LINK_MODULE_POWER_UNSUPPORTED)
+			device_printf(dev,
+			    "The module's power requirements exceed the device's power supply. Cannot start link.\n");
+		if (pi->phy.link_info.link_cfg_err & ICE_AQ_LINK_INVAL_MAX_POWER_LIMIT)
+			device_printf(dev,
+			    "The installed module is incompatible with the device's NVM image. Cannot start link.\n");
+	}
 
 	if (!(pi->phy.link_info.link_info & ICE_AQ_MEDIA_AVAILABLE)) {
 		if (!ice_testandset_state(&sc->state, ICE_STATE_NO_MEDIA)) {
@@ -1976,11 +2026,17 @@ ice_process_ctrlq_event(struct ice_softc *sc, const char *qname,
 	case ice_mbx_opc_send_msg_to_pf:
 		/* TODO: handle IOV event */
 		break;
+	case ice_aqc_opc_fw_logs_event:
+		ice_handle_fw_log_event(sc, &event->desc, event->msg_buf);
+		break;
 	case ice_aqc_opc_lldp_set_mib_change:
 		ice_handle_mib_change_event(sc, event);
 		break;
 	case ice_aqc_opc_event_lan_overflow:
 		ice_handle_lan_overflow_event(sc, event);
+		break;
+	case ice_aqc_opc_get_health_status:
+		ice_handle_health_status_event(sc, event);
 		break;
 	default:
 		device_printf(sc->dev,
@@ -2047,13 +2103,12 @@ ice_process_ctrlq(struct ice_softc *sc, enum ice_ctl_q q_type, u16 *pending)
 		if (status) {
 			if (q_type == ICE_CTL_Q_ADMIN)
 				device_printf(sc->dev,
-					      "%s Receive Queue event error %s aq_err %s\n",
-					      qname, ice_status_str(status),
-					      ice_aq_str(cq->rq_last_status));
+					      "%s Receive Queue event error %s\n",
+					      qname, ice_status_str(status));
 			else
 				device_printf(sc->dev,
-					      "%s Receive Queue event error %s cq_err %d\n",
-					      qname, ice_status_str(status), cq->rq_last_status);
+					      "%s Receive Queue event error %s\n",
+					      qname, ice_status_str(status));
 			free(event.msg_buf, M_ICE);
 			return (EIO);
 		}
@@ -2335,6 +2390,11 @@ ice_update_pf_stats(struct ice_softc *sc)
 	cur_ps = &sc->stats.cur;
 	lport = hw->port_info->lport;
 
+#define ICE_PF_STAT_PFC(name, location, index) \
+	ice_stat_update40(hw, name(lport, index), \
+			  sc->stats.offsets_loaded, \
+			  &prev_ps->location[index], &cur_ps->location[index])
+
 #define ICE_PF_STAT40(name, location) \
 	ice_stat_update40(hw, name ## L(lport), \
 			  sc->stats.offsets_loaded, \
@@ -2374,6 +2434,15 @@ ice_update_pf_stats(struct ice_softc *sc)
 	ICE_PF_STAT40(GLPRT_PTC1522, tx_size_1522);
 	ICE_PF_STAT40(GLPRT_PTC9522, tx_size_big);
 
+	/* Update Priority Flow Control Stats */
+	for (int i = 0; i <= GLPRT_PXOFFRXC_MAX_INDEX; i++) {
+		ICE_PF_STAT_PFC(GLPRT_PXONRXC, priority_xon_rx, i);
+		ICE_PF_STAT_PFC(GLPRT_PXOFFRXC, priority_xoff_rx, i);
+		ICE_PF_STAT_PFC(GLPRT_PXONTXC, priority_xon_tx, i);
+		ICE_PF_STAT_PFC(GLPRT_PXOFFTXC, priority_xoff_tx, i);
+		ICE_PF_STAT_PFC(GLPRT_RXON2OFFCNT, priority_xon_2_xoff, i);
+	}
+
 	ICE_PF_STAT32(GLPRT_LXONRXC, link_xon_rx);
 	ICE_PF_STAT32(GLPRT_LXOFFRXC, link_xoff_rx);
 	ICE_PF_STAT32(GLPRT_LXONTXC, link_xon_tx);
@@ -2390,6 +2459,7 @@ ice_update_pf_stats(struct ice_softc *sc)
 
 #undef ICE_PF_STAT40
 #undef ICE_PF_STAT32
+#undef ICE_PF_STAT_PFC
 
 	sc->stats.offsets_loaded = true;
 }
@@ -2753,7 +2823,7 @@ static const uint16_t phy_link_speeds[] = {
      ICE_PHY_TYPE_HIGH_100G_AUI2)
 
 /**
- * ice_aq_phy_types_to_sysctl_speeds - Convert the PHY Types to speeds
+ * ice_aq_phy_types_to_link_speeds - Convert the PHY Types to speeds
  * @phy_type_low: lower 64-bit PHY Type bitmask
  * @phy_type_high: upper 64-bit PHY Type bitmask
  *
@@ -2762,7 +2832,7 @@ static const uint16_t phy_link_speeds[] = {
  * value will include the "ICE_AQ_LINK_SPEED_UNKNOWN" flag as well.
  */
 static u16
-ice_aq_phy_types_to_sysctl_speeds(u64 phy_type_low, u64 phy_type_high)
+ice_aq_phy_types_to_link_speeds(u64 phy_type_low, u64 phy_type_high)
 {
 	u16 sysctl_speeds = 0;
 	int bit;
@@ -2820,162 +2890,104 @@ ice_sysctl_speeds_to_aq_phy_types(u16 sysctl_speeds, u64 *phy_type_low,
 }
 
 /**
- * ice_intersect_media_types_with_caps - Restrict input AQ PHY flags
- * @sc: driver private structure
- * @sysctl_speeds: current SW configuration of PHY types
- * @phy_type_low: input/output flag set for low PHY types
- * @phy_type_high: input/output flag set for high PHY types
+ * @struct ice_phy_data
+ * @brief PHY caps and link speeds
  *
- * Intersects the input PHY flags with PHY flags retrieved from the adapter to
- * ensure the flags are compatible.
+ * Buffer providing report mode and user speeds;
+ * returning intersection of PHY types and speeds.
+ */
+struct ice_phy_data {
+	u64 phy_low_orig;     /* PHY low quad from report */
+	u64 phy_high_orig;    /* PHY high quad from report */
+	u64 phy_low_intr;     /* PHY low quad intersection with user speeds */
+	u64 phy_high_intr;    /* PHY high quad intersection with user speeds */
+	u16 user_speeds_orig; /* Input from caller - See ICE_AQ_LINK_SPEED_* */
+	u16 user_speeds_intr; /* Intersect with report speeds */
+	u8 report_mode;       /* See ICE_AQC_REPORT_* */
+};
+
+/**
+ * ice_intersect_phy_types_and_speeds - Return intersection of link speeds
+ * @sc: device private structure
+ * @phy_data: device PHY data
  *
- * @returns 0 on success, EIO if an AQ command fails, or EINVAL if input PHY
- * types have no intersection with TOPO_CAPS and the adapter is in non-lenient
- * mode
+ * On read: Displays the currently supported speeds
+ * On write: Sets the device's supported speeds
+ * Valid input flags: see ICE_SYSCTL_HELP_ADVERTISE_SPEED
  */
 static int
-ice_intersect_media_types_with_caps(struct ice_softc *sc, u16 sysctl_speeds,
-				    u64 *phy_type_low, u64 *phy_type_high)
+ice_intersect_phy_types_and_speeds(struct ice_softc *sc,
+				   struct ice_phy_data *phy_data)
 {
 	struct ice_aqc_get_phy_caps_data pcaps = { 0 };
-	struct ice_port_info *pi = sc->hw.port_info;
-	device_t dev = sc->dev;
+	const char *report_types[5] = { "w/o MEDIA",
+					"w/MEDIA",
+					"ACTIVE",
+					"EDOOFUS", /* Not used */
+					"DFLT" };
+	struct ice_hw *hw = &sc->hw;
+	struct ice_port_info *pi = hw->port_info;
 	enum ice_status status;
-	u64 temp_phy_low, temp_phy_high;
-	u64 final_phy_low, final_phy_high;
-	u16 topo_speeds;
+	u16 report_speeds, temp_speeds;
+	u8 report_type;
+	bool apply_speed_filter = false;
 
-	status = ice_aq_get_phy_caps(pi, false, ICE_AQC_REPORT_TOPO_CAP,
-	    &pcaps, NULL);
+	switch (phy_data->report_mode) {
+	case ICE_AQC_REPORT_TOPO_CAP_NO_MEDIA:
+	case ICE_AQC_REPORT_TOPO_CAP_MEDIA:
+	case ICE_AQC_REPORT_ACTIVE_CFG:
+	case ICE_AQC_REPORT_DFLT_CFG:
+		report_type = phy_data->report_mode >> 1;
+		break;
+	default:
+		device_printf(sc->dev,
+		    "%s: phy_data.report_mode \"%u\" doesn't exist\n",
+		    __func__, phy_data->report_mode);
+		return (EINVAL);
+	}
+
+	/* 0 is treated as "Auto"; the driver will handle selecting the
+	 * correct speeds. Including, in some cases, applying an override
+	 * if provided.
+	 */
+	if (phy_data->user_speeds_orig == 0)
+		phy_data->user_speeds_orig = USHRT_MAX;
+	else if (ice_is_bit_set(sc->feat_en, ICE_FEATURE_LENIENT_LINK_MODE))
+		apply_speed_filter = true;
+
+	status = ice_aq_get_phy_caps(pi, false, phy_data->report_mode, &pcaps, NULL);
 	if (status != ICE_SUCCESS) {
-		device_printf(dev,
-		    "%s: ice_aq_get_phy_caps (TOPO_CAP) failed; status %s, aq_err %s\n",
-		    __func__, ice_status_str(status),
+		device_printf(sc->dev,
+		    "%s: ice_aq_get_phy_caps (%s) failed; status %s, aq_err %s\n",
+		    __func__, report_types[report_type],
+		    ice_status_str(status),
 		    ice_aq_str(sc->hw.adminq.sq_last_status));
 		return (EIO);
 	}
 
-	final_phy_low = le64toh(pcaps.phy_type_low);
-	final_phy_high = le64toh(pcaps.phy_type_high);
-
-	topo_speeds = ice_aq_phy_types_to_sysctl_speeds(final_phy_low,
-	    final_phy_high);
-
-	/*
-	 * If the user specifies a subset of speeds the media is already
-	 * capable of supporting, then we're good to go.
-	 */
-	if ((sysctl_speeds & topo_speeds) == sysctl_speeds)
-		goto intersect_final;
-
-	temp_phy_low = final_phy_low;
-	temp_phy_high = final_phy_high;
-	/*
-	 * Otherwise, we'll have to use the superset if Lenient Mode is
-	 * supported.
-	 */
-	if (ice_is_bit_set(sc->feat_en, ICE_FEATURE_LENIENT_LINK_MODE)) {
-		/*
-		 * Start with masks that _don't_ include the PHY types
-		 * discovered by the TOPO_CAP.
-		 */
-		ice_sysctl_speeds_to_aq_phy_types(topo_speeds, &final_phy_low,
-		    &final_phy_high);
-		final_phy_low = ~final_phy_low;
-		final_phy_high = ~final_phy_high;
-
-		/* Get the PHY types the NVM says we can support */
-		status = ice_aq_get_phy_caps(pi, false, ICE_AQC_REPORT_NVM_CAP,
-		    &pcaps, NULL);
-		if (status != ICE_SUCCESS) {
-			device_printf(dev,
-			    "%s: ice_aq_get_phy_caps (NVM_CAP) failed; status %s, aq_err %s\n",
-			    __func__, ice_status_str(status),
-			    ice_aq_str(sc->hw.adminq.sq_last_status));
-			return (status);
+	phy_data->phy_low_orig = le64toh(pcaps.phy_type_low);
+	phy_data->phy_high_orig = le64toh(pcaps.phy_type_high);
+	report_speeds = ice_aq_phy_types_to_link_speeds(phy_data->phy_low_orig,
+	    phy_data->phy_high_orig);
+	if (apply_speed_filter) {
+		temp_speeds = ice_apply_supported_speed_filter(report_speeds,
+		    pcaps.module_type[0]);
+		if ((phy_data->user_speeds_orig & temp_speeds) == 0) {
+			device_printf(sc->dev,
+			    "User-specified speeds (\"0x%04X\") not supported\n",
+			    phy_data->user_speeds_orig);
+			return (EINVAL);
 		}
-
-		/*
-		 * Clear out the unsupported PHY types, including those
-		 * from TOPO_CAP.
-		 */
-		final_phy_low &= le64toh(pcaps.phy_type_low);
-		final_phy_high &= le64toh(pcaps.phy_type_high);
-		/*
-		 * Include PHY types from TOPO_CAP (which may be a subset
-		 * of the types the NVM specifies).
-		 */
-		final_phy_low |= temp_phy_low;
-		final_phy_high |= temp_phy_high;
+		report_speeds = temp_speeds;
 	}
-
-intersect_final:
-
-	if (ice_is_bit_set(sc->feat_en, ICE_FEATURE_LENIENT_LINK_MODE))
-		ice_apply_supported_speed_filter(&final_phy_low, &final_phy_high);
-
-	ice_sysctl_speeds_to_aq_phy_types(sysctl_speeds, &temp_phy_low,
-	    &temp_phy_high);
-
-	final_phy_low &= temp_phy_low;
-	final_phy_high &= temp_phy_high;
-
-	if (final_phy_low == 0 && final_phy_high == 0) {
-		device_printf(dev,
-		    "The selected speed is not supported by the current media. Please select a link speed that is supported by the current media.\n");
-		return (EINVAL);
-	}
-
-	/* Overwrite input phy_type values and return */
-	*phy_type_low = final_phy_low;
-	*phy_type_high = final_phy_high;
+	ice_sysctl_speeds_to_aq_phy_types(phy_data->user_speeds_orig,
+	    &phy_data->phy_low_intr, &phy_data->phy_high_intr);
+	phy_data->user_speeds_intr = phy_data->user_speeds_orig & report_speeds;
+	phy_data->phy_low_intr &= phy_data->phy_low_orig;
+	phy_data->phy_high_intr &= phy_data->phy_high_orig;
 
 	return (0);
-}
-
-/**
- * ice_get_auto_speeds - Get PHY type flags for "auto" speed
- * @sc: driver private structure
- * @phy_type_low: output low PHY type flags
- * @phy_type_high: output high PHY type flags
- *
- * Retrieves a suitable set of PHY type flags to use for an "auto" speed
- * setting by either using the NVM default overrides for speed, or retrieving
- * a default from the adapter using Get PHY capabilities in TOPO_CAPS mode.
- *
- * @returns 0 on success or EIO on AQ command failure
- */
-static int
-ice_get_auto_speeds(struct ice_softc *sc, u64 *phy_type_low,
-		    u64 *phy_type_high)
-{
-	struct ice_aqc_get_phy_caps_data pcaps = { 0 };
-	struct ice_hw *hw = &sc->hw;
-	struct ice_port_info *pi = hw->port_info;
-	device_t dev = sc->dev;
-	enum ice_status status;
-
-	if (ice_is_bit_set(sc->feat_en, ICE_FEATURE_DEFAULT_OVERRIDE)) {
-		/* copy over speed settings from LDO TLV */
-		*phy_type_low = CPU_TO_LE64(sc->ldo_tlv.phy_type_low);
-		*phy_type_high = CPU_TO_LE64(sc->ldo_tlv.phy_type_high);
-	} else {
-		status = ice_aq_get_phy_caps(pi, false, ICE_AQC_REPORT_TOPO_CAP,
-					     &pcaps, NULL);
-		if (status != ICE_SUCCESS) {
-			device_printf(dev,
-			    "%s: ice_aq_get_phy_caps (TOPO_CAP) failed; status %s, aq_err %s\n",
-			    __func__, ice_status_str(status),
-			    ice_aq_str(hw->adminq.sq_last_status));
-			return (EIO);
-		}
-
-		*phy_type_low = le64toh(pcaps.phy_type_low);
-		*phy_type_high = le64toh(pcaps.phy_type_high);
-	}
-
-	return (0);
-}
+ }
 
 /**
  * ice_sysctl_advertise_speed - Display/change link speeds supported by port
@@ -2992,15 +3004,11 @@ static int
 ice_sysctl_advertise_speed(SYSCTL_HANDLER_ARGS)
 {
 	struct ice_softc *sc = (struct ice_softc *)arg1;
-	struct ice_aqc_get_phy_caps_data pcaps = { 0 };
-	struct ice_aqc_set_phy_cfg_data cfg = { 0 };
-	struct ice_hw *hw = &sc->hw;
-	struct ice_port_info *pi = hw->port_info;
+	struct ice_port_info *pi = sc->hw.port_info;
+	struct ice_phy_data phy_data = { 0 };
 	device_t dev = sc->dev;
-	enum ice_status status;
-	u64 phy_low, phy_high;
-	u16 sysctl_speeds = 0;
-	int error = 0;
+	u16 sysctl_speeds;
+	int ret;
 
 	UNREFERENCED_PARAMETER(arg2);
 
@@ -3008,23 +3016,18 @@ ice_sysctl_advertise_speed(SYSCTL_HANDLER_ARGS)
 		return (ESHUTDOWN);
 
 	/* Get the current speeds from the adapter's "active" configuration. */
-	status = ice_aq_get_phy_caps(pi, false, ICE_AQC_REPORT_SW_CFG,
-				     &pcaps, NULL);
-	if (status != ICE_SUCCESS) {
-		device_printf(dev,
-		    "%s: ice_aq_get_phy_caps (SW_CFG) failed; status %s, aq_err %s\n",
-		    __func__, ice_status_str(status),
-		    ice_aq_str(hw->adminq.sq_last_status));
-		return (EIO);
+	phy_data.report_mode = ICE_AQC_REPORT_ACTIVE_CFG;
+	ret = ice_intersect_phy_types_and_speeds(sc, &phy_data);
+	if (ret) {
+		/* Error message already printed within function */
+		return (ret);
 	}
 
-	phy_low = le64toh(pcaps.phy_type_low);
-	phy_high = le64toh(pcaps.phy_type_high);
-	sysctl_speeds = ice_aq_phy_types_to_sysctl_speeds(phy_low, phy_high);
+	sysctl_speeds = phy_data.user_speeds_intr;
 
-	error = sysctl_handle_16(oidp, &sysctl_speeds, 0, req);
-	if ((error) || (req->newptr == NULL))
-		return (error);
+	ret = sysctl_handle_16(oidp, &sysctl_speeds, 0, req);
+	if ((ret) || (req->newptr == NULL))
+		return (ret);
 
 	if (sysctl_speeds > 0x7FF) {
 		device_printf(dev,
@@ -3033,53 +3036,10 @@ ice_sysctl_advertise_speed(SYSCTL_HANDLER_ARGS)
 		return (EINVAL);
 	}
 
-	/* 0 is treated as "Auto"; the driver will handle selecting the correct speeds,
-	 * or apply an override if one is specified in the NVM.
-	 */
-	if (sysctl_speeds == 0) {
-		error = ice_get_auto_speeds(sc, &phy_low, &phy_high);
-		if (error)
-			/* Function already prints appropriate error message */
-			return (error);
-	} else {
-		error = ice_intersect_media_types_with_caps(sc, sysctl_speeds,
-		    &phy_low, &phy_high);
-		if (error)
-			/* Function already prints appropriate error message */
-			return (error);
-	}
-	sysctl_speeds = ice_aq_phy_types_to_sysctl_speeds(phy_low, phy_high);
-
-	/* Cache new user setting for speeds */
 	pi->phy.curr_user_speed_req = sysctl_speeds;
 
-	/* Setup new PHY config with new input PHY types */
-	ice_copy_phy_caps_to_cfg(pi, &pcaps, &cfg);
-
-	cfg.phy_type_low = phy_low;
-	cfg.phy_type_high = phy_high;
-	cfg.caps |= ICE_AQ_PHY_ENA_AUTO_LINK_UPDT | ICE_AQ_PHY_ENA_LINK;
-
-	status = ice_aq_set_phy_cfg(hw, pi, &cfg, NULL);
-	if (status != ICE_SUCCESS) {
-		/* Don't indicate failure if there's no media in the port -- the sysctl
-		 * handler has saved the value and will apply it when media is inserted.
-		 */
-		if (status == ICE_ERR_AQ_ERROR &&
-		    hw->adminq.sq_last_status == ICE_AQ_RC_EBUSY) {
-			device_printf(dev,
-			    "%s: Setting will be applied when media is inserted\n", __func__);
-			return (0);
-		} else {
-			device_printf(dev,
-			    "%s: ice_aq_set_phy_cfg failed; status %s, aq_err %s\n",
-			    __func__, ice_status_str(status),
-			    ice_aq_str(hw->adminq.sq_last_status));
-			return (EIO);
-		}
-	}
-
-	return (0);
+	/* Apply settings requested by user */
+	return ice_apply_saved_phy_cfg(sc, ICE_APPLY_LS);
 }
 
 #define ICE_SYSCTL_HELP_FEC_CONFIG			\
@@ -3106,14 +3066,10 @@ ice_sysctl_fec_config(SYSCTL_HANDLER_ARGS)
 {
 	struct ice_softc *sc = (struct ice_softc *)arg1;
 	struct ice_port_info *pi = sc->hw.port_info;
-	struct ice_aqc_get_phy_caps_data pcaps = { 0 };
-	struct ice_aqc_set_phy_cfg_data cfg = { 0 };
-	struct ice_hw *hw = &sc->hw;
 	enum ice_fec_mode new_mode;
-	enum ice_status status;
 	device_t dev = sc->dev;
 	char req_fec[32];
-	int error = 0;
+	int ret;
 
 	UNREFERENCED_PARAMETER(arg2);
 
@@ -3123,9 +3079,9 @@ ice_sysctl_fec_config(SYSCTL_HANDLER_ARGS)
 	bzero(req_fec, sizeof(req_fec));
 	strlcpy(req_fec, ice_requested_fec_mode(pi), sizeof(req_fec));
 
-	error = sysctl_handle_string(oidp, req_fec, sizeof(req_fec), req);
-	if ((error) || (req->newptr == NULL))
-		return (error);
+	ret = sysctl_handle_string(oidp, req_fec, sizeof(req_fec), req);
+	if ((ret) || (req->newptr == NULL))
+		return (ret);
 
 	if (strcmp(req_fec, "auto") == 0 ||
 	    strcmp(req_fec, ice_fec_str(ICE_FEC_AUTO)) == 0) {
@@ -3149,74 +3105,8 @@ ice_sysctl_fec_config(SYSCTL_HANDLER_ARGS)
 	/* Cache user FEC mode for later link ups */
 	pi->phy.curr_user_fec_req = new_mode;
 
-	status = ice_aq_get_phy_caps(pi, false, ICE_AQC_REPORT_SW_CFG,
-				     &pcaps, NULL);
-	if (status != ICE_SUCCESS) {
-		device_printf(dev,
-		    "%s: ice_aq_get_phy_caps failed (SW_CFG); status %s, aq_err %s\n",
-		    __func__, ice_status_str(status),
-		    ice_aq_str(hw->adminq.sq_last_status));
-		return (EIO);
-	}
-
-	ice_copy_phy_caps_to_cfg(pi, &pcaps, &cfg);
-
-	/* Get link_fec_opt/AUTO_FEC mode from TOPO caps for base for new FEC mode */
-	memset(&pcaps, 0, sizeof(pcaps));
-	status = ice_aq_get_phy_caps(pi, false, ICE_AQC_REPORT_TOPO_CAP,
-				     &pcaps, NULL);
-	if (status != ICE_SUCCESS) {
-		device_printf(dev,
-		    "%s: ice_aq_get_phy_caps failed (TOPO_CAP); status %s, aq_err %s\n",
-		    __func__, ice_status_str(status),
-		    ice_aq_str(hw->adminq.sq_last_status));
-		return (EIO);
-	}
-
-	/* Configure new FEC options using TOPO caps */
-	cfg.link_fec_opt = pcaps.link_fec_options;
-	cfg.caps &= ~ICE_AQ_PHY_ENA_AUTO_FEC;
-	if (pcaps.caps & ICE_AQC_PHY_EN_AUTO_FEC)
-		cfg.caps |= ICE_AQ_PHY_ENA_AUTO_FEC;
-
-	if (ice_is_bit_set(sc->feat_en, ICE_FEATURE_DEFAULT_OVERRIDE) &&
-	    new_mode == ICE_FEC_AUTO) {
-		/* copy over FEC settings from LDO TLV */
-		cfg.link_fec_opt = sc->ldo_tlv.fec_options;
-	} else {
-		ice_cfg_phy_fec(pi, &cfg, new_mode);
-
-		/* Check if the new mode is valid, and exit with an error if not */
-		if (cfg.link_fec_opt &&
-		    !(cfg.link_fec_opt & pcaps.link_fec_options)) {
-			device_printf(dev,
-			    "%s: The requested FEC mode, %s, is not supported by current media\n",
-			    __func__, ice_fec_str(new_mode));
-			return (ENOTSUP);
-		}
-	}
-
-	cfg.caps |= ICE_AQ_PHY_ENA_AUTO_LINK_UPDT;
-	status = ice_aq_set_phy_cfg(hw, pi, &cfg, NULL);
-	if (status != ICE_SUCCESS) {
-		/* Don't indicate failure if there's no media in the port -- the sysctl
-		 * handler has saved the value and will apply it when media is inserted.
-		 */
-		if (status == ICE_ERR_AQ_ERROR &&
-		    hw->adminq.sq_last_status == ICE_AQ_RC_EBUSY) {
-			device_printf(dev,
-			    "%s: Setting will be applied when media is inserted\n", __func__);
-			return (0);
-		} else {
-			device_printf(dev,
-			    "%s: ice_aq_set_phy_cfg failed; status %s, aq_err %s\n",
-			    __func__, ice_status_str(status),
-			    ice_aq_str(hw->adminq.sq_last_status));
-			return (EIO);
-		}
-	}
-
-	return (0);
+	/* Apply settings requested by user */
+	return ice_apply_saved_phy_cfg(sc, ICE_APPLY_FEC);
 }
 
 /**
@@ -3234,7 +3124,7 @@ ice_sysctl_negotiated_fec(SYSCTL_HANDLER_ARGS)
 	struct ice_softc *sc = (struct ice_softc *)arg1;
 	struct ice_hw *hw = &sc->hw;
 	char neg_fec[32];
-	int error;
+	int ret;
 
 	UNREFERENCED_PARAMETER(arg2);
 
@@ -3245,11 +3135,11 @@ ice_sysctl_negotiated_fec(SYSCTL_HANDLER_ARGS)
 	bzero(neg_fec, sizeof(neg_fec));
 	strlcpy(neg_fec, ice_negotiated_fec_mode(hw->port_info), sizeof(neg_fec));
 
-	error = sysctl_handle_string(oidp, neg_fec, 0, req);
+	ret = sysctl_handle_string(oidp, neg_fec, 0, req);
 	if (req->newptr != NULL)
 		return (EPERM);
 
-	return (error);
+	return (ret);
 }
 
 #define ICE_SYSCTL_HELP_FC_CONFIG				\
@@ -3281,19 +3171,18 @@ ice_sysctl_fc_config(SYSCTL_HANDLER_ARGS)
 	struct ice_hw *hw = &sc->hw;
 	device_t dev = sc->dev;
 	enum ice_status status;
-	int error = 0, fc_num;
+	int ret, fc_num;
 	bool mode_set = false;
 	struct sbuf buf;
 	char *fc_str_end;
 	char fc_str[32];
-	u8 aq_failures;
 
 	UNREFERENCED_PARAMETER(arg2);
 
 	if (ice_driver_is_detaching(sc))
 		return (ESHUTDOWN);
 
-	status = ice_aq_get_phy_caps(pi, false, ICE_AQC_REPORT_SW_CFG,
+	status = ice_aq_get_phy_caps(pi, false, ICE_AQC_REPORT_ACTIVE_CFG,
 				     &pcaps, NULL);
 	if (status != ICE_SUCCESS) {
 		device_printf(dev,
@@ -3321,9 +3210,9 @@ ice_sysctl_fc_config(SYSCTL_HANDLER_ARGS)
 	sbuf_finish(&buf);
 	sbuf_delete(&buf);
 
-	error = sysctl_handle_string(oidp, fc_str, sizeof(fc_str), req);
-	if ((error) || (req->newptr == NULL))
-		return (error);
+	ret = sysctl_handle_string(oidp, fc_str, sizeof(fc_str), req);
+	if ((ret) || (req->newptr == NULL))
+		return (ret);
 
 	/* Try to parse input as a string, first */
 	if (strcasecmp(ice_fc_str(ICE_FC_FULL), fc_str) == 0) {
@@ -3372,26 +3261,20 @@ ice_sysctl_fc_config(SYSCTL_HANDLER_ARGS)
 		}
 	}
 
-	/* Finally, set the flow control mode in FW */
-	hw->port_info->fc.req_mode = new_mode;
-	status = ice_set_fc(pi, &aq_failures, true);
-	if (status != ICE_SUCCESS) {
-		/* Don't indicate failure if there's no media in the port -- the sysctl
-		 * handler has saved the value and will apply it when media is inserted.
-		 */
-		if (aq_failures == ICE_SET_FC_AQ_FAIL_SET &&
-		    hw->adminq.sq_last_status == ICE_AQ_RC_EBUSY) {
-			device_printf(dev,
-			    "%s: Setting will be applied when media is inserted\n", __func__);
-			return (0);
-		} else {
-			device_printf(dev,
-			    "%s: ice_set_fc AQ failure = %d\n", __func__, aq_failures);
-			return (EIO);
-		}
+	/* Save flow control mode from user */
+	pi->phy.curr_user_fc_req = new_mode;
+
+	/* Turn off Priority Flow Control when Link Flow Control is enabled */
+	if ((hw->port_info->qos_cfg.is_sw_lldp) &&
+	    (hw->port_info->qos_cfg.local_dcbx_cfg.pfc.pfcena != 0) &&
+	    (new_mode != ICE_FC_NONE)) {
+		ret = ice_config_pfc(sc, 0x0);
+		if (ret)
+			return (ret);
 	}
 
-	return (0);
+	/* Apply settings requested by user */
+	return ice_apply_saved_phy_cfg(sc, ICE_APPLY_FC);
 }
 
 /**
@@ -3443,14 +3326,14 @@ __ice_sysctl_phy_type_handler(SYSCTL_HANDLER_ARGS, bool is_phy_type_high)
 	device_t dev = sc->dev;
 	enum ice_status status;
 	uint64_t types;
-	int error = 0;
+	int ret;
 
 	UNREFERENCED_PARAMETER(arg2);
 
 	if (ice_driver_is_detaching(sc))
 		return (ESHUTDOWN);
 
-	status = ice_aq_get_phy_caps(hw->port_info, false, ICE_AQC_REPORT_SW_CFG,
+	status = ice_aq_get_phy_caps(hw->port_info, false, ICE_AQC_REPORT_ACTIVE_CFG,
 				     &pcaps, NULL);
 	if (status != ICE_SUCCESS) {
 		device_printf(dev,
@@ -3465,9 +3348,9 @@ __ice_sysctl_phy_type_handler(SYSCTL_HANDLER_ARGS, bool is_phy_type_high)
 	else
 		types = pcaps.phy_type_low;
 
-	error = sysctl_handle_64(oidp, &types, sizeof(types), req);
-	if ((error) || (req->newptr == NULL))
-		return (error);
+	ret = sysctl_handle_64(oidp, &types, sizeof(types), req);
+	if ((ret) || (req->newptr == NULL))
+		return (ret);
 
 	ice_copy_phy_caps_to_cfg(hw->port_info, &pcaps, &cfg);
 
@@ -3542,13 +3425,13 @@ ice_sysctl_phy_caps(SYSCTL_HANDLER_ARGS, u8 report_mode)
 	struct ice_port_info *pi = hw->port_info;
 	device_t dev = sc->dev;
 	enum ice_status status;
-	int error;
+	int ret;
 
 	UNREFERENCED_PARAMETER(arg2);
 
-	error = priv_check(curthread, PRIV_DRIVER);
-	if (error)
-		return (error);
+	ret = priv_check(curthread, PRIV_DRIVER);
+	if (ret)
+		return (ret);
 
 	if (ice_driver_is_detaching(sc))
 		return (ESHUTDOWN);
@@ -3562,11 +3445,11 @@ ice_sysctl_phy_caps(SYSCTL_HANDLER_ARGS, u8 report_mode)
 		return (EIO);
 	}
 
-	error = sysctl_handle_opaque(oidp, &pcaps, sizeof(pcaps), req);
+	ret = sysctl_handle_opaque(oidp, &pcaps, sizeof(pcaps), req);
 	if (req->newptr != NULL)
 		return (EPERM);
 
-	return (error);
+	return (ret);
 }
 
 /**
@@ -3583,7 +3466,7 @@ static int
 ice_sysctl_phy_sw_caps(SYSCTL_HANDLER_ARGS)
 {
 	return ice_sysctl_phy_caps(oidp, arg1, arg2, req,
-				   ICE_AQC_REPORT_SW_CFG);
+				   ICE_AQC_REPORT_ACTIVE_CFG);
 }
 
 /**
@@ -3600,7 +3483,7 @@ static int
 ice_sysctl_phy_nvm_caps(SYSCTL_HANDLER_ARGS)
 {
 	return ice_sysctl_phy_caps(oidp, arg1, arg2, req,
-				   ICE_AQC_REPORT_NVM_CAP);
+				   ICE_AQC_REPORT_TOPO_CAP_NO_MEDIA);
 }
 
 /**
@@ -3617,7 +3500,7 @@ static int
 ice_sysctl_phy_topo_caps(SYSCTL_HANDLER_ARGS)
 {
 	return ice_sysctl_phy_caps(oidp, arg1, arg2, req,
-				   ICE_AQC_REPORT_TOPO_CAP);
+				   ICE_AQC_REPORT_TOPO_CAP_MEDIA);
 }
 
 /**
@@ -3641,7 +3524,7 @@ ice_sysctl_phy_link_status(SYSCTL_HANDLER_ARGS)
 	struct ice_aq_desc desc;
 	device_t dev = sc->dev;
 	enum ice_status status;
-	int error;
+	int ret;
 
 	UNREFERENCED_PARAMETER(arg2);
 
@@ -3649,9 +3532,9 @@ ice_sysctl_phy_link_status(SYSCTL_HANDLER_ARGS)
 	 * Ensure that only contexts with driver privilege are allowed to
 	 * access this information
 	 */
-	error = priv_check(curthread, PRIV_DRIVER);
-	if (error)
-		return (error);
+	ret = priv_check(curthread, PRIV_DRIVER);
+	if (ret)
+		return (ret);
 
 	if (ice_driver_is_detaching(sc))
 		return (ESHUTDOWN);
@@ -3669,11 +3552,11 @@ ice_sysctl_phy_link_status(SYSCTL_HANDLER_ARGS)
 		return (EIO);
 	}
 
-	error = sysctl_handle_opaque(oidp, &link_data, sizeof(link_data), req);
+	ret = sysctl_handle_opaque(oidp, &link_data, sizeof(link_data), req);
 	if (req->newptr != NULL)
 		return (EPERM);
 
-	return (error);
+	return (ret);
 }
 
 /**
@@ -3780,7 +3663,7 @@ ice_sysctl_fw_lldp_agent(SYSCTL_HANDLER_ARGS)
 	struct ice_hw *hw = &sc->hw;
 	device_t dev = sc->dev;
 	enum ice_status status;
-	int error = 0;
+	int ret;
 	u32 old_state;
 	u8 fw_lldp_enabled;
 	bool retried_start_lldp = false;
@@ -3813,9 +3696,9 @@ ice_sysctl_fw_lldp_agent(SYSCTL_HANDLER_ARGS)
 	else
 		fw_lldp_enabled = true;
 
-	error = sysctl_handle_bool(oidp, &fw_lldp_enabled, 0, req);
-	if ((error) || (req->newptr == NULL))
-		return (error);
+	ret = sysctl_handle_bool(oidp, &fw_lldp_enabled, 0, req);
+	if ((ret) || (req->newptr == NULL))
+		return (ret);
 
 	if (old_state == 0 && fw_lldp_enabled == false)
 		return (0);
@@ -3864,7 +3747,322 @@ retry_start_lldp:
 		hw->port_info->qos_cfg.is_sw_lldp = false;
 	}
 
-	return (error);
+	return (ret);
+}
+
+#define ICE_SYSCTL_HELP_ETS_MIN_RATE \
+"\nIn FW DCB mode (fw_lldp_agent=1), displays the current ETS bandwidth table." \
+"\nIn SW DCB mode, displays and allows setting the table." \
+"\nInput must be in the format e.g. 30,10,10,10,10,10,10,10" \
+"\nWhere the bandwidth total must add up to 100"
+
+/**
+ * ice_sysctl_ets_min_rate - Report/configure ETS bandwidth
+ * @oidp: sysctl oid structure
+ * @arg1: pointer to private data structure
+ * @arg2: unused
+ * @req: sysctl request pointer
+ *
+ * Returns the current ETS TC bandwidth table
+ * cached by the driver.
+ *
+ * In SW DCB mode this sysctl also accepts a value that will
+ * be sent to the firmware for configuration.
+ */
+static int
+ice_sysctl_ets_min_rate(SYSCTL_HANDLER_ARGS)
+{
+	struct ice_softc *sc = (struct ice_softc *)arg1;
+	struct ice_dcbx_cfg *local_dcbx_cfg;
+	struct ice_port_info *pi;
+	struct ice_hw *hw = &sc->hw;
+	device_t dev = sc->dev;
+	enum ice_status status;
+	struct sbuf *sbuf;
+	int ret;
+
+	/* Store input rates from user */
+	char ets_user_buf[128] = "";
+	u8 new_ets_table[ICE_MAX_TRAFFIC_CLASS] = {};
+
+	UNREFERENCED_PARAMETER(arg2);
+
+	if (ice_driver_is_detaching(sc))
+		return (ESHUTDOWN);
+
+	if (req->oldptr == NULL && req->newptr == NULL) {
+		ret = SYSCTL_OUT(req, 0, 128);
+		return (ret);
+	}
+
+	pi = hw->port_info;
+	local_dcbx_cfg = &pi->qos_cfg.local_dcbx_cfg;
+
+	sbuf = sbuf_new(NULL, ets_user_buf, 128, SBUF_FIXEDLEN | SBUF_INCLUDENUL);
+
+	/* Format ETS BW data for output */
+	for (int i = 0; i < ICE_MAX_TRAFFIC_CLASS; i++) {
+		sbuf_printf(sbuf, "%d", local_dcbx_cfg->etscfg.tcbwtable[i]);
+		if (i != ICE_MAX_TRAFFIC_CLASS - 1)
+			sbuf_printf(sbuf, ",");
+	}
+
+	sbuf_finish(sbuf);
+	sbuf_delete(sbuf);
+
+	/* Read in the new ETS values */
+	ret = sysctl_handle_string(oidp, ets_user_buf, sizeof(ets_user_buf), req);
+	if ((ret) || (req->newptr == NULL))
+		return (ret);
+
+	/* Don't allow setting changes in FW DCB mode */
+	if (!hw->port_info->qos_cfg.is_sw_lldp)
+		return (EPERM);
+
+	ret = ice_ets_str_to_tbl(ets_user_buf, new_ets_table, 100);
+	if (ret) {
+		device_printf(dev, "%s: Could not parse input BW table: %s\n",
+		    __func__, ets_user_buf);
+		return (ret);
+	}
+
+	if (!ice_check_ets_bw(new_ets_table)) {
+		device_printf(dev, "%s: Bandwidth sum does not equal 100: %s\n",
+		    __func__, ets_user_buf);
+		return (EINVAL);
+	}
+
+	memcpy(local_dcbx_cfg->etscfg.tcbwtable, new_ets_table,
+	    sizeof(new_ets_table));
+
+	/* If BW > 0, then set TSA entry to 2 */
+	for (int i = 0; i < ICE_MAX_TRAFFIC_CLASS; i++) {
+		if (new_ets_table[i] > 0)
+			local_dcbx_cfg->etscfg.tsatable[i] = 2;
+		else
+			local_dcbx_cfg->etscfg.tsatable[i] = 0;
+	}
+	local_dcbx_cfg->etscfg.willing = 0;
+	local_dcbx_cfg->etsrec = local_dcbx_cfg->etscfg;
+	local_dcbx_cfg->app_mode = ICE_DCBX_APPS_NON_WILLING;
+
+	status = ice_set_dcb_cfg(pi);
+	if (status) {
+		device_printf(dev,
+		    "%s: Failed to set DCB config; status %s, aq_err %s\n",
+		    __func__, ice_status_str(status),
+		    ice_aq_str(hw->adminq.sq_last_status));
+		return (EIO);
+	}
+
+	ice_do_dcb_reconfig(sc);
+
+	return (0);
+}
+
+#define ICE_SYSCTL_HELP_UP2TC_MAP \
+"\nIn FW DCB mode (fw_lldp_agent=1), displays the current ETS priority assignment table." \
+"\nIn SW DCB mode, displays and allows setting the table." \
+"\nInput must be in this format: 0,1,2,3,4,5,6,7" \
+"\nWhere the 1st number is the TC for UP0, 2nd number is the TC for UP1, etc"
+
+/**
+ * ice_sysctl_up2tc_map - Report or configure UP2TC mapping
+ * @oidp: sysctl oid structure
+ * @arg1: pointer to private data structure
+ * @arg2: unused
+ * @req: sysctl request pointer
+ *
+ * In FW DCB mode, returns the current ETS prio table /
+ * UP2TC mapping from the local MIB.
+ *
+ * In SW DCB mode this sysctl also accepts a value that will
+ * be sent to the firmware for configuration.
+ */
+static int
+ice_sysctl_up2tc_map(SYSCTL_HANDLER_ARGS)
+{
+	struct ice_softc *sc = (struct ice_softc *)arg1;
+	struct ice_dcbx_cfg *local_dcbx_cfg;
+	struct ice_port_info *pi;
+	struct ice_hw *hw = &sc->hw;
+	device_t dev = sc->dev;
+	enum ice_status status;
+	struct sbuf *sbuf;
+	int ret;
+
+	/* Store input rates from user */
+	char up2tc_user_buf[128] = "";
+	/* This array is indexed by UP, not TC */
+	u8 new_up2tc[ICE_MAX_TRAFFIC_CLASS] = {};
+
+	UNREFERENCED_PARAMETER(arg2);
+
+	if (ice_driver_is_detaching(sc))
+		return (ESHUTDOWN);
+
+	if (req->oldptr == NULL && req->newptr == NULL) {
+		ret = SYSCTL_OUT(req, 0, 128);
+		return (ret);
+	}
+
+	pi = hw->port_info;
+	local_dcbx_cfg = &pi->qos_cfg.local_dcbx_cfg;
+
+	sbuf = sbuf_new(NULL, up2tc_user_buf, 128, SBUF_FIXEDLEN | SBUF_INCLUDENUL);
+
+	/* Format ETS Priority Mapping Table for output */
+	for (int i = 0; i < ICE_MAX_TRAFFIC_CLASS; i++) {
+		sbuf_printf(sbuf, "%d", local_dcbx_cfg->etscfg.prio_table[i]);
+		if (i != ICE_MAX_TRAFFIC_CLASS - 1)
+			sbuf_printf(sbuf, ",");
+	}
+
+	sbuf_finish(sbuf);
+	sbuf_delete(sbuf);
+
+	/* Read in the new ETS priority mapping */
+	ret = sysctl_handle_string(oidp, up2tc_user_buf, sizeof(up2tc_user_buf), req);
+	if ((ret) || (req->newptr == NULL))
+		return (ret);
+
+	/* Don't allow setting changes in FW DCB mode */
+	if (!hw->port_info->qos_cfg.is_sw_lldp)
+		return (EPERM);
+
+	ret = ice_ets_str_to_tbl(up2tc_user_buf, new_up2tc, 7);
+	if (ret) {
+		device_printf(dev, "%s: Could not parse input priority assignment table: %s\n",
+		    __func__, up2tc_user_buf);
+		return (ret);
+	}
+
+	/* Prepare updated ETS TLV */
+	memcpy(local_dcbx_cfg->etscfg.prio_table, new_up2tc,
+	    sizeof(new_up2tc));
+
+	status = ice_set_dcb_cfg(pi);
+	if (status) {
+		device_printf(dev,
+		    "%s: Failed to set DCB config; status %s, aq_err %s\n",
+		    __func__, ice_status_str(status),
+		    ice_aq_str(hw->adminq.sq_last_status));
+		return (EIO);
+	}
+
+	ice_do_dcb_reconfig(sc);
+
+	return (0);
+}
+
+/**
+ * ice_config_pfc - helper function to set PFC config in FW
+ * @sc: device private structure
+ * @new_mode: bit flags indicating PFC status for TCs
+ *
+ * @pre must be in SW DCB mode
+ *
+ * Configures the driver's local PFC TLV and sends it to the
+ * FW for configuration, then reconfigures the driver/VSI
+ * for DCB if needed.
+ */
+static int
+ice_config_pfc(struct ice_softc *sc, u8 new_mode)
+{
+	struct ice_dcbx_cfg *local_dcbx_cfg;
+	struct ice_hw *hw = &sc->hw;
+	struct ice_port_info *pi;
+	device_t dev = sc->dev;
+	enum ice_status status;
+
+	pi = hw->port_info;
+	local_dcbx_cfg = &pi->qos_cfg.local_dcbx_cfg;
+
+	/* Prepare updated PFC TLV */
+	local_dcbx_cfg->pfc.pfcena = new_mode;
+	local_dcbx_cfg->pfc.pfccap = ICE_MAX_TRAFFIC_CLASS;
+	local_dcbx_cfg->pfc.willing = 0;
+	local_dcbx_cfg->pfc.mbc = 0;
+
+	status = ice_set_dcb_cfg(pi);
+	if (status) {
+		device_printf(dev,
+		    "%s: Failed to set DCB config; status %s, aq_err %s\n",
+		    __func__, ice_status_str(status),
+		    ice_aq_str(hw->adminq.sq_last_status));
+		return (EIO);
+	}
+
+	ice_do_dcb_reconfig(sc);
+
+	return (0);
+}
+
+#define ICE_SYSCTL_HELP_PFC_CONFIG \
+"\nIn FW DCB mode (fw_lldp_agent=1), displays the current Priority Flow Control configuration" \
+"\nIn SW DCB mode, displays and allows setting the configuration" \
+"\nInput/Output is in this format: 0xff" \
+"\nWhere bit position # enables/disables PFC for that Traffic Class #"
+
+/**
+ * ice_sysctl_pfc_config - Report or configure enabled PFC TCs
+ * @oidp: sysctl oid structure
+ * @arg1: pointer to private data structure
+ * @arg2: unused
+ * @req: sysctl request pointer
+ *
+ * In FW DCB mode, returns a bitmap containing the current TCs
+ * that have PFC enabled on them.
+ *
+ * In SW DCB mode this sysctl also accepts a value that will
+ * be sent to the firmware for configuration.
+ */
+static int
+ice_sysctl_pfc_config(SYSCTL_HANDLER_ARGS)
+{
+	struct ice_softc *sc = (struct ice_softc *)arg1;
+	struct ice_dcbx_cfg *local_dcbx_cfg;
+	struct ice_port_info *pi;
+	struct ice_hw *hw = &sc->hw;
+	int ret;
+
+	/* Store input flags from user */
+	u8 user_pfc;
+
+	UNREFERENCED_PARAMETER(arg2);
+
+	if (ice_driver_is_detaching(sc))
+		return (ESHUTDOWN);
+
+	if (req->oldptr == NULL && req->newptr == NULL) {
+		ret = SYSCTL_OUT(req, 0, sizeof(u8));
+		return (ret);
+	}
+
+	pi = hw->port_info;
+	local_dcbx_cfg = &pi->qos_cfg.local_dcbx_cfg;
+
+	/* Format current PFC enable setting for output */
+	user_pfc = local_dcbx_cfg->pfc.pfcena;
+
+	/* Read in the new PFC config */
+	ret = sysctl_handle_8(oidp, &user_pfc, 0, req);
+	if ((ret) || (req->newptr == NULL))
+		return (ret);
+
+	/* Don't allow setting changes in FW DCB mode */
+	if (!hw->port_info->qos_cfg.is_sw_lldp)
+		return (EPERM);
+
+	/* If LFC is active and PFC is going to be turned on, turn LFC off */
+	if (user_pfc != 0 && pi->phy.curr_user_fc_req != ICE_FC_NONE) {
+		pi->phy.curr_user_fc_req = ICE_FC_NONE;
+		ret = ice_apply_saved_phy_cfg(sc, ICE_APPLY_FC);
+		if (ret)
+			return (ret);
+	}
+
+	return ice_config_pfc(sc, user_pfc);
 }
 
 /**
@@ -3892,9 +4090,11 @@ ice_add_device_sysctls(struct ice_softc *sc)
 	    OID_AUTO, "fw_version", CTLTYPE_STRING | CTLFLAG_RD,
 	    sc, 0, ice_sysctl_show_fw, "A", "Firmware version");
 
-	SYSCTL_ADD_PROC(ctx, ctx_list,
-	    OID_AUTO, "pba_number", CTLTYPE_STRING | CTLFLAG_RD,
-	    sc, 0, ice_sysctl_pba_number, "A", "Product Board Assembly Number");
+	if (ice_is_bit_set(sc->feat_en, ICE_FEATURE_HAS_PBA)) {
+		SYSCTL_ADD_PROC(ctx, ctx_list,
+		    OID_AUTO, "pba_number", CTLTYPE_STRING | CTLFLAG_RD, sc, 0,
+		    ice_sysctl_pba_number, "A", "Product Board Assembly Number");
+	}
 
 	SYSCTL_ADD_PROC(ctx, ctx_list,
 	    OID_AUTO, "ddp_version", CTLTYPE_STRING | CTLFLAG_RD,
@@ -3923,6 +4123,18 @@ ice_add_device_sysctls(struct ice_softc *sc)
 	SYSCTL_ADD_PROC(ctx, ctx_list,
 	    OID_AUTO, "fw_lldp_agent", CTLTYPE_U8 | CTLFLAG_RWTUN,
 	    sc, 0, ice_sysctl_fw_lldp_agent, "CU", ICE_SYSCTL_HELP_FW_LLDP_AGENT);
+
+	SYSCTL_ADD_PROC(ctx, ctx_list,
+	    OID_AUTO, "ets_min_rate", CTLTYPE_STRING | CTLFLAG_RW,
+	    sc, 0, ice_sysctl_ets_min_rate, "A", ICE_SYSCTL_HELP_ETS_MIN_RATE);
+
+	SYSCTL_ADD_PROC(ctx, ctx_list,
+	    OID_AUTO, "up2tc_map", CTLTYPE_STRING | CTLFLAG_RW,
+	    sc, 0, ice_sysctl_up2tc_map, "A", ICE_SYSCTL_HELP_UP2TC_MAP);
+
+	SYSCTL_ADD_PROC(ctx, ctx_list,
+	    OID_AUTO, "pfc", CTLTYPE_U8 | CTLFLAG_RW,
+	    sc, 0, ice_sysctl_pfc_config, "CU", ICE_SYSCTL_HELP_PFC_CONFIG);
 
 	/* Differentiate software and hardware statistics, by keeping hw stats
 	 * in their own node. This isn't in ice_add_device_tunables, because
@@ -4157,6 +4369,47 @@ ice_sysctl_rx_cso_stat(SYSCTL_HANDLER_ARGS)
 }
 
 /**
+ * ice_sysctl_rx_errors_stat - Display aggregate of Rx errors
+ * @oidp: sysctl oid structure
+ * @arg1: pointer to private data structure
+ * @arg2: unused
+ * @req: sysctl request pointer
+ *
+ * On read: Sums current values of Rx error statistics and
+ * displays it.
+ */
+static int
+ice_sysctl_rx_errors_stat(SYSCTL_HANDLER_ARGS)
+{
+	struct ice_vsi *vsi = (struct ice_vsi *)arg1;
+	struct ice_hw_port_stats *hs = &vsi->sc->stats.cur;
+	u64 stat = 0;
+	int i, type;
+
+	UNREFERENCED_PARAMETER(arg2);
+
+	if (ice_driver_is_detaching(vsi->sc))
+		return (ESHUTDOWN);
+
+	stat += hs->rx_undersize;
+	stat += hs->rx_fragments;
+	stat += hs->rx_oversize;
+	stat += hs->rx_jabber;
+	stat += hs->rx_len_errors;
+	stat += hs->crc_errors;
+	stat += hs->illegal_bytes;
+
+	/* Checksum error stats */
+	for (i = 0; i < vsi->num_rx_queues; i++)
+		for (type = ICE_CSO_STAT_RX_IP4_ERR;
+		     type < ICE_CSO_STAT_RX_COUNT;
+		     type++)
+			stat += vsi->rx_queues[i].stats.cso[type];
+
+	return sysctl_handle_64(oidp, NULL, stat, req);
+}
+
+/**
  * @struct ice_rx_cso_stat_info
  * @brief sysctl information for an Rx checksum offload statistic
  *
@@ -4264,7 +4517,7 @@ ice_add_vsi_sysctls(struct ice_vsi *vsi)
 {
 	struct sysctl_ctx_list *ctx = &vsi->ctx;
 	struct sysctl_oid *hw_node, *sw_node;
-	struct sysctl_oid_list *vsi_list, *hw_list, *sw_list;
+	struct sysctl_oid_list *vsi_list, *hw_list;
 
 	vsi_list = SYSCTL_CHILDREN(vsi->vsi_node);
 
@@ -4280,9 +4533,10 @@ ice_add_vsi_sysctls(struct ice_vsi *vsi)
 			CTLFLAG_RD | CTLFLAG_STATS, &vsi->hw_stats.cur.rx_discards,
 			0, "Discarded Rx Packets (see rx_errors or rx_no_desc)");
 
-	SYSCTL_ADD_U64(ctx, hw_list, OID_AUTO, "rx_errors",
-		       CTLFLAG_RD | CTLFLAG_STATS, &vsi->hw_stats.cur.rx_errors,
-		       0, "Rx Packets Discarded Due To Error");
+	SYSCTL_ADD_PROC(ctx, hw_list, OID_AUTO, "rx_errors",
+			CTLTYPE_U64 | CTLFLAG_RD | CTLFLAG_STATS,
+			vsi, 0, ice_sysctl_rx_errors_stat, "QU",
+			"Aggregate of all Rx errors");
 
 	SYSCTL_ADD_U64(ctx, hw_list, OID_AUTO, "rx_no_desc",
 		       CTLFLAG_RD | CTLFLAG_STATS, &vsi->hw_stats.cur.rx_no_desc,
@@ -4295,9 +4549,86 @@ ice_add_vsi_sysctls(struct ice_vsi *vsi)
 	/* Add a node for statistics tracked by software. */
 	sw_node = SYSCTL_ADD_NODE(ctx, vsi_list, OID_AUTO, "sw", CTLFLAG_RD,
 				  NULL, "VSI Software Statistics");
-	sw_list = SYSCTL_CHILDREN(sw_node);
 
 	ice_add_sysctls_sw_stats(vsi, ctx, sw_node);
+}
+
+/**
+ * ice_add_sysctls_mac_pfc_one_stat - Add sysctl node for a PFC statistic
+ * @ctx: sysctl ctx to use
+ * @parent_list: parent sysctl list to add sysctls under
+ * @pfc_stat_location: address of statistic for sysctl to display
+ * @node_name: Name for statistic node
+ * @descr: Description used for nodes added in this function
+ *
+ * A helper function for ice_add_sysctls_mac_pfc_stats that adds a node
+ * for a stat and leaves for each traffic class for that stat.
+ */
+static void
+ice_add_sysctls_mac_pfc_one_stat(struct sysctl_ctx_list *ctx,
+				 struct sysctl_oid_list *parent_list,
+				 u64* pfc_stat_location,
+				 const char *node_name,
+				 const char *descr)
+{
+	struct sysctl_oid_list *node_list;
+	struct sysctl_oid *node;
+	struct sbuf *namebuf, *descbuf;
+
+	node = SYSCTL_ADD_NODE(ctx, parent_list, OID_AUTO, node_name, CTLFLAG_RD,
+				   NULL, descr);
+	node_list = SYSCTL_CHILDREN(node);
+
+	namebuf = sbuf_new_auto();
+	descbuf = sbuf_new_auto();
+	for (int i = 0; i < ICE_MAX_DCB_TCS; i++) {
+		sbuf_clear(namebuf);
+		sbuf_clear(descbuf);
+
+		sbuf_printf(namebuf, "%d", i);
+		sbuf_printf(descbuf, "%s for TC %d", descr, i);
+
+		sbuf_finish(namebuf);
+		sbuf_finish(descbuf);
+
+		SYSCTL_ADD_U64(ctx, node_list, OID_AUTO, sbuf_data(namebuf),
+			CTLFLAG_RD | CTLFLAG_STATS, &pfc_stat_location[i], 0,
+			sbuf_data(descbuf));
+	}
+
+	sbuf_delete(namebuf);
+	sbuf_delete(descbuf);
+}
+
+/**
+ * ice_add_sysctls_mac_pfc_stats - Add sysctls for MAC PFC statistics
+ * @ctx: the sysctl ctx to use
+ * @parent: parent node to add the sysctls under
+ * @stats: the hw ports stat structure to pull values from
+ *
+ * Add global Priority Flow Control MAC statistics sysctls. These are
+ * structured as a node with the PFC statistic, where there are eight
+ * nodes for each traffic class.
+ */
+static void
+ice_add_sysctls_mac_pfc_stats(struct sysctl_ctx_list *ctx,
+			      struct sysctl_oid *parent,
+			      struct ice_hw_port_stats *stats)
+{
+	struct sysctl_oid_list *parent_list;
+
+	parent_list = SYSCTL_CHILDREN(parent);
+
+	ice_add_sysctls_mac_pfc_one_stat(ctx, parent_list, stats->priority_xon_rx,
+	    "p_xon_recvd", "PFC XON received");
+	ice_add_sysctls_mac_pfc_one_stat(ctx, parent_list, stats->priority_xoff_rx,
+	    "p_xoff_recvd", "PFC XOFF received");
+	ice_add_sysctls_mac_pfc_one_stat(ctx, parent_list, stats->priority_xon_tx,
+	    "p_xon_txd", "PFC XON transmitted");
+	ice_add_sysctls_mac_pfc_one_stat(ctx, parent_list, stats->priority_xoff_tx,
+	    "p_xoff_txd", "PFC XOFF transmitted");
+	ice_add_sysctls_mac_pfc_one_stat(ctx, parent_list, stats->priority_xon_2_xoff,
+	    "p_xon2xoff", "PFC XON to XOFF transitions");
 }
 
 /**
@@ -4322,8 +4653,11 @@ ice_add_sysctls_mac_stats(struct sysctl_ctx_list *ctx,
 				   NULL, "Mac Hardware Statistics");
 	mac_list = SYSCTL_CHILDREN(mac_node);
 
-	/* add the common ethernet statistics */
+	/* Add the ethernet statistics common to VSI and MAC */
 	ice_add_sysctls_eth_stats(ctx, mac_node, &stats->eth);
+
+	/* Add PFC stats that add per-TC counters */
+	ice_add_sysctls_mac_pfc_stats(ctx, mac_node, stats);
 
 	const struct ice_sysctl_info ctls[] = {
 		/* Packet Reception Stats */
@@ -4713,16 +5047,16 @@ ice_sysctl_rx_itr(SYSCTL_HANDLER_ARGS)
 {
 	struct ice_vsi *vsi = (struct ice_vsi *)arg1;
 	struct ice_softc *sc = vsi->sc;
-	int increment, error = 0;
+	int increment, ret;
 
 	UNREFERENCED_PARAMETER(arg2);
 
 	if (ice_driver_is_detaching(sc))
 		return (ESHUTDOWN);
 
-	error = sysctl_handle_16(oidp, &vsi->rx_itr, 0, req);
-	if ((error) || (req->newptr == NULL))
-		return (error);
+	ret = sysctl_handle_16(oidp, &vsi->rx_itr, 0, req);
+	if ((ret) || (req->newptr == NULL))
+		return (ret);
 
 	if (vsi->rx_itr < 0)
 		vsi->rx_itr = ICE_DFLT_RX_ITR;
@@ -4765,16 +5099,16 @@ ice_sysctl_tx_itr(SYSCTL_HANDLER_ARGS)
 {
 	struct ice_vsi *vsi = (struct ice_vsi *)arg1;
 	struct ice_softc *sc = vsi->sc;
-	int increment, error = 0;
+	int increment, ret;
 
 	UNREFERENCED_PARAMETER(arg2);
 
 	if (ice_driver_is_detaching(sc))
 		return (ESHUTDOWN);
 
-	error = sysctl_handle_16(oidp, &vsi->tx_itr, 0, req);
-	if ((error) || (req->newptr == NULL))
-		return (error);
+	ret = sysctl_handle_16(oidp, &vsi->tx_itr, 0, req);
+	if ((ret) || (req->newptr == NULL))
+		return (ret);
 
 	/* Allow configuring a negative value to reset to the default */
 	if (vsi->tx_itr < 0)
@@ -4892,6 +5226,12 @@ ice_add_device_tunables(struct ice_softc *sc)
 	struct sysctl_ctx_list *ctx = device_get_sysctl_ctx(dev);
 	struct sysctl_oid_list *ctx_list =
 		SYSCTL_CHILDREN(device_get_sysctl_tree(dev));
+
+	sc->enable_health_events = ice_enable_health_events;
+
+	SYSCTL_ADD_BOOL(ctx, ctx_list, OID_AUTO, "enable_health_events",
+			CTLFLAG_RDTUN, &sc->enable_health_events, 0,
+			"Enable FW health event reporting for this PF");
 
 	/* Add a node to track VSI sysctls. Keep track of the node in the
 	 * softc so that we can hook other sysctls into it later. This
@@ -5266,23 +5606,27 @@ ice_add_debug_tunables(struct ice_softc *sc)
 	debug_list = SYSCTL_CHILDREN(sc->debug_sysctls);
 
 	SYSCTL_ADD_U64(ctx, debug_list, OID_AUTO, "debug_mask",
-		       CTLFLAG_RW | CTLFLAG_TUN, &sc->hw.debug_mask, 0,
+		       ICE_CTLFLAG_DEBUG | CTLFLAG_RW | CTLFLAG_TUN,
+		       &sc->hw.debug_mask, 0,
 		       "Debug message enable/disable mask");
 
 	/* Load the default value from the global sysctl first */
 	sc->enable_tx_fc_filter = ice_enable_tx_fc_filter;
 
 	SYSCTL_ADD_BOOL(ctx, debug_list, OID_AUTO, "enable_tx_fc_filter",
-			CTLFLAG_RDTUN, &sc->enable_tx_fc_filter, 0,
+			ICE_CTLFLAG_DEBUG | CTLFLAG_RDTUN,
+			&sc->enable_tx_fc_filter, 0,
 			"Drop Ethertype 0x8808 control frames originating from software on this PF");
 
 	/* Load the default value from the global sysctl first */
 	sc->enable_tx_lldp_filter = ice_enable_tx_lldp_filter;
 
 	SYSCTL_ADD_BOOL(ctx, debug_list, OID_AUTO, "enable_tx_lldp_filter",
-			CTLFLAG_RDTUN, &sc->enable_tx_lldp_filter, 0,
+			ICE_CTLFLAG_DEBUG | CTLFLAG_RDTUN,
+			&sc->enable_tx_lldp_filter, 0,
 			"Drop Ethertype 0x88cc LLDP frames originating from software on this PF");
 
+	ice_add_fw_logging_tunables(sc, sc->debug_sysctls);
 }
 
 #define ICE_SYSCTL_HELP_REQUEST_RESET		\
@@ -5321,7 +5665,7 @@ ice_sysctl_request_reset(SYSCTL_HANDLER_ARGS)
 	enum ice_status status;
 	enum ice_reset_req reset_type = ICE_RESET_INVAL;
 	const char *reset_message;
-	int error = 0;
+	int ret;
 
 	/* Buffer to store the requested reset string. Must contain enough
 	 * space to store the largest expected reset string, which currently
@@ -5331,17 +5675,17 @@ ice_sysctl_request_reset(SYSCTL_HANDLER_ARGS)
 
 	UNREFERENCED_PARAMETER(arg2);
 
-	error = priv_check(curthread, PRIV_DRIVER);
-	if (error)
-		return (error);
+	ret = priv_check(curthread, PRIV_DRIVER);
+	if (ret)
+		return (ret);
 
 	if (ice_driver_is_detaching(sc))
 		return (ESHUTDOWN);
 
 	/* Read in the requested reset type. */
-	error = sysctl_handle_string(oidp, reset, sizeof(reset), req);
-	if ((error) || (req->newptr == NULL))
-		return (error);
+	ret = sysctl_handle_string(oidp, reset, sizeof(reset), req);
+	if ((ret) || (req->newptr == NULL))
+		return (ret);
 
 	if (strcmp(reset, "pfr") == 0) {
 		reset_message = "Requesting a PF reset";
@@ -5439,105 +5783,146 @@ ice_add_debug_sysctls(struct ice_softc *sc)
 	debug_list = SYSCTL_CHILDREN(sc->debug_sysctls);
 
 	SYSCTL_ADD_PROC(ctx, debug_list, OID_AUTO, "request_reset",
-			CTLTYPE_STRING | CTLFLAG_WR, sc, 0,
+			ICE_CTLFLAG_DEBUG | CTLTYPE_STRING | CTLFLAG_WR, sc, 0,
 			ice_sysctl_request_reset, "A",
 			ICE_SYSCTL_HELP_REQUEST_RESET);
 
-	SYSCTL_ADD_U32(ctx, debug_list, OID_AUTO, "pfr_count", CTLFLAG_RD,
-		       &sc->soft_stats.pfr_count, 0, "# of PF resets handled");
+	SYSCTL_ADD_U32(ctx, debug_list, OID_AUTO, "pfr_count",
+		       ICE_CTLFLAG_DEBUG | CTLFLAG_RD,
+		       &sc->soft_stats.pfr_count, 0,
+		       "# of PF resets handled");
 
-	SYSCTL_ADD_U32(ctx, debug_list, OID_AUTO, "corer_count", CTLFLAG_RD,
-		       &sc->soft_stats.corer_count, 0, "# of CORE resets handled");
+	SYSCTL_ADD_U32(ctx, debug_list, OID_AUTO, "corer_count",
+		       ICE_CTLFLAG_DEBUG | CTLFLAG_RD,
+		       &sc->soft_stats.corer_count, 0,
+		       "# of CORE resets handled");
 
-	SYSCTL_ADD_U32(ctx, debug_list, OID_AUTO, "globr_count", CTLFLAG_RD,
-		       &sc->soft_stats.globr_count, 0, "# of Global resets handled");
+	SYSCTL_ADD_U32(ctx, debug_list, OID_AUTO, "globr_count",
+		       ICE_CTLFLAG_DEBUG | CTLFLAG_RD,
+		       &sc->soft_stats.globr_count, 0,
+		       "# of Global resets handled");
 
-	SYSCTL_ADD_U32(ctx, debug_list, OID_AUTO, "empr_count", CTLFLAG_RD,
-		       &sc->soft_stats.empr_count, 0, "# of EMP resets handled");
+	SYSCTL_ADD_U32(ctx, debug_list, OID_AUTO, "empr_count",
+		       ICE_CTLFLAG_DEBUG | CTLFLAG_RD,
+		       &sc->soft_stats.empr_count, 0,
+		       "# of EMP resets handled");
 
-	SYSCTL_ADD_U32(ctx, debug_list, OID_AUTO, "tx_mdd_count", CTLFLAG_RD,
-		       &sc->soft_stats.tx_mdd_count, 0, "# of Tx MDD events detected");
+	SYSCTL_ADD_U32(ctx, debug_list, OID_AUTO, "tx_mdd_count",
+		       ICE_CTLFLAG_DEBUG | CTLFLAG_RD,
+		       &sc->soft_stats.tx_mdd_count, 0,
+		       "# of Tx MDD events detected");
 
-	SYSCTL_ADD_U32(ctx, debug_list, OID_AUTO, "rx_mdd_count", CTLFLAG_RD,
-		       &sc->soft_stats.rx_mdd_count, 0, "# of Rx MDD events detected");
+	SYSCTL_ADD_U32(ctx, debug_list, OID_AUTO, "rx_mdd_count",
+		       ICE_CTLFLAG_DEBUG | CTLFLAG_RD,
+		       &sc->soft_stats.rx_mdd_count, 0,
+		       "# of Rx MDD events detected");
 
-	SYSCTL_ADD_PROC(ctx, debug_list,
-	    OID_AUTO, "state", CTLTYPE_STRING | CTLFLAG_RD,
-	    sc, 0, ice_sysctl_dump_state_flags, "A", "Driver State Flags");
+	SYSCTL_ADD_PROC(ctx, debug_list, OID_AUTO, "state",
+			ICE_CTLFLAG_DEBUG | CTLTYPE_STRING | CTLFLAG_RD, sc, 0,
+			ice_sysctl_dump_state_flags, "A",
+			"Driver State Flags");
 
-	SYSCTL_ADD_PROC(ctx, debug_list,
-			OID_AUTO, "phy_type_low", CTLTYPE_U64 | CTLFLAG_RW,
-			sc, 0, ice_sysctl_phy_type_low, "QU",
+	SYSCTL_ADD_PROC(ctx, debug_list, OID_AUTO, "phy_type_low",
+			ICE_CTLFLAG_DEBUG | CTLTYPE_U64 | CTLFLAG_RW, sc, 0,
+			ice_sysctl_phy_type_low, "QU",
 			"PHY type Low from Get PHY Caps/Set PHY Cfg");
 
-	SYSCTL_ADD_PROC(ctx, debug_list,
-			OID_AUTO, "phy_type_high", CTLTYPE_U64 | CTLFLAG_RW,
-			sc, 0, ice_sysctl_phy_type_high, "QU",
+	SYSCTL_ADD_PROC(ctx, debug_list, OID_AUTO, "phy_type_high",
+			ICE_CTLFLAG_DEBUG | CTLTYPE_U64 | CTLFLAG_RW, sc, 0,
+			ice_sysctl_phy_type_high, "QU",
 			"PHY type High from Get PHY Caps/Set PHY Cfg");
 
-	SYSCTL_ADD_PROC(ctx, debug_list,
-			OID_AUTO, "phy_sw_caps", CTLTYPE_STRUCT | CTLFLAG_RD,
-			sc, 0, ice_sysctl_phy_sw_caps, "",
+	SYSCTL_ADD_PROC(ctx, debug_list, OID_AUTO, "phy_sw_caps",
+			ICE_CTLFLAG_DEBUG | CTLTYPE_STRUCT | CTLFLAG_RD, sc, 0,
+			ice_sysctl_phy_sw_caps, "",
 			"Get PHY Capabilities (Software configuration)");
 
-	SYSCTL_ADD_PROC(ctx, debug_list,
-			OID_AUTO, "phy_nvm_caps", CTLTYPE_STRUCT | CTLFLAG_RD,
-			sc, 0, ice_sysctl_phy_nvm_caps, "",
+	SYSCTL_ADD_PROC(ctx, debug_list, OID_AUTO, "phy_nvm_caps",
+			ICE_CTLFLAG_DEBUG | CTLTYPE_STRUCT | CTLFLAG_RD, sc, 0,
+			ice_sysctl_phy_nvm_caps, "",
 			"Get PHY Capabilities (NVM configuration)");
 
-	SYSCTL_ADD_PROC(ctx, debug_list,
-			OID_AUTO, "phy_topo_caps", CTLTYPE_STRUCT | CTLFLAG_RD,
-			sc, 0, ice_sysctl_phy_topo_caps, "",
+	SYSCTL_ADD_PROC(ctx, debug_list, OID_AUTO, "phy_topo_caps",
+			ICE_CTLFLAG_DEBUG | CTLTYPE_STRUCT | CTLFLAG_RD, sc, 0,
+			ice_sysctl_phy_topo_caps, "",
 			"Get PHY Capabilities (Topology configuration)");
 
-	SYSCTL_ADD_PROC(ctx, debug_list,
-			OID_AUTO, "phy_link_status", CTLTYPE_STRUCT | CTLFLAG_RD,
-			sc, 0, ice_sysctl_phy_link_status, "",
+	SYSCTL_ADD_PROC(ctx, debug_list, OID_AUTO, "phy_link_status",
+			ICE_CTLFLAG_DEBUG | CTLTYPE_STRUCT | CTLFLAG_RD, sc, 0,
+			ice_sysctl_phy_link_status, "",
 			"Get PHY Link Status");
 
-	SYSCTL_ADD_PROC(ctx, debug_list,
-			OID_AUTO, "read_i2c_diag_data", CTLTYPE_STRING | CTLFLAG_RD,
-			sc, 0, ice_sysctl_read_i2c_diag_data, "A",
+	SYSCTL_ADD_PROC(ctx, debug_list, OID_AUTO, "read_i2c_diag_data",
+			ICE_CTLFLAG_DEBUG | CTLTYPE_STRING | CTLFLAG_RD, sc, 0,
+			ice_sysctl_read_i2c_diag_data, "A",
 			"Dump selected diagnostic data from FW");
 
-	SYSCTL_ADD_U32(ctx, debug_list, OID_AUTO, "fw_build", CTLFLAG_RD,
-			&sc->hw.fw_build, 0, "FW Build ID");
+	SYSCTL_ADD_U32(ctx, debug_list, OID_AUTO, "fw_build",
+		       ICE_CTLFLAG_DEBUG | CTLFLAG_RD, &sc->hw.fw_build, 0,
+		       "FW Build ID");
 
-	SYSCTL_ADD_PROC(ctx, debug_list, OID_AUTO, "os_ddp_version", CTLTYPE_STRING | CTLFLAG_RD,
-			sc, 0, ice_sysctl_os_pkg_version, "A",
+	SYSCTL_ADD_PROC(ctx, debug_list, OID_AUTO, "os_ddp_version",
+			ICE_CTLFLAG_DEBUG | CTLTYPE_STRING | CTLFLAG_RD, sc, 0,
+			ice_sysctl_os_pkg_version, "A",
 			"DDP package name and version found in ice_ddp");
 
-	SYSCTL_ADD_PROC(ctx, debug_list,
-	    OID_AUTO, "cur_lldp_persist_status", CTLTYPE_STRING | CTLFLAG_RD,
-	    sc, 0, ice_sysctl_fw_cur_lldp_persist_status, "A", "Current LLDP persistent status");
+	SYSCTL_ADD_PROC(ctx, debug_list, OID_AUTO, "cur_lldp_persist_status",
+			ICE_CTLFLAG_DEBUG | CTLTYPE_STRING | CTLFLAG_RD, sc, 0,
+			ice_sysctl_fw_cur_lldp_persist_status, "A",
+			"Current LLDP persistent status");
 
-	SYSCTL_ADD_PROC(ctx, debug_list,
-	    OID_AUTO, "dflt_lldp_persist_status", CTLTYPE_STRING | CTLFLAG_RD,
-	    sc, 0, ice_sysctl_fw_dflt_lldp_persist_status, "A", "Default LLDP persistent status");
+	SYSCTL_ADD_PROC(ctx, debug_list, OID_AUTO, "dflt_lldp_persist_status",
+			ICE_CTLFLAG_DEBUG | CTLTYPE_STRING | CTLFLAG_RD, sc, 0,
+			ice_sysctl_fw_dflt_lldp_persist_status, "A",
+			"Default LLDP persistent status");
 
-	SYSCTL_ADD_PROC(ctx, debug_list,
-	    OID_AUTO, "negotiated_fc", CTLTYPE_STRING | CTLFLAG_RD,
-	    sc, 0, ice_sysctl_negotiated_fc, "A", "Current Negotiated Flow Control mode");
+	SYSCTL_ADD_PROC(ctx, debug_list, OID_AUTO, "negotiated_fc",
+			ICE_CTLFLAG_DEBUG | CTLTYPE_STRING | CTLFLAG_RD, sc, 0,
+			ice_sysctl_negotiated_fc, "A",
+			"Current Negotiated Flow Control mode");
+
+	SYSCTL_ADD_PROC(ctx, debug_list, OID_AUTO, "local_dcbx_cfg",
+			CTLTYPE_STRING | CTLFLAG_RD, sc, ICE_AQ_LLDP_MIB_LOCAL,
+			ice_sysctl_dump_dcbx_cfg, "A",
+			"Dumps Local MIB information from firmware");
+
+	SYSCTL_ADD_PROC(ctx, debug_list, OID_AUTO, "remote_dcbx_cfg",
+			CTLTYPE_STRING | CTLFLAG_RD, sc, ICE_AQ_LLDP_MIB_REMOTE,
+			ice_sysctl_dump_dcbx_cfg, "A",
+			"Dumps Remote MIB information from firmware");
+
+	SYSCTL_ADD_PROC(ctx, debug_list, OID_AUTO, "pf_vsi_cfg", CTLTYPE_STRING | CTLFLAG_RD,
+			sc, 0, ice_sysctl_dump_vsi_cfg, "A",
+			"Dumps Selected PF VSI parameters from firmware");
+
+	SYSCTL_ADD_PROC(ctx, debug_list, OID_AUTO, "query_port_ets", CTLTYPE_STRING | CTLFLAG_RD,
+			sc, 0, ice_sysctl_query_port_ets, "A",
+			"Prints selected output from Query Port ETS AQ command");
 
 	sw_node = SYSCTL_ADD_NODE(ctx, debug_list, OID_AUTO, "switch",
-				  CTLFLAG_RD, NULL, "Switch Configuration");
+				  ICE_CTLFLAG_DEBUG | CTLFLAG_RD, NULL,
+				  "Switch Configuration");
 	sw_list = SYSCTL_CHILDREN(sw_node);
 
-	SYSCTL_ADD_PROC(ctx, sw_list,
-	    OID_AUTO, "mac_filters", CTLTYPE_STRING | CTLFLAG_RD,
-	    sc, 0, ice_sysctl_dump_mac_filters, "A", "MAC Filters");
+	SYSCTL_ADD_PROC(ctx, sw_list, OID_AUTO, "mac_filters",
+			ICE_CTLFLAG_DEBUG | CTLTYPE_STRING | CTLFLAG_RD, sc, 0,
+			ice_sysctl_dump_mac_filters, "A",
+			"MAC Filters");
 
-	SYSCTL_ADD_PROC(ctx, sw_list,
-	    OID_AUTO, "vlan_filters", CTLTYPE_STRING | CTLFLAG_RD,
-	    sc, 0, ice_sysctl_dump_vlan_filters, "A", "VLAN Filters");
+	SYSCTL_ADD_PROC(ctx, sw_list, OID_AUTO, "vlan_filters",
+			ICE_CTLFLAG_DEBUG | CTLTYPE_STRING | CTLFLAG_RD, sc, 0,
+			ice_sysctl_dump_vlan_filters, "A",
+			"VLAN Filters");
 
-	SYSCTL_ADD_PROC(ctx, sw_list,
-	    OID_AUTO, "ethertype_filters", CTLTYPE_STRING | CTLFLAG_RD,
-	    sc, 0, ice_sysctl_dump_ethertype_filters, "A", "Ethertype Filters");
+	SYSCTL_ADD_PROC(ctx, sw_list, OID_AUTO, "ethertype_filters",
+			ICE_CTLFLAG_DEBUG | CTLTYPE_STRING | CTLFLAG_RD, sc, 0,
+			ice_sysctl_dump_ethertype_filters, "A",
+			"Ethertype Filters");
 
-	SYSCTL_ADD_PROC(ctx, sw_list,
-	    OID_AUTO, "ethertype_mac_filters", CTLTYPE_STRING | CTLFLAG_RD,
-	    sc, 0, ice_sysctl_dump_ethertype_mac_filters, "A", "Ethertype/MAC Filters");
+	SYSCTL_ADD_PROC(ctx, sw_list, OID_AUTO, "ethertype_mac_filters",
+			ICE_CTLFLAG_DEBUG | CTLTYPE_STRING | CTLFLAG_RD, sc, 0,
+			ice_sysctl_dump_ethertype_mac_filters, "A",
+			"Ethertype/MAC Filters");
 
 }
 
@@ -5556,51 +5941,68 @@ ice_vsi_disable_tx(struct ice_vsi *vsi)
 	enum ice_status status;
 	u32 *q_teids;
 	u16 *q_ids, *q_handles;
-	int i, err = 0;
+	size_t q_teids_size, q_ids_size, q_handles_size;
+	int tc, j, buf_idx, err = 0;
 
 	if (vsi->num_tx_queues > 255)
 		return (ENOSYS);
 
-	q_teids = (u32 *)malloc(sizeof(*q_teids) * vsi->num_tx_queues,
-				M_ICE, M_NOWAIT|M_ZERO);
+	q_teids_size = sizeof(*q_teids) * vsi->num_tx_queues;
+	q_teids = (u32 *)malloc(q_teids_size, M_ICE, M_NOWAIT|M_ZERO);
 	if (!q_teids)
 		return (ENOMEM);
 
-	q_ids = (u16 *)malloc(sizeof(*q_ids) * vsi->num_tx_queues,
-				M_ICE, M_NOWAIT|M_ZERO);
+	q_ids_size = sizeof(*q_ids) * vsi->num_tx_queues;
+	q_ids = (u16 *)malloc(q_ids_size, M_ICE, M_NOWAIT|M_ZERO);
 	if (!q_ids) {
 		err = (ENOMEM);
 		goto free_q_teids;
 	}
 
-	q_handles = (u16 *)malloc(sizeof(*q_handles) * vsi->num_tx_queues,
-				M_ICE, M_NOWAIT|M_ZERO);
+	q_handles_size = sizeof(*q_handles) * vsi->num_tx_queues;
+	q_handles = (u16 *)malloc(q_handles_size, M_ICE, M_NOWAIT|M_ZERO);
 	if (!q_handles) {
 		err = (ENOMEM);
 		goto free_q_ids;
 	}
 
+	ice_for_each_traffic_class(tc) {
+		buf_idx = 0;
+		for (j = 0; j < vsi->num_tx_queues; j++) {
+			struct ice_tx_queue *txq = &vsi->tx_queues[j];
 
-	for (i = 0; i < vsi->num_tx_queues; i++) {
-		struct ice_tx_queue *txq = &vsi->tx_queues[i];
+			if (txq->tc != tc)
+				continue;
 
-		q_ids[i] = vsi->tx_qmap[i];
-		q_handles[i] = i;
-		q_teids[i] = txq->q_teid;
-	}
+			q_ids[buf_idx] = vsi->tx_qmap[j];
+			q_handles[buf_idx] = txq->q_handle;
+			q_teids[buf_idx] = txq->q_teid;
+			buf_idx++;
+		}
+		/* Skip TC if no queues belong to it */
+		if (buf_idx == 0)
+			continue;
 
-	status = ice_dis_vsi_txq(hw->port_info, vsi->idx, 0, vsi->num_tx_queues,
-				 q_handles, q_ids, q_teids, ICE_NO_RESET, 0, NULL);
-	if (status == ICE_ERR_DOES_NOT_EXIST) {
-		; /* Queues have already been disabled, no need to report this as an error */
-	} else if (status == ICE_ERR_RESET_ONGOING) {
-		device_printf(sc->dev,
-			      "Reset in progress. LAN Tx queues already disabled\n");
-	} else if (status) {
-		device_printf(sc->dev,
-			      "Failed to disable LAN Tx queues: err %s aq_err %s\n",
-			      ice_status_str(status), ice_aq_str(hw->adminq.sq_last_status));
-		err = (ENODEV);
+		status = ice_dis_vsi_txq(hw->port_info, vsi->idx, tc, buf_idx,
+					 q_handles, q_ids, q_teids, ICE_NO_RESET, 0, NULL);
+		if (status == ICE_ERR_DOES_NOT_EXIST) {
+			; /* Queues have already been disabled, no need to report this as an error */
+		} else if (status == ICE_ERR_RESET_ONGOING) {
+			device_printf(sc->dev,
+				      "Reset in progress. LAN Tx queues already disabled\n");
+			break;
+		} else if (status) {
+			device_printf(sc->dev,
+				      "Failed to disable LAN Tx queues: err %s aq_err %s\n",
+				      ice_status_str(status), ice_aq_str(hw->adminq.sq_last_status));
+			err = (ENODEV);
+			break;
+		}
+
+		/* Clear buffers */
+		memset(q_teids, 0, q_teids_size); 
+		memset(q_ids, 0, q_ids_size); 
+		memset(q_handles, 0, q_handles_size); 
 	}
 
 /* free_q_handles: */
@@ -5776,6 +6178,10 @@ ice_add_txq_sysctls(struct ice_tx_queue *txq)
 			       entry->description);
 		entry++;
 	}
+
+	SYSCTL_ADD_U8(ctx, this_txq_list, OID_AUTO, "tc",
+		       CTLFLAG_RD, &txq->tc, 0,
+		       "Traffic Class that Queue belongs to");
 }
 
 /**
@@ -5818,6 +6224,10 @@ ice_add_rxq_sysctls(struct ice_rx_queue *rxq)
 			       entry->description);
 		entry++;
 	}
+
+	SYSCTL_ADD_U8(ctx, this_rxq_list, OID_AUTO, "tc",
+		       CTLFLAG_RD, &rxq->tc, 0,
+		       "Traffic Class that Queue belongs to");
 }
 
 /**
@@ -6439,7 +6849,7 @@ ice_requested_fec_mode(struct ice_port_info *pi)
 	struct ice_aqc_get_phy_caps_data pcaps = { 0 };
 	enum ice_status status;
 
-	status = ice_aq_get_phy_caps(pi, false, ICE_AQC_REPORT_SW_CFG,
+	status = ice_aq_get_phy_caps(pi, false, ICE_AQC_REPORT_ACTIVE_CFG,
 				     &pcaps, NULL);
 	if (status)
 		/* Just report unknown if we can't get capabilities */
@@ -6950,7 +7360,12 @@ ice_init_dcb_setup(struct ice_softc *sc)
 		 * checked here because a more detailed dcbx agent status is
 		 * retrieved and checked in ice_init_dcb() and below.
 		 */
-		ice_aq_start_stop_dcbx(hw, true, &dcbx_agent_status, NULL);
+		status = ice_aq_start_stop_dcbx(hw, true, &dcbx_agent_status, NULL);
+		if (status && hw->adminq.sq_last_status != ICE_AQ_RC_EPERM)
+			device_printf(dev,
+			    "start_stop_dcbx failed, err %s aq_err %s\n",
+			    ice_status_str(status),
+			    ice_aq_str(hw->adminq.sq_last_status));
 	}
 
 	/* This sets hw->port_info->qos_cfg.is_sw_lldp */
@@ -6993,25 +7408,79 @@ ice_init_dcb_setup(struct ice_softc *sc)
 }
 
 /**
- * ice_handle_mib_change_event - helper function to log LLDP MIB change events
- * @sc: device softc
+ * ice_dcb_get_tc_map - Scans config to get bitmap of enabled TCs
+ * @dcbcfg: DCB configuration to examine
+ *
+ * Scans a TC mapping table inside dcbcfg to find traffic classes
+ * enabled and @returns a bitmask of enabled TCs
+ */
+static u8
+ice_dcb_get_tc_map(const struct ice_dcbx_cfg *dcbcfg)
+{
+	u8 tc_map = 0;
+	int i = 0;
+
+	switch (dcbcfg->pfc_mode) {
+	case ICE_QOS_MODE_VLAN:
+		/* XXX: "i" is actually "User Priority" here, not
+		 * Traffic Class, but the max for both is 8, so it works
+		 * out here.
+		 */
+		for (i = 0; i < ICE_MAX_TRAFFIC_CLASS; i++)
+			tc_map |= BIT(dcbcfg->etscfg.prio_table[i]);
+		break;
+	default:
+		/* Invalid Mode */
+		tc_map = ICE_DFLT_TRAFFIC_CLASS;
+		break;
+	}
+
+	return (tc_map);
+}
+
+/**
+ * ice_dcb_num_tc - Count the number of TCs in a bitmap
+ * @tc_map: bitmap of enabled traffic classes
+ *
+ * @return the number of traffic classes in
+ * an 8-bit TC bitmap, or 0 if they are noncontiguous
+ */
+static u8
+ice_dcb_num_tc(u8 tc_map)
+{
+	bool tc_unused = false;
+	u8 ret = 0;
+	int i = 0;
+
+	ice_for_each_traffic_class(i) {
+		if (tc_map & BIT(i)) {
+			if (!tc_unused) {
+				ret++;
+			} else {
+				/* Non-contiguous TCs detected */
+				return (0);
+			}
+		} else
+			tc_unused = true;
+	}
+
+	return (ret);
+}
+
+/**
+ * ice_debug_print_mib_change_event - helper function to log LLDP MIB change events
+ * @sc: the device private softc
  * @event: event received on a control queue
  *
- * Prints out the type of an LLDP MIB change event in a DCB debug message.
- *
- * XXX: Should be extended to do more if the driver decides to notify other SW
- * of LLDP MIB changes, or needs to extract info from the MIB.
+ * Prints out the type and contents of an LLDP MIB change event in a DCB debug message.
  */
 static void
-ice_handle_mib_change_event(struct ice_softc *sc, struct ice_rq_event_info *event)
+ice_debug_print_mib_change_event(struct ice_softc *sc, struct ice_rq_event_info *event)
 {
 	struct ice_aqc_lldp_get_mib *params =
 	    (struct ice_aqc_lldp_get_mib *)&event->desc.params.lldp_get_mib;
 	u8 mib_type, bridge_type, tx_status;
 
-	/* XXX: To get the contents of the MIB that caused the event, set the
-	 * ICE_DBG_AQ debug mask and read that output
-	 */
 	static const char* mib_type_strings[] = {
 	    "Local MIB",
 	    "Remote MIB",
@@ -7028,7 +7497,7 @@ ice_handle_mib_change_event(struct ice_softc *sc, struct ice_rq_event_info *even
 	    "Port's TX active",
 	    "Port's TX suspended and drained",
 	    "Reserved",
-	    "Port's TX suspended and srained; blocked TC pipe flushed"
+	    "Port's TX suspended and drained; blocked TC pipe flushed"
 	};
 
 	mib_type = (params->type & ICE_AQ_LLDP_MIB_TYPE_M) >>
@@ -7041,6 +7510,409 @@ ice_handle_mib_change_event(struct ice_softc *sc, struct ice_rq_event_info *even
 	ice_debug(&sc->hw, ICE_DBG_DCB, "LLDP MIB Change Event (%s, %s, %s)\n",
 	    mib_type_strings[mib_type], bridge_type_strings[bridge_type],
 	    tx_status_strings[tx_status]);
+
+	/* Nothing else to report */
+	if (!event->msg_buf)
+		return;
+
+	ice_debug(&sc->hw, ICE_DBG_DCB, "- %s contents:\n", mib_type_strings[mib_type]);
+	ice_debug_array(&sc->hw, ICE_DBG_DCB, 16, 1, event->msg_buf,
+			event->msg_len);
+}
+
+/**
+ * ice_dcb_needs_reconfig - Returns true if driver needs to reconfigure
+ * @sc: the device private softc
+ * @old_cfg: Old DCBX configuration to compare against
+ * @new_cfg: New DCBX configuration to check
+ *
+ * @return true if something changed in new_cfg that requires the driver
+ * to do some reconfiguration.
+ */
+static bool
+ice_dcb_needs_reconfig(struct ice_softc *sc, struct ice_dcbx_cfg *old_cfg,
+    struct ice_dcbx_cfg *new_cfg)
+{
+	struct ice_hw *hw = &sc->hw;
+	bool needs_reconfig = false;
+
+	/* Check if ETS config has changed */
+	if (memcmp(&new_cfg->etscfg, &old_cfg->etscfg,
+		   sizeof(new_cfg->etscfg))) {
+		/* If Priority Table has changed, then driver reconfig is needed */
+		if (memcmp(&new_cfg->etscfg.prio_table,
+			   &old_cfg->etscfg.prio_table,
+			   sizeof(new_cfg->etscfg.prio_table))) {
+			ice_debug(hw, ICE_DBG_DCB, "ETS UP2TC changed\n");
+			needs_reconfig = true;
+		}
+
+		/* These are just informational */
+		if (memcmp(&new_cfg->etscfg.tcbwtable,
+			   &old_cfg->etscfg.tcbwtable,
+			   sizeof(new_cfg->etscfg.tcbwtable)))
+			ice_debug(hw, ICE_DBG_DCB, "ETS TCBW table changed\n");
+
+		if (memcmp(&new_cfg->etscfg.tsatable,
+			   &old_cfg->etscfg.tsatable,
+			   sizeof(new_cfg->etscfg.tsatable)))
+			ice_debug(hw, ICE_DBG_DCB, "ETS TSA table changed\n");
+	}
+
+	/* Check if PFC config has changed */
+	if (memcmp(&new_cfg->pfc, &old_cfg->pfc, sizeof(new_cfg->pfc))) {
+		needs_reconfig = true;
+		ice_debug(hw, ICE_DBG_DCB, "PFC config changed\n");
+	}
+
+	ice_debug(hw, ICE_DBG_DCB, "%s result: %d\n", __func__, needs_reconfig);
+
+	return (needs_reconfig);
+}
+
+/**
+ * ice_stop_pf_vsi - Stop queues for PF LAN VSI
+ * @sc: the device private softc
+ *
+ * Flushes interrupts and stops the queues associated with the PF LAN VSI.
+ */
+static void
+ice_stop_pf_vsi(struct ice_softc *sc)
+{
+	/* Dissociate the Tx and Rx queues from the interrupts */
+	ice_flush_txq_interrupts(&sc->pf_vsi);
+	ice_flush_rxq_interrupts(&sc->pf_vsi);
+
+	if (!ice_testandclear_state(&sc->state, ICE_STATE_DRIVER_INITIALIZED))
+		return;
+
+	/* Disable the Tx and Rx queues */
+	ice_vsi_disable_tx(&sc->pf_vsi);
+	ice_control_rx_queues(&sc->pf_vsi, false);
+}
+
+/**
+ * ice_vsi_setup_q_map - Setup a VSI queue map
+ * @vsi: the VSI being configured
+ * @ctxt: VSI context structure
+ */
+static void
+ice_vsi_setup_q_map(struct ice_vsi *vsi, struct ice_vsi_ctx *ctxt)
+{
+	u16 offset = 0, qmap = 0, pow = 0;
+	u16 num_txq_per_tc, num_rxq_per_tc, qcount_rx;
+	int i, j, k;
+
+	if (vsi->num_tcs == 0) {
+		/* at least TC0 should be enabled by default */
+		vsi->num_tcs = 1;
+		vsi->tc_map = 0x1;
+	}
+
+	qcount_rx = vsi->num_rx_queues;
+	num_rxq_per_tc = min(qcount_rx / vsi->num_tcs, ICE_MAX_RXQS_PER_TC);
+	if (!num_rxq_per_tc)
+		num_rxq_per_tc = 1;
+
+	/* Have TX queue count match RX queue count */
+	num_txq_per_tc = num_rxq_per_tc;
+
+	/* find the (rounded up) power-of-2 of qcount */
+	pow = flsl(num_rxq_per_tc - 1);
+
+	/* TC mapping is a function of the number of Rx queues assigned to the
+	 * VSI for each traffic class and the offset of these queues.
+	 * The first 10 bits are for queue offset for TC0, next 4 bits for no:of
+	 * queues allocated to TC0. No:of queues is a power-of-2.
+	 *
+	 * If TC is not enabled, the queue offset is set to 0, and allocate one
+	 * queue, this way, traffic for the given TC will be sent to the default
+	 * queue.
+	 *
+	 * Setup number and offset of Rx queues for all TCs for the VSI
+	 */
+	ice_for_each_traffic_class(i) {
+		if (!(vsi->tc_map & BIT(i))) {
+			/* TC is not enabled */
+			vsi->tc_info[i].qoffset = 0;
+			vsi->tc_info[i].qcount_rx = 1;
+			vsi->tc_info[i].qcount_tx = 1;
+
+			ctxt->info.tc_mapping[i] = 0;
+			continue;
+		}
+
+		/* TC is enabled */
+		vsi->tc_info[i].qoffset = offset;
+		vsi->tc_info[i].qcount_rx = num_rxq_per_tc;
+		vsi->tc_info[i].qcount_tx = num_txq_per_tc;
+
+		qmap = ((offset << ICE_AQ_VSI_TC_Q_OFFSET_S) &
+			ICE_AQ_VSI_TC_Q_OFFSET_M) |
+			((pow << ICE_AQ_VSI_TC_Q_NUM_S) &
+			 ICE_AQ_VSI_TC_Q_NUM_M);
+		ctxt->info.tc_mapping[i] = CPU_TO_LE16(qmap);
+
+		/* Store traffic class and handle data in queue structures */
+		for (j = offset, k = 0; j < offset + num_txq_per_tc; j++, k++) {
+			vsi->tx_queues[j].q_handle = k;
+			vsi->tx_queues[j].tc = i;
+		}
+		for (j = offset; j < offset + num_rxq_per_tc; j++)
+			vsi->rx_queues[j].tc = i;
+		
+		offset += num_rxq_per_tc;
+	}
+
+	/* Rx queue mapping */
+	ctxt->info.mapping_flags |= CPU_TO_LE16(ICE_AQ_VSI_Q_MAP_CONTIG);
+	ctxt->info.q_mapping[0] = CPU_TO_LE16(vsi->rx_qmap[0]);
+	ctxt->info.q_mapping[1] = CPU_TO_LE16(vsi->num_rx_queues);
+}
+
+/**
+ * ice_pf_vsi_cfg_tc - Configure PF VSI for a given TC map
+ * @sc: the device private softc
+ * @tc_map: traffic class bitmap
+ *
+ * @pre VSI queues are stopped
+ *
+ * @return 0 if configuration is successful
+ * @return EIO if Update VSI AQ cmd fails
+ * @return ENODEV if updating Tx Scheduler fails
+ */
+static int
+ice_pf_vsi_cfg_tc(struct ice_softc *sc, u8 tc_map)
+{
+	u16 max_txqs[ICE_MAX_TRAFFIC_CLASS] = { 0 };
+	struct ice_vsi *vsi = &sc->pf_vsi;
+	struct ice_hw *hw = &sc->hw;
+	struct ice_vsi_ctx ctx = { 0 };
+	device_t dev = sc->dev;
+	enum ice_status status;
+	u8 num_tcs = 0;
+	int i = 0;
+
+	/* Count the number of enabled Traffic Classes */
+	ice_for_each_traffic_class(i)
+		if (tc_map & BIT(i))
+			num_tcs++;
+
+	vsi->tc_map = tc_map;
+	vsi->num_tcs = num_tcs;
+
+	/* Set default parameters for context */
+	ctx.vf_num = 0;
+	ctx.info = vsi->info;
+
+	/* Setup queue map */
+	ice_vsi_setup_q_map(vsi, &ctx);
+
+	/* Update VSI configuration in firmware (RX queues) */
+	ctx.info.valid_sections = CPU_TO_LE16(ICE_AQ_VSI_PROP_RXQ_MAP_VALID);
+	status = ice_update_vsi(hw, vsi->idx, &ctx, NULL);
+	if (status) {
+		device_printf(dev,
+		    "%s: Update VSI AQ call failed, err %s aq_err %s\n",
+		    __func__, ice_status_str(status),
+		    ice_aq_str(hw->adminq.sq_last_status));
+		return (EIO);
+	}
+	vsi->info = ctx.info;
+
+	/* Use values derived in ice_vsi_setup_q_map() */
+	for (i = 0; i < num_tcs; i++)
+		max_txqs[i] = vsi->tc_info[i].qcount_tx;
+
+	/* Update LAN Tx queue info in firmware */
+	status = ice_cfg_vsi_lan(hw->port_info, vsi->idx, vsi->tc_map,
+				 max_txqs);
+	if (status) {
+		device_printf(dev,
+		    "%s: Failed VSI lan queue config, err %s aq_err %s\n",
+		    __func__, ice_status_str(status),
+		    ice_aq_str(hw->adminq.sq_last_status));
+		return (ENODEV);
+	}
+
+	vsi->info.valid_sections = 0;
+
+	return (0);
+}
+
+/**
+ * ice_dcb_recfg - Reconfigure VSI with new DCB settings
+ * @sc: the device private softc
+ *
+ * @pre All VSIs have been disabled/stopped
+ * 
+ * Reconfigures VSI settings based on local_dcbx_cfg.
+ */
+static void
+ice_dcb_recfg(struct ice_softc *sc)
+{
+	struct ice_dcbx_cfg *dcbcfg =
+	    &sc->hw.port_info->qos_cfg.local_dcbx_cfg;
+	device_t dev = sc->dev;
+	u8 tc_map = 0;
+	int ret;
+
+	tc_map = ice_dcb_get_tc_map(dcbcfg);
+
+	/* If non-contiguous TCs are used, then configure
+	 * the default TC instead. There's no support for
+	 * non-contiguous TCs being used.
+	 */
+	if (ice_dcb_num_tc(tc_map) == 0) {
+		tc_map = ICE_DFLT_TRAFFIC_CLASS;
+		ice_set_default_local_lldp_mib(sc);
+	}
+
+	/* Reconfigure VSI queues to add/remove traffic classes */
+	ret = ice_pf_vsi_cfg_tc(sc, tc_map);
+	if (ret)
+		device_printf(dev,
+		    "Failed to configure TCs for PF VSI, err %s\n",
+		    ice_err_str(ret));
+
+}
+
+/**
+ * ice_do_dcb_reconfig - notify RDMA and reconfigure PF LAN VSI
+ * @sc: the device private softc
+ * 
+ * @pre Determined that the DCB configuration requires a change
+ *
+ * Reconfigures the PF LAN VSI based on updated DCB configuration
+ * found in the hw struct's/port_info's/ local dcbx configuration.
+ */
+static void
+ice_do_dcb_reconfig(struct ice_softc *sc)
+{
+	struct ice_aqc_port_ets_elem port_ets = { 0 };
+	struct ice_dcbx_cfg *local_dcbx_cfg;
+	struct ice_hw *hw = &sc->hw;
+	struct ice_port_info *pi;
+	device_t dev = sc->dev;
+	enum ice_status status;
+	u8 tc_map;
+
+	pi = sc->hw.port_info;
+	local_dcbx_cfg = &pi->qos_cfg.local_dcbx_cfg;
+
+	/* Set state when there's more than one TC */
+	tc_map = ice_dcb_get_tc_map(local_dcbx_cfg);
+	if (ice_dcb_num_tc(tc_map) > 1) {
+		device_printf(dev, "Multiple traffic classes enabled\n");
+		ice_set_state(&sc->state, ICE_STATE_MULTIPLE_TCS);
+	} else {
+		device_printf(dev, "Multiple traffic classes disabled\n");
+		ice_clear_state(&sc->state, ICE_STATE_MULTIPLE_TCS);
+	}
+
+	/* Disable PF VSI since it's going to be reconfigured */
+	ice_stop_pf_vsi(sc);
+
+	/* Query ETS configuration and update SW Tx scheduler info */
+	status = ice_query_port_ets(pi, &port_ets, sizeof(port_ets), NULL);
+	if (status != ICE_SUCCESS) {
+		device_printf(dev,
+		    "Query Port ETS AQ call failed, err %s aq_err %s\n",
+		    ice_status_str(status),
+		    ice_aq_str(hw->adminq.sq_last_status));
+		/* This won't break traffic, but QoS will not work as expected */
+	}
+
+	/* Change PF VSI configuration */
+	ice_dcb_recfg(sc);
+
+	ice_request_stack_reinit(sc);
+}
+
+/**
+ * ice_handle_mib_change_event - helper function to handle LLDP MIB change events
+ * @sc: the device private softc
+ * @event: event received on a control queue
+ *
+ * Checks the updated MIB it receives and possibly reconfigures the PF LAN
+ * VSI depending on what has changed. This will also print out some debug
+ * information about the MIB event if ICE_DBG_DCB is enabled in the debug_mask.
+ */
+static void
+ice_handle_mib_change_event(struct ice_softc *sc, struct ice_rq_event_info *event)
+{
+	struct ice_aqc_lldp_get_mib *params =
+	    (struct ice_aqc_lldp_get_mib *)&event->desc.params.lldp_get_mib;
+	struct ice_dcbx_cfg tmp_dcbx_cfg, *local_dcbx_cfg;
+	struct ice_port_info *pi;
+	device_t dev = sc->dev;
+	struct ice_hw *hw = &sc->hw;
+	bool needs_reconfig;
+	enum ice_status status;
+	u8 mib_type, bridge_type;
+
+	ASSERT_CFG_LOCKED(sc);
+
+	ice_debug_print_mib_change_event(sc, event);
+
+	pi = sc->hw.port_info;
+
+	mib_type = (params->type & ICE_AQ_LLDP_MIB_TYPE_M) >>
+	    ICE_AQ_LLDP_MIB_TYPE_S;
+	bridge_type = (params->type & ICE_AQ_LLDP_BRID_TYPE_M) >>
+	    ICE_AQ_LLDP_BRID_TYPE_S;
+
+	/* Ignore if event is not for Nearest Bridge */
+	if (bridge_type != ICE_AQ_LLDP_BRID_TYPE_NEAREST_BRID)
+		return;
+
+	/* Check MIB Type and return if event for Remote MIB update */
+	if (mib_type == ICE_AQ_LLDP_MIB_REMOTE) {
+		/* Update the cached remote MIB and return */
+		status = ice_aq_get_dcb_cfg(pi->hw, ICE_AQ_LLDP_MIB_REMOTE,
+					 ICE_AQ_LLDP_BRID_TYPE_NEAREST_BRID,
+					 &pi->qos_cfg.remote_dcbx_cfg);
+		if (status)
+			device_printf(dev,
+			    "%s: Failed to get Remote DCB config; status %s, aq_err %s\n",
+			    __func__, ice_status_str(status),
+			    ice_aq_str(hw->adminq.sq_last_status));
+		/* Not fatal if this fails */
+		return;
+	}
+
+	/* Save line length by aliasing the local dcbx cfg */
+	local_dcbx_cfg = &pi->qos_cfg.local_dcbx_cfg;
+	/* Save off the old configuration and clear current config */
+	tmp_dcbx_cfg = *local_dcbx_cfg;
+	memset(local_dcbx_cfg, 0, sizeof(*local_dcbx_cfg));
+
+	/* Get updated DCBX data from firmware */
+	status = ice_get_dcb_cfg(pi);
+	if (status) {
+		device_printf(dev,
+		    "%s: Failed to get Local DCB config; status %s, aq_err %s\n",
+		    __func__, ice_status_str(status),
+		    ice_aq_str(hw->adminq.sq_last_status));
+		return;
+	}
+
+	/* No change detected in DCBX config */
+	if (!memcmp(&tmp_dcbx_cfg, local_dcbx_cfg,
+		    sizeof(tmp_dcbx_cfg))) {
+		ice_debug(hw, ICE_DBG_DCB, "No change detected in local DCBX configuration\n");
+		return;
+	}
+
+	/* Check to see if DCB needs reconfiguring */
+	needs_reconfig = ice_dcb_needs_reconfig(sc, &tmp_dcbx_cfg,
+	    local_dcbx_cfg);
+
+	if (!needs_reconfig)
+		return;
+
+	/* Reconfigure */
+	ice_do_dcb_reconfig(sc);
 }
 
 /**
@@ -7363,7 +8235,7 @@ ice_init_link_configuration(struct ice_softc *sc)
 	if (pi->phy.link_info.link_info & ICE_AQ_MEDIA_AVAILABLE) {
 		ice_clear_state(&sc->state, ICE_STATE_NO_MEDIA);
 		/* Apply default link settings */
-		ice_apply_saved_phy_cfg(sc);
+		ice_apply_saved_phy_cfg(sc, ICE_APPLY_LS_FEC_FC);
 	} else {
 		 /* Set link down, and poll for media available in timer. This prevents the
 		  * driver from receiving spurious link-related events.
@@ -7380,8 +8252,7 @@ ice_init_link_configuration(struct ice_softc *sc)
 
 /**
  * ice_apply_saved_phy_req_to_cfg -- Write saved user PHY settings to cfg data
- * @pi: port info struct
- * @pcaps: TOPO_CAPS capability data to use for defaults
+ * @sc: device private structure
  * @cfg: new PHY config data to be modified
  *
  * Applies user settings for advertised speeds to the PHY type fields in the
@@ -7389,47 +8260,136 @@ ice_init_link_configuration(struct ice_softc *sc)
  * saved settings are invalid and uses the pcaps data instead if they are
  * invalid.
  */
-static void
-ice_apply_saved_phy_req_to_cfg(struct ice_port_info *pi,
-			       struct ice_aqc_get_phy_caps_data *pcaps,
+static int
+ice_apply_saved_phy_req_to_cfg(struct ice_softc *sc,
 			       struct ice_aqc_set_phy_cfg_data *cfg)
 {
+	struct ice_phy_data phy_data = { 0 };
+	struct ice_port_info *pi = sc->hw.port_info;
 	u64 phy_low = 0, phy_high = 0;
+	u16 link_speeds;
+	int ret;
 
-	ice_update_phy_type(&phy_low, &phy_high, pi->phy.curr_user_speed_req);
-	cfg->phy_type_low = pcaps->phy_type_low & htole64(phy_low);
-	cfg->phy_type_high = pcaps->phy_type_high & htole64(phy_high);
+	link_speeds = pi->phy.curr_user_speed_req;
 
-	/* Can't use saved user speed request; use NVM default PHY capabilities */
-	if (!cfg->phy_type_low && !cfg->phy_type_high) {
-		cfg->phy_type_low = pcaps->phy_type_low;
-		cfg->phy_type_high = pcaps->phy_type_high;
+	if (ice_is_bit_set(sc->feat_en, ICE_FEATURE_LINK_MGMT_VER_2)) {
+		memset(&phy_data, 0, sizeof(phy_data));
+		phy_data.report_mode = ICE_AQC_REPORT_DFLT_CFG;
+		phy_data.user_speeds_orig = link_speeds;
+		ret = ice_intersect_phy_types_and_speeds(sc, &phy_data);
+		if (ret != 0) {
+			/* Error message already printed within function */
+			return (ret);
+		}
+		phy_low = phy_data.phy_low_intr;
+		phy_high = phy_data.phy_high_intr;
+
+		if (link_speeds == 0 || phy_data.user_speeds_intr)
+			goto finalize_link_speed;
+		if (ice_is_bit_set(sc->feat_en, ICE_FEATURE_LENIENT_LINK_MODE)) {
+			memset(&phy_data, 0, sizeof(phy_data));
+			phy_data.report_mode = ICE_AQC_REPORT_TOPO_CAP_NO_MEDIA;
+			phy_data.user_speeds_orig = link_speeds;
+			ret = ice_intersect_phy_types_and_speeds(sc, &phy_data);
+			if (ret != 0) {
+				/* Error message already printed within function */
+				return (ret);
+			}
+			phy_low = phy_data.phy_low_intr;
+			phy_high = phy_data.phy_high_intr;
+
+			if (!phy_data.user_speeds_intr) {
+				phy_low = phy_data.phy_low_orig;
+				phy_high = phy_data.phy_high_orig;
+			}
+			goto finalize_link_speed;
+		}
+		/* If we're here, then it means the benefits of Version 2
+		 * link management aren't utilized.  We fall through to
+		 * handling Strict Link Mode the same as Version 1 link
+		 * management.
+		 */
 	}
+
+	memset(&phy_data, 0, sizeof(phy_data));
+	if ((link_speeds == 0) &&
+	    (sc->ldo_tlv.phy_type_low || sc->ldo_tlv.phy_type_high))
+		phy_data.report_mode = ICE_AQC_REPORT_TOPO_CAP_NO_MEDIA;
+	else
+		phy_data.report_mode = ICE_AQC_REPORT_TOPO_CAP_MEDIA;
+	phy_data.user_speeds_orig = link_speeds;
+	ret = ice_intersect_phy_types_and_speeds(sc, &phy_data);
+	if (ret != 0) {
+		/* Error message already printed within function */
+		return (ret);
+	}
+	phy_low = phy_data.phy_low_intr;
+	phy_high = phy_data.phy_high_intr;
+
+	if (!ice_is_bit_set(sc->feat_en, ICE_FEATURE_LENIENT_LINK_MODE)) {
+		if (phy_low == 0 && phy_high == 0) {
+			device_printf(sc->dev,
+			    "The selected speed is not supported by the current media. Please select a link speed that is supported by the current media.\n");
+			return (EINVAL);
+		}
+	} else {
+		if (link_speeds == 0) {
+			if (sc->ldo_tlv.phy_type_low & phy_low ||
+			    sc->ldo_tlv.phy_type_high & phy_high) {
+				phy_low &= sc->ldo_tlv.phy_type_low;
+				phy_high &= sc->ldo_tlv.phy_type_high;
+			}
+		} else if (phy_low == 0 && phy_high == 0) {
+			memset(&phy_data, 0, sizeof(phy_data));
+			phy_data.report_mode = ICE_AQC_REPORT_TOPO_CAP_NO_MEDIA;
+			phy_data.user_speeds_orig = link_speeds;
+			ret = ice_intersect_phy_types_and_speeds(sc, &phy_data);
+			if (ret != 0) {
+				/* Error message already printed within function */
+				return (ret);
+			}
+			phy_low = phy_data.phy_low_intr;
+			phy_high = phy_data.phy_high_intr;
+
+			if (!phy_data.user_speeds_intr) {
+				phy_low = phy_data.phy_low_orig;
+				phy_high = phy_data.phy_high_orig;
+			}
+		}
+	}
+
+finalize_link_speed:
+
+	/* Cache new user settings for speeds */
+	pi->phy.curr_user_speed_req = phy_data.user_speeds_intr;
+	cfg->phy_type_low = htole64(phy_low);
+	cfg->phy_type_high = htole64(phy_high);
+
+	return (ret);
 }
 
 /**
  * ice_apply_saved_fec_req_to_cfg -- Write saved user FEC mode to cfg data
- * @pi: port info struct
- * @pcaps: TOPO_CAPS capability data to use for defaults
+ * @sc: device private structure
  * @cfg: new PHY config data to be modified
  *
  * Applies user setting for FEC mode to PHY config struct. It uses the data
  * from pcaps to check if the saved settings are invalid and uses the pcaps
  * data instead if they are invalid.
  */
-static void
-ice_apply_saved_fec_req_to_cfg(struct ice_port_info *pi,
-			       struct ice_aqc_get_phy_caps_data *pcaps,
+static int
+ice_apply_saved_fec_req_to_cfg(struct ice_softc *sc,
 			       struct ice_aqc_set_phy_cfg_data *cfg)
 {
-	ice_cfg_phy_fec(pi, cfg, pi->phy.curr_user_fec_req);
+	struct ice_port_info *pi = sc->hw.port_info;
+	enum ice_status status;
 
-	/* Can't use saved user FEC mode; use NVM default PHY capabilities */
-	if (cfg->link_fec_opt &&
-	    !(cfg->link_fec_opt & pcaps->link_fec_options)) {
-		cfg->caps |= pcaps->caps & ICE_AQC_PHY_EN_AUTO_FEC;
-		cfg->link_fec_opt = pcaps->link_fec_options;
-	}
+	cfg->caps &= ~ICE_AQC_PHY_EN_AUTO_FEC;
+	status = ice_cfg_phy_fec(pi, cfg, pi->phy.curr_user_fec_req);
+	if (status)
+		return (EIO);
+
+	return (0);
 }
 
 /**
@@ -7451,7 +8411,7 @@ ice_apply_saved_fc_req_to_cfg(struct ice_port_info *pi,
 	switch (pi->phy.curr_user_fc_req) {
 	case ICE_FC_FULL:
 		cfg->caps |= ICE_AQ_PHY_ENA_TX_PAUSE_ABILITY |
-			    ICE_AQ_PHY_ENA_RX_PAUSE_ABILITY;
+			     ICE_AQ_PHY_ENA_RX_PAUSE_ABILITY;
 		break;
 	case ICE_FC_RX_PAUSE:
 		cfg->caps |= ICE_AQ_PHY_ENA_RX_PAUSE_ABILITY;
@@ -7466,80 +8426,99 @@ ice_apply_saved_fc_req_to_cfg(struct ice_port_info *pi,
 }
 
 /**
- * ice_apply_saved_user_req_to_cfg -- Apply all saved user settings to AQ cfg data
- * @pi: port info struct
- * @pcaps: TOPO_CAPS capability data to use for defaults
- * @cfg: new PHY config data to be modified
- *
- * Applies user settings for advertised speeds, FEC mode, and flow control
- * mode to the supplied PHY config struct; it uses the data from pcaps to check
- * if the saved settings are invalid and uses the pcaps data instead if they
- * are invalid.
- */
-static void
-ice_apply_saved_user_req_to_cfg(struct ice_port_info *pi,
-				struct ice_aqc_get_phy_caps_data *pcaps,
-				struct ice_aqc_set_phy_cfg_data *cfg)
-{
-	ice_apply_saved_phy_req_to_cfg(pi, pcaps, cfg);
-	ice_apply_saved_fec_req_to_cfg(pi, pcaps, cfg);
-	ice_apply_saved_fc_req_to_cfg(pi, cfg);
-}
-
-/**
  * ice_apply_saved_phy_cfg -- Re-apply user PHY config settings
  * @sc: device private structure
+ * @settings: which settings to apply
  *
- * Takes the saved user PHY config settings, overwrites the NVM
- * default with them if they're valid, and uses the Set PHY Config AQ command
- * to apply them.
+ * Applies user settings for advertised speeds, FEC mode, and flow
+ * control mode to a PHY config struct; it uses the data from pcaps
+ * to check if the saved settings are invalid and uses the pcaps
+ * data instead if they are invalid.
  *
- * Intended for use when media is inserted.
- *
- * @pre Port has media available
+ * For things like sysctls where only one setting needs to be
+ * updated, the bitmap allows the caller to specify which setting
+ * to update.
  */
-void
-ice_apply_saved_phy_cfg(struct ice_softc *sc)
+int
+ice_apply_saved_phy_cfg(struct ice_softc *sc, u8 settings)
 {
 	struct ice_aqc_set_phy_cfg_data cfg = { 0 };
 	struct ice_port_info *pi = sc->hw.port_info;
 	struct ice_aqc_get_phy_caps_data pcaps = { 0 };
 	struct ice_hw *hw = &sc->hw;
 	device_t dev = sc->dev;
+	u64 phy_low, phy_high;
 	enum ice_status status;
+	enum ice_fec_mode dflt_fec_mode;
+	u16 dflt_user_speed;
 
-	status = ice_aq_get_phy_caps(pi, false, ICE_AQC_REPORT_TOPO_CAP,
+	if (!settings || settings > ICE_APPLY_LS_FEC_FC) {
+		ice_debug(hw, ICE_DBG_LINK, "Settings out-of-bounds: %u\n",
+		    settings);
+	}
+
+	status = ice_aq_get_phy_caps(pi, false, ICE_AQC_REPORT_ACTIVE_CFG,
 				     &pcaps, NULL);
 	if (status != ICE_SUCCESS) {
 		device_printf(dev,
-		    "%s: ice_aq_get_phy_caps (TOPO_CAP) failed; status %s, aq_err %s\n",
+		    "%s: ice_aq_get_phy_caps (ACTIVE) failed; status %s, aq_err %s\n",
 		    __func__, ice_status_str(status),
 		    ice_aq_str(hw->adminq.sq_last_status));
-		return;
+		return (EIO);
 	}
+
+	phy_low = le64toh(pcaps.phy_type_low);
+	phy_high = le64toh(pcaps.phy_type_high);
+
+	/* Save off initial config parameters */
+	dflt_user_speed = ice_aq_phy_types_to_link_speeds(phy_low, phy_high);
+	dflt_fec_mode = ice_caps_to_fec_mode(pcaps.caps, pcaps.link_fec_options);
 
 	/* Setup new PHY config */
 	ice_copy_phy_caps_to_cfg(pi, &pcaps, &cfg);
 
-	/* Apply settings requested by user */
-	ice_apply_saved_user_req_to_cfg(pi, &pcaps, &cfg);
+	/* On error, restore active configuration values */
+	if ((settings & ICE_APPLY_LS) &&
+	    ice_apply_saved_phy_req_to_cfg(sc, &cfg)) {
+		pi->phy.curr_user_speed_req = dflt_user_speed;
+		cfg.phy_type_low = pcaps.phy_type_low;
+		cfg.phy_type_high = pcaps.phy_type_high;
+	}
+	if ((settings & ICE_APPLY_FEC) &&
+	    ice_apply_saved_fec_req_to_cfg(sc, &cfg)) {
+		pi->phy.curr_user_fec_req = dflt_fec_mode;
+	}
+	if (settings & ICE_APPLY_FC) {
+		/* No real error indicators for this process,
+		 * so we'll just have to assume it works. */
+		ice_apply_saved_fc_req_to_cfg(pi, &cfg);
+	}
 
 	/* Enable link and re-negotiate it */
 	cfg.caps |= ICE_AQ_PHY_ENA_AUTO_LINK_UPDT | ICE_AQ_PHY_ENA_LINK;
 
 	status = ice_aq_set_phy_cfg(hw, pi, &cfg, NULL);
 	if (status != ICE_SUCCESS) {
+		/* Don't indicate failure if there's no media in the port.
+		 * The settings have been saved and will apply when media
+		 * is inserted.
+		 */
 		if ((status == ICE_ERR_AQ_ERROR) &&
-		    (hw->adminq.sq_last_status == ICE_AQ_RC_EBUSY))
+		    (hw->adminq.sq_last_status == ICE_AQ_RC_EBUSY)) {
 			device_printf(dev,
-			    "%s: User PHY cfg not applied; no media in port\n",
+			    "%s: Setting will be applied when media is inserted\n",
 			    __func__);
-		else
+			return (0);
+		} else {
 			device_printf(dev,
 			    "%s: ice_aq_set_phy_cfg failed; status %s, aq_err %s\n",
 			    __func__, ice_status_str(status),
 			    ice_aq_str(hw->adminq.sq_last_status));
+			return (EIO);
+		}
 	}
+
+	return (0);
 }
 
 /**
@@ -7605,14 +8584,25 @@ ice_set_link_management_mode(struct ice_softc *sc)
 	    (!(tlv.options & ICE_LINK_OVERRIDE_STRICT_MODE)))
 		ice_set_bit(ICE_FEATURE_LENIENT_LINK_MODE, sc->feat_en);
 
+	/* FW supports reporting a default configuration */
+	if (ice_is_bit_set(sc->feat_cap, ICE_FEATURE_LINK_MGMT_VER_2) &&
+	    ice_fw_supports_report_dflt_cfg(&sc->hw)) {
+		ice_set_bit(ICE_FEATURE_LINK_MGMT_VER_2, sc->feat_en);
+		/* Knowing we're at a high enough firmware revision to
+		 * support this link management configuration, we don't
+		 * need to check/support earlier versions.
+		 */
+		return;
+	}
+
 	/* Default overrides only work if in lenient link mode */
-	if (ice_is_bit_set(sc->feat_cap, ICE_FEATURE_DEFAULT_OVERRIDE) &&
+	if (ice_is_bit_set(sc->feat_cap, ICE_FEATURE_LINK_MGMT_VER_1) &&
 	    ice_is_bit_set(sc->feat_en, ICE_FEATURE_LENIENT_LINK_MODE) &&
 	    (tlv.options & ICE_LINK_OVERRIDE_EN))
-		ice_set_bit(ICE_FEATURE_DEFAULT_OVERRIDE, sc->feat_en);
+		ice_set_bit(ICE_FEATURE_LINK_MGMT_VER_1, sc->feat_en);
 
-	/* Cache the LDO TLV structure in the driver, since it won't change
-	 * during the driver's lifetime.
+	/* Cache the LDO TLV structure in the driver, since it
+	 * won't change during the driver's lifetime.
 	 */
 	sc->ldo_tlv = tlv;
 }
@@ -7638,13 +8628,17 @@ ice_init_saved_phy_cfg(struct ice_softc *sc)
 	device_t dev = sc->dev;
 	enum ice_status status;
 	u64 phy_low, phy_high;
+	u8 report_mode = ICE_AQC_REPORT_TOPO_CAP_MEDIA;
 
-	status = ice_aq_get_phy_caps(pi, false, ICE_AQC_REPORT_TOPO_CAP,
-				     &pcaps, NULL);
+	if (ice_is_bit_set(sc->feat_en, ICE_FEATURE_LINK_MGMT_VER_2))
+		report_mode = ICE_AQC_REPORT_DFLT_CFG;
+	status = ice_aq_get_phy_caps(pi, false, report_mode, &pcaps, NULL);
 	if (status != ICE_SUCCESS) {
 		device_printf(dev,
-		    "%s: ice_aq_get_phy_caps (TOPO_CAP) failed; status %s, aq_err %s\n",
-		    __func__, ice_status_str(status),
+		    "%s: ice_aq_get_phy_caps (%s) failed; status %s, aq_err %s\n",
+		    __func__,
+		    report_mode == ICE_AQC_REPORT_DFLT_CFG ? "DFLT" : "w/MEDIA",
+		    ice_status_str(status),
 		    ice_aq_str(hw->adminq.sq_last_status));
 		return;
 	}
@@ -7654,7 +8648,7 @@ ice_init_saved_phy_cfg(struct ice_softc *sc)
 
 	/* Save off initial config parameters */
 	pi->phy.curr_user_speed_req =
-	   ice_aq_phy_types_to_sysctl_speeds(phy_low, phy_high);
+	   ice_aq_phy_types_to_link_speeds(phy_low, phy_high);
 	pi->phy.curr_user_fec_req = ice_caps_to_fec_mode(pcaps.caps,
 	    pcaps.link_fec_options);
 	pi->phy.curr_user_fc_req = ice_caps_to_fc_mode(pcaps.caps);
@@ -7834,7 +8828,7 @@ int
 ice_read_sff_eeprom(struct ice_softc *sc, u16 dev_addr, u16 offset, u8* data, u16 length)
 {
 	struct ice_hw *hw = &sc->hw;
-	int error = 0, retries = 0;
+	int ret = 0, retries = 0;
 	enum ice_status status;
 
 	if (length > 16)
@@ -7851,18 +8845,18 @@ ice_read_sff_eeprom(struct ice_softc *sc, u16 dev_addr, u16 offset, u8* data, u1
 					   offset, 0, 0, data, length,
 					   false, NULL);
 		if (!status) {
-			error = 0;
+			ret = 0;
 			break;
 		}
 		if (status == ICE_ERR_AQ_ERROR &&
 		    hw->adminq.sq_last_status == ICE_AQ_RC_EBUSY) {
-			error = EBUSY;
+			ret = EBUSY;
 			continue;
 		}
 		if (status == ICE_ERR_AQ_ERROR &&
 		    hw->adminq.sq_last_status == ICE_AQ_RC_EACCES) {
 			/* FW says I2C access isn't supported */
-			error = EACCES;
+			ret = EACCES;
 			break;
 		}
 		if (status == ICE_ERR_AQ_ERROR &&
@@ -7870,24 +8864,24 @@ ice_read_sff_eeprom(struct ice_softc *sc, u16 dev_addr, u16 offset, u8* data, u1
 			device_printf(sc->dev,
 				  "%s: Module pointer location specified in command does not permit the required operation.\n",
 				  __func__);
-			error = EPERM;
+			ret = EPERM;
 			break;
 		} else {
 			device_printf(sc->dev,
 				  "%s: Error reading I2C data: err %s aq_err %s\n",
 				  __func__, ice_status_str(status),
 				  ice_aq_str(hw->adminq.sq_last_status));
-			error = EIO;
+			ret = EIO;
 			break;
 		}
 	} while (retries++ < ICE_I2C_MAX_RETRIES);
 
-	if (error == EBUSY)
+	if (ret == EBUSY)
 		device_printf(sc->dev,
 			  "%s: Error reading I2C data after %d retries\n",
 			  __func__, ICE_I2C_MAX_RETRIES);
 
-	return (error);
+	return (ret);
 }
 
 /**
@@ -7926,7 +8920,7 @@ ice_sysctl_read_i2c_diag_data(SYSCTL_HANDLER_ARGS)
 	struct ice_softc *sc = (struct ice_softc *)arg1;
 	device_t dev = sc->dev;
 	struct sbuf *sbuf;
-	int error = 0;
+	int ret;
 	u8 data[16];
 
 	UNREFERENCED_PARAMETER(arg2);
@@ -7936,13 +8930,13 @@ ice_sysctl_read_i2c_diag_data(SYSCTL_HANDLER_ARGS)
 		return (ESHUTDOWN);
 
 	if (req->oldptr == NULL) {
-		error = SYSCTL_OUT(req, 0, 128);
-		return (error);
+		ret = SYSCTL_OUT(req, 0, 128);
+		return (ret);
 	}
 
-	error = ice_read_sff_eeprom(sc, 0xA0, 0, data, 1);
-	if (error)
-		return (error);
+	ret = ice_read_sff_eeprom(sc, 0xA0, 0, data, 1);
+	if (ret)
+		return (ret);
 
 	/* 0x3 for SFP; 0xD/0x11 for QSFP+/QSFP28 */
 	if (data[0] == 0x3) {
@@ -8070,72 +9064,261 @@ ice_free_intr_tracking(struct ice_softc *sc)
 
 /**
  * ice_apply_supported_speed_filter - Mask off unsupported speeds
- * @phy_type_low: bit-field for the low quad word of PHY types
- * @phy_type_high: bit-field for the high quad word of PHY types
+ * @report_speeds: bit-field for the desired link speeds
+ * @mod_type: type of module/sgmii connection we have
  *
- * Given the two quad words containing the supported PHY types,
+ * Given a bitmap of the desired lenient mode link speeds,
  * this function will mask off the speeds that are not currently
  * supported by the device.
  */
-static void
-ice_apply_supported_speed_filter(u64 *phy_type_low, u64 *phy_type_high)
+static u16
+ice_apply_supported_speed_filter(u16 report_speeds, u8 mod_type)
 {
-	u64 phylow_mask;
+	u16 speed_mask;
+	enum { IS_SGMII, IS_SFP, IS_QSFP } module;
 
-	/* We won't offer anything lower than 1G for any part,
-	 * but we also won't offer anything under 25G for 100G
-	 * parts.
+	/*
+	 * The SFF specification says 0 is unknown, so we'll
+	 * treat it like we're connected through SGMII for now.
+	 * This may need revisiting if a new type is supported
+	 * in the future.
 	 */
-	phylow_mask = ~(ICE_PHY_TYPE_LOW_1000BASE_T - 1);
-	if (*phy_type_high ||
-	    *phy_type_low & ~(ICE_PHY_TYPE_LOW_100GBASE_CR4 - 1))
-		phylow_mask = ~(ICE_PHY_TYPE_LOW_25GBASE_T - 1);
-	*phy_type_low &= phylow_mask;
+	switch (mod_type) {
+	case 0:
+		module = IS_SGMII;
+		break;
+	case 3:
+		module = IS_SFP;
+		break;
+	default:
+		module = IS_QSFP;
+		break;
+	}
+
+	/* We won't offer anything lower than 100M for any part,
+	 * but we'll need to mask off other speeds based on the
+	 * device and module type.
+	 */
+	speed_mask = ~((u16)ICE_AQ_LINK_SPEED_100MB - 1);
+	if ((report_speeds & ICE_AQ_LINK_SPEED_10GB) && (module == IS_SFP))
+		speed_mask = ~((u16)ICE_AQ_LINK_SPEED_1000MB - 1);
+	if (report_speeds & ICE_AQ_LINK_SPEED_25GB)
+		speed_mask = ~((u16)ICE_AQ_LINK_SPEED_1000MB - 1);
+	if (report_speeds & ICE_AQ_LINK_SPEED_50GB) {
+		speed_mask = ~((u16)ICE_AQ_LINK_SPEED_1000MB - 1);
+		if (module == IS_QSFP)
+			speed_mask = ~((u16)ICE_AQ_LINK_SPEED_10GB - 1);
+	}
+	if (report_speeds & ICE_AQ_LINK_SPEED_100GB)
+		speed_mask = ~((u16)ICE_AQ_LINK_SPEED_25GB - 1);
+	return (report_speeds & speed_mask);
 }
 
 /**
- * ice_get_phy_types - Report appropriate PHY types
- * @sc: device softc structure
- * @phy_type_low: bit-field for the low quad word of PHY types
- * @phy_type_high: bit-field for the high quad word of PHY types
+ * ice_init_health_events - Enable FW health event reporting
+ * @sc: device softc
  *
- * Populate the two quad words with bits representing the PHY types
- * supported by the device.  This is really just a wrapper around
- * the ice_aq_get_phy_caps() that chooses the appropriate report
- * mode (lenient or strict) and reports back only the relevant PHY
- * types.  In lenient mode the capabilities are retrieved with the
- * NVM_CAP report mode, otherwise they're retrieved using the
- * TOPO_CAP report mode (NVM intersected with current media).
- *
- * @returns 0 on success, or an error code on failure.
+ * Will try to enable firmware health event reporting, but shouldn't
+ * cause any grief (to the caller) if this fails.
  */
-static enum ice_status
-ice_get_phy_types(struct ice_softc *sc, u64 *phy_type_low, u64 *phy_type_high)
+void
+ice_init_health_events(struct ice_softc *sc)
 {
-	struct ice_aqc_get_phy_caps_data pcaps = { 0 };
-	struct ice_port_info *pi = sc->hw.port_info;
-	device_t dev = sc->dev;
 	enum ice_status status;
-	u8 report_mode;
+	u8 health_mask;
 
-	if (ice_is_bit_set(sc->feat_en, ICE_FEATURE_LENIENT_LINK_MODE))
-		report_mode = ICE_AQC_REPORT_NVM_CAP;
-	else
-		report_mode = ICE_AQC_REPORT_TOPO_CAP;
-	status = ice_aq_get_phy_caps(pi, false, report_mode, &pcaps, NULL);
-	if (status != ICE_SUCCESS) {
-		device_printf(dev,
-		    "%s: ice_aq_get_phy_caps (%s) failed; status %s, aq_err %s\n",
-		    __func__, (report_mode) ? "TOPO_CAP" : "NVM_CAP",
+	if ((!ice_is_bit_set(sc->feat_cap, ICE_FEATURE_HEALTH_STATUS)) ||
+	    (!sc->enable_health_events))
+		return;
+
+	health_mask = ICE_AQC_HEALTH_STATUS_SET_PF_SPECIFIC_MASK |
+		      ICE_AQC_HEALTH_STATUS_SET_GLOBAL_MASK;
+
+	status = ice_aq_set_health_status_config(&sc->hw, health_mask, NULL);
+	if (status)
+		device_printf(sc->dev,
+		    "Failed to enable firmware health events, err %s aq_err %s\n",
 		    ice_status_str(status),
 		    ice_aq_str(sc->hw.adminq.sq_last_status));
-		return (status);
+	else
+		ice_set_bit(ICE_FEATURE_HEALTH_STATUS, sc->feat_en);
+}
+
+/**
+ * ice_print_health_status_string - Print message for given FW health event
+ * @dev: the PCIe device
+ * @elem: health status element containing status code
+ *
+ * A rather large list of possible health status codes and their associated
+ * messages.
+ */
+static void
+ice_print_health_status_string(device_t dev,
+			       struct ice_aqc_health_status_elem *elem)
+{
+	u16 status_code = le16toh(elem->health_status_code);
+
+	switch (status_code) {
+	case ICE_AQC_HEALTH_STATUS_INFO_RECOVERY:
+		device_printf(dev, "The device is in firmware recovery mode.\n");
+		device_printf(dev, "Possible Solution: Update to the latest NVM image.\n");
+		break;
+	case ICE_AQC_HEALTH_STATUS_ERR_FLASH_ACCESS:
+		device_printf(dev, "The flash chip cannot be accessed.\n");
+		device_printf(dev, "Possible Solution: If issue persists, call customer support.\n");
+		break;
+	case ICE_AQC_HEALTH_STATUS_ERR_NVM_AUTH:
+		device_printf(dev, "NVM authentication failed.\n");
+		device_printf(dev, "Possible Solution: Update to the latest NVM image.\n");
+		break;
+	case ICE_AQC_HEALTH_STATUS_ERR_OROM_AUTH:
+		device_printf(dev, "Option ROM authentication failed.\n");
+		device_printf(dev, "Possible Solution: Update to the latest NVM image.\n");
+		break;
+	case ICE_AQC_HEALTH_STATUS_ERR_DDP_AUTH:
+		device_printf(dev, "DDP package failed.\n");
+		device_printf(dev, "Possible Solution: Update to latest base driver and DDP package.\n");
+		break;
+	case ICE_AQC_HEALTH_STATUS_ERR_NVM_COMPAT:
+		device_printf(dev, "NVM image is incompatible.\n");
+		device_printf(dev, "Possible Solution: Update to the latest NVM image.\n");
+		break;
+	case ICE_AQC_HEALTH_STATUS_ERR_OROM_COMPAT:
+		device_printf(dev, "Option ROM is incompatible.\n");
+		device_printf(dev, "Possible Solution: Update to the latest NVM image.\n");
+		break;
+	case ICE_AQC_HEALTH_STATUS_ERR_DCB_MIB:
+		device_printf(dev, "Supplied MIB file is invalid. DCB reverted to default configuration.\n");
+		device_printf(dev, "Possible Solution: Disable FW-LLDP and check DCBx system configuration.\n");
+		break;
+	case ICE_AQC_HEALTH_STATUS_ERR_UNKNOWN_MOD_STRICT:
+		device_printf(dev, "An unsupported module was detected.\n");
+		device_printf(dev, "Possible Solution 1: Check your cable connection.\n");
+		device_printf(dev, "Possible Solution 2: Change or replace the module or cable.\n");
+		break;
+	case ICE_AQC_HEALTH_STATUS_ERR_MOD_TYPE:
+		device_printf(dev, "Module type is not supported.\n");
+		device_printf(dev, "Possible Solution: Change or replace the module or cable.\n");
+		break;
+	case ICE_AQC_HEALTH_STATUS_ERR_MOD_QUAL:
+		device_printf(dev, "Module is not qualified.\n");
+		device_printf(dev, "Possible Solution 1: Check your cable connection.\n");
+		device_printf(dev, "Possible Solution 2: Change or replace the module or cable.\n");
+		device_printf(dev, "Possible Solution 3: Manually set speed and duplex.\n");
+		break;
+	case ICE_AQC_HEALTH_STATUS_ERR_MOD_COMM:
+		device_printf(dev, "Device cannot communicate with the module.\n");
+		device_printf(dev, "Possible Solution 1: Check your cable connection.\n");
+		device_printf(dev, "Possible Solution 2: Change or replace the module or cable.\n");
+		device_printf(dev, "Possible Solution 3: Manually set speed and duplex.\n");
+		break;
+	case ICE_AQC_HEALTH_STATUS_ERR_MOD_CONFLICT:
+		device_printf(dev, "Unresolved module conflict.\n");
+		device_printf(dev, "Possible Solution 1: Manually set speed/duplex or use Intel(R) Ethernet Port Configuration Tool to change the port option.\n");
+		device_printf(dev, "Possible Solution 2: If the problem persists, use a cable/module that is found in the supported modules and cables list for this device.\n");
+		break;
+	case ICE_AQC_HEALTH_STATUS_ERR_MOD_NOT_PRESENT:
+		device_printf(dev, "Module is not present.\n");
+		device_printf(dev, "Possible Solution 1: Check that the module is inserted correctly.\n");
+		device_printf(dev, "Possible Solution 2: If the problem persists, use a cable/module that is found in the supported modules and cables list for this device.\n");
+		break;
+	case ICE_AQC_HEALTH_STATUS_INFO_MOD_UNDERUTILIZED:
+		device_printf(dev, "Underutilized module.\n");
+		device_printf(dev, "Possible Solution 1: Change or replace the module or cable.\n");
+		device_printf(dev, "Possible Solution 2: Use Intel(R) Ethernet Port Configuration Tool to change the port option.\n");
+		break;
+	case ICE_AQC_HEALTH_STATUS_ERR_UNKNOWN_MOD_LENIENT:
+		device_printf(dev, "An unsupported module was detected.\n");
+		device_printf(dev, "Possible Solution 1: Check your cable connection.\n");
+		device_printf(dev, "Possible Solution 2: Change or replace the module or cable.\n");
+		device_printf(dev, "Possible Solution 3: Manually set speed and duplex.\n");
+		break;
+	case ICE_AQC_HEALTH_STATUS_ERR_INVALID_LINK_CFG:
+		device_printf(dev, "Invalid link configuration.\n");
+		break;
+	case ICE_AQC_HEALTH_STATUS_ERR_PORT_ACCESS:
+		device_printf(dev, "Port hardware access error.\n");
+		device_printf(dev, "Possible Solution: Update to the latest NVM image.\n");
+		break;
+	case ICE_AQC_HEALTH_STATUS_ERR_PORT_UNREACHABLE:
+		device_printf(dev, "A port is unreachable.\n");
+		device_printf(dev, "Possible Solution 1: Use Intel(R) Ethernet Port Configuration Tool to change the port option.\n");
+		device_printf(dev, "Possible Solution 2: Update to the latest NVM image.\n");
+		break;
+	case ICE_AQC_HEALTH_STATUS_INFO_PORT_SPEED_MOD_LIMITED:
+		device_printf(dev, "Port speed is limited due to module.\n");
+		device_printf(dev, "Possible Solution: Change the module or use Intel(R) Ethernet Port Configuration Tool to configure the port option to match the current module speed.\n");
+		break;
+	case ICE_AQC_HEALTH_STATUS_ERR_PARALLEL_FAULT:
+		device_printf(dev, "A parallel fault was detected.\n");
+		device_printf(dev, "Possible Solution: Check link partner connection and configuration.\n");
+		break;
+	case ICE_AQC_HEALTH_STATUS_INFO_PORT_SPEED_PHY_LIMITED:
+		device_printf(dev, "Port speed is limited by PHY capabilities.\n");
+		device_printf(dev, "Possible Solution 1: Change the module to align to port option.\n");
+		device_printf(dev, "Possible Solution 2: Use Intel(R) Ethernet Port Configuration Tool to change the port option.\n");
+		break;
+	case ICE_AQC_HEALTH_STATUS_ERR_NETLIST_TOPO:
+		device_printf(dev, "LOM topology netlist is corrupted.\n");
+		device_printf(dev, "Possible Solution: Update to the latest NVM image.\n");
+		break;
+	case ICE_AQC_HEALTH_STATUS_ERR_NETLIST:
+		device_printf(dev, "Unrecoverable netlist error.\n");
+		device_printf(dev, "Possible Solution: Update to the latest NVM image.\n");
+		break;
+	case ICE_AQC_HEALTH_STATUS_ERR_TOPO_CONFLICT:
+		device_printf(dev, "Port topology conflict.\n");
+		device_printf(dev, "Possible Solution 1: Use Intel(R) Ethernet Port Configuration Tool to change the port option.\n");
+		device_printf(dev, "Possible Solution 2: Update to the latest NVM image.\n");
+		break;
+	case ICE_AQC_HEALTH_STATUS_ERR_LINK_HW_ACCESS:
+		device_printf(dev, "Unrecoverable hardware access error.\n");
+		device_printf(dev, "Possible Solution: Update to the latest NVM image.\n");
+		break;
+	case ICE_AQC_HEALTH_STATUS_ERR_LINK_RUNTIME:
+		device_printf(dev, "Unrecoverable runtime error.\n");
+		device_printf(dev, "Possible Solution: Update to the latest NVM image.\n");
+		break;
+	case ICE_AQC_HEALTH_STATUS_ERR_DNL_INIT:
+		device_printf(dev, "Link management engine failed to initialize.\n");
+		device_printf(dev, "Possible Solution: Update to the latest NVM image.\n");
+		break;
+	default:
+		break;
+	}
+}
+
+/**
+ * ice_handle_health_status_event - helper function to output health status
+ * @sc: device softc structure
+ * @event: event received on a control queue
+ *
+ * Prints out the appropriate string based on the given Health Status Event
+ * code.
+ */
+static void
+ice_handle_health_status_event(struct ice_softc *sc,
+			       struct ice_rq_event_info *event)
+{
+	struct ice_aqc_health_status_elem *health_info;
+	u16 status_count;
+	int i;
+
+	if (!ice_is_bit_set(sc->feat_en, ICE_FEATURE_HEALTH_STATUS))
+		return;
+
+	health_info = (struct ice_aqc_health_status_elem *)event->msg_buf;
+	status_count = le16toh(event->desc.params.get_health_status.health_status_count);
+
+	if (status_count > (event->buf_len / sizeof(*health_info))) {
+		device_printf(sc->dev, "Received a health status event with invalid event count\n");
+		return;
 	}
 
-	*phy_type_low = le64toh(pcaps.phy_type_low);
-	*phy_type_high = le64toh(pcaps.phy_type_high);
-
-	return (ICE_SUCCESS);
+	for (i = 0; i < status_count; i++) {
+		ice_print_health_status_string(sc->dev, health_info);
+		health_info++;
+	}
 }
 
 /**
@@ -8154,12 +9337,15 @@ ice_set_default_local_lldp_mib(struct ice_softc *sc)
 	struct ice_port_info *pi;
 	device_t dev = sc->dev;
 	enum ice_status status;
+	u8 maxtcs, maxtcs_ets;
 
 	pi = hw->port_info;
+
 	dcbcfg = &pi->qos_cfg.local_dcbx_cfg;
 
+	maxtcs = hw->func_caps.common_cap.maxtc;
 	/* This value is only 3 bits; 8 TCs maps to 0 */
-	u8 maxtcs = hw->func_caps.common_cap.maxtc & ICE_IEEE_ETS_MAXTC_M;
+	maxtcs_ets = maxtcs & ICE_IEEE_ETS_MAXTC_M;
 
 	/**
 	 * Setup the default settings used by the driver for the Set Local
@@ -8169,10 +9355,8 @@ ice_set_default_local_lldp_mib(struct ice_softc *sc)
 	memset(dcbcfg, 0, sizeof(*dcbcfg));
 	dcbcfg->etscfg.willing = 1;
 	dcbcfg->etscfg.tcbwtable[0] = 100;
-	dcbcfg->etscfg.maxtcs = maxtcs;
-	dcbcfg->etsrec.willing = 1;
-	dcbcfg->etsrec.tcbwtable[0] = 100;
-	dcbcfg->etsrec.maxtcs = maxtcs;
+	dcbcfg->etscfg.maxtcs = maxtcs_ets;
+	dcbcfg->etsrec = dcbcfg->etscfg;
 	dcbcfg->pfc.willing = 1;
 	dcbcfg->pfc.pfccap = maxtcs;
 
@@ -8183,4 +9367,353 @@ ice_set_default_local_lldp_mib(struct ice_softc *sc)
 		    "Error setting Local LLDP MIB: %s aq_err %s\n",
 		    ice_status_str(status),
 		    ice_aq_str(hw->adminq.sq_last_status));
+}
+
+/**
+ * ice_sbuf_print_ets_cfg - Helper function to print ETS cfg
+ * @sbuf: string buffer to print to
+ * @name: prefix string to use
+ * @ets: structure to pull values from
+ *
+ * A helper function for ice_sysctl_dump_dcbx_cfg(), this
+ * formats the ETS rec and cfg TLVs into text.
+ */
+static void
+ice_sbuf_print_ets_cfg(struct sbuf *sbuf, const char *name, struct ice_dcb_ets_cfg *ets)
+{
+	sbuf_printf(sbuf, "%s.willing: %u\n", name, ets->willing);
+	sbuf_printf(sbuf, "%s.cbs: %u\n", name, ets->cbs);
+	sbuf_printf(sbuf, "%s.maxtcs: %u\n", name, ets->maxtcs);
+
+	sbuf_printf(sbuf, "%s.prio_table:", name);
+	for (int i = 0; i < ICE_MAX_TRAFFIC_CLASS; i++)
+		sbuf_printf(sbuf, " %d", ets->prio_table[i]);
+	sbuf_printf(sbuf, "\n");
+
+	sbuf_printf(sbuf, "%s.tcbwtable:", name);
+	for (int i = 0; i < ICE_MAX_TRAFFIC_CLASS; i++)
+		sbuf_printf(sbuf, " %d", ets->tcbwtable[i]);
+	sbuf_printf(sbuf, "\n");
+
+	sbuf_printf(sbuf, "%s.tsatable:", name);
+	for (int i = 0; i < ICE_MAX_TRAFFIC_CLASS; i++)
+		sbuf_printf(sbuf, " %d", ets->tsatable[i]);
+	sbuf_printf(sbuf, "\n");
+}
+
+/**
+ * ice_sysctl_dump_dcbx_cfg - Print out DCBX/DCB config info
+ * @oidp: sysctl oid structure
+ * @arg1: pointer to private data structure
+ * @arg2: AQ define for either Local or Remote MIB
+ * @req: sysctl request pointer
+ *
+ * Prints out DCB/DCBX configuration, including the contents
+ * of either the local or remote MIB, depending on the value
+ * used in arg2.
+ */
+static int
+ice_sysctl_dump_dcbx_cfg(SYSCTL_HANDLER_ARGS)
+{
+	struct ice_softc *sc = (struct ice_softc *)arg1;
+	struct ice_aqc_get_cee_dcb_cfg_resp cee_cfg = {};
+	struct ice_dcbx_cfg dcb_buf = {};
+	struct ice_dcbx_cfg *dcbcfg;
+	struct ice_hw *hw = &sc->hw;
+	device_t dev = sc->dev;
+	struct sbuf *sbuf;
+	enum ice_status status;
+	u8 maxtcs, dcbx_status, is_sw_lldp;
+
+	UNREFERENCED_PARAMETER(oidp);
+
+	if (ice_driver_is_detaching(sc))
+		return (ESHUTDOWN);
+
+	is_sw_lldp = hw->port_info->qos_cfg.is_sw_lldp;
+
+	/* The driver doesn't receive a Remote MIB via SW */
+	if (is_sw_lldp && arg2 == ICE_AQ_LLDP_MIB_REMOTE)
+		return (ENOENT);
+
+	dcbcfg = &hw->port_info->qos_cfg.local_dcbx_cfg;
+	if (!is_sw_lldp) {
+		/* Collect information from the FW in FW LLDP mode */
+		dcbcfg = &dcb_buf;
+		status = ice_aq_get_dcb_cfg(hw, (u8)arg2,
+		    ICE_AQ_LLDP_BRID_TYPE_NEAREST_BRID, dcbcfg);
+		if (status && arg2 == ICE_AQ_LLDP_MIB_REMOTE &&
+		    hw->adminq.sq_last_status == ICE_AQ_RC_ENOENT) {
+			device_printf(dev,
+			    "Unable to query Remote MIB; port has not received one yet\n");
+			return (ENOENT);
+		}
+		if (status) {
+			device_printf(dev, "Unable to query LLDP MIB, err %s aq_err %s\n",
+			    ice_status_str(status),
+			    ice_aq_str(hw->adminq.sq_last_status));
+			return (EIO);
+		}
+	}
+
+	status = ice_aq_get_cee_dcb_cfg(hw, &cee_cfg, NULL);
+	if (status == ICE_SUCCESS)
+		dcbcfg->dcbx_mode = ICE_DCBX_MODE_CEE;
+	else if (hw->adminq.sq_last_status == ICE_AQ_RC_ENOENT)
+		dcbcfg->dcbx_mode = ICE_DCBX_MODE_IEEE;
+
+	maxtcs = hw->func_caps.common_cap.maxtc;
+	dcbx_status = ice_get_dcbx_status(hw);
+
+	sbuf = sbuf_new_for_sysctl(NULL, NULL, 128, req);
+
+	/* Do the actual printing */
+	sbuf_printf(sbuf, "\n");
+	sbuf_printf(sbuf, "SW LLDP mode: %d\n", is_sw_lldp);
+	sbuf_printf(sbuf, "Function caps maxtcs: %d\n", maxtcs);
+	sbuf_printf(sbuf, "dcbx_status: %d\n", dcbx_status);
+
+	sbuf_printf(sbuf, "numapps: %u\n", dcbcfg->numapps);
+	sbuf_printf(sbuf, "CEE TLV status: %u\n", dcbcfg->tlv_status);
+	sbuf_printf(sbuf, "pfc_mode: %s\n", (dcbcfg->pfc_mode == ICE_QOS_MODE_DSCP) ?
+	    "DSCP" : "VLAN");
+	sbuf_printf(sbuf, "dcbx_mode: %s\n",
+	    (dcbcfg->dcbx_mode == ICE_DCBX_MODE_IEEE) ? "IEEE" :
+	    (dcbcfg->dcbx_mode == ICE_DCBX_MODE_CEE) ? "CEE" :
+	    "Unknown");
+
+	ice_sbuf_print_ets_cfg(sbuf, "etscfg", &dcbcfg->etscfg);
+	ice_sbuf_print_ets_cfg(sbuf, "etsrec", &dcbcfg->etsrec);
+
+	sbuf_printf(sbuf, "pfc.willing: %u\n", dcbcfg->pfc.willing);
+	sbuf_printf(sbuf, "pfc.mbc: %u\n", dcbcfg->pfc.mbc);
+	sbuf_printf(sbuf, "pfc.pfccap: 0x%0x\n", dcbcfg->pfc.pfccap);
+	sbuf_printf(sbuf, "pfc.pfcena: 0x%0x\n", dcbcfg->pfc.pfcena);
+
+	if (arg2 == ICE_AQ_LLDP_MIB_LOCAL) {
+		sbuf_printf(sbuf, "\nLocal registers:\n");
+		sbuf_printf(sbuf, "PRTDCB_GENC.NUMTC: %d\n",
+		    (rd32(hw, PRTDCB_GENC) & PRTDCB_GENC_NUMTC_M)
+		        >> PRTDCB_GENC_NUMTC_S);
+		sbuf_printf(sbuf, "PRTDCB_TUP2TC: 0x%0x\n",
+		    (rd32(hw, PRTDCB_TUP2TC)));
+		sbuf_printf(sbuf, "PRTDCB_RUP2TC: 0x%0x\n",
+		    (rd32(hw, PRTDCB_RUP2TC)));
+		sbuf_printf(sbuf, "GLDCB_TC2PFC: 0x%0x\n",
+		    (rd32(hw, GLDCB_TC2PFC)));
+	}
+
+	/* Finish */
+	sbuf_finish(sbuf);
+	sbuf_delete(sbuf);
+
+	return (0);
+}
+
+/**
+ * ice_sysctl_dump_vsi_cfg - print PF LAN VSI configuration
+ * @oidp: sysctl oid structure
+ * @arg1: pointer to private data structure
+ * @arg2: unused
+ * @req: sysctl request pointer
+ *
+ * XXX: This could be extended to apply to arbitrary PF-owned VSIs,
+ * but for simplicity, this only works on the PF's LAN VSI.
+ */
+static int
+ice_sysctl_dump_vsi_cfg(SYSCTL_HANDLER_ARGS)
+{
+	struct ice_softc *sc = (struct ice_softc *)arg1;
+	struct ice_vsi_ctx ctx = { 0 };
+	struct ice_hw *hw = &sc->hw;
+	device_t dev = sc->dev;
+	struct sbuf *sbuf;
+	enum ice_status status;
+
+	UNREFERENCED_PARAMETER(oidp);
+	UNREFERENCED_PARAMETER(arg2);
+
+	if (ice_driver_is_detaching(sc))
+		return (ESHUTDOWN);
+
+	/* Get HW absolute index of a VSI */
+	ctx.vsi_num = ice_get_hw_vsi_num(hw, sc->pf_vsi.idx);
+
+	status = ice_aq_get_vsi_params(hw, &ctx, NULL);
+	if (status != ICE_SUCCESS) {
+		device_printf(dev,
+		    "Get VSI AQ call failed, err %s aq_err %s\n",
+		    ice_status_str(status),
+		    ice_aq_str(hw->adminq.sq_last_status));
+		return (EIO);
+	}
+
+	sbuf = sbuf_new_for_sysctl(NULL, NULL, 128, req);
+
+	/* Do the actual printing */
+	sbuf_printf(sbuf, "\n");
+
+	sbuf_printf(sbuf, "VSI NUM: %d\n", ctx.vsi_num);
+	sbuf_printf(sbuf, "VF  NUM: %d\n", ctx.vf_num);
+	sbuf_printf(sbuf, "VSIs allocated: %d\n", ctx.vsis_allocd);
+	sbuf_printf(sbuf, "VSIs unallocated: %d\n", ctx.vsis_unallocated);
+
+	sbuf_printf(sbuf, "Rx Queue Map method: %d\n",
+	    LE16_TO_CPU(ctx.info.mapping_flags));
+	/* The PF VSI is always contiguous, so there's no if-statement here */
+	sbuf_printf(sbuf, "Rx Queue base: %d\n",
+	    LE16_TO_CPU(ctx.info.q_mapping[0]));
+	sbuf_printf(sbuf, "Rx Queue count: %d\n",
+	    LE16_TO_CPU(ctx.info.q_mapping[1]));
+
+	sbuf_printf(sbuf, "TC qbases  :");
+	for (int i = 0; i < ICE_MAX_TRAFFIC_CLASS; i++) {
+		sbuf_printf(sbuf, " %4d",
+		    ctx.info.tc_mapping[i] & ICE_AQ_VSI_TC_Q_OFFSET_M);
+	}
+	sbuf_printf(sbuf, "\n");
+
+	sbuf_printf(sbuf, "TC qcounts :");
+	for (int i = 0; i < ICE_MAX_TRAFFIC_CLASS; i++) {
+		sbuf_printf(sbuf, " %4d",
+		    1 << (ctx.info.tc_mapping[i] >> ICE_AQ_VSI_TC_Q_NUM_S));
+	}
+
+	/* Finish */
+	sbuf_finish(sbuf);
+	sbuf_delete(sbuf);
+
+	return (0);
+}
+
+/**
+ * ice_ets_str_to_tbl - Parse string into ETS table
+ * @str: input string to parse
+ * @table: output eight values used for ETS values
+ * @limit: max valid value to accept for ETS values
+ *
+ * Parses a string and converts the eight values within
+ * into a table that can be used in setting ETS settings
+ * in a MIB.
+ *
+ * @return 0 on success, EINVAL if a parsed value is
+ * not between 0 and limit.
+ */
+static int
+ice_ets_str_to_tbl(const char *str, u8 *table, u8 limit)
+{
+	const char *str_start = str;
+	char *str_end;
+	long token;
+
+	for (int i = 0; i < ICE_MAX_TRAFFIC_CLASS; i++) {
+		token = strtol(str_start, &str_end, 0);
+		if (token < 0 || token > limit)
+			return (EINVAL);
+
+		table[i] = (u8)token;
+		str_start = (str_end + 1);
+	}
+
+	return (0);
+}
+
+/**
+ * ice_check_ets_bw - Check if ETS bw vals are valid
+ * @table: eight values used for ETS bandwidth
+ *
+ * @return true if the sum of all 8 values in table
+ * equals 100.
+ */
+static bool
+ice_check_ets_bw(u8 *table)
+{
+	int sum = 0;
+	for (int i = 0; i < ICE_MAX_TRAFFIC_CLASS; i++)
+		sum += (int)table[i];
+
+	return (sum == 100);
+}
+
+/**
+ * ice_cfg_pba_num - Determine if PBA Number is retrievable
+ * @sc: the device private softc structure
+ *
+ * Sets the feature flag for the existence of a PBA number
+ * based on the success of the read command.  This does not
+ * cache the result.
+ */
+void
+ice_cfg_pba_num(struct ice_softc *sc)
+{
+	u8 pba_string[32] = "";
+
+	if ((ice_is_bit_set(sc->feat_cap, ICE_FEATURE_HAS_PBA)) &&
+	    (ice_read_pba_string(&sc->hw, pba_string, sizeof(pba_string)) == 0))
+		ice_set_bit(ICE_FEATURE_HAS_PBA, sc->feat_en);
+}
+
+/**
+ * ice_sysctl_query_port_ets - print Port ETS Config from AQ
+ * @oidp: sysctl oid structure
+ * @arg1: pointer to private data structure
+ * @arg2: unused
+ * @req: sysctl request pointer
+ */
+static int
+ice_sysctl_query_port_ets(SYSCTL_HANDLER_ARGS)
+{
+	struct ice_softc *sc = (struct ice_softc *)arg1;
+	struct ice_aqc_port_ets_elem port_ets = { 0 };
+	struct ice_hw *hw = &sc->hw;
+	struct ice_port_info *pi;
+	device_t dev = sc->dev;
+	struct sbuf *sbuf;
+	enum ice_status status;
+	int i = 0;
+
+	UNREFERENCED_PARAMETER(oidp);
+	UNREFERENCED_PARAMETER(arg2);
+
+	if (ice_driver_is_detaching(sc))
+		return (ESHUTDOWN);
+
+	pi = hw->port_info;
+
+	status = ice_aq_query_port_ets(pi, &port_ets, sizeof(port_ets), NULL);
+	if (status != ICE_SUCCESS) {
+		device_printf(dev,
+		    "Query Port ETS AQ call failed, err %s aq_err %s\n",
+		    ice_status_str(status),
+		    ice_aq_str(hw->adminq.sq_last_status));
+		return (EIO);
+	}
+
+	sbuf = sbuf_new_for_sysctl(NULL, NULL, 128, req);
+
+	/* Do the actual printing */
+	sbuf_printf(sbuf, "\n");
+
+	sbuf_printf(sbuf, "Valid TC map: 0x%x\n", port_ets.tc_valid_bits);
+
+	sbuf_printf(sbuf, "TC BW %%:");
+	ice_for_each_traffic_class(i) {
+		sbuf_printf(sbuf, " %3d", port_ets.tc_bw_share[i]);
+	}
+	sbuf_printf(sbuf, "\n");
+
+	sbuf_printf(sbuf, "EIR profile ID: %d\n", port_ets.port_eir_prof_id);
+	sbuf_printf(sbuf, "CIR profile ID: %d\n", port_ets.port_cir_prof_id);
+	sbuf_printf(sbuf, "TC Node prio: 0x%x\n", port_ets.tc_node_prio);
+
+	sbuf_printf(sbuf, "TC Node TEIDs:\n");
+	ice_for_each_traffic_class(i) {
+		sbuf_printf(sbuf, "%d: %d\n", i, port_ets.tc_node_teid[i]);
+	}
+
+	/* Finish */
+	sbuf_finish(sbuf);
+	sbuf_delete(sbuf);
+
+	return (0);
 }

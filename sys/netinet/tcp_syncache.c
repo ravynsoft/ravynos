@@ -1513,19 +1513,25 @@ syncache_add(struct in_conninfo *inc, struct tcpopt *to, struct tcphdr *th,
 
 #if defined(IPSEC_SUPPORT) || defined(TCP_SIGNATURE)
 	/*
-	 * If listening socket requested TCP digests, check that received
-	 * SYN has signature and it is correct. If signature doesn't match
-	 * or TCP_SIGNATURE support isn't enabled, drop the packet.
+	 * When the socket is TCP-MD5 enabled check that,
+	 *  - a signed packet is valid
+	 *  - a non-signed packet does not have a security association
+	 *
+	 *  If a signed packet fails validation or a non-signed packet has a
+	 *  security association, the packet will be dropped.
 	 */
 	if (ltflags & TF_SIGNATURE) {
-		if ((to->to_flags & TOF_SIGNATURE) == 0) {
-			TCPSTAT_INC(tcps_sig_err_nosigopt);
-			goto done;
+		if (to->to_flags & TOF_SIGNATURE) {
+			if (!TCPMD5_ENABLED() ||
+			    TCPMD5_INPUT(m, th, to->to_signature) != 0)
+				goto done;
+		} else {
+			if (TCPMD5_ENABLED() &&
+			    TCPMD5_INPUT(m, NULL, NULL) != ENOENT)
+				goto done;
 		}
-		if (!TCPMD5_ENABLED() ||
-		    TCPMD5_INPUT(m, th, to->to_signature) != 0)
-			goto done;
-	}
+	} else if (to->to_flags & TOF_SIGNATURE)
+		goto done;
 #endif	/* TCP_SIGNATURE */
 	/*
 	 * See if we already have an entry for this connection.
@@ -1723,11 +1729,11 @@ skip_alloc:
 	}
 #if defined(IPSEC_SUPPORT) || defined(TCP_SIGNATURE)
 	/*
-	 * If listening socket requested TCP digests, flag this in the
+	 * If incoming packet has an MD5 signature, flag this in the
 	 * syncache so that syncache_respond() will do the right thing
 	 * with the SYN+ACK.
 	 */
-	if (ltflags & TF_SIGNATURE)
+	if (to->to_flags & TOF_SIGNATURE)
 		sc->sc_flags |= SCF_SIGNATURE;
 #endif	/* TCP_SIGNATURE */
 	if (to->to_flags & TOF_SACKPERM)
@@ -1844,7 +1850,9 @@ syncache_respond(struct syncache *sc, const struct mbuf *m0, int flags)
 
 	/* XXX: Assume that the entire packet will fit in a header mbuf. */
 	KASSERT(max_linkhdr + tlen + TCP_MAXOLEN <= MHLEN,
-	    ("syncache: mbuf too small"));
+	    ("syncache: mbuf too small: hlen %u, sc_port %u, max_linkhdr %d + "
+	    "tlen %d + TCP_MAXOLEN %ju <= MHLEN %d", hlen, sc->sc_port,
+	    max_linkhdr, tlen, (uintmax_t)TCP_MAXOLEN, MHLEN));
 
 	/* Create the IP+TCP header from scratch. */
 	m = m_gethdr(M_NOWAIT, MT_DATA);

@@ -60,6 +60,11 @@ __COPYRIGHT("@(#) Copyright (c) 2008, 2010\
  The NetBSD Foundation, inc. All rights reserved.");
 __RCSID("$NetBSD: t_sem.c,v 1.3 2017/01/14 20:58:20 christos Exp $");
 
+#ifdef __FreeBSD__
+#include <sys/types.h>
+#include <sys/sysctl.h>
+#endif
+
 #include <sys/time.h>
 #include <sys/wait.h>
 
@@ -77,6 +82,24 @@ __RCSID("$NetBSD: t_sem.c,v 1.3 2017/01/14 20:58:20 christos Exp $");
 
 #define SEM_REQUIRE(x) \
 	ATF_REQUIRE_EQ_MSG(x, 0, "%s", strerror(errno))
+
+#ifdef __FreeBSD__
+static bool
+machine_is_virtual(void)
+{
+	char vm_guest[32];
+	int error;
+
+	error = sysctlbyname("kern.vm_guest", vm_guest,
+	    &(size_t){sizeof(vm_guest)}, NULL, 0);
+	ATF_CHECK_EQ_MSG(0, error, "sysctlbyname(kern.vm_guest): %s",
+	    strerror(errno));
+	if (error != 0) {
+		return (false);
+	}
+	return (strcmp(vm_guest, "none") != 0);
+}
+#endif
 
 ATF_TC_WITH_CLEANUP(basic);
 ATF_TC_HEAD(basic, tc)
@@ -198,14 +221,27 @@ sigalrm_handler(int sig __unused)
 	got_sigalrm = 1;
 }
 
+#ifdef __FreeBSD__
+/* This is refactored from the timedwait test case. */
+static void
+setup_signals(void)
+{
+	struct sigaction act = {
+		.sa_handler = sigalrm_handler,
+		.sa_flags = 0	/* not SA_RESTART */
+	};
+
+	ATF_REQUIRE_MSG(sigemptyset(&act.sa_mask) == 0,
+	    "%s", strerror(errno));
+	ATF_REQUIRE_MSG(sigaction(SIGALRM, &act, NULL) == 0,
+	    "%s", strerror(errno));
+}
+#endif
+
 ATF_TC(timedwait);
 ATF_TC_HEAD(timedwait, tc)
 {
-	atf_tc_set_md_var(tc, "descr", "Tests sem_timedwait(3)"
-#ifdef __FreeBSD__
-	    " and sem_clockwait_np(3)"
-#endif
-	    );
+	atf_tc_set_md_var(tc, "descr", "Tests sem_timedwait(3)");
 	atf_tc_set_md_var(tc, "timeout", "20");
 }
 ATF_TC_BODY(timedwait, tc)
@@ -240,14 +276,10 @@ ATF_TC_BODY(timedwait, tc)
 	ATF_REQUIRE_ERRNO(EINVAL, sem_timedwait(&sem, &ts));
 
 	/* EINTR */
-	struct sigaction act = {
-		.sa_handler = sigalrm_handler,
-		.sa_flags = 0	/* not SA_RESTART */
-	};
-	ATF_REQUIRE_MSG(sigemptyset(&act.sa_mask) == 0,
-	    "%s", strerror(errno));
-	ATF_REQUIRE_MSG(sigaction(SIGALRM, &act, NULL) == 0,
-	    "%s", strerror(errno));
+#ifdef __FreeBSD__
+	/* This is refactored into a function. */
+	setup_signals();
+#endif
 	struct itimerval it = {
 		.it_value.tv_usec = 50*1000
 	};
@@ -258,9 +290,24 @@ ATF_TC_BODY(timedwait, tc)
         timespec_add_ms(&ts, 100);
 	ATF_REQUIRE_ERRNO(EINTR, sem_timedwait(&sem, &ts));
 	ATF_REQUIRE_MSG(got_sigalrm, "did not get SIGALRM");
+}
 
 #ifdef __FreeBSD__
-	/* CLOCK_MONOTONIC, absolute */
+
+ATF_TC(clockwait_monotonic_absolute);
+ATF_TC_HEAD(clockwait_monotonic_absolute, tc)
+{
+	atf_tc_set_md_var(tc, "descr",
+	    "sem_clockwait_np(3) with monotonic clock and absolute time");
+	atf_tc_set_md_var(tc, "timeout", "20");
+}
+ATF_TC_BODY(clockwait_monotonic_absolute, tc)
+{
+	struct timespec ts;
+	sem_t sem;
+
+	SEM_REQUIRE(sem_init(&sem, 0, 0));
+
 	SEM_REQUIRE(sem_post(&sem));
 	ATF_REQUIRE_MSG(clock_gettime(CLOCK_MONOTONIC, &ts) == 0,
 	    "%s", strerror(errno));
@@ -269,8 +316,22 @@ ATF_TC_BODY(timedwait, tc)
 	    &ts, NULL));
 	ATF_REQUIRE_ERRNO(ETIMEDOUT,
 	    sem_clockwait_np(&sem, CLOCK_MONOTONIC, TIMER_ABSTIME, &ts, NULL));
+}
 
-	/* CLOCK_MONOTONIC, relative */
+ATF_TC(clockwait_monotonic_relative);
+ATF_TC_HEAD(clockwait_monotonic_relative, tc)
+{
+	atf_tc_set_md_var(tc, "descr",
+	    "sem_clockwait_np(3) with monotonic clock and relative time");
+	atf_tc_set_md_var(tc, "timeout", "20");
+}
+ATF_TC_BODY(clockwait_monotonic_relative, tc)
+{
+	struct timespec ts;
+	sem_t sem;
+
+	SEM_REQUIRE(sem_init(&sem, 0, 0));
+
 	SEM_REQUIRE(sem_post(&sem));
 	ts.tv_sec = 0;
 	ts.tv_nsec = 100*1000*1000;
@@ -278,45 +339,77 @@ ATF_TC_BODY(timedwait, tc)
 	    &ts, NULL));
 	ATF_REQUIRE_ERRNO(ETIMEDOUT,
 	    sem_clockwait_np(&sem, CLOCK_MONOTONIC, 0, &ts, NULL));
+}
 
-	/* absolute does not update remaining time on EINTR */
+ATF_TC(clockwait_absolute_intr_remaining);
+ATF_TC_HEAD(clockwait_absolute_intr_remaining, tc)
+{
+	atf_tc_set_md_var(tc, "descr",
+	    "sem_clockwait_np(3) with absolute time does not update "
+	    "remaining time on EINTR");
+	atf_tc_set_md_var(tc, "timeout", "20");
+}
+ATF_TC_BODY(clockwait_absolute_intr_remaining, tc)
+{
+	struct timespec ts;
+	sem_t sem;
+
+	SEM_REQUIRE(sem_init(&sem, 0, 0));
+	setup_signals();
+
 	struct timespec remain = {42, 1000*1000*1000};
-	got_sigalrm = 0;
-	it.it_value.tv_usec = 50*1000;
+	struct itimerval it = {
+		.it_value.tv_usec = 50*1000
+	};
 	ATF_REQUIRE_MSG(setitimer(ITIMER_REAL, &it, NULL) == 0,
 	    "%s", strerror(errno));
 	ATF_REQUIRE_MSG(clock_gettime(CLOCK_MONOTONIC, &ts) == 0,
 	    "%s", strerror(errno));
         timespec_add_ms(&ts, 100);
-	ATF_REQUIRE_ERRNO(EINTR, sem_clockwait_np(&sem, CLOCK_MONOTONIC,
+	ATF_REQUIRE_EQ(-1, sem_clockwait_np(&sem, CLOCK_MONOTONIC,
 	    TIMER_ABSTIME, &ts, &remain));
+	ATF_REQUIRE_ERRNO(EINTR, 1);
 	ATF_REQUIRE_MSG(got_sigalrm, "did not get SIGALRM");
 	ATF_REQUIRE_MSG(remain.tv_sec == 42 && remain.tv_nsec == 1000*1000*1000,
 	    "an absolute clockwait modified the remaining time on EINTR");
+}
 
-	/* relative updates remaining time on EINTR */
-	remain.tv_sec = 42;
-	remain.tv_nsec = 1000*1000*1000;
-	got_sigalrm = 0;
-	it.it_value.tv_usec = 50*1000;
+ATF_TC(clockwait_relative_intr_remaining);
+ATF_TC_HEAD(clockwait_relative_intr_remaining, tc)
+{
+	atf_tc_set_md_var(tc, "descr",
+	    "sem_clockwait_np(3) with relative time updates "
+	    "remaining time on EINTR");
+	atf_tc_set_md_var(tc, "timeout", "20");
+}
+ATF_TC_BODY(clockwait_relative_intr_remaining, tc)
+{
+	struct timespec ts;
+	sem_t sem;
+
+	SEM_REQUIRE(sem_init(&sem, 0, 0));
+	setup_signals();
+
+	struct timespec remain = {42, 1000*1000*1000};
+	struct itimerval it = {
+		.it_value.tv_usec = 50*1000
+	};
 	ATF_REQUIRE_MSG(setitimer(ITIMER_REAL, &it, NULL) == 0,
 	    "%s", strerror(errno));
 	ts.tv_sec = 0;
 	ts.tv_nsec = 100*1000*1000;
-	ATF_REQUIRE_ERRNO(EINTR, sem_clockwait_np(&sem, CLOCK_MONOTONIC, 0, &ts,
+	ATF_REQUIRE_EQ(-1, sem_clockwait_np(&sem, CLOCK_MONOTONIC, 0, &ts,
 	    &remain));
+	ATF_REQUIRE_ERRNO(EINTR, 1);
 	ATF_REQUIRE_MSG(got_sigalrm, "did not get SIGALRM");
-	/*
-	 * If this nsec comparison turns out to be unreliable due to timing,
-	 * it could simply check that nsec < 100 ms.
-	 */
 	ATF_REQUIRE_MSG(remain.tv_sec == 0 &&
-	    remain.tv_nsec >= 25*1000*1000 &&
+	    (remain.tv_nsec >= 25*1000*1000 || machine_is_virtual()) &&
 	    remain.tv_nsec <= 75*1000*1000,
 	    "the remaining time was not as expected when a relative clockwait"
-	    " got EINTR" );
-#endif
+	    " got EINTR: %jd.%09ld", (uintmax_t)remain.tv_sec, remain.tv_nsec);
 }
+
+#endif	/* __FreeBSD__ */
 
 ATF_TP_ADD_TCS(tp)
 {
@@ -324,6 +417,12 @@ ATF_TP_ADD_TCS(tp)
 	ATF_TP_ADD_TC(tp, basic);
 	ATF_TP_ADD_TC(tp, child);
 	ATF_TP_ADD_TC(tp, timedwait);
+#ifdef __FreeBSD__
+	ATF_TP_ADD_TC(tp, clockwait_monotonic_absolute);
+	ATF_TP_ADD_TC(tp, clockwait_monotonic_relative);
+	ATF_TP_ADD_TC(tp, clockwait_absolute_intr_remaining);
+	ATF_TP_ADD_TC(tp, clockwait_relative_intr_remaining);
+#endif
 
 	return atf_no_error();
 }

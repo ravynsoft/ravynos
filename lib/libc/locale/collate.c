@@ -86,17 +86,23 @@ __collate_load(const char *encoding, __unused locale_t unused)
 {
 	if (strcmp(encoding, "C") == 0 || strcmp(encoding, "POSIX") == 0 ||
 	    strncmp(encoding, "C.", 2) == 0) {
-		return &__xlocale_C_collate;
+		return (&__xlocale_C_collate);
 	}
-	struct xlocale_collate *table = calloc(sizeof(struct xlocale_collate), 1);
+	struct xlocale_collate *table = calloc(sizeof(struct xlocale_collate),
+	    1);
+	if (table == NULL)
+		return (NULL);
 	table->header.header.destructor = destruct_collate;
-	// FIXME: Make sure that _LDP_CACHE is never returned.  We should be doing
-	// the caching outside of this section
+
+	/*
+	 * FIXME: Make sure that _LDP_CACHE is never returned.  We
+	 * should be doing the caching outside of this section.
+	 */
 	if (__collate_load_tables_l(encoding, table) != _LDP_LOADED) {
 		xlocale_release(table);
-		return NULL;
+		return (NULL);
 	}
-	return table;
+	return (table);
 }
 
 /**

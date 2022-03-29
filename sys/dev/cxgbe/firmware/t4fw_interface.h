@@ -7804,6 +7804,14 @@ enum fw_port_type {
 	FW_PORT_TYPE_NONE = M_FW_PORT_CMD_PTYPE
 };
 
+static inline bool
+is_bt(enum fw_port_type port_type)
+{
+	return (port_type == FW_PORT_TYPE_BT_SGMII ||
+	    port_type == FW_PORT_TYPE_BT_XFI ||
+	    port_type == FW_PORT_TYPE_BT_XAUI);
+}
+
 /* These are read from module's EEPROM and determined once the
    module is inserted. */
 enum fw_port_module_type {
@@ -9995,17 +10003,17 @@ enum fw_hdr_chip {
 enum {
 	T4FW_VERSION_MAJOR	= 1,
 	T4FW_VERSION_MINOR	= 26,
-	T4FW_VERSION_MICRO	= 2,
+	T4FW_VERSION_MICRO	= 6,
 	T4FW_VERSION_BUILD	= 0,
 
 	T5FW_VERSION_MAJOR	= 1,
 	T5FW_VERSION_MINOR	= 26,
-	T5FW_VERSION_MICRO	= 2,
+	T5FW_VERSION_MICRO	= 6,
 	T5FW_VERSION_BUILD	= 0,
 
 	T6FW_VERSION_MAJOR	= 1,
 	T6FW_VERSION_MINOR	= 26,
-	T6FW_VERSION_MICRO	= 2,
+	T6FW_VERSION_MICRO	= 6,
 	T6FW_VERSION_BUILD	= 0,
 };
 

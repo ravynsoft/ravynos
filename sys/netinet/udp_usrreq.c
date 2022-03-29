@@ -794,7 +794,7 @@ udp_common_ctlinput(int cmd, struct sockaddr *sa, void *vip,
 
 	if (PRC_IS_REDIRECT(cmd)) {
 		/* signal EHOSTDOWN, as it flushes the cached route */
-		in_pcbnotifyall(&V_udbinfo, faddr, EHOSTDOWN, udp_notify);
+		in_pcbnotifyall(pcbinfo, faddr, EHOSTDOWN, udp_notify);
 		return;
 	}
 
@@ -1604,8 +1604,8 @@ udp_set_kernel_tunneling(struct socket *so, udp_tun_func_t f, udp_tun_icmp_t i, 
 	KASSERT(inp != NULL, ("udp_set_kernel_tunneling: inp == NULL"));
 	INP_WLOCK(inp);
 	up = intoudpcb(inp);
-	if ((up->u_tun_func != NULL) ||
-	    (up->u_icmp_func != NULL)) {
+	if ((f != NULL || i != NULL) && ((up->u_tun_func != NULL) ||
+	    (up->u_icmp_func != NULL))) {
 		INP_WUNLOCK(inp);
 		return (EBUSY);
 	}
@@ -1635,6 +1635,7 @@ udp_bind(struct socket *so, struct sockaddr *nam, struct thread *td)
 		 * Preserve compatibility with old programs.
 		 */
 		if (nam->sa_family != AF_UNSPEC ||
+		    nam->sa_len < offsetof(struct sockaddr_in, sin_zero) ||
 		    sinp->sin_addr.s_addr != INADDR_ANY)
 			return (EAFNOSUPPORT);
 		nam->sa_family = AF_INET;

@@ -25,6 +25,9 @@
  * $FreeBSD$
  */
 
+#include "opt_rss.h"
+#include "opt_ratelimit.h"
+
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/random.h>
@@ -33,7 +36,7 @@
 #include <linux/delay.h>
 #include <dev/mlx5/driver.h>
 #include <dev/mlx5/mlx5_ifc.h>
-#include "mlx5_core.h"
+#include <dev/mlx5/mlx5_core/mlx5_core.h>
 
 #define	MLX5_HEALTH_POLL_INTERVAL	(2 * HZ)
 #define	MAX_MISSES			3

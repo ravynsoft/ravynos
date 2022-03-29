@@ -57,12 +57,15 @@ __FBSDID("$FreeBSD$");
 
 #include <err.h>
 #include <fcntl.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
+#include <cam/cam.h>
 #include <cam/scsi/scsi_all.h>
+#include <cam/scsi/scsi_pass.h>
 #include <cam/scsi/scsi_message.h>
 #include <camlib.h>
 
@@ -764,6 +767,59 @@ bailout:
 	return (retval);
 }
 
+/*
+ * After the firmware is downloaded, we know the sense data has changed (or is
+ * likely to change since it contains the firmware version).  Rescan the target
+ * with a flag to tell the kernel it's OK. This allows us to continnue using the
+ * old periph/disk in the kernel, which is less disruptive. We rescan the target
+ * because multilun devices usually update all the luns after the first firmware
+ * download.
+ */
+static int
+fw_rescan_target(struct cam_device *dev, bool printerrors, bool sim_mode)
+{
+	union ccb ccb;
+	int fd;
+
+	printf("Rescanning target %d:%d:* to pick up new fw revision / parameters.\n",
+	    dev->path_id, dev->target_id);
+	if (sim_mode)
+		return (0);
+
+	/* Can only send XPT_SCAN_TGT via /dev/xpt, not pass device in *dev */
+	if ((fd = open(XPT_DEVICE, O_RDWR)) < 0) {
+		warnx("error opening transport layer device %s\n",
+		    XPT_DEVICE);
+		warn("%s", XPT_DEVICE);
+		return (1);
+	}
+
+	/* Rescan the target */
+	bzero(&ccb, sizeof(union ccb));
+	ccb.ccb_h.func_code = XPT_SCAN_TGT;
+	ccb.ccb_h.path_id = dev->path_id;
+	ccb.ccb_h.target_id = dev->target_id;
+	ccb.ccb_h.target_lun = CAM_LUN_WILDCARD;
+	ccb.crcn.flags = CAM_EXPECT_INQ_CHANGE;
+	ccb.ccb_h.pinfo.priority = 5;	/* run this at a low priority */
+
+	if (ioctl(fd, CAMIOCOMMAND, &ccb) < 0) {
+		warn("CAMIOCOMMAND XPT_SCAN_TGT ioctl failed");
+		close(fd);
+		return (1);
+	}
+	if ((ccb.ccb_h.status & CAM_STATUS_MASK) != CAM_REQ_CMP) {
+		warn("Can't send rescan lun");
+		if (printerrors)
+			cam_error_print(dev, &ccb, CAM_ESF_ALL, CAM_EPF_ALL,
+			    stderr);
+		close(fd);
+		return (1);
+	}
+	close(fd);
+	return (0);
+}
+
 /* 
  * Download firmware stored in buf to cam_dev. If simulation mode
  * is enabled, only show what packet sizes would be sent to the 
@@ -919,6 +975,9 @@ bailout:
 	if (quiet == 0)
 		progress_complete(&progress, size - img_size);
 	cam_freeccb(ccb);
+	if (retval == 0) {
+		fw_rescan_target(cam_dev, printerrors, sim_mode);
+	}
 	return (retval);
 }
 

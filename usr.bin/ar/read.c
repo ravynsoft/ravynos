@@ -34,6 +34,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/stat.h>
 #include <archive.h>
 #include <archive_entry.h>
+#include <assert.h>
 #include <errno.h>
 #include <libgen.h>
 #include <stdio.h>
@@ -42,34 +43,11 @@ __FBSDID("$FreeBSD$");
 
 #include "ar.h"
 
-static int read_archive(struct bsdar *bsdar, char mode);
-
-int
-ar_mode_p(struct bsdar *bsdar)
-{
-
-	return (read_archive(bsdar, 'p'));
-}
-
-int
-ar_mode_t(struct bsdar *bsdar)
-{
-
-	return (read_archive(bsdar, 't'));
-}
-
-int
-ar_mode_x(struct bsdar *bsdar)
-{
-
-	return (read_archive(bsdar, 'x'));
-}
-
 /*
  * Handle read modes: 'x', 't' and 'p'.
  */
-static int
-read_archive(struct bsdar *bsdar, char mode)
+int
+ar_read_archive(struct bsdar *bsdar, int mode, FILE *out)
 {
 	struct archive		 *a;
 	struct archive_entry	 *entry;
@@ -87,8 +65,10 @@ read_archive(struct bsdar *bsdar, char mode)
 	char			  find;
 	int			  exitcode, flags, r, i;
 
+	assert(mode == 'p' || mode == 't' || mode == 'x');
+
 	if ((a = archive_read_new()) == NULL)
-		bsdar_errc(bsdar, EXIT_FAILURE, 0, "archive_read_new failed");
+		bsdar_errc(bsdar, 0, "archive_read_new failed");
 	archive_read_support_format_ar(a);
 	AC(archive_read_open_filename(a, bsdar->filename, DEF_BLKSZ));
 
@@ -122,7 +102,7 @@ read_archive(struct bsdar *bsdar, char mode)
 				if (*av == NULL)
 					continue;
 				if ((bname = basename(*av)) == NULL)
-					bsdar_errc(bsdar, EXIT_FAILURE, errno,
+					bsdar_errc(bsdar, errno,
 					    "basename failed");
 				if (strcmp(bname, name) != 0)
 					continue;
@@ -143,18 +123,18 @@ read_archive(struct bsdar *bsdar, char mode)
 				size = archive_entry_size(entry);
 				mtime = archive_entry_mtime(entry);
 				(void)strmode(md, buf);
-				(void)fprintf(stdout, "%s %6d/%-6d %8ju ",
+				(void)fprintf(out, "%s %6d/%-6d %8ju ",
 				    buf + 1, uid, gid, (uintmax_t)size);
 				tp = localtime(&mtime);
 				(void)strftime(buf, sizeof(buf),
 				    "%b %e %H:%M %Y", tp);
-				(void)fprintf(stdout, "%s %s", buf, name);
+				(void)fprintf(out, "%s %s", buf, name);
 			} else
-				(void)fprintf(stdout, "%s", name);
+				(void)fprintf(out, "%s", name);
 			r = archive_read_data_skip(a);
 			if (r == ARCHIVE_WARN || r == ARCHIVE_RETRY ||
 			    r == ARCHIVE_FATAL) {
-				(void)fprintf(stdout, "\n");
+				(void)fprintf(out, "\n");
 				bsdar_warnc(bsdar, archive_errno(a), "%s",
 				    archive_error_string(a));
 			}
@@ -162,14 +142,14 @@ read_archive(struct bsdar *bsdar, char mode)
 			if (r == ARCHIVE_FATAL)
 				break;
 
-			(void)fprintf(stdout, "\n");
+			(void)fprintf(out, "\n");
 		} else {
 			/* mode == 'x' || mode = 'p' */
 			if (mode == 'p') {
 				if (bsdar->options & AR_V) {
-					(void)fprintf(stdout, "\n<%s>\n\n",
+					(void)fprintf(out, "\n<%s>\n\n",
 					    name);
-					fflush(stdout);
+					fflush(out);
 				}
 				r = archive_read_data_into_fd(a, 1);
 			} else {
@@ -192,7 +172,7 @@ read_archive(struct bsdar *bsdar, char mode)
 				}
 
 				if (bsdar->options & AR_V)
-					(void)fprintf(stdout, "x - %s\n", name);
+					(void)fprintf(out, "x - %s\n", name);
 				/* Disallow absolute paths. */
 				if (name[0] == '/') {
 					bsdar_warnc(bsdar, 0,

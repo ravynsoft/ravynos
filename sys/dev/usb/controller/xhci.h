@@ -3,7 +3,7 @@
 /*-
  * SPDX-License-Identifier: BSD-2-Clause-FreeBSD
  *
- * Copyright (c) 2010 Hans Petter Selasky. All rights reserved.
+ * Copyright (c) 2010-2022 Hans Petter Selasky
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -33,7 +33,7 @@
 #define	XHCI_MAX_DEVICES	MIN(USB_MAX_DEVICES, 128)
 #define	XHCI_MAX_ENDPOINTS	32	/* hardcoded - do not change */
 #define	XHCI_MAX_SCRATCHPADS	256	/* theoretical max is 1023 */
-#define	XHCI_MAX_EVENTS		(16 * 13)
+#define	XHCI_MAX_EVENTS		232
 #define	XHCI_MAX_COMMANDS	(16 * 1)
 #define	XHCI_MAX_RSEG		1
 #define	XHCI_MAX_TRANSFERS	4
@@ -383,6 +383,8 @@ struct xhci_hw_root {
 	struct xhci_trb			hwr_commands[XHCI_MAX_COMMANDS];
 };
 
+CTASSERT(sizeof(struct xhci_hw_root) == XHCI_PAGE_SIZE);
+
 struct xhci_endpoint_ext {
 	struct xhci_trb		*trb;
 	struct usb_xfer		*xfer[XHCI_MAX_TRANSFERS * XHCI_MAX_STREAMS];
@@ -526,6 +528,12 @@ struct xhci_softc {
 
 	/* size of context */
 	uint8_t			sc_ctx_is_64_byte;
+
+	/* deconfiguring USB device is not fully supported */
+	uint8_t			sc_no_deconfigure;
+
+	/* Isochronous Scheduling Threshold */
+	uint8_t			sc_ist;
 
 	/* vendor string for root HUB */
 	char			sc_vendor[16];

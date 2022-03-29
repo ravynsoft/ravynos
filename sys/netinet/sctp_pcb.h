@@ -577,15 +577,12 @@ struct sctp_tcb *
 sctp_aloc_assoc(struct sctp_inpcb *, struct sockaddr *,
     int *, uint32_t, uint32_t, uint32_t, uint16_t, uint16_t,
     struct thread *, int);
+struct sctp_tcb *
+sctp_aloc_assoc_connected(struct sctp_inpcb *, struct sockaddr *,
+    int *, uint32_t, uint32_t, uint32_t, uint16_t, uint16_t,
+    struct thread *, int);
 
 int sctp_free_assoc(struct sctp_inpcb *, struct sctp_tcb *, int, int);
-
-void sctp_delete_from_timewait(uint32_t, uint16_t, uint16_t);
-
-int sctp_is_in_timewait(uint32_t tag, uint16_t lport, uint16_t rport);
-
-void
-     sctp_add_vtag_to_timewait(uint32_t tag, uint32_t time, uint16_t lport, uint16_t rport);
 
 void sctp_add_local_addr_ep(struct sctp_inpcb *, struct sctp_ifa *, uint32_t);
 
@@ -612,7 +609,8 @@ int
 sctp_set_primary_addr(struct sctp_tcb *, struct sockaddr *,
     struct sctp_nets *);
 
-int sctp_is_vtag_good(uint32_t, uint16_t lport, uint16_t rport, struct timeval *);
+bool
+     sctp_is_vtag_good(uint32_t, uint16_t lport, uint16_t rport, struct timeval *);
 
 /* void sctp_drain(void); */
 

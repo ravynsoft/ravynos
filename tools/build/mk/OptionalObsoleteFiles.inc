@@ -1643,14 +1643,6 @@ OLD_FILES+=usr/share/man/man3/cuse_wait_and_process.3.gz
 OLD_DIRS+=usr/include/fs/cuse
 .endif
 
-# devd(8) not listed here on purpose
-.if ${MK_CXX} == no
-OLD_FILES+=usr/bin/CC
-OLD_FILES+=usr/bin/c++
-OLD_FILES+=usr/bin/g++
-OLD_FILES+=usr/libexec/cc1plus
-.endif
-
 .if ${MK_DEBUG_FILES} == no
 .if exists(${DESTDIR}/usr/lib/debug)
 DEBUG_DIRS!=find ${DESTDIR}/usr/lib/debug -mindepth 1 \
@@ -2915,14 +2907,14 @@ OLD_FILES+=usr/lib/pam_krb5.so
 OLD_LIBS+=usr/lib/pam_krb5.so.6
 OLD_FILES+=usr/lib/pam_ksu.so
 OLD_LIBS+=usr/lib/pam_ksu.so.6
-OLD_FILES+=usr/lib/private/libheimipcc.a
-OLD_FILES+=usr/lib/private/libheimipcc.so
-OLD_LIBS+=usr/lib/private/libheimipcc.so.11
-OLD_FILES+=usr/lib/private/libheimipcc_p.a
-OLD_FILES+=usr/lib/private/libheimipcs.a
-OLD_FILES+=usr/lib/private/libheimipcs.so
-OLD_LIBS+=usr/lib/private/libheimipcs.so.11
-OLD_FILES+=usr/lib/private/libheimipcs_p.a
+OLD_FILES+=usr/lib/libprivateheimipcc.a
+OLD_FILES+=usr/lib/libprivateheimipcc.so
+OLD_LIBS+=usr/lib/libprivateheimipcc.so.11
+OLD_FILES+=usr/lib/libprivateheimipcc_p.a
+OLD_FILES+=usr/lib/libprivateheimipcs.a
+OLD_FILES+=usr/lib/libprivateheimipcs.so
+OLD_LIBS+=usr/lib/libprivateheimipcs.so.11
+OLD_FILES+=usr/lib/libprivateheimipcs_p.a
 .if ${TARGET_ARCH} == "amd64" || ${TARGET_ARCH} == "powerpc64"
 OLD_FILES+=usr/lib32/libasn1.a
 OLD_FILES+=usr/lib32/libasn1.so
@@ -2992,14 +2984,14 @@ OLD_FILES+=usr/lib32/pam_krb5.so
 OLD_LIBS+=usr/lib32/pam_krb5.so.6
 OLD_FILES+=usr/lib32/pam_ksu.so
 OLD_LIBS+=usr/lib32/pam_ksu.so.6
-OLD_FILES+=usr/lib32/private/libheimipcc.a
-OLD_FILES+=usr/lib32/private/libheimipcc.so
-OLD_LIBS+=usr/lib32/private/libheimipcc.so.11
-OLD_FILES+=usr/lib32/private/libheimipcc_p.a
-OLD_FILES+=usr/lib32/private/libheimipcs.a
-OLD_FILES+=usr/lib32/private/libheimipcs.so
-OLD_LIBS+=usr/lib32/private/libheimipcs.so.11
-OLD_FILES+=usr/lib32/private/libheimipcs_p.a
+OLD_FILES+=usr/lib32/libprivateheimipcc.a
+OLD_FILES+=usr/lib32/libprivateheimipcc.so
+OLD_LIBS+=usr/lib32/libprivateheimipcc.so.11
+OLD_FILES+=usr/lib32/libprivateheimipcc_p.a
+OLD_FILES+=usr/lib32/libprivateheimipcs.a
+OLD_FILES+=usr/lib32/libprivateheimipcs.so
+OLD_LIBS+=usr/lib32/libprivateheimipcs.so.11
+OLD_FILES+=usr/lib32/libprivateheimipcs_p.a
 .endif
 OLD_FILES+=usr/libexec/digest-service
 OLD_FILES+=usr/libexec/hprop
@@ -3751,15 +3743,15 @@ OLD_FILES+=usr/share/man/man3/com_err.3.gz
 .endif
 
 .if ${MK_LDNS} == no
-OLD_FILES+=usr/lib/private/libldns.a
-OLD_FILES+=usr/lib/private/libldns.so
-OLD_LIBS+=usr/lib/private/libldns.so.5
-OLD_FILES+=usr/lib/private/libldns_p.a
+OLD_FILES+=usr/lib/libprivateldns.a
+OLD_FILES+=usr/lib/libprivateldns.so
+OLD_LIBS+=usr/lib/libprivateldns.so.5
+OLD_FILES+=usr/lib/libprivateldns_p.a
 .if ${TARGET_ARCH} == "amd64" || ${TARGET_ARCH} == "powerpc64"
-OLD_FILES+=usr/lib32/private/libldns.a
-OLD_FILES+=usr/lib32/private/libldns.so
-OLD_LIBS+=usr/lib32/private/libldns.so.5
-OLD_FILES+=usr/lib32/private/libldns_p.a
+OLD_FILES+=usr/lib32/libprivateldns.a
+OLD_FILES+=usr/lib32/libprivateldns.so
+OLD_LIBS+=usr/lib32/libprivateldns.so.5
+OLD_FILES+=usr/lib32/libprivateldns_p.a
 .endif
 .endif
 
@@ -4197,9 +4189,6 @@ OLD_FILES+=usr/include/c++/v1/typeindex
 OLD_FILES+=usr/include/c++/v1/typeinfo
 OLD_FILES+=usr/include/c++/v1/unordered_map
 OLD_FILES+=usr/include/c++/v1/unordered_set
-OLD_FILES+=usr/include/c++/v1/unwind-arm.h
-OLD_FILES+=usr/include/c++/v1/unwind-itanium.h
-OLD_FILES+=usr/include/c++/v1/unwind.h
 OLD_FILES+=usr/include/c++/v1/utility
 OLD_FILES+=usr/include/c++/v1/valarray
 OLD_FILES+=usr/include/c++/v1/variant
@@ -7205,23 +7194,30 @@ OLD_FILES+=usr/bin/ssh-agent
 OLD_FILES+=usr/bin/ssh-copy-id
 OLD_FILES+=usr/bin/ssh-keygen
 OLD_FILES+=usr/bin/ssh-keyscan
+OLD_FILES+=usr/lib/libprivatecbor.a
+OLD_FILES+=usr/lib/libprivatecbor.so
+OLD_LIBS+=usr/lib/libprivatecbor.so.5
+OLD_FILES+=/usr/lib/libprivatefido2.a
+OLD_FILES+=/usr/lib/libprivatefido2.so
+OLD_LIBS+=/usr/lib/libprivatefido2.so.5
 OLD_FILES+=usr/lib/pam_ssh.so
 OLD_LIBS+=usr/lib/pam_ssh.so.6
-OLD_FILES+=usr/lib/private/libssh.a
-OLD_FILES+=usr/lib/private/libssh.so
-OLD_LIBS+=usr/lib/private/libssh.so.5
-OLD_FILES+=usr/lib/private/libssh_p.a
+OLD_FILES+=usr/lib/libprivatessh.a
+OLD_FILES+=usr/lib/libprivatessh.so
+OLD_LIBS+=usr/lib/libprivatessh.so.5
+OLD_FILES+=usr/lib/libprivatessh_p.a
 .if ${TARGET_ARCH} == "amd64" || ${TARGET_ARCH} == "powerpc64"
 OLD_FILES+=usr/lib32/pam_ssh.so
 OLD_LIBS+=usr/lib32/pam_ssh.so.6
-OLD_FILES+=usr/lib32/private/libssh.a
-OLD_FILES+=usr/lib32/private/libssh.so
-OLD_LIBS+=usr/lib32/private/libssh.so.5
-OLD_FILES+=usr/lib32/private/libssh_p.a
+OLD_FILES+=usr/lib32/libprivatessh.a
+OLD_FILES+=usr/lib32/libprivatessh.so
+OLD_LIBS+=usr/lib32/libprivatessh.so.5
+OLD_FILES+=usr/lib32/libprivatessh_p.a
 .endif
 OLD_FILES+=usr/libexec/sftp-server
 OLD_FILES+=usr/libexec/ssh-keysign
 OLD_FILES+=usr/libexec/ssh-pkcs11-helper
+OLD_FILES+=usr/libexec/ssh-sk-helper
 OLD_FILES+=usr/sbin/sshd
 OLD_FILES+=usr/share/man/man1/scp.1.gz
 OLD_FILES+=usr/share/man/man1/sftp.1.gz
@@ -7238,6 +7234,7 @@ OLD_FILES+=usr/share/man/man8/pam_ssh.8.gz
 OLD_FILES+=usr/share/man/man8/sftp-server.8.gz
 OLD_FILES+=usr/share/man/man8/ssh-keysign.8.gz
 OLD_FILES+=usr/share/man/man8/ssh-pkcs11-helper.8.gz
+OLD_FILES+=usr/share/man/man8/ssh-sk-helper.8.gz
 OLD_FILES+=usr/share/man/man8/sshd.8.gz
 .endif
 
@@ -7627,8 +7624,8 @@ OLD_FILES+=usr/lib/libypclnt_p.a
 OLD_FILES+=usr/lib/libz_p.a
 OLD_FILES+=usr/lib/libzfs_core_p.a
 OLD_FILES+=usr/lib/libzfs_p.a
-OLD_FILES+=usr/lib/private/libldns_p.a
-OLD_FILES+=usr/lib/private/libssh_p.a
+OLD_FILES+=usr/lib/libprivateldns_p.a
+OLD_FILES+=usr/lib/libprivatessh_p.a
 .endif
 
 .if ${MK_QUOTAS} == no
@@ -8261,8 +8258,8 @@ OLD_LIBS+=usr/lib/libatf-c.a
 OLD_LIBS+=usr/lib/libatf-c.so
 OLD_LIBS+=usr/lib/libatf-c.so.1
 OLD_LIBS+=usr/lib/libatf-c_p.a
-OLD_LIBS+=usr/lib/private/libatf-c.so.0
-OLD_LIBS+=usr/lib/private/libatf-c++.so.1
+OLD_LIBS+=usr/lib/libprivateatf-c.so.0
+OLD_LIBS+=usr/lib/libprivateatf-c++.so.1
 .if ${TARGET_ARCH} == "amd64" || ${TARGET_ARCH} == "powerpc64"
 OLD_LIBS+=usr/lib32/libatf-c++.a
 OLD_LIBS+=usr/lib32/libatf-c++.so
@@ -8273,8 +8270,8 @@ OLD_LIBS+=usr/lib32/libatf-c.a
 OLD_LIBS+=usr/lib32/libatf-c.so
 OLD_LIBS+=usr/lib32/libatf-c.so.1
 OLD_LIBS+=usr/lib32/libatf-c_p.a
-OLD_LIBS+=usr/lib32/private/libatf-c.so.0
-OLD_LIBS+=usr/lib32/private/libatf-c++.so.1
+OLD_LIBS+=usr/lib32/libprivateatf-c.so.0
+OLD_LIBS+=usr/lib32/libprivateatf-c++.so.1
 .endif
 OLD_FILES+=usr/libdata/pkgconfig/atf-c++.pc
 OLD_FILES+=usr/libdata/pkgconfig/atf-c.pc
@@ -8803,8 +8800,8 @@ OLD_FILES+=usr/include/atf-c/tc.h
 OLD_FILES+=usr/include/atf-c/tp.h
 OLD_FILES+=usr/include/atf-c/utils.h
 OLD_FILES+=usr/lib/debug/usr/bin/kyua.debug
-OLD_LIBS+=usr/lib/private/libatf-c++.so.2
-OLD_LIBS+=usr/lib/private/libatf-c.so.1
+OLD_LIBS+=usr/lib/libprivateatf-c++.so.2
+OLD_LIBS+=usr/lib/libprivateatf-c.so.1
 OLD_FILES+=usr/share/examples/kyua/kyua.conf
 OLD_FILES+=usr/share/examples/kyua/Kyuafile.top
 OLD_FILES+=usr/share/kyua/misc/context.html
@@ -8901,6 +8898,7 @@ OLD_FILES+=usr/share/man/man8/tftpd.8.gz
 .endif
 
 .if ${MK_TOOLCHAIN} == no
+OLD_FILES+=usr/bin/CC
 OLD_FILES+=usr/bin/addr2line
 OLD_FILES+=usr/bin/as
 OLD_FILES+=usr/bin/byacc
@@ -9296,15 +9294,15 @@ OLD_DIRS+=usr/tests/usr.bin/yacc
 .if ${MK_UNBOUND} == no
 OLD_FILES+=etc/rc.d/local_unbound
 OLD_FILES+=etc/unbound
-OLD_FILES+=usr/lib/private/libunbound.a
-OLD_FILES+=usr/lib/private/libunbound.so
-OLD_LIBS+=usr/lib/private/libunbound.so.5
-OLD_FILES+=usr/lib/private/libunbound_p.a
+OLD_FILES+=usr/lib/libprivateunbound.a
+OLD_FILES+=usr/lib/libprivateunbound.so
+OLD_LIBS+=usr/lib/libprivateunbound.so.5
+OLD_FILES+=usr/lib/libprivateunbound_p.a
 .if ${TARGET_ARCH} == "amd64" || ${TARGET_ARCH} == "powerpc64"
-OLD_FILES+=usr/lib32/private/libunbound.a
-OLD_FILES+=usr/lib32/private/libunbound.so
-OLD_LIBS+=usr/lib32/private/libunbound.so.5
-OLD_FILES+=usr/lib32/private/libunbound_p.a
+OLD_FILES+=usr/lib32/libprivateunbound.a
+OLD_FILES+=usr/lib32/libprivateunbound.so
+OLD_LIBS+=usr/lib32/libprivateunbound.so.5
+OLD_FILES+=usr/lib32/libprivateunbound_p.a
 OLD_FILES+=usr/share/man/man5/local-unbound.conf.5.gz
 OLD_FILES+=usr/share/man/man8/local-unbound-anchor.8.gz
 OLD_FILES+=usr/share/man/man8/local-unbound-checkconf.8.gz

@@ -25,7 +25,10 @@
  * $FreeBSD$
  */
 
-#include "mlx5_ib.h"
+#include "opt_rss.h"
+#include "opt_ratelimit.h"
+
+#include <dev/mlx5/mlx5_ib/mlx5_ib.h>
 
 struct mlx5_ib_gsi_wr {
 	struct ib_cqe cqe;

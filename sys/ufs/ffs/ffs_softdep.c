@@ -13774,7 +13774,7 @@ softdep_request_cleanup_inactivate(struct mount *mp)
 		vholdl(vp);
 		vn_lock(vp, LK_EXCLUSIVE | LK_INTERLOCK | LK_RETRY);
 		VI_LOCK(vp);
-		if (vp->v_data != NULL && vp->v_usecount == 0) {
+		if (IS_UFS(vp) && vp->v_usecount == 0) {
 			while ((vp->v_iflag & VI_OWEINACT) != 0) {
 				error = vinactive(vp);
 				if (error != 0 && error != ERELOOKUP)
@@ -15006,9 +15006,15 @@ db_print_ffs(struct ufsmount *ump)
 {
 	db_printf("mp %p (%s) devvp %p\n", ump->um_mountp,
 	    ump->um_mountp->mnt_stat.f_mntonname, ump->um_devvp);
-	db_printf("    fs %p su_wl %d su_deps %d su_req %d\n",
-	    ump->um_fs, ump->softdep_on_worklist,
-	    ump->softdep_deps, ump->softdep_req);
+	db_printf("    fs %p ", ump->um_fs);
+
+	if (ump->um_softdep != NULL) {
+		db_printf("su_wl %d su_deps %d su_req %d\n",
+		    ump->softdep_on_worklist, ump->softdep_deps,
+		    ump->softdep_req);
+	} else {
+		db_printf("su disabled\n");
+	}
 }
 
 static void

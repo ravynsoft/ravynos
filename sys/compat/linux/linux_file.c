@@ -162,6 +162,8 @@ linux_common_openflags(int l_flags)
 		bsd_flags |= O_NOFOLLOW;
 	if (l_flags & LINUX_O_DIRECTORY)
 		bsd_flags |= O_DIRECTORY;
+	if (l_flags & LINUX_O_PATH)
+		bsd_flags |= O_PATH;
 	/* XXX LINUX_O_NOATIME: unable to be easily implemented. */
 	return (bsd_flags);
 }
@@ -1314,12 +1316,11 @@ linux_mount(struct thread *td, struct linux_mount_args *args)
 		strcpy(fstypename, "linprocfs");
 	} else if (strcmp(fstypename, "vfat") == 0) {
 		strcpy(fstypename, "msdosfs");
-	} else if (strcmp(fstypename, "fuse") == 0) {
+	} else if (strcmp(fstypename, "fuse") == 0 ||
+	    strncmp(fstypename, "fuse.", 5) == 0) {
 		char *fuse_options, *fuse_option, *fuse_name;
 
-		if (strcmp(mntfromname, "fuse") == 0)
-			strcpy(mntfromname, "/dev/fuse");
-
+		strcpy(mntfromname, "/dev/fuse");
 		strcpy(fstypename, "fusefs");
 		data = malloc(MNAMELEN, M_TEMP, M_WAITOK);
 		error = copyinstr(args->data, data, MNAMELEN - 1, NULL);
@@ -1738,12 +1739,17 @@ linux_fchownat(struct thread *td, struct linux_fchownat_args *args)
 	char *path;
 	int error, dfd, flag;
 
-	if (args->flag & ~LINUX_AT_SYMLINK_NOFOLLOW)
+	if (args->flag & ~(LINUX_AT_SYMLINK_NOFOLLOW | LINUX_AT_EMPTY_PATH)) {
+		linux_msg(td, "fchownat unsupported flag 0x%x", args->flag);
 		return (EINVAL);
+	}
 
-	dfd = (args->dfd == LINUX_AT_FDCWD) ? AT_FDCWD :  args->dfd;
 	flag = (args->flag & LINUX_AT_SYMLINK_NOFOLLOW) == 0 ? 0 :
 	    AT_SYMLINK_NOFOLLOW;
+	flag |= (args->flag & LINUX_AT_EMPTY_PATH) == 0 ? 0 :
+	    AT_EMPTY_PATH;
+
+	dfd = (args->dfd == LINUX_AT_FDCWD) ? AT_FDCWD :  args->dfd;
 	if (!LUSECONVPATH(td)) {
 		return (kern_fchownat(td, dfd, args->filename, UIO_USERSPACE,
 		    args->uid, args->gid, flag));

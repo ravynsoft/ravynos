@@ -53,6 +53,7 @@ __FBSDID("$FreeBSD$");
 #include <dev/ofw/ofw_bus_subr.h>
 
 #include <dev/mmc/bridge.h>
+#include <dev/mmc/mmc_fdt_helpers.h>
 #include <dev/mmc/mmcbrvar.h>
 #include <dev/mmc/mmcreg.h>
 
@@ -73,6 +74,7 @@ static struct ofw_compat_data compat_data[] = {
 #ifdef SOC_MARVELL_8K
 	{ "marvell,armada-cp110-sdhci",	1 },
 	{ "marvell,armada-ap806-sdhci",	1 },
+	{ "marvell,armada-ap807-sdhci",	1 },
 #endif
 	{ NULL, 0 }
 };
@@ -81,9 +83,6 @@ struct sdhci_xenon_softc {
 	device_t	dev;		/* Controller device */
 	int		slot_id;	/* Controller ID */
 	phandle_t	node;		/* FDT node */
-	uint32_t	quirks;		/* Chip specific quirks */
-	uint32_t	caps;		/* If we override SDHCI_CAPABILITIES */
-	uint32_t	max_clk;	/* Max possible freq */
 	struct resource *irq_res;	/* IRQ resource */
 	void		*intrhand;	/* Interrupt handle */
 	struct sdhci_fdt_gpio *gpio;	/* GPIO pins for CD detection. */
@@ -91,12 +90,11 @@ struct sdhci_xenon_softc {
 	struct sdhci_slot *slot;	/* SDHCI internal data */
 	struct resource	*mem_res;	/* Memory resource */
 
-	regulator_t	reg_vqmmc;	/* vqmmc-supply regulator */
 	uint8_t		znr;		/* PHY ZNR */
 	uint8_t		zpr;		/* PHY ZPR */
-	bool		no_18v;		/* No 1.8V support */
 	bool		slow_mode;	/* PHY slow mode */
-	bool		wp_inverted;	/* WP pin is inverted */
+
+	struct mmc_fdt_helper	mmc_helper; /* MMC helper for parsing FDT */
 };
 
 static uint8_t
@@ -140,13 +138,8 @@ sdhci_xenon_read_4(device_t dev, struct sdhci_slot *slot __unused,
     bus_size_t off)
 {
 	struct sdhci_xenon_softc *sc = device_get_softc(dev);
-	uint32_t val32;
 
-	val32 = bus_read_4(sc->mem_res, off);
-	if (off == SDHCI_CAPABILITIES && sc->no_18v)
-		val32 &= ~SDHCI_CAN_VDD_180;
-
-	return (val32);
+	return bus_read_4(sc->mem_res, off);
 }
 
 static void
@@ -189,7 +182,8 @@ sdhci_xenon_get_ro(device_t bus, device_t dev)
 {
 	struct sdhci_xenon_softc *sc = device_get_softc(bus);
 
-	return (sdhci_generic_get_ro(bus, dev) ^ sc->wp_inverted);
+	return (sdhci_generic_get_ro(bus, dev) ^
+	    (sc->mmc_helper.props & MMC_PROP_WP_INVERTED));
 }
 
 static bool
@@ -198,6 +192,43 @@ sdhci_xenon_get_card_present(device_t dev, struct sdhci_slot *slot)
 	struct sdhci_xenon_softc *sc = device_get_softc(dev);
 
 	return (sdhci_fdt_gpio_get_present(sc->gpio));
+}
+
+static void
+sdhci_xenon_set_uhs_timing(device_t brdev, struct sdhci_slot *slot)
+{
+	const struct mmc_ios *ios;
+	uint16_t hostctrl2;
+
+	if (slot->version < SDHCI_SPEC_300)
+		return;
+
+	mtx_assert(&slot->mtx, MA_OWNED);
+	ios = &slot->host.ios;
+
+	/* Update timing parameteres in SDHCI_HOST_CONTROL2 register. */
+	hostctrl2 = sdhci_xenon_read_2(brdev, slot, SDHCI_HOST_CONTROL2);
+	hostctrl2 &= ~SDHCI_CTRL2_UHS_MASK;
+	if (ios->clock > SD_SDR50_MAX) {
+		if (ios->timing == bus_timing_mmc_hs400 ||
+		    ios->timing == bus_timing_mmc_hs400es)
+			hostctrl2 |= XENON_CTRL2_MMC_HS400;
+		else if (ios->timing == bus_timing_mmc_hs200)
+			hostctrl2 |= XENON_CTRL2_MMC_HS200;
+		else
+			hostctrl2 |= SDHCI_CTRL2_UHS_SDR104;
+	}
+	else if (ios->clock > SD_SDR25_MAX)
+		hostctrl2 |= SDHCI_CTRL2_UHS_SDR50;
+	else if (ios->clock > SD_SDR12_MAX) {
+		if (ios->timing == bus_timing_uhs_ddr50 ||
+		    ios->timing == bus_timing_mmc_ddr52)
+			hostctrl2 |= SDHCI_CTRL2_UHS_DDR50;
+		else
+			hostctrl2 |= SDHCI_CTRL2_UHS_SDR25;
+	} else if (ios->clock > SD_MMC_CARD_ID_FREQUENCY)
+		hostctrl2 |= SDHCI_CTRL2_UHS_SDR12;
+	sdhci_xenon_write_2(brdev, slot, SDHCI_HOST_CONTROL2, hostctrl2);
 }
 
 static int
@@ -356,15 +387,19 @@ sdhci_xenon_update_ios(device_t brdev, device_t reqdev)
 		if (bootverbose)
 			device_printf(sc->dev, "Powering down sd/mmc\n");
 
-		if (sc->reg_vqmmc)
-			regulator_disable(sc->reg_vqmmc);
+		if (sc->mmc_helper.vmmc_supply)
+			regulator_disable(sc->mmc_helper.vmmc_supply);
+		if (sc->mmc_helper.vqmmc_supply)
+			regulator_disable(sc->mmc_helper.vqmmc_supply);
 		break;
 	case power_up:
 		if (bootverbose)
 			device_printf(sc->dev, "Powering up sd/mmc\n");
 
-		if (sc->reg_vqmmc)
-			regulator_enable(sc->reg_vqmmc);
+		if (sc->mmc_helper.vmmc_supply)
+			regulator_enable(sc->mmc_helper.vmmc_supply);
+		if (sc->mmc_helper.vqmmc_supply)
+			regulator_enable(sc->mmc_helper.vqmmc_supply);
 		break;
 	};
 
@@ -387,65 +422,100 @@ sdhci_xenon_switch_vccq(device_t brdev, device_t reqdev)
 {
 	struct sdhci_xenon_softc *sc;
 	struct sdhci_slot *slot;
+	uint16_t hostctrl2;
 	int uvolt, err;
+
+	slot = device_get_ivars(reqdev);
+
+	if (slot->version < SDHCI_SPEC_300)
+		return (0);
 
 	sc = device_get_softc(brdev);
 
-        if (sc->reg_vqmmc == NULL)
+	if (sc->mmc_helper.vqmmc_supply == NULL)
 		return EOPNOTSUPP;
 
-	slot = device_get_ivars(reqdev);
+	err = 0;
+
+	hostctrl2 = bus_read_2(sc->mem_res, SDHCI_HOST_CONTROL2);
 	switch (slot->host.ios.vccq) {
-	case vccq_180:
-		uvolt = 1800000;
-		break;
 	case vccq_330:
+		if (!(hostctrl2 & SDHCI_CTRL2_S18_ENABLE))
+			return (0);
+		hostctrl2 &= ~SDHCI_CTRL2_S18_ENABLE;
+		bus_write_2(sc->mem_res, SDHCI_HOST_CONTROL2, hostctrl2);
+
 		uvolt = 3300000;
-		break;
+		err = regulator_set_voltage(sc->mmc_helper.vqmmc_supply,
+		    uvolt, uvolt);
+		if (err != 0) {
+			device_printf(sc->dev,
+			    "Cannot set vqmmc to %d<->%d\n",
+			    uvolt,
+			    uvolt);
+			return (err);
+		}
+
+		/*
+		 * According to the 'SD Host Controller Simplified
+		 * Specification 4.20 the host driver should take more
+		 * than 5ms for stable time of host voltage regulator
+		 * from changing 1.8V Signaling Enable.
+		 */
+		DELAY(5000);
+		hostctrl2 = bus_read_2(sc->mem_res, SDHCI_HOST_CONTROL2);
+		if (!(hostctrl2 & SDHCI_CTRL2_S18_ENABLE))
+			return (0);
+		return EAGAIN;
+	case vccq_180:
+		if (!(slot->host.caps & MMC_CAP_SIGNALING_180)) {
+			return EINVAL;
+		}
+		if (hostctrl2 & SDHCI_CTRL2_S18_ENABLE)
+			return (0);
+		hostctrl2 |= SDHCI_CTRL2_S18_ENABLE;
+		bus_write_2(sc->mem_res, SDHCI_HOST_CONTROL2, hostctrl2);
+
+		uvolt = 1800000;
+		err = regulator_set_voltage(sc->mmc_helper.vqmmc_supply,
+		    uvolt, uvolt);
+		if (err != 0) {
+			device_printf(sc->dev,
+			    "Cannot set vqmmc to %d<->%d\n",
+			    uvolt,
+			    uvolt);
+			return (err);
+		}
+
+		/*
+		 * According to the 'SD Host Controller Simplified
+		 * Specification 4.20 the host driver should take more
+		 * than 5ms for stable time of host voltage regulator
+		 * from changing 1.8V Signaling Enable.
+		 */
+		DELAY(5000);
+		hostctrl2 = bus_read_2(sc->mem_res, SDHCI_HOST_CONTROL2);
+		if (hostctrl2 & SDHCI_CTRL2_S18_ENABLE)
+			return (0);
+		return EAGAIN;
 	default:
+		device_printf(brdev,
+		    "Attempt to set unsupported signaling voltage\n");
 		return EINVAL;
 	}
-
-	err = regulator_set_voltage(sc->reg_vqmmc, uvolt, uvolt);
-	if (err != 0) {
-		device_printf(sc->dev,
-		    "Cannot set vqmmc to %d<->%d\n",
-		    uvolt,
-		    uvolt);
-		return (err);
-	}
-
-	return (0);
 }
 
-static int
-sdhci_xenon_probe(device_t dev)
+static void
+sdhci_xenon_fdt_parse(device_t dev, struct sdhci_slot *slot)
 {
 	struct sdhci_xenon_softc *sc = device_get_softc(dev);
 	pcell_t cid;
 
-	sc->quirks = 0;
-	sc->slot_id = 0;
-	sc->max_clk = XENON_MMC_MAX_CLK;
-
-	if (!ofw_bus_status_okay(dev))
-		return (ENXIO);
-
-	if (ofw_bus_search_compatible(dev, compat_data)->ocd_data == 0)
-		return (ENXIO);
-
-	sc->node = ofw_bus_get_node(dev);
-	device_set_desc(dev, "Armada Xenon SDHCI controller");
+	mmc_fdt_parse(dev, 0, &sc->mmc_helper, &slot->host);
 
 	/* Allow dts to patch quirks, slots, and max-frequency. */
 	if ((OF_getencprop(sc->node, "quirks", &cid, sizeof(cid))) > 0)
-		sc->quirks = cid;
-	if ((OF_getencprop(sc->node, "max-frequency", &cid, sizeof(cid))) > 0)
-		sc->max_clk = cid;
-	if (OF_hasprop(sc->node, "no-1-8-v"))
-		sc->no_18v = true;
-	if (OF_hasprop(sc->node, "wp-inverted"))
-		sc->wp_inverted = true;
+		slot->quirks = cid;
 	if (OF_hasprop(sc->node, "marvell,xenon-phy-slow-mode"))
 		sc->slow_mode = true;
 	sc->znr = XENON_ZNR_DEF_VALUE;
@@ -456,11 +526,18 @@ sdhci_xenon_probe(device_t dev)
 	if ((OF_getencprop(sc->node, "marvell,xenon-phy-zpr", &cid,
 	    sizeof(cid))) > 0)
 		sc->zpr = cid & XENON_ZPR_MASK;
-	if (regulator_get_by_ofw_property(dev, 0, "vqmmc-supply",
-	    &sc->reg_vqmmc) == 0 && bootverbose) {
-		if (bootverbose)
-			device_printf(dev, "vqmmc-supply regulator found\n");
-	}
+}
+
+static int
+sdhci_xenon_probe(device_t dev)
+{
+	if (!ofw_bus_status_okay(dev))
+		return (ENXIO);
+
+	if (ofw_bus_search_compatible(dev, compat_data)->ocd_data == 0)
+		return (ENXIO);
+
+	device_set_desc(dev, "Armada Xenon SDHCI controller");
 
 	return (0);
 }
@@ -474,6 +551,8 @@ sdhci_xenon_attach(device_t dev)
 	uint32_t reg;
 
 	sc->dev = dev;
+	sc->slot_id = 0;
+	sc->node = ofw_bus_get_node(dev);
 
 	/* Allocate IRQ. */
 	rid = 0;
@@ -497,26 +576,35 @@ sdhci_xenon_attach(device_t dev)
 
 	slot = malloc(sizeof(*slot), M_DEVBUF, M_ZERO | M_WAITOK);
 
-	/* Check if the device is flagged as non-removable. */
-	if (OF_hasprop(sc->node, "non-removable")) {
-		slot->opt |= SDHCI_NON_REMOVABLE;
-		if (bootverbose)
-			device_printf(dev, "Non-removable media\n");
-	}
-
-	slot->quirks = sc->quirks;
-	slot->caps = sc->caps;
-	slot->max_clk = sc->max_clk;
-	sc->slot = slot;
-
 	/*
 	 * Set up any gpio pin handling described in the FDT data. This cannot
 	 * fail; see comments in sdhci_fdt_gpio.h for details.
 	 */
 	sc->gpio = sdhci_fdt_gpio_setup(dev, slot);
 
+	sdhci_xenon_fdt_parse(dev, slot);
+
+	slot->max_clk = XENON_MMC_MAX_CLK;
+	if (slot->host.f_max > 0)
+		slot->max_clk = slot->host.f_max;
+	/* Check if the device is flagged as non-removable. */
+	if (sc->mmc_helper.props & MMC_PROP_NON_REMOVABLE) {
+		slot->opt |= SDHCI_NON_REMOVABLE;
+		if (bootverbose)
+			device_printf(dev, "Non-removable media\n");
+	}
+
+	sc->slot = slot;
+
 	if (sdhci_init_slot(dev, sc->slot, 0))
 		goto fail;
+
+	/* 1.2V signaling is not supported. */
+	sc->slot->host.caps &= ~MMC_CAP_SIGNALING_120;
+
+	/* Disable UHS in case of the PHY slow mode. */
+	if (sc->slow_mode)
+		sc->slot->host.caps &= ~MMC_CAP_SIGNALING_180;
 
 	/* Activate the interrupt */
 	err = bus_setup_intr(dev, sc->irq_res, INTR_TYPE_MISC | INTR_MPSAFE,
@@ -608,6 +696,8 @@ static device_method_t sdhci_xenon_methods[] = {
 	DEVMETHOD(mmcbr_acquire_host,	sdhci_generic_acquire_host),
 	DEVMETHOD(mmcbr_release_host,	sdhci_generic_release_host),
 	DEVMETHOD(mmcbr_switch_vccq,	sdhci_xenon_switch_vccq),
+	DEVMETHOD(mmcbr_tune,		sdhci_generic_tune),
+	DEVMETHOD(mmcbr_retune,		sdhci_generic_retune),
 
 	/* SDHCI registers accessors */
 	DEVMETHOD(sdhci_read_1,		sdhci_xenon_read_1),
@@ -619,6 +709,7 @@ static device_method_t sdhci_xenon_methods[] = {
 	DEVMETHOD(sdhci_write_4,	sdhci_xenon_write_4),
 	DEVMETHOD(sdhci_write_multi_4,	sdhci_xenon_write_multi_4),
 	DEVMETHOD(sdhci_get_card_present,	sdhci_xenon_get_card_present),
+	DEVMETHOD(sdhci_set_uhs_timing, sdhci_xenon_set_uhs_timing),
 
 	DEVMETHOD_END
 };

@@ -24,7 +24,7 @@
 .\"
 .\" $FreeBSD$
 .\"
-.Dd November 18, 2021
+.Dd March 9, 2022
 .Dt RC.CONF 5
 .Os
 .Sh NAME
@@ -3899,6 +3899,13 @@ The configuration filename used by
 utility.
 The default value is
 .Pa /etc/jail.conf .
+.Pa /etc/jail.  Ns Ao Ar jname Ac Ns Va .conf
+and
+.Pa /etc/jail.conf.d/ Ns Ao Ar jname Ac Ns Va .conf
+will also be used if
+.Va Ao Ar jname Ac Va
+is set in
+.Va jail_list .
 .It Va jail_parallel_start
 .Pq Vt bool
 If set to
@@ -4632,6 +4639,30 @@ If set to
 .Dq Li YES ,
 and a boot environment marked bootonce is successfully booted,
 it will be made permanently active.
+.It Va zfskeys_enable
+.Pq Vt bool
+If set to
+.Dq Li YES ,
+enable auto-loading of encryption keys for encrypted ZFS datasets.
+For every dataset the script will first load the appropriate encryption key
+and then attempt to unlock the dataset.
+.Pp
+The script operates only on datasets which are encrypted with
+ZFS native encryption
+and have a ZFS
+.Dq Li keylocation
+dataset property beginning with
+.Dq Li file:// .
+.It Va zfskeys_datasets
+.Pq Vt str
+A whitespace-separated list of ZFS datasets to unlock.
+The list is empty by default,
+which means that the script will attempt to unlock all datasets.
+.It Va zfskeys_timeout
+.Pq Vt int
+Define the total number of seconds to wait for the zfskeys script
+to unlock an encrypted dataset.
+The default is 10.
 .El
 .Sh FILES
 .Bl -tag -width ".Pa /etc/defaults/rc.conf" -compact

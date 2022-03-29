@@ -86,7 +86,7 @@ static char emptystring[] = "";
 PATH_T to = { to.p_path, emptystring, "" };
 
 int fflag, iflag, lflag, nflag, pflag, sflag, vflag;
-static int Rflag, rflag;
+static int Hflag, Lflag, Rflag, rflag;
 volatile sig_atomic_t info;
 
 enum op { FILE_TO_FILE, FILE_TO_DIR, DIR_TO_DNE };
@@ -99,22 +99,23 @@ main(int argc, char *argv[])
 {
 	struct stat to_stat, tmp_stat;
 	enum op type;
-	int Hflag, Lflag, ch, fts_options, r, have_trailing_slash;
+	int Pflag, ch, fts_options, r, have_trailing_slash;
 	char *target;
 
 	fts_options = FTS_NOCHDIR | FTS_PHYSICAL;
-	Hflag = Lflag = 0;
+	Pflag = 0;
 	while ((ch = getopt(argc, argv, "HLPRafilnprsvx")) != -1)
 		switch (ch) {
 		case 'H':
 			Hflag = 1;
-			Lflag = 0;
+			Lflag = Pflag = 0;
 			break;
 		case 'L':
 			Lflag = 1;
-			Hflag = 0;
+			Hflag = Pflag = 0;
 			break;
 		case 'P':
+			Pflag = 1;
 			Hflag = Lflag = 0;
 			break;
 		case 'R':
@@ -123,6 +124,7 @@ main(int argc, char *argv[])
 		case 'a':
 			pflag = 1;
 			Rflag = 1;
+			Pflag = 1;
 			Hflag = Lflag = 0;
 			break;
 		case 'f':
@@ -145,7 +147,7 @@ main(int argc, char *argv[])
 			break;
 		case 'r':
 			rflag = Lflag = 1;
-			Hflag = 0;
+			Hflag = Pflag = 0;
 			break;
 		case 's':
 			sflag = 1;
@@ -179,7 +181,7 @@ main(int argc, char *argv[])
 			fts_options &= ~FTS_PHYSICAL;
 			fts_options |= FTS_LOGICAL;
 		}
-	} else {
+	} else if (!Pflag) {
 		fts_options &= ~FTS_PHYSICAL;
 		fts_options |= FTS_LOGICAL | FTS_COMFOLLOW;
 	}
@@ -261,6 +263,22 @@ main(int argc, char *argv[])
 
 	exit (copy(argv, type, fts_options));
 }
+
+/* Does the right thing based on -R + -H/-L/-P */
+static int
+copy_stat(const char *path, struct stat *sb)
+{
+
+	/*
+	 * For -R -H/-P, we need to lstat() instead; copy() cares about the link
+	 * itself rather than the target if we're not following links during the
+	 * traversal.
+	 */
+	if (!Rflag || Lflag)
+		return (stat(path, sb));
+	return (lstat(path, sb));
+}
+
 
 static int
 copy(char *argv[], enum op type, int fts_options)
@@ -392,7 +410,7 @@ copy(char *argv[], enum op type, int fts_options)
 		}
 
 		/* Not an error but need to remember it happened. */
-		if (stat(to.p_path, &to_stat) == -1)
+		if (copy_stat(to.p_path, &to_stat) == -1)
 			dne = 1;
 		else {
 			if (to_stat.st_dev == curr->fts_statp->st_dev &&

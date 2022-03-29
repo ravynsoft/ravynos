@@ -468,7 +468,7 @@ blockif_open(nvlist_t *nvl, const char *ident)
 
 #ifndef WITHOUT_CAPSICUM
 	cap_rights_t rights;
-	cap_ioctl_t cmds[] = { DIOCGFLUSH, DIOCGDELETE };
+	cap_ioctl_t cmds[] = { DIOCGFLUSH, DIOCGDELETE, DIOCGMEDIASIZE };
 #endif
 
 	pthread_once(&blockif_once, blockif_init);
@@ -535,7 +535,7 @@ blockif_open(nvlist_t *nvl, const char *ident)
 
 #ifndef WITHOUT_CAPSICUM
 	cap_rights_init(&rights, CAP_FSYNC, CAP_IOCTL, CAP_READ, CAP_SEEK,
-	    CAP_WRITE, CAP_FSTAT, CAP_EVENT);
+	    CAP_WRITE, CAP_FSTAT, CAP_EVENT, CAP_FPATHCONF);
 	if (ro)
 		cap_rights_clear(&rights, CAP_FSYNC, CAP_WRITE);
 
@@ -651,14 +651,24 @@ blockif_resized(int fd, enum ev_type type, void *arg)
 {
 	struct blockif_ctxt *bc;
 	struct stat sb;
+	off_t mediasize;
 
 	if (fstat(fd, &sb) != 0)
 		return;
 
+	if (S_ISCHR(sb.st_mode)) {
+		if (ioctl(fd, DIOCGMEDIASIZE, &mediasize) < 0) {
+			EPRINTLN("blockif_resized: get mediasize failed: %s",
+			    strerror(errno));
+			return;
+		}
+	} else
+		mediasize = sb.st_size;
+
 	bc = arg;
 	pthread_mutex_lock(&bc->bc_mtx);
-	if (sb.st_size != bc->bc_size) {
-		bc->bc_size = sb.st_size;
+	if (mediasize != bc->bc_size) {
+		bc->bc_size = mediasize;
 		bc->bc_resize_cb(bc, bc->bc_resize_cb_arg, bc->bc_size);
 	}
 	pthread_mutex_unlock(&bc->bc_mtx);

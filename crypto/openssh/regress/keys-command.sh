@@ -1,4 +1,4 @@
-#	$OpenBSD: keys-command.sh,v 1.4 2016/09/26 21:34:38 bluhm Exp $
+#	$OpenBSD: keys-command.sh,v 1.7 2021/09/01 00:50:27 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="authorized keys from command"
@@ -14,12 +14,13 @@ rm -f $OBJ/keys-command-args
 touch $OBJ/keys-command-args
 chmod a+rw $OBJ/keys-command-args
 
-expected_key_text=`awk '{ print $2 }' < $OBJ/rsa.pub`
-expected_key_fp=`$SSHKEYGEN -lf $OBJ/rsa.pub | awk '{ print $2 }'`
+expected_key_text=`awk '{ print $2 }' < $OBJ/ssh-ed25519.pub`
+expected_key_fp=`$SSHKEYGEN -lf $OBJ/ssh-ed25519.pub | awk '{ print $2 }'`
 
 # Establish a AuthorizedKeysCommand in /var/run where it will have
 # acceptable directory permissions.
-KEY_COMMAND="/var/run/keycommand_${LOGNAME}"
+KEY_COMMAND="/var/run/keycommand_${LOGNAME}.$$"
+trap "${SUDO} rm -f ${KEY_COMMAND}" 0
 cat << _EOF | $SUDO sh -c "rm -f '$KEY_COMMAND' ; cat > '$KEY_COMMAND'"
 #!/bin/sh
 echo args: "\$@" >> $OBJ/keys-command-args
@@ -76,7 +77,5 @@ if [ -x $KEY_COMMAND ]; then
 		fail "connect failed"
 	fi
 else
-	echo "SKIPPED: $KEY_COMMAND not executable (/var/run mounted noexec?)"
+	skip "$KEY_COMMAND not executable (/var/run mounted noexec?)"
 fi
-
-$SUDO rm -f $KEY_COMMAND

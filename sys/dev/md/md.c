@@ -223,6 +223,7 @@ struct g_class g_md_class = {
 };
 
 DECLARE_GEOM_CLASS(g_md_class, g_md);
+MODULE_VERSION(geom_md, 0);
 
 static LIST_HEAD(, md_s) md_softc_list = LIST_HEAD_INITIALIZER(md_softc_list);
 
@@ -643,6 +644,8 @@ mdstart_malloc(struct md_s *sc, struct bio *bp)
 	case BIO_WRITE:
 	case BIO_DELETE:
 		break;
+	case BIO_FLUSH:
+		return (0);
 	default:
 		return (EOPNOTSUPP);
 	}
@@ -1032,6 +1035,8 @@ mdstart_swap(struct md_s *sc, struct bio *bp)
 	case BIO_WRITE:
 	case BIO_DELETE:
 		break;
+	case BIO_FLUSH:
+		return (0);
 	default:
 		return (EOPNOTSUPP);
 	}

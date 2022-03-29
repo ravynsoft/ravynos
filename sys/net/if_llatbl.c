@@ -59,6 +59,7 @@ __FBSDID("$FreeBSD$");
 #include <net/if_var.h>
 #include <net/route.h>
 #include <net/route/route_ctl.h>
+#include <net/route/route_debug.h>
 #include <net/vnet.h>
 #include <netinet/if_ether.h>
 #include <netinet6/in6_var.h>
@@ -419,6 +420,67 @@ llentry_lookup_family(struct llentry *lle, int family)
 }
 
 /*
+ * Retrieves upper protocol family for the llentry.
+ * By default, all "normal" (e.g. upper_family == transport_family)
+ * llentries have r_family set to 0.
+ * Thus, use @default_family in that regard, otherwise use r_family.
+ *
+ * Returns upper protocol family
+ */
+int
+llentry_get_upper_family(const struct llentry *lle, int default_family)
+{
+	return (lle->r_family == 0 ? default_family : lle->r_family);
+}
+
+/*
+ * Prints llentry @lle data into provided buffer.
+ * Example: lle/inet/valid/em0/1.2.3.4
+ *
+ * Returns @buf.
+ */
+char *
+llentry_print_buf(const struct llentry *lle, struct ifnet *ifp, int family,
+    char *buf, size_t bufsize)
+{
+	char abuf[INET6_ADDRSTRLEN];
+
+	const char *valid = (lle->r_flags & RLLE_VALID) ? "valid" : "no_l2";
+	const char *upper_str = rib_print_family(llentry_get_upper_family(lle, family));
+
+	switch (family) {
+#ifdef INET
+	case AF_INET:
+		inet_ntop(AF_INET, &lle->r_l3addr.addr4, abuf, sizeof(abuf));
+		snprintf(buf, bufsize, "lle/%s/%s/%s/%s", upper_str,
+		    valid, if_name(ifp), abuf);
+		break;
+#endif
+#ifdef INET6
+	case AF_INET6:
+		inet_ntop(AF_INET6, &lle->r_l3addr.addr6, abuf, sizeof(abuf));
+		snprintf(buf, bufsize, "lle/%s/%s/%s/%s", upper_str,
+		    valid, if_name(ifp), abuf);
+		break;
+#endif
+	default:
+		snprintf(buf, bufsize, "lle/%s/%s/%s/????", upper_str,
+		    valid, if_name(ifp));
+		break;
+	}
+
+	return (buf);
+}
+
+char *
+llentry_print_buf_lltable(const struct llentry *lle, char *buf, size_t bufsize)
+{
+	struct lltable *tbl = lle->lle_tbl;
+
+	return (llentry_print_buf(lle, lltable_get_ifp(tbl), lltable_get_af(tbl), buf, bufsize));
+}
+
+/*
  * Requests feedback from the datapath.
  * First packet using @lle should result in
  * setting r_skip_req back to 0 and updating
@@ -713,6 +775,22 @@ lltable_unlink(struct lltable *llt)
 }
 
 /*
+ * Gets interface @ifp lltable for the specified @family
+ */
+struct lltable *
+lltable_get(struct ifnet *ifp, int family)
+{
+	switch (family) {
+	case AF_INET:
+		return (in_lltable_get(ifp));
+	case AF_INET6:
+		return (in6_lltable_get(ifp));
+	}
+
+	return (NULL);
+}
+
+/*
  * External methods used by lltable consumers
  */
 
@@ -823,14 +901,8 @@ lla_rt_output(struct rt_msghdr *rtm, struct rt_addrinfo *info)
 		return EINVAL;
 	}
 
-	/* XXX linked list may be too expensive */
-	LLTABLE_LIST_RLOCK();
-	SLIST_FOREACH(llt, &V_lltables, llt_link) {
-		if (llt->llt_af == dst->sa_family &&
-		    llt->llt_ifp == ifp)
-			break;
-	}
-	LLTABLE_LIST_RUNLOCK();
+	llt = lltable_get(ifp, dst->sa_family);
+
 	if (llt == NULL)
 		return (ESRCH);
 

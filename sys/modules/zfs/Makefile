@@ -26,7 +26,7 @@ CFLAGS+= -I${.CURDIR}
 
 CFLAGS+= -D__KERNEL__ -DFREEBSD_NAMECACHE -DBUILDING_ZFS \
 	-DHAVE_UIO_ZEROCOPY -DWITHOUT_NETDUMP -D__KERNEL -D_SYS_CONDVAR_H_ \
-	-D_SYS_VMEM_H_ -DIN_FREEBSD_BASE -DHAVE_KSID
+	-D_SYS_VMEM_H_ -DIN_FREEBSD_BASE
 
 .if ${MACHINE_ARCH} == "amd64"
 CFLAGS+= -DHAVE_AVX2 -DHAVE_AVX -D__x86_64 -DHAVE_SSE2 -DHAVE_AVX512F -DHAVE_AVX512BW -DHAVE_SSSE3
@@ -300,6 +300,7 @@ CFLAGS.spl_string.c= -Wno-cast-qual
 CFLAGS.spl_vm.c= -Wno-cast-qual
 CFLAGS.spl_zlib.c= -Wno-cast-qual
 CFLAGS.abd.c= -Wno-cast-qual
+CFLAGS.arc.c= -Wno-unused-variable
 CFLAGS.zfs_log.c= -Wno-cast-qual
 CFLAGS.zfs_vnops_os.c= -Wno-pointer-arith
 CFLAGS.u8_textprep.c= -Wno-cast-qual
@@ -339,3 +340,4 @@ CFLAGS.zstd.c= -U__BMI__ -fno-tree-vectorize
 .if ${MACHINE_CPUARCH} == "aarch64"
 CFLAGS.zstd.c+= -include ${SRCDIR}/zstd/include/aarch64_compat.h
 .endif
+CFLAGS.zstd.c+= ${NO_WBITWISE_INSTEAD_OF_LOGICAL}

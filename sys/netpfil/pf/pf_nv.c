@@ -223,8 +223,6 @@ pf_nvpool_to_pool(const nvlist_t *nvl, struct pf_kpool *kpool)
 {
 	int error = 0;
 
-	bzero(kpool, sizeof(*kpool));
-
 	PFNV_CHK(pf_nvbinary(nvl, "key", &kpool->key, sizeof(kpool->key)));
 
 	if (nvlist_exists_nvlist(nvl, "counter")) {
@@ -625,7 +623,7 @@ pf_nvrule_to_krule(const nvlist_t *nvl, struct pf_krule *rule)
 	PFNV_CHK(pf_nvuint8(nvl, "flush", &rule->flush));
 	PFNV_CHK(pf_nvuint8(nvl, "prio", &rule->prio));
 
-	PFNV_CHK(pf_nvuint8_array(nvl, "set_prio", &rule->prio, 2, NULL));
+	PFNV_CHK(pf_nvuint8_array(nvl, "set_prio", rule->set_prio, 2, NULL));
 
 	if (nvlist_exists_nvlist(nvl, "divert")) {
 		const nvlist_t *nvldivert = nvlist_get_nvlist(nvl, "divert");
@@ -805,7 +803,7 @@ pf_krule_to_nvrule(struct pf_krule *rule)
 	nvlist_add_number(nvl, "flush", rule->flush);
 	nvlist_add_number(nvl, "prio", rule->prio);
 
-	pf_uint8_array_nv(nvl, "set_prio", &rule->prio, 2);
+	pf_uint8_array_nv(nvl, "set_prio", rule->set_prio, 2);
 
 	tmp = pf_divert_to_nvdivert(rule);
 	if (tmp == NULL)

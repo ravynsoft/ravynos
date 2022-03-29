@@ -25,6 +25,9 @@
  * $FreeBSD$
  */
 
+#include "opt_rss.h"
+#include "opt_ratelimit.h"
+
 #include <linux/kmod.h>
 #include <linux/module.h>
 #include <linux/errno.h>
@@ -44,9 +47,9 @@
 #include <dev/mlx5/mlx5_ifc.h>
 #include <dev/mlx5/mlx5_fpga/core.h>
 #include <dev/mlx5/mlx5_lib/mlx5.h>
-#include "mlx5_core.h"
-#include "eswitch.h"
-#include "fs_core.h"
+#include <dev/mlx5/mlx5_core/mlx5_core.h>
+#include <dev/mlx5/mlx5_core/eswitch.h>
+#include <dev/mlx5/mlx5_core/fs_core.h>
 #ifdef PCI_IOV
 #include <sys/nv.h>
 #include <dev/pci/pci_iov.h>
@@ -174,6 +177,30 @@ static struct mlx5_profile profiles[] = {
 		.log_max_qp	= 17,
 	},
 };
+
+static void mlx5_set_driver_version(struct mlx5_core_dev *dev)
+{
+	const size_t driver_ver_sz =
+	    MLX5_FLD_SZ_BYTES(set_driver_version_in, driver_version);
+	u8 in[MLX5_ST_SZ_BYTES(set_driver_version_in)] = {};
+	u8 out[MLX5_ST_SZ_BYTES(set_driver_version_out)] = {};
+	char *string;
+
+	if (!MLX5_CAP_GEN(dev, driver_version))
+		return;
+
+	string = MLX5_ADDR_OF(set_driver_version_in, in, driver_version);
+
+	snprintf(string, driver_ver_sz, "FreeBSD,mlx5_core,%u.%u.%u," DRIVER_VERSION,
+	    __FreeBSD_version / 100000, (__FreeBSD_version / 1000) % 100,
+	    __FreeBSD_version % 1000);
+
+	/* Send the command */
+	MLX5_SET(set_driver_version_in, in, opcode,
+	    MLX5_CMD_OP_SET_DRIVER_VERSION);
+
+	mlx5_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
+}
 
 #ifdef PCI_IOV
 static const char iov_mac_addr_name[] = "mac-addr";
@@ -527,6 +554,17 @@ static int set_hca_ctrl(struct mlx5_core_dev *dev)
 					&he_out, sizeof(he_out),
 					MLX5_REG_HOST_ENDIANNESS, 0, 1);
 	return err;
+}
+
+static int mlx5_core_set_hca_defaults(struct mlx5_core_dev *dev)
+{
+	int ret = 0;
+
+	/* Disable local_lb by default */
+	if (MLX5_CAP_GEN(dev, port_type) == MLX5_CAP_PORT_TYPE_ETH)
+		ret = mlx5_nic_vport_update_local_lb(dev, false);
+
+       return ret;
 }
 
 static int mlx5_core_enable_hca(struct mlx5_core_dev *dev, u16 func_id)
@@ -1094,6 +1132,8 @@ static int mlx5_load_one(struct mlx5_core_dev *dev, struct mlx5_priv *priv,
 		goto reclaim_boot_pages;
 	}
 
+	mlx5_set_driver_version(dev);
+
 	mlx5_start_health_poll(dev);
 
 	if (boot && (err = mlx5_init_once(dev, priv))) {
@@ -1129,6 +1169,12 @@ static int mlx5_load_one(struct mlx5_core_dev *dev, struct mlx5_priv *priv,
 	err = mlx5_init_fs(dev);
 	if (err) {
 		mlx5_core_err(dev, "flow steering init %d\n", err);
+		goto err_free_comp_eqs;
+	}
+
+	err = mlx5_core_set_hca_defaults(dev);
+	if (err) {
+		mlx5_core_err(dev, "Failed to set HCA defaults %d\n", err);
 		goto err_free_comp_eqs;
 	}
 
@@ -1984,9 +2030,9 @@ static const struct pci_device_id mlx5_core_pci_table[] = {
 	{ PCI_VDEVICE(MELLANOX, 4126) }, /* ConnectX Family mlx5Gen Virtual Function */
 	{ PCI_VDEVICE(MELLANOX, 4127) }, /* ConnectX-6 LX */
 	{ PCI_VDEVICE(MELLANOX, 4128) },
-	{ PCI_VDEVICE(MELLANOX, 4129) },
+	{ PCI_VDEVICE(MELLANOX, 4129) }, /* ConnectX-7 */
 	{ PCI_VDEVICE(MELLANOX, 4130) },
-	{ PCI_VDEVICE(MELLANOX, 4131) },
+	{ PCI_VDEVICE(MELLANOX, 4131) }, /* ConnectX-8 */
 	{ PCI_VDEVICE(MELLANOX, 4132) },
 	{ PCI_VDEVICE(MELLANOX, 4133) },
 	{ PCI_VDEVICE(MELLANOX, 4134) },
@@ -2003,6 +2049,8 @@ static const struct pci_device_id mlx5_core_pci_table[] = {
 	{ PCI_VDEVICE(MELLANOX, 0xa2d2) }, /* BlueField integrated ConnectX-5 network controller */
 	{ PCI_VDEVICE(MELLANOX, 0xa2d3) }, /* BlueField integrated ConnectX-5 network controller VF */
 	{ PCI_VDEVICE(MELLANOX, 0xa2d6) }, /* BlueField-2 integrated ConnectX-6 Dx network controller */
+	{ PCI_VDEVICE(MELLANOX, 0xa2dc) }, /* BlueField-3 integrated ConnectX-7 network controller */
+	{ PCI_VDEVICE(MELLANOX, 0xa2df) }, /* BlueField-4 integrated ConnectX-8 network controller */
 	{ }
 };
 

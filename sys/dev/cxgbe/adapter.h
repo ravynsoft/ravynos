@@ -154,18 +154,21 @@ enum {
 };
 
 enum {
-	/* adapter flags */
+	/* adapter flags.  synch_op or adapter_lock. */
 	FULL_INIT_DONE	= (1 << 0),
 	FW_OK		= (1 << 1),
 	CHK_MBOX_ACCESS	= (1 << 2),
 	MASTER_PF	= (1 << 3),
-	ADAP_SYSCTL_CTX	= (1 << 4),
-	ADAP_ERR	= (1 << 5),
 	BUF_PACKING_OK	= (1 << 6),
 	IS_VF		= (1 << 7),
 	KERN_TLS_ON	= (1 << 8),	/* HW is configured for KERN_TLS */
 	CXGBE_BUSY	= (1 << 9),
-	HW_OFF_LIMITS	= (1 << 10),	/* off limits to all except reset_thread */
+
+	/* adapter error_flags.  reg_lock for HW_OFF_LIMITS, atomics for the rest. */
+	ADAP_STOPPED 	= (1 << 0),	/* Adapter has been stopped. */
+	ADAP_FATAL_ERR 	= (1 << 1),	/* Encountered a fatal error. */
+	HW_OFF_LIMITS 	= (1 << 2),	/* off limits to all except reset_thread */
+	ADAP_CIM_ERR 	= (1 << 3),	/* Error was related to FW/CIM. */
 
 	/* port flags */
 	HAS_TRACEQ	= (1 << 3),
@@ -174,7 +177,7 @@ enum {
 	/* VI flags */
 	DOOMED		= (1 << 0),
 	VI_INIT_DONE	= (1 << 1),
-	VI_SYSCTL_CTX	= (1 << 2),
+	/* 1 << 2 is unused, was VI_SYSCTL_CTX */
 	TX_USES_VM_WR 	= (1 << 3),
 	VI_SKIP_STATS 	= (1 << 4),
 
@@ -332,6 +335,8 @@ struct port_info {
 	u_int tx_parse_error;
 	int fcs_reg;
 	uint64_t fcs_base;
+
+	struct sysctl_ctx_list ctx;
 };
 
 #define	IS_MAIN_VI(vi)		((vi) == &((vi)->pi->vi[0]))
@@ -904,7 +909,6 @@ struct adapter {
 	int nrawf;
 
 	struct taskqueue *tq[MAX_NCHAN];	/* General purpose taskqueues */
-	struct task async_event_task;
 	struct port_info *port[MAX_NPORTS];
 	uint8_t chan_map[MAX_NCHAN];		/* channel -> port */
 
@@ -930,10 +934,12 @@ struct adapter {
 	struct tls_tunables tlst;
 
 	uint8_t doorbells;
-	int offload_map;	/* ports with IFCAP_TOE enabled */
+	int offload_map;	/* port_id's with IFCAP_TOE enabled */
+	int bt_map;		/* tx_chan's with BASE-T */
 	int active_ulds;	/* ULDs activated on this adapter */
 	int flags;
 	int debug_flags;
+	int error_flags;	/* Used by error handler and live reset. */
 
 	char ifp_lockname[16];
 	struct mtx ifp_lock;
@@ -990,6 +996,7 @@ struct adapter {
 	struct mtx tc_lock;
 	struct task tc_task;
 
+	struct task fatal_error_task;
 	struct task reset_task;
 	const void *reset_thread;
 	int num_resets;
@@ -1088,7 +1095,9 @@ forwarding_intr_to_fwq(struct adapter *sc)
 static inline bool
 hw_off_limits(struct adapter *sc)
 {
-	return (__predict_false(sc->flags & HW_OFF_LIMITS));
+	int off_limits = atomic_load_int(&sc->error_flags) & HW_OFF_LIMITS;
+
+	return (__predict_false(off_limits != 0));
 }
 
 static inline uint32_t
@@ -1285,8 +1294,7 @@ void free_atid(struct adapter *, int);
 void release_tid(struct adapter *, int, struct sge_wrq *);
 int cxgbe_media_change(struct ifnet *);
 void cxgbe_media_status(struct ifnet *, struct ifmediareq *);
-bool t4_os_dump_cimla(struct adapter *, int, bool);
-void t4_os_dump_devlog(struct adapter *);
+void t4_os_cim_err(struct adapter *);
 
 #ifdef KERN_TLS
 /* t4_kern_tls.c */

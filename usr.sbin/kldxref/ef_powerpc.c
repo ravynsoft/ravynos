@@ -55,7 +55,8 @@ ef_reloc(struct elf_file *ef, const void *reldata, int reltype, Elf_Off relbase,
     Elf_Off dataoff, size_t len, void *dest)
 {
 	Elf_Addr *where, addend;
-	Elf_Size rtype;
+	Elf32_Addr *where32;
+	Elf_Size rtype, symidx;
 	const Elf_Rela *rela;
 
 	if (reltype != EF_RELOC_RELA)
@@ -63,8 +64,10 @@ ef_reloc(struct elf_file *ef, const void *reldata, int reltype, Elf_Off relbase,
 
 	rela = (const Elf_Rela *)reldata;
 	where = (Elf_Addr *) ((Elf_Off)dest - dataoff + rela->r_offset);
+	where32 = (Elf32_Addr *) ((Elf_Off)dest - dataoff + rela->r_offset);
 	addend = rela->r_addend;
 	rtype = ELF_R_TYPE(rela->r_info);
+	symidx = ELF_R_SYM(rela->r_info);
 
 	if ((char *)where < (char *)dest || (char *)where >= (char *)dest + len)
 		return (0);
@@ -73,6 +76,14 @@ ef_reloc(struct elf_file *ef, const void *reldata, int reltype, Elf_Off relbase,
 	case R_PPC_RELATIVE: /* word32|doubleword64 B + A */
 		*where = relbase + addend;
 		break;
+	case R_PPC_ADDR32:	/* word32 S + A */
+		*where32 = EF_SYMADDR(ef, symidx) + addend;
+		break;
+#ifdef __powerpc64__
+	case R_PPC64_ADDR64:	/* doubleword64 S + A */
+		*where = EF_SYMADDR(ef, symidx) + addend;
+		break;
+#endif
 	default:
 		warnx("unhandled relocation type %" PRI_ELF_SIZE, rtype);
 	}

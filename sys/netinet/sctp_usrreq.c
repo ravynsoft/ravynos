@@ -73,7 +73,7 @@ sctp_init(void)
 	 */
 	sb_max_adj = (u_long)((u_quad_t)(SB_MAX) * MCLBYTES / (MSIZE + MCLBYTES));
 	SCTP_BASE_SYSCTL(sctp_sendspace) = min(sb_max_adj,
-	    (((uint32_t)nmbclusters / 2) * SCTP_DEFAULT_MAXSEGMENT));
+	    (((uint32_t)nmbclusters / 2) * MCLBYTES));
 	/*
 	 * Now for the recv window, should we take the same amount? or
 	 * should I do 1/2 the SB_MAX instead in the SB_MAX min above. For
@@ -104,35 +104,51 @@ VNET_SYSUNINIT(sctp, SI_SUB_PROTO_DOMAIN, SI_ORDER_FOURTH, sctp_finish, NULL);
 #endif
 
 void
-sctp_pathmtu_adjustment(struct sctp_tcb *stcb, uint16_t nxtsz)
+sctp_pathmtu_adjustment(struct sctp_tcb *stcb, uint32_t mtu, bool resend)
 {
+	struct sctp_association *asoc;
 	struct sctp_tmit_chunk *chk;
-	uint16_t overhead;
+	uint32_t overhead;
 
-	/* Adjust that too */
-	stcb->asoc.smallest_mtu = nxtsz;
-	/* now off to subtract IP_DF flag if needed */
-	overhead = IP_HDR_SIZE + sizeof(struct sctphdr);
-	if (sctp_auth_is_required_chunk(SCTP_DATA, stcb->asoc.peer_auth_chunks)) {
-		overhead += sctp_get_auth_chunk_len(stcb->asoc.peer_hmac_id);
+	asoc = &stcb->asoc;
+	KASSERT(mtu < asoc->smallest_mtu,
+	    ("Currently only reducing association MTU %u supported (MTU %u)",
+	    asoc->smallest_mtu, mtu));
+	asoc->smallest_mtu = mtu;
+	if (stcb->sctp_ep->sctp_flags & SCTP_PCB_FLAGS_BOUND_V6) {
+		overhead = SCTP_MIN_OVERHEAD;
+	} else {
+		overhead = SCTP_MIN_V4_OVERHEAD;
 	}
-	TAILQ_FOREACH(chk, &stcb->asoc.send_queue, sctp_next) {
-		if ((chk->send_size + overhead) > nxtsz) {
+	if (asoc->idata_supported) {
+		if (sctp_auth_is_required_chunk(SCTP_IDATA, asoc->peer_auth_chunks)) {
+			overhead += sctp_get_auth_chunk_len(asoc->peer_hmac_id);
+		}
+	} else {
+		if (sctp_auth_is_required_chunk(SCTP_DATA, asoc->peer_auth_chunks)) {
+			overhead += sctp_get_auth_chunk_len(asoc->peer_hmac_id);
+		}
+	}
+	KASSERT(overhead % 4 == 0,
+	    ("overhead (%u) not a multiple of 4", overhead));
+	TAILQ_FOREACH(chk, &asoc->send_queue, sctp_next) {
+		if (((uint32_t)chk->send_size + overhead) > mtu) {
 			chk->flags |= CHUNK_FLAGS_FRAGMENT_OK;
 		}
 	}
-	TAILQ_FOREACH(chk, &stcb->asoc.sent_queue, sctp_next) {
-		if ((chk->send_size + overhead) > nxtsz) {
-			/*
-			 * For this guy we also mark for immediate resend
-			 * since we sent to big of chunk
-			 */
+	TAILQ_FOREACH(chk, &asoc->sent_queue, sctp_next) {
+		if (((uint32_t)chk->send_size + overhead) > mtu) {
 			chk->flags |= CHUNK_FLAGS_FRAGMENT_OK;
-			if (chk->sent < SCTP_DATAGRAM_RESEND) {
+			if (resend && chk->sent < SCTP_DATAGRAM_RESEND) {
+				/*
+				 * If requested, mark the chunk for
+				 * immediate resend, since we sent it being
+				 * too big.
+				 */
 				sctp_flight_size_decrease(chk);
 				sctp_total_flight_decrease(stcb, chk);
 				chk->sent = SCTP_DATAGRAM_RESEND;
-				sctp_ucount_incr(stcb->asoc.sent_queue_retran_cnt);
+				sctp_ucount_incr(asoc->sent_queue_retran_cnt);
 				chk->rec.data.doing_fast_retransmit = 0;
 				if (SCTP_BASE_SYSCTL(sctp_logging_level) & SCTP_FLIGHT_LOGGING_ENABLE) {
 					sctp_misc_ints(SCTP_FLIGHT_LOG_DOWN_PMTU,
@@ -141,7 +157,7 @@ sctp_pathmtu_adjustment(struct sctp_tcb *stcb, uint16_t nxtsz)
 					    (uint32_t)(uintptr_t)chk->whoTo,
 					    chk->rec.data.tsn);
 				}
-				/* Clear any time so NO RTT is being done */
+				/* Clear any time, so NO RTT is being done. */
 				if (chk->do_rtt == 1) {
 					chk->do_rtt = 0;
 					chk->whoTo->rto_needed = 1;
@@ -229,7 +245,7 @@ sctp_notify(struct sctp_inpcb *inp,
 		}
 		/* Update the association MTU */
 		if (stcb->asoc.smallest_mtu > next_mtu) {
-			sctp_pathmtu_adjustment(stcb, next_mtu);
+			sctp_pathmtu_adjustment(stcb, next_mtu, true);
 		}
 		/* Finally, start the PMTU timer if it was running before. */
 		if (timer_stopped) {
@@ -1417,7 +1433,7 @@ sctp_do_connect_x(struct socket *so, struct sctp_inpcb *inp, void *optval,
 	vrf_id = inp->def_vrf_id;
 
 	/* We are GOOD to go */
-	stcb = sctp_aloc_assoc(inp, sa, &error, 0, 0, vrf_id,
+	stcb = sctp_aloc_assoc_connected(inp, sa, &error, 0, 0, vrf_id,
 	    inp->sctp_ep.pre_open_stream_count,
 	    inp->sctp_ep.port,
 	    (struct thread *)p,
@@ -1425,11 +1441,6 @@ sctp_do_connect_x(struct socket *so, struct sctp_inpcb *inp, void *optval,
 	if (stcb == NULL) {
 		/* Gak! no memory */
 		goto out_now;
-	}
-	if (stcb->sctp_ep->sctp_flags & SCTP_PCB_FLAGS_TCPTYPE) {
-		stcb->sctp_ep->sctp_flags |= SCTP_PCB_FLAGS_CONNECTED;
-		/* Set the connected flag so we can queue data */
-		soisconnecting(so);
 	}
 	SCTP_SET_STATE(stcb, SCTP_STATE_COOKIE_WAIT);
 	/* move to second address */
@@ -2037,13 +2048,12 @@ flags_out:
 	case SCTP_MAXSEG:
 		{
 			struct sctp_assoc_value *av;
-			int ovh;
 
 			SCTP_CHECK_AND_CAST(av, optval, struct sctp_assoc_value, *optsize);
 			SCTP_FIND_STCB(inp, stcb, av->assoc_id);
 
 			if (stcb) {
-				av->assoc_value = sctp_get_frag_point(stcb, &stcb->asoc);
+				av->assoc_value = stcb->asoc.sctp_frag_point;
 				SCTP_TCB_UNLOCK(stcb);
 			} else {
 				if ((inp->sctp_flags & SCTP_PCB_FLAGS_TCPTYPE) ||
@@ -2051,15 +2061,7 @@ flags_out:
 				    ((inp->sctp_flags & SCTP_PCB_FLAGS_UDPTYPE) &&
 				    (av->assoc_id == SCTP_FUTURE_ASSOC))) {
 					SCTP_INP_RLOCK(inp);
-					if (inp->sctp_flags & SCTP_PCB_FLAGS_BOUND_V6) {
-						ovh = SCTP_MED_OVERHEAD;
-					} else {
-						ovh = SCTP_MED_V4_OVERHEAD;
-					}
-					if (inp->sctp_frag_point >= SCTP_DEFAULT_MAXSEGMENT)
-						av->assoc_value = 0;
-					else
-						av->assoc_value = inp->sctp_frag_point - ovh;
+					av->assoc_value = inp->sctp_frag_point;
 					SCTP_INP_RUNLOCK(inp);
 				} else {
 					SCTP_LTRACE_ERR_RET(inp, NULL, NULL, SCTP_FROM_SCTP_USRREQ, EINVAL);
@@ -2628,7 +2630,7 @@ flags_out:
 			    stcb->asoc.cnt_on_all_streams);
 			sstat->sstat_instrms = stcb->asoc.streamincnt;
 			sstat->sstat_outstrms = stcb->asoc.streamoutcnt;
-			sstat->sstat_fragmentation_point = sctp_get_frag_point(stcb, &stcb->asoc);
+			sstat->sstat_fragmentation_point = sctp_get_frag_point(stcb);
 			net = stcb->asoc.primary_destination;
 			if (net != NULL) {
 				memcpy(&sstat->sstat_primary.spinfo_address,
@@ -2755,7 +2757,7 @@ flags_out:
 					sasoc->sasoc_asocmaxrxt = inp->sctp_ep.max_send_times;
 					sasoc->sasoc_number_peer_destinations = 0;
 					sasoc->sasoc_peer_rwnd = 0;
-					sasoc->sasoc_local_rwnd = sbspace(&inp->sctp_socket->so_rcv);
+					sasoc->sasoc_local_rwnd = (uint32_t)sbspace(&inp->sctp_socket->so_rcv);
 					SCTP_INP_RUNLOCK(inp);
 				} else {
 					SCTP_LTRACE_ERR_RET(inp, NULL, NULL, SCTP_FROM_SCTP_USRREQ, EINVAL);
@@ -2856,7 +2858,7 @@ flags_out:
 		{
 			struct sctp_hmacalgo *shmac;
 			sctp_hmaclist_t *hmaclist;
-			uint32_t size;
+			size_t size;
 			int i;
 
 			SCTP_CHECK_AND_CAST(shmac, optval, struct sctp_hmacalgo, *optsize);
@@ -2872,7 +2874,7 @@ flags_out:
 			/* is there room for all of the hmac ids? */
 			size = sizeof(*shmac) + (hmaclist->num_algo *
 			    sizeof(shmac->shmac_idents[0]));
-			if ((size_t)(*optsize) < size) {
+			if (*optsize < size) {
 				SCTP_LTRACE_ERR_RET(inp, NULL, NULL, SCTP_FROM_SCTP_USRREQ, EINVAL);
 				error = EINVAL;
 				SCTP_INP_RUNLOCK(inp);
@@ -4065,10 +4067,10 @@ sctp_setopt(struct socket *so, int optname, void *optval, size_t optsize,
 			SCTP_FIND_STCB(inp, stcb, av->assoc_id);
 			if (stcb) {
 				SCTP_TCB_SEND_LOCK(stcb);
-				stcb->asoc.ss_functions.sctp_ss_clear(stcb, &stcb->asoc, 1, 1);
+				stcb->asoc.ss_functions.sctp_ss_clear(stcb, &stcb->asoc, true);
 				stcb->asoc.ss_functions = sctp_ss_functions[av->assoc_value];
 				stcb->asoc.stream_scheduling_module = av->assoc_value;
-				stcb->asoc.ss_functions.sctp_ss_init(stcb, &stcb->asoc, 1);
+				stcb->asoc.ss_functions.sctp_ss_init(stcb, &stcb->asoc);
 				SCTP_TCB_SEND_UNLOCK(stcb);
 				SCTP_TCB_UNLOCK(stcb);
 			} else {
@@ -4088,10 +4090,10 @@ sctp_setopt(struct socket *so, int optname, void *optval, size_t optsize,
 					LIST_FOREACH(stcb, &inp->sctp_asoc_list, sctp_tcblist) {
 						SCTP_TCB_LOCK(stcb);
 						SCTP_TCB_SEND_LOCK(stcb);
-						stcb->asoc.ss_functions.sctp_ss_clear(stcb, &stcb->asoc, 1, 1);
+						stcb->asoc.ss_functions.sctp_ss_clear(stcb, &stcb->asoc, true);
 						stcb->asoc.ss_functions = sctp_ss_functions[av->assoc_value];
 						stcb->asoc.stream_scheduling_module = av->assoc_value;
-						stcb->asoc.ss_functions.sctp_ss_init(stcb, &stcb->asoc, 1);
+						stcb->asoc.ss_functions.sctp_ss_init(stcb, &stcb->asoc);
 						SCTP_TCB_SEND_UNLOCK(stcb);
 						SCTP_TCB_UNLOCK(stcb);
 					}
@@ -4982,22 +4984,12 @@ sctp_setopt(struct socket *so, int optname, void *optval, size_t optsize,
 	case SCTP_MAXSEG:
 		{
 			struct sctp_assoc_value *av;
-			int ovh;
 
 			SCTP_CHECK_AND_CAST(av, optval, struct sctp_assoc_value, optsize);
 			SCTP_FIND_STCB(inp, stcb, av->assoc_id);
 
-			if (inp->sctp_flags & SCTP_PCB_FLAGS_BOUND_V6) {
-				ovh = SCTP_MED_OVERHEAD;
-			} else {
-				ovh = SCTP_MED_V4_OVERHEAD;
-			}
 			if (stcb) {
-				if (av->assoc_value) {
-					stcb->asoc.sctp_frag_point = (av->assoc_value + ovh);
-				} else {
-					stcb->asoc.sctp_frag_point = SCTP_DEFAULT_MAXSEGMENT;
-				}
+				stcb->asoc.sctp_frag_point = av->assoc_value;
 				SCTP_TCB_UNLOCK(stcb);
 			} else {
 				if ((inp->sctp_flags & SCTP_PCB_FLAGS_TCPTYPE) ||
@@ -5005,15 +4997,7 @@ sctp_setopt(struct socket *so, int optname, void *optval, size_t optsize,
 				    ((inp->sctp_flags & SCTP_PCB_FLAGS_UDPTYPE) &&
 				    (av->assoc_id == SCTP_FUTURE_ASSOC))) {
 					SCTP_INP_WLOCK(inp);
-					/*
-					 * FIXME MT: I think this is not in
-					 * tune with the API ID
-					 */
-					if (av->assoc_value) {
-						inp->sctp_frag_point = (av->assoc_value + ovh);
-					} else {
-						inp->sctp_frag_point = SCTP_DEFAULT_MAXSEGMENT;
-					}
+					inp->sctp_frag_point = av->assoc_value;
 					SCTP_INP_WUNLOCK(inp);
 				} else {
 					SCTP_LTRACE_ERR_RET(inp, NULL, NULL, SCTP_FROM_SCTP_USRREQ, EINVAL);
@@ -5395,7 +5379,7 @@ sctp_setopt(struct socket *so, int optname, void *optval, size_t optsize,
 								break;
 							}
 							if (net->mtu < stcb->asoc.smallest_mtu) {
-								sctp_pathmtu_adjustment(stcb, net->mtu);
+								sctp_pathmtu_adjustment(stcb, net->mtu, true);
 							}
 						}
 					}
@@ -5539,7 +5523,7 @@ sctp_setopt(struct socket *so, int optname, void *optval, size_t optsize,
 									break;
 								}
 								if (net->mtu < stcb->asoc.smallest_mtu) {
-									sctp_pathmtu_adjustment(stcb, net->mtu);
+									sctp_pathmtu_adjustment(stcb, net->mtu, true);
 								}
 							}
 						}
@@ -7084,18 +7068,13 @@ sctp_connect(struct socket *so, struct sockaddr *addr, struct thread *p)
 
 	vrf_id = inp->def_vrf_id;
 	/* We are GOOD to go */
-	stcb = sctp_aloc_assoc(inp, addr, &error, 0, 0, vrf_id,
+	stcb = sctp_aloc_assoc_connected(inp, addr, &error, 0, 0, vrf_id,
 	    inp->sctp_ep.pre_open_stream_count,
 	    inp->sctp_ep.port, p,
 	    SCTP_INITIALIZE_AUTH_PARAMS);
 	if (stcb == NULL) {
 		/* Gak! no memory */
 		goto out_now;
-	}
-	if (stcb->sctp_ep->sctp_flags & SCTP_PCB_FLAGS_TCPTYPE) {
-		stcb->sctp_ep->sctp_flags |= SCTP_PCB_FLAGS_CONNECTED;
-		/* Set the connected flag so we can queue data */
-		soisconnecting(so);
 	}
 	SCTP_SET_STATE(stcb, SCTP_STATE_COOKIE_WAIT);
 	(void)SCTP_GETTIME_TIMEVAL(&stcb->asoc.time_entered);

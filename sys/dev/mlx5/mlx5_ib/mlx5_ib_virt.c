@@ -25,9 +25,12 @@
  * $FreeBSD$
  */
 
+#include "opt_rss.h"
+#include "opt_ratelimit.h"
+
 #include <linux/module.h>
 #include <dev/mlx5/vport.h>
-#include "mlx5_ib.h"
+#include <dev/mlx5/mlx5_ib/mlx5_ib.h>
 
 int mlx5_ib_get_vf_config(struct ib_device *device, int vf, u8 port,
 			  struct ifla_vf_info *info)

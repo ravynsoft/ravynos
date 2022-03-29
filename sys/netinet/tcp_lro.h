@@ -34,6 +34,7 @@
 #define _TCP_LRO_H_
 
 #include <sys/time.h>
+#include <netinet/in.h>
 
 #ifndef TCP_LRO_ENTRIES
 /* Define default number of LRO entries per RX queue */
@@ -67,31 +68,25 @@ struct inpcb;
 union lro_address {
 	u_long raw[1];
 	struct {
-		uint16_t lro_type;	/* internal */
+		uint8_t lro_type;	/* internal */
 #define	LRO_TYPE_NONE     0
 #define	LRO_TYPE_IPV4_TCP 1
 #define	LRO_TYPE_IPV6_TCP 2
 #define	LRO_TYPE_IPV4_UDP 3
 #define	LRO_TYPE_IPV6_UDP 4
+		uint8_t lro_flags;
+#define	LRO_FLAG_DECRYPTED 1
 		uint16_t vlan_id;	/* VLAN identifier */
 		uint16_t s_port;	/* source TCP/UDP port */
 		uint16_t d_port;	/* destination TCP/UDP port */
 		uint32_t vxlan_vni;	/* VXLAN virtual network identifier */
 		union {
-#ifdef INET
 			struct in_addr v4;
-#endif
-#ifdef INET6
 			struct in6_addr v6;
-#endif
 		} s_addr;	/* source IPv4/IPv6 address */
 		union {
-#ifdef INET
 			struct in_addr v4;
-#endif
-#ifdef INET6
 			struct in6_addr v6;
-#endif
 		} d_addr;	/* destination IPv4/IPv6 address */
 	};
 } __aligned(sizeof(u_long));
@@ -144,7 +139,9 @@ struct lro_entry {
 	uint16_t		compressed;
 	uint16_t		uncompressed;
 	uint16_t		window;
-	uint16_t		timestamp;	/* flag, not a TCP hdr field. */
+	uint8_t			flags;
+	uint8_t			timestamp : 1;
+	uint8_t			needs_merge : 1;
 	struct bintime		alloc_time;	/* time when entry was allocated */
 };
 

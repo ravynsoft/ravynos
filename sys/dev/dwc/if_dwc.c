@@ -1579,11 +1579,14 @@ dwc_attach(device_t dev)
 	case MII_CONTYPE_RGMII_ID:
 	case MII_CONTYPE_RGMII_RXID:
 	case MII_CONTYPE_RGMII_TXID:
-			sc->phy_mode = PHY_MODE_RGMII;
-			break;
+		sc->phy_mode = PHY_MODE_RGMII;
+		break;
 	case MII_CONTYPE_RMII:
-			sc->phy_mode = PHY_MODE_RMII;
-			break;
+		sc->phy_mode = PHY_MODE_RMII;
+		break;
+	case MII_CONTYPE_MII:
+		sc->phy_mode = PHY_MODE_MII;
+		break;
 	default:
 		device_printf(dev, "Unsupported MII type\n");
 		return (ENXIO);
@@ -1619,6 +1622,7 @@ dwc_attach(device_t dev)
 	/* Reset the PHY if needed */
 	if (dwc_reset(dev) != 0) {
 		device_printf(dev, "Can't reset the PHY\n");
+		bus_release_resources(dev, dwc_spec, sc->res);
 		return (ENXIO);
 	}
 
@@ -1634,6 +1638,7 @@ dwc_attach(device_t dev)
 	}
 	if (i >= MAC_RESET_TIMEOUT) {
 		device_printf(sc->dev, "Can't reset DWC.\n");
+		bus_release_resources(dev, dwc_spec, sc->res);
 		return (ENXIO);
 	}
 
@@ -1654,8 +1659,10 @@ dwc_attach(device_t dev)
 	reg &= ~(MODE_ST | MODE_SR);
 	WRITE4(sc, OPERATION_MODE, reg);
 
-	if (setup_dma(sc))
-	        return (ENXIO);
+	if (setup_dma(sc)) {
+		bus_release_resources(dev, dwc_spec, sc->res);
+		return (ENXIO);
+	}
 
 	/* Setup addresses */
 	WRITE4(sc, RX_DESCR_LIST_ADDR, sc->rxdesc_ring_paddr);
@@ -1671,6 +1678,7 @@ dwc_attach(device_t dev)
 	    NULL, dwc_intr, sc, &sc->intr_cookie);
 	if (error != 0) {
 		device_printf(dev, "could not setup interrupt handler.\n");
+		bus_release_resources(dev, dwc_spec, sc->res);
 		return (ENXIO);
 	}
 
@@ -1696,6 +1704,8 @@ dwc_attach(device_t dev)
 
 	if (error != 0) {
 		device_printf(dev, "PHY attach failed\n");
+		bus_teardown_intr(dev, sc->res[1], sc->intr_cookie);
+		bus_release_resources(dev, dwc_spec, sc->res);
 		return (ENXIO);
 	}
 	sc->mii_softc = device_get_softc(sc->miibus);

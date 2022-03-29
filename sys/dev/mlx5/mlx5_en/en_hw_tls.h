@@ -1,5 +1,6 @@
 /*-
  * Copyright (c) 2019 Mellanox Technologies. All rights reserved.
+ * Copyright (c) 2022 NVIDIA corporation & affiliates.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -28,8 +29,6 @@
 #ifndef _MLX5_TLS_H_
 #define	_MLX5_TLS_H_
 
-#include <sys/queue.h>
-
 #define	MLX5E_TLS_TAG_LOCK(tag)		mtx_lock(&(tag)->mtx)
 #define	MLX5E_TLS_TAG_UNLOCK(tag)	mtx_unlock(&(tag)->mtx)
 
@@ -43,10 +42,9 @@ enum {
       MLX5E_TLS_CONTINUE = 3,
 };
 
+struct mlx5e_tls;
 struct mlx5e_tls_tag {
 	struct m_snd_tag tag;
-	STAILQ_ENTRY(mlx5e_tls_tag) entry;
-	volatile s32 refs;	/* number of pending mbufs */
 	uint32_t tisn;		/* HW TIS context number */
 	uint32_t dek_index;	/* HW TLS context number */
 	struct mlx5e_tls *tls;
@@ -57,7 +55,8 @@ struct mlx5e_tls_tag {
 #define	MLX5E_TLS_ST_INIT 0
 #define	MLX5E_TLS_ST_SETUP 1
 #define	MLX5E_TLS_ST_TXRDY 2
-#define	MLX5E_TLS_ST_FREED 3
+#define	MLX5E_TLS_ST_RELEASE 3
+#define	MLX5E_TLS_ST_FREED 4
 	struct work_struct work;
 
 	uint32_t dek_index_ok:1;

@@ -1,6 +1,5 @@
 /*-
  * Copyright (c) 2016 The FreeBSD Foundation
- * All rights reserved.
  *
  * This software was developed by Konstantin Belousov <kib@FreeBSD.org>
  * under sponsorship from the FreeBSD Foundation.
@@ -47,6 +46,7 @@
 
 #ifdef _KERNEL
 #include <isa/rtc.h>
+#define ARCH_MAY_USE_EFI
 
 #define	EFI_TIME_LOCK()		mtx_lock(&atrtc_time_lock)
 #define	EFI_TIME_UNLOCK()	mtx_unlock(&atrtc_time_lock)

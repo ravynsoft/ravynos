@@ -2,7 +2,7 @@
 
 PACKAGE=	ipf
 PROG=		ippool
-SRCS=		${GENHDRS} ippool_y.c ippool_l.c kmem.c ippool.c
+SRCS=		${GENHDRS} ippool_y.c ippool_l.c ippool.c
 MAN=		ippool.5 ippool.8
 CFLAGS+=	-I.
 
@@ -12,7 +12,6 @@ CLEANFILES+=	${GENHDRS} ippool_y.c ippool_l.c
 ippool_y.c: ippool_y.y
 	${YACC} -d ${.ALLSRC}
 	sed -e 's/yy/ippool_yy/g' \
-	    -e 's/"ippool_y.y"/"..\/tools\/ippool_y.y"/' \
 	    y.tab.c > ${.TARGET}
 	sed -e 's/yy/ippool_yy/g' \
 	    y.tab.h > ${.TARGET:.c=.h}

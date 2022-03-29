@@ -1,7 +1,7 @@
 /*-
  * Copyright (c) 2015-2016 Mellanox Technologies, Ltd.
  * All rights reserved.
- * Copyright (c) 2020-2021 The FreeBSD Foundation
+ * Copyright (c) 2020-2022 The FreeBSD Foundation
  *
  * Portions of this software were developed by Björn Zeeb
  * under sponsorship from the FreeBSD Foundation.
@@ -278,6 +278,11 @@ lkpifill_pci_dev(device_t dev, struct pci_dev *pdev)
 	pdev->class = pci_get_class(dev);
 	pdev->revision = pci_get_revid(dev);
 	pdev->bus = malloc(sizeof(*pdev->bus), M_DEVBUF, M_WAITOK | M_ZERO);
+	/*
+	 * This should be the upstream bridge; pci_upstream_bridge()
+	 * handles that case on demand as otherwise we'll shadow the
+	 * entire PCI hierarchy.
+	 */
 	pdev->bus->self = pdev;
 	pdev->bus->number = pci_get_bus(dev);
 	pdev->bus->domain = pci_get_domain(dev);
@@ -301,6 +306,8 @@ lkpinew_pci_dev_release(struct device *dev)
 	pdev = to_pci_dev(dev);
 	if (pdev->root != NULL)
 		pci_dev_put(pdev->root);
+	if (pdev->bus->self != pdev)
+		pci_dev_put(pdev->bus->self);
 	free(pdev->bus, M_DEVBUF);
 	free(pdev, M_DEVBUF);
 }
@@ -361,7 +368,12 @@ linux_pci_probe(device_t dev)
 	if (device_get_driver(dev) != &pdrv->bsddriver)
 		return (ENXIO);
 	device_set_desc(dev, pdrv->name);
-	return (0);
+
+	/* Assume BSS initialized (should never return BUS_PROBE_SPECIFIC). */
+	if (pdrv->bsd_probe_return == 0)
+		return (BUS_PROBE_DEFAULT);
+	else
+		return (pdrv->bsd_probe_return);
 }
 
 static int
@@ -642,7 +654,8 @@ _linux_pci_register_driver(struct pci_driver *pdrv, devclass_t dc)
 	spin_lock(&pci_lock);
 	list_add(&pdrv->node, &pci_drivers);
 	spin_unlock(&pci_lock);
-	pdrv->bsddriver.name = pdrv->name;
+	if (pdrv->bsddriver.name == NULL)
+		pdrv->bsddriver.name = pdrv->name;
 	pdrv->bsddriver.methods = pci_methods;
 	pdrv->bsddriver.size = sizeof(struct pci_dev);
 
@@ -954,9 +967,32 @@ linux_dma_alloc_coherent(struct device *dev, size_t size,
 	return (mem);
 }
 
+void
+linuxkpi_dma_sync(struct device *dev, dma_addr_t dma_addr, size_t size,
+    bus_dmasync_op_t op)
+{
+	struct linux_dma_priv *priv;
+	struct linux_dma_obj *obj;
+
+	priv = dev->dma_priv;
+
+	if (pctrie_is_empty(&priv->ptree))
+		return;
+
+	DMA_PRIV_LOCK(priv);
+	obj = LINUX_DMA_PCTRIE_LOOKUP(&priv->ptree, dma_addr);
+	if (obj == NULL) {
+		DMA_PRIV_UNLOCK(priv);
+		return;
+	}
+
+	bus_dmamap_sync(obj->dmat, obj->dmamap, op);
+	DMA_PRIV_UNLOCK(priv);
+}
+
 int
 linux_dma_map_sg_attrs(struct device *dev, struct scatterlist *sgl, int nents,
-    enum dma_data_direction dir __unused, unsigned long attrs __unused)
+    enum dma_data_direction direction, unsigned long attrs __unused)
 {
 	struct linux_dma_priv *priv;
 	struct scatterlist *sg;
@@ -989,6 +1025,21 @@ linux_dma_map_sg_attrs(struct device *dev, struct scatterlist *sgl, int nents,
 
 		sg_dma_address(sg) = seg.ds_addr;
 	}
+
+	switch (direction) {
+	case DMA_BIDIRECTIONAL:
+		bus_dmamap_sync(priv->dmat, sgl->dma_map, BUS_DMASYNC_PREWRITE);
+		break;
+	case DMA_TO_DEVICE:
+		bus_dmamap_sync(priv->dmat, sgl->dma_map, BUS_DMASYNC_PREREAD);
+		break;
+	case DMA_FROM_DEVICE:
+		bus_dmamap_sync(priv->dmat, sgl->dma_map, BUS_DMASYNC_PREWRITE);
+		break;
+	default:
+		break;
+	}
+
 	DMA_PRIV_UNLOCK(priv);
 
 	return (nents);
@@ -996,7 +1047,7 @@ linux_dma_map_sg_attrs(struct device *dev, struct scatterlist *sgl, int nents,
 
 void
 linux_dma_unmap_sg_attrs(struct device *dev, struct scatterlist *sgl,
-    int nents __unused, enum dma_data_direction dir __unused,
+    int nents __unused, enum dma_data_direction direction,
     unsigned long attrs __unused)
 {
 	struct linux_dma_priv *priv;
@@ -1004,6 +1055,22 @@ linux_dma_unmap_sg_attrs(struct device *dev, struct scatterlist *sgl,
 	priv = dev->dma_priv;
 
 	DMA_PRIV_LOCK(priv);
+
+	switch (direction) {
+	case DMA_BIDIRECTIONAL:
+		bus_dmamap_sync(priv->dmat, sgl->dma_map, BUS_DMASYNC_POSTREAD);
+		bus_dmamap_sync(priv->dmat, sgl->dma_map, BUS_DMASYNC_PREREAD);
+		break;
+	case DMA_TO_DEVICE:
+		bus_dmamap_sync(priv->dmat, sgl->dma_map, BUS_DMASYNC_POSTWRITE);
+		break;
+	case DMA_FROM_DEVICE:
+		bus_dmamap_sync(priv->dmat, sgl->dma_map, BUS_DMASYNC_POSTREAD);
+		break;
+	default:
+		break;
+	}
+
 	bus_dmamap_unload(priv->dmat, sgl->dma_map);
 	bus_dmamap_destroy(priv->dmat, sgl->dma_map);
 	DMA_PRIV_UNLOCK(priv);

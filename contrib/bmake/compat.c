@@ -1,4 +1,4 @@
-/*	$NetBSD: compat.c,v 1.224 2021/02/05 05:15:12 rillig Exp $	*/
+/*	$NetBSD: compat.c,v 1.238 2022/01/22 18:59:23 rillig Exp $	*/
 
 /*
  * Copyright (c) 1988, 1989, 1990 The Regents of the University of California.
@@ -99,7 +99,7 @@
 #include "pathnames.h"
 
 /*	"@(#)compat.c	8.2 (Berkeley) 3/19/94"	*/
-MAKE_RCSID("$NetBSD: compat.c,v 1.224 2021/02/05 05:15:12 rillig Exp $");
+MAKE_RCSID("$NetBSD: compat.c,v 1.238 2022/01/22 18:59:23 rillig Exp $");
 
 static GNode *curTarg = NULL;
 static pid_t compatChild;
@@ -112,10 +112,10 @@ static int compatSigno;
 static void
 CompatDeleteTarget(GNode *gn)
 {
-	if (gn != NULL && !Targ_Precious(gn)) {
+	if (gn != NULL && !GNode_IsPrecious(gn)) {
 		const char *file = GNode_VarTarget(gn);
 
-		if (!opts.noExecute && eunlink(file) != -1) {
+		if (!opts.noExecute && unlink_file(file)) {
 			Error("*** %s removed", file);
 		}
 	}
@@ -135,7 +135,7 @@ CompatInterrupt(int signo)
 {
 	CompatDeleteTarget(curTarg);
 
-	if (curTarg != NULL && !Targ_Precious(curTarg)) {
+	if (curTarg != NULL && !GNode_IsPrecious(curTarg)) {
 		/*
 		 * Run .INTERRUPT only if hit with interrupt signal
 		 */
@@ -164,14 +164,16 @@ CompatInterrupt(int signo)
 }
 
 static void
-DebugFailedTarget(const char *cmd, GNode *gn)
+DebugFailedTarget(const char *cmd, const GNode *gn)
 {
 	const char *p = cmd;
 	debug_printf("\n*** Failed target:  %s\n*** Failed command: ",
-		     gn->name);
+	    gn->name);
 
-	/* Replace runs of whitespace with a single space, to reduce
-	 * the amount of whitespace for multi-line command lines. */
+	/*
+	 * Replace runs of whitespace with a single space, to reduce the
+	 * amount of whitespace for multi-line command lines.
+	 */
 	while (*p != '\0') {
 		if (ch_isspace(*p)) {
 			debug_printf(" ");
@@ -184,17 +186,17 @@ DebugFailedTarget(const char *cmd, GNode *gn)
 	debug_printf("\n");
 }
 
-static Boolean
+static bool
 UseShell(const char *cmd MAKE_ATTR_UNUSED)
 {
-#if !defined(MAKE_NATIVE)
+#if defined(FORCE_USE_SHELL) || !defined(MAKE_NATIVE)
 	/*
 	 * In a non-native build, the host environment might be weird enough
 	 * that it's necessary to go through a shell to get the correct
 	 * behaviour.  Or perhaps the shell has been replaced with something
 	 * that does extra logging, and that should not be bypassed.
 	 */
-	return TRUE;
+	return true;
 #else
 	/*
 	 * Search for meta characters in the command. If there are no meta
@@ -220,36 +222,36 @@ UseShell(const char *cmd MAKE_ATTR_UNUSED)
  *	ln		List node that contains the command
  *
  * Results:
- *	0 if the command succeeded, 1 if an error occurred.
+ *	true if the command succeeded.
  */
-int
+bool
 Compat_RunCommand(const char *cmdp, GNode *gn, StringListNode *ln)
 {
 	char *cmdStart;		/* Start of expanded command */
 	char *bp;
-	Boolean silent;		/* Don't print command */
-	Boolean doIt;		/* Execute even if -n */
-	volatile Boolean errCheck; /* Check errors */
+	bool silent;		/* Don't print command */
+	bool doIt;		/* Execute even if -n */
+	volatile bool errCheck;	/* Check errors */
 	WAIT_T reason;		/* Reason for child's death */
 	WAIT_T status;		/* Description of child's death */
 	pid_t cpid;		/* Child actually found */
 	pid_t retstat;		/* Result of wait */
 	const char **volatile av; /* Argument vector for thing to exec */
 	char **volatile mav;	/* Copy of the argument vector for freeing */
-	Boolean useShell;	/* TRUE if command should be executed
-				 * using a shell */
+	bool useShell;		/* True if command should be executed using a
+				 * shell */
 	const char *volatile cmd = cmdp;
 
-	silent = (gn->type & OP_SILENT) != 0;
+	silent = (gn->type & OP_SILENT) != OP_NONE;
 	errCheck = !(gn->type & OP_IGNORE);
-	doIt = FALSE;
+	doIt = false;
 
 	(void)Var_Subst(cmd, gn, VARE_WANTRES, &cmdStart);
 	/* TODO: handle errors */
 
 	if (cmdStart[0] == '\0') {
 		free(cmdStart);
-		return 0;
+		return true;
 	}
 	cmd = cmdStart;
 	LstNode_Set(ln, cmdStart);
@@ -269,21 +271,21 @@ Compat_RunCommand(const char *cmdp, GNode *gn, StringListNode *ln)
 			 * usual '$$'.
 			 */
 			Lst_Append(&endNode->commands, cmdStart);
-			return 0;
+			return true;
 		}
 	}
 	if (strcmp(cmdStart, "...") == 0) {
 		gn->type |= OP_SAVE_CMDS;
-		return 0;
+		return true;
 	}
 
 	for (;;) {
 		if (*cmd == '@')
 			silent = !DEBUG(LOUD);
 		else if (*cmd == '-')
-			errCheck = FALSE;
+			errCheck = false;
 		else if (*cmd == '+') {
-			doIt = TRUE;
+			doIt = true;
 			if (shellName == NULL)	/* we came here from jobs */
 				Shell_Init();
 		} else
@@ -298,7 +300,7 @@ Compat_RunCommand(const char *cmdp, GNode *gn, StringListNode *ln)
 	 * If we did not end up with a command, just skip it.
 	 */
 	if (cmd[0] == '\0')
-		return 0;
+		return true;
 
 	useShell = UseShell(cmd);
 	/*
@@ -315,7 +317,7 @@ Compat_RunCommand(const char *cmdp, GNode *gn, StringListNode *ln)
 	 * we go...
 	 */
 	if (!doIt && !GNode_ShouldExecute(gn))
-		return 0;
+		return true;
 
 	DEBUG1(JOB, "Execute: '%s'\n", cmd);
 
@@ -343,32 +345,27 @@ Compat_RunCommand(const char *cmdp, GNode *gn, StringListNode *ln)
 		 * command into words to form an argument vector we can
 		 * execute.
 		 */
-		Words words = Str_Words(cmd, FALSE);
+		Words words = Str_Words(cmd, false);
 		mav = words.words;
 		bp = words.freeIt;
 		av = (void *)mav;
 	}
 
 #ifdef USE_META
-	if (useMeta) {
+	if (useMeta)
 		meta_compat_start();
-	}
 #endif
 
 	Var_ReexportVars();
 
-	/*
-	 * Fork and execute the single command. If the fork fails, we abort.
-	 */
 	compatChild = cpid = vfork();
-	if (cpid < 0) {
+	if (cpid < 0)
 		Fatal("Could not fork");
-	}
+
 	if (cpid == 0) {
 #ifdef USE_META
-		if (useMeta) {
+		if (useMeta)
 			meta_compat_child();
-		}
 #endif
 		(void)execvp(av[0], (char *const *)UNCONST(av));
 		execDie("exec", av[0]);
@@ -382,9 +379,8 @@ Compat_RunCommand(const char *cmdp, GNode *gn, StringListNode *ln)
 	LstNode_SetNull(ln);
 
 #ifdef USE_META
-	if (useMeta) {
+	if (useMeta)
 		meta_compat_parent(cpid);
-	}
 #endif
 
 	/*
@@ -392,7 +388,7 @@ Compat_RunCommand(const char *cmdp, GNode *gn, StringListNode *ln)
 	 */
 	while ((retstat = wait(&reason)) != cpid) {
 		if (retstat > 0)
-			JobReapChild(retstat, reason, FALSE); /* not ours? */
+			JobReapChild(retstat, reason, false); /* not ours? */
 		if (retstat == -1 && errno != EINTR) {
 			break;
 		}
@@ -406,9 +402,8 @@ Compat_RunCommand(const char *cmdp, GNode *gn, StringListNode *ln)
 	} else if (WIFEXITED(reason)) {
 		status = WEXITSTATUS(reason);	/* exited */
 #if defined(USE_META) && defined(USE_FILEMON_ONCE)
-		if (useMeta) {
-		    meta_cmd_finish(NULL);
-		}
+		if (useMeta)
+			meta_cmd_finish(NULL);
 #endif
 		if (status != 0) {
 			if (DEBUG(ERROR))
@@ -424,9 +419,8 @@ Compat_RunCommand(const char *cmdp, GNode *gn, StringListNode *ln)
 	if (!WIFEXITED(reason) || status != 0) {
 		if (errCheck) {
 #ifdef USE_META
-			if (useMeta) {
-				meta_job_error(NULL, gn, FALSE, status);
-			}
+			if (useMeta)
+				meta_job_error(NULL, gn, false, status);
 #endif
 			gn->made = ERROR;
 			if (opts.keepgoing) {
@@ -457,7 +451,7 @@ Compat_RunCommand(const char *cmdp, GNode *gn, StringListNode *ln)
 		kill(myPid, compatSigno);
 	}
 
-	return status;
+	return status == 0;
 }
 
 static void
@@ -467,7 +461,7 @@ RunCommands(GNode *gn)
 
 	for (ln = gn->commands.first; ln != NULL; ln = ln->next) {
 		const char *cmd = ln->datum;
-		if (Compat_RunCommand(cmd, gn, ln) != 0)
+		if (!Compat_RunCommand(cmd, gn, ln))
 			break;
 	}
 }
@@ -483,7 +477,7 @@ MakeNodes(GNodeList *gnodes, GNode *pgn)
 	}
 }
 
-static Boolean
+static bool
 MakeUnmade(GNode *gn, GNode *pgn)
 {
 
@@ -493,11 +487,11 @@ MakeUnmade(GNode *gn, GNode *pgn)
 	 * First mark ourselves to be made, then apply whatever transformations
 	 * the suffix module thinks are necessary. Once that's done, we can
 	 * descend and make all our children. If any of them has an error
-	 * but the -k flag was given, our 'make' field will be set to FALSE
+	 * but the -k flag was given, our 'make' field will be set to false
 	 * again. This is our signal to not attempt to do anything but abort
 	 * our parent as well.
 	 */
-	gn->flags |= REMAKE;
+	gn->flags.remake = true;
 	gn->made = BEINGMADE;
 
 	if (!(gn->type & OP_MADE))
@@ -505,10 +499,10 @@ MakeUnmade(GNode *gn, GNode *pgn)
 
 	MakeNodes(&gn->children, gn);
 
-	if (!(gn->flags & REMAKE)) {
+	if (!gn->flags.remake) {
 		gn->made = ABORTED;
-		pgn->flags &= ~(unsigned)REMAKE;
-		return FALSE;
+		pgn->flags.remake = false;
+		return false;
 	}
 
 	if (Lst_FindDatum(&gn->implicitParents, pgn) != NULL)
@@ -524,7 +518,7 @@ MakeUnmade(GNode *gn, GNode *pgn)
 	if (!GNode_IsOODate(gn)) {
 		gn->made = UPTODATE;
 		DEBUG0(MAKE, "up-to-date.\n");
-		return FALSE;
+		return false;
 	}
 
 	/*
@@ -532,14 +526,14 @@ MakeUnmade(GNode *gn, GNode *pgn)
 	 * to tell him/her "yes".
 	 */
 	DEBUG0(MAKE, "out-of-date.\n");
-	if (opts.queryFlag)
+	if (opts.query)
 		exit(1);
 
 	/*
 	 * We need to be re-made.
 	 * Ensure that $? (.OODATE) and $> (.ALLSRC) are both set.
 	 */
-	Make_DoAllVar(gn);
+	GNode_SetLocalVars(gn);
 
 	/*
 	 * Alter our type to tell if errors should be ignored or things
@@ -547,7 +541,7 @@ MakeUnmade(GNode *gn, GNode *pgn)
 	 */
 	if (opts.ignoreErrors)
 		gn->type |= OP_IGNORE;
-	if (opts.beSilent)
+	if (opts.silent)
 		gn->type |= OP_SILENT;
 
 	if (Job_CheckCommands(gn, Fatal)) {
@@ -555,17 +549,16 @@ MakeUnmade(GNode *gn, GNode *pgn)
 		 * Our commands are ok, but we still have to worry about
 		 * the -t flag.
 		 */
-		if (!opts.touchFlag || (gn->type & OP_MAKE)) {
+		if (!opts.touch || (gn->type & OP_MAKE)) {
 			curTarg = gn;
 #ifdef USE_META
-			if (useMeta && GNode_ShouldExecute(gn)) {
+			if (useMeta && GNode_ShouldExecute(gn))
 				meta_job_start(NULL, gn);
-			}
 #endif
 			RunCommands(gn);
 			curTarg = NULL;
 		} else {
-			Job_Touch(gn, (gn->type & OP_SILENT) != 0);
+			Job_Touch(gn, (gn->type & OP_SILENT) != OP_NONE);
 		}
 	} else {
 		gn->made = ERROR;
@@ -585,18 +578,18 @@ MakeUnmade(GNode *gn, GNode *pgn)
 		 */
 		gn->made = MADE;
 		if (Make_Recheck(gn) == 0)
-			pgn->flags |= FORCE;
+			pgn->flags.force = true;
 		if (!(gn->type & OP_EXEC)) {
-			pgn->flags |= CHILDMADE;
+			pgn->flags.childMade = true;
 			GNode_UpdateYoungestChild(pgn, gn);
 		}
 	} else if (opts.keepgoing) {
-		pgn->flags &= ~(unsigned)REMAKE;
+		pgn->flags.remake = false;
 	} else {
-		PrintOnError(gn, "\nStop.");
+		PrintOnError(gn, "\nStop.\n");
 		exit(1);
 	}
-	return TRUE;
+	return true;
 }
 
 static void
@@ -612,11 +605,11 @@ MakeOther(GNode *gn, GNode *pgn)
 	case BEINGMADE:
 		Error("Graph cycles through %s", gn->name);
 		gn->made = ERROR;
-		pgn->flags &= ~(unsigned)REMAKE;
+		pgn->flags.remake = false;
 		break;
 	case MADE:
 		if (!(gn->type & OP_EXEC)) {
-			pgn->flags |= CHILDMADE;
+			pgn->flags.childMade = true;
 			GNode_UpdateYoungestChild(pgn, gn);
 		}
 		break;
@@ -663,7 +656,7 @@ Compat_Make(GNode *gn, GNode *pgn)
 		 * Already had an error when making this.
 		 * Tell the parent to abort.
 		 */
-		pgn->flags &= ~(unsigned)REMAKE;
+		pgn->flags.remake = false;
 	} else {
 		MakeOther(gn, pgn);
 	}
@@ -681,7 +674,7 @@ MakeBeginNode(void)
 
 	Compat_Make(gn, gn);
 	if (GNode_IsError(gn)) {
-		PrintOnError(gn, "\nStop.");
+		PrintOnError(gn, "\nStop.\n");
 		exit(1);
 	}
 }
@@ -715,12 +708,14 @@ Compat_Run(GNodeList *targs)
 
 	InitSignals();
 
-	/* Create the .END node now, to keep the (debug) output of the
-	 * counter.mk test the same as before 2020-09-23.  This implementation
-	 * detail probably doesn't matter though. */
+	/*
+	 * Create the .END node now, to keep the (debug) output of the
+	 * counter.mk test the same as before 2020-09-23.  This
+	 * implementation detail probably doesn't matter though.
+	 */
 	(void)Targ_GetEndNode();
 
-	if (!opts.queryFlag)
+	if (!opts.query)
 		MakeBeginNode();
 
 	/*
@@ -737,7 +732,7 @@ Compat_Run(GNodeList *targs)
 			printf("`%s' is up to date.\n", gn->name);
 		} else if (gn->made == ABORTED) {
 			printf("`%s' not remade because of errors.\n",
-			       gn->name);
+			    gn->name);
 		}
 		if (GNode_IsError(gn) && errorNode == NULL)
 			errorNode = gn;
@@ -756,7 +751,7 @@ Compat_Run(GNodeList *targs)
 			Targ_PrintGraph(2);
 		else if (DEBUG(GRAPH3))
 			Targ_PrintGraph(3);
-		PrintOnError(errorNode, "\nStop.");
+		PrintOnError(errorNode, "\nStop.\n");
 		exit(1);
 	}
 }
