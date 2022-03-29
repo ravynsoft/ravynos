@@ -32,6 +32,7 @@
 #include <sys/stat.h>
 
 int main(int argc, const char *argv[]) {
+    BOOL shell = YES;
     __NSInitializeProcess(argc, argv);
 
     if(getenv("XDG_RUNTIME_DIR") == NULL) {
@@ -49,7 +50,26 @@ int main(int argc, const char *argv[]) {
 
     NSString *exePath = [[NSBundle mainBundle] pathForResource:@"waybox" ofType:@""];
     NSString *confPath = [[exePath stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"ws.conf"];
-    NSArray *args = @[@"WindowServer", @"--config-file", confPath];
+    NSMutableArray *args = [NSMutableArray arrayWithArray:@[@"WindowServer", @"--config-file", confPath]];
+
+    while(getopt(argc, argv, "Lx") != -1) {
+        switch(optopt) {
+            case 'L':
+                shell = NO;
+                [args addObject:@"-s"];
+                [args addObject:[[confPath stringByDeletingLastPathComponent]
+                    stringByAppendingPathComponent:@"LoginServer"]];
+                break;
+            case 'x':
+                shell = NO;
+                break;
+        }
+    }
+
+    if(shell) {
+        [args addObject:@"-s"];
+        [args addObject:[[confPath stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"desktopd"]];
+    }
 
     char **_argv = (char **)malloc(sizeof(char *)*([args count]+1));
     int i;

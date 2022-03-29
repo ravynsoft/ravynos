@@ -192,6 +192,7 @@ SRCS= \
 ./platform_posix/NSCondition_posix.m \
 ./platform_posix/NSFileHandle_posix.m \
 ./platform_posix/NSConstantString.m \
+./platform_posix/NSLocale_posix.m \
 ./platform_bsd/libmain.m \
 ./platform_bsd/NSMemoryFunctions_bsd.m \
 ./platform_bsd/NSPlatform_airyx.m \
@@ -546,6 +547,7 @@ INCS= \
 ./platform_posix/NSSelectSet_bsd.h \
 ./platform_posix/NSTimeZone_posix.h \
 ./platform_posix/NSRecursiveLock_posix.h \
+./platform_posix/NSLocale_posix.h \
 ./NSUserDefaults/NSPersistantDomain.h \
 ./NSUserDefaults/NSUserDefaults.h \
 ./NSIndexSet/NSMutableIndexSet.h \

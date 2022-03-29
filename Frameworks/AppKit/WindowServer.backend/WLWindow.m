@@ -187,6 +187,8 @@ static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
     _frame.size = frame.size;
 
     _context = nil;
+    _cglContext = NULL;
+    _caContext = NULL;
     _styleMask = styleMask;
     _ready = NO;
     layer_surface = NULL;

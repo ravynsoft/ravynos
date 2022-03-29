@@ -416,8 +416,10 @@ xpc_connection_set_credentials(struct xpc_connection *conn, audit_token_t *tok)
 	if (tok == NULL)
 		return;
 
+#ifdef AUDIT_BSM
 	audit_token_to_au32(*tok, NULL, &uid, &gid, NULL, NULL, &pid, &asid,
 	    NULL);
+#endif
 
 	conn->xc_remote_euid = uid;
 	conn->xc_remote_guid = gid;

@@ -413,6 +413,7 @@ NSString *NSStringWithDateFormatLocale(NSTimeInterval interval,NSString *format,
                 switch(unicode){
 
                     case '.': suppressZero=YES; break;
+                    case '_': fillChar=' '; break;
                     case ' ': fillChar=' '; break;
 
                     default:
@@ -450,7 +451,9 @@ NSString *NSStringWithDateFormatLocale(NSTimeInterval interval,NSString *format,
                         break;
 
                     case 'c':
-                        [result appendFormat:@"%@", NSStringWithDateFormatLocale(interval,[locale objectForKey:NSTimeDateFormatString],locale,timeZone)];
+                        [result appendFormat:@"%@", NSStringWithDateFormatLocale(
+                            NSMoveIntervalFromTimeZoneToGMT(interval,timeZone),
+                            [locale objectForKey:NSTimeDateFormatString],locale,timeZone)];
                         break;
 
                     case 'd':{
@@ -460,6 +463,11 @@ NSString *NSStringWithDateFormatLocale(NSTimeInterval interval,NSString *format,
                     }
                         break;
 
+                    case 'D':
+                        [result appendFormat:@"%@", NSStringWithDateFormatLocale(
+                            NSMoveIntervalFromTimeZoneToGMT(interval,timeZone),
+                            @"%m/%d/%y",locale,timeZone)];
+                        break;
                     case 'e':{
                         id fmt=@"%d";
                         [result appendFormat:fmt,NSDayOfMonthFromTimeInterval(interval)];
@@ -512,12 +520,27 @@ NSString *NSStringWithDateFormatLocale(NSTimeInterval interval,NSString *format,
                         [result __appendLocale:locale key:NSAMPMDesignation
                                        index:NSAMPMFromTimeInterval(interval)];
                         break;
+                    case 'r':
+                        [result appendFormat:@"%@", NSStringWithDateFormatLocale(
+                            NSMoveIntervalFromTimeZoneToGMT(interval,timeZone),
+                            @"%I:%M:%S %p",locale,timeZone)];
+                        break;
+                    case 'R':
+                        [result appendFormat:@"%@", NSStringWithDateFormatLocale(
+                            NSMoveIntervalFromTimeZoneToGMT(interval,timeZone)
+                            ,@"%H:%M",locale,timeZone)];
+                        break;
 
                     case 'S':{
                         id fmt=(suppressZero)?@"%d":((fillChar==' ')?@"%2d":@"%02d");
 
                         [result appendFormat:fmt,NSSecondFromTimeInterval(interval)];
                     }
+                        break;
+                    case 'T':
+                        [result appendFormat:@"%@", NSStringWithDateFormatLocale(
+                            NSMoveIntervalFromTimeZoneToGMT(interval,timeZone),
+                            @"%H:%M:%S",locale,timeZone)];
                         break;
 
                     case 'w':{
@@ -528,11 +551,15 @@ NSString *NSStringWithDateFormatLocale(NSTimeInterval interval,NSString *format,
                         break;
 
                     case 'x':
-                        [result appendFormat:@"%@", NSStringWithDateFormatLocale(interval,[locale objectForKey:NSDateFormatString],locale,timeZone)];
+                        [result appendFormat:@"%@", NSStringWithDateFormatLocale(
+                            NSMoveIntervalFromTimeZoneToGMT(interval,timeZone),
+                            [locale objectForKey:NSDateFormatString],locale,timeZone)];
                         break;
 
                     case 'X':
-                        [result appendFormat:@"%@", NSStringWithDateFormatLocale(interval,[locale objectForKey:NSTimeFormatString],locale,timeZone)];
+                        [result appendFormat:@"%@", NSStringWithDateFormatLocale(
+                            NSMoveIntervalFromTimeZoneToGMT(interval,timeZone),
+                            [locale objectForKey:NSTimeFormatString],locale,timeZone)];
                         break;
 
                     case 'y':{
