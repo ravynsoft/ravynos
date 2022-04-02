@@ -21,13 +21,13 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 @implementation NSMainMenuView
 
 +(NSFont *)menuFont {
-   return [NSFont menuFontOfSize:0];
+   return [NSFont menuFontOfSize:12.0];
 }
 
 +(float)menuHeight {
    // we're using global menus in Airyx so we'll just make this 0 height for now
-   return 0.0;
-#if 0
+   //return 0.0;
+#if 1
    NSDictionary *attributes=[NSDictionary dictionaryWithObjectsAndKeys:
      [self menuFont],NSFontAttributeName,nil];
    float         result=[@"Menu" sizeWithAttributes:attributes].height;
@@ -279,10 +279,8 @@ static void drawSunkenBorder(NSRect rect){
 
    if(_selectedItemIndex==count){
     itemRect=[self overflowRect];
-
     topLeft=NSMakePoint(itemRect.origin.x,NSMaxY(itemRect));
-   }
-   else {
+   } else {
     for(i=0;i<count;i++){
      NSMenuItem *item=[items objectAtIndex:i];
      NSRect      titleRect=[self titleRectForItem:item previousBorderRect:previousBorderRect];
@@ -325,6 +323,7 @@ static void drawSunkenBorder(NSRect rect){
 
     [self positionBranchForSelectedItem:branch screen:screen];
 
+    [branch setParent:[self window]];
     [branch orderFront:nil];
     return [branch menuView];
    }
@@ -338,6 +337,7 @@ static void drawSunkenBorder(NSRect rect){
 
       [self positionBranchForSelectedItem:branch screen:screen];
 
+      [branch setParent:[self window]];
       [branch orderFront:nil];
       return [branch menuView];
      }

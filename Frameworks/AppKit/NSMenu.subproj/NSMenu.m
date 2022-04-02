@@ -27,7 +27,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     NSMenuItem   *item;
     
     [menuWindow setReleasedWhenClosed:YES];
-    [menuWindow setFrameTopLeftPoint:[window convertBaseToScreen:point]];
+    [menuWindow setFrameTopLeftPoint:/*[window convertBaseToScreen:point]*/ point];
     [menuWindow orderFront:nil];
 
     item=[menuView trackForEvent:event];

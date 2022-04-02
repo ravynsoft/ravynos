@@ -37,6 +37,10 @@
     return self;
 }
 
+- (void)dump:(id)object {
+    NSLog(@"DUMP: %@", object);
+}
+
 - (void)setMenu:(NSMenu *)menu {
     NSFontManager *fontmgr = [NSFontManager sharedFontManager];
     NSDictionary *attributesBold = [NSDictionary dictionaryWithObject:[fontmgr convertFont:
@@ -51,6 +55,10 @@
         NSMenuItem *item = [items objectAtIndex:i];
         if([item title] == nil || [item isHidden])
             continue;
+
+        NSLog(@"%@", item);
+        [item setAction:@selector(dump:)];
+        [item setTarget:self];
 
         NSAttributedString *title = [[NSAttributedString alloc] 
             initWithString:[item title] attributes:(i == 0) ?

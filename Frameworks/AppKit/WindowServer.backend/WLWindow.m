@@ -25,6 +25,7 @@
 #import <AppKit/NSDisplay.h>
 #import <AppKit/NSWindow.h>
 #import <AppKit/NSPanel.h>
+#import <AppKit/NSPopUpWindow.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <unistd.h>
@@ -66,6 +67,9 @@ static void handle_global(void *data, struct wl_registry *registry,
 
     if (strcmp(interface, wl_compositor_interface.name) == 0) {
         [win set_compositor:wl_registry_bind(registry, name, &wl_compositor_interface, 1)];
+    } else if (strcmp(interface, wl_subcompositor_interface.name) == 0) {
+        [win set_subcompositor:wl_registry_bind(registry, name, 
+            &wl_subcompositor_interface, 1)];
     } else if (strcmp(interface, xdg_wm_base_interface.name) == 0) {
         [win set_wm_base:wl_registry_bind(registry, name, &xdg_wm_base_interface, 1)];
     } else if (strcmp(interface, zwlr_layer_shell_v1_interface.name) == 0) {
@@ -182,9 +186,7 @@ static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
     _backingType = backingType;
     _deviceDictionary = [NSMutableDictionary new];
 
-    /* FIXME: this is because wayland doesn't give us position info */
-    _frame.origin = NSMakePoint(0,0);
-    _frame.size = frame.size;
+    _frame = frame;
 
     _context = nil;
     _cglContext = NULL;
@@ -192,6 +194,8 @@ static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
     _styleMask = styleMask;
     _ready = NO;
     layer_surface = NULL;
+    wl_subsurface = NULL;
+    parentWindow = nil;
 
     _display = (WLDisplay *)[NSDisplay currentDisplay];
     struct wl_display *display = [_display display];
@@ -213,50 +217,97 @@ static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
         return nil;
     }
 
+    [self _buildSurface];
+
+    if(isPanel && (styleMask & NSDocModalWindowMask))
+        _styleMask=NSBorderlessWindowMask;
+      
+    return self;
+}
+
+-(void)_buildSurface
+{
     wl_surface = wl_compositor_create_surface(compositor);
 
-    if(styleMask & WLWindowLayerShellMask) {
-        layerType = (styleMask & WLWindowLayerMask) >> 20;
-        anchorType = (styleMask & WLWindowLayerAnchorMask) >> 12;
+    if(_styleMask & WLWindowLayerShellMask) {
+        layerType = (_styleMask & WLWindowLayerMask) >> 20;
+        anchorType = (_styleMask & WLWindowLayerAnchorMask) >> 12;
 
         // FIXME: NULL below should be a wl_output to display the surface on
 	layer_surface = zwlr_layer_shell_v1_get_layer_surface(layer_shell,
             wl_surface, NULL, layerType, "AppKit");
 	assert(layer_surface);
 	zwlr_layer_surface_v1_set_anchor(layer_surface, anchorType);
-	zwlr_layer_surface_v1_set_size(layer_surface, frame.size.width, frame.size.height);
-	zwlr_layer_surface_v1_add_listener(layer_surface, &layer_surface_listener, (__bridge void *)self);
-    } else {
+	zwlr_layer_surface_v1_set_size(layer_surface, _frame.size.width,
+            _frame.size.height);
+	zwlr_layer_surface_v1_add_listener(layer_surface, &layer_surface_listener,
+            (__bridge void *)self);
+    } else if(!(_styleMask & WLWindowPopUp)) {
         xdg_surface = xdg_wm_base_get_xdg_surface(wm_base, wl_surface);
         xdg_toplevel = xdg_surface_get_toplevel(xdg_surface);
-        xdg_surface_add_listener(xdg_surface, &xdg_surface_listener, (__bridge void *)self);
-        xdg_toplevel_add_listener(xdg_toplevel, &xdg_toplevel_listener, (__bridge void *)self);
+        xdg_surface_add_listener(xdg_surface, &xdg_surface_listener,
+            (__bridge void *)self);
+        xdg_toplevel_add_listener(xdg_toplevel, &xdg_toplevel_listener,
+            (__bridge void *)self);
     }
+    // if WLWindowPopUp we fall through to here
 
     wl_surface_commit(wl_surface);
-    wl_display_roundtrip(display);
-
-    if(isPanel && (styleMask & NSDocModalWindowMask))
-        _styleMask=NSBorderlessWindowMask;
-      
+    wl_display_roundtrip([_display display]);
     [_display setWindow:self forID:(uintptr_t)wl_surface];
-    return self;
+}
+
+-(void)_destroySurface
+{
+    if(xdg_toplevel)
+        xdg_toplevel_destroy(xdg_toplevel);
+    if(wl_subsurface)
+        wl_subsurface_destroy(wl_subsurface);
+    if(xdg_surface)
+        xdg_surface_destroy(xdg_surface);
+    if(wl_surface)
+        wl_surface_destroy(wl_surface);
+    [self setReady:NO];
+    [_display setWindow:nil forID:(uintptr_t)wl_surface];
 }
 
 -(void)dealloc
 {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
-    if(xdg_toplevel)
-        xdg_toplevel_destroy(xdg_toplevel);
-    if(xdg_surface)
-        xdg_surface_destroy(xdg_surface);
-    if(wl_surface)
-        wl_surface_destroy(wl_surface);
+    [self _destroySurface];
     if(registry)
         wl_registry_destroy(registry);
     if(layer_surface)
         zwlr_layer_surface_v1_destroy(layer_surface);
     [super dealloc];
+}
+
+-(void)setParent:(id)window
+{
+    struct wl_surface *parentSurface;
+    if([window isKindOfClass:[WLWindow class]])
+        parentSurface = [window wl_surface];
+    else
+        parentSurface = [[window platformWindow] wl_surface];
+    if(!parentSurface) {
+        NSLog(@"[WLWindow setParent] cannot get parent surface from %@", window);
+        return;
+    }
+    parentWindow = window;
+
+    wl_subsurface = wl_subcompositor_get_subsurface(subcompositor, wl_surface,
+        parentSurface);
+    wl_subsurface_set_desync(wl_subsurface);
+    NSPoint point = NSMakePoint(_frame.origin.x, [window frame].size.height - _frame.origin.y
+        - _frame.size.height );
+    wl_subsurface_set_position(wl_subsurface, point.x, point.y);
+    wl_subsurface_place_above(wl_subsurface, parentSurface);
+    [self createCGContextIfNeeded];
+    [self createCGLContextObjIfNeeded];
+    [self setReady:YES];
+    [self flushBuffer];
+    wl_surface_commit(wl_surface);
+    wl_display_roundtrip([_display display]);
 }
 
 -(void)setLayer:(uint32_t)layer
@@ -310,6 +361,11 @@ static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
 -(void) set_compositor:(struct wl_compositor *)comp
 {
     compositor = comp;
+}
+
+-(void) set_subcompositor:(struct wl_subcompositor *)comp
+{
+    subcompositor = comp;
 }
 
 -(unsigned) styleMask
@@ -379,6 +435,20 @@ static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
         NSSize oldSize = _frame.size;
         _frame.size = size;
 
+        if(!layer_surface) {
+            [self _destroySurface];
+            [_caContext release];
+            _caContext = NULL;
+            CGLReleaseContext(_cglContext);
+            _cglContext = NULL;
+            [self _buildSurface];
+            [self createCGLContextObjIfNeeded];
+            if(parentWindow) {
+                [self setParent:parentWindow];
+                [parentWindow orderFront:nil];
+            }
+        }
+
         O2Context *currentContext = _context;
         O2ColorSpaceRef colorSpace = O2ColorSpaceCreateDeviceRGB();
         O2Surface *surface = [[O2Surface alloc] initWithBytes:NULL
@@ -392,6 +462,7 @@ static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
         [_delegate platformWindowDidInvalidateCGContext:self];
         if(layer_surface)
             zwlr_layer_surface_v1_set_size(layer_surface, _frame.size.width, _frame.size.height);
+
         CGLSurfaceResize(_cglContext, size.width, size.height);
         currentContext = nil;
     }

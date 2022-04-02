@@ -609,7 +609,7 @@ CFLAGS+= -I${.CURDIR}/.. -I${BUILDROOT}/usr/include -I/usr/local/include \
 	 -F${.CURDIR}/../OpenGL -framework OpenGL -I${.CURDIR}/Headers -I../Foundation/Headers \
 	 -I/usr/include/dbus-1.0 -I/usr/lib/dbus-1.0/include \
          -I${.CURDIR} -I${MAKEOBJDIR} \
-	 -D_BuildingFramework -DFREETYPE_PRESENT 
+	 -D_BuildingFramework -DFREETYPE_PRESENT
 LDFLAGS+= ${FMWK_LDFLAGS} -L/usr/local/lib \
 	  -Wl,-R/System/Library/Frameworks/Foundation.framework/Versions/A \
 	  -Wl,-R/System/Library/Frameworks/CoreFoundation.framework/Versions/A \

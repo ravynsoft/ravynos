@@ -11,7 +11,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 @implementation NSPopUpWindow
 
 -initWithFrame:(NSRect)frame {
-   [self initWithContentRect:frame styleMask:NSBorderlessWindowMask backing:NSBackingStoreBuffered defer:NO];
+   [self initWithContentRect:frame styleMask:NSBorderlessWindowMask|WLWindowPopUp backing:NSBackingStoreBuffered defer:NO];
    [self setLevel:NSPopUpMenuWindowLevel];
    _releaseWhenClosed=YES;
 
@@ -24,6 +24,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 -(void)dealloc {
    [_view release];
    [super dealloc];
+}
+
+-(void)setParent:(id)window {
+    [_platformWindow setParent:window];
 }
 
 -(void)setMenu:(NSMenu *)menu {
@@ -43,24 +47,21 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 }
 
 -(int)runTrackingWithEvent:(NSEvent *)event {
-   NSSize  size=[_view sizeForContents];
-   NSRect  selectedRect=[_view rectForSelectedItem];
-   NSRect  frame;
+    NSSize size = [_view sizeForContents];
+    NSRect selectedRect = [_view rectForSelectedItem];
+    NSRect frame = [self frame];
 
-   frame=[self frame];
-   frame.size=size;
+    frame.size=size;
+    frame.origin.y-=(size.height-selectedRect.origin.y)-selectedRect.size.height;
+    [self setFrame:frame display:NO];
 
-   frame.origin.y-=(size.height-selectedRect.origin.y)-selectedRect.size.height;
-   [self setFrame:frame display:NO];
+    [_view setFrameSize:size];
+    [_view setFrameOrigin:NSMakePoint(0,0)];
 
-   [_view setFrameSize:size];
-   [_view setFrameOrigin:NSMakePoint(0,0)];
-
-	[_view setNeedsDisplay: YES];
+    [_view setNeedsDisplay: YES];
 
     [self orderFront:nil];
-    
-   return [_view runTrackingWithEvent:event];
+    return [_view runTrackingWithEvent:event];
 }
 
 @end

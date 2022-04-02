@@ -344,13 +344,13 @@ void CATexImage2DCGImage(CGImageRef image){
    //glMatrixMode(GL_MODELVIEW);                                           
    glLoadIdentity();
 
-   glClearColor(0, 0, 0, 1);
+   glClearColor(0, 0, 0, 0);
    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
    glEnable(GL_DEPTH_TEST);
    glDepthFunc(GL_LEQUAL);					
 
-   glEnable( GL_TEXTURE_2D );
+   //glEnable( GL_TEXTURE_2D );
    //glEnableClientState(GL_VERTEX_ARRAY);
    //glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 

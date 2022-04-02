@@ -37,8 +37,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
     if ([NSScreen mainScreen])
       _windowRect.origin.y -= _screenRect.size.height - [[NSScreen mainScreen] frame].size.height;
+#ifdef MENUS_IN_WINDOW
     if ([NSClassFromString(_windowClass) hasMainMenuForStyleMask:_windowStyleMask])
       _windowRect.origin.y -= [NSMainMenuView menuHeight];   // compensation for the additional menu bar
+#endif
    }
    else {
     [NSException raise:NSInvalidArgumentException format:@"%@ can not initWithCoder:%@",isa,[coder class]];

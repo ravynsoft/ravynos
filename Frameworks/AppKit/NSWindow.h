@@ -25,7 +25,7 @@ enum {
     NSTexturedBackgroundWindowMask = 0x100,
 };
 
-// Support for wayland layer-shell; ignored on other backends
+// Support for wayland layer-shell & subsurface; ignored on other backends
 // NSWindow type enums occupy the low 2 bytes so we'll stay above that
 enum {
     WLWindowLayerShellMask = 0x80000000,
@@ -42,7 +42,8 @@ enum {
     WLWindowLayerBackground = 0x80000000,
     WLWindowLayerBottom = 0x80100000,
     WLWindowLayerTop = 0x80200000,
-    WLWindowLayerOverlay = 0x80300000
+    WLWindowLayerOverlay = 0x80300000,
+    WLWindowPopUp = 0x40000000
 };
 
 

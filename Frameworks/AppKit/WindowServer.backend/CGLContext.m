@@ -598,3 +598,4 @@ void CGLSurfaceResize(CGLContextObj context, int width, int height) {
 void CGLUseShaders(CGLContextObj context) {
     glUseProgram(context->program);
 }
+

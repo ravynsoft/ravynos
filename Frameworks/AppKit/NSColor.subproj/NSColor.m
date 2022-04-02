@@ -347,7 +347,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 }
 
 +(NSColor *)mainMenuBarColor {
-   return [NSColor colorWithCatalogName:@"System" colorName:@"mainMenuBarColor"];
+   return [NSColor colorWithCatalogName:@"System" colorName:@"windowBackgroundColor"];
+   //return [NSColor colorWithCatalogName:@"System" colorName:@"mainMenuBarColor"];
 }
 
 +(NSColor *)menuItemTextColor {

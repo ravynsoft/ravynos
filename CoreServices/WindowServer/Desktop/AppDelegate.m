@@ -29,7 +29,7 @@
 
     background = [DesktopWindow new];
     [background setDelegate:self];
-    [background makeKeyAndOrderFront:nil];
+//    [background makeKeyAndOrderFront:nil];
 
     menuBar = [MenuBarWindow new];
     [menuBar setDelegate:self];

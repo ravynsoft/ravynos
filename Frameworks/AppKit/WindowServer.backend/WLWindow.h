@@ -46,6 +46,11 @@
     struct xdg_toplevel *xdg_toplevel;
     struct xdg_surface *xdg_surface; 
 
+    // subsurface support
+    struct wl_subcompositor *subcompositor;
+    struct wl_subsurface *wl_subsurface;
+    id parentWindow;
+
     // wlroots layer shell support
     struct zwlr_layer_shell_v1 *layer_shell;
     struct zwlr_layer_surface_v1 *layer_surface;
@@ -77,6 +82,7 @@
 - (struct wl_surface *)wl_surface;
 - (void) set_wm_base:(struct xdg_wm_base *)base;
 - (void) set_compositor:(struct wl_compositor *)comp;
+- (void) set_subcompositor:(struct wl_subcompositor *)comp;
 - (void) setReady:(BOOL)ready;
 - (BOOL) isReady;
 

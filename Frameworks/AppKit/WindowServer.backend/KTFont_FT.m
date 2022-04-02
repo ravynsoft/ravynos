@@ -31,6 +31,7 @@
   
     case kCTFontMenuTitleFontType:
     case kCTFontMenuItemFontType:
+    case kCTFontSystemFontType:
      if(size==0)
       size=12.0;
      font=O2FontCreateWithFontName(@"Nimbus Sans-Regular");

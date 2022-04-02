@@ -97,7 +97,7 @@ FcConfig *O2FontSharedFontConfig() {
  //  FT_Set_Char_Size(_face,0,2048*64,72,72);
 
    if(!(_face->face_flags&FT_FACE_FLAG_SCALABLE))
-    NSLog(@"FreeType font face is not scalable");
+    NSLog(@"FreeType font face is not scalable: %@", name);
     
    _unitsPerEm=(float)_face->units_per_EM;
    _ascent=_face->ascender;

@@ -41,7 +41,7 @@
 
 // reshape
    glViewport(0,0,width,height);
-   glMatrixMode(GL_PATH_PROJECTION_NV);                      
+   //glMatrixMode(GL_PATH_PROJECTION_NV);                      
    glLoadIdentity();
    glOrtho (0, width, 0, height, -1, 1);
 }
@@ -56,7 +56,7 @@
 
 // reshape
     glViewport(0, 0, width, height);
-    glMatrixMode(GL_PATH_PROJECTION_NV);                      
+    //glMatrixMode(GL_PATH_PROJECTION_NV);                      
     glLoadIdentity();
     glOrtho(0, width, 0, height, -1, 1);
 
@@ -67,7 +67,7 @@
     glClearColor(0, 0, 0, 0);
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
    
-    glEnable(GL_TEXTURE_2D);
+    //glEnable(GL_TEXTURE_2D);
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);

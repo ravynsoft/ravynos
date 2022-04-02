@@ -480,23 +480,23 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 	     break;
    }
 #endif
-	origin=[controlView convertPoint:origin toView:nil];
-   origin=[[controlView window] convertBaseToScreen:origin];
+    origin=[controlView convertPoint:origin toView:nil];
+//    origin=[[controlView window] convertBaseToScreen:origin];
 
-	[[_menu delegate] menuNeedsUpdate: _menu];
+    [[_menu delegate] menuNeedsUpdate: _menu];
 //	[[_menu delegate] menuWillOpen: _menu];
-	NSMenu *menu = _menu;
-	if (_pullsDown && [_menu numberOfItems]) {
-		// Don't display the first item for pullDowns controls
-		menu = [[_menu copy] autorelease];
-		[menu removeItemAtIndex:0];
-	}
+    NSMenu *menu = _menu;
+    if (_pullsDown && [_menu numberOfItems]) {
+        // Don't display the first item for pullDowns controls
+        menu = [[_menu copy] autorelease];
+        [menu removeItemAtIndex:0];
+    }
     [menu update];
 
-	NSPopUpWindow *window=[[NSPopUpWindow alloc] initWithFrame:NSMakeRect(origin.x,origin.y,
-														   cellFrame.size.width,cellFrame.size.height)];
+    NSPopUpWindow *window=[[NSPopUpWindow alloc] initWithFrame:NSMakeRect(origin.x,origin.y,
+        cellFrame.size.width,cellFrame.size.height)];
     [window setPullsDown:_pullsDown];
-	[window setMenu:menu];
+    [window setMenu:menu];
    if([self font]!=nil)
     [window setFont:[self font]];
 
@@ -505,18 +505,20 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
    else
     [window selectItemAtIndex:_selectedIndex];
 
-	NSInteger itemIndex=[window runTrackingWithEvent:event];
-	if(itemIndex!=NSNotFound) {
-		if (_pullsDown) {
-			// remember that thing we did with the first menu item?
-			itemIndex++;
-		}
+    [window setParent:[controlView window]];
+    [window orderFront:nil];
+    NSInteger itemIndex=[window runTrackingWithEvent:event];
+    if(itemIndex!=NSNotFound) {
+        if (_pullsDown) {
+            // remember that thing we did with the first menu item?
+            itemIndex++;
+        }
         // We can be embedded in controls other than a PopUpButton - so don't
         // assume selectItemAtIndex: is available
         if ([controlView respondsToSelector: @selector(selectItemAtIndex:)]) {
             [(id)controlView selectItemAtIndex:itemIndex];
         }
-	}
+    }
     _selectedIndex = (itemIndex == NSNotFound) ? -1 : itemIndex;
     [window close]; // release when closed=YES
 //	[[_menu delegate] menuDidClose: _menu];
