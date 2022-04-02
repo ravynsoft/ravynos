@@ -1,4 +1,4 @@
-/*	$NetBSD: metachar.h,v 1.15 2021/01/19 20:51:46 rillig Exp $	*/
+/*	$NetBSD: metachar.h,v 1.20 2022/01/08 11:04:13 rillig Exp $	*/
 
 /*
  * Copyright (c) 2015 The NetBSD Foundation, Inc.
@@ -33,16 +33,20 @@
 
 #include "make.h"
 
-extern unsigned char _metachar[];
+extern const unsigned char _metachar[];
 
-#define is_shell_metachar(c)	(_metachar[(c) & 0x7f] != 0)
+MAKE_INLINE bool MAKE_ATTR_USE
+ch_is_shell_meta(char c)
+{
+	return _metachar[c & 0x7f] != 0;
+}
 
-MAKE_INLINE Boolean
+MAKE_INLINE bool MAKE_ATTR_USE
 needshell(const char *cmd)
 {
-	while (!is_shell_metachar(*cmd) && *cmd != ':' && *cmd != '=')
+	while (!ch_is_shell_meta(*cmd) && *cmd != ':' && *cmd != '=')
 		cmd++;
 	return *cmd != '\0';
 }
 
-#endif /* MAKE_METACHAR_H */
+#endif

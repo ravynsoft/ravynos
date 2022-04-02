@@ -51,7 +51,7 @@
 
 __FBSDID("$FreeBSD$");
 
-static bool convert_to_feature_val(char *, uint32_t *);
+static bool convert_to_feature_val(const char *, uint32_t *);
 static bool edit_file_features(Elf *, int, int, char *, bool);
 static bool get_file_features(Elf *, int, int, uint32_t *, uint64_t *, bool);
 static void print_features(void);
@@ -82,7 +82,7 @@ static struct option long_opts[] = {
 #define	HOST_ENDIAN	ELFDATA2LSB
 #define	SWAP_ENDIAN	ELFDATA2MSB
 #else
-#define	HOST_ENDIAN 	ELFDATA2MSB
+#define	HOST_ENDIAN	ELFDATA2MSB
 #define	SWAP_ENDIAN	ELFDATA2LSB
 #endif
 
@@ -116,6 +116,8 @@ main(int argc, char **argv)
 			lflag = true;
 			break;
 		case 'e':
+			if (features != NULL)
+				errx(1, "-e may be specified only once");
 			features = optarg;
 			editfeatures = true;
 			break;
@@ -220,9 +222,9 @@ usage(void)
 }
 
 static bool
-convert_to_feature_val(char *feature_str, uint32_t *feature_val)
+convert_to_feature_val(const char *feature_str, uint32_t *feature_val)
 {
-	char *feature;
+	char *feature, *feature_tmp;
 	int i, len;
 	uint32_t input;
 	char operation;
@@ -230,8 +232,14 @@ convert_to_feature_val(char *feature_str, uint32_t *feature_val)
 	input = 0;
 	operation = *feature_str;
 	feature_str++;
+
+	if (operation != '+' && operation != '-' && operation != '=')
+		errx(1, "'%c' not an operator - use '+', '-', '='", operation);
+
+	if ((feature_tmp = strdup(feature_str)) == NULL)
+		err(1, "strdup");
 	len = nitems(featurelist);
-	while ((feature = strsep(&feature_str, ",")) != NULL) {
+	while ((feature = strsep(&feature_tmp, ",")) != NULL) {
 		for (i = 0; i < len; ++i) {
 			if (strcmp(featurelist[i].alias, feature) == 0) {
 				input |= featurelist[i].value;
@@ -261,13 +269,16 @@ convert_to_feature_val(char *feature_str, uint32_t *feature_val)
 					errno = ERANGE;
 				if (errno != 0) {
 					warn("%s invalid", feature);
+					free(feature_tmp);
 					return (false);
 				}
 				input |= val;
 			} else {
 				warnx("%s is not a valid feature", feature);
-				if (!iflag)
+				if (!iflag) {
+					free(feature_tmp);
 					return (false);
+				}
 			}
 		}
 	}
@@ -278,11 +289,8 @@ convert_to_feature_val(char *feature_str, uint32_t *feature_val)
 		*feature_val = input;
 	} else if (operation == '-') {
 		*feature_val &= ~input;
-	} else {
-		warnx("'%c' not an operator - use '+', '-', '='",
-		    feature_str[0]);
-		return (false);
 	}
+	free(feature_tmp);
 	return (true);
 }
 
@@ -398,7 +406,7 @@ get_file_features(Elf *elf, int phcount, int fd, uint32_t *features,
 
 			/*
 			 * XXX: Name and descriptor are 4 byte aligned, however,
-			 * 	the size given doesn't include the padding.
+			 * the size given doesn't include the padding.
 			 */
 			namesz = roundup2(note.n_namesz, 4);
 			name = malloc(namesz);
@@ -437,7 +445,7 @@ get_file_features(Elf *elf, int phcount, int fd, uint32_t *features,
 
 			/*
 			 * XXX: For now we look at only 4 bytes of the
-			 * 	descriptor. This should respect descsz.
+			 * descriptor. This should respect descsz.
 			 */
 			if (note.n_descsz > sizeof(uint32_t))
 				warnx("Feature note is bigger than expected");

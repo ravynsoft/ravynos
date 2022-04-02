@@ -133,6 +133,44 @@
 #define	DAIF_INTR		(DAIF_I)	/* All exceptions that pass */
 						/* through the intr framework */
 
+/* DBGBCR<n>_EL1 - Debug Breakpoint Control Registers */
+#define	DBGBCR_EN		0x1
+#define	DBGBCR_PMC_SHIFT	1
+#define	DBGBCR_PMC		(0x3 << DBGBCR_PMC_SHIFT)
+#define	 DBGBCR_PMC_EL1		(0x1 << DBGBCR_PMC_SHIFT)
+#define	 DBGBCR_PMC_EL0		(0x2 << DBGBCR_PMC_SHIFT)
+#define	DBGBCR_BAS_SHIFT	5
+#define	DBGBCR_BAS		(0xf << DBGBCR_BAS_SHIFT)
+#define	DBGBCR_HMC_SHIFT	13
+#define	DBGBCR_HMC		(0x1 << DBGBCR_HMC_SHIFT)
+#define	DBGBCR_SSC_SHIFT	14
+#define	DBGBCR_SSC		(0x3 << DBGBCR_SSC_SHIFT)
+#define	DBGBCR_LBN_SHIFT	16
+#define	DBGBCR_LBN		(0xf << DBGBCR_LBN_SHIFT)
+#define	DBGBCR_BT_SHIFT		20
+#define	DBGBCR_BT		(0xf << DBGBCR_BT_SHIFT)
+
+/* DBGWCR<n>_EL1 - Debug Watchpoint Control Registers */
+#define	DBGWCR_EN		0x1
+#define	DBGWCR_PAC_SHIFT	1
+#define	DBGWCR_PAC		(0x3 << DBGWCR_PAC_SHIFT)
+#define	 DBGWCR_PAC_EL1		(0x1 << DBGWCR_PAC_SHIFT)
+#define	 DBGWCR_PAC_EL0		(0x2 << DBGWCR_PAC_SHIFT)
+#define	DBGWCR_LSC_SHIFT	3
+#define	DBGWCR_LSC		(0x3 << DBGWCR_LSC_SHIFT)
+#define	DBGWCR_BAS_SHIFT	5
+#define	DBGWCR_BAS		(0xff << DBGWCR_BAS_SHIFT)
+#define	DBGWCR_HMC_SHIFT	13
+#define	DBGWCR_HMC		(0x1 << DBGWCR_HMC_SHIFT)
+#define	DBGWCR_SSC_SHIFT	14
+#define	DBGWCR_SSC		(0x3 << DBGWCR_SSC_SHIFT)
+#define	DBGWCR_LBN_SHIFT	16
+#define	DBGWCR_LBN		(0xf << DBGWCR_LBN_SHIFT)
+#define	DBGWCR_WT_SHIFT		20
+#define	DBGWCR_WT		(0x1 << DBGWCR_WT_SHIFT)
+#define	DBGWCR_MASK_SHIFT	24
+#define	DBGWCR_MASK		(0x1f << DBGWCR_MASK_SHIFT)
+
 /* DCZID_EL0 - Data Cache Zero ID register */
 #define DCZID_DZP		(1 << 4) /* DC ZVA prohibited if non-0 */
 #define DCZID_BS_SHIFT		0
@@ -862,6 +900,192 @@
 #define	 ID_ISAR5_VCMA_NONE		(UL(0x0) << ID_ISAR5_VCMA_SHIFT)
 #define	 ID_ISAR5_VCMA_IMPL		(UL(0x1) << ID_ISAR5_VCMA_SHIFT)
 
+/* PMBIDR_EL1 */
+#define	PMBIDR_EL1			MRS_REG(PMBIDR_EL1)
+#define	PMBIDR_EL1_op0			0x3
+#define	PMBIDR_EL1_op1			0x0
+#define	PMBIDR_EL1_CRn			0x9
+#define	PMBIDR_EL1_CRm			0xa
+#define	PMBIDR_EL1_op2			0x7
+#define	PMBIDR_Align_SHIFT		0
+#define	PMBIDR_Align_MASK		(UL(0xf) << PMBIDR_Align_SHIFT)
+#define	PMBIDR_P_SHIFT			4
+#define	PMBIDR_P			(UL(0x1) << PMBIDR_P_SHIFT)
+#define	PMBIDR_F_SHIFT			5
+#define	PMBIDR_F			(UL(0x1) << PMBIDR_F_SHIFT)
+
+/* PMBLIMITR_EL1 */
+#define	PMBLIMITR_EL1			MRS_REG(PMBLIMITR_EL1)
+#define	PMBLIMITR_EL1_op0		0x3
+#define	PMBLIMITR_EL1_op1		0x0
+#define	PMBLIMITR_EL1_CRn		0x9
+#define	PMBLIMITR_EL1_CRm		0xa
+#define	PMBLIMITR_EL1_op2		0x0
+#define	PMBLIMITR_E_SHIFT		0
+#define	PMBLIMITR_E			(UL(0x1) << PMBLIMITR_E_SHIFT)
+#define	PMBLIMITR_FM_SHIFT		1
+#define	PMBLIMITR_FM_MASK		(UL(0x3) << PMBLIMITR_FM_SHIFT)
+#define	PMBLIMITR_PMFZ_SHIFT		5
+#define	PMBLIMITR_PMFZ			(UL(0x1) << PMBLIMITR_PMFZ_SHIFT)
+#define	PMBLIMITR_LIMIT_SHIFT		12
+#define	PMBLIMITR_LIMIT_MASK		\
+    (UL(0xfffffffffffff) << PMBLIMITR_LIMIT_SHIFT)
+
+/* PMBPTR_EL1 */
+#define	PMBPTR_EL1			MRS_REG(PMBPTR_EL1)
+#define	PMBPTR_EL1_op0			0x3
+#define	PMBPTR_EL1_op1			0x0
+#define	PMBPTR_EL1_CRn			0x9
+#define	PMBPTR_EL1_CRm			0xa
+#define	PMBPTR_EL1_op2			0x1
+#define	PMBPTR_PTR_SHIFT		0
+#define	PMBPTR_PTR_MASK			\
+    (UL(0xffffffffffffffff) << PMBPTR_PTR_SHIFT)
+
+/* PMBSR_EL1 */
+#define	PMBSR_EL1			MRS_REG(PMBSR_EL1)
+#define	PMBSR_EL1_op0			0x3
+#define	PMBSR_EL1_op1			0x0
+#define	PMBSR_EL1_CRn			0x9
+#define	PMBSR_EL1_CRm			0xa
+#define	PMBSR_EL1_op2			0x3
+#define	PMBSR_MSS_SHIFT			0
+#define	PMBSR_MSS_MASK			(UL(0xffff) << PMBSR_MSS_SHIFT)
+#define	PMBSR_COLL_SHIFT		16
+#define	PMBSR_COLL			(UL(0x1) << PMBSR_COLL_SHIFT)
+#define	PMBSR_S_SHIFT			17
+#define	PMBSR_S				(UL(0x1) << PMBSR_S_SHIFT)
+#define	PMBSR_EA_SHIFT			18
+#define	PMBSR_EA			(UL(0x1) << PMBSR_EA_SHIFT)
+#define	PMBSR_DL_SHIFT			19
+#define	PMBSR_DL			(UL(0x1) << PMBSR_DL_SHIFT)
+#define	PMBSR_EC_SHIFT			26
+#define	PMBSR_EC_MASK			(UL(0x3f) << PMBSR_EC_SHIFT)
+
+/* PMSCR_EL1 */
+#define	PMSCR_EL1			MRS_REG(PMSCR_EL1)
+#define	PMSCR_EL1_op0			0x3
+#define	PMSCR_EL1_op1			0x0
+#define	PMSCR_EL1_CRn			0x9
+#define	PMSCR_EL1_CRm			0x9
+#define	PMSCR_EL1_op2			0x0
+#define	PMSCR_E0SPE_SHIFT		0
+#define	PMSCR_E0SPE			(UL(0x1) << PMSCR_E0SPE_SHIFT)
+#define	PMSCR_E1SPE_SHIFT		1
+#define	PMSCR_E1SPE			(UL(0x1) << PMSCR_E1SPE_SHIFT)
+#define	PMSCR_CX_SHIFT			3
+#define	PMSCR_CX			(UL(0x1) << PMSCR_CX_SHIFT)
+#define	PMSCR_PA_SHIFT			4
+#define	PMSCR_PA			(UL(0x1) << PMSCR_PA_SHIFT)
+#define	PMSCR_TS_SHIFT			5
+#define	PMSCR_TS			(UL(0x1) << PMSCR_TS_SHIFT)
+#define	PMSCR_PCT_SHIFT			6
+#define	PMSCR_PCT_MASK			(UL(0x3) << PMSCR_PCT_SHIFT)
+
+/* PMSEVFR_EL1 */
+#define	PMSEVFR_EL1			MRS_REG(PMSEVFR_EL1)
+#define	PMSEVFR_EL1_op0			0x3
+#define	PMSEVFR_EL1_op1			0x0
+#define	PMSEVFR_EL1_CRn			0x9
+#define	PMSEVFR_EL1_CRm			0x9
+#define	PMSEVFR_EL1_op2			0x5
+
+/* PMSFCR_EL1 */
+#define	PMSFCR_EL1			MRS_REG(PMSFCR_EL1)
+#define	PMSFCR_EL1_op0			0x3
+#define	PMSFCR_EL1_op1			0x0
+#define	PMSFCR_EL1_CRn			0x9
+#define	PMSFCR_EL1_CRm			0x9
+#define	PMSFCR_EL1_op2			0x4
+#define	PMSFCR_FE_SHIFT			0
+#define	PMSFCR_FE			(UL(0x1) << PMSFCR_FE_SHIFT)
+#define	PMSFCR_FT_SHIFT			1
+#define	PMSFCR_FT			(UL(0x1) << PMSFCR_FT_SHIFT)
+#define	PMSFCR_FL_SHIFT			2
+#define	PMSFCR_FL			(UL(0x1) << PMSFCR_FL_SHIFT)
+#define	PMSFCR_FnE_SHIFT		3
+#define	PMSFCR_FnE			(UL(0x1) << PMSFCR_FnE_SHIFT)
+#define	PMSFCR_B_SHIFT			16
+#define	PMSFCR_B			(UL(0x1) << PMSFCR_B_SHIFT)
+#define	PMSFCR_LD_SHIFT			17
+#define	PMSFCR_LD			(UL(0x1) << PMSFCR_LD_SHIFT)
+#define	PMSFCR_ST_SHIFT			18
+#define	PMSFCR_ST			(UL(0x1) << PMSFCR_ST_SHIFT)
+
+/* PMSICR_EL1 */
+#define	PMSICR_EL1			MRS_REG(PMSICR_EL1)
+#define	PMSICR_EL1_op0			0x3
+#define	PMSICR_EL1_op1			0x0
+#define	PMSICR_EL1_CRn			0x9
+#define	PMSICR_EL1_CRm			0x9
+#define	PMSICR_EL1_op2			0x2
+#define	PMSICR_COUNT_SHIFT		0
+#define	PMSICR_COUNT_MASK		(UL(0xffffffff) << PMSICR_COUNT_SHIFT)
+#define	PMSICR_ECOUNT_SHIFT		56
+#define	PMSICR_ECOUNT_MASK		(UL(0xff) << PMSICR_ECOUNT_SHIFT)
+
+/* PMSIDR_EL1 */
+#define	PMSIDR_EL1			MRS_REG(PMSIDR_EL1)
+#define	PMSIDR_EL1_op0			0x3
+#define	PMSIDR_EL1_op1			0x0
+#define	PMSIDR_EL1_CRn			0x9
+#define	PMSIDR_EL1_CRm			0x9
+#define	PMSIDR_EL1_op2			0x7
+#define	PMSIDR_FE_SHIFT			0
+#define	PMSIDR_FE			(UL(0x1) << PMSIDR_FE_SHIFT)
+#define	PMSIDR_FT_SHIFT			1
+#define	PMSIDR_FT			(UL(0x1) << PMSIDR_FT_SHIFT)
+#define	PMSIDR_FL_SHIFT			2
+#define	PMSIDR_FL			(UL(0x1) << PMSIDR_FL_SHIFT)
+#define	PMSIDR_ArchInst_SHIFT		3
+#define	PMSIDR_ArchInst			(UL(0x1) << PMSIDR_ArchInst_SHIFT)
+#define	PMSIDR_LDS_SHIFT		4
+#define	PMSIDR_LDS			(UL(0x1) << PMSIDR_LDS_SHIFT)
+#define	PMSIDR_ERnd_SHIFT		5
+#define	PMSIDR_ERnd			(UL(0x1) << PMSIDR_ERnd_SHIFT)
+#define	PMSIDR_FnE_SHIFT		6
+#define	PMSIDR_FnE			(UL(0x1) << PMSIDR_FnE_SHIFT)
+#define	PMSIDR_Interval_SHIFT		8
+#define	PMSIDR_Interval_MASK		(UL(0xf) << PMSIDR_Interval_SHIFT)
+#define	PMSIDR_MaxSize_SHIFT		12
+#define	PMSIDR_MaxSize_MASK		(UL(0xf) << PMSIDR_MaxSize_SHIFT)
+#define	PMSIDR_CountSize_SHIFT		16
+#define	PMSIDR_CountSize_MASK		(UL(0xf) << PMSIDR_CountSize_SHIFT)
+#define	PMSIDR_Format_SHIFT		20
+#define	PMSIDR_Format_MASK		(UL(0xf) << PMSIDR_Format_SHIFT)
+#define	PMSIDR_PBT_SHIFT		24
+#define	PMSIDR_PBT			(UL(0x1) << PMSIDR_PBT_SHIFT)
+
+/* PMSIRR_EL1 */
+#define	PMSIRR_EL1			MRS_REG(PMSIRR_EL1)
+#define	PMSIRR_EL1_op0			0x3
+#define	PMSIRR_EL1_op1			0x0
+#define	PMSIRR_EL1_CRn			0x9
+#define	PMSIRR_EL1_CRm			0x9
+#define	PMSIRR_EL1_op2			0x3
+#define	PMSIRR_RND_SHIFT		0
+#define	PMSIRR_RND			(UL(0x1) << PMSIRR_RND_SHIFT)
+#define	PMSIRR_INTERVAL_SHIFT		8
+#define	PMSIRR_INTERVAL_MASK		(UL(0xffffff) << PMSIRR_INTERVAL_SHIFT)
+
+/* PMSLATFR_EL1 */
+#define	PMSLATFR_EL1			MRS_REG(PMSLATFR_EL1)
+#define	PMSLATFR_EL1_op0		0x3
+#define	PMSLATFR_EL1_op1		0x0
+#define	PMSLATFR_EL1_CRn		0x9
+#define	PMSLATFR_EL1_CRm		0x9
+#define	PMSLATFR_EL1_op2		0x6
+#define	PMSLATFR_MINLAT_SHIFT		0
+#define	PMSLATFR_MINLAT_MASK		(UL(0xfff) << PMSLATFR_MINLAT_SHIFT)
+
+/* PMSNEVFR_EL1 */
+#define	PMSNEVFR_EL1			MRS_REG(PMSNEVFR_EL1)
+#define	PMSNEVFR_EL1_op0		0x3
+#define	PMSNEVFR_EL1_op1		0x0
+#define	PMSNEVFR_EL1_CRn		0x9
+#define	PMSNEVFR_EL1_CRm		0x9
+#define	PMSNEVFR_EL1_op2		0x1
+
 /* MAIR_EL1 - Memory Attribute Indirection Register */
 #define	MAIR_ATTR_MASK(idx)	(0xff << ((n)* 8))
 #define	MAIR_ATTR(attr, idx) ((attr) << ((idx) * 8))
@@ -869,6 +1093,14 @@
 #define	 MAIR_NORMAL_NC		0x44
 #define	 MAIR_NORMAL_WT		0xbb
 #define	 MAIR_NORMAL_WB		0xff
+
+/* MDSCR_EL1 - Monitor Debug System Control Register */
+#define	MDSCR_SS_SHIFT			0
+#define	MDSCR_SS			(UL(0x1) << MDSCR_SS_SHIFT)
+#define	MDSCR_KDE_SHIFT			13
+#define	MDSCR_KDE			(UL(0x1) << MDSCR_KDE_SHIFT)
+#define	MDSCR_MDE_SHIFT			15
+#define	MDSCR_MDE			(UL(0x1) << MDSCR_MDE_SHIFT)
 
 /* MVFR0_EL1 */
 #define	MVFR0_EL1			MRS_REG(MVFR0_EL1)
@@ -1080,6 +1312,9 @@
 #define	PSR_Z		0x40000000
 #define	PSR_N		0x80000000
 #define	PSR_FLAGS	0xf0000000
+/* PSR fields that can be set from 32-bit and 64-bit processes */
+#define	PSR_SETTABLE_32	PSR_FLAGS
+#define	PSR_SETTABLE_64	(PSR_FLAGS | PSR_SS)
 
 /* TCR_EL1 - Translation Control Register */
 /* Bits 63:59 are reserved */
@@ -1192,52 +1427,6 @@
 #define	TTBR_CnP_SHIFT		0
 #define	TTBR_CnP		(1ul << TTBR_CnP_SHIFT)
 
-/* Saved Program Status Register */
-#define	DBG_SPSR_SS	(0x1 << 21)
-
-/* Monitor Debug System Control Register */
-#define	DBG_MDSCR_SS	(0x1 << 0)
-#define	DBG_MDSCR_KDE	(0x1 << 13)
-#define	DBG_MDSCR_MDE	(0x1 << 15)
-
-/* Debug Breakpoint Control Registers */
-#define	DBG_BCR_EN		0x1
-#define	DBG_BCR_PMC_SHIFT	1
-#define	DBG_BCR_PMC		(0x3 << DBG_BCR_PMC_SHIFT)
-#define	 DBG_BCR_PMC_EL1	(0x1 << DBG_BCR_PMC_SHIFT)
-#define	 DBG_BCR_PMC_EL0	(0x2 << DBG_BCR_PMC_SHIFT)
-#define	DBG_BCR_BAS_SHIFT	5
-#define	DBG_BCR_BAS		(0xf << DBG_BCR_BAS_SHIFT)
-#define	DBG_BCR_HMC_SHIFT	13
-#define	DBG_BCR_HMC		(0x1 << DBG_BCR_HMC_SHIFT)
-#define	DBG_BCR_SSC_SHIFT	14
-#define	DBG_BCR_SSC		(0x3 << DBG_BCR_SSC_SHIFT)
-#define	DBG_BCR_LBN_SHIFT	16
-#define	DBG_BCR_LBN		(0xf << DBG_BCR_LBN_SHIFT)
-#define	DBG_BCR_BT_SHIFT	20
-#define	DBG_BCR_BT		(0xf << DBG_BCR_BT_SHIFT)
-
-/* Debug Watchpoint Control Registers */
-#define	DBG_WCR_EN		0x1
-#define	DBG_WCR_PAC_SHIFT	1
-#define	DBG_WCR_PAC		(0x3 << DBG_WCR_PAC_SHIFT)
-#define	 DBG_WCR_PAC_EL1	(0x1 << DBG_WCR_PAC_SHIFT)
-#define	 DBG_WCR_PAC_EL0	(0x2 << DBG_WCR_PAC_SHIFT)
-#define	DBG_WCR_LSC_SHIFT	3
-#define	DBG_WCR_LSC		(0x3 << DBG_WCR_LSC_SHIFT)
-#define	DBG_WCR_BAS_SHIFT	5
-#define	DBG_WCR_BAS		(0xff << DBG_WCR_BAS_SHIFT)
-#define	 DBG_WCR_BAS_MASK	DBG_WCR_BAS
-#define	DBG_WCR_HMC_SHIFT	13
-#define	DBG_WCR_HMC		(0x1 << DBG_WCR_HMC_SHIFT)
-#define	DBG_WCR_SSC_SHIFT	14
-#define	DBG_WCR_SSC		(0x3 << DBG_WCR_SSC_SHIFT)
-#define	DBG_WCR_LBN_SHIFT	16
-#define	DBG_WCR_LBN		(0xf << DBG_WCR_LBN_SHIFT)
-#define	DBG_WCR_WT_SHIFT	20
-#define	DBG_WCR_WT		(0x1 << DBG_WCR_WT_SHIFT)
-#define	DBG_WCR_MASK_SHIFT	24
-#define	DBG_WCR_MASK		(0x1f << DBG_WCR_MASK_SHIFT)
 
 /* Perfomance Monitoring Counters */
 #define	PMCR_E		(1 << 0) /* Enable all counters */

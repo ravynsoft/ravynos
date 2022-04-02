@@ -261,12 +261,17 @@ ffs_syncvnode(struct vnode *vp, int waitfor, int flags)
 	struct ufsmount *ump;
 	struct buf *bp, *nbp;
 	ufs_lbn_t lbn;
-	int error, passes;
+	int error, passes, wflag;
 	bool still_dirty, unlocked, wait;
 
 	ip = VTOI(vp);
 	bo = &vp->v_bufobj;
 	ump = VFSTOUFS(vp->v_mount);
+#ifdef WITNESS
+	wflag = IS_SNAPSHOT(ip) ? LK_NOWITNESS : 0;
+#else
+	wflag = 0;
+#endif
 
 	/*
 	 * When doing MNT_WAIT we must first flush all dependencies
@@ -318,9 +323,8 @@ loop:
 		if (BUF_LOCK(bp, LK_EXCLUSIVE | LK_NOWAIT, NULL) == 0) {
 			BO_UNLOCK(bo);
 		} else if (wait) {
-			if (BUF_LOCK(bp,
-			    LK_EXCLUSIVE | LK_SLEEPFAIL | LK_INTERLOCK,
-			    BO_LOCKPTR(bo)) != 0) {
+			if (BUF_LOCK(bp, LK_EXCLUSIVE | LK_SLEEPFAIL |
+			    LK_INTERLOCK | wflag, BO_LOCKPTR(bo)) != 0) {
 				BO_LOCK(bo);
 				bp->b_vflags &= ~BV_SCANNED;
 				goto next_locked;
@@ -691,6 +695,9 @@ ffs_read(ap)
 		return (EOVERFLOW);
 
 	bflag = GB_UNMAPPED | (uio->uio_segflg == UIO_NOCOPY ? 0 : GB_NOSPARSE);
+#ifdef WITNESS
+	bflag |= IS_SNAPSHOT(ip) ? GB_NOWITNESS : 0;
+#endif
 	for (error = 0, bp = NULL; uio->uio_resid > 0; bp = NULL) {
 		if ((bytesinfile = ip->i_size - uio->uio_offset) <= 0)
 			break;
@@ -2066,7 +2073,7 @@ ffs_vput_pair(struct vop_vput_pair_args *ap)
 	 *    and respond to dead vnodes by returning ESTALE.
 	 */
 	VOP_LOCK(vp, vp_locked | LK_RETRY);
-	if (!VN_IS_DOOMED(vp))
+	if (IS_UFS(vp))
 		return (0);
 
 	/*

@@ -1,6 +1,5 @@
 /*-
  * Copyright (c) 2014 The FreeBSD Foundation
- * All rights reserved.
  *
  * This software was developed by Semihalf under
  * the sponsorship of the FreeBSD Foundation.
@@ -190,9 +189,9 @@ kdb_cpu_set_singlestep(void)
 	KASSERT((READ_SPECIALREG(daif) & PSR_D) == PSR_D,
 	    ("%s: debug exceptions are not masked", __func__));
 
-	kdb_frame->tf_spsr |= DBG_SPSR_SS;
+	kdb_frame->tf_spsr |= PSR_SS;
 	WRITE_SPECIALREG(mdscr_el1, READ_SPECIALREG(mdscr_el1) |
-	    DBG_MDSCR_SS | DBG_MDSCR_KDE);
+	    MDSCR_SS | MDSCR_KDE);
 
 	/*
 	 * Disable breakpoints and watchpoints, e.g. stepping
@@ -201,7 +200,7 @@ kdb_cpu_set_singlestep(void)
 	 */
 	if ((kernel_monitor.dbg_flags & DBGMON_ENABLED) != 0) {
 		WRITE_SPECIALREG(mdscr_el1,
-		    READ_SPECIALREG(mdscr_el1) & ~DBG_MDSCR_MDE);
+		    READ_SPECIALREG(mdscr_el1) & ~MDSCR_MDE);
 	}
 }
 
@@ -213,16 +212,16 @@ kdb_cpu_clear_singlestep(void)
 	    ("%s: debug exceptions are not masked", __func__));
 
 	WRITE_SPECIALREG(mdscr_el1, READ_SPECIALREG(mdscr_el1) &
-	    ~(DBG_MDSCR_SS | DBG_MDSCR_KDE));
+	    ~(MDSCR_SS | MDSCR_KDE));
 
 	/* Restore breakpoints and watchpoints */
 	if ((kernel_monitor.dbg_flags & DBGMON_ENABLED) != 0) {
 		WRITE_SPECIALREG(mdscr_el1,
-		    READ_SPECIALREG(mdscr_el1) | DBG_MDSCR_MDE);
+		    READ_SPECIALREG(mdscr_el1) | MDSCR_MDE);
 
 		if ((kernel_monitor.dbg_flags & DBGMON_KERNEL) != 0) {
 			WRITE_SPECIALREG(mdscr_el1,
-			    READ_SPECIALREG(mdscr_el1) | DBG_MDSCR_KDE);
+			    READ_SPECIALREG(mdscr_el1) | MDSCR_KDE);
 		}
 	}
 }
@@ -483,7 +482,7 @@ dbg_register_sync(struct debug_monitor_state *monitor)
 
 	mdscr = READ_SPECIALREG(mdscr_el1);
 	if ((monitor->dbg_flags & DBGMON_ENABLED) == 0) {
-		mdscr &= ~(DBG_MDSCR_MDE | DBG_MDSCR_KDE);
+		mdscr &= ~(MDSCR_MDE | MDSCR_KDE);
 	} else {
 		for (i = 0; i < dbg_breakpoint_num; i++) {
 			dbg_wb_write_reg(DBG_REG_BASE_BCR, i,
@@ -498,9 +497,9 @@ dbg_register_sync(struct debug_monitor_state *monitor)
 			dbg_wb_write_reg(DBG_REG_BASE_WVR, i,
 			    monitor->dbg_wvr[i]);
 		}
-		mdscr |= DBG_MDSCR_MDE;
+		mdscr |= MDSCR_MDE;
 		if ((monitor->dbg_flags & DBGMON_KERNEL) == DBGMON_KERNEL)
-			mdscr |= DBG_MDSCR_KDE;
+			mdscr |= MDSCR_KDE;
 	}
 	WRITE_SPECIALREG(mdscr_el1, mdscr);
 	isb();
@@ -562,8 +561,7 @@ dbg_monitor_enter(struct thread *thread)
 			dbg_wb_write_reg(DBG_REG_BASE_BVR, i, 0);
 		}
 		WRITE_SPECIALREG(mdscr_el1,
-		    READ_SPECIALREG(mdscr_el1) &
-		    ~(DBG_MDSCR_MDE | DBG_MDSCR_KDE));
+		    READ_SPECIALREG(mdscr_el1) & ~(MDSCR_MDE | MDSCR_KDE));
 		isb();
 	}
 }
@@ -596,8 +594,7 @@ dbg_monitor_exit(struct thread *thread, struct trapframe *frame)
 			dbg_wb_write_reg(DBG_REG_BASE_BVR, i, 0);
 		}
 		WRITE_SPECIALREG(mdscr_el1,
-		    READ_SPECIALREG(mdscr_el1) &
-		    ~(DBG_MDSCR_MDE | DBG_MDSCR_KDE));
+		    READ_SPECIALREG(mdscr_el1) & ~(MDSCR_MDE | MDSCR_KDE));
 		isb();
 	}
 }

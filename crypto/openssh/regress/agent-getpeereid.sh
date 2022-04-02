@@ -1,4 +1,4 @@
-#	$OpenBSD: agent-getpeereid.sh,v 1.10 2018/02/09 03:40:22 dtucker Exp $
+#	$OpenBSD: agent-getpeereid.sh,v 1.13 2021/09/01 00:50:27 dtucker Exp $
 #	Placed in the Public Domain.
 
 tid="disallow agent attach from other uid"
@@ -10,23 +10,19 @@ SSH_AUTH_SOCK=/nonexistent
 if config_defined HAVE_GETPEEREID HAVE_GETPEERUCRED HAVE_SO_PEERCRED ; then
 	:
 else
-	echo "skipped (not supported on this platform)"
-	exit 0
+	skip "skipped (not supported on this platform)"
 fi
 case "x$SUDO" in
 	xsudo) sudo=1;;
-	xdoas) ;;
+	xdoas|xdoas\ *) ;;
 	x)
-		echo "need SUDO to switch to uid $UNPRIV"
-		echo SKIPPED
-		exit 0 ;;
+		skip "need SUDO to switch to uid $UNPRIV" ;;
 	*)
-		echo "unsupported $SUDO - "doas" and "sudo" are allowed"
-		exit 0 ;;
+		skip "unsupported $SUDO - "doas" and "sudo" are allowed" ;;
 esac
 
 trace "start agent"
-eval `${SSHAGENT} -s -a ${ASOCK}` > /dev/null
+eval `${SSHAGENT} ${EXTRA_AGENT_ARGS} -s -a ${ASOCK}` > /dev/null
 r=$?
 if [ $r -ne 0 ]; then
 	fail "could not start ssh-agent: exit code $r"

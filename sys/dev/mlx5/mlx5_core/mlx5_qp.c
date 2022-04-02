@@ -25,14 +25,14 @@
  * $FreeBSD$
  */
 
+#include "opt_rss.h"
+#include "opt_ratelimit.h"
 
 #include <linux/gfp.h>
 #include <dev/mlx5/qp.h>
 #include <dev/mlx5/driver.h>
-
-#include "mlx5_core.h"
-
-#include "transobj.h"
+#include <dev/mlx5/mlx5_core/mlx5_core.h>
+#include <dev/mlx5/mlx5_core/transobj.h>
 
 static struct mlx5_core_rsc_common *mlx5_get_rsc(struct mlx5_core_dev *dev,
 						 u32 rsn)

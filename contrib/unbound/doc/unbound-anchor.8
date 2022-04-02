@@ -1,4 +1,4 @@
-.TH "unbound-anchor" "8" "Jun 17, 2019" "NLnet Labs" "unbound 1.9.2"
+.TH "unbound-anchor" "8" "Feb 10, 2022" "NLnet Labs" "unbound 1.15.0"
 .\"
 .\" unbound-anchor.8 -- unbound anchor maintenance utility manual
 .\"
@@ -26,13 +26,13 @@ Suggested usage:
 .nf
 	# in the init scripts.
 	# provide or update the root anchor (if necessary)
-	unbound-anchor \-a "/var/unbound/root.key"
+	unbound-anchor \-a "@UNBOUND_ROOTKEY_FILE@"
 	# Please note usage of this root anchor is at your own risk
 	# and under the terms of our LICENSE (see source).
 	#
 	# start validating resolver
 	# the unbound.conf contains:
-	#   auto-trust-anchor-file: "/var/unbound/root.key"
+	#   auto-trust-anchor-file: "@UNBOUND_ROOTKEY_FILE@"
 	unbound \-c unbound.conf
 .fi
 .P
@@ -41,7 +41,7 @@ update certificate files.
 .P
 It tests if the root anchor file works, and if not, and an update is possible,
 attempts to update the root anchor using the root update certificate.
-It performs a https fetch of root-anchors.xml and checks the results (RFC7958), 
+It performs a https fetch of root-anchors.xml and checks the results (RFC7958),
 if all checks are successful, it updates the root anchor file.  Otherwise
 the root anchor file is unchanged.  It performs RFC5011 tracking if the
 DNSSEC information available via the DNS makes that possible.
@@ -53,12 +53,12 @@ The available options are:
 .TP
 .B \-a \fIfile
 The root anchor key file, that is read in and written out.
-Default is /var/unbound/root.key.
+Default is @UNBOUND_ROOTKEY_FILE@.
 If the file does not exist, or is empty, a builtin root key is written to it.
 .TP
 .B \-c \fIfile
 The root update certificate file, that is read in.
-Default is /var/unbound/icannbundle.pem.
+Default is @UNBOUND_ROOTCERT_FILE@.
 If the file does not exist, or is empty, a builtin certificate is used.
 .TP
 .B \-l
@@ -68,6 +68,13 @@ List the builtin root key and builtin root update certificate on stdout.
 The server name, it connects to https://name.  Specify without https:// prefix.
 The default is "data.iana.org".  It connects to the port specified with \-P.
 You can pass an IPv4 address or IPv6 address (no brackets) if you want.
+.TP
+.B \-S
+Do not use SNI for the HTTPS connection.  Default is to use SNI.
+.TP
+.B \-b \fIaddress
+The source address to bind to for domain resolution and contacting the server
+on https.  May be either an IPv4 address or IPv6 address (no brackets).
 .TP
 .B \-x \fIpath
 The pathname to the root\-anchors.xml file on the server. (forms URL with \-u).
@@ -152,7 +159,7 @@ Or something more suitable for your operational environment.
 The root keys and update certificate included in this tool
 are provided for convenience and under the terms of our
 license (see the LICENSE file in the source distribution or
-http://unbound.nlnetlabs.nl/svn/trunk/LICENSE) and might be stale or
+https://github.com/NLnetLabs/unbound/blob/master/LICENSE) and might be stale or
 not suitable to your purpose.
 .P
 By running "unbound\-anchor \-l" the  keys and certificate that are
@@ -162,11 +169,11 @@ The build\-in configuration can be overridden by providing a root\-cert
 file and a rootkey file.
 .SH "FILES"
 .TP
-.I /var/unbound/root.key
+.I @UNBOUND_ROOTKEY_FILE@
 The root anchor file, updated with 5011 tracking, and read and written to.
 The file is created if it does not exist.
 .TP
-.I /var/unbound/icannbundle.pem
+.I @UNBOUND_ROOTCERT_FILE@
 The trusted self\-signed certificate that is used to verify the downloaded
 DNSSEC root trust anchor.  You can update it by fetching it from
 https://data.iana.org/root\-anchors/icannbundle.pem (and validate it).
@@ -178,5 +185,5 @@ Source for the root key information.
 .I https://data.iana.org/root\-anchors/root\-anchors.p7s
 Signature on the root key information.
 .SH "SEE ALSO"
-\fIunbound.conf\fR(5), 
+\fIunbound.conf\fR(5),
 \fIunbound\fR(8).

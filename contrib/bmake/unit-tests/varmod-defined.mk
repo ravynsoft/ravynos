@@ -1,8 +1,11 @@
-# $NetBSD: varmod-defined.mk,v 1.9 2020/11/12 00:40:55 rillig Exp $
+# $NetBSD: varmod-defined.mk,v 1.12 2021/11/30 23:52:19 rillig Exp $
 #
 # Tests for the :D variable modifier, which returns the given string
 # if the variable is defined.  It is closely related to the :U modifier.
 
+# Force the test results to be independent of the default value of this
+# setting, which is 'yes' for NetBSD's usr.bin/make but 'no' for the bmake
+# distribution and pkgsrc/devel/bmake.
 .MAKE.SAVE_DOLLARS=	yes
 
 DEF=	defined
@@ -89,9 +92,9 @@ DEF=	defined
 
 # The :D and :U modifiers behave differently from the :@var@ modifier in
 # that they preserve dollars in a ':=' assignment.  This is because
-# ApplyModifier_Defined passes the eflags unmodified to Var_Parse, unlike
+# ApplyModifier_Defined passes the emode unmodified to Var_Parse, unlike
 # ApplyModifier_Loop, which uses ParseModifierPart, which in turn removes
-# VARE_KEEP_DOLLAR from eflags.
+# the keepDollar flag from emode.
 #
 # XXX: This inconsistency is documented nowhere.
 .MAKEFLAGS: -dv

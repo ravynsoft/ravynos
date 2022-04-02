@@ -25,15 +25,16 @@
  * $FreeBSD$
  */
 
+#include "opt_rss.h"
+#include "opt_ratelimit.h"
+
 #include <linux/interrupt.h>
 #include <linux/module.h>
 #include <dev/mlx5/port.h>
 #include <dev/mlx5/mlx5_ifc.h>
 #include <dev/mlx5/mlx5_fpga/core.h>
-#include "mlx5_core.h"
-#include "eswitch.h"
-
-#include "opt_rss.h"
+#include <dev/mlx5/mlx5_core/mlx5_core.h>
+#include <dev/mlx5/mlx5_core/eswitch.h>
 
 #ifdef  RSS
 #include <net/rss_config.h>

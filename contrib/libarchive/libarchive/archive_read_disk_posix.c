@@ -109,6 +109,11 @@ __FBSDID("$FreeBSD$");
 #define O_CLOEXEC	0
 #endif
 
+#if defined(__hpux) && !defined(HAVE_DIRFD)
+#define dirfd(x) ((x)->__dd_fd)
+#define HAVE_DIRFD
+#endif
+
 /*-
  * This is a new directory-walking system that addresses a number
  * of problems I've had with fts(3).  In particular, it has no
@@ -369,22 +374,14 @@ static int	open_on_current_dir(struct tree *, const char *, int);
 static int	tree_dup(int);
 
 
-static struct archive_vtable *
-archive_read_disk_vtable(void)
-{
-	static struct archive_vtable av;
-	static int inited = 0;
-
-	if (!inited) {
-		av.archive_free = _archive_read_free;
-		av.archive_close = _archive_read_close;
-		av.archive_read_data_block = _archive_read_data_block;
-		av.archive_read_next_header = _archive_read_next_header;
-		av.archive_read_next_header2 = _archive_read_next_header2;
-		inited = 1;
-	}
-	return (&av);
-}
+static const struct archive_vtable
+archive_read_disk_vtable = {
+	.archive_free = _archive_read_free,
+	.archive_close = _archive_read_close,
+	.archive_read_data_block = _archive_read_data_block,
+	.archive_read_next_header = _archive_read_next_header,
+	.archive_read_next_header2 = _archive_read_next_header2,
+};
 
 const char *
 archive_read_disk_gname(struct archive *_a, la_int64_t gid)
@@ -461,7 +458,7 @@ archive_read_disk_new(void)
 		return (NULL);
 	a->archive.magic = ARCHIVE_READ_DISK_MAGIC;
 	a->archive.state = ARCHIVE_STATE_NEW;
-	a->archive.vtable = archive_read_disk_vtable();
+	a->archive.vtable = &archive_read_disk_vtable;
 	a->entry = archive_entry_new2(&a->archive);
 	a->lookup_uname = trivial_lookup_uname;
 	a->lookup_gname = trivial_lookup_gname;
@@ -1290,7 +1287,7 @@ archive_read_disk_descend(struct archive *_a)
 	    ARCHIVE_STATE_HEADER | ARCHIVE_STATE_DATA,
 	    "archive_read_disk_descend");
 
-	if (t->visit_type != TREE_REGULAR || !t->descend)
+	if (!archive_read_disk_can_descend(_a))
 		return (ARCHIVE_OK);
 
 	/*
@@ -2436,7 +2433,7 @@ tree_dir_next_posix(struct tree *t)
 #else /* HAVE_FDOPENDIR */
 		if (tree_enter_working_dir(t) == 0) {
 			t->d = opendir(".");
-#if HAVE_DIRFD || defined(dirfd)
+#ifdef HAVE_DIRFD
 			__archive_ensure_cloexec_flag(dirfd(t->d));
 #endif
 		}

@@ -61,3 +61,4 @@ DUMMY(mq_timedreceive);
 DUMMY(mq_notify);
 DUMMY(mq_getsetattr);
 DUMMY(semtimedop);
+DUMMY(kexec_file_load);

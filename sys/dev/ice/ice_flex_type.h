@@ -61,7 +61,7 @@ struct ice_pkg_hdr {
 /* generic segment */
 struct ice_generic_seg_hdr {
 #define SEGMENT_TYPE_METADATA	0x00000001
-#define SEGMENT_TYPE_ICE	0x00000010
+#define SEGMENT_TYPE_ICE_E810	0x00000010
 	__le32 seg_type;
 	struct ice_pkg_ver seg_format_ver;
 	__le32 seg_size;
@@ -225,6 +225,8 @@ struct ice_buf_hdr {
 #define ICE_SID_FLD_VEC_PE		86
 #define ICE_SID_CDID_KEY_BUILDER_PE	87
 #define ICE_SID_CDID_REDIR_PE		88
+
+#define ICE_SID_RXPARSER_FLAG_REDIR	97
 
 /* Label Metadata section IDs */
 #define ICE_SID_LBL_FIRST		0x80000010
@@ -612,8 +614,8 @@ struct ice_xlt1 {
 #define ICE_PF_NUM_S	13
 #define ICE_PF_NUM_M	(0x07 << ICE_PF_NUM_S)
 #define ICE_VSIG_VALUE(vsig, pf_id) \
-	(u16)((((u16)(vsig)) & ICE_VSIG_IDX_M) | \
-	      (((u16)(pf_id) << ICE_PF_NUM_S) & ICE_PF_NUM_M))
+	((u16)((((u16)(vsig)) & ICE_VSIG_IDX_M) | \
+	       (((u16)(pf_id) << ICE_PF_NUM_S) & ICE_PF_NUM_M)))
 #define ICE_DEFAULT_VSIG	0
 
 /* XLT2 Table */
@@ -729,5 +731,31 @@ enum ice_prof_type {
 	ICE_PROF_TUN_GRE = 0x4,
 	ICE_PROF_TUN_ALL = 0x6,
 	ICE_PROF_ALL = 0xFF,
+};
+
+/* Number of bits/bytes contained in meta init entry. Note, this should be a
+ * multiple of 32 bits.
+ */
+#define ICE_META_INIT_BITS	192
+#define ICE_META_INIT_DW_CNT	(ICE_META_INIT_BITS / (sizeof(__le32) * \
+				 BITS_PER_BYTE))
+
+/* The meta init Flag field starts at this bit */
+#define ICE_META_FLAGS_ST		123
+
+/* The entry and bit to check for Double VLAN Mode (DVM) support */
+#define ICE_META_VLAN_MODE_ENTRY	0
+#define ICE_META_FLAG_VLAN_MODE		60
+#define ICE_META_VLAN_MODE_BIT		(ICE_META_FLAGS_ST + \
+					 ICE_META_FLAG_VLAN_MODE)
+
+struct ice_meta_init_entry {
+	__le32 bm[ICE_META_INIT_DW_CNT];
+};
+
+struct ice_meta_init_section {
+	__le16 count;
+	__le16 offset;
+	struct ice_meta_init_entry entry[1];
 };
 #endif /* _ICE_FLEX_TYPE_H_ */

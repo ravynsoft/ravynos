@@ -137,6 +137,8 @@ struct ice_fltr_info {
 		} mac_vlan;
 		struct {
 			u16 vlan_id;
+			u16 tpid;
+			u8 tpid_valid;
 		} vlan;
 		/* Set lkup_type as ICE_SW_LKUP_ETHERTYPE
 		 * if just using ethertype as filter. Set lkup_type as
@@ -159,7 +161,6 @@ struct ice_fltr_info {
 		 */
 		u16 q_id:11;
 		u16 hw_vsi_id:10;
-		u16 vsi_id:10;
 		u16 vsi_list_id:10;
 	} fwd_id;
 
@@ -212,12 +213,24 @@ struct ice_rule_query_data {
 	u16 vsi_handle;
 };
 
+/*
+ * This structure allows to pass info about lb_en and lan_en
+ * flags to ice_add_adv_rule. Values in act would be used
+ * only if act_valid was set to true, otherwise dflt
+ * values would be used.
+ */
+struct ice_adv_rule_flags_info {
+	u32 act;
+	u8 act_valid;		/* indicate if flags in act are valid */
+};
+
 struct ice_adv_rule_info {
 	enum ice_sw_tunnel_type tun_type;
 	struct ice_sw_act_ctrl sw_act;
 	u32 priority;
 	u8 rx; /* true means LOOKUP_RX otherwise LOOKUP_TX */
 	u16 fltr_rule_id;
+	struct ice_adv_rule_flags_info flags_info;
 };
 
 /* A collection of one or more four word recipe */
@@ -412,7 +425,6 @@ ice_alloc_vlan_res_counter(struct ice_hw *hw, u16 *counter_id);
 enum ice_status
 ice_free_vlan_res_counter(struct ice_hw *hw, u16 counter_id);
 
-/* Switch/bridge related commands */
 enum ice_status ice_update_sw_rule_bridge_mode(struct ice_hw *hw);
 enum ice_status ice_alloc_rss_global_lut(struct ice_hw *hw, bool shared_res, u16 *global_lut_id);
 enum ice_status ice_free_rss_global_lut(struct ice_hw *hw, u16 global_lut_id);

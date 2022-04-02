@@ -394,6 +394,7 @@ struct ixgbe_softc {
 	u16			num_segs;
 	u32			link_speed;
 	bool			link_up;
+	bool			link_enabled;
 	u32			vector;
 	u16			dmac;
 	u32			phy_layer;
@@ -491,6 +492,8 @@ struct ixgbe_softc {
     "\t0x2 - advertise 1G\n" \
     "\t0x4 - advertise 10G\n" \
     "\t0x8 - advertise 10M\n\n" \
+    "\t0x10  - advertise 2.5G\n" \
+    "\t0x20  - advertise 5G\n\n" \
     "\t100M and 10M are only supported on certain adapters.\n"
 
 #define IXGBE_SYSCTL_DESC_SET_FC	\

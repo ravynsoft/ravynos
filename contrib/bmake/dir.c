@@ -1,4 +1,4 @@
-/*	$NetBSD: dir.c,v 1.270 2021/02/05 05:48:19 rillig Exp $	*/
+/*	$NetBSD: dir.c,v 1.278 2022/02/04 23:22:19 rillig Exp $	*/
 
 /*
  * Copyright (c) 1988, 1989, 1990 The Regents of the University of California.
@@ -86,7 +86,7 @@
  *	Dir_SetPATH	Set ${.PATH} to reflect state of dirSearchPath.
  *
  *	Dir_HasWildcards
- *			Returns TRUE if the name given it needs to
+ *			Returns true if the name given it needs to
  *			be wildcard-expanded.
  *
  *	SearchPath_Expand
@@ -138,7 +138,7 @@
 #include "job.h"
 
 /*	"@(#)dir.c	8.2 (Berkeley) 1/2/94"	*/
-MAKE_RCSID("$NetBSD: dir.c,v 1.270 2021/02/05 05:48:19 rillig Exp $");
+MAKE_RCSID("$NetBSD: dir.c,v 1.278 2022/02/04 23:22:19 rillig Exp $");
 
 /*
  * A search path is a list of CachedDir structures. A CachedDir has in it the
@@ -217,7 +217,7 @@ struct CachedDir {
 	 * and "./." are different.
 	 *
 	 * Not sure what happens when .CURDIR is assigned a new value; see
-	 * Parse_DoVar.
+	 * Parse_Var.
 	 */
 	char *name;
 
@@ -245,12 +245,6 @@ typedef struct OpenDirs {
 	CachedDirList list;
 	HashTable /* of CachedDirListNode */ table;
 } OpenDirs;
-
-typedef enum CachedStatsFlags {
-	CST_NONE	= 0,
-	CST_LSTAT	= 1 << 0,	/* call lstat(2) instead of stat(2) */
-	CST_UPDATE	= 1 << 1	/* ignore existing cached entry */
-} CachedStatsFlags;
 
 
 SearchPath dirSearchPath = { LST_INIT }; /* main search path */
@@ -419,9 +413,9 @@ OpenDirs_Remove(OpenDirs *odirs, const char *name)
  */
 static int
 cached_stats(const char *pathname, struct cached_stat *out_cst,
-	     CachedStatsFlags flags)
+	     bool useLstat, bool forceRefresh)
 {
-	HashTable *tbl = flags & CST_LSTAT ? &lmtimes : &mtimes;
+	HashTable *tbl = useLstat ? &lmtimes : &mtimes;
 	struct stat sys_st;
 	struct cached_stat *cst;
 	int rc;
@@ -430,14 +424,14 @@ cached_stats(const char *pathname, struct cached_stat *out_cst,
 		return -1;	/* This can happen in meta mode. */
 
 	cst = HashTable_FindValue(tbl, pathname);
-	if (cst != NULL && !(flags & CST_UPDATE)) {
+	if (cst != NULL && !forceRefresh) {
 		*out_cst = *cst;
 		DEBUG2(DIR, "Using cached time %s for %s\n",
 		    Targ_FmtTime(cst->cst_mtime), pathname);
 		return 0;
 	}
 
-	rc = (flags & CST_LSTAT ? lstat : stat)(pathname, &sys_st);
+	rc = (useLstat ? lstat : stat)(pathname, &sys_st);
 	if (rc == -1)
 		return -1;	/* don't cache negative lookups */
 
@@ -462,13 +456,13 @@ cached_stats(const char *pathname, struct cached_stat *out_cst,
 int
 cached_stat(const char *pathname, struct cached_stat *cst)
 {
-	return cached_stats(pathname, cst, CST_NONE);
+	return cached_stats(pathname, cst, false, false);
 }
 
 int
 cached_lstat(const char *pathname, struct cached_stat *cst)
 {
-	return cached_stats(pathname, cst, CST_LSTAT);
+	return cached_stats(pathname, cst, true, false);
 }
 
 /* Initialize the directories module. */
@@ -547,14 +541,14 @@ void
 Dir_SetPATH(void)
 {
 	CachedDirListNode *ln;
-	Boolean seenDotLast = FALSE;	/* true if we should search '.' last */
+	bool seenDotLast = false;	/* true if we should search '.' last */
 
 	Global_Delete(".PATH");
 
 	if ((ln = dirSearchPath.dirs.first) != NULL) {
 		CachedDir *dir = ln->datum;
 		if (dir == dotLast) {
-			seenDotLast = TRUE;
+			seenDotLast = true;
 			Global_Append(".PATH", dotLast->name);
 		}
 	}
@@ -591,34 +585,34 @@ Dir_SetPATH(void)
  * that make(1) should be expanding patterns, because then you have to set a
  * mechanism for escaping the expansion!
  *
- * Return TRUE if the word should be expanded, FALSE otherwise.
+ * Return true if the word should be expanded, false otherwise.
  */
-Boolean
+bool
 Dir_HasWildcards(const char *name)
 {
 	const char *p;
-	Boolean wild = FALSE;
+	bool wild = false;
 	int braces = 0, brackets = 0;
 
 	for (p = name; *p != '\0'; p++) {
 		switch (*p) {
 		case '{':
 			braces++;
-			wild = TRUE;
+			wild = true;
 			break;
 		case '}':
 			braces--;
 			break;
 		case '[':
 			brackets++;
-			wild = TRUE;
+			wild = true;
 			break;
 		case ']':
 			brackets--;
 			break;
 		case '?':
 		case '*':
-			wild = TRUE;
+			wild = true;
 			break;
 		default:
 			break;
@@ -647,7 +641,7 @@ static void
 DirMatchFiles(const char *pattern, CachedDir *dir, StringList *expansions)
 {
 	const char *dirName = dir->name;
-	Boolean isDot = dirName[0] == '.' && dirName[1] == '\0';
+	bool isDot = dirName[0] == '.' && dirName[1] == '\0';
 	HashIter hi;
 
 	/*
@@ -678,8 +672,8 @@ DirMatchFiles(const char *pattern, CachedDir *dir, StringList *expansions)
 
 		{
 			char *fullName = isDot
-					 ? bmake_strdup(base)
-					 : str_concat3(dirName, "/", base);
+			    ? bmake_strdup(base)
+			    : str_concat3(dirName, "/", base);
 			Lst_Append(expansions, fullName);
 		}
 	}
@@ -725,7 +719,7 @@ separator_comma(const char *p)
 	return p;
 }
 
-static Boolean
+static bool
 contains_wildcard(const char *p)
 {
 	for (; *p != '\0'; p++) {
@@ -734,10 +728,10 @@ contains_wildcard(const char *p)
 		case '?':
 		case '{':
 		case '[':
-			return TRUE;
+			return true;
 		}
 	}
-	return FALSE;
+	return false;
 }
 
 static char *
@@ -798,7 +792,7 @@ DirExpandCurly(const char *word, const char *brace, SearchPath *path,
 		size_t piece_len = (size_t)(piece_end - piece);
 
 		char *file = concat3(prefix, prefix_len, piece, piece_len,
-				     suffix, suffix_len);
+		    suffix, suffix_len);
 
 		if (contains_wildcard(file)) {
 			SearchPath_Expand(path, file, expansions);
@@ -990,8 +984,9 @@ static char *
 DirLookupSubdir(CachedDir *dir, const char *name)
 {
 	struct cached_stat cst;
-	char *file = dir == dot ? bmake_strdup(name)
-				: str_concat3(dir->name, "/", name);
+	char *file = dir == dot
+	    ? bmake_strdup(name)
+	    : str_concat3(dir->name, "/", name);
 
 	DEBUG1(DIR, "checking %s ...\n", file);
 
@@ -1064,19 +1059,19 @@ DirFindDot(const char *name, const char *base)
 	return NULL;
 }
 
-static Boolean
-FindFileRelative(SearchPath *path, Boolean seenDotLast,
+static bool
+FindFileRelative(SearchPath *path, bool seenDotLast,
 		 const char *name, char **out_file)
 {
 	SearchPathNode *ln;
-	Boolean checkedDot = FALSE;
+	bool checkedDot = false;
 	char *file;
 
 	DEBUG0(DIR, "   Trying subdirectories...\n");
 
 	if (!seenDotLast) {
 		if (dot != NULL) {
-			checkedDot = TRUE;
+			checkedDot = true;
 			if ((file = DirLookupSubdir(dot, name)) != NULL)
 				goto found;
 		}
@@ -1092,7 +1087,7 @@ FindFileRelative(SearchPath *path, Boolean seenDotLast,
 		if (dir == dot) {
 			if (checkedDot)
 				continue;
-			checkedDot = TRUE;
+			checkedDot = true;
 		}
 		if ((file = DirLookupSubdir(dir, name)) != NULL)
 			goto found;
@@ -1100,7 +1095,7 @@ FindFileRelative(SearchPath *path, Boolean seenDotLast,
 
 	if (seenDotLast) {
 		if (dot != NULL && !checkedDot) {
-			checkedDot = TRUE;
+			checkedDot = true;
 			if ((file = DirLookupSubdir(dot, name)) != NULL)
 				goto found;
 		}
@@ -1119,17 +1114,16 @@ FindFileRelative(SearchPath *path, Boolean seenDotLast,
 		goto found;
 	}
 
-	return FALSE;
+	return false;
 
 found:
 	*out_file = file;
-	return TRUE;
+	return true;
 }
 
-static Boolean
-FindFileAbsolute(SearchPath *path, Boolean const seenDotLast,
-		 const char *const name, const char *const base,
-		 char **out_file)
+static bool
+FindFileAbsolute(SearchPath *path, bool seenDotLast,
+		 const char *name, const char *base, char **out_file)
 {
 	char *file;
 	SearchPathNode *ln;
@@ -1162,7 +1156,7 @@ FindFileAbsolute(SearchPath *path, Boolean const seenDotLast,
 	    ((file = DirLookupAbs(cur, name, base)) != NULL))
 		goto found;
 
-	return FALSE;
+	return false;
 
 found:
 	if (file[0] == '\0') {
@@ -1170,7 +1164,7 @@ found:
 		file = NULL;
 	}
 	*out_file = file;
-	return TRUE;
+	return true;
 }
 
 /*
@@ -1194,7 +1188,7 @@ char *
 Dir_FindFile(const char *name, SearchPath *path)
 {
 	char *file;		/* the current filename to check */
-	Boolean seenDotLast = FALSE; /* true if we should search dot last */
+	bool seenDotLast = false; /* true if we should search dot last */
 	struct cached_stat cst;	/* Buffer for stat, if necessary */
 	const char *trailing_dot = ".";
 	const char *base = str_basename(name);
@@ -1210,7 +1204,7 @@ Dir_FindFile(const char *name, SearchPath *path)
 	if (path->dirs.first != NULL) {
 		CachedDir *dir = path->dirs.first->datum;
 		if (dir == dotLast) {
-			seenDotLast = TRUE;
+			seenDotLast = true;
 			DEBUG0(DIR, "[dot last]...");
 		}
 	}
@@ -1431,9 +1425,9 @@ ResolveMovedDepends(GNode *gn)
 	gn->path = bmake_strdup(fullName);
 	if (!Job_RunTarget(".STALE", gn->fname))
 		fprintf(stdout,	/* XXX: Why stdout? */
-			"%s: %s, %d: ignoring stale %s for %s, found %s\n",
-			progname, gn->fname, gn->lineno,
-			makeDependfile, gn->name, fullName);
+		    "%s: %s, %u: ignoring stale %s for %s, found %s\n",
+		    progname, gn->fname, gn->lineno,
+		    makeDependfile, gn->name, fullName);
 
 	return fullName;
 }
@@ -1448,7 +1442,7 @@ ResolveFullName(GNode *gn)
 
 		fullName = Dir_FindFile(gn->name, Suff_FindPath(gn));
 
-		if (fullName == NULL && gn->flags & FROM_DEPEND &&
+		if (fullName == NULL && gn->flags.fromDepend &&
 		    !Lst_IsEmpty(&gn->implicitParents))
 			fullName = ResolveMovedDepends(gn);
 
@@ -1471,7 +1465,7 @@ ResolveFullName(GNode *gn)
  * The found file is stored in gn->path, unless the node already had a path.
  */
 void
-Dir_UpdateMTime(GNode *gn, Boolean recheck)
+Dir_UpdateMTime(GNode *gn, bool forceRefresh)
 {
 	char *fullName;
 	struct cached_stat cst;
@@ -1488,7 +1482,7 @@ Dir_UpdateMTime(GNode *gn, Boolean recheck)
 
 	fullName = ResolveFullName(gn);
 
-	if (cached_stats(fullName, &cst, recheck ? CST_UPDATE : CST_NONE) < 0) {
+	if (cached_stats(fullName, &cst, false, forceRefresh) < 0) {
 		if (gn->type & OP_MEMBER) {
 			if (fullName != gn->path)
 				free(fullName);

@@ -330,7 +330,7 @@ sctp_find_alternate_net(struct sctp_tcb *stcb,
 	}
 	/* Look for an alternate net, which is active. */
 	if ((net != NULL) && ((net->dest_state & SCTP_ADDR_BEING_DELETED) == 0)) {
-		alt = TAILQ_NEXT(net, sctp_next);;
+		alt = TAILQ_NEXT(net, sctp_next);
 	} else {
 		alt = TAILQ_FIRST(&stcb->asoc.nets);
 	}
@@ -369,7 +369,7 @@ sctp_find_alternate_net(struct sctp_tcb *stcb,
 		 * an alternate net, which is confirmed.
 		 */
 		if ((net != NULL) && ((net->dest_state & SCTP_ADDR_BEING_DELETED) == 0)) {
-			alt = TAILQ_NEXT(net, sctp_next);;
+			alt = TAILQ_NEXT(net, sctp_next);
 		} else {
 			alt = TAILQ_FIRST(&stcb->asoc.nets);
 		}
@@ -542,8 +542,8 @@ sctp_mark_all_for_resend(struct sctp_tcb *stcb,
 		min_wait.tv_sec = min_wait.tv_usec = 0;
 	}
 	if (SCTP_BASE_SYSCTL(sctp_logging_level) & SCTP_FR_LOGGING_ENABLE) {
-		sctp_log_fr(cur_rto, now.tv_sec, now.tv_usec, SCTP_FR_T3_MARK_TIME);
-		sctp_log_fr(0, min_wait.tv_sec, min_wait.tv_usec, SCTP_FR_T3_MARK_TIME);
+		sctp_log_fr(cur_rto, (uint32_t)now.tv_sec, now.tv_usec, SCTP_FR_T3_MARK_TIME);
+		sctp_log_fr(0, (uint32_t)min_wait.tv_sec, min_wait.tv_usec, SCTP_FR_T3_MARK_TIME);
 	}
 	/*
 	 * Our rwnd will be incorrect here since we are not adding back the
@@ -590,7 +590,7 @@ start_again:
 			/* validate its been outstanding long enough */
 			if (SCTP_BASE_SYSCTL(sctp_logging_level) & SCTP_FR_LOGGING_ENABLE) {
 				sctp_log_fr(chk->rec.data.tsn,
-				    chk->sent_rcv_time.tv_sec,
+				    (uint32_t)chk->sent_rcv_time.tv_sec,
 				    chk->sent_rcv_time.tv_usec,
 				    SCTP_FR_T3_MARK_TIME);
 			}
@@ -602,7 +602,7 @@ start_again:
 				 */
 				if (SCTP_BASE_SYSCTL(sctp_logging_level) & SCTP_FR_LOGGING_ENABLE) {
 					sctp_log_fr(0,
-					    chk->sent_rcv_time.tv_sec,
+					    (uint32_t)chk->sent_rcv_time.tv_sec,
 					    chk->sent_rcv_time.tv_usec,
 					    SCTP_FR_T3_STOPPED);
 				}
@@ -853,11 +853,11 @@ sctp_t3rxt_timer(struct sctp_inpcb *inp,
 			if (net != stcb->asoc.primary_destination) {
 				/* send a immediate HB if our RTO is stale */
 				struct timeval now;
-				unsigned int ms_goneby;
+				uint32_t ms_goneby;
 
 				(void)SCTP_GETTIME_TIMEVAL(&now);
 				if (net->last_sent_time.tv_sec) {
-					ms_goneby = (now.tv_sec - net->last_sent_time.tv_sec) * 1000;
+					ms_goneby = (uint32_t)(now.tv_sec - net->last_sent_time.tv_sec) * 1000;
 				} else {
 					ms_goneby = 0;
 				}
@@ -1344,18 +1344,18 @@ sctp_shutdownack_timer(struct sctp_inpcb *inp, struct sctp_tcb *stcb,
 }
 
 static void
-sctp_audit_stream_queues_for_size(struct sctp_inpcb *inp,
-    struct sctp_tcb *stcb)
+sctp_audit_stream_queues_for_size(struct sctp_inpcb *inp, struct sctp_tcb *stcb)
 {
 	struct sctp_stream_queue_pending *sp;
 	unsigned int i, chks_in_queue = 0;
 	int being_filled = 0;
 
-	/*
-	 * This function is ONLY called when the send/sent queues are empty.
-	 */
-	if ((stcb == NULL) || (inp == NULL))
-		return;
+	KASSERT(inp != NULL, ("inp is NULL"));
+	KASSERT(stcb != NULL, ("stcb is NULL"));
+
+	SCTP_TCB_SEND_LOCK(stcb);
+	KASSERT(TAILQ_EMPTY(&stcb->asoc.send_queue), ("send_queue not empty"));
+	KASSERT(TAILQ_EMPTY(&stcb->asoc.sent_queue), ("sent_queue not empty"));
 
 	if (stcb->asoc.sent_queue_retran_cnt) {
 		SCTP_PRINTF("Hmm, sent_queue_retran_cnt is non-zero %d\n",
@@ -1364,7 +1364,7 @@ sctp_audit_stream_queues_for_size(struct sctp_inpcb *inp,
 	}
 	if (stcb->asoc.ss_functions.sctp_ss_is_empty(stcb, &stcb->asoc)) {
 		/* No stream scheduler information, initialize scheduler */
-		stcb->asoc.ss_functions.sctp_ss_init(stcb, &stcb->asoc, 0);
+		stcb->asoc.ss_functions.sctp_ss_init(stcb, &stcb->asoc);
 		if (!stcb->asoc.ss_functions.sctp_ss_is_empty(stcb, &stcb->asoc)) {
 			/* yep, we lost a stream or two */
 			SCTP_PRINTF("Found additional streams NOT managed by scheduler, corrected\n");
@@ -1387,6 +1387,7 @@ sctp_audit_stream_queues_for_size(struct sctp_inpcb *inp,
 		SCTP_PRINTF("Hmm, stream queue cnt at %d I counted %d in stream out wheel\n",
 		    stcb->asoc.stream_queue_cnt, chks_in_queue);
 	}
+	SCTP_TCB_SEND_UNLOCK(stcb);
 	if (chks_in_queue) {
 		/* call the output queue function */
 		sctp_chunk_output(inp, stcb, SCTP_OUTPUT_FROM_T3, SCTP_SO_NOT_LOCKED);

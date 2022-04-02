@@ -574,6 +574,10 @@ linux_to_bsd_tcp_sockopt(int opt)
 		return (TCP_KEEPINTVL);
 	case LINUX_TCP_KEEPCNT:
 		return (TCP_KEEPCNT);
+	case LINUX_TCP_INFO:
+		LINUX_RATELIMIT_MSG_OPT1(
+		    "unsupported TCP socket option TCP_INFO (%d)", opt);
+		return (-2);
 	case LINUX_TCP_MD5SIG:
 		return (TCP_MD5SIG);
 	}
@@ -1534,6 +1538,12 @@ linux_recvmsg_common(struct thread *td, l_int s, struct l_msghdr *msghdr,
 	if (error != 0)
 		return (error);
 
+	/*
+	 * Pass user-supplied recvmsg() flags in msg_flags field,
+	 * following sys_recvmsg() convention.
+	*/
+	linux_msghdr.msg_flags = flags;
+
 	error = linux_to_bsd_msghdr(msg, &linux_msghdr);
 	if (error != 0)
 		return (error);
@@ -1864,6 +1874,43 @@ linux_setsockopt(struct thread *td, struct linux_setsockopt_args *args)
 }
 
 static int
+linux_getsockopt_so_peergroups(struct thread *td,
+    struct linux_getsockopt_args *args)
+{
+	struct xucred xu;
+	socklen_t xulen, len;
+	int error, i;
+
+	xulen = sizeof(xu);
+	error = kern_getsockopt(td, args->s, 0,
+	    LOCAL_PEERCRED, &xu, UIO_SYSSPACE, &xulen);
+	if (error != 0)
+		return (error);
+
+	len = xu.cr_ngroups * sizeof(l_gid_t);
+	if (args->optlen < len) {
+		error = copyout(&len, PTRIN(args->optlen), sizeof(len));
+		if (error == 0)
+			error = ERANGE;
+		return (error);
+	}
+
+	/*
+	 * "- 1" to skip the primary group.
+	 */
+	for (i = 0; i < xu.cr_ngroups - 1; i++) {
+		error = copyout(xu.cr_groups + i + 1,
+		    (void *)(args->optval + i * sizeof(l_gid_t)),
+		    sizeof(l_gid_t));
+		if (error != 0)
+			return (error);
+	}
+
+	error = copyout(&len, PTRIN(args->optlen), sizeof(len));
+	return (error);
+}
+
+static int
 linux_getsockopt_so_peersec(struct thread *td,
     struct linux_getsockopt_args *args)
 {
@@ -1899,8 +1946,15 @@ linux_getsockopt(struct thread *td, struct linux_getsockopt_args *args)
 	level = linux_to_bsd_sockopt_level(args->level);
 	switch (level) {
 	case SOL_SOCKET:
-		if (args->optname == LINUX_SO_PEERSEC)
+		switch (args->optname) {
+		case LINUX_SO_PEERGROUPS:
+			return (linux_getsockopt_so_peergroups(td, args));
+		case LINUX_SO_PEERSEC:
 			return (linux_getsockopt_so_peersec(td, args));
+		default:
+			break;
+		}
+
 		name = linux_to_bsd_so_sockopt(args->optname);
 		switch (name) {
 		case LOCAL_CREDS_PERSISTENT:
@@ -2053,6 +2107,8 @@ linux_sendfile_common(struct thread *td, l_int out, l_int in,
 	td->td_retval[0] = (ssize_t)bytes_read;
 drop:
 	fdrop(fp, td);
+	if (error == ENOTSOCK)
+		error = EINVAL;
 	return (error);
 }
 

@@ -239,6 +239,7 @@ SUBDIR=	\
 	${_malo} \
 	md \
 	mdio \
+	${_mgb} \
 	mem \
 	mfi \
 	mii \
@@ -579,7 +580,7 @@ _rtwnfw=	rtwnfw
 _cxgbe=		cxgbe
 .endif
 
-.if ${MACHINE_ARCH} == "amd64" || ${MACHINE_ARCH} == "arm64"
+.if ${MACHINE_ARCH} == "amd64" || ${MACHINE_ARCH} == "arm64" || ${MACHINE_ARCH:Mpowerpc64*}
 _ice=		ice
 .if ${MK_SOURCELESS_UCODE} != "no"
 _ice_ddp=	ice_ddp
@@ -662,6 +663,7 @@ _ixv=		ixv
 .if ${MK_SOURCELESS_UCODE} != "no"
 _lio=		lio
 .endif
+_mgb=		mgb
 _nctgpio=	nctgpio
 _ndis=		ndis
 _ntb=		ntb

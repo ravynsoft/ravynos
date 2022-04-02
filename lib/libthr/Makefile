@@ -19,7 +19,6 @@ CFLAGS+=-DPTHREAD_KERNEL
 CFLAGS+=-I${SRCTOP}/lib/libc/include
 CFLAGS+=-I${SRCTOP}/lib/libc/${MACHINE_CPUARCH}
 CFLAGS+=-I${.CURDIR}/thread
-CFLAGS+=-I${SRCTOP}/include
 CFLAGS+=-I${.CURDIR}/arch/${MACHINE_CPUARCH}/include
 CFLAGS+=-I${.CURDIR}/sys
 CFLAGS+=-I${SRCTOP}/libexec/rtld-elf
@@ -29,6 +28,10 @@ CFLAGS+=-I${SRCTOP}/lib/libthread_db
 CFLAGS.thr_stack.c+=	-Wno-cast-align
 CFLAGS.rtld_malloc.c+=	-Wno-cast-align
 CFLAGS.thr_symbols.c+=	-Wno-missing-variable-declarations
+
+.if ${MACHINE_CPUARCH} == "arm"
+NO_THREAD_UNWIND_STACK= yes
+.endif
 
 .ifndef NO_THREAD_UNWIND_STACK
 CFLAGS+=-fexceptions

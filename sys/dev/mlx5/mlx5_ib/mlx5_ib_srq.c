@@ -25,6 +25,9 @@
  * $FreeBSD$
  */
 
+#include "opt_rss.h"
+#include "opt_ratelimit.h"
+
 #include <linux/module.h>
 #include <dev/mlx5/qp.h>
 #include <dev/mlx5/srq.h>
@@ -32,7 +35,7 @@
 #include <rdma/ib_umem.h>
 #include <rdma/ib_user_verbs.h>
 
-#include "mlx5_ib.h"
+#include <dev/mlx5/mlx5_ib/mlx5_ib.h>
 
 /* not supported currently */
 static int srq_signature;

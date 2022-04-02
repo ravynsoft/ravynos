@@ -446,6 +446,8 @@ ice_if_attach_pre(if_ctx_t ctx)
 
 	device_printf(iflib_get_dev(ctx), "Loading the iflib ice driver\n");
 
+	ice_set_state(&sc->state, ICE_STATE_ATTACHING);
+
 	sc->ctx = ctx;
 	sc->media = iflib_get_media(ctx);
 	sc->sctx = iflib_get_sctx(ctx);
@@ -753,6 +755,9 @@ ice_if_attach_post(if_ctx_t ctx)
 		return err;
 	}
 
+	/* Enable FW health event reporting */
+	ice_init_health_events(sc);
+
 	/* Configure the main PF VSI for RSS */
 	err = ice_config_rss(&sc->pf_vsi);
 	if (err) {
@@ -773,6 +778,8 @@ ice_if_attach_post(if_ctx_t ctx)
 
 	ice_init_saved_phy_cfg(sc);
 
+	ice_cfg_pba_num(sc);
+
 	ice_add_device_sysctls(sc);
 
 	/* Get DCBX/LLDP state and start DCBX agent */
@@ -792,6 +799,8 @@ ice_if_attach_post(if_ctx_t ctx)
 	mtx_lock(&sc->admin_mtx);
 	callout_reset(&sc->admin_timer, hz/2, ice_admin_timer, sc);
 	mtx_unlock(&sc->admin_mtx);
+
+	ice_clear_state(&sc->state, ICE_STATE_ATTACHING);
 
 	return 0;
 } /* ice_if_attach_post */
@@ -816,6 +825,8 @@ ice_attach_post_recovery_mode(struct ice_softc *sc)
 	mtx_lock(&sc->admin_mtx);
 	callout_reset(&sc->admin_timer, hz/2, ice_admin_timer, sc);
 	mtx_unlock(&sc->admin_mtx);
+
+	ice_clear_state(&sc->state, ICE_STATE_ATTACHING);
 }
 
 /**
@@ -990,7 +1001,8 @@ ice_if_tx_queues_alloc(if_ctx_t ctx, caddr_t *vaddrs, uint64_t *paddrs,
 	ice_vsi_add_txqs_ctx(vsi);
 
 	for (i = 0, txq = vsi->tx_queues; i < ntxqsets; i++, txq++) {
-		txq->me = i;
+		/* q_handle == me when only one TC */
+		txq->me = txq->q_handle = i;
 		txq->vsi = vsi;
 
 		/* store the queue size for easier access */
@@ -1946,7 +1958,7 @@ ice_poll_for_media_avail(struct ice_softc *sc)
 			enum ice_status status;
 
 			/* Re-enable link and re-apply user link settings */
-			ice_apply_saved_phy_cfg(sc);
+			ice_apply_saved_phy_cfg(sc, ICE_APPLY_LS_FEC_FC);
 
 			/* Update the OS about changes in media capability */
 			status = ice_add_media_types(sc, sc->media);
@@ -2015,6 +2027,18 @@ static void
 ice_admin_timer(void *arg)
 {
 	struct ice_softc *sc = (struct ice_softc *)arg;
+
+	/*
+	 * There is a point where callout routines are no longer
+	 * cancelable.  So there exists a window of time where the
+	 * driver enters detach() and tries to cancel the callout, but the
+	 * callout routine has passed the cancellation point.  The detach()
+	 * routine is unaware of this and tries to free resources that the
+	 * callout routine needs.  So we check for the detach state flag to
+	 * at least shrink the window of opportunity.
+	 */
+	if (ice_driver_is_detaching(sc))
+		return;
 
 	/* Fire off the admin task */
 	iflib_admin_intr_deferred(sc->ctx);
@@ -2360,6 +2384,27 @@ ice_rebuild(struct ice_softc *sc)
 		goto err_shutdown_ctrlq;
 	}
 
+	/* Re-enable FW logging. Keep going even if this fails */
+	status = ice_fwlog_set(hw, &hw->fwlog_cfg);
+	if (!status) {
+		/*
+		 * We should have the most updated cached copy of the
+		 * configuration, regardless of whether we're rebuilding
+		 * or not.  So we'll simply check to see if logging was
+		 * enabled pre-rebuild.
+		 */
+		if (hw->fwlog_cfg.options & ICE_FWLOG_OPTION_IS_REGISTERED) {
+			status = ice_fwlog_register(hw);
+			if (status)
+				device_printf(dev, "failed to re-register fw logging, err %s aq_err %s\n",
+				   ice_status_str(status),
+				   ice_aq_str(hw->adminq.sq_last_status));
+		}
+	} else
+		device_printf(dev, "failed to rebuild fw logging configuration, err %s aq_err %s\n",
+		   ice_status_str(status),
+		   ice_aq_str(hw->adminq.sq_last_status));
+
 	err = ice_send_version(sc);
 	if (err)
 		goto err_shutdown_ctrlq;
@@ -2423,6 +2468,9 @@ ice_rebuild(struct ice_softc *sc)
 	err = ice_replay_all_vsi_cfg(sc);
 	if (err)
 		goto err_deinit_pf_vsi;
+
+	/* Re-enable FW health event reporting */
+	ice_init_health_events(sc);
 
 	/* Reconfigure the main PF VSI for RSS */
 	err = ice_config_rss(&sc->pf_vsi);
@@ -2593,11 +2641,26 @@ ice_init_device_features(struct ice_softc *sc)
 	ice_set_bit(ICE_FEATURE_SRIOV, sc->feat_cap);
 	ice_set_bit(ICE_FEATURE_RSS, sc->feat_cap);
 	ice_set_bit(ICE_FEATURE_LENIENT_LINK_MODE, sc->feat_cap);
-	ice_set_bit(ICE_FEATURE_DEFAULT_OVERRIDE, sc->feat_cap);
+	ice_set_bit(ICE_FEATURE_LINK_MGMT_VER_1, sc->feat_cap);
+	ice_set_bit(ICE_FEATURE_LINK_MGMT_VER_2, sc->feat_cap);
+	ice_set_bit(ICE_FEATURE_HEALTH_STATUS, sc->feat_cap);
+	ice_set_bit(ICE_FEATURE_FW_LOGGING, sc->feat_cap);
+	ice_set_bit(ICE_FEATURE_HAS_PBA, sc->feat_cap);
 
 	/* Disable features due to hardware limitations... */
 	if (!sc->hw.func_caps.common_cap.rss_table_size)
 		ice_clear_bit(ICE_FEATURE_RSS, sc->feat_cap);
+	/* Disable features due to firmware limitations... */
+	if (!ice_is_fw_health_report_supported(&sc->hw))
+		ice_clear_bit(ICE_FEATURE_HEALTH_STATUS, sc->feat_cap);
+	if (!ice_fwlog_supported(&sc->hw))
+		ice_clear_bit(ICE_FEATURE_FW_LOGGING, sc->feat_cap);
+	if (sc->hw.fwlog_cfg.options & ICE_FWLOG_OPTION_IS_REGISTERED) {
+		if (ice_is_bit_set(sc->feat_cap, ICE_FEATURE_FW_LOGGING))
+			ice_set_bit(ICE_FEATURE_FW_LOGGING, sc->feat_en);
+		else
+			ice_fwlog_unregister(&sc->hw);
+	}
 
 	/* Disable capabilities not supported by the OS */
 	ice_disable_unsupported_features(sc->feat_cap);

@@ -25,10 +25,13 @@
  * $FreeBSD$
  */
 
+#include "opt_rss.h"
+#include "opt_ratelimit.h"
+
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <dev/mlx5/driver.h>
-#include "mlx5_core.h"
+#include <dev/mlx5/mlx5_core/mlx5_core.h>
 
 #ifdef RATELIMIT
 
@@ -68,6 +71,25 @@ static int mlx5_set_rate_limit_cmd(struct mlx5_core_dev *dev,
 	MLX5_SET(set_rate_limit_in, in, typical_packet_size, 0 /* use MTU */);
 
 	return mlx5_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
+}
+
+int mlx5e_query_rate_limit_cmd(struct mlx5_core_dev *dev,
+				   u16 index, u32 *scq_handle)
+{
+	int err;
+	u32 in[MLX5_ST_SZ_DW(query_pp_rate_limit_in)] = {};
+	u32 out[MLX5_ST_SZ_DW(query_pp_rate_limit_out)] = {};
+
+	MLX5_SET(query_pp_rate_limit_in, in, opcode, MLX5_CMD_OP_QUERY_RATE_LIMIT);
+	MLX5_SET(query_pp_rate_limit_in, in, rate_limit_index, index);
+
+	err = mlx5_cmd_exec(dev, in, sizeof(in), out, sizeof(out));
+	if (err)
+		return err;
+
+	*scq_handle = MLX5_GET(query_pp_rate_limit_out, out, pp_context.qos_handle);
+
+	return 0;
 }
 
 bool mlx5_rl_is_in_range(const struct mlx5_core_dev *dev, u32 rate, u32 burst)
@@ -119,6 +141,16 @@ int mlx5_rl_add_rate(struct mlx5_core_dev *dev, u32 rate, u32 burst, u16 *index)
 		entry->rate = rate;
 		entry->burst = burst;
 		entry->refcount = 1;
+
+		if (MLX5_CAP_QOS(dev, qos_remap_pp)) {
+			err = mlx5e_query_rate_limit_cmd(dev, entry->index, &entry->qos_handle);
+			if (err) {
+				mlx5_core_err(dev, "Failed retrieving schedule queue handle for"
+				    "SQ remap: rate: %u error:(%d)\n", rate, err);
+				entry->qos_handle = MLX5_INVALID_QUEUE_HANDLE;
+			}
+		} else
+			entry->qos_handle = MLX5_INVALID_QUEUE_HANDLE;
 	}
 	*index = entry->index;
 

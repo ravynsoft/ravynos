@@ -1,4 +1,4 @@
-# $Id: init.mk,v 1.25 2020/11/27 17:59:46 sjg Exp $
+# $Id: init.mk,v 1.27 2022/01/01 17:32:18 sjg Exp $
 #
 #	@(#) Copyright (c) 2002, Simon J. Gerraty
 #
@@ -14,7 +14,7 @@
 #
 
 .if !target(__${.PARSEFILE}__)
-__${.PARSEFILE}__:
+__${.PARSEFILE}__: .NOTMAIN
 
 .if ${MAKE_VERSION:U0} > 20100408
 _this_mk_dir := ${.PARSEDIR:tA}
@@ -66,11 +66,15 @@ CXX_PIC?= ${CC_PIC}
 PROFFLAGS?= -DGPROF -DPROF
 
 .if ${.MAKE.LEVEL:U1} == 0 && ${MK_DIRDEPS_BUILD:Uno} == "yes"
-# targets that are ok at level 0
+.if ${RELDIR} == "."
+# top-level targets that are ok at level 0
 DIRDEPS_BUILD_LEVEL0_TARGETS += clean* destroy*
 M_ListToSkip?= O:u:S,^,N,:ts:
 .if ${.TARGETS:Uall:${DIRDEPS_BUILD_LEVEL0_TARGETS:${M_ListToSkip}}} != ""
 # this tells lib.mk and prog.mk to not actually build anything
+_SKIP_BUILD = not building at level 0
+.endif
+.elif ${.TARGETS:U:Nall} == ""
 _SKIP_BUILD = not building at level 0
 .endif
 .endif

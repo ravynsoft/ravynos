@@ -1077,7 +1077,8 @@ t4_teardown_adapter_queues(struct adapter *sc)
 
 	ADAPTER_LOCK_ASSERT_NOTOWNED(sc);
 
-	if (!(sc->flags & IS_VF)) {
+	if (sc->sge.ctrlq != NULL) {
+		MPASS(!(sc->flags & IS_VF));	/* VFs don't allocate ctrlq. */
 		for_each_port(sc, i)
 			free_ctrlq(sc, i);
 	}
@@ -1302,7 +1303,7 @@ t4_intr_err(void *arg)
 	uint32_t v;
 	const bool verbose = (sc->debug_flags & DF_VERBOSE_SLOWINTR) != 0;
 
-	if (sc->flags & ADAP_ERR)
+	if (atomic_load_int(&sc->error_flags) & ADAP_FATAL_ERR)
 		return;
 
 	v = t4_read_reg(sc, MYPF_REG(A_PL_PF_INT_CAUSE));
@@ -1311,7 +1312,8 @@ t4_intr_err(void *arg)
 		t4_write_reg(sc, MYPF_REG(A_PL_PF_INT_CAUSE), v);
 	}
 
-	t4_slow_intr_handler(sc, verbose);
+	if (t4_slow_intr_handler(sc, verbose))
+		t4_fatal_err(sc, false);
 }
 
 /*
@@ -2510,6 +2512,7 @@ needs_vlan_insertion(struct mbuf *m)
 	return (m->m_flags & M_VLANTAG);
 }
 
+#if defined(INET) || defined(INET6)
 static void *
 m_advance(struct mbuf **pm, int *poffset, int len)
 {
@@ -2534,6 +2537,7 @@ m_advance(struct mbuf **pm, int *poffset, int len)
 	*pm = m;
 	return ((void *)p);
 }
+#endif
 
 static inline int
 count_mbuf_ext_pgs(struct mbuf *m, int skip, vm_paddr_t *nextaddr)
@@ -2676,10 +2680,13 @@ int
 parse_pkt(struct mbuf **mp, bool vm_wr)
 {
 	struct mbuf *m0 = *mp, *m;
-	int rc, nsegs, defragged = 0, offset;
+	int rc, nsegs, defragged = 0;
 	struct ether_header *eh;
+#ifdef INET
 	void *l3hdr;
+#endif
 #if defined(INET) || defined(INET6)
+	int offset;
 	struct tcphdr *tcp;
 #endif
 #if defined(KERN_TLS) || defined(RATELIMIT)
@@ -2787,8 +2794,14 @@ restart:
 	} else
 		m0->m_pkthdr.l2hlen = sizeof(*eh);
 
+#if defined(INET) || defined(INET6)
 	offset = 0;
+#ifdef INET
 	l3hdr = m_advance(&m, &offset, m0->m_pkthdr.l2hlen);
+#else
+	m_advance(&m, &offset, m0->m_pkthdr.l2hlen);
+#endif
+#endif
 
 	switch (eh_type) {
 #ifdef INET6
@@ -2828,6 +2841,7 @@ restart:
 		goto fail;
 	}
 
+#if defined(INET) || defined(INET6)
 	if (needs_vxlan_csum(m0)) {
 		m0->m_pkthdr.l4hlen = sizeof(struct udphdr);
 		m0->m_pkthdr.l5hlen = sizeof(struct vxlan_header);
@@ -2843,7 +2857,11 @@ restart:
 			m0->m_pkthdr.inner_l2hlen = sizeof(*evh);
 		} else
 			m0->m_pkthdr.inner_l2hlen = sizeof(*eh);
+#ifdef INET
 		l3hdr = m_advance(&m, &offset, m0->m_pkthdr.inner_l2hlen);
+#else
+		m_advance(&m, &offset, m0->m_pkthdr.inner_l2hlen);
+#endif
 
 		switch (eh_type) {
 #ifdef INET6
@@ -2871,12 +2889,10 @@ restart:
 			rc = EINVAL;
 			goto fail;
 		}
-#if defined(INET) || defined(INET6)
 		if (needs_inner_tcp_csum(m0)) {
 			tcp = m_advance(&m, &offset, m0->m_pkthdr.inner_l3hlen);
 			m0->m_pkthdr.inner_l4hlen = tcp->th_off * 4;
 		}
-#endif
 		MPASS((m0->m_pkthdr.csum_flags & CSUM_SND_TAG) == 0);
 		m0->m_pkthdr.csum_flags &= CSUM_INNER_IP6_UDP |
 		    CSUM_INNER_IP6_TCP | CSUM_INNER_IP6_TSO | CSUM_INNER_IP |
@@ -2884,7 +2900,6 @@ restart:
 		    CSUM_ENCAP_VXLAN;
 	}
 
-#if defined(INET) || defined(INET6)
 	if (needs_outer_tcp_csum(m0)) {
 		tcp = m_advance(&m, &offset, m0->m_pkthdr.l3hlen);
 		m0->m_pkthdr.l4hlen = tcp->th_off * 4;
@@ -5381,14 +5396,13 @@ write_txpkt_vm_wr(struct adapter *sc, struct sge_txq *txq, struct mbuf *m0)
 	struct cpl_tx_pkt_core *cpl;
 	uint32_t ctrl;	/* used in many unrelated places */
 	uint64_t ctrl1;
-	int len16, ndesc, pktlen, nsegs;
+	int len16, ndesc, pktlen;
 	caddr_t dst;
 
 	TXQ_LOCK_ASSERT_OWNED(txq);
 	M_ASSERTPKTHDR(m0);
 
 	len16 = mbuf_len16(m0);
-	nsegs = mbuf_nsegs(m0);
 	pktlen = m0->m_pkthdr.len;
 	ctrl = sizeof(struct cpl_tx_pkt_core);
 	if (needs_tso(m0))
@@ -6563,7 +6577,6 @@ write_ethofld_wr(struct cxgbe_rate_tag *cst, struct fw_eth_tx_eo_wr *wr,
 	uint64_t ctrl1;
 	uint32_t ctrl;	/* used in many unrelated places */
 	int len16, pktlen, nsegs, immhdrs;
-	caddr_t dst;
 	uintptr_t p;
 	struct ulptx_sgl *usgl;
 	struct sglist sg;
@@ -6658,7 +6671,6 @@ write_ethofld_wr(struct cxgbe_rate_tag *cst, struct fw_eth_tx_eo_wr *wr,
 	m_copydata(m0, 0, immhdrs, (void *)p);
 
 	/* SGL */
-	dst = (void *)(cpl + 1);
 	if (nsegs > 0) {
 		int i, pad;
 

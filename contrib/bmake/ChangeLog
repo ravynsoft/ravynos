@@ -1,3 +1,513 @@
+2022-02-08  Simon J Gerraty  <sjg@beast.crufty.net>
+
+	* unit-tests/Makefile: disable opt-debug-x-trace on Linux if there
+	is any chance we have dash as .SHELL
+
+	* VERSION (_MAKE_VERSION): 20220208
+	Merge with NetBSD make, pick up
+	o more unit tests
+	o meta.c: use a variable to hold command line to be filtered
+	to avoid any side effects from content of command line.
+
+2022-02-04  Simon J Gerraty  <sjg@beast.crufty.net>
+
+	* VERSION (_MAKE_VERSION): 20220204
+	Merge with NetBSD make, pick up
+	o use unsigned consistently for line numbers, avoid the need for %z
+	o parse.c: do not step off end of input in Parse_IsVar
+	when checking for target local variable assignments
+
+2022-02-02  Simon J Gerraty  <sjg@beast.crufty.net>
+
+	* VERSION (_MAKE_VERSION): 20220202
+	Merge with NetBSD make, pick up
+	o remove redundant declaration of HashIter_Init
+	o make DEBUG0 simpler
+
+2022-01-30  Simon J Gerraty  <sjg@beast.crufty.net>
+
+	* cast gn->lineno to avoid %z
+
+	* VERSION (_MAKE_VERSION): 20220130
+	Merge with NetBSD make, pick up
+	o more unit tests
+	o make GNode lineno unsigned to please lint
+	o print location of recursive variable references in commands
+	o print "stack trace" (makefile includes) on fatal errors
+	o make.1: refine documentation for target local assignments
+
+2022-01-28  Simon J Gerraty  <sjg@beast.crufty.net>
+
+	* VERSION (_MAKE_VERSION): 20220128
+	Merge with NetBSD make, pick up
+	o inline functions called only once
+	o for.c: clean up AddEscape for building the body of a .for loop
+	o hash.c: merge duplicate code for finding an entry in a hash table
+	replace HashEntry_KeyEquals with strncmp
+	o make.1: document quirks of target local variable assignments.
+	o parse.c: cleanup white-space
+
+2022-01-26  Simon J Gerraty  <sjg@beast.crufty.net>
+
+	* VERSION (_MAKE_VERSION): 20220126
+	Merge with NetBSD make, pick up
+	o allow setting target local variables
+	o more unit tests
+	o add missing newline after "cannot continue" message
+	o meta.c: clean up eat_dots
+	o parse.c: fix filename in warning about duplicate script
+	o var.c: when expanding nested variables, check simple things first
+
+2022-01-16  Simon J Gerraty  <sjg@beast.crufty.net>
+
+	* VERSION (_MAKE_VERSION): 20220116
+	Merge with NetBSD make, pick up
+	o fix for unit-tests/varname-makeflags on non-BSD systems
+	o use Var_Exists rather than Var_Value where appropriate
+	o remove unnecessary functions for expanding variable names
+	o cond.c: inline EvalBare
+	o main.c: lint cleanup
+	o parse.c: condense code in Parse_IsVar
+	use islower for parsing directives (none have upper case)
+
+2022-01-12  Simon J Gerraty  <sjg@beast.crufty.net>
+
+	* VERSION (_MAKE_VERSION): 20220112
+	Merge with NetBSD make, pick up
+	o meta.c: add .MAKE.META.CMP_FILTER for filtering commands before
+	comparion, rarely needed but useful when it is.
+
+2022-01-10  Simon J Gerraty  <sjg@beast.crufty.net>
+
+	* VERSION (_MAKE_VERSION): 20220110
+	Merge with NetBSD make, pick up
+	o inline Buf_Clear
+	o remove redundant braces
+	o rename and inline Targ_Precious
+	o cond.c: remove redundant initializer in CondParser_ComparisonOrLeaf
+	o for.c: clean up handling of .for loops
+	fix reported line numbers of continuation lines
+	add details about .for loop variables to stack traces
+	o job.c: reduce code for initializing error handling in shell
+	o main.c: in Cmd_Exec, return error message instead of format string
+	have as few statements as possible between va_start and va_end
+	add debug logging for capturing the output of external commands
+	o make.c: use consistent variable names for varargs
+	o make_malloc.c: remove duplicate code from bmake_strdup
+	o parse.c: add missing printflike annotations
+	remove redundant lines from stack traces
+	fix stack traces in -dp mode
+	reduce confusing code in ParseForLoop
+	fix line number in debug log after returning from a file
+	rename IFile and its fields to match their actual content
+	clean up ParseDependencySources
+	o var.c: shorten ApplyModifier_Assign
+	rename is_shell_metachar, fix character conversion warning
+	merge calls to ApplyModifier_Time
+	merge duplicate code for modifiers 'gmtime' and 'localtime'
+
+2022-01-04  Simon J Gerraty  <sjg@beast.crufty.net>
+
+	* parse.c: loadfile restore extra byte in buffer.
+
+2022-01-01  Simon J Gerraty  <sjg@beast.crufty.net>
+
+	* VERSION (_MAKE_VERSION): 20220101
+	Merge with NetBSD make, pick up
+	o more unit-tests
+	o remove unnecessary words from command line options in CmdOpts
+	o rename eunlink to unlink_file
+	o cond.c: make ParseWord in condition parser simpler
+	internally return false for irrelevant leaves in conditions
+	replace table for function lookup in conditions with simple code
+	merge duplicate types CondEvalResult and CondResult
+	o for.c: clean up handling of .for loops and .include directives
+	o main.c: constify cached_realpath
+	clean up Cmd_Exec
+	o parse.c: sync API documentation
+	fix error message when reading more than 1 GB from stdin
+	clean up parsing of makefiles
+	fix line number in error message about open conditionals
+	unexport types VarAssignOp and VarAssign
+	clean up function names
+	remove redundant parameters in dependency parsing functions
+	reduce scope of the list of wildcard target names
+	extract OP_NOTARGET into separate function
+	clean up variable names for parsing dependency lines
+	make debug logging a bit more human-friendly
+	o var.c: condense code in ApplyModifier_Assign
+
+2021-12-21  Simon J Gerraty  <sjg@beast.crufty.net>
+
+	* VERSION (_MAKE_VERSION): 20211221
+	Merge with NetBSD make, pick up
+	o more unit-tests
+	o style cleanup
+	o in CLEANUP mode, free interned strings at the very end
+	o fix memory leak for filenames in .for loops
+	o buf.c: avoid memory leak
+	o cond.c: condense CondParser_ComparisonOp
+	o hash.c: change return type of HashTable_Set to void
+	o job.c: change return type of Compat_RunCommand from int to bool
+	o main.c: remove bmake_free
+	o parse.c: condense repetetive code in ParseDirective
+	remove dead code for handling traditional include directives
+	clean up parsing of variable assignments
+	remove unreachable code for parsing the dependency operator
+	clean up loading of files
+	fix memory leak in IncludeFile
+	o var.c: fix memory leak when parsing a variable name
+	fix memory leak from ${.SUFFIXES}
+	reduce memory allocation in modifier ':?' and ':C'
+	condense RegexReplace for the modifier ':C' and avoid strlen
+	merge duplicate code for memory handling in Var_Parse
+	distinguish between short-lived and environment variables
+	rename VarFreeEnv to VarFreeShortLived
+
+2021-12-15  Simon J Gerraty  <sjg@beast.crufty.net>
+
+	* cond.c: fix mem leak in CondParser_Leaf
+
+2021-12-12  Simon J Gerraty  <sjg@beast.crufty.net>
+
+	* VERSION (_MAKE_VERSION): 20211212
+	Merge with NetBSD make, pick up
+	o rename Parse_SetInput to Parse_PushInput
+	o remove remove period from end of error messages and warnings
+	to be more consistent
+	o arch.c: use simpler memory management for parsing archive members
+	o cond.c: rework and reduce recursion
+	o for.c: rename some functions to better reflect purpose
+	o suff.c: add Suff_NamesStr to provide .SUFFIXES as a string.
+	o var.c: in parse errors, mark whitespace more clearly
+	inline ParseEmptyArg into CondParser_FuncCallEmpty
+	minimize calls to LazyBuf_Get in ParseVarnameLong
+	treat .SUFFIXES as a read-only variable
+
+2021-12-07  Simon J Gerraty  <sjg@beast.crufty.net>
+
+	* VERSION (_MAKE_VERSION): 20211207
+	Merge with NetBSD make, pick up
+	o inline HashIter_Init
+	o parse.c: inline common subexpression in ParseRawLine
+	o var.c: merge branches for modifiers ':D' and ':U'
+	extract common code into Expr_Words
+	extract common code into Expr_Str
+	move low-level implementation details out of Var_Parse
+	
+2021-12-06  Simon J Gerraty  <sjg@beast.crufty.net>
+
+	* VERSION (_MAKE_VERSION): 20211206
+	Merge with NetBSD make, pick up
+	o add unit-tests/varmod-loop-delete
+	o for.c: inline Str_Words - reduce memory allocation
+	o parse.c: do not try to expand fixed variable names
+	only allocate the name of an included file if necessary
+	clean up ParseInclude
+	o var.c: fix use-after-free in modifier ':@'
+	save a memory allocation in each modifier ':O' and ':u'
+	save a memory allocation in the modifier ':[...]'
+	in UnexportVars, replace Str_Words with Substring_Words to
+	reduce allocations and copying.
+	
+2021-12-04  Simon J Gerraty  <sjg@beast.crufty.net>
+
+	* VERSION (_MAKE_VERSION): 20211204
+	Merge with NetBSD make, pick up
+	o flesh out a number of tests
+	o replace enums with bitfields, this simplifies a lot of code.
+	o var.c: refactor ParseModifierPartSubst
+
+2021-10-24  Simon J Gerraty  <sjg@beast.crufty.net>
+
+	* VERSION (_MAKE_VERSION): 20211024
+	Merge with NetBSD make, pick up
+	o Punt on write errors - ENOSPC etc.
+
+2021-10-22  Simon J Gerraty  <sjg@beast.crufty.net>
+
+	* configure.in: use_defshell, set both DEFSHELL_INDEX
+	and defshell_path if appropriate.
+	This makes it easier to use say the KSH specification with
+	and alternate path for the shell.
+	
+	* configure.in compat.c: for SCO we need to force UseShell
+
+	* configure.in: SCO /bin/sh is not usable, provide a list of
+	alternatives for use as .SHELL.
+	We still have to mark some tests as broken, plus more if we end up
+	with ksh as .SHELL.
+	Issue a warning about skipped tests.
+
+	* boot-strap: leave TOOL_DIFF to configure
+
+	* configure.in: on SCO native cc is not usable,
+	gcc is to be found in /usr/gnu/bin
+	and while ancient is at least able to compile bmake.
+	Thus we add /usr/gnu/bin to PATH if it exists, and later
+	check if $CC would have been found via $PATH.
+	If not we set CC to the full path of $CC.
+	Also gnu diff is known to support -u, so if it exists use it.
+
+	* configure.in: move getopt to AC_REPLACE_FUNCS
+	also add AC_C_INLINE - in an attempt to compile using
+	native cc on SCO.
+
+	* configure.in: check for stresep as well as strsep, since we
+	define the later to the former if necessary, and if we have to
+	provide stresep we also need to provide a prototype.
+
+	* configure.in: we no longer need to worry about
+	sys/cdefs.h providing __RCSID which simplifies things quite a bit.
+
+	* make.h: make sure we have __RCSID
+
+	* unit-tests/Makefile.config.in: add TOOL_DIFF so configure
+	can control it.
+
+2021-10-20  Simon J Gerraty  <sjg@beast.crufty.net>
+
+	* VERSION: 20211020
+	Merge with NetBSD make, pick up
+	o confirm sync of unit-tests
+
+2021-10-18  Simon J Gerraty  <sjg@beast.crufty.net>
+
+	* configure.in: check if timezone Europe/Berlin is supported
+	if not try UTC-1
+	* configure.in: if .OBJDIR is $srcdir/obj we need to create a
+	symlink unit-tests -> ../unit-tests/obj so that
+	unit-tests/Makefile.config is put in the right place.
+	* refine filtering of .OBJDIR in unit-tests
+	
+2021-10-16  Simon J Gerraty  <sjg@beast.crufty.net>
+
+	* Fix unit-tests on Minix 3.2.0
+	o job.c: do not punt if read of token pipe fails for EAGAIN.
+	On Minix at least, we are not ready to read the childExitJob pipe
+	when poll says we are.
+	There should actually be no reason for this pipe to be
+	non-blocking, but while that works fine on {Net,Free}BSD it
+	breaks another test case on Minix.
+	o unit-tests/Makefile: deal with variants of error messages
+	  and use of obj as .OBJDIR
+
+2021-10-14  Simon J Gerraty  <sjg@beast.crufty.net>
+
+	* configure.in: add sigaction to AC_REPLACE_FUNCS
+	we also need to check for sigaddset etc just for the benefit of
+	sigact.c
+
+	* Add sigact.c as sigaction.c so this "just works".
+	This should have been done back when bmake_signal started using
+	sigaction (I only just noticed that sigact.c wasn't here ;-)
+	Note: I no longer have access to any system where this would matter.
+
+2021-10-13  Simon J Gerraty  <sjg@beast.crufty.net>
+
+	* VERSION (_MAKE_VERSION): 20211011
+
+	* Makefile: cleanup a little
+
+	* configure.in: check for sigsetmask
+
+2021-10-01  Simon J Gerraty  <sjg@beast.crufty.net>
+
+	* VERSION (_MAKE_VERSION): 20211001
+	Merge with NetBSD make, pick up
+	o reduce locations reducing text size
+	o remove unnecessary const
+	o cond.c: fix lint warning on i386
+	do not allow unquoted 'left == right' after modifier ':?'
+	o hash.c: fix build for DEBUG_HASH_LOOKUP
+	o var.c: fix memory leak in error case of the ':?' modifier
+	
+2021-09-11  Simon J Gerraty  <sjg@beast.crufty.net>
+
+	* VERSION (_MAKE_VERSION): 20210911
+	Merge with NetBSD make, pick up
+	o var.c: replace remaining ModChain_ShouldEval with Expr_ShouldEval
+
+2021-09-08  Simon J Gerraty  <sjg@beast.crufty.net>
+
+	* VERSION (_MAKE_VERSION): 20210906
+	Merge with NetBSD make, pick up
+	o more unit tests
+	o lint cleanup
+	o rename some functions to better fit purpose
+	o for.c: cleanup - remove unnecessary optimization
+	  fix embedded newlines
+	o parse.c: correct case for CVS/RCS
+	
+2021-08-11  Simon J Gerraty  <sjg@beast.crufty.net>
+
+	* VERSION (_MAKE_VERSION): 20210808
+	Merge with NetBSD make, pick up
+	o var.c: remove redundant initialization in ApplyModifier_Order
+
+	* mk/options.mk: issue warning for incorrect usage
+
+2021-08-03  Simon J Gerraty  <sjg@beast.crufty.net>
+
+	* var.c: use long for :On if we don't have a 64bit int type 
+
+	* VERSION (_MAKE_VERSION): 20210803
+	Merge with NetBSD make, pick up
+	o rework varmod-order tests to avoid qsort instability
+	o make.1: clarify :On entry
+
+2021-07-31  Simon J Gerraty  <sjg@beast.crufty.net>
+
+	* VERSION (_MAKE_VERSION): 20210731
+	Merge with NetBSD make, pick up
+	o fix some lint issues
+	o more unit tests
+	o var.c: rework of ApplyModifier_Order
+
+2021-07-30  Simon J Gerraty  <sjg@beast.crufty.net>
+
+	* util.c: add strto*l if HAVE_STRTO*L not defined
+
+	* VERSION (_MAKE_VERSION): 20210730
+	Merge with NetBSD make, pick up
+	o var.c: add :On and :Orn for numeric sort
+	  disabled if no 64bit type available.
+	o _strtol.h: to implement strto*l functions
+
+2021-07-04  Simon J Gerraty  <sjg@beast.crufty.net>
+
+	* VERSION (_MAKE_VERSION): 20210704
+	Merge with NetBSD make, pick up
+	o unit-tests: fix some tests to be more portable
+	- job-output-null not all shells do the same number of write calls
+	- objdir-writable if TMPDIR is set; /tmp may not be usable
+
+2021-07-01  Simon J Gerraty  <sjg@beast.crufty.net>
+
+	* VERSION (_MAKE_VERSION): 20210701
+	Merge with NetBSD make, pick up
+	o unit-tests: allow for BROKEN_TESTS to list TESTS to be skipped;
+	some tests just cannot work in some environments.
+	o buf.c: simpler upper bound for length in Buf_AddInt
+	o cond.c: fix grammar in error message for malformed conditional
+	o for.c: prevent newline injection (from ${.newline}) in .for loops
+	o var.c: use more practical data type in RegexReplace
+	(avoid need for %zu)
+	extract RegexReplace from ModifyWord_SubstRegex
+	
+2021-06-21  Simon J Gerraty  <sjg@beast.crufty.net>
+
+	* VERSION (_MAKE_VERSION): 20210621
+	Merge with NetBSD make, pick up
+	o var.c: only report error for unmatched regex subexpression
+	when linting (-dL) since we cannot tell when an unmatched
+	subexpression is an expected result.
+	o move unmatched regex subexpression tests to
+	varmod-subst-regex.mk and enable strict (lint) mode
+
+2021-06-16  Simon J Gerraty  <sjg@beast.crufty.net>
+
+	* VERSION (_MAKE_VERSION): 20210616
+	Merge with NetBSD make, pick up
+	o more unit tests
+	o cond.c: rename If_Eval to EvalBare
+	improve function names for parsing conditions
+	o job.c: fix error handling of targets that cannot be made
+	o var.c: uncompress code in ApplyModifier_Unique
+
+2021-05-18  Simon J Gerraty  <sjg@beast.crufty.net>
+
+	* VERSION (_MAKE_VERSION): 20210518
+	Merge with NetBSD make, pick up
+	o fix unit-tests/opt-chdir to cope with /nonexistent existing.
+	o job.c: Print -de error information when running multiple jobs
+
+2021-04-20  Simon J Gerraty  <sjg@beast.crufty.net>
+
+	* VERSION (_MAKE_VERSION): 20210420
+	Merge with NetBSD make, pick up
+	o use C99 bool type
+	o convert VarEvalFlags back into an enum
+	o cond.c: do not complain when skipping the condition 'no >= 10'
+	o hash.c: avoid allocating memory for simple variable names
+	o job.c: use distinct wording for writing to the shell commands file
+	remove type name for the abort status in job handling
+	rename PrintOutput to PrintFilteredOutput to avoid confusion
+	o main.c: avoid double slash in name of temporary directory
+	o var.c: use straight quotes for error 'Bad conditional expression'
+	reduce memory allocations in the modifiers ':D' and ':U'
+	rename members of ModifyWord_LoopArgs
+	clean up pattern flags for the modifiers ':S' and ':C'
+	reduce memory allocation and strlen calls in modifier ':from=to'
+	in the ':Q' modifier, only allocate memory if necessary
+	improve performance for LazyBuf
+	remove redundant parameter from ParseVarnameLong
+	migrate ParseModifierPart to use Substring
+	avoid unnecessary calls to strlen when evaluating modifiers
+	migrate ModifyWord functions to use Substring
+	migrate handling of the modifier ':S,from,to,' to Substring
+	reduce debug logging and memory allocation for ${:U...}
+	reduce verbosity of the -dv debug logging for standard cases
+	clean up debug logging for ':M' and ':N'
+	disallow '$' in the variable name of the modifier ':@'
+	simplify access to the name of an expression during evaluation
+
+2021-03-30  Simon J Gerraty  <sjg@beast.crufty.net>
+
+	* VERSION (_MAKE_VERSION): 20210330
+	Merge with NetBSD make, pick up
+	o replace enum bit-field with struct bit-field for VarEvalFlags
+	o rename VARE_NONE to VARE_PARSE_ONLY
+	o var.c: rename ApplyModifiersState to ModChain
+	fix double varname expansion in the variable modifier '::='
+	change debug log for variable evaluation flags to lowercase
+
+2021-03-14  Simon J Gerraty  <sjg@beast.crufty.net>
+
+	* VERSION (_MAKE_VERSION): 20210314
+	Merge with NetBSD make, pick up
+	o var.c: avoid evaluating many modifiers in parse only mode
+	in strict mode (-dL) many variable references are parsed twice,
+	the first time just to report parse errors early, so we want to
+	avoid side effects and wasted effort to the extent possible.
+
+2021-02-26  Simon J Gerraty  <sjg@beast.crufty.net>
+
+	* VERSION (_MAKE_VERSION): 20210226
+	Merge with NetBSD make, pick up
+	o remove freestanding freeIt variables
+	link via FStr
+	o var.c: restructure code in ParseVarname to target human readers
+	improve error message for;
+	  bad modifier in variable expression
+	  unclosed modifier
+	  unknown modifier
+	remove redundant parameter of ApplySingleModifier
+	explain non-obvious code around indirect variable modifiers
+	quote ':S' in error message about missing delimiter
+	extract ParseModifier_Match into separate function
+	add context information to error message about ':range' modifier
+	add quotes around variable name in an error message
+	reorder code in ModifyWords
+	use more common parameter order for VarSelectWords
+	make ModifyWord_Subst a little easier to understand
+	do not expand variable name from the command line twice
+	extract ExistsInCmdline from Var_SetWithFlags
+	save a hash map lookup when defining a cmdline variable
+	clean up VarAdd, Var_Delete, Var_ReexportVars
+	use bit-shift expressions for VarFlags constants
+	rename constants for VarFlags
+	rename ExprDefined constants for debug logging
+	rename ExprStatus to ExprDefined
+	split parameters for evaluating variable expressions
+	reduce redundant code around ModifyWords
+	print error about failed shell command before overwriting variable
+	clean up ValidShortVarname, ParseVarnameShort
+	rename VarExprStatus to ExprStatus
+	add functions for assigning the value of an expression
+	rename ApplyModifiersState_Define to Expr_Define
+	condense the code for parsing :S and :C modifiers
+
 2021-02-06  Simon J Gerraty  <sjg@beast.crufty.net>
 
 	* VERSION (_MAKE_VERSION): 20210206

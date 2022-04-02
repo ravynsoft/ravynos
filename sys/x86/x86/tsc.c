@@ -48,6 +48,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/vdso.h>
 #include <machine/clock.h>
 #include <machine/cputypes.h>
+#include <machine/fpu.h>
 #include <machine/md_var.h>
 #include <machine/specialreg.h>
 #include <x86/vmware.h>
@@ -120,20 +121,29 @@ static struct timecounter tsc_timecounter = {
 #endif
 };
 
+static int
+tsc_freq_cpuid_vm(void)
+{
+	u_int regs[4];
+
+	if (vm_guest == VM_GUEST_NO)
+		return (false);
+	if (hv_high < 0x40000010)
+		return (false);
+	do_cpuid(0x40000010, regs);
+	tsc_freq = (uint64_t)(regs[0]) * 1000;
+	tsc_early_calib_exact = 1;
+	return (true);
+}
+
 static void
 tsc_freq_vmware(void)
 {
 	u_int regs[4];
 
-	if (hv_high >= 0x40000010) {
-		do_cpuid(0x40000010, regs);
-		tsc_freq = regs[0] * 1000;
-	} else {
-		vmware_hvcall(VMW_HVCMD_GETHZ, regs);
-		if (regs[1] != UINT_MAX)
-			tsc_freq = regs[0] | ((uint64_t)regs[1] << 32);
-	}
-	tsc_is_invariant = 1;
+	vmware_hvcall(VMW_HVCMD_GETHZ, regs);
+	if (regs[1] != UINT_MAX)
+		tsc_freq = regs[0] | ((uint64_t)regs[1] << 32);
 	tsc_early_calib_exact = 1;
 }
 
@@ -267,11 +277,6 @@ probe_tsc_freq(void)
 			tsc_perf_stat = 1;
 	}
 
-	if (vm_guest == VM_GUEST_VMWARE) {
-		tsc_freq_vmware();
-		return;
-	}
-
 	switch (cpu_vendor_id) {
 	case CPU_VENDOR_AMD:
 	case CPU_VENDOR_HYGON:
@@ -308,6 +313,14 @@ probe_tsc_freq(void)
 			    tsc_get_timecount_lfence;
 		}
 		break;
+	}
+
+	if (tsc_freq_cpuid_vm())
+		return;
+
+	if (vm_guest == VM_GUEST_VMWARE) {
+		tsc_freq_vmware();
+		return;
 	}
 
 	if (tsc_freq_cpuid(&tsc_freq)) {
@@ -701,53 +714,18 @@ tsc_update_freq(uint64_t new_freq)
 void
 tsc_calibrate(void)
 {
-	struct timecounter *tc;
-	uint64_t freq, tsc_start, tsc_end;
-	u_int t_start, t_end;
-	register_t flags;
-	int cpu;
+	uint64_t freq;
 
 	if (tsc_disabled)
 		return;
 	if (tsc_early_calib_exact)
 		goto calibrated;
 
-	/*
-	 * Avoid using a low-quality timecounter to re-calibrate.  In
-	 * particular, old 32-bit platforms might only have the 8254 timer to
-	 * calibrate against.
-	 */
-	tc = atomic_load_ptr(&timecounter);
-	if (tc->tc_quality <= 0)
-		goto calibrated;
-
-	flags = intr_disable();
-	cpu = curcpu;
-	tsc_start = rdtsc_ordered();
-	t_start = tc->tc_get_timecount(tc) & tc->tc_counter_mask;
-	intr_restore(flags);
-
-	DELAY(1000000);
-
-	thread_lock(curthread);
-	sched_bind(curthread, cpu);
-
-	flags = intr_disable();
-	tsc_end = rdtsc_ordered();
-	t_end = tc->tc_get_timecount(tc) & tc->tc_counter_mask;
-	intr_restore(flags);
-
-	sched_unbind(curthread);
-	thread_unlock(curthread);
-
-	if (t_end <= t_start) {
-		/* Assume that the counter has wrapped around at most once. */
-		t_end += (uint64_t)tc->tc_counter_mask + 1;
-	}
-
-	freq = tc->tc_frequency * (tsc_end - tsc_start) / (t_end - t_start);
-
+	fpu_kern_enter(curthread, NULL, FPU_KERN_NOCTX);
+	freq = clockcalib(rdtsc_ordered, "TSC");
+	fpu_kern_leave(curthread, NULL);
 	tsc_update_freq(freq);
+
 calibrated:
 	tc_init(&tsc_timecounter);
 	set_cputicker(rdtsc, tsc_freq, !tsc_is_invariant);

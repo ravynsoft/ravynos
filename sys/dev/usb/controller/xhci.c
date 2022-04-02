@@ -2,7 +2,7 @@
 /*-
  * SPDX-License-Identifier: BSD-2-Clause-FreeBSD
  *
- * Copyright (c) 2010 Hans Petter Selasky. All rights reserved.
+ * Copyright (c) 2010-2022 Hans Petter Selasky
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -99,6 +99,10 @@ static int xhcictlquirk = 1;
 SYSCTL_INT(_hw_usb_xhci, OID_AUTO, ctlquirk, CTLFLAG_RWTUN,
     &xhcictlquirk, 0, "Set to enable control endpoint quirk");
 
+static int xhcidcepquirk;
+SYSCTL_INT(_hw_usb_xhci, OID_AUTO, dcepquirk, CTLFLAG_RWTUN,
+    &xhcidcepquirk, 0, "Set to disable endpoint deconfigure command");
+
 #ifdef USB_DEBUG
 static int xhcidebug;
 static int xhciroute;
@@ -133,8 +137,8 @@ struct xhci_std_temp {
 	uint32_t		offset;
 	uint32_t		max_packet_size;
 	uint32_t		average;
+	uint32_t		isoc_frame;
 	uint16_t		isoc_delta;
-	uint16_t		isoc_frame;
 	uint8_t			shortpkt;
 	uint8_t			multishort;
 	uint8_t			last_frame;
@@ -336,7 +340,7 @@ xhci_reset_command_queue_locked(struct xhci_softc *sc)
 	/* set up command ring control base address */
 	addr = buf_res.physaddr;
 	phwr = buf_res.buffer;
-	addr += (uintptr_t)&((struct xhci_hw_root *)0)->hwr_commands[0];
+	addr += __offsetof(struct xhci_hw_root, hwr_commands[0]);
 
 	DPRINTF("CRCR=0x%016llx\n", (unsigned long long)addr);
 
@@ -392,7 +396,7 @@ xhci_start_controller(struct xhci_softc *sc)
 	memset(pdctxa, 0, sizeof(*pdctxa));
 
 	addr = buf_res.physaddr;
-	addr += (uintptr_t)&((struct xhci_dev_ctx_addr *)0)->qwSpBufPtr[0];
+	addr += __offsetof(struct xhci_dev_ctx_addr, qwSpBufPtr[0]);
 
 	/* slot 0 points to the table of scratchpad pointers */
 	pdctxa->qwBaaDevCtxAddr[0] = htole64(addr);
@@ -423,7 +427,7 @@ xhci_start_controller(struct xhci_softc *sc)
 
 	phwr = buf_res.buffer;
 	addr = buf_res.physaddr;
-	addr += (uintptr_t)&((struct xhci_hw_root *)0)->hwr_events[0];
+	addr += __offsetof(struct xhci_hw_root, hwr_events[0]);
 
 	/* reset hardware root structure */
 	memset(phwr, 0, sizeof(*phwr));
@@ -463,7 +467,7 @@ xhci_start_controller(struct xhci_softc *sc)
 
 	/* set up command ring control base address */
 	addr = buf_res.physaddr;
-	addr += (uintptr_t)&((struct xhci_hw_root *)0)->hwr_commands[0];
+	addr += __offsetof(struct xhci_hw_root, hwr_commands[0]);
 
 	DPRINTF("CRCR=0x%016llx\n", (unsigned long long)addr);
 
@@ -643,6 +647,9 @@ xhci_init(struct xhci_softc *sc, device_t self, uint8_t dma32)
 	temp = XREAD4(sc, capa, XHCI_HCSPARAMS2);
 
 	DPRINTF("HCS2=0x%08x\n", temp);
+
+	/* get isochronous scheduling threshold */
+	sc->sc_ist = XHCI_HCS2_IST(temp);
 
 	/* get number of scratchpads */
 	sc->sc_noscratch = XHCI_HCS2_SPB_MAX(temp);
@@ -1152,7 +1159,7 @@ xhci_interrupt_poll(struct xhci_softc *sc)
 	 */
 
 	addr = buf_res.physaddr;
-	addr += (uintptr_t)&((struct xhci_hw_root *)0)->hwr_events[i];
+	addr += __offsetof(struct xhci_hw_root, hwr_events[i]);
 
 	/* try to clear busy bit */
 	addr |= XHCI_ERDP_LO_BUSY;
@@ -1216,7 +1223,7 @@ retry:
 	usb_pc_cpu_flush(&sc->sc_hw.root_pc);
 
 	addr = buf_res.physaddr;
-	addr += (uintptr_t)&((struct xhci_hw_root *)0)->hwr_commands[i];
+	addr += __offsetof(struct xhci_hw_root, hwr_commands[i]);
 
 	sc->sc_cmd_addr = htole64(addr);
 
@@ -1528,8 +1535,11 @@ xhci_cmd_configure_ep(struct xhci_softc *sc, uint64_t input_ctx,
 	temp = XHCI_TRB_3_TYPE_SET(XHCI_TRB_TYPE_CONFIGURE_EP) |
 	    XHCI_TRB_3_SLOT_SET(slot_id);
 
-	if (deconfigure)
+	if (deconfigure) {
+		if (sc->sc_no_deconfigure != 0 || xhcidcepquirk != 0)
+			return (0);	/* Success */
 		temp |= XHCI_TRB_3_DCEP_BIT;
+	}
 
 	trb.dwTrb3 = htole32(temp);
 
@@ -2075,57 +2085,57 @@ xhci_setup_generic_chain(struct usb_xfer *xfer)
 
 		x = XREAD4(temp.sc, runt, XHCI_MFINDEX);
 
-		DPRINTF("MFINDEX=0x%08x\n", x);
+		DPRINTF("MFINDEX=0x%08x IST=0x%x\n", x, temp.sc->sc_ist);
 
 		switch (usbd_get_speed(xfer->xroot->udev)) {
 		case USB_SPEED_FULL:
 			shift = 3;
 			temp.isoc_delta = 8;	/* 1ms */
-			x += temp.isoc_delta - 1;
-			x &= ~(temp.isoc_delta - 1);
 			break;
 		default:
 			shift = usbd_xfer_get_fps_shift(xfer);
 			temp.isoc_delta = 1U << shift;
-			x += temp.isoc_delta - 1;
-			x &= ~(temp.isoc_delta - 1);
-			/* simple frame load balancing */
-			x += xfer->endpoint->usb_uframe;
 			break;
 		}
 
-		y = XHCI_MFINDEX_GET(x - xfer->endpoint->isoc_next);
+		/* Compute isochronous scheduling threshold. */
+		if (temp.sc->sc_ist & 8)
+			y = (temp.sc->sc_ist & 7) << 3;
+		else
+			y = (temp.sc->sc_ist & 7);
 
-		if ((xfer->endpoint->is_synced == 0) ||
-		    (y < (xfer->nframes << shift)) ||
-		    (XHCI_MFINDEX_GET(-y) >= (128 * 8))) {
+		/* Range check the IST. */
+		if (y < 8) {
+			y = 0;
+		} else if (y > 15) {
+			DPRINTFN(3, "IST(%d) is too big!\n", temp.sc->sc_ist);
 			/*
-			 * If there is data underflow or the pipe
-			 * queue is empty we schedule the transfer a
-			 * few frames ahead of the current frame
-			 * position. Else two isochronous transfers
-			 * might overlap.
+			 * The USB stack minimum isochronous transfer
+			 * size is typically 2x2 ms of payload. If the
+			 * IST makes is above 15 microframes, we have
+			 * an effective scheduling delay of more than
+			 * or equal to 2 milliseconds, which is too
+			 * much.
 			 */
-			xfer->endpoint->isoc_next = XHCI_MFINDEX_GET(x + (3 * 8));
-			xfer->endpoint->is_synced = 1;
-			temp.do_isoc_sync = 1;
-
-			DPRINTFN(3, "start next=%d\n", xfer->endpoint->isoc_next);
+			y = 7;
+		} else {
+			/*
+			 * Subtract one millisecond, because the
+			 * generic code adds that to the latency.
+			 */
+			y -= 8;
 		}
 
-		/* compute isochronous completion time */
+		if (usbd_xfer_get_isochronous_start_frame(
+		    xfer, x, y, 8, XHCI_MFINDEX_GET(-1), &temp.isoc_frame)) {
+			/* Start isochronous transfer at specified time. */
+			temp.do_isoc_sync = 1;
 
-		y = XHCI_MFINDEX_GET(xfer->endpoint->isoc_next - (x & ~7));
-
-		xfer->isoc_time_complete =
-		    usb_isoc_time_expand(&temp.sc->sc_bus, x / 8) +
-		    (y / 8) + (((xfer->nframes << shift) + 7) / 8);
+			DPRINTFN(3, "start next=%d\n", temp.isoc_frame);
+		}
 
 		x = 0;
-		temp.isoc_frame = xfer->endpoint->isoc_next;
 		temp.trb_type = XHCI_TRB_TYPE_ISOCH;
-
-		xfer->endpoint->isoc_next += xfer->nframes << shift;
 
 	} else if (xfer->flags_int.control_xfr) {
 		/* check if we should prepend a setup message */
@@ -3063,15 +3073,7 @@ xhci_device_done(struct usb_xfer *xfer, usb_error_t error)
 static void
 xhci_device_generic_open(struct usb_xfer *xfer)
 {
-	if (xfer->flags_int.isochronous_xfr) {
-		switch (xfer->xroot->udev->speed) {
-		case USB_SPEED_FULL:
-			break;
-		default:
-			usb_hs_bandwidth_alloc(xfer);
-			break;
-		}
-	}
+	DPRINTF("\n");
 }
 
 static void
@@ -3080,16 +3082,6 @@ xhci_device_generic_close(struct usb_xfer *xfer)
 	DPRINTF("\n");
 
 	xhci_device_done(xfer, USB_ERR_CANCELLED);
-
-	if (xfer->flags_int.isochronous_xfr) {
-		switch (xfer->xroot->udev->speed) {
-		case USB_SPEED_FULL:
-			break;
-		default:
-			usb_hs_bandwidth_free(xfer);
-			break;
-		}
-	}
 }
 
 static void

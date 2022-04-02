@@ -2,7 +2,6 @@
  * SPDX-License-Identifier: BSD-2-Clause-FreeBSD
  *
  * Copyright (c) 2009-2010 The FreeBSD Foundation
- * All rights reserved.
  *
  * This software was developed by Semihalf under sponsorship from
  * the FreeBSD Foundation.
@@ -33,6 +32,7 @@
 __FBSDID("$FreeBSD$");
 
 #include <sys/param.h>
+#include <sys/ctype.h>
 #include <sys/kernel.h>
 #include <sys/malloc.h>
 #include <sys/systm.h>
@@ -105,7 +105,16 @@ static ofw_def_t ofw_fdt = {
 };
 OFW_DEF(ofw_fdt);
 
+#define	FDT_FBSDVER_LEN	16
+#define	FDT_MODEL_LEN	80
+#define	FDT_COMPAT_LEN	255
+#define	FDT_SERIAL_LEN	32
+
 static void *fdtp = NULL;
+static char fdt_model[FDT_MODEL_LEN];
+static char fdt_compatible[FDT_COMPAT_LEN];
+static char fdt_fbsd_version[FDT_FBSDVER_LEN];
+static char fdt_serial[FDT_SERIAL_LEN];
 
 static int
 sysctl_handle_dtb(SYSCTL_HANDLER_ARGS)
@@ -125,19 +134,78 @@ sysctl_register_fdt_oid(void *arg)
 	SYSCTL_ADD_PROC(NULL, SYSCTL_STATIC_CHILDREN(_hw_fdt), OID_AUTO, "dtb",
 	    CTLTYPE_OPAQUE | CTLFLAG_RD | CTLFLAG_MPSAFE, NULL, 0,
 	    sysctl_handle_dtb, "", "Device Tree Blob");
+	if (fdt_model[0] != '\0')
+		SYSCTL_ADD_STRING(NULL, SYSCTL_STATIC_CHILDREN(_hw_fdt),
+		    OID_AUTO, "model", CTLFLAG_RD, fdt_model,
+		    FDT_MODEL_LEN, "System board model");
+	if (fdt_compatible[0] != '\0')
+		SYSCTL_ADD_STRING(NULL, SYSCTL_STATIC_CHILDREN(_hw_fdt),
+		    OID_AUTO, "compatible", CTLFLAG_RD, fdt_compatible,
+		    FDT_COMPAT_LEN, "Compatible platforms");
+	if (fdt_fbsd_version[0] != '\0')
+		SYSCTL_ADD_STRING(NULL, SYSCTL_STATIC_CHILDREN(_hw_fdt),
+		    OID_AUTO, "freebsd-version", CTLFLAG_RD, fdt_fbsd_version,
+		    FDT_FBSDVER_LEN, "FreeBSD DTS branding version");
+	if (fdt_serial[0] != '\0')
+		SYSCTL_ADD_STRING(NULL, SYSCTL_STATIC_CHILDREN(_hw_fdt),
+		    OID_AUTO, "serial-number", CTLFLAG_RD, fdt_serial,
+		    FDT_SERIAL_LEN, "Serial number");
 }
 SYSINIT(dtb_oid, SI_SUB_KMEM, SI_ORDER_ANY, sysctl_register_fdt_oid, NULL);
 
 static int
 ofw_fdt_init(ofw_t ofw, void *data)
 {
+	phandle_t root;
+	ssize_t len;
 	int err;
+	int i;
 
 	/* Check FDT blob integrity */
 	if ((err = fdt_check_header(data)) != 0)
 		return (err);
 
 	fdtp = data;
+	root = ofw_fdt_finddevice(NULL, "/");
+	len = ofw_fdt_getproplen(NULL, root, "model");
+	if (len > 0 && len <= FDT_MODEL_LEN) {
+		bzero(fdt_model, FDT_MODEL_LEN);
+		ofw_fdt_getprop(NULL, root, "model", fdt_model, FDT_MODEL_LEN);
+	}
+	len = ofw_fdt_getproplen(NULL, root, "compatible");
+	if (len > 0 && len <= FDT_COMPAT_LEN) {
+		bzero(fdt_compatible, FDT_COMPAT_LEN);
+		ofw_fdt_getprop(NULL, root, "compatible", fdt_compatible,
+		    FDT_COMPAT_LEN);
+		/* Replace the middle '\0' with ' ' */
+		for (i = 0; i < len - 1; i++)
+			if (fdt_compatible[i] == '\0')
+				fdt_compatible[i] = ' ';
+	}
+	len = ofw_fdt_getproplen(NULL, root, "freebsd,dts-version");
+	if (len > 0 && len <= FDT_FBSDVER_LEN) {
+		bzero(fdt_fbsd_version, FDT_FBSDVER_LEN);
+		ofw_fdt_getprop(NULL, root, "freebsd,dts-version",
+		  fdt_fbsd_version, FDT_FBSDVER_LEN);
+	}
+	len = ofw_fdt_getproplen(NULL, root, "serial-number");
+	if (len > 0 && len <= FDT_SERIAL_LEN) {
+		bzero(fdt_serial, FDT_SERIAL_LEN);
+		ofw_fdt_getprop(NULL, root, "serial-number",
+		    fdt_serial, FDT_SERIAL_LEN);
+		/*
+		 * Non-standard property; check for NUL-terminated
+		 * printable string.
+		 */
+		for (i = 0; i < len - 1; i++) {
+			if (!isprint(fdt_serial[i])) {
+				fdt_serial[0] = '\0';
+				break;
+			}
+		}
+		if (fdt_serial[len - 1] != '\0')
+			fdt_serial[0] = '\0';
+	}
 	return (0);
 }
 
@@ -411,7 +479,6 @@ ofw_fdt_package_to_path(ofw_t ofw, phandle_t package, char *buf, size_t len)
 static int
 ofw_fdt_fixup(ofw_t ofw)
 {
-#define FDT_MODEL_LEN	80
 	char model[FDT_MODEL_LEN];
 	phandle_t root;
 	ssize_t len;

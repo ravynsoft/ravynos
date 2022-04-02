@@ -1,17 +1,18 @@
-# $NetBSD: cond-token-plain.mk,v 1.10 2021/01/21 14:08:09 rillig Exp $
+# $NetBSD: cond-token-plain.mk,v 1.15 2021/12/30 02:14:55 rillig Exp $
 #
 # Tests for plain tokens (that is, string literals without quotes)
-# in .if conditions.
+# in .if conditions.  These are also called bare words.
 
 .MAKEFLAGS: -dc
 
+# The word 'value' after the '!=' is a bare word.
 .if ${:Uvalue} != value
 .  error
 .endif
 
-# Malformed condition since comment parsing is done in an early phase
-# and removes the '#' and everything behind it long before the condition
-# parser gets to see it.
+# Using a '#' in a string literal in a condition leads to a malformed
+# condition since comment parsing is done in an early phase and removes the
+# '#' and everything after it long before the condition parser gets to see it.
 #
 # XXX: The error message is missing for this malformed condition.
 # The right-hand side of the comparison is just a '"', before unescaping.
@@ -32,7 +33,10 @@
 # in a very early parsing phase.
 #
 # See https://gnats.netbsd.org/19596 for example makefiles demonstrating the
-# original problems.  This workaround is probably not needed anymore.
+# original problems.  At that time, the parser didn't recognize the comment in
+# the line '.else # comment3'.  This workaround is not needed anymore since
+# comments are stripped in an earlier phase.  See "case '#'" in
+# CondParser_Token.
 #
 # XXX: Missing error message for the malformed condition. The right-hand
 # side before unescaping is double-quotes, backslash, backslash.
@@ -152,7 +156,7 @@ VAR=	defined
 .endif
 
 # The '\\' is not a line continuation.  Neither is it an unquoted string
-# literal.  Instead, it is parsed as a function argument (ParseFuncArg),
+# literal.  Instead, it is parsed as a bare word (ParseWord),
 # and in that context, the backslash is just an ordinary character. The
 # function argument thus stays '\\' (2 backslashes).  This string is passed
 # to FuncDefined, and since there is no variable named '\\', the condition
@@ -185,8 +189,68 @@ ${:U\\\\}=	backslash
 .  error
 .endif
 
+# In a condition in an .if directive, the left-hand side must not be an
+# unquoted string literal.
+# expect+1: Malformed conditional (left == right)
+.if left == right
+.endif
+# Before cond.c 1.276 from 2021-09-21, a variable expression containing the
+# modifier ':?:' allowed unquoted string literals for the rest of the
+# condition.  This was an unintended implementation mistake.
+# expect+1: Malformed conditional (${0:?:} || left == right)
+.if ${0:?:} || left == right
+.endif
+# This affected only the comparisons after the expression, so the following
+# was still a syntax error.
+# expect+1: Malformed conditional (left == right || ${0:?:})
+.if left == right || ${0:?:}
+.endif
+
 # See cond-token-string.mk for similar tests where the condition is enclosed
 # in "quotes".
 
-all:
-	@:;
+.MAKEFLAGS: -d0
+
+
+# As of cond.c 1.320 from 2021-12-30, the code in CondParser_ComparisonOrLeaf
+# looks suspicious of evaluating the expression twice: first for parsing a
+# bare word and second for parsing the left-hand side of a comparison.
+#
+# In '.if' directives, the left-hand side of a comparison must not be a bare
+# word though, and this keeps CondParser_Leaf from evaluating the expression
+# for the second time.  The right-hand side of a comparison may be a bare
+# word, but that side has no risk of being parsed more than once.
+#
+# expect+1: Malformed conditional (VAR.${IF_COUNT::+=1} != "")
+.if VAR.${IF_COUNT::+=1} != ""
+.  error
+.else
+.  error
+.endif
+.if ${IF_COUNT} != "1"
+.  error
+.endif
+
+# A different situation is when CondParser.leftUnquotedOK is true.  This
+# situation arises in expressions of the form ${cond:?yes:no}.  As of
+# 2021-12-30, the condition in such an expression is evaluated before parsing
+# the condition, see varmod-ifelse.mk.  To pass a variable expression to the
+# condition parser, it needs to be escaped.  This rarely happens in practice,
+# in most cases the conditions are simple enough that it doesn't matter
+# whether the condition is first evaluated and then parsed, or vice versa.
+# A half-baked attempt at hiding this implementation detail is
+# CondParser.leftUnquotedOK, but that is a rather leaky abstraction.
+
+#.MAKEFLAGS: -dcv
+COND=	VAR.$${MOD_COUNT::+=1}
+.if ${${COND} == "VAR.":?yes:no} != "yes"
+.  error
+.endif
+
+# The value "1 1" demonstrates that the expression ${MOD_COUNT::+=1} was
+# evaluated twice.  In practice, expressions that occur in conditions do not
+# have side effects, making this problem rather academic, but it is there.
+.if ${MOD_COUNT} != "1 1"
+.  error
+.endif
+#.MAKEFLAGS: -d0

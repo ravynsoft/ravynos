@@ -214,7 +214,7 @@ add_deterministic_cache(int type, int level, int share_count)
 	if (type == 2) /* ignore instruction cache */
 		return (1);
 	if (level == 0 || level > MAX_CACHE_LEVELS) {
-		printf("unexpected cache level %d\n", type);
+		printf("unexpected cache level %d\n", level);
 		return (1);
 	}
 
@@ -1049,6 +1049,7 @@ init_secondary_tail(void)
 	/* Initialize curthread. */
 	KASSERT(PCPU_GET(idlethread) != NULL, ("no idle thread"));
 	PCPU_SET(curthread, PCPU_GET(idlethread));
+	schedinit_ap();
 
 	mtx_lock_spin(&ap_boot_mtx);
 

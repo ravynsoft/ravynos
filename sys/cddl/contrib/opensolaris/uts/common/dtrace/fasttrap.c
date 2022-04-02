@@ -336,8 +336,9 @@ fasttrap_scraddr(struct thread *td, fasttrap_proc_t *fprc)
 		 */
 		addr = 0;
 		error = vm_map_find(&p->p_vmspace->vm_map, NULL, 0, &addr,
-		    FASTTRAP_SCRBLOCK_SIZE, 0, VMFS_ANY_SPACE, VM_PROT_ALL,
-		    VM_PROT_ALL, 0);
+		    FASTTRAP_SCRBLOCK_SIZE, 0, VMFS_ANY_SPACE,
+		    VM_PROT_READ | VM_PROT_EXECUTE,
+		    VM_PROT_READ | VM_PROT_EXECUTE, MAP_COPY_ON_WRITE);
 		if (error != KERN_SUCCESS)
 			goto done;
 
@@ -588,7 +589,7 @@ fasttrap_fork(proc_t *p, proc_t *cp)
 	fasttrap_proc_t *fprc = NULL;
 #endif
 	pid_t ppid = p->p_pid;
-	int i;
+	int error, i;
 
 	ASSERT(curproc == p);
 #ifdef illumos
@@ -678,9 +679,10 @@ fasttrap_fork(proc_t *p, proc_t *cp)
 		if (fprc != NULL) {
 			mutex_enter(&fprc->ftpc_mtx);
 			LIST_FOREACH(scrblk, &fprc->ftpc_scrblks, ftsb_next) {
-				vm_map_remove(&cp->p_vmspace->vm_map,
+				error = vm_map_remove(&cp->p_vmspace->vm_map,
 				    scrblk->ftsb_addr,
 				    scrblk->ftsb_addr + FASTTRAP_SCRBLOCK_SIZE);
+				ASSERT(error == KERN_SUCCESS);
 			}
 			mutex_exit(&fprc->ftpc_mtx);
 		}

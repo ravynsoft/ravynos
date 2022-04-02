@@ -53,7 +53,7 @@
 #
 
 TYPE="FreeBSD"
-REVISION="13.0"
+REVISION="13.1"
 BRANCH="STABLE"
 if [ -n "${BRANCH_OVERRIDE}" ]; then
 	BRANCH=${BRANCH_OVERRIDE}
@@ -127,7 +127,7 @@ while getopts crRvV: opt; do
 		v=$OPTARG
 		eval val=\$${v}
 		echo ${v}=\"${val}\"
-		exit 0
+		VARS_ONLY=1
 		;;
 	esac
 done

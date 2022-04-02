@@ -440,7 +440,7 @@ m_epg_pagelen(const struct mbuf *m, int pidx, int pgoff)
 	    "too large header length");					\
 } while (0)
 #else
-#define	MBUF_EXT_PGS_ASSERT_SANITY(m)	do {} while (0);
+#define	MBUF_EXT_PGS_ASSERT_SANITY(m)	do {} while (0)
 #endif
 #endif
 
@@ -725,6 +725,8 @@ m_epg_pagelen(const struct mbuf *m, int pidx, int pgoff)
 #define	CSUM_UDP_IPV6		CSUM_IP6_UDP
 #define	CSUM_TCP_IPV6		CSUM_IP6_TCP
 #define	CSUM_SCTP_IPV6		CSUM_IP6_SCTP
+#define	CSUM_TLS_MASK		(CSUM_L5_CALC|CSUM_L5_VALID)
+#define	CSUM_TLS_DECRYPTED	CSUM_L5_CALC
 
 /*
  * mbuf types describing the content of the mbuf (including external storage).
@@ -777,7 +779,7 @@ union if_snd_tag_alloc_params;
 		    "Sleeping in \"%s\"", __func__);			\
 } while (0)
 #else
-#define	MBUF_CHECKSLEEP(how)
+#define	MBUF_CHECKSLEEP(how) do {} while (0)
 #endif
 
 /*
@@ -1107,6 +1109,12 @@ m_extrefcnt(struct mbuf *m)
 	KASSERT((m) != NULL && (m)->m_flags & M_PKTHDR,			\
 	    ("%s: no mbuf packet header!", __func__))
 
+/* Check if the supplied mbuf has no send tag, or else panic. */
+#define	M_ASSERT_NO_SND_TAG(m)						\
+	KASSERT((m) != NULL && (m)->m_flags & M_PKTHDR &&		\
+	       ((m)->m_pkthdr.csum_flags & CSUM_SND_TAG) == 0,		\
+	    ("%s: receive mbuf has send tag!", __func__))
+
 /* Check if mbuf is multipage. */
 #define M_ASSERTEXTPG(m)						\
 	KASSERT(((m)->m_flags & (M_EXTPG|M_PKTHDR)) == M_EXTPG,		\
@@ -1129,7 +1137,7 @@ m_extrefcnt(struct mbuf *m)
 		    ("%s: chain %p contains an unmapped mbuf", __func__, (m)));\
 } while (0)
 #else
-#define	M_ASSERTMAPPED(m)
+#define	M_ASSERTMAPPED(m) do {} while (0)
 #endif
 
 /*

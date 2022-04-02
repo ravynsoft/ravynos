@@ -55,6 +55,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/smp.h>
 #include <sys/sysctl.h>
 #include <sys/timeet.h>
+#include <sys/timetc.h>
 
 #include <vm/vm.h>
 #include <vm/pmap.h>
@@ -63,6 +64,7 @@ __FBSDID("$FreeBSD$");
 #include <machine/clock.h>
 #include <machine/cpufunc.h>
 #include <machine/cputypes.h>
+#include <machine/fpu.h>
 #include <machine/frame.h>
 #include <machine/intr_machdep.h>
 #include <x86/apicvar.h>
@@ -202,6 +204,7 @@ static u_long lapic_timer_divisor, count_freq;
 static struct eventtimer lapic_et;
 #ifdef SMP
 static uint64_t lapic_ipi_wait_mult;
+static int __read_mostly lapic_ds_idle_timeout = 1000000;
 #endif
 unsigned int max_apic_id;
 
@@ -212,6 +215,11 @@ SYSCTL_INT(_hw_apic, OID_AUTO, eoi_suppression, CTLFLAG_RD,
     &lapic_eoi_suppression, 0, "");
 SYSCTL_INT(_hw_apic, OID_AUTO, timer_tsc_deadline, CTLFLAG_RD,
     &lapic_timer_tsc_deadline, 0, "");
+#ifdef SMP
+SYSCTL_INT(_hw_apic, OID_AUTO, ds_idle_timeout, CTLFLAG_RWTUN,
+    &lapic_ds_idle_timeout, 0,
+    "timeout (in us) for APIC Delivery Status to become Idle (xAPIC only)");
+#endif
 
 static void lapic_calibrate_initcount(struct lapic *la);
 
@@ -989,30 +997,72 @@ native_lapic_disable_pmc(void)
 #endif
 }
 
+static int
+lapic_calibrate_initcount_cpuid_vm(void)
+{
+	u_int regs[4];
+	uint64_t freq;
+
+	/* Get value from CPUID leaf if possible. */
+	if (vm_guest == VM_GUEST_NO)
+		return (false);
+	if (hv_high < 0x40000010)
+		return (false);
+	do_cpuid(0x40000010, regs);
+	freq = (uint64_t)(regs[1]) * 1000;
+
+	/* Pick timer divisor. */
+	lapic_timer_divisor = 2;
+	do {
+		if (freq / lapic_timer_divisor < APIC_TIMER_MAX_COUNT)
+			break;
+		lapic_timer_divisor <<= 1;
+	} while (lapic_timer_divisor <= 128);
+	if (lapic_timer_divisor > 128)
+		return (false);
+
+	/* Record divided frequency. */
+	count_freq = freq / lapic_timer_divisor;
+	return (true);
+}
+
+static uint64_t
+cb_lapic_getcount(void)
+{
+
+	return (APIC_TIMER_MAX_COUNT - lapic_read32(LAPIC_CCR_TIMER));
+}
+
 static void
 lapic_calibrate_initcount(struct lapic *la)
 {
-	u_long value;
+	uint64_t freq;
 
-	/* Start off with a divisor of 2 (power on reset default). */
+	if (lapic_calibrate_initcount_cpuid_vm())
+		goto done;
+
+	/* Calibrate the APIC timer frequency. */
+	lapic_timer_set_divisor(2);
+	lapic_timer_oneshot_nointr(la, APIC_TIMER_MAX_COUNT);
+	fpu_kern_enter(curthread, NULL, FPU_KERN_NOCTX);
+	freq = clockcalib(cb_lapic_getcount, "lapic");
+	fpu_kern_leave(curthread, NULL);
+
+	/* Pick a different divisor if necessary. */
 	lapic_timer_divisor = 2;
-	/* Try to calibrate the local APIC timer. */
 	do {
-		lapic_timer_set_divisor(lapic_timer_divisor);
-		lapic_timer_oneshot_nointr(la, APIC_TIMER_MAX_COUNT);
-		DELAY(1000000);
-		value = APIC_TIMER_MAX_COUNT - lapic_read32(LAPIC_CCR_TIMER);
-		if (value != APIC_TIMER_MAX_COUNT)
+		if (freq * 2 / lapic_timer_divisor < APIC_TIMER_MAX_COUNT)
 			break;
 		lapic_timer_divisor <<= 1;
 	} while (lapic_timer_divisor <= 128);
 	if (lapic_timer_divisor > 128)
 		panic("lapic: Divisor too big");
+	count_freq = freq * 2 / lapic_timer_divisor;
+done:
 	if (bootverbose) {
 		printf("lapic: Divisor %lu, Frequency %lu Hz\n",
-		    lapic_timer_divisor, value);
+		    lapic_timer_divisor, count_freq);
 	}
-	count_freq = value;
 }
 
 static void
@@ -2044,7 +2094,6 @@ native_lapic_ipi_raw(register_t icrlo, u_int dest)
 	}
 }
 
-#define	BEFORE_SPIN	50000
 #ifdef DETECT_DEADLOCK
 #define	AFTER_SPIN	50
 #endif
@@ -2091,7 +2140,7 @@ native_lapic_ipi_vectored(u_int vector, int dest)
 	icrlo |= APIC_DESTMODE_PHY | APIC_TRIGMOD_EDGE | APIC_LEVEL_ASSERT;
 
 	/* Wait for an earlier IPI to finish. */
-	if (!lapic_ipi_wait(BEFORE_SPIN)) {
+	if (!lapic_ipi_wait(lapic_ds_idle_timeout)) {
 		if (KERNEL_PANICKED())
 			return;
 		else

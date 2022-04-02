@@ -40,8 +40,8 @@
 #include "ena-com/ena_eth_com.h"
 
 #define DRV_MODULE_VER_MAJOR	2
-#define DRV_MODULE_VER_MINOR	4
-#define DRV_MODULE_VER_SUBMINOR 1
+#define DRV_MODULE_VER_MINOR	5
+#define DRV_MODULE_VER_SUBMINOR 0
 
 #define DRV_MODULE_NAME		"ena"
 
@@ -222,6 +222,7 @@ struct ena_que {
 	int cpu;
 	cpuset_t cpu_mask;
 #endif
+	int domain;
 	struct sysctl_oid *oid;
 };
 
@@ -439,6 +440,7 @@ struct ena_adapter {
 	uint32_t buf_ring_size;
 
 	/* RSS*/
+	int first_bind;
 	struct ena_indir *rss_indir;
 
 	uint8_t mac_addr[ETHER_ADDR_LEN];
@@ -496,6 +498,14 @@ struct ena_adapter {
 #define ENA_LOCK_LOCK()			sx_xlock(&ena_global_lock)
 #define ENA_LOCK_UNLOCK()		sx_unlock(&ena_global_lock)
 #define ENA_LOCK_ASSERT()		sx_assert(&ena_global_lock, SA_XLOCKED)
+
+#define	ENA_TIMER_INIT(_adapter)					\
+	callout_init(&(_adapter)->timer_service, true)
+#define	ENA_TIMER_DRAIN(_adapter)					\
+	callout_drain(&(_adapter)->timer_service)
+#define	ENA_TIMER_RESET(_adapter)					\
+	callout_reset_sbt(&(_adapter)->timer_service, SBT_1S, SBT_1S,	\
+			ena_timer_service, (void*)(_adapter), 0)
 
 #define clamp_t(type, _x, min, max)	min_t(type, max_t(type, _x, min), max)
 #define clamp_val(val, lo, hi)		clamp_t(__typeof(val), val, lo, hi)

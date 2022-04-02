@@ -24,7 +24,7 @@
 .\"
 .\" $FreeBSD$
 .\"
-.Dd August 17, 2020
+.Dd January 26, 2022
 .Dt GPART 8
 .Os
 .Sh NAME
@@ -216,13 +216,13 @@ The
 command accepts these options:
 .Bl -tag -width 10n
 .It Fl N
-Don't preserve the Volume Serial Number for MBR.
+Do not preserve the Volume Serial Number for MBR.
 MBR bootcode contains Volume Serial Number by default, and
 .Nm
 tries to preserve it when installing new bootstrap code.
-This option allows to skip the preservation to help with some versions of
+This option skips preservation to help with some versions of
 .Xr boot0 8
-that don't support Volume Serial Number.
+that do not support Volume Serial Number.
 .It Fl b Ar bootcode
 Embed bootstrap code from the file
 .Ar bootcode
@@ -763,7 +763,8 @@ for GPT.
 An Apple Mac OS X partition that contains a ZFS volume.
 The scheme-specific type is
 .Qq Li "!6a898cc3-1dd2-11b2-99a6-080020736631"
-for GPT. The same GUID is being used also for
+for GPT.
+The same GUID is being used also for
 .Sy illumos/Solaris /usr partition .
 See
 .Sx CAVEATS
@@ -836,6 +837,16 @@ A partition that contains a FAT32 (LBA) filesystem.
 The scheme-specific type is
 .Qq Li "!12"
 for MBR.
+.It Cm hifive-fsbl
+A raw partition containing a HiFive first stage bootloader.
+The scheme-specific type is
+.Qq Li "!5b193300-fc78-40cd-8002-e86c45580b47"
+for GPT.
+.It Cm hifive-bbl
+A raw partition containing a HiFive second stage bootloader.
+The scheme-specific type is
+.Qq Li "!2e54b353-1271-4842-806f-e436d6af6985"
+for GPT.
 .It Cm linux-data
 A Linux partition that contains some filesystem with data.
 The scheme-specific types are

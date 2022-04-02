@@ -467,16 +467,26 @@ pf_empty_kpool(struct pf_kpalist *poola)
 }
 
 static void
+pf_unlink_rule_locked(struct pf_krulequeue *rulequeue, struct pf_krule *rule)
+{
+
+	PF_RULES_WASSERT();
+	PF_UNLNKDRULES_ASSERT();
+
+	TAILQ_REMOVE(rulequeue, rule, entries);
+
+	rule->rule_ref |= PFRULE_REFS;
+	TAILQ_INSERT_TAIL(&V_pf_unlinked_rules, rule, entries);
+}
+
+static void
 pf_unlink_rule(struct pf_krulequeue *rulequeue, struct pf_krule *rule)
 {
 
 	PF_RULES_WASSERT();
 
-	TAILQ_REMOVE(rulequeue, rule, entries);
-
 	PF_UNLNKDRULES_LOCK();
-	rule->rule_ref |= PFRULE_REFS;
-	TAILQ_INSERT_TAIL(&V_pf_unlinked_rules, rule, entries);
+	pf_unlink_rule_locked(rulequeue, rule);
 	PF_UNLNKDRULES_UNLOCK();
 }
 
@@ -1158,8 +1168,10 @@ pf_commit_rules(u_int32_t ticket, int rs_num, char *anchor)
 	pf_calc_skip_steps(rs->rules[rs_num].active.ptr);
 
 	/* Purge the old rule list. */
+	PF_UNLNKDRULES_LOCK();
 	while ((rule = TAILQ_FIRST(old_rules)) != NULL)
-		pf_unlink_rule(old_rules, rule);
+		pf_unlink_rule_locked(old_rules, rule);
+	PF_UNLNKDRULES_UNLOCK();
 	if (rs->rules[rs_num].inactive.ptr_array)
 		free(rs->rules[rs_num].inactive.ptr_array, M_TEMP);
 	rs->rules[rs_num].inactive.ptr_array = NULL;
@@ -1521,6 +1533,16 @@ pf_altq_get_nth_active(u_int32_t n)
 }
 #endif /* ALTQ */
 
+struct pf_krule *
+pf_krule_alloc(void)
+{
+	struct pf_krule *rule;
+
+	rule = malloc(sizeof(struct pf_krule), M_PFRULE, M_WAITOK | M_ZERO);
+	mtx_init(&rule->rpool.mtx, "pf_krule_pool", NULL, MTX_DEF);
+	return (rule);
+}
+
 void
 pf_krule_free(struct pf_krule *rule)
 {
@@ -1593,13 +1615,11 @@ pf_kpool_to_pool(const struct pf_kpool *kpool, struct pf_pool *pool)
 	pool->opts = kpool->opts;
 }
 
-static int
+static void
 pf_pool_to_kpool(const struct pf_pool *pool, struct pf_kpool *kpool)
 {
 	_Static_assert(sizeof(pool->key) == sizeof(kpool->key), "");
 	_Static_assert(sizeof(pool->counter) == sizeof(kpool->counter), "");
-
-	bzero(kpool, sizeof(*kpool));
 
 	bcopy(&pool->key, &kpool->key, sizeof(kpool->key));
 	bcopy(&pool->counter, &kpool->counter, sizeof(kpool->counter));
@@ -1608,12 +1628,10 @@ pf_pool_to_kpool(const struct pf_pool *pool, struct pf_kpool *kpool)
 	kpool->proxy_port[0] = pool->proxy_port[0];
 	kpool->proxy_port[1] = pool->proxy_port[1];
 	kpool->opts = pool->opts;
-
-	return (0);
 }
 
 static void
-pf_krule_to_rule(struct pf_krule *krule, struct pf_rule *rule)
+pf_krule_to_rule(const struct pf_krule *krule, struct pf_rule *rule)
 {
 
 	bzero(rule, sizeof(*rule));
@@ -1736,8 +1754,6 @@ pf_rule_to_krule(const struct pf_rule *rule, struct pf_krule *krule)
 	if (ret != 0)
 		return (ret);
 
-	bzero(krule, sizeof(*krule));
-
 	bcopy(&rule->src, &krule->src, sizeof(rule->src));
 	bcopy(&rule->dst, &krule->dst, sizeof(rule->dst));
 
@@ -1766,9 +1782,7 @@ pf_rule_to_krule(const struct pf_rule *rule, struct pf_krule *krule)
 	if (ret != 0)
 		return (ret);
 
-	ret = pf_pool_to_kpool(&rule->rpool, &krule->rpool);
-	if (ret != 0)
-		return (ret);
+	pf_pool_to_kpool(&rule->rpool, &krule->rpool);
 
 	/* Don't allow userspace to set evaulations, packets or bytes. */
 	/* kif, anchor, overload_tbl are not copied over. */
@@ -2009,8 +2023,6 @@ pf_ioctl_addrule(struct pf_krule *rule, uint32_t ticket,
 	int			 rs_num;
 	int			 error = 0;
 
-	mtx_init(&rule->rpool.mtx, "pf_krule_pool", NULL, MTX_DEF);
-
 	if ((rule->return_icmp >> 8) > ICMP_MAXTYPE) {
 		error = EINVAL;
 		goto errout_unlocked;
@@ -2142,11 +2154,6 @@ pf_ioctl_addrule(struct pf_krule *rule, uint32_t ticket,
 	}
 
 	rule->rpool.cur = TAILQ_FIRST(&rule->rpool.list);
-	pf_counter_u64_zero(&rule->evaluations);
-	for (int i = 0; i < 2; i++) {
-		pf_counter_u64_zero(&rule->packets[i]);
-		pf_counter_u64_zero(&rule->bytes[i]);
-	}
 	TAILQ_INSERT_TAIL(ruleset->rules[rs_num].inactive.ptr,
 	    rule, entries);
 	ruleset->rules[rs_num].inactive.rcount++;
@@ -2365,7 +2372,7 @@ pfioctl(struct cdev *dev, u_long cmd, caddr_t addr, int flags, struct thread *td
 		if (! nvlist_exists_nvlist(nvl, "rule"))
 			ERROUT(EINVAL);
 
-		rule = malloc(sizeof(*rule), M_PFRULE, M_WAITOK | M_ZERO);
+		rule = pf_krule_alloc();
 		error = pf_nvrule_to_krule(nvlist_get_nvlist(nvl, "rule"),
 		    rule);
 		if (error)
@@ -2398,10 +2405,10 @@ DIOCADDRULENV_error:
 		struct pfioc_rule	*pr = (struct pfioc_rule *)addr;
 		struct pf_krule		*rule;
 
-		rule = malloc(sizeof(*rule), M_PFRULE, M_WAITOK | M_ZERO);
+		rule = pf_krule_alloc();
 		error = pf_rule_to_krule(&pr->rule, rule);
 		if (error != 0) {
-			free(rule, M_PFRULE);
+			pf_krule_free(rule);
 			break;
 		}
 
@@ -2655,7 +2662,7 @@ DIOCGETRULENV_error:
 		}
 
 		if (pcr->action != PF_CHANGE_REMOVE) {
-			newrule = malloc(sizeof(*newrule), M_PFRULE, M_WAITOK | M_ZERO);
+			newrule = pf_krule_alloc();
 			error = pf_rule_to_krule(&pcr->rule, newrule);
 			if (error != 0) {
 				free(newrule, M_PFRULE);

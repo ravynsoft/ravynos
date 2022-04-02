@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 2015 Mellanox Technologies. All rights reserved.
+ * Copyright (c) 2015-2021 Mellanox Technologies. All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -25,33 +25,52 @@
  * $FreeBSD$
  */
 
-#include "en.h"
+#include "opt_rss.h"
+#include "opt_ratelimit.h"
+
+#include <dev/mlx5/mlx5_en/en.h>
 
 #include <linux/list.h>
 #include <dev/mlx5/fs.h>
 #include <dev/mlx5/mpfs.h>
+#include <dev/mlx5/mlx5_core/fs_tcp.h>
 
 /*
  * The flow tables with rules define the packet processing on receive.
- * Currently, the following structure is set up to handle different offloads
- * like VLAN decapsulation, packet classification, RSS hashing, VxLAN checksum
- * offloading:
+ * Currently the following structure is set up to handle different
+ * offloads like TLS RX offload, VLAN decapsulation, packet
+ * classification, RSS hashing, VxLAN checksum offloading:
  *
- *
- *   +=========+       +=========+	+=================+
- *   |VLAN ft: |       |VxLAN	 |	|VxLAN Main    	  |
+ *   +=========+       +=========+      +=================+
+ *   |TCP/IPv4 |       |TCP/IPv4 |      |TCP/IPv4 Match   |
+ *   |Flowtable|------>|         |----->|Outer Proto Match|=====> TLS TIR n
+ *   |         |       |Catch-all|\     |                 |
+ *   +=========+       +=========+|     +=================+
+ *                                |
+ *       +------------------------+
+ *       V
+ *   +=========+       +=========+      +=================+
+ *   |TCP/IPv6 |       |TCP/IPv6 |      |TCP/IPv6 Match   |
+ *   |Flowtable|------>|         |----->|Outer Proto Match|=====> TLS TIR n
+ *   |         |       |Catch-all|\     |                 |
+ *   +=========+       +=========+|     +=================+
+ *                                |
+ *       +------------------------+
+ *       V
+ *   +=========+       +=========+      +=================+
+ *   |VLAN ft: |       |VxLAN    |      |VxLAN Main       |
  *   |CTAG/STAG|------>|      VNI|----->|Inner Proto Match|=====> Inner TIR n
- *   |VID/noVID|/      |Catch-all|\	|		  |
- *   +=========+       +=========+|	+=================+
- *     	       	       	     	  |
- *			     	  |
- *			     	  |
- *			     	  v
- *		       	+=================+
- *			|Main             |
- *			|Outer Proto Match|=====> TIR n
- *			|	          |
- *     	       	       	+=================+
+ *   |VID/noVID|/      |Catch-all|\     |                 |
+ *   +=========+       +=========+|     +=================+
+ *                                |
+ *                                |
+ *                                |
+ *                                v
+ *                      +=================+
+ *                      |Main             |
+ *                      |Outer Proto Match|=====> TIR n
+ *                      |                 |
+ *                      +=================+
  *
  * The path through flow rules directs each packet into an appropriate TIR,
  * according to the:
@@ -87,6 +106,8 @@ struct mlx5e_eth_addr_hash_node {
 	u32	mpfs_index;
 	struct mlx5e_eth_addr_info ai;
 };
+
+static void mlx5e_del_all_vlan_rules(struct mlx5e_priv *);
 
 static inline int
 mlx5e_hash_eth_addr(const u8 * addr)
@@ -761,8 +782,7 @@ mlx5e_add_vlan_rule_sub(struct mlx5e_priv *priv,
 	int err = 0;
 
 	dest.type = MLX5_FLOW_DESTINATION_TYPE_FLOW_TABLE;
-	dest.ft = ((priv->ifp->if_capenable & IFCAP_VXLAN_HWCSUM) != 0) ?
-	    priv->fts.vxlan.t : priv->fts.main.t;
+	dest.ft = priv->fts.vxlan.t;
 
 	mc_enable = MLX5_MATCH_OUTER_HEADERS;
 
@@ -896,7 +916,7 @@ mlx5e_enable_vlan_filter(struct mlx5e_priv *priv)
 		priv->vlan.filter_disabled = false;
 		if (priv->ifp->if_flags & IFF_PROMISC)
 			return;
-		if (test_bit(MLX5E_STATE_OPENED, &priv->state))
+		if (test_bit(MLX5E_STATE_FLOW_RULES_READY, &priv->state))
 			mlx5e_del_any_vid_rules(priv);
 	}
 }
@@ -908,7 +928,7 @@ mlx5e_disable_vlan_filter(struct mlx5e_priv *priv)
 		priv->vlan.filter_disabled = true;
 		if (priv->ifp->if_flags & IFF_PROMISC)
 			return;
-		if (test_bit(MLX5E_STATE_OPENED, &priv->state))
+		if (test_bit(MLX5E_STATE_FLOW_RULES_READY, &priv->state))
 			mlx5e_add_any_vid_rules(priv);
 	}
 }
@@ -923,7 +943,7 @@ mlx5e_vlan_rx_add_vid(void *arg, struct ifnet *ifp, u16 vid)
 
 	PRIV_LOCK(priv);
 	if (!test_and_set_bit(vid, priv->vlan.active_vlans) &&
-	    test_bit(MLX5E_STATE_OPENED, &priv->state))
+	    test_bit(MLX5E_STATE_FLOW_RULES_READY, &priv->state))
 		mlx5e_add_vlan_rule(priv, MLX5E_VLAN_RULE_TYPE_MATCH_VID, vid);
 	PRIV_UNLOCK(priv);
 }
@@ -938,12 +958,12 @@ mlx5e_vlan_rx_kill_vid(void *arg, struct ifnet *ifp, u16 vid)
 
 	PRIV_LOCK(priv);
 	clear_bit(vid, priv->vlan.active_vlans);
-	if (test_bit(MLX5E_STATE_OPENED, &priv->state))
+	if (test_bit(MLX5E_STATE_FLOW_RULES_READY, &priv->state))
 		mlx5e_del_vlan_rule(priv, MLX5E_VLAN_RULE_TYPE_MATCH_VID, vid);
 	PRIV_UNLOCK(priv);
 }
 
-int
+static int
 mlx5e_add_all_vlan_rules(struct mlx5e_priv *priv)
 {
 	int err;
@@ -972,7 +992,7 @@ error:
 	return (err);
 }
 
-void
+static void
 mlx5e_del_all_vlan_rules(struct mlx5e_priv *priv)
 {
 	int i;
@@ -1234,7 +1254,7 @@ mlx5e_apply_ifp_addr(struct mlx5e_priv *priv)
 }
 
 static void
-mlx5e_handle_ifp_addr(struct mlx5e_priv *priv)
+mlx5e_handle_ifp_addr(struct mlx5e_priv *priv, bool rx_mode_enable)
 {
 	struct mlx5e_eth_addr_hash_node *hn;
 	struct mlx5e_eth_addr_hash_node *tmp;
@@ -1245,19 +1265,18 @@ mlx5e_handle_ifp_addr(struct mlx5e_priv *priv)
 	mlx5e_for_each_hash_node(hn, tmp, priv->eth_addr.if_mc, i)
 	    hn->action = MLX5E_ACTION_DEL;
 
-	if (test_bit(MLX5E_STATE_OPENED, &priv->state))
+	if (rx_mode_enable)
 		mlx5e_sync_ifp_addr(priv);
 
 	mlx5e_apply_ifp_addr(priv);
 }
 
-void
-mlx5e_set_rx_mode_core(struct mlx5e_priv *priv)
+static void
+mlx5e_set_rx_mode_core(struct mlx5e_priv *priv, bool rx_mode_enable)
 {
 	struct mlx5e_eth_addr_db *ea = &priv->eth_addr;
 	struct ifnet *ndev = priv->ifp;
 
-	bool rx_mode_enable = test_bit(MLX5E_STATE_OPENED, &priv->state);
 	bool promisc_enabled = rx_mode_enable && (ndev->if_flags & IFF_PROMISC);
 	bool allmulti_enabled = rx_mode_enable && (ndev->if_flags & IFF_ALLMULTI);
 	bool broadcast_enabled = rx_mode_enable;
@@ -1283,7 +1302,7 @@ mlx5e_set_rx_mode_core(struct mlx5e_priv *priv)
 	if (enable_broadcast)
 		mlx5e_add_eth_addr_rule(priv, &ea->broadcast, MLX5E_FULLMATCH);
 
-	mlx5e_handle_ifp_addr(priv);
+	mlx5e_handle_ifp_addr(priv, rx_mode_enable);
 
 	if (disable_broadcast)
 		mlx5e_del_eth_addr_from_flow_table(priv, &ea->broadcast);
@@ -1309,8 +1328,8 @@ mlx5e_set_rx_mode_work(struct work_struct *work)
 	    container_of(work, struct mlx5e_priv, set_rx_mode_work);
 
 	PRIV_LOCK(priv);
-	if (test_bit(MLX5E_STATE_OPENED, &priv->state))
-		mlx5e_set_rx_mode_core(priv);
+	if (test_bit(MLX5E_STATE_FLOW_RULES_READY, &priv->state))
+		mlx5e_set_rx_mode_core(priv, true);
 	PRIV_UNLOCK(priv);
 }
 
@@ -1952,7 +1971,7 @@ mlx5e_add_all_vxlan_rules(struct mlx5e_priv *priv)
 		err = mlx5e_add_vxlan_rule_from_db(priv, el);
 		if (err != 0)
 			break;
-		el->installed = false;
+		el->installed = true;
 	}
 
 	return (err);
@@ -1977,7 +1996,8 @@ mlx5e_del_vxlan_rule(struct mlx5e_priv *priv, sa_family_t family, u_int port)
 		return (0);
 	}
 
-	mlx5_del_flow_rule(el->vxlan_ft_rule);
+	if (el->installed)
+		mlx5_del_flow_rule(el->vxlan_ft_rule);
 	TAILQ_REMOVE(&priv->vxlan.head, el, link);
 	kvfree(el);
 	return (0);
@@ -2011,7 +2031,7 @@ mlx5e_vxlan_start(void *arg, struct ifnet *ifp __unused, sa_family_t family,
 
 	PRIV_LOCK(priv);
 	err = mlx5_vxlan_udp_port_add(priv->mdev, port);
-	if (err == 0 && test_bit(MLX5E_STATE_OPENED, &priv->state))
+	if (err == 0 && test_bit(MLX5E_STATE_FLOW_RULES_READY, &priv->state))
 		mlx5e_add_vxlan_rule(priv, family, port);
 	PRIV_UNLOCK(priv);
 }
@@ -2023,7 +2043,7 @@ mlx5e_vxlan_stop(void *arg, struct ifnet *ifp __unused, sa_family_t family,
 	struct mlx5e_priv *priv = arg;
 
 	PRIV_LOCK(priv);
-	if (test_bit(MLX5E_STATE_OPENED, &priv->state))
+	if (test_bit(MLX5E_STATE_FLOW_RULES_READY, &priv->state))
 		mlx5e_del_vxlan_rule(priv, family, port);
 	(void)mlx5_vxlan_udp_port_delete(priv->mdev, port);
 	PRIV_UNLOCK(priv);
@@ -2256,58 +2276,54 @@ mlx5e_destroy_vxlan_flow_table(struct mlx5e_priv *priv)
 }
 
 int
-mlx5e_open_flow_table(struct mlx5e_priv *priv)
+mlx5e_open_flow_tables(struct mlx5e_priv *priv)
 {
 	int err;
 
-	priv->fts.ns = mlx5_get_flow_namespace(priv->mdev,
-					       MLX5_FLOW_NAMESPACE_KERNEL);
+	/* setup namespace pointer */
+	priv->fts.ns = mlx5_get_flow_namespace(
+	    priv->mdev, MLX5_FLOW_NAMESPACE_KERNEL);
 
 	err = mlx5e_create_vlan_flow_table(priv);
 	if (err)
 		return (err);
 
-	if ((priv->ifp->if_capenable & IFCAP_VXLAN_HWCSUM) != 0) {
-		err = mlx5e_create_vxlan_flow_table(priv);
-		if (err)
-			goto err_destroy_vlan_flow_table;
-	}
+	err = mlx5e_create_vxlan_flow_table(priv);
+	if (err)
+		goto err_destroy_vlan_flow_table;
 
-	err = mlx5e_create_main_flow_table(priv, false);
+	err = mlx5e_create_main_flow_table(priv, true);
 	if (err)
 		goto err_destroy_vxlan_flow_table;
 
-	if ((priv->ifp->if_capenable & IFCAP_VXLAN_HWCSUM) != 0) {
-		err = mlx5e_create_main_flow_table(priv, true);
-		if (err)
-			goto err_destroy_main_flow_table;
+	err = mlx5e_create_inner_rss_flow_table(priv);
+	if (err)
+		goto err_destroy_main_flow_table_true;
 
-		err = mlx5e_create_inner_rss_flow_table(priv);
-		if (err)
-			goto err_destroy_main_vxlan_flow_table;
+	err = mlx5e_create_main_flow_table(priv, false);
+	if (err)
+		goto err_destroy_inner_rss_flow_table;
 
-		err = mlx5e_add_vxlan_catchall_rule(priv);
-		if (err != 0)
-			goto err_destroy_inner_rss_flow_table;
+	err = mlx5e_add_vxlan_catchall_rule(priv);
+	if (err)
+		goto err_destroy_main_flow_table_false;
 
-		err = mlx5e_add_main_vxlan_rules(priv);
-		if (err != 0)
-			goto err_destroy_vxlan_catchall_rule;
-	}
+	err = mlx5e_accel_fs_tcp_create(priv);
+	if (err)
+		goto err_del_vxlan_catchall_rule;
 
 	return (0);
 
-err_destroy_vxlan_catchall_rule:
+err_del_vxlan_catchall_rule:
 	mlx5e_del_vxlan_catchall_rule(priv);
+err_destroy_main_flow_table_false:
+	mlx5e_destroy_main_flow_table(priv);
 err_destroy_inner_rss_flow_table:
 	mlx5e_destroy_inner_rss_flow_table(priv);
-err_destroy_main_vxlan_flow_table:
+err_destroy_main_flow_table_true:
 	mlx5e_destroy_main_vxlan_flow_table(priv);
-err_destroy_main_flow_table:
-	mlx5e_destroy_main_flow_table(priv);
 err_destroy_vxlan_flow_table:
-	if ((priv->ifp->if_capenable & IFCAP_VXLAN_HWCSUM) != 0)
-		mlx5e_destroy_vxlan_flow_table(priv);
+	mlx5e_destroy_vxlan_flow_table(priv);
 err_destroy_vlan_flow_table:
 	mlx5e_destroy_vlan_flow_table(priv);
 
@@ -2315,18 +2331,56 @@ err_destroy_vlan_flow_table:
 }
 
 void
-mlx5e_close_flow_table(struct mlx5e_priv *priv)
+mlx5e_close_flow_tables(struct mlx5e_priv *priv)
 {
-
-	mlx5e_handle_ifp_addr(priv);
-	if ((priv->ifp->if_capenable & IFCAP_VXLAN_HWCSUM) != 0) {
-		mlx5e_destroy_inner_rss_flow_table(priv);
-		mlx5e_del_vxlan_catchall_rule(priv);
-		mlx5e_destroy_vxlan_flow_table(priv);
-		mlx5e_del_main_vxlan_rules(priv);
-	}
+	mlx5e_accel_fs_tcp_destroy(priv);
+	mlx5e_del_vxlan_catchall_rule(priv);
 	mlx5e_destroy_main_flow_table(priv);
-	if ((priv->ifp->if_capenable & IFCAP_VXLAN_HWCSUM) != 0)
-		mlx5e_destroy_main_vxlan_flow_table(priv);
+	mlx5e_destroy_inner_rss_flow_table(priv);
+	mlx5e_destroy_main_vxlan_flow_table(priv);
+	mlx5e_destroy_vxlan_flow_table(priv);
 	mlx5e_destroy_vlan_flow_table(priv);
+}
+
+int
+mlx5e_open_flow_rules(struct mlx5e_priv *priv)
+{
+	int err;
+
+	err = mlx5e_add_all_vlan_rules(priv);
+	if (err)
+		return (err);
+
+	err = mlx5e_add_main_vxlan_rules(priv);
+	if (err)
+		goto err_del_all_vlan_rules;
+
+	err = mlx5e_add_all_vxlan_rules(priv);
+	if (err)
+		goto err_del_main_vxlan_rules;
+
+	mlx5e_set_rx_mode_core(priv, true);
+
+	set_bit(MLX5E_STATE_FLOW_RULES_READY, &priv->state);
+
+	return (0);
+
+err_del_main_vxlan_rules:
+	mlx5e_del_main_vxlan_rules(priv);
+
+err_del_all_vlan_rules:
+	mlx5e_del_all_vlan_rules(priv);
+
+	return (err);
+}
+
+void
+mlx5e_close_flow_rules(struct mlx5e_priv *priv)
+{
+	clear_bit(MLX5E_STATE_FLOW_RULES_READY, &priv->state);
+
+	mlx5e_set_rx_mode_core(priv, false);
+	mlx5e_del_all_vxlan_rules(priv);
+	mlx5e_del_main_vxlan_rules(priv);
+	mlx5e_del_all_vlan_rules(priv);
 }

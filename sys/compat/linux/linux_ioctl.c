@@ -755,7 +755,15 @@ linux_ioctl_termio(struct thread *td, struct linux_ioctl_args *args)
 		    td));
 		break;
 
-	/* LINUX_TCSBRK */
+	case LINUX_TCSBRK:
+		if (args->arg != 0) {
+			error = (fo_ioctl(fp, TIOCDRAIN, (caddr_t)&bios, td->td_ucred,
+			    td));
+		} else {
+			linux_msg(td, "ioctl TCSBRK arg 0 not implemented");
+			error = ENOIOCTL;
+		}
+		break;
 
 	case LINUX_TCXONC: {
 		switch (args->arg) {
@@ -1012,6 +1020,10 @@ linux_ioctl_termio(struct thread *td, struct linux_ioctl_args *args)
 			    sizeof(int));
 		break;
 	}
+	case LINUX_TIOCGPTPEER:
+		linux_msg(td, "unsupported ioctl TIOCGPTPEER");
+		error = ENOIOCTL;
+		break;
 	case LINUX_TIOCSPTLCK:
 		/* Our unlockpt() does nothing. */
 		error = 0;
@@ -2109,7 +2121,7 @@ linux_ioctl_ifname(struct thread *td, struct l_ifreq *uifr)
 	error = ENODEV;
 	CK_STAILQ_FOREACH(ifp, &V_ifnet, if_link) {
 		if (ifr.ifr_ifindex == index) {
-			if (IFP_IS_ETH(ifp))
+			if (!linux_use_real_ifname(ifp))
 				snprintf(ifr.ifr_name, LINUX_IFNAMSIZ,
 				    "eth%d", ethno);
 			else
@@ -2118,7 +2130,7 @@ linux_ioctl_ifname(struct thread *td, struct l_ifreq *uifr)
 			error = 0;
 			break;
 		}
-		if (IFP_IS_ETH(ifp))
+		if (!linux_use_real_ifname(ifp))
 			ethno++;
 		index++;
 	}

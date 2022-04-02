@@ -167,7 +167,7 @@ pf_counter_u64_periodic(struct pf_counter_u64 *pfcu64)
 }
 
 static inline u_int64_t
-pf_counter_u64_fetch(struct pf_counter_u64 *pfcu64)
+pf_counter_u64_fetch(const struct pf_counter_u64 *pfcu64)
 {
 	struct pf_counter_u64_pcpu *pcpu;
 	u_int64_t sum;
@@ -261,7 +261,7 @@ pf_counter_u64_add(struct pf_counter_u64 *pfcu64, uint32_t n)
 }
 
 static inline u_int64_t
-pf_counter_u64_fetch(struct pf_counter_u64 *pfcu64)
+pf_counter_u64_fetch(const struct pf_counter_u64 *pfcu64)
 {
 
 	return (counter_u64_fetch(pfcu64->counter));
@@ -349,6 +349,7 @@ struct pfi_dynaddr {
 extern struct mtx_padalign pf_unlnkdrules_mtx;
 #define	PF_UNLNKDRULES_LOCK()	mtx_lock(&pf_unlnkdrules_mtx)
 #define	PF_UNLNKDRULES_UNLOCK()	mtx_unlock(&pf_unlnkdrules_mtx)
+#define	PF_UNLNKDRULES_ASSERT()	mtx_assert(&pf_unlnkdrules_mtx, MA_OWNED)
 
 extern struct rmlock pf_rules_lock;
 #define	PF_RULES_RLOCK_TRACKER	struct rm_priotracker _pf_rules_tracker
@@ -2143,6 +2144,7 @@ struct pf_kruleset	*pf_find_kruleset(const char *);
 struct pf_kruleset	*pf_find_or_create_kruleset(const char *);
 void			 pf_rs_initialize(void);
 
+struct pf_krule		*pf_krule_alloc(void);
 void			 pf_krule_free(struct pf_krule *);
 #endif
 

@@ -25,6 +25,9 @@
  * $FreeBSD$
  */
 
+#include "opt_rss.h"
+#include "opt_ratelimit.h"
+
 #include <linux/module.h>
 #include <linux/errno.h>
 #include <linux/pci.h>
@@ -48,7 +51,7 @@
 #include <linux/in.h>
 #include <linux/etherdevice.h>
 #include <dev/mlx5/fs.h>
-#include "mlx5_ib.h"
+#include <dev/mlx5/mlx5_ib/mlx5_ib.h>
 
 MODULE_DESCRIPTION("Mellanox Connect-IB HCA IB driver");
 MODULE_LICENSE("Dual BSD/GPL");
@@ -255,9 +258,21 @@ static int translate_eth_ext_proto_oper(u32 eth_proto_oper, u8 *active_speed,
 		*active_width = IB_WIDTH_2X;
 		*active_speed = IB_SPEED_HDR;
 		break;
+	case MLX5E_PROT_MASK(MLX5E_100GAUI_1_100GBASE_CR_KR):
+		*active_width = IB_WIDTH_1X;
+		*active_speed = IB_SPEED_NDR;
+		break;
 	case MLX5E_PROT_MASK(MLX5E_200GAUI_4_200GBASE_CR4_KR4):
 		*active_width = IB_WIDTH_4X;
 		*active_speed = IB_SPEED_HDR;
+		break;
+	case MLX5E_PROT_MASK(MLX5E_200GAUI_2_200GBASE_CR2_KR2):
+		*active_width = IB_WIDTH_2X;
+		*active_speed = IB_SPEED_NDR;
+		break;
+	case MLX5E_PROT_MASK(MLX5E_400GAUI_4_400GBASE_CR4_KR4):
+		*active_width = IB_WIDTH_4X;
+		*active_speed = IB_SPEED_NDR;
 		break;
 	default:
 		*active_width = IB_WIDTH_4X;
@@ -1184,6 +1199,56 @@ static void deallocate_uars(struct mlx5_ib_dev *dev,
 			mlx5_cmd_free_uar(dev->mdev, bfregi->sys_pages[i]);
 }
 
+static int mlx5_ib_alloc_transport_domain(struct mlx5_ib_dev *dev, u32 *tdn)
+{
+	int err;
+
+	if (!MLX5_CAP_GEN(dev->mdev, log_max_transport_domain))
+		return 0;
+
+	err = mlx5_alloc_transport_domain(dev->mdev, tdn);
+	if (err)
+		return err;
+
+	if ((MLX5_CAP_GEN(dev->mdev, port_type) != MLX5_CAP_PORT_TYPE_ETH) ||
+	    (!MLX5_CAP_GEN(dev->mdev, disable_local_lb_uc) &&
+	     !MLX5_CAP_GEN(dev->mdev, disable_local_lb_mc)))
+		return 0;
+
+	mutex_lock(&dev->lb_mutex);
+	dev->user_td++;
+
+	if (dev->user_td == 2)
+		err = mlx5_nic_vport_update_local_lb(dev->mdev, true);
+
+	mutex_unlock(&dev->lb_mutex);
+
+	if (err != 0)
+		mlx5_dealloc_transport_domain(dev->mdev, *tdn);
+	return err;
+}
+
+static void mlx5_ib_dealloc_transport_domain(struct mlx5_ib_dev *dev, u32 tdn)
+{
+	if (!MLX5_CAP_GEN(dev->mdev, log_max_transport_domain))
+		return;
+
+	mlx5_dealloc_transport_domain(dev->mdev, tdn);
+
+	if ((MLX5_CAP_GEN(dev->mdev, port_type) != MLX5_CAP_PORT_TYPE_ETH) ||
+	    (!MLX5_CAP_GEN(dev->mdev, disable_local_lb_uc) &&
+	     !MLX5_CAP_GEN(dev->mdev, disable_local_lb_mc)))
+		return;
+
+	mutex_lock(&dev->lb_mutex);
+	dev->user_td--;
+
+	if (dev->user_td < 2)
+		mlx5_nic_vport_update_local_lb(dev->mdev, false);
+
+	mutex_unlock(&dev->lb_mutex);
+}
+
 static struct ib_ucontext *mlx5_ib_alloc_ucontext(struct ib_device *ibdev,
 						  struct ib_udata *udata)
 {
@@ -1298,12 +1363,9 @@ uar_done:
 	context->ibucontext.invalidate_range = &mlx5_ib_invalidate_range;
 #endif
 
-	if (MLX5_CAP_GEN(dev->mdev, log_max_transport_domain)) {
-		err = mlx5_alloc_transport_domain(dev->mdev,
-						       &context->tdn);
-		if (err)
-			goto out_uars;
-	}
+	err = mlx5_ib_alloc_transport_domain(dev, &context->tdn);
+	if (err)
+		goto out_uars;
 
 	INIT_LIST_HEAD(&context->vma_private_list);
 	INIT_LIST_HEAD(&context->db_page_list);
@@ -1359,8 +1421,7 @@ uar_done:
 	return &context->ibucontext;
 
 out_td:
-	if (MLX5_CAP_GEN(dev->mdev, log_max_transport_domain))
-		mlx5_dealloc_transport_domain(dev->mdev, context->tdn);
+	mlx5_ib_dealloc_transport_domain(dev, context->tdn);
 
 out_uars:
 	deallocate_uars(dev, context);
@@ -1383,8 +1444,7 @@ static int mlx5_ib_dealloc_ucontext(struct ib_ucontext *ibcontext)
 	struct mlx5_bfreg_info *bfregi;
 
 	bfregi = &context->bfregi;
-	if (MLX5_CAP_GEN(dev->mdev, log_max_transport_domain))
-		mlx5_dealloc_transport_domain(dev->mdev, context->tdn);
+	mlx5_ib_dealloc_transport_domain(dev, context->tdn);
 
 	deallocate_uars(dev, context);
 	kfree(bfregi->sys_pages);
@@ -3285,6 +3345,8 @@ static void *mlx5_ib_add(struct mlx5_core_dev *mdev)
 		get_ext_port_caps(dev);
 
 	MLX5_INIT_DOORBELL_LOCK(&dev->uar_lock);
+
+	mutex_init(&dev->lb_mutex);
 
 	snprintf(dev->ib_dev.name, IB_DEVICE_NAME_MAX, "mlx5_%d", device_get_unit(mdev->pdev->dev.bsddev));
 	dev->ib_dev.owner		= THIS_MODULE;

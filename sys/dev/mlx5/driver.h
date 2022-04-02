@@ -50,6 +50,8 @@
 #define MLX5_QCOUNTER_SETS_NETDEV 64
 #define MLX5_MAX_NUMBER_OF_VFS 128
 
+#define MLX5_INVALID_QUEUE_HANDLE 0xffffffff
+
 enum {
 	MLX5_BOARD_ID_LEN = 64,
 	MLX5_MAX_NAME_LEN = 16,
@@ -388,9 +390,7 @@ struct mlx5_core_psv {
 struct mlx5_core_sig_ctx {
 	struct mlx5_core_psv	psv_memory;
 	struct mlx5_core_psv	psv_wire;
-#if (__FreeBSD_version >= 1100000)
 	struct ib_sig_err       err_item;
-#endif
 	bool			sig_status_checked;
 	bool			sig_err_exists;
 	u32			sigerr_count;
@@ -551,6 +551,7 @@ struct mlx5_rl_entry {
 	u32			rate;
 	u16			burst;
 	u16			index;
+	u32			qos_handle; /* schedule queue handle */
 	u32			refcount;
 };
 
@@ -1195,6 +1196,15 @@ void mlx5_cleanup_rl_table(struct mlx5_core_dev *dev);
 int mlx5_rl_add_rate(struct mlx5_core_dev *dev, u32 rate, u32 burst, u16 *index);
 void mlx5_rl_remove_rate(struct mlx5_core_dev *dev, u32 rate, u32 burst);
 bool mlx5_rl_is_in_range(const struct mlx5_core_dev *dev, u32 rate, u32 burst);
+int mlx5e_query_rate_limit_cmd(struct mlx5_core_dev *dev, u16 index, u32 *scq_handle);
+
+static inline u32 mlx5_rl_get_scq_handle(struct mlx5_core_dev *dev, uint16_t index)
+{
+	KASSERT(index > 0,
+	    ("invalid rate index for sq remap, failed retrieving SCQ handle"));
+
+        return (dev->priv.rl_table.rl_entry[index - 1].qos_handle);
+}
 
 static inline bool mlx5_rl_is_supported(struct mlx5_core_dev *dev)
 {

@@ -1,6 +1,6 @@
 /*
  * WPA Supplicant
- * Copyright (c) 2003-2019, Jouni Malinen <j@w1.fi>
+ * Copyright (c) 2003-2022, Jouni Malinen <j@w1.fi>
  *
  * This software may be distributed under the terms of the BSD license.
  * See README for more details.
@@ -71,7 +71,7 @@
 
 const char *const wpa_supplicant_version =
 "wpa_supplicant v" VERSION_STR "\n"
-"Copyright (c) 2003-2019, Jouni Malinen <j@w1.fi> and contributors";
+"Copyright (c) 2003-2022, Jouni Malinen <j@w1.fi> and contributors";
 
 const char *const wpa_supplicant_license =
 "This software may be distributed under the terms of the BSD license.\n"
@@ -3621,6 +3621,11 @@ static void wpas_start_assoc_cb(struct wpa_radio_work *work, int deinit)
        struct ieee80211_vht_capabilities vhtcaps_mask;
 #endif /* CONFIG_VHT_OVERRIDES */
 
+	wpa_s->roam_in_progress = false;
+#ifdef CONFIG_WNM
+	wpa_s->bss_trans_mgmt_in_progress = false;
+#endif /* CONFIG_WNM */
+
 	if (deinit) {
 		if (work->started) {
 			wpa_s->connect_work = NULL;
@@ -4509,6 +4514,82 @@ void wpa_supplicant_select_network(struct wpa_supplicant *wpa_s,
 
 	if (ssid)
 		wpas_notify_network_selected(wpa_s, ssid);
+}
+
+
+/**
+ * wpas_remove_cred - Remove the specified credential and all the network
+ * entries created based on the removed credential
+ * @wpa_s: wpa_supplicant structure for a network interface
+ * @cred: The credential to remove
+ * Returns: 0 on success, -1 on failure
+ */
+int wpas_remove_cred(struct wpa_supplicant *wpa_s, struct wpa_cred *cred)
+{
+	struct wpa_ssid *ssid, *next;
+	int id;
+
+	if (!cred) {
+		wpa_printf(MSG_DEBUG, "Could not find cred");
+		return -1;
+	}
+
+	id = cred->id;
+	if (wpa_config_remove_cred(wpa_s->conf, id) < 0) {
+		wpa_printf(MSG_DEBUG, "Could not find cred %d", id);
+		return -1;
+	}
+
+	wpa_msg(wpa_s, MSG_INFO, CRED_REMOVED "%d", id);
+
+	/* Remove any network entry created based on the removed credential */
+	ssid = wpa_s->conf->ssid;
+	while (ssid) {
+		next = ssid->next;
+
+		if (ssid->parent_cred == cred) {
+			wpa_printf(MSG_DEBUG,
+				   "Remove network id %d since it used the removed credential",
+				   ssid->id);
+			if (wpa_supplicant_remove_network(wpa_s, ssid->id) ==
+			    -1) {
+				wpa_printf(MSG_DEBUG,
+					   "Could not find network id=%d",
+					   ssid->id);
+			}
+		}
+
+		ssid = next;
+	}
+
+	return 0;
+}
+
+
+/**
+ * wpas_remove_cred - Remove all the Interworking credentials
+ * @wpa_s: wpa_supplicant structure for a network interface
+ * Returns: 0 on success, -1 on failure
+ */
+int wpas_remove_all_creds(struct wpa_supplicant *wpa_s)
+{
+	int res, ret = 0;
+	struct wpa_cred *cred, *prev;
+
+	cred = wpa_s->conf->cred;
+	while (cred) {
+		prev = cred;
+		cred = cred->next;
+		res = wpas_remove_cred(wpa_s, prev);
+		if (res < 0) {
+			wpa_printf(MSG_DEBUG,
+				   "Removal of all credentials failed - failed to remove credential id=%d",
+				   prev->id);
+			ret = -1;
+		}
+	}
+
+	return ret;
 }
 
 
@@ -8097,6 +8178,10 @@ void wpas_request_disconnection(struct wpa_supplicant *wpa_s)
 	eloop_cancel_timeout(wpas_network_reenabled, wpa_s, NULL);
 	radio_remove_works(wpa_s, "connect", 0);
 	radio_remove_works(wpa_s, "sme-connect", 0);
+	wpa_s->roam_in_progress = false;
+#ifdef CONFIG_WNM
+	wpa_s->bss_trans_mgmt_in_progress = false;
+#endif /* CONFIG_WNM */
 }
 
 

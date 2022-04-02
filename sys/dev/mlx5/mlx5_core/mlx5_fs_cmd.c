@@ -25,14 +25,17 @@
  * $FreeBSD$
  */
 
+#include "opt_rss.h"
+#include "opt_ratelimit.h"
+
 #include <linux/types.h>
 #include <linux/module.h>
 #include <dev/mlx5/mlx5_ifc.h>
 #include <dev/mlx5/device.h>
 #include <dev/mlx5/fs.h>
 
-#include "fs_core.h"
-#include "mlx5_core.h"
+#include <dev/mlx5/mlx5_core/fs_core.h>
+#include <dev/mlx5/mlx5_core/mlx5_core.h>
 
 int mlx5_cmd_update_root_ft(struct mlx5_core_dev *dev,
 			    enum fs_ft_type type,
