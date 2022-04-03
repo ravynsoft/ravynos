@@ -30,6 +30,10 @@
    switch(uiFontType){
   
     case kCTFontMenuTitleFontType:
+     if(size==0)
+      size=14.0;
+     font=O2FontCreateWithFontName(@"Nimbus Sans-Regular");
+     break;
     case kCTFontMenuItemFontType:
     case kCTFontSystemFontType:
      if(size==0)

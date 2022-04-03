@@ -26,7 +26,7 @@ static NSDictionary *sDimmedMenuTextShadowAttributes = nil;
 {
 	if (sNormalMenuTextAttributes == nil)
 	{
-		NSFont *menuFont = [NSFont menuFontOfSize:0];
+		NSFont *menuFont = [NSFont menuFontOfSize:15.0];
 		sNormalMenuTextAttributes = [[NSDictionary dictionaryWithObjectsAndKeys:
 									  menuFont,NSFontAttributeName,
 									  [NSColor menuItemTextColor],NSForegroundColorAttributeName,

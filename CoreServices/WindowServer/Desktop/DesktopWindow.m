@@ -32,15 +32,27 @@ const NSString *PrefsWallpaperPathKey = @"WallpaperPath";
     self = [super initWithContentRect:frame
         styleMask:NSBorderlessWindowMask|WLWindowLayerAnchorTop|WLWindowLayerAnchorBottom
         |WLWindowLayerAnchorLeft|WLWindowLayerAnchorRight backing:NSBackingStoreBuffered defer:NO];
+
+    _menuBar = [MenuBarWindow new];
+    [_contentView addSubview:_menuBar];
+    [_menuBar setAutoresizingMask:0];
+    [_menuBar setWindow:self];
     
-    view = [NSImageView new];
+    NSRect rect = [_menuBar bounds];
+    frame.size.height -= rect.size.height;
+    view = [[NSImageView alloc] initWithFrame:frame];
     [view setImageScaling:NSImageScaleAxesIndependently];
     [view setImageAlignment:NSImageAlignCenter];
-    [self setContentView:view];
+    [_contentView addSubview:view];
     [self updateBackground];
+    [view setAutoresizingMask:0];
     [view setNeedsDisplay:YES];
 
     return self;
+}
+
+- (MenuBarWindow *)menuBar {
+    return _menuBar;
 }
 
 - (void)updateBackground {
@@ -49,7 +61,7 @@ const NSString *PrefsWallpaperPathKey = @"WallpaperPath";
         wallpaper = @"/System/Library/Desktop Pictures/Mountain.jpg";
 
     NSImage *image = [[NSImage alloc] initWithContentsOfFile:wallpaper];
-    [[self contentView] setImage:image];
+    [view setImage:image];
 }
 
 @end

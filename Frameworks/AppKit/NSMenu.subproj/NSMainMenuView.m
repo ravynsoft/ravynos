@@ -21,13 +21,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 @implementation NSMainMenuView
 
 +(NSFont *)menuFont {
-   return [NSFont menuFontOfSize:12.0];
+   return [NSFont menuBarFontOfSize:15.0];
 }
 
 +(float)menuHeight {
-   // we're using global menus in Airyx so we'll just make this 0 height for now
-   //return 0.0;
-#if 1
    NSDictionary *attributes=[NSDictionary dictionaryWithObjectsAndKeys:
      [self menuFont],NSFontAttributeName,nil];
    float         result=[@"Menu" sizeWithAttributes:attributes].height;
@@ -37,7 +34,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
    result+=1; // sunken title baseline
 
 	return result;
-#endif
 }
 
 -initWithFrame:(NSRect)frame menu:(NSMenu *)menu {
@@ -186,7 +182,12 @@ static void drawSunkenBorder(NSRect rect){
 		titleRect.origin.x = borderRect.origin.x + (NSWidth(borderRect) - NSWidth(titleRect)) / 2;
 		titleRect.origin.y = borderRect.origin.y + (NSHeight(borderRect) - NSHeight(titleRect)) / 2;
 
-		[[self graphicsStyle] drawMenuItemText:title inRect:titleRect enabled:YES selected:(i==_selectedItemIndex)];
+                if([item hasSubmenu] && [[[item submenu] _name] isEqualToString:@"NSAppleMenu"]) 
+                    [[self graphicsStyle] drawAttributedMenuItemText:[item attributedTitle]
+                        inRect:titleRect enabled:YES selected:(i==_selectedItemIndex)];
+                else
+                    [[self graphicsStyle] drawMenuItemText:title inRect:titleRect
+                        enabled:YES selected:(i==_selectedItemIndex)];
 		
 		previousBorderRect=borderRect;
 		

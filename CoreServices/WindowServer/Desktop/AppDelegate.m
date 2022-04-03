@@ -27,17 +27,14 @@
 - (void)screenDidResize:(NSNotification *)note {
     NSRect frame = [[NSScreen mainScreen] visibleFrame];
 
-    background = [DesktopWindow new];
-    [background setDelegate:self];
-//    [background makeKeyAndOrderFront:nil];
-
-    menuBar = [MenuBarWindow new];
-    [menuBar setDelegate:self];
-    [menuBar makeKeyAndOrderFront:nil];
+    desktop = [DesktopWindow new];
+    [desktop setDelegate:self];
+    [desktop makeKeyAndOrderFront:nil];
+    menuBar = [desktop menuBar];
 }
 
 - (void)updateBackground {
-    [background updateBackground];
+    [desktop updateBackground];
 }
 
 - (void)menuDidUpdate:(NSNotification *)note {

@@ -37,46 +37,30 @@
     return self;
 }
 
+- (BOOL)isFlipped {
+    return YES;
+}
+
 - (void)dump:(id)object {
     NSLog(@"DUMP: %@", object);
 }
 
 - (void)setMenu:(NSMenu *)menu {
-    NSFontManager *fontmgr = [NSFontManager sharedFontManager];
-    NSDictionary *attributesBold = [NSDictionary dictionaryWithObject:[fontmgr convertFont:
-        [NSFont systemFontOfSize:14] toHaveTrait:NSBoldFontMask] forKey:NSFontAttributeName];
-    NSDictionary *attributes = [NSDictionary dictionaryWithObject:[NSFont
-        systemFontOfSize:14] forKey:NSFontAttributeName];
-
-    NSArray *items = [menu itemArray];
-    int x = menuBarHPad*3;
-
-    for(int i = 0; i < [items count]; ++i) {
-        NSMenuItem *item = [items objectAtIndex:i];
-        if([item title] == nil || [item isHidden])
-            continue;
-
-        NSLog(@"%@", item);
-        [item setAction:@selector(dump:)];
-        [item setTarget:self];
-
-        NSAttributedString *title = [[NSAttributedString alloc] 
-            initWithString:[item title] attributes:(i == 0) ?
-            attributesBold : attributes];
-        NSSize size = [title size];
-
-        NSPopUpButton *b = [[NSPopUpButton alloc] initWithFrame:NSMakeRect(x,
-            menuBarVPad, size.width + menuBarHPad, menuBarHeight - menuBarVPad)
-            pullsDown:YES];
-        [b setMenu:[item submenu]];
-        [b addItemWithTitle:[item title]];
-        [b setAttributedTitle:title];
-        [b setBordered:NO];
-        [b setBezeled:NO];
-        [[b cell] setArrowPosition:NSPopUpNoArrow];
-        [self addSubview:b];
-        x += size.width + menuBarHPad;
+    NSMenuItem *item = [menu itemAtIndex:0];
+    if([item hasSubmenu] && [[[item submenu] _name] isEqualToString:@"NSAppleMenu"]) {
+        NSFontManager *fontmgr = [NSFontManager sharedFontManager];
+        NSDictionary *attr = [NSDictionary dictionaryWithObject:[fontmgr convertFont:
+            [NSFont menuFontOfSize:15] toHaveTrait:NSBoldFontMask] forKey:NSFontAttributeName];
+        [item setAttributedTitle:[[NSAttributedString alloc] initWithString:[item title]
+            attributes:attr]];
     }
+
+    NSRect rect = NSMakeRect(menuBarHPad*3, 0, _frame.size.width, menuBarHeight);
+    appMenuView = [[NSMainMenuView alloc] initWithFrame:rect menu:menu];
+    [appMenuView setAutoresizingMask:NSViewWidthSizable|NSViewMinYMargin];
+    [self addSubview:appMenuView];
+    [appMenuView setWindow:[self window]];
+
     [self setNeedsDisplay:YES];
 }
 

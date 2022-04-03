@@ -21,6 +21,7 @@
  */
 
 #pragma once
+#import <AppKit/NSMainMenuView.h>
 
 #define menuBarHeight 22
 #define menuBarVPad 2
@@ -46,7 +47,7 @@ extern const NSString *WLMenuDidUpdateNotification;
 // system and application menu titles view
 @interface MenuView: NSView {
     NSImageView *logoView;
-    NSView *appMenuView;
+    NSMainMenuView *appMenuView;
 }
 
 - (MenuView *)init;
@@ -58,17 +59,8 @@ extern const NSString *WLMenuDidUpdateNotification;
 }
 @end
 
-// desktop wallpaper and context menu
-@interface DesktopWindow: NSWindow {
-    NSImageView *view;
-}
-
-- (DesktopWindow *)init;
-- (void)updateBackground;
-@end
-
 // the global top bar
-@interface MenuBarWindow: NSWindow {
+@interface MenuBarWindow: NSView {
     MenuView *menuView;
     ExtrasView *extrasView;
     ClockView *clockView;
@@ -81,14 +73,25 @@ extern const NSString *WLMenuDidUpdateNotification;
 - (BOOL)activateMenuForPID:(unsigned int)pid;
 @end
 
+// desktop wallpaper and context menu
+@interface DesktopWindow: NSWindow {
+    NSImageView *view;
+    MenuBarWindow *_menuBar;
+}
+
+- (DesktopWindow *)init;
+- (void)updateBackground;
+- (MenuBarWindow *)menuBar;
+@end
+
+
 // desktop interface controller
 @interface AppDelegate: NSObject {
+    DesktopWindow *desktop;
     MenuBarWindow *menuBar;
-    DesktopWindow *background;
 }
 
 - (void)screenDidResize:(NSNotification *)note;
 - (void)updateBackground;
 @end
-
 

@@ -27,17 +27,18 @@
 - init {
     NSRect frame = [[NSScreen mainScreen] visibleFrame];
 
-    self = [super initWithContentRect:NSMakeRect(0, 0, frame.size.width, menuBarHeight)
-        styleMask:NSBorderlessWindowMask|WLWindowLayerAnchorTop backing:NSBackingStoreBuffered defer:NO];
+    self = [super initWithFrame:NSMakeRect(0, frame.size.height - menuBarHeight, 
+        frame.size.width, menuBarHeight)];
 
     clockView = [ClockView new];
     menuView = [MenuView new];
     extrasView = [ExtrasView new];
     menuDict = [NSMutableDictionary new];
 
-    [[self contentView] addSubview:menuView];
-    [[self contentView] addSubview:extrasView];
-    [[self contentView] addSubview:clockView];
+    [self addSubview:menuView];
+    [self addSubview:extrasView];
+    [self addSubview:clockView];
+    [menuView setWindow:[self window]];
 
     return self;
 }

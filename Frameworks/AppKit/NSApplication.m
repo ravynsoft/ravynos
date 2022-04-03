@@ -360,7 +360,7 @@ id NSApp=nil;
    if([_mainMenu _menuWithName:@"NSAppleMenu"] == nil) {
      NSString *appName = [[NSProcessInfo processInfo] processName];
      NSMenuItem *appleMenuItem = [[NSMenuItem new] retain];
-     [appleMenuItem setTitle:[@"!" stringByAppendingString:appName]];
+     [appleMenuItem setTitle:appName];
      NSMenu *appleMenu = [[[NSMenu alloc] initApplicationMenu:appName] retain];
      [appleMenuItem setSubmenu:appleMenu];
      [_mainMenu insertItem:appleMenuItem atIndex:0];
