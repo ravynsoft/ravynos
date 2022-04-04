@@ -55,7 +55,6 @@ void menuListener(void *arg __unused) {
 
     while(1) {
         conn = accept(sock, (struct sockaddr *)&peer, &peerlen);
-        printf("connection received on %d\n", conn);
         unsigned credlen = sizeof(xucred);
         memset(&xucred, 0, credlen);
         if((getsockopt(conn, 0, LOCAL_PEERCRED, &xucred, &credlen) != 0) ||
@@ -64,22 +63,37 @@ void menuListener(void *arg __unused) {
             close(conn);
             continue;
         }
-        printf("pid %u uid %u gid %u\n", xucred.cr_pid, xucred.cr_uid, xucred.cr_gid);
         int bytes = 0;
         char buf[16384];
         NSMutableData *data = [NSMutableData new];
         while((bytes = read(conn, buf, sizeof(buf))) > 0)
             [data appendBytes:buf length:bytes];
         close(conn);
-        NSObject *o = [NSKeyedUnarchiver unarchiveObjectWithData:data];
-        if(o == nil || [o isKindOfClass:[NSMenu class]] == NO) {
+
+        NSObject *o = nil;
+        @try {
+            o = [NSKeyedUnarchiver unarchiveObjectWithData:data];
+        }
+        @catch(NSException *localException) {
+            NSLog(@"%@",localException);
+        }
+
+        if(o == nil || [o isKindOfClass:[NSDictionary class]] == NO ||
+            [o objectForKey:@"MainMenu"] == nil || ![[o objectForKey:@"MainMenu"]
+            isKindOfClass:[NSMenu class]]) {
             fprintf(stderr, "archiver: bad input\n");
             continue;
         }
+
+        NSMutableDictionary *md = [NSMutableDictionary new];
+        [md setDictionary:(NSDictionary *)o];
+        [md setObject:[NSNumber numberWithInt:xucred.cr_pid] forKey:@"ProcessID"];
+        [md setObject:[NSNumber numberWithInt:xucred.cr_uid] forKey:@"UserID"];
+        [md setObject:[NSNumber numberWithInt:xucred.cr_gid] forKey:@"GroupID"];
         
         [[NSNotificationCenter defaultCenter] 
             postNotificationName:WLMenuDidUpdateNotification object:nil
-            userInfo:o];
+            userInfo:md];
     }
 }
 

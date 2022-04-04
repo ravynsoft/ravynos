@@ -41,10 +41,6 @@
     return YES;
 }
 
-- (void)dump:(id)object {
-    NSLog(@"DUMP: %@", object);
-}
-
 - (void)setMenu:(NSMenu *)menu {
     NSMenuItem *item = [menu itemAtIndex:0];
     if([item hasSubmenu] && [[[item submenu] _name] isEqualToString:@"NSAppleMenu"]) {

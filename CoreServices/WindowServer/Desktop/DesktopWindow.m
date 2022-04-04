@@ -30,8 +30,8 @@ const NSString *PrefsWallpaperPathKey = @"WallpaperPath";
     NSRect frame = [[NSScreen mainScreen] visibleFrame];
 
     self = [super initWithContentRect:frame
-        styleMask:NSBorderlessWindowMask|WLWindowLayerAnchorTop|WLWindowLayerAnchorBottom
-        |WLWindowLayerAnchorLeft|WLWindowLayerAnchorRight backing:NSBackingStoreBuffered defer:NO];
+        styleMask:NSBorderlessWindowMask|WLWindowLayerAnchorTop|WLWindowLayerAnchorLeft
+            |WLWindowLayerAnchorRight backing:NSBackingStoreBuffered defer:NO];
 
     _menuBar = [MenuBarWindow new];
     [_contentView addSubview:_menuBar];
@@ -40,6 +40,9 @@ const NSString *PrefsWallpaperPathKey = @"WallpaperPath";
     
     NSRect rect = [_menuBar bounds];
     frame.size.height -= rect.size.height;
+
+    [[self platformWindow] setExclusiveZone:rect.size.height];
+
     view = [[NSImageView alloc] initWithFrame:frame];
     [view setImageScaling:NSImageScaleAxesIndependently];
     [view setImageAlignment:NSImageAlignCenter];

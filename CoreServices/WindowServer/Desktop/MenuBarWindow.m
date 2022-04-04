@@ -42,7 +42,6 @@
 
     return self;
 }
-
 - (void)setMenu:(NSMenu *)menu forPID:(unsigned int)pid {
     [menuDict setObject:menu forKey:[NSNumber numberWithInt:pid]];
 }

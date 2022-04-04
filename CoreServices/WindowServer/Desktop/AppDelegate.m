@@ -37,12 +37,33 @@
     [desktop updateBackground];
 }
 
+/* Recursively set all menu targets and delegates to our proxy */
+-(void)_menuEnumerateAndChange:(NSMenu *)menu {
+    NSArray *items = [menu itemArray];
+    [menu setDelegate:self];
+    for(int i = 0; i < [items count]; ++i) {
+        NSMenuItem *item = [items objectAtIndex:i];
+        if([item isSeparatorItem] || [item isHidden] || ![item isEnabled])
+            continue;
+        [item setTarget:self];
+        [item setAction:@selector(dump:)];
+        if([item hasSubmenu])
+            [self _menuEnumerateAndChange:[item submenu]];
+    }
+}
+
 - (void)menuDidUpdate:(NSNotification *)note {
-    NSMenu *menu = (NSMenu *)[note userInfo];
-    [menuBar setMenu:menu forPID:0]; // FIXME: add pid and menu to dict
-    if(![menuBar activateMenuForPID:0]) // FIXME: don't activ8 right away
+    NSMutableDictionary *dict = (NSMutableDictionary *)[note userInfo];
+    pid_t pid = [[dict objectForKey:@"ProcessID"] intValue];
+    NSMenu *mainMenu = [dict objectForKey:@"MainMenu"];
+    [self _menuEnumerateAndChange:mainMenu];
+    [menuBar setMenu:mainMenu forPID:pid];
+    if(![menuBar activateMenuForPID:pid]) // FIXME: don't activ8 right away
         NSLog(@"could not activate menus!");
 }
 
+- (void)dump:(id)object {
+    NSLog(@"DUMP: %@", object);
+}
 @end
 

@@ -73,7 +73,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 -(NSRect)titleRectForItem:(NSMenuItem *)item previousBorderRect:(NSRect)previousBorderRect
 {
 	NSRect result;
-	NSSize titleSize = [[self graphicsStyle] menuItemTextSize:[item title]];
+	NSSize titleSize = NSZeroSize;
+        if([item hasSubmenu] && [[[item submenu] _name] isEqualToString:@"NSAppleMenu"])
+            titleSize = [[self graphicsStyle] menuItemAttributedTextSize:[item attributedTitle]];
+        else
+            titleSize = [[self graphicsStyle] menuItemTextSize:[item title]];
 
 	result.origin = NSMakePoint(NSMaxX(previousBorderRect)+6,floor(([self bounds].size.height-titleSize.height)/2));
 	result.size = titleSize;

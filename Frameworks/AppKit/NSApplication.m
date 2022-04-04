@@ -32,6 +32,12 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <objc/message.h>
 #import <pthread.h>
 
+#include <sys/types.h>
+#include <sys/un.h>
+#include <sys/socket.h>
+#include <stdlib.h>
+#include <unistd.h>
+
 NSString * const NSModalPanelRunLoopMode=@"NSModalPanelRunLoopMode";
 NSString * const NSEventTrackingRunLoopMode=@"NSEventTrackingRunLoopMode";
 
@@ -127,22 +133,12 @@ id NSApp=nil;
 
    _windows=[[NSMutableArray new] retain];
    _mainMenu=nil;
-      
+   _wsDescriptor = -1;
+ 
    _dockTile=[[NSDockTile alloc] initWithOwner:self];
    _modalStack=[NSMutableArray new];
     
    _lock=NSZoneMalloc(NULL,sizeof(pthread_mutex_t));
-
-#if DBUS_KIT
-   dbusConnection = [[DKConnection new] retain];
-   if([dbusConnection isConnected] == YES) {
-      dbusMenu = [[[DKMenu alloc] initWithConnection:dbusConnection] retain];
-   } else {
-      [dbusConnection release];
-      dbusConnection = nil;
-      dbusMenu = nil;
-   }
-#endif
 
    pthread_mutex_init(_lock,NULL);
    
@@ -150,16 +146,6 @@ id NSApp=nil;
    
    return NSApp;
 }
-
-#if DBUS_KIT
--(DKMenu *)dbusMenu {
-    return [dbusMenu retain];
-}
-
--(DKConnection *)dbusConnection {
-    return [dbusConnection retain];
-}
-#endif
 
 -(NSGraphicsContext *)context {
    NSUnimplementedMethod();
@@ -373,7 +359,52 @@ id NSApp=nil;
      [window setMenu:_mainMenu];
    }
 
-   [dbusMenu setMenu:menu];
+    [self sendMenusToWindowServer];
+}
+
+/* Make a copy of the menus with nil delegates and targets before
+ * sending the menu tree to WindowServer. Otherwise it may reject
+ * the menus because of unknown classes.
+ * This function is recursive.
+ */
+
+-(void)_menuEnumerateAndChange:(NSMenu *)menu {
+    NSArray *items = [menu itemArray];
+    [menu setDelegate:nil];
+    for(int i = 0; i < [items count]; ++i) {
+        NSMenuItem *item = [[items objectAtIndex:i] copy];
+        [item setTarget:nil];
+        [menu removeItemAtIndex:i];
+        [menu insertItem:item atIndex:i];
+        if([item hasSubmenu])
+            [self _menuEnumerateAndChange:[item submenu]];
+    }
+}
+
+-(void)sendMenusToWindowServer {
+    if(_mainMenu == nil)
+        return;
+
+    NSMenu *menuCopy = [_mainMenu copy];
+    [self _menuEnumerateAndChange:menuCopy];
+
+    NSDictionary *dict = [NSDictionary
+        dictionaryWithObjects:@[menuCopy,[NSNumber numberWithInt:_wsDescriptor]]
+        forKeys:@[@"MainMenu",@"WSDescriptor"]];
+
+    NSData *d = [NSKeyedArchiver archivedDataWithRootObject:dict];
+
+    struct sockaddr_un sun = {0, AF_UNIX, "/tmp/com.ravynos.WindowServer"};
+    sun.sun_len = SUN_LEN(&sun);
+    int sock = socket(PF_UNIX, SOCK_STREAM, 0);
+    if(connect(sock, (struct sockaddr *)&sun, sizeof(sun)) < 0) {
+        perror("Unable to install menus to global bar! connect");
+        return;
+    }
+    write(sock, [d bytes], [d length]);
+    close(sock);
+    [menuCopy release];
+    [d release];
 }
 
 -(void)setMenu:(NSMenu *)menu {
@@ -391,9 +422,7 @@ id NSApp=nil;
 -(void)setWindowsMenu:(NSMenu *)menu {
    [_windowsMenu autorelease];
    _windowsMenu=[menu retain];
-#if DBUS_KIT
-   [dbusMenu setMenu:_mainMenu];
-#endif
+    [self sendMenusToWindowServer];
 }
 
 
@@ -410,9 +439,7 @@ id NSApp=nil;
     [item setTarget:window];
 
     [[self windowsMenu] addItem:item];
-#if DBUS_KIT
-    [dbusMenu setMenu:_mainMenu]; // update layout
-#endif
+    [self sendMenusToWindowServer];
 }
 
 -(void)changeWindowsItem:(NSWindow *)window title:(NSString *)title filename:(BOOL)isFilename {
@@ -435,9 +462,7 @@ id NSApp=nil;
 		else
 			[self addWindowsItem:window title:title filename:isFilename];
 	}
-#if DBUS_KIT
-    [dbusMenu setMenu:_mainMenu]; // update layout
-#endif
+    [self sendMenusToWindowServer];
 }
 
 -(void)removeWindowsItem:(NSWindow *)window {
@@ -450,15 +475,10 @@ id NSApp=nil;
             [[self windowsMenu] removeItem:[[[self windowsMenu] itemArray] lastObject]];
           }
     }
-#if DBUS_KIT
-    [dbusMenu setMenu:_mainMenu]; // update layout
-#endif
+    [self sendMenusToWindowServer];
 }
 
 -(void)updateWindowsItem:(NSWindow *)window {
-#if 0
-    NSUnimplementedMethod();
-#else
    NSMenu *menu=[self windowsMenu];
    int     itemIndex=[[self windowsMenu] indexOfItemWithTarget:window andAction:@selector(makeKeyAndOrderFront:)];
    
@@ -466,10 +486,7 @@ id NSApp=nil;
     NSMenuItem *item=[menu itemAtIndex:itemIndex];
     
    }
-#if DBUS_KIT
-   [dbusMenu setMenu:_mainMenu]; // update layout
-#endif
-#endif
+    [self sendMenusToWindowServer];
 }
 
 -(BOOL)openFiles
@@ -592,9 +609,6 @@ id NSApp=nil;
             [self _setMainWindow:nil];
         }
 
-#if DBUS_KIT
-     [dbusMenu unregisterWindow:[check windowNumber]]; 
-#endif
      [_windows removeObjectAtIndex:count];
    }
 }
@@ -657,11 +671,6 @@ id NSApp=nil;
 
     //[pool release];
    }while(_isRunning);
-#if DBUS_KIT
-   [dbusConnection stop];
-   [dbusMenu release];
-   [dbusConnection release];
-#endif
 }
 
 -(BOOL)_performKeyEquivalent:(NSEvent *)event {
@@ -1173,12 +1182,6 @@ id NSApp=nil;
   [[NSDocumentController sharedDocumentController] closeAllDocumentsWithDelegate:self 
                                                              didCloseAllSelector:@selector(_documentController:didCloseAll:contextInfo:)
                                                                      contextInfo:NULL];
-#if DBUS_KIT
-   if(dbusConnection != nil) {
-      [dbusMenu release];
-      [dbusConnection release];
-   }
-#endif
 }
 
 -(void)_documentController:(NSDocumentController *)docController didCloseAll:(BOOL)didCloseAll contextInfo:(void *)info
