@@ -11,7 +11,8 @@ LIBLIB= /Library/LaunchDaemons
 
 SYSDAEMONS=	com.apple.notifyd.json \
 		org.freebsd.devd.json \
-		org.freebsd.tty.json
+		org.freebsd.tty.json \
+                com.ravynos.WindowServer.json
 DAEMONS=
 
 all: clean build
