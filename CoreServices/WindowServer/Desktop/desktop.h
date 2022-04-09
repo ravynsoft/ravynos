@@ -26,6 +26,7 @@
 #define menuBarHeight 22
 #define menuBarVPad 2
 #define menuBarHPad 16
+#define SERVICE_NAME "com.ravynos.WindowServer"
 
 extern const NSString *PrefsWallpaperPathKey;
 extern const NSString *PrefsDateFormatStringKey;
@@ -51,6 +52,7 @@ extern const NSString *WLMenuDidUpdateNotification;
 }
 
 - (MenuView *)init;
+- (void)setWindow:(NSWindow *)window;
 - (void)setMenu:(NSMenu *)menu;
 @end
 
@@ -68,9 +70,14 @@ extern const NSString *WLMenuDidUpdateNotification;
 }
 
 - (MenuBarWindow *)init;
+- (void)setWindow:(NSWindow *)window;
 - (void)setMenu:(NSMenu *)menu forPID:(unsigned int)pid;
 - (void)removeMenuForPID:(unsigned int)pid;
 - (BOOL)activateMenuForPID:(unsigned int)pid;
+@end
+
+@interface NSWindow(WLWindow_private)
+- (void)setExclusiveZone:(uint32_t)pixels;
 @end
 
 // desktop wallpaper and context menu
@@ -80,6 +87,7 @@ extern const NSString *WLMenuDidUpdateNotification;
 }
 
 - (DesktopWindow *)init;
+- (id)platformWindow;
 - (void)updateBackground;
 - (MenuBarWindow *)menuBar;
 @end
@@ -87,10 +95,13 @@ extern const NSString *WLMenuDidUpdateNotification;
 
 // desktop interface controller
 @interface AppDelegate: NSObject {
+    mach_port_t _bootstrapPort;
+    mach_port_name_t _servicePort;
     DesktopWindow *desktop;
     MenuBarWindow *menuBar;
 }
 
+- (void)receiveMachMessage;
 - (void)screenDidResize:(NSNotification *)note;
 - (void)updateBackground;
 @end

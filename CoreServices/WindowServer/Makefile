@@ -1,23 +1,36 @@
 APP=	        WindowServer
-SRCS=           WindowServer.m
-RESOURCES=	${.CURDIR}/Icon.png ${.CURDIR}/ws.conf ravynos-mark-64.png
-
-MK_WERROR=	no
-WARNS=	        1
-CFLAGS+=	-g -fobjc-arc -I${.CURDIR} -I${MAKEOBJDIR} -framework Foundation \
-                -framework AppKit
-LDFLAGS+=	-framework Foundation -framework AppKit -Wl,-R'$$ORIGIN/../Resources' \
-                -lobjc -lmach -lwayland-client
-WLPROTOS=       ${.CURDIR}/wayland-protocols
-WLR_VER!=       grep version: ${.CURDIR}/wlroots/meson.build|sed -e '1s/[^0-9.]*//g;q'
-
-DESKTOP_SRC=    Desktop/desktop.m \
+SRCS=           WindowServer.m \
+                waybox/waybox/config.c \
+                waybox/waybox/cursor.c \
+                waybox/waybox/decoration.c \
+                waybox/waybox/layer_shell.c \
+                waybox/waybox/output.c \
+                waybox/waybox/seat.c \
+                waybox/waybox/server.c \
+                waybox/waybox/xdg_shell.c \
                 Desktop/AppDelegate.m \
                 Desktop/ClockView.m \
                 Desktop/MenuView.m \
                 Desktop/ExtrasView.m \
                 Desktop/DesktopWindow.m \
                 Desktop/MenuBarWindow.m
+RESOURCES=	${.CURDIR}/Icon.png ${.CURDIR}/ws.conf ravynos-mark-64.png
+
+MK_WERROR=	no
+WARNS=	        1
+CFLAGS_XML2!=   pkg-config --cflags libxml-2.0
+LDFLAGS_XML2!=  pkg-config --libs libxml-2.0
+CFLAGS+=	-g -fobjc-arc -I${.CURDIR} -I${.CURDIR}/waybox/include -I${MAKEOBJDIR} \
+		-I${.CURDIR}/wlroots/include -I${.CURDIR}/waybox/waybox \
+                -I${MAKEOBJDIR}/wlroots/include -DWLR_USE_UNSTABLE \
+                -I/usr/include/pixman-1 -I${MAKEOBJDIR}/wlroots/protocol/ \
+                ${CFLAGS_XML2} \
+                -framework Foundation -framework AppKit
+LDFLAGS+=	-Wl,-R'$$ORIGIN/../Resources' ${LDFLAGS_XML2} \
+		-L${MAKEOBJDIR}/wlroots -lwlroots \
+                -lobjc -lwayland-client -lwayland-server -lSystem -lxkbcommon -lseat
+WLPROTOS=       ${.CURDIR}/wayland-protocols
+WLR_VER!=       grep version: ${.CURDIR}/wlroots/meson.build|sed -e '1s/[^0-9.]*//g;q'
 
 build-wayland-protos:
 	cd ${WLPROTOS} && meson ${MAKEOBJDIR}/wayland-protocols
@@ -35,7 +48,6 @@ build-waybox:
 	cd ${.CURDIR}/waybox && PKG_CONFIG_PATH=${MAKEOBJDIR}/wayland-protocols:${MAKEOBJDIR}/wlroots \
                 meson ${MAKEOBJDIR}/waybox
 	ninja -C ${MAKEOBJDIR}/waybox
-	cp -fv ${MAKEOBJDIR}/waybox/waybox/waybox ${.CURDIR}/${APP_DIR}/Contents/Resources/
 
 clean-wlroots:
 	rm -rf ${MAKEOBJDIR}/wlroots
@@ -46,15 +58,8 @@ clean-waybox:
 clean-deps:
 	rm -f .depend.*
 
-clean-desktopd:
-	rm -f desktopd
-
-desktopd: ${DESKTOP_SRC}
-	${CC} -g -o ${MAKEOBJDIR}/${.TARGET} ${DESKTOP_SRC} -framework AppKit -lthr
-	cp -fv ${MAKEOBJDIR}/desktopd ${.CURDIR}/${APP_DIR}/Contents/Resources/
-
 .include <airyx.app.mk>
 
-${OBJS}: build-wlroots build-waybox desktopd
-clean: clean-wlroots clean-waybox clean-deps clean-desktopd
+${OBJS}: build-wlroots build-waybox
+clean: clean-wlroots clean-deps clean-waybox
 

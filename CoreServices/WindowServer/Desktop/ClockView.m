@@ -62,7 +62,7 @@ const NSString *defaultFormatEN = @"%a %b %d  %I:%M %p";
 
 - (void)dealloc {
     [updateTimer invalidate];
-    [super dealloc];
+    //[super dealloc];
 }
 
 - (void)update:(NSTimer *)timer {

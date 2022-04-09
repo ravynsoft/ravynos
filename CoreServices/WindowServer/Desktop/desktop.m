@@ -79,8 +79,8 @@ void menuListener(void *arg __unused) {
         }
 
         if(o == nil || [o isKindOfClass:[NSDictionary class]] == NO ||
-            [o objectForKey:@"MainMenu"] == nil || ![[o objectForKey:@"MainMenu"]
-            isKindOfClass:[NSMenu class]]) {
+            [(NSDictionary *)o objectForKey:@"MainMenu"] == nil ||
+            ![[(NSDictionary *)o objectForKey:@"MainMenu"] isKindOfClass:[NSMenu class]]) {
             fprintf(stderr, "archiver: bad input\n");
             continue;
         }
@@ -97,12 +97,21 @@ void menuListener(void *arg __unused) {
     }
 }
 
+void machSvcLoop(void *arg) {
+    AppDelegate *delegate = (__bridge AppDelegate *)arg;
+    while(1)
+        [delegate receiveMachMessage];
+}
+
 int main(int argc, const char *argv[]) {
     __NSInitializeProcess(argc, argv);
     [NSApplication sharedApplication];
 
     NSNotificationCenter *nctr = [NSNotificationCenter defaultCenter];
     AppDelegate *del = [AppDelegate new];
+    if(!del)
+        exit(1);
+
     [nctr addObserver:del selector:@selector(screenDidResize:)
         name:WLOutputDidResizeNotification object:nil];
     [nctr addObserver:del selector:@selector(menuDidUpdate:)
@@ -110,6 +119,9 @@ int main(int argc, const char *argv[]) {
 
     pthread_t menuThread;
     pthread_create(&menuThread, NULL, menuListener, NULL);
+
+    pthread_t machSvcThread;
+    pthread_create(&machSvcThread, NULL, machSvcLoop, (__bridge void *)del);
 
     [NSApp run];
     return 0;

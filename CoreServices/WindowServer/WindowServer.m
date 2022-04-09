@@ -21,18 +21,123 @@
  */
 
 #import <Foundation/Foundation.h>
+#import <AppKit/AppKit.h>
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
 #include <errno.h>
 #include <unistd.h>
+#include <signal.h>
 #include <sys/types.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
+#include <sys/un.h>
+#include <sys/ucred.h>
+#include <sys/socket.h>
+
+#include <Desktop/desktop.h>
+#include <waybox/server.h>
+
+#define SA_RESTART      0x0002  /* restart system call on signal return */
+
+struct wb_server server = {0};
+const NSString *WLOutputDidResizeNotification = @"WLOutputDidResizeNotification";
+const NSString *WLMenuDidUpdateNotification = @"WLMenuDidUpdateNotification";
+
+void menuListener(void *arg __unused) {
+    int conn;
+    struct xucred xucred;
+    struct sockaddr_un peer;
+    unsigned peerlen = 0;
+
+    struct sockaddr_un sun = {0, AF_UNIX, "/tmp/" SERVICE_NAME};
+    sun.sun_len = SUN_LEN(&sun);
+    int sock = socket(PF_UNIX, SOCK_STREAM, 0);
+    unlink(sun.sun_path);
+    if(bind(sock, (struct sockaddr *)&sun, sizeof(sun)) < 0) {
+        perror("bind");
+        return;
+    }
+    if(listen(sock, 6) < 0) {
+        perror("listen");
+        return;
+    }
+
+    while(1) {
+        conn = accept(sock, (struct sockaddr *)&peer, &peerlen);
+        unsigned credlen = sizeof(xucred);
+        memset(&xucred, 0, credlen);
+        if((getsockopt(conn, 0, LOCAL_PEERCRED, &xucred, &credlen) != 0) ||
+            credlen != sizeof(xucred) || xucred.cr_version != XUCRED_VERSION) {
+            perror("LOCAL_PEERCRED");
+            close(conn);
+            continue;
+        }
+        int bytes = 0;
+        char buf[16384];
+        NSMutableData *data = [NSMutableData new];
+        while((bytes = read(conn, buf, sizeof(buf))) > 0)
+            [data appendBytes:buf length:bytes];
+        close(conn);
+
+        NSObject *o = nil;
+        @try {
+            o = [NSKeyedUnarchiver unarchiveObjectWithData:data];
+        }
+        @catch(NSException *localException) {
+            NSLog(@"%@",localException);
+        }
+
+        if(o == nil || [o isKindOfClass:[NSDictionary class]] == NO ||
+            [(NSDictionary *)o objectForKey:@"MainMenu"] == nil ||
+            ![[(NSDictionary *)o objectForKey:@"MainMenu"] isKindOfClass:[NSMenu class]]) {
+            fprintf(stderr, "archiver: bad input\n");
+            continue;
+        }
+
+        NSMutableDictionary *md = [NSMutableDictionary new];
+        [md setDictionary:(NSDictionary *)o];
+        [md setObject:[NSNumber numberWithInt:xucred.cr_pid] forKey:@"ProcessID"];
+        [md setObject:[NSNumber numberWithInt:xucred.cr_uid] forKey:@"UserID"];
+        [md setObject:[NSNumber numberWithInt:xucred.cr_gid] forKey:@"GroupID"];
+        
+        [[NSNotificationCenter defaultCenter] 
+            postNotificationName:WLMenuDidUpdateNotification object:nil
+            userInfo:md];
+    }
+}
+
+void machSvcLoop(void *arg) {
+    AppDelegate *delegate = (__bridge AppDelegate *)arg;
+    while(1)
+        [delegate receiveMachMessage];
+}
+
+void signal_handler(int sig) {
+    switch (sig) {
+        case SIGINT:
+        case SIGTERM:
+            wl_display_terminate(server.wl_display);
+            break;
+        case SIGUSR1:
+            /* Openbox uses SIGUSR1 to restart. I'm not sure of the
+             * difference between restarting and reconfiguring.
+             */
+        case SIGUSR2:
+            deinit_config(server.config);
+            init_config(&server);
+            break;
+    }
+}
+
+enum ShellType {
+    NONE, LOGINWINDOW, DESKTOP
+};
 
 int main(int argc, const char *argv[]) {
-    BOOL shell = YES;
+    enum wlr_log_importance debuglevel = WLR_ERROR;
+    enum ShellType shell = LOGINWINDOW;
     __NSInitializeProcess(argc, argv);
 
     if(getenv("XDG_RUNTIME_DIR") == NULL) {
@@ -48,38 +153,93 @@ int main(int argc, const char *argv[]) {
         free(buf);
     }
 
-    NSString *exePath = [[NSBundle mainBundle] pathForResource:@"waybox" ofType:@""];
-    NSString *confPath = [[exePath stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"ws.conf"];
-    NSMutableArray *args = [NSMutableArray arrayWithArray:@[@"WindowServer", @"--config-file", confPath]];
+    NSString *confPath = [[NSBundle mainBundle] pathForResource:@"ws" ofType:@"conf"];
+    server.config_file = [confPath UTF8String];
 
-    while(getopt(argc, argv, "Lx") != -1) {
+    while(getopt(argc, argv, "Lxv") != -1) {
         switch(optopt) {
-            case 'L':
-                shell = NO;
-                [args addObject:@"-s"];
-                [args addObject:[[confPath stringByDeletingLastPathComponent]
-                    stringByAppendingPathComponent:@"LoginServer"]];
+            case 'L': // bypass loginwindow, run desktop for current user
+                shell = DESKTOP;
                 break;
-            case 'x':
-                shell = NO;
+            case 'x': // just run the compositor
+                shell = NONE;
+                break;
+            case 'v':
+                debuglevel = WLR_INFO;
                 break;
         }
     }
 
-    if(shell) {
-        [args addObject:@"-s"];
-        [args addObject:[[confPath stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"desktopd"]];
+    wlr_log_init(debuglevel, NULL);
+
+    int pfd[2];
+    if(pipe(pfd) != 0) {
+        wlr_log(WLR_ERROR, "Failed to create pipe");
+        exit(EXIT_FAILURE);
     }
 
-    char **_argv = (char **)malloc(sizeof(char *)*([args count]+1));
-    int i;
-    for(i = 0; i < [args count]; ++i) {
-        _argv[i] = strdup([[args objectAtIndex:i] UTF8String]);
-    }
-    _argv[i] = 0;
+    pid_t pid = fork();
+    if(pid == 0) {
+        close(pfd[0]);
+        if (wb_create_backend(&server)) {
+            wlr_log(WLR_INFO, "%s", _("Successfully created backend"));
+        } else {
+            wlr_log(WLR_ERROR, "%s", _("Failed to create backend"));
+            kill(getppid(), SIGTERM);
+            exit(EXIT_FAILURE);
+        }
 
-    execv([exePath UTF8String], _argv);
-    perror("execv");
-    return -1;
+        if (wb_start_server(&server)) {
+            wlr_log(WLR_INFO, "%s", _("Successfully started server"));
+        } else {
+            wlr_log(WLR_ERROR, "%s", _("Failed to start server"));
+            wb_terminate(&server);
+            kill(getppid(), SIGTERM);
+            exit(EXIT_FAILURE);
+        }
+
+        struct sigaction sa;
+        sigemptyset(&sa.sa_mask);
+        sa.sa_flags = SA_RESTART;
+        sa.sa_handler = signal_handler;
+        sigaction(SIGINT, &sa, NULL);
+        sigaction(SIGTERM, &sa, NULL);
+        sigaction(SIGUSR1, &sa, NULL);
+        sigaction(SIGUSR2, &sa, NULL);
+
+        write(pfd[1], "GO!", 4);
+        close(pfd[1]);
+        wl_display_run(server.wl_display);
+        wb_terminate(&server);
+        kill(getppid(), SIGTERM);
+        exit(0);
+    }
+
+    close(pfd[1]);
+    char buf[4];
+    while(read(pfd[0], buf, 4) != 4)
+        printf("waiting\n"); // block until display starts up
+    close(pfd[0]);
+    [NSApplication sharedApplication];
+    NSNotificationCenter *nctr = [NSNotificationCenter defaultCenter];
+    AppDelegate *del = [AppDelegate new];
+    if(!del)
+        exit(EXIT_FAILURE);
+
+    [nctr addObserver:del selector:@selector(screenDidResize:)
+        name:WLOutputDidResizeNotification object:nil];
+    [nctr addObserver:del selector:@selector(menuDidUpdate:)
+        name:WLMenuDidUpdateNotification object:nil];
+
+    pthread_t menuThread;
+    pthread_create(&menuThread, NULL, menuListener, NULL);
+
+    pthread_t machSvcThread;
+    pthread_create(&machSvcThread, NULL, machSvcLoop, (__bridge void *)del);
+
+    [NSApp run];
+    kill(pid, SIGTERM);
+    return 0;
 }
+
 

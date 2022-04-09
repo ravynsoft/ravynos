@@ -23,6 +23,14 @@
 #import <AppKit/AppKit.h>
 #import "desktop.h"
 
+@interface NSMenu(private)
+-(NSString *)_name;
+@end
+
+@interface NSMainMenuView(private)
+-(void)setWindow:(NSWindow *)window;
+@end
+
 @implementation MenuView
 - init {
     NSRect frame = [[NSScreen mainScreen] visibleFrame];

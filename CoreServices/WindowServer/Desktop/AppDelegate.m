@@ -22,8 +22,39 @@
 
 #import <AppKit/AppKit.h>
 #import "desktop.h"
+#import <servers/bootstrap.h>
+
+typedef struct {
+    mach_msg_header_t header;
+    char bodyStr[32];
+    int bodyInt;
+    mach_msg_trailer_t trailer;
+} Message;
 
 @implementation AppDelegate
+- (AppDelegate *)init {
+    desktop = nil;
+    menuBar = nil;
+
+    kern_return_t kr;
+    if((kr = bootstrap_check_in(bootstrap_port, SERVICE_NAME, &_servicePort) != KERN_SUCCESS)) {
+        NSLog(@"Failed to check-in service: %d", kr);
+        return nil;
+    }
+
+    return self;
+}
+
+- (void)receiveMachMessage {
+    Message msg = {0};
+    mach_msg_return_t result = mach_msg((mach_msg_header_t *)&msg, MACH_RCV_MSG, 0, sizeof(msg),
+        _servicePort, MACH_MSG_TIMEOUT_NONE, MACH_PORT_NULL);
+    if(result != MACH_MSG_SUCCESS)
+        NSLog(@"mach_msg receive error");
+    else
+        NSLog(@"received message\nid: %d\nstring: %s\nint: %d", msg.header.msgh_id,msg.bodyStr,msg.bodyInt);
+}
+
 - (void)screenDidResize:(NSNotification *)note {
     NSRect frame = [[NSScreen mainScreen] visibleFrame];
 
