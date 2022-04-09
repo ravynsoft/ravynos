@@ -170,6 +170,9 @@ int main(int argc, const char *argv[]) {
         }
     }
 
+    while(access("/var/run/windowserver", F_OK) != 0)
+        sleep(1);
+
     wlr_log_init(debuglevel, NULL);
 
     int pfd[2];
@@ -216,10 +219,10 @@ int main(int argc, const char *argv[]) {
     }
 
     close(pfd[1]);
-    char buf[4];
-    while(read(pfd[0], buf, 4) != 4)
-        printf("waiting\n"); // block until display starts up
+    char buf[8];
+    read(pfd[0], buf, 4);
     close(pfd[0]);
+
     [NSApplication sharedApplication];
     NSNotificationCenter *nctr = [NSNotificationCenter defaultCenter];
     AppDelegate *del = [AppDelegate new];

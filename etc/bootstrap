@@ -2,7 +2,7 @@
 echo -=- Bootstrap running -=-
 /sbin/zfs mount -a
 /sbin/zfs set readonly=off airyxOS/ROOT/default
-/bin/rm -f /var/run/nologin
+/bin/rm -f /var/run/nologin /var/run/windowserver
 if [ ! -d /private ]; then
     mkdir /private
 fi

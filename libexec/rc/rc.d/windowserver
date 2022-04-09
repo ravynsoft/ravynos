@@ -1,0 +1,26 @@
+#!/bin/sh
+#
+
+# PROVIDE: windowserver
+# REQUIRE: SERVERS
+# BEFORE:  LOGIN
+# KEYWORD: shutdown
+
+. /etc/rc.subr
+
+name="windowserver"
+desc="Start WindowServer LaunchDaemon at a safe point"
+start_cmd="windowserver_start"
+stop_cmd="windowserver_stop"
+
+windowserver_start()
+{
+	touch /var/run/windowserver
+}
+
+windowserver_stop()
+{
+}
+
+load_rc_config $name
+run_rc_command "$1"
