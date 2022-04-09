@@ -391,13 +391,13 @@ static Obj_Entry *map_macho_object(int fd, const char *path, const struct stat *
     int textseg = -1;
     int lowseg = -1; // first segment which is not __PAGEZERO
 
-    // We already mmapped PAGE_SIZE bytes of the file into *hdr
-    // so we can read the commands unless they exceed PAGE_SIZE
+    // We already mmapped 4*PAGE_SIZE bytes of the file into *hdr
+    // so we can read the commands unless they exceed 4*PAGE_SIZE
     offset = (ptrdiff_t)hdr;
     offset += sizeof(struct mach_header_64);
 
-    if(hdr->sizeofcmds + sizeof(struct mach_header_64) > PAGE_SIZE) {
-        _rtld_error("%s: commands exceed PAGE_SIZE (%d) bytes", path, PAGE_SIZE);
+    if(hdr->sizeofcmds + sizeof(struct mach_header_64) > 4*PAGE_SIZE) {
+        _rtld_error("%s: commands exceed 4*PAGE_SIZE (%d) bytes", path, 4*PAGE_SIZE);
         return NULL;
     }
 
@@ -688,7 +688,7 @@ static Obj_Entry *map_macho_object(int fd, const char *path, const struct stat *
 // 	digest_notes(obj, note_start, note_end);
 //     if (note_map != NULL)
 // 	munmap(note_map, note_map_len);
-    munmap(hdr, PAGE_SIZE);
+    munmap(hdr, 4*PAGE_SIZE);
     dbg("%s: base %p sz %lx vbase %lx tsz %lx entry %p reloc %p",
         path, obj->mapbase, obj->mapsize, obj->vaddrbase, obj->textsize,
         obj->entry, obj->relocbase);
@@ -697,7 +697,7 @@ static Obj_Entry *map_macho_object(int fd, const char *path, const struct stat *
 error1:
     munmap(mapbase, mapsize);
 error:
-    munmap(hdr, PAGE_SIZE);
+    munmap(hdr, 4*PAGE_SIZE);
     return (NULL);
 }
 
@@ -800,7 +800,7 @@ static struct mach_header_64 *get_macho_header(int fd, const char *path, const s
 		return (NULL);
 	}
 
-	hdr = mmap(NULL, PAGE_SIZE, PROT_READ, MAP_PRIVATE | MAP_PREFAULT_READ,
+	hdr = mmap(NULL, 4*PAGE_SIZE, PROT_READ, MAP_PRIVATE | MAP_PREFAULT_READ,
 	    fd, 0);
 	if (hdr == MAP_FAILED) {
 		_rtld_error("%s: read error: %s", path, rtld_strerror(errno));
@@ -832,7 +832,7 @@ static struct mach_header_64 *get_macho_header(int fd, const char *path, const s
 	return (hdr);
 
 error:
-	munmap(hdr, PAGE_SIZE);
+	munmap(hdr, 4*PAGE_SIZE);
 	return (NULL);
 }
 
