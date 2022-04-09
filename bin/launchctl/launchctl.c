@@ -1,6 +1,6 @@
 /*+
  * Copyright 2015 iXsystems, Inc.
- * Copyright 2021-2022 Zoe Knox <zoe@pixin.net> for the Airyx Project
+ * Copyright 2021-2022 Zoe Knox <zoe@pixin.net> 
  * All rights reserved
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,6 +51,7 @@
 #include <termios.h>
 #include <libutil.h>
 #include <pwd.h>
+#include <bootstrap.h>
 #include "vproc.h"
 #include "vproc_priv.h"
 #include "vproc_internal.h"
@@ -68,6 +69,7 @@ static json_t *launch_msg_json(json_t *msg);
 static int load_job(const char *filename);
 
 static int cmd_start_stop(int argc, char * const argv[]);
+static int cmd_bslist(int argc, char * const argv[]);
 static int cmd_bootstrap(int argc, char * const argv[]);
 static int cmd_load(int argc, char * const argv[]);
 static int cmd_remove(int argc, char * const argv[]);
@@ -75,6 +77,8 @@ static int cmd_list(int argc, char * const argv[]);
 static int cmd_dump(int argc, char * const argv[]);
 static int cmd_log(int argc, char * const argv[]);
 static int cmd_help(int argc, char * const argv[]);
+
+kern_return_t vproc_mig_get_root_bootstrap(mach_port_t bp, mach_port_t *rootbp);
 
 mach_port_t bootstrap_port;
 
@@ -88,6 +92,7 @@ static const struct {
 	{ "load",	cmd_load,	"Load a plist" },
 	{ "remove",	cmd_remove, 	"Remove specified job" },
 	{ "bootstrap",	cmd_bootstrap,	"Bootstrap launchd" },
+        { "bslist",     cmd_bslist,     "List registered Mach services" },
 	{ "list",	cmd_list,	"List jobs and information about jobs" },
 	{ "dump",	cmd_dump,       "Dumps job(s) plist(s)"},
 	{ "log",	cmd_log,	"Adjust logging level of launchd"},
@@ -717,6 +722,61 @@ cmd_bootstrap(int argc, char * const argv[])
 		}
 	}
 	return (0);
+}
+
+static int
+cmd_bslist(int argc, char * const argv[])
+{
+    kern_return_t kr;
+    name_array_t svc_names;
+    name_array_t svr_names;
+    bool_array_t svc_active;
+    int svc_name_cnt, svr_name_cnt, act_cnt;
+    int ch;
+    int verbose = 0;
+
+    mach_port_t bp = bootstrap_port;
+    if(getuid() == 0) {
+        kr = vproc_mig_get_root_bootstrap(bootstrap_port, &bp);
+        if(bp == MACH_PORT_NULL)
+            bp = bootstrap_port;
+    }
+
+    kr = bootstrap_info(bp,
+        &svc_names, &svc_name_cnt,
+        &svr_names, &svr_name_cnt,
+        &svc_active, &act_cnt, 0);
+    if(kr != KERN_SUCCESS) {
+        printf("%s\n", bootstrap_strerror(kr));
+        return -1;
+    }
+
+    if(act_cnt <= 0)
+        return 0;
+
+    while((ch = getopt(argc, __DECONST(char **, argv), "v")) != -1) {
+        switch (ch) {
+            case 'v':
+                verbose = 1;
+                break;
+            default:
+                break;
+        }
+    }
+
+    optind = 1;
+    optreset = 1;
+
+    for(int i=0; i<act_cnt; ++i) {
+        printf("%s  %s%s%s%s\n",
+            svc_active[i] ? "A" : "I",  // FIXME: handle D (on demand)
+            svc_names[i] ? svc_names[i] : "-",
+            verbose ? " (" : "",
+            verbose ? (svr_names[i] ? svr_names[i] : "-") : "",
+            verbose ? ")" : "");
+    }
+    printf("\n");
+    return 0;
 }
 
 static int
