@@ -423,7 +423,7 @@ id NSApp=nil;
 
     mach_port_t wsPort;
     NSLog(@"bp=%d, looking up service %s", bootstrap_port, WINDOWSERVER_SVC_NAME);
-    if(bootstrap_look_up_per_user(bootstrap_port, WINDOWSERVER_SVC_NAME, getuid(), &wsPort) != KERN_SUCCESS) {
+    if(bootstrap_look_up(bootstrap_port, WINDOWSERVER_SVC_NAME, &wsPort) != KERN_SUCCESS) {
         NSLog(@"Failed to locate WindowServer port");
         return;
     }

@@ -1299,7 +1299,7 @@ ipc_right_copyin_check(
 
 		if (port == NULL)
 			return (FALSE);
-		if (port->ip_receiver != space)
+		if ((msgt_name != MACH_MSG_TYPE_MOVE_SEND_ONCE) && (port->ip_receiver != space))
 			return (FALSE);
 
 		if ((bits & MACH_PORT_TYPE_SEND_RIGHTS) == 0)
