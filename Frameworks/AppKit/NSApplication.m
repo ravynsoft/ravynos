@@ -62,11 +62,19 @@ NSString * const NSApplicationWillTerminateNotification=@"NSApplicationWillTermi
 NSString * const NSApplicationDidChangeScreenParametersNotification=@"NSApplicationDidChangeScreenParametersNotification";
 
 #define WINDOWSERVER_SVC_NAME "com.ravynos.WindowServer"
+#define MSG_ID_PORT     90210
+#define MSG_ID_INLINE   90211
 typedef struct {
     mach_msg_header_t header;
-    char bodyStr[32];
-    int bodyInt;
+    unsigned char data[1024];
+    unsigned int len;
 } Message;
+
+typedef struct {
+    mach_msg_header_t header;
+    mach_msg_size_t msgh_descriptor_count;
+    mach_msg_port_descriptor_t descriptor;
+} PortMessage;
 
 @interface NSDocumentController(forward) 
 -(void)_updateRecentDocumentsMenu; 
@@ -144,11 +152,12 @@ id NSApp=nil;
    // Create a port with send/receive rights that WindowServer will use
    // to invoke our menu actions
    mach_port_t task = mach_task_self();
-   if(mach_port_allocate(task, MACH_PORT_RIGHT_RECEIVE, &_wsDescriptor) != KERN_SUCCESS ||
-    mach_port_insert_right(task, _wsDescriptor, _wsDescriptor, MACH_MSG_TYPE_MAKE_SEND) != KERN_SUCCESS) {
-    NSLog(@"Failed to allocate mach_port _wsDescriptor");
+   if(mach_port_allocate(task, MACH_PORT_RIGHT_RECEIVE, &_wsReplyPort) != KERN_SUCCESS ||
+    mach_port_insert_right(task, _wsReplyPort, _wsReplyPort, MACH_MSG_TYPE_MAKE_SEND) != KERN_SUCCESS) {
+    NSLog(@"Failed to allocate mach_port _wsReplyPort");
     exit(1);
    }
+   _wsSvcPort = MACH_PORT_NULL;
  
    _dockTile=[[NSDockTile alloc] initWithOwner:self];
    _modalStack=[NSMutableArray new];
@@ -160,6 +169,11 @@ id NSApp=nil;
    [self _showSplashImage];
    
    return NSApp;
+}
+
+-(void)dealloc {
+    mach_port_deallocate(mach_task_self(),_wsReplyPort);
+    [super dealloc];
 }
 
 -(NSGraphicsContext *)context {
@@ -404,11 +418,12 @@ id NSApp=nil;
     [self _menuEnumerateAndChange:menuCopy];
 
     NSDictionary *dict = [NSDictionary
-        dictionaryWithObjects:@[menuCopy,[NSNumber numberWithInt:_wsDescriptor]]
-        forKeys:@[@"MainMenu",@"WSDescriptor"]];
+        dictionaryWithObjects:@[menuCopy]
+        forKeys:@[@"MainMenu"]];
 
     NSData *d = [NSKeyedArchiver archivedDataWithRootObject:dict];
 
+    // this is a hack since mach OOL can be a bit flaky
     struct sockaddr_un sun = {0, AF_UNIX, "/tmp/" WINDOWSERVER_SVC_NAME};
     sun.sun_len = SUN_LEN(&sun);
     int sock = socket(PF_UNIX, SOCK_STREAM, 0);
@@ -421,26 +436,28 @@ id NSApp=nil;
     [menuCopy release];
     [d release];
 
-    mach_port_t wsPort;
-    NSLog(@"bp=%d, looking up service %s", bootstrap_port, WINDOWSERVER_SVC_NAME);
-    if(bootstrap_look_up(bootstrap_port, WINDOWSERVER_SVC_NAME, &wsPort) != KERN_SUCCESS) {
-        NSLog(@"Failed to locate WindowServer port");
-        return;
+    if(_wsSvcPort == MACH_PORT_NULL) {
+        //NSLog(@"bp=%d, looking up service %s", bootstrap_port, WINDOWSERVER_SVC_NAME);
+        if(bootstrap_look_up(bootstrap_port, WINDOWSERVER_SVC_NAME, &_wsSvcPort) != KERN_SUCCESS) {
+            NSLog(@"Failed to locate WindowServer port");
+            return;
+        }
+        //NSLog(@"got service port %d", _wsSvcPort);
     }
-    NSLog(@"got service port %d", wsPort);
 
-    Message msg = {0};
-    msg.header.msgh_remote_port = wsPort;
-    msg.header.msgh_bits = MACH_MSGH_BITS_SET(MACH_MSG_TYPE_COPY_SEND, 0, 0, 0);
-    msg.header.msgh_id = 123;
+    PortMessage msg = {0};
+    msg.header.msgh_remote_port = _wsSvcPort;
+    msg.header.msgh_bits = MACH_MSGH_BITS_SET(MACH_MSG_TYPE_COPY_SEND, 0, 0, MACH_MSGH_BITS_COMPLEX);
+    msg.header.msgh_id = MSG_ID_PORT;
     msg.header.msgh_size = sizeof(msg);
-    strcpy(msg.bodyStr, "Hello");
-    msg.bodyInt = _wsDescriptor;
+    msg.msgh_descriptor_count = 1;
+    msg.descriptor.type = MACH_MSG_PORT_DESCRIPTOR;
+    msg.descriptor.name = _wsReplyPort;
+    msg.descriptor.disposition = MACH_MSG_TYPE_MAKE_SEND;
 
     if(mach_msg((mach_msg_header_t *)&msg, MACH_SEND_MSG, sizeof(msg), 0, MACH_PORT_NULL,
         MACH_MSG_TIMEOUT_NONE, MACH_PORT_NULL) != MACH_MSG_SUCCESS)
-        NSLog(@"Failed to send test message to WS");
-    NSLog(@"sent test message");
+        NSLog(@"Failed to send port message to WS");
 }
 
 -(void)setMenu:(NSMenu *)menu {

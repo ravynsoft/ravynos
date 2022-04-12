@@ -77,7 +77,8 @@ typedef enum {
     NSWindow *_mainWindow;
     NSMenu *_mainMenu;
     NSMenu *_windowsMenu;
-    int _wsDescriptor;
+    mach_port_t _wsReplyPort;
+    mach_port_t _wsSvcPort;
 
     NSImage *_applicationIconImage;
 

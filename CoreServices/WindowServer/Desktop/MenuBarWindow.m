@@ -34,6 +34,7 @@
     menuView = [MenuView new];
     extrasView = [ExtrasView new];
     menuDict = [NSMutableDictionary new];
+    _menuPort = MACH_PORT_NULL;
 
     [self addSubview:menuView];
     [self addSubview:extrasView];
@@ -42,6 +43,25 @@
 
     return self;
 }
+
+- (void)setPort:(mach_port_t)port forMenu:(NSMenu *)menu {
+    [menuDict setObject:[NSNumber numberWithInt:port] forKey:menu];
+}
+
+- (void)removePortForMenu:(NSMenu *)menu {
+    mach_port_t port = [self portForMenu:menu];
+    if(port != MACH_PORT_NULL)
+        mach_port_deallocate(mach_task_self(), port);
+    [menuDict removeObjectForKey:menu];
+}
+
+- (mach_port_t)portForMenu:(NSMenu *)menu {
+    NSNumber *numPort = [menuDict objectForKey:menu];
+    if(!numPort)
+        return MACH_PORT_NULL;
+    return [numPort intValue];
+}
+
 - (void)setMenu:(NSMenu *)menu forPID:(unsigned int)pid {
     [menuDict setObject:menu forKey:[NSNumber numberWithInt:pid]];
 }
@@ -52,8 +72,10 @@
 
 - (BOOL)activateMenuForPID:(unsigned int)pid {
     NSMenu *menu = [menuDict objectForKey:[NSNumber numberWithInt:pid]];
-    if(menu) {
+    mach_port_t port = [self portForMenu:menu];
+    if(menu && port != MACH_PORT_NULL) {
         [menuView setMenu:menu];
+        _menuPort = port;
         return YES;
     }
     return NO;

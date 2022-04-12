@@ -24,12 +24,27 @@
 #import "desktop.h"
 #import <servers/bootstrap.h>
 
+#define MSG_ID_PORT 90210
+#define MSG_ID_INLINE 90211
+
 typedef struct {
     mach_msg_header_t header;
-    char bodyStr[32];
-    int bodyInt;
+    mach_msg_size_t msgh_descriptor_count;
+    mach_msg_port_descriptor_t descriptor;
+    mach_msg_trailer_t trailer;
+} PortMessage;
+
+typedef struct {
+    mach_msg_header_t header;
+    unsigned char data[32];
+    unsigned int len;
     mach_msg_trailer_t trailer;
 } Message;
+
+typedef union {
+    PortMessage portMsg;
+    Message msg;
+} ReceiveMessage;
 
 @implementation AppDelegate
 - (AppDelegate *)init {
@@ -46,13 +61,23 @@ typedef struct {
 }
 
 - (void)receiveMachMessage {
-    Message msg = {0};
+    ReceiveMessage msg = {0};
     mach_msg_return_t result = mach_msg((mach_msg_header_t *)&msg, MACH_RCV_MSG, 0, sizeof(msg),
         _servicePort, MACH_MSG_TIMEOUT_NONE, MACH_PORT_NULL);
     if(result != MACH_MSG_SUCCESS)
         NSLog(@"mach_msg receive error");
-    else
-        NSLog(@"received message\nid: %d\nstring: %s\nint: %d", msg.header.msgh_id,msg.bodyStr,msg.bodyInt);
+    else {
+        switch(msg.msg.header.msgh_id) {
+            case MSG_ID_PORT:
+            {
+                mach_port_t port = msg.portMsg.descriptor.name;
+                // FIXME: save port for menu/PID
+                break;
+            }
+            case MSG_ID_INLINE:
+                break;
+        }
+    }
 }
 
 - (void)screenDidResize:(NSNotification *)note {

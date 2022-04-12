@@ -22,6 +22,8 @@
 
 #pragma once
 #import <AppKit/NSMainMenuView.h>
+#import <AppKit/NSMenu.h>
+#import <mach/mach.h>
 
 #define menuBarHeight 22
 #define menuBarVPad 2
@@ -67,10 +69,14 @@ extern const NSString *WLMenuDidUpdateNotification;
     ExtrasView *extrasView;
     ClockView *clockView;
     NSMutableDictionary *menuDict;
+    mach_port_t _menuPort;
 }
 
 - (MenuBarWindow *)init;
 - (void)setWindow:(NSWindow *)window;
+- (void)setPort:(mach_port_t)port forMenu:(NSMenu *)menu;
+- (void)removePortForMenu:(NSMenu *)menu;
+- (mach_port_t)portForMenu:(NSMenu *)menu;
 - (void)setMenu:(NSMenu *)menu forPID:(unsigned int)pid;
 - (void)removeMenuForPID:(unsigned int)pid;
 - (BOOL)activateMenuForPID:(unsigned int)pid;
